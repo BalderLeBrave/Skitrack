@@ -1,0 +1,65 @@
+# Enrichissement manuel des domaines français.
+#
+# POURQUOI CE FICHIER EXISTE
+# --------------------------
+# Le dump OpenSkiMap est excellent sur ce qu'OpenStreetMap sait décrire
+# (géométrie, altitudes de pistes, remontées) et muet sur le reste. Mesuré sur
+# le dump du 2026-08-11, côté France : 288 domaines alpins en exploitation, dont
+# seulement 12 portent une information de neige de culture, aucun ne porte
+# d'altitude de village, de date de saison ni d'URL de réservation.
+#
+# Plutôt que de laisser l'app inventer ces valeurs, elles se saisissent ici.
+# Toute clé présente écrase la valeur importée et marque le domaine `curated`,
+# ce qui l'affiche « vérifié » dans l'UI et le protège des ré-imports.
+#
+# COMMENT AJOUTER UN DOMAINE
+# --------------------------
+# La clé est le `source_id` OpenSkiMap (SHA1, stable) ou, plus commodément, le
+# slug affiché dans l'UI. Le champ `match` lève l'ambiguïté :
+#
+#   - match: {slug: "les-deux-alpes"}
+#     glacier: true
+#     altitude_village_m: 1650
+#
+# Toutes les clés sont optionnelles. `notes` est libre et s'affiche sur la fiche.
+#
+# Les quelques entrées ci-dessous sont des exemples renseignés à partir des
+# informations publiques des exploitants ; vérifiez-les avant de vous en servir
+# pour décider d'un séjour, et complétez au fil de vos recherches.
+
+version: 1
+
+domains:
+  - match: {slug: "les-deux-alpes"}
+    name: "Les 2 Alpes"
+    glacier: true
+    altitude_village_m: 1650
+    official_booking_url: "https://reservation.les2alpes.com/"
+    notes: >-
+      Glacier skiable jusqu'à 3600 m, ouverture d'été. Liaison possible avec
+      La Grave (forfait séparé) — non fusionnée dans OpenSkiMap.
+
+  - match: {slug: "alpe-d-huez-grand-domaine"}
+    glacier: true
+    altitude_village_m: 1860
+    notes: "Glacier de Sarenne. Bas de domaine à Allemont/Oz possible selon l'enneigement."
+
+  - match: {slug: "tignes-val-d-isere"}
+    glacier: true
+    altitude_village_m: 1550
+    linked_pass_name: "Espace Killy"
+
+  - match: {slug: "val-thorens-orelle"}
+    altitude_village_m: 2300
+    linked_pass_name: "Les 3 Vallées"
+    notes: >-
+      Le bas de domaine calculé par OpenSkiMap (~1730 m) reflète la couverture
+      OSM des pistes, pas la descente sur Orelle (~900 m par le téléphérique).
+      Exemple typique de valeur à vérifier avant de filtrer dessus.
+
+  - match: {slug: "la-plagne"}
+    glacier: true
+    linked_pass_name: "Paradiski"
+
+  - match: {slug: "les-arcs"}
+    linked_pass_name: "Paradiski"

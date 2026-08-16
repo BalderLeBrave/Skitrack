@@ -1,0 +1,515 @@
+/**
+ * Sélecteurs dérivés de l'état.
+ *
+ * Tout ce que plusieurs écrans recalculent — le groupe actif, la semaine
+ * choisie, le score d'un domaine, le coût complet d'une offre — est dérivé ici
+ * une fois, et partagé par contexte. La dérivation est faite **au-dessus** de
+ * l'arbre plutôt que dans chaque composant : une quarantaine de vignettes de
+ * domaines appellent `useDerived`, et calculer la grille des combinaisons
+ * quarante fois à chaque mouvement de curseur rendrait les filtres poussifs.
+ *
+ * Le référentiel complet compte 277 domaines et chacun porte une quinzaine
+ * d'offres : les résultats coûteux par domaine (trajet, score, forfait) sont
+ * mémoïsés dans la passe de dérivation, sinon les écrans Offres et
+ * Combinaisons recalculeraient le même trajet quinze fois de suite.
+ */
+
+import { createContext, useContext, useMemo } from 'react'
+import type { ReactNode } from 'react'
+import type { Lodging } from '@/data/lodgings'
+import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
+import type { Domain, Forfait } from '@/data/referentiel'
+import { estimateForfait, forfaitIndexBySlug } from '@/data/referentiel'
+import type { Week } from '@/data/snow'
+import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
+import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
+import { activeOrigins, adultsCount, esfRate, kidsCount, lessonIndex, sejourCost, splitRows, tripCost } from '@/domain/costs'
+import { dur as durFmt, nightsBetween, slug } from '@/domain/format'
+import type { Origin, Travel } from '@/domain/travel'
+import { originsOf, travelOf, worstDistance, worstTravel } from '@/domain/travel'
+import type { Score } from '@/domain/scoring'
+import { scoreOf } from '@/domain/scoring'
+import { useApp } from './appState'
+
+/** Normalise une chaîne pour la recherche : minuscules, sans accents ni espaces
+ *  superflus. « Les 2 Alpes » et « les 2 alpes » deviennent comparables. */
+function fold(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+/** Tarif de forfait, avec l'information de savoir s'il a été relevé. */
+export type ResolvedForfait = Partial<Forfait> & { estimated: boolean }
+
+export interface ComboCell {
+  week: Week
+  total: number
+  lodging: number
+}
+
+export interface ComboRow {
+  d: Domain
+  best: { l: Lodging; c: SejourCost }
+  cells: ComboCell[]
+  min: number
+}
+
+export interface ComboGrid {
+  rows: ComboRow[]
+  lo: number
+  hi: number
+}
+
+export interface BestOffer {
+  d: Domain
+  l: Lodging
+  c: SejourCost
+  /** Nombre d'offres écartées, plus chères, sur le même domaine. */
+  alt: number
+}
+
+export interface DecisionContext {
+  d: Domain
+  w: Week
+  lg: Lodging
+  nights: number
+  cost: SejourCost
+}
+
+export interface Derived {
+  origins: Origin[]
+  /** Foyers qui partent réellement : ceux auxquels un voyageur est rattaché. */
+  hh: Origin[]
+  /** `true` dès qu'un foyer a une adresse géocodée. */
+  hasOrigin: boolean
+  nights: number
+  week: Week | undefined
+  /** Écart de prix national de la semaine choisie. */
+  weekFactor: number
+  adults: number
+  kids: number
+  forfaitOf: (d: Domain) => ResolvedForfait
+  travelOf: (d: Domain, o: Origin) => Travel
+  worstTravel: (d: Domain) => number | null
+  worstDistance: (d: Domain) => number | null
+  travelText: (d: Domain) => string
+  scoreOf: (d: Domain) => Score
+  /** Distance à vol d'oiseau depuis la commune cherchée, en km. */
+  geoDistance: (d: Domain) => number | null
+  matchesFilters: (d: Domain) => boolean
+  filtered: Domain[]
+  lodgingsFor: (d: Domain, pers?: number, nights?: number) => Lodging[]
+  sejourInputs: (d: Domain) => SejourInputs
+  sejourCost: (lodging: Pick<Lodging, 'total'>, d: Domain) => SejourCost
+  esfOf: (d: Domain) => ReturnType<typeof esfRate>
+  lessonIndexOf: (d: Domain) => number
+  bestOffers: BestOffer[]
+  comboGrid: ComboGrid
+  decisionCtx: DecisionContext | null
+  split: Split | null
+  /** Domaine dont on consulte les logements, avec repli sur le premier. */
+  lodgDomain: Domain | null
+  lodgAll: Lodging[]
+  lodgList: Lodging[]
+  /** Annonces du domaine écartées par les filtres. Sert à le dire à l'écran
+   *  plutôt que d'afficher une liste vide sans raison. */
+  lodgHidden: number
+  dupMerged: number
+  voteScore: (key: string) => number
+  voteOf: (key: string, index: number) => number
+  comboKey: (domainId: number, weekArr: string) => string
+}
+
+/** Au-delà, les écrans Offres et Combinaisons deviennent illisibles et le
+ *  calcul complet de chaque domaine ne se justifie plus. */
+const MAX_COMPARED_DOMAINS = 60
+
+const DerivedContext = createContext<Derived | null>(null)
+
+export function useDerived(): Derived {
+  const ctx = useContext(DerivedContext)
+  if (!ctx) throw new Error('useDerived doit être utilisé dans DerivedProvider')
+  return ctx
+}
+
+export function DerivedProvider({ children }: { children: ReactNode }): JSX.Element {
+  const { state, ref, domains } = useApp()
+
+  const value = useMemo<Derived>(() => {
+    const origins = originsOf(state.places)
+    const hh = activeOrigins(state.people, origins)
+    const hasOrigin = hh.some((o) => o.lat != null && o.lon != null)
+    const nights = nightsBetween(state.arrDate, state.depDate)
+    const week = weekByArrival(state.arrDate)
+    const weekFactor = week ? week.f : 0
+    const adults = state.people.length ? adultsCount(state.people) : Math.max(1, state.travelers - state.children)
+    const kids = state.people.length ? kidsCount(state.people) : state.children
+
+    const forfaitIndex = forfaitIndexBySlug(ref, slug)
+
+    // --- Caches par domaine, valables le temps de cette dérivation ---------
+    const forfaitCache = new Map<number, ResolvedForfait>()
+    const travelCache = new Map<number, number | null>()
+    const distCache = new Map<number, number | null>()
+    const scoreCache = new Map<number, Score>()
+    const tripCache = new Map<number, TripCost>()
+
+    const forfaitOf = (d: Domain): ResolvedForfait => {
+      const hit = forfaitCache.get(d.id)
+      if (hit) return hit
+      const value = forfaitIndex.get(d.slug) ?? estimateForfait(d.km, d.max)
+      forfaitCache.set(d.id, value)
+      return value
+    }
+
+    const travel = (d: Domain, o: Origin): Travel => travelOf(d, o, state.routes)
+
+    const worst = (d: Domain): number | null => {
+      if (travelCache.has(d.id)) return travelCache.get(d.id) ?? null
+      const value = worstTravel(d, hh, state.routes)
+      travelCache.set(d.id, value)
+      return value
+    }
+
+    const worstDist = (d: Domain): number | null => {
+      if (distCache.has(d.id)) return distCache.get(d.id) ?? null
+      const value = worstDistance(d, hh, state.routes)
+      distCache.set(d.id, value)
+      return value
+    }
+
+    const travelText = (d: Domain): string => {
+      const parts = hh
+        .map((o) => {
+          const t = travel(d, o)
+          // La langue vient de l'état plutôt que d'un crochet : cette
+          // dérivation est une closure de `useMemo`, pas un composant.
+          return t.dur == null ? null : `${o.short} ${durFmt(t.dur, state.lang)}`
+        })
+        .filter((s): s is string => s !== null)
+      return parts.length ? parts.join(' · ') : 'aucune adresse de départ'
+    }
+
+    const score = (d: Domain): Score => {
+      const hit = scoreCache.get(d.id)
+      if (hit) return hit
+      const f = forfaitOf(d)
+      const value = scoreOf(d, {
+        travelMin: worst(d),
+        forfait: f,
+        forfaitEstimated: f.estimated,
+        weights: state.weights
+      })
+      scoreCache.set(d.id, value)
+      return value
+    }
+
+    /**
+     * Distance à vol d'oiseau depuis la commune cherchée.
+     *
+     * Haversine plutôt qu'un itinéraire : le classement doit être instantané à
+     * chaque frappe, et sur ce trajet-là l'ordre à vol d'oiseau et l'ordre
+     * routier ne diffèrent qu'à la marge. Le temps de trajet réel reste
+     * disponible, calculé une fois, dans la colonne « Trajet ».
+     */
+    const geoDistance = (d: Domain): number | null => {
+      const g = state.geo
+      if (!g || d.lat == null || d.lon == null) return null
+      const toRad = (deg: number): number => (deg * Math.PI) / 180
+      const dLat = toRad(d.lat - g.lat)
+      const dLon = toRad(d.lon - g.lon)
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(g.lat)) * Math.cos(toRad(d.lat)) * Math.sin(dLon / 2) ** 2
+      return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(a)))
+    }
+
+    const matchesFilters = (d: Domain): boolean => {
+      // Recherche texte : nom, région ou massif. Insensible à la casse et aux
+      // accents, pour que « les 2 alpes » trouve « Les 2 Alpes ».
+      if (state.domainQuery.trim()) {
+        const needle = fold(state.domainQuery)
+        const haystack = fold(`${d.name} ${d.region ?? ''} ${d.massif ?? ''}`)
+        if (!haystack.includes(needle)) return false
+      }
+      if (state.altMin !== 0 && d.min < state.altMin) return false
+      if (state.altMax !== 0 && d.max < state.altMax) return false
+      if (state.kmMin !== 0 && d.km < state.kmMin) return false
+      if (state.massifs.length > 0 && !state.massifs.includes(d.massif)) return false
+      if (state.glacier && !d.glacier) return false
+      if (state.linked && !d.pass) return false
+      // Un filtre de trajet ne peut pas s'appliquer sans adresse de départ :
+      // il est ignoré plutôt que de vider la liste sans explication.
+      if (state.travelMax !== 0) {
+        const t = worst(d)
+        if (t != null && t > state.travelMax) return false
+      }
+      if (state.distMax !== 0) {
+        const km = worstDist(d)
+        if (km != null && km > state.distMax) return false
+      }
+      // Un tarif estimé ne peut pas justifier d'écarter un domaine.
+      if (state.forfaitMax !== 0) {
+        const f = forfaitOf(d)
+        if (f.estimated || f.j6 == null || f.j6 > state.forfaitMax) return false
+      }
+      return true
+    }
+
+    /** Les valeurs absentes passent en fin de tri, jamais en tête. */
+    const nullsLast = (a: number | null, b: number | null): number => {
+      if (a == null && b == null) return 0
+      if (a == null) return 1
+      if (b == null) return -1
+      return a - b
+    }
+
+    const comparators: Record<string, (a: Domain, b: Domain) => number> = {
+      relevance: (a, b) => score(b).total - score(a).total,
+      forfait_asc: (a, b) => (forfaitOf(a).j6 ?? 1e9) - (forfaitOf(b).j6 ?? 1e9),
+      altitude_min_desc: (a, b) => b.min - a.min,
+      altitude_max_desc: (a, b) => b.max - a.max,
+      altitude_max_asc: (a, b) => a.max - b.max,
+      slopes_km_desc: (a, b) => b.km - a.km,
+      slopes_km_asc: (a, b) => a.km - b.km,
+      travel_time_asc: (a, b) => nullsLast(worst(a), worst(b)),
+      name_asc: (a, b) => a.name.localeCompare(b.name, 'fr'),
+      name_desc: (a, b) => b.name.localeCompare(a.name, 'fr'),
+      // Tri par région (puis nom, pour que chaque région soit ordonnée A→Z en
+      // interne plutôt que dans un ordre arbitraire).
+      region_asc: (a, b) =>
+        (a.region || '').localeCompare(b.region || '', 'fr') || a.name.localeCompare(b.name, 'fr')
+    }
+
+    // Une commune cherchée prend le pas sur le tri choisi : c'est ce que
+    // l'utilisateur vient de demander, et l'écran le dit en toutes lettres avec
+    // un bouton pour retirer le classement.
+    const order = state.geo
+      ? (a: Domain, b: Domain): number => nullsLast(geoDistance(a), geoDistance(b))
+      : (comparators[state.sort] ?? comparators.relevance)
+    let filtered = [...domains.filter(matchesFilters)].sort(order)
+    // Un domaine cliqué sur la carte remonte en tête même s'il ne passe pas les
+    // filtres : sinon le clic n'a aucun effet visible et paraît cassé.
+    if (state.pinnedId != null) {
+      const pinned = domains.find((d) => d.id === state.pinnedId)
+      if (pinned) filtered = [pinned, ...filtered.filter((d) => d.id !== state.pinnedId)]
+    }
+
+    const esfOf = (d: Domain): ReturnType<typeof esfRate> => esfRate(d.id, forfaitOf(d), state.esfRates)
+    const lessonIndexOf = (d: Domain): number => lessonIndex(forfaitOf(d))
+
+    const tripOf = (d: Domain): TripCost => {
+      const hit = tripCache.get(d.id)
+      if (hit) return hit
+      const value = tripCost(d, hh, state.routes, state.avoidTolls)
+      tripCache.set(d.id, value)
+      return value
+    }
+
+    const sejourInputs = (d: Domain): SejourInputs => ({
+      people: state.people,
+      forfait: forfaitOf(d),
+      trip: tripOf(d),
+      optRental: state.optRental,
+      optLessons: state.optLessons,
+      esf: esfOf(d),
+      lessonIdx: lessonIndexOf(d)
+    })
+
+    const lodgings = (d: Domain, pers = state.travelers, n = nights): Lodging[] =>
+      lodgingsFor(d, pers, n, weekFactor, score(d).total / 100)
+
+    const cost = (lodging: Pick<Lodging, 'total'>, d: Domain): SejourCost => sejourCost(lodging, sejourInputs(d))
+
+    // Les écrans transversaux ne travaillent que sur la tête de liste : calculer
+    // les offres des 277 domaines à chaque frappe serait payé par l'utilisateur.
+    const compared = filtered.slice(0, MAX_COMPARED_DOMAINS)
+
+    // --- Meilleure offre par domaine ------------------------------------
+    const bestOffers: BestOffer[] = []
+    for (const d of compared) {
+      const list = lodgings(d).filter((l) => l.ch >= state.rooms)
+      if (list.length === 0) continue
+      const scored = list.map((l) => ({ l, c: cost(l, d) })).sort((a, b) => a.c.total - b.c.total)
+      const best = scored[0]
+      if (best.c.total > state.offresBudget) continue
+      bestOffers.push({ d, l: best.l, c: best.c, alt: scored.length - 1 })
+    }
+    const offerSort: Record<string, (a: BestOffer, b: BestOffer) => number> = {
+      total: (a, b) => a.c.total - b.c.total,
+      score: (a, b) => score(b.d).total - score(a.d).total,
+      travel: (a, b) => nullsLast(worst(a.d), worst(b.d))
+    }
+    bestOffers.sort(offerSort[state.offresSort] ?? offerSort.total)
+
+    // --- Grille semaine × domaine ---------------------------------------
+    const comboRows: ComboRow[] = []
+    for (const d of compared) {
+      const list = lodgings(d).filter((l) => l.ch >= state.rooms)
+      if (list.length === 0) continue
+      const best = list.map((l) => ({ l, c: cost(l, d) })).sort((a, b) => a.c.total - b.c.total)[0]
+      const cur = weekFactorFor(d, week)
+      const cells = WEEKS.map((w) => {
+        // On reprojette le prix du logement de la semaine courante vers la
+        // semaine visée ; forfaits et route ne bougent pas d'une semaine à
+        // l'autre.
+        const lodging = Math.round((best.c.lodging * (1 + weekFactorFor(d, w))) / (1 + cur))
+        return { week: w, total: best.c.total - best.c.lodging + lodging, lodging }
+      })
+      comboRows.push({ d, best, cells, min: Math.min(...cells.map((c) => c.total)) })
+    }
+    comboRows.sort((a, b) => a.min - b.min)
+    const allTotals = comboRows.flatMap((r) => r.cells.map((c) => c.total))
+    const comboGrid: ComboGrid = {
+      rows: comboRows,
+      lo: allTotals.length ? Math.min(...allTotals) : 0,
+      hi: allTotals.length ? Math.max(...allTotals) : 0
+    }
+
+    // --- Décision retenue -------------------------------------------------
+    let decisionCtx: DecisionContext | null = null
+    if (state.decision) {
+      const d = domains.find((x) => x.id === state.decision?.domainId)
+      const w = WEEKS.find((x) => x.arr === state.decision?.week)
+      if (d && w) {
+        const decNights = Math.max(1, Math.round((new Date(w.dep).getTime() - new Date(w.arr).getTime()) / 86400000))
+        const list = lodgings(d, state.travelers, decNights).filter((l) => l.ch >= state.rooms)
+        const lg = list.find((l) => l.id === state.decision?.lodgingId) ?? [...list].sort((a, b) => a.total - b.total)[0]
+        if (lg) {
+          const cur = weekFactorFor(d, week)
+          const lodging = Math.round((lg.total * (1 + weekFactorFor(d, w))) / (1 + cur))
+          const base = cost(lg, d)
+          decisionCtx = {
+            d,
+            w,
+            lg,
+            nights: decNights,
+            cost: { ...base, lodging, total: base.total - base.lodging + lodging }
+          }
+        }
+      }
+    }
+
+    const split = decisionCtx
+      ? splitRows(
+          decisionCtx.d,
+          decisionCtx.cost.lodging,
+          sejourInputs(decisionCtx.d),
+          origins,
+          state.routes,
+          state.avoidTolls
+        )
+      : null
+
+    // --- Logements du domaine consulté ------------------------------------
+    const lodgDomain = domains.find((d) => d.id === state.lodgingDomainId) ?? domains[0] ?? null
+
+    // Seuls les logements RÉELS importés par l'utilisateur sont affichés, et
+    // uniquement ceux rattachés au domaine consulté (`importDomainId`). Le
+    // catalogue de démonstration (`lodgingsFor`) n'est plus mélangé au réel : il
+    // ne servait qu'à illustrer la mise en page et prêtait à confusion en se
+    // faisant passer pour de vraies offres.
+    const lodgRaw = lodgDomain
+      ? state.imported.filter((lg) => lg.importDomainId == null || lg.importDomainId === lodgDomain.id)
+      : []
+    const lodgAll = mergeDupesList(lodgRaw, state.mergeDupes)
+    const dupMerged = lodgRaw.length - lodgAll.length
+
+    const lodgFiltered = lodgAll.filter((lg) => {
+      // Une carte-redirection (hébergement OSM sans prix) n'a ni prix ni nombre
+      // de chambres à filtrer : la masquer sur un budget ou un nombre de pièces
+      // qu'elle ne porte pas la ferait disparaître à tort. Seuls le type et la
+      // Annonce introuvable au dernier relevé, pour les dates en cours : on ne
+      // l'écarte que si l'utilisateur l'a demandé — voir `hideGone`.
+      if (
+        state.hideGone &&
+        lg.missingSince != null &&
+        lg.missingSince.checkIn === state.arrDate &&
+        lg.missingSince.checkOut === state.depDate
+      ) {
+        return false
+      }
+      // source la concernent.
+      const redirect = lg.total <= 0
+      if (redirect) {
+        return (
+          (state.lodgTypes.length === 0 || state.lodgTypes.includes(lg.type)) &&
+          !state.lodgSrcOff.includes(lg.src.indexOf('Import') === 0 ? 'Import manuel' : lg.src)
+        )
+      }
+      // Capacité et chambres ne sont filtrées que si l'annonce les déclare
+      // (`0` = inconnu, voir `Lodging`). Écarter une annonce sur une
+      // caractéristique qu'elle n'a jamais donnée, c'est vider la liste sans
+      // rien dire : une recherche Airbnb à 8 voyageurs ne renvoie que des biens
+      // qui les acceptent, mais ses cartes de résultats ne l'écrivent nulle part.
+      return (
+        (lg.pers === 0 || lg.pers >= state.travelers) &&
+        (lg.ch === 0 || lg.ch >= state.rooms) &&
+        (!state.lodgAnnul || lg.annul) &&
+        (state.lodgBudget === 0 || lg.total <= state.lodgBudget) &&
+        (state.lodgTypes.length === 0 || state.lodgTypes.includes(lg.type)) &&
+        (state.lodgDist === 0 || lg.dist <= state.lodgDist) &&
+        !state.lodgSrcOff.includes(lg.src.indexOf('Import') === 0 ? 'Import manuel' : lg.src)
+      )
+    })
+    const lodgSorters: Record<string, (a: Lodging, b: Lodging) => number> = {
+      pp_asc: (a, b) => a.pp - b.pp,
+      total_asc: (a, b) => a.total - b.total,
+      dist_asc: (a, b) => a.dist - b.dist,
+      note_desc: (a, b) => parseFloat(b.note.replace(',', '.')) - parseFloat(a.note.replace(',', '.'))
+    }
+    // Les cartes sans prix (OSM → Airbnb) passent toujours après les offres
+    // chiffrées, quel que soit le tri : sans cela, un `total` de 0 les ferait
+    // remonter en tête d'un tri par prix, devant de vraies offres moins chères.
+    const priceless = (lg: Lodging): boolean => lg.total <= 0
+    const lodgList = [...lodgFiltered].sort((a, b) => {
+      if (priceless(a) !== priceless(b)) return priceless(a) ? 1 : -1
+      return (lodgSorters[state.lodgSort] ?? lodgSorters.pp_asc)(a, b)
+    })
+
+    const voteOf = (key: string, index: number): number => state.votes[key]?.[index] ?? 0
+    const voteScore = (key: string): number => (state.votes[key] ?? []).reduce((a, b) => a + (b || 0), 0)
+
+    return {
+      origins,
+      hh,
+      hasOrigin,
+      nights,
+      week,
+      weekFactor,
+      adults,
+      kids,
+      forfaitOf,
+      travelOf: travel,
+      worstTravel: worst,
+      worstDistance: worstDist,
+      travelText,
+      scoreOf: score,
+      geoDistance,
+      matchesFilters,
+      filtered,
+      lodgingsFor: lodgings,
+      sejourInputs,
+      sejourCost: cost,
+      esfOf,
+      lessonIndexOf,
+      bestOffers,
+      comboGrid,
+      decisionCtx,
+      split,
+      lodgDomain,
+      lodgAll,
+      lodgList,
+      lodgHidden: lodgAll.length - lodgFiltered.length,
+      dupMerged,
+      voteScore,
+      voteOf,
+      comboKey: (domainId, weekArr) => `c${domainId}|${weekArr}`
+    }
+  }, [state, ref, domains])
+
+  return <DerivedContext.Provider value={value}>{children}</DerivedContext.Provider>
+}

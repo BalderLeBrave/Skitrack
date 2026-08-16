@@ -1,0 +1,45 @@
+appId: fr.skitrack.app
+productName: SKITRACK
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+
+# Le sidecar est copié tel quel hors de l'asar : Python doit voir de vrais
+# fichiers sur disque, pas une archive.
+extraResources:
+  - from: sidecar
+    to: sidecar
+    filter:
+      - '**/*'
+      - '!.venv/**'
+      - '!**/__pycache__/**'
+      - '!tests/**'
+      - '!*.egg-info/**'
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+
+# ATTENTION — l'installeur ci-dessus n'embarque PAS d'interpréteur Python.
+# Tel quel, l'application installée exige que Python 3.11+ soit présent sur la
+# machine cible et que `sidecar\.venv` ait été créé.
+#
+# Pour une distribution autonome, geler le sidecar avec PyInstaller avant
+# `electron-builder` :
+#
+#   sidecar\.venv\Scripts\pyinstaller.exe --onefile --name skitrack-sidecar ^
+#       --collect-all shapely --collect-all ijson sidecar\skitrack\__main__.py
+#
+# puis placer skitrack-sidecar.exe dans sidecar\ : src/main/python.ts le
+# détecte automatiquement (source « bundled »).

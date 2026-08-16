@@ -1,0 +1,3222 @@
+/* SKITRACK — feuille de style unique.
+
+   Deux thèmes complets, pilotés par `data-theme` sur <html>. Le thème clair est
+   la valeur par défaut : l'application se consulte surtout en journée, et les
+   cartes de domaines portent beaucoup de texte dense qui se lit mieux sur fond
+   clair. Le thème sombre reste un vrai thème, pas une inversion mécanique — sa
+   couleur d'accent change (le corail passe au vert d'eau) parce que le corail
+   vibre désagréablement sur fond très sombre. */
+
+:root,
+[data-theme='light'] {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --surface: #f7f7f7;
+  --border: #dddddd;
+  --border-soft: #ebebeb;
+  --text: #222222;
+  --muted: #717171;
+  --dim: #c2c2c2;
+  --accent: #e0533f;
+  --accent-soft: #fdece9;
+  --on-accent: #ffffff;
+  --link: #0f62c9;
+  --ok: #0b7a3e;
+  --warn: #a35a06;
+  --photo-a: #efefef;
+  --photo-b: #e2e2e2;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  --bg: #0b0f14;
+  --panel: #121820;
+  --nav-bg: rgba(11, 15, 20, 0.92);
+  --surface: #19212b;
+  --border: #2a3441;
+  --border-soft: #212a35;
+  --text: #eef2f7;
+  --muted: #93a1b3;
+  --dim: #4a5464;
+  --accent: #7ef29d;
+  --accent-soft: rgba(126, 242, 157, 0.14);
+  --on-accent: #04140b;
+  --link: #9fd8ff;
+  --ok: #5fd08f;
+  --warn: #ffca6b;
+  --photo-a: #1a222c;
+  --photo-b: #141b23;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Archivo, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 3px solid var(--bg);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dim);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--link);
+  text-underline-offset: 3px;
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--accent);
+}
+
+input[type='date'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] input[type='date'] {
+  color-scheme: dark;
+}
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+button,
+a,
+input,
+select {
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- Primitives partagées ------------------------------------------------ */
+
+.u-nowrap {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.u-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.u-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.u-muted {
+  color: var(--muted);
+}
+
+.u-ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--text);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn--primary:hover:not(:disabled) {
+  border-color: var(--accent);
+  filter: brightness(0.95);
+}
+
+.btn--strong {
+  border-color: var(--text);
+  padding: 11px 18px;
+  font-size: 15px;
+}
+
+/** Action destructrice : bordée d'avertissement, jamais pleine — le rouge
+ *  plein d'un bouton primaire invite au clic, ce qui n'est pas le but ici. */
+.btn--warn {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.btn--warn:hover:not(:disabled) {
+  border-color: var(--warn);
+  background: color-mix(in oklab, var(--warn) 10%, transparent);
+}
+
+.btn--pill {
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.btn--small {
+  padding: 5px 10px;
+}
+
+.btn--round {
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/** Lien-bouton : action secondaire posée dans un flux de texte. */
+.linkbtn {
+  background: none;
+  border: none;
+  color: var(--link);
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  text-align: left;
+}
+
+.linkbtn--sm {
+  font-size: 12px;
+}
+
+.linkbtn--underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.linkbtn--muted {
+  color: var(--muted);
+}
+
+.iconbtn {
+  background: var(--surface);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+}
+
+.iconbtn--bare {
+  background: none;
+  color: var(--muted);
+  width: auto;
+  height: auto;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+/* Hauteur fixe et graisse unique : la sélection se lit à la couleur, jamais à
+   la taille. Passer en gras à la sélection élargissait la pastille, et toute
+   la rangée se réagençait au clic. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.chip--on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.chip__count {
+  opacity: 0.65;
+  margin-left: 4px;
+}
+
+/** Pilule de segment (sans cours / collectif / particulier, ski / snow). */
+.seg {
+  display: flex;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.seg__btn {
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--muted);
+}
+
+.seg__btn--on {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.tag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tag--link {
+  border-color: var(--link);
+  color: var(--link);
+  font-size: 11px;
+}
+
+.tag--ok {
+  border-color: var(--ok);
+  color: var(--ok);
+  font-size: 11px;
+}
+
+.tag--pin {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.notice {
+  margin: 0;
+  font-size: 13px;
+}
+
+.notice--error,
+.notice--warn {
+  color: var(--warn);
+}
+
+.notice--info {
+  color: var(--link);
+}
+
+.field {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: var(--text);
+}
+
+.field--panel {
+  background: var(--panel);
+  font-size: 13px;
+}
+
+.field--accent {
+  border-color: var(--accent);
+  padding: 10px 12px;
+}
+
+.field-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
+  align-items: baseline;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/** Compteur − valeur + (voyageurs, chambres, enfants). */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 9px;
+  margin-top: 3px;
+}
+
+.stepper__btn {
+  background: none;
+  border: none;
+  color: var(--link);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.stepper__value {
+  flex: 1;
+  text-align: center;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.panel--flat {
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.panel--empty {
+  border-style: dashed;
+  padding: 48px 32px;
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+/** Cadre secondaire posé dans un panneau (récapitulatifs de coût). */
+.inset {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.dl {
+  display: grid;
+  margin: 0;
+}
+
+.dl dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dl dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  background: var(--surface);
+  height: 5px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: block;
+}
+
+.bar__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.page {
+  height: 100%;
+  overflow: auto;
+  padding: 24px;
+}
+
+.page__inner {
+  margin: 0 auto;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.page-head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 78ch;
+}
+
+/** Poignée de redimensionnement des colonnes de l'écran Recherche. */
+.gutter {
+  cursor: col-resize;
+  background: var(--border-soft);
+  width: 6px;
+}
+
+.gutter:hover {
+  background: var(--accent);
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 16, 0.45);
+}
+
+.scrim--local {
+  position: absolute;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  overflow: auto;
+  animation: slideIn 0.22s ease-out;
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 2;
+}
+
+.drawer__head h3 {
+  margin: 0;
+  font-size: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer__body {
+  padding: 22px;
+  display: grid;
+  gap: 20px;
+}
+
+.drawer__section {
+  display: grid;
+  gap: 10px;
+}
+
+.drawer__section h4 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.skeleton {
+  background: var(--surface);
+  border-radius: 6px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+/* --- Amorçage ------------------------------------------------------------ */
+
+.boot {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  padding: 32px;
+}
+
+.boot__panel {
+  max-width: 640px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  display: grid;
+  gap: 12px;
+}
+
+.boot__panel h1 {
+  margin: 0;
+  letter-spacing: 0.12em;
+  font-size: 22px;
+}
+
+.boot__panel h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.boot__msg {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 56ch;
+}
+
+.boot__log pre {
+  max-height: 260px;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+/* --- Coque --------------------------------------------------------------- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 64px;
+  overflow: hidden;
+  background: var(--nav-bg);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.nav__brand {
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  margin-right: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text);
+}
+
+.nav__tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.nav__spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+/** Sélecteur de langue : une pilule de la même famille que les onglets. */
+.nav__lang {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+/** Onglet principal : sans bordure, la pilule pleine marque l'onglet actif. */
+.tab {
+  background: none;
+  border: none;
+  padding: 8px 14px;
+  margin-right: 4px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.tab--on {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.tab--narrow {
+  padding: 8px 10px;
+}
+
+/** Onglet secondaire (Suivi, Réglages) : plus petit, bordé quand il est actif. */
+.tab2 {
+  background: none;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.tab2--on {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.tab2--accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.tab-people {
+  padding: 6px 13px;
+}
+
+.themeswitch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 2px;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.themeswitch__label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.themeswitch__track {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.2s ease;
+  flex: 0 0 auto;
+}
+
+.themeswitch__track--on {
+  background: var(--accent);
+}
+
+.themeswitch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--panel);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: left 0.2s ease;
+}
+
+.themeswitch__track--on .themeswitch__knob {
+  left: 23px;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+}
+
+/* --- Impression ---------------------------------------------------------- */
+
+@media print {
+  .nav,
+  .map,
+  .lodgmap {
+    display: none !important;
+  }
+
+  html:not([data-print='fiche']) .drawer,
+  html:not([data-print='fiche']) .domsheet {
+    display: none !important;
+  }
+
+  /* La fiche domaine s'imprime telle quelle : plus de position fixe, plus de
+     scrim, et les webcams ne rendent rien sur papier. */
+  .domsheet {
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  .domsheet .camframe,
+  .domsheet .iconbtn {
+    display: none !important;
+  }
+
+  .compare {
+    position: static !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  html[data-print='fiche'] body * {
+    visibility: hidden;
+  }
+
+  html[data-print='fiche'] .lodging-sheet,
+  html[data-print='fiche'] .lodging-sheet * {
+    visibility: visible;
+  }
+
+  html[data-print='fiche'] .lodging-sheet {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  html[data-print='fiche'] .lodging-sheet button {
+    display: none !important;
+  }
+}
+
+/* --- Écran Recherche ------------------------------------------------------ */
+
+.search {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.filters {
+  overflow: auto;
+  padding: 24px;
+  border-right: 1px solid var(--border-soft);
+  background: var(--panel);
+}
+
+.filters__head {
+  display: flex;
+  align-items: center;
+  gap: 8px 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filters__badge {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+
+.filters__details > summary {
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  margin: -6px 0;
+}
+
+.filters__details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.filters__summary {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.filters__title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.filters__section {
+  padding: 18px 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.filters__legend {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.filters__help {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+.filters__help--tight {
+  font-size: 11px;
+}
+
+.hh-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+}
+
+.results {
+  overflow: auto;
+  padding: 24px 28px;
+  border-right: 1px solid var(--border-soft);
+}
+
+/** Barre de recherche : le champ prend la place, le bouton « autour d'une
+ *  commune » reste au bout, jamais renvoyé à la ligne seul. */
+.searchbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.searchbar__field {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 16px;
+  box-shadow: var(--shadow);
+}
+
+.searchbar__field input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.geobanner,
+.wxage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+
+.geobanner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 14px;
+}
+
+.wxage {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.results__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.results__sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.results__sort select {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.results__count {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.results__empty {
+  padding: 32px 8px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.results__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(430px, 100%), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+/* --- Vignette de domaine -------------------------------------------------- */
+
+.domcard {
+  display: flex;
+  gap: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition:
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.domcard:hover {
+  border-color: var(--link);
+}
+
+.domcard--on {
+  border-color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.domcard--dense {
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.domcard__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.domcard__ident {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.domcard__logo {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+}
+
+.domcard__name {
+  margin: 0;
+  font-size: 15px;
+  min-width: 0;
+  flex: 1;
+}
+
+.domcard__badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+.domcard__sub {
+  margin: 2px 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/**
+ * Les quatre chiffres décisifs de la vignette.
+ *
+ * Encadrés en haut et en bas pour former un bloc que l'œil saisit d'un coup,
+ * là où sept données alignées se lisaient une à une. Seul le bas des pistes
+ * porte l'accent : c'est le critère qui départage vraiment deux domaines.
+ */
+.domcard__figs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.domcard__figs dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.domcard__fig {
+  margin: 1px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.domcard__fig--accent {
+  color: var(--accent);
+}
+
+.domcard__meta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.domcard__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.domcard__stats dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.domcard__stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.domcard__forfait {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.domcard__line {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.domcard__trend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.domcard__snow {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+
+.domcard__footer {
+  display: flex;
+  gap: 12px 16px;
+  margin-top: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.scorebadge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  line-height: 1.1;
+}
+
+.domcard__drawer {
+  margin-top: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.domcard__drawer-title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.domcard__drawer-sub {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.domcard__drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.domcard__drawer-grid dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.domcard__drawer-grid dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.domcard__drawer-note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.scorelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.scorelist li {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.scorelist__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 12px;
+}
+
+.scorelist__why {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* --- Carte ---------------------------------------------------------------- */
+
+.map-shell,
+.map {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+}
+
+.map__canvas {
+  position: absolute;
+  inset: 0;
+  background: var(--panel);
+}
+
+.map__overlay {
+  position: absolute;
+  left: 12px;
+  bottom: 28px;
+  z-index: 2;
+  display: grid;
+  gap: 6px;
+  max-width: 300px;
+}
+
+.map__legend {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  display: grid;
+  gap: 5px;
+}
+
+.map__legend-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.map__swatch {
+  width: 16px;
+  height: 3px;
+  flex: 0 0 auto;
+}
+
+.map__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.map__dot--small {
+  width: 6px;
+  height: 6px;
+  opacity: 0.7;
+  margin: 0 1.5px;
+}
+
+.map__btn {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.map__btn--dark {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.map__btn--accent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/** Sélecteur de fond : s'ouvre vers le haut, la commande étant en bas de carte. */
+.basepicker {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  width: 250px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 2px;
+  z-index: 5;
+}
+
+.basepicker__row {
+  display: grid;
+  gap: 1px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+}
+
+.basepicker__row:hover {
+  background: var(--surface);
+}
+
+.basepicker__row--on {
+  background: var(--surface);
+}
+
+.basepicker__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.basepicker__sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.map-origin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #e0533f;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px #e0533f;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}
+
+/* --- Écran Logements ------------------------------------------------------ */
+
+.lodgings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.lodgings__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.lodgings__shell {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lodgings__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.lodggrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+/** Liste et carte côte à côte, séparées par une poignée déplaçable. */
+.lodgsplit {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+}
+
+/**
+ * Dans le partage, la carte remplit sa colonne au lieu de sa hauteur fixe.
+ *
+ * `relative` et non `static` : la légende et la case « rechercher quand je
+ * déplace la carte » sont positionnées en absolu par rapport à la carte. En
+ * `static`, elles remonteraient jusqu'à `.lodgings` et iraient se coller au
+ * coin de l'écran.
+ */
+.lodgsplit > .lodgmap {
+  position: relative;
+  top: auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.lodgsplit__list {
+  overflow: auto;
+  min-width: 0;
+  padding-right: 4px;
+}
+
+.lodgsplit__handle {
+  position: relative;
+  cursor: col-resize;
+  background: var(--border-soft);
+  touch-action: none;
+}
+
+.lodgsplit__handle:hover {
+  background: var(--accent);
+}
+
+.lodgsplit__grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--dim);
+  pointer-events: none;
+}
+
+/** Ce que le cadrage de la carte écarte de la liste, dit plutôt que subi. */
+.outofview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.lodgmap__sync {
+  position: absolute;
+  bottom: 14px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: var(--shadow);
+}
+
+/** État des positions : un panneau de diagnostic, pas une alerte permanente. */
+.geopanel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 6px;
+  max-width: 640px;
+}
+
+.geopanel__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/** Seconde moitié du panneau : les positions, séparées de la santé des sources. */
+.geopanel__title--section {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 12px;
+  margin-top: 6px;
+}
+
+.geopanel__line {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.geopanel__line--bad {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.geopanel__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.geopanel__note {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+  text-wrap: pretty;
+}
+
+.check--inline {
+  margin: 0;
+  font-size: 12px;
+}
+
+.srcbanner {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+}
+
+.srcrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  width: 100%;
+}
+
+.weekrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text);
+}
+
+.weekrow--on {
+  border-color: var(--text);
+  background: var(--surface);
+}
+
+/* --- Vignette de logement ------------------------------------------------- */
+
+.lodgcard {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.18s ease;
+}
+
+.lodgcard:hover {
+  border-color: var(--link);
+}
+
+.lodgcard--on {
+  border-color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.lodgcard__media {
+  aspect-ratio: 16/10;
+  background: repeating-linear-gradient(45deg, var(--photo-a) 0 12px, var(--photo-b) 12px 24px);
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.lodgcard__media--stale {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+/* ——— Pastilles de logement ———
+   Une seule géométrie pour toutes : même hauteur, même rayon, même graisse,
+   même corps. Les variantes ne changent QUE la couleur. La hauteur est fixée
+   plutôt que déduite du padding, sinon un libellé plus gras ou une langue plus
+   longue rendrait deux pastilles voisines de tailles différentes — ce que le
+   coup d'œil repère immédiatement sur une grille de vignettes.
+
+   Ni majuscules ni interlettrage : la pastille nomme, elle n'interpelle pas. */
+.lodgcard__badge {
+  position: absolute;
+  top: 10px;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* Posée sur une photo, la pastille ne suit pas les jetons de thème : elle a
+   pour fond l'image, pas l'application. D'où un blanc opaque et un texte
+   sombre dans les deux thèmes — le parti d'Airbnb, et le seul qui reste
+   lisible sur une façade enneigée comme sur un salon sombre. */
+.lodgcard__badge--ski {
+  left: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #1c1f24;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+}
+
+/* La source informe sans revendiquer : même pastille, teinte en retrait. */
+.lodgcard__badge--src {
+  right: 10px;
+  background: rgba(15, 22, 32, 0.7);
+  color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(2px);
+}
+
+/* Dans l'en-tête de la fiche, la pastille suit le flux au lieu de flotter, et
+   retrouve les jetons de thème : là, elle est posée sur le panneau. */
+.lodgcard__badge--inline {
+  position: static;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.lodgcard__body {
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.lodgcard__name {
+  margin: 0;
+  font-size: 15px;
+}
+
+.lodgcard__sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.lodgcard__price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+.lodgcard__total {
+  font-size: 20px;
+  font-weight: 700;
+  /* Discipline de l'accent : le prix est une donnée, pas une action. Le gras
+     et la taille suffisent à le hiérarchiser. */
+  color: var(--text);
+  letter-spacing: -0.03em;
+}
+
+/* --- Fiche logement ------------------------------------------------------- */
+
+.photogrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 96px 96px;
+  gap: 6px;
+}
+
+.photogrid__main,
+.photogrid__cell {
+  background: repeating-linear-gradient(45deg, var(--photo-a) 0 12px, var(--photo-b) 12px 24px);
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  position: relative;
+}
+
+.photogrid__main {
+  grid-row: 1 / 3;
+}
+
+.photogrid__more {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  box-shadow: var(--shadow);
+}
+
+.sheet__label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sheet__dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  margin: 0;
+}
+
+.sheet__dl dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sheet__dl dd {
+  margin: 0;
+}
+
+.breakdown {
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  padding-top: 12px;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.breakdown--flush {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.breakdown__total {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.sheet__options {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.sheet__footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+  border-top: 1px solid var(--border-soft);
+  padding: 14px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+/* --- Modale d'import ------------------------------------------------------ */
+
+.modal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: min(620px, 94%);
+  max-height: 88%;
+  overflow: auto;
+  background: var(--panel);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 0.18s ease-out;
+}
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--border-soft);
+  flex-wrap: wrap;
+}
+
+/* --- Comparateur ---------------------------------------------------------- */
+
+.comparebar {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 999px;
+  padding: 8px 8px 8px 20px;
+  box-shadow: var(--shadow-lg);
+}
+
+.comparebar__cta {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.comparebar__close {
+  background: none;
+  border: none;
+  color: var(--bg);
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.compare {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  z-index: 8;
+  overflow: auto;
+  padding: 24px;
+  animation: fadeIn 0.18s ease-out;
+}
+
+.compare__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.compare__head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.compare__grid {
+  display: grid;
+  align-items: stretch;
+}
+
+.compare__col {
+  padding: 14px;
+  display: grid;
+  gap: 2px;
+  border-left: 1px solid var(--border-soft);
+}
+
+.compare__label {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.compare__cell {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.compare__cell--best {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.compare__vote {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.votebtn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* --- Carte des logements -------------------------------------------------- */
+
+.lodgmap {
+  position: sticky;
+  top: 0;
+  height: 560px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.lodgmap__hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  display: grid;
+  gap: 4px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pricepin {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: 600 12px Archivo, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: #ffffff;
+  color: #222222;
+}
+
+.pricepin--on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* --- Offres, combinaisons, decision --------------------------------------- */
+
+.offers__bar {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+
+.offerrow {
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 200px);
+  gap: 20px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.offerrow:hover {
+  border-color: var(--link);
+}
+
+.combogrid {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.4fr) repeat(5, minmax(96px, 1fr)) minmax(90px, 0.7fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 760px;
+}
+
+.combosel {
+  padding: 16px 18px;
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  border-color: var(--accent);
+}
+
+.votepill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 6px 3px 10px;
+}
+
+.section__title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.posteline {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+
+/* --- Suivi de prix -------------------------------------------------------- */
+
+.tracking__grid {
+  display: grid;
+  grid-template-columns: minmax(min(300px, 100%), 340px) minmax(min(320px, 100%), 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.trackcard {
+  padding: 16px;
+  cursor: pointer;
+}
+
+.trackcard--on {
+  border-color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+/* --- Voyageurs ------------------------------------------------------------ */
+
+.personcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.personcard__lessons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+
+.esfrates {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 10px;
+}
+
+/* --- Fiche domaine -------------------------------------------------------- */
+
+.meteoday {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 8px 4px;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  text-align: center;
+}
+
+.expo {
+  display: grid;
+  grid-template-columns: 80px 1fr 46px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+/**
+ * Fiche domaine plein écran.
+ *
+ * La grille se remplit d'elle-même : les blocs étroits (profil, carte
+ * d'identité, exposition, tendance de prix) tiennent en colonnes, ceux qui se
+ * lisent de bout en bout (météo, prévisions, forfaits, bulletin) réclament la
+ * largeur entière via `.domsheet__full`.
+ */
+.domsheet {
+  position: fixed;
+  inset: 0;
+  background: var(--panel);
+  overflow: auto;
+  z-index: 16;
+  animation: fadeIn 0.18s ease-out;
+}
+
+.domsheet__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 2;
+}
+
+.domsheet__head h3 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+
+.domsheet__body {
+  padding: 26px 28px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+  gap: 24px 28px;
+  align-content: start;
+  align-items: start;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.domsheet__full {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* --- Neige au sol --------------------------------------------------------- */
+
+.snowblock__row {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-top: 10px;
+}
+
+.snowblock__value {
+  margin: 2px 0 0;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--accent);
+}
+
+/* --- Forfaits ------------------------------------------------------------- */
+
+.passgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.passgrid dt {
+  font-size: 12px;
+}
+
+.passgrid dd {
+  margin: 1px 0 0;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* --- Météo du domaine ----------------------------------------------------- */
+
+.wxlevels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 10px;
+}
+
+.wxlevel {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.wxlevel__title {
+  margin: 0 0 9px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wxlevel__slots {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.wxlevel__slots > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.wxlevel__temp {
+  margin: 1px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.wxlevel__dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  font-size: 12px;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 9px;
+}
+
+.wxlevel__dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wxlevel__dl dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* --- Prévisions 14 jours -------------------------------------------------- */
+
+.wxstrip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.wxstrip__day {
+  flex: 0 0 100px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 9px 6px;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  text-align: center;
+}
+
+/* --- Webcam --------------------------------------------------------------- */
+
+.camframe {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
+}
+
+.camframe iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* --- Bulletin d'avalanche ------------------------------------------------- */
+
+.brapanel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: var(--surface);
+  display: grid;
+  gap: 11px;
+}
+
+.brapanel__badge {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
+.brapanel__scale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 10px;
+}
+
+.brabtn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.brabtn--on {
+  border-width: 2px;
+  font-weight: 800;
+}
+
+/* --- Premier lancement ---------------------------------------------------- */
+
+.onboard {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 16, 0.5);
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.onboard__panel {
+  width: min(560px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: var(--panel);
+  border-radius: 20px;
+  padding: 28px;
+  display: grid;
+  gap: 18px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 0.18s ease-out;
+}
+
+/* --- Reglages et referentiel ---------------------------------------------- */
+
+.settings {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.settings__tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 12px;
+}
+
+.settings__section {
+  padding: 20px 22px;
+}
+
+.settings__section h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.settings__help {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 4px 0 10px;
+  max-width: 64ch;
+}
+
+/** Mentions légales : des paragraphes qui se lisent, pas des libellés. */
+.legal {
+  display: grid;
+  gap: 10px;
+}
+
+.legal p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 70ch;
+  text-wrap: pretty;
+}
+
+.legal--warn {
+  border-color: var(--warn);
+  background: var(--surface);
+}
+
+.legal--warn > p:first-of-type {
+  color: var(--text);
+}
+
+.legal__dl {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.legal__dl dt {
+  font-weight: 600;
+}
+
+.legal__dl dd {
+  margin: 2px 0 0;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/** Deux colonnes quand la place le permet : un glossaire de licences se lit
+ *  mieux avec le nom de la source en regard de sa condition d'usage. */
+.legal__dl--split > div {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) 1fr;
+  gap: 6px 14px;
+}
+
+.legal__dl--split dd {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .legal__dl--split > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 24px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.shortcuts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shortcuts dd {
+  margin: 0;
+}
+
+.keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.keys__row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.keys__actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-content: start;
+}
+
+.pill {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 8px;
+}
+
+.pill--ok {
+  border-color: var(--ok);
+  color: var(--ok);
+  font-size: 11px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table td {
+  padding: 8px 6px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.provrow {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+
+.enginebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  flex-wrap: wrap;
+}
+
+.enginedl {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.enginedl > div {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+}
+
+.enginedl dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.enginedl dd {
+  margin: 0;
+}
+
+.refbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.map__error {
+  background: var(--panel);
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0;
+  font-size: 11px;
+  color: var(--warn);
+}
+
+/* --- Logos et photos ------------------------------------------------------ */
+
+.domcard__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 9px;
+  /* Le fond teinté reste visible derrière un logo transparent : c'est ce qui
+     donne à la vignette sa masse visuelle même quand l'icône est minuscule. */
+  padding: 3px;
+}
+
+.lodgcard__img,
+.sheet__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sheet__photo {
+  height: 198px;
+  border-radius: 12px;
+}
+
+.lodgcard__noimg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--dim);
+  font-size: 11px;
+  text-align: center;
+}
+
+
+/* ——— Écran de relevé des logements (maquette Claude Design) ———
+   Panneau sobre : rotor, titre + critères, compteur d'offres, barre de
+   progression, puis l'état source par source. Aucune décoration animée : ce
+   que l'écran montre doit correspondre à ce que la recherche fait vraiment. */
+.lodgscan {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.lodgscan__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.lodgscan__spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: lodgscan-spin 0.8s linear infinite;
+  flex: none;
+  margin-top: 2px;
+}
+.lodgscan__ident {
+  min-width: 220px;
+  flex: 1;
+}
+.lodgscan__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.lodgscan__criteria {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.lodgscan__tally {
+  text-align: right;
+  min-width: 120px;
+}
+.lodgscan__count {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lodgscan__count-label {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.lodgscan__bar {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  overflow: hidden;
+  margin: 14px 0 4px;
+}
+.lodgscan__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--link));
+  border-radius: 999px;
+  transition: width 0.28s ease;
+}
+.lodgscan__rows {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+}
+.lodgscan__row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  padding: 4px 0;
+  transition: opacity 0.2s;
+}
+.lodgscan__row--idle { opacity: 0.6; }
+.lodgscan__row--off { opacity: 0.45; }
+.lodgscan__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--border);
+}
+.lodgscan__dot--active {
+  background: var(--link);
+  animation: pulse 0.8s ease-in-out infinite;
+}
+.lodgscan__dot--done { background: var(--ok); }
+.lodgscan__dot--off { background: var(--muted); }
+.lodgscan__name {
+  font-weight: 600;
+  min-width: 110px;
+}
+.lodgscan__status {
+  color: var(--muted);
+  font-size: 12px;
+}
+.lodgscan__row-count {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.lodgscan__row-count--strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.lodgscan__foot {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+@keyframes lodgscan-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lodgscan__spinner { animation-duration: 2.4s; }
+  .lodgscan__dot--active { animation: none; }
+}
+
+/* ——— Mosaïque de résultats ———————————————————————————————————————————
+   Un seul gabarit de vignette pour les deux écrans de résultats, et une
+   grille sans media query : la fenêtre d'une application de bureau change de
+   taille en continu, `auto-fill` suit le mouvement là où des paliers figés se
+   verraient. Voir components/ResultCard.tsx et components/ResultGrid.tsx. */
+
+.resultgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  column-gap: 24px;
+  /* Plus d'air entre les rangées qu'entre les colonnes : le bloc texte se lit
+     comme la légende de son image, il ne doit pas se rapprocher de l'image
+     suivante. */
+  row-gap: 40px;
+  align-items: start;
+}
+
+/* La seule largeur qu'`auto-fill` ne sait pas exprimer.
+   Avec `minmax(240px, 1fr)` et 24 px de gouttière, deux colonnes tiennent
+   encore dans 504 px : la grille resterait à deux colonnes jusque-là, alors
+   qu'une vignette de 240 px dans une fenêtre de 600 px n'a plus de place pour
+   son bloc texte. D'où cette unique règle de largeur — pas un jeu de paliers,
+   une exception nommée. */
+@media (max-width: 639px) {
+  .resultgrid {
+    grid-template-columns: 1fr;
+    row-gap: 28px;
+  }
+}
+
+.resultgrid--compact {
+  column-gap: 14px;
+  row-gap: 22px;
+}
+
+.resultcard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+/* La carte n'a ni cadre ni ombre : c'est l'image qui la délimite, comme sur
+   les mosaïques d'annonces. La sélection et le focus sont donc portés par un
+   liseré extérieur, qui n'occupe pas de place et ne décale rien. */
+.resultcard--on {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+}
+
+.resultcard:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 4px;
+}
+
+.resultcard__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: repeating-linear-gradient(45deg, var(--photo-a) 0 12px, var(--photo-b) 12px 24px);
+}
+
+.resultcard__media--wide {
+  aspect-ratio: 4 / 3;
+}
+
+.resultcard__media--square {
+  aspect-ratio: 1 / 1;
+}
+
+/* Offre périmée ou introuvable au dernier relevé : l'image ne doit pas donner
+   l'illusion d'une offre encore réservable à ce prix. */
+.resultcard__media--dim {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.resultcard__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.resultcard:hover .resultcard__img {
+  transform: scale(1.03);
+}
+
+.resultcard__noimg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--dim);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* Hauteur minimale : sans elle, deux cartes voisines dont l'une a un titre
+   plus long ne s'alignent plus, et la grille tressaute au passage du squelette
+   à la vraie carte. */
+.resultcard__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 110px;
+  min-width: 0;
+}
+
+.resultcard__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultcard__place {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultcard__facts {
+  margin: 0;
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.resultcard__fact {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultcard__fact--right {
+  margin-left: auto;
+  text-align: right;
+}
+
+.resultcard__price {
+  margin: auto 0 0;
+  font-size: 15px;
+}
+
+.resultcard__amount {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.resultcard__unit {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Le squelette reprend le gabarit exact : même ratio de média, quatre barres
+   aux hauteurs des quatre lignes. */
+.resultcard--skeleton {
+  cursor: default;
+}
+
+.resultcard__bar {
+  display: block;
+  border-radius: 6px;
+  background: var(--surface);
+  animation: resultcard-pulse 1.4s ease-in-out infinite;
+}
+
+.resultcard__bar--title {
+  height: 15px;
+  width: 78%;
+}
+
+.resultcard__bar--place {
+  height: 15px;
+  width: 56%;
+}
+
+.resultcard__bar--facts {
+  height: 13px;
+  width: 92%;
+}
+
+.resultcard__bar--price {
+  height: 15px;
+  width: 42%;
+  margin-top: auto;
+}
+
+@keyframes resultcard-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resultcard__bar {
+    animation: none;
+  }
+  .resultcard:hover .resultcard__img {
+    transform: none;
+  }
+}
+
+/* Ce que l'écran Logements ajoute sous le gabarit commun : signalements,
+   doublons, fraîcheur et actions. Séparé par un filet, comme le prix l'était
+   dans l'ancienne vignette encadrée. */
+.lodgcard__extra {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.lodgcard__flag {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lodgcard__flag--warn {
+  color: var(--warn);
+}
+
+.lodgcard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 4px;
+}
+
+/* Dans une colonne de 240 px, trois actions ne tiennent pas sur une ligne :
+   elles passent à la ligne proprement plutôt que de couper « Suivre le prix »
+   en deux au milieu d'un mot. */
+.lodgcard__actions .linkbtn {
+  white-space: nowrap;
+}
+

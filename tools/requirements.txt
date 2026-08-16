@@ -1,0 +1,27 @@
+# Dépendances de skitrack_v25.py. Volontairement séparées de
+# sidecar/requirements.txt : cet outil est autonome et le sidecar n'en dépend
+# pas. Environnement installé dans tools/.venv.
+#
+#   python -m venv tools/.venv
+#   tools/.venv/Scripts/pip install -r tools/requirements.txt
+#   tools/.venv/Scripts/python tools/skitrack_v25.py
+#
+# Le script pilote le navigateur avec `nodriver` (`import nodriver as uc`), pas
+# avec Playwright : c'est ce que dit son en-tête, et c'est ce qui manquait à
+# l'environnement — le script s'arrêtait sur `ModuleNotFoundError: nodriver`
+# avant d'exécuter une seule ligne.
+#
+# Borne haute : nodriver 0.48 et 0.50 ne s'importent pas sous Python ≥ 3.12.
+# Leur fichier `nodriver/cdp/network.py` contient un octet latin-1 isolé
+# (« ± » dans un commentaire) sans déclaration d'encodage, ce que Python 3
+# refuse — `SyntaxError: Non-UTF-8 code starting with '\xb1'`. La 0.46.2 est la
+# dernière version indemne. Vérifié sur Python 3.14.7.
+nodriver>=0.46,<0.47
+
+# `pandas` sert au tri final et à l'écriture du CSV (fin de `main()`).
+pandas>=2.0
+
+# Playwright n'est plus utilisé par skitrack_v25.py — il reste installé dans
+# tools/.venv sans être requis, et l'application, elle, a le sien dans
+# node_modules. Aucune ligne `playwright` ici, donc, pour que le fichier dise
+# ce que le script fait vraiment.

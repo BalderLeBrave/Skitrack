@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -i -E \"^playwright|^cheerio|^tsx$\")",
+      "Bash(node -e \"console.log\\(require\\('playwright/package.json'\\).version\\)\")",
+      "Bash(./node_modules/.bin/esbuild node_modules/.cache/extract-entry.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/extract-entry.cjs --external:electron --log-level=error)",
+      "Bash(node node_modules/.cache/extract-entry.cjs \"C:/Users/ADRIEN~1/AppData/Local/Temp/claude/C--Users-Adrien-RAFFRAY-Dev-skitrack/c84a137d-d3e9-4110-b65c-36b3c7348346/scratchpad/airbnb.html\")",
+      "Bash(node -e ' *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(./node_modules/.bin/esbuild src/renderer/src/data/airbnbClip.test.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/clip-test.cjs --log-level=error)",
+      "Bash(node node_modules/.cache/clip-test.cjs)",
+      "Bash(echo \"web exit=$?\")",
+      "PowerShell(Get-ChildItem -Recurse -File C:\\\\Dev\\\\skitrack\\\\src, C:\\\\Dev\\\\skitrack\\\\sidecar, C:\\\\Dev\\\\skitrack\\\\scripts, C:\\\\Dev\\\\skitrack\\\\docs -ErrorAction SilentlyContinue | Select-Object @{n='P';e={$_.FullName.Replace\\('C:\\\\Dev\\\\skitrack\\\\',''\\)}},Length | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Recurse -File C:\\\\Dev\\\\skitrack\\\\src | Where-Object { $_.FullName -notmatch 'node_modules' } | Select-Object @{n='P';e={$_.FullName.Replace\\('C:\\\\Dev\\\\skitrack\\\\',''\\)}},Length | Sort-Object P | Format-Table -AutoSize -Wrap | Out-String -Width 200)",
+      "PowerShell(Get-ChildItem -Recurse -File C:\\\\Dev\\\\skitrack\\\\docs, C:\\\\Dev\\\\skitrack\\\\.claude -ErrorAction SilentlyContinue | Select-Object @{n='P';e={$_.FullName.Replace\\('C:\\\\Dev\\\\skitrack\\\\',''\\)}},Length | Format-Table -AutoSize)",
+      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique)",
+      "WebSearch",
+      "WebFetch(domain:donneespubliques.meteofrance.fr)",
+      "WebFetch(domain:blog.arthurbazin.com)",
+      "PowerShell(node \"C:\\\\Users\\\\adrie\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Dev-skitrack\\\\d014da55-c0c9-45d5-aaaf-a028a54d68d2\\\\scratchpad\\\\bra-parse.test.mjs\")",
+      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.web.json; if \\($?\\) { \"renderer OK\" }; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique)",
+      "PowerShell(Get-ChildItem *)",
+      "Bash(grep *)",
+      "Bash(awk -F: '$1>2880')",
+      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.web.json; if \\($?\\) { \"renderer OK\" }; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique; npx electron-vite build 2>&1 | Select-String -Pattern 'error|✓ built' | Select-Object -Last 3)",
+      "Bash(python -)",
+      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.web.json 2>&1 | Select-Object -First 10; if \\($?\\) { \"renderer OK\" }; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique; npx electron-vite build 2>&1 | Select-String -Pattern 'error|✓ built' | Select-Object -Last 3)",
+      "Bash(cp src/renderer/src/i18n/index.ts /tmp/i18n-backup.ts)",
+      "Bash(npx esbuild *)",
+      "Bash(node node_modules/.cache/i18n-test.mjs)",
+      "Bash(echo \"code de sortie : $?\")",
+      "Bash(cp /tmp/i18n-backup.ts src/renderer/src/i18n/index.ts)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -)",
+      "Bash(node \"C:/Users/adrie/AppData/Local/Temp/claude/C--Dev-skitrack/d014da55-c0c9-45d5-aaaf-a028a54d68d2/scratchpad/dump-fr.mjs\" components/ImportDialog.tsx pages/LodgingsPage.tsx pages/TrackingPage.tsx pages/DecisionPage.tsx)",
+      "Bash(node scripts/scan-untranslated.mjs)",
+      "Bash(node scripts/scan-untranslated.mjs --ci)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(npx tsc --noEmit -p tsconfig.web.json)",
+      "PowerShell(npx eslint src/renderer/src/pages/LodgingsPage.tsx src/renderer/src/components/LodgingGeoPanel.tsx src/renderer/src/components/DomainCard.tsx src/renderer/src/components/DomainSheet.tsx src/renderer/src/pages/OffersPage.tsx src/renderer/src/state/appState.tsx)",
+      "PowerShell(npx tsc --noEmit -p tsconfig.node.json 2>&1 | Select-Object -First 15)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "airbnb"
+  ]
+}

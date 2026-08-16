@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "airbnb": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@openbnb/mcp-server-airbnb"
+      ],
+      "env": {}
+    }
+  }
+}

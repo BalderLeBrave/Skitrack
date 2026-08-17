@@ -231,7 +231,7 @@ const ISO_RANGES = [120, 240, 360]
 export function DomainMap(): JSX.Element {
   const { state, patch, domains } = useApp()
   const { t } = useI18n()
-  const { matchesFilters, hh } = useDerived()
+  const { matchesFilters, hh, filtered } = useDerived()
 
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
@@ -465,6 +465,52 @@ export function DomainMap(): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /**
+   * Publication du cadrage.
+   *
+   * Sur `moveend` **et** `zoomend` : un zoom à la molette ne déclenche pas
+   * toujours `moveend`, et sans lui la liste resterait celle de l'échelle
+   * précédente. Chaque geste réactive le suivi au passage — après un « tout
+   * voir », rezoomer doit refiltrer : c'est le geste qui commande, pas un
+   * réglage qu'il faudrait retrouver.
+   */
+  useEffect(() => {
+    const m = map.current
+    if (!loaded || !m) return
+    const push = (): void => {
+      const b = m.getBounds()
+      patch({
+        domBounds: { w: b.getWest(), e: b.getEast(), s: b.getSouth(), n: b.getNorth() },
+        domMapSync: true
+      })
+    }
+    m.on('moveend', push)
+    m.on('zoomend', push)
+    return () => {
+      m.off('moveend', push)
+      m.off('zoomend', push)
+    }
+  }, [loaded, patch])
+
+  /**
+   * Recadrage demandé par un autre écran, consommé une seule fois.
+   *
+   * Le drapeau est effacé dans le même `patch` que le cadrage : le laisser
+   * levé referait un `fitBounds` à chaque rendu et empêcherait tout déplacement
+   * manuel de la carte.
+   */
+  useEffect(() => {
+    const m = map.current
+    if (!loaded || !m || !state.domFitWanted) return
+    const placed = filtered.filter(hasCoords)
+    if (placed.length > 0) {
+      const bounds = new maplibregl.LngLatBounds()
+      for (const d of placed) bounds.extend([d.lon, d.lat])
+      m.fitBounds(bounds, { padding: 60, maxZoom: 10, duration: 0 })
+    }
+    patch({ domFitWanted: false })
+  }, [state.domFitWanted, loaded, filtered, patch])
+
   // --- Marqueurs des départs ----------------------------------------------
   useEffect(() => {
     if (!loaded || !map.current) return
@@ -651,7 +697,7 @@ export function DomainMap(): JSX.Element {
             autre station de la base
           </span>
           <span className="map__legend-row">
-            <span className="map__dot" style={{ background: 'none', border: '2px solid var(--accent)' }} />
+            <span className="map__dot" style={{ background: 'none', border: '2px solid var(--brand)' }} />
             {t('map_clicked_first')}
           </span>
         </div>

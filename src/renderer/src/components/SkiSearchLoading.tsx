@@ -87,7 +87,7 @@ export function SkiSearchLoading({
       </div>
 
       <div className="lodgscan__rows">
-        {lodgingSources(known).map((name) => {
+        {lodgingSources(known, state.lodgQueried).map((name) => {
           // Toutes les sources non désactivées sont réellement interrogées :
           // Airbnb par `runAirbnbSearch`, les autres par `runProviderSearch`.
           const off = state.lodgSrcOff.includes(name)

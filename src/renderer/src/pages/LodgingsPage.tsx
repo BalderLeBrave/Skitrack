@@ -39,7 +39,9 @@ export function LodgingsPage(): JSX.Element {
 
   const d = derived.lodgDomain
   const median = medianTotal(derived.lodgAll)
-  const health = sourceHealth(lodgingSources(derived.lodgAll))
+  // La santé porte sur les sources **réellement interrogées** : comptée sur une
+  // liste figée, elle annonçait plus de sources que le moteur n'en appelle.
+  const health = sourceHealth(lodgingSources(derived.lodgAll, state.lodgQueried))
 
   // La vérification porte sur la liste complète : filtrer d'abord puis
   // vérifier ferait disparaître une annonce du décompte au moment même où on
@@ -60,15 +62,24 @@ export function LodgingsPage(): JSX.Element {
     const b = state.lodgBounds
     if (!b || !d) return true
     if (lg.id === state.ficheId) return true
+    // Le logement qu'on vient de cliquer sur la carte ne peut pas disparaître
+    // de la liste au moment où on le choisit : la carte se recentre parfois
+    // juste après, et le rectangle publié l'aurait alors exclu.
+    if (lg.id === state.lodgPickId) return true
     const [lon, lat] = lodgingCoords(d, lg)
     return lon >= b.w && lon <= b.e && lat >= b.s && lat <= b.n
   }
 
   const afterBounds = boundsActive ? derived.lodgList.filter(inBounds) : derived.lodgList
   const outOfView = boundsActive ? derived.lodgList.length - afterBounds.length : 0
+  // Même exemption pour le masquage des positions invraisemblables : une bulle
+  // cliquée sur la carte doit se retrouver dans la liste, pas s'y évaporer.
   const visibleLodgings = state.hideBadGeo
-    ? afterBounds.filter((lg) => geo.statusOf(lg).level !== 'bad')
+    ? afterBounds.filter((lg) => lg.id === state.lodgPickId || geo.statusOf(lg).level !== 'bad')
     : afterBounds
+
+  /** Logement mis en avant, s'il est encore dans la liste affichée. */
+  const picked = state.lodgPickId != null ? visibleLodgings.find((lg) => lg.id === state.lodgPickId) : undefined
   /** Liste et carte côte à côte : en fenêtre étroite la carte passe dessous. */
   const splitOpen = state.lodgMapOpen && !narrow
 
@@ -160,6 +171,28 @@ export function LodgingsPage(): JSX.Element {
   const [searchError, setSearchError] = useState<string | null>(null)
   const [elapsedSec, setElapsedSec] = useState(0)
 
+  /**
+   * Remontée en haut de liste à la mise en avant.
+   *
+   * Le logement élu passe en tête ; sans remonter le défilement, l'utilisateur
+   * reste au milieu de la liste et ne voit rien changer. On remonte le
+   * conteneur **et ses parents défilables** : selon que la carte est ouverte ou
+   * non, ce n'est pas le même élément qui porte le défilement.
+   * Pas de `scrollIntoView`, qui déplacerait aussi la fenêtre.
+   */
+  const resultsRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (state.lodgPickId == null) return
+    const section = resultsRef.current
+    if (!section) return
+    // Carte ouverte, c'est le volet interne qui défile ; carte fermée, c'est la
+    // section elle-même — d'où la descente **et** la remontée de l'arbre.
+    section.querySelector('.lodgsplit__list')?.scrollTo?.({ top: 0 })
+    for (let node: HTMLElement | null = section; node; node = node.parentElement) {
+      if (node.scrollTop > 0) node.scrollTop = 0
+    }
+  }, [state.lodgPickId])
+
 
   useEffect(() => {
     if (state.lodgPhase !== 'searching') {
@@ -236,6 +269,12 @@ export function LodgingsPage(): JSX.Element {
       const otherLodgings = others.status === 'fulfilled' ? others.value.lodgings : []
       const outcomes = others.status === 'fulfilled' ? others.value.outcomes : []
 
+      // Les sources affichées dans les filtres et comptées par l'écran de
+      // relevé sont celles que le moteur vient d'interroger, y compris celles
+      // qui n'ont rien rendu — c'est la seule liste qui ne peut pas mentir.
+      // Un rejet global laisse la précédente en place plutôt que de tout vider.
+      const queried = others.status === 'fulfilled' ? outcomes.map((o) => o.source) : state.lodgQueried
+
       // Les URL déjà présentes dans `base` sont écartées : `runProviderSearch`
       // a dédoublonné contre `state.imported`, pas contre ce qu'Airbnb vient
       // d'ajouter.
@@ -253,34 +292,27 @@ export function LodgingsPage(): JSX.Element {
           ...outcomes.filter((o) => o.error).map((o) => `${o.source} : ${o.error}`)
         ].filter(Boolean)
         setSearchError(why.join(' · ') || t('scan_no_source_answered'))
-        patch({ lodgPhase: 'criteria', lodgSearchMsg: null })
+        patch({ lodgPhase: 'criteria', lodgSearchMsg: null, lodgQueried: queried })
         return
       }
 
       // Une source muette doit se voir même quand la recherche aboutit par
-      // ailleurs : sans cette ligne, un Booking sans clé serait indiscernable
-      // d'un Booking sans offre, et on croirait l'écran toujours cassé.
+      // ailleurs : sans cela, un Booking sans clé serait indiscernable d'un
+      // Booking sans offre. L'information descend dans « État du relevé »,
+      // consultable à tout moment, au lieu de passer dans un bandeau qu'on lit
+      // une fois et qu'on referme.
       const failed = [...new Set(outcomes.filter((o) => o.error).map((o) => o.source))]
-
-      const parts = [
-        ok ? ok.message : null,
-        // Une annonce qui disparaît du relevé est presque toujours une annonce
-        // réservée : le dire ici évite d'aller le découvrir sur Airbnb.
-        ok && ok.missing > 0 ? t('lodg_gone_tally').replace('{n}', String(ok.missing)) : null,
-        fresh.length > 0
-          ? t('scan_other_sources_tally')
-              .replace('{n}', String(fresh.length))
-              .replace('{s}', String(outcomes.filter((o) => o.count > 0).length))
-          : null,
-        failed.length > 0
-          ? t('scan_sources_failed').replace('{s}', failed.join(', '))
-          : null
-      ].filter(Boolean)
 
       patch({
         imported: [...base, ...fresh],
         lodgPhase: 'results',
-        lodgSearchMsg: parts.join(' · ') || null,
+        // Le compte-rendu du relevé se lit **pendant** le relevé : passé le
+        // résultat, il n'a plus d'action associée et ne fait que repousser les
+        // vignettes sous la ligne de flottaison. Il est donc éteint en entrant
+        // dans `'results'`.
+        lodgSearchMsg: null,
+        lodgQueried: queried,
+        lodgFailed: failed,
         lastScan: Date.now()
       })
     } catch (err) {
@@ -349,12 +381,13 @@ export function LodgingsPage(): JSX.Element {
         className="lodgings__shell"
         style={{ gridTemplateColumns: state.lodgFiltersOpen ? 'minmax(0,300px) minmax(0,1fr)' : 'minmax(0,1fr)' }}
       >
-        {state.lodgFiltersOpen && <LodgingFilters domain={d} />}
+        {state.lodgFiltersOpen && <LodgingFilters />}
 
         {/* Côte à côte, la section ne défile plus : l'en-tête et les bandeaux
             restent en place et c'est le volet liste qui défile, sinon la carte
             sortirait de l'écran dès qu'on descend dans les résultats. */}
         <section
+          ref={resultsRef}
           style={
             splitOpen
               ? { display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 16, minHeight: 0 }
@@ -464,14 +497,18 @@ export function LodgingsPage(): JSX.Element {
 
           {state.lodgPhase === 'results' && (
           <>
+          {/* Huit contrôles bordés au-dessus des vignettes pesaient autant
+              qu'elles. Tous passent en boutons-texte, le compte en libellé
+              muet : la mosaïque redevient ce qu'on regarde en premier. La zone
+              tactile de 44 px est conservée par le rembourrage de
+              `.linkbtn--head`, malgré le retrait du fond. */}
           <header className="lodgings__head">
-
             <button
               type="button"
-              className="btn btn--small"
+              className="linkbtn--head"
               onClick={() => patch({ lodgFiltersOpen: !state.lodgFiltersOpen })}
             >
-              {state.lodgFiltersOpen ? '◂ Filtres' : '▸ Filtres'}
+              {state.lodgFiltersOpen ? `◂ ${t('filters')}` : `▸ ${t('filters')}`}
             </button>
             <h2 className="results__count">{derived.lodgList.length} logement(s)</h2>
             <span className="u-muted" style={{ fontSize: 12 }}>
@@ -491,12 +528,13 @@ export function LodgingsPage(): JSX.Element {
               </button>
             )}
             <span className="u-spacer" />
-            {/* L'alerte est distincte du bouton d'état : ce qui ne va pas doit
-                se voir sans avoir à ouvrir le panneau pour le découvrir. */}
+            {/* Une alerte doit se voir, pas peser : elle reste en tête de ligne
+                mais en texte, à la couleur d'avertissement. */}
             {geoAlert && (
               <button
                 type="button"
-                className="btn btn--pill btn--warn"
+                className="linkbtn"
+                style={{ color: 'var(--warn)', fontSize: 12 }}
                 onClick={() => patch({ lodgStatusOpen: true })}
               >
                 ⚠ {geoAlert}
@@ -504,7 +542,7 @@ export function LodgingsPage(): JSX.Element {
             )}
             <button
               type="button"
-              className="btn btn--pill"
+              className="linkbtn--head"
               onClick={() => patch({ lodgStatusOpen: !state.lodgStatusOpen })}
               title="État du relevé et des positions"
             >
@@ -514,22 +552,24 @@ export function LodgingsPage(): JSX.Element {
                   ? 'Masquer l’état du relevé'
                   : 'État du relevé'}
             </button>
-            <button type="button" className="btn btn--pill" onClick={() => patch({ flexOpen: !state.flexOpen })}>
+            <button type="button" className="linkbtn--head" onClick={() => patch({ flexOpen: !state.flexOpen })}>
               {state.flexOpen ? 'Dates flexibles ▾' : 'Dates flexibles ▸'}
             </button>
+            {/* « Rechercher » reste l'action lisible de l'en-tête, sans être un
+                bouton plein : l'accent est réservé aux actions de la vignette. */}
             <button
               type="button"
-              className="btn btn--primary btn--pill"
+              className="linkbtn--head is-strong"
               onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
             >
               Rechercher
             </button>
-            <button type="button" className="btn btn--pill" onClick={() => patch({ importOpen: true })}>
+            <button type="button" className="linkbtn--head" onClick={() => patch({ importOpen: true })}>
               ＋ Importer une annonce
             </button>
             <button
               type="button"
-              className="btn btn--pill"
+              className="linkbtn--head"
               onClick={() => patch({ lodgMapOpen: !state.lodgMapOpen })}
             >
               {state.lodgMapOpen ? 'Masquer la carte ◂' : 'Afficher la carte ▸'}
@@ -563,24 +603,20 @@ export function LodgingsPage(): JSX.Element {
             </div>
           )}
 
-          {state.lodgSearchMsg && (
-            <div className="srcbanner" style={{ borderColor: 'var(--ok, #3d9a6a)' }}>
-              <strong style={{ fontWeight: 600 }}>{state.lodgSearchMsg}</strong>
-              <span className="u-spacer" />
-              <button type="button" className="btn btn--small" onClick={() => patch({ lodgSearchMsg: null })}>
-                OK
-              </button>
-            </div>
-          )}
+          {/* Le compte-rendu du relevé n'a plus de bandeau ici : il se lit
+              pendant le relevé, dans `SkiSearchLoading`, et ce qui en reste
+              d'actionnable — sources muettes, doublons, médiane — vit dans
+              « État du relevé ». Passé le résultat, un bandeau sans action
+              repousse les vignettes sous la ligne de flottaison. */}
 
           {(staleCount > 0 || recheck.state.waiting || recheck.state.message) && (
             <div
               className="srcbanner"
-              style={{ borderColor: recheck.state.waiting ? 'var(--accent)' : 'var(--warn)' }}
+              style={{ borderColor: recheck.state.waiting ? 'var(--brand)' : 'var(--warn)' }}
             >
               {recheck.state.waiting ? (
                 <>
-                  <strong style={{ fontWeight: 600, color: 'var(--accent)' }}>
+                  <strong style={{ fontWeight: 600, color: 'var(--brand)' }}>
                     {t('lodg_awaiting_scan')}
                   </strong>
                   <span className="u-muted">
@@ -628,38 +664,26 @@ export function LodgingsPage(): JSX.Element {
             </div>
           )}
 
-          <div
-            className="srcbanner"
-            style={{ borderColor: health.down.length ? 'var(--warn)' : 'var(--border)' }}
-          >
-            <strong style={{ fontWeight: 600 }}>
-              {health.down.length || health.late.length
-                ? `${health.ok} source(s) sur ${health.total} à jour`
-                : `Les ${health.total} sources sont à jour`}
-            </strong>
-            {health.down.length > 0 && (
-              <span style={{ color: 'var(--warn)', fontWeight: 600 }}>injoignable : {health.down.join(', ')}</span>
-            )}
-            {health.late.length > 0 && (
-              <span className="u-muted">relevé de plus de 48 h : {health.late.join(', ')}</span>
-            )}
-            {median > 0 && <span className="u-muted">médiane du domaine {fmt(median)} €</span>}
-            <span className="u-spacer" />
-            <label className="check" style={{ margin: 0, whiteSpace: 'nowrap' }}>
-              <input
-                type="checkbox"
-                checked={state.mergeDupes}
-                onChange={(e) => patch({ mergeDupes: e.target.checked })}
-              />
-              Fusionner les doublons{' '}
-              <span className="u-muted">
-                · {derived.dupMerged > 0 ? `${derived.dupMerged} doublon(s) fusionné(s)` : 'aucun doublon'}
+          {/* Le bandeau permanent « les N sources sont à jour » a disparu :
+              c'était le doublon exact de `LodgingGeoPanel`, qui reçoit déjà la
+              santé des sources, la médiane, les doublons fusionnés, la case de
+              fusion et le bouton de relance. Une information qu'on ne lit pas
+              deux fois n'a pas besoin de deux emplacements. */}
+
+          {/* La mise en avant depuis la carte s'annonce : sans cela, l'effet
+              est invisible dès que la liste est défilée ou la carte au premier
+              plan. */}
+          {picked && (
+            <div className="pickbanner">
+              <span>
+                {t('lodg_picked_banner').replace('{n}', picked.name)}
               </span>
-            </label>
-            <button type="button" className="btn btn--pill btn--small" style={{ fontSize: 12 }} onClick={rescan}>
-              {t('lodg_rescan')}
-            </button>
-          </div>
+              <span className="u-spacer" />
+              <button type="button" className="linkbtn linkbtn--sm" onClick={() => patch({ lodgPickId: null })}>
+                {t('lodg_picked_clear')}
+              </button>
+            </div>
+          )}
 
           {state.flexOpen && (
             <div className="panel" style={{ padding: '16px 18px', marginBottom: 16 }}>

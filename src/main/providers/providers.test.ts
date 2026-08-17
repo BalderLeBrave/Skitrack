@@ -282,24 +282,26 @@ async function main(): Promise<void> {
   check('JSON illisible signalé, pas levé', loadMcpProviderConfigs('{').rejected.length === 1)
 
   heading('9. Agrégation — un échec de source n’arrête pas les autres')
-  // Aucun identifiant fourni : Booking et Expedia doivent échouer proprement.
+  // Aucun identifiant fourni : Booking doit échouer proprement, sans lever.
+  //
+  // Expedia, Gîtes de France, cozycozy et LiteAPI ne sont plus enregistrés —
+  // voir `buildEngine`. Leurs modules restent testés plus haut (normalisation,
+  // signature, transport) : ce sont des unités toujours justes, mais qu'aucun
+  // relevé n'appelle plus. Sans `enableWebScrape`, il ne reste donc que Booking.
   const engine = buildEngine({ vault: () => undefined })
   const report = await engine.search(PARAMS)
   for (const outcome of report.outcomes) {
     console.log(`  ${outcome.provider.padEnd(16)} ${outcome.results.length} résultat(s)  ${outcome.error ?? 'OK'}`)
   }
-  check('toutes les sources ont répondu', report.outcomes.length === 4, report.outcomes.length)
+  check('seules les sources retenues sont interrogées', report.outcomes.length === 1, report.outcomes.length)
   check(
-    'LiteAPI échoue avec un motif actionnable',
-    Boolean(report.outcomes.find((o) => o.provider === 'liteapi')?.error?.includes('Réglages'))
+    'aucun connecteur retiré n’est enregistré',
+    !report.outcomes.some((o) => ['liteapi', 'expedia', 'gites-de-france', 'cozycozy'].includes(o.provider)),
+    report.outcomes.map((o) => o.provider).join(', ')
   )
   check(
     'Booking échoue avec un motif explicite',
     Boolean(report.outcomes.find((o) => o.provider === 'booking')?.error?.includes('Demand API'))
-  )
-  check(
-    'Gîtes de France n’est pas en erreur',
-    report.outcomes.find((o) => o.provider === 'gites-de-france')?.error === null
   )
   check('l’agrégat n’a pas levé', true)
 

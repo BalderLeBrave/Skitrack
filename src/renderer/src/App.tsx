@@ -12,6 +12,7 @@ import { PeopleDrawer } from '@/components/PeopleDrawer'
 import { CombosPage } from '@/pages/CombosPage'
 import { DecisionPage } from '@/pages/DecisionPage'
 import { DomainSearchPage } from '@/pages/DomainSearchPage'
+import { HomePage } from '@/pages/HomePage'
 import { LodgingsPage } from '@/pages/LodgingsPage'
 import { OffersPage } from '@/pages/OffersPage'
 import { ReferentialPage } from '@/pages/ReferentialPage'
@@ -51,8 +52,11 @@ function ThemeSwitch(): JSX.Element {
       className="themeswitch"
       onClick={() => patch({ theme: dark ? 'light' : 'dark' })}
     >
+      {/* Sur la barre encre, le libellé actif se lit en blanc plein et l'autre
+          en blanc atténué : les jetons de texte du contenu clair y seraient
+          invisibles. */}
       {!narrow && (
-        <span className="themeswitch__label" style={{ color: dark ? 'var(--muted)' : 'var(--text)' }}>
+        <span className="themeswitch__label" style={{ color: dark ? 'var(--nav-muted)' : 'var(--nav-fg)' }}>
           {t('theme_light')}
         </span>
       )}
@@ -60,7 +64,7 @@ function ThemeSwitch(): JSX.Element {
         <span className="themeswitch__knob" />
       </span>
       {!narrow && (
-        <span className="themeswitch__label" style={{ color: dark ? 'var(--text)' : 'var(--muted)' }}>
+        <span className="themeswitch__label" style={{ color: dark ? 'var(--nav-fg)' : 'var(--nav-muted)' }}>
           {t('theme_dark')}
         </span>
       )}
@@ -82,6 +86,9 @@ function Nav(): JSX.Element {
       </span>
 
       <div className="nav__tabs">
+        <button type="button" className={tab(screen === 'accueil')} onClick={() => patch({ tab: 'accueil' })}>
+          {t('nav_home')}
+        </button>
         <button
           type="button"
           className={tab(screen === 'recherche' || screen === 'import-referentiel')}
@@ -132,6 +139,8 @@ function Nav(): JSX.Element {
 function Screens(): JSX.Element {
   const { screen } = useApp()
   switch (screen) {
+    case 'accueil':
+      return <HomePage />
     case 'import-referentiel':
       return <ReferentialPage />
     case 'offres':

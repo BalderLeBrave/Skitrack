@@ -42,7 +42,7 @@ export function TrackingPage(): JSX.Element {
     (state.alertMode === 'pct'
       ? `Baisse d’au moins ${state.alertPct} %`
       : `Baisse d’au moins ${fmt(state.alertEur)} €`) +
-    (state.quietHours ? ' · pas de notification entre 22 h et 8 h' : '') +
+    (state.quietHours ? ` · ${t('tracking_quiet_hours_short')}` : '') +
     (state.digest ? ` · ${t('digest_short')}` : '')
 
   return (
@@ -145,7 +145,7 @@ export function TrackingPage(): JSX.Element {
                   checked={state.quietHours}
                   onChange={(e) => patch({ quietHours: e.target.checked })}
                 />
-                Ne pas notifier entre 22 h et 8 h
+                {t('tracking_quiet_hours')}
               </label>
               <label className="check" style={{ margin: 0, gap: 10 }}>
                 <input type="checkbox" checked={state.digest} onChange={(e) => patch({ digest: e.target.checked })} />
@@ -191,7 +191,7 @@ export function TrackingPage(): JSX.Element {
                       fontSize: 16,
                       fontWeight: 800,
                       letterSpacing: '-0.02em',
-                      color: 'var(--accent)'
+                      color: 'var(--text)'
                     }}
                   >
                     {eur(t.total)}
@@ -236,7 +236,7 @@ export function TrackingPage(): JSX.Element {
                 <polyline
                   points={points}
                   fill="none"
-                  stroke="var(--accent)"
+                  stroke="var(--brand)"
                   strokeWidth="2.5"
                   strokeLinejoin="round"
                   strokeLinecap="round"

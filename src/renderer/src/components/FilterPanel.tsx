@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useI18n } from '@/i18n'
-import type { AppState } from '@/state/appState'
-import { useApp } from '@/state/appState'
-import { useDerived } from '@/state/selectors'
+import type { AppState, FilterRangeKey } from '@/state/appState'
+import { FILTER_RANGES, useApp } from '@/state/appState'
+import { rangeOpen, useDerived } from '@/state/selectors'
 import { computeRoutes, routesCoverage } from '@/domain/travel'
 import { useFormat } from '@/hooks/useFormat'
+import { RangeFilter } from './RangeFilter'
 
 /** Ordre canonique des massifs français, du plus fourni au moins fourni. */
 const MASSIF_ORDER = ['Alpes du Nord', 'Alpes du Sud', 'Pyrénées', 'Massif central', 'Jura', 'Vosges']
@@ -16,15 +17,25 @@ const MASSIF_ORDER = ['Alpes du Nord', 'Alpes du Sud', 'Pyrénées', 'Massif cen
  * filtres actifs — un filtre est actif quand il s'écarte de cette table. Une
  * liste séparée pour chaque usage aurait fini par diverger, et le compteur
  * aurait annoncé des filtres que la réinitialisation ne remettait pas à zéro.
+ *
+ * Chaque borne haute repart à son **plafond**. La remettre à 0 fermerait la
+ * plage sur le seul zéro et viderait la liste, ce qui est exactement l'inverse
+ * de ce qu'attend un bouton « Réinitialiser ».
  */
 const FILTER_DEFAULTS = {
   domainQuery: '',
-  altMin: 0,
-  altMax: 0,
+  baseMin: 0,
+  baseMax: FILTER_RANGES.base.max,
+  summitMin: 0,
+  summitMax: FILTER_RANGES.summit.max,
   kmMin: 10,
-  travelMax: 0,
-  distMax: 0,
-  forfaitMax: 0,
+  kmMax: FILTER_RANGES.km.max,
+  travelMin: 0,
+  travelMax: FILTER_RANGES.travel.max,
+  distMin: 0,
+  distMax: FILTER_RANGES.dist.max,
+  forfaitMin: 0,
+  forfaitMax: FILTER_RANGES.forfait.max,
   avoidTolls: false,
   massifs: [] as string[],
   glacier: false,
@@ -32,7 +43,7 @@ const FILTER_DEFAULTS = {
 } satisfies Partial<AppState>
 
 export function FilterPanel(): JSX.Element {
-  const { dur, fmt } = useFormat()
+  const { dur, eur, fmt } = useFormat()
   const { state, patch, domains } = useApp()
   const { origins, hh } = useDerived()
   const { t } = useI18n()
@@ -51,21 +62,33 @@ export function FilterPanel(): JSX.Element {
   const add = (key: string, label: string, reset: Partial<AppState>): void => {
     active.push({ key, label, clear: () => patch(reset) })
   }
+
+  /**
+   * Puce d'une plage posée.
+   *
+   * Sa croix **rouvre la plage entière** — plancher à 0, plafond au maximum —
+   * au lieu de ramener une borne à 0, qui refermerait le filtre au plus serré
+   * au moment même où on croit le retirer.
+   */
+  const addRange = (range: FilterRangeKey, name: string, render: (v: number) => string): void => {
+    const spec = FILTER_RANGES[range]
+    const lo = state[spec.lo] as number
+    const hi = state[spec.hi] as number
+    if (rangeOpen(lo, hi, spec.max)) return
+    const high = hi >= spec.max ? t('range_no_limit') : render(hi)
+    add(range, `${name} ${render(lo)} – ${high}`, {
+      [spec.lo]: 0,
+      [spec.hi]: spec.max
+    } as unknown as Partial<AppState>)
+  }
+
   if (state.domainQuery.trim()) add('q', `« ${state.domainQuery.trim()} »`, { domainQuery: '' })
-  if (state.altMin !== FILTER_DEFAULTS.altMin)
-    add('altMin', `${t('altitude_bottom')} ≥ ${fmt(state.altMin)} m`, { altMin: FILTER_DEFAULTS.altMin })
-  if (state.altMax !== FILTER_DEFAULTS.altMax)
-    add('altMax', `${t('altitude_top')} ≥ ${fmt(state.altMax)} m`, { altMax: FILTER_DEFAULTS.altMax })
-  if (state.kmMin !== FILTER_DEFAULTS.kmMin)
-    add('kmMin', `${t('slopes')} ≥ ${fmt(state.kmMin)} km`, { kmMin: FILTER_DEFAULTS.kmMin })
-  if (state.travelMax !== FILTER_DEFAULTS.travelMax)
-    add('travelMax', `${t('travel_time')} ≤ ${dur(state.travelMax)}`, { travelMax: FILTER_DEFAULTS.travelMax })
-  if (state.distMax !== FILTER_DEFAULTS.distMax)
-    add('distMax', `≤ ${fmt(state.distMax)} km`, { distMax: FILTER_DEFAULTS.distMax })
-  if (state.forfaitMax !== FILTER_DEFAULTS.forfaitMax)
-    add('forfaitMax', `${t('pass_6d_adult')} ≤ ${fmt(state.forfaitMax)} €`, {
-      forfaitMax: FILTER_DEFAULTS.forfaitMax
-    })
+  addRange('base', t('chip_base'), (v) => `${fmt(v)} m`)
+  addRange('summit', t('chip_summit'), (v) => `${fmt(v)} m`)
+  addRange('km', t('chip_km'), (v) => `${fmt(v)} km`)
+  addRange('travel', t('chip_travel'), (v) => dur(v))
+  addRange('dist', t('chip_dist'), (v) => `${fmt(v)} km`)
+  addRange('forfait', t('chip_pass'), (v) => eur(v))
   if (state.avoidTolls) add('tolls', t('filter_avoid_tolls'), { avoidTolls: false })
   for (const name of state.massifs) {
     add(`massif:${name}`, name, { massifs: state.massifs.filter((x) => x !== name) })
@@ -135,49 +158,27 @@ export function FilterPanel(): JSX.Element {
       )}
 
       <section className="filters__section">
-        <label className="field-label">
-          Altitude minimum du bas des pistes
-          <strong className="u-nowrap">{fmt(state.altMin)} m</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={2400}
-          step={50}
-          value={state.altMin}
-          onChange={(e) => patch({ altMin: +e.target.value })}
+        <RangeFilter
+          range="base"
+          label={t('altitude_bottom')}
+          openKey="range_all_altitudes"
+          format={(v) => `${fmt(v)} m`}
+          unit="m"
+          help={t('filter_altitude_min_help')}
         />
-        <p className="filters__help">
-          Le critère le plus corrélé à la tenue de la neige. Attention : c’est le point skiable le plus bas, pas
-          l’altitude du village.
-        </p>
-      </section>
-
-      <section className="filters__section">
-        <label className="field-label">
-          {t('filter_altitude_max')}<strong className="u-nowrap">{fmt(state.altMax)} m</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={4000}
-          step={100}
-          value={state.altMax}
-          onChange={(e) => patch({ altMax: +e.target.value })}
+        <RangeFilter
+          range="summit"
+          label={t('altitude_top')}
+          openKey="range_all_summits"
+          format={(v) => `${fmt(v)} m`}
+          unit="m"
         />
-      </section>
-
-      <section className="filters__section">
-        <label className="field-label">
-          {t('filter_slopes_km')}<strong className="u-nowrap">{fmt(state.kmMin)} km</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={600}
-          step={10}
-          value={state.kmMin}
-          onChange={(e) => patch({ kmMin: +e.target.value })}
+        <RangeFilter
+          range="km"
+          label={t('filter_km_range')}
+          openKey="range_all_sizes"
+          format={(v) => `${fmt(v)} km`}
+          unit="km"
         />
       </section>
 
@@ -227,29 +228,19 @@ export function FilterPanel(): JSX.Element {
           {state.routeMsg && <p className="notice notice--info" style={{ marginTop: 4, fontSize: 12 }}>{state.routeMsg}</p>}
         </div>
 
-        <label className="field-label">
-          Temps de trajet maximum
-          <strong className="u-nowrap">{state.travelMax ? dur(state.travelMax) : '—'}</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={720}
-          step={15}
-          value={state.travelMax}
-          onChange={(e) => patch({ travelMax: +e.target.value })}
+        <RangeFilter
+          range="travel"
+          label={t('filter_travel_range')}
+          openKey="range_all_travels"
+          format={(v) => dur(v)}
+          unit={t('minutes')}
         />
-        <label className="field-label">
-          Distance maximum
-          <strong className="u-nowrap">{state.distMax ? `${fmt(state.distMax)} km` : '—'}</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={1200}
-          step={25}
-          value={state.distMax}
-          onChange={(e) => patch({ distMax: +e.target.value })}
+        <RangeFilter
+          range="dist"
+          label={t('filter_dist_range')}
+          openKey="range_all_distances"
+          format={(v) => `${fmt(v)} km`}
+          unit="km"
         />
         <label className="check">
           <input
@@ -262,22 +253,14 @@ export function FilterPanel(): JSX.Element {
       </section>
 
       <section className="filters__section">
-        <label className="field-label">
-          Forfait 6 jours adulte, au plus
-          <strong className="u-nowrap">{state.forfaitMax ? `${fmt(state.forfaitMax)} €` : '—'}</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={400}
-          step={10}
-          value={state.forfaitMax}
-          onChange={(e) => patch({ forfaitMax: +e.target.value })}
+        <RangeFilter
+          range="forfait"
+          label={t('filter_pass_range')}
+          openKey="range_all_prices"
+          format={(v) => eur(v)}
+          unit="€"
+          help={t('filter_forfait_help')}
         />
-        <p className="filters__help">
-          Tarif public haute saison du domaine relié. Les domaines sans tarif relevé sont masqués quand ce filtre est
-          actif.
-        </p>
       </section>
 
       {/* Massif et Options sont repliés : ce sont les deux sections qu'on ne

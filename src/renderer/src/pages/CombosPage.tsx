@@ -24,7 +24,7 @@ export function CombosPage(): JSX.Element {
     const t = (total - lo) / span
     const over = total > state.offresBudget
     return {
-      border: selected ? '2px solid var(--accent)' : `1px solid ${over ? 'var(--border-soft)' : 'var(--border)'}`,
+      border: selected ? '2px solid var(--brand)' : `1px solid ${over ? 'var(--border-soft)' : 'var(--border)'}`,
       borderRadius: 10,
       padding: selected ? '8px 5px' : '9px 6px',
       fontSize: 13,
@@ -78,7 +78,7 @@ export function CombosPage(): JSX.Element {
                   <p style={{ margin: 0, fontSize: 15, fontWeight: 600, flex: '1 1 auto', minWidth: 0 }}>
                     {r.d.name}
                   </p>
-                  <strong className="u-num" style={{ color: 'var(--accent)' }}>
+                  <strong className="u-num" style={{ color: 'var(--text)' }}>
                     {eur(r.min)}
                   </strong>
                 </div>
@@ -155,7 +155,7 @@ export function CombosPage(): JSX.Element {
                         {eur(c.total)}
                       </button>
                     ))}
-                    <strong className="u-num" style={{ textAlign: 'right', fontSize: 14, color: 'var(--accent)' }}>
+                    <strong className="u-num" style={{ textAlign: 'right', fontSize: 14, color: 'var(--text)' }}>
                       {eur(r.min)}
                     </strong>
                   </div>
@@ -171,7 +171,7 @@ export function CombosPage(): JSX.Element {
               <p style={{ margin: 0, fontSize: 16, fontWeight: 600, flex: '1 1 auto', minWidth: 0 }}>
                 {selDomain?.name ?? ''} · {selWeek?.label ?? ''}
               </p>
-              <strong className="u-num" style={{ color: 'var(--accent)' }}>
+              <strong className="u-num" style={{ color: 'var(--text)' }}>
                 {eur(selection.total)} tout compris
               </strong>
               <button type="button" className="linkbtn linkbtn--muted" onClick={() => patch({ comboSel: null })}>

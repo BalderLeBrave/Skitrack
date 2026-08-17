@@ -1,8 +1,5 @@
-import { ExternalIcon } from './Icons'
+import { RangeFilter } from './RangeFilter'
 import { lodgingSources, LODG_TYPES, srcOf } from '@/data/lodgings'
-import type { Domain } from '@/data/referentiel'
-import { deepLinks } from '@/data/deeplinks'
-import { stationNameOf } from '@/data/stations'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { LODG_FILTER_RESET, useApp } from '@/state/appState'
@@ -16,35 +13,15 @@ const SORT_LABELS: [LodgSortKey, string][] = [
   ['note_desc', 'Note voyageurs']
 ]
 
-export function LodgingFilters({ domain }: { domain: Domain }): JSX.Element {
-  const { fmt } = useFormat()
+export function LodgingFilters(): JSX.Element {
+  const { eur, fmt } = useFormat()
   const { t } = useI18n()
   const { state, patch } = useApp()
   const { nights, lodgAll } = useDerived()
 
-  /**
-   * Recherches pré-remplies sur les sites d'origine.
-   *
-   * Tant que les connecteurs partenaires ne sont pas ouverts, c'est le chemin
-   * honnête vers l'offre réelle : on construit l'URL avec les critères saisis
-   * ici plutôt que de laisser l'utilisateur les ressaisir sur chaque site.
-   */
-  const deeplinks = deepLinks({
-    domainName: domain.name,
-    arrDate: state.arrDate,
-    depDate: state.depDate,
-    travelers: state.travelers,
-    rooms: state.rooms,
-    officialUrl: domain.booking ?? domain.website
-  })
-
-  /** Nom réellement envoyé aux sites : celui de la station, pas du domaine relié. */
-  const station = stationNameOf(domain.name)
-
-  const copy = (url: string): void => {
-    void navigator.clipboard.writeText(url).catch(() => undefined)
-  }
-
+  // Les sources proposées sont celles que le moteur a interrogées au dernier
+  // relevé, plus celles réellement portées par les offres.
+  const sources = lodgingSources(lodgAll, state.lodgQueried)
 
   return (
     <aside className="filters">
@@ -163,19 +140,14 @@ export function LodgingFilters({ domain }: { domain: Domain }): JSX.Element {
       </section>
 
       <section className="filters__section">
-        <label className="field-label">
-          Budget total maximum
-          <strong className="u-nowrap">{state.lodgBudget ? `${fmt(state.lodgBudget)} €` : '—'}</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={8000}
-          step={100}
-          value={state.lodgBudget}
-          onChange={(e) => patch({ lodgBudget: +e.target.value })}
+        <RangeFilter
+          range="lodgBudget"
+          label={t('filter_lodg_budget_range')}
+          openKey="range_all_offers"
+          format={(v) => eur(v)}
+          unit="€"
+          help={t('lodg_price_allin_note')}
         />
-        <p className="filters__help">{t('lodg_price_allin_note')}</p>
       </section>
 
       <section className="filters__section">
@@ -202,91 +174,45 @@ export function LodgingFilters({ domain }: { domain: Domain }): JSX.Element {
       </section>
 
       <section className="filters__section">
-        <label className="field-label">
-          Distance max aux pistes
-          <strong className="u-nowrap">{state.lodgDist ? `${fmt(state.lodgDist)} m` : '—'}</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={1000}
-          step={50}
-          value={state.lodgDist}
-          onChange={(e) => patch({ lodgDist: +e.target.value })}
+        <RangeFilter
+          range="lodgDist"
+          label={t('filter_lodg_dist_range')}
+          openKey="range_all_lodg_distances"
+          format={(v) => `${fmt(v)} m`}
+          unit="m"
+          help={t('walk_dist_note')}
         />
-        <p className="filters__help">
-          {t('walk_dist_note')}
-        </p>
       </section>
 
+      {/* Les sources sont des puces, comme « Type de bien » juste au-dessus :
+          même geste, même géométrie. La liste à pastille disait la même chose en
+          trois fois plus de hauteur, et les URL en clair qui la suivaient
+          n'avaient rien à faire dans un panneau de filtres — elles restent
+          disponibles sur la fiche de chaque logement. */}
       <section className="filters__section">
-        <h3 className="filters__legend">Sources</h3>
-        <div style={{ display: 'grid', gap: 7, fontSize: 13 }}>
-          {lodgingSources(lodgAll).map((key) => {
+        <h3 className="filters__legend">{t('sources_label')}</h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {sources.map((key) => {
             const on = !state.lodgSrcOff.includes(key)
             return (
               <button
                 key={key}
                 type="button"
-                className="srcrow"
-                title="Afficher / masquer cette source"
+                className={`chip${on ? ' chip--on' : ''}`}
+                title={t('lodg_source_toggle')}
+                aria-pressed={on}
                 onClick={() =>
                   patch({
                     lodgSrcOff: on ? [...state.lodgSrcOff, key] : state.lodgSrcOff.filter((k) => k !== key)
                   })
                 }
               >
-                <span style={{ color: on ? 'var(--ok)' : 'var(--border-soft)' }}>●</span>
-                <span style={{ flex: 1, color: on ? 'var(--text)' : 'var(--muted)' }}>{key}</span>
-                <span className="u-muted" style={{ fontSize: 12 }}>
-                  {lodgAll.filter((l) => srcOf(l) === key).length} offres
-                </span>
+                {key} <span className="chip__count">{lodgAll.filter((l) => srcOf(l) === key).length}</span>
               </button>
             )
           })}
         </div>
-        <p className="filters__help">
-          Sources API et scraping agrégées dans la même liste — relevé toutes les heures, réservation sur le site
-          d’origine. Cliquez une source pour la masquer.
-        </p>
-
-        <p style={{ margin: '14px 0 6px', fontSize: 12, fontWeight: 600 }}>{t('lodg_prefilled_search')}</p>
-        {station !== domain.name && (
-          <p className="filters__help" style={{ margin: '0 0 8px' }}>
-            {t('lodg_station_query').replace('{n}', station)}
-          </p>
-        )}
-        <div style={{ display: 'grid', gap: 8 }}>
-          {deeplinks.map((dl) => (
-            <div key={dl.name} style={{ display: 'grid', gap: 4 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: dl.official ? 600 : 400 }}>
-                  {dl.official ? t('lodg_official_site') : dl.name}
-                  {dl.official && dl.verified === false && (
-                    <span
-                      className="u-muted"
-                      style={{ fontWeight: 400, fontSize: 11 }}
-                      title={t('lodg_official_unverified_note')}
-                    >
-                      {` · ${t('lodg_official_unverified')}`}
-                    </span>
-                  )}
-                </span>
-                <button type="button" className="linkbtn linkbtn--sm" onClick={() => copy(dl.url)}>
-                  copier
-                </button>
-                <a href={dl.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 600 }}>
-                  ouvrir
-                  <ExternalIcon />
-                </a>
-              </div>
-              <span className="u-ellipsis u-muted" style={{ fontSize: 11 }}>
-                {dl.url}
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className="filters__help filters__help--tight">{t('deeplinks_note')}</p>
+        <p className="filters__help">{t('lodg_sources_note')}</p>
       </section>
 
       <section className="filters__section">

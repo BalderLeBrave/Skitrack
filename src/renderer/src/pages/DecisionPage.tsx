@@ -78,7 +78,7 @@ export function DecisionPage(): JSX.Element {
       <div className="page__inner" style={{ maxWidth: 900, padding: '26px 28px 40px' }}>
         <header className="page-head" style={{ marginBottom: 4 }}>
           <h2>{ctx.d.name}</h2>
-          <strong className="u-num" style={{ fontSize: 20, color: 'var(--accent)' }}>
+          <strong className="u-num" style={{ fontSize: 20, color: 'var(--text)' }}>
             {eur(k.total)}
           </strong>
         </header>
@@ -126,7 +126,7 @@ export function DecisionPage(): JSX.Element {
                 <div key={r.home} style={{ borderTop: '1px solid var(--border-soft)', paddingTop: 10 }}>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 15, fontWeight: 600, flex: '1 1 auto', minWidth: 0 }}>{r.home}</span>
-                    <strong className="u-num u-nowrap" style={{ fontSize: 17, color: 'var(--accent)' }}>
+                    <strong className="u-num u-nowrap" style={{ fontSize: 17, color: 'var(--text)' }}>
                       {eur(r.total)}
                     </strong>
                   </div>

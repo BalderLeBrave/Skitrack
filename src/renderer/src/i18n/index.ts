@@ -45,6 +45,7 @@ const CATALOG = {
   appName: ['SKITRACK', 'SKITRACK', 'SKITRACK', 'SKITRACK', 'SKITRACK', 'SKITRACK', 'SKITRACK'],
 
   // --- Navigation ---------------------------------------------------------
+  nav_home: ['Accueil', 'Home', 'Start', 'Start', 'Inicio', 'Home', 'Tuis'],
   nav_search: ['Domaines', 'Resorts', 'Skigebiete', 'Skigebieden', 'Dominios', 'Comprensori', 'Skigebiede'],
   nav_settings: ['Réglages', 'Settings', 'Einstellungen', 'Instellingen', 'Ajustes', 'Impostazioni', 'Instellings'],
   nav_lodgings: ['Logements', 'Stays', 'Unterkünfte', 'Verblijven', 'Alojamientos', 'Alloggi', 'Verblyf'],
@@ -256,6 +257,283 @@ const CATALOG = {
   all_label: ['tous', 'all', 'alle', 'alle', 'todos', 'tutti', 'alles'],
   none_fem: ['aucune', 'none', 'keine', 'geen', 'ninguna', 'nessuna', 'geen'],
   linked_short: ['relié', 'linked', 'Verbund', 'verbonden', 'enlazado', 'collegato', 'verbind'],
+
+  // --- Filtres en plage ----------------------------------------------------
+  // Les intitulés sont neutres : les deux bornes se règlent, « au minimum » ou
+  // « au plus » décrirait la moitié du contrôle. La valeur de la plage se lit
+  // sur la seconde ligne de l'en-tête.
+  filter_km_range: [
+    'Kilomètres de pistes', 'Kilometres of runs', 'Pistenkilometer', 'Pistekilometers',
+    'Kilómetros de pistas', 'Chilometri di piste', 'Kilometers plesiere'
+  ],
+  filter_travel_range: [
+    'Temps de trajet', 'Travel time', 'Fahrzeit', 'Reistijd', 'Tiempo de viaje', 'Tempo di viaggio', 'Reistyd'
+  ],
+  filter_dist_range: ['Distance', 'Distance', 'Entfernung', 'Afstand', 'Distancia', 'Distanza', 'Afstand'],
+  filter_pass_range: [
+    'Forfait 6 jours adulte', '6-day adult pass', '6-Tage-Skipass Erwachsene', '6-daagse skipas volwassene',
+    'Forfait de 6 días adulto', 'Skipass 6 giorni adulti', '6-dag-kaartjie vir grootmense'
+  ],
+  filter_lodg_budget_range: [
+    'Budget du séjour', 'Stay budget', 'Budget des Aufenthalts', 'Budget van het verblijf',
+    'Presupuesto de la estancia', 'Budget del soggiorno', 'Begroting vir die verblyf'
+  ],
+  filter_lodg_dist_range: [
+    'Distance aux pistes', 'Distance to the runs', 'Entfernung zu den Pisten', 'Afstand tot de pistes',
+    'Distancia a las pistas', 'Distanza dalle piste', 'Afstand na die plesiere'
+  ],
+  range_no_limit: ['sans limite', 'no limit', 'ohne Limit', 'geen limiet', 'sin límite', 'senza limite', 'geen limiet'],
+  range_low: ['Borne basse', 'Lower bound', 'Untere Grenze', 'Ondergrens', 'Límite inferior', 'Limite inferiore', 'Ondergrens'],
+  range_high: ['Borne haute', 'Upper bound', 'Obere Grenze', 'Bovengrens', 'Límite superior', 'Limite superiore', 'Bogrens'],
+  range_all_altitudes: [
+    'toutes altitudes', 'all altitudes', 'alle Höhen', 'alle hoogtes', 'todas las altitudes', 'tutte le quote', 'alle hoogtes'
+  ],
+  range_all_summits: [
+    'tous sommets', 'all summits', 'alle Gipfel', 'alle toppen', 'todas las cotas', 'tutte le vette', 'alle pieke'
+  ],
+  range_all_sizes: [
+    'toutes tailles', 'all sizes', 'alle Größen', 'alle groottes', 'todos los tamaños', 'tutte le dimensioni', 'alle groottes'
+  ],
+  range_all_travels: [
+    'tous trajets', 'any travel time', 'alle Fahrzeiten', 'alle reistijden', 'todos los viajes', 'tutti i viaggi', 'enige reistyd'
+  ],
+  range_all_distances: [
+    'toutes distances', 'any distance', 'alle Entfernungen', 'alle afstanden', 'todas las distancias', 'tutte le distanze', 'enige afstand'
+  ],
+  range_all_prices: [
+    'tous tarifs', 'any price', 'alle Preise', 'alle prijzen', 'todas las tarifas', 'tutti i prezzi', 'enige prys'
+  ],
+  range_all_offers: [
+    'toutes les offres', 'all offers', 'alle Angebote', 'alle aanbiedingen', 'todas las ofertas', 'tutte le offerte', 'alle aanbiedinge'
+  ],
+  range_all_lodg_distances: [
+    'toutes les distances', 'all distances', 'alle Entfernungen', 'alle afstanden',
+    'todas las distancias', 'tutte le distanze', 'alle afstande'
+  ],
+  chip_base: ['Bas', 'Base', 'Pistenende', 'Onderkant', 'Base', 'Base', 'Voet'],
+  chip_summit: ['Sommet', 'Summit', 'Gipfel', 'Top', 'Cota', 'Vetta', 'Piek'],
+  chip_km: ['Pistes', 'Runs', 'Pisten', 'Pistes', 'Pistas', 'Piste', 'Plesiere'],
+  chip_travel: ['Trajet', 'Drive', 'Fahrt', 'Rit', 'Viaje', 'Viaggio', 'Rit'],
+  chip_dist: ['Distance', 'Distance', 'Entfernung', 'Afstand', 'Distancia', 'Distanza', 'Afstand'],
+  chip_pass: ['Forfait', 'Pass', 'Skipass', 'Skipas', 'Forfait', 'Skipass', 'Kaartjie'],
+
+  // --- Cadrage de la carte des domaines ------------------------------------
+  dom_out_of_view: [
+    '{n} domaine(s) hors du cadrage', '{n} resort(s) outside the view',
+    '{n} Gebiet(e) außerhalb des Ausschnitts', '{n} skigebied(en) buiten beeld',
+    '{n} dominio(s) fuera del encuadre', '{n} comprensorio/i fuori inquadratura',
+    '{n} skigebied(e) buite die aansig'
+  ],
+  dom_view_all: ['tout voir', 'show all', 'alle anzeigen', 'alles tonen', 'ver todo', 'mostra tutto', 'wys alles'],
+
+  // --- Étiquettes dérivées de la vignette de domaine -----------------------
+  tag_common_pass: ['Forfait commun :', 'Shared pass:', 'Gemeinsamer Skipass:', 'Gedeelde skipas:', 'Forfait común:', 'Skipass comune:', 'Gedeelde kaartjie:'],
+  tag_large_area: ['Grand domaine', 'Large area', 'Großes Gebiet', 'Groot gebied', 'Dominio grande', 'Grande comprensorio', 'Groot gebied'],
+  tag_high_altitude: ['Haute altitude', 'High altitude', 'Hochgelegen', 'Hooggelegen', 'Gran altitud', 'Alta quota', 'Hooggeleë'],
+  tag_moderate_pass: ['Forfait modéré', 'Moderate pass', 'Günstiger Skipass', 'Betaalbare skipas', 'Forfait moderado', 'Skipass contenuto', 'Bekostigbare kaartjie'],
+  tag_verified: ['vérifié', 'verified', 'geprüft', 'geverifieerd', 'verificado', 'verificato', 'geverifieer'],
+  of_runs: ['de pistes', 'of runs', 'Pisten', 'pistes', 'de pistas', 'di piste', 'plesiere'],
+  geo_from: ['de', 'from', 'von', 'van', 'de', 'da', 'van'],
+
+  // --- Accueil -------------------------------------------------------------
+  home_badge: [
+    '{n} domaines vérifiés · {m} massifs', '{n} verified resorts · {m} ranges',
+    '{n} geprüfte Gebiete · {m} Massive', '{n} geverifieerde gebieden · {m} massieven',
+    '{n} dominios verificados · {m} macizos', '{n} comprensori verificati · {m} massicci',
+    '{n} geverifieerde gebiede · {m} bergreekse'
+  ],
+  home_title_1: [
+    'Le séjour au ski,', 'The ski trip,', 'Der Skiurlaub,', 'De skivakantie,',
+    'La estancia de esquí,', 'La settimana bianca,', 'Die skivakansie,'
+  ],
+  home_title_2: [
+    'prix réels compris.', 'real prices included.', 'echte Preise inbegriffen.',
+    'echte prijzen inbegrepen.', 'precios reales incluidos.', 'prezzi reali compresi.',
+    'werklike pryse ingesluit.'
+  ],
+  home_lead: [
+    'Forfaits relevés station par station, logements agrégés sur trois sources, trajet et dépenses du groupe additionnés. Aucun score opaque.',
+    'Passes recorded resort by resort, stays aggregated from three sources, travel and group costs added up. No opaque score.',
+    'Skipässe Gebiet für Gebiet erfasst, Unterkünfte aus drei Quellen gebündelt, Fahrt und Gruppenkosten addiert. Kein undurchsichtiger Score.',
+    'Skipassen per gebied vastgelegd, verblijven uit drie bronnen samengebracht, rit en groepskosten opgeteld. Geen ondoorzichtige score.',
+    'Forfaits registrados estación por estación, alojamientos agregados de tres fuentes, viaje y gastos del grupo sumados. Ninguna puntuación opaca.',
+    'Skipass rilevati comprensorio per comprensorio, alloggi aggregati da tre fonti, viaggio e spese del gruppo sommati. Nessun punteggio opaco.',
+    'Kaartjies gebied vir gebied aangeteken, verblyf uit drie bronne saamgevoeg, rit en groepkoste bymekaargetel. Geen ondeursigtige telling nie.'
+  ],
+  home_search_placeholder: [
+    'Chamonix, Val Thorens, Les Angles…', 'Chamonix, Val Thorens, Les Angles…',
+    'Chamonix, Val Thorens, Les Angles…', 'Chamonix, Val Thorens, Les Angles…',
+    'Chamonix, Val Thorens, Les Angles…', 'Chamonix, Val Thorens, Les Angles…',
+    'Chamonix, Val Thorens, Les Angles…'
+  ],
+  home_cta: [
+    'Comparer les domaines →', 'Compare the resorts →', 'Skigebiete vergleichen →',
+    'Skigebieden vergelijken →', 'Comparar los dominios →', 'Confronta i comprensori →',
+    'Vergelyk die skigebiede →'
+  ],
+  home_sc_large: ['Grands domaines', 'Large areas', 'Große Gebiete', 'Grote gebieden', 'Dominios grandes', 'Grandi comprensori', 'Groot gebiede'],
+  home_sc_large_title: [
+    '200 km de pistes ou plus', '200 km of runs or more', '200 Pistenkilometer oder mehr',
+    '200 km pistes of meer', '200 km de pistas o más', '200 km di piste o più', '200 km plesiere of meer'
+  ],
+  home_sc_high: ['Haute altitude', 'High altitude', 'Hochgelegen', 'Hooggelegen', 'Gran altitud', 'Alta quota', 'Hooggeleë'],
+  home_sc_high_title: [
+    'Bas des pistes à 1 800 m ou plus', 'Base of the runs at 1,800 m or higher',
+    'Pistenende auf 1 800 m oder höher', 'Onderkant pistes op 1 800 m of hoger',
+    'Base de las pistas a 1 800 m o más', 'Base delle piste a 1 800 m o più',
+    'Voet van die plesiere op 1 800 m of hoër'
+  ],
+  home_sc_cheap: [
+    'Forfait sous 260 €', 'Pass under €260', 'Skipass unter 260 €', 'Skipas onder € 260',
+    'Forfait por debajo de 260 €', 'Skipass sotto 260 €', 'Kaartjie onder €260'
+  ],
+  home_sc_cheap_title: [
+    'Forfait 6 jours adulte à 260 € ou moins', '6-day adult pass at €260 or less',
+    '6-Tage-Skipass Erwachsene für höchstens 260 €', '6-daagse skipas volwassene voor hoogstens € 260',
+    'Forfait de 6 días adulto por 260 € o menos', 'Skipass 6 giorni adulti a 260 € o meno',
+    '6-dag-kaartjie vir grootmense teen €260 of minder'
+  ],
+  home_sc_near: [
+    'Moins de 4 h de route', 'Under 4 h of driving', 'Weniger als 4 Std. Fahrt',
+    'Minder dan 4 u rijden', 'Menos de 4 h de carretera', 'Meno di 4 h di strada',
+    'Minder as 4 u se ry'
+  ],
+  home_sc_near_title: [
+    'Trajet le plus long sous 4 heures', 'Longest drive under 4 hours',
+    'Längste Fahrt unter 4 Stunden', 'Langste rit onder 4 uur',
+    'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
+    'Langste rit onder 4 uur'
+  ],
+  home_by_massif: ['Explorer par', 'Explore by', 'Erkunden nach', 'Verkennen per', 'Explorar por', 'Esplora per', 'Verken volgens'],
+  home_by_massif_word: ['massif', 'range', 'Massiv', 'massief', 'macizo', 'massiccio', 'bergreeks'],
+  home_massif_note: [
+    '{m} massifs, {n} domaines relevés.', '{m} ranges, {n} resorts recorded.',
+    '{m} Massive, {n} erfasste Gebiete.', '{m} massieven, {n} vastgelegde gebieden.',
+    '{m} macizos, {n} dominios registrados.', '{m} massicci, {n} comprensori rilevati.',
+    '{m} bergreekse, {n} aangetekende gebiede.'
+  ],
+  home_massif_count: [
+    '{n} domaines', '{n} resorts', '{n} Gebiete', '{n} gebieden', '{n} dominios', '{n} comprensori', '{n} gebiede'
+  ],
+  home_all_domains: [
+    'Voir tous les domaines →', 'See all resorts →', 'Alle Gebiete ansehen →', 'Alle gebieden bekijken →',
+    'Ver todos los dominios →', 'Vedi tutti i comprensori →', 'Sien alle gebiede →'
+  ],
+  massif_other: ['Autres', 'Other', 'Andere', 'Overige', 'Otros', 'Altri', 'Ander'],
+
+  // --- Comparateur de logements --------------------------------------------
+  cmp_lodging_price: [
+    'Prix logement (tout compris)', 'Stay price (all in)', 'Unterkunftspreis (alles inklusive)',
+    'Verblijfsprijs (alles inbegrepen)', 'Precio alojamiento (todo incluido)',
+    'Prezzo alloggio (tutto compreso)', 'Verblyfprys (alles ingesluit)'
+  ],
+  cmp_per_person_night: [
+    'Par personne / nuit', 'Per person / night', 'Pro Person / Nacht', 'Per persoon / nacht',
+    'Por persona / noche', 'Per persona / notte', 'Per persoon / nag'
+  ],
+  cmp_full_cost: [
+    'Coût complet séjour*', 'Full stay cost*', 'Gesamtkosten des Aufenthalts*',
+    'Totale kosten van het verblijf*', 'Coste total de la estancia*',
+    'Costo totale del soggiorno*', 'Volle koste van die verblyf*'
+  ],
+  cmp_walk_to_runs: [
+    'Pistes à pied', 'Walk to the runs', 'Fußweg zur Piste', 'Lopen naar de pistes',
+    'A pie hasta las pistas', 'A piedi fino alle piste', 'Loop na die plesiere'
+  ],
+  cmp_capacity: ['Capacité', 'Capacity', 'Kapazität', 'Capaciteit', 'Capacidad', 'Capacità', 'Kapasiteit'],
+  cmp_guest_rating: [
+    'Note voyageurs', 'Guest rating', 'Gästebewertung', 'Gastenbeoordeling',
+    'Valoración de viajeros', 'Voto viaggiatori', 'Gastebeoordeling'
+  ],
+  cmp_cancellation: ['Annulation', 'Cancellation', 'Stornierung', 'Annulering', 'Cancelación', 'Cancellazione', 'Kansellasie'],
+  cmp_cancel_free: ['gratuite', 'free', 'kostenlos', 'gratis', 'gratuita', 'gratuita', 'gratis'],
+  cmp_cancel_none: [
+    'non remboursable', 'non-refundable', 'nicht erstattbar', 'niet terugbetaalbaar',
+    'no reembolsable', 'non rimborsabile', 'nie terugbetaalbaar nie'
+  ],
+  cmp_source: ['Source', 'Source', 'Quelle', 'Bron', 'Fuente', 'Fonte', 'Bron'],
+  cmp_best: ['meilleure valeur', 'best value', 'bester Wert', 'beste waarde', 'mejor valor', 'valore migliore', 'beste waarde'],
+  cmp_trophy_note: [
+    'La meilleure valeur de chaque ligne porte un trophée.',
+    'The best value in each row carries a trophy.',
+    'Der beste Wert jeder Zeile trägt eine Trophäe.',
+    'De beste waarde van elke rij draagt een trofee.',
+    'El mejor valor de cada fila lleva un trofeo.',
+    'Il valore migliore di ogni riga porta un trofeo.',
+    'Die beste waarde in elke ry dra ’n trofee.'
+  ],
+  not_provided_fem: [
+    'non renseignée', 'not provided', 'nicht angegeben', 'niet opgegeven',
+    'no indicada', 'non indicata', 'nie verskaf nie'
+  ],
+
+  // --- Administration et provenance corrigeable ----------------------------
+  settings_admin: ['Administration', 'Administration', 'Verwaltung', 'Beheer', 'Administración', 'Amministrazione', 'Administrasie'],
+  settings_admin_intro: [
+    'Réglages techniques de l’installation : moteur local, sources de données, fournisseur d’itinéraires et clés d’API. Rien ici ne change ce que vous voyez au quotidien — ces réglages se posent une fois.',
+    'Technical settings for the installation: local engine, data sources, routing provider and API keys. Nothing here changes day-to-day use — these are set once.',
+    'Technische Einstellungen der Installation: lokale Engine, Datenquellen, Routing-Anbieter und API-Schlüssel. Nichts davon ändert die tägliche Nutzung — einmal einstellen genügt.',
+    'Technische instellingen van de installatie: lokale engine, gegevensbronnen, routeprovider en API-sleutels. Niets hiervan verandert het dagelijks gebruik — dit stelt u één keer in.',
+    'Ajustes técnicos de la instalación: motor local, fuentes de datos, proveedor de itinerarios y claves de API. Nada de esto cambia el uso diario — se configura una vez.',
+    'Impostazioni tecniche dell’installazione: motore locale, fonti dati, fornitore di itinerari e chiavi API. Nulla di tutto ciò cambia l’uso quotidiano — si imposta una volta.',
+    'Tegniese instellings van die installasie: plaaslike enjin, databronne, roeteverskaffer en API-sleutels. Niks hiervan verander die daaglikse gebruik nie — dit word een keer gestel.'
+  ],
+  prov_correct: ['corriger', 'correct', 'korrigieren', 'corrigeren', 'corregir', 'correggi', 'korrigeer'],
+  prov_modify: ['modifier', 'edit', 'ändern', 'wijzigen', 'modificar', 'modifica', 'wysig'],
+  prov_restore: [
+    'Rétablir la valeur d’origine', 'Restore the original value', 'Ursprungswert wiederherstellen',
+    'Oorspronkelijke waarde herstellen', 'Restablecer el valor original', 'Ripristina il valore originale',
+    'Herstel die oorspronklike waarde'
+  ],
+  prov_manual: [
+    'saisi à la main', 'entered by hand', 'von Hand eingegeben', 'handmatig ingevoerd',
+    'introducido a mano', 'inserito a mano', 'met die hand ingevoer'
+  ],
+  prov_measured: ['relevé', 'recorded', 'erfasst', 'vastgelegd', 'registrado', 'rilevato', 'aangeteken'],
+  prov_estimated: ['estimé', 'estimated', 'geschätzt', 'geschat', 'estimado', 'stimato', 'geskat'],
+  prov_missing: ['absent', 'missing', 'fehlt', 'ontbreekt', 'ausente', 'assente', 'ontbreek'],
+  prov_empty_note: [
+    'Enregistrer avec un texte vide supprime la correction. La ligne d’origine reste calculée dans tous les cas.',
+    'Saving with empty text removes the correction. The original line stays computed either way.',
+    'Mit leerem Text speichern entfernt die Korrektur. Die ursprüngliche Zeile bleibt in jedem Fall berechnet.',
+    'Opslaan met lege tekst verwijdert de correctie. De oorspronkelijke regel blijft hoe dan ook berekend.',
+    'Guardar con texto vacío elimina la corrección. La línea original sigue calculándose igualmente.',
+    'Salvare con testo vuoto elimina la correzione. La riga originale resta comunque calcolata.',
+    'Stoor met leë teks verwyder die regstelling. Die oorspronklike reël bly in elk geval bereken.'
+  ],
+  home_stat_domains: [
+    'Domaines au référentiel', 'Resorts in the dataset', 'Gebiete im Datenbestand',
+    'Gebieden in de dataset', 'Dominios en el repertorio', 'Comprensori nel repertorio',
+    'Gebiede in die datastel'
+  ],
+  home_stat_domains_note: [
+    'coordonnées et altitudes vérifiées', 'coordinates and altitudes verified',
+    'Koordinaten und Höhen geprüft', 'coördinaten en hoogtes gecontroleerd',
+    'coordenadas y altitudes verificadas', 'coordinate e quote verificate',
+    'koördinate en hoogtes geverifieer'
+  ],
+  home_stat_median_pass: [
+    'Forfait 6 jours médian', 'Median 6-day pass', 'Median 6-Tage-Skipass', 'Mediaan 6-daagse skipas',
+    'Forfait de 6 días mediano', 'Skipass 6 giorni mediano', 'Mediaan 6-dag-kaartjie'
+  ],
+  home_stat_median_pass_note: [
+    'tarif adulte relevé', 'recorded adult price', 'erfasster Erwachsenenpreis',
+    'vastgelegde volwassenenprijs', 'tarifa adulto registrada', 'tariffa adulti rilevata',
+    'aangetekende grootmensprys'
+  ],
+  home_stat_biggest: [
+    'Plus grand domaine', 'Largest resort', 'Größtes Gebiet', 'Grootste gebied',
+    'Dominio más grande', 'Comprensorio più grande', 'Grootste gebied'
+  ],
+  home_stat_sources: [
+    'Sources de logement', 'Stay sources', 'Unterkunftsquellen', 'Verblijfsbronnen',
+    'Fuentes de alojamiento', 'Fonti di alloggio', 'Verblyfbronne'
+  ],
+  home_stat_sources_none: [
+    'aucun relevé pour l’instant', 'no search yet', 'noch keine Abfrage',
+    'nog geen zoekopdracht', 'todavía ninguna búsqueda', 'nessuna ricerca finora',
+    'nog geen soektog nie'
+  ],
 
   // --- Recherche autour d'une commune -------------------------------------
   search_placeholder: [
@@ -1127,6 +1405,153 @@ const CATALOG = {
     'Precio todo incluido: limpieza, tasa turística y gastos de servicio incluidos.',
     'Prezzo tutto compreso: pulizie, tassa di soggiorno e costi di servizio inclusi.',
     'Alles-in-prys: skoonmaak, toeristebelasting en diensfooie ingesluit.'
+  ],
+  sources_label: ['Sources', 'Sources', 'Quellen', 'Bronnen', 'Fuentes', 'Fonti', 'Bronne'],
+  // --- Panneau « État du relevé » ------------------------------------------
+  scan_running: ['Relevé en cours…', 'Search running…', 'Abfrage läuft…', 'Zoekopdracht loopt…', 'Búsqueda en curso…', 'Rilevamento in corso…', 'Soektog aan die gang…'],
+  scan_auto_on_open: [
+    'Relevé automatique à l’ouverture de l’écran',
+    'Automatic search when the screen opens',
+    'Automatische Abfrage beim Öffnen des Bildschirms',
+    'Automatische zoekopdracht bij het openen van het scherm',
+    'Búsqueda automática al abrir la pantalla',
+    'Rilevamento automatico all’apertura della schermata',
+    'Outomatiese soektog wanneer die skerm oopmaak'
+  ],
+  scan_sources_uptodate: [
+    'Les {n} sources sont à jour', 'All {n} sources are up to date', 'Alle {n} Quellen sind aktuell',
+    'Alle {n} bronnen zijn actueel', 'Las {n} fuentes están al día', 'Le {n} fonti sono aggiornate',
+    'Al {n} bronne is op datum'
+  ],
+  scan_sources_partial: [
+    '{ok} source(s) sur {n} à jour', '{ok} of {n} sources up to date', '{ok} von {n} Quellen aktuell',
+    '{ok} van {n} bronnen actueel', '{ok} de {n} fuentes al día', '{ok} fonti su {n} aggiornate',
+    '{ok} van {n} bronne op datum'
+  ],
+  scan_unreachable: ['injoignable :', 'unreachable:', 'nicht erreichbar:', 'onbereikbaar:', 'inaccesible:', 'irraggiungibile:', 'onbereikbaar:'],
+  scan_over_48h: [
+    'relevé de plus de 48 h :', 'recorded over 48 h ago:', 'Abfrage älter als 48 Std.:',
+    'ouder dan 48 u vastgelegd:', 'registrado hace más de 48 h:', 'rilevato da oltre 48 h:',
+    'meer as 48 u gelede aangeteken:'
+  ],
+  scan_median: ['médiane du domaine', 'resort median', 'Median des Gebiets', 'mediaan van het gebied', 'mediana del dominio', 'mediana del comprensorio', 'mediaan van die gebied'],
+  scan_merge_dupes: [
+    'Fusionner les doublons', 'Merge duplicates', 'Duplikate zusammenführen', 'Duplicaten samenvoegen',
+    'Fusionar duplicados', 'Unisci i duplicati', 'Voeg duplikate saam'
+  ],
+  scan_dupes_merged: [
+    '{n} doublon(s) fusionné(s)', '{n} duplicate(s) merged', '{n} Duplikat(e) zusammengeführt',
+    '{n} duplica(a)t(en) samengevoegd', '{n} duplicado(s) fusionado(s)', '{n} duplicato/i unito/i',
+    '{n} duplikaat/duplikate saamgevoeg'
+  ],
+  scan_no_dupes: ['aucun doublon', 'no duplicates', 'keine Duplikate', 'geen duplicaten', 'ningún duplicado', 'nessun duplicato', 'geen duplikate'],
+  geo_positions_tally: [
+    '{n} position(s) · {v} publiée(s) par la source, {e} déduite(s)',
+    '{n} position(s) · {v} published by the source, {e} inferred',
+    '{n} Position(en) · {v} von der Quelle veröffentlicht, {e} abgeleitet',
+    '{n} positie(s) · {v} door de bron gepubliceerd, {e} afgeleid',
+    '{n} posición(es) · {v} publicada(s) por la fuente, {e} deducida(s)',
+    '{n} posizione/i · {v} pubblicata/e dalla fonte, {e} dedotta/e',
+    '{n} posisie(s) · {v} deur die bron gepubliseer, {e} afgelei'
+  ],
+  geo_bad_tally: [
+    '⚠ {n} position(s) invraisemblable(s) — plan d’eau, pleine montagne ou hors périmètre',
+    '⚠ {n} implausible position(s) — water, open mountain or outside the area',
+    '⚠ {n} unplausible Position(en) — Gewässer, freies Gelände oder außerhalb des Gebiets',
+    '⚠ {n} onwaarschijnlijke positie(s) — water, open berg of buiten het gebied',
+    '⚠ {n} posición(es) inverosímil(es) — agua, montaña abierta o fuera del perímetro',
+    '⚠ {n} posizione/i inverosimile/i — acqua, montagna aperta o fuori perimetro',
+    '⚠ {n} onwaarskynlike posisie(s) — water, oop berg of buite die gebied'
+  ],
+  geo_warn_tally: [
+    '{n} position(s) douteuse(s) — fond de vallée, ou aucun bâtiment cartographié à proximité',
+    '{n} doubtful position(s) — valley floor, or no mapped building nearby',
+    '{n} zweifelhafte Position(en) — Talboden oder kein kartiertes Gebäude in der Nähe',
+    '{n} twijfelachtige positie(s) — dalbodem, of geen gekarteerd gebouw in de buurt',
+    '{n} posición(es) dudosa(s) — fondo de valle, o ningún edificio cartografiado cerca',
+    '{n} posizione/i dubbia/e — fondovalle, o nessun edificio mappato nelle vicinanze',
+    '{n} twyfelagtige posisie(s) — valleivloer, of geen gekarteerde gebou naby nie'
+  ],
+  geo_waiting_tally: [
+    '{n} position(s) en cours de vérification…', '{n} position(s) being checked…',
+    '{n} Position(en) werden geprüft…', '{n} positie(s) worden gecontroleerd…',
+    '{n} posición(es) en verificación…', '{n} posizione/i in verifica…',
+    '{n} posisie(s) word nagegaan…'
+  ],
+  geo_hide_bad: [
+    'Masquer les positions invraisemblables', 'Hide implausible positions',
+    'Unplausible Positionen ausblenden', 'Onwaarschijnlijke posities verbergen',
+    'Ocultar las posiciones inverosímiles', 'Nascondi le posizioni inverosimili',
+    'Versteek onwaarskynlike posisies'
+  ],
+  geo_recheck: [
+    'Revérifier les positions', 'Re-check the positions', 'Positionen erneut prüfen',
+    'Posities opnieuw controleren', 'Volver a verificar las posiciones', 'Riverifica le posizioni',
+    'Gaan posisies weer na'
+  ],
+  geo_rechecking: ['Vérification…', 'Checking…', 'Wird geprüft…', 'Controleren…', 'Verificando…', 'Verifica…', 'Nagaan…'],
+  geo_panel_note: [
+    'Altitudes issues du modèle d’élévation Open-Meteo ; plan d’eau et bâti d’OpenStreetMap. Une position déduite est placée autour du front de neige, jamais à l’adresse réelle du bien — elle sert à situer, pas à s’y rendre.',
+    'Altitudes from the Open-Meteo elevation model; water and buildings from OpenStreetMap. An inferred position is placed around the snow front, never at the property’s real address — it locates, it does not guide.',
+    'Höhen aus dem Open-Meteo-Höhenmodell; Gewässer und Gebäude aus OpenStreetMap. Eine abgeleitete Position liegt rund um die Talstation, nie an der echten Adresse — sie verortet, sie führt nicht hin.',
+    'Hoogtes uit het Open-Meteo-hoogtemodel; water en gebouwen uit OpenStreetMap. Een afgeleide positie ligt rond het sneeuwfront, nooit op het echte adres — ze situeert, ze leidt niet.',
+    'Altitudes del modelo de elevación Open-Meteo; agua y edificios de OpenStreetMap. Una posición deducida se sitúa alrededor del frente de nieve, nunca en la dirección real — sirve para situar, no para llegar.',
+    'Quote dal modello di elevazione Open-Meteo; acqua ed edifici da OpenStreetMap. Una posizione dedotta è collocata attorno al fronte neve, mai all’indirizzo reale — serve a situare, non ad arrivarci.',
+    'Hoogtes uit die Open-Meteo-hoogtemodel; water en geboue uit OpenStreetMap. ’n Afgeleide posisie lê rondom die sneeufront, nooit by die werklike adres nie — dit plaas, dit lei nie.'
+  ],
+  tracking_quiet_hours: [
+    'Ne pas notifier entre 22 h et 8 h', 'No notifications between 10 pm and 8 am',
+    'Keine Benachrichtigungen zwischen 22 und 8 Uhr', 'Geen meldingen tussen 22 en 8 uur',
+    'Sin notificaciones entre las 22 h y las 8 h', 'Nessuna notifica tra le 22 e le 8',
+    'Geen kennisgewings tussen 22:00 en 08:00 nie'
+  ],
+  tracking_quiet_hours_short: [
+    'pas de notification entre 22 h et 8 h', 'no notifications between 10 pm and 8 am',
+    'keine Benachrichtigungen zwischen 22 und 8 Uhr', 'geen meldingen tussen 22 en 8 uur',
+    'sin notificaciones entre las 22 h y las 8 h', 'nessuna notifica tra le 22 e le 8',
+    'geen kennisgewings tussen 22:00 en 08:00 nie'
+  ],
+
+  lodgmap_hint: [
+    '● prix tout compris — cliquez une bulle pour remonter le logement en tête de liste',
+    '● all-in price — click a bubble to move that stay to the top of the list',
+    '● Preis inklusive — Blase anklicken, um die Unterkunft an den Listenanfang zu setzen',
+    '● alles-in prijs — klik een bel om dat verblijf bovenaan de lijst te zetten',
+    '● precio todo incluido — haga clic en una burbuja para subir el alojamiento al principio',
+    '● prezzo tutto compreso — clicca una bolla per portare l’alloggio in cima all’elenco',
+    '● alles-in prys — klik ’n borrel om daardie verblyf boaan die lys te sit'
+  ],
+  lodg_picked_on_map: [
+    'Choisi sur la carte', 'Picked on the map', 'Auf der Karte gewählt', 'Op de kaart gekozen',
+    'Elegido en el mapa', 'Scelto sulla mappa', 'Op die kaart gekies'
+  ],
+  lodg_picked_banner: [
+    'Choisi sur la carte : {n} — remonté en tête de liste',
+    'Picked on the map: {n} — moved to the top of the list',
+    'Auf der Karte gewählt: {n} — an den Listenanfang gesetzt',
+    'Op de kaart gekozen: {n} — bovenaan de lijst gezet',
+    'Elegido en el mapa: {n} — subido al principio de la lista',
+    'Scelto sulla mappa: {n} — portato in cima all’elenco',
+    'Op die kaart gekies: {n} — boaan die lys gesit'
+  ],
+  lodg_picked_clear: [
+    'retirer la mise en avant', 'remove the highlight', 'Hervorhebung entfernen',
+    'markering verwijderen', 'quitar el destacado', 'rimuovi l’evidenziazione',
+    'verwyder die uitlig'
+  ],
+  lodg_source_toggle: [
+    'Afficher / masquer cette source', 'Show / hide this source', 'Diese Quelle ein-/ausblenden',
+    'Deze bron tonen / verbergen', 'Mostrar / ocultar esta fuente', 'Mostra / nascondi questa fonte',
+    'Wys / versteek hierdie bron'
+  ],
+  lodg_sources_note: [
+    'Une bulle pleine est une source affichée. Cliquez-la pour masquer ses offres ; le décompte reste visible.',
+    'A filled bubble is a source being shown. Click it to hide its offers; the count stays visible.',
+    'Eine gefüllte Blase ist eine angezeigte Quelle. Klicken Sie darauf, um ihre Angebote auszublenden; die Anzahl bleibt sichtbar.',
+    'Een gevulde bel is een getoonde bron. Klik erop om de aanbiedingen te verbergen; het aantal blijft zichtbaar.',
+    'Una burbuja llena es una fuente mostrada. Haga clic para ocultar sus ofertas; el recuento sigue visible.',
+    'Una bolla piena è una fonte mostrata. Cliccatela per nascondere le sue offerte; il conteggio resta visibile.',
+    '’n Gevulde borrel is ’n bron wat gewys word. Klik daarop om sy aanbiedinge te versteek; die telling bly sigbaar.'
   ],
   lodg_prefilled_search: [
     'Recherche pré-remplie sur le site', 'Pre-filled search on the site',

@@ -47,27 +47,41 @@ export function LodgingGeoPanel({
   const verified = summary.total - summary.est
 
   const scanTxt = state.lodgPhase === 'searching'
-    ? 'Relevé en cours…'
+    ? t('scan_running')
     : state.lastScan != null
       ? `${t('scan_recorded')} ${agoTxt(Math.max(0, Math.round((Date.now() - state.lastScan) / 60000)), lang)}`
-      : 'Relevé automatique à l’ouverture de l’écran'
+      : t('scan_auto_on_open')
 
   return (
     <div className="geopanel">
       {/* --- Santé des sources ------------------------------------------- */}
       <p className="geopanel__title">
         {health.down.length > 0 || health.late.length > 0
-          ? `${health.ok} source(s) sur ${health.total} à jour`
-          : `Les ${health.total} sources sont à jour`}
+          ? t('scan_sources_partial')
+              .replace('{ok}', String(health.ok))
+              .replace('{n}', String(health.total))
+          : t('scan_sources_uptodate').replace('{n}', String(health.total))}
       </p>
       {health.down.length > 0 && (
-        <p className="geopanel__line geopanel__line--bad">injoignable : {health.down.join(', ')}</p>
+        <p className="geopanel__line geopanel__line--bad">
+          {t('scan_unreachable')} {health.down.join(', ')}
+        </p>
+      )}
+      {/* Panne réelle du dernier relevé, par opposition à l'âge simulé du
+          catalogue : une source sans clé et une source sans offre donnent le
+          même écran vide, et seule cette ligne les distingue. */}
+      {state.lodgFailed.length > 0 && (
+        <p className="geopanel__line geopanel__line--bad">
+          {t('scan_sources_failed').replace('{s}', state.lodgFailed.join(', '))}
+        </p>
       )}
       {health.late.length > 0 && (
-        <p className="geopanel__line">relevé de plus de 48 h : {health.late.join(', ')}</p>
+        <p className="geopanel__line">
+          {t('scan_over_48h')} {health.late.join(', ')}
+        </p>
       )}
       <p className="geopanel__line">
-        {median > 0 ? `médiane du domaine ${eur(median)} · ` : ''}
+        {median > 0 ? `${t('scan_median')} ${eur(median)} · ` : ''}
         {scanTxt}
       </p>
       <div className="geopanel__actions">
@@ -77,9 +91,12 @@ export function LodgingGeoPanel({
             checked={state.mergeDupes}
             onChange={(e) => patch({ mergeDupes: e.target.checked })}
           />
-          Fusionner les doublons{' '}
+          {t('scan_merge_dupes')}{' '}
           <span className="u-muted">
-            · {dupMerged > 0 ? `${dupMerged} doublon(s) fusionné(s)` : 'aucun doublon'}
+            ·{' '}
+            {dupMerged > 0
+              ? t('scan_dupes_merged').replace('{n}', String(dupMerged))
+              : t('scan_no_dupes')}
           </span>
         </label>
         <button
@@ -94,22 +111,25 @@ export function LodgingGeoPanel({
 
       {/* --- Positions ---------------------------------------------------- */}
       <p className="geopanel__title geopanel__title--section">
-        {summary.total} position(s) · {verified} publiée(s) par la source, {summary.est} déduite(s)
+        {t('geo_positions_tally')
+          .replace('{n}', String(summary.total))
+          .replace('{v}', String(verified))
+          .replace('{e}', String(summary.est))}
       </p>
 
       {summary.bad > 0 && (
         <p className="geopanel__line geopanel__line--bad">
-          ⚠ {summary.bad} position(s) invraisemblable(s) — plan d’eau, pleine montagne ou hors périmètre
+          {t('geo_bad_tally').replace('{n}', String(summary.bad))}
         </p>
       )}
       {summary.warn > 0 && (
         <p className="geopanel__line">
-          {summary.warn} position(s) douteuse(s) — fond de vallée, ou aucun bâtiment cartographié à proximité
+          {t('geo_warn_tally').replace('{n}', String(summary.warn))}
         </p>
       )}
       {summary.waiting > 0 && (
         <p className="geopanel__line">
-          {summary.waiting} position(s) en cours de vérification…
+          {t('geo_waiting_tally').replace('{n}', String(summary.waiting))}
         </p>
       )}
       {summary.bad === 0 && summary.warn === 0 && summary.waiting === 0 && (
@@ -130,18 +150,14 @@ export function LodgingGeoPanel({
             checked={state.hideBadGeo}
             onChange={(e) => patch({ hideBadGeo: e.target.checked })}
           />
-          Masquer les positions invraisemblables
+          {t('geo_hide_bad')}
         </label>
         <button type="button" className="linkbtn linkbtn--sm" onClick={onRecheck} disabled={busy}>
-          {busy ? 'Vérification…' : 'Revérifier les positions'}
+          {busy ? t('geo_rechecking') : t('geo_recheck')}
         </button>
       </div>
 
-      <p className="geopanel__note">
-        Altitudes issues du modèle d’élévation Open-Meteo ; plan d’eau et bâti d’OpenStreetMap. Une position
-        déduite est placée autour du front de neige, jamais à l’adresse réelle du bien — elle sert à situer, pas
-        à s’y rendre.
-      </p>
+      <p className="geopanel__note">{t('geo_panel_note')}</p>
     </div>
   )
 }

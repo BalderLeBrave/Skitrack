@@ -19,7 +19,7 @@ import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
 import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import type { Domain, Forfait } from '@/data/referentiel'
-import { estimateForfait, forfaitIndexBySlug } from '@/data/referentiel'
+import { estimateForfait, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
 import type { Week } from '@/data/snow'
 import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
 import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
@@ -29,7 +29,26 @@ import type { Origin, Travel } from '@/domain/travel'
 import { originsOf, travelOf, worstDistance, worstTravel } from '@/domain/travel'
 import type { Score } from '@/domain/scoring'
 import { scoreOf } from '@/domain/scoring'
-import { useApp } from './appState'
+import { FILTER_RANGES, useApp } from './appState'
+
+/**
+ * Une plage est **ouverte** — donc inactive — quand sa borne basse touche le
+ * plancher et sa borne haute le plafond. Le plafond compte comme « sans
+ * limite » : sans cela, un domaine à 620 km de route sortirait d'une plage de
+ * distance laissée grande ouverte à 1 200 km.
+ */
+export const rangeOpen = (lo: number, hi: number, ceil: number): boolean => lo === 0 && hi >= ceil
+
+export const inRange = (v: number, lo: number, hi: number, ceil: number): boolean =>
+  rangeOpen(lo, hi, ceil) || (v >= lo && (hi >= ceil || v <= hi))
+
+/**
+ * Même règle, mais une valeur inconnue est écartée dès que la plage est posée :
+ * un domaine dont on ignore le temps de route ou le tarif de forfait ne peut
+ * pas prétendre entrer dans une fourchette qu'on ne peut pas vérifier.
+ */
+export const inRangeOrNull = (v: number | null, lo: number, hi: number, ceil: number): boolean =>
+  rangeOpen(lo, hi, ceil) || (v != null && v >= lo && (hi >= ceil || v <= hi))
 
 /** Normalise une chaîne pour la recherche : minuscules, sans accents ni espaces
  *  superflus. « Les 2 Alpes » et « les 2 alpes » deviennent comparables. */
@@ -101,6 +120,8 @@ export interface Derived {
   geoDistance: (d: Domain) => number | null
   matchesFilters: (d: Domain) => boolean
   filtered: Domain[]
+  /** Domaines écartés par le seul cadrage de la carte. */
+  domOutOfView: number
   lodgingsFor: (d: Domain, pers?: number, nights?: number) => Lodging[]
   sejourInputs: (d: Domain) => SejourInputs
   sejourCost: (lodging: Pick<Lodging, 'total'>, d: Domain) => SejourCost
@@ -136,7 +157,7 @@ export function useDerived(): Derived {
 }
 
 export function DerivedProvider({ children }: { children: ReactNode }): JSX.Element {
-  const { state, ref, domains } = useApp()
+  const { state, ref, domains, screen } = useApp()
 
   const value = useMemo<Derived>(() => {
     const origins = originsOf(state.places)
@@ -235,26 +256,22 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
         const haystack = fold(`${d.name} ${d.region ?? ''} ${d.massif ?? ''}`)
         if (!haystack.includes(needle)) return false
       }
-      if (state.altMin !== 0 && d.min < state.altMin) return false
-      if (state.altMax !== 0 && d.max < state.altMax) return false
-      if (state.kmMin !== 0 && d.km < state.kmMin) return false
+      const R = FILTER_RANGES
+      if (!inRange(d.min, state.baseMin, state.baseMax, R.base.max)) return false
+      if (!inRange(d.max, state.summitMin, state.summitMax, R.summit.max)) return false
+      if (!inRange(d.km, state.kmMin, state.kmMax, R.km.max)) return false
       if (state.massifs.length > 0 && !state.massifs.includes(d.massif)) return false
       if (state.glacier && !d.glacier) return false
       if (state.linked && !d.pass) return false
-      // Un filtre de trajet ne peut pas s'appliquer sans adresse de départ :
-      // il est ignoré plutôt que de vider la liste sans explication.
-      if (state.travelMax !== 0) {
-        const t = worst(d)
-        if (t != null && t > state.travelMax) return false
-      }
-      if (state.distMax !== 0) {
-        const km = worstDist(d)
-        if (km != null && km > state.distMax) return false
-      }
-      // Un tarif estimé ne peut pas justifier d'écarter un domaine.
-      if (state.forfaitMax !== 0) {
+      if (!inRangeOrNull(worst(d), state.travelMin, state.travelMax, R.travel.max)) return false
+      if (!inRangeOrNull(worstDist(d), state.distMin, state.distMax, R.dist.max)) return false
+      // Un tarif estimé ne peut pas justifier d'écarter un domaine ni de le
+      // retenir : il est traité comme une valeur absente dès que la plage de
+      // forfait est posée.
+      if (!rangeOpen(state.forfaitMin, state.forfaitMax, R.forfait.max)) {
         const f = forfaitOf(d)
-        if (f.estimated || f.j6 == null || f.j6 > state.forfaitMax) return false
+        if (f.estimated) return false
+        if (!inRangeOrNull(f.j6 ?? null, state.forfaitMin, state.forfaitMax, R.forfait.max)) return false
       }
       return true
     }
@@ -290,7 +307,40 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const order = state.geo
       ? (a: Domain, b: Domain): number => nullsLast(geoDistance(a), geoDistance(b))
       : (comparators[state.sort] ?? comparators.relevance)
-    let filtered = [...domains.filter(matchesFilters)].sort(order)
+
+    /**
+     * Le cadrage ne filtre que si la carte est **visible** et le suivi actif.
+     *
+     * Restreindre la liste au rectangle d'une carte qu'on ne voit pas — écran
+     * Recherche fermé, ou onglet différent — escamoterait des domaines sans
+     * qu'aucune cause ne soit visible à l'écran.
+     */
+    const boundsActive =
+      state.domBounds != null && state.searchMapOpen && state.domMapSync && screen === 'recherche'
+
+    const inBounds = (d: Domain): boolean => {
+      const b = state.domBounds
+      if (!b) return true
+      return hasCoords(d) && d.lon >= b.w && d.lon <= b.e && d.lat >= b.s && d.lat <= b.n
+    }
+
+    const passesFilters = domains.filter(matchesFilters)
+    // Le domaine épinglé reste listé quel que soit le cadrage : sinon celui
+    // qu'on vient de cliquer sur la carte disparaîtrait de la liste au moment
+    // même où la carte se recentre sur lui.
+    let filtered = [
+      ...(boundsActive ? passesFilters.filter((d) => d.id === state.pinnedId || inBounds(d)) : passesFilters)
+    ].sort(order)
+
+    /**
+     * Domaines écartés par le **seul** cadrage.
+     *
+     * Compté sur le prédicat et non par différence de longueur de liste : le
+     * domaine épinglé, réintroduit juste au-dessus, fausserait la soustraction
+     * et l'écran annoncerait un domaine caché de moins qu'il n'y en a.
+     */
+    const domOutOfView = boundsActive ? passesFilters.filter((d) => !inBounds(d)).length : 0
+
     // Un domaine cliqué sur la carte remonte en tête même s'il ne passe pas les
     // filtres : sinon le clic n'a aucun effet visible et paraît cassé.
     if (state.pinnedId != null) {
@@ -449,9 +499,9 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
         (lg.pers === 0 || lg.pers >= state.travelers) &&
         (lg.ch === 0 || lg.ch >= state.rooms) &&
         (!state.lodgAnnul || lg.annul) &&
-        (state.lodgBudget === 0 || lg.total <= state.lodgBudget) &&
+        inRange(lg.total, state.lodgBudgetMin, state.lodgBudgetMax, FILTER_RANGES.lodgBudget.max) &&
         (state.lodgTypes.length === 0 || state.lodgTypes.includes(lg.type)) &&
-        (state.lodgDist === 0 || lg.dist <= state.lodgDist) &&
+        inRange(lg.dist, state.lodgDistMin, state.lodgDistMax, FILTER_RANGES.lodgDist.max) &&
         !state.lodgSrcOff.includes(lg.src.indexOf('Import') === 0 ? 'Import manuel' : lg.src)
       )
     })
@@ -469,6 +519,13 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       if (priceless(a) !== priceless(b)) return priceless(a) ? 1 : -1
       return (lodgSorters[state.lodgSort] ?? lodgSorters.pp_asc)(a, b)
     })
+
+    // Le logement choisi sur la carte remonte en tête, après le tri : c'est ce
+    // qui rend le clic visible quand la liste est longue ou déjà défilée.
+    if (state.lodgPickId != null) {
+      const at = lodgList.findIndex((lg) => lg.id === state.lodgPickId)
+      if (at > 0) lodgList.unshift(lodgList.splice(at, 1)[0])
+    }
 
     const voteOf = (key: string, index: number): number => state.votes[key]?.[index] ?? 0
     const voteScore = (key: string): number => (state.votes[key] ?? []).reduce((a, b) => a + (b || 0), 0)
@@ -491,6 +548,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       geoDistance,
       matchesFilters,
       filtered,
+      domOutOfView,
       lodgingsFor: lodgings,
       sejourInputs,
       sejourCost: cost,
@@ -509,7 +567,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       voteOf,
       comboKey: (domainId, weekArr) => `c${domainId}|${weekArr}`
     }
-  }, [state, ref, domains])
+  }, [state, ref, domains, screen])
 
   return <DerivedContext.Provider value={value}>{children}</DerivedContext.Provider>
 }

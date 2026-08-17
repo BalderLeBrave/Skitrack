@@ -136,45 +136,51 @@ export const LODG_TEMPLATES: LodgingTemplate[] = [
 export const LODG_TYPES = ['Appartement', 'Chalet', 'Studio', 'Hôtel', 'Gîte', 'Import']
 
 /**
- * Sources relevées, telles qu'elles apparaissent dans le filtre.
+ * Sources hors moteur multi-sources.
  *
- * Les annonces importées à la main n'y figurent pas : ce n'est pas une source
- * qu'on interroge, c'est ce que l'utilisateur a ajouté lui-même. Elles restent
- * donc toujours visibles, et leur fraîcheur est traitée à part.
+ * Airbnb est relevé par `runAirbnbSearch`, pas par un connecteur enregistré
+ * dans `providers.search` : il ne figure dans aucun `outcome` et doit donc être
+ * nommé ici. C'est la seule exception, et la liste s'arrête là.
  *
- * `cozycozy` et `LiteAPI` sont interrogés par le moteur depuis toujours — voir
- * `main/providers/index.ts` — mais n'étaient pas dans cette liste : leurs offres
- * s'affichaient sans ligne de filtre, impossibles à masquer et absentes du
- * décompte de l'écran de relevé. « Site officiel de la station » est le
- * connecteur des centrales de réservation.
+ * Tout le reste — Booking.com, la centrale de la station, une source MCP
+ * déclarée par l'utilisateur — vient du moteur lui-même. Une liste tenue à la
+ * main se désynchronise au premier connecteur retiré, et laisse derrière elle
+ * des lignes de filtre qu'aucun relevé ne peut plus rafraîchir : décochables
+ * sans effet, comptées à zéro, et comptées quand même dans le total annoncé par
+ * l'écran de relevé. Une ligne pareille n'est pas un filtre, c'est un souvenir.
  *
- * Hotels.com en a disparu : c'était une marque d'Expedia servie par le même
- * inventaire Rapid, donc une source en double.
+ * Les annonces importées à la main n'y figurent pas non plus : ce n'est pas une
+ * source qu'on interroge, c'est ce que l'utilisateur a ajouté lui-même. Elles
+ * restent toujours visibles, et leur fraîcheur est traitée à part.
  */
-export const LODG_SOURCES = [
-  'Site officiel de la station',
-  'Expedia',
-  'Airbnb',
-  'Booking.com',
-  'Gîtes de France',
-  'cozycozy',
-  'LiteAPI'
-]
+export const BASE_SOURCES = ['Airbnb']
 
 /**
  * Sources à afficher pour une liste d'offres donnée.
  *
- * Les sources connues, plus **toute source réellement présente dans les
- * offres**. Une source MCP déclarée par l'utilisateur porte le nom qu'il lui a
- * donné, que ce fichier ne peut pas connaître : sans cette réunion, ses offres
- * apparaissent sans ligne de filtre — ni masquables, ni comptées.
+ * `queried` est la liste des connecteurs réellement interrogés au dernier
+ * relevé, tirée des `outcomes` de `runProviderSearch` — un connecteur y figure
+ * même quand il n'a rendu aucune offre, ce qui est précisément ce qu'il faut
+ * pour l'afficher décoché à zéro plutôt que de le faire disparaître.
+ *
+ * S'y ajoute toute source réellement présente dans les offres : une source MCP
+ * déclarée par l'utilisateur porte le nom qu'il lui a donné, que ce fichier ne
+ * peut pas connaître. Avant le premier relevé, `queried` est vide et la liste
+ * se réduit au socle plus ce que les offres portent — on n'affiche que ce qu'on
+ * a.
  */
-export function lodgingSources(list: Lodging[]): string[] {
-  const out = [...LODG_SOURCES]
-  for (const lodging of list) {
-    const source = srcOf(lodging)
+export function lodgingSources(list: Lodging[], queried: string[] = []): string[] {
+  const out = [...BASE_SOURCES]
+  // Dédoublonnage sur le **libellé**, pas sur le connecteur : plusieurs
+  // connecteurs peuvent servir la même marque — Booking a une API et un
+  // scraper web, tous deux étiquetés « Booking.com ». Deux chemins vers le même
+  // distributeur ne font pas deux sources à cocher, et les afficher en double
+  // laisserait croire à deux inventaires distincts.
+  const add = (source: string): void => {
     if (source !== MANUAL_SOURCE && !out.includes(source)) out.push(source)
   }
+  for (const source of queried) add(source)
+  for (const lodging of list) add(srcOf(lodging))
   return out
 }
 
@@ -194,14 +200,15 @@ interface SourceStatus {
  *
  * Une source absente de cette table n'a pas d'âge simulé : ses offres viennent
  * forcément du dernier relevé réel. `freshnessOf` le dit alors franchement au
- * lieu d'inventer une durée — c'est le cas des centrales de station, de
- * cozycozy, de LiteAPI et de toute source MCP déclarée.
+ * lieu d'inventer une durée — c'est le cas des centrales de station et de toute
+ * source MCP déclarée, et c'est le comportement voulu.
+ *
+ * Expedia et Gîtes de France en sont sortis avec leurs connecteurs : garder
+ * leur âge simulé aurait fait vieillir des offres que plus rien n'interroge.
  */
 export const SRC_STATUS: Record<string, SourceStatus> = {
-  Expedia: { min: 14 },
   Airbnb: { min: 38 },
   'Booking.com': { min: 47 },
-  'Gîtes de France': { min: 186 },
   'Import manuel': { min: 0, manual: true }
 }
 
@@ -300,7 +307,14 @@ export interface SourceHealth {
   late: string[]
 }
 
-export function sourceHealth(sources: string[] = LODG_SOURCES): SourceHealth {
+/**
+ * État des sources **réellement interrogées**.
+ *
+ * La liste est un paramètre et n'a pas de valeur de repli : annoncer « les 7
+ * sources sont à jour » quand le moteur n'en interroge que trois est un
+ * mensonge que le code ne doit pas pouvoir produire par distraction.
+ */
+export function sourceHealth(sources: string[]): SourceHealth {
   const keys = sources
   const down: string[] = []
   const late: string[] = []

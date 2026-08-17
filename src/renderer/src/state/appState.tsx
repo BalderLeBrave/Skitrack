@@ -29,6 +29,7 @@ import type { Place, RouteTable } from '@/domain/travel'
 import { loadRoutes } from '@/domain/travel'
 
 export type Screen =
+  | 'accueil'
   | 'recherche'
   | 'offres'
   | 'combinaisons'
@@ -52,6 +53,15 @@ export type SortKey =
   | 'forfait_asc'
 
 export type LodgSortKey = 'pp_asc' | 'total_asc' | 'dist_asc' | 'note_desc'
+
+/**
+ * Qualité d'une provenance corrigée à la main.
+ *
+ * Quatre états, et pas un booléen : « la donnée est là » et « la donnée est
+ * mesurée » ne sont pas la même affirmation, et c'est exactement ce que cet
+ * écran doit permettre de dire.
+ */
+export type ProvState = 'manual' | 'measured' | 'estimated' | 'missing'
 
 /** Commune géocodée servant de point de référence au classement. */
 export interface GeoPoint {
@@ -89,7 +99,28 @@ export interface ComboSelection {
 
 export interface AppState {
   tab: Screen | null
-  settingsTab: 'app' | 'sources' | 'engine' | 'legal'
+  /**
+   * Réglages : trois onglets, pas cinq.
+   *
+   * L'usage quotidien (thème, densité, langue, poids du classement) était mêlé
+   * à l'installation (moteur local, clés d'API, fournisseur d'itinéraires).
+   * Tout ce qui relève de l'installation passe derrière **Administration**,
+   * où quatre volets le rangent — voir `admSub`.
+   */
+  settingsTab: 'app' | 'admin' | 'legal'
+  admSub: 'engine' | 'sources' | 'routes' | 'keys'
+  /**
+   * Provenances corrigées à la main, indexées par libellé de ligne.
+   *
+   * La ligne d'origine **reste calculée** : la correction se superpose à
+   * l'affichage et s'annonce avec son état. Sans cela, on ne distinguerait plus
+   * un relevé d'une affirmation — et c'est précisément l'écran dont le rôle est
+   * de tenir cette distinction.
+   */
+  provEdits: Record<string, { src: string; state: ProvState }>
+  provEditKey: string | null
+  provDraftSrc: string
+  provDraftState: ProvState
   theme: 'light' | 'dark'
   lang: Language
   density: 'comfortable' | 'compact'
@@ -123,6 +154,25 @@ export interface AppState {
   /** En vue 3D, montrer le fond raster ou le seul relief ombré. */
   relief: 'carte' | 'ombre'
   baseOpen: boolean
+  /**
+   * Cadrage courant de la carte des domaines, quand le suivi est actif.
+   *
+   * Même mécanique que `lodgBounds` côté Logements : zoomer ou déplacer la
+   * carte retire de la liste ce qui sort de l'écran. Regarder une vallée et
+   * lire en dessous une liste qui parle de toute la France n'a pas de sens ;
+   * la carte devient un filtre à part entière, qui s'annonce et se retire.
+   */
+  domBounds: { n: number; s: number; e: number; w: number } | null
+  domMapSync: boolean
+  /**
+   * Recadrage demandé, à consommer **une seule fois**.
+   *
+   * Posé quand une tuile de massif de l'Accueil ouvre les résultats : la carte
+   * doit alors se recentrer sur la sélection. Un booléen d'état plutôt qu'un
+   * appel direct — au moment du clic la carte n'existe pas encore, l'écran
+   * Recherche n'étant pas monté.
+   */
+  domFitWanted: boolean
 
   // Filtres de domaines
   /** Recherche texte : nom, région ou massif d'une station. */
@@ -140,11 +190,28 @@ export interface AppState {
   geoMsg: string
   /** Avancement de la résolution des positions manquantes du référentiel. */
   geoResolve: { done: number; total: number } | null
-  altMin: number
-  altMax: number
+  /**
+   * Filtres chiffrés, en **plages** : un plancher et un plafond nommés.
+   *
+   * Une borne unique répond à « au moins » ou « au plus », jamais aux deux, et
+   * la moitié des questions posées à cet écran sont des fourchettes — un bas de
+   * pistes entre 1 400 et 1 800 m, un forfait entre 200 et 260 €. Les bornes de
+   * chaque plage sont dans `FILTER_RANGES` : une plage vaut « inactive » quand
+   * sa borne basse est à 0 et sa haute à son plafond, jamais quand une borne
+   * vaut 0 — d'où la migration de l'ancien schéma, où `travelMax: 0` voulait
+   * dire « pas de plafond » et signifie maintenant « rien au-dessus de zéro ».
+   */
+  baseMin: number
+  baseMax: number
+  summitMin: number
+  summitMax: number
   kmMin: number
+  kmMax: number
+  travelMin: number
   travelMax: number
+  distMin: number
   distMax: number
+  forfaitMin: number
   forfaitMax: number
   avoidTolls: boolean
   massifs: string[]
@@ -173,9 +240,11 @@ export interface AppState {
   // Écran Logements
   lodgingDomainId: number | null
   lodgSelId: number | null
-  lodgBudget: number
+  lodgBudgetMin: number
+  lodgBudgetMax: number
   lodgTypes: string[]
-  lodgDist: number
+  lodgDistMin: number
+  lodgDistMax: number
   lodgSort: LodgSortKey
   lodgMapOpen: boolean
   /** Cadrage courant de la carte des logements, quand la synchronisation est active. */
@@ -196,6 +265,36 @@ export interface AppState {
    */
   lodgPhase: 'criteria' | 'searching' | 'results'
   lodgSearchMsg: string | null
+  /**
+   * Libellés des connecteurs interrogés au dernier relevé.
+   *
+   * Vient des `outcomes` du moteur, seul endroit qui ne peut pas se
+   * désynchroniser de la liste des connecteurs enregistrés. Volontairement non
+   * persisté : après une mise à jour qui retire un connecteur, une liste
+   * relue du disque afficherait une source que plus rien n'interroge.
+   */
+  lodgQueried: string[]
+  /**
+   * Sources restées muettes au dernier relevé, avec leur raison réelle.
+   *
+   * Une source sans clé d'API et une source sans offre rendent le même écran
+   * vide. Le compte-rendu du relevé disait la différence, mais il disparaissait
+   * avec le bandeau ; l'information descend donc dans « État du relevé », où
+   * elle reste consultable au lieu de défiler une fois.
+   */
+  lodgFailed: string[]
+  /**
+   * Logement mis en avant depuis la carte.
+   *
+   * Cliquer une bulle de prix et ouvrir une fiche sont deux gestes distincts :
+   * la bulle **remonte** le logement en tête de liste, la vignette ouvre sa
+   * fiche. Ouvrir la fiche par-dessus la liste au moindre clic sur la carte
+   * empêchait de s'en servir pour situer une offre parmi les autres.
+   *
+   * Un seul élu à la fois : recliquer la même bulle retire la mise en avant,
+   * cliquer une autre la transfère.
+   */
+  lodgPickId: number | null
   /** Fin du dernier relevé, pour en afficher l'âge. */
   lastScan: number | null
   mergeDupes: boolean
@@ -247,6 +346,37 @@ export interface AppState {
   onboard: boolean
 }
 
+/** Une plage chiffrée : les deux clés d'état, le plancher, le plafond, le pas. */
+export interface FilterRange {
+  lo: keyof AppState
+  hi: keyof AppState
+  min: number
+  max: number
+  step: number
+}
+
+/**
+ * Bornes et pas de chaque filtre chiffré, en un seul endroit.
+ *
+ * Le composant de slicer, le prédicat de filtrage, l'étiquette de la puce
+ * active et la migration des préférences ont tous besoin du plafond : écrit
+ * quatre fois, il finit par différer d'un endroit à l'autre, et un plafond
+ * désaccordé rend la plage impossible à rouvrir — le filtre reste « posé »
+ * pour le prédicat alors que l'écran le dit inactif.
+ */
+export const FILTER_RANGES = {
+  base: { lo: 'baseMin', hi: 'baseMax', min: 0, max: 2400, step: 50 },
+  summit: { lo: 'summitMin', hi: 'summitMax', min: 0, max: 4000, step: 100 },
+  km: { lo: 'kmMin', hi: 'kmMax', min: 0, max: 600, step: 10 },
+  travel: { lo: 'travelMin', hi: 'travelMax', min: 0, max: 720, step: 15 },
+  dist: { lo: 'distMin', hi: 'distMax', min: 0, max: 1200, step: 25 },
+  forfait: { lo: 'forfaitMin', hi: 'forfaitMax', min: 0, max: 400, step: 10 },
+  lodgBudget: { lo: 'lodgBudgetMin', hi: 'lodgBudgetMax', min: 0, max: 8000, step: 100 },
+  lodgDist: { lo: 'lodgDistMin', hi: 'lodgDistMax', min: 0, max: 1000, step: 50 }
+} as const satisfies Record<string, FilterRange>
+
+export type FilterRangeKey = keyof typeof FILTER_RANGES
+
 /**
  * Groupe et départs par défaut : aucun nom, aucune adresse.
  *
@@ -264,6 +394,11 @@ const DEFAULT_PLACES: Place[] = [
 export const INITIAL_STATE: AppState = {
   tab: null,
   settingsTab: 'app',
+  admSub: 'engine',
+  provEdits: {},
+  provEditKey: null,
+  provDraftSrc: '',
+  provDraftState: 'manual',
   theme: 'light',
   lang: 'fr',
   density: 'comfortable',
@@ -286,20 +421,29 @@ export const INITIAL_STATE: AppState = {
   basemap: DEFAULT_BASEMAP,
   relief: 'carte',
   baseOpen: false,
+  domBounds: null,
+  domMapSync: true,
+  domFitWanted: false,
 
   domainQuery: '',
   geo: null,
   geoBusy: false,
   geoMsg: '',
   geoResolve: null,
-  altMin: 1200,
-  altMax: 0,
+  baseMin: 1200,
+  baseMax: FILTER_RANGES.base.max,
+  summitMin: 0,
+  summitMax: FILTER_RANGES.summit.max,
   // Plancher à 10 km : les micro-stations (téléski isolé, front de neige de
   // village) ne sont pas des domaines skiables au sens de l'app. Réglable à 0.
   kmMin: 10,
-  travelMax: 0,
-  distMax: 0,
-  forfaitMax: 0,
+  kmMax: FILTER_RANGES.km.max,
+  travelMin: 0,
+  travelMax: FILTER_RANGES.travel.max,
+  distMin: 0,
+  distMax: FILTER_RANGES.dist.max,
+  forfaitMin: 0,
+  forfaitMax: FILTER_RANGES.forfait.max,
   avoidTolls: false,
   massifs: [],
   glacier: false,
@@ -324,9 +468,11 @@ export const INITIAL_STATE: AppState = {
 
   lodgingDomainId: null,
   lodgSelId: null,
-  lodgBudget: 0,
+  lodgBudgetMin: 0,
+  lodgBudgetMax: FILTER_RANGES.lodgBudget.max,
   lodgTypes: [],
-  lodgDist: 0,
+  lodgDistMin: 0,
+  lodgDistMax: FILTER_RANGES.lodgDist.max,
   lodgSort: 'pp_asc',
   lodgMapOpen: false,
   lodgBounds: null,
@@ -337,6 +483,9 @@ export const INITIAL_STATE: AppState = {
   lodgAnnul: false,
   lodgPhase: 'results',
   lodgSearchMsg: null,
+  lodgQueried: [],
+  lodgFailed: [],
+  lodgPickId: null,
   lastScan: null,
   mergeDupes: true,
   lodgStatusOpen: false,
@@ -382,9 +531,13 @@ export const INITIAL_STATE: AppState = {
  * revanche — c'est bien un filtre, et le plus silencieusement radical.
  */
 export const LODG_FILTER_RESET: Partial<AppState> = {
-  lodgBudget: 0,
+  // Les bornes hautes reviennent à leur **plafond**, jamais à 0 : à 0 la plage
+  // serait au contraire le filtre le plus serré possible.
+  lodgBudgetMin: 0,
+  lodgBudgetMax: FILTER_RANGES.lodgBudget.max,
   lodgTypes: [],
-  lodgDist: 0,
+  lodgDistMin: 0,
+  lodgDistMax: FILTER_RANGES.lodgDist.max,
   lodgSort: 'pp_asc',
   lodgSrcOff: [],
   lodgAnnul: false,
@@ -398,9 +551,11 @@ const PERSISTED_KEYS = [
   'alertMode', 'alertPct', 'alertEur', 'quietHours', 'digest', 'votes',
   'offresBudget', 'searchFiltersW', 'searchMapW', 'searchFiltersOpen', 'searchMapOpen',
   'weights', 'people', 'places', 'esfRates', 'decision', 'mergeDupes', 'cmpRefId',
-  'altMin', 'altMax', 'kmMin', 'travelMax', 'distMax', 'forfaitMax', 'massifs',
+  'baseMin', 'baseMax', 'summitMin', 'summitMax', 'kmMin', 'kmMax',
+  'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
+  'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'hideGone', 'lodgMapSync', 'lodgSplit'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'hideGone', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**
@@ -438,6 +593,57 @@ function purgeLegacyPrefs(): void {
  * jamais décrit le bien. Les imports manuels, eux, portent des valeurs saisies
  * par l'utilisateur et ne sont pas touchés.
  */
+/** Version du schéma des préférences écrite sur le disque. */
+const PREFS_SCHEMA = 2
+
+/**
+ * Migre les préférences d'avant les plages vers le schéma 2.
+ *
+ * Indispensable, et pas seulement confortable : l'ancien schéma écrivait
+ * `travelMax: 0` au sens « pas de plafond ». Relu tel quel par les nouveaux
+ * prédicats, `[0, 0]` est une plage **posée** qui n'accepte que la valeur zéro
+ * — donc aucun domaine. L'écran s'ouvrait vide, sans message et sans erreur
+ * console, sur les seules machines où une session précédente avait enregistré
+ * des filtres.
+ *
+ * Trois règles : les clés changent de nom, toute borne haute absente ou nulle
+ * repart à son plafond, toute borne basse absente repart à 0. Le drapeau de
+ * version évite de repasser sur des préférences déjà migrées, où un `0` en
+ * borne haute serait cette fois un choix délibéré de l'utilisateur.
+ */
+function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Partial<AppState> {
+  if (saved.prefsSchema === PREFS_SCHEMA) return saved
+
+  const legacy = saved as Record<string, unknown>
+  const num = (v: unknown): number | null => (typeof v === 'number' && isFinite(v) ? v : null)
+  const out: Record<string, unknown> = { ...saved }
+
+  // Renommages : « altitude minimum » devient le plancher du bas des pistes, et
+  // « sommet au moins à » le plancher du point culminant.
+  const renames: [string, string][] = [
+    ['altMin', 'baseMin'],
+    ['altMax', 'summitMin'],
+    ['lodgBudget', 'lodgBudgetMax'],
+    ['lodgDist', 'lodgDistMax']
+  ]
+  for (const [from, to] of renames) {
+    const v = num(legacy[from])
+    if (v != null && out[to] == null) out[to] = v
+    delete out[from]
+  }
+
+  for (const range of Object.values(FILTER_RANGES)) {
+    const lo = num(out[range.lo])
+    const hi = num(out[range.hi])
+    out[range.lo] = lo ?? 0
+    // `lodgBudget: 0` et `travelMax: 0` disaient « sans plafond » : c'est le
+    // plafond de la plage, pas zéro.
+    out[range.hi] = hi != null && hi > 0 ? Math.min(hi, range.max) : range.max
+  }
+
+  return out as Partial<AppState>
+}
+
 function forgetInventedCapacity(imported: Lodging[] | undefined): Lodging[] {
   if (!Array.isArray(imported)) return []
   return imported.map((lodging) =>
@@ -515,7 +721,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       const raw = localStorage.getItem(PREFS_KEY)
       // Absence de préférences = premier lancement : on ouvre l'accueil.
       if (!raw) return { ...base, onboard: true, ...(demo ?? {}) }
-      const saved = JSON.parse(raw) as Partial<AppState>
+      const saved = migratePrefs(JSON.parse(raw) as Partial<AppState> & { prefsSchema?: number })
       return { ...base, ...saved, imported: forgetInventedCapacity(saved.imported), ...(demo ?? {}) }
     } catch {
       return { ...base, ...(demo ?? {}) }
@@ -607,7 +813,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
 
   // --- Persistance --------------------------------------------------------
   useEffect(() => {
-    const payload: Record<string, unknown> = {}
+    const payload: Record<string, unknown> = { prefsSchema: PREFS_SCHEMA }
     for (const key of PERSISTED_KEYS) payload[key] = state[key]
     try {
       localStorage.setItem(PREFS_KEY, JSON.stringify(payload))
@@ -658,7 +864,9 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const screen: Screen = state.tab ?? 'recherche'
+  // Sans onglet choisi, l'application ouvre l'accueil : il donne les entrées
+  // que la liste seule ne propose pas — un nom, un critère franc, un massif.
+  const screen: Screen = state.tab ?? 'accueil'
 
   const value = useMemo<AppContextValue>(
     () => ({

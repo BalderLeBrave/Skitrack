@@ -377,7 +377,7 @@ export function DomainSheet(): JSX.Element | null {
               <polyline
                 points={profile}
                 fill="none"
-                stroke="var(--accent)"
+                stroke="var(--brand)"
                 strokeWidth="1.4"
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
@@ -598,7 +598,7 @@ export function DomainSheet(): JSX.Element | null {
               <polyline
                 points={hist.pts}
                 fill="none"
-                stroke="var(--accent)"
+                stroke="var(--brand)"
                 strokeWidth="1.4"
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"

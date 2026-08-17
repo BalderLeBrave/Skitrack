@@ -110,11 +110,18 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
     for (const mk of markers.current) mk.remove()
     markers.current = lodgList.map((lg) => {
       const el = document.createElement('button')
-      const selected = lg.id === state.ficheId
+      // L'épingle élue reste distinguée sur la carte, comme celle dont la fiche
+      // est ouverte : sinon rien ne dirait laquelle vient d'être remontée.
+      const selected = lg.id === state.ficheId || lg.id === state.lodgPickId
       el.type = 'button'
       el.className = `pricepin${selected ? ' pricepin--on' : ''}`
       el.textContent = `${fmt(lg.total)} €`
-      el.addEventListener('click', () => patch({ ficheId: lg.id }))
+      // Cliquer une bulle **met en avant**, cela n'ouvre pas la fiche : ce sont
+      // deux gestes, et les confondre empêchait de se servir de la carte pour
+      // situer une offre dans la liste.
+      el.addEventListener('click', () =>
+        patch({ lodgPickId: state.lodgPickId === lg.id ? null : lg.id })
+      )
       // Même calcul que le panneau « Positions » : deux dispersions
       // différentes placeraient l'épingle ailleurs que le point vérifié, et le
       // diagnostic parlerait d'un endroit que la carte ne montre pas.
@@ -122,13 +129,13 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
         .setLngLat(lodgingCoords(domain, lg))
         .addTo(map.current!)
     })
-  }, [lodgList, domain, state.ficheId, loaded, patch])
+  }, [lodgList, domain, state.ficheId, state.lodgPickId, loaded, patch])
 
   return (
     <div className="lodgmap">
       <div ref={container} className="map__canvas" />
       <div className="lodgmap__hint">
-        <span>● prix tout compris — cliquez pour ouvrir la fiche</span>
+        <span>{t('lodgmap_hint')}</span>
       </div>
       <label className="lodgmap__sync">
         <input

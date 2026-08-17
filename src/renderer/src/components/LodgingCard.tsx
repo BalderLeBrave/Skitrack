@@ -135,7 +135,9 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
     ? { amount: t('lodg_price_on_source').replace('{s}', srcOf(lg)), unit: '' }
     : { amount: eur(lg.total), unit: `tout compris · ${eur(lg.pp)}/pers/nuit` }
 
-  return (
+  const picked = lg.id === state.lodgPickId
+
+  const card = (
     <ResultCard
       title={lg.name}
       place={place}
@@ -242,5 +244,32 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
         </div>
       </div>
     </ResultCard>
+  )
+
+  if (!picked) return card
+
+  /**
+   * Vignette élue depuis la carte.
+   *
+   * Un fond teinté, un retrait et un liseré épais, et non un liseré seul : la
+   * vignette n'a pas de cadre, un trait de un pixel autour d'elle passerait
+   * inaperçu au milieu d'une mosaïque. La pastille porte sa propre croix — la
+   * mise en avant doit se retirer là où on la voit.
+   */
+  return (
+    <div className="lodgcard__picked">
+      <p className="lodgcard__pickedtag">
+        {t('lodg_picked_on_map')}
+        <button
+          type="button"
+          className="linkbtn linkbtn--sm"
+          aria-label={t('lodg_picked_clear')}
+          onClick={() => patch({ lodgPickId: null })}
+        >
+          ✕
+        </button>
+      </p>
+      {card}
+    </div>
   )
 }

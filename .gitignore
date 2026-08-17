@@ -24,3 +24,7 @@ data/cache/
 .vscode/
 .idea/
 Thumbs.db
+
+*.tsbuildinfo
+
+.claude/worktrees/

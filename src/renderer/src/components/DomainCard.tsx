@@ -4,6 +4,7 @@ import type { Domain } from '@/data/referentiel'
 import { enfantPrice, hasCoords } from '@/data/referentiel'
 import { snowDepths, snowfallText } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
+import { massifColor } from '@/domain/massif'
 import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
@@ -17,11 +18,18 @@ interface Props {
 }
 
 export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Element {
-  const { dur, eur, fmt } = useFormat()
+  const { dur, eur, fmt, locale } = useFormat()
   const { state, patch } = useApp()
   const derived = useDerived()
   const { weatherOf } = useWeather()
   const { t } = useI18n()
+
+  // Distance à la commune cherchée : n'a de sens que lorsqu'une commune l'est.
+  const geoDist = derived.geoDistance(d)
+  const geoDistTxt =
+    state.geo && geoDist != null
+      ? `${fmt(Math.round(geoDist))} km ${t('geo_from')} ${state.geo.label.split(' ')[0]}`
+      : null
 
   const selected = d.id === state.selectedId
   const dense = state.density === 'compact'
@@ -51,6 +59,62 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
 
   const rows = [...score.rows].sort((a, b) => b.contrib - a.contrib)
 
+  const tint = massifColor(d.massif)
+
+  /**
+   * Note sur 5, dérivée du score sur 100.
+   *
+   * Même classement, échelle qu'on lit d'un coup d'œil : « 4,2 » se compare
+   * sans effort à l'habitude prise sur les sites de réservation, là où « 84 »
+   * demande de se rappeler sur quoi il est noté. Le score complet reste dans le
+   * `title` et derrière le bouton « Pourquoi ? » — la note ne remplace pas
+   * l'explication, elle en donne l'ordre de grandeur.
+   */
+  const note = (Math.round(scoreVal / 2) / 10).toLocaleString(locale, { minimumFractionDigits: 1 })
+
+  /**
+   * Étiquettes **dérivées des données**, jamais saisies.
+   *
+   * Chacune répond à une question qu'on se pose en parcourant la liste — est-ce
+   * grand, est-ce haut, est-ce cher — et son `title` donne la valeur qui l'a
+   * déclenchée : une étiquette qui affirme sans pouvoir être vérifiée ne vaut
+   * pas mieux qu'un argument de brochure. Quatre au plus, sinon la ligne se
+   * transforme en nuage de mots-clés.
+   */
+  const tags: { txt: string; title: string; color: string; soft: string }[] = []
+  if (d.glacier) tags.push({ txt: t('glacier'), title: t('glacier'), color: 'var(--brand)', soft: 'var(--brand-soft)' })
+  if (d.pass)
+    tags.push({
+      txt: d.pass,
+      title: `${t('tag_common_pass')} ${d.pass}`,
+      color: 'var(--violet)',
+      soft: 'var(--violet-soft)'
+    })
+  if (d.km >= 200)
+    tags.push({
+      txt: t('tag_large_area'),
+      title: `${fmt(d.km)} km ${t('of_runs')}`,
+      color: 'var(--ok)',
+      soft: 'var(--ok-soft)'
+    })
+  if (d.min >= 1800)
+    tags.push({
+      txt: t('tag_high_altitude'),
+      title: `${t('altitude_bottom')} ${fmt(d.min)} m`,
+      color: 'var(--brand)',
+      soft: 'var(--brand-soft)'
+    })
+  if (forfait.j6 != null && forfait.j6 <= 260)
+    tags.push({
+      txt: t('tag_moderate_pass'),
+      title: `${t('pass_6d_adult')} ${eur(forfait.j6)}`,
+      color: 'var(--ok)',
+      soft: 'var(--ok-soft)'
+    })
+  if (d.curated)
+    tags.push({ txt: `✓ ${t('tag_verified')}`, title: t('card_checked'), color: 'var(--muted)', soft: 'var(--surface)' })
+  const shownTags = tags.slice(0, 4)
+
   return (
     <article
       className={`domcard${selected ? ' domcard--on' : ''}${dense ? ' domcard--dense' : ''}`}
@@ -62,77 +126,93 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
       <AltitudeProfile min={d.min} max={d.max} village={d.village} scaleMin={scaleMin} scaleMax={scaleMax} />
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Plus de carré d'initiales : le titre prend toute la largeur, et la
-            hiérarchie de la vignette repose sur les quatre chiffres. */}
+        {/* Ligne haute : d'où vient ce domaine (à gauche), ce qu'il vaut (à
+            droite). Deux repères qu'on lit sans lire, avant même le nom. */}
         <header className="domcard__head">
-          <h3 className="domcard__name">{d.name}</h3>
-          <div className="domcard__badges">
-            {d.glacier && <span className="tag tag--link">{t('glacier')}</span>}
-            {d.pass && <span className="tag">{d.pass}</span>}
-            {d.id === state.pinnedId && (
-              <span className="tag tag--pin">
-                {derived.matchesFilters(d) ? t('card_pin_from_map') : t('card_pin_out')}
-              </span>
-            )}
-            {d.curated && (
-              <span className="tag tag--ok" title={t('card_checked')}>
-                ✓
-              </span>
-            )}
-            {/* Sans coordonnées, ce domaine sort de la carte, du tri par
-                distance et du relevé météo. Le dire ici évite de le chercher
-                en vain sur la carte. */}
-            {!hasCoords(d) && (
-              <span className="tag" title={t('card_off_map_title')}>
-                {t('card_off_map')}
-              </span>
-            )}
-          </div>
+          <span className="domcard__massif" style={{ background: tint.soft, color: tint.ink }}>
+            {d.massif || d.region || 'France'}
+          </span>
+          <span className="u-spacer" />
+          {d.id === state.pinnedId && (
+            <span className="tag tag--pin">
+              {derived.matchesFilters(d) ? t('card_pin_from_map') : t('card_pin_out')}
+            </span>
+          )}
+          {/* Sans coordonnées, ce domaine sort de la carte, du tri par
+              distance et du relevé météo. Le dire ici évite de le chercher
+              en vain sur la carte. */}
+          {!hasCoords(d) && (
+            <span className="tag" title={t('card_off_map_title')}>
+              {t('card_off_map')}
+            </span>
+          )}
+          <span
+            className="domcard__note u-num"
+            title={`${t('score_detail')} ${scoreVal}/100 — ${scoreLabel(scoreVal)}`}
+          >
+            ★ {note}
+          </span>
         </header>
 
-        <p className="domcard__sub">{[d.massif, d.region, 'FR'].filter(Boolean).join(' · ')}</p>
+        <h3 className="domcard__name">{d.name}</h3>
+        {/* Le massif quitte le sous-titre : il est déjà dans la pastille. */}
+        <p className="domcard__sub">
+          {[`${fmt(d.min)} – ${fmt(d.max)} m`, d.region, geoDistTxt].filter(Boolean).join(' · ')}
+        </p>
 
-        {/* Quatre chiffres décisifs plutôt que sept données à égalité : le bas
-            des pistes porte l'accent, seul critère structurant du choix. Le
-            reste descend dans la ligne de contexte en dessous. */}
-        <dl className="domcard__figs">
-          <div>
+        {/* Quatre tuiles plutôt que sept données à égalité. Les filets sont
+            faits par le fond qui traverse une grille à `gap: 1px` : un jeu de
+            bordures par cellule laisserait des traits doubles aux jonctions et
+            un pixel de décalage au retour à la ligne. */}
+        <dl className="domcard__tiles">
+          <div className="domcard__tile">
             <dt>{t('altitude_bottom')}</dt>
-            <dd className="u-num domcard__fig domcard__fig--accent">{fmt(d.min)} m</dd>
+            <dd className="u-num domcard__tileval domcard__tileval--data">{fmt(d.min)} m</dd>
           </div>
-          <div>
+          <div className="domcard__tile">
             <dt>{t('slopes')}</dt>
-            <dd className="u-num domcard__fig">{fmt(d.km)} km</dd>
+            <dd className="u-num domcard__tileval">{fmt(d.km)} km</dd>
           </div>
-          <div>
+          <div className="domcard__tile">
             {/* Un tarif estimé est signalé par le « ≈ » : le lecteur doit
                 pouvoir distinguer d'un coup d'œil un prix relevé d'un prix
                 dérivé de la taille du domaine. */}
             <dt>{t('pass_6d_adult')}</dt>
             <dd
-              className="u-num domcard__fig"
+              className="u-num domcard__tileval"
               title={forfait.estimated ? t('price_estimated') : undefined}
             >
               {forfait.j6 != null ? `${forfait.estimated ? '≈ ' : ''}${eur(forfait.j6)}` : '—'}
             </dd>
           </div>
-          <div>
+          <div className="domcard__tile">
             <dt>{t('travel_time')}</dt>
-            <dd className="u-num domcard__fig u-nowrap">{dur(derived.worstTravel(d))}</dd>
+            <dd className="u-num domcard__tileval u-nowrap">{dur(derived.worstTravel(d))}</dd>
           </div>
         </dl>
 
+        {shownTags.length > 0 && (
+          <div className="domcard__tags">
+            {shownTags.map((tag) => (
+              <span
+                key={tag.txt}
+                className="domcard__tag"
+                style={{ background: tag.soft, color: tag.color }}
+                title={tag.title}
+              >
+                {tag.txt}
+              </span>
+            ))}
+          </div>
+        )}
+
         <p className="domcard__meta">{metaLine}</p>
 
-        <p className="domcard__snow">
-          {t('snow_label')}{' '}
-          {/* Rien tant que le modèle n'a pas répondu : une hauteur de neige
-              inventée est exactement ce que cet écran ne doit pas produire. */}
-          <strong className="u-num">
-            {snow.releve ? `${snow.bas ?? '—'} / ${snow.haut ?? '—'} cm` : '…'}
-          </strong>{' '}
-          <span className="u-muted">{t('snow_base_top')}</span> ·{' '}
-          <span className="u-muted">{snowfallText(weather)}</span>
+        {/* Le lien vers la fiche tient sa propre ligne, alignée à droite. Il
+            était auparavant poussé par un `u-spacer` dans le paragraphe de
+            neige, qui n'est pas une boîte flex : l'espacement ne s'appliquait
+            pas et le lien venait se coller au texte. */}
+        <div className="domcard__linkrow">
           <span className="u-spacer" />
           <button
             type="button"
@@ -144,6 +224,17 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
           >
             {t('sheet_resort_link')}
           </button>
+        </div>
+
+        <p className="domcard__snow">
+          {t('snow_label')}{' '}
+          {/* Rien tant que le modèle n'a pas répondu : une hauteur de neige
+              inventée est exactement ce que cet écran ne doit pas produire. */}
+          <strong className="u-num">
+            {snow.releve ? `${snow.bas ?? '—'} / ${snow.haut ?? '—'} cm` : '…'}
+          </strong>{' '}
+          <span className="u-muted">{t('snow_base_top')}</span> ·{' '}
+          <span className="u-muted">{snowfallText(weather)}</span>
         </p>
 
         <footer className="domcard__footer">

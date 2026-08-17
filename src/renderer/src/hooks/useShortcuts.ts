@@ -49,7 +49,9 @@ export function useShortcuts(): void {
         } else if (e.key === 'f') {
           patch({ searchFiltersOpen: !state.searchFiltersOpen })
         } else if (e.key === 'm') {
-          patch({ searchMapOpen: !state.searchMapOpen })
+          // Comme le bouton : basculer la carte remet le suivi du cadrage en
+          // marche, sinon la liste resterait filtrée par une carte fermée.
+          patch({ searchMapOpen: !state.searchMapOpen, domMapSync: true })
         } else if (e.key === 'Enter' && state.selectedId != null) {
           patch({ tab: 'logements', lodgingDomainId: state.selectedId })
         }

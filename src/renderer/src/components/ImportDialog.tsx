@@ -613,7 +613,7 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
             </div>
             <div>
               <span className="sheet__label">Chambres</span>
-              <div className="stepper" style={{ borderColor: 'var(--accent)', padding: '8px 10px' }}>
+              <div className="stepper" style={{ borderColor: 'var(--brand)', padding: '8px 10px' }}>
                 <button type="button" className="stepper__btn" onClick={() => setRooms(Math.max(1, rooms - 1))}>
                   −
                 </button>
@@ -625,7 +625,7 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
             </div>
             <div>
               <span className="sheet__label">Couchages</span>
-              <div className="stepper" style={{ borderColor: 'var(--accent)', padding: '8px 10px' }}>
+              <div className="stepper" style={{ borderColor: 'var(--brand)', padding: '8px 10px' }}>
                 <button type="button" className="stepper__btn" onClick={() => setCapacity(Math.max(1, capacity - 1))}>
                   −
                 </button>
@@ -663,7 +663,7 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
 
         {mode === 'lot' && (
           <div style={{ padding: '20px 22px', display: 'grid', gap: 16 }}>
-            <div className="inset" style={{ padding: 16, display: 'grid', gap: 10, borderColor: 'var(--accent)' }}>
+            <div className="inset" style={{ padding: 16, display: 'grid', gap: 10, borderColor: 'var(--brand)' }}>
               <div>
                 <p style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>
                   Voir les hébergements réels de {d.name}
@@ -848,7 +848,7 @@ https://…`}
                 <strong> « {AIRBNB_BOOKMARKLET_LABEL} »</strong>. Il vous dira combien d’annonces il a copiées
                 (une vue en contient ~25).
               </li>
-              <li style={{ color: 'var(--accent)' }}>
+              <li style={{ color: 'var(--brand)' }}>
                 <strong>Pour en avoir plus :</strong> Airbnb n’affiche qu’une vingtaine d’annonces à la fois. Collez
                 cette première fournée, puis sur Airbnb passez à la <strong>page suivante</strong> des résultats
                 (tout en bas), recliquez le marque-page et recollez. Les nouvelles s’ajoutent, les doublons sont

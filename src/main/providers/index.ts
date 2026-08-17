@@ -1,16 +1,19 @@
 /**
  * Assemblage du comparateur multi-sources.
  *
- * Chaque plateforme est traitée selon ce qui est *réellement* accessible :
+ * Trois sources sont interrogées, et trois seulement :
  *
- *     liteapi            REST ou MCP            clé en libre service — seule source
- *                                               qui tarife sans accord partenaire
- *     booking            Demand API v3          clés requises
- *     expedia            EPS Rapid              clés requises, couvre Vrbo
+ *     booking            Demand API v3          clés requises, repli scraper web
  *     station            centrale de la station lue avec Playwright, voir station/
- *     gites-de-france    aucun accès            stub, avertit et renvoie []
- *     airbnb             aucune API             redirection seule, aucune requête
+ *     airbnb             aucune API             relevé à part, voir airbnb/scrape.ts
  *     «déclarées»        serveurs MCP tiers     lues dans mcp-sources.json
+ *
+ * Expedia, Hotels.com, Gîtes de France, cozycozy et LiteAPI ont été retirés.
+ * Les laisser enregistrés aurait suffi à les faire réapparaître comme lignes de
+ * filtre par la réunion que fait `lodgingSources` côté renderer : une ligne
+ * qu'aucun relevé ne peut rafraîchir n'est pas un filtre, c'est un souvenir.
+ * `RESERVED` dans `mcp/registry.ts` garde leurs noms — ils restent réservés
+ * pour qu'une source MCP déclarée ne puisse pas se faire passer pour eux.
  *
  * L'ordre d'enregistrement n'a aucune importance : les sources sont interrogées
  * en parallèle et le tri se fait sur le prix, pas sur la provenance.
@@ -20,23 +23,11 @@
  */
 
 import { airbnbRedirect } from './airbnb/airbnb'
-import {
-  createBookingWebProvider,
-  createCozycozyWebProvider,
-  createExpediaWebProvider,
-  createGitesWebProvider
-} from './webscrape'
+import { createBookingWebProvider } from './webscrape'
 import { BookingProvider, resolveBookingCredentials } from './booking/booking'
 import { createStationProvider } from './station/station'
-import { ExpediaProvider, resolveExpediaCredentials, type ExpediaBrand } from './expedia/expedia'
-import { GitesDeFranceProvider } from './gites/gites'
-import { LiteApiProvider } from './liteapi/liteapi'
-import {
-  buildLiteApiTransport,
-  resolveLiteApiKey,
-  resolveLiteApiTransportKind,
-  type LiteApiTransportKind
-} from './liteapi/transport'
+import type { ExpediaBrand } from './expedia/expedia'
+import type { LiteApiTransportKind } from './liteapi/transport'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -44,12 +35,13 @@ import { debugLog } from './debug'
 import type { AggregateResult, SearchParams } from './types'
 
 export interface EngineOptions {
-  /** Active les scrapers Playwright (Booking, Expedia, Gîtes, CozyCozy, centrales de station). */
+  /** Active les scrapers Playwright (Booking, centrales de station). */
   enableWebScrape?: boolean
   /** Lecture du coffre chiffré. Injectée pour rester testable sans Electron. */
   vault: (key: string) => string | undefined
+  /** Conservés pour la compatibilité de l'appelant ; sans effet depuis le
+   *  retrait des connecteurs Expedia et LiteAPI. */
   brands?: Partial<Record<ExpediaBrand, boolean>>
-  /** Transport LiteAPI. Le REST reste le défaut ; voir liteapi/transport.ts. */
   liteApiTransport?: LiteApiTransportKind
   /** Contenu brut de `mcp-sources.json`, lu par l'appelant. */
   mcpSources?: string | null
@@ -68,38 +60,20 @@ export function rejectedMcpSources(): { name: string; reason: string }[] {
 export function buildEngine(options: EngineOptions): SearchEngine {
   const next = new SearchEngine()
 
-  // La clé est relue à chaque appel plutôt que capturée : l'utilisateur peut la
-  // saisir dans les Réglages sans redémarrer, et la recherche suivante en tient
-  // compte. C'est aussi ce qui évite de garder un secret vivant en fermeture.
-  const transportKind = options.liteApiTransport ?? resolveLiteApiTransportKind()
-  next.register(
-    new LiteApiProvider(
-      () => buildLiteApiTransport(resolveLiteApiKey(options.vault), transportKind),
-      { currency: options.currency, guestNationality: options.guestNationality }
-    )
-  )
-
+  // Les clés sont relues à chaque appel plutôt que capturées : l'utilisateur
+  // peut les saisir dans les Réglages sans redémarrer, et la recherche suivante
+  // en tient compte. C'est aussi ce qui évite de garder un secret vivant en
+  // fermeture.
   next.register(new BookingProvider(() => resolveBookingCredentials(options.vault)))
-  next.register(
-    new ExpediaProvider(() => resolveExpediaCredentials(options.vault), { brands: options.brands })
-  )
-  // Gîtes de France : le stub n'a d'intérêt que s'il est le seul chemin. Quand
-  // le scraper web est actif, `gites-web` interroge réellement le site et le
-  // stub ne ferait que doubler la source d'une ligne « aucun accès » perpétuelle
-  // dans l'écran Sources.
-  if (!options.enableWebScrape) next.register(new GitesDeFranceProvider())
 
   const { configs, rejected } = loadMcpProviderConfigs(options.mcpSources)
   lastRejectedMcpSources = rejected
   for (const config of configs) next.register(new McpAccommodationProvider(config))
 
   // Scrapers web (Playwright) — activés si enableWebScrape (bridge: SKITRACK_WEB_SCRAPE≠0).
-  // Préférer les API Booking / Expedia / LiteAPI quand des clés sont présentes.
+  // Préférer l'API Booking quand des clés sont présentes.
   if (options.enableWebScrape) {
     next.register(createBookingWebProvider())
-    next.register(createExpediaWebProvider())
-    next.register(createGitesWebProvider())
-    next.register(createCozycozyWebProvider())
     // Centrale de réservation de la station : le seul connecteur qui interroge
     // le site du domaine lui-même, avec l'adresse que le renderer lui passe.
     next.register(createStationProvider())

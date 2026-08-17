@@ -10,6 +10,8 @@ import { routesCoverage } from '@/domain/travel'
 import { useJob } from '@/hooks/useJob'
 import { useSidecar } from '@/hooks/useSidecar'
 import { LANGUAGES, LANGUAGE_LABELS, useI18n } from '@/i18n'
+import type { TranslationKey } from '@/i18n'
+import type { AppState, ProvState } from '@/state/appState'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { LegalSection } from './LegalSection'
@@ -101,12 +103,56 @@ const SHORTCUTS: [string, string][] = [
   ['Fermer fiche / comparateur', 'Échap']
 ]
 
+/**
+ * Les quatre états qu'une provenance corrigée peut prendre.
+ *
+ * « Saisi à la main » n'est pas la même chose que « relevé » : la correction
+ * doit dire d'où vient sa propre valeur, sinon elle remplace une donnée
+ * traçable par une affirmation anonyme — exactement ce que cet écran existe
+ * pour empêcher.
+ */
+const PROV_STATES: [ProvState, TranslationKey, string][] = [
+  ['manual', 'prov_manual', 'var(--brand)'],
+  ['measured', 'prov_measured', 'var(--ok)'],
+  ['estimated', 'prov_estimated', 'var(--warn)'],
+  ['missing', 'prov_missing', 'var(--warn)']
+]
+
+/** Les quatre volets de l'Administration, dans l'ordre où on les ouvre. */
+const ADMIN_SUBTABS: [AppState['admSub'], TranslationKey][] = [
+  ['engine', 'settings_engine'],
+  ['sources', 'settings_sources'],
+  ['routes', 'settings_routing'],
+  ['keys', 'settings_keys']
+]
+
 export function SettingsPage(): JSX.Element {
   const { fmt } = useFormat()
   const { state, patch, ref, refOrigin, domains, domainSource, domainWarning } = useApp()
   const { origins } = useDerived()
   const { t, lang, setLang } = useI18n()
   const { state: sidecar, restart } = useSidecar()
+
+  /**
+   * Enregistre une correction de provenance.
+   *
+   * Un texte vide **supprime** la surcharge au lieu d'en enregistrer une vide :
+   * une correction sans contenu ne corrige rien, et laissée en base elle ferait
+   * afficher une ligne d'annotation muette sous la ligne calculée.
+   */
+  const saveProvEdit = (key: string): void => {
+    const src = state.provDraftSrc.trim()
+    const next = { ...state.provEdits }
+    if (src) next[key] = { src, state: state.provDraftState }
+    else delete next[key]
+    patch({ provEdits: next, provEditKey: null })
+  }
+
+  const clearProvEdit = (key: string): void => {
+    const next = { ...state.provEdits }
+    delete next[key]
+    patch({ provEdits: next, provEditKey: null })
+  }
 
   const [secrets, setSecrets] = useState<SecretPresence[]>([])
   const [drafts, setDrafts] = useState<Partial<Record<SecretKey, string>>>({})
@@ -240,15 +286,16 @@ export function SettingsPage(): JSX.Element {
   return (
     <div className="page">
       <div className="page__inner settings" style={{ maxWidth: 940 }}>
+        {/* Trois onglets seulement : ce qu'on règle en usage, ce qu'on règle à
+            l'installation, et les mentions. « Sources » et « Moteur » n'étaient
+            pas des réglages du même ordre que le thème ou la langue — ils
+            descendent d'un cran, sous Administration. */}
         <nav className="settings__tabs">
           <button type="button" className={tab('app')} onClick={() => patch({ settingsTab: 'app' })}>
             {t('settings_app')}
           </button>
-          <button type="button" className={tab('sources')} onClick={() => patch({ settingsTab: 'sources' })}>
-            {t('settings_sources')}
-          </button>
-          <button type="button" className={tab('engine')} onClick={() => patch({ settingsTab: 'engine' })}>
-            {t('settings_engine')}
+          <button type="button" className={tab('admin')} onClick={() => patch({ settingsTab: 'admin' })}>
+            {t('settings_admin')}
           </button>
           <button type="button" className={tab('legal')} onClick={() => patch({ settingsTab: 'legal' })}>
             {t('settings_legal')}
@@ -363,29 +410,55 @@ export function SettingsPage(): JSX.Element {
               </p>
             </section>
 
+          </>
+        )}
+
+        {state.settingsTab === 'admin' && (
+          <>
             <section className="panel panel--flat settings__section">
-              <h2>{t('settings_routing')}</h2>
-              <select
-                className="field"
-                value={routingProvider}
-                disabled={sidecar.status !== 'ready'}
-                onChange={(e) => {
-                  const next = e.target.value
-                  setRoutingProvider(next)
-                  void api.patchSettings({ routing_provider: next }).catch(() => undefined)
-                }}
-              >
-                <option value="openrouteservice">{t('routing_ors')}</option>
-                <option value="osrm">{t('routing_osrm')}</option>
-                <option value="google">Google Routes API (payant)</option>
-              </select>
-              {sidecar.status !== 'ready' && (
-                <p className="settings__help">
-                  {t('settings_engine_only')}
-                </p>
-              )}
+              <h2>{t('settings_admin')}</h2>
+              <p className="settings__help">{t('settings_admin_intro')}</p>
+              <nav className="settings__tabs settings__tabs--sub">
+                {ADMIN_SUBTABS.map(([key, labelKey]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`chip${state.admSub === key ? ' chip--on' : ''}`}
+                    style={{ fontSize: 12 }}
+                    onClick={() => patch({ admSub: key })}
+                  >
+                    {t(labelKey)}
+                  </button>
+                ))}
+              </nav>
             </section>
 
+            {state.admSub === 'routes' && (
+              <section className="panel panel--flat settings__section">
+                <h2>{t('settings_routing')}</h2>
+                <select
+                  className="field"
+                  value={routingProvider}
+                  disabled={sidecar.status !== 'ready'}
+                  onChange={(e) => {
+                    const next = e.target.value
+                    setRoutingProvider(next)
+                    void api.patchSettings({ routing_provider: next }).catch(() => undefined)
+                  }}
+                >
+                  <option value="openrouteservice">{t('routing_ors')}</option>
+                  <option value="osrm">{t('routing_osrm')}</option>
+                  <option value="google">Google Routes API (payant)</option>
+                </select>
+                {sidecar.status !== 'ready' && (
+                  <p className="settings__help">
+                    {t('settings_engine_only')}
+                  </p>
+                )}
+              </section>
+            )}
+
+            {state.admSub === 'keys' && (
             <section className="panel panel--flat settings__section">
               <h2>{t('settings_keys')}</h2>
               <p className="settings__help">{t('settings_keys_help')}</p>
@@ -448,10 +521,9 @@ export function SettingsPage(): JSX.Element {
                 })}
               </ul>
             </section>
-          </>
-        )}
+            )}
 
-        {state.settingsTab === 'sources' && (
+            {state.admSub === 'sources' && (
           <>
             <section className="panel panel--flat settings__section">
               <h2>{t('settings_provenance')}</h2>
@@ -462,20 +534,106 @@ export function SettingsPage(): JSX.Element {
                 doivent être vérifiés avant de servir à une décision.
               </p>
               <div style={{ display: 'grid', gap: 8 }}>
-                {provenance.map((p) => (
-                  <div key={p.label} className="provrow">
-                    <span style={{ fontSize: 13, fontWeight: 600, minWidth: 0 }}>{p.label}</span>
-                    <span className="u-muted" style={{ fontSize: 12, minWidth: 0 }}>
-                      {p.src}
-                    </span>
-                    <span
-                      className="u-nowrap"
-                      style={{ fontSize: 11, fontWeight: 700, color: p.ok ? 'var(--ok)' : 'var(--warn)' }}
-                    >
-                      {p.tag}
-                    </span>
-                  </div>
-                ))}
+                {provenance.map((p) => {
+                  const edit = state.provEdits[p.label]
+                  const editing = state.provEditKey === p.label
+                  const stateMeta = edit ? PROV_STATES.find(([key]) => key === edit.state) : null
+                  return (
+                    <div key={p.label} className="provrow provrow--stack">
+                      <div className="provrow__main">
+                        <span style={{ fontSize: 13, fontWeight: 600, minWidth: 0 }}>{p.label}</span>
+                        <span className="u-muted" style={{ fontSize: 12, minWidth: 0 }}>
+                          {p.src}
+                        </span>
+                        <span
+                          className="u-nowrap"
+                          style={{ fontSize: 11, fontWeight: 700, color: p.ok ? 'var(--ok)' : 'var(--warn)' }}
+                        >
+                          {p.tag}
+                        </span>
+                        <button
+                          type="button"
+                          className="linkbtn linkbtn--sm u-nowrap"
+                          onClick={() =>
+                            patch({
+                              provEditKey: editing ? null : p.label,
+                              provDraftSrc: edit?.src ?? '',
+                              provDraftState: edit?.state ?? 'manual'
+                            })
+                          }
+                        >
+                          {edit ? t('prov_modify') : t('prov_correct')}
+                        </button>
+                      </div>
+
+                      {/* La correction se superpose, elle ne remplace pas : la
+                          ligne calculée reste au-dessus, et celle-ci s'annonce
+                          avec l'état que l'utilisateur lui a donné. */}
+                      {edit && !editing && (
+                        <p className="provrow__edit">
+                          <span
+                            className="u-nowrap"
+                            style={{ fontWeight: 700, color: stateMeta?.[2] ?? 'var(--brand)' }}
+                          >
+                            {stateMeta ? t(stateMeta[1]) : ''}
+                          </span>{' '}
+                          — {edit.src}
+                        </p>
+                      )}
+
+                      {editing && (
+                        <div className="provrow__form">
+                          <textarea
+                            className="field"
+                            rows={3}
+                            value={state.provDraftSrc}
+                            aria-label={t('prov_correct')}
+                            onChange={(e) => patch({ provDraftSrc: e.target.value })}
+                          />
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {PROV_STATES.map(([key, labelKey]) => (
+                              <button
+                                key={key}
+                                type="button"
+                                className={`chip${state.provDraftState === key ? ' chip--on' : ''}`}
+                                style={{ fontSize: 12 }}
+                                onClick={() => patch({ provDraftState: key })}
+                              >
+                                {t(labelKey)}
+                              </button>
+                            ))}
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="btn btn--primary btn--small"
+                              onClick={() => saveProvEdit(p.label)}
+                            >
+                              {t('settings_save')}
+                            </button>
+                            <button
+                              type="button"
+                              className="linkbtn"
+                              onClick={() => patch({ provEditKey: null })}
+                            >
+                              {t('cancel')}
+                            </button>
+                            {edit && (
+                              <button
+                                type="button"
+                                className="linkbtn"
+                                onClick={() => clearProvEdit(p.label)}
+                              >
+                                {t('prov_restore')}
+                              </button>
+                            )}
+                          </div>
+                          <p className="settings__help">{t('prov_empty_note')}</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
                 <div className="provrow">
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{t('settings_file_loaded')}</span>
                   <span className="u-muted" style={{ fontSize: 12, minWidth: 0 }}>
@@ -584,9 +742,9 @@ export function SettingsPage(): JSX.Element {
               <p className="settings__help">{t('settings_lodging_sources_help')}</p>
             </section>
           </>
-        )}
+            )}
 
-        {state.settingsTab === 'engine' && (
+            {state.admSub === 'engine' && (
           <>
             <section className="panel panel--flat settings__section">
               <h2>Moteur local</h2>
@@ -694,6 +852,8 @@ export function SettingsPage(): JSX.Element {
                 </div>
               </dl>
             </section>
+          </>
+            )}
           </>
         )}
 

@@ -189,7 +189,7 @@ function WeatherAge(): JSX.Element | null {
 
 export function DomainSearchPage(): JSX.Element {
   const { state, patch, domains, viewportW } = useApp()
-  const { filtered } = useDerived()
+  const { filtered, domOutOfView } = useDerived()
   const { t } = useI18n()
 
   const list = useMemo(() => filtered.slice(0, MAX_RESULTS), [filtered])
@@ -279,7 +279,10 @@ export function DomainSearchPage(): JSX.Element {
           <button
             type="button"
             className="btn btn--pill"
-            onClick={() => patch({ searchMapOpen: !state.searchMapOpen })}
+            // Ouvrir ou fermer la carte remet le suivi du cadrage en marche :
+            // filtrer sur une carte invisible n'aurait aucun sens, et le
+            // rouvrir doit repartir d'un état net.
+            onClick={() => patch({ searchMapOpen: !state.searchMapOpen, domMapSync: true })}
           >
             {state.searchMapOpen ? t('map_hide') : t('map_show')}
           </button>
@@ -290,6 +293,17 @@ export function DomainSearchPage(): JSX.Element {
             <button type="button" className="linkbtn" onClick={() => patch({ pinnedId: null })}>
               {t('unpin_map')}
             </button>
+          )}
+          {/* Le cadrage est un filtre comme un autre : il s'annonce, et il se
+              retire. Sans cette puce, une liste raccourcie par un zoom passe
+              pour une liste vidée par les filtres. */}
+          {domOutOfView > 0 && (
+            <span className="results__viewchip">
+              {t('dom_out_of_view').replace('{n}', String(domOutOfView))}
+              <button type="button" className="linkbtn linkbtn--sm" onClick={() => patch({ domMapSync: false })}>
+                {t('dom_view_all')}
+              </button>
+            </span>
           )}
           {/* Le classement par commune remplace le tri : proposer les deux
               ensemble laisserait croire qu'ils se combinent. */}

@@ -6,9 +6,16 @@ import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useI18n } from '@/i18n'
 
+interface Cell {
+  txt: string
+  best: boolean
+  /** Longueur de la barre de proportion, 0 à 1. `null` = ligne non chiffrée. */
+  ratio: number | null
+}
+
 interface Row {
   label: string
-  cells: { txt: string; best: boolean }[]
+  cells: Cell[]
 }
 
 /** Marque la meilleure valeur d'une ligne. Sans comparaison possible (une seule
@@ -17,6 +24,29 @@ function bestOf(values: number[], dir: 'min' | 'max'): boolean[] {
   if (values.length < 2) return values.map(() => false)
   const target = dir === 'min' ? Math.min(...values) : Math.max(...values)
   return values.map((v) => v === target)
+}
+
+/**
+ * Barres de proportion d'une ligne chiffrée.
+ *
+ * Sur un critère où le **petit gagne** — prix, distance — la proportion est
+ * inversée : sans cela la meilleure valeur porterait la barre la plus courte,
+ * et l'œil lirait exactement le contraire de ce que la ligne dit. La barre du
+ * gagnant est toujours pleine, ce qui donne le repère d'où partent les autres.
+ *
+ * Le rapport est calculé sur l'écart entre le meilleur et le pire, pas sur zéro :
+ * quatre logements entre 1 900 et 2 100 € donneraient sinon quatre barres
+ * identiques, et la ligne ne dirait plus rien.
+ */
+function ratios(values: number[], dir: 'min' | 'max'): (number | null)[] {
+  if (values.length < 2) return values.map(() => null)
+  const best = dir === 'min' ? Math.min(...values) : Math.max(...values)
+  const worst = dir === 'min' ? Math.max(...values) : Math.min(...values)
+  const span = Math.abs(best - worst)
+  // Toutes égales : quatre barres pleines valent mieux que quatre barres vides,
+  // qui laisseraient croire à une donnée absente.
+  if (span === 0) return values.map(() => 1)
+  return values.map((v) => Math.max(0.06, 1 - Math.abs(v - best) / span))
 }
 
 export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
@@ -31,53 +61,60 @@ export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
   const costs = list.map((l) => derived.sejourCost(l, domain))
   const grid = { gridTemplateColumns: `200px repeat(${Math.max(list.length, 1)}, 1fr)` }
 
+  /** Ligne chiffrée : marquage du meilleur et barres, tirés des mêmes valeurs. */
+  const numeric = (
+    label: string,
+    values: number[],
+    dir: 'min' | 'max',
+    render: (v: number, index: number) => string
+  ): Row => {
+    const flags = bestOf(values, dir)
+    const bars = ratios(values, dir)
+    return {
+      label,
+      cells: values.map((v, i) => ({ txt: render(v, i), best: flags[i], ratio: bars[i] }))
+    }
+  }
+
+  /** Ligne non chiffrée : pas de barre. Une capacité ou une source ne se
+   *  classe pas, et lui donner une proportion inventerait un ordre. */
+  const plain = (label: string, texts: string[]): Row => ({
+    label,
+    cells: texts.map((txt) => ({ txt, best: false, ratio: null }))
+  })
+
   const rows: Row[] = list.length
     ? [
-        {
-          label: 'Prix logement (tout compris)',
-          cells: list.map((l, i) => ({ txt: eur(l.total), best: bestOf(list.map((x) => x.total), 'min')[i] }))
-        },
-        {
-          label: 'Par personne / nuit',
-          cells: list.map((l, i) => ({
-            txt: eur(l.pp),
-            best: bestOf(list.map((x) => x.pp), 'min')[i]
-          }))
-        },
-        {
-          label: 'Coût complet séjour*',
-          cells: costs.map((c, i) => ({ txt: eur(c.total), best: bestOf(costs.map((x) => x.total), 'min')[i] }))
-        },
-        {
-          label: 'Pistes à pied',
-          cells: list.map((l, i) => ({
-            txt: `${l.dist} m · +${l.den} m`,
-            best: bestOf(list.map((x) => x.dist), 'min')[i]
-          }))
-        },
-        {
-          label: 'Capacité',
-          cells: list.map((l) => ({
-            // 0 = la source ne l'annonce pas ; « non renseignée » plutôt que « 0 pers ».
-            txt:
+        numeric(t('cmp_lodging_price'), list.map((l) => l.total), 'min', (v) => eur(v)),
+        numeric(t('cmp_per_person_night'), list.map((l) => l.pp), 'min', (v) => eur(v)),
+        numeric(t('cmp_full_cost'), costs.map((c) => c.total), 'min', (v) => eur(v)),
+        numeric(
+          t('cmp_walk_to_runs'),
+          list.map((l) => l.dist),
+          'min',
+          (_, i) => `${list[i].dist} m · +${list[i].den} m`
+        ),
+        plain(
+          t('cmp_capacity'),
+          // 0 = la source ne l'annonce pas ; « non renseignée » plutôt que « 0 pers ».
+          list.map(
+            (l) =>
               [l.pers ? `${l.pers} pers` : null, l.ch ? `${l.ch} ch` : null, l.m2 ? `${l.m2} m²` : null]
                 .filter(Boolean)
-                .join(' · ') || 'non renseignée',
-            best: false
-          }))
-        },
-        {
-          label: 'Note voyageurs',
-          cells: list.map((l, i) => ({
-            txt: `${l.note}/5 (${l.avis})`,
-            best: bestOf(list.map((x) => parseFloat(x.note.replace(',', '.'))), 'max')[i]
-          }))
-        },
-        {
-          label: 'Annulation',
-          cells: list.map((l) => ({ txt: l.annul ? 'gratuite' : 'non remboursable', best: false }))
-        },
-        { label: 'Source', cells: list.map((l) => ({ txt: l.src, best: false })) }
+                .join(' · ') || t('not_provided_fem')
+          )
+        ),
+        numeric(
+          t('cmp_guest_rating'),
+          list.map((l) => parseFloat(l.note.replace(',', '.'))),
+          'max',
+          (_, i) => `${list[i].note}/5 (${list[i].avis})`
+        ),
+        plain(
+          t('cmp_cancellation'),
+          list.map((l) => (l.annul ? t('cmp_cancel_free') : t('cmp_cancel_none')))
+        ),
+        plain(t('cmp_source'), list.map((l) => l.src))
       ]
     : []
 
@@ -108,6 +145,8 @@ export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
           <h2>Comparateur</h2>
           <span className="u-muted" style={{ fontSize: 13 }}>
             {domain.name} · {fmtDay(state.arrDate)} → {fmtDay(state.depDate)} · {state.travelers} voyageurs
+            <br />
+            {t('cmp_trophy_note')}
           </span>
           <span className="u-spacer" />
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -168,7 +207,19 @@ export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
               <div className="compare__label">{row.label}</div>
               {row.cells.map((cell, i) => (
                 <div key={i} className={`compare__cell${cell.best ? ' compare__cell--best' : ''}`}>
-                  {cell.txt}
+                  <span className="compare__val">
+                    {/* Le trophée porte le marquage : la couleur seule ne suffit
+                        pas à un lecteur qui ne distingue pas le vert. */}
+                    {cell.best && <span aria-label={t('cmp_best')}>🏆</span>} {cell.txt}
+                  </span>
+                  {cell.ratio != null && (
+                    <span className="compare__bar" aria-hidden>
+                      <span
+                        className="compare__bar-fill"
+                        style={{ width: `${Math.round(cell.ratio * 100)}%` }}
+                      />
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

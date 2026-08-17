@@ -3720,6 +3720,75 @@ select {
   padding-top: 8px;
 }
 
+/* --- Écran Décision -------------------------------------------------------- */
+
+/* Tous les montants de l'écran en chasse tabulaire : c'est une colonne de
+   chiffres qu'on additionne du regard. */
+.decision {
+  font-variant-numeric: tabular-nums;
+}
+
+.decision__card {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  border: none;
+}
+
+.homerow {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 12px;
+}
+
+.homerow__head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.homerow__avatars {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+/* Pastilles d'initiales : elles se chevauchent légèrement, comme une pile de
+   jetons — c'est ce qui les lit comme un groupe et non comme une liste. */
+.avatar {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 2px solid var(--panel);
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: -6px;
+}
+
+.avatar:last-child {
+  margin-right: 0;
+}
+
+/** Encart d'écart au partage égal : bleu pâle, jamais alarmant. */
+.decision__delta {
+  margin: 8px 0 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--snow-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.decision__delta--even {
+  background: var(--surface);
+  color: var(--muted);
+}
+
 /* --- Suivi de prix -------------------------------------------------------- */
 
 .tracking__grid {

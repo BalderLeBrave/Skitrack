@@ -1,3 +1,4 @@
+import { ResultCard } from '@/components/ResultCard'
 import { srcOf } from '@/data/lodgings'
 import { lessonsCount } from '@/domain/costs'
 import { useFormat } from '@/hooks/useFormat'
@@ -75,17 +76,16 @@ export function DecisionPage(): JSX.Element {
 
   return (
     <div className="page" style={{ padding: 0 }}>
-      <div className="page__inner" style={{ maxWidth: 900, padding: '26px 28px 40px' }}>
+      {/* Colonne unique de 560 px : le dernier écran avant de réserver n'a plus
+          rien à comparer, il a une seule chose à faire lire de haut en bas. */}
+      <div className="page__inner decision" style={{ maxWidth: 560, padding: '26px 28px 40px' }}>
         <header className="page-head" style={{ marginBottom: 4 }}>
           <h2>{ctx.d.name}</h2>
           <strong className="u-num" style={{ fontSize: 20, color: 'var(--text)' }}>
             {eur(k.total)}
           </strong>
         </header>
-        <p className="u-muted" style={{ margin: '0 0 4px', fontSize: 13 }}>
-          {ctx.w.label} · {ctx.nights} nuits · {ctx.lg.name} ({srcOf(ctx.lg)})
-        </p>
-        <p className="u-muted" style={{ margin: '0 0 18px', fontSize: 13 }}>
+        <p className="u-muted" style={{ margin: '0 0 14px', fontSize: 13 }}>
           {eur(split.perHead)} par personne ·{' '}
           {votes > 0
             ? `Vote du groupe : +${votes}`
@@ -94,7 +94,24 @@ export function DecisionPage(): JSX.Element {
               : 'Vote du groupe : aucun avis'}
         </p>
 
-        <section className="panel" style={{ padding: '18px 20px', marginBottom: 16 }}>
+        {/* Le logement retenu en tête, au gabarit des écrans de résultats : on
+            doit reconnaître la carte cliquée deux écrans plus tôt. */}
+        <div style={{ marginBottom: 18 }}>
+          <ResultCard
+            title={ctx.lg.name}
+            place={`${ctx.d.name} · ${ctx.d.massif}`}
+            factLeft={`${ctx.w.label} · ${ctx.nights} nuits`}
+            factRight={srcOf(ctx.lg)}
+            price={{ amount: eur(k.total), unit: t('offers_price_unit').replace('{n}', String(ctx.nights)) }}
+            image={ctx.lg.image ?? null}
+            ariaLabel={t('offers_card_label')
+              .replace('{l}', ctx.lg.name)
+              .replace('{d}', ctx.d.name)
+              .replace('{p}', eur(k.total))}
+          />
+        </div>
+
+        <section className="panel decision__card">
           <h3 className="section__title">{t('decision_cost_by_item')}</h3>
           <div style={{ display: 'grid', gap: 8 }}>
             {postes.map((p) => (
@@ -109,7 +126,7 @@ export function DecisionPage(): JSX.Element {
           </div>
         </section>
 
-        <section className="panel" style={{ padding: '18px 20px' }}>
+        <section className="panel decision__card">
           <h3 className="section__title" style={{ marginBottom: 4 }}>
             Qui paie quoi
           </h3>
@@ -123,14 +140,24 @@ export function DecisionPage(): JSX.Element {
             {split.rows.map((r) => {
               const delta = r.total - split.even
               return (
-                <div key={r.home} style={{ borderTop: '1px solid var(--border-soft)', paddingTop: 10 }}>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                <div key={r.home} className="homerow">
+                  <div className="homerow__head">
+                    {/* Initiales sur pastille : sur trois foyers de deux
+                        personnes, la liste des prénoms se lit deux fois plus
+                        vite en pastilles qu'en phrase. */}
+                    <span className="homerow__avatars" aria-hidden>
+                      {r.people.map((p) => (
+                        <span key={p.id} className="avatar" title={p.first}>
+                          {p.first.slice(0, 1).toUpperCase()}
+                        </span>
+                      ))}
+                    </span>
                     <span style={{ fontSize: 15, fontWeight: 600, flex: '1 1 auto', minWidth: 0 }}>{r.home}</span>
                     <strong className="u-num u-nowrap" style={{ fontSize: 17, color: 'var(--text)' }}>
                       {eur(r.total)}
                     </strong>
                   </div>
-                  <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12 }}>
+                  <p className="u-muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
                     {r.people.map((p) => p.first).join(', ')} — {r.people.length} personne(s) ·{' '}
                     {eur(Math.round(r.total / Math.max(1, r.people.length)))} par personne
                   </p>
@@ -140,14 +167,9 @@ export function DecisionPage(): JSX.Element {
                     {r.lessons ? ` · cours ${eur(r.lessons)}` : ''} · route {eur(r.route)} ({dur(r.dur)},{' '}
                     {fmt(r.dist)} km)
                   </p>
-                  <p
-                    style={{
-                      margin: '3px 0 0',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: delta > 0 ? 'var(--warn)' : delta < 0 ? 'var(--ok)' : 'var(--muted)'
-                    }}
-                  >
+                  {/* L'écart au partage égal est le point de friction réel d'un
+                      séjour à plusieurs foyers : il a son propre encart. */}
+                  <p className={`decision__delta${delta === 0 ? ' decision__delta--even' : ''}`}>
                     {delta === 0
                       ? 'à parts égales'
                       : delta > 0

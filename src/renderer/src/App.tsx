@@ -5,7 +5,8 @@ import { useShortcuts } from '@/hooks/useShortcuts'
 import { AppProvider, useApp } from '@/state/appState'
 import { DerivedProvider, useDerived } from '@/state/selectors'
 import { WeatherProvider } from '@/state/weather'
-import { LogoIcon, SvgDefs } from '@/components/Icons'
+import { SvgDefs } from '@/components/Icons'
+import { BrandLogo } from '@/components/BrandLogo'
 import { DomainSheet } from '@/components/DomainSheet'
 import { Onboarding } from '@/components/Onboarding'
 import { PeopleDrawer } from '@/components/PeopleDrawer'
@@ -53,9 +54,9 @@ function ThemeSwitch(): JSX.Element {
       className="themeswitch"
       onClick={() => patch({ theme: dark ? 'light' : 'dark' })}
     >
-      {/* Sur la barre encre, le libellé actif se lit en blanc plein et l'autre
-          en blanc atténué : les jetons de texte du contenu clair y seraient
-          invisibles. */}
+      {/* Les deux libellés suivent les jetons de la barre : l'actif en encre
+          pleine, l'autre atténué. Depuis que la barre est blanche, ces jetons
+          sont ceux du contenu — plus rien n'est forcé en blanc ici. */}
       {!narrow && (
         <span className="themeswitch__label" style={{ color: dark ? 'var(--nav-muted)' : 'var(--nav-fg)' }}>
           {t('theme_light')}
@@ -81,10 +82,9 @@ function Nav(): JSX.Element {
 
   return (
     <nav className="nav">
-      <span className="nav__brand">
-        <LogoIcon />
-        SKITRACK
-      </span>
+      <div className="nav__side">
+        <BrandLogo />
+      </div>
 
       <div className="nav__tabs">
         <button type="button" className={tab(screen === 'accueil')} onClick={() => patch({ tab: 'accueil' })}>
@@ -115,24 +115,24 @@ function Nav(): JSX.Element {
         )}
       </div>
 
-      <span className="nav__spacer" />
-
-      <button type="button" className={tab2(screen === 'suivi')} onClick={() => patch({ tab: 'suivi' })}>
-        {t('nav_tracking')}
-        {state.tracked.length > 0 ? ` · ${state.tracked.length}` : ''}
-      </button>
-      <button type="button" className={tab2(screen === 'reglages')} onClick={() => patch({ tab: 'reglages' })}>
-        {t('nav_settings')}
-      </button>
-      <LangSelect />
-      <button
-        type="button"
-        className={`tab2 tab-people ${state.peopleOpen ? 'tab2--accent' : 'tab2--on'}`}
-        onClick={() => patch({ peopleOpen: true })}
-      >
-        {t('nav_travelers')} · {state.people.length}
-      </button>
-      <ThemeSwitch />
+      <div className="nav__side nav__side--right">
+        <button type="button" className={tab2(screen === 'suivi')} onClick={() => patch({ tab: 'suivi' })}>
+          {t('nav_tracking')}
+          {state.tracked.length > 0 ? ` · ${state.tracked.length}` : ''}
+        </button>
+        <button type="button" className={tab2(screen === 'reglages')} onClick={() => patch({ tab: 'reglages' })}>
+          {t('nav_settings')}
+        </button>
+        <LangSelect />
+        <button
+          type="button"
+          className={`tab2 tab-people ${state.peopleOpen ? 'tab2--accent' : 'tab2--on'}`}
+          onClick={() => patch({ peopleOpen: true })}
+        >
+          {t('nav_travelers')} · {state.people.length}
+        </button>
+        <ThemeSwitch />
+      </div>
     </nav>
   )
 }

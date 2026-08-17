@@ -1,7 +1,7 @@
 {
   "name": "skitrack",
   "version": "0.1.0",
-  "description": "Recherche et comparaison de locations de vacances au ski, par domaine skiable et altitude r\u00e9elle des pistes.",
+  "description": "Recherche et comparaison de locations de vacances au ski, par domaine skiable et altitude réelle des pistes.",
   "private": true,
   "type": "module",
   "main": "./out/main/index.js",
@@ -28,12 +28,13 @@
     "providers:test": "esbuild src/main/providers/providers.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/providers-test.mjs --external:electron --alias:@shared=./src/shared --log-level=error && node node_modules/.cache/providers-test.mjs"
   },
   "dependencies": {
+    "cheerio": "^1.0.0",
     "electron-updater": "^6.3.9",
-    "playwright": "^1.50.1",
-    "cheerio": "^1.0.0"
+    "playwright": "^1.50.1"
   },
   "devDependencies": {
     "@fontsource/archivo": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@types/geojson": "^7946.0.15",
     "@types/node": "^22.10.0",
     "@types/react": "^18.3.12",

@@ -25,6 +25,16 @@ import { useDerived } from '@/state/selectors'
 
 const PISTE_KEY = 'skitrack-v3-pistes'
 
+/**
+ * Contour de l'épingle sélectionnée — copie du jeton `--accent` de `styles.css`.
+ *
+ * MapLibre peint ses couches en WebGL à partir d'une spécification de style : il
+ * ne résout aucune variable CSS. La valeur est donc dupliquée ici, et les deux
+ * doivent bouger ensemble. C'est la seule couleur d'interface du fichier — les
+ * autres (`PISTE_COLORS`, l'échelle d'altitude) encodent des données.
+ */
+const ACCENT = '#0b6fc2'
+
 const PISTE_COLORS: Record<string, string> = {
   novice: '#3aa655',
   easy: '#2a78d6',
@@ -399,7 +409,7 @@ export function DomainMap(): JSX.Element {
           'circle-opacity': ['case', ['==', ['get', 'match'], false], 0.55, 1],
           'circle-radius': ['case', ['==', ['get', 'selected'], true], 12, ['==', ['get', 'match'], false], 5.5, 9],
           'circle-stroke-width': ['case', ['==', ['get', 'selected'], true], 3.5, 2.5],
-          'circle-stroke-color': ['case', ['==', ['get', 'selected'], true], '#e0533f', '#ffffff']
+          'circle-stroke-color': ['case', ['==', ['get', 'selected'], true], ACCENT, '#ffffff']
         }
       })
       m.addLayer({

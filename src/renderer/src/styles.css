@@ -5,94 +5,130 @@
    cartes de domaines portent beaucoup de texte dense qui se lit mieux sur fond
    clair. Le thème sombre reste un vrai thème, pas une inversion mécanique.
 
-   Direction « Piste A » : deux couleurs, deux rôles, et rien qui déborde.
-   `--accent` (l'orange) ne sort que sur un bouton qui **fait** quelque chose ;
-   `--brand` (le bleu) porte tout ce qui exprime un état ou une donnée — puce
-   active, source affichée, épingle, ligne élue, poignée de slicer, barres de
-   score. Les surfaces encre (`--ink`) sont réservées à la barre de navigation
-   et au héro de l'accueil. Sans cette séparation, l'orange finit par désigner
-   à la fois « cliquez ici » et « ceci est sélectionné », et ne désigne plus
-   rien. */
+   Direction « Airbnb × Skiinfo » : fond blanc, photo d'abord, **un seul**
+   accent — le bleu. L'orange corail des versions précédentes disparaît : il
+   désignait à la fois « cliquez ici » et « ceci est sélectionné », donc plus
+   rien. `--accent` et `--brand` portent désormais le même bleu, le premier pour
+   les actions, le second pour les données et les états ; les garder distincts
+   laisse la porte ouverte à une divergence future sans réécrire les appels.
+   `--ink` n'est plus une surface de navigation mais l'encre du texte : le
+   bandeau bleu nuit est abandonné au profit d'une barre blanche. Les surfaces
+   sombres restantes sont les voiles posés sur les photos, écrits en clair là où
+   ils servent. */
 
 :root,
 [data-theme='light'] {
   --bg: #ffffff;
   --panel: #ffffff;
-  --surface: #f4f7fa;
-  --border: #dfe5ec;
-  --border-soft: #eef1f5;
-  --text: #151c26;
-  --muted: #6b7684;
+  --surface: #f7f9fb;
+  --border: #e4e7eb;
+  --border-soft: #eff2f5;
+  --text: #222b33;
+  --muted: #6b7680;
   --dim: #a9b3bf;
 
-  /* Actions seulement. */
-  --accent: #e0533f;
-  --accent-soft: #fdf1ef;
+  /* Actions. */
+  --accent: #0b6fc2;
+  --accent-soft: #eaf4fc;
   --on-accent: #ffffff;
 
   /* Données, liens, sélection. */
-  --brand: #0a6fb8;
-  --brand-soft: #f1f7fc;
+  --brand: #0b6fc2;
+  --brand-soft: #eaf4fc;
   --on-brand: #ffffff;
 
-  --ink: #0d1b2a;
-  --nav-bg: #0d1b2a;
-  --nav-fg: #ffffff;
-  --nav-muted: rgba(255, 255, 255, 0.62);
-  --nav-hover: rgba(255, 255, 255, 0.12);
+  /* Neige : la jauge de hauteur et le chiffre qui la légende. */
+  --snow-light: #bfe0f7;
+  --snow-ink: #133f63;
 
-  --link: #0a6fb8;
-  --ok: #0d8a6a;
-  --ok-soft: #f2faf7;
+  --ink: #222b33;
+  --nav-bg: #ffffff;
+  --nav-fg: #222b33;
+  --nav-muted: #6b7680;
+  --nav-hover: #f7f9fb;
+
+  --link: #0b6fc2;
+  --ok: #0e8a5f;
+  --ok-soft: #f0faf6;
   --warn: #b45309;
-  --warn-soft: #fdf7ef;
+  --warn-soft: #fdf3e7;
   --violet: #5b4bc4;
   --violet-soft: #f6f5fd;
 
-  --photo-a: #eef1f5;
-  --photo-b: #e2e7ee;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.1);
+  --photo-a: #eaf4fc;
+  --photo-b: #bfe0f7;
+
+  --radius-card: 16px;
+  --radius-pill: 999px;
+
+  /* Ombres en trois couches : un liseré à 2 %, un contact court, une portée
+     large. Une seule ombre plate ne détache pas une carte blanche d'un fond
+     blanc — c'est tout l'enjeu d'une interface sans bordures. */
+  --shadow:
+    rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 2px 6px,
+    rgba(0, 0, 0, 0.09) 0 6px 18px;
+  --shadow-hover:
+    rgba(0, 0, 0, 0.03) 0 0 0 1px, rgba(0, 0, 0, 0.08) 0 8px 16px,
+    rgba(0, 0, 0, 0.13) 0 14px 32px;
+  --shadow-lg: 0 12px 34px rgba(0, 0, 0, 0.14);
+
+  /* Encart d'avertissement destructif (référentiel). */
+  --danger-soft: #fdf3e7;
+  --danger-ink: #7a5320;
 }
 
 [data-theme='dark'] {
-  --bg: #0b0f14;
-  --panel: #121820;
-  --surface: #19212b;
-  --border: #2a3441;
-  --border-soft: #212a35;
-  --text: #eef2f7;
-  --muted: #93a1b3;
-  --dim: #4a5464;
+  --bg: #0f1519;
+  --panel: #151c22;
+  --surface: #1a222a;
+  --border: #26313a;
+  --border-soft: #1f2830;
+  --text: #e8edf2;
+  --muted: #8fa0ae;
+  --dim: #5c6b78;
 
-  /* L'orange corail vibre sur fond très sombre : il s'éclaircit sans changer
-     de rôle. Il reste la couleur des actions, et d'elles seules. */
-  --accent: #ff7a63;
-  --accent-soft: rgba(255, 122, 99, 0.16);
-  --on-accent: #1a0b07;
+  /* Le bleu s'éclaircit pour tenir le contraste sur fond sombre, sans changer
+     de rôle : il reste l'unique accent. */
+  --accent: #3d9be0;
+  --accent-soft: #12283a;
+  --on-accent: #ffffff;
 
-  --brand: #5cc2f5;
-  --brand-soft: rgba(92, 194, 245, 0.14);
-  --on-brand: #06202e;
+  --brand: #3d9be0;
+  --brand-soft: #12283a;
+  --on-brand: #ffffff;
 
-  --ink: #0d1b2a;
-  --nav-bg: #0d1b2a;
-  --nav-fg: #ffffff;
-  --nav-muted: rgba(255, 255, 255, 0.62);
-  --nav-hover: rgba(255, 255, 255, 0.12);
+  /* Les rôles s'inversent : la neige devient la valeur claire, et le bleu
+     profond le fond de jauge. */
+  --snow-light: #1e3e58;
+  --snow-ink: #bfe0f7;
 
-  --link: #9fd8ff;
-  --ok: #5fd08f;
-  --ok-soft: rgba(95, 208, 143, 0.14);
+  --ink: #e8edf2;
+  --nav-bg: #0f1519;
+  --nav-fg: #e8edf2;
+  --nav-muted: #8fa0ae;
+  --nav-hover: #1a222a;
+
+  --link: #7ec0f0;
+  --ok: #4fc48d;
+  --ok-soft: rgba(79, 196, 141, 0.14);
   --warn: #ffca6b;
   --warn-soft: rgba(255, 202, 107, 0.14);
   --violet: #a99bf5;
   --violet-soft: rgba(169, 155, 245, 0.16);
 
-  --photo-a: #1a222c;
-  --photo-b: #141b23;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.55);
+  --photo-a: #12283a;
+  --photo-b: #1e3e58;
+
+  --shadow:
+    rgba(0, 0, 0, 0.5) 0 0 0 1px, rgba(0, 0, 0, 0.45) 0 2px 6px,
+    rgba(0, 0, 0, 0.5) 0 6px 18px;
+  --shadow-hover:
+    rgba(0, 0, 0, 0.55) 0 0 0 1px, rgba(0, 0, 0, 0.5) 0 8px 16px,
+    rgba(0, 0, 0, 0.55) 0 14px 32px;
+  --shadow-lg: 0 12px 34px rgba(0, 0, 0, 0.6);
+
+  --danger-soft: #33240f;
+  --danger-ink: #f2cf9b;
 }
 
 * {
@@ -109,7 +145,7 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: Archivo, system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -194,6 +230,24 @@ select {
     background-color 0.15s ease,
     border-color 0.15s ease,
     color 0.15s ease;
+}
+
+/**
+ * Mouvement réduit : les transitions tombent, les animations restent traitées
+ * au cas par cas.
+ *
+ * Une transition n'est ici jamais porteuse d'information — elle adoucit un
+ * changement d'état déjà lisible à l'arrêt. Les animations, elles, disent
+ * parfois quelque chose (un relevé en cours), et une coupure aveugle les
+ * effacerait : chaque cas est traité dans son propre bloc `prefers-reduced-
+ * motion` plus bas, celui de la neige compris.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @keyframes pulse {
@@ -882,6 +936,9 @@ select {
   overflow: hidden;
   background: var(--nav-bg);
   color: var(--nav-fg);
+  /* La barre est blanche sur fond blanc : sans ce filet, elle n'existerait plus
+     visuellement. */
+  border-bottom: 1px solid var(--border-soft);
   flex: 0 0 auto;
 }
 
@@ -914,12 +971,12 @@ select {
 /** Sélecteur de langue : une pilule de la même famille que les onglets.
  *
  *  Fond **opaque** et non translucide : le menu système déroulé hérite de la
- *  couleur du champ, et un fond transparent sur surface encre donnait un menu
- *  blanc sur blanc, illisible. `color-scheme` et la règle sur `option`
- *  achèvent de forcer la variante sombre, que Windows ne déduit pas seul. */
+ *  couleur du champ, et un fond transparent donnait un menu illisible. Depuis
+ *  que la barre est blanche, `color-scheme` suit le thème au lieu d'être forcé
+ *  en sombre — Windows ne le déduit pas seul. */
 .nav__lang {
-  background: var(--ink);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: var(--nav-bg);
+  border: 1px solid var(--border);
   color: var(--nav-fg);
   border-radius: 999px;
   padding: 6px 10px;
@@ -931,12 +988,16 @@ select {
 }
 
 .nav select {
+  color-scheme: light;
+}
+
+[data-theme='dark'] .nav select {
   color-scheme: dark;
 }
 
 .nav select option {
-  background: #0d1b2a;
-  color: #ffffff;
+  background: var(--nav-bg);
+  color: var(--nav-fg);
 }
 
 /** Onglet principal : sans bordure, l'aplat clair marque l'onglet courant. */
@@ -1026,13 +1087,15 @@ select {
   width: 44px;
   height: 24px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.24);
+  /* Piste éteinte sur fond blanc : le gris de bordure, pas un blanc translucide
+     qui disparaissait avec le bandeau encre. */
+  background: var(--border);
   transition: background 0.2s ease;
   flex: 0 0 auto;
 }
 
 .themeswitch__track--on {
-  background: var(--brand);
+  background: var(--accent);
 }
 
 .themeswitch__knob {
@@ -1051,9 +1114,138 @@ select {
   left: 23px;
 }
 
+/**
+ * Interrupteur générique — piste 42 × 24, pastille 20 px, bleu actif.
+ *
+ * Distinct de `.themeswitch`, qui porte deux libellés autour de sa piste et
+ * vivait sur un bandeau encre. Celui-ci sert aux réglages booléens ordinaires,
+ * en commençant par la neige animée.
+ */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.toggle__track {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.2s ease;
+  flex: 0 0 auto;
+}
+
+.toggle__track--on {
+  background: var(--accent);
+}
+
+.toggle__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: left 0.2s ease;
+}
+
+.toggle__track--on .toggle__knob {
+  left: 20px;
+}
+
 .main {
   flex: 1;
   min-height: 0;
+}
+
+/* --- Neige animée ---------------------------------------------------------- */
+
+/**
+ * Couche décorative posée sur la fenêtre entière — voir components/Snowfall.tsx.
+ *
+ * `z-index: 4` la place au-dessus du contenu ordinaire (qui ne dépasse pas 3) et
+ * sous tout ce qui se superpose à la page : popover d'altitude (5), fiche
+ * logement (5 / 6), comparateur (7 / 8), modales et import (9 / 10), fiche
+ * domaine (15 / 16), tiroir des voyageurs (17 / 18), accueil guidé (20). Un
+ * flocon qui passe devant un dialogue se lit comme un défaut d'affichage, pas
+ * comme un décor.
+ */
+.snowfall {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.snowfall__fall {
+  position: absolute;
+  top: 0;
+  animation-name: snow-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.snowfall__dot {
+  display: block;
+  border-radius: 50%;
+  /* Sur fond blanc, un flocon blanc n'existe pas : le thème clair prend le bleu
+     pâle de la neige. */
+  background: var(--snow-light);
+  animation-name: snow-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  will-change: transform;
+}
+
+/* En thème sombre, `--snow-light` est le fond de jauge (bleu profond) : le
+   flocon reprend le blanc, qui est là la couleur de la neige. */
+[data-theme='dark'] .snowfall__dot {
+  background: #ffffff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.35);
+}
+
+/* La chute et la dérive sont deux `transform` sur deux éléments imbriqués : un
+   seul élément n'en porte qu'un, et une chute rectiligne ne ressemble à rien. */
+@keyframes snow-fall {
+  from {
+    transform: translate3d(0, -12vh, 0);
+  }
+  to {
+    transform: translate3d(0, 112vh, 0);
+  }
+}
+
+@keyframes snow-sway {
+  from {
+    transform: translate3d(calc(var(--snow-drift) * -0.5), 0, 0);
+  }
+  to {
+    transform: translate3d(calc(var(--snow-drift) * 0.5), 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Des flocons figés au milieu de l'écran seraient plus perturbants que la
+     chute : la couche disparaît entièrement. */
+  .snowfall {
+    display: none;
+  }
 }
 
 /* --- Accueil -------------------------------------------------------------- */
@@ -2060,9 +2252,9 @@ select {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #e0533f;
+  background: var(--accent);
   border: 3px solid #ffffff;
-  box-shadow: 0 0 0 2px #e0533f;
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .maplibregl-ctrl-attrib {
@@ -2791,7 +2983,7 @@ select {
 .pricepin {
   border-radius: 999px;
   padding: 4px 10px;
-  font: 600 12px Archivo, sans-serif;
+  font: 600 12px 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(0, 0, 0, 0.25);

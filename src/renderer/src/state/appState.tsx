@@ -124,6 +124,15 @@ export interface AppState {
   theme: 'light' | 'dark'
   lang: Language
   density: 'comfortable' | 'compact'
+  /**
+   * Neige animée en surimpression, réglable dans Apparence.
+   *
+   * Purement décoratif : aucun écran ne lit cette valeur pour décider quoi
+   * afficher. Elle est là parce qu'une animation permanente se supporte mal
+   * quand on compare des prix pendant une heure, et parce que
+   * `prefers-reduced-motion` ne couvre pas le simple « pas envie ».
+   */
+  snowfall: boolean
 
   // Écran Recherche
   selectedId: number | null
@@ -408,6 +417,7 @@ export const INITIAL_STATE: AppState = {
   theme: 'light',
   lang: 'fr',
   density: 'comfortable',
+  snowfall: true,
 
   selectedId: 1,
   scoreOpenId: 1,
@@ -553,7 +563,7 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
 
 /** Clés enregistrées : les réglages, pas l'état transitoire d'un écran. */
 const PERSISTED_KEYS = [
-  'theme', 'lang', 'density', 'children', 'optRental', 'optLessons',
+  'theme', 'lang', 'density', 'snowfall', 'children', 'optRental', 'optLessons',
   'alertMode', 'alertPct', 'alertEur', 'quietHours', 'digest', 'votes',
   'offresBudget', 'searchFiltersW', 'searchMapW', 'searchFiltersOpen', 'searchMapOpen',
   'weights', 'people', 'places', 'esfRates', 'decision', 'mergeDupes', 'cmpRefId',

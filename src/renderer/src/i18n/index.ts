@@ -75,6 +75,10 @@ const CATALOG = {
     'Die tema volg die skakelaar in die boonste balk.'
   ],
   appearance: ['Apparence', 'Appearance', 'Darstellung', 'Weergave', 'Apariencia', 'Aspetto', 'Voorkoms'],
+  settings_snowfall: [
+    'Neige animée', 'Animated snowfall', 'Animierter Schneefall', 'Geanimeerde sneeuw',
+    'Nieve animada', 'Neve animata', 'Geanimeerde sneeu'
+  ],
   density: ['Densité', 'Density', 'Dichte', 'Dichtheid', 'Densidad', 'Densità', 'Digtheid'],
   density_comfortable: ['Confortable', 'Comfortable', 'Komfortabel', 'Comfortabel', 'Cómoda', 'Comoda', 'Gemaklik'],
   density_compact: ['Compacte', 'Compact', 'Kompakt', 'Compact', 'Compacta', 'Compatta', 'Kompak'],

@@ -323,6 +323,22 @@ export function SettingsPage(): JSX.Element {
                   {t('theme_dark')}
                 </button>
               </div>
+
+              {/* Le seul réglage purement décoratif de l'application : il ne
+                  change rien à ce qui est affiché, seulement à ce qui bouge. */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={state.snowfall}
+                className="toggle"
+                style={{ marginTop: 18 }}
+                onClick={() => patch({ snowfall: !state.snowfall })}
+              >
+                <span className={`toggle__track${state.snowfall ? ' toggle__track--on' : ''}`}>
+                  <span className="toggle__knob" />
+                </span>
+                {t('settings_snowfall')}
+              </button>
             </section>
 
             <section className="panel panel--flat settings__section">

@@ -9,6 +9,7 @@ import { LogoIcon, SvgDefs } from '@/components/Icons'
 import { DomainSheet } from '@/components/DomainSheet'
 import { Onboarding } from '@/components/Onboarding'
 import { PeopleDrawer } from '@/components/PeopleDrawer'
+import { Snowfall } from '@/components/Snowfall'
 import { CombosPage } from '@/pages/CombosPage'
 import { DecisionPage } from '@/pages/DecisionPage'
 import { DomainSearchPage } from '@/pages/DomainSearchPage'
@@ -265,6 +266,9 @@ function Shell(): JSX.Element {
       <main className="main">
         <Screens />
       </main>
+      {/* La neige n'apparaît qu'une fois l'application ouverte : sur l'écran
+          d'amorçage, elle décorerait un message d'erreur. */}
+      {state.snowfall && <Snowfall />}
       {state.peopleOpen && <PeopleDrawer />}
       {state.domFicheId != null && <DomainSheet />}
       {state.onboard && <Onboarding />}

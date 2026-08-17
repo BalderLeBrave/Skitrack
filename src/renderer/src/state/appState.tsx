@@ -266,12 +266,18 @@ export interface AppState {
   lodgPhase: 'criteria' | 'searching' | 'results'
   lodgSearchMsg: string | null
   /**
-   * Libellés des connecteurs interrogés au dernier relevé.
+   * Libellés des sources que le moteur interroge.
    *
-   * Vient des `outcomes` du moteur, seul endroit qui ne peut pas se
-   * désynchroniser de la liste des connecteurs enregistrés. Volontairement non
-   * persisté : après une mise à jour qui retire un connecteur, une liste
-   * relue du disque afficherait une source que plus rien n'interroge.
+   * Renseigné deux fois, et dans cet ordre : à l'ouverture de l'écran Logements
+   * depuis le **registre** des connecteurs enregistrés (`providers.health`),
+   * puis après chaque relevé depuis ses `outcomes`. Les deux disent la même
+   * chose, mais le registre la dit tout de suite : sans lui, Booking.com et la
+   * centrale de la station n'apparaissaient qu'une fois la première recherche
+   * revenue, et une station jamais relevée n'affichait qu'Airbnb.
+   *
+   * Volontairement non persisté : après une mise à jour qui retire un
+   * connecteur, une liste relue du disque afficherait une source que plus rien
+   * n'interroge — c'est précisément ce qu'on cherche à éviter.
    */
   lodgQueried: string[]
   /**

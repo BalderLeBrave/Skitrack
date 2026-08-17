@@ -76,18 +76,29 @@ export function searchProviders(params: SearchParams, only?: string[]): Promise<
   return aggregateResults(currentEngine(), params, only)
 }
 
+/**
+ * Diagnostic des connecteurs, sans lancer de recherche.
+ *
+ * `registered` distingue les deux populations que cette liste mêle : les
+ * connecteurs **réellement enregistrés** dans le moteur, qui seront interrogés
+ * au prochain relevé, et les sources déclarées puis **refusées**, qui ne le
+ * seront jamais. L'écran Logements se sert des premiers pour annoncer ses
+ * sources dès l'ouverture ; sans ce drapeau, une déclaration MCP fautive
+ * viendrait s'afficher comme une source interrogeable.
+ */
 export async function providersHealth(): Promise<
-  { name: string; reachable: boolean; detail: string }[]
+  { name: string; reachable: boolean; detail: string; registered: boolean }[]
 > {
   const health = await currentEngine().health()
   // Une source déclarée mais refusée n'apparaît nulle part ailleurs : sans cette
   // ligne, une faute de frappe dans mcp-sources.json serait parfaitement muette.
   return [
-    ...health,
+    ...health.map((entry) => ({ ...entry, registered: true })),
     ...rejectedMcpSources().map((entry) => ({
       name: entry.name,
       reachable: false,
-      detail: `configuration refusée — ${entry.reason}`
+      detail: `configuration refusée — ${entry.reason}`,
+      registered: false
     }))
   ]
 }

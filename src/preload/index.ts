@@ -49,8 +49,9 @@ const api = {
   providers: {
     search: (params: ProviderSearchParams, only?: string[]): Promise<ProviderAggregate> =>
       ipcRenderer.invoke(IPC.providersSearch, params, only),
-    health: (): Promise<{ name: string; reachable: boolean; detail: string }[]> =>
-      ipcRenderer.invoke(IPC.providersHealth)
+    health: (): Promise<
+      { name: string; reachable: boolean; detail: string; registered: boolean }[]
+    > => ipcRenderer.invoke(IPC.providersHealth)
   },
   /** Lit les métadonnées publiques d'une annonce que l'utilisateur a collée. */
   fetchListing: (url: string): Promise<ListingExtract> => ipcRenderer.invoke(IPC.listingFetch, url),

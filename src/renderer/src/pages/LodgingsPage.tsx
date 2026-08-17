@@ -15,7 +15,7 @@ import { lodgingSources, medianTotal, sourceHealth } from '@/data/lodgings'
 import type { Lodging } from '@/data/lodgings'
 import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
 import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearch'
-import { runProviderSearch } from '@/data/runProviderSearch'
+import { runProviderSearch, sourceLabelOf } from '@/data/runProviderSearch'
 import { hasCoords } from '@/data/referentiel'
 import { WEEKS } from '@/data/snow'
 import { useFormat } from '@/hooks/useFormat'
@@ -170,6 +170,38 @@ export function LodgingsPage(): JSX.Element {
 
   const [searchError, setSearchError] = useState<string | null>(null)
   const [elapsedSec, setElapsedSec] = useState(0)
+
+  /**
+   * Sources annoncées dès l'ouverture, sans attendre un relevé.
+   *
+   * Le registre du moteur (`providers.health`) dit quels connecteurs sont
+   * enregistrés, donc lesquels seront interrogés — l'information existe avant
+   * la première recherche, et rien ne justifie de la faire attendre. Sans cet
+   * appel, une station encore jamais relevée n'affichait qu'Airbnb, la seule
+   * source hors moteur, et Booking.com semblait avoir disparu.
+   *
+   * Les sources déclarées mais refusées sont écartées : elles ne seront pas
+   * interrogées, et une ligne de filtre qu'aucun relevé ne peut rafraîchir
+   * n'est pas un filtre.
+   */
+  useEffect(() => {
+    let cancelled = false
+    void window.skitrack.providers
+      .health()
+      .then((list) => {
+        if (cancelled) return
+        const labels = [...new Set(list.filter((p) => p.registered).map((p) => sourceLabelOf(p.name)))]
+        if (labels.length > 0) patch({ lodgQueried: labels })
+      })
+      .catch(() => {
+        // Moteur injoignable : la liste reste celle du dernier relevé, ou le
+        // seul socle. Un écran de filtres n'a pas à signaler cette panne, que
+        // « État du relevé » dit déjà.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [patch])
 
   /**
    * Remontée en haut de liste à la mise en avant.

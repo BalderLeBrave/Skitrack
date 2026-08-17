@@ -408,6 +408,15 @@ const CATALOG = {
     'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
     'Langste rit onder 4 uur'
   ],
+  // --- Combinaisons : légende de la grille ---------------------------------
+  combo_legend_cheap: ['Donné', 'Cheap', 'Günstig', 'Voordelig', 'Barato', 'Conveniente', 'Goedkoop'],
+  combo_legend_mid: ['Moyen', 'Mid-range', 'Mittel', 'Gemiddeld', 'Medio', 'Medio', 'Middelmatig'],
+  combo_legend_dear: ['Cher', 'Expensive', 'Teuer', 'Duur', 'Caro', 'Caro', 'Duur'],
+  combo_legend_holiday: [
+    'Vacances scolaires', 'School holidays', 'Schulferien', 'Schoolvakantie',
+    'Vacaciones escolares', 'Vacanze scolastiche', 'Skoolvakansie'
+  ],
+
   // --- Offres : partition par prix de nuitée -------------------------------
   offers_per_night: [
     'Plafond par nuit et par logement', 'Cap per night and per stay', 'Obergrenze pro Nacht und Unterkunft',

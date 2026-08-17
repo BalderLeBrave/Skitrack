@@ -1,7 +1,44 @@
+import type { Week } from '@/data/snow'
 import { seasonalityText, weekByArrival } from '@/data/snow'
 import { useFormat } from '@/hooks/useFormat'
+import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+
+/**
+ * Dégradé monochrome de la grille : bleu très pâle pour le moins cher, bleu
+ * profond pour le plus cher.
+ *
+ * Interpolation RGB linéaire entre deux valeurs **écrites en clair** et non
+ * dérivées des jetons. `color-mix()` sur `--accent` aurait suivi le thème, mais
+ * la lisibilité du texte par-dessus dépend de la luminance exacte du fond : sur
+ * une échelle continue, il faut savoir à quel palier basculer le texte en blanc,
+ * et cela ne se calcule pas depuis une variable CSS. Les deux thèmes partagent
+ * donc la même échelle, qui reste contrastée sur l'un comme sur l'autre.
+ */
+const HEAT_FROM = [234, 244, 252] as const
+const HEAT_TO = [11, 90, 158] as const
+
+/** Palier de bascule du texte : au-delà, le fond est trop sombre pour l'encre. */
+const HEAT_INK_LIMIT = 0.55
+
+function heatColor(t: number): string {
+  const k = Math.min(1, Math.max(0, t))
+  const mix = HEAT_FROM.map((from, i) => Math.round(from + (HEAT_TO[i] - from) * k))
+  return `rgb(${mix[0]}, ${mix[1]}, ${mix[2]})`
+}
+
+/**
+ * Semaine de vacances scolaires.
+ *
+ * Le calendrier ne porte pas de drapeau : la zone est écrite dans le libellé de
+ * la semaine — « 7 – 14 févr. (zone C) » — et c'est la seule donnée existante.
+ * On la lit plutôt que d'en inventer une seconde source, `data/snow.ts` restant
+ * hors périmètre de la refonte.
+ */
+function isSchoolHoliday(week: Week): boolean {
+  return /zone/i.test(week.label)
+}
 
 /**
  * Quelle semaine, quel domaine.
@@ -15,27 +52,45 @@ import { useDerived } from '@/state/selectors'
  */
 export function CombosPage(): JSX.Element {
   const { dur, eur, fmt } = useFormat()
+  const { t: tr } = useI18n()
   const { state, patch, narrow } = useApp()
   const derived = useDerived()
   const { rows, lo, hi } = derived.comboGrid
   const span = Math.max(1, hi - lo)
 
-  const cellStyle = (total: number, isMin: boolean, selected: boolean): React.CSSProperties => {
-    const t = (total - lo) / span
+  /**
+   * Fond, texte et liseré d'une case.
+   *
+   * Une seule couleur pour toute la gamme : l'ancienne échelle multicolore
+   * faisait lire une catégorie là où il n'y a qu'une quantité. Le liseré
+   * intérieur du bas marque les semaines de vacances scolaires — l'information
+   * qui explique la moitié des écarts de prix de la grille.
+   */
+  const cellStyle = (total: number, isMin: boolean, selected: boolean, week: Week): React.CSSProperties => {
+    const k = (total - lo) / span
     const over = total > state.offresBudget
+    const holiday = isSchoolHoliday(week)
     return {
-      border: selected ? '2px solid var(--brand)' : `1px solid ${over ? 'var(--border-soft)' : 'var(--border)'}`,
-      borderRadius: 10,
+      border: selected ? '2px solid var(--accent)' : `1px solid ${over ? 'var(--border-soft)' : 'var(--border)'}`,
+      borderRadius: 9,
       padding: selected ? '8px 5px' : '9px 6px',
       fontSize: 13,
       fontVariantNumeric: 'tabular-nums',
       cursor: 'pointer',
       textAlign: 'center',
       fontWeight: isMin ? 700 : 500,
-      color: over ? 'var(--dim)' : 'var(--text)',
-      background: over ? 'transparent' : `color-mix(in oklab, var(--ok) ${Math.round((1 - t) * 26)}%, var(--panel))`
+      color: over ? 'var(--dim)' : k > HEAT_INK_LIMIT ? '#ffffff' : '#133f63',
+      background: over ? 'transparent' : heatColor(k),
+      boxShadow: holiday ? 'inset 0 -3px 0 var(--accent)' : undefined
     }
   }
+
+  /** Légende de l'échelle : trois paliers nommés, pas une rampe muette. */
+  const legend = [
+    { k: 0.05, label: tr('combo_legend_cheap') },
+    { k: 0.5, label: tr('combo_legend_mid') },
+    { k: 0.95, label: tr('combo_legend_dear') }
+  ]
 
   const selection = state.comboSel
   const selDomain = selection ? derived.filtered.find((d) => d.id === selection.domainId) : undefined
@@ -68,6 +123,25 @@ export function CombosPage(): JSX.Element {
           </div>
         )}
 
+        {rows.length > 0 && (
+          <div className="heatlegend">
+            {legend.map((l) => (
+              <span key={l.label} className="heatlegend__item">
+                <span
+                  className="heatlegend__swatch"
+                  style={{ background: heatColor(l.k) }}
+                  aria-hidden
+                />
+                {l.label}
+              </span>
+            ))}
+            <span className="heatlegend__item">
+              <span className="heatlegend__swatch heatlegend__swatch--holiday" aria-hidden />
+              {tr('combo_legend_holiday')}
+            </span>
+          </div>
+        )}
+
         {/* En fenêtre étroite, la grille devient une pile de cartes : sept
             colonnes sous 1 180 px ne se lisent plus. */}
         {narrow ? (
@@ -93,7 +167,8 @@ export function CombosPage(): JSX.Element {
                       style={cellStyle(
                         c.total,
                         c.total === r.min,
-                        selection?.domainId === r.d.id && selection.week === c.week.arr
+                        selection?.domainId === r.d.id && selection.week === c.week.arr,
+                        c.week
                       )}
                       onClick={() =>
                         patch({
@@ -144,7 +219,8 @@ export function CombosPage(): JSX.Element {
                         style={cellStyle(
                           c.total,
                           c.total === r.min,
-                          selection?.domainId === r.d.id && selection.week === c.week.arr
+                          selection?.domainId === r.d.id && selection.week === c.week.arr,
+                          c.week
                         )}
                         onClick={() =>
                           patch({

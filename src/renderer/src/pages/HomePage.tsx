@@ -16,16 +16,67 @@
  */
 
 import { useMemo } from 'react'
+import { SearchBar } from '@/components/SearchBar'
+import { heroPhoto, massifPhoto } from '@/components/photos'
 import { useFormat } from '@/hooks/useFormat'
 import { massifColor } from '@/domain/massif'
 import { useI18n } from '@/i18n'
 import type { AppState } from '@/state/appState'
 import { FILTER_RANGES, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+import { useWeather } from '@/state/weather'
 import { BASE_SOURCES } from '@/data/lodgings'
+import { snowDepths } from '@/data/weather'
 
 /** Nombre de tuiles de massif : au-delà, la grille déborde sous le pli. */
 const MAX_MASSIFS = 6
+
+/** Domaines du bandeau neige : ceux dont la météo est déjà demandée. */
+const SNOW_ROWS = 5
+
+/**
+ * Bandeau « neige au sol » posé entre le héro et les massifs.
+ *
+ * Il ne lit que le modèle, par `snowDepths()`, et sur les domaines de tête de
+ * liste — les seuls pour lesquels la météo est réellement demandée. Une valeur
+ * absente s'écrit « — » : le référentiel porte bien un champ `neige`, mais c'est
+ * un jeu de démonstration qui annonce un mètre de poudreuse en août.
+ */
+function SnowBand(): JSX.Element | null {
+  const { filtered } = useDerived()
+  const { weatherOf } = useWeather()
+  const { fmt } = useFormat()
+  const { t } = useI18n()
+
+  const rows = filtered.slice(0, SNOW_ROWS)
+  if (rows.length === 0) return null
+
+  return (
+    <section className="snowband">
+      <div className="snowband__head">
+        <h2 className="snowband__title">
+          {t('snow_on_ground')} <span className="snowband__sub">{t('snow_base_top')}</span>
+        </h2>
+        <p className="snowband__note">{t('home_snow_note')}</p>
+      </div>
+      <div className="snowband__rows">
+        {rows.map((d) => {
+          const s = snowDepths(weatherOf(d.id))
+          return (
+            <div key={d.id} className="snowband__item">
+              <span className="snowband__place">{d.name}</span>
+              <span className="snowband__pair u-num">
+                <strong>{s.bas != null ? `${fmt(s.bas)} cm` : '—'}</strong>
+                <span className="snowband__slash">/</span>
+                <strong>{s.haut != null ? `${fmt(s.haut)} cm` : '—'}</strong>
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 
 export function HomePage(): JSX.Element {
   const { state, patch, domains } = useApp()
@@ -48,6 +99,9 @@ export function HomePage(): JSX.Element {
         name,
         list,
         tint: massifColor(name),
+        // Photo par nom de massif, tuile générique sinon : la grille reste
+        // dérivée du référentiel, elle n'est pas une liste d'images.
+        photo: massifPhoto(name),
         // Deux exemples pris parmi les plus grands : ce sont ceux qu'on
         // reconnaît, et ils disent le niveau du massif mieux qu'un adjectif.
         examples: [...list]
@@ -84,6 +138,7 @@ export function HomePage(): JSX.Element {
   }, [domains, forfaitOf, state.lodgQueried, eur, fmt, t])
 
   const massifCount = new Set(domains.map((d) => d.massif).filter(Boolean)).size
+  const hero = heroPhoto()
 
   /** Raccourcis : chacun pose sa plage **entière**, bornes basse et haute. */
   const shortcuts: { label: string; title: string; filter: Partial<AppState> }[] = [
@@ -134,14 +189,13 @@ export function HomePage(): JSX.Element {
   return (
     <div className="home">
       <header className="home__hero">
-        {/* La photo occupe tout le héro, d'un bord à l'autre : en colonne de
-            grille elle se retrouvait comprimée à côté du texte. Le voile en
-            dégradé garde le texte lisible sur sa moitié gauche quelle que soit
-            l'image posée. Aucune n'est livrée : `--hero-photo` reste `none`
-            tant que le client n'en dépose pas une. */}
-        <div className="home__hero-photo" aria-hidden />
+        {/* La photo est le **fond** du héro, d'un bord à l'autre, et le voile en
+            dégradé est ce qui tient le contraste du texte par-dessus n'importe
+            quelle image. Tant qu'aucune photo n'est déposée dans `assets/img/`,
+            la hachure donne une matière au fond encre. */}
+        <div className="home__hero-photo" style={hero ? { backgroundImage: `url(${hero})` } : undefined} aria-hidden />
         <div className="home__hero-veil" aria-hidden />
-        <div className="home__hero-hatch" aria-hidden />
+        {!hero && <div className="home__hero-hatch" aria-hidden />}
         <div className="home__hero-inner">
           <div className="home__hero-text">
             <span className="home__badge">
@@ -154,21 +208,7 @@ export function HomePage(): JSX.Element {
             </h1>
             <p className="home__lead">{t('home_lead')}</p>
 
-            <div className="home__search">
-              <input
-                className="home__input"
-                value={state.domainQuery}
-                onChange={(e) => patch({ domainQuery: e.target.value })}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') patch({ tab: 'recherche' })
-                }}
-                placeholder={t('home_search_placeholder')}
-                aria-label={t('search_aria')}
-              />
-              <button type="button" className="home__cta" onClick={() => patch({ tab: 'recherche' })}>
-                {t('home_cta')}
-              </button>
-            </div>
+            <SearchBar />
 
             <div className="home__shortcuts">
               {shortcuts.map((sc) => (
@@ -186,6 +226,8 @@ export function HomePage(): JSX.Element {
           </div>
         </div>
       </header>
+
+      <SnowBand />
 
       <section className="home__section">
         <div className="home__section-head">
@@ -208,14 +250,22 @@ export function HomePage(): JSX.Element {
             <button
               key={m.name}
               type="button"
-              className="home__massif"
-              style={{ background: m.tint.soft, borderLeftColor: m.tint.ink }}
+              className={`masstile${m.photo ? '' : ' masstile--plain'}`}
+              style={{
+                // Sans photo : dégradé pâle et liseré bas à la teinte du massif,
+                // la même que sa pastille sur les vignettes de résultats.
+                ...(m.photo ? { backgroundImage: `url(${m.photo})` } : { background: m.tint.soft }),
+                borderBottomColor: m.tint.ink
+              }}
               onClick={() => openMassif(m.name, m.list[0]?.id)}
             >
-              <strong className="home__massif-name">{m.name}</strong>
-              <span className="home__massif-ex">{m.examples}</span>
-              <span className="home__massif-count u-num" style={{ color: m.tint.ink }}>
-                {t('home_massif_count').replace('{n}', fmt(m.list.length))}
+              <span className="masstile__shade" aria-hidden />
+              <span className="masstile__body">
+                <strong className="masstile__name">{m.name}</strong>
+                <span className="masstile__ex">{m.examples}</span>
+                <span className="masstile__count u-num">
+                  {t('home_massif_count').replace('{n}', fmt(m.list.length))}
+                </span>
               </span>
             </button>
           ))}

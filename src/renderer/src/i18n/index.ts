@@ -408,6 +408,32 @@ const CATALOG = {
     'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
     'Langste rit onder 4 uur'
   ],
+  // --- Barre de recherche en pilule ---------------------------------------
+  sb_destination: ['Destination', 'Destination', 'Reiseziel', 'Bestemming', 'Destino', 'Destinazione', 'Bestemming'],
+  sb_dates: ['Semaine', 'Week', 'Woche', 'Week', 'Semana', 'Settimana', 'Week'],
+  sb_week_any: [
+    'Choisir une semaine', 'Pick a week', 'Woche wählen', 'Kies een week',
+    'Elegir una semana', 'Scegli una settimana', 'Kies ’n week'
+  ],
+  sb_domain: ['domaine', 'resort', 'Skigebiet', 'skigebied', 'dominio', 'comprensorio', 'skigebied'],
+  sb_station: ['station', 'village', 'Ort', 'dorp', 'estación', 'località', 'dorp'],
+  sb_less: ['Un voyageur de moins', 'One traveller fewer', 'Ein Reisender weniger', 'Eén reiziger minder',
+    'Un viajero menos', 'Un viaggiatore in meno', 'Een reisiger minder'],
+  sb_more: ['Un voyageur de plus', 'One traveller more', 'Ein Reisender mehr', 'Eén reiziger meer',
+    'Un viajero más', 'Un viaggiatore in più', 'Een reisiger meer'],
+  sb_go: [
+    'Lancer la recherche', 'Start the search', 'Suche starten', 'Zoeken starten',
+    'Iniciar la búsqueda', 'Avvia la ricerca', 'Begin die soektog'
+  ],
+  home_snow_note: [
+    'Relevé du modèle sur les domaines en tête de liste. « — » quand le relevé manque : rien n’est estimé.',
+    'Model reading for the resorts at the top of the list. “—” when the reading is missing: nothing is estimated.',
+    'Modellwert für die Gebiete am Anfang der Liste. „—“ wenn der Wert fehlt: nichts wird geschätzt.',
+    'Modelwaarde voor de skigebieden bovenaan de lijst. “—” als de waarde ontbreekt: er wordt niets geschat.',
+    'Lectura del modelo para los dominios al principio de la lista. «—» cuando falta el dato: nada se estima.',
+    'Rilevazione del modello per i comprensori in testa alla lista. «—» quando il dato manca: nulla è stimato.',
+    'Modelwaarde vir die skigebiede aan die bokant van die lys. “—” wanneer die waarde ontbreek: niks word geskat nie.'
+  ],
   home_by_massif: ['Explorer par', 'Explore by', 'Erkunden nach', 'Verkennen per', 'Explorar por', 'Esplora per', 'Verken volgens'],
   home_by_massif_word: ['massif', 'range', 'Massiv', 'massief', 'macizo', 'massiccio', 'bergreeks'],
   home_massif_note: [

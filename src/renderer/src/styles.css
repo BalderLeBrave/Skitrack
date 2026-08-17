@@ -931,21 +931,23 @@ select {
 /**
  * Barre supérieure : voile blanc translucide, filet clair, trois groupes.
  *
- * La grille `1fr auto 1fr` est ce qui centre **optiquement** les onglets, quelle
- * que soit la largeur des deux groupes latéraux. Elle ne tient plus sous
- * ~1100 px : les onglets y débordent de leur colonne au lieu de passer à la
- * ligne. En dessous, la barre redevient un `flex` qui enroule ses groupes,
- * dimensionnés au contenu.
+ * Trois groupes en `flex`, les onglets au milieu et centrés dans l'espace
+ * restant. Une grille `1fr auto 1fr` centrerait les onglets sur l'axe exact de
+ * la fenêtre, mais elle impose aux deux colonnes latérales la même largeur : le
+ * groupe de droite — Suivi, Réglages, langue, voyageurs, thème — en demande le
+ * triple du logo et repartait à la ligne dès 1 440 px. Un centrage optique qui
+ * tient à toutes les largeurs vaut mieux qu'un centrage exact qui casse la
+ * rangée.
  *
  * `backdrop-filter` est **statique** : le flou ne s'anime jamais, il ne coûte
  * qu'une composition. Le voile s'appuie sur un jeton par thème, un blanc à 94 %
  * sur fond sombre étant un aplat clair et non un voile.
  */
 .nav {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px 14px;
+  gap: 4px 14px;
   padding: 0 20px;
   min-height: 64px;
   position: sticky;
@@ -960,25 +962,22 @@ select {
 
 @media (max-width: 1100px) {
   .nav {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     padding: 8px 14px;
   }
 }
 
-/** Groupes latéraux : le droit se colle à la fin de sa colonne. */
+/** Groupes latéraux : dimensionnés au contenu, jamais comprimés. */
 .nav__side {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
 .nav__side--right {
-  justify-self: end;
   justify-content: flex-end;
-  flex-wrap: wrap;
+  margin-left: auto;
 }
 
 /**
@@ -1019,7 +1018,9 @@ select {
 .nav__tabs {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -1321,23 +1322,27 @@ select {
 }
 
 /**
- * Héro pleine largeur.
+ * Héro pleine largeur, photo d'abord.
  *
  * La photo est le **fond** du héro et non une colonne de la grille : en
  * colonne, elle se retrouvait comprimée à côté du texte et n'avait plus rien
  * d'un paysage. Le voile en dégradé est ce qui rend le texte lisible par-dessus
- * n'importe quelle image, du ciel blanc au sous-bois sombre.
+ * n'importe quelle image, du ciel blanc au sous-bois sombre — il descend à 50 %
+ * en haut, s'éclaircit au milieu où le titre respire, et se redensifie en bas
+ * derrière la barre de recherche.
  *
- * Aucune photo n'est livrée avec le projet : `--hero-photo` vaut `none` et le
- * héro tient sur son seul fond encre. Pour en poser une, redéfinir la variable
- * sur `:root` avec `url(...)` — rien d'autre n'est à toucher.
+ * Tant qu'aucune photo n'est déposée dans `assets/img/`, le fond encre et la
+ * hachure tiennent le héro ; `components/photos.ts` la posera d'elle-même.
+ *
+ * Les couleurs de texte du héro sont écrites en clair et non par jeton : la
+ * surface est sombre dans les **deux** thèmes, et `--text` y serait illisible en
+ * clair.
  */
-:root {
-  --hero-photo: none;
-}
-
 .home__hero {
   position: relative;
+  min-height: min(68vh, 720px);
+  display: flex;
+  align-items: center;
   background: var(--ink);
   color: #ffffff;
   overflow: hidden;
@@ -1346,7 +1351,6 @@ select {
 .home__hero-photo {
   position: absolute;
   inset: 0;
-  background-image: var(--hero-photo);
   background-size: cover;
   background-position: center;
 }
@@ -1355,11 +1359,10 @@ select {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    100deg,
-    rgba(13, 27, 42, 0.95) 0%,
-    rgba(13, 27, 42, 0.86) 42%,
-    rgba(13, 27, 42, 0.55) 78%,
-    rgba(13, 27, 42, 0.35) 100%
+    180deg,
+    rgba(13, 32, 52, 0.5) 0%,
+    rgba(13, 32, 52, 0.25) 55%,
+    rgba(13, 32, 52, 0.35) 100%
   );
 }
 
@@ -1373,102 +1376,356 @@ select {
 
 .home__hero-inner {
   position: relative;
+  width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 76px 32px 84px;
+  padding: 72px 32px 76px;
 }
 
-/* Le texte tient dans la moitié gauche, là où le voile est le plus dense. */
+/* Contenu centré : le titre, la barre et les puces partagent le même axe. */
 .home__hero-text {
   min-width: 0;
-  max-width: 62ch;
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .home__badge {
   display: inline-block;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(13, 32, 52, 0.3);
   border-radius: 999px;
   padding: 5px 13px;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.home__title {
-  margin: 20px 0 0;
-  font-size: 52px;
-  line-height: 1.05;
-  font-weight: 800;
-  max-width: 20ch;
   color: #ffffff;
 }
 
+.home__title {
+  margin: 20px auto 0;
+  font-size: 52px;
+  line-height: 1.05;
+  font-weight: 800;
+  max-width: 22ch;
+  color: #ffffff;
+  text-shadow: 0 1px 24px rgba(13, 32, 52, 0.45);
+}
+
+/* Bleu clair, pas le jeton d'accent : sur un voile sombre, le #0B6FC2 du thème
+   clair tomberait sous le seuil AA. */
 .home__title-accent {
-  color: #5cc2f5;
+  color: #9bd2f5;
 }
 
 .home__lead {
-  margin: 16px 0 0;
+  margin: 16px auto 0;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.74);
-  max-width: 54ch;
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 62ch;
   text-wrap: pretty;
-}
-
-.home__search {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 26px;
-  max-width: 680px;
-}
-
-.home__input {
-  flex: 1 1 340px;
-  min-width: 0;
-  height: 50px;
-  background: #ffffff;
-  border: none;
-  border-radius: 10px;
-  padding: 0 16px;
-  font-size: 15px;
-  color: #151c26;
-}
-
-/* Chercher est l'action de l'écran : c'est elle qui porte l'orange. */
-.home__cta {
-  flex: 0 0 auto;
-  height: 50px;
-  padding: 0 24px;
-  border: none;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .home__shortcuts {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 16px;
+  justify-content: center;
+  margin-top: 18px;
 }
 
 .home__shortcut {
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(13, 32, 52, 0.32);
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 8px 15px;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
+  color: #ffffff;
   cursor: pointer;
 }
 
 .home__shortcut:hover {
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(13, 32, 52, 0.5);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* --- Barre de recherche en pilule ------------------------------------------
+   Voir components/SearchBar.tsx. Une seule pilule blanche, des segments séparés
+   par un filet, et la loupe en cercle plein : c'est le seul bouton bleu du
+   héro, donc la seule action que l'œil doit trouver. */
+
+.sb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 26px auto 0;
+  max-width: 940px;
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 8px 8px 8px 28px;
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.sb__seg {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 2px 14px;
+  border-left: 1px solid var(--border-soft);
+}
+
+/* Le premier segment n'a pas de séparateur à sa gauche : c'est le bord de la
+   pilule qui le borne. */
+.sb__seg:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.sb__seg--dest {
+  flex: 2 1 0;
+}
+
+.sb__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sb__input {
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 2px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sb__input::placeholder {
+  color: var(--dim);
+  font-weight: 500;
+}
+
+.sb__value {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 2px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb__stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+/* Traits SVG centrés dans un cercle de 24 px : le glyphe « − » de la police est
+   décalé dans sa gouttière et se voyait de travers. */
+.sb__round {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sb__round svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.sb__round:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sb__round:disabled {
+  color: var(--dim);
+  cursor: default;
+}
+
+.sb__count {
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 1.5ch;
+  text-align: center;
+}
+
+.sb__go {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+
+.sb__go svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.sb__go:hover {
+  filter: brightness(1.08);
+}
+
+/** Liste de suggestions et popovers : même carte blanche, même ombre. */
+.sb__list,
+.sb__pop {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: -8px;
+  min-width: 260px;
+  max-height: 320px;
+  overflow: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  box-shadow: var(--shadow-hover);
+  z-index: 5;
+}
+
+.sb__pop--wide {
+  width: 340px;
+  right: 0;
+  left: auto;
+  padding: 14px;
+}
+
+.sb__opt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: none;
+  border-radius: 9px;
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+
+.sb__opt--on,
+.sb__opt:hover {
+  background: var(--surface);
+}
+
+.sb__opt-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sb__opt-kind {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+/* --- Bandeau neige --------------------------------------------------------- */
+
+.snowband {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 26px 32px 0;
+}
+
+.snowband__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.snowband__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.snowband__sub {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.snowband__note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.snowband__rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.snowband__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.snowband__place {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snowband__pair {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--snow-ink);
+  white-space: nowrap;
+}
+
+.snowband__slash {
+  color: var(--dim);
 }
 
 .home__section {
@@ -1503,55 +1760,110 @@ select {
 
 .home__massifs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
 }
 
-/* Bord gauche teinté : le massif se reconnaît à la même couleur que sa
-   pastille sur les vignettes de résultats. */
-.home__massif {
-  text-align: left;
+/**
+ * Tuile de massif : une photo en 4:3, un voile bas, un liseré à la teinte.
+ *
+ * Le rapport est fixé par `aspect-ratio` et non par une hauteur : la grille
+ * s'étire en continu avec la fenêtre, et une hauteur figée aurait recadré la
+ * photo différemment à chaque palier. Le liseré bas de 4 px reprend la couleur
+ * du massif — la même que sa pastille sur les vignettes de résultats — et c'est
+ * elle qui garde l'appartenance lisible quand la photo mange le reste.
+ */
+.masstile {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  padding: 0;
   cursor: pointer;
   font-family: inherit;
+  text-align: left;
+  color: #ffffff;
   border: none;
-  border-left: 3px solid;
-  border-radius: 4px 12px 12px 4px;
-  padding: 16px 18px;
+  border-bottom: 4px solid;
+  border-radius: var(--radius-card);
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.masstile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Tuile sans photo : le texte revient à l'encre, un voile blanc n'y ferait
+   qu'un aplat sale. */
+.masstile--plain {
   color: var(--text);
 }
 
-.home__massif-name {
+.masstile__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(13, 32, 52, 0) 42%, rgba(13, 32, 52, 0.72) 100%);
+}
+
+.masstile--plain .masstile__shade {
+  display: none;
+}
+
+.masstile__body {
+  position: absolute;
+  inset: auto 0 0 0;
   display: block;
-  font-size: 16px;
+  padding: 14px 16px;
+}
+
+.masstile--plain .masstile__body {
+  inset: 0;
+  padding: 16px 18px;
+}
+
+.masstile__name {
+  display: block;
+  font-size: 17px;
   font-weight: 700;
 }
 
-.home__massif-ex {
+.masstile__ex {
   display: block;
   margin-top: 2px;
-  color: var(--muted);
   font-size: 12px;
+  opacity: 0.86;
 }
 
-.home__massif-count {
+.masstile--plain .masstile__ex {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.masstile__count {
   display: block;
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 12px;
   font-weight: 700;
 }
 
+/* Quatre cartes blanches détachées, plutôt qu'un bloc quadrillé : le fond de
+   l'écran est blanc lui aussi, seule l'ombre sépare encore. */
 .home__stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1px;
-  background: var(--border-soft);
-  border: 1px solid var(--border-soft);
-  border-radius: 14px;
-  overflow: hidden;
+  gap: 14px;
 }
 
 .home__stat {
   background: var(--panel);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
   padding: 18px 20px;
 }
 
@@ -1579,7 +1891,9 @@ select {
   color: var(--muted);
 }
 
-/* Fenêtre étroite : un titre de 52 px déborde d'une colonne fractionnaire. */
+/* Fenêtre étroite : un titre de 52 px déborde d'une colonne fractionnaire, et
+   la pilule de recherche ne tient plus ses quatre segments sur une ligne — elle
+   se déplie en carte, chaque segment sur sa propre rangée. */
 @media (max-width: 900px) {
   .home__hero-inner {
     padding: 34px 20px 40px;
@@ -1589,9 +1903,31 @@ select {
     font-size: 34px;
   }
   .home__section,
-  .home__section--last {
+  .home__section--last,
+  .snowband {
     padding-left: 20px;
     padding-right: 20px;
+  }
+  .sb {
+    flex-wrap: wrap;
+    border-radius: 20px;
+    padding: 14px;
+  }
+  .sb__seg {
+    flex: 1 1 100%;
+    border-left: none;
+    border-top: 1px solid var(--border-soft);
+    padding: 8px 0 4px;
+  }
+  .sb__seg:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+  .sb__go {
+    margin-left: auto;
+  }
+  .sb__pop--wide {
+    width: 100%;
   }
 }
 

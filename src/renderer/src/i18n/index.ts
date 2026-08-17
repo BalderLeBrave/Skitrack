@@ -408,6 +408,36 @@ const CATALOG = {
     'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
     'Langste rit onder 4 uur'
   ],
+  // --- Offres : partition par prix de nuitée -------------------------------
+  offers_per_night: [
+    'Plafond par nuit et par logement', 'Cap per night and per stay', 'Obergrenze pro Nacht und Unterkunft',
+    'Maximum per nacht en per verblijf', 'Tope por noche y alojamiento', 'Tetto per notte e per alloggio',
+    'Maksimum per nag en per verblyf'
+  ],
+  offers_within: ['Dans le budget', 'Within budget', 'Im Budget', 'Binnen budget', 'En el presupuesto', 'Nel budget', 'Binne begroting'],
+  offers_above: [
+    'Juste au-dessus', 'Just above', 'Knapp darüber', 'Net erboven', 'Justo por encima', 'Appena sopra', 'Net daarbo'
+  ],
+  offers_within_none: [
+    'Aucune offre sous ce plafond.', 'No offer under this cap.', 'Kein Angebot unter dieser Grenze.',
+    'Geen aanbod onder dit maximum.', 'Ninguna oferta por debajo de este tope.', 'Nessuna offerta sotto questo tetto.',
+    'Geen aanbod onder hierdie maksimum nie.'
+  ],
+  offers_above_none: [
+    'Rien au-dessus de ce plafond.', 'Nothing above this cap.', 'Nichts über dieser Grenze.',
+    'Niets boven dit maximum.', 'Nada por encima de este tope.', 'Nulla sopra questo tetto.',
+    'Niks bo hierdie maksimum nie.'
+  ],
+  offers_per_night_note: [
+    'Ce plafond ne relance aucune recherche : il partage le classement ci-dessous en deux colonnes.',
+    'This cap runs no new search: it splits the ranking below into two columns.',
+    'Diese Grenze startet keine neue Suche: sie teilt die Rangliste unten in zwei Spalten.',
+    'Dit maximum start geen nieuwe zoekopdracht: het splitst de ranglijst hieronder in twee kolommen.',
+    'Este tope no lanza ninguna búsqueda: divide la clasificación de abajo en dos columnas.',
+    'Questo tetto non avvia alcuna ricerca: divide la classifica sottostante in due colonne.',
+    'Hierdie maksimum begin geen nuwe soektog nie: dit verdeel die ranglys hieronder in twee kolomme.'
+  ],
+
   split_drag: [
     'Glisser pour redimensionner', 'Drag to resize', 'Zum Ändern der Breite ziehen',
     'Sleep om te verkleinen of vergroten', 'Arrastrar para redimensionar', 'Trascina per ridimensionare',

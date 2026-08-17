@@ -3466,17 +3466,188 @@ select {
   margin-bottom: 18px;
 }
 
-.offerrow {
-  padding: 18px 20px;
+.offers__note {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/**
+ * Deux colonnes, « dans le budget » et « juste au-dessus ».
+ *
+ * Le partage est visuel et non un filtre : ce qui dépasse le plafond par nuit
+ * reste sous les yeux, à un pas de distance. Sous 1 100 px les deux colonnes
+ * n'ont plus la largeur d'une ligne dense et s'empilent.
+ */
+.offers__cols {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 200px);
-  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .offers__cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+.offers__col {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.offers__coltitle {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.offers__empty {
+  margin: 0;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--surface);
+  border-radius: 14px;
+}
+
+/**
+ * Ligne dense d'une offre.
+ *
+ * Quatre blocs : la note du domaine, les noms et les postes, la jauge de neige,
+ * le prix. Le rayon descend à 14 px — c'est le repère des lignes denses, là où
+ * les cartes à photo restent à 16 — et les chiffres passent en chasse tabulaire
+ * pour que deux prix se comparent colonne à colonne.
+ */
+.offerrow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 16px;
   align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
   cursor: pointer;
+  transition:
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .offerrow:hover {
-  border-color: var(--link);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Relevé périmé : la ligne s'atténue sans disparaître — le prix reste vrai à sa
+   date, et c'est la date qui est douteuse. */
+.offerrow--dim {
+  opacity: 0.72;
+}
+
+.offerrow__score {
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.offerrow__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.offerrow__place {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.offerrow__name {
+  font-size: 15px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.offerrow__meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/** Jauge de neige : une colonne bleu pâle remplie jusqu'au sommet relevé. */
+.offerrow__snow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.offerrow__snowbar {
+  position: relative;
+  display: block;
+  width: 8px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.offerrow__snowfill {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: var(--snow-light);
+}
+
+.offerrow__snowtxt {
+  font-size: 12px;
+  color: var(--snow-ink);
+}
+
+.offerrow__price {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  text-align: right;
+}
+
+.offerrow__total {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.offerrow__unit {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .offerrow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .offerrow__score,
+  .offerrow__snow {
+    grid-column: 1 / -1;
+  }
 }
 
 .combogrid {

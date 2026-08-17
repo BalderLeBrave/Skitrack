@@ -1147,10 +1147,13 @@ select {
   white-space: nowrap;
 }
 
+/* Mêmes mesures que l'interrupteur générique : 42 × 24, pastille de 20 px. Deux
+   bascules de tailles voisines mais différentes se voient, et se lisent comme un
+   défaut d'alignement. */
 .themeswitch__track {
   position: relative;
   display: inline-block;
-  width: 44px;
+  width: 42px;
   height: 24px;
   border-radius: 999px;
   /* Piste éteinte sur fond blanc : le gris de bordure, pas un blanc translucide
@@ -1166,18 +1169,18 @@ select {
 
 .themeswitch__knob {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--panel);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: left 0.2s ease;
 }
 
 .themeswitch__track--on .themeswitch__knob {
-  left: 23px;
+  left: 20px;
 }
 
 /**
@@ -1340,7 +1343,9 @@ select {
  */
 .home__hero {
   position: relative;
-  min-height: min(68vh, 720px);
+  /* 68 vh, mais jamais moins de 540 px : sous cette hauteur, le titre, la barre
+     de recherche et les puces se serrent au point de ne plus respirer. */
+  min-height: max(540px, min(68vh, 720px));
   display: flex;
   align-items: center;
   background: var(--ink);
@@ -4243,8 +4248,76 @@ select {
   margin-top: 12px;
 }
 
+/**
+ * Gabarit deux colonnes des Réglages.
+ *
+ * Le sommaire est sticky et ne liste que les sections de l'onglet ouvert : les
+ * trois onglets restent la navigation principale — ils sont dans l'état — et le
+ * sommaire n'est qu'un accès rapide à l'intérieur de l'onglet. Sous 900 px il
+ * passe au-dessus du contenu et cesse de coller : sur une fenêtre étroite, une
+ * colonne de sommaire mange la moitié de la place du réglage.
+ */
+.settings__cols {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.settings__cols--bare {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.settings__toc {
+  position: sticky;
+  top: 12px;
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+
+.settings__tocitem {
+  border: none;
+  background: none;
+  border-radius: 9px;
+  padding: 7px 10px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.settings__tocitem:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.settings__main {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .settings__cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings__toc {
+    position: static;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+  }
+}
+
 .settings__section {
   padding: 20px 22px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  border: none;
 }
 
 .settings__section h2 {
@@ -4252,11 +4325,66 @@ select {
   font-size: 15px;
 }
 
+/**
+ * Une ligne, un réglage : libellé à gauche, contrôle à droite.
+ *
+ * Les sections qui portent une table (clés, sources, provenance) ou un jeu de
+ * curseurs (poids) gardent leur disposition propre : les plier en lignes
+ * libellé-contrôle aurait coupé des colonnes qui se lisent ensemble.
+ */
+.setrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.setrow:first-of-type {
+  border-top: none;
+}
+
+.setrow__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.setrow__ctl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
 .settings__help {
   color: var(--muted);
   font-size: 13px;
   margin: 4px 0 10px;
   max-width: 64ch;
+}
+
+/**
+ * Encart d'avertissement avant une action destructive.
+ *
+ * Orange doux et non rouge : effacer les itinéraires en changeant de référentiel
+ * est une conséquence à connaître, pas une erreur commise. Le rouge se réserve à
+ * ce qui a déjà mal tourné, sinon il cesse d'être lu. L'encart n'est pas
+ * repliable et se place **avant** les boutons : un avertissement qu'on découvre
+ * après avoir cliqué n'avertit de rien.
+ */
+.dangerbox {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger-ink);
+  border-left: 4px solid var(--warn);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 72ch;
 }
 
 /** Mentions légales : des paragraphes qui se lisent, pas des libellés. */

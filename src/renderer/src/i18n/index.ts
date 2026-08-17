@@ -408,6 +408,32 @@ const CATALOG = {
     'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
     'Langste rit onder 4 uur'
   ],
+  // --- Référentiel ---------------------------------------------------------
+  referential_state: [
+    'État du référentiel', 'Reference data state', 'Zustand der Referenzdaten', 'Staat van de referentiegegevens',
+    'Estado del referencial', 'Stato dei dati di riferimento', 'Toestand van die verwysingsdata'
+  ],
+  referential_actions: ['Actions', 'Actions', 'Aktionen', 'Acties', 'Acciones', 'Azioni', 'Aksies'],
+  referential_replace: [
+    'Remplacer par mon fichier', 'Replace with my file', 'Durch eigene Datei ersetzen',
+    'Vervangen door mijn bestand', 'Reemplazar por mi archivo', 'Sostituisci con il mio file',
+    'Vervang met my lêer'
+  ],
+  referential_export_edit: [
+    'Exporter pour le corriger', 'Export to edit it', 'Zum Korrigieren exportieren',
+    'Exporteren om te corrigeren', 'Exportar para corregirlo', 'Esporta per correggerlo',
+    'Voer uit om dit te korrigeer'
+  ],
+  referential_wipe_warning: [
+    'Importer un référentiel ou revenir à celui livré efface les itinéraires calculés, la décision en cours, les suivis de prix et le comparateur : ils étaient établis pour des domaines qui n’existent peut-être plus.',
+    'Importing reference data or reverting to the bundled one erases computed routes, the current decision, price tracking and the comparison: they were built for resorts that may no longer exist.',
+    'Referenzdaten zu importieren oder zu den gelieferten zurückzukehren löscht berechnete Routen, die laufende Entscheidung, die Preisverfolgung und den Vergleich: sie galten für Gebiete, die es möglicherweise nicht mehr gibt.',
+    'Referentiegegevens importeren of terugvallen op de meegeleverde wist berekende routes, de huidige beslissing, prijsopvolging en de vergelijking: ze golden voor skigebieden die misschien niet meer bestaan.',
+    'Importar un referencial o volver al entregado borra los itinerarios calculados, la decisión en curso, los seguimientos de precios y el comparador: se establecieron para dominios que quizá ya no existan.',
+    'Importare dati di riferimento o tornare a quelli forniti cancella gli itinerari calcolati, la decisione in corso, il monitoraggio dei prezzi e il confronto: valevano per comprensori che potrebbero non esistere più.',
+    'Om verwysingsdata in te voer of na die meegelewerde terug te keer, vee berekende roetes, die huidige besluit, prysopvolging en die vergelyking uit: hulle was opgestel vir skigebiede wat dalk nie meer bestaan nie.'
+  ],
+
   // --- Suivi : courbes réelles et simulées ---------------------------------
   track_real_curve: [
     'Historique relevé', 'Recorded history', 'Erfasster Verlauf', 'Opgenomen historiek',

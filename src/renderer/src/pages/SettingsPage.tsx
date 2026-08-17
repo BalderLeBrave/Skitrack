@@ -217,6 +217,51 @@ export function SettingsPage(): JSX.Element {
   const tab = (name: typeof state.settingsTab): string =>
     `chip${state.settingsTab === name ? ' chip--on' : ''}`
 
+  /**
+   * Sommaire de l'onglet ouvert.
+   *
+   * Il liste les sections **réellement rendues**, sous-onglet d'Administration
+   * compris : un sommaire qui annonce des sections absentes de l'écran est pire
+   * que pas de sommaire. Il ne remplace pas les onglets — ceux-ci restent de
+   * l'état (`settingsTab`, `admSub`) — il navigue à l'intérieur de l'onglet
+   * courant.
+   */
+  const toc: { id: string; label: string }[] =
+    state.settingsTab === 'app'
+      ? [
+          { id: 'set-appearance', label: t('appearance') },
+          { id: 'set-weights', label: 'Poids du classement' },
+          { id: 'set-shortcuts', label: 'Raccourcis clavier' },
+          { id: 'set-density', label: t('density') },
+          { id: 'set-language', label: t('settings_language') }
+        ]
+      : state.settingsTab === 'admin'
+        ? [
+            { id: 'set-adminsub', label: t('settings_admin') },
+            ...(state.admSub === 'engine'
+              ? [
+                  { id: 'set-engine', label: 'Moteur local' },
+                  { id: 'set-about', label: t('settings_about') }
+                ]
+              : []),
+            ...(state.admSub === 'sources'
+              ? [
+                  { id: 'set-provenance', label: t('settings_provenance') },
+                  { id: 'set-sources', label: t('settings_sources') },
+                  { id: 'set-lodgsources', label: t('settings_lodging_sources') }
+                ]
+              : []),
+            ...(state.admSub === 'routes' ? [{ id: 'set-routes', label: t('settings_routing') }] : []),
+            ...(state.admSub === 'keys' ? [{ id: 'set-keys', label: t('settings_keys') }] : [])
+          ]
+        : []
+
+  /** Défilement interne : pas de `href="#id"`, qui écrirait un fragment dans
+   *  l'URL du renderer sans qu'aucune route ne le lise. */
+  const goTo = (id: string): void => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const relevés = new Set(
     Object.keys(ref.forfaits).map((id) => ref.domaines.find((d) => String(d.id) === id)?.name).filter(Boolean)
   ).size
@@ -285,7 +330,7 @@ export function SettingsPage(): JSX.Element {
 
   return (
     <div className="page">
-      <div className="page__inner settings" style={{ maxWidth: 940 }}>
+      <div className="page__inner settings" style={{ maxWidth: 1120 }}>
         {/* Trois onglets seulement : ce qu'on règle en usage, ce qu'on règle à
             l'installation, et les mentions. « Sources » et « Moteur » n'étaient
             pas des réglages du même ordre que le thème ou la langue — ils
@@ -302,46 +347,71 @@ export function SettingsPage(): JSX.Element {
           </button>
         </nav>
 
+        {/* Gabarit deux colonnes par onglet : sommaire des sections réelles à
+            gauche, réglages en cartes à droite. */}
+        <div className={`settings__cols${toc.length === 0 ? ' settings__cols--bare' : ''}`}>
+          {toc.length > 0 && (
+            <nav className="settings__toc" aria-label={t('nav_settings')}>
+              {toc.map((item) => (
+                <button key={item.id} type="button" className="settings__tocitem" onClick={() => goTo(item.id)}>
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          )}
+
+          <div className="settings__main">
         {state.settingsTab === 'app' && (
           <>
-            <section className="panel panel--flat settings__section">
-              <h2>Apparence</h2>
+            <section id="set-appearance" className="panel panel--flat settings__section">
+              <h2>{t('appearance')}</h2>
               <p className="settings__help">{t('theme_follows')}</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <button
-                  type="button"
-                  className={`chip${state.theme !== 'dark' ? ' chip--on' : ''}`}
-                  onClick={() => patch({ theme: 'light' })}
-                >
-                  {t('theme_light')}
-                </button>
-                <button
-                  type="button"
-                  className={`chip${state.theme === 'dark' ? ' chip--on' : ''}`}
-                  onClick={() => patch({ theme: 'dark' })}
-                >
-                  {t('theme_dark')}
-                </button>
+              {/* Une ligne par réglage : le libellé à gauche, le contrôle à
+                  droite. Deux réglages d'apparence, deux lignes. */}
+              <div className="setrow">
+                <span className="setrow__label">{t('theme_toggle')}</span>
+                <span className="setrow__ctl">
+                  <button
+                    type="button"
+                    className={`chip${state.theme !== 'dark' ? ' chip--on' : ''}`}
+                    onClick={() => patch({ theme: 'light' })}
+                  >
+                    {t('theme_light')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`chip${state.theme === 'dark' ? ' chip--on' : ''}`}
+                    onClick={() => patch({ theme: 'dark' })}
+                  >
+                    {t('theme_dark')}
+                  </button>
+                </span>
               </div>
 
               {/* Le seul réglage purement décoratif de l'application : il ne
                   change rien à ce qui est affiché, seulement à ce qui bouge. */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={state.snowfall}
-                className="toggle"
-                style={{ marginTop: 18 }}
-                onClick={() => patch({ snowfall: !state.snowfall })}
-              >
-                <span className={`toggle__track${state.snowfall ? ' toggle__track--on' : ''}`}>
-                  <span className="toggle__knob" />
+              <div className="setrow">
+                <span className="setrow__label" id="set-snowfall-label">
+                  {t('settings_snowfall')}
                 </span>
-                {t('settings_snowfall')}
-              </button>
+                <span className="setrow__ctl">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={state.snowfall}
+                    aria-labelledby="set-snowfall-label"
+                    className="toggle"
+                    onClick={() => patch({ snowfall: !state.snowfall })}
+                  >
+                    <span className={`toggle__track${state.snowfall ? ' toggle__track--on' : ''}`}>
+                      <span className="toggle__knob" />
+                    </span>
+                  </button>
+                </span>
+              </div>
             </section>
 
-            <section className="panel panel--flat settings__section">
+            <section id="set-weights" className="panel panel--flat settings__section">
               <h2>Poids du classement</h2>
               <p className="settings__help">
                 Ajustez l’importance de chaque critère. Les poids sont renormalisés : mettre un critère à 0 l’exclut du
@@ -373,7 +443,7 @@ export function SettingsPage(): JSX.Element {
               </button>
             </section>
 
-            <section className="panel panel--flat settings__section">
+            <section id="set-shortcuts" className="panel panel--flat settings__section">
               <h2>Raccourcis clavier</h2>
               <dl className="shortcuts">
                 {SHORTCUTS.map(([label, key]) => (
@@ -385,29 +455,37 @@ export function SettingsPage(): JSX.Element {
               </dl>
             </section>
 
-            <section className="panel panel--flat settings__section">
+            {/* Densité et Langue étaient deux titres dans une seule carte : le
+                sommaire ne pouvait en désigner qu'un. Deux réglages, deux
+                cartes, deux entrées. */}
+            <section id="set-density" className="panel panel--flat settings__section">
               <h2>{t('density')}</h2>
               <p className="settings__help">
                 La densité compacte réduit les marges des cartes de domaines : utile sur une fenêtre 1 280 × 720 ou pour
                 comparer beaucoup de résultats d’un coup d’œil.
               </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
-                <button
-                  type="button"
-                  className={`chip${state.density === 'comfortable' ? ' chip--on' : ''}`}
-                  onClick={() => patch({ density: 'comfortable' })}
-                >
-                  {t('density_comfortable')}
-                </button>
-                <button
-                  type="button"
-                  className={`chip${state.density === 'compact' ? ' chip--on' : ''}`}
-                  onClick={() => patch({ density: 'compact' })}
-                >
-                  {t('density_compact')}
-                </button>
+              <div className="setrow">
+                <span className="setrow__label">{t('density')}</span>
+                <span className="setrow__ctl">
+                  <button
+                    type="button"
+                    className={`chip${state.density === 'comfortable' ? ' chip--on' : ''}`}
+                    onClick={() => patch({ density: 'comfortable' })}
+                  >
+                    {t('density_comfortable')}
+                  </button>
+                  <button
+                    type="button"
+                    className={`chip${state.density === 'compact' ? ' chip--on' : ''}`}
+                    onClick={() => patch({ density: 'compact' })}
+                  >
+                    {t('density_compact')}
+                  </button>
+                </span>
               </div>
+            </section>
 
+            <section id="set-language" className="panel panel--flat settings__section">
               <h2>{t('settings_language')}</h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {LANGUAGES.map((code) => (
@@ -431,7 +509,7 @@ export function SettingsPage(): JSX.Element {
 
         {state.settingsTab === 'admin' && (
           <>
-            <section className="panel panel--flat settings__section">
+            <section id="set-adminsub" className="panel panel--flat settings__section">
               <h2>{t('settings_admin')}</h2>
               <p className="settings__help">{t('settings_admin_intro')}</p>
               <nav className="settings__tabs settings__tabs--sub">
@@ -450,7 +528,7 @@ export function SettingsPage(): JSX.Element {
             </section>
 
             {state.admSub === 'routes' && (
-              <section className="panel panel--flat settings__section">
+              <section id="set-routes" className="panel panel--flat settings__section">
                 <h2>{t('settings_routing')}</h2>
                 <select
                   className="field"
@@ -475,7 +553,7 @@ export function SettingsPage(): JSX.Element {
             )}
 
             {state.admSub === 'keys' && (
-            <section className="panel panel--flat settings__section">
+            <section id="set-keys" className="panel panel--flat settings__section">
               <h2>{t('settings_keys')}</h2>
               <p className="settings__help">{t('settings_keys_help')}</p>
               {appInfo && !appInfo.encryptionAvailable && (
@@ -541,7 +619,7 @@ export function SettingsPage(): JSX.Element {
 
             {state.admSub === 'sources' && (
           <>
-            <section className="panel panel--flat settings__section">
+            <section id="set-provenance" className="panel panel--flat settings__section">
               <h2>{t('settings_provenance')}</h2>
               {domainWarning && <p className="notice notice--warn">{domainWarning}</p>}
               <p className="settings__help">
@@ -679,7 +757,7 @@ export function SettingsPage(): JSX.Element {
               </p>
             </section>
 
-            <section className="panel panel--flat settings__section">
+            <section id="set-sources" className="panel panel--flat settings__section">
               <h2>{t('settings_sources')}</h2>
               <table className="table">
                 <tbody>
@@ -731,7 +809,7 @@ export function SettingsPage(): JSX.Element {
                 des sources du sidecar juste au-dessus, qui couvrent itinéraires,
                 altimétrie et météo. Leur diagnostic dit ce qui manque, clé
                 comprise, et où l'obtenir. */}
-            <section className="panel panel--flat settings__section">
+            <section id="set-lodgsources" className="panel panel--flat settings__section">
               <h2>{t('settings_lodging_sources')}</h2>
               {lodgingHealth === null ? (
                 <p className="settings__help">{t('settings_lodging_sources_none')}</p>
@@ -762,7 +840,7 @@ export function SettingsPage(): JSX.Element {
 
             {state.admSub === 'engine' && (
           <>
-            <section className="panel panel--flat settings__section">
+            <section id="set-engine" className="panel panel--flat settings__section">
               <h2>Moteur local</h2>
               <p className="settings__help">
                 Le moteur tourne sur votre machine : il héberge la base des domaines importée depuis OpenSkiMap et
@@ -853,7 +931,7 @@ export function SettingsPage(): JSX.Element {
               </dl>
             </section>
 
-            <section className="panel panel--flat settings__section">
+            <section id="set-about" className="panel panel--flat settings__section">
               <h2>{t('settings_about')}</h2>
               <dl className="enginedl">
                 <div>
@@ -874,6 +952,8 @@ export function SettingsPage(): JSX.Element {
         )}
 
         {state.settingsTab === 'legal' && <LegalSection />}
+          </div>
+        </div>
       </div>
     </div>
   )

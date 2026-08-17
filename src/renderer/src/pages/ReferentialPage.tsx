@@ -79,46 +79,81 @@ export function ReferentialPage(): JSX.Element {
   const source = ref.sources?.domaines
 
   return (
-    <div className="page" style={{ display: 'grid', placeItems: 'center', padding: 32 }}>
-      <div className="boot__panel" style={{ maxWidth: 620, gap: 14 }}>
-        <h2 style={{ margin: 0 }}>{t('referential_title')}</h2>
-        <p style={{ margin: 0 }}>
+    <div className="page">
+      {/* Même gabarit que les Réglages : un aperçu, des actions en cartes, et
+          l'avertissement d'effacement juste au-dessus des deux actions qui
+          effacent. */}
+      <div className="page__inner settings" style={{ maxWidth: 760 }}>
+        <header className="page-head" style={{ marginBottom: 4 }}>
+          <h2>{t('referential_title')}</h2>
+        </header>
+        <p className="lede">
           Le référentiel est un fichier JSON qui porte les domaines, leurs altitudes et les tarifs de forfaits. Vous
           pouvez le remplacer par le vôtre, l’exporter pour le corriger à la main, ou revenir à celui livré.
         </p>
 
-        <div className="refbar">
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>
+        <section className="panel panel--flat settings__section">
+          <h2>{t('referential_state')}</h2>
+          <div className="setrow">
+            <span className="setrow__label">
               {ref.domaines.length} domaine(s), {Object.keys(ref.forfaits).length} grille(s) de forfaits
-            </p>
-            <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12 }}>
-              {refOrigin || '—'}
-              {source ? ` · ${source.nom}, relevé le ${fmtDate(source.maj)}` : ''}
-            </p>
+              <span className="settings__help" style={{ display: 'block', margin: '2px 0 0' }}>
+                {refOrigin || '—'}
+                {source ? ` · ${source.nom}, relevé le ${fmtDate(source.maj)}` : ''}
+              </span>
+            </span>
           </div>
-          <label className="btn btn--primary" style={{ flex: '0 0 auto' }}>
-            Importer un fichier
-            <input type="file" accept="application/json,.json" onChange={onFile} style={{ display: 'none' }} />
-          </label>
-          <button type="button" className="btn" onClick={() => exportReferential(ref)}>
-            Exporter
-          </button>
-          <button type="button" className="linkbtn" onClick={reset}>
-            {t('referential_revert')}
-          </button>
-        </div>
+        </section>
+
+        {/* L'avertissement précède les actions destructives et n'est pas
+            repliable : importer ou revenir au référentiel livré efface les
+            itinéraires calculés, la décision en cours et les suivis. Un encart
+            orange doux, pas rouge — c'est une conséquence à connaître, pas une
+            erreur. */}
+        <p className="dangerbox">{t('referential_wipe_warning')}</p>
+
+        <section className="panel panel--flat settings__section">
+          <h2>{t('referential_actions')}</h2>
+
+          <div className="setrow">
+            <span className="setrow__label">{t('referential_replace')}</span>
+            <span className="setrow__ctl">
+              <label className="btn btn--primary">
+                Importer un fichier
+                <input type="file" accept="application/json,.json" onChange={onFile} style={{ display: 'none' }} />
+              </label>
+            </span>
+          </div>
+
+          <div className="setrow">
+            <span className="setrow__label">{t('referential_export_edit')}</span>
+            <span className="setrow__ctl">
+              <button type="button" className="btn" onClick={() => exportReferential(ref)}>
+                Exporter
+              </button>
+            </span>
+          </div>
+
+          <div className="setrow">
+            <span className="setrow__label">{t('referential_revert')}</span>
+            <span className="setrow__ctl">
+              <button type="button" className="btn" onClick={reset}>
+                {t('referential_revert')}
+              </button>
+            </span>
+          </div>
+        </section>
 
         {refError && <p className="notice notice--warn">{refError}</p>}
 
-        <details style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px' }}>
-          <summary style={{ fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Format attendu</summary>
-          <p className="u-muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
+        <section className="panel panel--flat settings__section">
+          <h2>Format attendu</h2>
+          <p className="settings__help" style={{ margin: 0 }}>
             {t('ref_format_intro')} <code>domaines</code>
             {t('ref_format_domains')} <code>forfaits</code>
             {t('ref_format_passes')} <code>logo</code> {t('ref_format_logo')}
           </p>
-        </details>
+        </section>
 
         <p className="u-muted" style={{ fontSize: 12, margin: 0 }}>
           {t('osm_odbl')}

@@ -32,6 +32,7 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
       : null
 
   const selected = d.id === state.selectedId
+  const hovered = d.id === state.hoveredId
   const dense = state.density === 'compact'
   const score = derived.scoreOf(d)
   const scoreVal = Math.round(score.total)
@@ -117,8 +118,15 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
 
   return (
     <article
-      className={`domcard${selected ? ' domcard--on' : ''}${dense ? ' domcard--dense' : ''}`}
+      className={`domcard${selected ? ' domcard--on' : ''}${dense ? ' domcard--dense' : ''}${
+        hovered ? ' domcard--hover' : ''
+      }`}
       onClick={() => patch({ selectedId: d.id })}
+      // Survol croisé avec la carte : la vignette allume son épingle, et
+      // l'épingle allume sa vignette. Purement visuel — `hoveredId` n'entre
+      // dans aucun filtre.
+      onMouseEnter={() => patch({ hoveredId: d.id })}
+      onMouseLeave={() => patch({ hoveredId: state.hoveredId === d.id ? null : state.hoveredId })}
       tabIndex={0}
       role="button"
       aria-pressed={selected}

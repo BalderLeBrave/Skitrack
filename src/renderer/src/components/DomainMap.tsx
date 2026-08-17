@@ -5,6 +5,7 @@ import { api } from '@/api/client'
 import type { Domain } from '@/data/referentiel'
 import { hasCoords } from '@/data/referentiel'
 import { ensureSidecarOrigin } from '@/domain/origins'
+import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
@@ -241,7 +242,8 @@ const ISO_RANGES = [120, 240, 360]
 export function DomainMap(): JSX.Element {
   const { state, patch, domains } = useApp()
   const { t } = useI18n()
-  const { matchesFilters, hh, filtered } = useDerived()
+  const { eur } = useFormat()
+  const { matchesFilters, hh, filtered, forfaitOf } = useDerived()
 
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
@@ -407,9 +409,34 @@ export function DomainMap(): JSX.Element {
             ['interpolate', ['linear'], ['coalesce', ['get', 'altitude_min_m'], 0], 600, '#8d6a4b', 1200, '#a35a06', 1600, '#0f62c9', 2000, '#e8f1fb']
           ],
           'circle-opacity': ['case', ['==', ['get', 'match'], false], 0.55, 1],
-          'circle-radius': ['case', ['==', ['get', 'selected'], true], 12, ['==', ['get', 'match'], false], 5.5, 9],
-          'circle-stroke-width': ['case', ['==', ['get', 'selected'], true], 3.5, 2.5],
-          'circle-stroke-color': ['case', ['==', ['get', 'selected'], true], ACCENT, '#ffffff']
+          // Le survol grossit l'épingle autant que la sélection : c'est le même
+          // geste de désignation, l'un depuis la liste, l'autre depuis la carte.
+          'circle-radius': [
+            'case',
+            ['==', ['get', 'selected'], true],
+            12,
+            ['==', ['get', 'hovered'], true],
+            12,
+            ['==', ['get', 'match'], false],
+            5.5,
+            9
+          ],
+          'circle-stroke-width': [
+            'case',
+            ['==', ['get', 'selected'], true],
+            3.5,
+            ['==', ['get', 'hovered'], true],
+            3.5,
+            2.5
+          ],
+          'circle-stroke-color': [
+            'case',
+            ['==', ['get', 'selected'], true],
+            ACCENT,
+            ['==', ['get', 'hovered'], true],
+            ACCENT,
+            '#ffffff'
+          ]
         }
       })
       m.addLayer({
@@ -418,7 +445,7 @@ export function DomainMap(): JSX.Element {
         source: 'domains',
         filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'match'], true]],
         layout: {
-          'text-field': ['get', 'name'],
+          'text-field': ['get', 'label'],
           'text-font': ['Open Sans Semibold'],
           'text-size': 11,
           'text-offset': [0, 1.2],
@@ -453,6 +480,15 @@ export function DomainMap(): JSX.Element {
           m.getCanvas().style.cursor = ''
         })
       }
+
+      // Survol croisé, sens carte → liste. `mousemove` et non `mouseenter` :
+      // deux épingles voisines s'échangent le survol sans quitter la couche, et
+      // `mouseenter` ne se déclencherait qu'une fois pour les deux.
+      m.on('mousemove', 'points', (e) => {
+        const id = e.features?.[0]?.properties?.id
+        patch({ hoveredId: id == null ? null : Number(id) })
+      })
+      m.on('mouseleave', 'points', () => patch({ hoveredId: null }))
 
       setLoaded(true)
 
@@ -541,23 +577,32 @@ export function DomainMap(): JSX.Element {
     if (!loaded || !map.current) return
     // Les domaines sans position restent dans la liste de résultats mais pas
     // sur la carte : un point à (0, 0) tomberait au large du golfe de Guinée.
-    const features: GeoJSON.Feature[] = domains.filter(hasCoords).map((d) => ({
-      type: 'Feature',
-      id: d.id,
-      geometry: { type: 'Point', coordinates: [d.lon, d.lat] },
-      properties: {
+    const features: GeoJSON.Feature[] = domains.filter(hasCoords).map((d) => {
+      // Le forfait 6 jours est porté par l'épingle : c'est le chiffre qui
+      // départage deux domaines voisins, et le lire sans cliquer est tout
+      // l'intérêt d'une carte à côté de la liste. Absent, l'étiquette se
+      // limite au nom — jamais un prix inventé.
+      const pass = forfaitOf(d).j6
+      return {
+        type: 'Feature',
         id: d.id,
-        name: d.name,
-        altitude_min_m: d.min,
-        match: matchesFilters(d),
-        selected: d.id === state.selectedId
+        geometry: { type: 'Point', coordinates: [d.lon, d.lat] },
+        properties: {
+          id: d.id,
+          name: d.name,
+          altitude_min_m: d.min,
+          match: matchesFilters(d),
+          selected: d.id === state.selectedId,
+          hovered: d.id === state.hoveredId,
+          label: pass != null ? `${d.name}\n${eur(pass)}` : d.name
+        }
       }
-    }))
+    })
     pushData(map.current.getSource('domains') as GeoJSONSource, 'domains', {
       type: 'FeatureCollection',
       features
     })
-  }, [domains, matchesFilters, state.selectedId, loaded])
+  }, [domains, matchesFilters, state.selectedId, state.hoveredId, forfaitOf, eur, loaded])
 
   // --- Isochrones ----------------------------------------------------------
   useEffect(() => {

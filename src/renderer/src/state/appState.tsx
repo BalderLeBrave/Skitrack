@@ -155,6 +155,20 @@ export interface AppState {
   searchMapOpen: boolean
   searchFiltersW: number
   searchMapW: number
+  /**
+   * Part de largeur de la carte sur l'écran Recherche, en pourcentage.
+   *
+   * L'écran est passé d'une grille à trois colonnes redimensionnables en pixels
+   * à un partage liste / carte de 55 – 45. Un pourcentage tient la proportion
+   * quand la fenêtre change de taille, là où `searchMapW` en pixels faisait une
+   * carte de plus en plus étroite à mesure qu'on agrandissait la fenêtre.
+   */
+  searchSplit: number
+  /**
+   * Domaine survolé, liste ou carte. Purement visuel : il n'entre dans aucun
+   * filtre, aucun tri, et ne survit pas au rechargement.
+   */
+  hoveredId: number | null
   threeD: boolean
   isoBusy: boolean
   isoShown: boolean
@@ -431,6 +445,8 @@ export const INITIAL_STATE: AppState = {
   searchMapOpen: true,
   searchFiltersW: 300,
   searchMapW: 460,
+  searchSplit: 45,
+  hoveredId: null,
   threeD: false,
   isoBusy: false,
   isoShown: false,
@@ -565,7 +581,7 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
 const PERSISTED_KEYS = [
   'theme', 'lang', 'density', 'snowfall', 'children', 'optRental', 'optLessons',
   'alertMode', 'alertPct', 'alertEur', 'quietHours', 'digest', 'votes',
-  'offresBudget', 'searchFiltersW', 'searchMapW', 'searchFiltersOpen', 'searchMapOpen',
+  'offresBudget', 'searchFiltersW', 'searchMapW', 'searchSplit', 'searchFiltersOpen', 'searchMapOpen',
   'weights', 'people', 'places', 'esfRates', 'decision', 'mergeDupes', 'cmpRefId',
   'baseMin', 'baseMax', 'summitMin', 'summitMax', 'kmMin', 'kmMax',
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',

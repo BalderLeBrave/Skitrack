@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { DomainCard } from '@/components/DomainCard'
 import { DomainMap } from '@/components/DomainMap'
 import { FilterPanel } from '@/components/FilterPanel'
+import { useActiveFilters } from '@/components/activeFilters'
 import { SearchIcon } from '@/components/Icons'
 import { api, isClientReady } from '@/api/client'
 import type { GeocodeResult } from '@/api/types'
@@ -15,9 +16,13 @@ import { useWeather } from '@/state/weather'
  *  rendu des vignettes coûte plus qu'il n'apporte. */
 const MAX_RESULTS = 40
 
-/** Largeur minimale de la colonne centrale : en dessous, une vignette de
+/** Largeur minimale de la colonne de liste : en dessous, une vignette de
  *  domaine ne tient plus ses deux colonnes de statistiques. */
 const CENTER_MIN = 340
+
+/** Bornes du partage liste / carte, en pourcentage de largeur pour la carte. */
+const SPLIT_MIN = 25
+const SPLIT_MAX = 65
 
 /** Options du tri, dans l'ordre de la maquette v3. */
 const SORT_OPTIONS: [SortKey, Parameters<ReturnType<typeof useI18n>['t']>[0]][] = [
@@ -191,6 +196,7 @@ export function DomainSearchPage(): JSX.Element {
   const { state, patch, domains, viewportW } = useApp()
   const { filtered, domOutOfView } = useDerived()
   const { t } = useI18n()
+  const { active, resetAll } = useActiveFilters()
 
   const list = useMemo(() => filtered.slice(0, MAX_RESULTS), [filtered])
 
@@ -201,69 +207,46 @@ export function DomainSearchPage(): JSX.Element {
   }, [list])
 
   /**
-   * Redimensionnement des colonnes latérales.
+   * Déplacement de la séparation liste / carte.
    *
-   * La contrainte est la colonne centrale : filtres et carte ne peuvent pas
-   * l'écraser sous `CENTER_MIN`, et l'une ne peut pas manger la place de
-   * l'autre. Le calcul est fait au pointeur plutôt qu'en CSS parce que les deux
-   * poignées partagent le même budget de largeur.
+   * Le partage est exprimé en pourcentage : la proportion 55 – 45 doit tenir
+   * quand la fenêtre change de taille, là où une largeur en pixels donnait une
+   * carte de plus en plus étroite à mesure qu'on agrandissait. La liste garde
+   * malgré tout `CENTER_MIN` : sous cette largeur, une vignette perd sa
+   * deuxième colonne de chiffres.
    */
   const startDrag = useCallback(
-    (key: 'searchFiltersW' | 'searchMapW', dir: 1 | -1, min: number) =>
-      (e: React.MouseEvent): void => {
-        e.preventDefault()
-        const startX = e.clientX
-        const startW = state[key]
-        const other = key === 'searchFiltersW' ? 'searchMapW' : 'searchFiltersW'
-        const otherOpen = key === 'searchFiltersW' ? state.searchMapOpen : state.searchFiltersOpen
-        const max = (): number => Math.max(min, window.innerWidth - 320 - 12 - (otherOpen ? state[other] : 0))
-
-        const move = (ev: MouseEvent): void => {
-          patch({ [key]: Math.min(max(), Math.max(min, startW + dir * (ev.clientX - startX))) })
-        }
-        const up = (): void => {
-          window.removeEventListener('mousemove', move)
-          window.removeEventListener('mouseup', up)
-          document.body.style.cursor = ''
-        }
-        window.addEventListener('mousemove', move)
-        window.addEventListener('mouseup', up)
-        document.body.style.cursor = 'col-resize'
-      },
-    [state, patch]
+    (e: React.MouseEvent): void => {
+      e.preventDefault()
+      const move = (ev: MouseEvent): void => {
+        const win = window.innerWidth
+        const pct = ((win - ev.clientX) / win) * 100
+        const ceiling = Math.min(SPLIT_MAX, ((win - CENTER_MIN) / win) * 100)
+        patch({ searchSplit: Math.round(Math.min(ceiling, Math.max(SPLIT_MIN, pct))) })
+      }
+      const up = (): void => {
+        window.removeEventListener('mousemove', move)
+        window.removeEventListener('mouseup', up)
+        document.body.style.cursor = ''
+      }
+      window.addEventListener('mousemove', move)
+      window.addEventListener('mouseup', up)
+      document.body.style.cursor = 'col-resize'
+    },
+    [patch]
   )
 
-  // Les largeurs demandées sont rabotées au prorata quand la fenêtre rétrécit,
-  // pour que la colonne centrale garde sa largeur minimale.
+  // Carte fermée : la liste prend toute la largeur. Ouverte : deux colonnes, la
+  // liste gardant sa largeur minimale sur une fenêtre étroite.
   const gridTemplate = useMemo(() => {
-    const win = viewportW
-    let fw = state.searchFiltersOpen ? state.searchFiltersW : 0
-    let mw = state.searchMapOpen ? state.searchMapW : 0
-    const avail = win - CENTER_MIN - (fw ? 6 : 0) - (mw ? 6 : 0)
-    if (fw + mw > avail) {
-      const k = Math.max(avail, 0) / (fw + mw || 1)
-      mw = Math.max(mw > 0 ? 240 : 0, Math.floor(mw * k))
-      fw = Math.max(fw > 0 ? 220 : 0, Math.min(Math.floor(fw * k), Math.max(avail - mw, 0)))
-      if (fw + mw > avail && mw > 0) mw = Math.max(avail - fw, 0)
-    }
-    return [fw ? `${fw}px 6px` : null, `minmax(${CENTER_MIN}px,1fr)`, mw ? `6px ${mw}px` : null]
-      .filter(Boolean)
-      .join(' ')
-  }, [state.searchFiltersOpen, state.searchMapOpen, state.searchFiltersW, state.searchMapW, viewportW])
+    if (!state.searchMapOpen) return '1fr'
+    const pct = Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, state.searchSplit))
+    const mapW = Math.round((viewportW * pct) / 100)
+    return `minmax(${CENTER_MIN}px, 1fr) 6px ${mapW}px`
+  }, [state.searchMapOpen, state.searchSplit, viewportW])
 
   return (
     <div className="search" style={{ gridTemplateColumns: gridTemplate }}>
-      {state.searchFiltersOpen && (
-        <>
-          <FilterPanel />
-          <div
-            className="gutter"
-            onMouseDown={startDrag('searchFiltersW', 1, 220)}
-            title="Glisser pour redimensionner"
-          />
-        </>
-      )}
-
       <section id="st-results" className="results">
         <SearchBar />
         <WeatherAge />
@@ -326,6 +309,28 @@ export function DomainSearchPage(): JSX.Element {
           )}
         </header>
 
+        {/* Rangée de puces : ce qui restreint la liste, retirable une par une,
+            visible même panneau fermé. Le panneau, lui, s'ouvre en survol de la
+            liste plutôt qu'en colonne — il sert au réglage, pas à la lecture. */}
+        {active.length > 0 && (
+          <div className="filterchips">
+            {active.map((f) => (
+              <button key={f.key} type="button" className="chip" onClick={f.clear} title={t('geo_remove')}>
+                {f.label} <span className="u-muted">✕</span>
+              </button>
+            ))}
+            <button type="button" className="linkbtn linkbtn--sm u-nowrap" onClick={resetAll}>
+              {t('filter_clear_all')}
+            </button>
+          </div>
+        )}
+
+        {state.searchFiltersOpen && (
+          <div className="filterpop">
+            <FilterPanel />
+          </div>
+        )}
+
         {filtered.length === 0 && (
           <div className="results__empty">
             <p>{t('results_empty')}</p>
@@ -342,7 +347,7 @@ export function DomainSearchPage(): JSX.Element {
 
       {state.searchMapOpen && (
         <>
-          <div className="gutter" onMouseDown={startDrag('searchMapW', -1, 280)} title="Glisser pour redimensionner" />
+          <div className="gutter" onMouseDown={startDrag} title={t('split_drag')} />
           <div className="map-shell">
             <DomainMap />
           </div>

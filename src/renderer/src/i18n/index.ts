@@ -408,6 +408,12 @@ const CATALOG = {
     'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
     'Langste rit onder 4 uur'
   ],
+  split_drag: [
+    'Glisser pour redimensionner', 'Drag to resize', 'Zum Ändern der Breite ziehen',
+    'Sleep om te verkleinen of vergroten', 'Arrastrar para redimensionar', 'Trascina per ridimensionare',
+    'Sleep om te vergroot of verklein'
+  ],
+
   // --- Barre de recherche en pilule ---------------------------------------
   sb_destination: ['Destination', 'Destination', 'Reiseziel', 'Bestemming', 'Destino', 'Destinazione', 'Bestemming'],
   sb_dates: ['Semaine', 'Week', 'Woche', 'Week', 'Semana', 'Settimana', 'Week'],

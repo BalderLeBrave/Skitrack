@@ -2095,10 +2095,58 @@ select {
   border: 1px solid var(--border-soft);
 }
 
+/**
+ * Colonne de liste : elle défile pour elle seule, la carte restant fixe à côté.
+ *
+ * `position: relative` sert d'ancre au panneau de filtres, qui n'est plus une
+ * colonne mais un survol posé sous la rangée de puces.
+ */
 .results {
+  position: relative;
   overflow: auto;
   padding: 24px 28px;
   border-right: 1px solid var(--border-soft);
+}
+
+/** Rangée de puces des filtres posés, au-dessus de la liste. */
+.filterchips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+}
+
+/**
+ * Panneau de filtres en survol.
+ *
+ * Il garde sa largeur propre au lieu de suivre la colonne : les curseurs de
+ * plage deviennent imprécis en dessous de 300 px, et un panneau qui s'étire sur
+ * toute la liste ferait perdre la liste de vue. `max-height` le borne à la
+ * hauteur visible, faute de quoi la dernière section passe sous le pli sans
+ * moyen d'y accéder.
+ */
+.filterpop {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  width: min(360px, 100%);
+  max-height: calc(100vh - 190px);
+  overflow: auto;
+  margin: 0 0 16px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Dans le survol, le panneau n'a plus de bord droit ni de fond propre : c'est
+   la carte qui les porte. */
+.filterpop .filters {
+  border-right: none;
+  padding: 18px 20px;
+  overflow: visible;
+  background: none;
 }
 
 /** Barre de recherche : le champ prend la place, le bouton « autour d'une
@@ -2210,8 +2258,8 @@ select {
   display: flex;
   gap: 18px;
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-card);
   padding: 20px;
   cursor: pointer;
   box-shadow: var(--shadow);
@@ -2220,13 +2268,17 @@ select {
     border-color 0.18s ease;
 }
 
-.domcard:hover {
-  border-color: var(--brand);
+/* Le survol vient de deux endroits — la souris sur la vignette, ou la souris sur
+   l'épingle de la carte — et doit se voir pareil dans les deux cas. */
+.domcard:hover,
+.domcard--hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-hover);
 }
 
 .domcard--on {
   border-color: var(--text);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-hover);
 }
 
 .domcard--dense {
@@ -2523,11 +2575,16 @@ select {
 
 /* --- Carte ---------------------------------------------------------------- */
 
+/* La carte est collée au bord droit, pleine hauteur : elle ne défile pas avec la
+   liste, et ses coins restent vifs — un arrondi sur une surface qui touche deux
+   bords de la fenêtre ne se lit pas comme une carte posée, seulement comme un
+   défaut. */
 .map-shell,
 .map {
   position: relative;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .map__canvas {

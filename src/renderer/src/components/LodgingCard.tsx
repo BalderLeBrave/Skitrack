@@ -21,9 +21,14 @@ import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { dealOf, freshnessOf, srcOf, trackKey } from '@/data/lodgings'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
+import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import { useWeather } from '@/state/weather'
+
+/** Hauteur de neige qui remplit la jauge à ras, en cm. */
+const SNOW_FULL_CM = 250
 
 interface Props {
   lodging: Lodging
@@ -36,6 +41,7 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
   const { eur, fmt, fmtDay } = useFormat()
   const { lang } = useI18n()
   const { state, patch } = useApp()
+  const { weatherOf } = useWeather()
 
   // Une offre du catalogue simulé n'a pas de page derrière elle : le bouton
   // mène alors à la recherche pré-remplie sur la source, et le dit.
@@ -137,6 +143,21 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
 
   const picked = lg.id === state.lodgPickId
 
+  /**
+   * Bande neige de la vignette.
+   *
+   * Le modèle répond pour le domaine, pas pour le logement : la bande dit donc
+   * la neige au bas et au sommet des pistes, plus le nombre de remontées du
+   * référentiel. Tant que le relevé manque, on montre l'amplitude skiable — une
+   * donnée qui, elle, est toujours vraie — et jamais une hauteur inventée. Le
+   * référentiel porte bien un champ `neige`, mais c'est un jeu de démonstration
+   * qui annonce un mètre de poudreuse en août : `snowDepths()` ne lit que le
+   * modèle, et c'est voulu.
+   */
+  const snow = snowDepths(weatherOf(domain.id))
+  const snowKnown = snow.bas != null || snow.haut != null
+  const snowFill = Math.min(100, ((snow.haut ?? snow.bas ?? 0) / SNOW_FULL_CM) * 100)
+
   const card = (
     <ResultCard
       title={lg.name}
@@ -158,6 +179,20 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
       }
     >
       <div className="lodgcard__extra">
+        <div className="lodgcard__snow">
+          <span className="lodgcard__snowbar" aria-hidden>
+            <span className="lodgcard__snowfill" style={{ width: `${snowFill}%` }} />
+          </span>
+          <span className="lodgcard__snowtxt u-num">
+            {snowKnown
+              ? `${snow.bas != null ? fmt(snow.bas) : '—'} / ${snow.haut != null ? `${fmt(snow.haut)} cm` : '—'}`
+              : `${fmt(domain.min)}–${fmt(domain.max)} m`}
+          </span>
+          <span className="lodgcard__snowlifts">
+            {domain.lifts} {t('lifts_plural')}
+          </span>
+        </div>
+
         {priceStale && (
           <p className="lodgcard__flag lodgcard__flag--warn">
             Prix relevé pour le {fmtDay(lg.priceCheckIn!)} → {fmtDay(lg.priceCheckOut!)} — plus valable pour vos
@@ -178,9 +213,18 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
           </p>
         )}
         {lg.annul && <p className="lodgcard__flag" style={{ color: 'var(--ok)' }}>Annulation gratuite</p>}
+        {/* Même bien sur plusieurs sources : la source gagnante — celle dont le
+            prix est affiché — passe en bleu, les autres sont barrées. Une ligne
+            de texte les mettait sur le même plan, alors que le classement les a
+            déjà départagées. */}
         {dups.length > 0 && (
-          <p className="lodgcard__sub" style={{ fontSize: 11 }}>
-            Aussi sur {dups.map((x) => `${x.src} à ${fmt(x.total)} € (+${fmt(x.total - lg.total)} €)`).join(' · ')}
+          <p className="lodgcard__srcs">
+            <span className="lodgcard__srcwin">{srcOf(lg)}</span>
+            {dups.map((x) => (
+              <span key={`${x.src}-${x.total}`} className="lodgcard__srclost">
+                {x.src} {eur(x.total)}
+              </span>
+            ))}
           </p>
         )}
         {!redirect && (
@@ -199,7 +243,7 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
         <div className="lodgcard__actions">
           <button
             type="button"
-            className="linkbtn"
+            className="actpill"
             onClick={(e) => {
               stop(e)
               patch({
@@ -213,7 +257,7 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
           </button>
           <button
             type="button"
-            className="linkbtn"
+            className="actpill"
             onClick={(e) => {
               stop(e)
               toggleTrack()
@@ -225,7 +269,7 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
           {target && (
             <button
               type="button"
-              className="linkbtn"
+              className="actpill actpill--strong"
               onClick={(e) => {
                 stop(e)
                 void window.skitrack.openExternal(target)

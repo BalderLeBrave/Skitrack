@@ -73,14 +73,25 @@ export interface ResultCardProps {
   loading?: boolean
 }
 
-/** Icône de repli, quand l'annonce n'a pas de photo exploitable. */
+/**
+ * Repli quand l'annonce n'a pas de photo exploitable.
+ *
+ * Une montagne au trait, et non l'icône « image cassée » d'un navigateur : sur
+ * une mosaïque où une carte sur trois n'a pas de photo, le second motif fait
+ * lire un défaut d'affichage là où il n'y a qu'une source avare en images.
+ */
 function NoImage({ label }: { label: string }): JSX.Element {
   return (
     <span className="resultcard__noimg">
-      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-        <circle cx="8.5" cy="10" r="1.8" fill="currentColor" />
-        <path d="M4 17l5-5 4 4 3-2 4 3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+        <path
+          d="M3 26.5l8.5-13 5 7 3.5-5 11 11z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <path d="M8.6 18.2l3 2.4 2.6-2" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
       </svg>
       {label}
     </span>

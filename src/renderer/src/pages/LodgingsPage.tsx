@@ -18,16 +18,19 @@ import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearc
 import { runProviderSearch, sourceLabelOf } from '@/data/runProviderSearch'
 import { hasCoords } from '@/data/referentiel'
 import { WEEKS } from '@/data/snow'
+import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { LODG_FILTER_RESET, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+import { useWeather } from '@/state/weather'
 
 export function LodgingsPage(): JSX.Element {
   const { fmt, fmtDay } = useFormat()
   const { t } = useI18n()
   const { state, patch, narrow } = useApp()
   const derived = useDerived()
+  const { weatherOf } = useWeather()
   /**
    * Relevé en vol.
    *
@@ -39,6 +42,9 @@ export function LodgingsPage(): JSX.Element {
 
   const d = derived.lodgDomain
   const median = medianTotal(derived.lodgAll)
+  // Neige du domaine ouvert, pour le bulletin en tête de mosaïque. `weatherOf`
+  // ne répond que pour les domaines réellement demandés — dont celui-ci.
+  const domSnow = snowDepths(weatherOf(d?.id ?? -1))
   // La santé porte sur les sources **réellement interrogées** : comptée sur une
   // liste figée, elle annonçait plus de sources que le moteur n'en appelle.
   const health = sourceHealth(lodgingSources(derived.lodgAll, state.lodgQueried))
@@ -409,11 +415,10 @@ export function LodgingsPage(): JSX.Element {
         </span>
       </div>
 
-      <div
-        className="lodgings__shell"
-        style={{ gridTemplateColumns: state.lodgFiltersOpen ? 'minmax(0,300px) minmax(0,1fr)' : 'minmax(0,1fr)' }}
-      >
-        {state.lodgFiltersOpen && <LodgingFilters />}
+      {/* Les filtres ne sont plus une colonne : ils s'ouvrent en survol au-dessus
+          de la mosaïque, comme sur l'écran Recherche. Même bascule
+          `state.lodgFiltersOpen`, donc même raccourci « f ». */}
+      <div className="lodgings__shell" style={{ gridTemplateColumns: 'minmax(0,1fr)' }}>
 
         {/* Côte à côte, la section ne défile plus : l'en-tête et les bandeaux
             restent en place et c'est le volet liste qui défile, sinon la carte
@@ -427,15 +432,23 @@ export function LodgingsPage(): JSX.Element {
           }
         >
           {state.lodgPhase === 'searching' && (
-            <SkiSearchLoading
-              domain={d}
-              message={state.lodgSearchMsg}
-              elapsedSec={elapsedSec}
-              timeoutSec={Math.round(AIRBNB_SEARCH_TIMEOUT_MS / 1000)}
-              // Non filtré : le panneau décompte ce qui est connu du domaine,
-              // pas ce que les filtres laissent passer.
-              known={derived.lodgAll}
-            />
+            <>
+              <SkiSearchLoading
+                domain={d}
+                message={state.lodgSearchMsg}
+                elapsedSec={elapsedSec}
+                timeoutSec={Math.round(AIRBNB_SEARCH_TIMEOUT_MS / 1000)}
+                // Non filtré : le panneau décompte ce qui est connu du domaine,
+                // pas ce que les filtres laissent passer.
+                known={derived.lodgAll}
+              />
+              {/* Squelettes au gabarit exact des vignettes : quand les résultats
+                  arrivent, rien ne se déplace. Ils ne remplacent pas le panneau
+                  de relevé, ils occupent la place que la mosaïque prendra. */}
+              <div style={{ marginTop: 18 }}>
+                <ResultGrid loading compact={narrow || splitOpen} label={t('lodg_loading_grid')} />
+              </div>
+            </>
           )}
 
           {state.lodgPhase === 'criteria' && (
@@ -607,6 +620,36 @@ export function LodgingsPage(): JSX.Element {
               {state.lodgMapOpen ? 'Masquer la carte ◂' : 'Afficher la carte ▸'}
             </button>
           </header>
+
+          {/* Bulletin neige du domaine, en tête de la mosaïque : c'est la donnée
+              qui décide d'un séjour au ski avant le prix du logement. Lue du
+              modèle seul — « — » tant qu'il n'a pas répondu. */}
+          <div className="lodgsnow">
+            <span className="lodgsnow__label">
+              {t('snow_on_ground')} <span className="u-muted">{t('snow_base_top')}</span>
+            </span>
+            <strong className="u-num lodgsnow__val">
+              {domSnow.bas != null ? `${fmt(domSnow.bas)}` : '—'} /{' '}
+              {domSnow.haut != null ? `${fmt(domSnow.haut)} cm` : '—'}
+            </strong>
+            <span className="lodgsnow__lifts">
+              {d.lifts} {t('lifts_plural')} · {fmt(d.min)}–{fmt(d.max)} m
+            </span>
+            <span className="u-spacer" />
+            {/* Puce des filtres posés : une liste courte doit dire si elle est
+                courte parce qu'un filtre l'a raccourcie. */}
+            {derived.lodgHidden > 0 && derived.lodgList.length > 0 && (
+              <button type="button" className="chip" onClick={resetLodgFilters} title={t('filter_clear_all')}>
+                {derived.lodgHidden} <span className="u-muted">✕</span>
+              </button>
+            )}
+          </div>
+
+          {state.lodgFiltersOpen && (
+            <div className="filterpop">
+              <LodgingFilters />
+            </div>
+          )}
 
           {state.lodgStatusOpen && (
             <LodgingGeoPanel

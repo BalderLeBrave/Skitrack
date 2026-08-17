@@ -3258,7 +3258,7 @@ select {
   overflow: auto;
   background: var(--panel);
   border-radius: 20px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-hover);
   animation: fadeIn 0.18s ease-out;
 }
 
@@ -3273,6 +3273,9 @@ select {
 
 /* --- Comparateur ---------------------------------------------------------- */
 
+/* Tiroir du comparateur : une pilule encre posée en bas de l'écran, au-dessus de
+   la mosaïque qui continue de défiler dessous. Le contraste est garanti dans les
+   deux thèmes puisque les deux jetons s'échangent avec eux. */
 .comparebar {
   position: absolute;
   left: 50%;
@@ -3286,7 +3289,7 @@ select {
   color: var(--bg);
   border-radius: 999px;
   padding: 8px 8px 8px 20px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-hover);
 }
 
 .comparebar__cta {
@@ -3412,13 +3415,17 @@ select {
 
 /* --- Carte des logements -------------------------------------------------- */
 
+/* Carte des logements : mêmes coins et même ombre qu'une carte de résultat —
+   c'est un objet posé sur la page, pas un cadre encastré. Le comportement, lui,
+   ne change pas : même bascule `state.lodgMapOpen`, même raccourci « m ». */
 .lodgmap {
   position: sticky;
   top: 0;
   height: 560px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: none;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
   overflow: hidden;
 }
 
@@ -4558,7 +4565,9 @@ select {
 
 .resultgrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  /* 290 px : la largeur en dessous de laquelle la bande neige et la ligne de
+     distance aux pistes ne tiennent plus côte à côte. */
+  grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr));
   column-gap: 24px;
   /* Plus d'air entre les rangées qu'entre les colonnes : le bloc texte se lit
      comme la légende de son image, il ne doit pas se rapprocher de l'image
@@ -4610,17 +4619,22 @@ select {
   outline-offset: 4px;
 }
 
+/* Sans photo : un dégradé bleu pâle, pas une hachure. La hachure faisait un
+   motif d'« image manquante » de logiciel ; le dégradé se lit comme une surface
+   assumée, et le pictogramme de montagne au trait dit de quoi il s'agit. */
 .resultcard__media {
   position: relative;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border-radius: 12px;
-  background: repeating-linear-gradient(45deg, var(--photo-a) 0 12px, var(--photo-b) 12px 24px);
+  border-radius: var(--radius-card);
+  background: linear-gradient(155deg, var(--photo-a), var(--photo-b));
 }
 
+/* 16:10 : le format des photos d'annonce, et celui qui laisse la place à quatre
+   lignes de texte sous une vignette de 290 px sans faire défiler la mosaïque. */
 .resultcard__media--wide {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
 }
 
 .resultcard__media--square {
@@ -4650,10 +4664,17 @@ select {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  color: var(--dim);
+  gap: 6px;
+  color: var(--accent);
   font-size: 11px;
+  font-weight: 600;
   text-align: center;
+}
+
+/* Le pictogramme est au trait et à demi-opacité : il occupe la surface sans se
+   faire passer pour une illustration. */
+.resultcard__noimg svg {
+  opacity: 0.55;
 }
 
 /* Hauteur minimale : sans elle, deux cartes voisines dont l'une a un titre
@@ -4776,6 +4797,33 @@ select {
   }
 }
 
+/** Bulletin neige en tête de la mosaïque des logements. */
+.lodgsnow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.lodgsnow__label {
+  font-weight: 700;
+}
+
+.lodgsnow__val {
+  color: var(--snow-ink);
+  font-size: 15px;
+}
+
+.lodgsnow__lifts {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 /* Ce que l'écran Logements ajoute sous le gabarit commun : signalements,
    doublons, fraîcheur et actions. Séparé par un filet, comme le prix l'était
    dans l'ancienne vignette encadrée. */
@@ -4800,14 +4848,114 @@ select {
 .lodgcard__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
-  margin-top: 4px;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
 }
 
-/* Dans une colonne de 240 px, trois actions ne tiennent pas sur une ligne :
+/* Dans une colonne de 290 px, trois actions ne tiennent pas sur une ligne :
    elles passent à la ligne proprement plutôt que de couper « Suivre le prix »
    en deux au milieu d'un mot. */
-.lodgcard__actions .linkbtn {
+.lodgcard__actions .linkbtn,
+.lodgcard__actions .actpill {
   white-space: nowrap;
+}
+
+/**
+ * Action en pilule discrète.
+ *
+ * Trois actions par vignette et cent vignettes à l'écran : elles doivent se
+ * trouver au survol sans jamais concurrencer le prix. D'où la bordure seule,
+ * sans aplat — sauf la dernière, l'ouverture de l'annonce, qui est la seule à
+ * sortir de l'application.
+ */
+.actpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.actpill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.actpill--strong {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.actpill--strong:hover {
+  background: var(--accent-soft);
+}
+
+/**
+ * Bande neige de la vignette.
+ *
+ * Une jauge horizontale et deux nombres : la hauteur au bas des pistes et celle
+ * au sommet. La barre ne remplace pas les chiffres, elle donne l'ordre de
+ * grandeur avant qu'on les lise — et quand le relevé manque, la barre reste
+ * vide plutôt que d'aller chercher une valeur ailleurs.
+ */
+.lodgcard__snow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.lodgcard__snowbar {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 24px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.lodgcard__snowfill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--snow-light);
+}
+
+.lodgcard__snowtxt {
+  color: var(--snow-ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lodgcard__snowlifts {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/** Sources d'un même bien : la gagnante en bleu, les autres barrées. */
+.lodgcard__srcs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 2px 0 0;
+  font-size: 11px;
+}
+
+.lodgcard__srcwin {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.lodgcard__srclost {
+  color: var(--dim);
+  text-decoration: line-through;
 }
 

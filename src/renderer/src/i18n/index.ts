@@ -408,6 +408,12 @@ const CATALOG = {
     'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
     'Langste rit onder 4 uur'
   ],
+  lodg_loading_grid: [
+    'Logements en cours de relevé', 'Stays being collected', 'Unterkünfte werden erfasst',
+    'Verblijven worden opgehaald', 'Alojamientos en curso de recogida', 'Alloggi in corso di rilevamento',
+    'Verblyf word ingesamel'
+  ],
+
   // --- Combinaisons : légende de la grille ---------------------------------
   combo_legend_cheap: ['Donné', 'Cheap', 'Günstig', 'Voordelig', 'Barato', 'Conveniente', 'Goedkoop'],
   combo_legend_mid: ['Moyen', 'Mid-range', 'Mittel', 'Gemiddeld', 'Medio', 'Medio', 'Middelmatig'],

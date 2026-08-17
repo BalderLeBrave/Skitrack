@@ -2,6 +2,54 @@ import { CloseIcon, TrendIcon } from '@/components/Icons'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import type { PriceHistoryStore, TrackedItem } from '@/state/appState'
+
+/**
+ * Forme de la courbe simulée, en multiples du prix actuel.
+ *
+ * Elle n'est là que pour montrer **qu'une courbe existera** : elle descend, elle
+ * hésite, elle finit sur le prix réel du jour. Aucune valeur intermédiaire n'est
+ * une mesure, et c'est pour cela qu'elle se dessine en pointillés partout où
+ * elle apparaît.
+ */
+const SIMULATED_SHAPE = [1.14, 1.1, 1.055, 1.085, 1.04, 1.0]
+
+/** Deux points suffisent à tracer une vraie courbe ; un seul n'est pas une courbe. */
+const MIN_REAL_POINTS = 2
+
+interface Series {
+  values: number[]
+  /** Vrai quand les points viennent des relevés horaires enregistrés. */
+  real: boolean
+}
+
+/**
+ * Série d'un logement suivi.
+ *
+ * Une seule fonction pour la ligne-carte et pour le détail : deux calculs
+ * séparés finiraient par dessiner deux courbes différentes du même prix, et la
+ * distinction réel / simulé — la seule chose que cet écran doit garantir —
+ * dépendrait de l'endroit où on la lit.
+ */
+function seriesOf(item: TrackedItem, history: PriceHistoryStore): Series {
+  const stored = (history[item.key] ?? []).map((p) => p.v)
+  if (stored.length >= MIN_REAL_POINTS) return { values: stored, real: true }
+  return { values: SIMULATED_SHAPE.map((k) => Math.round((item.total * k) / 10) * 10), real: false }
+}
+
+/** Chemin d'une sparkline, dans un repère de `w` sur `h`. */
+function sparkPath(values: number[], w: number, h: number): string {
+  if (values.length === 0) return ''
+  const min = Math.min(...values)
+  const span = Math.max(Math.max(...values) - min, 1)
+  return values
+    .map((v, i) => {
+      const x = 1 + (i * (w - 2)) / Math.max(values.length - 1, 1)
+      const y = 1 + (1 - (v - min) / span) * (h - 2)
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`
+    })
+    .join(' ')
+}
 
 /**
  * Suivi de prix.
@@ -18,13 +66,7 @@ export function TrackingPage(): JSX.Element {
   const { state, patch, history } = useApp()
 
   const selected = state.tracked[state.trackedSel]
-  const stored = selected ? (history[selected.key] ?? []).map((p) => p.v) : []
-  const real = stored.length >= 2
-  const values = selected
-    ? real
-      ? stored
-      : [1.14, 1.1, 1.055, 1.085, 1.04, 1.0].map((k) => Math.round((selected.total * k) / 10) * 10)
-    : []
+  const { values, real } = selected ? seriesOf(selected, history) : { values: [], real: false }
 
   const min = values.length ? Math.min(...values) : 0
   const max = values.length ? Math.max(...values) : 0
@@ -160,18 +202,74 @@ export function TrackingPage(): JSX.Element {
 
         {state.tracked.length > 0 && selected && (
           <div className="tracking__grid">
-            <div style={{ display: 'grid', gap: 12 }}>
-              {state.tracked.map((t, i) => (
-                <article
-                  key={t.key}
-                  className={`panel trackcard${i === state.trackedSel ? ' trackcard--on' : ''}`}
-                  onClick={() => patch({ trackedSel: i })}
-                >
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                    <strong style={{ flex: 1, minWidth: 0, fontSize: 14 }}>{t.name}</strong>
+            {/* Lignes-cartes : logement, prix actuel, plus bas / plus haut,
+                tendance, courbe. Tout ce qui départage deux suivis se lit sur une
+                ligne, et le clic ouvre le détail à droite — le même geste
+                qu'avant. */}
+            <div className="trackrows">
+              {state.tracked.map((item, i) => {
+                const s = seriesOf(item, history)
+                const last = s.values[s.values.length - 1] ?? item.total
+                const prev = s.values[s.values.length - 2] ?? last
+                const step = last - prev
+                const lo = s.values.length ? Math.min(...s.values) : item.total
+                const hi = s.values.length ? Math.max(...s.values) : item.total
+                return (
+                  <article
+                    key={item.key}
+                    className={`trackrow${i === state.trackedSel ? ' trackrow--on' : ''}`}
+                    onClick={() => patch({ trackedSel: i })}
+                  >
+                    <div className="trackrow__main">
+                      <strong className="trackrow__name">{item.name}</strong>
+                      <span className="trackrow__sub">
+                        {item.domain} · {item.src}
+                      </span>
+                    </div>
+
+                    <div className="trackrow__price">
+                      <strong className="u-num">{eur(last)}</strong>
+                      <span className="trackrow__sub u-num">
+                        {fmt(lo)} – {fmt(hi)} €
+                      </span>
+                    </div>
+
+                    {/* ▾ en baisse, → stable, ▴ en hausse : le signe et la
+                        couleur disent la même chose, pour que la couleur ne soit
+                        pas le seul porteur de l'information. */}
+                    <span
+                      className="trackrow__trend"
+                      style={{ color: step < 0 ? 'var(--ok)' : step > 0 ? 'var(--warn)' : 'var(--muted)' }}
+                    >
+                      {step < 0 ? '▾' : step > 0 ? '▴' : '→'} {step === 0 ? '' : `${fmt(Math.abs(step))} €`}
+                    </span>
+
+                    <svg
+                      className="trackrow__spark"
+                      viewBox="0 0 96 30"
+                      preserveAspectRatio="none"
+                      role="img"
+                      aria-label={s.real ? t('track_real_curve') : t('track_simulated_curve')}
+                    >
+                      <path
+                        d={sparkPath(s.values, 96, 30)}
+                        fill="none"
+                        stroke={s.real ? 'var(--accent)' : 'var(--dim)'}
+                        strokeWidth="2"
+                        strokeDasharray={s.real ? undefined : '4 5'}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+
+                    {/* La mention de simulation suit la courbe partout où elle
+                        est dessinée : une ligne en pointillés sans légende
+                        redevient une mesure aux yeux de qui la lit vite. */}
+                    {!s.real && <span className="trackrow__sim">{t('track_simulated_short')}</span>}
+
                     <button
                       type="button"
-                      className="iconbtn iconbtn--bare"
+                      className="iconbtn iconbtn--bare trackrow__close"
                       title="Ne plus suivre"
                       aria-label="Ne plus suivre"
                       onClick={(e) => {
@@ -181,23 +279,9 @@ export function TrackingPage(): JSX.Element {
                     >
                       <CloseIcon />
                     </button>
-                  </div>
-                  <p className="u-muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
-                    {t.domain} · {t.src}
-                  </p>
-                  <p
-                    style={{
-                      margin: '8px 0 0',
-                      fontSize: 16,
-                      fontWeight: 800,
-                      letterSpacing: '-0.02em',
-                      color: 'var(--text)'
-                    }}
-                  >
-                    {eur(t.total)}
-                  </p>
-                </article>
-              ))}
+                  </article>
+                )
+              })}
             </div>
 
             <div className="panel" style={{ padding: 20 }}>
@@ -233,11 +317,14 @@ export function TrackingPage(): JSX.Element {
               >
                 <line x1="0" y1="40" x2="640" y2="40" stroke="var(--border-soft)" strokeWidth="1" />
                 <line x1="0" y1="90" x2="640" y2="90" stroke="var(--border-soft)" strokeWidth="1" />
+                {/* Même règle que sur les lignes : trait plein bleu pour des
+                    relevés, pointillés gris pour une simulation. */}
                 <polyline
                   points={points}
                   fill="none"
-                  stroke="var(--brand)"
+                  stroke={real ? 'var(--accent)' : 'var(--dim)'}
                   strokeWidth="2.5"
+                  strokeDasharray={real ? undefined : '5 6'}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                 />

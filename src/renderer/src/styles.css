@@ -3805,14 +3805,103 @@ select {
   align-items: start;
 }
 
-.trackcard {
-  padding: 16px;
-  cursor: pointer;
+/* La colonne de gauche s'élargit : une ligne-carte porte cinq colonnes, pas
+   trois lignes empilées. */
+.tracking__grid {
+  grid-template-columns: minmax(min(420px, 100%), 460px) minmax(min(320px, 100%), 1fr);
 }
 
-.trackcard--on {
+.trackrows {
+  display: grid;
+  gap: 10px;
+}
+
+/**
+ * Ligne-carte d'un suivi.
+ *
+ * Cinq colonnes sur une ligne : le logement, le prix actuel avec ses extrêmes,
+ * la tendance, la courbe, et la croix pour ne plus suivre. La grille est fixe et
+ * non fluide : trois suivis alignés se comparent colonne par colonne, ce qu'une
+ * disposition au contenu ne garantit pas.
+ */
+.trackrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto 96px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.trackrow:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-hover);
+}
+
+.trackrow--on {
   border-color: var(--text);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-hover);
+}
+
+.trackrow__main {
+  display: grid;
+  min-width: 0;
+}
+
+.trackrow__name {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackrow__sub {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackrow__price {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+
+.trackrow__price strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.trackrow__trend {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.trackrow__spark {
+  width: 96px;
+  height: 30px;
+}
+
+/* Mention de simulation : elle passe sous la courbe, sur toute la largeur de la
+   ligne, pour rester lisible quel que soit l'espace laissé par les colonnes. */
+.trackrow__sim {
+  grid-column: 4;
+  grid-row: 2;
+  font-size: 10px;
+  color: var(--dim);
+  text-align: center;
+}
+
+.trackrow__close {
+  align-self: start;
 }
 
 /* --- Voyageurs ------------------------------------------------------------ */

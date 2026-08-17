@@ -408,6 +408,22 @@ const CATALOG = {
     'Viaje más largo por debajo de 4 horas', 'Viaggio più lungo sotto le 4 ore',
     'Langste rit onder 4 uur'
   ],
+  // --- Suivi : courbes réelles et simulées ---------------------------------
+  track_real_curve: [
+    'Historique relevé', 'Recorded history', 'Erfasster Verlauf', 'Opgenomen historiek',
+    'Historial registrado', 'Storico rilevato', 'Aangeteken geskiedenis'
+  ],
+  track_simulated_curve: [
+    'Courbe simulée, en attente des premiers relevés',
+    'Simulated curve, waiting for the first readings',
+    'Simulierte Kurve, bis zu den ersten Messungen',
+    'Gesimuleerde curve, in afwachting van de eerste metingen',
+    'Curva simulada, a la espera de las primeras lecturas',
+    'Curva simulata, in attesa dei primi rilevamenti',
+    'Gesimuleerde kurwe, in afwagting van die eerste metings'
+  ],
+  track_simulated_short: ['simulée', 'simulated', 'simuliert', 'gesimuleerd', 'simulada', 'simulata', 'gesimuleer'],
+
   lodg_loading_grid: [
     'Logements en cours de relevé', 'Stays being collected', 'Unterkünfte werden erfasst',
     'Verblijven worden opgehaald', 'Alojamientos en curso de recogida', 'Alloggi in corso di rilevamento',

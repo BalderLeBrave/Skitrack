@@ -59,6 +59,16 @@ export interface Domain {
   booking: string | null
   /** URL de logo fournie par le référentiel, prioritaire sur l'icône du site. */
   logo: string | null
+  /**
+   * Entrées du référentiel repliées dans cette station.
+   *
+   * Le fichier livré mélange stations, domaines et secteurs : « Val Thorens »
+   * et « Val Thorens – Orelle » y sont deux lignes. La liste de l'application
+   * les replie en une station (voir `data/stationList.ts`) et garde ici les
+   * identifiants absorbés — sans quoi un logement importé sous l'une
+   * disparaîtrait quand l'autre devient le représentant.
+   */
+  members?: number[]
 }
 
 /** Forme brute d'un domaine dans le fichier JSON livré. */

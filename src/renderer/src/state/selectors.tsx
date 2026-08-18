@@ -19,6 +19,7 @@ import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
 import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import { isBookable } from '@/data/lodgingAvailability'
+import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
 import { estimateForfait, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
 import { placeIndex } from '@/data/places'
@@ -448,15 +449,22 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       : null
 
     // --- Logements du domaine consulté ------------------------------------
-    const lodgDomain = domains.find((d) => d.id === state.lodgingDomainId) ?? domains[0] ?? null
+    // La station consultée, retrouvée aussi par les entrées qu'elle a
+    // absorbées : un écran ouvert sous « Val Thorens – Orelle » doit rester
+    // ouvert quand la liste replie ce libellé sur « Val Thorens ».
+    const lodgDomain = stationOwning(domains, state.lodgingDomainId) ?? domains[0] ?? null
 
     // Seuls les logements RÉELS importés par l'utilisateur sont affichés, et
     // uniquement ceux rattachés au domaine consulté (`importDomainId`). Le
     // catalogue de démonstration (`lodgingsFor`) n'est plus mélangé au réel : il
     // ne servait qu'à illustrer la mise en page et prêtait à confusion en se
     // faisant passer pour de vraies offres.
+    // Même raison côté annonces : `importDomainId` porte l'identifiant de
+    // l'entrée sous laquelle l'import a eu lieu, qui peut être une entrée
+    // absorbée depuis.
+    const lodgMembers = new Set(lodgDomain ? [lodgDomain.id, ...(lodgDomain.members ?? [])] : [])
     const lodgRaw = lodgDomain
-      ? state.imported.filter((lg) => lg.importDomainId == null || lg.importDomainId === lodgDomain.id)
+      ? state.imported.filter((lg) => lg.importDomainId == null || lodgMembers.has(lg.importDomainId))
       : []
     const lodgAll = mergeDupesList(lodgRaw, state.mergeDupes)
     const dupMerged = lodgRaw.length - lodgAll.length

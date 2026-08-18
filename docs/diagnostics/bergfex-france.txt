@@ -1,0 +1,275 @@
+# Stations de ski françaises listées par bergfex.fr
+#
+# Source   : https://www.bergfex.fr/frankreich/ (pages 1 à 7)
+# Relevé   : 18 août 2026
+# Effectif : 260 annoncés par le site
+#
+# Référence de VÉRIFICATION uniquement. Ce fichier ne fait pas partie de
+# l'application et n'est jamais chargé par elle : il sert à confronter la liste
+# de SKITRACK à une liste tierce, et rien d'autre. Les noms sont recopiés tels
+# que bergfex les affiche, abréviations comprises (« St. Martin Belle »,
+# « Grand Serre »), parce que c'est cette forme-là qu'on compare.
+#
+# Quelques entrées ne sont pas en France (Champéry, La Dôle, Torgon sont
+# suisses) : bergfex range sous « France » des stations frontalières. Elles sont
+# conservées telles quelles et l'audit les signale plutôt que de les retirer.
+
+Vaujany
+Sauze
+Arêches-Beaufort
+Cauterets
+Ancelle
+Chabanon
+Lac Blanc
+Villard-Reculas
+Saint-Lary
+Courchevel
+Méribel
+Saint-Gervais
+Serre-Eyraud
+Bonneval sur Arc
+Val Thorens
+Guzet
+Les 7 Laux
+Camurac
+Chamonix
+Champéry
+St. Martin Belle
+Les Carroz
+Laguiole
+Oz en Oisans
+Beuil Launes
+Sixt
+La Plagne
+Le Revard
+Les Menuires
+Laye
+Dolleren
+Grand Serre
+Orcières
+Val d'Isère
+Valloire
+Les Houches
+Font d'Urle
+Lélex - Crozet
+Monts d'Olmes
+Val Cenis
+Isola 2000
+Abriès en Queyras
+Cambre d'Aze
+Saint Colomban des Villards
+Le Dévoluy
+Auris en Oisans
+Passy Plaine-Joux
+Mijoux - La Faucille
+Aillons-Margériaz
+Alpe d'Huez
+Cordon
+Serre Chevalier
+Auron
+Megève
+Lans en Vercors
+Saint-Léger-les-Mélèzes
+Réallon
+Pelvoux / Vallouise
+La Bresse Hohneck
+Le Lioran
+Villard de Lans - Corrençon
+Col de Rousset
+Brévent - Flégère / Chamonix
+Bernex
+Grand Tourmalet
+Mont Serein - Mont Ventoux
+Praz sur Arly
+Albiez Montrond
+Ax 3 Domaines
+Châtel
+Formiguères
+La Féclaz
+Montgenèvre
+Roc d'Enfer
+Avoriaz 1800
+Le Mourtis
+Mijanès - Donezan
+Manigod
+La Norma
+Grands Montets / Argentière
+Grand Bornand
+Terre Ronde
+Vars
+Orelle
+Gréolières
+Balme
+Luchon
+Le Planolet
+Le Markstein
+Karellis
+Valberg
+Saint Sorlin
+Font-Romeu
+Turini
+GresseEnVercors
+Sainte Foy
+Valmorel
+Val d'Allos
+Méaudre
+Praz Lys Sommand
+Thollon Mémises
+Pralognan
+La Clusaz
+ChastreixSancy
+La Colmiane
+Mont Saxonnex
+Ceillac
+Valfréjus
+Peyragudes
+Les Brasses
+Tignes
+Les Arcs
+Chamrousse
+St François Long
+Molines
+Ascou
+La Toussuire
+Crévoux
+Abondance
+Le Collet
+Le Mont Dore
+Roubion
+Sainte-Anne
+Valmeinier
+Super Besse
+Plans d'Hotonnes
+Hirmentaz
+Chapelle Abondance
+Artouste
+Samoëns
+Arvieux
+Les Orres
+L'Audibergue
+Peisey Vallandry
+Montclar
+Les 2 Alpes
+Aussois
+Gourette
+La Dôle
+Pierre St-Martin
+Porté Puymorens
+Puy St Vincent
+Pra Loup
+Piau-Engaly
+Le Semnoz
+Gavarnie
+Morillon
+Crest-Voland
+Autrans
+Les Angles
+Les Contamines
+Luz Ardiden
+Flaine
+Chaillol 1600
+Brides-les-Bains
+Torgon
+Prabouré
+Les Planards
+Planche B Filles
+Le Désert
+Col de Porte
+Les Égaux
+Romme
+Grand-Ballon
+Le Salève
+Haut Asco
+Bleymard
+Bessans
+Morzine
+Le Reposoir
+Foncine le Haut
+Croix de Bauzon
+Les Fourgs
+Lajoux
+La Bonade
+Goulier
+Gaschney 360°
+Les Chosalets
+Saint-Nizier
+Aiguilles
+Le Poli
+La Poya
+Brameloup
+La Grave
+Brabant
+Cauterets-E
+La Schlucht
+Val d'Ese
+St Hilaire
+Les Bagenelles
+Lus-La-Jarjatte
+ND de Bellecombe
+Larcenaire
+Risoul
+Le Corbier
+Métabief
+La Giettaz
+Tourchet
+Le Frenz
+Morbier - Les Gentianes
+La Combe Saint-Pierre
+Champ Du Feu
+Les Moussières
+Sappey-en-Chartreuse
+La Quillane
+Meix-Musy - Pierre à Feu
+Chaux Neuve
+Megève / Le Jaillet
+Saint Jean d'Arves - Les Sybelles
+Plateau de Beille
+Chauffaud / Val de Morteau
+Barioz - Crêt du Poulet
+Flumet / Saint Nicolas la Chapelle
+Snowworld Amnéville
+Bourg d'Oueil
+La Rosière - Espace San Bernardo
+Les Bottières - Les Sybelles
+Les Coulmes
+Schnepfenried
+Saint-Urcize
+Le Chazelet
+Bellefontaine
+Les Signaraux
+Haut du Tôt
+Gérardmer / La Mauselaine
+Col d'Ornon
+Combloux
+Lispach - La Bresse
+Ballon d'Alsace
+Col de Marcieu
+Mézenc - Les Estables
+Mouthe
+Granier
+Capanelle Ghisoni
+Longchaumois - Rosset
+Névache
+La Pesse
+La Vormaine
+Les Gets / Portes du Soleil
+EntreLesFourgs
+Menthières
+Hautacam
+Les Saisies
+Val Louron
+Les Rafforts
+La Stass'
+Montmin
+Val Pelens
+Grand Valtin
+Les Truches
+Le Manon
+Cernay Blanche
+Mont Ventoux Chalet Reynard
+Rouge Gazon
+Chalmazel
+Loge des Gardes
+Le Tanet
+N.-D. du Pré
+Ristolas

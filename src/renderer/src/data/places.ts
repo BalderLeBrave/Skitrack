@@ -308,14 +308,14 @@ function termsOf(d: Domain): Term[] {
  */
 function termMatches(term: Term, needle: string): boolean {
   if (term.key.includes(needle)) return true
-  if (needle.length < 4) return false
-  // Deux longueurs de préfixe : la faute peut être une lettre en trop comme une
-  // lettre oubliée, et « courchvel » doit se comparer aux dix premières lettres
-  // de « courchevel », pas aux neuf.
-  return (
-    withinOneEdit(term.key.slice(0, needle.length), needle) ||
-    withinOneEdit(term.key.slice(0, needle.length + 1), needle)
-  )
+  if (needle.length < 5) return false
+  // La tolérance compare le terme **entier**, pas son début. Comparée à un
+  // préfixe, elle faisait correspondre « chatel » aux six premières lettres de
+  // « chapelleabondance » : une faute sur un mot court ouvrait la porte à tous
+  // les noms longs qui commencent pareil. Sur le terme entier, une différence
+  // de longueur de plus d'un caractère suffit à écarter le candidat, et
+  // « courchvel » trouve toujours « courchevel ».
+  return withinOneEdit(term.key, needle)
 }
 
 const CACHE = new WeakMap<Domain[], PlaceIndex>()

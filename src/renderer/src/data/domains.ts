@@ -19,6 +19,7 @@ import { slug } from '@/domain/format'
 import type { Domain, Referential } from './referentiel'
 import { domainsFromReferential, logoIndexBySlug } from './referentiel'
 import { officialSiteOf } from './stations'
+import { collapseToStations } from './stationList'
 
 /** Au-delà, on sort du référentiel français ; la borne est un garde-fou, pas
  *  une pagination — l'écran de recherche filtre ensuite localement. */
@@ -112,8 +113,15 @@ function withOfficialSite(domains: Domain[]): Domain[] {
   })
 }
 
+/**
+ * Les domaines chargés sont repliés en **stations** avant d'être rendus.
+ *
+ * C'est le seul endroit où le repli a lieu : tout l'aval — filtres, carte,
+ * offres, combinaisons, logements — travaille ensuite sur des stations sans
+ * avoir à le savoir. Voir `data/stationList.ts`.
+ */
 export function fallbackDomains(ref: Referential): Domain[] {
-  return withOfficialSite(domainsFromReferential(ref, slug))
+  return collapseToStations(withOfficialSite(domainsFromReferential(ref, slug)))
 }
 
 export async function loadDomains(ref: Referential): Promise<LoadedDomains> {
@@ -138,7 +146,7 @@ export async function loadDomains(ref: Referential): Promise<LoadedDomains> {
       }
     }
     return {
-      domains: withOfficialSite(applyReferentialOverlay(domains, ref)),
+      domains: collapseToStations(withOfficialSite(applyReferentialOverlay(domains, ref))),
       source: 'moteur',
       warning: null
     }

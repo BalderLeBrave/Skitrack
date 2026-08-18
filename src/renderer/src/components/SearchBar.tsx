@@ -19,10 +19,11 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { DateRangePicker } from './DateRangePicker'
 import { RangeFilter } from './RangeFilter'
 import { placeIndex } from '@/data/places'
 import type { PlaceSuggestion } from '@/data/places'
-import { WEEKS, weekByArrival } from '@/data/snow'
+import { nightsBetween } from '@/domain/format'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
@@ -39,7 +40,7 @@ type Segment = 'dest' | 'dates' | 'people' | 'alt'
 
 export function SearchBar(): JSX.Element {
   const { state, patch, domains } = useApp()
-  const { fmt } = useFormat()
+  const { fmt, fmtStay } = useFormat()
   const { t } = useI18n()
   const [open, setOpen] = useState<Segment | null>(null)
   const [cursor, setCursor] = useState(-1)
@@ -94,7 +95,18 @@ export function SearchBar(): JSX.Element {
     }
   }
 
-  const week = weekByArrival(state.arrDate)
+  /**
+   * Ce que montre le segment : la plage et le nombre de nuits.
+   *
+   * « 7 – 14 févr. · 7 nuits ». Le libellé de semaine relevée disait la même
+   * chose en plus long et ne savait rien dire des dates hors liste.
+   */
+  const nights = nightsBetween(state.arrDate, state.depDate)
+  const stayLabel =
+    state.arrDate && state.depDate
+      ? `${fmtStay(state.arrDate, state.depDate)} · ${t('dp_nights').replace('{n}', String(nights))}`
+      : t('sb_week_any')
+
   const segClass = (seg: Segment): string => `sb__seg${open === seg ? ' sb__seg--open' : ''}`
 
   return (
@@ -152,25 +164,19 @@ export function SearchBar(): JSX.Element {
           type="button"
           className="sb__value"
           aria-expanded={open === 'dates'}
+          aria-haspopup="dialog"
           onClick={() => setOpen(open === 'dates' ? null : 'dates')}
         >
-          {week ? week.label : t('sb_week_any')}
+          {stayLabel}
         </button>
         {open === 'dates' && (
-          <div className="sb__pop">
-            {WEEKS.map((w) => (
-              <button
-                key={w.arr}
-                type="button"
-                className={`weekrow${w.arr === state.arrDate ? ' weekrow--on' : ''}`}
-                onClick={() => {
-                  patch({ arrDate: w.arr, depDate: w.dep })
-                  setOpen(null)
-                }}
-              >
-                <span>{w.label}</span>
-              </button>
-            ))}
+          <div className="sb__pop sb__pop--cal">
+            <DateRangePicker
+              arr={state.arrDate}
+              dep={state.depDate}
+              onChange={(arr, dep) => patch({ arrDate: arr, depDate: dep })}
+              onClose={() => setOpen(null)}
+            />
           </div>
         )}
       </div>

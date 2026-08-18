@@ -18,7 +18,8 @@ import {
   eur as eurPure,
   fmt as fmtPure,
   fmtDate as fmtDatePure,
-  fmtDay as fmtDayPure
+  fmtDay as fmtDayPure,
+  fmtStay as fmtStayPure
 } from '@/domain/format'
 import { useI18n } from '@/i18n'
 
@@ -28,6 +29,8 @@ export interface Formatters {
   dur: (min: number | null | undefined) => string
   fmtDate: (iso: string | null | undefined) => string
   fmtDay: (iso: string) => string
+  /** Plage de séjour : « 7 – 14 févr. ». */
+  fmtStay: (arr: string, dep: string) => string
   /** Locale BCP-47 courante, pour les `toLocaleString` posés à la main. */
   locale: string
 }
@@ -41,6 +44,7 @@ export function useFormat(): Formatters {
       dur: (min) => durPure(min, lang),
       fmtDate: (iso) => fmtDatePure(iso, lang),
       fmtDay: (iso) => fmtDayPure(iso, lang),
+      fmtStay: (arr, dep) => fmtStayPure(arr, dep, lang),
       locale
     }),
     [lang, locale]

@@ -503,13 +503,29 @@ const CATALOG = {
 
   // --- Barre de recherche en pilule ---------------------------------------
   sb_destination: ['Destination', 'Destination', 'Reiseziel', 'Bestemming', 'Destino', 'Destinazione', 'Bestemming'],
-  sb_dates: ['Semaine', 'Week', 'Woche', 'Week', 'Semana', 'Settimana', 'Week'],
+  sb_dates: ['Dates', 'Dates', 'Daten', 'Data', 'Fechas', 'Date', 'Datums'],
   sb_week_any: [
     'Choisir une semaine', 'Pick a week', 'Woche wählen', 'Kies een week',
     'Elegir una semana', 'Scegli una settimana', 'Kies ’n week'
   ],
   sb_domain: ['domaine', 'resort', 'Skigebiet', 'skigebied', 'dominio', 'comprensorio', 'skigebied'],
   sb_station: ['station', 'village', 'Ort', 'dorp', 'estación', 'località', 'dorp'],
+  dp_title: ['Dates du séjour', 'Stay dates', 'Reisedaten', 'Verblijfsdata',
+    'Fechas de la estancia', 'Date del soggiorno', 'Verblyfdatums'],
+  dp_prev_month: ['Mois précédent', 'Previous month', 'Voriger Monat', 'Vorige maand',
+    'Mes anterior', 'Mese precedente', 'Vorige maand'],
+  dp_next_month: ['Mois suivant', 'Next month', 'Nächster Monat', 'Volgende maand',
+    'Mes siguiente', 'Mese successivo', 'Volgende maand'],
+  dp_nights: ['{n} nuits', '{n} nights', '{n} Nächte', '{n} nachten',
+    '{n} noches', '{n} notti', '{n} nagte'],
+  dp_pick_arrival: ['Choisissez la date d’arrivée', 'Pick the arrival date', 'Anreisedatum wählen',
+    'Kies de aankomstdatum', 'Elija la fecha de llegada', 'Scegliete la data di arrivo',
+    'Kies die aankomsdatum'],
+  dp_pick_departure: ['Choisissez la date de départ', 'Pick the departure date', 'Abreisedatum wählen',
+    'Kies de vertrekdatum', 'Elija la fecha de salida', 'Scegliete la data di partenza',
+    'Kies die vertrekdatum'],
+  dp_measured_weeks: ['Semaines relevées', 'Recorded weeks', 'Erfasste Wochen', 'Vastgelegde weken',
+    'Semanas registradas', 'Settimane rilevate', 'Aangetekende weke'],
   filter_km_help: [
     'Les domaines dont les kilomètres de pistes ne sont pas relevés comptent pour zéro : poser un plancher les écarte.',
     'Resorts whose slope kilometres are not recorded count as zero: setting a floor excludes them.',

@@ -69,6 +69,24 @@ export function fmtDay(iso: string, lang: Language): string {
     : d.toLocaleDateString(LOCALES[lang], { weekday: 'short', day: '2-digit', month: 'short' })
 }
 
+/**
+ * Plage de séjour telle qu'elle s'écrit dans la pilule : « 7 – 14 févr. ».
+ *
+ * Le mois n'est répété que s'il change — « 28 févr. – 7 mars », mais « 7 – 14
+ * févr. ». Répéter « févr. » des deux côtés d'un tiret allonge le segment sans
+ * rien apprendre, et c'est le segment le plus étroit de la pilule.
+ */
+export function fmtStay(arr: string, dep: string, lang: Language): string {
+  const from = new Date(`${arr}T12:00:00`)
+  const to = new Date(`${dep}T12:00:00`)
+  if (isNaN(from.getTime()) || isNaN(to.getTime())) return '—'
+  const locale = LOCALES[lang]
+  const sameMonth = from.getMonth() === to.getMonth() && from.getFullYear() === to.getFullYear()
+  const left = from.toLocaleDateString(locale, sameMonth ? { day: 'numeric' } : { day: 'numeric', month: 'short' })
+  const right = to.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+  return `${left} – ${right}`
+}
+
 /** Au moins une nuit : deux dates identiques viendraient d'une saisie en cours. */
 export function nightsBetween(arr: string, dep: string): number {
   const ms = new Date(dep).getTime() - new Date(arr).getTime()

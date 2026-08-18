@@ -1462,6 +1462,20 @@ select {
    par un filet, et la loupe en cercle plein : c'est le seul bouton bleu du
    héro, donc la seule action que l'œil doit trouver. */
 
+/**
+ * La pilule pose son propre jeton de texte, et c'est indispensable.
+ *
+ * `.home__hero` force `color: #ffffff` — la surface est sombre dans les deux
+ * thèmes et `--text` y serait illisible. Cette règle descendait jusque dans la
+ * pilule, qui est blanche : tout ce qui n'avait pas de couleur propre s'y
+ * affichait en blanc sur blanc. Le nombre de voyageurs était invisible, et il
+ * l'aurait été de la même façon dans n'importe quel élément ajouté plus tard à
+ * la pilule ou à ses popovers.
+ *
+ * La couleur est donc réaffirmée à la racine du composant plutôt que corrigée
+ * élément par élément : c'est la frontière entre le fond sombre du héro et la
+ * carte claire posée dessus, et c'est là que l'héritage doit s'arrêter.
+ */
 .sb {
   display: flex;
   align-items: center;
@@ -1469,6 +1483,7 @@ select {
   margin: 26px auto 0;
   max-width: 940px;
   background: var(--panel);
+  color: var(--text);
   border-radius: 999px;
   padding: 8px 8px 8px 28px;
   box-shadow: var(--shadow);
@@ -1626,6 +1641,13 @@ select {
   border-radius: 14px;
   box-shadow: var(--shadow-hover);
   z-index: 5;
+}
+
+/* La liste déborde volontairement de son segment : « Montchavin – Les Coches ·
+   Paradiski · domaine » ne tient pas dans 260 px, et un contexte tronqué à
+   « Parad… » ne lève plus l'ambiguïté qu'il est là pour lever. */
+.sb__list {
+  min-width: min(380px, calc(100vw - 48px));
 }
 
 .sb__pop--wide {

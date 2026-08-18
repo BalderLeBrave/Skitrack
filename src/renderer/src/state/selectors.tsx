@@ -20,6 +20,7 @@ import type { Lodging } from '@/data/lodgings'
 import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import type { Domain, Forfait } from '@/data/referentiel'
 import { estimateForfait, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
+import { placeIndex } from '@/data/places'
 import type { Week } from '@/data/snow'
 import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
 import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
@@ -49,16 +50,6 @@ export const inRange = (v: number, lo: number, hi: number, ceil: number): boolea
  */
 export const inRangeOrNull = (v: number | null, lo: number, hi: number, ceil: number): boolean =>
   rangeOpen(lo, hi, ceil) || (v != null && v >= lo && (hi >= ceil || v <= hi))
-
-/** Normalise une chaîne pour la recherche : minuscules, sans accents ni espaces
- *  superflus. « Les 2 Alpes » et « les 2 alpes » deviennent comparables. */
-function fold(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-}
 
 /** Tarif de forfait, avec l'information de savoir s'il a été relevé. */
 export type ResolvedForfait = Partial<Forfait> & { estimated: boolean }
@@ -170,6 +161,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const kids = state.people.length ? kidsCount(state.people) : state.children
 
     const forfaitIndex = forfaitIndexBySlug(ref, slug)
+    const places = placeIndex(domains)
 
     // --- Caches par domaine, valables le temps de cette dérivation ---------
     const forfaitCache = new Map<number, ResolvedForfait>()
@@ -249,13 +241,11 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     }
 
     const matchesFilters = (d: Domain): boolean => {
-      // Recherche texte : nom, région ou massif. Insensible à la casse et aux
-      // accents, pour que « les 2 alpes » trouve « Les 2 Alpes ».
-      if (state.domainQuery.trim()) {
-        const needle = fold(state.domainQuery)
-        const haystack = fold(`${d.name} ${d.region ?? ''} ${d.massif ?? ''}`)
-        if (!haystack.includes(needle)) return false
-      }
+      // Recherche texte : le nom du domaine, mais aussi ses villages, sa
+      // station, son forfait relié, sa région et son massif. Un séjour se
+      // cherche par le lieu où l'on dort — « montchavin », « val claret » —
+      // pas par le libellé du domaine relié. Voir `data/places.ts`.
+      if (state.domainQuery.trim() && !places.matches(d, state.domainQuery)) return false
       const R = FILTER_RANGES
       if (!inRange(d.min, state.baseMin, state.baseMax, R.base.max)) return false
       if (!inRange(d.max, state.summitMin, state.summitMax, R.summit.max)) return false

@@ -8,17 +8,21 @@
  * système de dates : les semaines sont celles de `data/snow.ts`, les mêmes que
  * l'écran Logements applique.
  *
- * L'autocomplétion cherche dans les **deux** vocabulaires que l'utilisateur a
- * en tête : le nom du domaine relié (« Les Trois Vallées ») et celui de la
- * station (« Val Thorens »). Ne proposer que les domaines revenait à ignorer la
- * moitié des requêtes ; la sélection écrit le texte choisi dans `domainQuery`,
- * que la recherche sait déjà interpréter dans les deux sens.
+ * L'autocomplétion cherche dans **tous** les vocabulaires que l'utilisateur a
+ * en tête : le domaine (« Les Arcs – Peisey-Vallandry »), le forfait relié
+ * (« Paradiski »), la station et le village (« Montchavin », « Val Claret »).
+ * Chaque suggestion dit à quoi elle mène — « Montchavin · Paradiski » — parce
+ * qu'un nom de village seul ne lève pas l'ambiguïté qu'il crée. La sélection
+ * écrit dans `domainQuery` le **domaine ou le forfait** résolu, pas le mot
+ * tapé : c'est ce qui fait qu'un village ouvre le même parcours que la
+ * sélection directe du domaine. Voir `data/places.ts`.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RangeFilter } from './RangeFilter'
+import { placeIndex } from '@/data/places'
+import type { PlaceSuggestion } from '@/data/places'
 import { WEEKS, weekByArrival } from '@/data/snow'
-import { V25_STATIONS } from '@/data/stations'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
@@ -32,12 +36,6 @@ const MIN_QUERY = 2
 const TRAVELERS_MAX = 12
 
 type Segment = 'dest' | 'dates' | 'people' | 'alt'
-
-interface Suggestion {
-  text: string
-  /** Vrai pour un nom de station, faux pour un nom de domaine. */
-  station: boolean
-}
 
 export function SearchBar(): JSX.Element {
   const { state, patch, domains } = useApp()
@@ -58,20 +56,10 @@ export function SearchBar(): JSX.Element {
     return () => window.removeEventListener('pointerdown', away)
   }, [open])
 
-  const suggestions = useMemo<Suggestion[]>(() => {
-    const q = state.domainQuery.trim().toLowerCase()
+  const suggestions = useMemo<PlaceSuggestion[]>(() => {
+    const q = state.domainQuery.trim()
     if (q.length < MIN_QUERY) return []
-    const seen = new Set<string>()
-    const out: Suggestion[] = []
-    const push = (text: string, station: boolean): void => {
-      const key = text.toLowerCase()
-      if (seen.has(key)) return
-      seen.add(key)
-      out.push({ text, station })
-    }
-    for (const d of domains) if (d.name.toLowerCase().includes(q)) push(d.name, false)
-    for (const s of V25_STATIONS) if (s.toLowerCase().includes(q)) push(s, true)
-    return out.slice(0, MAX_SUGGESTIONS)
+    return placeIndex(domains).suggest(q, MAX_SUGGESTIONS)
   }, [state.domainQuery, domains])
 
   const listOpen = open === 'dest' && suggestions.length > 0
@@ -100,7 +88,9 @@ export function SearchBar(): JSX.Element {
     }
     if (e.key === 'Enter') {
       const picked = listOpen && cursor >= 0 ? suggestions[cursor] : null
-      go(picked ? picked.text : state.domainQuery)
+      // Sans sélection, la saisie libre part telle quelle : `matchesFilters`
+      // lit le même index et sait déjà résoudre un nom de village.
+      go(picked ? picked.query : state.domainQuery)
     }
   }
 
@@ -134,15 +124,21 @@ export function SearchBar(): JSX.Element {
         {listOpen && (
           <ul className="sb__list" id="sb-dest-list" role="listbox">
             {suggestions.map((s, i) => (
-              <li key={`${s.station ? 's' : 'd'}-${s.text}`} role="option" aria-selected={i === cursor}>
+              <li key={`${s.kind}-${s.label}-${s.query}`} role="option" aria-selected={i === cursor}>
                 <button
                   type="button"
                   className={`sb__opt${i === cursor ? ' sb__opt--on' : ''}`}
                   onMouseEnter={() => setCursor(i)}
-                  onClick={() => go(s.text)}
+                  onClick={() => go(s.query)}
                 >
-                  <span className="sb__opt-name">{s.text}</span>
-                  <span className="sb__opt-kind">{s.station ? t('sb_station') : t('sb_domain')}</span>
+                  <span className="sb__opt-name">{s.label}</span>
+                  {/* « Montchavin · Paradiski » : le lieu, puis le domaine
+                      auquel il mène. Sans le second, deux villages homonymes
+                      de deux massifs sont indiscernables dans la liste. */}
+                  {s.context && <span className="sb__opt-context">· {s.context}</span>}
+                  <span className="sb__opt-kind">
+                    {s.kind === 'domain' ? t('sb_domain') : s.kind === 'area' ? t('sb_area') : t('sb_village')}
+                  </span>
                 </button>
               </li>
             ))}

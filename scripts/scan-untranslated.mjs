@@ -62,8 +62,18 @@ const DIRS = ['components', 'pages', 'data', 'domain']
  * « Val d'Isère » — recopiés de `tools/skitrack_v25.py`. Ils ne se traduisent
  * pas : ce sont les clés envoyées aux moteurs de réservation et la charnière
  * avec le collecteur. Les traduire les casserait.
+ *
+ * `data/places.ts` est du même bois : des noms de hameaux et de fronts de
+ * neige — « Val Claret », « Les Brévières », « Le Monêtier-les-Bains » — qui
+ * servent de termes de recherche. Un toponyme ne se traduit pas, et le traduire
+ * empêcherait de le retrouver en le tapant.
  */
-const DELIBERATE = new Set(['pages/LegalSection.tsx', 'i18n/index.ts', 'data/stations.ts'])
+const DELIBERATE = new Set([
+  'pages/LegalSection.tsx',
+  'i18n/index.ts',
+  'data/stations.ts',
+  'data/places.ts'
+])
 
 /**
  * Chaînes qui ne doivent PAS être traduites.

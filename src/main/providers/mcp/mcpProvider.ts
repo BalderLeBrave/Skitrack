@@ -38,6 +38,7 @@ import type {
   SearchParams
 } from '../types'
 import { nowIso } from '../types'
+import { boxAround, coordsUsable } from '@shared/geo'
 import { McpClient, type McpServerConfig } from './client'
 
 /** Champs du modèle pivot qu'une configuration peut alimenter. */
@@ -89,11 +90,24 @@ export function searchContext(params: SearchParams): Record<string, unknown> {
       ? Math.round((Date.parse(params.checkOut) - Date.parse(params.checkIn)) / 86_400_000)
       : undefined
 
+  // Emprise de la zone, pour les serveurs qui bornent par une boîte plutôt que
+  // par un rayon. Absente si l'appelant n'a pas donné de coordonnées : les
+  // jetons sans valeur font disparaître leur argument, ce qui est exactement le
+  // comportement voulu — mieux vaut une recherche par nom qu'une boîte fausse.
+  const box =
+    coordsUsable(params.latitude, params.longitude) && params.radiusMeters
+      ? boxAround(params.latitude as number, params.longitude as number, params.radiusMeters / 1000)
+      : null
+
   return {
     destination: params.destination,
     lat: params.latitude,
     lon: params.longitude,
     radius: params.radiusMeters,
+    south: box?.south,
+    west: box?.west,
+    north: box?.north,
+    east: box?.east,
     checkIn: params.checkIn,
     checkOut: params.checkOut,
     adults: params.adults,

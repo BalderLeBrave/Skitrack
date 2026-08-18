@@ -32,7 +32,8 @@ import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
 import { debugLog } from './debug'
-import type { AggregateResult, SearchParams } from './types'
+import type { AggregateResult, ProviderOutcome, SearchParams } from './types'
+import { OUT_OF_ZONE_MARGIN_KM, coordsUsable, filterToZone, searchZone } from '@shared/geo'
 
 export interface EngineOptions {
   /** Active les scrapers Playwright (Booking, centrales de station). */
@@ -84,6 +85,75 @@ export function buildEngine(options: EngineOptions): SearchEngine {
 }
 
 /**
+ * Rayon de recherche par défaut, en mètres, quand l'appelant n'en donne pas.
+ *
+ * Volontairement modeste : mieux vaut manquer un hameau d'accès que ramener la
+ * vallée entière. L'appelant qui connaît la taille du domaine passe son propre
+ * rayon — voir `domainRadiusKm` dans `@shared/geo`.
+ */
+const DEFAULT_RADIUS_M = 12_000
+
+/**
+ * Écarte les résultats hors de la zone du domaine, source par source.
+ *
+ * C'est le filet de sécurité du comparateur, et il est posé ici plutôt que dans
+ * chaque connecteur pour une raison simple : la plupart des sources ne savent
+ * pas chercher autrement que par un nom, et un nom de station française a des
+ * homonymes — d'autres communes, d'autres régions, d'autres pays. Une réponse
+ * hors zone n'est donc pas une anomalie de connecteur mais la réponse normale à
+ * une question ambiguë. La question est resserrée en amont quand la source
+ * l'accepte ; ce qui passe malgré tout est arrêté ici.
+ *
+ * Le filtre s'applique aux `outcomes` et pas seulement à la liste finale : le
+ * compte par source affiché à l'utilisateur doit être celui des offres qu'il
+ * verra, pas celui des offres reçues.
+ */
+function keepInZone(outcomes: ProviderOutcome[], params: SearchParams): ProviderOutcome[] {
+  if (!coordsUsable(params.latitude, params.longitude)) return outcomes
+
+  const zone = searchZone(
+    params.latitude as number,
+    params.longitude as number,
+    (params.radiusMeters ?? DEFAULT_RADIUS_M) / 1000
+  )
+
+  let rejected = 0
+  let unlocated = 0
+  const filtered = outcomes.map((outcome) => {
+    const result = filterToZone(outcome.results, zone, (item) => ({
+      lat: item.latitude,
+      lon: item.longitude
+    }))
+    if (result.rejected.length > 0) {
+      debugLog('Zone', 'Number of out-of-zone results', {
+        provider: outcome.provider,
+        rejected: result.rejected.length,
+        // Les trois premiers rejets nommés : un compte seul ne dit pas *quoi*
+        // la source a cru comprendre, et c'est cela qu'on veut lire au premier
+        // signalement d'un logement à l'autre bout du pays.
+        examples: result.rejected.slice(0, 3).map((r) => `${r.title} (${r.city ?? '?'})`)
+      })
+    }
+    rejected += result.rejected.length
+    unlocated += result.unlocated
+    return { ...outcome, results: result.kept }
+  })
+
+  debugLog('Zone', 'Number of results kept in zone', {
+    centre: `${zone.lat.toFixed(4)},${zone.lon.toFixed(4)}`,
+    radiusKm: zone.radiusKm,
+    marginKm: OUT_OF_ZONE_MARGIN_KM,
+    kept: filtered.reduce((n, o) => n + o.results.length, 0),
+    rejected,
+    // Retenus sans position publiée : ni validés ni rejetés, et il faut le
+    // savoir avant de conclure que la zone est propre.
+    unlocated
+  })
+
+  return filtered
+}
+
+/**
  * Recherche agrégée.
  *
  * Les sources sont interrogées en parallèle et **chaque échec reste local** :
@@ -101,12 +171,13 @@ export async function aggregateResults(
   only?: string[]
 ): Promise<AggregateResult> {
   const report = await engine.search(params, only)
+  const outcomes = keepInZone(report.outcomes, params)
 
   /** Prix comparable d'une offre, `null` si la source n'en donne pas d'exploitable. */
   const priceOf = (item: { totalPrice?: number; nightlyPrice?: number }): number | null =>
     item.totalPrice ?? item.nightlyPrice ?? null
 
-  const listings = report.outcomes.flatMap((outcome) => outcome.results).sort((a, b) => {
+  const listings = outcomes.flatMap((outcome) => outcome.results).sort((a, b) => {
     const left = priceOf(a)
     const right = priceOf(b)
     // Sans prix, on passe derrière — jamais devant avec un zéro implicite.
@@ -117,16 +188,19 @@ export async function aggregateResults(
   })
 
   debugLog('Aggregate', 'Number of deduplicated results', {
-    listings: report.totalListings,
+    listings: listings.length,
     properties: report.properties.length,
-    errors: report.outcomes.filter((o) => o.error).length
+    errors: outcomes.filter((o) => o.error).length
   })
 
   return {
     listings,
     // Une seule redirection aujourd'hui ; la forme accepte les suivantes.
     redirects: [airbnbRedirect(params)],
-    outcomes: report.outcomes,
-    totalListings: report.totalListings
+    outcomes,
+    // Le total annoncé est celui des offres rendues, pas celui des offres
+    // reçues : un compte qui inclurait les rejets hors zone décrirait une liste
+    // que personne ne voit.
+    totalListings: listings.length
   }
 }

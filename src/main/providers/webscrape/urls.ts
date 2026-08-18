@@ -19,10 +19,12 @@ export function bookingSearchUrl(params: SearchParams): string {
   u.searchParams.set('group_children', String(params.children ?? 0))
   u.searchParams.set('no_rooms', '1')
   u.searchParams.set('selected_currency', 'EUR')
-  if (params.latitude != null && params.longitude != null) {
-    u.searchParams.set('latitude', String(params.latitude))
-    u.searchParams.set('longitude', String(params.longitude))
-  }
+  // Pas de `latitude`/`longitude` : Booking ne borne pas sa recherche sur ces
+  // paramètres-là, il les ignore. Les poser donnait l'illusion d'une recherche
+  // géographique alors que seule la chaîne `ss` était lue — et une chaîne comme
+  // « Les Arcs » ramène aussi bien la Savoie que la Gironde. Le rattachement au
+  // domaine est vérifié en aval, sur les coordonnées des résultats
+  // (`keepInZone`, providers/index.ts).
   return u.toString()
 }
 

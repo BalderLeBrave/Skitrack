@@ -17,6 +17,7 @@ import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
 import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearch'
 import { runProviderSearch, sourceLabelOf } from '@/data/runProviderSearch'
 import { hasCoords } from '@/data/referentiel'
+import { domainRadiusKm, domainZone } from '@shared/geo'
 import { WEEKS } from '@/data/snow'
 import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
@@ -280,13 +281,18 @@ export function LodgingsPage(): JSX.Element {
           children: state.children,
           capacity: state.travelers,
           nights: derived.nights,
-          imported: state.imported
+          imported: state.imported,
+          zone: hasCoords(d) ? domainZone(d) : null
         }),
         runProviderSearch({
           domainId: d.id,
           domainName: d.name,
           lat: hasCoords(d) ? d.lat : undefined,
           lon: hasCoords(d) ? d.lon : undefined,
+          // Le rayon suit la taille du domaine : sans lui, chaque connecteur
+          // retombait sur son propre défaut, et le filtre de zone appliqué en
+          // aval n'avait pas la même emprise que la recherche.
+          radiusMeters: hasCoords(d) ? domainRadiusKm(d.km) * 1000 : undefined,
           checkIn: state.arrDate,
           checkOut: state.depDate,
           adults: state.travelers,

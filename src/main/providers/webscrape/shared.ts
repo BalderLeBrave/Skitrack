@@ -189,6 +189,7 @@ export function baseAccommodation(
     images?: string[]
     bedrooms?: number
     guests?: number
+    country?: string
   },
   params: SearchParams
 ): Accommodation {
@@ -201,8 +202,12 @@ export function baseAccommodation(
     url: partial.url,
     latitude: partial.latitude,
     longitude: partial.longitude,
-    city: partial.city ?? params.destination,
-    country: 'FR',
+    // Ni ville ni pays inventés. Écrire `city: params.destination` faisait dire
+    // « Val Thorens » à une annonce que la source avait trouvée ailleurs, et
+    // « FR » à un logement dont personne n'avait vérifié le pays : c'est
+    // exactement ce qui rendait un résultat hors zone indiscernable d'un bon.
+    city: partial.city,
+    country: partial.country,
     checkIn: params.checkIn,
     checkOut: params.checkOut,
     guests: partial.guests ?? params.adults,

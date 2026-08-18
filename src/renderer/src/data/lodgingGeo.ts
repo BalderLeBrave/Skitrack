@@ -21,9 +21,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Lodging } from './lodgings'
 import type { Domain } from './referentiel'
+import { domainRadiusKm } from '@shared/geo'
 
-/** Au-delà, l'annonce n'est plus dans le périmètre du domaine. */
-const MAX_KM_FROM_DOMAIN = 14
+/**
+ * Au-delà, l'annonce n'est plus dans le périmètre du domaine.
+ *
+ * Dérivé de la taille du domaine et non figé : quatorze kilomètres écartaient à
+ * tort des hébergements de Courchevel quand le centroïde des 3 Vallées tombe du
+ * côté de Val Thorens, et laissaient passer la vallée voisine d'un téléski des
+ * Vosges. C'est le **même** rayon que celui envoyé aux sources — un logement
+ * accepté par la recherche ne peut plus être déclaré hors périmètre par la
+ * carte. Voir `@shared/geo`.
+ */
+function maxKmFromDomain(d: Domain): number {
+  return domainRadiusKm(d.km)
+}
 /** Au-dessus du front de neige de plus que ça : le point est en montagne. */
 const ALT_ABOVE_MAX = 400
 /** Sous le front de neige de plus que ça : fond de vallée. */
@@ -132,7 +144,7 @@ export function geoStatus(
 
   // Une position publiée trop loin du domaine n'est pas un doute mais une
   // erreur de rattachement : elle est signalée avant même toute vérification.
-  if (!est && km > MAX_KM_FROM_DOMAIN) {
+  if (!est && km > maxKmFromDomain(d)) {
     return { ...base, level: 'bad', txt: `à ${km.toFixed(1)} km du domaine — hors périmètre` }
   }
   if (!g || g.alt === undefined) {

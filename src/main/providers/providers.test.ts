@@ -21,6 +21,15 @@ import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import type { SearchParams } from './types'
+import {
+  OUT_OF_ZONE_MARGIN_KM,
+  boxContains,
+  distanceKm,
+  domainRadiusKm,
+  filterToZone,
+  searchZone,
+  zoneVerdict
+} from '@shared/geo'
 
 let failures = 0
 
@@ -347,6 +356,97 @@ async function main(): Promise<void> {
       console.log('  (non compté comme échec — relancer avec PROVIDERS_OFFLINE=true pour ignorer)')
     }
   }
+
+  heading('11. Zone géographique — emprise du domaine et rejet des hors-zone')
+
+  /**
+   * Coordonnées **lues dans le référentiel livré** (`data/referentiel.json`),
+   * pas estimées : ce sont celles que l'application envoie réellement aux
+   * sources. Trois domaines de tailles très différentes, parce que c'est
+   * exactement ce qu'une emprise fixe rate — les 3 Vallées débordent d'une
+   * petite boîte, un domaine des Vosges se noie dans une grande.
+   */
+  const PARIS = { lat: 48.8566, lon: 2.3522 }
+
+  // — Les 3 Vallées, vues depuis Val Thorens – Orelle (150 km de pistes).
+  const troisVallees = searchZone(45.298, 6.58, domainRadiusKm(150))
+  const stations3V = [
+    { name: 'Val Thorens', lat: 45.298, lon: 6.58 },
+    { name: 'Les Menuires – Saint-Martin', lat: 45.325, lon: 6.539 },
+    { name: 'Méribel', lat: 45.396, lon: 6.566 },
+    { name: 'Courchevel', lat: 45.415, lon: 6.635 },
+    { name: 'Orelle', lat: 45.216, lon: 6.548 },
+    { name: 'Brides-les-Bains', lat: 45.452, lon: 6.567 }
+  ]
+  check(
+    'Les 3 Vallées — les six stations du domaine sont dans la boîte',
+    stations3V.every((st) => boxContains(troisVallees, st.lat, st.lon)),
+    stations3V.filter((st) => !boxContains(troisVallees, st.lat, st.lon)).map((st) => st.name)
+  )
+  check('Les 3 Vallées — Paris est hors de la boîte', !boxContains(troisVallees, PARIS.lat, PARIS.lon))
+
+  // — Paradiski, vu depuis La Plagne (225 km de pistes).
+  const paradiski = searchZone(45.507, 6.678, domainRadiusKm(225))
+  const stationsParadiski = [
+    { name: 'La Plagne', lat: 45.507, lon: 6.678 },
+    { name: 'Les Arcs – Peisey-Vallandry', lat: 45.572, lon: 6.829 },
+    { name: 'Champagny-en-Vanoise', lat: 45.462, lon: 6.716 },
+    { name: 'Montchavin – Les Coches', lat: 45.567, lon: 6.735 },
+    { name: 'Villaroger', lat: 45.611, lon: 6.899 }
+  ]
+  check(
+    'Paradiski — les cinq stations du domaine sont dans la boîte',
+    stationsParadiski.every((st) => boxContains(paradiski, st.lat, st.lon)),
+    stationsParadiski.filter((st) => !boxContains(paradiski, st.lat, st.lon)).map((st) => st.name)
+  )
+  check('Paradiski — Paris est hors de la boîte', !boxContains(paradiski, PARIS.lat, PARIS.lon))
+
+  // — Le Lac Blanc – Orbey, Vosges (14 km de pistes) : la boîte doit rester
+  //   petite, sinon le rayon ne sert à rien.
+  const lacBlanc = searchZone(48.13, 7.104, domainRadiusKm(14))
+  check('Vosges — la station est dans sa propre boîte', boxContains(lacBlanc, 48.13, 7.104))
+  check('Vosges — Paris est hors de la boîte', !boxContains(lacBlanc, PARIS.lat, PARIS.lon))
+  check('Vosges — Colmar (18 km à l’est) est hors de la boîte', !boxContains(lacBlanc, 48.0794, 7.3585))
+  check(
+    'Vosges — un petit domaine reçoit une emprise plus petite qu’un grand',
+    lacBlanc.radiusKm < troisVallees.radiusKm && troisVallees.radiusKm < paradiski.radiusKm,
+    { vosges: lacBlanc.radiusKm, troisVallees: troisVallees.radiusKm, paradiski: paradiski.radiusKm }
+  )
+
+  // — Le piège du rayon en degrés : la boîte doit être plus large en degrés de
+  //   longitude que de latitude, sans quoi le rayon est faux d’un tiers.
+  const dLat = troisVallees.north - troisVallees.lat
+  const dLon = troisVallees.east - troisVallees.lon
+  check('boîte corrigée du cosinus de la latitude', dLon > dLat * 1.3, { dLat, dLon })
+  check(
+    'le bord nord est bien à la distance du rayon',
+    Math.abs(distanceKm(troisVallees.lat, troisVallees.lon, troisVallees.north, troisVallees.lon) - troisVallees.radiusKm) < 0.5
+  )
+  check(
+    'le bord est aussi',
+    Math.abs(distanceKm(troisVallees.lat, troisVallees.lon, troisVallees.lat, troisVallees.east) - troisVallees.radiusKm) < 0.5
+  )
+
+  // — Verdict par annonce, et filtre de l’agrégat.
+  check('annonce dans la station : retenue', zoneVerdict(troisVallees, 45.3, 6.58) === 'in')
+  check('annonce à Paris : rejetée', zoneVerdict(troisVallees, PARIS.lat, PARIS.lon) === 'out')
+  check('annonce sans position : verdict inconnu, pas un rejet', zoneVerdict(troisVallees, undefined, undefined) === 'unknown')
+  check(
+    'la marge est appliquée, pas ignorée',
+    zoneVerdict(troisVallees, 45.298 + (troisVallees.radiusKm + OUT_OF_ZONE_MARGIN_KM - 1) / 110.574, 6.58) === 'in' &&
+      zoneVerdict(troisVallees, 45.298 + (troisVallees.radiusKm + OUT_OF_ZONE_MARGIN_KM + 2) / 110.574, 6.58) === 'out'
+  )
+
+  const mixed = [
+    { title: 'Résidence à Val Thorens', latitude: 45.297, longitude: 6.581 },
+    { title: 'Studio à Paris 15e', latitude: PARIS.lat, longitude: PARIS.lon },
+    { title: 'Appartement à Barcelone', latitude: 41.3874, longitude: 2.1686 },
+    { title: 'Chalet sans position', latitude: undefined, longitude: undefined }
+  ]
+  const zoned = filterToZone(mixed, troisVallees, (a) => ({ lat: a.latitude, lon: a.longitude }))
+  check('deux hors-zone rejetés', zoned.rejected.length === 2, zoned.rejected.map((a) => a.title))
+  check('aucune autre ville dans le résultat', !zoned.kept.some((a) => /Paris|Barcelone/.test(a.title)))
+  check('annonce sans position conservée et comptée à part', zoned.unlocated === 1 && zoned.kept.length === 2)
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

@@ -8,6 +8,7 @@ import { parseAirbnbClipboard } from '@/data/airbnbClip'
 import { mergeAirbnbPaste } from '@/data/airbnbMerge'
 import { AIRBNB_BOOKMARKLET_LABEL, buildBookmarkletHref } from '@/data/airbnbBookmarklet'
 import { deepLinks } from '@/data/deeplinks'
+import { boxAround, domainRadiusKm } from '@shared/geo'
 import { stationNameOf } from '@/data/stations'
 import { enrichWithAccess } from '@/data/lodgingAccess'
 import type { Lodging } from '@/data/lodgings'
@@ -223,15 +224,16 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
     setOsmBusy(true)
     setBulkLog(['Recherche des hébergements du domaine sur OpenStreetMap…'])
     try {
-      // Emprise ≈ 6 km de côté autour du centre du domaine. La station et ses
-      // villages d'accès y tiennent ; on ne ramène pas la vallée entière.
-      const dLat = 0.03
-      const dLon = 0.045
+      // Emprise dérivée de la taille du domaine, en kilomètres et non en
+      // degrés : un degré de longitude vaut 78 km à 45° de latitude et 111 km
+      // à l'équateur, si bien qu'une emprise fixe en degrés était trop étroite
+      // dans les Pyrénées et trop large dans les Vosges. Voir `@shared/geo`.
+      const box = boxAround(d.lat, d.lon, domainRadiusKm(d.km))
       const results = await window.skitrack.osmLodgings({
-        south: d.lat - dLat,
-        west: d.lon - dLon,
-        north: d.lat + dLat,
-        east: d.lon + dLon,
+        south: box.south,
+        west: box.west,
+        north: box.north,
+        east: box.east,
         destination: stationNameOf(d.name) || d.name,
         checkIn: state.arrDate,
         checkOut: state.depDate,

@@ -8,6 +8,8 @@ import { mergeAirbnbPaste } from './airbnbMerge'
 import { enrichWithAccess } from './lodgingAccess'
 import type { Lodging } from './lodgings'
 import { stationNameOf } from './stations'
+import type { SearchZone } from '@shared/geo'
+import { filterToZone } from '@shared/geo'
 
 /** Délai max global de la recherche (ms). Couvre retries Playwright inclus. */
 export const AIRBNB_SEARCH_TIMEOUT_MS = 120_000
@@ -23,6 +25,17 @@ export interface RunAirbnbSearchParams {
   capacity: number
   nights: number
   imported: Lodging[]
+  /**
+   * Zone du domaine. Les annonces dont Airbnb publie une position hors de cette
+   * zone sont écartées avant fusion.
+   *
+   * Le relevé part d'un **nom** de station, seul format qu'Airbnb accepte dans
+   * son chemin d'URL, et un nom a des homonymes. Le scraper n'a aucun moyen de
+   * le savoir ; c'est ici, où le domaine est connu, que la question se tranche.
+   * Absente si le domaine n'a pas de coordonnées : on ne rejette rien sur une
+   * zone qu'on ne sait pas tracer.
+   */
+  zone?: SearchZone | null
   /** Override timeout global (ms). */
   timeoutMs?: number
 }
@@ -116,7 +129,28 @@ export async function runAirbnbSearch(
     }
   }
 
-  const { imported, added, updated, missing } = mergeAirbnbPaste(params.imported, listings, {
+  // Rattachement géographique. Les annonces sans position publiée sont
+  // conservées — Airbnb n'en donne pas toujours — mais celles qu'il place
+  // ailleurs sont écartées ici, avant qu'elles n'entrent dans la liste.
+  const zoned = params.zone
+    ? filterToZone(listings, params.zone, (l) => ({ lat: l.lat, lon: l.lon }))
+    : { kept: listings, rejected: [], unlocated: listings.length }
+  if (zoned.rejected.length > 0) {
+    console.info(
+      `[SKITRACK] Airbnb : ${zoned.rejected.length} annonce(s) hors de la zone du domaine, écartée(s) —`,
+      zoned.rejected.slice(0, 5).map((l) => l.name)
+    )
+  }
+  if (zoned.kept.length === 0) {
+    return {
+      ok: false,
+      error:
+        `Les ${listings.length} annonce(s) rendues par Airbnb sont toutes hors du périmètre du domaine. ` +
+        'Le nom de station envoyé a probablement été compris comme une autre commune.'
+    }
+  }
+
+  const { imported, added, updated, missing } = mergeAirbnbPaste(params.imported, zoned.kept, {
     checkIn: meta.checkIn ?? params.checkIn,
     checkOut: meta.checkOut ?? params.checkOut,
     domainId: params.domainId,
@@ -131,9 +165,9 @@ export async function runAirbnbSearch(
       imported,
       added: 0,
       updated: 0,
-      count: listings.length,
+      count: zoned.kept.length,
       missing,
-      message: `Les ${listings.length} annonce(s) sont déjà à jour.`
+      message: `Les ${zoned.kept.length} annonce(s) sont déjà à jour.`
     }
   }
 
@@ -144,6 +178,10 @@ export async function runAirbnbSearch(
   const parts = [
     `${added.length} nouvelle(s)`,
     updated > 0 ? `${updated} prix actualisé(s)` : null,
+    // Le rejet géographique se dit : une recherche qui rend moins d'annonces
+    // que la page Airbnb n'en montrait doit expliquer où sont passées les
+    // autres, sinon le relevé passe pour incomplet.
+    zoned.rejected.length > 0 ? `${zoned.rejected.length} hors zone écartée(s)` : null,
     outcome.captchaSolved ? 'CAPTCHA validé' : null,
     outcome.attempts && outcome.attempts > 1 ? `essai ${outcome.attempts}` : null
   ].filter(Boolean)
@@ -153,7 +191,7 @@ export async function runAirbnbSearch(
     imported: finalList,
     added: added.length,
     updated,
-    count: outcome.count,
+    count: zoned.kept.length,
     missing,
     message: parts.join(' · ') + (note ? ` — ${note}` : '')
   }

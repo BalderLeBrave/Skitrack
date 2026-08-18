@@ -4,7 +4,9 @@ import { ImportDialog } from '@/components/ImportDialog'
 import { SkiSearchLoading } from '@/components/SkiSearchLoading'
 import { CloseIcon } from '@/components/Icons'
 import { LodgingCard } from '@/components/LodgingCard'
+import { FilterPopover } from '@/components/FilterPopover'
 import { LodgingFilters } from '@/components/LodgingFilters'
+import { useActiveLodgingFilters } from '@/components/activeLodgingFilters'
 import { LodgingGeoPanel } from '@/components/LodgingGeoPanel'
 import { LodgingMap } from '@/components/LodgingMap'
 import { LodgingSheet } from '@/components/LodgingSheet'
@@ -136,6 +138,9 @@ export function LodgingsPage(): JSX.Element {
   const resetLodgFilters = (): void => {
     patch({ ...LODG_FILTER_RESET })
   }
+
+  /** Puces des filtres posés : le pendant de `useActiveFilters` côté logements. */
+  const lodgActive = useActiveLodgingFilters()
 
   /**
    * Annonces dont le prix a été relevé pour d'autres dates que celles en cours.
@@ -554,13 +559,18 @@ export function LodgingsPage(): JSX.Element {
               tactile de 44 px est conservée par le rembourrage de
               `.linkbtn--head`, malgré le retrait du fond. */}
           <header className="lodgings__head">
-            <button
-              type="button"
-              className="linkbtn--head"
-              onClick={() => patch({ lodgFiltersOpen: !state.lodgFiltersOpen })}
+            {/* Même survol ancré que l'écran Recherche : le panneau se pose
+                sous son bouton, la mosaïque reste visible derrière. */}
+            <FilterPopover
+              open={state.lodgFiltersOpen}
+              onToggle={() => patch({ lodgFiltersOpen: !state.lodgFiltersOpen })}
+              onClose={() => patch({ lodgFiltersOpen: false })}
+              label={t('filters')}
+              count={lodgActive.active.length}
+              buttonClassName="linkbtn--head"
             >
-              {state.lodgFiltersOpen ? `◂ ${t('filters')}` : `▸ ${t('filters')}`}
-            </button>
+              <LodgingFilters />
+            </FilterPopover>
             <h2 className="results__count">{derived.lodgList.length} logement(s)</h2>
             <span className="u-muted" style={{ fontSize: 12 }}>
               prix tout compris, {derived.nights} nuit(s), {state.travelers} personnes · offres de moins d’une heure
@@ -641,19 +651,26 @@ export function LodgingsPage(): JSX.Element {
             <span className="lodgsnow__lifts">
               {d.lifts} {t('lifts_plural')} · {fmt(d.min)}–{fmt(d.max)} m
             </span>
-            <span className="u-spacer" />
-            {/* Puce des filtres posés : une liste courte doit dire si elle est
-                courte parce qu'un filtre l'a raccourcie. */}
-            {derived.lodgHidden > 0 && derived.lodgList.length > 0 && (
-              <button type="button" className="chip" onClick={resetLodgFilters} title={t('filter_clear_all')}>
-                {derived.lodgHidden} <span className="u-muted">✕</span>
-              </button>
-            )}
           </div>
 
-          {state.lodgFiltersOpen && (
-            <div className="filterpop">
-              <LodgingFilters />
+          {/* Rangée de puces des filtres posés, au-dessus de la mosaïque et
+              visible panneau fermé. Depuis que le réglage est un survol qu'on
+              referme, c'est elle qui dit pourquoi la liste est courte — sans
+              quoi un budget oublié passe pour une recherche infructueuse. */}
+          {lodgActive.active.length > 0 && (
+            <div className="filterchips">
+              {lodgActive.active.map((f) => (
+                <button key={f.key} type="button" className="chip" onClick={f.clear} title={t('filter_clear_all')}>
+                  {f.label} <span className="u-muted">✕</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                className="linkbtn linkbtn--sm u-nowrap"
+                onClick={lodgActive.resetAll}
+              >
+                {t('filter_clear_all')}
+              </button>
             </div>
           )}
 

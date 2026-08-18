@@ -1562,6 +1562,13 @@ const CATALOG = {
     'Prezzo tutto compreso: pulizie, tassa di soggiorno e costi di servizio inclusi.',
     'Alles-in-prys: skoonmaak, toeristebelasting en diensfooie ingesluit.'
   ],
+  lodg_src_hidden: ['masquée', 'hidden', 'ausgeblendet', 'verborgen',
+    'oculta', 'nascosta', 'versteek'],
+  lodg_free_cancel: [
+    'Annulation gratuite uniquement', 'Free cancellation only', 'Nur kostenlose Stornierung',
+    'Alleen gratis annulering', 'Solo cancelación gratuita', 'Solo cancellazione gratuita',
+    'Slegs gratis kansellasie'
+  ],
   sources_label: ['Sources', 'Sources', 'Quellen', 'Bronnen', 'Fuentes', 'Fonti', 'Bronne'],
   // --- Panneau « État du relevé » ------------------------------------------
   scan_running: ['Relevé en cours…', 'Search running…', 'Abfrage läuft…', 'Zoekopdracht loopt…', 'Búsqueda en curso…', 'Rilevamento in corso…', 'Soektog aan die gang…'],

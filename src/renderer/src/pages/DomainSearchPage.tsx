@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { DomainCard } from '@/components/DomainCard'
 import { DomainMap } from '@/components/DomainMap'
 import { FilterPanel } from '@/components/FilterPanel'
+import { FilterPopover } from '@/components/FilterPopover'
 import { useActiveFilters } from '@/components/activeFilters'
 import { SearchIcon } from '@/components/Icons'
 import { api, isClientReady } from '@/api/client'
@@ -252,13 +253,19 @@ export function DomainSearchPage(): JSX.Element {
         <WeatherAge />
 
         <header className="results__head">
-          <button
-            type="button"
-            className="btn btn--pill"
-            onClick={() => patch({ searchFiltersOpen: !state.searchFiltersOpen })}
+          {/* Le panneau s'ouvre **sous ce bouton**, en survol : la liste reste
+              visible et se met à jour derrière à chaque mouvement de curseur.
+              En colonne, elle passait sous la ligne de flottaison et on réglait
+              un critère sans voir ce qu'il changeait. */}
+          <FilterPopover
+            open={state.searchFiltersOpen}
+            onToggle={() => patch({ searchFiltersOpen: !state.searchFiltersOpen })}
+            onClose={() => patch({ searchFiltersOpen: false })}
+            label={t('filters')}
+            count={active.length}
           >
-            {state.searchFiltersOpen ? t('filters_hide') : t('filters_show')}
-          </button>
+            <FilterPanel />
+          </FilterPopover>
           <button
             type="button"
             className="btn btn--pill"
@@ -322,12 +329,6 @@ export function DomainSearchPage(): JSX.Element {
             <button type="button" className="linkbtn linkbtn--sm u-nowrap" onClick={resetAll}>
               {t('filter_clear_all')}
             </button>
-          </div>
-        )}
-
-        {state.searchFiltersOpen && (
-          <div className="filterpop">
-            <FilterPanel />
           </div>
         )}
 

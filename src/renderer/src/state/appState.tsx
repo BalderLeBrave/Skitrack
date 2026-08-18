@@ -441,7 +441,9 @@ export const INITIAL_STATE: AppState = {
   domFicheId: null,
   domCamUrl: '',
   braManual: {},
-  searchFiltersOpen: true,
+  // Fermés au démarrage. Le panneau est un survol posé sur la liste : ouvert
+  // d'emblée, il cachait les résultats avant même qu'on ait demandé à filtrer.
+  searchFiltersOpen: false,
   searchMapOpen: true,
   searchFiltersW: 300,
   searchMapW: 460,
@@ -514,7 +516,7 @@ export const INITIAL_STATE: AppState = {
   lodgMapSync: true,
   lodgSplit: 58,
   lodgSrcOff: [],
-  lodgFiltersOpen: true,
+  lodgFiltersOpen: false,
   lodgAnnul: false,
   lodgPhase: 'results',
   lodgSearchMsg: null,
@@ -584,7 +586,10 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
 const PERSISTED_KEYS = [
   'theme', 'lang', 'density', 'snowfall', 'children', 'optRental', 'optLessons',
   'alertMode', 'alertPct', 'alertEur', 'quietHours', 'digest', 'votes',
-  'offresBudget', 'searchFiltersW', 'searchMapW', 'searchSplit', 'searchFiltersOpen', 'searchMapOpen',
+  // `searchFiltersOpen` n'est plus enregistré : c'est l'état d'un survol, pas
+  // un réglage. Le retrouver ouvert au démarrage suivant reposerait un panneau
+  // sur la liste sans que personne ne l'ait demandé.
+  'offresBudget', 'searchFiltersW', 'searchMapW', 'searchSplit', 'searchMapOpen',
   'weights', 'people', 'places', 'esfRates', 'decision', 'mergeDupes', 'cmpRefId',
   'baseMin', 'baseMax', 'summitMin', 'summitMax', 'kmMin', 'kmMax',
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
@@ -682,6 +687,11 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // « bloqué à 10 km ». Seule la valeur du défaut d'alors est relevée : un
   // plancher réglé à la main sur 5 ou 25 km est un choix, et il est conservé.
   if ((saved.prefsSchema ?? 0) < 3 && num(out.kmMin) === 10) out.kmMin = 0
+
+  // `searchFiltersOpen` a cessé d'être un réglage enregistré le jour où le
+  // panneau est devenu un survol. La valeur laissée sur le disque rouvrirait
+  // le panneau sur la liste au démarrage suivant, une fois, sans raison.
+  delete out.searchFiltersOpen
 
   return out as Partial<AppState>
 }

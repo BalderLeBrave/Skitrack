@@ -57,13 +57,82 @@ export function fold(value: string): string {
 /** Articles français qu'on ne tape pas toujours : « les 2 alpes » / « 2 alpes ». */
 const ARTICLES = new Set(['le', 'la', 'les', 'l', 'du', 'de', 'des', 'd', 'aux', 'au'])
 
+/**
+ * Nombres écrits en lettres → chiffres.
+ *
+ * Le référentiel écrit « Les 3 Vallées », « Les 7 Laux », « Aime 2000 » — en
+ * chiffres. L'utilisateur, lui, tape aussi bien « Les Trois Vallées » ou
+ * « Aime deux mille », et ces saisies ne ramenaient rien. C'était le dernier
+ * manque réel de l'index, et il vaut dans les deux sens : la conversion est
+ * appliquée à l'indexation **et** à la saisie, par la même fonction, sans quoi
+ * les deux formes ne se rencontreraient jamais.
+ *
+ * Les altitudes des noms de stations en dépendent aussi : « Arc mille huit
+ * cents » doit rejoindre « Arc 1800 ».
+ */
+const UNITS: Record<string, number> = {
+  un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9,
+  dix: 10, onze: 11, douze: 12, treize: 13, quatorze: 14, quinze: 15, seize: 16,
+  vingt: 20, trente: 30, quarante: 40, cinquante: 50, soixante: 60
+}
+/** Multiplicateurs : ils agissent sur ce qui précède, pas sur eux-mêmes. */
+const HUNDRED = new Set(['cent', 'cents'])
+const THOUSAND = new Set(['mille', 'milles'])
+
+function isNumberWord(word: string): boolean {
+  return word in UNITS || HUNDRED.has(word) || THOUSAND.has(word)
+}
+
+/**
+ * Valeur d'une suite ininterrompue de mots-nombres.
+ *
+ * « deux mille » vaut 2 000 et non « 2 » puis « 1000 » : un multiplicateur
+ * agit sur ce qui le précède. « quatre-vingts » vaut 80 pour la même raison —
+ * `vingt` derrière une unité multiplie au lieu d'additionner, ce qui est la
+ * seule irrégularité du français à traiter ici.
+ */
+function numberFromWords(words: string[]): number {
+  let total = 0
+  let current = 0
+  for (const word of words) {
+    if (THOUSAND.has(word)) {
+      total += (current || 1) * 1000
+      current = 0
+      continue
+    }
+    if (HUNDRED.has(word)) {
+      current = (current || 1) * 100
+      continue
+    }
+    const value = UNITS[word]
+    if (word === 'vingt' && current >= 2 && current <= 9) current *= 20
+    else current += value
+  }
+  return total + current
+}
+
+/** Remplace chaque suite de mots-nombres par sa valeur chiffrée. */
+function digitsFromWords(words: string[]): string[] {
+  const out: string[] = []
+  for (let i = 0; i < words.length; i++) {
+    if (!isNumberWord(words[i])) {
+      out.push(words[i])
+      continue
+    }
+    let end = i
+    while (end + 1 < words.length && isNumberWord(words[end + 1])) end++
+    out.push(String(numberFromWords(words.slice(i, end + 1))))
+    i = end
+  }
+  return out
+}
+
 /** Forme sans espaces ni articles : « saint-martin » et « stmartin » se rejoignent. */
 export function squash(value: string): string {
-  return fold(value)
+  const words = fold(value)
     .split(' ')
     .filter((word) => word.length > 0 && !ARTICLES.has(word))
-    .join('')
-    .replace(/^st/, 'saint')
+  return digitsFromWords(words).join('').replace(/^st/, 'saint')
 }
 
 /**

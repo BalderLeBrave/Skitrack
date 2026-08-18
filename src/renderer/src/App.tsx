@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { I18nContext, LANGUAGES, LANGUAGE_LABELS, type Language, useI18n } from '@/i18n'
+import { I18nContext, LANGUAGES, LANGUAGE_LABELS, isLanguage, type Language, useI18n } from '@/i18n'
 import { useSidecar } from '@/hooks/useSidecar'
 import { useShortcuts } from '@/hooks/useShortcuts'
 import { AppProvider, useApp } from '@/state/appState'
@@ -21,7 +21,7 @@ import { ReferentialPage } from '@/pages/ReferentialPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { TrackingPage } from '@/pages/TrackingPage'
 
-/** Sélecteur de langue de la barre supérieure : sept langues, une ligne. */
+/** Sélecteur de langue de la barre supérieure : français et anglais. */
 function LangSelect(): JSX.Element {
   const { t, lang, setLang } = useI18n()
   return (
@@ -279,8 +279,13 @@ function Shell(): JSX.Element {
 /** Passerelle i18n : la langue vit dans l'état applicatif, comme le thème. */
 function I18nBridge({ children }: { children: React.ReactNode }): JSX.Element {
   const { state, patch } = useApp()
+  // Une préférence enregistrée peut nommer une langue retirée du catalogue :
+  // on retombe sur le français plutôt que d'afficher des clés.
   const value = useMemo(
-    () => ({ lang: state.lang as Language, setLang: (l: Language) => patch({ lang: l }) }),
+    () => ({
+      lang: isLanguage(state.lang) ? state.lang : 'fr',
+      setLang: (l: Language) => patch({ lang: l })
+    }),
     [state.lang, patch]
   )
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>

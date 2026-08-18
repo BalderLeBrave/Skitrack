@@ -15,7 +15,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { Language } from '@/i18n'
+import { isLanguage, type Language } from '@/i18n'
 import type { BasemapKey } from '@/components/DomainMap'
 import { DEFAULT_BASEMAP } from '@/components/DomainMap'
 import type { Lodging } from '@/data/lodgings'
@@ -710,6 +710,11 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // La valeur précédente n'est pas reportée : elle valait « false » par défaut,
   // et la reprendre reconduirait l'ancien comportement sous un nom neuf.
   delete out.hideGone
+
+  // Le catalogue est passé de sept langues à deux. Une préférence enregistrée
+  // peut encore nommer l'allemand ou l'espagnol : on la retire pour que le
+  // défaut reprenne, plutôt que de la réécrire sur le disque à chaque session.
+  if (!isLanguage(out.lang)) delete out.lang
 
   return out as Partial<AppState>
 }

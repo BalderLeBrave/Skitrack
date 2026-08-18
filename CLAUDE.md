@@ -59,8 +59,8 @@ et `npm test` n'existent pas. Ne les invoque pas.
   afficher « non renseigné », elle ne sait pas rattraper une estimation
   déguisée en mesure. Voir l'en-tête de `src/main/providers/types.ts`.
 - **Tout texte visible passe par `t()`** — `src/renderer/src/i18n/index.ts`,
-  sept langues, index 0 = français. `npm run i18n:scan` tient un plafond de
-  dette qui ne doit que baisser.
+  **français et anglais**, index 0 = français. `npm run i18n:scan` tient un
+  plafond de dette qui ne doit que baisser.
 - **Le référentiel fait foi** pour les domaines, les altitudes et les
   forfaits. Le géocodage ne comble que ses trous, et chaque candidat est
   confronté au modèle d'élévation avant d'être retenu.

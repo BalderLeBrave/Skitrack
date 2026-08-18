@@ -1,15 +1,15 @@
 /**
  * Complétude du catalogue de traduction.
  *
- * Une relecture ne tient pas à l'échelle : le catalogue dépasse les deux cents
- * entrées et sept langues, soit près de mille cinq cents chaînes. Une entrée
- * courte d'une valeur passe inaperçue et se traduit, à l'exécution, par un mot
- * français au milieu d'une interface allemande — le repli sur l'index 0 étant
- * silencieux par construction.
+ * Une relecture ne tient pas à l'échelle : le catalogue dépasse les cinq cents
+ * entrées. Une entrée courte d'une valeur passe inaperçue et se traduit, à
+ * l'exécution, par un mot français au milieu d'une interface anglaise — le
+ * repli sur l'index 0 étant silencieux par construction.
  *
- * Ce test échoue donc sur toute entrée qui n'a pas exactement sept valeurs, ou
- * qui en a une vide. Il ne juge pas la qualité d'une traduction, seulement sa
- * présence : c'est ce qu'une machine peut vérifier.
+ * Ce test échoue donc sur toute entrée qui n'a pas exactement autant de valeurs
+ * que `LANGUAGES` en déclare, ou qui en a une vide. Il ne juge pas la qualité
+ * d'une traduction, seulement sa présence : c'est ce qu'une machine peut
+ * vérifier.
  *
  *   npx tsx src/renderer/src/i18n/catalog.test.ts
  */

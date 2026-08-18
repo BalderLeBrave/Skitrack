@@ -466,9 +466,12 @@ export const INITIAL_STATE: AppState = {
   baseMax: FILTER_RANGES.base.max,
   summitMin: 0,
   summitMax: FILTER_RANGES.summit.max,
-  // Plancher à 10 km : les micro-stations (téléski isolé, front de neige de
-  // village) ne sont pas des domaines skiables au sens de l'app. Réglable à 0.
-  kmMin: 10,
+  // Plage grande ouverte. Le plancher était à 10 km — « les micro-stations ne
+  // sont pas des domaines skiables au sens de l'app » — mais c'était un
+  // jugement posé à la place de l'utilisateur, appliqué avant qu'il n'ait rien
+  // demandé : les petits domaines des Vosges, du Jura et du Massif central
+  // n'apparaissaient jamais, et rien à l'écran ne disait pourquoi.
+  kmMin: 0,
   kmMax: FILTER_RANGES.km.max,
   travelMin: 0,
   travelMax: FILTER_RANGES.travel.max,
@@ -626,7 +629,7 @@ function purgeLegacyPrefs(): void {
  * par l'utilisateur et ne sont pas touchés.
  */
 /** Version du schéma des préférences écrite sur le disque. */
-const PREFS_SCHEMA = 2
+const PREFS_SCHEMA = 3
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -672,6 +675,13 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
     // plafond de la plage, pas zéro.
     out[range.hi] = hi != null && hi > 0 ? Math.min(hi, range.max) : range.max
   }
+
+  // Schéma 3 : le plancher de 10 km n'est plus un défaut. Une préférence
+  // enregistrée le porte encore, et le filtre resterait posé à vie sur les
+  // machines où l'application a déjà tourné — c'est précisément le symptôme
+  // « bloqué à 10 km ». Seule la valeur du défaut d'alors est relevée : un
+  // plancher réglé à la main sur 5 ou 25 km est un choix, et il est conservé.
+  if ((saved.prefsSchema ?? 0) < 3 && num(out.kmMin) === 10) out.kmMin = 0
 
   return out as Partial<AppState>
 }

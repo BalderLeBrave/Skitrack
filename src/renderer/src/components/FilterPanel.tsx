@@ -98,6 +98,7 @@ export function FilterPanel(): JSX.Element {
           openKey="range_all_sizes"
           format={(v) => `${fmt(v)} km`}
           unit="km"
+          help={t('filter_km_help')}
         />
       </section>
 

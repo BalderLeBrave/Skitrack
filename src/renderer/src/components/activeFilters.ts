@@ -36,7 +36,7 @@ export const FILTER_DEFAULTS = {
   baseMax: FILTER_RANGES.base.max,
   summitMin: 0,
   summitMax: FILTER_RANGES.summit.max,
-  kmMin: 10,
+  kmMin: 0,
   kmMax: FILTER_RANGES.km.max,
   travelMin: 0,
   travelMax: FILTER_RANGES.travel.max,

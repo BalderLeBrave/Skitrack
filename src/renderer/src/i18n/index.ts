@@ -510,6 +510,15 @@ const CATALOG = {
   ],
   sb_domain: ['domaine', 'resort', 'Skigebiet', 'skigebied', 'dominio', 'comprensorio', 'skigebied'],
   sb_station: ['station', 'village', 'Ort', 'dorp', 'estación', 'località', 'dorp'],
+  filter_km_help: [
+    'Les domaines dont les kilomètres de pistes ne sont pas relevés comptent pour zéro : poser un plancher les écarte.',
+    'Resorts whose slope kilometres are not recorded count as zero: setting a floor excludes them.',
+    'Skigebiete ohne erfasste Pistenkilometer zählen als null: Eine Untergrenze schließt sie aus.',
+    'Gebieden zonder geregistreerde pistekilometers tellen als nul: een ondergrens sluit ze uit.',
+    'Los dominios sin kilómetros de pistas registrados cuentan como cero: fijar un mínimo los excluye.',
+    'I comprensori senza chilometri di piste rilevati contano come zero: fissare un minimo li esclude.',
+    'Skigebiede sonder aangetekende pistekilometers tel as nul: ’n ondergrens sluit hulle uit.'
+  ],
   sb_village: ['village', 'village', 'Ort', 'dorp', 'pueblo', 'paese', 'dorp'],
   sb_area: ['forfait relié', 'linked pass', 'Verbundpass', 'gekoppelde pas',
     'forfait vinculado', 'skipass collegato', 'gekoppelde pas'],

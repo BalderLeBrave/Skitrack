@@ -9,9 +9,24 @@
  *
  * Ce composant fait le pont entre l'état applicatif et `RangeSlicer`, qui reste
  * présentationnel : il connaît la clé du filtre, ses bornes et son format.
+ *
+ * ## Deux échelles, et pourquoi
+ *
+ * `FILTER_RANGES` porte l'échelle **sémantique** (0 – 600 km), sur laquelle se
+ * décide si une plage est grande ouverte. `useFilterBounds` rend l'échelle
+ * **réelle**, celle qu'occupent les domaines chargés. Le curseur parcourt la
+ * seconde ; la traduction se fait ici, dans les deux sens :
+ *
+ * * une borne basse posée au plancher du référentiel redevient `spec.min` ;
+ * * une borne haute poussée au plafond du référentiel redevient `spec.max`.
+ *
+ * Sans cette traduction, un curseur poussé à fond aurait laissé une plage
+ * techniquement « posée » — puce active, liste restreinte — alors que l'écran
+ * la montre grande ouverte.
  */
 
 import { RangeSlicer } from './RangeSlicer'
+import { useFilterBounds } from './filterBounds'
 import type { AppState, FilterRangeKey } from '@/state/appState'
 import { FILTER_RANGES, useApp } from '@/state/appState'
 import { rangeOpen } from '@/state/selectors'
@@ -33,16 +48,23 @@ export function RangeFilter({ range, label, openKey, format, unit, help }: Props
   const { state, patch } = useApp()
   const { t } = useI18n()
   const spec = FILTER_RANGES[range]
+  const bounds = useFilterBounds(range)
 
   const lo = state[spec.lo] as number
   const hi = state[spec.hi] as number
   const open = rangeOpen(lo, hi, spec.max)
 
+  // Le curseur ne peut montrer que sa propre échelle : une borne enregistrée
+  // hors de la plage réelle est ramenée à son extrémité, sans être réécrite
+  // dans l'état — la valeur enregistrée reste celle que l'utilisateur a posée.
+  const shownLo = Math.min(bounds.max, Math.max(bounds.min, lo))
+  const shownHi = Math.min(bounds.max, Math.max(bounds.min, hi))
+
   // Une borne haute au plafond ne se lit pas « 2 400 m » mais « sans limite » :
   // c'est ce que le filtre fait, et le plafond n'est qu'un détail d'échelle.
   const valueText = open
     ? t(openKey)
-    : `${format(lo)} – ${hi >= spec.max ? t('range_no_limit') : format(hi)}`
+    : `${format(shownLo)} – ${hi >= spec.max || shownHi >= bounds.max ? t('range_no_limit') : format(shownHi)}`
 
   return (
     <div className="rangefilter">
@@ -51,18 +73,24 @@ export function RangeFilter({ range, label, openKey, format, unit, help }: Props
         <strong className="rangefilter__value u-num">{valueText}</strong>
       </div>
       <RangeSlicer
-        min={spec.min}
-        max={spec.max}
+        min={bounds.min}
+        max={bounds.max}
         step={spec.step}
-        lo={lo}
-        hi={hi}
+        lo={shownLo}
+        hi={shownHi}
         format={format}
         unit={unit}
         label={label}
         loLabel={t('range_low')}
         hiLabel={t('range_high')}
         onChange={(nextLo, nextHi) =>
-          patch({ [spec.lo]: nextLo, [spec.hi]: nextHi } as unknown as Partial<AppState>)
+          patch({
+            // Aux extrémités de l'échelle réelle, on réécrit les bornes
+            // sémantiques : c'est ce qui rend la plage « grande ouverte » et
+            // fait disparaître la puce de filtre actif.
+            [spec.lo]: nextLo <= bounds.min ? spec.min : nextLo,
+            [spec.hi]: nextHi >= bounds.max ? spec.max : nextHi
+          } as unknown as Partial<AppState>)
         }
       />
       {help && <p className="filters__help">{help}</p>}

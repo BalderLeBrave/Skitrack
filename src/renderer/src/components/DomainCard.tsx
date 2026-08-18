@@ -2,6 +2,7 @@ import type { MouseEvent } from 'react'
 import { AltitudeProfile } from './AltitudeProfile'
 import type { Domain } from '@/data/referentiel'
 import { enfantPrice, hasCoords } from '@/data/referentiel'
+import { skiAreaIndex } from '@/data/skiAreas'
 import { snowDepths, snowfallText } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { massifColor } from '@/domain/massif'
@@ -19,7 +20,7 @@ interface Props {
 
 export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Element {
   const { dur, eur, fmt, locale } = useFormat()
-  const { state, patch } = useApp()
+  const { state, patch, domains } = useApp()
   const derived = useDerived()
   const { weatherOf } = useWeather()
   const { t } = useI18n()
@@ -114,6 +115,7 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
     })
   if (d.curated)
     tags.push({ txt: `✓ ${t('tag_verified')}`, title: t('card_checked'), color: 'var(--muted)', soft: 'var(--surface)' })
+  const area = skiAreaIndex(domains).areaOf(d)
   const shownTags = tags.slice(0, 4)
 
   return (
@@ -167,6 +169,36 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
         <p className="domcard__sub">
           {[`${fmt(d.min)} – ${fmt(d.max)} m`, d.region, geoDistTxt].filter(Boolean).join(' · ')}
         </p>
+
+        {/*
+          Badge du domaine skiable.
+          Cette vignette est une **station** ; le domaine est ce qu'elle
+          partage avec ses voisines. Le badge le dit et sert de raccourci : le
+          cliquer réécrit la recherche sur le domaine, donc affiche toutes ses
+          stations. Il ne s'affiche pas pour une station seule — répéter son
+          propre nom n'apprendrait rien.
+
+          Ce qu'il porte est ce que la donnée soutient : le nombre de stations
+          et le point culminant, qui est un maximum. Pas de total de
+          kilomètres — le référentiel n'en a pas, et l'addition des secteurs
+          d'un grand domaine compterait plusieurs fois les mêmes pistes.
+        */}
+        {area && !area.single && (
+          <button
+            type="button"
+            className="domcard__area"
+            title={t('card_area_title')}
+            onClick={(e) => {
+              e.stopPropagation()
+              patch({ domainQuery: area.name, tab: 'recherche' })
+            }}
+          >
+            <span className="domcard__area-name">{area.name}</span>
+            <span className="domcard__area-facts u-num">
+              {t('card_area_stations').replace('{n}', String(area.stations.length))} · {fmt(area.summit)} m
+            </span>
+          </button>
+        )}
 
         {/* Quatre tuiles plutôt que sept données à égalité. Les filets sont
             faits par le fond qui traverse une grille à `gap: 1px` : un jeu de

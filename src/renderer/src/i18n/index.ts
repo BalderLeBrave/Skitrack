@@ -41,7 +41,7 @@ const CATALOG = {
 
   // --- Navigation ---------------------------------------------------------
   nav_home: ['Accueil', 'Home'],
-  nav_search: ['Domaines', 'Resorts'],
+  nav_search: ['Stations', 'Resorts'],
   nav_settings: ['Réglages', 'Settings'],
   nav_lodgings: ['Logements', 'Stays'],
   nav_offers: ['Meilleures offres', 'Best offers'],
@@ -257,6 +257,11 @@ const CATALOG = {
   ],
   sb_village: ['village', 'village'],
   sb_area: ['forfait relié', 'linked pass'],
+  card_area_title: [
+    'Domaine skiable — voir toutes ses stations',
+    'Ski area — show all its resorts'
+  ],
+  card_area_stations: ['{n} stations', '{n} resorts'],
   sb_nearby: ['Stations proches de', 'Resorts near'],
   sb_nearby_busy: ['Recherche par proximité géographique…', 'Searching by geographic proximity…'],
   sb_nearby_none: [
@@ -274,7 +279,7 @@ const CATALOG = {
   home_by_massif_word: ['massif', 'range'],
   home_massif_note: ['{m} massifs, {n} domaines relevés.', '{m} ranges, {n} resorts recorded.'],
   home_massif_count: ['{n} domaines', '{n} resorts'],
-  home_all_domains: ['Voir tous les domaines →', 'See all resorts →'],
+  home_all_domains: ['Voir toutes les stations →', 'See all resorts →'],
   massif_other: ['Autres', 'Other'],
 
   // --- Comparateur de logements --------------------------------------------
@@ -312,7 +317,7 @@ const CATALOG = {
     'Enregistrer avec un texte vide supprime la correction. La ligne d’origine reste calculée dans tous les cas.',
     'Saving with empty text removes the correction. The original line stays computed either way.'
   ],
-  home_stat_domains: ['Domaines au référentiel', 'Resorts in the dataset'],
+  home_stat_domains: ['Stations au référentiel', 'Resorts in the dataset'],
   home_stat_domains_note: ['coordonnées et altitudes vérifiées', 'coordinates and altitudes verified'],
   home_stat_median_pass: ['Forfait 6 jours médian', 'Median 6-day pass'],
   home_stat_median_pass_note: ['tarif adulte relevé', 'recorded adult price'],
@@ -460,8 +465,8 @@ const CATALOG = {
   origin_routes_done: ['itinéraires réels calculés', 'real routes computed'],
 
   // --- Résultats ----------------------------------------------------------
-  results_count: ['domaine(s)', 'resort(s)'],
-  results_empty: ['Aucun domaine ne correspond à ces critères.', 'No resort matches these criteria.'],
+  results_count: ['station(s)', 'resort(s)'],
+  results_empty: ['Aucune station ne correspond à ces critères.', 'No resort matches these criteria.'],
   results_empty_hint: [
     'Essayez d’abaisser l’altitude minimum ou d’élargir le temps de trajet.',
     'Try lowering the minimum altitude or widening the travel time.'

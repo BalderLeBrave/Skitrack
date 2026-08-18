@@ -2585,6 +2585,49 @@ select {
   align-items: start;
 }
 
+/**
+ * Badge du domaine skiable, sur une vignette de station.
+ *
+ * Un bouton et non une pastille : il mene aux stations voisines du meme
+ * domaine, et cette action doit se voir. Discret au repos, il prend la teinte
+ * de marque au survol — c'est un raccourci, pas la donnee principale de la
+ * vignette, qui reste la station.
+ */
+.domcard__area {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  max-width: 100%;
+  margin: 8px 0 0;
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.domcard__area:hover {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.domcard__area-name {
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.domcard__area-facts {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
 /* --- Vignette de domaine -------------------------------------------------- */
 
 .domcard {

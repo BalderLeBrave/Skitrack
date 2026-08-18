@@ -72,7 +72,12 @@ const DELIBERATE = new Set([
   'pages/LegalSection.tsx',
   'i18n/index.ts',
   'data/stations.ts',
-  'data/places.ts'
+  'data/places.ts',
+  // `data/franceMontagnes.ts` : les 232 noms du catalogue officiel, recopiés
+  // tels que France Montagnes les écrit. Ce sont des clés de comparaison, pas
+  // des textes d'interface — rien n'est jamais affiché depuis ce fichier — et
+  // les traduire empêcherait de rapprocher une station de son homologue.
+  'data/franceMontagnes.ts'
 ])
 
 /**

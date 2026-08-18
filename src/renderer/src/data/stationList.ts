@@ -53,6 +53,7 @@
 import type { Domain } from './referentiel'
 import { hasCoords } from './referentiel'
 import { stationNameOf } from './stations'
+import { isFranceMontagnes } from './franceMontagnes'
 import { slug } from '@/domain/format'
 
 /**
@@ -106,11 +107,17 @@ export function collapseToStations(entries: Domain[]): Domain[] {
     // Le représentant d'abord : c'est lui qui décide en cas d'égalité.
     const ordered = [head, ...group.filter((d) => d !== head)]
 
+    const name = stationNameOf(head.name) || head.name
+    // Le catalogue est celui de France Montagnes : une entrée du référentiel
+    // qui n'y figure pas décrit autre chose qu'une station de ski alpin — une
+    // ville, un site nordique, un secteur. Voir `data/franceMontagnes.ts`.
+    if (!isFranceMontagnes(name)) continue
+
     stations.push({
       ...head,
       // Le nom affiché est celui de la station, pas le libellé de domaine :
       // « Val Thorens », pas « Val Thorens – Orelle ».
-      name: stationNameOf(head.name) || head.name,
+      name,
       min: Math.min(...group.map((d) => d.min)),
       max: Math.max(...group.map((d) => d.max)),
       km: Math.max(...group.map((d) => d.km)),

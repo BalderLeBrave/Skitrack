@@ -1656,6 +1656,21 @@ select {
   min-width: min(380px, calc(100vw - 48px));
 }
 
+/* Le filet geographique porte sa propre teinte : l'utilisateur doit voir qu'on
+   lui repond autre chose que ce qu'il a demande. */
+.sb__list--nearby {
+  border-color: var(--brand);
+}
+
+.sb__nearby-head {
+  padding: 8px 10px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
 .sb__pop--wide {
   width: 340px;
   right: 0;

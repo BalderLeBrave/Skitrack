@@ -97,7 +97,7 @@ const suggestions = index.suggest('montchavin', 8)
 check('« montchavin » est proposé', suggestions.some((s) => s.label === 'Montchavin'), suggestions.map((s) => s.label))
 check(
   'la suggestion dit à quel domaine elle mène',
-  suggestions.every((s) => s.kind === 'domain' || s.context.length > 0),
+  suggestions.every((s) => s.kind === 'station' || s.context.length > 0),
   suggestions
 )
 check(
@@ -107,6 +107,66 @@ check(
 )
 check('aucune suggestion vide', suggestions.every((s) => s.label.trim().length > 0))
 check('une saisie inconnue ne propose rien', index.suggest('zzzzzz', 8).length === 0)
+
+console.log('\n6. Liste d’acceptation du modèle « stations d’abord »')
+
+/** Chaque saisie doit ramener la station nommée, quelle que soit sa graphie. */
+const ACCEPTANCE: [string, string][] = [
+  ['Méribel', 'Méribel'], ['meribel', 'Méribel'], ['MERIBEL', 'Méribel'],
+  ['Méribel-Mottaret', 'Méribel-Mottaret'],
+  ['Les Menuires', 'Les Menuires – Saint-Martin'], ['menuires', 'Les Menuires – Saint-Martin'],
+  ['menu', 'Les Menuires – Saint-Martin'],
+  ['Saint-Martin-de-Belleville', 'Saint-Martin-de-Belleville'],
+  ['st martin de belleville', 'Saint-Martin-de-Belleville'],
+  ['La Toussuire', 'La Toussuire – Les Sybelles'],
+  ['le corbier', 'Le Corbier – Les Sybelles'],
+  ['st sorlin d arves', 'Saint-Sorlin-d’Arves'],
+  ['Combloux', 'Combloux'], ['La Giettaz', 'La Giettaz'],
+  ['Avoriaz', 'Avoriaz 1800'], ['chatel', 'Châtel'],
+  ['Samoëns', 'Samoëns – Le Grand Massif'], ['samoens', 'Samoëns – Le Grand Massif'],
+  ['Montchavin', 'Montchavin – Les Coches'],
+  ['Peisey-Vallandry', 'Les Arcs – Peisey-Vallandry'],
+  ['Aime 2000', 'Aime 2000'], ['Aime deux mille', 'Aime 2000'],
+  ['Vaujany', 'Vaujany'], ['Le Monêtier', 'Serre Chevalier – Le Monêtier 1500'],
+  // Saisir le domaine résout vers ses stations.
+  ['Les 3 Vallées', 'Méribel'], ['Les Trois Vallées', 'Méribel'],
+  ['trois vallees', 'Méribel'], ['3 vallées', 'Méribel'],
+  ['Les Deux Alpes', 'Les 2 Alpes'], ['Les 2 Alpes', 'Les 2 Alpes'],
+  ['Les Sept Laux', 'Les 7 Laux'], ['Les 7 Laux', 'Les 7 Laux']
+]
+for (const [query, expected] of ACCEPTANCE) {
+  const list = found(query)
+  check(`« ${query} » → ${expected}`, list.includes(expected), { trouves: list.length, tete: list.slice(0, 4) })
+}
+
+console.log('\n7. Nombres en lettres : les deux graphies donnent la même clé')
+const PAIRS: [string, string][] = [
+  ['Les Trois Vallées', 'Les 3 Vallées'],
+  ['Les Sept Laux', 'Les 7 Laux'],
+  ['Les Deux Alpes', 'Les 2 Alpes'],
+  ['Aime deux mille', 'Aime 2000'],
+  ['Arc mille huit cents', 'Arc 1800'],
+  ['Isola deux mille', 'Isola 2000']
+]
+for (const [words, digits] of PAIRS) {
+  check(`« ${words} » ≡ « ${digits} »`, squash(words) === squash(digits), {
+    lettres: squash(words),
+    chiffres: squash(digits)
+  })
+}
+check(
+  'un mot qui commence comme un nombre n’est pas converti',
+  squash('Sixt-Fer-à-Cheval') === 'sixtferacheval',
+  squash('Sixt-Fer-à-Cheval')
+)
+
+console.log('\n8. Contre-test de rattachement')
+const vallorcine = found('Vallorcine')
+check(
+  'Vallorcine ne remonte aucune station des Portes du Mont-Blanc',
+  !vallorcine.some((n) => /combloux|giettaz|cordon|jaillet/i.test(n)),
+  vallorcine
+)
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

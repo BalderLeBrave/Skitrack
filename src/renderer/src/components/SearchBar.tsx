@@ -23,6 +23,8 @@ import { DateRangePicker } from './DateRangePicker'
 import { RangeFilter } from './RangeFilter'
 import { placeIndex } from '@/data/places'
 import type { PlaceSuggestion } from '@/data/places'
+import { stationsNear } from '@/data/nearbyStations'
+import type { NearbyResult } from '@/data/nearbyStations'
 import { nightsBetween } from '@/domain/format'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
@@ -35,6 +37,9 @@ const MAX_SUGGESTIONS = 8
 const MIN_QUERY = 2
 
 const TRAVELERS_MAX = 12
+
+/** Une frappe n'est pas une requete : on attend que la saisie se pose. */
+const NEARBY_DEBOUNCE_MS = 450
 
 type Segment = 'dest' | 'dates' | 'people' | 'alt'
 
@@ -63,6 +68,42 @@ export function SearchBar(): JSX.Element {
     return placeIndex(domains).suggest(q, MAX_SUGGESTIONS)
   }, [state.domainQuery, domains])
 
+  /**
+   * Filet géographique : consulté seulement quand l'index s'est tu.
+   *
+   * Une recherche qui ne ramène rien sans rien dire est un cul-de-sac. On
+   * géocode alors la saisie et on propose les stations les plus proches, par un
+   * chemin visuellement distinct — l'utilisateur doit voir qu'on lui répond
+   * autre chose que ce qu'il a demandé. Voir `data/nearbyStations.ts`.
+   */
+  const [nearby, setNearby] = useState<NearbyResult | null>(null)
+  const [nearbyBusy, setNearbyBusy] = useState(false)
+  const query = state.domainQuery.trim()
+  const indexSilent = open === 'dest' && suggestions.length === 0 && query.length >= MIN_QUERY + 1
+
+  useEffect(() => {
+    if (!indexSilent) {
+      setNearby(null)
+      setNearbyBusy(false)
+      return
+    }
+    const controller = new AbortController()
+    // Une frappe n'est pas une requête : on laisse la saisie se poser avant
+    // d'interroger un service public.
+    const timer = window.setTimeout(() => {
+      setNearbyBusy(true)
+      stationsNear(query, domains, { signal: controller.signal })
+        .then((result) => setNearby(result))
+        .catch(() => setNearby(null))
+        .finally(() => setNearbyBusy(false))
+    }, NEARBY_DEBOUNCE_MS)
+    return () => {
+      controller.abort()
+      window.clearTimeout(timer)
+    }
+  }, [indexSilent, query, domains])
+
+  const nearbyOpen = indexSilent && (nearbyBusy || nearby != null)
   const listOpen = open === 'dest' && suggestions.length > 0
 
   /** Sélection : exactement ce que faisait la saisie libre suivie d'Entrée. */
@@ -149,8 +190,32 @@ export function SearchBar(): JSX.Element {
                       de deux massifs sont indiscernables dans la liste. */}
                   {s.context && <span className="sb__opt-context">· {s.context}</span>}
                   <span className="sb__opt-kind">
-                    {s.kind === 'domain' ? t('sb_domain') : s.kind === 'area' ? t('sb_area') : t('sb_village')}
+                    {s.kind === 'station' ? t('sb_station') : s.kind === 'area' ? t('sb_domain') : t('sb_village')}
                   </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* L'index n'a rien trouvé : on répond par la géographie, et on le dit.
+            Le titre de section est ce qui distingue les deux chemins — sans
+            lui, l'utilisateur croirait avoir trouvé ce qu'il cherchait. */}
+        {nearbyOpen && (
+          <ul className="sb__list sb__list--nearby" role="listbox" aria-label={t('sb_nearby')}>
+            <li className="sb__nearby-head" role="presentation">
+              {nearbyBusy
+                ? t('sb_nearby_busy')
+                : nearby && nearby.stations.length > 0
+                  ? `${t('sb_nearby')} ${nearby.label}`
+                  : t('sb_nearby_none')}
+            </li>
+            {(nearby?.stations ?? []).map((hit) => (
+              <li key={hit.station.id} role="option" aria-selected={false}>
+                <button type="button" className="sb__opt" onClick={() => go(hit.station.name)}>
+                  <span className="sb__opt-name">{hit.station.name}</span>
+                  {hit.station.pass && <span className="sb__opt-context">· {hit.station.pass}</span>}
+                  <span className="sb__opt-kind u-num">{fmt(hit.km)} km</span>
                 </button>
               </li>
             ))}

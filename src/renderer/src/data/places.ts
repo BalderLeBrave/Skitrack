@@ -235,13 +235,20 @@ export function villagesOfName(name: string): string[] {
     .filter((part) => part.length > 1)
 }
 
-export type PlaceKind = 'domain' | 'village' | 'area'
+/**
+ * Ce qu'une suggestion désigne.
+ *
+ * `station` est le résultat premier — c'est ce que l'utilisateur cherche et
+ * sélectionne. `area` est le domaine skiable, qui résout vers ses stations.
+ * `village` est un hameau sans entrée propre, qui mène à sa station.
+ */
+export type PlaceKind = 'station' | 'village' | 'area'
 
 export interface PlaceSuggestion {
-  /** Le lieu tel qu'il s'écrit : nom de domaine, de village ou de forfait. */
+  /** Le lieu tel qu'il s'écrit : nom de station, de village ou de domaine. */
   label: string
   kind: PlaceKind
-  /** Le domaine ou le forfait relié auquel ce lieu mène. Vide pour un domaine. */
+  /** Le domaine skiable auquel ce lieu mène. Vide quand la station est seule. */
   context: string
   /** Texte écrit dans `domainQuery` à la sélection : ce qui filtre la liste. */
   query: string
@@ -278,7 +285,7 @@ function termsOf(d: Domain): Term[] {
     out.push({ label, key, kind })
   }
 
-  push(d.name, 'domain')
+  push(d.name, 'station')
   if (d.pass) push(d.pass, 'area')
   for (const village of villagesOfName(d.name)) push(village, 'village')
   const station = stationNameOf(d.name)
@@ -350,18 +357,20 @@ export function placeIndex(domains: Domain[]): PlaceIndex {
         if (term.kind === 'area' && term.label !== d.pass) continue
         if (!termMatches(term, needle)) continue
 
-        const isDomain = term.kind === 'domain'
+        const isStation = term.kind === 'station'
         const suggestion: Scored = {
           label: term.label,
           kind: term.kind,
           // Un domaine se suffit à lui-même ; un village doit dire où il mène,
           // sans quoi « Montchavin » ne lève pas l'ambiguïté qu'il crée.
-          context: isDomain ? (d.pass ?? '') : areaOf(d),
-          query: isDomain ? d.name : areaOf(d),
+          context: isStation ? (d.pass ?? '') : areaOf(d),
+          query: isStation ? d.name : areaOf(d),
           // Un début de mot vaut mieux qu'une occurrence au milieu, et un nom
           // de domaine mieux qu'un hameau : c'est l'ordre dans lequel on
           // reconnaît ce qu'on cherchait.
-          rank: (term.key.startsWith(needle) ? 0 : 2) + (isDomain ? 0 : 1),
+          // Les stations d'abord : c'est l'entité que l'on cherche. Un début
+          // de mot vaut mieux qu'une occurrence au milieu.
+          rank: (term.key.startsWith(needle) ? 0 : 2) + (isStation ? 0 : 1),
           size: d.km
         }
         const key = `${squash(suggestion.label)}|${squash(suggestion.query)}`

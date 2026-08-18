@@ -242,8 +242,8 @@ const CATALOG = {
   sb_destination: ['Destination', 'Destination'],
   sb_dates: ['Dates', 'Dates'],
   sb_week_any: ['Choisir une semaine', 'Pick a week'],
-  sb_domain: ['domaine', 'resort'],
-  sb_station: ['station', 'village'],
+  sb_domain: ['domaine skiable', 'ski area'],
+  sb_station: ['station', 'resort'],
   dp_title: ['Dates du séjour', 'Stay dates'],
   dp_prev_month: ['Mois précédent', 'Previous month'],
   dp_next_month: ['Mois suivant', 'Next month'],
@@ -257,6 +257,12 @@ const CATALOG = {
   ],
   sb_village: ['village', 'village'],
   sb_area: ['forfait relié', 'linked pass'],
+  sb_nearby: ['Stations proches de', 'Resorts near'],
+  sb_nearby_busy: ['Recherche par proximité géographique…', 'Searching by geographic proximity…'],
+  sb_nearby_none: [
+    'Lieu introuvable — ni station, ni domaine, ni commune reconnue.',
+    'Place not found — no resort, ski area or town matches.'
+  ],
   sb_less: ['Un voyageur de moins', 'One traveller fewer'],
   sb_more: ['Un voyageur de plus', 'One traveller more'],
   sb_go: ['Lancer la recherche', 'Start the search'],

@@ -338,7 +338,19 @@ export interface AppState {
    * fort, pas une preuve — un relevé ne parcourt que les premiers écrans de
    * résultats. On la signale toujours, on ne la cache que sur demande.
    */
-  hideGone: boolean
+  /**
+   * N'afficher que les annonces dont la disponibilité est confirmée.
+   *
+   * Remplace `hideGone`, qui ne couvrait qu'un cas sur trois : l'annonce
+   * disparue d'un relevé. Il manquait le cas majoritaire — l'annonce qu'Airbnb
+   * liste sans la tarifer, c'est-à-dire qu'il ne peut pas vendre à ces dates.
+   * Voir `data/lodgingAvailability.ts`.
+   *
+   * Vrai par défaut : une liste de logements est une liste de logements qu'on
+   * peut réserver. Les cas non jugés — hébergements OpenStreetMap, saisies à la
+   * main — ne sont jamais masqués par ce filtre.
+   */
+  lodgOnlyAvailable: boolean
   flexOpen: boolean
   ficheId: number | null
   compareIds: number[]
@@ -527,7 +539,7 @@ export const INITIAL_STATE: AppState = {
   mergeDupes: true,
   lodgStatusOpen: false,
   hideBadGeo: false,
-  hideGone: false,
+  lodgOnlyAvailable: true,
   flexOpen: false,
   ficheId: null,
   compareIds: [],
@@ -578,7 +590,7 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
   lodgSort: 'pp_asc',
   lodgSrcOff: [],
   lodgAnnul: false,
-  hideGone: false,
+  lodgOnlyAvailable: true,
   rooms: 1
 }
 
@@ -595,7 +607,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'hideGone', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**
@@ -634,7 +646,7 @@ function purgeLegacyPrefs(): void {
  * par l'utilisateur et ne sont pas touchés.
  */
 /** Version du schéma des préférences écrite sur le disque. */
-const PREFS_SCHEMA = 3
+const PREFS_SCHEMA = 4
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -692,6 +704,12 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // panneau est devenu un survol. La valeur laissée sur le disque rouvrirait
   // le panneau sur la liste au démarrage suivant, une fois, sans raison.
   delete out.searchFiltersOpen
+
+  // Schéma 4 : `hideGone` devient `lodgOnlyAvailable`, qui couvre les trois
+  // façons pour une annonce de ne pas être réservable et non plus une seule.
+  // La valeur précédente n'est pas reportée : elle valait « false » par défaut,
+  // et la reprendre reconduirait l'ancien comportement sous un nom neuf.
+  delete out.hideGone
 
   return out as Partial<AppState>
 }

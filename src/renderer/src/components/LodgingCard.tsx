@@ -5,8 +5,8 @@
  * prix — vient de là, et rien de ce que cet écran sait faire n'y est perdu.
  * Ce qui reste ici est ce que la vignette générique n'a pas à connaître :
  * pastilles de source et de ski aux pieds, écarts au marché, doublons fusionnés,
- * prix devenu caduc, annonce disparue du dernier relevé, comparateur, suivi de
- * prix et ouverture de l'annonce.
+ * prix devenu caduc, disponibilité non confirmée, comparateur, suivi de prix et
+ * ouverture de l'annonce.
  *
  * Les deux faits de la ligne 3 disent ici ce qui **varie d'une offre à
  * l'autre** : la distance aux pistes et le dénivelé à remonter. Ni la station
@@ -21,6 +21,7 @@ import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { dealOf, freshnessOf, srcOf, trackKey } from '@/data/lodgings'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
+import { availabilityOf } from '@/data/lodgingAvailability'
 import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
@@ -75,17 +76,16 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
     (lg.priceCheckIn !== state.arrDate || lg.priceCheckOut !== state.depDate)
 
   /**
-   * Annonce que le dernier relevé n'a pas retrouvée à ces dates.
+   * Ce qu'on sait de la disponibilité à ces dates-ci.
    *
-   * Une recherche Airbnb ne liste que ce qui est libre : son absence signifie
-   * presque toujours « réservée ». On le dit sur la vignette plutôt que de
-   * laisser l'utilisateur l'apprendre en ouvrant la page, mais on ne l'affirme
-   * pas — un relevé ne voit que les premiers écrans de résultats.
+   * Le bouton d'ouverture réinjecte les dates **courantes** dans l'URL de
+   * l'annonce (`listingUrlWithStay`). Une vignette qui ne dit rien de la
+   * disponibilité envoie donc l'utilisateur droit sur « Ces dates ne sont pas
+   * disponibles » — c'est ce qui arrivait. Voir `data/lodgingAvailability.ts`.
    */
-  const gone =
-    lg.missingSince != null &&
-    lg.missingSince.checkIn === state.arrDate &&
-    lg.missingSince.checkOut === state.depDate
+  const avail = availabilityOf(lg, { checkIn: state.arrDate, checkOut: state.depDate })
+  const gone = avail.status === 'gone'
+  const unconfirmed = avail.status === 'unconfirmed'
 
   // Une annonce n'a de métriques d'accès que si le moteur local les a calculées.
   // Le drapeau explicite `accessComputed` prime quand il est là (import enrichi) ;
@@ -202,6 +202,20 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
 
         {gone && <p className="lodgcard__flag lodgcard__flag--warn">{t('lodg_gone_notice')}</p>}
 
+        {/* Disponibilité non prouvée. Le motif compte autant que le verdict :
+            « listée sans tarif » et « relevée pour d'autres dates » n'appellent
+            pas le même geste. Le second est déjà détaillé par `priceStale`. */}
+        {unconfirmed && avail.reason === 'unpriced' && (
+          <p className="lodgcard__flag lodgcard__flag--warn">
+            {t('avail_unconfirmed')} — {t('avail_reason_unpriced')}
+          </p>
+        )}
+        {unconfirmed && avail.reason === 'other_dates' && !priceStale && (
+          <p className="lodgcard__flag lodgcard__flag--warn">
+            {t('avail_unconfirmed')} — {t('avail_reason_other_dates')}
+          </p>
+        )}
+
         {!redirect && !priceStale && deal && (
           <p className="lodgcard__flag" style={{ color: deal.color, fontWeight: 700 }}>
             {deal.txt}
@@ -276,12 +290,16 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
               }}
             >
               {/* Le libellé suit la source de l'offre : une carte sans prix
-                  n'est pas forcément une carte Airbnb. */}
-              {redirect
-                ? `Voir sur ${srcOf(lg)}`
-                : lg.url
-                  ? 'Annonce'
-                  : `Chercher sur ${srcOf(lg)}`}
+                  n'est pas forcément une carte Airbnb. Une annonce dont la
+                  disponibilité n'est pas prouvée s'annonce comme telle — le
+                  clic reste possible, mais il ne promet plus rien. */}
+              {unconfirmed || gone
+                ? t('avail_open_anyway')
+                : redirect
+                  ? `Voir sur ${srcOf(lg)}`
+                  : lg.url
+                    ? 'Annonce'
+                    : `Chercher sur ${srcOf(lg)}`}
               <ExternalIcon />
             </button>
           )}

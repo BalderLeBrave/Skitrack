@@ -16,16 +16,26 @@
  *
  * ## Et ce qu'« absente du collage » veut dire
  *
- * Une recherche Airbnb ne renvoie que ce qui est **libre aux dates demandées**.
  * Une annonce déjà dans la liste, relevée pour ces mêmes dates, et que le
- * nouveau relevé ne ramène plus, a donc très probablement été réservée. Elle
- * était pourtant conservée telle quelle, prix et bouton « Annonce » compris :
- * on la voyait ici et Airbnb répondait « ces dates ne sont pas disponibles ».
+ * nouveau relevé ne ramène plus, a très probablement été réservée. Elle est
+ * marquée `missingSince` — marquée, pas supprimée : un relevé ne parcourt que
+ * les premiers écrans, et une annonce peut manquer parce qu'elle est tombée en
+ * page trois. La marque disparaît d'elle-même dès qu'un relevé la retrouve.
  *
- * Elle est désormais marquée `missingSince`. Marquée, pas supprimée : un relevé
- * ne parcourt que les premiers écrans de résultats, et une annonce peut aussi
- * manquer parce qu'elle est tombée en page trois. La marque disparaît d'elle-même
- * dès qu'un relevé la retrouve.
+ * ## Ce que ce fichier a longtemps cru, et qui était faux
+ *
+ * « Une recherche Airbnb ne renvoie que ce qui est libre aux dates demandées ».
+ * Non : Airbnb remplit sa grille avec des annonces qu'il ne peut pas vendre à
+ * ces dates, et il ne les distingue que d'une façon — **il ne leur met pas de
+ * prix**. Elles arrivaient donc ici avec `total: 0`, étaient rangées avec les
+ * hébergements OpenStreetMap qui n'ont légitimement pas de tarif, et
+ * s'affichaient comme ouvrables. Le clic tombait sur « ces dates ne sont pas
+ * disponibles ».
+ *
+ * La présence d'un prix relevé **à ces dates-là** est donc la seule preuve de
+ * disponibilité dont l'application dispose. Le verdict se lit dans
+ * `data/lodgingAvailability.ts` ; ce fichier se contente de ne jamais écraser
+ * un prix réel par un zéro, ce qu'il faisait déjà.
  */
 
 import type { Lodging } from './lodgings'

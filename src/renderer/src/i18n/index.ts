@@ -1562,6 +1562,70 @@ const CATALOG = {
     'Prezzo tutto compreso: pulizie, tassa di soggiorno e costi di servizio inclusi.',
     'Alles-in-prys: skoonmaak, toeristebelasting en diensfooie ingesluit.'
   ],
+  avail_only: [
+    'Disponibilité confirmée uniquement',
+    'Confirmed availability only',
+    'Nur bestätigte Verfügbarkeit',
+    'Alleen bevestigde beschikbaarheid',
+    'Solo disponibilidad confirmada',
+    'Solo disponibilità confermata',
+    'Slegs bevestigde beskikbaarheid'
+  ],
+  avail_only_help: [
+    'Une plateforme n’affiche un prix que pour ce qu’elle peut vendre. Sans tarif relevé à vos dates, la disponibilité n’est pas prouvée — et l’annonce s’ouvre souvent sur « ces dates ne sont pas disponibles ».',
+    'A platform only shows a price for what it can sell. With no price recorded for your dates, availability is unproven — and the listing often opens on “these dates are unavailable”.',
+    'Eine Plattform zeigt nur einen Preis für das, was sie verkaufen kann. Ohne erfassten Preis für Ihre Daten ist die Verfügbarkeit unbewiesen.',
+    'Een platform toont alleen een prijs voor wat het kan verkopen. Zonder vastgelegde prijs voor uw data is de beschikbaarheid onbewezen.',
+    'Una plataforma solo muestra un precio de lo que puede vender. Sin tarifa registrada para sus fechas, la disponibilidad no está probada.',
+    'Una piattaforma mostra un prezzo solo per ciò che può vendere. Senza tariffa rilevata per le vostre date, la disponibilità non è provata.',
+    '’n Platform wys net ’n prys vir wat dit kan verkoop. Sonder ’n aangetekende prys vir u datums is beskikbaarheid onbewese.'
+  ],
+  avail_unconfirmed: [
+    'Disponibilité non confirmée',
+    'Availability not confirmed',
+    'Verfügbarkeit nicht bestätigt',
+    'Beschikbaarheid niet bevestigd',
+    'Disponibilidad no confirmada',
+    'Disponibilità non confermata',
+    'Beskikbaarheid nie bevestig nie'
+  ],
+  avail_reason_unpriced: [
+    'listée sans tarif à ces dates — le plus souvent, elle n’est pas libre',
+    'listed with no price for these dates — usually meaning it is not free',
+    'ohne Preis für diese Daten gelistet — meist bedeutet das: nicht frei',
+    'vermeld zonder prijs voor deze data — meestal betekent dat: niet vrij',
+    'listada sin tarifa para estas fechas — normalmente, no está libre',
+    'elencata senza tariffa per queste date — di solito, non è libera',
+    'gelys sonder prys vir hierdie datums — gewoonlik beteken dit: nie vry nie'
+  ],
+  avail_reason_other_dates: [
+    'relevée pour d’autres dates, jamais confrontée à celles-ci',
+    'recorded for other dates, never checked against these',
+    'für andere Daten erfasst, nie mit diesen abgeglichen',
+    'voor andere data vastgelegd, nooit met deze vergeleken',
+    'registrada para otras fechas, nunca comprobada con estas',
+    'rilevata per altre date, mai confrontata con queste',
+    'vir ander datums aangeteken, nooit teen hierdie getoets nie'
+  ],
+  avail_hidden: [
+    '{n} annonce(s) sans disponibilité confirmée, masquée(s)',
+    '{n} listing(s) without confirmed availability, hidden',
+    '{n} Anzeige(n) ohne bestätigte Verfügbarkeit, ausgeblendet',
+    '{n} advertentie(s) zonder bevestigde beschikbaarheid, verborgen',
+    '{n} anuncio(s) sin disponibilidad confirmada, ocultado(s)',
+    '{n} annuncio/i senza disponibilità confermata, nascosto/i',
+    '{n} advertensie(s) sonder bevestigde beskikbaarheid, versteek'
+  ],
+  avail_show: ['les afficher', 'show them', 'anzeigen', 'toon ze', 'mostrarlos', 'mostrarli', 'wys hulle'],
+  avail_open_anyway: [
+    'Ouvrir quand même',
+    'Open anyway',
+    'Trotzdem öffnen',
+    'Toch openen',
+    'Abrir de todos modos',
+    'Aprire comunque',
+    'Maak tog oop'
+  ],
   lodg_src_hidden: ['masquée', 'hidden', 'ausgeblendet', 'verborgen',
     'oculta', 'nascosta', 'versteek'],
   lodg_free_cancel: [

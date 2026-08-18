@@ -18,6 +18,7 @@ import { createContext, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
 import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
+import { isBookable } from '@/data/lodgingAvailability'
 import type { Domain, Forfait } from '@/data/referentiel'
 import { estimateForfait, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
 import { placeIndex } from '@/data/places'
@@ -129,6 +130,8 @@ export interface Derived {
   /** Annonces du domaine écartées par les filtres. Sert à le dire à l'écran
    *  plutôt que d'afficher une liste vide sans raison. */
   lodgHidden: number
+  /** Annonces sans disponibilité confirmée pour le séjour en cours. */
+  lodgUnavailable: number
   dupMerged: number
   voteScore: (key: string) => number
   voteOf: (key: string, index: number) => number
@@ -457,21 +460,28 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       : []
     const lodgAll = mergeDupesList(lodgRaw, state.mergeDupes)
     const dupMerged = lodgRaw.length - lodgAll.length
+    const stay = { checkIn: state.arrDate, checkOut: state.depDate }
+
+    /**
+     * Annonces dont la disponibilité n'est pas confirmée pour ce séjour.
+     *
+     * Compté sur la liste complète et non sur la liste filtrée : c'est un
+     * compte qu'on affiche **parce que** ces annonces viennent d'être retirées,
+     * et une soustraction faite après coup ne saurait plus les nommer.
+     */
+    const lodgUnavailable = lodgAll.filter((lg) => !isBookable(lg, stay)).length
 
     const lodgFiltered = lodgAll.filter((lg) => {
+      // Disponibilité, d'abord. Une annonce listée mais non tarifée pour ces
+      // dates n'est pas réservable : l'ouvrir mène à « Ces dates ne sont pas
+      // disponibles ». Les cartes non jugées — porte d'entrée OpenStreetMap,
+      // saisie manuelle — traversent ce filtre sans être inquiétées. Voir
+      // `data/lodgingAvailability.ts`.
+      if (state.lodgOnlyAvailable && !isBookable(lg, stay)) return false
+
       // Une carte-redirection (hébergement OSM sans prix) n'a ni prix ni nombre
       // de chambres à filtrer : la masquer sur un budget ou un nombre de pièces
       // qu'elle ne porte pas la ferait disparaître à tort. Seuls le type et la
-      // Annonce introuvable au dernier relevé, pour les dates en cours : on ne
-      // l'écarte que si l'utilisateur l'a demandé — voir `hideGone`.
-      if (
-        state.hideGone &&
-        lg.missingSince != null &&
-        lg.missingSince.checkIn === state.arrDate &&
-        lg.missingSince.checkOut === state.depDate
-      ) {
-        return false
-      }
       // source la concernent.
       const redirect = lg.total <= 0
       if (redirect) {
@@ -552,6 +562,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgAll,
       lodgList,
       lodgHidden: lodgAll.length - lodgFiltered.length,
+      lodgUnavailable,
       dupMerged,
       voteScore,
       voteOf,

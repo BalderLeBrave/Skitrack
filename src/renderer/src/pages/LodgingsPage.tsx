@@ -701,6 +701,34 @@ export function LodgingsPage(): JSX.Element {
             </div>
           )}
 
+          {/* Annonces retirées faute de disponibilité prouvée.
+              Rien ne disparaît en silence : le compte est dit, et les deux
+              suites possibles sont là — les réafficher telles quelles, ou
+              refaire un relevé aux dates courantes, qui est le seul geste
+              capable de trancher. */}
+          {state.lodgOnlyAvailable && derived.lodgUnavailable > 0 && (
+            <div className="srcbanner" style={{ borderColor: 'var(--warn)' }}>
+              <strong style={{ fontWeight: 600, color: 'var(--warn)' }}>
+                {t('avail_hidden').replace('{n}', String(derived.lodgUnavailable))}
+              </strong>
+              <button
+                type="button"
+                className="linkbtn linkbtn--sm"
+                onClick={() => patch({ lodgOnlyAvailable: false })}
+              >
+                {t('avail_show')}
+              </button>
+              <span className="u-spacer" />
+              <button
+                type="button"
+                className="btn btn--small btn--strong u-nowrap"
+                onClick={recheck.start}
+              >
+                {t('lodg_recheck_again')}
+              </button>
+            </div>
+          )}
+
           {/* Le compte-rendu du relevé n'a plus de bandeau ici : il se lit
               pendant le relevé, dans `SkiSearchLoading`, et ce qui en reste
               d'actionnable — sources muettes, doublons, médiane — vit dans

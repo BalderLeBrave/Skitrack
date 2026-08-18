@@ -84,12 +84,15 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
   /**
    * Dernier relevé où l'annonce a **cessé d'apparaître**, à ses propres dates.
    *
-   * Airbnb ne publie dans ses résultats que ce qui est libre aux dates
-   * demandées : une annonce déjà connue qui n'y figure plus a, le plus souvent,
-   * été réservée entre-temps. Elle n'est pas supprimée pour autant — un relevé
-   * ne voit que les premiers écrans, et l'utilisateur a pu l'importer à la main
-   * — mais elle porte désormais la marque, et la vignette le dit au lieu de
-   * l'afficher comme réservable.
+   * Une annonce déjà connue qui ne figure plus dans un relevé couvrant ses
+   * propres dates a, le plus souvent, été réservée entre-temps. Elle n'est pas
+   * supprimée pour autant — un relevé ne voit que les premiers écrans, et
+   * l'utilisateur a pu l'importer à la main — mais elle porte désormais la
+   * marque, et la vignette le dit au lieu de l'afficher comme réservable.
+   *
+   * Attention : l'inverse ne se déduit pas. Figurer dans les résultats ne
+   * prouve pas la disponibilité — Airbnb liste aussi ce qu'il ne peut pas
+   * vendre, sans prix. Voir `data/lodgingAvailability.ts`.
    */
   missingSince?: { checkIn: string; checkOut: string; at: number }
   /** Annonces du même bien écartées par la fusion des doublons. */

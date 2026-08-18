@@ -224,14 +224,17 @@ export function LodgingFilters(): JSX.Element {
           />
           Annulation gratuite uniquement
         </label>
+        {/* Le filtre par défaut de l'écran : une liste de logements est une
+            liste de logements réservables. Voir `data/lodgingAvailability.ts`. */}
         <label className="check" style={{ margin: '8px 0 0' }}>
           <input
             type="checkbox"
-            checked={state.hideGone}
-            onChange={(e) => patch({ hideGone: e.target.checked })}
+            checked={state.lodgOnlyAvailable}
+            onChange={(e) => patch({ lodgOnlyAvailable: e.target.checked })}
           />
-          {t('lodg_gone_hide')}
+          {t('avail_only')}
         </label>
+        <p className="filters__help">{t('avail_only_help')}</p>
       </section>
 
       <section className="filters__section">

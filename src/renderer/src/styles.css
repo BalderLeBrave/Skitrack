@@ -2002,10 +2002,19 @@ select {
   font-size: 14px;
 }
 
+/**
+ * Six massifs, deux rangées de trois.
+ *
+ * `auto-fit` les alignait sur une seule rangée dès que la fenêtre le
+ * permettait : six vignettes de 210 px, trop petites pour que la photo dise
+ * quoi que ce soit du massif, et un pavé horizontal qui se lisait comme une
+ * barre d'onglets plutôt que comme six destinations. À trois colonnes, chaque
+ * tuile fait plus du double de surface et le rapport 4:3 tient la photo.
+ */
 .home__massifs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
 /**
@@ -2172,6 +2181,20 @@ select {
   }
   .sb__pop--wide {
     width: 100%;
+  }
+  /* Deux colonnes : trois tuiles côte à côte sous 900 px descendent sous les
+     150 px de large et la photo n'est plus qu'une texture. */
+  .home__massifs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+/* Une seule colonne : à deux tuiles par rangée sous 560 px, le nom du massif
+   et ses deux exemples ne tiennent plus sur une ligne chacun. */
+@media (max-width: 560px) {
+  .home__massifs {
+    grid-template-columns: 1fr;
   }
 }
 

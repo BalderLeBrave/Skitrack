@@ -248,7 +248,10 @@ export function DomainSearchPage(): JSX.Element {
 
   return (
     <div className="search" style={{ gridTemplateColumns: gridTemplate }}>
-      <section id="st-results" className="results">
+      {/* `results--full` quand la carte est masquée : la colonne occupe alors
+          toute la largeur et son filet de séparation n'a plus rien à séparer —
+          il traçait une bordure le long du bord droit de la fenêtre. */}
+      <section id="st-results" className={`results${state.searchMapOpen ? '' : ' results--full'}`}>
         <SearchBar />
         <WeatherAge />
 

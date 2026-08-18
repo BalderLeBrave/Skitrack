@@ -424,10 +424,14 @@ select {
 /* Hauteur fixe et graisse unique : la sélection se lit à la couleur, jamais à
    la taille. Passer en gras à la sélection élargissait la pastille, et toute
    la rangée se réagençait au clic. */
+/* `gap` et non un espace dans le JSX : la puce est un conteneur flex, et un
+   nœud de texte réduit à une espace n'y produit aucun élément. « sans limite✕ »
+   et « Alpes du Nord12 » venaient de là. */
 .chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   height: 34px;
   background: none;
   border: 1px solid var(--border);
@@ -448,7 +452,6 @@ select {
 
 .chip__count {
   opacity: 0.65;
-  margin-left: 4px;
 }
 
 /** Pilule de segment (sans cours / collectif / particulier, ski / snow). */
@@ -2378,6 +2381,11 @@ select {
   border-right: 1px solid var(--border-soft);
 }
 
+/** Carte masquée : plus de colonne à droite, donc plus de filet. */
+.results--full {
+  border-right: none;
+}
+
 /** Rangée de puces des filtres posés, au-dessus de la liste. */
 .filterchips {
   display: flex;
@@ -2500,10 +2508,21 @@ select {
   color: var(--muted);
 }
 
+/**
+ * Bandeau d'outils : il occupe toute la largeur de sa colonne.
+ *
+ * Ses commandes se serraient à gauche et laissaient un vide à droite, si bien
+ * que le bandeau paraissait garder la largeur qu'il avait carte ouverte alors
+ * que la colonne, elle, s'était bien élargie. Le tri part maintenant au bord
+ * droit : le bandeau tient les deux extrémités et suit réellement la colonne.
+ *
+ * `column-gap` généreux : c'est lui qui sépare « Filtres », « Afficher la
+ * carte » et le compte de résultats, qui se lisaient collés.
+ */
 .results__head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px 16px;
   flex-wrap: wrap;
   margin-bottom: 18px;
 }
@@ -2515,6 +2534,10 @@ select {
   font-size: 13px;
   color: var(--muted);
   flex: 0 0 auto;
+  /* Au bord droit du bandeau, et sur une seule ligne : « Trier par » se
+     repliait en « Trier / par » contre le sélecteur. */
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .results__sort select {
@@ -3044,7 +3067,7 @@ select {
 .lodgings__head {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px 16px;
   margin-bottom: 14px;
   flex-wrap: wrap;
 }

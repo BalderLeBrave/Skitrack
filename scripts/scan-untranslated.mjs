@@ -167,7 +167,19 @@ for (const d of DIRS) {
     // Les fichiers de test portent des chaînes de fixture, pas de l'interface :
     // `.test.ts` était déjà écarté, `.test.tsx` ne l'était pas — un test de
     // composant en JSX y échappait par sa seule extension.
-    if (DELIBERATE.has(rel) || rel.endsWith('.test.ts') || rel.endsWith('.test.tsx')) continue
+    //
+    // Même raison pour `.audit.ts` : ces générateurs écrivent des rapports
+    // Markdown dans `docs/`, lus par un développeur dans une seule langue. Les
+    // faire passer par `t()` traduirait un document de travail et laisserait la
+    // dette d'interface — la seule qui compte — se diluer dans du bruit.
+    if (
+      DELIBERATE.has(rel) ||
+      rel.endsWith('.test.ts') ||
+      rel.endsWith('.test.tsx') ||
+      rel.endsWith('.audit.ts')
+    ) {
+      continue
+    }
 
     const src = stripComments(readFileSync(file, 'utf8'))
 

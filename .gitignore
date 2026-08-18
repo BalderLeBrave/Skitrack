@@ -28,3 +28,7 @@ Thumbs.db
 *.tsbuildinfo
 
 .claude/worktrees/
+
+# Tampon du portail de fin de tour (.claude/hooks/verify.mjs) : un état local,
+# propre à la machine, qui n'a pas à voyager avec le dépôt.
+.claude/.verify-stamp

@@ -347,13 +347,18 @@ const CATALOG = {
     '{n} geverifieerde gebiede · {m} bergreekse'
   ],
   home_title_1: [
-    'Le séjour au ski,', 'The ski trip,', 'Der Skiurlaub,', 'De skivakantie,',
-    'La estancia de esquí,', 'La settimana bianca,', 'Die skivakansie,'
+    'Le bon domaine, à la bonne altitude,',
+    'The right resort, at the right altitude,',
+    'Das richtige Skigebiet, auf der richtigen Höhe,',
+    'Het juiste skigebied, op de juiste hoogte,',
+    'El dominio adecuado, a la altitud adecuada,',
+    'Il comprensorio giusto, alla quota giusta,',
+    'Die regte skigebied, op die regte hoogte,'
   ],
   home_title_2: [
-    'prix réels compris.', 'real prices included.', 'echte Preise inbegriffen.',
-    'echte prijzen inbegrepen.', 'precios reales incluidos.', 'prezzi reali compresi.',
-    'werklike pryse ingesluit.'
+    'au bon prix.', 'at the right price.', 'zum richtigen Preis.',
+    'voor de juiste prijs.', 'al precio adecuado.', 'al prezzo giusto.',
+    'teen die regte prys.'
   ],
   home_lead: [
     'Forfaits relevés station par station, logements agrégés sur trois sources, trajet et dépenses du groupe additionnés. Aucun score opaque.',

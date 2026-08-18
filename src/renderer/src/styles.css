@@ -1414,7 +1414,10 @@ select {
   font-size: 52px;
   line-height: 1.05;
   font-weight: 800;
-  max-width: 22ch;
+  /* Assez large pour que chaque moitié du titre tienne sur sa ligne : le saut
+     est posé dans le JSX, entre les deux propositions, et un repli
+     supplémentaire imposé par la largeur casserait la mesure. */
+  max-width: 36ch;
   color: #ffffff;
   text-shadow: 0 1px 24px rgba(13, 32, 52, 0.45);
 }

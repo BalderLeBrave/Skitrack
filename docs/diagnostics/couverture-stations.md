@@ -117,7 +117,7 @@ coûterait plus cher qu’une lacune connue.
 - Val d’Isère — village 1829 m
 - Tignes Les Boisses — village 1797 m
 - La Daille — village 1795 m
-- Tignes – Les Brévières — village 1566 m
+- Tignes Les Brévières — village 1566 m
 
 ### Les Sybelles
 
@@ -238,7 +238,7 @@ coûterait plus cher qu’une lacune connue.
 | Paradiski | Arc 2000, Aime 2000, Plagne Villages, Belle Plagne, Plagne Soleil, Arc 1950, La Plagne, Plagne Centre, Plagne Bellecôte, Plagne 1800, Les Arcs Bourg St Maurice, Arc 1800, Arc 1600, Les Coches, La Plagne Montalbert, Villaroger, Peisey-Vallandry, Champagny-en-Vanoise, Montchavin La Plagne | 3216 m | Alpes du Nord |
 | Les 3 Vallées | Val Thorens, Les Menuires, Reberty, Courchevel, Méribel-Mottaret, Courchevel Moriond 1650, Courchevel Village 1550, Méribel, Méribel Village, La Tania, Saint-Martin-de-Belleville, Courchevel Le Praz, Orelle, Brides-les-Bains | 3223 m | Alpes du Nord |
 | Haute Maurienne Vanoise | Lanslebourg, Bonneval-sur-Arc, Bessans, Lanslevillard, Valfréjus, Aussois, La Norma, Val Cenis, Termignon | 2952 m | Alpes du Nord |
-| Espace Killy | Tignes, Tignes Val Claret, Tignes Le Lac, Le Fornet, Val d’Isère, Tignes Les Boisses, La Daille, Tignes – Les Brévières | 3456 m | Alpes du Nord |
+| Espace Killy | Tignes, Tignes Val Claret, Tignes Le Lac, Le Fornet, Val d’Isère, Tignes Les Boisses, La Daille, Tignes Les Brévières | 3456 m | Alpes du Nord |
 | Portes du Soleil | Avoriaz 1800, Les Gets, Châtel, Montriond, Abondance, Morzine, Chapelle d'Abondance, Espace Roc d'Enfer | 2230 m | Alpes du Nord |
 | Le Grand Massif | Samoëns 1600, Flaine, Samoëns, Les Carroz d’Arâches, Morillon, Haut Giffre, Sixt | 2485 m | Alpes du Nord |
 | Espace Diamant | Les Saisies, Bisanne 1500, Crest-Voland Cohennoz, Notre-Dame-de-Bellecombe, Praz-sur-Arly, Flumet - Saint Nicolas La Chapelle | 2054 m | Alpes du Nord |
@@ -256,7 +256,7 @@ coûterait plus cher qu’une lacune connue.
 | La Clusaz | Manigod/Col de Merdassier, La Clusaz, Plateau de Beauregard | 2476 m | Alpes du Nord |
 | Le Dévoluy | Le Dévoluy, Super-Dévoluy, La Joue du Loup | 2496 m | Alpes du Sud |
 | Le Grand-Bornand | Le Chinaillon, Le Grand-Bornand, Orange | 2028 m | Alpes du Nord |
-| Le Sancy | Besse – Super Besse, Le Mont-Dore, La Bourboule | 1834 m | Massif Central |
+| Le Sancy | Besse Super Besse, Le Mont-Dore, La Bourboule | 1834 m | Massif Central |
 | Le Sauze 1400 / Le Super-Sauze 1700 | Super Sauze, Pra-Loup, Sauze Supersauze | 2438 m | Alpes du Sud |
 | Les Orres | Les Orres 1800, Les Orres 1650, Les Orres | 2702 m | Alpes du Sud |
 | Les Portes du Mont-Blanc | Cordon, La Giettaz, Combloux | 1925 m | Alpes du Nord |

@@ -212,7 +212,7 @@ référentiel n’a jamais décrites.
 | Paradiski | Arc 2000, Aime 2000, Plagne Villages, Belle Plagne, Plagne Soleil, Arc 1950, La Plagne, Plagne Centre, Plagne Bellecôte, Plagne 1800, Les Arcs Bourg St Maurice, Arc 1800, Arc 1600, Les Coches, La Plagne Montalbert, Villaroger, Peisey-Vallandry, Champagny-en-Vanoise, Montchavin La Plagne |
 | Les 3 Vallées | Val Thorens, Les Menuires, Reberty, Courchevel, Méribel-Mottaret, Courchevel Moriond 1650, Courchevel Village 1550, Méribel, Méribel Village, La Tania, Saint-Martin-de-Belleville, Courchevel Le Praz, Orelle, Brides-les-Bains |
 | Haute Maurienne Vanoise | Lanslebourg, Bonneval-sur-Arc, Bessans, Lanslevillard, Valfréjus, Aussois, La Norma, Val Cenis, Termignon |
-| Espace Killy | Tignes, Tignes Val Claret, Tignes Le Lac, Le Fornet, Val d’Isère, Tignes Les Boisses, La Daille, Tignes – Les Brévières |
+| Espace Killy | Tignes, Tignes Val Claret, Tignes Le Lac, Le Fornet, Val d’Isère, Tignes Les Boisses, La Daille, Tignes Les Brévières |
 | Portes du Soleil | Avoriaz 1800, Les Gets, Châtel, Montriond, Abondance, Morzine, Chapelle d'Abondance, Espace Roc d'Enfer |
 | Le Grand Massif | Samoëns 1600, Flaine, Samoëns, Les Carroz d’Arâches, Morillon, Haut Giffre, Sixt |
 | Espace Diamant | Les Saisies, Bisanne 1500, Crest-Voland Cohennoz, Notre-Dame-de-Bellecombe, Praz-sur-Arly, Flumet - Saint Nicolas La Chapelle |
@@ -230,7 +230,7 @@ référentiel n’a jamais décrites.
 | La Clusaz | Manigod/Col de Merdassier, La Clusaz, Plateau de Beauregard |
 | Le Dévoluy | Le Dévoluy, Super-Dévoluy, La Joue du Loup |
 | Le Grand-Bornand | Le Chinaillon, Le Grand-Bornand, Orange |
-| Le Sancy | Besse – Super Besse, Le Mont-Dore, La Bourboule |
+| Le Sancy | Besse Super Besse, Le Mont-Dore, La Bourboule |
 | Le Sauze 1400 / Le Super-Sauze 1700 | Super Sauze, Pra-Loup, Sauze Supersauze |
 | Les Orres | Les Orres 1800, Les Orres 1650, Les Orres |
 | Les Portes du Mont-Blanc | Cordon, La Giettaz, Combloux |

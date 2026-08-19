@@ -554,7 +554,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'gerardmer': { url: 'https://www.gerardmer-reservation.net/' }, // Gérardmer
   'grand-tourmalet': { url: 'https://www.n-py.com/fr/ete/sejour-pyrenees/hebergement' }, // Grand Tourmalet
   'isola-2000': { url: 'https://isola2000.com/reservez-votre-sejour/' }, // Isola 2000
-  'la-bresse-hohneck': { url: 'https://www.labresse.net/hebergements-a-la-bresse-hautes-vosges/' }, // La Bresse Hohneck
+  'la-bresse-hohneck': { url: 'https://reservation.labresse.net/' }, // La Bresse Hohneck
   'la-clusaz': { url: 'https://www.laclusaz.com/' }, // La Clusaz
   'la-giettaz': { url: 'https://reservation.valdarly-montblanc.com/' }, // La Giettaz
   'la-joue-du-loup': { url: 'https://reservation.ledevoluy.com/' }, // La Joue du Loup *

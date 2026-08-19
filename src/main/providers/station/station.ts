@@ -177,9 +177,13 @@ async function optionsOf(page: Page, selector: string): Promise<Choice[]> {
 const CONSENT_BUTTONS = [
   'button:has-text("Continuer sans accepter")',
   'a:has-text("Continuer sans accepter")',
+  // Le bandeau des centrales Les Carroz et Châtel, mot pour mot.
+  'button:has-text("Non, tout refuser")',
+  'a:has-text("Non, tout refuser")',
   'button:has-text("Tout refuser")',
   'button:has-text("Refuser")',
   '#didomi-notice-disagree-button',
+  'button:has-text("OK, tout accepter")',
   'button:has-text("Tout accepter")',
   'button:has-text("J\'accepte")',
   '#didomi-notice-agree-button',
@@ -348,7 +352,16 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
   // Le bouton n'est pas un `submit` : c'est un `input[type=button]` que le
   // script de la page écoute. Le clic déclenche la recherche, qui mène à la
   // page de résultats — la même que celle qu'un visiteur obtiendrait.
-  await page.click(FIELD.submit, { timeout: 15_000 })
+  try {
+    await page.click(FIELD.submit, { timeout: 8_000 })
+  } catch {
+    // Le bandeau de consentement n'apparaît pas toujours au chargement : sur
+    // les centrales des Carroz et de Châtel, il se pose pendant qu'on remplit
+    // le formulaire et intercepte le premier clic. On le réécarte et on
+    // réessaie une fois, plutôt que d'échouer sur un rideau.
+    await dismissConsent(page)
+    await page.click(FIELD.submit, { timeout: 8_000 })
+  }
   await page
     .waitForLoadState('domcontentloaded', { timeout: 30_000 })
     .catch(() => undefined)
@@ -595,11 +608,28 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             // l'écarter, le clic sur « Rechercher » n'atteint jamais le bouton.
             await dismissConsent(page)
             await sleep(1_000)
+
             const ctx = await page.evaluate(readEngineContext)
             if (!ctx.ingenie) {
               throw new Error(
                 `${name} : ${origin} n'expose pas de moteur Ingénie — réservation par le lien direct.`
               )
+            }
+
+            // L'adresse connue mène parfois à une page de présentation — « nos
+            // hébergements » — et non au moteur. Chez Ingénie, celui-ci vit à
+            // `/booking` : on l'y cherche une fois, sur le même hôte, et
+            // seulement quand la page porte déjà la marque de la plateforme —
+            // charger `/booking` sur un site qui n'est pas Ingénie ne serait
+            // qu'une requête de plus pour un 404.
+            const hasForm = (await page.$(FIELD.fromInput)) ?? (await page.$(FIELD.fromSelect))
+            if (!hasForm) {
+              await page.goto(`${origin}/booking`, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+              await page
+                .waitForSelector(`${FIELD.fromInput}, ${FIELD.fromSelect}`, { timeout: 20_000 })
+                .catch(() => undefined)
+              await dismissConsent(page)
+              await sleep(1_000)
             }
 
             await submitSearch(page, params, name, origin)

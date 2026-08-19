@@ -116,16 +116,19 @@ function originOf(url: string): string | null {
  * chargement.
  */
 const FIELD = {
-  lodgingType: 'select[name="type_prestataire"]',
-  stayType: 'select[name="type_date"]',
+  // Les menus déroulants portent `:visible` pour la même raison que le bouton :
+  // la page monte deux formulaires jumeaux, et agir sur celui qui est caché
+  // attend indéfiniment un élément que personne ne peut manipuler.
+  lodgingType: 'select[name="type_prestataire"]:visible',
+  stayType: 'select[name="type_date"]:visible',
   /** Ancien moteur : un menu déroulant de samedis. */
-  fromSelect: 'select[name="datedeb"]',
+  fromSelect: 'select[name="datedeb"]:visible',
   /** Moteur actuel : un champ texte piloté par un calendrier JavaScript. */
   fromInput: 'input[name="datedeb"]',
   toInput: 'input[name="datefin"]',
-  durationSelect: 'select[name="duree"]',
+  durationSelect: 'select[name="duree"]:visible',
   durationInput: 'input[name="duree"]',
-  peopleSelect: 'select[name="personnes"]',
+  peopleSelect: 'select[name="personnes"]:visible',
   adults: 'input[name="adultes"]',
   children: 'input[name="enfants"]',
   /** `:visible` parce que la page porte deux formulaires — un pour l'écran

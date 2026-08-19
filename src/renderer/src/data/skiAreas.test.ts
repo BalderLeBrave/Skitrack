@@ -1,19 +1,20 @@
 /**
  * Regroupement des stations en domaines skiables.
  *
- * Vérifié sur le référentiel livré, pas sur des données de test : le
- * regroupement n'a d'intérêt que s'il tient sur les cas réels — les treize
- * entrées dont le nom est aussi un nom de forfait, et les deux orthographes de
- * « Mont(-)Blanc Unlimited ».
+ * Vérifié sur la **liste affichée** — le catalogue France Montagnes converti
+ * par `data/catalogue.ts` —, pas sur des données de test ni sur le fichier
+ * brut : le regroupement n'a d'intérêt que s'il tient sur les cas réels, les
+ * quatorze stations des 3 Vallées et les deux orthographes de « Mont(-)Blanc
+ * Unlimited ».
  *
  *   npm run areas:test
  */
 
 import { areaKeyOf, skiAreaIndex } from './skiAreas'
-import { BUNDLED_REFERENTIAL, domainsFromReferential } from './referentiel'
-import { slug } from '@/domain/format'
+import { BUNDLED_REFERENTIAL } from './referentiel'
+import { catalogueStations } from './catalogue'
 
-const stations = domainsFromReferential(BUNDLED_REFERENTIAL, slug)
+const stations = catalogueStations(BUNDLED_REFERENTIAL)
 const { areas, byStation, areaOf } = skiAreaIndex(stations)
 
 let failures = 0
@@ -29,7 +30,7 @@ check('chaque station appartient à un domaine', stations.every((s) => byStation
   stations.filter((s) => !byStation.has(s.id)).map((s) => s.name))
 check('aucun domaine vide', areas.every((a) => a.stations.length > 0))
 check(
-  'la somme des stations des domaines redonne le référentiel',
+  'la somme des stations des domaines redonne la liste',
   areas.reduce((n, a) => n + a.stations.length, 0) === stations.length
 )
 check('aucun domaine sans nom', areas.every((a) => a.name.trim().length > 0))
@@ -41,10 +42,13 @@ check('Les 3 Vallées existe', troisV != null)
 for (const name of [
   'Courchevel',
   'Méribel',
-  'Les Menuires – Saint-Martin',
+  'Les Menuires',
   'Val Thorens',
   'Saint-Martin-de-Belleville',
   'Brides-les-Bains',
+  // Orelle n'est pas rattachée aux 3 Vallées par le classeur, qui la voit plus
+  // près des pistes de Galibier-Thabor : c'est `DOMAIN_FIXES` qui la recolle,
+  // et cette ligne est le test de cette correction.
   'Orelle'
 ]) {
   check(`  ${name} y figure`, (troisV?.stations ?? []).some((s) => s.name === name),
@@ -59,18 +63,18 @@ check('Le Grand Massif regroupe ses stations', (grandMassif?.stations.length ?? 
   grandMassif?.stations.map((s) => s.name))
 
 console.log('\n3. Les pièges de la donnée')
-// Treize entrées portent le nom d'un forfait sans porter le forfait : elles
-// sont la station principale de leur domaine et doivent mener le groupe.
+// Une station dont le nom *est* le nom du domaine mène son groupe sans le
+// dupliquer : « Les 2 Alpes » est à la fois la station et le forfait.
 const deuxAlpes = areas.find((a) => a.stations.some((s) => s.name === 'Les 2 Alpes'))
 check(
-  '« Les 2 Alpes » et « Les Deux Alpes 1800 » sont dans le même domaine',
-  (deuxAlpes?.stations ?? []).some((s) => s.name === 'Les Deux Alpes 1800'),
+  '« Les 2 Alpes » mène son domaine sans y figurer deux fois',
+  (deuxAlpes?.stations ?? []).filter((s) => s.name === 'Les 2 Alpes').length === 1,
   deuxAlpes?.stations.map((s) => s.name)
 )
-const huez = areas.find((a) => a.stations.some((s) => s.name === "Alpe d'Huez Grand Domaine"))
+const huez = areas.find((a) => a.stations.some((s) => s.name === "Alpe d'Huez"))
 check(
-  '« Alpe d’Huez Grand Domaine » mène Vaujany et Oz-en-Oisans',
-  ['Vaujany', 'Oz-en-Oisans'].every((n) => (huez?.stations ?? []).some((s) => s.name === n)),
+  '« Alpe d’Huez Grand Domaine » mène Vaujany et Villard-Reculas',
+  ['Vaujany', 'Villard-Reculas'].every((n) => (huez?.stations ?? []).some((s) => s.name === n)),
   huez?.stations.map((s) => s.name)
 )
 const montBlanc = areas.filter((a) => /montblancunlimited/.test(a.id))

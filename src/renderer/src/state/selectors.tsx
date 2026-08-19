@@ -21,8 +21,9 @@ import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import { isBookable } from '@/data/lodgingAvailability'
 import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
-import { estimateForfait, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
-import { placeIndex } from '@/data/places'
+import { estimateForfait, forfaitIndexByArea, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
+import { placeIndex, squash } from '@/data/places'
+import { skiAreaIndex } from '@/data/skiAreas'
 import type { Week } from '@/data/snow'
 import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
 import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
@@ -165,7 +166,9 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const kids = state.people.length ? kidsCount(state.people) : state.children
 
     const forfaitIndex = forfaitIndexBySlug(ref, slug)
+    const areaForfaitIndex = forfaitIndexByArea(ref, squash)
     const places = placeIndex(domains)
+    const areas = skiAreaIndex(domains)
 
     // --- Caches par domaine, valables le temps de cette dérivation ---------
     const forfaitCache = new Map<number, ResolvedForfait>()
@@ -174,10 +177,25 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const scoreCache = new Map<number, Score>()
     const tripCache = new Map<number, TripCost>()
 
+    /**
+     * Tarif de forfait d'une station.
+     *
+     * Trois lectures avant l'estimation, de la plus précise à la plus large :
+     * l'entrée du référentiel qui porte exactement ce nom, la station reconnue
+     * par la clé de recherche, puis **le domaine relié** — le forfait s'achète
+     * pour un domaine, et les stations d'un même domaine paient le même prix.
+     * Sans cette troisième lecture, Orelle et Belle Plagne afficheraient un
+     * tarif estimé à côté de Val Thorens et de La Plagne, qui affichent le
+     * tarif relevé du même forfait.
+     */
     const forfaitOf = (d: Domain): ResolvedForfait => {
       const hit = forfaitCache.get(d.id)
       if (hit) return hit
-      const value = forfaitIndex.get(d.slug) ?? estimateForfait(d.km, d.max)
+      const value =
+        forfaitIndex.get(d.slug) ??
+        areaForfaitIndex.get(squash(d.name)) ??
+        (d.pass ? areaForfaitIndex.get(squash(d.pass)) : undefined) ??
+        estimateForfait(d.km, d.max)
       forfaitCache.set(d.id, value)
       return value
     }
@@ -256,7 +274,11 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       if (!inRange(d.km, state.kmMin, state.kmMax, R.km.max)) return false
       if (state.massifs.length > 0 && !state.massifs.includes(d.massif)) return false
       if (state.glacier && !d.glacier) return false
-      if (state.linked && !d.pass) return false
+      // « Domaine relié » veut dire : d'autres stations partagent ce domaine.
+      // Depuis que la liste vient du catalogue, chaque station porte le libellé
+      // de son domaine — même seule dessus —, et tester `pass` ne filtrait plus
+      // rien. C'est le regroupement qui répond, pas l'étiquette.
+      if (state.linked && areas.byStation.get(d.id)?.single !== false) return false
       if (!inRangeOrNull(worst(d), state.travelMin, state.travelMax, R.travel.max)) return false
       if (!inRangeOrNull(worstDist(d), state.distMin, state.distMax, R.dist.max)) return false
       // Un tarif estimé ne peut pas justifier d'écarter un domaine ni de le

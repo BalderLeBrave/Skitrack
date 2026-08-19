@@ -174,3 +174,57 @@ Le temps de trajet, en particulier, part **déjà** de la station :
 `travelOf(domain, …)` lit `domain.lat/lon`, et Orelle (45.216) comme Courchevel
 (45.415) portent les leurs. Le critère « valeurs différentes pour Orelle et
 Courchevel » est satisfait par construction ; il sera vérifié, pas construit.
+
+---
+
+## Suite — le classeur France Montagnes (19 août 2026)
+
+Le diagnostic ci-dessus concluait que la donnée cherchée existait déjà, et que
+le chantier était un *regroupement*. C'était vrai du référentiel livré ; ça ne
+l'était pas du catalogue. L'audit du 18 août l'a chiffré : sur les **232
+stations publiées par France Montagnes, le référentiel n'en décrivait que
+115**. Les 108 autres n'étaient pas mal rangées — elles étaient absentes, sans
+coordonnées ni altitudes, donc inaffichables sans les inventer.
+
+Un classeur a été livré le 19 août :
+`docs/sources/stations-ski-france-montagnes.xlsx`, **285 lignes**, chacune avec
+ses coordonnées contrôlées, l'altitude de son village mesurée sur le modèle de
+terrain RGE ALTI de l'IGN, et son domaine skiable de rattachement mesuré sur
+les tracés OpenSkiMap. Il comble exactement le trou constaté.
+
+### Ce que ça change au rangement
+
+| | avant | après |
+| --- | --- | --- |
+| Liste affichée | référentiel (ou moteur) filtré par les noms France Montagnes | **catalogue** (`data/franceMontagnesStations.ts`) |
+| Stations | 115 | **283** (2 lignes écartées : un doublon, une station sans domaine cartographié) |
+| Domaines | 69 | 151 |
+| Altitudes, km, remontées, position | référentiel / moteur | **classeur** |
+| Forfait, saisonnalité, glacier, logo | référentiel | référentiel, posé par `data/catalogue.ts` |
+| Sites officiels, réservation | table `stations.ts` + moteur | classeur, puis table, puis moteur |
+
+`collapseToStations` a disparu : le repli des libellés composites du référentiel
+(« Val Thorens – Orelle ») n'a plus d'objet quand la liste **est** une liste de
+stations. `stationList.ts` ne garde que `stationOwning`, qui rattache un
+logement importé sous un ancien identifiant à sa station.
+
+### Le tarif du forfait suit le domaine
+
+Un forfait s'achète pour un domaine : les dix entrées des 3 Vallées du
+référentiel portent le même tarif à l'euro près. `forfaitIndexByArea` indexe
+donc les tarifs relevés **par domaine** en plus de par station, ce qui donne à
+Orelle, Belle Plagne ou Le Fornet le tarif relevé de leur domaine au lieu d'une
+estimation. 176 des 283 stations affichent un tarif relevé ; les 107 autres, un
+tarif estimé et marqué comme tel — ce sont les petites stations que le
+référentiel n'a jamais décrites.
+
+### Ce que le classeur se trompe, et ce qu'on en fait
+
+Le rattachement au domaine est mesuré « par proximité des pistes au village »,
+ce qui se trompe quand le village est loin de son propre domaine. Confronté au
+forfait relié que le référentiel déclare, l'écart apparaît sur cinq stations :
+Orelle, Auris-en-Oisans et Samoëns sont recollées par `DOMAIN_FIXES`
+(`data/catalogue.ts`), justification écrite ligne par ligne ; Combloux et La
+Giettaz sont laissées au classeur, qui a raison contre le référentiel. Aucune
+correction n'invente de chiffre : elle déplace une station vers **un autre
+domaine du classeur**, dont elle prend les mesures.

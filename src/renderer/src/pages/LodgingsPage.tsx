@@ -418,7 +418,7 @@ export function LodgingsPage(): JSX.Element {
         {d.pass && <span className="tag">{d.pass}</span>}
         {d.glacier && <span className="tag tag--link">Glacier</span>}
         <span className="u-muted" style={{ fontSize: 12 }}>
-          {fmt(d.min)} – {fmt(d.max)} m{d.curated ? ' · bas des pistes vérifié ✓' : ''}
+          {fmt(d.min)} – {fmt(d.max)} m{d.curated ? ' · altitudes mesurées' : ''}
         </span>
         <span className="u-spacer" />
         <span className="u-muted" style={{ fontSize: 12 }}>

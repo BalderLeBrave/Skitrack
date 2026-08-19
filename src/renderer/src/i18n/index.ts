@@ -177,7 +177,7 @@ const CATALOG = {
   tag_large_area: ['Grand domaine', 'Large area'],
   tag_high_altitude: ['Haute altitude', 'High altitude'],
   tag_moderate_pass: ['Forfait modéré', 'Moderate pass'],
-  tag_verified: ['vérifié', 'verified'],
+  tag_verified: ['mesuré', 'measured'],
   of_runs: ['de pistes', 'of runs'],
   geo_from: ['de', 'from'],
 
@@ -486,7 +486,10 @@ const CATALOG = {
     'Position absente du référentiel : ni carte, ni météo, ni temps de trajet',
     'Position missing from the reference file: no map, no weather, no travel time'
   ],
-  card_checked: ['vérifié à la main', 'checked by hand'],
+  card_checked: [
+    'Altitudes mesurées : le village sur le modèle de terrain de l’IGN, les pistes sur OpenSkiMap',
+    'Measured altitudes: the village on the IGN terrain model, the slopes on OpenSkiMap'
+  ],
   price_estimated: ['Tarif estimé, non relevé', 'Estimated price, not recorded'],
   sort_by: ['Trier par', 'Sort by'],
   sort_aria: ['Trier les domaines', 'Sort the resorts'],

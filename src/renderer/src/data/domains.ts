@@ -1,25 +1,42 @@
 /**
- * Source des domaines skiables.
+ * Source de la liste : le catalogue France Montagnes.
  *
- * La liste vient de la base OpenSkiMap du moteur local — 277 domaines français
- * en exploitation, avec leurs altitudes de pistes, leurs massifs et leurs
- * remontées. Le fichier JSON livré ne sert que de secours quand le moteur n'a
- * pas démarré ou que sa base est vide : sans lui l'application n'aurait rien à
- * afficher au premier lancement.
+ * ## Ce qui a changé, et pourquoi
  *
- * Les deux sources se rejoignent par le `slug` du domaine. C'est ce qui permet
- * de poser les tarifs de forfaits relevés à la main, la saisonnalité et les
- * bulletins neige sur les domaines correspondants, quel que soit l'ordre
- * d'import de la base.
+ * La liste venait de la base OpenSkiMap du moteur local, avec le référentiel
+ * livré en secours. Aucune des deux ne répondait à la question « quelles sont
+ * les stations de ski françaises ? » : le référentiel décrivait 115 des 232 noms
+ * publiés par France Montagnes, et le moteur indexe des domaines cartographiés,
+ * pas des stations. Cent huit stations existaient sans que rien ne les décrive.
+ *
+ * La liste vient donc du **catalogue** — `data/franceMontagnesStations.ts`,
+ * généré depuis le classeur versionné dans `docs/sources/` : 285 stations, leurs
+ * coordonnées, leur altitude de village, leur domaine. Le référentiel et le
+ * moteur ne sont plus des listes concurrentes ; ils **enrichissent** celle-là,
+ * chacun avec ce qu'il est seul à savoir :
+ *
+ * * le **référentiel** porte les tarifs de forfaits relevés à la main, la
+ *   saisonnalité, les glaciers et les logos (voir `data/catalogue.ts`) ;
+ * * le **moteur local** porte les sites officiels et les pages de réservation
+ *   que le classeur n'a pas retenus, et les glaciers qu'OpenSkiMap déclare.
+ *
+ * Ni l'un ni l'autre ne touche aux altitudes, aux kilomètres ni aux positions :
+ * ce sont des mesures, et le classeur est la seule source qui les tienne pour
+ * les 285 stations.
+ *
+ * ## `source` dit d'où vient l'enrichissement, pas la liste
+ *
+ * `moteur` signifie que le moteur local a répondu et que ses liens ont été
+ * posés ; `fichier` que la liste tourne sur le seul catalogue et le référentiel
+ * livré. La liste affichée, elle, est la même dans les deux cas — c'est le
+ * point de ce rangement.
  */
 
 import { api, isClientReady } from '@/api/client'
 import type { DomainSummary } from '@/api/types'
-import { slug } from '@/domain/format'
 import type { Domain, Referential } from './referentiel'
-import { domainsFromReferential, logoIndexBySlug } from './referentiel'
-import { officialSiteOf } from './stations'
-import { collapseToStations } from './stationList'
+import { catalogueStations } from './catalogue'
+import { squash } from './places'
 
 /** Au-delà, on sort du référentiel français ; la borne est un garde-fou, pas
  *  une pagination — l'écran de recherche filtre ensuite localement. */
@@ -30,131 +47,83 @@ export type DomainSource = 'moteur' | 'fichier'
 export interface LoadedDomains {
   domains: Domain[]
   source: DomainSource
-  /** Renseigné quand le moteur a répondu mais qu'on a dû se rabattre. */
+  /** Renseigné quand le moteur a répondu mais qu'on a dû s'en passer. */
   warning: string | null
 }
 
 /**
- * Saisonnalité par défaut.
+ * Pose sur les stations du catalogue ce que le moteur local est seul à savoir.
  *
- * Un grand domaine d'altitude vit des vacances scolaires et voit ses prix
- * s'effondrer en dehors ; une station de proximité, fréquentée le week-end
- * toute la saison, bouge beaucoup moins. À défaut d'une donnée relevée, la
- * taille du domaine skiable en est le meilleur indice disponible.
+ * Le rapprochement se fait sur la clé de recherche du nom, puis sur celle du
+ * domaine : le moteur nomme des domaines cartographiés — « Les 3 Vallées »,
+ * « Grand Massif » — quand le catalogue nomme des stations, et les deux se
+ * rencontrent rarement au caractère près.
+ *
+ * Seuls les champs vides sont remplis. Un site officiel déjà vérifié par
+ * `data/stations.ts` n'est pas remplacé par celui du moteur, et aucune mesure
+ * n'est touchée : le moteur ne sait rien de plus que le classeur sur les
+ * altitudes, et il n'en couvre qu'une partie.
  */
-function defaultSeasonality(km: number): number {
-  return Math.round(Math.max(0.55, Math.min(1.4, 0.55 + km / 220)) * 100) / 100
-}
-
-function fromSummary(d: DomainSummary): Domain | null {
-  // Sans altitude de pistes ni position, un domaine ne peut ni être noté, ni
-  // filtré, ni placé sur la carte : il n'a rien à faire dans la liste.
-  if (d.altitude_min_m == null || d.altitude_max_m == null) return null
-  if (d.centroid_lat == null || d.centroid_lon == null) return null
-
-  const km = d.slopes_km_total ?? 0
-  return {
-    id: d.id,
-    slug: d.slug || slug(d.name),
-    name: d.name,
-    massif: d.massif ?? 'Massif indéterminé',
-    region: d.region ?? '',
-    min: Math.round(d.altitude_min_m),
-    max: Math.round(d.altitude_max_m),
-    // Le front de neige n'est connu que si les remontées ont été importées ;
-    // à défaut, le bas des pistes en est la meilleure approximation.
-    village: Math.round(d.altitude_village_m ?? d.altitude_min_m),
-    km: Math.round(km * 10) / 10,
-    lifts: d.lifts_count ?? 0,
-    glacier: d.glacier === true,
-    pass: d.linked_pass_name,
-    curated: d.curated,
-    lat: d.centroid_lat,
-    lon: d.centroid_lon,
-    sais: defaultSeasonality(km),
-    website: d.official_website_url,
-    booking: d.official_booking_url,
-    logo: null
+function applyEngineOverlay(stations: Domain[], summaries: DomainSummary[]): Domain[] {
+  const byKey = new Map<string, DomainSummary>()
+  for (const summary of summaries) {
+    for (const label of [summary.name, summary.linked_pass_name]) {
+      if (!label) continue
+      const key = squash(label)
+      if (key && !byKey.has(key)) byKey.set(key, summary)
+    }
   }
-}
 
-/**
- * Reporte sur les domaines du moteur ce que seul le fichier livré connaît : la
- * saisonnalité relevée et les logos renseignés à la main. Le rapprochement se
- * fait par slug, les identifiants numériques changeant à chaque réimport.
- */
-function applyReferentialOverlay(domains: Domain[], ref: Referential): Domain[] {
-  const bundled = new Map(domainsFromReferential(ref, slug).map((d) => [d.slug, d]))
-  const logos = logoIndexBySlug(ref, slug)
-  return domains.map((d) => {
-    const known = bundled.get(d.slug)
+  return stations.map((station) => {
+    const hit = byKey.get(squash(station.name)) ?? (station.pass ? byKey.get(squash(station.pass)) : undefined)
+    if (!hit) return station
     return {
-      ...d,
-      sais: known?.sais ?? d.sais,
-      logo: logos.get(d.slug) ?? d.logo
+      ...station,
+      glacier: station.glacier || hit.glacier === true,
+      website: station.website ?? hit.official_website_url,
+      booking: station.booking ?? hit.official_booking_url
     }
   })
 }
 
 /**
- * Pose le site officiel de la station sur les domaines qui n'en ont pas.
+ * La liste hors moteur : le catalogue, enrichi du seul référentiel.
  *
- * Le fichier livré n'en porte aucun, et la base OpenSkiMap n'en connaît qu'une
- * partie : sans cela, ni le logo — récupéré depuis l'icône du site — ni le lien
- * « site officiel » de la fiche n'apparaissent, alors que l'adresse est connue
- * et vérifiée. Un site déjà renseigné par le moteur local n'est pas écrasé :
- * lui vient de la source, la table est un secours.
- */
-function withOfficialSite(domains: Domain[]): Domain[] {
-  return domains.map((d) => {
-    if (d.website) return d
-    const site = officialSiteOf(d.name)
-    return site ? { ...d, website: site.url } : d
-  })
-}
-
-/**
- * Les domaines chargés sont repliés en **stations** avant d'être rendus.
- *
- * C'est le seul endroit où le repli a lieu : tout l'aval — filtres, carte,
- * offres, combinaisons, logements — travaille ensuite sur des stations sans
- * avoir à le savoir. Voir `data/stationList.ts`.
+ * C'est ce que l'application affiche au premier lancement, avant même que le
+ * moteur local ait démarré — et ce qu'elle affiche encore s'il ne démarre
+ * jamais.
  */
 export function fallbackDomains(ref: Referential): Domain[] {
-  return collapseToStations(withOfficialSite(domainsFromReferential(ref, slug)))
+  return catalogueStations(ref)
 }
 
 export async function loadDomains(ref: Referential): Promise<LoadedDomains> {
+  const stations = catalogueStations(ref)
   if (!isClientReady()) {
-    return {
-      domains: fallbackDomains(ref),
-      source: 'fichier',
-      warning: null
-    }
+    return { domains: stations, source: 'fichier', warning: null }
   }
 
   try {
     const res = await api.searchDomains({ status: ['operating'], sort: 'name_asc', limit: MAX_DOMAINS })
-    const domains = res.items.map(fromSummary).filter((d): d is Domain => d !== null)
-    if (domains.length === 0) {
+    if (res.items.length === 0) {
       return {
-        domains: fallbackDomains(ref),
+        domains: stations,
         source: 'fichier',
         warning:
           'La base du moteur local est vide. Importez le référentiel OpenSkiMap depuis Réglages → Moteur local ' +
-          'pour disposer de tous les domaines français.'
+          'pour compléter les liens officiels du catalogue.'
       }
     }
     return {
-      domains: collapseToStations(withOfficialSite(applyReferentialOverlay(domains, ref))),
+      domains: applyEngineOverlay(stations, res.items),
       source: 'moteur',
       warning: null
     }
   } catch (err) {
     return {
-      domains: fallbackDomains(ref),
+      domains: stations,
       source: 'fichier',
-      warning: `Moteur local injoignable (${err instanceof Error ? err.message : String(err)}) — référentiel livré utilisé.`
+      warning: `Moteur local injoignable (${err instanceof Error ? err.message : String(err)}) — catalogue seul utilisé.`
     }
   }
 }

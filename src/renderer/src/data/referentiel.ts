@@ -315,6 +315,38 @@ export function forfaitIndexBySlug(ref: Referential, slugify: (name: string) => 
 }
 
 /**
+ * Grille de forfaits indexée par **domaine**, en plus de la station.
+ *
+ * Le tarif d'un forfait est un attribut du domaine relié, pas de la station :
+ * les dix entrées des 3 Vallées portent le même tarif à l'euro près, les dix de
+ * Paradiski aussi. C'est ce qui permet à une station que le référentiel ne
+ * décrit pas — Orelle, Belle Plagne, Le Fornet — de porter le tarif relevé de
+ * son domaine plutôt qu'un tarif estimé : on ne fabrique rien, on lit le prix
+ * du forfait qu'on achèterait sur place.
+ *
+ * L'index accepte donc deux clés par entrée : le nom de l'entrée et le nom de
+ * son forfait relié. En cas de désaccord entre deux entrées du même forfait —
+ * cela n'arrive pas dans le fichier livré, mais un référentiel importé n'est
+ * pas tenu d'être cohérent — la première entrée du fichier l'emporte.
+ *
+ * `key` est la normalisation de la recherche (`places.squash`), pas le slug :
+ * « Les 3 Vallées » et « Les Trois Vallées » doivent se rencontrer.
+ */
+export function forfaitIndexByArea(ref: Referential, key: (name: string) => string): Map<string, ForfaitEntry> {
+  const out = new Map<string, ForfaitEntry>()
+  for (const d of ref.domaines) {
+    const f = ref.forfaits[String(d.id)]
+    if (!f) continue
+    for (const label of [d.name, d.pass]) {
+      if (!label) continue
+      const k = key(label)
+      if (k && !out.has(k)) out.set(k, { ...f, estimated: false })
+    }
+  }
+  return out
+}
+
+/**
  * Prix d'un forfait 6 jours quand il n'a pas été relevé.
  *
  * Courbe saturante sur les kilomètres de pistes, plus une prime d'altitude. Les

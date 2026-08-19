@@ -1,32 +1,28 @@
 /**
  * La liste des stations de ski françaises, telle que France Montagnes la publie.
  *
- * ## Pourquoi cette liste fait autorité ici
+ * ## Ce que cette liste est devenue
  *
- * France Montagnes est l'association des acteurs de la montagne française —
- * domaines skiables, offices de tourisme, écoles de ski. Sa liste répond à la
- * seule question que le référentiel ne sait pas trancher : **qu'est-ce qu'une
- * station de ski française ?** Le fichier `referentiel.json` mélange stations,
- * domaines et secteurs ; la base OpenSkiMap indexe des domaines cartographiés,
- * y compris des téléskis de village et des sites nordiques. Ni l'un ni l'autre
- * ne dit où s'arrête le catalogue.
+ * Elle a d'abord servi de **filtre** : l'application ne présentait que les
+ * entrées du référentiel qui y figuraient. Ce rôle a disparu le jour où le
+ * catalogue lui-même est entré dans le dépôt — `data/franceMontagnesStations.ts`,
+ * généré depuis le classeur de `docs/sources/`, qui porte les mêmes stations
+ * *avec* leurs coordonnées, leurs altitudes et leur domaine. C'est lui qui fait
+ * la liste ; filtrer une liste par elle-même n'aurait pas de sens.
  *
- * Elle en est donc le **filtre** : l'application ne présente que les stations
- * qui y figurent. Une entrée du référentiel qui n'y est pas — Gap,
- * Barcelonnette, le Plateau des Glières, l'Espace Nordique du Capcir — est une
- * ville ou un site nordique, pas une station de ski alpin.
+ * Ce qui reste est un **relevé de contrôle** : les 232 noms lus sur le site le
+ * 18 août 2026, confrontés au classeur par `npm run refs:audit`. C'est ce qui
+ * permet de dire qu'une station publiée manque au classeur — huit aujourd'hui,
+ * nommées dans `docs/diagnostics/couverture-france-montagnes.md` — au lieu de
+ * s'en apercevoir en la cherchant dans l'application.
  *
- * ## Ce que cette liste n'est pas
+ * ## Ce que cette liste n'est toujours pas
  *
  * Ce ne sont **que des noms**. Aucune altitude, aucun kilométrage, aucune
- * coordonnée n'en vient : ces valeurs restent celles du référentiel ou du
- * moteur local. Une station listée ici mais absente des deux sources de données
- * n'apparaît pas dans l'application — elle manque, et l'audit le dit
- * (`npm run refs:audit`) plutôt que de la faire exister sans rien savoir d'elle.
- *
- * Les noms sont recopiés **tels que le site les affiche**, capitales et
- * graphies comprises — « LES ARCS BOURG ST MAURICE », « Gourrette » (sic).
- * C'est cette forme-là qu'on compare ; rien n'est jamais affiché depuis ici.
+ * coordonnée n'en vient, et rien n'est jamais affiché depuis ici. Les noms sont
+ * recopiés **tels que le site les affiche**, capitales et graphies comprises —
+ * « LES ARCS BOURG ST MAURICE », « Gourrette » (sic) : c'est cette forme-là
+ * qu'on compare.
  *
  * Source  : https://www.france-montagnes.com/les-stations-de-ski/ (pages 1 à 20)
  * Relevé  : 18 août 2026 — 233 entrées, 232 stations distinctes
@@ -315,13 +311,3 @@ export const FRANCE_MONTAGNES: readonly string[] = [
   "Hautacam",
   "Le Tanet"
 ]
-
-/** Le nom France Montagnes de cette station, ou `null` si elle n'y figure pas. */
-export function franceMontagnesName(name: string): string | null {
-  return FRANCE_MONTAGNES.find((official) => samePlace(official, name)) ?? null
-}
-
-/** Cette station figure-t-elle au catalogue de France Montagnes ? */
-export function isFranceMontagnes(name: string): boolean {
-  return franceMontagnesName(name) !== null
-}

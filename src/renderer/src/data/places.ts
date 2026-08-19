@@ -221,6 +221,21 @@ const VILLAGE_ALIASES: Record<string, string[]> = {
 }
 
 /**
+ * Hameaux d'une station, retrouvés par la clé de recherche.
+ *
+ * La table est écrite avec les libellés du référentiel — « Les Deux Alpes » —
+ * quand le catalogue affiche « Les 2 Alpes ». Comparer les chaînes brutes
+ * perdrait la moitié des rattachements ; la clé de recherche les rapproche.
+ */
+const ALIASES_BY_KEY = new Map<string, string[]>(
+  Object.entries(VILLAGE_ALIASES).map(([station, villages]) => [squash(station), villages])
+)
+
+function aliasesOf(key: string): string[] {
+  return ALIASES_BY_KEY.get(key) ?? []
+}
+
+/**
  * Communes accolées dans le libellé d'un domaine.
  *
  * « Vars – Risoul, La Forêt Blanche » nomme deux stations et un domaine relié ;
@@ -274,13 +289,31 @@ function areaOf(d: Domain): string {
   return d.pass || d.name
 }
 
-function termsOf(d: Domain): Term[] {
+/**
+ * Termes de recherche d'une station.
+ *
+ * `stations` porte les clés des stations réellement affichées, et sert deux
+ * fois. D'abord, **un hameau qui est devenu une station n'est plus un hameau** :
+ * depuis que la liste vient du catalogue France Montagnes, Combloux, Vaujany,
+ * Samoëns et Saint-Martin-de-Belleville y ont leur propre ligne. Les garder
+ * comme alias de Megève, de l'Alpe d'Huez, de Flaine et des Menuires ferait
+ * remonter la voisine à chaque fois qu'on cherche la station elle-même.
+ *
+ * Ensuite, la table des hameaux est lue pour **la station qui porte ce nom**,
+ * et non pour toutes celles qui s'y rattachent : sans cela, « Montchavin »
+ * ramenait Aime 2000, Belle Plagne et Plagne Bellecôte, qui sont d'autres
+ * stations du même domaine.
+ */
+function termsOf(d: Domain, stations: Set<string>): Term[] {
   const out: Term[] = []
   const seen = new Set<string>()
+  const self = squash(d.name)
   const push = (label: string | null | undefined, kind: PlaceKind): void => {
     if (!label) return
     const key = squash(label)
     if (!key || seen.has(key)) return
+    // Un lieu qui est une station de la liste ne mène qu'à elle-même.
+    if (kind === 'village' && key !== self && stations.has(key)) return
     seen.add(key)
     out.push({ label, key, kind })
   }
@@ -290,7 +323,7 @@ function termsOf(d: Domain): Term[] {
   for (const village of villagesOfName(d.name)) push(village, 'village')
   const station = stationNameOf(d.name)
   push(station, 'village')
-  for (const alias of VILLAGE_ALIASES[station] ?? []) push(alias, 'village')
+  for (const alias of aliasesOf(self)) push(alias, 'village')
   // Région et massif restent cherchables — c'est ce que faisait déjà l'écran —
   // mais ne sont jamais proposés en autocomplétion : « Auvergne-Rhône-Alpes »
   // n'est pas une destination, c'est un tiers du référentiel.
@@ -308,7 +341,10 @@ function termsOf(d: Domain): Term[] {
  */
 function termMatches(term: Term, needle: string): boolean {
   if (term.key.includes(needle)) return true
-  if (needle.length < 5) return false
+  // Six caractères, pas cinq : sur cinq, « 7laux » — la clé de « Les Sept
+  // Laux » — se confondait avec « claux », celle des Claux de Vars. Une
+  // saisie plus courte trouve toujours sa station par simple inclusion.
+  if (needle.length < 6) return false
   // La tolérance compare le terme **entier**, pas son début. Comparée à un
   // préfixe, elle faisait correspondre « chatel » aux six premières lettres de
   // « chapelleabondance » : une faute sur un mot court ouvrait la porte à tous
@@ -331,13 +367,14 @@ export function placeIndex(domains: Domain[]): PlaceIndex {
   const cached = CACHE.get(domains)
   if (cached) return cached
 
+  const stationKeys = new Set(domains.map((d) => squash(d.name)))
   const byDomain = new Map<number, Term[]>()
-  for (const d of domains) byDomain.set(d.id, termsOf(d))
+  for (const d of domains) byDomain.set(d.id, termsOf(d, stationKeys))
 
   const matches = (domain: Domain, query: string): boolean => {
     const needle = squash(query)
     if (!needle) return true
-    const terms = byDomain.get(domain.id) ?? termsOf(domain)
+    const terms = byDomain.get(domain.id) ?? termsOf(domain, stationKeys)
     return terms.some((term) => termMatches(term, needle))
   }
 

@@ -33,6 +33,8 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | Typecheck renderer | `npm run typecheck:web` | vert |
 | Tests Python (53) | `npm run sidecar:test` | vert |
 | Lancer l'application | `npm run dev` | — |
+| Réimporter le catalogue | `npm run catalogue:import` | vert |
+| Régénérer les audits | `npm run areas:audit` · `npm run refs:audit` | vert |
 | Lint Python | `npm run lint:py` | **rouge, préexistant** |
 | Typecheck complet | `npm run typecheck` | **rouge, préexistant** |
 
@@ -61,9 +63,14 @@ et `npm test` n'existent pas. Ne les invoque pas.
 - **Tout texte visible passe par `t()`** — `src/renderer/src/i18n/index.ts`,
   **français et anglais**, index 0 = français. `npm run i18n:scan` tient un
   plafond de dette qui ne doit que baisser.
-- **Le référentiel fait foi** pour les domaines, les altitudes et les
-  forfaits. Le géocodage ne comble que ses trous, et chaque candidat est
-  confronté au modèle d'élévation avant d'être retenu.
+- **Le catalogue fait foi** pour la liste des stations, leurs coordonnées,
+  leurs altitudes et leur domaine : `docs/sources/stations-ski-france-montagnes.xlsx`,
+  converti par `npm run catalogue:import` en `data/franceMontagnesStations.ts`
+  — fichier **généré**, jamais édité à la main. Le **référentiel** ne porte plus
+  que ce que le classeur ignore : forfaits relevés, saisonnalité, glaciers,
+  logos ; le **moteur local** enrichit les liens officiels. Le géocodage ne
+  comble que les trous, et chaque candidat est confronté au modèle d'élévation
+  avant d'être retenu.
 - **Un logement hors de la zone du domaine est rejeté, pas signalé.** La zone
   se construit dans `src/shared/geo.ts`, en kilomètres, jamais en degrés.
 - **Un échec de source reste local** : une source en panne produit une erreur
@@ -75,3 +82,6 @@ et `npm test` n'existent pas. Ne les invoque pas.
   Tout défaut constaté se corrige **en aval**, jamais dedans.
 - `tools/skitrack_v25.py` — la liste `STATIONS` y fait foi et `stations.test.ts`
   la relit ; l'alignement se fait côté application.
+- `src/renderer/src/data/franceMontagnesStations.ts` — **fichier généré**. Une
+  correction se fait dans le classeur de `docs/sources/`, puis
+  `npm run catalogue:import`.

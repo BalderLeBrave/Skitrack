@@ -10,15 +10,17 @@
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { skiAreaIndex } from './skiAreas'
-import { BUNDLED_REFERENTIAL, domainsFromReferential, hasCoords } from './referentiel'
+import { BUNDLED_REFERENTIAL, hasCoords } from './referentiel'
+import { DOMAIN_FIXES, catalogueOf } from './catalogue'
+import { FM_STATIONS } from './franceMontagnesStations'
 import { placeIndex, squash } from './places'
-import { slug } from '@/domain/format'
 
 const OUT = 'docs/diagnostics/couverture-stations.md'
 
-const stations = domainsFromReferential(BUNDLED_REFERENTIAL, slug)
+const { stations, excluded } = catalogueOf(BUNDLED_REFERENTIAL)
 const { areas } = skiAreaIndex(stations)
 const index = placeIndex(stations)
+const villages = new Set(FM_STATIONS.filter((s) => s.kind === 'village').map((s) => s.id))
 
 /**
  * Liste nominative de l'énoncé, telle qu'elle a été demandée.
@@ -52,13 +54,18 @@ const noCoords = stations.filter((s) => !hasCoords(s))
 w('# Couverture stations → domaines')
 w()
 w('*Généré par `npm run areas:audit` — ne pas éditer à la main.*')
-w(`*Source : référentiel livré (\`src/renderer/src/data/referentiel.json\`), ${stations.length} entrées.*`)
+w('*Source : le catalogue France Montagnes — `docs/sources/stations-ski-france-montagnes.xlsx`,*')
+w(`*${FM_STATIONS.length} lignes, converti en \`data/franceMontagnesStations.ts\`. Forfaits, saisonnalité et*`)
+w('*glaciers viennent du référentiel livré, posés par `data/catalogue.ts`.*')
 w()
 w('## Chiffres')
 w()
 w('| | |')
 w('| --- | --- |')
-w(`| Stations | **${stations.length}** |`)
+w(`| Lignes au classeur | ${FM_STATIONS.length} |`)
+w(`| Stations affichées | **${stations.length}** |`)
+w(`| dont villages-stations | ${stations.filter((s) => villages.has(s.id)).length} |`)
+w(`| Écartées | ${excluded.length} |`)
 w(`| Domaines | **${areas.length}** |`)
 w(`| dont multi-stations | ${multi.length} |`)
 w(`| dont mono-station | ${single.length} |`)
@@ -72,17 +79,41 @@ w('pas dupliquées, et le badge de domaine ne s’affiche pas pour elles.')
 w()
 w('## Provenance')
 w()
-w('Toutes les stations viennent du **référentiel** — aucune n’est fabriquée. Le')
-w('champ `pass` (forfait relié) fournit le rattachement au domaine ; à défaut, la')
-w('station forme son propre domaine. Aucune table manuelle de stations n’a été')
-w('nécessaire : le diagnostic a montré qu’elles y étaient déjà. La seule table')
-w('tenue à la main reste `VILLAGE_ALIASES` dans `data/places.ts` — des **hameaux**')
-w('(Val Claret, Mottaret, Reberty…) qui n’ont pas d’entrée propre et servent de')
-w('termes de recherche vers leur station, sans devenir des stations eux-mêmes.')
+w('Toutes les stations viennent du **classeur France Montagnes** — aucune n’est')
+w('fabriquée. Chaque ligne y porte ses coordonnées, l’altitude de son village')
+w('(modèle de terrain RGE ALTI de l’IGN) et son domaine skiable de rattachement,')
+w('mesuré sur les tracés OpenSkiMap. Le référentiel livré n’apporte plus que ce')
+w('que le classeur ne connaît pas : le tarif du forfait, la saisonnalité, le')
+w('glacier et le logo.')
 w()
+w('Deux tables restent tenues à la main, et rien d’autre :')
+w()
+w('- `DOMAIN_FIXES` (`data/catalogue.ts`) — les rattachements corrigés ci-dessous ;')
+w('- `VILLAGE_ALIASES` (`data/places.ts`) — des **hameaux** (Val Claret, Mottaret,')
+w('  Reberty…) qui n’ont pas de ligne au classeur et servent de termes de')
+w('  recherche vers leur station, sans devenir des stations eux-mêmes.')
+w()
+w('### Rattachements corrigés')
+w()
+w('Le classeur rattache une station au domaine dont les pistes sont les plus')
+w('proches de son **village**, ce qui se trompe quand le village est loin de son')
+w('propre domaine. Une correction ne peut que déplacer une station vers un autre')
+w('domaine du classeur : les chiffres restent ceux du classeur, pris sur le')
+w('domaine d’arrivée.')
+w()
+for (const [name, fix] of Object.entries(DOMAIN_FIXES)) {
+  w(`- **${name}** → ${fix.domain} — ${fix.why}.`)
+}
+w()
+if (excluded.length > 0) {
+  w('### Lignes du classeur écartées')
+  w()
+  for (const row of excluded) w(`- **${row.name}** — ${row.reason}.`)
+  w()
+}
 w('## Contrôle sur la liste nominative de l’énoncé')
 w()
-w('Chaque ligne confronte ce que l’énoncé attendait à ce que le référentiel')
+w('Chaque ligne confronte ce que l’énoncé attendait à ce que le catalogue')
 w('contient. **Un manque est écrit, jamais comblé** : un rattachement inventé')
 w('coûterait plus cher qu’une lacune connue.')
 w()
@@ -124,7 +155,7 @@ for (const [label, expected] of EXPECTED) {
       // refaire l'enquête. La réponse est à portée d'index : on la donne.
       const found = stations.filter((s) => index.matches(s, name))
       const where = [...new Set(found.map((s) => areas.find((a) => a.stations.includes(s))?.name))]
-      w(`> - **${name}** → ${where.length ? where.join(', ') : '*absent du référentiel*'}`)
+      w(`> - **${name}** → ${where.length ? where.join(', ') : '*absent du catalogue*'}`)
     }
   }
   w()
@@ -146,8 +177,8 @@ w('  géocodées. Liste :')
 w()
 for (const s of noCoords) w(`  - ${s.name}`)
 w()
-w(`- **${gaps} écart(s)** entre la liste nominative de l’énoncé et le référentiel,`)
-w('  détaillés ci-dessus. Ils ne sont pas comblés : le référentiel fait foi, et un')
+w(`- **${gaps} écart(s)** entre la liste nominative de l’énoncé et le catalogue,`)
+w('  détaillés ci-dessus. Ils ne sont pas comblés : le classeur fait foi, et un')
 w('  rattachement incertain serait pire qu’un manque signalé.')
 
 mkdirSync(dirname(OUT), { recursive: true })

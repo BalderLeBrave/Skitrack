@@ -77,7 +77,13 @@ const DELIBERATE = new Set([
   // tels que France Montagnes les écrit. Ce sont des clés de comparaison, pas
   // des textes d'interface — rien n'est jamais affiché depuis ce fichier — et
   // les traduire empêcherait de rapprocher une station de son homologue.
-  'data/franceMontagnes.ts'
+  'data/franceMontagnes.ts',
+  // `data/franceMontagnesStations.ts` : le catalogue lui-même, fichier généré
+  // depuis le classeur versionné. Des toponymes, des communes, des URL et des
+  // codes INSEE — aucune phrase, et rien qui s'affiche sans passer par
+  // `data/catalogue.ts`. Le régénérer réécrirait de toute façon toute
+  // traduction qu'on y aurait glissée.
+  'data/franceMontagnesStations.ts'
 ])
 
 /**
@@ -103,7 +109,7 @@ const VERBATIM = [/contributeurs OpenStreetMap/, /^€\/h$/, /^Gîtes de France$
  * détection a été élargie : ce n'est pas une dette nouvelle, c'est la dette qui
  * échappait au critère précédent et qui devient enfin visible.
  */
-const BUDGET = { jsx: 0, expr: 278 }
+const BUDGET = { jsx: 0, expr: 272 }
 
 const ACCENTS = 'àâçéèêëîïôùûüœÀÂÇÉÈÊËÎÏÔÙÛÜŒ'
 const ACC = new RegExp(`[${ACCENTS}]`)

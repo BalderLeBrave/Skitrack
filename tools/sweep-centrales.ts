@@ -34,6 +34,19 @@
  * politesse se mesure par hôte, et un balayage séquentiel de soixante-dix-sept
  * sites dont chacun peut mettre une minute à répondre ne se termine pas dans la
  * soirée. Chaque hôte ne voit donc qu'une recherche, et rien ne change pour lui.
+ *
+ * ## La seconde passe, et pourquoi elle existe
+ *
+ * Une bonne moitié des centrales Ingénie est hébergée sur la même
+ * infrastructure. Interrogées trois de front, quatorze d'entre elles ont rendu
+ * `ERR_CONNECTION_TIMED_OUT` — alors qu'elles répondent parfaitement une par
+ * une. Conclure « injoignable » aurait été accuser le site d'un défaut qui
+ * venait du balayage.
+ *
+ * Les échecs qui ressemblent à un étranglement — délai de connexion, clic qui
+ * expire — sont donc rejoués **une centrale à la fois**, avec une pause. Le
+ * rapport dit lesquels ont été rattrapés : c'est la différence entre un site
+ * qui refuse et un outil trop pressé.
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -70,6 +83,11 @@ for (const station of catalogueStations(BUNDLED_REFERENTIAL)) {
 }
 const centrals = [...byUrl].slice(0, limit > 0 ? limit : undefined)
 
+/** Un échec qui ressemble à un étranglement, pas à un refus. */
+function looksThrottled(error: string | null): boolean {
+  return error != null && /ERR_CONNECTION|ERR_TIMED|Timeout \d+ms exceeded|net::ERR_/.test(error)
+}
+
 interface Result {
   url: string
   host: string
@@ -77,6 +95,8 @@ interface Result {
   offers: number
   seconds: number
   error: string | null
+  /** Rattrapée par la seconde passe, une centrale à la fois. */
+  retried: boolean
   /** Nombre d'offres qui renseignent chaque champ. */
   filled: Record<string, number>
 }
@@ -100,7 +120,7 @@ const provider = createStationProvider({ timeoutMs: 40_000, headless: true, maxR
 const results: Result[] = []
 const queue = [...centrals.entries()]
 
-async function runOne([index, [url, stations]]: [number, [string, string[]]]): Promise<void> {
+async function runOne([index, [url, stations]]: [number, [string, string[]]], retry = false): Promise<void> {
   const host = new URL(url).host
   const started = Date.now()
   const filled: Record<string, number> = {}
@@ -122,7 +142,10 @@ async function runOne([index, [url, stations]]: [number, [string, string[]]]): P
   }
 
   const seconds = Math.round((Date.now() - started) / 1000)
-  results.push({ url, host, stations, offers: offers.length, seconds, error, filled })
+  const previous = results.findIndex((r) => r.url === url)
+  const result: Result = { url, host, stations, offers: offers.length, seconds, error, filled, retried: retry }
+  if (previous === -1) results.push(result)
+  else results[previous] = result
   console.log(
     `${String(results.length).padStart(2)}/${centrals.length} ${host.padEnd(38)} ` +
       `${error ? `échec — ${error.slice(0, 70)}` : `${offers.length} offres en ${seconds} s`}`
@@ -134,6 +157,18 @@ await Promise.all(
     for (let next = queue.shift(); next; next = queue.shift()) await runOne(next)
   })
 )
+
+// Seconde passe : ce qui ressemble à un étranglement est rejoué seul.
+const throttled = results.filter((r) => looksThrottled(r.error)).map((r) => r.url)
+if (throttled.length > 0) {
+  console.log(`
+Seconde passe, une centrale à la fois — ${throttled.length} à rejouer`)
+  for (const url of throttled) {
+    const stations = byUrl.get(url) ?? []
+    await new Promise((resolve) => setTimeout(resolve, 4_000))
+    await runOne([0, [url, stations]], true)
+  }
+}
 
 // L'ordre d'arrivée n'est pas celui de la liste : on remet les centrales dans
 // l'ordre où elles ont été demandées, pour que le rapport soit relisible.
@@ -171,6 +206,7 @@ w(`| Centrales interrogées | **${results.length}** |`)
 w(`| Qui rendent des offres | **${served.length}** |`)
 w(`| Qui répondent sans offre | ${empty.length} |`)
 w(`| En échec | ${failed.length} |`)
+w(`| Rattrapées en seconde passe | ${results.filter((r) => r.retried && r.offers > 0).length} |`)
 w(`| Stations couvertes | **${stationsServed}** / ${stationsAll} |`)
 w(`| Offres relevées | ${total} |`)
 w()
@@ -197,7 +233,7 @@ for (const r of results) {
   w(
     `| \`${r.host}\` | ${r.stations.length} | ${r.offers || '—'} | ${r.seconds} s | ` +
       `${cell('prix')} | ${cell('personnes')} | ${cell('pièces')} | ${cell('surface')} | ${cell('coordonnées')} | ` +
-      `${r.error ? `échec : ${r.error.slice(0, 90)}` : r.offers > 0 ? 'ok' : 'aucune offre'} |`
+      `${r.error ? `échec : ${r.error.slice(0, 90)}` : r.offers > 0 ? (r.retried ? 'ok (seconde passe)' : 'ok') : 'aucune offre'} |`
   )
 }
 w()

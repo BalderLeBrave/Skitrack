@@ -34,12 +34,15 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | Tests Python (53) | `npm run sidecar:test` | vert |
 | Lancer l'application | `npm run dev` | — |
 | Réimporter le catalogue | `npm run catalogue:import` | vert |
+| Réimporter les centrales | `npm run centrales:import` | vert |
+| Reconnaissance des centrales | `npm run centrales:recon` | vert, ~12 min, réseau |
 | Régénérer les audits | `npm run areas:audit` · `npm run refs:audit` | vert |
 | Lint Python | `npm run lint:py` | **rouge, préexistant** |
 | Typecheck complet | `npm run typecheck` | **rouge, préexistant** |
 
 `npm run verify` enchaîne : typecheck renderer, catalogue i18n, alignement des
-stations, index des lieux, vignettes, connecteurs, dette de traduction.
+stations, index des lieux, vignettes, règle `robots.txt`, connecteurs, dette de
+traduction.
 `PROVIDERS_OFFLINE=true` le rend hermétique (sinon un test appelle le réseau).
 
 Il n'y a **ni ESLint ni script `lint`/`test`** dans ce projet : `npm run lint`
@@ -75,6 +78,12 @@ et `npm test` n'existent pas. Ne les invoque pas.
   se construit dans `src/shared/geo.ts`, en kilomètres, jamais en degrés.
 - **Un échec de source reste local** : une source en panne produit une erreur
   motivée, jamais un résultat vide global.
+- **`robots.txt` fait autorité sur ce qu'on charge.** La règle est lue avant
+  chaque relevé (`src/main/providers/station/robots.ts`, testée par
+  `npm run robots:test`). Une centrale qui interdit tout son site n'est jamais
+  interrogée. Le connecteur ne **fabrique** pas d'URL d'exploration : il remplit
+  le formulaire et clique, comme l'utilisateur l'aurait fait — voir l'en-tête de
+  `station/station.ts`, qui explique pourquoi.
 
 ## Zones à ne pas toucher
 

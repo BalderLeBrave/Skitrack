@@ -488,115 +488,154 @@ const SITE_BY_SLUG: Record<string, OfficialSite> = {
 }
 
 /**
- * Centrale de réservation de la station, même indexation.
+ * Centrale de réservation de la station, indexée par **slug de station**.
  *
  * C'est là que se réservent les appartements et les chalets que les
  * plateformes n'ont pas : régies municipales, agences de station, propriétaires
- * en direct. La liste vient de France Montagnes — « Les centrales de
- * réservation des stations de ski en France » — complétée par un sondage
- * systématique de `reservation.<domaine>`, `booking.<domaine>` et
- * `resa.<domaine>` pour chaque site officiel connu. Chaque adresse a répondu et
- * cite sa station.
+ * en direct. C'est aussi l'adresse qu'interroge le connecteur `station-web`
+ * (`main/providers/station/station.ts`), et celle qu'ouvre le lien « site
+ * officiel » d'une offre.
+ *
+ * ## Deux sources, et pourquoi la table a été ré-indexée
+ *
+ * Les adresses viennent de France Montagnes — « Les centrales de réservation
+ * des stations de ski en France » —, d'un sondage systématique de
+ * `reservation.<domaine>`, `booking.<domaine>` et `resa.<domaine>`, et du
+ * relevé versionné `docs/sources/centrales-selecteurs.xlsx` (73 stations, 50
+ * centrales), qui en a apporté 22 inconnues jusque-là.
+ *
+ * Les clés étaient celles du **référentiel** — `les-menuires-saint-martin`,
+ * `tignes-val-d-isere`, `val-thorens-orelle` —, des libellés composites qui
+ * n'existent plus depuis que la liste vient du catalogue France Montagnes :
+ * cinquante stations sur deux cent quatre-vingt-trois retrouvaient encore leur
+ * centrale, et ni Méribel, ni Tignes, ni l'Alpe d'Huez n'en faisaient partie.
+ * La table est donc indexée sur le nom de station affiché.
+ *
+ * ## Ce qui a été rapproché, et comment
+ *
+ * Un rapprochement par le nom quand il est exact, par le **nom de l'hôte**
+ * sinon — `reservation.courchevel.com` nomme sa station mieux qu'une clé
+ * composite —, et à la main pour sept cas où ni l'un ni l'autre ne tranche :
+ * la centrale du Val d'Arly en dessert quatre, celle de Chamonix porte le nom
+ * de la vallée. Un rapprochement douteux n'est pas écrit : cent sept stations
+ * ont une centrale, les autres n'en ont pas, et le lien de réservation retombe
+ * alors sur le site officiel.
  *
  * Une entrée n'est retenue que si elle se distingue du site institutionnel :
  * un `reservation.` qui redirige vers l'accueil n'est pas une centrale.
+ *
+ * `*` en fin de ligne : adresse héritée du sondage, antérieure au relevé.
  */
 const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
-  'val-thorens-orelle': { url: 'https://reservation.valthorens.com/' },
-  'tignes-val-d-isere': { url: 'https://reservation.tignes.net/' },
-  'les-2-alpes': { url: 'https://reservation.les2alpes.com/' },
-  'la-plagne': { url: 'https://www.laplagneresort.com/' },
-  'alpe-d-huez-grand-domaine': { url: 'https://reservation.alpedhuez.com/' },
-  'avoriaz-1800': { url: 'https://reservation.avoriaz.com/' },
-  'chamonix-les-grands-montets': { url: 'https://booking.chamonix.com/fr/' },
-  'la-clusaz': { url: 'https://www.laclusaz.com/reservation/hebergements' },
-  'les-menuires-saint-martin': { url: 'https://fr.locationlesmenuires.com/' },
-  'courchevel': { url: 'https://reservation.courchevel.com/' },
-  'les-gets-morzine': { url: 'https://reservation.lesgets.com/' },
-  'samoens-le-grand-massif': { url: 'https://reservation.samoens.com/' },
-  'valmorel-le-grand-domaine': { url: 'https://reservation.valmorel.com/' },
-  'les-saisies-espace-diamant': { url: 'https://reservation.lessaisies.com/' },
-  'val-cenis-haute-maurienne': { url: 'https://reservation.haute-maurienne-vanoise.com/' },
-  'villard-de-lans-correncon': { url: 'https://reservation.villarddelans-correnconenvercors.com/' },
-  'les-7-laux': { url: 'https://reservation.les7laux.com/' },
-  'serre-chevalier-vallee': { url: 'https://reservation.serre-chevalier.com/' },
-  'montgenevre-voie-lactee': { url: 'https://reservation.montgenevre.com/' },
-  'vars-risoul-la-foret-blanche': { url: 'https://reservation.vars.com/' },
-  'les-orres': { url: 'https://reservation.lesorres.com/' },
-  'superdevoluy-la-joue-du-loup': { url: 'https://reservation.ledevoluy.com/' },
-  'orcieres-merlette-1850': { url: 'https://reservation.orcieres.com/' },
-  'isola-2000': { url: 'https://isola2000.com/reservez-votre-sejour/' },
-  'auron': { url: 'https://hiver.auron.com/bons-plans/?external=1' },
-  'peyragudes': { url: 'https://www.n-py.com/fr/peyragudes' },
-  'ax-3-domaines': { url: 'https://reservation.ax-ski.com/' },
-  'font-romeu-pyrenees-2000': { url: 'https://font-romeu.fr/sejourner/' },
-  'les-angles': { url: 'https://reservation.lesangles.com/' },
-  'monts-jura-mijoux-lelex': { url: 'https://reservation.paysdegex-montsjura.com/' },
-  'super-besse-le-sancy': { url: 'https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/' },
-  'le-mont-dore': { url: 'https://www.sancy.com/hebergement/' },
-  'courchevel-1550-le-praz': { url: 'https://reservation.courchevel.com/' },
-  'champagny-en-vanoise': { url: 'https://www.laplagneresort.com/' },
-  'montchavin-les-coches': { url: 'https://www.laplagneresort.com/' },
-  'tignes-les-brevieres': { url: 'https://reservation.tignes.net/' },
-  'les-contamines-montjoie': { url: 'https://reservation.lescontamines.com/' },
-  'combloux': { url: 'https://reservation.combloux.com/?lang=fr_FR' },
-  'praz-sur-arly': { url: 'https://booking.prazsurarly.com/?lang=fr_FR' },
-  'notre-dame-de-bellecombe': { url: 'https://reservation.valdarly-montblanc.com/' },
-  'saint-francois-longchamp': { url: 'https://reservation.saintfrancoislongchamp.com/' },
-  'la-toussuire-les-sybelles': { url: 'https://reservation.la-toussuire.com/' },
-  'le-corbier-les-sybelles': { url: 'https://reservation.le-corbier.com/index.aspx' },
-  'saint-sorlin-d-arves': { url: 'https://reservation.saintsorlindarves.com/' },
-  'valmeinier': { url: 'https://www.valmeinier-reservation.com/hiver' },
-  'aussois': { url: 'https://reservation.haute-maurienne-vanoise.com/ac62-aussois.htm' },
-  'bonneval-sur-arc': { url: 'https://reservation.haute-maurienne-vanoise.com/ac64-bonneval-sur-arc.htm' },
-  'la-norma': { url: 'https://reservation.haute-maurienne-vanoise.com/ac54-la-norma.htm' },
-  'les-karellis': { url: 'https://www.karellis-reservation.com/' },
-  'alpe-du-grand-serre': { url: 'https://reservation.matheysine-tourisme.com/' },
-  'auris-en-oisans': { url: 'https://reservation.auris-en-oisans.fr/' },
-  'vaujany': { url: 'https://reservation.vaujany.com/' },
-  'villard-reculas': { url: 'https://reservation.villard-reculas.com/' },
-  'lans-en-vercors': { url: 'https://skipass.lansenvercors.com/fr/' },
-  'chatel': { url: 'https://www.chatelreservation.com/' },
-  'les-carroz-d-araches': { url: 'https://reservation.lescarroz.com/' },
-  'chamonix-le-brevent-flegere': { url: 'https://booking.chamonix.com/fr/' },
-  'chamonix-le-tour-balme': { url: 'https://booking.chamonix.com/fr/' },
-  'les-houches': { url: 'https://booking.chamonix.com/fr/' },
-  'vallorcine': { url: 'https://booking.chamonix.com/fr/' },
-  'le-devoluy-superdevoluy': { url: 'https://reservation.ledevoluy.com/' },
-  'montclar-saint-jean': { url: 'https://www.montclar.com/' },
-  'valberg': { url: 'https://www.valberg.com/sejourner/reserver-votre-sejour/' },
-  'mont-dore-chastreix': { url: 'https://www.sancy.com/hebergement/' },
-  'lelex-crozet': { url: 'https://reservation.paysdegex-montsjura.com/' },
-  'bareges-la-mongie': { url: 'https://reservation.bareges.com/' },
-  'gavarnie-gedre': { url: 'https://reservation.valleesdegavarnie.com/fr/hebergements' },
-  'aime-2000': { url: 'https://www.laplagneresort.com/' },
-  'plagne-bellecote': { url: 'https://www.laplagneresort.com/' },
-  'saint-martin-de-belleville': { url: 'https://fr.locationsaintmartin.com/' },
-  'val-thorens': { url: 'https://reservation.valthorens.com/' },
-  'tignes-le-lac': { url: 'https://reservation.tignes.net/' },
-  'val-d-isere': { url: 'https://reservation.valdisere.com/' },
-  'termignon': { url: 'https://reservation.haute-maurienne-vanoise.com/' },
-  'la-feclaz': { url: 'https://reservation.chamberymontagnes.com/' },
-  'savoie-grand-revard': { url: 'https://reservation.chamberymontagnes.com/' },
-  'thollon-les-memises': { url: 'https://www.leman-mountains-explore.com/reserver/' },
-  'combloux-la-princesse': { url: 'https://reservation.combloux.com/?lang=fr_FR' },
-  'flumet-val-d-arly': { url: 'https://reservation.valdarly-montblanc.com/' },
-  'bisanne-1500': { url: 'https://reservation.lessaisies.com/' },
-  'hauteluce': { url: 'https://reservation.lessaisies.com/' },
-  'les-deux-alpes-1800': { url: 'https://reservation.les2alpes.com/' },
-  'prapoutel-les-7-laux': { url: 'https://reservation.les7laux.com/' },
-  'le-pleynet': { url: 'https://reservation.les7laux.com/' },
-  'correncon-en-vercors': { url: 'https://reservation.villarddelans-correnconenvercors.com/' },
-  'villard-de-lans-cote-2000': { url: 'https://reservation.villarddelans-correnconenvercors.com/' },
-  'serre-chevalier-briancon-1200': { url: 'https://reservation.serre-chevalier.com/' },
-  'serre-chevalier-chantemerle-1350': { url: 'https://reservation.serre-chevalier.com/' },
-  'serre-chevalier-villeneuve-1400': { url: 'https://reservation.serre-chevalier.com/' },
-  'serre-chevalier-le-monetier-1500': { url: 'https://reservation.serre-chevalier.com/' },
-  'vars-les-claux': { url: 'https://reservation.vars.com/' },
-  'besse-super-besse': { url: 'https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/' },
-  'le-haut-pilat': { url: 'https://reservation.pilat-tourisme.fr/' },
-  'mijoux': { url: 'https://reservation.paysdegex-montsjura.com/' },
+  'aime-2000': { url: 'https://www.laplagneresort.com/' }, // Aime 2000 *
+  'alpe-d-huez': { url: 'https://reservation.alpedhuez.com/?user-facet=winter' }, // Alpe d'Huez
+  'alpe-du-grand-serre': { url: 'https://reservation.matheysine-tourisme.com/' }, // Alpe du Grand Serre *
+  'areches-beaufort': { url: 'https://reservation.areches-beaufort.com/' }, // Arêches-Beaufort
+  'auris-en-oisans': { url: 'https://reservation.auris-en-oisans.fr/' }, // Auris-en-Oisans *
+  'auron': { url: 'https://hiver.auron.com/bons-plans/?external=1' }, // Auron *
+  'aussois': { url: 'https://reservation.haute-maurienne-vanoise.com/ac62-aussois.htm' }, // Aussois
+  'avoriaz-1800': { url: 'https://reservation.avoriaz.com/' }, // Avoriaz 1800 *
+  'ax-3-domaines': { url: 'https://reservation.ax-ski.com/' }, // Ax 3 Domaines
+  'bareges': { url: 'https://reservation.bareges.com/' }, // Barèges *
+  'belle-plagne': { url: 'https://www.laplagneresort.com/' }, // Belle Plagne
+  'besse-super-besse': { url: 'https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/' }, // Besse Super Besse *
+  'bisanne-1500': { url: 'https://reservation.lessaisies.com/' }, // Bisanne 1500 *
+  'bonneval-sur-arc': { url: 'https://reservation.haute-maurienne-vanoise.com/ac64-bonneval-sur-arc.htm' }, // Bonneval-sur-Arc
+  'chamonix-mont-blanc': { url: 'https://booking.chamonix.com/fr/' }, // Chamonix-Mont-Blanc
+  'champagny-en-vanoise': { url: 'https://www.laplagneresort.com/' }, // Champagny-en-Vanoise
+  'chamrousse': { url: 'https://www.chamrousse.com/hiver' }, // Chamrousse
+  'chatel': { url: 'https://www.chatelreservation.com/' }, // Châtel *
+  'combloux': { url: 'https://reservation.combloux.com/?lang=fr_FR' }, // Combloux
+  'courchevel': { url: 'https://reservation.courchevel.com/?lang=fr_FR' }, // Courchevel
+  'crest-voland-cohennoz': { url: 'https://reservation.valdarly-montblanc.com/' }, // Crest-Voland Cohennoz
+  'flumet-saint-nicolas-la-chapelle': { url: 'https://reservation.valdarly-montblanc.com/' }, // Flumet - Saint Nicolas La Chapelle
+  'font-romeu': { url: 'https://font-romeu.fr/sejourner/' }, // Font-Romeu *
+  'gavarnie-gedre': { url: 'https://reservation.valleesdegavarnie.com/fr/hebergements' }, // Gavarnie-Gèdre *
+  'gerardmer': { url: 'https://www.gerardmer-reservation.net/' }, // Gérardmer
+  'grand-tourmalet': { url: 'https://www.n-py.com/fr/ete/sejour-pyrenees/hebergement' }, // Grand Tourmalet
+  'isola-2000': { url: 'https://isola2000.com/reservez-votre-sejour/' }, // Isola 2000
+  'la-bresse-hohneck': { url: 'https://www.labresse.net/hebergements-a-la-bresse-hautes-vosges/' }, // La Bresse Hohneck
+  'la-clusaz': { url: 'https://www.laclusaz.com/' }, // La Clusaz
+  'la-giettaz': { url: 'https://reservation.valdarly-montblanc.com/' }, // La Giettaz
+  'la-joue-du-loup': { url: 'https://reservation.ledevoluy.com/' }, // La Joue du Loup *
+  'la-mongie': { url: 'https://reservation.bareges.com/' }, // La Mongie *
+  'la-norma': { url: 'https://reservation.haute-maurienne-vanoise.com/ac54-la-norma.htm' }, // La Norma
+  'la-plagne': { url: 'https://www.laplagneresort.com/' }, // La Plagne
+  'la-plagne-montalbert': { url: 'https://www.laplagneresort.com/' }, // La Plagne Montalbert
+  'la-rosiere': { url: 'https://reservation.larosiere.net/' }, // La Rosière
+  'la-toussuire': { url: 'https://reservation.la-toussuire.com/z14220_fr-.aspx' }, // La Toussuire
+  'lans-en-vercors': { url: 'https://skipass.lansenvercors.com/fr/' }, // Lans-en-Vercors *
+  'le-collet': { url: 'https://reservation.lecollet.com/' }, // Le Collet
+  'le-corbier': { url: 'https://reservation.le-corbier.com/index.aspx' }, // Le Corbier *
+  'le-devoluy': { url: 'https://reservation.ledevoluy.com/' }, // Le Dévoluy
+  'le-mont-dore': { url: 'https://www.sancy.com/hebergement/' }, // Le Mont-Dore
+  'le-pleynet': { url: 'https://reservation.les7laux.com/' }, // Le Pleynet *
+  'le-seignus': { url: 'https://www.valdallos.com/' }, // Le Seignus
+  'les-2-alpes': { url: 'https://reservation.les2alpes.com/location-appartement-2-alpes.html' }, // Les 2 Alpes
+  'les-7-laux': { url: 'https://reservation.les7laux.com/' }, // Les 7 Laux *
+  'les-angles': { url: 'https://lesangles.com/offres-hebergements/' }, // Les Angles
+  'les-carroz-d-araches': { url: 'https://reservation.lescarroz.com/' }, // Les Carroz d’Arâches *
+  'les-coches': { url: 'https://www.laplagneresort.com/' }, // Les Coches *
+  'les-contamines-montjoie': { url: 'https://reservation.lescontamines.com/' }, // Les Contamines-Montjoie *
+  'les-houches': { url: 'https://booking.chamonix.com/fr/' }, // Les Houches *
+  'les-karellis': { url: 'https://www.karellis.com/' }, // Les Karellis
+  'les-menuires': { url: 'https://fr.locationlesmenuires.com/' }, // Les Menuires
+  'les-orres': { url: 'https://reservation.lesorres.com/' }, // Les Orres
+  'les-saisies': { url: 'https://reservation.lessaisies.com/' }, // Les Saisies
+  'meribel': { url: 'https://reservations.meribel.net/?lang=fr_FR' }, // Méribel
+  'montclar': { url: 'https://www.montclar.com/' }, // Montclar *
+  'montgenevre': { url: 'https://reservation.montgenevre.com/' }, // Montgenèvre
+  'monts-jura': { url: 'https://reservation.paysdegex-montsjura.com/' }, // Monts Jura *
+  'morzine': { url: 'https://reservation.lesgets.com/' }, // Morzine *
+  'notre-dame-de-bellecombe': { url: 'https://reservation.valdarly-montblanc.com/' }, // Notre-Dame-de-Bellecombe
+  'orcieres-merlette': { url: 'https://reservation.orcieres.com/' }, // Orcieres Merlette
+  'orelle': { url: 'https://reservation.valthorens.com/' }, // Orelle *
+  'peisey-vallandry': { url: 'https://www.peisey-vallandry.com/' }, // Peisey-Vallandry
+  'peyragudes': { url: 'https://www.n-py.com/fr/peyragudes' }, // Peyragudes *
+  'plagne-1800': { url: 'https://www.laplagneresort.com/' }, // Plagne 1800
+  'plagne-bellecote': { url: 'https://www.laplagneresort.com/' }, // Plagne Bellecôte
+  'plagne-centre': { url: 'https://www.laplagneresort.com/' }, // Plagne Centre
+  'plagne-soleil': { url: 'https://www.laplagneresort.com/' }, // Plagne Soleil
+  'plagne-villages': { url: 'https://www.laplagneresort.com/' }, // Plagne Villages
+  'pralognan-la-vanoise': { url: 'https://www.reservationpralognan.fr/' }, // Pralognan-la-Vanoise
+  'prapoutel': { url: 'https://reservation.les7laux.com/' }, // Prapoutel *
+  'praz-sur-arly': { url: 'https://booking.prazsurarly.com/?lang=fr_FR' }, // Praz-sur-Arly *
+  'puy-saint-vincent': { url: 'https://www.paysdesecrins.com/hebergements/' }, // Puy-Saint-Vincent
+  'risoul': { url: 'https://www.risoul.com/reserver.html' }, // Risoul
+  'saint-francois-longchamp': { url: 'https://reservation.saintfrancoislongchamp.com/' }, // Saint-François-Longchamp
+  'saint-lary-pla-d-adet': { url: 'https://resa.saintlary.com/' }, // Saint-Lary Pla d'Adet
+  'saint-lary-soulan': { url: 'https://resa.saintlary.com/' }, // Saint-Lary-Soulan
+  'saint-martin-de-belleville': { url: 'https://fr.locationsaintmartin.com/' }, // Saint-Martin-de-Belleville
+  'saint-maurice-sur-moselle': { url: 'https://www.ballons-hautes-vosges.com/' }, // Saint-Maurice-sur-Moselle
+  'saint-sorlin-d-arves': { url: 'https://reservation.saintsorlindarves.com/' }, // Saint-Sorlin-d’Arves *
+  'sainte-foy-tarentaise': { url: 'https://www.saintefoy-reservation.com/fr/' }, // Sainte-Foy-Tarentaise
+  'samoens': { url: 'https://reservation.samoens.com/' }, // Samoëns *
+  'savoie-grand-revard': { url: 'https://reservation.chamberymontagnes.com/' }, // Savoie Grand Revard *
+  'serre-chevalier-briancon': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Briancon *
+  'serre-chevalier-chantemerle': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Chantemerle *
+  'serre-chevalier-le-monetier': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Le Monêtier *
+  'serre-chevalier-villeneuve': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Villeneuve *
+  'super-devoluy': { url: 'https://reservation.ledevoluy.com/' }, // Super-Dévoluy *
+  'termignon': { url: 'https://reservation.haute-maurienne-vanoise.com/' }, // Termignon *
+  'thollon-les-memises': { url: 'https://www.leman-mountains-explore.com/reserver/' }, // Thollon-les-Mémises *
+  'tignes': { url: 'https://reservation.tignes.net/' }, // Tignes
+  'tignes-le-lac': { url: 'https://reservation.tignes.net/' }, // Tignes Le Lac *
+  'tignes-les-brevieres': { url: 'https://reservation.tignes.net/' }, // Tignes Les Brévières *
+  'val-cenis': { url: 'https://reservation.haute-maurienne-vanoise.com/ac57-val-cenis.htm' }, // Val Cenis
+  'val-d-allos': { url: 'https://www.valdallos.com/' }, // Val d'Allos
+  'val-d-isere': { url: 'https://reservation.tignes.net/' }, // Val d’Isère *
+  'val-thorens': { url: 'https://reservation.valthorens.com/' }, // Val Thorens
+  'valberg': { url: 'https://www.valberg.com/sejourner/reserver-votre-sejour/' }, // Valberg
+  'valfrejus': { url: 'https://www.valfrejus.com/' }, // Valfréjus
+  'valloire': { url: 'https://www.valloire.com/' }, // Valloire
+  'vallorcine': { url: 'https://booking.chamonix.com/fr/' }, // Vallorcine *
+  'valmeinier': { url: 'https://www.valmeinier-reservation.com/hiver' }, // Valmeinier
+  'valmorel': { url: 'https://www.valmorel.com/' }, // Valmorel
+  'vaujany': { url: 'https://reservation.vaujany.com/' }, // Vaujany *
+  'villard-de-lans-correncon': { url: 'https://reservation.villarddelans-correnconenvercors.com/' }, // Villard-de-Lans – Corrençon *
+  'villard-reculas': { url: 'https://reservation.villard-reculas.com/' }, // Villard-Reculas *
 }
+
 
 /**
  * Nom court de station déduit d'un libellé de domaine.

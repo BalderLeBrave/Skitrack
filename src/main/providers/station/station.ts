@@ -14,22 +14,30 @@
  *
  * ## Pourquoi ce connecteur est spécifique à Ingénie
  *
- * Ces centrales ne sont pas 90 sites artisanaux : une trentaine tourne sur la
- * même plateforme, **Ingénie** (marqueur `ingenie` dans la page, moteur monté
- * par `MoteurRecherche.init_moteur`). Son moteur de recherche est un formulaire
- * GET vers `/booking`, et la page de résultats s'obtient donc par une URL
- * construite — pas de session, pas de POST, pas de pilotage de calendrier :
- *
- *     /booking?action=result&reload=1&cid=<cid>&MOTEUR_TYPES_PRESTATAIRE=HEBERGEMENT_SELECT
- *             &type_prestataire=G&datedeb=JJ/MM/AAAA&datefin=JJ/MM/AAAA&adultes=N&enfants=M
- *
- * `cid` est l'identifiant de contexte du site : il vaut 5 aux 2 Alpes, 1 à
- * Courchevel. Il est lu dans le formulaire de la page d'accueil plutôt que
- * deviné — d'où deux chargements, l'accueil puis les résultats.
+ * Ces centrales ne sont pas cinquante sites artisanaux : vingt-sept des
+ * cinquante relevées tournent sur la même plateforme, **Ingénie** (marqueur
+ * `ingenie` dans la page, moteur monté par `MoteurRecherche.init_moteur`), et
+ * elles desservent trente-neuf stations. Voir
+ * `docs/diagnostics/centrales-reconnaissance.md`.
  *
  * Une centrale qui n'est pas sur Ingénie renvoie une erreur explicite plutôt
  * qu'une liste vide : « aucune offre » et « plateforme non reconnue » ne se
  * confondent pas dans l'écran Sources.
+ *
+ * ## Le formulaire est rempli, l'URL n'est plus fabriquée
+ *
+ * Le moteur répond aussi à une URL toute faite —
+ * `/booking?action=result&cid=5&datedeb=…` — et c'est ce que faisait ce
+ * connecteur. Le `robots.txt` de ces centrales interdit pourtant `/*?action=*`
+ * et `/*?cid=*` : **vingt-trois centrales sur cinquante** publient cette règle,
+ * et le moteur exige les deux paramètres. Cette URL ne peut donc pas être
+ * demandée.
+ *
+ * Le connecteur remplit désormais le formulaire — dates, durée, personnes — et
+ * clique « Rechercher », avec les sélecteurs relevés à la main dans
+ * `docs/sources/centrales-selecteurs.xlsx`. C'est le geste de l'utilisateur,
+ * déclenché par lui, une fois, pour ses dates : aucun lien suivi, aucune
+ * pagination, aucune fiche visitée. Voir `submitSearch`.
  *
  * ## Ce qui est lu dans la page
  *
@@ -40,15 +48,19 @@
  * texte de la fiche : ils sont lus sur le DOM, et leur absence n'invalide pas
  * l'offre.
  *
- * `robots.txt` des centrales Ingénie a été relu : il interdit `/stats`,
- * `/carnet-voyage`, `espace-client` et une liste de paramètres de filtrage
- * (`?liste=`, `?origine_affinage=`, `?date=`…). L'URL de résultats utilisée ici
- * n'en emploie aucun.
+ * ## `robots.txt` est lu avant chaque relevé, pas une fois pour toutes
+ *
+ * Un exploitant change d'avis, et toutes les centrales ne disent pas la même
+ * chose : celles de Combloux et de Montgenèvre publient « Disallow: / » — tout
+ * leur site —, et le connecteur les écarte sans discuter. La règle est relue à
+ * chaque recherche, mise en cache une heure, et implémentée dans
+ * `station/robots.ts`, avec ses tests (`npm run robots:test`).
  */
 
 import type { Page } from 'playwright'
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
 import { baseAccommodation, parsePrice, sleep, withPage, withRetries, type ScrapeAttemptOptions } from '../webscrape/shared'
+import { allowsPath } from './robots'
 
 export const STATION_PROVIDER_NAME = 'station-web'
 
@@ -93,24 +105,198 @@ function originOf(url: string): string | null {
   }
 }
 
-export function resultsUrl(origin: string, cid: string, params: SearchParams): string {
-  const u = new URL(`${origin}/booking`)
-  u.searchParams.set('action', 'result')
-  u.searchParams.set('reload', '1')
-  u.searchParams.set('redirectionUrl', '0')
-  u.searchParams.set('cid', cid)
-  u.searchParams.set('MOTEUR_TYPES_PRESTATAIRE', 'HEBERGEMENT_SELECT')
-  // `G` = tous les types d'hébergement (appartement, chalet, résidence) ; `H`
-  // ne ramènerait que l'hôtellerie, qui n'est pas ce que l'écran compare.
-  u.searchParams.set('type_prestataire', 'G')
+/**
+ * Sélecteurs du formulaire, relevés à la main.
+ *
+ * Ils viennent de `docs/sources/centrales-selecteurs.xlsx` — un tour de
+ * l'inspecteur sur chaque centrale, converti en `station/centrals.ts`. Les
+ * centrales Ingénie partagent le même formulaire à l'attribut `name` près, et
+ * c'est cet attribut qu'on vise : les identifiants, eux, portent une empreinte
+ * de session (`form-recherche_6a83281a50911personnes`) et changent à chaque
+ * chargement.
+ */
+const FIELD = {
+  lodgingType: 'select[name="type_prestataire"]',
+  stayType: 'select[name="type_date"]',
+  /** Ancien moteur : un menu déroulant de samedis. */
+  fromSelect: 'select[name="datedeb"]',
+  /** Moteur actuel : un champ texte piloté par un calendrier JavaScript. */
+  fromInput: 'input[name="datedeb"]',
+  toInput: 'input[name="datefin"]',
+  durationSelect: 'select[name="duree"]',
+  durationInput: 'input[name="duree"]',
+  peopleSelect: 'select[name="personnes"]',
+  adults: 'input[name="adultes"]',
+  children: 'input[name="enfants"]',
+  /** `:visible` parce que la page porte deux formulaires — un pour l'écran
+   *  large, un pour le mobile — et que le premier venu peut être caché. */
+  submit: 'input[name="search"]:visible, input.form_search:visible, button[type="submit"]:visible'
+} as const
+
+/** Rythme de séjour du moteur : `LL` ouvre le calendrier quand la semaine
+ *  fixe du samedi au samedi (`SS`, le défaut) ne propose pas la date voulue. */
+const STAY_SHORT = 'LL'
+
+interface Choice {
+  value: string
+  label: string
+}
+
+async function optionsOf(page: Page, selector: string): Promise<Choice[]> {
+  const field = await page.$(selector)
+  if (!field) return []
+  return page.$$eval(`${selector} option`, (nodes) =>
+    (nodes as unknown as { value: string; textContent: string | null }[]).map((o) => ({
+      value: o.value,
+      label: (o.textContent ?? '').replace(/\s+/g, ' ').trim()
+    }))
+  )
+}
+
+/** Le plus petit choix numérique qui couvre `wanted`, à défaut d'exact. */
+function atLeast(choices: Choice[], wanted: number): Choice | null {
+  const numeric = choices
+    .map((c) => ({ ...c, n: Number(c.value) }))
+    .filter((c) => Number.isFinite(c.n) && c.n > 0)
+    .sort((a, b) => a.n - b.n)
+  return numeric.find((c) => c.n === wanted) ?? numeric.find((c) => c.n > wanted) ?? null
+}
+
+/**
+ * Remplit le moteur de la centrale et lance la recherche.
+ *
+ * ## Pourquoi remplir plutôt que construire l'URL
+ *
+ * Le moteur Ingénie répond aussi à une URL toute faite —
+ * `/booking?action=result&cid=5&datedeb=…` — et c'est ce que faisait ce
+ * connecteur. Mais le `robots.txt` de ces centrales interdit `/*?action=*` et
+ * `/*?cid=*` : vingt-trois des cinquante centrales relevées publient cette
+ * règle. Fabriquer cette URL, c'est explorer le site d'une façon que
+ * l'exploitant a explicitement refusée.
+ *
+ * Remplir le formulaire et cliquer « Rechercher » est une autre chose : c'est
+ * le geste que l'utilisateur ferait lui-même, déclenché par lui, une fois, pour
+ * ses dates. Le connecteur n'explore rien de sa propre initiative — il ne suit
+ * aucun lien, ne pagine pas, ne visite pas la fiche des logements. Et une
+ * centrale qui interdit **tout son site** (`Disallow: /`, comme Combloux et
+ * Montgenèvre) reste écartée : là, il n'y a pas d'ambiguïté à lever.
+ *
+ * ## Ce qui est refusé plutôt que rapproché
+ *
+ * Ces centrales vendent des semaines fixes, du samedi au samedi. Quand la date
+ * d'arrivée demandée n'est pas au calendrier, on ne prend pas « la plus
+ * proche » : le prix d'une autre semaine n'est pas le prix demandé. Le
+ * connecteur dit ce que la centrale propose, et rend la main.
+ */
+async function submitSearch(page: Page, params: SearchParams, name: string, origin: string): Promise<void> {
   const from = frenchDate(params.checkIn)
   const to = frenchDate(params.checkOut)
-  if (from) u.searchParams.set('datedeb', from)
-  if (to) u.searchParams.set('datefin', to)
-  u.searchParams.set('duree', String(nights(params)))
-  u.searchParams.set('adultes', String(params.adults ?? 2))
-  u.searchParams.set('enfants', String(params.children ?? 0))
-  return u.toString()
+  if (!from) throw new Error(`${name} : aucune date d'arrivée à demander à ${origin}.`)
+  const stay = nights(params)
+  const adults = params.adults ?? 2
+  const children = params.children ?? 0
+
+  // Deux générations du même moteur coexistent. L'ancienne offre des menus
+  // déroulants — un samedi par ligne ; l'actuelle, des champs texte pilotés par
+  // un calendrier JavaScript et des champs cachés. On reconnaît celle qu'on a.
+  const legacyDates = await optionsOf(page, FIELD.fromSelect)
+
+  // Le type de prestataire ne porte pas les mêmes codes d'une génération à
+  // l'autre — `G` hier, `I|H|S|V` aujourd'hui. On ne force que ce qu'on
+  // reconnaît, et on laisse le choix par défaut sinon : mal deviner ce champ
+  // écarterait toute l'offre en location.
+  const lodgingTypes = await optionsOf(page, FIELD.lodgingType)
+  if (lodgingTypes.some((o) => o.value === 'G')) {
+    await page.selectOption(FIELD.lodgingType, 'G').catch(() => undefined)
+  }
+
+  if (legacyDates.length > 0) {
+    // Le rythme commande le calendrier : en « samedi au samedi », `datedeb` ne
+    // propose que des samedis. Si la date demandée n'y est pas, on rebascule en
+    // court séjour, qui l'ouvre — et on relit les choix.
+    const stayTypes = await optionsOf(page, FIELD.stayType)
+    let dates = legacyDates
+    if (!dates.some((d) => d.value === from) && stayTypes.some((s) => s.value === STAY_SHORT)) {
+      await page.selectOption(FIELD.stayType, STAY_SHORT).catch(() => undefined)
+      await sleep(1_500)
+      dates = await optionsOf(page, FIELD.fromSelect)
+    }
+    if (!dates.some((d) => d.value === from)) {
+      const offered = dates.slice(0, 4).map((d) => d.value).join(', ')
+      throw new Error(`${name} : ${origin} ne propose pas d'arrivée le ${from} — la centrale vend ${offered}…`)
+    }
+    await page.selectOption(FIELD.fromSelect, from)
+
+    const durations = await optionsOf(page, FIELD.durationSelect)
+    if (durations.length > 0) {
+      const choice = durations.find((d) => Number(d.value) === stay)
+      if (!choice) {
+        throw new Error(
+          `${name} : ${origin} ne vend pas ${stay} nuit(s) — seulement ${durations.map((d) => d.label).join(', ')}.`
+        )
+      }
+      await page.selectOption(FIELD.durationSelect, choice.value)
+    }
+
+    const people = await optionsOf(page, FIELD.peopleSelect)
+    // À défaut du compte exact, le plus petit logement qui accueille le groupe :
+    // c'est ce qu'on réserverait, et la capacité n'est pas un prix.
+    const choice = people.length > 0 ? atLeast(people, adults + children) : null
+    if (choice) await page.selectOption(FIELD.peopleSelect, choice.value)
+  } else if (await page.$(FIELD.fromInput)) {
+    // Les champs du moteur actuel sont écrits directement, puis annoncés à la
+    // page : son script lit la valeur au clic, mais ses propres écouteurs
+    // doivent être réveillés, sans quoi le calendrier réécrirait l'ancienne
+    // date par-dessus.
+    await page.evaluate(
+      ({ selectors, values }) => {
+        // Évalué dans la page : `document` et `Event` y existent, mais pas ici
+        // — `tsconfig.node.json` ne charge pas la bibliothèque DOM. Même accès
+        // délibérément peu typé que `extractStationCards`, plus bas.
+        const view = globalThis as unknown as {
+          document: {
+            querySelectorAll: (s: string) => ArrayLike<{ value: string; dispatchEvent: (e: unknown) => void }>
+          }
+          Event: new (type: string, init: { bubbles: boolean }) => unknown
+        }
+        // Tous les exemplaires du champ, pas le premier : la page monte deux
+        // formulaires jumeaux — écran large et mobile — et c'est celui qui est
+        // visible qui sera soumis.
+        const set = (selector: string, value: string): void => {
+          for (const el of Array.from(view.document.querySelectorAll(selector))) {
+            el.value = value
+            el.dispatchEvent(new view.Event('input', { bubbles: true }))
+            el.dispatchEvent(new view.Event('change', { bubbles: true }))
+          }
+        }
+        set(selectors.fromInput, values.from)
+        if (values.to) set(selectors.toInput, values.to)
+        set(selectors.durationInput, values.stay)
+        set(selectors.adults, values.adults)
+        set(selectors.children, values.children)
+      },
+      {
+        selectors: FIELD,
+        values: {
+          from,
+          to: to ?? '',
+          stay: String(stay),
+          adults: String(adults),
+          children: String(children)
+        }
+      }
+    )
+  } else {
+    throw new Error(`${name} : le moteur de ${origin} n'expose pas de calendrier.`)
+  }
+
+  // Le bouton n'est pas un `submit` : c'est un `input[type=button]` que le
+  // script de la page écoute. Le clic déclenche la recherche, qui mène à la
+  // page de résultats — la même que celle qu'un visiteur obtiendrait.
+  await page.click(FIELD.submit, { timeout: 15_000 })
+  await page
+    .waitForLoadState('domcontentloaded', { timeout: 30_000 })
+    .catch(() => undefined)
 }
 
 /**
@@ -258,13 +444,17 @@ function sourceIdOf(url: string): string {
   }
 }
 
-async function loadCards(page: Page, url: string, timeoutMs: number): Promise<StationCard[]> {
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
-  // La liste est rendue côté serveur mais la galerie et les prix arrivent avec
-  // le script de la page ; on laisse le temps au premier écran de se poser.
+/**
+ * Lit les fiches de la page où la recherche a mené.
+ *
+ * Aucune navigation ici : la page est celle qu'a produite le clic sur
+ * « Rechercher ». La liste est rendue par le serveur, mais la galerie et les
+ * prix arrivent avec le script de la page — d'où l'attente.
+ */
+async function loadCards(page: Page, timeoutMs: number): Promise<StationCard[]> {
   await sleep(2_000)
   try {
-    await page.waitForSelector('.fiche-info', { timeout: 8_000 })
+    await page.waitForSelector('.fiche-info', { timeout: Math.min(12_000, timeoutMs) })
   } catch {
     // Pas de fiche : soit aucune disponibilité, soit une autre plateforme.
   }
@@ -288,20 +478,39 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
       const timeoutMs = opts?.timeoutMs ?? 45_000
       const headless = opts?.headless !== false
 
+      // `robots.txt` avant tout : c'est la seule déclaration que l'exploitant
+      // nous adresse. Une centrale qui interdit sa page de résultats n'est pas
+      // interrogée — l'écran garde le lien vers elle, à ouvrir à la main.
+      const home = await allowsPath(origin, new URL(central).pathname)
+      if (!home.allowed) {
+        throw new Error(
+          `${name} : ${origin} interdit le relevé automatique (robots.txt, « ${home.rule} ») — ` +
+            'la centrale reste accessible par son lien.'
+        )
+      }
+
       return withRetries(name, opts ?? {}, async (attempt) =>
         withPage(
           headless,
           async (page) => {
             await page.goto(central, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
-            await sleep(1_500)
+            // Le moteur est monté par le script de la page : le formulaire
+            // n'existe pas au `domcontentloaded`. On attend qu'il soit là plutôt
+            // que de compter sur un délai — c'est ce qui faisait conclure
+            // « pas de calendrier » sur des centrales qui en ont un.
+            await page
+              .waitForSelector(`${FIELD.fromInput}, ${FIELD.fromSelect}`, { timeout: 20_000 })
+              .catch(() => undefined)
+            await sleep(1_000)
             const ctx = await page.evaluate(readEngineContext)
-            if (!ctx.ingenie || !ctx.cid) {
+            if (!ctx.ingenie) {
               throw new Error(
                 `${name} : ${origin} n'expose pas de moteur Ingénie — réservation par le lien direct.`
               )
             }
 
-            const cards = await loadCards(page, resultsUrl(origin, ctx.cid, params), timeoutMs)
+            await submitSearch(page, params, name, origin)
+            const cards = await loadCards(page, timeoutMs)
             if (cards.length === 0) {
               throw new Error(`${name} : aucune offre publiée par ${origin} pour ces dates.`)
             }

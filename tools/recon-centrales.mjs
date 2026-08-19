@@ -38,7 +38,9 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
+import { chromium } from 'playwright'
 import { CENTRALS } from '../src/main/providers/station/centrals.ts'
+import { parseRobots, robotsAllows } from '../src/main/providers/station/robots.ts'
 
 const OUT = 'docs/diagnostics/centrales-reconnaissance.md'
 
@@ -80,51 +82,32 @@ function fingerprint(html) {
 }
 
 /**
- * Règles `robots.txt` qui s'appliquent à nous.
+ * Repli navigateur.
  *
- * Le groupe `User-agent: *` fait foi faute de groupe nommé. Les motifs sont
- * gardés tels quels : c'est ce qui permet de citer la règle exacte dans le
- * rapport plutôt qu'un verdict sans preuve.
+ * Huit centrales refusent une requête `fetch` — délai de connexion épuisé, ou
+ * 403 — alors qu'elles répondent normalement à un navigateur : elles filtrent
+ * sur l'empreinte TLS ou sur l'agent, pas sur l'intention. Les déclarer
+ * « injoignables » serait faux, et ferait renoncer à des centrales que le
+ * connecteur atteint parfaitement, lui qui pilote un vrai Chromium.
+ *
+ * Le navigateur n'est lancé que si une requête a échoué, et une seule fois pour
+ * toute la reconnaissance.
  */
-function parseRobots(text) {
-  const groups = []
-  let current = null
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.split('#')[0].trim()
-    if (!line) continue
-    const [rawKey, ...rest] = line.split(':')
-    const key = rawKey.trim().toLowerCase()
-    const value = rest.join(':').trim()
-    if (key === 'user-agent') {
-      if (!current || current.rules.length > 0) {
-        current = { agents: [], rules: [] }
-        groups.push(current)
-      }
-      current.agents.push(value.toLowerCase())
-      continue
-    }
-    if (!current) continue
-    if (key === 'disallow' || key === 'allow') current.rules.push({ allow: key === 'allow', path: value })
+let browser = null
+async function getViaBrowser(url) {
+  browser ??= await chromium.launch({ headless: true })
+  const page = await browser.newPage()
+  try {
+    const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS })
+    return { status: res?.status() ?? 0, url: page.url(), text: await page.content(), via: 'navigateur' }
+  } catch (err) {
+    // Playwright raconte l'échec sur plusieurs lignes ; le rapport n'en veut
+    // que la première, celle qui nomme la cause.
+    const detail = err instanceof Error ? err.message.split(/\r?\n/)[0] : String(err)
+    return { status: 0, url, text: '', via: 'navigateur', error: detail }
+  } finally {
+    await page.close()
   }
-  const mine = groups.find((g) => g.agents.some((a) => a.includes('skitrack')))
-  const star = groups.find((g) => g.agents.includes('*'))
-  return (mine ?? star)?.rules ?? []
-}
-
-/** Un chemin est-il permis ? Règle la plus longue d'abord, comme le veut la
- *  convention `robots.txt` ; `Disallow:` vide n'interdit rien. */
-function allows(rules, path) {
-  let verdict = { allowed: true, rule: null }
-  let best = -1
-  for (const rule of rules) {
-    if (!rule.path) continue
-    const pattern = rule.path.replace(/\*/g, '')
-    if (!path.startsWith(pattern.split('$')[0])) continue
-    if (pattern.length <= best) continue
-    best = pattern.length
-    verdict = { allowed: rule.allow, rule: `${rule.allow ? 'Allow' : 'Disallow'}: ${rule.path}` }
-  }
-  return verdict
 }
 
 async function get(url) {
@@ -138,9 +121,9 @@ async function get(url) {
     })
     const buffer = await res.arrayBuffer()
     const text = new TextDecoder('utf-8').decode(buffer.slice(0, MAX_BYTES))
-    return { status: res.status, url: res.url, text }
+    return { status: res.status, url: res.url, text, via: 'fetch' }
   } catch (err) {
-    return { status: 0, url, text: '', error: err instanceof Error ? err.message : String(err) }
+    return { status: 0, url, text: '', via: 'fetch', error: err instanceof Error ? err.message : String(err) }
   } finally {
     clearTimeout(timer)
   }
@@ -169,13 +152,25 @@ for (const [index, central] of hosts.entries()) {
   const rules = robotsRes.status === 200 && /disallow|allow|user-agent/i.test(robotsRes.text)
     ? parseRobots(robotsRes.text)
     : []
-  const home = allows(rules, path)
-  // Les chemins de résultats les plus courants sur ces plateformes. On ne les
-  // visite pas ; on demande seulement si `robots.txt` les autoriserait.
-  const booking = allows(rules, '/booking')
+  const home = robotsAllows(rules, path)
+  // Les chemins de résultats des plateformes rencontrées. On ne les visite
+  // pas : on demande seulement lesquels `robots.txt` autoriserait. C'est ce qui
+  // distingue une centrale relevable d'une centrale qu'on ne fera qu'ouvrir.
+  const paths = ['/booking', '/serp', '/recherche', '/reservation', '/hebergements', '/location']
+  const verdicts = paths.map((p) => ({ path: p, ...robotsAllows(rules, p) }))
+  const booking = verdicts[0]
 
   await sleep(DELAY_MS)
-  const page = home.allowed ? await get(central.url) : { status: 0, url: central.url, text: '', error: 'relevé interdit par robots.txt' }
+  let page = { status: 0, url: central.url, text: '', via: 'aucun', error: 'relevé interdit par robots.txt' }
+  if (home.allowed) {
+    page = await get(central.url)
+    // Un refus qui ressemble à un filtrage d'agent, pas à une absence : on
+    // redemande une fois, avec un navigateur.
+    if (page.status === 0 || page.status === 403) {
+      await sleep(DELAY_MS)
+      page = await getViaBrowser(central.url)
+    }
+  }
 
   findings.push({
     host: central.host,
@@ -184,11 +179,13 @@ for (const [index, central] of hosts.entries()) {
     status: page.status,
     finalUrl: page.url,
     error: page.error ?? null,
+    via: page.via,
     robots: {
       present: robotsRes.status === 200,
       rules: rules.length,
       home,
-      booking
+      booking,
+      verdicts
     },
     platforms: page.text ? fingerprint(page.text) : [],
     ldJson: /application\/ld\+json/i.test(page.text),
@@ -199,6 +196,7 @@ for (const [index, central] of hosts.entries()) {
   console.log(
     `${String(index + 1).padStart(2)}/${hosts.length} ${central.host.padEnd(34)} ` +
       `${page.status || 'ERR'} ${(page.text ? fingerprint(page.text) : ['—']).join(', ')}` +
+      `${page.via === 'navigateur' ? ' [navigateur]' : ''}` +
       `${home.allowed ? '' : '  [robots: interdit]'}`
   )
   await sleep(DELAY_MS)
@@ -228,6 +226,7 @@ w('| --- | --- |')
 w(`| Centrales sondées | **${findings.length}** |`)
 w(`| Stations desservies | ${findings.reduce((n, f) => n + f.stations.length, 0)} |`)
 w(`| Joignables | ${reachable.length} |`)
+w(`| dont joignables seulement en navigateur | ${findings.filter((f) => f.via === 'navigateur' && f.status >= 200 && f.status < 400).length} |`)
 w(`| Relevé interdit par robots.txt | **${forbidden.length}** |`)
 w(`| Sur Ingénie — déjà couvertes par le connecteur | **${ingenie.length}** |`)
 w(`| Plateforme non identifiée | ${unknown.length} |`)
@@ -259,6 +258,7 @@ for (const [family, members] of [...families].sort((a, b) => b[1].length - a[1].
       f.ldJson ? 'ld+json' : null,
       f.cid ? `cid=${f.cid}` : null,
       f.getForm ? 'formulaire GET' : null,
+      f.via === 'navigateur' && f.status >= 200 ? 'refuse fetch, répond au navigateur' : null,
       f.robots.home.allowed ? null : 'robots: interdit',
       f.status >= 400 || f.status === 0 ? `HTTP ${f.status || 'échec'}` : null
     ].filter(Boolean)
@@ -269,15 +269,20 @@ for (const [family, members] of [...families].sort((a, b) => b[1].length - a[1].
 
 w('## Détail')
 w()
-w('| Centrale | HTTP | Plateformes | ld+json | robots `/booking` | Stations |')
+w('| Centrale | HTTP | Plateformes | ld+json | chemins interdits | Stations |')
 w('| --- | ---: | --- | :-: | --- | --- |')
 for (const f of findings) {
-  const robots = f.robots.present ? (f.robots.booking.allowed ? 'permis' : `interdit (\`${f.robots.booking.rule}\`)`) : 'absent'
+  const blocked = (f.robots.verdicts ?? []).filter((v) => !v.allowed).map((v) => `\`${v.path}\``)
+  const robots = !f.robots.present ? 'pas de robots.txt' : blocked.length === 0 ? 'aucun' : blocked.join(' ')
   w(
     `| \`${f.host}\` | ${f.status || 'échec'} | ${f.platforms.join(', ') || (f.error ?? '—')} | ` +
       `${f.ldJson ? '✓' : '—'} | ${robots} | ${f.stations.length} |`
   )
 }
+w()
+w('Les chemins testés sont ceux des plateformes rencontrées — `/booking` pour')
+w('Ingénie, `/serp` pour Ceto, puis `/recherche`, `/reservation`, `/hebergements`')
+w('et `/location`. Aucun n’a été visité : seule la règle a été lue.')
 w()
 w('## Ce que ce rapport ne dit pas')
 w()

@@ -46,6 +46,17 @@ export interface Accommodation {
   guests?: number
   bedrooms?: number
   beds?: number
+  /**
+   * Nombre de **pièces**, quand la source les compte ainsi.
+   *
+   * Les centrales de station publient des « 2 pièces », pas des chambres :
+   * c'est la mesure française de la location de montagne. Traduire l'un en
+   * l'autre serait une convention d'annonce, pas une donnée — les deux champs
+   * cohabitent donc, et celui que la source n'a pas reste vide.
+   */
+  rooms?: number
+  /** Surface habitable en m², telle que la source l'annonce. */
+  areaSqm?: number
 
   nightlyPrice?: number
   cleaningFee?: number

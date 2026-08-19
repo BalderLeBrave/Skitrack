@@ -78,8 +78,16 @@ export interface StationCard {
   slopeText: string | null
   /** Le tarif affiché est un « à partir de », pas le prix du séjour demandé. */
   fromPrice: boolean
-  /** Surface en m², quand la fiche l'annonce. */
+  /** Surface en m², quand la fiche l'annonce. Borne basse d'une fourchette. */
   area: number | null
+  /** Nombre de **pièces** — ce que la centrale publie ; jamais des chambres. */
+  rooms: number | null
+  /** Nombre d'avis clients affiché, sans la note, que la fiche ne donne pas. */
+  reviewCount: number | null
+  /** Codes d'équipement lus dans les classes : `piscine`, `animaux`, `parking`… */
+  amenities: string[]
+  /** Résidence qui porte le logement, quand la fiche la nomme. */
+  residence: string | null
 }
 
 /** `JJ/MM/AAAA`, le seul format que le moteur accepte. */
@@ -461,8 +469,39 @@ export function extractStationCards(): StationCard[] {
     const fromPrice = Boolean(node.querySelector('.libelle_a_partir_de'))
     const slope = text.match(/(Ski aux pieds[^.]{0,18}|(?:De\s+)?\d+\s*(?:à\s*\d+\s*)?m des pistes)/i)
     const guests = text.match(/(\d+)\s*personnes?/i)
+
+    // « 35 - 42 m² » : une fourchette de surface pour une même catégorie
+    // d'appartement. On retient la borne basse — c'est celle qui est garantie.
     const areaNode = node.querySelector('.quantite')
-    const area = areaNode ? Number((areaNode.innerText || '').replace(',', '.')) : NaN
+    const areaText = (areaNode?.innerText || '').replace(',', '.')
+    const areaMatch = areaText.match(/(\d+(?:\.\d+)?)/)
+    const area = areaMatch ? Number(areaMatch[1]) : NaN
+
+    // Le nombre de **pièces**, pas de chambres : c'est ce que ces centrales
+    // publient, dans le texte comme dans la classe `OLOCATION-2PIECES-G`. Un
+    // deux-pièces a une chambre, mais c'est une convention de petite annonce,
+    // pas une donnée du site — on ne la traduit donc pas en chambres.
+    const roomsClass = (node.innerHTML || '').match(/OLOCATION-(\d+)PIECES/i)
+    const roomsText = text.match(/(\d+)\s*pi[èe]ces?/i)
+    const roomsValue = Number(roomsClass?.[1] ?? roomsText?.[1])
+
+    // « Avis client (2) » : le nombre d'avis, jamais la note — la fiche de
+    // résultats ne la publie pas, et une note absente vaut mieux qu'une note
+    // dérivée d'un classement en étoiles, qui mesure autre chose.
+    const reviews = text.match(/avis\s*(?:client)?\s*\((\d+)\)/i)
+
+    // Les équipements sont dans les classes : `EQUIPEMENT-PISCINE-G`,
+    // `EQUIPEMENT-ANIMAUX-G`… Le libellé lisible n'apparaît qu'au survol, mais
+    // le code, lui, est stable et suffit à filtrer.
+    const amenities: string[] = []
+    for (const match of Array.from((node.innerHTML || '').matchAll(/EQUIPEMENT-([A-Z0-9]+)-/g))) {
+      const code = match[1].toLowerCase()
+      if (!amenities.includes(code)) amenities.push(code)
+    }
+
+    // « RESIDENCE : LES CHALETS D'EMERAUDE » — la résidence qui porte
+    // l'appartement, utile pour rapprocher deux annonces du même bâtiment.
+    const residence = text.match(/R[ÉE]SIDENCE\s*:\s*([^:]{2,60}?)(?:\s+Classement|\s+Type d|$)/i)
 
     out.push({
       title,
@@ -475,7 +514,11 @@ export function extractStationCards(): StationCard[] {
       guests: guests ? Number(guests[1]) : null,
       slopeText: slope ? slope[0] : null,
       fromPrice,
-      area: Number.isFinite(area) && area > 0 ? area : null
+      area: Number.isFinite(area) && area > 0 ? area : null,
+      rooms: Number.isFinite(roomsValue) && roomsValue > 0 ? roomsValue : null,
+      reviewCount: reviews ? Number(reviews[1]) : null,
+      amenities,
+      residence: residence ? residence[1].trim() : null
     })
   }
   return out
@@ -580,6 +623,10 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
                   longitude: card.longitude ?? undefined,
                   city: card.city ?? undefined,
                   guests: card.guests ?? undefined,
+                  rooms: card.rooms ?? undefined,
+                  areaSqm: card.area ?? undefined,
+                  reviewCount: card.reviewCount ?? undefined,
+                  amenities: card.amenities.length > 0 ? card.amenities : undefined,
                   images: card.image ? [card.image] : undefined
                 },
                 params

@@ -229,6 +229,18 @@ export interface ProviderAccommodation {
   longitude?: number
   guests?: number
   bedrooms?: number
+  /**
+   * Nombre de **pièces**, quand la source compte ainsi.
+   *
+   * Les centrales de station publient des « 2 pièces 4 personnes » et
+   * n'annoncent jamais de chambres : c'est la mesure française de la location
+   * de montagne. Les deux champs cohabitent donc, et celui que la source n'a
+   * pas reste vide — traduire l'un en l'autre serait une convention d'annonce,
+   * pas une donnée relevée.
+   */
+  rooms?: number
+  /** Surface habitable en m², telle que la source l'annonce. */
+  areaSqm?: number
   nightlyPrice?: number
   totalPrice?: number
   currency?: string

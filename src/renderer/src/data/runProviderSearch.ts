@@ -118,8 +118,12 @@ function toLodging(
     // plutôt que deviner « Appartement ».
     type: '',
     pers: a.guests ?? 0,
+    // Les centrales de station comptent des **pièces**, pas des chambres, et
+    // n'annoncent les secondes nulle part : `ch` reste à zéro — « non annoncé »
+    // — plutôt que de traduire un deux-pièces en une chambre, qui serait une
+    // convention d'annonce et non une donnée relevée.
     ch: a.bedrooms ?? 0,
-    m2: null,
+    m2: a.areaSqm ?? null,
     note: a.rating != null ? String(a.rating).replace('.', ',') : '',
     avis: a.reviewCount ?? 0,
     // Accès aux pistes : calculé par le moteur local depuis la position, pas

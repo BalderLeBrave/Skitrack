@@ -188,7 +188,12 @@ export function baseAccommodation(
     reviewCount?: number
     images?: string[]
     bedrooms?: number
+    /** Pièces, quand la source compte ainsi — voir `Accommodation.rooms`. */
+    rooms?: number
+    /** Surface habitable en m², telle que la source l'annonce. */
+    areaSqm?: number
     guests?: number
+    amenities?: string[]
     country?: string
   },
   params: SearchParams
@@ -212,11 +217,14 @@ export function baseAccommodation(
     checkOut: params.checkOut,
     guests: partial.guests ?? params.adults,
     bedrooms: partial.bedrooms,
+    rooms: partial.rooms,
+    areaSqm: partial.areaSqm,
     nightlyPrice: partial.nightlyPrice,
     totalPrice: partial.totalPrice,
     currency: partial.currency ?? 'EUR',
     rating: partial.rating,
     reviewCount: partial.reviewCount,
+    amenities: partial.amenities,
     images: partial.images,
     availabilityStatus: 'unknown',
     priceConfidence: hasTotal ? 'total_confirmed' : hasNightly ? 'partial' : 'unknown',

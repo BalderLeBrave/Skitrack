@@ -27,8 +27,13 @@
  *
  * Une seule recherche par centrale, jamais par station : six stations du Val
  * d'Arly partagent un site, et l'interroger six fois n'apprendrait rien de plus
- * tout en le sollicitant six fois. Trois secondes séparent deux centrales, et
- * une seule tentative est faite — un balayage n'a pas à insister.
+ * tout en le sollicitant six fois. Une seule tentative est faite — un balayage
+ * n'a pas à insister.
+ *
+ * Trois centrales sont interrogées de front, jamais deux fois la même : la
+ * politesse se mesure par hôte, et un balayage séquentiel de soixante-dix-sept
+ * sites dont chacun peut mettre une minute à répondre ne se termine pas dans la
+ * soirée. Chaque hôte ne voit donc qu'une recherche, et rien ne change pour lui.
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -41,7 +46,8 @@ import { catalogueStations } from '@/data/catalogue'
 import { bookingCentralOf } from '@/data/stations'
 
 const OUT = 'docs/diagnostics/centrales-releve.md'
-const PAUSE_MS = 3_000
+/** Centrales interrogées de front — trois hôtes distincts, jamais le même. */
+const LANES = 3
 
 function arg(name: string, fallback: string): string {
   const index = process.argv.indexOf(`--${name}`)
@@ -90,10 +96,11 @@ const FIELDS: [string, (a: Accommodation) => boolean][] = [
   ['lien', (a) => Boolean(a.url)]
 ]
 
-const provider = createStationProvider({ timeoutMs: 45_000, headless: true, maxRetries: 1 })
+const provider = createStationProvider({ timeoutMs: 40_000, headless: true, maxRetries: 1 })
 const results: Result[] = []
+const queue = [...centrals.entries()]
 
-for (const [index, [url, stations]] of centrals.entries()) {
+async function runOne([index, [url, stations]]: [number, [string, string[]]]): Promise<void> {
   const host = new URL(url).host
   const started = Date.now()
   const filled: Record<string, number> = {}
@@ -111,17 +118,26 @@ for (const [index, [url, stations]] of centrals.entries()) {
     } as never)
     for (const [name, has] of FIELDS) filled[name] = offers.filter(has).length
   } catch (err) {
-    error = (err instanceof Error ? err.message : String(err)).split('\n')[0]
+    error = (err instanceof Error ? err.message : String(err)).split(/\r?\n/)[0]
   }
 
   const seconds = Math.round((Date.now() - started) / 1000)
   results.push({ url, host, stations, offers: offers.length, seconds, error, filled })
   console.log(
-    `${String(index + 1).padStart(2)}/${centrals.length} ${host.padEnd(38)} ` +
+    `${String(results.length).padStart(2)}/${centrals.length} ${host.padEnd(38)} ` +
       `${error ? `échec — ${error.slice(0, 70)}` : `${offers.length} offres en ${seconds} s`}`
   )
-  await new Promise((resolve) => setTimeout(resolve, PAUSE_MS))
 }
+
+await Promise.all(
+  Array.from({ length: LANES }, async () => {
+    for (let next = queue.shift(); next; next = queue.shift()) await runOne(next)
+  })
+)
+
+// L'ordre d'arrivée n'est pas celui de la liste : on remet les centrales dans
+// l'ordre où elles ont été demandées, pour que le rapport soit relisible.
+results.sort((a, b) => a.host.localeCompare(b.host, 'fr'))
 
 await closeWebscrapeBrowser()
 
@@ -145,7 +161,7 @@ w('# Relevé des centrales — ce qui répond et ce qui est renseigné')
 w()
 w('*Généré par `npm run centrales:sweep` — ne pas éditer à la main.*')
 w(`*Une recherche par centrale : arrivée le ${from}, ${nights} nuits, ${adults} personnes.*`)
-w('*Une seule tentative, trois secondes entre deux centrales.*')
+w('*Une seule tentative, trois centrales interrogées de front.*')
 w()
 w('## Chiffres')
 w()

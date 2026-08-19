@@ -2,17 +2,17 @@
 
 *Généré par `npm run centrales:sweep` — ne pas éditer à la main.*
 *Une recherche par centrale : arrivée le 2027-02-13, 7 nuits, 4 personnes.*
-*Une seule tentative, trois secondes entre deux centrales.*
+*Une seule tentative, trois centrales interrogées de front.*
 
 ## Chiffres
 
 | | |
 | --- | --- |
-| Centrales interrogées | **2** |
+| Centrales interrogées | **3** |
 | Qui rendent des offres | **0** |
 | Qui répondent sans offre | 0 |
-| En échec | 2 |
-| Stations couvertes | **0** / 12 |
+| En échec | 3 |
+| Stations couvertes | **0** / 13 |
 | Offres relevées | 0 |
 
 ## Champs renseignés, sur l’ensemble des offres relevées
@@ -44,16 +44,21 @@ chose sur la donnée disponible, pas sur le connecteur.
 
 | Centrale | Stations | Offres | Durée | Prix | Personnes | Pièces | Surface | Position | État |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| `www.laplagneresort.com` | 11 | — | 23 s | — | — | — | — | — | échec : station-web : https://www.laplagneresort.com n'expose pas de moteur Ingénie — réservation  |
-| `reservation.alpedhuez.com` | 1 | — | 24 s | — | — | — | — | — | échec : station-web : https://reservation.alpedhuez.com n'expose pas de moteur Ingénie — réservati |
+| `reservation.alpedhuez.com` | 1 | — | 30 s | — | — | — | — | — | échec : station-web : https://reservation.alpedhuez.com n'expose pas de moteur Ingénie — réservati |
+| `reservation.matheysine-tourisme.com` | 1 | — | 24 s | — | — | — | — | — | échec : station-web : https://reservation.matheysine-tourisme.com n'expose pas de moteur Ingénie — |
+| `www.laplagneresort.com` | 11 | — | 25 s | — | — | — | — | — | échec : station-web : https://www.laplagneresort.com n'expose pas de moteur Ingénie — réservation  |
 
 ## Les échecs, un par un
-
-### `www.laplagneresort.com` — Aime 2000, Belle Plagne, Champagny-en-Vanoise, La Plagne, La Plagne Montalbert, Les Coches, Plagne 1800, Plagne Bellecôte, Plagne Centre, Plagne Soleil, Plagne Villages
-
-> station-web : https://www.laplagneresort.com n'expose pas de moteur Ingénie — réservation par le lien direct.
 
 ### `reservation.alpedhuez.com` — Alpe d'Huez
 
 > station-web : https://reservation.alpedhuez.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+
+### `reservation.matheysine-tourisme.com` — Alpe du Grand Serre
+
+> station-web : https://reservation.matheysine-tourisme.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+
+### `www.laplagneresort.com` — Aime 2000, Belle Plagne, Champagny-en-Vanoise, La Plagne, La Plagne Montalbert, Les Coches, Plagne 1800, Plagne Bellecôte, Plagne Centre, Plagne Soleil, Plagne Villages
+
+> station-web : https://www.laplagneresort.com n'expose pas de moteur Ingénie — réservation par le lien direct.
 

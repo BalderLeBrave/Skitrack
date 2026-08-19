@@ -2,21 +2,22 @@
  * Test des modules sources.
  *
  * Ce qui est testable sans identifiant l'est réellement : construction d'URL
- * Airbnb, normalisation Booking et Expedia sur des charges utiles figées,
- * signature Rapid, stub Gîtes de France, tri de l'agrégat. Les appels réseau
- * aux API partenaires ne sont pas simulés — sans clé, ils échouent, et c'est ce
- * que le test vérifie : l'échec est isolé et motivé, pas masqué.
+ * Airbnb, normalisation Booking sur une charge utile figée, décodage du
+ * transport MCP, validation des sources déclarées, tri de l'agrégat et emprise
+ * géographique. Les appels réseau aux API partenaires ne sont pas simulés —
+ * sans clé, ils échouent, et c'est ce que le test vérifie : l'échec est isolé
+ * et motivé, pas masqué.
+ *
+ * Depuis le retrait des connecteurs LiteAPI, Expedia et Gîtes de France, **ce
+ * test ne sort plus sur le réseau du tout** : `PROVIDERS_OFFLINE=true` n'a plus
+ * d'effet ici, et le portail est hermétique par construction.
  *
  *     npm run providers:test
  */
 
 import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
-import { normalizeExpedia, signatureFor, brandOf } from './expedia/expedia'
-import { GitesDeFranceProvider } from './gites/gites'
 import { buildEngine } from './index'
-import { cheapestOffer, normalizeLiteApi } from './liteapi/liteapi'
-import { isSandboxKey, LiteApiMcpTransport, LiteApiRestTransport } from './liteapi/transport'
 import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
@@ -53,15 +54,6 @@ const PARAMS: SearchParams = {
 /** Coordonnées de la station, telles qu'utilisées par le référentiel. */
 const GEO: SearchParams = { ...PARAMS, latitude: 45.2967, longitude: 6.5806, radiusMeters: 12_000 }
 
-/**
- * Clé de bac à sable **publiée par l'éditeur dans sa propre documentation**
- * (docs.liteapi.travel, « Prompt for Vibe Coding tools »). Elle sert ici à
- * prouver que la chaîne fonctionne de bout en bout ; elle n'ouvre aucun droit et
- * son inventaire est réduit. Mettre `LITEAPI_KEY` dans l'environnement pour
- * tester avec la vôtre.
- */
-const SANDBOX_KEY = process.env.LITEAPI_KEY ?? 'sand_c0155ab8-c683-4f26-8f94-b5e92c5797b9'
-const ONLINE = process.env.PROVIDERS_OFFLINE !== 'true'
 
 async function main(): Promise<void> {
   heading('1. Airbnb — construction d’URL, aucune requête')
@@ -103,100 +95,6 @@ async function main(): Promise<void> {
   check('disponibilité affirmée (endpoint de disponibilité)', booking?.availabilityStatus === 'available')
   check('charge utile conservée', booking?.rawProviderData !== undefined)
   check('ligne sans nom rejetée', normalizeBooking({ id: 9 }, undefined, PARAMS) === null)
-
-  heading('3. Expedia — signature, marques, normalisation')
-  const signature = signatureFor({ apiKey: 'key', sharedSecret: 'secret' }, 1_700_000_000)
-  check('signature SHA-512 (128 caractères hexadécimaux)', /^[0-9a-f]{128}$/.test(signature))
-  check(
-    'signature dépendante de l’horodatage',
-    signature !== signatureFor({ apiKey: 'key', sharedSecret: 'secret' }, 1_700_000_001)
-  )
-  check('catégorie location → marque vrbo', brandOf({ category: { name: 'Vacation rental' } }) === 'vrbo')
-  check('catégorie hôtel → marque expedia', brandOf({ category: { name: 'Hotel' } }) === 'expedia')
-
-  const expedia = normalizeExpedia(
-    {
-      property_id: '987',
-      name: 'Chalet des Cimes',
-      location: { coordinates: { latitude: 45.3, longitude: 6.59 }, address: { city: 'Val Thorens', country_code: 'FR' } },
-      ratings: { guest: { overall: 4.6, count: 57 } },
-      rooms: [{ rates: [{ occupancy_pricing: { '4': { totals: { inclusive: { billable_currency: { value: '3120.00', currency: 'EUR' } } } } } }] }]
-    },
-    PARAMS
-  )
-  check('normalisé', expedia !== null)
-  check('prix total extrait', expedia?.totalPrice === 3120, expedia?.totalPrice)
-  check('devise extraite', expedia?.currency === 'EUR')
-
-  heading('4. Gîtes de France — stub non bloquant')
-  const gites = await new GitesDeFranceProvider().search(PARAMS)
-  check('renvoie un tableau vide', Array.isArray(gites) && gites.length === 0)
-  check('ne lève pas', true)
-
-  heading('5. LiteAPI — normalisation sur charge utile figée')
-  const liteApiPayload = {
-    data: [
-      {
-        hotelId: 'lp724fb',
-        roomTypes: [
-          {
-            offerId: 'offre-chere',
-            rates: [{ name: 'Suite', retailRate: { total: [{ amount: 9200, currency: 'EUR' }] } }]
-          },
-          {
-            offerId: 'offre-mini',
-            rates: [
-              {
-                name: 'Appartement 4 personnes',
-                maxOccupancy: 4,
-                boardName: 'Room Only',
-                retailRate: {
-                  total: [{ amount: 6587.36, currency: 'EUR' }],
-                  taxesAndFees: [
-                    { included: true, description: 'TaxPercent', amount: 154.04 },
-                    { included: false, description: 'CityTaxAmount', amount: 49.89 }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      },
-      { hotelId: 'sans-fiche', roomTypes: [{ rates: [{ retailRate: { total: [{ amount: 100 }] } }] }] }
-    ],
-    hotels: [
-      {
-        id: 'lp724fb',
-        name: 'Résidence Koh-I Nor by Les Etincelles',
-        city_name: 'Les Belleville',
-        country_code: 'fr',
-        latitude: 45.2932,
-        longitude: 6.5789,
-        rating: 8.8,
-        stars: 5,
-        review_count: 32,
-        main_photo: 'https://static.cupid.travel/hotels/koh-i-nor.jpg'
-      }
-    ]
-  }
-
-  const best = cheapestOffer(liteApiPayload.data[0])
-  check('offre la moins chère retenue', best?.total === 6587.36, best?.total)
-  check('identifiant d’offre associé', best?.offerId === 'offre-mini')
-
-  const [lite] = normalizeLiteApi(liteApiPayload, GEO)
-  check('normalisé', lite !== undefined)
-  check('prix total ferme', lite?.totalPrice === 6587.36)
-  check('prix à la nuit calculé sur 7 nuits', lite?.nightlyPrice === 941.05, lite?.nightlyPrice)
-  check('taxes non incluses isolées', lite?.taxes === 49.89, lite?.taxes)
-  check('code pays normalisé en majuscules', lite?.country === 'FR')
-  check('offre réservable identifiée', lite?.offerId === 'offre-mini')
-  check('confiance de prix maximale', lite?.priceConfidence === 'total_confirmed')
-  check(
-    'établissement sans fiche descriptive écarté',
-    normalizeLiteApi(liteApiPayload, GEO).length === 1
-  )
-  check('clé de bac à sable reconnue', isSandboxKey('sand_abc') && !isSandboxKey('prod_abc'))
 
   heading('6. MCP — décodage du transport, sans réseau')
   const sse =
@@ -313,49 +211,6 @@ async function main(): Promise<void> {
     Boolean(report.outcomes.find((o) => o.provider === 'booking')?.error?.includes('Demand API'))
   )
   check('l’agrégat n’a pas levé', true)
-
-  heading('10. LiteAPI — appel réel, REST puis MCP')
-  if (!ONLINE) {
-    console.log('  (ignoré : PROVIDERS_OFFLINE=true)')
-  } else {
-    const body = {
-      latitude: 45.2967,
-      longitude: 6.5806,
-      radius: 12_000,
-      occupancies: [{ adults: 2 }],
-      currency: 'EUR',
-      guestNationality: 'FR',
-      checkin: '2027-02-06',
-      checkout: '2027-02-13',
-      maxRatesPerHotel: 1,
-      includeHotelData: true
-    }
-
-    try {
-      const rest = await new LiteApiRestTransport(SANDBOX_KEY).rates(body)
-      const viaRest = normalizeLiteApi(rest, GEO)
-      console.log(`  REST : ${viaRest.length} logement(s)${rest.sandbox ? ' — bac à sable' : ''}`)
-      for (const item of viaRest.slice(0, 3)) {
-        console.log(`    ${item.title} — ${item.totalPrice} ${item.currency} (${item.city})`)
-      }
-      check('REST répond sans lever', true)
-
-      const mcp = await new LiteApiMcpTransport(SANDBOX_KEY).rates(body)
-      const viaMcp = normalizeLiteApi(mcp, GEO)
-      console.log(`  MCP  : ${viaMcp.length} logement(s)`)
-      check('MCP répond sans lever', true)
-      // La propriété qui justifie un mapper unique : les deux transports doivent
-      // rendre le même inventaire. Si elle tombe un jour, c'est ici qu'on le voit.
-      check(
-        'REST et MCP rendent le même inventaire',
-        viaRest.map((r) => r.sourceId).join() === viaMcp.map((r) => r.sourceId).join(),
-        { rest: viaRest.map((r) => r.sourceId), mcp: viaMcp.map((r) => r.sourceId) }
-      )
-    } catch (error) {
-      console.log(`  réseau indisponible : ${(error as Error).message}`)
-      console.log('  (non compté comme échec — relancer avec PROVIDERS_OFFLINE=true pour ignorer)')
-    }
-  }
 
   heading('11. Zone géographique — emprise du domaine et rejet des hors-zone')
 

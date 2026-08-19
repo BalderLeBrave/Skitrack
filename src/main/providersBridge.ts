@@ -58,12 +58,7 @@ function options(): EngineOptions {
     // Scrapers Playwright : SKITRACK_WEB_SCRAPE=0 pour désactiver.
     enableWebScrape: process.env.SKITRACK_WEB_SCRAPE !== '0',
     vault: (key: string) => decryptAll()[key],
-    mcpSources: readMcpSources(),
-    brands: {
-      expedia: process.env.EXPEDIA_ENABLED !== 'false',
-      // Drapeau indépendant : Vrbo se coupe seul.
-      vrbo: process.env.VRBO_ENABLED !== 'false'
-    }
+    mcpSources: readMcpSources()
   }
 }
 

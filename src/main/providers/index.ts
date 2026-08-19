@@ -26,8 +26,6 @@ import { airbnbRedirect } from './airbnb/airbnb'
 import { createBookingWebProvider } from './webscrape'
 import { BookingProvider, resolveBookingCredentials } from './booking/booking'
 import { createStationProvider } from './station/station'
-import type { ExpediaBrand } from './expedia/expedia'
-import type { LiteApiTransportKind } from './liteapi/transport'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -40,10 +38,6 @@ export interface EngineOptions {
   enableWebScrape?: boolean
   /** Lecture du coffre chiffré. Injectée pour rester testable sans Electron. */
   vault: (key: string) => string | undefined
-  /** Conservés pour la compatibilité de l'appelant ; sans effet depuis le
-   *  retrait des connecteurs Expedia et LiteAPI. */
-  brands?: Partial<Record<ExpediaBrand, boolean>>
-  liteApiTransport?: LiteApiTransportKind
   /** Contenu brut de `mcp-sources.json`, lu par l'appelant. */
   mcpSources?: string | null
   /** Devise et nationalité du voyageur : elles changent les tarifs affichés. */

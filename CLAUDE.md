@@ -43,7 +43,9 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 `npm run verify` enchaîne : typecheck renderer, catalogue i18n, alignement des
 stations, index des lieux, vignettes, règle `robots.txt`, connecteurs, dette de
 traduction.
-`PROVIDERS_OFFLINE=true` le rend hermétique (sinon un test appelle le réseau).
+Il est hermétique : aucun de ses tests n'appelle le réseau depuis le retrait des
+connecteurs LiteAPI, Expedia et Gîtes de France (`PROVIDERS_OFFLINE` n'a plus
+d'effet).
 
 Il n'y a **ni ESLint ni script `lint`/`test`** dans ce projet : `npm run lint`
 et `npm test` n'existent pas. Ne les invoque pas.

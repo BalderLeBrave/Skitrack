@@ -153,6 +153,50 @@ async function optionsOf(page: Page, selector: string): Promise<Choice[]> {
   )
 }
 
+/**
+ * Bandeaux de consentement, dans l'ordre où on veut y répondre.
+ *
+ * Refuser d'abord : le connecteur n'a aucun besoin d'être pisté, et « continuer
+ * sans accepter » est un choix disponible sur la plupart de ces bandeaux. Le
+ * bouton d'acceptation n'arrive qu'en dernier recours, quand la page ne laisse
+ * pas d'autre issue — sans quoi le bandeau reste au-dessus du formulaire et
+ * intercepte le clic sur « Rechercher », ce qui est exactement ce qui se passait
+ * sur `reservation.les2alpes.com`.
+ */
+const CONSENT_BUTTONS = [
+  'button:has-text("Continuer sans accepter")',
+  'a:has-text("Continuer sans accepter")',
+  'button:has-text("Tout refuser")',
+  'button:has-text("Refuser")',
+  '#didomi-notice-disagree-button',
+  'button:has-text("Tout accepter")',
+  'button:has-text("J\'accepte")',
+  '#didomi-notice-agree-button',
+  '.tarteaucitronAllow',
+  '#tarteaucitronPersonalize2'
+]
+
+/**
+ * Écarte le bandeau de consentement s'il y en a un.
+ *
+ * Silencieux par construction : l'absence de bandeau est le cas normal, et son
+ * refus ne doit jamais faire échouer une recherche.
+ */
+async function dismissConsent(page: Page): Promise<void> {
+  for (const selector of CONSENT_BUTTONS) {
+    const button = page.locator(selector).first()
+    try {
+      if (await button.isVisible({ timeout: 700 })) {
+        await button.click({ timeout: 2_000 })
+        await sleep(600)
+        return
+      }
+    } catch {
+      // Bouton absent, masqué ou déjà parti : on passe au suivant.
+    }
+  }
+}
+
 /** Le plus petit choix numérique qui couvre `wanted`, à défaut d'exact. */
 function atLeast(choices: Choice[], wanted: number): Choice | null {
   const numeric = choices
@@ -501,6 +545,9 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             await page
               .waitForSelector(`${FIELD.fromInput}, ${FIELD.fromSelect}`, { timeout: 20_000 })
               .catch(() => undefined)
+            // Le bandeau de consentement se pose au-dessus du formulaire : sans
+            // l'écarter, le clic sur « Rechercher » n'atteint jamais le bouton.
+            await dismissConsent(page)
             await sleep(1_000)
             const ctx = await page.evaluate(readEngineContext)
             if (!ctx.ingenie) {

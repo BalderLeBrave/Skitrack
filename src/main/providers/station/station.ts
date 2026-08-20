@@ -37,7 +37,13 @@
  * clique « Rechercher », avec les sélecteurs relevés à la main dans
  * `docs/sources/centrales-selecteurs.xlsx`. C'est le geste de l'utilisateur,
  * déclenché par lui, une fois, pour ses dates : aucun lien suivi, aucune
- * pagination, aucune fiche visitée. Voir `submitSearch`.
+ * pagination. Voir `submitSearch`.
+ *
+ * Le tarif d'une annonce, lui, n'est pas celui de la SERP : `.prix_en_cours` y
+ * est souvent un « à partir de ». Le montant daté est celui du Rechercher de
+ * l'onglet **Disponibilités & Tarifs** (`#tarifs`) — `searchAjax` puis
+ * `detailPrestationsAjax`, dans la session du navigateur. Voir
+ * `resolveExactPriceOnFiche` et `station/fichePrice.ts`.
  *
  * ## Ce qui est lu dans la page
  *
@@ -71,6 +77,17 @@ import { allowsPath } from './robots'
 import { isCetoHost } from '../ceto/hosts'
 import { shouldAttemptIngenie } from './ingenieHosts'
 import { CircuitBreaker } from '../resilience'
+import {
+  cleanProductUrl,
+  detailAjaxQuery,
+  extractObjectCodeFromCardHtml,
+  extractWidgetObject,
+  parseSearchAjax,
+  parseStayPriceFromDetailHtml,
+  prestationDash,
+  searchAjaxQuery,
+  typePrestataireOf
+} from './fichePrice'
 
 export const STATION_PROVIDER_NAME = 'station-web'
 
@@ -98,6 +115,8 @@ export interface StationCard {
   amenities: string[]
   /** Résidence qui porte le logement, quand la fiche la nomme. */
   residence: string | null
+  /** Code objet Ingénie (`G|290|ST3N`), si la SERP le publie. */
+  objectCode: string | null
 }
 
 /** `JJ/MM/AAAA`, le seul format que le moteur accepte. */
@@ -587,6 +606,7 @@ export function extractStationCards(): StationCard[] {
     // « RESIDENCE : LES CHALETS D'EMERAUDE » — la résidence qui porte
     // l'appartement, utile pour rapprocher deux annonces du même bâtiment.
     const residence = text.match(/R[ÉE]SIDENCE\s*:\s*([^:]{2,60}?)(?:\s+Classement|\s+Type d|$)/i)
+    const objectCode = extractObjectCodeFromCardHtml(node.innerHTML || '')
 
     out.push({
       title,
@@ -603,7 +623,8 @@ export function extractStationCards(): StationCard[] {
       rooms: Number.isFinite(roomsValue) && roomsValue > 0 ? roomsValue : null,
       reviewCount: reviews ? Number(reviews[1]) : null,
       amenities,
-      residence: residence ? residence[1].trim() : null
+      residence: residence ? residence[1].trim() : null,
+      objectCode
     })
   }
   return out
@@ -641,196 +662,106 @@ const stationBreaker = new CircuitBreaker(2, 90_000)
 
 
 /**
- * Prix réel sur la fiche produit (onglet Disponibilités & Tarifs).
+ * Prix réel du séjour — ce que le Rechercher de #tarifs affiche.
  *
  * Commun à **tout** le parc Ingénie (2 Alpes, Tignes, Serre-Chevalier,
  * Val Thorens, Courchevel, Les Saisies, Avoriaz, Val d’Isère, etc.).
- * La SERP n’affiche souvent qu’un « à partir de » ; le tarif séjour se
- * calcule sur la fiche : #tarifs → dates → voyageurs → Rechercher.
+ *
+ * La SERP n’affiche souvent qu’un « à partir de ». Sur la fiche, l’onglet
+ * Disponibilités & Tarifs (`#widget-dispo`) porte le code objet
+ * (`G|290|ST3N`) ; le bouton Rechercher (`input.form_search` **de ce
+ * formulaire**, pas celui du bandeau) sérialise les dates et appelle
+ * `Resa.recherche_ajax` → `searchAjax` puis `detailPrestationsAjax`.
+ * On rejoue ces deux GET dans la session Playwright (cookies PHPSESSID),
+ * sans cliquer le moteur du header — qui relancerait une liste.
  */
 async function resolveExactPriceOnFiche(
   parent: Page,
-  productUrl: string,
+  card: StationCard,
   params: SearchParams,
+  cidHint: string | null,
   timeoutMs: number
 ): Promise<number | null> {
   const from = frenchDate(params.checkIn)
   const to = frenchDate(params.checkOut)
-  if (!from) return null
+  if (!from || !to) return null
   const adults = params.adults ?? 2
   const children = params.children ?? 0
   const stay = nights(params)
+  const productUrl = cleanProductUrl(card.url)
+  const reqTimeout = Math.min(12_000, timeoutMs)
 
-  let fiche: Page | null = null
   try {
-    fiche = await parent.context().newPage()
-    const base = productUrl.split('#')[0]
-    await fiche.goto(`${base}#tarifs`, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
-    await fiche
-      .waitForSelector(
-        'input.datepicker, input[name="datedeb"], input.form_search, input[name="search"]',
-        { timeout: Math.min(20_000, timeoutMs) }
-      )
-      .catch(() => undefined)
-    await dismissConsent(fiche)
-    await sleep(400)
-
-    // Remplir dates (datepicker souvent readonly → value + events).
-    await fiche.evaluate(
-      ({ from, to, stay, adults, children }) => {
-        const view = globalThis as unknown as {
-          document: {
-            querySelectorAll: (s: string) => ArrayLike<{
-              value: string
-              removeAttribute?: (n: string) => void
-              dispatchEvent: (e: unknown) => void
-              click?: () => void
-            }>
-            querySelector: (s: string) => {
-              value: string
-              textContent?: string
-              click: () => void
-              dispatchEvent: (e: unknown) => void
-            } | null
-          }
-          Event: new (type: string, init: { bubbles: boolean }) => unknown
-        }
-        const setAll = (selector: string, value: string): void => {
-          for (const el of Array.from(view.document.querySelectorAll(selector))) {
-            try {
-              el.removeAttribute?.('readonly')
-            } catch {
-              // ignore
-            }
-            el.value = value
-            el.dispatchEvent(new view.Event('input', { bubbles: true }))
-            el.dispatchEvent(new view.Event('change', { bubbles: true }))
-          }
-        }
-        // Deux datepickers : arrivée puis départ (ordre DOM).
-        const pickers = Array.from(view.document.querySelectorAll('input.datepicker'))
-        if (pickers.length >= 1) {
-          const a = pickers[0] as { value: string; removeAttribute?: (n: string) => void; dispatchEvent: (e: unknown) => void }
-          try {
-            a.removeAttribute?.('readonly')
-          } catch {
-            // ignore
-          }
-          a.value = from
-          a.dispatchEvent(new view.Event('input', { bubbles: true }))
-          a.dispatchEvent(new view.Event('change', { bubbles: true }))
-        }
-        if (pickers.length >= 2 && to) {
-          const b = pickers[1] as { value: string; removeAttribute?: (n: string) => void; dispatchEvent: (e: unknown) => void }
-          try {
-            b.removeAttribute?.('readonly')
-          } catch {
-            // ignore
-          }
-          b.value = to
-          b.dispatchEvent(new view.Event('input', { bubbles: true }))
-          b.dispatchEvent(new view.Event('change', { bubbles: true }))
-        }
-        setAll('input[name="datedeb"]', from)
-        if (to) setAll('input[name="datefin"]', to)
-        setAll('input[name="duree"]', String(stay))
-        setAll('input[name="adultes"]', String(adults))
-        setAll('input[name="enfants"]', String(children))
-        // Selects legacy
-        setAll('select[name="datedeb"]', from)
-        setAll('select[name="duree"]', String(stay))
-        setAll('select[name="personnes"]', String(adults + children))
-      },
-      { from, to: to ?? '', stay, adults, children }
-    )
-
-    // Bouton voyageurs si présent (UI moderne).
-    const paxBtn = fiche.locator('button[aria-expanded]').filter({ hasText: /adulte/i }).first()
-    if (await paxBtn.count().catch(() => 0)) {
-      await paxBtn.click().catch(() => undefined)
-      await sleep(200)
-      // Best-effort : ne bloque pas si le panneau est différent
+    let pipe = card.objectCode
+    let cid = cidHint
+    if (!pipe || !cid) {
+      const product = await parent.request.get(productUrl, { timeout: reqTimeout })
+      if (!product.ok()) return null
+      const html = await product.text()
+      const obj = extractWidgetObject(html)
+      if (!pipe) pipe = obj?.pipe ?? null
+      if (!cid) cid = obj?.cid ?? null
+    }
+    if (!pipe || !cid) {
+      debugLog('station-ajax', 'exact-price-no-object', { url: productUrl, pipe, cid })
+      return null
     }
 
-    const searchBtn = fiche.locator('input.form_search, input[name="search"][type="button"], button:has-text("Rechercher")').first()
-    if (await searchBtn.count()) {
-      await searchBtn.click({ timeout: 10_000 })
+    const dash = prestationDash(pipe)
+    const origin = new URL(parent.url()).origin
+    const searchUrl = `${origin}/booking?${searchAjaxQuery({
+      cid,
+      dash,
+      typePrestataire: typePrestataireOf(pipe),
+      from,
+      to,
+      stay,
+      adults,
+      children
+    })}`
+    const searchRes = await parent.request.get(searchUrl, { timeout: reqTimeout })
+    if (!searchRes.ok()) return null
+    const search = parseSearchAjax(await searchRes.text())
+    if (!search || !search.success || search.nbResultsFiche <= 0) {
+      debugLog('station-ajax', 'exact-price-no-dispo', { url: productUrl, dash, search })
+      return null
     }
 
-    await fiche
-      .waitForSelector('.prix_en_cours, .tarif_total, .prix_total, .bloc_tarif', {
-        timeout: Math.min(18_000, timeoutMs)
-      })
-      .catch(() => undefined)
-    await sleep(500)
-
-    const priceText = await fiche.evaluate(() => {
-      const view = globalThis as unknown as {
-        document: {
-          querySelector: (s: string) => { innerText?: string; textContent?: string } | null
-          body: { innerText: string }
-        }
-      }
-      // Préférer un prix qui n’est pas sous un libellé « à partir de »
-      const candidates = [
-        '.tarif_total .prix_en_cours',
-        '.bloc_tarif .prix_en_cours',
-        '.prix_total',
-        '.prix_en_cours'
-      ]
-      for (const sel of candidates) {
-        const node = view.document.querySelector(sel)
-        const parent = node as unknown as { closest?: (s: string) => unknown }
-        const text = (node?.innerText || node?.textContent || '').trim()
-        if (!text) continue
-        // Si le nœud est dans un bloc « à partir de », on continue
-        const wrap = (node as unknown as { parentElement?: { innerText?: string } })?.parentElement
-        const ctx = (wrap?.innerText || '').toLowerCase()
-        if (ctx.includes('partir')) continue
-        return text
-      }
-      // Filet : gros montant € dans la zone tarifs
-      const body = view.document.body.innerText
-      const m = body.match(/(?:total|séjour|tarif)[^\d]{0,40}(\d[\d\s]*[€])/i)
-      return m?.[1] ?? null
-    })
-
-    if (!priceText) return null
+    const detailUrl = `${origin}/booking?${detailAjaxQuery({ cid, dash })}`
+    const detailRes = await parent.request.get(detailUrl, { timeout: reqTimeout })
+    if (!detailRes.ok()) return null
+    const priceText = parseStayPriceFromDetailHtml(await detailRes.text())
     const total = parsePrice(priceText)
+    debugLog('station-ajax', 'exact-price', { url: productUrl, dash, priceText, total })
     return total != null && total > 0 ? total : null
-  } catch {
+  } catch (err) {
+    debugLog('station-ajax', 'exact-price-error', {
+      url: productUrl,
+      err: err instanceof Error ? err.message : String(err)
+    })
     return null
-  } finally {
-    if (fiche) {
-      try {
-        await fiche.close()
-      } catch {
-        // ignore
-      }
-    }
   }
 }
 
 /**
- * Prix réel du séjour pour **toutes** les centrales Ingénie (2 Alpes, Tignes,
- * Serre-Che, Val Thorens, Courchevel, Saisies, Avoriaz, etc.).
+ * Prix réel du séjour pour **toutes** les centrales Ingénie.
  *
- * La SERP affiche souvent un tarif d’appel ; le montant daté est sur la fiche
- * (#tarifs → dates → Rechercher). On priorise les « à partir de », puis les
- * fiches sans prix lisible.
+ * La SERP affiche souvent un tarif d’appel ; le montant daté est celui du
+ * Rechercher de #tarifs (searchAjax + detailPrestationsAjax). On priorise
+ * les « à partir de », puis les fiches sans prix lisible. Les GET partent
+ * du contexte du navigateur déjà ouvert sur la liste — même PHPSESSID.
  */
 async function enrichExactPrices(
   parent: Page,
   cards: StationCard[],
   params: SearchParams,
   timeoutMs: number,
-  limit = 8
+  limit = 12
 ): Promise<void> {
   const ranked = [
     ...cards.filter((c) => c.fromPrice && c.url),
     ...cards.filter((c) => !c.fromPrice && c.url && !c.priceText)
   ]
-  // Déduplique en gardant l’ordre
   const seen = new Set<string>()
   const need: StationCard[] = []
   for (const c of ranked) {
@@ -840,11 +771,24 @@ async function enrichExactPrices(
     if (need.length >= limit) break
   }
   if (need.length === 0) return
-  const conc = 2
+
+  const cidHint = await parent
+    .evaluate(() => {
+      const view = globalThis as unknown as {
+        document: { querySelector: (s: string) => { value?: string } | null }
+      }
+      const el = view.document.querySelector('input[name="cid"], input.cid')
+      return el?.value || null
+    })
+    .catch(() => null)
+
+  // Un PHPSESSID : searchAjax écrit le séjour en session, detailPrestationsAjax
+  // le lit. En parallèle, les fiches s'écraseraient l'une l'autre.
+  const conc = 1
   for (let i = 0; i < need.length; i += conc) {
     const batch = need.slice(i, i + conc)
     const prices = await Promise.all(
-      batch.map((c) => resolveExactPriceOnFiche(parent, c.url, params, timeoutMs))
+      batch.map((c) => resolveExactPriceOnFiche(parent, c, params, cidHint, timeoutMs))
     )
     for (let j = 0; j < batch.length; j++) {
       const total = prices[j]
@@ -945,8 +889,8 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             await waitForIngenieResults(page, probe, AJAX_TIMEOUT.resultsMs)
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)
-            // SERP = souvent « à partir de » → prix réel sur fiche #tarifs (max 5).
-            await enrichExactPrices(page, cards, params, timeoutMs, 8)
+            // SERP = souvent « à partir de » → prix réel = Rechercher de #tarifs.
+            await enrichExactPrices(page, cards, params, timeoutMs, 12)
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre
             // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).
@@ -969,6 +913,8 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               // la disponibilité pour ces dates — on n'injecte pas l'offre comme
               // « disponible ».
               if (total == null || total <= 0) continue
+              // « à partir de » sans montant daté : ce n'est pas le prix du séjour.
+              if (card.fromPrice) continue
               const offer = baseAccommodation(
                 name,
                 {
@@ -993,12 +939,6 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               // c'est l'une des rares sources où la disponibilité est un fait.
               offer.availabilityStatus = 'available'
               offer.availability = true
-              // « à partir de » : un tarif d'appel, pas le prix du séjour
-              // demandé. Le laisser passer pour « total confirmé » le ferait
-              // entrer tel quel dans le coût du séjour.
-              if (card.fromPrice && offer.priceConfidence === 'total_confirmed') {
-                offer.priceConfidence = 'partial'
-              }
               offer.rawProviderData = card
               out.push(offer)
             }

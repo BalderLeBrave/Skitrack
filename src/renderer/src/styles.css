@@ -5559,3 +5559,16 @@ select {
 .sheet__verified-list li {
   margin-bottom: 4px;
 }
+
+.lodgscan--banner {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.lodgscan--banner .lodgscan__head {
+  margin-bottom: 10px;
+}
+.lodgscan--banner .lodgscan__tally,
+.lodgscan--banner .lodgscan__rows,
+.lodgscan--banner .lodgscan__foot {
+  display: none;
+}

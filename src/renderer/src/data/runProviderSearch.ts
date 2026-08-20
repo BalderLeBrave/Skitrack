@@ -115,12 +115,16 @@ function toLodging(
   const guests = a.guests && a.guests > 0 ? a.guests : params.adults
   const pp = total > 0 ? Math.round((total / nights / Math.max(1, guests)) * 10) / 10 : 0
 
+  // Centrale Ingénie : un total relevé via `#total-prestation` est le montant
+  // du séjour, pas un « à partir de ». Ne pas le rabattre en `partial`.
   const confidence =
-    a.priceConfidence === 'total_confirmed' || a.priceConfidence === 'partial'
-      ? a.priceConfidence
-      : total > 0
-        ? 'partial'
-        : 'unknown'
+    a.source === 'station-web' && total > 0 && a.priceConfidence !== 'partial'
+      ? 'total_confirmed'
+      : a.priceConfidence === 'total_confirmed' || a.priceConfidence === 'partial'
+        ? a.priceConfidence
+        : total > 0
+          ? 'partial'
+          : 'unknown'
 
   return {
     id: idFromUrl(a.url),

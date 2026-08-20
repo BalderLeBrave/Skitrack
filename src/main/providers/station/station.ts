@@ -41,8 +41,9 @@
  *
  * Le tarif d'une annonce, lui, n'est pas celui de la SERP : `.prix_en_cours` y
  * est souvent un « à partir de ». Le montant daté est celui du Rechercher de
- * l'onglet **Disponibilités & Tarifs** (`#tarifs`) — `searchAjax` puis
- * `detailPrestationsAjax`, dans la session du navigateur. Voir
+ * l'onglet **Disponibilités & Tarifs** (`#tarifs`) — `searchAjax, puis
+ * `detailTarifsPrestationAjax`, puis `calculerTotalPrestationAjax`
+ * (`#total-prestation-G-…`, ex. 432,47 €). Voir
  * `resolveExactPriceOnFiche` et `station/fichePrice.ts`.
  *
  * ## Ce qui est lu dans la page
@@ -81,13 +82,17 @@ import { shouldAttemptIngenie } from './ingenieHosts'
 import { CircuitBreaker } from '../resilience'
 import {
   cleanProductUrl,
-  detailAjaxQuery,
   extractObjectCodeFromCardHtml,
+  extractTarifsPrestationId,
   extractWidgetObject,
+  parseCalculerTotal,
   parseSearchAjax,
-  parseStayPriceFromDetailHtml,
+  parseTotalPrestationSpan,
   prestationDash,
   searchAjaxQuery,
+  serializeTarifsForm,
+  tarifsAjaxQuery,
+  tarifsPrestationId,
   typePrestataireOf
 } from './fichePrice'
 
@@ -698,18 +703,16 @@ const stationBreaker = new CircuitBreaker(2, 90_000)
 
 
 /**
- * Prix réel du séjour — ce que le Rechercher de #tarifs affiche.
+ * Prix réel du séjour — le TOTAL `#total-prestation-G-…`.
  *
  * Commun à **tout** le parc Ingénie (2 Alpes, Tignes, Serre-Chevalier,
  * Val Thorens, Courchevel, Les Saisies, Avoriaz, Val d’Isère, etc.).
  *
- * La SERP n’affiche souvent qu’un « à partir de ». Sur la fiche, l’onglet
- * Disponibilités & Tarifs (`#widget-dispo`) porte le code objet
- * (`G|290|ST3N`) ; le bouton Rechercher (`input.form_search` **de ce
- * formulaire**, pas celui du bandeau) sérialise les dates et appelle
- * `Resa.recherche_ajax` → `searchAjax` puis `detailPrestationsAjax`.
- * On rejoue ces deux GET dans la session Playwright (cookies PHPSESSID),
- * sans cliquer le moteur du header — qui relancerait une liste.
+ * La SERP n’affiche qu’un « à partir de ». Sur la fiche, Rechercher dans
+ * `#tarifs` ouvre les formules ; `Resa.calculer_total_prestation` écrit
+ * le montant dans `#total-prestation-G-5834094-6395741-1` (ex. 432,47 €).
+ * On rejoue searchAjax → detailTarifsPrestationAjax →
+ * calculerTotalPrestationAjax dans la session Playwright.
  */
 async function resolveExactPriceOnFiche(
   parent: Page,
@@ -763,12 +766,41 @@ async function resolveExactPriceOnFiche(
       return null
     }
 
-    const detailUrl = `${origin}/booking?${detailAjaxQuery({ cid, dash })}`
-    const detailRes = await parent.request.get(detailUrl, { timeout: reqTimeout })
-    if (!detailRes.ok()) return null
-    const priceText = parseStayPriceFromDetailHtml(await detailRes.text())
+    let prestation = tarifsPrestationId(dash)
+    const tarifsUrl = `${origin}/booking?${tarifsAjaxQuery({ cid, prestation })}`
+    let tarifsRes = await parent.request.get(tarifsUrl, { timeout: reqTimeout })
+    let tarifsHtml = tarifsRes.ok() ? await tarifsRes.text() : ''
+    if (!tarifsHtml || tarifsHtml.length < 80) {
+      const detailUrl =
+        `${origin}/booking?action=detailPrestationsAjax&id=${encodeURIComponent(dash)}&cid=${encodeURIComponent(cid)}`
+      const detailRes = await parent.request.get(detailUrl, { timeout: reqTimeout })
+      const detailHtml = detailRes.ok() ? await detailRes.text() : ''
+      const fromDetail = extractTarifsPrestationId(detailHtml)
+      if (fromDetail && fromDetail !== prestation) {
+        prestation = fromDetail
+        tarifsRes = await parent.request.get(
+          `${origin}/booking?${tarifsAjaxQuery({ cid, prestation })}`,
+          { timeout: reqTimeout }
+        )
+        tarifsHtml = tarifsRes.ok() ? await tarifsRes.text() : ''
+      }
+    }
+    if (!tarifsHtml) return null
+
+    const formQs = serializeTarifsForm(tarifsHtml)
+    if (!formQs) return null
+    const calcUrl = `${origin}/booking?action=calculerTotalPrestationAjax&${formQs}`
+    const calcRes = await parent.request.get(calcUrl, { timeout: reqTimeout })
+    const calcText = calcRes.ok() ? await calcRes.text() : ''
+    const priceText = parseCalculerTotal(calcText) ?? parseTotalPrestationSpan(tarifsHtml)
     const total = parsePrice(priceText)
-    debugLog('station-ajax', 'exact-price', { url: productUrl, dash, priceText, total })
+    debugLog('station-ajax', 'exact-price', {
+      url: productUrl,
+      dash,
+      prestation,
+      priceText,
+      total
+    })
     return total != null && total > 0 ? total : null
   } catch (err) {
     debugLog('station-ajax', 'exact-price-error', {
@@ -779,14 +811,6 @@ async function resolveExactPriceOnFiche(
   }
 }
 
-/**
- * Prix réel du séjour pour **toutes** les centrales Ingénie.
- *
- * La SERP affiche souvent un tarif d’appel ; le montant daté est celui du
- * Rechercher de #tarifs (searchAjax + detailPrestationsAjax). On priorise
- * les « à partir de », puis les fiches sans prix lisible. Les GET partent
- * du contexte du navigateur déjà ouvert sur la liste — même PHPSESSID.
- */
 async function enrichExactPrices(
   parent: Page,
   cards: StationCard[],

@@ -1,21 +1,18 @@
 /**
  * Prix séjour daté d'une fiche Ingénie.
  *
- * Sur la SERP, `.prix_en_cours` est souvent un tarif d'appel (« à partir de »).
- * Le vrai montant est celui que le bouton **Rechercher** de l'onglet
- * « Disponibilités & Tarifs » (`#tarifs`) affiche : ce n'est pas un remplissage
- * de datepicker — c'est deux appels que le clic déclenche, dans la session du
- * navigateur :
+ * Sur la SERP, `.prix_en_cours` est un tarif d'appel (« à partir de »).
+ * Ce n'est **pas** le montant à comparer. Après Rechercher dans #tarifs,
+ * le site ouvre « Sélectionner » puis calcule le total du panier :
  *
- *   1. `GET /booking?action=searchAjax&cle_fiche=PRESTATION-G-290-ST3N&datedeb=…`
- *      → `{ data: { nbResultsFiche: 1 } }` si le séjour est libre
- *   2. `GET /booking?action=detailPrestationsAjax&id=PRESTATION-G-290-ST3N&cid=…`
- *      → HTML `.col_tarif .prix_en_cours` (ignorer `.prix_barre`)
+ *   1. `searchAjax` + `cle_fiche` + dates → dispo
+ *   2. `detailTarifsPrestationAjax` → formulaire des formules
+ *      (nuitées, taxe de séjour, ménage…)
+ *   3. `calculerTotalPrestationAjax` (serialize du form)
+ *      → `{ data: { total: "432,47 €" } }` écrit dans
+ *        `#total-prestation-G-5834094-6395741-1`
  *
- * Le code objet (`G|290|ST3N`) est publié dans le HTML de la fiche, dans les
- * paramètres de `IngenieWidgetDispo.Client` — pas dans l'URL. Les datepickers
- * du bandeau (`#widget-resa-menu`) sont un autre moteur : les cliquer relance
- * une recherche de liste, pas le tarif de *cette* annonce.
+ * C'est ce span — le TOTAL — que Skitrack doit afficher.
  */
 
 export interface IngenieObjectRef {
@@ -25,7 +22,7 @@ export interface IngenieObjectRef {
   cid: string | null
 }
 
-/** Identifiant `cle_fiche` / `id` attendu par searchAjax et detailPrestationsAjax. */
+/** Identifiant `cle_fiche` / `id` attendu par searchAjax. */
 export function prestationDash(pipe: string): string {
   const raw = pipe.trim()
   if (/^PRESTATION-/i.test(raw) || /^PRESTATAIRE-/i.test(raw)) return raw
@@ -33,6 +30,11 @@ export function prestationDash(pipe: string): string {
   if (parts.length === 0) return raw
   const kind = parts.length >= 3 ? 'PRESTATION' : 'PRESTATAIRE'
   return `${kind}-${parts.join('-')}`
+}
+
+/** `G-290-ST3N` / `G-5834094-6395741` — paramètre `prestation` des tarifs. */
+export function tarifsPrestationId(dash: string): string {
+  return dash.replace(/^PRESTATION-/i, '').replace(/^PRESTATAIRE-/i, '')
 }
 
 export function typePrestataireOf(pipe: string): string {
@@ -77,46 +79,113 @@ export function extractObjectCodeFromCardHtml(html: string): string | null {
   return pipe ? pipe[1] : null
 }
 
+/** Id passé à `detail_tarifs_prestation_open('G-5834094-6395741', …)`. */
+export function extractTarifsPrestationId(html: string): string | null {
+  const open = html.match(/detail_tarifs_prestation_open\(\s*'([^']+)'/)
+  if (open?.[1]) return open[1]
+  const named = html.match(/name="prestation"[^>]*value="([^"]+)"/i)
+  if (named?.[1]) return named[1]
+  const openId = html.match(/id="open-([^"]+)"/)
+  return openId?.[1] ?? null
+}
+
 export function parseSearchAjax(raw: string): { nbResultsFiche: number; success: boolean } | null {
-  const text = raw.trim()
-  if (!text) return null
-  let data: unknown
-  try {
-    if (text.startsWith('{') || text.startsWith('[')) data = JSON.parse(text)
-    else {
-      const inner = text.replace(/^[^(]*\(/, '').replace(/\)\s*;?\s*$/, '')
-      data = JSON.parse(inner)
-    }
-  } catch {
-    return null
-  }
-  if (!data || typeof data !== 'object') return null
-  const rec = data as { success?: unknown; data?: { nbResultsFiche?: unknown; nbResults?: unknown } }
+  const obj = parseJsonish(raw)
+  if (!obj) return null
+  const rec = obj as { success?: unknown; data?: { nbResultsFiche?: unknown; nbResults?: unknown } }
   const n = Number(rec.data?.nbResultsFiche ?? rec.data?.nbResults ?? 0)
   const success = rec.success === 1 || rec.success === true || rec.success === '1'
   if (!Number.isFinite(n)) return null
   return { nbResultsFiche: n, success }
 }
 
-/**
- * Montant séjour dans le HTML de `detailPrestationsAjax`.
- *
- * `.prix_barre` est le tarif barré (appel). `.prix_en_cours` dans `.col_tarif`
- * est le prix du séjour demandé.
- */
-export function parseStayPriceFromDetailHtml(html: string): string | null {
-  if (/cookies sont n[ée]cessaires/i.test(html)) return null
-  const col = html.match(/class="col_tarif"[^>]*>([\s\S]*?)<\/td>/i)
-  const scope = col?.[1] ?? html
-  const m = scope.match(/class="prix_en_cours"[^>]*>([^<]+)/i)
-  if (!m) return null
-  const text = m[1]
+function parseJsonish(raw: string): unknown {
+  const text = raw.trim()
+  if (!text) return null
+  try {
+    if (text.startsWith('{') || text.startsWith('[')) return JSON.parse(text)
+    const inner = text.replace(/^[^(]*\(/, '').replace(/\)\s*;?\s*$/, '')
+    return JSON.parse(inner)
+  } catch {
+    return null
+  }
+}
+
+function tidyPrice(text: string): string {
+  return text
     .replace(/&nbsp;/gi, ' ')
     .replace(/&#160;/g, ' ')
     .replace(/\u00a0/g, ' ')
+    .replace(/\u202f/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-  return text || null
+}
+
+/**
+ * TOTAL du séjour : span `#total-prestation-G-…` (ex. 432,47 €).
+ * Ignore `N/A` (valeur avant `calculer_total_prestation`).
+ */
+export function parseTotalPrestationSpan(html: string): string | null {
+  const matches = [...html.matchAll(/id="total-prestation-[^"]*"[^>]*>([^<]+)/gi)]
+  for (const m of matches) {
+    const text = tidyPrice(m[1] ?? '')
+    if (!text || /^n\/?a$/i.test(text)) continue
+    if (/\d/.test(text)) return text
+  }
+  return null
+}
+
+/** `{ success:1, data: { total: "432,47 €" } }` — réponse de calculerTotalPrestationAjax. */
+export function parseCalculerTotal(raw: string): string | null {
+  const obj = parseJsonish(raw)
+  if (!obj || typeof obj !== 'object') return null
+  const rec = obj as { success?: unknown; data?: { total?: unknown } }
+  const ok = rec.success === 1 || rec.success === true || rec.success === '1'
+  if (!ok) return null
+  const total = rec.data?.total
+  if (typeof total !== 'string') return null
+  const text = tidyPrice(total)
+  if (!text || /^n\/?a$/i.test(text) || !/\d/.test(text)) return null
+  return text
+}
+
+function attr(tag: string, name: string): string | undefined {
+  const m = tag.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'))
+  if (!m) return undefined
+  return m[2] ?? m[3] ?? m[4]
+}
+
+function hasFlag(tag: string, name: string): boolean {
+  return new RegExp(`(?:^|\\s)${name}(?:\\s|=|>|$)`, 'i').test(tag)
+}
+
+/**
+ * Serialize le form `frm-tarifs-*` comme `jQuery.serialize()` :
+ * champs nommés, hors `disabled`, hors boutons. C'est le querystring
+ * passé à `calculerTotalPrestationAjax`.
+ */
+export function serializeTarifsForm(html: string): string {
+  const params = new URLSearchParams()
+  for (const m of html.matchAll(/<input\b([^>]*)>/gi)) {
+    const tag = m[1]
+    if (hasFlag(tag, 'disabled')) continue
+    const type = (attr(tag, 'type') || 'text').toLowerCase()
+    if (/^(button|submit|reset|file|image)$/.test(type)) continue
+    const name = attr(tag, 'name')
+    if (!name) continue
+    if ((type === 'checkbox' || type === 'radio') && !hasFlag(tag, 'checked')) continue
+    params.append(name, attr(tag, 'value') ?? (type === 'checkbox' || type === 'radio' ? 'on' : ''))
+  }
+  for (const m of html.matchAll(/<select\b([^>]*)>([\s\S]*?)<\/select>/gi)) {
+    const tag = m[1]
+    if (hasFlag(tag, 'disabled')) continue
+    const name = attr(tag, 'name')
+    if (!name) continue
+    const options = [...m[2].matchAll(/<option\b([^>]*)>/gi)]
+    const selected = options.find((o) => hasFlag(o[1], 'selected')) ?? options[0]
+    params.append(name, selected ? (attr(selected[1], 'value') ?? '') : '')
+  }
+  return params.toString()
 }
 
 export function cleanProductUrl(url: string): string {
@@ -153,10 +222,10 @@ export function searchAjaxQuery(opts: {
   return p.toString()
 }
 
-export function detailAjaxQuery(opts: { cid: string; dash: string }): string {
+export function tarifsAjaxQuery(opts: { cid: string; prestation: string }): string {
   return new URLSearchParams({
-    action: 'detailPrestationsAjax',
-    id: opts.dash,
-    cid: opts.cid
+    action: 'detailTarifsPrestationAjax',
+    cid: opts.cid,
+    prestation: opts.prestation
   }).toString()
 }

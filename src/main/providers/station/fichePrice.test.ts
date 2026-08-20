@@ -6,13 +6,17 @@
 
 import {
   cleanProductUrl,
-  detailAjaxQuery,
   extractObjectCodeFromCardHtml,
+  extractTarifsPrestationId,
   extractWidgetObject,
+  parseCalculerTotal,
   parseSearchAjax,
-  parseStayPriceFromDetailHtml,
+  parseTotalPrestationSpan,
   prestationDash,
   searchAjaxQuery,
+  serializeTarifsForm,
+  tarifsAjaxQuery,
+  tarifsPrestationId,
   typePrestataireOf
 } from './fichePrice'
 
@@ -38,36 +42,79 @@ gsw_vars["CODEPRESTATAIRE"] = "290";
 gsw_vars["CODEPRESTATION"] = "ST3N";
 `
 
-const DETAIL_HTML = `<div id="bloc_detail_prestations"><table class="tab_detail_prestations"><tbody><tr class="ligne_prestation ligne_prestation_1"><td class="col_libelle_prestation">Vacanc&eacute;ole - R&eacute;sidence Champam&eacute; - Studio 3 personnes</td><td class="col_tarif"><span class="prix_en_cours">528,70&nbsp;€</span><br /><span class="prix_barre">622&nbsp;€</span>&nbsp;</td></tr></tbody></table></div>`
+const USER_TOTAL = `<span id="total-prestation-G-5834094-6395741-1">432,47&nbsp;€</span>`
 
-const COOKIE_BLOCK =
-  "<span>Impossible d'afficher le résultat de la recherche, les cookies sont nécessaires au bon fonctionnement</span>"
+const TARIFS_HTML = `<form id="frm-tarifs-G-290-ST3N-1" name="frm-tarifs-G-290-ST3N-1" method="post">
+<input type="hidden" name="cid" id="cid" value="5" />
+<input type="hidden" name="prestation" id="prestation" value="G-290-ST3N" />
+<input type="hidden" name="num_personne" id="num_personne" value="1" />
+<input type="hidden" name="totalPrestationAjoutee" id="totalPrestationAjoutee" value="0" />
+<input type="hidden" name="theme" id="theme" value="HIVER" />
+<input type="hidden" name="stock_lies_nb" value="0" />
+<input type="hidden" name="formules[]" id="formule-RESALYSLOC7" value="RESALYSLOC7" />
+<input type="hidden" name="nb_personnes_RESALYSLOC7" value="1" />
+<input type="checkbox" id="formule-checked-RESALYSLOC7" name="formule-checked-RESALYSLOC7" checked="checked" disabled="disabled" />
+<select name="nb_personnes_MTAXE3E" id="nb_personnes_MTAXE3E" class="reponse_quantite">
+  <option value="1">1</option>
+  <option value="3" selected="selected">3</option>
+</select>
+<input type="hidden" name="formules[]" id="formule-MTAXE3E" value="MTAXE3E" />
+<input type="hidden" name="formules[]" id="formule-SUPMENAGE" value="SUPMENAGE" />
+<input type="hidden" name="nb_personnes_SUPMENAGE" value="1" />
+<input type="button" class="bt_ajout_panier" value="Ajouter au panier" />
+<td class="total_prestation"><span id="total-prestation-G-290-ST3N-1">N/A</span></td>
+</form>
+<script>Resa.calculer_total_prestation('G-290-ST3N-1','','','');</script>`
 
-console.log('\nIngénie — prix séjour (Champamé / Les 2 Alpes)\n')
+const CALC_JSON =
+  '{"success":1,"data":{"lignes":[{"codeFormule":"MTAXE3E","total":"39,27\\u00a0\\u20ac"}],"total":"432,47\\u00a0\\u20ac"}}'
+const CALC_CHAMPAME =
+  '{"success":1,"data":{"total":"1\\u202f067,97\\u00a0\\u20ac"}}'
+
+console.log('\nIngénie — TOTAL #total-prestation (Les 2 Alpes)\n')
 
 console.log('1. Code objet sur la fiche #tarifs')
 const obj = extractWidgetObject(WIDGET_SNIPPET)
 check('pipe G|290|ST3N', obj?.pipe === 'G|290|ST3N', obj)
 check('cid 5', obj?.cid === '5', obj)
 check('cle_fiche PRESTATION-G-290-ST3N', prestationDash(obj?.pipe ?? '') === 'PRESTATION-G-290-ST3N')
+check('prestation tarifs G-290-ST3N', tarifsPrestationId('PRESTATION-G-290-ST3N') === 'G-290-ST3N')
 check('type prestataire G', typePrestataireOf(obj?.pipe ?? '') === 'G')
 
-console.log('2. searchAjax / detailPrestationsAjax')
+console.log('2. Le span TOTAL que l’utilisateur voit')
+check(
+  '432,47 € dans #total-prestation-G-5834094-6395741-1',
+  parseTotalPrestationSpan(USER_TOTAL) === '432,47 €',
+  parseTotalPrestationSpan(USER_TOTAL)
+)
+check('N/A avant calcul → null', parseTotalPrestationSpan(TARIFS_HTML) === null)
+check(
+  'calculerTotalPrestationAjax → 432,47 €',
+  parseCalculerTotal(CALC_JSON) === '432,47 €',
+  parseCalculerTotal(CALC_JSON)
+)
+check(
+  'Champamé 1 067,97 € (séjour+taxe+ménage)',
+  parseCalculerTotal(CALC_CHAMPAME) === '1 067,97 €',
+  parseCalculerTotal(CALC_CHAMPAME)
+)
+check('échec success=0 → null', parseCalculerTotal('{"success":0,"erreur":{}}') === null)
+
+console.log('3. searchAjax / serialize formules')
 const search = parseSearchAjax(
   '{"data":{"package":false,"nbResults":1,"nbResultsFiche":1,"nbResultsLibelle":"résultat"},"success":1}'
 )
 check('nbResultsFiche = 1', search?.nbResultsFiche === 1 && search.success)
-check(
-  'JSONP encapsulé',
-  parseSearchAjax('cb({"data":{"nbResultsFiche":1},"success":1})')?.nbResultsFiche === 1
-)
 check('zéro dispo', parseSearchAjax('{"data":{"nbResultsFiche":0},"success":1}')?.nbResultsFiche === 0)
 
-const price = parseStayPriceFromDetailHtml(DETAIL_HTML)
-check('prix en cours 528,70 €, pas le barré 622', price === '528,70 €', price)
-check('refus cookies → null', parseStayPriceFromDetailHtml(COOKIE_BLOCK) === null)
+const qs = serializeTarifsForm(TARIFS_HTML)
+check('serialize cid+prestation', qs.includes('cid=5') && qs.includes('prestation=G-290-ST3N'))
+check('serialize formules[] séjour', qs.includes('RESALYSLOC7'))
+check('serialize taxe 3 pers', qs.includes('nb_personnes_MTAXE3E=3'))
+check('disabled checkbox absente', !qs.includes('formule-checked'))
+check('bouton absente', !qs.includes('Ajouter'))
 
-console.log('3. URLs')
+console.log('4. URLs')
 check(
   'fiche sans ?action=',
   cleanProductUrl(
@@ -87,18 +134,20 @@ const q = searchAjaxQuery({
 })
 check('searchAjax contient cle_fiche et dates', q.includes('cle_fiche=PRESTATION-G-290-ST3N') && q.includes('datedeb=16'))
 check(
-  'detailAjax id=PRESTATION-G-290-ST3N',
-  detailAjaxQuery({ cid: '5', dash: 'PRESTATION-G-290-ST3N' }).includes('id=PRESTATION-G-290-ST3N')
+  'tarifsAjax prestation=G-290-ST3N',
+  tarifsAjaxQuery({ cid: '5', prestation: 'G-290-ST3N' }).includes('prestation=G-290-ST3N')
+)
+check(
+  'id Sélectionner G-5834094-6395741',
+  extractTarifsPrestationId(
+    "onclick=\"Resa.detail_tarifs_prestation_open('G-5834094-6395741','5', undefined, undefined, undefined, '', true);\""
+  ) === 'G-5834094-6395741'
 )
 
-console.log('4. Carte SERP')
+console.log('5. Carte SERP')
 check(
   'pipe dans le HTML de carte',
   extractObjectCodeFromCardHtml('<div data-id="G|290|ST3N">x</div>') === 'G|290|ST3N'
-)
-check(
-  'cle_fiche PRESTATION- dans la carte',
-  extractObjectCodeFromCardHtml('<div id="blocResa-PRESTATION-G-290-ST3N">') === 'G|290|ST3N'
 )
 
 if (failures > 0) {

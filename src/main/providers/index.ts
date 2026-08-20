@@ -30,6 +30,8 @@ import { createCetoChamonixProvider } from './ceto/chamonix'
 import { createCetoMeribelProvider } from './ceto/meribel'
 import { createCetoPlagneProvider } from './ceto/plagne'
 import { createCetoMegeveProvider } from './ceto/megeve'
+import { createUbloProvider } from './ublo/provider'
+import { createOpenSystemProvider } from './opensystem/provider'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -82,6 +84,8 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     next.register(createCetoMeribelProvider())
     next.register(createCetoPlagneProvider())
     next.register(createCetoMegeveProvider())
+    next.register(createUbloProvider())
+    next.register(createOpenSystemProvider())
   }
 
   // Airbnb n'est pas un connecteur : il n'interroge rien. Voir airbnb/airbnb.ts.

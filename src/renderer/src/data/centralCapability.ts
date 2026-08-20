@@ -9,7 +9,9 @@
  * Sources de vérité :
  * - Ceto/Orchestra : connecteurs `ceto-*`
  * - Ingénie : connecteur `station-web` (Playwright, formulaire)
- * - `docs/diagnostics/centrales-reconnaissance.md` (27 hôtes Ingénie, 2 robots)
+ * - Ublo / MSEM : connecteur `ublo-msem` (JSON offers)
+ * - Open System : connecteur `opensystem` (JSONP / HTML)
+ * - `docs/diagnostics/centrales-reconnaissance.md`
  */
 
 import { bookingFamilyOf } from '@shared/bookingFamilies'
@@ -158,7 +160,29 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
   }
 
   const family = bookingFamilyOf(host)
-  if (family === 'opensystem' || family === 'ublo' || family === 'eliberty') {
+  if (family === 'ublo') {
+    return {
+      mode: 'live',
+      host,
+      connector: 'ublo-msem',
+      family: 'ublo',
+      labelFr: 'prix pour vos dates (Ublo)',
+      labelEn: 'prices for your dates (Ublo)'
+    }
+  }
+
+  if (family === 'opensystem') {
+    return {
+      mode: 'live',
+      host,
+      connector: 'opensystem',
+      family: 'opensystem',
+      labelFr: 'prix pour vos dates (Open System)',
+      labelEn: 'prices for your dates (Open System)'
+    }
+  }
+
+  if (family === 'eliberty') {
     return {
       mode: 'link',
       host,

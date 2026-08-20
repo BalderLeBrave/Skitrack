@@ -46,10 +46,13 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'www.valmorel.com': 'opensystem',
   'www.valfrejus.com': 'opensystem',
   'www.n-py.com': 'opensystem',
-  // Ublo / Eliberty (React embarqué)
+  'reservation.n-py.com': 'opensystem',
+  'reservation.valmorel.com': 'opensystem',
+  // Ublo / MSEM (React + services.msem.tech)
   'reservation.alpedhuez.com': 'ublo',
   'www.saintefoy-reservation.com': 'ublo',
-  'reservation.saintfrancoislongchamp.com': 'eliberty',
+  'saintefoy-reservation.com': 'ublo',
+  'reservation.saintfrancoislongchamp.com': 'ublo',
   // Autres
   'www.sancy.com': 'sancy',
   'isola2000.com': 'yoplanning',

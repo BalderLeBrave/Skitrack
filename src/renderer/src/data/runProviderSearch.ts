@@ -50,7 +50,9 @@ const SOURCE_LABEL: Record<string, string> = {
   'ceto-chamonix': 'Chamonix Réservation',
   'ceto-meribel': 'Méribel Réservation',
   'ceto-plagne': 'La Plagne Resort',
-  'ceto-megeve': 'Megève Réservation'
+  'ceto-megeve': 'Megève Réservation',
+  'ublo-msem': 'Centrale Ublo',
+  opensystem: 'Centrale Open System'
 }
 
 export function sourceLabelOf(provider: string): string {

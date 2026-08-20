@@ -7,10 +7,12 @@
 export const CETO_HOSTS = new Set([
   'booking.chamonix.com',
   'www.booking.chamonix.com',
-  // Prochaines cibles (même famille DOM / API)
   'reservations.meribel.net',
+  'www.reservations.meribel.net',
   'www.laplagneresort.com',
-  'laplagneresort.com'
+  'laplagneresort.com',
+  'megeve-booking.com',
+  'www.megeve-booking.com'
 ])
 
 export function isCetoHost(urlOrHost: string): boolean {

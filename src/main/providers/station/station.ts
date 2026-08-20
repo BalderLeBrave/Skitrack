@@ -75,6 +75,8 @@ import {
 import { debugLog } from '../debug'
 import { allowsPath } from './robots'
 import { isCetoHost } from '../ceto/hosts'
+import { isUbloHost } from '../ublo/hosts'
+import { isOpenSystemHost } from '../opensystem/hosts'
 import { shouldAttemptIngenie } from './ingenieHosts'
 import { CircuitBreaker } from '../resilience'
 import {
@@ -849,8 +851,15 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
       const origin = originOf(central)
       if (!origin) return []
 
-      // Orchestra/Ceto : connecteur dédié, pas de Chromium ici.
-      if (isCetoHost(origin) || isCetoHost(central)) {
+      // Orchestra / Ublo / Open System : connecteurs dédiés, pas de Chromium ici.
+      if (
+        isCetoHost(origin) ||
+        isCetoHost(central) ||
+        isUbloHost(origin) ||
+        isUbloHost(central) ||
+        isOpenSystemHost(origin) ||
+        isOpenSystemHost(central)
+      ) {
         return []
       }
 

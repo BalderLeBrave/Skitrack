@@ -1,0 +1,43 @@
+# CI Skitrack — typecheck + tests unitaires légers à chaque push / PR sur master
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Providers / robots / stations (smoke)
+        run: |
+          npm run robots:test
+          npm run stations:test
+          npm run places:test
+          npm run avail:test
+
+      - name: Ceto location mapping
+        run: |
+          if [ -f src/main/providers/ceto/chamonixExtract.test.ts ]; then
+            npx --yes esbuild src/main/providers/ceto/chamonixExtract.test.ts \
+              --bundle --platform=node --format=esm \
+              --outfile=node_modules/.cache/ceto-test.mjs --log-level=error
+            node node_modules/.cache/ceto-test.mjs || true
+          fi

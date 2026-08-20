@@ -46,7 +46,8 @@ const SOURCE_LABEL: Record<string, string> = {
   'cozycozy-web': 'cozycozy',
   liteapi: 'LiteAPI',
   airbnb: 'Airbnb',
-  'station-web': 'Site officiel de la station'
+  'station-web': 'Site officiel de la station',
+  'ceto-chamonix': 'Chamonix Réservation'
 }
 
 export function sourceLabelOf(provider: string): string {
@@ -100,10 +101,11 @@ function toLodging(
 ): Lodging | null {
   if (!a.url || !a.title) return null
 
-  // Un total non confirmé n'est pas un total. La vignette sait afficher une
-  // offre à `total: 0` comme un lien vers le site plutôt qu'un prix inventé.
+  // Montant du séjour si fourni. `partial` = « à partir de » (affiché quand même).
   const total =
-    a.priceConfidence === 'total_confirmed' && a.totalPrice != null
+    a.totalPrice != null &&
+    a.totalPrice > 0 &&
+    (a.priceConfidence === 'total_confirmed' || a.priceConfidence === 'partial')
       ? Math.round(a.totalPrice)
       : 0
 

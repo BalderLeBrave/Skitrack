@@ -546,7 +546,12 @@ export function extractStationCards(): StationCard[] {
     const text = (node.innerText || '').replace(/\s+/g, ' ').trim()
     const priceNode = node.querySelector('.prix_en_cours')
     const priceText = (priceNode?.innerText || '').trim() || null
-    const fromPrice = Boolean(node.querySelector('.libelle_a_partir_de'))
+    // « à partir de » : classe dédiée ou libellé dans le bloc prix (tous sites Ingénie).
+    const fromLabel = Boolean(node.querySelector('.libelle_a_partir_de, .a_partir_de, .tarif_a_partir'))
+    const fromText = /\bà\s*partir\b|\ba\s*partir\b/i.test(
+      (node.innerText || '').slice(0, 500)
+    )
+    const fromPrice = fromLabel || fromText
     const slope = text.match(/(Ski aux pieds[^.]{0,18}|(?:De\s+)?\d+\s*(?:à\s*\d+\s*)?m des pistes)/i)
     const guests = text.match(/(\d+)\s*personnes?/i)
 
@@ -638,9 +643,10 @@ const stationBreaker = new CircuitBreaker(2, 90_000)
 /**
  * Prix réel sur la fiche produit (onglet Disponibilités & Tarifs).
  *
- * Sur Les 2 Alpes (et la plupart des Ingénie), la SERP n’affiche qu’un
- * « à partir de ». Le tarif du séjour se calcule seulement après :
- * dates + voyageurs + Rechercher sur la fiche (#tarifs).
+ * Commun à **tout** le parc Ingénie (2 Alpes, Tignes, Serre-Chevalier,
+ * Val Thorens, Courchevel, Les Saisies, Avoriaz, Val d’Isère, etc.).
+ * La SERP n’affiche souvent qu’un « à partir de » ; le tarif séjour se
+ * calcule sur la fiche : #tarifs → dates → voyageurs → Rechercher.
  */
 async function resolveExactPriceOnFiche(
   parent: Page,
@@ -806,16 +812,33 @@ async function resolveExactPriceOnFiche(
 }
 
 /**
- * Enrichit jusqu’à `limit` fiches « à partir de » avec le prix réel du séjour.
+ * Prix réel du séjour pour **toutes** les centrales Ingénie (2 Alpes, Tignes,
+ * Serre-Che, Val Thorens, Courchevel, Saisies, Avoriaz, etc.).
+ *
+ * La SERP affiche souvent un tarif d’appel ; le montant daté est sur la fiche
+ * (#tarifs → dates → Rechercher). On priorise les « à partir de », puis les
+ * fiches sans prix lisible.
  */
 async function enrichExactPrices(
   parent: Page,
   cards: StationCard[],
   params: SearchParams,
   timeoutMs: number,
-  limit = 5
+  limit = 8
 ): Promise<void> {
-  const need = cards.filter((c) => c.fromPrice && c.url).slice(0, limit)
+  const ranked = [
+    ...cards.filter((c) => c.fromPrice && c.url),
+    ...cards.filter((c) => !c.fromPrice && c.url && !c.priceText)
+  ]
+  // Déduplique en gardant l’ordre
+  const seen = new Set<string>()
+  const need: StationCard[] = []
+  for (const c of ranked) {
+    if (seen.has(c.url)) continue
+    seen.add(c.url)
+    need.push(c)
+    if (need.length >= limit) break
+  }
   if (need.length === 0) return
   const conc = 2
   for (let i = 0; i < need.length; i += conc) {
@@ -923,7 +946,7 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)
             // SERP = souvent « à partir de » → prix réel sur fiche #tarifs (max 5).
-            await enrichExactPrices(page, cards, params, timeoutMs, 5)
+            await enrichExactPrices(page, cards, params, timeoutMs, 8)
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre
             // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).

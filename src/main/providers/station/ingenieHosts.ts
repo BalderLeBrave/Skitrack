@@ -40,7 +40,25 @@ export const INGENIE_HOSTS = new Set([
   'reservation.avoriaz.com',
   'reservation.lescarroz.com',
   'reservation.lescontamines.com',
-  'reservation.samoens.com'
+  'reservation.samoens.com',
+  'booking.prazsurarly.com',
+  'reservation.alpedhuez.com',
+  'reservation.auris-en-oisans.fr',
+  'reservation.ax-ski.com',
+  'reservation.bareges.com',
+  'reservation.chamberymontagnes.com',
+  'reservation.la-toussuire.com',
+  'reservation.le-corbier.com',
+  'reservation.ledevoluy.com',
+  'reservation.les7laux.com',
+  'reservation.matheysine-tourisme.com',
+  'reservation.paysdegex-montsjura.com',
+  'reservation.saintfrancoislongchamp.com',
+  'reservation.saintsorlindarves.com',
+  'reservation.valleesdegavarnie.com',
+  'reservation.vaujany.com',
+  'reservation.villard-reculas.com',
+  'reservation.villarddelans-correnconenvercors.com',
 ])
 
 /** robots.txt Disallow: / — ne jamais lancer le navigateur. */

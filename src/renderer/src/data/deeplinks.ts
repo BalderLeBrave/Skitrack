@@ -175,6 +175,12 @@ export function searchUrlFor(source: string, criteria: StayCriteria): string | n
  *
  * On les recolle donc à l'ouverture, sous les noms attendus par chaque site.
  */
+/** `YYYY-MM-DD` → `JJ/MM/AAAA` (format des centrales Ingénie). */
+function frenchDateParam(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso
+}
+
 const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> = {
   'Booking.com': (c) => ({
     checkin: c.arrDate,
@@ -192,7 +198,24 @@ const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> =
     check_in: c.arrDate,
     check_out: c.depDate,
     adults: String(c.travelers)
-  })
+  }),
+  /**
+   * Centrales de station (Ingénie et assimilés).
+   * Sans ces params, la fiche s'ouvre avec un calendrier vide et il faut
+   * re-cliquer « Rechercher » pour voir le prix du séjour.
+   */
+  [OFFICIAL_SOURCE]: (c) => {
+    const from = frenchDateParam(c.arrDate)
+    const to = frenchDateParam(c.depDate)
+    const nights = String(Math.max(1, nightsBetween(c.arrDate, c.depDate)))
+    return {
+      datedeb: from,
+      datefin: to,
+      duree: nights,
+      personnes: String(Math.max(1, c.travelers)),
+      adultes: String(Math.max(1, c.travelers))
+    }
+  }
 }
 
 /**

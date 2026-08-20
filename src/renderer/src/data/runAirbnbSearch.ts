@@ -94,10 +94,9 @@ async function scrapeOnce(params: RunAirbnbSearchParams) {
 }
 
 /**
- * Chemin nominal : **pas de scrape** (robots.txt Airbnb interdit /s/*/homes).
- * Activer le relevé expérimental uniquement avec `SKITRACK_AIRBNB_SCRAPE=1`.
- * Sinon on renvoie un résultat vide — l’UI s’appuie sur la redirection Airbnb
- * de l’agrégat (`airbnbRedirect`).
+ * Chemin nominal : pas de scrape (robots.txt Airbnb interdit les chemins /s/…).
+ * Opt-in expérimental : localStorage.skitrackAirbnbScrape = '1'.
+ * Sinon résultat vide — l’UI s’appuie sur la redirection Airbnb (airbnbRedirect).
  */
 export async function runAirbnbSearch(
   params: RunAirbnbSearchParams

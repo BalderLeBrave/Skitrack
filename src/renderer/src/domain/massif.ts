@@ -34,6 +34,19 @@ const MASSIF_TINTS: Record<string, MassifTint> = {
 
 /** Massif inconnu (référentiel maison) : surface neutre plutôt qu'une couleur
  *  prise au hasard, qui prétendrait le ranger dans une famille. */
+function fold(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+const MASSIF_TINTS_FOLD: Record<string, MassifTint> = Object.fromEntries(
+  Object.entries(MASSIF_TINTS).map(([k, v]) => [fold(k), v])
+)
+
 export function massifColor(name: string | null | undefined): MassifTint {
-  return (name && MASSIF_TINTS[name]) || { soft: 'var(--surface)', ink: 'var(--muted)' }
+  if (!name) return { soft: 'var(--surface)', ink: 'var(--muted)' }
+  return MASSIF_TINTS_FOLD[fold(name)] ?? MASSIF_TINTS[name] ?? { soft: 'var(--surface)', ink: 'var(--muted)' }
 }

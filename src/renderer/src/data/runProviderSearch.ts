@@ -104,13 +104,10 @@ function toLodging(
 ): Lodging | null {
   if (!a.url || !a.title) return null
 
-  // Montant du séjour si fourni. `partial` = « à partir de » (affiché quand même).
+  // Montant du séjour si fourni. On affiche dès qu'il y a un prix > 0 :
+  // une confiance inconnue ne doit pas faire disparaître l'offre.
   const total =
-    a.totalPrice != null &&
-    a.totalPrice > 0 &&
-    (a.priceConfidence === 'total_confirmed' || a.priceConfidence === 'partial')
-      ? Math.round(a.totalPrice)
-      : 0
+    a.totalPrice != null && a.totalPrice > 0 ? Math.round(a.totalPrice) : 0
 
   const nights = Math.max(1, params.nights)
   const guests = a.guests && a.guests > 0 ? a.guests : params.adults

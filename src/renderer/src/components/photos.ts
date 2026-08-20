@@ -12,14 +12,21 @@
  * les polices — la CSP du renderer n'autorise rien d'autre.
  */
 
-const IMAGES = import.meta.glob<string>('../assets/img/*.jpg', {
+const IMAGES = import.meta.glob<string>('../assets/img/*.{jpg,jpeg,png,webp}', {
   eager: true,
   query: '?url',
   import: 'default'
 })
 
+/** Index par nom de fichier (sans chemin), pour absorber les variantes de clé Vite. */
+const BY_FILE: Record<string, string> = {}
+for (const [key, url] of Object.entries(IMAGES)) {
+  const base = key.split('/').pop()
+  if (base) BY_FILE[base.toLowerCase()] = url
+}
+
 function urlOf(file: string): string | null {
-  return IMAGES[`../assets/img/${file}`] ?? null
+  return BY_FILE[file.toLowerCase()] ?? null
 }
 
 /** Photo du héro de l'accueil, ou `null` tant qu'elle n'est pas déposée. */
@@ -27,23 +34,31 @@ export function heroPhoto(): string | null {
   return urlOf('hero-montblanc.jpg')
 }
 
+function fold(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
 /**
  * Un fichier par massif de la table fermée de `massifColor()`.
  *
- * Tout autre massif — un référentiel maison en apporte — n'a pas de photo et
- * reçoit la tuile générique : mieux vaut un dégradé assumé qu'une image prise
- * pour un autre endroit.
+ * Les clés sont normalisées (casse / accents) : « Massif Central » et
+ * « Massif central » pointent sur la même image.
  */
 const MASSIF_FILES: Record<string, string> = {
-  'Alpes du Nord': 'massif-alpes-nord.jpg',
-  'Alpes du Sud': 'massif-alpes-sud.jpg',
-  Pyrénées: 'massif-pyrenees.jpg',
-  'Massif central': 'massif-massif-central.jpg',
-  Vosges: 'massif-vosges.jpg',
-  Jura: 'massif-jura.jpg'
+  [fold('Alpes du Nord')]: 'massif-alpes-nord.jpg',
+  [fold('Alpes du Sud')]: 'massif-alpes-sud.jpg',
+  [fold('Pyrénées')]: 'massif-pyrenees.jpg',
+  [fold('Massif central')]: 'massif-massif-central.jpg',
+  [fold('Vosges')]: 'massif-vosges.jpg',
+  [fold('Jura')]: 'massif-jura.jpg'
 }
 
 export function massifPhoto(name: string): string | null {
-  const file = MASSIF_FILES[name]
+  if (!name) return null
+  const file = MASSIF_FILES[fold(name)]
   return file ? urlOf(file) : null
 }

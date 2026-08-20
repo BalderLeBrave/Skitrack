@@ -4,6 +4,7 @@
  *   npm run ingenie:price-test
  */
 
+import { readFileSync } from 'node:fs'
 import {
   cleanProductUrl,
   extractObjectCodeFromCardHtml,
@@ -149,6 +150,40 @@ check(
   'pipe dans le HTML de carte',
   extractObjectCodeFromCardHtml('<div data-id="G|290|ST3N">x</div>') === 'G|290|ST3N'
 )
+
+/**
+ * `page.evaluate(fn)` ne sérialise que le corps de `fn` : ses fermetures — donc
+ * tous les imports du module — sont `undefined` dans la page. Un appel oublié
+ * fait échouer la lecture des fiches sur **toutes** les centrales, avec une
+ * `ReferenceError` qu'aucun test de parseur ne voit. On relit donc la source.
+ */
+console.log('6. Fonctions évaluées dans la page — aucune fermeture')
+const stationSource = readFileSync('src/main/providers/station/station.ts', 'utf8')
+const imported = [...stationSource.matchAll(/import\s+(?:type\s+)?\{([^}]+)\}\s+from/g)]
+  .flatMap((m) => m[1].split(','))
+  .map((n) => n.split(' as ').pop()!.trim())
+  .filter((n) => n.length > 0 && !/^type\b/.test(n))
+
+function bodyOf(source: string, signature: string): string {
+  const start = source.indexOf(signature)
+  if (start < 0) return ''
+  let depth = 0
+  for (let i = source.indexOf('{', start); i < source.length; i++) {
+    if (source[i] === '{') depth++
+    else if (source[i] === '}' && --depth === 0) return source.slice(start, i + 1)
+  }
+  return ''
+}
+
+for (const signature of [
+  'export function extractStationCards()',
+  'export function readEngineContext()'
+]) {
+  const body = bodyOf(stationSource, signature)
+  check(`${signature} lue`, body.length > 0)
+  const leaked = imported.filter((n) => new RegExp(`\\b${n}\\s*\\(`).test(body))
+  check(`${signature} n'appelle aucun import`, leaked.length === 0, leaked)
+}
 
 if (failures > 0) {
   console.error(`\n${failures} échec(s)`)

@@ -82,7 +82,6 @@ import { shouldAttemptIngenie } from './ingenieHosts'
 import { CircuitBreaker } from '../resilience'
 import {
   cleanProductUrl,
-  extractObjectCodeFromCardHtml,
   extractTarifsPrestationId,
   extractWidgetObject,
   parseCalculerTotal,
@@ -647,7 +646,18 @@ export function extractStationCards(): StationCard[] {
     // « RESIDENCE : LES CHALETS D'EMERAUDE » — la résidence qui porte
     // l'appartement, utile pour rapprocher deux annonces du même bâtiment.
     const residence = text.match(/R[ÉE]SIDENCE\s*:\s*([^:]{2,60}?)(?:\s+Classement|\s+Type d|$)/i)
-    const objectCode = extractObjectCodeFromCardHtml(node.innerHTML || '')
+    // Inline, et non `extractObjectCodeFromCardHtml` : cette fonction est
+    // sérialisée puis évaluée *dans la page*, sans ses fermetures — un appel à
+    // un import serait `undefined` au moment de l'exécution. Même règle que
+    // `readEngineContext`. La version testée vit dans `fichePrice.ts`.
+    const cardHtml = node.innerHTML || ''
+    const dashCode = cardHtml.match(/PRESTATION-([A-Z]-[\w]+-[\w]+)/i)
+    const pipeCode = cardHtml.match(/\b([A-Z]\|\d+\|[A-Z0-9]+)\b/)
+    const objectCode = dashCode
+      ? dashCode[1].replace(/-/g, '|')
+      : pipeCode
+        ? pipeCode[1]
+        : null
 
     out.push({
       title,

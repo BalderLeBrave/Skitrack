@@ -1,0 +1,572 @@
+npm notice run skitrack@0.1.0 verify
+npm notice run npm run typecheck:web && npm run i18n:test && npm run stations:test && npm run places:test && npm run areas:test && npm run avail:test && npm run cards:test && npm run robots:test && npm run ingenie:price-test && npm run families:test && npm run providers:test && npm run ublo:parse-test && npm run opensystem:parse-test && npm run i18n:scan -- --ci
+npm notice run skitrack@0.1.0 typecheck:web
+npm notice run tsc --noEmit -p tsconfig.web.json
+npm notice run skitrack@0.1.0 i18n:test
+npm notice run esbuild src/renderer/src/i18n/catalog.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/i18n-test.mjs --log-level=error && node node_modules/.cache/i18n-test.mjs
+Catalogue complet : 568 entrées × 2 langues.
+npm notice run skitrack@0.1.0 stations:test
+npm notice run esbuild src/renderer/src/data/stations.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/stations-test.mjs --alias:@=./src/renderer/src --log-level=error && node node_modules/.cache/stations-test.mjs
+Stations alignées : 134/173 domaines portent un libellé de STATIONS (39 hors périmètre du collecteur), 169 sites officiels vérifiables, 263 libellés lus dans tools/skitrack_v25.py.
+npm notice run skitrack@0.1.0 places:test
+npm notice run esbuild src/renderer/src/data/places.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/places-test.mjs --alias:@=./src/renderer/src --log-level=error && node node_modules/.cache/places-test.mjs
+
+Recherche de stations — 283 stations affichées
+
+1. La liste est une liste de stations
+  ✓ aucun nom en double
+  ✓ aucun nom composite que le catalogue ne porte déjà
+  ✓ Val Thorens n’apparaît qu’une fois
+  ✓ et Orelle reste une station distincte
+
+2. Saisies → station
+  ✓ « Méribel » → Méribel
+  ✓ « meribel » → Méribel
+  ✓ « MERIBEL » → Méribel
+  ✓ « Méribel-Mottaret » → Méribel-Mottaret
+  ✓ « Les Menuires » → Les Menuires
+  ✓ « menuires » → Les Menuires
+  ✓ « menu » → Les Menuires
+  ✓ « Saint-Martin-de-Belleville » → Saint-Martin-de-Belleville
+  ✓ « st martin de belleville » → Saint-Martin-de-Belleville
+  ✓ « La Toussuire » → La Toussuire
+  ✓ « le corbier » → Le Corbier
+  ✓ « st sorlin d arves » → Saint-Sorlin-d’Arves
+  ✓ « Combloux » → Combloux
+  ✓ « La Giettaz » → La Giettaz
+  ✓ « Avoriaz » → Avoriaz 1800
+  ✓ « chatel » → Châtel
+  ✓ « Samoëns » → Samoëns
+  ✓ « samoens » → Samoëns
+  ✓ « Montchavin » → Montchavin La Plagne
+  ✓ « Peisey-Vallandry » → Peisey-Vallandry
+  ✓ « Aime 2000 » → Aime 2000
+  ✓ « Aime deux mille » → Aime 2000
+  ✓ « Vaujany » → Vaujany
+  ✓ « Le Monêtier » → Serre Chevalier Le Monêtier
+  ✓ « Courchevel » → Courchevel
+  ✓ « Brides-les-Bains » → Brides-les-Bains
+  ✓ « Val Thorens » → Val Thorens
+  ✓ « Orelle » → Orelle
+  ✓ « Val Claret » → Tignes Val Claret
+  ✓ « Arc 1950 » → Arc 1950
+  ✓ « Belle Plagne » → Belle Plagne
+  ✓ « La Tania » → La Tania
+  ✓ « Les Bottières » → Les Bottières
+  ✓ « Cordon » → Cordon
+
+3. Saisies → domaine, résolu vers ses stations
+  ✓ « Les 3 Vallées » → les 7 stations nommées par l’énoncé
+  ✓ « Les Trois Vallées » → les 7 stations nommées par l’énoncé
+  ✓ « trois vallees » → les 7 stations nommées par l’énoncé
+  ✓ « 3 vallées » → les 7 stations nommées par l’énoncé
+  ✓ « Les Deux Alpes » et « Les 2 Alpes » donnent le même résultat
+  ✓ « Les Sept Laux » et « Les 7 Laux » donnent le même résultat
+  ✓ « paradiski » ramène La Plagne et les Arcs
+
+4. Normalisation
+  ✓ accents ignorés
+  ✓ tirets et apostrophes ignorés
+  ✓ article de tête ignoré
+  ✓ « st » vaut « saint »
+  ✓ « Les Trois Vallées » ≡ « Les 3 Vallées »
+  ✓ « Les Sept Laux » ≡ « Les 7 Laux »
+  ✓ « Les Deux Alpes » ≡ « Les 2 Alpes »
+  ✓ « Aime deux mille » ≡ « Aime 2000 »
+  ✓ « Arc mille huit cents » ≡ « Arc 1800 »
+  ✓ « Isola deux mille » ≡ « Isola 2000 »
+  ✓ un mot qui commence comme un nombre n’est pas converti
+
+5. Tolérance de frappe, et ses limites
+  ✓ une faute reste trouvable
+  ✓ deux fautes ne le sont plus
+  ✓ une faute sur un mot court n’ouvre pas les noms longs
+  ✓ une saisie courte ne ramène pas tout
+  ✓ une saisie inconnue ne propose rien
+
+6. Segments de libellé et contre-test
+  ✓ « Vars – Risoul, La Forêt Blanche » donne trois lieux
+  ✓ Vallorcine ne remonte aucune station des Portes du Mont-Blanc
+
+7. Suggestions
+  ✓ « montchavin » est proposé
+  ✓ la suggestion dit à quel domaine elle mène
+  ✓ la sélection écrit un texte qui filtre réellement la liste
+  ✓ aucune suggestion vide
+
+34 saisies résolues sur 283 stations.
+npm notice run skitrack@0.1.0 areas:test
+npm notice run esbuild src/renderer/src/data/skiAreas.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/areas-test.mjs --alias:@=./src/renderer/src --log-level=error && node node_modules/.cache/areas-test.mjs
+
+Domaines skiables — 283 stations regroupées en 151 domaines
+
+1. Couverture
+  ✓ chaque station appartient à un domaine
+  ✓ aucun domaine vide
+  ✓ la somme des stations des domaines redonne la liste
+  ✓ aucun domaine sans nom
+
+2. Domaines multi-stations nommés
+  ✓ Les 3 Vallées existe
+  ✓   Courchevel y figure
+  ✓   Méribel y figure
+  ✓   Les Menuires y figure
+  ✓   Val Thorens y figure
+  ✓   Saint-Martin-de-Belleville y figure
+  ✓   Brides-les-Bains y figure
+  ✓   Orelle y figure
+  ✓ Les Sybelles regroupe ses stations
+  ✓ Le Grand Massif regroupe ses stations
+
+3. Les pièges de la donnée
+  ✓ « Les 2 Alpes » mène son domaine sans y figurer deux fois
+  ✓ « Alpe d’Huez Grand Domaine » mène Vaujany et Villard-Reculas
+  ✓ les deux orthographes de Mont(-)Blanc Unlimited donnent un seul domaine
+
+4. Agrégats : ce qui est licite
+  ✓ le point culminant est bien le maximum de ses stations
+  ✓ le kilométrage exposé est un maximum, jamais une somme
+  ✓ et il reste donc inférieur à la somme des stations d’un grand domaine
+
+5. Domaines mono-station
+  ✓ un domaine mono-station est marqué comme tel
+  ✓ et il en existe
+  ✓ le domaine d’une station se retrouve par `areaOf`
+
+283 stations · 151 domaines (41 multi-stations, 110 mono-station).
+npm notice run skitrack@0.1.0 avail:test
+npm notice run esbuild src/renderer/src/data/lodgingAvailability.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/avail-test.mjs --alias:@=./src/renderer/src --log-level=error && node node_modules/.cache/avail-test.mjs
+
+Disponibilité des annonces
+
+1. Ce qui est confirmé
+  ✓ tarifée pour exactement ces dates → confirmée
+  ✓ donc affichable comme réservable
+
+2. Ce qui ne l’est pas
+  ✓ listée sans prix → non confirmée
+  ✓ motif : sans tarif à ces dates
+  ✓ donc pas affichable comme réservable
+  ✓ tarifée pour d’autres dates → non confirmée
+  ✓ absente du dernier relevé → « gone », malgré un prix relevé
+
+3. Ce qui n’est pas jugé
+  ✓ carte OpenStreetMap (URL de recherche) → non jugée
+  ✓ et reconnue comme porte d’entrée
+  ✓ elle reste affichable
+  ✓ saisie à la main → non jugée
+  ✓ elle ne disparaît pas sous le filtre
+  ✓ offre sans URL → non jugée
+  ✓ une annonce Airbnb n’est pas une porte d’entrée
+
+4. Changement de dates
+  ✓ la même annonce redevient non confirmée si le séjour change
+  ✓ et l’absence relevée pour d’autres dates ne la condamne pas
+
+Disponibilité : tous les cas passent.
+npm notice run skitrack@0.1.0 cards:test
+npm notice run esbuild src/renderer/src/components/ResultCard.test.tsx --bundle --platform=node --format=cjs --jsx=automatic --outfile=node_modules/.cache/cards-test.cjs --log-level=error && node node_modules/.cache/cards-test.cjs
+Warning: React does not recognize the `fetchPriority` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `fetchpriority` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+    at img
+    at div
+    at article
+    at ResultCard (C:\Users\Adrien RAFFRAY\Dev\skitrack\node_modules\.cache\cards-test.cjs:17202:3)
+ResultCard : 15 vérifications passées (rendu, ratio, placeholder, accessibilité, squelette).
+npm notice run skitrack@0.1.0 robots:test
+npm notice run esbuild src/main/providers/station/robots.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/robots-test.mjs --log-level=error && node node_modules/.cache/robots-test.mjs
+
+robots.txt — ce que la centrale autorise
+
+1. Lecture des groupes
+  ✓ les règles du groupe « * » sont lues
+  ✓ un chemin interdit l’est
+  ✓ la règle qui tranche est citée
+  ✓ un chemin voisin reste permis
+  ✓ un groupe nommé l’emporte sur « * »
+  ✓ et ses propres interdits s’appliquent
+  ✓ deux agents consécutifs déclarent un seul groupe
+  ✓ une règle sans en-tête `User-agent` compte quand même
+
+2. Priorité des règles
+  ✓ la règle la plus longue gagne
+  ✓ et la plus courte s’applique ailleurs
+  ✓ à longueur égale, Allow l’emporte
+  ✓ un joker vise ce qu’il décrit
+  ✓ et rien d’autre : le même chemin sans le paramètre reste permis
+  ✓ la page de résultats Ingénie, elle, porte `action` et `cid` — donc interdite
+  ✓ un chemin sans joker s’applique par préfixe
+  ✓ l’ancre `$` ne vise que la fin
+  ✓ et laisse passer ce qui la dépasse
+  ✓ « Disallow: » vide n’interdit rien
+
+3. Lecture réseau, cache et pannes
+  ✓ la lecture vise bien /robots.txt (https://exemple.test/robots.txt)
+  ✓ le fichier lu interdit le chemin
+  ✓ la deuxième demande ne relit pas le fichier
+  ✓ un robots.txt absent vaut autorisation
+  ✓ un hôte injoignable n’interdit pas non plus
+  ✓ une page HTML servie à la place du fichier n’est pas prise pour des règles
+
+Règle robots.txt vérifiée.
+npm notice run skitrack@0.1.0 ingenie:price-test
+npm notice run esbuild src/main/providers/station/fichePrice.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/fiche-price-test.mjs --log-level=error && node node_modules/.cache/fiche-price-test.mjs
+
+Ingénie — TOTAL #total-prestation (Les 2 Alpes)
+
+1. Code objet sur la fiche #tarifs
+  ✓ pipe G|290|ST3N
+  ✓ cid 5
+  ✓ cle_fiche PRESTATION-G-290-ST3N
+  ✓ prestation tarifs G-290-ST3N
+  ✓ type prestataire G
+2. Le span TOTAL que l’utilisateur voit
+  ✓ 432,47 € dans #total-prestation-G-5834094-6395741-1
+  ✓ N/A avant calcul → null
+  ✓ calculerTotalPrestationAjax → 432,47 €
+  ✓ Champamé 1 067,97 € (séjour+taxe+ménage)
+  ✓ échec success=0 → null
+3. searchAjax / serialize formules
+  ✓ nbResultsFiche = 1
+  ✓ zéro dispo
+  ✓ serialize cid+prestation
+  ✓ serialize formules[] séjour
+  ✓ serialize taxe 3 pers
+  ✓ disabled checkbox absente
+  ✓ bouton absente
+4. URLs
+  ✓ fiche sans ?action=
+  ✓ searchAjax contient cle_fiche et dates
+  ✓ tarifsAjax prestation=G-290-ST3N
+  ✓ id Sélectionner G-5834094-6395741
+5. Carte SERP
+  ✓ pipe dans le HTML de carte
+
+ok
+npm notice run skitrack@0.1.0 families:test
+npm notice run esbuild src/shared/bookingFamilies.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/families-test.mjs --log-level=error && node node_modules/.cache/families-test.mjs
+
+Familles de centrales
+
+  ✓ 2 Alpes n’est pas hors-Ingénie
+  ✓ Val Thorens n’est pas hors-Ingénie
+  ✓ Chamonix = orchestra
+  ✓ La Plagne = orchestra
+  ✓ Alpe d’Huez = ublo
+  ✓ Sainte-Foy = ublo
+  ✓ Saint-François = ublo (MSEM)
+  ✓ La Bresse = opensystem
+  ✓ Toussuire = opensystem
+  ✓ Dévoluy = opensystem
+  ✓ Valmorel résa = opensystem
+  ✓ N-PY résa = opensystem
+  ✓ Megève = orchestra
+  ✓ Sancy = sancy
+  ✓ Combloux = blocked
+  ✓ hôte inconnu = unknown
+
+ok
+npm notice run skitrack@0.1.0 providers:test
+npm notice run esbuild src/main/providers/providers.test.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/providers-test.cjs --external:electron --external:playwright --alias:@shared=./src/shared --log-level=error && node node_modules/.cache/providers-test.cjs
+
+======================================================================
+1. Airbnb — construction d’URL, aucune requête
+======================================================================
+  https://www.airbnb.fr/s/Val-Thorens--France/homes?checkin=2027-02-07&checkout=2027-02-14&adults=4&children=2&price_max=4000
+  ✓ segment ville encodé
+  ✓ dates transmises
+  ✓ voyageurs transmis
+  ✓ prix maximum transmis
+  ✓ marqué comme redirection, pas comme offre
+  ✓ aucun prix exposé
+
+======================================================================
+2. Booking — normalisation sur charge utile figée
+======================================================================
+  ✓ normalisé
+  ✓ identifiant affilié ajouté à l’URL
+  ✓ prix total marqué confirmé
+  ✓ disponibilité affirmée (endpoint de disponibilité)
+  ✓ charge utile conservée
+  ✓ ligne sans nom rejetée
+
+======================================================================
+6. MCP — décodage du transport, sans réseau
+======================================================================
+  ✓ deux enveloppes extraites du flux SSE
+  ✓ identifiants préservés
+  ✓ fragment illisible ignoré sans perdre le reste
+  ✓ charge utile JSON extraite du bloc texte
+  ✓ contenu structuré préféré au texte
+
+======================================================================
+7. MCP générique — gabarit d’arguments et correspondance de champs
+======================================================================
+  ✓ nombre transmis comme nombre, pas comme chaîne
+  ✓ interpolation dans une chaîne
+  ✓ jeton sans valeur → argument supprimé
+  ✓ gabarit imbriqué résolu
+  ✓ sept nuits calculées
+  ✓ chemin pointé avec index
+  ✓ titre nettoyé
+  ✓ prix textuel français converti
+  ✓ virgule décimale distinguée du séparateur de milliers
+  ✓ convention anglaise également traitée
+  ✓ texte non numérique refusé
+  ✓ disponibilité laissée inconnue par défaut
+  ✓ annonce sans identifiant écartée
+
+======================================================================
+8. Sources MCP déclarées — validation stricte
+======================================================================
+  ✓ une seule source retenue
+  ✓ nom réservé refusé
+  ✓ base légale exigée
+  ✓ HTTP en clair refusé
+  ✓ source désactivée ignorée sans erreur
+  ✓ JSON illisible signalé, pas levé
+
+======================================================================
+9. Agrégation — un échec de source n’arrête pas les autres
+======================================================================
+  booking          0 résultat(s)  Booking.com : aucun jeton Demand API. Renseignez-le dans Réglages → Clés d’API, ou via BOOKING_DEMAND_TOKEN. Le programme d’affiliation seul ne donne pas accès aux prix.
+  ✓ seules les sources retenues sont interrogées
+  ✓ aucun connecteur retiré n’est enregistré
+  ✓ Booking échoue avec un motif explicite
+  ✓ l’agrégat n’a pas levé
+
+======================================================================
+11. Zone géographique — emprise du domaine et rejet des hors-zone
+======================================================================
+  ✓ Les 3 Vallées — les six stations du domaine sont dans la boîte
+  ✓ Les 3 Vallées — Paris est hors de la boîte
+  ✓ Paradiski — les cinq stations du domaine sont dans la boîte
+  ✓ Paradiski — Paris est hors de la boîte
+  ✓ Vosges — la station est dans sa propre boîte
+  ✓ Vosges — Paris est hors de la boîte
+  ✓ Vosges — Colmar (18 km à l’est) est hors de la boîte
+  ✓ Vosges — un petit domaine reçoit une emprise plus petite qu’un grand
+  ✓ boîte corrigée du cosinus de la latitude
+  ✓ le bord nord est bien à la distance du rayon
+  ✓ le bord est aussi
+  ✓ annonce dans la station : retenue
+  ✓ annonce à Paris : rejetée
+  ✓ annonce sans position : verdict inconnu, pas un rejet
+  ✓ la marge est appliquée, pas ignorée
+  ✓ deux hors-zone rejetés
+  ✓ aucune autre ville dans le résultat
+  ✓ annonce sans position conservée et comptée à part
+
+======================================================================
+6. Familles de centrales — Ingénie vs le reste
+======================================================================
+  ✓ 2 Alpes est Ingénie
+  ✓ Tignes est Ingénie
+  ✓ Chamonix est Orchestra
+  ✓ Alpe d’Huez est Ublo, pas Ingénie
+  ✓ La Bresse est Open System
+  ✓ La Toussuire est Open System
+  ✓ Sancy n’est pas Ingénie
+
+======================================================================
+TOUS LES TESTS PASSENT
+======================================================================
+npm notice run skitrack@0.1.0 ublo:parse-test
+npm notice run esbuild src/main/providers/ublo/msem.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/ublo-msem-test.mjs --log-level=error --loader:.json=json && node node_modules/.cache/ublo-msem-test.mjs
+ok ublo-msem: 3 offres — « Chez Nico - Le Chat Perché - 1 piece - 4 » 583.19€
+npm notice run skitrack@0.1.0 opensystem:parse-test
+npm notice run esbuild src/main/providers/opensystem/parse.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/os-parse-test.mjs --log-level=error --loader:.html=text --loader:.js=text && node node_modules/.cache/os-parse-test.mjs
+ok opensystem-parse: html 2 · jsonp 2 · etape 2 — « Studio des Pistes » 890€
+npm notice run skitrack@0.1.0 i18n:scan
+npm notice run node scripts/scan-untranslated.mjs --ci
+
+── Texte JSX en dur — 10 / plafond 0
+   5  components/LodgingSheet.tsx
+         Ce que Skitrack a vérifié
+         Dates du relevé
+         — dates de recherche différentes
+        … 2 de plus
+   3  pages/SettingsPage.tsx
+         Observabilité des sources
+         Réinitialiser les compteurs
+         Aucun relevé pour l’instant — lancez une recherche logements.
+   1  components/Onboarding.tsx
+         Station introuvable dans le référentiel — vous pourrez la choisir plus tard.
+   1  pages/LodgingsPage.tsx
+         Dates et groupe : la centrale de station répond en premier (prix datés), pui
+
+── Littéral de chaîne accentué (position d’expression) — 305 / plafond 272
+  49  data/lodgings.ts
+        :113 Résidence Cheval Blanc — 3 chambres
+        :113 résidence front de neige
+        :114 Studio cabine Roc de Péclet
+        … 46 de plus
+  45  pages/SettingsPage.tsx
+        :22 Itinéraires voiture et isochrones. Gratuit après inscription (≈2 000 trajets
+        :27 Alternative payante, seule à gérer l’évitement des péages sur un calcul en m
+        :33 Prix et disponibilités réels, inscription libre et immédiate — aucune valida
+        … 42 de plus
+  19  components/ImportDialog.tsx
+        :92 Ouverture d’un navigateur invisible… Si un CAPTCHA apparaît, une fenêtre s’o
+        :109 (CAPTCHA validé)
+        :132 Aucune nouveauté : les ${listings.length} annonce(s) sont déjà à jour.
+        … 16 de plus
+  18  components/PeopleDrawer.tsx
+        :37 estimé
+        :58 Location de matériel
+        :60 96 € par adulte, 58 € par enfant — si l’option est cochée
+        … 15 de plus
+  16  data/runAirbnbSearch.ts
+        :71 Délai dépassé (${Math.round(ms / 1000)}s). La recherche Airbnb a été interro
+        :72 Réessayez, vérifiez le proxy, ou validez un CAPTCHA s’il était ouvert.
+        :87 val d'isère
+        … 13 de plus
+  14  pages/LodgingsPage.tsx
+        :135 ${geo.summary.bad} position(s) à corriger
+        :320 ${label} : pas de résultat
+        :482 · altitudes mesurées
+        … 11 de plus
+  11  data/webcams.ts
+        :29 Panorama 3 Vallées
+        :36 Désert Blanc
+        :37 Église
+        … 8 de plus
+   9  components/LodgingSheet.tsx
+        :157 À partir de ${eur(lodging.total)}
+        :161 confirmé pour vos dates
+        :229 le départ
+        … 6 de plus
+   9  pages/DecisionPage.tsx
+        :53 ${ctx.lg.name} · ${ctx.nights} nuits · réparti au nombre de personnes
+        :61 Location de matériel
+        :63 option désactivée
+        … 6 de plus
+   9  data/lodgingGeo.ts
+        :148 à ${km.toFixed(1)} km du domaine — hors périmètre
+        :151 position en cours de vérification
+        :153 point situé sur un plan d’eau
+        … 6 de plus
+   8  components/DomainMap.tsx
+        :68 topographie française, la plus lisible pour le relief et les hameaux
+        :77 Photo aérienne
+        :78 orthophoto IGN — on voit les pentes, les forêts et les barres rocheuses
+        … 5 de plus
+   8  data/snow.ts
+        :20 31 janv. – 7 févr.
+        :21 7 – 14 févr. (zone C)
+        :22 14 – 21 févr.
+        … 5 de plus
+   7  components/FilterPanel.tsx
+        :11 Pyrénées
+        :49 Calcul des itinéraires…
+        :57 ${failed} départ(s) n’ont pas pu être calculés — estimation conservée
+        … 4 de plus
+   7  data/catalogue.ts
+        :237 Les Trois Vallées
+        :239 le funitel d'Orelle monte à la Cime Caron et le forfait vendu est celui des 
+        :240 le classeur voit les pistes de Galibier-Thabor plus près du village
+        … 4 de plus
+   6  domain/scoring.ts
+        :43 Du ski en altitude quand le bas se dégrade.
+        :59 Critère inversé : moins de route vaut mieux.
+        :67 Critère inversé : prix adulte 6 jours.
+        … 3 de plus
+   5  components/Onboarding.tsx
+        :16 Méribel
+        :16 Megève
+        :68 Je cherche un appart pour ${who} à ${where}, du ${from} au ${to}
+        … 2 de plus
+   5  data/centralCapability.ts
+        :134 centrale interdite au relevé automatique (robots.txt)
+        :157 prix pour vos dates (Ingénie)
+        :158 prices for your dates (Ingénie)
+        … 2 de plus
+   5  data/lodgingAccess.ts
+        :74 Moteur local non démarré — distances aux pistes non calculées.
+        :102 Ce domaine a été importé sans ses tracés de pistes : distances non calculabl
+        :103 Réimportez le référentiel avec l’option « pistes » pour les activer.
+        … 2 de plus
+   4  pages/ReferentialPage.tsx
+        :33 fichier importé — ${file.name}
+        :49 Itinéraires effacés : ils étaient calculés pour l’ancien référentiel.
+        :60 référentiel livré
+        … 1 de plus
+   4  data/referentiel.ts
+        :116 fermé
+        :240 fichier importé
+        :245 référentiel livré
+        … 1 de plus
+   4  domain/costs.ts
+        :111 estimé
+        :139 estimé
+        :188 · tarif dégressif au nombre de jours
+        … 1 de plus
+   3  components/DomainCard.tsx
+        :335 Tarif non relevé sur ce domaine : estimation dérivée des kilomètres de piste
+        :336 à confirmer sur la billetterie. Il n’entre pas dans le score de pertinence.
+        :337 Tarifs publics haute saison, relevés sur le site officiel du domaine le ${fo
+   3  components/DomainSheet.tsx
+        :154 Journée adulte
+        :159 Relevé le
+        :650 — non renseigné pour ce domaine
+   3  components/LodgingCard.tsx
+        :189 Prix relevé pour d’autres dates
+        :192 À vérifier
+        :254 ✓ Comparé
+   3  data/bra.ts
+        :31 limité
+        :32 marqué
+        :34 très fort
+   3  data/deeplinks.ts
+        :220 Chamonix Réservation
+        :241 Chamonix Réservation
+        :250 Chamonix Réservation
+   3  data/domains.ts
+        :113 La base du moteur local est vide. Importez le référentiel OpenSkiMap depuis 
+        :114 pour compléter les liens officiels du catalogue.
+        :126 Moteur local injoignable (${err instanceof Error ? err.message : String(err)
+   3  data/runProviderSearch.ts
+        :50 Chamonix Réservation
+        :51 Méribel Réservation
+        :53 Megève Réservation
+   3  data/useAirbnbRecheck.ts
+        :105 Aucun changement : ces annonces sont déjà à jour.
+        :124 ${updated} prix actualisé(s)
+        :136 Relevé reçu, mise à jour…
+   3  domain/origins.ts
+        :31 Le départ « ${place.label} » n’a pas d’adresse — complétez-la dans Voyageurs
+        :43 Départ
+        :47 Géocodage impossible pour « ${address} » : ${err.message}
+   2  pages/TrackingPage.tsx
+        :342 Historique réel — un relevé par heure, conservé localement (${values.length}
+        :343 Courbe simulée en attendant les premiers relevés horaires — chaque relevé ré
+   2  data/airbnbClip.ts
+        :131 Vérifiez que vous avez bien cliqué le marque-page sur la page de résultats A
+        :159 Annonce ${index + 1} : identifiant ou nom manquant, ignorée.
+   2  data/weather.ts
+        :222 prévisions indisponibles
+        :224 pas de chute annoncée sur 7 j
+   1  components/AltitudeProfile.tsx
+        :40 Amplitude skiable de ${min} à ${max} mètres
+   1  components/ComparePanel.tsx
+        :135 • ${l.name} (${l.src}) — logement ${eur(l.total)} · séjour complet ${eur(cos
+   1  components/DomainLogo.tsx
+        :60 ${name} — logo non publié, initiales en secours
+   1  components/LodgingFilters.tsx
+        :60 · semaine des vacances de février (zone C)
+   1  components/photos.ts
+        :54 Pyrénées
+   1  pages/OffersPage.tsx
+        :118 · ${eur(o.c.rental + o.c.lessons)} matériel/cours
+   1  data/airbnbMerge.ts
+        :181 non renseigné
+   1  data/bulkImport.ts
+        :99 non renseigné
+   1  data/nearbyStations.ts
+        :91 Géoplateforme : HTTP ${response.status}
+   1  domain/travel.ts
+        :205 Itinéraires depuis ${o.short} — lot ${b + 1}/${batches.length} (départ ${i +
+
+Exclus volontairement : pages/LegalSection.tsx, i18n/index.ts, data/stations.ts, data/places.ts, data/franceMontagnes.ts, data/franceMontagnesStations.ts, et les mentions de licence.
+Périmètre : src/renderer/src/components, src/renderer/src/pages, src/renderer/src/data, src/renderer/src/domain
+
+La dette de traduction augmente : jsx 10 > 0, expr 305 > 272.

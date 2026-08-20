@@ -187,10 +187,18 @@ export function attachAjaxProbe(page: Page): AjaxProbe {
 
 /**
  * Attend le formulaire moteur, avec erreur claire si le timeout AJAX expire.
+ *
+ * `state: 'attached'` et non « visible » : plusieurs centrales — 2 Alpes en
+ * tête — montent un calendrier maison qui garde le vrai `input[name="datedeb"]`
+ * en `display:none` et n'affiche qu'un habillage. Attendre la visibilité y
+ * expire toujours, alors que le moteur est prêt. Le champ n'est pas dans le
+ * HTML servi : sa présence dans le DOM reste donc le signal que le script a
+ * monté le formulaire, et `submitSearch` écrit dedans par `evaluate`, ce qui
+ * ne demande aucune visibilité.
  */
 export async function waitForIngenieForm(page: Page, selectors: string, timeoutMs: number): Promise<void> {
   try {
-    await page.waitForSelector(selectors, { timeout: timeoutMs })
+    await page.waitForSelector(selectors, { timeout: timeoutMs, state: 'attached' })
   } catch {
     throw new Error(
       `Timeout AJAX formulaire Ingénie (${Math.round(timeoutMs / 1000)}s) — ` +

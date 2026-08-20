@@ -4,6 +4,7 @@
  *
  * Prérequis :
  *   export GITHUB_TOKEN=github_pat_…   # fine-grained : Contents Read and write
+ *   # ou secret Actions du même nom
  *
  * Usage :
  *   node scripts/deploy-github.mjs
@@ -15,7 +16,7 @@
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
@@ -25,6 +26,7 @@ const OWNER = process.env.GITHUB_OWNER || 'BalderLeBrave'
 const REPO = process.env.GITHUB_REPO || 'Skitrack'
 const BRANCH = process.env.GITHUB_BRANCH || 'master'
 
+/** Fichiers / dossiers du sprint Ceto à synchroniser par défaut. */
 const DEFAULT_PATHS = [
   'src/main/providers/ceto',
   'src/main/providers/index.ts',
@@ -38,14 +40,15 @@ const DEFAULT_PATHS = [
 ]
 
 function parseArgs(argv) {
-  const out = { dryRun: false, only: null, message: null }
+  const out = { dryRun: false, only: null, message: null, paths: null }
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--dry-run') out.dryRun = true
     else if (a === '--only') out.only = argv[++i]
     else if (a === '--message') out.message = argv[++i]
     else if (a === '--help' || a === '-h') {
-      console.log(`Usage: node scripts/deploy-github.mjs [--dry-run] [--only path] [--message msg]\nEnv: GITHUB_TOKEN (required)`)
+      console.log(`Usage: node scripts/deploy-github.mjs [--dry-run] [--only path] [--message msg]
+Env: GITHUB_TOKEN (required), GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH`)
       process.exit(0)
     }
   }
@@ -79,7 +82,7 @@ async function gh(path, { method = 'GET', body } = {}) {
   const token = process.env.GITHUB_TOKEN
   if (!token) {
     throw new Error(
-      'GITHUB_TOKEN manquant. Fine-grained PAT (Contents: Read and write) puis:\n  export GITHUB_TOKEN=…'
+      'GITHUB_TOKEN manquant. Crée un fine-grained PAT (Contents: Read and write) et :\n  export GITHUB_TOKEN=…'
     )
   }
   const res = await fetch(`https://api.github.com${path}`, {
@@ -158,6 +161,7 @@ async function main() {
   for (const filePath of files) {
     const abs = join(ROOT, filePath)
     const content = readFileSync(abs)
+    // Un commit par fichier pour rester sous les limites API / payloads
     const message = `${msgBase} — ${filePath}`
     try {
       const sha = await putFile(filePath, content, message)
@@ -167,10 +171,13 @@ async function main() {
       console.error('ERR', filePath, e.message)
       fail++
       if (e.status === 401 || e.status === 403) {
-        console.error('Token refusé. Vérifie Contents: Read and write sur le repo.')
+        console.error(
+          'Token refusé. Vérifie Contents: Read and write sur le repo, puis réessaie.'
+        )
         process.exit(1)
       }
     }
+    // anti rate-limit
     await new Promise((r) => setTimeout(r, 350))
   }
 

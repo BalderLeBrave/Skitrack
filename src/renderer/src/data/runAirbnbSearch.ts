@@ -77,19 +77,46 @@ function timeoutPromise(ms: number): Promise<never> {
   })
 }
 
+
+/** Libellé Airbnb pour les stations (souvent différent du nom OSM / FM). */
+function airbnbPlaceName(domainName: string): string {
+  const key = domainName.trim().toLowerCase()
+  const map: Record<string, string> = {
+    'les 2 alpes': 'Les 2 Alpes',
+    'les deux alpes': 'Les 2 Alpes',
+    "val d'isère": "Val d'Isère",
+    'val d isere': "Val d'Isère",
+    'tignes': 'Tignes',
+    'serre chevalier': 'Serre Chevalier',
+    'val thorens': 'Val Thorens',
+    'courchevel': 'Courchevel',
+    'la plagne': 'La Plagne',
+    'les arcs': 'Les Arcs',
+    'chamonix': 'Chamonix',
+    'megève': 'Megève',
+    'megeve': 'Megève',
+    'méribel': 'Meribel',
+    'meribel': 'Meribel'
+  }
+  for (const [k, v] of Object.entries(map)) {
+    if (key === k || key.startsWith(k + ' ') || key.includes(k)) return v
+  }
+  return stationNameOf(domainName) || domainName
+}
+
 async function scrapeOnce(params: RunAirbnbSearchParams) {
   return window.skitrack.airbnbScrape({
     // Airbnb range la destination dans le chemin de l'URL et ne connaît que
     // des noms de lieux : « Les Arcs », pas « Les Arcs – Peisey-Vallandry ».
-    city: stationNameOf(params.domainName) || params.domainName,
+    city: airbnbPlaceName(params.domainName),
     checkIn: params.checkIn || undefined,
     checkOut: params.checkOut || undefined,
     adults: params.adults,
     children: params.children ?? 0,
     scrollCount: 3,
     maxRetries: 3,
-    // Sous-timeout par tentative Playwright (le global race coupe le tout)
-    // timeoutMs is supported by main scrape params via AirbnbScrapeParams in main
+    // Headed (défaut main) : meilleur score reCAPTCHA. Ne pas forcer headless.
+    timeoutMs: 60_000
   })
 }
 

@@ -688,17 +688,14 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
           headless,
           async (page) => {
             await page.goto(central, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
-            // Le moteur est monté par le script de la page : le formulaire
-            // n'existe pas au `domcontentloaded`. On attend qu'il soit là plutôt
-            // que de compter sur un délai — c'est ce qui faisait conclure
-            // « pas de calendrier » sur des centrales qui en ont un.
+            // Ingénie charge le moteur en AJAX (spinner puis formulaires).
+            // 30 s : Les 2 Alpes / Tignes / Serre-Che n’ont pas de champs au
+            // premier paint.
             await page
-              .waitForSelector(`${FIELD.fromInput}, ${FIELD.fromSelect}`, { timeout: 20_000 })
+              .waitForSelector(`${FIELD.fromInput}, ${FIELD.fromSelect}`, { timeout: 30_000 })
               .catch(() => undefined)
-            // Le bandeau de consentement se pose au-dessus du formulaire : sans
-            // l'écarter, le clic sur « Rechercher » n'atteint jamais le bouton.
             await dismissConsent(page)
-            await sleep(300)
+            await sleep(600)
             const ctx = await page.evaluate(readEngineContext)
             // Ceto / Orchestra (Chamonix, etc.) : connecteur dédié ceto-*.
             if (isCetoHost(origin)) {
@@ -713,6 +710,13 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             }
 
             await submitSearch(page, params, name, origin)
+            // Attendre les prix datés (cartes Ingénie).
+            await page
+              .waitForSelector('.prix_en_cours, .bloc_resultat, .liste_resultats', {
+                timeout: 25_000
+              })
+              .catch(() => undefined)
+            await sleep(800)
             let cards = await loadCards(page, timeoutMs)
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre

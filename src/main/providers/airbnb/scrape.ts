@@ -583,7 +583,9 @@ async function scrapeAirbnbSearchOnce(params: AirbnbScrapeParams): Promise<Airbn
   const scrollCount = params.scrollCount ?? 2
   // Pour le score v3, le headed est nettement meilleur ; on garde headless par
   // défaut pour l’UX, mais optimizeScore force plus de warm-up / humanisation.
-  const preferHeadless = params.headless !== false
+  // Headed par défaut : reCAPTCHA v3 note bien mieux une fenêtre réelle.
+  // Passer headless:true uniquement pour les tests automatisés.
+  const preferHeadless = params.headless === true
   const optimizeScore = params.optimizeScore !== false
   const captchaTimeoutMs = params.captchaTimeoutMs ?? 3 * 60_000
 

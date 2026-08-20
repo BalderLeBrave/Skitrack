@@ -129,6 +129,12 @@ const FIELD = {
   // attend indéfiniment un élément que personne ne peut manipuler.
   lodgingType: 'select[name="type_prestataire"]:visible',
   stayType: 'select[name="type_date"]:visible',
+  /**
+   * Village / localisation sur les centrales multi-stations (ex. Val d'Arly :
+   * La Giettaz, Notre-Dame-de-Bellecombe, Crest-Voland…). Sans ce filtre la
+   * centrale renvoie l'inventaire de tout le massif.
+   */
+  village: 'select[name="criteres[]"]:visible, select[name="criteres"]:visible',
   /** Ancien moteur : un menu déroulant de samedis. */
   fromSelect: 'select[name="datedeb"]:visible',
   /** Moteur actuel : un champ texte piloté par un calendrier JavaScript. */
@@ -143,6 +149,58 @@ const FIELD = {
    *  large, un pour le mobile — et que le premier venu peut être caché. */
   submit: 'input[name="search"]:visible, input.form_search:visible, button[type="submit"]:visible'
 } as const
+
+/** Normalise un libellé de station pour comparer destination ↔ option du select. */
+function normPlace(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+/**
+ * Choisit l'option `criteres[]` qui correspond à la station demandée.
+ *
+ * Sur Val d'Arly, la même centrale dessert Crest-Voland, Flumet, La Giettaz et
+ * Notre-Dame-de-Bellecombe. Sans sélection explicite du village, la recherche
+ * mélange les inventaires (ex. Giettaz → appartements à Bellecombe).
+ */
+function matchVillageOption(options: Choice[], destination: string): Choice | null {
+  const target = normPlace(destination)
+  if (!target) return null
+  const usable = options.filter((o) => o.value && o.value.trim() !== '')
+  // Correspondance exacte (après normalisation), puis inclusion.
+  const exact = usable.find((o) => normPlace(o.label) === target)
+  if (exact) return exact
+  const contains = usable.find((o) => {
+    const label = normPlace(o.label)
+    return label.includes(target) || target.includes(label)
+  })
+  if (contains) return contains
+  // Dernier recours : tokens significatifs (ex. « La Giettaz en Aravis » ↔ « Giettaz »).
+  const tokens = target.split(' ').filter((t) => t.length >= 4)
+  if (tokens.length === 0) return null
+  return (
+    usable.find((o) => {
+      const label = normPlace(o.label)
+      return tokens.every((t) => label.includes(t))
+    }) ?? null
+  )
+}
+
+/** La fiche appartient-elle clairement à une autre commune que la destination ? */
+function cityMismatch(city: string | null | undefined, destination: string): boolean {
+  if (!city || !destination) return false
+  const c = normPlace(city)
+  const d = normPlace(destination)
+  if (!c || !d) return false
+  if (c === d || c.includes(d) || d.includes(c)) return false
+  const tokens = d.split(' ').filter((t) => t.length >= 4)
+  if (tokens.length > 0 && tokens.every((t) => c.includes(t))) return false
+  return true
+}
 
 /** Rythme de séjour du moteur : `LL` ouvre le calendrier quand la semaine
  *  fixe du samedi au samedi (`SS`, le défaut) ne propose pas la date voulue. */
@@ -177,13 +235,9 @@ async function optionsOf(page: Page, selector: string): Promise<Choice[]> {
 const CONSENT_BUTTONS = [
   'button:has-text("Continuer sans accepter")',
   'a:has-text("Continuer sans accepter")',
-  // Le bandeau des centrales Les Carroz et Châtel, mot pour mot.
-  'button:has-text("Non, tout refuser")',
-  'a:has-text("Non, tout refuser")',
   'button:has-text("Tout refuser")',
   'button:has-text("Refuser")',
   '#didomi-notice-disagree-button',
-  'button:has-text("OK, tout accepter")',
   'button:has-text("Tout accepter")',
   'button:has-text("J\'accepte")',
   '#didomi-notice-agree-button',
@@ -269,6 +323,18 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
     await page.selectOption(FIELD.lodgingType, 'G').catch(() => undefined)
   }
 
+  // Village / localisation : indispensable sur les centrales multi-stations
+  // (Val d'Arly, Portes du Soleil, etc.). Sans ça, Giettaz ramène Bellecombe.
+  const destination = params.destination?.trim() ?? ''
+  if (destination) {
+    const villages = await optionsOf(page, FIELD.village)
+    const village = matchVillageOption(villages, destination)
+    if (village) {
+      await page.selectOption(FIELD.village, village.value).catch(() => undefined)
+      await sleep(400)
+    }
+  }
+
   if (legacyDates.length > 0) {
     // Le rythme commande le calendrier : en « samedi au samedi », `datedeb` ne
     // propose que des samedis. Si la date demandée n'y est pas, on rebascule en
@@ -352,16 +418,7 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
   // Le bouton n'est pas un `submit` : c'est un `input[type=button]` que le
   // script de la page écoute. Le clic déclenche la recherche, qui mène à la
   // page de résultats — la même que celle qu'un visiteur obtiendrait.
-  try {
-    await page.click(FIELD.submit, { timeout: 8_000 })
-  } catch {
-    // Le bandeau de consentement n'apparaît pas toujours au chargement : sur
-    // les centrales des Carroz et de Châtel, il se pose pendant qu'on remplit
-    // le formulaire et intercepte le premier clic. On le réécarte et on
-    // réessaie une fois, plutôt que d'échouer sur un rideau.
-    await dismissConsent(page)
-    await page.click(FIELD.submit, { timeout: 8_000 })
-  }
+  await page.click(FIELD.submit, { timeout: 15_000 })
   await page
     .waitForLoadState('domcontentloaded', { timeout: 30_000 })
     .catch(() => undefined)
@@ -608,32 +665,35 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             // l'écarter, le clic sur « Rechercher » n'atteint jamais le bouton.
             await dismissConsent(page)
             await sleep(1_000)
-
             const ctx = await page.evaluate(readEngineContext)
+            // Ceto / Orchestra (Chamonix, etc.) : connecteur dédié ceto-*.
+            if (
+              /booking\.chamonix\.com/i.test(origin) ||
+              /laplagneresort\.com/i.test(origin) ||
+              /reservations\.meribel\.net/i.test(origin)
+            ) {
+              throw new Error(
+                `${name} : ${origin} est une centrale Orchestra/Ceto — voir le connecteur dédié.`
+              )
+            }
             if (!ctx.ingenie) {
               throw new Error(
                 `${name} : ${origin} n'expose pas de moteur Ingénie — réservation par le lien direct.`
               )
             }
 
-            // L'adresse connue mène parfois à une page de présentation — « nos
-            // hébergements » — et non au moteur. Chez Ingénie, celui-ci vit à
-            // `/booking` : on l'y cherche une fois, sur le même hôte, et
-            // seulement quand la page porte déjà la marque de la plateforme —
-            // charger `/booking` sur un site qui n'est pas Ingénie ne serait
-            // qu'une requête de plus pour un 404.
-            const hasForm = (await page.$(FIELD.fromInput)) ?? (await page.$(FIELD.fromSelect))
-            if (!hasForm) {
-              await page.goto(`${origin}/booking`, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
-              await page
-                .waitForSelector(`${FIELD.fromInput}, ${FIELD.fromSelect}`, { timeout: 20_000 })
-                .catch(() => undefined)
-              await dismissConsent(page)
-              await sleep(1_000)
-            }
-
             await submitSearch(page, params, name, origin)
-            const cards = await loadCards(page, timeoutMs)
+            let cards = await loadCards(page, timeoutMs)
+            // Filet de sécurité : même si le select village a échoué, on écarte
+            // les fiches dont la commune schema.org est clairement une autre
+            // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).
+            const dest = params.destination?.trim() ?? ''
+            if (dest) {
+              const matched = cards.filter((c) => !cityMismatch(c.city, dest))
+              // Ne garder le filtre que s'il laisse au moins une offre : sinon
+              // la centrale n'a peut-être pas renseigné addressLocality.
+              if (matched.length > 0) cards = matched
+            }
             if (cards.length === 0) {
               throw new Error(`${name} : aucune offre publiée par ${origin} pour ces dates.`)
             }
@@ -641,6 +701,10 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             const out: Accommodation[] = []
             for (const card of cards) {
               const total = parsePrice(card.priceText)
+              // Sans prix affiché sur la fiche résultats, on ne peut pas prouver
+              // la disponibilité pour ces dates — on n'injecte pas l'offre comme
+              // « disponible ».
+              if (total == null || total <= 0) continue
               const offer = baseAccommodation(
                 name,
                 {
@@ -673,6 +737,11 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               }
               offer.rawProviderData = card
               out.push(offer)
+            }
+            if (out.length === 0) {
+              throw new Error(
+                `${name} : aucune offre tarifée publiée par ${origin} pour ces dates.`
+              )
             }
             return out
           },

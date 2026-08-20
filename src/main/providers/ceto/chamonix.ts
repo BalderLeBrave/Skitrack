@@ -3,6 +3,7 @@
  *
  * Interroge booking.chamonix.com (SERP HTML) avec dates + filtre village.
  * Prix pour le séjour uniquement ; deep-link daté sur chaque fiche.
+ * Notes TripAdvisor (agrégats) pour les premières offres.
  */
 
 import { CircuitBreaker, withTimeout } from '../resilience'
@@ -25,7 +26,11 @@ export const CETO_CHAMONIX_PROVIDER_NAME = 'ceto-chamonix'
 const TIMEOUT_MS = 45_000
 const breaker = new CircuitBreaker(3, 60_000)
 
-function toAccommodation(item: ChamonixListing, params: SearchParams): Accommodation {
+function toAccommodation(
+  item: ChamonixListing,
+  params: SearchParams,
+  reviews?: { rating: number | null; numReviews: number | null } | null
+): Accommodation {
   const total = item.total ?? undefined
   const confidence =
     item.priceConfidence === 'partial'
@@ -49,11 +54,46 @@ function toAccommodation(item: ChamonixListing, params: SearchParams): Accommoda
     totalPrice: total,
     currency: item.currency || 'EUR',
     priceConfidence: confidence,
+    rating: reviews?.rating ?? undefined,
+    reviewCount: reviews?.numReviews ?? undefined,
     images: item.image ? [item.image] : undefined,
     availability: total != null && total > 0,
     availabilityStatus: total != null && total > 0 ? 'available' : 'unknown',
     retrievedAt: nowIso(),
     rawProviderData: item
+  }
+}
+
+async function fetchTaAggregates(
+  tripadvisorLocationId: string
+): Promise<{ rating: number | null; numReviews: number | null } | null> {
+  try {
+    const url = `https://booking.chamonix.com/api/proxy/tripadvisor-reviews/${tripadvisorLocationId}`
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        Referer: 'https://booking.chamonix.com/fr/',
+        'User-Agent':
+          'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      signal: AbortSignal.timeout(10_000)
+    })
+    if (!res.ok) return null
+    const raw = (await res.json()) as {
+      rating?: string | number
+      numReviews?: string | number
+      error?: string
+    }
+    if (raw.error) return null
+    const rating = raw.rating != null && raw.rating !== '' ? Number(raw.rating) : null
+    const numReviews =
+      raw.numReviews != null && raw.numReviews !== '' ? Number(raw.numReviews) : null
+    return {
+      rating: Number.isFinite(rating as number) ? (rating as number) : null,
+      numReviews: Number.isFinite(numReviews as number) ? (numReviews as number) : null
+    }
+  } catch {
+    return null
   }
 }
 
@@ -108,9 +148,18 @@ export function createCetoChamonixProvider(): AccommodationProvider {
           throw new Error(`${name} : ${result.error ?? 'échec extracteur'}`)
         }
 
-        const offers = result.listings
-          .filter((l) => l.total != null && l.total > 0 && l.url && l.title)
-          .map((l) => toAccommodation(l, params))
+        const priced = result.listings.filter(
+          (l) => l.total != null && l.total > 0 && l.url && l.title
+        )
+        const offers: Accommodation[] = []
+        for (let i = 0; i < priced.length; i++) {
+          const l = priced[i]
+          let reviews = null
+          if (i < 8 && l.tripadvisorLocationId) {
+            reviews = await fetchTaAggregates(l.tripadvisorLocationId)
+          }
+          offers.push(toAccommodation(l, params, reviews))
+        }
 
         if (offers.length === 0) {
           breaker.succeed()
@@ -130,7 +179,7 @@ export function createCetoChamonixProvider(): AccommodationProvider {
         reachable: !breaker.open,
         detail: breaker.open
           ? breaker.reason
-          : 'Centrale Chamonix Mont-Blanc (Orchestra / Ceto) — SERP HTML + filtre village'
+          : 'Centrale Chamonix Mont-Blanc (Orchestra / Ceto) — SERP HTML + filtre village + notes TA'
       }
     }
   }

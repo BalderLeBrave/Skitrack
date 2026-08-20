@@ -215,7 +215,13 @@ const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> =
       personnes: String(Math.max(1, c.travelers)),
       adultes: String(Math.max(1, c.travelers))
     }
-  }
+  },
+  /** Orchestra / Ceto — hash #s_checkinDate (voir listingUrlWithStay). */
+  'Chamonix Réservation': (c) => ({
+    s_checkinDate: c.arrDate,
+    s_checkoutDate: c.depDate,
+    s_channel: 'CMB'
+  })
 }
 
 /**
@@ -226,11 +232,41 @@ const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> =
  * plutôt que de faire échouer l'ouverture.
  */
 export function listingUrlWithStay(url: string, source: string, criteria: StayCriteria): string {
-  const build = STAY_PARAMS[source]
-  if (!build) return url
   try {
     const u = new URL(url)
-    for (const [key, value] of Object.entries(build(criteria))) {
+    const host = u.hostname.toLowerCase()
+
+    // Orchestra / Ceto : dates dans le hash (#s_checkinDate=…).
+    const orchestra =
+      source === 'Chamonix Réservation' ||
+      host === 'booking.chamonix.com' ||
+      host.endsWith('.booking.chamonix.com') ||
+      host === 'reservations.meribel.net' ||
+      host === 'www.laplagneresort.com' ||
+      host === 'laplagneresort.com'
+
+    const build =
+      STAY_PARAMS[source] ||
+      (orchestra ? STAY_PARAMS['Chamonix Réservation'] : null) ||
+      // Centrales Ingénie / réservation.* sans label exact → params site officiel
+      (/^reservation\./i.test(host) || /location.*\.com$/i.test(host)
+        ? STAY_PARAMS[OFFICIAL_SOURCE]
+        : null)
+
+    if (!build) return url
+    const params = build(criteria)
+
+    if (orchestra) {
+      const hash = new URLSearchParams(u.hash.startsWith('#') ? u.hash.slice(1) : u.hash)
+      for (const [key, value] of Object.entries(params)) {
+        if (value && !hash.has(key)) hash.set(key, value)
+      }
+      if (!hash.has('s_channel') && host.includes('chamonix')) hash.set('s_channel', 'CMB')
+      u.hash = hash.toString()
+      return u.toString()
+    }
+
+    for (const [key, value] of Object.entries(params)) {
       if (value && !u.searchParams.has(key)) u.searchParams.set(key, value)
     }
     return u.toString()

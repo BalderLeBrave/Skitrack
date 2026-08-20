@@ -634,6 +634,205 @@ async function loadCards(page: Page, timeoutMs: number): Promise<StationCard[]> 
 
 const stationBreaker = new CircuitBreaker(2, 90_000)
 
+
+/**
+ * Prix réel sur la fiche produit (onglet Disponibilités & Tarifs).
+ *
+ * Sur Les 2 Alpes (et la plupart des Ingénie), la SERP n’affiche qu’un
+ * « à partir de ». Le tarif du séjour se calcule seulement après :
+ * dates + voyageurs + Rechercher sur la fiche (#tarifs).
+ */
+async function resolveExactPriceOnFiche(
+  parent: Page,
+  productUrl: string,
+  params: SearchParams,
+  timeoutMs: number
+): Promise<number | null> {
+  const from = frenchDate(params.checkIn)
+  const to = frenchDate(params.checkOut)
+  if (!from) return null
+  const adults = params.adults ?? 2
+  const children = params.children ?? 0
+  const stay = nights(params)
+
+  let fiche: Page | null = null
+  try {
+    fiche = await parent.context().newPage()
+    const base = productUrl.split('#')[0]
+    await fiche.goto(`${base}#tarifs`, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+    await fiche
+      .waitForSelector(
+        'input.datepicker, input[name="datedeb"], input.form_search, input[name="search"]',
+        { timeout: Math.min(20_000, timeoutMs) }
+      )
+      .catch(() => undefined)
+    await dismissConsent(fiche)
+    await sleep(400)
+
+    // Remplir dates (datepicker souvent readonly → value + events).
+    await fiche.evaluate(
+      ({ from, to, stay, adults, children }) => {
+        const view = globalThis as unknown as {
+          document: {
+            querySelectorAll: (s: string) => ArrayLike<{
+              value: string
+              removeAttribute?: (n: string) => void
+              dispatchEvent: (e: unknown) => void
+              click?: () => void
+            }>
+            querySelector: (s: string) => {
+              value: string
+              textContent?: string
+              click: () => void
+              dispatchEvent: (e: unknown) => void
+            } | null
+          }
+          Event: new (type: string, init: { bubbles: boolean }) => unknown
+        }
+        const setAll = (selector: string, value: string): void => {
+          for (const el of Array.from(view.document.querySelectorAll(selector))) {
+            try {
+              el.removeAttribute?.('readonly')
+            } catch {
+              // ignore
+            }
+            el.value = value
+            el.dispatchEvent(new view.Event('input', { bubbles: true }))
+            el.dispatchEvent(new view.Event('change', { bubbles: true }))
+          }
+        }
+        // Deux datepickers : arrivée puis départ (ordre DOM).
+        const pickers = Array.from(view.document.querySelectorAll('input.datepicker'))
+        if (pickers.length >= 1) {
+          const a = pickers[0] as { value: string; removeAttribute?: (n: string) => void; dispatchEvent: (e: unknown) => void }
+          try {
+            a.removeAttribute?.('readonly')
+          } catch {
+            // ignore
+          }
+          a.value = from
+          a.dispatchEvent(new view.Event('input', { bubbles: true }))
+          a.dispatchEvent(new view.Event('change', { bubbles: true }))
+        }
+        if (pickers.length >= 2 && to) {
+          const b = pickers[1] as { value: string; removeAttribute?: (n: string) => void; dispatchEvent: (e: unknown) => void }
+          try {
+            b.removeAttribute?.('readonly')
+          } catch {
+            // ignore
+          }
+          b.value = to
+          b.dispatchEvent(new view.Event('input', { bubbles: true }))
+          b.dispatchEvent(new view.Event('change', { bubbles: true }))
+        }
+        setAll('input[name="datedeb"]', from)
+        if (to) setAll('input[name="datefin"]', to)
+        setAll('input[name="duree"]', String(stay))
+        setAll('input[name="adultes"]', String(adults))
+        setAll('input[name="enfants"]', String(children))
+        // Selects legacy
+        setAll('select[name="datedeb"]', from)
+        setAll('select[name="duree"]', String(stay))
+        setAll('select[name="personnes"]', String(adults + children))
+      },
+      { from, to: to ?? '', stay, adults, children }
+    )
+
+    // Bouton voyageurs si présent (UI moderne).
+    const paxBtn = fiche.locator('button[aria-expanded]').filter({ hasText: /adulte/i }).first()
+    if (await paxBtn.count().catch(() => 0)) {
+      await paxBtn.click().catch(() => undefined)
+      await sleep(200)
+      // Best-effort : ne bloque pas si le panneau est différent
+    }
+
+    const searchBtn = fiche.locator('input.form_search, input[name="search"][type="button"], button:has-text("Rechercher")').first()
+    if (await searchBtn.count()) {
+      await searchBtn.click({ timeout: 10_000 })
+    }
+
+    await fiche
+      .waitForSelector('.prix_en_cours, .tarif_total, .prix_total, .bloc_tarif', {
+        timeout: Math.min(18_000, timeoutMs)
+      })
+      .catch(() => undefined)
+    await sleep(500)
+
+    const priceText = await fiche.evaluate(() => {
+      const view = globalThis as unknown as {
+        document: {
+          querySelector: (s: string) => { innerText?: string; textContent?: string } | null
+          body: { innerText: string }
+        }
+      }
+      // Préférer un prix qui n’est pas sous un libellé « à partir de »
+      const candidates = [
+        '.tarif_total .prix_en_cours',
+        '.bloc_tarif .prix_en_cours',
+        '.prix_total',
+        '.prix_en_cours'
+      ]
+      for (const sel of candidates) {
+        const node = view.document.querySelector(sel)
+        const parent = node as unknown as { closest?: (s: string) => unknown }
+        const text = (node?.innerText || node?.textContent || '').trim()
+        if (!text) continue
+        // Si le nœud est dans un bloc « à partir de », on continue
+        const wrap = (node as unknown as { parentElement?: { innerText?: string } })?.parentElement
+        const ctx = (wrap?.innerText || '').toLowerCase()
+        if (ctx.includes('partir')) continue
+        return text
+      }
+      // Filet : gros montant € dans la zone tarifs
+      const body = view.document.body.innerText
+      const m = body.match(/(?:total|séjour|tarif)[^\d]{0,40}(\d[\d\s]*[€])/i)
+      return m?.[1] ?? null
+    })
+
+    if (!priceText) return null
+    const total = parsePrice(priceText)
+    return total != null && total > 0 ? total : null
+  } catch {
+    return null
+  } finally {
+    if (fiche) {
+      try {
+        await fiche.close()
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
+/**
+ * Enrichit jusqu’à `limit` fiches « à partir de » avec le prix réel du séjour.
+ */
+async function enrichExactPrices(
+  parent: Page,
+  cards: StationCard[],
+  params: SearchParams,
+  timeoutMs: number,
+  limit = 5
+): Promise<void> {
+  const need = cards.filter((c) => c.fromPrice && c.url).slice(0, limit)
+  if (need.length === 0) return
+  const conc = 2
+  for (let i = 0; i < need.length; i += conc) {
+    const batch = need.slice(i, i + conc)
+    const prices = await Promise.all(
+      batch.map((c) => resolveExactPriceOnFiche(parent, c.url, params, timeoutMs))
+    )
+    for (let j = 0; j < batch.length; j++) {
+      const total = prices[j]
+      if (total != null && total > 0) {
+        batch[j].priceText = `${total} €`
+        batch[j].fromPrice = false
+      }
+    }
+  }
+}
+
 export function createStationProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
   const name = STATION_PROVIDER_NAME
   return {
@@ -723,6 +922,8 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             await waitForIngenieResults(page, probe, AJAX_TIMEOUT.resultsMs)
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)
+            // SERP = souvent « à partir de » → prix réel sur fiche #tarifs (max 5).
+            await enrichExactPrices(page, cards, params, timeoutMs, 5)
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre
             // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).

@@ -94,31 +94,12 @@ async function scrapeOnce(params: RunAirbnbSearchParams) {
 }
 
 /**
- * Chemin nominal : pas de scrape (robots.txt Airbnb interdit les chemins /s/…).
- * Opt-in expérimental : localStorage.skitrackAirbnbScrape = '1'.
- * Sinon résultat vide — l’UI s’appuie sur la redirection Airbnb (airbnbRedirect).
+ * Relève Airbnb automatisée (Playwright), en parallèle des autres sources.
+ * En cas d’échec (CAPTCHA, robots, timeout), l’UI conserve le lien de redirection.
  */
 export async function runAirbnbSearch(
   params: RunAirbnbSearchParams
 ): Promise<RunAirbnbSearchResult> {
-  // Opt-in uniquement : `localStorage.skitrackAirbnbScrape = '1'` (réglage avancé).
-  // Chemin nominal = redirection, conforme au robots.txt Airbnb.
-  const scrapeEnabled =
-    typeof localStorage !== 'undefined' && localStorage.getItem('skitrackAirbnbScrape') === '1'
-
-  if (!scrapeEnabled) {
-    return {
-      ok: true,
-      imported: params.imported,
-      added: 0,
-      updated: 0,
-      count: 0,
-      missing: 0,
-      message:
-        'Airbnb : ouverture manuelle recommandée (robots.txt). Relève automatisée désactivée.'
-    }
-  }
-
   const globalTimeout = params.timeoutMs ?? AIRBNB_SEARCH_TIMEOUT_MS
 
   let outcome: Awaited<ReturnType<typeof window.skitrack.airbnbScrape>>

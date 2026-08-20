@@ -1,0 +1,71 @@
+--- a/src/main/providers/station/station.ts
++++ b/src/main/providers/station/station.ts
+@@ -61,6 +61,7 @@
+ import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
+ import { baseAccommodation, parsePrice, sleep, withPage, withRetries, type ScrapeAttemptOptions } from '../webscrape/shared'
+ import { allowsPath } from './robots'
++import { matchVillageOption, cityMismatch } from './stationVillage'
+ 
+ export const STATION_PROVIDER_NAME = 'station-web'
+ 
+@@ -129,6 +130,8 @@
+   // attend indéfiniment un élément que personne ne peut manipuler.
+   lodgingType: 'select[name="type_prestataire"]:visible',
+   stayType: 'select[name="type_date"]:visible',
++  /** Village (centrales multi-stations, ex. Val d'Arly). */
++  village: 'select[name="criteres[]"]:visible, select[name="criteres"]:visible',
+   /** Ancien moteur : un menu déroulant de samedis. */
+   fromSelect: 'select[name="datedeb"]:visible',
+   /** Moteur actuel : un champ texte piloté par un calendrier JavaScript. */
+@@ -267,6 +270,17 @@
+   const lodgingTypes = await optionsOf(page, FIELD.lodgingType)
+   if (lodgingTypes.some((o) => o.value === 'G')) {
+     await page.selectOption(FIELD.lodgingType, 'G').catch(() => undefined)
++  }
++
++  // Village : sans ça, Giettaz ramène Bellecombe (même centrale Val d'Arly).
++  const destination = params.destination?.trim() ?? ''
++  if (destination) {
++    const villages = await optionsOf(page, FIELD.village)
++    const village = matchVillageOption(villages, destination)
++    if (village) {
++      await page.selectOption(FIELD.village, village.value).catch(() => undefined)
++      await sleep(400)
++    }
+   }
+ 
+   if (legacyDates.length > 0) {
+@@ -603,14 +617,21 @@
+             }
+ 
+             await submitSearch(page, params, name, origin)
+-            const cards = await loadCards(page, timeoutMs)
++            let cards = await loadCards(page, timeoutMs)
++            const dest = params.destination?.trim() ?? ''
++            if (dest) {
++              const matched = cards.filter((c) => !cityMismatch(c.city, dest))
++              if (matched.length > 0) cards = matched
++            }
+             if (cards.length === 0) {
+               throw new Error(`${name} : aucune offre publiée par ${origin} pour ces dates.`)
+             }
+ 
+             const out: Accommodation[] = []
+             for (const card of cards) {
+               const total = parsePrice(card.priceText)
++              if (total == null || total <= 0) continue
+               const offer = baseAccommodation(
+                 name,
+                 {
+@@ -644,6 +665,11 @@
+               offer.rawProviderData = card
+               out.push(offer)
+             }
++            if (out.length === 0) {
++              throw new Error(
++                `${name} : aucune offre tarifée publiée par ${origin} pour ces dates.`
++              )
++            }
+             return out
+           },
+           attempt > 1

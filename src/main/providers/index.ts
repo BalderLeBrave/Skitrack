@@ -26,6 +26,7 @@ import { airbnbRedirect } from './airbnb/airbnb'
 import { createBookingWebProvider } from './webscrape'
 import { BookingProvider, resolveBookingCredentials } from './booking/booking'
 import { createStationProvider } from './station/station'
+import { createCetoChamonixProvider } from './ceto/chamonix'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -72,6 +73,9 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     // Centrale de réservation de la station : le seul connecteur qui interroge
     // le site du domaine lui-même, avec l'adresse que le renderer lui passe.
     next.register(createStationProvider())
+    // Orchestra / Ceto — Chamonix (hors Ingénie). Actif seulement si
+    // officialUrl pointe vers booking.chamonix.com.
+    next.register(createCetoChamonixProvider())
   }
 
   // Airbnb n'est pas un connecteur : il n'interroge rien. Voir airbnb/airbnb.ts.

@@ -170,7 +170,7 @@ export function LodgingCard({ lodging: lg, median, domain }: Props): JSX.Element
       selected={selected}
       dimmed={fresh.stale || gone}
       onOpen={() => patch({ ficheId: lg.id })}
-      ariaLabel={`${lg.name} — ${place || lg.src}${lg.note ? `, note ${lg.note}` : ''}${redirect ? '' : `, ${eur(lg.total)} tout compris}`}`
+      ariaLabel={`${lg.name} — ${place || lg.src}${lg.note ? `, note ${lg.note}` : ''}${redirect ? '' : `, ${eur(lg.total)} tout compris`}`}
       badges={
         <>
           {lg.skiIn && <span className="lodgcard__badge lodgcard__badge--ski">{t('badge_ski_in')}</span>}

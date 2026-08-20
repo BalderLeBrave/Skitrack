@@ -1,14 +1,21 @@
 /**
  * Extracteur DOM Orchestra — booking.chamonix.com (Ceto / PMB)
  *
- * SEE tools/lib/chamonix/ — this entrypoint re-exports the CLI.
- * Full implementation is split across modules under tools/lib/chamonix/
- * to keep GitHub API payloads small.
+ * Assemble tools/lib/chamonix/body-*.mjs puis exécute.
  *
  * Usage:
  *   node tools/extract-chamonix.mjs --type hotel --location cmb.houches --with-reviews
+ *   node tools/extract-chamonix.mjs --from 2026-12-19 --to 2026-12-26 --max-pages 2
  */
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import { runCli } from './lib/chamonix/cli.mjs'
-
-runCli(process.argv)
+const dir = dirname(fileURLToPath(import.meta.url))
+const lib = join(dir, 'lib', 'chamonix')
+const parts = ['body-a.mjs', 'body-b1.mjs', 'body-b2.mjs']
+const code = parts.map((p) => readFileSync(join(lib, p), 'utf8')).join('')
+mkdirSync(lib, { recursive: true })
+const assembled = join(lib, '.assembled.mjs')
+writeFileSync(assembled, code)
+await import(pathToFileURL(assembled).href)

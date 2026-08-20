@@ -60,6 +60,13 @@
 import type { Page } from 'playwright'
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
 import { baseAccommodation, parsePrice, sleep, withPage, withRetries, type ScrapeAttemptOptions } from '../webscrape/shared'
+import {
+  AJAX_TIMEOUT,
+  attachAjaxProbe,
+  waitForIngenieForm,
+  waitForIngenieResults
+} from './ajax'
+import { debugLog } from '../debug'
 import { allowsPath } from './robots'
 import { isCetoHost } from '../ceto/hosts'
 import { shouldAttemptIngenie } from './ingenieHosts'
@@ -687,15 +694,18 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
         withPage(
           headless,
           async (page) => {
+            const probe = attachAjaxProbe(page)
+            try {
             await page.goto(central, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
-            // Ingénie charge le moteur en AJAX (spinner puis formulaires).
-            // 30 s : Les 2 Alpes / Tignes / Serre-Che n’ont pas de champs au
-            // premier paint.
-            await page
-              .waitForSelector(`${FIELD.fromInput}, ${FIELD.fromSelect}`, { timeout: 30_000 })
-              .catch(() => undefined)
+            // Ingénie : formulaire monté en JSONP (/widget-dispos). Timeout explicite.
+            await waitForIngenieForm(
+              page,
+              `${FIELD.fromInput}, ${FIELD.fromSelect}`,
+              AJAX_TIMEOUT.formMs
+            )
             await dismissConsent(page)
             await sleep(600)
+            debugLog('station-ajax', 'form-ready', { summary: probe.summary() })
             const ctx = await page.evaluate(readEngineContext)
             // Ceto / Orchestra (Chamonix, etc.) : connecteur dédié ceto-*.
             if (isCetoHost(origin)) {
@@ -710,13 +720,8 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             }
 
             await submitSearch(page, params, name, origin)
-            // Attendre les prix datés (cartes Ingénie).
-            await page
-              .waitForSelector('.prix_en_cours, .bloc_resultat, .liste_resultats', {
-                timeout: 25_000
-              })
-              .catch(() => undefined)
-            await sleep(800)
+            await waitForIngenieResults(page, probe, AJAX_TIMEOUT.resultsMs)
+            debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre
@@ -775,6 +780,9 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             }
             // Sans prix → on n'affiche rien plutôt qu'un « échec » technique.
             return out
+            } finally {
+              probe.dispose()
+            }
           },
           attempt > 1
         )

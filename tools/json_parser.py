@@ -10,6 +10,12 @@ Les APIs Ingénie, MSEM et Open System ne parlent pas toutes le même dialecte :
 
 `parse()` accepte les trois. Aucun HTML ici — le DOM est dans
 `extract_prix_centrale.py` (BeautifulSoup).
+
+    from json_parser import object_after, parse
+
+    parse('{"success":1,"data":{"total":"432,47 €"}}')["data"]["total"]
+    parse('cb({"data":{"nbResultsFiche":1},"success":1});')["data"]["nbResultsFiche"]
+    object_after('var params = {"cid":"5"};', "var params =")["cid"]
 """
 from __future__ import annotations
 

@@ -15,15 +15,98 @@ Sélectionner.
 
     pip install beautifulsoup4
     python tools/extract_prix_centrale.py --self-test
+    python tools/exemples_prix.py
     python tools/extract_prix_centrale.py --from 2027-01-16 --to 2027-01-23 --adults 3 ^
         https://reservation.les2alpes.com/vacanceole-residence-champame-studio-3-personnes-les-2-alpes.html
-
-    python tools/extract_prix_centrale.py --from 2027-01-16 --to 2027-01-23 ^
-        https://reservation.alpedhuez.com --limit 5
 
 Familles auto-détectées : `ingenie`, `ublo` (JSON MSEM `/offers`), `opensystem`
 (JSONP etape-rest), `ceto` (SERP Orchestra, `article.cpt-result`). `--json`
 pour une sortie machine.
+
+### Exemples
+
+BeautifulSoup — span TOTAL (Les 2 Alpes) :
+
+```python
+from bs4 import BeautifulSoup
+from extract_prix_centrale import parse_price, total_prestation_span
+
+html = '<span id="total-prestation-G-5834094-6395741-1">432,47&nbsp;€</span>'
+soup = BeautifulSoup(html, "html.parser")
+span = soup.find("span", id=lambda s: s and s.startswith("total-prestation-"))
+print(span["id"], span.get_text(" ", strip=True))
+# total-prestation-G-5834094-6395741-1  432,47 €
+
+sid, text = total_prestation_span(html)
+print(sid, parse_price(text))  # 432.47
+```
+
+JSON / JSONP (`json_parser.parse`) :
+
+```python
+from json_parser import object_after, parse
+
+# calculerTotalPrestationAjax (JSON)
+data = parse('{"success":1,"data":{"total":"432,47 €"}}')
+print(data["data"]["total"])  # 432,47 €
+
+# searchAjax (JSONP)
+search = parse('cb({"data":{"nbResultsFiche":1},"success":1});')
+print(search["data"]["nbResultsFiche"])  # 1
+
+# etape-rest Open System (JSONP jQuery)
+etape = parse('jQuery123({"items":[{"cle":"OSMB-1","prix":400}]});')
+print(etape["items"][0]["prix"])  # 400
+
+# widget #tarifs (objet JS inline)
+params = object_after(
+    'var params = {"object":{"code":"G|290|ST3N"},"cid":"5"};',
+    "var params =",
+)
+print(params["object"]["code"], params["cid"])  # G|290|ST3N  5
+```
+
+Formulaire tarifs → querystring de `calculerTotalPrestationAjax` :
+
+```python
+from extract_prix_centrale import serialize_tarifs
+
+qs = serialize_tarifs("""
+<form id="frm-tarifs-G-290-ST3N-1">
+  <input type="hidden" name="cid" value="5" />
+  <input type="hidden" name="prestation" value="G-290-ST3N" />
+  <select name="nb_personnes_MTAXE3E">
+    <option value="3" selected>3</option>
+  </select>
+</form>
+""")
+print(qs)  # cid=5&prestation=G-290-ST3N&nb_personnes_MTAXE3E=3
+```
+
+Appel live (bibliothèque) :
+
+```python
+from extract_prix_centrale import Session, ingenie_fiche_total, ublo_search
+
+sess = Session()
+fiche = ingenie_fiche_total(
+    sess,
+    "https://reservation.les2alpes.com/vacanceole-residence-champame-studio-3-personnes-les-2-alpes.html",
+    iso_from="2027-01-16", iso_to="2027-01-23",
+    adults=3, children=0,
+)
+print(fiche["span_id"], fiche["total_text"])
+# total-prestation-G-290-ST3N-1  1 067,97 €
+
+offres = ublo_search(
+    sess, "https://reservation.alpedhuez.com",
+    "2027-01-16", "2027-01-23", adults=2, children=0, limit=5,
+)
+for o in offres["listings"]:
+    print(o["total"], o["title"])
+```
+
+Les six extraits ci-dessus sont exécutés par `python tools/exemples_prix.py`.
 
 
 ## `skitrack_v26.py`

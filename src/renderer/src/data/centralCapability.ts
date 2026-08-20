@@ -12,6 +12,8 @@
  * - `docs/diagnostics/centrales-reconnaissance.md` (27 hôtes Ingénie, 2 robots)
  */
 
+import { bookingFamilyOf } from '@shared/bookingFamilies'
+
 export type CentralPriceMode = 'live' | 'link' | 'none' | 'blocked'
 
 export interface CentralCapability {
@@ -26,7 +28,7 @@ export interface CentralCapability {
   /** Connecteur technique attendu, si live. */
   connector?: string
   /** Famille technique, pour diagnostics. */
-  family?: 'orchestra' | 'ingenie' | 'other'
+  family?: 'orchestra' | 'ingenie' | 'opensystem' | 'ublo' | 'eliberty' | 'other'
 }
 
 /** Orchestra / Ceto — extracteur HTML sans navigateur. */
@@ -51,20 +53,16 @@ const INGENIE_HOSTS = new Set([
   'fr.locationlesmenuires.com',
   'fr.locationsaintmartin.com',
   'resa.saintlary.com',
-  'reservation.alpedhuez.com',
   'reservation.areches-beaufort.com',
   'reservation.auris-en-oisans.fr',
   'reservation.avoriaz.com',
-  'reservation.ax-ski.com',
   'reservation.bareges.com',
   'reservation.chamberymontagnes.com',
   'reservation.courchevel.com',
   'reservation.haute-maurienne-vanoise.com',
-  'reservation.la-toussuire.com',
   'reservation.larosiere.net',
   'reservation.le-corbier.com',
   'reservation.lecollet.com',
-  'reservation.ledevoluy.com',
   'reservation.les2alpes.com',
   'reservation.les7laux.com',
   'reservation.lescarroz.com',
@@ -75,7 +73,6 @@ const INGENIE_HOSTS = new Set([
   'reservation.matheysine-tourisme.com',
   'reservation.orcieres.com',
   'reservation.paysdegex-montsjura.com',
-  'reservation.saintfrancoislongchamp.com',
   'reservation.saintsorlindarves.com',
   'reservation.samoens.com',
   'reservation.serre-chevalier.com',
@@ -90,7 +87,6 @@ const INGENIE_HOSTS = new Set([
   'www.ballons-hautes-vosges.com',
   'www.chamrousse.com',
   'www.gerardmer-reservation.net',
-  'www.labresse.net',
   'www.peisey-vallandry.com',
   'www.risoul.com',
   'www.saintsorlindarves.com',
@@ -158,6 +154,17 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       family: 'ingenie',
       labelFr: 'prix pour vos dates (Ingénie)',
       labelEn: 'prices for your dates (Ingénie)'
+    }
+  }
+
+  const family = bookingFamilyOf(host)
+  if (family === 'opensystem' || family === 'ublo' || family === 'eliberty') {
+    return {
+      mode: 'link',
+      host,
+      family,
+      labelFr: 'lien vers la centrale (prix à confirmer sur le site)',
+      labelEn: 'link to the desk (confirm price on the site)'
     }
   }
 

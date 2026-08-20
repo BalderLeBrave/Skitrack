@@ -172,8 +172,15 @@ const FIELD = {
   durationSelect: 'select[name="duree"]:visible',
   durationInput: 'input[name="duree"]',
   peopleSelect: 'select[name="personnes"]:visible',
-  adults: 'input[name="adultes"]',
-  children: 'input[name="enfants"]',
+  /**
+   * Génération datepicker (2 Alpes, Tignes, Courchevel, La Rosière…) :
+   * occupants en `<select name="adultes">` / `enfants`, parfois habillés
+   * d’un bouton « 2 adultes, 0 enfant » — c’est le select qui est sérialisé.
+   */
+  adultsSelect: 'select[name="adultes"]:visible',
+  childrenSelect: 'select[name="enfants"]:visible',
+  adults: 'select[name="adultes"], input[name="adultes"]',
+  children: 'select[name="enfants"], input[name="enfants"]',
   /** `:visible` parce que la page porte deux formulaires — un pour l'écran
    *  large, un pour le mobile — et que le premier venu peut être caché. */
   submit: 'input[name="search"]:visible, input.form_search:visible, button[type="submit"]:visible'
@@ -397,6 +404,16 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
     // c'est ce qu'on réserverait, et la capacité n'est pas un prix.
     const choice = people.length > 0 ? atLeast(people, adults + children) : null
     if (choice) await page.selectOption(FIELD.peopleSelect, choice.value)
+    else {
+      // Saisies, Collet, Saint Lary, Ballons : adultes / enfants, pas personnes.
+      const adultOpts = await optionsOf(page, FIELD.adultsSelect)
+      const adultChoice = adultOpts.length > 0 ? atLeast(adultOpts, adults) : null
+      if (adultChoice) await page.selectOption(FIELD.adultsSelect, adultChoice.value)
+      const childOpts = await optionsOf(page, FIELD.childrenSelect)
+      if (childOpts.some((o) => o.value === String(children))) {
+        await page.selectOption(FIELD.childrenSelect, String(children)).catch(() => undefined)
+      }
+    }
   } else if (await page.$(FIELD.fromInput)) {
     // Les champs du moteur actuel sont écrits directement, puis annoncés à la
     // page : son script lit la valeur au clic, mais ses propres écouteurs
@@ -418,6 +435,12 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
         // visible qui sera soumis.
         const set = (selector: string, value: string): void => {
           for (const el of Array.from(view.document.querySelectorAll(selector))) {
+            try {
+              const node = el as { removeAttribute?: (n: string) => void }
+              node.removeAttribute?.('readonly')
+            } catch {
+              // ignore
+            }
             el.value = value
             el.dispatchEvent(new view.Event('input', { bubbles: true }))
             el.dispatchEvent(new view.Event('change', { bubbles: true }))
@@ -440,6 +463,17 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
         }
       }
     )
+    // Le select adultes est ce que serialize() envoie — le bouton
+    // « 3 adultes, 0 enfant » n'est qu'un habillage.
+    const adultOpts = await optionsOf(page, FIELD.adultsSelect)
+    const adultChoice = adultOpts.length > 0 ? atLeast(adultOpts, adults) : null
+    if (adultChoice) {
+      await page.selectOption(FIELD.adultsSelect, adultChoice.value).catch(() => undefined)
+    }
+    const childOpts = await optionsOf(page, FIELD.childrenSelect)
+    if (childOpts.some((o) => o.value === String(children))) {
+      await page.selectOption(FIELD.childrenSelect, String(children)).catch(() => undefined)
+    }
   } else {
     throw new Error(`${name} : le moteur de ${origin} n'expose pas de calendrier.`)
   }

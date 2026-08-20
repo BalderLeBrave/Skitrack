@@ -1,11 +1,13 @@
 /**
  * Hôtes Ingénie connus — utilisés pour décider d'ouvrir Playwright ou non.
  *
- * Aligné sur `docs/diagnostics/centrales-reconnaissance.md` et
- * `renderer/.../centralCapability.ts`. Un hôte absent n'est pas « en panne » :
- * on tente quand même si l'URL ressemble à une centrale (`reservation.*`),
- * sinon on évite d'allumer Chromium pour rien.
+ * Aligné sur `docs/diagnostics/centrales-reconnaissance.md` et le classeur
+ * des sélecteurs. Un hôte Open System / Ublo / Orchestra n'est pas « en panne
+ * Ingénie » : on ne lance pas Chromium pour un moteur qui n'est pas le nôtre
+ * (Alpe d'Huez, La Bresse, La Toussuire…).
  */
+
+import { isKnownNonIngenie } from '@shared/bookingFamilies'
 
 export const INGENIE_HOSTS = new Set([
   'reservation.les2alpes.com',
@@ -33,7 +35,6 @@ export const INGENIE_HOSTS = new Set([
   'reservation.serre-chevalier.com',
   'www.valdallos.com',
   'resa.saintlary.com',
-  'www.labresse.net',
   'www.ballons-hautes-vosges.com',
   'www.gerardmer-reservation.net',
   'reservation.lesgets.com',
@@ -42,23 +43,18 @@ export const INGENIE_HOSTS = new Set([
   'reservation.lescontamines.com',
   'reservation.samoens.com',
   'booking.prazsurarly.com',
-  'reservation.alpedhuez.com',
   'reservation.auris-en-oisans.fr',
-  'reservation.ax-ski.com',
   'reservation.bareges.com',
   'reservation.chamberymontagnes.com',
-  'reservation.la-toussuire.com',
   'reservation.le-corbier.com',
-  'reservation.ledevoluy.com',
   'reservation.les7laux.com',
   'reservation.matheysine-tourisme.com',
   'reservation.paysdegex-montsjura.com',
-  'reservation.saintfrancoislongchamp.com',
   'reservation.saintsorlindarves.com',
   'reservation.valleesdegavarnie.com',
   'reservation.vaujany.com',
   'reservation.villard-reculas.com',
-  'reservation.villarddelans-correnconenvercors.com',
+  'reservation.villarddelans-correnconenvercors.com'
 ])
 
 /** robots.txt Disallow: / — ne jamais lancer le navigateur. */
@@ -78,10 +74,9 @@ function hostOf(url: string): string | null {
 /**
  * Faut-il tenter Playwright pour cette URL de centrale ?
  *
- * - Ceto/Orchestra → non (connecteur dédié)
- * - robots total → non
+ * - Orchestra / Open System / Ublo / robots total → non
  * - hôte Ingénie connu → oui
- * - sous-domaine reservation/booking/resa → oui (heuristique)
+ * - sous-domaine reservation/booking/resa, hors familles connues → oui
  * - sinon → non (évite 15 s de Chromium sur un site institutionnel)
  */
 export function shouldAttemptIngenie(url: string): { attempt: boolean; reason?: string } {
@@ -89,6 +84,9 @@ export function shouldAttemptIngenie(url: string): { attempt: boolean; reason?: 
   if (!host) return { attempt: false, reason: 'url-invalide' }
   if (ROBOTS_BLOCKED_HOSTS.has(host)) {
     return { attempt: false, reason: 'robots' }
+  }
+  if (isKnownNonIngenie(host) || isKnownNonIngenie(url)) {
+    return { attempt: false, reason: 'hors-ingenie' }
   }
   if (INGENIE_HOSTS.has(host)) return { attempt: true }
   if (

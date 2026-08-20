@@ -22,15 +22,10 @@ import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import type { SearchParams } from './types'
-import {
-  OUT_OF_ZONE_MARGIN_KM,
-  boxContains,
-  distanceKm,
-  domainRadiusKm,
-  filterToZone,
-  searchZone,
-  zoneVerdict
-} from '@shared/geo'
+import { OUT_OF_ZONE_MARGIN_KM, boxContains, distanceKm, domainRadiusKm, filterToZone, searchZone, zoneVerdict } from '@shared/geo'
+import { bookingFamilyOf, isKnownNonIngenie } from '@shared/bookingFamilies'
+
+
 
 let failures = 0
 
@@ -302,6 +297,15 @@ async function main(): Promise<void> {
   check('deux hors-zone rejetés', zoned.rejected.length === 2, zoned.rejected.map((a) => a.title))
   check('aucune autre ville dans le résultat', !zoned.kept.some((a) => /Paris|Barcelone/.test(a.title)))
   check('annonce sans position conservée et comptée à part', zoned.unlocated === 1 && zoned.kept.length === 2)
+
+  heading('6. Familles de centrales — Ingénie vs le reste')
+  check('2 Alpes est Ingénie', !isKnownNonIngenie('https://reservation.les2alpes.com/'))
+  check('Tignes est Ingénie', !isKnownNonIngenie('reservation.tignes.net'))
+  check('Chamonix est Orchestra', bookingFamilyOf('https://booking.chamonix.com/fr/') === 'orchestra')
+  check('Alpe d’Huez est Ublo, pas Ingénie', bookingFamilyOf('reservation.alpedhuez.com') === 'ublo')
+  check('La Bresse est Open System', bookingFamilyOf('www.labresse.net') === 'opensystem')
+  check('La Toussuire est Open System', bookingFamilyOf('reservation.la-toussuire.com') === 'opensystem')
+  check('Sancy n’est pas Ingénie', bookingFamilyOf('www.sancy.com') === 'sancy')
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

@@ -1,0 +1,35 @@
+/**
+ * Familles de centrales — ce qui décide si on lance le connecteur Ingénie.
+ *
+ *   npx esbuild src/shared/bookingFamilies.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/families-test.mjs && node node_modules/.cache/families-test.mjs
+ */
+
+import { bookingFamilyOf, isKnownNonIngenie } from './bookingFamilies'
+
+let failures = 0
+function check(label: string, condition: boolean, detail?: unknown): void {
+  console.log(
+    `  ${condition ? '✓' : '✗'} ${label}${condition || detail === undefined ? '' : ` — ${JSON.stringify(detail)}`}`
+  )
+  if (!condition) failures++
+}
+
+console.log('\nFamilles de centrales\n')
+check('2 Alpes n’est pas hors-Ingénie', !isKnownNonIngenie('https://reservation.les2alpes.com/location.html'))
+check('Val Thorens n’est pas hors-Ingénie', !isKnownNonIngenie('reservation.valthorens.com'))
+check('Chamonix = orchestra', bookingFamilyOf('https://booking.chamonix.com/fr/') === 'orchestra')
+check('La Plagne = orchestra', bookingFamilyOf('www.laplagneresort.com') === 'orchestra')
+check('Alpe d’Huez = ublo', bookingFamilyOf('reservation.alpedhuez.com') === 'ublo')
+check('Sainte-Foy = ublo', bookingFamilyOf('www.saintefoy-reservation.com') === 'ublo')
+check('La Bresse = opensystem', bookingFamilyOf('www.labresse.net') === 'opensystem')
+check('Toussuire = opensystem', bookingFamilyOf('https://reservation.la-toussuire.com/') === 'opensystem')
+check('Dévoluy = opensystem', bookingFamilyOf('reservation.ledevoluy.com') === 'opensystem')
+check('Sancy = sancy', bookingFamilyOf('www.sancy.com') === 'sancy')
+check('Combloux = blocked', bookingFamilyOf('reservation.combloux.com') === 'blocked')
+check('hôte inconnu = unknown', bookingFamilyOf('www.example.com') === 'unknown')
+
+if (failures > 0) {
+  console.log(`\n${failures} échec(s)`)
+  process.exit(1)
+}
+console.log('\nok')

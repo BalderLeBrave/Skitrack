@@ -1,0 +1,112 @@
+{
+  "accomodations": [
+    {
+      "id": 192085,
+      "slug": "chalet-friandise-4-chambres-pour-8-avec-jaccuzzi-exterieur",
+      "name": "Friandise - Chalet du Golf - 7 pieces - 8 personnes - 150m² - Alpe d'Huez Houses",
+      "merchant": "AM-125-002-23",
+      "kind": "MEUBLE",
+      "nbRooms": 7,
+      "maxCapacity": 8,
+      "lat": 45.08789825439453,
+      "lng": 6.080049991607666,
+      "stars": 0,
+      "image": "https://images.msem.tech/production/lodging/AM-125-002-23/11104412-medium.jpg",
+      "location": {
+        "city": "L'ALPE D'HUEZ",
+        "cp": "38750",
+        "lat": 45.08789825439453,
+        "lng": 6.080049991607666,
+        "address1": null
+      },
+      "accommodation": {
+        "id": 192085,
+        "name": "Friandise - Chalet du Golf - 7 pieces - 8 personnes - 150m² - Alpe d'Huez Houses",
+        "slug": "chalet-friandise-4-chambres-pour-8-avec-jaccuzzi-exterieur",
+        "kind": "MEUBLE"
+      }
+    },
+    {
+      "id": 192067,
+      "slug": "chez-nico-studio-plein-sud-skis-aux-pieds",
+      "name": "Chez Nico - Le Chat Perché - 1 piece - 4 personnes - 25m² - Alpe d'Huez Houses",
+      "merchant": "AM-125-002-05",
+      "kind": "MEUBLE",
+      "nbRooms": 1,
+      "maxCapacity": 4,
+      "lat": 45.092098236083984,
+      "lng": 6.0650200843811035,
+      "stars": 0,
+      "image": "https://images.msem.tech/production/lodging/AM-125-002-05/11104012-medium.jpg",
+      "location": {
+        "city": "L'ALPE D'HUEZ",
+        "cp": "38750",
+        "lat": 45.092098236083984,
+        "lng": 6.0650200843811035,
+        "address1": null
+      },
+      "accommodation": {
+        "id": 192067,
+        "name": "Chez Nico - Le Chat Perché - 1 piece - 4 personnes - 25m² - Alpe d'Huez Houses",
+        "slug": "chez-nico-studio-plein-sud-skis-aux-pieds",
+        "kind": "MEUBLE"
+      }
+    },
+    {
+      "id": 192293,
+      "slug": "pic-blanc-2",
+      "name": "Le Pic Blanc",
+      "merchant": "HOT-125-142089-02",
+      "kind": "HOTEL",
+      "nbRooms": 0,
+      "maxCapacity": 258,
+      "lat": 45.088199615478516,
+      "lng": 6.076419830322266,
+      "stars": 0,
+      "image": "https://images.msem.tech/production/lodging/HOT-125-142089-02/11355854-medium.jpg",
+      "location": {
+        "city": null,
+        "cp": "38750",
+        "lat": 45.088199615478516,
+        "lng": 6.076419830322266,
+        "address1": "90 rue du Rif Briant"
+      },
+      "accommodation": {
+        "id": 192293,
+        "name": "Le Pic Blanc",
+        "slug": "pic-blanc-2",
+        "kind": "HOTEL"
+      }
+    },
+    {
+      "id": 211524,
+      "slug": "residence-bergers-appartement-2-pieces-pour-6-personnes-de-40m-l-alpe-d-huez",
+      "name": "Bergers - 2 pièces - 6 personnes - 40 m² - MAEVA",
+      "merchant": "AM-MAEVA-125-1356071",
+      "kind": "MEUBLE",
+      "nbRooms": 2,
+      "maxCapacity": 6,
+      "lat": 45.088222,
+      "lng": 6.077697,
+      "stars": 0,
+      "image": "https://images.msem.tech/production/lodging/AM-MAEVA-125-1356071/12936331-medium.jpg",
+      "location": {
+        "city": "HUEZ",
+        "cp": "38750",
+        "lat": 45.088222,
+        "lng": 6.077697,
+        "address1": "336 avenue des Marmottes, Quartier les Bergers"
+      },
+      "accommodation": {
+        "id": 211524,
+        "name": "Bergers - 2 pièces - 6 personnes - 40 m² - MAEVA",
+        "slug": "residence-bergers-appartement-2-pieces-pour-6-personnes-de-40m-l-alpe-d-huez",
+        "kind": "MEUBLE"
+      }
+    }
+  ],
+  "options": [],
+  "standings": [],
+  "sectors": [],
+  "labels": []
+}

@@ -3,7 +3,6 @@
  *
  * Interroge booking.chamonix.com (SERP HTML) avec dates + filtre village.
  * Prix pour le séjour uniquement ; deep-link daté sur chaque fiche.
- * Notes TripAdvisor (agrégats) pour les premières offres.
  */
 
 import { CircuitBreaker, withTimeout } from '../resilience'
@@ -64,6 +63,7 @@ function toAccommodation(
   }
 }
 
+/** Agrégats TripAdvisor via proxy Orchestra (pas de texte d'avis). */
 async function fetchTaAggregates(
   tripadvisorLocationId: string
 ): Promise<{ rating: number | null; numReviews: number | null } | null> {
@@ -97,6 +97,9 @@ async function fetchTaAggregates(
   }
 }
 
+/**
+ * Active ce connecteur quand la centrale du domaine est booking.chamonix.com.
+ */
 export function createCetoChamonixProvider(): AccommodationProvider {
   const name = CETO_CHAMONIX_PROVIDER_NAME
 
@@ -137,7 +140,7 @@ export function createCetoChamonixProvider(): AccommodationProvider {
             location,
             maxPages: 2,
             pricedOnly: true,
-            types: ['hotel', 'apartment']
+            types: ['hotel', 'apartment', 'residence']
           }),
           TIMEOUT_MS,
           name
@@ -151,17 +154,34 @@ export function createCetoChamonixProvider(): AccommodationProvider {
         const priced = result.listings.filter(
           (l) => l.total != null && l.total > 0 && l.url && l.title
         )
-        const offers: Accommodation[] = []
-        for (let i = 0; i < priced.length; i++) {
-          const l = priced[i]
-          let reviews = null
-          if (i < 8 && l.tripadvisorLocationId) {
-            reviews = await fetchTaAggregates(l.tripadvisorLocationId)
-          }
-          offers.push(toAccommodation(l, params, reviews))
+        // Notes TA en parallèle (max 8, concurrence 3) pour ne pas allonger la recherche
+        const REVIEW_CAP = 8
+        const CONCURRENCY = 3
+        const reviewById = new Map<string, { rating: number | null; numReviews: number | null } | null>()
+        const toFetch = priced
+          .slice(0, REVIEW_CAP)
+          .filter((l) => l.tripadvisorLocationId)
+        for (let i = 0; i < toFetch.length; i += CONCURRENCY) {
+          const batch = toFetch.slice(i, i + CONCURRENCY)
+          const results = await Promise.all(
+            batch.map(async (l) => {
+              const id = l.tripadvisorLocationId!
+              const r = await fetchTaAggregates(id)
+              return [id, r] as const
+            })
+          )
+          for (const [id, r] of results) reviewById.set(id, r)
         }
+        const offers = priced.map((l) =>
+          toAccommodation(
+            l,
+            params,
+            l.tripadvisorLocationId ? reviewById.get(l.tripadvisorLocationId) : null
+          )
+        )
 
         if (offers.length === 0) {
+          // Stock vide = réponse légitime, pas une panne
           breaker.succeed()
           return []
         }
@@ -179,7 +199,7 @@ export function createCetoChamonixProvider(): AccommodationProvider {
         reachable: !breaker.open,
         detail: breaker.open
           ? breaker.reason
-          : 'Centrale Chamonix Mont-Blanc (Orchestra / Ceto) — SERP HTML + filtre village + notes TA'
+          : 'Centrale Chamonix Mont-Blanc (Orchestra / Ceto) — SERP HTML + filtre village'
       }
     }
   }

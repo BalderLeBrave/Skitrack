@@ -554,7 +554,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'gerardmer': { url: 'https://www.gerardmer-reservation.net/' }, // Gérardmer
   'grand-tourmalet': { url: 'https://www.n-py.com/fr/ete/sejour-pyrenees/hebergement' }, // Grand Tourmalet
   'isola-2000': { url: 'https://isola2000.com/reservez-votre-sejour/' }, // Isola 2000
-  'la-bresse-hohneck': { url: 'https://reservation.labresse.net/' }, // La Bresse Hohneck
+  'la-bresse-hohneck': { url: 'https://www.labresse.net/hebergements-a-la-bresse-hautes-vosges/' }, // La Bresse Hohneck
   'la-clusaz': { url: 'https://www.laclusaz.com/' }, // La Clusaz
   'la-giettaz': { url: 'https://reservation.valdarly-montblanc.com/' }, // La Giettaz
   'la-joue-du-loup': { url: 'https://reservation.ledevoluy.com/' }, // La Joue du Loup *
@@ -582,6 +582,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'les-menuires': { url: 'https://fr.locationlesmenuires.com/' }, // Les Menuires
   'les-orres': { url: 'https://reservation.lesorres.com/' }, // Les Orres
   'les-saisies': { url: 'https://reservation.lessaisies.com/' }, // Les Saisies
+  'megeve': { url: 'https://megeve-booking.com/' }, // Megève
   'meribel': { url: 'https://reservations.meribel.net/?lang=fr_FR' }, // Méribel
   'montclar': { url: 'https://www.montclar.com/' }, // Montclar *
   'montgenevre': { url: 'https://reservation.montgenevre.com/' }, // Montgenèvre
@@ -618,12 +619,14 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'super-devoluy': { url: 'https://reservation.ledevoluy.com/' }, // Super-Dévoluy *
   'termignon': { url: 'https://reservation.haute-maurienne-vanoise.com/' }, // Termignon *
   'thollon-les-memises': { url: 'https://www.leman-mountains-explore.com/reserver/' }, // Thollon-les-Mémises *
+  'serre-chevalier': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier
+  'serre-chevalier-vallee': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Vallée
   'tignes': { url: 'https://reservation.tignes.net/' }, // Tignes
   'tignes-le-lac': { url: 'https://reservation.tignes.net/' }, // Tignes Le Lac *
   'tignes-les-brevieres': { url: 'https://reservation.tignes.net/' }, // Tignes Les Brévières *
   'val-cenis': { url: 'https://reservation.haute-maurienne-vanoise.com/ac57-val-cenis.htm' }, // Val Cenis
   'val-d-allos': { url: 'https://www.valdallos.com/' }, // Val d'Allos
-  'val-d-isere': { url: 'https://reservation.tignes.net/' }, // Val d’Isère *
+  'val-d-isere': { url: 'https://booking.valdisere.com/' }, // Val d’Isère
   'val-thorens': { url: 'https://reservation.valthorens.com/' }, // Val Thorens
   'valberg': { url: 'https://www.valberg.com/sejourner/reserver-votre-sejour/' }, // Valberg
   'valfrejus': { url: 'https://www.valfrejus.com/' }, // Valfréjus

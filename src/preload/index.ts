@@ -9,6 +9,7 @@ import {
   type OsmLodgingQuery,
   type OsmLodgingResult,
   type ProviderAggregate,
+  type ProviderOutcome,
   type ProviderSearchParams,
   type SecretKey,
   type SecretPresence,
@@ -49,9 +50,33 @@ const api = {
   providers: {
     search: (params: ProviderSearchParams, only?: string[]): Promise<ProviderAggregate> =>
       ipcRenderer.invoke(IPC.providersSearch, params, only),
+    /**
+     * Chaque source qui répond pendant un `search` pousse un outcome ici.
+     * Se désabonner au démontage / fin de relevé.
+     */
+    onOutcome: (cb: (outcome: ProviderOutcome) => void): (() => void) => {
+      const handler = (_e: unknown, outcome: ProviderOutcome): void => cb(outcome)
+      ipcRenderer.on(IPC.providersOutcome, handler)
+      return () => ipcRenderer.removeListener(IPC.providersOutcome, handler)
+    },
     health: (): Promise<
       { name: string; reachable: boolean; detail: string; registered: boolean }[]
-    > => ipcRenderer.invoke(IPC.providersHealth)
+    > => ipcRenderer.invoke(IPC.providersHealth),
+    metrics: (): Promise<
+      {
+        provider: string
+        calls: number
+        errors: number
+        totalMs: number
+        results: number
+        priced: number
+        lastError: string | null
+        lastAt: string | null
+        avgMs?: number
+        priceRate?: number | null
+      }[]
+    > => ipcRenderer.invoke(IPC.providersMetrics),
+    metricsReset: (): Promise<void> => ipcRenderer.invoke(IPC.providersMetricsReset)
   },
   /** Lit les métadonnées publiques d'une annonce que l'utilisateur a collée. */
   fetchListing: (url: string): Promise<ListingExtract> => ipcRenderer.invoke(IPC.listingFetch, url),

@@ -50,3 +50,6 @@ jobs:
             --bundle --platform=node --format=esm \
             --outfile=node_modules/.cache/ceto-test.mjs --log-level=error
           node node_modules/.cache/ceto-test.mjs
+
+      - name: Ceto SERP parse (fixture)
+        run: npm run ceto:parse-test

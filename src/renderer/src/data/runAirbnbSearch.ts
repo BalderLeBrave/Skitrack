@@ -93,9 +93,33 @@ async function scrapeOnce(params: RunAirbnbSearchParams) {
   })
 }
 
+/**
+ * Chemin nominal : **pas de scrape** (robots.txt Airbnb interdit /s/*/homes).
+ * Activer le relevé expérimental uniquement avec `SKITRACK_AIRBNB_SCRAPE=1`.
+ * Sinon on renvoie un résultat vide — l’UI s’appuie sur la redirection Airbnb
+ * de l’agrégat (`airbnbRedirect`).
+ */
 export async function runAirbnbSearch(
   params: RunAirbnbSearchParams
 ): Promise<RunAirbnbSearchResult> {
+  // Opt-in uniquement : `localStorage.skitrackAirbnbScrape = '1'` (réglage avancé).
+  // Chemin nominal = redirection, conforme au robots.txt Airbnb.
+  const scrapeEnabled =
+    typeof localStorage !== 'undefined' && localStorage.getItem('skitrackAirbnbScrape') === '1'
+
+  if (!scrapeEnabled) {
+    return {
+      ok: true,
+      imported: params.imported,
+      added: 0,
+      updated: 0,
+      count: 0,
+      missing: 0,
+      message:
+        'Airbnb : ouverture manuelle recommandée (robots.txt). Relève automatisée désactivée.'
+    }
+  }
+
   const globalTimeout = params.timeoutMs ?? AIRBNB_SEARCH_TIMEOUT_MS
 
   let outcome: Awaited<ReturnType<typeof window.skitrack.airbnbScrape>>

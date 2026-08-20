@@ -313,6 +313,11 @@ export interface AppState {
    */
   lodgFailed: string[]
   /**
+   * Sources qui ont répondu sans erreur mais sans offre tarifée (stock vide).
+   * Distinct de `lodgFailed` : ce n'est pas une panne.
+   */
+  lodgEmpty: string[]
+  /**
    * Logement mis en avant depuis la carte.
    *
    * Cliquer une bulle de prix et ouvrir une fiche sont deux gestes distincts :
@@ -522,8 +527,8 @@ export const INITIAL_STATE: AppState = {
   lodgTypes: [],
   lodgDistMin: 0,
   lodgDistMax: FILTER_RANGES.lodgDist.max,
-  lodgSort: 'pp_asc',
-  lodgMapOpen: false,
+  lodgSort: 'dist_asc',
+  lodgMapOpen: true,
   lodgBounds: null,
   lodgMapSync: true,
   lodgSplit: 58,
@@ -534,6 +539,7 @@ export const INITIAL_STATE: AppState = {
   lodgSearchMsg: null,
   lodgQueried: [],
   lodgFailed: [],
+  lodgEmpty: [],
   lodgPickId: null,
   lastScan: null,
   mergeDupes: true,

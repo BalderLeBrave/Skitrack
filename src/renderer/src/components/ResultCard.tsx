@@ -55,6 +55,8 @@ export interface ResultCardProps {
   factRight?: string
   /** Ligne 4. `null` quand la source ne publie pas de prix. */
   price?: ResultPrice | null
+  /** Teinte du montant : confirmé (ok), partiel/périmé (warn). */
+  priceTone?: 'ok' | 'warn' | 'muted'
   image?: string | null
   /** Texte affiché à la place de l'image quand elle manque ou ne charge pas. */
   placeholder?: string
@@ -71,6 +73,8 @@ export interface ResultCardProps {
   dimmed?: boolean
   /** Squelette au même gabarit, sans saut de mise en page. */
   loading?: boolean
+  /** Premières vignettes visibles : eager + fetchpriority high. */
+  imagePriority?: boolean
 }
 
 /**
@@ -124,6 +128,7 @@ export function ResultCard({
   factLeft,
   factRight,
   price,
+  priceTone,
   image,
   placeholder = 'sans photo',
   ratio = 'wide',
@@ -133,7 +138,8 @@ export function ResultCard({
   onOpen,
   selected = false,
   dimmed = false,
-  loading = false
+  loading = false,
+  imagePriority = false
 }: ResultCardProps): JSX.Element {
   // Une URL peut répondre 404 : l'état est local à la carte, et il se réarme
   // tout seul quand la prop change de valeur (clé React côté appelant).
@@ -169,7 +175,11 @@ export function ResultCard({
             className="resultcard__img"
             src={image as string}
             alt=""
-            loading="lazy"
+            loading={imagePriority ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={imagePriority ? 'high' : 'low'}
+            width={400}
+            height={250}
             onError={() => setBroken(true)}
           />
         ) : (
@@ -187,7 +197,15 @@ export function ResultCard({
           <span className="resultcard__fact">{factLeft ?? ' '}</span>
           <span className="resultcard__fact resultcard__fact--right">{factRight ?? ' '}</span>
         </p>
-        <p className="resultcard__price">
+        <p
+          className={`resultcard__price${
+            priceTone === 'ok'
+              ? ' resultcard__price--ok'
+              : priceTone === 'warn'
+                ? ' resultcard__price--warn'
+                : ''
+          }`}
+        >
           {price ? (
             <>
               <strong className="resultcard__amount">{price.amount}</strong>{' '}

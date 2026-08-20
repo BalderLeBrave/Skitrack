@@ -75,6 +75,11 @@ export function LodgingGeoPanel({
           {t('scan_sources_failed').replace('{s}', state.lodgFailed.join(', '))}
         </p>
       )}
+      {state.lodgEmpty.length > 0 && (
+        <p className="geopanel__line">
+          {t('scan_sources_empty').replace('{s}', state.lodgEmpty.join(', '))}
+        </p>
+      )}
       {health.late.length > 0 && (
         <p className="geopanel__line">
           {t('scan_over_48h')} {health.late.join(', ')}

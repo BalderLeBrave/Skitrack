@@ -8,16 +8,22 @@
  *
  * ## Ce que cette table est
  *
- * 73 stations, 50 centrales distinctes — plusieurs stations
- * partagent la même : Val d'Arly en dessert six, et son `controls.station`
- * porte les valeurs qui les distinguent. Pour chacune, les **contrôles du
- * formulaire de recherche** : le champ d'arrivée, la durée, le nombre de
- * personnes, le bouton qui lance la recherche.
+ * 73 stations + 2 OTA (Airbnb, Booking.com), ~52 hosts distincts.
+ * Plusieurs stations partagent la même centrale : Val d'Arly en dessert six,
+ * et son `controls.station` porte les valeurs qui les distinguent.
+ * Pour chacune, les **contrôles du formulaire de recherche** : le champ
+ * d'arrivée, la durée, le nombre de personnes, le bouton qui lance la recherche.
+ *
+ * Airbnb et Booking.com sont des plateformes globales (OTA) : on recherche
+ * par nom de station / géolocalisation, pas via un formulaire station-spécifique.
+ * Leur entrée porte le type `ota` et des sélecteurs du moteur de recherche
+ * générique. Le mapping station → query de localisation est à faire côté
+ * scraper (ex. "Chamonix, France", "Les 2 Alpes, Isère").
  *
  * ## Ce qu'elle n'est pas
  *
- * Elle ne dit pas comment **lire les résultats**. Sur 73 lignes, 73 n'ont
- * aucun sélecteur de prix, 67 aucun sélecteur de carte. Le prix est
+ * Elle ne dit pas comment **lire les résultats**. Sur les centrales locales,
+ * 73 n'ont aucun sélecteur de prix, 67 aucun sélecteur de carte. Le prix est
  * pourtant ce qu'on vient chercher : il se relève sur les pages de résultats,
  * plateforme par plateforme, et c'est l'objet de la reconnaissance
  * (`npm run centrales:recon`, rapport dans `docs/diagnostics/`).
@@ -25,6 +31,24 @@
  * Un contrôle dont `selector` vaut `null` n'a pas pu être dérivé : la cellule
  * ne contenait pas un élément exploitable. Son texte est gardé dans `raw` pour
  * qu'on puisse le reprendre, jamais deviné.
+ *
+ * ## Nettoyage appliqué (2026-08-19)
+ *
+ * - Suppression des artefacts `cards` / `title` / `link` contenant du HTML
+ *   tronqué d'`<option>` (copier-coller du select personnes).
+ * - Suppression des contrôles `cards` / `title` / `price` / `link` à sélecteur
+ *   null sans valeur informative (réservés à la phase recon).
+ * - Conservation des `raw` uniquement quand le tag est exploitable (span,
+ *   input readonly, etc.) pour permettre une reprise manuelle.
+ * - Doublons de station conservés quand l'URL / host diffère (centrales
+ *   distinctes).
+ *
+ * ## Ajout OTA (2026-08-20)
+ *
+ * - Airbnb et Booking.com ajoutés comme plateformes de type `ota`.
+ * - Sélecteurs basés sur les formulaires de recherche publics (sujets à
+ *   changement fréquent + protections anti-bot fortes : Cloudflare, fingerprint,
+ *   rate-limit). Préférer API officielles ou partenaires si disponibles.
  */
 
 /** Un contrôle du formulaire de recherche d'une centrale. */
@@ -45,14 +69,30 @@ export interface CentralControl {
   options?: { value: string; label: string }[]
   /** Le HTML relevé, gardé quand aucun sélecteur n'a pu en être tiré. */
   raw?: string
+  /**
+   * Attribut data-* ou aria-* utile pour cibler (ex. data-testid Airbnb).
+   * Préférer ces attributs aux classes hashées quand disponibles.
+   */
+  testId?: string
 }
 
+/**
+ * Type de plateforme.
+ * - `central` : site de réservation d'une (ou plusieurs) station(s)
+ * - `ota`     : plateforme globale (Airbnb, Booking…) — recherche par lieu
+ */
+export type CentralKind = "central" | "ota"
+
 export interface Central {
-  /** La station telle que le relevé la nomme. */
+  /** La station telle que le relevé la nomme. Pour les OTA : nom de la plateforme. */
   station: string
   url: string
   host: string
+  /** Défaut : "central". Les OTA (Airbnb, Booking) sont de type "ota". */
+  kind?: CentralKind
   controls: {
+    /** Champ de localisation / destination (surtout OTA). */
+    location?: CentralControl
     station?: CentralControl
     lodging?: CentralControl
     stayType?: CentralControl
@@ -60,6 +100,11 @@ export interface Central {
     checkOut?: CentralControl
     duration?: CentralControl
     guests?: CentralControl
+    /** Adultes / enfants séparés (Airbnb, Booking). */
+    adults?: CentralControl
+    children?: CentralControl
+    infants?: CentralControl
+    pets?: CentralControl
     submit?: CentralControl
     cards?: CentralControl
     title?: CentralControl
@@ -67,6 +112,20 @@ export interface Central {
     link?: CentralControl
   }
   notes?: string
+  /**
+   * Configuration anti-bot (délais, proxy, concurrence).
+   * Si absent : "high" pour kind=ota, "low" pour les centrales locales.
+   */
+  antiBot?: {
+    level: "low" | "medium" | "high"
+    preferBrowser?: boolean
+    minDelayMs?: number
+    maxDelayMs?: number
+    maxConcurrency?: number
+    requireResidentialProxy?: boolean
+    cooldownOnChallengeMs?: number
+    maxConsecutiveFailures?: number
+  }
 }
 
 export const CENTRALS: Central[] = [
@@ -88,12 +147,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -110,12 +169,12 @@ export const CENTRALS: Central[] = [
         tag: "div"
       },
       checkIn: {
-        selector: "input[placeholder=\"Date d'arrivée\"]",
+        selector: 'input[placeholder="Date d\'arrivée"]',
         tag: "input",
         placeholder: "Date d'arrivée"
       },
       checkOut: {
-        selector: "input[placeholder=\"Date de départ\"]",
+        selector: 'input[placeholder="Date de départ"]',
         tag: "input",
         placeholder: "Date de départ"
       },
@@ -136,140 +195,65 @@ export const CENTRALS: Central[] = [
     host: "reservation.areches-beaufort.com",
     controls: {
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel, Chambre d'hôtes"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel, Chambre d'hôtes" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -282,186 +266,82 @@ export const CENTRALS: Central[] = [
     host: "reservation.valdarly-montblanc.com",
     controls: {
       station: {
-        selector: "select[name=\"criteres[]\"]",
+        selector: 'select[name="criteres[]"]',
         tag: "select",
         name: "criteres[]",
         options: [
-          {
-            value: "",
-            label: "Station Village"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G",
-            label: "Crest-Voland / Cohennoz"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G",
-            label: "Flumet / St Nicolas la Chapelle"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G",
-            label: "La Giettaz en Aravis"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G",
-            label: "Notre Dame de Bellecombe"
-          }
+          { value: "", label: "Station Village" },
+          { value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G", label: "Crest-Voland / Cohennoz" },
+          { value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G", label: "Flumet / St Nicolas la Chapelle" },
+          { value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G", label: "La Giettaz en Aravis" },
+          { value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G", label: "Notre Dame de Bellecombe" }
         ]
       },
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
-      },
-      cards: {
-        selector: null,
-        raw: "<option value=\"1\">1&nbsp;personne</option><option value=\"2\">2&nbsp;personnes</option><option value=\"3\">3&nbsp;personnes</option><option value=\"4\" selected=\"selected\">4&nbsp;personnes</option><option value=\"5\">5&nbsp;personnes</option><option value=\"6\">6&nbsp;personnes</option><option value=\"7\">7&nbsp;personnes</option><option value=\"8\">8&nbsp;personnes</option><option value=\"9\">9&nbsp;personnes</o"
-      },
-      title: {
-        selector: null,
-        raw: "</select>"
       }
     }
   },
@@ -471,186 +351,82 @@ export const CENTRALS: Central[] = [
     host: "reservation.valdarly-montblanc.com",
     controls: {
       station: {
-        selector: "select[name=\"criteres[]\"]",
+        selector: 'select[name="criteres[]"]',
         tag: "select",
         name: "criteres[]",
         options: [
-          {
-            value: "",
-            label: "Station Village"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G",
-            label: "Crest-Voland / Cohennoz"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G",
-            label: "Flumet / St Nicolas la Chapelle"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G",
-            label: "La Giettaz en Aravis"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G",
-            label: "Notre Dame de Bellecombe"
-          }
+          { value: "", label: "Station Village" },
+          { value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G", label: "Crest-Voland / Cohennoz" },
+          { value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G", label: "Flumet / St Nicolas la Chapelle" },
+          { value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G", label: "La Giettaz en Aravis" },
+          { value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G", label: "Notre Dame de Bellecombe" }
         ]
       },
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
-      },
-      cards: {
-        selector: null,
-        raw: "<option value=\"1\">1&nbsp;personne</option><option value=\"2\">2&nbsp;personnes</option><option value=\"3\">3&nbsp;personnes</option><option value=\"4\" selected=\"selected\">4&nbsp;personnes</option><option value=\"5\">5&nbsp;personnes</option><option value=\"6\">6&nbsp;personnes</option><option value=\"7\">7&nbsp;personnes</option><option value=\"8\">8&nbsp;personnes</option><option value=\"9\">9&nbsp;personnes</o"
-      },
-      title: {
-        selector: null,
-        raw: "</select>"
       }
     }
   },
@@ -660,186 +436,82 @@ export const CENTRALS: Central[] = [
     host: "reservation.valdarly-montblanc.com",
     controls: {
       station: {
-        selector: "select[name=\"criteres[]\"]",
+        selector: 'select[name="criteres[]"]',
         tag: "select",
         name: "criteres[]",
         options: [
-          {
-            value: "",
-            label: "Station Village"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G",
-            label: "Crest-Voland / Cohennoz"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G",
-            label: "Flumet / St Nicolas la Chapelle"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G",
-            label: "La Giettaz en Aravis"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G",
-            label: "Notre Dame de Bellecombe"
-          }
+          { value: "", label: "Station Village" },
+          { value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G", label: "Crest-Voland / Cohennoz" },
+          { value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G", label: "Flumet / St Nicolas la Chapelle" },
+          { value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G", label: "La Giettaz en Aravis" },
+          { value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G", label: "Notre Dame de Bellecombe" }
         ]
       },
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
-      },
-      cards: {
-        selector: null,
-        raw: "<option value=\"1\">1&nbsp;personne</option><option value=\"2\">2&nbsp;personnes</option><option value=\"3\">3&nbsp;personnes</option><option value=\"4\" selected=\"selected\">4&nbsp;personnes</option><option value=\"5\">5&nbsp;personnes</option><option value=\"6\">6&nbsp;personnes</option><option value=\"7\">7&nbsp;personnes</option><option value=\"8\">8&nbsp;personnes</option><option value=\"9\">9&nbsp;personnes</o"
-      },
-      title: {
-        selector: null,
-        raw: "</select>"
       }
     }
   },
@@ -849,186 +521,82 @@ export const CENTRALS: Central[] = [
     host: "reservation.valdarly-montblanc.com",
     controls: {
       station: {
-        selector: "select[name=\"criteres[]\"]",
+        selector: 'select[name="criteres[]"]',
         tag: "select",
         name: "criteres[]",
         options: [
-          {
-            value: "",
-            label: "Station Village"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G",
-            label: "Crest-Voland / Cohennoz"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G",
-            label: "Flumet / St Nicolas la Chapelle"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G",
-            label: "La Giettaz en Aravis"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G",
-            label: "Notre Dame de Bellecombe"
-          }
+          { value: "", label: "Station Village" },
+          { value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G", label: "Crest-Voland / Cohennoz" },
+          { value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G", label: "Flumet / St Nicolas la Chapelle" },
+          { value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G", label: "La Giettaz en Aravis" },
+          { value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G", label: "Notre Dame de Bellecombe" }
         ]
       },
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
-      },
-      cards: {
-        selector: null,
-        raw: "<option value=\"1\">1&nbsp;personne</option><option value=\"2\">2&nbsp;personnes</option><option value=\"3\">3&nbsp;personnes</option><option value=\"4\" selected=\"selected\">4&nbsp;personnes</option><option value=\"5\">5&nbsp;personnes</option><option value=\"6\">6&nbsp;personnes</option><option value=\"7\">7&nbsp;personnes</option><option value=\"8\">8&nbsp;personnes</option><option value=\"9\">9&nbsp;personnes</o"
-      },
-      title: {
-        selector: null,
-        raw: "</select>"
       }
     }
   },
@@ -1038,186 +606,82 @@ export const CENTRALS: Central[] = [
     host: "reservation.valdarly-montblanc.com",
     controls: {
       station: {
-        selector: "select[name=\"criteres[]\"]",
+        selector: 'select[name="criteres[]"]',
         tag: "select",
         name: "criteres[]",
         options: [
-          {
-            value: "",
-            label: "Station Village"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G",
-            label: "Crest-Voland / Cohennoz"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G",
-            label: "Flumet / St Nicolas la Chapelle"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G",
-            label: "La Giettaz en Aravis"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G",
-            label: "Notre Dame de Bellecombe"
-          }
+          { value: "", label: "Station Village" },
+          { value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G", label: "Crest-Voland / Cohennoz" },
+          { value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G", label: "Flumet / St Nicolas la Chapelle" },
+          { value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G", label: "La Giettaz en Aravis" },
+          { value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G", label: "Notre Dame de Bellecombe" }
         ]
       },
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
-      },
-      cards: {
-        selector: null,
-        raw: "<option value=\"1\">1&nbsp;personne</option><option value=\"2\">2&nbsp;personnes</option><option value=\"3\">3&nbsp;personnes</option><option value=\"4\" selected=\"selected\">4&nbsp;personnes</option><option value=\"5\">5&nbsp;personnes</option><option value=\"6\">6&nbsp;personnes</option><option value=\"7\">7&nbsp;personnes</option><option value=\"8\">8&nbsp;personnes</option><option value=\"9\">9&nbsp;personnes</o"
-      },
-      title: {
-        selector: null,
-        raw: "</select>"
       }
     }
   },
@@ -1227,186 +691,82 @@ export const CENTRALS: Central[] = [
     host: "reservation.valdarly-montblanc.com",
     controls: {
       station: {
-        selector: "select[name=\"criteres[]\"]",
+        selector: 'select[name="criteres[]"]',
         tag: "select",
         name: "criteres[]",
         options: [
-          {
-            value: "",
-            label: "Station Village"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G",
-            label: "Crest-Voland / Cohennoz"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G",
-            label: "Flumet / St Nicolas la Chapelle"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G",
-            label: "La Giettaz en Aravis"
-          },
-          {
-            value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G",
-            label: "Notre Dame de Bellecombe"
-          }
+          { value: "", label: "Station Village" },
+          { value: "LOCALISATIONVALDARLY|CRESTVOLANDCOHENNOZ|G", label: "Crest-Voland / Cohennoz" },
+          { value: "LOCALISATIONVALDARLY|FLUMETSTNICOLASLACHAPELLE|G", label: "Flumet / St Nicolas la Chapelle" },
+          { value: "LOCALISATIONVALDARLY|LAGIETTAZENARAVIS|G", label: "La Giettaz en Aravis" },
+          { value: "LOCALISATIONVALDARLY|NOTREDAMEDEBELLECOMBE|G", label: "Notre Dame de Bellecombe" }
         ]
       },
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
-      },
-      cards: {
-        selector: null,
-        raw: "<option value=\"1\">1&nbsp;personne</option><option value=\"2\">2&nbsp;personnes</option><option value=\"3\">3&nbsp;personnes</option><option value=\"4\" selected=\"selected\">4&nbsp;personnes</option><option value=\"5\">5&nbsp;personnes</option><option value=\"6\">6&nbsp;personnes</option><option value=\"7\">7&nbsp;personnes</option><option value=\"8\">8&nbsp;personnes</option><option value=\"9\">9&nbsp;personnes</o"
-      },
-      title: {
-        selector: null,
-        raw: "</select>"
       }
     }
   },
@@ -1416,91 +776,46 @@ export const CENTRALS: Central[] = [
     host: "reservation.haute-maurienne-vanoise.com",
     controls: {
       lodging: {
-        selector: "select[name=\"selectionpage\"]",
+        selector: 'select[name="selectionpage"]',
         tag: "select",
         name: "selectionpage",
         options: [
-          {
-            value: "56",
-            label: "Tous nos studios & appartements"
-          },
-          {
-            value: "110",
-            label: "Appartements de particuliers"
-          },
-          {
-            value: "140",
-            label: "Appartements en Résidences, Professionnels"
-          }
+          { value: "56", label: "Tous nos studios & appartements" },
+          { value: "110", label: "Appartements de particuliers" },
+          { value: "140", label: "Appartements en Résidences, Professionnels" }
         ]
       },
       checkIn: {
-        selector: "input[name=\"datearrivee\"]",
+        selector: 'input[name="datearrivee"]',
         tag: "input",
         name: "datearrivee",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       checkOut: {
-        selector: "input[name=\"datedepart\"]",
+        selector: 'input[name="datedepart"]',
         tag: "input",
         name: "datedepart",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       guests: {
-        selector: "select[name=\"nbpers\"]",
+        selector: 'select[name="nbpers"]',
         tag: "select",
         name: "nbpers",
         options: [
-          {
-            value: "1",
-            label: "Indifférent"
-          },
-          {
-            value: "1",
-            label: "1"
-          },
-          {
-            value: "2",
-            label: "2"
-          },
-          {
-            value: "3",
-            label: "3"
-          },
-          {
-            value: "4",
-            label: "4"
-          },
-          {
-            value: "5",
-            label: "5"
-          },
-          {
-            value: "6",
-            label: "6"
-          },
-          {
-            value: "7",
-            label: "7"
-          },
-          {
-            value: "8",
-            label: "8"
-          },
-          {
-            value: "9",
-            label: "9"
-          },
-          {
-            value: "10",
-            label: "10"
-          },
-          {
-            value: "12",
-            label: "12 personnes et +"
-          }
+          { value: "1", label: "Indifférent" },
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+          { value: "6", label: "6" },
+          { value: "7", label: "7" },
+          { value: "8", label: "8" },
+          { value: "9", label: "9" },
+          { value: "10", label: "10" },
+          { value: "12", label: "12 personnes et +" }
         ]
       },
       submit: {
@@ -1828,18 +1143,12 @@ export const CENTRALS: Central[] = [
     host: "reservation.larosiere.net",
     controls: {
       lodging: {
-        selector: "select[name=\"type_prestataire\"]",
+        selector: 'select[name="type_prestataire"]',
         tag: "select",
         name: "type_prestataire",
         options: [
-          {
-            value: "G",
-            label: "Appartement, Chalet, Résidence"
-          },
-          {
-            value: "H",
-            label: "Hôtel"
-          }
+          { value: "G", label: "Appartement, Chalet, Résidence" },
+          { value: "H", label: "Hôtel" }
         ]
       },
       checkIn: {
@@ -1855,12 +1164,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -1873,13 +1182,13 @@ export const CENTRALS: Central[] = [
     host: "www.karellis.com",
     controls: {
       checkIn: {
-        selector: "input[name=\"sqs_date_range_begin\"]",
+        selector: 'input[name="sqs_date_range_begin"]',
         tag: "input",
         name: "sqs_date_range_begin",
         type: "hidden"
       },
       checkOut: {
-        selector: "input[name=\"sqs_date_range_end\"]",
+        selector: 'input[name="sqs_date_range_end"]',
         tag: "input",
         name: "sqs_date_range_end",
         type: "hidden"
@@ -1901,145 +1210,61 @@ export const CENTRALS: Central[] = [
     host: "reservation.lessaisies.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Arrivée libre"
-          },
-          {
-            value: "NOEL",
-            label: "Noël, Jour de l'An"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Arrivée libre" },
+          { value: "NOEL", label: "Noël, Jour de l'An" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"adultes\"]",
+        selector: 'select[name="adultes"]',
         tag: "select",
         name: "adultes",
         options: [
-          {
-            value: "1",
-            label: "1 adulte"
-          },
-          {
-            value: "2",
-            label: "2 adultes"
-          },
-          {
-            value: "3",
-            label: "3 adultes"
-          },
-          {
-            value: "4",
-            label: "4 adultes"
-          },
-          {
-            value: "5",
-            label: "5 adultes"
-          },
-          {
-            value: "6",
-            label: "6 adultes"
-          },
-          {
-            value: "7",
-            label: "7 adultes"
-          },
-          {
-            value: "8",
-            label: "8 adultes"
-          },
-          {
-            value: "9",
-            label: "9 adultes"
-          },
-          {
-            value: "10",
-            label: "10 adultes"
-          },
-          {
-            value: "11",
-            label: "11 adultes"
-          },
-          {
-            value: "12",
-            label: "12 adultes"
-          },
-          {
-            value: "13",
-            label: "13 adultes"
-          },
-          {
-            value: "14",
-            label: "14 adultes"
-          },
-          {
-            value: "15",
-            label: "15 adultes"
-          },
-          {
-            value: "16",
-            label: "16 adultes"
-          },
-          {
-            value: "17",
-            label: "17 adultes"
-          },
-          {
-            value: "18",
-            label: "18 adultes"
-          },
-          {
-            value: "19",
-            label: "19 adultes"
-          },
-          {
-            value: "20",
-            label: "20 adultes"
-          }
+          { value: "1", label: "1 adulte" },
+          { value: "2", label: "2 adultes" },
+          { value: "3", label: "3 adultes" },
+          { value: "4", label: "4 adultes" },
+          { value: "5", label: "5 adultes" },
+          { value: "6", label: "6 adultes" },
+          { value: "7", label: "7 adultes" },
+          { value: "8", label: "8 adultes" },
+          { value: "9", label: "9 adultes" },
+          { value: "10", label: "10 adultes" },
+          { value: "11", label: "11 adultes" },
+          { value: "12", label: "12 adultes" },
+          { value: "13", label: "13 adultes" },
+          { value: "14", label: "14 adultes" },
+          { value: "15", label: "15 adultes" },
+          { value: "16", label: "16 adultes" },
+          { value: "17", label: "17 adultes" },
+          { value: "18", label: "18 adultes" },
+          { value: "19", label: "19 adultes" },
+          { value: "20", label: "20 adultes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -2052,14 +1277,14 @@ export const CENTRALS: Central[] = [
     host: "www.reservationpralognan.fr",
     controls: {
       checkIn: {
-        selector: "input[name=\"startDate\"]",
+        selector: 'input[name="startDate"]',
         tag: "input",
         name: "startDate",
         type: "text",
         placeholder: "Date d'arrivée"
       },
       checkOut: {
-        selector: "input[name=\"endDate\"]",
+        selector: 'input[name="endDate"]',
         tag: "input",
         name: "endDate",
         type: "text",
@@ -2123,12 +1348,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -2171,72 +1396,36 @@ export const CENTRALS: Central[] = [
     host: "reservation.haute-maurienne-vanoise.com",
     controls: {
       checkIn: {
-        selector: "input[name=\"datearrivee\"]",
+        selector: 'input[name="datearrivee"]',
         tag: "input",
         name: "datearrivee",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       checkOut: {
-        selector: "input[name=\"datedepart\"]",
+        selector: 'input[name="datedepart"]',
         tag: "input",
         name: "datedepart",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       guests: {
-        selector: "select[name=\"nbpers\"]",
+        selector: 'select[name="nbpers"]',
         tag: "select",
         name: "nbpers",
         options: [
-          {
-            value: "1",
-            label: "Indifférent"
-          },
-          {
-            value: "1",
-            label: "1"
-          },
-          {
-            value: "2",
-            label: "2"
-          },
-          {
-            value: "3",
-            label: "3"
-          },
-          {
-            value: "4",
-            label: "4"
-          },
-          {
-            value: "5",
-            label: "5"
-          },
-          {
-            value: "6",
-            label: "6"
-          },
-          {
-            value: "7",
-            label: "7"
-          },
-          {
-            value: "8",
-            label: "8"
-          },
-          {
-            value: "9",
-            label: "9"
-          },
-          {
-            value: "10",
-            label: "10"
-          },
-          {
-            value: "12",
-            label: "12 personnes et +"
-          }
+          { value: "1", label: "Indifférent" },
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+          { value: "6", label: "6" },
+          { value: "7", label: "7" },
+          { value: "8", label: "8" },
+          { value: "9", label: "9" },
+          { value: "10", label: "10" },
+          { value: "12", label: "12 personnes et +" }
         ]
       },
       submit: {
@@ -2252,105 +1441,51 @@ export const CENTRALS: Central[] = [
     host: "www.valloire.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et dates libres"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et dates libres" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11P",
-            label: "11 personnes et +"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11P", label: "11 personnes et +" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -2363,78 +1498,39 @@ export const CENTRALS: Central[] = [
     host: "www.valmeinier-reservation.com",
     controls: {
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          }
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -2450,66 +1546,21 @@ export const CENTRALS: Central[] = [
         selector: "select.geos",
         tag: "select",
         options: [
-          {
-            value: "0",
-            label: "Localisation"
-          },
-          {
-            value: "1",
-            label: "DOUCY"
-          },
-          {
-            value: "2",
-            label: "GRAND-AIGUEBLANCHE"
-          },
-          {
-            value: "3",
-            label: "VALMOREL"
-          },
-          {
-            value: "4",
-            label: "Crêve-coeur"
-          },
-          {
-            value: "5",
-            label: "Fontaine"
-          },
-          {
-            value: "6",
-            label: "La forêt"
-          },
-          {
-            value: "7",
-            label: "Le bois de la Croix"
-          },
-          {
-            value: "8",
-            label: "Le Bourg"
-          },
-          {
-            value: "9",
-            label: "Le Mottet"
-          },
-          {
-            value: "10",
-            label: "Planchamp"
-          },
-          {
-            value: "11",
-            label: "La Charmette"
-          },
-          {
-            value: "12",
-            label: "Le Crey"
-          },
-          {
-            value: "13",
-            label: "Le Pré"
-          },
-          {
-            value: "14",
-            label: "Les Avanchers"
-          }
+          { value: "0", label: "Localisation" },
+          { value: "1", label: "DOUCY" },
+          { value: "2", label: "GRAND-AIGUEBLANCHE" },
+          { value: "3", label: "VALMOREL" },
+          { value: "4", label: "Crêve-coeur" },
+          { value: "5", label: "Fontaine" },
+          { value: "6", label: "La forêt" },
+          { value: "7", label: "Le bois de la Croix" },
+          { value: "8", label: "Le Bourg" },
+          { value: "9", label: "Le Mottet" },
+          { value: "10", label: "Planchamp" },
+          { value: "11", label: "La Charmette" },
+          { value: "12", label: "Le Crey" },
+          { value: "13", label: "Le Pré" },
+          { value: "14", label: "Les Avanchers" }
         ]
       },
       checkIn: {
@@ -2526,66 +1577,21 @@ export const CENTRALS: Central[] = [
         selector: "select.OsFiltreCombo.OsFiltreSelNbAdulte",
         tag: "select",
         options: [
-          {
-            value: "1",
-            label: "1 adulte"
-          },
-          {
-            value: "2",
-            label: "2 adultes"
-          },
-          {
-            value: "3",
-            label: "3 adultes"
-          },
-          {
-            value: "4",
-            label: "4 adultes"
-          },
-          {
-            value: "5",
-            label: "5 adultes"
-          },
-          {
-            value: "6",
-            label: "6 adultes"
-          },
-          {
-            value: "7",
-            label: "7 adultes"
-          },
-          {
-            value: "8",
-            label: "8 adultes"
-          },
-          {
-            value: "9",
-            label: "9 adultes"
-          },
-          {
-            value: "10",
-            label: "10 adultes"
-          },
-          {
-            value: "11",
-            label: "11 adultes"
-          },
-          {
-            value: "12",
-            label: "12 adultes"
-          },
-          {
-            value: "13",
-            label: "13 adultes"
-          },
-          {
-            value: "14",
-            label: "14 adultes"
-          },
-          {
-            value: "15",
-            label: "15 adultes"
-          }
+          { value: "1", label: "1 adulte" },
+          { value: "2", label: "2 adultes" },
+          { value: "3", label: "3 adultes" },
+          { value: "4", label: "4 adultes" },
+          { value: "5", label: "5 adultes" },
+          { value: "6", label: "6 adultes" },
+          { value: "7", label: "7 adultes" },
+          { value: "8", label: "8 adultes" },
+          { value: "9", label: "9 adultes" },
+          { value: "10", label: "10 adultes" },
+          { value: "11", label: "11 adultes" },
+          { value: "12", label: "12 adultes" },
+          { value: "13", label: "13 adultes" },
+          { value: "14", label: "14 adultes" },
+          { value: "15", label: "15 adultes" }
         ]
       },
       submit: {
@@ -2602,12 +1608,12 @@ export const CENTRALS: Central[] = [
       checkIn: {
         selector: null,
         tag: "input",
-        raw: "<input placeholder=\"\" readonly=\"\" value=\"mar. 18 août\">"
+        raw: '<input placeholder="" readonly="" value="mar. 18 août">'
       },
       checkOut: {
         selector: null,
         tag: "input",
-        raw: "<input placeholder=\"\" readonly=\"\" value=\"mer. 19 août\">"
+        raw: '<input placeholder="" readonly="" value="mer. 19 août">'
       },
       guests: {
         selector: "div.elem-custom-input.close",
@@ -2626,13 +1632,13 @@ export const CENTRALS: Central[] = [
     host: "www.laclusaz.com",
     controls: {
       checkIn: {
-        selector: "input[name=\"dateFrom\"]",
+        selector: 'input[name="dateFrom"]',
         tag: "input",
         name: "dateFrom",
         type: "text"
       },
       checkOut: {
-        selector: "input[name=\"dateTo\"]",
+        selector: 'input[name="dateTo"]',
         tag: "input",
         name: "dateTo",
         type: "text"
@@ -2685,72 +1691,36 @@ export const CENTRALS: Central[] = [
     host: "reservation.haute-maurienne-vanoise.com",
     controls: {
       checkIn: {
-        selector: "input[name=\"datearrivee\"]",
+        selector: 'input[name="datearrivee"]',
         tag: "input",
         name: "datearrivee",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       checkOut: {
-        selector: "input[name=\"datedepart\"]",
+        selector: 'input[name="datedepart"]',
         tag: "input",
         name: "datedepart",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       guests: {
-        selector: "select[name=\"nbpers\"]",
+        selector: 'select[name="nbpers"]',
         tag: "select",
         name: "nbpers",
         options: [
-          {
-            value: "1",
-            label: "Indifférent"
-          },
-          {
-            value: "1",
-            label: "1"
-          },
-          {
-            value: "2",
-            label: "2"
-          },
-          {
-            value: "3",
-            label: "3"
-          },
-          {
-            value: "4",
-            label: "4"
-          },
-          {
-            value: "5",
-            label: "5"
-          },
-          {
-            value: "6",
-            label: "6"
-          },
-          {
-            value: "7",
-            label: "7"
-          },
-          {
-            value: "8",
-            label: "8"
-          },
-          {
-            value: "9",
-            label: "9"
-          },
-          {
-            value: "10",
-            label: "10"
-          },
-          {
-            value: "12",
-            label: "12 personnes et +"
-          }
+          { value: "1", label: "Indifférent" },
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+          { value: "6", label: "6" },
+          { value: "7", label: "7" },
+          { value: "8", label: "8" },
+          { value: "9", label: "9" },
+          { value: "10", label: "10" },
+          { value: "12", label: "12 personnes et +" }
         ]
       },
       submit: {
@@ -2766,72 +1736,36 @@ export const CENTRALS: Central[] = [
     host: "reservation.haute-maurienne-vanoise.com",
     controls: {
       checkIn: {
-        selector: "input[name=\"datearrivee\"]",
+        selector: 'input[name="datearrivee"]',
         tag: "input",
         name: "datearrivee",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       checkOut: {
-        selector: "input[name=\"datedepart\"]",
+        selector: 'input[name="datedepart"]',
         tag: "input",
         name: "datedepart",
         type: "text",
         placeholder: "jj/mm/aaaa"
       },
       guests: {
-        selector: "select[name=\"nbpers\"]",
+        selector: 'select[name="nbpers"]',
         tag: "select",
         name: "nbpers",
         options: [
-          {
-            value: "1",
-            label: "Indifférent"
-          },
-          {
-            value: "1",
-            label: "1"
-          },
-          {
-            value: "2",
-            label: "2"
-          },
-          {
-            value: "3",
-            label: "3"
-          },
-          {
-            value: "4",
-            label: "4"
-          },
-          {
-            value: "5",
-            label: "5"
-          },
-          {
-            value: "6",
-            label: "6"
-          },
-          {
-            value: "7",
-            label: "7"
-          },
-          {
-            value: "8",
-            label: "8"
-          },
-          {
-            value: "9",
-            label: "9"
-          },
-          {
-            value: "10",
-            label: "10"
-          },
-          {
-            value: "12",
-            label: "12 personnes et +"
-          }
+          { value: "1", label: "Indifférent" },
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" },
+          { value: "6", label: "6" },
+          { value: "7", label: "7" },
+          { value: "8", label: "8" },
+          { value: "9", label: "9" },
+          { value: "10", label: "10" },
+          { value: "12", label: "12 personnes et +" }
         ]
       },
       submit: {
@@ -2859,42 +1793,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
-        tag: "input",
-        name: "search",
-        type: "button"
-      }
-    }
-  },
-  {
-    station: "Saint Martin de Belleville",
-    url: "https://fr.locationsaintmartin.com/",
-    host: "fr.locationsaintmartin.com",
-    controls: {
-      checkIn: {
-        selector: "input.datepicker",
-        tag: "input",
-        type: "text",
-        placeholder: "Choisir une date"
-      },
-      checkOut: {
-        selector: "input.datepicker",
-        tag: "input",
-        type: "text",
-        placeholder: "Choisir une date"
-      },
-      guests: {
-        selector: "button[type=\"button\"]",
-        tag: "button",
-        type: "button"
-      },
-      submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -2919,12 +1823,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -2939,12 +1843,12 @@ export const CENTRALS: Central[] = [
       checkIn: {
         selector: null,
         tag: "input",
-        raw: "<input placeholder=\"\" readonly=\"\" value=\"sam. 22 août\">"
+        raw: '<input placeholder="" readonly="" value="sam. 22 août">'
       },
       checkOut: {
         selector: null,
         tag: "input",
-        raw: "<input placeholder=\"\" readonly=\"\" value=\"dim. 23 août\">"
+        raw: '<input placeholder="" readonly="" value="dim. 23 août">'
       },
       guests: {
         selector: "div.elem-custom-input.close",
@@ -2963,131 +1867,56 @@ export const CENTRALS: Central[] = [
     host: "reservation.valthorens.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date"
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          },
-          {
-            value: "35",
-            label: "5 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" },
+          { value: "35", label: "5 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          },
-          {
-            value: "19",
-            label: "19 personnes"
-          },
-          {
-            value: "20",
-            label: "20 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" },
+          { value: "19", label: "19 personnes" },
+          { value: "20", label: "20 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3113,75 +1942,26 @@ export const CENTRALS: Central[] = [
         selector: "select.OsFiltreCombo.OsFiltreSelNbAdulte",
         tag: "select",
         options: [
-          {
-            value: "1",
-            label: "1 adulte"
-          },
-          {
-            value: "2",
-            label: "2 adultes"
-          },
-          {
-            value: "3",
-            label: "3 adultes"
-          },
-          {
-            value: "4",
-            label: "4 adultes"
-          },
-          {
-            value: "5",
-            label: "5 adultes"
-          },
-          {
-            value: "6",
-            label: "6 adultes"
-          },
-          {
-            value: "7",
-            label: "7 adultes"
-          },
-          {
-            value: "8",
-            label: "8 adultes"
-          },
-          {
-            value: "9",
-            label: "9 adultes"
-          },
-          {
-            value: "10",
-            label: "10 adultes"
-          },
-          {
-            value: "11",
-            label: "11 adultes"
-          },
-          {
-            value: "12",
-            label: "12 adultes"
-          },
-          {
-            value: "13",
-            label: "13 adultes"
-          },
-          {
-            value: "14",
-            label: "14 adultes"
-          },
-          {
-            value: "15",
-            label: "15 adultes"
-          }
+          { value: "1", label: "1 adulte" },
+          { value: "2", label: "2 adultes" },
+          { value: "3", label: "3 adultes" },
+          { value: "4", label: "4 adultes" },
+          { value: "5", label: "5 adultes" },
+          { value: "6", label: "6 adultes" },
+          { value: "7", label: "7 adultes" },
+          { value: "8", label: "8 adultes" },
+          { value: "9", label: "9 adultes" },
+          { value: "10", label: "10 adultes" },
+          { value: "11", label: "11 adultes" },
+          { value: "12", label: "12 adultes" },
+          { value: "13", label: "13 adultes" },
+          { value: "14", label: "14 adultes" },
+          { value: "15", label: "15 adultes" }
         ]
       },
       submit: {
         selector: "a.OsFiltreBtnRecherche.OsBtnEnvoi",
         tag: "a"
-      },
-      link: {
-        selector: null,
-        raw: "<option id=\"type_date_SS\" value=\"SS\" selected=\"selected\">Du samedi au samedi</option><option id=\"type_date_DD\" value=\"DD\">Du dimanche au dimanche</option><option id=\"type_date_LL\" value=\"LL\">Dates libres</option>                                    </select>"
       }
     }
   },
@@ -3204,66 +1984,21 @@ export const CENTRALS: Central[] = [
         selector: "select.OsFiltreCombo.OsFiltreSelNbAdulte",
         tag: "select",
         options: [
-          {
-            value: "1",
-            label: "1 adulte"
-          },
-          {
-            value: "2",
-            label: "2 adultes"
-          },
-          {
-            value: "3",
-            label: "3 adultes"
-          },
-          {
-            value: "4",
-            label: "4 adultes"
-          },
-          {
-            value: "5",
-            label: "5 adultes"
-          },
-          {
-            value: "6",
-            label: "6 adultes"
-          },
-          {
-            value: "7",
-            label: "7 adultes"
-          },
-          {
-            value: "8",
-            label: "8 adultes"
-          },
-          {
-            value: "9",
-            label: "9 adultes"
-          },
-          {
-            value: "10",
-            label: "10 adultes"
-          },
-          {
-            value: "11",
-            label: "11 adultes"
-          },
-          {
-            value: "12",
-            label: "12 adultes"
-          },
-          {
-            value: "13",
-            label: "13 adultes"
-          },
-          {
-            value: "14",
-            label: "14 adultes"
-          },
-          {
-            value: "15",
-            label: "15 adultes"
-          }
+          { value: "1", label: "1 adulte" },
+          { value: "2", label: "2 adultes" },
+          { value: "3", label: "3 adultes" },
+          { value: "4", label: "4 adultes" },
+          { value: "5", label: "5 adultes" },
+          { value: "6", label: "6 adultes" },
+          { value: "7", label: "7 adultes" },
+          { value: "8", label: "8 adultes" },
+          { value: "9", label: "9 adultes" },
+          { value: "10", label: "10 adultes" },
+          { value: "11", label: "11 adultes" },
+          { value: "12", label: "12 adultes" },
+          { value: "13", label: "13 adultes" },
+          { value: "14", label: "14 adultes" },
+          { value: "15", label: "15 adultes" }
         ]
       },
       submit: {
@@ -3294,12 +2029,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3324,12 +2059,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3354,54 +2089,24 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11P",
-            label: "11 personnes et +"
-          }
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11P", label: "11 personnes et +" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3435,113 +2140,53 @@ export const CENTRALS: Central[] = [
     host: "www.chamrousse.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Autres dates"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Autres dates" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "16", label: "16 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3554,129 +2199,57 @@ export const CENTRALS: Central[] = [
     host: "reservation.lecollet.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          },
-          {
-            value: "35",
-            label: "5 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" },
+          { value: "35", label: "5 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"adultes\"]",
+        selector: 'select[name="adultes"]',
         tag: "select",
         name: "adultes",
         options: [
-          {
-            value: "1",
-            label: "1 adulte"
-          },
-          {
-            value: "2",
-            label: "2 adultes"
-          },
-          {
-            value: "3",
-            label: "3 adultes"
-          },
-          {
-            value: "4",
-            label: "4 adultes"
-          },
-          {
-            value: "5",
-            label: "5 adultes"
-          },
-          {
-            value: "6",
-            label: "6 adultes"
-          },
-          {
-            value: "7",
-            label: "7 adultes"
-          },
-          {
-            value: "8",
-            label: "8 adultes"
-          },
-          {
-            value: "9",
-            label: "9 adultes"
-          },
-          {
-            value: "10",
-            label: "10 adultes"
-          },
-          {
-            value: "11",
-            label: "11 adultes"
-          },
-          {
-            value: "12",
-            label: "12 adultes"
-          },
-          {
-            value: "13",
-            label: "13 adultes"
-          },
-          {
-            value: "14",
-            label: "14 adultes"
-          },
-          {
-            value: "15",
-            label: "15 adultes"
-          },
-          {
-            value: "16",
-            label: "16 adultes"
-          }
+          { value: "1", label: "1 adulte" },
+          { value: "2", label: "2 adultes" },
+          { value: "3", label: "3 adultes" },
+          { value: "4", label: "4 adultes" },
+          { value: "5", label: "5 adultes" },
+          { value: "6", label: "6 adultes" },
+          { value: "7", label: "7 adultes" },
+          { value: "8", label: "8 adultes" },
+          { value: "9", label: "9 adultes" },
+          { value: "10", label: "10 adultes" },
+          { value: "11", label: "11 adultes" },
+          { value: "12", label: "12 adultes" },
+          { value: "13", label: "13 adultes" },
+          { value: "14", label: "14 adultes" },
+          { value: "15", label: "15 adultes" },
+          { value: "16", label: "16 adultes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3687,9 +2260,8 @@ export const CENTRALS: Central[] = [
     station: "Isola 2000",
     url: "https://isola2000.com/reservez-votre-sejour/#/lodgings",
     host: "isola2000.com",
-    controls: {
-
-    }
+    controls: {},
+    notes: "Formulaire SPA / non inspecté — contrôles vides"
   },
   {
     station: "Dévoluy",
@@ -3710,66 +2282,21 @@ export const CENTRALS: Central[] = [
         selector: "select.OsFiltreCombo.OsFiltreSelNbAdulte",
         tag: "select",
         options: [
-          {
-            value: "1",
-            label: "1 adulte"
-          },
-          {
-            value: "2",
-            label: "2 adultes"
-          },
-          {
-            value: "3",
-            label: "3 adultes"
-          },
-          {
-            value: "4",
-            label: "4 adultes"
-          },
-          {
-            value: "5",
-            label: "5 adultes"
-          },
-          {
-            value: "6",
-            label: "6 adultes"
-          },
-          {
-            value: "7",
-            label: "7 adultes"
-          },
-          {
-            value: "8",
-            label: "8 adultes"
-          },
-          {
-            value: "9",
-            label: "9 adultes"
-          },
-          {
-            value: "10",
-            label: "10 adultes"
-          },
-          {
-            value: "11",
-            label: "11 adultes"
-          },
-          {
-            value: "12",
-            label: "12 adultes"
-          },
-          {
-            value: "13",
-            label: "13 adultes"
-          },
-          {
-            value: "14",
-            label: "14 adultes"
-          },
-          {
-            value: "15",
-            label: "15 adultes"
-          }
+          { value: "1", label: "1 adulte" },
+          { value: "2", label: "2 adultes" },
+          { value: "3", label: "3 adultes" },
+          { value: "4", label: "4 adultes" },
+          { value: "5", label: "5 adultes" },
+          { value: "6", label: "6 adultes" },
+          { value: "7", label: "7 adultes" },
+          { value: "8", label: "8 adultes" },
+          { value: "9", label: "9 adultes" },
+          { value: "10", label: "10 adultes" },
+          { value: "11", label: "11 adultes" },
+          { value: "12", label: "12 adultes" },
+          { value: "13", label: "13 adultes" },
+          { value: "14", label: "14 adultes" },
+          { value: "15", label: "15 adultes" }
         ]
       },
       submit: {
@@ -3796,12 +2323,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3814,137 +2341,59 @@ export const CENTRALS: Central[] = [
     host: "www.risoul.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "LL",
-            label: "Weekends, courts séjours, Autres Dates"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "LL", label: "Weekends, courts séjours, Autres Dates" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          },
-          {
-            value: "16",
-            label: "16 personnes"
-          },
-          {
-            value: "17",
-            label: "17 personnes"
-          },
-          {
-            value: "18",
-            label: "18 personnes"
-          },
-          {
-            value: "19",
-            label: "19 personnes"
-          },
-          {
-            value: "20",
-            label: "20 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" },
+          { value: "16", label: "16 personnes" },
+          { value: "17", label: "17 personnes" },
+          { value: "18", label: "18 personnes" },
+          { value: "19", label: "19 personnes" },
+          { value: "20", label: "20 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -3957,19 +2406,19 @@ export const CENTRALS: Central[] = [
     host: "www.alpes-sudlocations.com",
     controls: {
       checkIn: {
-        selector: "input[name=\"FieldDate\"]",
+        selector: 'input[name="FieldDate"]',
         tag: "input",
         name: "FieldDate",
         type: "text",
         placeholder: "Date"
       },
       duration: {
-        selector: "select[name=\"FieldDuration\"]",
+        selector: 'select[name="FieldDuration"]',
         tag: "select",
         name: "FieldDuration"
       },
       guests: {
-        selector: "input[name=\"tbResumeCapa\"]",
+        selector: 'input[name="tbResumeCapa"]',
         tag: "input",
         name: "tbResumeCapa",
         type: "text"
@@ -3978,10 +2427,6 @@ export const CENTRALS: Central[] = [
         selector: "button#BtnLaunchBooking",
         tag: "button",
         type: "button"
-      },
-      link: {
-        selector: null,
-        raw: "<option id=\"type_date_SS\" value=\"SS\" selected=\"selected\">Du samedi au samedi</option><option id=\"type_date_LL\" value=\"LL\">Weekends, courts séjours, Autres Dates</option>                                    </select>"
       }
     }
   },
@@ -3989,9 +2434,8 @@ export const CENTRALS: Central[] = [
     station: "Valberg",
     url: "https://www.valberg.com/sejourner/reserver-votre-sejour/#/lodgings",
     host: "www.valberg.com",
-    controls: {
-
-    }
+    controls: {},
+    notes: "Formulaire SPA / non inspecté — contrôles vides"
   },
   {
     station: "Les Orres",
@@ -4011,12 +2455,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -4032,18 +2476,9 @@ export const CENTRALS: Central[] = [
         selector: "select.geos",
         tag: "select",
         options: [
-          {
-            value: "0",
-            label: "Sélectionner une localisation"
-          },
-          {
-            value: "1",
-            label: "Montgenèvre"
-          },
-          {
-            value: "2",
-            label: "Les Alberts"
-          }
+          { value: "0", label: "Sélectionner une localisation" },
+          { value: "1", label: "Montgenèvre" },
+          { value: "2", label: "Les Alberts" }
         ]
       },
       checkIn: {
@@ -4071,18 +2506,9 @@ export const CENTRALS: Central[] = [
         selector: "select.geos",
         tag: "select",
         options: [
-          {
-            value: "0",
-            label: "Sélectionner une localisation"
-          },
-          {
-            value: "1",
-            label: "Montgenèvre"
-          },
-          {
-            value: "2",
-            label: "Les Alberts"
-          }
+          { value: "0", label: "Sélectionner une localisation" },
+          { value: "1", label: "Montgenèvre" },
+          { value: "2", label: "Les Alberts" }
         ]
       },
       checkIn: {
@@ -4105,9 +2531,8 @@ export const CENTRALS: Central[] = [
     station: "Puy-Saint-Vincent",
     url: "https://www.paysdesecrins.com/hebergements/#/lodgings",
     host: "www.paysdesecrins.com",
-    controls: {
-
-    }
+    controls: {},
+    notes: "Formulaire SPA / non inspecté — contrôles vides"
   },
   {
     station: "Serre-Chevalier",
@@ -4127,12 +2552,12 @@ export const CENTRALS: Central[] = [
         placeholder: "Choisir une date"
       },
       guests: {
-        selector: "button[type=\"button\"]",
+        selector: 'button[type="button"]',
         tag: "button",
         type: "button"
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -4145,89 +2570,47 @@ export const CENTRALS: Central[] = [
     host: "www.valdallos.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8P",
-            label: "8 personnes et +"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8P", label: "8 personnes et +" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -4240,89 +2623,47 @@ export const CENTRALS: Central[] = [
     host: "www.valdallos.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8P",
-            label: "8 personnes et +"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8P", label: "8 personnes et +" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -4338,56 +2679,23 @@ export const CENTRALS: Central[] = [
         selector: "select.geos",
         tag: "select",
         options: [
-          {
-            value: "0",
-            label: "Indifférent"
-          },
-          {
-            value: "1",
-            label: "Station Ax 3 Domaines"
-          },
-          {
-            value: "2",
-            label: "Village d'Ax-les-Thermes"
-          },
-          {
-            value: "3",
-            label: "Pyrénées Ariègoises"
-          }
+          { value: "0", label: "Indifférent" },
+          { value: "1", label: "Station Ax 3 Domaines" },
+          { value: "2", label: "Village d'Ax-les-Thermes" },
+          { value: "3", label: "Pyrénées Ariègoises" }
         ]
       },
       lodging: {
         selector: "select#SelectMoteur",
         tag: "select",
         options: [
-          {
-            value: "8269",
-            label: "Tous les hébergements"
-          },
-          {
-            value: "8270",
-            label: "Hôtels"
-          },
-          {
-            value: "8271",
-            label: "Campings"
-          },
-          {
-            value: "8272",
-            label: "Location de vacances"
-          },
-          {
-            value: "8273",
-            label: "Villages vacances"
-          },
-          {
-            value: "8274",
-            label: "Résidences de Tourisme"
-          },
-          {
-            value: "https://www.ax.ski/fr/forfaits-de-ski",
-            label: "Forfaits de ski"
-          }
+          { value: "8269", label: "Tous les hébergements" },
+          { value: "8270", label: "Hôtels" },
+          { value: "8271", label: "Campings" },
+          { value: "8272", label: "Location de vacances" },
+          { value: "8273", label: "Villages vacances" },
+          { value: "8274", label: "Résidences de Tourisme" },
+          { value: "https://www.ax.ski/fr/forfaits-de-ski", label: "Forfaits de ski" }
         ]
       },
       checkIn: {
@@ -4438,9 +2746,8 @@ export const CENTRALS: Central[] = [
     station: "Les Angles",
     url: "https://lesangles.com/offres-hebergements/",
     host: "lesangles.com",
-    controls: {
-
-    }
+    controls: {},
+    notes: "Formulaire SPA / non inspecté — contrôles vides"
   },
   {
     station: "Saint Lary",
@@ -4448,117 +2755,54 @@ export const CENTRALS: Central[] = [
     host: "resa.saintlary.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "NOEL",
-            label: "Cures thermales"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "NOEL", label: "Cures thermales" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"adultes\"]",
+        selector: 'select[name="adultes"]',
         tag: "select",
         name: "adultes",
         options: [
-          {
-            value: "1",
-            label: "1 adulte"
-          },
-          {
-            value: "2",
-            label: "2 adultes"
-          },
-          {
-            value: "3",
-            label: "3 adultes"
-          },
-          {
-            value: "4",
-            label: "4 adultes"
-          },
-          {
-            value: "5",
-            label: "5 adultes"
-          },
-          {
-            value: "6",
-            label: "6 adultes"
-          },
-          {
-            value: "7",
-            label: "7 adultes"
-          },
-          {
-            value: "8",
-            label: "8 adultes"
-          },
-          {
-            value: "9",
-            label: "9 adultes"
-          },
-          {
-            value: "10",
-            label: "10 adultes"
-          },
-          {
-            value: "11",
-            label: "11 adultes"
-          },
-          {
-            value: "12",
-            label: "12 adultes"
-          },
-          {
-            value: "13",
-            label: "13 adultes"
-          },
-          {
-            value: "14",
-            label: "14 adultes"
-          }
+          { value: "1", label: "1 adulte" },
+          { value: "2", label: "2 adultes" },
+          { value: "3", label: "3 adultes" },
+          { value: "4", label: "4 adultes" },
+          { value: "5", label: "5 adultes" },
+          { value: "6", label: "6 adultes" },
+          { value: "7", label: "7 adultes" },
+          { value: "8", label: "8 adultes" },
+          { value: "9", label: "9 adultes" },
+          { value: "10", label: "10 adultes" },
+          { value: "11", label: "11 adultes" },
+          { value: "12", label: "12 adultes" },
+          { value: "13", label: "13 adultes" },
+          { value: "14", label: "14 adultes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -4615,19 +2859,19 @@ export const CENTRALS: Central[] = [
     host: "www.labresse.net",
     controls: {
       checkIn: {
-        selector: "input[name=\"opensystem_du\"]",
+        selector: 'input[name="opensystem_du"]',
         tag: "input",
         name: "opensystem_du",
         type: "text"
       },
       checkOut: {
-        selector: "input[name=\"opensystem_au\"]",
+        selector: 'input[name="opensystem_au"]',
         tag: "input",
         name: "opensystem_au",
         type: "text"
       },
       guests: {
-        selector: "input[name=\"opensystem_nbpers\"]",
+        selector: 'input[name="opensystem_nbpers"]',
         tag: "input",
         name: "opensystem_nbpers",
         type: "number"
@@ -4645,121 +2889,55 @@ export const CENTRALS: Central[] = [
     host: "www.ballons-hautes-vosges.com",
     controls: {
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "DD",
-            label: "Du dimanche au dimanche"
-          },
-          {
-            value: "LL",
-            label: "Autres dates"
-          },
-          {
-            value: "NOEL",
-            label: "Noël et Nouvel An"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "DD", label: "Du dimanche au dimanche" },
+          { value: "LL", label: "Autres dates" },
+          { value: "NOEL", label: "Noël et Nouvel An" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"adultes\"]",
+        selector: 'select[name="adultes"]',
         tag: "select",
         name: "adultes",
         options: [
-          {
-            value: "1",
-            label: "1 adulte (+ de 18ans)"
-          },
-          {
-            value: "2",
-            label: "2 adultes (+ de 18ans)"
-          },
-          {
-            value: "3",
-            label: "3 adultes (+ de 18ans)"
-          },
-          {
-            value: "4",
-            label: "4 adultes (+ de 18ans)"
-          },
-          {
-            value: "5",
-            label: "5 adultes (+ de 18ans)"
-          },
-          {
-            value: "6",
-            label: "6 adultes (+ de 18ans)"
-          },
-          {
-            value: "7",
-            label: "7 adultes (+ de 18ans)"
-          },
-          {
-            value: "8",
-            label: "8 adultes (+ de 18ans)"
-          },
-          {
-            value: "9",
-            label: "9 adultes (+ de 18ans)"
-          },
-          {
-            value: "10",
-            label: "10 adultes (+ de 18ans)"
-          },
-          {
-            value: "11",
-            label: "11 adultes (+ de 18ans)"
-          },
-          {
-            value: "12",
-            label: "12 adultes (+ de 18ans)"
-          },
-          {
-            value: "13",
-            label: "13 adultes (+ de 18ans)"
-          },
-          {
-            value: "14",
-            label: "14 adultes (+ de 18ans)"
-          }
+          { value: "1", label: "1 adulte (+ de 18ans)" },
+          { value: "2", label: "2 adultes (+ de 18ans)" },
+          { value: "3", label: "3 adultes (+ de 18ans)" },
+          { value: "4", label: "4 adultes (+ de 18ans)" },
+          { value: "5", label: "5 adultes (+ de 18ans)" },
+          { value: "6", label: "6 adultes (+ de 18ans)" },
+          { value: "7", label: "7 adultes (+ de 18ans)" },
+          { value: "8", label: "8 adultes (+ de 18ans)" },
+          { value: "9", label: "9 adultes (+ de 18ans)" },
+          { value: "10", label: "10 adultes (+ de 18ans)" },
+          { value: "11", label: "11 adultes (+ de 18ans)" },
+          { value: "12", label: "12 adultes (+ de 18ans)" },
+          { value: "13", label: "13 adultes (+ de 18ans)" },
+          { value: "14", label: "14 adultes (+ de 18ans)" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
@@ -4772,141 +2950,246 @@ export const CENTRALS: Central[] = [
     host: "www.gerardmer-reservation.net",
     controls: {
       station: {
-        selector: "select[name=\"criteres[]\"]",
+        selector: 'select[name="criteres[]"]',
         tag: "select",
         name: "criteres[]",
         options: [
-          {
-            value: "",
-            label: "Toutes les Hautes-Vosges"
-          },
-          {
-            value: "GGERARDMER|GERARDMERSEUL|G",
-            label: "Gérardmer"
-          },
-          {
-            value: "GGERARDMER|GERARDMER|G",
-            label: "Gérardmer & Environ"
-          }
+          { value: "", label: "Toutes les Hautes-Vosges" },
+          { value: "GGERARDMER|GERARDMERSEUL|G", label: "Gérardmer" },
+          { value: "GGERARDMER|GERARDMER|G", label: "Gérardmer & Environ" }
         ]
       },
       stayType: {
-        selector: "select[name=\"type_date\"]",
+        selector: 'select[name="type_date"]',
         tag: "select",
         name: "type_date",
         options: [
-          {
-            value: "SS",
-            label: "Du samedi au samedi"
-          },
-          {
-            value: "LL",
-            label: "Week-end et court séjour"
-          }
+          { value: "SS", label: "Du samedi au samedi" },
+          { value: "LL", label: "Week-end et court séjour" }
         ]
       },
       checkIn: {
-        selector: "select[name=\"datedeb\"]",
+        selector: 'select[name="datedeb"]',
         tag: "select",
         name: "datedeb"
       },
       duration: {
-        selector: "select[name=\"duree\"]",
+        selector: 'select[name="duree"]',
         tag: "select",
         name: "duree",
         options: [
-          {
-            value: "7",
-            label: "1 semaine"
-          },
-          {
-            value: "14",
-            label: "2 semaines"
-          },
-          {
-            value: "21",
-            label: "3 semaines"
-          },
-          {
-            value: "28",
-            label: "4 semaines"
-          }
+          { value: "7", label: "1 semaine" },
+          { value: "14", label: "2 semaines" },
+          { value: "21", label: "3 semaines" },
+          { value: "28", label: "4 semaines" }
         ]
       },
       guests: {
-        selector: "select[name=\"personnes\"]",
+        selector: 'select[name="personnes"]',
         tag: "select",
         name: "personnes",
         options: [
-          {
-            value: "1",
-            label: "1 personne"
-          },
-          {
-            value: "2",
-            label: "2 personnes"
-          },
-          {
-            value: "3",
-            label: "3 personnes"
-          },
-          {
-            value: "4",
-            label: "4 personnes"
-          },
-          {
-            value: "5",
-            label: "5 personnes"
-          },
-          {
-            value: "6",
-            label: "6 personnes"
-          },
-          {
-            value: "7",
-            label: "7 personnes"
-          },
-          {
-            value: "8",
-            label: "8 personnes"
-          },
-          {
-            value: "9",
-            label: "9 personnes"
-          },
-          {
-            value: "10",
-            label: "10 personnes"
-          },
-          {
-            value: "11",
-            label: "11 personnes"
-          },
-          {
-            value: "12",
-            label: "12 personnes"
-          },
-          {
-            value: "13",
-            label: "13 personnes"
-          },
-          {
-            value: "14",
-            label: "14 personnes"
-          },
-          {
-            value: "15",
-            label: "15 personnes"
-          }
+          { value: "1", label: "1 personne" },
+          { value: "2", label: "2 personnes" },
+          { value: "3", label: "3 personnes" },
+          { value: "4", label: "4 personnes" },
+          { value: "5", label: "5 personnes" },
+          { value: "6", label: "6 personnes" },
+          { value: "7", label: "7 personnes" },
+          { value: "8", label: "8 personnes" },
+          { value: "9", label: "9 personnes" },
+          { value: "10", label: "10 personnes" },
+          { value: "11", label: "11 personnes" },
+          { value: "12", label: "12 personnes" },
+          { value: "13", label: "13 personnes" },
+          { value: "14", label: "14 personnes" },
+          { value: "15", label: "15 personnes" }
         ]
       },
       submit: {
-        selector: "input[name=\"search\"]",
+        selector: 'input[name="search"]',
         tag: "input",
         name: "search",
         type: "button"
       }
     }
+  },
+
+  // ---------------------------------------------------------------------------
+  // OTA — plateformes globales (recherche par localisation)
+  // ---------------------------------------------------------------------------
+
+  {
+    station: "Airbnb",
+    url: "https://www.airbnb.fr/",
+    host: "www.airbnb.fr",
+    kind: "ota",
+    controls: {
+      location: {
+        selector: 'input[data-testid="structured-search-input-field-query"]',
+        tag: "input",
+        testId: "structured-search-input-field-query",
+        placeholder: "Rechercher une destination"
+      },
+      checkIn: {
+        selector: 'div[data-testid="structured-search-input-field-split-dates-0"]',
+        tag: "div",
+        testId: "structured-search-input-field-split-dates-0"
+      },
+      checkOut: {
+        selector: 'div[data-testid="structured-search-input-field-split-dates-1"]',
+        tag: "div",
+        testId: "structured-search-input-field-split-dates-1"
+      },
+      guests: {
+        selector: 'div[data-testid="structured-search-input-field-guests-button"]',
+        tag: "div",
+        testId: "structured-search-input-field-guests-button"
+      },
+      adults: {
+        selector: 'button[data-testid="stepper-adults-increase-button"]',
+        tag: "button",
+        testId: "stepper-adults-increase-button"
+      },
+      children: {
+        selector: 'button[data-testid="stepper-children-increase-button"]',
+        tag: "button",
+        testId: "stepper-children-increase-button"
+      },
+      infants: {
+        selector: 'button[data-testid="stepper-infants-increase-button"]',
+        tag: "button",
+        testId: "stepper-infants-increase-button"
+      },
+      pets: {
+        selector: 'button[data-testid="stepper-pets-increase-button"]',
+        tag: "button",
+        testId: "stepper-pets-increase-button"
+      },
+      submit: {
+        selector: 'button[data-testid="structured-search-input-search-button"]',
+        tag: "button",
+        testId: "structured-search-input-search-button"
+      },
+      // Sélecteurs résultats (à valider / mettre à jour via recon)
+      cards: {
+        selector: 'div[data-testid="card-container"]',
+        tag: "div",
+        testId: "card-container"
+      },
+      title: {
+        selector: 'div[data-testid="listing-card-title"]',
+        tag: "div",
+        testId: "listing-card-title"
+      },
+      price: {
+        selector: 'span[data-testid="price-availability-row"]',
+        tag: "span",
+        testId: "price-availability-row"
+      },
+      link: {
+        selector: 'a[data-testid="card-link"]',
+        tag: "a",
+        testId: "card-link"
+      }
+    },
+    antiBot: {
+      level: "high",
+      preferBrowser: true,
+      requireResidentialProxy: true,
+      minDelayMs: 12_000,
+      maxDelayMs: 28_000,
+      maxConcurrency: 1,
+      cooldownOnChallengeMs: 900_000,
+      maxConsecutiveFailures: 2
+    },
+    notes:
+      "OTA globale. Rechercher avec le nom de la station + pays (ex. « Chamonix, France »). " +
+      "Sélecteurs data-testid relativement stables mais sujets à changement. " +
+      "Anti-bot fort (Cloudflare, fingerprint, CAPTCHA). Rate-limit strict. " +
+      "Préférer l’API officielle / partenaire si volume important. " +
+      "URL de recherche type : https://www.airbnb.fr/s/{query}/homes?checkin=YYYY-MM-DD&checkout=YYYY-MM-DD&adults=N"
+  },
+  {
+    station: "Booking.com",
+    url: "https://www.booking.com/",
+    host: "www.booking.com",
+    kind: "ota",
+    controls: {
+      location: {
+        selector: 'input[name="ss"]',
+        tag: "input",
+        name: "ss",
+        placeholder: "Où allez-vous ?"
+      },
+      checkIn: {
+        selector: 'button[data-testid="date-display-field-start"]',
+        tag: "button",
+        testId: "date-display-field-start"
+      },
+      checkOut: {
+        selector: 'button[data-testid="date-display-field-end"]',
+        tag: "button",
+        testId: "date-display-field-end"
+      },
+      guests: {
+        selector: 'button[data-testid="occupancy-config"]',
+        tag: "button",
+        testId: "occupancy-config"
+      },
+      adults: {
+        selector: 'button[data-testid="occupancy-popup"] input[name="adults"]',
+        tag: "input",
+        name: "adults"
+      },
+      children: {
+        selector: 'button[data-testid="occupancy-popup"] input[name="children"]',
+        tag: "input",
+        name: "children"
+      },
+      submit: {
+        selector: 'button[type="submit"][class*="submit"]',
+        tag: "button",
+        type: "submit"
+      },
+      // Sélecteurs résultats (à valider / mettre à jour via recon)
+      cards: {
+        selector: 'div[data-testid="property-card"]',
+        tag: "div",
+        testId: "property-card"
+      },
+      title: {
+        selector: 'div[data-testid="title"]',
+        tag: "div",
+        testId: "title"
+      },
+      price: {
+        selector: 'span[data-testid="price-and-discounted-price"]',
+        tag: "span",
+        testId: "price-and-discounted-price"
+      },
+      link: {
+        selector: 'a[data-testid="title-link"]',
+        tag: "a",
+        testId: "title-link"
+      }
+    },
+    antiBot: {
+      level: "high",
+      preferBrowser: true,
+      requireResidentialProxy: true,
+      minDelayMs: 10_000,
+      maxDelayMs: 22_000,
+      maxConcurrency: 1,
+      cooldownOnChallengeMs: 900_000,
+      maxConsecutiveFailures: 2
+    },
+    notes:
+      "OTA globale. Rechercher avec le nom de la station (ex. « Les 2 Alpes »). " +
+      "Sélecteurs data-testid / name relativement stables. " +
+      "Anti-bot fort (Cloudflare, fingerprint). Respecter robots.txt et rate-limit. " +
+      "API partenaire Booking.com recommandée pour un usage intensif. " +
+      "URL de recherche type : https://www.booking.com/searchresults.fr.html?ss={query}&checkin=YYYY-MM-DD&checkout=YYYY-MM-DD&group_adults=N&no_rooms=1"
   }
 ]
 
@@ -4940,8 +3223,10 @@ export const CENTRAL_HOSTS: string[] = [
   "reservation.valdisere.com",
   "reservation.valthorens.com",
   "reservations.meribel.net",
+  "www.airbnb.fr",
   "www.alpes-sudlocations.com",
   "www.ballons-hautes-vosges.com",
+  "www.booking.com",
   "www.chamrousse.com",
   "www.gerardmer-reservation.net",
   "www.karellis.com",
@@ -4963,3 +3248,14 @@ export const CENTRAL_HOSTS: string[] = [
   "www.valmeinier-reservation.com",
   "www.valmorel.com"
 ]
+
+/** Hosts des OTA (Airbnb, Booking…). */
+export const OTA_HOSTS: string[] = ["www.airbnb.fr", "www.booking.com"]
+
+/** Toutes les entrées de type OTA. */
+export const OTAS: Central[] = CENTRALS.filter((c) => c.kind === "ota")
+
+/** Toutes les entrées de type centrale locale. */
+export const LOCAL_CENTRALS: Central[] = CENTRALS.filter(
+  (c) => c.kind !== "ota"
+)

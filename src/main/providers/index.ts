@@ -27,6 +27,8 @@ import { createBookingWebProvider } from './webscrape'
 import { BookingProvider, resolveBookingCredentials } from './booking/booking'
 import { createStationProvider } from './station/station'
 import { createCetoChamonixProvider } from './ceto/chamonix'
+import { createCetoMeribelProvider } from './ceto/meribel'
+import { createCetoPlagneProvider } from './ceto/plagne'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -76,6 +78,9 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     // Orchestra / Ceto — Chamonix (hors Ingénie). Actif seulement si
     // officialUrl pointe vers booking.chamonix.com.
     next.register(createCetoChamonixProvider())
+    next.register(createCetoMeribelProvider())
+    next.register(createCetoPlagneProvider())
+    next.register(createCetoMegeveProvider())
   }
 
   // Airbnb n'est pas un connecteur : il n'interroge rien. Voir airbnb/airbnb.ts.
@@ -166,9 +171,15 @@ function keepInZone(outcomes: ProviderOutcome[], params: SearchParams): Provider
 export async function aggregateResults(
   engine: SearchEngine,
   params: SearchParams,
-  only?: string[]
+  only?: string[],
+  onOutcome?: (outcome: ProviderOutcome) => void
 ): Promise<AggregateResult> {
-  const report = await engine.search(params, only)
+  const report = await engine.search(params, only, (raw) => {
+    if (!onOutcome) return
+    // Même filet de zone que le résultat final, appliqué source par source.
+    const [filtered] = keepInZone([raw], params)
+    onOutcome(filtered)
+  })
   const outcomes = keepInZone(report.outcomes, params)
 
   /** Prix comparable d'une offre, `null` si la source n'en donne pas d'exploitable. */

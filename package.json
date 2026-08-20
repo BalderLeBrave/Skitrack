@@ -1,7 +1,7 @@
 {
   "name": "skitrack",
   "version": "0.1.0",
-  "description": "Recherche et comparaison de locations de vacances au ski, par domaine skiable et altitude réelle des pistes.",
+  "description": "Recherche et comparaison de locations de vacances au ski, par domaine skiable et altitude r\u00e9elle des pistes.",
   "private": true,
   "type": "module",
   "main": "./out/main/index.js",
@@ -36,7 +36,11 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json",
     "i18n:test": "esbuild src/renderer/src/i18n/catalog.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/i18n-test.mjs --log-level=error && node node_modules/.cache/i18n-test.mjs",
     "i18n:scan": "node scripts/scan-untranslated.mjs",
-    "providers:test": "esbuild src/main/providers/providers.test.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/providers-test.cjs --external:electron --external:playwright --alias:@shared=./src/shared --log-level=error && node node_modules/.cache/providers-test.cjs"
+    "providers:test": "esbuild src/main/providers/providers.test.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/providers-test.cjs --external:electron --external:playwright --alias:@shared=./src/shared --log-level=error && node node_modules/.cache/providers-test.cjs",
+    "deploy:github": "node scripts/deploy-github.mjs",
+    "chamonix:extract": "node tools/extract-chamonix.mjs",
+    "ceto:parse-test": "esbuild src/main/providers/ceto/chamonixParse.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/ceto-parse-test.mjs --log-level=error --loader:.html=text && node node_modules/.cache/ceto-parse-test.mjs",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
     "cheerio": "^1.0.0",

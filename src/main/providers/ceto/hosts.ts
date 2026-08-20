@@ -24,14 +24,33 @@ export function isCetoHost(urlOrHost: string): boolean {
   }
 }
 
-/** Chamonix Mont-Blanc + villages de la vallée. */
-export function isChamonixCentral(urlOrHost: string): boolean {
+function hostOf(urlOrHost: string): string | null {
   try {
-    const host = urlOrHost.includes('://')
+    return urlOrHost.includes('://')
       ? new URL(urlOrHost).hostname.toLowerCase()
       : urlOrHost.toLowerCase()
-    return host === 'booking.chamonix.com' || host === 'www.booking.chamonix.com'
   } catch {
-    return false
+    return null
   }
+}
+
+/** Chamonix Mont-Blanc + villages de la vallée. */
+export function isChamonixCentral(urlOrHost: string): boolean {
+  const host = hostOf(urlOrHost)
+  return host === 'booking.chamonix.com' || host === 'www.booking.chamonix.com'
+}
+
+export function isMeribelCentral(urlOrHost: string): boolean {
+  const host = hostOf(urlOrHost)
+  return host === 'reservations.meribel.net' || host === 'www.reservations.meribel.net'
+}
+
+export function isPlagneCentral(urlOrHost: string): boolean {
+  const host = hostOf(urlOrHost)
+  return host === 'www.laplagneresort.com' || host === 'laplagneresort.com'
+}
+
+export function isMegeveCentral(urlOrHost: string): boolean {
+  const host = hostOf(urlOrHost)
+  return host === 'megeve-booking.com' || host === 'www.megeve-booking.com'
 }

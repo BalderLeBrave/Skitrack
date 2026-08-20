@@ -11,8 +11,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { app } from 'electron'
 import { aggregateResults, buildEngine, rejectedMcpSources, type EngineOptions } from './providers'
+import { providerMetricsSnapshot, resetProviderMetrics } from './providers/metrics'
 import { closeWebscrapeBrowser } from './providers/webscrape'
-import { setProxyVaultGetter, resetProxyCache } from './providers/proxy'
+import { setProxyVaultGetter } from './providers/proxy'
 import { closeAirbnbBrowser } from './providers/airbnb/scrape'
 import { MCP_SOURCES_TEMPLATE } from './providers/mcp/registry'
 import type { SearchEngine } from './providers/searchEngine'
@@ -63,12 +64,25 @@ function options(): EngineOptions {
 }
 
 function currentEngine(): SearchEngine {
-  if (!engine) engine = buildEngine(options())
+  if (!engine) {
+    engine = buildEngine(options())
+    // Préchauffe Chromium en arrière-plan : le 1er relevé Ingénie évite
+    // les 2–4 s de cold start. Silencieux si le scrape est désactivé.
+    if (process.env.SKITRACK_WEB_SCRAPE !== '0') {
+      void import('./providers/webscrape/shared')
+        .then((m) => m.getScrapeContext(true))
+        .catch(() => undefined)
+    }
+  }
   return engine
 }
 
-export function searchProviders(params: SearchParams, only?: string[]): Promise<AggregateResult> {
-  return aggregateResults(currentEngine(), params, only)
+export function searchProviders(
+  params: SearchParams,
+  only?: string[],
+  onOutcome?: (outcome: import('./providers/types').ProviderOutcome) => void
+): Promise<AggregateResult> {
+  return aggregateResults(currentEngine(), params, only, onOutcome)
 }
 
 /**
@@ -96,6 +110,14 @@ export async function providersHealth(): Promise<
       registered: false
     }))
   ]
+}
+
+export function providersMetrics(): ReturnType<typeof providerMetricsSnapshot> {
+  return providerMetricsSnapshot()
+}
+
+export function providersMetricsReset(): void {
+  resetProviderMetrics()
 }
 
 export function disposeProviders(): void {

@@ -17,7 +17,13 @@ import { lodgingSources, medianTotal, sourceHealth } from '@/data/lodgings'
 import type { Lodging } from '@/data/lodgings'
 import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
 import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearch'
-import { runProviderSearch, sourceLabelOf } from '@/data/runProviderSearch'
+import { centralCapabilityOf } from '@/data/centralCapability'
+import {
+  lodgingsFromOutcome,
+  outcomeSummary,
+  runProviderSearch,
+  sourceLabelOf
+} from '@/data/runProviderSearch'
 import { hasCoords } from '@/data/referentiel'
 import { domainRadiusKm, domainZone } from '@shared/geo'
 import { WEEKS } from '@/data/snow'
@@ -268,7 +274,67 @@ export function LodgingsPage(): JSX.Element {
     if (!d || !criteriaReady || running.current) return
     running.current = true
     setSearchError(null)
-    patch({ lodgPhase: 'searching', lodgSearchMsg: 'Ouverture du navigateur invisible…' })
+    patch({
+      lodgPhase: 'searching',
+      lodgSearchMsg: 'Recherche des logements…',
+      lodgEmpty: [],
+      lodgFailed: []
+    })
+
+    // Accumulateur local : les outcomes arrivent hors de React, on fusionne
+    // dans `imported` au fil de l'eau sans attendre le dernier connecteur.
+    const searchParams = {
+      domainId: d.id,
+      domainName: d.name,
+      lat: hasCoords(d) ? d.lat : undefined,
+      lon: hasCoords(d) ? d.lon : undefined,
+      radiusMeters: hasCoords(d) ? domainRadiusKm(d.km) * 1000 : undefined,
+      checkIn: state.arrDate,
+      checkOut: state.depDate,
+      adults: state.travelers,
+      children: state.children,
+      nights: derived.nights,
+      officialUrl: d.booking ?? d.website,
+      existing: state.imported
+    }
+    const baseImported = state.imported
+    const seen = new Set(baseImported.map((l) => l.url).filter(Boolean) as string[])
+    const progressive: Lodging[] = []
+    const progressiveOutcomes: ReturnType<typeof outcomeSummary>[] = []
+
+    const unsub = window.skitrack.providers.onOutcome((raw) => {
+      progressiveOutcomes.push(outcomeSummary(raw))
+      const batch = lodgingsFromOutcome(raw, searchParams, seen)
+      const label = sourceLabelOf(raw.provider)
+      if (batch.length > 0) {
+        progressive.push(...batch)
+        patch({
+          imported: [...baseImported, ...progressive],
+          lodgSearchMsg: `${sourceLabelOf(raw.provider)} · +${batch.length} — ${progressive.length} au total`
+        })
+      } else if (raw.error) {
+        // Message court : ne pas coller la stack technique dans le bandeau.
+        const soft =
+          /délai|timeout|écartée|robots|navigateur|Chromium|Playwright/i.test(raw.error)
+            ? `${label} : temporairement indisponible`
+            : `${label} : pas de résultat`
+        // Si d'autres offres sont déjà là, on n'alarme pas : juste un statut discret.
+        patch({
+          lodgSearchMsg:
+            progressive.length > 0
+              ? `${progressive.length} offre(s) — ${soft}`
+              : soft
+        })
+      } else {
+        patch({
+          lodgSearchMsg:
+            progressive.length > 0
+              ? `${progressive.length} offre(s) — recherche en cours…`
+              : `${label} : aucune offre pour ces dates`
+        })
+      }
+    })
+
     try {
       // Airbnb et les autres sources sont deux chemins distincts dans le
       // processus principal — `airbnb:scrape` d'un côté, `providers:search` de
@@ -289,23 +355,7 @@ export function LodgingsPage(): JSX.Element {
           imported: state.imported,
           zone: hasCoords(d) ? domainZone(d) : null
         }),
-        runProviderSearch({
-          domainId: d.id,
-          domainName: d.name,
-          lat: hasCoords(d) ? d.lat : undefined,
-          lon: hasCoords(d) ? d.lon : undefined,
-          // Le rayon suit la taille du domaine : sans lui, chaque connecteur
-          // retombait sur son propre défaut, et le filtre de zone appliqué en
-          // aval n'avait pas la même emprise que la recherche.
-          radiusMeters: hasCoords(d) ? domainRadiusKm(d.km) * 1000 : undefined,
-          checkIn: state.arrDate,
-          checkOut: state.depDate,
-          adults: state.travelers,
-          children: state.children,
-          nights: derived.nights,
-          officialUrl: d.booking ?? d.website,
-          existing: state.imported
-        })
+        runProviderSearch(searchParams)
       ])
 
       // Valeur affinée plutôt qu'un booléen : le compilateur ne sait pas
@@ -315,8 +365,8 @@ export function LodgingsPage(): JSX.Element {
       // repart d'elle quand elle a abouti, sinon de ce qu'on avait déjà.
       const base: Lodging[] = ok ? ok.imported : state.imported
 
-      const otherLodgings = others.status === 'fulfilled' ? others.value.lodgings : []
-      const outcomes = others.status === 'fulfilled' ? others.value.outcomes : []
+      const otherLodgings = others.status === 'fulfilled' ? others.value.lodgings : progressive
+      const outcomes = others.status === 'fulfilled' ? others.value.outcomes : progressiveOutcomes
 
       // Les sources affichées dans les filtres et comptées par l'écran de
       // relevé sont celles que le moteur vient d'interroger, y compris celles
@@ -351,10 +401,19 @@ export function LodgingsPage(): JSX.Element {
       // consultable à tout moment, au lieu de passer dans un bandeau qu'on lit
       // une fois et qu'on referme.
       const failed = [...new Set(outcomes.filter((o) => o.error).map((o) => o.source))]
+      // Réponse OK sans offre tarifée = stock vide, pas une panne.
+      const empty = [
+        ...new Set(
+          outcomes
+            .filter((o) => !o.error && o.count === 0)
+            .map((o) => o.source)
+        )
+      ]
 
       patch({
         imported: [...base, ...fresh],
         lodgPhase: 'results',
+        lodgMapOpen: true,
         // Le compte-rendu du relevé se lit **pendant** le relevé : passé le
         // résultat, il n'a plus d'action associée et ne fait que repousser les
         // vignettes sous la ligne de flottaison. Il est donc éteint en entrant
@@ -362,12 +421,14 @@ export function LodgingsPage(): JSX.Element {
         lodgSearchMsg: null,
         lodgQueried: queried,
         lodgFailed: failed,
+        lodgEmpty: empty,
         lastScan: Date.now()
       })
     } catch (err) {
       setSearchError(err instanceof Error ? err.message : String(err))
       patch({ lodgPhase: 'criteria', lodgSearchMsg: null })
     } finally {
+      unsub()
       running.current = false
     }
   }, [
@@ -453,11 +514,26 @@ export function LodgingsPage(): JSX.Element {
                 // pas ce que les filtres laissent passer.
                 known={derived.lodgAll}
               />
-              {/* Squelettes au gabarit exact des vignettes : quand les résultats
-                  arrivent, rien ne se déplace. Ils ne remplacent pas le panneau
-                  de relevé, ils occupent la place que la mosaïque prendra. */}
+              {/* Premières offres au fil de l'eau + squelettes pour la place
+                  restante : rien ne saute quand le relevé se termine. */}
               <div style={{ marginTop: 18 }}>
-                <ResultGrid loading compact={narrow || splitOpen} label={t('lodg_loading_grid')} />
+                {derived.lodgList.length > 0 && (
+                  <ResultGrid compact={narrow || splitOpen} dense={state.density === 'compact'} ratio={state.density === 'compact' ? 'square' : 'wide'}>
+                    {derived.lodgList.map((lg, i) => (
+                      <LodgingCard key={lg.id} lodging={lg} median={median} domain={d} index={i} />
+                    ))}
+                  </ResultGrid>
+                )}
+                {derived.lodgList.length < 6 && (
+                  <ResultGrid
+                    loading
+                    skeletonCount={Math.max(2, 6 - derived.lodgList.length)}
+                    compact={narrow || splitOpen}
+                    dense={state.density === 'compact'}
+                    ratio={state.density === 'compact' ? 'square' : 'wide'}
+                    label={t('lodg_loading_grid')}
+                  />
+                )}
               </div>
             </>
           )}
@@ -466,7 +542,7 @@ export function LodgingsPage(): JSX.Element {
             <div className="criteria-panel">
               <h2>Critères de recherche — {d.name}</h2>
               <p className="u-muted" style={{ margin: 0, fontSize: 13 }}>
-                Renseignez les dates et le groupe, puis lancez la recherche automatique sur Airbnb.
+                Dates et groupe : la centrale de station répond en premier (prix datés), puis les autres sources.
               </p>
               <div className="criteria-panel__grid">
                 <label>
@@ -535,6 +611,26 @@ export function LodgingsPage(): JSX.Element {
                   {t('lodg_dates_invalid')}
                 </p>
               )}
+              {(() => {
+                const cap = centralCapabilityOf(d.booking ?? d.website)
+                const color =
+                  cap.mode === 'live'
+                    ? 'var(--ok)'
+                    : cap.mode === 'blocked'
+                      ? 'var(--warn)'
+                      : 'var(--muted)'
+                const icon = cap.mode === 'live' ? '✓' : cap.mode === 'blocked' ? '⛔' : 'ℹ'
+                return (
+                  <p
+                    className="u-muted"
+                    style={{ margin: 0, fontSize: 12, color }}
+                    title={cap.host ?? undefined}
+                  >
+                    {icon} {cap.labelFr}
+                    {cap.host ? ` · ${cap.host}` : ''}
+                  </p>
+                )
+              })()}
               <div className="criteria-panel__actions">
                 <button
                   type="button"
@@ -849,36 +945,73 @@ export function LodgingsPage(): JSX.Element {
               recherche qui rapportera des annonces tout aussi invisibles. */}
           {derived.lodgList.length === 0 && derived.lodgHidden > 0 && (
             <div className="results__empty" style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
-              <p style={{ margin: 0 }}>
-                {derived.lodgHidden} logement(s) importé(s) pour <strong>{d.name}</strong>, tous masqués par
-                vos filtres.
+              <div className="results__empty-illu" aria-hidden>
+                🎚️
+              </div>
+              <p style={{ margin: 0, fontWeight: 600 }}>
+                {derived.lodgHidden} offre(s) masquée(s) par vos filtres
               </p>
               <p className="u-muted" style={{ margin: 0, fontSize: 13 }}>
-                Budget, distance aux pistes, type de bien, chambres minimum ou sources masquées : l’un d’eux
-                écarte toute la liste.
+                Budget, distance aux pistes ou type de bien : un critère écarte toute la liste pour{' '}
+                <strong>{d.name}</strong>.
               </p>
-              <button type="button" className="btn btn--primary" onClick={resetLodgFilters}>
-                {t('lodg_filters_reset')}
-              </button>
+              <div className="results__empty-actions">
+                <button type="button" className="btn btn--primary" onClick={resetLodgFilters}>
+                  {t('lodg_filters_reset')}
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
+                >
+                  Changer les dates
+                </button>
+              </div>
             </div>
           )}
           {derived.lodgList.length === 0 && derived.lodgHidden === 0 && (
             <div className="results__empty" style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
-              <p style={{ margin: 0 }}>
-                {t('lodg_none_imported')} <strong>{d.name}</strong> {t('lodg_none_imported_yet')}
+              <div className="results__empty-illu" aria-hidden>
+                🏔️
+              </div>
+              <p style={{ margin: 0, fontWeight: 600 }}>
+                {state.lastScan != null
+                  ? `Aucune offre pour ${d.name} à ces dates`
+                  : (
+                    <>
+                      {t('lodg_none_imported')} <strong>{d.name}</strong>
+                    </>
+                  )}
               </p>
               <p className="u-muted" style={{ margin: 0, fontSize: 13 }}>
-                Les logements affichés ici sont de vraies annonces que vous importez : hébergements
-                OpenStreetMap du domaine, ou annonces Airbnb via le marque-page. Chacune est enrichie de sa
-                distance aux pistes.
+                {state.lodgEmpty.length > 0 && (
+                  <>
+                    {t('scan_sources_empty').replace('{s}', state.lodgEmpty.join(', '))}
+                    <br />
+                  </>
+                )}
+                {state.lastScan == null
+                  ? 'Lancez une recherche pour afficher les annonces tarifées, avec distance aux pistes.'
+                  : 'Essayez d’autres dates ou un village voisin du même domaine.'}
               </p>
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
-              >
-                Rechercher des annonces
-              </button>
+              <div className="results__empty-actions">
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
+                >
+                  {state.lastScan != null ? 'Changer les dates' : 'Rechercher des annonces'}
+                </button>
+                {d.booking && (
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => void window.skitrack.openExternal(d.booking!)}
+                  >
+                    Ouvrir la centrale
+                  </button>
+                )}
+              </div>
             </div>
           )}
           <div
@@ -898,9 +1031,9 @@ export function LodgingsPage(): JSX.Element {
               {/* Pendant un relevé, la liste n'est pas estompée : elle n'est
                   pas rendue du tout. `lodgPhase` vaut alors `'searching'` et
                   c'est `SkiSearchLoading` qui occupe seul la section. */}
-              <ResultGrid compact={narrow || splitOpen} label="Logements du domaine">
-                {visibleLodgings.map((lg) => (
-                  <LodgingCard key={lg.id} lodging={lg} median={median} domain={d} />
+              <ResultGrid compact={narrow || splitOpen} dense={state.density === 'compact'} ratio={state.density === 'compact' ? 'square' : 'wide'} label="Logements du domaine">
+                {visibleLodgings.map((lg, i) => (
+                  <LodgingCard key={lg.id} lodging={lg} median={median} domain={d} index={i} />
                 ))}
               </ResultGrid>
               {/* Masquer sans le dire transformerait un doute sur la position
@@ -942,12 +1075,12 @@ export function LodgingsPage(): JSX.Element {
       {state.importOpen && <ImportDialog domain={d} />}
 
       {state.compareIds.length > 0 && !state.compareOpen && (
-        <div className="comparebar">
+        <div className="comparebar" role="status">
           <span style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>
-            {state.compareIds.length} sélectionné(s)
+            {state.compareIds.length} logement{state.compareIds.length > 1 ? 's' : ''} à comparer
           </span>
           <button type="button" className="comparebar__cta" onClick={() => patch({ compareOpen: true })}>
-            Comparer
+            Comparer {state.compareIds.length}
           </button>
           <button
             type="button"

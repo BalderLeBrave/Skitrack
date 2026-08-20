@@ -61,6 +61,9 @@ import type { Page } from 'playwright'
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
 import { baseAccommodation, parsePrice, sleep, withPage, withRetries, type ScrapeAttemptOptions } from '../webscrape/shared'
 import { allowsPath } from './robots'
+import { isCetoHost } from '../ceto/hosts'
+import { shouldAttemptIngenie } from './ingenieHosts'
+import { CircuitBreaker } from '../resilience'
 
 export const STATION_PROVIDER_NAME = 'station-web'
 
@@ -612,14 +615,17 @@ function sourceIdOf(url: string): string {
  * prix arrivent avec le script de la page — d'où l'attente.
  */
 async function loadCards(page: Page, timeoutMs: number): Promise<StationCard[]> {
-  await sleep(2_000)
+  // Attente active sur les fiches plutôt qu'un sleep fixe de 2 s :
+  // dès que le DOM est prêt on lit, ce qui coupe ~1–1,5 s sur les centrales réactives.
   try {
-    await page.waitForSelector('.fiche-info', { timeout: Math.min(12_000, timeoutMs) })
+    await page.waitForSelector('.fiche-info', { timeout: Math.min(10_000, timeoutMs) })
   } catch {
     // Pas de fiche : soit aucune disponibilité, soit une autre plateforme.
   }
   return page.evaluate(extractStationCards)
 }
+
+const stationBreaker = new CircuitBreaker(2, 90_000)
 
 export function createStationProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
   const name = STATION_PROVIDER_NAME
@@ -628,19 +634,46 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
     async search(params: SearchParams): Promise<Accommodation[]> {
       const central = params.officialUrl
       if (!central) {
-        throw new Error(
-          `${name} : aucune centrale de réservation connue pour ${params.destination}.`
-        )
+        // Pas de centrale : silence, les autres sources parlent. Éviter une
+        // erreur bruyante qui pollue « État du relevé » pour chaque station
+        // sans desk.
+        return []
       }
       const origin = originOf(central)
-      if (!origin) throw new Error(`${name} : adresse de centrale illisible (${central}).`)
+      if (!origin) return []
 
-      const timeoutMs = opts?.timeoutMs ?? 45_000
+      // Orchestra/Ceto : connecteur dédié, pas de Chromium ici.
+      if (isCetoHost(origin) || isCetoHost(central)) {
+        return []
+      }
+
+      const gate = shouldAttemptIngenie(central)
+      if (!gate.attempt) {
+        if (gate.reason === 'robots') {
+          throw new Error(
+            `${name} : ${origin} interdit le relevé automatique (robots.txt) — ouvrir le lien de la centrale.`
+          )
+        }
+        // Site institutionnel / plateforme inconnue : ne pas allumer le navigateur.
+        return []
+      }
+
+      if (stationBreaker.open) {
+        throw new Error(`${name} : ${stationBreaker.reason}`)
+      }
+
+      // Timeouts plus courts : mieux un échec net en 25 s qu'un gel de 45 s × 3.
+      const timeoutMs = opts?.timeoutMs ?? 28_000
       const headless = opts?.headless !== false
+      const retryOpts: ScrapeAttemptOptions = {
+        maxRetries: opts?.maxRetries ?? 1,
+        baseDelayMs: opts?.baseDelayMs ?? 800,
+        maxDelayMs: opts?.maxDelayMs ?? 4_000,
+        timeoutMs,
+        headless
+      }
 
-      // `robots.txt` avant tout : c'est la seule déclaration que l'exploitant
-      // nous adresse. Une centrale qui interdit sa page de résultats n'est pas
-      // interrogée — l'écran garde le lien vers elle, à ouvrir à la main.
+      // `robots.txt` avant tout.
       const home = await allowsPath(origin, new URL(central).pathname)
       if (!home.allowed) {
         throw new Error(
@@ -649,7 +682,8 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
         )
       }
 
-      return withRetries(name, opts ?? {}, async (attempt) =>
+      try {
+      const results = await withRetries(name, retryOpts, async (attempt) =>
         withPage(
           headless,
           async (page) => {
@@ -664,14 +698,10 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             // Le bandeau de consentement se pose au-dessus du formulaire : sans
             // l'écarter, le clic sur « Rechercher » n'atteint jamais le bouton.
             await dismissConsent(page)
-            await sleep(1_000)
+            await sleep(300)
             const ctx = await page.evaluate(readEngineContext)
             // Ceto / Orchestra (Chamonix, etc.) : connecteur dédié ceto-*.
-            if (
-              /booking\.chamonix\.com/i.test(origin) ||
-              /laplagneresort\.com/i.test(origin) ||
-              /reservations\.meribel\.net/i.test(origin)
-            ) {
+            if (isCetoHost(origin)) {
               throw new Error(
                 `${name} : ${origin} est une centrale Orchestra/Ceto — voir le connecteur dédié.`
               )
@@ -695,7 +725,8 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               if (matched.length > 0) cards = matched
             }
             if (cards.length === 0) {
-              throw new Error(`${name} : aucune offre publiée par ${origin} pour ces dates.`)
+              // Stock vide pour ces dates : ce n'est pas une panne du connecteur.
+              return []
             }
 
             const out: Accommodation[] = []
@@ -738,23 +769,26 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               offer.rawProviderData = card
               out.push(offer)
             }
-            if (out.length === 0) {
-              throw new Error(
-                `${name} : aucune offre tarifée publiée par ${origin} pour ces dates.`
-              )
-            }
+            // Sans prix → on n'affiche rien plutôt qu'un « échec » technique.
             return out
           },
           attempt > 1
         )
       )
+        stationBreaker.succeed()
+        return results
+      } catch (err) {
+        stationBreaker.fail()
+        throw err
+      }
     },
     async health(): Promise<ProviderHealth> {
       return {
         name,
-        reachable: true,
-        detail:
-          'centrales de réservation des stations (plateforme Ingénie) — interrogées avec les dates du séjour'
+        reachable: !stationBreaker.open,
+        detail: stationBreaker.open
+          ? stationBreaker.reason
+          : 'centrales Ingénie — navigateur invisible, dates du séjour'
       }
     }
   }

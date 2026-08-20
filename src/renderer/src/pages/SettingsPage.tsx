@@ -158,6 +158,17 @@ export function SettingsPage(): JSX.Element {
   const [drafts, setDrafts] = useState<Partial<Record<SecretKey, string>>>({})
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
   const [providers, setProviders] = useState<ProviderStatus[] | null>(null)
+  const [metrics, setMetrics] = useState<
+    {
+      provider: string
+      calls: number
+      errors: number
+      avgMs?: number
+      priceRate?: number | null
+      lastError: string | null
+      lastAt: string | null
+    }[] | null
+  >(null)
   /** État des connecteurs de logement. `null` tant qu'il n'a pas répondu. */
   const [lodgingHealth, setLodgingHealth] = useState<
     { name: string; reachable: boolean; detail: string }[] | null
@@ -196,6 +207,7 @@ export function SettingsPage(): JSX.Element {
   useEffect(() => {
     if (sidecar.status !== 'ready' || !isClientReady()) return
     void api.providers().then(setProviders).catch(() => setProviders(null))
+    void window.skitrack.providers.metrics().then(setMetrics).catch(() => setMetrics(null))
     void api.status().then(setDbStatus).catch(() => setDbStatus(null))
     void api
       .settings()
@@ -834,6 +846,56 @@ export function SettingsPage(): JSX.Element {
                 </table>
               )}
               <p className="settings__help">{t('settings_lodging_sources_help')}</p>
+
+            <section id="set-metrics" className="panel panel--flat settings__section">
+              <h2>Observabilité des sources</h2>
+              <p className="settings__help">
+                Latence moyenne, taux d’offres tarifées et erreurs depuis le démarrage — pour diagnostiquer
+                sans ouvrir la console.
+              </p>
+              {metrics && metrics.length > 0 ? (
+                <div className="settings__metrics">
+                  <table className="settings__table">
+                    <thead>
+                      <tr>
+                        <th>Source</th>
+                        <th>Appels</th>
+                        <th>Latence</th>
+                        <th>Prix</th>
+                        <th>Erreurs</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {metrics.map((m) => (
+                        <tr key={m.provider}>
+                          <td>{m.provider}</td>
+                          <td>{m.calls}</td>
+                          <td>{m.avgMs != null ? `${m.avgMs} ms` : '—'}</td>
+                          <td>{m.priceRate != null ? `${m.priceRate} %` : '—'}</td>
+                          <td style={{ color: m.errors ? 'var(--warn)' : undefined }}>
+                            {m.errors}
+                            {m.lastError ? ` · ${m.lastError.slice(0, 60)}` : ''}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ marginTop: 8 }}
+                    onClick={() => {
+                      void window.skitrack.providers.metricsReset().then(() => setMetrics([]))
+                    }}
+                  >
+                    Réinitialiser les compteurs
+                  </button>
+                </div>
+              ) : (
+                <p className="settings__help">Aucun relevé pour l’instant — lancez une recherche logements.</p>
+              )}
+            </section>
+
             </section>
           </>
             )}

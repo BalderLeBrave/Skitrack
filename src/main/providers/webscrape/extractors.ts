@@ -29,7 +29,6 @@ export function extractBookingCards(): RawCard[] {
       (node as HTMLAnchorElement)
     const href = link?.href
     if (!href || !href.includes('/hotel/')) return
-    const idMatch = href.match(/hotel\/(?:[a-z]{2}\/)?([^.\/]+)/i) || href.match(/aid=\d+.*?;/)
     const sourceId =
       root.getAttribute('data-hotel-id') ||
       href.match(/\.([a-z0-9]+)\.fr\.html/i)?.[1] ||

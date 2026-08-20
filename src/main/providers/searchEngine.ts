@@ -10,6 +10,7 @@
 
 import { deduplicate, type Property } from './dedup'
 import { debugLog } from './debug'
+import { recordProviderOutcome } from './metrics'
 import type { AccommodationProvider, ProviderOutcome, SearchParams } from './types'
 
 export interface SearchReport {
@@ -34,24 +35,52 @@ export class SearchEngine {
     return this.providers.get(name)
   }
 
-  async search(params: SearchParams, only?: string[]): Promise<SearchReport> {
+  /**
+   * Interroge les sources en parallèle.
+   *
+   * `onOutcome` est appelé **dès qu'une source répond** (succès ou erreur),
+   * avant la fin du `Promise.all`. L'UI peut ainsi afficher les premières
+   * offres sans attendre le connecteur le plus lent.
+   */
+  async search(
+    params: SearchParams,
+    only?: string[],
+    onOutcome?: (outcome: ProviderOutcome) => void
+  ): Promise<SearchReport> {
     const selected = [...this.providers.values()].filter((p) => !only || only.includes(p.name))
 
     const outcomes = await Promise.all(
       selected.map(async (provider): Promise<ProviderOutcome> => {
         const started = Date.now()
+        let outcome: ProviderOutcome
         try {
           const results = await provider.search(params)
-          return { provider: provider.name, results, error: null, elapsedMs: Date.now() - started }
+          outcome = { provider: provider.name, results, error: null, elapsedMs: Date.now() - started }
         } catch (error) {
           // Chaque source encaisse son erreur seule.
-          return {
+          outcome = {
             provider: provider.name,
             results: [],
             error: error instanceof Error ? error.message : String(error),
             elapsedMs: Date.now() - started
           }
         }
+        try {
+          recordProviderOutcome({
+            provider: outcome.provider,
+            elapsedMs: outcome.elapsedMs,
+            error: outcome.error,
+            results: outcome.results
+          })
+        } catch {
+          // métriques non critiques
+        }
+        try {
+          onOutcome?.(outcome)
+        } catch {
+          // Un callback UI cassé ne doit pas faire échouer la recherche.
+        }
+        return outcome
       })
     )
 

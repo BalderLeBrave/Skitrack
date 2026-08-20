@@ -2,7 +2,7 @@
 
 ## Principe
 
-Ne **jamais** coller un PAT dans le chat Grok. Le script lit `GITHUB_TOKEN` dans l'environnement.
+Ne **jamais** coller un PAT dans le chat Grok. Le script lit `GITHUB_TOKEN` dans l’environnement.
 
 ```bash
 # Fine-grained PAT : repo Skitrack → Contents: Read and write
@@ -30,16 +30,18 @@ node scripts/deploy-github.mjs --only src/main/providers/ceto/
 5. Generate → copier dans un gestionnaire de secrets (1Password, etc.)
 6. Shell : `export GITHUB_TOKEN=…` (session courante) ou entrée dans `~/.bashrc` **hors dépôt**
 
-Révoquer dès qu'un token a fuité dans un chat ou un log.
+Révoquer dès qu’un token a fuité dans un chat ou un log.
 
 ## CI (GitHub Actions)
 
 Fichier `.github/workflows/ci.yml` : typecheck + tests smoke à chaque push/PR sur `master`.
 
+Pas de secret requis pour la CI (tests publics, pas de déploiement depuis Actions pour l’instant).
+
 ## npm
 
-```bash
-npm run deploy:github
+```json
+"deploy:github": "node scripts/deploy-github.mjs"
 ```
 
 ## Dépannage
@@ -49,4 +51,4 @@ npm run deploy:github
 | `GITHUB_TOKEN manquant` | `export` oublié |
 | `401 Bad credentials` | token révoqué / typo |
 | `403 Resource not accessible` | permission **Contents** absente |
-| `409 Conflict` | SHA obsolète — relancer le script |
+| `409 Conflict` | SHA obsolète — relancer le script (il relit le SHA) |

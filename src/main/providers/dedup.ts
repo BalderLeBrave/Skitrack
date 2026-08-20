@@ -136,8 +136,18 @@ export function similarity(a: Accommodation, b: Accommodation): number {
     weight += 0.1
   }
   if (a.guests != null && b.guests != null) {
-    score += (Math.abs(a.guests - b.guests) <= 1 ? 1 : 0) * 0.1
-    weight += 0.1
+    score += (Math.abs(a.guests - b.guests) <= 1 ? 1 : 0) * 0.08
+    weight += 0.08
+  }
+
+  // Surface : signal stable hors OTA (centrales station annoncent souvent les m²).
+  if (a.areaSqm != null && b.areaSqm != null && a.areaSqm > 0 && b.areaSqm > 0) {
+    const ratio =
+      Math.min(a.areaSqm, b.areaSqm) / Math.max(a.areaSqm, b.areaSqm)
+    // Écart > 25 % → probablement deux biens différents.
+    if (ratio < 0.75) return 0
+    score += ratio * 0.12
+    weight += 0.12
   }
 
   return weight > 0 ? score / weight : 0

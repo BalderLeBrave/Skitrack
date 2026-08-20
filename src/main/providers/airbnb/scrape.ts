@@ -28,6 +28,7 @@ import {
   waitForStableDeferredState
 } from './dynamicHtml'
 import { nextProxy, toPlaywrightProxy, type ProxyConfig } from '../proxy'
+import { diagnoseEmptySearch } from './calendarBlocks'
 
 export interface AirbnbScrapeParams extends AirbnbUrlParams {
   timeoutMs?: number
@@ -48,6 +49,11 @@ export interface AirbnbScrapeParams extends AirbnbUrlParams {
   retryBaseDelayMs?: number
   /** Plafond du délai entre retries (ms). Défaut 20_000. */
   retryMaxDelayMs?: number
+  /**
+   * Si true et 0 résultat pour cause de dates bloquées, retente une fois
+   * avec le prochain week-end disponible (défaut false).
+   */
+  autoShiftDates?: boolean
 }
 
 export interface AirbnbScrapeResult {
@@ -546,8 +552,9 @@ function isRetryableError(message: string): boolean {
   // Ne pas retenter si l’utilisateur n’a pas validé un CAPTCHA (geste humain).
   if (m.includes('captcha non résolu')) return false
   if (m.includes('délai imparti')) return false
+  if (m.startsWith('date_shift:')) return true
   return (
-    /timeout|timed out|net::|navigation|err_|econnreset|econnrefused|enotfound|socket|network|page fermée|sans résultats|score recaptcha|data-deferred-state|aucune annonce|html dynamique|bloc data-deferred/.test(
+    /timeout|timed out|net::|navigation|err_|econnreset|econnrefused|enotfound|socket|network|page fermée|sans résultats|score recaptcha|data-deferred-state|aucune annonce|html dynamique|bloc data-deferred|dates (probablement )?indisponibles/.test(
       m
     )
   )
@@ -666,9 +673,39 @@ async function scrapeAirbnbSearchOnce(params: AirbnbScrapeParams): Promise<Airbn
     const payload = await extractFromPage(page, params, scrollCount)
 
     if (payload.listings.length === 0) {
+      const cin = params.checkIn ?? ''
+      const cout = params.checkOut ?? ''
+      let dateHint = ''
+      try {
+        if (cin && cout && page && !page.isClosed()) {
+          const diag = await diagnoseEmptySearch(page, cin, cout)
+          if (diag.blocked) {
+            const sug = diag.suggestion
+            dateHint =
+              (diag.message ? ` « ${diag.message} ».` : ' Dates probablement indisponibles.') +
+              (sug
+                ? ` Suggestion : ${sug.checkIn} → ${sug.checkOut}` +
+                  (sug.weeksShifted ? ` (+${sug.weeksShifted} sem.)` : '') +
+                  '.'
+                : '')
+            // Auto-shift : une seule fois, signalé via error code préfixe
+            if (params.autoShiftDates && sug && !(params as { __shifted?: boolean }).__shifted) {
+              return {
+                ok: false,
+                error: `DATE_SHIFT:${sug.checkIn}:${sug.checkOut}:${dateHint.trim()}`,
+                url
+              }
+            }
+          }
+        }
+      } catch {
+        // diagnostic non bloquant
+      }
       return {
         ok: false,
-        error: 'Aucune annonce dans les données. Vérifiez les dates ou augmentez les scrolls.',
+        error:
+          'Aucune annonce dans les données.' +
+          (dateHint || ' Vérifiez les dates ou augmentez les scrolls.'),
         url
       }
     }
@@ -724,11 +761,31 @@ export async function scrapeAirbnbSearch(
 
   let last: AirbnbScrapeOutcome | null = null
 
+  let workingParams: AirbnbScrapeParams = { ...params }
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    last = await scrapeAirbnbSearchOnce(params)
+    last = await scrapeAirbnbSearchOnce(workingParams)
 
     if (last.ok) {
       return { ...last, attempts: attempt }
+    }
+
+    // Décalage calendrier : une retente avec nouvelles dates
+    if (last.error.startsWith('DATE_SHIFT:') && workingParams.autoShiftDates) {
+      const parts = last.error.split(':')
+      const newIn = parts[1]
+      const newOut = parts[2]
+      if (newIn && newOut) {
+        workingParams = {
+          ...workingParams,
+          checkIn: newIn,
+          checkOut: newOut,
+          autoShiftDates: false // une seule bascule
+        }
+        await closeAirbnbBrowser()
+        await sleep(800)
+        continue
+      }
     }
 
     const retryable = isRetryableError(last.error)

@@ -9,7 +9,7 @@ import {
 } from '@shared/ipc-contract'
 import { fetchBra } from './bra'
 import { fetchListing } from './listing'
-import { disposeProviders, providersHealth, searchProviders } from './providersBridge'
+import { disposeProviders, providersHealth, providersMetrics, providersMetricsReset, searchProviders } from './providersBridge'
 import { fetchOsmLodgings } from './providers/osm/osm'
 import { closeAirbnbBrowser, scrapeAirbnbSearch } from './providers/airbnb/scrape'
 import { getPairingToken, startPasteBridge, stopPasteBridge } from './pasteBridge'
@@ -121,10 +121,20 @@ function registerIpc(): void {
 
   // Comparateur multi-sources. Les erreurs par connecteur sont dans la réponse,
   // pas levées : une source en panne ne doit pas vider le résultat des autres.
-  ipcMain.handle(IPC.providersSearch, (_e, params: Parameters<typeof searchProviders>[0], only?: string[]) =>
-    searchProviders(params, only)
+  ipcMain.handle(IPC.providersSearch, (e, params: Parameters<typeof searchProviders>[0], only?: string[]) =>
+    searchProviders(params, only, (outcome) => {
+      try {
+        e.sender.send(IPC.providersOutcome, outcome)
+      } catch {
+        // Fenêtre fermée pendant le relevé.
+      }
+    })
   )
   ipcMain.handle(IPC.providersHealth, () => providersHealth())
+  ipcMain.handle(IPC.providersMetrics, () => providersMetrics())
+  ipcMain.handle(IPC.providersMetricsReset, () => {
+    providersMetricsReset()
+  })
 
   // Hébergements réels d'un domaine, depuis OpenStreetMap (ODbL). Sans prix :
   // chaque entrée est une porte vers une recherche Airbnb pré-remplie. Aucune

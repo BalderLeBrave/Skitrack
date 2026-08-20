@@ -365,6 +365,36 @@ const CATALOG = {
   offers_price_unit: ['tout compris, {n} nuits', 'all in, {n} nights'],
   offers_per_person: ['soit {p} par personne', '{p} per person'],
   lodg_price_on_source: ['Prix sur {s}', 'Price on {s}'],
+  price_from: ['À partir de', 'From'],
+  price_all_in: ['tout compris', 'all in'],
+  price_unit_confirmed: ['tout compris · {pp}/pers/nuit', 'all in · {pp}/pers/night'],
+  price_unit_partial: ['indicatif · {pp}/pers/nuit — confirmer sur le site', 'indicative · {pp}/pers/night — confirm on site'],
+  price_badge_confirmed: ['Confirmé', 'Confirmed'],
+  price_badge_partial: ['À partir de', 'From'],
+  price_badge_confirmed_title: [
+    'Prix du séjour pour les dates demandées',
+    'Stay total for the requested dates'
+  ],
+  price_badge_partial_title: [
+    'Tarif « à partir de » : le montant exact se confirme sur le site',
+    '“From” rate: the exact amount is confirmed on the site'
+  ],
+  central_live: [
+    'Centrale : prix pour vos dates',
+    'Booking desk: prices for your dates'
+  ],
+  central_link: [
+    'Centrale : lien seulement — le prix se confirme sur le site',
+    'Booking desk: link only — confirm the price on the site'
+  ],
+  central_none: [
+    'Pas de centrale de réservation connue pour cette station',
+    'No known booking desk for this resort'
+  ],
+  scan_sources_empty: [
+    'Stock vide (réponse OK, 0 offre tarifée) : {s}',
+    'Empty inventory (OK response, 0 priced offer): {s}'
+  ],
   lodg_gone_tally: [
     '{n} annonce(s) connue(s) n’apparaissent plus à ces dates — probablement réservées.',
     '{n} known listing(s) no longer appear for these dates — probably booked.'

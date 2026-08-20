@@ -15,6 +15,7 @@ import { useRef } from 'react'
 import { CloseIcon, ExternalIcon } from './Icons'
 import { srcOf, trackKey } from '@/data/lodgings'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
+import { availabilityOf } from '@/data/lodgingAvailability'
 import type { Domain } from '@/data/referentiel'
 import { enfantPrice } from '@/data/referentiel'
 import { useFormat } from '@/hooks/useFormat'
@@ -114,7 +115,7 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
 
         <div style={{ padding: 20, display: 'grid', gap: 18 }}>
           {lodging.image ? (
-            <img className="sheet__photo" src={lodging.image} alt={lodging.name} />
+            <img className="sheet__photo" src={lodging.image} alt={lodging.name} loading="lazy" decoding="async" />
           ) : (
             <div className="photogrid">
               <div className="photogrid__main">
@@ -141,11 +142,28 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
 
           <div className="inset">
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>
-                {eur(lodging.total)}
+              <span
+                style={{
+                  fontSize: 24,
+                  fontWeight: 800,
+                  letterSpacing: '-0.02em',
+                  color:
+                    lodging.priceConfidence === 'total_confirmed'
+                      ? 'var(--ok)'
+                      : lodging.priceConfidence === 'partial'
+                        ? 'var(--warn)'
+                        : undefined
+                }}
+              >
+                {lodging.priceConfidence === 'partial' ? `À partir de ${eur(lodging.total)}` : eur(lodging.total)}
               </span>
               <span className="u-muted" style={{ fontSize: 12 }}>
-                tout compris · {nights} nuits · {state.travelers} personnes
+                {lodging.priceConfidence === 'total_confirmed'
+                  ? 'confirmé pour vos dates'
+                  : lodging.priceConfidence === 'partial'
+                    ? 'tarif d’appel'
+                    : 'tout compris'}{' '}
+                · {nights} nuits · {state.travelers} pers.
               </span>
               <span className="u-spacer" />
               <span style={{ fontSize: 14 }}>
@@ -294,6 +312,64 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
           </div>
         </div>
 
+        <div className="sheet__verified">
+          <p className="sheet__label">Ce que Skitrack a vérifié</p>
+          <ul className="sheet__verified-list">
+            <li>
+              <strong>Dates du relevé</strong>
+              {' : '}
+              {lodging.priceCheckIn && lodging.priceCheckOut
+                ? `${lodging.priceCheckIn} → ${lodging.priceCheckOut}`
+                : `${state.arrDate} → ${state.depDate}`}
+              {lodging.priceCheckIn &&
+              (lodging.priceCheckIn !== state.arrDate || lodging.priceCheckOut !== state.depDate) ? (
+                <span style={{ color: 'var(--warn)' }}> — dates de recherche différentes</span>
+              ) : (
+                <span style={{ color: 'var(--ok)' }}> — alignées sur votre séjour</span>
+              )}
+            </li>
+            <li>
+              <strong>Prix</strong>
+              {' : '}
+              {lodging.total > 0 ? (
+                <>
+                  {eur(lodging.total)}
+                  {lodging.priceConfidence === 'total_confirmed'
+                    ? ' · confirmé pour ces dates'
+                    : lodging.priceConfidence === 'partial'
+                      ? ' · à partir de (tarif d’appel)'
+                      : ' · à confirmer sur le site'}
+                </>
+              ) : (
+                'non publié — ouverture de la source pour le tarif'
+              )}
+            </li>
+            <li>
+              <strong>Source</strong>
+              {' : '}
+              {lodging.src}
+              {lodging.dups && lodging.dups.length > 0
+                ? ` · aussi ${lodging.dups.map((d) => `${d.src} ${eur(d.total)}`).join(', ')}`
+                : ''}
+            </li>
+            {(lodging.dist > 0 || lodging.skiIn) && (
+              <li>
+                <strong>Accès pistes</strong>
+                {' : '}
+                {lodging.skiIn
+                  ? 'ski aux pieds'
+                  : `${lodging.dist} m · ${lodging.walk} min (OpenSkiMap)`}
+              </li>
+            )}
+            <li>
+              <strong>Ouverture</strong>
+              {' : '}
+              l’annonce s’ouvre avec vos dates ({state.arrDate} → {state.depDate}) et {state.travelers}{' '}
+              voyageur(s) préremplis quand la source le permet.
+            </li>
+          </ul>
+        </div>
+
         <div className="sheet__footer">
           <button
             type="button"
@@ -301,7 +377,9 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
             disabled={!target}
             onClick={() => target && void window.skitrack.openExternal(target)}
           >
-            {lodging.url ? 'Ouvrir l’annonce' : `Chercher sur ${srcOf(lodging)}`}
+            {lodging.url
+              ? `Ouvrir aux dates ${state.arrDate.slice(5)} → ${state.depDate.slice(5)}`
+              : `Chercher sur ${srcOf(lodging)}`}
             <ExternalIcon />
           </button>
           <button

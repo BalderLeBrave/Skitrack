@@ -28,6 +28,8 @@ export interface ResultGridProps {
   ratio?: ResultRatio
   /** Gouttières resserrées, pour un volet étroit (liste à côté de la carte). */
   compact?: boolean
+  /** Mode dense : plus de colonnes, vignettes carrées (density=compact). */
+  dense?: boolean
   label?: string
 }
 
@@ -37,11 +39,12 @@ export function ResultGrid({
   skeletonCount = 8,
   ratio = 'wide',
   compact = false,
+  dense = false,
   label
 }: ResultGridProps): JSX.Element {
   return (
     <div
-      className={`resultgrid${compact ? ' resultgrid--compact' : ''}`}
+      className={`resultgrid${compact ? ' resultgrid--compact' : ''}${dense ? ' resultgrid--dense' : ''}`}
       role="list"
       aria-label={label}
       aria-busy={loading || undefined}

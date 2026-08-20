@@ -6,18 +6,21 @@
 
 export type SerpType = 'hotel' | 'apartment' | 'residence'
 
+export type OrchestraSiteId = 'chamonix' | 'meribel' | 'plagne' | 'megeve'
+
 export interface ChamonixSearchOpts {
   type: SerpType
   from: string
   to: string
   adults: number
   children: number
-  /** Code Orchestra cmb.* ou nom de station (résolu via LOCATION_MAP). */
+  /** Code Orchestra cmb.* / village Plagne, ou nom de station. */
   location: string | null
   maxPages?: number
   byPage?: number
   /** N'importer que les fiches avec prix > 0 (défaut true). */
   pricedOnly?: boolean
+  site?: OrchestraSiteId
 }
 
 export interface ChamonixListing {
@@ -52,30 +55,77 @@ export interface ChamonixExtractResult {
   requestUrl?: string
 }
 
-const BASE = 'https://booking.chamonix.com'
-
-const SERP: Record<
-  SerpType,
-  { path: string; morePath: string; baseQuery: string }
+const SITES: Record<
+  OrchestraSiteId,
+  {
+    base: string
+    channel: string | null
+    dateStyle: 'iso' | 'dmy'
+    locationParam: 'ref_c.LOCATION' | 's_c.location' | null
+    serp: Record<SerpType, { path: string; morePath: string; baseQuery: string }>
+  }
 > = {
-  hotel: {
-    path: '/fr/serpHotel',
-    morePath: '/fr/ajax/more/serpHotel',
-    baseQuery: 's_c.ACCOMMODATION=hotel'
+  chamonix: {
+    base: 'https://booking.chamonix.com',
+    channel: 'CMB',
+    dateStyle: 'iso',
+    locationParam: 'ref_c.LOCATION',
+    serp: {
+      hotel: { path: '/fr/serpHotel', morePath: '/fr/ajax/more/serpHotel', baseQuery: 's_c.ACCOMMODATION=hotel' },
+      apartment: { path: '/fr/serp', morePath: '/fr/ajax/more/serp', baseQuery: 's_c.ACCOMMODATION=chalet,apartment' },
+      residence: { path: '/fr/serpResidence', morePath: '/fr/ajax/more/serpResidence', baseQuery: 's_c.ACCOMMODATION=residence' }
+    }
   },
-  apartment: {
-    path: '/fr/serp',
-    morePath: '/fr/ajax/more/serp',
-    baseQuery: 's_c.ACCOMMODATION=chalet,apartment'
+  meribel: {
+    base: 'https://reservations.meribel.net',
+    channel: null,
+    dateStyle: 'iso',
+    locationParam: null,
+    serp: {
+      hotel: { path: '/serpHotel', morePath: '/ajax/more/serpHotel', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=hotel' },
+      apartment: { path: '/serp', morePath: '/ajax/more/serp', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=apartment,chalet' },
+      residence: { path: '/serp', morePath: '/ajax/more/serp', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=residence' }
+    }
   },
-  residence: {
-    path: '/fr/serpResidence',
-    morePath: '/fr/ajax/more/serpResidence',
-    baseQuery: 's_c.ACCOMMODATION=residence'
+  megeve: {
+    base: 'https://megeve-booking.com',
+    channel: null,
+    dateStyle: 'iso',
+    locationParam: null,
+    serp: {
+      hotel: { path: '/serpHotel', morePath: '/ajax/more/serpHotel', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=hotel' },
+      apartment: { path: '/serp', morePath: '/ajax/more/serp', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=chalet,apartment' },
+      residence: { path: '/serp', morePath: '/ajax/more/serp', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=residence' }
+    }
+  },
+  plagne: {
+    base: 'https://www.laplagneresort.com',
+    channel: null,
+    dateStyle: 'dmy',
+    locationParam: 's_c.location',
+    serp: {
+      hotel: {
+        path: '/serp',
+        morePath: '/ajax/more/serp',
+        baseQuery: 'lang=fr_FR&s_c.type_hebergement=hotel,club,bandb'
+      },
+      apartment: {
+        path: '/serp',
+        morePath: '/ajax/more/serp',
+        baseQuery: 'lang=fr_FR&s_c.type_hebergement=appartement,chalet,gite'
+      },
+      residence: {
+        path: '/serp',
+        morePath: '/ajax/more/serp',
+        baseQuery: 'lang=fr_FR&s_c.type_hebergement=appartement,chalet,gite'
+      }
+    }
   }
 }
 
-/** Destination app → ref_c.LOCATION */
+const BASE = SITES.chamonix.base
+
+/** Destination app → code village */
 export const LOCATION_MAP: Record<string, string> = {
   chamonix: 'cmb.chamonix',
   'chamonix-mont-blanc': 'cmb.chamonix',
@@ -84,7 +134,25 @@ export const LOCATION_MAP: Record<string, string> = {
   vallorcine: 'cmb.vallorcine',
   argentiere: 'cmb.argentiere',
   argentière: 'cmb.argentiere',
-  servoz: 'cmb.servoz'
+  servoz: 'cmb.servoz',
+  'aime-2000': 'A2',
+  'plagne-aime-2000': 'A2',
+  'belle-plagne': 'BP',
+  'champagny-en-vanoise': 'CV',
+  champagny: 'CV',
+  'plagne-montalbert': 'MB',
+  montalbert: 'MB',
+  'la-plagne-montalbert': 'MB',
+  'montchavin-les-coches': 'MC',
+  montchavin: 'MC',
+  'les-coches': 'MC',
+  'plagne-1800': 'P18',
+  'plagne-bellecote': 'PB',
+  bellecote: 'PB',
+  'plagne-centre': 'PC',
+  'plagne-soleil': 'PS',
+  'plagne-villages': 'PV',
+  'la-plagne': 'PC'
 }
 
 const UA =
@@ -94,6 +162,7 @@ export function resolveLocationCode(destination: string | null | undefined): str
   if (!destination) return null
   const raw = destination.trim()
   if (raw.startsWith('cmb.')) return raw
+  if (/^[A-Z0-9]{1,4}$/.test(raw) || raw === 'roche') return raw
   const key = raw
     .toLowerCase()
     .normalize('NFD')
@@ -157,15 +226,38 @@ async function fetchText(
   }
 }
 
-function buildQuery(opts: ChamonixSearchOpts): string {
-  const parts = [SERP[opts.type].baseQuery]
-  if (opts.from) parts.push(`s_checkinDate=${opts.from}`)
-  if (opts.to) parts.push(`s_checkoutDate=${opts.to}`)
-  if (opts.type !== 'hotel') {
+function nightsBetween(from: string, to: string): number {
+  const a = Date.parse(from)
+  const b = Date.parse(to)
+  if (!Number.isFinite(a) || !Number.isFinite(b) || b <= a) return 7
+  return Math.max(1, Math.round((b - a) / 86_400_000))
+}
+
+function buildQuery(opts: ChamonixSearchOpts, site: OrchestraSiteId): string {
+  const cfg = SITES[site]
+  const parts = [cfg.serp[opts.type].baseQuery]
+  if (cfg.dateStyle === 'iso') {
+    if (opts.from) parts.push(`s_checkinDate=${opts.from}`)
+    if (opts.to) parts.push(`s_checkoutDate=${opts.to}`)
+  } else if (opts.from) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(opts.from)
+    if (m) {
+      parts.push(`s_dd=${m[3]}`)
+      parts.push(`s_dmy=${m[2]}/${m[1]}`)
+    }
+    const nights = nightsBetween(opts.from, opts.to)
+    parts.push(`s_minMan=${nights},${nights}`)
+  }
+  const pax = Math.max(1, (opts.adults || 0) + (opts.children || 0))
+  if (site === 'chamonix' && opts.type !== 'hotel') {
     parts.push(`s_c.PAX.adultsNumber=${opts.adults}`)
     parts.push(`s_c.PAX.childrenNumber=${opts.children}`)
+  } else if (site === 'meribel' || site === 'megeve') {
+    parts.push(`s_c.PAX=${pax}`)
   }
-  if (opts.location) parts.push(`ref_c.LOCATION=${opts.location}`)
+  if (opts.location && cfg.locationParam) {
+    parts.push(`${cfg.locationParam}=${opts.location}`)
+  }
   return parts.join('&')
 }
 
@@ -178,6 +270,8 @@ function decodeEntities(s: string): string {
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ')
     .replace(/&euro;/g, '€')
+    .replace(/&Agrave;/g, 'À')
+    .replace(/&agrave;/g, 'à')
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
 }
 
@@ -187,13 +281,22 @@ function stripTags(html: string): string {
 
 function splitArticles(html: string): string[] {
   const articles: string[] = []
-  const re = /<article\b[^>]*class="[^"]*cpt-result[^"]*"[^>]*>/gi
+  const re = /<(article|div)\b[^>]*class="[^"]*\bcpt-result(?:-item)?(?:\s|")[^"]*"[^>]*>/gi
+  const matches: { start: number; tag: string }[] = []
   let m: RegExpExecArray | null
   while ((m = re.exec(html))) {
-    const start = m.index
-    const end = html.indexOf('</article>', start)
-    if (end === -1) continue
-    articles.push(html.slice(start, end + '</article>'.length))
+    matches.push({ start: m.index, tag: m[1].toLowerCase() })
+  }
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].start
+    if (matches[i].tag === 'article') {
+      const end = html.indexOf('</article>', start)
+      if (end === -1) continue
+      articles.push(html.slice(start, end + '</article>'.length))
+    } else {
+      const end = i + 1 < matches.length ? matches[i + 1].start : html.length
+      articles.push(html.slice(start, end))
+    }
   }
   return articles
 }
@@ -213,7 +316,69 @@ function parsePrice(text: string | null): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-function parseArticle(block: string, from: string, to: string): ChamonixListing {
+
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+}
+
+/** Écarte logos, pictos et assets UI Orchestra qui polluent la SERP. */
+function isUsefulListingImage(url: string): boolean {
+  const u = url.toLowerCase()
+  if (!/\.(jpe?g|png|webp)(\?|$)/i.test(u)) return false
+  if (/\/(logo|icon|sprite|placeholder|whatsapp|favicon|blank)[-_.]/i.test(u)) return false
+  if (/_core\/images\//i.test(u)) return false
+  return true
+}
+
+/** Première image utilisable dans le bloc article SERP. */
+function extractImageFromBlock(
+  body: string,
+  productMeta: { img?: string } | null,
+  origin: string
+): string | null {
+  const resolve = (raw: string): string | null => {
+    const u = decodeHtmlEntities(raw.trim())
+    if (!u) return null
+    let abs: string
+    try {
+      abs = new URL(u, origin).href
+    } catch {
+      if (!/^https?:\/\//i.test(u)) return null
+      abs = u
+    }
+    return isUsefulListingImage(abs) ? abs : null
+  }
+  if (productMeta?.img) {
+    const abs = resolve(productMeta.img)
+    if (abs) return abs
+  }
+  const patterns = [
+    /data-src=["'](https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i,
+    /src=["'](https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i,
+    /data-src=["'](\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/i
+  ]
+  for (const re of patterns) {
+    const m = body.match(re)
+    if (m?.[1]) {
+      const abs = resolve(m[1])
+      if (abs) return abs
+    }
+  }
+  return null
+}
+
+function parseArticle(
+  block: string,
+  from: string,
+  to: string,
+  origin: string,
+  channel: string | null
+): ChamonixListing {
   const openEnd = block.indexOf('>')
   const openTag = block.slice(0, openEnd + 1)
   const body = block.slice(openEnd + 1)
@@ -252,10 +417,17 @@ function parseArticle(block: string, from: string, to: string): ChamonixListing 
 
   const titleM =
     body.match(/class="result-title[^"]*"[\s\S]*?<a[^>]*>([\s\S]*?)<\/a>/i) ||
-    body.match(/class="result-title[^"]*"[^>]*>([\s\S]*?)<\/h3>/i)
-  const subM = body.match(/class="result-subtitle"[^>]*>([\s\S]*?)<\/h4>/i)
-  const priceM = body.match(/class="price"[^>]*>([\s\S]*?)<\/span>/i)
-  const fromM = body.match(/class="from"[^>]*>([\s\S]*?)<\/span>/i)
+    body.match(/class="result-title[^"]*"[^>]*>([\s\S]*?)<\/h3>/i) ||
+    body.match(/class="elem-product-resum[^"]*"[^>]*>[\s\S]*?class="resum"[^>]*>([\s\S]*?)<\//i)
+  const subM =
+    body.match(/class="result-subtitle"[^>]*>([\s\S]*?)<\/h4>/i) ||
+    body.match(/class="secondTitle[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
+  const priceM =
+    body.match(/class="price-EUR"[^>]*>([\s\S]*?)<\/span>/i) ||
+    body.match(/class="price"[^>]*>([\s\S]*?)<\/span>/i)
+  const fromM =
+    body.match(/class="since"[^>]*>([\s\S]*?)<\/div>/i) ||
+    body.match(/class="from"[^>]*>([\s\S]*?)<\/span>/i)
   const typeM = body.match(/class="type"[^>]*>([\s\S]*?)<\/span>/i)
 
   const taM =
@@ -280,14 +452,16 @@ function parseArticle(block: string, from: string, to: string): ChamonixListing 
   let listingUrl: string | null = null
   if (rel) {
     try {
-      listingUrl = new URL(rel, BASE).href
+      listingUrl = new URL(rel, origin).href
     } catch {
       listingUrl = null
     }
   }
   if (listingUrl && from && to && !listingUrl.includes('s_checkinDate')) {
     const baseUrl = listingUrl.split('#')[0]
-    listingUrl = `${baseUrl}#s_checkinDate=${from}&s_checkoutDate=${to}&s_channel=CMB`
+    const hash = listingUrl.includes('#') ? listingUrl.slice(listingUrl.indexOf('#') + 1) : ''
+    const extra = channel ? `&s_channel=${channel}` : ''
+    listingUrl = `${baseUrl}#${hash ? hash + '&' : ''}s_checkinDate=${from}&s_checkoutDate=${to}${extra}`
   }
 
   let lat: number | null = null
@@ -297,12 +471,15 @@ function parseArticle(block: string, from: string, to: string): ChamonixListing 
     lat = geo.geometry.coordinates[1]
   }
 
+  const productIdAttr = body.match(/data-product-id="(\d+)"/i)
   const id =
     productMeta?.id != null
       ? String(productMeta.id)
-      : geo?.properties?.code != null
-        ? String(geo.properties.code)
-        : listingUrl?.match(/\/(?:hotel|product|residence)-(\d+)/)?.[1] || null
+      : productIdAttr
+        ? productIdAttr[1]
+        : geo?.properties?.code != null
+          ? String(geo.properties.code)
+          : listingUrl?.match(/\/(?:hotel|product|residence|location)[^"]*?-(\d+)/)?.[1] || null
 
   return {
     id,
@@ -313,7 +490,7 @@ function parseArticle(block: string, from: string, to: string): ChamonixListing 
     pricePrefix,
     priceUnit: typeM ? stripTags(typeM[1]) : null,
     url: listingUrl,
-    image: productMeta?.img || null,
+    image: extractImageFromBlock(body, productMeta, origin),
     address: geo?.properties?.location || null,
     lat,
     lon,
@@ -331,15 +508,75 @@ function parseArticle(block: string, from: string, to: string): ChamonixListing 
   }
 }
 
+
+/** og:image / première photo de la fiche produit — filet si la SERP n'a rien. */
+/** Cache process-local : une fiche produit n’est ouverte qu’une fois. */
+const productImageCache = new Map<string, string | null>()
+
+/** og:image / première photo de la fiche produit — filet si la SERP n’a rien. */
+async function fetchProductImage(productUrl: string): Promise<string | null> {
+  const pageUrl = productUrl.split('#')[0]
+  if (productImageCache.has(pageUrl)) return productImageCache.get(pageUrl) ?? null
+  const result = await fetchText(pageUrl, { timeoutMs: 5_000 })
+  if (!result.ok) {
+    productImageCache.set(pageUrl, null)
+    return null
+  }
+  const html = result.text
+  const og =
+    html.match(/property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
+    html.match(/content=["']([^"']+)["'][^>]*property=["']og:image["']/i)
+  let img: string | null = null
+  if (og?.[1]) img = decodeHtmlEntities(og[1].trim())
+  if (!img) {
+    const m = html.match(
+      /class=["'][^"']*diaporama[^"']*["'][\s\S]{0,400}?data-src=["'](https?:\/\/[^"']+)["']/i
+    )
+    if (m?.[1]) img = decodeHtmlEntities(m[1])
+  }
+  productImageCache.set(pageUrl, img)
+  return img
+}
+
+/**
+ * Enrichit un petit lot d’annonces sans photo.
+ * - Annulé si la SERP a déjà ≥ 70 % de photos (coût réseau inutile).
+ * - Cache + timeout 5 s + concurrence 2 pour ne pas freiner le relevé.
+ */
+async function enrichMissingImages(
+  listings: ChamonixListing[],
+  limit = 4
+): Promise<void> {
+  if (listings.length === 0) return
+  const withImg = listings.filter((l) => l.image).length
+  if (withImg / listings.length >= 0.7) return
+  const need = listings.filter((l) => !l.image && l.url).slice(0, limit)
+  if (need.length === 0) return
+  const conc = 2
+  for (let i = 0; i < need.length; i += conc) {
+    const batch = need.slice(i, i + conc)
+    const imgs = await Promise.all(batch.map((l) => fetchProductImage(l.url!)))
+    for (let j = 0; j < batch.length; j++) {
+      if (imgs[j]) batch[j].image = imgs[j]
+    }
+  }
+}
+
 function parseNbResult(html: string): number | null {
-  const m = html.match(/class="nb_result[^"]*"[^>]*>([\s\S]*?)<\//i)
+  const m =
+    html.match(/class="nb_result[^"]*"[^>]*>([\s\S]*?)<\//i) ||
+    html.match(/class="number"[^>]*>([\s\S]*?)</i)
   if (!m) return null
   const n = stripTags(m[1]).match(/(\d+)/)
   return n ? Number(n[1]) : null
 }
 
 function hasMoreButton(html: string): boolean {
-  return /see-more-results/i.test(html) || /data-ajax-url="\/fr\/ajax\/more\//i.test(html)
+  return (
+    /see-more-results/i.test(html) ||
+    /data-ajax-url="[^"]*ajax\/more/i.test(html) ||
+    /ajax\/filterEngine/i.test(html)
+  )
 }
 
 /**
@@ -348,14 +585,16 @@ function hasMoreButton(html: string): boolean {
 export async function extractChamonix(
   opts: ChamonixSearchOpts
 ): Promise<ChamonixExtractResult> {
-  const cfg = SERP[opts.type]
+  const site = opts.site ?? 'chamonix'
+  const siteCfg = SITES[site]
+  const cfg = siteCfg.serp[opts.type]
   const maxPages = opts.maxPages ?? 2
   const byPage = opts.byPage ?? 20
   const pricedOnly = opts.pricedOnly !== false
   const location = opts.location ? resolveLocationCode(opts.location) || opts.location : null
 
-  const query = buildQuery({ ...opts, location })
-  const firstUrl = `${BASE}${cfg.path}?${query}`
+  const query = buildQuery({ ...opts, location }, site)
+  const firstUrl = `${siteCfg.base}${cfg.path}?${query}`
   const warnings: string[] = []
   const listings: ChamonixListing[] = []
   const seen = new Set<string>()
@@ -377,7 +616,7 @@ export async function extractChamonix(
 
   const nbResult = parseNbResult(page1.text)
   for (const block of splitArticles(page1.text)) {
-    const item = parseArticle(block, opts.from, opts.to)
+    const item = parseArticle(block, opts.from, opts.to, siteCfg.base, siteCfg.channel)
     const key = item.id || item.url
     if (!key || seen.has(key)) continue
     if (pricedOnly && (item.total == null || item.total <= 0)) continue
@@ -392,7 +631,7 @@ export async function extractChamonix(
   let consecutiveErrors = 0
 
   while (canMore && page <= maxPages) {
-    const moreUrl = `${BASE}${cfg.morePath}?${query}&page=${page}&byPage=${byPage}`
+    const moreUrl = `${siteCfg.base}${cfg.morePath}?${query}&page=${page}&byPage=${byPage}`
     const result = await fetchText(moreUrl, {
       method: 'POST',
       headers: {
@@ -435,7 +674,7 @@ export async function extractChamonix(
 
     const arts = splitArticles(fragment)
     for (const block of arts) {
-      const item = parseArticle(block, opts.from, opts.to)
+      const item = parseArticle(block, opts.from, opts.to, siteCfg.base, siteCfg.channel)
       const key = item.id || item.url
       if (!key || seen.has(key)) continue
       if (pricedOnly && (item.total == null || item.total <= 0)) continue
@@ -462,6 +701,8 @@ export async function extractChamonix(
     warnings.push(`max-pages=${maxPages} atteint`)
     paginationComplete = false
   }
+
+  await enrichMissingImages(listings, 4)
 
   const byCity: Record<string, number> = {}
   for (const l of listings) {
@@ -511,6 +752,8 @@ export async function extractChamonixMulti(
     }
   }
 
+  await enrichMissingImages(listings, 4)
+
   const byCity: Record<string, number> = {}
   for (const l of listings) {
     const c = l.city || '(unknown)'
@@ -526,4 +769,16 @@ export async function extractChamonixMulti(
     byCity,
     listings
   }
+}
+
+
+/** @internal tests — parse d’un fragment SERP sans réseau. */
+export function parseSerpHtmlForTest(
+  html: string,
+  from: string,
+  to: string,
+  origin: string,
+  channel: string | null = null
+): ChamonixListing[] {
+  return splitArticles(html).map((block) => parseArticle(block, from, to, origin, channel))
 }

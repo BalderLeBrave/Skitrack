@@ -6,7 +6,7 @@
  * des clés sont configurées : ces scrapers sont un repli, pas le chemin nominal.
  */
 
-import { chromium, type Browser, type BrowserContext, type Page } from 'playwright'
+import { chromium, type BrowserContext, type Page } from 'playwright'
 import { join } from 'node:path'
 import { app } from 'electron'
 import type { Accommodation, SearchParams } from '../types'

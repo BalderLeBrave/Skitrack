@@ -17,7 +17,11 @@ export const IPC = {
   appInfo: 'app:info',
   listingFetch: 'listing:fetch',
   providersSearch: 'providers:search',
+  /** Événement push : une source vient de répondre (pendant `providers:search`). */
+  providersOutcome: 'providers:outcome',
   providersHealth: 'providers:health',
+  providersMetrics: 'providers:metrics',
+  providersMetricsReset: 'providers:metrics-reset',
   osmLodgings: 'osm:lodgings',
   clipboardRead: 'clipboard:read',
   pasteToken: 'paste:token',
@@ -249,6 +253,9 @@ export interface ProviderAccommodation {
   images?: string[]
   availabilityStatus: 'available' | 'unavailable' | 'unknown'
   priceConfidence: 'total_confirmed' | 'partial' | 'unknown'
+  /** Dates du séjour pour lesquelles le prix a été relevé (AAAA-MM-JJ). */
+  checkIn?: string
+  checkOut?: string
 }
 
 /** Une erreur par source, jamais globale : une panne n'en vide pas d'autres. */

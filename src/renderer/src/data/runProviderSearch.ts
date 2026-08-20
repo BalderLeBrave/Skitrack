@@ -47,7 +47,10 @@ const SOURCE_LABEL: Record<string, string> = {
   liteapi: 'LiteAPI',
   airbnb: 'Airbnb',
   'station-web': 'Site officiel de la station',
-  'ceto-chamonix': 'Chamonix Réservation'
+  'ceto-chamonix': 'Chamonix Réservation',
+  'ceto-meribel': 'Méribel Réservation',
+  'ceto-plagne': 'La Plagne Resort',
+  'ceto-megeve': 'Megève Réservation'
 }
 
 export function sourceLabelOf(provider: string): string {
@@ -113,6 +116,13 @@ function toLodging(
   const guests = a.guests && a.guests > 0 ? a.guests : params.adults
   const pp = total > 0 ? Math.round((total / nights / Math.max(1, guests)) * 10) / 10 : 0
 
+  const confidence =
+    a.priceConfidence === 'total_confirmed' || a.priceConfidence === 'partial'
+      ? a.priceConfidence
+      : total > 0
+        ? 'partial'
+        : 'unknown'
+
   return {
     id: idFromUrl(a.url),
     name: a.title,
@@ -149,9 +159,39 @@ function toLodging(
     lon: a.longitude,
     locPrecision: a.latitude != null ? 'exact' : undefined,
     importDomainId: params.domainId,
-    priceCheckIn: params.checkIn,
-    priceCheckOut: params.checkOut,
-    accessComputed: false
+    // Dates du relevé : celles de la fiche si le connecteur les a figées,
+    // sinon les critères de recherche (cas nominal Ceto / Booking).
+    priceCheckIn: a.checkIn || params.checkIn,
+    priceCheckOut: a.checkOut || params.checkOut,
+    accessComputed: false,
+    priceConfidence: confidence
+  }
+}
+
+/** Convertit les résultats d'un outcome (éventuellement partiel) en Lodging. */
+export function lodgingsFromOutcome(
+  outcome: ProviderOutcome,
+  params: RunProviderSearchParams,
+  seenUrls: Set<string>
+): Lodging[] {
+  const out: Lodging[] = []
+  for (const item of outcome.results) {
+    if (!item.url || seenUrls.has(item.url)) continue
+    const lodging = toLodging(item, params)
+    if (!lodging) continue
+    seenUrls.add(item.url)
+    out.push(lodging)
+  }
+  return out
+}
+
+export function outcomeSummary(o: ProviderOutcome): ProviderSearchOutcome {
+  return {
+    source: sourceLabelOf(o.provider),
+    provider: o.provider,
+    count: o.results.length,
+    error: o.error,
+    elapsedMs: o.elapsedMs
   }
 }
 
@@ -173,27 +213,15 @@ export async function runProviderSearch(
     children: params.children
   })
 
-  const seen = new Set(params.existing.map((l) => l.url).filter(Boolean))
+  const seen = new Set(params.existing.map((l) => l.url).filter(Boolean) as string[])
   const lodgings: Lodging[] = []
 
   for (const outcome of aggregate.outcomes) {
-    for (const item of outcome.results) {
-      if (seen.has(item.url)) continue
-      const lodging = toLodging(item, params)
-      if (!lodging) continue
-      seen.add(item.url)
-      lodgings.push(lodging)
-    }
+    lodgings.push(...lodgingsFromOutcome(outcome, params, seen))
   }
 
   return {
     lodgings,
-    outcomes: aggregate.outcomes.map((o: ProviderOutcome) => ({
-      source: sourceLabelOf(o.provider),
-      provider: o.provider,
-      count: o.results.length,
-      error: o.error,
-      elapsedMs: o.elapsedMs
-    }))
+    outcomes: aggregate.outcomes.map(outcomeSummary)
   }
 }

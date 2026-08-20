@@ -97,6 +97,16 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
   missingSince?: { checkIn: string; checkOut: string; at: number }
   /** Annonces du même bien écartées par la fusion des doublons. */
   dups?: { src: string; total: number }[]
+  /**
+   * Fiabilité du montant affiché, telle que le connecteur l'a qualifiée.
+   *
+   * - `total_confirmed` : prix du séjour pour les dates demandées
+   * - `partial` : « à partir de » / tarif indicatif
+   * - `unknown` : montant absent ou non qualifié (carte-redirection)
+   *
+   * Absent sur le catalogue simulé et les imports manuels anciens.
+   */
+  priceConfidence?: 'total_confirmed' | 'partial' | 'unknown'
 }
 
 export const LODG_TEMPLATES: LodgingTemplate[] = [

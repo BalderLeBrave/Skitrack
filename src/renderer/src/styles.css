@@ -3465,6 +3465,11 @@ select {
 }
 
 /* La source informe sans revendiquer : même pastille, teinte en retrait. */
+.lodgcard__badge--note {
+  background: rgba(0, 0, 0, 0.55);
+  color: #f5c542;
+  font-variant-numeric: tabular-nums;
+}
 .lodgcard__badge--src {
   right: 10px;
   background: rgba(15, 22, 32, 0.7);

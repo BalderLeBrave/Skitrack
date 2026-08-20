@@ -8,18 +8,22 @@ par `npm run build`. Rien dans `src/` ni dans `sidecar/` ne les importe.
 
 ## `extract_prix_centrale.py`
 
-Prix **réel** d'une centrale (stdlib, pas de venv). Sur Ingénie, ce n'est pas
-le « à partir de » de la liste : c'est le TOTAL `#total-prestation-G-…`
-(ex. `432,47 €`) calculé après Rechercher + Sélectionner.
+Prix **réel** d'une centrale. HTML via **BeautifulSoup**, JSON/JSONP via
+`json_parser.py`. Sur Ingénie, ce n'est pas le « à partir de » de la liste :
+c'est le TOTAL `#total-prestation-G-…` (ex. `432,47 €`) après Rechercher +
+Sélectionner.
 
+    pip install beautifulsoup4
+    python tools/extract_prix_centrale.py --self-test
     python tools/extract_prix_centrale.py --from 2027-01-16 --to 2027-01-23 --adults 3 ^
         https://reservation.les2alpes.com/vacanceole-residence-champame-studio-3-personnes-les-2-alpes.html
 
     python tools/extract_prix_centrale.py --from 2027-01-16 --to 2027-01-23 ^
         https://reservation.alpedhuez.com --limit 5
 
-Familles auto-détectées : `ingenie`, `ublo` (MSEM `/offers`), `opensystem`
-(etape-rest), `ceto` (SERP Orchestra). `--json` pour une sortie machine.
+Familles auto-détectées : `ingenie`, `ublo` (JSON MSEM `/offers`), `opensystem`
+(JSONP etape-rest), `ceto` (SERP Orchestra, `article.cpt-result`). `--json`
+pour une sortie machine.
 
 
 ## `skitrack_v26.py`

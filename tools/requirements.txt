@@ -21,6 +21,9 @@ nodriver>=0.46,<0.47
 # `pandas` sert au tri final et à l'écriture du CSV (fin de `main()`).
 pandas>=2.0
 
+# Extracteur de vrais prix (`extract_prix_centrale.py`) : DOM HTML.
+beautifulsoup4>=4.12
+
 # Playwright n'est plus utilisé par skitrack_v25.py — il reste installé dans
 # tools/.venv sans être requis, et l'application, elle, a le sien dans
 # node_modules. Aucune ligne `playwright` ici, donc, pour que le fichier dise

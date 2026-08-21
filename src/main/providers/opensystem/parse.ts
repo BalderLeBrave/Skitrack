@@ -240,7 +240,10 @@ export function parseVueInfo(raw: string): VueInfoItem[] {
 
 /**
  * Fusionne offres etape-rest et catalogue vueinfo.
- * Sans titre (entrée vueinfo), le logement n’est pas importé.
+ *
+ * Un titre vueinfo est préféré. S'il manque (403, parse raté, catalogue
+ * incomplet), on garde quand même l'offre : le prix etape-rest est daté, le
+ * titre retombe sur la clé produit plutôt que de jeter toute la liste.
  */
 export function mergeEtapeAndVue(
   offers: EtapeOffer[],
@@ -255,8 +258,7 @@ export function mergeEtapeAndVue(
     if (seen.has(offer.cle)) continue
     seen.add(offer.cle)
     const meta = byCle.get(offer.cle)
-    const title = meta?.title
-    if (!title) continue
+    const title = meta?.title || `Hébergement ${offer.cle}`
     out.push({
       id: offer.cle,
       title,

@@ -92,7 +92,12 @@ assert(merged[0]!.title === 'Studio des Pistes' && merged[0]!.total === 890, 'ch
 assert(merged[1]!.title === 'Chalet Le Loup Blanc' && merged[1]!.total === 1248, 'loup')
 assert(merged[1]!.lat === 45.256, 'merged lat')
 assert(merged.every((l) => l.url.includes('cle=') && l.url.includes('from=2027-01-16')), 'dated cle url')
-assert(mergeEtapeAndVue(offers, [], opts).length === 0, 'sans titre → rien')
+const untitled = mergeEtapeAndVue(offers, [], opts)
+assert(untitled.length === 2, `sans vueinfo on garde le prix, got ${untitled.length}`)
+assert(
+  untitled.every((l) => l.title.startsWith('Hébergement ') && l.priceConfidence === 'total_confirmed'),
+  'titre = clé, prix daté'
+)
 
 console.log(
   `ok opensystem-parse: html ${fromHtml.length} · jsonp ${fromJsonp.length} · etape ${merged.length} — « ${merged[0]!.title} » ${merged[0]!.total}€`

@@ -162,6 +162,7 @@ const CENTRAL_CASES: [string, string][] = [
   ['Méribel', 'reservations.meribel.net'],
   ['La Plagne', 'laplagneresort.com'],
   ['La Toussuire', 'reservation.la-toussuire.com'],
+  ['La Bresse Hohneck', 'reservation.labresse.net'],
   ['Sainte-Foy-Tarentaise', 'saintefoy-reservation.com'],
   ['Valmorel', 'valmorel.com'],
   ['Orcières', 'reservation.orcieres.com'],

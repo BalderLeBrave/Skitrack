@@ -43,18 +43,11 @@ export const INGENIE_HOSTS = new Set([
   'reservation.lescontamines.com',
   'reservation.samoens.com',
   'booking.prazsurarly.com',
-  'reservation.auris-en-oisans.fr',
   'reservation.bareges.com',
   'reservation.chamberymontagnes.com',
-  'reservation.le-corbier.com',
-  'reservation.les7laux.com',
-  'reservation.matheysine-tourisme.com',
   'reservation.paysdegex-montsjura.com',
-  'reservation.saintsorlindarves.com',
   'reservation.valleesdegavarnie.com',
-  'reservation.vaujany.com',
-  'reservation.villard-reculas.com',
-  'reservation.villarddelans-correnconenvercors.com'
+  'reservation.labresse.net'
 ])
 
 /** robots.txt Disallow: / — ne jamais lancer le navigateur. */

@@ -47,6 +47,17 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'www.valfrejus.com': 'opensystem',
   'www.n-py.com': 'opensystem',
   'reservation.n-py.com': 'opensystem',
+  // Open System (IIS / gadget.open-system.fr) — relevé live 2026-08-21 :
+  // page aspx + InstancePanier, pas de datedeb Ingénie.
+  'reservation.le-corbier.com': 'opensystem',
+  'reservation.les7laux.com': 'opensystem',
+  'reservation.vaujany.com': 'opensystem',
+  'reservation.auris-en-oisans.fr': 'opensystem',
+  'reservation.matheysine-tourisme.com': 'opensystem',
+  'reservation.saintsorlindarves.com': 'opensystem',
+  // Ublo / MSEM (channel OT-702 relevé sur la page)
+  'reservation.villard-reculas.com': 'ublo',
+  'reservation.villarddelans-correnconenvercors.com': 'ublo',
   'reservation.valmorel.com': 'opensystem',
   // Ublo / MSEM (React + services.msem.tech)
   'reservation.alpedhuez.com': 'ublo',

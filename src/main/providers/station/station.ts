@@ -275,6 +275,9 @@ async function optionsOf(page: Page, selector: string): Promise<Choice[]> {
  * sur `reservation.les2alpes.com`.
  */
 const CONSENT_BUTTONS = [
+  '#onetrust-accept-btn-handler',
+  '#onetrust-reject-all-handler',
+  'button:has-text("OK pour moi")',
   'button:has-text("Continuer sans accepter")',
   'a:has-text("Continuer sans accepter")',
   'button:has-text("Tout refuser")',
@@ -485,9 +488,39 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
   }
 
   // Le bouton n'est pas un `submit` : c'est un `input[type=button]` que le
-  // script de la page écoute. Le clic déclenche la recherche, qui mène à la
-  // page de résultats — la même que celle qu'un visiteur obtiendrait.
-  await page.click(FIELD.submit, { timeout: 15_000 })
+  // script de la page écoute. `:visible` d'abord — deux formulaires jumeaux,
+  // dont un caché. Si un bandeau (OneTrust) intercepte le clic, on force
+  // l'exemplaire `name=search` plutôt que de faire échouer toute la centrale.
+  try {
+    await page.click(FIELD.submit, { timeout: 8_000 })
+  } catch {
+    const clicked = await page.evaluate(() => {
+      const view = globalThis as unknown as {
+        document: {
+          querySelectorAll: (s: string) => ArrayLike<{ click: () => void }>
+          querySelector: (s: string) => { id?: string } | null
+        }
+        Resa?: { recherche_ajax?: (sel: string) => void }
+      }
+      for (const el of Array.from(view.document.querySelectorAll('input[name="search"], input.form_search'))) {
+        try {
+          el.click()
+          return true
+        } catch {
+          // bouton mort, on tente le suivant
+        }
+      }
+      const form = view.document.querySelector('form[id^="form-recherche"]')
+      if (form?.id && view.Resa?.recherche_ajax) {
+        view.Resa.recherche_ajax(`#${form.id}`)
+        return true
+      }
+      return false
+    })
+    if (!clicked) {
+      throw new Error(`${name} : pas de bouton Rechercher sur ${origin}`)
+    }
+  }
   await page
     .waitForLoadState('domcontentloaded', { timeout: 30_000 })
     .catch(() => undefined)

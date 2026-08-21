@@ -709,7 +709,29 @@ async function loadCards(page: Page, timeoutMs: number): Promise<StationCard[]> 
   return page.evaluate(extractStationCards)
 }
 
-const stationBreaker = new CircuitBreaker(2, 90_000)
+const breakersByHost = new Map<string, CircuitBreaker>()
+
+function breakerFor(host: string): CircuitBreaker {
+  let b = breakersByHost.get(host)
+  if (!b) {
+    b = new CircuitBreaker(2, 90_000)
+    breakersByHost.set(host, b)
+  }
+  return b
+}
+
+function hostOfOrigin(origin: string): string {
+  try {
+    return new URL(origin).hostname.toLowerCase()
+  } catch {
+    return origin.toLowerCase()
+  }
+}
+
+/** Budget TOTAL hors chargement de page : on garde les fiches déjà enrichies. */
+const ENRICH_BUDGET_MS = 40_000
+/** Timeout d’un aller-retour searchAjax / tarifs / calculerTotal. */
+const ENRICH_REQUEST_MS = 8_000
 
 
 /**
@@ -826,7 +848,8 @@ async function enrichExactPrices(
   cards: StationCard[],
   params: SearchParams,
   timeoutMs: number,
-  limit = 12
+  limit = 12,
+  budgetMs = ENRICH_BUDGET_MS
 ): Promise<void> {
   const ranked = [
     ...cards.filter((c) => c.fromPrice && c.url),
@@ -852,19 +875,31 @@ async function enrichExactPrices(
     })
     .catch(() => null)
 
+  const perRequest = Math.min(ENRICH_REQUEST_MS, timeoutMs)
+  const deadline = Date.now() + budgetMs
   // Un PHPSESSID : searchAjax écrit le séjour en session, detailPrestationsAjax
   // le lit. En parallèle, les fiches s'écraseraient l'une l'autre.
   const conc = 1
+  let done = 0
   for (let i = 0; i < need.length; i += conc) {
+    if (Date.now() >= deadline) {
+      debugLog('station-ajax', 'exact-price-budget', {
+        done,
+        of: need.length,
+        budgetMs
+      })
+      break
+    }
     const batch = need.slice(i, i + conc)
     const prices = await Promise.all(
-      batch.map((c) => resolveExactPriceOnFiche(parent, c, params, cidHint, timeoutMs))
+      batch.map((c) => resolveExactPriceOnFiche(parent, c, params, cidHint, perRequest))
     )
     for (let j = 0; j < batch.length; j++) {
       const total = prices[j]
       if (total != null && total > 0) {
         batch[j].priceText = `${total} €`
         batch[j].fromPrice = false
+        done++
       }
     }
   }
@@ -897,6 +932,9 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
         return []
       }
 
+      const host = hostOfOrigin(origin)
+      const breaker = breakerFor(host)
+
       const gate = shouldAttemptIngenie(central)
       if (!gate.attempt) {
         if (gate.reason === 'robots') {
@@ -908,8 +946,8 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
         return []
       }
 
-      if (stationBreaker.open) {
-        throw new Error(`${name} : ${stationBreaker.reason}`)
+      if (breaker.open) {
+        throw new Error(`${name} : ${breaker.reason}`)
       }
 
       // Timeouts plus courts : mieux un échec net en 25 s qu'un gel de 45 s × 3.
@@ -967,7 +1005,9 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)
             // SERP = souvent « à partir de » → prix réel = Rechercher de #tarifs.
-            await enrichExactPrices(page, cards, params, timeoutMs, 12)
+            // Budget séparé du timeout de page : un Tignes lent ne jette pas
+            // les TOTAL déjà obtenus, et n'ouvre pas le disjoncteur global.
+            await enrichExactPrices(page, cards, params, timeoutMs, 12, ENRICH_BUDGET_MS)
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre
             // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).
@@ -1028,20 +1068,22 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
           attempt > 1
         )
       )
-        stationBreaker.succeed()
+        breaker.succeed()
         return results
       } catch (err) {
-        stationBreaker.fail()
+        breaker.fail()
         throw err
       }
     },
     async health(): Promise<ProviderHealth> {
+      const open = [...breakersByHost.entries()].filter(([, b]) => b.open)
       return {
         name,
-        reachable: !stationBreaker.open,
-        detail: stationBreaker.open
-          ? stationBreaker.reason
-          : 'centrales Ingénie — navigateur invisible, dates du séjour'
+        reachable: open.length === 0,
+        detail:
+          open.length > 0
+            ? `${open.length} centrale(s) écartée(s) : ${open.map(([h]) => h).join(', ')}`
+            : 'centrales Ingénie — navigateur invisible, dates du séjour'
       }
     }
   }

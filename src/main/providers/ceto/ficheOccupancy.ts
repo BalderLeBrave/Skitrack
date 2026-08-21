@@ -92,7 +92,14 @@ async function readOne(
   await page.goto(target, { waitUntil: 'domcontentloaded', timeout: FICHE_TIMEOUT_MS })
 
   const opener = page.locator(OPEN_PANEL_SELECTOR).first()
-  await opener.waitFor({ state: 'visible', timeout: FICHE_TIMEOUT_MS })
+  try {
+    await opener.waitFor({ state: 'visible', timeout: 4_000 })
+  } catch {
+    // Appartements Megève / Méribel / Plagne : pas de grille « chambre ».
+    // On rend null tout de suite — 15 s d'attente ici épuisait le budget
+    // de 75 s et empêchait de lire les fiches qui, elles, ont une grille.
+    return null
+  }
   await opener.click()
 
   await page.locator(GRID_SELECTOR).first().waitFor({ state: 'attached', timeout: FICHE_TIMEOUT_MS })

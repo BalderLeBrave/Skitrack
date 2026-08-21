@@ -174,7 +174,8 @@ export function ficheUrlWithStay(url: string, from: string, to: string, channel:
  * c'est ici qu'il faut regarder.
  */
 export const GRID_SELECTOR = '.cpt-room-composition'
-export const OPEN_PANEL_SELECTOR = 'button.btn-open-panel-room'
+export const OPEN_PANEL_SELECTOR =
+  'button.btn-open-panel-room, a.btn-open-panel-room, [class*="btn-open-panel-room"]'
 export const PAX_ICON_SELECTOR = '.composition-pax .icon-pax-wrap i'
 export const PRICE_SELECTOR = '.text-price'
 export const ADULT_ICON_CLASS = 'icon-max-adult'

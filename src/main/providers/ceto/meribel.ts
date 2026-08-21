@@ -1,5 +1,7 @@
 /**
  * Connecteur Orchestra — Méribel (reservations.meribel.net).
+ *
+ * SERP + grille d'occupation de la fiche. Sans grille, tarif SERP = `partial`.
  */
 
 import { CircuitBreaker, withTimeout } from '../resilience'
@@ -12,6 +14,8 @@ import type {
 import { nowIso } from '../types'
 import { isMeribelCentral } from './hosts'
 import { extractChamonixMulti, type ChamonixListing } from './chamonixExtract'
+import { occupancyGridsForSerp } from './ficheOccupancy'
+import { priceForGroupIn, type FicheOccupancy } from './occupancy'
 
 export const CETO_MERIBEL_PROVIDER_NAME = 'ceto-meribel'
 
@@ -34,8 +38,21 @@ function cityMatches(city: string | null | undefined, destination: string): bool
   return true
 }
 
-function toAccommodation(item: ChamonixListing, params: SearchParams): Accommodation {
-  const total = item.total ?? undefined
+function toAccommodation(
+  item: ChamonixListing,
+  params: SearchParams,
+  grid?: FicheOccupancy | null,
+  groupPrice?: number | null
+): Accommodation {
+  const total = grid ? (groupPrice ?? undefined) : (item.total ?? undefined)
+  const confidence =
+    grid != null
+      ? groupPrice != null
+        ? 'total_confirmed'
+        : 'unknown'
+      : item.priceConfidence === 'partial' || total != null
+        ? 'partial'
+        : 'unknown'
   return {
     source: CETO_MERIBEL_PROVIDER_NAME,
     sourceId: item.id ?? item.url ?? 'unknown',
@@ -47,14 +64,16 @@ function toAccommodation(item: ChamonixListing, params: SearchParams): Accommoda
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
-    // La SERP Orchestra ne publie pas la capacité — elle n'est lisible que dans
-    // le sélecteur d'occupation de la fiche, rendu par le widget. Absente donc,
-    // plutôt que recopiée de la demande.
-    guests: undefined,
+    guests: grid?.maxPax,
+    priceOptions: grid?.options.map((o) => ({
+      guests: o.pax,
+      total: o.total,
+      condition: o.condition,
+      policy: o.policy
+    })),
     totalPrice: total,
     currency: item.currency || 'EUR',
-    priceConfidence:
-      item.priceConfidence === 'partial' ? 'partial' : total != null ? 'total_confirmed' : 'unknown',
+    priceConfidence: confidence,
     images: item.image ? [item.image] : undefined,
     availability: total != null && total > 0,
     availabilityStatus: total != null && total > 0 ? 'available' : 'unknown',
@@ -96,10 +115,16 @@ export function createCetoMeribelProvider(): AccommodationProvider {
           throw new Error(`${name} : ${result.error ?? 'échec extracteur'}`)
         }
         const dest = params.destination ?? ''
-        const offers = result.listings
+        const priced = result.listings
           .filter((l) => l.total != null && l.total > 0 && l.url && l.title)
           .filter((l) => cityMatches(l.city, dest))
-          .map((l) => toAccommodation(l, params))
+        const pax = (params.adults ?? 2) + (params.children ?? 0)
+        const byUrl = await occupancyGridsForSerp(priced, from, to, '')
+        const offers = priced.map((l) => {
+          const grid = l.url ? (byUrl.get(l.url) ?? null) : null
+          const groupPrice = grid ? priceForGroupIn(grid, pax) : null
+          return toAccommodation(l, params, grid, groupPrice)
+        })
         breaker.succeed()
         return offers
       } catch (err) {
@@ -111,7 +136,9 @@ export function createCetoMeribelProvider(): AccommodationProvider {
       return {
         name,
         reachable: !breaker.open,
-        detail: breaker.open ? breaker.reason : 'Centrale Méribel (Orchestra) — SERP HTML'
+        detail: breaker.open
+          ? breaker.reason
+          : 'Centrale Méribel (Orchestra) — SERP + grille d’occupation'
       }
     }
   }

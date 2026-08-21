@@ -6,7 +6,6 @@
  */
 
 import { CircuitBreaker, withTimeout } from '../resilience'
-import { debugLog } from '../debug'
 import type {
   Accommodation,
   AccommodationProvider,
@@ -20,8 +19,8 @@ import {
   resolveLocationCode,
   type ChamonixListing
 } from './chamonixExtract'
-import { readFicheOccupancies, MAX_FICHES } from './ficheOccupancy'
-import type { FicheOccupancy } from './occupancy'
+import { occupancyGridsForSerp } from './ficheOccupancy'
+import { priceForGroupIn, type FicheOccupancy } from './occupancy'
 
 export const CETO_CHAMONIX_PROVIDER_NAME = 'ceto-chamonix'
 
@@ -87,21 +86,6 @@ function toAccommodation(
     retrievedAt: nowIso(),
     rawProviderData: item
   }
-}
-
-/**
- * Meilleur tarif de la grille pour un groupe d'une taille donnée.
- *
- * Le moins cher **parmi les occupations qui l'accueillent**, jamais le moins
- * cher de la grille : le tarif « 1 personne » est presque toujours le plus bas,
- * et l'afficher pour un groupe de huit reproduirait le « à partir de » qu'on
- * cherche à corriger. `null` quand aucune occupation ne suffit — l'annonce est
- * alors écartée.
- */
-function priceForGroupIn(grid: FicheOccupancy, pax: number): number | null {
-  const fitting = grid.options.filter((o) => o.pax >= pax)
-  if (fitting.length === 0) return null
-  return Math.min(...fitting.map((o) => o.total))
 }
 
 /** Agrégats TripAdvisor via proxy Orchestra (pas de texte d'avis). */
@@ -221,21 +205,9 @@ export function createCetoChamonixProvider(): AccommodationProvider {
         // dernier. Les annonces au-delà gardent le « à partir de » de la SERP,
         // leur capacité reste inconnue, et elles ne sont donc pas écartées à
         // tort — seulement pas encore vérifiées.
-        const byPrice = [...priced].sort((a, b) => (a.total ?? 0) - (b.total ?? 0))
         const adults = params.adults ?? 2
         const children = params.children ?? 0
-        const grids = await readFicheOccupancies(
-          byPrice.map((l) => l.url ?? '').filter(Boolean),
-          from,
-          to,
-          'CMB'
-        )
-        if (grids.skipped > 0) {
-          debugLog('ceto-fiche', 'Number of listings left on the SERP price', {
-            skipped: grids.skipped,
-            cap: MAX_FICHES
-          })
-        }
+        const byUrl = await occupancyGridsForSerp(priced, from, to, 'CMB')
 
         // Le connecteur **mesure**, il ne décide pas.
         //
@@ -243,15 +215,8 @@ export function createCetoChamonixProvider(): AccommodationProvider {
         // quand même, avec sa capacité réelle et sans prix pour ce groupe : le
         // filtre de l'écran l'écarte alors sur `pers`, comme n'importe quelle
         // autre annonce trop petite.
-        //
-        // La jeter ici serait plus expéditif et c'est ce qu'on faisait, mais
-        // ça avait deux défauts. Une annonce déjà enregistrée sous une capacité
-        // fausse n'était plus jamais rapportée, donc plus jamais corrigée — elle
-        // gardait à vie sa capacité inventée. Et l'utilisateur qui assouplit
-        // ses critères ne la retrouvait pas, alors que la centrale, elle,
-        // la propose.
         const offers = priced.map((l) => {
-          const grid = l.url ? (grids.byUrl.get(l.url) ?? null) : null
+          const grid = l.url ? (byUrl.get(l.url) ?? null) : null
           const groupPrice = grid ? priceForGroupIn(grid, adults + children) : null
           return toAccommodation(
             l,

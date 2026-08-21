@@ -2,6 +2,7 @@
  * Connecteur Orchestra — La Plagne (laplagneresort.com).
  *
  * Dates : s_dd + s_dmy + s_minMan. Village : s_c.location (A2, BP, PC…).
+ * Grille d'occupation de la fiche ; sans elle, tarif SERP = `partial`.
  */
 
 import { CircuitBreaker, withTimeout } from '../resilience'
@@ -14,14 +15,29 @@ import type {
 import { nowIso } from '../types'
 import { isPlagneCentral } from './hosts'
 import { extractChamonixMulti, resolveLocationCode, type ChamonixListing } from './chamonixExtract'
+import { occupancyGridsForSerp } from './ficheOccupancy'
+import { priceForGroupIn, type FicheOccupancy } from './occupancy'
 
 export const CETO_PLAGNE_PROVIDER_NAME = 'ceto-plagne'
 
 const TIMEOUT_MS = 45_000
 const breaker = new CircuitBreaker(3, 60_000)
 
-function toAccommodation(item: ChamonixListing, params: SearchParams): Accommodation {
-  const total = item.total ?? undefined
+function toAccommodation(
+  item: ChamonixListing,
+  params: SearchParams,
+  grid?: FicheOccupancy | null,
+  groupPrice?: number | null
+): Accommodation {
+  const total = grid ? (groupPrice ?? undefined) : (item.total ?? undefined)
+  const confidence =
+    grid != null
+      ? groupPrice != null
+        ? 'total_confirmed'
+        : 'unknown'
+      : item.priceConfidence === 'partial' || total != null
+        ? 'partial'
+        : 'unknown'
   return {
     source: CETO_PLAGNE_PROVIDER_NAME,
     sourceId: item.id ?? item.url ?? 'unknown',
@@ -33,14 +49,16 @@ function toAccommodation(item: ChamonixListing, params: SearchParams): Accommoda
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
-    // La SERP Orchestra ne publie pas la capacité — elle n'est lisible que dans
-    // le sélecteur d'occupation de la fiche, rendu par le widget. Absente donc,
-    // plutôt que recopiée de la demande.
-    guests: undefined,
+    guests: grid?.maxPax,
+    priceOptions: grid?.options.map((o) => ({
+      guests: o.pax,
+      total: o.total,
+      condition: o.condition,
+      policy: o.policy
+    })),
     totalPrice: total,
     currency: item.currency || 'EUR',
-    priceConfidence:
-      item.priceConfidence === 'partial' ? 'partial' : total != null ? 'total_confirmed' : 'unknown',
+    priceConfidence: confidence,
     images: item.image ? [item.image] : undefined,
     availability: total != null && total > 0,
     availabilityStatus: total != null && total > 0 ? 'available' : 'unknown',
@@ -83,9 +101,16 @@ export function createCetoPlagneProvider(): AccommodationProvider {
           breaker.fail()
           throw new Error(`${name} : ${result.error ?? 'échec extracteur'}`)
         }
-        const offers = result.listings
-          .filter((l) => l.total != null && l.total > 0 && l.url && l.title)
-          .map((l) => toAccommodation(l, params))
+        const priced = result.listings.filter(
+          (l) => l.total != null && l.total > 0 && l.url && l.title
+        )
+        const pax = (params.adults ?? 2) + (params.children ?? 0)
+        const byUrl = await occupancyGridsForSerp(priced, from, to, '')
+        const offers = priced.map((l) => {
+          const grid = l.url ? (byUrl.get(l.url) ?? null) : null
+          const groupPrice = grid ? priceForGroupIn(grid, pax) : null
+          return toAccommodation(l, params, grid, groupPrice)
+        })
         breaker.succeed()
         return offers
       } catch (err) {
@@ -99,7 +124,7 @@ export function createCetoPlagneProvider(): AccommodationProvider {
         reachable: !breaker.open,
         detail: breaker.open
           ? breaker.reason
-          : 'Centrale La Plagne (Orchestra) — SERP + filtre village'
+          : 'Centrale La Plagne (Orchestra) — SERP + grille d’occupation'
       }
     }
   }

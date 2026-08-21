@@ -238,6 +238,31 @@ export async function readFicheOccupancies(
   return { byUrl, skipped: totalSkipped, failed }
 }
 
+/**
+ * Grilles des fiches SERP, moins chères d'abord (le plafond coupe la queue).
+ */
+export async function occupancyGridsForSerp(
+  listings: { url?: string | null; total?: number | null }[],
+  from: string,
+  to: string,
+  channel: string
+): Promise<Map<string, FicheOccupancy>> {
+  const byPrice = [...listings].sort((a, b) => (a.total ?? 0) - (b.total ?? 0))
+  const grids = await readFicheOccupancies(
+    byPrice.map((l) => l.url ?? '').filter(Boolean),
+    from,
+    to,
+    channel
+  )
+  if (grids.skipped > 0) {
+    debugLog('ceto-fiche', 'Number of listings left on the SERP price', {
+      skipped: grids.skipped,
+      cap: MAX_FICHES
+    })
+  }
+  return grids.byUrl
+}
+
 /** Vide le cache de session. Utilisé par les tests. */
 export function clearFicheOccupancyCache(): void {
   cache.clear()

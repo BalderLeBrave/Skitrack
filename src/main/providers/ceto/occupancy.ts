@@ -123,6 +123,18 @@ export function priceForGroup(
 }
 
 /**
+ * Tarif d'une grille déjà résumée, pour un groupe de `pax` personnes.
+ *
+ * Même règle que `priceForGroup` : le moins cher **parmi les occupations qui
+ * tiennent le groupe**, jamais le tarif d'appel à 1 personne.
+ */
+export function priceForGroupIn(grid: FicheOccupancy, pax: number): number | null {
+  const fitting = grid.options.filter((o) => o.pax >= pax && Number.isFinite(o.total) && o.total > 0)
+  if (fitting.length === 0) return null
+  return Math.min(...fitting.map((o) => o.total))
+}
+
+/**
  * Ajoute les dates au hash, comme le fait le site lui-même.
  *
  * Sans elles la fiche s'ouvre sur un calendrier vide et la grille affiche les

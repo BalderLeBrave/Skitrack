@@ -14,6 +14,7 @@ import {
   ficheUrlWithStay,
   fitsGroup,
   priceForGroup,
+  priceForGroupIn,
   summarise,
   type OccupancyRow
 } from './occupancy'
@@ -94,6 +95,8 @@ check(
   'jamais le moins cher de la grille : 6 personnes ne coûtent pas 1 161 €',
   priceForGroup(AIGUILLE_VERTE, 4, 2) !== 1161
 )
+check('grille résumée, 6 personnes → 2 736 €', grid != null && priceForGroupIn(grid, 6) === 2736)
+check('grille résumée, 8 personnes → null', grid != null && priceForGroupIn(grid, 8) === null)
 
 console.log('\n3. Le cas signalé : huit personnes')
 check('aucune composition n’accueille 8 adultes', priceForGroup(AIGUILLE_VERTE, 8, 0) === null)

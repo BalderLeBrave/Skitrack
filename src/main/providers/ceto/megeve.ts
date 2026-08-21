@@ -1,5 +1,8 @@
 /**
  * Connecteur Orchestra — Megève (megeve-booking.com).
+ *
+ * SERP + grille d'occupation de la fiche (même widget que Chamonix).
+ * Sans grille, le tarif SERP reste un « à partir de » (`partial`).
  */
 
 import { CircuitBreaker, withTimeout } from '../resilience'
@@ -12,14 +15,29 @@ import type {
 import { nowIso } from '../types'
 import { isMegeveCentral } from './hosts'
 import { extractChamonixMulti, type ChamonixListing } from './chamonixExtract'
+import { occupancyGridsForSerp } from './ficheOccupancy'
+import { priceForGroupIn, type FicheOccupancy } from './occupancy'
 
 export const CETO_MEGEVE_PROVIDER_NAME = 'ceto-megeve'
 
 const TIMEOUT_MS = 45_000
 const breaker = new CircuitBreaker(3, 60_000)
 
-function toAccommodation(item: ChamonixListing, params: SearchParams): Accommodation {
-  const total = item.total ?? undefined
+function toAccommodation(
+  item: ChamonixListing,
+  params: SearchParams,
+  grid?: FicheOccupancy | null,
+  groupPrice?: number | null
+): Accommodation {
+  const total = grid ? (groupPrice ?? undefined) : (item.total ?? undefined)
+  const confidence =
+    grid != null
+      ? groupPrice != null
+        ? 'total_confirmed'
+        : 'unknown'
+      : item.priceConfidence === 'partial' || total != null
+        ? 'partial'
+        : 'unknown'
   return {
     source: CETO_MEGEVE_PROVIDER_NAME,
     sourceId: item.id ?? item.url ?? 'unknown',
@@ -31,14 +49,16 @@ function toAccommodation(item: ChamonixListing, params: SearchParams): Accommoda
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
-    // La SERP Orchestra ne publie pas la capacité — elle n'est lisible que dans
-    // le sélecteur d'occupation de la fiche, rendu par le widget. Absente donc,
-    // plutôt que recopiée de la demande.
-    guests: undefined,
+    guests: grid?.maxPax,
+    priceOptions: grid?.options.map((o) => ({
+      guests: o.pax,
+      total: o.total,
+      condition: o.condition,
+      policy: o.policy
+    })),
     totalPrice: total,
     currency: item.currency || 'EUR',
-    priceConfidence:
-      item.priceConfidence === 'partial' ? 'partial' : total != null ? 'total_confirmed' : 'unknown',
+    priceConfidence: confidence,
     images: item.image ? [item.image] : undefined,
     availability: total != null && total > 0,
     availabilityStatus: total != null && total > 0 ? 'available' : 'unknown',
@@ -79,9 +99,16 @@ export function createCetoMegeveProvider(): AccommodationProvider {
           breaker.fail()
           throw new Error(`${name} : ${result.error ?? 'échec extracteur'}`)
         }
-        const offers = result.listings
-          .filter((l) => l.total != null && l.total > 0 && l.url && l.title)
-          .map((l) => toAccommodation(l, params))
+        const priced = result.listings.filter(
+          (l) => l.total != null && l.total > 0 && l.url && l.title
+        )
+        const pax = (params.adults ?? 2) + (params.children ?? 0)
+        const byUrl = await occupancyGridsForSerp(priced, from, to, '')
+        const offers = priced.map((l) => {
+          const grid = l.url ? (byUrl.get(l.url) ?? null) : null
+          const groupPrice = grid ? priceForGroupIn(grid, pax) : null
+          return toAccommodation(l, params, grid, groupPrice)
+        })
         breaker.succeed()
         return offers
       } catch (err) {
@@ -93,7 +120,9 @@ export function createCetoMegeveProvider(): AccommodationProvider {
       return {
         name,
         reachable: !breaker.open,
-        detail: breaker.open ? breaker.reason : 'Centrale Megève (Orchestra) — SERP HTML'
+        detail: breaker.open
+          ? breaker.reason
+          : 'Centrale Megève (Orchestra) — SERP + grille d’occupation'
       }
     }
   }

@@ -17,7 +17,7 @@ import { ExternalIcon } from './Icons'
 import { ResultCard } from './ResultCard'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
-import { dealOf, freshnessOf, srcOf, trackKey } from '@/data/lodgings'
+import { dealOf, freshnessOf, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import { useFormat } from '@/hooks/useFormat'
@@ -47,7 +47,12 @@ export function LodgingCard({ lodging: lg, median, domain, index = 99 }: Props):
     officialUrl: domain.booking ?? domain.website
   }
   const searchUrl = searchUrlFor(srcOf(lg), criteria)
-  const target = lg.url ? listingUrlWithStay(lg.url, srcOf(lg), criteria) : searchUrl
+  // Le connecteur d'origine plutôt que le libellé affiché : « Centrale de
+  // réservation » recouvre plusieurs moteurs, qui n'attendent pas les mêmes
+  // paramètres de séjour dans leur URL.
+  const target = lg.url
+    ? listingUrlWithStay(lg.url, lg.srcConnector ?? srcOf(lg), criteria)
+    : searchUrl
 
   const redirect = lg.total <= 0
   const priceStale =
@@ -99,7 +104,7 @@ export function LodgingCard({ lodging: lg, median, domain, index = 99 }: Props):
   const place = [
     lg.type || null,
     lg.pers ? `${lg.pers} pers` : null,
-    lg.ch ? `${lg.ch} ch` : null,
+    sizeLabel(lg, t),
     lg.m2 ? `${lg.m2} m²` : null
   ]
     .filter(Boolean)
@@ -117,7 +122,7 @@ export function LodgingCard({ lodging: lg, median, domain, index = 99 }: Props):
     noteBits.push(`★ ${lg.note}`)
     if (lg.avis > 0) noteBits.push(`${lg.avis} avis`)
   }
-  const factRight = [noteBits.length ? noteBits.join(' · ') : null, lg.src || null]
+  const factRight = [noteBits.length ? noteBits.join(' · ') : null, srcOf(lg) || null]
     .filter(Boolean)
     .join(' · ')
 
@@ -157,7 +162,7 @@ export function LodgingCard({ lodging: lg, median, domain, index = 99 }: Props):
       selected={selected}
       dimmed={fresh.stale || gone}
       onOpen={() => patch({ ficheId: lg.id })}
-      ariaLabel={`${lg.name} — ${place || lg.src}${lg.note ? `, note ${lg.note}` : ''}${
+      ariaLabel={`${lg.name} — ${place || srcOf(lg)}${lg.note ? `, note ${lg.note}` : ''}${
         redirect
           ? ''
           : partial
@@ -236,7 +241,7 @@ export function LodgingCard({ lodging: lg, median, domain, index = 99 }: Props):
             <span className="lodgcard__srcwin">{srcOf(lg)}</span>
             {dups.map((x) => (
               <span key={`${x.src}-${x.total}`} className="lodgcard__srclost">
-                {x.src} {eur(x.total)}
+                {srcOf(x)} {eur(x.total)}
               </span>
             ))}
           </p>

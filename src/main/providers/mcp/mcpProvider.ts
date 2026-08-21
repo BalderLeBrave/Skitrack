@@ -260,7 +260,9 @@ export function mapMcpItem(
     country: typeof field('country') === 'string' ? (field('country') as string) : undefined,
     checkIn: params.checkIn,
     checkOut: params.checkOut,
-    guests: asNumber(field('guests')) ?? params.adults,
+    // Ce que la source MCP déclare, ou rien : le repli sur `params.adults`
+    // fabriquait une capacité pour toute source qui n'en publie pas.
+    guests: asNumber(field('guests')),
     bedrooms: asNumber(field('bedrooms')),
     nightlyPrice: nightly,
     totalPrice: total,

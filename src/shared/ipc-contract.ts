@@ -245,6 +245,29 @@ export interface ProviderAccommodation {
   rooms?: number
   /** Surface habitable en m², telle que la source l'annonce. */
   areaSqm?: number
+  /**
+   * Meilleur tarif par occupation, quand la source publie une grille.
+   *
+   * Une centrale Orchestra n'affiche pas un prix mais un barème : le même
+   * appartement vaut 1 161 € à deux et 2 736 € à six, et sa SERP ne montre que
+   * le premier, sous un « à partir de ». Retenir ce seul montant pour un groupe
+   * de six revenait à annoncer un prix qui n'existe pas pour lui.
+   *
+   * `totalPrice` porte donc le tarif du groupe **demandé**, et ce champ garde
+   * les autres pour que l'écart soit visible plutôt que caché — ajouter une
+   * personne peut doubler le séjour, et c'est une information de décision.
+   *
+   * Trié par occupation croissante. Absent quand la source ne publie pas de
+   * grille, ce qui est le cas de tout le reste.
+   */
+  priceOptions?: {
+    guests: number
+    total: number
+    /** Condition tarifaire publiée avec ce montant. */
+    condition?: string
+    /** Politique d'annulation : « Flexible », « Non remboursable »… */
+    policy?: string
+  }[]
   nightlyPrice?: number
   totalPrice?: number
   currency?: string

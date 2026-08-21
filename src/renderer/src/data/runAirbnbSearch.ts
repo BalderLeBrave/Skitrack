@@ -16,6 +16,8 @@ export const AIRBNB_SEARCH_TIMEOUT_MS = 120_000
 
 export interface RunAirbnbSearchParams {
   domainId: number
+  /** Identifiant du domaine côté moteur local — voir `Domain.engineId`. */
+  engineDomainId?: number
   domainName: string
   villageOrMinAlt: number
   checkIn: string
@@ -202,7 +204,7 @@ export async function runAirbnbSearch(
     }
   }
 
-  const { lodgings: enriched, note } = await enrichWithAccess(added, params.domainId)
+  const { lodgings: enriched, note } = await enrichWithAccess(added, params.engineDomainId)
   const byId = new Map(enriched.map((l) => [l.id, l]))
   const finalList = imported.map((l) => byId.get(l.id) ?? l)
 

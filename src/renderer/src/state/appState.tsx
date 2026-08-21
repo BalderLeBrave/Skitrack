@@ -13,6 +13,8 @@
  * référentiel importé (clé séparée). Les trois ont des cycles de vie propres.
  */
 
+import { bookingFamilyOf } from '@shared/bookingFamilies'
+import { repairUbloListingUrl } from '@shared/ubloUrl'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { isLanguage, type Language } from '@/i18n'
@@ -734,6 +736,31 @@ function forgetInventedCapacity(imported: Lodging[] | undefined): Lodging[] {
   )
 }
 
+/**
+ * Répare les URL de fiche des centrales Ublo écrites sans leur segment.
+ *
+ * Le connecteur posait le `slug` à la racine — `/{slug}` au lieu de
+ * `/hebergements/{slug}` — et chaque annonce ouvrait un 404. Le connecteur est
+ * corrigé, mais `imported` est **enregistré** : les annonces déjà relevées
+ * portent l'URL fautive et l'ouvriraient encore.
+ *
+ * La réparation se fait ici, à la lecture, et pas seulement à l'ouverture du
+ * lien : l'URL est aussi la clé de déduplication et celle de l'identifiant
+ * local. La corriger en surface aurait laissé le prochain relevé rapporter la
+ * même annonce sous une URL différente — donc en double, l'une des deux menant
+ * toujours à un 404.
+ *
+ * `repairUbloListingUrl` est idempotent et ne touche qu'aux chemins d'un seul
+ * segment : la repasser à chaque démarrage ne dérive pas.
+ */
+function repairCentralUrls(imported: Lodging[]): Lodging[] {
+  return imported.map((lodging) => {
+    if (!lodging.url || bookingFamilyOf(lodging.url) !== 'ublo') return lodging
+    const url = repairUbloListingUrl(lodging.url)
+    return url === lodging.url ? lodging : { ...lodging, url }
+  })
+}
+
 export interface PriceReading {
   t: number
   v: number
@@ -803,7 +830,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       // Absence de préférences = premier lancement : on ouvre l'accueil.
       if (!raw) return { ...base, onboard: true, ...(demo ?? {}) }
       const saved = migratePrefs(JSON.parse(raw) as Partial<AppState> & { prefsSchema?: number })
-      return { ...base, ...saved, imported: forgetInventedCapacity(saved.imported), ...(demo ?? {}) }
+      return { ...base, ...saved, imported: repairCentralUrls(forgetInventedCapacity(saved.imported)), ...(demo ?? {}) }
     } catch {
       return { ...base, ...(demo ?? {}) }
     }

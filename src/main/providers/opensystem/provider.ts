@@ -33,7 +33,8 @@ function toAccommodation(item: OpenSystemListing, params: SearchParams): Accommo
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
-    guests: params.adults,
+    // Ni `etape-rest` ni `vueinfo` ne publient de capacité.
+    guests: undefined,
     totalPrice: item.total,
     currency: item.currency,
     priceConfidence: item.priceConfidence === 'partial' ? 'partial' : 'total_confirmed',

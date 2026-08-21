@@ -20,12 +20,28 @@ function normalise(value: string): string {
   return value.toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
+/** Un départ résolu côté moteur : son identifiant **et** sa position. */
+export interface ResolvedOrigin {
+  id: number
+  lat: number
+  lon: number
+}
+
 /**
- * Renvoie l'identifiant du départ correspondant dans la base du moteur, en le
- * créant au besoin. Lève une erreur explicite quand l'adresse est vide ou que
- * le géocodage échoue — l'appelant l'affiche telle quelle.
+ * Résout un départ dans la base du moteur, en le créant au besoin, et rend sa
+ * position géocodée.
+ *
+ * Rendre les coordonnées et non le seul identifiant n'est pas un détail : sans
+ * elles, `travelOf` ne peut rien estimer et `computeRoutes` écarte le départ
+ * (`origins.filter(hasCoordinates)`). Elles n'étaient jamais demandées, jamais
+ * enregistrées, et **saisir une adresse ne changeait donc rien** — ni temps de
+ * voiture, ni distance, ni péage, ni carburant. Toute la chaîne trajet
+ * attendait un géocodage que personne ne déclenchait.
+ *
+ * Lève une erreur explicite quand l'adresse est vide ou que le géocodage
+ * échoue — l'appelant l'affiche telle quelle.
  */
-export async function ensureSidecarOrigin(place: Origin): Promise<number> {
+export async function resolveSidecarOrigin(place: Origin): Promise<ResolvedOrigin> {
   const address = addressOf(place)
   if (!address) {
     throw new Error(`Le départ « ${place.label} » n’a pas d’adresse — complétez-la dans Voyageurs.`)
@@ -34,18 +50,24 @@ export async function ensureSidecarOrigin(place: Origin): Promise<number> {
   const existing = await api.origins()
   if (place.originId != null) {
     const byId = existing.find((o) => o.id === place.originId)
-    if (byId) return byId.id
+    if (byId) return { id: byId.id, lat: byId.lat, lon: byId.lon }
   }
   const byAddress = existing.find((o) => normalise(o.address) === normalise(address))
-  if (byAddress) return byAddress.id
+  if (byAddress) return { id: byAddress.id, lat: byAddress.lat, lon: byAddress.lon }
 
   try {
     const created = await api.createOrigin(place.label || 'Départ', address)
-    return created.id
+    return { id: created.id, lat: created.lat, lon: created.lon }
   } catch (err) {
     if (err instanceof ApiError) {
       throw new Error(`Géocodage impossible pour « ${address} » : ${err.message}`)
     }
     throw err
   }
+}
+
+/** Compatibilité : l'identifiant seul, pour les appelants qui n'ont que faire
+ *  de la position (isochrones de la carte). */
+export async function ensureSidecarOrigin(place: Origin): Promise<number> {
+  return (await resolveSidecarOrigin(place)).id
 }

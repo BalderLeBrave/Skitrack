@@ -848,11 +848,8 @@ export function SettingsPage(): JSX.Element {
               <p className="settings__help">{t('settings_lodging_sources_help')}</p>
 
             <section id="set-metrics" className="panel panel--flat settings__section">
-              <h2>Observabilité des sources</h2>
-              <p className="settings__help">
-                Latence moyenne, taux d’offres tarifées et erreurs depuis le démarrage — pour diagnostiquer
-                sans ouvrir la console.
-              </p>
+              <h2>{t('metrics_title')}</h2>
+              <p className="settings__help">{t('metrics_help')}</p>
               {metrics && metrics.length > 0 ? (
                 <div className="settings__metrics">
                   <table className="settings__table">
@@ -888,11 +885,11 @@ export function SettingsPage(): JSX.Element {
                       void window.skitrack.providers.metricsReset().then(() => setMetrics([]))
                     }}
                   >
-                    Réinitialiser les compteurs
+                    {t('metrics_reset')}
                   </button>
                 </div>
               ) : (
-                <p className="settings__help">Aucun relevé pour l’instant — lancez une recherche logements.</p>
+                <p className="settings__help">{t('metrics_none')}</p>
               )}
             </section>
 

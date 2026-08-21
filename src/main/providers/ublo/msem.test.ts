@@ -49,6 +49,22 @@ assert(
 
 const url = lodgingUrl(site!, 'chalet-test', '2027-01-16', '2027-01-23', 4, 1)
 assert(url.includes('adults=4') && url.includes('children=1'), url)
+// Le segment de fiche : sans lui, chaque annonce ouvrait un 404. Voir
+// `LISTING_SEGMENT` dans msem.ts — relevé sur les sitemap des trois centrales.
+assert(
+  url.startsWith('https://reservation.alpedhuez.com/hebergements/chalet-test?'),
+  `chemin de fiche inattendu : ${url}`
+)
+// Sainte-Foy publie sous `/fr` : le préfixe précède le segment, il ne le
+// remplace pas.
+const sfSite = ubloSiteOf('https://www.saintefoy-reservation.com/')
+assert(sfSite != null, 'site Sainte-Foy connu')
+assert(
+  lodgingUrl(sfSite!, 'chalet-test', '2027-01-16', '2027-01-23', 2, 0).startsWith(
+    'https://www.saintefoy-reservation.com/fr/hebergements/chalet-test?'
+  ),
+  'préfixe de langue conservé devant le segment de fiche'
+)
 
 console.log(
   `ok ublo-msem: ${listings.length} offres — « ${first.title.slice(0, 40)} » ${first.total}€`

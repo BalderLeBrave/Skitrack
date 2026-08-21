@@ -32,9 +32,11 @@
  * point de ce rangement.
  */
 
+import { distanceKm } from '@shared/geo'
 import { api, isClientReady } from '@/api/client'
 import type { DomainSummary } from '@/api/types'
 import type { Domain, Referential } from './referentiel'
+import { hasCoords } from './referentiel'
 import { catalogueStations } from './catalogue'
 import { squash } from './places'
 
@@ -64,6 +66,22 @@ export interface LoadedDomains {
  * n'est touchée : le moteur ne sait rien de plus que le classeur sur les
  * altitudes, et il n'en couvre qu'une partie.
  */
+/**
+ * Rayon maximal admis pour rapprocher une station d'un domaine du moteur, en km.
+ *
+ * Le rapprochement par le nom ne suffit pas, et de loin : le moteur nomme des
+ * zones OpenSkiMap — « Brévent/Flégère (Chamonix) », « Les Planards
+ * (Chamonix) » — quand le catalogue nomme des marques de station. Sur cinq
+ * stations testées, une seule tombait juste par le nom.
+ *
+ * La position, elle, ne ment pas. Douze kilomètres : assez large pour couvrir
+ * l'écart entre le centre d'une station et le centroïde de son domaine
+ * cartographié, assez serré pour ne pas attraper la vallée voisine. Un
+ * rapprochement au-delà serait un domaine différent, et ses remontées
+ * donneraient une distance fausse — pire qu'une distance absente.
+ */
+const ENGINE_MATCH_RADIUS_KM = 12
+
 function applyEngineOverlay(stations: Domain[], summaries: DomainSummary[]): Domain[] {
   const byKey = new Map<string, DomainSummary>()
   for (const summary of summaries) {
@@ -74,11 +92,43 @@ function applyEngineOverlay(stations: Domain[], summaries: DomainSummary[]): Dom
     }
   }
 
+  const located = summaries.filter(
+    (s): s is DomainSummary & { centroid_lat: number; centroid_lon: number } =>
+      typeof s.centroid_lat === 'number' && typeof s.centroid_lon === 'number'
+  )
+
+  /** Domaine cartographié le plus proche, dans la limite du rayon. */
+  const nearest = (station: Domain): DomainSummary | undefined => {
+    if (!hasCoords(station)) return undefined
+    let best: DomainSummary | undefined
+    let bestKm = ENGINE_MATCH_RADIUS_KM
+    for (const summary of located) {
+      const km = distanceKm(
+        station.lat as number,
+        station.lon as number,
+        summary.centroid_lat,
+        summary.centroid_lon
+      )
+      if (km < bestKm) {
+        bestKm = km
+        best = summary
+      }
+    }
+    return best
+  }
+
   return stations.map((station) => {
-    const hit = byKey.get(squash(station.name)) ?? (station.pass ? byKey.get(squash(station.pass)) : undefined)
+    // Le nom d'abord : quand il tombe juste, il est plus sûr qu'une distance.
+    // La position ensuite, qui rattrape tout le reste.
+    const hit =
+      byKey.get(squash(station.name)) ??
+      (station.pass ? byKey.get(squash(station.pass)) : undefined) ??
+      nearest(station)
     if (!hit) return station
     return {
       ...station,
+      // Le seul endroit qui voit les deux numérotations : on garde le lien.
+      engineId: hit.id,
       glacier: station.glacier || hit.glacier === true,
       website: station.website ?? hit.official_website_url,
       booking: station.booking ?? hit.official_booking_url

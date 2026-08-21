@@ -84,7 +84,26 @@
   opacity: 0.5;
 }
 
+/*
+ * L'image occupe la boîte, et c'est `object-fit` qui recadre — pas
+ * `overflow: hidden`.
+ *
+ * Le positionnement absolu n'est pas une coquetterie : en flux de grille,
+ * `height: 100%` ne se résolvait pas. La boîte est une grille en
+ * `place-items: center` — voulu, pour centrer le pictogramme « sans photo » —
+ * donc sa ligne est dimensionnée par son contenu, la hauteur de référence est
+ * indéfinie, et le pourcentage retombait sur `auto`. Une photo portrait de
+ * 600 × 1200 prenait alors 712 px de haut dans une boîte de 223 px :
+ * `object-fit: cover` n'avait plus rien à rogner, et le débordement était coupé
+ * par le bas. On ne voyait que le haut du cliché — le ciel, le plafond.
+ *
+ * `inset: 0` donne à l'élément la taille exacte de la boîte. `cover` reprend
+ * alors son travail, et `object-position` vaut `50% 50%` par défaut : le
+ * recadrage se fait au centre, en portrait comme en paysage.
+ */
 .resultcard__img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;

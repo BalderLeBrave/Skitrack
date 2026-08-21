@@ -793,6 +793,111 @@ const CATALOG = {
   lodg_prefilled_search: ['Recherche pré-remplie sur le site', 'Pre-filled search on the site'],
   lodg_official_site: ['Site officiel de la station', 'Resort’s official site'],
   lodg_official_unverified: ['non vérifié', 'unverified'],
+  lodg_rate_grid: ['Tarifs de la centrale', 'Booking centre rates'],
+  lodg_rate_grid_note: [
+    'Un tarif par occupation, relevé sur la fiche aux dates du séjour. La ligne mise en avant est celle de votre groupe.',
+    'One rate per occupancy, read on the listing for your stay dates. The highlighted row is your group’s.'
+  ],
+  lodg_rate_guests: ['{n} pers.', '{n} guests'],
+  lodg_rate_yours: ['votre groupe', 'your group'],
+  lodg_rooms_count: ['{n} pièces', '{n} rooms'],
+  lodg_rooms_count_one: ['{n} pièce', '{n} room'],
+  // --- Réglages : observabilité des sources --------------------------------
+  metrics_title: ['Observabilité des sources', 'Source observability'],
+  metrics_help: [
+    'Latence moyenne, taux d’offres tarifées et erreurs depuis le démarrage — pour diagnostiquer sans ouvrir la console.',
+    'Average latency, share of priced offers and errors since start-up — to diagnose without opening the console.'
+  ],
+  metrics_reset: ['Réinitialiser les compteurs', 'Reset the counters'],
+  metrics_none: [
+    'Aucun relevé pour l’instant — lancez une recherche logements.',
+    'No reading yet — run a stays search.'
+  ],
+
+  // --- Onboarding ----------------------------------------------------------
+  onb_summary: [
+    'Je cherche un appart pour {w} à {p}, du {f} au {t}',
+    'Looking for a place for {w} in {p}, {f} → {t}'
+  ],
+  onb_arrival_label: ['Date d’arrivée', 'Arrival date'],
+  onb_departure_label: ['Date de départ', 'Departure date'],
+  onb_station_unknown: [
+    'Station introuvable dans le référentiel — vous pourrez la choisir plus tard.',
+    'Resort not found in the reference list — you can pick it later.'
+  ],
+
+  // --- Écran Décision : postes de coût et répartition ----------------------
+  decision_lodging_sub: [
+    '{l} · {n} nuits · réparti au nombre de personnes',
+    '{l} · {n} nights · split by head count'
+  ],
+  decision_rental_label: ['Location de matériel', 'Equipment rental'],
+  decision_option_off: ['option désactivée', 'option turned off'],
+  decision_lessons_sub: [
+    '{n} inscrit(s), formule par voyageur',
+    '{n} enrolled, per-traveller package'
+  ],
+  decision_route_sub: [
+    '{n} foyer(s) · carburant {f} · péages {t}',
+    '{n} household(s) · fuel {f} · tolls {t}'
+  ],
+  decision_share_rental: ['matériel {p}', 'equipment {p}'],
+  decision_share_even: ['à parts égales', 'an even split'],
+  decision_share_above: ['+{d} € au-dessus d’un partage égal', '+{d} € above an even split'],
+  decision_share_below: ['{d} € sous un partage égal', '{d} € below an even split'],
+
+  // --- Écran Logements : relevé, état, listes vides ------------------------
+  lodg_geo_bad_positions: ['{n} position(s) à corriger', '{n} position(s) to fix'],
+  lodg_src_unavailable: ['{s} : temporairement indisponible', '{s}: temporarily unavailable'],
+  lodg_src_no_result: ['{s} : pas de résultat', '{s}: no result'],
+  lodg_altitudes_measured: ['altitudes mesurées', 'measured altitudes'],
+  lodg_criteria_order: [
+    'Dates et groupe : la centrale de station répond en premier (prix datés), puis les autres sources.',
+    'Dates and party: the resort booking centre answers first (dated prices), then the other sources.'
+  ],
+  lodg_reset_filters_title: [
+    'Réinitialiser les filtres de l’écran Logements',
+    'Reset the Stays screen filters'
+  ],
+  lodg_status_title: ['État du relevé et des positions', 'State of the reading and the positions'],
+  lodg_status_running: ['Relevé en cours…', 'Reading in progress…'],
+  lodg_status_hide: ['Masquer l’état du relevé', 'Hide the reading state'],
+  lodg_status_show: ['État du relevé', 'Reading state'],
+  lodg_week_reference: ['référence', 'reference'],
+  lodg_none_for_dates: [
+    'Aucune offre pour {d} à ces dates',
+    'No offer for {d} on these dates'
+  ],
+  lodg_run_search_hint: [
+    'Lancez une recherche pour afficher les annonces tarifées, avec distance aux pistes.',
+    'Run a search to show priced listings, with their distance to the slopes.'
+  ],
+  lodg_try_other_dates: [
+    'Essayez d’autres dates ou un village voisin du même domaine.',
+    'Try other dates, or a neighbouring village in the same area.'
+  ],
+  lodg_clear_selection: ['Vider la sélection', 'Clear the selection'],
+
+  // --- Fiche logement : ce qui a été relevé ------------------------------
+  sheet_verified_title: ['Ce que Skitrack a vérifié', 'What Skitrack checked'],
+  sheet_verified_dates: ['Dates du relevé', 'Dates of the reading'],
+  sheet_dates_differ: ['dates de recherche différentes', 'different search dates'],
+  sheet_dates_match: ['alignées sur votre séjour', 'matching your stay'],
+  sheet_ski_access: ['Accès pistes', 'Slope access'],
+  sheet_price_from: ['À partir de {p}', 'From {p}'],
+  sheet_price_confirmed: ['confirmé pour vos dates', 'confirmed for your dates'],
+  sheet_price_confirmed_these: ['confirmé pour ces dates', 'confirmed for these dates'],
+  sheet_price_teaser: ['à partir de (tarif d’appel)', 'starting price (teaser rate)'],
+  sheet_teaser_rate: ['tarif d’appel', 'teaser rate'],
+  sheet_price_to_confirm: ['à confirmer sur le site', 'to be confirmed on the site'],
+  sheet_price_unpublished: [
+    'non publié — ouverture de la source pour le tarif',
+    'not published — open the source for the rate'
+  ],
+  sheet_origin_default: ['le départ', 'the departure point'],
+  sheet_tolls: ['péages {p}', 'tolls {p}'],
+  sheet_no_tolls: ['sans péage', 'toll-free'],
+
   lodg_official_unverified_note: [
     'Adresse déduite : l’hôte existe mais n’a pas répondu à la vérification.',
     'Inferred address: the host exists but did not answer the check.'
@@ -830,8 +935,32 @@ const CATALOG = {
   lodg_no_photo: ['offre simulée — sans photo', 'simulated offer — no photo'],
   fee_cleaning: ['Frais de ménage', 'Cleaning fee'],
   fee_stay_tax: ['Taxe de séjour', 'Tourist tax'],
+  geocode_pending: ['Localisation de l’adresse…', 'Locating the address…'],
+  geocode_done: ['Adresse localisée — trajets calculables.', 'Address located — travel times available.'],
+  geocode_none: [
+    'Adresse non localisée : sans elle, ni temps de route, ni péage, ni carburant.',
+    'Address not located: without it, no drive time, no tolls, no fuel.'
+  ],
+  access_by_car: ['Route depuis chez vous', 'Drive from home'],
   access_label: ['Accès', 'Access'],
   runs_on_foot: ['Pistes à pied', 'Runs on foot'],
+  access_to_runs: ['Point skiable le plus proche', 'Nearest skiable point'],
+  access_walk_time: ['{n} min à pied', '{n} min on foot'],
+  access_drive_time: ['{n} min en voiture', '{n} min by car'],
+  access_shuttle_time: ['{n} min de navette', '{n} min by shuttle'],
+  access_ski_in: ['skis aux pieds', 'ski-in / ski-out'],
+  access_climb: ['{n} m à remonter', '{n} m to climb'],
+  access_descent: ['{n} m à redescendre', '{n} m downhill'],
+  access_flat: ['de plain-pied', 'level'],
+  access_mode: ['Comment on y va', 'How you get there'],
+  access_mode_ski: ['skis aux pieds', 'ski-in / ski-out'],
+  access_mode_shuttle: ['navette', 'shuttle'],
+  access_mode_car: ['voiture', 'car'],
+  access_mode_unknown: ['non déterminé', 'undetermined'],
+  access_walk_note: [
+    'Distance et dénivelé sont mesurés à vol d’oiseau sur les tracés OpenSkiMap. Le temps est une estimation : 50 m/min à pied, 25 km/h sur les routes de station plus 5 min pour sortir et garer la voiture. L’attente d’une navette n’y est pas comptée.',
+    'Distance and climb are measured as the crow flies on OpenSkiMap traces. The time is an estimate: 50 m/min on foot, 25 km/h on resort roads plus 5 min to get the car out and park. Shuttle waiting time is not included.'
+  ],
   nearest_lift: ['Remontée la plus proche', 'Nearest lift'],
   full_stay_cost: ['Coût complet du séjour', 'Full cost of the stay'],
   rental_6days: ['Matériel de location — 6 jours', 'Rental equipment — 6 days'],

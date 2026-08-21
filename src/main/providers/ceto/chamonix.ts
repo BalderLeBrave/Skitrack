@@ -6,6 +6,7 @@
  */
 
 import { CircuitBreaker, withTimeout } from '../resilience'
+import { debugLog } from '../debug'
 import type {
   Accommodation,
   AccommodationProvider,
@@ -19,6 +20,8 @@ import {
   resolveLocationCode,
   type ChamonixListing
 } from './chamonixExtract'
+import { readFicheOccupancies, MAX_FICHES } from './ficheOccupancy'
+import type { FicheOccupancy } from './occupancy'
 
 export const CETO_CHAMONIX_PROVIDER_NAME = 'ceto-chamonix'
 
@@ -28,15 +31,30 @@ const breaker = new CircuitBreaker(3, 60_000)
 function toAccommodation(
   item: ChamonixListing,
   params: SearchParams,
-  reviews?: { rating: number | null; numReviews: number | null } | null
+  reviews?: { rating: number | null; numReviews: number | null } | null,
+  /** Grille de la fiche, quand elle a pu être lue. */
+  grid?: FicheOccupancy | null,
+  /** Tarif du groupe demandé d'après cette grille. */
+  groupPrice?: number | null
 ): Accommodation {
-  const total = item.total ?? undefined
+  // La grille prime sur la SERP quand elle existe.
+  //
+  // La SERP n'affiche qu'un « à partir de » à l'occupation minimale. Dès qu'on
+  // a lu la grille, ce montant n'a plus lieu d'être montré : soit elle donne le
+  // tarif du groupe demandé, soit elle n'en a pas pour lui — et il vaut alors
+  // mieux ne rien afficher que le tarif d'un autre groupe. C'est exactement le
+  // « à partir de » qu'on cherche à supprimer.
+  const total = grid ? (groupPrice ?? undefined) : (item.total ?? undefined)
   const confidence =
-    item.priceConfidence === 'partial'
-      ? 'partial'
-      : total != null
+    grid != null
+      ? groupPrice != null
         ? 'total_confirmed'
         : 'unknown'
+      : item.priceConfidence === 'partial'
+        ? 'partial'
+        : total != null
+          ? 'total_confirmed'
+          : 'unknown'
 
   return {
     source: CETO_CHAMONIX_PROVIDER_NAME,
@@ -49,7 +67,15 @@ function toAccommodation(
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
-    guests: params.adults,
+    // La SERP ne publie pas la capacité : elle vient de la grille de la fiche,
+    // ou reste absente. Jamais recopiée de la demande.
+    guests: grid?.maxPax,
+    priceOptions: grid?.options.map((o) => ({
+      guests: o.pax,
+      total: o.total,
+      condition: o.condition,
+      policy: o.policy
+    })),
     totalPrice: total,
     currency: item.currency || 'EUR',
     priceConfidence: confidence,
@@ -61,6 +87,21 @@ function toAccommodation(
     retrievedAt: nowIso(),
     rawProviderData: item
   }
+}
+
+/**
+ * Meilleur tarif de la grille pour un groupe d'une taille donnée.
+ *
+ * Le moins cher **parmi les occupations qui l'accueillent**, jamais le moins
+ * cher de la grille : le tarif « 1 personne » est presque toujours le plus bas,
+ * et l'afficher pour un groupe de huit reproduirait le « à partir de » qu'on
+ * cherche à corriger. `null` quand aucune occupation ne suffit — l'annonce est
+ * alors écartée.
+ */
+function priceForGroupIn(grid: FicheOccupancy, pax: number): number | null {
+  const fitting = grid.options.filter((o) => o.pax >= pax)
+  if (fitting.length === 0) return null
+  return Math.min(...fitting.map((o) => o.total))
 }
 
 /** Agrégats TripAdvisor via proxy Orchestra (pas de texte d'avis). */
@@ -172,13 +213,54 @@ export function createCetoChamonixProvider(): AccommodationProvider {
           )
           for (const [id, r] of results) reviewById.set(id, r)
         }
-        const offers = priced.map((l) =>
-          toAccommodation(
+        // Grilles d'occupation, fiche par fiche, au navigateur.
+        //
+        // L'ordre compte : les fiches sont ouvertes de la moins chère à la plus
+        // chère, parce que le plafond de `MAX_FICHES` coupe la queue de liste
+        // et qu'il vaut mieux tronquer ce que l'utilisateur regardera en
+        // dernier. Les annonces au-delà gardent le « à partir de » de la SERP,
+        // leur capacité reste inconnue, et elles ne sont donc pas écartées à
+        // tort — seulement pas encore vérifiées.
+        const byPrice = [...priced].sort((a, b) => (a.total ?? 0) - (b.total ?? 0))
+        const adults = params.adults ?? 2
+        const children = params.children ?? 0
+        const grids = await readFicheOccupancies(
+          byPrice.map((l) => l.url ?? '').filter(Boolean),
+          from,
+          to,
+          'CMB'
+        )
+        if (grids.skipped > 0) {
+          debugLog('ceto-fiche', 'Number of listings left on the SERP price', {
+            skipped: grids.skipped,
+            cap: MAX_FICHES
+          })
+        }
+
+        // Le connecteur **mesure**, il ne décide pas.
+        //
+        // Une annonce dont la grille ne peut pas loger le groupe est rapportée
+        // quand même, avec sa capacité réelle et sans prix pour ce groupe : le
+        // filtre de l'écran l'écarte alors sur `pers`, comme n'importe quelle
+        // autre annonce trop petite.
+        //
+        // La jeter ici serait plus expéditif et c'est ce qu'on faisait, mais
+        // ça avait deux défauts. Une annonce déjà enregistrée sous une capacité
+        // fausse n'était plus jamais rapportée, donc plus jamais corrigée — elle
+        // gardait à vie sa capacité inventée. Et l'utilisateur qui assouplit
+        // ses critères ne la retrouvait pas, alors que la centrale, elle,
+        // la propose.
+        const offers = priced.map((l) => {
+          const grid = l.url ? (grids.byUrl.get(l.url) ?? null) : null
+          const groupPrice = grid ? priceForGroupIn(grid, adults + children) : null
+          return toAccommodation(
             l,
             params,
-            l.tripadvisorLocationId ? reviewById.get(l.tripadvisorLocationId) : null
+            l.tripadvisorLocationId ? reviewById.get(l.tripadvisorLocationId) : null,
+            grid,
+            groupPrice
           )
-        )
+        })
 
         if (offers.length === 0) {
           // Stock vide = réponse légitime, pas une panne

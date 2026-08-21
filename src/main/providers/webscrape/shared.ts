@@ -215,7 +215,9 @@ export function baseAccommodation(
     country: partial.country,
     checkIn: params.checkIn,
     checkOut: params.checkOut,
-    guests: partial.guests ?? params.adults,
+    // Ce que l'extracteur a lu sur la carte, ou rien : le repli sur
+    // `params.adults` renvoyait la demande en guise de capacite annoncee.
+    guests: partial.guests,
     bedrooms: partial.bedrooms,
     rooms: partial.rooms,
     areaSqm: partial.areaSqm,

@@ -66,9 +66,49 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
   lon?: number
   /** 'exact' ou 'approximate' : Airbnb ne publie qu'une position floue. */
   locPrecision?: 'exact' | 'approximate'
+  /**
+   * Nombre de **pièces**, tel que la source l'annonce. Absent si elle se tait.
+   *
+   * Les centrales françaises comptent en pièces — « 2 pièces », « 7 pièces » —
+   * et n'annoncent presque jamais de chambres : `ch` y reste donc à zéro. Les
+   * deux champs cohabitent sans se traduire l'un l'autre, parce qu'une pièce
+   * n'est pas une chambre : un « 2 pièces » a un séjour et une chambre, un
+   * studio est un « 1 pièce » et n'a aucune chambre.
+   *
+   * La conversion n'a lieu **que dans le filtre**, et sur la demande de
+   * l'utilisateur, jamais sur la donnée — voir `data/lodgingFilter.ts`. Ce
+   * champ garde ce que la centrale a publié, et la vignette l'affiche tel quel.
+   */
+  rooms?: number
+  /**
+   * Meilleur tarif par occupation, quand la centrale publie un barème.
+   *
+   * `total` porte celui du groupe demandé ; celles-ci disent ce que coûterait
+   * un groupe plus petit ou plus grand. Une centrale Orchestra facture 1 161 €
+   * à deux et 2 736 € à six pour le même appartement : cacher l'écart, c'est
+   * laisser croire à un prix unique.
+   *
+   * Trié par occupation croissante. Absent partout ailleurs.
+   */
+  priceOptions?: { guests: number; total: number; condition?: string; policy?: string }[]
   /** Domaine auquel cette annonce a été rattachée à l'import. Une annonce
    *  importée pour Les 2 Alpes ne doit pas apparaître sous Val Thorens. */
   importDomainId?: number
+  /**
+   * Nom **technique** du connecteur qui a rapporté l'annonce (`station-web`,
+   * `ceto-chamonix`, `booking`…).
+   *
+   * `src` porte le libellé affiché, et plusieurs connecteurs partagent
+   * désormais le même : toutes les centrales de station s'affichent sous
+   * `CENTRALE_SOURCE`. Le libellé ne suffit donc plus à savoir *quel* site a
+   * répondu — or l'ouverture d'une annonce en a besoin, chaque centrale
+   * n'attendant pas les mêmes paramètres de séjour dans son URL. On garde donc
+   * le connecteur à côté du libellé plutôt que de le déduire d'un nom d'hôte.
+   *
+   * Absent sur le catalogue simulé, les imports manuels et le relevé Airbnb,
+   * qui ne passent pas par le moteur multi-sources.
+   */
+  srcConnector?: string
   /** Dates du séjour pour lesquelles le prix a été relevé (AAAA-MM-JJ).
    *
    *  Un prix Airbnb n'est PAS une formule : c'est une photographie prise à des
@@ -81,6 +121,16 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
   /** Vrai une fois les métriques d'accès calculées par le sidecar. Distingue
    *  « pas encore calculé » de « calculé, résultat = au pied des pistes ». */
   accessComputed?: boolean
+  /**
+   * Comment on rejoint le point skiable, d'après le moteur local.
+   *
+   * `skis_aux_pieds`, `navette` ou `voiture`. Cette information était calculée
+   * puis **jetée** : seul `skiIn` en était retenu. Les deux autres valeurs
+   * disparaissaient, et la fiche annonçait un temps de marche pour un accès qui
+   * se fait en voiture — 1 416 m devenaient « 28 min » sans dire à pied de
+   * quoi. Un temps de marche n'a de sens que si l'on marche.
+   */
+  accessType?: 'skis_aux_pieds' | 'navette' | 'voiture'
   /**
    * Dernier relevé où l'annonce a **cessé d'apparaître**, à ses propres dates.
    *
@@ -200,6 +250,38 @@ export function lodgingSources(list: Lodging[], queried: string[] = []): string[
 /** Étiquette portée par les annonces ajoutées par l'utilisateur. */
 export const MANUAL_SOURCE = 'Import manuel'
 
+/**
+ * Libellé unique des centrales de réservation de station.
+ *
+ * Une centrale n'est pas une marque que l'utilisateur choisit : c'est *le*
+ * circuit de réservation en direct de la station qu'il regarde, quel que soit
+ * le prestataire qui l'opère — Ingénie, Orchestra/Ceto, Ublo/MSEM, Open
+ * System. Les afficher séparément revenait à demander de cocher un fournisseur
+ * de logiciel : sept lignes de filtre dont six restaient vides sur une station
+ * donnée, parce qu'une station n'a qu'une centrale. Elles n'ont donc qu'un
+ * libellé, et le connecteur exact reste lisible dans `srcConnector`.
+ */
+export const CENTRALE_SOURCE = 'Centrale de réservation'
+
+/**
+ * Libellés de centrales d'avant le regroupement.
+ *
+ * Les offres relevées sont enregistrées (`imported`) : celles d'hier portent
+ * encore l'ancien libellé. Sans cette table, elles ouvriraient chacune leur
+ * propre puce de filtre à côté de « Centrale de réservation » — exactement les
+ * lignes que ce regroupement supprime. On les ramène donc au libellé commun à
+ * la lecture, sans réécrire ce qui est sur le disque.
+ */
+const LEGACY_CENTRALE_SOURCES = new Set([
+  'Site officiel de la station',
+  'Chamonix Réservation',
+  'Méribel Réservation',
+  'La Plagne Resort',
+  'Megève Réservation',
+  'Centrale Ublo',
+  'Centrale Open System'
+])
+
 interface SourceStatus {
   /** Âge du dernier relevé, en minutes. */
   min: number
@@ -228,8 +310,41 @@ export const SRC_STATUS: Record<string, SourceStatus> = {
 /** Au-delà de 48 h, un relevé n'est plus une information de prix fiable. */
 export const STALE_MIN = 2880
 
+/**
+ * Source **affichée** d'une offre.
+ *
+ * Deux normalisations, et elles ont la même raison d'être : ce qui est écrit
+ * dans `src` est ce qu'un relevé y a laissé, pas ce que l'utilisateur doit
+ * lire. Les imports portent un suffixe de provenance, les centrales portaient
+ * le nom de leur prestataire. L'écran de filtres compare des libellés — il faut
+ * donc qu'un même circuit de réservation en produise toujours un seul.
+ */
 export function srcOf(lodging: Pick<Lodging, 'src'>): string {
-  return lodging.src.indexOf('Import') === 0 ? 'Import manuel' : lodging.src
+  if (lodging.src.indexOf('Import') === 0) return MANUAL_SOURCE
+  if (LEGACY_CENTRALE_SOURCES.has(lodging.src)) return CENTRALE_SOURCE
+  return lodging.src
+}
+
+/**
+ * Taille du logement, dans l'unité que la source a publiée.
+ *
+ * Chambres si elle les annonce, pièces sinon — jamais les deux, jamais l'une
+ * traduite en l'autre. Les centrales françaises ne publient que des pièces :
+ * sur les 924 logements du catalogue de l'Alpe d'Huez, aucun n'annonce de
+ * chambre et 683 annoncent des pièces. Écrire « 1 ch » devant un deux-pièces
+ * serait une convention d'annonce présentée comme une mesure.
+ *
+ * `null` quand la source se tait — la vignette n'affiche alors rien plutôt
+ * qu'un zéro.
+ */
+export function sizeLabel(
+  lodging: Pick<Lodging, 'ch' | 'rooms'>,
+  t: (key: 'lodg_rooms_count' | 'lodg_rooms_count_one') => string
+): string | null {
+  if (lodging.ch) return `${lodging.ch} ch`
+  const rooms = lodging.rooms
+  if (!rooms) return null
+  return t(rooms > 1 ? 'lodg_rooms_count' : 'lodg_rooms_count_one').replace('{n}', String(rooms))
 }
 
 export function trackKey(lodging: Pick<Lodging, 'name' | 'src'>): string {
@@ -397,8 +512,24 @@ export function mergeDupes(list: Lodging[], enabled: boolean): Lodging[] {
   return out
 }
 
+/**
+ * Médiane du marché du domaine — **sur les offres tarifées uniquement**.
+ *
+ * Un `total` à zéro n'est pas un prix : c'est une carte-redirection, une
+ * annonce vue sans tarif, une porte d'entrée OpenStreetMap. Les compter tirait
+ * la médiane vers le bas d'autant de rangs qu'il y en avait, et `dealOf` juge
+ * chaque offre contre elle : sur dix-huit annonces dont huit sans prix, une
+ * offre à 1 200 € — pourtant sous la vraie médiane de 1 650 € — ressortait
+ * « Au-dessus du marché · +20 % ». Le verdict s'inversait.
+ *
+ * Zéro reste rendu quand rien n'est tarifé, et `dealOf` s'abstient alors : sans
+ * marché observé, il n'y a pas de marché à comparer.
+ */
 export function medianTotal(list: Lodging[]): number {
-  const v = list.map((l) => l.total).sort((a, b) => a - b)
+  const v = list
+    .map((l) => l.total)
+    .filter((total) => total > 0)
+    .sort((a, b) => a - b)
   if (v.length === 0) return 0
   const m = Math.floor(v.length / 2)
   return v.length % 2 ? v[m] : Math.round((v[m - 1] + v[m]) / 2)

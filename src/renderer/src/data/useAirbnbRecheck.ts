@@ -43,6 +43,8 @@ export interface RecheckState {
 export interface RecheckParams {
   imported: Lodging[]
   domainId: number
+  /** Identifiant du domaine côté moteur local — voir `Domain.engineId`. */
+  engineDomainId?: number
   domainName: string
   checkIn: string
   checkOut: string
@@ -112,7 +114,7 @@ export function useAirbnbRecheck(params: RecheckParams): {
     // anciennes gardent celles déjà calculées.
     let finalList = imported
     if (added.length > 0) {
-      const { lodgings: enriched } = await enrichWithAccess(added, p.domainId)
+      const { lodgings: enriched } = await enrichWithAccess(added, p.engineDomainId)
       const byId = new Map(enriched.map((l) => [l.id, l]))
       finalList = imported.map((l) => byId.get(l.id) ?? l)
     }

@@ -50,7 +50,9 @@ export function DecisionPage(): JSX.Element {
     {
       label: 'Logement',
       val: eur(k.lodging),
-      sub: `${ctx.lg.name} · ${ctx.nights} nuits · réparti au nombre de personnes`
+      sub: t('decision_lodging_sub')
+        .replace('{l}', ctx.lg.name)
+        .replace('{n}', String(ctx.nights))
     },
     {
       label: 'Forfaits',
@@ -58,19 +60,24 @@ export function DecisionPage(): JSX.Element {
       sub: `${k.adults} adulte(s) et ${k.kids} enfant(s), tarif du domaine`
     },
     {
-      label: 'Location de matériel',
+      label: t('decision_rental_label'),
       val: eur(k.rental),
-      sub: k.rental ? '96 € par adulte, 58 € par enfant' : 'option désactivée'
+      sub: k.rental ? '96 € par adulte, 58 € par enfant' : t('decision_option_off')
     },
     {
       label: 'Cours',
       val: eur(k.lessons),
-      sub: k.lessons ? `${lessonsCount(state.people)} inscrit(s), formule par voyageur` : 'option désactivée'
+      sub: k.lessons
+        ? t('decision_lessons_sub').replace('{n}', String(lessonsCount(state.people)))
+        : t('decision_option_off')
     },
     {
       label: 'Route',
       val: eur(k.route),
-      sub: `${k.cars} foyer(s) · carburant ${eur(k.fuel)} · péages ${eur(k.tolls)}`
+      sub: t('decision_route_sub')
+        .replace('{n}', String(k.cars))
+        .replace('{f}', eur(k.fuel))
+        .replace('{t}', eur(k.tolls))
     }
   ]
 
@@ -163,7 +170,7 @@ export function DecisionPage(): JSX.Element {
                   </p>
                   <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 11 }}>
                     logement {eur(r.lodging)} · forfaits {eur(r.forfaits)}
-                    {r.rental ? ` · matériel ${eur(r.rental)}` : ''}
+                    {r.rental ? ` · ${t('decision_share_rental').replace('{p}', eur(r.rental))}` : ''}
                     {r.lessons ? ` · cours ${eur(r.lessons)}` : ''} · route {eur(r.route)} ({dur(r.dur)},{' '}
                     {fmt(r.dist)} km)
                   </p>
@@ -171,10 +178,10 @@ export function DecisionPage(): JSX.Element {
                       séjour à plusieurs foyers : il a son propre encart. */}
                   <p className={`decision__delta${delta === 0 ? ' decision__delta--even' : ''}`}>
                     {delta === 0
-                      ? 'à parts égales'
+                      ? t('decision_share_even')
                       : delta > 0
-                        ? `+${fmt(delta)} € au-dessus d’un partage égal`
-                        : `${fmt(delta)} € sous un partage égal`}
+                        ? t('decision_share_above').replace('{d}', fmt(delta))
+                        : t('decision_share_below').replace('{d}', fmt(delta))}
                   </p>
                 </div>
               )

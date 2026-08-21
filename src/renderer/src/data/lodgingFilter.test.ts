@@ -1,0 +1,263 @@
+/**
+ * Le filtre de l'écran Logements.
+ *
+ * Le cas qui a motivé ce fichier : « 8 voyageurs, 4 chambres » rendait des
+ * annonces affichant « 8 pers · 1 ch » sur leur propre vignette. Elles
+ * passaient parce qu'elles n'avaient pas de prix, et que la branche
+ * carte-redirection sautait *tous* les filtres de capacité au motif qu'une
+ * annonce sans tarif « n'a rien à filtrer ». Une annonce sans tarif peut très
+ * bien annoncer ses chambres.
+ *
+ *   npm run lodgfilter:test
+ */
+
+import { matchesLodgingFilters, type LodgingFilterCriteria } from './lodgingFilter'
+import { dealOf, medianTotal } from './lodgings'
+import { mergeProviderReadings } from './runProviderSearch'
+import type { Lodging } from './lodgings'
+
+const STAY = { checkIn: '2027-02-06', checkOut: '2027-02-13' }
+
+/** Groupe de 8 en 4 chambres, tout le reste grand ouvert. */
+const CRITERIA: LodgingFilterCriteria = {
+  travelers: 8,
+  rooms: 4,
+  onlyAvailable: false,
+  freeCancelOnly: false,
+  budgetMin: 0,
+  budgetMax: 8000,
+  budgetCeiling: 8000,
+  distMin: 0,
+  distMax: 1000,
+  distCeiling: 1000,
+  types: [],
+  srcOff: []
+}
+
+function lodging(over: Partial<Lodging>): Lodging {
+  return {
+    id: 1,
+    name: 'Annonce',
+    type: 'Appartement',
+    pers: 0,
+    ch: 0,
+    m2: null,
+    note: '',
+    avis: 0,
+    dist: 120,
+    walk: 2,
+    den: 0,
+    skiIn: false,
+    src: 'Booking.com',
+    pp: 0,
+    lift: '',
+    liftDist: 0,
+    photo: '',
+    annul: false,
+    total: 0,
+    alt: 1800,
+    stock: 0,
+    url: 'https://www.booking.com/hotel/fr/x.html',
+    priceCheckIn: STAY.checkIn,
+    priceCheckOut: STAY.checkOut,
+    ...over
+  } as Lodging
+}
+
+let failures = 0
+function check(label: string, condition: boolean, detail?: unknown): void {
+  console.log(`  ${condition ? '✓' : '✗'} ${label}${condition || detail === undefined ? '' : ` — ${JSON.stringify(detail)}`}`)
+  if (!condition) failures++
+}
+
+const keeps = (over: Partial<Lodging>, criteria = CRITERIA): boolean =>
+  matchesLodgingFilters(lodging(over), criteria, STAY)
+
+console.log('\nFiltre Logements — 8 voyageurs, 4 chambres\n')
+
+console.log('1. Annonce tarifée')
+check('8 pers, 4 ch → retenue', keeps({ pers: 8, ch: 4, total: 2400 }))
+check('8 pers, 1 ch → écartée', !keeps({ pers: 8, ch: 1, total: 1200 }))
+check('2 pers, 4 ch → écartée', !keeps({ pers: 2, ch: 4, total: 700 }))
+
+console.log('\n2. Ce que la source n’a pas annoncé passe')
+check('chambres non annoncées (0) → retenue', keeps({ pers: 8, ch: 0, total: 1500 }))
+check('capacité non annoncée (0) → retenue', keeps({ pers: 0, ch: 4, total: 1500 }))
+check('ni l’une ni l’autre → retenue', keeps({ pers: 0, ch: 0, total: 1500 }))
+
+console.log('\n3. Sans prix — le cas qui a fauté')
+check(
+  '8 pers, 1 ch, sans prix → écartée (elle annonce 1 chambre)',
+  !keeps({ pers: 8, ch: 1, total: 0 })
+)
+check('1 ch seule annoncée, sans prix → écartée', !keeps({ pers: 0, ch: 1, total: 0 }))
+check('8 pers, 4 ch, sans prix → retenue', keeps({ pers: 8, ch: 4, total: 0 }))
+check(
+  'porte OpenStreetMap : rien annoncé, sans prix → retenue',
+  keeps({ pers: 0, ch: 0, total: 0 })
+)
+
+console.log('\n4. Centrales : le seuil passe en pièces, la donnée reste en pièces')
+// « 4 chambres » demandées → 5 pièces au minimum. On traduit la demande, pas
+// l'annonce : aucune de ces annonces ne se voit attribuer de chambres.
+check('4 ch demandées, 5 pièces → retenue', keeps({ pers: 8, ch: 0, rooms: 5, total: 2400 }))
+check('4 ch demandées, 7 pièces → retenue', keeps({ pers: 8, ch: 0, rooms: 7, total: 2400 }))
+check('4 ch demandées, 4 pièces → écartée', !keeps({ pers: 8, ch: 0, rooms: 4, total: 2400 }))
+check(
+  '4 ch demandées, 2 pièces → écartée (le cas Bergers)',
+  !keeps({ pers: 8, ch: 0, rooms: 2, total: 2400 })
+)
+check(
+  '4 ch demandées, studio (1 pièce) → écartée',
+  !keeps({ pers: 8, ch: 0, rooms: 1, total: 2400 })
+)
+check('la règle vaut aussi sans prix', !keeps({ pers: 8, ch: 0, rooms: 2, total: 0 }))
+
+const troisChambres: LodgingFilterCriteria = { ...CRITERIA, rooms: 3 }
+check(
+  '3 ch demandées, 4 pièces → retenue',
+  keeps({ pers: 8, ch: 0, rooms: 4, total: 2400 }, troisChambres)
+)
+check(
+  '3 ch demandées, 3 pièces → écartée',
+  !keeps({ pers: 8, ch: 0, rooms: 3, total: 2400 }, troisChambres)
+)
+
+const uneChambre: LodgingFilterCriteria = { ...CRITERIA, rooms: 1, travelers: 2 }
+check(
+  '1 ch demandée : aucun seuil, un studio passe',
+  keeps({ pers: 2, ch: 0, rooms: 1, total: 700 }, uneChambre)
+)
+
+check(
+  'les chambres priment quand la source les annonce',
+  keeps({ pers: 8, ch: 4, rooms: 2, total: 2400 })
+)
+check('et elles priment aussi pour écarter', !keeps({ pers: 8, ch: 1, rooms: 9, total: 2400 }))
+check('ni chambres ni pièces annoncées → retenue', keeps({ pers: 8, ch: 0, total: 2400 }))
+
+console.log('\n5. Les filtres de prix ne s’appliquent qu’aux annonces tarifées')
+const budget: LodgingFilterCriteria = { ...CRITERIA, budgetMax: 1000 }
+check('tarifée au-dessus du budget → écartée', !keeps({ pers: 8, ch: 4, total: 2400 }, budget))
+check('sans prix, budget posé → retenue', keeps({ pers: 8, ch: 4, total: 0 }, budget))
+const cancel: LodgingFilterCriteria = { ...CRITERIA, freeCancelOnly: true }
+check('tarifée sans annulation gratuite → écartée', !keeps({ pers: 8, ch: 4, total: 2400 }, cancel))
+check('sans prix, annulation exigée → retenue', keeps({ pers: 8, ch: 4, total: 0 }, cancel))
+
+console.log('\n6. Type et source valent pour toute annonce')
+check(
+  'source décochée → écartée, même sans prix',
+  !keeps({ pers: 8, ch: 4, total: 0 }, { ...CRITERIA, srcOff: ['Booking.com'] })
+)
+check(
+  'centrale décochée écarte aussi les anciens libellés enregistrés',
+  !keeps(
+    { pers: 8, ch: 4, total: 2400, src: 'Chamonix Réservation' },
+    { ...CRITERIA, srcOff: ['Centrale de réservation'] }
+  )
+)
+check(
+  'type non coché → écartée',
+  !keeps({ pers: 8, ch: 4, total: 2400 }, { ...CRITERIA, types: ['Chalet'] })
+)
+
+console.log('\n7. Disponibilité confirmée uniquement')
+const avail: LodgingFilterCriteria = { ...CRITERIA, onlyAvailable: true }
+check('tarifée à ces dates → retenue', keeps({ pers: 8, ch: 4, total: 2400 }, avail))
+check(
+  'tarifée pour d’autres dates → écartée',
+  !keeps(
+    { pers: 8, ch: 4, total: 2400, priceCheckIn: '2027-01-24', priceCheckOut: '2027-01-31' },
+    avail
+  )
+)
+
+
+console.log('\n8. Médiane du domaine : un prix absent n’est pas un prix bas')
+const tarifs = [900, 1100, 1200, 1400, 1500, 1800, 2100, 2400, 2900, 3400]
+const offres = tarifs.map((total) => lodging({ total }))
+const sansPrix = Array.from({ length: 8 }, () => lodging({ total: 0 }))
+const vraie = medianTotal(offres)
+check('médiane des seules offres tarifées', vraie === 1650, vraie)
+check(
+  'huit cartes sans prix ne la déplacent pas',
+  medianTotal([...offres, ...sansPrix]) === vraie,
+  medianTotal([...offres, ...sansPrix])
+)
+// C'est le verdict qui s'inversait : à 1 200 €, sous une médiane de 1 650 €,
+// l'offre ressortait « Au-dessus du marché · +20 % ».
+const verdict = dealOf(lodging({ total: 1200 }), medianTotal([...offres, ...sansPrix]))
+check('et le verdict reste « bon plan »', verdict != null && verdict.txt.startsWith('Bon plan'), verdict)
+check('rien de tarifé → aucune médiane, donc aucun verdict', medianTotal(sansPrix) === 0)
+check('et dealOf s’abstient', dealOf(lodging({ total: 1200 }), 0) === null)
+
+
+console.log('\n9. Un relevé neuf remplace l’ancien, il ne s’efface pas devant lui')
+// Le défaut qui a survécu à deux correctifs : l'annonce enregistrée gardait à
+// vie le prix et la capacité de son tout premier relevé, parce que la
+// déduplication l'écartait avant même de la convertir.
+const CHAMONIX = 'https://booking.chamonix.com/fr/hotel-324-appart-hotel-aiguille-verte'
+const enregistree = lodging({
+  url: CHAMONIX,
+  name: 'APPART-HOTEL AIGUILLE VERTE ***',
+  pers: 8, // capacité recopiée de la demande, par l'ancienne version
+  total: 1161, // « à partir de » de la SERP
+  priceConfidence: 'partial',
+  // calculés par le moteur local : ils doivent survivre à la fusion
+  dist: 340,
+  den: 25,
+  accessComputed: true,
+  alt: 1035
+})
+const releve = lodging({
+  url: CHAMONIX,
+  name: 'APPART-HOTEL AIGUILLE VERTE ***',
+  pers: 6, // capacité réelle, lue sur la grille
+  total: 2736,
+  priceConfidence: 'total_confirmed',
+  priceOptions: [
+    { guests: 4, total: 2340 },
+    { guests: 6, total: 2736 }
+  ],
+  dist: 0,
+  den: 0,
+  accessComputed: false,
+  alt: 0
+})
+const apres = mergeProviderReadings([enregistree], [releve])
+check('l’annonce n’est pas dupliquée', apres.length === 1, apres.length)
+check('la capacité est corrigée : 8 → 6', apres[0].pers === 6, apres[0].pers)
+check('le prix est celui du groupe : 1 161 → 2 736 €', apres[0].total === 2736, apres[0].total)
+check('la confiance suit', apres[0].priceConfidence === 'total_confirmed')
+check('le barème arrive', apres[0].priceOptions?.length === 2)
+check(
+  'la distance aux pistes calculée localement survit',
+  apres[0].dist === 340 && apres[0].den === 25 && apres[0].accessComputed === true,
+  { dist: apres[0].dist, den: apres[0].den, accessComputed: apres[0].accessComputed }
+)
+check('l’altitude calculée survit', apres[0].alt === 1035, apres[0].alt)
+
+const muet = lodging({ url: CHAMONIX, pers: 0, total: 0, priceConfidence: 'unknown' })
+const apresMuet = mergeProviderReadings([enregistree], [muet])
+check(
+  'un relevé sans prix n’efface pas un prix déjà mesuré',
+  apresMuet[0].total === 1161,
+  apresMuet[0].total
+)
+check(
+  'mais il efface bien une capacité qui pouvait être inventée',
+  apresMuet[0].pers === 0,
+  apresMuet[0].pers
+)
+
+const nouvelle = lodging({ url: 'https://booking.chamonix.com/fr/hotel-999', total: 900 })
+const apresAjout = mergeProviderReadings([enregistree], [releve, nouvelle])
+check('une annonce inconnue est ajoutée', apresAjout.length === 2)
+check('et l’ordre des existantes est conservé', apresAjout[0].url === CHAMONIX)
+check('relevé vide → liste inchangée', mergeProviderReadings([enregistree], []).length === 1)
+
+if (failures > 0) {
+  console.error(`\n${failures} test(s) en échec.`)
+  process.exit(1)
+}
+console.log('\nFiltre Logements : tous les cas passent.')

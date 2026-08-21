@@ -25,6 +25,21 @@ import bundled from './referentiel.json'
  */
 export interface Domain {
   id: number
+  /**
+   * Identifiant du même domaine **côté moteur local**, quand il a été
+   * rapproché. Absent sinon.
+   *
+   * `id` est celui du catalogue (`franceMontagnesStations`), et les deux
+   * numérotations n'ont rien à voir : le moteur va de 1 à 277, le catalogue
+   * utilise des identifiants à quatre chiffres. Les confondre envoyait
+   * `/api/lodgings/access` chercher un domaine inexistant — HTTP 404, rattrapé
+   * en silence — et **aucun logement n'a jamais reçu de distance aux pistes,
+   * de dénivelé ni d'altitude**, quelle que soit sa source.
+   *
+   * Le rapprochement se fait par le nom, dans `applyEngineOverlay` : c'est le
+   * seul endroit qui voit les deux mondes à la fois.
+   */
+  engineId?: number
   slug: string
   name: string
   massif: string

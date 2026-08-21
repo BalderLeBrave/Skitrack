@@ -32,7 +32,8 @@ function toAccommodation(item: UbloListing, params: SearchParams): Accommodation
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
-    guests: params.adults,
+    // Ublo publie `maxCapacity` : c'est une vraie capacité annoncée.
+    guests: item.capacity ?? undefined,
     rooms: item.rooms ?? undefined,
     totalPrice: item.total,
     currency: item.currency,

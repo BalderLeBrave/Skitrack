@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { freshnessOf } from '@/data/lodgings'
+import { freshnessOf, srcOf } from '@/data/lodgings'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { avalancheIndex, snowDepths } from '@/data/weather'
@@ -110,7 +110,7 @@ export function OffersPage(): JSX.Element {
           <span className="offerrow__name">{o.l.name}</span>
           <span className="offerrow__meta">
             domaine {fmt(o.d.min)}–{fmt(o.d.max)} m ·{' '}
-            {travel != null ? `${dur(travel)} de route` : t('offers_route_unknown')} · {o.l.src}
+            {travel != null ? `${dur(travel)} de route` : t('offers_route_unknown')} · {srcOf(o.l)}
             {o.alt > 0 ? ` · +${o.alt} autres logements` : ''}
           </span>
           <span className="offerrow__meta">

@@ -13,7 +13,8 @@
 
 import { useRef } from 'react'
 import { CloseIcon, ExternalIcon } from './Icons'
-import { srcOf, trackKey } from '@/data/lodgings'
+import { sizeLabel, srcOf, trackKey } from '@/data/lodgings'
+import { accessTimeOf } from '@/data/accessTime'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import type { Domain } from '@/data/referentiel'
 import { enfantPrice } from '@/data/referentiel'
@@ -66,7 +67,7 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
   // coupent la chaîne de requête, elle serait sinon vide. Voir
   // `listingUrlWithStay`.
   const target = lodging.url
-    ? listingUrlWithStay(lodging.url, srcOf(lodging), criteria)
+    ? listingUrlWithStay(lodging.url, lodging.srcConnector ?? srcOf(lodging), criteria)
     : searchUrl
 
   const close = (): void => patch({ ficheId: null })
@@ -130,13 +131,13 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
               lodging.type,
               // 0 = non annoncé par la source (annonce Airbnb) : on l'omet.
               lodging.pers ? `${lodging.pers} pers` : null,
-              lodging.ch ? `${lodging.ch} ch` : null,
+              sizeLabel(lodging, t),
               lodging.m2 ? `${lodging.m2} m²` : null,
               `${lodging.note}/5 (${lodging.avis} avis)`
             ]
               .filter(Boolean)
               .join(' · ')}{' '}
-            · {lodging.src}
+            · {srcOf(lodging)}
           </p>
 
           <div className="inset">
@@ -154,14 +155,16 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                         : undefined
                 }}
               >
-                {lodging.priceConfidence === 'partial' ? `À partir de ${eur(lodging.total)}` : eur(lodging.total)}
+                {lodging.priceConfidence === 'partial'
+                  ? t('sheet_price_from').replace('{p}', eur(lodging.total))
+                  : eur(lodging.total)}
               </span>
               <span className="u-muted" style={{ fontSize: 12 }}>
                 {lodging.priceConfidence === 'total_confirmed'
-                  ? 'confirmé pour vos dates'
+                  ? t('sheet_price_confirmed')
                   : lodging.priceConfidence === 'partial'
-                    ? 'tarif d’appel'
-                    : 'tout compris'}{' '}
+                    ? t('sheet_teaser_rate')
+                    : t('price_all_in')}{' '}
                 · {nights} nuits · {state.travelers} pers.
               </span>
               <span className="u-spacer" />
@@ -194,6 +197,47 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
               </div>
             </div>
 
+            {/*
+              Barème de la centrale, en un seul bloc.
+
+              Une centrale Orchestra ne vend pas un prix mais une grille : le
+              même appartement vaut 1 161 € à deux et 2 736 € à six, et selon
+              qu'on accepte ou non l'annulation. Éclater ça en plusieurs
+              annonces donnerait cinq fois le même logement dans la liste ;
+              n'en garder qu'une ligne cacherait l'écart. Tout tient donc sur
+              une seule étiquette, prix **et** conditions.
+
+              La ligne du groupe demandé est mise en avant : c'est celle dont
+              le montant est repris en gros caractères plus haut.
+            */}
+            {lodging.priceOptions && lodging.priceOptions.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <p className="sheet__label">{t('lodg_rate_grid')}</p>
+                <div className="breakdown breakdown--flush" style={{ marginTop: 4 }}>
+                  {lodging.priceOptions.map((option) => {
+                    const yours = option.total === lodging.total
+                    return (
+                      <div
+                        key={`${option.guests}-${option.total}`}
+                        style={{ fontWeight: yours ? 700 : 400 }}
+                      >
+                        <span className="u-muted" style={{ color: yours ? 'var(--text)' : undefined }}>
+                          {t('lodg_rate_guests').replace('{n}', String(option.guests))}
+                          {option.condition ? ` · ${option.condition}` : ''}
+                          {option.policy ? ` · ${option.policy}` : ''}
+                          {yours ? ` · ${t('lodg_rate_yours')}` : ''}
+                        </span>
+                        <span className="u-num">{eur(option.total)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="filters__help" style={{ margin: '6px 0 0' }}>
+                  {t('lodg_rate_grid_note')}
+                </p>
+              </div>
+            )}
+
             {lodging.annul && (
               <p style={{ margin: '12px 0 0', fontSize: 13, color: 'var(--ok)' }}>
                 {t('free_cancel_fresh')}
@@ -208,33 +252,87 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                 logement au bord des pistes. */}
             {lodging.dist > 0 || lodging.den > 0 || lodging.liftDist > 0 || lodging.skiIn ? (
               <dl className="sheet__dl">
-                <div>
-                  <dt>{t('runs_on_foot')}</dt>
-                  <dd style={{ fontWeight: 700 }}>
-                    {lodging.dist} m · {lodging.walk} min ·{' '}
-                    {lodging.den > 0 ? `+${lodging.den}` : lodging.den < 0 ? `${lodging.den}` : '±0'} m
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t('nearest_lift')}</dt>
-                  <dd>
-                    {lodging.lift} · {lodging.liftDist} m
-                  </dd>
-                </div>
+                {/*
+                  « 340 m · 7 min · +23 m » ne disait pas ce qu'il mesurait :
+                  ni de quel temps il s'agissait, ni de quel dénivelé. Chaque
+                  grandeur porte donc son unité en toutes lettres.
+
+                  Le temps de marche disparaît quand le moteur annonce un accès
+                  en navette ou en voiture. Il est calculé à 50 m/min, ce qui
+                  n'a de sens que si l'on marche : afficher « 28 min » pour un
+                  accès en voiture répondait à une question que personne ne
+                  posait, avec une valeur fausse.
+                */}
+                {(() => {
+                  /*
+                    Le temps porte son moyen, toujours : « 7 min » seul ne dit
+                    pas à pied de quoi, et un temps de marche affiché pour un
+                    accès en voiture est faux — 1 416 m annonçaient « 28 min »
+                    alors que le moteur classait cet accès « voiture ».
+                    `accessTimeOf` choisit le moyen puis calcule sur cette base.
+                  */
+                  const access = accessTimeOf(lodging.dist, lodging.accessType)
+                  const skiIn = access?.mode === 'skis_aux_pieds' || lodging.skiIn
+                  const duration =
+                    access?.minutes == null
+                      ? null
+                      : access.mode === 'voiture'
+                        ? t('access_drive_time').replace('{n}', String(access.minutes))
+                        : access.mode === 'navette'
+                          ? t('access_shuttle_time').replace('{n}', String(access.minutes))
+                          : t('access_walk_time').replace('{n}', String(access.minutes))
+                  return (
+                    <div>
+                      <dt>{t('access_to_runs')}</dt>
+                      <dd style={{ fontWeight: 700 }}>
+                        {[
+                          `${fmt(lodging.dist)} m`,
+                          duration ?? (skiIn ? t('access_ski_in') : null),
+                          lodging.den > 0
+                            ? t('access_climb').replace('{n}', fmt(lodging.den))
+                            : lodging.den < 0
+                              ? t('access_descent').replace('{n}', fmt(Math.abs(lodging.den)))
+                              : t('access_flat')
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </dd>
+                    </div>
+                  )
+                })()}
+                {/* Le nom de la remontée n'est renseigné que par le catalogue
+                    simulé : un relevé rend la distance sans le nom, et « · 365 m »
+                    seul laissait croire à un libellé manquant. */}
+                {lodging.liftDist > 0 && (
+                  <div>
+                    <dt>{t('nearest_lift')}</dt>
+                    <dd>
+                      {[lodging.lift || null, `${fmt(lodging.liftDist)} m`].filter(Boolean).join(' · ')}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt>Altitude du logement</dt>
                   <dd>{fmt(lodging.alt)} m (IGN, calculée)</dd>
                 </div>
                 <div>
-                  <dt>Voiture depuis {derived.hh[0]?.short ?? 'le départ'}</dt>
+                  {/* Intitulé générique : `travelText` préfixe déjà chaque durée du
+                      nom de son départ, et il peut y en avoir plusieurs. Nommer le
+                      premier ici donnait « Voiture depuis Départ 1 → Départ 1 3 h 20 ». */}
+                  <dt>{t('access_by_car')}</dt>
                   <dd>{derived.travelText(d)}</dd>
                 </div>
               </dl>
+            ) : null}
+            {(lodging.dist > 0 || lodging.den > 0 || lodging.liftDist > 0 || lodging.skiIn) ? (
+              <p className="filters__help" style={{ margin: '6px 0 0' }}>
+                {t('access_walk_note')}
+              </p>
             ) : (
               <p className="u-muted" style={{ margin: '4px 0 0', fontSize: 13 }}>
                 Distance aux pistes, dénivelé et altitude non calculés pour cette annonce importée. Le
                 moteur local les déduit des tracés OpenSkiMap dès qu’il est actif ; en attendant, ouvrez
-                l’annonce sur {lodging.src} pour sa localisation exacte.
+                l’annonce sur {srcOf(lodging)} pour sa localisation exacte.
               </p>
             )}
           </div>
@@ -256,7 +354,9 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
               <div>
                 <span className="u-muted">
                   Route — {cost.cars} foyer(s) · carburant {eur(trip.fuel)}
-                  {trip.tolls ? ` · péages ${eur(trip.tolls)}` : ' · sans péage'}
+                  {trip.tolls
+                    ? ` · ${t('sheet_tolls').replace('{p}', eur(trip.tolls))}`
+                    : ` · ${t('sheet_no_tolls')}`}
                 </span>
                 <span className="u-num">{eur(cost.route)}</span>
               </div>
@@ -312,19 +412,19 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
         </div>
 
         <div className="sheet__verified">
-          <p className="sheet__label">Ce que Skitrack a vérifié</p>
+          <p className="sheet__label">{t('sheet_verified_title')}</p>
           <ul className="sheet__verified-list">
             <li>
-              <strong>Dates du relevé</strong>
+              <strong>{t('sheet_verified_dates')}</strong>
               {' : '}
               {lodging.priceCheckIn && lodging.priceCheckOut
                 ? `${lodging.priceCheckIn} → ${lodging.priceCheckOut}`
                 : `${state.arrDate} → ${state.depDate}`}
               {lodging.priceCheckIn &&
               (lodging.priceCheckIn !== state.arrDate || lodging.priceCheckOut !== state.depDate) ? (
-                <span style={{ color: 'var(--warn)' }}> — dates de recherche différentes</span>
+                <span style={{ color: 'var(--warn)' }}> — {t('sheet_dates_differ')}</span>
               ) : (
-                <span style={{ color: 'var(--ok)' }}> — alignées sur votre séjour</span>
+                <span style={{ color: 'var(--ok)' }}> — {t('sheet_dates_match')}</span>
               )}
             </li>
             <li>
@@ -333,27 +433,28 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
               {lodging.total > 0 ? (
                 <>
                   {eur(lodging.total)}
+                  {' · '}
                   {lodging.priceConfidence === 'total_confirmed'
-                    ? ' · confirmé pour ces dates'
+                    ? t('sheet_price_confirmed_these')
                     : lodging.priceConfidence === 'partial'
-                      ? ' · à partir de (tarif d’appel)'
-                      : ' · à confirmer sur le site'}
+                      ? t('sheet_price_teaser')
+                      : t('sheet_price_to_confirm')}
                 </>
               ) : (
-                'non publié — ouverture de la source pour le tarif'
+                t('sheet_price_unpublished')
               )}
             </li>
             <li>
               <strong>Source</strong>
               {' : '}
-              {lodging.src}
+              {srcOf(lodging)}
               {lodging.dups && lodging.dups.length > 0
-                ? ` · aussi ${lodging.dups.map((d) => `${d.src} ${eur(d.total)}`).join(', ')}`
+                ? ` · aussi ${lodging.dups.map((d) => `${srcOf(d)} ${eur(d.total)}`).join(', ')}`
                 : ''}
             </li>
             {(lodging.dist > 0 || lodging.skiIn) && (
               <li>
-                <strong>Accès pistes</strong>
+                <strong>{t('sheet_ski_access')}</strong>
                 {' : '}
                 {lodging.skiIn
                   ? 'ski aux pieds'

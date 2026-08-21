@@ -102,7 +102,10 @@ export function normalizeBooking(row: BookingRow, affiliateId: string | undefine
     country: row.location?.country,
     checkIn: context.checkIn,
     checkOut: context.checkOut,
-    guests: context.adults,
+    // La Demand API ne rend pas d'occupation par bien dans cette réponse :
+    // le champ reste vide plutôt que de renvoyer la demande. La donnée brute
+    // est conservée dans `rawProviderData` si elle s'y trouve un jour.
+    guests: undefined,
     bedrooms: row.rooms,
     nightlyPrice: nightly,
     totalPrice: total,

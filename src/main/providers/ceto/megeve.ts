@@ -31,7 +31,10 @@ function toAccommodation(item: ChamonixListing, params: SearchParams): Accommoda
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
-    guests: params.adults,
+    // La SERP Orchestra ne publie pas la capacité — elle n'est lisible que dans
+    // le sélecteur d'occupation de la fiche, rendu par le widget. Absente donc,
+    // plutôt que recopiée de la demande.
+    guests: undefined,
     totalPrice: total,
     currency: item.currency || 'EUR',
     priceConfidence:

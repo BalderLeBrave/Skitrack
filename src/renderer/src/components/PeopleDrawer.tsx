@@ -1,5 +1,7 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { CloseIcon } from './Icons'
+import { resolveSidecarOrigin } from '@/domain/origins'
+import { originsOf } from '@/domain/travel'
 import { enfantPrice } from '@/data/referentiel'
 import type { Person } from '@/domain/costs'
 import { HOUR_OPTS, RENTAL_ADULT, RENTAL_KID, isKid, lessonOf, lessonsCost, lessonsCount } from '@/domain/costs'
@@ -44,8 +46,54 @@ export function PeopleDrawer(): JSX.Element {
     setPeople(state.people.map((p, j) => (j === i ? { ...p, ...changes } : p)))
   }
 
+  /** État du géocodage par départ, pour dire ce qui se passe sous les champs. */
+  const [geo, setGeo] = useState<
+    Record<number, { state: 'pending' | 'done' | 'error'; message?: string } | null>
+  >({})
+  /** Adresse déjà localisée, par départ : évite de regéocoder à chaque blur. */
+  const geoAddr = useRef<Record<number, string>>({})
+
   const updatePlace = (i: number, changes: Partial<(typeof state.places)[number]>): void => {
     patch({ places: state.places.map((p, j) => (j === i ? { ...p, ...changes } : p)) })
+  }
+
+  /**
+   * Géocode l'adresse d'un départ et enregistre sa position.
+   *
+   * Déclenché à la sortie des champs d'adresse, pas à chaque frappe : géocoder
+   * « 12 ru » puis « 12 rue » puis « 12 rue d… » ferait une requête par
+   * caractère pour un résultat qui n'a de sens qu'une fois l'adresse complète.
+   *
+   * Sans cette étape, `lat`/`lon` restaient nuls à vie : `travelOf` rendait
+   * « inconnu » et `computeRoutes` écartait le départ. Saisir une adresse
+   * n'avait donc aucun effet sur le temps de route, les péages ou le carburant.
+   *
+   * L'échec ne bloque rien : le départ reste utilisable, sans trajet, et le
+   * motif s'affiche sous les champs.
+   */
+  const geocode = async (i: number): Promise<void> => {
+    const place = state.places[i]
+    if (!place) return
+    const address = [place.addr, place.cp, place.city].filter(Boolean).join(' ').trim()
+    if (!address) {
+      setGeo((g) => ({ ...g, [i]: null }))
+      return
+    }
+    // Déjà localisée pour cette adresse : rien à refaire.
+    if (place.lat != null && place.lon != null && address === geoAddr.current[i]) return
+
+    setGeo((g) => ({ ...g, [i]: { state: 'pending' } }))
+    try {
+      const resolved = await resolveSidecarOrigin(originsOf([place])[0])
+      geoAddr.current[i] = address
+      updatePlace(i, { lat: resolved.lat, lon: resolved.lon, originId: resolved.id })
+      setGeo((g) => ({ ...g, [i]: { state: 'done' } }))
+    } catch (err) {
+      setGeo((g) => ({
+        ...g,
+        [i]: { state: 'error', message: err instanceof Error ? err.message : String(err) }
+      }))
+    }
   }
 
   const impacts = [
@@ -400,6 +448,7 @@ export function PeopleDrawer(): JSX.Element {
                     placeholder="Adresse"
                     aria-label="Adresse"
                     onChange={(e) => updatePlace(i, { addr: e.target.value })}
+                    onBlur={() => void geocode(i)}
                   />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
@@ -410,6 +459,7 @@ export function PeopleDrawer(): JSX.Element {
                       placeholder="Code postal"
                       aria-label="Code postal"
                       onChange={(e) => updatePlace(i, { cp: e.target.value })}
+                    onBlur={() => void geocode(i)}
                     />
                     <input
                       type="text"
@@ -419,8 +469,39 @@ export function PeopleDrawer(): JSX.Element {
                       placeholder="Ville"
                       aria-label="Ville"
                       onChange={(e) => updatePlace(i, { city: e.target.value })}
+                    onBlur={() => void geocode(i)}
                     />
                   </div>
+                  {(() => {
+                    const g = geo[i]
+                    const located = pl.lat != null && pl.lon != null
+                    if (g?.state === 'pending') {
+                      return (
+                        <p style={{ margin: 0, fontSize: 11, color: 'var(--muted)' }}>
+                          {t('geocode_pending')}
+                        </p>
+                      )
+                    }
+                    if (g?.state === 'error') {
+                      return (
+                        <p style={{ margin: 0, fontSize: 11, color: 'var(--warn)' }}>{g.message}</p>
+                      )
+                    }
+                    if (located) {
+                      return (
+                        <p style={{ margin: 0, fontSize: 11, color: 'var(--ok)' }}>
+                          {t('geocode_done')}
+                        </p>
+                      )
+                    }
+                    // Adresse saisie mais jamais localisée : le dire, parce que
+                    // c'est ce qui prive l'écran de tout calcul de route.
+                    return [pl.addr, pl.cp, pl.city].some(Boolean) ? (
+                      <p style={{ margin: 0, fontSize: 11, color: 'var(--warn)' }}>
+                        {t('geocode_none')}
+                      </p>
+                    ) : null
+                  })()}
                   <p style={{ margin: 0, fontSize: 11, color: count ? 'var(--muted)' : 'var(--warn)' }}>
                     {count
                       ? `${count} voyageur(s) · 1 voiture${d ? ` · ${dur(derived.travelOf(d, derived.origins[i]).dur)} jusqu’à ${d.name}` : ''}`

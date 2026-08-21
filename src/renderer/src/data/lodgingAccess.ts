@@ -52,6 +52,14 @@ function mergeMetrics(
         : lodging.liftDist,
     alt: metric.altitude_m != null ? Math.round(metric.altitude_m) : lodging.alt,
     skiIn: metric.slope_access_type === 'skis_aux_pieds',
+    // Conservé en entier, et plus seulement réduit à `skiIn` : « navette » et
+    // « voiture » disent quelque chose que la distance seule ne dit pas.
+    accessType:
+      metric.slope_access_type === 'skis_aux_pieds' ||
+      metric.slope_access_type === 'navette' ||
+      metric.slope_access_type === 'voiture'
+        ? metric.slope_access_type
+        : lodging.accessType,
     // Estimation du temps à pied : ~50 m/min en station, minimum une minute.
     walk: dist != null ? Math.max(1, Math.round(dist / 50)) : lodging.walk,
     accessComputed: dist != null || metric.slope_access_type != null
@@ -61,17 +69,29 @@ function mergeMetrics(
 /**
  * Calcule l'accès aux pistes pour les logements portant des coordonnées.
  *
- * `domainId` est l'identifiant du domaine côté sidecar. Les logements sans
- * `lat`/`lon` sont laissés tels quels : rien à calculer sans position.
+ * `engineDomainId` est l'identifiant du domaine **côté moteur local**, pas
+ * celui du catalogue — voir `Domain.engineId`. Les confondre renvoyait un 404
+ * pour chaque appel, avalé par le `catch` du bas, et personne ne voyait jamais
+ * de distance. Le paramètre est donc explicitement nommé, et `undefined` est
+ * un cas traité plutôt qu'un identifiant hasardeux envoyé au moteur.
+ *
+ * Les logements sans `lat`/`lon` sont laissés tels quels : rien à calculer
+ * sans position.
  */
 export async function enrichWithAccess(
   lodgings: Lodging[],
-  domainId: number
+  engineDomainId: number | undefined
 ): Promise<EnrichResult> {
   if (!isClientReady()) {
     return {
       lodgings,
       note: 'Moteur local non démarré — distances aux pistes non calculées.'
+    }
+  }
+  if (engineDomainId == null) {
+    return {
+      lodgings,
+      note: 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.'
     }
   }
 
@@ -85,7 +105,7 @@ export async function enrichWithAccess(
 
   try {
     const response = await api.lodgingsAccess({
-      domain_id: domainId,
+      domain_id: engineDomainId,
       with_elevation: true,
       lodgings: geoItems.map((lodging) => ({
         ref: String(lodging.id),
@@ -98,9 +118,7 @@ export async function enrichWithAccess(
     if (response.slopes_available === 0 && response.lifts_available === 0) {
       return {
         lodgings,
-        note:
-          'Ce domaine a été importé sans ses tracés de pistes : distances non calculables. ' +
-          'Réimportez le référentiel avec l’option « pistes » pour les activer.'
+        note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
       }
     }
 

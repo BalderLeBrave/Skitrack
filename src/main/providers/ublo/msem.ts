@@ -6,6 +6,7 @@
  *   POST …/resort/125/offers {start,end,adults,channel} → 378 tarifs séjour
  */
 
+import { ubloListingPath } from '@shared/ubloUrl'
 import type { UbloSite } from './hosts'
 
 const MSEM_API = 'https://services.msem.tech/api/lodging'
@@ -76,7 +77,7 @@ function roundEuro(n: number): number {
 }
 
 export function lodgingUrl(site: UbloSite, slug: string, from: string, to: string, adults: number, children: number): string {
-  const path = `${site.pathPrefix}/${slug}`.replace(/\/{2,}/g, '/')
+  const path = ubloListingPath(site.pathPrefix, slug)
   const url = new URL(path, site.origin)
   url.searchParams.set('from', from)
   url.searchParams.set('to', to)

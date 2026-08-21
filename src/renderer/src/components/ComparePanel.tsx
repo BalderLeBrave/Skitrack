@@ -1,5 +1,6 @@
 import { CloseIcon } from './Icons'
 import type { Lodging } from '@/data/lodgings'
+import { sizeLabel, srcOf } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { useFormat } from '@/hooks/useFormat'
 import { useApp } from '@/state/appState'
@@ -99,7 +100,7 @@ export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
           // 0 = la source ne l'annonce pas ; « non renseignée » plutôt que « 0 pers ».
           list.map(
             (l) =>
-              [l.pers ? `${l.pers} pers` : null, l.ch ? `${l.ch} ch` : null, l.m2 ? `${l.m2} m²` : null]
+              [l.pers ? `${l.pers} pers` : null, sizeLabel(l, t), l.m2 ? `${l.m2} m²` : null]
                 .filter(Boolean)
                 .join(' · ') || t('not_provided_fem')
           )
@@ -114,7 +115,7 @@ export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
           t('cmp_cancellation'),
           list.map((l) => (l.annul ? t('cmp_cancel_free') : t('cmp_cancel_none')))
         ),
-        plain(t('cmp_source'), list.map((l) => l.src))
+        plain(t('cmp_source'), list.map((l) => srcOf(l)))
       ]
     : []
 
@@ -132,7 +133,7 @@ export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
     ]
     list.forEach((l, i) => {
       lines.push(
-        `• ${l.name} (${l.src}) — logement ${eur(l.total)} · séjour complet ${eur(costs[i].total)} · pistes à ${l.dist} m`
+        `• ${l.name} (${srcOf(l)}) — logement ${eur(l.total)} · séjour complet ${eur(costs[i].total)} · pistes à ${l.dist} m`
       )
     })
     void navigator.clipboard.writeText(lines.join('\n')).catch(() => undefined)
@@ -196,7 +197,7 @@ export function ComparePanel({ domain }: { domain: Domain }): JSX.Element {
                   </button>
                 </div>
                 <span className="u-muted" style={{ fontSize: 12 }}>
-                  {l.src}
+                  {srcOf(l)}
                 </span>
               </div>
             ))}

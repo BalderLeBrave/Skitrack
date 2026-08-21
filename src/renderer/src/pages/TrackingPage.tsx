@@ -1,4 +1,5 @@
 import { CloseIcon, TrendIcon } from '@/components/Icons'
+import { srcOf } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
@@ -223,7 +224,7 @@ export function TrackingPage(): JSX.Element {
                     <div className="trackrow__main">
                       <strong className="trackrow__name">{item.name}</strong>
                       <span className="trackrow__sub">
-                        {item.domain} · {item.src}
+                        {item.domain} · {srcOf(item)}
                       </span>
                     </div>
 

@@ -26,15 +26,27 @@
 
 import type { ProviderAccommodation, ProviderOutcome } from '@shared/ipc-contract'
 import type { Lodging } from './lodgings'
+import { CENTRALE_SOURCE } from './lodgings'
 import { bookingCentralOf, stationNameOf } from './stations'
 
 /**
  * Nom technique du connecteur → libellé de source de l'interface.
  *
- * Les connecteurs API et leurs équivalents scrapés Playwright désignent le même
- * site : `booking` et `booking-web` retombent tous deux sur « Booking.com ».
+ * Plusieurs connecteurs partagent volontairement un libellé, parce qu'ils
+ * mènent au même endroit du point de vue de qui réserve :
+ *
+ * - `booking` et `booking-web` sont deux chemins — API et relevé Playwright —
+ *   vers le même inventaire Booking.com ;
+ * - `station-web`, `ceto-*`, `ublo-msem` et `opensystem` sont sept
+ *   implémentations d'une seule chose, la centrale de réservation de la
+ *   station. Le prestataire qui l'opère est une information de maintenance, pas
+ *   un choix offert à l'utilisateur : il reste dans `srcConnector` et dans les
+ *   journaux, pas dans les filtres.
+ *
  * Un nom absent de cette table est conservé tel quel plutôt que masqué — mieux
  * vaut une source au nom technique visible qu'une offre silencieusement perdue.
+ * C'est notamment le cas des sources MCP déclarées par l'utilisateur : elles
+ * portent le nom qu'il leur a donné.
  */
 const SOURCE_LABEL: Record<string, string> = {
   booking: 'Booking.com',
@@ -46,13 +58,13 @@ const SOURCE_LABEL: Record<string, string> = {
   'cozycozy-web': 'cozycozy',
   liteapi: 'LiteAPI',
   airbnb: 'Airbnb',
-  'station-web': 'Site officiel de la station',
-  'ceto-chamonix': 'Chamonix Réservation',
-  'ceto-meribel': 'Méribel Réservation',
-  'ceto-plagne': 'La Plagne Resort',
-  'ceto-megeve': 'Megève Réservation',
-  'ublo-msem': 'Centrale Ublo',
-  opensystem: 'Centrale Open System'
+  'station-web': CENTRALE_SOURCE,
+  'ceto-chamonix': CENTRALE_SOURCE,
+  'ceto-meribel': CENTRALE_SOURCE,
+  'ceto-plagne': CENTRALE_SOURCE,
+  'ceto-megeve': CENTRALE_SOURCE,
+  'ublo-msem': CENTRALE_SOURCE,
+  opensystem: CENTRALE_SOURCE
 }
 
 export function sourceLabelOf(provider: string): string {
@@ -138,6 +150,13 @@ function toLodging(
     // — plutôt que de traduire un deux-pièces en une chambre, qui serait une
     // convention d'annonce et non une donnée relevée.
     ch: a.bedrooms ?? 0,
+    // Les pièces, elles, sont bien là : c'est la mesure que publient Ingénie et
+    // Ublo. Les jeter, comme on le faisait, rendait toute annonce de centrale
+    // infiltrable sur la taille — `ch` valant zéro, elles traversaient
+    // n'importe quel « 4 chambres minimum ».
+    rooms: a.rooms != null && a.rooms > 0 ? a.rooms : undefined,
+    // Barème de la centrale, quand elle en publie un.
+    priceOptions: a.priceOptions?.length ? a.priceOptions : undefined,
     m2: a.areaSqm ?? null,
     note: a.rating != null ? String(a.rating).replace('.', ',') : '',
     avis: a.reviewCount ?? 0,
@@ -148,6 +167,9 @@ function toLodging(
     den: 0,
     skiIn: false,
     src: sourceLabelOf(a.source),
+    // Le connecteur exact, que le libellé regroupé ne dit plus : c'est lui qui
+    // décide des paramètres de séjour recollés sur l'URL de l'annonce.
+    srcConnector: a.source,
     pp,
     lift: '',
     liftDist: 0,
@@ -171,7 +193,18 @@ function toLodging(
   }
 }
 
-/** Convertit les résultats d'un outcome (éventuellement partiel) en Lodging. */
+/**
+ * Convertit les résultats d'un outcome (éventuellement partiel) en Lodging.
+ *
+ * `seenUrls` ne dédoublonne **que le relevé en cours**, jamais contre les
+ * offres déjà enregistrées. C'est le correctif d'un défaut coûteux : le jeu
+ * était amorcé avec les URL de `existing`, si bien qu'une annonce déjà connue
+ * était écartée avant même d'être convertie. Son prix, sa capacité et sa
+ * disponibilité étaient donc **figés au premier relevé, définitivement** —
+ * dans une application dont le métier est de rafraîchir des prix. Le
+ * rapprochement avec l'existant se fait maintenant en aval, par
+ * `mergeProviderReadings`, qui remplace au lieu de jeter.
+ */
 export function lodgingsFromOutcome(
   outcome: ProviderOutcome,
   params: RunProviderSearchParams,
@@ -186,6 +219,111 @@ export function lodgingsFromOutcome(
     out.push(lodging)
   }
   return out
+}
+
+/**
+ * Fusionne un relevé neuf dans la liste enregistrée.
+ *
+ * Une annonce déjà connue est **mise à jour sur place**, à son rang : ce qui
+ * vient d'être mesuré remplace ce qui l'avait été, et ce que le moteur local a
+ * calculé — distance aux pistes, dénivelé, altitude — est conservé, parce que
+ * la source ne le fournit pas et qu'un remplacement brutal le perdrait.
+ *
+ * Deux règles asymétriques, et elles ne se déduisent pas l'une de l'autre :
+ *
+ * - **Le prix** ne s'efface pas. Un relevé qui ne rend aucun tarif ne prouve
+ *   pas que le précédent était faux ; il prouve qu'on n'a rien vu cette fois.
+ *   Même règle que la fusion Airbnb, pour la même raison.
+ * - **La capacité et le barème** s'effacent, eux. Une valeur enregistrée peut
+ *   être l'ancienne capacité recopiée de la demande — une invention, pas une
+ *   mesure — et la garder au prétexte que le nouveau relevé se tait
+ *   perpétuerait exactement ce qu'on vient de corriger. Le silence d'une source
+ *   est une information : il vaut mieux que l'ancien mensonge.
+ */
+export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]): Lodging[] {
+  if (readings.length === 0) return existing
+
+  const byUrl = new Map<string, Lodging>()
+  for (const reading of readings) {
+    if (reading.url) byUrl.set(reading.url, reading)
+  }
+
+  const used = new Set<string>()
+  const merged = existing.map((lodging) => {
+    const reading = lodging.url ? byUrl.get(lodging.url) : undefined
+    if (!reading) return lodging
+    used.add(lodging.url as string)
+    return {
+      ...lodging,
+      // Ce que la source vient de publier.
+      name: reading.name || lodging.name,
+      pers: reading.pers,
+      ch: reading.ch,
+      rooms: reading.rooms,
+      m2: reading.m2 ?? lodging.m2,
+      priceOptions: reading.priceOptions,
+      note: reading.note || lodging.note,
+      avis: reading.avis || lodging.avis,
+      image: reading.image ?? lodging.image,
+      lat: reading.lat ?? lodging.lat,
+      lon: reading.lon ?? lodging.lon,
+      src: reading.src,
+      srcConnector: reading.srcConnector,
+      // Un relevé muet n'efface pas un prix déjà mesuré.
+      ...(reading.total > 0
+        ? {
+            total: reading.total,
+            pp: reading.pp,
+            priceConfidence: reading.priceConfidence,
+            priceCheckIn: reading.priceCheckIn,
+            priceCheckOut: reading.priceCheckOut,
+            // Revue au relevé : la marque d'absence tombe.
+            missingSince: undefined
+          }
+        : {})
+    }
+  })
+
+  const added = readings.filter((r) => r.url && !used.has(r.url))
+  return added.length > 0 ? [...merged, ...added] : merged
+}
+
+/**
+ * Sources en panne et sources sans offre, **par libellé affiché**.
+ *
+ * Un libellé recouvre maintenant plusieurs connecteurs, et un compte-rendu
+ * naïf par connecteur ferait apparaître « Centrale de réservation » à la fois
+ * en panne et sans offre au même relevé — ce que personne ne saurait lire.
+ * L'agrégation tranche donc, et dans cet ordre :
+ *
+ * 1. un libellé qui a rapporté au moins une offre n'est signalé nulle part ;
+ * 2. sinon, s'il a produit au moins une erreur, il est **en panne** — c'est
+ *    l'information actionnable, et elle prime sur le silence des autres ;
+ * 3. sinon, il a répondu sans rien avoir : **aucune offre**.
+ *
+ * Le cas n'est pas neuf, il était seulement invisible : `booking` et
+ * `booking-web` partageaient déjà « Booking.com ».
+ */
+export function sourceStatuses(outcomes: ProviderSearchOutcome[]): {
+  failed: string[]
+  empty: string[]
+} {
+  const byLabel = new Map<string, { count: number; errored: boolean }>()
+  for (const outcome of outcomes) {
+    const seen = byLabel.get(outcome.source) ?? { count: 0, errored: false }
+    seen.count += outcome.count
+    seen.errored = seen.errored || outcome.error != null
+    byLabel.set(outcome.source, seen)
+  }
+
+  const failed: string[] = []
+  const empty: string[] = []
+  for (const [label, seen] of byLabel) {
+    if (seen.count > 0) continue
+    if (seen.errored) failed.push(label)
+    else empty.push(label)
+  }
+  return { failed, empty }
 }
 
 export function outcomeSummary(o: ProviderOutcome): ProviderSearchOutcome {
@@ -216,7 +354,10 @@ export async function runProviderSearch(
     children: params.children
   })
 
-  const seen = new Set(params.existing.map((l) => l.url).filter(Boolean) as string[])
+  // Dédoublonnage interne au relevé seulement : deux connecteurs peuvent servir
+  // la même URL. Le rapprochement avec l'existant appartient à
+  // `mergeProviderReadings`, qui met à jour au lieu d'écarter.
+  const seen = new Set<string>()
   const lodgings: Lodging[] = []
 
   for (const outcome of aggregate.outcomes) {

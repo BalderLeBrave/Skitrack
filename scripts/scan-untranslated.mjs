@@ -108,8 +108,11 @@ const VERBATIM = [/contributeurs OpenStreetMap/, /^€\/h$/, /^Gîtes de France$
  * `jsx` est à zéro et doit y rester. `expr` part du relevé du jour où la
  * détection a été élargie : ce n'est pas une dette nouvelle, c'est la dette qui
  * échappait au critère précédent et qui devient enfin visible.
+ *
+ * Le plafond suit la dette vers le bas : le laisser au-dessus du relevé courant
+ * rouvre exactement la marge qu'on vient de payer.
  */
-const BUDGET = { jsx: 0, expr: 272 }
+const BUDGET = { jsx: 0, expr: 268 }
 
 const ACCENTS = 'àâçéèêëîïôùûüœÀÂÇÉÈÊËÎÏÔÙÛÜŒ'
 const ACC = new RegExp(`[${ACCENTS}]`)

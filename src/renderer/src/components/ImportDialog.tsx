@@ -135,7 +135,7 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
         ])
         return
       }
-      const { lodgings: enriched, note } = await enrichWithAccess(added, d.id)
+      const { lodgings: enriched, note } = await enrichWithAccess(added, d.engineId)
       const byId = new Map(enriched.map((l) => [l.id, l]))
       patch({
         imported: imported.map((l) => byId.get(l.id) ?? l),
@@ -196,7 +196,7 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
       `${added.length} nouvelle(s), ${updated} prix mis à jour. Calcul des distances…`,
       ...(missing > 0 ? [t('lodg_gone_tally').replace('{n}', String(missing))] : [])
     ])
-    const { lodgings: enriched, note } = await enrichWithAccess(added, d.id)
+    const { lodgings: enriched, note } = await enrichWithAccess(added, d.engineId)
     const byId = new Map(enriched.map((l) => [l.id, l]))
     patch({
       imported: imported.map((l) => byId.get(l.id) ?? l),
@@ -310,7 +310,7 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
       setBulkLog([
         `${added.length} hébergement(s) OpenStreetMap ajouté(s). Calcul des distances aux pistes…`
       ])
-      const { lodgings: enriched, note } = await enrichWithAccess(added, d.id)
+      const { lodgings: enriched, note } = await enrichWithAccess(added, d.engineId)
       patch({ imported: [...state.imported, ...enriched], importOpen: false, lodgingDomainId: d.id })
       setBulkLog([
         `${enriched.length} hébergement(s) réel(s) ajouté(s) depuis OpenStreetMap${osmSkipped > 0 ? ` — ${osmSkipped} déjà présent(s), ignoré(s)` : ''}.`,

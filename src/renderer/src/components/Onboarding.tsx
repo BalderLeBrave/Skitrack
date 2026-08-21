@@ -62,11 +62,12 @@ export function Onboarding(): JSX.Element {
     const where = matched?.name ?? (stationQuery.trim() || '…')
     const from = fmtShort(state.arrDate, lang)
     const to = fmtShort(state.depDate, lang)
-    if (lang === 'en') {
-      return `Looking for a place for ${who} in ${where}, ${from} → ${to}`
-    }
-    return `Je cherche un appart pour ${who} à ${where}, du ${from} au ${to}`
-  }, [state.travelers, state.arrDate, state.depDate, matched, stationQuery, lang])
+    return t('onb_summary')
+      .replace('{w}', String(who))
+      .replace('{p}', where)
+      .replace('{f}', from)
+      .replace('{t}', to)
+  }, [state.travelers, state.arrDate, state.depDate, matched, stationQuery, lang, t])
 
   const finish = (goLodgings: boolean): void => {
     if (goLodgings && matched) {
@@ -115,7 +116,7 @@ export function Onboarding(): JSX.Element {
               className="field"
               style={{ padding: '9px 10px' }}
               value={state.arrDate}
-              aria-label="Date d’arrivée"
+              aria-label={t('onb_arrival_label')}
               onChange={(e) => patch({ arrDate: e.target.value })}
             />
             <input
@@ -123,7 +124,7 @@ export function Onboarding(): JSX.Element {
               className="field"
               style={{ padding: '9px 10px' }}
               value={state.depDate}
-              aria-label="Date de départ"
+              aria-label={t('onb_departure_label')}
               onChange={(e) => patch({ depDate: e.target.value })}
             />
           </div>
@@ -202,7 +203,7 @@ export function Onboarding(): JSX.Element {
           </div>
           {stationQuery.trim() && !matched && (
             <p className="filters__help" style={{ color: 'var(--warn)' }}>
-              Station introuvable dans le référentiel — vous pourrez la choisir plus tard.
+              {t('onb_station_unknown')}
             </p>
           )}
           {matched && (

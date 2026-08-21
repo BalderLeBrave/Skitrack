@@ -12,6 +12,7 @@
  * une page 404 en faisant croire à un bug.
  */
 
+import { bookingFamilyOf } from '@shared/bookingFamilies'
 import { nightsBetween, slug } from '@/domain/format'
 import { stationBookingOf, stationNameOf } from '@/data/stations'
 
@@ -181,6 +182,17 @@ function frenchDateParam(iso: string): string {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : iso
 }
 
+/**
+ * Clé interne des centrales Orchestra / Ceto.
+ *
+ * Un nom technique et non un libellé de station : les quatre centrales
+ * Orchestra partagent le même format d'URL, et l'entrée portait jusqu'ici le
+ * nom de la première d'entre elles — ce qui laissait croire à un réglage propre
+ * à Chamonix alors que Méribel et La Plagne l'empruntaient déjà par leur nom
+ * d'hôte.
+ */
+const ORCHESTRA_STAY_KEY = 'orchestra-ceto'
+
 const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> = {
   'Booking.com': (c) => ({
     checkin: c.arrDate,
@@ -201,23 +213,44 @@ const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> =
   }),
   /**
    * Centrales de station (Ingénie et assimilés).
-   * Sans ces params, la fiche s'ouvre avec un calendrier vide et il faut
-   * re-cliquer « Rechercher » pour voir le prix du séjour.
+   *
+   * Sans ces params, la fiche s'ouvre sur un calendrier vide et il faut
+   * recliquer « Rechercher » pour voir le prix.
+   *
+   * ## `datefin` est volontairement absent
+   *
+   * La paire `datedeb` + `datefin` fait basculer les fiches Ingénie dans une
+   * réponse dégradée : le serveur renvoie un fragment tronqué — 42 Ko au lieu
+   * de 142 — **annoncé `charset=ISO-8859-15`** alors que la page déclare
+   * `utf-8`. Le navigateur suit l'en-tête HTTP, et tous les accents partent en
+   * `Ã©` : 109 occurrences sur une seule fiche des 2 Alpes. Plus de prix, plus
+   * de photos. Mesuré le 2026-08-21 sur `reservation.les2alpes.com` **et**
+   * `reservation.valdarly-montblanc.com` — ce n'est pas une station qui
+   * déraille, c'est le moteur.
+   *
+   * Chacun des deux paramètres pris isolément laisse la page intacte ; c'est
+   * bien leur conjonction qui déclenche le mode dégradé.
+   *
+   * `datedeb` + `duree` décrit pourtant le même séjour, et `duree` est un champ
+   * du formulaire Ingénie — voir `providers/station/station.ts`. Vérifié
+   * intact (utf-8, page complète) sur les deux centrales.
+   *
+   * C'est un correctif de ce que `docs/FIX-giettaz-availability-dates.md` avait
+   * introduit : les dates étaient bien dans l'URL, mais la page qu'elles
+   * ouvraient était cassée. Une URL qui « pré-remplit » une page illisible ne
+   * pré-remplit rien.
    */
   [OFFICIAL_SOURCE]: (c) => {
-    const from = frenchDateParam(c.arrDate)
-    const to = frenchDateParam(c.depDate)
     const nights = String(Math.max(1, nightsBetween(c.arrDate, c.depDate)))
     return {
-      datedeb: from,
-      datefin: to,
+      datedeb: frenchDateParam(c.arrDate),
       duree: nights,
       personnes: String(Math.max(1, c.travelers)),
       adultes: String(Math.max(1, c.travelers))
     }
   },
   /** Orchestra / Ceto — hash #s_checkinDate (voir listingUrlWithStay). */
-  'Chamonix Réservation': (c) => ({
+  [ORCHESTRA_STAY_KEY]: (c) => ({
     s_checkinDate: c.arrDate,
     s_checkoutDate: c.depDate,
     s_channel: 'CMB'
@@ -225,20 +258,79 @@ const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> =
 }
 
 /**
+ * Nom technique du connecteur → clé de `STAY_PARAMS`.
+ *
+ * Depuis le regroupement des centrales sous un libellé unique, le `src` d'une
+ * offre ne dit plus quel site l'a servie : « Centrale de réservation » recouvre
+ * Ingénie et Orchestra, qui n'attendent ni les mêmes noms de paramètres ni le
+ * même emplacement dans l'URL. On résout donc sur le connecteur quand l'offre
+ * le porte (`Lodging.srcConnector`), et le libellé ne sert plus que de repli
+ * pour les annonces qui n'en ont pas — catalogue simulé, imports manuels,
+ * relevé Airbnb.
+ *
+ * Seuls les connecteurs qui avaient déjà un jeu de paramètres y figurent : les
+ * autres continuent d'être reconnus au nom d'hôte, plus bas, comme avant.
+ */
+const CONNECTOR_STAY_KEY: Record<string, string> = {
+  booking: 'Booking.com',
+  'booking-web': 'Booking.com',
+  airbnb: 'Airbnb',
+  'station-web': OFFICIAL_SOURCE,
+  'ceto-chamonix': ORCHESTRA_STAY_KEY
+}
+
+/**
+ * Connecteurs qui datent déjà l'URL qu'ils rapportent.
+ *
+ * Ublo/MSEM et Open System posent eux-mêmes `from`, `to` et le nombre de
+ * voyageurs sur chaque fiche : l'URL relevée est déjà bonne. Le repli sur le
+ * nom d'hôte, plus bas, ne le savait pas et leur agrafait par-dessus les
+ * paramètres d'Ingénie — `datedeb`, `datefin`, `duree`, `personnes`,
+ * `adultes` — parce que `reservation.alpedhuez.com` commence par
+ * `reservation.`. Le site les ignore, mais une URL qui porte deux conventions
+ * de dates dont une étrangère n'est pas une URL qu'on ose relire.
+ *
+ * On ne touche donc pas à ce qu'ils rendent.
+ */
+const SELF_DATED_CONNECTORS = new Set(['ublo-msem', 'opensystem'])
+
+/**
+ * La même question, posée au nom d'hôte.
+ *
+ * Les annonces relevées avant que `srcConnector` existe n'en portent pas, et
+ * `imported` est enregistré : elles survivent aux mises à jour. Se fier au seul
+ * connecteur laissait donc ces annonces-là continuer de recevoir les paramètres
+ * d'Ingénie — le correctif n'aurait valu que pour les relevés d'après.
+ *
+ * `bookingFamilyOf` fait déjà autorité sur le moteur de chaque centrale : on
+ * l'interroge plutôt que de tenir une seconde liste d'hôtes.
+ */
+function isSelfDatedHost(host: string): boolean {
+  const family = bookingFamilyOf(host)
+  return family === 'ublo' || family === 'opensystem'
+}
+
+/**
  * URL d'annonce enrichie des critères du séjour.
+ *
+ * `source` est le nom technique du connecteur quand l'offre en porte un, son
+ * libellé affiché sinon — voir `CONNECTOR_STAY_KEY`.
  *
  * Les paramètres déjà présents sur l'URL sont respectés : la source sait mieux
  * que nous ce qu'elle y a mis. Une URL illisible est renvoyée telle quelle
  * plutôt que de faire échouer l'ouverture.
  */
 export function listingUrlWithStay(url: string, source: string, criteria: StayCriteria): string {
+  if (SELF_DATED_CONNECTORS.has(source)) return url
+  const key = CONNECTOR_STAY_KEY[source] ?? source
   try {
     const u = new URL(url)
     const host = u.hostname.toLowerCase()
+    if (isSelfDatedHost(host)) return url
 
     // Orchestra / Ceto : dates dans le hash (#s_checkinDate=…).
     const orchestra =
-      source === 'Chamonix Réservation' ||
+      key === ORCHESTRA_STAY_KEY ||
       host === 'booking.chamonix.com' ||
       host.endsWith('.booking.chamonix.com') ||
       host === 'reservations.meribel.net' ||
@@ -246,8 +338,8 @@ export function listingUrlWithStay(url: string, source: string, criteria: StayCr
       host === 'laplagneresort.com'
 
     const build =
-      STAY_PARAMS[source] ||
-      (orchestra ? STAY_PARAMS['Chamonix Réservation'] : null) ||
+      STAY_PARAMS[key] ||
+      (orchestra ? STAY_PARAMS[ORCHESTRA_STAY_KEY] : null) ||
       // Centrales Ingénie / réservation.* sans label exact → params site officiel
       (/^reservation\./i.test(host) || /location.*\.com$/i.test(host)
         ? STAY_PARAMS[OFFICIAL_SOURCE]

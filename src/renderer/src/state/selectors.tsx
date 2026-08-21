@@ -19,6 +19,9 @@ import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
 import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import { isBookable } from '@/data/lodgingAvailability'
+import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
+import { matchesLodgingFilters } from '@/data/lodgingFilter'
+import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
 import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
 import { estimateForfait, forfaitIndexByArea, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
@@ -35,24 +38,9 @@ import type { Score } from '@/domain/scoring'
 import { scoreOf } from '@/domain/scoring'
 import { FILTER_RANGES, useApp } from './appState'
 
-/**
- * Une plage est **ouverte** — donc inactive — quand sa borne basse touche le
- * plancher et sa borne haute le plafond. Le plafond compte comme « sans
- * limite » : sans cela, un domaine à 620 km de route sortirait d'une plage de
- * distance laissée grande ouverte à 1 200 km.
- */
-export const rangeOpen = (lo: number, hi: number, ceil: number): boolean => lo === 0 && hi >= ceil
-
-export const inRange = (v: number, lo: number, hi: number, ceil: number): boolean =>
-  rangeOpen(lo, hi, ceil) || (v >= lo && (hi >= ceil || v <= hi))
-
-/**
- * Même règle, mais une valeur inconnue est écartée dès que la plage est posée :
- * un domaine dont on ignore le temps de route ou le tarif de forfait ne peut
- * pas prétendre entrer dans une fourchette qu'on ne peut pas vérifier.
- */
-export const inRangeOrNull = (v: number | null, lo: number, hi: number, ceil: number): boolean =>
-  rangeOpen(lo, hi, ceil) || (v != null && v >= lo && (hi >= ceil || v <= hi))
+// Les plages à deux bornes vivent dans `data/range.ts` : `lodgingFilter.ts` en
+// a besoin, et les importer d'ici aurait fermé un cycle.
+export { rangeOpen, inRange, inRangeOrNull } from '@/data/range'
 
 /** Tarif de forfait, avec l'information de savoir s'il a été relevé. */
 export type ResolvedForfait = Partial<Forfait> & { estimated: boolean }
@@ -501,40 +489,25 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
      */
     const lodgUnavailable = lodgAll.filter((lg) => !isBookable(lg, stay)).length
 
-    const lodgFiltered = lodgAll.filter((lg) => {
-      // Disponibilité, d'abord. Une annonce listée mais non tarifée pour ces
-      // dates n'est pas réservable : l'ouvrir mène à « Ces dates ne sont pas
-      // disponibles ». Les cartes non jugées — porte d'entrée OpenStreetMap,
-      // saisie manuelle — traversent ce filtre sans être inquiétées. Voir
-      // `data/lodgingAvailability.ts`.
-      if (state.lodgOnlyAvailable && !isBookable(lg, stay)) return false
+    // Le prédicat vit dans `data/lodgingFilter.ts` : en ligne ici, aucun test
+    // ne pouvait l'interroger, et une annonce sans prix y a traversé longtemps
+    // un « 4 chambres minimum » qu'elle contredisait sur sa propre vignette.
+    const lodgCriteria: LodgingFilterCriteria = {
+      travelers: state.travelers,
+      rooms: state.rooms,
+      onlyAvailable: state.lodgOnlyAvailable,
+      freeCancelOnly: state.lodgAnnul,
+      budgetMin: state.lodgBudgetMin,
+      budgetMax: state.lodgBudgetMax,
+      budgetCeiling: FILTER_RANGES.lodgBudget.max,
+      distMin: state.lodgDistMin,
+      distMax: state.lodgDistMax,
+      distCeiling: FILTER_RANGES.lodgDist.max,
+      types: state.lodgTypes,
+      srcOff: state.lodgSrcOff
+    }
+    const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
 
-      // Une carte-redirection (hébergement OSM sans prix) n'a ni prix ni nombre
-      // de chambres à filtrer : la masquer sur un budget ou un nombre de pièces
-      // qu'elle ne porte pas la ferait disparaître à tort. Seuls le type et la
-      // source la concernent.
-      const redirect = lg.total <= 0
-      if (redirect) {
-        return (
-          (state.lodgTypes.length === 0 || state.lodgTypes.includes(lg.type)) &&
-          !state.lodgSrcOff.includes(lg.src.indexOf('Import') === 0 ? 'Import manuel' : lg.src)
-        )
-      }
-      // Capacité et chambres ne sont filtrées que si l'annonce les déclare
-      // (`0` = inconnu, voir `Lodging`). Écarter une annonce sur une
-      // caractéristique qu'elle n'a jamais donnée, c'est vider la liste sans
-      // rien dire : une recherche Airbnb à 8 voyageurs ne renvoie que des biens
-      // qui les acceptent, mais ses cartes de résultats ne l'écrivent nulle part.
-      return (
-        (lg.pers === 0 || lg.pers >= state.travelers) &&
-        (lg.ch === 0 || lg.ch >= state.rooms) &&
-        (!state.lodgAnnul || lg.annul) &&
-        inRange(lg.total, state.lodgBudgetMin, state.lodgBudgetMax, FILTER_RANGES.lodgBudget.max) &&
-        (state.lodgTypes.length === 0 || state.lodgTypes.includes(lg.type)) &&
-        inRange(lg.dist, state.lodgDistMin, state.lodgDistMax, FILTER_RANGES.lodgDist.max) &&
-        !state.lodgSrcOff.includes(lg.src.indexOf('Import') === 0 ? 'Import manuel' : lg.src)
-      )
-    })
     const lodgSorters: Record<string, (a: Lodging, b: Lodging) => number> = {
       pp_asc: (a, b) => a.pp - b.pp,
       total_asc: (a, b) => a.total - b.total,

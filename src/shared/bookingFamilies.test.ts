@@ -25,6 +25,7 @@ check('Saint-François = ublo (MSEM)', bookingFamilyOf('reservation.saintfrancoi
 check('La Bresse WordPress = opensystem', bookingFamilyOf('www.labresse.net') === 'opensystem')
 check('La Bresse résa = Ingénie', !isKnownNonIngenie('https://reservation.labresse.net/'))
 check('Le Corbier = opensystem', bookingFamilyOf('reservation.le-corbier.com') === 'opensystem')
+check('Saint-Sorlin résa = opensystem', bookingFamilyOf('reservation.saintsorlindarves.com') === 'opensystem')
 check('Les 7 Laux = opensystem', bookingFamilyOf('reservation.les7laux.com') === 'opensystem')
 check('Vaujany = opensystem', bookingFamilyOf('reservation.vaujany.com') === 'opensystem')
 check('Villard-Reculas = ublo', bookingFamilyOf('reservation.villard-reculas.com') === 'ublo')

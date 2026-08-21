@@ -98,6 +98,28 @@ const SITES: OpenSystemSite[] = [
     wordpressListPath: '/hebergements-a-la-bresse-hautes-vosges/'
   },
   {
+    id: 'corbier',
+    host: 'reservation.le-corbier.com',
+    origin: 'https://reservation.le-corbier.com',
+    integrationId: 1580,
+    login: 'le-corbier',
+    vueId: 1814,
+    vueinfoPath: 'osform/41925/3670/8262/vueinfo.js',
+    zone: 0,
+    zoneRech: null
+  },
+  {
+    id: 'saintsorlin',
+    host: 'reservation.saintsorlindarves.com',
+    origin: 'https://reservation.saintsorlindarves.com',
+    integrationId: 1455,
+    login: 'saintsorlindarves',
+    vueId: 1709,
+    vueinfoPath: 'osform/41925/3287/8176/vueinfo.js',
+    zone: 0,
+    zoneRech: null
+  },
+  {
     id: 'valfrejus',
     host: 'www.valfrejus.com',
     origin: 'https://www.valfrejus.com',

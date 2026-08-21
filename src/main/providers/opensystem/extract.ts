@@ -120,7 +120,7 @@ export function etapeRestQuery(opts: {
     ages,
     '*',
     '0',
-    '0',
+    String(opts.adults),
     '',
     '*'
   ].join('|')

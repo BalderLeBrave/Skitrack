@@ -20,6 +20,8 @@ assert(opensystemSiteOf('reservation.ledevoluy.com')?.vueId === 1755, 'Dévoluy 
 assert(opensystemSiteOf('www.valmorel.com')?.vueId === 1423, 'Valmorel vue')
 assert(opensystemSiteOf('reservation.alpedhuez.com') == null, 'Huez n’est pas OS')
 assert(opensystemSiteOf('reservation.ax-ski.com')?.vueId === 1861, 'Ax vue')
+assert(opensystemSiteOf('reservation.le-corbier.com')?.vueId === 1814, 'Corbier vue')
+assert(opensystemSiteOf('reservation.saintsorlindarves.com')?.login === 'saintsorlindarves', 'Saint-Sorlin login')
 
 const opts = {
   origin: 'https://reservation.la-toussuire.com',
@@ -65,7 +67,7 @@ const q = etapeRestQuery({
   children: 0
 })
 assert(
-  q === '|0|20|valmorel|||1423|0|0||2|7|2026-12-19|2||*|0|0||*',
+  q === '|0|20|valmorel|||1423|0|0||2|7|2026-12-19|2||*|0|2||*',
   `pipe ${q}`
 )
 const empty = parseJsonpList(

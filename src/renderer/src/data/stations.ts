@@ -699,9 +699,26 @@ export function officialSiteOf(domainName: string, fallback?: string | null): Of
  *
  * C'est l'adresse à interroger — pas le site institutionnel, qui ne porte aucun
  * inventaire. `fallback` accueille l'`official_booking_url` du moteur local.
+ *
+ * La table est indexée sur le **nom de station** (`tignes`, `alpe-d-huez`).
+ * Un domaine catalogue (« Alpe d'Huez Grand Domaine », « Avoriaz 1800 »,
+ * « Chamonix – Le Tour Balme ») ne matche pas tel quel : on retente avec
+ * `stationNameOf`, puis un préfixe (`avoriaz` → `avoriaz-1800`).
  */
 export function bookingCentralOf(domainName: string, fallback?: string | null): string | null {
-  return CENTRAL_BY_SLUG[slug(domainName)]?.url ?? fallback ?? null
+  const keys = [slug(domainName), slug(stationNameOf(domainName))].filter((k, i, all) => k && all.indexOf(k) === i)
+  for (const key of keys) {
+    const hit = CENTRAL_BY_SLUG[key]
+    if (hit) return hit.url
+  }
+  for (const key of keys) {
+    if (key.length < 5) continue
+    for (const [k, v] of Object.entries(CENTRAL_BY_SLUG)) {
+      if (k === key) return v.url
+      if (k.startsWith(`${key}-`) || key.startsWith(`${k}-`)) return v.url
+    }
+  }
+  return fallback ?? null
 }
 
 /**
@@ -713,8 +730,8 @@ export function stationBookingOf(
   domainName: string,
   fallback?: string | null
 ): (OfficialSite & { central: boolean }) | null {
-  const central = CENTRAL_BY_SLUG[slug(domainName)]
-  if (central) return { url: central.url, verified: true, central: true }
+  const url = bookingCentralOf(domainName)
+  if (url) return { url, verified: true, central: true }
   const site = officialSiteOf(domainName, fallback)
   return site ? { ...site, central: false } : null
 }

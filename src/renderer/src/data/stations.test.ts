@@ -17,7 +17,7 @@
 
 import { readFileSync } from 'node:fs'
 import { BUNDLED_REFERENTIAL } from './referentiel'
-import { V25_STATIONS, isV25Station, officialSiteOf, stationNameOf, stationOrigin } from './stations'
+import { V25_STATIONS, bookingCentralOf, isV25Station, officialSiteOf, stationNameOf, stationOrigin } from './stations'
 
 const V25_PATH = 'tools/skitrack_v25.py'
 
@@ -143,6 +143,34 @@ for (const domain of BUNDLED_REFERENTIAL.domaines) {
     if (url.protocol !== 'https:') fail(domain.name, `site officiel non HTTPS : ${site.url}`)
   } catch {
     fail(domain.name, `site officiel illisible : ${site.url}`)
+  }
+}
+
+// 5. Lookup de la centrale : nom de domaine composite autant que nom court.
+const CENTRAL_CASES: [string, string][] = [
+  ['Les 2 Alpes', 'reservation.les2alpes.com'],
+  ["Alpe d'Huez Grand Domaine", 'reservation.alpedhuez.com'],
+  ["Alpe d'Huez", 'reservation.alpedhuez.com'],
+  ['Avoriaz', 'reservation.avoriaz.com'],
+  ['Avoriaz 1800', 'reservation.avoriaz.com'],
+  ['Chamonix', 'booking.chamonix.com'],
+  ['Chamonix-Mont-Blanc', 'booking.chamonix.com'],
+  ['Tignes', 'reservation.tignes.net'],
+  ['Tignes – Val d’Isère', 'reservation.tignes.net'],
+  ['Val Thorens', 'reservation.valthorens.com'],
+  ['Megève', 'megeve-booking.com'],
+  ['Méribel', 'reservations.meribel.net'],
+  ['La Plagne', 'laplagneresort.com'],
+  ['La Toussuire', 'reservation.la-toussuire.com'],
+  ['Sainte-Foy-Tarentaise', 'saintefoy-reservation.com'],
+  ['Valmorel', 'valmorel.com'],
+  ['Orcières', 'reservation.orcieres.com'],
+  ['Les Carroz', 'reservation.lescarroz.com']
+]
+for (const [name, host] of CENTRAL_CASES) {
+  const url = bookingCentralOf(name)
+  if (!url || !url.includes(host)) {
+    fail(name, `centrale attendue ${host}, obtenu ${url ?? 'null'}`)
   }
 }
 

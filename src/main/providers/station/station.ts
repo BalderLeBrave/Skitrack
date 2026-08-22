@@ -492,7 +492,12 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
   // dont un caché. Si un bandeau (OneTrust) intercepte le clic, on force
   // l'exemplaire `name=search` plutôt que de faire échouer toute la centrale.
   try {
-    await page.click(FIELD.submit, { timeout: 8_000 })
+    const visible = await page.locator(FIELD.submit).count()
+    if (visible > 0) {
+      await page.click(FIELD.submit, { timeout: 8_000 })
+    } else {
+      throw new Error('submit-hidden')
+    }
   } catch {
     const clicked = await page.evaluate(() => {
       const view = globalThis as unknown as {
@@ -522,8 +527,44 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
     }
   }
   await page
-    .waitForLoadState('domcontentloaded', { timeout: 30_000 })
+    .waitForLoadState('domcontentloaded', { timeout: 12_000 })
     .catch(() => undefined)
+}
+
+/**
+ * Widget Ingénie (Châtel…) : `searchAjax` répond `{nbResultsFiche:0}` sans
+ * injecter `.fiche-info`. La SERP HTML est `GET /booking?action=result`.
+ */
+async function openHtmlResultsIfEmpty(page: Page, timeoutMs: number): Promise<void> {
+  const n = await page.locator('.fiche-info').count()
+  if (n > 0) return
+  const resultUrl = await page.evaluate(() => {
+    const view = globalThis as unknown as {
+      document: {
+        querySelector: (s: string) => { value?: string } | null
+      }
+      location: { origin: string; href: string }
+    }
+    const val = (name: string): string =>
+      view.document.querySelector(`input[name="${name}"], select[name="${name}"]`)?.value ?? ''
+    const datedeb = val('datedeb')
+    if (!datedeb) return null
+    const q = new URLSearchParams({
+      action: 'result',
+      cid: val('cid') || '5',
+      type_prestataire: val('type_prestataire') || 'I',
+      datedeb,
+      datefin: val('datefin'),
+      duree: val('duree'),
+      adultes: val('adultes'),
+      enfants: val('enfants') || '0',
+      MOTEUR_TYPES_PRESTATAIRE: val('MOTEUR_TYPES_PRESTATAIRE') || 'HEBERGEMENTS'
+    })
+    const url = `${view.location.origin}/booking?${q.toString()}`
+    return url === view.location.href ? null : url
+  })
+  if (!resultUrl) return
+  await page.goto(resultUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
 }
 
 /**
@@ -1034,6 +1075,7 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             }
 
             await submitSearch(page, params, name, origin)
+            await openHtmlResultsIfEmpty(page, timeoutMs)
             await waitForIngenieResults(page, probe, AJAX_TIMEOUT.resultsMs)
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)

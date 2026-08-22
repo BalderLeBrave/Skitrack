@@ -17,6 +17,10 @@ assert(site?.channel === 'OT-125' && site.resort === 125, 'Alpe d’Huez')
 assert(ubloSiteOf('www.saintefoy-reservation.com')?.channel === 'OT-595', 'Sainte-Foy')
 assert(ubloSiteOf('reservation.saintfrancoislongchamp.com')?.channel === 'OT-SFL', 'SFL')
 assert(ubloSiteOf('reservation.villarddelans-correnconenvercors.com')?.resort === 30002, 'Villard-de-Lans')
+assert(ubloSiteOf('isola2000.com')?.channel === 'ISOLA', 'Isola')
+assert(ubloSiteOf('www.valberg.com')?.resort === 665, 'Valberg')
+assert(ubloSiteOf('www.montclar.com')?.channel === 'OT-276', 'Montclar')
+assert(ubloSiteOf('www.paysdesecrins.com')?.channel === 'PDE', 'Écrins')
 assert(ubloSiteOf('reservation.les2alpes.com') == null, '2 Alpes n’est pas Ublo')
 
 const listings = mergeListAndOffers(

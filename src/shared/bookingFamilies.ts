@@ -69,8 +69,14 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'reservation.saintfrancoislongchamp.com': 'ublo',
   // Autres
   'www.sancy.com': 'sancy',
-  'isola2000.com': 'yoplanning',
-  'www.isola2000.com': 'yoplanning',
+  'isola2000.com': 'ublo',
+  'www.isola2000.com': 'ublo',
+  'www.valberg.com': 'ublo',
+  'valberg.com': 'ublo',
+  'www.montclar.com': 'ublo',
+  'montclar.com': 'ublo',
+  'www.paysdesecrins.com': 'ublo',
+  'paysdesecrins.com': 'ublo',
   'www.alpes-sudlocations.com': 'elloha',
   // robots.txt Disallow: /
   'reservation.combloux.com': 'blocked',

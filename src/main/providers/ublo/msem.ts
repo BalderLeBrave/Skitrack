@@ -77,12 +77,14 @@ function roundEuro(n: number): number {
 }
 
 export function lodgingUrl(site: UbloSite, slug: string, from: string, to: string, adults: number, children: number): string {
-  const path = ubloListingPath(site.pathPrefix, slug)
-  const url = new URL(path, site.origin)
+  const url = site.listingPage
+    ? new URL(site.listingPage)
+    : new URL(ubloListingPath(site.pathPrefix, slug), site.origin)
   url.searchParams.set('from', from)
   url.searchParams.set('to', to)
   url.searchParams.set('adults', String(adults))
   if (children > 0) url.searchParams.set('children', String(children))
+  if (site.listingPage) url.searchParams.set('lodging', slug)
   return url.href
 }
 

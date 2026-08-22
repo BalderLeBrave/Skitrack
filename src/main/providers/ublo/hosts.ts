@@ -15,6 +15,11 @@ export interface UbloSite {
   lang: 'fr' | 'en'
   /** Préfixe de chemin CMS (`/fr` à Sainte-Foy). */
   pathPrefix: string
+  /**
+   * Page d'accueil du widget MSEM quand le CMS n'a pas `/hebergements/{slug}`
+   * (WordPress Isola / Valberg / Montclar / Écrins).
+   */
+  listingPage?: string
 }
 
 const SITES: UbloSite[] = [
@@ -53,6 +58,46 @@ const SITES: UbloSite[] = [
     resort: 30002,
     lang: 'fr',
     pathPrefix: ''
+  },
+  {
+    id: 'isola',
+    host: 'isola2000.com',
+    origin: 'https://isola2000.com',
+    channel: 'ISOLA',
+    resort: 386,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://isola2000.com/reservez-votre-sejour/'
+  },
+  {
+    id: 'valberg',
+    host: 'www.valberg.com',
+    origin: 'https://www.valberg.com',
+    channel: 'OT-665',
+    resort: 665,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://www.valberg.com/sejourner/reserver-votre-sejour/'
+  },
+  {
+    id: 'montclar',
+    host: 'www.montclar.com',
+    origin: 'https://www.montclar.com',
+    channel: 'OT-276',
+    resort: 276,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://www.montclar.com/'
+  },
+  {
+    id: 'ecrins',
+    host: 'www.paysdesecrins.com',
+    origin: 'https://www.paysdesecrins.com',
+    channel: 'PDE',
+    resort: 30015,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://www.paysdesecrins.com/hebergements/'
   }
 ]
 

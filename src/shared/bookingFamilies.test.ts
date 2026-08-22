@@ -40,6 +40,10 @@ check('Haute-Maurienne = opensystem', bookingFamilyOf('reservation.haute-maurien
 check('Sancy = sancy', bookingFamilyOf('www.sancy.com') === 'sancy')
 check('Combloux = blocked', bookingFamilyOf('reservation.combloux.com') === 'blocked')
 check('hôte inconnu = unknown', bookingFamilyOf('www.example.com') === 'unknown')
+check('Isola = ublo (MSEM)', bookingFamilyOf('isola2000.com') === 'ublo')
+check('Valberg = ublo', bookingFamilyOf('www.valberg.com') === 'ublo')
+check('Montclar = ublo', bookingFamilyOf('www.montclar.com') === 'ublo')
+check('Écrins = ublo', bookingFamilyOf('www.paysdesecrins.com') === 'ublo')
 
 if (failures > 0) {
   console.log(`\n${failures} échec(s)`)

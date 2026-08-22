@@ -21,6 +21,8 @@ assert(ubloSiteOf('isola2000.com')?.channel === 'ISOLA', 'Isola')
 assert(ubloSiteOf('www.valberg.com')?.resort === 665, 'Valberg')
 assert(ubloSiteOf('www.montclar.com')?.channel === 'OT-276', 'Montclar')
 assert(ubloSiteOf('www.paysdesecrins.com')?.channel === 'PDE', 'Écrins')
+assert(ubloSiteOf('www.leman-mountains-explore.com')?.channel === 'LEMAN_MOUNTAINS', 'Léman')
+assert(ubloSiteOf('reservation.villard-reculas.com')?.resort === 702, 'Villard-Reculas')
 assert(ubloSiteOf('reservation.les2alpes.com') == null, '2 Alpes n’est pas Ublo')
 
 const listings = mergeListAndOffers(

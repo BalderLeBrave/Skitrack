@@ -98,6 +98,25 @@ const SITES: UbloSite[] = [
     lang: 'fr',
     pathPrefix: '',
     listingPage: 'https://www.paysdesecrins.com/hebergements/'
+  },
+  {
+    id: 'leman',
+    host: 'www.leman-mountains-explore.com',
+    origin: 'https://www.leman-mountains-explore.com',
+    channel: 'LEMAN_MOUNTAINS',
+    resort: 30016,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://www.leman-mountains-explore.com/reserver/sejour-hebergements/'
+  },
+  {
+    id: 'villardreculas',
+    host: 'reservation.villard-reculas.com',
+    origin: 'https://reservation.villard-reculas.com',
+    channel: 'OT-702',
+    resort: 702,
+    lang: 'fr',
+    pathPrefix: ''
   }
 ]
 

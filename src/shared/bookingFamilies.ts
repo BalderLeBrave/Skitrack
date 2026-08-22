@@ -77,6 +77,8 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'montclar.com': 'ublo',
   'www.paysdesecrins.com': 'ublo',
   'paysdesecrins.com': 'ublo',
+  'www.leman-mountains-explore.com': 'ublo',
+  'leman-mountains-explore.com': 'ublo',
   'www.alpes-sudlocations.com': 'elloha',
   // robots.txt Disallow: /
   'reservation.combloux.com': 'blocked',

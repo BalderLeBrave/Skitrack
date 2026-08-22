@@ -30,7 +30,7 @@ export interface CentralCapability {
   /** Connecteur technique attendu, si live. */
   connector?: string
   /** Famille technique, pour diagnostics. */
-  family?: 'orchestra' | 'ingenie' | 'opensystem' | 'ublo' | 'eliberty' | 'other'
+  family?: 'orchestra' | 'ingenie' | 'opensystem' | 'ublo' | 'locvacances' | 'eliberty' | 'other'
 }
 
 /** Orchestra / Ceto — extracteur HTML sans navigateur. */
@@ -175,6 +175,17 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       family: 'opensystem',
       labelFr: 'prix pour vos dates (Open System)',
       labelEn: 'prices for your dates (Open System)'
+    }
+  }
+
+  if (family === 'locvacances') {
+    return {
+      mode: 'live',
+      host,
+      connector: 'locvacances',
+      family: 'locvacances',
+      labelFr: 'prix pour vos dates (LocVacances)',
+      labelEn: 'prices for your dates (LocVacances)'
     }
   }
 

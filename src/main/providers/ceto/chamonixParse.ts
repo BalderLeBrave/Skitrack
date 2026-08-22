@@ -6,7 +6,7 @@
 
 export type SerpType = 'hotel' | 'apartment' | 'residence'
 
-export type OrchestraSiteId = 'chamonix' | 'meribel' | 'plagne' | 'megeve'
+export type OrchestraSiteId = 'chamonix' | 'meribel' | 'plagne' | 'megeve' | 'praz'
 
 export interface ChamonixSearchOpts {
   type: SerpType
@@ -89,6 +89,17 @@ const SITES: Record<
   },
   megeve: {
     base: 'https://megeve-booking.com',
+    channel: null,
+    dateStyle: 'iso',
+    locationParam: null,
+    serp: {
+      hotel: { path: '/serpHotel', morePath: '/ajax/more/serpHotel', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=hotel' },
+      apartment: { path: '/serp', morePath: '/ajax/more/serp', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=chalet,apartment' },
+      residence: { path: '/serp', morePath: '/ajax/more/serp', baseQuery: 'lang=fr_FR&s_c.ACCOMMODATION=residence' }
+    }
+  },
+  praz: {
+    base: 'https://booking.prazsurarly.com',
     channel: null,
     dateStyle: 'iso',
     locationParam: null,
@@ -252,7 +263,7 @@ function buildQuery(opts: ChamonixSearchOpts, site: OrchestraSiteId): string {
   if (site === 'chamonix' && opts.type !== 'hotel') {
     parts.push(`s_c.PAX.adultsNumber=${opts.adults}`)
     parts.push(`s_c.PAX.childrenNumber=${opts.children}`)
-  } else if (site === 'meribel' || site === 'megeve') {
+  } else if (site === 'meribel' || site === 'megeve' || site === 'praz') {
     parts.push(`s_c.PAX=${pax}`)
   }
   if (opts.location && cfg.locationParam) {

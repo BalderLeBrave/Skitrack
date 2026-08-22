@@ -12,7 +12,9 @@ export const CETO_HOSTS = new Set([
   'www.laplagneresort.com',
   'laplagneresort.com',
   'megeve-booking.com',
-  'www.megeve-booking.com'
+  'www.megeve-booking.com',
+  'booking.prazsurarly.com',
+  'www.booking.prazsurarly.com'
 ])
 
 export function isCetoHost(urlOrHost: string): boolean {
@@ -55,4 +57,9 @@ export function isPlagneCentral(urlOrHost: string): boolean {
 export function isMegeveCentral(urlOrHost: string): boolean {
   const host = hostOf(urlOrHost)
   return host === 'megeve-booking.com' || host === 'www.megeve-booking.com'
+}
+
+export function isPrazCentral(urlOrHost: string): boolean {
+  const host = hostOf(urlOrHost)
+  return host === 'booking.prazsurarly.com' || host === 'www.booking.prazsurarly.com'
 }

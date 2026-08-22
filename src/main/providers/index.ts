@@ -30,6 +30,7 @@ import { createCetoChamonixProvider } from './ceto/chamonix'
 import { createCetoMeribelProvider } from './ceto/meribel'
 import { createCetoPlagneProvider } from './ceto/plagne'
 import { createCetoMegeveProvider } from './ceto/megeve'
+import { createCetoPrazProvider } from './ceto/praz'
 import { createUbloProvider } from './ublo/provider'
 import { createOpenSystemProvider } from './opensystem/provider'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
@@ -84,6 +85,7 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     next.register(createCetoMeribelProvider())
     next.register(createCetoPlagneProvider())
     next.register(createCetoMegeveProvider())
+    next.register(createCetoPrazProvider())
     next.register(createUbloProvider())
     next.register(createOpenSystemProvider())
   }

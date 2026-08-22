@@ -536,8 +536,15 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
  * injecter `.fiche-info`. La SERP HTML est `GET /booking?action=result`.
  */
 async function openHtmlResultsIfEmpty(page: Page, timeoutMs: number): Promise<void> {
-  const n = await page.locator('.fiche-info').count()
-  if (n > 0) return
+  try {
+    await page.waitForSelector('.fiche-info', { timeout: 4_000 })
+    return
+  } catch {
+    // Widget Châtel : pas de fiche injectée — SERP HTML ci-dessous.
+  }
+  if ((await page.locator('.fiche-info').count()) > 0) return
+  const href = page.url()
+  if (/[?&]action=result\b/.test(href)) return
   const resultUrl = await page.evaluate(() => {
     const view = globalThis as unknown as {
       document: {
@@ -564,7 +571,11 @@ async function openHtmlResultsIfEmpty(page: Page, timeoutMs: number): Promise<vo
     return url === view.location.href ? null : url
   })
   if (!resultUrl) return
-  await page.goto(resultUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+  try {
+    await page.goto(resultUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+  } catch {
+    // Navigation déjà en cours (Saint-Lary, Chamrousse) : ne pas abort.
+  }
 }
 
 /**

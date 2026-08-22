@@ -119,7 +119,7 @@ export function createCetoMeribelProvider(): AccommodationProvider {
           .filter((l) => l.total != null && l.total > 0 && l.url && l.title)
           .filter((l) => cityMatches(l.city, dest))
         const pax = (params.adults ?? 2) + (params.children ?? 0)
-        const byUrl = await occupancyGridsForSerp(priced, from, to, '')
+        const byUrl = await occupancyGridsForSerp(priced, from, to, '', 12_000)
         const offers = priced.map((l) => {
           const grid = l.url ? (byUrl.get(l.url) ?? null) : null
           const groupPrice = grid ? priceForGroupIn(grid, pax) : null

@@ -176,7 +176,8 @@ export async function readFicheOccupancies(
   from: string,
   to: string,
   channel: string,
-  headless = true
+  headless = true,
+  budgetMs = BUDGET_MS
 ): Promise<FicheOccupancyResult> {
   const byUrl = new Map<string, FicheOccupancy>()
   let failed = 0
@@ -199,7 +200,7 @@ export async function readFicheOccupancies(
 
   let ranOutOfTime = 0
   if (todo.length > 0) {
-    const deadline = Date.now() + BUDGET_MS
+    const deadline = Date.now() + budgetMs
     let cursor = 0
     const worker = async (): Promise<void> => {
       for (;;) {
@@ -239,7 +240,7 @@ export async function readFicheOccupancies(
     failed,
     skippedOverCap: skipped,
     skippedOutOfTime: ranOutOfTime,
-    budgetMs: BUDGET_MS
+    budgetMs
   })
 
   return { byUrl, skipped: totalSkipped, failed }
@@ -252,14 +253,17 @@ export async function occupancyGridsForSerp(
   listings: { url?: string | null; total?: number | null }[],
   from: string,
   to: string,
-  channel: string
+  channel: string,
+  budgetMs = BUDGET_MS
 ): Promise<Map<string, FicheOccupancy>> {
   const byPrice = [...listings].sort((a, b) => (a.total ?? 0) - (b.total ?? 0))
   const grids = await readFicheOccupancies(
     byPrice.map((l) => l.url ?? '').filter(Boolean),
     from,
     to,
-    channel
+    channel,
+    true,
+    budgetMs
   )
   if (grids.skipped > 0) {
     debugLog('ceto-fiche', 'Number of listings left on the SERP price', {

@@ -494,7 +494,7 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
   try {
     const visible = await page.locator(FIELD.submit).count()
     if (visible > 0) {
-      await page.click(FIELD.submit, { timeout: 8_000 })
+      await page.click(FIELD.submit, { timeout: 8_000, noWaitAfter: true })
     } else {
       throw new Error('submit-hidden')
     }
@@ -536,6 +536,10 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
  * injecter `.fiche-info`. La SERP HTML est `GET /booking?action=result`.
  */
 async function openHtmlResultsIfEmpty(page: Page, timeoutMs: number): Promise<void> {
+  // Moteur historique (Arêches, Val Thorens…) : `select[name=datedeb]`.
+  // Le clic Rechercher navigue déjà ; `action=result` y répond 200 vide
+  // et bloquait 40 s. Le fallback ne vise que le widget (input caché).
+  if ((await page.locator('select[name="datedeb"]').count()) > 0) return
   try {
     await page.waitForSelector('.fiche-info', { timeout: 4_000 })
     return

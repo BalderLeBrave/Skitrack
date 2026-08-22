@@ -564,7 +564,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'la-plagne-montalbert': { url: 'https://www.laplagneresort.com/' }, // La Plagne Montalbert
   'la-rosiere': { url: 'https://reservation.larosiere.net/' }, // La Rosière
   'la-toussuire': { url: 'https://reservation.la-toussuire.com/z14220_fr-.aspx' }, // La Toussuire
-  'lans-en-vercors': { url: 'https://skipass.lansenvercors.com/fr/' }, // Lans-en-Vercors *
+  'lans-en-vercors': { url: 'https://www.vercors-experience.com/' }, // Lans-en-Vercors
   'le-collet': { url: 'https://reservation.lecollet.com/' }, // Le Collet
   'le-corbier': { url: 'https://reservation.le-corbier.com/index.aspx' }, // Le Corbier *
   'le-devoluy': { url: 'https://reservation.ledevoluy.com/' }, // Le Dévoluy

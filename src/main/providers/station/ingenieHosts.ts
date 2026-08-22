@@ -46,7 +46,9 @@ export const INGENIE_HOSTS = new Set([
   'reservation.paysdegex-montsjura.com',
   'reservation.valleesdegavarnie.com',
   'reservation.labresse.net',
-  'www.chatelreservation.com'
+  'www.chatelreservation.com',
+  'www.vercors-experience.com',
+  'www.lansenvercors.com'
 ])
 
 /** robots.txt Disallow: / — ne jamais lancer le navigateur. */

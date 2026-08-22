@@ -35,6 +35,8 @@ check('Dévoluy = opensystem', bookingFamilyOf('reservation.ledevoluy.com') === 
 check('Valmorel résa = opensystem', bookingFamilyOf('reservation.valmorel.com') === 'opensystem')
 check('N-PY résa = opensystem', bookingFamilyOf('reservation.n-py.com') === 'opensystem')
 check('Megève = orchestra', bookingFamilyOf('megeve-booking.com') === 'orchestra')
+check('Praz-sur-Arly = orchestra', bookingFamilyOf('booking.prazsurarly.com') === 'orchestra')
+check('Haute-Maurienne = opensystem', bookingFamilyOf('reservation.haute-maurienne-vanoise.com') === 'opensystem')
 check('Sancy = sancy', bookingFamilyOf('www.sancy.com') === 'sancy')
 check('Combloux = blocked', bookingFamilyOf('reservation.combloux.com') === 'blocked')
 check('hôte inconnu = unknown', bookingFamilyOf('www.example.com') === 'unknown')

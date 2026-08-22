@@ -38,6 +38,8 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'laplagneresort.com': 'orchestra',
   'megeve-booking.com': 'orchestra',
   'www.megeve-booking.com': 'orchestra',
+  'booking.prazsurarly.com': 'orchestra',
+  'www.booking.prazsurarly.com': 'orchestra',
   // Open System (opensystem_du / widget OS — pas de datedeb Ingénie)
   'reservation.la-toussuire.com': 'opensystem',
   'reservation.ledevoluy.com': 'opensystem',
@@ -55,6 +57,7 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'reservation.auris-en-oisans.fr': 'opensystem',
   'reservation.matheysine-tourisme.com': 'opensystem',
   'reservation.saintsorlindarves.com': 'opensystem',
+  'reservation.haute-maurienne-vanoise.com': 'opensystem',
   // Ublo / MSEM (channel OT-702 relevé sur la page)
   'reservation.villard-reculas.com': 'ublo',
   'reservation.villarddelans-correnconenvercors.com': 'ublo',

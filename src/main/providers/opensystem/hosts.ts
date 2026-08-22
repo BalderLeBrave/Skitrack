@@ -120,6 +120,17 @@ const SITES: OpenSystemSite[] = [
     zoneRech: null
   },
   {
+    id: 'hmv',
+    host: 'reservation.haute-maurienne-vanoise.com',
+    origin: 'https://reservation.haute-maurienne-vanoise.com',
+    integrationId: 1115,
+    login: 'haute-maurienne',
+    vueId: 1115,
+    vueinfoPath: null,
+    zone: 13539,
+    zoneRech: 12333
+  },
+  {
     id: 'valfrejus',
     host: 'www.valfrejus.com',
     origin: 'https://www.valfrejus.com',

@@ -22,6 +22,7 @@ assert(opensystemSiteOf('reservation.alpedhuez.com') == null, 'Huez n’est pas 
 assert(opensystemSiteOf('reservation.ax-ski.com')?.vueId === 1861, 'Ax vue')
 assert(opensystemSiteOf('reservation.le-corbier.com')?.vueId === 1814, 'Corbier vue')
 assert(opensystemSiteOf('reservation.saintsorlindarves.com')?.login === 'saintsorlindarves', 'Saint-Sorlin login')
+assert(opensystemSiteOf('reservation.haute-maurienne-vanoise.com')?.vueId === 1115, 'HMV vue')
 
 const opts = {
   origin: 'https://reservation.la-toussuire.com',

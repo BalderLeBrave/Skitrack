@@ -42,7 +42,9 @@ const CETO_HOSTS: Record<string, string> = {
   'www.laplagneresort.com': 'ceto-plagne',
   'laplagneresort.com': 'ceto-plagne',
   'megeve-booking.com': 'ceto-megeve',
-  'www.megeve-booking.com': 'ceto-megeve'
+  'www.megeve-booking.com': 'ceto-megeve',
+  'booking.prazsurarly.com': 'ceto-praz',
+  'www.booking.prazsurarly.com': 'ceto-praz'
 }
 
 /**
@@ -50,7 +52,6 @@ const CETO_HOSTS: Record<string, string> = {
  * Le connecteur `station-web` remplit le formulaire et lit la SERP (ld+json + prix DOM).
  */
 const INGENIE_HOSTS = new Set([
-  'booking.prazsurarly.com',
   'booking.valdisere.com',
   'fr.locationlesmenuires.com',
   'fr.locationsaintmartin.com',
@@ -60,7 +61,6 @@ const INGENIE_HOSTS = new Set([
   'reservation.bareges.com',
   'reservation.chamberymontagnes.com',
   'reservation.courchevel.com',
-  'reservation.haute-maurienne-vanoise.com',
   'reservation.larosiere.net',
   'reservation.labresse.net',
   'reservation.lecollet.com',

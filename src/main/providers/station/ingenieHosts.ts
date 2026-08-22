@@ -45,7 +45,8 @@ export const INGENIE_HOSTS = new Set([
   'reservation.chamberymontagnes.com',
   'reservation.paysdegex-montsjura.com',
   'reservation.valleesdegavarnie.com',
-  'reservation.labresse.net'
+  'reservation.labresse.net',
+  'www.chatelreservation.com'
 ])
 
 /** robots.txt Disallow: / — ne jamais lancer le navigateur. */

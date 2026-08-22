@@ -88,6 +88,7 @@ const INGENIE_HOSTS = new Set([
   'www.valdallos.com',
   'www.valloire.com',
   'www.valmeinier-reservation.com',
+  'www.chatelreservation.com',
 ])
 
 /** robots.txt `Disallow: /` — le connecteur refuse explicitement. */

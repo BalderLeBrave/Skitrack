@@ -29,6 +29,7 @@ check('Saint-Sorlin résa = opensystem', bookingFamilyOf('reservation.saintsorli
 check('Les 7 Laux = opensystem', bookingFamilyOf('reservation.les7laux.com') === 'opensystem')
 check('Vaujany = opensystem', bookingFamilyOf('reservation.vaujany.com') === 'opensystem')
 check('Villard-Reculas = ublo', bookingFamilyOf('reservation.villard-reculas.com') === 'ublo')
+check('Villard-de-Lans = ublo', bookingFamilyOf('reservation.villarddelans-correnconenvercors.com') === 'ublo')
 check('Toussuire = opensystem', bookingFamilyOf('https://reservation.la-toussuire.com/') === 'opensystem')
 check('Dévoluy = opensystem', bookingFamilyOf('reservation.ledevoluy.com') === 'opensystem')
 check('Valmorel résa = opensystem', bookingFamilyOf('reservation.valmorel.com') === 'opensystem')

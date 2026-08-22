@@ -6,7 +6,7 @@
  */
 
 export interface UbloSite {
-  id: 'alpedhuez' | 'saintefoy' | 'sfl'
+  id: string
   /** Hôte canonique (sans www si le site n’en sert pas). */
   host: string
   origin: string
@@ -42,6 +42,15 @@ const SITES: UbloSite[] = [
     origin: 'https://reservation.saintfrancoislongchamp.com',
     channel: 'OT-SFL',
     resort: 566,
+    lang: 'fr',
+    pathPrefix: ''
+  },
+  {
+    id: 'villardlans',
+    host: 'reservation.villarddelans-correnconenvercors.com',
+    origin: 'https://reservation.villarddelans-correnconenvercors.com',
+    channel: 'OTVDL',
+    resort: 30002,
     lang: 'fr',
     pathPrefix: ''
   }

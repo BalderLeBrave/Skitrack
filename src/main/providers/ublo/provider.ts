@@ -18,7 +18,16 @@ import { extractUblo, type UbloListing } from './msem'
 export const UBLO_PROVIDER_NAME = 'ublo-msem'
 
 const TIMEOUT_MS = 45_000
-const breaker = new CircuitBreaker(3, 60_000)
+const breakersByHost = new Map<string, CircuitBreaker>()
+
+function breakerFor(host: string): CircuitBreaker {
+  let b = breakersByHost.get(host)
+  if (!b) {
+    b = new CircuitBreaker(3, 60_000)
+    breakersByHost.set(host, b)
+  }
+  return b
+}
 
 function toAccommodation(item: UbloListing, params: SearchParams): Accommodation {
   return {
@@ -55,6 +64,7 @@ export function createUbloProvider(): AccommodationProvider {
       if (!central) return []
       const site = ubloSiteOf(central)
       if (!site) return []
+      const breaker = breakerFor(site.host)
       if (breaker.open) throw new Error(`${name} : ${breaker.reason}`)
       const from = params.checkIn
       const to = params.checkOut
@@ -87,12 +97,13 @@ export function createUbloProvider(): AccommodationProvider {
       }
     },
     async health(): Promise<ProviderHealth> {
+      const open = [...breakersByHost.entries()].filter(([, b]) => b.open)
       return {
         name,
-        reachable: !breaker.open,
-        detail: breaker.open
-          ? breaker.reason
-          : 'Centrale Ublo / MSEM — liste + offres datées (JSON)'
+        reachable: open.length === 0,
+        detail: open.length
+          ? open.map(([h, b]) => `${h} : ${b.reason}`).join(' ; ')
+          : 'Centrale Ublo / MSEM — liste + offres datées (JSON), disjoncteur par hôte'
       }
     }
   }

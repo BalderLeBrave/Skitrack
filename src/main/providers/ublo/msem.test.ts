@@ -16,6 +16,7 @@ const site = ubloSiteOf('https://reservation.alpedhuez.com/')
 assert(site?.channel === 'OT-125' && site.resort === 125, 'Alpe d’Huez')
 assert(ubloSiteOf('www.saintefoy-reservation.com')?.channel === 'OT-595', 'Sainte-Foy')
 assert(ubloSiteOf('reservation.saintfrancoislongchamp.com')?.channel === 'OT-SFL', 'SFL')
+assert(ubloSiteOf('reservation.villarddelans-correnconenvercors.com')?.resort === 30002, 'Villard-de-Lans')
 assert(ubloSiteOf('reservation.les2alpes.com') == null, '2 Alpes n’est pas Ublo')
 
 const listings = mergeListAndOffers(

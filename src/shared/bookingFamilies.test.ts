@@ -38,6 +38,7 @@ check('Megève = orchestra', bookingFamilyOf('megeve-booking.com') === 'orchestr
 check('Praz-sur-Arly = orchestra', bookingFamilyOf('booking.prazsurarly.com') === 'orchestra')
 check('Haute-Maurienne = opensystem', bookingFamilyOf('reservation.haute-maurienne-vanoise.com') === 'opensystem')
 check('Sancy = sancy', bookingFamilyOf('www.sancy.com') === 'sancy')
+check('Pralognan = locvacances', bookingFamilyOf('www.reservationpralognan.fr') === 'locvacances')
 check('Combloux = blocked', bookingFamilyOf('reservation.combloux.com') === 'blocked')
 check('hôte inconnu = unknown', bookingFamilyOf('www.example.com') === 'unknown')
 check('Isola = ublo (MSEM)', bookingFamilyOf('isola2000.com') === 'ublo')

@@ -24,6 +24,7 @@ export type BookingFamily =
   | 'elloha'
   | 'yoplanning'
   | 'sancy'
+  | 'locvacances'
   | 'blocked'
   | 'unknown'
 
@@ -69,6 +70,10 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'reservation.saintfrancoislongchamp.com': 'ublo',
   // Autres
   'www.sancy.com': 'sancy',
+  'www.reservationpralognan.fr': 'locvacances',
+  'reservationpralognan.fr': 'locvacances',
+  'reservationpralognan.locvacances.com': 'locvacances',
+  'www.reservationpralognan.com': 'locvacances',
   'isola2000.com': 'ublo',
   'www.isola2000.com': 'ublo',
   'www.valberg.com': 'ublo',

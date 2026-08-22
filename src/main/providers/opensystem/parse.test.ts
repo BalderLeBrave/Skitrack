@@ -23,6 +23,8 @@ assert(opensystemSiteOf('reservation.ax-ski.com')?.vueId === 1861, 'Ax vue')
 assert(opensystemSiteOf('reservation.le-corbier.com')?.vueId === 1814, 'Corbier vue')
 assert(opensystemSiteOf('reservation.saintsorlindarves.com')?.login === 'saintsorlindarves', 'Saint-Sorlin login')
 assert(opensystemSiteOf('reservation.haute-maurienne-vanoise.com')?.vueId === 1115, 'HMV vue')
+assert(opensystemSiteOf('www.labresse.net')?.vueId === 1736, 'La Bresse WP vue')
+assert(opensystemSiteOf('reservation.n-py.com')?.vueId === 1448, 'N-PY vue')
 
 const opts = {
   origin: 'https://reservation.la-toussuire.com',

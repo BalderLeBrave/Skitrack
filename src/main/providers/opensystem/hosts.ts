@@ -91,7 +91,7 @@ const SITES: OpenSystemSite[] = [
     origin: 'https://www.labresse.net',
     integrationId: 1736,
     login: 'hautesvosges-labresse',
-    vueId: null,
+    vueId: 1736,
     vueinfoPath: null,
     zone: 0,
     zoneRech: null,
@@ -147,7 +147,7 @@ const SITES: OpenSystemSite[] = [
     origin: 'https://www.n-py.com',
     integrationId: 1448,
     login: 'n-py',
-    vueId: null,
+    vueId: 1448,
     vueinfoPath: null,
     zone: 10298,
     zoneRech: 10015
@@ -158,7 +158,7 @@ const SITES: OpenSystemSite[] = [
     origin: 'https://reservation.n-py.com',
     integrationId: 1448,
     login: 'n-py',
-    vueId: null,
+    vueId: 1448,
     vueinfoPath: null,
     zone: 10298,
     zoneRech: 10015

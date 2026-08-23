@@ -574,6 +574,10 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'le-corbier': { url: 'https://reservation.le-corbier.com/index.aspx' }, // Le Corbier *
   'le-devoluy': { url: 'https://reservation.ledevoluy.com/' }, // Le Dévoluy
   'le-mont-dore': { url: 'https://www.sancy.com/hebergement/' }, // Le Mont-Dore
+  'le-lioran': { url: 'https://www.lelioran.com/' }, // Le Lioran — vitrine OT (link)
+  'le-sauze': { url: 'https://www.sauze.com/votre-sejour/hebergements/locations-de-vacances/' }, // Le Sauze — vitrine (link)
+  'luz-ardiden': { url: 'https://luz-ardiden.com/reservation/' }, // Luz Ardiden — vitrine (link)
+  'metabief': { url: 'https://metabief.com/' }, // Métabief — portail (link)
   'le-pleynet': { url: 'https://reservation.les7laux.com/' }, // Le Pleynet *
   'le-seignus': { url: 'https://www.valdallos.com/' }, // Le Seignus
   'les-2-alpes': { url: 'https://reservation.les2alpes.com/location-appartement-2-alpes.html' }, // Les 2 Alpes
@@ -589,6 +593,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'les-menuires': { url: 'https://fr.locationlesmenuires.com/' }, // Les Menuires
   'les-orres': { url: 'https://reservation.lesorres.com/' }, // Les Orres
   'les-rousses': { url: 'https://www.lesrousses-reservation.com/' }, // Les Rousses
+  'bellefontaine': { url: 'https://www.lesrousses-reservation.com/' }, // Bellefontaine — village des Rousses
   'les-saisies': { url: 'https://reservation.lessaisies.com/' }, // Les Saisies
   'hauteluce': { url: 'https://reservation.lessaisies.com/' }, // Hauteluce — même desk Ingénie
   'megeve': { url: 'https://megeve-booking.com/' }, // Megève

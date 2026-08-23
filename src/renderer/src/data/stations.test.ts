@@ -194,7 +194,10 @@ const CENTRAL_CASES: [string, string][] = [
   ['Landry', 'peisey-vallandry.com'],
   ['Saint-Nicolas-de-Véroce', 'saintgervais.com'],
   ['Pra Loup', 'yoplanning.pro'],
-  ['Flaine', 'flaine.com']
+  ['Flaine', 'flaine.com'],
+  ['Bellefontaine', 'lesrousses-reservation.com'],
+  ['Luz Ardiden', 'luz-ardiden.com'],
+  ['Le Sauze', 'sauze.com']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)

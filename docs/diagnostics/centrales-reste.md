@@ -30,6 +30,7 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Les Arcs, Villaroger, Bourg-Saint-Maurice | `lesarcs.com/hebergement` | Yoplanning vitrine, SPA sans API search → **link**. Pas d’URL générique Peisey. |
 | Pra Loup | `booking.yoplanning.pro/…` | Yoplanning (famille connue) : pas d’extracteur TOTAL. |
 | Praz de Lys – Sommand | `prazdelys-sommand.com` | Elloha (calendrier), pas d’API search. |
+| Le Lioran, Métabief, Luz Ardiden, Le Sauze | vitrines OT | Pas de moteur meublé daté (Chioula = ScriptsLoader Ingénie sans formulaire). |
 
 ## Devenus `live` (août 2026)
 
@@ -42,6 +43,7 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Valfréjus | HMV `ac51-valfrejus.htm` | Open System 1115 |
 | Landry | `peisey-vallandry.com` | Ingénie |
 | Saint-Nicolas-de-Véroce | MSEM Saint-Gervais 569 | `ublo-msem` |
+| Bellefontaine | `lesrousses-reservation.com` | Ingénie (village des Rousses) |
 | Les Deux Alpes 1800 | alias → `reservation.les2alpes.com` | Ingénie |
 | Montchavin – Les Coches | `laplagneresort.com` village `MC` | Ceto |
 | Peisey-Nancroix | `peisey-vallandry.com` | Ingénie |

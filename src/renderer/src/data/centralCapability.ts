@@ -91,6 +91,9 @@ const INGENIE_HOSTS = new Set([
   'www.chatelreservation.com',
   'www.vercors-experience.com',
   'www.lansenvercors.com',
+  'reservation.legrandbornand.com',
+  'www.lesrousses-reservation.com',
+  'lesrousses-reservation.com'
 ])
 
 /** robots.txt `Disallow: /` — le connecteur refuse explicitement. */

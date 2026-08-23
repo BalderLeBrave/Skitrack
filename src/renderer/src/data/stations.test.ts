@@ -168,7 +168,11 @@ const CENTRAL_CASES: [string, string][] = [
   ['Orcières', 'reservation.orcieres.com'],
   ['Les Carroz', 'reservation.lescarroz.com'],
   ['Barèges', 'n-py.com'],
-  ['La Mongie', 'n-py.com']
+  ['La Mongie', 'n-py.com'],
+  ['Le Grand-Bornand', 'reservation.legrandbornand.com'],
+  ['Les Rousses', 'lesrousses-reservation.com'],
+  ['Gourette', 'n-py.com'],
+  ['Piau Engaly', 'n-py.com']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)

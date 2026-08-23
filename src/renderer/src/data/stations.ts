@@ -547,11 +547,13 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'chatel': { url: 'https://www.chatelreservation.com/' }, // Châtel *
   'combloux': { url: 'https://reservation.combloux.com/?lang=fr_FR' }, // Combloux
   'courchevel': { url: 'https://reservation.courchevel.com/?lang=fr_FR' }, // Courchevel
+  'cauterets': { url: 'https://www.n-py.com/fr/cauterets' }, // Cauterets — N-PY
   'crest-voland-cohennoz': { url: 'https://reservation.valdarly-montblanc.com/' }, // Crest-Voland Cohennoz
   'flumet-saint-nicolas-la-chapelle': { url: 'https://reservation.valdarly-montblanc.com/' }, // Flumet - Saint Nicolas La Chapelle
   'font-romeu': { url: 'https://font-romeu.fr/sejourner/' }, // Font-Romeu *
   'gavarnie-gedre': { url: 'https://reservation.valleesdegavarnie.com/fr/hebergements' }, // Gavarnie-Gèdre *
   'gerardmer': { url: 'https://www.gerardmer-reservation.net/' }, // Gérardmer
+  'gourette': { url: 'https://www.n-py.com/fr/gourette' }, // Gourette — N-PY
   'grand-tourmalet': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // Grand Tourmalet — N-PY
   'isola-2000': { url: 'https://isola2000.com/reservez-votre-sejour/' }, // Isola 2000
   'la-bresse-hohneck': { url: 'https://reservation.labresse.net/' }, // La Bresse Hohneck — Ingénie, pas le WordPress OS
@@ -566,6 +568,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'la-toussuire': { url: 'https://reservation.la-toussuire.com/z14220_fr-.aspx' }, // La Toussuire
   'lans-en-vercors': { url: 'https://www.vercors-experience.com/' }, // Lans-en-Vercors
   'le-collet': { url: 'https://reservation.lecollet.com/' }, // Le Collet
+  'le-grand-bornand': { url: 'https://reservation.legrandbornand.com/' }, // Le Grand-Bornand
   'le-corbier': { url: 'https://reservation.le-corbier.com/index.aspx' }, // Le Corbier *
   'le-devoluy': { url: 'https://reservation.ledevoluy.com/' }, // Le Dévoluy
   'le-mont-dore': { url: 'https://www.sancy.com/hebergement/' }, // Le Mont-Dore
@@ -581,6 +584,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'les-karellis': { url: 'https://www.karellis.com/' }, // Les Karellis
   'les-menuires': { url: 'https://fr.locationlesmenuires.com/' }, // Les Menuires
   'les-orres': { url: 'https://reservation.lesorres.com/' }, // Les Orres
+  'les-rousses': { url: 'https://www.lesrousses-reservation.com/' }, // Les Rousses
   'les-saisies': { url: 'https://reservation.lessaisies.com/' }, // Les Saisies
   'megeve': { url: 'https://megeve-booking.com/' }, // Megève
   'meribel': { url: 'https://reservations.meribel.net/?lang=fr_FR' }, // Méribel
@@ -592,6 +596,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'orcieres-merlette': { url: 'https://reservation.orcieres.com/' }, // Orcieres Merlette
   'orelle': { url: 'https://reservation.valthorens.com/' }, // Orelle *
   'peisey-vallandry': { url: 'https://www.peisey-vallandry.com/' }, // Peisey-Vallandry
+  'piau-engaly': { url: 'https://www.n-py.com/fr/piau-engaly' }, // Piau Engaly — N-PY
   'peyragudes': { url: 'https://www.n-py.com/fr/peyragudes' }, // Peyragudes *
   'plagne-1800': { url: 'https://www.laplagneresort.com/' }, // Plagne 1800
   'plagne-bellecote': { url: 'https://www.laplagneresort.com/' }, // Plagne Bellecôte

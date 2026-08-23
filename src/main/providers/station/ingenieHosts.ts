@@ -48,7 +48,10 @@ export const INGENIE_HOSTS = new Set([
   'reservation.labresse.net',
   'www.chatelreservation.com',
   'www.vercors-experience.com',
-  'www.lansenvercors.com'
+  'www.lansenvercors.com',
+  'reservation.legrandbornand.com',
+  'www.lesrousses-reservation.com',
+  'lesrousses-reservation.com'
 ])
 
 /** robots.txt Disallow: / — ne jamais lancer le navigateur. */

@@ -605,6 +605,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'orelle': { url: 'https://reservation.valthorens.com/' }, // Orelle *
   'peisey-vallandry': { url: 'https://www.peisey-vallandry.com/' }, // Peisey-Vallandry
   'peisey-nancroix': { url: 'https://www.peisey-vallandry.com/' }, // Peisey-Nancroix — même desk Ingénie
+  'landry': { url: 'https://www.peisey-vallandry.com/' }, // Landry — accès Peisey, même desk
   'piau-engaly': { url: 'https://www.n-py.com/fr/piau-engaly' }, // Piau Engaly — N-PY
   'peyragudes': { url: 'https://www.n-py.com/fr/peyragudes' }, // Peyragudes *
   'plagne-1800': { url: 'https://www.laplagneresort.com/' }, // Plagne 1800
@@ -616,6 +617,9 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'prapoutel': { url: 'https://reservation.les7laux.com/' }, // Prapoutel *
   'praz-sur-arly': { url: 'https://booking.prazsurarly.com/?lang=fr_FR' }, // Praz-sur-Arly *
   'praz-de-lys': { url: 'https://www.prazdelys-sommand.com/hebergements-a-taninges-et-mieussy/' }, // Praz de Lys — Elloha (link)
+  'pra-loup': { url: 'https://booking.yoplanning.pro/7bb76b54-7795-4657-bb0c-9e63eb66f433/' }, // Pra Loup — Yoplanning (link, pas de TOTAL)
+  'flaine': { url: 'https://www.flaine.com/reservez-votre-sejour/' }, // Flaine — page MSEM sans resort (link)
+  'les-arcs': { url: 'https://www.lesarcs.com/hebergement' }, // Les Arcs — Yoplanning vitrine (link)
   'puy-saint-vincent': { url: 'https://www.paysdesecrins.com/hebergements/' }, // Puy-Saint-Vincent
   'risoul': { url: 'https://www.risoul.com/reserver.html' }, // Risoul
   'saint-francois-longchamp': { url: 'https://reservation.saintfrancoislongchamp.com/' }, // Saint-François-Longchamp
@@ -626,6 +630,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'saint-sorlin-d-arves': { url: 'https://reservation.saintsorlindarves.com/' }, // Saint-Sorlin-d’Arves *
   'sainte-foy-tarentaise': { url: 'https://www.saintefoy-reservation.com/fr/' }, // Sainte-Foy-Tarentaise
   'saint-gervais': { url: 'https://www.saintgervais.com/reserver-mon-sejour/hebergement/' }, // Saint-Gervais — MSEM OT-569
+  'saint-nicolas-de-veroce': { url: 'https://www.saintgervais.com/reserver-mon-sejour/hebergement/' }, // Saint-Nicolas-de-Véroce — même MSEM
   'samoens': { url: 'https://reservation.samoens.com/' }, // Samoëns *
   'savoie-grand-revard': { url: 'https://reservation.chamberymontagnes.com/' }, // Savoie Grand Revard *
   'la-feclaz': { url: 'https://reservation.chamberymontagnes.com/' }, // La Féclaz — même desk Ingénie

@@ -190,7 +190,11 @@ const CENTRAL_CASES: [string, string][] = [
   ['Saint-Gervais – Le Bettex', 'saintgervais.com'],
   ['Manigod – La Croix Fry', 'manigod.com'],
   ['Bessans', 'ac63-bessans.htm'],
-  ['Valfréjus', 'ac51-valfrejus.htm']
+  ['Valfréjus', 'ac51-valfrejus.htm'],
+  ['Landry', 'peisey-vallandry.com'],
+  ['Saint-Nicolas-de-Véroce', 'saintgervais.com'],
+  ['Pra Loup', 'yoplanning.pro'],
+  ['Flaine', 'flaine.com']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)
@@ -211,7 +215,8 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.oz-en-oisans.com/ete/sejour/je-reserve-mon-sejour/reserver-mon-hebergement-2/', 'live', 'ublo-msem'],
   ['https://www.saintgervais.com/reserver-mon-sejour/hebergement/', 'live', 'ublo-msem'],
   ['https://www.manigod.com/', 'live', 'station-web'],
-  ['https://reservation.haute-maurienne-vanoise.com/ac51-valfrejus.htm', 'live', 'opensystem']
+  ['https://reservation.haute-maurienne-vanoise.com/ac51-valfrejus.htm', 'live', 'opensystem'],
+  ['https://booking.yoplanning.pro/7bb76b54-7795-4657-bb0c-9e63eb66f433/', 'link', '']
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

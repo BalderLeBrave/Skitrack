@@ -94,6 +94,9 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'www.alpes-sudlocations.com': 'elloha',
   'www.prazdelys-sommand.com': 'elloha',
   'prazdelys-sommand.com': 'elloha',
+  'booking.yoplanning.pro': 'yoplanning',
+  'www.lesarcs.com': 'yoplanning',
+  'lesarcs.com': 'yoplanning',
   // robots.txt Disallow: /
   'reservation.combloux.com': 'blocked',
   'reservation.montgenevre.com': 'blocked'

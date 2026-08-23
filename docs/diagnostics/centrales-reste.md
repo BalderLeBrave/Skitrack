@@ -26,8 +26,8 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Les Angles | `lesangles.com` | 403 / SPA. Pas de Playwright aveugle. |
 | Font-Romeu | `font-romeu.fr/sejourner` | Vitrine OT, pas de desk. |
 | Auron | `hiver.auron.com/bons-plans` | Pas de moteur meublé. |
-| Flaine | `flaine.com/reservez-votre-sejour` | Page MSEM marketing, **pas** de `resort` / `channel`. |
-| Les Arcs, Villaroger, Bourg-Saint-Maurice | — | `lesarcs.com` 403 ; `reservation.lesarcs.com` SSL invalide. Pas d’URL générique Peisey. |
+| Flaine | `flaine.com/reservez-votre-sejour` | Page MSEM marketing, **pas** de `resort` / `channel` → **link**. |
+| Les Arcs, Villaroger, Bourg-Saint-Maurice | `lesarcs.com/hebergement` | Yoplanning vitrine, SPA sans API search → **link**. Pas d’URL générique Peisey. |
 | Pra Loup | `booking.yoplanning.pro/…` | Yoplanning (famille connue) : pas d’extracteur TOTAL. |
 | Praz de Lys – Sommand | `prazdelys-sommand.com` | Elloha (calendrier), pas d’API search. |
 
@@ -40,6 +40,8 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Manigod | `www.manigod.com` Ingénie (`datedeb`, `searchAjax`) | `station-web` |
 | Bessans | HMV `ac63-bessans.htm` | Open System 1115 |
 | Valfréjus | HMV `ac51-valfrejus.htm` | Open System 1115 |
+| Landry | `peisey-vallandry.com` | Ingénie |
+| Saint-Nicolas-de-Véroce | MSEM Saint-Gervais 569 | `ublo-msem` |
 | Les Deux Alpes 1800 | alias → `reservation.les2alpes.com` | Ingénie |
 | Montchavin – Les Coches | `laplagneresort.com` village `MC` | Ceto |
 | Peisey-Nancroix | `peisey-vallandry.com` | Ingénie |

@@ -534,6 +534,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'auris-en-oisans': { url: 'https://reservation.auris-en-oisans.fr/' }, // Auris-en-Oisans *
   'auron': { url: 'https://hiver.auron.com/bons-plans/?external=1' }, // Auron *
   'aussois': { url: 'https://reservation.haute-maurienne-vanoise.com/ac62-aussois.htm' }, // Aussois
+  'bessans': { url: 'https://reservation.haute-maurienne-vanoise.com/ac63-bessans.htm' }, // Bessans — HMV OsForm
   'avoriaz-1800': { url: 'https://reservation.avoriaz.com/' }, // Avoriaz 1800 *
   'ax-3-domaines': { url: 'https://reservation.ax-ski.com/' }, // Ax 3 Domaines
   'bareges': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // Barèges — Grand Tourmalet (N-PY) ; reservation.bareges.com est un parking
@@ -614,6 +615,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'pralognan-la-vanoise': { url: 'https://www.reservationpralognan.fr/' }, // Pralognan-la-Vanoise
   'prapoutel': { url: 'https://reservation.les7laux.com/' }, // Prapoutel *
   'praz-sur-arly': { url: 'https://booking.prazsurarly.com/?lang=fr_FR' }, // Praz-sur-Arly *
+  'praz-de-lys': { url: 'https://www.prazdelys-sommand.com/hebergements-a-taninges-et-mieussy/' }, // Praz de Lys — Elloha (link)
   'puy-saint-vincent': { url: 'https://www.paysdesecrins.com/hebergements/' }, // Puy-Saint-Vincent
   'risoul': { url: 'https://www.risoul.com/reserver.html' }, // Risoul
   'saint-francois-longchamp': { url: 'https://reservation.saintfrancoislongchamp.com/' }, // Saint-François-Longchamp
@@ -644,7 +646,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'val-d-isere': { url: 'https://booking.valdisere.com/' }, // Val d’Isère
   'val-thorens': { url: 'https://reservation.valthorens.com/' }, // Val Thorens
   'valberg': { url: 'https://www.valberg.com/sejourner/reserver-votre-sejour/' }, // Valberg
-  'valfrejus': { url: 'https://www.valfrejus.com/' }, // Valfréjus
+  'valfrejus': { url: 'https://reservation.haute-maurienne-vanoise.com/ac51-valfrejus.htm' }, // Valfréjus — HMV ac51 (pas www.valfrejus.com, vueId null)
   'valloire': { url: 'https://www.valloire.com/' }, // Valloire
   'vallorcine': { url: 'https://booking.chamonix.com/fr/' }, // Vallorcine *
   'valmeinier': { url: 'https://www.valmeinier-reservation.com/hiver' }, // Valmeinier

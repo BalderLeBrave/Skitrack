@@ -18,7 +18,7 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Vaujany | `reservation.vaujany.com` | OS activités (`oisans-tourisme` / 1047). |
 | Auris-en-Oisans | `reservation.auris-en-oisans.fr` | OS activités (`oisans-tourisme` / 1301). |
 | Alpe du Grand Serre | `reservation.matheysine-tourisme.com` | OS `login=matheysine` / 943, catalogue meublé vide. |
-| Valfréjus | `www.valfrejus.com` | OS `vueId: null`. Recoller HMV 1115 mélange Val Cenis. |
+| Valfréjus | `www.valfrejus.com` | OS `vueId: null`. **Desk live** : `reservation.haute-maurienne-vanoise.com/ac51-valfrejus.htm` (vueId 1115, comme La Norma). |
 | Super-Besse, Le Mont-Dore | `www.sancy.com` | Famille `sancy` (CMS), pas d’API datée. |
 | Vars | `www.alpes-sudlocations.com` | Elloha : calendrier dispo, **pas** d’API search. |
 | La Clusaz | `www.laclusaz.com` | Catalogue Apidae + widget e-liberty ski, pas de TOTAL. |
@@ -29,6 +29,7 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Flaine | `flaine.com/reservez-votre-sejour` | Page MSEM marketing, **pas** de `resort` / `channel`. |
 | Les Arcs, Villaroger, Bourg-Saint-Maurice | — | `lesarcs.com` 403 ; `reservation.lesarcs.com` SSL invalide. Pas d’URL générique Peisey. |
 | Pra Loup | `booking.yoplanning.pro/…` | Yoplanning (famille connue) : pas d’extracteur TOTAL. |
+| Praz de Lys – Sommand | `prazdelys-sommand.com` | Elloha (calendrier), pas d’API search. |
 
 ## Devenus `live` (août 2026)
 
@@ -37,6 +38,8 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Oz-en-Oisans | `oz-en-oisans.com` MSEM `523` / `OT-523` | `ublo-msem` |
 | Saint-Gervais | `saintgervais.com` MSEM `569` / `OT-569` | `ublo-msem` |
 | Manigod | `www.manigod.com` Ingénie (`datedeb`, `searchAjax`) | `station-web` |
+| Bessans | HMV `ac63-bessans.htm` | Open System 1115 |
+| Valfréjus | HMV `ac51-valfrejus.htm` | Open System 1115 |
 | Les Deux Alpes 1800 | alias → `reservation.les2alpes.com` | Ingénie |
 | Montchavin – Les Coches | `laplagneresort.com` village `MC` | Ceto |
 | Peisey-Nancroix | `peisey-vallandry.com` | Ingénie |

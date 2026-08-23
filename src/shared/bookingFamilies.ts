@@ -92,6 +92,8 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'www.saintgervais.com': 'ublo',
   'saintgervais.com': 'ublo',
   'www.alpes-sudlocations.com': 'elloha',
+  'www.prazdelys-sommand.com': 'elloha',
+  'prazdelys-sommand.com': 'elloha',
   // robots.txt Disallow: /
   'reservation.combloux.com': 'blocked',
   'reservation.montgenevre.com': 'blocked'

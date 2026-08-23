@@ -52,6 +52,9 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'reservation.n-py.com': 'opensystem',
   // Open System (IIS / gadget.open-system.fr) — relevé live 2026-08-21 :
   // page aspx + InstancePanier, pas de datedeb Ingénie.
+  // 7 Laux / Vaujany / Auris / Matheysine : widget OS **forfait/activités**,
+  // pas de vueId OsForm meublé (etape-rest items:[]). Restent hors-Ingénie
+  // pour éviter un Playwright à vide ; centralCapability les met en `link`.
   'reservation.le-corbier.com': 'opensystem',
   'reservation.les7laux.com': 'opensystem',
   'reservation.vaujany.com': 'opensystem',
@@ -118,4 +121,39 @@ export function bookingFamilyOf(urlOrHost: string): BookingFamily {
 export function isKnownNonIngenie(urlOrHost: string): boolean {
   const host = hostOf(urlOrHost)
   return Boolean(host && NON_INGENIE_HOSTS[host] && NON_INGENIE_HOSTS[host] !== 'ingenie')
+}
+
+/**
+ * Open System **avec catalogue meublé** (`vueId` OsForm / listing WP).
+ *
+ * Aligné sur `opensystem/hosts.ts` (entrées dont `vueId != null`).
+ * Valfréjus (`vueId: null`), 7 Laux / Vaujany / Auris / Matheysine (paniers
+ * forfaits, absents de `SITES`) n’y figurent pas : pas de TOTAL daté.
+ *
+ * N-PY : un seul `vueId` 1448 pour Grand Tourmalet, Cauterets, Gourette,
+ * Peyragudes, Piau Engaly — catalogue partagé, stock parfois vide.
+ */
+export const OPENSYSTEM_LIVE_HOSTS = new Set([
+  'reservation.la-toussuire.com',
+  'reservation.ledevoluy.com',
+  'reservation.ax-ski.com',
+  'www.valmorel.com',
+  'valmorel.com',
+  'reservation.valmorel.com',
+  'www.labresse.net',
+  'labresse.net',
+  'reservation.le-corbier.com',
+  'reservation.saintsorlindarves.com',
+  'reservation.haute-maurienne-vanoise.com',
+  'www.n-py.com',
+  'n-py.com',
+  'reservation.n-py.com'
+])
+
+export function isOpenSystemLiveHost(urlOrHost: string): boolean {
+  const host = hostOf(urlOrHost)
+  if (!host) return false
+  if (OPENSYSTEM_LIVE_HOSTS.has(host)) return true
+  if (host.startsWith('www.') && OPENSYSTEM_LIVE_HOSTS.has(host.slice(4))) return true
+  return OPENSYSTEM_LIVE_HOSTS.has(`www.${host}`)
 }

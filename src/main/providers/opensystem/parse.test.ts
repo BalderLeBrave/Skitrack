@@ -25,6 +25,9 @@ assert(opensystemSiteOf('reservation.saintsorlindarves.com')?.login === 'saintso
 assert(opensystemSiteOf('reservation.haute-maurienne-vanoise.com')?.vueId === 1115, 'HMV vue')
 assert(opensystemSiteOf('www.labresse.net')?.vueId === 1736, 'La Bresse WP vue')
 assert(opensystemSiteOf('reservation.n-py.com')?.vueId === 1448, 'N-PY vue')
+assert(opensystemSiteOf('reservation.les7laux.com') == null, '7 Laux n’a pas de catalogue meublé')
+assert(opensystemSiteOf('reservation.vaujany.com') == null, 'Vaujany n’a pas de catalogue meublé')
+assert(opensystemSiteOf('www.valfrejus.com')?.vueId == null, 'Valfréjus vueId vide')
 
 const opts = {
   origin: 'https://reservation.la-toussuire.com',

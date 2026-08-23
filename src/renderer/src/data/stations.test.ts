@@ -18,6 +18,7 @@
 import { readFileSync } from 'node:fs'
 import { BUNDLED_REFERENTIAL } from './referentiel'
 import { V25_STATIONS, bookingCentralOf, isV25Station, officialSiteOf, stationNameOf, stationOrigin } from './stations'
+import { centralCapabilityOf } from './centralCapability'
 
 const V25_PATH = 'tools/skitrack_v25.py'
 
@@ -179,6 +180,22 @@ for (const [name, host] of CENTRAL_CASES) {
   if (!url || !url.includes(host)) {
     fail(name, `centrale attendue ${host}, obtenu ${url ?? 'null'}`)
   }
+}
+
+const CAP_CASES: [string, 'live' | 'link', string][] = [
+  ['https://reservation.les2alpes.com/', 'live', 'station-web'],
+  ['https://reservation.la-toussuire.com/', 'live', 'opensystem'],
+  ['https://www.n-py.com/fr/grand-tourmalet', 'live', 'opensystem'],
+  ['https://reservation.les7laux.com/', 'link', ''],
+  ['https://www.valfrejus.com/', 'link', ''],
+  ['https://reservation.vaujany.com/', 'link', ''],
+  ['https://www.sancy.com/hebergement/', 'link', ''],
+  ['https://www.alpes-sudlocations.com/reservation-sejour-vars/', 'link', '']
+]
+for (const [url, mode, connector] of CAP_CASES) {
+  const cap = centralCapabilityOf(url)
+  if (cap.mode !== mode) fail(url, `mode ${mode}, obtenu ${cap.mode}`)
+  if (connector && cap.connector !== connector) fail(url, `connecteur ${connector}, obtenu ${cap.connector}`)
 }
 
 const total = BUNDLED_REFERENTIAL.domaines.length

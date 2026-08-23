@@ -136,6 +136,8 @@ const SITES: OpenSystemSite[] = [
     origin: 'https://www.valfrejus.com',
     integrationId: 1618,
     login: 'haute-maurienne',
+    // Pas de vueinfo OsForm propre : etape-rest items:[]. Recoller sur
+    // HMV vueId 1115 mélangerait Val Cenis / Aussois. Pas de TOTAL daté.
     vueId: null,
     vueinfoPath: null,
     zone: 0,
@@ -147,6 +149,7 @@ const SITES: OpenSystemSite[] = [
     origin: 'https://www.n-py.com',
     integrationId: 1448,
     login: 'n-py',
+    // Catalogue unique 1448 : Grand Tourmalet, Cauterets, Gourette, Piau, Peyragudes.
     vueId: 1448,
     vueinfoPath: null,
     zone: 10298,
@@ -164,6 +167,8 @@ const SITES: OpenSystemSite[] = [
     zoneRech: 10015
   }
 ]
+
+/** 7 Laux / Vaujany / Auris / Matheysine : widget OS forfaits, pas d’entrée SITES. */
 
 const BY_HOST = new Map<string, OpenSystemSite>()
 for (const site of SITES) {

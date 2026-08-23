@@ -14,7 +14,7 @@
  * - `docs/diagnostics/centrales-reconnaissance.md`
  */
 
-import { bookingFamilyOf } from '@shared/bookingFamilies'
+import { bookingFamilyOf, isOpenSystemLiveHost } from '@shared/bookingFamilies'
 
 export type CentralPriceMode = 'live' | 'link' | 'none' | 'blocked'
 
@@ -171,13 +171,22 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
   }
 
   if (family === 'opensystem') {
+    if (isOpenSystemLiveHost(host)) {
+      return {
+        mode: 'live',
+        host,
+        connector: 'opensystem',
+        family: 'opensystem',
+        labelFr: 'prix pour vos dates (Open System)',
+        labelEn: 'prices for your dates (Open System)'
+      }
+    }
     return {
-      mode: 'live',
+      mode: 'link',
       host,
-      connector: 'opensystem',
       family: 'opensystem',
-      labelFr: 'prix pour vos dates (Open System)',
-      labelEn: 'prices for your dates (Open System)'
+      labelFr: 'lien vers la centrale (pas de catalogue meublé daté)',
+      labelEn: 'link to the desk (no dated lodging catalogue)'
     }
   }
 
@@ -192,11 +201,11 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
     }
   }
 
-  if (family === 'eliberty') {
+  if (family === 'sancy' || family === 'elloha' || family === 'eliberty' || family === 'yoplanning') {
     return {
       mode: 'link',
       host,
-      family,
+      family: family === 'eliberty' ? 'eliberty' : 'other',
       labelFr: 'lien vers la centrale (prix à confirmer sur le site)',
       labelEn: 'link to the desk (confirm price on the site)'
     }

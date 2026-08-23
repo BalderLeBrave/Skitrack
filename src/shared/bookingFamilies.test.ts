@@ -4,7 +4,7 @@
  *   npx esbuild src/shared/bookingFamilies.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/families-test.mjs && node node_modules/.cache/families-test.mjs
  */
 
-import { bookingFamilyOf, isKnownNonIngenie } from './bookingFamilies'
+import { bookingFamilyOf, isKnownNonIngenie, isOpenSystemLiveHost } from './bookingFamilies'
 
 let failures = 0
 function check(label: string, condition: boolean, detail?: unknown): void {
@@ -27,6 +27,11 @@ check('La Bresse résa = Ingénie', !isKnownNonIngenie('https://reservation.labr
 check('Le Corbier = opensystem', bookingFamilyOf('reservation.le-corbier.com') === 'opensystem')
 check('Saint-Sorlin résa = opensystem', bookingFamilyOf('reservation.saintsorlindarves.com') === 'opensystem')
 check('Les 7 Laux = opensystem', bookingFamilyOf('reservation.les7laux.com') === 'opensystem')
+check('7 Laux n’est pas un catalogue meublé live', !isOpenSystemLiveHost('reservation.les7laux.com'))
+check('Vaujany n’est pas live meublé', !isOpenSystemLiveHost('reservation.vaujany.com'))
+check('Valfréjus n’est pas live meublé', !isOpenSystemLiveHost('www.valfrejus.com'))
+check('Toussuire est live meublé', isOpenSystemLiveHost('reservation.la-toussuire.com'))
+check('N-PY est live meublé', isOpenSystemLiveHost('www.n-py.com'))
 check('Vaujany = opensystem', bookingFamilyOf('reservation.vaujany.com') === 'opensystem')
 check('Villard-Reculas = ublo', bookingFamilyOf('reservation.villard-reculas.com') === 'ublo')
 check('Villard-de-Lans = ublo', bookingFamilyOf('reservation.villarddelans-correnconenvercors.com') === 'ublo')

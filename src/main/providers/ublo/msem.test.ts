@@ -23,6 +23,7 @@ assert(ubloSiteOf('www.montclar.com')?.channel === 'OT-276', 'Montclar')
 assert(ubloSiteOf('www.paysdesecrins.com')?.channel === 'PDE', 'Écrins')
 assert(ubloSiteOf('www.leman-mountains-explore.com')?.channel === 'LEMAN_MOUNTAINS', 'Léman')
 assert(ubloSiteOf('reservation.villard-reculas.com')?.resort === 702, 'Villard-Reculas')
+assert(ubloSiteOf('www.oz-en-oisans.com')?.channel === 'OT-523' && ubloSiteOf('oz-en-oisans.com')?.resort === 523, 'Oz-en-Oisans')
 assert(ubloSiteOf('reservation.les2alpes.com') == null, '2 Alpes n’est pas Ublo')
 
 const listings = mergeListAndOffers(

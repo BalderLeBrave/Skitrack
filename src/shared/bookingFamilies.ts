@@ -87,6 +87,8 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'paysdesecrins.com': 'ublo',
   'www.leman-mountains-explore.com': 'ublo',
   'leman-mountains-explore.com': 'ublo',
+  'www.oz-en-oisans.com': 'ublo',
+  'oz-en-oisans.com': 'ublo',
   'www.alpes-sudlocations.com': 'elloha',
   // robots.txt Disallow: /
   'reservation.combloux.com': 'blocked',

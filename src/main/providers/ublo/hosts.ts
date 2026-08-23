@@ -110,6 +110,16 @@ const SITES: UbloSite[] = [
     listingPage: 'https://www.leman-mountains-explore.com/reserver/sejour-hebergements/'
   },
   {
+    id: 'oz',
+    host: 'www.oz-en-oisans.com',
+    origin: 'https://www.oz-en-oisans.com',
+    channel: 'OT-523',
+    resort: 523,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://www.oz-en-oisans.com/ete/sejour/je-reserve-mon-sejour/reserver-mon-hebergement-2/'
+  },
+  {
     id: 'villardreculas',
     host: 'reservation.villard-reculas.com',
     origin: 'https://reservation.villard-reculas.com',

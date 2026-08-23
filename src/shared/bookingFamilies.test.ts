@@ -51,6 +51,7 @@ check('Valberg = ublo', bookingFamilyOf('www.valberg.com') === 'ublo')
 check('Montclar = ublo', bookingFamilyOf('www.montclar.com') === 'ublo')
 check('Écrins = ublo', bookingFamilyOf('www.paysdesecrins.com') === 'ublo')
 check('Léman = ublo', bookingFamilyOf('www.leman-mountains-explore.com') === 'ublo')
+check('Oz-en-Oisans = ublo (MSEM 523)', bookingFamilyOf('www.oz-en-oisans.com') === 'ublo')
 
 if (failures > 0) {
   console.log(`\n${failures} échec(s)`)

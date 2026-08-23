@@ -35,7 +35,8 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Station | Desk | Connecteur |
 |---|---|---|
 | Oz-en-Oisans | `oz-en-oisans.com` MSEM `523` / `OT-523` | `ublo-msem` |
-| Saint-Gervais | `saintgervais.com` MSEM `569` / `OT-569` | `ublo-msem` (86 meublés, totaux datés) |
+| Saint-Gervais | `saintgervais.com` MSEM `569` / `OT-569` | `ublo-msem` |
+| Manigod | `www.manigod.com` Ingénie (`datedeb`, `searchAjax`) | `station-web` |
 | Les Deux Alpes 1800 | alias → `reservation.les2alpes.com` | Ingénie |
 | Montchavin – Les Coches | `laplagneresort.com` village `MC` | Ceto |
 | Peisey-Nancroix | `peisey-vallandry.com` | Ingénie |

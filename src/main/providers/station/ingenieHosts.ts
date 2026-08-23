@@ -51,7 +51,8 @@ export const INGENIE_HOSTS = new Set([
   'www.lansenvercors.com',
   'reservation.legrandbornand.com',
   'www.lesrousses-reservation.com',
-  'lesrousses-reservation.com'
+  'lesrousses-reservation.com',
+  'www.manigod.com'
 ])
 
 /** robots.txt Disallow: / — ne jamais lancer le navigateur. */

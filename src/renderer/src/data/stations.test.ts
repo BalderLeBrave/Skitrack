@@ -187,7 +187,8 @@ const CENTRAL_CASES: [string, string][] = [
   ['Corrençon-en-Vercors', 'villarddelans-correnconenvercors.com'],
   ['Hauteluce', 'reservation.lessaisies.com'],
   ['Super-Besse – Le Sancy', 'sancy.com'],
-  ['Saint-Gervais – Le Bettex', 'saintgervais.com']
+  ['Saint-Gervais – Le Bettex', 'saintgervais.com'],
+  ['Manigod – La Croix Fry', 'manigod.com']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)
@@ -206,7 +207,8 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.sancy.com/hebergement/', 'link', ''],
   ['https://www.alpes-sudlocations.com/reservation-sejour-vars/', 'link', ''],
   ['https://www.oz-en-oisans.com/ete/sejour/je-reserve-mon-sejour/reserver-mon-hebergement-2/', 'live', 'ublo-msem'],
-  ['https://www.saintgervais.com/reserver-mon-sejour/hebergement/', 'live', 'ublo-msem']
+  ['https://www.saintgervais.com/reserver-mon-sejour/hebergement/', 'live', 'ublo-msem'],
+  ['https://www.manigod.com/', 'live', 'station-web']
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

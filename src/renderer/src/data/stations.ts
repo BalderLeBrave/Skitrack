@@ -591,6 +591,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'les-saisies': { url: 'https://reservation.lessaisies.com/' }, // Les Saisies
   'hauteluce': { url: 'https://reservation.lessaisies.com/' }, // Hauteluce — même desk Ingénie
   'megeve': { url: 'https://megeve-booking.com/' }, // Megève
+  'manigod': { url: 'https://www.manigod.com/' }, // Manigod — Ingénie (datedeb + searchAjax)
   'montchavin': { url: 'https://www.laplagneresort.com/' }, // Montchavin – Les Coches (Ceto MC)
   'meribel': { url: 'https://reservations.meribel.net/?lang=fr_FR' }, // Méribel
   'montclar': { url: 'https://www.montclar.com/' }, // Montclar *

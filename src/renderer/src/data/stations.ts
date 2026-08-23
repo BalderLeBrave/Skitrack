@@ -536,7 +536,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'aussois': { url: 'https://reservation.haute-maurienne-vanoise.com/ac62-aussois.htm' }, // Aussois
   'avoriaz-1800': { url: 'https://reservation.avoriaz.com/' }, // Avoriaz 1800 *
   'ax-3-domaines': { url: 'https://reservation.ax-ski.com/' }, // Ax 3 Domaines
-  'bareges': { url: 'https://reservation.bareges.com/' }, // Barèges *
+  'bareges': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // Barèges — Grand Tourmalet (N-PY) ; reservation.bareges.com est un parking
   'belle-plagne': { url: 'https://www.laplagneresort.com/' }, // Belle Plagne
   'besse-super-besse': { url: 'https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/' }, // Besse Super Besse *
   'bisanne-1500': { url: 'https://reservation.lessaisies.com/' }, // Bisanne 1500 *
@@ -552,13 +552,13 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'font-romeu': { url: 'https://font-romeu.fr/sejourner/' }, // Font-Romeu *
   'gavarnie-gedre': { url: 'https://reservation.valleesdegavarnie.com/fr/hebergements' }, // Gavarnie-Gèdre *
   'gerardmer': { url: 'https://www.gerardmer-reservation.net/' }, // Gérardmer
-  'grand-tourmalet': { url: 'https://www.n-py.com/fr/ete/sejour-pyrenees/hebergement' }, // Grand Tourmalet
+  'grand-tourmalet': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // Grand Tourmalet — N-PY
   'isola-2000': { url: 'https://isola2000.com/reservez-votre-sejour/' }, // Isola 2000
   'la-bresse-hohneck': { url: 'https://reservation.labresse.net/' }, // La Bresse Hohneck — Ingénie, pas le WordPress OS
   'la-clusaz': { url: 'https://www.laclusaz.com/' }, // La Clusaz
   'la-giettaz': { url: 'https://reservation.valdarly-montblanc.com/' }, // La Giettaz
   'la-joue-du-loup': { url: 'https://reservation.ledevoluy.com/' }, // La Joue du Loup *
-  'la-mongie': { url: 'https://reservation.bareges.com/' }, // La Mongie *
+  'la-mongie': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // La Mongie — Grand Tourmalet (N-PY)
   'la-norma': { url: 'https://reservation.haute-maurienne-vanoise.com/ac54-la-norma.htm' }, // La Norma
   'la-plagne': { url: 'https://www.laplagneresort.com/' }, // La Plagne
   'la-plagne-montalbert': { url: 'https://www.laplagneresort.com/' }, // La Plagne Montalbert

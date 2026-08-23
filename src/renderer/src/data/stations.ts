@@ -622,6 +622,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'saint-maurice-sur-moselle': { url: 'https://www.ballons-hautes-vosges.com/' }, // Saint-Maurice-sur-Moselle
   'saint-sorlin-d-arves': { url: 'https://reservation.saintsorlindarves.com/' }, // Saint-Sorlin-d’Arves *
   'sainte-foy-tarentaise': { url: 'https://www.saintefoy-reservation.com/fr/' }, // Sainte-Foy-Tarentaise
+  'saint-gervais': { url: 'https://www.saintgervais.com/reserver-mon-sejour/hebergement/' }, // Saint-Gervais — MSEM OT-569
   'samoens': { url: 'https://reservation.samoens.com/' }, // Samoëns *
   'savoie-grand-revard': { url: 'https://reservation.chamberymontagnes.com/' }, // Savoie Grand Revard *
   'la-feclaz': { url: 'https://reservation.chamberymontagnes.com/' }, // La Féclaz — même desk Ingénie

@@ -120,6 +120,16 @@ const SITES: UbloSite[] = [
     listingPage: 'https://www.oz-en-oisans.com/ete/sejour/je-reserve-mon-sejour/reserver-mon-hebergement-2/'
   },
   {
+    id: 'saintgervais',
+    host: 'www.saintgervais.com',
+    origin: 'https://www.saintgervais.com',
+    channel: 'OT-569',
+    resort: 569,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://www.saintgervais.com/reserver-mon-sejour/hebergement/'
+  },
+  {
     id: 'villardreculas',
     host: 'reservation.villard-reculas.com',
     origin: 'https://reservation.villard-reculas.com',

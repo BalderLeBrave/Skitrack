@@ -1,7 +1,9 @@
-# Centrales encore en `link` / `blocked`
+# Centrales — état final du relevé (`fix/centrales-prix-reels`)
 
-Relevé après les lots A–D de `fix/centrales-prix-reels` (août 2026).
 Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
+Dernier passage : toutes les stations du référentiel ont une URL (desk live,
+lien vitrine, ou blocked), sauf **Guzet** et **Cambre d’Aze** (pas de site
+officiel exploitable). Couverture référentiel : **111 live / 57 link / 3 blocked / 2 none**.
 
 ## `blocked` (robots.txt `Disallow: /`) — ne pas contourner
 
@@ -10,58 +12,40 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Combloux | `reservation.combloux.com` |
 | Montgenèvre, Les Alberts | `reservation.montgenevre.com` |
 
-## `link` — moteur identifié, pas de TOTAL meublé
+## `link` — moteur identifié ou vitrine, pas de TOTAL meublé
 
 | Station | Hôte | Raison |
 |---|---|---|
-| Les 7 Laux, Prapoutel, Le Pleynet | `reservation.les7laux.com` | OS forfaits (`login=isere-les7laux`, id 1345). `etape-rest` `items:[]`. |
-| Vaujany | `reservation.vaujany.com` | OS activités (`oisans-tourisme` / 1047). |
-| Auris-en-Oisans | `reservation.auris-en-oisans.fr` | OS activités (`oisans-tourisme` / 1301). |
-| Alpe du Grand Serre | `reservation.matheysine-tourisme.com` | OS `login=matheysine` / 943, catalogue meublé vide. |
-| Valfréjus | `www.valfrejus.com` | OS `vueId: null`. **Desk live** : `reservation.haute-maurienne-vanoise.com/ac51-valfrejus.htm` (vueId 1115, comme La Norma). |
-| Super-Besse, Le Mont-Dore | `www.sancy.com` | Famille `sancy` (CMS), pas d’API datée. |
-| Vars | `www.alpes-sudlocations.com` | Elloha : calendrier dispo, **pas** d’API search. |
-| La Clusaz | `www.laclusaz.com` | Catalogue Apidae + widget e-liberty ski, pas de TOTAL. |
-| Les Karellis | `www.karellis.com` / `karellis-reservation.com` | Cloudflare 403. Pas de Playwright. |
-| Les Angles | `lesangles.com` | 403 / SPA. Pas de Playwright aveugle. |
-| Font-Romeu | `font-romeu.fr/sejourner` | Vitrine OT, pas de desk. |
-| Auron | `hiver.auron.com/bons-plans` | Pas de moteur meublé. |
-| Flaine | `flaine.com/reservez-votre-sejour` | Page MSEM marketing, **pas** de `resort` / `channel` → **link**. |
-| Les Arcs, Villaroger, Bourg-Saint-Maurice | `lesarcs.com/hebergement` | Yoplanning vitrine, SPA sans API search → **link**. Pas d’URL générique Peisey. |
-| Pra Loup | `booking.yoplanning.pro/…` | Yoplanning (famille connue) : pas d’extracteur TOTAL. |
-| Praz de Lys – Sommand | `prazdelys-sommand.com` | Elloha (calendrier), pas d’API search. |
-| Le Lioran, Métabief, Luz Ardiden, Le Sauze | vitrines OT | Pas de moteur meublé daté (Chioula = ScriptsLoader Ingénie sans formulaire). |
+| Les 7 Laux, Prapoutel, Le Pleynet | `reservation.les7laux.com` | OS forfaits, `etape-rest` `items:[]`. |
+| Vaujany, Auris | OS activités oisans-tourisme | Pas de catalogue meublé. |
+| Alpe du Grand Serre | `reservation.matheysine-tourisme.com` | OS, catalogue meublé vide. |
+| `www.valfrejus.com` | `vueId: null` | Desk live = HMV `ac51-valfrejus.htm`. |
+| Super-Besse, Le Mont-Dore | `www.sancy.com` | CMS Sancy, pas d’API. |
+| Vars, Praz de Lys | Elloha | Calendrier, pas d’API search. |
+| La Clusaz | Apidae + e-liberty | Pas de TOTAL. |
+| Les Karellis | Cloudflare 403 | Pas de Playwright. |
+| Les Angles | 403 / SPA | Pas de Playwright aveugle. |
+| Les Arcs, Pra Loup | Yoplanning SPA | `/api/1/item` = Rollbar, pas un catalogue. |
+| Flaine | page MSEM marketing | Pas de `resort` / `channel`. |
+| Lioran, Métabief, Luz, Sauze, Brides, Morillon, Sixt, Aulps, Abondance, Capcir, Superbagnères, Lac Blanc, Pierre Saint-Martin, Iraty, Azun, Chioula, Brasses, Glières, Méaudre, Gap, Beuil, Pilat, Hotonnes | vitrines OT | Pas de formulaire daté. Chioula = ScriptsLoader Ingénie sans `datedeb`. Pilat = gadget OS analytics sans `vueId`. |
 
-## Devenus `live` (août 2026)
+## `live` ajoutés sur cette branche
 
-| Station | Desk | Connecteur |
-|---|---|---|
-| Oz-en-Oisans | `oz-en-oisans.com` MSEM `523` / `OT-523` | `ublo-msem` |
-| Saint-Gervais | `saintgervais.com` MSEM `569` / `OT-569` | `ublo-msem` |
-| Manigod | `www.manigod.com` Ingénie (`datedeb`, `searchAjax`) | `station-web` |
-| Bessans | HMV `ac63-bessans.htm` | Open System 1115 |
-| Valfréjus | HMV `ac51-valfrejus.htm` | Open System 1115 |
-| Landry | `peisey-vallandry.com` | Ingénie |
-| Saint-Nicolas-de-Véroce | MSEM Saint-Gervais 569 | `ublo-msem` |
-| Bellefontaine | `lesrousses-reservation.com` | Ingénie (village des Rousses) |
-| Les Deux Alpes 1800 | alias → `reservation.les2alpes.com` | Ingénie |
-| Montchavin – Les Coches | `laplagneresort.com` village `MC` | Ceto |
-| Peisey-Nancroix | `peisey-vallandry.com` | Ingénie |
-| La Féclaz | `reservation.chamberymontagnes.com` | Ingénie |
-| Corrençon-en-Vercors | desk Villard Ublo | `ublo-msem` |
-| Hauteluce | `reservation.lessaisies.com` | Ingénie |
+Ingénie : Les Rousses, Manigod, Bellefontaine, alias 2 Alpes 1800, Gets, Féclaz, Hauteluce, Peisey-Nancroix, Landry.
 
-## `live` avec stock parfois vide (pas un bug)
+Open System : N-PY (vueId **1448** partagé), HMV `ac51` Valfréjus / `ac63` Bessans.
 
-N-PY `vueId` **1448** unique : Grand Tourmalet, Cauterets, Gourette, Peyragudes, Piau. `items:[]` = pas de meublé ces dates.
+Ublo/MSEM : Oz `523`, Saint-Gervais `569`, Isola, Valberg, Montclar, Écrins, Léman.
 
-Montclar, Villard-Reculas (Ublo) : API OK, 0 offre cette semaine.
+Ceto : Montchavin `MC`.
+
+## Sans URL
+
+Guzet (domaine parqué). Cambre d’Aze (pas de site). Séez recollé sur la vitrine Les Arcs.
 
 ## Multi-villages
 
-- **Val d’Arly** : `stationVillage.ts` branché dans `station.ts` (`criteres[]` + `cityMismatch`).
-- **Haute-Maurienne** : URL par village (`ac54-la-norma.htm`, …).
-- **La Plagne** (Ceto) : `s_c.location` (A2, BP, MC, PC…). Montchavin → `MC`. Pas de select Ingénie.
+Val d’Arly : `stationVillage.ts` branché. HMV : URL `acXX`. Plagne : `s_c.location`. Les Arcs : pas d’URL générique Peisey.
 
 ## Non négociable
 

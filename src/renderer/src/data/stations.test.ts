@@ -197,7 +197,12 @@ const CENTRAL_CASES: [string, string][] = [
   ['Flaine', 'flaine.com'],
   ['Bellefontaine', 'lesrousses-reservation.com'],
   ['Luz Ardiden', 'luz-ardiden.com'],
-  ['Le Sauze', 'sauze.com']
+  ['Le Sauze', 'sauze.com'],
+  ['Bellefontaine', 'lesrousses-reservation.com'],
+  ['Bourg-Saint-Maurice – Les Arcs', 'lesarcs.com'],
+  ['Morillon', 'grand-massif.com'],
+  ['La Pierre Saint-Martin', 'lapierrestmartin.com'],
+  ['Méaudre', 'autrans-meaudre.fr']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)

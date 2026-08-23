@@ -666,6 +666,33 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'villard-de-lans-correncon': { url: 'https://reservation.villarddelans-correnconenvercors.com/' }, // Villard-de-Lans – Corrençon *
   'correncon-en-vercors': { url: 'https://reservation.villarddelans-correnconenvercors.com/' }, // Corrençon — même desk Ublo
   'villard-reculas': { url: 'https://reservation.villard-reculas.com/' }, // Villard-Reculas *
+  'brides-les-bains': { url: 'https://www.brides-les-bains.com/' }, // Brides — vitrine (link)
+  'saint-jean-d-arves': { url: 'https://www.saintjeandarves.com/' }, // Saint-Jean-d'Arves — 403, pas de TOTAL
+  'abondance': { url: 'https://sites.valdabondance.com/' }, // Abondance — vitrine (link)
+  'la-chapelle-d-abondance': { url: 'https://sites.valdabondance.com/' }, // Chapelle d'Abondance — vitrine
+  'saint-jean-d-aulps': { url: 'https://www.saintjeandaulps.com/' }, // Saint-Jean-d'Aulps — 403
+  'morillon': { url: 'https://www.grand-massif.com/' }, // Morillon — pas le desk Samoëns
+  'sixt-fer-a-cheval': { url: 'https://www.haut-giffre.fr/jorganise/reserver-un-hebergement/' }, // Sixt — vitrine Haut-Giffre
+  'porte-puymorens': { url: 'https://www.porte-puymorens.net/' }, // Porté-Puymorens — vitrine
+  'espace-nordique-du-capcir': { url: 'https://www.capcir-nordique.com/' }, // Capcir nordique
+  'superbagneres': { url: 'https://www.haute-garonne-montagne.com/luchon-superbagneres/' }, // Superbagnères
+  'le-lac-blanc': { url: 'https://www.lac-blanc.com/ete/organiser-mon-sejour-vosges/dormir-hebergements/' }, // Lac Blanc
+  'la-pierre-saint-martin': { url: 'https://www.lapierrestmartin.com/preparer-mon-sejour/hebergements/hebergements-en-station/' }, // Pierre Saint-Martin
+  'iraty': { url: 'https://chalets-iraty.com/les-hebergements/' }, // Iraty
+  'val-d-azun': { url: 'https://www.valdazun.com/' }, // Val d'Azun
+  'le-chioula': { url: 'https://www.chioula.fr/' }, // Chioula — ScriptsLoader Ingénie sans formulaire
+  'les-brasses': { url: 'https://www.mole-brasses.com/fr/hebergements' }, // Les Brasses
+  'plateau-des-glieres': { url: 'https://www.plateaudesglieres.fr/' }, // Glières
+  'bourg-saint-maurice': { url: 'https://www.lesarcs.com/hebergement' }, // Bourg-Saint-Maurice — Yoplanning vitrine
+  'seez': { url: 'https://www.lesarcs.com/hebergement' }, // Séez — même vitrine Les Arcs
+  'meaudre': { url: 'https://www.autrans-meaudre.fr/fr/' }, // Méaudre
+  'gap': { url: 'https://www.gap-bayard.com/' }, // Gap – Bayard
+  'barcelonnette': { url: 'https://www.sauze.com/votre-sejour/hebergements/locations-de-vacances/' }, // Barcelonnette / Sauze
+  'beuil': { url: 'https://beuil.fr/' }, // Beuil – Les Launes
+  'le-haut-pilat': { url: 'https://www.pilat-tourisme.fr/' }, // Haut Pilat — gadget OS analytics, pas de vueId
+  'les-plans-d-hotonnes': { url: 'https://www.plateauderetord.fr/' }, // Plans d'Hotonnes
+  'hirmentaz': { url: 'https://www.hirmentaz.com/' }, // Hirmentaz — DNS souvent mort
+  'le-mourtis': { url: 'https://www.lemourtis.com/' } // Mourtis — timeout fréquent
 }
 
 

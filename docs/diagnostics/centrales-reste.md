@@ -26,8 +26,22 @@ Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 | Les Angles | `lesangles.com` | 403 / SPA. Pas de Playwright aveugle. |
 | Font-Romeu | `font-romeu.fr/sejourner` | Vitrine OT, pas de desk. |
 | Auron | `hiver.auron.com/bons-plans` | Pas de moteur meublé. |
-| Flaine | (pas de CENTRAL) | Page « réservez » sans API. |
-| Les Arcs | (pas de CENTRAL) | Pas de desk propre ; Peisey est une autre station — pas d’URL générique. |
+| Flaine | `flaine.com/reservez-votre-sejour` | Page MSEM marketing, **pas** de `resort` / `channel`. |
+| Saint-Gervais | `saintgervais.com/reserver-mon-sejour` | Addon MSEM chargé, **pas** d’id resort dans le HTML. |
+| Les Arcs, Villaroger, Bourg-Saint-Maurice | — | `lesarcs.com` 403 ; `reservation.lesarcs.com` SSL invalide. Pas d’URL générique Peisey. |
+| Pra Loup | `booking.yoplanning.pro/…` | Yoplanning (famille connue) : pas d’extracteur TOTAL. |
+
+## Devenus `live` (août 2026)
+
+| Station | Desk | Connecteur |
+|---|---|---|
+| Oz-en-Oisans | `oz-en-oisans.com` MSEM `523` / `OT-523` | `ublo-msem` (16 meublés, totaux datés) |
+| Les Deux Alpes 1800 | alias → `reservation.les2alpes.com` | Ingénie |
+| Montchavin – Les Coches | `laplagneresort.com` village `MC` | Ceto |
+| Peisey-Nancroix | `peisey-vallandry.com` | Ingénie |
+| La Féclaz | `reservation.chamberymontagnes.com` | Ingénie |
+| Corrençon-en-Vercors | desk Villard Ublo | `ublo-msem` |
+| Hauteluce | `reservation.lessaisies.com` | Ingénie |
 
 ## `live` avec stock parfois vide (pas un bug)
 
@@ -39,7 +53,7 @@ Montclar, Villard-Reculas (Ublo) : API OK, 0 offre cette semaine.
 
 - **Val d’Arly** : `stationVillage.ts` branché dans `station.ts` (`criteres[]` + `cityMismatch`).
 - **Haute-Maurienne** : URL par village (`ac54-la-norma.htm`, …).
-- **La Plagne** (Ceto) : SERP datée, pas de select village Ingénie — filtre UI seulement.
+- **La Plagne** (Ceto) : `s_c.location` (A2, BP, MC, PC…). Montchavin → `MC`. Pas de select Ingénie.
 
 ## Non négociable
 

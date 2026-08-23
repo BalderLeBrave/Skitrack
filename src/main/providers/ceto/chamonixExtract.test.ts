@@ -17,5 +17,7 @@ assert(resolveLocationCode('Servoz') === 'cmb.servoz', 'Servoz')
 assert(resolveLocationCode('Plagne Centre') === 'PC', 'Plagne Centre')
 assert(resolveLocationCode('Aime 2000') === 'A2', 'Aime 2000')
 assert(resolveLocationCode('Belle Plagne') === 'BP', 'Belle Plagne')
+assert(resolveLocationCode('Montchavin') === 'MC', 'Montchavin')
+assert(resolveLocationCode('Les Coches') === 'MC', 'Les Coches')
 
 console.log('ok resolveLocationCode')

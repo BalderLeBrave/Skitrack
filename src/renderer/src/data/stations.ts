@@ -539,6 +539,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'bareges': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // Barèges — Grand Tourmalet (N-PY) ; reservation.bareges.com est un parking
   'belle-plagne': { url: 'https://www.laplagneresort.com/' }, // Belle Plagne
   'besse-super-besse': { url: 'https://www.sancy.com/decouvrir/toutes-les-communes/super-besse/superbesse-station-de-ski-et-sports-hiver/' }, // Besse Super Besse *
+  'super-besse': { url: 'https://www.sancy.com/hebergement/' }, // Super-Besse – Le Sancy
   'bisanne-1500': { url: 'https://reservation.lessaisies.com/' }, // Bisanne 1500 *
   'bonneval-sur-arc': { url: 'https://reservation.haute-maurienne-vanoise.com/ac64-bonneval-sur-arc.htm' }, // Bonneval-sur-Arc
   'chamonix-mont-blanc': { url: 'https://booking.chamonix.com/fr/' }, // Chamonix-Mont-Blanc
@@ -575,6 +576,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'le-pleynet': { url: 'https://reservation.les7laux.com/' }, // Le Pleynet *
   'le-seignus': { url: 'https://www.valdallos.com/' }, // Le Seignus
   'les-2-alpes': { url: 'https://reservation.les2alpes.com/location-appartement-2-alpes.html' }, // Les 2 Alpes
+  'les-deux-alpes': { url: 'https://reservation.les2alpes.com/location-appartement-2-alpes.html' }, // Les Deux Alpes 1800
   'les-7-laux': { url: 'https://reservation.les7laux.com/' }, // Les 7 Laux *
   'les-angles': { url: 'https://lesangles.com/offres-hebergements/' }, // Les Angles
   'les-carroz-d-araches': { url: 'https://reservation.lescarroz.com/' }, // Les Carroz d’Arâches *
@@ -587,16 +589,20 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'les-orres': { url: 'https://reservation.lesorres.com/' }, // Les Orres
   'les-rousses': { url: 'https://www.lesrousses-reservation.com/' }, // Les Rousses
   'les-saisies': { url: 'https://reservation.lessaisies.com/' }, // Les Saisies
+  'hauteluce': { url: 'https://reservation.lessaisies.com/' }, // Hauteluce — même desk Ingénie
   'megeve': { url: 'https://megeve-booking.com/' }, // Megève
+  'montchavin': { url: 'https://www.laplagneresort.com/' }, // Montchavin – Les Coches (Ceto MC)
   'meribel': { url: 'https://reservations.meribel.net/?lang=fr_FR' }, // Méribel
   'montclar': { url: 'https://www.montclar.com/' }, // Montclar *
   'montgenevre': { url: 'https://reservation.montgenevre.com/' }, // Montgenèvre
   'monts-jura': { url: 'https://reservation.paysdegex-montsjura.com/' }, // Monts Jura *
   'morzine': { url: 'https://reservation.lesgets.com/' }, // Morzine *
   'notre-dame-de-bellecombe': { url: 'https://reservation.valdarly-montblanc.com/' }, // Notre-Dame-de-Bellecombe
+  'oz-en-oisans': { url: 'https://www.oz-en-oisans.com/ete/sejour/je-reserve-mon-sejour/reserver-mon-hebergement-2/' }, // Oz-en-Oisans — MSEM OT-523
   'orcieres-merlette': { url: 'https://reservation.orcieres.com/' }, // Orcieres Merlette
   'orelle': { url: 'https://reservation.valthorens.com/' }, // Orelle *
   'peisey-vallandry': { url: 'https://www.peisey-vallandry.com/' }, // Peisey-Vallandry
+  'peisey-nancroix': { url: 'https://www.peisey-vallandry.com/' }, // Peisey-Nancroix — même desk Ingénie
   'piau-engaly': { url: 'https://www.n-py.com/fr/piau-engaly' }, // Piau Engaly — N-PY
   'peyragudes': { url: 'https://www.n-py.com/fr/peyragudes' }, // Peyragudes *
   'plagne-1800': { url: 'https://www.laplagneresort.com/' }, // Plagne 1800
@@ -618,6 +624,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'sainte-foy-tarentaise': { url: 'https://www.saintefoy-reservation.com/fr/' }, // Sainte-Foy-Tarentaise
   'samoens': { url: 'https://reservation.samoens.com/' }, // Samoëns *
   'savoie-grand-revard': { url: 'https://reservation.chamberymontagnes.com/' }, // Savoie Grand Revard *
+  'la-feclaz': { url: 'https://reservation.chamberymontagnes.com/' }, // La Féclaz — même desk Ingénie
   'serre-chevalier-briancon': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Briancon *
   'serre-chevalier-chantemerle': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Chantemerle *
   'serre-chevalier-le-monetier': { url: 'https://reservation.serre-chevalier.com/' }, // Serre Chevalier Le Monêtier *
@@ -643,6 +650,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'vars': { url: 'https://www.alpes-sudlocations.com/reservation-sejour-vars/' }, // Vars — Elloha (link, pas de TOTAL)
   'vaujany': { url: 'https://reservation.vaujany.com/' }, // Vaujany *
   'villard-de-lans-correncon': { url: 'https://reservation.villarddelans-correnconenvercors.com/' }, // Villard-de-Lans – Corrençon *
+  'correncon-en-vercors': { url: 'https://reservation.villarddelans-correnconenvercors.com/' }, // Corrençon — même desk Ublo
   'villard-reculas': { url: 'https://reservation.villard-reculas.com/' }, // Villard-Reculas *
 }
 

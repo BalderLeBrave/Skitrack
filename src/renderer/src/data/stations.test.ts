@@ -178,7 +178,15 @@ const CENTRAL_CASES: [string, string][] = [
   ['Le Grand-Bornand', 'reservation.legrandbornand.com'],
   ['Les Rousses', 'lesrousses-reservation.com'],
   ['Gourette', 'n-py.com'],
-  ['Piau Engaly', 'n-py.com']
+  ['Piau Engaly', 'n-py.com'],
+  ['Les Deux Alpes 1800', 'reservation.les2alpes.com'],
+  ['Oz-en-Oisans', 'oz-en-oisans.com'],
+  ['Montchavin – Les Coches', 'laplagneresort.com'],
+  ['Peisey-Nancroix', 'peisey-vallandry.com'],
+  ['La Féclaz', 'chamberymontagnes.com'],
+  ['Corrençon-en-Vercors', 'villarddelans-correnconenvercors.com'],
+  ['Hauteluce', 'reservation.lessaisies.com'],
+  ['Super-Besse – Le Sancy', 'sancy.com']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)
@@ -195,7 +203,8 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.valfrejus.com/', 'link', ''],
   ['https://reservation.vaujany.com/', 'link', ''],
   ['https://www.sancy.com/hebergement/', 'link', ''],
-  ['https://www.alpes-sudlocations.com/reservation-sejour-vars/', 'link', '']
+  ['https://www.alpes-sudlocations.com/reservation-sejour-vars/', 'link', ''],
+  ['https://www.oz-en-oisans.com/ete/sejour/je-reserve-mon-sejour/reserver-mon-hebergement-2/', 'live', 'ublo-msem']
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

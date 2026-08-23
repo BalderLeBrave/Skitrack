@@ -580,6 +580,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'les-carroz-d-araches': { url: 'https://reservation.lescarroz.com/' }, // Les Carroz d’Arâches *
   'les-coches': { url: 'https://www.laplagneresort.com/' }, // Les Coches *
   'les-contamines-montjoie': { url: 'https://reservation.lescontamines.com/' }, // Les Contamines-Montjoie *
+  'les-gets': { url: 'https://reservation.lesgets.com/' }, // Les Gets — même desk que Morzine
   'les-houches': { url: 'https://booking.chamonix.com/fr/' }, // Les Houches *
   'les-karellis': { url: 'https://www.karellis.com/' }, // Les Karellis
   'les-menuires': { url: 'https://fr.locationlesmenuires.com/' }, // Les Menuires
@@ -639,6 +640,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'vallorcine': { url: 'https://booking.chamonix.com/fr/' }, // Vallorcine *
   'valmeinier': { url: 'https://www.valmeinier-reservation.com/hiver' }, // Valmeinier
   'valmorel': { url: 'https://www.valmorel.com/' }, // Valmorel
+  'vars': { url: 'https://www.alpes-sudlocations.com/reservation-sejour-vars/' }, // Vars — Elloha (link, pas de TOTAL)
   'vaujany': { url: 'https://reservation.vaujany.com/' }, // Vaujany *
   'villard-de-lans-correncon': { url: 'https://reservation.villarddelans-correnconenvercors.com/' }, // Villard-de-Lans – Corrençon *
   'villard-reculas': { url: 'https://reservation.villard-reculas.com/' }, // Villard-Reculas *

@@ -78,6 +78,7 @@ import { allowsPath } from './robots'
 import { isCetoHost } from '../ceto/hosts'
 import { isUbloHost } from '../ublo/hosts'
 import { isOpenSystemHost } from '../opensystem/hosts'
+import { matchVillageOption, cityMismatch } from './stationVillage'
 import { shouldAttemptIngenie } from './ingenieHosts'
 import { CircuitBreaker } from '../resilience'
 import {
@@ -191,58 +192,6 @@ const FIELD = {
    *  large, un pour le mobile — et que le premier venu peut être caché. */
   submit: 'input[name="search"]:visible, input.form_search:visible, button[type="submit"]:visible'
 } as const
-
-/** Normalise un libellé de station pour comparer destination ↔ option du select. */
-function normPlace(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-}
-
-/**
- * Choisit l'option `criteres[]` qui correspond à la station demandée.
- *
- * Sur Val d'Arly, la même centrale dessert Crest-Voland, Flumet, La Giettaz et
- * Notre-Dame-de-Bellecombe. Sans sélection explicite du village, la recherche
- * mélange les inventaires (ex. Giettaz → appartements à Bellecombe).
- */
-function matchVillageOption(options: Choice[], destination: string): Choice | null {
-  const target = normPlace(destination)
-  if (!target) return null
-  const usable = options.filter((o) => o.value && o.value.trim() !== '')
-  // Correspondance exacte (après normalisation), puis inclusion.
-  const exact = usable.find((o) => normPlace(o.label) === target)
-  if (exact) return exact
-  const contains = usable.find((o) => {
-    const label = normPlace(o.label)
-    return label.includes(target) || target.includes(label)
-  })
-  if (contains) return contains
-  // Dernier recours : tokens significatifs (ex. « La Giettaz en Aravis » ↔ « Giettaz »).
-  const tokens = target.split(' ').filter((t) => t.length >= 4)
-  if (tokens.length === 0) return null
-  return (
-    usable.find((o) => {
-      const label = normPlace(o.label)
-      return tokens.every((t) => label.includes(t))
-    }) ?? null
-  )
-}
-
-/** La fiche appartient-elle clairement à une autre commune que la destination ? */
-function cityMismatch(city: string | null | undefined, destination: string): boolean {
-  if (!city || !destination) return false
-  const c = normPlace(city)
-  const d = normPlace(destination)
-  if (!c || !d) return false
-  if (c === d || c.includes(d) || d.includes(c)) return false
-  const tokens = d.split(' ').filter((t) => t.length >= 4)
-  if (tokens.length > 0 && tokens.every((t) => c.includes(t))) return false
-  return true
-}
 
 /** Rythme de séjour du moteur : `LL` ouvre le calendrier quand la semaine
  *  fixe du samedi au samedi (`SS`, le défaut) ne propose pas la date voulue. */

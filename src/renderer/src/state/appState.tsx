@@ -102,15 +102,16 @@ export interface ComboSelection {
 export interface AppState {
   tab: Screen | null
   /**
-   * Réglages : trois onglets, pas cinq.
+   * Réglages : deux onglets.
    *
-   * L'usage quotidien (thème, densité, langue, poids du classement) était mêlé
-   * à l'installation (moteur local, clés d'API, fournisseur d'itinéraires).
-   * Tout ce qui relève de l'installation passe derrière **Administration**,
-   * où quatre volets le rangent — voir `admSub`.
+   * Il y en a eu trois, le troisième — **Administration** — rangeant sous
+   * quatre volets les sources de données, la provenance, le moteur local, les
+   * métriques des connecteurs, le fournisseur d'itinéraires et les clés d'API.
+   * Rien de tout cela n'est une décision d'utilisateur : ces valeurs sont
+   * déclarées dans `config/app-config.ts`, les clés dans le stockage chiffré.
+   * Voir `docs/config.md`.
    */
-  settingsTab: 'app' | 'admin' | 'legal'
-  admSub: 'engine' | 'sources' | 'routes' | 'keys'
+  settingsTab: 'app' | 'legal'
   /**
    * Provenances corrigées à la main, indexées par libellé de ligne.
    *
@@ -454,7 +455,6 @@ const DEFAULT_PLACES: Place[] = [
 export const INITIAL_STATE: AppState = {
   tab: null,
   settingsTab: 'app',
-  admSub: 'engine',
   provEdits: {},
   provEditKey: null,
   provDraftSrc: '',

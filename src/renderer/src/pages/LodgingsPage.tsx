@@ -7,7 +7,6 @@ import { LodgingCard } from '@/components/LodgingCard'
 import { FilterPopover } from '@/components/FilterPopover'
 import { LodgingFilters } from '@/components/LodgingFilters'
 import { useActiveLodgingFilters } from '@/components/activeLodgingFilters'
-import { LodgingGeoPanel } from '@/components/LodgingGeoPanel'
 import { LodgingMap } from '@/components/LodgingMap'
 import { LodgingSheet } from '@/components/LodgingSheet'
 import { ResultGrid } from '@/components/ResultGrid'
@@ -141,10 +140,6 @@ export function LodgingsPage(): JSX.Element {
   ]
     .filter(Boolean)
     .join(' · ')
-
-  const rescan = (): void => {
-    patch({ lodgPhase: 'searching' })
-  }
 
   const resetLodgFilters = (): void => {
     patch({ ...LODG_FILTER_RESET })
@@ -849,19 +844,6 @@ export function LodgingsPage(): JSX.Element {
             </div>
           )}
 
-          {state.lodgStatusOpen && (
-            <LodgingGeoPanel
-              summary={geo.summary}
-              busy={geo.busy}
-              error={geo.error}
-              osmError={geo.osmError}
-              onRecheck={geo.recheck}
-              health={health}
-              median={median}
-              dupMerged={derived.dupMerged}
-              onRescan={rescan}
-            />
-          )}
 
           {outOfView > 0 && (
             <div className="outofview">

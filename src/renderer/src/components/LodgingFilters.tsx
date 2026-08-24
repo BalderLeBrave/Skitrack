@@ -1,5 +1,5 @@
 import { RangeFilter } from './RangeFilter'
-import { lodgingSources, LODG_TYPES, srcOf } from '@/data/lodgings'
+import { LODG_TYPES } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { LODG_FILTER_RESET, useApp } from '@/state/appState'
@@ -17,11 +17,7 @@ export function LodgingFilters(): JSX.Element {
   const { eur, fmt } = useFormat()
   const { t } = useI18n()
   const { state, patch } = useApp()
-  const { nights, lodgAll } = useDerived()
-
-  // Les sources proposées sont celles que le moteur a interrogées au dernier
-  // relevé, plus celles réellement portées par les offres.
-  const sources = lodgingSources(lodgAll, state.lodgQueried)
+  const { nights } = useDerived()
 
   return (
     <aside className="filters">
@@ -182,37 +178,6 @@ export function LodgingFilters(): JSX.Element {
           unit="m"
           help={t('walk_dist_note')}
         />
-      </section>
-
-      {/* Les sources sont des puces, comme « Type de bien » juste au-dessus :
-          même geste, même géométrie. La liste à pastille disait la même chose en
-          trois fois plus de hauteur, et les URL en clair qui la suivaient
-          n'avaient rien à faire dans un panneau de filtres — elles restent
-          disponibles sur la fiche de chaque logement. */}
-      <section className="filters__section">
-        <h3 className="filters__legend">{t('sources_label')}</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {sources.map((key) => {
-            const on = !state.lodgSrcOff.includes(key)
-            return (
-              <button
-                key={key}
-                type="button"
-                className={`chip${on ? ' chip--on' : ''}`}
-                title={t('lodg_source_toggle')}
-                aria-pressed={on}
-                onClick={() =>
-                  patch({
-                    lodgSrcOff: on ? [...state.lodgSrcOff, key] : state.lodgSrcOff.filter((k) => k !== key)
-                  })
-                }
-              >
-                {key} <span className="chip__count">{lodgAll.filter((l) => srcOf(l) === key).length}</span>
-              </button>
-            )
-          })}
-        </div>
-        <p className="filters__help">{t('lodg_sources_note')}</p>
       </section>
 
       <section className="filters__section">

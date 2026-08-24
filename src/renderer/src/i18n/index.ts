@@ -721,6 +721,12 @@ const CATALOG = {
     'Setting held by the local engine, unavailable until it has started.'
   ],
   engine_restart: ['Redémarrer', 'Restart'],
+  engine_ready: ['Le moteur local tourne', 'The local engine is running'],
+  engine_stopped: ['Le moteur local est arrêté', 'The local engine is stopped'],
+  engine_stopped_help: [
+    'Les temps de trajet calculés et le géocodage ne sont pas disponibles. Les altitudes, les forfaits et les logements importés le restent.',
+    'Computed travel times and geocoding are unavailable. Altitudes, passes and imported stays remain available.'
+  ],
   engine_update: ['Mettre à jour', 'Update'],
   engine_ref_openskimap: ['Référentiel OpenSkiMap du moteur', 'Engine’s OpenSkiMap reference data'],
   routing_ors: ['OpenRouteService (isochrones + péages)', 'OpenRouteService (isochrones + tolls)'],

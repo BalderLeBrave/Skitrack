@@ -97,15 +97,26 @@ course de lancement ; Arêches et Chamrousse servent — plus de
 `NS_ERROR_NET_TIMEOUT` ; La Rosière sort « 0 offre en 7 s » au lieu d'un faux
 timeout de 25 s sur la SERP serveur.
 
-Restes, dans l'ordre d'intérêt :
+La sonde `--hosts` + `PROVIDER_DEBUG` du même jour a tout tranché :
 
-- **Grand-Bornand, Pays de Gex, Gavarnie** — « Timeout AJAX formulaire (30s) »
-  **y compris rejoués seuls** : ce n'est pas l'infra, leur widget ne monte pas
-  sous Firefox. À sonder : `PROVIDER_DEBUG=true` + `--hosts`, puis les mêmes
-  trois sous `SKITRACK_BROWSER=chromium` pour discriminer moteur / site.
-- **Courchevel, Serre-Chevalier, Manigod, Val d'Allos** — le moteur répond,
-  0 offre, deux runs de suite. Disponibilité réelle ou trou d'extraction :
-  même sonde `--hosts` avec debug.
+- **Courchevel, Serre-Chevalier** — bug d'ordre des opérations, corrigé.
+  `enrich-done 12/12` puis `cards-mapped {cards:4, out:0, skipFromPrice:4}` :
+  l'enrichissement payait ses douze fiches sur les 24 cartes brutes, puis le
+  filtre ville gardait quatre cartes non enrichies. Le filtre passe désormais
+  avant l'enrichissement.
+- **Grand-Bornand, Pays de Gex, Gavarnie** — reclassés `link`. Leur homepage
+  ET /booking ne montent qu'un « short form » sans datedeb
+  (`action=getShortForm` ; Gavarnie répond 301 Cloudflare sur /booking),
+  sondé deux fois dont seuls avec pause. Le moteur n'est pas atteignable par
+  notre parcours.
+- **Manigod** — sain : searchAjax aux bonnes dates, `nbResultsFiche: 0` sur
+  les fiches. Pas de stock daté pour février 2027.
+- **Val d'Allos** — encore ouvert : le widget envoie `searchAjax` avec la
+  semaine par défaut (29/08/2026) malgré la repose de `datedeb` avant le clic
+  — aucun `datedeb-rewritten` loggé, donc l'input porte la bonne valeur mais
+  le widget sérialise son propre état, pas le champ. L'enrichissement, qui
+  interroge les fiches aux **bonnes** dates, dit `nbResultsFiche: 0` partout :
+  possiblement rien à vendre en février 2027 de toute façon.
 
 `SKITRACK_BROWSER=firefox` lance Gecko via le même `withPage`. `fetch` MSEM / OS / Ceto HTML inchangés. Pas de `--stealth`.
 

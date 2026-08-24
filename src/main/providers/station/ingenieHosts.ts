@@ -43,13 +43,16 @@ export const INGENIE_HOSTS = new Set([
   'reservation.samoens.com',
   'reservation.bareges.com',
   'reservation.chamberymontagnes.com',
-  'reservation.paysdegex-montsjura.com',
-  'reservation.valleesdegavarnie.com',
+  // Grand-Bornand, Pays de Gex et Gavarnie : retirés le 2026-08-24. Leur
+  // page d'accueil ET /booking ne montent qu'un « short form » sans datedeb
+  // (`action=getShortForm` ; Gavarnie répond même 301 Cloudflare sur
+  // /booking) — sondé deux fois, y compris seuls avec pause. Le moteur
+  // n'est pas atteignable par notre parcours : `link`, pas un timeout de
+  // 30 s par recherche.
   'reservation.labresse.net',
   'www.chatelreservation.com',
   'www.vercors-experience.com',
   'www.lansenvercors.com',
-  'reservation.legrandbornand.com',
   'www.lesrousses-reservation.com',
   'lesrousses-reservation.com',
   'www.manigod.com'

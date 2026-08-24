@@ -1124,13 +1124,15 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             }
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)
-            // SERP = souvent « à partir de » → prix réel = Rechercher de #tarifs.
-            // Budget séparé du timeout de page : un Tignes lent ne jette pas
-            // les TOTAL déjà obtenus, et n'ouvre pas le disjoncteur global.
-            await enrichExactPrices(page, cards, params, timeoutMs, 12, ENRICH_BUDGET_MS)
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre
             // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).
+            //
+            // AVANT l'enrichissement, pas après : la sonde du 2026-08-24 a
+            // montré Courchevel payer ses douze fiches sur les 24 cartes brutes,
+            // puis ce filtre garder quatre cartes — aucune parmi les enrichies.
+            // On enrichissait ce qu'on allait jeter, et on jetait l'enrichi :
+            // 0 offre avec douze vrais totaux en main.
             const dest = params.destination?.trim() ?? ''
             if (dest) {
               const matched = cards.filter((c) => !cityMismatch(c.city, dest))
@@ -1138,6 +1140,10 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               // la centrale n'a peut-être pas renseigné addressLocality.
               if (matched.length > 0) cards = matched
             }
+            // SERP = souvent « à partir de » → prix réel = Rechercher de #tarifs.
+            // Budget séparé du timeout de page : un Tignes lent ne jette pas
+            // les TOTAL déjà obtenus, et n'ouvre pas le disjoncteur global.
+            await enrichExactPrices(page, cards, params, timeoutMs, 12, ENRICH_BUDGET_MS)
             if (cards.length === 0) {
               // Stock vide pour ces dates : ce n'est pas une panne du connecteur.
               return []

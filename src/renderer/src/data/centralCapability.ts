@@ -78,13 +78,14 @@ const INGENIE_HOSTS = new Set([
   'reservation.lesorres.com',
   'reservation.lessaisies.com',
   'reservation.orcieres.com',
-  'reservation.paysdegex-montsjura.com',
+  // Pays de Gex, Gavarnie, Grand-Bornand : absents volontairement — leur
+  // moteur Ingénie n'est pas atteignable par notre parcours (short form sans
+  // datedeb sur / et /booking, sonde du 2026-08-24). Mode `link`.
   'reservation.samoens.com',
   'reservation.serre-chevalier.com',
   'reservation.tignes.net',
   'reservation.valdarly-montblanc.com',
   'reservation.valdisere.com',
-  'reservation.valleesdegavarnie.com',
   'reservation.valthorens.com',
   'www.ballons-hautes-vosges.com',
   'www.chamrousse.com',
@@ -98,7 +99,6 @@ const INGENIE_HOSTS = new Set([
   'www.chatelreservation.com',
   'www.vercors-experience.com',
   'www.lansenvercors.com',
-  'reservation.legrandbornand.com',
   'www.lesrousses-reservation.com',
   'lesrousses-reservation.com',
   'www.manigod.com'

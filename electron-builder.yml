@@ -24,6 +24,8 @@ extraResources:
     filter:
       - 'obscura'
       - 'obscura.exe'
+      - 'obscura-worker'
+      - 'obscura-worker.exe'
 
 win:
   target:

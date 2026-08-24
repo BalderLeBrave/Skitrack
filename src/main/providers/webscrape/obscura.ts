@@ -150,7 +150,8 @@ async function startServer(bin: string, proxyRaw: string | null): Promise<Server
   if (proxyRaw) args.push('--proxy', proxyRaw)
   const proc = spawn(bin, args, {
     stdio: ['ignore', 'pipe', 'pipe'],
-    windowsHide: true
+    windowsHide: true,
+    cwd: dirname(bin)
   })
   let stderr = ''
   proc.stderr?.on('data', (c: Buffer) => {

@@ -437,6 +437,44 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
     throw new Error(`${name} : le moteur de ${origin} n'expose pas de calendrier.`)
   }
 
+  // Dernier contrôle avant le clic : le boot asynchrone du widget
+  // (`getSelectTypeDatePossible`…) peut réécrire la date par défaut PAR-DESSUS
+  // notre remplissage. Val d'Allos (sonde du 2026-08-24) cherchait ainsi la
+  // semaine du 29/08/2026 au lieu du séjour demandé — zéro offre garanti, sans
+  // erreur. On relit `datedeb` et on repose les valeurs si elles ont bougé.
+  const stamped = await page
+    .evaluate(() => {
+      const view = globalThis as unknown as {
+        document: { querySelectorAll: (s: string) => ArrayLike<{ value: string }> }
+      }
+      return Array.from(view.document.querySelectorAll('input[name="datedeb"]')).map((e) => e.value)
+    })
+    .catch(() => [] as string[])
+  if (stamped.length > 0 && !stamped.includes(from)) {
+    debugLog('station-ajax', 'datedeb-rewritten', { expected: from, got: stamped })
+    await page.evaluate(
+      ({ values }) => {
+        const view = globalThis as unknown as {
+          document: {
+            querySelectorAll: (s: string) => ArrayLike<{ value: string; dispatchEvent: (e: unknown) => void }>
+          }
+          Event: new (type: string, init: { bubbles: boolean }) => unknown
+        }
+        const set = (selector: string, value: string): void => {
+          if (!value) return
+          for (const el of Array.from(view.document.querySelectorAll(selector))) {
+            el.value = value
+            el.dispatchEvent(new view.Event('input', { bubbles: true }))
+            el.dispatchEvent(new view.Event('change', { bubbles: true }))
+          }
+        }
+        set('input[name="datedeb"]', values.from)
+        set('input[name="datefin"]', values.to)
+      },
+      { values: { from, to: to ?? '' } }
+    )
+  }
+
   // Le bouton n'est pas un `submit` : c'est un `input[type=button]` que le
   // script de la page écoute. `:visible` d'abord — deux formulaires jumeaux,
   // dont un caché. Si un bandeau (OneTrust) intercepte le clic, on force
@@ -955,6 +993,7 @@ async function enrichExactPrices(
       }
     }
   }
+  debugLog('station-ajax', 'enrich-done', { done, of: need.length })
 }
 
 export function createStationProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
@@ -1032,11 +1071,31 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             await primeObscuraIngenieWidget(page)
             await page.goto(central, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
             // Ingénie : formulaire monté en JSONP (/widget-dispos). Timeout explicite.
-            await waitForIngenieForm(
-              page,
-              `${FIELD.fromInput}, ${FIELD.fromSelect}`,
-              AJAX_TIMEOUT.formMs
-            )
+            try {
+              await waitForIngenieForm(
+                page,
+                `${FIELD.fromInput}, ${FIELD.fromSelect}`,
+                AJAX_TIMEOUT.formMs
+              )
+            } catch (formErr) {
+              // Grand-Bornand, Pays de Gex, Gavarnie (sonde 2026-08-24) : la
+              // page d'accueil ne monte qu'un « short form » sans datedeb
+              // (`action=getShortForm`), jamais le moteur. Le formulaire
+              // complet vit sur /booking — un seul repli, robots relu avant.
+              const already = new URL(page.url()).pathname.startsWith('/booking')
+              const bookingGate = await allowsPath(origin, '/booking')
+              if (already || !bookingGate.allowed) throw formErr
+              debugLog('station-ajax', 'form-fallback-booking', { origin })
+              await page.goto(`${origin}/booking`, {
+                waitUntil: 'domcontentloaded',
+                timeout: timeoutMs
+              })
+              await waitForIngenieForm(
+                page,
+                `${FIELD.fromInput}, ${FIELD.fromSelect}`,
+                12_000
+              )
+            }
             await dismissConsent(page)
             await sleep(600)
             debugLog('station-ajax', 'form-ready', { summary: probe.summary() })
@@ -1085,14 +1144,25 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             }
 
             const out: Accommodation[] = []
+            // Sonde du 2026-08-24 : Courchevel et Serre-Chevalier enrichissaient
+            // douze fiches avec de vrais totaux puis rendaient « 0 offre » sans
+            // erreur. Ces compteurs disent où les cartes se perdent.
+            let skipNoPrice = 0
+            let skipFromPrice = 0
             for (const card of cards) {
               const total = parsePrice(card.priceText)
               // Sans prix affiché sur la fiche résultats, on ne peut pas prouver
               // la disponibilité pour ces dates — on n'injecte pas l'offre comme
               // « disponible ».
-              if (total == null || total <= 0) continue
+              if (total == null || total <= 0) {
+                skipNoPrice++
+                continue
+              }
               // « à partir de » sans montant daté : ce n'est pas le prix du séjour.
-              if (card.fromPrice) continue
+              if (card.fromPrice) {
+                skipFromPrice++
+                continue
+              }
               const offer = baseAccommodation(
                 name,
                 {
@@ -1120,6 +1190,12 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               offer.rawProviderData = card
               out.push(offer)
             }
+            debugLog('station-ajax', 'cards-mapped', {
+              cards: cards.length,
+              out: out.length,
+              skipNoPrice,
+              skipFromPrice
+            })
             // Sans prix → on n'affiche rien plutôt qu'un « échec » technique.
             return out
             } finally {

@@ -36,8 +36,12 @@ Thumbs.db
 .tmp-repro/
 
 # Binaire Obscura (~70 Mo) — `npm run obscura:fetch`
+# Le zip Windows livre aussi obscura-worker.exe (74 Mo) : sans ces deux
+# lignes, il restait suivi par Git et un `git add -A` l'aurait commité.
 vendor/obscura/obscura
 vendor/obscura/obscura.exe
+vendor/obscura/obscura-worker
+vendor/obscura/obscura-worker.exe
 vendor/obscura/*.tar.gz
 vendor/obscura/*.zip
 

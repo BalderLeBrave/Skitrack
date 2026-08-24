@@ -13,6 +13,7 @@
  * moment de choisir.
  */
 
+import { OSRM_BASE } from '@/config/app-config'
 import type { Domain } from '@/data/referentiel'
 import { hasCoords } from '@/data/referentiel'
 
@@ -207,7 +208,7 @@ export async function computeRoutes(
       try {
         const coords = batch.map((d) => `${d.lon},${d.lat}`).join(';')
         const url =
-          `https://router.project-osrm.org/table/v1/driving/${o.lon},${o.lat};${coords}` +
+          `${OSRM_BASE}/table/v1/driving/${o.lon},${o.lat};${coords}` +
           '?sources=0&annotations=duration,distance'
         const res = await fetch(url)
         const json = (await res.json()) as OsrmTable

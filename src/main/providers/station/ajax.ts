@@ -241,13 +241,35 @@ export async function waitForIngenieResults(
 
   const resultPromise = page.waitForSelector(sel, { timeout: remaining() }).then(() => 'dom' as const)
   const ajaxPromise = probe.waitForInteresting(remaining()).then((e) => (e ? 'ajax' as const : null))
+  // Troisième coureur : poll `evaluate`. Sous Obscura, `waitForSelector` et
+  // `page.$` sont aveugles (voir waitForIngenieForm) — sans ce poll, seule la
+  // sonde réseau pouvait gagner la course, et une centrale dont les prix
+  // arrivent par le DOM partait en faux timeout.
+  const domHas = (): Promise<boolean> =>
+    page
+      .evaluate(() =>
+        Boolean(
+          document.querySelector('.prix_en_cours, .bloc_resultat, .liste_resultats, .fiche-info')
+        )
+      )
+      .catch(() => false)
+  const pollPromise = (async (): Promise<'poll' | null> => {
+    // `isClosed` arrête le poll perdant : la course résolue, la page se ferme
+    // et la boucle n'a pas à tourner jusqu'au timeout sur un contexte mort.
+    while (Date.now() < deadline && !page.isClosed()) {
+      if (await domHas()) return 'poll'
+      await new Promise((r) => setTimeout(r, 300))
+    }
+    return null
+  })()
 
   const winner = await Promise.race([
     resultPromise.catch(() => null),
-    ajaxPromise
+    ajaxPromise,
+    pollPromise
   ])
 
-  if (winner === 'dom' || winner === 'ajax') {
+  if (winner === 'dom' || winner === 'ajax' || winner === 'poll') {
     await new Promise((r) => setTimeout(r, 400))
     return
   }
@@ -259,8 +281,7 @@ export async function waitForIngenieResults(
     // ignore
   }
 
-  const has = await page.$(sel)
-  if (has) return
+  if (await domHas()) return
 
   throw new Error(
     `Timeout AJAX résultats Ingénie (${Math.round(timeoutMs / 1000)}s). ` +

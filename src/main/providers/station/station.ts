@@ -486,17 +486,24 @@ async function submitSearch(page: Page, params: SearchParams, name: string, orig
  * injecter `.fiche-info`. La SERP HTML est `GET /booking?action=result`.
  */
 async function openHtmlResultsIfEmpty(page: Page, timeoutMs: number): Promise<void> {
+  // Compte en `evaluate`, pas en `locator.count()` : sous Obscura le moteur de
+  // sélecteurs Playwright répond à côté du protocole — Châtel sortait
+  // « locator.count: value: expected integer, got object » et toute la
+  // centrale tombait — alors que `evaluate` voit le même DOM. Même raison que
+  // le poll de `waitForIngenieForm` (ajax.ts).
+  const domCount = (fn: () => number): Promise<number> => page.evaluate(fn).catch(() => 0)
+
   // Moteur historique (Arêches, Val Thorens…) : `select[name=datedeb]`.
   // Le clic Rechercher navigue déjà ; `action=result` y répond 200 vide
   // et bloquait 40 s. Le fallback ne vise que le widget (input caché).
-  if ((await page.locator('select[name="datedeb"]').count()) > 0) return
-  try {
-    await page.waitForSelector('.fiche-info', { timeout: 4_000 })
-    return
-  } catch {
-    // Widget Châtel : pas de fiche injectée — SERP HTML ci-dessous.
+  if ((await domCount(() => document.querySelectorAll('select[name="datedeb"]').length)) > 0) return
+  // `waitForSelector` est aveugle sous Obscura : il consommait ses 4 s même
+  // fiche affichée. Poll `evaluate`, même budget.
+  const ficheDeadline = Date.now() + 4_000
+  while (Date.now() < ficheDeadline) {
+    if ((await domCount(() => document.querySelectorAll('.fiche-info').length)) > 0) return
+    await sleep(250)
   }
-  if ((await page.locator('.fiche-info').count()) > 0) return
   const href = page.url()
   if (/[?&]action=result\b/.test(href)) return
   const resultUrl = await page.evaluate(() => {
@@ -740,10 +747,16 @@ function sourceIdOf(url: string): string {
 async function loadCards(page: Page, timeoutMs: number): Promise<StationCard[]> {
   // Attente active sur les fiches plutôt qu'un sleep fixe de 2 s :
   // dès que le DOM est prêt on lit, ce qui coupe ~1–1,5 s sur les centrales réactives.
-  try {
-    await page.waitForSelector('.fiche-info', { timeout: Math.min(10_000, timeoutMs) })
-  } catch {
-    // Pas de fiche : soit aucune disponibilité, soit une autre plateforme.
+  // Poll `evaluate`, pas `waitForSelector` : aveugle sous Obscura, il brûlait
+  // ses 10 s fiches affichées — la lecture arrivait, mais toujours au plus tard.
+  const deadline = Date.now() + Math.min(10_000, timeoutMs)
+  while (Date.now() < deadline) {
+    const n = await page
+      .evaluate(() => document.querySelectorAll('.fiche-info').length)
+      .catch(() => 0)
+    if (n > 0) break
+    // Pas de fiche (encore) : aucune disponibilité, ou une autre plateforme.
+    await sleep(250)
   }
   return page.evaluate(extractStationCards)
 }

@@ -239,6 +239,7 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.laclusaz.com/reservation/hebergements', 'link', ''],
   ['https://www.chamrousse.com/hiver', 'live', 'station-web'],
   ['https://font-romeu.fr/sejourner/hebergements/', 'link', ''],
+  ['https://www.prazdelys-sommand.com/hebergements-a-taninges-et-mieussy/', 'link', ''],
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

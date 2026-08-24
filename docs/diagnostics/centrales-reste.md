@@ -1,9 +1,10 @@
 # Centrales — état final du relevé (`fix/centrales-prix-reels`)
 
 Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
-Dernier passage : toutes les stations du référentiel ont une URL (desk live,
-lien vitrine, ou blocked), Dernier passage : **toutes** les stations du référentiel ont une URL
-(desk live, lien vitrine, ou blocked). Couverture : **112 live / 59 link / 3 blocked / 0 none**.
+Toutes les stations du `CENTRAL_BY_SLUG` ont une URL. Dénombrement **par slug**
+(2026-08-24, `centralCapabilityOf`) : **115 live / 51 link / 2 blocked / 0 none**
+(168 slugs, 121 URL uniques). Live : 59 Ingénie, 22 Open System, 15 Ublo/MSEM,
+12 Ceto Plagne, 3 Ceto Chamonix, LocVacances / Megève / Méribel / Praz-sur-Arly.
 
 ## `blocked` (robots.txt `Disallow: /`) — ne pas contourner
 
@@ -39,6 +40,8 @@ Second passage vitrines (2026-08-24) : Lioran / Métabief / Luz OT / Capcir / Su
 Troisième passage : Clusaz lodging = Apidae + e-liberty ski (forfaits). Porté « ceto » = CSS Divi, pas Orchestra. Karellis.com → même desk 403.
 
 Quatrième passage : Chamrousse `/hiver` = **live Ingénie** (`datedeb` + widget-dispo, déjà `INGENIE_HOSTS`). Font-Romeu / Luz / Auron / Métabief / Lioran : pas de `reservation.*` DNS, HTML sans TOTAL. Luz = module Divi maison, pas une famille supportée.
+
+Cinquième passage : inventaire `CENTRAL_BY_SLUG` clos (115/51/2). Praz de Lys `/hebergements-a-taninges-et-mieussy/` = **403**. Guzet / Yoplanning / Vars Elloha inchangés. Aucun nouveau TOTAL.
 
 Quatrième passage : Font-Romeu / Auron = annuaires OT (deep-link hebergements, pas de TOTAL). `reservation.lelioran.com` / `metabief` / `font-romeu.fr` / `sauze.com` : DNS inexistant. Chamrousse déjà live Ingénie.
 

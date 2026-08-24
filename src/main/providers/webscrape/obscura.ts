@@ -20,7 +20,7 @@ import { existsSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { chromium, type Browser, type BrowserContext } from 'playwright'
+import { chromium, type Browser, type BrowserContext, type Page } from 'playwright'
 import type { ProxyConfig } from '../proxy'
 import { toPlaywrightProxy } from '../proxy'
 
@@ -223,35 +223,26 @@ const CONTEXT_OPTS = {
   }
 } as const
 
-/** Scripts tiers qui font SIGSEGV Obscura 0.2.1 (Maps, pixels) — pas le formulaire. */
-const OBSCURA_ABORT = [
-  'maps.googleapis.com',
-  'maps.gstatic.com',
-  'google.com/maps',
-  'connect.facebook.net',
-  'facebook.com/tr',
-  'googletagmanager.com',
-  'google-analytics.com',
-  'doubleclick.net',
-  'googlesyndication.com',
-  'cmp.sirdata.net',
-  'cdn.sirdata.io'
-]
-
-function shouldAbort(url: string): boolean {
-  const u = url.toLowerCase()
-  return OBSCURA_ABORT.some((h) => u.includes(h))
-}
-
 const hardened = new WeakSet<BrowserContext>()
 
 async function hardenObscuraContext(ctx: BrowserContext): Promise<void> {
   if (hardened.has(ctx)) return
   hardened.add(ctx)
-  await ctx.route('**/*', (route) => {
-    if (shouldAbort(route.request().url())) return route.abort()
-    return route.continue()
-  })
+  if ((process.env.SKITRACK_OBSCURA_ABORT || '1') === '0') return
+  // Globs ciblés : un `route('**/*')` sur CDP Obscura casse l’injection
+  // du widget Ingénie (0 input / pas de datedeb).
+  await Promise.all(
+    [
+      '**/*maps.googleapis.com/**',
+      '**/*maps.gstatic.com/**',
+      '**/*connect.facebook.net/**',
+      '**/*googletagmanager.com/**',
+      '**/*google-analytics.com/**',
+      '**/*doubleclick.net/**',
+      '**/*cmp.sirdata.net/**',
+      '**/*cdn.sirdata.io/**'
+    ].map((pattern) => ctx.route(pattern, (route) => route.abort()))
+  )
 }
 
 export async function getObscuraContext(
@@ -277,4 +268,28 @@ export async function closeObscura(): Promise<void> {
 
 export function obscuraAvailable(): boolean {
   return resolveObscuraBinary() != null
+}
+
+const IWR_SRC = 'https://static.ingenie.fr/js/widgets/resa/IngenieWidgetResaClient.js'
+let iwrSource: string | null = null
+
+/**
+ * Obscura n’exécute pas le `<script src>` head de `IngenieWidgetResaClient.js`
+ * (`typeof IngenieWidgetResa === 'undefined'`, widget vide). Chromium si.
+ * On charge le même fichier officiel et on l’expose sur `globalThis` avant
+ * le `goto` — `addInitScript` est scopé, `var` ne fuit pas tout seul.
+ */
+export async function primeObscuraIngenieWidget(page: Page): Promise<void> {
+  if (!shouldUseObscura()) return
+  if (!iwrSource) {
+    const res = await fetch(IWR_SRC, { signal: AbortSignal.timeout(12_000) })
+    if (!res.ok) throw new Error(`Obscura: IWR HTTP ${res.status}`)
+    iwrSource = await res.text()
+  }
+  await page.addInitScript(
+    iwrSource +
+      `\n;if (typeof IngenieWidgetResa !== 'undefined') globalThis.IngenieWidgetResa = IngenieWidgetResa;` +
+      `\nif (typeof TYPES_WIDGET !== 'undefined') globalThis.TYPES_WIDGET = TYPES_WIDGET;` +
+      `\nif (typeof TYPE_OBJECT !== 'undefined') globalThis.TYPE_OBJECT = TYPE_OBJECT;`
+  )
 }

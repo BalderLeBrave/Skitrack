@@ -78,6 +78,7 @@ import { allowsPath } from './robots'
 import { isCetoHost } from '../ceto/hosts'
 import { isUbloHost } from '../ublo/hosts'
 import { isOpenSystemHost } from '../opensystem/hosts'
+import { primeObscuraIngenieWidget } from '../webscrape/obscura'
 import { matchVillageOption, cityMismatch } from './stationVillage'
 import { shouldAttemptIngenie } from './ingenieHosts'
 import { CircuitBreaker } from '../resilience'
@@ -1015,6 +1016,7 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
           async (page) => {
             const probe = attachAjaxProbe(page)
             try {
+            await primeObscuraIngenieWidget(page)
             await page.goto(central, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
             // Ingénie : formulaire monté en JSONP (/widget-dispos). Timeout explicite.
             await waitForIngenieForm(

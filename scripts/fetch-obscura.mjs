@@ -3,7 +3,7 @@
  * Télécharge le binaire Obscura (v0.2.1) dans vendor/obscura/.
  * https://github.com/h4ckf0r0day/obscura/releases
  */
-import { createWriteStream, mkdirSync, existsSync } from 'node:fs'
+import { createWriteStream, mkdirSync, existsSync, chmodSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -45,5 +45,12 @@ if (file.endsWith('.zip')) {
   execFileSync('unzip', ['-o', archive, '-d', OUT], { stdio: 'inherit' })
 } else {
   execFileSync('tar', ['--no-same-owner', '-xzf', archive, '-C', OUT], { stdio: 'inherit' })
+}
+try {
+  chmodSync(dest, 0o755)
+  const worker = join(OUT, process.platform === 'win32' ? 'obscura-worker.exe' : 'obscura-worker')
+  if (existsSync(worker)) chmodSync(worker, 0o755)
+} catch {
+  /* windows */
 }
 console.log('ok', dest)

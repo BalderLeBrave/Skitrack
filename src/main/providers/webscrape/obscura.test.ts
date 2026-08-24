@@ -36,6 +36,8 @@ if (existsSync(vendor)) {
   await page.goto('https://example.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 })
   const title = await page.title()
   check('CDP example.com', title.includes('Example'))
+  const href = await page.evaluate(() => location.href)
+  check('page.evaluate (chemin Ingénie)', href.startsWith('https://example.com'))
   await page.close()
   await closeObscura()
 } else {

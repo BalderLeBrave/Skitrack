@@ -83,9 +83,27 @@ for (const station of catalogueStations(BUNDLED_REFERENTIAL)) {
 }
 const centrals = [...byUrl].slice(0, limit > 0 ? limit : undefined)
 
-/** Un échec qui ressemble à un étranglement, pas à un refus. */
+/**
+ * Un échec qui ressemble à un étranglement, pas à un refus.
+ *
+ * Chaque moteur a son dialecte pour la même panne :
+ * `net::ERR_*` (Chromium), « Protocol error (Page.navigate): Network error »
+ * (Obscura), `NS_ERROR_NET_TIMEOUT` (Firefox). Même cause probable — trois
+ * hôtes de front sur l'infra Ingénie partagée — même remède : rejouer seul.
+ *
+ * Les « Timeout AJAX formulaire / résultats » sont du même bois : un widget
+ * qui ne monte pas en 30 s sur une infra sollicitée est exactement le « clic
+ * qui expire » que la seconde passe existe pour départager. Au sweep du
+ * 2026-08-24 (Firefox), six centrales sont sorties sur ces motifs sans être
+ * rejouées — la passe n'a départagé personne.
+ */
 function looksThrottled(error: string | null): boolean {
-  return error != null && /ERR_CONNECTION|ERR_TIMED|Timeout \d+ms exceeded|net::ERR_/.test(error)
+  return (
+    error != null &&
+    /ERR_CONNECTION|ERR_TIMED|Timeout \d+ms exceeded|net::ERR_|Page\.navigate\): Network error|NS_ERROR_NET|Timeout AJAX/.test(
+      error
+    )
+  )
 }
 
 interface Result {

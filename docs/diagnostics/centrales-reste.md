@@ -65,17 +65,38 @@ Val d’Arly : `stationVillage.ts` branché. HMV : URL `acXX`. Plagne : `s_c.loc
 
 ## Navigateur des scrapers
 
-Obscura (CDP) est le **défaut** dès que `vendor/obscura` est présent.
-`SKITRACK_BROWSER=chromium` = repli. Maps / pixels abortés (SIGSEGV 0.2.1).
-`fetch` MSEM / OS / Ceto HTML inchangés.
+**Firefox** (Gecko Playwright) est le défaut. Obscura : opt-in
+`SKITRACK_BROWSER=obscura` — il a été le défaut, jusqu'au sweep du 2026-08-24
+(`centrales-releve.md`) : **0/104**, moteur Ingénie invisible au DOM évalué sur
+~20 centrales prouvées live, « Network error » au `goto` sur ~19 hôtes même
+rejoués seuls. Chromium ne se lance plus que forcé
+(`SKITRACK_BROWSER=chromium`), avec erreur motivée si Gecko manque.
+Maps / pixels abortés (SIGSEGV 0.2.1). `fetch` MSEM / OS / Ceto HTML inchangés.
 
-A/B homepage 2 Alpes (`npm run scrape:probe-browser` / `:win` PowerShell) :
+A/B homepage 2 Alpes (`npm run scrape:probe-browser` / `:win` PowerShell),
+relevé Windows du 2026-08-24, un tour par moteur :
 
 | Moteur | Résultat |
 |---|---|
-| Playwright Chromium | **200**, `input[name=datedeb]` présent, 5,5 s |
-| Playwright Firefox | sandbox sans GTK (`libgtk-3`) — à retester sur Windows |
-| Obscura 0.2.1 (défaut) | listing 2 Alpes : `datedeb` via `primeObscuraIngenieWidget` + poll `evaluate` (`waitForSelector` CDP aveugle). Champ `adultes`/`duree` présents. Val d’Arly : widget encore vide (autre boot). Maps abortés. |
+| Playwright Chromium | 200, `datedeb` présent, 9,6 s |
+| Playwright Firefox | 200, `datedeb` présent, **6,0 s** |
+| Obscura 0.2.1 (défaut) | 200, `datedeb` présent, 8,2 s — via `primeObscuraIngenieWidget` + poll `evaluate` (`waitForSelector` CDP aveugle). Val d’Arly : widget encore vide (autre boot). Maps abortés. |
+
+Un tour ne classe pas les moteurs — 3,6 s d'écart sur une page où le réseau
+pèse plus que le moteur. Relever trois fois avant d'en conclure.
+
+Le sweep complet, lui, a classé sans appel (2026-08-24, mêmes dates) :
+**Obscura 0/104 · Firefox 27/104, 200 offres, 43 stations.** La homepage
+mentait par omission — `datedeb` visible ne dit rien de `readEngineContext`,
+de la navigation ni de la SERP. C'est `npm run centrales:sweep` qui fait foi.
+
+Restes du sweep Firefox à départager (seconde passe élargie : `NS_ERROR_NET`,
+`Timeout AJAX`) : Arêches, Chamrousse, Grand-Bornand, Pays de Gex, Gavarnie,
+La Rosière. Avoriaz était une course de lancement sur le profil partagé,
+corrigée par le verrou de `getScrapeContext`. À l'œil aussi : Courchevel,
+Serre-Chevalier, Manigod, Val d'Allos — le moteur répond mais 0 offre ;
+disponibilité réelle ou extraction, seul le détail de `centrales-releve.md`
+le dira.
 
 `SKITRACK_BROWSER=firefox` lance Gecko via le même `withPage`. `fetch` MSEM / OS / Ceto HTML inchangés. Pas de `--stealth`.
 

@@ -14,11 +14,12 @@ function check(name: string, ok: boolean) {
 }
 
 const prev = process.env.SKITRACK_BROWSER
-delete process.env.SKITRACK_BROWSER
 process.env.SKITRACK_BROWSER = 'chromium'
 check('SKITRACK_BROWSER=chromium coupe Obscura', shouldUseObscura() === false)
 check('chromium force le repli', obscuraForcedChromium() === true)
+// Sweep 0/104 du 2026-08-24 : Obscura n'est plus le défaut, il s'opte.
 delete process.env.SKITRACK_BROWSER
+check('défaut (sans env) ≠ Obscura', shouldUseObscura() === false)
 process.env.SKITRACK_BROWSER = prev || ''
 if (!process.env.SKITRACK_BROWSER) delete process.env.SKITRACK_BROWSER
 
@@ -34,8 +35,9 @@ const vendor = join(process.cwd(), 'vendor', 'obscura', process.platform === 'wi
 const resolved = resolveObscuraBinary()
 if (existsSync(vendor)) {
   check('vendor/obscura résolu', resolved != null && existsSync(resolved))
+  process.env.SKITRACK_BROWSER = 'obscura'
+  check('opt-in obscura + binaire = Obscura', shouldUseObscura() === true)
   delete process.env.SKITRACK_BROWSER
-  check('défaut = Obscura si binaire', shouldUseObscura() === true)
   const ctx = await getObscuraContext(null)
   const page = await ctx.newPage()
   await page.goto('https://example.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 })

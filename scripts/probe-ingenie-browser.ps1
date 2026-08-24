@@ -68,7 +68,10 @@ if ($code -ne 0) {
     Write-Host 'Chromium n a pas vu le formulaire. Le defaut Skitrack est casse.' -ForegroundColor Red
     exit $code
 }
-Write-Host 'Chromium OK : moteur par defaut inchange.' -ForegroundColor Green
-Write-Host 'Firefox : npx playwright install firefox puis relancer avec -InstallFirefox'
-Write-Host 'Obscura : npm run obscura:fetch  puis  SKITRACK_BROWSER=obscura (opt-in, SIGSEGV 2 Alpes)'
+Write-Host 'Moteurs Skitrack : Firefox defaut. Obscura opt-in (SKITRACK_BROWSER=obscura,' -ForegroundColor Green
+Write-Host '0/104 au sweep du 2026-08-24). Chromium force par SKITRACK_BROWSER=chromium.'
+Write-Host 'Firefox absent ? npx playwright install firefox'
+Write-Host 'Ce probe ne voit que la homepage : le sweep (npm run centrales:sweep) fait foi.'
+Write-Host 'Comparer les ms au-dessus, pas les promesses : un seul tour ne prouve rien,'
+Write-Host 'relancer 3 fois avant de conclure quoi que ce soit sur la vitesse.'
 exit 0

@@ -1,8 +1,13 @@
 /**
  * Socle commun des scrapers web (Obscura CDP + Playwright + Cheerio + backoff).
  *
- * Moteur par défaut : Obscura (binaire vendor). Repli Chromium si
- * `SKITRACK_BROWSER=chromium`. Firefox : `SKITRACK_BROWSER=firefox`.
+ * Moteur par défaut : **Firefox** (Gecko Playwright) — le plus rapide du
+ * probe 2 Alpes (6,0 s contre 8,2 Obscura et 9,6 Chromium), et le seul des
+ * trois sans défaut connu sur la flotte. Obscura : opt-in
+ * `SKITRACK_BROWSER=obscura` — il a rendu 0/104 au sweep du 2026-08-24
+ * (voir l'en-tête d'obscura.ts). Chromium : `SKITRACK_BROWSER=chromium` en
+ * dernier recours — le garder en repli silencieux masquait l'absence du
+ * moteur qu'on venait de quitter.
  *
  * ⚠ Contourne robots.txt / CGU des plateformes. Usage personnel à vos risques.
  * Préférer les API officielles (Booking Demand, Expedia Rapid, LiteAPI) quand
@@ -61,8 +66,28 @@ export function exponentialBackoffMs(attempt: number, base: number, cap: number)
 
 let activeProxyRaw: string | null = null
 
-export async function getScrapeContext(
+/**
+ * Verrou d'entrée : les appels concurrents s'enchaînent au lieu de courir.
+ *
+ * Sans lui, trois voies du sweep voyaient toutes `sharedContext == null` et
+ * lançaient trois `launchPersistentContext` sur le même profil — le deuxième
+ * trouvait le profil verrouillé et sa centrale sortait en
+ * « Firefox Playwright indisponible » (Avoriaz, sweep du 2026-08-24). Une
+ * fois le contexte créé, le chemin verrouillé n'est qu'un test de vivacité.
+ */
+let gate: Promise<unknown> = Promise.resolve()
+
+export function getScrapeContext(
   headless = true,
+  proxy?: ProxyConfig | null
+): Promise<BrowserContext> {
+  const run = gate.then(() => getScrapeContextSerialized(headless, proxy))
+  gate = run.catch(() => undefined)
+  return run
+}
+
+async function getScrapeContextSerialized(
+  headless: boolean,
   proxy?: ProxyConfig | null
 ): Promise<BrowserContext> {
   const desiredProxy = proxy === undefined ? nextProxy() : proxy
@@ -97,7 +122,8 @@ export async function getScrapeContext(
 
   usingObscura = false
   const engine = (process.env.SKITRACK_BROWSER || '').trim().toLowerCase()
-  if (engine === 'firefox') {
+  const forceChromium = engine === 'chromium' || engine === 'chrome' || engine === 'playwright'
+  if (!forceChromium) {
     const ff: Parameters<typeof firefox.launchPersistentContext>[1] = {
       headless,
       locale: 'fr-FR',
@@ -105,12 +131,23 @@ export async function getScrapeContext(
       viewport: { width: 1440, height: 900 }
     }
     if (desiredProxy) ff.proxy = toPlaywrightProxy(desiredProxy)
-    sharedContext = await firefox.launchPersistentContext(`${profileDir()}-firefox`, ff)
+    try {
+      sharedContext = await firefox.launchPersistentContext(`${profileDir()}-firefox`, ff)
+    } catch (e) {
+      // Erreur motivée plutôt qu'un repli muet sur Chromium : sans elle, un
+      // poste sans Gecko scraperait avec un moteur que personne n'a choisi.
+      const msg = e instanceof Error ? e.message : String(e)
+      throw new Error(
+        `Firefox Playwright indisponible (${msg.slice(0, 160)}) — ` +
+          '`npx playwright install firefox`, ou SKITRACK_BROWSER=chromium en dernier recours.'
+      )
+    }
     activeProxyRaw = desiredRaw
     await sharedContext.addInitScript(STEALTH_INIT)
     return sharedContext
   }
 
+  // Chromium — uniquement forcé par SKITRACK_BROWSER, jamais choisi tout seul.
   const common: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless,
     locale: 'fr-FR',

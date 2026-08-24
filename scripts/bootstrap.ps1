@@ -135,7 +135,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Le paquet skitrack ne s importe pas' }
 
 Write-Host ''
 Write-Host 'Sidecar pret.' -ForegroundColor Green
-Write-Host 'Navigateur scrape : npm run obscura:fetch  (Obscura CDP ; sinon repli Chromium)'
+Write-Host 'Navigateur scrape : Firefox (defaut). Obscura : npm run obscura:fetch puis SKITRACK_BROWSER=obscura (opt-in, 0/104 au sweep 2026-08-24)'
 Write-Host 'Etapes suivantes :'
 Write-Host '  npm run sidecar:test     # suite de tests Python'
 Write-Host '  npm run dev              # lancer l application'

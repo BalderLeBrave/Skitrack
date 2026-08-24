@@ -10,9 +10,15 @@
  *
  * Binaire : `SKITRACK_OBSCURA`, `vendor/obscura/`, ou
  * `process.resourcesPath/obscura/` (build Electron).
- * Défaut : Obscura dès que le binaire est là. Repli Chromium seulement si
- * `SKITRACK_BROWSER=chromium`. Les scripts Maps / pixels qui SIGSEGV 0.2.1
- * sont coupés (`abort`) pour garder le formulaire Ingénie.
+ *
+ * **Opt-in** (`SKITRACK_BROWSER=obscura`), plus le défaut. Le sweep du
+ * 2026-08-24 (docs/diagnostics/centrales-releve.md) a rendu 0/104 sous
+ * Obscura 0.2.1 : ~20 centrales Ingénie prouvées live dont le DOM évalué ne
+ * laisse plus voir le moteur (`readEngineContext` aveugle), ~19 hôtes en
+ * « Protocol error (Page.navigate): Network error » — y compris rejoués
+ * seuls, donc pas un étranglement. Défaut : Firefox (`getScrapeContext`).
+ * Les scripts Maps / pixels qui SIGSEGV 0.2.1 sont coupés (`abort`) pour
+ * garder le formulaire Ingénie.
  */
 
 import { spawn, type ChildProcess } from 'node:child_process'
@@ -31,10 +37,15 @@ export function obscuraForcedChromium(): boolean {
   return v === 'chromium' || v === 'chrome' || v === 'playwright'
 }
 
-/** true si le binaire est là et que l’utilisateur n’a pas forcé Chromium/Firefox. */
+/**
+ * true seulement sur opt-in explicite (`SKITRACK_BROWSER=obscura`) **et**
+ * binaire présent. Obscura a été le défaut dès que le binaire était là — le
+ * sweep 0/104 (en-tête du fichier) a montré que la présence d'un fichier ne
+ * vaut pas la preuve que le moteur tient la flotte.
+ */
 export function shouldUseObscura(): boolean {
   const v = (process.env.SKITRACK_BROWSER || '').trim().toLowerCase()
-  if (v === 'chromium' || v === 'chrome' || v === 'playwright' || v === 'firefox') return false
+  if (v !== 'obscura') return false
   return resolveObscuraBinary() != null
 }
 
@@ -264,10 +275,6 @@ export async function getObscuraContext(
 
 export async function closeObscura(): Promise<void> {
   await stopServer()
-}
-
-export function obscuraAvailable(): boolean {
-  return resolveObscuraBinary() != null
 }
 
 const IWR_SRC = 'https://static.ingenie.fr/js/widgets/resa/IngenieWidgetResaClient.js'

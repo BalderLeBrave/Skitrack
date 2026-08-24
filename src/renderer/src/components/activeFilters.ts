@@ -47,7 +47,9 @@ export const FILTER_DEFAULTS = {
   avoidTolls: false,
   massifs: [] as string[],
   glacier: false,
-  linked: false
+  linked: false,
+  budgetMax: null,
+  budgetShowOver: false
 } satisfies Partial<AppState>
 
 export interface ActiveFilter {
@@ -92,6 +94,15 @@ export function useActiveFilters(): { active: ActiveFilter[]; resetAll: () => vo
   addRange('travel', t('chip_travel'), (v) => dur(v))
   addRange('dist', t('chip_dist'), (v) => `${fmt(v)} km`)
   addRange('forfait', t('chip_pass'), (v) => eur(v))
+  // Le budget est posé depuis la pilule d'accueil, donc souvent hors de vue de
+  // l'écran Recherche : sans sa puce, une liste raccourcie par un plafond saisi
+  // deux écrans plus tôt passerait pour une liste vide.
+  if (state.budgetMax != null && state.budgetMax > 0) {
+    add('budget', `${t('budget_label')} ${eur(state.budgetMax)}`, {
+      budgetMax: null,
+      budgetShowOver: false
+    })
+  }
   if (state.avoidTolls) add('tolls', t('filter_avoid_tolls'), { avoidTolls: false })
   for (const name of state.massifs) {
     add(`massif:${name}`, name, { massifs: state.massifs.filter((x) => x !== name) })

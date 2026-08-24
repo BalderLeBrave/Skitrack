@@ -32,7 +32,8 @@ import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
 import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
 import { activeOrigins, adultsCount, esfRate, kidsCount, lessonIndex, sejourCost, splitRows, tripCost } from '@/domain/costs'
 import { dur as durFmt, nightsBetween, slug } from '@/domain/format'
-import { joursDeSki } from '@/domain/forfait'
+import { budgetHides } from '@/domain/budget'
+import { forfaitPourDuree, joursDeSki } from '@/domain/forfait'
 import type { Origin, Travel } from '@/domain/travel'
 import { originsOf, travelOf, worstDistance, worstTravel } from '@/domain/travel'
 import type { Score } from '@/domain/scoring'
@@ -73,6 +74,35 @@ export interface BestOffer {
   alt: number
 }
 
+/**
+ * Ce qu'un séjour coûterait dans cette station, pour le filtre budget.
+ *
+ * Deux postes, et deux seulement : les forfaits, calculés sur la grille
+ * relevée à la durée et à la composition réelles, et le logement, **médiane
+ * des annonces réellement importées** pour cette station. Le catalogue de
+ * démonstration n'y entre pas : il a été retiré de l'affichage précisément
+ * parce qu'il se faisait passer pour de vraies offres, et un filtre qui
+ * masquerait des stations sur des prix inventés serait pire encore.
+ *
+ * D'où trois états, jamais confondus :
+ *
+ * * `total` connu — les deux postes sont là, la comparaison est possible ;
+ * * `forfaits` seuls — on ne peut conclure que dans un sens : une station dont
+ *   les seuls forfaits crèvent déjà le plafond est au-dessus à coup sûr ;
+ * * rien — la station reste affichée, budget « n.c. ». Une donnée absente
+ *   n'écarte personne.
+ */
+export interface DomainBudget {
+  /** Coût complet estimé du séjour, ou `null` si un poste manque. */
+  total: number | null
+  forfaits: number | null
+  lodging: number | null
+  /** `true` dès qu'une part du total est interpolée plutôt que relevée. */
+  estimated: boolean
+  /** Nombre d'annonces réelles derrière la médiane du logement. */
+  lodgingCount: number
+}
+
 export interface DecisionContext {
   d: Domain
   w: Week
@@ -102,6 +132,9 @@ export interface Derived {
   /** Distance à vol d'oiseau depuis la commune cherchée, en km. */
   geoDistance: (d: Domain) => number | null
   matchesFilters: (d: Domain) => boolean
+  budgetOf: (d: Domain) => DomainBudget
+  /** Stations écartées par le seul plafond de budget. */
+  overBudget: number
   filtered: Domain[]
   /** Domaines écartés par le seul cadrage de la carte. */
   domOutOfView: number
@@ -251,7 +284,73 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(a)))
     }
 
-    const matchesFilters = (d: Domain): boolean => {
+    // --- Budget du séjour --------------------------------------------------
+
+    const joursSejour = joursDeSki(nights)
+
+    /**
+     * Annonces réelles par station, une seule passe.
+     *
+     * `importDomainId` porte l'entrée sous laquelle l'import a eu lieu, qui a
+     * pu être absorbée depuis : chaque station récupère donc aussi les annonces
+     * de ses `members`, comme le fait l'écran Logements.
+     */
+    const importedByDomain = new Map<number, number[]>()
+    for (const lg of state.imported) {
+      if (lg.importDomainId == null || !(lg.total > 0)) continue
+      const list = importedByDomain.get(lg.importDomainId)
+      if (list) list.push(lg.total)
+      else importedByDomain.set(lg.importDomainId, [lg.total])
+    }
+
+    const median = (values: number[]): number => {
+      const sorted = [...values].sort((x, y) => x - y)
+      const mid = sorted.length >> 1
+      return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+    }
+
+    const budgetCache = new Map<number, DomainBudget>()
+    const budgetOf = (d: Domain): DomainBudget => {
+      const hit = budgetCache.get(d.id)
+      if (hit) return hit
+
+      const passes = forfaitPourDuree(forfaitOf(d), joursSejour, { adultes: adults, enfants: kids })
+      const totals = [d.id, ...(d.members ?? [])].flatMap((id) => importedByDomain.get(id) ?? [])
+      const lodging = totals.length ? median(totals) : null
+
+      const value: DomainBudget = {
+        forfaits: passes?.total ?? null,
+        lodging,
+        total: passes != null && lodging != null ? passes.total + lodging : null,
+        // La grille elle-même peut être dérivée, et la durée interpolée : les
+        // deux méritent le « ≈ ».
+        estimated: forfaitOf(d).estimated || passes?.confiance === 'estime',
+        lodgingCount: totals.length
+      }
+      budgetCache.set(d.id, value)
+      return value
+    }
+
+    /**
+     * La station tient-elle dans le budget posé ?
+     *
+     * `true` couvre deux cas qu'il ne faut pas confondre à l'écran mais qui se
+     * traitent pareil ici : elle y tient, ou l'on ne sait pas. Seule une
+     * station **dont on sait qu'elle dépasse** est écartée.
+     */
+    const withinBudget = (d: Domain): boolean => {
+      // `budgetMax` porte **toujours** le total du groupe : `budgetMode` ne
+      // change que la façon de le saisir et de l'afficher. Convertir la valeur
+      // enregistrée à chaque bascule l'aurait fait dériver d'un euro dès que le
+      // groupe ne divise pas rond — 1 000 € à trois donnent 333 par personne,
+      // qui redonnent 999.
+      //
+      // La règle elle-même vit dans `domain/budget.ts`, où elle est testée :
+      // seule une station dont on **sait** qu'elle dépasse est écartée.
+      return !budgetHides(budgetOf(d), state.budgetMax)
+    }
+
+    const matchesExceptBudget = (d: Domain): boolean => {
       // Recherche texte : le nom du domaine, mais aussi ses villages, sa
       // station, son forfait relié, sa région et son massif. Un séjour se
       // cherche par le lieu où l'on dort — « montchavin », « val claret » —
@@ -287,6 +386,17 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       }
       return true
     }
+
+    /**
+     * Le budget est tenu **à part** des autres filtres.
+     *
+     * C'est le seul dont l'écran annonce le nombre d'écartés avant de proposer
+     * de les remontrer, et ce compte n'a de sens que parmi les stations qui
+     * passent déjà tout le reste : sur la liste entière, il annoncerait des
+     * stations qu'un massif ou une durée de route avait de toute façon retirées.
+     */
+    const matchesFilters = (d: Domain): boolean =>
+      matchesExceptBudget(d) && (state.budgetShowOver || withinBudget(d))
 
     /** Les valeurs absentes passent en fin de tri, jamais en tête. */
     const nullsLast = (a: number | null, b: number | null): number => {
@@ -354,6 +464,19 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
      * et l'écran annoncerait un domaine caché de moins qu'il n'y en a.
      */
     const domOutOfView = boundsActive ? passesFilters.filter((d) => !inBounds(d)).length : 0
+
+    /**
+     * Stations écartées par le **seul** plafond de budget.
+     *
+     * Compté sur tous les domaines qui passeraient les autres filtres, pas par
+     * différence de longueur : c'est ce nombre que le bandeau annonce avant de
+     * proposer de les remontrer, et un compte faux ferait douter du filtre
+     * entier. Reste à zéro tant qu'aucun budget n'est posé.
+     */
+    const overBudget =
+      state.budgetMax != null && state.budgetMax > 0
+        ? domains.filter((d) => matchesExceptBudget(d) && !withinBudget(d)).length
+        : 0
 
     // Un domaine cliqué sur la carte remonte en tête même s'il ne passe pas les
     // filtres : sinon le clic n'a aucun effet visible et paraît cassé.
@@ -565,6 +688,8 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       matchesFilters,
       filtered,
       domOutOfView,
+      budgetOf,
+      overBudget,
       lodgingsFor: lodgings,
       sejourInputs,
       sejourCost: cost,

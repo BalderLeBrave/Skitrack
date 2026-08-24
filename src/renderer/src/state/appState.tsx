@@ -252,6 +252,18 @@ export interface AppState {
   // Séjour et groupe
   arrDate: string
   depDate: string
+  /**
+   * Plafond de budget du séjour, en euros. `null` = aucun filtre.
+   *
+   * Saisi dans la pilule d'accueil. Vide veut dire « pas de budget posé », pas
+   * « budget zéro » : c'est pourquoi le champ est nullable et non un nombre à
+   * zéro, qui viderait la liste.
+   */
+  budgetMax: number | null
+  /** Le plafond se lit-il pour le groupe entier ou par personne ? */
+  budgetMode: 'total' | 'perso'
+  /** Montrer quand même les stations au-dessus du budget. Non enregistré. */
+  budgetShowOver: boolean
   travelers: number
   children: number
   rooms: number
@@ -512,6 +524,9 @@ export const INITIAL_STATE: AppState = {
 
   arrDate: '2027-02-07',
   depDate: '2027-02-14',
+  budgetMax: null,
+  budgetMode: 'total',
+  budgetShowOver: false,
   travelers: 1,
   children: 0,
   rooms: 1,
@@ -614,6 +629,10 @@ const PERSISTED_KEYS = [
   'baseMin', 'baseMax', 'summitMin', 'summitMax', 'kmMin', 'kmMax',
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
+  // `budgetShowOver` n'est pas enregistré : « afficher quand même » répond au
+  // bandeau qu'on vient de lire, pas à un réglage qu'on retrouve six mois plus
+  // tard sans savoir pourquoi la liste déborde du budget.
+  'budgetMax', 'budgetMode',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
   'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]

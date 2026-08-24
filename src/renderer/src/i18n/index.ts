@@ -572,6 +572,19 @@ const CATALOG = {
   /** `{n}` = jours de ski du séjour choisi. */
   pass_stay_group: ['Forfaits {n} jours', 'Passes, {n} days'],
   pass_stay_none: ['tarif non relevé pour ce domaine', 'no recorded price for this area'],
+  budget_label: ['Budget', 'Budget'],
+  budget_any: ['Indifférent', 'Any'],
+  budget_total: ['au total', 'total'],
+  budget_per_person: ['par personne', 'per person'],
+  budget_hint: [
+    'Forfaits relevés + logement médian des annonces importées. Une station sans prix reste affichée.',
+    'Recorded passes + median price of imported listings. A resort with no price stays visible.'
+  ],
+  /** `{n}` = nombre de stations au-dessus du budget. */
+  budget_over_banner: ['{n} station(s) au-dessus du budget', '{n} resort(s) over budget'],
+  budget_show_over: ['Afficher quand même', 'Show them anyway'],
+  budget_hide_over: ['Masquer à nouveau', 'Hide them again'],
+  budget_unknown: ['budget : n.c.', 'budget: n/a'],
   pass_zone: ['Zone du forfait', 'Pass area'],
   passes_label: ['Forfaits', 'Passes'],
   passes_note: [

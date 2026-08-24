@@ -195,7 +195,7 @@ function WeatherAge(): JSX.Element | null {
 
 export function DomainSearchPage(): JSX.Element {
   const { state, patch, domains, viewportW } = useApp()
-  const { filtered, domOutOfView } = useDerived()
+  const { filtered, domOutOfView, overBudget } = useDerived()
   const { t } = useI18n()
   const { active, resetAll } = useActiveFilters()
 
@@ -295,6 +295,22 @@ export function DomainSearchPage(): JSX.Element {
               {t('dom_out_of_view').replace('{n}', String(domOutOfView))}
               <button type="button" className="linkbtn linkbtn--sm" onClick={() => patch({ domMapSync: false })}>
                 {t('dom_view_all')}
+              </button>
+            </span>
+          )}
+          {/* Le budget s'annonce comme le cadrage, et pour la même raison : une
+              station écartée par un plafond posé sur un autre écran doit
+              pouvoir se retrouver sans qu'on cherche pourquoi elle a disparu.
+              Le bouton bascule l'affichage, il n'efface pas le budget. */}
+          {overBudget > 0 && (
+            <span className="results__viewchip">
+              {t('budget_over_banner').replace('{n}', String(overBudget))}
+              <button
+                type="button"
+                className="linkbtn linkbtn--sm"
+                onClick={() => patch({ budgetShowOver: !state.budgetShowOver })}
+              >
+                {state.budgetShowOver ? t('budget_hide_over') : t('budget_show_over')}
               </button>
             </span>
           )}

@@ -41,11 +41,14 @@ const TRAVELERS_MAX = 12
 /** Une frappe n'est pas une requete : on attend que la saisie se pose. */
 const NEARBY_DEBOUNCE_MS = 450
 
-type Segment = 'dest' | 'dates' | 'people' | 'alt'
+/** Plafond de saisie : au-delà, le champ ne filtrerait plus rien. */
+const BUDGET_MAX = 100_000
+
+type Segment = 'dest' | 'dates' | 'people' | 'alt' | 'budget'
 
 export function SearchBar(): JSX.Element {
   const { state, patch, domains } = useApp()
-  const { fmt, fmtStay } = useFormat()
+  const { eur, fmt, fmtStay } = useFormat()
   const { t } = useI18n()
   const [open, setOpen] = useState<Segment | null>(null)
   const [cursor, setCursor] = useState(-1)
@@ -149,6 +152,45 @@ export function SearchBar(): JSX.Element {
       : t('sb_week_any')
 
   const segClass = (seg: Segment): string => `sb__seg${open === seg ? ' sb__seg--open' : ''}`
+
+  /**
+   * Budget : la frappe reste une **chaîne**, le clamp attend la sortie du champ.
+   *
+   * Piloter un `number` à chaque touche rend la saisie inutilisable — effacer
+   * « 1200 » pour taper « 900 » passe par la chaîne vide, qu'un `Number()`
+   * transforme en zéro, lequel se réécrit aussitôt dans le champ. Vide veut
+   * dire « pas de budget », pas « zéro ».
+   *
+   * `budgetMax` porte toujours le **total du groupe** ; le mode ne change que
+   * la lecture et l'écriture, jamais la valeur enregistrée. C'est ce qui évite
+   * qu'un aller-retour entre les deux modes déplace le plafond d'un euro.
+   */
+  const heads = Math.max(1, state.travelers)
+  const toDraft = (total: number | null): string =>
+    total == null ? '' : String(state.budgetMode === 'perso' ? Math.round(total / heads) : total)
+  const [budgetDraft, setBudgetDraft] = useState(() => toDraft(state.budgetMax))
+
+  const commitBudget = (): void => {
+    const digits = budgetDraft.trim()
+    if (!digits) {
+      patch({ budgetMax: null, budgetShowOver: false })
+      return
+    }
+    const saisi = Math.min(BUDGET_MAX, Math.max(1, Number(digits)))
+    patch({
+      budgetMax: state.budgetMode === 'perso' ? saisi * heads : saisi,
+      budgetShowOver: false
+    })
+    setBudgetDraft(String(saisi))
+  }
+
+  const switchBudgetMode = (mode: 'total' | 'perso'): void => {
+    if (mode === state.budgetMode) return
+    // La valeur enregistrée ne bouge pas : seule sa lecture change.
+    const total = state.budgetMax
+    patch({ budgetMode: mode })
+    setBudgetDraft(total == null ? '' : String(mode === 'perso' ? Math.round(total / heads) : total))
+  }
 
   return (
     <div className="sb" ref={root}>
@@ -302,6 +344,56 @@ export function SearchBar(): JSX.Element {
               format={(v) => `${fmt(v)} m`}
               unit="m"
             />
+          </div>
+        )}
+      </div>
+
+      <div className={segClass('budget')}>
+        <span className="sb__label">{t('budget_label')}</span>
+        <button
+          type="button"
+          className="sb__value"
+          aria-expanded={open === 'budget'}
+          onClick={() => setOpen(open === 'budget' ? null : 'budget')}
+        >
+          {state.budgetMax != null
+            ? `${eur(state.budgetMax)} ${state.budgetMode === 'perso' ? t('budget_per_person') : t('budget_total')}`
+            : t('budget_any')}
+        </button>
+        {open === 'budget' && (
+          <div className="sb__pop">
+            <input
+              type="text"
+              inputMode="numeric"
+              className="field field--panel"
+              aria-label={t('budget_label')}
+              value={budgetDraft}
+              onChange={(e) => setBudgetDraft(e.target.value.replace(/[^\d]/g, ''))}
+              onBlur={commitBudget}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  commitBudget()
+                  setOpen(null)
+                }
+              }}
+              placeholder={t('budget_any')}
+            />
+            <div className="seg" role="group" aria-label={t('budget_label')}>
+              {(['total', 'perso'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`seg__btn${state.budgetMode === mode ? ' seg__btn--on' : ''}`}
+                  aria-pressed={state.budgetMode === mode}
+                  onClick={() => switchBudgetMode(mode)}
+                >
+                  {mode === 'total' ? t('budget_total') : t('budget_per_person')}
+                </button>
+              ))}
+            </div>
+            <p className="u-muted" style={{ margin: 0, fontSize: 12, maxWidth: '34ch' }}>
+              {t('budget_hint')}
+            </p>
           </div>
         )}
       </div>

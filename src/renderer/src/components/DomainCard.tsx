@@ -64,6 +64,22 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
     `${fmt(derived.worstDistance(d))} km ${t('of_road')}`
   ].join(' · ')
 
+  /**
+   * Décomposition du budget, pour le survol.
+   *
+   * Elle nomme ce qui manque autant que ce qui est là : « logement non
+   * renseigné » se lit, « 0 € » se croit.
+   */
+  const budget = derived.budgetOf(d)
+  const budgetDetail = [
+    budget.forfaits != null
+      ? `${t('pass_stay_group').replace('{n}', String(joursSejour))} ${eur(budget.forfaits)}`
+      : `${t('pass_stay_group').replace('{n}', String(joursSejour))} ${t('not_provided_fem')}`,
+    budget.lodging != null
+      ? `${t('nav_lodgings')} ${eur(budget.lodging)} (${budget.lodgingCount})`
+      : `${t('nav_lodgings')} ${t('not_provided_fem')}`
+  ].join(' + ')
+
   const rows = [...score.rows].sort((a, b) => b.contrib - a.contrib)
 
   const tint = massifColor(d.massif)
@@ -264,6 +280,18 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
         )}
 
         <p className="domcard__meta">{metaLine}</p>
+        {/* Troisième issue du filtre budget : ni retenue ni écartée, mais non
+            chiffrable. La station reste affichée et le dit — la faire
+            disparaître ferait passer une absence de relevé pour un prix trop
+            élevé. Le détail est au survol plutôt qu'à l'écran : c'est une
+            vérification, pas une information de premier plan. */}
+        {state.budgetMax != null && state.budgetMax > 0 && (
+          <p className="domcard__meta" title={budgetDetail}>
+            {budget.total != null
+              ? `${budget.estimated ? '≈ ' : ''}${eur(budget.total)}`
+              : t('budget_unknown')}
+          </p>
+        )}
 
         {/* Le lien vers la fiche tient sa propre ligne, alignée à droite. Il
             était auparavant poussé par un `u-spacer` dans le paragraphe de

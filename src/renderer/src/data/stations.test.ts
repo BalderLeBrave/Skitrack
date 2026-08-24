@@ -196,6 +196,7 @@ const CENTRAL_CASES: [string, string][] = [
   ['Pra Loup', 'yoplanning.pro'],
   ['Flaine', 'flaine.com'],
   ['Guzet', 'guzet.ski'],
+  ["Espace Cambre d'Aze", 'eyne.fr'],
   ['Bellefontaine', 'lesrousses-reservation.com'],
   ['Luz Ardiden', 'luz-ardiden.com'],
   ['Le Sauze', 'sauze.com'],

@@ -2,7 +2,8 @@
 
 Un hôte n’est `live` que si un extracteur peut renvoyer un **TOTAL daté**.
 Dernier passage : toutes les stations du référentiel ont une URL (desk live,
-lien vitrine, ou blocked), sauf **Cambre d’Aze** (domaine en vente). Couverture référentiel : **112 live / 58 link / 3 blocked / 1 none**.
+lien vitrine, ou blocked), Dernier passage : **toutes** les stations du référentiel ont une URL
+(desk live, lien vitrine, ou blocked). Couverture : **112 live / 59 link / 3 blocked / 0 none**.
 
 ## `blocked` (robots.txt `Disallow: /`) — ne pas contourner
 
@@ -26,6 +27,7 @@ lien vitrine, ou blocked), sauf **Cambre d’Aze** (domaine en vente). Couvertur
 | Les Angles | 403 / SPA | Pas de Playwright aveugle. |
 | Les Arcs, Pra Loup | Yoplanning SPA | `/api/1/item` = Rollbar, pas un catalogue. |
 | Guzet | `guzet.ski` | Forfaits, pas de meublé. |
+| Cambre d’Aze | `eyne.fr/les-loisirs/hebergement` | Annuaire communal, pas de moteur. `cambredaze.fr` est en vente. |
 | Lioran, Métabief, Luz, Sauze, Brides, Morillon, Sixt, Aulps, Abondance, Capcir, Superbagnères, Lac Blanc, Pierre Saint-Martin, Iraty, Azun, Chioula, Brasses, Glières, Méaudre, Gap, Beuil, Pilat, Hotonnes | vitrines OT | Pas de formulaire daté. Chioula = ScriptsLoader Ingénie sans `datedeb`. Pilat = gadget OS analytics sans `vueId`. |
 
 ## `live` ajoutés sur cette branche
@@ -40,7 +42,9 @@ Ceto : Montchavin `MC`.
 
 ## Sans URL
 
-Cambre d’Aze (`cambredaze.fr` domaine en vente). Guzet recollé sur `guzet.ski` (link).
+## Sans URL
+
+Aucune. Séez recollé sur la vitrine Les Arcs.
 
 ## Multi-villages
 

@@ -692,6 +692,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'le-haut-pilat': { url: 'https://www.pilat-tourisme.fr/' }, // Haut Pilat — gadget OS analytics, pas de vueId
   'les-plans-d-hotonnes': { url: 'https://www.plateauderetord.fr/' }, // Plans d'Hotonnes
   'guzet': { url: 'https://www.guzet.ski/fr/' }, // Guzet — forfaits, pas de meublé
+  'espace-cambre-d-aze': { url: 'https://eyne.fr/les-loisirs/hebergement/' }, // Cambre d'Aze — annuaire commune Eyne (link)
   'hirmentaz': { url: 'https://www.hirmentaz.com/' }, // Hirmentaz — DNS souvent mort
   'le-mourtis': { url: 'https://www.lemourtis.com/' } // Mourtis — timeout fréquent
 }

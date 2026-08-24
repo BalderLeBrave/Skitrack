@@ -230,6 +230,8 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.flaine.com/reservez-votre-sejour/reservez-votre-hebergement-a-flaine/', 'live', 'ublo-msem'],
   ['https://www.valloire.com/', 'live', 'station-web'],
   ['https://www.valdallos.com/', 'live', 'station-web'],
+  ['https://reservation.pilat-tourisme.fr/', 'link', ''],
+  ['https://www.valmorel.com/', 'live', 'opensystem'],
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

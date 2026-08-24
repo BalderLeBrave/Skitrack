@@ -60,6 +60,8 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'reservation.vaujany.com': 'opensystem',
   'reservation.auris-en-oisans.fr': 'opensystem',
   'reservation.matheysine-tourisme.com': 'opensystem',
+  'reservation.pilat-tourisme.fr': 'opensystem',
+  'www.pilat-tourisme.fr': 'opensystem',
   'reservation.saintsorlindarves.com': 'opensystem',
   'reservation.haute-maurienne-vanoise.com': 'opensystem',
   // Ublo / MSEM (channel OT-702 relevé sur la page)

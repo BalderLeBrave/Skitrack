@@ -56,6 +56,8 @@ check('Pra Loup Yoplanning = yoplanning', bookingFamilyOf('booking.yoplanning.pr
 check('Oz-en-Oisans = ublo (MSEM 523)', bookingFamilyOf('www.oz-en-oisans.com') === 'ublo')
 check('Saint-Gervais = ublo (MSEM 569)', bookingFamilyOf('www.saintgervais.com') === 'ublo')
 check('Flaine = ublo (MSEM 320)', bookingFamilyOf('www.flaine.com') === 'ublo')
+check('Pilat résa = opensystem', bookingFamilyOf('reservation.pilat-tourisme.fr') === 'opensystem')
+check('Pilat n’est pas live meublé', !isOpenSystemLiveHost('reservation.pilat-tourisme.fr'))
 
 if (failures > 0) {
   console.log(`\n${failures} échec(s)`)

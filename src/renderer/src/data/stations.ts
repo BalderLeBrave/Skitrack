@@ -689,7 +689,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'gap': { url: 'https://www.gap-bayard.com/' }, // Gap – Bayard
   'barcelonnette': { url: 'https://www.sauze.com/votre-sejour/hebergements/locations-de-vacances/' }, // Barcelonnette / Sauze
   'beuil': { url: 'https://beuil.fr/' }, // Beuil – Les Launes
-  'le-haut-pilat': { url: 'https://www.pilat-tourisme.fr/' }, // Haut Pilat — gadget OS analytics, pas de vueId
+  'le-haut-pilat': { url: 'https://reservation.pilat-tourisme.fr/' }, // OS InstancePanier 1703, pas de vueId meublé (link)
   'les-plans-d-hotonnes': { url: 'https://www.plateauderetord.fr/' }, // Plans d'Hotonnes
   'guzet': { url: 'https://www.guzet.ski/fr/' }, // Guzet — forfaits, pas de meublé
   'espace-cambre-d-aze': { url: 'https://eyne.fr/les-loisirs/hebergement/' }, // Cambre d'Aze — annuaire commune Eyne (link)

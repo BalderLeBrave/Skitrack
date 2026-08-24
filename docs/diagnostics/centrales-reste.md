@@ -27,9 +27,13 @@ lien vitrine, ou blocked), Dernier passage : **toutes** les stations du référe
 | Les Arcs, Pra Loup | Yoplanning SPA | `/api/1/item` = Rollbar, pas un catalogue. |
 | Guzet | `guzet.ski` | Forfaits, pas de meublé. |
 | Cambre d’Aze | `eyne.fr/les-loisirs/hebergement` | Annuaire communal, pas de moteur. `cambredaze.fr` est en vente. |
-| Lioran, Métabief, Luz, Sauze, Brides, Morillon, Sixt, Aulps, Abondance, Capcir, Superbagnères, Lac Blanc, Pierre Saint-Martin, Iraty, Azun, Chioula, Brasses, Glières, Méaudre, Gap, Beuil, Pilat, Hotonnes | vitrines OT | Pas de formulaire daté. Chioula charge `genius2beille.ingenie.fr` (centrale **Beille**, pas Chioula) — ne pas recoller. Pilat = gadget OS analytics sans `vueId`. |
+| Lioran, Métabief, Luz, Sauze, Brides, Morillon, Sixt, Aulps, Abondance, Capcir, Superbagnères, Lac Blanc, Pierre Saint-Martin, Iraty, Azun, Chioula, Brasses, Glières, Méaudre, Gap, Beuil, Pilat, Hotonnes | vitrines OT | Pas de formulaire daté. Chioula charge `genius2beille.ingenie.fr` (centrale **Beille**, pas Chioula) — ne pas recoller. Pilat = OS `InstancePanier` **1703** (chèques cadeaux), **pas de vueId** meublé — desk `reservation.pilat-tourisme.fr` en `link`. |
 
 Valloire (`www.valloire.com`) et Val d’Allos (`www.valdallos.com`) : déjà **live Ingénie** (`datedeb` + `static.ingenie.fr` confirmés au passage 2026-08-24). Ne pas les ranger en vitrine.
+
+Valmorel : **live** Open System `vueId` 1423 (`reservation.valmorel.com`).
+
+Second passage vitrines (2026-08-24) : Lioran / Métabief / Luz OT / Capcir / Superbagnères / Grand Massif / Sancy hebergement = HTML sans moteur. Luz-Ardiden SSL expiré. Aulps / Arves = certificat hôte. Hirmentaz DNS. Mourtis timeout. Retord SSL. Aucun nouveau TOTAL.
 
 ## `live` ajoutés sur cette branche
 

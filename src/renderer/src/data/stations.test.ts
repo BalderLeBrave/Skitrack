@@ -205,7 +205,8 @@ const CENTRAL_CASES: [string, string][] = [
   ['Bourg-Saint-Maurice – Les Arcs', 'lesarcs.com'],
   ['Morillon', 'grand-massif.com'],
   ['La Pierre Saint-Martin', 'lapierrestmartin.com'],
-  ['Méaudre', 'autrans-meaudre.fr']
+  ['Méaudre', 'autrans-meaudre.fr'],
+  ['La Clusaz', 'laclusaz.com/reservation/hebergements']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)
@@ -232,6 +233,7 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.valdallos.com/', 'live', 'station-web'],
   ['https://reservation.pilat-tourisme.fr/', 'link', ''],
   ['https://www.valmorel.com/', 'live', 'opensystem'],
+  ['https://www.laclusaz.com/reservation/hebergements', 'link', ''],
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

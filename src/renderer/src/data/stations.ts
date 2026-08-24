@@ -559,7 +559,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'grand-tourmalet': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // Grand Tourmalet — N-PY
   'isola-2000': { url: 'https://isola2000.com/reservez-votre-sejour/' }, // Isola 2000
   'la-bresse-hohneck': { url: 'https://reservation.labresse.net/' }, // La Bresse Hohneck — Ingénie, pas le WordPress OS
-  'la-clusaz': { url: 'https://www.laclusaz.com/' }, // La Clusaz
+  'la-clusaz': { url: 'https://www.laclusaz.com/reservation/hebergements' }, // Apidae + e-liberty *forfaits* (pas de TOTAL meublé)
   'la-giettaz': { url: 'https://reservation.valdarly-montblanc.com/' }, // La Giettaz
   'la-joue-du-loup': { url: 'https://reservation.ledevoluy.com/' }, // La Joue du Loup *
   'la-mongie': { url: 'https://www.n-py.com/fr/grand-tourmalet' }, // La Mongie — Grand Tourmalet (N-PY)
@@ -673,7 +673,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'saint-jean-d-aulps': { url: 'https://www.saintjeandaulps.com/' }, // Saint-Jean-d'Aulps — 403
   'morillon': { url: 'https://www.grand-massif.com/' }, // Morillon — pas le desk Samoëns
   'sixt-fer-a-cheval': { url: 'https://www.haut-giffre.fr/jorganise/reserver-un-hebergement/' }, // Sixt — vitrine Haut-Giffre
-  'porte-puymorens': { url: 'https://www.porte-puymorens.net/' }, // Porté-Puymorens — vitrine
+  'porte-puymorens': { url: 'https://www.porte-puymorens.net/' }, // vitrine Divi — « ceto » = faux positif CSS
   'espace-nordique-du-capcir': { url: 'https://www.capcir-nordique.com/' }, // Capcir nordique
   'superbagneres': { url: 'https://www.haute-garonne-montagne.com/luchon-superbagneres/' }, // Superbagnères
   'le-lac-blanc': { url: 'https://www.lac-blanc.com/ete/organiser-mon-sejour-vosges/dormir-hebergements/' }, // Lac Blanc

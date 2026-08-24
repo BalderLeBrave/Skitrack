@@ -21,8 +21,9 @@ lien vitrine, ou blocked), Dernier passage : **toutes** les stations du référe
 | Alpe du Grand Serre | `reservation.matheysine-tourisme.com` | OS, catalogue meublé vide. |
 | `www.valfrejus.com` | `vueId: null` | Desk live = HMV `ac51-valfrejus.htm`. |
 | Super-Besse, Le Mont-Dore | `www.sancy.com` | CMS Sancy, pas d’API. |
-| Les Karellis | `karellis-reservation.com` | Desk France Montagnes. Cloudflare 403 depuis le sandbox. Pas de Playwright. |
+| Les Karellis | `karellis-reservation.com` | Desk France Montagnes. Cloudflare 403. `karellis.com` pointe le même desk (WP hospitality). Pas de Playwright. |
 | Vars, Praz de Lys | Elloha | `GetCalendarAvailability` = dates d’arrivée, **pas de prix**. `Search/Index` HTML sans TOTAL. |
+| La Clusaz | `laclusaz.com/reservation/hebergements` | Apidae (annuaire) + widget e-liberty **forfaits ski** (`ski-widget.js`), pas de TOTAL meublé. |
 | Les Angles | 403 / SPA | Pas de Playwright aveugle. |
 | Les Arcs, Pra Loup | Yoplanning SPA | `/api/1/item` = Rollbar, pas un catalogue. |
 | Guzet | `guzet.ski` | Forfaits, pas de meublé. |
@@ -34,6 +35,8 @@ Valloire (`www.valloire.com`) et Val d’Allos (`www.valdallos.com`) : déjà **
 Valmorel : **live** Open System `vueId` 1423 (`reservation.valmorel.com`).
 
 Second passage vitrines (2026-08-24) : Lioran / Métabief / Luz OT / Capcir / Superbagnères / Grand Massif / Sancy hebergement = HTML sans moteur. Luz-Ardiden SSL expiré. Aulps / Arves = certificat hôte. Hirmentaz DNS. Mourtis timeout. Retord SSL. Aucun nouveau TOTAL.
+
+Troisième passage : Clusaz lodging = Apidae + e-liberty ski (forfaits). Porté « ceto » = CSS Divi, pas Orchestra. Karellis.com → même desk 403.
 
 ## `live` ajoutés sur cette branche
 

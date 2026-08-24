@@ -27,7 +27,7 @@ lien vitrine, ou blocked), Dernier passage : **toutes** les stations du référe
 | Les Arcs, Pra Loup | Yoplanning SPA | `/api/1/item` = Rollbar, pas un catalogue. |
 | Guzet | `guzet.ski` | Forfaits, pas de meublé. |
 | Cambre d’Aze | `eyne.fr/les-loisirs/hebergement` | Annuaire communal, pas de moteur. `cambredaze.fr` est en vente. |
-| Lioran, Métabief, Luz, Sauze, Brides, Morillon, Sixt, Aulps, Abondance, Capcir, Superbagnères, Lac Blanc, Pierre Saint-Martin, Iraty, Azun, Chioula, Brasses, Glières, Méaudre, Gap, Beuil, Pilat, Hotonnes | vitrines OT | Pas de formulaire daté. Chioula = ScriptsLoader Ingénie sans `datedeb`. Pilat = gadget OS analytics sans `vueId`. |
+| Lioran, Métabief, Luz, Sauze, Brides, Morillon, Sixt, Aulps, Abondance, Capcir, Superbagnères, Lac Blanc, Pierre Saint-Martin, Iraty, Azun, Chioula, Brasses, Glières, Méaudre, Gap, Beuil, Pilat, Hotonnes | vitrines OT | Pas de formulaire daté. Chioula charge `genius2beille.ingenie.fr` (centrale **Beille**, pas Chioula) — ne pas recoller. Pilat = gadget OS analytics sans `vueId`. |
 
 ## `live` ajoutés sur cette branche
 
@@ -38,8 +38,6 @@ Open System : N-PY (vueId **1448** partagé), HMV `ac51` Valfréjus / `ac63` Bes
 Ublo/MSEM : Oz `523`, Saint-Gervais `569`, Flaine `320`, Isola, Valberg, Montclar, Écrins, Léman.
 
 Ceto : Montchavin `MC`.
-
-## Sans URL
 
 ## Sans URL
 

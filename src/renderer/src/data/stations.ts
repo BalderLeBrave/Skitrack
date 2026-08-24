@@ -680,7 +680,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'la-pierre-saint-martin': { url: 'https://www.lapierrestmartin.com/preparer-mon-sejour/hebergements/hebergements-en-station/' }, // Pierre Saint-Martin
   'iraty': { url: 'https://chalets-iraty.com/les-hebergements/' }, // Iraty
   'val-d-azun': { url: 'https://www.valdazun.com/' }, // Val d'Azun
-  'le-chioula': { url: 'https://www.chioula.fr/' }, // Chioula — ScriptsLoader Ingénie sans formulaire
+  'le-chioula': { url: 'https://www.chioula.fr/' }, // vitrine ; ScriptsLoader = genius2beille.ingenie.fr (Beille, pas Chioula)
   'les-brasses': { url: 'https://www.mole-brasses.com/fr/hebergements' }, // Les Brasses
   'plateau-des-glieres': { url: 'https://www.plateaudesglieres.fr/' }, // Glières
   'bourg-saint-maurice': { url: 'https://www.lesarcs.com/hebergement' }, // Bourg-Saint-Maurice — Yoplanning vitrine

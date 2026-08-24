@@ -13,10 +13,9 @@
  */
 
 import { useI18n } from '@/i18n'
-import { srcOf } from '@/data/lodgings'
 import type { AppState } from '@/state/appState'
 import { FILTER_RANGES, LODG_FILTER_RESET, useApp } from '@/state/appState'
-import { rangeOpen, useDerived } from '@/state/selectors'
+import { rangeOpen } from '@/state/selectors'
 import { useFormat } from '@/hooks/useFormat'
 
 export interface ActiveLodgingFilter {
@@ -30,7 +29,6 @@ export function useActiveLodgingFilters(): {
   resetAll: () => void
 } {
   const { state, patch } = useApp()
-  const { lodgAll } = useDerived()
   const { eur, fmt } = useFormat()
   const { t } = useI18n()
 
@@ -63,14 +61,11 @@ export function useActiveLodgingFilters(): {
     add(`type:${type}`, type, { lodgTypes: state.lodgTypes.filter((x) => x !== type) })
   }
 
-  // Une source décochée est le filtre le plus discret et le plus radical :
-  // elle retire d'un coup tout ce qu'un relevé a rapporté.
-  for (const source of state.lodgSrcOff) {
-    const count = lodgAll.filter((l) => srcOf(l) === source).length
-    add(`src:${source}`, `${source} ${t('lodg_src_hidden')} (${count})`, {
-      lodgSrcOff: state.lodgSrcOff.filter((x) => x !== source)
-    })
-  }
+  // Il y avait ici une puce par source décochée. Le filtre par source était le
+  // plus discret et le plus radical de l'écran — il retirait d'un coup tout ce
+  // qu'un relevé avait rapporté —, et il ne servait qu'au diagnostic. Les
+  // sources coupées se déclarent désormais dans `config/app-config.ts`, où une
+  // coupure ne s'oublie pas entre deux sessions.
 
   if (state.lodgAnnul) add('annul', t('lodg_free_cancel'), { lodgAnnul: false })
   // Ce filtre est posé par défaut ; sa puce dit ce qu'il retire, et sa croix

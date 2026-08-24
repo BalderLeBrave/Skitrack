@@ -56,15 +56,6 @@ export type SortKey =
 
 export type LodgSortKey = 'pp_asc' | 'total_asc' | 'dist_asc' | 'note_desc'
 
-/**
- * Qualité d'une provenance corrigée à la main.
- *
- * Quatre états, et pas un booléen : « la donnée est là » et « la donnée est
- * mesurée » ne sont pas la même affirmation, et c'est exactement ce que cet
- * écran doit permettre de dire.
- */
-export type ProvState = 'manual' | 'measured' | 'estimated' | 'missing'
-
 /** Commune géocodée servant de point de référence au classement. */
 export interface GeoPoint {
   label: string
@@ -112,18 +103,6 @@ export interface AppState {
    * Voir `docs/config.md`.
    */
   settingsTab: 'app' | 'legal'
-  /**
-   * Provenances corrigées à la main, indexées par libellé de ligne.
-   *
-   * La ligne d'origine **reste calculée** : la correction se superpose à
-   * l'affichage et s'annonce avec son état. Sans cela, on ne distinguerait plus
-   * un relevé d'une affirmation — et c'est précisément l'écran dont le rôle est
-   * de tenir cette distinction.
-   */
-  provEdits: Record<string, { src: string; state: ProvState }>
-  provEditKey: string | null
-  provDraftSrc: string
-  provDraftState: ProvState
   theme: 'light' | 'dark'
   lang: Language
   density: 'comfortable' | 'compact'
@@ -291,7 +270,6 @@ export interface AppState {
   lodgMapSync: boolean
   /** Part de largeur laissée à la liste face à la carte, en pourcent. */
   lodgSplit: number
-  lodgSrcOff: string[]
   lodgFiltersOpen: boolean
   lodgAnnul: boolean
   /**
@@ -455,10 +433,6 @@ const DEFAULT_PLACES: Place[] = [
 export const INITIAL_STATE: AppState = {
   tab: null,
   settingsTab: 'app',
-  provEdits: {},
-  provEditKey: null,
-  provDraftSrc: '',
-  provDraftState: 'manual',
   theme: 'light',
   lang: 'fr',
   density: 'comfortable',
@@ -549,7 +523,6 @@ export const INITIAL_STATE: AppState = {
   lodgBounds: null,
   lodgMapSync: true,
   lodgSplit: 58,
-  lodgSrcOff: [],
   lodgFiltersOpen: false,
   lodgAnnul: false,
   lodgPhase: 'results',
@@ -611,7 +584,6 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
   lodgDistMin: 0,
   lodgDistMax: FILTER_RANGES.lodgDist.max,
   lodgSort: 'pp_asc',
-  lodgSrcOff: [],
   lodgAnnul: false,
   lodgOnlyAvailable: true,
   rooms: 1
@@ -634,7 +606,7 @@ const PERSISTED_KEYS = [
   // tard sans savoir pourquoi la liste déborde du budget.
   'budgetMax', 'budgetMode',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgMapSync', 'lodgSplit', 'domMapSync'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**

@@ -77,6 +77,8 @@ export function FilterPanel(): JSX.Element {
         )}
       </div>
 
+      <p className="filters__help">{t('filters_advanced_help')}</p>
+
       <section className="filters__section">
         <RangeFilter
           range="base"

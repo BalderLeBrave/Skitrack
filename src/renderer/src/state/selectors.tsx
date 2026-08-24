@@ -32,6 +32,7 @@ import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
 import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
 import { activeOrigins, adultsCount, esfRate, kidsCount, lessonIndex, sejourCost, splitRows, tripCost } from '@/domain/costs'
 import { dur as durFmt, nightsBetween, slug } from '@/domain/format'
+import { LODGING_SOURCES_OFF } from '@/config/app-config'
 import { budgetHides } from '@/domain/budget'
 import { forfaitPourDuree, joursDeSki } from '@/domain/forfait'
 import type { Origin, Travel } from '@/domain/travel'
@@ -640,7 +641,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       distMax: state.lodgDistMax,
       distCeiling: FILTER_RANGES.lodgDist.max,
       types: state.lodgTypes,
-      srcOff: state.lodgSrcOff
+      srcOff: LODGING_SOURCES_OFF
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
 

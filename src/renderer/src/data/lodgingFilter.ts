@@ -42,7 +42,7 @@ export interface LodgingFilterCriteria {
   /** Types cochés ; liste vide = tous. */
   types: string[]
   /** Sources décochées, par libellé affiché. */
-  srcOff: string[]
+  srcOff: readonly string[]
 }
 
 /**

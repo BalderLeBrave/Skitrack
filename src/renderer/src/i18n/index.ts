@@ -301,22 +301,6 @@ const CATALOG = {
   not_provided_fem: ['non renseignée', 'not provided'],
 
   // --- Administration et provenance corrigeable ----------------------------
-  settings_admin: ['Administration', 'Administration'],
-  settings_admin_intro: [
-    'Réglages techniques de l’installation : moteur local, sources de données, fournisseur d’itinéraires et clés d’API. Rien ici ne change ce que vous voyez au quotidien — ces réglages se posent une fois.',
-    'Technical settings for the installation: local engine, data sources, routing provider and API keys. Nothing here changes day-to-day use — these are set once.'
-  ],
-  prov_correct: ['corriger', 'correct'],
-  prov_modify: ['modifier', 'edit'],
-  prov_restore: ['Rétablir la valeur d’origine', 'Restore the original value'],
-  prov_manual: ['saisi à la main', 'entered by hand'],
-  prov_measured: ['relevé', 'recorded'],
-  prov_estimated: ['estimé', 'estimated'],
-  prov_missing: ['absent', 'missing'],
-  prov_empty_note: [
-    'Enregistrer avec un texte vide supprime la correction. La ligne d’origine reste calculée dans tous les cas.',
-    'Saving with empty text removes the correction. The original line stays computed either way.'
-  ],
   home_stat_domains: ['Stations au référentiel', 'Resorts in the dataset'],
   home_stat_domains_note: ['coordonnées et altitudes vérifiées', 'coordinates and altitudes verified'],
   home_stat_median_pass: ['Forfait 6 jours médian', 'Median 6-day pass'],
@@ -408,17 +392,6 @@ const CATALOG = {
   scan_recorded: ['Relevé', 'Scanned'],
 
   // Réglages · état des connecteurs de logement.
-  settings_lodging_sources: ['Sources de logement', 'Lodging sources'],
-  settings_lodging_sources_none: [
-    'Moteur de recherche indisponible — aucun connecteur n’a pu être interrogé.',
-    'Search engine unavailable — no connector could be queried.'
-  ],
-  settings_lodging_sources_help: [
-    'Ces connecteurs alimentent l’écran Logements aux côtés d’Airbnb. Une clé posée ci-dessus est prise en compte au relevé suivant, sans redémarrage.',
-    'These connectors feed the Lodgings screen alongside Airbnb. A key entered above applies to the next scan, with no restart.'
-  ],
-  settings_src_ready: ['prêt', 'ready'],
-  settings_src_blocked: ['bloqué', 'blocked'],
 
   // Relevé multi-sources : bilan et échec global.
   scan_sources_failed: [
@@ -679,25 +652,10 @@ const CATALOG = {
 
   // --- Réglages -----------------------------------------------------------
   settings_app: ['Application', 'Application'],
-  settings_sources: ['Sources de données', 'Data sources'],
   settings_engine: ['Moteur local', 'Local engine'],
   settings_legal: ['Mentions légales', 'Legal notices'],
-  settings_keys: ['Clés d’API', 'API keys'],
-  settings_keys_help: [
-    'Stockées chiffrées par Windows (DPAPI) et transmises en mémoire au moteur local. Jamais écrites en clair, jamais versionnées.',
-    'Encrypted by Windows (DPAPI) and passed in memory to the local engine. Never written in clear text, never committed.'
-  ],
-  settings_key_set: ['Enregistrée', 'Stored'],
-  settings_key_unset: ['Non renseignée', 'Not set'],
-  settings_save: ['Enregistrer', 'Save'],
-  settings_delete: ['Effacer', 'Clear'],
-  settings_routing: ['Fournisseur d’itinéraires', 'Routing provider'],
   settings_about: ['À propos', 'About'],
   settings_language: ['Langue', 'Language'],
-  settings_encryption_unavailable: [
-    'Le chiffrement système est indisponible : aucune clé ne peut être enregistrée.',
-    'OS encryption is unavailable: no key can be stored.'
-  ],
   settings_weights: ['Poids du classement', 'Ranking weights'],
   settings_weights_help: [
     'Ajustez l’importance de chaque critère. Les poids sont renormalisés : mettre un critère à 0 l’exclut du score.',
@@ -711,15 +669,6 @@ const CATALOG = {
   ],
 
   // --- Réglages : moteur, provenance, itinéraires -------------------------
-  settings_provenance: ['Provenance des données', 'Where the data comes from'],
-  settings_file_loaded: ['Fichier chargé', 'Loaded file'],
-  settings_database: ['Base de données', 'Database'],
-  settings_ref_embedded: ['Référentiel embarqué', 'Bundled reference file'],
-  settings_data_path: ['Données', 'Data'],
-  settings_engine_only: [
-    'Réglage porté par le moteur local, indisponible tant qu’il n’a pas démarré.',
-    'Setting held by the local engine, unavailable until it has started.'
-  ],
   engine_restart: ['Redémarrer', 'Restart'],
   filters_advanced: ['Avancé', 'Advanced'],
   filters_advanced_help: [
@@ -732,10 +681,6 @@ const CATALOG = {
     'Les temps de trajet calculés et le géocodage ne sont pas disponibles. Les altitudes, les forfaits et les logements importés le restent.',
     'Computed travel times and geocoding are unavailable. Altitudes, passes and imported stays remain available.'
   ],
-  engine_update: ['Mettre à jour', 'Update'],
-  engine_ref_openskimap: ['Référentiel OpenSkiMap du moteur', 'Engine’s OpenSkiMap reference data'],
-  routing_ors: ['OpenRouteService (isochrones + péages)', 'OpenRouteService (isochrones + tolls)'],
-  routing_osrm: ['OSRM (sans clé, sans isochrone ni péage)', 'OSRM (no key, no isochrones or tolls)'],
 
   // --- Filtres de logement ------------------------------------------------
   stay_label: ['Séjour', 'Stay'],
@@ -765,9 +710,7 @@ const CATALOG = {
   ],
   avail_show: ['les afficher', 'show them'],
   avail_open_anyway: ['Ouvrir quand même', 'Open anyway'],
-  lodg_src_hidden: ['masquée', 'hidden'],
   lodg_free_cancel: ['Annulation gratuite uniquement', 'Free cancellation only'],
-  sources_label: ['Sources', 'Sources'],
   // --- Panneau « État du relevé » ------------------------------------------
   scan_running: ['Relevé en cours…', 'Search running…'],
   scan_auto_on_open: [
@@ -818,11 +761,6 @@ const CATALOG = {
     'Picked on the map: {n} — moved to the top of the list'
   ],
   lodg_picked_clear: ['retirer la mise en avant', 'remove the highlight'],
-  lodg_source_toggle: ['Afficher / masquer cette source', 'Show / hide this source'],
-  lodg_sources_note: [
-    'Une bulle pleine est une source affichée. Cliquez-la pour masquer ses offres ; le décompte reste visible.',
-    'A filled bubble is a source being shown. Click it to hide its offers; the count stays visible.'
-  ],
   lodg_prefilled_search: ['Recherche pré-remplie sur le site', 'Pre-filled search on the site'],
   lodg_official_site: ['Site officiel de la station', 'Resort’s official site'],
   lodg_official_unverified: ['non vérifié', 'unverified'],
@@ -836,16 +774,6 @@ const CATALOG = {
   lodg_rooms_count: ['{n} pièces', '{n} rooms'],
   lodg_rooms_count_one: ['{n} pièce', '{n} room'],
   // --- Réglages : observabilité des sources --------------------------------
-  metrics_title: ['Observabilité des sources', 'Source observability'],
-  metrics_help: [
-    'Latence moyenne, taux d’offres tarifées et erreurs depuis le démarrage — pour diagnostiquer sans ouvrir la console.',
-    'Average latency, share of priced offers and errors since start-up — to diagnose without opening the console.'
-  ],
-  metrics_reset: ['Réinitialiser les compteurs', 'Reset the counters'],
-  metrics_none: [
-    'Aucun relevé pour l’instant — lancez une recherche logements.',
-    'No reading yet — run a stays search.'
-  ],
 
   // --- Onboarding ----------------------------------------------------------
   onb_summary: [
@@ -880,7 +808,6 @@ const CATALOG = {
   decision_share_below: ['{d} € sous un partage égal', '{d} € below an even split'],
 
   // --- Écran Logements : relevé, état, listes vides ------------------------
-  lodg_geo_bad_positions: ['{n} position(s) à corriger', '{n} position(s) to fix'],
   lodg_src_unavailable: ['{s} : temporairement indisponible', '{s}: temporarily unavailable'],
   lodg_src_no_result: ['{s} : pas de résultat', '{s}: no result'],
   lodg_altitudes_measured: ['altitudes mesurées', 'measured altitudes'],
@@ -892,10 +819,6 @@ const CATALOG = {
     'Réinitialiser les filtres de l’écran Logements',
     'Reset the Stays screen filters'
   ],
-  lodg_status_title: ['État du relevé et des positions', 'State of the reading and the positions'],
-  lodg_status_running: ['Relevé en cours…', 'Reading in progress…'],
-  lodg_status_hide: ['Masquer l’état du relevé', 'Hide the reading state'],
-  lodg_status_show: ['État du relevé', 'Reading state'],
   lodg_week_reference: ['référence', 'reference'],
   lodg_none_for_dates: [
     'Aucune offre pour {d} à ces dates',

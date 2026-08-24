@@ -12,7 +12,7 @@ import { LodgingSheet } from '@/components/LodgingSheet'
 import { ResultGrid } from '@/components/ResultGrid'
 import { deepLinks } from '@/data/deeplinks'
 import { lodgingCoords, useLodgingGeo } from '@/data/lodgingGeo'
-import { lodgingSources, medianTotal, sourceHealth } from '@/data/lodgings'
+import { medianTotal } from '@/data/lodgings'
 import type { Lodging } from '@/data/lodgings'
 import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
 import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearch'
@@ -56,9 +56,6 @@ export function LodgingsPage(): JSX.Element {
   // Neige du domaine ouvert, pour le bulletin en tête de mosaïque. `weatherOf`
   // ne répond que pour les domaines réellement demandés — dont celui-ci.
   const domSnow = snowDepths(weatherOf(d?.id ?? -1))
-  // La santé porte sur les sources **réellement interrogées** : comptée sur une
-  // liste figée, elle annonçait plus de sources que le moteur n'en appelle.
-  const health = sourceHealth(lodgingSources(derived.lodgAll, state.lodgQueried))
 
   // La vérification porte sur la liste complète : filtrer d'abord puis
   // vérifier ferait disparaître une annonce du décompte au moment même où on
@@ -131,15 +128,6 @@ export function LodgingsPage(): JSX.Element {
     },
     [patch]
   )
-
-  const geoAlert = [
-    health.down.length > 0 ? `${health.down.length} source(s) injoignable(s)` : null,
-    geo.summary.bad > 0
-      ? t('lodg_geo_bad_positions').replace('{n}', String(geo.summary.bad))
-      : null
-  ]
-    .filter(Boolean)
-    .join(' · ')
 
   const resetLodgFilters = (): void => {
     patch({ ...LODG_FILTER_RESET })
@@ -759,30 +747,6 @@ export function LodgingsPage(): JSX.Element {
               </button>
             )}
             <span className="u-spacer" />
-            {/* Une alerte doit se voir, pas peser : elle reste en tête de ligne
-                mais en texte, à la couleur d'avertissement. */}
-            {geoAlert && (
-              <button
-                type="button"
-                className="linkbtn"
-                style={{ color: 'var(--warn)', fontSize: 12 }}
-                onClick={() => patch({ lodgStatusOpen: true })}
-              >
-                ⚠ {geoAlert}
-              </button>
-            )}
-            <button
-              type="button"
-              className="linkbtn--head"
-              onClick={() => patch({ lodgStatusOpen: !state.lodgStatusOpen })}
-              title={t('lodg_status_title')}
-            >
-              {geo.busy
-                ? t('lodg_status_running')
-                : state.lodgStatusOpen
-                  ? t('lodg_status_hide')
-                  : t('lodg_status_show')}
-            </button>
             <button type="button" className="linkbtn--head" onClick={() => patch({ flexOpen: !state.flexOpen })}>
               {state.flexOpen ? 'Dates flexibles ▾' : 'Dates flexibles ▸'}
             </button>
@@ -947,11 +911,12 @@ export function LodgingsPage(): JSX.Element {
             </div>
           )}
 
-          {/* Le bandeau permanent « les N sources sont à jour » a disparu :
-              c'était le doublon exact de `LodgingGeoPanel`, qui reçoit déjà la
-              santé des sources, la médiane, les doublons fusionnés, la case de
-              fusion et le bouton de relance. Une information qu'on ne lit pas
-              deux fois n'a pas besoin de deux emplacements. */}
+          {/* Le bandeau permanent « les N sources sont à jour » avait disparu
+              comme doublon du panneau d'état des sources ; ce panneau est parti
+              à son tour avec les réglages techniques. Ni l'un ni l'autre ne
+              revient : une source injoignable se voit à l'absence de ses
+              annonces, et le diagnostic se fait par `npm run centrales:sweep`,
+              pas en cherchant le sens d'une pastille pendant un séjour. */}
 
           {/* La mise en avant depuis la carte s'annonce : sans cela, l'effet
               est invisible dès que la liste est défilée ou la carte au premier

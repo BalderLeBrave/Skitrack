@@ -38,6 +38,8 @@ Second passage vitrines (2026-08-24) : Lioran / Métabief / Luz OT / Capcir / Su
 
 Troisième passage : Clusaz lodging = Apidae + e-liberty ski (forfaits). Porté « ceto » = CSS Divi, pas Orchestra. Karellis.com → même desk 403.
 
+Quatrième passage : Chamrousse `/hiver` = **live Ingénie** (`datedeb` + widget-dispo, déjà `INGENIE_HOSTS`). Font-Romeu / Luz / Auron / Métabief / Lioran : pas de `reservation.*` DNS, HTML sans TOTAL. Luz = module Divi maison, pas une famille supportée.
+
 Quatrième passage : Font-Romeu / Auron = annuaires OT (deep-link hebergements, pas de TOTAL). `reservation.lelioran.com` / `metabief` / `font-romeu.fr` / `sauze.com` : DNS inexistant. Chamrousse déjà live Ingénie.
 
 ## `live` ajoutés sur cette branche

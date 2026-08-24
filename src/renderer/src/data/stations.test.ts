@@ -172,6 +172,7 @@ const CENTRAL_CASES: [string, string][] = [
   ['Les Gets – Morzine', 'reservation.lesgets.com'],
   ['Serre Chevalier', 'reservation.serre-chevalier.com'],
   ['Valloire', 'www.valloire.com'],
+  ['Chamrousse', 'chamrousse.com/hiver'],
   ['Vars', 'alpes-sudlocations.com'],
   ['Barèges', 'n-py.com'],
   ['La Mongie', 'n-py.com'],
@@ -236,6 +237,8 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://reservation.pilat-tourisme.fr/', 'link', ''],
   ['https://www.valmorel.com/', 'live', 'opensystem'],
   ['https://www.laclusaz.com/reservation/hebergements', 'link', ''],
+  ['https://www.chamrousse.com/hiver', 'live', 'station-web'],
+  ['https://font-romeu.fr/sejourner/hebergements/', 'link', ''],
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

@@ -38,6 +38,8 @@ Second passage vitrines (2026-08-24) : Lioran / Métabief / Luz OT / Capcir / Su
 
 Troisième passage : Clusaz lodging = Apidae + e-liberty ski (forfaits). Porté « ceto » = CSS Divi, pas Orchestra. Karellis.com → même desk 403.
 
+Quatrième passage : Font-Romeu / Auron = annuaires OT (deep-link hebergements, pas de TOTAL). `reservation.lelioran.com` / `metabief` / `font-romeu.fr` / `sauze.com` : DNS inexistant. Chamrousse déjà live Ingénie.
+
 ## `live` ajoutés sur cette branche
 
 Ingénie : Les Rousses, Manigod, Bellefontaine, alias 2 Alpes 1800, Gets, Féclaz, Hauteluce, Peisey-Nancroix, Landry.

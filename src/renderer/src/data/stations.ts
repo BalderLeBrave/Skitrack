@@ -532,7 +532,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'alpe-du-grand-serre': { url: 'https://reservation.matheysine-tourisme.com/' }, // Alpe du Grand Serre *
   'areches-beaufort': { url: 'https://reservation.areches-beaufort.com/' }, // Arêches-Beaufort
   'auris-en-oisans': { url: 'https://reservation.auris-en-oisans.fr/' }, // Auris-en-Oisans *
-  'auron': { url: 'https://hiver.auron.com/bons-plans/?external=1' }, // Auron *
+  'auron': { url: 'https://hiver.auron.com/hebergements/' }, // galerie OT, pas de TOTAL (« ceto » = CSS Divi)
   'aussois': { url: 'https://reservation.haute-maurienne-vanoise.com/ac62-aussois.htm' }, // Aussois
   'bessans': { url: 'https://reservation.haute-maurienne-vanoise.com/ac63-bessans.htm' }, // Bessans — HMV OsForm
   'avoriaz-1800': { url: 'https://reservation.avoriaz.com/' }, // Avoriaz 1800 *
@@ -552,7 +552,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'cauterets': { url: 'https://www.n-py.com/fr/cauterets' }, // Cauterets — N-PY
   'crest-voland-cohennoz': { url: 'https://reservation.valdarly-montblanc.com/' }, // Crest-Voland Cohennoz
   'flumet-saint-nicolas-la-chapelle': { url: 'https://reservation.valdarly-montblanc.com/' }, // Flumet - Saint Nicolas La Chapelle
-  'font-romeu': { url: 'https://font-romeu.fr/sejourner/' }, // Font-Romeu *
+  'font-romeu': { url: 'https://font-romeu.fr/sejourner/hebergements/' }, // annuaire OT, pas de moteur daté
   'gavarnie-gedre': { url: 'https://reservation.valleesdegavarnie.com/fr/hebergements' }, // Gavarnie-Gèdre *
   'gerardmer': { url: 'https://www.gerardmer-reservation.net/' }, // Gérardmer
   'gourette': { url: 'https://www.n-py.com/fr/gourette' }, // Gourette — N-PY

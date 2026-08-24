@@ -206,7 +206,9 @@ const CENTRAL_CASES: [string, string][] = [
   ['Morillon', 'grand-massif.com'],
   ['La Pierre Saint-Martin', 'lapierrestmartin.com'],
   ['Méaudre', 'autrans-meaudre.fr'],
-  ['La Clusaz', 'laclusaz.com/reservation/hebergements']
+  ['La Clusaz', 'laclusaz.com/reservation/hebergements'],
+  ['Font-Romeu', 'font-romeu.fr/sejourner/hebergements'],
+  ['Auron', 'hiver.auron.com/hebergements']
 ]
 for (const [name, host] of CENTRAL_CASES) {
   const url = bookingCentralOf(name)

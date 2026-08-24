@@ -195,6 +195,7 @@ const CENTRAL_CASES: [string, string][] = [
   ['Saint-Nicolas-de-Véroce', 'saintgervais.com'],
   ['Pra Loup', 'yoplanning.pro'],
   ['Flaine', 'flaine.com'],
+  ['Guzet', 'guzet.ski'],
   ['Bellefontaine', 'lesrousses-reservation.com'],
   ['Luz Ardiden', 'luz-ardiden.com'],
   ['Le Sauze', 'sauze.com'],
@@ -224,7 +225,7 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.saintgervais.com/reserver-mon-sejour/hebergement/', 'live', 'ublo-msem'],
   ['https://www.manigod.com/', 'live', 'station-web'],
   ['https://reservation.haute-maurienne-vanoise.com/ac51-valfrejus.htm', 'live', 'opensystem'],
-  ['https://booking.yoplanning.pro/7bb76b54-7795-4657-bb0c-9e63eb66f433/', 'link', '']
+  ['https://www.flaine.com/reservez-votre-sejour/reservez-votre-hebergement-a-flaine/', 'live', 'ublo-msem'],
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

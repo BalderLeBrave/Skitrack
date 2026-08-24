@@ -55,6 +55,7 @@ check('Praz de Lys = elloha', bookingFamilyOf('www.prazdelys-sommand.com') === '
 check('Pra Loup Yoplanning = yoplanning', bookingFamilyOf('booking.yoplanning.pro') === 'yoplanning')
 check('Oz-en-Oisans = ublo (MSEM 523)', bookingFamilyOf('www.oz-en-oisans.com') === 'ublo')
 check('Saint-Gervais = ublo (MSEM 569)', bookingFamilyOf('www.saintgervais.com') === 'ublo')
+check('Flaine = ublo (MSEM 320)', bookingFamilyOf('www.flaine.com') === 'ublo')
 
 if (failures > 0) {
   console.log(`\n${failures} échec(s)`)

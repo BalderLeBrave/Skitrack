@@ -623,7 +623,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'praz-sur-arly': { url: 'https://booking.prazsurarly.com/?lang=fr_FR' }, // Praz-sur-Arly *
   'praz-de-lys': { url: 'https://www.prazdelys-sommand.com/hebergements-a-taninges-et-mieussy/' }, // Praz de Lys — Elloha (link)
   'pra-loup': { url: 'https://booking.yoplanning.pro/7bb76b54-7795-4657-bb0c-9e63eb66f433/' }, // Pra Loup — Yoplanning (link, pas de TOTAL)
-  'flaine': { url: 'https://www.flaine.com/reservez-votre-sejour/' }, // Flaine — page MSEM sans resort (link)
+  'flaine': { url: 'https://www.flaine.com/reservez-votre-sejour/reservez-votre-hebergement-a-flaine/' }, // Flaine — MSEM OT-320
   'les-arcs': { url: 'https://www.lesarcs.com/hebergement' }, // Les Arcs — Yoplanning vitrine (link)
   'puy-saint-vincent': { url: 'https://www.paysdesecrins.com/hebergements/' }, // Puy-Saint-Vincent
   'risoul': { url: 'https://www.risoul.com/reserver.html' }, // Risoul
@@ -691,6 +691,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'beuil': { url: 'https://beuil.fr/' }, // Beuil – Les Launes
   'le-haut-pilat': { url: 'https://www.pilat-tourisme.fr/' }, // Haut Pilat — gadget OS analytics, pas de vueId
   'les-plans-d-hotonnes': { url: 'https://www.plateauderetord.fr/' }, // Plans d'Hotonnes
+  'guzet': { url: 'https://www.guzet.ski/fr/' }, // Guzet — forfaits, pas de meublé
   'hirmentaz': { url: 'https://www.hirmentaz.com/' }, // Hirmentaz — DNS souvent mort
   'le-mourtis': { url: 'https://www.lemourtis.com/' } // Mourtis — timeout fréquent
 }

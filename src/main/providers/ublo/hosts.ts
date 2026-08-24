@@ -130,6 +130,16 @@ const SITES: UbloSite[] = [
     listingPage: 'https://www.saintgervais.com/reserver-mon-sejour/hebergement/'
   },
   {
+    id: 'flaine',
+    host: 'www.flaine.com',
+    origin: 'https://www.flaine.com',
+    channel: 'OT-320',
+    resort: 320,
+    lang: 'fr',
+    pathPrefix: '',
+    listingPage: 'https://www.flaine.com/reservez-votre-sejour/reservez-votre-hebergement-a-flaine/'
+  },
+  {
     id: 'villardreculas',
     host: 'reservation.villard-reculas.com',
     origin: 'https://reservation.villard-reculas.com',

@@ -25,6 +25,7 @@ assert(ubloSiteOf('www.leman-mountains-explore.com')?.channel === 'LEMAN_MOUNTAI
 assert(ubloSiteOf('reservation.villard-reculas.com')?.resort === 702, 'Villard-Reculas')
 assert(ubloSiteOf('www.oz-en-oisans.com')?.channel === 'OT-523' && ubloSiteOf('oz-en-oisans.com')?.resort === 523, 'Oz-en-Oisans')
 assert(ubloSiteOf('www.saintgervais.com')?.channel === 'OT-569' && ubloSiteOf('saintgervais.com')?.resort === 569, 'Saint-Gervais')
+assert(ubloSiteOf('www.flaine.com')?.channel === 'OT-320' && ubloSiteOf('flaine.com')?.resort === 320, 'Flaine')
 assert(ubloSiteOf('reservation.les2alpes.com') == null, '2 Alpes n’est pas Ublo')
 
 const listings = mergeListAndOffers(

@@ -13,6 +13,7 @@ import { app } from 'electron'
 import { aggregateResults, buildEngine, rejectedMcpSources, type EngineOptions } from './providers'
 import { providerMetricsSnapshot, resetProviderMetrics } from './providers/metrics'
 import { closeWebscrapeBrowser } from './providers/webscrape'
+import { setObscuraSearchRoots } from './providers/webscrape/obscura'
 import { setProxyVaultGetter } from './providers/proxy'
 import { closeAirbnbBrowser } from './providers/airbnb/scrape'
 import { MCP_SOURCES_TEMPLATE } from './providers/mcp/registry'
@@ -66,9 +67,9 @@ function options(): EngineOptions {
 function currentEngine(): SearchEngine {
   if (!engine) {
     engine = buildEngine(options())
-    // Préchauffe Chromium en arrière-plan : le 1er relevé Ingénie évite
-    // les 2–4 s de cold start. Silencieux si le scrape est désactivé.
+    // Préchauffe Obscura (repli Chromium) en arrière-plan.
     if (process.env.SKITRACK_WEB_SCRAPE !== '0') {
+      setObscuraSearchRoots([app.getAppPath(), (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath || ''])
       void import('./providers/webscrape/shared')
         .then((m) => m.getScrapeContext(true))
         .catch(() => undefined)

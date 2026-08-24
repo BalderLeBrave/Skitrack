@@ -19,6 +19,11 @@ extraResources:
       - '!**/__pycache__/**'
       - '!tests/**'
       - '!*.egg-info/**'
+  - from: vendor/obscura
+    to: obscura
+    filter:
+      - 'obscura'
+      - 'obscura.exe'
 
 win:
   target:

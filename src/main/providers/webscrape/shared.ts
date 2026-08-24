@@ -1,9 +1,13 @@
 /**
- * Socle commun des scrapers web (Playwright + Cheerio + backoff).
+ * Socle commun des scrapers web (Obscura CDP + Playwright + Cheerio + backoff).
+ *
+ * Moteur par défaut : Obscura (`webscrape/obscura.ts`). Repli Chromium si
+ * `SKITRACK_BROWSER=chromium` ou binaire absent.
  *
  * ⚠ Contourne robots.txt / CGU des plateformes. Usage personnel à vos risques.
  * Préférer les API officielles (Booking Demand, Expedia Rapid, LiteAPI) quand
  * des clés sont configurées : ces scrapers sont un repli, pas le chemin nominal.
+ * Les centrales Ingénie lisent robots.txt **avant** d’ouvrir une page.
  */
 
 import { chromium, type BrowserContext, type Page } from 'playwright'
@@ -12,6 +16,12 @@ import { app } from 'electron'
 import type { Accommodation, SearchParams } from '../types'
 import { nextProxy, toPlaywrightProxy, type ProxyConfig } from '../proxy'
 import { nowIso } from '../types'
+import {
+  closeObscura,
+  getObscuraContext,
+  obscuraAvailable,
+  obscuraForcedChromium
+} from './obscura'
 
 export interface ScrapeAttemptOptions {
   maxRetries?: number
@@ -35,6 +45,7 @@ const STEALTH_INIT = `
 `
 
 let sharedContext: BrowserContext | null = null
+let usingObscura = false
 
 function profileDir(): string {
   return join(app.getPath('userData'), 'webscrape-browser-profile')
@@ -58,7 +69,6 @@ export async function getScrapeContext(
   const desiredProxy = proxy === undefined ? nextProxy() : proxy
   const desiredRaw = desiredProxy?.raw ?? null
 
-  // Recréer le contexte si le proxy change (Playwright ne permet pas de switcher à chaud).
   if (sharedContext && activeProxyRaw !== desiredRaw) {
     try {
       await sharedContext.close()
@@ -66,6 +76,7 @@ export async function getScrapeContext(
       // ignore
     }
     sharedContext = null
+    if (usingObscura) await closeObscura()
   }
 
   if (sharedContext) {
@@ -77,6 +88,15 @@ export async function getScrapeContext(
     }
   }
 
+  const preferObscura = !obscuraForcedChromium() && obscuraAvailable()
+  if (preferObscura) {
+    sharedContext = await getObscuraContext(desiredProxy, STEALTH_INIT)
+    usingObscura = true
+    activeProxyRaw = desiredRaw
+    return sharedContext
+  }
+
+  usingObscura = false
   const common: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless,
     locale: 'fr-FR',
@@ -120,6 +140,10 @@ export async function closeWebscrapeBrowser(): Promise<void> {
     // ignore
   }
   sharedContext = null
+  if (usingObscura) {
+    usingObscura = false
+    await closeObscura()
+  }
 }
 
 export async function withPage<T>(
@@ -157,7 +181,113 @@ export async function withRetries<T>(
     } catch (err) {
       lastErr = err
       if (attempt >= maxRetries) break
-      // Force rotation proxy au prochain essai
+      try {
+        await closeWebscrapeBrowser()
+      } catch {
+        // ignore
+      }
+      const delay = exponentialBackoffMs(attempt, base, cap)
+      await sleep(delay)
+    }
+  }
+  throw lastErr instanceof Error
+    ? lastErr
+    : new Error(`${label}: échec après ${maxRetries} essai(s)`)
+}
+
+export function baseAccommodation(
+  source: string,
+  partial: {
+    sourceId: string
+    title: string
+    url: string
+    totalPrice?: number
+    nightlyPrice?: number
+    currency?: string
+    latitude?: number
+    longitude?: number
+    city?: string
+    rating?: number
+    reviewCount?: number
+    images?: string[]
+    bedrooms?: number
+    /** Pièces, quand la source compte ainsi — voir `Accommodation.rooms`. */
+    rooms?: number
+    /** Surface habitable en m², telle que la source l'annonce. */
+    areaSqm?: number
+    guests?: number
+    amenities?: string[]
+    country?: string
+  },
+  params: SearchParams
+): Accommodation {
+  const hasTotal = typeof partial.totalPrice === 'number' && partial.totalPrice > 0
+  const hasNightly = typeof partial.nightlyPrice === 'number' && partial.nightlyPrice > 0
+  return {
+    source,
+    sourceId: partial.sourceId,
+    title: partial.title,
+    url: partial.url,
+    latitude: partial.latitude,
+    longitude: partial.longitude,
+    city: partial.city,
+    country: partial.country,
+    checkIn: params.checkIn,
+    checkOut: params.checkOut,
+    guests: partial.guests,
+    bedrooms: partial.bedrooms,
+    rooms: partial.rooms,
+    areaSqm: partial.areaSqm,
+    nightlyPrice: partial.nightlyPrice,
+    totalPrice: partial.totalPrice,
+    currency: partial.currency ?? 'EUR',
+    rating: partial.rating,
+    reviewCount: partial.reviewCount,
+    amenities: partial.amenities,
+    images: partial.images,
+    availabilityStatus: 'unknown',
+    priceConfidence: hasTotal ? 'total_confirmed' : hasNightly ? 'partial' : 'unknown',
+    retrievedAt: nowIso()
+  }
+}
+
+/** Parse un prix FR/EN typique : « 1 234 € », « €123 », « 123,50 ». */
+export function parsePrice(text: string | null | undefined): number | undefined {
+  if (!text) return undefined
+  const m = text.match(/\d[\d\u00a0\u202f .,]*\d|\d/)
+  if (!m) return undefined
+  let token = m[0].replace(/[\u00a0\u202f ]/g, '')
+  const lastComma = token.lastIndexOf(',')
+  const lastDot = token.lastIndexOf('.')
+  if (lastComma > lastDot) token = token.replace(/\./g, '').replace(',', '.')
+  else token = token.replace(/,/g, '')
+  const n = Number(token)
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined
+}
+
+export async function scrollPage(page: Page, times: number): Promise<void> {
+  for (let i = 0; i < times; i++) {
+    await page.evaluate(() => window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' }))
+    await sleep(800 + Math.random() * 400)
+  }
+}
+
+
+export async function withRetries<T>(
+  label: string,
+  options: ScrapeAttemptOptions,
+  run: (attempt: number) => Promise<T>
+): Promise<T> {
+  const maxRetries = Math.max(1, options.maxRetries ?? 3)
+  const base = options.baseDelayMs ?? 1_500
+  const cap = options.maxDelayMs ?? 20_000
+  let lastErr: unknown
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await run(attempt)
+    } catch (err) {
+      lastErr = err
+      if (attempt >= maxRetries) break
       try {
         await closeWebscrapeBrowser()
       } catch {
@@ -254,3 +384,4 @@ export async function scrollPage(page: Page, times: number): Promise<void> {
     await sleep(800 + Math.random() * 400)
   }
 }
+

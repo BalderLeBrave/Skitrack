@@ -8,7 +8,7 @@
  *
  * v3 note la session (0 bot → 1 humain). On maximise le score sans solveur tiers :
  *
- * 1. **Chrome système** (`channel: 'chrome'`) — empreinte TLS/GPU réelle.
+ * 1. **Obscura CDP** (repli Chromium si `SKITRACK_BROWSER=chromium`).
  * 2. **Profil persistant** — cookies + trust qui s’accumulent.
  * 3. **Stealth init** — webdriver, chrome, plugins, hardware, iframe contentWindow…
  * 4. **Warm-up** — passage sur la homepage Airbnb avant la recherche.
@@ -20,6 +20,13 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright'
 import { join } from 'node:path'
 import { app } from 'electron'
+import {
+  getObscuraBrowser,
+  getObscuraContext,
+  closeObscura,
+  obscuraAvailable,
+  obscuraForcedChromium
+} from '../webscrape/obscura'
 import { buildAirbnbSearchUrl, type AirbnbUrlParams } from './airbnb'
 import type { AirbnbClipPayload } from './extract'
 import {
@@ -397,6 +404,9 @@ async function waitForRecaptchaV3IfPresent(page: Page): Promise<void> {
 }
 
 async function launchBrowser(headless: boolean, proxy?: ProxyConfig | null): Promise<Browser> {
+  if (!obscuraForcedChromium() && obscuraAvailable()) {
+    return getObscuraBrowser(proxy)
+  }
   const args = [
     '--disable-blink-features=AutomationControlled',
     '--disable-dev-shm-usage',
@@ -417,6 +427,9 @@ async function openPersistentContext(
   headless: boolean,
   proxy?: ProxyConfig | null
 ): Promise<BrowserContext> {
+  if (!obscuraForcedChromium() && obscuraAvailable()) {
+    return getObscuraContext(proxy, STEALTH_INIT)
+  }
   const common: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless,
     locale: 'fr-FR',
@@ -493,6 +506,7 @@ export async function closeAirbnbBrowser(): Promise<void> {
     // ignore
   }
   sharedContext = null
+  await closeObscura()
 }
 
 async function extractFromPage(

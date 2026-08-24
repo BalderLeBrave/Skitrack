@@ -49,6 +49,12 @@ Aucune. Séez recollé sur la vitrine Les Arcs.
 
 Val d’Arly : `stationVillage.ts` branché. HMV : URL `acXX`. Plagne : `s_c.location`. Les Arcs : pas d’URL générique Peisey.
 
+## Navigateur des scrapers
+
+Obscura (CDP) remplace Chromium pour Ingénie / occupancy Ceto / Booking web / Airbnb.
+`fetch` MSEM, Open System, Ceto HTML inchangés. Pas de `--stealth` (robots.txt
+toujours lu). Repli : `SKITRACK_BROWSER=chromium`. Binaire : `npm run obscura:fetch`.
+
 ## Non négociable
 
 Pas de faux `live`. Pas de contournement robots. Pas d’OTA hors connecteurs existants.

@@ -34,3 +34,10 @@ Thumbs.db
 .claude/.verify-stamp
 
 .tmp-repro/
+
+# Binaire Obscura (~70 Mo) — `npm run obscura:fetch`
+vendor/obscura/obscura
+vendor/obscura/obscura.exe
+vendor/obscura/*.tar.gz
+vendor/obscura/*.zip
+

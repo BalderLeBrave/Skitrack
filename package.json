@@ -15,6 +15,7 @@
     "package": "npm run build && electron-builder --win --dir",
     "dist": "npm run build && electron-builder --win",
     "scrape:probe-browser": "node tools/probe-ingenie-browser.mjs",
+    "scrape:probe-browser:win": "powershell -ExecutionPolicy Bypass -File scripts/probe-ingenie-browser.ps1",
     "obscura:test": "esbuild src/main/providers/webscrape/obscura.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/obscura-test.mjs --external:playwright --log-level=error && node node_modules/.cache/obscura-test.mjs",
     "sidecar:test": "sidecar\\.venv\\Scripts\\python.exe -m pytest sidecar/tests -q",
     "sidecar:import": "sidecar\\.venv\\Scripts\\python.exe -m skitrack.cli import --countries FR",

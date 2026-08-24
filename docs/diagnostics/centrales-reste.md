@@ -55,7 +55,7 @@ Obscura (CDP) est **opt-in** (`SKITRACK_BROWSER=obscura`). Défaut Chromium :
 v0.2.1 **SIGSEGV** sur `reservation.les2alpes.com` (Maps/jQuery). example.com
 passe.
 
-A/B homepage 2 Alpes (`npm run scrape:probe-browser`, GET `/` seulement) :
+A/B homepage 2 Alpes (`npm run scrape:probe-browser` / `:win` PowerShell) :
 
 | Moteur | Résultat |
 |---|---|

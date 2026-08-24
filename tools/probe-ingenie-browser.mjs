@@ -2,6 +2,7 @@
  * A/B moteurs sur la homepage Ingénie (2 Alpes).
  *
  *   npm run scrape:probe-browser
+ *   npm run scrape:probe-browser:win   (PowerShell, Windows)
  *
  * GET / seulement — robots.txt interdit /*?cid=* et /*?action=*.
  * Ne remplit pas le formulaire, n’appelle pas searchAjax.

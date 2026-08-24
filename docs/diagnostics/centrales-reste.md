@@ -21,9 +21,8 @@ lien vitrine, ou blocked), Dernier passage : **toutes** les stations du référe
 | Alpe du Grand Serre | `reservation.matheysine-tourisme.com` | OS, catalogue meublé vide. |
 | `www.valfrejus.com` | `vueId: null` | Desk live = HMV `ac51-valfrejus.htm`. |
 | Super-Besse, Le Mont-Dore | `www.sancy.com` | CMS Sancy, pas d’API. |
-| Vars, Praz de Lys | Elloha | Calendrier, pas d’API search. |
-| La Clusaz | Apidae + e-liberty | Pas de TOTAL. |
-| Les Karellis | Cloudflare 403 | Pas de Playwright. |
+| Les Karellis | `karellis-reservation.com` | Desk France Montagnes. Cloudflare 403 depuis le sandbox. Pas de Playwright. |
+| Vars, Praz de Lys | Elloha | `GetCalendarAvailability` = dates d’arrivée, **pas de prix**. `Search/Index` HTML sans TOTAL. |
 | Les Angles | 403 / SPA | Pas de Playwright aveugle. |
 | Les Arcs, Pra Loup | Yoplanning SPA | `/api/1/item` = Rollbar, pas un catalogue. |
 | Guzet | `guzet.ski` | Forfaits, pas de meublé. |

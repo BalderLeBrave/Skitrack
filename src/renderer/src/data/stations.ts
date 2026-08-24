@@ -589,7 +589,7 @@ const CENTRAL_BY_SLUG: Record<string, { url: string }> = {
   'les-contamines-montjoie': { url: 'https://reservation.lescontamines.com/' }, // Les Contamines-Montjoie *
   'les-gets': { url: 'https://reservation.lesgets.com/' }, // Les Gets — même desk que Morzine
   'les-houches': { url: 'https://booking.chamonix.com/fr/' }, // Les Houches *
-  'les-karellis': { url: 'https://www.karellis.com/' }, // Les Karellis
+  'les-karellis': { url: 'https://www.karellis-reservation.com/' }, // Les Karellis — desk FM, Cloudflare 403 (link)
   'les-menuires': { url: 'https://fr.locationlesmenuires.com/' }, // Les Menuires
   'les-orres': { url: 'https://reservation.lesorres.com/' }, // Les Orres
   'les-rousses': { url: 'https://www.lesrousses-reservation.com/' }, // Les Rousses

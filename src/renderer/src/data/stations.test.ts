@@ -197,6 +197,7 @@ const CENTRAL_CASES: [string, string][] = [
   ['Flaine', 'flaine.com'],
   ['Guzet', 'guzet.ski'],
   ["Espace Cambre d'Aze", 'eyne.fr'],
+  ['Les Karellis', 'karellis-reservation.com'],
   ['Bellefontaine', 'lesrousses-reservation.com'],
   ['Luz Ardiden', 'luz-ardiden.com'],
   ['Le Sauze', 'sauze.com'],

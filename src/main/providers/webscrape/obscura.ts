@@ -10,7 +10,9 @@
  *
  * Binaire : `SKITRACK_OBSCURA`, `vendor/obscura/`, ou
  * `process.resourcesPath/obscura/` (build Electron).
- * Repli Chromium si `SKITRACK_BROWSER=chromium` ou binaire absent.
+ * Opt-in : `SKITRACK_BROWSER=obscura`. Défaut = Chromium.
+ * Obscura 0.2.1 **SIGSEGV** sur reservation.les2alpes.com (Google Maps /
+ * jQuery widget). example.com passe ; Ingénie ne passe pas.
  */
 
 import { spawn, type ChildProcess } from 'node:child_process'
@@ -26,7 +28,13 @@ const BIN_NAME = process.platform === 'win32' ? 'obscura.exe' : 'obscura'
 
 export function obscuraForcedChromium(): boolean {
   const v = (process.env.SKITRACK_BROWSER || '').trim().toLowerCase()
-  return v === 'chromium' || v === 'chrome' || v === 'playwright'
+  return v !== 'obscura'
+}
+
+/** true seulement si l’utilisateur a demandé Obscura et que le binaire est là. */
+export function shouldUseObscura(): boolean {
+  const v = (process.env.SKITRACK_BROWSER || '').trim().toLowerCase()
+  return v === 'obscura' && resolveObscuraBinary() != null
 }
 
 function here(): string {

@@ -7,5 +7,6 @@ npm run obscura:fetch
 ```
 
 Place `obscura` / `obscura.exe` ici. Non versionné (70 Mo).
-`SKITRACK_BROWSER=chromium` force l’ancien Chromium.
+Opt-in : `SKITRACK_BROWSER=obscura`. Défaut Chromium (Obscura 0.2.1 SIGSEGV
+sur reservation.les2alpes.com).
 `SKITRACK_OBSCURA=/chemin` surcharge le binaire.

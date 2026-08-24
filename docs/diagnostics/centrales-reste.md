@@ -51,9 +51,9 @@ Val d’Arly : `stationVillage.ts` branché. HMV : URL `acXX`. Plagne : `s_c.loc
 
 ## Navigateur des scrapers
 
-Obscura (CDP) remplace Chromium pour Ingénie / occupancy Ceto / Booking web / Airbnb.
-`fetch` MSEM, Open System, Ceto HTML inchangés. Pas de `--stealth` (robots.txt
-toujours lu). Repli : `SKITRACK_BROWSER=chromium`. Binaire : `npm run obscura:fetch`.
+Obscura (CDP) est **opt-in** (`SKITRACK_BROWSER=obscura`). Défaut Chromium :
+v0.2.1 **SIGSEGV** sur `reservation.les2alpes.com` (Maps/jQuery). example.com
+passe. `fetch` MSEM, Open System, Ceto HTML inchangés. Pas de `--stealth`.
 
 ## Non négociable
 

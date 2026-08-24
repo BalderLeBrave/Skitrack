@@ -4,7 +4,8 @@ import {
   closeObscura,
   getObscuraContext,
   obscuraForcedChromium,
-  resolveObscuraBinary
+  resolveObscuraBinary,
+  shouldUseObscura
 } from './obscura'
 
 function check(name: string, ok: boolean) {
@@ -13,11 +14,13 @@ function check(name: string, ok: boolean) {
 }
 
 const prev = process.env.SKITRACK_BROWSER
+delete process.env.SKITRACK_BROWSER
+check('défaut = Chromium (pas Obscura)', shouldUseObscura() === false)
+check('défaut force Chromium', obscuraForcedChromium() === true)
 process.env.SKITRACK_BROWSER = 'chromium'
-check('SKITRACK_BROWSER=chromium force le repli', obscuraForcedChromium() === true)
-process.env.SKITRACK_BROWSER = ''
-check('sans variable, pas de force Chromium', obscuraForcedChromium() === false)
-process.env.SKITRACK_BROWSER = prev
+check('SKITRACK_BROWSER=chromium', shouldUseObscura() === false)
+process.env.SKITRACK_BROWSER = prev || ''
+if (!process.env.SKITRACK_BROWSER) delete process.env.SKITRACK_BROWSER
 
 process.env.SKITRACK_OBSCURA = '/tmp/does-not-exist-obscura'
 const afterMissingEnv = resolveObscuraBinary()
@@ -31,6 +34,9 @@ const vendor = join(process.cwd(), 'vendor', 'obscura', process.platform === 'wi
 const resolved = resolveObscuraBinary()
 if (existsSync(vendor)) {
   check('vendor/obscura résolu', resolved != null && existsSync(resolved))
+  process.env.SKITRACK_BROWSER = 'obscura'
+  check('opt-in obscura si binaire', shouldUseObscura() === true)
+  delete process.env.SKITRACK_BROWSER
   const ctx = await getObscuraContext(null)
   const page = await ctx.newPage()
   await page.goto('https://example.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 })

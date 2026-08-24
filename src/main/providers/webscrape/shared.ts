@@ -1,8 +1,8 @@
 /**
  * Socle commun des scrapers web (Obscura CDP + Playwright + Cheerio + backoff).
  *
- * Moteur par défaut : Obscura (`webscrape/obscura.ts`). Repli Chromium si
- * `SKITRACK_BROWSER=chromium` ou binaire absent.
+ * Moteur par défaut : Chromium. Obscura si `SKITRACK_BROWSER=obscura`
+ * (0.2.1 crash sur les centrales Ingénie — Maps/jQuery).
  *
  * ⚠ Contourne robots.txt / CGU des plateformes. Usage personnel à vos risques.
  * Préférer les API officielles (Booking Demand, Expedia Rapid, LiteAPI) quand
@@ -19,8 +19,7 @@ import { nowIso } from '../types'
 import {
   closeObscura,
   getObscuraContext,
-  obscuraAvailable,
-  obscuraForcedChromium
+  shouldUseObscura
 } from './obscura'
 
 export interface ScrapeAttemptOptions {
@@ -88,7 +87,7 @@ export async function getScrapeContext(
     }
   }
 
-  const preferObscura = !obscuraForcedChromium() && obscuraAvailable()
+  const preferObscura = shouldUseObscura()
   if (preferObscura) {
     sharedContext = await getObscuraContext(desiredProxy, STEALTH_INIT)
     usingObscura = true

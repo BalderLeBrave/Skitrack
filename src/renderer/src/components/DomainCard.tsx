@@ -2,6 +2,7 @@ import type { MouseEvent } from 'react'
 import { AltitudeProfile } from './AltitudeProfile'
 import type { Domain } from '@/data/referentiel'
 import { enfantPrice, hasCoords } from '@/data/referentiel'
+import { forfaitUnitaires, joursDeSki } from '@/domain/forfait'
 import { skiAreaIndex } from '@/data/skiAreas'
 import { snowDepths, snowfallText } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
@@ -38,6 +39,10 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
   const score = derived.scoreOf(d)
   const scoreVal = Math.round(score.total)
   const forfait = derived.forfaitOf(d)
+  // Le forfait affiché suit la durée du séjour : la grille ne publie que 1 j et
+  // 6 j, tout le reste est interpolé et porte le « ≈ ».
+  const joursSejour = joursDeSki(derived.nights)
+  const passStay = forfaitUnitaires(forfait, joursSejour)
   const weather = weatherOf(d.id)
   const snow = snowDepths(weather)
   const dark = state.theme === 'dark'
@@ -99,10 +104,12 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
       color: 'var(--ok)',
       soft: 'var(--ok-soft)'
     })
-  if (d.min >= 1800)
+  // Même mesure que le filtre « front de neige » : une station étiquetée
+  // « haute altitude » ici doit être retenue là-bas, et réciproquement.
+  if (d.village >= 1800)
     tags.push({
       txt: t('tag_high_altitude'),
-      title: `${t('altitude_bottom')} ${fmt(d.min)} m`,
+      title: `${t('altitude_village')} ${fmt(d.village)} m`,
       color: 'var(--brand)',
       soft: 'var(--brand-soft)'
     })
@@ -216,13 +223,23 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
           <div className="domcard__tile">
             {/* Un tarif estimé est signalé par le « ≈ » : le lecteur doit
                 pouvoir distinguer d'un coup d'œil un prix relevé d'un prix
-                dérivé de la taille du domaine. */}
-            <dt>{t('pass_6d_adult')}</dt>
+                dérivé de la taille du domaine — ou interpolé entre les deux
+                seules durées que la grille publie. La vignette suit la durée
+                du séjour choisi ; la grille relevée reste dans le tiroir. */}
+            <dt>{t('pass_stay_adult').replace('{n}', String(joursSejour))}</dt>
             <dd
               className="u-num domcard__tileval"
-              title={forfait.estimated ? t('price_estimated') : undefined}
+              title={
+                forfait.estimated
+                  ? t('price_estimated')
+                  : passStay?.officiel === false
+                    ? t('pass_stay_estimated')
+                    : undefined
+              }
             >
-              {forfait.j6 != null ? `${forfait.estimated ? '≈ ' : ''}${eur(forfait.j6)}` : '—'}
+              {passStay != null
+                ? `${forfait.estimated || !passStay.officiel ? '≈ ' : ''}${eur(passStay.adulte)}`
+                : '—'}
             </dd>
           </div>
           <div className="domcard__tile">

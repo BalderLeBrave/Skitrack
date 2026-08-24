@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { CloseIcon } from './Icons'
 import { resolveSidecarOrigin } from '@/domain/origins'
 import { originsOf } from '@/domain/travel'
-import { enfantPrice } from '@/data/referentiel'
+import { forfaitPourDuree, forfaitUnitaires, joursDeSki } from '@/domain/forfait'
 import type { Person } from '@/domain/costs'
 import { HOUR_OPTS, RENTAL_ADULT, RENTAL_KID, isKid, lessonOf, lessonsCost, lessonsCount } from '@/domain/costs'
 import { useFormat } from '@/hooks/useFormat'
@@ -39,6 +39,12 @@ export function PeopleDrawer(): JSX.Element {
   const rate = d ? derived.esfOf(d) : { kid: 0, adult: 0, source: 'estimé' as const }
   const index = d ? derived.lessonIndexOf(d) : 1
   const trip = d ? derived.sejourInputs(d).trip : { fuel: 0, tolls: 0, total: 0, cars: derived.hh.length }
+  const joursSejour = joursDeSki(derived.nights)
+  const passStay = forfaitUnitaires(forfait, joursSejour)
+  const passes = forfaitPourDuree(forfait, joursSejour, {
+    adultes: derived.adults,
+    enfants: derived.kids
+  })
 
   const close = (): void => patch({ peopleOpen: false })
 
@@ -98,9 +104,13 @@ export function PeopleDrawer(): JSX.Element {
 
   const impacts = [
     {
-      label: 'Forfaits 6 jours',
-      val: eur((forfait.j6 ?? 0) * derived.adults + enfantPrice(forfait) * derived.kids),
-      sub: `${derived.adults} × ${eur(forfait.j6 ?? 0)} adulte + ${derived.kids} × ${eur(enfantPrice(forfait))} enfant`
+      // Le panneau chiffrait toujours six jours, quelle que soit la durée du
+      // séjour : il annonçait donc un poste que le total ne facturait pas.
+      label: t('pass_stay_group').replace('{n}', String(joursSejour)),
+      val: `${passes?.confiance === 'estime' ? '≈ ' : ''}${eur(passes?.total ?? 0)}`,
+      sub: passStay
+        ? `${derived.adults} × ${eur(passStay.adulte)} adulte + ${derived.kids} × ${eur(passStay.enfant)} enfant`
+        : t('pass_stay_none')
     },
     {
       label: 'Location de matériel',

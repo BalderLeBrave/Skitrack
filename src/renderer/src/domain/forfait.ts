@@ -14,13 +14,22 @@
  *
  * ## La convention de durée
  *
- * Le séjour se saisit en dates ; le forfait se vend en **jours de ski**. Un
- * séjour de N nuits donne N jours de ski : on arrive la veille au soir et l'on
- * skie jusqu'au départ. C'est la convention des centrales — « 7 nuits / 6 jours
- * de ski » n'existe que pour les séjours du samedi au samedi, où la journée
- * d'arrivée et celle de départ sont perdues en trajet. Prendre les nuits pour
- * des jours surestime donc légèrement les séjours en semaine complète, et
- * l'appelant qui sait mieux passe le nombre de jours qu'il veut.
+ * Le séjour se saisit en dates ; le forfait se vend en **jours de ski**. La
+ * conversion suit ce que vendent les centrales, pas une règle d'arithmétique :
+ *
+ * * moins de sept nuits → autant de jours que de nuits. Un week-end du vendredi
+ *   soir au dimanche compte deux nuits et se skie bien deux jours ;
+ * * sept nuits ou plus → une nuit de moins. La semaine du samedi au samedi est
+ *   vendue « 7 nuits / 6 jours de ski » : on arrive le samedi soir, on repart
+ *   le samedi matin, et le forfait court du dimanche au vendredi.
+ *
+ * La règle a donc une discontinuité entre six et sept nuits, qui donnent toutes
+ * deux six jours. C'est la réalité commerciale, pas une approximation : elle
+ * fait tomber le séjour par défaut de l'application sur `j6`, un tarif
+ * **relevé**, là où compter sept jours l'aurait fait basculer vers une
+ * estimation 17 % plus chère.
+ *
+ * L'appelant qui sait mieux passe directement son nombre de jours.
  *
  * ## Les règles d'estimation
  *
@@ -64,7 +73,8 @@ export interface Composition {
 
 /** Jours de ski d'un séjour de N nuits. Voir la convention en tête de module. */
 export function joursDeSki(nuits: number): number {
-  return Math.max(1, Math.round(nuits))
+  const n = Math.max(1, Math.round(nuits))
+  return n >= 7 ? n - 1 : n
 }
 
 /**
@@ -100,6 +110,46 @@ export function forfaitAdulte(
   return { prix: brut, officiel: false, plafonneSaison: false }
 }
 
+export interface ForfaitUnitaires {
+  /** Prix d'un forfait adulte pour cette durée, arrondi à l'euro. */
+  adulte: number
+  /** Prix d'un forfait enfant pour cette durée, arrondi à l'euro. */
+  enfant: number
+  /** Vrai quand le tarif enfant vient du relevé et non du ratio. */
+  enfantReleve: boolean
+  officiel: boolean
+  plafonneSaison: boolean
+}
+
+/**
+ * Prix unitaires **arrondis à l'euro**, adulte et enfant, pour une durée.
+ *
+ * L'arrondi se fait ici et une seule fois : le coût du groupe additionne ces
+ * mêmes entiers. Arrondir le total après coup l'aurait fait diverger du
+ * partage par foyer, qui somme personne par personne — un écart d'un ou deux
+ * euros entre deux écrans qui affichent la même chose.
+ */
+export function forfaitUnitaires(
+  grille: Partial<Forfait> | null | undefined,
+  jours: number
+): ForfaitUnitaires | null {
+  const adulte = forfaitAdulte(grille, jours)
+  if (!adulte) return null
+  const d = Math.max(1, Math.round(jours))
+  const j6 = grille?.j6
+
+  // Ratio enfant : relevé à six jours, appliqué tel quel aux autres durées.
+  // Une remise enfant ne varie pas avec la durée sur les grilles relevées.
+  const ratio = grille?.enf6 != null && j6 != null && j6 > 0 ? grille.enf6 / j6 : null
+  return {
+    adulte: Math.round(adulte.prix),
+    enfant: Math.round(ratio != null ? adulte.prix * ratio : adulte.prix),
+    enfantReleve: d === 6 && ratio != null,
+    officiel: adulte.officiel,
+    plafonneSaison: adulte.plafonneSaison
+  }
+}
+
 /**
  * Coût des forfaits d'un groupe pour une durée donnée.
  *
@@ -111,36 +161,30 @@ export function forfaitPourDuree(
   jours: number,
   { adultes, enfants }: Composition
 ): ForfaitDuree | null {
-  const adulte = forfaitAdulte(grille, jours)
-  if (!adulte) return null
+  const unit = forfaitUnitaires(grille, jours)
+  if (!unit) return null
 
   const d = Math.max(1, Math.round(jours))
   const a = Math.max(0, Math.round(adultes))
   const e = Math.max(0, Math.round(enfants))
   if (a + e === 0) return null
 
-  // Ratio enfant : relevé à six jours, appliqué tel quel aux autres durées.
-  // Une remise enfant ne varie pas avec la durée sur les grilles relevées.
-  const j6 = grille?.j6
-  const ratio = grille?.enf6 != null && j6 != null && j6 > 0 ? grille.enf6 / j6 : null
-  const enfant = e > 0 ? (ratio != null ? adulte.prix * ratio : adulte.prix) : null
-
-  const total = adulte.prix * a + (enfant ?? 0) * e
+  const total = unit.adulte * a + unit.enfant * e
   // Officiel seulement si toutes les parts du total le sont : le prix enfant
   // n'est relevé qu'à six jours, et le ratio ne vaut que faute de mieux.
-  const officiel = adulte.officiel && (e === 0 || (d === 6 && ratio != null))
+  const officiel = unit.officiel && (e === 0 || unit.enfantReleve)
 
   return {
-    total: Math.round(total),
+    total,
     parJour: Math.round((total / d / (a + e)) * 100) / 100,
     confiance: officiel ? 'officiel' : 'estime',
     detail: {
       jours: d,
       adultes: a,
       enfants: e,
-      adulte: Math.round(adulte.prix),
-      enfant: enfant != null ? Math.round(enfant) : null,
-      plafonneSaison: adulte.plafonneSaison
+      adulte: unit.adulte,
+      enfant: e > 0 ? unit.enfant : null,
+      plafonneSaison: unit.plafonneSaison
     }
   }
 }

@@ -32,6 +32,7 @@ import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
 import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
 import { activeOrigins, adultsCount, esfRate, kidsCount, lessonIndex, sejourCost, splitRows, tripCost } from '@/domain/costs'
 import { dur as durFmt, nightsBetween, slug } from '@/domain/format'
+import { joursDeSki } from '@/domain/forfait'
 import type { Origin, Travel } from '@/domain/travel'
 import { originsOf, travelOf, worstDistance, worstTravel } from '@/domain/travel'
 import type { Score } from '@/domain/scoring'
@@ -375,6 +376,9 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const sejourInputs = (d: Domain): SejourInputs => ({
       people: state.people,
       forfait: forfaitOf(d),
+      // Le forfait suit la durée du séjour. `nights` vient des dates saisies ;
+      // la conversion en jours de ski est documentée dans `domain/forfait.ts`.
+      jours: joursDeSki(nights),
       trip: tripOf(d),
       optRental: state.optRental,
       optLessons: state.optLessons,

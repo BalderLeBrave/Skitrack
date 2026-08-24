@@ -17,7 +17,7 @@ import { sizeLabel, srcOf, trackKey } from '@/data/lodgings'
 import { accessTimeOf } from '@/data/accessTime'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import type { Domain } from '@/data/referentiel'
-import { enfantPrice } from '@/data/referentiel'
+import { forfaitUnitaires, joursDeSki } from '@/domain/forfait'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { lessonsCount } from '@/domain/costs'
@@ -43,6 +43,10 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
 
   const nights = derived.nights
   const forfait = derived.forfaitOf(d)
+  // Mêmes prix unitaires que le total : la ligne détaillée doit pouvoir se
+  // recomposer à la main sans tomber à côté.
+  const joursSejour = joursDeSki(nights)
+  const passStay = forfaitUnitaires(forfait, joursSejour)
   const cost = derived.sejourCost(lodging, d)
   const trip = derived.sejourInputs(d).trip
 
@@ -346,10 +350,14 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
               </div>
               <div>
                 <span className="u-muted">
-                  Forfaits — {cost.adults} adulte(s) × {forfait.j6 != null ? eur(forfait.j6) : '—'}
-                  {cost.kids ? ` + ${cost.kids} enfant(s) × ${eur(enfantPrice(forfait))}` : ''}
+                  {t('pass_stay_group').replace('{n}', String(joursSejour))} — {cost.adults} adulte(s) ×{' '}
+                  {passStay != null ? eur(passStay.adulte) : '—'}
+                  {cost.kids && passStay != null ? ` + ${cost.kids} enfant(s) × ${eur(passStay.enfant)}` : ''}
                 </span>
-                <span className="u-num">{eur(cost.forfaits)}</span>
+                <span className="u-num" title={cost.forfaitsConfiance === 'estime' ? t('pass_stay_estimated') : undefined}>
+                  {cost.forfaitsConfiance === 'estime' ? '≈ ' : ''}
+                  {eur(cost.forfaits)}
+                </span>
               </div>
               <div>
                 <span className="u-muted">

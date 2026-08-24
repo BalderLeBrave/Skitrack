@@ -46,15 +46,22 @@ check(
 // six premiers : le prix journalier devient plat. Il ne décroît pas davantage,
 // et c'est voulu — aucune grille relevée ne publie de remise au-delà de six
 // jours, et en inventer une reviendrait à fabriquer un tarif.
+//
+// La tolérance d'un centime n'est pas un relâchement : les prix unitaires sont
+// arrondis à l'euro pour que le partage par foyer somme exactement au total du
+// séjour, et cet arrondi fait osciller le prix journalier de quelques centimes
+// autour du plateau. Sans arrondi le plateau serait parfaitement plat, mais les
+// deux écrans afficheraient des totaux différents d'un euro.
+const TOLERANCE_ARRONDI = 0.05
 check(
-  'au-delà, il ne remonte jamais',
-  parJour.every((v, i) => i === 0 || v <= parJour[i - 1]),
+  'au-delà, il ne remonte pas au-delà du bruit d’arrondi',
+  parJour.every((v, i) => i === 0 || v <= parJour[i - 1] + TOLERANCE_ARRONDI),
   parJour
 )
 check(
   'et le plateau vaut le sixième du forfait 6 jours',
-  Math.abs((parJour[6] ?? 0) - 359 / 6) < 0.01,
-  { plateau: parJour[6] }
+  Math.abs((parJour[6] ?? 0) - 359 / 6) < TOLERANCE_ARRONDI,
+  { plateau: parJour[6], attendu: Math.round((359 / 6) * 100) / 100 }
 )
 
 console.log('\n4. Le forfait saison plafonne les longs séjours')
@@ -90,7 +97,13 @@ check('grille sans j1 donne null', forfaitPourDuree({ j6: 359 }, 3, solo) === nu
 check('groupe vide donne null', forfaitPourDuree(troisVallees, 6, { adultes: 0, enfants: 0 }) === null)
 
 console.log('\n7. Nuits et jours de ski')
-check('7 nuits donnent 7 jours de ski', joursDeSki(7) === 7)
+// La semaine du samedi au samedi est vendue « 7 nuits / 6 jours de ski » : on
+// arrive le samedi soir et l'on repart le samedi matin.
+check('7 nuits donnent 6 jours de ski', joursDeSki(7) === 6)
+check('et retombent donc sur un tarif relevé', forfaitPourDuree(troisVallees, joursDeSki(7), solo)?.confiance === 'officiel')
+check('un week-end de 2 nuits se skie 2 jours', joursDeSki(2) === 2)
+check('6 nuits donnent 6 jours', joursDeSki(6) === 6)
+check('14 nuits donnent 13 jours', joursDeSki(14) === 13)
 check('une durée nulle vaut au moins un jour', joursDeSki(0) === 1)
 
 if (failures > 0) {

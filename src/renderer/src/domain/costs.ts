@@ -10,10 +10,11 @@
  */
 
 import type { Domain, Forfait } from '@/data/referentiel'
-import { enfantPrice } from '@/data/referentiel'
 import type { Lodging } from '@/data/lodgings'
 import type { Origin, RouteTable } from './travel'
 import { travelOf } from './travel'
+import type { ForfaitConfiance } from './forfait'
+import { forfaitPourDuree, forfaitUnitaires } from './forfait'
 
 /** Consommation retenue, en euros par kilomètre, aller simple. */
 const FUEL_PER_KM = 0.115
@@ -203,6 +204,11 @@ export function lessonsCount(people: Person[]): number {
 export interface SejourCost {
   lodging: number
   forfaits: number
+  /**
+   * Ce que vaut le poste « forfaits » : relevé, interpolé, ou absent faute de
+   * grille. L'écran s'en sert pour marquer `≈` — jamais sur `j1`/`j6`/`enf6`.
+   */
+  forfaitsConfiance: ForfaitConfiance | 'inconnu'
   rental: number
   lessons: number
   adults: number
@@ -217,6 +223,12 @@ export interface SejourCost {
 export interface SejourInputs {
   people: Person[]
   forfait: Partial<Forfait>
+  /**
+   * Jours de ski facturés — voir `domain/forfait.ts` pour la conversion depuis
+   * les nuits. Le coût multipliait `j6` par le nombre de skieurs quelle que
+   * soit la durée : un week-end de deux jours était facturé six.
+   */
+  jours: number
   trip: TripCost
   optRental: boolean
   optLessons: boolean
@@ -228,14 +240,18 @@ export function sejourCost(lodging: Pick<Lodging, 'total'>, inputs: SejourInputs
   const { people, forfait, trip } = inputs
   const kids = kidsCount(people)
   const adults = Math.max(0, adultsCount(people))
-  const enf = enfantPrice(forfait)
-  const forfaits = (forfait.j6 ?? 0) * adults + enf * kids
+  const passes = forfaitPourDuree(forfait, inputs.jours, { adultes: adults, enfants: kids })
+  // Grille absente : le poste reste à zéro, comme avant ce changement. La
+  // confiance dit `inconnu` pour que l'écran l'annonce au lieu de faire passer
+  // un séjour sans forfaits pour un séjour bon marché.
+  const forfaits = passes?.total ?? 0
   const rental = inputs.optRental ? adults * RENTAL_ADULT + kids * RENTAL_KID : 0
   const lessons = inputs.optLessons ? lessonsCost(people, inputs.esf, inputs.lessonIdx) : 0
 
   return {
     lodging: lodging.total,
     forfaits,
+    forfaitsConfiance: passes?.confiance ?? 'inconnu',
     rental,
     lessons,
     adults,
@@ -293,12 +309,14 @@ export function splitRows(
   const { people, forfait } = inputs
   const homes = [...new Set(people.map((p) => p.home))]
   const heads = people.length || 1
-  const enf = enfantPrice(forfait)
+  // Mêmes prix unitaires que `sejourCost`, arrondis une seule fois : la somme
+  // des foyers tombe alors exactement sur le total du séjour.
+  const unit = forfaitUnitaires(forfait, inputs.jours)
 
   const rows: SplitRow[] = homes.map((hi) => {
     const mates = people.filter((p) => p.home === hi)
     const lodging = Math.round((lodgingTotal * mates.length) / heads)
-    const forfaits = mates.reduce((n, p) => n + (isKid(p) ? enf : (forfait.j6 ?? 0)), 0)
+    const forfaits = mates.reduce((n, p) => n + (isKid(p) ? (unit?.enfant ?? 0) : (unit?.adulte ?? 0)), 0)
     const rental = inputs.optRental
       ? mates.reduce((n, p) => n + (isKid(p) ? RENTAL_KID : RENTAL_ADULT), 0)
       : 0

@@ -563,6 +563,15 @@ const CATALOG = {
   source_derived: ['estimé', 'estimated'],
   data_incomplete: ['Donnée absente de la source', 'Not provided by the source'],
   pass_6d_adult: ['Forfait 6 j adulte', '6-day adult pass'],
+  /** `{n}` = jours de ski du séjour choisi. */
+  pass_stay_adult: ['Forfait {n} j adulte', '{n}-day adult pass'],
+  pass_stay_estimated: [
+    'Tarif interpolé : la grille ne publie que 1 jour et 6 jours.',
+    'Interpolated price: the grid only publishes 1-day and 6-day rates.'
+  ],
+  /** `{n}` = jours de ski du séjour choisi. */
+  pass_stay_group: ['Forfaits {n} jours', 'Passes, {n} days'],
+  pass_stay_none: ['tarif non relevé pour ce domaine', 'no recorded price for this area'],
   pass_zone: ['Zone du forfait', 'Pass area'],
   passes_label: ['Forfaits', 'Passes'],
   passes_note: [

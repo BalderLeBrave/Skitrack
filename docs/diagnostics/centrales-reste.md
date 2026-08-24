@@ -53,7 +53,17 @@ Val d’Arly : `stationVillage.ts` branché. HMV : URL `acXX`. Plagne : `s_c.loc
 
 Obscura (CDP) est **opt-in** (`SKITRACK_BROWSER=obscura`). Défaut Chromium :
 v0.2.1 **SIGSEGV** sur `reservation.les2alpes.com` (Maps/jQuery). example.com
-passe. `fetch` MSEM, Open System, Ceto HTML inchangés. Pas de `--stealth`.
+passe.
+
+A/B homepage 2 Alpes (GET `/` seulement, pas de `?cid=` / `searchAjax`) :
+
+| Moteur | Résultat |
+|---|---|
+| Playwright Chromium | **200**, `input[name=datedeb]` présent, 5,5 s |
+| Playwright Firefox | sandbox sans GTK (`libgtk-3`) — à retester sur Windows |
+| Obscura 0.2.1 | SIGSEGV 139 après Maps/jQuery |
+
+`SKITRACK_BROWSER=firefox` lance Gecko via le même `withPage`. `fetch` MSEM / OS / Ceto HTML inchangés. Pas de `--stealth`.
 
 ## Non négociable
 

@@ -1,8 +1,8 @@
 /**
  * Socle commun des scrapers web (Obscura CDP + Playwright + Cheerio + backoff).
  *
- * Moteur par défaut : Chromium. Obscura si `SKITRACK_BROWSER=obscura`
- * (0.2.1 crash sur les centrales Ingénie — Maps/jQuery).
+ * Moteur par défaut : Chromium. Opt-in :
+ * `SKITRACK_BROWSER=firefox` (Playwright Gecko) ou `obscura` (SIGSEGV Ingénie).
  *
  * ⚠ Contourne robots.txt / CGU des plateformes. Usage personnel à vos risques.
  * Préférer les API officielles (Booking Demand, Expedia Rapid, LiteAPI) quand
@@ -10,7 +10,7 @@
  * Les centrales Ingénie lisent robots.txt **avant** d’ouvrir une page.
  */
 
-import { chromium, type BrowserContext, type Page } from 'playwright'
+import { chromium, firefox, type BrowserContext, type Page } from 'playwright'
 import { join } from 'node:path'
 import { app } from 'electron'
 import type { Accommodation, SearchParams } from '../types'
@@ -96,6 +96,21 @@ export async function getScrapeContext(
   }
 
   usingObscura = false
+  const engine = (process.env.SKITRACK_BROWSER || '').trim().toLowerCase()
+  if (engine === 'firefox') {
+    const ff: Parameters<typeof firefox.launchPersistentContext>[1] = {
+      headless,
+      locale: 'fr-FR',
+      timezoneId: 'Europe/Paris',
+      viewport: { width: 1440, height: 900 }
+    }
+    if (desiredProxy) ff.proxy = toPlaywrightProxy(desiredProxy)
+    sharedContext = await firefox.launchPersistentContext(`${profileDir()}-firefox`, ff)
+    activeProxyRaw = desiredRaw
+    await sharedContext.addInitScript(STEALTH_INIT)
+    return sharedContext
+  }
+
   const common: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless,
     locale: 'fr-FR',

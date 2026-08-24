@@ -90,13 +90,22 @@ Le sweep complet, lui, a classé sans appel (2026-08-24, mêmes dates) :
 mentait par omission — `datedeb` visible ne dit rien de `readEngineContext`,
 de la navigation ni de la SERP. C'est `npm run centrales:sweep` qui fait foi.
 
-Restes du sweep Firefox à départager (seconde passe élargie : `NS_ERROR_NET`,
-`Timeout AJAX`) : Arêches, Chamrousse, Grand-Bornand, Pays de Gex, Gavarnie,
-La Rosière. Avoriaz était une course de lancement sur le profil partagé,
-corrigée par le verrou de `getScrapeContext`. À l'œil aussi : Courchevel,
-Serre-Chevalier, Manigod, Val d'Allos — le moteur répond mais 0 offre ;
-disponibilité réelle ou extraction, seul le détail de `centrales-releve.md`
-le dira.
+Le run de confirmation (même jour, verrou + seconde passe polyglotte + SERP
+serveur sans attente AJAX) : **28/104, 178 offres, 46 stations, 3 vraies
+pannes** (+ 2 robots.txt, voulus). Avoriaz 6 offres — le verrou a éteint la
+course de lancement ; Arêches et Chamrousse servent — plus de
+`NS_ERROR_NET_TIMEOUT` ; La Rosière sort « 0 offre en 7 s » au lieu d'un faux
+timeout de 25 s sur la SERP serveur.
+
+Restes, dans l'ordre d'intérêt :
+
+- **Grand-Bornand, Pays de Gex, Gavarnie** — « Timeout AJAX formulaire (30s) »
+  **y compris rejoués seuls** : ce n'est pas l'infra, leur widget ne monte pas
+  sous Firefox. À sonder : `PROVIDER_DEBUG=true` + `--hosts`, puis les mêmes
+  trois sous `SKITRACK_BROWSER=chromium` pour discriminer moteur / site.
+- **Courchevel, Serre-Chevalier, Manigod, Val d'Allos** — le moteur répond,
+  0 offre, deux runs de suite. Disponibilité réelle ou trou d'extraction :
+  même sonde `--hosts` avec debug.
 
 `SKITRACK_BROWSER=firefox` lance Gecko via le même `withPage`. `fetch` MSEM / OS / Ceto HTML inchangés. Pas de `--stealth`.
 

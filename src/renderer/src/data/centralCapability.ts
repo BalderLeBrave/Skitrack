@@ -15,6 +15,7 @@
  */
 
 import { bookingFamilyOf, isOpenSystemLiveHost } from '@shared/bookingFamilies'
+import type { TranslationKey } from '@/i18n'
 
 export type CentralPriceMode = 'live' | 'link' | 'none' | 'blocked'
 
@@ -23,10 +24,16 @@ export interface CentralCapability {
   /** Hôte de la centrale, si connue. */
   host: string | null
   /**
-   * Libellé court pour l'UI.
+   * Libellé court pour l'UI, en clé de catalogue.
+   *
+   * Ce module portait deux champs par libellé, un français et un anglais, et
+   * `LodgingsPage` n'affichait que le français : l'interface anglaise rendait
+   * du français, et la moitié anglaise ne servait à rien. Une clé passée à
+   * `translate()` fait ce que la paire prétendait faire.
    */
-  labelFr: string
-  labelEn: string
+  labelKey: TranslationKey
+  /** Nom du moteur injecté dans `{src}` — une marque, jamais traduite. */
+  labelSrc?: string
   /** Connecteur technique attendu, si live. */
   connector?: string
   /** Famille technique, pour diagnostics. */
@@ -121,8 +128,7 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
     return {
       mode: 'none',
       host: null,
-      labelFr: 'pas de centrale connue',
-      labelEn: 'no known booking desk'
+      labelKey: 'cap_no_desk'
     }
   }
 
@@ -131,8 +137,7 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       mode: 'blocked',
       host,
       family: 'other',
-      labelFr: 'centrale interdite au relevé automatique (robots.txt)',
-      labelEn: 'desk blocks automated scans (robots.txt)'
+      labelKey: 'cap_robots_blocked'
     }
   }
 
@@ -143,8 +148,8 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       host,
       connector: ceto,
       family: 'orchestra',
-      labelFr: 'prix pour vos dates (Orchestra)',
-      labelEn: 'prices for your dates (Orchestra)'
+      labelKey: 'cap_live_prices',
+      labelSrc: 'Orchestra'
     }
   }
 
@@ -154,8 +159,8 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       host,
       connector: 'station-web',
       family: 'ingenie',
-      labelFr: 'prix pour vos dates (Ingénie)',
-      labelEn: 'prices for your dates (Ingénie)'
+      labelKey: 'cap_live_prices',
+      labelSrc: 'Ingénie'
     }
   }
 
@@ -166,8 +171,8 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       host,
       connector: 'ublo-msem',
       family: 'ublo',
-      labelFr: 'prix pour vos dates (Ublo)',
-      labelEn: 'prices for your dates (Ublo)'
+      labelKey: 'cap_live_prices',
+      labelSrc: 'Ublo'
     }
   }
 
@@ -178,16 +183,15 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
         host,
         connector: 'opensystem',
         family: 'opensystem',
-        labelFr: 'prix pour vos dates (Open System)',
-        labelEn: 'prices for your dates (Open System)'
+        labelKey: 'cap_live_prices',
+        labelSrc: 'Open System'
       }
     }
     return {
       mode: 'link',
       host,
       family: 'opensystem',
-      labelFr: 'lien vers la centrale (pas de catalogue meublé daté)',
-      labelEn: 'link to the desk (no dated lodging catalogue)'
+      labelKey: 'cap_link_no_catalogue'
     }
   }
 
@@ -197,8 +201,8 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       host,
       connector: 'locvacances',
       family: 'locvacances',
-      labelFr: 'prix pour vos dates (LocVacances)',
-      labelEn: 'prices for your dates (LocVacances)'
+      labelKey: 'cap_live_prices',
+      labelSrc: 'LocVacances'
     }
   }
 
@@ -207,8 +211,7 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       mode: 'link',
       host,
       family: family === 'eliberty' ? 'eliberty' : 'other',
-      labelFr: 'lien vers la centrale (prix à confirmer sur le site)',
-      labelEn: 'link to the desk (confirm price on the site)'
+      labelKey: 'cap_link_confirm'
     }
   }
 
@@ -216,8 +219,7 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
     mode: 'link',
     host,
     family: 'other',
-    labelFr: 'lien vers la centrale (prix à confirmer sur le site)',
-    labelEn: 'link to the desk (confirm price on the site)'
+    labelKey: 'cap_link_confirm'
   }
 }
 

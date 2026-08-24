@@ -705,7 +705,7 @@ export function LodgingsPage(): JSX.Element {
                     style={{ margin: 0, fontSize: 12, color }}
                     title={cap.host ?? undefined}
                   >
-                    {icon} {cap.labelFr}
+                    {icon} {t(cap.labelKey).replace('{src}', cap.labelSrc ?? '')}
                     {cap.host ? ` · ${cap.host}` : ''}
                   </p>
                 )

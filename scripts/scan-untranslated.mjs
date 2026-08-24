@@ -99,8 +99,13 @@ const DELIBERATE = new Set([
  * « Gîtes de France » est une marque déposée : elle s'écrit pareil dans les
  * sept langues, et c'est aussi la clé qui identifie la source dans `src` et
  * dans `LODG_SOURCES`. La traduire casserait les deux.
+ *
+ * « Ingénie » est du même bois : le nom du moteur de réservation, injecté dans
+ * `{src}` par `data/centralCapability.ts`. Le libellé qui l'entoure passe par
+ * le catalogue ; seule la marque reste en dur, et son accent suffisait à la
+ * faire compter comme une phrase à traduire.
  */
-const VERBATIM = [/contributeurs OpenStreetMap/, /^€\/h$/, /^Gîtes de France$/]
+const VERBATIM = [/contributeurs OpenStreetMap/, /^€\/h$/, /^Gîtes de France$/, /^Ingénie$/]
 
 /**
  * Plafonds courants. À faire baisser, jamais monter.
@@ -112,7 +117,7 @@ const VERBATIM = [/contributeurs OpenStreetMap/, /^€\/h$/, /^Gîtes de France$
  * Le plafond suit la dette vers le bas : le laisser au-dessus du relevé courant
  * rouvre exactement la marge qu'on vient de payer.
  */
-const BUDGET = { jsx: 0, expr: 268 }
+const BUDGET = { jsx: 0, expr: 263 }
 
 const ACCENTS = 'àâçéèêëîïôùûüœÀÂÇÉÈÊËÎÏÔÙÛÜŒ'
 const ACC = new RegExp(`[${ACCENTS}]`)

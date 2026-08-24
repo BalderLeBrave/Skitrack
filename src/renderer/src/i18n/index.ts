@@ -926,6 +926,23 @@ const CATALOG = {
     'Indiquez une arrivée et un départ valides (arrivée avant départ).',
     'Enter a valid check-in and check-out (check-in before check-out).'
   ],
+  // Capacité « prix datés » d'une centrale — `data/centralCapability.ts`.
+  // `{src}` reçoit le nom du moteur (Orchestra, Ingénie, Ublo, Open System,
+  // LocVacances) : c'est une marque, elle ne se traduit pas.
+  cap_live_prices: ['prix pour vos dates ({src})', 'prices for your dates ({src})'],
+  cap_no_desk: ['pas de centrale connue', 'no known booking desk'],
+  cap_robots_blocked: [
+    'centrale interdite au relevé automatique (robots.txt)',
+    'desk blocks automated scans (robots.txt)'
+  ],
+  cap_link_no_catalogue: [
+    'lien vers la centrale (pas de catalogue meublé daté)',
+    'link to the desk (no dated lodging catalogue)'
+  ],
+  cap_link_confirm: [
+    'lien vers la centrale (prix à confirmer sur le site)',
+    'link to the desk (confirm price on the site)'
+  ],
   lodg_see_imported: ['Voir les logements déjà importés', 'View stays already imported'],
   lodg_awaiting_scan: ['En attente du relevé…', 'Waiting for the scan…'],
   lodg_recheck_again: ['Revérifier à nouveau ↗', 'Check again ↗'],

@@ -654,7 +654,7 @@ function purgeLegacyPrefs(): void {
  * par l'utilisateur et ne sont pas touchés.
  */
 /** Version du schéma des préférences écrite sur le disque. */
-const PREFS_SCHEMA = 4
+const PREFS_SCHEMA = 5
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -678,8 +678,9 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   const num = (v: unknown): number | null => (typeof v === 'number' && isFinite(v) ? v : null)
   const out: Record<string, unknown> = { ...saved }
 
-  // Renommages : « altitude minimum » devient le plancher du bas des pistes, et
-  // « sommet au moins à » le plancher du point culminant.
+  // Renommages : « altitude minimum » devient le plancher de la plage `base`
+  // — qui portait alors le bas des pistes, et porte le front de neige depuis le
+  // schéma 5 —, et « sommet au moins à » le plancher du point culminant.
   const renames: [string, string][] = [
     ['altMin', 'baseMin'],
     ['altMax', 'summitMin'],
@@ -723,6 +724,21 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // peut encore nommer l'allemand ou l'espagnol : on la retire pour que le
   // défaut reprenne, plutôt que de la réécrire sur le disque à chaque session.
   if (!isLanguage(out.lang)) delete out.lang
+
+  // Schéma 5 : `baseMin`/`baseMax` a changé de **mesure**. La plage portait sur
+  // le point le plus bas du domaine ; elle porte désormais sur le front de
+  // neige de la station, seule altitude qui distingue Val Thorens (2 321 m) de
+  // Brides-les-Bains (662 m) sur un domaine qu'elles partagent.
+  //
+  // La valeur n'est pas reportée : « au moins 1 500 m de bas de pistes » et
+  // « au moins 1 500 m de front de neige » ne désignent pas le même ensemble
+  // de stations, et reconduire le nombre ferait passer pour un choix de
+  // l'utilisateur une plage qu'il n'a jamais posée sur cette mesure. La plage
+  // repart donc à son défaut, et le curseur montre ce qu'il filtre.
+  if ((saved.prefsSchema ?? 0) < 5) {
+    delete out.baseMin
+    delete out.baseMax
+  }
 
   return out as Partial<AppState>
 }

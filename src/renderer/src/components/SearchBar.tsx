@@ -284,7 +284,7 @@ export function SearchBar(): JSX.Element {
       </div>
 
       <div className={segClass('alt')}>
-        <span className="sb__label">{t('altitude_bottom')}</span>
+        <span className="sb__label">{t('altitude_village')}</span>
         <button
           type="button"
           className="sb__value"
@@ -297,7 +297,7 @@ export function SearchBar(): JSX.Element {
           <div className="sb__pop sb__pop--wide">
             <RangeFilter
               range="base"
-              label={t('altitude_bottom')}
+              label={t('altitude_village')}
               openKey="range_all_altitudes"
               format={(v) => `${fmt(v)} m`}
               unit="m"

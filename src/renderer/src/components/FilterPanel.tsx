@@ -79,7 +79,7 @@ export function FilterPanel(): JSX.Element {
       <section className="filters__section">
         <RangeFilter
           range="base"
-          label={t('altitude_bottom')}
+          label={t('altitude_village')}
           openKey="range_all_altitudes"
           format={(v) => `${fmt(v)} m`}
           unit="m"

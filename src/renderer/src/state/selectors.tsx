@@ -257,7 +257,14 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       // pas par le libellé du domaine relié. Voir `data/places.ts`.
       if (state.domainQuery.trim() && !places.matches(d, state.domainQuery)) return false
       const R = FILTER_RANGES
-      if (!inRange(d.min, state.baseMin, state.baseMax, R.base.max)) return false
+      // L'altitude qui décide est celle de la **station**, pas le point le plus
+      // bas de son domaine. Les deux se confondent sur un petit domaine et
+      // divergent de plus de 400 m sur soixante-cinq stations : le filtre
+      // portait sur `d.min`, si bien que « au moins 1 800 m » ne retenait que
+      // trois stations sur 283 — ni Val Thorens (village 2 321, pistes
+      // descendant à 1 110), ni Arc 2000, ni La Plagne. Le bas des pistes reste
+      // affiché par le profil d'altitude, qui montre bien `min`–`max`.
+      if (!inRange(d.village, state.baseMin, state.baseMax, R.base.max)) return false
       if (!inRange(d.max, state.summitMin, state.summitMax, R.summit.max)) return false
       if (!inRange(d.km, state.kmMin, state.kmMax, R.km.max)) return false
       if (state.massifs.length > 0 && !state.massifs.includes(d.massif)) return false
@@ -291,7 +298,9 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const comparators: Record<string, (a: Domain, b: Domain) => number> = {
       relevance: (a, b) => score(b).total - score(a).total,
       forfait_asc: (a, b) => (forfaitOf(a).j6 ?? 1e9) - (forfaitOf(b).j6 ?? 1e9),
-      altitude_min_desc: (a, b) => b.min - a.min,
+      // Même mesure que le filtre : l'altitude de la station. La clé garde son
+      // nom, qui est enregistré dans les préférences.
+      altitude_min_desc: (a, b) => b.village - a.village,
       altitude_max_desc: (a, b) => b.max - a.max,
       altitude_max_asc: (a, b) => a.max - b.max,
       slopes_km_desc: (a, b) => b.km - a.km,

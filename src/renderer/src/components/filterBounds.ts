@@ -35,7 +35,10 @@ export interface FilterBounds {
 
 /** Champ du domaine que chaque plage mesure. `null` = pas lisible du référentiel. */
 const FIELD: Partial<Record<FilterRangeKey, (d: Domain) => number>> = {
-  base: (d) => d.min,
+  // Le curseur `base` filtre le front de neige de la station : ses bornes se
+  // relèvent sur la même mesure, sans quoi il serait cadré sur l'amplitude des
+  // bas de pistes et n'atteindrait pas ses propres extrêmes.
+  base: (d) => d.village,
   summit: (d) => d.max,
   km: (d) => d.km
 }

@@ -14,7 +14,7 @@ const VERSION = 'v0.2.1'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'vendor', 'obscura')
 
-function asset(): { file: string; bin: string } {
+function asset() {
   const p = process.platform
   const a = process.arch
   if (p === 'win32') return { file: 'obscura-x86_64-windows.zip', bin: 'obscura.exe' }
@@ -44,6 +44,6 @@ await pipeline(Readable.fromWeb(res.body), createWriteStream(archive))
 if (file.endsWith('.zip')) {
   execFileSync('unzip', ['-o', archive, '-d', OUT], { stdio: 'inherit' })
 } else {
-  execFileSync('tar', ['-xzf', archive, '-C', OUT], { stdio: 'inherit' })
+  execFileSync('tar', ['--no-same-owner', '-xzf', archive, '-C', OUT], { stdio: 'inherit' })
 }
 console.log('ok', dest)

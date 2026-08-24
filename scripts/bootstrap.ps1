@@ -12,27 +12,72 @@ $sidecar = Join-Path $root 'sidecar'
 $venv = Join-Path $sidecar '.venv'
 $venvPython = Join-Path $venv 'Scripts\python.exe'
 
+# Sonde un interpreteur candidat et rend sa version, ou $null s'il ne convient
+# pas. Sous PowerShell 5.1, rediriger le flux d'erreur d'un .exe emballe chaque
+# ligne dans un ErrorRecord ; combine au $ErrorActionPreference='Stop' de
+# l'en-tete, un candidat qui echoue devient une erreur bloquante au lieu de
+# rendre la main au suivant. C'est exactement ce qui arrive quand `py` pointe
+# encore vers un Python desinstalle. On neutralise donc l'arret sur erreur le
+# temps de la sonde, et on capture tout dans un try/catch : un candidat mort
+# doit mener au candidat suivant, jamais a l'arret du script.
+function Get-PythonVersion {
+    param([string]$Command, [string[]]$Arguments = @())
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $probe = $Arguments + @('-c', "import sys; print('%d.%d' % sys.version_info[:2])")
+        $out = & $Command @probe 2>&1
+        if ($LASTEXITCODE -ne 0) { return $null }
+        $text = ($out | Select-Object -Last 1 | Out-String).Trim()
+        if ($text -notmatch '^(\d+\.\d+)') { return $null }
+        if ([version]$matches[1] -lt [version]'3.11') { return $null }
+        return $matches[1]
+    } catch {
+        return $null
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 function Find-Python {
-    # `py -3` est le lanceur officiel : il évite l'alias Microsoft Store qui
-    # ouvre le Store au lieu d'exécuter Python.
+    # `py -3` est le lanceur officiel : il evite l'alias Microsoft Store qui
+    # ouvre le Store au lieu d'executer Python. Mais son defaut peut designer
+    # une version desinstallee : on le sonde, on ne le croit pas sur parole.
     $launcher = Get-Command 'py' -ErrorAction SilentlyContinue
     if ($launcher) {
-        $version = & py -3 -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null
-        if ($LASTEXITCODE -eq 0 -and [version]$version -ge [version]'3.11') {
-            return @{ Command = 'py'; Args = @('-3') ; Version = $version }
-        }
+        $version = Get-PythonVersion -Command 'py' -Arguments @('-3')
+        if ($version) { return @{ Command = 'py'; Args = @('-3') ; Version = $version } }
     }
 
     $direct = Get-Command 'python' -ErrorAction SilentlyContinue
     if ($direct) {
-        # L'alias du Store vit dans WindowsApps et n'exécute rien d'utile.
+        # L'alias du Store vit dans WindowsApps et n'execute rien d'utile.
         if ($direct.Source -notlike '*WindowsApps*') {
-            $version = & python -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null
-            if ($LASTEXITCODE -eq 0 -and [version]$version -ge [version]'3.11') {
-                return @{ Command = 'python'; Args = @(); Version = $version }
-            }
+            $version = Get-PythonVersion -Command 'python'
+            if ($version) { return @{ Command = 'python'; Args = @(); Version = $version } }
         }
     }
+
+    # Dernier recours : demander au lanceur ce qu'il connait et essayer chaque
+    # version explicitement, de la plus recente a la plus ancienne. Utile quand
+    # seul le defaut du lanceur est casse et qu'aucun `python` n'est au PATH.
+    if ($launcher) {
+        $listed = @()
+        $prev = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try { $listed = & py -0p 2>&1 } catch { $listed = @() } finally { $ErrorActionPreference = $prev }
+        $tags = @()
+        foreach ($line in $listed) {
+            $found = [regex]::Match(($line | Out-String), '-V:(\d+\.\d+)')
+            if ($found.Success) { $tags += $found.Groups[1].Value }
+        }
+        $tags = $tags | Select-Object -Unique | Sort-Object { [version]$_ } -Descending
+        foreach ($tag in $tags) {
+            $version = Get-PythonVersion -Command 'py' -Arguments @("-$tag")
+            if ($version) { return @{ Command = 'py'; Args = @("-$tag") ; Version = $version } }
+        }
+    }
+
     return $null
 }
 

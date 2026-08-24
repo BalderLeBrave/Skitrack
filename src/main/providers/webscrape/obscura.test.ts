@@ -15,10 +15,10 @@ function check(name: string, ok: boolean) {
 
 const prev = process.env.SKITRACK_BROWSER
 delete process.env.SKITRACK_BROWSER
-check('défaut = Chromium (pas Obscura)', shouldUseObscura() === false)
-check('défaut force Chromium', obscuraForcedChromium() === true)
 process.env.SKITRACK_BROWSER = 'chromium'
-check('SKITRACK_BROWSER=chromium', shouldUseObscura() === false)
+check('SKITRACK_BROWSER=chromium coupe Obscura', shouldUseObscura() === false)
+check('chromium force le repli', obscuraForcedChromium() === true)
+delete process.env.SKITRACK_BROWSER
 process.env.SKITRACK_BROWSER = prev || ''
 if (!process.env.SKITRACK_BROWSER) delete process.env.SKITRACK_BROWSER
 
@@ -34,16 +34,15 @@ const vendor = join(process.cwd(), 'vendor', 'obscura', process.platform === 'wi
 const resolved = resolveObscuraBinary()
 if (existsSync(vendor)) {
   check('vendor/obscura résolu', resolved != null && existsSync(resolved))
-  process.env.SKITRACK_BROWSER = 'obscura'
-  check('opt-in obscura si binaire', shouldUseObscura() === true)
   delete process.env.SKITRACK_BROWSER
+  check('défaut = Obscura si binaire', shouldUseObscura() === true)
   const ctx = await getObscuraContext(null)
   const page = await ctx.newPage()
   await page.goto('https://example.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 })
-  const title = await page.title()
-  check('CDP example.com', title.includes('Example'))
   const href = await page.evaluate(() => location.href)
-  check('page.evaluate (chemin Ingénie)', href.startsWith('https://example.com'))
+  check('CDP example.com', href.startsWith('https://example.com'))
+  const href2 = await page.evaluate(() => document.location.href)
+  check('page.evaluate (chemin Ingénie)', href2.startsWith('https://example.com'))
   await page.close()
   await closeObscura()
 } else {

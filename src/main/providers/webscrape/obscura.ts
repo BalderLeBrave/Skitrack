@@ -10,9 +10,9 @@
  *
  * Binaire : `SKITRACK_OBSCURA`, `vendor/obscura/`, ou
  * `process.resourcesPath/obscura/` (build Electron).
- * Opt-in : `SKITRACK_BROWSER=obscura`. Défaut = Chromium.
- * Obscura 0.2.1 **SIGSEGV** sur reservation.les2alpes.com (Google Maps /
- * jQuery widget). example.com passe ; Ingénie ne passe pas.
+ * Défaut : Obscura dès que le binaire est là. Repli Chromium seulement si
+ * `SKITRACK_BROWSER=chromium`. Les scripts Maps / pixels qui SIGSEGV 0.2.1
+ * sont coupés (`abort`) pour garder le formulaire Ingénie.
  */
 
 import { spawn, type ChildProcess } from 'node:child_process'
@@ -28,13 +28,14 @@ const BIN_NAME = process.platform === 'win32' ? 'obscura.exe' : 'obscura'
 
 export function obscuraForcedChromium(): boolean {
   const v = (process.env.SKITRACK_BROWSER || '').trim().toLowerCase()
-  return v !== 'obscura'
+  return v === 'chromium' || v === 'chrome' || v === 'playwright'
 }
 
-/** true seulement si l’utilisateur a demandé Obscura et que le binaire est là. */
+/** true si le binaire est là et que l’utilisateur n’a pas forcé Chromium/Firefox. */
 export function shouldUseObscura(): boolean {
   const v = (process.env.SKITRACK_BROWSER || '').trim().toLowerCase()
-  return v === 'obscura' && resolveObscuraBinary() != null
+  if (v === 'chromium' || v === 'chrome' || v === 'playwright' || v === 'firefox') return false
+  return resolveObscuraBinary() != null
 }
 
 function here(): string {
@@ -222,6 +223,37 @@ const CONTEXT_OPTS = {
   }
 } as const
 
+/** Scripts tiers qui font SIGSEGV Obscura 0.2.1 (Maps, pixels) — pas le formulaire. */
+const OBSCURA_ABORT = [
+  'maps.googleapis.com',
+  'maps.gstatic.com',
+  'google.com/maps',
+  'connect.facebook.net',
+  'facebook.com/tr',
+  'googletagmanager.com',
+  'google-analytics.com',
+  'doubleclick.net',
+  'googlesyndication.com',
+  'cmp.sirdata.net',
+  'cdn.sirdata.io'
+]
+
+function shouldAbort(url: string): boolean {
+  const u = url.toLowerCase()
+  return OBSCURA_ABORT.some((h) => u.includes(h))
+}
+
+const hardened = new WeakSet<BrowserContext>()
+
+async function hardenObscuraContext(ctx: BrowserContext): Promise<void> {
+  if (hardened.has(ctx)) return
+  hardened.add(ctx)
+  await ctx.route('**/*', (route) => {
+    if (shouldAbort(route.request().url())) return route.abort()
+    return route.continue()
+  })
+}
+
 export async function getObscuraContext(
   proxy?: ProxyConfig | null,
   initScript?: string
@@ -235,6 +267,7 @@ export async function getObscuraContext(
       ...(proxy ? { proxy: toPlaywrightProxy(proxy) } : {})
     }))
   if (initScript) await ctx.addInitScript(initScript)
+  await hardenObscuraContext(ctx)
   return ctx
 }
 

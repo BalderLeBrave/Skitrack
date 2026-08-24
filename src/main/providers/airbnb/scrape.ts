@@ -8,7 +8,7 @@
  *
  * v3 note la session (0 bot → 1 humain). On maximise le score sans solveur tiers :
  *
- * 1. **Chrome / Chromium** — Obscura opt-in (`SKITRACK_BROWSER=obscura`) ; 0.2.1 crash sur les centrales JS lourdes.
+ * 1. **Obscura CDP** (repli Chromium si `SKITRACK_BROWSER=chromium`).
  * 2. **Profil persistant** — cookies + trust qui s’accumulent.
  * 3. **Stealth init** — webdriver, chrome, plugins, hardware, iframe contentWindow…
  * 4. **Warm-up** — passage sur la homepage Airbnb avant la recherche.

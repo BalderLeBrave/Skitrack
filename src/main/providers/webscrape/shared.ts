@@ -1,8 +1,8 @@
 /**
  * Socle commun des scrapers web (Obscura CDP + Playwright + Cheerio + backoff).
  *
- * Moteur par défaut : Chromium. Opt-in :
- * `SKITRACK_BROWSER=firefox` (Playwright Gecko) ou `obscura` (SIGSEGV Ingénie).
+ * Moteur par défaut : Obscura (binaire vendor). Repli Chromium si
+ * `SKITRACK_BROWSER=chromium`. Firefox : `SKITRACK_BROWSER=firefox`.
  *
  * ⚠ Contourne robots.txt / CGU des plateformes. Usage personnel à vos risques.
  * Préférer les API officielles (Booking Demand, Expedia Rapid, LiteAPI) quand

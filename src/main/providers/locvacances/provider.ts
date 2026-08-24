@@ -31,6 +31,10 @@ function toAccommodation(item: LocvacancesListing, params: SearchParams): Accomm
     country: 'France',
     checkIn: item.priceCheckIn || params.checkIn,
     checkOut: item.priceCheckOut || params.checkOut,
+    // Lus dans la fiche (« Chalet 14personnes »), jamais recopiés de la demande.
+    guests: item.capacity ?? undefined,
+    rooms: item.rooms ?? undefined,
+    bedrooms: item.bedrooms ?? undefined,
     totalPrice: item.total,
     currency: item.currency,
     priceConfidence: 'total_confirmed',

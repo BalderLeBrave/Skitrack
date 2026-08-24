@@ -111,6 +111,13 @@ La sonde `--hosts` + `PROVIDER_DEBUG` du même jour a tout tranché :
   notre parcours.
 - **Manigod** — sain : searchAjax aux bonnes dates, `nbResultsFiche: 0` sur
   les fiches. Pas de stock daté pour février 2027.
+- Le sweep de vérification (même jour) a scellé le correctif Courchevel /
+  Serre-Chevalier : **4 offres en 12 s** et **2 offres en 17 s**, flotte à
+  **28/104, 190 offres, 48 stations**. Il a aussi montré que les trois hôtes
+  reclassés `link` étaient encore sondés (12 s ×2 chacun) : sortis de
+  `INGENIE_HOSTS`, ils retombaient dans la règle « préfixe reservation. ».
+  D'où `SHORTFORM_HOSTS` dans `ingenieHosts.ts` — `shouldAttemptIngenie`
+  les refuse désormais (`reason: 'short-form'`, 0 offre en 0 s).
 - **Val d'Allos** — encore ouvert : le widget envoie `searchAjax` avec la
   semaine par défaut (29/08/2026) malgré la repose de `datedeb` avant le clic
   — aucun `datedeb-rewritten` loggé, donc l'input porte la bonne valeur mais

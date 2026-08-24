@@ -64,6 +64,21 @@ export const ROBOTS_BLOCKED_HOSTS = new Set([
   'reservation.montgenevre.com'
 ])
 
+/**
+ * Hôtes Ingénie dont le moteur n'est PAS atteignable par notre parcours :
+ * la homepage ET /booking ne montent qu'un « short form » sans datedeb
+ * (`action=getShortForm` ; Gavarnie répond 301 Cloudflare sur /booking).
+ * Sondés deux fois le 2026-08-24, y compris seuls avec pause. Sortis de
+ * `INGENIE_HOSTS`, ils retombaient dans la règle « préfixe reservation. »
+ * et brûlaient encore 12 s ×2 par sweep (constaté au run du même jour) —
+ * d'où cette exclusion explicite.
+ */
+export const SHORTFORM_HOSTS = new Set([
+  'reservation.legrandbornand.com',
+  'reservation.paysdegex-montsjura.com',
+  'reservation.valleesdegavarnie.com'
+])
+
 function hostOf(url: string): string | null {
   try {
     return new URL(url).hostname.toLowerCase()
@@ -85,6 +100,9 @@ export function shouldAttemptIngenie(url: string): { attempt: boolean; reason?: 
   if (!host) return { attempt: false, reason: 'url-invalide' }
   if (ROBOTS_BLOCKED_HOSTS.has(host)) {
     return { attempt: false, reason: 'robots' }
+  }
+  if (SHORTFORM_HOSTS.has(host)) {
+    return { attempt: false, reason: 'short-form' }
   }
   if (isKnownNonIngenie(host) || isKnownNonIngenie(url)) {
     return { attempt: false, reason: 'hors-ingenie' }

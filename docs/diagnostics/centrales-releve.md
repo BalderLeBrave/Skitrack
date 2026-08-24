@@ -13,8 +13,8 @@
 | Qui répondent sans offre | 71 |
 | En échec | 5 |
 | Rattrapées en seconde passe | 0 |
-| Stations couvertes | **46** / 157 |
-| Offres relevées | 178 |
+| Stations couvertes | **48** / 157 |
+| Offres relevées | 190 |
 
 ## Champs renseignés, sur l’ensemble des offres relevées
 
@@ -22,14 +22,14 @@
 | --- | ---: |
 | prix | 100 % |
 | prix ferme | 100 % |
-| personnes | 83 % |
-| pièces | 49 % |
+| personnes | 81 % |
+| pièces | 57 % |
 | chambres | 0 % |
-| surface | 98 % |
-| coordonnées | 63 % |
-| ville | 56 % |
-| photo | 63 % |
-| avis | 44 % |
+| surface | 96 % |
+| coordonnées | 68 % |
+| ville | 62 % |
+| photo | 68 % |
+| avis | 38 % |
 | équipements | 1 % |
 | lien | 100 % |
 
@@ -47,26 +47,26 @@ chose sur la donnée disponible, pas sur le connecteur.
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | `booking.chamonix.com` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
 | `booking.prazsurarly.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `booking.valdisere.com` | 1 | 10 | 41 s | 10 | 0 | 0 | 10 | 10 | ok |
+| `booking.valdisere.com` | 1 | 12 | 39 s | 12 | 0 | 0 | 11 | 12 | ok |
 | `booking.yoplanning.pro` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
 | `font-romeu.fr` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `fr.locationlesmenuires.com` | 1 | 4 | 27 s | 4 | 4 | 3 | 4 | 4 | ok |
-| `fr.locationsaintmartin.com` | 1 | 2 | 10 s | 2 | 2 | 2 | 2 | 2 | ok |
+| `fr.locationlesmenuires.com` | 1 | 2 | 16 s | 2 | 2 | 2 | 2 | 2 | ok |
+| `fr.locationsaintmartin.com` | 1 | 8 | 25 s | 8 | 8 | 8 | 8 | 8 | ok |
 | `hiver.auron.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `isola2000.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `lesangles.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `luz-ardiden.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `megeve-booking.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `metabief.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `resa.saintlary.com` | 2 | 6 | 20 s | 6 | 6 | 6 | 6 | 6 | ok |
+| `resa.saintlary.com` | 2 | 12 | 27 s | 12 | 11 | 10 | 12 | 12 | ok |
 | `reservation.alpedhuez.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `reservation.areches-beaufort.com` | 1 | 2 | 22 s | 2 | 1 | 0 | 2 | 2 | ok |
+| `reservation.areches-beaufort.com` | 1 | 1 | 19 s | 1 | 1 | 0 | 1 | 1 | ok |
 | `reservation.auris-en-oisans.fr` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `reservation.avoriaz.com` | 1 | 6 | 22 s | 6 | 6 | 5 | 6 | 6 | ok |
+| `reservation.avoriaz.com` | 1 | 9 | 25 s | 9 | 7 | 8 | 9 | 9 | ok |
 | `reservation.ax-ski.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.chamberymontagnes.com` | 1 | — | 6 s | — | — | — | — | — | aucune offre |
 | `reservation.combloux.com` | 1 | — | 0 s | — | — | — | — | — | échec : station-web : https://reservation.combloux.com interdit le relevé automatique (robots.txt) |
-| `reservation.courchevel.com` | 4 | — | 23 s | — | — | — | — | — | aucune offre |
+| `reservation.courchevel.com` | 4 | 4 | 12 s | 4 | 4 | 2 | 0 | 4 | ok |
 | `reservation.haute-maurienne-vanoise.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.haute-maurienne-vanoise.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.haute-maurienne-vanoise.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
@@ -75,44 +75,44 @@ chose sur la donnée disponible, pas sur le connecteur.
 | `reservation.haute-maurienne-vanoise.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.haute-maurienne-vanoise.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.la-toussuire.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `reservation.labresse.net` | 1 | 11 | 16 s | 11 | 11 | 0 | 11 | 0 | ok |
-| `reservation.larosiere.net` | 1 | — | 7 s | — | — | — | — | — | aucune offre |
+| `reservation.labresse.net` | 1 | 9 | 19 s | 9 | 9 | 0 | 9 | 0 | ok |
+| `reservation.larosiere.net` | 1 | 6 | 19 s | 6 | 6 | 5 | 6 | 6 | ok |
 | `reservation.le-corbier.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `reservation.lecollet.com` | 1 | 1 | 4 s | 1 | 1 | 0 | 1 | 1 | ok |
+| `reservation.lecollet.com` | 1 | 1 | 5 s | 1 | 1 | 0 | 1 | 1 | ok |
 | `reservation.ledevoluy.com` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
-| `reservation.legrandbornand.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
-| `reservation.les2alpes.com` | 1 | 12 | 27 s | 12 | 12 | 5 | 12 | 12 | ok |
+| `reservation.legrandbornand.com` | 1 | — | 44 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (12s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.les2alpes.com` | 1 | 2 | 12 s | 2 | 2 | 1 | 2 | 2 | ok |
 | `reservation.les7laux.com` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
-| `reservation.lescarroz.com` | 1 | 12 | 30 s | 12 | 11 | 2 | 11 | 0 | ok |
-| `reservation.lescontamines.com` | 1 | 2 | 4 s | 2 | 0 | 1 | 2 | 0 | ok |
-| `reservation.lesgets.com` | 2 | 3 | 28 s | 3 | 3 | 0 | 0 | 3 | ok |
-| `reservation.lesorres.com` | 3 | 12 | 21 s | 12 | 12 | 12 | 12 | 12 | ok |
-| `reservation.lessaisies.com` | 3 | 1 | 38 s | 1 | 1 | 1 | 1 | 1 | ok |
+| `reservation.lescarroz.com` | 1 | 12 | 32 s | 12 | 11 | 5 | 12 | 0 | ok |
+| `reservation.lescontamines.com` | 1 | 6 | 9 s | 6 | 2 | 3 | 6 | 0 | ok |
+| `reservation.lesgets.com` | 2 | — | 15 s | — | — | — | — | — | aucune offre |
+| `reservation.lesorres.com` | 3 | 12 | 25 s | 12 | 12 | 12 | 12 | 12 | ok |
+| `reservation.lessaisies.com` | 3 | 1 | 18 s | 1 | 1 | 1 | 1 | 1 | ok |
 | `reservation.matheysine-tourisme.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.montgenevre.com` | 1 | — | 0 s | — | — | — | — | — | échec : station-web : https://reservation.montgenevre.com interdit le relevé automatique (robots.t |
-| `reservation.orcieres.com` | 1 | 2 | 7 s | 2 | 2 | 2 | 2 | 2 | ok |
-| `reservation.paysdegex-montsjura.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.orcieres.com` | 1 | 5 | 17 s | 5 | 5 | 4 | 3 | 5 | ok |
+| `reservation.paysdegex-montsjura.com` | 1 | — | 44 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (12s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
 | `reservation.saintfrancoislongchamp.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.saintsorlindarves.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `reservation.samoens.com` | 2 | 12 | 19 s | 12 | 6 | 5 | 12 | 12 | ok |
-| `reservation.serre-chevalier.com` | 4 | — | 32 s | — | — | — | — | — | aucune offre |
-| `reservation.tignes.net` | 5 | 5 | 28 s | 5 | 5 | 3 | 5 | 5 | ok |
-| `reservation.valdarly-montblanc.com` | 4 | 1 | 7 s | 1 | 1 | 0 | 1 | 1 | ok |
-| `reservation.valleesdegavarnie.com` | 1 | — | 32 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
-| `reservation.valthorens.com` | 2 | 6 | 28 s | 6 | 6 | 6 | 6 | 6 | ok |
+| `reservation.samoens.com` | 2 | 12 | 24 s | 12 | 6 | 5 | 12 | 12 | ok |
+| `reservation.serre-chevalier.com` | 4 | 2 | 17 s | 2 | 2 | 2 | 2 | 2 | ok |
+| `reservation.tignes.net` | 5 | 5 | 30 s | 5 | 5 | 3 | 5 | 5 | ok |
+| `reservation.valdarly-montblanc.com` | 4 | — | 5 s | — | — | — | — | — | aucune offre |
+| `reservation.valleesdegavarnie.com` | 1 | — | 46 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (12s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.valthorens.com` | 2 | 6 | 21 s | 6 | 6 | 6 | 6 | 6 | ok |
 | `reservation.vaujany.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.villard-reculas.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservation.villarddelans-correnconenvercors.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `reservations.meribel.net` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
 | `sites.valdabondance.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.alpes-sudlocations.com` | 2 | — | 0 s | — | — | — | — | — | aucune offre |
-| `www.ballons-hautes-vosges.com` | 1 | 7 | 7 s | 7 | 7 | 6 | 7 | 0 | ok |
+| `www.ballons-hautes-vosges.com` | 1 | 7 | 9 s | 7 | 7 | 6 | 7 | 0 | ok |
 | `www.brides-les-bains.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `www.chamrousse.com` | 3 | 4 | 12 s | 4 | 3 | 3 | 4 | 0 | ok |
-| `www.chatelreservation.com` | 1 | 12 | 49 s | 12 | 12 | 8 | 12 | 12 | ok |
+| `www.chamrousse.com` | 3 | 1 | 10 s | 1 | 0 | 0 | 1 | 0 | ok |
+| `www.chatelreservation.com` | 1 | 12 | 51 s | 12 | 12 | 11 | 12 | 12 | ok |
 | `www.chioula.fr` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.flaine.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `www.gerardmer-reservation.net` | 1 | 6 | 14 s | 6 | 6 | 0 | 6 | 0 | ok |
+| `www.gerardmer-reservation.net` | 1 | 3 | 10 s | 3 | 3 | 0 | 3 | 0 | ok |
 | `www.grand-massif.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.guzet.ski` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.haute-garonne-montagne.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
@@ -125,7 +125,7 @@ chose sur la donnée disponible, pas sur le connecteur.
 | `www.leman-mountains-explore.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.lemourtis.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.lesarcs.com` | 2 | — | 0 s | — | — | — | — | — | aucune offre |
-| `www.lesrousses-reservation.com` | 2 | 12 | 16 s | 12 | 12 | 0 | 12 | 12 | ok |
+| `www.lesrousses-reservation.com` | 2 | 12 | 17 s | 12 | 12 | 0 | 12 | 12 | ok |
 | `www.manigod.com` | 1 | — | 8 s | — | — | — | — | — | aucune offre |
 | `www.mole-brasses.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.montclar.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
@@ -136,7 +136,7 @@ chose sur la donnée disponible, pas sur le connecteur.
 | `www.peisey-vallandry.com` | 1 | 10 | 33 s | 10 | 0 | 2 | 10 | 0 | ok |
 | `www.porte-puymorens.net` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.reservationpralognan.fr` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `www.risoul.com` | 1 | 2 | 7 s | 2 | 2 | 2 | 2 | 0 | ok |
+| `www.risoul.com` | 1 | — | 17 s | — | — | — | — | — | aucune offre |
 | `www.saintefoy-reservation.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.saintgervais.com` | 2 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.saintjeandarves.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
@@ -145,8 +145,8 @@ chose sur la donnée disponible, pas sur le connecteur.
 | `www.valberg.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.valdallos.com` | 2 | — | 12 s | — | — | — | — | — | aucune offre |
 | `www.valdazun.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
-| `www.valloire.com` | 1 | 3 | 16 s | 3 | 3 | 3 | 3 | 3 | ok |
-| `www.valmeinier-reservation.com` | 1 | 12 | 7 s | 12 | 12 | 11 | 12 | 0 | ok |
+| `www.valloire.com` | 1 | 6 | 27 s | 6 | 6 | 3 | 6 | 6 | ok |
+| `www.valmeinier-reservation.com` | 1 | 12 | 9 s | 12 | 12 | 9 | 11 | 0 | ok |
 | `www.valmorel.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 | `www.vercors-experience.com` | 1 | — | 14 s | — | — | — | — | — | aucune offre |
 
@@ -158,7 +158,7 @@ chose sur la donnée disponible, pas sur le connecteur.
 
 ### `reservation.legrandbornand.com` — Le Grand-Bornand
 
-> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
+> Timeout AJAX formulaire Ingénie (12s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.montgenevre.com` — Montgenèvre
 
@@ -166,11 +166,11 @@ chose sur la donnée disponible, pas sur le connecteur.
 
 ### `reservation.paysdegex-montsjura.com` — Monts Jura
 
-> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
+> Timeout AJAX formulaire Ingénie (12s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.valleesdegavarnie.com` — Gavarnie-Gèdre
 
-> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
+> Timeout AJAX formulaire Ingénie (12s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ## Répondent sans offre
 
@@ -192,7 +192,6 @@ d’Ingénie. Les deux se distinguent en ouvrant le lien.
 - `reservation.auris-en-oisans.fr` — Auris-en-Oisans
 - `reservation.ax-ski.com` — Ax 3 Domaines
 - `reservation.chamberymontagnes.com` — Savoie Grand Revard
-- `reservation.courchevel.com` — Courchevel, Courchevel Le Praz, Courchevel Moriond 1650, Courchevel Village 1550
 - `reservation.haute-maurienne-vanoise.com` — Aussois
 - `reservation.haute-maurienne-vanoise.com` — Bessans
 - `reservation.haute-maurienne-vanoise.com` — Bonneval-sur-Arc
@@ -201,14 +200,14 @@ d’Ingénie. Les deux se distinguent en ouvrant le lien.
 - `reservation.haute-maurienne-vanoise.com` — Val Cenis
 - `reservation.haute-maurienne-vanoise.com` — Valfréjus
 - `reservation.la-toussuire.com` — La Toussuire
-- `reservation.larosiere.net` — La Rosière
 - `reservation.le-corbier.com` — Le Corbier
 - `reservation.ledevoluy.com` — La Joue du Loup, Le Dévoluy, Super-Dévoluy
 - `reservation.les7laux.com` — Le Pleynet, Les 7 Laux, Prapoutel
+- `reservation.lesgets.com` — Les Gets, Morzine
 - `reservation.matheysine-tourisme.com` — Alpe du Grand Serre
 - `reservation.saintfrancoislongchamp.com` — Saint-François-Longchamp
 - `reservation.saintsorlindarves.com` — Saint-Sorlin-d’Arves
-- `reservation.serre-chevalier.com` — Serre Chevalier Briancon, Serre Chevalier Chantemerle, Serre Chevalier Le Monêtier, Serre Chevalier Villeneuve
+- `reservation.valdarly-montblanc.com` — Crest-Voland Cohennoz, Flumet - Saint Nicolas La Chapelle, La Giettaz, Notre-Dame-de-Bellecombe
 - `reservation.vaujany.com` — Vaujany
 - `reservation.villard-reculas.com` — Villard-Reculas
 - `reservation.villarddelans-correnconenvercors.com` — Villard-de-Lans – Corrençon
@@ -239,6 +238,7 @@ d’Ingénie. Les deux se distinguent en ouvrant le lien.
 - `www.paysdesecrins.com` — Puy-Saint-Vincent, Puy-Saint-Vincent 1600, Puy-Saint-Vincent 1800
 - `www.porte-puymorens.net` — Porté-Puymorens
 - `www.reservationpralognan.fr` — Pralognan-la-Vanoise
+- `www.risoul.com` — Risoul
 - `www.saintefoy-reservation.com` — Sainte-Foy-Tarentaise
 - `www.saintgervais.com` — Saint-Gervais Mont-Blanc, Saint-Nicolas-de-Véroce
 - `www.saintjeandarves.com` — Saint-Jean-d’Arves

@@ -721,6 +721,11 @@ const CATALOG = {
     'Setting held by the local engine, unavailable until it has started.'
   ],
   engine_restart: ['Redémarrer', 'Restart'],
+  filters_advanced: ['Avancé', 'Advanced'],
+  filters_advanced_help: [
+    'Les critères qui départagent deux stations déjà comparables. Repliés par défaut : la recherche marche sans eux.',
+    'The criteria that separate two already-comparable resorts. Folded by default: search works without them.'
+  ],
   engine_ready: ['Le moteur local tourne', 'The local engine is running'],
   engine_stopped: ['Le moteur local est arrêté', 'The local engine is stopped'],
   engine_stopped_help: [

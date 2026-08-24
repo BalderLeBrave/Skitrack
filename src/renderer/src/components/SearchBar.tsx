@@ -1,9 +1,14 @@
 /**
  * Barre de recherche en pilule — quatre segments et une loupe.
  *
+ * Où l'on va, quand, à combien, pour combien. L'altitude en a occupé un
+ * cinquième : c'est un critère qui départage deux stations déjà comparables,
+ * pas une façon d'en chercher une. Elle est passée dans le panneau Avancé, où
+ * elle vivait déjà.
+ *
  * Elle ne calcule rien et n'ouvre aucun écran de son propre chef : chaque
  * segment écrit dans **l'état existant** (`domainQuery`, `arrDate`/`depDate`,
- * `travelers`, `baseMin`/`baseMax`) et la loupe fait ce que faisait le bouton
+ * `travelers`, `budgetMax`) et la loupe fait ce que faisait le bouton
  * « Comparer les domaines » — `patch({ tab: 'recherche' })`. Aucun second
  * système de dates : les semaines sont celles de `data/snow.ts`, les mêmes que
  * l'écran Logements applique.
@@ -20,7 +25,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DateRangePicker } from './DateRangePicker'
-import { RangeFilter } from './RangeFilter'
 import { placeIndex } from '@/data/places'
 import type { PlaceSuggestion } from '@/data/places'
 import { stationsNear } from '@/data/nearbyStations'
@@ -44,7 +48,7 @@ const NEARBY_DEBOUNCE_MS = 450
 /** Plafond de saisie : au-delà, le champ ne filtrerait plus rien. */
 const BUDGET_MAX = 100_000
 
-type Segment = 'dest' | 'dates' | 'people' | 'alt' | 'budget'
+type Segment = 'dest' | 'dates' | 'people' | 'budget'
 
 export function SearchBar(): JSX.Element {
   const { state, patch, domains } = useApp()
@@ -323,29 +327,6 @@ export function SearchBar(): JSX.Element {
             </svg>
           </button>
         </div>
-      </div>
-
-      <div className={segClass('alt')}>
-        <span className="sb__label">{t('altitude_village')}</span>
-        <button
-          type="button"
-          className="sb__value"
-          aria-expanded={open === 'alt'}
-          onClick={() => setOpen(open === 'alt' ? null : 'alt')}
-        >
-          {`${fmt(state.baseMin)} m`}
-        </button>
-        {open === 'alt' && (
-          <div className="sb__pop sb__pop--wide">
-            <RangeFilter
-              range="base"
-              label={t('altitude_village')}
-              openKey="range_all_altitudes"
-              format={(v) => `${fmt(v)} m`}
-              unit="m"
-            />
-          </div>
-        )}
       </div>
 
       <div className={segClass('budget')}>

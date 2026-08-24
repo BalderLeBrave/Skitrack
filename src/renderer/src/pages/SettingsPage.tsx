@@ -19,7 +19,6 @@
 
 import { useEffect, useState } from 'react'
 import type { AppInfo } from '@shared/ipc-contract'
-import { WeightsPanel } from '@/components/WeightsPanel'
 import { useSidecar } from '@/hooks/useSidecar'
 import { LANGUAGES, LANGUAGE_LABELS, useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
@@ -150,8 +149,6 @@ export function SettingsPage(): JSX.Element {
                 </span>
               </div>
             </section>
-
-            <WeightsPanel />
 
             <section id="set-shortcuts" className="panel panel--flat settings__section">
               <h2>Raccourcis clavier</h2>

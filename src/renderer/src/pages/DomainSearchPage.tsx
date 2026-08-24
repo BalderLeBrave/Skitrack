@@ -264,7 +264,7 @@ export function DomainSearchPage(): JSX.Element {
             open={state.searchFiltersOpen}
             onToggle={() => patch({ searchFiltersOpen: !state.searchFiltersOpen })}
             onClose={() => patch({ searchFiltersOpen: false })}
-            label={t('filters')}
+            label={t('filters_advanced')}
             count={active.length}
           >
             <FilterPanel />

@@ -5,6 +5,7 @@ import { useDerived } from '@/state/selectors'
 import { computeRoutes, routesCoverage } from '@/domain/travel'
 import { useFormat } from '@/hooks/useFormat'
 import { RangeFilter } from './RangeFilter'
+import { WeightsPanel } from './WeightsPanel'
 import { useActiveFilters } from './activeFilters'
 
 /** Ordre canonique des massifs français, du plus fourni au moins fourni. */
@@ -63,7 +64,7 @@ export function FilterPanel(): JSX.Element {
   return (
     <aside className="filters">
       <div className="filters__head">
-        <h2 className="filters__title">{t('filters')}</h2>
+        <h2 className="filters__title">{t('filters_advanced')}</h2>
         {active.length > 0 && (
           <>
             <span className="filters__badge">
@@ -223,6 +224,16 @@ export function FilterPanel(): JSX.Element {
           <input type="checkbox" checked={state.linked} onChange={(e) => patch({ linked: e.target.checked })} />
           {t('filter_linked')}
         </label>
+      </details>
+
+      {/* Les poids arrivent des Réglages, où ils voisinaient le thème et la
+          langue. Ils ne configurent pas l'application : ils pondèrent le score
+          de chaque vignette, et c'est ici qu'on voit la liste se réordonner en
+          les déplaçant. Repliés, parce qu'ils sont le réglage le plus expert du
+          panneau le plus expert. */}
+      <details className="filters__section filters__details">
+        <summary>{t('settings_weights')}</summary>
+        <WeightsPanel />
       </details>
 
       <button type="button" className="btn btn--strong" onClick={resetAll}>

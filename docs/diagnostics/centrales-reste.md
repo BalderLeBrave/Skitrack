@@ -75,7 +75,7 @@ A/B homepage 2 Alpes (`npm run scrape:probe-browser` / `:win` PowerShell) :
 |---|---|
 | Playwright Chromium | **200**, `input[name=datedeb]` présent, 5,5 s |
 | Playwright Firefox | sandbox sans GTK (`libgtk-3`) — à retester sur Windows |
-| Obscura 0.2.1 (défaut) | listing 2 Alpes : `datedeb` **après** `primeObscuraIngenieWidget` (`IngenieWidgetResa` sur `globalThis`). Sans ça : 0 input, widget vide. Maps abortés (sinon SIGSEGV). |
+| Obscura 0.2.1 (défaut) | listing 2 Alpes : `datedeb` via `primeObscuraIngenieWidget` + poll `evaluate` (`waitForSelector` CDP aveugle). Champ `adultes`/`duree` présents. Val d’Arly : widget encore vide (autre boot). Maps abortés. |
 
 `SKITRACK_BROWSER=firefox` lance Gecko via le même `withPage`. `fetch` MSEM / OS / Ceto HTML inchangés. Pas de `--stealth`.
 

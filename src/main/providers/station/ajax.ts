@@ -195,16 +195,36 @@ export function attachAjaxProbe(page: Page): AjaxProbe {
  * HTML servi : sa présence dans le DOM reste donc le signal que le script a
  * monté le formulaire, et `submitSearch` écrit dedans par `evaluate`, ce qui
  * ne demande aucune visibilité.
+ *
+ * Obscura 0.2.1 : `waitForSelector` ne voit pas `datedeb` alors que
+ * `page.evaluate(querySelector)` si. On poll `evaluate` en parallèle.
  */
 export async function waitForIngenieForm(page: Page, selectors: string, timeoutMs: number): Promise<void> {
-  try {
-    await page.waitForSelector(selectors, { timeout: timeoutMs, state: 'attached' })
-  } catch {
-    throw new Error(
-      `Timeout AJAX formulaire Ingénie (${Math.round(timeoutMs / 1000)}s) — ` +
-        `le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).`
-    )
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    try {
+      const attached = await page.evaluate(() =>
+        Boolean(document.querySelector('input[name="datedeb"], select[name="datedeb"]'))
+      )
+      if (attached) return
+    } catch {
+      // navigation / context momentané
+    }
+    try {
+      await page.waitForSelector(selectors, {
+        timeout: Math.min(400, Math.max(50, deadline - Date.now())),
+        state: 'attached'
+      })
+      return
+    } catch {
+      // Obscura : le moteur de sélecteurs Playwright ne voit pas datedeb
+      // alors que `evaluate` si. On reboucle jusqu’au timeout AJAX.
+    }
   }
+  throw new Error(
+    `Timeout AJAX formulaire Ingénie (${Math.round(timeoutMs / 1000)}s) — ` +
+      `le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).`
+  )
 }
 
 /**

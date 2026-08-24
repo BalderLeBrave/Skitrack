@@ -29,6 +29,8 @@ lien vitrine, ou blocked), Dernier passage : **toutes** les stations du référe
 | Cambre d’Aze | `eyne.fr/les-loisirs/hebergement` | Annuaire communal, pas de moteur. `cambredaze.fr` est en vente. |
 | Lioran, Métabief, Luz, Sauze, Brides, Morillon, Sixt, Aulps, Abondance, Capcir, Superbagnères, Lac Blanc, Pierre Saint-Martin, Iraty, Azun, Chioula, Brasses, Glières, Méaudre, Gap, Beuil, Pilat, Hotonnes | vitrines OT | Pas de formulaire daté. Chioula charge `genius2beille.ingenie.fr` (centrale **Beille**, pas Chioula) — ne pas recoller. Pilat = gadget OS analytics sans `vueId`. |
 
+Valloire (`www.valloire.com`) et Val d’Allos (`www.valdallos.com`) : déjà **live Ingénie** (`datedeb` + `static.ingenie.fr` confirmés au passage 2026-08-24). Ne pas les ranger en vitrine.
+
 ## `live` ajoutés sur cette branche
 
 Ingénie : Les Rousses, Manigod, Bellefontaine, alias 2 Alpes 1800, Gets, Féclaz, Hauteluce, Peisey-Nancroix, Landry.

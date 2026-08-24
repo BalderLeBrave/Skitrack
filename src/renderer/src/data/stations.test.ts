@@ -228,6 +228,8 @@ const CAP_CASES: [string, 'live' | 'link', string][] = [
   ['https://www.manigod.com/', 'live', 'station-web'],
   ['https://reservation.haute-maurienne-vanoise.com/ac51-valfrejus.htm', 'live', 'opensystem'],
   ['https://www.flaine.com/reservez-votre-sejour/reservez-votre-hebergement-a-flaine/', 'live', 'ublo-msem'],
+  ['https://www.valloire.com/', 'live', 'station-web'],
+  ['https://www.valdallos.com/', 'live', 'station-web'],
 ]
 for (const [url, mode, connector] of CAP_CASES) {
   const cap = centralCapabilityOf(url)

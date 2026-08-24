@@ -1055,7 +1055,14 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
 
             await submitSearch(page, params, name, origin)
             await openHtmlResultsIfEmpty(page, timeoutMs)
-            await waitForIngenieResults(page, probe, AJAX_TIMEOUT.resultsMs)
+            // Sur la SERP serveur (`action=result`), il n'y a plus d'AJAX à
+            // attendre : la page est rendue, avec ou sans offre. La Rosière
+            // (sweep 2026-08-24) sortait en « Timeout AJAX résultats (25s) »
+            // sur une SERP 200 déjà chargée — un vide y est un résultat,
+            // pas une panne. `loadCards` garde sa propre attente bornée.
+            if (!/[?&]action=result\b/.test(page.url())) {
+              await waitForIngenieResults(page, probe, AJAX_TIMEOUT.resultsMs)
+            }
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             let cards = await loadCards(page, timeoutMs)
             // SERP = souvent « à partir de » → prix réel = Rechercher de #tarifs.

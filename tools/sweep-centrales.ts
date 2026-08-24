@@ -71,6 +71,20 @@ const from = arg('du', '2027-02-13')
 const nights = Number(arg('nuits', '7'))
 const adults = Number(arg('personnes', '4'))
 const limit = Number(arg('limit', '0'))
+/**
+ * `--hosts a.com,b.com` : ne rejouer que ces centrales.
+ *
+ * `--limit` ne sait prendre que « les N premières » — pour rejouer quatre
+ * suspectes du dernier relevé (avec `PROVIDER_DEBUG=true` par exemple), il
+ * fallait repayer les 104. Le rapport n'est **pas** réécrit en mode ciblé :
+ * un relevé de quatre centrales n'a pas à effacer celui des cent-quatre.
+ */
+const onlyHosts = new Set(
+  arg('hosts', '')
+    .split(',')
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean)
+)
 
 const to = new Date(Date.parse(from) + nights * 86_400_000).toISOString().slice(0, 10)
 
@@ -81,7 +95,11 @@ for (const station of catalogueStations(BUNDLED_REFERENTIAL)) {
   if (!url) continue
   byUrl.set(url, [...(byUrl.get(url) ?? []), station.name])
 }
-const centrals = [...byUrl].slice(0, limit > 0 ? limit : undefined)
+const filtered =
+  onlyHosts.size > 0
+    ? [...byUrl].filter(([url]) => onlyHosts.has(new URL(url).host.toLowerCase()))
+    : [...byUrl]
+const centrals = filtered.slice(0, limit > 0 ? limit : undefined)
 
 /**
  * Un échec qui ressemble à un étranglement, pas à un refus.
@@ -278,9 +296,17 @@ if (empty.length > 0) {
   w()
 }
 
-mkdirSync(dirname(OUT), { recursive: true })
-writeFileSync(OUT, lines.join('\n') + '\n', 'utf-8')
-console.log(
-  `\n${OUT} — ${served.length}/${results.length} centrales servent des offres, ` +
-    `${stationsServed}/${stationsAll} stations couvertes, ${total} offres`
-)
+if (onlyHosts.size > 0) {
+  // Mode ciblé : le relevé partiel s'affiche mais n'écrase pas le rapport.
+  console.log(
+    `\n(mode --hosts : rapport non réécrit) ${served.length}/${results.length} centrales ` +
+      `servent des offres, ${total} offres`
+  )
+} else {
+  mkdirSync(dirname(OUT), { recursive: true })
+  writeFileSync(OUT, lines.join('\n') + '\n', 'utf-8')
+  console.log(
+    `\n${OUT} — ${served.length}/${results.length} centrales servent des offres, ` +
+      `${stationsServed}/${stationsAll} stations couvertes, ${total} offres`
+  )
+}

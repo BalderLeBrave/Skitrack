@@ -1,0 +1,113 @@
+/**
+ * Liaison React de la couche `store/userData`.
+ *
+ * Un contexte plutôt qu'un `useState` par écran : l'étoile d'une vignette et la
+ * page Favoris lisent la même liste, et deux copies indépendantes finiraient
+ * par se contredire — on retirerait un favori depuis la page sans que l'étoile
+ * de la carte s'éteigne. Le contexte tient le miroir en mémoire ; le `store`
+ * reste la seule chose qui touche au support de stockage.
+ *
+ * Les mutations sont optimistes : elles remplacent l'état par ce que le `store`
+ * renvoie, et le `store` renvoie toujours la liste complète après écriture.
+ * Rien à recharger, donc rien à désynchroniser.
+ */
+
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
+import {
+  addFavorite as storeAdd,
+  getFavorites,
+  getTrips,
+  importTrip as storeImport,
+  removeFavorite as storeRemove,
+  removeTrip as storeRemoveTrip,
+  saveTrip as storeSaveTrip,
+  toggleFavorite as storeToggle,
+  type FavoriteStation,
+  type SavedTrip,
+  type SavedTripInput
+} from '@/store/userData'
+
+export interface UserDataValue {
+  favorites: FavoriteStation[]
+  /** Appartenance en O(1) — appelé une fois par vignette de la liste. */
+  isFavorite: (stationId: number) => boolean
+  addFavorite: (stationId: number) => Promise<void>
+  removeFavorite: (stationId: number) => Promise<void>
+  toggleFavorite: (stationId: number) => Promise<void>
+  trips: SavedTrip[]
+  saveTrip: (trip: SavedTripInput) => Promise<void>
+  importTrip: (trip: SavedTrip) => Promise<void>
+  removeTrip: (id: string) => Promise<void>
+  /** Faux tant que la première lecture n'a pas abouti. */
+  ready: boolean
+}
+
+const UserDataContext = createContext<UserDataValue | null>(null)
+
+export function useUserData(): UserDataValue {
+  const ctx = useContext(UserDataContext)
+  if (!ctx) throw new Error('useUserData doit être utilisé dans UserDataProvider')
+  return ctx
+}
+
+export function UserDataProvider({ children }: { children: ReactNode }): JSX.Element {
+  const [favorites, setFavorites] = useState<FavoriteStation[]>([])
+  const [trips, setTrips] = useState<SavedTrip[]>([])
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    void (async () => {
+      const [f, t] = await Promise.all([getFavorites(), getTrips()])
+      if (!alive) return
+      setFavorites(f)
+      setTrips(t)
+      setReady(true)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.stationId)), [favorites])
+  const isFavorite = useCallback((stationId: number) => favoriteIds.has(stationId), [favoriteIds])
+
+  const addFavorite = useCallback(async (stationId: number) => {
+    setFavorites(await storeAdd(stationId))
+  }, [])
+  const removeFavorite = useCallback(async (stationId: number) => {
+    setFavorites(await storeRemove(stationId))
+  }, [])
+  const toggleFavorite = useCallback(async (stationId: number) => {
+    setFavorites(await storeToggle(stationId))
+  }, [])
+
+  const saveTrip = useCallback(async (trip: SavedTripInput) => {
+    setTrips(await storeSaveTrip(trip))
+  }, [])
+  const importTrip = useCallback(async (trip: SavedTrip) => {
+    setTrips(await storeImport(trip))
+  }, [])
+  const removeTrip = useCallback(async (id: string) => {
+    setTrips(await storeRemoveTrip(id))
+  }, [])
+
+  const value = useMemo<UserDataValue>(
+    () => ({
+      favorites,
+      isFavorite,
+      addFavorite,
+      removeFavorite,
+      toggleFavorite,
+      trips,
+      saveTrip,
+      importTrip,
+      removeTrip,
+      ready
+    }),
+    [favorites, isFavorite, addFavorite, removeFavorite, toggleFavorite, trips, saveTrip, importTrip, removeTrip, ready]
+  )
+
+  return <UserDataContext.Provider value={value}>{children}</UserDataContext.Provider>
+}

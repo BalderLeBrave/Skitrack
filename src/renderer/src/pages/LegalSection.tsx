@@ -23,12 +23,18 @@ const REVISION = '14 août 2026'
  * Balayage par préfixe plutôt qu'une liste de clés : une clé oubliée dans la
  * liste serait une donnée personnelle qui survit à une demande d'effacement,
  * ce qui est exactement ce que ce bouton promet de ne pas faire.
+ *
+ * Deux séparateurs : les préférences historiques s'écrivent `skitrack-v4-…`,
+ * les données de l'utilisateur (favoris, séjours) `skitrack.favorites.v1`. Le
+ * seul préfixe `skitrack-` laissait les secondes en place — un favori et un
+ * séjour enregistré sont pourtant exactement le genre de donnée que ce bouton
+ * vise. Le préfixe est donc réduit à ce que les deux ont en commun.
  */
 function purgeLocalData(): void {
   const doomed: string[] = []
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
-    if (key && key.startsWith('skitrack-')) doomed.push(key)
+    if (key && /^skitrack[-.]/.test(key)) doomed.push(key)
   }
   for (const key of doomed) localStorage.removeItem(key)
 }

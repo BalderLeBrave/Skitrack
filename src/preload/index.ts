@@ -14,7 +14,9 @@ import {
   type ProviderSearchParams,
   type SecretKey,
   type SecretPresence,
-  type SidecarState
+  type SidecarState,
+  type TripExportResult,
+  type TripImportResult
 } from '@shared/ipc-contract'
 
 /**
@@ -49,6 +51,22 @@ const api = {
   },
   /** Notification native : le renderer demande, le main décide. */
   notify: (params: NotifyParams): Promise<boolean> => ipcRenderer.invoke(IPC.notify, params),
+  /** Partage de séjour : fichier `.skitrip`, presse-papier, lien entrant. */
+  trip: {
+    export: (content: string, suggestedName: string): Promise<TripExportResult> =>
+      ipcRenderer.invoke(IPC.tripExport, content, suggestedName),
+    import: (): Promise<TripImportResult> => ipcRenderer.invoke(IPC.tripImport),
+    copyLink: (link: string): Promise<boolean> => ipcRenderer.invoke(IPC.clipboardWrite, link),
+    /**
+     * Lien `skitrack://` ouvert depuis le système. Le renderer prévisualise
+     * avant d'appliquer : jamais d'écrasement silencieux de la recherche.
+     */
+    onOpened: (cb: (url: string) => void): (() => void) => {
+      const handler = (_e: unknown, url: string): void => cb(url)
+      ipcRenderer.on(IPC.tripOpened, handler)
+      return () => ipcRenderer.removeListener(IPC.tripOpened, handler)
+    }
+  },
   /** Comparateur multi-sources : Airbnb via MCP, autres sources en deep-link. */
   providers: {
     search: (params: ProviderSearchParams, only?: string[]): Promise<ProviderAggregate> =>

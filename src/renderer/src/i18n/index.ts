@@ -816,6 +816,33 @@ const CATALOG = {
   trip_budget_total: ['{v} au total', '{v} total'],
   trip_budget_perso: ['{v} par personne', '{v} per person'],
 
+  // --- Partage de séjour ---------------------------------------------------
+  trip_share: ['Partager ce séjour', 'Share this trip'],
+  trip_share_export: ['Exporter en fichier', 'Export to file'],
+  trip_import_open: ['Importer un séjour', 'Import a trip'],
+  trip_share_copied: ['Lien copié', 'Link copied'],
+  trip_share_exported: ['Fichier enregistré', 'File saved'],
+  trip_share_failed: ['Partage impossible', 'Sharing failed'],
+  trip_import_title: ['Séjour reçu', 'Trip received'],
+  trip_import_lead: [
+    'Voici ce que ce séjour contient. Rien n’est appliqué tant que vous ne l’avez pas confirmé.',
+    'Here is what this trip contains. Nothing is applied until you confirm.'
+  ],
+  trip_import_resort: ['Station', 'Resort'],
+  trip_import_label: ['Intitulé', 'Label'],
+  trip_import_dates: ['Dates', 'Dates'],
+  trip_import_party: ['Groupe', 'Party'],
+  trip_import_budget: ['Budget', 'Budget'],
+  trip_import_apply: ['Appliquer ce séjour', 'Apply this trip'],
+  trip_import_overwrite: [
+    'Appliquer remplacera la station, les dates, le groupe et le budget de la recherche en cours.',
+    'Applying will replace the resort, dates, party and budget of the current search.'
+  ],
+  trip_import_invalid: [
+    'Ce séjour n’a pas pu être lu : le lien ou le fichier est incomplet, abîmé, ou vient d’une version plus récente. Rien n’a été modifié.',
+    'This trip could not be read: the link or file is incomplete, damaged, or comes from a newer version. Nothing was changed.'
+  ],
+
   // --- Alertes de prix -----------------------------------------------------
   alert_fired_title: ['Baisse de prix', 'Price drop'],
   alert_fired_body: ['{n} : {v} € (seuil {s} €)', '{n}: €{v} (threshold €{s})'],

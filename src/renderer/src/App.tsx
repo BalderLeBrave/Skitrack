@@ -6,6 +6,7 @@ import { usePriceRefresh } from '@/hooks/usePriceRefresh'
 import { AppProvider, useApp } from '@/state/appState'
 import { DerivedProvider, useDerived } from '@/state/selectors'
 import { UserDataProvider } from '@/state/userData'
+import { TripShareProvider } from '@/state/tripShare'
 import { WeatherProvider } from '@/state/weather'
 import { SvgDefs } from '@/components/Icons'
 import { BrandLogo } from '@/components/BrandLogo'
@@ -13,6 +14,7 @@ import { DomainSheet } from '@/components/DomainSheet'
 import { Onboarding } from '@/components/Onboarding'
 import { PeopleDrawer } from '@/components/PeopleDrawer'
 import { Snowfall } from '@/components/Snowfall'
+import { TripImportDialog } from '@/components/TripImportDialog'
 import { CombosPage } from '@/pages/CombosPage'
 import { DecisionPage } from '@/pages/DecisionPage'
 import { DomainSearchPage } from '@/pages/DomainSearchPage'
@@ -283,6 +285,7 @@ function Shell(): JSX.Element {
       {state.peopleOpen && <PeopleDrawer />}
       {state.domFicheId != null && <DomainSheet />}
       {state.onboard && <Onboarding />}
+      <TripImportDialog />
     </div>
   )
 }
@@ -306,13 +309,15 @@ export function App(): JSX.Element {
   return (
     <AppProvider>
       <UserDataProvider>
-        <DerivedProvider>
-          <WeatherProvider>
-            <I18nBridge>
-              <Shell />
-            </I18nBridge>
-          </WeatherProvider>
-        </DerivedProvider>
+        <TripShareProvider>
+          <DerivedProvider>
+            <WeatherProvider>
+              <I18nBridge>
+                <Shell />
+              </I18nBridge>
+            </WeatherProvider>
+          </DerivedProvider>
+        </TripShareProvider>
       </UserDataProvider>
     </AppProvider>
   )

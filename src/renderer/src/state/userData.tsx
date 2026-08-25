@@ -41,7 +41,13 @@ export interface UserDataValue {
   removeFavorite: (stationId: number) => Promise<void>
   toggleFavorite: (stationId: number) => Promise<void>
   trips: SavedTrip[]
-  saveTrip: (trip: SavedTripInput) => Promise<void>
+  /**
+   * Enregistre un séjour et renvoie **celui qui a été écrit** — avec son
+   * identité définitive. L'appelant en a besoin : partager suppose l'identité
+   * du séjour enregistré, et la relire dans `trips` juste après l'appel
+   * donnerait la liste d'avant.
+   */
+  saveTrip: (trip: SavedTripInput) => Promise<SavedTrip | null>
   importTrip: (trip: SavedTrip) => Promise<void>
   removeTrip: (id: string) => Promise<void>
   alerts: PriceAlert[]
@@ -96,8 +102,11 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
     setFavorites(await storeToggle(stationId))
   }, [])
 
-  const saveTrip = useCallback(async (trip: SavedTripInput) => {
-    setTrips(await storeSaveTrip(trip))
+  const saveTrip = useCallback(async (trip: SavedTripInput): Promise<SavedTrip | null> => {
+    const next = await storeSaveTrip(trip)
+    setTrips(next)
+    // `store.saveTrip` place le séjour écrit en tête de la liste renvoyée.
+    return next[0] ?? null
   }, [])
   const importTrip = useCallback(async (trip: SavedTrip) => {
     setTrips(await storeImport(trip))

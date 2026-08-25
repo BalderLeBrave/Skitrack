@@ -12,12 +12,13 @@
  * séjour que l'utilisateur a délibérément enregistré.
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { CloseIcon } from '@/components/Icons'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useUserData } from '@/state/userData'
+import { useTripShare } from '@/state/tripShare'
 import type { SavedTrip } from '@/store/userData'
 
 export function FavoritesPage(): JSX.Element {
@@ -25,6 +26,15 @@ export function FavoritesPage(): JSX.Element {
   const { eur } = useFormat()
   const { state, patch, domains } = useApp()
   const { favorites, removeFavorite, trips, removeTrip } = useUserData()
+  const { shareTrip, exportTrip, importFromFile } = useTripShare()
+  // Accusé de réception éphémère, indexé par séjour : « lien copié » doit
+  // s'afficher sur la ligne qu'on vient d'actionner, pas sur toutes.
+  const [flash, setFlash] = useState<{ id: string; text: string } | null>(null)
+
+  const announce = (id: string, text: string): void => {
+    setFlash({ id, text })
+    window.setTimeout(() => setFlash((f) => (f?.id === id ? null : f)), 2400)
+  }
 
   const byId = useMemo(() => new Map(domains.map((d) => [d.id, d])), [domains])
 
@@ -121,10 +131,15 @@ export function FavoritesPage(): JSX.Element {
         </section>
 
         <section className="panel" style={{ padding: '18px 20px' }}>
-          <h3 style={{ margin: '0 0 12px', fontSize: 15 }}>
-            {t('fav_trips_title')}
-            {trips.length > 0 ? ` · ${trips.length}` : ''}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, margin: '0 0 12px' }}>
+            <h3 style={{ margin: 0, fontSize: 15, flex: 1, minWidth: 0 }}>
+              {t('fav_trips_title')}
+              {trips.length > 0 ? ` · ${trips.length}` : ''}
+            </h3>
+            <button type="button" className="linkbtn" onClick={() => void importFromFile()}>
+              {t('trip_import_open')}
+            </button>
+          </div>
 
           {trips.length === 0 ? (
             <p className="u-muted" style={{ margin: 0, fontSize: 14, maxWidth: '56ch' }}>
@@ -161,6 +176,45 @@ export function FavoritesPage(): JSX.Element {
                       ].join(' · ')}
                     </span>
                     <span className="u-spacer" />
+                    {flash?.id === trip.id && (
+                      <span className="u-muted" style={{ fontSize: 12 }}>
+                        {flash.text}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="linkbtn"
+                      onClick={() => {
+                        void shareTrip(trip).then((outcome) => {
+                          if (outcome.kind === 'canceled') return
+                          announce(
+                            trip.id,
+                            outcome.kind === 'copied'
+                              ? t('trip_share_copied')
+                              : outcome.kind === 'exported'
+                                ? t('trip_share_exported')
+                                : t('trip_share_failed')
+                          )
+                        })
+                      }}
+                    >
+                      {t('trip_share')}
+                    </button>
+                    <button
+                      type="button"
+                      className="linkbtn linkbtn--muted"
+                      onClick={() => {
+                        void exportTrip(trip).then((outcome) => {
+                          if (outcome.kind === 'canceled') return
+                          announce(
+                            trip.id,
+                            outcome.kind === 'exported' ? t('trip_share_exported') : t('trip_share_failed')
+                          )
+                        })
+                      }}
+                    >
+                      {t('trip_share_export')}
+                    </button>
                     <button type="button" className="linkbtn" onClick={() => reopen(trip)}>
                       {t('trip_reopen')}
                     </button>

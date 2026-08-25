@@ -1,12 +1,15 @@
 import { join } from 'node:path'
-import { BrowserWindow, Notification, app, clipboard, ipcMain, shell } from 'electron'
+import { readFile, writeFile } from 'node:fs/promises'
+import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, shell } from 'electron'
 import {
   IPC,
   type AirbnbScrapeOutcome,
   type AirbnbScrapeParams,
   type AppInfo,
   type NotifyParams,
-  type SecretKey
+  type SecretKey,
+  type TripExportResult,
+  type TripImportResult
 } from '@shared/ipc-contract'
 import { fetchBra } from './bra'
 import { fetchListing } from './listing'
@@ -213,6 +216,74 @@ function registerIpc(): void {
     }
   })
 
+  /**
+   * Export d'un séjour en fichier `.skitrip`.
+   *
+   * L'écriture passe par une boîte de dialogue : l'application ne choisit pas
+   * où déposer un fichier chez l'utilisateur. Le contenu est borné — un séjour
+   * encodé tient en quelques centaines d'octets, et rien ne justifie qu'un
+   * appel du renderer écrive un mégaoctet sur le disque.
+   */
+  ipcMain.handle(
+    IPC.tripExport,
+    async (_e, content: string, suggestedName: string): Promise<TripExportResult> => {
+      if (typeof content !== 'string' || content.length === 0 || content.length > 300_000) {
+        return { saved: false, canceled: false, error: 'Contenu de séjour invalide' }
+      }
+      // Le nom proposé vient du renderer : on n'en garde que la feuille, et
+      // seulement des caractères sûrs. Un `..\..\` dans un nom suggéré ne
+      // doit pas pouvoir désigner un dossier.
+      const safeName = (suggestedName || 'sejour.skitrip').replace(/[^A-Za-z0-9._-]/g, '-').slice(0, 80)
+      try {
+        const result = await dialog.showSaveDialog({
+          title: 'Exporter le séjour',
+          defaultPath: safeName,
+          filters: [{ name: 'Séjour SKITRACK', extensions: ['skitrip'] }]
+        })
+        if (result.canceled || !result.filePath) return { saved: false, canceled: true, error: null }
+        await writeFile(result.filePath, content, 'utf-8')
+        return { saved: true, canceled: false, error: null }
+      } catch (err) {
+        return { saved: false, canceled: false, error: err instanceof Error ? err.message : String(err) }
+      }
+    }
+  )
+
+  /**
+   * Import d'un séjour depuis un fichier.
+   *
+   * Le contenu remonte brut au renderer, qui le décode et le valide avec le
+   * même code que le stockage local. Le main ne l'interprète pas : il n'a pas
+   * à connaître le format, et un second décodeur finirait par diverger.
+   */
+  ipcMain.handle(IPC.tripImport, async (): Promise<TripImportResult> => {
+    try {
+      const result = await dialog.showOpenDialog({
+        title: 'Ouvrir un séjour',
+        properties: ['openFile'],
+        filters: [{ name: 'Séjour SKITRACK', extensions: ['skitrip'] }]
+      })
+      const file = result.filePaths[0]
+      if (result.canceled || !file) return { content: null, canceled: true, error: null }
+      const content = await readFile(file, 'utf-8')
+      // Un fichier démesuré n'est pas remonté : ce n'est pas un séjour, et le
+      // renderer n'a pas à décider quoi faire d'un mégaoctet de texte.
+      if (content.length > 300_000) {
+        return { content: null, canceled: false, error: 'Fichier trop volumineux pour un séjour' }
+      }
+      return { content, canceled: false, error: null }
+    } catch (err) {
+      return { content: null, canceled: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  /** Presse-papier, en écriture : uniquement un lien de séjour, borné. */
+  ipcMain.handle(IPC.clipboardWrite, (_e, text: string): boolean => {
+    if (typeof text !== 'string' || text.length === 0 || text.length > 8_000) return false
+    clipboard.writeText(text)
+    return true
+  })
+
   ipcMain.handle(IPC.openExternal, (_e, url: string) => {
     if (!/^https?:\/\//.test(url)) throw new Error('Seuls http(s) sont autorisés')
     return shell.openExternal(url)
@@ -232,21 +303,81 @@ function registerIpc(): void {
   )
 }
 
+/**
+ * Protocole `skitrack://` — partage de séjour.
+ *
+ * Enregistrer un protocole écrit dans le registre Windows. C'est fait une fois
+ * au démarrage, et c'est réversible depuis les réglages du système.
+ *
+ * En développement, `process.execPath` est l'exécutable d'Electron et non
+ * l'application : sans les arguments explicites, le système rappellerait
+ * Electron sans savoir quel projet ouvrir. C'est la raison du branchement.
+ */
+function registerTripProtocol(): void {
+  try {
+    if (process.defaultApp && process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient('skitrack', process.execPath, [join(process.argv[1])])
+    } else {
+      app.setAsDefaultProtocolClient('skitrack')
+    }
+  } catch {
+    // Registre inaccessible (poste verrouillé, installation sans droits) :
+    // le partage par fichier `.skitrip` reste entier. Ce n'est pas bloquant.
+  }
+}
+
+/** Premier lien `skitrack://` trouvé dans une ligne de commande. */
+function tripUrlFrom(argv: readonly string[]): string | null {
+  return argv.find((arg) => /^skitrack:\/\//i.test(arg)) ?? null
+}
+
+/**
+ * Pousse un lien entrant vers le renderer.
+ *
+ * Le main ne décode rien et n'applique rien : il transmet la chaîne telle
+ * quelle. Le renderer la valide et **prévisualise** avant d'écraser quoi que
+ * ce soit — un lien reçu d'un tiers ne doit jamais remplacer une recherche en
+ * cours sans que personne ne l'ait vu.
+ */
+function deliverTripUrl(url: string | null): void {
+  if (!url || !mainWindow) return
+  const send = (): void => mainWindow?.webContents.send(IPC.tripOpened, url)
+  if (mainWindow.webContents.isLoading()) {
+    mainWindow.webContents.once('did-finish-load', send)
+  } else {
+    send()
+  }
+}
+
 // Une seule instance : deux sidecars sur la même base SQLite finiraient par
 // se marcher dessus malgré le WAL.
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.focus()
     }
+    // Windows et Linux : une seconde instance lancée par le système porte le
+    // lien dans sa ligne de commande. C'est le chemin normal d'un clic sur un
+    // `skitrack://` quand l'application est déjà ouverte.
+    deliverTripUrl(tripUrlFrom(argv))
+  })
+
+  // macOS : le lien arrive par un événement, pas par la ligne de commande.
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+    deliverTripUrl(url)
   })
 
   void app.whenReady().then(async () => {
     registerIpc()
+    registerTripProtocol()
     createWindow()
+    // Application lancée *par* un lien : l'URL est déjà dans notre propre
+    // ligne de commande.
+    deliverTripUrl(tripUrlFrom(process.argv))
     // Oreille locale du marque-page : permet au relevé Airbnb d'arriver
     // directement dans l'application, sans passer par le presse-papiers.
     startPasteBridge(() => mainWindow)

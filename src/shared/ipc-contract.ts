@@ -30,8 +30,41 @@ export const IPC = {
   /** Scraping Airbnb via Puppeteer (navigateur invisible). */
   airbnbScrape: 'airbnb:scrape',
   /** Notification native du système — alertes de baisse de prix. */
-  notify: 'app:notify'
+  notify: 'app:notify',
+  /** Écriture d'un fichier de séjour `.skitrip`, via une boîte de dialogue. */
+  tripExport: 'trip:export',
+  /** Lecture d'un fichier de séjour choisi par l'utilisateur. */
+  tripImport: 'trip:import',
+  /** Écriture d'un texte court dans le presse-papier — lien de séjour. */
+  clipboardWrite: 'clipboard:write',
+  /** Lien `skitrack://` reçu par le système, poussé vers le renderer. */
+  tripOpened: 'trip:opened'
 } as const
+
+/**
+ * Résultat d'un export de séjour.
+ *
+ * `canceled` n'est pas une erreur : refermer la boîte de dialogue est un choix.
+ * L'interface le distingue d'un échec d'écriture, qui lui se dit.
+ */
+export interface TripExportResult {
+  saved: boolean
+  canceled: boolean
+  error: string | null
+}
+
+/**
+ * Résultat d'un import de séjour.
+ *
+ * Le contenu remonte **brut** : le décodage et la validation appartiennent au
+ * renderer (`domain/tripCodec`), qui possède déjà le validateur du stockage
+ * local. Un second décodeur côté main finirait par diverger du premier.
+ */
+export interface TripImportResult {
+  content: string | null
+  canceled: boolean
+  error: string | null
+}
 
 /**
  * Notification native.

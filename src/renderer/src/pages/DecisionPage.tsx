@@ -6,6 +6,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useUserData } from '@/state/userData'
+import { useTripShare } from '@/state/tripShare'
 import { useI18n } from '@/i18n'
 
 /**
@@ -24,10 +25,12 @@ export function DecisionPage(): JSX.Element {
   const { state, patch } = useApp()
   const derived = useDerived()
   const { saveTrip } = useUserData()
+  const { shareTrip } = useTripShare()
   // Accusé de réception éphémère : le bouton confirme puis reprend son
   // libellé. Un état persistant laisserait « enregistré » sur un séjour qu'on
   // vient de modifier sans réenregistrer.
   const [justSaved, setJustSaved] = useState(false)
+  const [shareMsg, setShareMsg] = useState<string | null>(null)
   const ctx = derived.decisionCtx
   const split = derived.split
 
@@ -136,6 +139,57 @@ export function DecisionPage(): JSX.Element {
           >
             {justSaved ? `✓ ${t('trip_saved')}` : t('trip_save')}
           </button>
+          {/* Partager suppose un séjour enregistré : c'est lui qui porte
+              l'identité et les paramètres. Le bouton enregistre donc d'abord
+              si besoin, puis partage — plutôt que d'exiger deux clics dans le
+              bon ordre. */}
+          <button
+            type="button"
+            className="btn btn--small"
+            onClick={() => {
+              const input = {
+                label: `${ctx.d.name} · ${ctx.w.label}`,
+                stationId: ctx.d.id,
+                dates: { from: state.arrDate, to: state.depDate },
+                party: {
+                  adults: Math.max(1, state.travelers - state.children),
+                  children: state.children
+                },
+                budget:
+                  state.budgetMax != null && state.budgetMax > 0
+                    ? { max: state.budgetMax, mode: state.budgetMode }
+                    : null
+              }
+              void saveTrip(input).then((saved) => {
+                // Le séjour partagé doit porter l'identité de celui qui vient
+                // d'être écrit : un identifiant fabriqué ici se réimporterait
+                // en doublon chez le destinataire.
+                if (!saved) {
+                  setShareMsg(t('trip_share_failed'))
+                  window.setTimeout(() => setShareMsg(null), 2400)
+                  return
+                }
+                void shareTrip(saved).then((outcome) => {
+                  if (outcome.kind === 'canceled') return
+                  setShareMsg(
+                    outcome.kind === 'copied'
+                      ? t('trip_share_copied')
+                      : outcome.kind === 'exported'
+                        ? t('trip_share_exported')
+                        : t('trip_share_failed')
+                  )
+                  window.setTimeout(() => setShareMsg(null), 2400)
+                })
+              })
+            }}
+          >
+            {t('trip_share')}
+          </button>
+          {shareMsg && (
+            <span className="u-muted" style={{ fontSize: 12 }}>
+              {shareMsg}
+            </span>
+          )}
           <button type="button" className="linkbtn" onClick={() => patch({ tab: 'favoris' })}>
             {t('fav_title')}
           </button>

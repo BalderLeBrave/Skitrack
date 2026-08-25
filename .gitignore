@@ -45,3 +45,6 @@ vendor/obscura/obscura-worker.exe
 vendor/obscura/*.tar.gz
 vendor/obscura/*.zip
 
+
+graphify-out/
+*.graphify-bak

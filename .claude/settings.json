@@ -8,7 +8,27 @@
             "type": "command",
             "command": "node .claude/hooks/verify.mjs",
             "timeout": 180,
-            "statusMessage": "Portail npm run verify…"
+            "statusMessage": "Portail npm run verify\u2026"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:/Users/Adrien RAFFRAY/AppData/Local/Programs/Python/Python312/Scripts/graphify.EXE\" hook-guard search"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:/Users/Adrien RAFFRAY/AppData/Local/Programs/Python/Python312/Scripts/graphify.EXE\" hook-guard read"
           }
         ]
       }

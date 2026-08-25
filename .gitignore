@@ -34,3 +34,6 @@ Thumbs.db
 .claude/.verify-stamp
 
 .tmp-repro/
+
+graphify-out/
+.claude/settings.json.graphify-bak

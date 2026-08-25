@@ -2697,6 +2697,39 @@ select {
   color: var(--warn);
 }
 
+/** Étoile « favori » : elle vit à droite de la note, sur les jetons existants.
+ *  Éteinte elle reste discrète (encre atténuée) ; allumée elle prend l'ambre
+ *  de la note, la seule couleur que cette ligne emploie déjà. */
+.domcard__star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.domcard__star:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.domcard__star--on {
+  color: var(--warn);
+}
+
+.domcard__star:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
 .domcard__ident {
   display: flex;
   align-items: center;
@@ -5571,4 +5604,40 @@ select {
 .lodgscan--banner .lodgscan__rows,
 .lodgscan--banner .lodgscan__foot {
   display: none;
+}
+
+/** Listes de la page Favoris : une ligne par station suivie ou par séjour.
+ *  Même gabarit pour les deux — nom en gras, contexte gris, actions à droite
+ *  — parce que le geste y est le même : reconnaître, rouvrir, retirer. */
+.favlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.favlist__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 10px;
+  border-radius: 8px;
+}
+
+.favlist__row:hover {
+  background: var(--surface);
+}
+
+.favlist__name {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.favlist__meta {
+  font-size: 12px;
+  min-width: 0;
 }

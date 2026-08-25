@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { ResultCard } from '@/components/ResultCard'
 import { srcOf } from '@/data/lodgings'
 import { lessonsCount } from '@/domain/costs'
 import { useFormat } from '@/hooks/useFormat'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+import { useUserData } from '@/state/userData'
 import { useI18n } from '@/i18n'
 
 /**
@@ -21,6 +23,11 @@ export function DecisionPage(): JSX.Element {
   const { dur, eur, fmt } = useFormat()
   const { state, patch } = useApp()
   const derived = useDerived()
+  const { saveTrip } = useUserData()
+  // Accusé de réception éphémère : le bouton confirme puis reprend son
+  // libellé. Un état persistant laisserait « enregistré » sur un séjour qu'on
+  // vient de modifier sans réenregistrer.
+  const [justSaved, setJustSaved] = useState(false)
   const ctx = derived.decisionCtx
   const split = derived.split
 
@@ -100,6 +107,39 @@ export function DecisionPage(): JSX.Element {
               ? `Vote du groupe : ${votes}`
               : 'Vote du groupe : aucun avis'}
         </p>
+
+        {/* « Enregistrer ce séjour » capture ce qui est à l'écran : la station,
+            les dates de la semaine retenue, le groupe et le plafond de budget
+            s'il en existe un. Rien n'est demandé de plus — un formulaire ici
+            transformerait un geste de mise de côté en saisie. */}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 14px' }}>
+          <button
+            type="button"
+            className="btn btn--small"
+            onClick={() => {
+              void saveTrip({
+                label: `${ctx.d.name} · ${ctx.w.label}`,
+                stationId: ctx.d.id,
+                dates: { from: state.arrDate, to: state.depDate },
+                party: {
+                  adults: Math.max(1, state.travelers - state.children),
+                  children: state.children
+                },
+                budget:
+                  state.budgetMax != null && state.budgetMax > 0
+                    ? { max: state.budgetMax, mode: state.budgetMode }
+                    : null
+              })
+              setJustSaved(true)
+              window.setTimeout(() => setJustSaved(false), 2400)
+            }}
+          >
+            {justSaved ? `✓ ${t('trip_saved')}` : t('trip_save')}
+          </button>
+          <button type="button" className="linkbtn" onClick={() => patch({ tab: 'favoris' })}>
+            {t('fav_title')}
+          </button>
+        </div>
 
         {/* Le logement retenu en tête, au gabarit des écrans de résultats : on
             doit reconnaître la carte cliquée deux écrans plus tôt. */}

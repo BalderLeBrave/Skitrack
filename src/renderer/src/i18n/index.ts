@@ -48,6 +48,7 @@ const CATALOG = {
   nav_combos: ['Combinaisons', 'Combinations'],
   nav_decision: ['Décision', 'Decision'],
   nav_tracking: ['Suivi', 'Tracking'],
+  nav_favorites: ['Favoris', 'Favourites'],
   nav_travelers: ['Voyageurs', 'Travellers'],
 
   // --- Apparence ----------------------------------------------------------
@@ -786,6 +787,34 @@ const CATALOG = {
     'Station introuvable dans le référentiel — vous pourrez la choisir plus tard.',
     'Resort not found in the reference list — you can pick it later.'
   ],
+
+  // --- Favoris : stations suivies et séjours en préparation ----------------
+  fav_add: ['Ajouter aux favoris', 'Add to favourites'],
+  fav_remove: ['Retirer des favoris', 'Remove from favourites'],
+  fav_title: ['Mes favoris', 'My favourites'],
+  fav_stations_title: ['Stations suivies', 'Followed resorts'],
+  fav_trips_title: ['Séjours en préparation', 'Trips in progress'],
+  fav_stations_empty: [
+    'Aucune station suivie. L’étoile d’une vignette de résultat l’ajoute ici.',
+    'No resort followed yet. The star on a result card adds it here.'
+  ],
+  fav_trips_empty: [
+    'Aucun séjour enregistré. « Enregistrer ce séjour », sur l’écran Décision, garde la station, les dates et le groupe du moment.',
+    'No trip saved yet. “Save this trip”, on the Decision screen, keeps the current resort, dates and party.'
+  ],
+  fav_open: ['Ouvrir', 'Open'],
+  fav_station_gone: [
+    'Station absente du référentiel courant',
+    'Resort missing from the current reference list'
+  ],
+  trip_save: ['Enregistrer ce séjour', 'Save this trip'],
+  trip_saved: ['Séjour enregistré', 'Trip saved'],
+  trip_reopen: ['Rouvrir', 'Reopen'],
+  trip_remove: ['Supprimer', 'Remove'],
+  trip_no_budget: ['sans plafond', 'no budget cap'],
+  trip_party: ['{a} adultes · {c} enfants', '{a} adults · {c} children'],
+  trip_budget_total: ['{v} au total', '{v} total'],
+  trip_budget_perso: ['{v} par personne', '{v} per person'],
 
   // --- Écran Décision : postes de coût et répartition ----------------------
   decision_lodging_sub: [

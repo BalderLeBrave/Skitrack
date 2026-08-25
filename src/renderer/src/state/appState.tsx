@@ -38,6 +38,7 @@ export type Screen =
   | 'decision'
   | 'logements'
   | 'suivi'
+  | 'favoris'
   | 'reglages'
   | 'import-referentiel'
 

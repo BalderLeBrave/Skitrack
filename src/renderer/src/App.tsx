@@ -4,6 +4,7 @@ import { useSidecar } from '@/hooks/useSidecar'
 import { useShortcuts } from '@/hooks/useShortcuts'
 import { AppProvider, useApp } from '@/state/appState'
 import { DerivedProvider, useDerived } from '@/state/selectors'
+import { UserDataProvider } from '@/state/userData'
 import { WeatherProvider } from '@/state/weather'
 import { SvgDefs } from '@/components/Icons'
 import { BrandLogo } from '@/components/BrandLogo'
@@ -14,6 +15,7 @@ import { Snowfall } from '@/components/Snowfall'
 import { CombosPage } from '@/pages/CombosPage'
 import { DecisionPage } from '@/pages/DecisionPage'
 import { DomainSearchPage } from '@/pages/DomainSearchPage'
+import { FavoritesPage } from '@/pages/FavoritesPage'
 import { HomePage } from '@/pages/HomePage'
 import { LodgingsPage } from '@/pages/LodgingsPage'
 import { OffersPage } from '@/pages/OffersPage'
@@ -116,6 +118,9 @@ function Nav(): JSX.Element {
       </div>
 
       <div className="nav__side nav__side--right">
+        <button type="button" className={tab2(screen === 'favoris')} onClick={() => patch({ tab: 'favoris' })}>
+          {t('nav_favorites')}
+        </button>
         <button type="button" className={tab2(screen === 'suivi')} onClick={() => patch({ tab: 'suivi' })}>
           {t('nav_tracking')}
           {state.tracked.length > 0 ? ` · ${state.tracked.length}` : ''}
@@ -154,6 +159,8 @@ function Screens(): JSX.Element {
       return <LodgingsPage />
     case 'suivi':
       return <TrackingPage />
+    case 'favoris':
+      return <FavoritesPage />
     case 'reglages':
       return <SettingsPage />
     default:
@@ -294,13 +301,15 @@ function I18nBridge({ children }: { children: React.ReactNode }): JSX.Element {
 export function App(): JSX.Element {
   return (
     <AppProvider>
-      <DerivedProvider>
-        <WeatherProvider>
-          <I18nBridge>
-            <Shell />
-          </I18nBridge>
-        </WeatherProvider>
-      </DerivedProvider>
+      <UserDataProvider>
+        <DerivedProvider>
+          <WeatherProvider>
+            <I18nBridge>
+              <Shell />
+            </I18nBridge>
+          </WeatherProvider>
+        </DerivedProvider>
+      </UserDataProvider>
     </AppProvider>
   )
 }

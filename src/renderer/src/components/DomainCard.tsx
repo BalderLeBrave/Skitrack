@@ -11,6 +11,7 @@ import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+import { useUserData } from '@/state/userData'
 import { useWeather } from '@/state/weather'
 
 interface Props {
@@ -24,7 +25,10 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
   const { state, patch, domains } = useApp()
   const derived = useDerived()
   const { weatherOf } = useWeather()
+  const { isFavorite, toggleFavorite } = useUserData()
   const { t } = useI18n()
+
+  const starred = isFavorite(d.id)
 
   // Distance à la commune cherchée : n'a de sens que lorsqu'une commune l'est.
   const geoDist = derived.geoDistance(d)
@@ -185,6 +189,24 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
           >
             ★ {note}
           </span>
+          {/* L'étoile est un bouton à part entière, et non un `onClick` posé sur
+              la vignette : la vignette entière est déjà cliquable (elle
+              sélectionne le domaine), et un favori se pose sans changer la
+              sélection. `aria-pressed` porte l'état — un lecteur d'écran
+              annonce « activé » plutôt que de laisser deviner le glyphe. */}
+          <button
+            type="button"
+            className={`domcard__star${starred ? ' domcard__star--on' : ''}`}
+            aria-pressed={starred}
+            aria-label={starred ? t('fav_remove') : t('fav_add')}
+            title={starred ? t('fav_remove') : t('fav_add')}
+            onClick={(e) => {
+              stop(e)
+              void toggleFavorite(d.id)
+            }}
+          >
+            {starred ? '★' : '☆'}
+          </button>
         </header>
 
         <h3 className="domcard__name">{d.name}</h3>

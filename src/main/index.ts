@@ -1,10 +1,11 @@
 import { join } from 'node:path'
-import { BrowserWindow, app, clipboard, ipcMain, shell } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, ipcMain, shell } from 'electron'
 import {
   IPC,
   type AirbnbScrapeOutcome,
   type AirbnbScrapeParams,
   type AppInfo,
+  type NotifyParams,
   type SecretKey
 } from '@shared/ipc-contract'
 import { fetchBra } from './bra'
@@ -189,6 +190,28 @@ function registerIpc(): void {
   // Le bulletin d'avalanche est lu ici : la clé Météo-France reste dans le
   // processus main, le renderer ne reçoit que le niveau publié.
   ipcMain.handle(IPC.braFetch, (_e, massifCode: number, force?: boolean) => fetchBra(massifCode, force))
+
+  /**
+   * Notification native — alertes de baisse de prix.
+   *
+   * Le titre et le corps sont tronqués ici et non chez l'appelant : c'est le
+   * seul endroit par lequel tout passe. Un système qui n'accepte pas les
+   * notifications (session sans bureau, réglage désactivé) renvoie `false`
+   * plutôt que de lever : une alerte non distribuée ne doit pas casser le tour
+   * de relevé qui l'a produite.
+   */
+  ipcMain.handle(IPC.notify, (_e, params: NotifyParams): boolean => {
+    if (!Notification.isSupported()) return false
+    try {
+      new Notification({
+        title: String(params.title ?? '').slice(0, 120),
+        body: String(params.body ?? '').slice(0, 400)
+      }).show()
+      return true
+    } catch {
+      return false
+    }
+  })
 
   ipcMain.handle(IPC.openExternal, (_e, url: string) => {
     if (!/^https?:\/\//.test(url)) throw new Error('Seuls http(s) sont autorisés')

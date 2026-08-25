@@ -86,7 +86,23 @@ export function LodgingCard({ lodging: lg, median, domain, index = 99 }: Props):
     patch({
       tracked: [
         ...state.tracked,
-        { key, name: lg.name, src: lg.src, total: lg.total, pp: lg.pp, domain: domain.name }
+        {
+          key,
+          name: lg.name,
+          src: lg.src,
+          total: lg.total,
+          pp: lg.pp,
+          domain: domain.name,
+          // De quoi rerelever ce prix plus tard : sans ces champs le suivi
+          // reste affiché mais ne produit aucun nouveau point.
+          url: lg.url,
+          domainId: domain.id,
+          checkIn: state.arrDate,
+          checkOut: state.depDate,
+          adults: Math.max(1, state.travelers - state.children),
+          children: state.children,
+          confidence: lg.priceConfidence
+        }
       ],
       trackedSel: state.tracked.length
     })

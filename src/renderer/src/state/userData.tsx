@@ -14,10 +14,15 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import type { PriceAlert } from '@/domain/priceAlerts'
 import {
   addFavorite as storeAdd,
+  getAlerts,
   getFavorites,
   getTrips,
+  putAlert as storePutAlert,
+  putAlerts as storePutAlerts,
+  removeAlert as storeRemoveAlert,
   importTrip as storeImport,
   removeFavorite as storeRemove,
   removeTrip as storeRemoveTrip,
@@ -39,6 +44,12 @@ export interface UserDataValue {
   saveTrip: (trip: SavedTripInput) => Promise<void>
   importTrip: (trip: SavedTrip) => Promise<void>
   removeTrip: (id: string) => Promise<void>
+  alerts: PriceAlert[]
+  /** Pose ou remplace l'alerte d'un élément suivi. */
+  putAlert: (alert: PriceAlert) => Promise<void>
+  /** Écrit un lot d'alertes — sortie d'un tour d'évaluation. */
+  putAlerts: (alerts: readonly PriceAlert[]) => Promise<void>
+  removeAlert: (trackedKey: string) => Promise<void>
   /** Faux tant que la première lecture n'a pas abouti. */
   ready: boolean
 }
@@ -54,15 +65,17 @@ export function useUserData(): UserDataValue {
 export function UserDataProvider({ children }: { children: ReactNode }): JSX.Element {
   const [favorites, setFavorites] = useState<FavoriteStation[]>([])
   const [trips, setTrips] = useState<SavedTrip[]>([])
+  const [alerts, setAlerts] = useState<PriceAlert[]>([])
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     let alive = true
     void (async () => {
-      const [f, t] = await Promise.all([getFavorites(), getTrips()])
+      const [f, t, a] = await Promise.all([getFavorites(), getTrips(), getAlerts()])
       if (!alive) return
       setFavorites(f)
       setTrips(t)
+      setAlerts(a)
       setReady(true)
     })()
     return () => {
@@ -93,6 +106,16 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
     setTrips(await storeRemoveTrip(id))
   }, [])
 
+  const putAlert = useCallback(async (alert: PriceAlert) => {
+    setAlerts(await storePutAlert(alert))
+  }, [])
+  const putAlerts = useCallback(async (next: readonly PriceAlert[]) => {
+    setAlerts(await storePutAlerts(next))
+  }, [])
+  const removeAlert = useCallback(async (trackedKey: string) => {
+    setAlerts(await storeRemoveAlert(trackedKey))
+  }, [])
+
   const value = useMemo<UserDataValue>(
     () => ({
       favorites,
@@ -104,9 +127,28 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
       saveTrip,
       importTrip,
       removeTrip,
+      alerts,
+      putAlert,
+      putAlerts,
+      removeAlert,
       ready
     }),
-    [favorites, isFavorite, addFavorite, removeFavorite, toggleFavorite, trips, saveTrip, importTrip, removeTrip, ready]
+    [
+      favorites,
+      isFavorite,
+      addFavorite,
+      removeFavorite,
+      toggleFavorite,
+      trips,
+      saveTrip,
+      importTrip,
+      removeTrip,
+      alerts,
+      putAlert,
+      putAlerts,
+      removeAlert,
+      ready
+    ]
   )
 
   return <UserDataContext.Provider value={value}>{children}</UserDataContext.Provider>

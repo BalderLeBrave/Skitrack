@@ -28,8 +28,24 @@ export const IPC = {
   /** Bulletin d'avalanche Météo-France (API DPBRA). */
   braFetch: 'bra:fetch',
   /** Scraping Airbnb via Puppeteer (navigateur invisible). */
-  airbnbScrape: 'airbnb:scrape'
+  airbnbScrape: 'airbnb:scrape',
+  /** Notification native du système — alertes de baisse de prix. */
+  notify: 'app:notify'
 } as const
+
+/**
+ * Notification native.
+ *
+ * Le renderer ne fabrique pas de `Notification` lui-même : le processus main
+ * est seul à décider si le système en accepte une, et l'y contraindre garde
+ * un point unique où vérifier ce qui sort de l'application. Volontairement
+ * sans champ libre au-delà du titre et du corps — pas d'URL, pas d'action :
+ * une notification ramène au bon écran, elle n'agit pas.
+ */
+export interface NotifyParams {
+  title: string
+  body: string
+}
 
 /** Paramètres d'une recherche Airbnb automatisée. */
 export interface AirbnbScrapeParams {

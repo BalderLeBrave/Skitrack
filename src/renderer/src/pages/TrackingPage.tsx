@@ -2,8 +2,12 @@ import { CloseIcon, TrendIcon } from '@/components/Icons'
 import { srcOf } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
-import { useApp } from '@/state/appState'
+import { readingOrigin, useApp } from '@/state/appState'
 import type { PriceHistoryStore, TrackedItem } from '@/state/appState'
+import { useUserData } from '@/state/userData'
+import { initialArmed, valueFor } from '@/domain/priceAlerts'
+import { isRefreshable, perPersonOf } from '@/data/priceRefresh'
+import { AlertPanel } from '@/components/AlertPanel'
 
 /**
  * Forme de la courbe simulée, en multiples du prix actuel.
@@ -33,9 +37,23 @@ interface Series {
  * dépendrait de l'endroit où on la lit.
  */
 function seriesOf(item: TrackedItem, history: PriceHistoryStore): Series {
-  const stored = (history[item.key] ?? []).map((p) => p.v)
+  // Seuls les points **mesurés** font un historique réel. La version
+  // précédente prenait tout point enregistré pour une mesure, alors que
+  // l'historique était alimenté par une sinusoïde : la courbe passait en trait
+  // plein — donc en « relevé » — au bout de deux ouvertures de l'application,
+  // sans qu'aucune source ait jamais été interrogée.
+  const stored = (history[item.key] ?? []).filter((p) => readingOrigin(p) === 'measured').map((p) => p.v)
   if (stored.length >= MIN_REAL_POINTS) return { values: stored, real: true }
   return { values: SIMULATED_SHAPE.map((k) => Math.round((item.total * k) / 10) * 10), real: false }
+}
+
+/** Nuits d'un suivi, pour ramener un total à un prix par personne. */
+function nights(item: TrackedItem): number {
+  if (!item.checkIn || !item.checkOut) return 1
+  const a = Date.parse(`${item.checkIn}T12:00:00Z`)
+  const b = Date.parse(`${item.checkOut}T12:00:00Z`)
+  if (Number.isNaN(a) || Number.isNaN(b)) return 1
+  return Math.max(1, Math.round((b - a) / 86_400_000))
 }
 
 /** Chemin d'une sparkline, dans un repère de `w` sur `h`. */
@@ -65,6 +83,8 @@ export function TrackingPage(): JSX.Element {
   const { eur, fmt } = useFormat()
   const { t } = useI18n()
   const { state, patch, history } = useApp()
+  const { alerts } = useUserData()
+  const alertOf = (key: string): ReturnType<typeof alerts.find> => alerts.find((a) => a.trackedKey === key)
 
   const selected = state.tracked[state.trackedSel]
   const { values, real } = selected ? seriesOf(selected, history) : { values: [], real: false }
@@ -268,6 +288,15 @@ export function TrackingPage(): JSX.Element {
                         redevient une mesure aux yeux de qui la lit vite. */}
                     {!s.real && <span className="trackrow__sim">{t('track_simulated_short')}</span>}
 
+                    {/* Marqueur d'alerte armée : le seul état qu'on doit voir
+                        sans ouvrir le détail, parce qu'il dit « une
+                        notification peut partir ». */}
+                    {alertOf(item.key)?.active && (
+                      <span className="trackrow__alert" title={t('alert_badge')}>
+                        {alertOf(item.key)?.armed ? '🔔' : '🔕'}
+                      </span>
+                    )}
+
                     <button
                       type="button"
                       className="iconbtn iconbtn--bare trackrow__close"
@@ -340,9 +369,29 @@ export function TrackingPage(): JSX.Element {
               </div>
               <p className="u-muted" style={{ margin: '8px 0 0', fontSize: 11 }}>
                 {real
-                  ? `Historique réel — un relevé par heure, conservé localement (${values.length} points).`
-                  : 'Courbe simulée en attendant les premiers relevés horaires — chaque relevé réel s’enregistre localement.'}
+                  ? t('tracking_measured').replace('{n}', String(values.length))
+                  : t('tracking_awaiting')}
               </p>
+
+              {!isRefreshable(selected) && (
+                <p className="notice notice--warn" style={{ marginTop: 10, fontSize: 11 }}>
+                  {t('alert_not_refreshable')}
+                </p>
+              )}
+
+              <AlertPanel
+                item={selected}
+                alert={alertOf(selected.key) ?? null}
+                currentValue={(mode) =>
+                  valueFor(
+                    mode,
+                    values[values.length - 1] ?? selected.total,
+                    perPersonOf(selected, values[values.length - 1] ?? selected.total, nights(selected))
+                  )
+                }
+                hasMeasured={real}
+                initialArmed={initialArmed}
+              />
             </div>
           </div>
         )}

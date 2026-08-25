@@ -20,7 +20,9 @@ import {
 } from './userData'
 
 let failures = 0
+let total = 0
 function check(label: string, condition: boolean, detail?: unknown): void {
+  total++
   console.log(
     `  ${condition ? '✓' : '✗'} ${label}${condition || detail === undefined ? '' : ` — ${JSON.stringify(detail)}`}`
   )
@@ -170,7 +172,9 @@ async function main(): Promise<void> {
     console.error(`\n${failures} test(s) en échec.`)
     process.exit(1)
   }
-  console.log('\nuserData : 45 contrôles — la couche est étanche et ne répare jamais ce qu’elle ne comprend pas.')
+  console.log(
+    `\nuserData : ${total} contrôles — la couche est étanche et ne répare jamais ce qu’elle ne comprend pas.`
+  )
 }
 
 void main()

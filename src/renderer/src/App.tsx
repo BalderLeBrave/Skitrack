@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { I18nContext, LANGUAGES, LANGUAGE_LABELS, isLanguage, type Language, useI18n } from '@/i18n'
 import { useSidecar } from '@/hooks/useSidecar'
 import { useShortcuts } from '@/hooks/useShortcuts'
+import { usePriceRefresh } from '@/hooks/usePriceRefresh'
 import { AppProvider, useApp } from '@/state/appState'
 import { DerivedProvider, useDerived } from '@/state/selectors'
 import { UserDataProvider } from '@/state/userData'
@@ -222,6 +223,9 @@ function Shell(): JSX.Element {
   const { state: sidecar, log, restart } = useSidecar()
   const [engineSkipped, setEngineSkipped] = useState(false)
   useShortcuts()
+  // Rerelevé des prix suivis : monté une fois ici, il tourne tant que
+  // l'application est ouverte. Voir `hooks/usePriceRefresh`.
+  usePriceRefresh()
 
   // La liste des domaines est chargée une première fois depuis le fichier
   // livré ; dès que le moteur répond, elle est remplacée par sa base complète.

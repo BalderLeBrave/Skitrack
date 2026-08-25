@@ -520,7 +520,14 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                       src: lodging.src,
                       total: lodging.total,
                       pp: lodging.pp,
-                      domain: d.name
+                      domain: d.name,
+                      url: lodging.url,
+                      domainId: d.id,
+                      checkIn: state.arrDate,
+                      checkOut: state.depDate,
+                      adults: Math.max(1, state.travelers - state.children),
+                      children: state.children,
+                      confidence: lodging.priceConfidence
                     }
                   ],
                   trackedSel: state.tracked.length

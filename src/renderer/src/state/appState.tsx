@@ -76,6 +76,25 @@ export interface TrackedItem {
   total: number
   pp: number
   domain: string
+  /**
+   * De quoi rerelever ce prix plus tard.
+   *
+   * Tous facultatifs : un suivi enregistré avant l'existence du relevé réel
+   * n'en porte aucun. Un tel suivi reste affiché et reste comparable, il ne
+   * peut simplement pas produire de nouveau point — ce que l'écran dit, plutôt
+   * que de combler avec une valeur dérivée du prix d'origine.
+   */
+  url?: string
+  domainId?: number
+  checkIn?: string
+  checkOut?: string
+  adults?: number
+  children?: number
+  /**
+   * Confiance du prix au moment du suivi, telle que la source l'a donnée.
+   * Seul `total_confirmed` autorise une alerte : voir `domain/priceAlerts`.
+   */
+  confidence?: 'total_confirmed' | 'partial' | 'unknown'
 }
 
 export interface Decision {
@@ -619,10 +638,27 @@ const PERSISTED_KEYS = [
  */
 const PREFS_KEY = 'skitrack-v4-prefs'
 const LEGACY_PREFS_KEYS = ['skitrack-v3-prefs']
-const HIST_KEY = 'skitrack-v3-hist'
+
+/**
+ * L'historique change de clé parce qu'il change de nature.
+ *
+ * Jusqu'ici, `skitrack-v3-hist` était rempli par une sinusoïde : à chaque
+ * ouverture, un point était **fabriqué** à partir du prix d'origine, sans
+ * qu'aucune source soit interrogée. L'écran de suivi, lui, considérait deux
+ * points enregistrés comme un « historique réel » et retirait les pointillés.
+ * La distinction relevé / simulé que cet écran promet de garantir était donc
+ * déjà fausse, et une alerte branchée dessus aurait notifié sur du bruit.
+ *
+ * Ces points sont inexploitables : rien ne permet de distinguer après coup ce
+ * qui aurait été mesuré de ce qui a été inventé. Ils sont abandonnés avec la
+ * clé v3 plutôt que repris sous une provenance devinée. On ne récupère pas une
+ * donnée dont on ne connaît pas la provenance — on l'invente une seconde fois.
+ */
+const HIST_KEY = 'skitrack-v4-hist'
+const LEGACY_HIST_KEYS = ['skitrack-v3-hist']
 
 function purgeLegacyPrefs(): void {
-  for (const key of LEGACY_PREFS_KEYS) {
+  for (const key of [...LEGACY_PREFS_KEYS, ...LEGACY_HIST_KEYS]) {
     try {
       localStorage.removeItem(key)
     } catch {
@@ -772,6 +808,24 @@ function repairCentralUrls(imported: Lodging[]): Lodging[] {
 export interface PriceReading {
   t: number
   v: number
+  /**
+   * D'où vient ce point.
+   *
+   * `measured` : la source a répondu avec un total confirmé, à cette date.
+   * `estimated` : tout le reste — un « à partir de », un prix dérivé. Un point
+   * estimé se dessine en pointillés et **ne déclenche jamais d'alerte** : une
+   * notification quitte l'application et personne ne la relira en se demandant
+   * si le chiffre était une mesure.
+   *
+   * Absent sur les points d'avant ce champ ; `readingOrigin` les traite alors
+   * comme estimés, ce qui est le choix prudent.
+   */
+  o?: 'measured' | 'estimated'
+}
+
+/** Provenance d'un point, avec le repli prudent pour les points d'avant. */
+export function readingOrigin(reading: PriceReading): 'measured' | 'estimated' {
+  return reading.o === 'measured' ? 'measured' : 'estimated'
 }
 
 export type PriceHistoryStore = Record<string, PriceReading[]>
@@ -803,6 +857,8 @@ export interface AppContextValue {
   reloadDomains: () => void
   screen: Screen
   history: PriceHistoryStore
+  /** Enregistre des relevés réels, indexés par `TrackedItem.key`. */
+  recordReadings: (readings: Record<string, PriceReading>) => void
   /** Fenêtre étroite : les panneaux latéraux se replient d'eux-mêmes. */
   narrow: boolean
   /** Largeur de fenêtre courante — l'écran Recherche rabote ses colonnes
@@ -857,6 +913,9 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
   const [viewportW, setViewportW] = useState(() => window.innerWidth)
   const narrow = viewportW < NARROW_PX
   const history = useRef<PriceHistoryStore>(loadHistory())
+  // L'historique vit dans une ref (il est volumineux et réécrit par lots) ;
+  // ce compteur est le seul signal de repeinte quand un relevé arrive.
+  const [historyTick, setHistoryTick] = useState(0)
 
   const patch = useCallback((next: Partial<AppState>) => {
     setState((prev) => ({ ...prev, ...next }))
@@ -938,30 +997,32 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     }
   }, [state])
 
-  // --- Relevé horaire des prix suivis -------------------------------------
-  useEffect(() => {
-    if (state.tracked.length === 0) return
-    const now = Date.now()
-    let changed = false
-    for (const t of state.tracked) {
-      const arr = (history.current[t.key] ??= [])
-      const last = arr[arr.length - 1]
-      // Un relevé par heure : rouvrir l'application n'invente pas de point.
-      if (last && now - last.t < 3600e3) continue
-      const prev = last ? last.v : Math.round(t.total * 1.06)
-      const drift = 1 - 0.004 + Math.sin(now / 7.2e6 + t.key.length) * 0.012
-      arr.push({ t: now, v: Math.max(Math.round(t.total * 0.9), Math.round((prev * drift) / 5) * 5) })
+  /**
+   * Enregistre des relevés dans l'historique.
+   *
+   * Point d'entrée unique de l'écriture : le relevé réel (`usePriceRefresh`)
+   * l'appelle, et personne d'autre. Il n'existe plus de chemin qui fabrique un
+   * point — c'est délibéré, et c'est ce qui rend une alerte défendable.
+   */
+  const recordReadings = useCallback((readings: Record<string, PriceReading>) => {
+    const entries = Object.entries(readings)
+    if (entries.length === 0) return
+    for (const [key, reading] of entries) {
+      const arr = (history.current[key] ??= [])
+      arr.push(reading)
+      // Dix jours de relevés horaires : au-delà, la courbe ne se lit plus et
+      // le stockage grossit sans rien apprendre.
       if (arr.length > 240) arr.shift()
-      changed = true
     }
-    if (changed) {
-      try {
-        localStorage.setItem(HIST_KEY, JSON.stringify(history.current))
-      } catch {
-        /* l'historique reste en mémoire */
-      }
+    try {
+      localStorage.setItem(HIST_KEY, JSON.stringify(history.current))
+    } catch {
+      /* l'historique reste en mémoire */
     }
-  }, [state.tracked])
+    // `history` est une ref : sans ce compteur, aucun écran ne se repeindrait
+    // à l'arrivée d'un relevé.
+    setHistoryTick((n) => n + 1)
+  }, [])
 
   // --- Largeur de fenêtre -------------------------------------------------
   useEffect(() => {
@@ -1000,6 +1061,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       reloadDomains,
       screen,
       history: history.current,
+      recordReadings,
       narrow,
       viewportW
     }),
@@ -1016,6 +1078,13 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       domainWarning,
       reloadDomains,
       screen,
+      recordReadings,
+      // `historyTick` n'est lu nulle part dans le corps du mémo : il n'est là
+      // que pour le réinvalider. L'historique est une ref mutée en place, donc
+      // son identité ne change pas quand un relevé arrive — sans ce compteur,
+      // la valeur de contexte resterait identique et aucun écran ne se
+      // repeindrait.
+      historyTick,
       narrow,
       viewportW
     ]

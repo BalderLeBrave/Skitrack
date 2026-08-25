@@ -5641,3 +5641,80 @@ select {
   font-size: 12px;
   min-width: 0;
 }
+
+/** Panneau d’alerte d’un élément suivi, dans le détail de l’écran Suivi.
+ *  Posé sur les jetons existants : aucune couleur nouvelle, la seule
+ *  distinction visuelle est le filet supérieur qui le détache de la courbe. */
+.alertpanel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.alertpanel__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.alertpanel__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+}
+
+.alertpanel__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alertpanel__modes {
+  display: flex;
+  gap: 6px;
+}
+
+.alertpanel__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.alertpanel__input {
+  width: 96px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.alertpanel__input:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.alertpanel__active {
+  margin: 0;
+  font-size: 12px;
+}
+
+.alertpanel__state {
+  margin: 8px 0 0;
+  font-size: 11px;
+  max-width: 62ch;
+}
+
+/** Cloche d’alerte sur une ligne de suivi. */
+.trackrow__alert {
+  font-size: 12px;
+  line-height: 1;
+}

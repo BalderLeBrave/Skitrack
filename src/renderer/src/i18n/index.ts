@@ -816,6 +816,37 @@ const CATALOG = {
   trip_budget_total: ['{v} au total', '{v} total'],
   trip_budget_perso: ['{v} par personne', '{v} per person'],
 
+  // --- Alertes de prix -----------------------------------------------------
+  alert_fired_title: ['Baisse de prix', 'Price drop'],
+  alert_fired_body: ['{n} : {v} € (seuil {s} €)', '{n}: €{v} (threshold €{s})'],
+  alert_section_title: ['Alerte sur ce suivi', 'Alert on this item'],
+  alert_mode_total: ['Total du séjour', 'Trip total'],
+  alert_mode_pp: ['Par personne', 'Per person'],
+  alert_threshold_label: ['Me prévenir sous', 'Notify me below'],
+  alert_active: ['Alerte active', 'Alert active'],
+  alert_armed: ['Armée — le prix est au-dessus du seuil', 'Armed — price is above the threshold'],
+  alert_waiting: ['Le prix est déjà sous le seuil : la prochaine remontée réarmera l’alerte.', 'Price is already below the threshold: the next rise will re-arm the alert.'],
+  alert_none: ['Aucune alerte', 'No alert'],
+  alert_remove: ['Retirer l’alerte', 'Remove alert'],
+  alert_last_fired: ['Dernière notification : {d}', 'Last notification: {d}'],
+  alert_badge: ['Alerte', 'Alert'],
+  alert_no_measure: [
+    'Ce suivi n’a pas encore de relevé confirmé : l’alerte attend un prix mesuré pour se déclencher.',
+    'This item has no confirmed reading yet: the alert waits for a measured price before firing.'
+  ],
+  alert_not_refreshable: [
+    'Suivi enregistré avant le relevé automatique : il ne produit pas de nouveau point. Resuivez ce logement depuis sa fiche pour le réactiver.',
+    'Tracked before automatic readings existed: it produces no new points. Track this stay again from its sheet to reactivate it.'
+  ],
+  tracking_measured: [
+    'Relevés confirmés — un par heure au plus, tant que l’application est ouverte ({n} points)',
+    'Confirmed readings — at most one per hour, while the app is open ({n} points)'
+  ],
+  tracking_awaiting: [
+    'Aucun relevé confirmé pour l’instant. La courbe reste en pointillés : elle montre qu’une courbe existera, aucune de ses valeurs n’est une mesure.',
+    'No confirmed reading yet. The curve stays dashed: it shows that a curve will exist, none of its values is a measurement.'
+  ],
+
   // --- Écran Décision : postes de coût et répartition ----------------------
   decision_lodging_sub: [
     '{l} · {n} nuits · réparti au nombre de personnes',

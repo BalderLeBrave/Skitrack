@@ -6,6 +6,7 @@ import {
   type AppInfo,
   type BraBulletin,
   type ListingExtract,
+  type NotifyParams,
   type OsmLodgingQuery,
   type OsmLodgingResult,
   type ProviderAggregate,
@@ -46,6 +47,8 @@ const api = {
     remove: (key: SecretKey): Promise<SecretPresence[]> => ipcRenderer.invoke(IPC.secretsDelete, key),
     push: (): Promise<{ pushed: number } | { error: string }> => ipcRenderer.invoke(IPC.secretsPush)
   },
+  /** Notification native : le renderer demande, le main décide. */
+  notify: (params: NotifyParams): Promise<boolean> => ipcRenderer.invoke(IPC.notify, params),
   /** Comparateur multi-sources : Airbnb via MCP, autres sources en deep-link. */
   providers: {
     search: (params: ProviderSearchParams, only?: string[]): Promise<ProviderAggregate> =>

@@ -1,5 +1,5 @@
 /**
- * Données de l'utilisateur : stations favorites et séjours en préparation.
+ * Données de l'utilisateur : favoris, séjours en préparation, alertes de prix.
  *
  * **Point de bascule.** Tout ce qui appartient à la personne — et non à la
  * session, ni au catalogue — passe par ce module et par lui seul. Aujourd'hui
@@ -27,6 +27,8 @@
  * une entrée qui ne passe pas est écartée — pas réparée. Réparer une donnée
  * qu'on ne comprend pas, c'est l'inventer.
  */
+
+import type { PriceAlert } from '@/domain/priceAlerts'
 
 /** Contrat minimal du support de stockage, pour pouvoir le remplacer. */
 interface StorageBackend {
@@ -76,17 +78,19 @@ export function __setBackendForTest(next: StorageBackend | null): void {
 
 const FAVORITES_KEY = 'skitrack.favorites.v1'
 const TRIPS_KEY = 'skitrack.trips.v1'
+const ALERTS_KEY = 'skitrack.alerts.v1'
 
 /**
  * Clés d'une version antérieure, relues une fois puis effacées.
  *
- * Vide aujourd'hui — les deux clés ci-dessus sont les premières. La table
+ * Vide aujourd'hui — les trois clés ci-dessus sont les premières. La table
  * existe pour que le prochain changement de version ait un endroit évident où
  * s'écrire, plutôt qu'une migration improvisée à côté du chargement.
  */
 const LEGACY_KEYS: Record<string, readonly string[]> = {
   [FAVORITES_KEY]: [],
-  [TRIPS_KEY]: []
+  [TRIPS_KEY]: [],
+  [ALERTS_KEY]: []
 }
 
 export interface FavoriteStation {
@@ -362,6 +366,70 @@ export async function removeTrip(id: string): Promise<SavedTrip[]> {
   return next
 }
 
+// --- Alertes de prix ------------------------------------------------------
+
+/**
+ * Valide une alerte relue.
+ *
+ * `armed` est délibérément **repris tel quel** et non recalculé : c'est un cran
+ * d'hystérésis, il porte l'histoire du prix depuis la dernière notification.
+ * Le remettre à une valeur « raisonnable » au chargement ferait renotifier au
+ * premier relevé suivant chaque redémarrage — précisément le spam que le cran
+ * existe pour éviter. Absent d'une entrée ancienne, il retombe sur `false`,
+ * qui est le choix silencieux.
+ */
+function parseAlert(raw: unknown): PriceAlert | null {
+  if (!isRecord(raw)) return null
+  const trackedKey = str(raw.trackedKey, 400)
+  if (trackedKey == null) return null
+  const threshold = int(raw.threshold, 1, 10_000_000)
+  if (threshold == null) return null
+  const mode = raw.mode === 'pp' ? 'pp' : raw.mode === 'total' ? 'total' : null
+  if (mode == null) return null
+  return {
+    trackedKey,
+    mode,
+    threshold,
+    active: raw.active !== false,
+    armed: raw.armed === true,
+    lastNotifiedAt: num(raw.lastNotifiedAt)
+  }
+}
+
+export async function getAlerts(): Promise<PriceAlert[]> {
+  const out: PriceAlert[] = []
+  const seen = new Set<string>()
+  for (const raw of readList(ALERTS_KEY)) {
+    const alert = parseAlert(raw)
+    if (!alert || seen.has(alert.trackedKey)) continue
+    seen.add(alert.trackedKey)
+    out.push(alert)
+  }
+  return out
+}
+
+/** Pose ou remplace l'alerte d'un élément suivi — une seule par élément. */
+export async function putAlert(alert: PriceAlert): Promise<PriceAlert[]> {
+  const current = await getAlerts()
+  const next = [alert, ...current.filter((a) => a.trackedKey !== alert.trackedKey)]
+  writeList(ALERTS_KEY, next)
+  return next
+}
+
+/** Écrit un lot d'alertes d'un coup — sortie d'un tour d'évaluation. */
+export async function putAlerts(alerts: readonly PriceAlert[]): Promise<PriceAlert[]> {
+  const next = [...alerts]
+  writeList(ALERTS_KEY, next)
+  return next
+}
+
+export async function removeAlert(trackedKey: string): Promise<PriceAlert[]> {
+  const current = await getAlerts()
+  const next = current.filter((a) => a.trackedKey !== trackedKey)
+  if (next.length !== current.length) writeList(ALERTS_KEY, next)
+  return next
+}
+
 /**
  * Efface tout.
  *
@@ -370,7 +438,7 @@ export async function removeTrip(id: string): Promise<SavedTrip[]> {
  * module qui sait ce qu'il a écrit.
  */
 export async function clearUserData(): Promise<void> {
-  for (const key of [FAVORITES_KEY, TRIPS_KEY]) {
+  for (const key of [FAVORITES_KEY, TRIPS_KEY, ALERTS_KEY]) {
     try {
       backend.remove(key)
     } catch {
@@ -380,4 +448,4 @@ export async function clearUserData(): Promise<void> {
 }
 
 /** Les clés possédées par ce module, pour les écrans qui purgent le stockage. */
-export const USER_DATA_KEYS = [FAVORITES_KEY, TRIPS_KEY] as const
+export const USER_DATA_KEYS = [FAVORITES_KEY, TRIPS_KEY, ALERTS_KEY] as const

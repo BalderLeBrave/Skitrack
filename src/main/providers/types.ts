@@ -99,6 +99,17 @@ export interface Accommodation {
   currency?: string
 
   rating?: number
+  /**
+   * Échelle sur laquelle `rating` est exprimé, quand ce n'est pas 5.
+   *
+   * Booking rend ses notes **sur 10** (« 8,2 »), Airbnb sur 5. Sans cette
+   * déclaration, la valeur brute était recopiée telle quelle derrière une
+   * étoile sur 5, et une note Booking correcte s'affichait comme une note
+   * aberrante. L'échelle se déclare **au connecteur**, seul endroit où elle est
+   * connue avec certitude : la deviner en aval — « au-dessus de 5, donc sur
+   * 10 » — se tromperait sur toute note basse d'une source sur 10.
+   */
+  ratingScale?: number
   reviewCount?: number
 
   amenities?: string[]

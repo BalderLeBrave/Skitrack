@@ -2411,6 +2411,34 @@ select {
 }
 
 /**
+ * Puces des filtres posés, à l'intérieur du panneau de réglage.
+ *
+ * Elles ne sont plus au-dessus de la mosaïque : l'écran Logements ne parle de
+ * filtrage que dans cette fenêtre. Un filet bas les sépare des réglages qui
+ * les ont produites, sans quoi la liste des critères actifs se lit comme la
+ * première section de formulaire.
+ */
+.filterchips--infilters {
+  margin: 0 0 10px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/** Le relevé se relance depuis le panneau : action pleine, pleine largeur. */
+.filters__search {
+  width: 100%;
+  margin: 0 0 12px;
+}
+
+/** Compte des annonces écartées, sous les puces qui disent par quoi. */
+.filters__hidden {
+  display: block;
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-align: left;
+}
+
+/**
  * Panneau de filtres : un survol ancré à son bouton.
  *
  * `position: absolute` et non `sticky` : posé dans le flux, le panneau poussait
@@ -3255,18 +3283,7 @@ select {
 }
 
 /** Ce que le cadrage de la carte écarte de la liste, dit plutôt que subi. */
-.outofview {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  font-size: 12px;
-}
+/* `.outofview` retiré avec le bandeau « hors du cadrage actuel ». */
 
 .lodgmap__sync {
   position: absolute;
@@ -3372,25 +3389,7 @@ select {
   width: 100%;
 }
 
-.weekrow {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  text-align: left;
-  font-size: 13px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  border: 1px solid var(--border-soft);
-  background: transparent;
-  color: var(--text);
-}
-
-.weekrow--on {
-  border-color: var(--text);
-  background: var(--surface);
-}
+/* `.weekrow` / `.weekrow--on` retirés avec le panneau « Dates flexibles ». */
 
 /* --- Vignette de logement ------------------------------------------------- */
 
@@ -3404,6 +3403,12 @@ select {
   cursor: pointer;
   box-shadow: var(--shadow);
   transition: box-shadow 0.18s ease;
+  /* Sans ce `min-width`, la vignette garde le `min-width: auto` d'un élément
+     de grille : un titre d'annonce long — les sources en produisent de très
+     longs — élargit sa colonne au lieu d'être tronqué, la carte déborde et les
+     photos voisines prennent des hauteurs différentes. C'est la même cause
+     pour les trois défauts. */
+  min-width: 0;
 }
 
 .lodgcard:hover {
@@ -3421,6 +3426,29 @@ select {
   position: relative;
   display: grid;
   place-items: center;
+  /* Rien ne dépasse du cadre, quelle que soit la proportion de la photo. */
+  overflow: hidden;
+}
+
+/**
+ * La photo remplit le cadre, elle ne le dimensionne pas.
+ *
+ * En élément de grille centré (`place-items: center`), sa hauteur se négociait
+ * avec son contenu : deux vignettes voisines finissaient avec des photos de
+ * hauteurs différentes selon la proportion du fichier reçu, alors que leur
+ * cadre annonçait le même 16/10. Sortie du flux, elle ne peut plus peser sur
+ * la hauteur du cadre — c'est `aspect-ratio` seul qui la fixe, donc la même
+ * pour toutes.
+ *
+ * Portée limitée au média de la vignette : `.lodgcard__img` est partagé avec
+ * la photo de `LodgingSheet`, qui a sa propre hauteur.
+ */
+.lodgcard__media .lodgcard__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .lodgcard__media--stale {
@@ -3470,11 +3498,55 @@ select {
   color: #f5c542;
   font-variant-numeric: tabular-nums;
 }
-.lodgcard__badge--src {
+/* Pastille de source : blanche à texte foncé, comme la maquette et comme
+   « Ski aux pieds », sa voisine de rangée. */
+/* Rangée des pastilles du média : une seule bande en haut de la photo, dont
+   les pastilles redeviennent des éléments de flux. C'est elle qui garantit
+   qu'aucune ne peut en recouvrir une autre, quelle que soit la longueur du nom
+   de la source. `min-width: 0` sur la pastille de source pour qu'elle cède la
+   première — « Ski aux pieds » est court et ne se tronque jamais. */
+.lodgcard__badges {
+  position: absolute;
+  top: 10px;
+  left: 10px;
   right: 10px;
-  background: rgba(15, 22, 32, 0.7);
-  color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.lodgcard__badges .lodgcard__badge {
+  position: static;
+}
+
+.lodgcard__badge--src {
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(15, 22, 32, 0.18);
   backdrop-filter: blur(2px);
+}
+
+/* Pastilles plus discrètes sur la photo d'une vignette : à 24 px et 12 px
+   elles pesaient autant que le titre. Portée volontairement limitée au média
+   de la vignette — `LodgingSheet` emploie les mêmes classes et garde sa
+   propre échelle. */
+.lodgcard__media .lodgcard__badge {
+  height: 21px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+/* L'ellipse porte sur le nom, pas sur la pastille : `text-overflow` n'a aucun
+   effet sur un conteneur flex, et la pastille en est un pour tenir sa hauteur
+   fixe. Le compte « +N » reste donc toujours lisible, même nom tronqué. */
+.lodgcard__srcname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Confiance prix : posée à gauche de la source, lisible sur photo. */
@@ -3505,6 +3577,29 @@ select {
   padding: 12px;
   display: grid;
   gap: 6px;
+  /* Même raison que sur `.lodgcard` : une grille dont la colonne se dimensionne
+     sur son contenu ne tronque jamais rien. */
+  min-width: 0;
+}
+
+/**
+ * Le `min-width: 0` doit descendre sur **chaque** enfant du corps.
+ *
+ * C'est le piège qui a fait échouer la première correction : poser la règle
+ * sur `.lodgcard` et sur `.lodgcard__body` ne suffit pas, parce que chaque
+ * enfant d'une grille repart de `min-width: auto`. Un titre d'annonce sans
+ * espace, ou un libellé « Ouvrir sur Booking.com », élargissait alors la
+ * colonne interne au-delà de la carte, et l'`overflow: hidden` de la vignette
+ * coupait le texte net — sans jamais l'ellipse attendue.
+ */
+.lodgcard__body > * {
+  min-width: 0;
+}
+
+/* Les phrases longues sans coupure possible — « nécessite le moteur local » —
+   se replient plutôt que de pousser la colonne. */
+.lodgcard__sub {
+  overflow-wrap: anywhere;
 }
 
 .lodgcard__name {
@@ -3534,6 +3629,88 @@ select {
      et la taille suffisent à le hiérarchiser. */
   color: var(--text);
   letter-spacing: -0.03em;
+}
+
+/* ——— Vignette de logement : gabarit dédié ———————————————————————————————
+   Ajouts du passage au gabarit propre à l'écran Logements. Tout ce qui suit
+   est déclaré après les règles de base ci-dessus : à spécificité égale, c'est
+   la dernière qui l'emporte, et une variante posée avant serait reprise. */
+
+/* Le nom et la note partagent la première ligne. `min-width: 0` sur le titre,
+   sans quoi un nom long pousserait la note hors de la vignette au lieu d'être
+   tronqué — c'est le titre qui cède, jamais la note. */
+.lodgcard__titlerow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lodgcard__titlerow .lodgcard__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lodgcard__note {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lodgcard__unit {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/**
+ * Le montant du séjour, au bleu de marque — celui des puces de filtre.
+ *
+ * Il portait trois teintes selon la confiance du prix. Depuis que la liste
+ * n'admet que des prix vérifiés, cette confiance vaut « confirmé » pour toutes
+ * les vignettes : le vert ne distinguait plus rien, il colorait seulement. Une
+ * couleur qui ne sépare plus deux cas n'est plus une information.
+ *
+ * Déclaré après `.lodgcard__total`, dont il reprend la teinte.
+ */
+.lodgcard__total {
+  color: var(--brand);
+}
+
+/* Deux proportions de photo, selon la densité choisie dans les réglages. */
+.lodgcard__media--wide {
+  aspect-ratio: 16/10;
+}
+
+.lodgcard__media--square {
+  aspect-ratio: 1/1;
+}
+
+/* Nombre d'autres sources portant la même annonce, dans la pastille. Cadré en
+   accent : c'est un compte, pas la suite du nom de la centrale. */
+.lodgcard__srcplus {
+  margin-left: 6px;
+  color: var(--link);
+  font-weight: 700;
+}
+
+/* Action principale : pleine largeur, au-dessus des deux actions secondaires.
+   Elle sort de l'application, elle mérite la ligne entière. */
+.lodgcard__open {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 2px;
+  /* « Ouvrir sur Les Menuires Réservation » est plus large que la vignette :
+     le libellé se tronque, la flèche reste visible. */
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* --- Fiche logement ------------------------------------------------------- */
@@ -3617,6 +3794,13 @@ select {
   border-top: 1px solid var(--border);
   padding-top: 8px;
   margin-top: 4px;
+}
+
+/* Le total du séjour prend le bleu de marque, comme le montant en tête de
+   fiche et comme le prix des vignettes. Seul ce total : colorer aussi les
+   lignes de détail au-dessus reviendrait à ne plus rien mettre en avant. */
+.breakdown__total .u-num {
+  color: var(--brand);
 }
 
 .sheet__options {
@@ -5184,6 +5368,22 @@ select {
   font-size: 13px;
 }
 
+/**
+ * Encadré à part entière, plutôt qu'une barre de plus sous l'en-tête.
+ *
+ * Le fond seul se confondait avec les contrôles au-dessus, alors que la neige
+ * ne parle pas de la même chose que la liste : la bordure et la marge basse la
+ * détachent en bloc autonome, sans toucher à la disposition interne.
+ *
+ * Déclaré **après** `.lodgsnow` : à spécificité égale c'est la dernière règle
+ * qui gagne, et placé avant, son rembourrage serait repris par la base.
+ */
+.lodgsnow--boxed {
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  margin: 0 0 18px;
+}
+
 .lodgsnow__label {
   font-weight: 700;
 }
@@ -5571,4 +5771,12 @@ select {
 .lodgscan--banner .lodgscan__rows,
 .lodgscan--banner .lodgscan__foot {
   display: none;
+}
+
+/* La note du panneau reprend celle de la vignette. Le titre porte déjà
+   `flex: 1`, elle est donc poussée à droite sans aide — et `flex: none` lui
+   évite d'être compressée par un nom d'annonce long : c'est le titre qui se
+   tronque, jamais elle. */
+.drawer__head .lodgcard__note {
+  flex: none;
 }

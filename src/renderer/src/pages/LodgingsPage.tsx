@@ -1,20 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ComparePanel } from '@/components/ComparePanel'
-import { ImportDialog } from '@/components/ImportDialog'
 import { SkiSearchLoading } from '@/components/SkiSearchLoading'
 import { CloseIcon } from '@/components/Icons'
 import { LodgingCard } from '@/components/LodgingCard'
 import { FilterPopover } from '@/components/FilterPopover'
 import { LodgingFilters } from '@/components/LodgingFilters'
 import { useActiveLodgingFilters } from '@/components/activeLodgingFilters'
-import { LodgingGeoPanel } from '@/components/LodgingGeoPanel'
 import { LodgingMap } from '@/components/LodgingMap'
 import { LodgingSheet } from '@/components/LodgingSheet'
 import { ResultGrid } from '@/components/ResultGrid'
 import { deepLinks } from '@/data/deeplinks'
 import { lodgingCoords, useLodgingGeo } from '@/data/lodgingGeo'
-import { lodgingSources, medianTotal, sourceHealth } from '@/data/lodgings'
 import type { Lodging } from '@/data/lodgings'
+import { belongsToDomain } from '@/data/lodgings'
 import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
 import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearch'
 import { centralCapabilityOf } from '@/data/centralCapability'
@@ -29,11 +27,10 @@ import {
 } from '@/data/runProviderSearch'
 import { hasCoords } from '@/data/referentiel'
 import { domainRadiusKm, domainZone } from '@shared/geo'
-import { WEEKS } from '@/data/snow'
 import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
-import { LODG_FILTER_RESET, useApp } from '@/state/appState'
+import { LODG_FILTER_RESET, stayCriteriaReady, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 
@@ -53,14 +50,14 @@ export function LodgingsPage(): JSX.Element {
   const running = useRef(false)
 
   const d = derived.lodgDomain
-  const median = medianTotal(derived.lodgAll)
+  /*
+   * Plus de médiane calculée ici : elle ne servait qu'au verdict de prix des
+   * vignettes, retiré de l'écran. `medianTotal` reste disponible dans
+   * `data/lodgings.ts` — c'est une mesure, et elle garde ses tests.
+   */
   // Neige du domaine ouvert, pour le bulletin en tête de mosaïque. `weatherOf`
   // ne répond que pour les domaines réellement demandés — dont celui-ci.
   const domSnow = snowDepths(weatherOf(d?.id ?? -1))
-  // La santé porte sur les sources **réellement interrogées** : comptée sur une
-  // liste figée, elle annonçait plus de sources que le moteur n'en appelle.
-  const health = sourceHealth(lodgingSources(derived.lodgAll, state.lodgQueried))
-
   // La vérification porte sur la liste complète : filtrer d'abord puis
   // vérifier ferait disparaître une annonce du décompte au moment même où on
   // la déclare douteuse.
@@ -88,8 +85,10 @@ export function LodgingsPage(): JSX.Element {
     return lon >= b.w && lon <= b.e && lat >= b.s && lat <= b.n
   }
 
+  // Le compte des exclus n'est plus affiché : le cadrage restreint la liste
+  // sans l'annoncer. `voir tout le domaine` a disparu avec le bandeau ; on
+  // rouvre la liste entière en coupant la synchronisation de la carte.
   const afterBounds = boundsActive ? derived.lodgList.filter(inBounds) : derived.lodgList
-  const outOfView = boundsActive ? derived.lodgList.length - afterBounds.length : 0
   // Même exemption pour le masquage des positions invraisemblables : une bulle
   // cliquée sur la carte doit se retrouver dans la liste, pas s'y évaporer.
   const visibleLodgings = state.hideBadGeo
@@ -133,19 +132,6 @@ export function LodgingsPage(): JSX.Element {
     [patch]
   )
 
-  const geoAlert = [
-    health.down.length > 0 ? `${health.down.length} source(s) injoignable(s)` : null,
-    geo.summary.bad > 0
-      ? t('lodg_geo_bad_positions').replace('{n}', String(geo.summary.bad))
-      : null
-  ]
-    .filter(Boolean)
-    .join(' · ')
-
-  const rescan = (): void => {
-    patch({ lodgPhase: 'searching' })
-  }
-
   const resetLodgFilters = (): void => {
     patch({ ...LODG_FILTER_RESET })
   }
@@ -153,19 +139,11 @@ export function LodgingsPage(): JSX.Element {
   /** Puces des filtres posés : le pendant de `useActiveFilters` côté logements. */
   const lodgActive = useActiveLodgingFilters()
 
-  /**
-   * Annonces dont le prix a été relevé pour d'autres dates que celles en cours.
-   *
-   * Un tarif Airbnb dépend de la période : celui du 7 février ne dit rien de
-   * celui du 3 janvier. On compte donc les prix devenus caducs pour pouvoir le
-   * dire à l'utilisateur — et lui proposer de les rafraîchir d'un bouton.
+  /*
+   * Le compte des prix relevés pour d'autres dates a disparu avec son bandeau :
+   * ces annonces ne sont plus dans `derived.lodgList`, écartées en amont par
+   * `confirmedPricesOnly`. Le compter reviendrait à compter zéro.
    */
-  const staleCount = derived.lodgList.filter(
-    (lg) =>
-      lg.total > 0 &&
-      lg.priceCheckIn != null &&
-      (lg.priceCheckIn !== state.arrDate || lg.priceCheckOut !== state.depDate)
-  ).length
 
   const airbnbSearchUrl =
     deepLinks({
@@ -219,8 +197,8 @@ export function LodgingsPage(): JSX.Element {
       })
       .catch(() => {
         // Moteur injoignable : la liste reste celle du dernier relevé, ou le
-        // seul socle. Un écran de filtres n'a pas à signaler cette panne, que
-        // « État du relevé » dit déjà.
+        // seul socle. Depuis le retrait d'« État du relevé », plus rien ne
+        // signale cette panne une fois le relevé terminé.
       })
     return () => {
       cancelled = true
@@ -263,11 +241,7 @@ export function LodgingsPage(): JSX.Element {
     return () => window.clearInterval(id)
   }, [state.lodgPhase])
 
-  const criteriaReady =
-    Boolean(state.arrDate) &&
-    Boolean(state.depDate) &&
-    state.arrDate < state.depDate &&
-    state.travelers >= 1
+  const criteriaReady = stayCriteriaReady(state)
 
   /**
    * Lancement du relevé.
@@ -415,8 +389,20 @@ export function LodgingsPage(): JSX.Element {
        * liste inchangée si le moteur local est absent ou si le domaine a été
        * importé sans ses tracés. La recherche aboutit dans tous les cas.
        */
+      /*
+       * Le périmètre doit être **celui de l'affichage**, pas une égalité stricte
+       * sur `d.id`.
+       *
+       * `importDomainId` porte l'entrée sous laquelle l'import a eu lieu, qui
+       * peut être une entrée absorbée depuis, et il est absent des annonces
+       * anciennes. Le sélecteur qui construit la liste accepte ces deux cas
+       * (`selectors.tsx`, `lodgMembers`) ; l'enrichissement, lui, les écartait.
+       * Résultat : des annonces bien affichées mais jamais mesurées, définitivement
+       * — « distance non calculée » sur certaines vignettes et pas sur d'autres,
+       * sans logique apparente. Les deux règles doivent être la même.
+       */
       const ofDomain = merged.filter(
-        (l) => l.importDomainId === d.id && typeof l.lat === 'number' && typeof l.lon === 'number'
+        (l) => belongsToDomain(l, d) && typeof l.lat === 'number' && typeof l.lon === 'number'
       )
       let imported = merged
       if (ofDomain.length > 0) {
@@ -487,6 +473,53 @@ export function LodgingsPage(): JSX.Element {
     derived.nights,
     patch
   ])
+
+  /**
+   * Rattrapage de l'accès aux pistes, hors relevé.
+   *
+   * Le calcul n'avait lieu qu'au moment d'un relevé. Une annonce enregistrée
+   * alors que le moteur local dormait — ou importée avant que le domaine ne soit
+   * rapproché de lui — restait donc sans distance **définitivement**, et rien
+   * dans l'écran ne la reprenait. C'est ce qui laissait des vignettes afficher
+   * « distance non calculée » relevé après relevé.
+   *
+   * Une seule tentative par domaine et par session, tenue par une référence :
+   * quand le moteur est absent, l'enrichissement rend la liste inchangée, et
+   * sans ce garde-fou l'effet se relancerait à chaque rendu.
+   *
+   * Les annonces sans coordonnées ne sont pas concernées : on ne mesure pas une
+   * distance depuis une position qu'on n'a pas, et l'inventer serait pire que
+   * l'absence.
+   */
+  const accessTried = useRef<Set<number>>(new Set())
+  useEffect(() => {
+    if (!d || state.lodgPhase !== 'results') return
+    if (accessTried.current.has(d.id)) return
+    const pending = state.imported.filter(
+      (l) =>
+        belongsToDomain(l, d) &&
+        !l.accessComputed &&
+        typeof l.lat === 'number' &&
+        typeof l.lon === 'number'
+    )
+    if (pending.length === 0) return
+
+    accessTried.current.add(d.id)
+    const snapshot = state.imported
+    let cancelled = false
+    void (async () => {
+      const { lodgings: enriched } = await enrichWithAccess(pending, d.engineId)
+      if (cancelled) return
+      const measured = new Map(
+        enriched.filter((l) => l.accessComputed).map((l) => [l.id, l])
+      )
+      if (measured.size === 0) return
+      patch({ imported: snapshot.map((l) => measured.get(l.id) ?? l) })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [d, state.lodgPhase, state.imported, patch])
 
   /**
    * `lodgPhase` est la seule source de vérité de l'écran de chargement : qui
@@ -599,7 +632,7 @@ export function LodgingsPage(): JSX.Element {
                 {derived.lodgList.length > 0 && (
                   <ResultGrid compact={narrow || splitOpen} dense={state.density === 'compact'} ratio={state.density === 'compact' ? 'square' : 'wide'}>
                     {derived.lodgList.map((lg, i) => (
-                      <LodgingCard key={lg.id} lodging={lg} median={median} domain={d} index={i} />
+                      <LodgingCard key={lg.id} lodging={lg} domain={d} index={i} />
                     ))}
                   </ResultGrid>
                 )}
@@ -728,11 +761,12 @@ export function LodgingsPage(): JSX.Element {
 
           {state.lodgPhase === 'results' && (
           <>
-          {/* Huit contrôles bordés au-dessus des vignettes pesaient autant
-              qu'elles. Tous passent en boutons-texte, le compte en libellé
-              muet : la mosaïque redevient ce qu'on regarde en premier. La zone
-              tactile de 44 px est conservée par le rembourrage de
-              `.linkbtn--head`, malgré le retrait du fond. */}
+          {/* L'en-tête ne porte plus que ce qui décrit la liste : le bouton des
+              filtres, le compte, le rappel du séjour et la carte. Tout ce qui
+              réglait la recherche est descendu dans le panneau « Filtres », et
+              les états du relevé en ont été retirés. La zone tactile de 44 px
+              est conservée par le rembourrage de `.linkbtn--head`, malgré le
+              retrait du fond. */}
           <header className="lodgings__head">
             {/* Même survol ancré que l'écran Recherche : le panneau se pose
                 sous son bouton, la mosaïque reste visible derrière. */}
@@ -746,63 +780,15 @@ export function LodgingsPage(): JSX.Element {
             >
               <LodgingFilters />
             </FilterPopover>
-            <h2 className="results__count">{derived.lodgList.length} logement(s)</h2>
+            {/* Le compte est celui de la mosaïque, pas de la liste avant
+                cadrage : sous une carte zoomée, `lodgList` annonçait vingt
+                logements au-dessus de six vignettes, et plus aucun bandeau
+                n'expliquait l'écart depuis le retrait de « hors du cadrage ». */}
+            <h2 className="results__count">{visibleLodgings.length} logement(s)</h2>
             <span className="u-muted" style={{ fontSize: 12 }}>
               prix tout compris, {derived.nights} nuit(s), {state.travelers} personnes · offres de moins d’une heure
             </span>
-            {/* Un filtre qui écarte des annonces doit se voir : sans ce compte,
-                une liste courte ressemble à une recherche infructueuse. */}
-            {derived.lodgHidden > 0 && derived.lodgList.length > 0 && (
-              <button
-                type="button"
-                className="linkbtn"
-                style={{ fontSize: 12 }}
-                onClick={resetLodgFilters}
-                title={t('lodg_reset_filters_title')}
-              >
-                {derived.lodgHidden} masqué(s) par les filtres — tout afficher
-              </button>
-            )}
             <span className="u-spacer" />
-            {/* Une alerte doit se voir, pas peser : elle reste en tête de ligne
-                mais en texte, à la couleur d'avertissement. */}
-            {geoAlert && (
-              <button
-                type="button"
-                className="linkbtn"
-                style={{ color: 'var(--warn)', fontSize: 12 }}
-                onClick={() => patch({ lodgStatusOpen: true })}
-              >
-                ⚠ {geoAlert}
-              </button>
-            )}
-            <button
-              type="button"
-              className="linkbtn--head"
-              onClick={() => patch({ lodgStatusOpen: !state.lodgStatusOpen })}
-              title={t('lodg_status_title')}
-            >
-              {geo.busy
-                ? t('lodg_status_running')
-                : state.lodgStatusOpen
-                  ? t('lodg_status_hide')
-                  : t('lodg_status_show')}
-            </button>
-            <button type="button" className="linkbtn--head" onClick={() => patch({ flexOpen: !state.flexOpen })}>
-              {state.flexOpen ? 'Dates flexibles ▾' : 'Dates flexibles ▸'}
-            </button>
-            {/* « Rechercher » reste l'action lisible de l'en-tête, sans être un
-                bouton plein : l'accent est réservé aux actions de la vignette. */}
-            <button
-              type="button"
-              className="linkbtn--head is-strong"
-              onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
-            >
-              Rechercher
-            </button>
-            <button type="button" className="linkbtn--head" onClick={() => patch({ importOpen: true })}>
-              ＋ Importer une annonce
-            </button>
             <button
               type="button"
               className="linkbtn--head"
@@ -812,10 +798,12 @@ export function LodgingsPage(): JSX.Element {
             </button>
           </header>
 
-          {/* Bulletin neige du domaine, en tête de la mosaïque : c'est la donnée
-              qui décide d'un séjour au ski avant le prix du logement. Lue du
+          {/* Bulletin neige du domaine, dans son propre encadré : c'est la
+              donnée qui décide d'un séjour au ski avant le prix du logement, et
+              elle ne parle pas de la même chose que la liste. Le cadre la sort
+              du fil de l'en-tête pour qu'on la lise comme un bulletin. Lue du
               modèle seul — « — » tant qu'il n'a pas répondu. */}
-          <div className="lodgsnow">
+          <section className="lodgsnow lodgsnow--boxed" aria-label={t('snow_on_ground')}>
             <span className="lodgsnow__label">
               {t('snow_on_ground')} <span className="u-muted">{t('snow_base_top')}</span>
             </span>
@@ -826,91 +814,32 @@ export function LodgingsPage(): JSX.Element {
             <span className="lodgsnow__lifts">
               {d.lifts} {t('lifts_plural')} · {fmt(d.min)}–{fmt(d.max)} m
             </span>
-          </div>
+          </section>
 
-          {/* Rangée de puces des filtres posés, au-dessus de la mosaïque et
-              visible panneau fermé. Depuis que le réglage est un survol qu'on
-              referme, c'est elle qui dit pourquoi la liste est courte — sans
-              quoi un budget oublié passe pour une recherche infructueuse. */}
-          {lodgActive.active.length > 0 && (
-            <div className="filterchips">
-              {lodgActive.active.map((f) => (
-                <button key={f.key} type="button" className="chip" onClick={f.clear} title={t('filter_clear_all')}>
-                  {f.label} <span className="u-muted">✕</span>
-                </button>
-              ))}
-              <button
-                type="button"
-                className="linkbtn linkbtn--sm u-nowrap"
-                onClick={lodgActive.resetAll}
-              >
-                {t('filter_clear_all')}
-              </button>
-            </div>
-          )}
+          {/* Les puces des filtres posés ne sont plus ici : elles vivent dans le
+              panneau « Filtres », seul endroit où l'on parle de filtrage. Voir
+              `LodgingFilters`. */}
 
-          {state.lodgStatusOpen && (
-            <LodgingGeoPanel
-              summary={geo.summary}
-              busy={geo.busy}
-              error={geo.error}
-              osmError={geo.osmError}
-              onRecheck={geo.recheck}
-              health={health}
-              median={median}
-              dupMerged={derived.dupMerged}
-              onRescan={rescan}
-            />
-          )}
+          {/* Trois bandeaux ont été retirés de cette place :
+              — l'état du relevé et son panneau de diagnostic ;
+              — le compte des logements hors du cadrage de la carte. Le filtrage
+                par le cadrage, lui, reste actif : déplacer la carte restreint
+                toujours la liste, désormais sans le dire ;
+              — le compte des annonces sans disponibilité confirmée. La bascule
+                qui les masque reste réglable dans « Filtres ».
+              Attention pour la suite : la relance du relevé Airbnb ne vit plus
+              que dans le bandeau des prix périmés ci-dessous, qui n'apparaît
+              pas quand `staleCount` vaut zéro. Une annonce écartée faute de
+              disponibilité prouvée, aux dates courantes, n'a donc plus de
+              geste pour la trancher. */}
 
-          {outOfView > 0 && (
-            <div className="outofview">
-              <span className="u-muted">{outOfView} logement(s) hors du cadrage actuel</span>
-              <button
-                type="button"
-                className="linkbtn linkbtn--sm"
-                onClick={() => patch({ lodgBounds: null })}
-              >
-                voir tout le domaine
-              </button>
-            </div>
-          )}
-
-          {/* Annonces retirées faute de disponibilité prouvée.
-              Rien ne disparaît en silence : le compte est dit, et les deux
-              suites possibles sont là — les réafficher telles quelles, ou
-              refaire un relevé aux dates courantes, qui est le seul geste
-              capable de trancher. */}
-          {state.lodgOnlyAvailable && derived.lodgUnavailable > 0 && (
-            <div className="srcbanner" style={{ borderColor: 'var(--warn)' }}>
-              <strong style={{ fontWeight: 600, color: 'var(--warn)' }}>
-                {t('avail_hidden').replace('{n}', String(derived.lodgUnavailable))}
-              </strong>
-              <button
-                type="button"
-                className="linkbtn linkbtn--sm"
-                onClick={() => patch({ lodgOnlyAvailable: false })}
-              >
-                {t('avail_show')}
-              </button>
-              <span className="u-spacer" />
-              <button
-                type="button"
-                className="btn btn--small btn--strong u-nowrap"
-                onClick={recheck.start}
-              >
-                {t('lodg_recheck_again')}
-              </button>
-            </div>
-          )}
-
-          {/* Le compte-rendu du relevé n'a plus de bandeau ici : il se lit
-              pendant le relevé, dans `SkiSearchLoading`, et ce qui en reste
-              d'actionnable — sources muettes, doublons, médiane — vit dans
-              « État du relevé ». Passé le résultat, un bandeau sans action
-              repousse les vignettes sous la ligne de flottaison. */}
-
-          {(staleCount > 0 || recheck.state.waiting || recheck.state.message) && (
+          {/* Le bandeau « N prix relevé(s) pour d'autres dates » a disparu :
+              une annonce dont le tarif ne vaut plus pour le séjour demandé
+              n'est plus listée du tout (`confirmedPricesOnly`, voir
+              `data/lodgingFilter.ts`). Il n'y a donc plus rien à avertir.
+              Ne subsiste que le déroulé d'une revérification en cours — mais
+              plus aucun bouton ne la déclenche depuis cet écran. */}
+          {(recheck.state.waiting || recheck.state.message) && (
             <div
               className="srcbanner"
               style={{ borderColor: recheck.state.waiting ? 'var(--brand)' : 'var(--warn)' }}
@@ -929,47 +858,17 @@ export function LodgingsPage(): JSX.Element {
                     Annuler
                   </button>
                 </>
-              ) : recheck.state.message ? (
-                <>
-                  <strong style={{ fontWeight: 600 }}>{recheck.state.message}</strong>
-                  <span className="u-spacer" />
-                  {staleCount > 0 && (
-                    <button
-                      type="button"
-                      className="btn btn--small btn--strong u-nowrap"
-                      onClick={recheck.start}
-                    >
-                      {t('lodg_recheck_again')}
-                    </button>
-                  )}
-                </>
               ) : (
-                <>
-                  <strong style={{ fontWeight: 600, color: 'var(--warn)' }}>
-                    {staleCount} prix relevé(s) pour d’autres dates
-                  </strong>
-                  <span className="u-muted">
-                    Airbnb recalcule ses tarifs à chaque période : ces montants ne valent plus pour le{' '}
-                    {fmtDay(state.arrDate)} → {fmtDay(state.depDate)}.
-                  </span>
-                  <span className="u-spacer" />
-                  <button
-                    type="button"
-                    className="btn btn--small btn--strong u-nowrap"
-                    onClick={recheck.start}
-                  >
-                    Valider les nouvelles dates ↗
-                  </button>
-                </>
+                <strong style={{ fontWeight: 600 }}>{recheck.state.message}</strong>
               )}
             </div>
           )}
 
-          {/* Le bandeau permanent « les N sources sont à jour » a disparu :
-              c'était le doublon exact de `LodgingGeoPanel`, qui reçoit déjà la
-              santé des sources, la médiane, les doublons fusionnés, la case de
-              fusion et le bouton de relance. Une information qu'on ne lit pas
-              deux fois n'a pas besoin de deux emplacements. */}
+          {/* Le bandeau permanent « les N sources sont à jour » avait disparu au
+              profit de `LodgingGeoPanel`, qui portait la santé des sources, la
+              médiane et les doublons fusionnés. Ce panneau a été retiré à son
+              tour avec « État du relevé » : ces informations n'ont plus aucun
+              porteur dans l'écran, `state.lodgFailed` compris. */}
 
           {/* La mise en avant depuis la carte s'annonce : sans cela, l'effet
               est invisible dès que la liste est défilée ou la carte au premier
@@ -983,37 +882,6 @@ export function LodgingsPage(): JSX.Element {
               <button type="button" className="linkbtn linkbtn--sm" onClick={() => patch({ lodgPickId: null })}>
                 {t('lodg_picked_clear')}
               </button>
-            </div>
-          )}
-
-          {state.flexOpen && (
-            <div className="panel" style={{ padding: '16px 18px', marginBottom: 16 }}>
-              <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 600 }}>Semaines voisines</p>
-              <p className="u-muted" style={{ margin: '0 0 10px', fontSize: 12 }}>
-                Écart de prix moyen des logements du domaine par rapport à la semaine choisie. Cliquez une semaine pour
-                l’appliquer.
-              </p>
-              <div style={{ display: 'grid', gap: 6 }}>
-                {WEEKS.map((w) => {
-                  const active = w.arr === state.arrDate
-                  return (
-                    <button
-                      key={w.arr}
-                      type="button"
-                      className={`weekrow${active ? ' weekrow--on' : ''}`}
-                      onClick={() => patch({ arrDate: w.arr, depDate: w.dep })}
-                    >
-                      <span>{w.label}</span>
-                      <span
-                        className="u-num"
-                        style={{ fontWeight: 700, color: w.f < 0 ? 'var(--ok)' : 'var(--muted)' }}
-                      >
-                        {w.f === 0 ? t('lodg_week_reference') : `${Math.round(w.f * 100)} %`}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
             </div>
           )}
 
@@ -1112,7 +980,7 @@ export function LodgingsPage(): JSX.Element {
                   c'est `SkiSearchLoading` qui occupe seul la section. */}
               <ResultGrid compact={narrow || splitOpen} dense={state.density === 'compact'} ratio={state.density === 'compact' ? 'square' : 'wide'} label="Logements du domaine">
                 {visibleLodgings.map((lg, i) => (
-                  <LodgingCard key={lg.id} lodging={lg} median={median} domain={d} index={i} />
+                  <LodgingCard key={lg.id} lodging={lg} domain={d} index={i} />
                 ))}
               </ResultGrid>
               {/* Masquer sans le dire transformerait un doute sur la position
@@ -1151,7 +1019,8 @@ export function LodgingsPage(): JSX.Element {
       </div>
 
       {state.ficheId != null && <LodgingSheet domain={d} />}
-      {state.importOpen && <ImportDialog domain={d} />}
+      {/* L'import manuel d'une annonce a été retiré de l'écran : plus aucun
+          bouton ne pose `importOpen`, le dialogue n'a donc plus de place ici. */}
 
       {state.compareIds.length > 0 && !state.compareOpen && (
         <div className="comparebar" role="status">

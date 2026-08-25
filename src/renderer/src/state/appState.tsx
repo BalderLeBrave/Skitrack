@@ -580,6 +580,21 @@ export const INITIAL_STATE: AppState = {
 }
 
 /**
+ * Un séjour dont un relevé peut réellement partir.
+ *
+ * Définition unique, parce qu'elle a désormais deux lecteurs : la page
+ * Logements, qui refuse de lancer la recherche, et le bouton « Rechercher » du
+ * panneau de filtres, qui édite ces mêmes dates. Dupliquée, elle dériverait —
+ * et un bouton actif au-dessus d'une date invalide renvoie l'utilisateur au
+ * formulaire de saisie sans un mot d'explication.
+ */
+export function stayCriteriaReady(
+  s: Pick<AppState, 'arrDate' | 'depDate' | 'travelers'>
+): boolean {
+  return Boolean(s.arrDate) && Boolean(s.depDate) && s.arrDate < s.depDate && s.travelers >= 1
+}
+
+/**
  * Remise à zéro des filtres de l'écran Logements.
  *
  * Ne touche ni aux dates ni à la taille du groupe : ce sont les données du

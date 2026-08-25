@@ -859,6 +859,28 @@ const CATALOG = {
     'Réinitialiser les filtres de l’écran Logements',
     'Reset the Stays screen filters'
   ],
+  lodg_hidden_by_filters: [
+    '{n} masqué(s) par les filtres — tout afficher',
+    '{n} hidden by the filters — show all'
+  ],
+  lodg_open_on: ['Ouvrir sur', 'Open on'],
+  lodg_also_on: ['aussi sur {s}', 'also on {s}'],
+  access_no_engine: [
+    'Moteur local non démarré : aucune distance aux pistes ne peut être calculée, pour aucune annonce. Réglages → Moteur local → Redémarrer.',
+    'Local engine not running: no distance to the slopes can be computed, for any listing. Settings → Local engine → Restart.'
+  ],
+  access_no_engine_domain: [
+    'Ce domaine n’est pas rapproché du moteur local : il a été importé sans ses tracés, ou sous un autre nom.',
+    'This resort is not matched to the local engine: it was imported without its runs, or under another name.'
+  ],
+  access_no_position: [
+    'Cette annonce n’a pas de position exploitable : la source ne l’a pas publiée. Ouvrez-la sur {s} pour sa localisation exacte.',
+    'This listing carries no usable position: the source did not publish one. Open it on {s} for its exact location.'
+  ],
+  access_not_yet: [
+    'Distance aux pistes non calculée pour cette annonce. Relancez une recherche pour la mesurer.',
+    'Distance to the slopes not computed for this listing. Run a search again to measure it.'
+  ],
   lodg_status_title: ['État du relevé et des positions', 'State of the reading and the positions'],
   lodg_status_running: ['Relevé en cours…', 'Reading in progress…'],
   lodg_status_hide: ['Masquer l’état du relevé', 'Hide the reading state'],

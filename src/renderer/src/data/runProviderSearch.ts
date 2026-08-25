@@ -112,6 +112,28 @@ function idFromUrl(url: string): number {
   return 900_000_000 + Math.abs(h % 90_000_000)
 }
 
+/**
+ * Note ramenée sur 5, l'échelle de la vignette et de la fiche.
+ *
+ * Chaque source note à sa façon : Airbnb sur 5, Booking sur 10 — « 8,2 » sur
+ * une fiche Booking. La valeur brute était recopiée telle quelle derrière une
+ * étoile sur 5 : une note Booking parfaitement correcte s'affichait alors comme
+ * une note impossible. L'échelle est déclarée par le connecteur
+ * (`Accommodation.ratingScale`), qui seul la connaît ; 5 par défaut.
+ *
+ * Une note qui ne tient pas dans [0, 5] après conversion est **abandonnée**
+ * plutôt qu'affichée : elle signale une échelle non déclarée, et une note fausse
+ * renseigne moins bien qu'une note absente. C'est la règle du projet — une
+ * valeur absente reste absente.
+ */
+export function noteOnFive(rating: number | undefined, scale: number | undefined): string {
+  if (rating == null || !Number.isFinite(rating)) return ''
+  const from = scale != null && scale > 0 ? scale : 5
+  const onFive = Math.round((rating * 5) / from * 10) / 10
+  if (onFive < 0 || onFive > 5) return ''
+  return String(onFive).replace('.', ',')
+}
+
 function toLodging(
   a: ProviderAccommodation,
   params: RunProviderSearchParams
@@ -158,7 +180,7 @@ function toLodging(
     // Barème de la centrale, quand elle en publie un.
     priceOptions: a.priceOptions?.length ? a.priceOptions : undefined,
     m2: a.areaSqm ?? null,
-    note: a.rating != null ? String(a.rating).replace('.', ',') : '',
+    note: noteOnFive(a.rating, a.ratingScale),
     avis: a.reviewCount ?? 0,
     // Accès aux pistes : calculé par le moteur local depuis la position, pas
     // fourni par la source. Reste à zéro tant qu'il ne l'a pas été.

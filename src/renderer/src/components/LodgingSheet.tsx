@@ -13,8 +13,9 @@
 
 import { useRef } from 'react'
 import { CloseIcon, ExternalIcon } from './Icons'
-import { sizeLabel, srcOf, trackKey } from '@/data/lodgings'
+import { srcOf, trackKey } from '@/data/lodgings'
 import { accessTimeOf } from '@/data/accessTime'
+import { isClientReady } from '@/api/client'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import type { Domain } from '@/data/referentiel'
 import { enfantPrice } from '@/data/referentiel'
@@ -103,6 +104,17 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
       >
         <div className="drawer__head">
           <h3>{lodging.name}</h3>
+          {/* La note revient à droite du titre, comme sur la vignette. Elle
+              vivait dans la ligne « type · capacité · note · source » retirée
+              plus haut ; c'était le seul élément de cette ligne qui valait la
+              peine d'être gardé. Le nombre d'avis n'est dit que s'il y en a :
+              « (0 avis) » n'étayait rien. */}
+          {lodging.note && lodging.note !== '—' && (
+            <span className="lodgcard__note">
+              ★ {lodging.note}
+              {lodging.avis > 0 && <span className="u-muted"> {lodging.avis} avis</span>}
+            </span>
+          )}
           {lodging.skiIn && (
             <span className="lodgcard__badge lodgcard__badge--ski lodgcard__badge--inline">
               {t('badge_ski_in')}
@@ -126,33 +138,26 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
             </div>
           )}
 
-          <p className="u-muted" style={{ margin: 0, fontSize: 13 }}>
-            {[
-              lodging.type,
-              // 0 = non annoncé par la source (annonce Airbnb) : on l'omet.
-              lodging.pers ? `${lodging.pers} pers` : null,
-              sizeLabel(lodging, t),
-              lodging.m2 ? `${lodging.m2} m²` : null,
-              `${lodging.note}/5 (${lodging.avis} avis)`
-            ]
-              .filter(Boolean)
-              .join(' · ')}{' '}
-            · {srcOf(lodging)}
-          </p>
+          {/* La ligne « type · capacité · note · source » a été retirée.
+              Elle se réduisait le plus souvent à « Import · 4,74/5 (0 avis) ·
+              Airbnb » : un type qui nommait le mode d'acquisition plutôt que le
+              bien, une note assortie de zéro avis — donc invérifiable — et une
+              source déjà portée par la pastille de la vignette et par la fiche
+              technique en bas de ce panneau. */}
 
           <div className="inset">
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              {/* Même bleu que la vignette et que les puces de filtre. La
+                  teinte selon la confiance du prix a disparu des deux côtés :
+                  la liste n'admet plus que des prix vérifiés, la confiance vaut
+                  « confirmé » partout, et le vert ne séparait plus rien. Ce que
+                  la couleur disait, la ligne juste en dessous le dit en mots. */}
               <span
                 style={{
                   fontSize: 24,
                   fontWeight: 800,
                   letterSpacing: '-0.02em',
-                  color:
-                    lodging.priceConfidence === 'total_confirmed'
-                      ? 'var(--ok)'
-                      : lodging.priceConfidence === 'partial'
-                        ? 'var(--warn)'
-                        : undefined
+                  color: 'var(--brand)'
                 }}
               >
                 {lodging.priceConfidence === 'partial'
@@ -329,10 +334,20 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                 {t('access_walk_note')}
               </p>
             ) : (
+              /* Dire **laquelle** des conditions manque, et non « ce n'est pas
+                 calculé ». Le message générique laissait l'utilisateur relancer
+                 des relevés sans effet : trois causes très différentes s'y
+                 confondaient, dont une qui ne se répare que dans les Réglages.
+                 Ordre du plus général au plus particulier — sans moteur, rien
+                 n'est calculable pour aucune annonce. */
               <p className="u-muted" style={{ margin: '4px 0 0', fontSize: 13 }}>
-                Distance aux pistes, dénivelé et altitude non calculés pour cette annonce importée. Le
-                moteur local les déduit des tracés OpenSkiMap dès qu’il est actif ; en attendant, ouvrez
-                l’annonce sur {srcOf(lodging)} pour sa localisation exacte.
+                {!isClientReady()
+                  ? t('access_no_engine')
+                  : d.engineId == null
+                    ? t('access_no_engine_domain')
+                    : lodging.lat == null || lodging.lon == null
+                      ? t('access_no_position').replace('{s}', srcOf(lodging))
+                      : t('access_not_yet')}
               </p>
             )}
           </div>

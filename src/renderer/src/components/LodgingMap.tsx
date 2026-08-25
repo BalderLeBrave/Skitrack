@@ -23,7 +23,14 @@ const STYLE: StyleSpecification = {
       type: 'raster',
       tiles: ['https://a.tile.opentopomap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
-      maxzoom: 15,
+      /*
+       * 17, le niveau le plus profond publié par OpenTopoMap.
+       *
+       * Il était à 15 : au-delà, MapLibre n'a plus de tuile à demander et
+       * **étire** celles du niveau 15. D'où une carte franchement pixelisée
+       * dès qu'on zoomait, alors que les tuiles nettes existaient.
+       */
+      maxzoom: 17,
       attribution:
         '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> · ' +
         '<a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'
@@ -49,6 +56,16 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
       style: STYLE,
       center: [domain.lon, domain.lat],
       zoom: 13.2,
+      /*
+       * Le zoom s'arrête là où l'imagerie s'arrête.
+       *
+       * Sans ce plafond, MapLibre laisse aller jusqu'à 22 et rend de la bouillie
+       * étirée depuis le niveau 17. Offrir un zoom dont l'image n'existe pas
+       * n'apporte rien — d'autant que les positions des logements sont
+       * approchées, comme l'explique l'en-tête de ce fichier : à ce niveau de
+       * détail, la carte dirait une précision qu'elle n'a pas.
+       */
+      maxZoom: 17,
       attributionControl: false
     })
     m.on('error', (e) => {

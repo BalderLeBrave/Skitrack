@@ -12,8 +12,8 @@
  */
 
 import { matchesLodgingFilters, type LodgingFilterCriteria } from './lodgingFilter'
-import { dealOf, medianTotal } from './lodgings'
-import { mergeProviderReadings } from './runProviderSearch'
+import { medianTotal } from './lodgings'
+import { mergeProviderReadings, noteOnFive } from './runProviderSearch'
 import type { Lodging } from './lodgings'
 
 const STAY = { checkIn: '2027-02-06', checkOut: '2027-02-13' }
@@ -31,7 +31,12 @@ const CRITERIA: LodgingFilterCriteria = {
   distMax: 1000,
   distCeiling: 1000,
   types: [],
-  srcOff: []
+  srcOff: [],
+  // Les scénarios historiques de ce fichier portent sur la capacité, le budget
+  // et la distance : ils gardent l'ancienne règle, sinon une annonce sans prix
+  // confirmé serait écartée avant même d'être jugée sur le critère testé. La
+  // nouvelle règle a sa propre section, en fin de fichier.
+  confirmedPricesOnly: false
 }
 
 function lodging(over: Partial<Lodging>): Lodging {
@@ -184,12 +189,11 @@ check(
   medianTotal([...offres, ...sansPrix]) === vraie,
   medianTotal([...offres, ...sansPrix])
 )
-// C'est le verdict qui s'inversait : à 1 200 €, sous une médiane de 1 650 €,
-// l'offre ressortait « Au-dessus du marché · +20 % ».
-const verdict = dealOf(lodging({ total: 1200 }), medianTotal([...offres, ...sansPrix]))
-check('et le verdict reste « bon plan »', verdict != null && verdict.txt.startsWith('Bon plan'), verdict)
-check('rien de tarifé → aucune médiane, donc aucun verdict', medianTotal(sansPrix) === 0)
-check('et dealOf s’abstient', dealOf(lodging({ total: 1200 }), 0) === null)
+// Le verdict de prix (« Bon plan », « Au-dessus du marché ») a été retiré de
+// l'écran, et `dealOf` avec lui. Ce qui reste à protéger est la mesure
+// elle-même : c'est elle qui s'inversait, en comptant les cartes sans prix
+// comme des prix nuls et en tirant la médiane vers le bas.
+check('rien de tarifé → aucune médiane', medianTotal(sansPrix) === 0)
 
 
 console.log('\n9. Un relevé neuf remplace l’ancien, il ne s’efface pas devant lui')
@@ -255,6 +259,107 @@ const apresAjout = mergeProviderReadings([enregistree], [releve, nouvelle])
 check('une annonce inconnue est ajoutée', apresAjout.length === 2)
 check('et l’ordre des existantes est conservé', apresAjout[0].url === CHAMONIX)
 check('relevé vide → liste inchangée', mergeProviderReadings([enregistree], []).length === 1)
+
+console.log('\n10. Prix vérifié pour ces dates : la règle de l’écran Logements')
+const STRICT: LodgingFilterCriteria = { ...CRITERIA, confirmedPricesOnly: true }
+const confirme = (over: Partial<Lodging>): Lodging =>
+  lodging({ pers: 8, ch: 4, total: 2000, priceConfidence: 'total_confirmed', ...over })
+
+check(
+  'un prix complet daté du séjour passe',
+  matchesLodgingFilters(
+    confirme({ priceCheckIn: STAY.checkIn, priceCheckOut: STAY.checkOut }),
+    STRICT,
+    STAY
+  )
+)
+check(
+  'un prix daté d’une autre semaine est écarté',
+  !matchesLodgingFilters(
+    confirme({ priceCheckIn: '2027-01-09', priceCheckOut: '2027-01-16' }),
+    STRICT,
+    STAY
+  )
+)
+check('un prix non daté mais complet passe', matchesLodgingFilters(confirme({}), STRICT, STAY))
+// Le relevé Airbnb (`airbnbMerge.ts`) date ses prix mais ne renseigne jamais
+// `priceConfidence`. Exiger le seul drapeau écartait la totalité des annonces
+// Airbnb : ne garder qu'elles rendait une liste vide sous un compte de 61.
+check(
+  'un prix Airbnb daté du séjour, sans drapeau de confiance, passe',
+  matchesLodgingFilters(
+    lodging({
+      pers: 8,
+      ch: 4,
+      total: 2000,
+      src: 'Airbnb',
+      priceConfidence: undefined,
+      priceCheckIn: STAY.checkIn,
+      priceCheckOut: STAY.checkOut
+    }),
+    STRICT,
+    STAY
+  )
+)
+check(
+  'mais daté d’une autre semaine, il reste écarté',
+  !matchesLodgingFilters(
+    lodging({
+      pers: 8,
+      ch: 4,
+      total: 2000,
+      src: 'Airbnb',
+      priceConfidence: undefined,
+      priceCheckIn: '2027-01-09',
+      priceCheckOut: '2027-01-16'
+    }),
+    STRICT,
+    STAY
+  )
+)
+check(
+  'et sans date ni drapeau, rien ne l’atteste : écarté',
+  !matchesLodgingFilters(
+    lodging({
+      pers: 8,
+      ch: 4,
+      total: 2000,
+      priceConfidence: undefined,
+      priceCheckIn: undefined,
+      priceCheckOut: undefined
+    }),
+    STRICT,
+    STAY
+  )
+)
+check(
+  'un prix partiel est écarté',
+  !matchesLodgingFilters(confirme({ priceConfidence: 'partial' }), STRICT, STAY)
+)
+check(
+  'une carte sans prix est écartée',
+  !matchesLodgingFilters(confirme({ total: 0 }), STRICT, STAY)
+)
+// La garde qui compte : sans elle, `confirmedPricesOnly` pourrait devenir un
+// filtre inopérant sans qu'un seul test bronche.
+check(
+  'et la même carte sans prix passe quand la règle est levée',
+  matchesLodgingFilters(confirme({ total: 0 }), CRITERIA, STAY)
+)
+
+console.log('\n11. Notes ramenées sur 5, quelle que soit l’échelle de la source')
+check('Booking 8,2 sur 10 devient 4,1', noteOnFive(8.2, 10) === '4,1', noteOnFive(8.2, 10))
+check('Booking 10 sur 10 devient 5', noteOnFive(10, 10) === '5', noteOnFive(10, 10))
+// Le cas qui rendait la conversion nécessaire : une note basse d'une source
+// sur 10. Une heuristique « au-dessus de 5, donc sur 10 » l'aurait laissée
+// telle quelle, et 4,8/10 se serait affiché comme un excellent 4,8/5.
+check('Booking 4,8 sur 10 devient 2,4', noteOnFive(4.8, 10) === '2,4', noteOnFive(4.8, 10))
+check('Airbnb 4,74 sur 5 est inchangé', noteOnFive(4.74, 5) === '4,7', noteOnFive(4.74, 5))
+check('échelle absente → lue sur 5', noteOnFive(4.5, undefined) === '4,5', noteOnFive(4.5, undefined))
+check('pas de note → chaîne vide', noteOnFive(undefined, 10) === '')
+// Une note hors échelle signale une source dont le barème n'est pas déclaré.
+// Absente vaut mieux que fausse : c'est la règle du projet.
+check('note impossible → abandonnée', noteOnFive(8.2, undefined) === '', noteOnFive(8.2, undefined))
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

@@ -83,8 +83,11 @@ export interface ResultCardProps {
  * Une montagne au trait, et non l'icône « image cassée » d'un navigateur : sur
  * une mosaïque où une carte sur trois n'a pas de photo, le second motif fait
  * lire un défaut d'affichage là où il n'y a qu'une source avare en images.
+ *
+ * Exporté : la vignette de logement a son propre gabarit depuis qu'elle ne
+ * passe plus par `ResultCard`, et deux montagnes au trait divergeraient.
  */
-function NoImage({ label }: { label: string }): JSX.Element {
+export function NoImage({ label }: { label: string }): JSX.Element {
   return (
     <span className="resultcard__noimg">
       <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">

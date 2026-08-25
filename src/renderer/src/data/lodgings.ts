@@ -462,6 +462,30 @@ export function sourceHealth(sources: string[]): SourceHealth {
  * structurel entre une station de renom et une station de proximité — c'est le
  * score de pertinence normalisé, faute de relevé de prix par station.
  */
+/**
+ * Une annonce appartient-elle au domaine consulté ?
+ *
+ * Définition unique, parce qu'elle a deux lecteurs qui ne doivent pas diverger :
+ * le sélecteur qui construit la liste affichée, et l'enrichissement qui calcule
+ * l'accès aux pistes. Quand les deux règles différaient, des annonces étaient
+ * affichées sans jamais être mesurées — « distance non calculée » à vie.
+ *
+ * Deux tolérances, toutes deux nécessaires : `importDomainId` absent (annonces
+ * antérieures à ce champ), et identifiant d'une entrée **absorbée** depuis dans
+ * le domaine courant, listée par `members`.
+ *
+ * Typage structurel plutôt qu'un import de `Domain` : ce module est en amont du
+ * référentiel, et l'y rattacher créerait un cycle.
+ */
+export function belongsToDomain(
+  lodging: Pick<Lodging, 'importDomainId'>,
+  domain: { id: number; members?: number[] }
+): boolean {
+  if (lodging.importDomainId == null) return true
+  if (lodging.importDomainId === domain.id) return true
+  return (domain.members ?? []).includes(lodging.importDomainId)
+}
+
 export function lodgingsFor(
   domain: Domain,
   pers: number,
@@ -535,19 +559,16 @@ export function medianTotal(list: Lodging[]): number {
   return v.length % 2 ? v[m] : Math.round((v[m - 1] + v[m]) / 2)
 }
 
-export interface Deal {
-  txt: string
-  color: string
-}
-
-/** Un prix ne se juge que par rapport au marché du domaine, pas dans l'absolu. */
-export function dealOf(lodging: Lodging, median: number): Deal | null {
-  if (!median) return null
-  const pct = Math.round((lodging.total / median - 1) * 100)
-  if (pct <= -12) return { txt: `Bon plan · ${pct} % sous la médiane du domaine`, color: 'var(--ok)' }
-  if (pct >= 15) return { txt: `Au-dessus du marché · +${pct} % vs médiane`, color: 'var(--warn)' }
-  return null
-}
+/*
+ * `dealOf` et son type `Deal` ont été retirés.
+ *
+ * La vignette portait un verdict de prix — « Bon plan », puis « Au-dessus du
+ * marché · +x % vs médiane ». Les deux ont disparu de l'écran : sur une liste
+ * restreinte aux prix vérifiés, la médiane décrit surtout la taille de la
+ * liste, et le montant se compare déjà tout seul aux vignettes voisines.
+ *
+ * `medianTotal` reste, elle : c'est une mesure, pas un jugement.
+ */
 
 export function siteOf(url: string): string {
   if (/airbnb/i.test(url)) return 'Airbnb'

@@ -43,6 +43,45 @@ export interface LodgingFilterCriteria {
   types: string[]
   /** Sources décochées, par libellé affiché. */
   srcOff: string[]
+  /**
+   * N'afficher que des prix vérifiés pour **ces** dates.
+   *
+   * Écarte trois familles d'annonces que l'écran signalait jusqu'ici par un
+   * avertissement plutôt que par une absence : le tarif relevé pour d'autres
+   * dates, le tarif partiel, et la carte sans prix. C'est une exception
+   * assumée à la règle 1 de l'en-tête de ce fichier — ici, la donnée absente
+   * est justement celle que l'écran promet.
+   */
+  confirmedPricesOnly: boolean
+}
+
+/**
+ * Prix mesuré, complet, et pour les dates demandées.
+ *
+ * Deux preuves possibles, et il en faut **une** :
+ *
+ *  - la source a qualifié son tarif de complet (`total_confirmed`) ;
+ *  - le tarif porte les dates du séjour en cours, ce qui vaut mesure.
+ *
+ * La seconde n'est pas un assouplissement de confort : le relevé Airbnb
+ * (`data/airbnbMerge.ts`) date ses prix mais ne renseigne jamais
+ * `priceConfidence`. Exiger le seul drapeau écartait donc la totalité des
+ * annonces Airbnb, y compris celles relevées aux bonnes dates — c'est le
+ * défaut qui vidait la liste quand on ne gardait qu'Airbnb.
+ *
+ * Ce qui reste écarté sans discussion : un « à partir de » (`partial`), un
+ * tarif daté d'une autre semaine — Airbnb comme les centrales recalculent à
+ * chaque période — et un prix ni qualifié ni daté, que rien n'atteste.
+ */
+export function hasConfirmedPrice(lodging: Lodging, stay: Stay): boolean {
+  if (lodging.total <= 0) return false
+  if (lodging.priceConfidence === 'partial' || lodging.priceConfidence === 'unknown') return false
+
+  const dated = lodging.priceCheckIn != null
+  if (dated) {
+    return lodging.priceCheckIn === stay.checkIn && lodging.priceCheckOut === stay.checkOut
+  }
+  return lodging.priceConfidence === 'total_confirmed'
 }
 
 /**
@@ -109,6 +148,11 @@ export function matchesLodgingFilters(
   // manuelle — traversent ce filtre sans être inquiétées. Voir
   // `data/lodgingAvailability.ts`.
   if (criteria.onlyAvailable && !isBookable(lodging, stay)) return false
+
+  // Prix vérifié pour ces dates, avant tout le reste : une annonce dont le
+  // tarif ne vaut plus n'a pas à être jugée sur son budget ni sur sa distance,
+  // elle n'a simplement pas sa place dans la liste.
+  if (criteria.confirmedPricesOnly && !hasConfirmedPrice(lodging, stay)) return false
 
   if (!fitsParty(lodging, criteria)) return false
   if (!fitsKind(lodging, criteria)) return false

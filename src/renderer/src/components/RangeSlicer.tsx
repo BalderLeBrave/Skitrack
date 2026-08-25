@@ -15,7 +15,7 @@
  * les clés du filtre, seulement deux nombres et un `onChange`.
  */
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, PointerEvent } from 'react'
 
 type Bound = 'lo' | 'hi'
@@ -61,9 +61,23 @@ export function RangeSlicer({
   const bounds = useRef({ lo, hi })
   bounds.current = { lo, hi }
 
+  const clamp = useCallback(
+    (v: number): number => Math.min(max, Math.max(min, v)),
+    [min, max]
+  )
+
+  /**
+   * Aligne une valeur sur le pas. **Réservé au geste**, jamais à la frappe.
+   *
+   * Appliquée à chaque caractère tapé, elle rendait les champs inutilisables :
+   * sur un budget au pas de 100, taper « 1 » donnait `Math.round(1/100)*100`,
+   * soit 0, que le champ contrôlé réaffichait aussitôt. Impossible d'atteindre
+   * 1 500 chiffre par chiffre — on ne voyait que des zéros. Les huit plages de
+   * filtres étaient concernées, du pas de 10 au pas de 100.
+   */
   const quantize = useCallback(
-    (v: number): number => Math.round(Math.min(max, Math.max(min, v)) / step) * step,
-    [min, max, step]
+    (v: number): number => Math.round(clamp(v) / step) * step,
+    [clamp, step]
   )
 
   /**
@@ -173,18 +187,58 @@ export function RangeSlicer({
   const loPct = ((lo - min) / span) * 100
   const hiPct = ((hi - min) / span) * 100
 
+  /**
+   * Champ chiffré : la frappe est un brouillon, la validation seule engage.
+   *
+   * Deux besoins qui se contredisaient. Le geste veut des valeurs alignées sur
+   * le pas ; la frappe veut qu'on puisse traverser des états intermédiaires
+   * absurdes — « 1 », puis « 15 », avant d'arriver à « 1500 ». Tant que le
+   * champ est en cours de saisie, sa chaîne fait foi et l'alignement attend.
+   *
+   * Le filtre suit quand même en direct, mais sans alignement et sans échange
+   * de bornes : voir un chiffre franchir sa borne voisine et changer de champ
+   * pendant qu'on le tape serait incompréhensible. L'ordre et l'alignement sont
+   * rétablis à la sortie du champ — c'est là seulement que `set` reprend la
+   * main, échange compris.
+   */
+  const [draft, setDraft] = useState<{ lo: string | null; hi: string | null }>({
+    lo: null,
+    hi: null
+  })
+
+  const commitDraft = (which: Bound): void => {
+    const text = draft[which]
+    setDraft((d) => ({ ...d, [which]: null }))
+    if (text == null || text.trim() === '') return
+    const v = Number(text)
+    if (Number.isFinite(v)) set(which, v)
+  }
+
   const numberField = (which: Bound): JSX.Element => (
     <input
       type="number"
       className="slicer__num u-num"
-      value={which === 'lo' ? lo : hi}
+      value={draft[which] ?? String(which === 'lo' ? lo : hi)}
       min={min}
       max={max}
       step={step}
+      inputMode="numeric"
       aria-label={which === 'lo' ? loLabel : hiLabel}
       onChange={(e) => {
-        const v = Number(e.target.value)
-        if (!Number.isNaN(v)) set(which, v)
+        const text = e.target.value
+        setDraft((d) => ({ ...d, [which]: text }))
+        const v = Number(text)
+        if (text.trim() === '' || !Number.isFinite(v)) return
+        const c = clamp(v)
+        const { lo: curLo, hi: curHi } = bounds.current
+        // Pas d'échange pendant la frappe : on ne pousse la valeur que si elle
+        // reste du bon côté de sa voisine.
+        if (which === 'lo' && c <= curHi) onChange(c, curHi)
+        else if (which === 'hi' && c >= curLo) onChange(curLo, c)
+      }}
+      onBlur={() => commitDraft(which)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
       }}
     />
   )

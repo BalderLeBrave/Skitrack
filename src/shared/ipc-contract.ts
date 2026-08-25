@@ -272,6 +272,18 @@ export interface ProviderAccommodation {
   totalPrice?: number
   currency?: string
   rating?: number
+  /**
+   * Échelle de `rating`, quand ce n'est pas 5.
+   *
+   * Booking note **sur 10** (« 8,2 »), Airbnb sur 5. Sans cette déclaration, la
+   * valeur brute traversait le contrat et s'affichait derrière une étoile sur 5.
+   *
+   * Optionnel et rétrocompatible : absent, il vaut 5 — ce que supposaient déjà
+   * tous les relevés enregistrés avant ce champ, qui restent donc lus
+   * correctement. L'échelle est déclarée par le connecteur, seul endroit où
+   * elle est connue de source sûre.
+   */
+  ratingScale?: number
   reviewCount?: number
   images?: string[]
   availabilityStatus: 'available' | 'unavailable' | 'unknown'

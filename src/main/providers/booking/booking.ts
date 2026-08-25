@@ -111,6 +111,9 @@ export function normalizeBooking(row: BookingRow, affiliateId: string | undefine
     totalPrice: total,
     currency: row.price?.currency,
     rating: row.review?.score,
+    // La Demand API note sur 10 — « 8,2 » sur une fiche Booking. La conversion
+    // vers l'échelle d'affichage se fait en aval, une seule fois.
+    ratingScale: 10,
     reviewCount: row.review?.count,
     images: row.photos?.map((p) => p.url).filter((u): u is string => Boolean(u)),
     // La Demand API ne renvoie que des biens disponibles pour les dates

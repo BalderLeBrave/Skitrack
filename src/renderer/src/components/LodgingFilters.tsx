@@ -1,8 +1,10 @@
 import { RangeFilter } from './RangeFilter'
+import { hasConfirmedPrice } from '@/data/lodgingFilter'
+import { useActiveLodgingFilters } from './activeLodgingFilters'
 import { lodgingSources, LODG_TYPES, srcOf } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
-import { LODG_FILTER_RESET, useApp } from '@/state/appState'
+import { LODG_FILTER_RESET, stayCriteriaReady, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import type { LodgSortKey } from '@/state/appState'
 
@@ -17,15 +19,92 @@ export function LodgingFilters(): JSX.Element {
   const { eur, fmt } = useFormat()
   const { t } = useI18n()
   const { state, patch } = useApp()
-  const { nights, lodgAll } = useDerived()
+  const { nights, lodgAll, lodgHidden, lodgList } = useDerived()
 
   // Les sources proposées sont celles que le moteur a interrogées au dernier
   // relevé, plus celles réellement portées par les offres.
   const sources = lodgingSources(lodgAll, state.lodgQueried)
 
+  /**
+   * Compte affiché sur la puce d'une source : ce que cocher cette source peut
+   * réellement faire apparaître.
+   *
+   * Compté sur `lodgAll`, il annonçait « Airbnb 61 » alors que la liste ne
+   * pouvait en montrer aucune — les annonces écartées faute de prix vérifié
+   * étaient comptées comme si elles allaient s'afficher. Un compte qui promet
+   * ce que le filtre ne peut pas tenir est pire qu'une absence de compte.
+   *
+   * Le décompte ignore volontairement l'état des autres sources : sinon les
+   * nombres changeraient à chaque case cochée, et on ne saurait plus ce qu'on
+   * lit.
+   */
+  const stay = { checkIn: state.arrDate, checkOut: state.depDate }
+  const countBySource = (key: string): number =>
+    lodgAll.filter((l) => srcOf(l) === key && hasConfirmedPrice(l, stay)).length
+
+  /**
+   * Ce que les filtres écartent se lit désormais ici et nulle part ailleurs :
+   * la page ne porte plus ni puces ni compte de masqués. Le panneau est donc
+   * le seul endroit qui explique une liste courte — d'où sa place en tête,
+   * au-dessus des réglages qui l'ont produite.
+   */
+  const active = useActiveLodgingFilters()
+
+  /** Même définition que la page : un relevé ne part pas sur des dates fausses. */
+  const ready = stayCriteriaReady(state)
+
   return (
     <aside className="filters">
       <h2 className="filters__title">Filtres</h2>
+
+      {/* Le relevé se lance d'ici. `lodgPhase` est la seule source de vérité de
+          l'écran de chargement : poser `'searching'` suffit à demander une
+          recherche, sans rien savoir de `launchSearch`, et la page retombe
+          d'elle-même sur la saisie si les dates ne tiennent pas debout. Voir
+          l'effet correspondant dans `LodgingsPage`. */}
+      <button
+        type="button"
+        className="btn btn--primary filters__search"
+        disabled={!ready}
+        title={ready ? undefined : t('lodg_dates_invalid')}
+        onClick={() => patch({ lodgPhase: 'searching', lodgSearchMsg: null, lodgFiltersOpen: false })}
+      >
+        {t('filter_search')}
+      </button>
+      {/* Sans cette garde, un clic sur des dates invalides faisait clignoter
+          l'écran de chargement puis remplaçait la mosaïque par le formulaire de
+          critères, sans un mot : la phase retombe sur `'criteria'`. */}
+      {!ready && (
+        <p className="filters__help" style={{ margin: '-6px 0 12px' }}>
+          {t('lodg_dates_invalid')}
+        </p>
+      )}
+
+      {active.active.length > 0 && (
+        <div className="filterchips filterchips--infilters">
+          {active.active.map((f) => (
+            <button key={f.key} type="button" className="chip" onClick={f.clear} title={t('filter_clear_all')}>
+              {f.label} <span className="u-muted">✕</span>
+            </button>
+          ))}
+          <button type="button" className="linkbtn linkbtn--sm u-nowrap" onClick={active.resetAll}>
+            {t('filter_clear_all')}
+          </button>
+        </div>
+      )}
+
+      {/* Un filtre qui écarte des annonces doit se voir : sans ce compte, une
+          liste courte ressemble à une recherche infructueuse. */}
+      {lodgHidden > 0 && lodgList.length > 0 && (
+        <button
+          type="button"
+          className="linkbtn filters__hidden"
+          onClick={active.resetAll}
+          title={t('lodg_reset_filters_title')}
+        >
+          {t('lodg_hidden_by_filters').replace('{n}', String(lodgHidden))}
+        </button>
+      )}
 
       <section className="filters__section">
         <h3 className="filters__legend">{t('stay_label')}</h3>
@@ -207,7 +286,7 @@ export function LodgingFilters(): JSX.Element {
                   })
                 }
               >
-                {key} <span className="chip__count">{lodgAll.filter((l) => srcOf(l) === key).length}</span>
+                {key} <span className="chip__count">{countBySource(key)}</span>
               </button>
             )
           })}

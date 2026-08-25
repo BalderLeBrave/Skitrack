@@ -40,7 +40,9 @@
       "PowerShell(npx tsc --noEmit -p tsconfig.web.json)",
       "PowerShell(npx eslint src/renderer/src/pages/LodgingsPage.tsx src/renderer/src/components/LodgingGeoPanel.tsx src/renderer/src/components/DomainCard.tsx src/renderer/src/components/DomainSheet.tsx src/renderer/src/pages/OffersPage.tsx src/renderer/src/state/appState.tsx)",
       "PowerShell(npx tsc --noEmit -p tsconfig.node.json 2>&1 | Select-Object -First 15)",
-      "Bash(xargs wc -l)"
+      "Bash(xargs wc -l)",
+      "Bash(git branch *)",
+      "Bash(git push *)"
     ]
   },
   "enabledMcpjsonServers": [

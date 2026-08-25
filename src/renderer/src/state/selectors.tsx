@@ -17,7 +17,7 @@
 import { createContext, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
-import { lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
+import { belongsToDomain, lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import { isBookable } from '@/data/lodgingAvailability'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
 import { matchesLodgingFilters } from '@/data/lodgingFilter'
@@ -472,9 +472,10 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     // Même raison côté annonces : `importDomainId` porte l'identifiant de
     // l'entrée sous laquelle l'import a eu lieu, qui peut être une entrée
     // absorbée depuis.
-    const lodgMembers = new Set(lodgDomain ? [lodgDomain.id, ...(lodgDomain.members ?? [])] : [])
+    // `belongsToDomain` fait foi, et il est partagé avec l'enrichissement de
+    // l'accès aux pistes : deux règles séparées avaient fini par diverger.
     const lodgRaw = lodgDomain
-      ? state.imported.filter((lg) => lg.importDomainId == null || lodgMembers.has(lg.importDomainId))
+      ? state.imported.filter((lg) => belongsToDomain(lg, lodgDomain))
       : []
     const lodgAll = mergeDupesList(lodgRaw, state.mergeDupes)
     const dupMerged = lodgRaw.length - lodgAll.length
@@ -504,7 +505,11 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       distMax: state.lodgDistMax,
       distCeiling: FILTER_RANGES.lodgDist.max,
       types: state.lodgTypes,
-      srcOff: state.lodgSrcOff
+      srcOff: state.lodgSrcOff,
+      // Règle de l'écran, pas réglage : une annonce listée porte un prix
+      // vérifié pour les dates du séjour. Ce qui ne l'est pas ne s'affiche plus
+      // avec un avertissement, il ne s'affiche pas.
+      confirmedPricesOnly: true
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
 

@@ -787,6 +787,23 @@ const CATALOG = {
     'Station introuvable dans le référentiel — vous pourrez la choisir plus tard.',
     'Resort not found in the reference list — you can pick it later.'
   ],
+  onb_massif_label: ['Massifs préférés', 'Preferred ranges'],
+  onb_massif_help: [
+    'Facultatif. Sans choix, tous les massifs sont proposés.',
+    'Optional. With no selection, every range is offered.'
+  ],
+  onb_budget_label: ['Budget indicatif', 'Rough budget'],
+  onb_budget_placeholder: ['Sans plafond', 'No cap'],
+  onb_budget_help: [
+    'Facultatif. Une station dont le coût n’est pas chiffrable reste affichée : un plafond n’écarte que ce qu’on sait au-dessus.',
+    'Optional. A resort whose cost cannot be computed stays listed: a cap only excludes what is known to be above it.'
+  ],
+  onb_skip: ['Passer', 'Skip'],
+  onb_replay: ['Revoir l’introduction', 'Replay the introduction'],
+  onb_replay_help: [
+    'Repropose le parcours de première utilisation. Vos données ne sont pas effacées.',
+    'Shows the first-run walkthrough again. Your data is not erased.'
+  ],
 
   // --- Favoris : stations suivies et séjours en préparation ----------------
   fav_add: ['Ajouter aux favoris', 'Add to favourites'],

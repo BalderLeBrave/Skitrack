@@ -79,6 +79,7 @@ export function __setBackendForTest(next: StorageBackend | null): void {
 const FAVORITES_KEY = 'skitrack.favorites.v1'
 const TRIPS_KEY = 'skitrack.trips.v1'
 const ALERTS_KEY = 'skitrack.alerts.v1'
+const ONBOARDED_KEY = 'skitrack.onboarded.v1'
 
 /**
  * Clés d'une version antérieure, relues une fois puis effacées.
@@ -430,6 +431,36 @@ export async function removeAlert(trackedKey: string): Promise<PriceAlert[]> {
   return next
 }
 
+// --- Premier lancement ----------------------------------------------------
+
+/**
+ * Le parcours d'accueil a-t-il déjà été vu ?
+ *
+ * Un drapeau à lui seul, et non l'absence de préférences comme auparavant.
+ * L'ancienne règle — « pas de préférences enregistrées, donc premier
+ * lancement » — reproposait le parcours à quiconque avait purgé ses données
+ * locales ou changé de schéma de préférences, et interdisait de le rejouer
+ * volontairement sans tout effacer. Les deux questions sont distinctes.
+ */
+export async function getOnboarded(): Promise<boolean> {
+  try {
+    return backend.read(ONBOARDED_KEY) === '1'
+  } catch {
+    // Stockage indisponible : on considère le parcours vu plutôt que de
+    // l'imposer à chaque ouverture sur un poste qui ne sait rien retenir.
+    return true
+  }
+}
+
+export async function setOnboarded(done: boolean): Promise<void> {
+  try {
+    if (done) backend.write(ONBOARDED_KEY, '1')
+    else backend.remove(ONBOARDED_KEY)
+  } catch {
+    /* sans persistance, le parcours reparaîtra : sans gravité */
+  }
+}
+
 /**
  * Efface tout.
  *
@@ -438,7 +469,7 @@ export async function removeAlert(trackedKey: string): Promise<PriceAlert[]> {
  * module qui sait ce qu'il a écrit.
  */
 export async function clearUserData(): Promise<void> {
-  for (const key of [FAVORITES_KEY, TRIPS_KEY, ALERTS_KEY]) {
+  for (const key of [FAVORITES_KEY, TRIPS_KEY, ALERTS_KEY, ONBOARDED_KEY]) {
     try {
       backend.remove(key)
     } catch {
@@ -448,4 +479,4 @@ export async function clearUserData(): Promise<void> {
 }
 
 /** Les clés possédées par ce module, pour les écrans qui purgent le stockage. */
-export const USER_DATA_KEYS = [FAVORITES_KEY, TRIPS_KEY, ALERTS_KEY] as const
+export const USER_DATA_KEYS = [FAVORITES_KEY, TRIPS_KEY, ALERTS_KEY, ONBOARDED_KEY] as const

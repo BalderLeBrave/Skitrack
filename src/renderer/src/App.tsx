@@ -5,7 +5,7 @@ import { useShortcuts } from '@/hooks/useShortcuts'
 import { usePriceRefresh } from '@/hooks/usePriceRefresh'
 import { AppProvider, useApp } from '@/state/appState'
 import { DerivedProvider, useDerived } from '@/state/selectors'
-import { UserDataProvider } from '@/state/userData'
+import { UserDataProvider, useUserData } from '@/state/userData'
 import { TripShareProvider } from '@/state/tripShare'
 import { WeatherProvider } from '@/state/weather'
 import { SvgDefs } from '@/components/Icons'
@@ -221,6 +221,7 @@ function Boot({
 
 function Shell(): JSX.Element {
   const { state, patch, reloadDomains } = useApp()
+  const { onboarded, ready: userDataReady } = useUserData()
   const derived = useDerived()
   const { state: sidecar, log, restart } = useSidecar()
   const [engineSkipped, setEngineSkipped] = useState(false)
@@ -284,7 +285,10 @@ function Shell(): JSX.Element {
       {state.snowfall && <Snowfall />}
       {state.peopleOpen && <PeopleDrawer />}
       {state.domFicheId != null && <DomainSheet />}
-      {state.onboard && <Onboarding />}
+      {/* Premier lancement, ou rejeu demandé depuis les Réglages. Le drapeau
+          vient de la couche `store` : on attend sa lecture avant de décider,
+          sinon le parcours apparaîtrait un instant à chaque ouverture. */}
+      {userDataReady && (!onboarded || state.onboard) && <Onboarding />}
       <TripImportDialog />
     </div>
   )

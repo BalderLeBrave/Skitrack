@@ -22,6 +22,7 @@ import type { AppInfo } from '@shared/ipc-contract'
 import { useSidecar } from '@/hooks/useSidecar'
 import { LANGUAGES, LANGUAGE_LABELS, useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import { useUserData } from '@/state/userData'
 import { LegalSection } from './LegalSection'
 
 
@@ -35,6 +36,7 @@ const SHORTCUTS: [string, string][] = [
 
 export function SettingsPage(): JSX.Element {
   const { state, patch } = useApp()
+  const { setOnboarded } = useUserData()
   const { t, lang, setLang } = useI18n()
   const { state: sidecar, restart } = useSidecar()
 
@@ -145,6 +147,32 @@ export function SettingsPage(): JSX.Element {
                     <span className={`toggle__track${state.snowfall ? ' toggle__track--on' : ''}`}>
                       <span className="toggle__knob" />
                     </span>
+                  </button>
+                </span>
+              </div>
+
+              {/* Rejouer le parcours d'accueil. Il pré-remplit des filtres et
+                  n'efface rien : le proposer ici évite d'avoir à purger ses
+                  données pour le revoir, ce qui était le seul moyen avant que
+                  le drapeau ne quitte les préférences. */}
+              <div className="setrow">
+                <span className="setrow__label" id="set-onboard-label">
+                  {t('onb_replay')}
+                  <span className="u-muted" style={{ display: 'block', fontSize: 11, fontWeight: 400 }}>
+                    {t('onb_replay_help')}
+                  </span>
+                </span>
+                <span className="setrow__ctl">
+                  <button
+                    type="button"
+                    className="btn btn--small"
+                    aria-labelledby="set-onboard-label"
+                    onClick={() => {
+                      void setOnboarded(false)
+                      patch({ onboard: true })
+                    }}
+                  >
+                    {t('onb_replay')}
                   </button>
                 </span>
               </div>

@@ -19,10 +19,12 @@ import {
   addFavorite as storeAdd,
   getAlerts,
   getFavorites,
+  getOnboarded,
   getTrips,
   putAlert as storePutAlert,
   putAlerts as storePutAlerts,
   removeAlert as storeRemoveAlert,
+  setOnboarded as storeSetOnboarded,
   importTrip as storeImport,
   removeFavorite as storeRemove,
   removeTrip as storeRemoveTrip,
@@ -56,6 +58,9 @@ export interface UserDataValue {
   /** Écrit un lot d'alertes — sortie d'un tour d'évaluation. */
   putAlerts: (alerts: readonly PriceAlert[]) => Promise<void>
   removeAlert: (trackedKey: string) => Promise<void>
+  /** Le parcours d'accueil a-t-il déjà été vu ? */
+  onboarded: boolean
+  setOnboarded: (done: boolean) => Promise<void>
   /** Faux tant que la première lecture n'a pas abouti. */
   ready: boolean
 }
@@ -72,16 +77,18 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
   const [favorites, setFavorites] = useState<FavoriteStation[]>([])
   const [trips, setTrips] = useState<SavedTrip[]>([])
   const [alerts, setAlerts] = useState<PriceAlert[]>([])
+  const [onboarded, setOnboardedState] = useState(true)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     let alive = true
     void (async () => {
-      const [f, t, a] = await Promise.all([getFavorites(), getTrips(), getAlerts()])
+      const [f, t, a, o] = await Promise.all([getFavorites(), getTrips(), getAlerts(), getOnboarded()])
       if (!alive) return
       setFavorites(f)
       setTrips(t)
       setAlerts(a)
+      setOnboardedState(o)
       setReady(true)
     })()
     return () => {
@@ -125,6 +132,11 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
     setAlerts(await storeRemoveAlert(trackedKey))
   }, [])
 
+  const setOnboarded = useCallback(async (done: boolean) => {
+    await storeSetOnboarded(done)
+    setOnboardedState(done)
+  }, [])
+
   const value = useMemo<UserDataValue>(
     () => ({
       favorites,
@@ -140,6 +152,8 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
       putAlert,
       putAlerts,
       removeAlert,
+      onboarded,
+      setOnboarded,
       ready
     }),
     [
@@ -156,6 +170,8 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
       putAlert,
       putAlerts,
       removeAlert,
+      onboarded,
+      setOnboarded,
       ready
     ]
   )

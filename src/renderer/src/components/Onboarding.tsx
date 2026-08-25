@@ -9,6 +9,7 @@ import { useMemo, useRef, useState } from 'react'
 import { LogoIcon } from './Icons'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useApp } from '@/state/appState'
+import { useUserData } from '@/state/userData'
 import { useDerived } from '@/state/selectors'
 import { useI18n } from '@/i18n'
 import type { Domain } from '@/data/referentiel'
@@ -50,12 +51,24 @@ function fmtShort(iso: string, lang: string): string {
 export function Onboarding(): JSX.Element {
   const { t, lang } = useI18n()
   const { state, patch, domains } = useApp()
+  const { setOnboarded } = useUserData()
   const { origins, nights } = useDerived()
   const ref = useRef<HTMLDivElement>(null)
   useFocusTrap(ref)
 
   const [stationQuery, setStationQuery] = useState('La Plagne')
   const matched = useMemo(() => matchDomain(domains, stationQuery), [domains, stationQuery])
+
+  /**
+   * Massifs proposés — dérivés du référentiel chargé, jamais écrits en dur.
+   * Une liste figée finirait par proposer un massif que le catalogue ne porte
+   * plus, et le filtre correspondant ne rendrait alors aucun domaine.
+   */
+  const massifs = useMemo(() => {
+    const seen = new Set<string>()
+    for (const d of domains) if (d.massif) seen.add(d.massif)
+    return [...seen].sort((a, b) => a.localeCompare(b, 'fr'))
+  }, [domains])
 
   const sentence = useMemo(() => {
     const who = state.travelers
@@ -69,7 +82,20 @@ export function Onboarding(): JSX.Element {
       .replace('{t}', to)
   }, [state.travelers, state.arrDate, state.depDate, matched, stationQuery, lang, t])
 
+  /**
+   * Referme le parcours.
+   *
+   * Le drapeau part dans la couche `store`, pas dans les préférences : purger
+   * les filtres ou changer de schéma de préférences ne doit pas reproposer
+   * l'accueil, et le rejouer depuis les Réglages ne doit rien effacer.
+   *
+   * Les réponses ont déjà été appliquées au fur et à mesure — chaque champ
+   * écrit dans l'état à la frappe. Il n'y a donc rien à « valider » ici, et
+   * « Passer » laisse en place ce qui a été renseigné avant d'abandonner :
+   * un parcours interrompu ne défait pas ce qu'il a déjà servi à régler.
+   */
   const finish = (goLodgings: boolean): void => {
+    void setOnboarded(true)
     if (goLodgings && matched) {
       patch({
         onboard: false,
@@ -214,6 +240,73 @@ export function Onboarding(): JSX.Element {
           )}
         </div>
 
+        {massifs.length > 0 && (
+          <div>
+            <p className="sheet__label">{t('onb_massif_label')}</p>
+            <div className="onboard__chips" role="list">
+              {massifs.map((name) => {
+                const on = state.massifs.includes(name)
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    className={`chip${on ? ' chip--on' : ''}`}
+                    aria-pressed={on}
+                    onClick={() =>
+                      patch({
+                        massifs: on ? state.massifs.filter((m) => m !== name) : [...state.massifs, name]
+                      })
+                    }
+                  >
+                    {name}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="filters__help">{t('onb_massif_help')}</p>
+          </div>
+        )}
+
+        <div>
+          <p className="sheet__label">{t('onb_budget_label')}</p>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            <button
+              type="button"
+              className={`chip${state.budgetMode === 'total' ? ' chip--on' : ''}`}
+              aria-pressed={state.budgetMode === 'total'}
+              onClick={() => patch({ budgetMode: 'total' })}
+            >
+              {t('alert_mode_total')}
+            </button>
+            <button
+              type="button"
+              className={`chip${state.budgetMode === 'perso' ? ' chip--on' : ''}`}
+              aria-pressed={state.budgetMode === 'perso'}
+              onClick={() => patch({ budgetMode: 'perso' })}
+            >
+              {t('alert_mode_pp')}
+            </button>
+          </div>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            className="field"
+            style={{ padding: '9px 10px' }}
+            value={state.budgetMax ?? ''}
+            placeholder={t('onb_budget_placeholder')}
+            aria-label={t('onb_budget_label')}
+            onChange={(e) => {
+              const raw = e.target.value.trim()
+              // Vider le champ remet le plafond à « absent », et non à zéro :
+              // zéro serait un budget nul, qui masquerait toutes les stations.
+              const parsed = raw === '' ? null : Math.round(Number(raw))
+              patch({ budgetMax: parsed != null && Number.isFinite(parsed) && parsed > 0 ? parsed : null })
+            }}
+          />
+          <p className="filters__help">{t('onb_budget_help')}</p>
+        </div>
+
         <div>
           <p className="sheet__label">{t('start_point_car')}</p>
           <select
@@ -264,6 +357,13 @@ export function Onboarding(): JSX.Element {
           </button>
           <button type="button" className="btn btn--ghost" onClick={() => finish(false)}>
             Explorer les domaines
+          </button>
+          <span className="u-spacer" />
+          {/* « Passer » est toujours visible et n'est jamais désactivé : le
+              parcours pré-remplit des filtres, il ne conditionne l'accès à
+              rien. */}
+          <button type="button" className="linkbtn linkbtn--muted" onClick={() => finish(false)}>
+            {t('onb_skip')}
           </button>
         </div>
       </div>

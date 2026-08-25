@@ -9,12 +9,14 @@ import {
   addFavorite,
   clearUserData,
   getFavorites,
+  getOnboarded,
   getTrips,
   importTrip,
   parseSavedTrip,
   removeFavorite,
   removeTrip,
   saveTrip,
+  setOnboarded,
   toggleFavorite,
   type SavedTripInput
 } from './userData'
@@ -161,12 +163,30 @@ async function main(): Promise<void> {
     check('réimporter le même séjour ne duplique pas', (await getTrips()).length === 1)
   }
 
-  console.log('\n9. Purge')
+  console.log('\n9. Premier lancement')
+  be = spyBackend()
+  __setBackendForTest(be)
+  check('parcours non vu au départ', (await getOnboarded()) === false)
+  await setOnboarded(true)
+  check('marqué comme vu', (await getOnboarded()) === true)
+  check('écrit sous la clé versionnée', be.store.get('skitrack.onboarded.v1') === '1')
+  await setOnboarded(false)
+  check('rejeu : la clé est retirée', (await getOnboarded()) === false)
+  check('rien ne traîne dans le stockage', !be.store.has('skitrack.onboarded.v1'))
+  be.store.set('skitrack.onboarded.v1', 'oui')
+  check('une valeur inattendue ne vaut pas « vu »', (await getOnboarded()) === false)
+
+  console.log('\n10. Purge')
+  be = spyBackend()
+  __setBackendForTest(be)
   await addFavorite(1)
+  await saveTrip(TRIP)
+  await setOnboarded(true)
   await clearUserData()
   check('favoris effacés', (await getFavorites()).length === 0)
   check('séjours effacés', (await getTrips()).length === 0)
-  check('les clés sont retirées du stockage', !be.store.has('skitrack.favorites.v1') && !be.store.has('skitrack.trips.v1'))
+  check('drapeau d’accueil effacé', (await getOnboarded()) === false)
+  check('les clés sont retirées du stockage', be.store.size === 0, [...be.store.keys()])
 
   if (failures > 0) {
     console.error(`\n${failures} test(s) en échec.`)

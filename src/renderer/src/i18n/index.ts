@@ -778,15 +778,12 @@ const CATALOG = {
 
   // --- Onboarding ----------------------------------------------------------
   onb_summary: [
-    'Je cherche un appart pour {w} à {p}, du {f} au {t}',
-    'Looking for a place for {w} in {p}, {f} → {t}'
+    'Je cherche un séjour pour {w}, du {f} au {t}',
+    'Looking for a trip for {w}, {f} → {t}'
   ],
+  onb_explore: ['Explorer les domaines', 'Explore ski areas'],
   onb_arrival_label: ['Date d’arrivée', 'Arrival date'],
   onb_departure_label: ['Date de départ', 'Departure date'],
-  onb_station_unknown: [
-    'Station introuvable dans le référentiel — vous pourrez la choisir plus tard.',
-    'Resort not found in the reference list — you can pick it later.'
-  ],
   onb_massif_label: ['Massifs préférés', 'Preferred ranges'],
   onb_massif_help: [
     'Facultatif. Sans choix, tous les massifs sont proposés.',

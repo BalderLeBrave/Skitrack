@@ -1,40 +1,23 @@
 /**
  * Premier lancement — parcours guidé.
  *
- * Phrase type : « Je cherche un appart pour 4 à La Plagne du 7 au 14 févr. »
- * Dates + groupe + station → ouverture directe des logements.
+ * Il pose ce qui vaut pour **toute** recherche : les dates, le groupe, le
+ * point de départ, les massifs, le budget. Pas la station.
+ *
+ * Demander une station d'entrée de jeu supposait qu'on sache déjà où aller, ce
+ * qui est exactement la question que l'application sert à trancher — « pas quel
+ * logement à Val Thorens, mais où partir cette semaine pour ce budget ». Le
+ * parcours pré-remplit donc les critères, et rend la main à l'écran Domaines,
+ * qui est l'endroit où l'on choisit.
  */
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { LogoIcon } from './Icons'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useApp } from '@/state/appState'
 import { useUserData } from '@/state/userData'
 import { useDerived } from '@/state/selectors'
 import { useI18n } from '@/i18n'
-import type { Domain } from '@/data/referentiel'
-
-const SUGGESTIONS = ['La Plagne', 'Chamonix', 'Méribel', 'Tignes', 'Val Thorens', 'Megève']
-
-function fold(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-}
-
-function matchDomain(domains: Domain[], query: string): Domain | null {
-  const q = fold(query)
-  if (!q) return null
-  const exact = domains.find((d) => fold(d.name) === q)
-  if (exact) return exact
-  return (
-    domains.find((d) => fold(d.name).startsWith(q)) ||
-    domains.find((d) => fold(d.name).includes(q)) ||
-    null
-  )
-}
 
 function fmtShort(iso: string, lang: string): string {
   if (!iso) return '…'
@@ -56,9 +39,6 @@ export function Onboarding(): JSX.Element {
   const ref = useRef<HTMLDivElement>(null)
   useFocusTrap(ref)
 
-  const [stationQuery, setStationQuery] = useState('La Plagne')
-  const matched = useMemo(() => matchDomain(domains, stationQuery), [domains, stationQuery])
-
   /**
    * Massifs proposés — dérivés du référentiel chargé, jamais écrits en dur.
    * Une liste figée finirait par proposer un massif que le catalogue ne porte
@@ -71,16 +51,11 @@ export function Onboarding(): JSX.Element {
   }, [domains])
 
   const sentence = useMemo(() => {
-    const who = state.travelers
-    const where = matched?.name ?? (stationQuery.trim() || '…')
-    const from = fmtShort(state.arrDate, lang)
-    const to = fmtShort(state.depDate, lang)
     return t('onb_summary')
-      .replace('{w}', String(who))
-      .replace('{p}', where)
-      .replace('{f}', from)
-      .replace('{t}', to)
-  }, [state.travelers, state.arrDate, state.depDate, matched, stationQuery, lang, t])
+      .replace('{w}', String(state.travelers))
+      .replace('{f}', fmtShort(state.arrDate, lang))
+      .replace('{t}', fmtShort(state.depDate, lang))
+  }, [state.travelers, state.arrDate, state.depDate, lang, t])
 
   /**
    * Referme le parcours.
@@ -94,20 +69,16 @@ export function Onboarding(): JSX.Element {
    * « Passer » laisse en place ce qui a été renseigné avant d'abandonner :
    * un parcours interrompu ne défait pas ce qu'il a déjà servi à régler.
    */
-  const finish = (goLodgings: boolean): void => {
+  /**
+   * `explore` distingue les deux issues, qui sinon feraient la même chose :
+   * les champs s'appliquent à la frappe, il n'y a rien à « valider ». Le
+   * bouton principal mène donc où son libellé le dit, et « Passer » laisse sur
+   * l'accueil — d'où l'on part quand on ne sait pas encore par quel bout
+   * prendre la question.
+   */
+  const finish = (explore: boolean): void => {
     void setOnboarded(true)
-    if (goLodgings && matched) {
-      patch({
-        onboard: false,
-        selectedId: matched.id,
-        lodgingDomainId: matched.id,
-        tab: 'logements',
-        lodgPhase: 'criteria',
-        lodgSearchMsg: null
-      })
-      return
-    }
-    patch({ onboard: false })
+    patch({ onboard: false, ...(explore ? { tab: 'recherche' as const } : {}) })
   }
 
   return (
@@ -202,42 +173,6 @@ export function Onboarding(): JSX.Element {
               </button>
             </div>
           </div>
-        </div>
-
-        <div>
-          <p className="sheet__label">Station</p>
-          <input
-            type="search"
-            className="field"
-            style={{ padding: '9px 10px' }}
-            value={stationQuery}
-            placeholder="La Plagne, Chamonix…"
-            aria-label="Station"
-            onChange={(e) => setStationQuery(e.target.value)}
-          />
-          <div className="onboard__chips" role="list">
-            {SUGGESTIONS.map((name) => (
-              <button
-                key={name}
-                type="button"
-                className={`chip${fold(stationQuery) === fold(name) ? ' chip--on' : ''}`}
-                onClick={() => setStationQuery(name)}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-          {stationQuery.trim() && !matched && (
-            <p className="filters__help" style={{ color: 'var(--warn)' }}>
-              {t('onb_station_unknown')}
-            </p>
-          )}
-          {matched && (
-            <p className="filters__help">
-              {matched.name}
-              {matched.massif ? ` · ${matched.massif}` : ''}
-            </p>
-          )}
         </div>
 
         {massifs.length > 0 && (
@@ -347,16 +282,10 @@ export function Onboarding(): JSX.Element {
         </div>
 
         <div className="onboard__actions">
-          <button
-            type="button"
-            className="btn btn--primary btn--round"
-            disabled={!matched}
-            onClick={() => finish(true)}
-          >
-            Voir les logements
-          </button>
-          <button type="button" className="btn btn--ghost" onClick={() => finish(false)}>
-            Explorer les domaines
+          {/* Une seule issue positive : le parcours pose des critères, il ne
+              choisit pas de destination. C'est l'écran Domaines qui le fait. */}
+          <button type="button" className="btn btn--primary btn--round" onClick={() => finish(true)}>
+            {t('onb_explore')}
           </button>
           <span className="u-spacer" />
           {/* « Passer » est toujours visible et n'est jamais désactivé : le

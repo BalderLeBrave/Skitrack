@@ -885,82 +885,6 @@ export function LodgingsPage(): JSX.Element {
             </div>
           )}
 
-          {/* Liste vide : deux situations opposées, qu'il serait trompeur de
-              confondre. Soit rien n'a jamais été importé, soit des annonces
-              existent mais aucune ne passe les filtres — et dans ce second
-              cas, dire « aucun logement importé » envoie relancer une
-              recherche qui rapportera des annonces tout aussi invisibles. */}
-          {derived.lodgList.length === 0 && derived.lodgHidden > 0 && (
-            <div className="results__empty" style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
-              <div className="results__empty-illu" aria-hidden>
-                🎚️
-              </div>
-              <p style={{ margin: 0, fontWeight: 600 }}>
-                {derived.lodgHidden} offre(s) masquée(s) par vos filtres
-              </p>
-              <p className="u-muted" style={{ margin: 0, fontSize: 13 }}>
-                Budget, distance aux pistes ou type de bien : un critère écarte toute la liste pour{' '}
-                <strong>{d.name}</strong>.
-              </p>
-              <div className="results__empty-actions">
-                <button type="button" className="btn btn--primary" onClick={resetLodgFilters}>
-                  {t('lodg_filters_reset')}
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
-                >
-                  Changer les dates
-                </button>
-              </div>
-            </div>
-          )}
-          {derived.lodgList.length === 0 && derived.lodgHidden === 0 && (
-            <div className="results__empty" style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
-              <div className="results__empty-illu" aria-hidden>
-                🏔️
-              </div>
-              <p style={{ margin: 0, fontWeight: 600 }}>
-                {state.lastScan != null
-                  ? t('lodg_none_for_dates').replace('{d}', d.name)
-                  : (
-                    <>
-                      {t('lodg_none_imported')} <strong>{d.name}</strong>
-                    </>
-                  )}
-              </p>
-              <p className="u-muted" style={{ margin: 0, fontSize: 13 }}>
-                {state.lodgEmpty.length > 0 && (
-                  <>
-                    {t('scan_sources_empty').replace('{s}', state.lodgEmpty.join(', '))}
-                    <br />
-                  </>
-                )}
-                {state.lastScan == null
-                  ? t('lodg_run_search_hint')
-                  : t('lodg_try_other_dates')}
-              </p>
-              <div className="results__empty-actions">
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
-                >
-                  {state.lastScan != null ? 'Changer les dates' : 'Rechercher des annonces'}
-                </button>
-                {d.booking && (
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => void window.skitrack.openExternal(d.booking!)}
-                  >
-                    Ouvrir la centrale
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
           <div
             className={splitOpen ? 'lodgsplit' : undefined}
             style={
@@ -975,6 +899,85 @@ export function LodgingsPage(): JSX.Element {
                 grille à trois colonnes, deux enfants séparés placeraient la
                 note dans la colonne de la carte. */}
             <div className={splitOpen ? 'lodgsplit__list' : undefined}>
+              {/* Liste vide : deux situations opposées, qu'il serait trompeur de
+                  confondre. Soit rien n'a jamais été importé, soit des annonces
+                  existent mais aucune ne passe les filtres — et dans ce second
+                  cas, dire « aucun logement importé » envoie relancer une
+                  recherche qui rapportera des annonces tout aussi invisibles.
+
+                  L'état vide vit **dans la colonne de la liste**, et non
+                  au-dessus du partage : placé au-dessus, il se retrouvait seul
+                  en haut à gauche d'un écran large, la carte reléguée très bas
+                  à droite avec un vide entre les deux. Dans la colonne, il
+                  occupe la place qu'aurait prise la mosaïque, en face de la
+                  carte. */}
+              {derived.lodgList.length === 0 && (
+                <div className="results__emptywrap">
+                  {derived.lodgHidden > 0 ? (
+                    <div className="results__empty">
+                      <p className="results__empty-title">
+                        {t('lodg_empty_hidden_title').replace('{n}', String(derived.lodgHidden))}
+                      </p>
+                      <p className="results__empty-hint">
+                        {t('lodg_empty_hidden_hint').replace('{d}', d.name)}
+                      </p>
+                      <div className="results__empty-actions">
+                        <button type="button" className="btn btn--strong" onClick={resetLodgFilters}>
+                          {t('lodg_filters_reset')}
+                        </button>
+                        <button
+                          type="button"
+                          className="linkbtn linkbtn--underline"
+                          onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
+                        >
+                          {t('lodg_change_dates')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="results__empty">
+                      <p className="results__empty-title">
+                        {state.lastScan != null
+                          ? t('lodg_none_for_dates').replace('{d}', d.name)
+                          : (
+                            <>
+                              {t('lodg_none_imported')} {d.name}
+                            </>
+                          )}
+                      </p>
+                      <p className="results__empty-hint">
+                        {state.lodgEmpty.length > 0 && (
+                          <>
+                            {t('scan_sources_empty').replace('{s}', state.lodgEmpty.join(', '))}
+                            <br />
+                          </>
+                        )}
+                        {state.lastScan == null
+                          ? t('lodg_run_search_hint')
+                          : t('lodg_try_other_dates')}
+                      </p>
+                      <div className="results__empty-actions">
+                        <button
+                          type="button"
+                          className="btn btn--strong"
+                          onClick={() => patch({ lodgPhase: 'criteria', lodgSearchMsg: null })}
+                        >
+                          {state.lastScan != null ? t('lodg_change_dates') : t('lodg_search_listings')}
+                        </button>
+                        {d.booking && (
+                          <button
+                            type="button"
+                            className="linkbtn linkbtn--underline"
+                            onClick={() => void window.skitrack.openExternal(d.booking!)}
+                          >
+                            {t('lodg_open_central')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Pendant un relevé, la liste n'est pas estompée : elle n'est
                   pas rendue du tout. `lodgPhase` vaut alors `'searching'` et
                   c'est `SkiSearchLoading` qui occupe seul la section. */}

@@ -303,17 +303,13 @@ export function LodgingFilters(): JSX.Element {
           />
           Annulation gratuite uniquement
         </label>
-        {/* Le filtre par défaut de l'écran : une liste de logements est une
-            liste de logements réservables. Voir `data/lodgingAvailability.ts`. */}
-        <label className="check" style={{ margin: '8px 0 0' }}>
-          <input
-            type="checkbox"
-            checked={state.lodgOnlyAvailable}
-            onChange={(e) => patch({ lodgOnlyAvailable: e.target.checked })}
-          />
-          {t('avail_only')}
-        </label>
-        <p className="filters__help">{t('avail_only_help')}</p>
+        {/* La case « Disponibilité confirmée uniquement » a été retirée : la
+            réservabilité est devenue une règle de l'écran, appliquée sans
+            recours dans `state/selectors.tsx`. Elle permettait de désactiver la
+            seule garantie que la liste apporte, et une annonce introuvable au
+            dernier relevé revenait alors avec un avertissement qui renvoyait
+            l'utilisateur vérifier sur la source ce que l'application savait
+            déjà. Voir `data/lodgingAvailability.ts`. */}
       </section>
 
       <section className="filters__section">

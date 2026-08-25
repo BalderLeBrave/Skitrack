@@ -20,7 +20,7 @@ import type { Lodging } from '@/data/lodgings'
 import { belongsToDomain, lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import { isBookable } from '@/data/lodgingAvailability'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
-import { matchesLodgingFilters } from '@/data/lodgingFilter'
+import { hasConfirmedPrice, matchesLodgingFilters } from '@/data/lodgingFilter'
 import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
 import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
@@ -496,7 +496,14 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const lodgCriteria: LodgingFilterCriteria = {
       travelers: state.travelers,
       rooms: state.rooms,
-      onlyAvailable: state.lodgOnlyAvailable,
+      // Règle de l'écran, plus un réglage : une liste de logements est une
+      // liste de logements réservables. Une annonce absente du dernier relevé
+      // à ces dates, ou listée sans tarif, ouvre « Ces dates ne sont pas
+      // disponibles » ; l'afficher avec un avertissement demandait à
+      // l'utilisateur d'aller vérifier ce que l'application savait déjà.
+      // La case « Disponibilité confirmée uniquement » a disparu avec ce
+      // choix : elle permettait de désactiver la seule garantie de l'écran.
+      onlyAvailable: true,
       freeCancelOnly: state.lodgAnnul,
       budgetMin: state.lodgBudgetMin,
       budgetMax: state.lodgBudgetMax,
@@ -512,6 +519,18 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       confirmedPricesOnly: true
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
+
+    /**
+     * Ce que les deux règles de l'écran laissent passer, avant tout filtre.
+     *
+     * Sert de base au compte des masquées. Mesuré sur `lodgAll`, ce compte
+     * englobait les annonces écartées par les règles, et l'état vide proposait
+     * alors « Réinitialiser les filtres » pour ramener des annonces qu'aucun
+     * filtre n'écarte : le bouton n'aurait rien changé.
+     */
+    const lodgEligible = lodgAll.filter(
+      (lg) => isBookable(lg, stay) && hasConfirmedPrice(lg, stay)
+    )
 
     const lodgSorters: Record<string, (a: Lodging, b: Lodging) => number> = {
       pp_asc: (a, b) => a.pp - b.pp,
@@ -569,7 +588,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgDomain,
       lodgAll,
       lodgList,
-      lodgHidden: lodgAll.length - lodgFiltered.length,
+      lodgHidden: lodgEligible.length - lodgFiltered.length,
       lodgUnavailable,
       dupMerged,
       voteScore,

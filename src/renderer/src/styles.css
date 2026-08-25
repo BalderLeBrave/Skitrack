@@ -2600,11 +2600,10 @@ select {
   letter-spacing: 0;
 }
 
-.results__empty {
-  padding: 32px 8px;
-  text-align: center;
-  color: var(--muted);
-}
+/* `.results__empty` est défini plus bas, en un seul endroit. Il y avait ici une
+   première règle `padding / text-align: center / color` que la seconde écrasait
+   à moitié : le titre s'alignait à gauche (grille `justify-items: start`) et le
+   paragraphe restait centré, dans la même carte. */
 
 .results__grid {
   display: grid;
@@ -5593,29 +5592,83 @@ select {
   opacity: 0.85;
 }
 
-/* États vides plus guidés. */
-.results__empty {
-  padding: 28px 20px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px dashed var(--border);
-  max-width: 420px;
-}
-.results__empty-illu {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+/**
+ * États vides — présentation typographique, sans cadre ni pictogramme.
+ *
+ * Le bloc ne se met plus en carte : ni fond, ni bordure pointillée, ni pastille
+ * d'emoji. Une carte dessinée au milieu d'une zone déjà vide ajoute un objet à
+ * regarder là où il n'y a rien à voir ; le vide se tient tout seul dès qu'on
+ * lui donne un titre lisible et de la marge. Il ne reste que trois niveaux :
+ * un titre, une phrase, les gestes.
+ *
+ * L'enveloppe prend la place qu'aurait prise la mosaïque — sans elle, le bloc
+ * se collait en haut à gauche d'un écran large et laissait un vide jusqu'à la
+ * carte géographique.
+ */
+.results__emptywrap {
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--accent, #3b82f6) 14%, transparent);
-  color: var(--accent, #3b82f6);
-  font-size: 22px;
+  min-height: min(360px, 50vh);
+  padding: 48px 24px;
 }
+
+/* Carte ouverte : la colonne de liste a une hauteur définie, le bloc la prend
+   entièrement et se cale sur le milieu de la carte. Sans cette règle il se
+   posait au tiers supérieur, avec un vide de 300 px en dessous. Hors partage
+   la hauteur du parent est auto, le `100 %` retombe alors sur le minimum
+   ci-dessus. */
+.lodgsplit__list .results__emptywrap {
+  min-height: 100%;
+}
+
+.results__empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* `gap` porte seul l'espacement : les marges par défaut des `<p>` s'y
+   ajouteraient. L'écran Recherche pose ses paragraphes sans classe. */
+.results__empty > p {
+  margin: 0;
+}
+
+/* Le titre porte le poids de la carte disparue : c'est lui, et non un cadre,
+   qui signale qu'il se passe quelque chose. */
+.results__empty-title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.results__empty-hint {
+  max-width: 38ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* Un seul geste bordé, le second en lien souligné : deux boutons de même poids
+   dans un écran vide se disputent le clic sans qu'aucun ne soit le bon. */
 .results__empty-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.results__empty-actions .linkbtn {
+  font-size: 14px;
+  text-align: center;
 }
 
 /* Barre comparer : geste principal, sticky. */

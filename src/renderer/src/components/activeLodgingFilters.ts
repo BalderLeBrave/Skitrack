@@ -73,10 +73,9 @@ export function useActiveLodgingFilters(): {
   }
 
   if (state.lodgAnnul) add('annul', t('lodg_free_cancel'), { lodgAnnul: false })
-  // Ce filtre est posé par défaut ; sa puce dit ce qu'il retire, et sa croix
-  // le relâche — c'est le seul moyen de retrouver une annonce écartée pour
-  // indisponibilité sans aller fouiller le panneau.
-  if (state.lodgOnlyAvailable) add('avail', t('avail_only'), { lodgOnlyAvailable: false })
+  // Plus de puce « Disponibilité confirmée uniquement » : la réservabilité
+  // n'est plus un filtre qu'on relâche, c'est une règle de l'écran. Une puce
+  // avec une croix promettait de la lever.
   if (state.rooms > 1) {
     add('rooms', `${state.rooms} ${t('scan_rooms_min')}`, { rooms: 1 })
   }

@@ -712,11 +712,8 @@ const CATALOG = {
     'Prix tout compris : ménage, taxe de séjour et frais de service inclus.',
     'All-in price: cleaning, tourist tax and service fees included.'
   ],
-  avail_only: ['Disponibilité confirmée uniquement', 'Confirmed availability only'],
-  avail_only_help: [
-    'Une plateforme n’affiche un prix que pour ce qu’elle peut vendre. Sans tarif relevé à vos dates, la disponibilité n’est pas prouvée — et l’annonce s’ouvre souvent sur « ces dates ne sont pas disponibles ».',
-    'A platform only shows a price for what it can sell. With no price recorded for your dates, availability is unproven — and the listing often opens on “these dates are unavailable”.'
-  ],
+  // `avail_only` et `avail_only_help` ont disparu avec la case qu'ils
+  // légendaient : la réservabilité est une règle de l'écran, plus un réglage.
   avail_unconfirmed: ['Disponibilité non confirmée', 'Availability not confirmed'],
   avail_reason_unpriced: [
     'listée sans tarif à ces dates — le plus souvent, elle n’est pas libre',
@@ -899,6 +896,23 @@ const CATALOG = {
     'Try other dates, or a neighbouring village in the same area.'
   ],
   lodg_clear_selection: ['Vider la sélection', 'Clear the selection'],
+
+  // --- États vides de la mosaïque ----------------------------------------
+  // Deux situations opposées : des annonces existent mais les filtres les
+  // écartent toutes, ou il n'y a rien à montrer. Les libellés restent
+  // distincts pour ne pas envoyer relancer une recherche qui rapporterait des
+  // annonces tout aussi invisibles.
+  lodg_empty_hidden_title: [
+    '{n} offre(s) masquée(s) par vos filtres',
+    '{n} offer(s) hidden by your filters'
+  ],
+  lodg_empty_hidden_hint: [
+    'Budget, distance aux pistes ou type de bien : un critère écarte toute la liste pour {d}.',
+    'Budget, distance to the slopes or property type: one criterion rules out the whole list for {d}.'
+  ],
+  lodg_change_dates: ['Changer les dates', 'Change the dates'],
+  lodg_search_listings: ['Rechercher des annonces', 'Search for listings'],
+  lodg_open_central: ['Ouvrir la centrale', 'Open the booking centre'],
 
   // --- Fiche logement : ce qui a été relevé ------------------------------
   sheet_verified_title: ['Ce que Skitrack a vérifié', 'What Skitrack checked'],

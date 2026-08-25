@@ -826,6 +826,10 @@ const CATALOG = {
   ],
   trip_save: ['Enregistrer ce séjour', 'Save this trip'],
   trip_saved: ['Séjour enregistré', 'Trip saved'],
+  trip_save_failed: [
+    'Séjour non enregistré — vérifiez les dates du séjour.',
+    'Trip not saved — check the trip dates.'
+  ],
   trip_reopen: ['Rouvrir', 'Reopen'],
   trip_remove: ['Supprimer', 'Remove'],
   trip_no_budget: ['sans plafond', 'no budget cap'],

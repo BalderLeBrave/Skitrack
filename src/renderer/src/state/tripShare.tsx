@@ -81,6 +81,12 @@ export function TripShareProvider({ children }: { children: ReactNode }): JSX.El
     const off = window.skitrack.trip.onOpened((url) => {
       present(decodeTripLink(url), 'link')
     })
+    // Un lien peut être arrivé avant ce montage — application lancée *par* le
+    // lien, ou `open-url` émis avant que la fenêtre n'existe. On vient donc le
+    // chercher plutôt que d'attendre une poussée qui a déjà eu lieu.
+    void window.skitrack.trip.pending().then((url) => {
+      if (url) present(decodeTripLink(url), 'link')
+    })
     return off
   }, [present])
 

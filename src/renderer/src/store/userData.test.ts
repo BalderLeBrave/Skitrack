@@ -163,6 +163,23 @@ async function main(): Promise<void> {
     check('réimporter le même séjour ne duplique pas', (await getTrips()).length === 1)
   }
 
+  console.log('\n8b. Un séjour refusé ne se solde pas par un « enregistré »')
+  be = spyBackend()
+  __setBackendForTest(be)
+  await saveTrip(TRIP)
+  const before8b = await getTrips()
+  const bad = await saveTrip({ ...TRIP, dates: { from: '2027-02-14', to: '2027-02-07' } })
+  check('l’échec est signalé', bad.saved === null, bad.saved)
+  check('la liste est inchangée', bad.trips.length === before8b.length)
+  check(
+    'le séjour précédent n’est pas rendu à la place',
+    bad.saved === null && before8b[0] !== null
+  )
+  check('rien n’a été écrit', (await getTrips()).length === 1)
+  const good = await saveTrip({ ...TRIP, dates: { from: '2027-03-07', to: '2027-03-14' } })
+  check('un séjour valide est bien rendu', good.saved?.dates.from === '2027-03-07', good.saved)
+  check('et c’est celui qui vient d’être écrit', good.saved?.id === good.trips[0].id)
+
   console.log('\n9. Premier lancement')
   be = spyBackend()
   __setBackendForTest(be)
@@ -175,6 +192,18 @@ async function main(): Promise<void> {
   check('rien ne traîne dans le stockage', !be.store.has('skitrack.onboarded.v1'))
   be.store.set('skitrack.onboarded.v1', 'oui')
   check('une valeur inattendue ne vaut pas « vu »', (await getOnboarded()) === false)
+
+  console.log('\n9b. Une installation antérieure au drapeau a déjà vu l’accueil')
+  be = spyBackend()
+  __setBackendForTest(be)
+  be.store.set('skitrack-v4-prefs', '{"prefsSchema":5}')
+  check('des préférences existantes valent « déjà vu »', (await getOnboarded()) === true)
+  check('le drapeau est posé une fois pour toutes', be.store.get('skitrack.onboarded.v1') === '1')
+
+  be = spyBackend()
+  __setBackendForTest(be)
+  check('sans préférences, c’est bien un premier lancement', (await getOnboarded()) === false)
+  check('et rien n’a été écrit au passage', !be.store.has('skitrack.onboarded.v1'))
 
   console.log('\n10. Purge')
   be = spyBackend()

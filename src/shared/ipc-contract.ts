@@ -38,7 +38,9 @@ export const IPC = {
   /** Écriture d'un texte court dans le presse-papier — lien de séjour. */
   clipboardWrite: 'clipboard:write',
   /** Lien `skitrack://` reçu par le système, poussé vers le renderer. */
-  tripOpened: 'trip:opened'
+  tripOpened: 'trip:opened',
+  /** Lien reçu avant que le renderer n'écoute — il vient le chercher. */
+  tripPending: 'trip:pending'
 } as const
 
 /**

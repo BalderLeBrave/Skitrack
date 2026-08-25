@@ -13,6 +13,7 @@
 
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import { clearUserData } from '@/store/userData'
 
 /** Date de dernière révision du texte, affichée en pied de section. */
 const REVISION = '14 août 2026'
@@ -31,6 +32,10 @@ const REVISION = '14 août 2026'
  * vise. Le préfixe est donc réduit à ce que les deux ont en commun.
  */
 function purgeLocalData(): void {
+  // La couche `store` efface d'abord ses propres clés — elle seule sait ce
+  // qu'elle a écrit. Le balayage par préfixe qui suit reste le filet : il
+  // attrape les clés d'écrans qui n'ont pas de propriétaire déclaré.
+  void clearUserData()
   const doomed: string[] = []
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)

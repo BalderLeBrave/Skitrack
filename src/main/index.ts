@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, stat, writeFile } from 'node:fs/promises'
 import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, shell } from 'electron'
 import {
   IPC,
@@ -265,21 +265,30 @@ function registerIpc(): void {
       })
       const file = result.filePaths[0]
       if (result.canceled || !file) return { content: null, canceled: true, error: null }
-      const content = await readFile(file, 'utf-8')
-      // Un fichier démesuré n'est pas remonté : ce n'est pas un séjour, et le
-      // renderer n'a pas à décider quoi faire d'un mégaoctet de texte.
-      if (content.length > 300_000) {
+      // La taille est contrôlée **avant** la lecture : le filtre d'extension de
+      // la boîte de dialogue se contourne, et charger plusieurs gigaoctets en
+      // mémoire pour les refuser ensuite n'est pas un garde-fou.
+      const info = await stat(file)
+      if (!info.isFile() || info.size > 300_000) {
         return { content: null, canceled: false, error: 'Fichier trop volumineux pour un séjour' }
       }
+      const content = await readFile(file, 'utf-8')
       return { content, canceled: false, error: null }
     } catch (err) {
       return { content: null, canceled: false, error: err instanceof Error ? err.message : String(err) }
     }
   })
 
-  /** Presse-papier, en écriture : uniquement un lien de séjour, borné. */
+  /**
+   * Presse-papier, en écriture : uniquement un lien de séjour, borné.
+   *
+   * Le préfixe est vérifié ici et pas seulement chez l'appelant. Un commentaire
+   * qui décrit une garantie que le code n'impose pas est ce qui fait qu'on ne
+   * la revérifie plus jamais.
+   */
   ipcMain.handle(IPC.clipboardWrite, (_e, text: string): boolean => {
     if (typeof text !== 'string' || text.length === 0 || text.length > 8_000) return false
+    if (!/^skitrack:\/\/trip\//i.test(text)) return false
     clipboard.writeText(text)
     return true
   })
@@ -339,9 +348,23 @@ function tripUrlFrom(argv: readonly string[]): string | null {
  * ce soit — un lien reçu d'un tiers ne doit jamais remplacer une recherche en
  * cours sans que personne ne l'ait vu.
  */
+let pendingTripUrl: string | null = null
+
 function deliverTripUrl(url: string | null): void {
-  if (!url || !mainWindow) return
-  const send = (): void => mainWindow?.webContents.send(IPC.tripOpened, url)
+  if (!url) return
+  // Le lien est TOUJOURS mis en attente avant d'être poussé. Sur macOS,
+  // `open-url` précède `whenReady()` quand l'application est lancée par le
+  // lien : la fenêtre n'existe pas encore. Sur Windows le lien est dans
+  // `argv`, mais `webContents.send` tombe dans le vide tant que l'écouteur
+  // React n'est pas monté. Le renderer vient chercher ce qui l'attend dès que
+  // son écouteur est en place (`trip:pending`), ce qui couvre les deux cas.
+  pendingTripUrl = url
+  if (!mainWindow) return
+  const send = (): void => {
+    if (pendingTripUrl == null) return
+    mainWindow?.webContents.send(IPC.tripOpened, pendingTripUrl)
+    pendingTripUrl = null
+  }
   if (mainWindow.webContents.isLoading()) {
     mainWindow.webContents.once('did-finish-load', send)
   } else {

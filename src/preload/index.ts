@@ -61,6 +61,8 @@ const api = {
      * Lien `skitrack://` ouvert depuis le système. Le renderer prévisualise
      * avant d'appliquer : jamais d'écrasement silencieux de la recherche.
      */
+    /** Lien arrivé avant le montage de l'écouteur. Consommé une seule fois. */
+    pending: (): Promise<string | null> => ipcRenderer.invoke(IPC.tripPending),
     onOpened: (cb: (url: string) => void): (() => void) => {
       const handler = (_e: unknown, url: string): void => cb(url)
       ipcRenderer.on(IPC.tripOpened, handler)

@@ -34,13 +34,18 @@ export function AlertPanel({ item, alert, currentValue, hasMeasured, initialArme
   const { eur } = useFormat()
   const { putAlert, removeAlert } = useUserData()
 
-  const mode: AlertMode = alert?.mode ?? 'total'
+  // Le mode est un état local tant qu'aucune alerte n'existe : le dériver de
+  // l'alerte enregistrée rendait les deux puces inertes avant la saisie du
+  // seuil, sans que rien ne dise pourquoi.
+  const [modeDraft, setModeDraft] = useState<AlertMode>(alert?.mode ?? 'total')
+  const mode: AlertMode = alert?.mode ?? modeDraft
   const [draft, setDraft] = useState<string>('')
 
   // Le brouillon suit l'alerte enregistrée quand on change d'élément suivi.
   useEffect(() => {
     setDraft(alert ? String(alert.threshold) : '')
-  }, [alert?.trackedKey, alert?.threshold, item.key])
+    setModeDraft(alert?.mode ?? 'total')
+  }, [alert?.trackedKey, alert?.threshold, alert?.mode, item.key])
 
   const commit = (nextMode: AlertMode, rawValue: string, active: boolean): void => {
     const parsed = Math.round(Number(rawValue))
@@ -92,8 +97,10 @@ export function AlertPanel({ item, alert, currentValue, hasMeasured, initialArme
               className={`chip${mode === m ? ' chip--on' : ''}`}
               aria-pressed={mode === m}
               onClick={() => {
-                if (!draft) return
-                commit(m, draft, alert?.active ?? true)
+                setModeDraft(m)
+                // Sans seuil saisi, il n'y a rien à enregistrer : le choix reste
+                // local et sera repris au premier `commit`.
+                if (draft) commit(m, draft, alert?.active ?? true)
               }}
             >
               {m === 'total' ? t('alert_mode_total') : t('alert_mode_pp')}

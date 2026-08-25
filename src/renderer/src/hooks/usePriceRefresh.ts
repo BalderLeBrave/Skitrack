@@ -21,11 +21,19 @@
  * **Le tour ne bloque jamais l'interface.** Une source en panne produit un lot
  * sans point, pas une erreur remontée à l'écran : l'échec d'une source reste
  * local, c'est un invariant du projet.
+ *
+ * **Un échec laisse une trace.** L'historique ne garde que les succès ; sans
+ * journal des tentatives, un bien dont l'annonce a disparu resterait « à
+ * relever » à chaque réveil et relancerait une recherche multi-sources
+ * complète toutes les cinq minutes, indéfiniment. Le journal vit en mémoire :
+ * il se perd à la fermeture, ce qui est le bon compromis — une tentative de
+ * plus au démarrage, et rien de mort à purger sur le disque.
  */
 
 import { useCallback, useEffect, useRef } from 'react'
 import { runProviderSearch } from '@/data/runProviderSearch'
-import { groupForRefresh, perPersonOf, readingsForGroup } from '@/data/priceRefresh'
+import { groupForRefresh, perPersonOf, readingsForGroup, recordAttempts } from '@/data/priceRefresh'
+import type { AttemptStore } from '@/data/priceRefresh'
 import { evaluateAlert, valueFor } from '@/domain/priceAlerts'
 import type { AlertFiring, PriceAlert } from '@/domain/priceAlerts'
 import { hasCoords } from '@/data/referentiel'
@@ -53,15 +61,29 @@ export function usePriceRefresh(): void {
   // Le tour lit l'état au moment où il s'exécute : des refs plutôt que des
   // dépendances, sinon chaque suivi ajouté relancerait l'intervalle et le tour
   // ne partirait jamais.
+  //
+  // `t` en fait partie, et ce n'est pas une précaution de confort : `useI18n`
+  // reconstruit la fonction à **chaque rendu**. La mettre en dépendance de
+  // `runOnce` faisait démonter et remonter l'intervalle à chaque `patch` —
+  // donc à chaque frappe dans un filtre —, si bien que le tour ne partait
+  // jamais tant que quelqu'un se servait de l'application.
   const trackedRef = useRef(state.tracked)
   const domainsRef = useRef(domains)
   const alertsRef = useRef(alerts)
   const historyRef = useRef(history)
+  const tRef = useRef(t)
+  const putAlertsRef = useRef(putAlerts)
+  const recordRef = useRef(recordReadings)
+  /** Journal des tentatives, en mémoire : voir l'en-tête du fichier. */
+  const attemptsRef = useRef<AttemptStore>({})
   const running = useRef(false)
   trackedRef.current = state.tracked
   domainsRef.current = domains
   alertsRef.current = alerts
   historyRef.current = history
+  tRef.current = t
+  putAlertsRef.current = putAlerts
+  recordRef.current = recordReadings
 
   const runOnce = useCallback(async (): Promise<void> => {
     if (running.current) return
@@ -71,7 +93,7 @@ export function usePriceRefresh(): void {
     running.current = true
     try {
       const now = Date.now()
-      const groups = groupForRefresh(tracked, historyRef.current, now)
+      const groups = groupForRefresh(tracked, historyRef.current, attemptsRef.current, now)
       if (groups.length === 0) return
 
       const collected: Record<string, PriceReading> = {}
@@ -98,8 +120,18 @@ export function usePriceRefresh(): void {
         }
       }
 
+      // Le journal est tenu pour **tous** les biens du tour, aboutis ou non :
+      // c'est ce qui empêche un bien muet de repartir dans cinq minutes.
+      const attempted = groups.flatMap((g) => g.items.map((i) => i.key))
+      attemptsRef.current = recordAttempts(
+        attemptsRef.current,
+        attempted,
+        new Set(Object.keys(collected)),
+        Date.now()
+      )
+
       if (Object.keys(collected).length === 0) return
-      recordReadings(collected)
+      recordRef.current(collected)
 
       // --- Alertes ---------------------------------------------------------
       const fired: AlertFiring[] = []
@@ -125,12 +157,12 @@ export function usePriceRefresh(): void {
         if (outcome.fired) fired.push(outcome.fired)
       }
 
-      if (changed) await putAlerts(nextAlerts)
+      if (changed) await putAlertsRef.current(nextAlerts)
 
       for (const firing of fired) {
         const item = tracked.find((i) => i.key === firing.trackedKey)
-        const title = t('alert_fired_title')
-        const body = t('alert_fired_body')
+        const title = tRef.current('alert_fired_title')
+        const body = tRef.current('alert_fired_body')
           .replace('{n}', item?.name ?? firing.trackedKey)
           .replace('{v}', String(firing.value))
           .replace('{s}', String(firing.threshold))
@@ -145,7 +177,10 @@ export function usePriceRefresh(): void {
     } finally {
       running.current = false
     }
-  }, [recordReadings, putAlerts, t])
+    // Aucune dépendance : tout ce que le tour lit passe par une ref, et
+    // `runOnce` doit garder une identité stable pour que l'intervalle ne se
+    // reconstruise pas à chaque rendu.
+  }, [])
 
   useEffect(() => {
     // Un premier tour peu après l'ouverture : la cadence horaire de `isDue`

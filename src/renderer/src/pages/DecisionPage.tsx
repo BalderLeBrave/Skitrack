@@ -7,6 +7,7 @@ import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useUserData } from '@/state/userData'
 import { useTripShare } from '@/state/tripShare'
+import type { SavedTripInput } from '@/store/userData'
 import { useI18n } from '@/i18n'
 
 /**
@@ -51,6 +52,23 @@ export function DecisionPage(): JSX.Element {
       </div>
     )
   }
+
+  /** Le séjour tel qu'il est à l'écran — une seule définition pour les deux
+   *  boutons, sinon « enregistrer » et « partager » finiraient par capturer
+   *  des choses différentes. */
+  const tripInput = (): SavedTripInput => ({
+    label: `${ctx.d.name} · ${ctx.w.label}`,
+    stationId: ctx.d.id,
+    dates: { from: state.arrDate, to: state.depDate },
+    party: {
+      adults: Math.max(1, state.travelers - state.children),
+      children: state.children
+    },
+    budget:
+      state.budgetMax != null && state.budgetMax > 0
+        ? { max: state.budgetMax, mode: state.budgetMode }
+        : null
+  })
 
   const k = ctx.cost
   const voteKey = derived.comboKey(ctx.d.id, ctx.w.arr)
@@ -120,21 +138,18 @@ export function DecisionPage(): JSX.Element {
             type="button"
             className="btn btn--small"
             onClick={() => {
-              void saveTrip({
-                label: `${ctx.d.name} · ${ctx.w.label}`,
-                stationId: ctx.d.id,
-                dates: { from: state.arrDate, to: state.depDate },
-                party: {
-                  adults: Math.max(1, state.travelers - state.children),
-                  children: state.children
-                },
-                budget:
-                  state.budgetMax != null && state.budgetMax > 0
-                    ? { max: state.budgetMax, mode: state.budgetMode }
-                    : null
+              // L'accusé de réception attend le résultat : le validateur peut
+              // refuser le séjour — des dates inversées, par exemple — et
+              // afficher « enregistré » sur un refus serait un mensonge.
+              void saveTrip(tripInput()).then((saved) => {
+                if (!saved) {
+                  setShareMsg(t('trip_save_failed'))
+                  window.setTimeout(() => setShareMsg(null), 2400)
+                  return
+                }
+                setJustSaved(true)
+                window.setTimeout(() => setJustSaved(false), 2400)
               })
-              setJustSaved(true)
-              window.setTimeout(() => setJustSaved(false), 2400)
             }}
           >
             {justSaved ? `✓ ${t('trip_saved')}` : t('trip_save')}
@@ -147,20 +162,7 @@ export function DecisionPage(): JSX.Element {
             type="button"
             className="btn btn--small"
             onClick={() => {
-              const input = {
-                label: `${ctx.d.name} · ${ctx.w.label}`,
-                stationId: ctx.d.id,
-                dates: { from: state.arrDate, to: state.depDate },
-                party: {
-                  adults: Math.max(1, state.travelers - state.children),
-                  children: state.children
-                },
-                budget:
-                  state.budgetMax != null && state.budgetMax > 0
-                    ? { max: state.budgetMax, mode: state.budgetMode }
-                    : null
-              }
-              void saveTrip(input).then((saved) => {
+              void saveTrip(tripInput()).then((saved) => {
                 // Le séjour partagé doit porter l'identité de celui qui vient
                 // d'être écrit : un identifiant fabriqué ici se réimporterait
                 // en doublon chez le destinataire.

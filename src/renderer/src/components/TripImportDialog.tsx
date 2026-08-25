@@ -16,13 +16,14 @@ import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import { peopleForParty } from '@/domain/party'
 import { useTripShare } from '@/state/tripShare'
 import { useUserData } from '@/state/userData'
 
 export function TripImportDialog(): JSX.Element | null {
   const { t, lang } = useI18n()
   const { eur } = useFormat()
-  const { patch, domains } = useApp()
+  const { state, patch, setPeople, domains } = useApp()
   const { importTrip } = useUserData()
   const { pending, importError, dismiss } = useTripShare()
   const ref = useRef<HTMLDivElement>(null)
@@ -47,13 +48,15 @@ export function TripImportDialog(): JSX.Element | null {
   const apply = (): void => {
     if (!pending) return
     void importTrip(pending)
+    // Le groupe passe par `setPeople` : c'est lui que lisent forfaits, cours et
+    // répartition. Les personnes déjà saisies sont conservées, seul l'effectif
+    // est ajusté — voir `domain/party`.
+    setPeople(peopleForParty(state.people, pending.party.adults, pending.party.children))
     patch({
       selectedId: pending.stationId,
       lodgingDomainId: pending.stationId,
       arrDate: pending.dates.from,
       depDate: pending.dates.to,
-      travelers: pending.party.adults + pending.party.children,
-      children: pending.party.children,
       ...(pending.budget ? { budgetMax: pending.budget.max, budgetMode: pending.budget.mode } : {}),
       tab: 'recherche'
     })

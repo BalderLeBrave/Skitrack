@@ -110,10 +110,9 @@ export function UserDataProvider({ children }: { children: ReactNode }): JSX.Ele
   }, [])
 
   const saveTrip = useCallback(async (trip: SavedTripInput): Promise<SavedTrip | null> => {
-    const next = await storeSaveTrip(trip)
+    const { trips: next, saved } = await storeSaveTrip(trip)
     setTrips(next)
-    // `store.saveTrip` place le séjour écrit en tête de la liste renvoyée.
-    return next[0] ?? null
+    return saved
   }, [])
   const importTrip = useCallback(async (trip: SavedTrip) => {
     setTrips(await storeImport(trip))

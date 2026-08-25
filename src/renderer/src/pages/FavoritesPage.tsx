@@ -17,6 +17,7 @@ import { CloseIcon } from '@/components/Icons'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import { peopleForParty } from '@/domain/party'
 import { useUserData } from '@/state/userData'
 import { useTripShare } from '@/state/tripShare'
 import type { SavedTrip } from '@/store/userData'
@@ -24,7 +25,7 @@ import type { SavedTrip } from '@/store/userData'
 export function FavoritesPage(): JSX.Element {
   const { t, lang } = useI18n()
   const { eur } = useFormat()
-  const { state, patch, domains } = useApp()
+  const { state, patch, setPeople, domains } = useApp()
   const { favorites, removeFavorite, trips, removeTrip } = useUserData()
   const { shareTrip, exportTrip, importFromFile } = useTripShare()
   // Accusé de réception éphémère, indexé par séjour : « lien copié » doit
@@ -57,13 +58,16 @@ export function FavoritesPage(): JSX.Element {
    * un trou à combler.
    */
   const reopen = (trip: SavedTrip): void => {
+    // `setPeople` d'abord : c'est `people` que lisent les calculs de coût.
+    // Poser `travelers` seul afficherait « 6 voyageurs » en en-tête tout en
+    // facturant les forfaits d'une personne — la branche de repli sur
+    // `travelers` est morte, `people` n'étant jamais vide.
+    setPeople(peopleForParty(state.people, trip.party.adults, trip.party.children))
     patch({
       selectedId: trip.stationId,
       lodgingDomainId: trip.stationId,
       arrDate: trip.dates.from,
       depDate: trip.dates.to,
-      travelers: trip.party.adults + trip.party.children,
-      children: trip.party.children,
       ...(trip.budget ? { budgetMax: trip.budget.max, budgetMode: trip.budget.mode } : {}),
       tab: 'recherche'
     })

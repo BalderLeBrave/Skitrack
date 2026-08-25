@@ -82,6 +82,15 @@ const ALERTS_KEY = 'skitrack.alerts.v1'
 const ONBOARDED_KEY = 'skitrack.onboarded.v1'
 
 /**
+ * Témoin d'une installation antérieure au drapeau d'accueil.
+ *
+ * C'est la clé des préférences de `state/appState`. Ce module ne la lit que
+ * pour cette migration et ne l'écrit jamais : les préférences ne lui
+ * appartiennent pas.
+ */
+const LEGACY_PREFS_WITNESS = 'skitrack-v4-prefs'
+
+/**
  * Clés d'une version antérieure, relues une fois puis effacées.
  *
  * Vide aujourd'hui — les trois clés ci-dessus sont les premières. La table
@@ -134,6 +143,19 @@ export interface SavedTrip {
 
 /** Ce qu'un appelant fournit ; l'identité et les horodatages sont posés ici. */
 export type SavedTripInput = Omit<SavedTrip, 'id' | 'createdAt' | 'updatedAt'>
+
+/**
+ * Issue d'un enregistrement.
+ *
+ * `saved` est `null` quand le séjour a été refusé par le validateur. Renvoyer
+ * la seule liste ne suffisait pas : l'appelant ne pouvait pas distinguer un
+ * échec d'un succès, et prenait le premier élément — c'est-à-dire le séjour
+ * enregistré *précédemment*.
+ */
+export interface SaveTripResult {
+  trips: SavedTrip[]
+  saved: SavedTrip | null
+}
 
 // --- Validation -----------------------------------------------------------
 
@@ -333,9 +355,13 @@ export async function getTrips(): Promise<SavedTrip[]> {
  * second remplace le premier plutôt que de doubler la liste. C'est le geste
  * attendu quand on réenregistre après avoir changé le budget.
  */
-export async function saveTrip(input: SavedTripInput): Promise<SavedTrip[]> {
+export async function saveTrip(input: SavedTripInput): Promise<SaveTripResult> {
   const validated = parseSavedTrip({ ...input, id: newId(), createdAt: Date.now(), updatedAt: Date.now() })
-  if (!validated) return getTrips()
+  // Un séjour refusé par le validateur — des dates inversées, par exemple, que
+  // rien n'empêche de saisir — ne doit pas se solder par un « enregistré » ni
+  // par la restitution du séjour précédent. L'appelant doit pouvoir voir
+  // l'échec, sinon « Partager » copierait le lien d'un autre séjour.
+  if (!validated) return { trips: await getTrips(), saved: null }
 
   const current = await getTrips()
   const twin = current.find(
@@ -349,7 +375,7 @@ export async function saveTrip(input: SavedTripInput): Promise<SavedTrip[]> {
     : validated
   const next = [merged, ...current.filter((t) => t.id !== merged.id)]
   writeList(TRIPS_KEY, next)
-  return next
+  return { trips: next, saved: merged }
 }
 
 /** Réinsère un séjour déjà constitué — import d'un fichier ou d'un lien. */
@@ -444,7 +470,16 @@ export async function removeAlert(trackedKey: string): Promise<PriceAlert[]> {
  */
 export async function getOnboarded(): Promise<boolean> {
   try {
-    return backend.read(ONBOARDED_KEY) === '1'
+    if (backend.read(ONBOARDED_KEY) === '1') return true
+    // Migration : une installation antérieure au drapeau a déjà servi — ses
+    // préférences en témoignent. Sans cette reprise, la mise à jour rouvrirait
+    // le parcours d'accueil chez tous ceux qui l'ont déjà passé, ce qui est
+    // exactement ce que « n'apparaît qu'au premier lancement » exclut.
+    if (backend.read(LEGACY_PREFS_WITNESS) != null) {
+      backend.write(ONBOARDED_KEY, '1')
+      return true
+    }
+    return false
   } catch {
     // Stockage indisponible : on considère le parcours vu plutôt que de
     // l'imposer à chaque ouverture sur un poste qui ne sait rien retenir.

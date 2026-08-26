@@ -1,4 +1,5 @@
 import { RangeFilter } from './RangeFilter'
+import { StayDatesField } from './StayDatesField'
 import { hasConfirmedPrice } from '@/data/lodgingFilter'
 import { useActiveLodgingFilters } from './activeLodgingFilters'
 import { lodgingSources, LODG_TYPES, srcOf } from '@/data/lodgings'
@@ -108,32 +109,7 @@ export function LodgingFilters(): JSX.Element {
 
       <section className="filters__section">
         <h3 className="filters__legend">{t('stay_label')}</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-          <div>
-            <span className="filters__help" style={{ margin: 0 }}>
-              {t('arrival')}
-            </span>
-            <input
-              type="date"
-              className="field"
-              style={{ marginTop: 3, fontSize: 13, padding: '6px 8px' }}
-              value={state.arrDate}
-              onChange={(e) => patch({ arrDate: e.target.value })}
-            />
-          </div>
-          <div>
-            <span className="filters__help" style={{ margin: 0 }}>
-              {t('departure_label')}
-            </span>
-            <input
-              type="date"
-              className="field"
-              style={{ marginTop: 3, fontSize: 13, padding: '6px 8px' }}
-              value={state.depDate}
-              onChange={(e) => patch({ depDate: e.target.value })}
-            />
-          </div>
-        </div>
+        <StayDatesField />
         <p className="filters__help" style={{ margin: '6px 0 8px' }}>
           {nights} nuit(s)
           {nights === 7 ? ' · semaine des vacances de février (zone C)' : ''}
@@ -175,11 +151,13 @@ export function LodgingFilters(): JSX.Element {
               <button
                 type="button"
                 className="stepper__btn"
-                onClick={() => patch({ rooms: Math.max(1, state.rooms - 1) })}
+                onClick={() => patch({ rooms: Math.max(0, state.rooms - 1) })}
               >
                 −
               </button>
-              <span className="stepper__value">{state.rooms}</span>
+              <span className="stepper__value">
+                {state.rooms === 0 ? t('lodg_rooms_studio') : state.rooms}
+              </span>
               <button
                 type="button"
                 className="stepper__btn"

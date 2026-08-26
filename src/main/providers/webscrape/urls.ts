@@ -10,7 +10,19 @@ function nights(params: SearchParams): number {
   return Math.max(1, Math.round((b - a) / 86_400_000))
 }
 
-export function bookingSearchUrl(params: SearchParams): string {
+/**
+ * Recherche Booking, page par page.
+ *
+ * `offset` est le rang du premier résultat demandé, et c'est le paramètre que
+ * Booking pose lui-même dans ses liens « page suivante ». Sans lui, le relevé
+ * ne voyait **que la première page** — vingt-cinq biens, quel que soit
+ * l'inventaire réel de la station. Ce n'était pas un filtre trop serré, c'était
+ * une collecte qui s'arrêtait au premier écran.
+ *
+ * Zéro ne se transmet pas : la première page s'obtient sans paramètre, comme
+ * quand on tape l'adresse à la main.
+ */
+export function bookingSearchUrl(params: SearchParams, offset = 0): string {
   const u = new URL('https://www.booking.com/searchresults.fr.html')
   u.searchParams.set('ss', params.destination)
   if (params.checkIn) u.searchParams.set('checkin', params.checkIn)
@@ -19,6 +31,7 @@ export function bookingSearchUrl(params: SearchParams): string {
   u.searchParams.set('group_children', String(params.children ?? 0))
   u.searchParams.set('no_rooms', '1')
   u.searchParams.set('selected_currency', 'EUR')
+  if (offset > 0) u.searchParams.set('offset', String(offset))
   // Pas de `latitude`/`longitude` : Booking ne borne pas sa recherche sur ces
   // paramètres-là, il les ignore. Les poser donnait l'illusion d'une recherche
   // géographique alors que seule la chaîne `ss` était lue — et une chaîne comme

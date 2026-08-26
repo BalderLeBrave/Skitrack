@@ -16,7 +16,7 @@
 
 import { bookingFamilyOf } from '@shared/bookingFamilies'
 
-export type CentralPriceMode = 'live' | 'link' | 'none' | 'blocked'
+export type CentralPriceMode = 'live' | 'link' | 'none'
 
 export interface CentralCapability {
   mode: CentralPriceMode
@@ -97,11 +97,17 @@ const INGENIE_HOSTS = new Set([
   'www.valmeinier-reservation.com',
 ])
 
-/** robots.txt `Disallow: /` — le connecteur refuse explicitement. */
-const ROBOTS_BLOCKED = new Set([
-  'reservation.combloux.com',
-  'reservation.montgenevre.com'
-])
+/*
+ * Il y avait ici une liste de deux hôtes — Combloux, Montgenèvre — dont le
+ * `robots.txt` publiait « Disallow: / », et l'écran affichait pour eux
+ * « centrale interdite au relevé automatique (robots.txt) ».
+ *
+ * Elle est retirée. Un verdict `robots.txt` recopié à la main dans le renderer
+ * est un second juge, et il disait le contraire du premier : la règle
+ * appartient à `providers/station/robots.ts`, qui n'interdit plus rien depuis
+ * le 2026-08-26. Un écran ne peut pas annoncer une interdiction que le code
+ * n'applique pas.
+ */
 
 function hostOf(url: string | null | undefined): string | null {
   if (!url) return null
@@ -123,16 +129,6 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       host: null,
       labelFr: 'pas de centrale connue',
       labelEn: 'no known booking desk'
-    }
-  }
-
-  if (ROBOTS_BLOCKED.has(host)) {
-    return {
-      mode: 'blocked',
-      host,
-      family: 'other',
-      labelFr: 'centrale interdite au relevé automatique (robots.txt)',
-      labelEn: 'desk blocks automated scans (robots.txt)'
     }
   }
 

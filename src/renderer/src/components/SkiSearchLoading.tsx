@@ -31,7 +31,7 @@ export function SkiSearchLoading({
   const criteria = [
     `${fmtDate(state.arrDate)} → ${fmtDate(state.depDate)}`,
     `${state.travelers} ${t('scan_travelers')}`,
-    `${state.rooms} ${t('scan_rooms_min')}`
+    state.rooms === 0 ? t('lodg_rooms_any') : `${state.rooms} ${t('scan_rooms_min')}`
   ].join(' · ')
 
   const progress = Math.min(0.95, elapsedSec / Math.max(1, timeoutSec))

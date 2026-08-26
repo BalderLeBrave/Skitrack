@@ -37,7 +37,7 @@ import type { Origin, Travel } from '@/domain/travel'
 import { originsOf, travelOf, worstDistance, worstTravel } from '@/domain/travel'
 import type { Score } from '@/domain/scoring'
 import { scoreOf } from '@/domain/scoring'
-import { FILTER_RANGES, useApp } from './appState'
+import { FILTER_RANGES, offresBudgetOpen, useApp } from './appState'
 
 // Les plages à deux bornes vivent dans `data/range.ts` : `lodgingFilter.ts` en
 // a besoin, et les importer d'ici aurait fermé un cycle.
@@ -409,7 +409,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       if (list.length === 0) continue
       const scored = list.map((l) => ({ l, c: cost(l, d) })).sort((a, b) => a.c.total - b.c.total)
       const best = scored[0]
-      if (best.c.total > state.offresBudget) continue
+      if (!offresBudgetOpen(state.offresBudget) && best.c.total > state.offresBudget) continue
       bestOffers.push({ d, l: best.l, c: best.c, alt: scored.length - 1 })
     }
     const offerSort: Record<string, (a: BestOffer, b: BestOffer) => number> = {

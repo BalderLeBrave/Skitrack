@@ -4,6 +4,7 @@
  */
 
 import { parseAirbnbClipboard } from './airbnbClip'
+import type { RawListing } from './bulkImport'
 import { mergeAirbnbPaste } from './airbnbMerge'
 import { enrichWithAccess } from './lodgingAccess'
 import type { Lodging } from './lodgings'
@@ -11,8 +12,19 @@ import { stationNameOf } from './stations'
 import type { SearchZone } from '@shared/geo'
 import { filterToZone } from '@shared/geo'
 
-/** Délai max global de la recherche (ms). Couvre retries Playwright inclus. */
-export const AIRBNB_SEARCH_TIMEOUT_MS = 120_000
+/** Délai max d'**une** passe (ms). Couvre les retries Playwright de cette passe. */
+export const AIRBNB_PASS_TIMEOUT_MS = 120_000
+
+/**
+ * Budget total du relevé (ms) — plusieurs passes, voir `PriceBand`.
+ *
+ * C'est aussi ce que la barre de progression de l'écran Logements affiche
+ * comme durée attendue : une valeur plus courte que le travail réel ferait
+ * stagner la barre à 95 % pendant deux minutes, ce qui se lit comme un
+ * blocage. Épuisé, le budget n'annule rien : le relevé fusionne les passes
+ * déjà obtenues.
+ */
+export const AIRBNB_SEARCH_TIMEOUT_MS = 300_000
 
 export interface RunAirbnbSearchParams {
   domainId: number
@@ -106,7 +118,91 @@ function airbnbPlaceName(domainName: string): string {
   return stationNameOf(domainName) || domainName
 }
 
-async function scrapeOnce(params: RunAirbnbSearchParams) {
+/**
+ * Une tranche de prix, bornes du site : `price_min` / `price_max`, **par nuit**.
+ *
+ * ## Pourquoi le relevé se fait en plusieurs passes
+ *
+ * Airbnb pagine : dix-huit annonces par page, la suite derrière un curseur.
+ * Le relevé ne suit pas ce curseur — il ne l'a jamais suivi —, si bien qu'une
+ * station de plusieurs milliers de locations se résumait à une vingtaine
+ * d'annonces, toujours les mêmes. Ce n'était pas un filtre trop serré : la
+ * collecte s'arrêtait au premier écran, et l'écran affichait ce plafond comme
+ * s'il était le marché.
+ *
+ * On ne contourne pas la pagination, **on repose la question**. Bornée par le
+ * prix, chaque tranche rend sa propre première page : quatre tranches
+ * disjointes valent quatre pages, et rien n'est lu qu'Airbnb ne montrerait à
+ * quelqu'un qui cherche dans cette fourchette.
+ *
+ * Le prix est le seul axe disponible ici : `AirbnbScrapeParams` n'expose que
+ * `minPrice`/`maxPrice` — et le relevé lui-même vit dans
+ * `providers/airbnb/**`, qui ne se corrige pas d'ici. Le découpage est donc
+ * fait **en aval**, comme le veut la règle de cette zone.
+ */
+interface PriceBand {
+  minPrice?: number
+  maxPrice?: number
+}
+
+/**
+ * Annonces qu'Airbnb pose sur une page de résultats.
+ *
+ * Sert de seuil, pas de promesse : une passe qui en rend moins a montré tout
+ * ce qu'elle avait, et il n'y a rien à aller chercher au-delà. C'est ce qui
+ * garde une petite station à une seule passe.
+ */
+const AIRBNB_PAGE_SIZE = 18
+
+/**
+ * Tranches de repli, en euros par nuit, quand la passe libre ne rend aucun
+ * prix exploitable. Grossières et assumées : elles ne servent qu'à partager
+ * l'inventaire en quatre, pas à décrire un marché.
+ */
+const FALLBACK_BANDS: PriceBand[] = [
+  { maxPrice: 90 },
+  { minPrice: 90, maxPrice: 150 },
+  { minPrice: 150, maxPrice: 250 },
+  { minPrice: 250 }
+]
+
+/**
+ * Découpe l'inventaire en quatre tranches, sur les prix **observés**.
+ *
+ * Les quartiles de la passe libre valent mieux qu'une échelle écrite en dur :
+ * une nuit à Val Thorens et une nuit dans le Jura n'ont pas le même ordre de
+ * grandeur, et des bornes fixes y placeraient les quatre tranches du même côté
+ * du marché. Trois quartiles confondus — un inventaire trop uniforme pour
+ * qu'on le découpe ainsi — font retomber sur les bornes fixes.
+ */
+export function priceBands(listings: RawListing[], nights: number): PriceBand[] {
+  // Les quartiles sont calculés sur le total relevé ramené à la nuit, quand
+  // `price_min` d'Airbnb porte sur le tarif nuitée hors frais : les bornes sont
+  // donc un peu hautes, et les tranches se recouvrent ou se frôlent aux bords.
+  // Le recouvrement ne coûte rien — la fusion se fait par URL — et l'écart aux
+  // bords coûte quelques annonces, pas la moitié du marché.
+  const nightly = listings
+    .map((l) => l.total)
+    .filter((total): total is number => typeof total === 'number' && total > 0)
+    .map((total) => Math.round(total / Math.max(1, nights)))
+    .sort((a, b) => a - b)
+
+  if (nightly.length < 4) return FALLBACK_BANDS
+  const at = (part: number): number => nightly[Math.min(nightly.length - 1, Math.floor(nightly.length * part))]
+  const q1 = at(0.25)
+  const q2 = at(0.5)
+  const q3 = at(0.75)
+  if (!(q1 < q2 && q2 < q3)) return FALLBACK_BANDS
+
+  return [
+    { maxPrice: q1 },
+    { minPrice: q1, maxPrice: q2 },
+    { minPrice: q2, maxPrice: q3 },
+    { minPrice: q3 }
+  ]
+}
+
+async function scrapeOnce(params: RunAirbnbSearchParams, band: PriceBand = {}) {
   return window.skitrack.airbnbScrape({
     // Airbnb range la destination dans le chemin de l'URL et ne connaît que
     // des noms de lieux : « Les Arcs », pas « Les Arcs – Peisey-Vallandry ».
@@ -115,11 +211,55 @@ async function scrapeOnce(params: RunAirbnbSearchParams) {
     checkOut: params.checkOut || undefined,
     adults: params.adults,
     children: params.children ?? 0,
+    minPrice: band.minPrice,
+    maxPrice: band.maxPrice,
     scrollCount: 3,
     maxRetries: 3,
     // Headed (défaut main) : meilleur score reCAPTCHA. Ne pas forcer headless.
     timeoutMs: 60_000
   })
+}
+
+interface PassResult {
+  listings: RawListing[]
+  meta: { destination?: string; checkIn?: string; checkOut?: string; count: number }
+  captchaSolved: boolean
+  attempts: number
+}
+
+/** Une passe, son délai propre. `null` = rien d'exploitable de ce côté-là. */
+async function runPass(
+  params: RunAirbnbSearchParams,
+  band: PriceBand,
+  timeoutMs: number
+): Promise<PassResult | { error: string; timedOut: boolean }> {
+  let outcome: Awaited<ReturnType<typeof window.skitrack.airbnbScrape>>
+  try {
+    outcome = await Promise.race([scrapeOnce(params, band), timeoutPromise(timeoutMs)])
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : String(err),
+      timedOut: Boolean(err && typeof err === 'object' && (err as { timedOut?: boolean }).timedOut)
+    }
+  }
+
+  if (!outcome.ok) {
+    return {
+      error: outcome.error + (outcome.attempts ? ` (${outcome.attempts} essai(s))` : ''),
+      timedOut: /timeout|délai|timed out/i.test(outcome.error)
+    }
+  }
+
+  const { listings, errors, meta } = parseAirbnbClipboard(outcome.payloadJson)
+  if (listings.length === 0) {
+    return { error: errors[0] ?? 'Aucune annonce exploitable dans la page Airbnb.', timedOut: false }
+  }
+  return {
+    listings,
+    meta,
+    captchaSolved: Boolean(outcome.captchaSolved),
+    attempts: outcome.attempts ?? 1
+  }
 }
 
 /**
@@ -129,38 +269,77 @@ async function scrapeOnce(params: RunAirbnbSearchParams) {
 export async function runAirbnbSearch(
   params: RunAirbnbSearchParams
 ): Promise<RunAirbnbSearchResult> {
-  const globalTimeout = params.timeoutMs ?? AIRBNB_SEARCH_TIMEOUT_MS
+  const budgetMs = params.timeoutMs ?? AIRBNB_SEARCH_TIMEOUT_MS
+  const startedAt = Date.now()
+  const timeLeft = (): number => budgetMs - (Date.now() - startedAt)
 
-  let outcome: Awaited<ReturnType<typeof window.skitrack.airbnbScrape>>
-  try {
-    outcome = await Promise.race([scrapeOnce(params), timeoutPromise(globalTimeout)])
-  } catch (err) {
-    const timedOut = Boolean(err && typeof err === 'object' && (err as { timedOut?: boolean }).timedOut)
-    return {
-      ok: false,
-      timedOut,
-      error: err instanceof Error ? err.message : String(err)
+  // Passe libre d'abord : c'est le classement d'Airbnb lui-même, celui qu'un
+  // visiteur voit en arrivant. Les tranches viennent après, pour élargir.
+  const first = await runPass(params, {}, Math.min(AIRBNB_PASS_TIMEOUT_MS, budgetMs))
+  if (!('listings' in first)) {
+    return { ok: false, timedOut: first.timedOut, error: first.error }
+  }
+
+  const byUrl = new Map<string, RawListing>()
+  const collect = (batch: RawListing[]): number => {
+    let fresh = 0
+    for (const item of batch) {
+      if (!item.url || byUrl.has(item.url)) continue
+      byUrl.set(item.url, item)
+      fresh++
+    }
+    return fresh
+  }
+
+  collect(first.listings)
+  const meta = first.meta
+  let captchaSolved = first.captchaSolved
+  let attempts = first.attempts
+  let passes = 1
+
+  /*
+   * Le balayage ne se déclenche que si la première page était **pleine**. Une
+   * station qui rend douze annonces les a toutes rendues : quatre passes de
+   * plus n'y ajouteraient rien et coûteraient quatre relevés à un site qui
+   * n'a rien demandé.
+   */
+  if (first.listings.length >= AIRBNB_PAGE_SIZE) {
+    for (const band of priceBands(first.listings, params.nights)) {
+      // Sous une passe de marge, on s'arrête : entamer un relevé qu'on sait
+      // ne pas pouvoir finir revient à le payer sans le lire.
+      if (timeLeft() < 30_000) break
+      const pass = await runPass(params, band, Math.min(AIRBNB_PASS_TIMEOUT_MS, timeLeft()))
+      if (!('listings' in pass)) {
+        /*
+         * Une tranche vide n'empêche pas les suivantes — il n'y a peut-être
+         * rien à plus de 300 € la nuit, et c'est une réponse.
+         *
+         * Un **délai dépassé**, si. Le renderer abandonne la promesse, mais le
+         * relevé continue de tourner dans le processus principal, sur le
+         * navigateur partagé d'Airbnb : lancer la passe suivante ferait naviguer
+         * deux relevés dans le même contexte. Et un site qui ne répond plus dans
+         * les deux minutes n'a pas besoin qu'on insiste trois fois de plus.
+         */
+        if (pass.timedOut) break
+        continue
+      }
+
+      passes++
+      captchaSolved = captchaSolved || pass.captchaSolved
+      attempts = Math.max(attempts, pass.attempts)
+
+      /*
+       * Garde-fou de l'hypothèse. Les tranches sont disjointes : celle-ci
+       * **doit** apporter des annonces que la passe libre n'avait pas. Si elle
+       * n'en apporte aucune, c'est que `price_min`/`price_max` n'a pas borné
+       * la recherche — Airbnb a rendu la même page. On cesse alors d'insister
+       * plutôt que de payer trois relevés de plus pour la même liste.
+       */
+      if (collect(pass.listings) === 0) break
     }
   }
 
-  if (!outcome.ok) {
-    const isTimeout = /timeout|délai|timed out/i.test(outcome.error)
-    return {
-      ok: false,
-      timedOut: isTimeout,
-      error:
-        outcome.error +
-        (outcome.attempts ? ` (${outcome.attempts} essai(s))` : '')
-    }
-  }
-
-  const { listings, errors, meta } = parseAirbnbClipboard(outcome.payloadJson)
-  if (listings.length === 0) {
-    return {
-      ok: false,
-      error: errors[0] ?? 'Aucune annonce exploitable dans la page Airbnb.'
-    }
-  }
+  const listings = [...byUrl.values()]
 
   // Rattachement géographique. Les annonces sans position publiée sont
   // conservées — Airbnb n'en donne pas toujours — mais celles qu'il place
@@ -215,8 +394,9 @@ export async function runAirbnbSearch(
     // que la page Airbnb n'en montrait doit expliquer où sont passées les
     // autres, sinon le relevé passe pour incomplet.
     zoned.rejected.length > 0 ? `${zoned.rejected.length} hors zone écartée(s)` : null,
-    outcome.captchaSolved ? 'CAPTCHA validé' : null,
-    outcome.attempts && outcome.attempts > 1 ? `essai ${outcome.attempts}` : null
+    passes > 1 ? `${passes} passes de prix` : null,
+    captchaSolved ? 'CAPTCHA validé' : null,
+    attempts > 1 ? `essai ${attempts}` : null
   ].filter(Boolean)
 
   return {

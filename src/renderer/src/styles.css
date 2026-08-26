@@ -6459,3 +6459,126 @@ select {
 .drawer__head .lodgcard__note {
   flex: none;
 }
+
+/* ————— Calendrier de séjour (StayDatesField) —————
+   Un seul geste pour la plage, à la place de deux champs date.
+   Les samedis portent un point : c'est la maille de vente des centrales. */
+.staycal {
+  position: relative;
+}
+.staycal__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+.staycal__panel {
+  margin-top: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.staycal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.staycal__month {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.staycal__nav {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.staycal__nav:hover {
+  background: var(--border-soft);
+}
+.staycal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.staycal__wd {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  text-transform: capitalize;
+  padding-bottom: 2px;
+}
+.staycal__day {
+  position: relative;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  padding: 6px 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.staycal__day:hover:not(:disabled) {
+  background: var(--border-soft);
+}
+.staycal__day:disabled {
+  color: var(--dim);
+  cursor: default;
+}
+/* Le point du samedi : la maille de vente, pas une décoration. */
+.staycal__day--sat:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+}
+.staycal__day--in {
+  background: var(--accent-soft);
+  border-radius: 0;
+}
+.staycal__day--start,
+.staycal__day--end {
+  background: var(--accent);
+  color: var(--accent-texte);
+  font-weight: 700;
+}
+.staycal__day--start:hover:not(:disabled),
+.staycal__day--end:hover:not(:disabled) {
+  background: var(--accent);
+}
+.staycal__day--start.staycal__day--sat::after,
+.staycal__day--end.staycal__day--sat::after {
+  background: var(--accent-texte);
+}
+.staycal__hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.staycal__snap {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.staycal__note {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--dim);
+}

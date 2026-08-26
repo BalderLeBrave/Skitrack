@@ -24,7 +24,9 @@ export type BookingFamily =
   | 'elloha'
   | 'yoplanning'
   | 'sancy'
-  | 'blocked'
+  // Plus de `blocked` : c'était un verdict `robots.txt` déguisé en moteur de
+  // réservation. La règle appartient à `providers/station/robots.ts`, et ce
+  // registre ne porte que ce qu'il sait dire — qui opère la centrale.
   | 'unknown'
 
 /** Hôtes dont le moteur n’est **pas** Ingénie — relevé inspecteur + recon. */
@@ -55,12 +57,31 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'reservation.saintfrancoislongchamp.com': 'ublo',
   // Autres
   'www.sancy.com': 'sancy',
-  'isola2000.com': 'yoplanning',
-  'www.isola2000.com': 'yoplanning',
+  /*
+   * Isola 2000 : **Ublo / MSEM**, et non Yoplanning.
+   *
+   * La reconnaissance empreinte la page d'accueil, où le widget Yoplanning des
+   * activités est visible ; le moteur de *réservation*, lui, est un widget MSEM
+   * embarqué. Mesuré le 2026-08-26 : il appelle
+   * `services.msem.tech/api/lodging/resort/386/ISOLA`, exactement comme les
+   * trois autres centrales Ublo.
+   */
+  'isola2000.com': 'ublo',
+  'www.isola2000.com': 'ublo',
   'www.alpes-sudlocations.com': 'elloha',
-  // robots.txt Disallow: /
-  'reservation.combloux.com': 'blocked',
-  'reservation.montgenevre.com': 'blocked'
+  /*
+   * Ces deux hôtes portaient la famille `blocked` — c'est-à-dire un verdict
+   * `robots.txt`, pas un moteur. Le registre disait « on ne les relève pas »
+   * là où il est censé dire « voici qui les opère », et il le disait à un
+   * endroit qui n'a pas autorité sur la règle.
+   *
+   * `robots.txt` appartient à `providers/station/robots.ts` et à lui seul. Ce
+   * qui reste ici est le moteur, mesuré par `npm run centrales:recon` le
+   * 2026-08-26 : Combloux répond en Ceto / Orchestra, Montgenèvre en Open
+   * System.
+   */
+  'reservation.combloux.com': 'orchestra',
+  'reservation.montgenevre.com': 'opensystem'
 }
 
 function hostOf(urlOrHost: string): string | null {

@@ -29,7 +29,11 @@ check('Valmorel résa = opensystem', bookingFamilyOf('reservation.valmorel.com')
 check('N-PY résa = opensystem', bookingFamilyOf('reservation.n-py.com') === 'opensystem')
 check('Megève = orchestra', bookingFamilyOf('megeve-booking.com') === 'orchestra')
 check('Sancy = sancy', bookingFamilyOf('www.sancy.com') === 'sancy')
-check('Combloux = blocked', bookingFamilyOf('reservation.combloux.com') === 'blocked')
+// Plus de famille `blocked` : elle portait un verdict `robots.txt`, qui
+// n'appartient qu'à `providers/station/robots.ts`. Ces deux hôtes portent
+// maintenant leur moteur, mesuré par `npm run centrales:recon`.
+check('Combloux = orchestra', bookingFamilyOf('reservation.combloux.com') === 'orchestra')
+check('Montgenèvre = opensystem', bookingFamilyOf('reservation.montgenevre.com') === 'opensystem')
 check('hôte inconnu = unknown', bookingFamilyOf('www.example.com') === 'unknown')
 
 if (failures > 0) {

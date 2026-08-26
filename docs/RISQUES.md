@@ -136,6 +136,17 @@ sûre.** Lire les métadonnées Open Graph / JSON-LD qu'un site publie pour son 
 défendable — une page, à la demande, déclenchée par un humain. Mais les CGU d'Airbnb interdisent
 formellement tout accès automatisé, **y compris unitaire**.
 
+> **Mise à jour du 2026-08-26 — les trois puces ci-dessous ne décrivent plus
+> tout le code.** Trois connecteurs Playwright parcourent des pages de
+> résultats : Airbnb (`providers/airbnb/scrape.ts`), Booking
+> (`providers/webscrape/`) et les centrales de station (`providers/station/`).
+> Booking lit désormais jusqu'à cinq pages de résultats, et le relevé Airbnb
+> repose sa recherche en quatre tranches de prix pour dépasser la première
+> page. Le garde-fou `robots.txt` des centrales a été neutralisé le même jour
+> (`providers/station/robots.ts`). Ce qui suit reste exact de l'**import par
+> URL** (`src/main/listing.ts`), qui lit une page à la demande et respecte,
+> lui, `robots.txt`.
+
 **Position retenue dans le code.**
 - Aucun parcours de catalogue, aucune pagination, aucun volume.
 - Respect de `robots.txt`, User-Agent identifiant, abandon si le site refuse.

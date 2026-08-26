@@ -16,6 +16,31 @@ const site = ubloSiteOf('https://reservation.alpedhuez.com/')
 assert(site?.channel === 'OT-125' && site.resort === 125, 'Alpe d’Huez')
 assert(ubloSiteOf('www.saintefoy-reservation.com')?.channel === 'OT-595', 'Sainte-Foy')
 assert(ubloSiteOf('reservation.saintfrancoislongchamp.com')?.channel === 'OT-SFL', 'SFL')
+// Isola 2000 : le canal ne suit pas le motif `OT-<resort>` des trois autres.
+// Relevé sur l'appel du widget, pas extrapolé — c'est ce que ce cas protège.
+const isola = ubloSiteOf('https://isola2000.com/reservez-votre-sejour/')
+assert(isola?.resort === 386 && isola.channel === 'ISOLA', 'Isola 2000')
+assert(ubloSiteOf('www.isola2000.com')?.channel === 'ISOLA', 'Isola avec www')
+
+// Isola ne publie pas de fiche par logement : le patron `/hebergements/{slug}`
+// des trois autres centrales y rendait une 404. Le lien mène à la page de la
+// centrale, sans critères accrochés — voir `UbloSite.fallbackPath`.
+const urlIsola = lodgingUrl(isola!, 'studio-en-plein-coeur-du-front-de-neige', '2027-02-06', '2027-02-13', 2, 0)
+assert(
+  urlIsola === 'https://isola2000.com/reservez-votre-sejour/?lodging=studio-en-plein-coeur-du-front-de-neige',
+  `Isola sans fiche — ${urlIsola}`
+)
+// Deux annonces de la même centrale gardent deux URL : sans cela le relevé les
+// dédoublonnerait l'une contre l'autre et n'en garderait qu'une.
+assert(
+  lodgingUrl(isola!, 'studio-a', '2027-02-06', '2027-02-13', 2, 0) !==
+    lodgingUrl(isola!, 'studio-b', '2027-02-06', '2027-02-13', 2, 0),
+  'deux logements Isola, deux URL'
+)
+// Aucun critère de séjour accroché : le widget ne les lit pas.
+assert(!urlIsola.includes('from=') && !urlIsola.includes('adults='), `Isola sans critères — ${urlIsola}`)
+const urlAdh = lodgingUrl(site!, 'un-slug', '2027-02-06', '2027-02-13', 2, 0)
+assert(urlAdh.includes('/hebergements/un-slug') && urlAdh.includes('from=2027-02-06'), `Alpe d’Huez garde sa fiche — ${urlAdh}`)
 assert(ubloSiteOf('reservation.les2alpes.com') == null, '2 Alpes n’est pas Ublo')
 
 const listings = mergeListAndOffers(

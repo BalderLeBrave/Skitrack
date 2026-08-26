@@ -67,13 +67,15 @@
  * texte de la fiche : ils sont lus sur le DOM, et leur absence n'invalide pas
  * l'offre.
  *
- * ## `robots.txt` est lu avant chaque relevé, pas une fois pour toutes
+ * ## `robots.txt` : une seule autorité, et elle n'interdit plus rien
  *
- * Un exploitant change d'avis, et toutes les centrales ne disent pas la même
- * chose : celles de Combloux et de Montgenèvre publient « Disallow: / » — tout
- * leur site —, et le connecteur les écarte sans discuter. La règle est relue à
- * chaque recherche, mise en cache une heure, et implémentée dans
- * `station/robots.ts`, avec ses tests (`npm run robots:test`).
+ * La règle est demandée à `station/robots.ts` avant chaque relevé. C'est le
+ * seul endroit du dépôt qui la tranche — `listing.ts` l'appelle aussi, et plus
+ * personne ne lit `robots.txt` de son côté. Depuis le 2026-08-26 ce module est
+ * permissif : il ne demande plus le fichier et autorise tout chemin. Les
+ * centrales qui publiaient « Disallow: / » — Combloux, Montgenèvre — ne sont
+ * donc plus écartées par lui. Voir `npm run robots:test`, qui constate ce
+ * comportement, et l'invariant correspondant du CLAUDE.md.
  */
 
 import { request, type APIRequestContext, type Page } from 'playwright'
@@ -344,9 +346,10 @@ function atLeast(choices: Choice[], wanted: number): Choice | null {
  * Remplir le formulaire et cliquer « Rechercher » est une autre chose : c'est
  * le geste que l'utilisateur ferait lui-même, déclenché par lui, une fois, pour
  * ses dates. Le connecteur n'explore rien de sa propre initiative — il ne suit
- * aucun lien, ne pagine pas, ne visite pas la fiche des logements. Et une
+ * aucun lien, ne pagine pas, ne visite pas la fiche des logements. Une
  * centrale qui interdit **tout son site** (`Disallow: /`, comme Combloux et
- * Montgenèvre) reste écartée : là, il n'y a pas d'ambiguïté à lever.
+ * Montgenèvre) était écartée à ce titre ; elle ne l'est plus, `robots.ts`
+ * n'appliquant plus la règle.
  *
  * ## Ce qui est refusé plutôt que rapproché
  *
@@ -1166,13 +1169,12 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
       const host = hostOfOrigin(origin)
       const breaker = breakerFor(host)
 
+      // Ce portail ne juge que le **moteur** : est-ce un site Ingénie, donc le
+      // nôtre ? Le motif `robots` a disparu avec la liste d'hôtes qui le
+      // produisait — `robots.txt` se demande à `robots.ts`, quelques lignes
+      // plus bas, une fois par relevé.
       const gate = shouldAttemptIngenie(central)
       if (!gate.attempt) {
-        if (gate.reason === 'robots') {
-          throw new Error(
-            `${name} : ${origin} interdit le relevé automatique (robots.txt) — ouvrir le lien de la centrale.`
-          )
-        }
         // Site institutionnel / plateforme inconnue : ne pas allumer le navigateur.
         return []
       }
@@ -1192,7 +1194,15 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
         headless
       }
 
-      // `robots.txt` avant tout.
+      /*
+       * Garde-fou `robots.txt` — **inerte depuis le 2026-08-26**.
+       *
+       * `robots.ts` rend maintenant `allowed: true` sur tout chemin, sans même
+       * demander le fichier : la branche ci-dessous n'est plus jamais prise, et
+       * la centrale est interrogée même lorsqu'elle l'interdit. Le code reste
+       * en place tel quel pour que restaurer `robots.ts` suffise à réarmer la
+       * règle, sans avoir à retoucher le connecteur.
+       */
       const home = await allowsPath(origin, new URL(central).pathname)
       if (!home.allowed) {
         throw new Error(

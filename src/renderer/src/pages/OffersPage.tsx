@@ -6,7 +6,7 @@ import { avalancheIndex, snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
-import { useApp } from '@/state/appState'
+import { OFFRES_BUDGET, offresBudgetOpen, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 
@@ -168,13 +168,18 @@ export function OffersPage(): JSX.Element {
         <div className="panel offers__bar">
           <div style={{ flex: '1 1 280px', minWidth: 0 }}>
             <label className="field-label">
-              {t('budget_total_stay')}<strong>{eur(state.offresBudget)}</strong>
+              {t('budget_total_stay')}
+              <strong>
+                {offresBudgetOpen(state.offresBudget)
+                  ? t('range_no_limit')
+                  : eur(state.offresBudget)}
+              </strong>
             </label>
             <input
               type="range"
-              min={1500}
-              max={9000}
-              step={250}
+              min={OFFRES_BUDGET.min}
+              max={OFFRES_BUDGET.max}
+              step={OFFRES_BUDGET.step}
               value={state.offresBudget}
               onChange={(e) => patch({ offresBudget: +e.target.value })}
             />

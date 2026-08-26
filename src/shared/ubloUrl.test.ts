@@ -10,7 +10,13 @@
  *   npm run ublourl:test
  */
 
-import { ubloListingPath, repairUbloListingUrl, UBLO_LISTING_SEGMENT } from './ubloUrl'
+import {
+  ubloListingPath,
+  repairUbloListingUrl,
+  ubloEntryUrl,
+  UBLO_ENTRY_ONLY,
+  UBLO_LISTING_SEGMENT
+} from './ubloUrl'
 import { bookingFamilyOf } from './bookingFamilies'
 
 let failures = 0
@@ -64,6 +70,33 @@ for (const host of [
 check(
   'une centrale Ingénie n’est pas concernée',
   bookingFamilyOf('reservation.les2alpes.com') !== 'ublo'
+)
+
+console.log('\n4. Centrale sans fiche par logement (Isola 2000)')
+check('Isola est bien de famille Ublo', bookingFamilyOf('isola2000.com') === 'ublo')
+const entree = ubloEntryUrl('https://isola2000.com', UBLO_ENTRY_ONLY['isola2000.com'], 'studio-front-de-neige')
+check(
+  'le lien mène à la page d’entrée, avec le logement pour identité',
+  entree === 'https://isola2000.com/reservez-votre-sejour/?lodging=studio-front-de-neige',
+  entree
+)
+check('aucune date accrochée : le widget ne les lit pas', !entree.includes('from=') && !entree.includes('to='))
+check(
+  'deux logements, deux URL — sinon le relevé n’en garderait qu’un',
+  ubloEntryUrl('https://isola2000.com', '/reservez-votre-sejour/', 'a') !==
+    ubloEntryUrl('https://isola2000.com', '/reservez-votre-sejour/', 'b')
+)
+
+// La réparation : une URL déjà enregistrée sous le patron des autres centrales
+// menait à une 404, et faisait apparaître le logement en double au relevé
+// suivant. Elle doit converger vers la forme ci-dessus.
+const reparee = repairUbloListingUrl('https://isola2000.com/hebergements/studio-front-de-neige')
+check('l’ancienne URL en 404 est ramenée sur la page d’entrée', reparee === entree, reparee)
+check('idempotente : la repasser ne dérive pas', repairUbloListingUrl(reparee) === reparee, repairUbloListingUrl(reparee))
+check(
+  'une centrale qui publie ses fiches garde les siennes',
+  repairUbloListingUrl('https://reservation.alpedhuez.com/hebergements/chalet-x') ===
+    'https://reservation.alpedhuez.com/hebergements/chalet-x'
 )
 
 if (failures > 0) {

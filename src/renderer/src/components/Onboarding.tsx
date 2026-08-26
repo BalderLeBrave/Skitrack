@@ -7,6 +7,7 @@
 
 import { useMemo, useRef, useState } from 'react'
 import { LogoIcon } from './Icons'
+import { StayDatesField } from './StayDatesField'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
@@ -110,24 +111,7 @@ export function Onboarding(): JSX.Element {
 
         <div>
           <p className="sheet__label">{t('your_stay')}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <input
-              type="date"
-              className="field"
-              style={{ padding: '9px 10px' }}
-              value={state.arrDate}
-              aria-label={t('onb_arrival_label')}
-              onChange={(e) => patch({ arrDate: e.target.value })}
-            />
-            <input
-              type="date"
-              className="field"
-              style={{ padding: '9px 10px' }}
-              value={state.depDate}
-              aria-label={t('onb_departure_label')}
-              onChange={(e) => patch({ depDate: e.target.value })}
-            />
-          </div>
+          <StayDatesField />
           <p className="filters__help">{nights} nuit(s)</p>
         </div>
 
@@ -161,11 +145,13 @@ export function Onboarding(): JSX.Element {
                 type="button"
                 className="stepper__btn"
                 style={{ fontSize: 16 }}
-                onClick={() => patch({ rooms: Math.max(1, state.rooms - 1) })}
+                onClick={() => patch({ rooms: Math.max(0, state.rooms - 1) })}
               >
                 −
               </button>
-              <span className="stepper__value">{state.rooms}</span>
+              <span className="stepper__value">
+                {state.rooms === 0 ? t('lodg_rooms_studio') : state.rooms}
+              </span>
               <button
                 type="button"
                 className="stepper__btn"

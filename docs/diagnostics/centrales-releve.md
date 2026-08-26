@@ -1,36 +1,36 @@
 # Relevé des centrales — ce qui répond et ce qui est renseigné
 
 *Généré par `npm run centrales:sweep` — ne pas éditer à la main.*
-*Une recherche par centrale : arrivée le 2027-02-13, 7 nuits, 4 personnes.*
+*Une recherche par centrale : arrivée le 2027-01-09, 7 nuits, 2 personnes.*
 *Une seule tentative, trois centrales interrogées de front.*
 
 ## Chiffres
 
 | | |
 | --- | --- |
-| Centrales interrogées | **77** |
-| Qui rendent des offres | **13** |
-| Qui répondent sans offre | 0 |
-| En échec | 64 |
+| Centrales interrogées | **79** |
+| Qui rendent des offres | **24** |
+| Qui répondent sans offre | 33 |
+| En échec | 22 |
 | Rattrapées en seconde passe | 0 |
-| Stations couvertes | **17** / 107 |
-| Offres relevées | 266 |
+| Stations couvertes | **45** / 122 |
+| Offres relevées | 200 |
 
 ## Champs renseignés, sur l’ensemble des offres relevées
 
 | Champ | Part des offres |
 | --- | ---: |
-| prix | 98 % |
-| prix ferme | 0 % |
-| personnes | 100 % |
-| pièces | 49 % |
+| prix | 100 % |
+| prix ferme | 100 % |
+| personnes | 87 % |
+| pièces | 44 % |
 | chambres | 0 % |
-| surface | 74 % |
+| surface | 82 % |
 | coordonnées | 82 % |
-| ville | 78 % |
+| ville | 81 % |
 | photo | 82 % |
-| avis | 43 % |
-| équipements | 12 % |
+| avis | 44 % |
+| équipements | 5 % |
 | lien | 100 % |
 
 Le **prix ferme** se distingue du prix : une fiche qui affiche « à partir de »
@@ -45,339 +45,213 @@ chose sur la donnée disponible, pas sur le connecteur.
 
 | Centrale | Stations | Offres | Durée | Prix | Personnes | Pièces | Surface | Position | État |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| `booking.chamonix.com` | 3 | — | 22 s | — | — | — | — | — | échec : station-web : https://booking.chamonix.com n'expose pas de moteur Ingénie — réservation pa |
-| `booking.prazsurarly.com` | 1 | — | 0 s | — | — | — | — | — | échec : station-web : https://booking.prazsurarly.com interdit le relevé automatique (robots.txt,  |
-| `font-romeu.fr` | 1 | — | 23 s | — | — | — | — | — | échec : station-web : https://font-romeu.fr n'expose pas de moteur Ingénie — réservation par le li |
-| `fr.locationlesmenuires.com` | 1 | 24 | 8 s | 24 | 24 | 16 | 24 | 24 | ok |
-| `fr.locationsaintmartin.com` | 1 | 24 | 8 s | 24 | 24 | 23 | 24 | 24 | ok |
-| `hiver.auron.com` | 1 | — | 27 s | — | — | — | — | — | échec : station-web : https://hiver.auron.com n'expose pas de moteur Ingénie — réservation par le  |
-| `isola2000.com` | 1 | — | 25 s | — | — | — | — | — | échec : station-web : https://isola2000.com n'expose pas de moteur Ingénie — réservation par le li |
-| `lesangles.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://lesangles.com n'expose pas de moteur Ingénie — réservation par le li |
-| `resa.saintlary.com` | 2 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://resa.saintlary.com/ |
-| `reservation.alpedhuez.com` | 1 | — | 32 s | — | — | — | — | — | échec : station-web : https://reservation.alpedhuez.com n'expose pas de moteur Ingénie — réservati |
-| `reservation.areches-beaufort.com` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.areches-beaufort.com/ |
-| `reservation.auris-en-oisans.fr` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.auris-en-oisans.fr n'expose pas de moteur Ingénie — rése |
-| `reservation.avoriaz.com` | 1 | 10 | 26 s | 10 | 10 | 10 | 10 | 10 | ok |
-| `reservation.ax-ski.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.ax-ski.com n'expose pas de moteur Ingénie — réservation  |
-| `reservation.bareges.com` | 2 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.bareges.com n'expose pas de moteur Ingénie — réservation |
-| `reservation.chamberymontagnes.com` | 1 | 24 | 4 s | 19 | 24 | 0 | 0 | 24 | ok |
-| `reservation.combloux.com` | 1 | — | 0 s | — | — | — | — | — | échec : station-web : https://reservation.combloux.com interdit le relevé automatique (robots.txt, |
-| `reservation.courchevel.com` | 1 | 24 | 26 s | 24 | 24 | 2 | 0 | 24 | ok |
-| `reservation.haute-maurienne-vanoise.com` | 1 | — | 23 s | — | — | — | — | — | échec : station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingén |
-| `reservation.haute-maurienne-vanoise.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingén |
-| `reservation.haute-maurienne-vanoise.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingén |
-| `reservation.haute-maurienne-vanoise.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingén |
-| `reservation.haute-maurienne-vanoise.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingén |
-| `reservation.la-toussuire.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.la-toussuire.com n'expose pas de moteur Ingénie — réserv |
-| `reservation.larosiere.net` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.larosiere.net/ |
-| `reservation.le-corbier.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.le-corbier.com n'expose pas de moteur Ingénie — réservat |
-| `reservation.lecollet.com` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.lecollet.com/ |
-| `reservation.ledevoluy.com` | 3 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.ledevoluy.com n'expose pas de moteur Ingénie — réservati |
-| `reservation.les2alpes.com` | 1 | 20 | 33 s | 20 | 20 | 9 | 20 | 20 | ok |
-| `reservation.les7laux.com` | 3 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.les7laux.com n'expose pas de moteur Ingénie — réservatio |
+| `booking.chamonix.com` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
+| `booking.prazsurarly.com` | 1 | — | 30 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `booking.valdisere.com` | 1 | — | 17 s | — | — | — | — | — | échec : page.click: Timeout 15000ms exceeded. |
+| `font-romeu.fr` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `fr.locationlesmenuires.com` | 1 | 12 | 12 s | 12 | 12 | 0 | 12 | 12 | ok |
+| `fr.locationsaintmartin.com` | 1 | 12 | 13 s | 12 | 12 | 11 | 12 | 12 | ok |
+| `hiver.auron.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `isola2000.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `lesangles.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `megeve-booking.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `resa.saintlary.com` | 2 | 11 | 7 s | 11 | 8 | 5 | 11 | 11 | ok |
+| `reservation.alpedhuez.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `reservation.areches-beaufort.com` | 1 | 8 | 30 s | 8 | 7 | 0 | 8 | 8 | ok |
+| `reservation.auris-en-oisans.fr` | 1 | — | 32 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.avoriaz.com` | 1 | 9 | 9 s | 9 | 8 | 8 | 9 | 9 | ok |
+| `reservation.ax-ski.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `reservation.bareges.com` | 2 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.chamberymontagnes.com` | 1 | 11 | 6 s | 11 | 10 | 0 | 0 | 11 | ok |
+| `reservation.combloux.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `reservation.courchevel.com` | 4 | 8 | 9 s | 8 | 8 | 6 | 0 | 8 | ok |
+| `reservation.haute-maurienne-vanoise.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.haute-maurienne-vanoise.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.haute-maurienne-vanoise.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.haute-maurienne-vanoise.com` | 1 | — | 0 s | — | — | — | — | — | échec : station-web : source écartée après 3 échecs — nouvelle tentative dans 23 s |
+| `reservation.haute-maurienne-vanoise.com` | 1 | — | 0 s | — | — | — | — | — | échec : station-web : source écartée après 3 échecs — nouvelle tentative dans 23 s |
+| `reservation.la-toussuire.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `reservation.larosiere.net` | 1 | 7 | 11 s | 7 | 7 | 4 | 7 | 7 | ok |
+| `reservation.le-corbier.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.lecollet.com` | 1 | 9 | 6 s | 9 | 8 | 0 | 9 | 9 | ok |
+| `reservation.ledevoluy.com` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
+| `reservation.les2alpes.com` | 1 | 12 | 17 s | 12 | 12 | 1 | 12 | 12 | ok |
+| `reservation.les7laux.com` | 3 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
 | `reservation.lescarroz.com` | 1 | — | 17 s | — | — | — | — | — | échec : page.click: Timeout 15000ms exceeded. |
-| `reservation.lescontamines.com` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.lescontamines.com/ |
-| `reservation.lesgets.com` | 1 | 10 | 13 s | 10 | 10 | 0 | 0 | 10 | ok |
-| `reservation.lesorres.com` | 1 | — | 22 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.lesorres.com/ |
-| `reservation.lessaisies.com` | 2 | 24 | 13 s | 24 | 24 | 15 | 22 | 24 | ok |
-| `reservation.matheysine-tourisme.com` | 1 | — | 25 s | — | — | — | — | — | échec : station-web : https://reservation.matheysine-tourisme.com n'expose pas de moteur Ingénie — |
-| `reservation.montgenevre.com` | 1 | — | 0 s | — | — | — | — | — | échec : station-web : https://reservation.montgenevre.com interdit le relevé automatique (robots.t |
-| `reservation.orcieres.com` | 1 | 24 | 27 s | 24 | 24 | 22 | 16 | 24 | ok |
-| `reservation.paysdegex-montsjura.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : le moteur de https://reservation.paysdegex-montsjura.com n'expose pas de cal |
-| `reservation.saintfrancoislongchamp.com` | 1 | — | 21 s | — | — | — | — | — | échec : station-web : https://reservation.saintfrancoislongchamp.com n'expose pas de moteur Ingéni |
-| `reservation.saintsorlindarves.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.saintsorlindarves.com n'expose pas de moteur Ingénie — r |
-| `reservation.samoens.com` | 1 | 24 | 7 s | 24 | 24 | 6 | 24 | 24 | ok |
-| `reservation.serre-chevalier.com` | 4 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.serre-chevalier.com/ |
-| `reservation.tignes.net` | 4 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.tignes.net/ |
-| `reservation.valdarly-montblanc.com` | 4 | 10 | 7 s | 10 | 10 | 7 | 10 | 10 | ok |
-| `reservation.valleesdegavarnie.com` | 1 | — | 23 s | — | — | — | — | — | échec : station-web : https://reservation.valleesdegavarnie.com n'expose pas de moteur Ingénie — r |
-| `reservation.valthorens.com` | 2 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.valthorens.com/ |
-| `reservation.vaujany.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://reservation.vaujany.com n'expose pas de moteur Ingénie — réservation |
-| `reservation.villard-reculas.com` | 1 | — | 21 s | — | — | — | — | — | échec : station-web : https://reservation.villard-reculas.com n'expose pas de moteur Ingénie — rés |
-| `reservation.villarddelans-correnconenvercors.com` | 1 | — | 21 s | — | — | — | — | — | échec : station-web : https://reservation.villarddelans-correnconenvercors.com n'expose pas de mot |
-| `reservations.meribel.net` | 1 | — | 23 s | — | — | — | — | — | échec : station-web : https://reservations.meribel.net n'expose pas de moteur Ingénie — réservatio |
-| `skipass.lansenvercors.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://skipass.lansenvercors.com n'expose pas de moteur Ingénie — réservati |
-| `www.ballons-hautes-vosges.com` | 1 | — | 16 s | — | — | — | — | — | échec : station-web : aucune offre publiée par https://www.ballons-hautes-vosges.com pour ces date |
-| `www.chamrousse.com` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.chamrousse.com/hiver |
-| `www.chatelreservation.com` | 1 | — | 37 s | — | — | — | — | — | échec : page.click: Timeout 15000ms exceeded. |
-| `www.gerardmer-reservation.net` | 1 | 24 | 9 s | 24 | 24 | 0 | 24 | 0 | ok |
-| `www.karellis.com` | 1 | — | 24 s | — | — | — | — | — | échec : station-web : https://www.karellis.com n'expose pas de moteur Ingénie — réservation par le |
-| `www.labresse.net` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : le moteur de https://www.labresse.net n'expose pas de calendrier. |
-| `www.laclusaz.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.laclusaz.com n'expose pas de moteur Ingénie — réservation par le |
-| `www.laplagneresort.com` | 11 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.laplagneresort.com n'expose pas de moteur Ingénie — réservation  |
-| `www.leman-mountains-explore.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : le moteur de https://www.leman-mountains-explore.com n'expose pas de calendr |
-| `www.montclar.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.montclar.com n'expose pas de moteur Ingénie — réservation par le |
-| `www.n-py.com` | 1 | — | 25 s | — | — | — | — | — | échec : station-web : https://www.n-py.com n'expose pas de moteur Ingénie — réservation par le lie |
-| `www.n-py.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.n-py.com n'expose pas de moteur Ingénie — réservation par le lie |
-| `www.paysdesecrins.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.paysdesecrins.com n'expose pas de moteur Ingénie — réservation p |
-| `www.peisey-vallandry.com` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.peisey-vallandry.com/ |
-| `www.reservationpralognan.fr` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.reservationpralognan.fr n'expose pas de moteur Ingénie — réserva |
-| `www.risoul.com` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.risoul.com/reserver.html |
-| `www.saintefoy-reservation.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.saintefoy-reservation.com n'expose pas de moteur Ingénie — réser |
-| `www.sancy.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.sancy.com n'expose pas de moteur Ingénie — réservation par le li |
-| `www.sancy.com` | 1 | — | 21 s | — | — | — | — | — | échec : station-web : https://www.sancy.com n'expose pas de moteur Ingénie — réservation par le li |
-| `www.valberg.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.valberg.com n'expose pas de moteur Ingénie — réservation par le  |
-| `www.valdallos.com` | 2 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.valdallos.com/ |
-| `www.valfrejus.com` | 1 | — | 22 s | — | — | — | — | — | échec : station-web : https://www.valfrejus.com n'expose pas de moteur Ingénie — réservation par l |
-| `www.valloire.com` | 1 | — | 21 s | — | — | — | — | — | échec : page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.valloire.com/ |
-| `www.valmeinier-reservation.com` | 1 | 24 | 4 s | 24 | 24 | 20 | 23 | 0 | ok |
-| `www.valmorel.com` | 1 | — | 24 s | — | — | — | — | — | échec : station-web : https://www.valmorel.com n'expose pas de moteur Ingénie — réservation par le |
+| `reservation.lescontamines.com` | 1 | 2 | 3 s | 2 | 0 | 1 | 2 | 0 | ok |
+| `reservation.lesgets.com` | 1 | 10 | 20 s | 10 | 9 | 0 | 0 | 10 | ok |
+| `reservation.lesorres.com` | 3 | 12 | 14 s | 12 | 12 | 12 | 12 | 12 | ok |
+| `reservation.lessaisies.com` | 2 | 8 | 22 s | 8 | 0 | 2 | 8 | 8 | ok |
+| `reservation.matheysine-tourisme.com` | 1 | — | 38 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.montgenevre.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `reservation.orcieres.com` | 1 | 12 | 8 s | 12 | 12 | 11 | 7 | 12 | ok |
+| `reservation.paysdegex-montsjura.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.saintfrancoislongchamp.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `reservation.saintsorlindarves.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.samoens.com` | 2 | 12 | 9 s | 12 | 9 | 0 | 12 | 12 | ok |
+| `reservation.serre-chevalier.com` | 4 | 4 | 9 s | 4 | 4 | 4 | 4 | 4 | ok |
+| `reservation.tignes.net` | 5 | 4 | 21 s | 4 | 4 | 2 | 4 | 4 | ok |
+| `reservation.valdarly-montblanc.com` | 4 | 1 | 5 s | 1 | 1 | 0 | 1 | 1 | ok |
+| `reservation.valleesdegavarnie.com` | 1 | — | 32 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.valthorens.com` | 2 | 2 | 9 s | 2 | 2 | 1 | 1 | 2 | ok |
+| `reservation.vaujany.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.villard-reculas.com` | 1 | — | 31 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservation.villarddelans-correnconenvercors.com` | 1 | — | 30 s | — | — | — | — | — | échec : Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué o |
+| `reservations.meribel.net` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
+| `skipass.lansenvercors.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.ballons-hautes-vosges.com` | 1 | — | 12 s | — | — | — | — | — | aucune offre |
+| `www.chamrousse.com` | 3 | 12 | 8 s | 12 | 7 | 6 | 12 | 0 | ok |
+| `www.chatelreservation.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.gerardmer-reservation.net` | 1 | 8 | 9 s | 8 | 8 | 0 | 8 | 0 | ok |
+| `www.karellis.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.labresse.net` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.laclusaz.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.laplagneresort.com` | 11 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.leman-mountains-explore.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.montclar.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.n-py.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.n-py.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.paysdesecrins.com` | 3 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.peisey-vallandry.com` | 1 | — | 24 s | — | — | — | — | — | échec : page.click: Timeout 15000ms exceeded. |
+| `www.reservationpralognan.fr` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.risoul.com` | 1 | 2 | 6 s | 2 | 2 | 2 | 2 | 0 | ok |
+| `www.saintefoy-reservation.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.sancy.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.sancy.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.valberg.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.valdallos.com` | 2 | — | 17 s | — | — | — | — | — | échec : page.click: Timeout 15000ms exceeded. |
+| `www.valfrejus.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
+| `www.valloire.com` | 1 | — | 17 s | — | — | — | — | — | échec : page.click: Timeout 15000ms exceeded. |
+| `www.valmeinier-reservation.com` | 1 | 12 | 4 s | 12 | 12 | 11 | 11 | 0 | ok |
+| `www.valmorel.com` | 1 | — | 0 s | — | — | — | — | — | aucune offre |
 
 ## Les échecs, un par un
 
-### `booking.chamonix.com` — Chamonix-Mont-Blanc, Les Houches, Vallorcine
-
-> station-web : https://booking.chamonix.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
 ### `booking.prazsurarly.com` — Praz-sur-Arly
 
-> station-web : https://booking.prazsurarly.com interdit le relevé automatique (robots.txt, « Disallow: / ») — la centrale reste accessible par son lien.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
-### `font-romeu.fr` — Font-Romeu
+### `booking.valdisere.com` — Val d’Isère
 
-> station-web : https://font-romeu.fr n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `hiver.auron.com` — Auron
-
-> station-web : https://hiver.auron.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `isola2000.com` — Isola 2000
-
-> station-web : https://isola2000.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `lesangles.com` — Les Angles
-
-> station-web : https://lesangles.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `resa.saintlary.com` — Saint-Lary-Soulan, Saint-Lary Pla d'Adet
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://resa.saintlary.com/
-
-### `reservation.alpedhuez.com` — Alpe d'Huez
-
-> station-web : https://reservation.alpedhuez.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.areches-beaufort.com` — Arêches-Beaufort
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.areches-beaufort.com/
+> page.click: Timeout 15000ms exceeded.
 
 ### `reservation.auris-en-oisans.fr` — Auris-en-Oisans
 
-> station-web : https://reservation.auris-en-oisans.fr n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.ax-ski.com` — Ax 3 Domaines
-
-> station-web : https://reservation.ax-ski.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.bareges.com` — Barèges, La Mongie
 
-> station-web : https://reservation.bareges.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.combloux.com` — Combloux
-
-> station-web : https://reservation.combloux.com interdit le relevé automatique (robots.txt, « Disallow: / ») — la centrale reste accessible par son lien.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.haute-maurienne-vanoise.com` — Aussois
 
-> station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.haute-maurienne-vanoise.com` — Bonneval-sur-Arc
 
-> station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.haute-maurienne-vanoise.com` — La Norma
 
-> station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.haute-maurienne-vanoise.com` — Termignon
 
-> station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> station-web : source écartée après 3 échecs — nouvelle tentative dans 23 s
 
 ### `reservation.haute-maurienne-vanoise.com` — Val Cenis
 
-> station-web : https://reservation.haute-maurienne-vanoise.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.la-toussuire.com` — La Toussuire
-
-> station-web : https://reservation.la-toussuire.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.larosiere.net` — La Rosière
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.larosiere.net/
+> station-web : source écartée après 3 échecs — nouvelle tentative dans 23 s
 
 ### `reservation.le-corbier.com` — Le Corbier
 
-> station-web : https://reservation.le-corbier.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.lecollet.com` — Le Collet
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.lecollet.com/
-
-### `reservation.ledevoluy.com` — La Joue du Loup, Le Dévoluy, Super-Dévoluy
-
-> station-web : https://reservation.ledevoluy.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.les7laux.com` — Le Pleynet, Les 7 Laux, Prapoutel
 
-> station-web : https://reservation.les7laux.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.lescarroz.com` — Les Carroz d’Arâches
 
 > page.click: Timeout 15000ms exceeded.
 
-### `reservation.lescontamines.com` — Les Contamines-Montjoie
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.lescontamines.com/
-
-### `reservation.lesorres.com` — Les Orres
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.lesorres.com/
-
 ### `reservation.matheysine-tourisme.com` — Alpe du Grand Serre
 
-> station-web : https://reservation.matheysine-tourisme.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.montgenevre.com` — Montgenèvre
-
-> station-web : https://reservation.montgenevre.com interdit le relevé automatique (robots.txt, « Disallow: / ») — la centrale reste accessible par son lien.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.paysdegex-montsjura.com` — Monts Jura
 
-> station-web : le moteur de https://reservation.paysdegex-montsjura.com n'expose pas de calendrier.
-
-### `reservation.saintfrancoislongchamp.com` — Saint-François-Longchamp
-
-> station-web : https://reservation.saintfrancoislongchamp.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.saintsorlindarves.com` — Saint-Sorlin-d’Arves
 
-> station-web : https://reservation.saintsorlindarves.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.serre-chevalier.com` — Serre Chevalier Briancon, Serre Chevalier Chantemerle, Serre Chevalier Le Monêtier, Serre Chevalier Villeneuve
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.serre-chevalier.com/
-
-### `reservation.tignes.net` — Tignes, Tignes Le Lac, Tignes Les Brévières, Val d’Isère
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.tignes.net/
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.valleesdegavarnie.com` — Gavarnie-Gèdre
 
-> station-web : https://reservation.valleesdegavarnie.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservation.valthorens.com` — Orelle, Val Thorens
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://reservation.valthorens.com/
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.vaujany.com` — Vaujany
 
-> station-web : https://reservation.vaujany.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.villard-reculas.com` — Villard-Reculas
 
-> station-web : https://reservation.villard-reculas.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `reservation.villarddelans-correnconenvercors.com` — Villard-de-Lans – Corrençon
 
-> station-web : https://reservation.villarddelans-correnconenvercors.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `reservations.meribel.net` — Méribel
-
-> station-web : https://reservations.meribel.net n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `skipass.lansenvercors.com` — Lans-en-Vercors
-
-> station-web : https://skipass.lansenvercors.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.ballons-hautes-vosges.com` — Saint-Maurice-sur-Moselle
-
-> station-web : aucune offre publiée par https://www.ballons-hautes-vosges.com pour ces dates.
-
-### `www.chamrousse.com` — Chamrousse
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.chamrousse.com/hiver
-
-### `www.chatelreservation.com` — Châtel
-
-> page.click: Timeout 15000ms exceeded.
-
-### `www.karellis.com` — Les Karellis
-
-> station-web : https://www.karellis.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.labresse.net` — La Bresse Hohneck
-
-> station-web : le moteur de https://www.labresse.net n'expose pas de calendrier.
-
-### `www.laclusaz.com` — La Clusaz
-
-> station-web : https://www.laclusaz.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.laplagneresort.com` — Aime 2000, Belle Plagne, Champagny-en-Vanoise, La Plagne, La Plagne Montalbert, Les Coches, Plagne 1800, Plagne Bellecôte, Plagne Centre, Plagne Soleil, Plagne Villages
-
-> station-web : https://www.laplagneresort.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.leman-mountains-explore.com` — Thollon-les-Mémises
-
-> station-web : le moteur de https://www.leman-mountains-explore.com n'expose pas de calendrier.
-
-### `www.montclar.com` — Montclar
-
-> station-web : https://www.montclar.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.n-py.com` — Grand Tourmalet
-
-> station-web : https://www.n-py.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.n-py.com` — Peyragudes
-
-> station-web : https://www.n-py.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.paysdesecrins.com` — Puy-Saint-Vincent
-
-> station-web : https://www.paysdesecrins.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> Timeout AJAX formulaire Ingénie (30s) — le moteur n’a pas exposé datedeb (spinner bloqué ou script en échec).
 
 ### `www.peisey-vallandry.com` — Peisey-Vallandry
 
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.peisey-vallandry.com/
-
-### `www.reservationpralognan.fr` — Pralognan-la-Vanoise
-
-> station-web : https://www.reservationpralognan.fr n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.risoul.com` — Risoul
-
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.risoul.com/reserver.html
-
-### `www.saintefoy-reservation.com` — Sainte-Foy-Tarentaise
-
-> station-web : https://www.saintefoy-reservation.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.sancy.com` — Besse Super Besse
-
-> station-web : https://www.sancy.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.sancy.com` — Le Mont-Dore
-
-> station-web : https://www.sancy.com n'expose pas de moteur Ingénie — réservation par le lien direct.
-
-### `www.valberg.com` — Valberg
-
-> station-web : https://www.valberg.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> page.click: Timeout 15000ms exceeded.
 
 ### `www.valdallos.com` — Le Seignus, Val d'Allos
 
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.valdallos.com/
-
-### `www.valfrejus.com` — Valfréjus
-
-> station-web : https://www.valfrejus.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+> page.click: Timeout 15000ms exceeded.
 
 ### `www.valloire.com` — Valloire
 
-> page.goto: net::ERR_CONNECTION_TIMED_OUT at https://www.valloire.com/
+> page.click: Timeout 15000ms exceeded.
 
-### `www.valmorel.com` — Valmorel
+## Répondent sans offre
 
-> station-web : https://www.valmorel.com n'expose pas de moteur Ingénie — réservation par le lien direct.
+Ni erreur ni logement : la centrale a accepté la recherche et n’a rien à
+proposer pour ces dates, ou sa page de résultats ne se lit pas comme celle
+d’Ingénie. Les deux se distinguent en ouvrant le lien.
+
+- `booking.chamonix.com` — Chamonix-Mont-Blanc, Les Houches, Vallorcine
+- `font-romeu.fr` — Font-Romeu
+- `hiver.auron.com` — Auron
+- `isola2000.com` — Isola 2000
+- `lesangles.com` — Les Angles
+- `megeve-booking.com` — Megève
+- `reservation.alpedhuez.com` — Alpe d'Huez
+- `reservation.ax-ski.com` — Ax 3 Domaines
+- `reservation.combloux.com` — Combloux
+- `reservation.la-toussuire.com` — La Toussuire
+- `reservation.ledevoluy.com` — La Joue du Loup, Le Dévoluy, Super-Dévoluy
+- `reservation.montgenevre.com` — Montgenèvre
+- `reservation.saintfrancoislongchamp.com` — Saint-François-Longchamp
+- `reservations.meribel.net` — Méribel, Méribel Village, Méribel-Mottaret
+- `skipass.lansenvercors.com` — Lans-en-Vercors
+- `www.ballons-hautes-vosges.com` — Saint-Maurice-sur-Moselle
+- `www.chatelreservation.com` — Châtel
+- `www.karellis.com` — Les Karellis
+- `www.labresse.net` — La Bresse Hohneck
+- `www.laclusaz.com` — La Clusaz
+- `www.laplagneresort.com` — Aime 2000, Belle Plagne, Champagny-en-Vanoise, La Plagne, La Plagne Montalbert, Les Coches, Plagne 1800, Plagne Bellecôte, Plagne Centre, Plagne Soleil, Plagne Villages
+- `www.leman-mountains-explore.com` — Thollon-les-Mémises
+- `www.montclar.com` — Montclar
+- `www.n-py.com` — Grand Tourmalet
+- `www.n-py.com` — Peyragudes
+- `www.paysdesecrins.com` — Puy-Saint-Vincent, Puy-Saint-Vincent 1600, Puy-Saint-Vincent 1800
+- `www.reservationpralognan.fr` — Pralognan-la-Vanoise
+- `www.saintefoy-reservation.com` — Sainte-Foy-Tarentaise
+- `www.sancy.com` — Besse Super Besse
+- `www.sancy.com` — Le Mont-Dore
+- `www.valberg.com` — Valberg
+- `www.valfrejus.com` — Valfréjus
+- `www.valmorel.com` — Valmorel
 

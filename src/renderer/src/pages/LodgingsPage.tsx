@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ComparePanel } from '@/components/ComparePanel'
 import { SkiSearchLoading } from '@/components/SkiSearchLoading'
+import { StayDatesField } from '@/components/StayDatesField'
 import { CloseIcon } from '@/components/Icons'
 import { LodgingCard } from '@/components/LodgingCard'
 import { FilterPopover } from '@/components/FilterPopover'
@@ -603,7 +604,9 @@ export function LodgingsPage(): JSX.Element {
         <span className="u-muted" style={{ fontSize: 12 }}>
           {fmtDay(state.arrDate)} → {fmtDay(state.depDate)} ·{' '}
           {t('lodg_travelers_count').replace('{n}', String(state.travelers))} ·{' '}
-          {t('lodg_rooms_min').replace('{n}', String(state.rooms))}
+          {state.rooms === 0
+            ? t('lodg_rooms_any')
+            : t('lodg_rooms_min').replace('{n}', String(state.rooms))}
         </span>
         {stayCost != null && (
           <span className="lodgcost" title={costOnCheapest ? t('lodg_stay_cost_cheapest') : undefined}>
@@ -719,24 +722,12 @@ export function LodgingsPage(): JSX.Element {
                 {t('lodg_criteria_order')}
               </p>
               <div className="criteria-panel__grid">
-                <label>
-                  {t('arrival')}
-                  <input
-                    type="date"
-                    className="field"
-                    value={state.arrDate}
-                    onChange={(e) => patch({ arrDate: e.target.value })}
-                  />
-                </label>
-                <label>
-                  {t('departure_label')}
-                  <input
-                    type="date"
-                    className="field"
-                    value={state.depDate}
-                    onChange={(e) => patch({ depDate: e.target.value })}
-                  />
-                </label>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <span className="filters__help" style={{ margin: 0 }}>
+                    {t('stay_label')}
+                  </span>
+                  <StayDatesField />
+                </div>
                 <label>
                   Voyageurs
                   <input
@@ -768,13 +759,23 @@ export function LodgingsPage(): JSX.Element {
                   <input
                     type="number"
                     className="field"
-                    min={1}
+                    min={0}
                     max={6}
                     value={state.rooms}
-                    onChange={(e) =>
-                      patch({ rooms: Math.max(1, Math.min(6, Number(e.target.value) || 1)) })
-                    }
+                    onChange={(e) => {
+                      // Le plancher est le studio : un champ vidé revient au
+                      // repos du filtre, pas à une chambre exigée.
+                      const n = Number(e.target.value)
+                      patch({
+                        rooms: Math.max(0, Math.min(6, Number.isFinite(n) ? Math.round(n) : 0))
+                      })
+                    }}
                   />
+                  {state.rooms === 0 && (
+                    <span className="u-muted" style={{ fontSize: 12 }}>
+                      {t('lodg_rooms_any')}
+                    </span>
+                  )}
                 </label>
               </div>
               {searchError && (
@@ -787,13 +788,11 @@ export function LodgingsPage(): JSX.Element {
               )}
               {(() => {
                 const cap = centralCapabilityOf(d.booking ?? d.website)
-                const color =
-                  cap.mode === 'live'
-                    ? 'var(--ok)'
-                    : cap.mode === 'blocked'
-                      ? 'var(--warn)'
-                      : 'var(--muted)'
-                const icon = cap.mode === 'live' ? '✓' : cap.mode === 'blocked' ? '⛔' : 'ℹ'
+                // Plus de mode « bloqué » : il portait un verdict `robots.txt`
+                // recopié dans le renderer, que `providers/station/robots.ts`
+                // ne rend plus. Voir `centralCapability.ts`.
+                const color = cap.mode === 'live' ? 'var(--ok)' : 'var(--muted)'
+                const icon = cap.mode === 'live' ? '✓' : 'ℹ'
                 return (
                   <p
                     className="u-muted"

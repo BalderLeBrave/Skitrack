@@ -74,7 +74,10 @@ const BUILDERS: Record<string, Builder> = {
     u.searchParams.set('checkin', c.arrDate)
     u.searchParams.set('checkout', c.depDate)
     u.searchParams.set('adults', String(c.travelers))
-    u.searchParams.set('min_bedrooms', String(c.rooms))
+    // Un seuil nul ne se transmet pas. C'est ce paramètre, posé à 1 parce que
+    // le réglage ne descendait pas plus bas, qui retirait les studios de la
+    // recherche : demander « aucune chambre au minimum » n'est pas un critère.
+    if (c.rooms > 0) u.searchParams.set('min_bedrooms', String(c.rooms))
     return u.toString()
   },
   // Chemin et noms de paramètres alignés sur `webscrape/urls.ts`, qui est le

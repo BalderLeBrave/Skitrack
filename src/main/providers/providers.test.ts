@@ -17,6 +17,9 @@
 
 import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
+import { collectBookingPages } from './webscrape/providers'
+import { bookingSearchUrl } from './webscrape/urls'
+import type { RawCard } from './webscrape/extractors'
 import { buildEngine } from './index'
 import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
@@ -306,6 +309,75 @@ async function main(): Promise<void> {
   check('La Bresse est Open System', bookingFamilyOf('www.labresse.net') === 'opensystem')
   check('La Toussuire est Open System', bookingFamilyOf('reservation.la-toussuire.com') === 'opensystem')
   check('Sancy n’est pas Ingénie', bookingFamilyOf('www.sancy.com') === 'sancy')
+
+  heading('7. Booking — la pagination, et son garde-fou')
+  const stay = { destination: 'Les 2 Alpes', checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 2 }
+  check('page 1 : aucun paramètre de rang', !bookingSearchUrl(stay).includes('offset'))
+  check('page 2 : rang 25', bookingSearchUrl(stay, 25).includes('offset=25'), bookingSearchUrl(stay, 25))
+  check(
+    'la pagination ne touche à rien d’autre',
+    bookingSearchUrl(stay, 50).includes('checkin=2027-02-06') &&
+      bookingSearchUrl(stay, 50).includes('ss=Les+2+Alpes')
+  )
+
+  /** Une page de `n` cartes distinctes, numérotées à partir de `from`. */
+  const cards = (from: number, n: number): RawCard[] =>
+    Array.from({ length: n }, (_, i) => ({
+      sourceId: `h${from + i}`,
+      title: `Hôtel ${from + i}`,
+      url: `https://www.booking.com/hotel/fr/h${from + i}.html`
+    }))
+
+  const pagesVues: string[] = []
+  const troisPages = await collectBookingPages(stay, async (url) => {
+    pagesVues.push(url)
+    const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+    // Deux pages pleines, puis une page courte : la fin de la liste.
+    return rang === 0 ? cards(0, 25) : rang === 25 ? cards(25, 25) : cards(50, 9)
+  })
+  check('trois pages parcourues', pagesVues.length === 3, pagesVues.length)
+  check('cinquante-neuf biens ramenés', troisPages.length === 59, troisPages.length)
+  check('aucun doublon', new Set(troisPages.map((c) => c.sourceId)).size === troisPages.length)
+
+  // Le garde-fou : si Booking cessait d'honorer `offset`, chaque page rendrait
+  // la même liste. On doit s'en apercevoir à la deuxième, pas à la cinquième.
+  let appels = 0
+  const figé = await collectBookingPages(stay, async () => {
+    appels++
+    return cards(0, 25)
+  })
+  check('rang ignoré : on s’arrête à la deuxième page', appels === 2, appels)
+  check('et on rend la première page, pas une erreur', figé.length === 25, figé.length)
+
+  let vide = 0
+  const rien = await collectBookingPages(stay, async () => {
+    vide++
+    return []
+  })
+  check('page vide : une seule lecture', vide === 1 && rien.length === 0)
+
+  const plafond: string[] = []
+  const bridé = await collectBookingPages(stay, async (url) => {
+    plafond.push(url)
+    const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+    return cards(rang, 25)
+  })
+  check('le plafond de pages tient', plafond.length === 5 && bridé.length === 125, plafond.length)
+
+  // Le budget de temps ne coupe pas une page en cours : il décide si l'on en
+  // ouvre une de plus. Budget nul = une seule page, celle sans laquelle il n'y
+  // aurait pas de relevé du tout.
+  let lues = 0
+  const pressé = await collectBookingPages(
+    stay,
+    async (url) => {
+      lues++
+      return cards(Number(new URL(url).searchParams.get('offset') ?? 0), 25)
+    },
+    5,
+    0
+  )
+  check('budget épuisé : la première page est lue quand même', lues === 1 && pressé.length === 25, lues)
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

@@ -9,26 +9,18 @@
 
 | | |
 | --- | --- |
-| Centrales sondées | **50** |
-| Stations desservies | 73 |
-| Joignables | 47 |
+| Centrales sondées | **52** |
+| Stations desservies | 74 |
+| Joignables | 51 |
 | dont joignables seulement en navigateur | 0 |
-| Relevé interdit par robots.txt | **2** |
+| Relevé interdit par robots.txt | **0** |
 | Sur Ingénie — déjà couvertes par le connecteur | **27** |
-| Plateforme non identifiée | 2 |
-| Publient un bloc ld+json | 14 |
-
-## Centrales dont le relevé est interdit
-
-Leur `robots.txt` interdit le chemin. Elles ne sont jamais interrogées ; l’écran
-proposera d’ouvrir la page à la main, dates pré-remplies.
-
-- **reservation.combloux.com** — `Disallow: /` — Combloux
-- **reservation.montgenevre.com** — `Disallow: /` — Montgenèvre, Les Alberts
+| Plateforme non identifiée | 4 |
+| Publient un bloc ld+json | 15 |
 
 ## Par plateforme
 
-### Ingénie — 27 centrale(s), 37 station(s)
+### Ingénie — 27 centrale(s), 36 station(s)
 
 - `reservation.les2alpes.com` — ld+json — Les 2 Alpes
 - `reservation.areches-beaufort.com` — Arêches Beaufort
@@ -36,7 +28,7 @@ proposera d’ouvrir la page à la main, dates pré-remplies.
 - `reservation.haute-maurienne-vanoise.com` — La Norma, Val Cenis, Aussois, Bonneval-sur-Arc
 - `reservation.larosiere.net` — La Rosière
 - `reservation.lessaisies.com` — formulaire GET — Les Saisies
-- `fr.locationsaintmartin.com` — formulaire GET — Saint Martin de Belleville, Saint Martin de Belleville
+- `fr.locationsaintmartin.com` — formulaire GET — Saint Martin de Belleville
 - `www.valloire.com` — formulaire GET — Valloire
 - `www.valmeinier-reservation.com` — Valmeinier
 - `reservation.courchevel.com` — Courchevel
@@ -58,12 +50,13 @@ proposera d’ouvrir la page à la main, dates pré-remplies.
 - `www.ballons-hautes-vosges.com` — formulaire GET — Saint Maurice sur Moselle
 - `www.gerardmer-reservation.net` — formulaire GET — Gérardmer
 
-### Open System — 6 centrale(s), 6 station(s)
+### Open System — 7 centrale(s), 8 station(s)
 
 - `www.valmorel.com` — ld+json · formulaire GET — Valmorel
 - `reservation.la-toussuire.com` — Les Sybelles
 - `www.valfrejus.com` — ld+json — Valfréjus
 - `reservation.ledevoluy.com` — Dévoluy
+- `reservation.montgenevre.com` — Montgenèvre, Les Alberts
 - `reservation.ax-ski.com` — Ax 3 Domaines
 - `www.n-py.com` — ld+json — Grand Tourmalet
 
@@ -75,26 +68,24 @@ proposera d’ouvrir la page à la main, dates pré-remplies.
 - `www.paysdesecrins.com` — ld+json · formulaire GET — Puy-Saint-Vincent
 - `www.sancy.com` — ld+json — Super Besse, le Mont Dore
 
-### Ceto / Orchestra — 3 centrale(s), 14 station(s)
+### Ceto / Orchestra — 4 centrale(s), 15 station(s)
 
 - `booking.chamonix.com` — Chamonix
 - `www.laplagneresort.com` — ld+json — Plagne Aime 2000, Belle Plagne, Champagny en Vanoise, Plagne Montalbert, Montchavin les Coches, Plagne 1800, Plagne Bellecote, Plagne Centre, Plagne Soleil, Plagne Villages, Les Hameaux de la Roche, Vallée
+- `reservation.combloux.com` — Combloux
 - `reservations.meribel.net` — Les Trois Vallées
 
-### non identifiée — 2 centrale(s), 2 station(s)
+### non identifiée — 4 centrale(s), 4 station(s)
 
 - `www.reservationpralognan.fr` — Pralognan la Vanoise
 - `lesangles.com` — refuse fetch, répond au navigateur · HTTP 403 — Les Angles
+- `www.airbnb.fr` — ld+json · formulaire GET — Airbnb
+- `www.booking.com` — Booking.com
 
 ### Ublo — 2 centrale(s), 2 station(s)
 
 - `www.saintefoy-reservation.com` — Sainte-Foy Tarentaise
 - `reservation.alpedhuez.com` — Alpe d'Huez Grand Domaine
-
-### injoignable — 2 centrale(s), 3 station(s)
-
-- `reservation.combloux.com` — robots: interdit · HTTP échec — Combloux
-- `reservation.montgenevre.com` — robots: interdit · HTTP échec — Montgenèvre, Les Alberts
 
 ### Eliberty — 1 centrale(s), 1 station(s)
 
@@ -123,12 +114,12 @@ proposera d’ouvrir la page à la main, dates pré-remplies.
 | `reservation.lessaisies.com` | 200 | Ingénie | — | aucun | 1 |
 | `www.reservationpralognan.fr` | 200 | non identifiée | — | aucun | 1 |
 | `reservation.saintfrancoislongchamp.com` | 200 | Eliberty, Ublo, React (moteur embarqué) | — | aucun | 1 |
-| `fr.locationsaintmartin.com` | 200 | Ingénie | — | aucun | 2 |
+| `fr.locationsaintmartin.com` | 200 | Ingénie | — | aucun | 1 |
 | `www.saintefoy-reservation.com` | 200 | Ublo, React (moteur embarqué) | — | aucun | 1 |
 | `www.valloire.com` | 200 | Ingénie | — | aucun | 1 |
 | `www.valmeinier-reservation.com` | 200 | Ingénie | — | aucun | 1 |
 | `www.valmorel.com` | 200 | Open System, WordPress (moteur non identifié) | ✓ | aucun | 1 |
-| `reservation.combloux.com` | échec | relevé interdit par robots.txt | — | `/booking` `/serp` `/recherche` `/reservation` `/hebergements` `/location` | 1 |
+| `reservation.combloux.com` | 200 | Ceto / Orchestra | — | aucun | 1 |
 | `www.laclusaz.com` | 200 | WordPress (moteur non identifié) | ✓ | aucun | 1 |
 | `reservation.alpedhuez.com` | 200 | Ublo, React (moteur embarqué) | — | aucun | 1 |
 | `reservation.courchevel.com` | 200 | Ingénie | — | aucun | 1 |
@@ -150,7 +141,7 @@ proposera d’ouvrir la page à la main, dates pré-remplies.
 | `www.alpes-sudlocations.com` | 200 | Elloha, WooCommerce, WordPress (moteur non identifié) | ✓ | aucun | 1 |
 | `www.valberg.com` | 200 | WordPress (moteur non identifié) | ✓ | aucun | 1 |
 | `reservation.lesorres.com` | 200 | Ingénie | — | aucun | 1 |
-| `reservation.montgenevre.com` | échec | relevé interdit par robots.txt | — | `/booking` `/serp` `/recherche` `/reservation` `/hebergements` `/location` | 2 |
+| `reservation.montgenevre.com` | 200 | Open System | — | aucun | 2 |
 | `www.paysdesecrins.com` | 200 | WordPress (moteur non identifié) | ✓ | aucun | 1 |
 | `reservation.serre-chevalier.com` | 200 | Ingénie | — | aucun | 1 |
 | `www.valdallos.com` | 200 | Ingénie | — | aucun | 2 |
@@ -162,6 +153,8 @@ proposera d’ouvrir la page à la main, dates pré-remplies.
 | `www.labresse.net` | 200 | Ingénie, Open System, WordPress (moteur non identifié) | ✓ | aucun | 1 |
 | `www.ballons-hautes-vosges.com` | 200 | Ingénie | — | aucun | 1 |
 | `www.gerardmer-reservation.net` | 200 | Ingénie | — | aucun | 1 |
+| `www.airbnb.fr` | 200 | non identifiée | ✓ | aucun | 1 |
+| `www.booking.com` | 202 | non identifiée | — | aucun | 1 |
 
 Les chemins testés sont ceux des plateformes rencontrées — `/booking` pour
 Ingénie, `/serp` pour Ceto, puis `/recherche`, `/reservation`, `/hebergements`

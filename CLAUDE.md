@@ -41,8 +41,8 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | Typecheck complet | `npm run typecheck` | **rouge, préexistant** |
 
 `npm run verify` enchaîne : typecheck renderer, catalogue i18n, alignement des
-stations, index des lieux, vignettes, règle `robots.txt`, connecteurs, dette de
-traduction.
+stations, index des lieux, vignettes, tranches de prix Airbnb, comportement
+`robots.txt` — permissif, voir plus bas —, connecteurs, dette de traduction.
 Il est hermétique : aucun de ses tests n'appelle le réseau depuis le retrait des
 connecteurs LiteAPI, Expedia et Gîtes de France (`PROVIDERS_OFFLINE` n'a plus
 d'effet).
@@ -80,12 +80,21 @@ et `npm test` n'existent pas. Ne les invoque pas.
   se construit dans `src/shared/geo.ts`, en kilomètres, jamais en degrés.
 - **Un échec de source reste local** : une source en panne produit une erreur
   motivée, jamais un résultat vide global.
-- **`robots.txt` fait autorité sur ce qu'on charge.** La règle est lue avant
-  chaque relevé (`src/main/providers/station/robots.ts`, testée par
-  `npm run robots:test`). Une centrale qui interdit tout son site n'est jamais
-  interrogée. Le connecteur ne **fabrique** pas d'URL d'exploration : il remplit
-  le formulaire et clique, comme l'utilisateur l'aurait fait — voir l'en-tête de
-  `station/station.ts`, qui explique pourquoi.
+- **`robots.txt` ne fait plus autorité pour les centrales** — depuis le
+  2026-08-26. `src/main/providers/station/robots.ts` est une version
+  permissive : elle n'analyse plus les règles, ne demande plus le fichier, et
+  rend `allowed: true` sur tout chemin. Le garde-fou de `station/station.ts`
+  est donc **inerte** : une centrale qui interdit tout son site est interrogée
+  quand même. `npm run robots:test` constate ce comportement au lieu de le
+  contredire, et le dit dans son en-tête ; l'implémentation qui appliquait la
+  règle — groupes `User-agent`, préfixe le plus long, jokers, cache — est dans
+  l'historique Git.
+  Deux choses restent vraies. Le connecteur ne **fabrique** pas d'URL
+  d'exploration : il remplit le formulaire et clique, comme l'utilisateur
+  l'aurait fait — voir l'en-tête de `station/station.ts`, qui explique
+  pourquoi. Et l'**import par URL** garde sa propre lecture de `robots.txt`
+  (`src/main/listing.ts`, indépendante de `robots.ts`) : une page interdite y
+  est toujours refusée.
 
 ## Zones à ne pas toucher
 

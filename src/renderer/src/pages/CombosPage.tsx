@@ -2,7 +2,7 @@ import type { Week } from '@/data/snow'
 import { seasonalityText, weekByArrival } from '@/data/snow'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
-import { useApp } from '@/state/appState'
+import { offresBudgetOpen, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 
 /**
@@ -68,7 +68,8 @@ export function CombosPage(): JSX.Element {
    */
   const cellStyle = (total: number, isMin: boolean, selected: boolean, week: Week): React.CSSProperties => {
     const k = (total - lo) / span
-    const over = total > state.offresBudget
+    // Curseur au bout : plus de budget, donc plus rien « au-dessus ».
+    const over = !offresBudgetOpen(state.offresBudget) && total > state.offresBudget
     const holiday = isSchoolHoliday(week)
     return {
       border: selected ? '2px solid var(--accent)' : `1px solid ${over ? 'var(--border-soft)' : 'var(--border)'}`,

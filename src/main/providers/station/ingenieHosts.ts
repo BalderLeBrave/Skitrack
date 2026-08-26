@@ -57,11 +57,17 @@ export const INGENIE_HOSTS = new Set([
   'reservation.villarddelans-correnconenvercors.com'
 ])
 
-/** robots.txt Disallow: / — ne jamais lancer le navigateur. */
-export const ROBOTS_BLOCKED_HOSTS = new Set([
-  'reservation.combloux.com',
-  'reservation.montgenevre.com'
-])
+/*
+ * Il y avait ici `ROBOTS_BLOCKED_HOSTS` — Combloux et Montgenèvre, écartés
+ * parce que leur `robots.txt` publiait « Disallow: / ». C'était un troisième
+ * juge de la règle, après `robots.ts` et la liste du renderer, et le seul des
+ * trois qui empêchait réellement le relevé.
+ *
+ * `robots.txt` ne se décide qu'à un endroit : `station/robots.ts`, appelé par
+ * le connecteur juste avant le relevé (et par `listing.ts` pour l'import par
+ * URL). Une liste d'hôtes recopiée à la main ne peut pas suivre un fichier qui
+ * change, et celle-ci contredisait déjà le module.
+ */
 
 function hostOf(url: string): string | null {
   try {
@@ -74,17 +80,17 @@ function hostOf(url: string): string | null {
 /**
  * Faut-il tenter Playwright pour cette URL de centrale ?
  *
- * - Orchestra / Open System / Ublo / robots total → non
+ * - Orchestra / Open System / Ublo → non, ce n'est pas notre moteur
  * - hôte Ingénie connu → oui
  * - sous-domaine reservation/booking/resa, hors familles connues → oui
  * - sinon → non (évite 15 s de Chromium sur un site institutionnel)
+ *
+ * `robots.txt` ne se juge plus ici : c'est `station/robots.ts`, interrogé par
+ * le connecteur au moment du relevé.
  */
 export function shouldAttemptIngenie(url: string): { attempt: boolean; reason?: string } {
   const host = hostOf(url)
   if (!host) return { attempt: false, reason: 'url-invalide' }
-  if (ROBOTS_BLOCKED_HOSTS.has(host)) {
-    return { attempt: false, reason: 'robots' }
-  }
   if (isKnownNonIngenie(host) || isKnownNonIngenie(url)) {
     return { attempt: false, reason: 'hors-ingenie' }
   }

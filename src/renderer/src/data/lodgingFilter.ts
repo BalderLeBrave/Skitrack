@@ -27,7 +27,15 @@ import { inRange } from './range'
 export interface LodgingFilterCriteria {
   /** Taille du groupe : `travelers` couchages au minimum. */
   travelers: number
-  /** Chambres au minimum. */
+  /**
+   * Chambres au minimum.
+   *
+   * `0` est la valeur de repos, et elle porte un nom : un studio n'a aucune
+   * chambre, exiger « 0 au minimum » ne peut écarter personne. Le seuil ne
+   * mord qu'à partir de 1 — auparavant il ne mordait qu'à partir de 2, parce
+   * que 1 était le plancher du réglage et devait donc rester neutre. Il ne
+   * l'est plus : demander une chambre écarte bien les studios.
+   */
   rooms: number
   onlyAvailable: boolean
   /** Annulation gratuite uniquement. */
@@ -113,8 +121,9 @@ export function minRoomsFor(bedrooms: number): number {
  * Exporté pour le test : c'est la moitié du prédicat qui a fauté, et celle dont
  * la règle est la moins évidente à relire.
  *
- * L'ordre des trois cas est la règle :
+ * L'ordre des cas est la règle :
  *
+ * 0. le seuil est nul — « studio » — et rien n'est à comparer ;
  * 1. l'annonce annonce des **chambres** → on compare des chambres ;
  * 2. sinon elle annonce des **pièces** — le cas de toutes les centrales — → on
  *    compare des pièces, seuil converti ;
@@ -123,7 +132,7 @@ export function minRoomsFor(bedrooms: number): number {
 export function fitsParty(lodging: Lodging, criteria: LodgingFilterCriteria): boolean {
   const { pers, ch, rooms } = lodging
   if (pers !== 0 && pers < criteria.travelers) return false
-  if (criteria.rooms <= 1) return true
+  if (criteria.rooms <= 0) return true
   if (ch > 0) return ch >= criteria.rooms
   if (rooms != null && rooms > 0) return rooms >= minRoomsFor(criteria.rooms)
   return true

@@ -6,7 +6,7 @@
  *   POST …/resort/125/offers {start,end,adults,channel} → 378 tarifs séjour
  */
 
-import { ubloListingPath } from '@shared/ubloUrl'
+import { UBLO_ENTRY_ONLY, ubloEntryUrl, ubloListingPath } from '@shared/ubloUrl'
 import type { UbloSite } from './hosts'
 
 const MSEM_API = 'https://services.msem.tech/api/lodging'
@@ -77,6 +77,12 @@ function roundEuro(n: number): number {
 }
 
 export function lodgingUrl(site: UbloSite, slug: string, from: string, to: string, adults: number, children: number): string {
+  // Centrale sans fiche par logement : on ouvre sa page d'entrée. La table et
+  // la forme de l'URL vivent dans `@shared/ubloUrl`, qui les partage avec la
+  // réparation des URL déjà enregistrées côté renderer.
+  const entry = UBLO_ENTRY_ONLY[site.host.replace(/^www\./, '')]
+  if (entry) return ubloEntryUrl(site.origin, entry, slug)
+
   const path = ubloListingPath(site.pathPrefix, slug)
   const url = new URL(path, site.origin)
   url.searchParams.set('from', from)

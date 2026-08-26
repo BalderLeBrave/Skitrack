@@ -472,6 +472,21 @@ export const FILTER_RANGES = {
 export type FilterRangeKey = keyof typeof FILTER_RANGES
 
 /**
+ * Le curseur de budget de l'écran Offres, qui n'est pas une plage à deux
+ * bornes et vit donc hors de `FILTER_RANGES`.
+ *
+ * Son plafond suit la même convention que les plages : **atteint, il ne borne
+ * plus**. Sans cela, l'écran gardait un dernier cran qui excluait encore — un
+ * séjour complet à 9 500 € disparaissait sans que rien ne le dise, alors que
+ * le curseur était poussé à fond. Un filtre qu'on ne peut pas lever n'est pas
+ * un filtre, c'est une limite du logiciel.
+ */
+export const OFFRES_BUDGET = { min: 1500, max: 9000, step: 250 } as const
+
+/** Le budget du séjour ne borne plus rien dès que le curseur touche le bout. */
+export const offresBudgetOpen = (budget: number): boolean => budget >= OFFRES_BUDGET.max
+
+/**
  * Groupe et départs par défaut : aucun nom, aucune adresse.
  *
  * L'application ne préremplit aucune donnée personnelle. Les libellés sont des
@@ -559,7 +574,10 @@ export const INITIAL_STATE: AppState = {
   depDate: '2027-02-14',
   travelers: 1,
   children: 0,
-  rooms: 1,
+  // Aucun seuil de chambres par défaut : un studio est un logement comme un
+  // autre, et le réglage ne doit pas écarter en silence ce que personne n'a
+  // demandé d'écarter.
+  rooms: 0,
   people: DEFAULT_PEOPLE,
   places: DEFAULT_PLACES,
   peopleOpen: false,
@@ -662,7 +680,7 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
   lodgSrcOff: [],
   lodgAnnul: false,
   lodgOnlyAvailable: true,
-  rooms: 1
+  rooms: 0
 }
 
 /** Clés enregistrées : les réglages, pas l'état transitoire d'un écran. */
@@ -718,7 +736,7 @@ function purgeLegacyPrefs(): void {
  * par l'utilisateur et ne sont pas touchés.
  */
 /** Version du schéma des préférences écrite sur le disque. */
-const PREFS_SCHEMA = 4
+const PREFS_SCHEMA = 5
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -772,6 +790,15 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // plancher réglé à la main sur 5 ou 25 km est un choix, et il est conservé.
   if ((saved.prefsSchema ?? 0) < 3 && num(out.kmMin) === 10) out.kmMin = 0
 
+  // Schéma 5 : « 1 chambre minimum » était le plancher du réglage, et à ce
+  // titre il ne posait aucun seuil — le filtre ne se réveillait qu'à partir de
+  // 2. Le plancher est maintenant 0 (studio), et 1 est devenu un vrai seuil,
+  // qui écarte les biens sans chambre. Une préférence enregistrée à 1 n'a donc
+  // jamais été un choix : c'est la valeur qu'on ne pouvait pas descendre. On la
+  // ramène à 0 plutôt que de poser en silence un filtre que personne n'a
+  // demandé. Un seuil réglé à la main sur 2 ou plus est un choix, il reste.
+  if ((saved.prefsSchema ?? 0) < 5 && num(out.rooms) === 1) out.rooms = 0
+
   // `searchFiltersOpen` a cessé d'être un réglage enregistré le jour où le
   // panneau est devenu un survol. La valeur laissée sur le disque rouvrirait
   // le panneau sur la liste au démarrage suivant, une fois, sans raison.
@@ -823,6 +850,46 @@ function repairCentralUrls(imported: Lodging[]): Lodging[] {
     const url = repairUbloListingUrl(lodging.url)
     return url === lodging.url ? lodging : { ...lodging, url }
   })
+}
+
+/**
+ * Une URL, une annonce.
+ *
+ * L'URL est l'identité d'une annonce partout ailleurs — clé de déduplication du
+ * relevé, source de l'identifiant local, clé de rapprochement de
+ * `mergeProviderReadings`. Deux entrées qui la partagent sont donc la même
+ * annonce enregistrée deux fois, jamais deux biens.
+ *
+ * Le cas qui l'a rendue nécessaire : une URL de fiche corrigée. L'ancienne
+ * entrée et la nouvelle portaient deux adresses pour un seul logement, et
+ * `repairCentralUrls` vient de les ramener à la même — sans ce passage, elles
+ * resteraient côte à côte dans la liste, l'une menant à une page morte.
+ *
+ * On garde la **dernière** : c'est le relevé le plus récent. Sauf si elle n'a
+ * pas de prix et qu'une précédente en a un — un relevé muet n'efface pas un
+ * prix déjà mesuré, la même asymétrie que `mergeProviderReadings`.
+ */
+function dropDuplicateUrls(imported: Lodging[]): Lodging[] {
+  const byUrl = new Map<string, Lodging>()
+  const out: Lodging[] = []
+
+  for (const lodging of imported) {
+    if (!lodging.url) {
+      out.push(lodging)
+      continue
+    }
+    const seen = byUrl.get(lodging.url)
+    if (!seen) {
+      byUrl.set(lodging.url, lodging)
+      out.push(lodging)
+      continue
+    }
+    const garde = lodging.total > 0 || seen.total <= 0 ? lodging : seen
+    byUrl.set(lodging.url, garde)
+    out[out.indexOf(seen)] = garde
+  }
+
+  return out
 }
 
 export interface PriceReading {
@@ -894,7 +961,15 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       // Absence de préférences = premier lancement : on ouvre l'accueil.
       if (!raw) return { ...base, onboard: true, ...(demo ?? {}) }
       const saved = migratePrefs(JSON.parse(raw) as Partial<AppState> & { prefsSchema?: number })
-      return { ...base, ...saved, imported: repairCentralUrls(forgetInventedCapacity(saved.imported)), ...(demo ?? {}) }
+      return {
+        ...base,
+        ...saved,
+        // L'ordre compte : on répare les URL d'abord, on fusionne ensuite —
+        // c'est la réparation qui fait converger l'ancienne entrée et la
+        // nouvelle sur une même adresse.
+        imported: dropDuplicateUrls(repairCentralUrls(forgetInventedCapacity(saved.imported))),
+        ...(demo ?? {})
+      }
     } catch {
       return { ...base, ...(demo ?? {}) }
     }

@@ -953,6 +953,22 @@ const CATALOG = {
   lodg_stay_cost_cheapest: ['sur le logement le moins cher', 'on the cheapest stay'],
   lodg_travelers_count: ['{n} voyageur(s)', '{n} traveller(s)'],
   lodg_rooms_min: ['{n} chambre(s) min', '{n} room(s) min'],
+  // Calendrier de plage du séjour (StayDatesField). Les noms de mois et de
+  // jours viennent d'Intl, pas du catalogue.
+  stay_edit_dates: ['Modifier les dates du séjour', 'Change stay dates'],
+  stay_pick_arrival: ['Choisissez votre jour d’arrivée', 'Pick your arrival day'],
+  stay_pick_departure: ['…puis votre jour de départ', '…then your departure day'],
+  stay_prev_month: ['Mois précédent', 'Previous month'],
+  stay_next_month: ['Mois suivant', 'Next month'],
+  stay_snap_week: ['Caler sur la semaine {a} → {b}', 'Snap to the {a} → {b} week'],
+  stay_sat_note: [
+    'Les centrales de station vendent surtout du samedi au samedi — jours marqués d’un point.',
+    'Resort booking desks mostly sell Saturday to Saturday — dotted days.'
+  ],
+  // Le repos du réglage « chambres minimum » : il descend jusqu'au studio, qui
+  // n'a aucune chambre et qu'aucun seuil ne peut donc retenir.
+  lodg_rooms_studio: ['studio', 'studio'],
+  lodg_rooms_any: ['sans minimum (studios inclus)', 'no minimum (studios included)'],
   lodg_criteria_order: [
     'Dates et groupe : la centrale de station répond en premier (prix datés), puis les autres sources.',
     'Dates and party: the resort booking centre answers first (dated prices), then the other sources.'

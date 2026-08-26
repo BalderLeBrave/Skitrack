@@ -1,15 +1,33 @@
 /**
- * La règle `robots.txt` du connecteur des centrales.
+ * Ce que fait `robots.ts` **depuis qu'il n'applique plus `robots.txt`**.
  *
- * Ce test porte sur la seule décision qui engage le projet vis-à-vis des sites
- * relevés : interroger, ou s'abstenir. Une erreur d'analyse ici ne se voit pas
- * — elle produit un relevé qui ne devrait pas avoir lieu, ou un silence qui
- * n'a pas lieu d'être.
+ * ## Lis ceci avant de lire un « ✓ »
+ *
+ * Ce fichier ne protège plus rien. Le 26 août 2026, `robots.ts` a été réécrit
+ * en version permissive : il n'analyse plus les règles, ne lit plus le fichier,
+ * et rend `allowed: true` pour tout chemin, sur tout hôte. Les tests
+ * ci-dessous **constatent** ce comportement, ils ne le garantissent pas au sens
+ * où l'entendait la version précédente.
+ *
+ * Un run vert ici ne dit donc pas « le connecteur respecte les règles des
+ * centrales ». Il dit exactement l'inverse : « le connecteur ne les consulte
+ * plus, et c'est délibéré ». C'est aussi ce qu'il faut retenir avant de lire
+ * l'invariant « `robots.txt` fait autorité » du CLAUDE.md — il ne décrit plus
+ * le code.
+ *
+ * La version qui appliquait la règle — groupes `User-agent`, préfixe le plus
+ * long, `Allow` prioritaire à longueur égale, jokers et ancre `$`, cache par
+ * hôte — est dans l'historique Git, avec ses vingt-trois cas. La rétablir,
+ * c'est `git revert` du commit qui l'a retirée, puis rétablir ce fichier-ci.
+ *
+ * Ce qui reste vérifié ici a donc une seule utilité : que le module tienne son
+ * nouveau contrat sans exploser, et que **personne ne croie** qu'il en tient un
+ * autre.
  *
  *   npm run robots:test
  */
 
-import { allowsPath, forgetRobots, parseRobots, robotsAllows } from './robots'
+import { allowsPath, forgetRobots, parseRobots, robotsAllows, ROBOTS_AGENT } from './robots'
 
 let failures = 0
 function check(label: string, condition: boolean, detail?: unknown): void {
@@ -17,129 +35,47 @@ function check(label: string, condition: boolean, detail?: unknown): void {
   if (!condition) failures++
 }
 
-console.log('\nrobots.txt — ce que la centrale autorise\n')
+console.log('\nrobots.txt — le connecteur ne l’applique plus\n')
 
-console.log('1. Lecture des groupes')
-const simple = parseRobots(`
+console.log('1. L’analyse des règles est neutralisée')
+const interdits = `
 User-agent: *
 Disallow: /booking
 Disallow: /espace-client
-`)
-check('les règles du groupe « * » sont lues', simple.length === 2, simple)
-check('un chemin interdit l’est', !robotsAllows(simple, '/booking').allowed)
-check('la règle qui tranche est citée', robotsAllows(simple, '/booking').rule === 'Disallow: /booking')
-check('un chemin voisin reste permis', robotsAllows(simple, '/location').allowed)
+`
+check('un fichier pourtant lisible ne produit aucune règle', parseRobots(interdits).length === 0, parseRobots(interdits))
+check('un groupe nommé n’en produit pas davantage', parseRobots(`User-agent: ${ROBOTS_AGENT}\nDisallow: /stats`).length === 0)
+check('un fichier vide non plus', parseRobots('').length === 0)
+check('le jeton d’agent reste annoncé', ROBOTS_AGENT === 'SkitrackRecon', ROBOTS_AGENT)
 
-const named = parseRobots(`
-User-agent: *
-Disallow: /
+console.log('\n2. Le verdict est « autorisé », quoi qu’on lui passe')
+// Les chemins ci-dessous sont ceux que les centrales interdisent explicitement
+// dans leur `robots.txt`. Ils sont cités pour que la portée du choix soit
+// lisible ici, et pas seulement dans un en-tête.
+for (const chemin of ['/booking', '/espace-client', '/stats', '/carnet-voyage', '/booking?action=result&cid=42', '/']) {
+  const verdict = robotsAllows(parseRobots(interdits), chemin)
+  check(`« ${chemin} » est autorisé`, verdict.allowed && verdict.rule === null, verdict)
+}
 
-User-agent: SkitrackRecon
-Disallow: /stats
-`)
-check('un groupe nommé l’emporte sur « * »', robotsAllows(named, '/booking').allowed, named)
-check('et ses propres interdits s’appliquent', !robotsAllows(named, '/stats').allowed)
-
-const shared = parseRobots(`
-User-agent: Googlebot
-User-agent: *
-Disallow: /prive
-`)
-check('deux agents consécutifs déclarent un seul groupe', !robotsAllows(shared, '/prive').allowed, shared)
-
-const orphan = parseRobots('Disallow:/')
-check(
-  'une règle sans en-tête `User-agent` compte quand même',
-  !robotsAllows(orphan, '/booking').allowed,
-  { regles: orphan, verdict: robotsAllows(orphan, '/booking') }
-)
-
-console.log('\n2. Priorité des règles')
-const mixed = parseRobots(`
-User-agent: *
-Disallow: /booking
-Allow: /booking/resultats
-`)
-check('la règle la plus longue gagne', robotsAllows(mixed, '/booking/resultats').allowed, robotsAllows(mixed, '/booking/resultats'))
-check('et la plus courte s’applique ailleurs', !robotsAllows(mixed, '/booking/panier').allowed)
-
-const equal = parseRobots(`
-User-agent: *
-Disallow: /x
-Allow: /x
-`)
-check('à longueur égale, Allow l’emporte', robotsAllows(equal, '/x').allowed, robotsAllows(equal, '/x'))
-
-// Le motif réellement publié par les centrales Ingénie.
-const wildcard = parseRobots(`
-User-agent: *
-Disallow: /*?liste=*
-Disallow: /*?action=*
-Disallow: /*?cid=*
-Disallow: /stats
-`)
-check(
-  'un joker vise ce qu’il décrit',
-  !robotsAllows(wildcard, '/booking?liste=1').allowed,
-  robotsAllows(wildcard, '/booking?liste=1')
-)
-check(
-  'et rien d’autre : le même chemin sans le paramètre reste permis',
-  robotsAllows(wildcard, '/booking').allowed,
-  robotsAllows(wildcard, '/booking')
-)
-check(
-  'la page de résultats Ingénie, elle, porte `action` et `cid` — donc interdite',
-  !robotsAllows(wildcard, '/booking?action=result&reload=1&cid=5').allowed,
-  robotsAllows(wildcard, '/booking?action=result&reload=1&cid=5')
-)
-check('un chemin sans joker s’applique par préfixe', !robotsAllows(wildcard, '/stats/2026').allowed)
-
-const anchored = parseRobots(`
-User-agent: *
-Disallow: /*.php$
-`)
-check('l’ancre `$` ne vise que la fin', !robotsAllows(anchored, '/index.php').allowed)
-check('et laisse passer ce qui la dépasse', robotsAllows(anchored, '/index.php?x=1').allowed)
-
-const permissive = parseRobots(`
-User-agent: *
-Disallow:
-`)
-check('« Disallow: » vide n’interdit rien', robotsAllows(permissive, '/booking').allowed)
-
-console.log('\n3. Lecture réseau, cache et pannes')
+console.log('\n3. Le fichier n’est plus demandé du tout')
 forgetRobots()
-let calls = 0
-const fetcher = async (url: string): Promise<{ status: number; text: string }> => {
-  calls++
-  check(`la lecture vise bien /robots.txt (${url})`, url.endsWith('/robots.txt'))
+let lectures = 0
+const fetcher = async (): Promise<{ status: number; text: string }> => {
+  lectures++
   return { status: 200, text: 'User-agent: *\nDisallow: /booking\n' }
 }
-const first = await allowsPath('https://exemple.test', '/booking', fetcher)
-check('le fichier lu interdit le chemin', !first.allowed, first)
-await allowsPath('https://exemple.test', '/autre', fetcher)
-check('la deuxième demande ne relit pas le fichier', calls === 1, { lectures: calls })
+const verdict = await allowsPath('https://exemple.test', '/booking', fetcher)
+check('le chemin est autorisé', verdict.allowed && verdict.rule === null, verdict)
+check('et aucune requête n’a été émise vers /robots.txt', lectures === 0, { lectures })
 
-forgetRobots()
-const missing = await allowsPath('https://muet.test', '/booking', async () => ({ status: 404, text: '' }))
-check('un robots.txt absent vaut autorisation', missing.allowed, missing)
-
-forgetRobots()
-const broken = await allowsPath('https://panne.test', '/booking', async () => {
+const enPanne = await allowsPath('https://panne.test', '/booking', async () => {
   throw new Error('ECONNREFUSED')
 })
-check('un hôte injoignable n’interdit pas non plus', broken.allowed, broken)
-
-forgetRobots()
-const html = await allowsPath('https://html.test', '/booking', async () => ({
-  status: 200,
-  text: '<!doctype html><html><body>page introuvable</body></html>'
-}))
-check('une page HTML servie à la place du fichier n’est pas prise pour des règles', html.allowed, html)
+check('un hôte injoignable ne change rien — il n’est pas contacté', enPanne.allowed, enPanne)
+check('vider le cache reste sans effet et sans erreur', (forgetRobots(), true))
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)
   process.exit(1)
 }
-console.log('\nRègle robots.txt vérifiée.')
+console.log('\nComportement permissif constaté — aucune règle n’est appliquée.')

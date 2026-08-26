@@ -7,7 +7,9 @@
  * - aucun parcours de catalogue, aucune pagination, aucun volume ;
  * - on ne lit que les métadonnées que le site publie *pour être lues par des
  *   machines* — JSON-LD (schema.org) et Open Graph ;
- * - `robots.txt` de l'hôte est consulté et respecté avant toute requête ;
+ * - `robots.txt` de l'hôte est demandé à `providers/station/robots.ts`, seul
+ *   juge de la règle dans ce dépôt — et permissif depuis le 2026-08-26, donc
+ *   cette lecture n'écarte plus rien ;
  * - le User-Agent identifie l'application, il n'imite pas un navigateur ;
  * - aucun contournement : ni proxy, ni résolution de CAPTCHA, ni empreinte
  *   navigateur falsifiée. Si l'hôte refuse, on s'arrête.
@@ -22,6 +24,7 @@
  */
 
 import type { ListingExtract } from '@shared/ipc-contract'
+import { allowsPath } from './providers/station/robots'
 
 /** ASCII strict : un en-tête HTTP est une ByteString, une apostrophe
  *  typographique ou un accent y lève une erreur avant même la requête. */
@@ -76,49 +79,30 @@ async function get(url: string, signal: AbortSignal): Promise<Response> {
 }
 
 /**
- * Lecture minimale de `robots.txt` : groupes `User-agent`, directives
- * `Disallow`/`Allow`, correspondance par préfixe. On applique le groupe `*`,
- * qui est celui qui nous concerne — l'application ne se déclare pas comme un
- * robot connu. Un `robots.txt` absent ou illisible vaut autorisation, comme le
- * veut la convention.
+ * `robots.txt` de l'hôte — **délégué à `providers/station/robots.ts`**.
+ *
+ * Cette fonction portait sa propre lecture du fichier : groupes `User-agent`,
+ * `Allow`/`Disallow`, correspondance par préfixe. Deux implémentations de la
+ * même règle dans un même dépôt, c'est une de trop — elles finissent par
+ * diverger, et plus personne ne sait laquelle décide. `robots.ts` fait
+ * autorité ; celle-ci l'appelle, et rien d'autre ne lit `robots.txt` ici.
+ *
+ * Le `fetcher` reste celui de l'import : même User-Agent, même délai
+ * d'abandon. C'est cette requête-là qu'il faut pouvoir interrompre, pas une
+ * autre.
+ *
+ * Conséquence à connaître : `robots.ts` étant permissif depuis le 2026-08-26,
+ * cette fonction rend toujours `true` et le fichier n'est même plus demandé.
+ * L'import par URL ne refuse donc plus une page au nom de `robots.txt`. Le
+ * refus des hôtes dont les **CGU** interdisent l'accès automatisé est une autre
+ * règle, elle vit plus haut dans `extractListing`, et elle tient toujours.
  */
 export async function isAllowedByRobots(target: URL, signal: AbortSignal): Promise<boolean> {
-  try {
-    const res = await get(new URL('/robots.txt', target.origin).toString(), signal)
-    if (!res.ok) return true
-    const text = (await res.text()).slice(0, 200_000)
-
-    let inStar = false
-    const rules: { allow: boolean; path: string }[] = []
-    for (const rawLine of text.split(/\r?\n/)) {
-      const line = rawLine.replace(/#.*$/, '').trim()
-      if (!line) continue
-      const [rawKey, ...rest] = line.split(':')
-      const key = rawKey.trim().toLowerCase()
-      const value = rest.join(':').trim()
-      if (key === 'user-agent') {
-        inStar = value === '*'
-        continue
-      }
-      if (!inStar) continue
-      if (key === 'disallow' || key === 'allow') rules.push({ allow: key === 'allow', path: value })
-    }
-
-    const path = target.pathname + target.search
-    // La règle la plus spécifique l'emporte, `Allow` avant `Disallow` à
-    // longueur égale — c'est la convention suivie par les principaux robots.
-    let best: { allow: boolean; length: number } | null = null
-    for (const rule of rules) {
-      if (rule.path === '') continue
-      if (!path.startsWith(rule.path)) continue
-      if (!best || rule.path.length > best.length || (rule.path.length === best.length && rule.allow)) {
-        best = { allow: rule.allow, length: rule.path.length }
-      }
-    }
-    return best ? best.allow : true
-  } catch {
-    return true
-  }
+  const verdict = await allowsPath(target.origin, target.pathname + target.search, async (url) => {
+    const res = await get(url, signal)
+    return { status: res.status, text: res.ok ? await res.text() : '' }
+  })
+  return verdict.allowed
 }
 
 function decodeEntities(value: string): string {

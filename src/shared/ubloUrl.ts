@@ -18,6 +18,41 @@
 
 export const UBLO_LISTING_SEGMENT = 'hebergements'
 
+/**
+ * Centrales Ublo qui ne publient **aucune fiche par logement** : hôte → page
+ * d'entrée de leur widget.
+ *
+ * Isola 2000 en est : son catalogue vit dans un widget monopage, la route à
+ * dièse est réécrite au chargement, et aucune configuration publiée ne donne de
+ * chemin de fiche. Lui fabriquer un `/hebergements/{slug}` rendait une **404**.
+ *
+ * Cette table est partagée parce qu'elle a deux lecteurs, et que la recopier
+ * serait la faire diverger : le **connecteur** l'applique aux offres qu'il
+ * relève, le **renderer** réécrit les URL déjà enregistrées sous l'ancienne
+ * forme. C'est la même raison d'être que le reste de ce fichier.
+ */
+export const UBLO_ENTRY_ONLY: Record<string, string> = {
+  'isola2000.com': '/reservez-votre-sejour/'
+}
+
+/**
+ * Lien vers la centrale, pour un logement qui n'a pas de fiche.
+ *
+ * Le `slug` est accroché en paramètre alors que le site l'ignore, et ce n'est
+ * pas décoratif : dans l'application, l'URL **est** l'identité d'une annonce —
+ * clé de dédoublonnage du relevé, source de son identifiant, clé de
+ * rapprochement au relevé suivant. Une URL commune à treize logements les
+ * réduirait à un seul.
+ *
+ * Les dates ne sont pas accrochées : le widget ne les lit pas, et des
+ * paramètres qu'on sait ignorés feraient croire à un lien daté.
+ */
+export function ubloEntryUrl(origin: string, entryPath: string, slug: string): string {
+  const url = new URL(entryPath, origin)
+  url.searchParams.set('lodging', slug)
+  return url.href
+}
+
 /** Chemin de fiche, préfixe de langue compris (`/fr` à Sainte-Foy). */
 export function ubloListingPath(pathPrefix: string, slug: string): string {
   return `${pathPrefix}/${UBLO_LISTING_SEGMENT}/${slug}`.replace(/\/{2,}/g, '/')
@@ -38,6 +73,23 @@ export function ubloListingPath(pathPrefix: string, slug: string): string {
 export function repairUbloListingUrl(url: string): string {
   try {
     const u = new URL(url)
+
+    /*
+     * Centrale sans fiche : une URL enregistrée sous `/hebergements/{slug}` y
+     * rend une 404. On la ramène sur la page d'entrée, en gardant le `slug`
+     * comme identité. Sans cette réécriture, l'ancienne annonce et la nouvelle
+     * portent deux URL différentes, donc deux identités : elles s'affichent en
+     * double, l'une menant à une page d'erreur.
+     */
+    const entry = UBLO_ENTRY_ONLY[u.hostname.replace(/^www\./, '')]
+    if (entry) {
+      const parts = u.pathname.split('/').filter(Boolean)
+      if (parts[0] !== UBLO_LISTING_SEGMENT) return url
+      const slug = parts[1]
+      if (!slug) return url
+      return ubloEntryUrl(u.origin, entry, slug)
+    }
+
     const parts = u.pathname.split('/').filter(Boolean)
     // Déjà bon, ou pas la forme visée.
     if (parts.length !== 1 || parts[0] === UBLO_LISTING_SEGMENT) return url

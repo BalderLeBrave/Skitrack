@@ -130,9 +130,24 @@ check(
 
 const uneChambre: LodgingFilterCriteria = { ...CRITERIA, rooms: 1, travelers: 2 }
 check(
-  '1 ch demandée : aucun seuil, un studio passe',
-  keeps({ pers: 2, ch: 0, rooms: 1, total: 700 }, uneChambre)
+  '1 ch demandée, studio (1 pièce) → écartée',
+  !keeps({ pers: 2, ch: 0, rooms: 1, total: 700 }, uneChambre)
 )
+check(
+  '1 ch demandée, 2 pièces → retenue',
+  keeps({ pers: 2, ch: 0, rooms: 2, total: 700 }, uneChambre)
+)
+
+// Le repos du seuil : il descend jusqu'au studio, et là il n'écarte plus
+// personne. C'est ce que « en dessous d'une chambre » veut dire.
+const studio: LodgingFilterCriteria = { ...CRITERIA, rooms: 0, travelers: 2 }
+check(
+  '0 ch demandée : un studio (1 pièce) passe',
+  keeps({ pers: 2, ch: 0, rooms: 1, total: 700 }, studio)
+)
+check('0 ch demandée : une annonce sans chambre passe', keeps({ pers: 2, ch: 0, total: 700 }, studio))
+check('0 ch demandée : 3 chambres annoncées passent aussi', keeps({ pers: 2, ch: 3, total: 700 }, studio))
+check('0 ch demandée : la capacité continue de valoir', !keeps({ pers: 1, ch: 0, total: 700 }, studio))
 
 check(
   'les chambres priment quand la source les annonce',
@@ -140,6 +155,34 @@ check(
 )
 check('et elles priment aussi pour écarter', !keeps({ pers: 8, ch: 1, rooms: 9, total: 2400 }))
 check('ni chambres ni pièces annoncées → retenue', keeps({ pers: 8, ch: 0, total: 2400 }))
+
+console.log('\n4 bis. Un plafond atteint ne borne plus')
+// La règle vit dans `data/range.ts` : `hi >= ceil` lève la borne haute. Elle
+// est testée ici parce que c'est ici qu'elle se voit — sans elle, le curseur
+// poussé à fond continuerait d'écarter les annonces au-delà de son échelle,
+// et l'écran ne dirait pas pourquoi.
+const budgetOuvert: LodgingFilterCriteria = { ...CRITERIA, budgetMin: 0, budgetMax: 8000 }
+check(
+  'budget au plafond : un séjour à 12 000 € passe',
+  keeps({ pers: 8, ch: 4, total: 12000 }, budgetOuvert)
+)
+check(
+  'budget au plafond avec un plancher posé : 12 000 € passe encore',
+  keeps({ pers: 8, ch: 4, total: 12000 }, { ...budgetOuvert, budgetMin: 2000 })
+)
+check(
+  'budget en deçà du plafond : 12 000 € est écarté',
+  !keeps({ pers: 8, ch: 4, total: 12000 }, { ...budgetOuvert, budgetMax: 7900 })
+)
+const distOuverte: LodgingFilterCriteria = { ...CRITERIA, distMin: 0, distMax: 1000 }
+check(
+  'distance au plafond : une annonce à 2 500 m des pistes passe',
+  keeps({ pers: 8, ch: 4, total: 2400, dist: 2500 }, distOuverte)
+)
+check(
+  'distance en deçà du plafond : 2 500 m est écarté',
+  !keeps({ pers: 8, ch: 4, total: 2400, dist: 2500 }, { ...distOuverte, distMax: 950 })
+)
 
 console.log('\n5. Les filtres de prix ne s’appliquent qu’aux annonces tarifées')
 const budget: LodgingFilterCriteria = { ...CRITERIA, budgetMax: 1000 }

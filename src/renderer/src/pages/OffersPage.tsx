@@ -138,7 +138,7 @@ export function OffersPage(): JSX.Element {
         </span>
 
         <span className="offerrow__price">
-          <strong className="offerrow__total u-num">{eur(o.c.total)}</strong>
+          <strong className="offerrow__total u-num crn-calcul">{eur(o.c.total)}</strong>
           <span className="offerrow__unit">
             {t('offers_price_unit').replace('{n}', String(derived.nights))}
           </span>

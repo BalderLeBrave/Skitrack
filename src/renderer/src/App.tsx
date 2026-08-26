@@ -18,6 +18,7 @@ import { HomePage } from '@/pages/HomePage'
 import { LodgingsPage } from '@/pages/LodgingsPage'
 import { OffersPage } from '@/pages/OffersPage'
 import { ReferentialPage } from '@/pages/ReferentialPage'
+import { SelectionPage } from '@/pages/SelectionPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { TrackingPage } from '@/pages/TrackingPage'
 
@@ -74,11 +75,31 @@ function ThemeSwitch(): JSX.Element {
   )
 }
 
+/**
+ * Barre supérieure.
+ *
+ * Trois onglets primaires seulement — Accueil, Rechercher, Logements — parce
+ * que ce sont les trois seuls endroits où l'on *cherche* quelque chose. Offres,
+ * Combinaisons et Décision sont trois vues d'une même comparaison déjà en
+ * cours : elles vivent dans un groupe segmenté, qui dit qu'on change d'angle et
+ * pas de tâche. Les utilitaires restent à droite.
+ *
+ * L'onglet Logements ne disparaît plus quand aucun domaine n'est ouvert : un
+ * onglet qui va et vient force à retenir *quand* il apparaît. Il reste visible
+ * et renvoie vers Rechercher, ce qui est aussi la marche à suivre.
+ */
 function Nav(): JSX.Element {
   const { state, patch, screen, narrow } = useApp()
   const { t } = useI18n()
   const tab = (on: boolean): string => `tab${on ? ' tab--on' : ''}${narrow ? ' tab--narrow' : ''}`
   const tab2 = (on: boolean): string => `tab2${on ? ' tab2--on' : ''}`
+  const seg = (on: boolean): string => `navseg__btn${on ? ' navseg__btn--on' : ''}`
+
+  /** Sans domaine ouvert, l'onglet Logements n'a rien à montrer : il renvoie
+   *  vers l'écran qui permet d'en ouvrir un. */
+  const openLodgings = (): void => {
+    patch({ tab: state.lodgingDomainId != null ? 'logements' : 'recherche' })
+  }
 
   return (
     <nav className="nav">
@@ -97,29 +118,62 @@ function Nav(): JSX.Element {
         >
           {t('nav_search')}
         </button>
-        <button type="button" className={tab(screen === 'offres')} onClick={() => patch({ tab: 'offres' })}>
-          {t('nav_offers')}
+        <button
+          type="button"
+          className={tab(screen === 'logements')}
+          title={state.lodgingDomainId == null ? t('nav_lodgings_need_domain') : undefined}
+          onClick={openLodgings}
+        >
+          {t('nav_lodgings')}
         </button>
-        <button type="button" className={tab(screen === 'combinaisons')} onClick={() => patch({ tab: 'combinaisons' })}>
-          {t('nav_combos')}
-        </button>
-        <button type="button" className={tab(screen === 'decision')} onClick={() => patch({ tab: 'decision' })}>
-          {t('nav_decision')}
-        </button>
-        {/* L'onglet Logements n'apparaît qu'une fois un domaine ouvert : sans
-            domaine il n'aurait rien à montrer. */}
-        {state.lodgingDomainId != null && (
-          <button type="button" className={tab(screen === 'logements')} onClick={() => patch({ tab: 'logements' })}>
-            {t('nav_lodgings')}
+
+        {/* Groupe segmenté : trois lectures d'une même comparaison. */}
+        <div className="navseg" role="group" aria-label={t('nav_seg_label')}>
+          <button
+            type="button"
+            className={seg(screen === 'offres')}
+            aria-current={screen === 'offres' ? 'page' : undefined}
+            onClick={() => patch({ tab: 'offres' })}
+          >
+            {t('nav_offers')}
           </button>
-        )}
+          <button
+            type="button"
+            className={seg(screen === 'combinaisons')}
+            aria-current={screen === 'combinaisons' ? 'page' : undefined}
+            onClick={() => patch({ tab: 'combinaisons' })}
+          >
+            {t('nav_combos')}
+          </button>
+          <button
+            type="button"
+            className={seg(screen === 'decision')}
+            aria-current={screen === 'decision' ? 'page' : undefined}
+            onClick={() => patch({ tab: 'decision' })}
+          >
+            {t('nav_decision')}
+          </button>
+        </div>
       </div>
 
       <div className="nav__side nav__side--right">
+        {/* Favoris : les domaines retenus, adossés à `selDomains`. Le compte
+            ne s'affiche que s'il y en a — « Favoris · 0 » n'apprend rien. */}
+        <button
+          type="button"
+          className={tab2(screen === 'selection')}
+          onClick={() => patch({ tab: 'selection' })}
+        >
+          {t('nav_favorites')}
+          {state.selDomains.length > 0 ? ` · ${state.selDomains.length}` : ''}
+        </button>
         <button type="button" className={tab2(screen === 'suivi')} onClick={() => patch({ tab: 'suivi' })}>
           {t('nav_tracking')}
           {state.tracked.length > 0 ? ` · ${state.tracked.length}` : ''}
         </button>
+        {/* Réglages reste dans la barre bien que le prototype l'en retire :
+            c'est le seul chemin vers l'écran, et le retirer le rendrait
+            inatteignable. */}
         <button type="button" className={tab2(screen === 'reglages')} onClick={() => patch({ tab: 'reglages' })}>
           {t('nav_settings')}
         </button>
@@ -152,6 +206,8 @@ function Screens(): JSX.Element {
       return <DecisionPage />
     case 'logements':
       return <LodgingsPage />
+    case 'selection':
+      return <SelectionPage />
     case 'suivi':
       return <TrackingPage />
     case 'reglages':
@@ -210,7 +266,7 @@ function Boot({
 }
 
 function Shell(): JSX.Element {
-  const { state, patch, reloadDomains } = useApp()
+  const { state, patch, screen, reloadDomains } = useApp()
   const derived = useDerived()
   const { state: sidecar, log, restart } = useSidecar()
   const [engineSkipped, setEngineSkipped] = useState(false)
@@ -267,8 +323,14 @@ function Shell(): JSX.Element {
         <Screens />
       </main>
       {/* La neige n'apparaît qu'une fois l'application ouverte : sur l'écran
-          d'amorçage, elle décorerait un message d'erreur. */}
-      {state.snowfall && <Snowfall />}
+          d'amorçage, elle décorerait un message d'erreur.
+
+          Pas sur l'Accueil non plus : le héros y a sa propre chute, sur toile
+          (`Flocons`). Les deux ensemble faisaient tomber deux neiges de
+          densités différentes sur la même image. Les écrans-outils gardent
+          celle-ci, en DOM et légère, et l'un comme l'autre obéissent au même
+          réglage `snowfall`. */}
+      {state.snowfall && screen !== 'accueil' && <Snowfall />}
       {state.peopleOpen && <PeopleDrawer />}
       {state.domFicheId != null && <DomainSheet />}
       {state.onboard && <Onboarding />}

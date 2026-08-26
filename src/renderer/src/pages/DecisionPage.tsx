@@ -88,7 +88,7 @@ export function DecisionPage(): JSX.Element {
       <div className="page__inner decision" style={{ maxWidth: 560, padding: '26px 28px 40px' }}>
         <header className="page-head" style={{ marginBottom: 4 }}>
           <h2>{ctx.d.name}</h2>
-          <strong className="u-num" style={{ fontSize: 20, color: 'var(--text)' }}>
+          <strong className="u-num crn-calcul" style={{ fontSize: 20, color: 'var(--text)' }}>
             {eur(k.total)}
           </strong>
         </header>

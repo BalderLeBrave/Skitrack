@@ -229,8 +229,8 @@ export function TrackingPage(): JSX.Element {
                     </div>
 
                     <div className="trackrow__price">
-                      <strong className="u-num">{eur(last)}</strong>
-                      <span className="trackrow__sub u-num">
+                      <strong className="u-num crn-releve">{eur(last)}</strong>
+                      <span className="trackrow__sub u-num crn-releve">
                         {fmt(lo)} – {fmt(hi)} €
                       </span>
                     </div>

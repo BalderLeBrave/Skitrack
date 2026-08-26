@@ -211,7 +211,7 @@ export function ResultCard({
         >
           {price ? (
             <>
-              <strong className="resultcard__amount">{price.amount}</strong>{' '}
+              <strong className="resultcard__amount crn-releve">{price.amount}</strong>{' '}
               <span className="resultcard__unit">{price.unit}</span>
             </>
           ) : (

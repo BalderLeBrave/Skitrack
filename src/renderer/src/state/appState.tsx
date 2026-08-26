@@ -33,6 +33,7 @@ import { loadRoutes } from '@/domain/travel'
 export type Screen =
   | 'accueil'
   | 'recherche'
+  | 'selection'
   | 'offres'
   | 'combinaisons'
   | 'decision'
@@ -40,6 +41,45 @@ export type Screen =
   | 'suivi'
   | 'reglages'
   | 'import-referentiel'
+
+/**
+ * Ce qu'une note ou un vote de « Ma sélection » désigne.
+ *
+ * Les deux formes de cible cohabitent dans une seule table côté persistance :
+ * un couple (`kind`, `targetId`) plutôt que deux colonnes nullables, pour qu'un
+ * enregistrement ne puisse pas viser un domaine *et* un logement.
+ */
+export type SelectionKind = 'domain' | 'lodging'
+
+/**
+ * Une note du fil de discussion, adossée à un élément retenu.
+ *
+ * La forme est celle de la table `selection_notes` proposée en tête de phase,
+ * champ pour champ : quand la persistance passera de `localStorage` à SQLite,
+ * c'est la couche de stockage qui change, pas le modèle.
+ */
+export interface SelectionNote {
+  /** Miroir de `selection_notes.id`. Croissant, jamais réutilisé. */
+  id: number
+  kind: SelectionKind
+  targetId: number
+  /** `Person.id` de l'auteur. `-1` quand aucun voyageur n'est renseigné. */
+  authorId: number
+  /** ISO 8601 en UTC, comme `selection_notes.created_at`. */
+  createdAt: string
+  body: string
+}
+
+/**
+ * Clé de vote d'un élément de la sélection.
+ *
+ * Elle réutilise `state.votes`, déjà indexé par clé d'objet et par rang de
+ * votant : le modèle de `selection_votes` (cible, votant, valeur) y est déjà,
+ * il n'y avait pas lieu d'en ouvrir un second.
+ */
+export function selectionVoteKey(kind: SelectionKind, targetId: number): string {
+  return `sel:${kind}:${targetId}`
+}
 
 export type SortKey =
   | 'relevance'
@@ -139,7 +179,6 @@ export interface AppState {
   // Écran Recherche
   selectedId: number | null
   scoreOpenId: number | null
-  forfaitOpenId: number | null
   pinnedId: number | null
   cmpRefId: number | null
   domFicheId: number | null
@@ -383,6 +422,13 @@ export interface AppState {
   quietHours: boolean
   digest: boolean
 
+  // Ma sélection
+  /** Domaines retenus, dans l'ordre où ils l'ont été. */
+  selDomains: number[]
+  /** Logement retenu par domaine : `domainId` → `lodgingId`, comme le prototype. */
+  selLodgings: Record<number, number>
+  selNotes: SelectionNote[]
+
   // Votes du groupe, indexés par clé d'objet voté
   votes: Record<string, number[]>
   voter: number
@@ -454,7 +500,6 @@ export const INITIAL_STATE: AppState = {
 
   selectedId: 1,
   scoreOpenId: 1,
-  forfaitOpenId: null,
   pinnedId: null,
   cmpRefId: null,
   domFicheId: null,
@@ -571,6 +616,9 @@ export const INITIAL_STATE: AppState = {
   quietHours: true,
   digest: false,
 
+  selDomains: [],
+  selLodgings: {},
+  selNotes: [],
   votes: {},
   voter: 0,
 
@@ -621,6 +669,7 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
 const PERSISTED_KEYS = [
   'theme', 'lang', 'density', 'snowfall', 'children', 'optRental', 'optLessons',
   'alertMode', 'alertPct', 'alertEur', 'quietHours', 'digest', 'votes',
+  'selDomains', 'selLodgings', 'selNotes',
   // `searchFiltersOpen` n'est plus enregistré : c'est l'état d'un survol, pas
   // un réglage. Le retrouver ouvert au démarrage suivant reposerait un panneau
   // sur la liste sans que personne ne l'ait demandé.

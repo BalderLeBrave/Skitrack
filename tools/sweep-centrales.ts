@@ -116,7 +116,18 @@ const FIELDS: [string, (a: Accommodation) => boolean][] = [
   ['lien', (a) => Boolean(a.url)]
 ]
 
-const provider = createStationProvider({ timeoutMs: 40_000, headless: true, maxRetries: 1 })
+// La reconnaissance mesure la *couverture des champs*, pas le stock : une page
+// de résultats et douze fiches tarifées suffisent à dire si une centrale
+// renseigne les coordonnées, la surface ou les avis. Sans ces deux plafonds,
+// balayer cinquante centrales relèverait leur inventaire entier — des heures,
+// pour une réponse que vingt fiches donnent déjà.
+const provider = createStationProvider({
+  timeoutMs: 40_000,
+  headless: true,
+  maxRetries: 1,
+  maxPages: 1,
+  priceLimit: 12
+})
 const results: Result[] = []
 const queue = [...centrals.entries()]
 

@@ -36,8 +36,20 @@
  * Le connecteur remplit désormais le formulaire — dates, durée, personnes — et
  * clique « Rechercher », avec les sélecteurs relevés à la main dans
  * `docs/sources/centrales-selecteurs.xlsx`. C'est le geste de l'utilisateur,
- * déclenché par lui, une fois, pour ses dates : aucun lien suivi, aucune
- * pagination. Voir `submitSearch`.
+ * déclenché par lui, une fois, pour ses dates. Voir `submitSearch`.
+ *
+ * ## La pagination suit le lien de la page, elle ne le fabrique pas
+ *
+ * La SERP Ingénie rend **vingt fiches par page** et publie un lien « PLUS DE
+ * RÉSULTATS » vers la suivante. Les 2 Alpes annonce 342 résultats pour une
+ * semaine de janvier : s'arrêter à la première page, c'était en montrer vingt,
+ * et douze après tarification. Le connecteur suit donc ce lien, page après
+ * page, jusqu'à `MAX_RESULT_PAGES`.
+ *
+ * La distinction avec l'URL interdite plus haut tient en un mot : celle-là
+ * était **fabriquée** à partir de paramètres devinés, celle-ci est l'`href` que
+ * la page publie et que le visiteur clique. Aucun numéro de page n'est calculé
+ * ici. Voir `readNextResultsHref` et `loadAllCards`.
  *
  * Le tarif d'une annonce, lui, n'est pas celui de la SERP : `.prix_en_cours` y
  * est souvent un « à partir de ». Le montant daté est celui du Rechercher de
@@ -64,7 +76,7 @@
  * `station/robots.ts`, avec ses tests (`npm run robots:test`).
  */
 
-import type { Page } from 'playwright'
+import { request, type APIRequestContext, type Page } from 'playwright'
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
 import { baseAccommodation, parsePrice, sleep, withPage, withRetries, type ScrapeAttemptOptions } from '../webscrape/shared'
 import {
@@ -681,6 +693,32 @@ export function extractStationCards(): StationCard[] {
   return out
 }
 
+/**
+ * `href` du lien « page suivante » de la SERP, tel que la page le rend.
+ *
+ * Évaluée *dans la page*, donc sans dépendance extérieure — même règle que
+ * `extractStationCards`.
+ *
+ * Deux libellés, dans cet ordre : le bouton « PLUS DE RÉSULTATS » sous la
+ * liste, puis le « Suivant » du bloc `.pagination` — que plusieurs centrales
+ * rendent en `display:none`, d'où la lecture de l'`href` plutôt qu'un clic.
+ *
+ * `a.href` est l'URL déjà résolue par le navigateur : rien n'est concaténé ici,
+ * et aucun numéro de page n'est calculé. Le lien vient de la page ou il n'y a
+ * pas de page suivante.
+ */
+export function readNextResultsHref(): string | null {
+  const doc = (globalThis as unknown as { document: DomRoot }).document
+  const links = Array.from(doc.querySelectorAll('a[href]'))
+  for (const pattern of [/plus de r[ée]sultats/i, /^suivant/i]) {
+    for (const link of links) {
+      const label = (link.innerText || '').replace(/\s+/g, ' ').trim()
+      if (label && pattern.test(label) && link.href) return link.href
+    }
+  }
+  return null
+}
+
 /** Identifiant stable d'une fiche : le segment de son URL, sinon l'URL entière. */
 function sourceIdOf(url: string): string {
   try {
@@ -709,6 +747,102 @@ async function loadCards(page: Page, timeoutMs: number): Promise<StationCard[]> 
   return page.evaluate(extractStationCards)
 }
 
+/**
+ * Ce lien mène-t-il à une autre page **de la même centrale** ?
+ *
+ * Deux refus, et chacun a coûté une relecture :
+ *
+ *  - **hors domaine**. `readNextResultsHref` retient un libellé, pas une cible.
+ *    Un « Suivant » de bandeau publicitaire mènerait ailleurs, et le connecteur
+ *    tarifierait ensuite contre l'origine de cette page-là.
+ *  - **la page courante**. Un « Suivant » de carrousel porte `href="#"`, que le
+ *    navigateur résout en l'URL courante : on la rechargerait indéfiniment.
+ */
+function leadsElsewhereOnSite(href: string, current: string): boolean {
+  try {
+    const target = new URL(href)
+    const here = new URL(current)
+    if (target.origin !== here.origin) return false
+    // Le fragment ne change pas de page : on compare ce qui reste.
+    return `${target.pathname}${target.search}` !== `${here.pathname}${here.search}`
+  } catch {
+    return false
+  }
+}
+
+/** Pages de résultats suivies au maximum. Vingt fiches par page. */
+const MAX_RESULT_PAGES = 20
+/**
+ * Budget de la pagination seule, hors tarification.
+ *
+ * Les dix-huit pages des 2 Alpes tiennent dedans avec de la marge. Une centrale
+ * plus lente sera tronquée plutôt que bloquante, et le dira (`cards-truncated`).
+ */
+const PAGING_BUDGET_MS = 120_000
+
+/**
+ * Toutes les fiches du relevé, page après page.
+ *
+ * Trois arrêts, et aucun n'est un compteur de pages déguisé :
+ *
+ *  1. la page ne publie plus de lien « suivante » — c'est la fin normale ;
+ *  2. l'`href` de ce lien a déjà été suivi, ou la page n'apporte aucune fiche
+ *     nouvelle : le lien tourne en rond, on ne le suit pas une seconde fois ;
+ *  3. le plafond de pages ou le budget de temps est atteint. Ce cas-là est
+ *     tracé (`cards-truncated`) : une liste tronquée qui ne se dit pas tronquée
+ *     se lit comme une liste complète.
+ */
+async function loadAllCards(
+  page: Page,
+  timeoutMs: number,
+  maxPages: number,
+  budgetMs: number
+): Promise<{ cards: StationCard[]; pages: number; truncated: boolean }> {
+  const cards: StationCard[] = []
+  const seenUrls = new Set<string>()
+  const seenHrefs = new Set<string>()
+  const deadline = Date.now() + budgetMs
+  let pages = 0
+
+  for (;;) {
+    const read = await loadCards(page, timeoutMs)
+    pages++
+    let fresh = 0
+    for (const card of read) {
+      if (seenUrls.has(card.url)) continue
+      seenUrls.add(card.url)
+      cards.push(card)
+      fresh++
+    }
+    debugLog('station-ajax', 'cards-page', {
+      page: pages,
+      read: read.length,
+      fresh,
+      total: cards.length
+    })
+    // Une page qui n'apporte rien : le lien renvoyait à la même liste.
+    if (fresh === 0 && pages > 1) return { cards, pages, truncated: false }
+
+    const href = await page.evaluate(readNextResultsHref).catch(() => null)
+    if (!href || seenHrefs.has(href) || !leadsElsewhereOnSite(href, page.url())) {
+      return { cards, pages, truncated: false }
+    }
+
+    if (pages >= maxPages || Date.now() >= deadline) {
+      debugLog('station-ajax', 'cards-truncated', { pages, total: cards.length, maxPages })
+      return { cards, pages, truncated: true }
+    }
+
+    seenHrefs.add(href)
+    try {
+      await page.goto(href, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+    } catch {
+      // Page suivante inaccessible : on rend ce qui a été lu, pas une erreur.
+      return { cards, pages, truncated: true }
+    }
+  }
+}
+
 const breakersByHost = new Map<string, CircuitBreaker>()
 
 function breakerFor(host: string): CircuitBreaker {
@@ -728,10 +862,29 @@ function hostOfOrigin(origin: string): string {
   }
 }
 
-/** Budget TOTAL hors chargement de page : on garde les fiches déjà enrichies. */
-const ENRICH_BUDGET_MS = 40_000
+/**
+ * Budget TOTAL de la tarification : on garde les fiches déjà enrichies.
+ *
+ * Quatre minutes, et c'est un plafond, pas une cible. Mesuré : les 322 fiches
+ * retenues des 2 Alpes sont tarifées en ~110 s à six sessions ; Les Saisies
+ * répond quatre fois plus lentement par fiche et se fait tronquer — ce que
+ * `exact-price-done` dit alors avec `budgetExhausted`. Une fiche non tarifée
+ * garde son « à partir de » et sera écartée en aval : elle n'apparaît jamais
+ * avec un prix qui n'est pas celui du séjour.
+ */
+const ENRICH_BUDGET_MS = 240_000
 /** Timeout d’un aller-retour searchAjax / tarifs / calculerTotal. */
 const ENRICH_REQUEST_MS = 8_000
+/**
+ * Sessions HTTP indépendantes ouvertes pour tarifer.
+ *
+ * Six, et pas plus : c'est le site d'un office de tourisme, pas une API. Le
+ * relevé de 342 fiches des 2 Alpes tient en deux minutes à ce rythme.
+ */
+const PRICE_SESSIONS = 6
+/** En-tête d'agent des sessions de tarification, aligné sur celui du navigateur. */
+const PRICE_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 
 
 /**
@@ -747,7 +900,8 @@ const ENRICH_REQUEST_MS = 8_000
  * calculerTotalPrestationAjax dans la session Playwright.
  */
 async function resolveExactPriceOnFiche(
-  parent: Page,
+  api: APIRequestContext,
+  origin: string,
   card: StationCard,
   params: SearchParams,
   cidHint: string | null,
@@ -766,7 +920,7 @@ async function resolveExactPriceOnFiche(
     let pipe = card.objectCode
     let cid = cidHint
     if (!pipe || !cid) {
-      const product = await parent.request.get(productUrl, { timeout: reqTimeout })
+      const product = await api.get(productUrl, { timeout: reqTimeout })
       if (!product.ok()) return null
       const html = await product.text()
       const obj = extractWidgetObject(html)
@@ -779,7 +933,6 @@ async function resolveExactPriceOnFiche(
     }
 
     const dash = prestationDash(pipe)
-    const origin = new URL(parent.url()).origin
     const searchUrl = `${origin}/booking?${searchAjaxQuery({
       cid,
       dash,
@@ -790,7 +943,7 @@ async function resolveExactPriceOnFiche(
       adults,
       children
     })}`
-    const searchRes = await parent.request.get(searchUrl, { timeout: reqTimeout })
+    const searchRes = await api.get(searchUrl, { timeout: reqTimeout })
     if (!searchRes.ok()) return null
     const search = parseSearchAjax(await searchRes.text())
     if (!search || !search.success || search.nbResultsFiche <= 0) {
@@ -800,20 +953,19 @@ async function resolveExactPriceOnFiche(
 
     let prestation = tarifsPrestationId(dash)
     const tarifsUrl = `${origin}/booking?${tarifsAjaxQuery({ cid, prestation })}`
-    let tarifsRes = await parent.request.get(tarifsUrl, { timeout: reqTimeout })
+    let tarifsRes = await api.get(tarifsUrl, { timeout: reqTimeout })
     let tarifsHtml = tarifsRes.ok() ? await tarifsRes.text() : ''
     if (!tarifsHtml || tarifsHtml.length < 80) {
       const detailUrl =
         `${origin}/booking?action=detailPrestationsAjax&id=${encodeURIComponent(dash)}&cid=${encodeURIComponent(cid)}`
-      const detailRes = await parent.request.get(detailUrl, { timeout: reqTimeout })
+      const detailRes = await api.get(detailUrl, { timeout: reqTimeout })
       const detailHtml = detailRes.ok() ? await detailRes.text() : ''
       const fromDetail = extractTarifsPrestationId(detailHtml)
       if (fromDetail && fromDetail !== prestation) {
         prestation = fromDetail
-        tarifsRes = await parent.request.get(
-          `${origin}/booking?${tarifsAjaxQuery({ cid, prestation })}`,
-          { timeout: reqTimeout }
-        )
+        tarifsRes = await api.get(`${origin}/booking?${tarifsAjaxQuery({ cid, prestation })}`, {
+          timeout: reqTimeout
+        })
         tarifsHtml = tarifsRes.ok() ? await tarifsRes.text() : ''
       }
     }
@@ -822,7 +974,7 @@ async function resolveExactPriceOnFiche(
     const formQs = serializeTarifsForm(tarifsHtml)
     if (!formQs) return null
     const calcUrl = `${origin}/booking?action=calculerTotalPrestationAjax&${formQs}`
-    const calcRes = await parent.request.get(calcUrl, { timeout: reqTimeout })
+    const calcRes = await api.get(calcUrl, { timeout: reqTimeout })
     const calcText = calcRes.ok() ? await calcRes.text() : ''
     const priceText = parseCalculerTotal(calcText) ?? parseTotalPrestationSpan(tarifsHtml)
     const total = parsePrice(priceText)
@@ -843,13 +995,40 @@ async function resolveExactPriceOnFiche(
   }
 }
 
+/**
+ * Tarifie les fiches, en parallèle, chacune dans sa propre session.
+ *
+ * ## Pourquoi le séquentiel a été levé
+ *
+ * Le connecteur ne tarifiait qu'une fiche à la fois, et le commentaire disait
+ * pourquoi : `searchAjax` écrit le séjour dans la session PHP,
+ * `detailPrestationsAjax` le relit, donc deux fiches qui partagent un
+ * `PHPSESSID` s'écrasent l'une l'autre. C'est exact — et c'est un argument
+ * contre le partage de session, pas contre le parallélisme.
+ *
+ * Six sessions HTTP indépendantes ne se voient pas. Vérifié : les huit
+ * premières fiches des 2 Alpes, tarifées à quatre sessions, rendent au centime
+ * les totaux relevés en séquentiel dans le navigateur.
+ *
+ * ## Pourquoi pas le navigateur
+ *
+ * Ces trois appels sont du HTTP nu — aucun DOM, aucun script de page. Ils
+ * partaient déjà de `page.request`, c'est-à-dire hors du script de la page ;
+ * les sortir du navigateur ne change pas leur nature, et évite d'ouvrir six
+ * contextes Chromium pour six jeux de cookies.
+ *
+ * Le budget reste un budget : ce qui est tarifé dans le temps imparti est
+ * gardé, le reste garde son « à partir de » et sera écarté en aval — jamais
+ * présenté comme le prix du séjour.
+ */
 async function enrichExactPrices(
   parent: Page,
   cards: StationCard[],
   params: SearchParams,
   timeoutMs: number,
-  limit = 12,
-  budgetMs = ENRICH_BUDGET_MS
+  limit = Number.POSITIVE_INFINITY,
+  budgetMs = ENRICH_BUDGET_MS,
+  sessions = PRICE_SESSIONS
 ): Promise<void> {
   const ranked = [
     ...cards.filter((c) => c.fromPrice && c.url),
@@ -875,38 +1054,90 @@ async function enrichExactPrices(
     })
     .catch(() => null)
 
+  const origin = new URL(parent.url()).origin
   const perRequest = Math.min(ENRICH_REQUEST_MS, timeoutMs)
   const deadline = Date.now() + budgetMs
-  // Un PHPSESSID : searchAjax écrit le séjour en session, detailPrestationsAjax
-  // le lit. En parallèle, les fiches s'écraseraient l'une l'autre.
-  const conc = 1
+  const workers = Math.max(1, Math.min(sessions, need.length))
+
+  const pool: APIRequestContext[] = []
+  // Un curseur partagé plutôt que des tranches égales : une fiche lente ne
+  // laisse pas son ouvrier au repos pendant que les autres finissent.
+  let cursor = 0
   let done = 0
-  for (let i = 0; i < need.length; i += conc) {
-    if (Date.now() >= deadline) {
-      debugLog('station-ajax', 'exact-price-budget', {
-        done,
-        of: need.length,
-        budgetMs
-      })
-      break
+  let stopped = false
+  try {
+    // Dans le `try` : si la troisième session refuse de s'ouvrir, les deux
+    // premières doivent quand même être fermées.
+    for (let i = 0; i < workers; i++) {
+      pool.push(
+        await request.newContext({
+          userAgent: PRICE_USER_AGENT,
+          extraHTTPHeaders: { 'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8' }
+        })
+      )
     }
-    const batch = need.slice(i, i + conc)
-    const prices = await Promise.all(
-      batch.map((c) => resolveExactPriceOnFiche(parent, c, params, cidHint, perRequest))
+
+    await Promise.all(
+      pool.map(async (api) => {
+        for (;;) {
+          if (Date.now() >= deadline) {
+            stopped = true
+            return
+          }
+          const index = cursor++
+          if (index >= need.length) return
+          const card = need[index]
+          const total = await resolveExactPriceOnFiche(
+            api,
+            origin,
+            card,
+            params,
+            cidHint,
+            perRequest
+          )
+          if (total != null && total > 0) {
+            card.priceText = `${total} €`
+            card.fromPrice = false
+            done++
+          }
+        }
+      })
     )
-    for (let j = 0; j < batch.length; j++) {
-      const total = prices[j]
-      if (total != null && total > 0) {
-        batch[j].priceText = `${total} €`
-        batch[j].fromPrice = false
-        done++
-      }
+  } finally {
+    for (const api of pool) {
+      await api.dispose().catch(() => undefined)
     }
   }
+
+  debugLog('station-ajax', 'exact-price-done', {
+    done,
+    of: need.length,
+    workers,
+    // Budget épuisé : les fiches non tarifées ne sont pas « sans prix », elles
+    // sont « pas encore demandées ». La nuance compte pour lire une trace.
+    budgetExhausted: stopped
+  })
 }
 
-export function createStationProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
+/**
+ * Réglages du connecteur, au-delà de ceux du socle Playwright.
+ *
+ * Les deux plafonds existent pour un seul appelant : `tools/sweep-centrales.ts`,
+ * qui parcourt cinquante centrales pour mesurer la couverture des champs et n'a
+ * pas besoin du stock entier de chacune. L'application, elle, prend les valeurs
+ * par défaut — c'est-à-dire tout ce que la centrale publie.
+ */
+export interface StationProviderOptions extends ScrapeAttemptOptions {
+  /** Pages de résultats suivies. `1` = la première seulement. */
+  maxPages?: number
+  /** Fiches tarifées au maximum. Par défaut, toutes. */
+  priceLimit?: number
+}
+
+export function createStationProvider(opts?: StationProviderOptions): AccommodationProvider {
   const name = STATION_PROVIDER_NAME
+  const maxPages = Math.max(1, opts?.maxPages ?? MAX_RESULT_PAGES)
+  const priceLimit = opts?.priceLimit ?? Number.POSITIVE_INFINITY
   return {
     name,
     async search(params: SearchParams): Promise<Accommodation[]> {
@@ -1003,14 +1234,26 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
             await submitSearch(page, params, name, origin)
             await waitForIngenieResults(page, probe, AJAX_TIMEOUT.resultsMs)
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
-            let cards = await loadCards(page, timeoutMs)
-            // SERP = souvent « à partir de » → prix réel = Rechercher de #tarifs.
-            // Budget séparé du timeout de page : un Tignes lent ne jette pas
-            // les TOTAL déjà obtenus, et n'ouvre pas le disjoncteur global.
-            await enrichExactPrices(page, cards, params, timeoutMs, 12, ENRICH_BUDGET_MS)
+            const read = await loadAllCards(page, timeoutMs, maxPages, PAGING_BUDGET_MS)
+            let cards = read.cards
+            // Combien la SERP a rendu, sur combien de pages, et combien portent
+            // un « à partir de » : l'écart entre ce compte et le nombre d'offres
+            // affichées ne se lit nulle part ailleurs.
+            debugLog('station-ajax', 'cards-loaded', {
+              cards: cards.length,
+              pages: read.pages,
+              truncated: read.truncated,
+              fromPrice: cards.filter((c) => c.fromPrice).length,
+              priced: cards.filter((c) => c.priceText && !c.fromPrice).length,
+              unpriced: cards.filter((c) => !c.priceText).length
+            })
             // Filet de sécurité : même si le select village a échoué, on écarte
             // les fiches dont la commune schema.org est clairement une autre
             // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).
+            //
+            // Avant la tarification, et non après : chaque fiche coûte trois
+            // allers-retours, et il n'y a pas de raison de les dépenser pour une
+            // fiche qu'on écartera ensuite.
             const dest = params.destination?.trim() ?? ''
             if (dest) {
               const matched = cards.filter((c) => !cityMismatch(c.city, dest))
@@ -1018,6 +1261,10 @@ export function createStationProvider(opts?: ScrapeAttemptOptions): Accommodatio
               // la centrale n'a peut-être pas renseigné addressLocality.
               if (matched.length > 0) cards = matched
             }
+            // SERP = souvent « à partir de » → prix réel = Rechercher de #tarifs.
+            // Budget séparé du timeout de page : un Tignes lent ne jette pas
+            // les TOTAL déjà obtenus, et n'ouvre pas le disjoncteur global.
+            await enrichExactPrices(page, cards, params, timeoutMs, priceLimit, ENRICH_BUDGET_MS)
             if (cards.length === 0) {
               // Stock vide pour ces dates : ce n'est pas une panne du connecteur.
               return []

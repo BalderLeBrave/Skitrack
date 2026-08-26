@@ -1,7 +1,7 @@
 {
   "name": "skitrack",
   "version": "0.1.0",
-  "description": "Recherche et comparaison de locations de vacances au ski, par domaine skiable et altitude r\u00e9elle des pistes.",
+  "description": "Recherche et comparaison de locations de vacances au ski, par domaine skiable et altitude réelle des pistes.",
   "private": true,
   "type": "module",
   "main": "./out/main/index.js",
@@ -51,6 +51,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
     "cheerio": "^1.0.0",
     "electron-updater": "^6.3.9",
     "playwright": "^1.50.1"

@@ -49,6 +49,15 @@ const CATALOG = {
   nav_decision: ['Décision', 'Decision'],
   nav_tracking: ['Suivi', 'Tracking'],
   nav_travelers: ['Voyageurs', 'Travellers'],
+  /** Nom du groupe segmenté pour les lecteurs d'écran. Le nommer « Décision »
+   *  reprendrait le libellé d'un de ses trois boutons. */
+  nav_seg_label: ['Vues de la comparaison', 'Comparison views'],
+  nav_favorites: ['Favoris', 'Shortlist'],
+  /** Infobulle de l'onglet Logements tant qu'aucun domaine n'est ouvert. */
+  nav_lodgings_need_domain: [
+    'Ouvrez d’abord un domaine depuis Rechercher.',
+    'Open a resort from Search first.'
+  ],
 
   // --- Apparence ----------------------------------------------------------
   theme_light: ['Clair', 'Light'],
@@ -183,6 +192,12 @@ const CATALOG = {
 
   // --- Accueil -------------------------------------------------------------
   home_badge: ['{n} domaines vérifiés · {m} massifs', '{n} verified resorts · {m} ranges'],
+  /** Titre du sommaire des massifs, colonne collante de gauche. */
+  home_cta_start: ['Commencer la recherche', 'Start searching'],
+  home_massif_index: ['Sommaire des massifs', 'Range index'],
+  home_massif_explore: ['Explorer {m}', 'Explore {m}'],
+  /** Encart flottant du héros. Ne se rend que si le modèle a répondu. */
+  home_snow_today: ['Neige relevée ce matin', 'Snow measured this morning'],
   home_title_1: ['Le bon domaine, à la bonne altitude,', 'The right resort, at the right altitude,'],
   home_title_2: ['au bon prix.', 'at the right price.'],
   home_lead: [
@@ -271,10 +286,6 @@ const CATALOG = {
   sb_less: ['Un voyageur de moins', 'One traveller fewer'],
   sb_more: ['Un voyageur de plus', 'One traveller more'],
   sb_go: ['Lancer la recherche', 'Start the search'],
-  home_snow_note: [
-    'Relevé du modèle sur les domaines en tête de liste. « — » quand le relevé manque : rien n’est estimé.',
-    'Model reading for the resorts at the top of the list. “—” when the reading is missing: nothing is estimated.'
-  ],
   home_by_massif: ['Explorer par', 'Explore by'],
   home_by_massif_word: ['massif', 'range'],
   home_massif_note: ['{m} massifs, {n} domaines relevés.', '{m} ranges, {n} resorts recorded.'],
@@ -536,6 +547,7 @@ const CATALOG = {
   sheet_resort_link: ['Fiche du domaine →', 'Resort details →'],
   sheet_lodging: ['Fiche logement', 'Stay details'],
   alti_profile: ['Profil altimétrique', 'Altitude profile'],
+  altitude_span: ['Altitude', 'Elevation'],
   altitude_bottom: ['Bas des pistes', 'Base of the runs'],
   altitude_bottom_lower: ['bas des pistes', 'base of the runs'],
   altitude_top: ['Point culminant', 'Summit'],
@@ -629,6 +641,13 @@ const CATALOG = {
     'Median of the offers recorded for this resort over the last 8 weeks, comparable stay.'
   ],
   see_lodgings: ['Voir les logements', 'View stays'],
+  /** Ce que couvre le montant de la carte de domaine. Le logement n'y est pas :
+   *  aucun relevé n'existe pour un domaine qu'on n'a pas encore ouvert. */
+  card_price_scope: ['forfaits, {n} voyageur(s)', 'passes, {n} traveller(s)'],
+  card_price_no_lodging: [
+    'Logement non compris : il se relève domaine par domaine.',
+    'Stay not included: it is fetched resort by resort.'
+  ],
   see_lodgings_of_resort: ['Voir les logements de ce domaine', 'View stays in this resort'],
 
   // --- Risque d'avalanche -------------------------------------------------
@@ -729,6 +748,73 @@ const CATALOG = {
   ],
   avail_show: ['les afficher', 'show them'],
   avail_open_anyway: ['Ouvrir quand même', 'Open anyway'],
+
+  // --- Ma sélection --------------------------------------------------------
+  sel_title: ['Ma sélection', 'My shortlist'],
+  sel_domains: ['Domaines', 'Resorts'],
+  sel_lodgings: ['Logements retenus', 'Shortlisted stays'],
+  sel_gone_title: ['Ces logements ne sont plus disponibles', 'These stays are no longer available'],
+  sel_gone_sub: [
+    'Changez de dates, ou retenez-en d’autres. Ils restent listés pour que le groupe sache ce qui a été perdu.',
+    'Change the dates, or shortlist others. They stay listed so the group knows what was lost.'
+  ],
+  sel_empty_domains: [
+    'Rien de retenu. Le bouton « Retenir » d’une carte de domaine ajoute ici.',
+    'Nothing shortlisted yet. The “Shortlist” button on a resort card adds it here.'
+  ],
+  sel_empty_lodgings: [
+    'Aucun logement retenu. Ouvrez un domaine et appuyez sur « Retenir ».',
+    'No stay shortlisted. Open a resort and press “Shortlist”.'
+  ],
+  sel_add_domain: ['Retenir', 'Shortlist'],
+  sel_added_domain: ['Retenu', 'Shortlisted'],
+  sel_remove: ['Retirer de la sélection', 'Remove from shortlist'],
+  sel_note_add: ['Ajouter une note', 'Add a note'],
+  sel_note_count: ['{n} note(s)', '{n} note(s)'],
+  sel_note_placeholder: [
+    'Ce que le groupe doit savoir avant de trancher',
+    'What the group should know before deciding'
+  ],
+  sel_note_publish: ['Publier la note', 'Post the note'],
+  sel_note_cancel: ['Annuler', 'Cancel'],
+  sel_vote_for: ['Pour', 'For'],
+  sel_vote_against: ['Contre', 'Against'],
+  /** Rappel que les « collaborateurs » sont les voyageurs du groupe, en local. */
+  sel_collaborators_local: [
+    'Les voyageurs du groupe, enregistrés sur cet ordinateur. Rien n’est partagé en ligne.',
+    'The travellers in your group, stored on this computer. Nothing is shared online.'
+  ],
+  sel_go_compare: ['Comparer les domaines retenus', 'Compare shortlisted resorts'],
+  sel_go_search: ['Ajouter un domaine', 'Add a resort'],
+  sel_summary: ['Résumé', 'Summary'],
+  sel_cheapest_stay: ['Séjour le moins cher', 'Cheapest stay'],
+  sel_nights: ['Nuits', 'Nights'],
+  /** Un identifiant retenu qui ne se résout plus dans `state.imported` : le
+   *  relevé a été remplacé. On le dit plutôt que de laisser la vignette
+   *  s'évaporer, ce qui est précisément ce que cet écran doit empêcher. */
+  sel_lost_refs: [
+    '{n} logement(s) retenu(s) ne sont plus dans le dernier relevé. Relancez la recherche du domaine concerné pour les retrouver.',
+    '{n} shortlisted stay(s) are no longer in the last scan. Run the resort search again to bring them back.'
+  ],
+
+  // --- Logements écartés ---------------------------------------------------
+  // Les règles de l'écran retirent des annonces ; elles restent visibles ici,
+  // avec le motif calculé et la donnée qui l'explique.
+  lodg_rejected_title: ['Ces logements sont écartés', 'These stays are set aside'],
+  lodg_rejected_sub: [
+    'Ils restent visibles avec leur motif. Changez de dates, ou relancez le relevé, pour les récupérer.',
+    'They stay visible with the reason. Change the dates, or run the scan again, to bring them back.'
+  ],
+  lodg_rejected_count: ['{n} écarté(s)', '{n} set aside'],
+  lodg_rejected_jump: ['{n} écarté(s), listé(s) plus bas', '{n} set aside, listed below'],
+  /** Libellés courts posés sur la vignette. Le texte long reste sous la carte. */
+  lodg_reason_gone: ['Introuvable au dernier relevé', 'Not in the last scan'],
+  lodg_reason_unpriced: ['Sans tarif à ces dates', 'No price for these dates'],
+  lodg_reason_other_dates: ['Tarif d’autres dates', 'Price from other dates'],
+  /** Donnée qui explique le motif : les dates réellement tarifées. */
+  lodg_reason_priced_for: ['Tarif relevé pour {d}', 'Price recorded for {d}'],
+  lodg_reason_stay_asked: ['Séjour demandé : {d}', 'Stay requested: {d}'],
+  lodg_dist_to_runs: ['{n} m des pistes', '{n} m from the runs'],
   lodg_src_hidden: ['masquée', 'hidden'],
   lodg_free_cancel: ['Annulation gratuite uniquement', 'Free cancellation only'],
   sources_label: ['Sources', 'Sources'],
@@ -848,6 +934,25 @@ const CATALOG = {
   lodg_src_unavailable: ['{s} : temporairement indisponible', '{s}: temporarily unavailable'],
   lodg_src_no_result: ['{s} : pas de résultat', '{s}: no result'],
   lodg_altitudes_measured: ['altitudes mesurées', 'measured altitudes'],
+  lodg_back_to_domains: ['← Retour aux domaines', '← Back to resorts'],
+  lodg_stay_cost: ['Coût du séjour', 'Stay cost'],
+  /** Ce que couvre le montant de la barre de contexte : rien de plus. */
+  /** Postes couverts par le total de la barre de contexte. `sejourCost.total`
+   *  additionne logement, forfaits, route, et — si les options sont cochées —
+   *  matériel et cours : la légende doit les nommer, sinon le montant ment. */
+  lodg_stay_cost_scope: [
+    'logement + forfaits + route',
+    'stay + passes + drive'
+  ],
+  lodg_stay_cost_scope_opts: [
+    'logement + forfaits + route + matériel/cours',
+    'stay + passes + drive + gear/lessons'
+  ],
+  /** Rappelle sur quel logement le total est calculé quand on n'en a retenu
+   *  aucun : le moins cher de ceux qui ont un prix relevé. */
+  lodg_stay_cost_cheapest: ['sur le logement le moins cher', 'on the cheapest stay'],
+  lodg_travelers_count: ['{n} voyageur(s)', '{n} traveller(s)'],
+  lodg_rooms_min: ['{n} chambre(s) min', '{n} room(s) min'],
   lodg_criteria_order: [
     'Dates et groupe : la centrale de station répond en premier (prix datés), puis les autres sources.',
     'Dates and party: the resort booking centre answers first (dated prices), then the other sources.'

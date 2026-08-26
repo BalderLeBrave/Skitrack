@@ -80,6 +80,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
 
   const selected = lg.id === state.ficheId
   const inCompare = state.compareIds.includes(lg.id)
+  const inSelection = state.selLodgings[domain.id] === lg.id
   const tracked = state.tracked.some((tr) => tr.key === trackKey(lg))
   const fresh = freshnessOf(lg, lang)
   const dups = lg.dups ?? []
@@ -273,7 +274,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
         <p className="lodgcard__sub">{factLeft}</p>
 
         <p className="lodgcard__price">
-          <strong className="lodgcard__total">{price.amount}</strong>{' '}
+          <strong className="lodgcard__total crn-releve">{price.amount}</strong>{' '}
           <span className="lodgcard__unit">{price.unit}</span>
         </p>
 
@@ -362,6 +363,23 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
             }}
           >
             {inCompare ? '✓ Comparé' : 'Comparer'}
+          </button>
+          {/* Retenir : un logement par domaine, comme dans le prototype. Le
+              retenir une seconde fois le retire, plutôt que d'exiger un
+              second bouton pour défaire. */}
+          <button
+            type="button"
+            className={`actpill${inSelection ? ' actpill--on' : ''}`}
+            aria-pressed={inSelection}
+            onClick={(e) => {
+              stop(e)
+              const next = { ...state.selLodgings }
+              if (inSelection) delete next[domain.id]
+              else next[domain.id] = lg.id
+              patch({ selLodgings: next })
+            }}
+          >
+            {inSelection ? `✓ ${t('sel_added_domain')}` : t('sel_add_domain')}
           </button>
           </div>
         </div>

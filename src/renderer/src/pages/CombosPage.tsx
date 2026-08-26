@@ -152,7 +152,7 @@ export function CombosPage(): JSX.Element {
                   <p style={{ margin: 0, fontSize: 15, fontWeight: 600, flex: '1 1 auto', minWidth: 0 }}>
                     {r.d.name}
                   </p>
-                  <strong className="u-num" style={{ color: 'var(--text)' }}>
+                  <strong className="u-num crn-calcul" style={{ color: 'var(--text)' }}>
                     {eur(r.min)}
                   </strong>
                 </div>
@@ -231,7 +231,7 @@ export function CombosPage(): JSX.Element {
                         {eur(c.total)}
                       </button>
                     ))}
-                    <strong className="u-num" style={{ textAlign: 'right', fontSize: 14, color: 'var(--text)' }}>
+                    <strong className="u-num crn-calcul" style={{ textAlign: 'right', fontSize: 14, color: 'var(--text)' }}>
                       {eur(r.min)}
                     </strong>
                   </div>
@@ -248,7 +248,7 @@ export function CombosPage(): JSX.Element {
                 {selDomain?.name ?? ''} · {selWeek?.label ?? ''}
               </p>
               <strong className="u-num" style={{ color: 'var(--text)' }}>
-                {eur(selection.total)} tout compris
+                <span className="crn-calcul">{eur(selection.total)}</span> tout compris
               </strong>
               <button type="button" className="linkbtn linkbtn--muted" onClick={() => patch({ comboSel: null })}>
                 fermer ✕

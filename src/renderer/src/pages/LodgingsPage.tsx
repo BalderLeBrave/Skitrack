@@ -8,6 +8,7 @@ import { LodgingFilters } from '@/components/LodgingFilters'
 import { useActiveLodgingFilters } from '@/components/activeLodgingFilters'
 import { LodgingMap } from '@/components/LodgingMap'
 import { LodgingSheet } from '@/components/LodgingSheet'
+import { REJECTED_ANCHOR, RejectedLodgings } from '@/components/RejectedLodgings'
 import { ResultGrid } from '@/components/ResultGrid'
 import { deepLinks } from '@/data/deeplinks'
 import { lodgingCoords, useLodgingGeo } from '@/data/lodgingGeo'
@@ -35,7 +36,7 @@ import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 
 export function LodgingsPage(): JSX.Element {
-  const { fmt, fmtDay } = useFormat()
+  const { eur, fmt, fmtDay } = useFormat()
   const { t } = useI18n()
   const { state, patch, narrow } = useApp()
   const derived = useDerived()
@@ -547,22 +548,74 @@ export function LodgingsPage(): JSX.Element {
     )
   }
 
+  /**
+   * Logement qui porte le coût de la barre de contexte : celui qu'on a retenu,
+   * sinon le moins cher parmi ceux dont une source publie un prix. `total > 0`
+   * est le test que l'application utilise déjà pour distinguer une offre tarifée
+   * d'une porte d'entrée sans prix — voir `priceless` dans les sélecteurs.
+   */
+  const costLodging =
+    derived.lodgAll.find((lg) => lg.id === state.lodgSelId && lg.total > 0) ??
+    derived.lodgAll.filter((lg) => lg.total > 0).sort((a, b) => a.total - b.total)[0] ??
+    null
+
+  /**
+   * Coût complet du séjour, ou `null` si aucune source n'a publié de prix.
+   * Pas de repli, pas d'estimation : le montant disparaît plutôt que d'être
+   * inventé.
+   *
+   * C'est bien le total de `sejourCost` — logement, forfaits, route, et
+   * matériel et cours quand les options sont cochées — donc le même chiffre
+   * que les écrans Offres et Décision. Un « coût du séjour » qui ne vaudrait
+   * ici que forfaits + logement contredirait les deux autres écrans.
+   */
+  const stayCost = costLodging ? derived.sejourCost(costLodging, d).total : null
+
+  /** Vrai quand le total porte sur le moins cher faute de logement retenu. */
+  const costOnCheapest = costLodging != null && costLodging.id !== state.lodgSelId
+
   return (
     <div className="lodgings">
+      {/* Barre de contexte : d'où l'on vient, ce qu'on regarde, pour quel
+          séjour, et ce que ça coûte. Le montant est à droite parce que c'est
+          la seule valeur de la ligne qui change quand on retient un logement. */}
       <div className="lodgings__bar">
         <button type="button" className="linkbtn" onClick={() => patch({ tab: 'recherche' })}>
-          ← Domaines
+          {t('lodg_back_to_domains')}
         </button>
-        <h2 style={{ margin: 0, fontSize: 16 }}>{d.name}</h2>
+        <span className="lodgings__bar-sep" aria-hidden>
+          ·
+        </span>
+        <h2 className="lodgings__bar-title">{t('nav_lodgings')}</h2>
+        <span className="lodgings__bar-sep" aria-hidden>
+          ·
+        </span>
+        <span className="lodgings__bar-domain">{d.name}</span>
         {d.pass && <span className="tag">{d.pass}</span>}
-        {d.glacier && <span className="tag tag--link">Glacier</span>}
+        {d.glacier && <span className="tag tag--link">{t('glacier')}</span>}
         <span className="u-muted" style={{ fontSize: 12 }}>
-          {fmt(d.min)} – {fmt(d.max)} m{d.curated ? ` · ${t('lodg_altitudes_measured')}` : ''}
+          <span className="u-num crn-releve">
+            {fmt(d.min)} – {fmt(d.max)} m
+          </span>
+          {d.curated ? ` · ${t('lodg_altitudes_measured')}` : ''}
         </span>
         <span className="u-spacer" />
         <span className="u-muted" style={{ fontSize: 12 }}>
-          {fmtDay(state.arrDate)} → {fmtDay(state.depDate)} · {state.travelers} voyageurs · {state.rooms} chambres min
+          {fmtDay(state.arrDate)} → {fmtDay(state.depDate)} ·{' '}
+          {t('lodg_travelers_count').replace('{n}', String(state.travelers))} ·{' '}
+          {t('lodg_rooms_min').replace('{n}', String(state.rooms))}
         </span>
+        {stayCost != null && (
+          <span className="lodgcost" title={costOnCheapest ? t('lodg_stay_cost_cheapest') : undefined}>
+            <span className="lodgcost__label">{t('lodg_stay_cost')}</span>
+            <strong className="lodgcost__val u-num crn-calcul">{eur(stayCost)}</strong>
+            <span className="lodgcost__scope">
+              {state.optRental || state.optLessons
+                ? t('lodg_stay_cost_scope_opts')
+                : t('lodg_stay_cost_scope')}
+            </span>
+          </span>
+        )}
       </div>
 
       {/* Les filtres ne sont plus une colonne : ils s'ouvrent en survol au-dessus
@@ -646,6 +699,15 @@ export function LodgingsPage(): JSX.Element {
                     label={t('lodg_loading_grid')}
                   />
                 )}
+
+                {/* Les écartés ferment la liste : ils sont sous les offres
+                    retenues, jamais mêlés à elles, et le compteur de la barre
+                    de filtres y saute. */}
+                <RejectedLodgings
+                  rejected={derived.lodgRejected}
+                  compact={narrow || splitOpen}
+                  dense={state.density === 'compact'}
+                />
               </div>
             </div>
           )}
@@ -788,6 +850,23 @@ export function LodgingsPage(): JSX.Element {
             <span className="u-muted" style={{ fontSize: 12 }}>
               prix tout compris, {derived.nights} nuit(s), {state.travelers} personnes · offres de moins d’une heure
             </span>
+            {/* Compteur des écartés : il ne se contente pas d'annoncer un
+                nombre, il mène à la section qui le justifie. Sans ce saut,
+                l'écart entre ce que la source a renvoyé et ce que l'écran
+                montre resterait à chercher soi-même en bas de page. */}
+            {derived.lodgRejected.length > 0 && (
+              <button
+                type="button"
+                className="linkbtn lodgrej__jump"
+                onClick={() => {
+                  document
+                    .getElementById(REJECTED_ANCHOR)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
+                {t('lodg_rejected_jump').replace('{n}', String(derived.lodgRejected.length))}
+              </button>
+            )}
             <span className="u-spacer" />
             <button
               type="button"
@@ -807,7 +886,7 @@ export function LodgingsPage(): JSX.Element {
             <span className="lodgsnow__label">
               {t('snow_on_ground')} <span className="u-muted">{t('snow_base_top')}</span>
             </span>
-            <strong className="u-num lodgsnow__val">
+            <strong className="u-num crn-releve lodgsnow__val">
               {domSnow.bas != null ? `${fmt(domSnow.bas)}` : '—'} /{' '}
               {domSnow.haut != null ? `${fmt(domSnow.haut)} cm` : '—'}
             </strong>

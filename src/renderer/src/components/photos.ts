@@ -29,11 +29,6 @@ function urlOf(file: string): string | null {
   return BY_FILE[file.toLowerCase()] ?? null
 }
 
-/** Photo du héro de l'accueil, ou `null` tant qu'elle n'est pas déposée. */
-export function heroPhoto(): string | null {
-  return urlOf('hero-montblanc.jpg')
-}
-
 function fold(s: string): string {
   return s
     .normalize('NFD')

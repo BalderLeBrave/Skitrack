@@ -18,7 +18,8 @@ import { createContext, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
 import { belongsToDomain, lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
-import { isBookable } from '@/data/lodgingAvailability'
+import type { AvailabilityVerdict } from '@/data/lodgingAvailability'
+import { availabilityOf, isBookable } from '@/data/lodgingAvailability'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
 import { hasConfirmedPrice, matchesLodgingFilters } from '@/data/lodgingFilter'
 import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
@@ -80,6 +81,23 @@ export interface DecisionContext {
   cost: SejourCost
 }
 
+/**
+ * Annonce écartée par une **règle de l'écran**, avec le motif qui l'a écartée.
+ *
+ * L'écran Logements applique deux règles avant tout filtre choisi : une annonce
+ * listée doit être réservable et porter un prix vérifié pour ces dates. Jusqu'ici
+ * les annonces qui n'y répondaient pas disparaissaient sans un mot, et l'écart
+ * entre « la source a renvoyé douze offres » et « j'en vois quatre » était
+ * inexplicable depuis l'interface.
+ *
+ * Le verdict n'est pas recalculé ici : c'est celui d'`availabilityOf`, celui-là
+ * même qui a servi à écarter l'annonce.
+ */
+export interface RejectedLodging {
+  lodging: Lodging
+  verdict: AvailabilityVerdict
+}
+
 export interface Derived {
   origins: Origin[]
   /** Foyers qui partent réellement : ceux auxquels un voyageur est rattaché. */
@@ -122,6 +140,8 @@ export interface Derived {
   lodgHidden: number
   /** Annonces sans disponibilité confirmée pour le séjour en cours. */
   lodgUnavailable: number
+  /** Annonces écartées par les règles de l'écran, avec leur motif. */
+  lodgRejected: RejectedLodging[]
   dupMerged: number
   voteScore: (key: string) => number
   voteOf: (key: string, index: number) => number
@@ -532,6 +552,17 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       (lg) => isBookable(lg, stay) && hasConfirmedPrice(lg, stay)
     )
 
+    /**
+     * Le complément d'`lodgEligible` : ce que les règles de l'écran retirent.
+     *
+     * Construit par différence sur le même prédicat, et non par une seconde
+     * série de conditions : deux règles écrites deux fois finissent par
+     * diverger, et c'est alors la liste des écartés qui ment.
+     */
+    const lodgRejected: RejectedLodging[] = lodgAll
+      .filter((lg) => !(isBookable(lg, stay) && hasConfirmedPrice(lg, stay)))
+      .map((lg) => ({ lodging: lg, verdict: availabilityOf(lg, stay) }))
+
     const lodgSorters: Record<string, (a: Lodging, b: Lodging) => number> = {
       pp_asc: (a, b) => a.pp - b.pp,
       total_asc: (a, b) => a.total - b.total,
@@ -590,6 +621,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgList,
       lodgHidden: lodgEligible.length - lodgFiltered.length,
       lodgUnavailable,
+      lodgRejected,
       dupMerged,
       voteScore,
       voteOf,

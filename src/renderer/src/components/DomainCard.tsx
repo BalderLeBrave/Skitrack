@@ -1,16 +1,14 @@
 import type { MouseEvent } from 'react'
 import { AltitudeProfile } from './AltitudeProfile'
 import type { Domain } from '@/data/referentiel'
-import { enfantPrice, hasCoords } from '@/data/referentiel'
+import { hasCoords } from '@/data/referentiel'
 import { skiAreaIndex } from '@/data/skiAreas'
-import { snowDepths, snowfallText } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { massifColor } from '@/domain/massif'
 import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
-import { useWeather } from '@/state/weather'
 
 interface Props {
   domain: Domain
@@ -19,10 +17,9 @@ interface Props {
 }
 
 export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Element {
-  const { dur, eur, fmt, locale } = useFormat()
+  const { dur, eur, fmt } = useFormat()
   const { state, patch, domains } = useApp()
   const derived = useDerived()
-  const { weatherOf } = useWeather()
   const { t } = useI18n()
 
   // Distance à la commune cherchée : n'a de sens que lorsqu'une commune l'est.
@@ -38,9 +35,32 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
   const score = derived.scoreOf(d)
   const scoreVal = Math.round(score.total)
   const forfait = derived.forfaitOf(d)
-  const weather = weatherOf(d.id)
-  const snow = snowDepths(weather)
   const dark = state.theme === 'dark'
+
+  /**
+   * Coût des forfaits pour le groupe entier.
+   *
+   * `sejourCost` appliqué à un logement à zéro : on récupère le poste
+   * « forfaits » tel que l'application le calcule partout ailleurs — tarif
+   * adulte pour les adultes, tarif enfant pour les enfants — au lieu d'une
+   * multiplication par le nombre de voyageurs qui ferait payer plein tarif aux
+   * enfants.
+   *
+   * `null` quand le domaine n'a pas de forfait 6 jours : le bloc de prix
+   * disparaît alors, il ne se rabat pas sur zéro.
+   *
+   * Ce montant ne comprend **pas** le logement. Aucun relevé de logement
+   * n'existe pour un domaine qu'on n'a pas encore ouvert : `lodgingsFor()` en
+   * fabrique à partir du score de pertinence, et cette carte est justement la
+   * surface où un prix inventé ferait le plus de dégâts.
+   */
+  const passCost = forfait.j6 != null ? derived.sejourCost({ total: 0 }, d) : null
+  const groupPasses = passCost?.forfaits ?? null
+  /** Compte annoncé sous le montant : celui qui a servi au calcul, pas
+   *  `state.travelers`, qui peut diverger de la liste des voyageurs. */
+  const groupSize = passCost ? passCost.adults + passCost.kids : 0
+
+  const inSelection = state.selDomains.includes(d.id)
 
   const stop = (e: MouseEvent): void => e.stopPropagation()
 
@@ -52,7 +72,8 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
    * chiffres plutôt que de leur disputer l'attention.
    */
   const metaLine = [
-    `${t('altitude_top_lower')} ${fmt(d.max)} m`,
+    // Le sommet est sorti d'ici : la tuile d'altitude porte l'étendue complète
+    // depuis qu'elle s'écrit « bas – sommet ».
     `${t('amplitude_lower')} ${fmt(d.max - d.min)} m`,
     `${d.lifts} ${t('lifts_plural')}`,
     `${t('snow_front_lower')} ${fmt(d.village)} m${d.curated ? '' : ` (${t('estimated')})`}`,
@@ -63,60 +84,8 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
 
   const tint = massifColor(d.massif)
 
-  /**
-   * Note sur 5, dérivée du score sur 100.
-   *
-   * Même classement, échelle qu'on lit d'un coup d'œil : « 4,2 » se compare
-   * sans effort à l'habitude prise sur les sites de réservation, là où « 84 »
-   * demande de se rappeler sur quoi il est noté. Le score complet reste dans le
-   * `title` et derrière le bouton « Pourquoi ? » — la note ne remplace pas
-   * l'explication, elle en donne l'ordre de grandeur.
-   */
-  const note = (Math.round(scoreVal / 2) / 10).toLocaleString(locale, { minimumFractionDigits: 1 })
 
-  /**
-   * Étiquettes **dérivées des données**, jamais saisies.
-   *
-   * Chacune répond à une question qu'on se pose en parcourant la liste — est-ce
-   * grand, est-ce haut, est-ce cher — et son `title` donne la valeur qui l'a
-   * déclenchée : une étiquette qui affirme sans pouvoir être vérifiée ne vaut
-   * pas mieux qu'un argument de brochure. Quatre au plus, sinon la ligne se
-   * transforme en nuage de mots-clés.
-   */
-  const tags: { txt: string; title: string; color: string; soft: string }[] = []
-  if (d.glacier) tags.push({ txt: t('glacier'), title: t('glacier'), color: 'var(--brand)', soft: 'var(--brand-soft)' })
-  if (d.pass)
-    tags.push({
-      txt: d.pass,
-      title: `${t('tag_common_pass')} ${d.pass}`,
-      color: 'var(--violet)',
-      soft: 'var(--violet-soft)'
-    })
-  if (d.km >= 200)
-    tags.push({
-      txt: t('tag_large_area'),
-      title: `${fmt(d.km)} km ${t('of_runs')}`,
-      color: 'var(--ok)',
-      soft: 'var(--ok-soft)'
-    })
-  if (d.min >= 1800)
-    tags.push({
-      txt: t('tag_high_altitude'),
-      title: `${t('altitude_bottom')} ${fmt(d.min)} m`,
-      color: 'var(--brand)',
-      soft: 'var(--brand-soft)'
-    })
-  if (forfait.j6 != null && forfait.j6 <= 260)
-    tags.push({
-      txt: t('tag_moderate_pass'),
-      title: `${t('pass_6d_adult')} ${eur(forfait.j6)}`,
-      color: 'var(--ok)',
-      soft: 'var(--ok-soft)'
-    })
-  if (d.curated)
-    tags.push({ txt: `✓ ${t('tag_verified')}`, title: t('card_checked'), color: 'var(--muted)', soft: 'var(--surface)' })
   const area = skiAreaIndex(domains).areaOf(d)
-  const shownTags = tags.slice(0, 4)
 
   return (
     <article
@@ -156,19 +125,31 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
               {t('card_off_map')}
             </span>
           )}
-          <span
-            className="domcard__note u-num"
+          {/* NIVEAU 1 — le score, une fois et une seule. Il portait auparavant
+              deux formes sur la même carte, une note sur 5 ici et un badge sur
+              100 dans le pied, qui donnaient à croire à deux mesures. */}
+          <button
+            type="button"
+            className="scorebadge"
+            style={scoreBadgeColors(scoreVal, dark)}
             title={`${t('score_detail')} ${scoreVal}/100 — ${scoreLabel(scoreVal)}`}
+            onClick={(e) => {
+              stop(e)
+              patch({ scoreOpenId: state.scoreOpenId === d.id ? null : d.id })
+            }}
           >
-            ★ {note}
-          </span>
+            <span className="crn-calcul" style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-0.02em' }}>
+              {scoreVal}
+            </span>
+            <span style={{ opacity: 0.75, fontSize: 12 }}>/100</span>
+            <span style={{ fontWeight: 600, fontSize: 12 }}>{scoreLabel(scoreVal)}</span>
+            <span style={{ fontSize: 12, opacity: 0.75 }}>{t('score_why')}</span>
+          </button>
         </header>
 
         <h3 className="domcard__name">{d.name}</h3>
         {/* Le massif quitte le sous-titre : il est déjà dans la pastille. */}
-        <p className="domcard__sub">
-          {[`${fmt(d.min)} – ${fmt(d.max)} m`, d.region, geoDistTxt].filter(Boolean).join(' · ')}
-        </p>
+        <p className="domcard__sub">{[d.region, geoDistTxt].filter(Boolean).join(' · ')}</p>
 
         {/*
           Badge du domaine skiable.
@@ -195,35 +176,30 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
           >
             <span className="domcard__area-name">{area.name}</span>
             <span className="domcard__area-facts u-num">
-              {t('card_area_stations').replace('{n}', String(area.stations.length))} · {fmt(area.summit)} m
+              {t('card_area_stations').replace('{n}', String(area.stations.length))} ·{' '}
+              <span className="crn-releve">{fmt(area.summit)} m</span>
             </span>
           </button>
         )}
 
-        {/* Quatre tuiles plutôt que sept données à égalité. Les filets sont
-            faits par le fond qui traverse une grille à `gap: 1px` : un jeu de
-            bordures par cellule laisserait des traits doubles aux jonctions et
-            un pixel de décalage au retour à la ligne. */}
-        <dl className="domcard__tiles">
+        {/* NIVEAU 2 — trois chiffres, plus quatre. Le forfait a quitté cette
+            rangée pour le bloc de prix : il y est une décision, ici il n'était
+            qu'une mesure de plus. L'altitude s'écrit en amplitude, un bas de
+            pistes seul ne disant pas si le domaine monte.
+
+            Les filets sont faits par le fond qui traverse une grille à
+            `gap: 1px` : un jeu de bordures par cellule laisserait des traits
+            doubles aux jonctions. */}
+        <dl className="domcard__tiles domcard__tiles--three">
           <div className="domcard__tile">
-            <dt>{t('altitude_bottom')}</dt>
-            <dd className="u-num domcard__tileval domcard__tileval--data">{fmt(d.min)} m</dd>
+            <dt>{t('altitude_span')}</dt>
+            <dd className="u-num crn-releve domcard__tileval domcard__tileval--data u-nowrap">
+              {fmt(d.min)} – {fmt(d.max)} m
+            </dd>
           </div>
           <div className="domcard__tile">
             <dt>{t('slopes')}</dt>
-            <dd className="u-num domcard__tileval">{fmt(d.km)} km</dd>
-          </div>
-          <div className="domcard__tile">
-            {/* Un tarif estimé est signalé par le « ≈ » : le lecteur doit
-                pouvoir distinguer d'un coup d'œil un prix relevé d'un prix
-                dérivé de la taille du domaine. */}
-            <dt>{t('pass_6d_adult')}</dt>
-            <dd
-              className="u-num domcard__tileval"
-              title={forfait.estimated ? t('price_estimated') : undefined}
-            >
-              {forfait.j6 != null ? `${forfait.estimated ? '≈ ' : ''}${eur(forfait.j6)}` : '—'}
-            </dd>
+            <dd className="u-num crn-releve domcard__tileval">{fmt(d.km)} km</dd>
           </div>
           <div className="domcard__tile">
             <dt>{t('travel_time')}</dt>
@@ -231,20 +207,6 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
           </div>
         </dl>
 
-        {shownTags.length > 0 && (
-          <div className="domcard__tags">
-            {shownTags.map((tag) => (
-              <span
-                key={tag.txt}
-                className="domcard__tag"
-                style={{ background: tag.soft, color: tag.color }}
-                title={tag.title}
-              >
-                {tag.txt}
-              </span>
-            ))}
-          </div>
-        )}
 
         <p className="domcard__meta">{metaLine}</p>
 
@@ -266,18 +228,54 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
           </button>
         </div>
 
-        <p className="domcard__snow">
-          {t('snow_label')}{' '}
-          {/* Rien tant que le modèle n'a pas répondu : une hauteur de neige
-              inventée est exactement ce que cet écran ne doit pas produire. */}
-          <strong className="u-num">
-            {snow.releve ? `${snow.bas ?? '—'} / ${snow.haut ?? '—'} cm` : '…'}
-          </strong>{' '}
-          <span className="u-muted">{t('snow_base_top')}</span> ·{' '}
-          <span className="u-muted">{snowfallText(weather)}</span>
-        </p>
 
+        {/* NIVEAU 3 — ce qui décide : un prix, une action.
+            Le grand chiffre est le coût des forfaits pour le groupe entier,
+            pas le tarif d'un adulte. C'est ce qu'on paie, donc ce qui se
+            compare d'une carte à l'autre ; le tarif unitaire passe en légende.
+
+            Le logement n'y entre pas, et ce n'est pas un oubli : aucun relevé
+            n'existe pour un domaine qu'on n'a pas ouvert, et `lodgingsFor()`
+            en fabrique à partir du score de pertinence. L'y ajouter poserait
+            un prix inventé sur la surface de comparaison principale. */}
         <footer className="domcard__footer">
+          {groupPasses != null && groupSize > 0 && (
+            <div className="domcard__price">
+              <strong
+                className="domcard__price-val u-num crn-calcul"
+                title={forfait.estimated ? t('price_estimated') : undefined}
+              >
+                {forfait.estimated ? '≈ ' : ''}
+                {eur(groupPasses)}
+              </strong>
+              <span className="domcard__price-scope" title={t('card_price_no_lodging')}>
+                {t('card_price_scope').replace('{n}', String(groupSize))}
+              </span>
+              <span className="domcard__price-unit">
+                {t('pass_6d_adult')}{' '}
+                <span className="u-num crn-releve">{eur(forfait.j6)}</span>
+              </span>
+            </div>
+          )}
+          <span className="u-spacer" />
+          {/* Retenir : le seul geste qui alimente « Ma sélection ». Second
+              rôle, donc bouton secondaire — l'action primaire de cette carte
+              reste d'aller chercher les logements. */}
+          <button
+            type="button"
+            className={`btn btn--small u-nowrap${inSelection ? ' btn--on' : ''}`}
+            aria-pressed={inSelection}
+            onClick={(e) => {
+              stop(e)
+              patch({
+                selDomains: inSelection
+                  ? state.selDomains.filter((id) => id !== d.id)
+                  : [...state.selDomains, d.id]
+              })
+            }}
+          >
+            {inSelection ? `✓ ${t('sel_added_domain')}` : t('sel_add_domain')}
+          </button>
           <button
             type="button"
             className="btn btn--primary btn--small u-nowrap"
@@ -296,82 +294,10 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
               })
             }}
           >
-            Voir les logements →
+            {t('see_lodgings')} →
           </button>
-
-          <button
-            type="button"
-            className="scorebadge"
-            style={scoreBadgeColors(scoreVal, dark)}
-            onClick={(e) => {
-              stop(e)
-              patch({ scoreOpenId: state.scoreOpenId === d.id ? null : d.id })
-            }}
-          >
-            <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-0.02em' }}>{scoreVal}</span>
-            <span style={{ opacity: 0.75, fontSize: 12 }}>/100</span>
-            <span style={{ fontWeight: 600, fontSize: 12 }}>{scoreLabel(scoreVal)}</span>
-            <span style={{ fontSize: 12, opacity: 0.75 }}>Pourquoi ?</span>
-          </button>
-
-          <button
-            type="button"
-            className="linkbtn"
-            onClick={(e) => {
-              stop(e)
-              patch({ forfaitOpenId: state.forfaitOpenId === d.id ? null : d.id })
-            }}
-          >
-            {t('pass_details')}
-          </button>
-
         </footer>
 
-        {state.forfaitOpenId === d.id && (
-          <div className="domcard__drawer" onClick={stop}>
-            <p className="domcard__drawer-title">Forfaits · {forfait.zone ?? '—'}</p>
-            <p className="domcard__drawer-sub">
-              {forfait.estimated
-                ? 'Tarif non relevé sur ce domaine : estimation dérivée des kilomètres de pistes et de l’altitude, ' +
-                  'à confirmer sur la billetterie. Il n’entre pas dans le score de pertinence.'
-                : `Tarifs publics haute saison, relevés sur le site officiel du domaine le ${forfait.maj ?? '—'}.`}
-            </p>
-            <dl className="domcard__drawer-grid">
-              <div>
-                <dt>6 jours adulte</dt>
-                <dd className="u-num" style={{ fontWeight: 700 }}>
-                  {forfait.j6 != null ? `${forfait.estimated ? '≈ ' : ''}${eur(forfait.j6)}` : '—'}
-                </dd>
-              </div>
-              <div>
-                <dt>{t('pass_day_adult')}</dt>
-                <dd className="u-num">{forfait.j1 != null ? eur(forfait.j1) : '—'}</dd>
-              </div>
-              <div>
-                <dt>6 jours enfant</dt>
-                <dd className="u-num">{forfait.enf6 != null ? eur(forfait.enf6) : '—'}</dd>
-              </div>
-              <div>
-                <dt>{t('pass_per_ski_day')}</dt>
-                <dd className="u-num">{forfait.j6 != null ? eur(Math.round(forfait.j6 / 6)) : '—'}</dd>
-              </div>
-              <div>
-                <dt>Famille 2+2, 6 j</dt>
-                <dd className="u-num">
-                  {forfait.j6 != null ? eur(Math.round((forfait.j6 * 2 + enfantPrice(forfait) * 2) * 0.95)) : '—'}
-                </dd>
-              </div>
-              <div>
-                <dt>Saison adulte</dt>
-                <dd className="u-num">{forfait.saison != null ? eur(forfait.saison) : '—'}</dd>
-              </div>
-            </dl>
-            <p className="domcard__drawer-note">
-              Tarif famille estimé (2 adultes + 2 enfants, remise usuelle de 5 %) — à confirmer sur la billetterie.
-              Assurance et forfaits piéton non comptés.
-            </p>
-          </div>
-        )}
 
         {state.scoreOpenId === d.id && (
           <div className="domcard__drawer" onClick={stop}>

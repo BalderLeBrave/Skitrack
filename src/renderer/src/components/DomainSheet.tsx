@@ -25,6 +25,7 @@ import { EXPOSURES, domainPriceHistory } from '@/data/snow'
 import { snowDepths, snowfallText } from '@/data/weather'
 import { webcamsFor } from '@/data/webcams'
 import { useFormat } from '@/hooks/useFormat'
+import { domainTags } from '@/domain/domainTags'
 import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import type { TranslationKey } from '@/i18n'
@@ -352,14 +353,26 @@ export function DomainSheet(): JSX.Element | null {
         </div>
 
         <div className="domsheet__body">
+          {/* Les étiquettes dérivées ont quitté la carte de domaine pour cette
+              rangée : sur la carte elles disputaient l'attention aux trois
+              chiffres clés, ici elles sont à leur place, à côté du score et de
+              tout le détail. Le glacier n'est plus rendu à part, `domainTags`
+              le porte déjà. */}
           <div className="domsheet__full" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <span className="scorebadge" style={scoreBadgeColors(score, dark)}>
-              {score} · {scoreLabel(score)}
+              <span className="crn-calcul">{score}</span> · {scoreLabel(score)}
             </span>
-            {forfait.estimated && (
-              <span className="tag">{t('estimated')}</span>
-            )}
-            {d.glacier && <span className="tag tag--link">{t('glacier')}</span>}
+            {forfait.estimated && <span className="tag">{t('estimated')}</span>}
+            {domainTags(d, forfait, { t, fmt, eur }).map((tag) => (
+              <span
+                key={tag.id}
+                className="domcard__tag"
+                style={{ background: tag.soft, color: tag.color }}
+                title={tag.title}
+              >
+                {tag.txt}
+              </span>
+            ))}
           </div>
 
           {/* --- Profil altimétrique et carte d'identité ---------------- */}

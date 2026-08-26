@@ -1,4 +1,8 @@
 {
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787",
+    "ENABLE_TOOL_SEARCH": "true"
+  },
   "permissions": {
     "allow": [
       "Bash(grep -i -E \"^playwright|^cheerio|^tsx$\")",
@@ -47,5 +51,44 @@
   },
   "enabledMcpjsonServers": [
     "airbnb"
-  ]
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:/Users/Adrien RAFFRAY/AppData/Local/Programs/Python/Python312/Scripts/headroom.EXE\" wrap selfheal --marker headroom-wrap-selfheal",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:/Users/Adrien RAFFRAY/AppData/Local/Programs/Python/Python312/Scripts/headroom.EXE\" init hook ensure --profile init-skitrack-43d624af --marker headroom-init-claude",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:/Users/Adrien RAFFRAY/AppData/Local/Programs/Python/Python312/Scripts/headroom.EXE\" init hook ensure --profile init-skitrack-43d624af --marker headroom-init-claude",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "headroom@headroom-marketplace": true
+  }
 }

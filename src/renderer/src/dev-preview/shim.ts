@@ -92,6 +92,51 @@ if (hash) {
   if (scr === 'logements') {
     overrides.lodgingDomainId = 1
     overrides.lodgPhase = 'results'
+    // Trois annonces factices, tarifées pour ces dates exactement : sans elles
+    // l'écran n'a rien à mettre en page (les vraies viennent d'un relevé, que
+    // la prévisualisation ne fait pas). Elles ne sortent jamais d'ici.
+    const checkIn = '2027-02-07'
+    const checkOut = '2027-02-14'
+    overrides.arrDate = checkIn
+    overrides.depDate = checkOut
+    overrides.imported = [
+      ['Résidence Le Névé', 'Résidence', 6, 2, 46, '4,7', 128, 120, 3, 8, false, 'Centrale de station', 1290],
+      ['Chalet Grand Bec', 'Chalet', 8, 4, 110, '4,9', 41, 0, 0, 0, true, 'Airbnb', 2480],
+      ['Studio Bellevue', 'Studio', 2, 0, 24, '4,3', 76, 340, 6, 22, false, 'Booking', 690]
+    ].map((row, i) => {
+      const [name, type, pers, ch, m2, note, avis, dist, walk, den, skiIn, src, total] = row as [
+        string, string, number, number, number, string, number, number, number, number, boolean, string, number
+      ]
+      return {
+        id: 9001 + i,
+        name,
+        type,
+        pers,
+        ch,
+        m2,
+        note,
+        avis,
+        dist,
+        walk,
+        den,
+        skiIn,
+        src,
+        pp: Math.round(total / Math.max(1, pers) / 7),
+        lift: 'Télécabine',
+        liftDist: dist,
+        photo: name,
+        annul: i !== 2,
+        total,
+        alt: 2100 + i * 60,
+        stock: 2 + i,
+        importDomainId: 1,
+        priceConfidence: 'total_confirmed',
+        priceCheckIn: checkIn,
+        priceCheckOut: checkOut,
+        accessComputed: true,
+        url: 'https://example.com/annonce'
+      }
+    })
   }
   if (extra === 'dark') overrides.theme = 'dark'
   ;(window as unknown as { __DEMO_OVERRIDES__: unknown }).__DEMO_OVERRIDES__ = overrides

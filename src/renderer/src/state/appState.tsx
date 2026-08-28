@@ -304,6 +304,8 @@ export interface AppState {
   // Écran Logements
   lodgingDomainId: number | null
   lodgSelId: number | null
+  /** Récapitulatif de séjour ouvert, à copier ou envoyer aux voyageurs. */
+  staySummaryOpen: boolean
   lodgBudgetMin: number
   lodgBudgetMax: number
   lodgTypes: string[]
@@ -587,6 +589,7 @@ export const INITIAL_STATE: AppState = {
 
   lodgingDomainId: null,
   lodgSelId: null,
+  staySummaryOpen: false,
   lodgBudgetMin: 0,
   lodgBudgetMax: FILTER_RANGES.lodgBudget.max,
   lodgTypes: [],

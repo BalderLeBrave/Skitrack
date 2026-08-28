@@ -989,6 +989,42 @@ const CATALOG = {
   lodg_ctx_eyebrow: ['Logements à', 'Stays in'],
   lodg_ctx_dates: ['Séjour', 'Stay'],
   lodg_ctx_group: ['Groupe', 'Group'],
+  /** Bandeau de séjour, en pied de l'écran Logements. */
+  lodg_keep: ['Retenir ce logement', 'Keep this stay'],
+  lodg_kept: ['Logement retenu', 'Stay kept'],
+  stay_kept: ['Logement retenu', 'Stay kept'],
+  stay_cheapest: ['Le moins cher — rien de retenu', 'Cheapest — nothing kept yet'],
+  stay_total_scope: [
+    'logement {l} · forfaits {f} · route {r}',
+    'stay {l} · passes {f} · travel {r}'
+  ],
+  stay_share: ['Partager le récap', 'Share the recap'],
+  stay_compare: ['Comparer & trancher', 'Compare & decide'],
+  /** Récapitulatif de séjour, à copier ou à envoyer. */
+  stay_recap_title: ['Récapitulatif du séjour', 'Stay recap'],
+  stay_recap_help: [
+    'Texte prêt à coller dans un message. Les montants sont ceux affichés à l’écran.',
+    'Plain text, ready to paste. Amounts are the ones shown on screen.'
+  ],
+  stay_recap_lodging: ['Logement', 'Stay'],
+  stay_recap_link: ['Annonce', 'Listing'],
+  stay_recap_costs: ['Coûts', 'Costs'],
+  stay_recap_c_lodging: ['Logement', 'Lodging'],
+  stay_recap_c_passes: ['Forfaits', 'Lift passes'],
+  stay_recap_c_route: ['Route', 'Travel'],
+  stay_recap_c_rental: ['Matériel', 'Rental'],
+  stay_recap_c_lessons: ['Cours', 'Lessons'],
+  stay_recap_total: ['Total', 'Total'],
+  stay_recap_per_head: ['par personne', 'per person'],
+  stay_recap_no_lodging: [
+    'Aucun logement retenu pour l’instant.',
+    'No stay kept yet.'
+  ],
+  stay_recap_copy: ['Copier le récap', 'Copy recap'],
+  stay_recap_copied: ['Copié', 'Copied'],
+  stay_recap_mail: ['Envoyer par e-mail', 'Send by e-mail'],
+  /** Parcours replié, sur fenêtre étroite. */
+  nav_journey_jump: ['Aller à', 'Go to'],
   lodg_stay_cost: ['Coût du séjour', 'Stay cost'],
   /** Ce que couvre le montant de la barre de contexte : rien de plus. */
   /** Postes couverts par le total de la barre de contexte. `sejourCost.total`

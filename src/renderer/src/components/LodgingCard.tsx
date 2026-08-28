@@ -324,26 +324,41 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
           </p>
         )}
 
-        {/* L'action principale prend toute la largeur, au-dessus des deux
-            actions secondaires : c'est elle qui sort de l'application, et elle
-            nomme sa destination plutôt que de dire « Annonce ». */}
-        {target && (
-          <button
-            type="button"
-            className="btn lodgcard__open"
-            onClick={(e) => {
-              stop(e)
-              void window.skitrack.openExternal(target)
-            }}
-          >
-            {unconfirmed || gone
-              ? t('avail_open_anyway')
-              : `${t('lodg_open_on')} ${srcOf(lg)}`}
-            <ExternalIcon />
-          </button>
-        )}
+        {/* Hiérarchie des gestes : *retenir* est le seul qui fait avancer le
+            parcours (étape 2 → 3), il prend donc la pilule d'accent pleine
+            largeur. Ouvrir l'annonce sur sa source fait quitter l'application :
+            utile, mais secondaire — il redescend avec Suivre et Comparer. */}
+        <button
+          type="button"
+          className={`lodgcard__cta${inSelection ? ' lodgcard__cta--on' : ''}`}
+          aria-pressed={inSelection}
+          data-testid={`lodgcard-keep-${lg.id}`}
+          onClick={(e) => {
+            stop(e)
+            const next = { ...state.selLodgings }
+            if (inSelection) delete next[domain.id]
+            else next[domain.id] = lg.id
+            patch({ selLodgings: next })
+          }}
+        >
+          {inSelection ? `✓ ${t('lodg_kept')}` : t('lodg_keep')}
+        </button>
 
         <div className="lodgcard__actions">
+          {target && (
+            <button
+              type="button"
+              className="actpill"
+              data-testid={`lodgcard-open-${lg.id}`}
+              onClick={(e) => {
+                stop(e)
+                void window.skitrack.openExternal(target)
+              }}
+            >
+              {unconfirmed || gone ? t('avail_open_anyway') : `${t('lodg_open_on')} ${srcOf(lg)}`}
+              <ExternalIcon />
+            </button>
+          )}
           <button
             type="button"
             className="actpill"
@@ -363,23 +378,6 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
             }}
           >
             {inCompare ? '✓ Comparé' : 'Comparer'}
-          </button>
-          {/* Retenir : un logement par domaine, comme dans le prototype. Le
-              retenir une seconde fois le retire, plutôt que d'exiger un
-              second bouton pour défaire. */}
-          <button
-            type="button"
-            className={`actpill${inSelection ? ' actpill--on' : ''}`}
-            aria-pressed={inSelection}
-            onClick={(e) => {
-              stop(e)
-              const next = { ...state.selLodgings }
-              if (inSelection) delete next[domain.id]
-              else next[domain.id] = lg.id
-              patch({ selLodgings: next })
-            }}
-          >
-            {inSelection ? `✓ ${t('sel_added_domain')}` : t('sel_add_domain')}
           </button>
           </div>
         </div>

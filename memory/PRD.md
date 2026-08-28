@@ -58,6 +58,34 @@ logement dans cette station. » Choix utilisateur :
   gauche→droite du trait de liaison, montée courte de l'écran (`.main--enter`,
   `key={screen}`). Tout coupé sous `prefers-reduced-motion`.
 
+## Implémenté (2026-06-28, suite)
+- **Vignette de logement — hiérarchie des gestes** (`LodgingCard.tsx`,
+  `.lodgcard__cta`) : « Retenir ce logement » = pilule d'accent pleine largeur
+  (l'action qui clôt l'étape 2) ; « Ouvrir sur <source> » redescend en pilule
+  discrète avec Suivre / Comparer.
+  `data-testid` : `lodgcard-keep-{id}`, `lodgcard-open-{id}`.
+- **Bandeau de séjour** (`components/StayBar.tsx`, `.staybar`) : pied de l'écran
+  Logements — logement retenu (ou le moins cher, annoncé comme tel), total
+  `sejourCost` avec détail logement/forfaits/route, « Partager le récap » et
+  « Comparer & trancher → » (va sur Offres).
+  `data-testid` : `stay-bar`, `stay-bar-lodging`, `stay-bar-total`,
+  `stay-bar-share`, `stay-bar-compare`.
+- **Récapitulatif partageable** (`components/StaySummary.tsx`, monté dans
+  `App.tsx` via `state.staySummaryOpen`) : texte brut (station, dates, groupe,
+  logement + lien, détail des coûts, total et par personne), copie presse-papier
+  et envoi par e-mail (`mailto:` via `openExternal`). Échap ferme.
+  `data-testid` : `stay-summary`, `stay-summary-text`, `stay-summary-copy`,
+  `stay-summary-mail`, `stay-summary-close`.
+- **Parcours replié sous 1180 px** (`App.tsx`, `.nav__jump`) : les six pilules
+  deviennent un menu déroulant « 1 · Stations / 2 · Logements / 3 · … ».
+  `data-testid` : `nav-journey-select`.
+- **Correction** : le coût de l'en-tête Logements lisait `state.lodgSelId`, que
+  rien n'écrit — il lit désormais `state.selLodgings[domaine]`, le logement
+  réellement retenu.
+- **Prévisualisation** : `dev-preview/shim.ts` injecte 3 annonces factices sur
+  `#logements` (tarifées pour les dates par défaut), sinon l'écran n'a rien à
+  mettre en page hors Electron.
+
 ## Vérifié
 - `tsc -p tsconfig.web.json` ✓ · `i18n:test` (733×2) ✓ · `i18n:scan --ci` (dette
   sous plafond) ✓ · Rendu visuel #recherche et #logements en clair et sombre ✓.
@@ -65,10 +93,8 @@ logement dans cette station. » Choix utilisateur :
   ni testing_agent (stack Electron non standard).
 
 ## Backlog / prochaines étapes
-- P1 : vignette de logement (`LodgingCard`) — même hiérarchie de CTA que les
-  cartes station (« Retenir ce logement » primaire vs actions secondaires).
-- P1 : barre de résumé collante en bas de l'écran Logements (station + total +
-  « Comparer ») pour boucler l'étape 3.
-- P2 : version étroite (<900 px) de la barre : parcours en menu déroulant.
+- P1 : l'écran Décision pourrait rappeler le logement retenu et rouvrir le
+  récapitulatif partageable (aujourd'hui accessible du seul bandeau Logements).
+- P2 : version étroite de l'écran Logements — la carte occupe encore la moitié.
 - P2 : carte du domaine absente en prévisualisation (MapLibre non chargé dans le
   shim) — vérifier dans l'app Electron.

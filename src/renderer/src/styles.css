@@ -4691,6 +4691,175 @@ select {
   flex-wrap: wrap;
 }
 
+/* --- Bandeau de séjour (StayBar) ------------------------------------------ */
+
+/** Pied de l'écran Logements : il clôt l'étape 2.
+ *
+ *  Ce n'est pas une pilule flottante comme le tiroir du comparateur, mais un
+ *  vrai pied d'écran : `.lodgings` est une colonne flex de hauteur pleine, le
+ *  bandeau y reste posé tandis que la mosaïque défile au-dessus. Une pilule
+ *  centrée de plus, sous celle du comparateur, en aurait fait deux qui se
+ *  recouvrent. */
+.staybar {
+  display: flex;
+  align-items: center;
+  gap: 10px 20px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  padding: 12px clamp(16px, 3vw, 24px);
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 24px rgba(16, 24, 40, 0.06);
+  z-index: 8;
+  animation: staybar-in 0.26s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes staybar-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.staybar__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.staybar__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.staybar__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staybar__place {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.staybar__cost {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.staybar__total {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.staybar__scope {
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.staybar__share {
+  background: none;
+  border: 0;
+  padding: 8px 10px;
+  border-radius: var(--rayon-plein, 999px);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--duree-1, 0.16s) var(--standard, ease), background-color var(--duree-1, 0.16s)
+    var(--standard, ease);
+}
+.staybar__share:hover {
+  color: var(--accent);
+  background: var(--surface);
+}
+
+.staybar__cta {
+  border-radius: var(--rayon-plein, 999px);
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform var(--duree-1, 0.16s) var(--standard, ease), box-shadow var(--duree-1, 0.16s)
+    var(--standard, ease);
+}
+.staybar__cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 32%, transparent);
+}
+
+/** Texte du récapitulatif : monospace, pour qu'on voie ce qui sera collé. */
+.staysum__text {
+  width: 100%;
+  resize: vertical;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/** Action primaire de la vignette de logement : retenir. Pleine largeur, en
+ *  accent, elle referme l'étape 2 ; « Ouvrir sur la source » redescend avec les
+ *  actions discrètes puisqu'il fait quitter l'application. */
+.lodgcard__cta {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 16px;
+  border: 1px solid var(--accent);
+  border-radius: var(--rayon-plein, 999px);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter var(--duree-1, 0.16s) var(--standard, ease), background-color var(--duree-1, 0.16s)
+    var(--standard, ease), color var(--duree-1, 0.16s) var(--standard, ease);
+}
+.lodgcard__cta:hover {
+  filter: brightness(0.95);
+}
+.lodgcard__cta--on {
+  background: var(--accent-soft);
+  color: var(--accent-texte, var(--accent));
+}
+
+/** Parcours replié, sur fenêtre étroite (voir `narrow` dans l'état). */
+.nav__jump {
+  font-weight: 700;
+  max-width: 190px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staybar,
+  .staybar__cta,
+  .staybar__share,
+  .lodgcard__cta {
+    animation: none;
+    transition: none;
+  }
+  .staybar__cta:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
 /* --- Comparateur ---------------------------------------------------------- */
 
 /* Tiroir du comparateur : une pilule encre posée en bas de l'écran, au-dessus de

@@ -11,6 +11,7 @@ import { LodgingMap } from '@/components/LodgingMap'
 import { LodgingSheet } from '@/components/LodgingSheet'
 import { REJECTED_ANCHOR, RejectedLodgings } from '@/components/RejectedLodgings'
 import { ResultGrid } from '@/components/ResultGrid'
+import { StayBar } from '@/components/StayBar'
 import { deepLinks } from '@/data/deeplinks'
 import { lodgingCoords, useLodgingGeo } from '@/data/lodgingGeo'
 import type { Lodging } from '@/data/lodgings'
@@ -526,7 +527,7 @@ export function LodgingsPage(): JSX.Element {
    * d'une porte d'entrée sans prix — voir `priceless` dans les sélecteurs.
    */
   const costLodging =
-    derived.lodgAll.find((lg) => lg.id === state.lodgSelId && lg.total > 0) ??
+    derived.lodgAll.find((lg) => lg.id === state.selLodgings[d.id] && lg.total > 0) ??
     derived.lodgAll.filter((lg) => lg.total > 0).sort((a, b) => a.total - b.total)[0] ??
     null
 
@@ -543,7 +544,7 @@ export function LodgingsPage(): JSX.Element {
   const stayCost = costLodging ? derived.sejourCost(costLodging, d).total : null
 
   /** Vrai quand le total porte sur le moins cher faute de logement retenu. */
-  const costOnCheapest = costLodging != null && costLodging.id !== state.lodgSelId
+  const costOnCheapest = costLodging != null && costLodging.id !== state.selLodgings[d.id]
 
   return (
     <div className="lodgings">
@@ -1092,6 +1093,8 @@ export function LodgingsPage(): JSX.Element {
           )}
         </section>
       </div>
+
+      {state.lodgPhase === 'results' && <StayBar domain={d} />}
 
       {state.ficheId != null && <LodgingSheet domain={d} />}
       {/* L'import manuel d'une annonce a été retiré de l'écran : plus aucun

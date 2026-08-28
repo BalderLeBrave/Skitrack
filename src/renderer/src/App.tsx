@@ -5,6 +5,7 @@ import { useShortcuts } from '@/hooks/useShortcuts'
 import { useProviderRegistry } from '@/hooks/useProviderRegistry'
 import { useSelectionSync } from '@/hooks/useSelectionStore'
 import { AppProvider, useApp } from '@/state/appState'
+import type { Screen } from '@/state/appState'
 import { DerivedProvider, useDerived } from '@/state/selectors'
 import { WeatherProvider } from '@/state/weather'
 import { SvgDefs } from '@/components/Icons'
@@ -14,6 +15,7 @@ import { JourneyStepper } from '@/components/JourneyStepper'
 import { Onboarding } from '@/components/Onboarding'
 import { PeopleDrawer } from '@/components/PeopleDrawer'
 import { Snowfall } from '@/components/Snowfall'
+import { StaySummary } from '@/components/StaySummary'
 import { CombosPage } from '@/pages/CombosPage'
 import { DecisionPage } from '@/pages/DecisionPage'
 import { DomainSearchPage } from '@/pages/DomainSearchPage'
@@ -91,6 +93,9 @@ function ThemeSwitch(): JSX.Element {
  * onglet qui va et vient force à retenir *quand* il apparaît. Il reste visible
  * et renvoie vers Rechercher, ce qui est aussi la marche à suivre.
  */
+/** Écrans du parcours, dans l'ordre : ce que le menu replié propose. */
+const JOURNEY_SCREENS: Screen[] = ['recherche', 'logements', 'offres', 'combinaisons', 'decision']
+
 function Nav(): JSX.Element {
   const { state, patch, screen, narrow } = useApp()
   const { t } = useI18n()
@@ -117,7 +122,24 @@ function Nav(): JSX.Element {
 
         {/* Les trois temps du parcours tiennent dans un même cadre : on voit
             qu'ils forment une tâche, et non six destinations voisines des
-            utilitaires de droite. */}
+            utilitaires de droite. Sous 1180 px, le cadre se replie en un menu
+            déroulant : six pilules dans une barre étroite se chevauchaient ou
+            poussaient les utilitaires hors de l'écran. */}
+        {narrow ? (
+          <select
+            className="nav__lang nav__jump"
+            aria-label={t('nav_journey_jump')}
+            data-testid="nav-journey-select"
+            value={JOURNEY_SCREENS.includes(screen) ? screen : 'recherche'}
+            onChange={(e) => patch({ tab: e.target.value as Screen })}
+          >
+            <option value="recherche">1 · {t('nav_search')}</option>
+            <option value="logements">2 · {t('nav_lodgings')}</option>
+            <option value="offres">3 · {t('nav_offers')}</option>
+            <option value="combinaisons">3 · {t('nav_combos')}</option>
+            <option value="decision">3 · {t('nav_decision')}</option>
+          </select>
+        ) : (
         <div className="nav__journey" role="group" aria-label={t('journey_aria')}>
           <button
             type="button"
@@ -169,6 +191,7 @@ function Nav(): JSX.Element {
             </button>
           </div>
         </div>
+        )}
       </div>
 
       <div className="nav__side nav__side--right nav__utils">
@@ -354,6 +377,7 @@ function Shell(): JSX.Element {
           réglage `snowfall`. */}
       {state.snowfall && screen !== 'accueil' && <Snowfall />}
       {state.peopleOpen && <PeopleDrawer />}
+      {state.staySummaryOpen && <StaySummary />}
       {state.domFicheId != null && <DomainSheet />}
       {state.onboard && <Onboarding />}
     </div>

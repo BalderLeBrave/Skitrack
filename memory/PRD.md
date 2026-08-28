@@ -86,6 +86,28 @@ logement dans cette station. » Choix utilisateur :
   `#logements` (tarifées pour les dates par défaut), sinon l'écran n'a rien à
   mettre en page hors Electron.
 
+## Correctifs d'alignement (2026-06-28)
+Signalement : « tous les textes ne sont pas forcément alignés ». Règle retenue
+avec l'utilisateur : cartes de même hauteur, prix et boutons sur une même
+ligne, libellés longs **tronqués** (ellipse) au lieu de passer à la ligne.
+- `styles/result-cards.css` : `.resultgrid { align-items: stretch }` (au lieu de
+  `start`) + `.resultgrid > * { height: 100% }`.
+- `styles.css` : `.results__grid` idem ; `.lodgcard__body` en colonne flex ;
+  nouveau `.lodgcard__foot` (CTA + pilules) avec `margin-top: auto` ;
+  `.lodgcard__sub` sur une ligne tronquée (`title` porte le texte complet) ;
+  `.actpill` tronquée, `.actpill--open` sur sa propre rangée pleine largeur ;
+  `.domcard__col` colonne flex + `.domcard__footer { margin-top: auto }`.
+- `.offerrow` : colonnes de largeur **fixe** `100px 1fr 56px 132px` — en `auto`,
+  chaque rangée se dimensionnait sur son propre contenu, donc le nom et le prix
+  se décalaient d'une rangée à l'autre. `.offerrow__meta` sur une ligne.
+- `.lodgcard__badge--src` : encre fixe `#12181f` — le fond blanc est tenu dans
+  les deux thèmes, mais `var(--text)` devenait clair en sombre et le nom de la
+  source disparaissait (relevé par le testing agent).
+- Aperçu navigateur : retour au **build + `vite preview`** via
+  `scripts/preview-serve.sh` (build initial, `--watch`, puis serveur). En mode
+  dev, les ~330 photos chargées par `import.meta.glob({ eager: true })` faisaient
+  une requête chacune et l'ingress répondait 429 → page blanche intermittente.
+
 ## Vérifié
 - `tsc -p tsconfig.web.json` ✓ · `i18n:test` (733×2) ✓ · `i18n:scan --ci` (dette
   sous plafond) ✓ · Rendu visuel #recherche et #logements en clair et sombre ✓.

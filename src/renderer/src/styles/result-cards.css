@@ -9,7 +9,17 @@
      comme la légende de son image, il ne doit pas se rapprocher de l'image
      suivante. */
   row-gap: 40px;
-  align-items: start;
+  /* `stretch` et non `start` : les vignettes d'une même rangée prennent la
+     hauteur de la plus haute, et leurs pieds — prix, bouton — tombent sur la
+     même ligne. Avec `start`, trois cartes de contenus inégaux donnaient trois
+     hauteurs, et le bouton principal se cherchait d'une carte à l'autre. */
+  align-items: stretch;
+}
+
+/* Les vignettes remplissent leur cellule : c'est ce qui rend l'alignement
+   effectif, `stretch` ne suffit pas quand la carte se dimensionne au contenu. */
+.resultgrid > * {
+  height: 100%;
 }
 
 /* La seule largeur qu'`auto-fill` ne sait pas exprimer.

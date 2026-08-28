@@ -270,8 +270,12 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
           )}
         </div>
 
-        <p className="lodgcard__sub">{place}</p>
-        <p className="lodgcard__sub">{factLeft}</p>
+        <p className="lodgcard__sub" title={place}>
+          {place}
+        </p>
+        <p className="lodgcard__sub" title={factLeft}>
+          {factLeft}
+        </p>
 
         <p className="lodgcard__price">
           <strong className="lodgcard__total crn-releve">{price.amount}</strong>{' '}
@@ -323,62 +327,68 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
             ))}
           </p>
         )}
+        </div>
 
         {/* Hiérarchie des gestes : *retenir* est le seul qui fait avancer le
             parcours (étape 2 → 3), il prend donc la pilule d'accent pleine
             largeur. Ouvrir l'annonce sur sa source fait quitter l'application :
-            utile, mais secondaire — il redescend avec Suivre et Comparer. */}
-        <button
-          type="button"
-          className={`lodgcard__cta${inSelection ? ' lodgcard__cta--on' : ''}`}
-          aria-pressed={inSelection}
-          data-testid={`lodgcard-keep-${lg.id}`}
-          onClick={(e) => {
-            stop(e)
-            const next = { ...state.selLodgings }
-            if (inSelection) delete next[domain.id]
-            else next[domain.id] = lg.id
-            patch({ selLodgings: next })
-          }}
-        >
-          {inSelection ? `✓ ${t('lodg_kept')}` : t('lodg_keep')}
-        </button>
+            utile, mais secondaire — il redescend avec Suivre et Comparer.
 
-        <div className="lodgcard__actions">
-          {target && (
+            Le pied est poussé en bas de la carte (`margin-top: auto`) : les
+            boutons d'une même rangée tombent ainsi sur la même ligne, quel que
+            soit le nombre de mentions affichées au-dessus. */}
+        <div className="lodgcard__foot">
+          <button
+            type="button"
+            className={`lodgcard__cta${inSelection ? ' lodgcard__cta--on' : ''}`}
+            aria-pressed={inSelection}
+            data-testid={`lodgcard-keep-${lg.id}`}
+            onClick={(e) => {
+              stop(e)
+              const next = { ...state.selLodgings }
+              if (inSelection) delete next[domain.id]
+              else next[domain.id] = lg.id
+              patch({ selLodgings: next })
+            }}
+          >
+            {inSelection ? `✓ ${t('lodg_kept')}` : t('lodg_keep')}
+          </button>
+
+          <div className="lodgcard__actions">
+            {target && (
+              <button
+                type="button"
+                className="actpill actpill--open"
+                data-testid={`lodgcard-open-${lg.id}`}
+                onClick={(e) => {
+                  stop(e)
+                  void window.skitrack.openExternal(target)
+                }}
+              >
+                {unconfirmed || gone ? t('avail_open_anyway') : `${t('lodg_open_on')} ${srcOf(lg)}`}
+                <ExternalIcon />
+              </button>
+            )}
             <button
               type="button"
               className="actpill"
-              data-testid={`lodgcard-open-${lg.id}`}
               onClick={(e) => {
                 stop(e)
-                void window.skitrack.openExternal(target)
+                toggleTrack()
               }}
             >
-              {unconfirmed || gone ? t('avail_open_anyway') : `${t('lodg_open_on')} ${srcOf(lg)}`}
-              <ExternalIcon />
+              {tracked ? '✓ Suivi' : 'Suivre'}
             </button>
-          )}
-          <button
-            type="button"
-            className="actpill"
-            onClick={(e) => {
-              stop(e)
-              toggleTrack()
-            }}
-          >
-            {tracked ? '✓ Suivi' : 'Suivre'}
-          </button>
-          <button
-            type="button"
-            className={`actpill${inCompare ? ' actpill--on' : ''}`}
-            onClick={(e) => {
-              stop(e)
-              toggleCompare()
-            }}
-          >
-            {inCompare ? '✓ Comparé' : 'Comparer'}
-          </button>
+            <button
+              type="button"
+              className={`actpill${inCompare ? ' actpill--on' : ''}`}
+              onClick={(e) => {
+                stop(e)
+                toggleCompare()
+              }}
+            >
+              {inCompare ? '✓ Comparé' : 'Comparer'}
+            </button>
           </div>
         </div>
       </div>

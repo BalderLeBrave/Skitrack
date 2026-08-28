@@ -119,7 +119,7 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
     >
       <AltitudeProfile min={d.min} max={d.max} village={d.village} scaleMin={scaleMin} scaleMax={scaleMax} />
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="domcard__col">
         {/* Ligne haute : d'où vient ce domaine (à gauche), ce qu'il vaut (à
             droite). Deux repères qu'on lit sans lire, avant même le nom. */}
         <header className="domcard__head">

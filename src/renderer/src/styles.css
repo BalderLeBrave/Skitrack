@@ -2864,7 +2864,9 @@ select {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(430px, 100%), 1fr));
   gap: 16px;
-  align-items: start;
+  /* Même règle que la mosaïque des logements : les cartes d'une rangée
+     partagent leur hauteur, et leurs pieds s'alignent. */
+  align-items: stretch;
 }
 
 /**
@@ -3153,9 +3155,23 @@ select {
 .domcard__footer {
   display: flex;
   gap: 12px 16px;
-  margin-top: 10px;
+  margin-top: auto;
+  padding-top: 10px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+/** Colonne de contenu de la carte de station.
+ *
+ *  Colonne flex pour que le pied — prix, « Retenir », « Voir les logements » —
+ *  soit poussé en bas (`margin-top: auto` ci-dessus). Deux stations dont les
+ *  lignes de contexte n'ont pas la même longueur gardent ainsi leurs boutons
+ *  sur la même ligne. */
+.domcard__col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 /** Bloc de prix de la carte de domaine.
@@ -4365,7 +4381,10 @@ select {
 .lodgcard__badge--src {
   min-width: 0;
   background: rgba(255, 255, 255, 0.94);
-  color: var(--text);
+  /* Encre fixe et non `var(--text)` : la pastille garde son fond blanc dans
+     les deux thèmes, et le jeton de texte devenait clair en sombre — le nom de
+     la source disparaissait alors sur son propre fond. */
+  color: #12181f;
   box-shadow: 0 1px 3px rgba(15, 22, 32, 0.18);
   backdrop-filter: blur(2px);
 }
@@ -4416,10 +4435,13 @@ select {
 
 .lodgcard__body {
   padding: 12px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  /* Même raison que sur `.lodgcard` : une grille dont la colonne se dimensionne
-     sur son contenu ne tronque jamais rien. */
+  /* Colonne flex et non grille : c'est ce qui permet au pied de la vignette
+     (`__foot`) d'être poussé en bas par `margin-top: auto`, donc d'être à la
+     même hauteur sur toutes les cartes d'une rangée. */
+  flex: 1;
   min-width: 0;
 }
 
@@ -4437,11 +4459,8 @@ select {
   min-width: 0;
 }
 
-/* Les phrases longues sans coupure possible — « nécessite le moteur local » —
-   se replient plutôt que de pousser la colonne. */
-.lodgcard__sub {
-  overflow-wrap: anywhere;
-}
+/* La troncature sur une ligne (voir plus bas) remplace le repli : une phrase
+   longue s'abrège désormais, elle ne pousse ni ne rallonge la colonne. */
 
 .lodgcard__name {
   margin: 0;
@@ -4452,6 +4471,12 @@ select {
   margin: 0;
   color: var(--muted);
   font-size: 12px;
+  /* Une ligne, tronquée : la faire passer sur deux lignes décalait le prix et
+     le bouton d'une carte à l'autre. Le texte complet reste au survol
+     (`title`). */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .lodgcard__price {
@@ -4820,7 +4845,6 @@ select {
  *  actions discrètes puisqu'il fait quitter l'application. */
 .lodgcard__cta {
   width: 100%;
-  margin-top: 10px;
   padding: 10px 16px;
   border: 1px solid var(--accent);
   border-radius: var(--rayon-plein, 999px);
@@ -5123,8 +5147,12 @@ select {
  */
 .offerrow {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  gap: 16px;
+  /* Colonnes de largeur **fixe** de part et d'autre du bloc central : chaque
+     rangée est sa propre grille, donc des colonnes `auto` se dimensionnaient
+     sur leur seul contenu — « 76 · Très bon » décalait le nom d'une ligne à
+     l'autre, et « 0 / 0 cm » décalait le prix. */
+  grid-template-columns: 100px minmax(0, 1fr) 56px 132px;
+  gap: 10px;
   align-items: center;
   width: 100%;
   padding: 14px 16px;
@@ -5159,6 +5187,11 @@ select {
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  /* La pastille remplit sa colonne fixe : son texte reste centré, et le nom de
+     l'offre part au même x sur toutes les rangées. */
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .offerrow__main {
@@ -5187,12 +5220,18 @@ select {
 .offerrow__meta {
   font-size: 12px;
   color: var(--muted);
+  /* Une ligne par mention : à deux lignes, les rangées n'avaient plus la même
+     hauteur et les colonnes de droite ne s'alignaient plus entre elles. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /** Jauge de neige : une colonne bleu pâle remplie jusqu'au sommet relevé. */
 .offerrow__snow {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   white-space: nowrap;
 }
@@ -6419,6 +6458,25 @@ select {
   padding-top: 8px;
 }
 
+/** Sans mention à afficher, le bloc n'est qu'un filet perdu : on le retire. */
+.lodgcard__extra:empty {
+  display: none;
+}
+
+/** Pied de la vignette : l'action principale et les actions discrètes.
+ *
+ *  `margin-top: auto` le colle au bas de la carte. C'est ce qui aligne les
+ *  boutons « Retenir ce logement » d'une rangée entre eux, quel que soit le
+ *  nombre de mentions (annulation gratuite, dernier logement à ce tarif…)
+ *  affichées au-dessus. */
+.lodgcard__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
 .lodgcard__flag {
   margin: 0;
   font-size: 12px;
@@ -6466,6 +6524,20 @@ select {
   font-family: inherit;
   color: var(--muted);
   cursor: pointer;
+  /* Un libellé long — « Ouvrir sur Centrale de station » — s'abrège au lieu de
+     passer sur deux lignes et de décaler la rangée d'actions. */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/** Ouvrir sur la source : sa propre rangée, pleine largeur. Mêlée aux deux
+ *  pilules courtes, elle repliait la rangée sur deux lignes dans les seules
+ *  cartes dont la source a un nom long — d'où des pieds inégaux. */
+.actpill--open {
+  flex: 1 0 100%;
+  justify-content: center;
 }
 
 .actpill:hover {

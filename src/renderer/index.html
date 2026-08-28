@@ -6,11 +6,12 @@
     <!--
       CSP stricte : le renderer ne charge de script que depuis lui-même. Les
       polices et la bibliothèque de carte sont empaquetées, aucune n'est tirée
-      d'un CDN. `connect-src` n'ouvre que ce dont la carte a besoin : les cinq
-      fonds du sélecteur (IGN Géoplateforme, OpenTopoMap, Esri, CARTO), les
-      glyphes de labels, le modèle numérique de terrain pour le relief 3D,
-      Overpass pour le tracé des pistes et la vérification des positions, OSRM
-      pour les temps de trajet, et Open-Meteo pour la neige et l'altimétrie.
+      d'un CDN. `connect-src` n'ouvre que ce dont la carte a besoin : les six
+      fonds du sélecteur (IGN Géoplateforme, OpenTopoMap, Esri, CARTO), la
+      surcouche de pistes OpenSnowMap, les glyphes de labels, le modèle
+      numérique de terrain pour le relief 3D, Overpass pour le tracé des pistes
+      en 3D et la vérification des positions, OSRM pour les temps de trajet, et
+      Open-Meteo pour la neige et l'altimétrie.
 
       `img-src https:` est volontairement large : les logos des stations et les
       photos des annonces importées viennent de centaines d'hôtes qu'on ne peut
@@ -25,7 +26,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; frame-src https://www.skaping.com https://app.webcam-hd.com https://tignes.roundshot.com https://pv.viewsurf.com https://www.vision-environnement.com https://www.stationsnicecotedazur.com; connect-src 'self' http://127.0.0.1:* ws://localhost:* https://*.opentopomap.org https://*.tile.openstreetmap.org https://data.geopf.fr https://server.arcgisonline.com https://*.basemaps.cartocdn.com https://s3.amazonaws.com https://demotiles.maplibre.org https://router.project-osrm.org https://overpass-api.de https://overpass.kumi.systems https://api.open-meteo.com"
+      content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; frame-src https://www.skaping.com https://app.webcam-hd.com https://tignes.roundshot.com https://pv.viewsurf.com https://www.vision-environnement.com https://www.stationsnicecotedazur.com; connect-src 'self' http://127.0.0.1:* ws://localhost:* https://*.opentopomap.org https://*.tile.openstreetmap.org https://data.geopf.fr https://server.arcgisonline.com https://*.basemaps.cartocdn.com https://s3.amazonaws.com https://demotiles.maplibre.org https://router.project-osrm.org https://tiles.opensnowmap.org https://overpass-api.de https://overpass.kumi.systems https://api.open-meteo.com"
     />
     <title>SKITRACK</title>
   </head>

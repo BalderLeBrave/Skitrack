@@ -2,9 +2,12 @@ import { ResultCard } from '@/components/ResultCard'
 import { srcOf } from '@/data/lodgings'
 import { lessonsCount } from '@/domain/costs'
 import { useFormat } from '@/hooks/useFormat'
+import { fmtStay } from '@/domain/format'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+import { useState } from 'react'
 import { useI18n } from '@/i18n'
+import { StayReport } from '@/components/StayReport'
 
 /**
  * La décision retenue.
@@ -17,10 +20,14 @@ import { useI18n } from '@/i18n'
  * plusieurs foyers.
  */
 export function DecisionPage(): JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { dur, eur, fmt } = useFormat()
   const { state, patch } = useApp()
   const derived = useDerived()
+  const [pdfBusy, setPdfBusy] = useState(false)
+  /** Le rapport n'existe dans le DOM que pendant l'export. */
+  const [reportMonte, setReportMonte] = useState(false)
+  const [pdfMsg, setPdfMsg] = useState<string | null>(null)
   const ctx = derived.decisionCtx
   const split = derived.split
 
@@ -43,6 +50,47 @@ export function DecisionPage(): JSX.Element {
   }
 
   const k = ctx.cost
+
+  /**
+   * Attend que les images du rapport soient réellement décodées.
+   *
+   * `printToPDF` photographie la page à l'instant où on l'appelle : une tuile
+   * encore en vol donnerait un carré blanc dans le PDF. `decode()` résout quand
+   * l'image est prête ; une tuile en erreur est ignorée plutôt que de bloquer
+   * l'export — le PDF sort avec un trou, ce qui est mieux qu'un export qui ne
+   * sort jamais.
+   */
+  const attendreImages = async (): Promise<void> => {
+    const rapport = document.getElementById('stay-report')
+    if (!rapport) return
+    const images = [...rapport.querySelectorAll('img')]
+    await Promise.all(images.map((img) => img.decode().catch(() => undefined)))
+  }
+
+  const exportPdf = async (): Promise<void> => {
+    setPdfBusy(true)
+    setPdfMsg(null)
+    setReportMonte(true)
+    document.documentElement.setAttribute('data-print', 'rapport')
+    try {
+      // Un tour de boucle pour que React ait posé le rapport dans le DOM, puis
+      // l'attente des tuiles.
+      await new Promise((r) => setTimeout(r, 0))
+      await attendreImages()
+      const nom = `skitrack-${ctx.d.name}-${ctx.w.arr}`.replace(/[^\w.-]+/g, '-')
+      const res = await window.skitrack.reportPdf({ suggestedName: nom })
+      // Une annulation n'est pas un échec : elle ne dit rien à l'écran.
+      if (res.cancelled) setPdfMsg(null)
+      else if (res.ok && res.path) setPdfMsg(t('report_saved').replace('{p}', res.path))
+      else setPdfMsg(t('report_failed').replace('{e}', res.error ?? '—'))
+    } catch (err) {
+      setPdfMsg(t('report_failed').replace('{e}', err instanceof Error ? err.message : String(err)))
+    } finally {
+      document.documentElement.removeAttribute('data-print')
+      setReportMonte(false)
+      setPdfBusy(false)
+    }
+  }
   const voteKey = derived.comboKey(ctx.d.id, ctx.w.arr)
   const votes = derived.voteScore(voteKey)
 
@@ -86,6 +134,19 @@ export function DecisionPage(): JSX.Element {
       {/* Colonne unique de 560 px : le dernier écran avant de réserver n'a plus
           rien à comparer, il a une seule chose à faire lire de haut en bas. */}
       <div className="page__inner decision" style={{ maxWidth: 560, padding: '26px 28px 40px' }}>
+        {/* Le récapitulatif imprimable vit dans l'arbre en permanence mais n'est
+            visible qu'à l'impression : `printToPDF` rend la page telle quelle,
+            et un composant monté à la volée n'aurait pas fini de charger ses
+            tuiles de fond au moment du rendu. */}
+        {/* Le rapport n'est monté que le temps de l'export.
+            Le laisser dans l'arbre en permanence le faisait charger neuf tuiles
+            IGN et interroger le moteur local **à chaque ouverture de cet
+            écran** — `display: none` n'empêche pas un navigateur de télécharger
+            les images. L'export attend explicitement que les tuiles soient
+            décodées avant d'appeler `printToPDF` ; c'est ce qu'`attendreImages`
+            fait, et c'est plus sûr qu'un composant monté « au cas où ». */}
+        {reportMonte && <StayReport />}
+
         <header className="page-head" style={{ marginBottom: 4 }}>
           <h2>{ctx.d.name}</h2>
           <strong className="u-num crn-calcul" style={{ fontSize: 20, color: 'var(--text)' }}>
@@ -116,6 +177,20 @@ export function DecisionPage(): JSX.Element {
               .replace('{d}', ctx.d.name)
               .replace('{p}', eur(k.total))}
           />
+          {/* Le prix du logement est celui du relevé, à ses propres dates.
+              Il était jusqu'ici reprojeté sur la semaine retenue par l'écart de
+              saisonnalité national, ce qui produisait un montant que personne
+              n'avait jamais vu chez la centrale — et c'est le montant que cet
+              écran présente comme le budget du séjour. La reprojection est
+              partie ; l'écart de dates, lui, se dit. */}
+          {ctx.lg.priceCheckIn && ctx.lg.priceCheckIn !== ctx.w.arr && (
+            <p className="u-muted" style={{ margin: '6px 0 0', fontSize: 11.5 }}>
+              {t('decision_price_other_dates').replace(
+                '{p}',
+                fmtStay(ctx.lg.priceCheckIn, ctx.lg.priceCheckOut ?? ctx.lg.priceCheckIn, lang)
+              )}
+            </p>
+          )}
         </div>
 
         <section className="panel decision__card">
@@ -199,13 +274,29 @@ export function DecisionPage(): JSX.Element {
               Changer de logement
             </button>
             <button type="button" className="linkbtn" onClick={() => window.print()}>
-              Imprimer
+              {t('print_label')}
+            </button>
+            {/* L'export bascule la page en vue « rapport », demande le PDF au
+                processus principal, puis remet l'écran comme il était — quoi
+                qu'il arrive, y compris si l'utilisateur annule. */}
+            <button
+              type="button"
+              className="linkbtn"
+              disabled={pdfBusy}
+              onClick={() => void exportPdf()}
+            >
+              {pdfBusy ? t('report_exporting') : t('report_export')}
             </button>
             <span className="u-spacer" />
             <button type="button" className="linkbtn linkbtn--muted" onClick={() => patch({ decision: null })}>
               {t('decision_cancel')}
             </button>
           </div>
+          {pdfMsg && (
+            <p className="u-muted" style={{ margin: '8px 0 0', fontSize: 11.5, wordBreak: 'break-all' }}>
+              {pdfMsg}
+            </p>
+          )}
         </section>
       </div>
     </div>

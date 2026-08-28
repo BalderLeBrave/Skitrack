@@ -118,9 +118,20 @@ export function CombosPage(): JSX.Element {
           domaine.
         </p>
 
+        {/* La grille ne montre que les domaines pour lesquels au moins un
+            logement a été relevé : une ligne sans logement n'aurait pas de coût
+            complet à projeter. Le message distingue donc « pas de logement » de
+            « pas de domaine », qui appellent des gestes opposés. */}
         {rows.length === 0 && (
           <div className="panel panel--empty">
-            <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Aucun domaine ne passe les filtres actuels.</p>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
+              {state.imported.length === 0 ? tr('empty_no_lodgings') : tr('empty_no_lodgings_here')}
+            </p>
+            <p className="u-muted" style={{ margin: 0, fontSize: 14, maxWidth: '46ch' }}>
+              {state.imported.length === 0
+                ? tr('empty_no_lodgings_hint')
+                : tr('empty_no_lodgings_here_hint')}
+            </p>
           </div>
         )}
 
@@ -141,6 +152,14 @@ export function CombosPage(): JSX.Element {
               {tr('combo_legend_holiday')}
             </span>
           </div>
+        )}
+
+        {/* La grille montre douze semaines, une seule est relevée. Le « ≈ » des
+            cellules le signale case par case ; cette ligne dit pourquoi. */}
+        {rows.length > 0 && (
+          <p className="u-muted" style={{ margin: '0 0 10px', fontSize: 11.5 }}>
+            {tr('combo_projected_note')} {tr('combo_projected_pick')}
+          </p>
         )}
 
         {/* En fenêtre étroite, la grille devient une pile de cartes : sept
@@ -180,7 +199,10 @@ export function CombosPage(): JSX.Element {
                       <span style={{ display: 'block', fontSize: 10, color: 'var(--muted)', fontWeight: 500 }}>
                         {c.week.label}
                       </span>
-                      {eur(c.total)}
+                      <span title={c.projected ? tr('combo_projected_cell') : undefined}>
+                        {c.projected ? '≈ ' : ''}
+                        {eur(c.total)}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -229,7 +251,10 @@ export function CombosPage(): JSX.Element {
                           })
                         }
                       >
-                        {eur(c.total)}
+                        <span title={c.projected ? tr('combo_projected_cell') : undefined}>
+                          {c.projected ? '≈ ' : ''}
+                          {eur(c.total)}
+                        </span>
                       </button>
                     ))}
                     <strong className="u-num crn-calcul" style={{ textAlign: 'right', fontSize: 14, color: 'var(--text)' }}>
@@ -249,7 +274,7 @@ export function CombosPage(): JSX.Element {
                 {selDomain?.name ?? ''} · {selWeek?.label ?? ''}
               </p>
               <strong className="u-num" style={{ color: 'var(--text)' }}>
-                <span className="crn-calcul">{eur(selection.total)}</span> tout compris
+                <span className="crn-calcul">{eur(selection.total)}</span> {tr('combo_sel_total')}
               </strong>
               <button type="button" className="linkbtn linkbtn--muted" onClick={() => patch({ comboSel: null })}>
                 fermer ✕

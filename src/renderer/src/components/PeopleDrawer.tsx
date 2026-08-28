@@ -2,8 +2,7 @@ import { useRef, useState } from 'react'
 import { CloseIcon } from './Icons'
 import { resolveSidecarOrigin } from '@/domain/origins'
 import { originsOf } from '@/domain/travel'
-import { enfantPrice } from '@/data/referentiel'
-import type { Person } from '@/domain/costs'
+import type { EsfRate, Person } from '@/domain/costs'
 import { HOUR_OPTS, RENTAL_ADULT, RENTAL_KID, isKid, lessonOf, lessonsCost, lessonsCount } from '@/domain/costs'
 import { useFormat } from '@/hooks/useFormat'
 import { useFocusTrap } from '@/hooks/useShortcuts'
@@ -11,6 +10,7 @@ import { useApp } from '@/state/appState'
 import type { ResolvedForfait } from '@/state/selectors'
 import { useDerived } from '@/state/selectors'
 import { useI18n } from '@/i18n'
+import { passPrefix } from '@/domain/forfaitLabel'
 
 /**
  * Voyageurs et départs.
@@ -36,7 +36,18 @@ export function PeopleDrawer(): JSX.Element {
   // réel plutôt qu'une moyenne qui ne correspond à rien.
   const d = derived.lodgDomain ?? derived.filtered[0] ?? null
   const forfait: ResolvedForfait = d ? derived.forfaitOf(d) : { estimated: true }
-  const rate = d ? derived.esfOf(d) : { kid: 0, adult: 0, source: 'estimé' as const }
+  const pass = d ? derived.passOf(d) : null
+  /**
+   * Clé sous laquelle les tarifs de cours sont rangés.
+   *
+   * `d?.id ?? 0` écrivait sous la clé `0` quand aucun domaine n'était résolu :
+   * la saisie partait dans une entrée que rien ne relit jamais, sans le moindre
+   * signe à l'écran. Sans domaine, les champs sont désormais désactivés.
+   */
+  const domainKey = d?.id ?? -1
+  const rate: EsfRate = d
+    ? derived.esfOf(d)
+    : { kid: 0, adult: 0, priv: null, ecole: null, releveLe: null, source: 'estimé', privSource: 'estimé' }
   const index = d ? derived.lessonIndexOf(d) : 1
   const trip = d ? derived.sejourInputs(d).trip : { fuel: 0, tolls: 0, total: 0, cars: derived.hh.length }
 
@@ -98,9 +109,13 @@ export function PeopleDrawer(): JSX.Element {
 
   const impacts = [
     {
-      label: 'Forfaits 6 jours',
-      val: eur((forfait.j6 ?? 0) * derived.adults + enfantPrice(forfait) * derived.kids),
-      sub: `${derived.adults} × ${eur(forfait.j6 ?? 0)} adulte + ${derived.kids} × ${eur(enfantPrice(forfait))} enfant`
+      // Le libellé porte la durée réelle du séjour : « Forfaits 6 jours » en dur
+      // annonçait six jours sur un week-end, et le montant suivait.
+      label: pass ? t('pass_days_label').replace('{n}', String(pass.jours)) : t('pass_none'),
+      val: eur(pass ? pass.adulte * derived.adults + pass.enfant * derived.kids : 0),
+      sub: pass
+        ? `${derived.adults} × ${passPrefix(pass)}${eur(pass.adulte)} adulte + ${derived.kids} × ${passPrefix(pass)}${eur(pass.enfant)} enfant`
+        : t('pass_none')
     },
     {
       label: 'Location de matériel',
@@ -185,6 +200,7 @@ export function PeopleDrawer(): JSX.Element {
                       min={0}
                       max={99}
                       className="field field--panel u-num"
+                  disabled={!d}
                       style={{ flex: '0 0 68px' }}
                       value={p.age}
                       aria-label="Âge"
@@ -324,6 +340,7 @@ export function PeopleDrawer(): JSX.Element {
                   step={0.1}
                   min={0}
                   className="field field--panel u-num"
+                  disabled={!d}
                   style={{ width: 66, padding: '5px 7px' }}
                   value={rate.kid}
                   aria-label="Tarif horaire enfant"
@@ -331,8 +348,8 @@ export function PeopleDrawer(): JSX.Element {
                     patch({
                       esfRates: {
                         ...state.esfRates,
-                        [d?.id ?? 0]: {
-                          ...(state.esfRates[d?.id ?? 0] ?? {}),
+                        [domainKey]: {
+                          ...(state.esfRates[domainKey] ?? {}),
                           kid: parseFloat(String(e.target.value).replace(',', '.')) || 0
                         }
                       }
@@ -348,6 +365,7 @@ export function PeopleDrawer(): JSX.Element {
                   step={0.1}
                   min={0}
                   className="field field--panel u-num"
+                  disabled={!d}
                   style={{ width: 66, padding: '5px 7px' }}
                   value={rate.adult}
                   aria-label="Tarif horaire adulte"
@@ -355,8 +373,8 @@ export function PeopleDrawer(): JSX.Element {
                     patch({
                       esfRates: {
                         ...state.esfRates,
-                        [d?.id ?? 0]: {
-                          ...(state.esfRates[d?.id ?? 0] ?? {}),
+                        [domainKey]: {
+                          ...(state.esfRates[domainKey] ?? {}),
                           adult: parseFloat(String(e.target.value).replace(',', '.')) || 0
                         }
                       }
@@ -378,15 +396,110 @@ export function PeopleDrawer(): JSX.Element {
               </button>
             </div>
 
+            {/* Deuxième rangée : le cours particulier, l'école et la date.
+                Le tarif particulier n'était saisissable nulle part — il sortait
+                d'un barème en dur (66 / 62 / 58 €/h) indexé sur le forfait, et
+                l'écran ne le distinguait pas d'un tarif relevé. */}
+            <div className="esfrates">
+              <span className="u-muted" style={{ fontSize: 12, flex: '1 1 130px', minWidth: 0 }}>
+                {t('lesson_priv_rate')}
+              </span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }}>
+                <input
+                  type="number"
+                  step={0.5}
+                  min={0}
+                  className="field field--panel u-num"
+                  disabled={!d}
+                  style={{ width: 76, padding: '5px 7px' }}
+                  value={state.esfRates[domainKey]?.priv ?? ''}
+                  placeholder={t('lesson_priv_placeholder')}
+                  aria-label={t('lesson_priv_rate')}
+                  onChange={(e) =>
+                    patch({
+                      esfRates: {
+                        ...state.esfRates,
+                        [domainKey]: {
+                          ...(state.esfRates[domainKey] ?? {}),
+                          priv: parseFloat(String(e.target.value).replace(',', '.')) || undefined
+                        }
+                      }
+                    })
+                  }
+                />
+                €/h
+              </label>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontSize: 12,
+                  flex: '1 1 140px',
+                  minWidth: 0
+                }}
+              >
+                <input
+                  type="text"
+                  className="field field--panel"
+                  disabled={!d}
+                  style={{ padding: '5px 7px', minWidth: 0 }}
+                  value={state.esfRates[domainKey]?.ecole ?? ''}
+                  placeholder={t('lesson_school_placeholder')}
+                  aria-label={t('lesson_school_label')}
+                  onChange={(e) =>
+                    patch({
+                      esfRates: {
+                        ...state.esfRates,
+                        [domainKey]: { ...(state.esfRates[domainKey] ?? {}), ecole: e.target.value }
+                      }
+                    })
+                  }
+                />
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }}>
+                <input
+                  type="date"
+                  className="field field--panel"
+                  disabled={!d}
+                  style={{ padding: '5px 7px' }}
+                  value={state.esfRates[domainKey]?.releveLe ?? ''}
+                  aria-label={t('lesson_date_label')}
+                  onChange={(e) =>
+                    patch({
+                      esfRates: {
+                        ...state.esfRates,
+                        [domainKey]: { ...(state.esfRates[domainKey] ?? {}), releveLe: e.target.value }
+                      }
+                    })
+                  }
+                />
+              </label>
+            </div>
+
+            {/* Les deux formules ne partagent pas leur origine : on peut avoir
+                relevé le collectif et pas le particulier. Une seule ligne pour
+                les deux effacerait la différence. */}
             <p style={{ margin: 0, fontSize: 11, color: rate.source === 'saisi' ? 'var(--ok)' : 'var(--warn)' }}>
-              {rate.source === 'saisi'
-                ? `tarif saisi pour ${d?.name ?? 'ce domaine'}`
-                : `estimation pour ${d?.name ?? 'ce domaine'}, à remplacer par le tarif relevé`}
+              {t(rate.source === 'saisi' ? 'lesson_group_entered' : 'lesson_group_estimated').replace(
+                '{d}',
+                d?.name ?? '—'
+              )}
+              {rate.releveLe ? ` · ${t('lesson_recorded_on').replace('{d}', rate.releveLe)}` : ''}
+            </p>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 11,
+                color: rate.privSource === 'saisi' ? 'var(--ok)' : 'var(--warn)'
+              }}
+            >
+              {t(rate.privSource === 'saisi' ? 'lesson_priv_entered' : 'lesson_priv_estimated')}
             </p>
             <p className="u-muted" style={{ margin: 0, fontSize: 11 }}>
-              Tarifs moniteur indexés sur {d?.name ?? 'le domaine consulté'} (× {String(index).replace('.', ',')} par rapport au barème ESF
-              moyen). Le snowboard en collectif est majoré de 10 %. Collectif : tarif horaire dégressif quand la semaine
-              s’allonge. Particulier : 66 €/h jusqu’à 2 h, 62 €/h jusqu’à 6 h, 58 €/h au-delà.
+              {t('lesson_scale_note')
+                .replace('{d}', d?.name ?? '—')
+                .replace('{k}', String(index).replace('.', ','))}
             </p>
 
             <div>
@@ -454,6 +567,7 @@ export function PeopleDrawer(): JSX.Element {
                     <input
                       type="text"
                       className="field field--panel u-num"
+                  disabled={!d}
                       style={{ flex: '0 0 110px' }}
                       value={pl.cp}
                       placeholder="Code postal"

@@ -6,10 +6,10 @@
  * déjà saisis plutôt que de laisser l'utilisateur les ressaisir sur chaque
  * site, et l'ouvre dans le navigateur système.
  *
- * Une offre simulée n'a pas d'annonce à ouvrir — il n'existe pas de page
- * derrière elle. Le bouton mène donc à la **recherche** correspondante sur la
- * source, et son libellé le dit. Ouvrir une URL d'annonce fabriquée donnerait
- * une page 404 en faisant croire à un bug.
+ * Une offre sans URL — carte-redirection OpenStreetMap, saisie à la main sans
+ * lien — n'a pas d'annonce à ouvrir. Le bouton mène donc à la **recherche**
+ * correspondante sur la source, et son libellé le dit. Fabriquer une URL
+ * d'annonce donnerait une page 404 en faisant croire à un bug.
  */
 
 import { bookingFamilyOf } from '@shared/bookingFamilies'
@@ -268,8 +268,7 @@ const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> =
  * Ingénie et Orchestra, qui n'attendent ni les mêmes noms de paramètres ni le
  * même emplacement dans l'URL. On résout donc sur le connecteur quand l'offre
  * le porte (`Lodging.srcConnector`), et le libellé ne sert plus que de repli
- * pour les annonces qui n'en ont pas — catalogue simulé, imports manuels,
- * relevé Airbnb.
+ * pour les annonces qui n'en ont pas — imports manuels, relevé Airbnb.
  *
  * Seuls les connecteurs qui avaient déjà un jeu de paramètres y figurent : les
  * autres continuent d'être reconnus au nom d'hôte, plus bas, comme avant.

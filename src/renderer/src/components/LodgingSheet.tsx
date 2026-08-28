@@ -18,18 +18,26 @@ import { accessTimeOf } from '@/data/accessTime'
 import { isClientReady } from '@/api/client'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import type { Domain } from '@/data/referentiel'
-import { enfantPrice } from '@/data/referentiel'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
+import { passOriginText, passPrefix, passStyle } from '@/domain/forfaitLabel'
 import { lessonsCount } from '@/domain/costs'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 
-/** Frais de ménage forfaitaires observés sur les locations de semaine. */
-const CLEANING_FEE = 90
-/** Taxe de séjour moyenne en station, par personne et par nuit. */
-const STAY_TAX_PER_NIGHT = 1.55
+/*
+ * La fiche décomposait le prix en quatre lignes — loyer, ménage, taxe de
+ * séjour, frais de service — et aucune des quatre n'était relevée : le loyer
+ * valait 80 % du total, le ménage 90 € en dur, la taxe 1,55 € par personne et
+ * par nuit, et les « frais de service » ramassaient le reste de la
+ * soustraction. Le commentaire d'origine disait « décomposition du prix affiché
+ * par les sources » ; aucune source n'avait rien décomposé.
+ *
+ * Une centrale publie un total, parfois une grille par occupation. C'est ce
+ * qu'on montre. Le jour où un connecteur rapportera un détail de facturation,
+ * il aura sa place ici — avec sa provenance.
+ */
 
 export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | null {
   const { dur, eur, fmt } = useFormat()
@@ -43,15 +51,9 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
   if (!lodging) return null
 
   const nights = derived.nights
-  const forfait = derived.forfaitOf(d)
+  const pass = derived.passOf(d)
   const cost = derived.sejourCost(lodging, d)
   const trip = derived.sejourInputs(d).trip
-
-  // Décomposition du prix affiché par les sources : le loyer est la part
-  // restante une fois les frais obligatoires isolés, pas l'inverse.
-  const base = Math.round(lodging.total * 0.8)
-  const taxe = Math.round(state.travelers * nights * STAY_TAX_PER_NIGHT)
-  const service = lodging.total - base - taxe - CLEANING_FEE
 
   const inCompare = state.compareIds.includes(lodging.id)
   const tracked = state.tracked.some((tr) => tr.key === trackKey(lodging))
@@ -169,7 +171,7 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                   ? t('sheet_price_confirmed')
                   : lodging.priceConfidence === 'partial'
                     ? t('sheet_teaser_rate')
-                    : t('price_all_in')}{' '}
+                    : t('sheet_price_unqualified')}{' '}
                 · {nights} nuits · {state.travelers} pers.
               </span>
               <span className="u-spacer" />
@@ -179,27 +181,6 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                   /pers/nuit
                 </span>
               </span>
-            </div>
-
-            <div className="breakdown">
-              <div>
-                <span className="u-muted">
-                  {nights} nuits × {fmt(Math.round(base / nights))} €
-                </span>
-                <span className="u-num">{eur(base)}</span>
-              </div>
-              <div>
-                <span className="u-muted">{t('fee_cleaning')}</span>
-                <span className="u-num">{eur(CLEANING_FEE)}</span>
-              </div>
-              <div>
-                <span className="u-muted">{t('fee_stay_tax')}</span>
-                <span className="u-num">{eur(taxe)}</span>
-              </div>
-              <div>
-                <span className="u-muted">Frais de service</span>
-                <span className="u-num">{eur(service)}</span>
-              </div>
             </div>
 
             {/*
@@ -305,9 +286,10 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                     </div>
                   )
                 })()}
-                {/* Le nom de la remontée n'est renseigné que par le catalogue
-                    simulé : un relevé rend la distance sans le nom, et « · 365 m »
-                    seul laissait croire à un libellé manquant. */}
+                {/* Aucun relevé ne rend le nom de la remontée : le moteur local
+                    en mesure la distance, pas l'identité. `lift` reste donc vide
+                    partout, et « · 365 m » seul laissait croire à un libellé
+                    manquant. */}
                 {lodging.liftDist > 0 && (
                   <div>
                     <dt>{t('nearest_lift')}</dt>
@@ -356,15 +338,30 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
             <p className="sheet__label">{t('full_stay_cost')}</p>
             <div className="breakdown breakdown--flush">
               <div>
-                <span className="u-muted">Logement (tout compris)</span>
+                <span className="u-muted">{t('sheet_lodging_line')}</span>
                 <span className="u-num">{eur(cost.lodging)}</span>
               </div>
               <div>
-                <span className="u-muted">
-                  Forfaits — {cost.adults} adulte(s) × {forfait.j6 != null ? eur(forfait.j6) : '—'}
-                  {cost.kids ? ` + ${cost.kids} enfant(s) × ${eur(enfantPrice(forfait))}` : ''}
+                {/* Le tarif affiché est celui de la durée réelle du séjour, plus
+                    celui du forfait 6 jours quelles que soient les dates. */}
+                <span className="u-muted" title={pass ? passOriginText(pass, t) : undefined}>
+                  {pass
+                    ? t('pass_line')
+                        .replace('{a}', String(cost.adults))
+                        .replace('{pa}', `${passPrefix(pass)}${eur(pass.adulte)}`)
+                        .replace(
+                          '{k}',
+                          cost.kids
+                            ? t('pass_line_kids')
+                                .replace('{n}', String(cost.kids))
+                                .replace('{pe}', `${passPrefix(pass)}${eur(pass.enfant)}`)
+                            : ''
+                        )
+                    : t('pass_none')}
                 </span>
-                <span className="u-num">{eur(cost.forfaits)}</span>
+                <span className="u-num" style={passStyle(pass)}>
+                  {eur(cost.forfaits)}
+                </span>
               </div>
               <div>
                 <span className="u-muted">

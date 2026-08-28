@@ -100,7 +100,20 @@ const DELIBERATE = new Set([
  * sept langues, et c'est aussi la clé qui identifie la source dans `src` et
  * dans `LODG_SOURCES`. La traduire casserait les deux.
  */
-const VERBATIM = [/contributeurs OpenStreetMap/, /^€\/h$/, /^Gîtes de France$/]
+const VERBATIM = [
+  /contributeurs OpenStreetMap/,
+  /^€\/h$/,
+  /^Gîtes de France$/,
+  /**
+   * Discriminants d'union, pas du texte d'interface.
+   *
+   * `ForfaitOrigine` et `EsfRate.source` nomment leurs cas en français accentué
+   * — c'est la convention du projet, qui écrit son domaine en français. Ces
+   * valeurs ne s'affichent jamais telles quelles : `passOriginText` compose la
+   * phrase depuis le catalogue. Les traduire casserait la comparaison.
+   */
+  /^(saisi|relevé|interpolé|estimé)$/
+]
 
 /**
  * Plafonds courants. À faire baisser, jamais monter.
@@ -112,7 +125,7 @@ const VERBATIM = [/contributeurs OpenStreetMap/, /^€\/h$/, /^Gîtes de France$
  * Le plafond suit la dette vers le bas : le laisser au-dessus du relevé courant
  * rouvre exactement la marge qu'on vient de payer.
  */
-const BUDGET = { jsx: 0, expr: 268 }
+const BUDGET = { jsx: 0, expr: 206 }
 
 const ACCENTS = 'àâçéèêëîïôùûüœÀÂÇÉÈÊËÎÏÔÙÛÜŒ'
 const ACC = new RegExp(`[${ACCENTS}]`)

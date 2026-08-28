@@ -18,6 +18,7 @@ import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useI18n } from '@/i18n'
+import { fmtStay } from '@/domain/format'
 
 /**
  * Import d'une annonce par URL.
@@ -31,7 +32,7 @@ import { useI18n } from '@/i18n'
  * liste avec exactement les mêmes calculs qu'une offre relevée.
  */
 export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { fmt } = useFormat()
   const { state, patch } = useApp()
   const derived = useDerived()
@@ -48,6 +49,15 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
   const [mode, setMode] = useState<'une' | 'lot' | 'airbnb'>('une')
   const [bulkText, setBulkText] = useState('')
   const [bulkLog, setBulkLog] = useState<string[]>([])
+  /**
+   * Ce qui a été compris du collage, **avant** de l'enregistrer.
+   *
+   * Le collage en masse écrivait directement dans `state.imported` : on
+   * découvrait ce qui avait été retenu en refermant la fenêtre, et les lignes
+   * rejetées défilaient dans un journal qu'on lisait après coup. L'aperçu
+   * inverse l'ordre — on voit, puis on valide.
+   */
+  const [bulkPreview, setBulkPreview] = useState<{ lodgings: Lodging[]; errors: string[] } | null>(null)
   const [bulkBusy, setBulkBusy] = useState(false)
   const [osmBusy, setOsmBusy] = useState(false)
   const [airbnbText, setAirbnbText] = useState('')
@@ -326,21 +336,29 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
   const bulkContext = (): BulkContext => ({
     firstId: 1000 + state.imported.length,
     nights: derived.nights,
-    fallbackAlt: d.village || d.min
+    fallbackAlt: d.village || d.min,
+    checkIn: state.arrDate,
+    checkOut: state.depDate
   })
 
   /** Fichier JSON : aucune requête réseau, l'application ingère ce qu'on lui donne. */
+  /** Analyse le collage et **montre** ce qui en sort. N'enregistre rien. */
   const importJson = (text: string): void => {
     const { lodgings, errors } = parseListingsJson(text, bulkContext())
-    setBulkLog([
-      ...(lodgings.length ? [`${lodgings.length} annonce(s) ajoutée(s).`] : []),
-      ...errors.map((e) => `⚠ ${e}`)
-    ])
-    if (lodgings.length)
-      patch({
-        imported: [...state.imported, ...lodgings.map((l) => ({ ...l, importDomainId: d.id }))],
-        lodgingDomainId: d.id
-      })
+    setBulkLog([])
+    setBulkPreview({ lodgings, errors })
+  }
+
+  /** Enregistre ce que l'aperçu vient de montrer, et rien d'autre. */
+  const confirmerBulk = (): void => {
+    const lodgings = bulkPreview?.lodgings ?? []
+    if (lodgings.length === 0) return
+    patch({
+      imported: [...state.imported, ...lodgings.map((l) => ({ ...l, importDomainId: d.id }))],
+      lodgingDomainId: d.id
+    })
+    setBulkLog([t('bulk_added').replace('{n}', String(lodgings.length))])
+    setBulkPreview(null)
   }
 
   /** Liste d'URL : chaque page est lue avec les mêmes garde-fous que l'import
@@ -453,6 +471,18 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
           src: `Import manuel · ${extract?.site ?? 'saisi'}`,
           pp: Math.round((price / (capacity * derived.nights)) * 2) / 2,
           total: Math.round(price),
+          // Sans ces trois champs, l'annonce était **invisible** partout :
+          // `hasConfirmedPrice` exige un tarif daté pour le séjour en cours ou
+          // qualifié de complet, et une saisie n'avait ni l'un ni l'autre. Elle
+          // rejoignait `state.imported` et n'apparaissait sur aucun écran.
+          //
+          // Ce n'est pas une qualification de complaisance : l'utilisateur a
+          // saisi un montant en regardant l'annonce, pour les dates affichées à
+          // l'écran au moment de la saisie. C'est un prix mesuré pour ces
+          // dates-là, et `freshnessOf` l'étiquette « saisi à la main ».
+          priceConfidence: 'total_confirmed',
+          priceCheckIn: state.arrDate,
+          priceCheckOut: state.depDate,
           annul: false,
           lift: 'non renseigné',
           liftDist: walkDistance,
@@ -485,12 +515,15 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
             >
               Une annonce
             </button>
+            {/* « En lot » ne disait pas ce qu'on y fait. Le collage en masse
+                reste disponible, mais il se nomme : un utilisateur qui ne le
+                cherche pas ne doit pas tomber dessus par hasard. */}
             <button
               type="button"
               className={`seg__btn${mode === 'lot' ? ' seg__btn--on' : ''}`}
               onClick={() => setMode('lot')}
             >
-              En lot
+              {t('bulk_tab_label')}
             </button>
             <button
               type="button"
@@ -608,10 +641,18 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
               <input
                 id="import-price"
                 type="text"
+                inputMode="decimal"
                 className="field field--accent"
+                placeholder={t('import_price_example')}
                 value={state.importPrice}
                 onChange={(e) => patch({ importPrice: e.target.value })}
               />
+              {/* Un prix de location n'est pas une formule : c'est le tarif de
+                  ces dates-là. Elles sont enregistrées avec le montant, et
+                  affichées ici pour qu'on sache lesquelles on saisit. */}
+              <p className="filters__help">
+                {t('import_price_dates').replace('{p}', fmtStay(state.arrDate, state.depDate, lang))}
+              </p>
             </div>
             <div>
               <span className="sheet__label">Chambres</span>
@@ -716,7 +757,7 @@ https://…`}
                   disabled={bulkBusy || !bulkText.trim()}
                   onClick={() => importJson(bulkText)}
                 >
-                  Traiter comme du JSON
+                  {t('bulk_parse')}
                 </button>
                 <label className="btn btn--primary">
                   Charger un fichier JSON
@@ -738,6 +779,67 @@ https://…`}
               </p>
             </div>
             </div>
+
+            {/* L'aperçu : ce qui a été compris, ce qui a été rejeté et
+                pourquoi, avant que quoi que ce soit ne rejoigne la liste. */}
+            {bulkPreview && (
+              <div className="inset" style={{ padding: 14, display: 'grid', gap: 10 }}>
+                <p className="u-muted" style={{ margin: 0, fontSize: 11.5 }}>
+                  {t('bulk_preview_dates').replace('{p}', fmtStay(state.arrDate, state.depDate, lang))}
+                </p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
+                  {t('bulk_preview_title')
+                    .replace('{n}', String(bulkPreview.lodgings.length))
+                    .replace('{e}', String(bulkPreview.errors.length))}
+                </p>
+
+                {bulkPreview.lodgings.length > 0 && (
+                  <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 3 }}>
+                    {bulkPreview.lodgings.slice(0, 12).map((l, i) => (
+                      <li key={i} style={{ fontSize: 12 }}>
+                        <strong>{l.name}</strong>
+                        {' — '}
+                        <span className="u-num">{fmt(l.total)} €</span>
+                        {l.pers ? ` · ${l.pers} pers.` : ''}
+                        {l.url ? '' : ` · ${t('bulk_preview_nolink')}`}
+                      </li>
+                    ))}
+                    {bulkPreview.lodgings.length > 12 && (
+                      <li className="u-muted" style={{ fontSize: 12 }}>
+                        {t('bulk_preview_more').replace('{n}', String(bulkPreview.lodgings.length - 12))}
+                      </li>
+                    )}
+                  </ul>
+                )}
+
+                {bulkPreview.errors.length > 0 && (
+                  <div style={{ display: 'grid', gap: 3 }}>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>
+                      {t('bulk_preview_rejected')}
+                    </p>
+                    {bulkPreview.errors.map((e, i) => (
+                      <p key={i} style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>
+                        ⚠ {e}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    disabled={bulkPreview.lodgings.length === 0}
+                    onClick={confirmerBulk}
+                  >
+                    {t('bulk_confirm').replace('{n}', String(bulkPreview.lodgings.length))}
+                  </button>
+                  <button type="button" className="btn" onClick={() => setBulkPreview(null)}>
+                    {t('cancel')}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {bulkLog.length > 0 && (
               <div className="inset" style={{ padding: 14, display: 'grid', gap: 4 }}>

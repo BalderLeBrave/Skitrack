@@ -15,7 +15,9 @@
  */
 
 import { massifPhoto, stationPhoto } from '@/components/photos'
-import { creditPhoto, legendePhoto } from '@/data/stationPhotos'
+import { creditPhoto, legendePhoto, slugStation } from '@/data/stationPhotos'
+import { photoOverrideValide } from '@/data/photoOverrides'
+import { useApp } from '@/state/appState'
 import { useI18n } from '@/i18n'
 
 interface Props {
@@ -26,6 +28,47 @@ interface Props {
 
 export function StationPhotoCard({ name, slug, massif }: Props): JSX.Element | null {
   const { t } = useI18n()
+  const { state } = useApp()
+
+  /*
+   * La correction de l'utilisateur passe avant le référentiel généré : c'est
+   * lui qui a regardé l'image et constaté qu'elle ne montrait pas la station.
+   * Un rejet n'affiche rien du tout — pas même la photo du massif : rejeter une
+   * photo puis en voir surgir une autre serait la même surprise à l'envers.
+   */
+  const override = state.photoOverrides[slugStation(name)]
+  const valide = photoOverrideValide(override)
+  if (valide && override?.rejetee) return null
+
+  if (valide && override?.url) {
+    return (
+      <figure className="stphoto domsheet__full">
+        <img className="stphoto__img" src={override.url} alt={override.legende} loading="lazy" />
+        <figcaption className="stphoto__legende">
+          <span className="stphoto__desc">{override.legende}</span>
+          <span className="stphoto__credit">
+            <span className="crn-legende">
+              {override.licence}
+              {override.auteur ? ` · ${override.auteur}` : ''}
+              {' · '}
+              {t('photo_entered_by_hand')}
+            </span>
+            {override.page && (
+              <a
+                className="stphoto__lien crn-legende"
+                href={override.page}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t('photos_source')}
+              </a>
+            )}
+          </span>
+        </figcaption>
+      </figure>
+    )
+  }
+
   // La photo de la station ne s'affiche qu'avec son crédit. C'est la règle de
   // l'en-tête appliquée pour de bon : une image CC-BY sans auteur ni licence
   // n'est pas une image qu'on peut montrer, et « photo sans crédit

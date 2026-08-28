@@ -310,7 +310,7 @@ const CATALOG = {
   massif_other: ['Autres', 'Other'],
 
   // --- Comparateur de logements --------------------------------------------
-  cmp_lodging_price: ['Prix logement (tout compris)', 'Stay price (all in)'],
+  cmp_lodging_price: ['Prix du logement pour le séjour', 'Lodging price for the stay'],
   cmp_per_person_night: ['Par personne / nuit', 'Per person / night'],
   cmp_full_cost: ['Coût complet séjour*', 'Full stay cost*'],
   cmp_walk_to_runs: ['Pistes à pied', 'Walk to the runs'],
@@ -409,6 +409,30 @@ const CATALOG = {
   ],
   unpin_map: ['Retirer l’épingle de la carte ✕', 'Remove the map pin ✕'],
   wx_recorded: ['Neige et météo relevées', 'Snow and weather recorded'],
+
+  /*
+   * Sujet 2 : ce que la ligne météo dit quand le relevé n'a pas abouti.
+   *
+   * Elle disparaissait purement et simplement (`if (fetchedAt == null) return
+   * null`), emportant avec elle le bouton « actualiser » — l'utilisateur perdait
+   * l'information *et* le moyen de réessayer. Et tant qu'une valeur restait en
+   * cache, elle continuait d'être annoncée « relevée il y a n minutes » alors
+   * que le dernier appel avait échoué.
+   */
+  wx_never: ['Neige et météo non relevées', 'Snow and weather not recorded'],
+  wx_never_help: [
+    'Aucun relevé n’a encore abouti sur cette session.',
+    'No reading has succeeded yet in this session.'
+  ],
+  wx_failed: [
+    'Dernier relevé en échec sur {n} domaine(s) — valeurs affichées antérieures',
+    'Last reading failed for {n} domain(s) — values shown are older'
+  ],
+  wx_last_success: ['dernier relevé abouti {d}', 'last successful reading {d}'],
+  wx_auto: [
+    'Relevé automatique toutes les 30 min, au retour de la fenêtre et au retour de la connexion.',
+    'Automatic reading every 30 min, when the window returns to the front and when the connection comes back.'
+  ],
   ago_pattern: ['il y a {d}', '{d} ago'],
 
   // --- Fraîcheur d'une offre ----------------------------------------------
@@ -416,18 +440,51 @@ const CATALOG = {
   fresh_manual: ['saisi à la main', 'entered by hand'],
   fresh_source_down: ['source injoignable — dernier prix connu', 'source unreachable — last known price'],
   fresh_recorded: ['relevé', 'recorded'],
+  /**
+   * Aucun relevé daté derrière ce prix.
+   *
+   * Le cas des offres relues du disque au lancement : elles ont bien été
+   * relevées, mais l'horodatage de ce relevé n'a pas été conservé. Dire « date
+   * du relevé inconnue » vaut mieux que l'ancienne pastille, qui affichait un
+   * âge en dur de 38 ou 47 minutes quel que soit le prix.
+   */
+  fresh_no_date: [
+    'relevé à une date non enregistrée',
+    'recorded on an unrecorded date'
+  ],
+  fresh_no_date_short: ['↻ date inconnue', '↻ date unknown'],
+
+  /**
+   * Ce que la source dit du montant, quand elle n'en dit rien.
+   *
+   * Remplace « Prix tout compris : ménage, taxe de séjour et frais de service
+   * inclus », qui affirmait la composition d'un total que personne n'avait
+   * détaillé. Un prix non qualifié se dit non qualifié.
+   */
+  sheet_price_unqualified: [
+    'montant non détaillé par la source',
+    'amount not itemised by the source'
+  ],
   lodg_gone_notice: [
     'Introuvable au dernier relevé à ces dates — probablement réservée. Vérifiez sur la source avant de compter dessus.',
     'Not found in the last scan for these dates — probably booked. Check on the source before counting on it.'
   ],
   offers_route_unknown: ['route non calculée', 'route not computed'],
-  offers_card_label: ['{l} à {d}, {p} tout compris', '{l} in {d}, {p} all in'],
-  offers_price_unit: ['tout compris, {n} nuits', 'all in, {n} nights'],
+  offers_card_label: ['{l} à {d}, {p} pour le séjour', '{l} in {d}, {p} for the stay'],
+  offers_price_unit: ['séjour de {n} nuits', '{n}-night stay'],
   offers_per_person: ['soit {p} par personne', '{p} per person'],
   lodg_price_on_source: ['Prix sur {s}', 'Price on {s}'],
   price_from: ['À partir de', 'From'],
-  price_all_in: ['tout compris', 'all in'],
-  price_unit_confirmed: ['tout compris · {pp}/pers/nuit', 'all in · {pp}/pers/night'],
+  /**
+   * Ce que le montant est, et rien de plus.
+   *
+   * C'était « tout compris » — ménage, taxe de séjour et frais de service
+   * réputés inclus. Aucune source ne l'atteste : une centrale publie un total
+   * pour un séjour, sans dire ce qu'il recouvre. L'étiquette promettait une
+   * composition que la fiche fabriquait ensuite ligne par ligne.
+   */
+  price_all_in: ['prix du séjour', 'stay price'],
+  price_unit_confirmed: ['séjour · {pp}/pers/nuit', 'stay · {pp}/pers/night'],
   price_unit_partial: ['indicatif · {pp}/pers/nuit — confirmer sur le site', 'indicative · {pp}/pers/night — confirm on site'],
   price_badge_confirmed: ['Confirmé', 'Confirmed'],
   price_badge_partial: ['À partir de', 'From'],
@@ -512,10 +569,14 @@ const CATALOG = {
     '{e} s sur {t} s au maximum — la barre mesure le temps écoulé, pas l’avancement de la collecte.',
     '{e}s of {t}s maximum — the bar tracks elapsed time, not collection progress.'
   ],
-  free_cancel_fresh: [
-    'Annulation gratuite · offre relevée il y a moins d’une heure',
-    'Free cancellation · offer recorded less than an hour ago'
-  ],
+  /**
+   * L'annulation gratuite est une donnée de la source. La fraîcheur ne l'était
+   * pas : « relevée il y a moins d'une heure » s'affichait sur toute annonce
+   * annulable, quelle que soit la date du relevé — y compris sur une annonce
+   * relue du disque au lancement. Les deux faits sont séparés : celui-ci est
+   * relevé, la fraîcheur se lit sur la pastille, qui la connaît.
+   */
+  free_cancel_fresh: ['Annulation gratuite', 'Free cancellation'],
   digest_short: ['résumé quotidien à 9 h', 'daily digest at 9 am'],
   digest_option: [
     'Résumé quotidien à 9 h plutôt qu’une alerte par baisse',
@@ -581,6 +642,306 @@ const CATALOG = {
     'Measured altitudes: the village on the IGN terrain model, the slopes on OpenSkiMap'
   ],
   price_estimated: ['Tarif estimé, non relevé', 'Estimated price, not recorded'],
+
+  // --- Sujet 4a : d'où vient le tarif de forfait affiché ------------------
+  pass_origin_saisi: ['tarif saisi le {d}', 'price entered on {d}'],
+  pass_origin_releve: ['tarif relevé pour {n} j', 'price recorded for {n} d'],
+  pass_origin_interpole: [
+    'tarif interpolé entre {a} j et {b} j — la durée exacte n’a pas été relevée',
+    'price interpolated between {a} d and {b} d — the exact duration was not recorded'
+  ],
+  pass_origin_borne: [
+    'tarif de {a} j repris tel quel — la durée demandée sort de la grille relevée',
+    '{a}-day price used as is — the requested duration falls outside the recorded grid'
+  ],
+  pass_origin_estime: [
+    'tarif estimé d’après les kilomètres de pistes et l’altitude, non relevé',
+    'price estimated from slope kilometres and altitude, not recorded'
+  ],
+  pass_child_derived: [
+    'tarif enfant dérivé de l’adulte (80 %), non relevé',
+    'child price derived from the adult one (80%), not recorded'
+  ],
+  pass_days_label: ['Forfait {n} jour(s)', '{n}-day pass'],
+  pass_none: ['Aucun tarif de forfait', 'No pass price'],
+  child_lower: ['enfant', 'child'],
+  print_label: ['Imprimer', 'Print'],
+
+  // --- Sujet 6 : récapitulatif imprimable du séjour ------------------------
+  report_title: ['Récapitulatif du séjour', 'Stay summary'],
+  report_export: ['Exporter le récapitulatif en PDF', 'Export the summary as PDF'],
+  report_exporting: ['Génération…', 'Generating…'],
+  report_saved: ['Récapitulatif enregistré : {p}', 'Summary saved: {p}'],
+  report_failed: ['Échec de la génération : {e}', 'Generation failed: {e}'],
+  report_group: [
+    'Groupe : {a} adulte(s), {k} enfant(s), {c} foyer(s) sur la route',
+    'Group: {a} adult(s), {k} child(ren), {c} household(s) on the road'
+  ],
+  report_edited_on: ['Document édité le {d}', 'Document produced on {d}'],
+  dp_nights_word: ['nuits', 'nights'],
+
+  report_map_title: ['Situation', 'Location'],
+  report_map_alt: [
+    'Carte de situation du logement dans le domaine {d}, dessinée par l’application',
+    'Location map of the lodging within the {d} domain, drawn by the application'
+  ],
+  report_map_credit: [
+    'Fond : © IGN — Plan IGN v2. Carte composée par l’application ; aucun plan des pistes officiel n’est reproduit.',
+    'Base map: © IGN — Plan IGN v2. Map composed by the application; no official piste map is reproduced.'
+  ],
+  report_map_no_position: [
+    'la source ne publie pas la position du logement : le centre de la station est affiché',
+    'the source does not publish the lodging position: the resort centre is shown'
+  ],
+  report_map_no_lifts: [
+    'remontées non disponibles (moteur local absent, ou domaine importé sans elles)',
+    'lifts unavailable (local engine absent, or domain imported without them)'
+  ],
+  report_access: ['Accès au bas des pistes : {n} m · {m} · {t}', 'Access to the slopes: {n} m · {m} · {t}'],
+  report_access_unknown: [
+    'Accès au bas des pistes : non calculé (le moteur local n’a pas traité cette annonce).',
+    'Access to the slopes: not computed (the local engine did not process this listing).'
+  ],
+
+  report_domain_title: ['Le domaine', 'The domain'],
+  report_snow: ['Neige au sol (bas / haut)', 'Snow depth (base / top)'],
+  report_bra: ['Risque d’avalanche relevé', 'Recorded avalanche risk'],
+
+  report_cost_title: ['Coût du séjour, poste par poste', 'Stay cost, item by item'],
+  report_item_lodging: ['Logement', 'Lodging'],
+  report_item_passes: ['Forfaits', 'Passes'],
+  report_item_lessons: ['Cours', 'Lessons'],
+  report_item_rental: ['Matériel', 'Equipment'],
+  report_item_fuel: ['Carburant', 'Fuel'],
+  report_item_tolls: ['Péages', 'Tolls'],
+  report_item_route_flat: ['Route (forfait saisi)', 'Drive (flat amount entered)'],
+  report_total: ['Total', 'Total'],
+  report_split: [
+    'Dont {c} appuyés sur un relevé ou une saisie, et {e} estimés.',
+    'Of which {c} backed by a reading or an entry, and {e} estimated.'
+  ],
+
+  report_lodging_title: ['Le logement retenu', 'The chosen lodging'],
+  report_people: ['pers.', 'guests'],
+  report_station_photo: ['Photo de la station', 'Resort photo'],
+
+  report_missing_title: ['Ce qui manque', 'What is missing'],
+  report_missing_none: [
+    'Toutes les valeurs de ce document sont relevées ou saisies.',
+    'Every value in this document is recorded or entered.'
+  ],
+  report_missing_pass: [
+    'Tarif de forfait : aucun, ni relevé ni saisi. Le poste vaut zéro dans le total.',
+    'Pass price: none, neither recorded nor entered. The item counts as zero in the total.'
+  ],
+  report_missing_pass_interp: [
+    'Tarif de forfait : la durée exacte du séjour n’a pas été relevée, le montant est interpolé.',
+    'Pass price: the exact stay duration was not recorded, the amount is interpolated.'
+  ],
+  report_missing_lessons: [
+    'Tarifs de cours : barème moyen indexé sur le forfait, non relevé auprès d’une école.',
+    'Lesson rates: average scale indexed on the pass price, not recorded from a school.'
+  ],
+  report_missing_fuel: [
+    'Carburant : barème de 0,115 €/km, ni prix du litre ni consommation saisis.',
+    'Fuel: €0.115/km scale, neither price per litre nor consumption entered.'
+  ],
+  report_missing_tolls: [
+    'Péages : barème de 0,058 €/km, aucun montant relevé ni saisi.',
+    'Tolls: €0.058/km scale, no amount recorded or entered.'
+  ],
+  report_missing_rental: [
+    'Location de matériel : forfait de 96 € par adulte et 58 € par enfant, non relevé.',
+    'Equipment rental: flat €96 per adult and €58 per child, not recorded.'
+  ],
+  report_missing_snow: [
+    'Hauteur de neige : non relevée pour ce domaine.',
+    'Snow depth: not recorded for this domain.'
+  ],
+  report_missing_bra: [
+    'Risque d’avalanche : aucun niveau relevé, ou relevé de plus de 36 h.',
+    'Avalanche risk: no level recorded, or recorded more than 36 h ago.'
+  ],
+  report_missing_position: [
+    'Position du logement : non publiée par la source. La carte montre le centre de la station.',
+    'Lodging position: not published by the source. The map shows the resort centre.'
+  ],
+  report_missing_access: [
+    'Distance et temps d’accès aux pistes : non calculés par le moteur local.',
+    'Distance and access time to the slopes: not computed by the local engine.'
+  ],
+  report_missing_link: [
+    'Lien vers l’annonce : absent. Le logement a été saisi sans URL.',
+    'Link to the listing: missing. The lodging was entered without a URL.'
+  ],
+  report_missing_stay_tax: [
+    'Taxe de séjour : elle n’est ni relevée ni estimée par l’application, et n’entre donc pas dans le total.',
+    'Tourist tax: it is neither recorded nor estimated by the application, and is therefore not in the total.'
+  ],
+
+  access_mode_skis_aux_pieds: ['skis aux pieds', 'ski-in/ski-out'],
+  access_mode_a_pied: ['à pied', 'on foot'],
+  access_mode_navette: ['navette', 'shuttle'],
+  access_mode_voiture: ['voiture', 'car'],
+
+  // --- Sujet 5 : le collage en masse, nomme et montre avant d'enregistrer -
+  bulk_tab_label: ['Coller une liste', 'Paste a list'],
+  bulk_parse: ['Lire le collage', 'Read the pasted text'],
+  bulk_added: ['{n} annonce(s) ajoutée(s).', '{n} listing(s) added.'],
+  bulk_preview_title: [
+    '{n} annonce(s) comprise(s), {e} ligne(s) rejetée(s). Rien n’a encore été enregistré.',
+    '{n} listing(s) understood, {e} line(s) rejected. Nothing has been saved yet.'
+  ],
+  bulk_preview_rejected: ['Lignes rejetées, avec leur motif :', 'Rejected lines, with their reason:'],
+  bulk_preview_more: ['et {n} de plus', 'and {n} more'],
+  bulk_preview_dates: [
+    'Ces annonces seront enregistrées comme relevées pour le {p}. Changez les dates du séjour avant de coller si votre liste vise d’autres dates.',
+    'These listings will be saved as recorded for {p}. Change the stay dates before pasting if your list targets other dates.'
+  ],
+  bulk_preview_nolink: ['sans lien', 'no link'],
+  bulk_confirm: ['Ajouter ces {n} annonce(s)', 'Add these {n} listing(s)'],
+
+  // --- Sujet 3 : photos corrigées à la main -------------------------------
+  photo_entered_by_hand: ['saisi à la main', 'entered by hand'],
+  photo_fix_title: ['Corriger la photo', 'Fix the photo'],
+  photo_fix_open: ['corriger', 'fix'],
+  photo_fix_help: [
+    'Les photos sont choisies sur Wikimedia Commons par position : une image prise à quatre kilomètres du front de neige peut montrer autre chose que la station. Collez l’URL d’une image qui convient, ou rejetez celle-ci — la fiche n’affichera alors rien plutôt qu’une photo trompeuse.',
+    'Photos are picked from Wikimedia Commons by position: an image taken four kilometres from the slopes may show something other than the resort. Paste the URL of a suitable image, or reject this one — the page will then show nothing rather than a misleading photo.'
+  ],
+  photo_url_label: ['URL de l’image (https)', 'Image URL (https)'],
+  photo_url_placeholder: ['https://upload.wikimedia.org/…', 'https://upload.wikimedia.org/…'],
+  photo_caption_label: ['Légende', 'Caption'],
+  photo_caption_placeholder: ['ce que montre l’image', 'what the image shows'],
+  photo_author_label: ['Auteur', 'Author'],
+  photo_licence_label: ['Licence', 'Licence'],
+  photo_licence_placeholder: ['ex. CC BY-SA 4.0', 'e.g. CC BY-SA 4.0'],
+  photo_page_label: ['Page de la source (facultatif)', 'Source page (optional)'],
+  photo_reject_label: ['Cette photo ne montre pas la station', 'This photo does not show the resort'],
+  photo_reject_note: [
+    'La fiche n’affichera aucune photo pour cette station. Un constat vaut mieux qu’une image fausse.',
+    'The page will show no photo for this resort. A finding is better than a wrong image.'
+  ],
+  photo_needs: [
+    'Légende, auteur et licence sont obligatoires dès qu’une image est posée : CC BY et CC BY-SA les exigent à côté de l’image. Manque : {l}.',
+    'Caption, author and licence are required as soon as an image is set: CC BY and CC BY-SA demand them next to the image. Missing: {l}.'
+  ],
+  photo_will_save: ['Prête à enregistrer.', 'Ready to save.'],
+  photo_save: ['Enregistrer la photo', 'Save the photo'],
+  photo_clear: ['revenir à la photo livrée', 'revert to the shipped photo'],
+  photo_state_override: ['photo saisie à la main', 'photo entered by hand'],
+  photo_state_rejected: ['photo rejetée — rien n’est affiché', 'photo rejected — nothing is shown'],
+
+  // --- Sujet 4d : carburant et péages -------------------------------------
+  route_budget_title: ['Carburant et péages', 'Fuel and tolls'],
+  route_budget_help: [
+    'Le calcul applique par défaut deux barèmes moyens — 0,115 €/km de carburant et 0,058 €/km de péages — à une distance elle-même estimée tant qu’aucun itinéraire n’a été calculé. Tout ce que vous renseignez ici les remplace, et l’écran cesse alors d’annoncer ces postes comme estimés.',
+    'By default the calculation applies two average scales — €0.115/km for fuel and €0.058/km for tolls — to a distance that is itself estimated until a route has been computed. Anything you fill in here replaces them, and the screen then stops marking these items as estimated.'
+  ],
+  route_fuel_price: ['Prix du litre (€)', 'Price per litre (€)'],
+  route_fuel_price_example: ['ex. 1,82', 'e.g. 1.82'],
+  route_conso: ['Consommation (L/100 km)', 'Consumption (L/100 km)'],
+  route_conso_example: ['ex. 6,4', 'e.g. 6.4'],
+  route_tolls: ['Péages aller-retour (€)', 'Tolls, round trip (€)'],
+  route_tolls_example: ['ex. 96', 'e.g. 96'],
+  route_flat: ['Forfait aller-retour (€)', 'Flat round trip (€)'],
+  route_flat_example: ['ex. 180', 'e.g. 180'],
+  route_flat_note: [
+    'Le forfait, s’il est renseigné, remplace tout le calcul pour un foyer : ni carburant ni péages ne s’y ajoutent. Les montants sont par foyer, et la route se paie autant de fois qu’il y a de départs.',
+    'The flat amount, if filled in, replaces the whole calculation for one household: neither fuel nor tolls are added to it. Amounts are per household, and the drive is paid as many times as there are departure points.'
+  ],
+  route_fuel_entered: ['Carburant : valeurs saisies', 'Fuel: entered values'],
+  route_fuel_estimated: ['Carburant : barème moyen, non relevé', 'Fuel: average scale, not recorded'],
+  route_tolls_entered: ['Péages : montant saisi ou relevé', 'Tolls: entered or recorded amount'],
+  route_tolls_estimated: ['Péages : barème kilométrique, non relevé', 'Tolls: per-kilometre scale, not recorded'],
+  route_vm_title: ['Relever sur ViaMichelin', 'Record from ViaMichelin'],
+  route_vm_help: [
+    'ViaMichelin publie un coût de péage réel, section par section. Il n’a pas d’API : l’application lit une page de résultat, à votre demande. Un relevé qui échoue ne pose aucun chiffre — vos valeurs saisies restent intactes.',
+    'ViaMichelin publishes real toll costs, section by section. It has no API: the application reads one result page, at your request. A failed reading writes no figure — your entered values stay untouched.'
+  ],
+  route_vm_fetch: ['Relever le trajet', 'Record the route'],
+  route_recorded_on: ['relevé le {d}', 'recorded on {d}'],
+  route_vm_open: ['Ouvrir la page', 'Open the page'],
+  route_vm_needs: [
+    'Il faut une adresse de départ géocodée et une station consultée pour relever un trajet.',
+    'A geocoded departure address and a selected resort are needed to record a route.'
+  ],
+  route_vm_ok: [
+    'Relevé : péages {t} · carburant {f} · {k}. Les péages ont été reportés en aller-retour.',
+    'Recorded: tolls {t} · fuel {f} · {k}. Tolls have been carried over as a round trip.'
+  ],
+  route_vm_failed: ['Relevé impossible : {e}. Aucun chiffre n’a été posé.', 'Reading failed: {e}. No figure was written.'],
+
+  // --- Sujet 4c : cours de ski, formule par formule -----------------------
+  lesson_priv_rate: ['Tarif horaire particulier', 'Private lesson hourly rate'],
+  lesson_priv_placeholder: ['ex. 62', 'e.g. 62'],
+  lesson_school_label: ['École', 'School'],
+  lesson_school_placeholder: ['École (ex. ESF Val Thorens)', 'School (e.g. ESF Val Thorens)'],
+  lesson_date_label: ['Date du relevé des tarifs', 'Date the rates were recorded'],
+  lesson_recorded_on: ['relevé le {d}', 'recorded on {d}'],
+  lesson_group_entered: ['Collectif : tarif saisi pour {d}', 'Group: rate entered for {d}'],
+  lesson_group_estimated: [
+    'Collectif : estimation pour {d}, à remplacer par le tarif relevé',
+    'Group: estimate for {d}, to be replaced by the recorded rate'
+  ],
+  lesson_priv_entered: ['Particulier : tarif saisi', 'Private: rate entered'],
+  lesson_priv_estimated: [
+    'Particulier : barème moyen indexé sur le forfait, non relevé',
+    'Private: average scale indexed on the pass price, not recorded'
+  ],
+  lesson_scale_note: [
+    'À défaut de tarif saisi, le barème moyen est indexé sur {d} (× {k} par rapport au barème ESF moyen). Le snowboard en collectif est majoré de 10 %. Collectif : tarif horaire dégressif quand la semaine s’allonge. Particulier : 66 €/h jusqu’à 2 h, 62 €/h jusqu’à 6 h, 58 €/h au-delà. Un tarif saisi remplace le barème et n’est pas indexé.',
+    'Failing an entered rate, the average scale is indexed on {d} (× {k} against the average ESF scale). Snowboard group lessons carry a 10% surcharge. Group: hourly rate decreasing as the week lengthens. Private: €66/h up to 2 h, €62/h up to 6 h, €58/h beyond. An entered rate replaces the scale and is not indexed.'
+  ],
+
+  // --- Sujet 4a : formulaire de saisie des forfaits -----------------------
+  forfait_editor_title: ['Tarifs de forfait', 'Pass prices'],
+  forfait_editor_help: [
+    'Le fichier livré ne porte que deux durées — la journée et les six jours — et 107 domaines sur 283 n’ont aucun tarif relevé : le leur est dérivé des kilomètres de pistes et de l’altitude. Une grille saisie ici prime sur le fichier et sur l’estimation.',
+    'The shipped file carries only two durations — one day and six days — and 107 of 283 domains have no recorded price at all: theirs is derived from slope kilometres and altitude. A grid entered here takes precedence over the file and over the estimate.'
+  ],
+  forfait_search_placeholder: ['Chercher une station', 'Search a resort'],
+  forfait_coverage: ['{n} sur {t} avec un tarif relevé', '{n} of {t} with a recorded price'],
+  forfait_row_saisi: ['{n} durée(s) saisie(s), relevé le {d}', '{n} duration(s) entered, recorded on {d}'],
+  forfait_row_estime: ['aucun tarif relevé — dérivé des kilomètres de pistes', 'no recorded price — derived from slope kilometres'],
+  forfait_row_livre: ['journée et 6 jours du fichier livré, relevés le {d}', 'day and 6-day from the shipped file, recorded on {d}'],
+  forfait_enter: ['saisir', 'enter'],
+  forfait_form_help: [
+    'Une grille partielle suffit : deux durées permettent d’interpoler les autres, et l’application le dit alors au lieu de les présenter comme relevées. Le tarif enfant est facultatif — à défaut il est dérivé à 80 % de l’adulte, et annoncé comme dérivé.',
+    'A partial grid is enough: two durations let the others be interpolated, and the application says so instead of presenting them as recorded. The child price is optional — failing that it is derived at 80% of the adult one, and announced as derived.'
+  ],
+  forfait_estimate_hint: [
+    'Aucun tarif n’est relevé pour cette station : les champs sont volontairement vides. Pour mémoire, l’estimation de l’application est de {j1} € la journée et {j6} € les six jours — elle est dérivée des kilomètres de pistes et de l’altitude, ne la recopiez pas ici.',
+    'No price is recorded for this resort: the fields are intentionally empty. For reference, the application’s estimate is €{j1} for a day and €{j6} for six days — it is derived from slope kilometres and altitude, do not copy it here.'
+  ],
+  forfait_col_days: ['Durée', 'Duration'],
+  forfait_col_adult: ['Adulte (€)', 'Adult (€)'],
+  forfait_col_child: ['Enfant (€)', 'Child (€)'],
+  forfait_days_n: ['{n} jour(s)', '{n} day(s)'],
+  forfait_child_optional: ['facultatif', 'optional'],
+  forfait_aria_adult: ['Tarif adulte pour {n} jour(s), en euros', 'Adult price for {n} day(s), in euros'],
+  forfait_aria_child: ['Tarif enfant pour {n} jour(s), en euros', 'Child price for {n} day(s), in euros'],
+  forfait_date_label: ['Relevé le', 'Recorded on'],
+  forfait_source_label: ['Source', 'Source'],
+  forfait_src_officiel: ['Site officiel de la station', 'Resort official website'],
+  forfait_src_office: ['Office de tourisme', 'Tourist office'],
+  forfait_src_autre: ['Autre', 'Other'],
+  forfait_note_label: ['Formule ou lien (facultatif)', 'Product or link (optional)'],
+  forfait_note_placeholder: ['ex. forfait Espace Killy, https://…', 'e.g. Espace Killy pass, https://…'],
+  forfait_need_one: ['Renseignez au moins une durée pour enregistrer.', 'Fill in at least one duration to save.'],
+  forfait_need_date: ['La date du relevé est obligatoire.', 'The recording date is required.'],
+  forfait_will_save: [
+    '{n} durée(s) seront enregistrées : {l}. Les autres seront interpolées et annoncées comme telles.',
+    '{n} duration(s) will be saved: {l}. The others will be interpolated and announced as such.'
+  ],
+  forfait_save: ['Enregistrer la grille', 'Save the grid'],
+  forfait_clear: ['effacer la saisie', 'clear the entry'],
+  forfait_truncated: ['{n} station(s) de plus — affinez la recherche.', '{n} more resort(s) — refine the search.'],
+  pass_line: [
+    'Forfaits — {a} adulte(s) × {pa}{k}',
+    'Passes — {a} adult(s) × {pa}{k}'
+  ],
+  pass_line_kids: [' + {n} enfant(s) × {pe}', ' + {n} child(ren) × {pe}'],
   sort_by: ['Trier par', 'Sort by'],
   sort_aria: ['Trier les domaines', 'Sort the resorts'],
   sort_relevance: ['Pertinence', 'Relevance'],
@@ -758,6 +1119,90 @@ const CATALOG = {
 
   // --- Réglages : moteur, provenance, itinéraires -------------------------
   settings_provenance: ['Provenance des données', 'Where the data comes from'],
+
+  // --- Sujet 1 : ce que chaque ligne de provenance dit vraiment -----------
+  prov_recorded_ratio: ['{n} sur {t} relevés', '{n} of {t} recorded'],
+  prov_routes_ratio: ['{n} sur {t} calculés', '{n} of {t} computed'],
+  prov_none: ['aucun relevé', 'nothing recorded'],
+  /*
+   * Écrans vides : dire lequel des deux motifs s'applique.
+   *
+   * Offres, Combinaisons et Décision lisaient un catalogue de biens types
+   * toujours peuplé ; leurs écrans vides ne pouvaient donc signifier qu'une
+   * chose — les filtres. Sur des offres réelles, il y a un second motif, et
+   * c'est le plus fréquent au premier lancement : aucun relevé de logements
+   * n'a encore tourné. Les confondre renvoyait l'utilisateur élargir des
+   * filtres qui n'y étaient pour rien.
+   */
+  empty_no_lodgings: [
+    'Aucun logement relevé',
+    'No listings recorded'
+  ],
+  empty_no_lodgings_hint: [
+    'Ces écrans comparent des logements dont le prix a été vérifié pour vos dates. Ouvrez « Logements », choisissez une station et lancez un relevé.',
+    'These screens compare listings whose price was verified for your dates. Open “Lodgings”, pick a resort and run a scan.'
+  ],
+  empty_no_lodgings_here: [
+    'Aucun logement relevé sur les stations comparées',
+    'No listings recorded for the resorts being compared'
+  ],
+  empty_no_lodgings_here_hint: [
+    'Des annonces sont en mémoire, mais aucune ne réunit les trois conditions sur les stations affichées : rattachée à la station, prix vérifié pour vos dates, et place pour le groupe. Élargissez les filtres, ou relevez ces stations à ces dates.',
+    'Listings are held in memory, but none meets all three conditions for the resorts shown: attached to the resort, price verified for your dates, and room for the group. Widen the filters, or scan those resorts for those dates.'
+  ],
+  decision_price_other_dates: [
+    'Prix relevé pour le {p}, pas pour la semaine retenue ci-dessus. Il n’est pas reprojeté : seule la centrale connaît son tarif à d’autres dates.',
+    'Price recorded for {p}, not for the week selected above. It is not reprojected: only the booking centre knows its rate for other dates.'
+  ],
+  prov_intro: [
+    'D’où vient chaque chiffre affiché dans l’application, et à quelle date il a été établi. Un poste marqué « estimé » n’est pas relevé à la source : il est dérivé d’autres données et doit être vérifié avant de servir à une décision. Un rapport — « 176 sur 283 » — dit ce qui est couvert et ce qui reste à relever.',
+    'Where every figure in the application comes from, and when it was established. A line marked “estimated” is not recorded at the source: it is derived from other data and must be checked before it informs a decision. A ratio — “176 of 283” — says what is covered and what is left to record.'
+  ],
+  prov_forfaits_src: [
+    'sites officiels des stations — {n} domaine(s) au tarif relevé, {e} estimé(s) d’après les kilomètres de pistes et l’altitude',
+    'resort websites — {n} domain(s) at the recorded price, {e} estimated from slope kilometres and altitude'
+  ],
+  prov_lodgings_src_scanned: [
+    'relevé sur {s}',
+    'recorded from {s}'
+  ],
+  prov_lodgings_src_manual: [
+    'aucun relevé lancé depuis le démarrage — {n} annonce(s) saisie(s) ou importée(s) à la main',
+    'no scan run since startup — {n} listing(s) entered or imported by hand'
+  ],
+  prov_lodgings_src_empty: [
+    'aucun relevé lancé depuis le démarrage, aucune annonce saisie',
+    'no scan run since startup, no listing entered'
+  ],
+  prov_lodgings_manual_suffix: [
+    ' · {n} saisie(s) à la main',
+    ' · {n} entered by hand'
+  ],
+  prov_routes_src_none: [
+    'estimation à vol d’oiseau corrigée d’un facteur de sinuosité routière',
+    'as-the-crow-flies estimate corrected by a road sinuosity factor'
+  ],
+  prov_routes_src_some: [
+    'OSRM — {n} itinéraire(s) sur {t}, les autres estimés',
+    'OSRM — {n} route(s) out of {t}, the rest estimated'
+  ],
+  combo_projected_note: [
+    'Seule la semaine du séjour en cours porte un prix relevé. Les autres colonnes reprojettent ce prix par l’écart de saisonnalité national : ce sont des ordres de grandeur, marqués « ≈ ».',
+    'Only the current stay week carries a recorded price. The other columns reproject it using the national seasonality gap: these are orders of magnitude, marked “≈”.'
+  ],
+  combo_projected_cell: ['prix projeté, non relevé', 'projected price, not recorded'],
+  combo_projected_pick: [
+    'Retenir une semaine projetée reste possible : le prix affiché en Décision restera celui du relevé, à ses dates, et l’écran le dira.',
+    'Choosing a projected week remains possible: the price shown in Decision will stay the recorded one, at its own dates, and the screen will say so.'
+  ],
+  map_runs_missing: [
+    'Tracés des pistes non chargés',
+    'Run traces not loaded'
+  ],
+  map_runs_missing_help: [
+    'OpenStreetMap n’a pas répondu. Rien n’est dessiné à la place : un tracé inventé sur une carte se lit comme un relevé.',
+    'OpenStreetMap did not answer. Nothing is drawn instead: an invented trace on a map reads as a survey.'
+  ],
   settings_file_loaded: ['Fichier chargé', 'Loaded file'],
   settings_database: ['Base de données', 'Database'],
   settings_ref_embedded: ['Référentiel embarqué', 'Bundled reference file'],
@@ -777,8 +1222,8 @@ const CATALOG = {
   arrival: ['Arrivée', 'Check-in'],
   departure_label: ['Départ', 'Check-out'],
   lodg_price_allin_note: [
-    'Prix tout compris : ménage, taxe de séjour et frais de service inclus.',
-    'All-in price: cleaning, tourist tax and service fees included.'
+    'Montant total publié par la source pour le séjour. Ce qu’il recouvre — ménage, taxe de séjour, frais de service — n’est pas détaillé par les centrales : vérifiez sur l’annonce avant de réserver.',
+    'Total amount published by the source for the stay. What it covers — cleaning, tourist tax, service fees — is not itemised by booking centres: check the listing before booking.'
   ],
   // `avail_only` et `avail_only_help` ont disparu avec la case qu'ils
   // légendaient : la réservabilité est une règle de l'écran, plus un réglage.
@@ -907,9 +1352,15 @@ const CATALOG = {
     'no notifications between 10 pm and 8 am'
   ],
 
+  lodg_count_note: [
+    'prix du séjour · {n} nuit(s) · {p} personne(s)',
+    'stay price · {n} night(s) · {p} person(s)'
+  ],
+  combo_sel_total: ['pour le séjour', 'for the stay'],
+  sheet_lodging_line: ['Logement, prix du séjour', 'Lodging, stay price'],
   lodgmap_hint: [
-    '● prix tout compris — cliquez une bulle pour remonter le logement en tête de liste',
-    '● all-in price — click a bubble to move that stay to the top of the list'
+    '● prix du séjour — cliquez une bulle pour remonter le logement en tête de liste',
+    '● stay price — click a bubble to move that stay to the top of the list'
   ],
   lodg_picked_on_map: ['Choisi sur la carte', 'Picked on the map'],
   lodg_picked_banner: [
@@ -1179,7 +1630,7 @@ const CATALOG = {
   lodg_rescan: ['Relancer le relevé', 'Run the scan again'],
 
   // --- Fiche logement -----------------------------------------------------
-  lodg_no_photo: ['offre simulée — sans photo', 'simulated offer — no photo'],
+  lodg_no_photo: ['annonce sans photo publiée', 'listing with no published photo'],
   fee_cleaning: ['Frais de ménage', 'Cleaning fee'],
   fee_stay_tax: ['Taxe de séjour', 'Tourist tax'],
   geocode_pending: ['Localisation de l’adresse…', 'Locating the address…'],
@@ -1297,7 +1748,12 @@ const CATALOG = {
   // --- Import et suivi ----------------------------------------------------
   import_url_label: ['URL de l’annonce', 'Listing URL'],
   import_open_browser: ['Ouvrir l’annonce dans le navigateur', 'Open the listing in the browser'],
-  import_total_price: ['Prix total tout compris (€)', 'Total all-in price (€)'],
+  import_total_price: ['Prix total du séjour (€)', 'Total stay price (€)'],
+  import_price_example: ['ex. 1290', 'e.g. 1290'],
+  import_price_dates: [
+    'Enregistré comme relevé pour le {p} — changez les dates du séjour avant de saisir si l’annonce en affiche d’autres.',
+    'Saved as recorded for {p} — change the stay dates before entering if the listing shows different ones.'
+  ],
   paste_step_1: [
     'Sur la page Airbnb qui vient de s’ouvrir, cliquez le marque-page',
     'On the Airbnb page that just opened, click the bookmarklet'

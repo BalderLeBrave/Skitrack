@@ -129,7 +129,10 @@ export function minRoomsFor(bedrooms: number): number {
  *    compare des pièces, seuil converti ;
  * 3. sinon elle ne dit rien, et « non annoncé » n'est pas « ne convient pas ».
  */
-export function fitsParty(lodging: Lodging, criteria: LodgingFilterCriteria): boolean {
+export function fitsParty(
+  lodging: Lodging,
+  criteria: Pick<LodgingFilterCriteria, 'travelers' | 'rooms'>
+): boolean {
   const { pers, ch, rooms } = lodging
   if (pers !== 0 && pers < criteria.travelers) return false
   if (criteria.rooms <= 0) return true

@@ -169,22 +169,52 @@ function SearchBar(): JSX.Element {
   )
 }
 
-/** Âge du dernier relevé Open-Meteo, avec de quoi le refaire à la main. */
+/**
+ * Âge du dernier relevé Open-Meteo, avec de quoi le refaire à la main.
+ *
+ * Trois états, et le bouton « actualiser » est présent dans les trois. Il
+ * disparaissait avec la ligne entière quand rien n'était chargé — c'est-à-dire
+ * exactement quand on en avait besoin.
+ *
+ * L'âge affiché est celui du **dernier relevé abouti**, pas celui de la donnée
+ * en mémoire : après une panne, la donnée reste affichée — c'est ce qu'on a de
+ * mieux — mais elle cesse d'être annoncée comme fraîche.
+ */
 function WeatherAge(): JSX.Element | null {
   const { t } = useI18n()
-  const { fetchedAt, loading, refresh } = useWeather()
-  if (fetchedAt == null) return null
+  const { fetchedAt, lastSuccessAt, failed, loading, refresh } = useWeather()
 
-  const minutes = Math.max(0, Math.round((Date.now() - fetchedAt) / 60000))
-  const ago =
-    minutes < 60
-      ? `${minutes} ${t('minutes')}`
-      : `${Math.floor(minutes / 60)} ${t('hours')} ${String(minutes % 60).padStart(2, '0')}`
+  const agoOf = (at: number): string => {
+    const minutes = Math.max(0, Math.round((Date.now() - at) / 60000))
+    const ago =
+      minutes < 60
+        ? `${minutes} ${t('minutes')}`
+        : `${Math.floor(minutes / 60)} ${t('hours')} ${String(minutes % 60).padStart(2, '0')}`
+    return t('ago_pattern').replace('{d}', ago)
+  }
+
+  const failure = failed > 0
+  const label = failure
+    ? t('wx_failed').replace('{n}', String(failed))
+    : lastSuccessAt != null
+      ? `${t('wx_recorded')} · ${agoOf(lastSuccessAt)}`
+      : fetchedAt != null
+        ? // Relevé venu du cache disque, sans appel abouti dans cette session :
+          // on date la donnée, sans prétendre l'avoir relevée à l'instant.
+          `${t('wx_recorded')} · ${agoOf(fetchedAt)}`
+        : t('wx_never')
 
   return (
     <div className="wxage">
-      <span style={{ flex: 1, minWidth: 0 }}>
-        {t('wx_recorded')} · {t('ago_pattern').replace('{d}', ago)}
+      <span
+        style={{ flex: 1, minWidth: 0, color: failure ? 'var(--warn)' : undefined }}
+        title={failure || lastSuccessAt == null ? t('wx_auto') : undefined}
+      >
+        {label}
+        {failure && lastSuccessAt != null && <> · {t('wx_last_success').replace('{d}', agoOf(lastSuccessAt))}</>}
+        {!failure && lastSuccessAt == null && fetchedAt == null && (
+          <span className="u-muted"> {t('wx_never_help')}</span>
+        )}
       </span>
       <button type="button" className="linkbtn" onClick={refresh} disabled={loading}>
         {loading ? t('loading') : t('refresh')}

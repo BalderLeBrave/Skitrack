@@ -138,6 +138,7 @@ export function mergeAirbnbPaste(
       missingSince: undefined,
       total: Math.round(total),
       pp: pricePerPersonNight(total),
+      scannedAt: Date.now(),
       priceCheckIn: checkIn,
       priceCheckOut: checkOut,
       image: hit.image ?? lodging.image,
@@ -189,6 +190,7 @@ export function mergeAirbnbPaste(
       lon: item.lon,
       locPrecision: item.locPrecision ?? 'approximate',
       importDomainId: domainId,
+      scannedAt: Date.now(),
       priceCheckIn: priced ? checkIn : undefined,
       priceCheckOut: priced ? checkOut : undefined
     }

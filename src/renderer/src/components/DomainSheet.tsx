@@ -31,6 +31,8 @@ import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import type { TranslationKey } from '@/i18n'
 import { useI18n } from '@/i18n'
+import type { ForfaitPourDuree } from '@/domain/forfait'
+import { passOriginText, passPrefix, passStyle } from '@/domain/forfaitLabel'
 import { useApp } from '@/state/appState'
 import type { ResolvedForfait } from '@/state/selectors'
 import { useDerived } from '@/state/selectors'
@@ -148,11 +150,31 @@ function ForecastStrip({ title, days, locale }: { title: string; days: DomainWea
   )
 }
 
-/** Grille des tarifs de forfait relevés (ou estimés) pour le domaine. */
-function PassGrid({ forfait }: { forfait: ResolvedForfait }): JSX.Element {
+/**
+ * Grille des tarifs de forfait relevés (ou estimés) pour le domaine.
+ *
+ * La première ligne est celle du **séjour en cours** : c'est la seule que le
+ * calcul de coût utilise, et c'était la seule absente. Les suivantes sont la
+ * grille livrée, telle quelle.
+ */
+function PassGrid({
+  forfait,
+  pass
+}: {
+  forfait: ResolvedForfait
+  pass: ForfaitPourDuree | null
+}): JSX.Element {
   const { eur } = useFormat()
   const { t } = useI18n()
   const rows: [string, string][] = [
+    ...(pass
+      ? ([
+          [
+            t('pass_days_label').replace('{n}', String(pass.jours)),
+            `${passPrefix(pass)}${eur(pass.adulte)} · ${passPrefix(pass)}${eur(pass.enfant)} ${t('child_lower')}`
+          ]
+        ] as [string, string][])
+      : []),
     ['Journée adulte', forfait.j1 != null ? eur(forfait.j1) : '—'],
     [t('pass_6d_adult'), forfait.j6 != null ? eur(forfait.j6) : '—'],
     ['Forfait 6 j enfant', forfait.enf6 != null ? eur(forfait.enf6) : '—'],
@@ -209,7 +231,14 @@ function AvalanchePanel({ domain }: { domain: Domain }): JSX.Element {
     }
     if (bulletin?.message) return bulletin.message
     if (bulletin?.error) return bulletin.error
-    if (manual != null) return t('bra_from_manual')
+    // Le niveau saisi porte sa date : c'est la seule chose qui distingue une
+    // lecture de ce matin d'une lecture d'hier soir, et le BRA change vite.
+    if (manual != null) {
+      const at = state.braManual[key]?.at
+      const when = at ? new Date(at) : null
+      const stamp = when && !isNaN(when.getTime()) ? ` · ${when.toLocaleString(locale)}` : ''
+      return `${t('bra_from_manual')}${stamp}`
+    }
     return t('bra_not_read')
   }
 
@@ -320,6 +349,7 @@ export function DomainSheet(): JSX.Element | null {
   const weather = weatherOf(d.id)
   const snow = snowDepths(weather)
   const forfait = derived.forfaitOf(d)
+  const pass = derived.passOf(d)
   const hist = domainPriceHistory(d)
   const dark = state.theme === 'dark'
 
@@ -436,8 +466,13 @@ export function DomainSheet(): JSX.Element | null {
               </dd>
             </div>
             <div>
-              <dt>{t('pass_6d_adult')}</dt>
-              <dd style={{ fontWeight: 700 }}>{forfait.j6 != null ? eur(forfait.j6) : '—'}</dd>
+              <dt>{pass ? t('pass_days_label').replace('{n}', String(pass.jours)) : t('pass_6d_adult')}</dt>
+              <dd
+                style={{ fontWeight: 700, ...passStyle(pass) }}
+                title={pass ? passOriginText(pass, t) : undefined}
+              >
+                {pass ? `${passPrefix(pass)}${eur(pass.adulte)}` : '—'}
+              </dd>
             </div>
             <div>
               <dt>{t('pass_zone')}</dt>
@@ -487,7 +522,7 @@ export function DomainSheet(): JSX.Element | null {
                 ? `${t('source_derived')} — ${t('filter_forfait_help')}`
                 : `${t('passes_note')} ${forfait.maj ?? '—'}`}
             </p>
-            <PassGrid forfait={forfait} />
+            <PassGrid forfait={forfait} pass={pass} />
             <p className="u-muted" style={{ margin: 0, fontSize: 12 }}>
               {t('passes_family_note')}
             </p>

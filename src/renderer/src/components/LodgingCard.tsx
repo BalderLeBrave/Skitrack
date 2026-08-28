@@ -82,7 +82,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
   const inCompare = state.compareIds.includes(lg.id)
   const inSelection = state.selLodgings[domain.id] === lg.id
   const tracked = state.tracked.some((tr) => tr.key === trackKey(lg))
-  const fresh = freshnessOf(lg, lang)
+  const fresh = freshnessOf(lg, lang, state.lastScan)
   const dups = lg.dups ?? []
   const dense = state.density === 'compact'
 

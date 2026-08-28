@@ -63,6 +63,21 @@ export interface BulkContext {
   nights: number
   /** Altitude de repli quand l'annonce ne la donne pas. */
   fallbackAlt: number
+  /**
+   * Dates du séjour affiché au moment du collage.
+   *
+   * Sans elles, les annonces collées étaient **invisibles partout** : les écrans
+   * Offres, Combinaisons et Décision n'affichent que des tarifs vérifiés pour
+   * les dates en cours (`hasConfirmedPrice`), et une entrée sans `priceCheckIn`
+   * ni `priceConfidence` n'en fait jamais partie. L'aperçu annonçait « 30
+   * annonces ajoutées » et aucune n'apparaissait.
+   *
+   * Ce n'est pas une qualification de complaisance : l'utilisateur colle une
+   * liste qu'il a constituée pour ces dates-là, et c'est ce que le formulaire
+   * lui dit avant de valider.
+   */
+  checkIn: string
+  checkOut: string
 }
 
 /**
@@ -84,7 +99,13 @@ export function toLodging(raw: RawListing, index: number, ctx: BulkContext): Lod
     name,
     type: typeof raw.type === 'string' && raw.type.trim() ? raw.type.trim() : 'Import',
     pers: capacity,
-    ch: Math.max(1, Math.round(asNumber(raw.rooms) ?? 1)),
+    // Zéro quand le fichier se tait, jamais « 1 chambre » par défaut. C'est la
+    // règle de `Lodging.ch` — « 0 = non annoncé, ni affiché, ni filtré » — et
+    // elle compte désormais pour de bon : `fitsParty` compare ce nombre au
+    // minimum demandé, si bien qu'une chambre inventée faisait passer un studio
+    // pour un logement d'une chambre, et qu'un « au moins 2 chambres » écartait
+    // toutes les annonces collées sans en donner la raison.
+    ch: Math.max(0, Math.round(asNumber(raw.rooms) ?? 0)),
     m2: null,
     note: typeof raw.note === 'string' && raw.note.trim() ? raw.note.trim() : '—',
     avis: Math.max(0, Math.round(asNumber(raw.reviews) ?? 0)),
@@ -102,7 +123,12 @@ export function toLodging(raw: RawListing, index: number, ctx: BulkContext): Lod
     stock: 1,
     url: typeof raw.url === 'string' ? raw.url : undefined,
     image: typeof raw.image === 'string' ? raw.image : null,
-    photo: name
+    photo: name,
+    // Le prix est celui du séjour affiché : c'est ce qui rend l'annonce
+    // visible sur les écrans qui additionnent. Voir `BulkContext.checkIn`.
+    priceConfidence: 'total_confirmed',
+    priceCheckIn: ctx.checkIn,
+    priceCheckOut: ctx.checkOut
   }
 }
 

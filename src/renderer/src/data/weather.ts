@@ -160,15 +160,38 @@ async function fetchBatch(batch: Domain[]): Promise<WeatherMap> {
 }
 
 /**
+ * Résultat d'un relevé météo.
+ *
+ * La fonction rendait la seule carte, et avalait ses erreurs en silence. Un
+ * Open-Meteo injoignable était alors indiscernable d'un cache encore frais :
+ * l'écran gardait les valeurs de la veille et continuait d'afficher « relevé il
+ * y a 4 min », parce que c'est la date de la *lecture du cache* qu'il lisait.
+ * Une hauteur de neige périmée présentée comme fraîche est exactement le genre
+ * de chiffre sur lequel on décide d'un départ.
+ */
+export interface WeatherFetch {
+  map: WeatherMap
+  /** Domaines qu'il a fallu demander (les autres étaient encore frais). */
+  requested: number
+  /** Domaines dont le lot a échoué : ils gardent leur relevé précédent, ou rien. */
+  failed: number
+  /** Message de la dernière erreur, `null` si tout a abouti. */
+  error: string | null
+  /** Fin du relevé, si **au moins un** lot a abouti. `null` sinon. */
+  succeededAt: number | null
+}
+
+/**
  * Complète la carte météo pour les domaines demandés. Les entrées encore
  * fraîches ne sont pas redemandées ; un lot en échec laisse simplement ces
- * domaines sans météo, sans faire tomber les autres.
+ * domaines sans météo, sans faire tomber les autres — mais il est désormais
+ * **compté et rendu**, au lieu d'être avalé par le `catch`.
  */
 export async function fetchWeather(
   allDomains: Domain[],
   known: WeatherMap,
   force = false
-): Promise<WeatherMap> {
+): Promise<WeatherFetch> {
   // Un domaine sans coordonnées insérerait un trou dans les listes
   // `latitude=`/`longitude=` de la requête groupée et décalerait toutes les
   // réponses suivantes : la météo de Chamrousse finirait sur Avoriaz.
@@ -179,22 +202,41 @@ export async function fetchWeather(
   // cache n'est pas vidé, il est seulement ignoré pour ce lot — les domaines
   // hors écran gardent leur relevé.
   const missing = force ? domains : domains.filter((d) => !isFresh(cached[d.id], now))
-  if (missing.length === 0) return cached
+  // Rien à demander : tout est encore frais. Ce n'est ni un succès ni un échec
+  // de relevé — `succeededAt` reste nul et l'écran garde la date qu'il affiche
+  // déjà, plutôt que de la remettre à zéro sur un appel qui n'a rien demandé.
+  if (missing.length === 0) {
+    return { map: cached, requested: 0, failed: 0, error: null, succeededAt: null }
+  }
 
   const perRequest = Math.floor(BATCH_LOCATIONS / 2)
   const batches: Domain[][] = []
   for (let i = 0; i < missing.length; i += perRequest) batches.push(missing.slice(i, i + perRequest))
 
   let merged = cached
+  let failed = 0
+  let ok = 0
+  let error: string | null = null
   for (const batch of batches) {
     try {
       merged = { ...merged, ...(await fetchBatch(batch)) }
-    } catch {
-      /* lot en échec : ces domaines resteront sans météo jusqu'au prochain essai */
+      ok += batch.length
+    } catch (err) {
+      // Le lot est perdu, les autres continuent — c'est l'invariant « un échec
+      // de source reste local ». Ce qui change : on retient combien de domaines
+      // sont concernés et pourquoi, pour que l'écran puisse le dire.
+      failed += batch.length
+      error = err instanceof Error ? err.message : String(err)
     }
   }
   writeCache(merged)
-  return merged
+  return {
+    map: merged,
+    requested: missing.length,
+    failed,
+    error,
+    succeededAt: ok > 0 ? Date.now() : null
+  }
 }
 
 /**

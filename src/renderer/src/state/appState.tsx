@@ -21,6 +21,9 @@ import { isLanguage, type Language } from '@/i18n'
 import type { BasemapKey } from '@/components/DomainMap'
 import { DEFAULT_BASEMAP } from '@/components/DomainMap'
 import type { Lodging } from '@/data/lodgings'
+import type { EsfRates, RouteBudget } from '@/domain/costs'
+import type { PhotoOverrides } from '@/data/photoOverrides'
+import type { ForfaitsSaisis } from '@/domain/forfait'
 import type { DomainSource } from '@/data/domains'
 import { fallbackDomains, loadDomains } from '@/data/domains'
 import { applyResolvedCoords, readGeoCache, resolveMissingCoords } from '@/data/domainGeo'
@@ -297,7 +300,42 @@ export interface AppState {
   people: Person[]
   places: Place[]
   peopleOpen: boolean
-  esfRates: Record<number, { kid?: number; adult?: number }>
+  /**
+   * Tarifs de cours relevés par domaine. Forme définie dans `domain/costs.ts`,
+   * plus dupliquée ici : les deux avaient divergé dès l'ajout du tarif
+   * particulier, et c'est le genre d'écart qu'un typage structurel cache.
+   */
+  esfRates: EsfRates
+  /**
+   * Carburant et péages, saisis ou relevés sur ViaMichelin.
+   *
+   * Le calcul appliquait deux constantes — 0,115 €/km et 0,058 €/km — à une
+   * distance elle-même estimée. Cette table permet de les remplacer par des
+   * valeurs réelles ; ce qui reste vide continue d'être estimé, et l'écran le
+   * dit. Voir `RouteBudget` dans `domain/costs.ts`.
+   */
+  routeBudget: RouteBudget
+  /** Dernier relevé ViaMichelin, pour le dater à l'écran. */
+  routeCostAt: number | null
+  /**
+   * Photos de station corrigées à la main, par slug de station.
+   *
+   * Le référentiel photo est généré et choisit ses images par position : une
+   * candidate prise à quatre kilomètres du front de neige peut montrer autre
+   * chose. Voir `data/photoOverrides.ts`.
+   */
+  photoOverrides: PhotoOverrides
+  /**
+   * Grilles de forfait relevées à la main, par identifiant de domaine.
+   *
+   * Le référentiel livré ne porte que deux durées — journée et six jours — et
+   * 107 domaines sur 283 n'ont aucun tarif relevé du tout. Cette table est le
+   * seul moyen d'entrer une grille réelle, et elle prime sur le fichier : c'est
+   * l'utilisateur qui a regardé le tarif du jour sur le site de la station.
+   *
+   * Chaque entrée porte sa date de relevé et sa source. Voir `domain/forfait.ts`.
+   */
+  forfaitsSaisis: ForfaitsSaisis
   optRental: boolean
   optLessons: boolean
 
@@ -584,6 +622,10 @@ export const INITIAL_STATE: AppState = {
   places: DEFAULT_PLACES,
   peopleOpen: false,
   esfRates: {},
+  routeBudget: {},
+  routeCostAt: null,
+  photoOverrides: {},
+  forfaitsSaisis: {},
   optRental: false,
   optLessons: false,
 
@@ -695,7 +737,7 @@ const PERSISTED_KEYS = [
   // un réglage. Le retrouver ouvert au démarrage suivant reposerait un panneau
   // sur la liste sans que personne ne l'ait demandé.
   'offresBudget', 'searchFiltersW', 'searchMapW', 'searchSplit', 'searchMapOpen',
-  'weights', 'people', 'places', 'esfRates', 'decision', 'mergeDupes', 'cmpRefId',
+  'weights', 'people', 'places', 'esfRates', 'forfaitsSaisis', 'routeBudget', 'routeCostAt', 'photoOverrides', 'decision', 'mergeDupes', 'cmpRefId',
   'baseMin', 'baseMax', 'summitMin', 'summitMax', 'kmMin', 'kmMax',
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',

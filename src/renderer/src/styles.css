@@ -7039,3 +7039,110 @@ select {
   font-size: 11px;
   color: var(--dim);
 }
+
+/* --- Récapitulatif imprimable du séjour ----------------------------------
+   Le rapport vit dans l'arbre en permanence : `printToPDF` photographie la
+   page telle qu'elle est, et un composant monté au dernier moment n'aurait
+   pas fini de charger ses tuiles de fond de carte. Il est donc rendu, mais
+   retiré du flux — jamais affiché à l'écran, jamais lu par les lecteurs
+   d'écran, et sans coût de mise en page.
+
+   `data-print="rapport"` est posé par l'écran Décision juste avant l'appel,
+   et retiré ensuite quoi qu'il arrive. */
+.report {
+  display: none;
+}
+
+/* Le masquage du reste de l'écran se fait dans le bloc `@media print` plus
+   bas, et pas ici : `printToPDF` rend la page en média « print », et une règle
+   à base de `:has()` posée hors de ce bloc s'appliquerait aussi à l'écran
+   pendant les quelques secondes de la génération — avec, sur un sélecteur de
+   cette forme, un risque de tout faire disparaître pour de bon. */
+
+.report__section {
+  margin-top: 14px;
+  break-inside: avoid;
+}
+
+.report__section h2 {
+  font-size: 13px;
+  margin: 0 0 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--border);
+}
+
+.report__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.report__grid dt {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.report__grid dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.report__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.report__table th {
+  text-align: left;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.report__table td {
+  text-align: right;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
+.report__table td:first-of-type {
+  text-align: center;
+}
+
+.report__total th,
+.report__total td {
+  border-top: 1.5px solid var(--text);
+  font-weight: 800;
+  padding-top: 6px;
+}
+
+.report__missing {
+  break-inside: avoid;
+}
+
+@media print {
+  /* En impression du rapport, **tout** le reste disparaît.
+     Une liste de classes à masquer laisse toujours passer ce qu'on a oublié —
+     ici le paragraphe « X € par personne » et la vignette du logement de
+     l'écran Décision, qui se retrouvaient en tête du PDF. On inverse donc la
+     règle, comme le fait déjà `data-print='fiche'` : tout est caché, et seul le
+     rapport est réaffiché. Une classe ajoutée demain à l'écran Décision n'a
+     alors aucun moyen d'entrer dans le document. */
+  html[data-print='rapport'] body * {
+    visibility: hidden;
+  }
+
+  html[data-print='rapport'] .report,
+  html[data-print='rapport'] .report * {
+    visibility: visible;
+  }
+
+  html[data-print='rapport'] .report {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+}

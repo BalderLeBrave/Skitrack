@@ -4,6 +4,7 @@ import { ExternalIcon } from '@/components/Icons'
 import { api, isClientReady } from '@/api/client'
 import type { ProviderStatus, ReferentialStatus } from '@/api/types'
 import { exportReferential } from '@/data/referentiel'
+import { MANUAL_SOURCE, srcOf } from '@/data/lodgings'
 import { CRITERIA } from '@/domain/scoring'
 import { useFormat } from '@/hooks/useFormat'
 import { routesCoverage } from '@/domain/travel'
@@ -16,6 +17,8 @@ import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { LegalSection } from './LegalSection'
 import { StationPhotos } from '@/components/StationPhotos'
+import { ForfaitEditor } from '@/components/ForfaitEditor'
+import { RouteBudgetEditor } from '@/components/RouteBudgetEditor'
 
 const KEY_LABELS: Record<SecretKey, { label: string; help: string; url?: string }> = {
   openrouteservice: {
@@ -130,7 +133,7 @@ const ADMIN_SUBTABS: [AppState['admSub'], TranslationKey][] = [
 export function SettingsPage(): JSX.Element {
   const { fmt } = useFormat()
   const { state, patch, ref, refOrigin, domains, domainSource, domainWarning } = useApp()
-  const { origins } = useDerived()
+  const { origins, forfaitOf } = useDerived()
   const { t, lang, setLang } = useI18n()
   const { state: sidecar, restart } = useSidecar()
 
@@ -260,6 +263,8 @@ export function SettingsPage(): JSX.Element {
             ...(state.admSub === 'sources'
               ? [
                   { id: 'set-provenance', label: t('settings_provenance') },
+                  { id: 'set-forfaits', label: t('forfait_editor_title') },
+                  { id: 'set-route-budget', label: t('route_budget_title') },
                   { id: 'set-sources', label: t('settings_sources') },
                   { id: 'set-lodgsources', label: t('settings_lodging_sources') }
                 ]
@@ -275,9 +280,35 @@ export function SettingsPage(): JSX.Element {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const relevés = new Set(
-    Object.keys(ref.forfaits).map((id) => ref.domaines.find((d) => String(d.id) === id)?.name).filter(Boolean)
-  ).size
+  /**
+   * Domaines dont le forfait est **relevé**, comptés comme l'écran les résout.
+   *
+   * L'ancien compte lisait les clés de `ref.forfaits` : 173 entrées, alors que
+   * l'application affiche 283 domaines et qu'un même forfait couvre plusieurs
+   * stations (Orelle lit celui de Val Thorens). Il annonçait donc un troisième
+   * chiffre, ni le nombre de domaines pourvus ni le nombre d'entrées utiles.
+   * `forfaitOf` est la résolution réelle — slug, puis nom de domaine, puis
+   * `pass`, puis estimation — et c'est elle qui fait foi ici.
+   */
+  // Une grille saisie compte comme relevée : c'est le compte que l'éditeur
+  // affiche deux blocs plus bas, et les deux annonçaient des chiffres
+  // différents dès la première saisie.
+  const forfaitsRelevés = domains.filter(
+    (d) => !forfaitOf(d).estimated || state.forfaitsSaisis[d.id] != null
+  ).length
+  const forfaitsEstimés = domains.length - forfaitsRelevés
+
+  /**
+   * Ce que porte réellement la ligne « Logements ».
+   *
+   * Elle annonçait « catalogue de biens types » et l'étiquetait « simulé ».
+   * C'était vrai — un catalogue de trente-quatre logements fictifs alimentait
+   * Offres, Combinaisons et Décision — et c'est faux depuis qu'il a été retiré.
+   * La ligne dit maintenant ce que l'application détient : les sources
+   * réellement interrogées au dernier relevé, et les annonces saisies à la main.
+   */
+  const lodgManuels = state.imported.filter((l) => srcOf(l) === MANUAL_SOURCE).length
+  const lodgSources = state.lodgQueried
 
   const provenance: { label: string; src: string; ok: boolean; tag: string }[] = [
     {
@@ -291,9 +322,15 @@ export function SettingsPage(): JSX.Element {
     },
     {
       label: 'Forfaits',
-      src: `sites officiels — ${relevés} domaine(s) relevés, les autres estimés d’après les kilomètres de pistes et l’altitude`,
-      ok: false,
-      tag: 'partiel'
+      src: t('prov_forfaits_src')
+        .replace('{n}', String(forfaitsRelevés))
+        .replace('{e}', String(forfaitsEstimés)),
+      ok: forfaitsEstimés === 0,
+      // « partiel » n'apprenait rien. Un rapport se lit : 176 sur 283 dit du
+      // même coup ce qui est couvert et ce qui reste à relever.
+      tag: t('prov_recorded_ratio')
+        .replace('{n}', String(forfaitsRelevés))
+        .replace('{t}', String(domains.length))
     },
     {
       label: 'Neige au sol',
@@ -315,17 +352,38 @@ export function SettingsPage(): JSX.Element {
     },
     {
       label: 'Logements',
-      src: 'catalogue de biens types — les connecteurs partenaires attendent une validation de compte',
-      ok: false,
-      tag: 'simulé'
+      src: lodgSources.length
+        ? t('prov_lodgings_src_scanned').replace('{s}', lodgSources.join(', ')) +
+          (lodgManuels
+            ? t('prov_lodgings_manual_suffix').replace('{n}', String(lodgManuels))
+            : '')
+        : lodgManuels
+          ? t('prov_lodgings_src_manual').replace('{n}', String(lodgManuels))
+          : t('prov_lodgings_src_empty'),
+      ok: lodgSources.length > 0,
+      tag: lodgSources.length
+        ? t('prov_measured')
+        : lodgManuels
+          ? t('prov_manual')
+          : t('prov_none')
     },
     {
       label: 'Temps de trajet',
       src: coverage.done
-        ? `OSRM — ${coverage.done} itinéraire(s) sur ${coverage.total}`
-        : 'estimation à vol d’oiseau corrigée d’un facteur de sinuosité routière',
+        ? t('prov_routes_src_some')
+            .replace('{n}', String(coverage.done))
+            .replace('{t}', String(coverage.total))
+        : t('prov_routes_src_none'),
       ok: coverage.done === coverage.total && coverage.total > 0,
-      tag: coverage.done === coverage.total && coverage.total > 0 ? 'calculé' : 'partiel'
+      // Même correction que pour les forfaits : le rapport remplace l'adjectif.
+      // Sans départ saisi il n'y a aucun itinéraire à calculer, et « 0 sur 0
+      // calculés » se lit comme une panne au lieu d'une absence de demande.
+      tag:
+        coverage.total === 0
+          ? t('prov_none')
+          : t('prov_routes_ratio')
+              .replace('{n}', String(coverage.done))
+              .replace('{t}', String(coverage.total))
     },
     {
       label: 'Cours de ski',
@@ -636,9 +694,7 @@ export function SettingsPage(): JSX.Element {
               <h2>{t('settings_provenance')}</h2>
               {domainWarning && <p className="notice notice--warn">{domainWarning}</p>}
               <p className="settings__help">
-                D’où vient chaque chiffre affiché dans l’application, et à quelle date il a été établi. Les postes
-                marqués comme estimés ou simulés ne sont pas relevés à la source : ils sont dérivés d’autres données et
-                doivent être vérifiés avant de servir à une décision.
+                {t('prov_intro')}
               </p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {provenance.map((p) => {
@@ -776,6 +832,12 @@ export function SettingsPage(): JSX.Element {
                     : `${coverage.done} itinéraire(s) sur ${coverage.total} calculés — les autres restent estimés`}
               </p>
             </section>
+
+            {/* La saisie des forfaits suit immédiatement le tableau de
+                provenance : c'est là qu'on lit « 176 sur 283 relevés », et
+                c'est là qu'on doit pouvoir corriger les 107 autres. */}
+            <ForfaitEditor />
+            <RouteBudgetEditor />
 
             <section id="set-sources" className="panel panel--flat settings__section">
               <h2>{t('settings_sources')}</h2>

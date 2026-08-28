@@ -208,6 +208,7 @@ function toLodging(
     importDomainId: params.domainId,
     // Dates du relevé : celles de la fiche si le connecteur les a figées,
     // sinon les critères de recherche (cas nominal Ceto / Booking).
+    scannedAt: Date.now(),
     priceCheckIn: a.checkIn || params.checkIn,
     priceCheckOut: a.checkOut || params.checkOut,
     accessComputed: false,

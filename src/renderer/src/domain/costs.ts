@@ -10,15 +10,83 @@
  */
 
 import type { Domain, Forfait } from '@/data/referentiel'
-import { enfantPrice } from '@/data/referentiel'
+import type { ForfaitPourDuree } from './forfait'
 import type { Lodging } from '@/data/lodgings'
 import type { Origin, RouteTable } from './travel'
 import { travelOf } from './travel'
 
-/** Consommation retenue, en euros par kilomètre, aller simple. */
+/**
+ * Barème par défaut du carburant, en euros par kilomètre.
+ *
+ * Une moyenne nationale, pas une mesure : elle vaut ce que vaut une
+ * consommation moyenne multipliée par un prix moyen. `RouteBudget` permet de la
+ * remplacer par le prix du litre et la consommation réels du véhicule, ou par
+ * un montant relevé sur ViaMichelin.
+ */
 const FUEL_PER_KM = 0.115
-/** Péages moyens autoroute, en euros par kilomètre. */
+/** Péages moyens autoroute, en euros par kilomètre. Même statut d'estimation. */
 const TOLL_PER_KM = 0.058
+
+/**
+ * Ce que l'utilisateur a saisi ou relevé pour la route.
+ *
+ * Trois régimes, du plus fiable au moins fiable, et `tripCost` les applique
+ * dans cet ordre :
+ *
+ *  1. `flatTotal` — un montant forfaitaire pour l'aller-retour d'un foyer,
+ *     saisi parce que l'utilisateur le connaît mieux que n'importe quel calcul.
+ *  2. `fuelPricePerL` + `consoL100` — sa vraie consommation et le prix qu'il
+ *     paie à la pompe, appliqués à la distance.
+ *  3. rien — les deux barèmes ci-dessus, et l'écran l'annonce comme estimé.
+ *
+ * `tollsRoundTrip` se superpose aux trois : un péage relevé sur ViaMichelin ou
+ * saisi remplace le barème kilométrique, sans toucher au carburant.
+ */
+export interface RouteBudget {
+  /** Prix du litre saisi, en euros. */
+  fuelPricePerL?: number
+  /** Consommation saisie, en litres aux 100 km. */
+  consoL100?: number
+  /** Péages aller-retour, saisis ou relevés, en euros par foyer. */
+  tollsRoundTrip?: number
+  /** Montant forfaitaire aller-retour par foyer : court-circuite tout le reste. */
+  flatTotal?: number
+}
+
+/** D'où vient chaque poste de route affiché. */
+export interface RouteOrigin {
+  fuel: 'saisi' | 'estimé'
+  tolls: 'saisi' | 'estimé'
+}
+
+/**
+ * Un forfait de route est-il en vigueur ?
+ *
+ * **Un seul prédicat**, partagé avec `legRoundTrip`. Ils divergeaient sur zéro :
+ * `routeOriginOf` acceptait `flatTotal: 0` et `legRoundTrip` l'ignorait, si bien
+ * qu'un forfait saisi à zéro — le cas de quelqu'un qui covoiture ou se fait
+ * déposer — faisait afficher « valeurs saisies » en vert sur un montant que les
+ * barèmes moyens venaient de produire. Deux copies d'une même règle finissent
+ * toujours par se contredire ; celle-ci n'existe plus qu'une fois.
+ */
+export function forfaitRouteActif(budget: RouteBudget | undefined): boolean {
+  return budget?.flatTotal != null && budget.flatTotal > 0
+}
+
+export function routeOriginOf(budget: RouteBudget | undefined, avoidTolls: boolean): RouteOrigin {
+  const forfait = forfaitRouteActif(budget)
+  const saisiCarburant =
+    forfait ||
+    (budget?.fuelPricePerL != null && budget.fuelPricePerL > 0 && budget.consoL100 != null && budget.consoL100 > 0)
+  const saisiPeages =
+    forfait || avoidTolls || (budget?.tollsRoundTrip != null && budget.tollsRoundTrip >= 0)
+  return {
+    fuel: saisiCarburant ? 'saisi' : 'estimé',
+    // « Éviter les péages » met le poste à zéro par décision de l'utilisateur :
+    // ce n'est pas une estimation, c'est un choix, et zéro est alors exact.
+    tolls: saisiPeages ? 'saisi' : 'estimé'
+  }
+}
 export const RENTAL_ADULT = 96
 export const RENTAL_KID = 58
 /** Au-delà, le tarif enfant des forfaits et du matériel ne s'applique plus. */
@@ -64,13 +132,59 @@ export interface TripCost {
   total: number
   /** Une voiture par foyer : la route se paie autant de fois qu'il y a de départs. */
   cars: number
+  /**
+   * Le montant vient-il d'un forfait saisi, sans décomposition ?
+   *
+   * Sans ce drapeau, un forfait de 180 € se retrouvait entier dans `fuel` et
+   * l'écran l'annonçait « carburant 180 € · péages 0 € ». L'utilisateur n'a
+   * jamais dit ça : il a dit « la route me coûte 180 € ». Les écrans lisent ce
+   * drapeau pour afficher une ligne unique au lieu d'une répartition inventée.
+   */
+  flat: boolean
+}
+
+/**
+ * Coût aller-retour d'**un** foyer, pour une distance connue.
+ *
+ * Définition unique, parce qu'elle avait deux lecteurs — le total du séjour et
+ * la répartition entre foyers — qui la réimplémentaient chacun. Ils ne
+ * divergeaient pas tant que les deux constantes étaient les seules règles ;
+ * avec un prix du litre, une consommation, un péage relevé et un forfait, ils
+ * auraient divergé au premier champ rempli.
+ */
+export function legRoundTrip(
+  distKm: number,
+  avoidTolls: boolean,
+  budget?: RouteBudget
+): { fuel: number; tolls: number } {
+  // Forfait saisi : il remplace tout le calcul pour ce foyer. L'utilisateur qui
+  // connaît son coût de trajet le connaît mieux qu'un barème moyen.
+  if (forfaitRouteActif(budget)) {
+    return { fuel: Math.round(budget?.flatTotal ?? 0), tolls: 0 }
+  }
+
+  const perL = budget?.fuelPricePerL
+  const conso = budget?.consoL100
+  const saisiCarburant = perL != null && perL > 0 && conso != null && conso > 0
+  // L'aller-retour fait deux fois la distance, et la conso s'exprime aux 100 km.
+  const fuel = saisiCarburant
+    ? Math.round(((distKm * 2) / 100) * conso * perL)
+    : Math.round(distKm * 2 * FUEL_PER_KM)
+
+  if (avoidTolls) return { fuel, tolls: 0 }
+  const tolls =
+    budget?.tollsRoundTrip != null && budget.tollsRoundTrip >= 0
+      ? Math.round(budget.tollsRoundTrip)
+      : Math.round(distKm * TOLL_PER_KM) * 2
+  return { fuel, tolls }
 }
 
 export function tripCost(
   domain: Domain,
   origins: Origin[],
   routes: RouteTable,
-  avoidTolls: boolean
+  avoidTolls: boolean,
+  budget?: RouteBudget
 ): TripCost {
   let fuel = 0
   let tolls = 0
@@ -81,10 +195,12 @@ export function tripCost(
     // pas dans le total plutôt que d'y entrer pour zéro euro.
     if (t.dist == null) continue
     cars++
-    fuel += Math.round(t.dist * 2 * FUEL_PER_KM)
-    tolls += avoidTolls ? 0 : Math.round(t.dist * TOLL_PER_KM) * 2
+    const leg = legRoundTrip(t.dist, avoidTolls, budget)
+    fuel += leg.fuel
+    tolls += leg.tolls
   }
-  return { fuel, tolls, total: fuel + tolls, cars }
+  const flat = forfaitRouteActif(budget)
+  return { fuel, tolls, total: fuel + tolls, cars, flat }
 }
 
 // --- Cours de ski --------------------------------------------------------
@@ -106,12 +222,39 @@ export function hoursTxt(h: number): string {
 const ESF_BASE = { kid: 12.7, adult: 14.3 }
 
 export interface EsfRate {
+  /** Tarif horaire collectif enfant. */
   kid: number
+  /** Tarif horaire collectif adulte. */
   adult: number
+  /**
+   * Tarif horaire du cours **particulier**, quand il a été relevé.
+   *
+   * `null` = personne ne l'a saisi, et `lessonOf` retombe sur le barème par
+   * tranche d'heures indexé sur la station. Les deux ne se confondent pas :
+   * `privSource` dit lequel des deux a servi.
+   */
+  priv: number | null
+  /** École qui pratique ces tarifs, telle que l'utilisateur l'a nommée. */
+  ecole: string | null
+  /** Date du relevé de ces tarifs, AAAA-MM-JJ. `null` sur une estimation. */
+  releveLe: string | null
+  /** Origine du tarif **collectif**. */
   source: 'saisi' | 'estimé'
+  /** Origine du tarif **particulier**, qui peut différer du collectif. */
+  privSource: 'saisi' | 'estimé'
 }
 
-export type EsfRates = Record<number, { kid?: number; adult?: number }>
+/**
+ * Tarifs de cours relevés par l'utilisateur, par domaine.
+ *
+ * Les champs sont tous facultatifs et s'ajoutent sans casser ce qui est déjà
+ * enregistré : une entrée écrite avant l'ajout de `priv` porte encore `kid` et
+ * `adult` seuls, et se relit sans conversion.
+ */
+export type EsfRates = Record<
+  number,
+  { kid?: number; adult?: number; priv?: number; ecole?: string; releveLe?: string }
+>
 
 /**
  * Indice de cherté de la station, calé sur le prix du forfait 6 jours. Une
@@ -125,18 +268,26 @@ export function lessonIndex(forfait: Partial<Forfait>): number {
 
 export function esfRate(domainId: number, forfait: Partial<Forfait>, rates: EsfRates): EsfRate {
   const saved = rates[domainId]
+  const k = lessonIndex(forfait)
+  const commun = {
+    priv: saved?.priv && saved.priv > 0 ? saved.priv : null,
+    ecole: saved?.ecole?.trim() || null,
+    releveLe: saved?.releveLe ?? null,
+    privSource: (saved?.priv && saved.priv > 0 ? 'saisi' : 'estimé') as 'saisi' | 'estimé'
+  }
   if (saved?.kid) {
     return {
       kid: saved.kid,
       adult: saved.adult ?? Math.round(saved.kid * 1.13 * 10) / 10,
-      source: 'saisi'
+      source: 'saisi',
+      ...commun
     }
   }
-  const k = lessonIndex(forfait)
   return {
     kid: Math.round(ESF_BASE.kid * k * 10) / 10,
     adult: Math.round(ESF_BASE.adult * k * 10) / 10,
-    source: 'estimé'
+    source: 'estimé',
+    ...commun
   }
 }
 
@@ -173,8 +324,11 @@ export function lessonOf(p: Person, rate: EsfRate, index: number): Lesson | null
     const snow = p.disc === 'snow' ? 1.1 : 1
     price = base * total * degressif * snow
   } else {
-    const base = total <= 2 ? 66 : total <= 6 ? 62 : 58
-    price = base * total * index
+    // Tarif particulier saisi : il vaut tel quel, sans indexation. Indexer un
+    // tarif que l'utilisateur a lu sur le site de l'école reviendrait à
+    // corriger une mesure par une estimation.
+    const base = rate.priv ?? (total <= 2 ? 66 : total <= 6 ? 62 : 58)
+    price = rate.priv != null ? base * total : base * total * index
   }
 
   return {
@@ -185,7 +339,8 @@ export function lessonOf(p: Person, rate: EsfRate, index: number): Lesson | null
     label: `${type === 'col' ? 'Collectif' : 'Particulier'}, ${days} jour${days > 1 ? 's' : ''} × ${hoursTxt(hours)}`,
     sub:
       `${total.toLocaleString('fr-FR')} h au total · ${p.disc === 'snow' ? 'snowboard' : 'ski'}` +
-      (type === 'col' ? ' · tarif dégressif au nombre de jours' : ' · un moniteur pour la personne'),
+      (type === 'col' ? ' · tarif dégressif au nombre de jours' : ' · un moniteur pour la personne') +
+      (rate.ecole ? ` · ${rate.ecole}` : ''),
     price: Math.round(price)
   }
 }
@@ -217,6 +372,18 @@ export interface SejourCost {
 export interface SejourInputs {
   people: Person[]
   forfait: Partial<Forfait>
+  /**
+   * Tarif du forfait **pour la durée du séjour**, avec son origine.
+   *
+   * Le calcul facturait `forfait.j6` quelles que soient les dates : deux nuits
+   * étaient chiffrées au forfait 6 jours. `forfait` reste là pour ce qui a
+   * encore besoin de la grille brute (l'indice de cherté des cours, calé sur le
+   * tarif 6 jours par construction) ; le coût du séjour, lui, lit celui-ci.
+   *
+   * `null` quand aucun tarif n'est connu : le poste vaut alors zéro et l'écran
+   * affiche « non renseigné » plutôt qu'un forfait gratuit.
+   */
+  pass: ForfaitPourDuree | null
   trip: TripCost
   optRental: boolean
   optLessons: boolean
@@ -225,11 +392,10 @@ export interface SejourInputs {
 }
 
 export function sejourCost(lodging: Pick<Lodging, 'total'>, inputs: SejourInputs): SejourCost {
-  const { people, forfait, trip } = inputs
+  const { people, pass, trip } = inputs
   const kids = kidsCount(people)
   const adults = Math.max(0, adultsCount(people))
-  const enf = enfantPrice(forfait)
-  const forfaits = (forfait.j6 ?? 0) * adults + enf * kids
+  const forfaits = pass ? pass.adulte * adults + pass.enfant * kids : 0
   const rental = inputs.optRental ? adults * RENTAL_ADULT + kids * RENTAL_KID : 0
   const lessons = inputs.optLessons ? lessonsCost(people, inputs.esf, inputs.lessonIdx) : 0
 
@@ -288,17 +454,20 @@ export function splitRows(
   inputs: SejourInputs,
   origins: Origin[],
   routes: RouteTable,
-  avoidTolls: boolean
+  avoidTolls: boolean,
+  budget?: RouteBudget
 ): Split {
-  const { people, forfait } = inputs
+  const { people, pass } = inputs
   const homes = [...new Set(people.map((p) => p.home))]
   const heads = people.length || 1
-  const enf = enfantPrice(forfait)
 
   const rows: SplitRow[] = homes.map((hi) => {
     const mates = people.filter((p) => p.home === hi)
     const lodging = Math.round((lodgingTotal * mates.length) / heads)
-    const forfaits = mates.reduce((n, p) => n + (isKid(p) ? enf : (forfait.j6 ?? 0)), 0)
+    const forfaits = mates.reduce(
+      (n, p) => n + (pass ? (isKid(p) ? pass.enfant : pass.adulte) : 0),
+      0
+    )
     const rental = inputs.optRental
       ? mates.reduce((n, p) => n + (isKid(p) ? RENTAL_KID : RENTAL_ADULT), 0)
       : 0
@@ -307,8 +476,11 @@ export function splitRows(
       : 0
     const o = origins[hi]
     const t = o ? travelOf(domain, o, routes) : { dur: null, dist: null }
-    const fuel = t.dist == null ? 0 : Math.round(t.dist * 2 * FUEL_PER_KM)
-    const tolls = t.dist == null || avoidTolls ? 0 : Math.round(t.dist * TOLL_PER_KM) * 2
+    // Même fonction que le total du séjour : la répartition entre foyers doit
+    // sommer exactement au montant affiché en haut de l'écran Décision.
+    const leg = t.dist == null ? { fuel: 0, tolls: 0 } : legRoundTrip(t.dist, avoidTolls, budget)
+    const fuel = leg.fuel
+    const tolls = leg.tolls
 
     return {
       home: o ? o.short : `Départ ${hi + 1}`,

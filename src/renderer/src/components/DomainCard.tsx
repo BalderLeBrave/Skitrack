@@ -8,6 +8,7 @@ import { massifColor } from '@/domain/massif'
 import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import { passOriginText, passPrefix, passStyle } from '@/domain/forfaitLabel'
 import { useDerived } from '@/state/selectors'
 
 interface Props {
@@ -50,6 +51,7 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
   const score = derived.scoreOf(d)
   const scoreVal = Math.round(score.total)
   const forfait = derived.forfaitOf(d)
+  const pass = derived.passOf(d)
   const dark = state.theme === 'dark'
 
   /**
@@ -256,19 +258,29 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
         <footer className="domcard__footer">
           {groupPasses != null && groupSize > 0 && (
             <div className="domcard__price">
+              {/* Le montant porte l'origine du tarif qui l'a produit : italique
+                  et « ≈ » dès qu'il est interpolé ou estimé, et l'infobulle dit
+                  lequel des deux. Un tarif de 3 jours interpolé entre la journée
+                  et les 6 jours s'affichait comme un relevé. */}
               <strong
                 className="domcard__price-val u-num crn-calcul"
-                title={forfait.estimated ? t('price_estimated') : undefined}
+                style={passStyle(pass)}
+                title={pass ? passOriginText(pass, t) : undefined}
               >
-                {forfait.estimated ? '≈ ' : ''}
+                {passPrefix(pass)}
                 {eur(groupPasses)}
               </strong>
               <span className="domcard__price-scope" title={t('card_price_no_lodging')}>
                 {t('card_price_scope').replace('{n}', String(groupSize))}
               </span>
               <span className="domcard__price-unit">
-                {t('pass_6d_adult')}{' '}
-                <span className="u-num crn-releve">{eur(forfait.j6)}</span>
+                {pass ? t('pass_days_label').replace('{n}', String(pass.jours)) : t('pass_none')}{' '}
+                {pass && (
+                  <span className="u-num crn-releve" style={passStyle(pass)}>
+                    {passPrefix(pass)}
+                    {eur(pass.adulte)}
+                  </span>
+                )}
               </span>
             </div>
           )}

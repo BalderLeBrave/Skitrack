@@ -19,7 +19,9 @@
 
 import { useMemo, useState } from 'react'
 import { stationPhoto } from '@/components/photos'
-import { creditPhoto, type CreditPhoto } from '@/data/stationPhotos'
+import { creditPhoto, slugStation, type CreditPhoto } from '@/data/stationPhotos'
+import type { PhotoOverride } from '@/data/photoOverrides'
+import { photoOverrideManques, photoOverrideValide } from '@/data/photoOverrides'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 
@@ -34,10 +36,35 @@ interface Ligne {
 }
 
 export function StationPhotos(): JSX.Element {
-  const { domains } = useApp()
+  const { domains, state, patch } = useApp()
   const { t } = useI18n()
   const [q, setQ] = useState('')
   const [filtre, setFiltre] = useState<Filtre>('toutes')
+  /** Station dont le formulaire de correction est ouvert, par slug. */
+  const [edite, setEdite] = useState<string | null>(null)
+  const [brouillon, setBrouillon] = useState<PhotoOverride>({})
+
+  const ouvrir = (nom: string): void => {
+    const cle = slugStation(nom)
+    setEdite(cle)
+    setBrouillon(state.photoOverrides[cle] ?? {})
+  }
+
+  const enregistrer = (nom: string): void => {
+    const cle = slugStation(nom)
+    const aujourdhui = new Date().toISOString().slice(0, 10)
+    patch({
+      photoOverrides: { ...state.photoOverrides, [cle]: { ...brouillon, saisieLe: aujourdhui } }
+    })
+    setEdite(null)
+  }
+
+  const effacer = (nom: string): void => {
+    const next = { ...state.photoOverrides }
+    delete next[slugStation(nom)]
+    patch({ photoOverrides: next })
+    setEdite(null)
+  }
 
   const lignes = useMemo<Ligne[]>(
     () =>
@@ -159,6 +186,153 @@ export function StationPhotos(): JSX.Element {
                 ) : (
                   <span className="crn-legende stphotos__sans">{t('photos_no_credit')}</span>
                 )}
+
+                {/* Le référentiel photo est généré et choisit ses images par
+                    position : l'écran savait montrer l'erreur, il ne savait pas
+                    la corriger. Ces trois gestes — remplacer, re-créditer,
+                    rejeter — sont tout ce qu'il manquait. */}
+                {(() => {
+                  const cle = slugStation(l.nom)
+                  const ov = state.photoOverrides[cle]
+                  const enEdition = edite === cle
+                  const manques = enEdition ? photoOverrideManques(brouillon) : []
+                  const prete = enEdition && photoOverrideValide(brouillon)
+                  return (
+                    <>
+                      {ov && !enEdition && (
+                        <span
+                          className="crn-legende"
+                          style={{ color: ov.rejetee ? 'var(--warn)' : 'var(--ok)' }}
+                        >
+                          {t(ov.rejetee ? 'photo_state_rejected' : 'photo_state_override')}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="linkbtn linkbtn--sm"
+                        style={{ justifySelf: 'start' }}
+                        onClick={() => (enEdition ? setEdite(null) : ouvrir(l.nom))}
+                      >
+                        {t('photo_fix_open')}
+                      </button>
+
+                      {enEdition && (
+                        <div className="inset" style={{ padding: 12, display: 'grid', gap: 8, marginTop: 6 }}>
+                          <p className="u-muted" style={{ margin: 0, fontSize: 11.5 }}>
+                            {t('photo_fix_help')}
+                          </p>
+
+                          <label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 12 }}>
+                            <input
+                              type="checkbox"
+                              checked={brouillon.rejetee ?? false}
+                              onChange={(e) =>
+                                setBrouillon((b) => ({ ...b, rejetee: e.target.checked || undefined }))
+                              }
+                            />
+                            {t('photo_reject_label')}
+                          </label>
+
+                          {brouillon.rejetee ? (
+                            <p className="u-muted" style={{ margin: 0, fontSize: 11.5 }}>
+                              {t('photo_reject_note')}
+                            </p>
+                          ) : (
+                            <>
+                              <label style={{ display: 'grid', gap: 3, fontSize: 11.5 }}>
+                                {t('photo_url_label')}
+                                <input
+                                  type="url"
+                                  className="field field--panel"
+                                  style={{ padding: '5px 7px', fontSize: 12 }}
+                                  placeholder={t('photo_url_placeholder')}
+                                  value={brouillon.url ?? ''}
+                                  onChange={(e) => setBrouillon((b) => ({ ...b, url: e.target.value }))}
+                                />
+                              </label>
+                              <label style={{ display: 'grid', gap: 3, fontSize: 11.5 }}>
+                                {t('photo_caption_label')}
+                                <input
+                                  type="text"
+                                  className="field field--panel"
+                                  style={{ padding: '5px 7px', fontSize: 12 }}
+                                  placeholder={t('photo_caption_placeholder')}
+                                  value={brouillon.legende ?? ''}
+                                  onChange={(e) => setBrouillon((b) => ({ ...b, legende: e.target.value }))}
+                                />
+                              </label>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                <label style={{ display: 'grid', gap: 3, fontSize: 11.5, flex: '1 1 120px' }}>
+                                  {t('photo_author_label')}
+                                  <input
+                                    type="text"
+                                    className="field field--panel"
+                                    style={{ padding: '5px 7px', fontSize: 12, minWidth: 0 }}
+                                    value={brouillon.auteur ?? ''}
+                                    onChange={(e) => setBrouillon((b) => ({ ...b, auteur: e.target.value }))}
+                                  />
+                                </label>
+                                <label style={{ display: 'grid', gap: 3, fontSize: 11.5, flex: '1 1 120px' }}>
+                                  {t('photo_licence_label')}
+                                  <input
+                                    type="text"
+                                    className="field field--panel"
+                                    style={{ padding: '5px 7px', fontSize: 12, minWidth: 0 }}
+                                    placeholder={t('photo_licence_placeholder')}
+                                    value={brouillon.licence ?? ''}
+                                    onChange={(e) => setBrouillon((b) => ({ ...b, licence: e.target.value }))}
+                                  />
+                                </label>
+                              </div>
+                              <label style={{ display: 'grid', gap: 3, fontSize: 11.5 }}>
+                                {t('photo_page_label')}
+                                <input
+                                  type="url"
+                                  className="field field--panel"
+                                  style={{ padding: '5px 7px', fontSize: 12 }}
+                                  value={brouillon.page ?? ''}
+                                  onChange={(e) => setBrouillon((b) => ({ ...b, page: e.target.value }))}
+                                />
+                              </label>
+                            </>
+                          )}
+
+                          <p
+                            className="crn-legende"
+                            style={{ margin: 0, color: prete ? 'var(--ok)' : 'var(--warn)' }}
+                          >
+                            {prete
+                              ? t('photo_will_save')
+                              : t('photo_needs').replace('{l}', manques.join(', '))}
+                          </p>
+
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              className="btn btn--small btn--primary"
+                              disabled={!prete}
+                              onClick={() => enregistrer(l.nom)}
+                            >
+                              {t('photo_save')}
+                            </button>
+                            <button type="button" className="btn btn--small" onClick={() => setEdite(null)}>
+                              {t('cancel')}
+                            </button>
+                            {ov && (
+                              <button
+                                type="button"
+                                className="linkbtn linkbtn--sm"
+                                onClick={() => effacer(l.nom)}
+                              >
+                                {t('photo_clear')}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
             </li>
           ))}

@@ -27,6 +27,8 @@ export const IPC = {
   pasteToken: 'paste:token',
   /** Bulletin d'avalanche Météo-France (API DPBRA). */
   braFetch: 'bra:fetch',
+  routeCost: 'route:cost',
+  reportPdf: 'report:pdf',
   /** Scraping Airbnb via Puppeteer (navigateur invisible). */
   airbnbScrape: 'airbnb:scrape',
   /** Notes et votes de la sélection, rangés en base par le processus principal. */
@@ -209,6 +211,91 @@ export interface BraBulletin {
   issuedAt: string | null
   /** Message de la source : fin de saison, erreur, ou résumé. */
   message: string | null
+  error: string | null
+}
+
+/**
+ * Coût de route relevé sur ViaMichelin, pour un trajet aller.
+ *
+ * ## Ce que c'est, et ce que ce n'est pas
+ *
+ * L'application chiffrait la route avec deux constantes — 0,115 €/km de
+ * carburant, 0,058 €/km de péages — appliquées à une distance elle-même
+ * estimée. Deux forfaits multipliés par une estimation, présentés comme un
+ * poste de budget. ViaMichelin publie, lui, un coût de péage réel section par
+ * section et une consommation par véhicule.
+ *
+ * ViaMichelin **n'a pas d'API publique** : ces montants ne sont accessibles que
+ * par sa page web. Ce relevé lit donc une page de résultat, comme le fait déjà
+ * l'import d'annonce par URL. Le choix a été posé à l'utilisateur avec ses deux
+ * inconvénients — il cesse de fonctionner au premier changement de leur HTML,
+ * et il sort du cadre que le projet s'était fixé sur les sites tiers — et
+ * retenu par lui le 2026-08-29.
+ *
+ * Conséquence à tenir : un relevé en échec ne produit **jamais** de repli
+ * chiffré. `ok: false` et un motif ; le formulaire de saisie reste la voie
+ * normale, et les constantes restent l'estimation annoncée comme telle.
+ */
+export interface RouteCostQuery {
+  fromLat: number
+  fromLon: number
+  toLat: number
+  toLon: number
+  /** Prix du litre saisi par l'utilisateur, pour que le relevé s'y aligne. */
+  fuelPricePerL?: number
+  /** Éviter les péages : change l'itinéraire relevé, pas seulement son coût. */
+  avoidTolls?: boolean
+}
+
+export interface RouteCostResult {
+  ok: true
+  /** Péages de l'aller, en euros. `null` si la page ne les publie pas. */
+  tolls: number | null
+  /** Carburant de l'aller, en euros. `null` si la page ne le publie pas. */
+  fuel: number | null
+  /** Distance de l'itinéraire relevé, en kilomètres. */
+  distanceKm: number | null
+  /** Durée de l'itinéraire relevé, en minutes. */
+  durationMin: number | null
+  /** Horodatage du relevé, pour que l'écran puisse le dater. */
+  at: number
+  /** URL de la page relevée, à ouvrir pour vérifier. */
+  url: string
+}
+
+export interface RouteCostError {
+  ok: false
+  /** Motif lisible. Jamais de montant de repli : voir l'en-tête. */
+  error: string
+  url: string
+}
+
+export type RouteCostOutcome = RouteCostResult | RouteCostError
+
+/**
+ * Export PDF du récapitulatif de séjour.
+ *
+ * Le renderer bascule dans sa vue d'impression, appelle ce canal, et le
+ * processus principal transforme la page en PDF avec `webContents.printToPDF` —
+ * l'imprimante de Chromium, déjà embarquée. Aucune bibliothèque ajoutée, donc
+ * aucun poids de paquet supplémentaire, et la mise en page est exactement celle
+ * que la feuille de style d'impression décrit.
+ *
+ * Le chemin de sortie est choisi par l'utilisateur dans une boîte de dialogue
+ * système : l'application n'écrit jamais un fichier là où personne ne l'a
+ * demandé.
+ */
+export interface ReportPdfParams {
+  /** Nom de fichier proposé, sans extension. */
+  suggestedName: string
+}
+
+export interface ReportPdfResult {
+  ok: boolean
+  /** Chemin écrit, `null` si l'utilisateur a annulé ou si l'écriture a échoué. */
+  path: string | null
+  /** `true` quand l'utilisateur a fermé la boîte de dialogue. */
+  cancelled: boolean
   error: string | null
 }
 

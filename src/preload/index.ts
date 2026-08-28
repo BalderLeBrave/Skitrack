@@ -7,6 +7,10 @@ import {
   type SelectionSnapshot,
   type AppInfo,
   type BraBulletin,
+  type ReportPdfParams,
+  type ReportPdfResult,
+  type RouteCostOutcome,
+  type RouteCostQuery,
   type ListingExtract,
   type OsmLodgingQuery,
   type OsmLodgingResult,
@@ -104,6 +108,14 @@ const api = {
   /** Bulletin d'avalanche d'un massif Météo-France. La clé d'API reste côté main. */
   bra: (massifCode: number, force?: boolean): Promise<BraBulletin> =>
     ipcRenderer.invoke(IPC.braFetch, massifCode, force),
+
+  /** Coût de route relevé sur ViaMichelin. Un échec ne rend aucun chiffre. */
+  routeCost: (query: RouteCostQuery): Promise<RouteCostOutcome> =>
+    ipcRenderer.invoke(IPC.routeCost, query),
+
+  /** Récapitulatif de séjour en PDF, écrit là où l'utilisateur le demande. */
+  reportPdf: (params: ReportPdfParams): Promise<ReportPdfResult> =>
+    ipcRenderer.invoke(IPC.reportPdf, params),
   /** Relevé Airbnb poussé directement par le marque-page. */
   onAirbnbPaste: (cb: (payload: string) => void): (() => void) => {
     const handler = (_e: unknown, payload: string): void => cb(payload)

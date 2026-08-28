@@ -1,14 +1,19 @@
 import { join } from 'node:path'
-import { BrowserWindow, app, clipboard, ipcMain, shell } from 'electron'
+import { writeFile } from 'node:fs/promises'
+import { BrowserWindow, app, clipboard, dialog, ipcMain, shell } from 'electron'
 import {
   IPC,
   type AirbnbScrapeOutcome,
   type AirbnbScrapeParams,
   type AppInfo,
+  type ReportPdfParams,
+  type ReportPdfResult,
+  type RouteCostQuery,
   type SecretKey,
   type SelectionMutation
 } from '@shared/ipc-contract'
 import { fetchBra } from './bra'
+import { fetchRouteCost } from './routeCost'
 import { fetchListing } from './listing'
 import { disposeProviders, providersHealth, providersMetrics, providersMetricsReset, searchProviders } from './providersBridge'
 import { applySelection, disposeSelection, loadSelection } from './selectionStore'
@@ -199,6 +204,43 @@ function registerIpc(): void {
   // Le bulletin d'avalanche est lu ici : la clé Météo-France reste dans le
   // processus main, le renderer ne reçoit que le niveau publié.
   ipcMain.handle(IPC.braFetch, (_e, massifCode: number, force?: boolean) => fetchBra(massifCode, force))
+
+  // Relevé ViaMichelin : une page, à la demande, jamais en fond. Un échec ne
+  // rend aucun chiffre — voir l'en-tête de `routeCost.ts`.
+  ipcMain.handle(IPC.routeCost, (_e, query: RouteCostQuery) => fetchRouteCost(query))
+
+  /**
+   * Récapitulatif de séjour en PDF.
+   *
+   * `printToPDF` rend la page telle que la feuille d'impression la décrit —
+   * c'est la même mécanique que « Enregistrer au format PDF » du navigateur,
+   * sans la boîte de dialogue d'impression. Le renderer s'est mis en vue
+   * d'impression avant d'appeler, et la remet comme elle était après.
+   */
+  ipcMain.handle(IPC.reportPdf, async (e, params: ReportPdfParams): Promise<ReportPdfResult> => {
+    const wc = e.sender
+    try {
+      const { canceled, filePath } = await dialog.showSaveDialog({
+        defaultPath: `${params.suggestedName}.pdf`,
+        filters: [{ name: 'PDF', extensions: ['pdf'] }]
+      })
+      if (canceled || !filePath) return { ok: false, path: null, cancelled: true, error: null }
+      const data = await wc.printToPDF({
+        printBackground: true,
+        pageSize: 'A4',
+        margins: { top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 }
+      })
+      await writeFile(filePath, data)
+      return { ok: true, path: filePath, cancelled: false, error: null }
+    } catch (err) {
+      return {
+        ok: false,
+        path: null,
+        cancelled: false,
+        error: err instanceof Error ? err.message : String(err)
+      }
+    }
+  })
 
   ipcMain.handle(IPC.openExternal, (_e, url: string) => {
     if (!/^https?:\/\//.test(url)) throw new Error('Seuls http(s) sont autorisés')

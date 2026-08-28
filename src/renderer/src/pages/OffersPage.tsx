@@ -77,7 +77,7 @@ export function OffersPage(): JSX.Element {
     const weather = weatherOf(o.d.id)
     const snow = snowDepths(weather)
     const risk = avalancheIndex(weather)
-    const fresh = freshnessOf(o.l, lang)
+    const fresh = freshnessOf(o.l, lang, state.lastScan)
     const travel = derived.worstTravel(o.d)
     return (
       <button
@@ -233,11 +233,18 @@ export function OffersPage(): JSX.Element {
           </div>
         )}
 
+        {/* Deux écrans vides, deux causes. Sans aucune annonce en mémoire, ce
+            n'est pas le budget qui vide la liste — c'est qu'il n'y a rien à
+            comparer, et renvoyer vers les filtres ferait perdre du temps. */}
         {derived.bestOffers.length === 0 && (
           <div className="panel panel--empty">
-            <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Aucun domaine dans ce budget</p>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
+              {state.imported.length === 0 ? t('empty_no_lodgings') : t('empty_no_lodgings_here')}
+            </p>
             <p className="u-muted" style={{ margin: 0, fontSize: 14, maxWidth: '46ch' }}>
-              {t('offers_empty_hint')}
+              {state.imported.length === 0
+                ? t('empty_no_lodgings_hint')
+                : t('empty_no_lodgings_here_hint')}
             </p>
           </div>
         )}

@@ -841,8 +841,13 @@ export function LodgingsPage(): JSX.Element {
                 logements au-dessus de six vignettes, et plus aucun bandeau
                 n'expliquait l'écart depuis le retrait de « hors du cadrage ». */}
             <h2 className="results__count">{visibleLodgings.length} logement(s)</h2>
+            {/* « offres de moins d'une heure » s'affichait toujours, sans
+                jamais consulter la moindre date de relevé. La fraîcheur se lit
+                sur la pastille de chaque vignette, qui la connaît vraiment. */}
             <span className="u-muted" style={{ fontSize: 12 }}>
-              prix tout compris, {derived.nights} nuit(s), {state.travelers} personnes · offres de moins d’une heure
+              {t('lodg_count_note')
+                .replace('{n}', String(derived.nights))
+                .replace('{p}', String(state.travelers))}
             </span>
             {/* Compteur des écartés : il ne se contente pas d'annoncer un
                 nombre, il mène à la section qui le justifie. Sans ce saut,

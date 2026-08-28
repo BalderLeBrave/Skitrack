@@ -17,11 +17,11 @@
 import { createContext, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
-import { belongsToDomain, lodgingsFor, mergeDupes as mergeDupesList } from '@/data/lodgings'
+import { belongsToDomain, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import type { AvailabilityVerdict } from '@/data/lodgingAvailability'
 import { availabilityOf, isBookable } from '@/data/lodgingAvailability'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
-import { hasConfirmedPrice, matchesLodgingFilters } from '@/data/lodgingFilter'
+import { fitsParty, hasConfirmedPrice, matchesLodgingFilters } from '@/data/lodgingFilter'
 import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
 import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
@@ -33,6 +33,8 @@ import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
 import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
 import { activeOrigins, adultsCount, esfRate, kidsCount, lessonIndex, sejourCost, splitRows, tripCost } from '@/domain/costs'
 import { dur as durFmt, nightsBetween, slug } from '@/domain/format'
+import type { ForfaitPourDuree } from '@/domain/forfait'
+import { forfaitPourDuree, joursDeSki } from '@/domain/forfait'
 import type { Origin, Travel } from '@/domain/travel'
 import { originsOf, travelOf, worstDistance, worstTravel } from '@/domain/travel'
 import type { Score } from '@/domain/scoring'
@@ -50,6 +52,16 @@ export interface ComboCell {
   week: Week
   total: number
   lodging: number
+  /**
+   * Le montant du logement est-il **projeté** sur une autre semaine ?
+   *
+   * `false` uniquement pour la semaine du séjour en cours : c'est la seule
+   * pour laquelle le prix a été relevé. Les autres cellules reprojettent ce
+   * prix par l'écart de saisonnalité national — un ordre de grandeur, pas un
+   * tarif. La grille n'a d'intérêt que si elle montre les douze semaines, mais
+   * onze d'entre elles sont des estimations et l'écran doit le dire.
+   */
+  projected: boolean
 }
 
 export interface ComboRow {
@@ -111,6 +123,14 @@ export interface Derived {
   adults: number
   kids: number
   forfaitOf: (d: Domain) => ResolvedForfait
+  /**
+   * Tarif du forfait pour la durée du séjour en cours, avec son origine.
+   *
+   * `null` quand rien n'est connu. Les écrans qui affichent un montant de
+   * forfait lisent celui-ci, pas `forfaitOf(d).j6` : la grille brute ne connaît
+   * que 1 et 6 jours et ne dit rien des dates saisies.
+   */
+  passOf: (d: Domain) => ForfaitPourDuree | null
   travelOf: (d: Domain, o: Origin) => Travel
   worstTravel: (d: Domain) => number | null
   worstDistance: (d: Domain) => number | null
@@ -122,7 +142,7 @@ export interface Derived {
   filtered: Domain[]
   /** Domaines écartés par le seul cadrage de la carte. */
   domOutOfView: number
-  lodgingsFor: (d: Domain, pers?: number, nights?: number) => Lodging[]
+  lodgingsFor: (d: Domain, pers?: number) => Lodging[]
   sejourInputs: (d: Domain) => SejourInputs
   sejourCost: (lodging: Pick<Lodging, 'total'>, d: Domain) => SejourCost
   esfOf: (d: Domain) => ReturnType<typeof esfRate>
@@ -372,13 +392,24 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       if (pinned) filtered = [pinned, ...filtered.filter((d) => d.id !== state.pinnedId)]
     }
 
+    /** Jours de forfait du séjour en cours. Sept nuits font six jours. */
+    const skiDays = joursDeSki(nights)
+    const passCache = new Map<number, ForfaitPourDuree | null>()
+    const passOf = (d: Domain): ForfaitPourDuree | null => {
+      if (passCache.has(d.id)) return passCache.get(d.id) ?? null
+      const resolved = forfaitOf(d)
+      const value = forfaitPourDuree(resolved, resolved.estimated, state.forfaitsSaisis[d.id], skiDays)
+      passCache.set(d.id, value)
+      return value
+    }
+
     const esfOf = (d: Domain): ReturnType<typeof esfRate> => esfRate(d.id, forfaitOf(d), state.esfRates)
     const lessonIndexOf = (d: Domain): number => lessonIndex(forfaitOf(d))
 
     const tripOf = (d: Domain): TripCost => {
       const hit = tripCache.get(d.id)
       if (hit) return hit
-      const value = tripCost(d, hh, state.routes, state.avoidTolls)
+      const value = tripCost(d, hh, state.routes, state.avoidTolls, state.routeBudget)
       tripCache.set(d.id, value)
       return value
     }
@@ -387,14 +418,63 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       people: state.people,
       forfait: forfaitOf(d),
       trip: tripOf(d),
+      pass: passOf(d),
       optRental: state.optRental,
       optLessons: state.optLessons,
       esf: esfOf(d),
       lessonIdx: lessonIndexOf(d)
     })
 
-    const lodgings = (d: Domain, pers = state.travelers, n = nights): Lodging[] =>
-      lodgingsFor(d, pers, n, weekFactor, score(d).total / 100)
+    /** Les dates du séjour en cours, seule période pour laquelle un prix relevé
+     *  vaut quelque chose. */
+    const stay = { checkIn: state.arrDate, checkOut: state.depDate }
+
+    /**
+     * Offres réelles d'un domaine, pour les écrans transversaux.
+     *
+     * Même matière que l'écran Logements — `state.imported`, c'est-à-dire ce
+     * que les relevés ont rapporté et ce que l'utilisateur a saisi — et plus un
+     * catalogue de biens types réindexé sur le score de pertinence. Offres,
+     * Combinaisons et Décision affichaient jusqu'ici des montants calculés par
+     * formule, présentés exactement comme des prix relevés.
+     *
+     * Mêmes règles que l'écran Logements, et pour la même raison. Le logement
+     * appartient au domaine, il porte un prix, ce prix a été **vérifié pour les
+     * dates du séjour en cours** (`hasConfirmedPrice`), l'annonce figurait au
+     * dernier relevé à ces dates (`isBookable`), et elle accueille le groupe.
+     *
+     * Les deux règles de date ne sont pas du zèle : un prix relevé pour une
+     * autre semaine n'est pas le prix de ce séjour, et ces écrans-ci classent
+     * les stations **par leur coût**. Une annonce tarifée en mars remonterait
+     * en tête d'un comparatif de février et déciderait du classement. L'écran
+     * Logements écarte déjà ces annonces ; les trois écrans qui additionnent
+     * par-dessus ne pouvaient pas être plus laxistes qu'eux.
+     *
+     * Un montant nul est une carte-redirection ou une annonce vue sans tarif :
+     * l'écran Logements sait l'afficher comme telle, un comparateur de coûts la
+     * classerait première.
+     *
+     * `fitsParty` remplace l'ancien `l.ch >= state.rooms` : les centrales
+     * françaises comptent en pièces et laissent `ch` à zéro, si bien que le
+     * critère d'origine écartait la totalité de leurs annonces dès qu'une
+     * chambre était demandée. La règle est celle de `data/lodgingFilter.ts`,
+     * couverte par `npm run lodgfilter:test`.
+     *
+     * Les deux tests coûteux — disponibilité et prix daté — sont passés **une
+     * fois** sur toute la mémoire (`priced`), pas une fois par domaine :
+     * l'écran Offres compare soixante domaines et l'ancien catalogue n'avait
+     * que trente-quatre lignes à parcourir, là où un relevé de l'Alpe d'Huez en
+     * rapporte neuf cents. Soixante × deux passes sur neuf cents annonces à
+     * chaque mouvement de curseur de filtre, c'est l'utilisateur qui les paie.
+     */
+    const priced = state.imported.filter(
+      (l) => l.total > 0 && isBookable(l, stay) && hasConfirmedPrice(l, stay)
+    )
+
+    const lodgings = (d: Domain, pers = state.travelers): Lodging[] => {
+      const party = { travelers: pers, rooms: state.rooms }
+      return priced.filter((l) => belongsToDomain(l, d) && fitsParty(l, party))
+    }
 
     const cost = (lodging: Pick<Lodging, 'total'>, d: Domain): SejourCost => sejourCost(lodging, sejourInputs(d))
 
@@ -405,7 +485,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     // --- Meilleure offre par domaine ------------------------------------
     const bestOffers: BestOffer[] = []
     for (const d of compared) {
-      const list = lodgings(d).filter((l) => l.ch >= state.rooms)
+      const list = lodgings(d)
       if (list.length === 0) continue
       const scored = list.map((l) => ({ l, c: cost(l, d) })).sort((a, b) => a.c.total - b.c.total)
       const best = scored[0]
@@ -422,16 +502,21 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     // --- Grille semaine × domaine ---------------------------------------
     const comboRows: ComboRow[] = []
     for (const d of compared) {
-      const list = lodgings(d).filter((l) => l.ch >= state.rooms)
+      const list = lodgings(d)
       if (list.length === 0) continue
       const best = list.map((l) => ({ l, c: cost(l, d) })).sort((a, b) => a.c.total - b.c.total)[0]
       const cur = weekFactorFor(d, week)
       const cells = WEEKS.map((w) => {
         // On reprojette le prix du logement de la semaine courante vers la
         // semaine visée ; forfaits et route ne bougent pas d'une semaine à
-        // l'autre.
-        const lodging = Math.round((best.c.lodging * (1 + weekFactorFor(d, w))) / (1 + cur))
-        return { week: w, total: best.c.total - best.c.lodging + lodging, lodging }
+        // l'autre. La cellule de la semaine en cours est la seule à porter le
+        // prix tel qu'il a été relevé, et elle est la seule à ne pas être
+        // marquée : `projected` suit le montant jusqu'à l'écran.
+        const projected = w.arr !== week?.arr
+        const lodging = projected
+          ? Math.round((best.c.lodging * (1 + weekFactorFor(d, w))) / (1 + cur))
+          : best.c.lodging
+        return { week: w, total: best.c.total - best.c.lodging + lodging, lodging, projected }
       })
       comboRows.push({ d, best, cells, min: Math.min(...cells.map((c) => c.total)) })
     }
@@ -450,19 +535,34 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       const w = WEEKS.find((x) => x.arr === state.decision?.week)
       if (d && w) {
         const decNights = Math.max(1, Math.round((new Date(w.dep).getTime() - new Date(w.arr).getTime()) / 86400000))
-        const list = lodgings(d, state.travelers, decNights).filter((l) => l.ch >= state.rooms)
-        const lg = list.find((l) => l.id === state.decision?.lodgingId) ?? [...list].sort((a, b) => a.total - b.total)[0]
+        /*
+         * Le logement retenu se retrouve **par son identifiant**, dans toute la
+         * mémoire, avant de retomber sur la liste filtrée par dates.
+         *
+         * Sans cela, retenir une combinaison sur une autre semaine que celle du
+         * séjour en cours menait à un écran vide : « Retenir » repositionne
+         * `arrDate`/`depDate` sur la semaine choisie, ce qui périme d'un coup
+         * tous les prix relevés — ils portent les dates de leur relevé — donc
+         * `lodgings()` rendait une liste vide et `decisionCtx` tombait à `null`.
+         * Onze des douze colonnes de la grille étaient des culs-de-sac.
+         *
+         * Le prix affiché reste celui du relevé, à ses propres dates, et l'écran
+         * le dit (`decision_price_other_dates`). C'est le seul comportement
+         * honnête : seule la centrale connaît son tarif pour d'autres dates.
+         */
+        const list = lodgings(d, state.travelers)
+        const retenu =
+          state.decision?.lodgingId != null
+            ? state.imported.find((l) => l.id === state.decision?.lodgingId)
+            : undefined
+        const lg = retenu ?? list.find((l) => l.id === state.decision?.lodgingId) ?? [...list].sort((a, b) => a.total - b.total)[0]
         if (lg) {
-          const cur = weekFactorFor(d, week)
-          const lodging = Math.round((lg.total * (1 + weekFactorFor(d, w))) / (1 + cur))
-          const base = cost(lg, d)
-          decisionCtx = {
-            d,
-            w,
-            lg,
-            nights: decNights,
-            cost: { ...base, lodging, total: base.total - base.lodging + lodging }
-          }
+          // Le prix retenu est celui du relevé, sans reprojection. La décision
+          // porte sur un logement précis à des dates précises : lui appliquer
+          // l'écart de saisonnalité produisait un montant que personne n'avait
+          // jamais vu chez la centrale, et c'est le montant que l'écran
+          // Décision présente comme le budget du séjour.
+          decisionCtx = { d, w, lg, nights: decNights, cost: cost(lg, d) }
         }
       }
     }
@@ -474,7 +574,8 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
           sejourInputs(decisionCtx.d),
           origins,
           state.routes,
-          state.avoidTolls
+          state.avoidTolls,
+          state.routeBudget
         )
       : null
 
@@ -486,9 +587,10 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
 
     // Seuls les logements RÉELS importés par l'utilisateur sont affichés, et
     // uniquement ceux rattachés au domaine consulté (`importDomainId`). Le
-    // catalogue de démonstration (`lodgingsFor`) n'est plus mélangé au réel : il
-    // ne servait qu'à illustrer la mise en page et prêtait à confusion en se
-    // faisant passer pour de vraies offres.
+    // catalogue de démonstration a été supprimé : il ne servait qu'à illustrer
+    // la mise en page, il avait déjà quitté cet écran-ci, et il alimentait
+    // encore Offres, Combinaisons et Décision en se faisant passer pour de
+    // vraies offres.
     // Même raison côté annonces : `importDomainId` porte l'identifiant de
     // l'entrée sous laquelle l'import a eu lieu, qui peut être une entrée
     // absorbée depuis.
@@ -499,7 +601,6 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       : []
     const lodgAll = mergeDupesList(lodgRaw, state.mergeDupes)
     const dupMerged = lodgRaw.length - lodgAll.length
-    const stay = { checkIn: state.arrDate, checkOut: state.depDate }
 
     /**
      * Annonces dont la disponibilité n'est pas confirmée pour ce séjour.
@@ -612,6 +713,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       sejourCost: cost,
       esfOf,
       lessonIndexOf,
+      passOf,
       bestOffers,
       comboGrid,
       decisionCtx,

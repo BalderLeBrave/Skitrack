@@ -547,37 +547,61 @@ export function LodgingsPage(): JSX.Element {
 
   return (
     <div className="lodgings">
-      {/* Barre de contexte : d'où l'on vient, ce qu'on regarde, pour quel
-          séjour, et ce que ça coûte. Le montant est à droite parce que c'est
-          la seule valeur de la ligne qui change quand on retient un logement. */}
-      <div className="lodgings__bar">
-        <button type="button" className="linkbtn" onClick={() => patch({ tab: 'recherche' })}>
-          {t('lodg_back_to_domains')}
-        </button>
-        <span className="lodgings__bar-sep" aria-hidden>
-          ·
-        </span>
-        <h2 className="lodgings__bar-title">{t('nav_lodgings')}</h2>
-        <span className="lodgings__bar-sep" aria-hidden>
-          ·
-        </span>
-        <span className="lodgings__bar-domain">{d.name}</span>
-        {d.pass && <span className="tag">{d.pass}</span>}
-        {d.glacier && <span className="tag tag--link">{t('glacier')}</span>}
-        <span className="u-muted" style={{ fontSize: 12 }}>
-          <span className="u-num crn-releve">
-            {fmt(d.min)} – {fmt(d.max)} m
-          </span>
-          {d.curated ? ` · ${t('lodg_altitudes_measured')}` : ''}
-        </span>
-        <span className="u-spacer" />
-        <span className="u-muted" style={{ fontSize: 12 }}>
-          {fmtDay(state.arrDate)} → {fmtDay(state.depDate)} ·{' '}
-          {t('lodg_travelers_count').replace('{n}', String(state.travelers))} ·{' '}
-          {state.rooms === 0
-            ? t('lodg_rooms_any')
-            : t('lodg_rooms_min').replace('{n}', String(state.rooms))}
-        </span>
+      {/* En-tête de contexte : d'où l'on vient, dans *quelle* station on
+          cherche, pour quelles dates et quel groupe, et ce que ça coûte.
+          L'ancienne barre alignait ces sept faits sur une seule ligne grise, où
+          le nom de la station ne se distinguait pas des mentions d'altitude.
+          Deux niveaux désormais : le titre de la station, puis les critères du
+          séjour en jetons. Le montant reste à droite, seule valeur qui change
+          quand on retient un logement. */}
+      <header className="lodgctx" data-testid="lodgings-context-header">
+        <div className="lodgctx__left">
+          <button
+            type="button"
+            className="lodgctx__back"
+            data-testid="lodgings-back-to-domains"
+            onClick={() => patch({ tab: 'recherche' })}
+          >
+            {t('lodg_back_to_domains')}
+          </button>
+          <div className="lodgctx__title">
+            <span className="lodgctx__eyebrow">{t('lodg_ctx_eyebrow')}</span>
+            <h1 className="lodgctx__station" data-testid="lodgings-station-name">
+              {d.name}
+            </h1>
+            {d.pass && <span className="tag">{d.pass}</span>}
+            {d.glacier && <span className="tag tag--link">{t('glacier')}</span>}
+          </div>
+          <div className="lodgctx__chips" data-testid="lodgings-context-chips">
+            <span className="lodgctx__chip">
+              <span className="lodgctx__chip-k">{t('lodg_ctx_dates')}</span>
+              <span className="lodgctx__chip-v u-num">
+                {fmtDay(state.arrDate)} → {fmtDay(state.depDate)}
+              </span>
+              <span className="lodgctx__chip-n">
+                {t('dp_nights').replace('{n}', String(derived.nights))}
+              </span>
+            </span>
+            <span className="lodgctx__chip">
+              <span className="lodgctx__chip-k">{t('lodg_ctx_group')}</span>
+              <span className="lodgctx__chip-v">
+                {t('lodg_travelers_count').replace('{n}', String(state.travelers))}
+              </span>
+              <span className="lodgctx__chip-n">
+                {state.rooms === 0
+                  ? t('lodg_rooms_any')
+                  : t('lodg_rooms_min').replace('{n}', String(state.rooms))}
+              </span>
+            </span>
+            <span className="lodgctx__chip">
+              <span className="lodgctx__chip-k">{t('altitude_span')}</span>
+              <span className="lodgctx__chip-v u-num crn-releve">
+                {fmt(d.min)} – {fmt(d.max)} m
+              </span>
+              {d.curated && <span className="lodgctx__chip-n">{t('lodg_altitudes_measured')}</span>}
+            </span>
+          </div>
+        </div>
         {stayCost != null && (
           <span className="lodgcost" title={costOnCheapest ? t('lodg_stay_cost_cheapest') : undefined}>
             <span className="lodgcost__label">{t('lodg_stay_cost')}</span>
@@ -589,7 +613,7 @@ export function LodgingsPage(): JSX.Element {
             </span>
           </span>
         )}
-      </div>
+      </header>
 
       {/* Les filtres ne sont plus une colonne : ils s'ouvrent en survol au-dessus
           de la mosaïque, comme sur l'écran Recherche. Même bascule

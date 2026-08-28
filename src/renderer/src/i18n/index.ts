@@ -984,6 +984,11 @@ const CATALOG = {
   lodg_src_no_result: ['{s} : pas de résultat', '{s}: no result'],
   lodg_altitudes_measured: ['altitudes mesurées', 'measured altitudes'],
   lodg_back_to_domains: ['← Retour aux domaines', '← Back to resorts'],
+  /** En-tête de contexte de l'écran Logements : la station cherchée, puis les
+   *  critères du séjour en jetons. */
+  lodg_ctx_eyebrow: ['Logements à', 'Stays in'],
+  lodg_ctx_dates: ['Séjour', 'Stay'],
+  lodg_ctx_group: ['Groupe', 'Group'],
   lodg_stay_cost: ['Coût du séjour', 'Stay cost'],
   /** Ce que couvre le montant de la barre de contexte : rien de plus. */
   /** Postes couverts par le total de la barre de contexte. `sejourCost.total`

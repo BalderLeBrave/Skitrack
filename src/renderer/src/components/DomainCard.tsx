@@ -16,6 +16,21 @@ interface Props {
   scaleMax: number
 }
 
+/** Marque-page de « Retenir ». Inline : seule cette carte l'emploie. */
+function BookmarkIcon({ filled }: { filled: boolean }): JSX.Element {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <path
+        d="M6.5 3.5h11a1 1 0 0 1 1 1v15.2a.8.8 0 0 1-1.24.67L12 17.2l-5.26 3.17A.8.8 0 0 1 5.5 19.7V4.5a1 1 0 0 1 1-1z"
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Element {
   const { dur, eur, fmt } = useFormat()
   const { state, patch, domains } = useApp()
@@ -258,13 +273,16 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
             </div>
           )}
           <span className="u-spacer" />
-          {/* Retenir : le seul geste qui alimente « Ma sélection ». Second
-              rôle, donc bouton secondaire — l'action primaire de cette carte
-              reste d'aller chercher les logements. */}
+          {/* Retenir : le seul geste qui alimente « Ma sélection ». Il ne
+              dispute plus l'attention à l'action primaire — plus de cadre, un
+              marque-page et un libellé atténué, qui prennent l'accent une fois
+              la station retenue. */}
           <button
             type="button"
-            className={`btn btn--small u-nowrap${inSelection ? ' btn--on' : ''}`}
+            className={`domcard__save u-nowrap${inSelection ? ' domcard__save--on' : ''}`}
             aria-pressed={inSelection}
+            data-testid={`domcard-save-${d.id}`}
+            title={inSelection ? t('sel_added_domain') : t('sel_add_domain')}
             onClick={(e) => {
               stop(e)
               patch({
@@ -274,11 +292,13 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
               })
             }}
           >
-            {inSelection ? `✓ ${t('sel_added_domain')}` : t('sel_add_domain')}
+            <BookmarkIcon filled={inSelection} />
+            {inSelection ? t('sel_added_domain') : t('sel_add_domain')}
           </button>
           <button
             type="button"
-            className="btn btn--primary btn--small u-nowrap"
+            className="btn btn--primary domcard__cta u-nowrap"
+            data-testid={`domcard-see-lodgings-${d.id}`}
             onClick={(e) => {
               stop(e)
               // Demander les logements d'un domaine, c'est demander un relevé :

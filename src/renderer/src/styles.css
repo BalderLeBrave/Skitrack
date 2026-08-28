@@ -947,6 +947,56 @@ select {
   margin-left: auto;
 }
 
+/** Cadre du parcours : les trois temps de la tâche, tenus ensemble.
+ *
+ *  À plat, « Stations », « Logements » et le segment de comparaison avaient le
+ *  même poids que « Favoris » ou « Réglages » — rien ne disait lesquels
+ *  s'enchaînent. Un fond tenu et deux chevrons suffisent à le dire, sans
+ *  ajouter de couleur. */
+.nav__journey {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 6px;
+  border-radius: var(--rayon-plein, 999px);
+  background: var(--surface);
+  border: 1px solid var(--border-soft, var(--border));
+  flex: 0 0 auto;
+}
+
+.nav__journey .tab {
+  height: 34px;
+}
+
+.nav__journey .navseg {
+  margin-left: 4px;
+  background: var(--panel);
+}
+
+.nav__journey-arrow {
+  color: var(--dim);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+/** Utilitaires : hors parcours, donc séparés par un filet. */
+.nav__utils {
+  gap: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--border-soft, var(--border));
+}
+
+@media (max-width: 1100px) {
+  .nav__utils {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .nav__journey-arrow {
+    display: none;
+  }
+}
+
 /**
  * Logo typographique — voir components/BrandLogo.tsx.
  *
@@ -1249,6 +1299,30 @@ select {
 .main {
   flex: 1;
   min-height: 0;
+}
+
+/** Passage d'un écran à l'autre : une montée courte, jouée par le remontage
+ *  (`key={screen}`). Elle donne le sens du parcours — on avance — sans faire
+ *  attendre : 220 ms, opacité et translation seules. */
+.main--enter {
+  animation: main-enter 0.22s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes main-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main--enter {
+    animation: none;
+  }
 }
 
 /* --- Neige animée ---------------------------------------------------------- */
@@ -3117,6 +3191,71 @@ select {
   color: var(--dim);
 }
 
+/** Hiérarchie du pied de carte.
+ *
+ *  Une carte de station pose deux gestes, et un seul fait avancer le parcours :
+ *  aller voir les logements. Il prend donc la pilule d'accent, pleine et
+ *  franche ; « Retenir » redevient ce qu'il est — un marque-page — sans cadre
+ *  ni fond, jusqu'à ce qu'il soit posé. */
+.domcard__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--rayon-plein, 999px);
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
+  transition: transform var(--duree-1, 0.16s) var(--standard, ease), box-shadow var(--duree-1, 0.16s)
+      var(--standard, ease), filter var(--duree-1, 0.16s) var(--standard, ease);
+}
+.domcard__cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 32%, transparent);
+}
+.domcard__cta:active {
+  transform: translateY(0);
+}
+
+.domcard__save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  padding: 8px 10px;
+  border-radius: var(--rayon-plein, 999px);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--duree-1, 0.16s) var(--standard, ease), background-color var(--duree-1, 0.16s)
+    var(--standard, ease);
+}
+.domcard__save:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+.domcard__save--on {
+  color: var(--accent);
+}
+.domcard__save:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .domcard__cta,
+  .domcard__save {
+    transition: none;
+  }
+  .domcard__cta:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+
 .scorebadge {
   display: inline-flex;
   align-items: baseline;
@@ -3353,33 +3492,110 @@ select {
   position: relative;
 }
 
-.lodgings__bar {
+/** En-tête de contexte de l'écran Logements.
+ *
+ *  L'ancienne barre posait retour, titre, station, altitude, dates et groupe
+ *  sur une même ligne de 12 px : on ne savait plus dans quelle station on
+ *  cherchait. Deux niveaux lèvent l'ambiguïté — le nom de la station en titre,
+ *  les critères du séjour en jetons dessous — et le coût garde sa droite. */
+.lodgctx {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
+  align-items: flex-start;
+  gap: 16px 24px;
+  padding: 14px clamp(16px, 3vw, 24px);
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   flex: 0 0 auto;
   flex-wrap: wrap;
 }
 
-/** Séparateur de la barre de contexte : purement typographique, donc masqué
- *  aux lecteurs d'écran par `aria-hidden` côté JSX. */
-.lodgings__bar-sep {
+.lodgctx__left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.lodgctx__back {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--duree-1, 0.16s) var(--standard, ease);
+}
+.lodgctx__back:hover {
+  color: var(--accent);
+}
+
+.lodgctx__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.lodgctx__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--dim);
 }
 
-.lodgings__bar-title {
+.lodgctx__station {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: clamp(20px, 2.4vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text);
 }
 
-.lodgings__bar-domain {
-  font-size: 16px;
+.lodgctx__chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/** Jeton de critère : clé atténuée, valeur en encre, précision en légende.
+ *  Les trois tiennent sur une ligne — c'est un rappel, pas un formulaire. */
+.lodgctx__chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--rayon-plein, 999px);
+  background: var(--surface);
+  font-size: 12px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lodgctx__chip-k {
+  color: var(--dim);
   font-weight: 600;
+}
+.lodgctx__chip-v {
+  color: var(--text);
+  font-weight: 700;
+}
+.lodgctx__chip-n {
   color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .lodgctx__chip-n {
+    display: none;
+  }
 }
 
 /** Coût du séjour, à droite de la barre.

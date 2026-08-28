@@ -14,7 +14,26 @@ export default defineConfig({
       '@shared': resolve(__dirname, 'src/shared')
     }
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      // L'aperçu de l'environnement charge la racine « / » : on la redirige
+      // vers preview.html (point d'entrée navigateur du renderer).
+      name: 'skitrack-preview-root',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url === '/' || req.url === '/index.html') req.url = '/preview.html'
+          next()
+        })
+      },
+      configurePreviewServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url === '/' || req.url === '/index.html') req.url = '/preview.html'
+          next()
+        })
+      }
+    }
+  ],
   build: {
     outDir: resolve(__dirname, 'dist-preview'),
     emptyOutDir: true,

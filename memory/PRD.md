@@ -34,6 +34,30 @@ logement dans cette station. » Choix utilisateur :
   - `components/JourneyStepper.tsx`, `styles/journey.css`, clés i18n `journey_*`,
     monté dans `App.tsx` (Shell), importé dans `main.tsx`.
 
+## Implémenté (2026-06-28)
+- **Aperçu navigateur réparé** : `frontend/package.json` lance désormais
+  `vite --config /app/vite.preview.config.ts` (mode dev, hot reload) et le config
+  ajoute un middleware qui réécrit `/` → `/preview.html` (le panneau d'aperçu
+  charge la racine, qui renvoyait 404 → page blanche).
+- **Hiérarchie des CTA cartes station** (`DomainCard.tsx`, `styles.css`) :
+  « Voir les logements » = pilule d'accent pleine (`.domcard__cta`, lift au
+  survol) ; « Retenir » = `.domcard__save` sans cadre, marque-page + libellé
+  atténué, plein et accentué quand la station est retenue.
+  `data-testid` : `domcard-see-lodgings-{id}`, `domcard-save-{id}`.
+- **En-tête de contexte Logements** (`LodgingsPage.tsx`, `.lodgctx*`) : lien de
+  retour, œillard « LOGEMENTS À » + nom de station en titre, jetons Séjour
+  (dates + nuits) / Groupe (voyageurs + chambres) / Altitude, coût du séjour à
+  droite. Clés i18n `lodg_ctx_eyebrow|dates|group`.
+  `data-testid` : `lodgings-context-header`, `lodgings-station-name`,
+  `lodgings-context-chips`, `lodgings-back-to-domains`.
+- **Barre de navigation épurée** (`App.tsx`, `.nav__journey`, `.nav__utils`) :
+  Stations › Logements › segment (Offres/Combinaisons/Décision) réunis dans un
+  cadre tenu ; Favoris/Suivi/Réglages/langue/voyageurs/thème isolés par un filet.
+- **Animations d'étapes** (`journey.css`, `styles.css`) : tracé de la coche +
+  dilatation de la pastille + anneau d'accent à la validation, remplissage
+  gauche→droite du trait de liaison, montée courte de l'écran (`.main--enter`,
+  `key={screen}`). Tout coupé sous `prefers-reduced-motion`.
+
 ## Vérifié
 - `tsc -p tsconfig.web.json` ✓ · `i18n:test` (733×2) ✓ · `i18n:scan --ci` (dette
   sous plafond) ✓ · Rendu visuel #recherche et #logements en clair et sombre ✓.
@@ -41,8 +65,10 @@ logement dans cette station. » Choix utilisateur :
   ni testing_agent (stack Electron non standard).
 
 ## Backlog / prochaines étapes
-- P1 : hiérarchiser les 2 CTA des cartes station (« Voir les logements » = action
-  primaire du parcours, « Retenir » = secondaire) et harmoniser avec le fil.
-- P1 : bandeau de contexte logement plus lisible (rappel station + dates + groupe).
-- P2 : réorganiser la barre pour regrouper visuellement le parcours vs utilitaires.
-- P2 : animation d'entrée douce du fil + coche à la validation d'une étape.
+- P1 : vignette de logement (`LodgingCard`) — même hiérarchie de CTA que les
+  cartes station (« Retenir ce logement » primaire vs actions secondaires).
+- P1 : barre de résumé collante en bas de l'écran Logements (station + total +
+  « Comparer ») pour boucler l'étape 3.
+- P2 : version étroite (<900 px) de la barre : parcours en menu déroulant.
+- P2 : carte du domaine absente en prévisualisation (MapLibre non chargé dans le
+  shim) — vérifier dans l'app Electron.

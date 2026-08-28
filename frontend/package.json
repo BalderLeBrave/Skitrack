@@ -2,6 +2,6 @@
   "name": "skitrack-preview-launcher",
   "private": true,
   "scripts": {
-    "start": "npx --prefix /app vite preview --config /app/vite.preview.config.ts"
+    "start": "npx --prefix /app vite --config /app/vite.preview.config.ts"
   }
 }

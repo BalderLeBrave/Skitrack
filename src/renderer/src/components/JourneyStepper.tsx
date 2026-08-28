@@ -16,12 +16,18 @@ import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 
-/** Coche des étapes franchies. Inline : c'est le seul endroit qui l'emploie. */
+/** Coche des étapes franchies. Inline : c'est le seul endroit qui l'emploie.
+ *
+ *  Montée à neuf quand l'étape passe de « à faire » à « franchie » — le numéro
+ *  cède la place au SVG, donc React monte un élément neuf et l'animation de
+ *  tracé part d'elle-même, sans minuterie ni état à tenir. */
 function CheckMark(): JSX.Element {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <span className="journey__check">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
   )
 }
 
@@ -98,7 +104,13 @@ export function JourneyStepper(): JSX.Element | null {
       <ol className="journey__list">
         {steps.map((s, i) => (
           <li key={s.n} className="journey__item">
-            {i > 0 && <span className="journey__sep" aria-hidden />}
+            {i > 0 && (
+              <span
+                className="journey__sep"
+                data-done={steps[i - 1].state === 'done' ? 'true' : undefined}
+                aria-hidden
+              />
+            )}
             <button
               type="button"
               className="journey__step"

@@ -114,52 +114,64 @@ function Nav(): JSX.Element {
         <button type="button" className={tab(screen === 'accueil')} onClick={() => patch({ tab: 'accueil' })}>
           {t('nav_home')}
         </button>
-        <button
-          type="button"
-          className={tab(screen === 'recherche' || screen === 'import-referentiel')}
-          onClick={() => patch({ tab: 'recherche' })}
-        >
-          {t('nav_search')}
-        </button>
-        <button
-          type="button"
-          className={tab(screen === 'logements')}
-          title={state.lodgingDomainId == null ? t('nav_lodgings_need_domain') : undefined}
-          onClick={openLodgings}
-        >
-          {t('nav_lodgings')}
-        </button>
 
-        {/* Groupe segmenté : trois lectures d'une même comparaison. */}
-        <div className="navseg" role="group" aria-label={t('nav_seg_label')}>
+        {/* Les trois temps du parcours tiennent dans un même cadre : on voit
+            qu'ils forment une tâche, et non six destinations voisines des
+            utilitaires de droite. */}
+        <div className="nav__journey" role="group" aria-label={t('journey_aria')}>
           <button
             type="button"
-            className={seg(screen === 'offres')}
-            aria-current={screen === 'offres' ? 'page' : undefined}
-            onClick={() => patch({ tab: 'offres' })}
+            className={tab(screen === 'recherche' || screen === 'import-referentiel')}
+            onClick={() => patch({ tab: 'recherche' })}
           >
-            {t('nav_offers')}
+            {t('nav_search')}
           </button>
+          <span className="nav__journey-arrow" aria-hidden>
+            ›
+          </span>
           <button
             type="button"
-            className={seg(screen === 'combinaisons')}
-            aria-current={screen === 'combinaisons' ? 'page' : undefined}
-            onClick={() => patch({ tab: 'combinaisons' })}
+            className={tab(screen === 'logements')}
+            title={state.lodgingDomainId == null ? t('nav_lodgings_need_domain') : undefined}
+            onClick={openLodgings}
           >
-            {t('nav_combos')}
+            {t('nav_lodgings')}
           </button>
-          <button
-            type="button"
-            className={seg(screen === 'decision')}
-            aria-current={screen === 'decision' ? 'page' : undefined}
-            onClick={() => patch({ tab: 'decision' })}
-          >
-            {t('nav_decision')}
-          </button>
+          <span className="nav__journey-arrow" aria-hidden>
+            ›
+          </span>
+
+          {/* Groupe segmenté : trois lectures d'une même comparaison. */}
+          <div className="navseg" role="group" aria-label={t('nav_seg_label')}>
+            <button
+              type="button"
+              className={seg(screen === 'offres')}
+              aria-current={screen === 'offres' ? 'page' : undefined}
+              onClick={() => patch({ tab: 'offres' })}
+            >
+              {t('nav_offers')}
+            </button>
+            <button
+              type="button"
+              className={seg(screen === 'combinaisons')}
+              aria-current={screen === 'combinaisons' ? 'page' : undefined}
+              onClick={() => patch({ tab: 'combinaisons' })}
+            >
+              {t('nav_combos')}
+            </button>
+            <button
+              type="button"
+              className={seg(screen === 'decision')}
+              aria-current={screen === 'decision' ? 'page' : undefined}
+              onClick={() => patch({ tab: 'decision' })}
+            >
+              {t('nav_decision')}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="nav__side nav__side--right">
+      <div className="nav__side nav__side--right nav__utils">
         {/* Favoris : les domaines retenus, adossés à `selDomains`. Le compte
             ne s'affiche que s'il y en a — « Favoris · 0 » n'apprend rien. */}
         <button
@@ -329,7 +341,7 @@ function Shell(): JSX.Element {
       <SvgDefs />
       <Nav />
       <JourneyStepper />
-      <main className="main">
+      <main className="main main--enter" key={screen}>
         <Screens />
       </main>
       {/* La neige n'apparaît qu'une fois l'application ouverte : sur l'écran

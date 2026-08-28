@@ -8,6 +8,12 @@ files:
   - out/**/*
   - package.json
 
+# `better-sqlite3` est un module natif : son `.node` doit être un vrai fichier
+# sur disque, pas une entrée d'archive. Sans cela, `require` échoue à
+# l'exécution alors que tout se passe bien en développement.
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**'
+
 # Le sidecar est copié tel quel hors de l'asar : Python doit voir de vrais
 # fichiers sur disque, pas une archive.
 extraResources:

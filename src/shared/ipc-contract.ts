@@ -28,12 +28,80 @@ export const IPC = {
   /** Bulletin d'avalanche Météo-France (API DPBRA). */
   braFetch: 'bra:fetch',
   /** Scraping Airbnb via Puppeteer (navigateur invisible). */
-  airbnbScrape: 'airbnb:scrape'
+  airbnbScrape: 'airbnb:scrape',
+  /** Notes et votes de la sélection, rangés en base par le processus principal. */
+  selectionLoad: 'selection:load',
+  selectionApply: 'selection:apply'
 } as const
+
+/* ----------------------------------------------------- sélection partagée */
+
+export type SelectionKind = 'domain' | 'lodging'
+
+/** Une note du fil, telle que `selection_notes` la stocke. */
+export interface SelectionNoteRow {
+  id: number
+  kind: SelectionKind
+  targetId: number
+  /** `Person.id` de l'auteur. `-1` quand aucun voyageur n'est renseigné. */
+  authorId: number
+  /** ISO 8601 en UTC. */
+  createdAt: string
+  body: string
+}
+
+/**
+ * Un vote exprimé, tel que `selection_votes` le stocke.
+ *
+ * `voterId` est l'identifiant de la personne, pas son rang dans la liste des
+ * voyageurs : retirer quelqu'un ne réattribue plus les votes des suivants.
+ */
+export interface SelectionVoteRow {
+  kind: SelectionKind
+  targetId: number
+  voterId: number
+  /** `1` pour, `-1` contre. Le `0` n'est jamais stocké : il efface la ligne. */
+  value: 1 | -1
+}
+
+/** L'état complet du magasin, rendu après chargement comme après mutation. */
+export interface SelectionSnapshot {
+  notes: SelectionNoteRow[]
+  votes: SelectionVoteRow[]
+  /** La reprise depuis `localStorage` a-t-elle déjà eu lieu ? */
+  legacyImported: boolean
+}
+
+/**
+ * Une mutation du magasin.
+ *
+ * Union discriminée plutôt qu'un canal par opération : le contrat reste à deux
+ * canaux, l'écriture reste ciblée, et un nouveau type de mutation s'ajoute
+ * sans toucher à la table des canaux.
+ */
+export type SelectionMutation =
+  | { type: 'note-add'; kind: SelectionKind; targetId: number; authorId: number; body: string }
+  | { type: 'note-remove'; id: number }
+  | { type: 'vote-set'; kind: SelectionKind; targetId: number; voterId: number; value: 1 | -1 | 0 }
+  | {
+      type: 'import-legacy'
+      notes: Omit<SelectionNoteRow, 'id'>[]
+      votes: SelectionVoteRow[]
+    }
 
 /** Paramètres d'une recherche Airbnb automatisée. */
 export interface AirbnbScrapeParams {
   city: string
+  /**
+   * Emprise de recherche, en degrés. Ajout **facultatif** : une requête qui ne
+   * la porte pas se comporte exactement comme avant.
+   *
+   * Quand elle est là, Airbnb cherche dans le rectangle au lieu de géocoder le
+   * nom. C'est la correction du cas « Arc 2000 rend Arcachon » : le rectangle
+   * est celui que le filtre de zone appliquera ensuite, si bien que la question
+   * posée et le contrôle exercé portent sur la même surface.
+   */
+  bounds?: { north: number; south: number; east: number; west: number } | null
   checkIn?: string
   checkOut?: string
   adults?: number

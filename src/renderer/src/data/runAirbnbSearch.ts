@@ -31,6 +31,9 @@ export interface RunAirbnbSearchParams {
   /** Identifiant du domaine côté moteur local — voir `Domain.engineId`. */
   engineDomainId?: number
   domainName: string
+  /** Département de la station, pour lever l'ambiguïté du nom. Voir
+   *  `airbnbPlaceName` : sans lui, « Arc 2000 » devient Arcachon. */
+  departement?: string | null
   villageOrMinAlt: number
   checkIn: string
   checkOut: string
@@ -92,8 +95,39 @@ function timeoutPromise(ms: number): Promise<never> {
 }
 
 
-/** Libellé Airbnb pour les stations (souvent différent du nom OSM / FM). */
-function airbnbPlaceName(domainName: string): string {
+/**
+ * Lieu envoyé à Airbnb, département compris.
+ *
+ * ## Le bogue que cette fonction répare
+ *
+ * Airbnb ne prend pas de coordonnées dans son URL de recherche : il prend un
+ * nom, et il le géocode. Envoyer « Arc 2000 » tout seul ramenait des
+ * appartements d'**Arcachon** — le géocodeur avait trouvé mieux ailleurs, et
+ * rien dans le nom ne disait que la station est en Savoie.
+ *
+ * La table ci-dessous ne couvrait que quinze stations sur deux cent
+ * quatre-vingt-trois. Les deux cent soixante-huit autres partaient en nom nu,
+ * chacune exposée au même sort qu'Arc 2000.
+ *
+ * Le département lève l'ambiguïté, et il est déjà dans le catalogue —
+ * `catalogue.ts` le range dans `Domain.region`. Airbnb écrit lui-même ses
+ * lieux ainsi, « Ville--Département--France », et `citySegment` produit
+ * exactement cette forme à partir des virgules.
+ *
+ * La table reste pour les **graphies** qu'Airbnb écrit autrement (« Les 2
+ * Alpes », « Meribel » sans accent). Elle ne sert plus à désambiguïser : c'est
+ * le département qui s'en charge, pour toutes les stations sans exception.
+ */
+function airbnbPlaceName(domainName: string, departement?: string | null): string {
+  const nom = airbnbPlaceLabel(domainName)
+  const dep = (departement ?? '').trim()
+  // Un département déjà présent dans le nom ne se répète pas.
+  if (!dep || nom.toLowerCase().includes(dep.toLowerCase())) return `${nom}, France`
+  return `${nom}, ${dep}, France`
+}
+
+/** Graphie de la station telle qu'Airbnb l'écrit, quand elle diffère. */
+function airbnbPlaceLabel(domainName: string): string {
   const key = domainName.trim().toLowerCase()
   const map: Record<string, string> = {
     'les 2 alpes': 'Les 2 Alpes',
@@ -206,7 +240,18 @@ async function scrapeOnce(params: RunAirbnbSearchParams, band: PriceBand = {}) {
   return window.skitrack.airbnbScrape({
     // Airbnb range la destination dans le chemin de l'URL et ne connaît que
     // des noms de lieux : « Les Arcs », pas « Les Arcs – Peisey-Vallandry ».
-    city: airbnbPlaceName(params.domainName),
+    city: airbnbPlaceName(params.domainName, params.departement),
+    // La boîte du domaine, celle-là même que `filterToZone` appliquera au
+    // retour. Le nom reste, comme étiquette lisible dans l'URL et comme repli
+    // si Airbnb ignorait un jour le rectangle.
+    bounds: params.zone
+      ? {
+          north: params.zone.north,
+          south: params.zone.south,
+          east: params.zone.east,
+          west: params.zone.west
+        }
+      : null,
     checkIn: params.checkIn || undefined,
     checkOut: params.checkOut || undefined,
     adults: params.adults,
@@ -347,13 +392,34 @@ export async function runAirbnbSearch(
   const zoned = params.zone
     ? filterToZone(listings, params.zone, (l) => ({ lat: l.lat, lon: l.lon }))
     : { kept: listings, rejected: [], unlocated: listings.length }
+
+  /**
+   * Les annonces sans position suivent le sort du lot.
+   *
+   * `filterToZone` les garde, et c'est le bon défaut : Airbnb ne publie pas
+   * toujours de coordonnées, et écarter une annonce parce qu'elle est muette
+   * reviendrait à punir le silence. Mais quand les annonces **situées** sont
+   * majoritairement ailleurs, ce n'est plus du silence, c'est une recherche
+   * partie dans une autre région : les muettes viennent du même endroit
+   * qu'elles. C'est ce qui laissait passer des appartements d'Arcachon pour
+   * Arc 2000, ceux qui ne publiaient pas leur position.
+   */
+  const situees = zoned.kept.filter((l) => l.lat != null && l.lon != null)
+  const egaree = zoned.rejected.length > 0 && situees.length < zoned.rejected.length
+  const retenues = egaree ? situees : zoned.kept
+  if (egaree) {
+    console.info(
+      `[SKITRACK] Airbnb : lot jugé égaré (${situees.length} situées en zone contre ` +
+        `${zoned.rejected.length} hors zone) — les annonces sans position sont écartées aussi.`
+    )
+  }
   if (zoned.rejected.length > 0) {
     console.info(
       `[SKITRACK] Airbnb : ${zoned.rejected.length} annonce(s) hors de la zone du domaine, écartée(s) —`,
       zoned.rejected.slice(0, 5).map((l) => l.name)
     )
   }
-  if (zoned.kept.length === 0) {
+  if (retenues.length === 0) {
     return {
       ok: false,
       error:
@@ -362,7 +428,7 @@ export async function runAirbnbSearch(
     }
   }
 
-  const { imported, added, updated, missing } = mergeAirbnbPaste(params.imported, zoned.kept, {
+  const { imported, added, updated, missing } = mergeAirbnbPaste(params.imported, retenues, {
     checkIn: meta.checkIn ?? params.checkIn,
     checkOut: meta.checkOut ?? params.checkOut,
     domainId: params.domainId,

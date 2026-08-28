@@ -251,17 +251,14 @@ export function HomePage(): JSX.Element {
             </h1>
             <p className="home__lead">{t('home_lead')}</p>
 
-            {/* CTA pilule à pastille fléchée. Le prototype laissait la pastille
-                chevaucher le texte : le rembourrage droit y était aussi étroit
-                que le gauche est large. Ici le rembourrage est dissymétrique et
-                le `gap` tient la pastille à distance. */}
-            <button type="button" className="home__cta" onClick={() => patch({ tab: 'recherche' })}>
-              {t('home_cta_start')}
-              <i className="home__cta-disc" aria-hidden>
-                →
-              </i>
-            </button>
-
+            {/* Le CTA pilule du prototype a été retiré. Il était posé juste
+                au-dessus de la barre de recherche et menait au même écran,
+                mais les mains vides : la barre y va avec une destination, les
+                pastilles avec un critère. Un quatrième chemin qui n'emporte
+                rien n'ajoutait pas une façon d'entrer, il en dupliquait une en
+                moins bien, au centre du héros. Le remettre est une ligne :
+                voir `home__cta` dans styles.css et `home_cta_start` au
+                catalogue, tous deux conservés. */}
             <SearchBar />
 
             <div className="home__shortcuts">

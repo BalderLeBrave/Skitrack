@@ -3,6 +3,8 @@ import {
   IPC,
   type AirbnbScrapeOutcome,
   type AirbnbScrapeParams,
+  type SelectionMutation,
+  type SelectionSnapshot,
   type AppInfo,
   type BraBulletin,
   type ListingExtract,
@@ -77,6 +79,18 @@ const api = {
       }[]
     > => ipcRenderer.invoke(IPC.providersMetrics),
     metricsReset: (): Promise<void> => ipcRenderer.invoke(IPC.providersMetricsReset)
+  },
+  /**
+   * Notes et votes de la sélection, rangés en base par le processus principal.
+   *
+   * Deux verbes seulement : `load` au démarrage, `apply` pour chaque
+   * changement. `apply` rend l'état complet, ce qui évite au renderer de tenir
+   * un second état susceptible de diverger de la base.
+   */
+  selection: {
+    load: (): Promise<SelectionSnapshot> => ipcRenderer.invoke(IPC.selectionLoad),
+    apply: (mutation: SelectionMutation): Promise<SelectionSnapshot> =>
+      ipcRenderer.invoke(IPC.selectionApply, mutation)
   },
   /** Lit les métadonnées publiques d'une annonce que l'utilisateur a collée. */
   fetchListing: (url: string): Promise<ListingExtract> => ipcRenderer.invoke(IPC.listingFetch, url),

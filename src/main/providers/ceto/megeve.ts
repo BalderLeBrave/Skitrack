@@ -20,7 +20,15 @@ import { priceForGroupIn, type FicheOccupancy } from './occupancy'
 
 export const CETO_MEGEVE_PROVIDER_NAME = 'ceto-megeve'
 
-const TIMEOUT_MS = 45_000
+/**
+ * Délai de l'extraction SERP.
+ *
+ * Quatre-vingt-dix secondes depuis que la pagination va au bout : Méribel
+ * rend ses 835 fiches en 20 s un bon jour, et 45 s ne laissaient plus de
+ * marge. Ce délai ne couvre que la SERP ; les grilles d'occupation ont leur
+ * propre budget dans `ficheOccupancy`.
+ */
+const TIMEOUT_MS = 90_000
 const breaker = new CircuitBreaker(3, 60_000)
 
 function toAccommodation(
@@ -87,7 +95,8 @@ export function createCetoMegeveProvider(): AccommodationProvider {
             adults: params.adults ?? 2,
             children: params.children ?? 0,
             location: null,
-            maxPages: 2,
+            // Pas de plafond ici : `chamonixParse` en tient un, mesuré, et un
+            // second réglage au même endroit finirait par le contredire.
             pricedOnly: true,
             types: ['hotel', 'apartment', 'residence'],
             site: 'megeve'

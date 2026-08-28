@@ -176,38 +176,6 @@ export function LodgingsPage(): JSX.Element {
   const [elapsedSec, setElapsedSec] = useState(0)
 
   /**
-   * Sources annoncées dès l'ouverture, sans attendre un relevé.
-   *
-   * Le registre du moteur (`providers.health`) dit quels connecteurs sont
-   * enregistrés, donc lesquels seront interrogés — l'information existe avant
-   * la première recherche, et rien ne justifie de la faire attendre. Sans cet
-   * appel, une station encore jamais relevée n'affichait qu'Airbnb, la seule
-   * source hors moteur, et Booking.com semblait avoir disparu.
-   *
-   * Les sources déclarées mais refusées sont écartées : elles ne seront pas
-   * interrogées, et une ligne de filtre qu'aucun relevé ne peut rafraîchir
-   * n'est pas un filtre.
-   */
-  useEffect(() => {
-    let cancelled = false
-    void window.skitrack.providers
-      .health()
-      .then((list) => {
-        if (cancelled) return
-        const labels = [...new Set(list.filter((p) => p.registered).map((p) => sourceLabelOf(p.name)))]
-        if (labels.length > 0) patch({ lodgQueried: labels })
-      })
-      .catch(() => {
-        // Moteur injoignable : la liste reste celle du dernier relevé, ou le
-        // seul socle. Depuis le retrait d'« État du relevé », plus rien ne
-        // signale cette panne une fois le relevé terminé.
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [patch])
-
-  /**
    * Remontée en haut de liste à la mise en avant.
    *
    * Le logement élu passe en tête ; sans remonter le défilement, l'utilisateur
@@ -330,6 +298,8 @@ export function LodgingsPage(): JSX.Element {
           domainId: d.id,
           engineDomainId: d.engineId,
           domainName: d.name,
+          // `catalogue.ts` range le département du catalogue dans `region`.
+          departement: d.region,
           villageOrMinAlt: d.village || d.min,
           checkIn: state.arrDate,
           checkOut: state.depDate,

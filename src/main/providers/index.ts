@@ -142,9 +142,37 @@ function keepInZone(outcomes: ProviderOutcome[], params: SearchParams): Provider
         examples: result.rejected.slice(0, 3).map((r) => `${r.title} (${r.city ?? '?'})`)
       })
     }
-    rejected += result.rejected.length
+
+    /**
+     * Le sort des offres sans position suit celui du lot.
+     *
+     * `filterToZone` les garde, et c'est le bon défaut : toutes les sources ne
+     * publient pas de coordonnées, et écarter une offre parce qu'elle se tait
+     * reviendrait à punir le silence. Mais lorsque les offres **situées** de la
+     * même source sont majoritairement ailleurs, le silence n'est plus le
+     * sujet : la source a compris une autre commune, et les muettes viennent du
+     * même endroit que les autres. C'est ainsi qu'on a vu des appartements
+     * d'Arcachon proposés pour Arc 2000 — ceux qui ne publiaient pas leur
+     * position passaient le filtre.
+     *
+     * Le test se fait **par source**, jamais sur l'agrégat : une source égarée
+     * ne doit pas faire écarter les offres muettes d'une source juste.
+     */
+    const situees = result.kept.filter((r) => coordsUsable(r.latitude, r.longitude))
+    const egaree = result.rejected.length > 0 && situees.length < result.rejected.length
+    if (egaree && situees.length < result.kept.length) {
+      debugLog('Zone', 'Provider considered off-target', {
+        provider: outcome.provider,
+        inZone: situees.length,
+        outOfZone: result.rejected.length,
+        droppedUnlocated: result.kept.length - situees.length
+      })
+    }
+    const kept = egaree ? situees : result.kept
+
+    rejected += result.rejected.length + (result.kept.length - kept.length)
     unlocated += result.unlocated
-    return { ...outcome, results: result.kept }
+    return { ...outcome, results: kept }
   })
 
   debugLog('Zone', 'Number of results kept in zone', {

@@ -328,6 +328,39 @@ const CATALOG = {
     'Enregistrer avec un texte vide supprime la correction. La ligne d’origine reste calculée dans tous les cas.',
     'Saving with empty text removes the correction. The original line stays computed either way.'
   ],
+  /* Accueil en registre d'affiche — héros de massif et section éditoriale.
+     Les phrases de caractère ci-dessous ne décrivent aucun relevé : ce sont des
+     titres, et elles n'existent que pour les six massifs que le référentiel
+     nomme. Un massif inconnu n'en reçoit pas — il n'en reçoit pas une inventée. */
+  home_dom_photo_massif: [
+    'Photo du massif {m} — aucune photo de {d}',
+    'Photo of the {m} range — no photo of {d}'
+  ],
+  /* Encadré des photos de stations : revue de l'import et crédits. */
+  photos_title: ['Photos des stations', 'Resort photos'],
+  photos_lede: [
+    'Une photo par station, prise sur Wikimedia Commons par sa position et non par son nom. La distance sépare la photo du front de neige : au-delà de deux kilomètres, vérifiez qu’elle montre bien la station.',
+    'One photo per resort, taken from Wikimedia Commons by position rather than name. The distance is from the photo to the base of the runs: beyond two kilometres, check that it really shows the resort.'
+  ],
+  photos_search: ['Chercher une station', 'Search a resort'],
+  photos_all: ['Toutes · {n}', 'All · {n}'],
+  photos_with: ['Avec photo · {n}', 'With photo · {n}'],
+  photos_without: ['Sans photo · {n}', 'Without photo · {n}'],
+  photos_missing: ['aucune photo', 'no photo'],
+  photos_dist: ['{n} m', '{n} m'],
+  photos_dist_unknown: ['distance non relevée', 'distance not measured'],
+  photos_no_credit: ['photo sans crédit enregistré', 'photo with no recorded credit'],
+  photos_alt: ['Photo de {d}', 'Photo of {d}'],
+  photos_source: ['Voir sur Commons ↗', 'View on Commons ↗'],
+  photos_none_title: ['Aucune station ne correspond', 'No resort matches'],
+  photos_none_body: [
+    'Changez le mot cherché, ou revenez à « Toutes ».',
+    'Change the search term, or go back to “All”.'
+  ],
+  photos_licence_note: [
+    'Ces photos viennent de Wikimedia Commons sous CC0, domaine public, CC-BY ou CC-BY-SA. L’auteur et la licence affichés ci-dessus sont la mention exigée par ces licences : ils doivent rester visibles partout où la photo est publiée.',
+    'These photos come from Wikimedia Commons under CC0, public domain, CC-BY or CC-BY-SA. The author and licence shown above are the attribution those licences require: they must stay visible wherever the photo is published.'
+  ],
   home_stat_domains: ['Stations au référentiel', 'Resorts in the dataset'],
   home_stat_domains_note: ['coordonnées et altitudes vérifiées', 'coordinates and altitudes verified'],
   home_stat_median_pass: ['Forfait 6 jours médian', 'Median 6-day pass'],

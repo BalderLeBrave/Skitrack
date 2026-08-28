@@ -25,7 +25,7 @@ import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import type { SearchParams } from './types'
-import { OUT_OF_ZONE_MARGIN_KM, boxContains, distanceKm, domainRadiusKm, filterToZone, searchZone, zoneVerdict } from '@shared/geo'
+import { coordsUsable, domainZone, OUT_OF_ZONE_MARGIN_KM, boxContains, distanceKm, domainRadiusKm, filterToZone, searchZone, zoneVerdict } from '@shared/geo'
 import { bookingFamilyOf, isKnownNonIngenie } from '@shared/bookingFamilies'
 
 
@@ -72,6 +72,50 @@ async function main(): Promise<void> {
   const redirect = airbnbRedirect(PARAMS)
   check('marqué comme redirection, pas comme offre', redirect.kind === 'redirect')
   check('aucun prix exposé', !('totalPrice' in redirect))
+
+  // — L'emprise de carte, la correction du cas « Arc 2000 rend Arcachon ».
+  //
+  // Un nom se géocode, un rectangle non. Ces vérifications portent sur la seule
+  // chose qu'on maîtrise : ce qui part dans l'URL. Ce qu'Airbnb en fait se
+  // mesure au relevé, pas ici.
+  const zoneArc = domainZone({ lat: 45.5714, lon: 6.8286, km: 341.5 })
+  const urlBoite = buildAirbnbSearchUrl({
+    city: 'Arc 2000, Savoie, France',
+    bounds: { north: zoneArc.north, south: zoneArc.south, east: zoneArc.east, west: zoneArc.west }
+  })
+  console.log(`  ${urlBoite}`)
+  check('coin nord-est transmis', urlBoite.includes('ne_lat=') && urlBoite.includes('ne_lng='))
+  check('coin sud-ouest transmis', urlBoite.includes('sw_lat=') && urlBoite.includes('sw_lng='))
+  check('recherche par carte demandée', urlBoite.includes('search_by_map=true'))
+  const zoomLu = Number(new URL(urlBoite).searchParams.get('zoom'))
+  // Une boîte de ~0,6° de large se regarde vers le zoom 11, pas le zoom 8 :
+  // trois niveaux d'écart, c'est une vue de région contre une vue de vallée.
+  check('zoom cadré sur l’emprise', zoomLu >= 10 && zoomLu <= 12, zoomLu)
+  const zoomPetit = Number(
+    new URL(
+      buildAirbnbSearchUrl({
+        city: 'Petite station',
+        bounds: { north: 45.05, south: 44.95, east: 6.05, west: 5.95 }
+      })
+    ).searchParams.get('zoom')
+  )
+  check('une petite boîte se regarde de plus près', zoomPetit > zoomLu, zoomPetit)
+  check(
+    'la boîte envoyée est celle du domaine',
+    Number(new URL(urlBoite).searchParams.get('ne_lat')) === zoneArc.north &&
+      Number(new URL(urlBoite).searchParams.get('sw_lng')) === zoneArc.west
+  )
+  // Arcachon est en Gironde : la boîte d'Arc 2000 ne peut pas la contenir.
+  check(
+    'Arcachon est hors de l’emprise envoyée',
+    !boxContains(zoneArc, 44.658, -1.168)
+  )
+  // Sans emprise, l'URL reste exactement celle d'avant : l'ajout est facultatif.
+  const urlSansBoite = buildAirbnbSearchUrl({ city: 'Val Thorens, France' })
+  check(
+    'sans emprise, aucune trace de carte dans l’URL',
+    !urlSansBoite.includes('search_by_map') && !urlSansBoite.includes('ne_lat')
+  )
 
   heading('2. Booking — normalisation sur charge utile figée')
   const booking = normalizeBooking(
@@ -300,6 +344,42 @@ async function main(): Promise<void> {
   check('deux hors-zone rejetés', zoned.rejected.length === 2, zoned.rejected.map((a) => a.title))
   check('aucune autre ville dans le résultat', !zoned.kept.some((a) => /Paris|Barcelone/.test(a.title)))
   check('annonce sans position conservée et comptée à part', zoned.unlocated === 1 && zoned.kept.length === 2)
+
+  // — La règle du « lot égaré », celle qui a laissé passer Arcachon pour Arc 2000.
+  //
+  // Une source qui a compris une autre commune rend surtout des offres hors
+  // zone. Ses offres **sans position** viennent du même endroit : les garder
+  // parce qu'elles se taisent revient à laisser entrer précisément celles qu'on
+  // ne peut pas vérifier. Le test se fait par source, sur le rapport entre
+  // situées-en-zone et rejetées.
+  const egare = [
+    { title: 'Appartement à Arcachon', latitude: 44.658, longitude: -1.168 },
+    { title: 'Villa au Cap Ferret', latitude: 44.63, longitude: -1.24 },
+    { title: 'Studio à Arcachon centre', latitude: 44.66, longitude: -1.16 },
+    { title: 'Logement sans position', latitude: undefined, longitude: undefined }
+  ]
+  const zEgare = filterToZone(egare, troisVallees, (a) => ({ lat: a.latitude, lon: a.longitude }))
+  const situeesEgare = zEgare.kept.filter((a) => coordsUsable(a.latitude, a.longitude))
+  check('lot égaré : trois offres situées hors zone', zEgare.rejected.length === 3)
+  check('lot égaré : aucune offre située ne survit', situeesEgare.length === 0)
+  check(
+    'lot égaré : la règle écarte aussi l’offre sans position',
+    situeesEgare.length < zEgare.rejected.length && zEgare.kept.length === 1
+  )
+
+  // Le cas symétrique : une source juste, dont une offre se tait, garde tout.
+  const juste = [
+    { title: 'Résidence Val Thorens', latitude: 45.297, longitude: 6.581 },
+    { title: 'Chalet Les Menuires', latitude: 45.32, longitude: 6.54 },
+    { title: 'Studio sans position', latitude: undefined, longitude: undefined },
+    { title: 'Erreur isolée à Paris', latitude: PARIS.lat, longitude: PARIS.lon }
+  ]
+  const zJuste = filterToZone(juste, troisVallees, (a) => ({ lat: a.latitude, lon: a.longitude }))
+  const situeesJuste = zJuste.kept.filter((a) => coordsUsable(a.latitude, a.longitude))
+  check(
+    'source juste : une erreur isolée n’écarte pas les offres muettes',
+    situeesJuste.length >= zJuste.rejected.length && zJuste.kept.length === 3
+  )
 
   heading('6. Familles de centrales — Ingénie vs le reste')
   check('2 Alpes est Ingénie', !isKnownNonIngenie('https://reservation.les2alpes.com/'))

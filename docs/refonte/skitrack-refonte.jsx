@@ -222,6 +222,12 @@ const CSS = `
 .sk-search-field input { border:0; background:none; outline:none; font-weight:600; width:100%; padding:0; }
 .sk-search-field input::placeholder { color:var(--dim); font-weight:600; }
 .sk-sep { width:1px; height:34px; background:var(--border); }
+/* Rechercher : loupe dessinee, centree dans un disque */
+.sk button.sk-search-loupe { width:56px; height:56px; padding:0; border-radius:50%; flex:0 0 auto;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--accent, #0b6fc2); color:var(--on-accent, #fff); }
+.sk button.sk-search-loupe:hover { filter:brightness(1.08); }
+.sk-search-loupe svg { display:block; }
 
 /* héros façon affiche */
 .sk-hero2 { min-height: 620px; padding: 56px 48px 44px; display:flex; flex-direction:column; justify-content:flex-end;
@@ -576,8 +582,16 @@ function Accueil({ go, setQuery, query, scores }) {
             <span className="sk-eyebrow">Voyageurs</span>
             <span style={{ fontWeight: 600 }}>2 adultes · 2 enfants</span>
           </div>
-          <button className="sk-btn" style={{ padding: '18px 28px' }} onClick={() => go('recherche')}>
-            Rechercher
+          <button
+            className="sk-btn sk-search-loupe"
+            onClick={() => go('recherche')}
+            aria-label="Rechercher"
+            title="Rechercher"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <circle cx="8.6" cy="8.6" r="5.6" stroke="currentColor" strokeWidth="2" />
+              <path d="M12.9 12.9L17.5 17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
       </section>

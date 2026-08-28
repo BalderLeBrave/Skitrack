@@ -20,6 +20,24 @@ import { initialsOf, logoTint } from '@/domain/format'
 /** Emplacements conventionnels d'icône, du plus défini au moins défini. */
 const ICON_PATHS = ['/apple-touch-icon.png', '/apple-touch-icon-precomposed.png', '/favicon.ico']
 
+/**
+ * L'icône qui a fini par charger, par site, pour la durée de la session.
+ *
+ * Sans cette mémoire, le même domaine ne montrait pas le même logo deux fois :
+ * la chaîne de repli repart de zéro à chaque montage, et laquelle des trois URL
+ * répond dépend du cache HTTP et du réseau à cet instant. On voyait
+ * l'apple-touch-icon en ouvrant la fiche, la favicon en la rouvrant, les
+ * initiales hors ligne — trois logos pour une station.
+ *
+ * La mémoire est volontairement **hors des préférences** : `state.logos` est ce
+ * que l'utilisateur a saisi, et y écrire une URL devinée la ferait passer pour
+ * une saisie, avec un bouton « effacer » qui ne l'effacerait pas. Elle vit donc
+ * ici, le temps de la session, et se reconstruit au lancement suivant — la
+ * rendre durable demande un champ de préférence de plus, ce qui touche au
+ * schéma et se décide, pas se glisse.
+ */
+const RESOLU = new Map<string, string>()
+
 function candidatesFor(logo: string | null, website: string | null): string[] {
   // Un logo fourni à la main passe avant tout : c'est le seul moyen d'avoir le
   // vrai logo d'une station qui n'en publie pas à un emplacement conventionnel.
@@ -42,7 +60,12 @@ interface Props {
 }
 
 export function DomainLogo({ name, website, logo = null, dark }: Props): JSX.Element {
+  const memoire = website ?? logo ?? name
   const candidates = candidatesFor(logo, website)
+  // Une icône déjà résolue reprend sa place en tête : on ne rejoue pas la
+  // chaîne, et le logo est celui de la fois précédente.
+  const gagnante = RESOLU.get(memoire)
+  const chaine = gagnante ? [gagnante, ...candidates.filter((c) => c !== gagnante)] : candidates
   const [attempt, setAttempt] = useState(0)
 
   // Changer de domaine remet la chaîne de repli à zéro : sans cela, une
@@ -51,7 +74,7 @@ export function DomainLogo({ name, website, logo = null, dark }: Props): JSX.Ele
     setAttempt(0)
   }, [website, logo])
 
-  const src = candidates[attempt]
+  const src = chaine[attempt]
 
   return (
     <span
@@ -65,6 +88,9 @@ export function DomainLogo({ name, website, logo = null, dark }: Props): JSX.Ele
           src={src}
           alt=""
           loading="lazy"
+          onLoad={() => {
+            if (src) RESOLU.set(memoire, src)
+          }}
           onError={() => setAttempt((n) => n + 1)}
         />
       ) : (

@@ -55,6 +55,31 @@ export interface ChamonixExtractResult {
   requestUrl?: string
 }
 
+/**
+ * Pages de résultats suivies au maximum, par type d'hébergement.
+ *
+ * Soixante, et le chiffre vient d'une mesure. La valeur précédente était
+ * **deux**, soit quarante fiches : Méribel en annonce 827 pour une semaine de
+ * janvier et n'en rendait que 56. À soixante pages, la boucle va jusqu'au bout
+ * — 835 fiches en 20 s — et s'arrête d'elle-même sur l'absence de bouton
+ * « plus de résultats », bien avant le plafond partout ailleurs (Chamonix 23,
+ * Megève 233). Le plafond n'est donc pas une cible : c'est le garde-fou contre
+ * une SERP qui ne dirait jamais qu'elle est finie, et `paginationComplete` dit
+ * quand il a mordu.
+ */
+const MAX_RESULT_PAGES = 60
+
+/**
+ * Fiches demandées par page.
+ *
+ * Vingt, et **pas cinquante** : le paramètre est accepté jusqu'à 50, mais au
+ * delà de 20 les sites répondent moins bien qu'ils ne le prétendent. Mesuré le
+ * 2026-08-27 : à `byPage=50`, Chamonix rend 405 sur `serpHotel` et perd 3
+ * fiches, Megève en perd 29 (204 au lieu de 233). Diviser le nombre de requêtes
+ * par deux et demi ne vaut pas des fiches manquantes.
+ */
+const BY_PAGE = 20
+
 const SITES: Record<
   OrchestraSiteId,
   {
@@ -588,8 +613,8 @@ export async function extractChamonix(
   const site = opts.site ?? 'chamonix'
   const siteCfg = SITES[site]
   const cfg = siteCfg.serp[opts.type]
-  const maxPages = opts.maxPages ?? 2
-  const byPage = opts.byPage ?? 20
+  const maxPages = opts.maxPages ?? MAX_RESULT_PAGES
+  const byPage = opts.byPage ?? BY_PAGE
   const pricedOnly = opts.pricedOnly !== false
   const location = opts.location ? resolveLocationCode(opts.location) || opts.location : null
 

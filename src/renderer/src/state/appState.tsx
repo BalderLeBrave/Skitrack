@@ -958,8 +958,12 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
         : null
     try {
       const raw = localStorage.getItem(PREFS_KEY)
-      // Absence de préférences = premier lancement : on ouvre l'accueil.
-      if (!raw) return { ...base, onboard: true, ...(demo ?? {}) }
+      // Absence de préférences = premier lancement. L'écran de bienvenue ne
+      // s'ouvre plus : l'accueil dit déjà ce qu'il y a dans la base, et une
+      // fenêtre posée dessus au premier lancement cache précisément ce qu'on
+      // vient regarder. Les trois réglages qu'elle demandait se règlent dans
+      // les filtres, où ils vivent de toute façon le reste du temps.
+      if (!raw) return { ...base, ...(demo ?? {}) }
       const saved = migratePrefs(JSON.parse(raw) as Partial<AppState> & { prefsSchema?: number })
       return {
         ...base,

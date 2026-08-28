@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { I18nContext, LANGUAGES, LANGUAGE_LABELS, isLanguage, type Language, useI18n } from '@/i18n'
 import { useSidecar } from '@/hooks/useSidecar'
 import { useShortcuts } from '@/hooks/useShortcuts'
+import { useProviderRegistry } from '@/hooks/useProviderRegistry'
+import { useSelectionSync } from '@/hooks/useSelectionStore'
 import { AppProvider, useApp } from '@/state/appState'
 import { DerivedProvider, useDerived } from '@/state/selectors'
 import { WeatherProvider } from '@/state/weather'
@@ -271,6 +273,12 @@ function Shell(): JSX.Element {
   const { state: sidecar, log, restart } = useSidecar()
   const [engineSkipped, setEngineSkipped] = useState(false)
   useShortcuts()
+  // Les sources de logement viennent du registre du moteur, pas d'une liste
+  // écrite ici. Lu au montage de la coque : l'accueil compte les sources
+  // avant même qu'on ouvre l'écran Logements.
+  useProviderRegistry()
+  // Notes et votes viennent de `selection.db`, pas des préférences.
+  useSelectionSync()
 
   // La liste des domaines est chargée une première fois depuis le fichier
   // livré ; dès que le moteur répond, elle est remplacée par sa base complète.

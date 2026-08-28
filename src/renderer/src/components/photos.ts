@@ -57,3 +57,45 @@ export function massifPhoto(name: string): string | null {
   const file = MASSIF_FILES[fold(name)]
   return file ? urlOf(file) : null
 }
+
+/**
+ * Photo d'une station, par son `slug` de référentiel.
+ *
+ * Le dossier n'en contient aucune aujourd'hui : la fonction rend `null`, et
+ * l'accueil retombe sur la photo du massif — en le disant dans le texte de
+ * remplacement, parce qu'une photo de Val Thorens sous le nom « La Daille »
+ * serait une légende fausse, pas un repli.
+ *
+ * Le jour où `station-<slug>.jpg` arrive dans `assets/img/`, la vignette prend
+ * sa photo sans qu'une ligne change ici. C'est le même mécanisme que les
+ * massifs, et pour la même raison : la liste des images n'a pas à vivre dans le
+ * code.
+ */
+/**
+ * Index secondaire : le nom de fichier sans tirets ni ponctuation.
+ *
+ * L'outil d'import nomme ses fichiers d'après le classeur France Montagnes
+ * (« Praloup »), l'application d'après son nom d'affichage (« Pra-Loup »). Les
+ * deux graphies désignent la même station et ne divergent que par les tirets :
+ * un index qui les ignore rapproche les deux sans table à entretenir — une
+ * table se désynchroniserait à la première correction de graphie du
+ * référentiel, silencieusement.
+ *
+ * L'exact passe d'abord ; l'index dégradé ne sert qu'en repli, et une
+ * collision y est théorique — il faudrait deux stations dont les noms ne
+ * diffèrent que par la ponctuation.
+ */
+const BY_SQUASH: Record<string, string> = {}
+for (const [file, url] of Object.entries(BY_FILE)) {
+  const m = file.match(/^station-(.+)\.(?:jpe?g|png|webp)$/)
+  if (m) BY_SQUASH[m[1].replace(/[^a-z0-9]/g, '')] ??= url
+}
+
+export function stationPhoto(slug: string | null | undefined): string | null {
+  if (!slug) return null
+  for (const ext of ['jpg', 'jpeg', 'png', 'webp']) {
+    const hit = urlOf(`station-${slug}.${ext}`)
+    if (hit) return hit
+  }
+  return BY_SQUASH[slug.toLowerCase().replace(/[^a-z0-9]/g, '')] ?? null
+}

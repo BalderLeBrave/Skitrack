@@ -1,6 +1,5 @@
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787",
     "ENABLE_TOOL_SEARCH": "true"
   },
   "permissions": {
@@ -27,9 +26,9 @@
       "PowerShell(Get-ChildItem *)",
       "Bash(grep *)",
       "Bash(awk -F: '$1>2880')",
-      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.web.json; if \\($?\\) { \"renderer OK\" }; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique; npx electron-vite build 2>&1 | Select-String -Pattern 'error|✓ built' | Select-Object -Last 3)",
+      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.web.json; if \\($?\\) { \"renderer OK\" }; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique; npx electron-vite build 2>&1 | Select-String -Pattern 'error|\u2713 built' | Select-Object -Last 3)",
       "Bash(python -)",
-      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.web.json 2>&1 | Select-Object -First 10; if \\($?\\) { \"renderer OK\" }; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique; npx electron-vite build 2>&1 | Select-String -Pattern 'error|✓ built' | Select-Object -Last 3)",
+      "PowerShell(cd C:\\\\Dev\\\\skitrack; npx tsc --noEmit -p tsconfig.web.json 2>&1 | Select-Object -First 10; if \\($?\\) { \"renderer OK\" }; npx tsc --noEmit -p tsconfig.node.json 2>&1 | ForEach-Object { \\($_ -split '\\\\\\('\\)[0] } | Sort-Object -Unique; npx electron-vite build 2>&1 | Select-String -Pattern 'error|\u2713 built' | Select-Object -Last 3)",
       "Bash(cp src/renderer/src/i18n/index.ts /tmp/i18n-backup.ts)",
       "Bash(npx esbuild *)",
       "Bash(node node_modules/.cache/i18n-test.mjs)",

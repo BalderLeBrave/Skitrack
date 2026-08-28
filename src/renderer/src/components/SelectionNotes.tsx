@@ -18,6 +18,7 @@
 import { useState } from 'react'
 import type { SelectionKind } from '@/state/appState'
 import { selectionVoteKey, useApp } from '@/state/appState'
+import { useSelectionActions } from '@/hooks/useSelectionStore'
 import { useDerived } from '@/state/selectors'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
@@ -28,7 +29,8 @@ function initialsOf(first: string, last: string): string {
 }
 
 export function SelectionNotes({ kind, targetId }: { kind: SelectionKind; targetId: number }): JSX.Element {
-  const { state, patch } = useApp()
+  const { state } = useApp()
+  const { addNote, setVote } = useSelectionActions()
   const derived = useDerived()
   const { fmtDate } = useFormat()
   const { t } = useI18n()
@@ -43,31 +45,17 @@ export function SelectionNotes({ kind, targetId }: { kind: SelectionKind; target
   const down = tally.filter((v) => v < 0).length
 
   /** Un même appui retire le vote : voter deux fois pour n'est pas voter deux fois. */
-  const vote = (value: number): void => {
-    const next = (state.votes[key] ?? []).slice()
-    next[state.voter] = next[state.voter] === value ? 0 : value
-    patch({ votes: { ...state.votes, [key]: next } })
+  const vote = (value: 1 | -1): void => {
+    setVote(kind, targetId, mine === value ? 0 : value)
   }
 
   const publish = (): void => {
     const body = draft.trim()
     if (!body) return
-    const id = state.selNotes.reduce((max, n) => Math.max(max, n.id), 0) + 1
-    patch({
-      selNotes: [
-        ...state.selNotes,
-        {
-          id,
-          kind,
-          targetId,
-          // `-1` quand le groupe n'est pas renseigné : la note existe quand même,
-          // elle n'est simplement attribuée à personne.
-          authorId: state.people[state.voter]?.id ?? -1,
-          createdAt: new Date().toISOString(),
-          body
-        }
-      ]
-    })
+    // L'identifiant et l'horodatage viennent de la base : les calculer ici
+    // donnerait deux sources pour le même numéro, et deux notes écrites vite
+    // finiraient par le partager.
+    addNote(kind, targetId, body)
     setDraft('')
     setOpen(false)
   }

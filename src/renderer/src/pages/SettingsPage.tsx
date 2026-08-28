@@ -15,6 +15,7 @@ import type { AppState, ProvState } from '@/state/appState'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { LegalSection } from './LegalSection'
+import { StationPhotos } from '@/components/StationPhotos'
 
 const KEY_LABELS: Record<SecretKey, { label: string; help: string; url?: string }> = {
   openrouteservice: {
@@ -757,6 +758,13 @@ export function SettingsPage(): JSX.Element {
                   {t('referential_manage')}
                 </button>
               </div>
+
+              {/* Les photos de stations sont des données, au même titre que les
+                  altitudes : elles vivent donc à côté du référentiel, et non
+                  dans un écran d'apparence. Ici plutôt que dans la page
+                  d'import, qui est deux clics plus loin et parle d'un fichier
+                  JSON. */}
+              <StationPhotos />
               <p
                 className="settings__help"
                 style={{ color: coverage.done ? 'var(--muted)' : 'var(--warn)' }}

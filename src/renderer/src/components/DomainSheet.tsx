@@ -17,6 +17,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { CloseIcon, CloudIcon, ExternalIcon, RainIcon, SnowIcon, SunIcon } from './Icons'
 import { DomainLogo } from './DomainLogo'
+import { StationPhotoCard } from './StationPhotoCard'
 import { BRA_LABELS, braColor, braKeyOf, braLevelOf, braLinks, useBra } from '@/data/bra'
 import type { DomainWeatherDay, DomainWeatherLevel, SkyLabel } from '@/data/domainWeather'
 import { useDomainWeather } from '@/data/domainWeather'
@@ -353,6 +354,10 @@ export function DomainSheet(): JSX.Element | null {
         </div>
 
         <div className="domsheet__body">
+          {/* L'encadré photo ouvre la fiche : c'est la première chose qu'on
+              regarde d'une station qu'on ne connaît pas. Légende et crédit
+              vivent dans le composant — voir StationPhotoCard. */}
+          <StationPhotoCard name={d.name} slug={d.slug} massif={d.massif} />
           {/* Les étiquettes dérivées ont quitté la carte de domaine pour cette
               rangée : sur la carte elles disputaient l'attention aux trois
               chiffres clés, ici elles sont à leur place, à côté du score et de

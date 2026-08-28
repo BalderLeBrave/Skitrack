@@ -5,11 +5,13 @@ import {
   type AirbnbScrapeOutcome,
   type AirbnbScrapeParams,
   type AppInfo,
-  type SecretKey
+  type SecretKey,
+  type SelectionMutation
 } from '@shared/ipc-contract'
 import { fetchBra } from './bra'
 import { fetchListing } from './listing'
 import { disposeProviders, providersHealth, providersMetrics, providersMetricsReset, searchProviders } from './providersBridge'
+import { applySelection, disposeSelection, loadSelection } from './selectionStore'
 import { fetchOsmLodgings } from './providers/osm/osm'
 import { closeAirbnbBrowser, scrapeAirbnbSearch } from './providers/airbnb/scrape'
 import { getPairingToken, startPasteBridge, stopPasteBridge } from './pasteBridge'
@@ -131,6 +133,14 @@ function registerIpc(): void {
     })
   )
   ipcMain.handle(IPC.providersHealth, () => providersHealth())
+
+  // Sélection : une lecture au démarrage, une mutation typée ensuite.
+  // Le magasin rend l'état complet après chaque écriture, pour que le
+  // renderer n'ait pas à tenir un second état susceptible de diverger.
+  ipcMain.handle(IPC.selectionLoad, () => loadSelection())
+  ipcMain.handle(IPC.selectionApply, (_e, mutation: SelectionMutation) =>
+    applySelection(mutation)
+  )
   ipcMain.handle(IPC.providersMetrics, () => providersMetrics())
   ipcMain.handle(IPC.providersMetricsReset, () => {
     providersMetricsReset()
@@ -237,6 +247,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('before-quit', async (event) => {
     disposeProviders()
+    disposeSelection()
     stopPasteBridge()
     await closeAirbnbBrowser()
     if (sidecar.getState().status === 'stopped') return

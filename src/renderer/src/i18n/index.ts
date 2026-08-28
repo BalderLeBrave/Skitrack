@@ -59,6 +59,22 @@ const CATALOG = {
     'Open a resort from Search first.'
   ],
 
+  // --- Fil du parcours (stepper) -----------------------------------------
+  // Trois étapes qui disent l'ordre naturel de la tâche : on choisit une
+  // station, puis un logement dans cette station, puis on compare pour
+  // trancher. Rend explicite un enchaînement qui restait implicite entre des
+  // onglets à plat.
+  journey_station: ['Station', 'Resort'],
+  journey_lodging: ['Logement', 'Stay'],
+  journey_decision: ['Décision', 'Decision'],
+  journey_station_sub: ['Choisir un domaine', 'Pick a resort'],
+  journey_lodging_sub: ['Choisir un hébergement', 'Pick a stay'],
+  journey_decision_sub: ['Comparer & trancher', 'Compare & decide'],
+  journey_step: ['Étape', 'Step'],
+  journey_locked: ['Choisissez d’abord une station', 'Pick a resort first'],
+  journey_aria: ['Parcours : station, logement, décision', 'Journey: resort, stay, decision'],
+
+
   // --- Apparence ----------------------------------------------------------
   theme_light: ['Clair', 'Light'],
   theme_dark: ['Sombre', 'Dark'],

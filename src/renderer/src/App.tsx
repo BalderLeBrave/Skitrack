@@ -10,6 +10,7 @@ import { WeatherProvider } from '@/state/weather'
 import { SvgDefs } from '@/components/Icons'
 import { BrandLogo } from '@/components/BrandLogo'
 import { DomainSheet } from '@/components/DomainSheet'
+import { JourneyStepper } from '@/components/JourneyStepper'
 import { Onboarding } from '@/components/Onboarding'
 import { PeopleDrawer } from '@/components/PeopleDrawer'
 import { Snowfall } from '@/components/Snowfall'
@@ -327,6 +328,7 @@ function Shell(): JSX.Element {
     <div className="app">
       <SvgDefs />
       <Nav />
+      <JourneyStepper />
       <main className="main">
         <Screens />
       </main>

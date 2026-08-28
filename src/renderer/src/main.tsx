@@ -29,6 +29,7 @@ import { App } from './App'
 import './styles/cairn.css'
 import './styles.css'
 import './styles/result-cards.css'
+import './styles/journey.css'
 // L'accueil a sa propre feuille : c'est le seul écran en registre
 // d'affiche, et mêler ses règles à celles des écrans-outils ferait dériver
 // les deux. Elle vient en dernier et ne parle que de `.acc-`.

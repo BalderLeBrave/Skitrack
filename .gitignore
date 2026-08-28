@@ -38,3 +38,9 @@ Thumbs.db
 graphify-out/
 .claude/settings.json.graphify-bak
 vendor/
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

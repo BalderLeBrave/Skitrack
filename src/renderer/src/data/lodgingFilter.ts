@@ -61,6 +61,14 @@ export interface LodgingFilterCriteria {
    * est justement celle que l'écran promet.
    */
   confirmedPricesOnly: boolean
+  /**
+   * Afficher aussi les annonces qui **n'annoncent ni capacité ni pièces**.
+   *
+   * `false` par défaut : demander 8 personnes et 4 chambres puis recevoir un
+   * studio est le défaut que ce drapeau existe pour éviter. `true` les
+   * réaffiche, sur demande explicite, avec leur mention à l'écran.
+   */
+  includeUnannounced: boolean
 }
 
 /**
@@ -129,16 +137,80 @@ export function minRoomsFor(bedrooms: number): number {
  *    compare des pièces, seuil converti ;
  * 3. sinon elle ne dit rien, et « non annoncé » n'est pas « ne convient pas ».
  */
-export function fitsParty(
+export type PartyVerdict = 'convient' | 'trop-petit' | 'non-annonce'
+
+/**
+ * Trois verdicts, parce qu'il y a trois situations et non deux.
+ *
+ * `convient` : l'annonce publie de quoi juger, et elle passe.
+ * `trop-petit` : elle publie de quoi juger, et elle ne passe pas.
+ * `non-annonce` : **elle ne publie rien**, et il n'y a rien à juger.
+ *
+ * Le troisième cas était fondu dans le premier — « non annoncé n'est pas ne
+ * convient pas ». La règle se défend pour une annonce isolée ; elle ne tient
+ * plus à l'échelle observée : sur un relevé de Val d'Isère, 25 annonces sur 39
+ * ne publient aucune capacité et 27 ne publient ni chambres ni pièces. Une
+ * demande de 8 personnes et 4 chambres en laissait passer 32 sur 39, dont des
+ * studios — le filtre ne filtrait plus, et rien ne le disait.
+ *
+ * On ne bascule pas pour autant vers « non annoncé = écarté » en silence : ce
+ * serait cacher des annonces qui conviennent peut-être. Le verdict est rendu,
+ * l'écran écarte par défaut, les compte, et sait les réafficher.
+ */
+export function partyVerdict(
   lodging: Lodging,
   criteria: Pick<LodgingFilterCriteria, 'travelers' | 'rooms'>
-): boolean {
+): PartyVerdict {
   const { pers, ch, rooms } = lodging
-  if (pers !== 0 && pers < criteria.travelers) return false
-  if (criteria.rooms <= 0) return true
-  if (ch > 0) return ch >= criteria.rooms
-  if (rooms != null && rooms > 0) return rooms >= minRoomsFor(criteria.rooms)
-  return true
+
+  /*
+   * Chaque axe demandé est jugé séparément, et **un refus l'emporte sur une
+   * absence**. L'ordre compte : une annonce qui publie « 1 chambre » quand on
+   * en demande quatre est démontrablement trop petite, que sa capacité soit
+   * publiée ou non. La classer « non annoncée » sur le seul motif que sa
+   * capacité manque la ferait réapparaître dès qu'on réaffiche les
+   * non-annoncées — alors qu'on sait qu'elle ne convient pas.
+   */
+  let ignore = false
+
+  if (criteria.travelers > 0) {
+    if (pers > 0) {
+      if (pers < criteria.travelers) return 'trop-petit'
+    } else {
+      ignore = true
+    }
+  }
+
+  if (criteria.rooms > 0) {
+    // Chambres si l'annonce en publie, pièces sinon — jamais l'une traduite en
+    // l'autre. Voir `minRoomsFor`.
+    if (ch > 0) {
+      if (ch < criteria.rooms) return 'trop-petit'
+    } else if (rooms != null && rooms > 0) {
+      if (rooms < minRoomsFor(criteria.rooms)) return 'trop-petit'
+    } else {
+      ignore = true
+    }
+  }
+
+  return ignore ? 'non-annonce' : 'convient'
+}
+
+/**
+ * L'annonce accueille-t-elle le groupe demandé ?
+ *
+ * Conservé pour les appelants qui n'ont qu'un booléen à donner — le sélecteur
+ * des écrans transversaux. `includeNonAnnonce` dit ce qu'on fait du troisième
+ * verdict, et **le défaut est de l'écarter** : un écran qui additionne des
+ * coûts ne doit pas classer premier un studio dont on ignore la capacité.
+ */
+export function fitsParty(
+  lodging: Lodging,
+  criteria: Pick<LodgingFilterCriteria, 'travelers' | 'rooms'>,
+  includeNonAnnonce = false
+): boolean {
+  const v = partyVerdict(lodging, criteria)
+  return v === 'convient' || (v === 'non-annonce' && includeNonAnnonce)
 }
 
 /** Type et source : les deux seuls filtres qui valent pour toute annonce. */
@@ -166,7 +238,7 @@ export function matchesLodgingFilters(
   // elle n'a simplement pas sa place dans la liste.
   if (criteria.confirmedPricesOnly && !hasConfirmedPrice(lodging, stay)) return false
 
-  if (!fitsParty(lodging, criteria)) return false
+  if (!fitsParty(lodging, criteria, criteria.includeUnannounced)) return false
   if (!fitsKind(lodging, criteria)) return false
 
   // Carte-redirection : hébergement OpenStreetMap, ou annonce vue sans tarif.

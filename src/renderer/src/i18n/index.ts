@@ -665,6 +665,15 @@ const CATALOG = {
   pass_days_label: ['Forfait {n} jour(s)', '{n}-day pass'],
   pass_none: ['Aucun tarif de forfait', 'No pass price'],
   child_lower: ['enfant', 'child'],
+
+  // --- Annonces qui n'annoncent ni capacité ni pièces ---------------------
+  lodg_unannounced_tally: [
+    '{n} annonce(s) écartée(s) : la source n’annonce ni capacité ni nombre de pièces, rien ne permet de dire si elles conviennent.',
+    '{n} listing(s) set aside: the source announces neither capacity nor room count, so nothing says whether they fit.'
+  ],
+  lodg_unannounced_show: ['Les afficher quand même', 'Show them anyway'],
+  lodg_unannounced_hide: ['Masquer celles qui n’annoncent rien', 'Hide those that announce nothing'],
+  lodg_unannounced_badge: ['capacité non annoncée', 'capacity not announced'],
   print_label: ['Imprimer', 'Print'],
 
   // --- Sujet 6 : récapitulatif imprimable du séjour ------------------------

@@ -11,7 +11,12 @@
  *   npm run lodgfilter:test
  */
 
-import { matchesLodgingFilters, type LodgingFilterCriteria } from './lodgingFilter'
+import {
+  fitsParty,
+  matchesLodgingFilters,
+  partyVerdict,
+  type LodgingFilterCriteria
+} from './lodgingFilter'
 import { medianTotal } from './lodgings'
 import { mergeProviderReadings, noteOnFive } from './runProviderSearch'
 import type { Lodging } from './lodgings'
@@ -36,7 +41,8 @@ const CRITERIA: LodgingFilterCriteria = {
   // et la distance : ils gardent l'ancienne règle, sinon une annonce sans prix
   // confirmé serait écartée avant même d'être jugée sur le critère testé. La
   // nouvelle règle a sa propre section, en fin de fichier.
-  confirmedPricesOnly: false
+  confirmedPricesOnly: false,
+  includeUnannounced: true
 }
 
 function lodging(over: Partial<Lodging>): Lodging {
@@ -89,6 +95,59 @@ console.log('\n2. Ce que la source n’a pas annoncé passe')
 check('chambres non annoncées (0) → retenue', keeps({ pers: 8, ch: 0, total: 1500 }))
 check('capacité non annoncée (0) → retenue', keeps({ pers: 0, ch: 4, total: 1500 }))
 check('ni l’une ni l’autre → retenue', keeps({ pers: 0, ch: 0, total: 1500 }))
+
+console.log('\n2 bis. Ce que la source n’a pas annoncé, quand on ne veut pas le voir')
+/*
+ * Le défaut signalé le 2026-08-29 : demander 8 personnes et 4 chambres et
+ * recevoir des studios. Sur un relevé de Val d'Isère, 27 annonces sur 39 ne
+ * publiaient ni chambres ni pièces et 25 aucune capacité ; toutes traversaient
+ * le filtre, et rien à l'écran ne le disait.
+ *
+ * `partyVerdict` distingue désormais « trop petit » de « n'annonce rien », et
+ * l'écran écarte le second par défaut tout en sachant le compter.
+ */
+const PARTY = { travelers: 8, rooms: 4 }
+const annonce = (o: Partial<Lodging>): Lodging => lodging({ total: 1500, ...o })
+
+check('rien d’annoncé → « non-annonce »', partyVerdict(annonce({ pers: 0, ch: 0 }), PARTY) === 'non-annonce')
+check(
+  'capacité seule manquante → « non-annonce »',
+  partyVerdict(annonce({ pers: 0, ch: 4 }), PARTY) === 'non-annonce'
+)
+check(
+  'pièces seules manquantes → « non-annonce »',
+  partyVerdict(annonce({ pers: 8, ch: 0 }), PARTY) === 'non-annonce'
+)
+check('tout annoncé et suffisant → « convient »', partyVerdict(annonce({ pers: 8, ch: 4 }), PARTY) === 'convient')
+
+// La règle qui a demandé une correction : un refus l'emporte sur une absence.
+check(
+  'une chambre annoncée insuffisante l’emporte sur la capacité absente',
+  partyVerdict(annonce({ pers: 0, ch: 1 }), PARTY) === 'trop-petit'
+)
+check(
+  'une capacité annoncée insuffisante l’emporte sur les pièces absentes',
+  partyVerdict(annonce({ pers: 2, ch: 0 }), PARTY) === 'trop-petit'
+)
+
+// Les pièces se comparent au seuil converti : 4 chambres demandées = 5 pièces.
+check('4 pièces ne suffisent pas pour 4 chambres', partyVerdict(annonce({ pers: 8, ch: 0, rooms: 4 }), PARTY) === 'trop-petit')
+check('5 pièces suffisent', partyVerdict(annonce({ pers: 8, ch: 0, rooms: 5 }), PARTY) === 'convient')
+
+// Sans critère, il n'y a rien à ignorer : tout convient.
+check(
+  'sans minimum demandé, une annonce muette convient',
+  partyVerdict(annonce({ pers: 0, ch: 0 }), { travelers: 0, rooms: 0 }) === 'convient'
+)
+
+console.log('\n2 ter. Le drapeau qui décide du sort des non-annoncées')
+const muette = annonce({ pers: 0, ch: 0 })
+check('écartée par défaut', !fitsParty(muette, PARTY))
+check('retenue quand on demande à les voir', fitsParty(muette, PARTY, true))
+check(
+  'une trop petite reste écartée même en les affichant',
+  !fitsParty(annonce({ pers: 2, ch: 1 }), PARTY, true)
+)
 
 console.log('\n3. Sans prix — le cas qui a fauté')
 check(

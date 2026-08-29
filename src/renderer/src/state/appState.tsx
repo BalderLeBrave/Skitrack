@@ -437,6 +437,14 @@ export interface AppState {
    * main — ne sont jamais masqués par ce filtre.
    */
   lodgOnlyAvailable: boolean
+  /**
+   * Afficher les annonces qui n'annoncent ni capacité ni pièces.
+   *
+   * Éteint par défaut. Sur un relevé de Val d'Isère, 27 annonces sur 39 ne
+   * publient ni chambres ni pièces et 25 aucune capacité : les laisser passer
+   * en silence, c'est répondre à « 8 personnes, 4 chambres » par des studios.
+   */
+  lodgShowUnannounced: boolean
   flexOpen: boolean
   ficheId: number | null
   compareIds: number[]
@@ -656,6 +664,7 @@ export const INITIAL_STATE: AppState = {
   lodgStatusOpen: false,
   hideBadGeo: false,
   lodgOnlyAvailable: true,
+  lodgShowUnannounced: false,
   flexOpen: false,
   ficheId: null,
   compareIds: [],
@@ -742,7 +751,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgShowUnannounced', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**

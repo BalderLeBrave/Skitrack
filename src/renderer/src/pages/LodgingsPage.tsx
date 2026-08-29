@@ -853,6 +853,33 @@ export function LodgingsPage(): JSX.Element {
                 nombre, il mène à la section qui le justifie. Sans ce saut,
                 l'écart entre ce que la source a renvoyé et ce que l'écran
                 montre resterait à chercher soi-même en bas de page. */}
+            {/* Ce que les critères ont mis de côté faute de pouvoir juger.
+                Sans cette ligne, la seule façon de savoir que ces annonces
+                existent serait de relâcher les critères au hasard. */}
+            {derived.lodgUnannounced > 0 && (
+              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
+                {t('lodg_unannounced_tally').replace('{n}', String(derived.lodgUnannounced))}{' '}
+                <button
+                  type="button"
+                  className="linkbtn linkbtn--sm"
+                  onClick={() => patch({ lodgShowUnannounced: true })}
+                >
+                  {t('lodg_unannounced_show')}
+                </button>
+              </p>
+            )}
+            {state.lodgShowUnannounced && (
+              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
+                <button
+                  type="button"
+                  className="linkbtn linkbtn--sm"
+                  onClick={() => patch({ lodgShowUnannounced: false })}
+                >
+                  {t('lodg_unannounced_hide')}
+                </button>
+              </p>
+            )}
+
             {derived.lodgRejected.length > 0 && (
               <button
                 type="button"

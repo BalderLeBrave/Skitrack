@@ -21,7 +21,7 @@ import { belongsToDomain, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import type { AvailabilityVerdict } from '@/data/lodgingAvailability'
 import { availabilityOf, isBookable } from '@/data/lodgingAvailability'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
-import { fitsParty, hasConfirmedPrice, matchesLodgingFilters } from '@/data/lodgingFilter'
+import { fitsParty, hasConfirmedPrice, matchesLodgingFilters, partyVerdict } from '@/data/lodgingFilter'
 import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
 import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
@@ -160,6 +160,8 @@ export interface Derived {
   lodgHidden: number
   /** Annonces sans disponibilité confirmée pour le séjour en cours. */
   lodgUnavailable: number
+  /** Annonces écartées faute d'annoncer capacité ou nombre de pièces. */
+  lodgUnannounced: number
   /** Annonces écartées par les règles de l'écran, avec leur motif. */
   lodgRejected: RejectedLodging[]
   dupMerged: number
@@ -637,9 +639,26 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       // Règle de l'écran, pas réglage : une annonce listée porte un prix
       // vérifié pour les dates du séjour. Ce qui ne l'est pas ne s'affiche plus
       // avec un avertissement, il ne s'affiche pas.
-      confirmedPricesOnly: true
+      confirmedPricesOnly: true,
+      includeUnannounced: state.lodgShowUnannounced
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
+
+    /**
+     * Annonces mises de côté parce qu'elles n'annoncent **rien** de ce qui est
+     * demandé — ni capacité, ni chambres, ni pièces.
+     *
+     * Comptées sur les annonces qui passent tout le reste : c'est le nombre que
+     * l'écran propose de réafficher, pas un total abstrait. Sans lui, la seule
+     * façon de savoir qu'elles existent serait de décocher au hasard.
+     */
+    const lodgUnannounced = state.lodgShowUnannounced
+      ? 0
+      : lodgAll.filter(
+          (lg) =>
+            partyVerdict(lg, lodgCriteria) === 'non-annonce' &&
+            matchesLodgingFilters(lg, { ...lodgCriteria, includeUnannounced: true }, stay)
+        ).length
 
     /**
      * Ce que les deux règles de l'écran laissent passer, avant tout filtre.
@@ -723,6 +742,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgList,
       lodgHidden: lodgEligible.length - lodgFiltered.length,
       lodgUnavailable,
+      lodgUnannounced,
       lodgRejected,
       dupMerged,
       voteScore,

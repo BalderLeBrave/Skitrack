@@ -186,6 +186,7 @@ export function ImportDialog({ domain: d }: { domain: Domain }): JSX.Element {
     const { imported, added, updated, missing } = mergeAirbnbPaste(state.imported, listings, {
       checkIn: meta.checkIn ?? state.arrDate,
       checkOut: meta.checkOut ?? state.depDate,
+      searchAdults: meta.adults,
       domainId: d.id,
       capacity,
       nights: derived.nights,

@@ -667,9 +667,17 @@ const CATALOG = {
   child_lower: ['enfant', 'child'],
 
   // --- Annonces qui n'annoncent ni capacité ni pièces ---------------------
+  /*
+   * L'ancien texte accusait la source : « la source n'annonce ni capacité ni
+   * nombre de pièces ». C'était faux — Airbnb et Booking filtrent leurs
+   * résultats par le groupe demandé, et c'est le relevé qui ne rapportait pas
+   * cette information. Le texte dit maintenant ce qu'on sait : le relevé n'a
+   * pas rapporté de quoi juger. Les relevés faits depuis portent `fitsGuests`
+   * et ne passent plus par ce message.
+   */
   lodg_unannounced_tally: [
-    '{n} annonce(s) écartée(s) : la source n’annonce ni capacité ni nombre de pièces, rien ne permet de dire si elles conviennent.',
-    '{n} listing(s) set aside: the source announces neither capacity nor room count, so nothing says whether they fit.'
+    '{n} annonce(s) mise(s) de côté : le relevé n’a rapporté ni capacité ni nombre de pièces pour elles, il n’y a pas de quoi juger. Un nouveau relevé les jugera sur le groupe demandé.',
+    '{n} listing(s) set aside: the scan reported neither capacity nor room count for them, so there is nothing to judge by. A new scan will judge them against the requested group.'
   ],
   lodg_unannounced_show: ['Les afficher quand même', 'Show them anyway'],
   lodg_unannounced_hide: ['Masquer celles qui n’annoncent rien', 'Hide those that announce nothing'],

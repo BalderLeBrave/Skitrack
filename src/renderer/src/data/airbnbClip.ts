@@ -55,6 +55,9 @@ export interface AirbnbClipboard {
   source: 'airbnb'
   destination?: string
   checkIn?: string
+  /** Voyageurs de la recherche, lus dans l'URL de la page par le marque-page.
+   *  Absent sur les collages faits avec un marque-page antérieur au champ. */
+  adults?: string | number
   checkOut?: string
   listings: AirbnbClipListing[]
 }
@@ -63,7 +66,7 @@ export interface AirbnbParseResult {
   listings: RawListing[]
   errors: string[]
   /** Destination et dates reprises du collage, pour information. */
-  meta: { destination?: string; checkIn?: string; checkOut?: string; count: number }
+  meta: { destination?: string; checkIn?: string; checkOut?: string; adults?: number; count: number }
 }
 
 /**
@@ -193,6 +196,14 @@ export function parseAirbnbClipboard(text: string): AirbnbParseResult {
       destination: clip.destination,
       checkIn: clip.checkIn,
       checkOut: clip.checkOut,
+      // Le marque-page lit `adults` dans l'URL de la page de résultats, comme
+      // il lit déjà les dates : c'est le groupe pour lequel Airbnb a filtré ce
+      // qui s'affichait. Un collage fait avec un marque-page antérieur au champ
+      // n'en a pas — `undefined`, jamais une valeur de l'application.
+      adults: (() => {
+        const n = Number(clip.adults)
+        return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined
+      })(),
       count: listings.length
     }
   }

@@ -123,6 +123,24 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
   priceCheckIn?: string
   priceCheckOut?: string
   /**
+   * Taille de groupe pour laquelle la source a **rendu** cette annonce.
+   *
+   * Airbnb, Booking et les centrales filtrent leurs résultats par le nombre de
+   * voyageurs demandé — `adults=8`, `group_adults=8`, `search[capacity]=8` sont
+   * dans l'URL de chaque relevé. Une annonce rendue pour huit accueille donc au
+   * moins huit, même quand sa fiche ne publie pas de capacité exacte.
+   *
+   * Cette information était **jetée**, et le filtre classait ensuite ces
+   * annonces « capacité non annoncée » — en accusant la source, à tort : c'est
+   * le relevé qui ne rapportait pas ce qu'il savait. Constaté le 2026-08-29 sur
+   * 96 annonces Airbnb et 51 Booking, toutes à `pers = 0`.
+   *
+   * Ce n'est pas une capacité : demander ensuite dix voyageurs rend ce plancher
+   * muet, et l'annonce redevient non jugeable. `pers`, quand la source le
+   * publie, prime toujours.
+   */
+  fitsGuests?: number
+  /**
    * Heure du relevé qui a rapporté **cette** annonce.
    *
    * `state.lastScan` est un scalaire unique : relever l'Alpe d'Huez à 10 h puis

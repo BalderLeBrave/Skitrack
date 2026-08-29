@@ -140,6 +140,30 @@ check(
   partyVerdict(annonce({ pers: 0, ch: 0 }), { travelers: 0, rooms: 0 }) === 'convient'
 )
 
+console.log('\n2 bis-2. Le plancher du relevé : la source a filtré par groupe')
+/*
+ * Airbnb, Booking et les centrales ne rendent que des biens qui acceptent le
+ * groupe demandé — `adults`, `group_adults`, `search[capacity]` sont dans
+ * chaque URL de relevé. `fitsGuests` porte ce groupe. Ce n'est pas une
+ * capacité : demander plus que le groupe du relevé le rend muet.
+ */
+check(
+  'capacité absente, mais rendue pour 8 → convient',
+  partyVerdict(annonce({ pers: 0, ch: 4, fitsGuests: 8 }), PARTY) === 'convient'
+)
+check(
+  'rendue pour 8, demandée pour 10 → redevient non jugeable',
+  partyVerdict(annonce({ pers: 0, ch: 4, fitsGuests: 8 }), { travelers: 10, rooms: 4 }) === 'non-annonce'
+)
+check(
+  'la capacité publiée prime sur le plancher',
+  partyVerdict(annonce({ pers: 6, ch: 4, fitsGuests: 8 }), PARTY) === 'trop-petit'
+)
+check(
+  'le plancher ne dit rien des pièces',
+  partyVerdict(annonce({ pers: 0, ch: 0, fitsGuests: 8 }), PARTY) === 'non-annonce'
+)
+
 console.log('\n2 ter. Le drapeau qui décide du sort des non-annoncées')
 const muette = annonce({ pers: 0, ch: 0 })
 check('écartée par défaut', !fitsParty(muette, PARTY))

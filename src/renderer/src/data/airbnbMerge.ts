@@ -59,6 +59,13 @@ export interface MergeOptions {
   nights: number
   /** Altitude de repli quand le moteur local n'a pas encore calculé la vraie. */
   fallbackAltitude: number
+  /**
+   * Voyageurs de la recherche Airbnb d'où vient le collage, lus dans l'URL de
+   * la page par le marque-page. `undefined` quand le marque-page ne les a pas
+   * transmis — on n'y substitue pas le groupe de l'application, qui peut avoir
+   * changé entre l'ouverture d'Airbnb et le collage.
+   */
+  searchAdults?: number
 }
 
 export interface MergeResult {
@@ -85,7 +92,7 @@ export function mergeAirbnbPaste(
   listings: RawListing[],
   options: MergeOptions
 ): MergeResult {
-  const { checkIn, checkOut, domainId, capacity, nights, fallbackAltitude } = options
+  const { checkIn, checkOut, domainId, capacity, nights, fallbackAltitude, searchAdults } = options
 
   const existingKeys = new Set(
     existing.filter((l) => l.src === 'Airbnb' && roomKey(l.url)).map((l) => roomKey(l.url))
@@ -160,13 +167,14 @@ export function mergeAirbnbPaste(
       id: firstId + index,
       name: item.name,
       type: 'Import',
-      // Capacité et chambres : 0 = inconnu. La page de résultats Airbnb ne
-      // publie pas le nombre de voyageurs admis, et n'annonce les chambres que
-      // pour les biens qui en ont. Y écrire le groupe du moment et « 1 chambre »
-      // fabriquait des caractéristiques que l'annonce n'a jamais données — et il
-      // suffisait ensuite de porter le groupe à 8 personnes pour que toutes les
-      // annonces importées disparaissent derrière un filtre.
+      // Capacité et chambres : 0 = inconnu. La carte de résultat Airbnb ne
+      // publie pas la capacité exacte du bien ; y écrire le groupe du moment
+      // fabriquait une caractéristique. Mais la **recherche** d'où vient le
+      // collage était filtrée par le groupe (`adults` dans l'URL de la page),
+      // et cette information-là est réelle : elle part dans `fitsGuests`, pas
+      // dans `pers`.
       pers: 0,
+      fitsGuests: searchAdults,
       ch: item.rooms ?? 0,
       m2: null,
       note: typeof item.note === 'string' && item.note ? item.note : '—',

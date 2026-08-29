@@ -167,6 +167,11 @@ function toLodging(
     // plutôt que deviner « Appartement ».
     type: '',
     pers: a.guests ?? 0,
+    // La recherche envoyée au connecteur portait le groupe : Booking reçoit
+    // `group_adults`, Airbnb `adults`, les centrales `search[capacity]` — voir
+    // `webscrape/urls.ts` et `deeplinks.ts`. La source n'a rendu cette annonce
+    // que parce qu'elle accepte ce groupe-là.
+    fitsGuests: params.adults > 0 ? params.adults : undefined,
     // Les centrales de station comptent des **pièces**, pas des chambres, et
     // n'annoncent les secondes nulle part : `ch` reste à zéro — « non annoncé »
     // — plutôt que de traduire un deux-pièces en une chambre, qui serait une
@@ -281,6 +286,7 @@ export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]):
       // Ce que la source vient de publier.
       name: reading.name || lodging.name,
       pers: reading.pers,
+      fitsGuests: reading.fitsGuests ?? lodging.fitsGuests,
       ch: reading.ch,
       rooms: reading.rooms,
       m2: reading.m2 ?? lodging.m2,

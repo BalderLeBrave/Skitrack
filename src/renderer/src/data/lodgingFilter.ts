@@ -176,6 +176,12 @@ export function partyVerdict(
   if (criteria.travelers > 0) {
     if (pers > 0) {
       if (pers < criteria.travelers) return 'trop-petit'
+    } else if (lodging.fitsGuests != null && lodging.fitsGuests >= criteria.travelers) {
+      // Pas de capacité publiée, mais la source a rendu l'annonce pour une
+      // recherche d'au moins ce groupe : Airbnb, Booking et les centrales
+      // filtrent leurs résultats par le nombre de voyageurs demandé. C'est un
+      // plancher relevé, pas une capacité — demander plus que le groupe du
+      // relevé le rend muet, et l'annonce redevient non jugeable.
     } else {
       ignore = true
     }

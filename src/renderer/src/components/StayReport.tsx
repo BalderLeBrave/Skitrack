@@ -38,7 +38,16 @@ import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 import { StayReportMap } from './StayReportMap'
 
-type Origine = 'relevé' | 'saisi' | 'estimé'
+/**
+ * D'où vient un montant du récapitulatif.
+ *
+ * `néant` est le quatrième cas, et il manquait : un poste à zéro **par
+ * décision** — matériel décoché, cours décochés, aucun foyer sur la route —
+ * n'est pas une estimation. Le tagger « estimé » puis l'inscrire dans « Ce qui
+ * manque » revenait à reprocher à l'application de ne pas avoir relevé un
+ * chiffre que personne ne lui a demandé.
+ */
+type Origine = 'relevé' | 'saisi' | 'estimé' | 'néant'
 
 interface Poste {
   label: string
@@ -103,30 +112,42 @@ export function StayReport(): JSX.Element | null {
       // cours particulier tiré du barème 66/62/58 €/h dès que le tarif
       // collectif avait été relevé — et disparaître la mention correspondante
       // de « Ce qui manque ».
-      origine: origineCours,
-      detail: esf.ecole ?? undefined
+      origine: state.optLessons ? origineCours : 'néant',
+      detail: state.optLessons ? (esf.ecole ?? undefined) : t('report_option_off')
     },
-    { label: t('report_item_rental'), montant: k.rental, origine: 'estimé' },
+    {
+      label: t('report_item_rental'),
+      montant: k.rental,
+      origine: state.optRental ? 'estimé' : 'néant',
+      detail: state.optRental ? undefined : t('report_option_off')
+    },
     // Un forfait de route saisi n'a pas de décomposition : l'éclater en
     // « carburant » et « péages » inventerait une répartition que personne n'a
     // donnée. Une seule ligne, nommée pour ce qu'elle est.
-    ...(trip.flat
-      ? [{ label: t('report_item_route_flat'), montant: k.route, origine: 'saisi' as Origine }]
-      : [
-          {
-            label: t('report_item_fuel'),
-            montant: k.fuel,
-            origine: (routeOrigin.fuel === 'saisi' ? 'saisi' : 'estimé') as Origine
-          },
-          {
-            label: t('report_item_tolls'),
-            montant: k.tolls,
-            origine: (routeOrigin.tolls === 'saisi' ? 'saisi' : 'estimé') as Origine
-          }
-        ])
+    // Aucun foyer sur la route : il n'y a pas de trajet à chiffrer, et zéro est
+    // alors exact. Un barème kilométrique appliqué à zéro kilomètre n'est pas
+    // une estimation, c'est une absence.
+    ...(k.cars === 0
+      ? [{ label: t('report_item_route'), montant: 0, origine: 'néant' as Origine, detail: t('report_no_car') }]
+      : trip.flat
+        ? [{ label: t('report_item_route_flat'), montant: k.route, origine: 'saisi' as Origine }]
+        : [
+            {
+              label: t('report_item_fuel'),
+              montant: k.fuel,
+              origine: (routeOrigin.fuel === 'saisi' ? 'saisi' : 'estimé') as Origine
+            },
+            {
+              label: t('report_item_tolls'),
+              montant: k.tolls,
+              origine: (routeOrigin.tolls === 'saisi' ? 'saisi' : 'estimé') as Origine
+            }
+          ])
   ]
 
-  const chiffre = postes.filter((p) => p.origine !== 'estimé').reduce((n, p) => n + p.montant, 0)
+  const chiffre = postes
+    .filter((p) => p.origine === 'relevé' || p.origine === 'saisi')
+    .reduce((n, p) => n + p.montant, 0)
   const estime = postes.filter((p) => p.origine === 'estimé').reduce((n, p) => n + p.montant, 0)
 
   /**
@@ -139,10 +160,10 @@ export function StayReport(): JSX.Element | null {
   const manques: string[] = []
   if (pass == null) manques.push(t('report_missing_pass'))
   else if (forfaitIncertain(pass.origine)) manques.push(t('report_missing_pass_interp'))
-  if (origineCours !== 'saisi' && k.lessons > 0) manques.push(t('report_missing_lessons'))
-  if (!trip.flat && routeOrigin.fuel !== 'saisi') manques.push(t('report_missing_fuel'))
-  if (!trip.flat && routeOrigin.tolls !== 'saisi') manques.push(t('report_missing_tolls'))
-  if (k.rental > 0) manques.push(t('report_missing_rental'))
+  if (state.optLessons && origineCours !== 'saisi' && k.lessons > 0) manques.push(t('report_missing_lessons'))
+  if (k.cars > 0 && !trip.flat && routeOrigin.fuel !== 'saisi') manques.push(t('report_missing_fuel'))
+  if (k.cars > 0 && !trip.flat && routeOrigin.tolls !== 'saisi') manques.push(t('report_missing_tolls'))
+  if (state.optRental && k.rental > 0) manques.push(t('report_missing_rental'))
   if (weather == null) manques.push(t('report_missing_snow'))
   else if (weather.snowBas == null && weather.snowHaut == null) manques.push(t('report_missing_snow'))
   if (bra == null) manques.push(t('report_missing_bra'))
@@ -156,10 +177,25 @@ export function StayReport(): JSX.Element | null {
       style={{
         fontSize: 9.5,
         fontWeight: 700,
-        color: o === 'estimé' ? 'var(--warn)' : o === 'saisi' ? 'var(--brand)' : 'var(--ok)'
+        color:
+          o === 'estimé'
+            ? 'var(--warn)'
+            : o === 'saisi'
+              ? 'var(--brand)'
+              : o === 'néant'
+                ? 'var(--muted)'
+                : 'var(--ok)'
       }}
     >
-      {t(o === 'estimé' ? 'prov_estimated' : o === 'saisi' ? 'prov_manual' : 'prov_measured')}
+      {t(
+        o === 'estimé'
+          ? 'prov_estimated'
+          : o === 'saisi'
+            ? 'prov_manual'
+            : o === 'néant'
+              ? 'report_origin_none'
+              : 'prov_measured'
+      )}
     </span>
   )
 

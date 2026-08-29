@@ -18,6 +18,15 @@
       pas énumérer. Une image ne s'exécute pas — `script-src` et `connect-src`
       restent, eux, strictement fermés.
 
+      `font-src` accepte `data:` en plus de `'self'`, et seulement pour cela.
+      Les polices sont empaquetées, mais Vite **inline** les plus petites en
+      data-URI à la construction : dix des quarante-huit fichiers y passent. En
+      développement elles sont servies comme fichiers et tout va bien ; dans
+      l'application construite, la console se remplissait de « Refused to load
+      the font » et ces graisses-là retombaient sur une police système. Un
+      data-URI de police vient du paquet lui-même, il ne désigne aucune origine
+      distante, et n'ouvre donc rien.
+
       `frame-src` liste nommément les hébergeurs des webcams affichées dans la
       fiche domaine. Une iframe exécute du script tiers : la liste est donc
       close et alignée sur la table de `data/webcams.ts`, jamais élargie à
@@ -26,7 +35,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; frame-src https://www.skaping.com https://app.webcam-hd.com https://tignes.roundshot.com https://pv.viewsurf.com https://www.vision-environnement.com https://www.stationsnicecotedazur.com; connect-src 'self' http://127.0.0.1:* ws://localhost:* https://*.opentopomap.org https://*.tile.openstreetmap.org https://data.geopf.fr https://server.arcgisonline.com https://*.basemaps.cartocdn.com https://s3.amazonaws.com https://demotiles.maplibre.org https://router.project-osrm.org https://tiles.opensnowmap.org https://overpass-api.de https://overpass.kumi.systems https://api.open-meteo.com"
+      content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; frame-src https://www.skaping.com https://app.webcam-hd.com https://tignes.roundshot.com https://pv.viewsurf.com https://www.vision-environnement.com https://www.stationsnicecotedazur.com; connect-src 'self' http://127.0.0.1:* ws://localhost:* https://*.opentopomap.org https://*.tile.openstreetmap.org https://data.geopf.fr https://server.arcgisonline.com https://*.basemaps.cartocdn.com https://s3.amazonaws.com https://demotiles.maplibre.org https://router.project-osrm.org https://tiles.opensnowmap.org https://overpass-api.de https://overpass.kumi.systems https://api.open-meteo.com"
     />
     <title>SKITRACK</title>
   </head>

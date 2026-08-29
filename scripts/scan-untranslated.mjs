@@ -112,7 +112,7 @@ const VERBATIM = [
    * valeurs ne s'affichent jamais telles quelles : `passOriginText` compose la
    * phrase depuis le catalogue. Les traduire casserait la comparaison.
    */
-  /^(saisi|relevé|interpolé|estimé)$/
+  /^(saisi|relevé|interpolé|estimé|néant)$/
 ]
 
 /**

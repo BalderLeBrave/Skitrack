@@ -715,6 +715,13 @@ const CATALOG = {
   report_item_fuel: ['Carburant', 'Fuel'],
   report_item_tolls: ['Péages', 'Tolls'],
   report_item_route_flat: ['Route (forfait saisi)', 'Drive (flat amount entered)'],
+  report_item_route: ['Route', 'Drive'],
+  report_origin_none: ['sans objet', 'not applicable'],
+  report_option_off: ['option désactivée', 'option turned off'],
+  report_no_car: [
+    'aucun foyer sur la route : il n’y a pas de trajet à chiffrer',
+    'no household on the road: there is no drive to cost'
+  ],
   report_total: ['Total', 'Total'],
   report_split: [
     'Dont {c} appuyés sur un relevé ou une saisie, et {e} estimés.',

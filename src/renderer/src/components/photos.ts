@@ -12,6 +12,31 @@
  * les polices — la CSP du renderer n'autorise rien d'autre.
  */
 
+/**
+ * Les 257 photos, résolues **à la compilation**.
+ *
+ * ## Le piège du chargement empressé
+ *
+ * `eager: true` fait de chaque image un import statique : elles entrent toutes
+ * dans le graphe de modules, et **une seule illisible fait échouer le graphe
+ * entier** — l'application démarre alors sur un écran vide, sans message.
+ *
+ * C'est arrivé le 2026-08-29 : le cache HTTP de Chromium
+ * (`%APPDATA%/skitrack/Cache`) portait une entrée corrompue pour l'une d'elles
+ * et servait des octets nuls là où Vite avait envoyé un module valide. Le
+ * fichier sur disque était intact, `curl` recevait le bon contenu, et
+ * l'application restait noire à chaque lancement, le cache survivant aux
+ * redémarrages.
+ *
+ * Le remède est `npm run cache:clear`. Le symptôme, lui, ne se produit qu'en
+ * développement : l'application construite embarque les images dans son
+ * paquet, sans requête ni cache.
+ *
+ * Le chargement empressé n'est pas une erreur pour autant — `stationPhoto()`
+ * rend une chaîne, appelée en plein rendu, et la version paresseuse rendrait
+ * des promesses qu'il faudrait attendre dans chaque vignette. Mais la
+ * fragilité mérite d'être écrite là où elle vit.
+ */
 const IMAGES = import.meta.glob<string>('../assets/img/*.{jpg,jpeg,png,webp}', {
   eager: true,
   query: '?url',

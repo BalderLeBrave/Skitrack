@@ -37,6 +37,7 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | Réimporter les centrales | `npm run centrales:import` | vert |
 | Reconnaissance des centrales | `npm run centrales:recon` | vert, ~12 min, réseau |
 | Régénérer les audits | `npm run areas:audit` · `npm run refs:audit` | vert |
+| Écran vide au lancement (dev) | `npm run cache:clear` | vert |
 | Lint Python | `npm run lint:py` | **rouge, préexistant** |
 | Typecheck complet | `npm run typecheck` | **rouge, préexistant** |
 
@@ -49,6 +50,21 @@ d'effet).
 
 Il n'y a **ni ESLint ni script `lint`/`test`** dans ce projet : `npm run lint`
 et `npm test` n'existent pas. Ne les invoque pas.
+
+### Écran vide au lancement, en développement
+
+Symptôme : `npm run dev` ouvre une fenêtre noire, à chaque lancement, sans
+message. Cause observée le 2026-08-29 : une entrée **corrompue** du cache HTTP
+de Chromium (`%APPDATA%/skitrack/Cache`) servait des octets nuls pour l'une des
+257 photos de station. Les photos passent par un `import.meta.glob` empressé
+(`components/photos.ts`) : une seule illisible fait échouer le graphe de
+modules entier, et rien ne s'affiche.
+
+Le fichier sur disque était intact et `curl` recevait le bon module — seul le
+navigateur embarqué voyait des zéros, et le cache survivait aux redémarrages.
+Remède : `npm run cache:clear` (les réglages et les annonces sont conservés).
+L'application **construite** n'est pas concernée : ses images sont dans le
+paquet.
 
 ### Rouges préexistants — ne pas les signaler comme régressions
 

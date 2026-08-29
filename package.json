@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "cache:clear": "node scripts/clear-caches.mjs",
+    "icon:build": "electron scripts/build-icon.mjs",
     "build": "npm run typecheck && electron-vite build",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",

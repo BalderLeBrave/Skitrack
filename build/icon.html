@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Icône SKITRACK</title>
+    <!--
+      Source de l'icône d'application.
+
+      Elle reprend le logo typographique de la barre supérieure
+      (`components/BrandLogo.tsx`) réduit à ses deux initiales : le **S** de
+      « ski » et le **T** de « track », en graisse 800, surmontés du point bleu
+      d'accent. Le mot entier serait illisible à 16 px — les deux lettres
+      tiennent, et la bille reste reconnaissable.
+
+      Le fond est une tuile claire à coins arrondis : la barre des tâches de
+      Windows est sombre par défaut, et une tuile claire s'y détache. Les
+      couleurs sont celles des jetons Cairn, pas des valeurs choisies ici :
+      `--nav-bg` pour la tuile, `--nav-fg` pour l'encre, `--accent` pour la
+      bille (voir `styles/cairn.css`).
+
+      La page est **rendue** par `scripts/build-icon.mjs`, qui la photographie à
+      sept tailles et assemble `build/icon.ico`. Elle n'est jamais chargée par
+      l'application : c'est un plan de fabrication, pas un écran.
+    -->
+    <style>
+      /*
+        La police est celle de l'interface. Elle est lue depuis `node_modules`
+        au moment du rendu : l'icône doit avoir exactement la même lettre que
+        le logo à l'écran, pas une approximation système.
+      */
+      @font-face {
+        font-family: 'Plus Jakarta Sans';
+        font-style: normal;
+        font-weight: 800;
+        src: url('../node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-800-normal.woff2')
+          format('woff2');
+      }
+
+      :root {
+        --tuile: #ffffff;
+        --encre: #222b33;
+        --accent: #0b6fc2;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+      }
+
+      /*
+        Le rendu se fait toujours à 512 px, puis l'image est réduite : les
+        proportions restent identiques à toutes les tailles, et les petites
+        définitions profitent du rééchantillonnage plutôt que d'un tracé
+        recalculé.
+      */
+      #icone {
+        width: 512px;
+        height: 512px;
+      }
+    </style>
+  </head>
+  <body>
+    <svg id="icone" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+      <!-- Tuile. Le rayon vaut un cinquième du côté : la courbe des icônes
+           Windows 11, assez marquée pour se distinguer d'un carré. -->
+      <rect x="0" y="0" width="512" height="512" rx="102" ry="102" fill="var(--tuile)" />
+
+      <!-- Les deux initiales, centrées optiquement. Le bloc descend un peu :
+           la bille occupe le coin haut droit, et un centrage géométrique strict
+           ferait pencher l'ensemble vers le haut. -->
+      <text
+        x="240"
+        y="368"
+        text-anchor="middle"
+        font-family="'Plus Jakarta Sans', system-ui, sans-serif"
+        font-weight="800"
+        font-size="292"
+        letter-spacing="-12"
+        fill="var(--encre)"
+      >ST</text>
+
+      <!-- La bille d'accent, en exposant après la dernière lettre, comme dans
+           le logo. Elle est montée au-dessus de la barre du T : posée à sa
+           hauteur, elle la touchait et les deux formes se lisaient comme une
+           seule. -->
+      <circle cx="416" cy="124" r="38" fill="var(--accent)" />
+    </svg>
+  </body>
+</html>

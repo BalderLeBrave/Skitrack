@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { writeFile } from 'node:fs/promises'
 import { BrowserWindow, app, clipboard, dialog, ipcMain, shell } from 'electron'
@@ -26,6 +27,15 @@ import { Sidecar } from './sidecar'
 const sidecar = new Sidecar()
 let mainWindow: BrowserWindow | null = null
 
+/**
+ * Icône de la fenêtre, pour la barre des tâches en développement.
+ *
+ * `out/main` est le dossier d'exécution : `../../build` remonte à la racine du
+ * dépôt. Le fichier est produit par `npm run icon:build` depuis
+ * `build/icon.html`, qui reprend le logo typographique de l'interface.
+ */
+const ICONE_APP = join(__dirname, '../../build/icon.ico')
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -35,6 +45,13 @@ function createWindow(): void {
     show: false,
     backgroundColor: '#0f1620',
     title: 'SKITRACK',
+    // En développement, la barre des tâches affiche l'icône d'Electron faute
+    // de mieux : l'exécutable lancé est le sien. On lui donne donc la nôtre,
+    // quand elle est là. Dans l'application **construite**, elle est gravée
+    // dans l'exécutable par electron-builder (`buildResources: build`) et cette
+    // ligne ne sert plus à rien — d'où le `existsSync`, qui évite de planter
+    // au démarrage sur un chemin absent de l'archive asar.
+    ...(existsSync(ICONE_APP) ? { icon: ICONE_APP } : {}),
     webPreferences: {
       // `.mjs` : le projet est en `"type": "module"`, electron-vite émet donc un
       // preload ESM. Electron ne l'accepte que hors sandbox — d'où `sandbox: false`

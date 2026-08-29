@@ -38,6 +38,7 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | Reconnaissance des centrales | `npm run centrales:recon` | vert, ~12 min, réseau |
 | Régénérer les audits | `npm run areas:audit` · `npm run refs:audit` | vert |
 | Écran vide au lancement (dev) | `npm run cache:clear` | vert |
+| Refabriquer l'icône d'application | `npm run icon:build` | vert |
 | Lint Python | `npm run lint:py` | **rouge, préexistant** |
 | Typecheck complet | `npm run typecheck` | **rouge, préexistant** |
 
@@ -74,6 +75,24 @@ paquet.
   `page.evaluate`, et `tsconfig.node.json` n'a pas `lib: DOM`.
 - `npm run lint:py` : 38 constats ruff, dont 13 `B008` qui visent l'idiome
   FastAPI `Depends()` en valeur par défaut — des faux positifs.
+
+### Icône d'application
+
+`build/icon.html` est la **source** : le logo typographique réduit à ses deux
+initiales — le S de « ski », le T de « track » — en graisse 800, avec la bille
+d'accent en exposant. Les couleurs sont les jetons Cairn, pas des valeurs
+choisies là.
+
+`npm run icon:build` la rasterise en `build/icon.ico` (sept définitions, de 16 à
+256 px) et `build/icon.png`. Le rendu passe par Electron : c'est le même moteur
+que celui qui dessine le logo à l'écran, donc exactement la même lettre. Une
+fenêtre s'affiche une seconde pendant la capture — Chromium ne compose aucune
+trame pour une fenêtre qu'il ne dessine pas, et les variantes hors écran ou
+transparentes rendent une image vide ou ne rendent jamais la main.
+
+electron-builder prend `build/icon.ico` par convention (`buildResources: build`).
+En développement, c'est `BrowserWindow` qui la porte, sans quoi la barre des
+tâches affiche l'icône d'Electron.
 
 ## Invariants du projet
 

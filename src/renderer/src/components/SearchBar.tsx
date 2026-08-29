@@ -44,7 +44,7 @@ const NEARBY_DEBOUNCE_MS = 450
 type Segment = 'dest' | 'dates' | 'people' | 'alt'
 
 export function SearchBar(): JSX.Element {
-  const { state, patch, domains } = useApp()
+  const { state, patch, setPeople, domains } = useApp()
   const { fmt, fmtStay } = useFormat()
   const { t } = useI18n()
   const [open, setOpen] = useState<Segment | null>(null)
@@ -252,17 +252,32 @@ export function SearchBar(): JSX.Element {
             gouttière et se lisait décalé de deux pixels dans un cercle de
             24 px. */}
         <div className="sb__stepper">
+          {/*
+            La pilule passe par `setPeople`, comme le tiroir Voyageurs — et non
+            par un `patch({ travelers })` direct. Les deux compteurs avaient
+            divergé : la pilule montait `travelers` à 8, l'en-tête Logements
+            annonçait « 8 voyageur(s) », mais le poste Forfaits comptait les
+            personnes du tiroir, restées à une. Le total du séjour contredisait
+            le groupe affiché, en silence. Constaté le 2026-08-30.
+
+            `setPeople` recalcule `travelers` et `children` d'après la liste :
+            un seul chemin d'écriture, plus de divergence possible. Le repli sur
+            `patch` ne sert que si la liste est vide — l'état d'avant le premier
+            passage par le tiroir.
+          */}
           <button
             type="button"
             className="sb__round"
             aria-label={t('sb_less')}
             disabled={state.travelers <= 1}
-            onClick={() =>
-              patch({
-                travelers: Math.max(1, state.travelers - 1),
-                children: Math.min(state.children, Math.max(1, state.travelers - 1) - 1)
-              })
-            }
+            onClick={() => {
+              if (state.people.length > 1) setPeople(state.people.slice(0, -1))
+              else if (state.people.length === 0)
+                patch({
+                  travelers: Math.max(1, state.travelers - 1),
+                  children: Math.min(state.children, Math.max(1, state.travelers - 1) - 1)
+                })
+            }}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M7 12h10" />
@@ -274,7 +289,18 @@ export function SearchBar(): JSX.Element {
             className="sb__round"
             aria-label={t('sb_more')}
             disabled={state.travelers >= TRAVELERS_MAX}
-            onClick={() => patch({ travelers: Math.min(TRAVELERS_MAX, state.travelers + 1) })}
+            onClick={() => {
+              if (state.people.length > 0)
+                setPeople([
+                  ...state.people,
+                  // Même gabarit que « Ajouter un voyageur » du tiroir : un
+                  // adulte générique, rattaché au premier départ. Les âges
+                  // s'affinent dans le tiroir — la pilule ne compte que des
+                  // têtes.
+                  { id: Date.now(), first: `Voyageur ${state.people.length + 1}`, last: '', age: 30, home: 0 }
+                ])
+              else patch({ travelers: Math.min(TRAVELERS_MAX, state.travelers + 1) })
+            }}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 7v10M7 12h10" />

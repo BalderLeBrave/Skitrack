@@ -185,10 +185,21 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
     }
   }, [])
 
+  /**
+   * Date du relevé le plus ancien **parmi les domaines affichés**.
+   *
+   * Le minimum était pris sur toute la carte météo, cache disque compris : au
+   * lancement, une entrée d'hier pour un domaine hors écran suffisait à faire
+   * afficher « relevées il y a 15 h » sous une liste dont chaque ligne venait
+   * d'être rafraîchie. L'étiquette doit dater ce que l'écran montre, pas le
+   * fond du cache.
+   */
   const fetchedAt = useMemo(() => {
-    const stamps = Object.values(map).map((w) => w.fetchedAt)
+    const stamps = wanted
+      .map((d) => map[d.id]?.fetchedAt)
+      .filter((v): v is number => v != null)
     return stamps.length ? Math.min(...stamps) : null
-  }, [map])
+  }, [map, wanted])
 
   const value = useMemo<WeatherContextValue>(
     () => ({

@@ -312,16 +312,19 @@ export function SettingsPage(): JSX.Element {
 
   const provenance: { label: string; src: string; ok: boolean; tag: string }[] = [
     {
-      label: 'Domaines et altitudes',
+      label: t('prov_row_domains'),
       src:
         domainSource === 'moteur'
-          ? `OpenSkiMap / OpenStreetMap — base du moteur local, ${domains.length} domaines`
-          : `${ref.sources?.domaines?.nom ?? 'OpenSkiMap / OpenStreetMap'} — ${refOrigin}, ${domains.length} domaines`,
+          ? t('prov_row_domains_engine').replace('{n}', String(domains.length))
+          : t('prov_row_domains_file')
+              .replace('{s}', ref.sources?.domaines?.nom ?? 'OpenSkiMap / OpenStreetMap')
+              .replace('{o}', refOrigin)
+              .replace('{n}', String(domains.length)),
       ok: domainSource === 'moteur',
-      tag: domainSource === 'moteur' ? 'relevé' : 'fichier livré'
+      tag: domainSource === 'moteur' ? t('prov_measured') : t('prov_tag_file')
     },
     {
-      label: 'Forfaits',
+      label: t('prov_row_forfaits'),
       src: t('prov_forfaits_src')
         .replace('{n}', String(forfaitsRelevés))
         .replace('{e}', String(forfaitsEstimés)),
@@ -333,25 +336,25 @@ export function SettingsPage(): JSX.Element {
         .replace('{t}', String(domains.length))
     },
     {
-      label: 'Neige au sol',
-      src: 'Open-Meteo — hauteur de neige au bas des pistes et au point culminant, interpolée sur l’altitude',
+      label: t('prov_row_snow'),
+      src: t('prov_row_snow_src'),
       ok: true,
-      tag: 'relevé'
+      tag: t('prov_measured')
     },
     {
-      label: 'Météo 7 jours',
-      src: 'Open-Meteo — température, chutes et vent au point culminant, relevé toutes les 3 h',
+      label: t('prov_row_weather'),
+      src: t('prov_row_weather_src'),
       ok: true,
-      tag: 'relevé'
+      tag: t('prov_measured')
     },
     {
-      label: 'Risque d’avalanche',
-      src: 'indice dérivé des chutes annoncées et du vent — le BRA officiel Météo-France demande une clé',
+      label: t('prov_row_bra'),
+      src: t('prov_row_bra_src'),
       ok: false,
-      tag: 'estimé'
+      tag: t('prov_estimated')
     },
     {
-      label: 'Logements',
+      label: t('prov_row_lodgings'),
       src: lodgSources.length
         ? t('prov_lodgings_src_scanned').replace('{s}', lodgSources.join(', ')) +
           (lodgManuels
@@ -368,7 +371,7 @@ export function SettingsPage(): JSX.Element {
           : t('prov_none')
     },
     {
-      label: 'Temps de trajet',
+      label: t('prov_row_routes'),
       src: coverage.done
         ? t('prov_routes_src_some')
             .replace('{n}', String(coverage.done))
@@ -386,16 +389,16 @@ export function SettingsPage(): JSX.Element {
               .replace('{t}', String(coverage.total))
     },
     {
-      label: 'Cours de ski',
-      src: 'barème horaire indexé sur le prix du forfait, modifiable par station',
+      label: t('prov_row_lessons'),
+      src: t('prov_row_lessons_src'),
       ok: false,
-      tag: 'estimé'
+      tag: t('prov_estimated')
     },
     {
-      label: 'Carburant et péages',
-      src: '0,115 €/km et 0,058 €/km, aller-retour par foyer',
+      label: t('prov_row_fuel'),
+      src: t('prov_row_fuel_src'),
       ok: false,
-      tag: 'forfaitaire'
+      tag: t('prov_tag_flat')
     }
   ]
 

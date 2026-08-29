@@ -1172,6 +1172,48 @@ const CATALOG = {
   prov_routes_ratio: ['{n} sur {t} calculés', '{n} of {t} computed'],
   prov_none: ['aucun relevé', 'nothing recorded'],
   /*
+   * Les lignes du tableau de provenance étaient à moitié en dur : en anglais,
+   * l'écran affichait « Neige au sol » entre « Pass prices » et « recorded ».
+   * Un tableau dont le rôle est l'exactitude ne peut pas être bilingue par
+   * accident. Constaté le 2026-08-30, en passant l'interface en anglais.
+   */
+  prov_row_domains: ['Domaines et altitudes', 'Domains and elevations'],
+  prov_row_domains_engine: [
+    'OpenSkiMap / OpenStreetMap — base du moteur local, {n} domaines',
+    'OpenSkiMap / OpenStreetMap — local engine database, {n} domains'
+  ],
+  prov_row_domains_file: ['{s} — {o}, {n} domaines', '{s} — {o}, {n} domains'],
+  prov_row_forfaits: ['Forfaits', 'Passes'],
+  prov_row_snow: ['Neige au sol', 'Snow depth'],
+  prov_row_snow_src: [
+    'Open-Meteo — hauteur de neige au bas des pistes et au point culminant, interpolée sur l’altitude',
+    'Open-Meteo — snow depth at the base and at the summit, interpolated on elevation'
+  ],
+  prov_row_weather: ['Météo 7 jours', '7-day weather'],
+  prov_row_weather_src: [
+    'Open-Meteo — température, chutes et vent au point culminant, relevé toutes les 3 h',
+    'Open-Meteo — temperature, snowfall and wind at the summit, read every 3 h'
+  ],
+  prov_row_bra: ['Risque d’avalanche', 'Avalanche risk'],
+  prov_row_bra_src: [
+    'indice dérivé des chutes annoncées et du vent — le BRA officiel Météo-France demande une clé',
+    'index derived from forecast snowfall and wind — the official Météo-France bulletin needs an API key'
+  ],
+  prov_row_lodgings: ['Logements', 'Lodgings'],
+  prov_row_routes: ['Temps de trajet', 'Travel times'],
+  prov_row_lessons: ['Cours de ski', 'Ski lessons'],
+  prov_row_lessons_src: [
+    'barème horaire indexé sur le prix du forfait, modifiable par station',
+    'hourly scale indexed on the pass price, editable per resort'
+  ],
+  prov_row_fuel: ['Carburant et péages', 'Fuel and tolls'],
+  prov_row_fuel_src: [
+    '0,115 €/km et 0,058 €/km, aller-retour par foyer — remplaçables par vos valeurs, plus bas',
+    '€0.115/km and €0.058/km, round trip per household — replaceable with your values below'
+  ],
+  prov_tag_file: ['fichier livré', 'shipped file'],
+  prov_tag_flat: ['forfaitaire', 'flat scale'],
+  /*
    * Écrans vides : dire lequel des deux motifs s'applique.
    *
    * Offres, Combinaisons et Décision lisaient un catalogue de biens types

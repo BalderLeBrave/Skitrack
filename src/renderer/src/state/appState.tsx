@@ -438,13 +438,17 @@ export interface AppState {
    */
   lodgOnlyAvailable: boolean
   /**
-   * Afficher les annonces qui n'annoncent ni capacité ni pièces.
+   * Masquer les annonces qui n'annoncent pas ce que les critères demandent.
    *
-   * Éteint par défaut. Sur un relevé de Val d'Isère, 27 annonces sur 39 ne
-   * publient ni chambres ni pièces et 25 aucune capacité : les laisser passer
-   * en silence, c'est répondre à « 8 personnes, 4 chambres » par des studios.
+   * **Éteint par défaut** : elles s'affichent, avec un badge « capacité non
+   * annoncée » — le masquage est l'option. Le défaut inverse a été essayé le
+   * 2026-08-29 et retiré le lendemain : il mettait 103 annonces de côté d'un
+   * coup et vidait l'écran (« ça marchait parfaitement bien avant »). Ce qui
+   * est connu **trop petit** reste écarté dans tous les cas — un studio
+   * annoncé 2 personnes ne répond jamais à une recherche à 8 ; c'était la
+   * plainte d'origine, et elle reste couverte.
    */
-  lodgShowUnannounced: boolean
+  lodgHideUnannounced: boolean
   /**
    * Bandeau de séjour replié.
    *
@@ -674,7 +678,7 @@ export const INITIAL_STATE: AppState = {
   lodgStatusOpen: false,
   hideBadGeo: false,
   lodgOnlyAvailable: true,
-  lodgShowUnannounced: false,
+  lodgHideUnannounced: false,
   stayBarCollapsed: false,
   flexOpen: false,
   ficheId: null,
@@ -762,7 +766,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgShowUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**
@@ -863,6 +867,13 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // ramène à 0 plutôt que de poser en silence un filtre que personne n'a
   // demandé. Un seuil réglé à la main sur 2 ou plus est un choix, il reste.
   if ((saved.prefsSchema ?? 0) < 5 && num(out.rooms) === 1) out.rooms = 0
+
+  // `lodgShowUnannounced` (2026-08-29, retiré le lendemain) : le défaut
+  // masquait les annonces qui n'annoncent rien, et vidait l'écran. La clé
+  // change de nom ET de sens (`lodgHideUnannounced`, défaut visible) — on
+  // efface l'ancienne plutôt que de la traduire, pour que tout le monde
+  // reparte du défaut.
+  delete out.lodgShowUnannounced
 
   // `searchFiltersOpen` a cessé d'être un réglage enregistré le jour où le
   // panneau est devenu un survol. La valeur laissée sur le disque rouvrirait

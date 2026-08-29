@@ -665,6 +665,37 @@ const CATALOG = {
   pass_days_label: ['Forfait {n} jour(s)', '{n}-day pass'],
   pass_none: ['Aucun tarif de forfait', 'No pass price'],
   child_lower: ['enfant', 'child'],
+
+  // --- Questions d'un vacancier : réponses installées le 2026-08-30 -------
+  runs_by_colour: ['Pistes par couleur', 'Runs by colour'],
+  runs_green: ['vertes', 'green'],
+  runs_blue: ['bleues', 'blue'],
+  runs_red: ['rouges', 'red'],
+  runs_black: ['noires', 'black'],
+  runs_unclassed: ['non classées', 'unclassified'],
+  runs_total: ['{n} pistes', '{n} runs'],
+  runs_source: [
+    'répartition du classeur France Montagnes — le niveau réel d’une piste reste celui du terrain',
+    'breakdown from the France Montagnes workbook — a run’s real difficulty remains what you find on the ground'
+  ],
+  alt_median_label: ['Altitude médiane des pistes', 'Median run elevation'],
+  high_share_label: ['Kilomètres de pistes à 2 000 m ou plus', 'Run kilometres at 2,000 m or higher'],
+  official_map_link: ['Plan des pistes officiel', 'Official piste map'],
+  official_sheet_link: ['Fiche France Montagnes', 'France Montagnes page'],
+  official_links_note: [
+    'Documents officiels, ouverts dans le navigateur. Le plan des pistes est une œuvre protégée : l’application n’en reproduit aucun.',
+    'Official documents, opened in the browser. Piste maps are protected works: the application reproduces none.'
+  ],
+  snow_history_title: ['Historique de neige', 'Snow history'],
+  snow_history_since: [
+    'relevée par SKITRACK sur cette machine depuis le {d} — rien avant, rien d’importé',
+    'recorded by SKITRACK on this machine since {d} — nothing before, nothing imported'
+  ],
+  snow_history_empty: [
+    'L’historique se construit à partir d’aujourd’hui : l’application enregistre un relevé par jour à chaque consultation. Aucune base antérieure n’existe, et elle ne s’en invente pas.',
+    'History builds from today: the application records one reading per day whenever it checks. No earlier database exists, and none is invented.'
+  ],
+  snow_history_day: ['{d} : {b} / {h} cm (bas / haut)', '{d}: {b} / {h} cm (base / top)'],
   staybar_collapse: ['Réduire le bandeau', 'Collapse the bar'],
   staybar_expand: ['Détail du séjour', 'Stay details'],
 
@@ -690,18 +721,32 @@ const CATALOG = {
 
   // --- Annonces qui n'annoncent ni capacité ni pièces ---------------------
   /*
-   * L'ancien texte accusait la source : « la source n'annonce ni capacité ni
-   * nombre de pièces ». C'était faux — Airbnb et Booking filtrent leurs
-   * résultats par le groupe demandé, et c'est le relevé qui ne rapportait pas
-   * cette information. Le texte dit maintenant ce qu'on sait : le relevé n'a
-   * pas rapporté de quoi juger. Les relevés faits depuis portent `fitsGuests`
-   * et ne passent plus par ce message.
+   * Deux versions de ce message ont menti avant celle-ci, et les deux fautes
+   * méritent d'être écrites. « La source n'annonce ni capacité ni pièces »
+   * accusait la source — c'était le relevé qui jetait la donnée. Puis « un
+   * nouveau relevé les jugera sur le groupe demandé » promettait l'impossible
+   * quand l'axe manquant est le nombre de pièces : aucun relevé Airbnb ou
+   * Booking ne le rapporte, et ces annonces seraient restées de côté à chaque
+   * relevé, pour toujours. Le message nomme donc l'axe qui manque, et ne
+   * promet que ce qu'un relevé peut réellement combler.
    */
-  lodg_unannounced_tally: [
-    '{n} annonce(s) mise(s) de côté : le relevé n’a rapporté ni capacité ni nombre de pièces pour elles, il n’y a pas de quoi juger. Un nouveau relevé les jugera sur le groupe demandé.',
-    '{n} listing(s) set aside: the scan reported neither capacity nor room count for them, so there is nothing to judge by. A new scan will judge them against the requested group.'
+  lodg_unannounced_visible: [
+    '{n} annonce(s) affichée(s) sans que la source annonce tout ce que vos critères demandent — elles portent le badge « capacité non annoncée ».',
+    '{n} listing(s) shown although the source does not announce everything your criteria ask for — they carry the “capacity not announced” badge.'
   ],
-  lodg_unannounced_show: ['Les afficher quand même', 'Show them anyway'],
+  lodg_unannounced_hidden: [
+    '{n} annonce(s) masquée(s) parce qu’elles n’annoncent pas ce que vos critères demandent.',
+    '{n} listing(s) hidden because they do not announce what your criteria ask for.'
+  ],
+  lodg_unannounced_rooms_axis: [
+    'Pour {n} d’entre elles, c’est le nombre de pièces qui manque — les relevés Airbnb et Booking ne le rapportent pas : tant que le critère chambres est actif, elles resteront non jugeables.',
+    'For {n} of them the room count is missing — Airbnb and Booking scans never report it: as long as the bedrooms criterion is active, they will stay unjudgeable.'
+  ],
+  lodg_unannounced_capacity_axis: [
+    'Pour {n} d’entre elles, c’est la capacité qui manque — un relevé refait depuis la station peut la combler, la recherche étant filtrée par la taille du groupe.',
+    'For {n} of them the capacity is missing — a fresh scan from the resort can fill it, since the search is filtered by group size.'
+  ],
+  lodg_unannounced_show: ['Les afficher', 'Show them'],
   lodg_unannounced_hide: ['Masquer celles qui n’annoncent rien', 'Hide those that announce nothing'],
   lodg_unannounced_badge: ['capacité non annoncée', 'capacity not announced'],
   print_label: ['Imprimer', 'Print'],

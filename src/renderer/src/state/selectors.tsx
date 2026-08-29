@@ -160,8 +160,12 @@ export interface Derived {
   lodgHidden: number
   /** Annonces sans disponibilité confirmée pour le séjour en cours. */
   lodgUnavailable: number
-  /** Annonces écartées faute d'annoncer capacité ou nombre de pièces. */
+  /** Annonces qui n'annoncent pas ce que les critères demandent. */
   lodgUnannounced: number
+  /** Dont l'axe manquant est le nombre de pièces — irrécupérable par relevé. */
+  lodgUnannouncedRooms: number
+  /** Dont l'axe manquant est la capacité — un relevé peut la combler. */
+  lodgUnannouncedCapacity: number
   /** Annonces écartées par les règles de l'écran, avec leur motif. */
   lodgRejected: RejectedLodging[]
   dupMerged: number
@@ -640,7 +644,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       // vérifié pour les dates du séjour. Ce qui ne l'est pas ne s'affiche plus
       // avec un avertissement, il ne s'affiche pas.
       confirmedPricesOnly: true,
-      includeUnannounced: state.lodgShowUnannounced
+      includeUnannounced: !state.lodgHideUnannounced
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
 
@@ -652,13 +656,25 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
      * l'écran propose de réafficher, pas un total abstrait. Sans lui, la seule
      * façon de savoir qu'elles existent serait de décocher au hasard.
      */
-    const lodgUnannounced = state.lodgShowUnannounced
-      ? 0
-      : lodgAll.filter(
-          (lg) =>
-            partyVerdict(lg, lodgCriteria) === 'non-annonce' &&
-            matchesLodgingFilters(lg, { ...lodgCriteria, includeUnannounced: true }, stay)
-        ).length
+    /*
+     * Compté que le masquage soit actif ou non : visible, le nombre légende le
+     * badge « capacité non annoncée » ; masqué, il dit ce qu'on ne voit pas.
+     * `sansPieces`/`sansCapacite` nomment l'axe qui manque — le message de
+     * l'écran ne doit promettre que ce qu'un relevé peut réellement combler,
+     * et un relevé ne rapporte jamais les pièces d'Airbnb ou de Booking.
+     */
+    const nonAnnoncees = lodgAll.filter(
+      (lg) =>
+        partyVerdict(lg, lodgCriteria) === 'non-annonce' &&
+        matchesLodgingFilters(lg, { ...lodgCriteria, includeUnannounced: true }, stay)
+    )
+    const lodgUnannounced = nonAnnoncees.length
+    const lodgUnannouncedRooms = nonAnnoncees.filter(
+      (lg) => partyVerdict(lg, { ...lodgCriteria, travelers: 0 }) === 'non-annonce'
+    ).length
+    const lodgUnannouncedCapacity = nonAnnoncees.filter(
+      (lg) => partyVerdict(lg, { ...lodgCriteria, rooms: 0 }) === 'non-annonce'
+    ).length
 
     /**
      * Ce que les deux règles de l'écran laissent passer, avant tout filtre.
@@ -743,6 +759,8 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgHidden: lodgEligible.length - lodgFiltered.length,
       lodgUnavailable,
       lodgUnannounced,
+      lodgUnannouncedRooms,
+      lodgUnannouncedCapacity,
       lodgRejected,
       dupMerged,
       voteScore,

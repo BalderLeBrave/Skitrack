@@ -30,6 +30,7 @@ import { NoImage } from './ResultCard'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { freshnessOf, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
+import { partyVerdict } from '@/data/lodgingFilter'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import { useFormat } from '@/hooks/useFormat'
@@ -120,13 +121,22 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
   // vignette isolée (comparateur, mise en avant depuis la carte) doit se
   // suffire. L'altitude vient de `lg.alt`, mesurée depuis la position, jamais
   // recopiée de la station.
+  /*
+   * Badge « capacité non annoncée » : les critères demandent quelque chose que
+   * l'annonce n'annonce pas. Ces annonces s'affichent par défaut — c'est ce
+   * badge qui porte l'avertissement, pas leur absence de la liste.
+   */
+  const nonAnnoncee =
+    partyVerdict(lg, { travelers: state.travelers, rooms: state.rooms }) === 'non-annonce'
+
   const place = [
     domain.name || null,
     lg.alt ? `${fmt(lg.alt)} m` : null,
     lg.type || null,
     lg.pers ? `${lg.pers} pers` : null,
     sizeLabel(lg, t),
-    lg.m2 ? `${lg.m2} m²` : null
+    lg.m2 ? `${lg.m2} m²` : null,
+    nonAnnoncee ? `⚠ ${t('lodg_unannounced_badge')}` : null
   ]
     .filter(Boolean)
     .join(' · ')

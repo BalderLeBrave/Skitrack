@@ -858,18 +858,29 @@ export function LodgingsPage(): JSX.Element {
                 nombre, il mène à la section qui le justifie. Sans ce saut,
                 l'écart entre ce que la source a renvoyé et ce que l'écran
                 montre resterait à chercher soi-même en bas de page. */}
-            {/* Ce que les critères ont mis de côté faute de pouvoir juger.
-                Sans cette ligne, la seule façon de savoir que ces annonces
-                existent serait de relâcher les critères au hasard. */}
+            {/* Les annonces qui n'annoncent pas ce que les critères demandent
+                sont AFFICHÉES par défaut, avec leur badge — le masquage est
+                l'option. La ligne nomme l'axe qui manque et ne promet que ce
+                qu'un relevé peut réellement combler : les pièces d'Airbnb et
+                de Booking ne sont jamais rapportées, la capacité peut l'être. */}
             {derived.lodgUnannounced > 0 && (
               <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {t('lodg_unannounced_tally').replace('{n}', String(derived.lodgUnannounced))}{' '}
+                {t(state.lodgHideUnannounced ? 'lodg_unannounced_hidden' : 'lodg_unannounced_visible').replace(
+                  '{n}',
+                  String(derived.lodgUnannounced)
+                )}
+                {derived.lodgUnannouncedRooms > 0 && (
+                  <> {t('lodg_unannounced_rooms_axis').replace('{n}', String(derived.lodgUnannouncedRooms))}</>
+                )}
+                {derived.lodgUnannouncedCapacity > 0 && (
+                  <> {t('lodg_unannounced_capacity_axis').replace('{n}', String(derived.lodgUnannouncedCapacity))}</>
+                )}{' '}
                 <button
                   type="button"
                   className="linkbtn linkbtn--sm"
-                  onClick={() => patch({ lodgShowUnannounced: true })}
+                  onClick={() => patch({ lodgHideUnannounced: !state.lodgHideUnannounced })}
                 >
-                  {t('lodg_unannounced_show')}
+                  {t(state.lodgHideUnannounced ? 'lodg_unannounced_show' : 'lodg_unannounced_hide')}
                 </button>
               </p>
             )}
@@ -900,17 +911,6 @@ export function LodgingsPage(): JSX.Element {
               </p>
             )}
 
-            {state.lodgShowUnannounced && (
-              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                <button
-                  type="button"
-                  className="linkbtn linkbtn--sm"
-                  onClick={() => patch({ lodgShowUnannounced: false })}
-                >
-                  {t('lodg_unannounced_hide')}
-                </button>
-              </p>
-            )}
 
             {derived.lodgRejected.length > 0 && (
               <button

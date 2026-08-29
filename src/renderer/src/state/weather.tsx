@@ -37,6 +37,7 @@ import type { ReactNode } from 'react'
 import type { Domain } from '@/data/referentiel'
 import type { DomainWeather, WeatherMap } from '@/data/weather'
 import { fetchWeather } from '@/data/weather'
+import { recordSnow } from '@/data/snowHistory'
 import { useApp } from './appState'
 import { useDerived } from './selectors'
 
@@ -141,6 +142,17 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
     try {
       const res = await fetchWeather(wantedRef.current, mapRef.current, force)
       setMap((prev) => ({ ...prev, ...res.map }))
+      // L'historique de neige local : un point par jour et par domaine, écrit
+      // seulement depuis un relevé du jour — `recordSnow` filtre sur
+      // `fetchedAt`, un cache d'hier relu n'écrit rien. Voir `data/snowHistory`.
+      recordSnow(
+        Object.entries(res.map).map(([id, w]) => ({
+          domainId: Number(id),
+          bas: w.snowBas,
+          haut: w.snowHaut,
+          fetchedAt: w.fetchedAt
+        }))
+      )
       // `requested === 0` : tout était frais, rien n'a été demandé. Ce n'est pas
       // un relevé, donc ni un succès à dater ni un échec à signaler.
       if (res.requested > 0) {

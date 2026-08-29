@@ -25,6 +25,8 @@ import type { Domain } from '@/data/referentiel'
 import { EXPOSURES, domainPriceHistory } from '@/data/snow'
 import { snowDepths, snowfallText } from '@/data/weather'
 import { webcamsFor } from '@/data/webcams'
+import { FM_BY_ID } from '@/data/catalogue'
+import { snowHistoryOf } from '@/data/snowHistory'
 import { useFormat } from '@/hooks/useFormat'
 import { domainTags } from '@/domain/domainTags'
 import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
@@ -336,6 +338,31 @@ export function DomainSheet(): JSX.Element | null {
   // chaque frappe dans le champ de logo.
   const cams = useMemo(() => (d ? webcamsFor(d) : []), [d])
 
+  /**
+   * Ligne du classeur France Montagnes pour cette station.
+   *
+   * Le classeur porte des réponses que la fiche n'affichait pas : la
+   * répartition des pistes par couleur (la question « est-ce pour mon
+   * niveau ? »), l'altitude médiane et la part des kilomètres à 2 000 m ou
+   * plus (la question « la neige tiendra-t-elle ? »), le plan des pistes
+   * officiel et la fiche France Montagnes en lien. `FM_BY_ID` existait sans
+   * aucun consommateur — les données étaient relevées et dormaient.
+   */
+  const fm = d ? FM_BY_ID.get(d.id) : undefined
+  const couleurs = fm
+    ? ([
+        ['runs_green', fm.green, '#3aa655'],
+        ['runs_blue', fm.blue, '#2a78d6'],
+        ['runs_red', fm.red, '#d0021b'],
+        ['runs_black', fm.black, '#101418'],
+        ['runs_unclassed', fm.unclassed, '#9aa4ad']
+      ] as const).filter((c) => c[1] != null && c[1] > 0)
+    : []
+  const totalPistes = couleurs.reduce((n, c) => n + (c[1] ?? 0), 0)
+
+  /** Historique local, relu à chaque ouverture de fiche. */
+  const histoNeige = useMemo(() => (d ? snowHistoryOf(d.id) : []), [d?.id])
+
   // La webcam choisie appartient au domaine ouvert : changer de fiche remet le
   // sélecteur sur la première caméra plutôt que de pointer un flux étranger.
   const camUrl = cams.some((c) => c.url === state.domCamUrl) ? state.domCamUrl : (cams[0]?.url ?? '')
@@ -482,7 +509,53 @@ export function DomainSheet(): JSX.Element | null {
               <dt>{t('travel_car')}</dt>
               <dd>{derived.travelText(d)}</dd>
             </div>
+            {fm?.median != null && (
+              <div>
+                <dt>{t('alt_median_label')}</dt>
+                <dd style={{ fontWeight: 700 }}>{fmt(fm.median)} m</dd>
+              </div>
+            )}
+            {fm?.highShare != null && (
+              <div>
+                <dt>{t('high_share_label')}</dt>
+                <dd style={{ fontWeight: 700 }}>{String(fm.highShare).replace('.', ',')} %</dd>
+              </div>
+            )}
           </dl>
+
+          {/* --- Pistes par couleur : « est-ce pour mon niveau ? » -------- */}
+          {couleurs.length > 0 && (
+            <section className="domsheet__full inset" style={{ padding: 14 }}>
+              <p className="sheet__label">
+                {t('runs_by_colour')}{' '}
+                <span className="u-muted" style={{ fontWeight: 400 }}>
+                  · {t('runs_total').replace('{n}', fmt(totalPistes))}
+                </span>
+              </p>
+              <div
+                aria-hidden
+                style={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden', margin: '8px 0 6px' }}
+              >
+                {couleurs.map(([key, n, colour]) => (
+                  <span key={key} style={{ flex: n ?? 0, background: colour, minWidth: 2 }} />
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {couleurs.map(([key, n, colour]) => (
+                  <span key={key} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span
+                      aria-hidden
+                      style={{ width: 9, height: 9, borderRadius: 2, background: colour, display: 'inline-block' }}
+                    />
+                    <strong className="u-num">{fmt(n ?? 0)}</strong> {t(key)}
+                  </span>
+                ))}
+              </p>
+              <p className="u-muted" style={{ margin: '6px 0 0', fontSize: 11 }}>
+                {t('runs_source')}
+              </p>
+            </section>
+          )}
 
           {/* --- Neige au sol ------------------------------------------- */}
           <section className="domsheet__full inset snowblock">
@@ -510,7 +583,90 @@ export function DomainSheet(): JSX.Element | null {
                 {detail || snow.releve ? t('snow_modelled') : t('snow_from_ref')}
               </p>
             </div>
+
+            {/* --- Historique de neige, relevé par l'application ---------
+                La question « quel est l'historique de neige ici ? » n'a pas de
+                réponse dans les données livrées, et on ne s'en invente pas :
+                l'application enregistre un point par jour depuis qu'elle
+                tourne (data/snowHistory.ts), l'affiche avec sa date de début,
+                et dit franchement que rien n'existe avant. */}
+            <div style={{ marginTop: 10, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+              <p className="sheet__label" style={{ marginBottom: 4 }}>
+                {t('snow_history_title')}
+              </p>
+              {histoNeige.length === 0 ? (
+                <p className="u-muted" style={{ margin: 0, fontSize: 11.5 }}>
+                  {t('snow_history_empty')}
+                </p>
+              ) : (
+                <>
+                  <p className="u-muted" style={{ margin: '0 0 6px', fontSize: 11 }}>
+                    {t('snow_history_since').replace('{d}', histoNeige[0].day)}
+                  </p>
+                  {/* Barres du haut des pistes, un jour = une barre. Sans axe
+                      savant : la hauteur relative suffit à lire une tendance,
+                      et le dernier relevé est écrit en clair à côté. */}
+                  <div
+                    role="img"
+                    aria-label={t('snow_history_title')}
+                    style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 44 }}
+                  >
+                    {histoNeige.slice(-60).map((pt) => {
+                      const max = Math.max(1, ...histoNeige.slice(-60).map((x) => x.haut ?? x.bas ?? 0))
+                      const v = pt.haut ?? pt.bas ?? 0
+                      return (
+                        <span
+                          key={pt.day}
+                          title={t('snow_history_day')
+                            .replace('{d}', pt.day)
+                            .replace('{b}', pt.bas != null ? String(pt.bas) : '—')
+                            .replace('{h}', pt.haut != null ? String(pt.haut) : '—')}
+                          style={{
+                            flex: 1,
+                            minWidth: 3,
+                            height: `${Math.max(4, Math.round((v / max) * 100))}%`,
+                            background: v > 0 ? 'var(--accent)' : 'var(--border)',
+                            borderRadius: 2
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           </section>
+
+          {/* --- Liens officiels : plan des pistes, fiche France Montagnes.
+              Le plan est une œuvre protégée : il s'ouvre dans le navigateur,
+              l'application n'en reproduit aucun. -------------------------- */}
+          {(fm?.map || fm?.sheet) && (
+            <section className="domsheet__full" style={{ display: 'grid', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {fm?.map && (
+                  <button
+                    type="button"
+                    className="btn btn--small"
+                    onClick={() => void window.skitrack.openExternal(fm.map as string)}
+                  >
+                    {t('official_map_link')} ↗
+                  </button>
+                )}
+                {fm?.sheet && (
+                  <button
+                    type="button"
+                    className="btn btn--small"
+                    onClick={() => void window.skitrack.openExternal(fm.sheet as string)}
+                  >
+                    {t('official_sheet_link')} ↗
+                  </button>
+                )}
+              </div>
+              <p className="u-muted" style={{ margin: 0, fontSize: 11 }}>
+                {t('official_links_note')}
+              </p>
+            </section>
+          )}
 
           {/* --- Forfaits ----------------------------------------------- */}
           <section className="domsheet__full" style={{ display: 'grid', gap: 10 }}>

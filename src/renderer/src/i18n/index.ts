@@ -665,6 +665,28 @@ const CATALOG = {
   pass_days_label: ['Forfait {n} jour(s)', '{n}-day pass'],
   pass_none: ['Aucun tarif de forfait', 'No pass price'],
   child_lower: ['enfant', 'child'],
+  staybar_collapse: ['Réduire le bandeau', 'Collapse the bar'],
+  staybar_expand: ['Détail du séjour', 'Stay details'],
+
+  // --- Positions des logements sur la carte -------------------------------
+  pin_position_estimated: [
+    'Position non relevée — l’annonce est placée autour de la station, pas à son adresse',
+    'Position not recorded — the listing is placed around the resort, not at its address'
+  ],
+  pin_position_approx: [
+    'Position approximative publiée par la source',
+    'Approximate position published by the source'
+  ],
+  geo_resolve_btn: ['Relever les positions ({n})', 'Record positions ({n})'],
+  geo_resolve_busy: ['Lecture des annonces… {i}/{n}', 'Reading listings… {i}/{n}'],
+  geo_resolve_done: [
+    '{ok} position(s) relevée(s) · {mute} page(s) sans coordonnées · {refus} refusée(s) par le site',
+    '{ok} position(s) recorded · {mute} page(s) without coordinates · {refus} refused by the site'
+  ],
+  geo_resolve_help: [
+    '{n} annonce(s) affichée(s) sans position relevée : leur épingle « ≈ » est placée autour de la station. L’application peut lire la page de chaque annonce — une requête par annonce, à votre demande — pour relever la position que la source publie.',
+    '{n} listing(s) shown without a recorded position: their “≈” pin is placed around the resort. The application can read each listing page — one request per listing, at your request — to record the position the source publishes.'
+  ],
 
   // --- Annonces qui n'annoncent ni capacité ni pièces ---------------------
   /*

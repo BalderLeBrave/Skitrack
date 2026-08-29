@@ -130,9 +130,25 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
       // L'épingle élue reste distinguée sur la carte, comme celle dont la fiche
       // est ouverte : sinon rien ne dirait laquelle vient d'être remontée.
       const selected = lg.id === state.ficheId || lg.id === state.lodgPickId
+      /*
+       * Une épingle sans position relevée le dit.
+       *
+       * Quand la source ne publie pas de coordonnées, `lodgingCoords` disperse
+       * l'annonce autour du centre du domaine — de façon déterministe, mais
+       * l'épingle avait exactement la même tête qu'une position mesurée, et
+       * l'utilisateur lisait une carte qui affirmait ce qu'elle ne savait pas.
+       * Constaté le 2026-08-29 : « la localisation des logements est des fois
+       * totalement aléatoire ». Elle l'était, et rien ne le disait.
+       */
+      const positionEstimee = lg.lat == null || lg.lon == null
       el.type = 'button'
-      el.className = `pricepin${selected ? ' pricepin--on' : ''}`
-      el.textContent = `${fmt(lg.total)} €`
+      el.className = `pricepin${selected ? ' pricepin--on' : ''}${positionEstimee ? ' pricepin--approx' : ''}`
+      el.title = positionEstimee
+        ? t('pin_position_estimated')
+        : lg.locPrecision === 'approximate'
+          ? t('pin_position_approx')
+          : ''
+      el.textContent = `${positionEstimee ? '≈ ' : ''}${fmt(lg.total)} €`
       // Cliquer une bulle **met en avant**, cela n'ouvre pas la fiche : ce sont
       // deux gestes, et les confondre empêchait de se servir de la carte pour
       // situer une offre dans la liste.

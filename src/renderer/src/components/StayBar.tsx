@@ -30,7 +30,35 @@ export function StayBar({ domain }: { domain: Domain }): JSX.Element | null {
   const lodging = kept ?? cheapest
   if (!lodging) return null
 
+  // Fiche ouverte : le bandeau s'efface. Il est à z-index 8, la fiche à 6 —
+  // laissé en place, il passait devant elle et masquait ses boutons du bas,
+  // dont « Ouvrir l'annonce ». La fiche porte ses propres actions ; le bandeau
+  // revient à sa fermeture.
+  if (state.ficheId != null) return null
+
   const cost = derived.sejourCost(lodging, domain)
+
+  // Replié : une poignée discrète, le total, et de quoi rouvrir. Le repli est
+  // retenu d'une session à l'autre — c'est un choix, pas un état transitoire.
+  if (state.stayBarCollapsed) {
+    return (
+      <div className="staybar staybar--mini" data-testid="stay-bar">
+        <span className="staybar__eyebrow">{kept ? t('stay_kept') : t('stay_cheapest')}</span>
+        <strong className="u-num crn-calcul" data-testid="stay-bar-total">
+          {eur(cost.total)}
+        </strong>
+        <span className="u-spacer" />
+        <button
+          type="button"
+          className="linkbtn linkbtn--sm"
+          aria-expanded={false}
+          onClick={() => patch({ stayBarCollapsed: false })}
+        >
+          {t('staybar_expand')} ▴
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="staybar" data-testid="stay-bar">
@@ -72,6 +100,15 @@ export function StayBar({ domain }: { domain: Domain }): JSX.Element | null {
         onClick={() => patch({ tab: 'offres' })}
       >
         {t('stay_compare')} →
+      </button>
+      <button
+        type="button"
+        className="linkbtn linkbtn--sm staybar__collapse"
+        aria-expanded
+        title={t('staybar_collapse')}
+        onClick={() => patch({ stayBarCollapsed: true })}
+      >
+        ▾
       </button>
     </div>
   )

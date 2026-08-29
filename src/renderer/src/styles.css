@@ -4744,6 +4744,17 @@ select {
   animation: staybar-in 0.26s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
+/* Bandeau replié : une ligne fine, le total, la poignée pour rouvrir. */
+.staybar--mini {
+  padding: 6px clamp(16px, 3vw, 24px);
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.staybar__collapse {
+  align-self: center;
+}
+
 @keyframes staybar-in {
   from {
     opacity: 0;
@@ -5072,6 +5083,14 @@ select {
   border: 1px solid rgba(0, 0, 0, 0.25);
   background: #ffffff;
   color: #222222;
+}
+
+/* Position dispersée faute de coordonnées relevées : l'épingle se distingue —
+   contour en pointillés, aplat éteint — et son infobulle dit pourquoi. Une
+   épingle pleine reste réservée aux positions que la source a publiées. */
+.pricepin--approx {
+  opacity: 0.62;
+  border-style: dashed;
 }
 
 .pricepin--on {

@@ -445,6 +445,16 @@ export interface AppState {
    * en silence, c'est répondre à « 8 personnes, 4 chambres » par des studios.
    */
   lodgShowUnannounced: boolean
+  /**
+   * Bandeau de séjour replié.
+   *
+   * Le bandeau s'imposait : impossible à réduire, il occupait le pied de
+   * l'écran même quand rien n'était retenu, et passait **devant** la fiche
+   * ouverte (z-index 8 contre 6), dont il masquait les boutons du bas —
+   * signalé le 2026-08-29. Le repli est un choix de l'utilisateur : il se
+   * retient d'une session à l'autre.
+   */
+  stayBarCollapsed: boolean
   flexOpen: boolean
   ficheId: number | null
   compareIds: number[]
@@ -665,6 +675,7 @@ export const INITIAL_STATE: AppState = {
   hideBadGeo: false,
   lodgOnlyAvailable: true,
   lodgShowUnannounced: false,
+  stayBarCollapsed: false,
   flexOpen: false,
   ficheId: null,
   compareIds: [],
@@ -751,7 +762,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgShowUnannounced', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgShowUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**

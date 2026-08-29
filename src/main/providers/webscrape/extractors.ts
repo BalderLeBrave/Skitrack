@@ -11,12 +11,66 @@ export interface RawCard {
   priceText?: string
   ratingText?: string
   image?: string
+  /**
+   * Position publiée par la page de résultats, quand elle la porte.
+   *
+   * Booking l'embarque dans son magasin Apollo (voir `extractBookingCards`) ;
+   * la lire n'ajoute aucune requête. Ajouté le 2026-08-29 sur ordre d'Adrien :
+   * les annonces Booking arrivaient sans position et la carte les dispersait
+   * autour de la station.
+   */
+  lat?: number
+  lon?: number
 }
 
 /** Booking.com — cartes [data-testid="property-card"] ou liens /hotel/ */
 export function extractBookingCards(): RawCard[] {
   const out: RawCard[] = []
   const seen = new Set<string>()
+
+  /*
+   * Positions des biens, lues dans le magasin Apollo embarqué.
+   *
+   * La page de résultats porte un `<script type="application/json"
+   * data-capla-store-data="apollo">` (~450 Ko) où chaque bien apparaît sous
+   * `basicPropertyData` : `location.latitude/longitude`, et `pageName` — qui
+   * est exactement le slug de l'URL `/hotel/xx/<pageName>.fr.html` de sa
+   * carte. C'est la donnée dont Booking se sert pour son propre mini-plan.
+   *
+   * Constaté sur la page du 2026-08-30 : l'attribut `data-atlas-latlng`
+   * d'autrefois n'existe plus (0 occurrence), le magasin Apollo en porte 25.
+   * Une lecture qui échoue laisse l'index vide — les cartes sortent alors
+   * sans position, comme avant, jamais avec une position fabriquée.
+   */
+  const positions: Record<string, { lat: number; lon: number }> = {}
+  try {
+    const store = document.querySelector('script[data-capla-store-data="apollo"]')
+    if (store && store.textContent) {
+      const walk = (node: unknown): void => {
+        if (!node || typeof node !== 'object') return
+        if (Array.isArray(node)) {
+          for (const item of node) walk(item)
+          return
+        }
+        const obj = node as Record<string, unknown>
+        const loc = obj.location as Record<string, unknown> | undefined
+        const pageName = obj.pageName
+        if (
+          typeof pageName === 'string' &&
+          loc &&
+          typeof loc.latitude === 'number' &&
+          typeof loc.longitude === 'number' &&
+          (loc.latitude !== 0 || loc.longitude !== 0)
+        ) {
+          positions[pageName] = { lat: loc.latitude, lon: loc.longitude }
+        }
+        for (const key in obj) walk(obj[key])
+      }
+      walk(JSON.parse(store.textContent))
+    }
+  } catch {
+    /* magasin illisible : les cartes sortiront sans position */
+  }
   const cards = document.querySelectorAll('[data-testid="property-card"], [data-testid="property-card-container"]')
   const nodes = cards.length
     ? cards
@@ -48,7 +102,19 @@ export function extractBookingCards(): RawCard[] {
     const ratingText =
       root.querySelector('[data-testid="review-score"], [aria-label*="note"]')?.textContent?.trim() || undefined
     const img = (root.querySelector('img') as HTMLImageElement | null)?.src
-    out.push({ sourceId, title, url: href.split('?')[0], priceText, ratingText, image: img })
+    // Position du bien : jointure avec le magasin Apollo par le slug de l'URL.
+    const slug = href.match(/\/hotel\/[a-z]{2}\/([^./?#]+)/i)?.[1]
+    const pos = slug ? positions[slug] : undefined
+    out.push({
+      sourceId,
+      title,
+      url: href.split('?')[0],
+      priceText,
+      ratingText,
+      image: img,
+      lat: pos?.lat,
+      lon: pos?.lon
+    })
   })
   return out
 }

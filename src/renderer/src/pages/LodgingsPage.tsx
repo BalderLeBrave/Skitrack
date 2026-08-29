@@ -34,6 +34,7 @@ import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { LODG_FILTER_RESET, stayCriteriaReady, useApp } from '@/state/appState'
+import { useGeoResolve } from '@/hooks/useGeoResolve'
 import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 
@@ -94,6 +95,10 @@ export function LodgingsPage(): JSX.Element {
   const afterBounds = boundsActive ? derived.lodgList.filter(inBounds) : derived.lodgList
   // Même exemption pour le masquage des positions invraisemblables : une bulle
   // cliquée sur la carte doit se retrouver dans la liste, pas s'y évaporer.
+  const geoResolve = useGeoResolve()
+  /** Annonces affichées dont la position n'est pas relevée : épingle « ≈ ». */
+  const sansPosition = afterBounds.filter((lg) => lg.url && (lg.lat == null || lg.lon == null))
+
   const visibleLodgings = state.hideBadGeo
     ? afterBounds.filter((lg) => lg.id === state.lodgPickId || geo.statusOf(lg).level !== 'bad')
     : afterBounds
@@ -868,6 +873,33 @@ export function LodgingsPage(): JSX.Element {
                 </button>
               </p>
             )}
+            {/* Les épingles « ≈ » sont dispersées autour de la station faute
+                de position relevée. La page de chaque annonce publie la
+                sienne : ce bouton va la lire, une requête par annonce, à la
+                demande — et le dit pendant qu'il le fait. */}
+            {(sansPosition.length > 0 || geoResolve.message) && (
+              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
+                {sansPosition.length > 0 && !geoResolve.busy && (
+                  <>
+                    {t('geo_resolve_help').replace('{n}', String(sansPosition.length))}{' '}
+                    <button
+                      type="button"
+                      className="linkbtn linkbtn--sm"
+                      onClick={() => void geoResolve.resoudre(sansPosition, d.engineId)}
+                    >
+                      {t('geo_resolve_btn').replace(
+                        '{n}',
+                        String(Math.min(sansPosition.length, 15))
+                      )}
+                    </button>
+                  </>
+                )}
+                {geoResolve.message && (
+                  <span style={{ display: 'block', marginTop: 2 }}>{geoResolve.message}</span>
+                )}
+              </p>
+            )}
+
             {state.lodgShowUnannounced && (
               <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
                 <button

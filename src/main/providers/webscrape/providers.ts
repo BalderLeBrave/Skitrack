@@ -48,6 +48,10 @@ function mapCards(
           sourceId: c.sourceId,
           title: c.title,
           url: c.url,
+          // Position de la carte de résultat (Booking : `data-atlas-latlng`).
+          // Absente sur les autres sources : le champ reste vide.
+          latitude: c.lat,
+          longitude: c.lon,
           totalPrice: price,
           currency: 'EUR',
           rating: Number.isFinite(rating) ? rating : undefined,

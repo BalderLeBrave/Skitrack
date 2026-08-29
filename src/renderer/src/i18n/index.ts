@@ -679,6 +679,7 @@ const CATALOG = {
   // --- Sujet 6 : récapitulatif imprimable du séjour ------------------------
   report_title: ['Récapitulatif du séjour', 'Stay summary'],
   report_export: ['Exporter le récapitulatif en PDF', 'Export the summary as PDF'],
+  report_export_short: ['Récapitulatif PDF', 'PDF summary'],
   report_exporting: ['Génération…', 'Generating…'],
   report_saved: ['Récapitulatif enregistré : {p}', 'Summary saved: {p}'],
   report_failed: ['Échec de la génération : {e}', 'Generation failed: {e}'],

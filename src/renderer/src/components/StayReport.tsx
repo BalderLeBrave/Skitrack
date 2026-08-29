@@ -29,7 +29,10 @@ import { BRA_LABELS, braLevelOf, braKeyOf } from '@/data/bra'
 import { srcOf } from '@/data/lodgings'
 import { creditPhoto, legendePhoto, slugStation } from '@/data/stationPhotos'
 import { photoOverrideValide } from '@/data/photoOverrides'
+import type { SejourCost } from '@/domain/costs'
 import { routeOriginOf } from '@/domain/costs'
+import type { Domain } from '@/data/referentiel'
+import type { Lodging } from '@/data/lodgings'
 import { fmtStay } from '@/domain/format'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
@@ -56,14 +59,37 @@ interface Poste {
   detail?: string
 }
 
-export function StayReport(): JSX.Element | null {
+/**
+ * Ce dont le rapport a besoin pour se composer.
+ *
+ * `DecisionContext` en porte davantage — la semaine retenue notamment — dont ce
+ * document ne se sert pas : ses dates viennent du séjour en cours. Le type est
+ * donc réduit à ce qui est réellement lu, ce qui permet à la fiche d'un
+ * logement d'en fabriquer un sans avoir à retenir de décision au préalable.
+ */
+export interface StayReportContext {
+  d: Domain
+  lg: Lodging
+  nights: number
+  cost: SejourCost
+}
+
+/**
+ * `context` : le séjour à mettre en page. Sans lui, celui de l'écran Décision.
+ *
+ * L'export est proposé à deux endroits, et la fiche d'un logement doit pouvoir
+ * produire son récapitulatif sans que l'utilisateur ait dû « retenir » ce
+ * logement d'abord — l'exiger ferait de l'export une récompense de parcours
+ * plutôt qu'une action.
+ */
+export function StayReport({ context }: { context?: StayReportContext } = {}): JSX.Element | null {
   const { t, lang } = useI18n()
   const { eur, fmt } = useFormat()
   const { state } = useApp()
   const derived = useDerived()
   const { weatherOf, lastSuccessAt } = useWeather()
 
-  const ctx = derived.decisionCtx
+  const ctx = context ?? derived.decisionCtx
   if (!ctx) return null
 
   const { d, lg, nights } = ctx

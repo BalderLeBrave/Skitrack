@@ -2483,8 +2483,13 @@ select {
     display: none !important;
   }
 
-  html:not([data-print='fiche']) .drawer,
-  html:not([data-print='fiche']) .domsheet {
+  /* Les tiroirs ne s'impriment pas — sauf quand une vue d'impression nommée
+     les réclame. La condition portait sur la seule valeur `fiche` ; depuis que
+     le récapitulatif peut être monté **dans** la fiche d'un logement, elle le
+     masquait avec son tiroir, et le PDF sortait vide. Toute vue nommée est
+     désormais exemptée, et c'est à elle de dire ce qu'elle montre. */
+  html:not([data-print]) .drawer,
+  html:not([data-print]) .domsheet {
     display: none !important;
   }
 
@@ -7137,6 +7142,23 @@ select {
   html[data-print='rapport'] .report,
   html[data-print='rapport'] .report * {
     visibility: visible;
+  }
+
+  /* Le rapport peut être monté depuis la fiche d'un logement, c'est-à-dire à
+     l'intérieur d'un tiroir de 480 px en `overflow: hidden`. Rendu visible mais
+     laissé dans cette boîte, il sortirait rogné à la largeur du tiroir. Ses
+     conteneurs sont donc neutralisés — même geste que `data-print='fiche'` pour
+     la fiche domaine, et pour la même raison. */
+  html[data-print='rapport'] .drawer,
+  html[data-print='rapport'] .lodging-sheet,
+  html[data-print='rapport'] .page__inner {
+    position: static !important;
+    overflow: visible !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: 0 !important;
   }
 
   html[data-print='rapport'] .report {

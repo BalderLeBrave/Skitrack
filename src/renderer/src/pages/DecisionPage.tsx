@@ -5,9 +5,9 @@ import { useFormat } from '@/hooks/useFormat'
 import { fmtStay } from '@/domain/format'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
-import { useState } from 'react'
 import { useI18n } from '@/i18n'
 import { StayReport } from '@/components/StayReport'
+import { useReportExport } from '@/hooks/useReportExport'
 
 /**
  * La décision retenue.
@@ -24,10 +24,7 @@ export function DecisionPage(): JSX.Element {
   const { dur, eur, fmt } = useFormat()
   const { state, patch } = useApp()
   const derived = useDerived()
-  const [pdfBusy, setPdfBusy] = useState(false)
-  /** Le rapport n'existe dans le DOM que pendant l'export. */
-  const [reportMonte, setReportMonte] = useState(false)
-  const [pdfMsg, setPdfMsg] = useState<string | null>(null)
+  const pdf = useReportExport()
   const ctx = derived.decisionCtx
   const split = derived.split
 
@@ -51,46 +48,6 @@ export function DecisionPage(): JSX.Element {
 
   const k = ctx.cost
 
-  /**
-   * Attend que les images du rapport soient réellement décodées.
-   *
-   * `printToPDF` photographie la page à l'instant où on l'appelle : une tuile
-   * encore en vol donnerait un carré blanc dans le PDF. `decode()` résout quand
-   * l'image est prête ; une tuile en erreur est ignorée plutôt que de bloquer
-   * l'export — le PDF sort avec un trou, ce qui est mieux qu'un export qui ne
-   * sort jamais.
-   */
-  const attendreImages = async (): Promise<void> => {
-    const rapport = document.getElementById('stay-report')
-    if (!rapport) return
-    const images = [...rapport.querySelectorAll('img')]
-    await Promise.all(images.map((img) => img.decode().catch(() => undefined)))
-  }
-
-  const exportPdf = async (): Promise<void> => {
-    setPdfBusy(true)
-    setPdfMsg(null)
-    setReportMonte(true)
-    document.documentElement.setAttribute('data-print', 'rapport')
-    try {
-      // Un tour de boucle pour que React ait posé le rapport dans le DOM, puis
-      // l'attente des tuiles.
-      await new Promise((r) => setTimeout(r, 0))
-      await attendreImages()
-      const nom = `skitrack-${ctx.d.name}-${ctx.w.arr}`.replace(/[^\w.-]+/g, '-')
-      const res = await window.skitrack.reportPdf({ suggestedName: nom })
-      // Une annulation n'est pas un échec : elle ne dit rien à l'écran.
-      if (res.cancelled) setPdfMsg(null)
-      else if (res.ok && res.path) setPdfMsg(t('report_saved').replace('{p}', res.path))
-      else setPdfMsg(t('report_failed').replace('{e}', res.error ?? '—'))
-    } catch (err) {
-      setPdfMsg(t('report_failed').replace('{e}', err instanceof Error ? err.message : String(err)))
-    } finally {
-      document.documentElement.removeAttribute('data-print')
-      setReportMonte(false)
-      setPdfBusy(false)
-    }
-  }
   const voteKey = derived.comboKey(ctx.d.id, ctx.w.arr)
   const votes = derived.voteScore(voteKey)
 
@@ -145,7 +102,7 @@ export function DecisionPage(): JSX.Element {
             les images. L'export attend explicitement que les tuiles soient
             décodées avant d'appeler `printToPDF` ; c'est ce qu'`attendreImages`
             fait, et c'est plus sûr qu'un composant monté « au cas où ». */}
-        {reportMonte && <StayReport />}
+        {pdf.monte && <StayReport />}
 
         <header className="page-head" style={{ marginBottom: 4 }}>
           <h2>{ctx.d.name}</h2>
@@ -279,22 +236,26 @@ export function DecisionPage(): JSX.Element {
             {/* L'export bascule la page en vue « rapport », demande le PDF au
                 processus principal, puis remet l'écran comme il était — quoi
                 qu'il arrive, y compris si l'utilisateur annule. */}
+            {/* L'export était un lien discret parmi trois autres, en pied de
+                page : personne ne le trouvait. C'est pourtant la seule chose
+                qu'on emporte de cet écran — il prend donc l'aspect d'une
+                action, et passe en tête du pied. */}
             <button
               type="button"
-              className="linkbtn"
-              disabled={pdfBusy}
-              onClick={() => void exportPdf()}
+              className="btn btn--small"
+              disabled={pdf.busy}
+              onClick={() => void pdf.exporter(`skitrack-${ctx.d.name}-${ctx.w.arr}`)}
             >
-              {pdfBusy ? t('report_exporting') : t('report_export')}
+              {pdf.busy ? t('report_exporting') : t('report_export')}
             </button>
             <span className="u-spacer" />
             <button type="button" className="linkbtn linkbtn--muted" onClick={() => patch({ decision: null })}>
               {t('decision_cancel')}
             </button>
           </div>
-          {pdfMsg && (
+          {pdf.message && (
             <p className="u-muted" style={{ margin: '8px 0 0', fontSize: 11.5, wordBreak: 'break-all' }}>
-              {pdfMsg}
+              {pdf.message}
             </p>
           )}
         </section>

@@ -20,6 +20,8 @@ import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import type { Domain } from '@/data/referentiel'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
+import { useReportExport } from '@/hooks/useReportExport'
+import { StayReport } from './StayReport'
 import { passOriginText, passPrefix, passStyle } from '@/domain/forfaitLabel'
 import { lessonsCount } from '@/domain/costs'
 import { useFocusTrap } from '@/hooks/useShortcuts'
@@ -46,6 +48,7 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
   const derived = useDerived()
   const ref = useRef<HTMLElement>(null)
   useFocusTrap(ref)
+  const pdf = useReportExport()
 
   const lodging = derived.lodgAll.find((l) => l.id === state.ficheId)
   if (!lodging) return null
@@ -536,9 +539,33 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
           </button>
           <span className="u-spacer" />
           <button type="button" className="linkbtn" onClick={print}>
-            Imprimer
+            {t('print_label')}
+          </button>
+          {/* Second point d'accès au récapitulatif, comme le veut le cahier des
+              charges : « depuis l'écran Décision **ou la fiche du logement
+              retenu** ». Il ne demande pas d'avoir retenu quoi que ce soit —
+              exiger une décision préalable ferait de l'export une récompense de
+              parcours plutôt qu'une action. */}
+          <button
+            type="button"
+            className="btn btn--small"
+            disabled={pdf.busy}
+            onClick={() =>
+              void pdf.exporter(`skitrack-${d.name}-${lodging.name}-${state.arrDate}`)
+            }
+          >
+            {pdf.busy ? t('report_exporting') : t('report_export_short')}
           </button>
         </div>
+        {pdf.message && (
+          <p className="u-muted" style={{ margin: '0 16px 12px', fontSize: 11, wordBreak: 'break-all' }}>
+            {pdf.message}
+          </p>
+        )}
+
+        {/* Le rapport n'est dans le DOM que le temps de l'export : il charge
+            neuf tuiles de fond de carte, et la fiche s'ouvre souvent. */}
+        {pdf.monte && <StayReport context={{ d, lg: lodging, nights, cost }} />}
       </aside>
     </>
   )

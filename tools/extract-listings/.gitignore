@@ -1,0 +1,6 @@
+# Environnement local et sorties : reconstructibles, et volumineux.
+# Les dumps de diagnostic pesent plusieurs mega-octets par fiche (page.html
+# fait ~1 Mo chez Booking) et n'ont d'interet que sur la machine qui a lance
+# l'extraction.
+.venv/
+out/

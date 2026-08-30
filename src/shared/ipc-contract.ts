@@ -374,6 +374,22 @@ export interface ProviderSearchParams {
   checkOut?: string
   adults?: number
   children?: number
+  /**
+   * Nombre de chambres demandé, quand l'utilisateur en pose un.
+   *
+   * Le critère existait à l'écran depuis toujours mais **ne quittait jamais le
+   * renderer** : `runProviderSearch` ne le transmettait pas, et aucun connecteur
+   * ne le recevait. Il n'était donc appliqué qu'après coup, sur ce que les
+   * sources avaient bien voulu rapporter — et ni Airbnb ni Booking ne publient
+   * le nombre de chambres dans leurs résultats. Conséquence mesurée le
+   * 2026-08-30 : demander quatre chambres ne filtrait rien du tout, et les
+   * annonces concernées ressortaient toutes « capacité non annoncée ».
+   *
+   * Les connecteurs qui savent filtrer là-dessus le font (`min_bedrooms` chez
+   * Airbnb, qui l'accepte déjà dans `buildAirbnbSearchUrl`). Les autres
+   * l'ignorent, comme ils ignorent déjà ce qu'ils ne savent pas traduire.
+   */
+  bedrooms?: number
   /** Centrale de réservation de la station, pour le connecteur `station-web`. */
   officialUrl?: string
 }

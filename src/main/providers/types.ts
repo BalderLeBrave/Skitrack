@@ -171,6 +171,17 @@ export interface SearchParams {
   checkOut?: string
   adults?: number
   children?: number
+  /**
+   * Nombre de chambres demandé. Miroir de `ProviderSearchParams.bedrooms`
+   * (`src/shared/ipc-contract.ts`), qui porte l'histoire de ce champ : le
+   * critère existait à l'écran et n'atteignait aucun connecteur.
+   *
+   * Un connecteur qui ne sait pas filtrer là-dessus l'ignore, comme il ignore
+   * déjà tout paramètre que sa source ne comprend pas. On ne le traduit pas en
+   * capacité : « quatre chambres » et « huit personnes » ne sont pas la même
+   * demande, et les confondre inventerait un critère.
+   */
+  bedrooms?: number
   infants?: number
   pets?: number
   minPrice?: number

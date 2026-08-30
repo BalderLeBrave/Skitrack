@@ -623,14 +623,13 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const lodgCriteria: LodgingFilterCriteria = {
       travelers: state.travelers,
       rooms: state.rooms,
-      // Règle de l'écran, plus un réglage : une liste de logements est une
-      // liste de logements réservables. Une annonce absente du dernier relevé
-      // à ces dates, ou listée sans tarif, ouvre « Ces dates ne sont pas
-      // disponibles » ; l'afficher avec un avertissement demandait à
-      // l'utilisateur d'aller vérifier ce que l'application savait déjà.
-      // La case « Disponibilité confirmée uniquement » a disparu avec ce
-      // choix : elle permettait de désactiver la seule garantie de l'écran.
-      onlyAvailable: true,
+      // Redevenu un réglage le 2026-08-30, éteint par défaut. Câblé à `true`,
+      // il retirait des annonces sans que rien à l'écran ne dise combien : le
+      // raisonnement — « l'afficher demandait d'aller vérifier ce que
+      // l'application savait déjà » — supposait que l'application le savait,
+      // alors qu'elle sait seulement que son dernier relevé ne l'a pas vue.
+      // La vignette porte l'avertissement (`components/LodgingCard.tsx`).
+      onlyAvailable: state.lodgOnlyAvailable,
       freeCancelOnly: state.lodgAnnul,
       budgetMin: state.lodgBudgetMin,
       budgetMax: state.lodgBudgetMax,
@@ -640,10 +639,9 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       distCeiling: FILTER_RANGES.lodgDist.max,
       types: state.lodgTypes,
       srcOff: state.lodgSrcOff,
-      // Règle de l'écran, pas réglage : une annonce listée porte un prix
-      // vérifié pour les dates du séjour. Ce qui ne l'est pas ne s'affiche plus
-      // avec un avertissement, il ne s'affiche pas.
-      confirmedPricesOnly: true,
+      // Même histoire, même date : un prix relevé pour d'autres dates est une
+      // information périmée, affichée comme telle, pas un motif de disparition.
+      confirmedPricesOnly: state.lodgConfirmedPrices,
       includeUnannounced: !state.lodgHideUnannounced
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))

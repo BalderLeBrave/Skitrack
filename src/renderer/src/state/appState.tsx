@@ -353,7 +353,13 @@ export interface AppState {
   lodgMapOpen: boolean
   /** Cadrage courant de la carte des logements, quand la synchronisation est active. */
   lodgBounds: { n: number; s: number; e: number; w: number } | null
-  /** Restreindre la liste au cadrage de la carte quand on la déplace. */
+  /**
+   * Restreindre la liste au cadrage de la carte quand on la déplace.
+   *
+   * **Éteint par défaut depuis le 2026-08-30.** Allumé, il retirait de la liste
+   * toute annonce sortie du cadre au premier déplacement de carte, sans compteur
+   * ni mention : c'était le masquage le plus silencieux de l'écran.
+   */
   lodgMapSync: boolean
   /** Part de largeur laissée à la liste face à la carte, en pourcent. */
   lodgSplit: number
@@ -432,11 +438,27 @@ export interface AppState {
    * liste sans la tarifer, c'est-à-dire qu'il ne peut pas vendre à ces dates.
    * Voir `data/lodgingAvailability.ts`.
    *
-   * Vrai par défaut : une liste de logements est une liste de logements qu'on
-   * peut réserver. Les cas non jugés — hébergements OpenStreetMap, saisies à la
-   * main — ne sont jamais masqués par ce filtre.
+   * **Faux par défaut depuis le 2026-08-30.** Ce filtre a été câblé en dur
+   * pendant un temps (`onlyAvailable: true` dans `state/selectors.tsx`), au nom
+   * d'une « règle de l'écran » : une liste de logements serait une liste de
+   * logements réservables. Mesuré sur le profil réel, il retirait des annonces
+   * en silence, sans que rien à l'écran ne dise combien ni lesquelles — et la
+   * vignette sait pourtant déjà porter l'avertissement (`lodg_gone_notice`,
+   * `avail_unconfirmed`, voir `components/LodgingCard.tsx`). Avertir vaut mieux
+   * que soustraire : l'annonce s'affiche, marquée, et qui veut une liste
+   * strictement réservable coche la case.
    */
   lodgOnlyAvailable: boolean
+  /**
+   * N'afficher que les annonces dont le prix a été relevé **pour ces dates**.
+   *
+   * Faux par défaut, et pour la même raison que `lodgOnlyAvailable` : la règle
+   * était câblée en dur (`confirmedPricesOnly: true`) et retirait sans le dire.
+   * Un prix relevé pour d'autres dates est une information — périmée, donc
+   * affichée comme telle (`lodg_price_stale`) — pas une raison de faire
+   * disparaître le logement.
+   */
+  lodgConfirmedPrices: boolean
   /**
    * Masquer les annonces qui n'annoncent pas ce que les critères demandent.
    *
@@ -662,7 +684,7 @@ export const INITIAL_STATE: AppState = {
   lodgSort: 'dist_asc',
   lodgMapOpen: true,
   lodgBounds: null,
-  lodgMapSync: true,
+  lodgMapSync: false,
   lodgSplit: 58,
   lodgSrcOff: [],
   lodgFiltersOpen: false,
@@ -677,7 +699,8 @@ export const INITIAL_STATE: AppState = {
   mergeDupes: true,
   lodgStatusOpen: false,
   hideBadGeo: false,
-  lodgOnlyAvailable: true,
+  lodgOnlyAvailable: false,
+  lodgConfirmedPrices: false,
   lodgHideUnannounced: false,
   stayBarCollapsed: false,
   flexOpen: false,
@@ -748,7 +771,8 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
   lodgSort: 'pp_asc',
   lodgSrcOff: [],
   lodgAnnul: false,
-  lodgOnlyAvailable: true,
+  lodgOnlyAvailable: false,
+  lodgConfirmedPrices: false,
   rooms: 0
 }
 
@@ -766,7 +790,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**
@@ -805,7 +829,13 @@ function purgeLegacyPrefs(): void {
  * par l'utilisateur et ne sont pas touchés.
  */
 /** Version du schéma des préférences écrite sur le disque. */
-const PREFS_SCHEMA = 5
+/*
+ * Schéma 6 (2026-08-30) : `lodgOnlyAvailable` et `lodgMapSync` repassent à
+ * « éteint ». Sans ce numéro, `migratePrefs` sort à la première ligne pour tout
+ * profil déjà en schéma 5 et les deux `delete` plus bas ne s'exécutent jamais —
+ * constaté à l'exécution, les clés restaient à `true` sur le profil réel.
+ */
+const PREFS_SCHEMA = 6
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -874,6 +904,15 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // efface l'ancienne plutôt que de la traduire, pour que tout le monde
   // reparte du défaut.
   delete out.lodgShowUnannounced
+
+  // 2026-08-30 — `lodgOnlyAvailable` et `lodgMapSync` passent à « éteint ».
+  // Les deux masquaient des annonces sans le dire, et les profils existants
+  // portent l'ancien défaut `true` sur le disque : le laisser en place ferait
+  // que le nouveau comportement ne s'appliquerait qu'aux installations neuves.
+  // On efface les deux clés pour que tout le monde reparte du même écran ; qui
+  // veut le filtre le rallume, et son choix est alors réenregistré.
+  delete out.lodgOnlyAvailable
+  delete out.lodgMapSync
 
   // `searchFiltersOpen` a cessé d'être un réglage enregistré le jour où le
   // panneau est devenu un survol. La valeur laissée sur le disque rouvrirait

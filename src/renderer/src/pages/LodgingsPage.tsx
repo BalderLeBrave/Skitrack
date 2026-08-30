@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isForbiddenListingHost } from '@shared/listingHosts'
 import { ComparePanel } from '@/components/ComparePanel'
 import { SkiSearchLoading } from '@/components/SkiSearchLoading'
 import { StayDatesField } from '@/components/StayDatesField'
@@ -97,7 +98,21 @@ export function LodgingsPage(): JSX.Element {
   // cliquée sur la carte doit se retrouver dans la liste, pas s'y évaporer.
   const geoResolve = useGeoResolve()
   /** Annonces affichées dont la position n'est pas relevée : épingle « ≈ ». */
+  /*
+   * Les annonces sans position, séparées selon ce qu'on peut réellement faire
+   * pour elles.
+   *
+   * `sansPositionLisibles` : leur page peut être lue, le bouton a un sens.
+   * `sansPositionRefusees` : leur hôte figure sur la liste de refus de
+   * `shared/listingHosts.ts`, et `src/main/listing.ts` rendra `blockedReason`
+   * sans émettre de requête. Les compter dans le bouton faisait proposer
+   * « Relever les positions (161) » là où le résultat était connu d'avance :
+   * 161 refus. Ce qui les comble est un relevé refait, qui rapporte les
+   * coordonnées depuis la page de résultats — c'est ce que la ligne dit.
+   */
   const sansPosition = afterBounds.filter((lg) => lg.url && (lg.lat == null || lg.lon == null))
+  const sansPositionRefusees = sansPosition.filter((lg) => isForbiddenListingHost(lg.url))
+  const sansPositionLisibles = sansPosition.filter((lg) => !isForbiddenListingHost(lg.url))
 
   const visibleLodgings = state.hideBadGeo
     ? afterBounds.filter((lg) => lg.id === state.lodgPickId || geo.statusOf(lg).level !== 'bad')
@@ -885,25 +900,31 @@ export function LodgingsPage(): JSX.Element {
               </p>
             )}
             {/* Les épingles « ≈ » sont dispersées autour de la station faute
-                de position relevée. La page de chaque annonce publie la
-                sienne : ce bouton va la lire, une requête par annonce, à la
-                demande — et le dit pendant qu'il le fait. */}
+                de position relevée. Deux cas, et deux phrases : la page peut
+                être lue — le bouton la lit, une requête par annonce, à la
+                demande — ou l'hôte refuse la lecture automatisée, et c'est
+                alors un relevé refait qui rapporte la position. */}
             {(sansPosition.length > 0 || geoResolve.message) && (
               <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {sansPosition.length > 0 && !geoResolve.busy && (
+                {sansPositionLisibles.length > 0 && !geoResolve.busy && (
                   <>
-                    {t('geo_resolve_help').replace('{n}', String(sansPosition.length))}{' '}
+                    {t('geo_resolve_help').replace('{n}', String(sansPositionLisibles.length))}{' '}
                     <button
                       type="button"
                       className="linkbtn linkbtn--sm"
-                      onClick={() => void geoResolve.resoudre(sansPosition, d.engineId)}
+                      onClick={() => void geoResolve.resoudre(sansPositionLisibles, d.engineId)}
                     >
                       {t('geo_resolve_btn').replace(
                         '{n}',
-                        String(Math.min(sansPosition.length, 15))
+                        String(Math.min(sansPositionLisibles.length, 15))
                       )}
                     </button>
                   </>
+                )}
+                {sansPositionRefusees.length > 0 && !geoResolve.busy && (
+                  <span style={{ display: 'block', marginTop: 2 }}>
+                    {t('geo_resolve_blocked').replace('{n}', String(sansPositionRefusees.length))}
+                  </span>
                 )}
                 {geoResolve.message && (
                   <span style={{ display: 'block', marginTop: 2 }}>{geoResolve.message}</span>

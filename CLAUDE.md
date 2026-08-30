@@ -67,6 +67,32 @@ Remède : `npm run cache:clear` (les réglages et les annonces sont conservés).
 L'application **construite** n'est pas concernée : ses images sont dans le
 paquet.
 
+### Moteur local — sans import, il ne calcule rien
+
+Constaté le 2026-08-30 : sur le profil réel, `ski_domain`, `domain_lift` et
+`domain_slope` étaient **à zéro**, et la distance aux pistes valait donc « non
+calculée » sur les 592 annonces enregistrées. Rien ne le signalait :
+`enrichWithAccess` sort en silence quand le domaine n'est pas rapproché du
+moteur, et l'écran affiche seulement « distance non calculée » par annonce.
+
+Remède : `npm run sidecar:import` (dump OpenSkiMap, ~130 Mo, réseau). Après
+import : 282 domaines, 3 233 remontées, et l'accès se calcule — mesuré à
+145 annonces sur 165 pour un domaine.
+
+Deux choses à savoir.
+
+- **`domain_slope` reste vide après l'import** : aucun chemin d'ingestion ne
+  remplit cette table, nulle part dans le sidecar. Elle est pourtant lue par
+  `api/routes/lodgings.py`. Ce qui est mesuré est donc la distance à la
+  **remontée**, pas à la piste — choix assumé de `ingest/openskimap.py`
+  (« personne ne chausse au milieu d'une rouge »), mais l'étiquette de
+  l'interface parle de pistes.
+- **Le CLI et l'application partagent la même base** — `%APPDATA%\SKITRACK`
+  et `%APPDATA%\skitrack` sont le même dossier sous Windows. En revanche,
+  lancer le binaire par `npx electron out/main/index.js` **sans**
+  `--user-data-dir` ouvre `%APPDATA%\Electron`, un profil distinct et vide :
+  une vérification faite là mesure autre chose que ce que voit l'utilisateur.
+
 ### Rouges préexistants — ne pas les signaler comme régressions
 
 - `npm run typecheck`, moitié Node : une trentaine d'erreurs `Cannot find name
@@ -124,12 +150,26 @@ tâches affiche l'icône d'Electron.
   contredire, et le dit dans son en-tête ; l'implémentation qui appliquait la
   règle — groupes `User-agent`, préfixe le plus long, jokers, cache — est dans
   l'historique Git.
-  Deux choses restent vraies. Le connecteur ne **fabrique** pas d'URL
+  Une chose reste vraie : le connecteur ne **fabrique** pas d'URL
   d'exploration : il remplit le formulaire et clique, comme l'utilisateur
   l'aurait fait — voir l'en-tête de `station/station.ts`, qui explique
-  pourquoi. Et l'**import par URL** garde sa propre lecture de `robots.txt`
-  (`src/main/listing.ts`, indépendante de `robots.ts`) : une page interdite y
-  est toujours refusée.
+  pourquoi.
+
+  **Correction du 2026-08-30.** Ce fichier affirmait jusqu'ici que « l'import
+  par URL garde sa propre lecture de `robots.txt` (`src/main/listing.ts`,
+  indépendante de `robots.ts`) : une page interdite y est toujours refusée ».
+  C'était faux sur les deux points, vérifié en lisant le code :
+  `listing.ts:27` importe `allowsPath` **depuis** `providers/station/robots.ts`
+  — la lecture n'est donc pas indépendante — et cette fonction rend
+  `{ allowed: true }` sur tout chemin depuis le 2026-08-26. La branche de refus
+  de `listing.ts:265` est **inatteignable** : aucune page n'est refusée au nom
+  de `robots.txt`, nulle part dans l'application.
+
+  Ce qui protège encore l'import par URL est d'une autre nature : la liste
+  d'hôtes de `src/shared/listingHosts.ts` (Airbnb, Booking, Expedia,
+  Hotels.com, Vrbo, Abritel), refusés au titre de leurs CGU **avant qu'aucune
+  requête ne parte**. C'est un refus par hôte, pas par chemin, et il ne dépend
+  d'aucun fichier distant.
 
 ## Zones à ne pas toucher
 

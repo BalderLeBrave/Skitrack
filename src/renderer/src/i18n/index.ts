@@ -714,6 +714,17 @@ const CATALOG = {
     '{ok} position(s) relevée(s) · {mute} page(s) sans coordonnées · {refus} refusée(s) par le site',
     '{ok} position(s) recorded · {mute} page(s) without coordinates · {refus} refused by the site'
   ],
+  /*
+   * Le cas que l'écran taisait : l'hôte refuse la lecture automatisée d'une
+   * page isolée (`shared/listingHosts.ts`). Ces annonces étaient comptées dans
+   * le bouton, qui promettait de relever une position qu'il n'obtiendrait
+   * jamais. Le texte dit ce qui marche à la place — un relevé refait, qui lit
+   * les coordonnées sur la page de résultats, là où elles sont publiées.
+   */
+  geo_resolve_blocked: [
+    '{n} autre(s) annonce(s) sans position viennent d’un site qui refuse la lecture automatisée d’une page isolée : leur position ne peut pas être relevée une par une. Un relevé refait pour ce domaine la rapporte.',
+    '{n} further listing(s) without a position come from a site that refuses automated reading of a single page: their position cannot be recorded one by one. A fresh scan of this resort brings it back.'
+  ],
   geo_resolve_help: [
     '{n} annonce(s) affichée(s) sans position relevée : leur épingle « ≈ » est placée autour de la station. L’application peut lire la page de chaque annonce — une requête par annonce, à votre demande — pour relever la position que la source publie.',
     '{n} listing(s) shown without a recorded position: their “≈” pin is placed around the resort. The application can read each listing page — one request per listing, at your request — to record the position the source publishes.'
@@ -1445,6 +1456,33 @@ const CATALOG = {
   lodg_dist_to_runs: ['{n} m des pistes', '{n} m from the runs'],
   lodg_src_hidden: ['masquée', 'hidden'],
   lodg_free_cancel: ['Annulation gratuite uniquement', 'Free cancellation only'],
+  /*
+   * Les deux filtres rendus à l'utilisateur le 2026-08-30. Ils étaient câblés
+   * en dur et retiraient des annonces en silence ; ils sont maintenant éteints
+   * par défaut, et leur libellé dit ce qu'ils **retirent**, pas ce qu'ils
+   * gardent — c'est la formulation qui prévient la mauvaise surprise.
+   */
+  lodg_only_available: [
+    'Masquer les annonces dont la disponibilité n’est pas confirmée',
+    'Hide listings whose availability is not confirmed'
+  ],
+  lodg_only_available_help: [
+    'Éteint, ces annonces s’affichent avec leur avertissement. Allumé, elles disparaissent de la liste.',
+    'Off, these listings are shown with their warning. On, they disappear from the list.'
+  ],
+  lodg_confirmed_prices: [
+    'Masquer les annonces dont le prix a été relevé à d’autres dates',
+    'Hide listings whose price was recorded for other dates'
+  ],
+  lodg_confirmed_prices_help: [
+    'Un prix relevé pour d’autres dates est affiché barré d’un avertissement plutôt que supprimé.',
+    'A price recorded for other dates is shown with a warning rather than removed.'
+  ],
+  lodg_sort_by: ['Trier par', 'Sort by'],
+  lodg_map_sync: [
+    'Restreindre la liste au cadrage de la carte',
+    'Restrict the list to the map view'
+  ],
   sources_label: ['Sources', 'Sources'],
   // --- Panneau « État du relevé » ------------------------------------------
   scan_running: ['Relevé en cours…', 'Search running…'],

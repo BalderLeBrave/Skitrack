@@ -3,20 +3,35 @@
  *
  * ## Le défaut que ce crochet corrige
  *
- * Le relevé Booking ne rapporte pas de coordonnées : la page de **résultats**
- * n'en publie pas là où l'extracteur lit, et l'extracteur est un code fragile
- * qu'on ne touche pas (`src/main/providers/**`, consigne du 2026-08-14). Ces
- * annonces étaient donc dispersées autour de la station par `lodgingCoords`,
- * et l'épingle avait la même tête qu'une position mesurée.
+ * Le relevé Booking ne rapportait pas de coordonnées : l'extracteur ne lisait
+ * pas là où la page de **résultats** les publie. Ces annonces étaient donc
+ * dispersées autour de la station par `lodgingCoords`, et l'épingle avait la
+ * même tête qu'une position mesurée.
+ *
+ * Depuis, l'extracteur lit le magasin Apollo de la page de résultats et les
+ * relevés neufs rapportent les positions. Restent les annonces relevées
+ * **avant** ce correctif : elles n'ont pas de position, et seul un relevé
+ * refait leur en donne une.
  *
  * ## Ce que le crochet fait, et d'où vient la donnée
  *
- * La page de **l'annonce**, elle, publie sa position — Booking met un bloc
- * JSON-LD avec `geo.latitude/longitude` sur chaque fiche d'hôtel. Le lecteur
- * de pages existe déjà : `src/main/listing.ts`, celui de l'import par URL,
- * avec sa lecture de `robots.txt` et son refus des plateformes dont les CGU
- * interdisent l'accès automatisé. On l'appelle, annonce par annonce, **à la
- * demande de l'utilisateur** — jamais en fond.
+ * Le lecteur de pages existe déjà : `src/main/listing.ts`, celui de l'import
+ * par URL. On l'appelle, annonce par annonce, **à la demande de
+ * l'utilisateur** — jamais en fond.
+ *
+ * ## Correction du 2026-08-30 — ce que cet en-tête affirmait de faux
+ *
+ * Il disait : « Booking met un bloc JSON-LD avec `geo.latitude/longitude` sur
+ * chaque fiche d'hôtel ». Mesuré sur une fiche réelle : le JSON-LD de Booking
+ * ne porte **aucun** `geo`. Les coordonnées y sont ailleurs — attribut
+ * `data-atlas-latlng`, variables `b_map_center_*` — et `listing.ts` sait
+ * maintenant les lire (`readCoords`).
+ *
+ * Mais cela ne change rien pour Booking : son hôte figure sur la liste de
+ * `shared/listingHosts.ts`, et `listing.ts` le refuse **avant d'émettre la
+ * moindre requête**. Le crochet ne doit donc jamais recevoir d'annonce venant
+ * d'un hôte de cette liste — l'écran les écarte du lot en amont, et dit à leur
+ * sujet ce qui marche réellement : un relevé refait.
  *
  * Une page qui refuse ou ne publie rien est comptée et dite ; on n'écrit
  * jamais une position de repli. Les annonces positionnées passent ensuite par

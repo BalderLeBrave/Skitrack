@@ -279,19 +279,38 @@ export function LodgingFilters(): JSX.Element {
             checked={state.lodgAnnul}
             onChange={(e) => patch({ lodgAnnul: e.target.checked })}
           />
-          Annulation gratuite uniquement
+          {t('lodg_free_cancel')}
         </label>
-        {/* La case « Disponibilité confirmée uniquement » a été retirée : la
-            réservabilité est devenue une règle de l'écran, appliquée sans
-            recours dans `state/selectors.tsx`. Elle permettait de désactiver la
-            seule garantie que la liste apporte, et une annonce introuvable au
-            dernier relevé revenait alors avec un avertissement qui renvoyait
-            l'utilisateur vérifier sur la source ce que l'application savait
-            déjà. Voir `data/lodgingAvailability.ts`. */}
+
+        {/* Les deux filtres qui furent des « règles de l'écran ».
+            Rendus à l'utilisateur le 2026-08-30, éteints par défaut : câblés en
+            dur, ils retiraient des annonces sans qu'aucun compteur ne les
+            mentionne, alors que la vignette sait déjà porter l'avertissement
+            correspondant. Voir `data/lodgingAvailability.ts` et le journal de
+            `state/appState.tsx`. */}
+        <label className="check" style={{ margin: '8px 0 0' }}>
+          <input
+            type="checkbox"
+            checked={state.lodgOnlyAvailable}
+            onChange={(e) => patch({ lodgOnlyAvailable: e.target.checked })}
+          />
+          {t('lodg_only_available')}
+        </label>
+        <p className="filters__help">{t('lodg_only_available_help')}</p>
+
+        <label className="check" style={{ margin: '8px 0 0' }}>
+          <input
+            type="checkbox"
+            checked={state.lodgConfirmedPrices}
+            onChange={(e) => patch({ lodgConfirmedPrices: e.target.checked })}
+          />
+          {t('lodg_confirmed_prices')}
+        </label>
+        <p className="filters__help">{t('lodg_confirmed_prices_help')}</p>
       </section>
 
       <section className="filters__section">
-        <label className="field-label">Trier par</label>
+        <label className="field-label">{t('lodg_sort_by')}</label>
         <select
           className="field"
           value={state.lodgSort}

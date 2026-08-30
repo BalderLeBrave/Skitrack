@@ -25,6 +25,10 @@
 
 import type { ListingExtract } from '@shared/ipc-contract'
 import { allowsPath } from './providers/station/robots'
+import { withPage } from './providers/webscrape/shared'
+// La liste vit dans `shared/` : l'écran Logements doit en tirer la même
+// conclusion que ce lecteur, sans quoi il propose des lectures vouées au refus.
+import { FORBIDDEN_LISTING_HOSTS as FORBIDDEN_HOSTS } from '@shared/listingHosts'
 
 /** ASCII strict : un en-tête HTTP est une ByteString, une apostrophe
  *  typographique ou un accent y lève une erreur avant même la requête. */
@@ -33,18 +37,6 @@ const TIMEOUT_MS = 15_000
 /** Au-delà, ce n'est pas une page d'annonce : on abandonne plutôt que d'avaler. */
 const MAX_BYTES = 3_000_000
 
-/**
- * Hôtes dont les CGU interdisent explicitement l'accès automatisé, y compris
- * pour une page isolée. Aucune requête n'est émise vers eux.
- */
-const FORBIDDEN_HOSTS = [
-  'airbnb.',
-  'booking.com',
-  'expedia.',
-  'hotels.com',
-  'vrbo.',
-  'abritel.'
-]
 
 function emptyExtract(url: string, site: string, blockedReason: string | null): ListingExtract {
   return {
@@ -63,6 +55,78 @@ function emptyExtract(url: string, site: string, blockedReason: string | null): 
     capacity: null,
     address: null,
     missing: ['titre', 'prix', 'chambres', 'capacité', 'position']
+  }
+}
+
+/**
+ * Coordonnées d'une page d'annonce, lues **hors JSON-LD**.
+ *
+ * Les trois porteurs ci-dessous ont été constatés le 2026-08-30 sur une fiche
+ * Booking réelle (`club-du-soleil-valfrejus`), rendue dans un navigateur ; les
+ * trois s'accordaient à la sixième décimale. Ils sont essayés dans l'ordre de
+ * leur précision : l'attribut porte la valeur complète, la variable JavaScript
+ * est arrondie à huit décimales.
+ *
+ * Aucune valeur n'est fabriquée : sans porteur, la fonction rend `null`, et
+ * l'annonce reste sans position — visible, mais sans position.
+ */
+export function readCoords(html: string): { lat: number; lon: number } | null {
+  const plausible = (lat: number, lon: number): { lat: number; lon: number } | null =>
+    Number.isFinite(lat) &&
+    Number.isFinite(lon) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lon) <= 180 &&
+    // Le point (0, 0) est au large du golfe de Guinée : c'est la marque d'un
+    // champ vide sérialisé en nombre, jamais celle d'un logement.
+    !(lat === 0 && lon === 0)
+      ? { lat, lon }
+      : null
+
+  const atlas = /data-atlas-latlng="(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)"/.exec(html)
+  if (atlas) {
+    const hit = plausible(Number(atlas[1]), Number(atlas[2]))
+    if (hit) return hit
+  }
+
+  const mapLat = /b_map_center_latitude\s*=\s*(-?\d+(?:\.\d+)?)/.exec(html)
+  const mapLon = /b_map_center_longitude\s*=\s*(-?\d+(?:\.\d+)?)/.exec(html)
+  if (mapLat && mapLon) {
+    const hit = plausible(Number(mapLat[1]), Number(mapLon[1]))
+    if (hit) return hit
+  }
+
+  const pair = /"latitude"\s*:\s*(-?\d+(?:\.\d+)?)\s*,\s*"longitude"\s*:\s*(-?\d+(?:\.\d+)?)/.exec(html)
+  if (pair) {
+    const hit = plausible(Number(pair[1]), Number(pair[2]))
+    if (hit) return hit
+  }
+
+  return null
+}
+
+/**
+ * Rendu de la page dans le navigateur partagé, en dernier recours.
+ *
+ * Mesuré le 2026-08-30 : une requête `fetch` sur une fiche Booking reçoit un
+ * HTTP 202 et 3 962 octets de page anti-robot — sans titre, sans prix, sans
+ * coordonnées. La même adresse ouverte dans un navigateur rend la fiche
+ * complète. Le repli ne sert donc pas à contourner un refus : il sert à obtenir
+ * la page que l'hôte sert à un navigateur, celle que l'utilisateur verrait.
+ *
+ * Il est volontairement le second choix : la lecture directe reste la voie
+ * normale, moins coûteuse et sans navigateur à démarrer.
+ */
+async function renderHtml(url: string): Promise<string | null> {
+  try {
+    return await withPage(true, async (page) => {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS * 3 })
+      // Les coordonnées de Booking arrivent avec le script de carte, après le
+      // DOM initial : sans cette pause, une fiche sur deux revient sans elles.
+      await page.waitForTimeout(2_500)
+      return await page.content()
+    })
+  } catch {
+    return null
   }
 }
 
@@ -202,17 +266,35 @@ export async function fetchListing(rawUrl: string): Promise<ListingExtract> {
       return emptyExtract(rawUrl, site, `Le fichier robots.txt de ${site} interdit la lecture de cette page.`)
     }
 
-    const res = await get(target.toString(), controller.signal)
-    if (!res.ok) {
-      return emptyExtract(rawUrl, site, `${site} a répondu ${res.status}.`)
+    /*
+     * Deux tentatives, dans cet ordre : la lecture directe, puis le rendu dans
+     * le navigateur partagé si elle n'a rien donné d'exploitable.
+     *
+     * Le critère de bascule est le résultat, pas le code HTTP : Booking répond
+     * « 202 » à une lecture directe, ce qui n'est pas une erreur, et sert
+     * pourtant une page vide de tout. On juge donc sur ce qu'on a obtenu — un
+     * titre, ou une position — plutôt que sur ce que l'hôte prétend.
+     */
+    let html: string | null = null
+    const res = await get(target.toString(), controller.signal).catch(() => null)
+    if (res && res.ok) {
+      const buffer = await res.arrayBuffer()
+      if (buffer.byteLength > MAX_BYTES) {
+        return emptyExtract(rawUrl, site, 'Page trop volumineuse pour être analysée.')
+      }
+      html = new TextDecoder('utf-8').decode(buffer)
     }
 
-    const buffer = await res.arrayBuffer()
-    if (buffer.byteLength > MAX_BYTES) {
-      return emptyExtract(rawUrl, site, 'Page trop volumineuse pour être analysée.')
+    if (html === null || (readJsonLd(html).length === 0 && readCoords(html) === null)) {
+      const rendered = await renderHtml(target.toString())
+      if (rendered !== null) html = rendered
     }
-    const html = new TextDecoder('utf-8').decode(buffer)
 
+    if (html === null) {
+      return emptyExtract(rawUrl, site, `${site} a répondu ${res ? res.status : 'sans contenu lisible'}.`)
+    }
+
+    const pageCoords = readCoords(html)
     const blocks = readJsonLd(html)
     const accommodation =
       blocks.find((b) => {
@@ -238,8 +320,11 @@ export async function fetchListing(rawUrl: string): Promise<ListingExtract> {
       images: [metaContent(html, 'og:image')].filter((v): v is string => Boolean(v)),
       price: num(offerNode.price) ?? num(metaContent(html, 'product:price:amount')),
       currency: str(offerNode.priceCurrency) ?? metaContent(html, 'product:price:currency'),
-      lat: num(geo.latitude),
-      lon: num(geo.longitude),
+      // Le JSON-LD reste prioritaire : c'est une déclaration de l'hôte. Les
+      // porteurs de page prennent le relais quand il n'en publie pas — c'est le
+      // cas de Booking, dont aucune fiche n'expose `geo` dans son JSON-LD.
+      lat: num(geo.latitude) ?? pageCoords?.lat ?? null,
+      lon: num(geo.longitude) ?? pageCoords?.lon ?? null,
       rooms: num(accommodation?.numberOfRooms) ?? num(accommodation?.numberOfBedrooms),
       capacity: num((accommodation?.occupancy as Json)?.value) ?? num(accommodation?.occupancy),
       address:

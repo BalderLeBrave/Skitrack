@@ -150,7 +150,17 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
   const factLeft = !accessKnown
     ? t('dist_not_computed')
     : [
-        lg.skiIn ? t('badge_ski_in') : lg.dist > 0 ? `${fmt(lg.dist)} m des pistes` : null,
+        // L'étiquette nomme le point réellement mesuré. « des pistes » était
+        // écrit en dur, y compris quand la mesure portait sur une remontée —
+        // c'est-à-dire toujours, faute de tracés importés.
+        lg.skiIn
+          ? t('badge_ski_in')
+          : lg.dist > 0
+            ? t(lg.accessPoint === 'piste' ? 'lodg_dist_to_runs' : 'lodg_dist_to_lift').replace(
+                '{n}',
+                fmt(lg.dist)
+              )
+            : null,
         lg.den !== 0 ? `${lg.den > 0 ? '+' : ''}${fmt(lg.den)} m` : null,
         lg.walk > 0 ? `${lg.walk} min à pied` : null
       ]

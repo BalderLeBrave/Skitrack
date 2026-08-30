@@ -34,6 +34,10 @@ function mergeMetrics(
   metric: {
     dist_to_slopes_m: number | null
     denivele_m: number | null
+    // Les deux distances d'origine, et pas seulement leur minimum : sans elles,
+    // impossible de dire si la mesure porte sur une piste ou sur une remontée,
+    // et l'étiquette annonçait « des pistes » dans tous les cas.
+    dist_to_nearest_slope_m: number | null
     dist_to_nearest_lift_m: number | null
     altitude_m: number | null
     slope_access_type: string | null
@@ -62,6 +66,20 @@ function mergeMetrics(
         : lodging.accessType,
     // Estimation du temps à pied : ~50 m/min en station, minimum une minute.
     walk: dist != null ? Math.max(1, Math.round(dist / 50)) : lodging.walk,
+    /*
+     * Lequel des deux points a été mesuré. `dist_to_slopes_m` est le minimum
+     * des deux côté sidecar ; on compare pour savoir lequel a gagné plutôt que
+     * de le supposer — le jour où les tracés seront importés, l'étiquette
+     * suivra sans qu'on y touche.
+     */
+    accessPoint:
+      dist == null
+        ? lodging.accessPoint
+        : metric.dist_to_nearest_slope_m != null && dist === metric.dist_to_nearest_slope_m
+          ? 'piste'
+          : metric.dist_to_nearest_lift_m != null && dist === metric.dist_to_nearest_lift_m
+            ? 'remontee'
+            : lodging.accessPoint,
     accessComputed: dist != null || metric.slope_access_type != null
   }
 }

@@ -154,6 +154,18 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
   scannedAt?: number
   /** Vrai une fois les métriques d'accès calculées par le sidecar. Distingue
    *  « pas encore calculé » de « calculé, résultat = au pied des pistes ». */
+  /**
+   * Ce qui a servi à mesurer `dist` : une piste, ou une gare de remontée.
+   *
+   * Le sidecar rend « la plus courte des deux distances », ce qu'il documente
+   * comme « le point skiable le plus proche ». L'étiquette de l'interface, elle,
+   * disait « m des pistes » dans tous les cas — or `domain_slope` n'est
+   * alimentée par aucun chemin d'ingestion (constaté le 2026-08-30, table vide
+   * après import), si bien que la mesure porte **toujours** sur une remontée.
+   * L'écran annonçait donc une distance à la piste qu'il n'avait jamais
+   * calculée. Ce champ dit lequel des deux a gagné, et l'étiquette suit.
+   */
+  accessPoint?: 'piste' | 'remontee'
   accessComputed?: boolean
   /**
    * Comment on rejoint le point skiable, d'après le moteur local.

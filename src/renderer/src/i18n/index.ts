@@ -174,7 +174,16 @@ const CATALOG = {
   filter_dist_range: ['Distance', 'Distance'],
   filter_pass_range: ['Forfait 6 jours adulte', '6-day adult pass'],
   filter_lodg_budget_range: ['Budget du séjour', 'Stay budget'],
-  filter_lodg_dist_range: ['Distance aux pistes', 'Distance to the runs'],
+  /*
+   * « Distance aux pistes » supposait une mesure sur les tracés. Le filtre
+   * porte sur `lg.dist`, que le sidecar définit comme le point skiable le plus
+   * proche — piste **ou** gare de remontée. Le libellé dit maintenant cela, qui
+   * est vrai dans les deux cas ; la vignette, elle, nomme le point mesuré.
+   */
+  filter_lodg_dist_range: [
+    'Distance au point skiable le plus proche',
+    'Distance to the nearest skiable point'
+  ],
   range_no_limit: ['sans limite', 'no limit'],
   range_low: ['Borne basse', 'Lower bound'],
   range_high: ['Borne haute', 'Upper bound'],
@@ -817,7 +826,7 @@ const CATALOG = {
     'remontées non disponibles (moteur local absent, ou domaine importé sans elles)',
     'lifts unavailable (local engine absent, or domain imported without them)'
   ],
-  report_access: ['Accès au bas des pistes : {n} m · {m} · {t}', 'Access to the slopes: {n} m · {m} · {t}'],
+  report_access: ['Accès au point skiable le plus proche : {n} m · {m} · {t}', 'Access to the nearest skiable point: {n} m · {m} · {t}'],
   report_access_unknown: [
     'Accès au bas des pistes : non calculé (le moteur local n’a pas traité cette annonce).',
     'Access to the slopes: not computed (the local engine did not process this listing).'
@@ -1477,7 +1486,16 @@ const CATALOG = {
   /** Donnée qui explique le motif : les dates réellement tarifées. */
   lodg_reason_priced_for: ['Tarif relevé pour {d}', 'Price recorded for {d}'],
   lodg_reason_stay_asked: ['Séjour demandé : {d}', 'Stay requested: {d}'],
+  /*
+   * Deux étiquettes, parce qu'il y a deux mesures possibles et qu'on ne les
+   * confond plus. Le sidecar rend « le point skiable le plus proche », piste ou
+   * gare de remontée ; l'écran affirmait « des pistes » dans les deux cas. Or
+   * `domain_slope` n'est alimentée par aucun chemin d'ingestion — table vide
+   * après import, constaté le 2026-08-30 — donc la mesure portait **toujours**
+   * sur une remontée, et l'étiquette annonçait une distance jamais calculée.
+   */
   lodg_dist_to_runs: ['{n} m des pistes', '{n} m from the runs'],
+  lodg_dist_to_lift: ['{n} m de la remontée', '{n} m from the lift'],
   lodg_src_hidden: ['masquée', 'hidden'],
   /*
    * Le nombre de nuits, seul. La ligne affirmait « semaine des vacances de

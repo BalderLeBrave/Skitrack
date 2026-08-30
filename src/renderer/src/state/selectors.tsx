@@ -161,6 +161,8 @@ export interface Derived {
   /** Annonces sans disponibilité confirmée pour le séjour en cours. */
   lodgUnavailable: number
   /** Annonces qui n'annoncent pas ce que les critères demandent. */
+  /** Lignes écartées faute d'avoir jamais porté un prix : ce ne sont pas des offres. */
+  lodgSansPrix: number
   lodgUnannounced: number
   /** Dont l'axe manquant est le nombre de pièces — irrécupérable par relevé. */
   lodgUnannouncedRooms: number
@@ -605,7 +607,27 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const lodgRaw = lodgDomain
       ? state.imported.filter((lg) => belongsToDomain(lg, lodgDomain))
       : []
-    const lodgAll = mergeDupesList(lodgRaw, state.mergeDupes)
+
+    /*
+     * Ce qui n'a **jamais** porté de prix n'est pas une offre.
+     *
+     * À ne pas confondre avec `lodgConfirmedPrices`, qui exige un prix relevé
+     * *pour ces dates* et reste un réglage : ici on écarte ce qui n'a de prix à
+     * aucune date, jamais. Une telle ligne ne peut être ni comparée, ni
+     * réservée, ni rafraîchie — c'est la définition de ce que l'écran liste,
+     * pas un filtre.
+     *
+     * Mesuré le 2026-08-30 sur 592 annonces enregistrées : la règle en écarte
+     * exactement 29, toutes issues d'un extracteur Gîtes de France qui prenait
+     * le menu du site pour des résultats — « Régions de France », « Camping »,
+     * « Le Top 100 des sites touristiques ». Aucune annonce Airbnb, Booking ou
+     * de centrale n'est concernée : les trois sources tarifent 100 % de ce
+     * qu'elles rapportent. L'extracteur est corrigé par ailleurs ; cette règle
+     * traite ce qui est déjà enregistré, et protège des mêmes surprises.
+     */
+    const lodgSansPrix = lodgRaw.filter((lg) => !(lg.total > 0)).length
+    const lodgOffres = lodgRaw.filter((lg) => lg.total > 0)
+    const lodgAll = mergeDupesList(lodgOffres, state.mergeDupes)
     const dupMerged = lodgRaw.length - lodgAll.length
 
     /**
@@ -756,6 +778,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgList,
       lodgHidden: lodgEligible.length - lodgFiltered.length,
       lodgUnavailable,
+      lodgSansPrix,
       lodgUnannounced,
       lodgUnannouncedRooms,
       lodgUnannouncedCapacity,

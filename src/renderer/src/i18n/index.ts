@@ -721,6 +721,16 @@ const CATALOG = {
    * jamais. Le texte dit ce qui marche à la place — un relevé refait, qui lit
    * les coordonnées sur la page de résultats, là où elles sont publiées.
    */
+  /*
+   * Le seul retrait que l'écran opère sans que l'utilisateur l'ait demandé, et
+   * il l'annonce. Il ne vise pas des logements : il vise des lignes qui n'ont
+   * jamais porté de prix, produites par un extracteur qui prenait le menu d'un
+   * site pour des résultats.
+   */
+  lodg_no_price_ever: [
+    '{n} ligne(s) enregistrée(s) pour ce domaine n’ont jamais porté de prix, à aucune date : ce ne sont pas des offres et l’écran ne les liste pas. Elles viennent d’un relevé Gîtes de France qui prenait le menu du site pour des résultats ; le défaut est corrigé, un relevé refait n’en produira plus.',
+    '{n} record(s) saved for this resort have never carried a price, at any date: they are not offers and the screen does not list them. They come from a Gîtes de France scan that mistook the site menu for results; the defect is fixed, and a fresh scan will not produce any more.'
+  ],
   geo_resolve_blocked: [
     '{n} autre(s) annonce(s) sans position viennent d’un site qui refuse la lecture automatisée d’une page isolée : leur position ne peut pas être relevée une par une. Un relevé refait pour ce domaine la rapporte.',
     '{n} further listing(s) without a position come from a site that refuses automated reading of a single page: their position cannot be recorded one by one. A fresh scan of this resort brings it back.'

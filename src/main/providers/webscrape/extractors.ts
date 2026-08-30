@@ -183,6 +183,21 @@ export function extractGitesCards(): RawCard[] {
       ''
     if (!title || title.length < 3) return
     const priceText = node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
+    /*
+     * Un résultat sans prix n'est pas un résultat.
+     *
+     * Le sélecteur ci-dessus prend `a[href*="/fr/"]`, ce qui attrape **tout le
+     * menu du site** : constaté le 2026-08-30 dans les données d'un
+     * utilisateur, 29 lignes enregistrées comme logements, dont « Régions de
+     * France », « Camping » et « Le Top 100 des sites touristiques ». Elles
+     * s'affichaient sur l'écran Logements comme des annonces.
+     *
+     * Le prix est le discriminant sûr : une carte de résultat de location en
+     * porte toujours un, une entrée de navigation jamais. Restreindre le
+     * sélecteur aurait demandé de deviner la forme des URL d'annonce du site
+     * sans pouvoir l'observer ; cette condition-ci se vérifie sur la page même.
+     */
+    if (!priceText) return
     const img = (node.querySelector('img') as HTMLImageElement | null)?.src
     out.push({ sourceId, title, url: href, priceText, image: img })
   })

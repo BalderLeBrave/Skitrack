@@ -899,6 +899,12 @@ export function LodgingsPage(): JSX.Element {
                 </button>
               </p>
             )}
+            {/* Le seul retrait non demandé par l'utilisateur — donc annoncé. */}
+            {derived.lodgSansPrix > 0 && (
+              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
+                {t('lodg_no_price_ever').replace('{n}', String(derived.lodgSansPrix))}
+              </p>
+            )}
             {/* Les épingles « ≈ » sont dispersées autour de la station faute
                 de position relevée. Deux cas, et deux phrases : la page peut
                 être lue — le bouton la lit, une requête par annonce, à la

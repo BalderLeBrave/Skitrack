@@ -122,12 +122,29 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
   // suffire. L'altitude vient de `lg.alt`, mesurée depuis la position, jamais
   // recopiée de la station.
   /*
-   * Badge « capacité non annoncée » : les critères demandent quelque chose que
-   * l'annonce n'annonce pas. Ces annonces s'affichent par défaut — c'est ce
-   * badge qui porte l'avertissement, pas leur absence de la liste.
+   * Badge « non annoncé » : les critères demandent quelque chose que l'annonce
+   * n'annonce pas. Ces annonces s'affichent toujours — c'est ce badge qui porte
+   * l'avertissement, jamais leur absence de la liste.
+   *
+   * L'axe manquant est nommé, et il se lit en neutralisant l'autre : demander
+   * `rooms: 0` ne peut plus rendre « non-annonce » que sur la capacité, et
+   * réciproquement. Le badge unique de la première version annonçait « capacité
+   * non annoncée » sur des annonces qui publiaient leur capacité et taisaient
+   * leurs pièces — vrai pour la majorité des cas, faux pour les autres, et
+   * c'est la seule chose que l'écran dise encore de cette annonce.
    */
-  const nonAnnoncee =
-    partyVerdict(lg, { travelers: state.travelers, rooms: state.rooms }) === 'non-annonce'
+  // Un seuil à zéro ne rend jamais « non-annonce » : `partyVerdict` saute
+  // l'axe qu'on ne lui demande pas. Pas de garde à écrire ici.
+  const sansCapacite =
+    partyVerdict(lg, { travelers: state.travelers, rooms: 0 }) === 'non-annonce'
+  const sansPieces = partyVerdict(lg, { travelers: 0, rooms: state.rooms }) === 'non-annonce'
+  const nonAnnonceeKey = sansCapacite
+    ? sansPieces
+      ? 'lodg_unannounced_badge_both'
+      : 'lodg_unannounced_badge'
+    : sansPieces
+      ? 'lodg_unannounced_badge_rooms'
+      : null
 
   const place = [
     domain.name || null,
@@ -136,7 +153,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
     lg.pers ? `${lg.pers} pers` : null,
     sizeLabel(lg, t),
     lg.m2 ? `${lg.m2} m²` : null,
-    nonAnnoncee ? `⚠ ${t('lodg_unannounced_badge')}` : null
+    nonAnnonceeKey ? `⚠ ${t(nonAnnonceeKey)}` : null
   ]
     .filter(Boolean)
     .join(' · ')

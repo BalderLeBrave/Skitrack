@@ -20,7 +20,29 @@
  */
 
 import { api, isClientReady } from '@/api/client'
+import type {
+  LodgingAccessMetrics,
+  LodgingAccessRequest,
+  LodgingAccessResponse
+} from '@/api/types'
 import type { Lodging } from './lodgings'
+
+/**
+ * Logements par appel au moteur local.
+ *
+ * Doit rester ≤ `MAX_LODGINGS` de `sidecar/skitrack/api/routes/lodgings.py`,
+ * qui rend un 413 au-delà. Le client découpe, le moteur n'a pas à changer.
+ */
+const MAX_PER_CALL = 200
+
+/**
+ * L'appel au moteur, isolé pour que le test puisse l'observer.
+ *
+ * Le découpage en lots ne se relit pas : il se compte. `lodgingAccess.test.ts`
+ * passe un appelant qui note la taille de chaque requête, et vérifie qu'un
+ * domaine de 349 annonces part en 200 + 149 plutôt qu'en un 413.
+ */
+export type AccessCaller = (body: LodgingAccessRequest) => Promise<LodgingAccessResponse>
 
 export interface EnrichResult {
   lodgings: Lodging[]
@@ -98,7 +120,8 @@ function mergeMetrics(
  */
 export async function enrichWithAccess(
   lodgings: Lodging[],
-  engineDomainId: number | undefined
+  engineDomainId: number | undefined,
+  call: AccessCaller = api.lodgingsAccess
 ): Promise<EnrichResult> {
   if (!isClientReady()) {
     return {
@@ -121,42 +144,84 @@ export async function enrichWithAccess(
     return { lodgings, note: null }
   }
 
-  try {
-    const response = await api.lodgingsAccess({
-      domain_id: engineDomainId,
-      with_elevation: true,
-      lodgings: geoItems.map((lodging) => ({
-        ref: String(lodging.id),
-        lat: lodging.lat,
-        lon: lodging.lon,
-        location_precision: lodging.locPrecision ?? 'exact'
-      }))
-    })
+  /*
+   * Le moteur refuse au-delà de `MAX_LODGINGS` par appel — 200, voir
+   * `sidecar/skitrack/api/routes/lodgings.py` — et son message dit quoi faire :
+   * « Découpez la recherche. » Personne ne le faisait. Un domaine de 349
+   * annonces partait donc en un seul POST, recevait un 413, et le `catch` du
+   * bas transformait le refus en « Distances aux pistes non calculées (Trop de
+   * logements en un appel (349 > 200). Découpez la recherche.) » — un message
+   * adressé au code, affiché à l'utilisateur, pour un lot qui n'avait rien
+   * d'anormal.
+   *
+   * Le découpage est fait ici plutôt qu'en relevant le plafond du moteur : la
+   * borne protège une requête synchrone qui charge tous les tracés du domaine,
+   * et le client est le seul à savoir qu'il parle du même domaine à chaque lot.
+   */
+  const batches: (typeof geoItems)[] = []
+  for (let at = 0; at < geoItems.length; at += MAX_PER_CALL) {
+    batches.push(geoItems.slice(at, at + MAX_PER_CALL))
+  }
 
-    if (response.slopes_available === 0 && response.lifts_available === 0) {
-      return {
-        lodgings,
-        note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
-      }
+  const byRef = new Map<string, LodgingAccessMetrics>()
+  /** Lots auxquels le moteur a répondu. Zéro = rien à dire du domaine. */
+  let answered = 0
+  /** Vu au moins une fois : le domaine porte des tracés ou des remontées. */
+  let anyGeometry = false
+  /** Premier échec rencontré, gardé pour le message. Les lots sains passent. */
+  let failure: string | null = null
+
+  // Séquentiel, et non `Promise.all` : chaque appel recharge les tracés du
+  // domaine côté moteur, et deux lots en parallèle doublent ce coût sans rien
+  // rendre plus tôt.
+  for (const batch of batches) {
+    try {
+      const response = await call({
+        domain_id: engineDomainId,
+        with_elevation: true,
+        lodgings: batch.map((lodging) => ({
+          ref: String(lodging.id),
+          lat: lodging.lat,
+          lon: lodging.lon,
+          location_precision: lodging.locPrecision ?? 'exact'
+        }))
+      })
+      answered++
+      if (response.slopes_available > 0 || response.lifts_available > 0) anyGeometry = true
+      for (const metric of response.results) byRef.set(metric.ref, metric)
+    } catch (error) {
+      // Un échec de source reste local : les lots déjà mesurés sont conservés.
+      failure ??= error instanceof Error ? error.message : 'moteur indisponible'
     }
+  }
 
-    const byRef = new Map(response.results.map((metric) => [metric.ref, metric]))
-    const enriched = lodgings.map((lodging) => {
-      const metric = byRef.get(String(lodging.id))
-      return metric ? mergeMetrics(lodging, metric) : lodging
-    })
-
-    const computed = enriched.filter((lodging) => lodging.accessComputed).length
-    return {
-      lodgings: enriched,
-      note: computed > 0 ? `Distances aux pistes calculées pour ${computed} logement(s).` : null
-    }
-  } catch (error) {
+  if (answered === 0) {
     // Le calcul est un bonus : son échec ne doit pas priver l'utilisateur de ses
     // annonces, déjà visibles. On le signale sans le transformer en erreur.
     return {
       lodgings,
-      note: `Distances aux pistes non calculées (${error instanceof Error ? error.message : 'moteur indisponible'}).`
+      note: `Distances aux pistes non calculées (${failure ?? 'moteur indisponible'}).`
     }
   }
+  if (!anyGeometry) {
+    // Vérifié sur les lots qui ont répondu, et non sur le contenu de `byRef` :
+    // un domaine sans tracés renvoie bien une ligne par logement, toutes nulles.
+    return {
+      lodgings,
+      note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
+    }
+  }
+
+  const enriched = lodgings.map((lodging) => {
+    const metric = byRef.get(String(lodging.id))
+    return metric ? mergeMetrics(lodging, metric) : lodging
+  })
+
+  const computed = enriched.filter((lodging) => lodging.accessComputed).length
+  const note = failure
+    ? `Distances aux pistes calculées pour ${computed} logement(s) sur ${geoItems.length} — un lot a échoué (${failure}).`
+    : computed > 0
+      ? `Distances aux pistes calculées pour ${computed} logement(s).`
+      : null
+  return { lodgings: enriched, note }
 }

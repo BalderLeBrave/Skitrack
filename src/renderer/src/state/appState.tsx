@@ -462,18 +462,21 @@ export interface AppState {
    * disparaître le logement.
    */
   lodgConfirmedPrices: boolean
-  /**
-   * Masquer les annonces qui n'annoncent pas ce que les critères demandent.
+  /*
+   * `lodgHideUnannounced` a été retiré le 2026-08-30, après deux tentatives.
    *
-   * **Éteint par défaut** : elles s'affichent, avec un badge « capacité non
-   * annoncée » — le masquage est l'option. Le défaut inverse a été essayé le
-   * 2026-08-29 et retiré le lendemain : il mettait 103 annonces de côté d'un
-   * coup et vidait l'écran (« ça marchait parfaitement bien avant »). Ce qui
-   * est connu **trop petit** reste écarté dans tous les cas — un studio
-   * annoncé 2 personnes ne répond jamais à une recherche à 8 ; c'était la
-   * plainte d'origine, et elle reste couverte.
+   * Il masquait les annonces qui n'annoncent ni capacité ni pièces. Câblé à
+   * `true` le 2026-08-29, il vidait l'écran ; repassé en option éteinte le
+   * lendemain, il restait vrai sur les profils où il avait été coché une fois
+   * — et 242 annonces Airbnb disparaissaient de la carte sans que rien ne
+   * ramène l'écran à son état d'avant, sinon retrouver le bouton.
+   *
+   * Ce que le masquage prétendait éviter est déjà dit sans rien retirer : la
+   * vignette porte « ⚠ capacité non annoncée » (`components/LodgingCard.tsx`),
+   * et ce qui est connu **trop petit** reste écarté dans tous les cas — un
+   * studio annoncé 2 personnes ne répond jamais à une recherche à 8, c'était
+   * la plainte d'origine et elle reste couverte par `partyVerdict`.
    */
-  lodgHideUnannounced: boolean
   /**
    * Bandeau de séjour replié.
    *
@@ -704,7 +707,6 @@ export const INITIAL_STATE: AppState = {
   hideBadGeo: false,
   lodgOnlyAvailable: false,
   lodgConfirmedPrices: false,
-  lodgHideUnannounced: false,
   stayBarCollapsed: false,
   flexOpen: false,
   ficheId: null,
@@ -793,7 +795,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**
@@ -978,6 +980,15 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // veut le filtre le rallume, et son choix est alors réenregistré.
   delete out.lodgOnlyAvailable
   delete out.lodgMapSync
+
+  // 2026-08-30 — `lodgHideUnannounced` n'existe plus : les annonces qui
+  // n'annoncent ni capacité ni pièces sont toujours affichées, avec leur badge.
+  // La clé traîne sur le disque des profils où le masquage avait été coché une
+  // fois, et plus rien ne la lit — l'enregistrement suivant, qui recompose sa
+  // charge depuis `PERSISTED_KEYS`, la fera disparaître de lui-même. On
+  // l'efface tout de même à la lecture : ce que le fichier porte encore n'a pas
+  // à voyager jusque dans l'état, où seul son nom ferait croire à un réglage.
+  delete out.lodgHideUnannounced
 
   // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
   const rattache = rerattacherParPosition(out.imported)

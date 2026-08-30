@@ -937,32 +937,12 @@ export function LodgingsPage(): JSX.Element {
                 nombre, il mène à la section qui le justifie. Sans ce saut,
                 l'écart entre ce que la source a renvoyé et ce que l'écran
                 montre resterait à chercher soi-même en bas de page. */}
-            {/* Les annonces qui n'annoncent pas ce que les critères demandent
-                sont AFFICHÉES par défaut, avec leur badge — le masquage est
-                l'option. La ligne nomme l'axe qui manque et ne promet que ce
-                qu'un relevé peut réellement combler : les pièces d'Airbnb et
-                de Booking ne sont jamais rapportées, la capacité peut l'être. */}
-            {derived.lodgUnannounced > 0 && (
-              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {t(state.lodgHideUnannounced ? 'lodg_unannounced_hidden' : 'lodg_unannounced_visible').replace(
-                  '{n}',
-                  String(derived.lodgUnannounced)
-                )}
-                {derived.lodgUnannouncedRooms > 0 && (
-                  <> {t('lodg_unannounced_rooms_axis').replace('{n}', String(derived.lodgUnannouncedRooms))}</>
-                )}
-                {derived.lodgUnannouncedCapacity > 0 && (
-                  <> {t('lodg_unannounced_capacity_axis').replace('{n}', String(derived.lodgUnannouncedCapacity))}</>
-                )}{' '}
-                <button
-                  type="button"
-                  className="linkbtn linkbtn--sm"
-                  onClick={() => patch({ lodgHideUnannounced: !state.lodgHideUnannounced })}
-                >
-                  {t(state.lodgHideUnannounced ? 'lodg_unannounced_show' : 'lodg_unannounced_hide')}
-                </button>
-              </p>
-            )}
+            {/* Le bandeau des « annonces qui n'annoncent pas ce que vos critères
+                demandent » a été retiré le 2026-08-30, avec la bascule qu'il
+                portait. Elles sont désormais toujours affichées, et ce qu'il
+                fallait en dire tient sur la vignette : « ⚠ capacité non
+                annoncée » (`components/LodgingCard.tsx`), au-dessus de
+                l'annonce concernée plutôt qu'en compte global dans l'en-tête. */}
             {/* Pourquoi la distance aux pistes manque, quand elle manque. */}
             {accessNote && (
               <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>

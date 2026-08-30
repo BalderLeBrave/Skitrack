@@ -23,7 +23,7 @@ import type { AvailabilityVerdict } from '@/data/lodgingAvailability'
 import { availabilityOf, isBookable } from '@/data/lodgingAvailability'
 import { domainZone, filterToZone } from '@shared/geo'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
-import { fitsParty, hasConfirmedPrice, matchesLodgingFilters, partyVerdict } from '@/data/lodgingFilter'
+import { fitsParty, hasConfirmedPrice, matchesLodgingFilters } from '@/data/lodgingFilter'
 import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
 import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
@@ -162,18 +162,12 @@ export interface Derived {
   lodgHidden: number
   /** Annonces sans disponibilité confirmée pour le séjour en cours. */
   lodgUnavailable: number
-  /** Annonces qui n'annoncent pas ce que les critères demandent. */
   /** Annonces dont le rattachement à ce domaine vient d'une ancienne numérotation. */
   lodgRattachementIncertain: number
   /** Annonces écartées parce que leur position est hors de la zone du domaine. */
   lodgHorsZone: number
   /** Lignes écartées faute d'avoir jamais porté un prix : ce ne sont pas des offres. */
   lodgSansPrix: number
-  lodgUnannounced: number
-  /** Dont l'axe manquant est le nombre de pièces — irrécupérable par relevé. */
-  lodgUnannouncedRooms: number
-  /** Dont l'axe manquant est la capacité — un relevé peut la combler. */
-  lodgUnannouncedCapacity: number
   /** Annonces écartées par les règles de l'écran, avec leur motif. */
   lodgRejected: RejectedLodging[]
   dupMerged: number
@@ -725,59 +719,53 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       // Même histoire, même date : un prix relevé pour d'autres dates est une
       // information périmée, affichée comme telle, pas un motif de disparition.
       confirmedPricesOnly: state.lodgConfirmedPrices,
-      includeUnannounced: !state.lodgHideUnannounced
+      /*
+       * Toujours affichées, et plus jamais réglable.
+       *
+       * Une annonce qui n'annonce ni capacité ni pièces n'est pas une annonce
+       * qui ne convient pas : c'est une annonce sur laquelle la source s'est
+       * tue. La masquer retirait 242 appartements Airbnb de la carte d'un
+       * domaine réel, et le seul geste qui les ramenait était un bouton dans
+       * l'en-tête. Ce que le masquage voulait éviter est dit là où ça se lit,
+       * sur la vignette : « ⚠ capacité non annoncée ». Ce qui est démontré
+       * **trop petit** reste écarté — voir `partyVerdict`, dont un refus
+       * l'emporte toujours sur une absence.
+       */
+      includeUnannounced: true
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
 
-    /**
-     * Annonces mises de côté parce qu'elles n'annoncent **rien** de ce qui est
-     * demandé — ni capacité, ni chambres, ni pièces.
-     *
-     * Comptées sur les annonces qui passent tout le reste : c'est le nombre que
-     * l'écran propose de réafficher, pas un total abstrait. Sans lui, la seule
-     * façon de savoir qu'elles existent serait de décocher au hasard.
-     */
     /*
-     * Compté que le masquage soit actif ou non : visible, le nombre légende le
-     * badge « capacité non annoncée » ; masqué, il dit ce qu'on ne voit pas.
-     * `sansPieces`/`sansCapacite` nomment l'axe qui manque — le message de
-     * l'écran ne doit promettre que ce qu'un relevé peut réellement combler,
-     * et un relevé ne rapporte jamais les pièces d'Airbnb ou de Booking.
+     * Le compte des « non annoncées » a été retiré avec le masquage qu'il
+     * légendait. Il ne servait qu'au bandeau de l'en-tête, et un nombre qu'on
+     * affiche pour expliquer une absence n'a plus d'objet quand il n'y a plus
+     * d'absence : les annonces sont dans la liste, chacune avec son badge.
      */
-    const nonAnnoncees = lodgAll.filter(
-      (lg) =>
-        partyVerdict(lg, lodgCriteria) === 'non-annonce' &&
-        matchesLodgingFilters(lg, { ...lodgCriteria, includeUnannounced: true }, stay)
-    )
-    const lodgUnannounced = nonAnnoncees.length
-    const lodgUnannouncedRooms = nonAnnoncees.filter(
-      (lg) => partyVerdict(lg, { ...lodgCriteria, travelers: 0 }) === 'non-annonce'
-    ).length
-    const lodgUnannouncedCapacity = nonAnnoncees.filter(
-      (lg) => partyVerdict(lg, { ...lodgCriteria, rooms: 0 }) === 'non-annonce'
-    ).length
 
     /**
-     * Ce que les deux règles de l'écran laissent passer, avant tout filtre.
+     * Ce que l'écran retire vraiment, et rien d'autre.
      *
-     * Sert de base au compte des masquées. Mesuré sur `lodgAll`, ce compte
-     * englobait les annonces écartées par les règles, et l'état vide proposait
-     * alors « Réinitialiser les filtres » pour ramener des annonces qu'aucun
-     * filtre n'écarte : le bouton n'aurait rien changé.
-     */
-    const lodgEligible = lodgAll.filter(
-      (lg) => isBookable(lg, stay) && hasConfirmedPrice(lg, stay)
-    )
-
-    /**
-     * Le complément d'`lodgEligible` : ce que les règles de l'écran retirent.
+     * La section « Ces logements sont écartés » a été écrite quand la
+     * disponibilité et le prix confirmé étaient deux **règles** de l'écran,
+     * appliquées avant tout filtre : ce qui n'y répondait pas disparaissait, et
+     * la section rendait compte de l'écart.
      *
-     * Construit par différence sur le même prédicat, et non par une seconde
-     * série de conditions : deux règles écrites deux fois finissent par
-     * diverger, et c'est alors la liste des écartés qui ment.
+     * Les deux règles sont devenues des réglages le 2026-08-30
+     * (`lodgOnlyAvailable`, `lodgConfirmedPrices`), éteints par défaut — mais
+     * la liste des écartés, elle, a continué de se construire sur les seuls
+     * prédicats. Résultat mesurable sur le profil réel : « 120 écarté(s),
+     * listé(s) plus bas » alors que ces 120 annonces étaient déjà dans la
+     * mosaïque au-dessus, avec leur prix, et se retrouvaient une seconde fois
+     * en bas de page sous un titre qui les disait retirées.
+     *
+     * L'appartenance à `lodgFiltered` fait donc foi : est écarté ce qui manque
+     * à la liste, jamais ce qu'un prédicat désapprouve dans son coin. Les
+     * réglages éteints, la section est vide et son compteur disparaît ; cochés,
+     * elle explique l'absence, ce pour quoi elle a été écrite.
      */
+    const affichees = new Set(lodgFiltered.map((lg) => lg.id))
     const lodgRejected: RejectedLodging[] = lodgAll
-      .filter((lg) => !(isBookable(lg, stay) && hasConfirmedPrice(lg, stay)))
+      .filter((lg) => !affichees.has(lg.id) && !(isBookable(lg, stay) && hasConfirmedPrice(lg, stay)))
       .map((lg) => ({ lodging: lg, verdict: availabilityOf(lg, stay) }))
 
     const lodgSorters: Record<string, (a: Lodging, b: Lodging) => number> = {
@@ -837,14 +825,17 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgDomain,
       lodgAll,
       lodgList,
-      lodgHidden: lodgEligible.length - lodgFiltered.length,
+      // Ce que les filtres retirent, et que « Réinitialiser les filtres »
+      // ramènerait : tout ce qui entre dans `matchesLodgingFilters` est remis à
+      // plat par `LODG_FILTER_RESET`. La base était `lodgEligible` — les
+      // annonces réservables et tarifées — du temps où ces deux conditions
+      // étaient des règles et non des réglages ; depuis, elles sont des filtres
+      // comme les autres, et la soustraction pouvait passer sous zéro.
+      lodgHidden: lodgAll.length - lodgFiltered.length,
       lodgUnavailable,
       lodgRattachementIncertain,
       lodgHorsZone,
       lodgSansPrix,
-      lodgUnannounced,
-      lodgUnannouncedRooms,
-      lodgUnannouncedCapacity,
       lodgRejected,
       dupMerged,
       voteScore,

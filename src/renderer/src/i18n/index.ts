@@ -765,34 +765,27 @@ const CATALOG = {
 
   // --- Annonces qui n'annoncent ni capacité ni pièces ---------------------
   /*
-   * Deux versions de ce message ont menti avant celle-ci, et les deux fautes
-   * méritent d'être écrites. « La source n'annonce ni capacité ni pièces »
-   * accusait la source — c'était le relevé qui jetait la donnée. Puis « un
-   * nouveau relevé les jugera sur le groupe demandé » promettait l'impossible
-   * quand l'axe manquant est le nombre de pièces : aucun relevé Airbnb ou
-   * Booking ne le rapporte, et ces annonces seraient restées de côté à chaque
-   * relevé, pour toujours. Le message nomme donc l'axe qui manque, et ne
-   * promet que ce qu'un relevé peut réellement combler.
+   * Il ne reste que le badge de la vignette.
+   *
+   * Cinq entrées légendaient un bandeau d'en-tête — le compte des masquées, le
+   * compte des affichées, l'axe manquant, et la bascule « Les afficher » /
+   * « Masquer celles qui n'annoncent rien ». Le masquage a été retiré le
+   * 2026-08-30 : il faisait disparaître 242 appartements de la carte d'un
+   * domaine réel, et son bandeau expliquait une absence qui n'a plus lieu
+   * d'être. Ce qui reste à dire tient sur l'annonce elle-même.
+   *
+   * Trois libellés et non un seul : le badge unique disait « capacité non
+   * annoncée » y compris quand la capacité était publiée et que c'était le
+   * nombre de pièces qui manquait. Tant que le bandeau nommait l'axe, l'écran
+   * se rattrapait ; il ne le fait plus, et un badge est la seule chose que
+   * l'utilisateur lise sur cette annonce. Il doit donc dire vrai tout seul.
    */
-  lodg_unannounced_visible: [
-    '{n} annonce(s) affichée(s) sans que la source annonce tout ce que vos critères demandent — elles portent le badge « capacité non annoncée ».',
-    '{n} listing(s) shown although the source does not announce everything your criteria ask for — they carry the “capacity not announced” badge.'
-  ],
-  lodg_unannounced_hidden: [
-    '{n} annonce(s) masquée(s) parce qu’elles n’annoncent pas ce que vos critères demandent.',
-    '{n} listing(s) hidden because they do not announce what your criteria ask for.'
-  ],
-  lodg_unannounced_rooms_axis: [
-    'Pour {n} d’entre elles, c’est le nombre de pièces qui manque — les relevés Airbnb et Booking ne le rapportent pas : tant que le critère chambres est actif, elles resteront non jugeables.',
-    'For {n} of them the room count is missing — Airbnb and Booking scans never report it: as long as the bedrooms criterion is active, they will stay unjudgeable.'
-  ],
-  lodg_unannounced_capacity_axis: [
-    'Pour {n} d’entre elles, c’est la capacité qui manque — un relevé refait depuis la station peut la combler, la recherche étant filtrée par la taille du groupe.',
-    'For {n} of them the capacity is missing — a fresh scan from the resort can fill it, since the search is filtered by group size.'
-  ],
-  lodg_unannounced_show: ['Les afficher', 'Show them'],
-  lodg_unannounced_hide: ['Masquer celles qui n’annoncent rien', 'Hide those that announce nothing'],
   lodg_unannounced_badge: ['capacité non annoncée', 'capacity not announced'],
+  lodg_unannounced_badge_rooms: ['pièces non annoncées', 'room count not announced'],
+  lodg_unannounced_badge_both: [
+    'capacité et pièces non annoncées',
+    'capacity and room count not announced'
+  ],
   print_label: ['Imprimer', 'Print'],
 
   // --- Sujet 6 : récapitulatif imprimable du séjour ------------------------

@@ -122,6 +122,58 @@ export function airbnbRoomUrl(
  * garantit ces deux champs, et laisser passer une annonce anonyme casserait la
  * déduplication et l'ouverture du lien.
  */
+/**
+ * Chambres et lits annoncés par la carte Airbnb.
+ *
+ * ## Ce que l'application affirmait
+ *
+ * `airbnbMerge.ts` portait ce commentaire : « la carte de résultat Airbnb ne
+ * publie pas la capacité exacte du bien ». Vérifié le 2026-08-30 sur une page
+ * de résultats réelle, le texte d'une carte est :
+ *
+ *     Appartement en résidence ⋅ Modane
+ *     Spacieux appartement cœur de station avec garage
+ *     2 chambres · 6 lits · 1 salle de bain et 1 toilette
+ *     1 754 € au total
+ *
+ * Les chambres et les lits y sont, en toutes lettres. Ce qui manque est la
+ * **capacité en personnes**, et elle seule — la carte ne l'écrit nulle part.
+ * Le commentaire généralisait une absence vraie à des données présentes, et
+ * l'écran en concluait « le relevé n'a rien rapporté » pour 144 annonces.
+ *
+ * ## Ce qui est lu, et ce qui ne l'est pas
+ *
+ * Les nombres écrits sur la carte, rien d'autre. Les lits ne sont pas traduits
+ * en capacité : « 6 lits » ne dit pas combien de personnes le bien accepte, et
+ * six lits simples ne valent pas six couchages dans une chambre double. Les
+ * salles de bain sont ignorées : aucun critère ne les demande.
+ *
+ * La lecture porte sur le sous-titre **et** le nom : selon la version du
+ * marque-page, la ligne de taille tombe dans l'un ou dans l'autre. Une
+ * absence reste une absence — la fonction rend `undefined`, jamais zéro.
+ */
+export function tailleAnnoncee(item: {
+  name?: unknown
+  subtitle?: unknown
+}): { chambres?: number; lits?: number } {
+  const morceaux = [item.subtitle, item.name]
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+    .join(' · ')
+  if (!morceaux) return {}
+
+  const lire = (m: RegExpExecArray | null): number | undefined => {
+    if (!m) return undefined
+    const n = Number(m[1])
+    return Number.isFinite(n) && n > 0 ? n : undefined
+  }
+  return {
+    // « 2 chambres », « 1 chambre ». « Studio » n'est pas traduit en 0 chambre :
+    // c'est une convention d'annonce, pas un décompte publié.
+    chambres: lire(/(\d+)\s*chambres?\b/i.exec(morceaux)),
+    lits: lire(/(\d+)\s*lits?\b/i.exec(morceaux))
+  }
+}
+
 export function parseAirbnbClipboard(text: string): AirbnbParseResult {
   let parsed: unknown
   try {
@@ -167,6 +219,7 @@ export function parseAirbnbClipboard(text: string): AirbnbParseResult {
 
     const total = parseAirbnbPrice(item.priceLabel)
     const rating = parseAirbnbRating(item.ratingLabel)
+    const taille = tailleAnnoncee(item)
 
     listings.push({
       name,
@@ -180,6 +233,10 @@ export function parseAirbnbClipboard(text: string): AirbnbParseResult {
       // Le type précis d'Airbnb (« Appartement ⋅ Les Belleville ») n'est pas
       // fiable ; on laisse « Import » et on garde le détail dans le nom.
       type: undefined,
+      // Chambres et lits, lus dans le libellé de la carte. Voir
+      // `tailleAnnoncee` : Airbnb les écrit, l'application les jetait.
+      rooms: taille.chambres,
+      beds: taille.lits,
       // Coordonnées lues dans le bloc de données de la page. Airbnb ne publie
       // qu'une position approximative avant réservation : on le déclare, pour
       // que le calcul d'accès arrondisse au lieu de feindre la précision.

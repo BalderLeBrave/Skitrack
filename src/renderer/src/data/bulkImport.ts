@@ -24,6 +24,8 @@ export interface RawListing {
   /** Prix total du séjour, tout compris, en euros. */
   total: number
   rooms?: number
+  /** Lits annoncés, quand la source les compte — « 6 lits » sur une carte. */
+  beds?: number
   capacity?: number
   /** Distance aux pistes à pied, en mètres. */
   dist?: number

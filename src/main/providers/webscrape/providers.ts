@@ -55,6 +55,13 @@ function mapCards(
           totalPrice: price,
           currency: 'EUR',
           rating: Number.isFinite(rating) ? rating : undefined,
+          // Taille du bien, telle que la page de résultats l'écrit. Ces champs
+          // existaient au modèle pivot et personne ne les remplissait : les
+          // annonces Booking ressortaient sans chambres ni surface, et l'écran
+          // en concluait que « le relevé n'a rien rapporté ».
+          bedrooms: c.bedrooms,
+          beds: c.beds,
+          areaSqm: c.areaSqm,
           images: c.image ? [c.image] : undefined
         },
         params

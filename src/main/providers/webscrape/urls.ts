@@ -29,6 +29,18 @@ export function bookingSearchUrl(params: SearchParams, offset = 0): string {
   if (params.checkOut) u.searchParams.set('checkout', params.checkOut)
   u.searchParams.set('group_adults', String(params.adults ?? 2))
   u.searchParams.set('group_children', String(params.children ?? 0))
+  /*
+   * `no_rooms` reste à 1, et ce n'est pas un oubli.
+   *
+   * Chez Booking, ce paramètre est le nombre d'**unités à réserver**, pas le
+   * nombre de chambres du logement. Y poser `params.bedrooms` ferait chercher
+   * quatre chambres d'hôtel séparées là où l'utilisateur demande un chalet de
+   * quatre chambres — deux séjours différents, et deux prix sans rapport.
+   *
+   * Booking n'expose pas de filtre « au moins N chambres » dans l'URL de
+   * recherche. Ce connecteur ignore donc `bedrooms`, comme il ignore tout ce
+   * que sa source ne sait pas traduire ; le critère reste appliqué en aval.
+   */
   u.searchParams.set('no_rooms', '1')
   u.searchParams.set('selected_currency', 'EUR')
   if (offset > 0) u.searchParams.set('offset', String(offset))
@@ -47,6 +59,8 @@ export function expediaSearchUrl(params: SearchParams): string {
   if (params.checkIn) u.searchParams.set('startDate', params.checkIn)
   if (params.checkOut) u.searchParams.set('endDate', params.checkOut)
   u.searchParams.set('adults', String(params.adults ?? 2))
+  // Même raison que pour Booking : « rooms » compte les unités réservées, pas
+  // les chambres du bien. Voir le commentaire de `bookingSearchUrl`.
   u.searchParams.set('rooms', '1')
   return u.toString()
 }

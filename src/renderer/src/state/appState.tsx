@@ -1006,7 +1006,13 @@ function forgetInventedCapacity(imported: Lodging[] | undefined): Lodging[] {
   if (!Array.isArray(imported)) return []
   return imported.map((lodging) =>
     lodging.src === 'Airbnb' || lodging.src === 'OSM → Airbnb'
-      ? { ...lodging, pers: 0, ch: 0 }
+      ? // `ch` n'est plus effacé depuis le 2026-08-30. Il valait toujours zéro
+        // pour Airbnb — rien ne le remplissait — et l'effacer ne coûtait rien.
+        // Depuis, `airbnbClip.tailleAnnoncee` lit « 2 chambres » sur la carte :
+        // c'est une donnée publiée, pas une capacité devinée, et l'effacer
+        // rejouerait le défaut que cette fonction corrige. Seule la capacité en
+        // personnes reste remise à zéro, parce qu'elle seule a été inventée.
+        { ...lodging, pers: 0 }
       : lodging
   )
 }

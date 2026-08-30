@@ -188,6 +188,8 @@ export function baseAccommodation(
     reviewCount?: number
     images?: string[]
     bedrooms?: number
+    /** Nombre de lits annoncé — « 6 lits (4 simples, 2 doubles) » chez Booking. */
+    beds?: number
     /** Pièces, quand la source compte ainsi — voir `Accommodation.rooms`. */
     rooms?: number
     /** Surface habitable en m², telle que la source l'annonce. */
@@ -219,6 +221,10 @@ export function baseAccommodation(
     // `params.adults` renvoyait la demande en guise de capacite annoncee.
     guests: partial.guests,
     bedrooms: partial.bedrooms,
+    // Recopié comme le reste : le champ existait au modèle pivot et n'était
+    // relayé par aucun connecteur, si bien qu'un extracteur qui le lisait le
+    // voyait disparaître ici sans un mot.
+    beds: partial.beds,
     rooms: partial.rooms,
     areaSqm: partial.areaSqm,
     nightlyPrice: partial.nightlyPrice,

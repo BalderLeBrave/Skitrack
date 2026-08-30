@@ -167,12 +167,18 @@ export function mergeAirbnbPaste(
       id: firstId + index,
       name: item.name,
       type: 'Import',
-      // Capacité et chambres : 0 = inconnu. La carte de résultat Airbnb ne
-      // publie pas la capacité exacte du bien ; y écrire le groupe du moment
+      // Capacité : 0 = inconnu. La carte de résultat Airbnb ne publie pas la
+      // capacité **en personnes** du bien ; y écrire le groupe du moment
       // fabriquait une caractéristique. Mais la **recherche** d'où vient le
       // collage était filtrée par le groupe (`adults` dans l'URL de la page),
       // et cette information-là est réelle : elle part dans `fitsGuests`, pas
       // dans `pers`.
+      //
+      // Les **chambres**, elles, sont publiées : la carte écrit « 2 chambres ·
+      // 6 lits · 1 salle de bain ». Ce commentaire disait le contraire, et
+      // `ch` restait à zéro pour toutes les annonces Airbnb. C'est
+      // `airbnbClip.tailleAnnoncee` qui les lit maintenant, et `item.rooms`
+      // les porte jusqu'ici.
       pers: 0,
       fitsGuests: searchAdults,
       ch: item.rooms ?? 0,

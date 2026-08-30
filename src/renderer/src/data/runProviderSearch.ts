@@ -87,6 +87,8 @@ export interface RunProviderSearchResult {
 
 export interface RunProviderSearchParams {
   domainId: number
+  /** Nombre de chambres demandé, transmis aux connecteurs qui savent filtrer. */
+  bedrooms?: number
   domainName: string
   lat?: number
   lon?: number
@@ -380,7 +382,12 @@ export async function runProviderSearch(
     checkIn: params.checkIn,
     checkOut: params.checkOut,
     adults: params.adults,
-    children: params.children
+    children: params.children,
+    // Le critère chambres, enfin transmis. Il restait dans le renderer, où il
+    // était appliqué après coup sur ce que les sources avaient rapporté — et
+    // ni Airbnb ni Booking ne rapportent de chambres. Voir
+    // `ProviderSearchParams.bedrooms`.
+    bedrooms: params.bedrooms
   })
 
   // Dédoublonnage interne au relevé seulement : deux connecteurs peuvent servir

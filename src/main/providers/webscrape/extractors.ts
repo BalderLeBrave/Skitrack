@@ -21,6 +21,24 @@ export interface RawCard {
    */
   lat?: number
   lon?: number
+  /**
+   * Ce que la page de résultats publie sur la taille du bien.
+   *
+   * Booking décrit l'unité recommandée en toutes lettres sous la carte —
+   * « Appartement entier • 3 chambres • 2 salles de bains • 1 cuisine • 49 m² »,
+   * « 6 lits (4 lits simples, 2 grands lits doubles) ». L'extracteur jetait
+   * cette phrase, et les 203 annonces Booking du profil réel ressortaient sans
+   * chambres ni surface : l'écran répondait « le relevé n'a rapporté ni
+   * capacité ni nombre de pièces », alors que la page l'affichait.
+   *
+   * Rien n'est déduit ici : chaque champ vient d'un nombre écrit sur la page.
+   * Les lits ne sont **pas** traduits en capacité — « 6 lits » ne dit pas
+   * combien de personnes le bien accepte, et l'inventer serait pire que le
+   * silence.
+   */
+  bedrooms?: number
+  beds?: number
+  areaSqm?: number
 }
 
 /** Booking.com — cartes [data-testid="property-card"] ou liens /hotel/ */
@@ -105,6 +123,50 @@ export function extractBookingCards(): RawCard[] {
     // Position du bien : jointure avec le magasin Apollo par le slug de l'URL.
     const slug = href.match(/\/hotel\/[a-z]{2}\/([^./?#]+)/i)?.[1]
     const pos = slug ? positions[slug] : undefined
+
+    /*
+     * Taille du bien, lue dans la description de l'unité recommandée.
+     *
+     * Le bloc `recommended-units` porte une phrase du genre « Appartement
+     * entier • 3 chambres • 1 salon • 2 salles de bains • 1 cuisine • 49 m² ».
+     * On lit les nombres qui y sont écrits, et rien d'autre : « salles de
+     * bains » et « cuisine » sont volontairement ignorés — ils n'entrent dans
+     * aucun critère — et « lits » n'est jamais converti en capacité.
+     *
+     * Le repli sur le texte entier de la carte sert les mises en page où le
+     * bloc porte un autre `data-testid` : la phrase, elle, reste la même.
+     */
+    const unites =
+      root.querySelector('[data-testid="recommended-units"]')?.textContent ||
+      root.textContent ||
+      ''
+    /*
+     * Les trois nombres écrits sur la carte.
+     *
+     * Une première version de ces expressions se terminait par `` et ne
+     * trouvait jamais rien, alors que la même expression retapée à côté
+     * marchait. La cause n'était pas le code mais **un octet** : le `` avait
+     * été écrit dans le fichier comme le caractère de contrôle « retour
+     * arrière » (0x08) au lieu des deux caractères antislash-b. L'expression
+     * exigeait donc un retour arrière après « lits », ce qu'aucune page ne
+     * contient. Rien ne le montrait à la lecture — seul `cat -A` le révélait.
+     *
+     * D'où la règle qu'on s'applique ici : pas de `` en fin de motif quand
+     * un caractère suffit à distinguer, et une vérification des octets plutôt
+     * que de l'apparence quand une expression « correcte » ne trouve rien.
+     */
+    const lire = (m: RegExpExecArray | null): number | undefined => {
+      if (!m) return undefined
+      const n = Number(m[1])
+      return Number.isFinite(n) && n > 0 ? n : undefined
+    }
+    // « 3 chambres », « 1 chambre ». Les hôtels n'en publient pas : ils listent
+    // des types de chambre, et l'absence est alors la bonne réponse.
+    const bedrooms = lire(/(\d+)\s*chambres?/i.exec(unites))
+    const beds = lire(/(\d+)\s*lits?/i.exec(unites))
+    // Surface habitable, quand la page la publie : « 49 m² » ou « 49 m2 ».
+    const areaSqm = lire(/(\d+)\s*m(?:²|2)(?![0-9])/i.exec(unites))
+
     out.push({
       sourceId,
       title,
@@ -113,7 +175,10 @@ export function extractBookingCards(): RawCard[] {
       ratingText,
       image: img,
       lat: pos?.lat,
-      lon: pos?.lon
+      lon: pos?.lon,
+      bedrooms,
+      beds,
+      areaSqm,
     })
   })
   return out

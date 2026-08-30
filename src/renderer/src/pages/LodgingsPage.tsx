@@ -256,6 +256,11 @@ export function LodgingsPage(): JSX.Element {
     // dans `imported` au fil de l'eau sans attendre le dernier connecteur.
     const searchParams = {
       domainId: d.id,
+      // Le critère chambres part enfin avec la recherche. Les connecteurs qui
+      // savent filtrer là-dessus le font ; les autres l'ignorent, et le critère
+      // reste appliqué en aval comme avant. Voir
+      // `ProviderSearchParams.bedrooms` (`src/shared/ipc-contract.ts`).
+      bedrooms: state.rooms > 0 ? state.rooms : undefined,
       domainName: d.name,
       lat: hasCoords(d) ? d.lat : undefined,
       lon: hasCoords(d) ? d.lon : undefined,

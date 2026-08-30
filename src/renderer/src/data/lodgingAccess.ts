@@ -48,6 +48,18 @@ export interface EnrichResult {
   lodgings: Lodging[]
   /** Message court pour le journal d'import. Null si rien à signaler. */
   note: string | null
+  /**
+   * Tout ce qui pouvait être mesuré l'a été.
+   *
+   * Faux dès qu'une position est restée sans distance pour une raison qui se
+   * nomme : moteur éteint, domaine non rapproché, domaine sans tracés, lot en
+   * échec. L'écran Logements décidait jusqu'ici d'afficher la raison en
+   * regardant si **aucune** annonce n'avait été mesurée — un test qui valait
+   * quand l'appel était unique, et qui rend l'échec partiel muet depuis le
+   * découpage en lots : 200 distances arrivées, 149 perdues, aucun message, et
+   * `accessTried` empêche toute nouvelle tentative de la session.
+   */
+  ok: boolean
 }
 
 /** Traduit le type d'accès du sidecar en distance/dénivelé exploitables par la carte. */
@@ -126,13 +138,15 @@ export async function enrichWithAccess(
   if (!isClientReady()) {
     return {
       lodgings,
-      note: 'Moteur local non démarré — distances aux pistes non calculées.'
+      note: 'Moteur local non démarré — distances aux pistes non calculées.',
+      ok: false
     }
   }
   if (engineDomainId == null) {
     return {
       lodgings,
-      note: 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.'
+      note: 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.',
+      ok: false
     }
   }
 
@@ -141,7 +155,9 @@ export async function enrichWithAccess(
       typeof lodging.lat === 'number' && typeof lodging.lon === 'number'
   )
   if (geoItems.length === 0) {
-    return { lodgings, note: null }
+    // Rien à mesurer n'est pas un échec : une annonce sans position relevée est
+    // signalée ailleurs, et l'épingle « ≈ » le dit sur la carte.
+    return { lodgings, note: null, ok: true }
   }
 
   /*
@@ -195,12 +211,43 @@ export async function enrichWithAccess(
     }
   }
 
-  if (answered === 0) {
-    // Le calcul est un bonus : son échec ne doit pas priver l'utilisateur de ses
-    // annonces, déjà visibles. On le signale sans le transformer en erreur.
+  const enriched = lodgings.map((lodging) => {
+    const metric = byRef.get(String(lodging.id))
+    return metric ? mergeMetrics(lodging, metric) : lodging
+  })
+
+  /*
+   * Compté sur les seules annonces envoyées, et non sur toute la liste.
+   *
+   * `accessComputed` est enregistré avec l'annonce : le mesurer sur `lodgings`
+   * additionnait les distances d'une session précédente à celles de cet appel,
+   * et le rapport pouvait annoncer « calculées pour 349 sur 349 » au moment
+   * même où un lot venait d'échouer. Numérateur et dénominateur parlent
+   * désormais de la même population.
+   */
+  const mesurees = geoItems.filter((lodging) => {
+    const metric = byRef.get(String(lodging.id))
+    return metric != null && (metric.dist_to_slopes_m != null || metric.slope_access_type != null)
+  }).length
+  const manquantes = geoItems.length - mesurees
+
+  /*
+   * Un échec l'emporte sur l'absence de tracés : « ce domaine n'a pas ses
+   * tracés » se répare par un import, la panne d'un lot par une relance, et
+   * c'est le second remède qu'il faut donner quand les deux se présentent —
+   * le domaine peut très bien avoir ses tracés sans que le lot qui l'aurait
+   * montré ait répondu.
+   *
+   * Le calcul est un bonus : son échec ne doit pas priver l'utilisateur de ses
+   * annonces, déjà visibles. On le signale sans le transformer en erreur.
+   */
+  if (answered === 0 || failure) {
     return {
-      lodgings,
-      note: `Distances aux pistes non calculées (${failure ?? 'moteur indisponible'}).`
+      lodgings: enriched,
+      // Une seule phrase pour la panne totale et pour la panne partielle : elle
+      // porte le compte, donc elle dit d'elle-même de laquelle il s'agit.
+      note: `Distances aux pistes non calculées pour ${manquantes} logement(s) sur ${geoItems.length} (${failure ?? 'moteur indisponible'}).`,
+      ok: false
     }
   }
   if (!anyGeometry) {
@@ -208,20 +255,24 @@ export async function enrichWithAccess(
     // un domaine sans tracés renvoie bien une ligne par logement, toutes nulles.
     return {
       lodgings,
-      note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
+      note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.',
+      ok: false
     }
   }
 
-  const enriched = lodgings.map((lodging) => {
-    const metric = byRef.get(String(lodging.id))
-    return metric ? mergeMetrics(lodging, metric) : lodging
-  })
-
-  const computed = enriched.filter((lodging) => lodging.accessComputed).length
-  const note = failure
-    ? `Distances aux pistes calculées pour ${computed} logement(s) sur ${geoItems.length} — un lot a échoué (${failure}).`
-    : computed > 0
-      ? `Distances aux pistes calculées pour ${computed} logement(s).`
-      : null
-  return { lodgings: enriched, note }
+  /*
+   * `ok` vaut « rien à signaler à l'écran », et non « tout est mesuré ».
+   *
+   * Le moteur peut rendre une ligne vide pour une position qu'il n'a pas su
+   * rapprocher, sans que personne n'ait échoué : la vignette dit alors
+   * « distance non calculée », ce qui est exact, et hisser un bandeau
+   * au-dessus de la liste pour ça reviendrait à donner un remède là où il n'y
+   * a pas de panne. Les quatre cas qui en ont un — moteur éteint, domaine non
+   * rapproché, domaine sans tracés, lot en échec — sont tous rendus plus haut.
+   */
+  return {
+    lodgings: enriched,
+    note: mesurees > 0 ? `Distances aux pistes calculées pour ${mesurees} logement(s).` : null,
+    ok: true
+  }
 }

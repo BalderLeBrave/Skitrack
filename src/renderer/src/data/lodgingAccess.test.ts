@@ -134,6 +134,7 @@ async function main(): Promise<void> {
       out.note === 'Distances aux pistes calculées pour 349 logement(s).',
       out.note
     )
+    check('rien à signaler à l’écran', out.ok)
   }
 
   console.log('\n2. La borne elle-même')
@@ -161,6 +162,9 @@ async function main(): Promise<void> {
     check('cinq positions envoyées, pas huit', JSON.stringify(lots) === '[5]', JSON.stringify(lots))
     check('les trois sans position sont rendues intactes', out.lodgings.length === 8)
     check('et seules les cinq positionnées sont mesurées', mesures(out.lodgings) === 5)
+    // Rien à mesurer n'est pas une panne : les annonces sans position sont
+    // signalées ailleurs, et l'épingle « ≈ » le dit déjà sur la carte.
+    check('les trois sans position ne lèvent aucun bandeau', out.ok)
   }
 
   console.log('\n4. Un échec de source reste local')
@@ -168,14 +172,18 @@ async function main(): Promise<void> {
     const { call } = moteur({ panne: 1 })
     const out = await enrichWithAccess(lodgings(349), 42, call)
     check('le second lot est mesuré malgré la panne du premier', mesures(out.lodgings) === 149)
-    // Le compte est dit, et le total avec : « calculées pour 149 » seul
-    // laisserait croire que 149 était tout ce qu'il y avait à mesurer.
+    // Le compte est dit, et le total avec : « 200 non calculées » seul
+    // laisserait ignorer sur combien porte le manque. Une seule phrase couvre
+    // la panne totale et la panne partielle, parce qu'elle porte le compte.
     check(
-      'le message dit combien manquent, et pourquoi',
+      'le message dit combien manquent, et sur combien',
       out.note ===
-        'Distances aux pistes calculées pour 149 logement(s) sur 349 — un lot a échoué (moteur en panne).',
+        'Distances aux pistes non calculées pour 200 logement(s) sur 349 (moteur en panne).',
       out.note
     )
+    // Le cas qui rend ce champ nécessaire : sans lui, l'écran Logements teste
+    // « aucune annonce mesurée » et laisse la panne partielle sans un mot.
+    check('l’écran a de quoi le dire', out.ok === false)
   }
   {
     const { call } = moteur({ panne: 9 })
@@ -184,9 +192,10 @@ async function main(): Promise<void> {
     check('les annonces sont rendues quand même', out.lodgings.length === 349)
     check(
       'et l’échec est signalé, pas transformé en erreur',
-      out.note === 'Distances aux pistes non calculées (moteur en panne).',
+      out.note === 'Distances aux pistes non calculées pour 349 logement(s) sur 349 (moteur en panne).',
       out.note
     )
+    check('l’écran a de quoi le dire', out.ok === false)
   }
 
   console.log('\n5. Domaine importé sans tracés ni remontées')
@@ -220,6 +229,33 @@ async function main(): Promise<void> {
       out.note
     )
     check('et rien n’est prétendu mesuré', mesures(out.lodgings) === 0)
+    check('l’écran a de quoi le dire', out.ok === false)
+  }
+
+  console.log('\n5 bis. Panne d’un lot ET géométrie absente : c’est la panne qu’on nomme')
+  {
+    // Le remède diffère : un domaine sans tracés se répare par un import, un
+    // lot perdu par une relance. Et rien ne dit que le domaine soit vraiment
+    // sans tracés — c'est peut-être le lot muet qui l'aurait montré.
+    let premier = true
+    const call: AccessCaller = async (body) => {
+      if (premier) {
+        premier = false
+        throw new Error('moteur en panne')
+      }
+      return {
+        domain_id: body.domain_id,
+        slopes_available: 0,
+        lifts_available: 0,
+        results: []
+      }
+    }
+    const out = await enrichWithAccess(lodgings(300), 42, call)
+    check(
+      'la panne l’emporte sur « sans tracés »',
+      out.note === 'Distances aux pistes non calculées pour 300 logement(s) sur 300 (moteur en panne).',
+      out.note
+    )
   }
 
   console.log('\n6. Domaine non rapproché du moteur : aucune requête')
@@ -232,6 +268,7 @@ async function main(): Promise<void> {
       out.note === 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.',
       out.note
     )
+    check('l’écran a de quoi le dire', out.ok === false)
   }
 
   if (failures > 0) {

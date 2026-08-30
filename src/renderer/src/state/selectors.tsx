@@ -763,9 +763,31 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
      * réglages éteints, la section est vide et son compteur disparaît ; cochés,
      * elle explique l'absence, ce pour quoi elle a été écrite.
      */
+    /*
+     * Deux conditions, et il faut les deux : l'annonce manque à la liste, et ce
+     * sont bien la disponibilité ou le prix confirmé qui l'en tiennent à
+     * l'écart. La seconde se lit en rejouant le filtre **sans** ces deux
+     * réglages : si l'annonce passe alors, leur retrait suffirait à la faire
+     * revenir, et le motif qu'affiche la section est le bon.
+     *
+     * Sans cette seconde condition, une annonce hors budget et par ailleurs
+     * introuvable au dernier relevé descendait en bas de page sous « Changez de
+     * dates, ou relancez le relevé, pour les récupérer » — deux gestes sans
+     * effet, puisque c'est le curseur du budget qui l'avait retirée.
+     */
     const affichees = new Set(lodgFiltered.map((lg) => lg.id))
+    const sansLesDeuxReglages: LodgingFilterCriteria = {
+      ...lodgCriteria,
+      onlyAvailable: false,
+      confirmedPricesOnly: false
+    }
     const lodgRejected: RejectedLodging[] = lodgAll
-      .filter((lg) => !affichees.has(lg.id) && !(isBookable(lg, stay) && hasConfirmedPrice(lg, stay)))
+      .filter(
+        (lg) =>
+          !affichees.has(lg.id) &&
+          !(isBookable(lg, stay) && hasConfirmedPrice(lg, stay)) &&
+          matchesLodgingFilters(lg, sansLesDeuxReglages, stay)
+      )
       .map((lg) => ({ lodging: lg, verdict: availabilityOf(lg, stay) }))
 
     const lodgSorters: Record<string, (a: Lodging, b: Lodging) => number> = {
@@ -825,12 +847,22 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgDomain,
       lodgAll,
       lodgList,
-      // Ce que les filtres retirent, et que « Réinitialiser les filtres »
-      // ramènerait : tout ce qui entre dans `matchesLodgingFilters` est remis à
-      // plat par `LODG_FILTER_RESET`. La base était `lodgEligible` — les
-      // annonces réservables et tarifées — du temps où ces deux conditions
-      // étaient des règles et non des réglages ; depuis, elles sont des filtres
-      // comme les autres, et la soustraction pouvait passer sous zéro.
+      /*
+       * Ce que les filtres retirent de la liste.
+       *
+       * La base était `lodgEligible` — les annonces réservables et tarifées —
+       * du temps où ces deux conditions étaient des règles et non des réglages ;
+       * depuis, elles sont des filtres comme les autres, et la soustraction
+       * pouvait passer sous zéro.
+       *
+       * Réserve, à ne pas perdre de vue : le bouton qui légende ce nombre
+       * annonce « tout afficher », et `LODG_FILTER_RESET` ne rouvre pas tout —
+       * `travelers` entre dans `matchesLodgingFilters` sans être remis à plat,
+       * délibérément, parce que c'est une donnée de séjour et non un filtre. Un
+       * groupe trop grand pour l'offre du domaine compte donc ici sans que le
+       * bouton puisse y changer quoi que ce soit. C'était déjà vrai de la
+       * formule précédente ; ce n'est pas réparé, c'est écrit.
+       */
       lodgHidden: lodgAll.length - lodgFiltered.length,
       lodgUnavailable,
       lodgRattachementIncertain,

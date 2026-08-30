@@ -556,14 +556,23 @@ export function LodgingsPage(): JSX.Element {
       let raison: string | null = null
       for (const { dom, pending } of aFaire) {
         if (cancelled) return
-        const { lodgings: enriched, note } = await enrichWithAccess(pending, dom.engineId)
+        const { lodgings: enriched, note, ok } = await enrichWithAccess(pending, dom.engineId)
         for (const l of enriched) if (l.accessComputed) mesures.set(l.id, l)
-        // La note ne vaut que pour le domaine **affiché**. Prendre celle du
-        // premier domaine en échec faisait dire « ce domaine n'est pas
-        // rapproché du moteur » sur un écran dont le domaine, lui, l'était
-        // parfaitement — constaté à l'exécution sur Les 2 Alpes, qui affichait
-        // le reproche d'une station voisine avec 171 distances calculées.
-        if (note && dom.id === d?.id && !enriched.some((l) => l.accessComputed)) raison = note
+        /*
+         * La note ne vaut que pour le domaine **affiché**. Prendre celle du
+         * premier domaine en échec faisait dire « ce domaine n'est pas
+         * rapproché du moteur » sur un écran dont le domaine, lui, l'était
+         * parfaitement — constaté à l'exécution sur Les 2 Alpes, qui affichait
+         * le reproche d'une station voisine avec 171 distances calculées.
+         *
+         * `ok` remplace le « aucune annonce mesurée » qui servait de test
+         * jusqu'ici. Le raccourci tenait tant que l'appel était unique — un
+         * refus valait zéro mesure — mais depuis le découpage en lots, un lot
+         * perdu sur deux laisse 200 distances arrivées et 149 manquantes :
+         * `some(accessComputed)` était vrai, aucun message ne montait, et
+         * `accessTried` interdisait toute nouvelle tentative de la session.
+         */
+        if (note && !ok && dom.id === d?.id) raison = note
       }
       if (cancelled) return
       setAccessNote(raison)

@@ -981,14 +981,25 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   delete out.lodgOnlyAvailable
   delete out.lodgMapSync
 
-  // 2026-08-30 — `lodgHideUnannounced` n'existe plus : les annonces qui
-  // n'annoncent ni capacité ni pièces sont toujours affichées, avec leur badge.
-  // La clé traîne sur le disque des profils où le masquage avait été coché une
-  // fois, et plus rien ne la lit — l'enregistrement suivant, qui recompose sa
-  // charge depuis `PERSISTED_KEYS`, la fera disparaître de lui-même. On
-  // l'efface tout de même à la lecture : ce que le fichier porte encore n'a pas
-  // à voyager jusque dans l'état, où seul son nom ferait croire à un réglage.
-  delete out.lodgHideUnannounced
+  /*
+   * 2026-08-30 — `lodgHideUnannounced` n'existe plus, et **rien n'est migré**.
+   *
+   * La clé traîne sur le disque des profils où le masquage avait été coché une
+   * fois. Un `delete` a été écrit ici puis retiré : il n'aurait jamais tourné.
+   * `migratePrefs` sort à sa première ligne quand `prefsSchema` vaut déjà
+   * `PREFS_SCHEMA`, et le schéma 7 date du même jour — les profils concernés
+   * sont donc tous en 7. C'est mot pour mot le piège que documente l'en-tête
+   * de `PREFS_SCHEMA` un peu plus haut.
+   *
+   * Monter le schéma à 8 pour un `delete` cosmétique coûterait plus qu'il ne
+   * rapporte : les effacements inconditionnels de ce bloc — `lodgOnlyAvailable`,
+   * `lodgMapSync` — rejoueraient sur des profils déjà migrés, et reprendraient
+   * à qui les a rallumés depuis un réglage qu'il avait choisi.
+   *
+   * Ne rien faire est sans conséquence : plus une ligne du code ne lit la clé,
+   * et l'enregistrement suivant recompose sa charge depuis `PERSISTED_KEYS`,
+   * qui ne la porte plus. Elle disparaît du fichier d'elle-même.
+   */
 
   // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
   const rattache = rerattacherParPosition(out.imported)

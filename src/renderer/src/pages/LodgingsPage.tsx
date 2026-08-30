@@ -42,7 +42,7 @@ import { useWeather } from '@/state/weather'
 export function LodgingsPage(): JSX.Element {
   const { eur, fmt, fmtDay } = useFormat()
   const { t } = useI18n()
-  const { state, patch, narrow } = useApp()
+  const { state, patch, narrow, domains } = useApp()
   const derived = useDerived()
   const { weatherOf } = useWeather()
   /**
@@ -484,35 +484,94 @@ export function LodgingsPage(): JSX.Element {
    * distance depuis une position qu'on n'a pas, et l'inventer serait pire que
    * l'absence.
    */
+  const [accessNote, setAccessNote] = useState<string | null>(null)
+  const importedRef = useRef(state.imported)
+  importedRef.current = state.imported
+
   const accessTried = useRef<Set<number>>(new Set())
   useEffect(() => {
-    if (!d || state.lodgPhase !== 'results') return
-    if (accessTried.current.has(d.id)) return
-    const pending = state.imported.filter(
-      (l) =>
-        belongsToDomain(l, d) &&
-        !l.accessComputed &&
-        typeof l.lat === 'number' &&
-        typeof l.lon === 'number'
-    )
-    if (pending.length === 0) return
+    if (state.lodgPhase !== 'results') return
 
-    accessTried.current.add(d.id)
-    const snapshot = state.imported
+    /*
+     * Tous les domaines, pas seulement celui qu'on regarde.
+     *
+     * L'effet ne traitait que `d`. Mesuré le 2026-08-30 sur le profil réel :
+     * 402 annonces avaient une position et seulement 206 une distance, l'écart
+     * tenant entièrement aux domaines jamais ouverts depuis que le moteur local
+     * a été alimenté — domaine 2, 46 positions et zéro distance ; domaine 114,
+     * 24 et zéro. La distance ne se calculait qu'en visitant chaque domaine un
+     * par un, ce que personne ne fait, et rien ne le disait.
+     *
+     * Le calcul est local — le sidecar tourne sur la machine — donc les faire
+     * tous coûte quelques dizaines de millisecondes par domaine. Ils sont
+     * traités en série pour ne pas ouvrir vingt requêtes d'un coup, et chacun
+     * n'est tenté qu'une fois par session (`accessTried`) : quand le moteur est
+     * absent, l'enrichissement rend la liste inchangée, et sans ce garde-fou
+     * l'effet se relancerait à chaque rendu.
+     */
+    const aFaire = domains
+      /*
+       * `engineId` d'abord : un domaine que le moteur ne connaît pas encore
+       * n'est pas un domaine tenté.
+       *
+       * `domains` vaut d'abord le catalogue seul — `fallbackDomains`, sans
+       * aucun `engineId` — puis se recharge avec le rapprochement au moteur.
+       * L'effet tournait sur la première version, ne mesurait rien, et marquait
+       * pourtant les 285 stations comme tentées : au rechargement, plus rien
+       * n'était repris. Constaté à l'exécution — 402 annonces positionnées, 206
+       * distances, et un écart qui ne bougeait plus quoi qu'on fasse.
+       */
+      .filter((dom) => dom.engineId != null && !accessTried.current.has(dom.id))
+      .map((dom) => ({
+        dom,
+        pending: state.imported.filter(
+          (l) =>
+            belongsToDomain(l, dom) &&
+            !l.accessComputed &&
+            typeof l.lat === 'number' &&
+            typeof l.lon === 'number'
+        )
+      }))
+      .filter(({ pending }) => pending.length > 0)
+
+    if (aFaire.length === 0) return
+
+    for (const { dom } of aFaire) accessTried.current.add(dom.id)
     let cancelled = false
     void (async () => {
-      const { lodgings: enriched } = await enrichWithAccess(pending, d.engineId)
+      // Les résultats sont accumulés puis écrits en une fois : un `patch` par
+      // domaine ferait repartir l'effet autant de fois, sur un état à chaque
+      // fois périmé d'un domaine.
+      const mesures = new Map<number, Lodging>()
+      // La raison du premier échec est conservée et affichée. Sans elle, un
+      // domaine sans distance ne montrait que « distance non calculée » sur
+      // chaque vignette, sans jamais dire si le moteur dormait, si le domaine
+      // ne lui était pas rapproché, ou s'il avait été importé sans ses
+      // remontées — trois pannes distinctes, trois remèdes distincts.
+      let raison: string | null = null
+      for (const { dom, pending } of aFaire) {
+        if (cancelled) return
+        const { lodgings: enriched, note } = await enrichWithAccess(pending, dom.engineId)
+        for (const l of enriched) if (l.accessComputed) mesures.set(l.id, l)
+        // La note ne vaut que pour le domaine **affiché**. Prendre celle du
+        // premier domaine en échec faisait dire « ce domaine n'est pas
+        // rapproché du moteur » sur un écran dont le domaine, lui, l'était
+        // parfaitement — constaté à l'exécution sur Les 2 Alpes, qui affichait
+        // le reproche d'une station voisine avec 171 distances calculées.
+        if (note && dom.id === d?.id && !enriched.some((l) => l.accessComputed)) raison = note
+      }
       if (cancelled) return
-      const measured = new Map(
-        enriched.filter((l) => l.accessComputed).map((l) => [l.id, l])
-      )
-      if (measured.size === 0) return
-      patch({ imported: snapshot.map((l) => measured.get(l.id) ?? l) })
+      setAccessNote(raison)
+      if (mesures.size === 0) return
+      // La liste est relue au moment de l'écriture et non capturée au départ :
+      // la boucle dure, et un relevé abouti entre-temps ne doit pas être
+      // écrasé par un instantané pris avant lui.
+      patch({ imported: importedRef.current.map((l) => mesures.get(l.id) ?? l) })
     })()
     return () => {
       cancelled = true
     }
-  }, [d, state.lodgPhase, state.imported, patch])
+  }, [domains, state.lodgPhase, state.imported, patch])
 
   /**
    * `lodgPhase` est la seule source de vérité de l'écran de chargement : qui
@@ -897,6 +956,24 @@ export function LodgingsPage(): JSX.Element {
                 >
                   {t(state.lodgHideUnannounced ? 'lodg_unannounced_show' : 'lodg_unannounced_hide')}
                 </button>
+              </p>
+            )}
+            {/* Pourquoi la distance aux pistes manque, quand elle manque. */}
+            {accessNote && (
+              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
+                {accessNote}
+              </p>
+            )}
+            {/* Rattachement hérité d'une ancienne numérotation, invérifiable. */}
+            {derived.lodgRattachementIncertain > 0 && (
+              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
+                {t('lodg_attach_unverified').replace('{n}', String(derived.lodgRattachementIncertain))}
+              </p>
+            )}
+            {/* Hors de la zone du domaine : la position le dit, on le dit aussi. */}
+            {derived.lodgHorsZone > 0 && (
+              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
+                {t('lodg_out_of_zone').replace('{n}', String(derived.lodgHorsZone))}
               </p>
             )}
             {/* Le seul retrait non demandé par l'utilisateur — donc annoncé. */}

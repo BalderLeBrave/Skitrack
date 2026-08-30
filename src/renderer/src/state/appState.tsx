@@ -20,6 +20,9 @@ import type { ReactNode } from 'react'
 import { isLanguage, type Language } from '@/i18n'
 import type { BasemapKey } from '@/components/DomainMap'
 import { DEFAULT_BASEMAP } from '@/components/DomainMap'
+import { distanceKm, domainZone, zoneVerdict } from '@shared/geo'
+import { FM_BY_ID } from '@/data/catalogue'
+import { FM_STATIONS } from '@/data/franceMontagnesStations'
 import type { Lodging } from '@/data/lodgings'
 import type { EsfRates, RouteBudget } from '@/domain/costs'
 import type { PhotoOverrides } from '@/data/photoOverrides'
@@ -834,8 +837,12 @@ function purgeLegacyPrefs(): void {
  * « éteint ». Sans ce numéro, `migratePrefs` sort à la première ligne pour tout
  * profil déjà en schéma 5 et les deux `delete` plus bas ne s'exécutent jamais —
  * constaté à l'exécution, les clés restaient à `true` sur le profil réel.
+ *
+ * Schéma 7 (2026-08-30) : les annonces rattachées à un domaine sous une
+ * numérotation qui n'est pas celle du catalogue sont rerattachées par leur
+ * position. Voir `rerattacherParPosition`.
  */
-const PREFS_SCHEMA = 6
+const PREFS_SCHEMA = 7
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -852,6 +859,64 @@ const PREFS_SCHEMA = 6
  * version évite de repasser sur des préférences déjà migrées, où un `0` en
  * borne haute serait cette fois un choix délibéré de l'utilisateur.
  */
+/**
+ * Rerattache par la position les annonces dont le domaine est illisible.
+ *
+ * ## Le défaut
+ *
+ * `importDomainId` a porté trois numérotations successives : celle du
+ * référentiel, celle du moteur local, et — depuis — celle du catalogue, dont
+ * les identifiants commencent à 1000. Les deux premières se recouvrent, et
+ * `stationOwning` rattache une annonce à la station dont les `members`
+ * contiennent l'identifiant : un lot relevé pour le domaine **55** du moteur
+ * (Valfréjus) atterrissait donc sous la station qui avait absorbé l'entrée
+ * **55** du référentiel — Le Mont-Dore, à trois cents kilomètres.
+ *
+ * Mesuré le 2026-08-30 sur le profil réel : l'écran d'une station auvergnate
+ * proposait « Le paradis vous attend à Pine, en Arizona », une « escapade au
+ * Colorado » et une maison bretonne « à 300 m de la plage ».
+ *
+ * ## Le remède
+ *
+ * L'origine de la numérotation n'a pas été conservée, et aucune table ne
+ * permet de la reconstituer. La **position**, elle, ne dépend d'aucune
+ * numérotation : une annonce géolocalisée appartient à la station dont la zone
+ * la contient, et c'est vérifiable sans rien savoir de son histoire.
+ *
+ * Seules les annonces dont l'identifiant n'existe pas au catalogue sont
+ * touchées — les autres sont déjà justes, et les rerattacher déplacerait des
+ * annonces correctes. Celles qu'aucune zone ne contient, et celles sans
+ * position, sont laissées telles quelles : la zone du domaine les écarte à
+ * l'affichage, et un relevé refait les rétablit. On ne devine pas.
+ */
+function rerattacherParPosition(imported: unknown): { list: Lodging[]; deplacees: number } | null {
+  if (!Array.isArray(imported)) return null
+  const stations = FM_STATIONS.filter(
+    (st) => typeof st.lat === 'number' && typeof st.lon === 'number'
+  )
+  let deplacees = 0
+  const list = (imported as Lodging[]).map((lg) => {
+    const id = lg.importDomainId
+    if (id == null || FM_BY_ID.has(id)) return lg
+    if (typeof lg.lat !== 'number' || typeof lg.lon !== 'number') return lg
+
+    // La station dont la zone contient l'annonce, la plus proche s'il y en a
+    // plusieurs — les domaines voisins se chevauchent, et le centre le plus
+    // près est le rattachement le moins arbitraire.
+    let meilleure: { id: number; km: number } | null = null
+    for (const st of stations) {
+      const zone = domainZone({ lat: st.lat as number, lon: st.lon as number, km: st.km })
+      if (zoneVerdict(zone, lg.lat, lg.lon) !== 'in') continue
+      const km = distanceKm(st.lat as number, st.lon as number, lg.lat, lg.lon)
+      if (!meilleure || km < meilleure.km) meilleure = { id: st.id, km }
+    }
+    if (!meilleure) return lg
+    deplacees++
+    return { ...lg, importDomainId: meilleure.id }
+  })
+  return { list, deplacees }
+}
+
 function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Partial<AppState> {
   if (saved.prefsSchema === PREFS_SCHEMA) return saved
 
@@ -913,6 +978,10 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // veut le filtre le rallume, et son choix est alors réenregistré.
   delete out.lodgOnlyAvailable
   delete out.lodgMapSync
+
+  // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
+  const rattache = rerattacherParPosition(out.imported)
+  if (rattache && rattache.deplacees > 0) out.imported = rattache.list
 
   // `searchFiltersOpen` a cessé d'être un réglage enregistré le jour où le
   // panneau est devenu un survol. La valeur laissée sur le disque rouvrirait

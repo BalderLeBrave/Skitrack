@@ -727,6 +727,20 @@ const CATALOG = {
    * jamais porté de prix, produites par un extracteur qui prenait le menu d'un
    * site pour des résultats.
    */
+  /*
+   * Le retrait le plus important de l'écran, et celui qui a manqué le plus
+   * longtemps. Constaté le 2026-08-30 : une station auvergnate proposait des
+   * maisons d'Arizona et du Colorado, parce que la zone n'était vérifiée qu'au
+   * moment du relevé et jamais ensuite.
+   */
+  lodg_attach_unverified: [
+    '{n} annonce(s) affichée(s) ici viennent d’un relevé plus ancien, fait sous une autre numérotation des domaines, et sans position relevée : rien ne permet de vérifier qu’elles appartiennent bien à cette station. Un relevé refait les replace pour de bon.',
+    '{n} listing(s) shown here come from an older scan made under a different resort numbering, with no recorded position: nothing can confirm they belong to this resort. A fresh scan settles it for good.'
+  ],
+  lodg_out_of_zone: [
+    '{n} annonce(s) enregistrée(s) pour ce domaine sont situées hors de sa zone — leur position les place ailleurs, parfois à des milliers de kilomètres. Elles ne sont pas listées ici. Un relevé refait pour ce domaine repart sur une base saine.',
+    '{n} listing(s) saved for this resort lie outside its area — their position places them elsewhere, sometimes thousands of kilometres away. They are not listed here. A fresh scan of this resort starts from a clean slate.'
+  ],
   lodg_no_price_ever: [
     '{n} ligne(s) enregistrée(s) pour ce domaine n’ont jamais porté de prix, à aucune date : ce ne sont pas des offres et l’écran ne les liste pas. Elles viennent d’un relevé Gîtes de France qui prenait le menu du site pour des résultats ; le défaut est corrigé, un relevé refait n’en produira plus.',
     '{n} record(s) saved for this resort have never carried a price, at any date: they are not offers and the screen does not list them. They come from a Gîtes de France scan that mistook the site menu for results; the defect is fixed, and a fresh scan will not produce any more.'
@@ -1465,6 +1479,15 @@ const CATALOG = {
   lodg_reason_stay_asked: ['Séjour demandé : {d}', 'Stay requested: {d}'],
   lodg_dist_to_runs: ['{n} m des pistes', '{n} m from the runs'],
   lodg_src_hidden: ['masquée', 'hidden'],
+  /*
+   * Le nombre de nuits, seul. La ligne affirmait « semaine des vacances de
+   * février (zone C) » dès que le séjour faisait sept nuits — pour n'importe
+   * quelles dates et n'importe quelle zone. Sept nuits ne disent rien de la
+   * période ; c'était une donnée inventée.
+   */
+  stay_nights_count: ['{n} nuit(s)', '{n} night(s)'],
+  lodg_rooms_field: ['Chambres min', 'Min. bedrooms'],
+  kids_count_label: ['dont enfants (moins de 13 ans)', 'of which children (under 13)'],
   lodg_free_cancel: ['Annulation gratuite uniquement', 'Free cancellation only'],
   /*
    * Les deux filtres rendus à l'utilisateur le 2026-08-30. Ils étaient câblés

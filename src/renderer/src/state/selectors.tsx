@@ -18,8 +18,10 @@ import { createContext, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
 import { belongsToDomain, mergeDupes as mergeDupesList } from '@/data/lodgings'
+import { FM_BY_ID } from '@/data/catalogue'
 import type { AvailabilityVerdict } from '@/data/lodgingAvailability'
 import { availabilityOf, isBookable } from '@/data/lodgingAvailability'
+import { domainZone, filterToZone } from '@shared/geo'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
 import { fitsParty, hasConfirmedPrice, matchesLodgingFilters, partyVerdict } from '@/data/lodgingFilter'
 import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
@@ -161,6 +163,10 @@ export interface Derived {
   /** Annonces sans disponibilité confirmée pour le séjour en cours. */
   lodgUnavailable: number
   /** Annonces qui n'annoncent pas ce que les critères demandent. */
+  /** Annonces dont le rattachement à ce domaine vient d'une ancienne numérotation. */
+  lodgRattachementIncertain: number
+  /** Annonces écartées parce que leur position est hors de la zone du domaine. */
+  lodgHorsZone: number
   /** Lignes écartées faute d'avoir jamais porté un prix : ce ne sont pas des offres. */
   lodgSansPrix: number
   lodgUnannounced: number
@@ -604,9 +610,64 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     // absorbée depuis.
     // `belongsToDomain` fait foi, et il est partagé avec l'enrichissement de
     // l'accès aux pistes : deux règles séparées avaient fini par diverger.
-    const lodgRaw = lodgDomain
+    const lodgRattachees = lodgDomain
       ? state.imported.filter((lg) => belongsToDomain(lg, lodgDomain))
       : []
+
+    /*
+     * La zone du domaine, appliquée à l'**affichage** et non plus seulement au
+     * relevé.
+     *
+     * L'invariant du projet dit qu'un logement hors de la zone est rejeté, pas
+     * signalé — mais il n'était tenu qu'au moment du relevé (`keepInZone`,
+     * `main/providers/index.ts`). Ce qui était déjà enregistré n'était plus
+     * jamais revérifié, et rien ne le rattrapait.
+     *
+     * Constaté le 2026-08-30 sur le profil réel : l'écran d'une station
+     * auvergnate proposait « Le paradis vous attend à Pine, en Arizona », une
+     * « escapade au Colorado » et une « maison à 300 m de la plage, du GR 34 ».
+     * La cause tient à `importDomainId`, qui porte selon l'ancienneté de
+     * l'annonce un identifiant de **référentiel** ou de **moteur** — deux
+     * numérotations qui se recouvrent, si bien que `stationOwning` rattachait
+     * un lot de Valfréjus au Mont-Dore. Rapprocher les numérotations après coup
+     * est impossible : la trace de l'origine n'a pas été gardée.
+     *
+     * La position, elle, ne ment pas. Un logement dont les coordonnées sont à
+     * six mille kilomètres n'appartient à ce domaine sous aucune numérotation,
+     * et c'est vérifiable sans rien savoir de son histoire.
+     *
+     * `filterToZone` conserve les annonces **sans** position : elles restent
+     * invérifiables, pas fausses, et les masquer contredirait la règle qui veut
+     * qu'une position manquante ne fasse jamais disparaître une annonce.
+     */
+    /*
+     * Rattachement hérité, invérifiable.
+     *
+     * Une annonce dont l'`importDomainId` n'existe pas au catalogue vient d'une
+     * ancienne numérotation (référentiel ou moteur). Avec une position, le
+     * schéma 7 l'a rerattachée à la bonne station ; sans position, rien ne
+     * permet de le faire — et elle reste affichée sous la station que la
+     * collision de numérotation lui a donnée, qui peut être à trois cents
+     * kilomètres.
+     *
+     * On ne la masque pas : elle existe, et un relevé refait la replacera. On
+     * ne prétend pas non plus qu'elle est ici. On dit ce qu'on sait.
+     */
+    const lodgRattachementIncertain = lodgRattachees.filter(
+      (lg) =>
+        lg.importDomainId != null &&
+        !FM_BY_ID.has(lg.importDomainId) &&
+        (typeof lg.lat !== 'number' || typeof lg.lon !== 'number')
+    ).length
+
+    const lodgZone = lodgDomain && hasCoords(lodgDomain) ? domainZone(lodgDomain) : null
+    const lodgHorsZoneList = lodgZone
+      ? filterToZone(lodgRattachees, lodgZone, (lg) => ({ lat: lg.lat, lon: lg.lon })).rejected
+      : []
+    const lodgHorsZone = lodgHorsZoneList.length
+    const lodgRaw = lodgZone
+      ? filterToZone(lodgRattachees, lodgZone, (lg) => ({ lat: lg.lat, lon: lg.lon })).kept
+      : lodgRattachees
 
     /*
      * Ce qui n'a **jamais** porté de prix n'est pas une offre.
@@ -778,6 +839,8 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       lodgList,
       lodgHidden: lodgEligible.length - lodgFiltered.length,
       lodgUnavailable,
+      lodgRattachementIncertain,
+      lodgHorsZone,
       lodgSansPrix,
       lodgUnannounced,
       lodgUnannouncedRooms,

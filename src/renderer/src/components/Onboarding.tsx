@@ -8,6 +8,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { LogoIcon } from './Icons'
 import { StayDatesField } from './StayDatesField'
+import { CountStepper } from '@/components/CountStepper'
+import { PARTY_LIMITS } from '@/data/partyLimits'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
@@ -117,50 +119,31 @@ export function Onboarding(): JSX.Element {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div>
-            <p className="sheet__label">Voyageurs</p>
-            <div className="stepper" style={{ padding: '6px 10px' }}>
-              <button
-                type="button"
-                className="stepper__btn"
-                style={{ fontSize: 16 }}
-                onClick={() => patch({ travelers: Math.max(1, state.travelers - 1) })}
-              >
-                −
-              </button>
-              <span className="stepper__value">{state.travelers}</span>
-              <button
-                type="button"
-                className="stepper__btn"
-                style={{ fontSize: 16 }}
-                onClick={() => patch({ travelers: Math.min(12, state.travelers + 1) })}
-              >
-                +
-              </button>
-            </div>
+            <p className="sheet__label">{t('nav_travelers')}</p>
+            {/* Mêmes bornes qu'ailleurs, et pour cause : elles vivent
+                maintenant dans `data/partyLimits.ts`. Recopiées ici et dans
+                `LodgingFilters`, elles valaient 12 et 6 et personne ne pouvait
+                demander un chalet de huit chambres. */}
+            <CountStepper
+              value={state.travelers}
+              min={PARTY_LIMITS.travelers.min}
+              max={PARTY_LIMITS.travelers.max}
+              label={t('nav_travelers')}
+              onChange={(n) =>
+                patch({ travelers: n, children: Math.min(state.children, n - 1) })
+              }
+            />
           </div>
           <div>
-            <p className="sheet__label">Chambres min</p>
-            <div className="stepper" style={{ padding: '6px 10px' }}>
-              <button
-                type="button"
-                className="stepper__btn"
-                style={{ fontSize: 16 }}
-                onClick={() => patch({ rooms: Math.max(0, state.rooms - 1) })}
-              >
-                −
-              </button>
-              <span className="stepper__value">
-                {state.rooms === 0 ? t('lodg_rooms_studio') : state.rooms}
-              </span>
-              <button
-                type="button"
-                className="stepper__btn"
-                style={{ fontSize: 16 }}
-                onClick={() => patch({ rooms: Math.min(6, state.rooms + 1) })}
-              >
-                +
-              </button>
-            </div>
+            <p className="sheet__label">{t('lodg_rooms_field')}</p>
+            <CountStepper
+              value={state.rooms}
+              min={PARTY_LIMITS.rooms.min}
+              max={PARTY_LIMITS.rooms.max}
+              label={t('lodg_rooms_field')}
+              minLabel={t('lodg_rooms_studio')}
+              onChange={(n) => patch({ rooms: n })}
+            />
           </div>
         </div>
 

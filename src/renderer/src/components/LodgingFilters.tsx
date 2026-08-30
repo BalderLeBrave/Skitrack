@@ -1,5 +1,7 @@
 import { RangeFilter } from './RangeFilter'
 import { StayDatesField } from './StayDatesField'
+import { CountStepper } from '@/components/CountStepper'
+import { PARTY_LIMITS } from '@/data/partyLimits'
 import { hasConfirmedPrice } from '@/data/lodgingFilter'
 import { useActiveLodgingFilters } from './activeLodgingFilters'
 import { lodgingSources, LODG_TYPES, srcOf } from '@/data/lodgings'
@@ -110,85 +112,62 @@ export function LodgingFilters(): JSX.Element {
       <section className="filters__section">
         <h3 className="filters__legend">{t('stay_label')}</h3>
         <StayDatesField />
+        {/* Le nombre de nuits, et rien de plus.
+            Cette ligne ajoutait « · semaine des vacances de février (zone C) »
+            dès que le séjour faisait sept nuits — pour n'importe quelles dates,
+            en mars comme en janvier, et pour n'importe quelle zone. Sept nuits
+            ne disent rien de la période ni de la zone : c'était une affirmation
+            inventée, exactement ce que l'invariant du projet interdit. */}
         <p className="filters__help" style={{ margin: '6px 0 8px' }}>
-          {nights} nuit(s)
-          {nights === 7 ? ' · semaine des vacances de février (zone C)' : ''}
+          {t('stay_nights_count').replace('{n}', String(nights))}
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
           <div>
             <span className="filters__help" style={{ margin: 0 }}>
-              Voyageurs
+              {t('nav_travelers')}
             </span>
-            <div className="stepper">
-              <button
-                type="button"
-                className="stepper__btn"
-                onClick={() =>
-                  patch({
-                    travelers: Math.max(1, state.travelers - 1),
-                    children: Math.min(state.children, Math.max(1, state.travelers - 1) - 1)
-                  })
-                }
-              >
-                −
-              </button>
-              <span className="stepper__value">{state.travelers}</span>
-              <button
-                type="button"
-                className="stepper__btn"
-                onClick={() => patch({ travelers: Math.min(12, state.travelers + 1) })}
-              >
-                +
-              </button>
-            </div>
+            {/* Le nombre d'enfants suit le groupe : réduire les voyageurs ne
+                doit jamais laisser plus d'enfants que de personnes. */}
+            <CountStepper
+              value={state.travelers}
+              min={PARTY_LIMITS.travelers.min}
+              max={PARTY_LIMITS.travelers.max}
+              label={t('nav_travelers')}
+              onChange={(n) =>
+                patch({ travelers: n, children: Math.min(state.children, n - 1) })
+              }
+            />
           </div>
           <div>
             <span className="filters__help" style={{ margin: 0 }}>
-              Chambres min
+              {t('lodg_rooms_field')}
             </span>
-            <div className="stepper">
-              <button
-                type="button"
-                className="stepper__btn"
-                onClick={() => patch({ rooms: Math.max(0, state.rooms - 1) })}
-              >
-                −
-              </button>
-              <span className="stepper__value">
-                {state.rooms === 0 ? t('lodg_rooms_studio') : state.rooms}
-              </span>
-              <button
-                type="button"
-                className="stepper__btn"
-                onClick={() => patch({ rooms: Math.min(6, state.rooms + 1) })}
-              >
-                +
-              </button>
-            </div>
+            <CountStepper
+              value={state.rooms}
+              min={PARTY_LIMITS.rooms.min}
+              max={PARTY_LIMITS.rooms.max}
+              label={t('lodg_rooms_field')}
+              minLabel={t('lodg_rooms_studio')}
+              onChange={(n) => patch({ rooms: n })}
+            />
           </div>
         </div>
 
         <div style={{ marginTop: 6 }}>
           <span className="filters__help" style={{ margin: 0 }}>
-            dont enfants (moins de 13 ans)
+            {t('kids_count_label')}
           </span>
-          <div className="stepper" style={{ maxWidth: 150 }}>
-            <button
-              type="button"
-              className="stepper__btn"
-              onClick={() => patch({ children: Math.max(0, state.children - 1) })}
-            >
-              −
-            </button>
-            <span className="stepper__value">{state.children}</span>
-            <button
-              type="button"
-              className="stepper__btn"
-              onClick={() => patch({ children: Math.min(state.travelers - 1, state.children + 1) })}
-            >
-              +
-            </button>
+          {/* Le plafond des enfants n'est pas une borne de `PARTY_LIMITS` : il
+              suit le groupe, un enfant de moins que de voyageurs. */}
+          <div style={{ maxWidth: 150 }}>
+            <CountStepper
+              value={state.children}
+              min={0}
+              max={Math.max(0, state.travelers - 1)}
+              label={t('kids_count_label')}
+              onChange={(n) => patch({ children: n })}
+            />
           </div>
           <p className="filters__help filters__help--tight">
             {t('kids_count_note')}

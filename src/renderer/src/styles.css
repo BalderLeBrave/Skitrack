@@ -553,6 +553,27 @@ select {
   text-align: center;
 }
 
+/* Le champ central de `CountStepper` : un `input`, pour qu'un groupe de vingt
+   se tape au lieu de se cliquer. Il emprunte la typographie de son entourage —
+   un champ qui se distingue du texte qu'il remplace attire l'oeil sur un
+   détail sans importance. */
+.stepper__input {
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper__input:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);

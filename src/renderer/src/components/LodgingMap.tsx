@@ -125,7 +125,18 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
   useEffect(() => {
     if (!loaded || !map.current) return
     for (const mk of markers.current) mk.remove()
-    markers.current = lodgList.map((lg) => {
+    /*
+     * Une épingle impossible ne doit pas emporter les autres.
+     *
+     * `setLngLat` lève sur un `NaN`, et la boucle qui construisait les épingles
+     * s'interrompait alors au premier cas : plus **aucune** annonce sur la
+     * carte, pour une seule coordonnée aberrante. Le domaine sans coordonnées
+     * au catalogue suffit à produire ce NaN, puisque `lodgingCoords` disperse
+     * les annonces autour de son centre. On saute l'épingle, on garde le reste.
+     */
+    markers.current = lodgList.flatMap((lg) => {
+      const [lon, lat] = lodgingCoords(domain, lg)
+      if (!Number.isFinite(lon) || !Number.isFinite(lat)) return []
       const el = document.createElement('button')
       // L'épingle élue reste distinguée sur la carte, comme celle dont la fiche
       // est ouverte : sinon rien ne dirait laquelle vient d'être remontée.
@@ -158,9 +169,7 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
       // Même calcul que le panneau « Positions » : deux dispersions
       // différentes placeraient l'épingle ailleurs que le point vérifié, et le
       // diagnostic parlerait d'un endroit que la carte ne montre pas.
-      return new maplibregl.Marker({ element: el })
-        .setLngLat(lodgingCoords(domain, lg))
-        .addTo(map.current!)
+      return [new maplibregl.Marker({ element: el }).setLngLat([lon, lat]).addTo(map.current!)]
     })
   }, [lodgList, domain, state.ficheId, state.lodgPickId, loaded, patch])
 

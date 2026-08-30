@@ -14,7 +14,7 @@ import { REJECTED_ANCHOR, RejectedLodgings } from '@/components/RejectedLodgings
 import { ResultGrid } from '@/components/ResultGrid'
 import { StayBar } from '@/components/StayBar'
 import { deepLinks } from '@/data/deeplinks'
-import { lodgingCoords, useLodgingGeo } from '@/data/lodgingGeo'
+import { lodgingCoords } from '@/data/lodgingGeo'
 import type { Lodging } from '@/data/lodgings'
 import { belongsToDomain } from '@/data/lodgings'
 import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
@@ -63,10 +63,19 @@ export function LodgingsPage(): JSX.Element {
   // Neige du domaine ouvert, pour le bulletin en tête de mosaïque. `weatherOf`
   // ne répond que pour les domaines réellement demandés — dont celui-ci.
   const domSnow = snowDepths(weatherOf(d?.id ?? -1))
-  // La vérification porte sur la liste complète : filtrer d'abord puis
-  // vérifier ferait disparaître une annonce du décompte au moment même où on
-  // la déclare douteuse.
-  const geo = useLodgingGeo(d, derived.lodgList)
+  /*
+   * `useLodgingGeo` n'est plus appelé ici — 2026-08-30.
+   *
+   * Il vérifiait la vraisemblance des positions (altitude Open-Meteo, plan
+   * d'eau et bâtiment via Overpass) pour le seul compte de `hideBadGeo`, qui
+   * masquait les annonces jugées mal placées. Ce masquage est retiré : une
+   * position douteuse ne doit pas faire disparaître une offre. Le resserrement
+   * qu'il calculait ne servait à rien sur la carte, qui appelle
+   * `lodgingCoords` sans lui passer — les épingles n'en ont jamais tenu compte.
+   *
+   * Il ne restait donc que le coût : deux services publics interrogés à chaque
+   * ouverture de l'écran pour alimenter un filtre qui n'existe plus.
+   */
 
   /**
    * Restriction au cadrage de la carte.
@@ -86,6 +95,17 @@ export function LodgingsPage(): JSX.Element {
     // de la liste au moment où on le choisit : la carte se recentre parfois
     // juste après, et le rectangle publié l'aurait alors exclu.
     if (lg.id === state.lodgPickId) return true
+    /*
+     * Sans position publiée, aucun cadrage ne s'applique.
+     *
+     * `lodgingCoords` disperse ces annonces autour du front de neige pour leur
+     * donner une épingle — c'est une commodité d'affichage, pas une mesure. Les
+     * confronter au rectangle de la carte revenait à les faire disparaître de
+     * la liste sur la foi d'une coordonnée fabriquée, et à zoomer un peu près
+     * la totalité d'un relevé Airbnb s'évaporait. On les garde : « non
+     * localisée » n'est pas « ailleurs ».
+     */
+    if (lg.lat == null || lg.lon == null) return true
     const [lon, lat] = lodgingCoords(d, lg)
     return lon >= b.w && lon <= b.e && lat >= b.s && lat <= b.n
   }
@@ -94,8 +114,6 @@ export function LodgingsPage(): JSX.Element {
   // sans l'annoncer. `voir tout le domaine` a disparu avec le bandeau ; on
   // rouvre la liste entière en coupant la synchronisation de la carte.
   const afterBounds = boundsActive ? derived.lodgList.filter(inBounds) : derived.lodgList
-  // Même exemption pour le masquage des positions invraisemblables : une bulle
-  // cliquée sur la carte doit se retrouver dans la liste, pas s'y évaporer.
   const geoResolve = useGeoResolve()
   /** Annonces affichées dont la position n'est pas relevée : épingle « ≈ ». */
   /*
@@ -114,9 +132,21 @@ export function LodgingsPage(): JSX.Element {
   const sansPositionRefusees = sansPosition.filter((lg) => isForbiddenListingHost(lg.url))
   const sansPositionLisibles = sansPosition.filter((lg) => !isForbiddenListingHost(lg.url))
 
-  const visibleLodgings = state.hideBadGeo
-    ? afterBounds.filter((lg) => lg.id === state.lodgPickId || geo.statusOf(lg).level !== 'bad')
-    : afterBounds
+  /*
+   * Plus aucun tri sur la qualité de la position — 2026-08-30.
+   *
+   * `hideBadGeo` retirait les annonces dont le point tombait sur un plan d'eau,
+   * quatre cents mètres au-dessus du front de neige, ou loin du domaine. Le
+   * jugement portait, pour les annonces sans coordonnées publiées, sur le point
+   * **dispersé** par `lodgingCoords` : une position inventée par l'application
+   * faisait disparaître une offre réelle. Aucun réglage de l'écran ne rallumait
+   * ce masquage — seul un bouton l'éteignait — et il restait vrai sur les
+   * profils venus d'une version qui l'exposait.
+   *
+   * Une position approximative se signale, elle ne retire pas : l'épingle « ≈ »
+   * de la carte et le bandeau des positions non relevées le disent déjà.
+   */
+  const visibleLodgings = afterBounds
 
   /** Logement mis en avant, s'il est encore dans la liste affichée. */
   const picked = state.lodgPickId != null ? visibleLodgings.find((lg) => lg.id === state.lodgPickId) : undefined
@@ -1221,21 +1251,9 @@ export function LodgingsPage(): JSX.Element {
                   <LodgingCard key={lg.id} lodging={lg} domain={d} index={i} />
                 ))}
               </ResultGrid>
-              {/* Masquer sans le dire transformerait un doute sur la position
-                  en disparition silencieuse de l'offre. */}
-              {state.hideBadGeo && afterBounds.length > visibleLodgings.length && (
-                <p className="u-muted" style={{ fontSize: 12, margin: '10px 0 0' }}>
-                  {afterBounds.length - visibleLodgings.length} annonce(s) masquée(s) pour position
-                  invraisemblable —{' '}
-                  <button
-                    type="button"
-                    className="linkbtn linkbtn--sm"
-                    onClick={() => patch({ hideBadGeo: false })}
-                  >
-                    tout afficher
-                  </button>
-                </p>
-              )}
+              {/* Le bandeau « masquée(s) pour position invraisemblable » est
+                  parti avec le masquage qu'il rattrapait : il n'y a plus
+                  d'annonce à récupérer, elles sont toutes là. */}
             </div>
 
             {splitOpen && (

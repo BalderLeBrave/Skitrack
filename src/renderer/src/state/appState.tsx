@@ -424,8 +424,17 @@ export interface AppState {
   mergeDupes: boolean
   /** Panneau « état du relevé et des positions » de l'écran Logements. */
   lodgStatusOpen: boolean
-  /** Écarter les annonces dont la position est jugée invraisemblable. */
-  hideBadGeo: boolean
+  /*
+   * `hideBadGeo` a été retiré le 2026-08-30.
+   *
+   * Il écartait les annonces dont la position était jugée invraisemblable —
+   * plan d'eau, quatre cents mètres au-dessus du front de neige, trop loin du
+   * domaine. Pour les annonces sans coordonnées publiées, ce jugement portait
+   * sur le point que `lodgingCoords` **disperse** autour de la station : une
+   * position inventée par l'application faisait disparaître une offre réelle.
+   * Plus aucun réglage de l'écran ne le rallumait, et il restait vrai sur les
+   * profils venus d'une version qui l'exposait.
+   */
   /**
    * Écarter les annonces que le dernier relevé n'a pas retrouvées à ces dates.
    *
@@ -704,7 +713,6 @@ export const INITIAL_STATE: AppState = {
   lastScan: null,
   mergeDupes: true,
   lodgStatusOpen: false,
-  hideBadGeo: false,
   lodgOnlyAvailable: false,
   lodgConfirmedPrices: false,
   stayBarCollapsed: false,
@@ -795,7 +803,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**

@@ -22,6 +22,30 @@
 import { api, isClientReady } from '@/api/client'
 import type { Lodging } from './lodgings'
 
+/**
+ * Taille d'un lot d'enrichissement.
+ *
+ * Le sidecar refuse au-delà de 200 logements par appel (`MAX_LODGINGS`, dans
+ * `api/routes/lodgings.py`) : il charge les tracés du domaine une fois puis
+ * calcule pour chacun, et un appel démesuré bloquerait sa boucle. Le garde-fou
+ * reste donc où il est ; ce qui change ici, c'est qu'on cesse de lui demander
+ * l'impossible.
+ *
+ * La note qui justifiait ce refus — « une recherche ramène 20 à 50 logements,
+ * pas des milliers » — décrit un usage qui n'est plus le nôtre : constaté le
+ * 2026-08-31, un relevé multi-sources sur Méribel rend 358 logements pour un
+ * seul domaine. Et le refus ne privait pas les 158 en trop de leur distance,
+ * mais **les 358** : l'appel unique échouait en bloc.
+ *
+ * Les lots partent l'un après l'autre, jamais en parallèle : chaque appel
+ * déclenche une résolution altimétrique groupée, et les services publics
+ * d'altitude s'usent à une requête par seconde (voir `services/elevation.py`).
+ */
+const ACCESS_BATCH = 200
+
+/** Une mesure d'accès telle que le sidecar la rend. */
+type AccessMetric = Awaited<ReturnType<typeof api.lodgingsAccess>>['results'][number]
+
 export interface EnrichResult {
   lodgings: Lodging[]
   /** Message court pour le journal d'import. Null si rien à signaler. */
@@ -121,42 +145,71 @@ export async function enrichWithAccess(
     return { lodgings, note: null }
   }
 
-  try {
-    const response = await api.lodgingsAccess({
-      domain_id: engineDomainId,
-      with_elevation: true,
-      lodgings: geoItems.map((lodging) => ({
-        ref: String(lodging.id),
-        lat: lodging.lat,
-        lon: lodging.lon,
-        location_precision: lodging.locPrecision ?? 'exact'
-      }))
-    })
+  const batches: (typeof geoItems)[] = []
+  for (let i = 0; i < geoItems.length; i += ACCESS_BATCH) {
+    batches.push(geoItems.slice(i, i + ACCESS_BATCH))
+  }
 
-    if (response.slopes_available === 0 && response.lifts_available === 0) {
-      return {
-        lodgings,
-        note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
-      }
+  const byRef = new Map<string, AccessMetric>()
+  let slopesAvailable = 0
+  let liftsAvailable = 0
+  let failedBatches = 0
+  let lastError: unknown = null
+
+  // Un lot qui échoue n'annule pas les autres, comme pour les itinéraires en
+  // masse (`domain/travel.ts`). Ce qui a été mesuré est gardé ; ce qui manque
+  // est dit.
+  for (const batch of batches) {
+    try {
+      const response = await api.lodgingsAccess({
+        domain_id: engineDomainId,
+        with_elevation: true,
+        lodgings: batch.map((lodging) => ({
+          ref: String(lodging.id),
+          lat: lodging.lat,
+          lon: lodging.lon,
+          location_precision: lodging.locPrecision ?? 'exact'
+        }))
+      })
+      // Le domaine est le même pour tous les lots : ces deux nombres ne varient
+      // pas d'un appel à l'autre. On garde le maximum plutôt que le dernier,
+      // pour qu'un lot en échec ne les ramène pas à zéro.
+      slopesAvailable = Math.max(slopesAvailable, response.slopes_available)
+      liftsAvailable = Math.max(liftsAvailable, response.lifts_available)
+      for (const metric of response.results) byRef.set(metric.ref, metric)
+    } catch (error) {
+      failedBatches++
+      lastError = error
     }
+  }
 
-    const byRef = new Map(response.results.map((metric) => [metric.ref, metric]))
-    const enriched = lodgings.map((lodging) => {
-      const metric = byRef.get(String(lodging.id))
-      return metric ? mergeMetrics(lodging, metric) : lodging
-    })
-
-    const computed = enriched.filter((lodging) => lodging.accessComputed).length
-    return {
-      lodgings: enriched,
-      note: computed > 0 ? `Distances aux pistes calculées pour ${computed} logement(s).` : null
-    }
-  } catch (error) {
-    // Le calcul est un bonus : son échec ne doit pas priver l'utilisateur de ses
-    // annonces, déjà visibles. On le signale sans le transformer en erreur.
+  // Le calcul est un bonus : son échec ne doit pas priver l'utilisateur de ses
+  // annonces, déjà visibles. On le signale sans le transformer en erreur.
+  if (failedBatches === batches.length) {
     return {
       lodgings,
-      note: `Distances aux pistes non calculées (${error instanceof Error ? error.message : 'moteur indisponible'}).`
+      note: `Distances aux pistes non calculées (${lastError instanceof Error ? lastError.message : 'moteur indisponible'}).`
     }
+  }
+
+  if (slopesAvailable === 0 && liftsAvailable === 0) {
+    return {
+      lodgings,
+      note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
+    }
+  }
+
+  const enriched = lodgings.map((lodging) => {
+    const metric = byRef.get(String(lodging.id))
+    return metric ? mergeMetrics(lodging, metric) : lodging
+  })
+
+  const computed = enriched.filter((lodging) => lodging.accessComputed).length
+  // Le reste en clair quand une partie seulement a abouti : un compte muet
+  // laisserait croire que les logements sans distance n'en ont pas.
+  const reste = failedBatches > 0 ? ` ${failedBatches} lot(s) sur ${batches.length} n’ont pas abouti.` : ''
+  return {
+    lodgings: enriched,
+    note: computed > 0 ? `Distances aux pistes calculées pour ${computed} logement(s).${reste}` : null
   }
 }

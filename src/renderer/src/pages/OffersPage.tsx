@@ -154,16 +154,17 @@ export function OffersPage(): JSX.Element {
     <div className="page">
       <div className="page__inner" style={{ maxWidth: 1180 }}>
         <header className="page-head" style={{ marginBottom: 6 }}>
-          <h2>Meilleures offres, tous domaines</h2>
+          <h2>{t('offers_title')}</h2>
+          {/* « 1 voyageurs · 7 nuits » : ni traduit, ni accordé. Les deux
+              comptes passent par les clés qui savent déjà écrire « voyageur(s) »
+              et « nuit(s) », et que le reste de l'application emploie. */}
           <span className="u-muted" style={{ fontSize: 13 }}>
-            {state.travelers} voyageurs · {derived.nights} nuits · logement + forfaits + route
+            {t('offers_subline')
+              .replace('{v}', t('lodg_travelers_count').replace('{n}', String(state.travelers)))
+              .replace('{n}', t('stay_nights_count').replace('{n}', String(derived.nights)))}
           </span>
         </header>
-        <p className="lede">
-          La question n’est pas « quel logement à Val Thorens » mais « où partir cette semaine pour ce budget ». Pour
-          chaque domaine qui passe vos filtres, l’offre la moins chère toutes dépenses comprises : logement, forfaits et
-          route.
-        </p>
+        <p className="lede">{t('offers_lede')}</p>
 
         <div className="panel offers__bar">
           <div style={{ flex: '1 1 280px', minWidth: 0 }}>

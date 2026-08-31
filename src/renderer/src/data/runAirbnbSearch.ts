@@ -267,7 +267,20 @@ async function scrapeOnce(params: RunAirbnbSearchParams, band: PriceBand = {}) {
 
 interface PassResult {
   listings: RawListing[]
-  meta: { destination?: string; checkIn?: string; checkOut?: string; count: number }
+  /**
+   * Ce que la page de résultats a annoncé d'elle-même.
+   *
+   * `adults` y figure : `parseAirbnbClipboard` le lit dans l'URL de la page
+   * (`airbnbClip.ts`), et ce type le laissait tomber au passage — la valeur
+   * était donc parsée puis jetée, avant même d'atteindre la fusion.
+   */
+  meta: {
+    destination?: string
+    checkIn?: string
+    checkOut?: string
+    adults?: number
+    count: number
+  }
   captchaSolved: boolean
   attempts: number
 }
@@ -277,7 +290,7 @@ async function runPass(
   params: RunAirbnbSearchParams,
   band: PriceBand,
   timeoutMs: number
-): Promise<PassResult | { error: string; timedOut: boolean }> {
+): Promise<PassResult | { error: string; timedOut: boolean; empty?: boolean }> {
   let outcome: Awaited<ReturnType<typeof window.skitrack.airbnbScrape>>
   try {
     outcome = await Promise.race([scrapeOnce(params, band), timeoutPromise(timeoutMs)])
@@ -297,7 +310,15 @@ async function runPass(
 
   const { listings, errors, meta } = parseAirbnbClipboard(outcome.payloadJson)
   if (listings.length === 0) {
-    return { error: errors[0] ?? 'Aucune annonce exploitable dans la page Airbnb.', timedOut: false }
+    // `empty` sépare deux cas que le seul message confondait : la page a bien
+    // répondu et n'avait rien (une tranche de prix sans offre, réponse
+    // légitime), ou le relevé a échoué et on ignore ce qu'elle contenait. Le
+    // second interdit de conclure d'une absence.
+    return {
+      error: errors[0] ?? 'Aucune annonce exploitable dans la page Airbnb.',
+      timedOut: false,
+      empty: outcome.ok
+    }
   }
   return {
     listings,
@@ -337,6 +358,15 @@ export async function runAirbnbSearch(
   }
 
   collect(first.listings)
+  /*
+   * Ce balayage a-t-il vu tout ce qu'Airbnb propose ?
+   *
+   * La question n'est pas rhétorique : c'est elle qui autorise — ou non — à
+   * marquer une annonce absente « probablement réservée ». Une première passe
+   * non pleine a tout montré (voir `AIRBNB_PAGE_SIZE`). Sinon, il faut que
+   * toutes les tranches soient passées sans interruption.
+   */
+  let sweepComplete = first.listings.length < AIRBNB_PAGE_SIZE
   const meta = first.meta
   let captchaSolved = first.captchaSolved
   let attempts = first.attempts
@@ -349,10 +379,14 @@ export async function runAirbnbSearch(
    * n'a rien demandé.
    */
   if (first.listings.length >= AIRBNB_PAGE_SIZE) {
+    sweepComplete = true
     for (const band of priceBands(first.listings, params.nights)) {
       // Sous une passe de marge, on s'arrête : entamer un relevé qu'on sait
       // ne pas pouvoir finir revient à le payer sans le lire.
-      if (timeLeft() < 30_000) break
+      if (timeLeft() < 30_000) {
+        sweepComplete = false
+        break
+      }
       const pass = await runPass(params, band, Math.min(AIRBNB_PASS_TIMEOUT_MS, timeLeft()))
       if (!('listings' in pass)) {
         /*
@@ -365,7 +399,12 @@ export async function runAirbnbSearch(
          * deux relevés dans le même contexte. Et un site qui ne répond plus dans
          * les deux minutes n'a pas besoin qu'on insiste trois fois de plus.
          */
-        if (pass.timedOut) break
+        if (pass.timedOut) {
+          sweepComplete = false
+          break
+        }
+        // Tranche en échec (et non vide) : son contenu reste inconnu.
+        if (!pass.empty) sweepComplete = false
         continue
       }
 
@@ -380,7 +419,12 @@ export async function runAirbnbSearch(
        * la recherche — Airbnb a rendu la même page. On cesse alors d'insister
        * plutôt que de payer trois relevés de plus pour la même liste.
        */
-      if (collect(pass.listings) === 0) break
+      if (collect(pass.listings) === 0) {
+        // Les bornes de prix n'ont pas borné : la première page était pleine,
+        // et rien ne dit ce qu'il y avait au-delà.
+        sweepComplete = false
+        break
+      }
     }
   }
 
@@ -433,6 +477,28 @@ export async function runAirbnbSearch(
     checkOut: meta.checkOut ?? params.checkOut,
     domainId: params.domainId,
     capacity: params.capacity,
+    // Le groupe pour lequel Airbnb a **rendu** ces annonces — `adults` part
+    // dans l'URL du relevé (`providers/airbnb/airbnb.ts`), donc une annonce
+    // rendue pour quatre en accueille au moins quatre. `mergeAirbnbPaste`
+    // attendait cette valeur depuis ad21dda et ne l'a jamais reçue sur ce
+    // chemin : `fitsGuests` restait indéfini pour **toutes** les annonces du
+    // relevé en direct, et l'écran les classait « capacité non annoncée » en
+    // accusant Airbnb de ne rien publier. Le marque-page, lui, la passait.
+    //
+    // `meta.adults` d'abord : il vient de l'URL de la page réellement lue, qui
+    // fait foi sur le groupe envoyé. `params.adults` est le même nombre côté
+    // application, et sert quand la page n'a pas rendu ses métadonnées.
+    //
+    // Ce n'est pas une capacité, et cela ne va donc pas dans `pers` : voir la
+    // règle de `providers/types.ts`, où sept connecteurs avaient recopié
+    // `params.adults` dans `guests` et rapportaient « 8 pers » pour tout bien
+    // trouvé en cherchant pour huit.
+    searchAdults: meta.adults ?? params.adults,
+    // Conclure « probablement réservée » exige d'avoir tout vu. Deux conditions
+    // et non une : le balayage est allé à son terme, **et** le lot n'a pas été
+    // jugé égaré — auquel cas on a soi-même écarté les annonces sans position,
+    // et leur absence est de notre fait, pas de celui d'Airbnb.
+    absenceConclusive: sweepComplete && !egaree,
     nights: params.nights,
     fallbackAltitude: params.villageOrMinAlt
   })

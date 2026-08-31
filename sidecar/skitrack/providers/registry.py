@@ -1,16 +1,89 @@
-"""Inventaire des sources et de leur état.
-
-Alimente l'écran « Sources » de l'UI. Une source non configurée est **affichée
-comme telle**, jamais masquée : savoir qu'Expedia n'a pas répondu parce qu'il
-manque une clé change complètement la lecture d'un résultat de recherche.
 """
-
+Registre dynamique des providers de scraping
+"""
 from __future__ import annotations
+
+import logging
+from typing import Dict, Type, Optional
 
 from .base import BaseProvider, ProviderInfo
 from ..schemas.common import ProviderStatus
 from ..services import secrets
 from ..services.routing import available_providers as routing_providers
+
+# stdout est réservé au handshake que lit Electron (voir `__main__.py`) : un
+# seul `print` ici décale la ligne JSON attendue et le sidecar ne démarre plus.
+# Les emoji, en prime, lèvent UnicodeEncodeError sur une console cp1252.
+log = logging.getLogger(__name__)
+
+_providers: Dict[str, Type[BaseProvider]] = {}
+
+
+def register_provider(name: str, provider_class: Type[BaseProvider]) -> None:
+    _providers[name.lower()] = provider_class
+    log.debug("Connecteur de scraping enregistré : %s", name)
+
+
+def get_provider(name: str) -> Optional[Type[BaseProvider]]:
+    return _providers.get(name.lower())
+
+
+def list_providers() -> list[str]:
+    return list(_providers.keys())
+
+
+def create_provider(
+    name: str, 
+    proxy_manager=None, 
+    captcha_solver=None
+) -> Optional[BaseProvider]:
+    provider_class = get_provider(name)
+    if provider_class:
+        return provider_class(proxy_manager, captcha_solver)
+    return None
+
+
+def _auto_register():
+    try:
+        from .airbnb import AirbnbProvider
+        register_provider("airbnb", AirbnbProvider)
+    except ImportError as e:
+        log.warning("Connecteur Airbnb indisponible : %s", e)
+    
+    try:
+        from .booking import BookingProvider
+        register_provider("booking", BookingProvider)
+    except ImportError as e:
+        log.warning("Connecteur Booking indisponible : %s", e)
+    
+    try:
+        from .vrbo import VRBOProvider
+        register_provider("vrbo", VRBOProvider)
+    except ImportError as e:
+        log.warning("Connecteur VRBO indisponible : %s", e)
+    
+    try:
+        from .cozycozy import CozyCozyProvider
+        register_provider("cozycozy", CozyCozyProvider)
+    except ImportError as e:
+        log.warning("Connecteur CozyCozy indisponible : %s", e)
+
+
+_auto_register()
+
+
+# ---------------------------------------------------------------------------
+# Inventaire des sources, restauré.
+#
+# `provider_statuses()` alimente l'écran « Sources » (api/routes/settings.py) et
+# `providers/__init__.py` exporte les deux fonctions. La réécriture les avait
+# supprimées, rendant le paquet inimportable.
+#
+# Le registre dynamique ci-dessus et cet inventaire répondent à deux questions
+# différentes : « quel connecteur de scraping puis-je instancier maintenant » et
+# « quelles sources existent, configurées ou non ». Fondre les deux masquerait
+# les sources non implémentées, que l'écran affiche justement en clair.
+# ---------------------------------------------------------------------------
 
 #: Connecteurs de logement *prévus*. Aucun n'a d'implémentation en phase 1 —
 #: `implemented` le dit explicitement plutôt que de laisser croire à un bug.

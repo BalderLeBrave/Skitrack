@@ -125,7 +125,7 @@ const VERBATIM = [
  * Le plafond suit la dette vers le bas : le laisser au-dessus du relevé courant
  * rouvre exactement la marge qu'on vient de payer.
  */
-const BUDGET = { jsx: 0, expr: 196 }
+const BUDGET = { jsx: 0, expr: 177 }
 
 const ACCENTS = 'àâçéèêëîïôùûüœÀÂÇÉÈÊËÎÏÔÙÛÜŒ'
 const ACC = new RegExp(`[${ACCENTS}]`)

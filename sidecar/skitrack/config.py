@@ -96,3 +96,33 @@ def set_settings(settings: Settings) -> None:
 PACKAGE_DIR = Path(__file__).resolve().parent
 REFERENCE_DIR = PACKAGE_DIR / "data" / "reference"
 CURATED_DIR = PACKAGE_DIR / "data" / "curated"
+
+
+# ---------------------------------------------------------------------------
+# Configuration des connecteurs de scraping (pile « v2 »).
+#
+# Distincte de `Settings` à dessein : `Settings` décrit le *processus* (chemins,
+# token, port) et lui est fourni par Electron au lancement. Les valeurs
+# ci-dessous décrivent le *scraping*, viennent de l'environnement du poste et
+# n'ont pas à voyager dans le handshake.
+#
+# Elles ne remplacent pas `Settings` : la version de ce fichier qui l'avait
+# supprimée cassait neuf modules et la totalité des tests. Les deux coexistent.
+# ---------------------------------------------------------------------------
+
+
+class Config:
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./skitrack.db")
+    SCRAPING_TIMEOUT: int = int(os.getenv("SCRAPING_TIMEOUT", "30"))
+    MAX_RETRIES: int = int(os.getenv("MAX_RETRIES", "3"))
+    PROXY_LIST: str = os.getenv("PROXY_LIST", "")
+    CAPTCHA_API_KEY: str = os.getenv("CAPTCHA_API_KEY", "")
+    API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
+    API_PORT: int = int(os.getenv("API_PORT", "8000"))
+    CORS_ORIGINS: list = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ]
+
+
+config = Config()

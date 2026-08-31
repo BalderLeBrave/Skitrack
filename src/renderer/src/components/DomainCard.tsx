@@ -210,7 +210,12 @@ export function DomainCard({ domain: d, scaleMin, scaleMax }: Props): JSX.Elemen
         <dl className="domcard__tiles domcard__tiles--three">
           <div className="domcard__tile">
             <dt>{t('altitude_span')}</dt>
-            <dd className="u-num crn-releve domcard__tileval domcard__tileval--data u-nowrap">
+            {/* Sans `u-nowrap` : sous 420 px de carte, la plage ne tient plus
+                sur une ligne même avec sa colonne élargie, et le `overflow:
+                hidden` du cadre mangeait alors l'unité en silence. Une tuile
+                qui grandit d'une ligne se voit ; une altitude sans « m » se
+                lit comme un nombre nu. */}
+            <dd className="u-num crn-releve domcard__tileval domcard__tileval--data">
               {fmt(d.min)} – {fmt(d.max)} m
             </dd>
           </div>

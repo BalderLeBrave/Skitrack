@@ -95,6 +95,11 @@ export function useAirbnbRecheck(params: RecheckParams): {
 
     consumed.current = text
     const { imported, added, updated, missing } = mergeAirbnbPaste(p.imported, listings, {
+      // Le collage vient de la page qu'a vue l'utilisateur : ce qu'Airbnb y
+      // affichait à ces dates est ce qui est ici. L'absence y garde donc la
+      // valeur qu'elle avait — contrairement au relevé automatisé, dont le
+      // balayage peut s'interrompre à mi-chemin (voir `runAirbnbSearch`).
+      absenceConclusive: true,
       checkIn: p.checkIn,
       checkOut: p.checkOut,
       domainId: p.domainId,

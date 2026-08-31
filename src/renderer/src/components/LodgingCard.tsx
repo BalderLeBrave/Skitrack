@@ -27,6 +27,7 @@ import { useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent } from 'react'
 import { ExternalIcon } from './Icons'
 import { NoImage } from './ResultCard'
+import { ProviderBadge } from './ProviderBadge'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { freshnessOf, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
@@ -266,7 +267,9 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
                 : srcOf(lg)
             }
           >
-            <span className="lodgcard__srcname">{srcOf(lg)}</span>
+            {/* La teinte de la plateforme, en repère de balayage ; le nom
+                reste lu et tronqué exactement comme avant. */}
+            <ProviderBadge provider={srcOf(lg)} size="sm" />
             {dups.length > 0 && (
               <span className="lodgcard__srcplus">+{dups.length}</span>
             )}

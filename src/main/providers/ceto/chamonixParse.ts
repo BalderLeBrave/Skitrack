@@ -148,8 +148,6 @@ const SITES: Record<
   }
 }
 
-const BASE = SITES.chamonix.base
-
 /** Destination app → code village */
 export const LOCATION_MAP: Record<string, string> = {
   chamonix: 'cmb.chamonix',

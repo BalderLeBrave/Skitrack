@@ -1,6 +1,9 @@
 node_modules/
 out/
 dist/
+# Sortie du build d’aperçu navigateur (vite.preview.config.ts), régénérée
+# par scripts/preview-serve.sh : elle était versionnée, 334 fichiers.
+dist-preview/
 release/
 openapi.json
 
@@ -44,3 +47,13 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Le modèle des variables, lui, est versionné : il ne contient aucune valeur.
+!.env.example
+
+# Caches d'outils, régénérés à chaque exécution : ils n'ont pas à voyager avec
+# le dépôt, et leur absence du fichier les rendait visibles à chaque `git status`.
+.ruff_cache/
+__pycache__/
+tools/extract-listings/.venv/
+tools/extract-listings/out/

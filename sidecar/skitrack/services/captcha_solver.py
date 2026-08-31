@@ -1,10 +1,10 @@
 """
 Solveur de CAPTCHA via 2captcha
 """
-import os
-import logging
 import asyncio
-from typing import Optional
+import logging
+import os
+
 import httpx
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class CaptchaSolver:
     API_URL = "https://2captcha.com/in.php"
     RESULT_URL = "https://2captcha.com/res.php"
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.getenv("CAPTCHA_API_KEY")
         if not self.api_key:
             logger.warning("Aucune clé API 2captcha configurée")
@@ -25,7 +25,7 @@ class CaptchaSolver:
         page_url: str,
         version: str = "v2",
         enterprise: bool = False
-    ) -> Optional[str]:
+    ) -> str | None:
         if not self.api_key:
             logger.error("Clé API 2captcha manquante")
             return None
@@ -41,7 +41,7 @@ class CaptchaSolver:
             token = await self._wait_for_solution(captcha_id)
             return token
             
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — frontière réseau : l'appelant lit `None`
             logger.error(f"Erreur résolution CAPTCHA: {e}")
             return None
     

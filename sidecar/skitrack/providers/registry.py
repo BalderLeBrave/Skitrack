@@ -4,27 +4,26 @@ Registre dynamique des providers de scraping
 from __future__ import annotations
 
 import logging
-from typing import Dict, Type, Optional
 
-from .base import BaseProvider, ProviderInfo
 from ..schemas.common import ProviderStatus
 from ..services import secrets
 from ..services.routing import available_providers as routing_providers
+from .base import BaseProvider, ProviderInfo
 
 # stdout est réservé au handshake que lit Electron (voir `__main__.py`) : un
 # seul `print` ici décale la ligne JSON attendue et le sidecar ne démarre plus.
 # Les emoji, en prime, lèvent UnicodeEncodeError sur une console cp1252.
 log = logging.getLogger(__name__)
 
-_providers: Dict[str, Type[BaseProvider]] = {}
+_providers: dict[str, type[BaseProvider]] = {}
 
 
-def register_provider(name: str, provider_class: Type[BaseProvider]) -> None:
+def register_provider(name: str, provider_class: type[BaseProvider]) -> None:
     _providers[name.lower()] = provider_class
     log.debug("Connecteur de scraping enregistré : %s", name)
 
 
-def get_provider(name: str) -> Optional[Type[BaseProvider]]:
+def get_provider(name: str) -> type[BaseProvider] | None:
     return _providers.get(name.lower())
 
 
@@ -36,7 +35,7 @@ def create_provider(
     name: str, 
     proxy_manager=None, 
     captcha_solver=None
-) -> Optional[BaseProvider]:
+) -> BaseProvider | None:
     provider_class = get_provider(name)
     if provider_class:
         return provider_class(proxy_manager, captcha_solver)

@@ -1,12 +1,13 @@
 """
 Base provider avec méthode de scraping générique
 """
-from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Literal, Optional
-from dataclasses import dataclass, field
-from datetime import date
 import datetime as dt
 import logging
+import re
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import date
+from typing import Any, Literal
 
 logger = logging.getLogger(__name__)
 
@@ -14,29 +15,29 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LodgingSearchParams:
     destination: str
-    checkin: Optional[date] = None
-    checkout: Optional[date] = None
+    checkin: date | None = None
+    checkout: date | None = None
     guests: int = 2
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    radius_km: Optional[float] = None
+    latitude: float | None = None
+    longitude: float | None = None
+    radius_km: float | None = None
     max_results: int = 50
 
 
 @dataclass
 class LodgingResult:
     title: str
-    price_per_night: float
+    price_per_night: float | None
     currency: str
-    rating: Optional[float] = None
-    reviews_count: Optional[int] = None
+    rating: float | None = None
+    reviews_count: int | None = None
     url: str = ""
-    image_url: Optional[str] = None
+    image_url: str | None = None
     source: str = ""
-    room_type: Optional[str] = None
-    location: Optional[str] = None
+    room_type: str | None = None
+    location: str | None = None
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "title": self.title,
             "price_per_night": self.price_per_night,
@@ -67,18 +68,24 @@ class BaseProvider(ABC):
         self, 
         params: LodgingSearchParams, 
         respect_robots: bool = False
-    ) -> List[LodgingResult]:
+    ) -> list[LodgingResult]:
         pass
     
     async def search(
         self, 
         params: LodgingSearchParams, 
         respect_robots: bool = False
-    ) -> List[LodgingResult]:
+    ) -> list[LodgingResult]:
         return await self.scrape(params, respect_robots)
     
-    def normalize_price(self, price_text: str) -> tuple[float, str]:
-        import re
+    def normalize_price(self, price_text: str) -> tuple[float | None, str]:
+        """Rend `(None, devise)` quand aucun nombre n'est lisible.
+
+        Elle rendait `0.0` : un prix absent devenait « 0 € », c'est-à-dire une
+        valeur inventée présentée comme une mesure. L'invariant du projet est
+        l'inverse — une valeur absente reste absente, et l'interface sait
+        afficher « non renseigné ».
+        """
         currency = "EUR"
         if '$' in price_text or 'USD' in price_text:
             currency = "USD"
@@ -102,7 +109,7 @@ class BaseProvider(ABC):
                 return price, currency
             except ValueError:
                 pass
-        return 0.0, currency
+        return None, currency
 
 
 # ---------------------------------------------------------------------------

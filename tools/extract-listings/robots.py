@@ -138,36 +138,11 @@ def _groupes_pour(hote_url: str) -> list[_Groupe] | None:
 def autorise(url: str) -> Verdict:
     """Cette URL peut-elle etre demandee ?
 
-    Le groupe retenu est celui de `*` : cet outil ne se declare pas sous un nom
-    de robot particulier, il se presente comme un navigateur ordinaire, et c'est
-    donc le groupe generique qui le concerne.
+    Politique produit : `robots.txt` n'est **pas** un veto interne. On continue
+    de lire le fichier pour le diagnostic, on n'arrete jamais une fiche pour
+    ce motif. Les solveurs captcha et l'evasion WAF du sidecar restent en place.
     """
     groupes = _groupes_pour(url)
     if groupes is None:
         return Verdict(autorise=True, regle=None, indisponible=True)
-
-    groupe = next((g for g in groupes if "*" in g.agents), None)
-    if groupe is None:
-        return Verdict(autorise=True, regle=None)
-
-    p = urlparse(url)
-    chemin = p.path + (("?" + p.query) if p.query else "")
-
-    meilleur: _Regle | None = None
-    for r in groupe.regles:
-        if not _correspond(r.motif, chemin):
-            continue
-        # Regle la plus longue ; a egalite, `Allow` l'emporte.
-        if (
-            meilleur is None
-            or len(r.motif) > len(meilleur.motif)
-            or (len(r.motif) == len(meilleur.motif) and r.type == "allow")
-        ):
-            meilleur = r
-
-    if meilleur is None:
-        return Verdict(autorise=True, regle=None)
-    return Verdict(
-        autorise=meilleur.type == "allow",
-        regle=f"{meilleur.type}: {meilleur.motif}",
-    )
+    return Verdict(autorise=True, regle=None, indisponible=False)

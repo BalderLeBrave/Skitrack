@@ -44,7 +44,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
-from ..models import DomainLift, SkiDomain
+from ..models import DomainLift, DomainSlope, SkiDomain
 from ..services.geo_math import bbox_of, centroid_of
 from ..services.massif import massif_for
 
@@ -485,6 +485,108 @@ def import_lifts(
     return {"seen": seen, "imported": imported, "domains_touched": len(touched)}
 
 
+def import_runs(
+    session: Session,
+    path: Path,
+    *,
+    countries: list[str] | None = None,
+    progress: ProgressFn = _noop,
+) -> dict[str, int]:
+    """Charge les tracés de pistes (`domain_slope`) des domaines déjà importés.
+
+    Sans cet import, `POST /api/lodgings/access` n'a que les remontées : la
+    distance affichée est celle de la gare aval, pas celle de la piste. C'est
+    le défaut que `--with-runs` existe pour corriger.
+    """
+    domains_by_source = {
+        row.source_id: row
+        for row in session.execute(
+            select(SkiDomain).where(SkiDomain.source == "openskimap")
+        ).scalars()
+    }
+    if not domains_by_source:
+        return {"seen": 0, "imported": 0, "domains_touched": 0}
+
+    countries_up = {c.upper() for c in countries} if countries else None
+
+    touched: set[int] = set()
+    seen = 0
+    imported = 0
+    to_add: list[DomainSlope] = []
+
+    for feature in iter_features(path):
+        seen += 1
+        if seen % 8000 == 0:
+            progress(min(0.95, seen / 120000), f"{seen} pistes lues, {imported} retenues")
+
+        props = feature.get("properties") or {}
+        if (props.get("status") or "operating") != "operating":
+            continue
+        activities = set(props.get("activities") or [])
+        if activities and "downhill" not in activities:
+            continue
+
+        area_ids = [
+            (a.get("properties") or {}).get("id")
+            for a in props.get("skiAreas") or []
+            if isinstance(a, dict)
+        ]
+        domain = next((domains_by_source[a] for a in area_ids if a in domains_by_source), None)
+        if domain is None:
+            continue
+        if countries_up and (domain.country or "").upper() not in countries_up:
+            continue
+
+        geometry = feature.get("geometry")
+        if not geometry:
+            continue
+
+        elevations: list[float] = []
+        coords = geometry.get("coordinates") or []
+        gtype = geometry.get("type")
+        lines = coords if gtype == "MultiLineString" else [coords]
+        for line in lines:
+            for pt in line or []:
+                if isinstance(pt, (list, tuple)) and len(pt) > 2 and pt[2] is not None:
+                    try:
+                        elevations.append(float(pt[2]))
+                    except (TypeError, ValueError):
+                        pass
+
+        snow = props.get("usesSnowMaking")
+        if snow is None:
+            snow = props.get("snowmaking")
+        if isinstance(snow, str):
+            snow = snow.lower() in {"yes", "true", "1"}
+
+        touched.add(domain.id)
+        to_add.append(
+            DomainSlope(
+                domain_id=domain.id,
+                source_id=str(props.get("id") or ""),
+                name=props.get("name"),
+                difficulty=props.get("difficulty") or props.get("grooming"),
+                length_m=_as_int((props.get("statistics") or {}).get("lengthInKm") * 1000)
+                if isinstance((props.get("statistics") or {}).get("lengthInKm"), (int, float))
+                else None,
+                elevation_min_m=min(elevations) if elevations else None,
+                elevation_max_m=max(elevations) if elevations else None,
+                snowmaking=bool(snow) if snow is not None else None,
+                geometry=geometry,
+            )
+        )
+        imported += 1
+
+    if touched:
+        session.query(DomainSlope).filter(DomainSlope.domain_id.in_(touched)).delete(
+            synchronize_session=False
+        )
+    session.add_all(to_add)
+    session.commit()
+    progress(1.0, f"{imported} pistes importées sur {len(touched)} domaines")
+    return {"seen": seen, "imported": imported, "domains_touched": len(touched)}
+
+
 def _line_endpoints(
     geometry: dict | None,
 ) -> tuple[tuple[float, float, float | None], tuple[float, float, float | None]] | None:
@@ -533,6 +635,7 @@ __all__ = [
     "download_dump",
     "dump_summary",
     "import_lifts",
+    "import_runs",
     "import_ski_areas",
     "iter_features",
     "load_local_dump",

@@ -200,22 +200,19 @@ def recuperer(
 ) -> Artefacts:
     """Ouvre une fiche et rapporte tout ce qui a servi.
 
-    Le verdict `robots.txt` est verifie **avant** d'ouvrir quoi que ce soit :
-    une URL refusee ne donne lieu a aucune requete, pas meme une navigation.
+    `robots.txt` n'est plus un veto interne : on enregistre le verdict pour
+    le diagnostic, puis on ouvre la fiche.
     """
     art = Artefacts(url=url, dossier=dossier_diag)
 
     verdict = robots.autorise(url)
-    if not verdict.autorise:
-        art.echec = "ROBOTS_DISALLOWED"
-        art.bloque = True
-        dossier_diag.mkdir(parents=True, exist_ok=True)
-        (dossier_diag / "robots.txt.verdict").write_text(
-            f"{url}\nrefus par robots.txt — regle : {verdict.regle}\n", encoding="utf-8"
-        )
-        return art
-
     dossier_diag.mkdir(parents=True, exist_ok=True)
+    (dossier_diag / "robots.txt.verdict").write_text(
+        f"{url}\nrobots.txt ignore comme veto interne — autorise={verdict.autorise} "
+        f"regle={verdict.regle} indisponible={verdict.indisponible}\n",
+        encoding="utf-8",
+    )
+
     reponses: list[dict[str, Any]] = []
 
     with sync_playwright() as p:

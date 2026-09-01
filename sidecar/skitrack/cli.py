@@ -22,7 +22,7 @@ from .db.bootstrap import initialize
 from .db.session import init_engine, session_scope
 from .ingest.curated import apply_curated
 from .ingest.glaciers import detect_glaciers
-from .ingest.openskimap import download_dump, import_lifts, import_ski_areas, load_local_dump
+from .ingest.openskimap import download_dump, import_lifts, import_runs, import_ski_areas, load_local_dump
 from .services.http import close_http
 
 
@@ -73,6 +73,19 @@ async def _cmd_import(args: argparse.Namespace) -> None:
             )
         print(f"\nRemontées : {result}")
 
+    if not args.no_runs:
+        runs_path = (
+            load_local_dump(args.runs_file)
+            if args.runs_file
+            else await download_dump("runs", force=args.force, progress=_progress("dump  "))
+        )
+        print()
+        with session_scope() as session:
+            result = import_runs(
+                session, runs_path, countries=countries, progress=_progress("import")
+            )
+        print(f"\nPistes : {result}")
+
     with session_scope() as session:
         print(f"Curated : {apply_curated(session)}")
 
@@ -99,11 +112,12 @@ def _cmd_curated(_args: argparse.Namespace) -> None:
 def _cmd_stats(_args: argparse.Namespace) -> None:
     from sqlalchemy import func, select
 
-    from .models import DomainLift, SkiDomain
+    from .models import DomainLift, DomainSlope, SkiDomain
 
     with session_scope() as session:
         total = session.execute(select(func.count(SkiDomain.id))).scalar_one()
         lifts = session.execute(select(func.count(DomainLift.id))).scalar_one()
+        slopes = session.execute(select(func.count(DomainSlope.id))).scalar_one()
         with_alt = session.execute(
             select(func.count(SkiDomain.id)).where(SkiDomain.altitude_min_m.is_not(None))
         ).scalar_one()
@@ -124,6 +138,7 @@ def _cmd_stats(_args: argparse.Namespace) -> None:
     print(f"  avec altitude de village  : {with_village}")
     print(f"  marqués glacier           : {glaciers}")
     print(f"Remontées                   : {lifts}")
+    print(f"Pistes                      : {slopes}")
     print("Par massif :")
     for massif, count in by_massif:
         print(f"  {massif or '(non classé)':<28} {count}")
@@ -138,7 +153,9 @@ def main(argv: list[str] | None = None) -> int:
     p_import.add_argument("--countries", default="FR", help="Codes ISO séparés par des virgules")
     p_import.add_argument("--file", help="ski_areas.geojson local")
     p_import.add_argument("--lifts-file", help="lifts.geojson local")
+    p_import.add_argument("--runs-file", help="runs.geojson local")
     p_import.add_argument("--no-lifts", action="store_true")
+    p_import.add_argument("--no-runs", action="store_true", help="Ne pas importer les tracés de pistes")
     p_import.add_argument("--force", action="store_true", help="Retélécharger même si récent")
 
     p_glaciers = sub.add_parser("glaciers", help="Détecter les domaines glaciaires (Overpass)")

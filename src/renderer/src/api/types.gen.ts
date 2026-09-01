@@ -902,6 +902,11 @@ export interface components {
              */
             with_lifts: boolean;
             /**
+             * With Runs
+             * @default true
+             */
+            with_runs?: boolean;
+            /**
              * Detect Glaciers
              * @default false
              */

@@ -165,3 +165,54 @@ LIFT_ORPHAN = {
         "skiAreas": [],
     },
 }
+
+RUN_TIGNES = {
+    "type": "Feature",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [[6.9100, 45.4700, 1850.0], [6.9180, 45.4760, 2100.0]],
+    },
+    "properties": {
+        "id": "run-1",
+        "name": "Piste du Palet",
+        "difficulty": "intermediate",
+        "status": "operating",
+        "activities": ["downhill"],
+        "usesSnowMaking": True,
+        "statistics": {"lengthInKm": 1.2},
+        "skiAreas": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "id": "32dd7f13640a64baef6c2ff8bca5f2b88e7a4b0d",
+                    "name": "Tignes - Val d'Isère",
+                },
+            }
+        ],
+    },
+}
+
+RUN_NORDIC = {
+    "type": "Feature",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [[6.10, 46.20, 1200.0], [6.11, 46.21, 1210.0]],
+    },
+    "properties": {
+        "id": "run-nordic",
+        "name": "Fond",
+        "difficulty": "easy",
+        "status": "operating",
+        "activities": ["nordic"],
+        "skiAreas": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "id": "32dd7f13640a64baef6c2ff8bca5f2b88e7a4b0d",
+                    "name": "Tignes - Val d'Isère",
+                },
+            }
+        ],
+    },
+}
+

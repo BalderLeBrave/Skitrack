@@ -17,6 +17,7 @@ from ...ingest.openskimap import (
     download_dump,
     dump_summary,
     import_lifts,
+    import_runs,
     import_ski_areas,
     load_local_dump,
 )
@@ -29,12 +30,14 @@ router = APIRouter(prefix="/referential", tags=["referential"])
 class ImportRequest(BaseModel):
     countries: list[str] = Field(default_factory=lambda: ["FR"])
     with_lifts: bool = True
+    with_runs: bool = True
     detect_glaciers: bool = False
     """Une requête Overpass par pays. Désactivé par défaut : c'est une ressource
     communautaire gratuite, on ne la sollicite que sur demande explicite."""
     force_download: bool = False
     ski_areas_file: str | None = None
     lifts_file: str | None = None
+    runs_file: str | None = None
     """Dumps déjà téléchargés à la main — utile en réseau contraint."""
 
 
@@ -98,7 +101,26 @@ async def start_import(req: ImportRequest) -> JobStatus:
                     session,
                     lifts_path,
                     countries=req.countries,
-                    progress=lambda p, m: handle.progress(0.65 + 0.20 * p, m),
+                    progress=lambda p, m: handle.progress(0.65 + 0.10 * p, m),
+                )
+
+        if req.with_runs:
+            handle.progress(0.76, "Récupération du dump des pistes…")
+            if req.runs_file:
+                runs_path = load_local_dump(req.runs_file)
+            else:
+                runs_path = await download_dump(
+                    "runs",
+                    force=req.force_download,
+                    progress=lambda p, m: handle.progress(0.76 + 0.06 * p, m),
+                )
+            handle.progress(0.83, "Import des pistes…")
+            with session_scope() as session:
+                result["runs"] = import_runs(
+                    session,
+                    runs_path,
+                    countries=req.countries,
+                    progress=lambda p, m: handle.progress(0.83 + 0.08 * p, m),
                 )
 
         if req.detect_glaciers:

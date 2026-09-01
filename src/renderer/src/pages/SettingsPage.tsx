@@ -1023,7 +1023,12 @@ export function SettingsPage(): JSX.Element {
                   disabled={sidecar.status !== 'ready' || importJob?.state === 'running' || importJob?.state === 'pending'}
                   onClick={() => {
                     void api
-                      .importReferential({ countries: ['FR'], with_lifts: true, detect_glaciers: true })
+                      .importReferential({
+                        countries: ['FR'],
+                        with_lifts: true,
+                        with_runs: true,
+                        detect_glaciers: true
+                      })
                       .then((job) => setImportJobId(job.id))
                       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
                   }}

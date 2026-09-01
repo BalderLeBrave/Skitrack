@@ -1,40 +1,28 @@
 /**
- * Hôtes dont les CGU interdisent la lecture automatisée d'une page isolée.
+ * Politique produit : aucune OTA n'est sur liste noire.
  *
- * La liste vivait uniquement dans `src/main/listing.ts`, qui refuse ces hôtes
- * avant d'émettre la moindre requête. Le renderer l'ignorait, et l'écran
- * Logements proposait donc « Relever les positions (161) » pour des annonces
- * Booking dont **aucune** ne pouvait aboutir : quinze lectures par passe,
- * quinze refus, et un compte rendu qui disait « 15 refusées par le site » après
- * coup. Proposer une action qu'on sait vouée à l'échec est une forme de
- * mensonge par omission ; l'écran a besoin de la même liste que le lecteur.
+ * Airbnb, Booking, VRBO / Abritel et Gîtes de France sont lisibles.
+ * `FORBIDDEN_LISTING_HOSTS` reste exporté (écran Logements, import par URL)
+ * mais vide : un hôte parsable n'est jamais « interdit ».
  *
- * Elle est ici, dans `shared/`, parce que les deux processus doivent en tirer
- * la même conclusion. La dupliquer les ferait diverger, et c'est alors le
- * bouton qui aurait tort.
+ * Les solveurs captcha (sidecar `CaptchaSolver` / 2captcha) et l'évasion WAF
+ * (Playwright stealth, proxies, empreinte Chrome) restent en place. Ce fichier
+ * ne les concerne pas — il ne décide que si une URL *peut* être ouverte.
  */
-export const FORBIDDEN_LISTING_HOSTS = [
-  'airbnb.',
-  'booking.com',
-  'expedia.',
-  'hotels.com',
-  'vrbo.',
-  'abritel.'
-] as const
+export const FORBIDDEN_LISTING_HOSTS = [] as const
 
 /**
- * Cette adresse relève-t-elle d'un hôte qui refuse la lecture automatisée ?
+ * Cette adresse relève-t-elle d'un hôte interdit ?
  *
- * Rend `false` sur une URL illisible : une adresse qu'on ne sait pas analyser
- * n'est pas une adresse interdite, et le lecteur la refusera pour ce motif-là.
+ * Rend `false` sur une URL parsable, et `false` aussi sur une URL illisible :
+ * une adresse qu'on ne sait pas analyser n'est pas une adresse interdite.
  */
 export function isForbiddenListingHost(url: string | undefined): boolean {
   if (!url) return false
-  let host: string
   try {
-    host = new URL(url).hostname.toLowerCase()
+    new URL(url)
   } catch {
     return false
   }
-  return FORBIDDEN_LISTING_HOSTS.some((h) => host.includes(h))
+  return false
 }

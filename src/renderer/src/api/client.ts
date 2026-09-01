@@ -167,6 +167,7 @@ export const api = {
   importReferential: (body: {
     countries: string[]
     with_lifts: boolean
+    with_runs?: boolean
     detect_glaciers: boolean
     force_download?: boolean
   }) => request<JobStatus>('/api/referential/import', { method: 'POST', body: JSON.stringify(body) }),

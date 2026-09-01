@@ -4,12 +4,14 @@ import pytest
 from sqlalchemy import select
 
 from skitrack.db.session import session_scope
-from skitrack.ingest.openskimap import import_lifts, import_ski_areas, map_ski_area, slugify
-from skitrack.models import DomainLift, SkiDomain
+from skitrack.ingest.openskimap import import_lifts, import_runs, import_ski_areas, map_ski_area, slugify
+from skitrack.models import DomainLift, DomainSlope, SkiDomain
 
 from .fixtures import (
     LIFT_ORPHAN,
     LIFT_TIGNES,
+    RUN_NORDIC,
+    RUN_TIGNES,
     SKI_AREA_ABANDONED,
     SKI_AREA_AUSTRIA,
     SKI_AREA_NORDIC_ONLY,
@@ -122,3 +124,22 @@ def test_import_lifts_links_and_derives_village_altitude(db, tmp_geojson):
     assert lift.elevation_min_m == 1559.0
     assert domain.altitude_village_m == 1559
     assert domain.altitude_village_source == "derived:lift_base"
+
+
+def test_import_runs_keeps_downhill_and_skips_nordic(db, tmp_geojson):
+    areas = tmp_geojson([SKI_AREA_TIGNES])
+    runs = tmp_geojson([RUN_TIGNES, RUN_NORDIC])
+
+    with session_scope() as session:
+        import_ski_areas(session, areas, countries=["FR"])
+    with session_scope() as session:
+        result = import_runs(session, runs, countries=["FR"])
+
+    assert result["imported"] == 1
+    with session_scope() as session:
+        slope = session.execute(select(DomainSlope)).scalar_one()
+    assert slope.name == "Piste du Palet"
+    assert slope.difficulty == "intermediate"
+    assert slope.snowmaking is True
+    assert slope.geometry is not None
+    assert slope.elevation_min_m == 1850.0

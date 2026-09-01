@@ -1,22 +1,17 @@
 /**
  * Lecture d'une annonce de logement à partir de son URL.
  *
- * Ce n'est **pas** un scraper, et la distinction est structurante :
+ * Politique produit (barrières Claude retirées, 2026-09-01) :
  *
- * - une seule page, celle que l'utilisateur a explicitement collée ;
- * - aucun parcours de catalogue, aucune pagination, aucun volume ;
- * - on ne lit que les métadonnées que le site publie *pour être lues par des
- *   machines* — JSON-LD (schema.org) et Open Graph ;
- * - `robots.txt` de l'hôte est demandé à `providers/station/robots.ts`, seul
- *   juge de la règle dans ce dépôt — et permissif depuis le 2026-08-26, donc
- *   cette lecture n'écarte plus rien ;
- * - le User-Agent identifie l'application, il n'imite pas un navigateur ;
- * - aucun contournement : ni proxy, ni résolution de CAPTCHA, ni empreinte
- *   navigateur falsifiée. Si l'hôte refuse, on s'arrête.
- *
- * Les hôtes dont les conditions d'utilisation interdisent tout accès
- * automatisé, même unitaire, sont écartés d'emblée : l'application bascule
- * alors en saisie manuelle assistée. Voir `PROVIDERS.md` et `docs/RISQUES.md`.
+ * - Airbnb, Booking, VRBO / Abritel, Gîtes de France : lisibles.
+ *   `FORBIDDEN_LISTING_HOSTS` est vide ; on n'écarte plus un hôte au nom
+ *   de ses CGU.
+ * - `robots.txt` n'est pas un veto interne (`robots.ts` est permissif).
+ * - User-Agent Chrome desktop, pas un identifiant d'application.
+ * - Le rendu Playwright réutilise le contexte stealth / proxy de
+ *   `webscrape/shared.ts` (évasion WAF conservée).
+ * - Les solveurs captcha du sidecar (`CaptchaSolver`, 2captcha) restent
+ *   branchés sur les relevés de catalogue.
  *
  * Cette lecture vit dans le processus principal parce que le renderer est sous
  * une CSP stricte qui lui interdit toute origine distante — et c'est très bien
@@ -26,13 +21,10 @@
 import type { ListingExtract } from '@shared/ipc-contract'
 import { allowsPath } from './providers/station/robots'
 import { withPage } from './providers/webscrape/shared'
-// La liste vit dans `shared/` : l'écran Logements doit en tirer la même
-// conclusion que ce lecteur, sans quoi il propose des lectures vouées au refus.
-import { FORBIDDEN_LISTING_HOSTS as FORBIDDEN_HOSTS } from '@shared/listingHosts'
 
-/** ASCII strict : un en-tête HTTP est une ByteString, une apostrophe
- *  typographique ou un accent y lève une erreur avant même la requête. */
-const USER_AGENT = 'SKITRACK/0.1 (personal application; single listing import on user request)'
+/** Chrome desktop — le même que le socle Playwright stealth. */
+const USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 const TIMEOUT_MS = 15_000
 /** Au-delà, ce n'est pas une page d'annonce : on abandonne plutôt que d'avaler. */
 const MAX_BYTES = 3_000_000
@@ -248,23 +240,12 @@ export async function fetchListing(rawUrl: string): Promise<ListingExtract> {
   const host = target.hostname.toLowerCase()
   const site = siteOf(host)
 
-  if (FORBIDDEN_HOSTS.some((h) => host.includes(h))) {
-    return emptyExtract(
-      rawUrl,
-      site,
-      `Les conditions d’utilisation de ${site} interdisent l’accès automatisé, même pour une page isolée. ` +
-        'Ouvrez l’annonce dans votre navigateur et saisissez les informations à la main — le logement sera traité ' +
-        'exactement comme une offre relevée.'
-    )
-  }
-
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
 
   try {
-    if (!(await isAllowedByRobots(target, controller.signal))) {
-      return emptyExtract(rawUrl, site, `Le fichier robots.txt de ${site} interdit la lecture de cette page.`)
-    }
+    // robots.txt n'est pas un veto : isAllowedByRobots rend toujours true.
+    void (await isAllowedByRobots(target, controller.signal))
 
     /*
      * Deux tentatives, dans cet ordre : la lecture directe, puis le rendu dans

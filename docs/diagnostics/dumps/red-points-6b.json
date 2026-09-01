@@ -1,0 +1,51 @@
+{
+  "at": "2026-09-01",
+  "note": "Round 6b dump-proven facts. No parser written.",
+  "pralognan": {
+    "getListe": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+    "selector": ".Card.Card_Lots",
+    "undated_results": 427,
+    "page_size": 12,
+    "pages": 36,
+    "sample": {
+      "title": "MONTAGNY",
+      "pax": 19,
+      "price_from": 1800,
+      "lot": "112",
+      "href": "/reservation/resultats/112/"
+    },
+    "dated_getNB_feb2027": "Il n'y a plus de disponibilités sur cette période.",
+    "price_kind": "à partir de (catalogue, pas un tarif séjour daté)",
+    "bedrooms_on_card": false
+  },
+  "clusaz_deskline": {
+    "dw_source": "desklineweb",
+    "client": "laclusaz",
+    "tag": "0a6466c6-8058-4958-b502-d52767741f5b",
+    "list_page": 24,
+    "paging": {
+      "pageNo": 0,
+      "pageSize": 24,
+      "pageCount": 38,
+      "totalRecordCount": 898
+    },
+    "filter_location": 874,
+    "filter_chalet": 115,
+    "filter_studio": 112,
+    "filter_hotel": 20,
+    "sample": {
+      "id": "ad8750bc-4554-482a-8e8b-4c819ec5f168",
+      "name": "Parnasse 1 - 413",
+      "fromPrice": {
+        "value": 76.0,
+        "calcRule": 1,
+        "calcDuration": 1,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "lat": 45.90479,
+      "lng": 6.427082
+    },
+    "bare_GET_without_session": 400
+  }
+}

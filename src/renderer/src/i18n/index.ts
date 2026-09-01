@@ -851,6 +851,21 @@ const CATALOG = {
   ],
 
   report_lodging_title: ['Le logement retenu', 'The chosen lodging'],
+  /*
+   * Le même bloc, quand personne n'a désigné de logement.
+   *
+   * La décision porte sur une station et une semaine ; le logement peut n'avoir
+   * jamais été choisi, et le récapitulatif retombe alors sur le moins cher. Le
+   * titrer « Le logement retenu » faisait dire au document une décision que
+   * l'utilisateur n'avait pas prise — sa plainte, mot pour mot : « Skitrack
+   * prétend que j'ai retenu un logement alors que je n'ai encore rien choisi. »
+   * L'écran Séjour disait déjà juste, lui (`stay_cheapest`) ; c'est sa
+   * formulation qu'on reprend.
+   */
+  report_lodging_title_cheapest: [
+    'Le moins cher — aucun logement retenu',
+    'Cheapest — no stay chosen yet'
+  ],
   report_people: ['pers.', 'guests'],
   report_station_photo: ['Photo de la station', 'Resort photo'],
 

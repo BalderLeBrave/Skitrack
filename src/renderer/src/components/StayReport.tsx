@@ -72,6 +72,15 @@ export interface StayReportContext {
   lg: Lodging
   nights: number
   cost: SejourCost
+  /**
+   * `lg` a-t-il été **désigné**, ou n'est-il que le moins cher ?
+   *
+   * Le document titre son bloc logement d'après cette réponse. Depuis la fiche
+   * d'une annonce, elle vaut « oui » : c'est cette annonce-là qu'on met en
+   * page, l'utilisateur l'a ouverte. Depuis l'écran Décision, elle vient de
+   * `decisionCtx.lgRetenu`, qui sait si un identifiant a vraiment été retenu.
+   */
+  lgRetenu: boolean
 }
 
 /**
@@ -359,7 +368,7 @@ export function StayReport({ context }: { context?: StayReportContext } = {}): J
       </section>
 
       <section className="report__section">
-        <h2>{t('report_lodging_title')}</h2>
+        <h2>{t(ctx.lgRetenu ? 'report_lodging_title' : 'report_lodging_title_cheapest')}</h2>
         <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>{lg.name}</p>
         <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12 }}>
           {srcOf(lg)}

@@ -447,6 +447,62 @@ export function belongsToDomain(
 }
 
 /**
+ * Ce qui décrit le **bien**, et non l'offre : repris de l'annonce évincée quand
+ * celle qui gagne ne le publie pas.
+ *
+ * `Object.assign(kept, l)` recopie *toutes* les propriétés de l'offre la moins
+ * chère, y compris celles qui valent `null` — et `image` en fait partie, posée
+ * systématiquement par `bulkImport` et par `runProviderSearch`. Une annonce
+ * Airbnb avec sa photo, rapprochée d'une centrale moins chère qui n'en publie
+ * pas, perdait donc sa photo à la fusion. C'est une des causes de « certains
+ * logements n'ont pas de photos », constatée le 2026-09-01.
+ *
+ * La liste est délibérément courte, et s'arrête à ce qui parle du bien
+ * lui-même : la photo, la position, la taille, et l'accès aux pistes qui se
+ * déduit de la position. `note` et `avis` en sont **exclus** : une note
+ * appartient au barème de sa source — 4,8 chez Airbnb, 8,2 sur 10 chez
+ * Booking — et l'afficher sous le nom d'une autre source la ferait mentir.
+ * Le prix, la source, l'URL, l'annulation et les dates du relevé sont l'offre
+ * elle-même : ils viennent de la moins chère, sans discussion.
+ */
+const CHAMPS_DU_BIEN = [
+  'image',
+  'lat',
+  'lon',
+  'locPrecision',
+  'm2',
+  'pers',
+  'ch',
+  'rooms',
+  'alt',
+  'dist',
+  'den',
+  'liftDist',
+  'walk',
+  'skiIn',
+  'accessType',
+  'accessPoint',
+  'accessComputed'
+] as const satisfies readonly (keyof Lodging)[]
+
+/** Une valeur publiée : ni `null`, ni `undefined`, ni le zéro qui vaut « non annoncé ». */
+function publiee(v: unknown): boolean {
+  return v != null && v !== '' && v !== 0 && v !== false
+}
+
+function reprendreCeQueLOffreTait(cible: Lodging, avant: Lodging): void {
+  for (const champ of CHAMPS_DU_BIEN) {
+    if (!publiee(cible[champ]) && publiee(avant[champ])) {
+      // Écriture par index sur un objet dont les clés sont connues : le
+      // transtypage passe par `unknown`, `Lodging` n'ayant pas de signature
+      // d'index. `champ` vient de `CHAMPS_DU_BIEN`, contraint aux clés de
+      // `Lodging`, donc la clé est vérifiée à la compilation.
+      ;(cible as unknown as Record<string, unknown>)[champ] = avant[champ]
+    }
+  }
+}
+
+/**
  * Fusion des annonces du même bien publiées sur plusieurs sources.
  * L'offre la moins chère est conservée ; les autres restent visibles en note
  * pour qu'on voie l'écart plutôt que de le cacher.
@@ -466,7 +522,13 @@ export function mergeDupes(list: Lodging[], enabled: boolean): Lodging[] {
     }
     if (l.total < kept.total) {
       const dups = (kept.dups ?? []).concat([{ src: kept.src, total: kept.total }])
+      // L'état de l'annonce évincée est relevé **avant** l'écrasement : après,
+      // il n'existe plus, et c'est précisément lui qu'on veut pouvoir reprendre.
+      const avant: Lodging = { ...kept }
       Object.assign(kept, l, { dups })
+      // L'offre la moins chère l'emporte, mais elle n'efface pas ce qu'elle ne
+      // publie pas. Voir `reprendreCeQueLOffreTait`.
+      reprendreCeQueLOffreTait(kept, avant)
     } else {
       kept.dups = (kept.dups ?? []).concat([{ src: l.src, total: l.total }])
     }

@@ -93,6 +93,18 @@ export interface DecisionContext {
   lg: Lodging
   nights: number
   cost: SejourCost
+  /**
+   * `lg` est-il vraiment le logement retenu, ou le moins cher faute de choix ?
+   *
+   * La décision porte sur une station et une semaine ; le logement, lui, peut
+   * n'avoir jamais été désigné — `state.decision.lodgingId` est alors nul et
+   * `lg` retombe sur le moins cher. Sans ce drapeau, le récapitulatif
+   * imprimable titrait « Le logement retenu » au-dessus d'un logement que
+   * personne n'avait retenu. Constaté par l'utilisateur le 2026-09-01 :
+   * « Skitrack prétend que j'ai retenu un logement alors que je n'ai encore
+   * rien choisi. »
+   */
+  lgRetenu: boolean
 }
 
 /**
@@ -563,14 +575,22 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
           state.decision?.lodgingId != null
             ? state.imported.find((l) => l.id === state.decision?.lodgingId)
             : undefined
-        const lg = retenu ?? list.find((l) => l.id === state.decision?.lodgingId) ?? [...list].sort((a, b) => a.total - b.total)[0]
+        const designe = retenu ?? list.find((l) => l.id === state.decision?.lodgingId)
+        const lg = designe ?? [...list].sort((a, b) => a.total - b.total)[0]
         if (lg) {
           // Le prix retenu est celui du relevé, sans reprojection. La décision
           // porte sur un logement précis à des dates précises : lui appliquer
           // l'écart de saisonnalité produisait un montant que personne n'avait
           // jamais vu chez la centrale, et c'est le montant que l'écran
           // Décision présente comme le budget du séjour.
-          decisionCtx = { d, w, lg, nights: decNights, cost: cost(lg, d) }
+          decisionCtx = {
+            d,
+            w,
+            lg,
+            nights: decNights,
+            cost: cost(lg, d),
+            lgRetenu: designe != null
+          }
         }
       }
     }

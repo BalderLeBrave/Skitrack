@@ -17,7 +17,7 @@ import {
   partyVerdict,
   type LodgingFilterCriteria
 } from './lodgingFilter'
-import { medianTotal } from './lodgings'
+import { medianTotal, mergeDupes } from './lodgings'
 import { mergeProviderReadings, noteOnFive } from './runProviderSearch'
 import type { Lodging } from './lodgings'
 
@@ -486,6 +486,63 @@ check('pas de note → chaîne vide', noteOnFive(undefined, 10) === '')
 // Une note hors échelle signale une source dont le barème n'est pas déclaré.
 // Absente vaut mieux que fausse : c'est la règle du projet.
 check('note impossible → abandonnée', noteOnFive(8.2, undefined) === '', noteOnFive(8.2, undefined))
+
+console.log('\n12. Fusion des doublons : l’offre la moins chère n’efface pas le bien')
+{
+  // Le cas réel : la même annonce vue chez Airbnb, avec sa photo et sa
+  // position, et sur une centrale moins chère qui n'en publie ni l'une ni
+  // l'autre. `Object.assign` recopiait `image: null` par-dessus la photo.
+  const avecPhoto = lodging({
+    id: 1,
+    dup: 'meme-bien',
+    src: 'Airbnb',
+    total: 1400,
+    image: 'https://exemple/photo.jpg',
+    lat: 45.3,
+    lon: 6.58,
+    m2: 42,
+    pers: 6
+  })
+  const moinsChere = lodging({
+    id: 2,
+    dup: 'meme-bien',
+    src: 'Centrale de réservation',
+    total: 1200,
+    image: null,
+    lat: undefined,
+    lon: undefined,
+    m2: null,
+    pers: 0
+  })
+  const [fusion] = mergeDupes([avecPhoto, moinsChere], true)
+  check('le prix retenu est le moins cher', fusion.total === 1200, fusion.total)
+  check('la source est celle du prix retenu', fusion.src === 'Centrale de réservation', fusion.src)
+  check('la photo survit', fusion.image === 'https://exemple/photo.jpg', String(fusion.image))
+  check('la position survit', fusion.lat === 45.3 && fusion.lon === 6.58)
+  check('la surface survit', fusion.m2 === 42, String(fusion.m2))
+  check('la capacité survit', fusion.pers === 6, String(fusion.pers))
+  check('l’écart reste visible en note', (fusion.dups ?? []).length === 1)
+}
+{
+  // L'inverse ne doit pas se produire : ce que la moins chère publie fait foi,
+  // on ne rétablit que ce qu'elle tait.
+  const chere = lodging({ id: 1, dup: 'x', total: 1400, image: 'https://vieille/photo.jpg' })
+  const moinsChere = lodging({ id: 2, dup: 'x', total: 1200, image: 'https://neuve/photo.jpg' })
+  const [fusion] = mergeDupes([chere, moinsChere], true)
+  check(
+    'la photo de l’offre retenue l’emporte quand elle existe',
+    fusion.image === 'https://neuve/photo.jpg',
+    String(fusion.image)
+  )
+}
+{
+  // La note appartient au barème de sa source : 4,8 sur 5 chez l'une ne se
+  // recopie pas sous le nom de l'autre, qui compte peut-être sur 10.
+  const notee = lodging({ id: 1, dup: 'y', total: 1400, src: 'Airbnb', note: '4,8' })
+  const sansNote = lodging({ id: 2, dup: 'y', total: 1200, src: 'Booking', note: '' })
+  const [fusion] = mergeDupes([notee, sansNote], true)
+  check('la note ne migre pas d’une source à l’autre', fusion.note === '', fusion.note)
+}
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

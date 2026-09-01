@@ -565,7 +565,9 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
 
         {/* Le rapport n'est dans le DOM que le temps de l'export : il charge
             neuf tuiles de fond de carte, et la fiche s'ouvre souvent. */}
-        {pdf.monte && <StayReport context={{ d, lg: lodging, nights, cost }} />}
+        {/* `lgRetenu` vrai : le document met en page l'annonce dont la fiche
+            est ouverte, désignée par le geste qui l'a ouverte. */}
+        {pdf.monte && <StayReport context={{ d, lg: lodging, nights, cost, lgRetenu: true }} />}
       </aside>
     </>
   )

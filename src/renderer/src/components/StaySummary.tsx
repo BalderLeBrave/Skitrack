@@ -39,8 +39,18 @@ export function StaySummary(): JSX.Element | null {
   if (!domain) return null
 
   const keptId = state.selLodgings[domain.id]
+  const retenu = keptId != null ? derived.lodgAll.find((lg) => lg.id === keptId) ?? null : null
+  /*
+   * Repli sur le moins cher, **dit** et non tu.
+   *
+   * Le récapitulatif écrivait « Logement : … » sur le moins cher exactement
+   * comme sur celui qu'on avait retenu, sans qu'aucune ligne ne distingue les
+   * deux : le texte qu'on copie ou qu'on envoie affirmait donc un choix qui
+   * n'avait pas été fait. La barre de séjour, elle, le disait déjà
+   * (`stay_cheapest`) ; le récapitulatif s'aligne.
+   */
   const lodging =
-    (keptId != null ? derived.lodgAll.find((lg) => lg.id === keptId) : null) ??
+    retenu ??
     derived.lodgAll.filter((lg) => lg.total > 0).sort((a, b) => a.total - b.total)[0] ??
     null
 
@@ -60,7 +70,9 @@ export function StaySummary(): JSX.Element | null {
 
   if (lodging && cost) {
     lines.push(
-      `${t('stay_recap_lodging')} : ${lodging.name} — ${srcOf(lodging)}`,
+      `${t('stay_recap_lodging')} : ${lodging.name} — ${srcOf(lodging)}${
+        retenu ? '' : ` (${t('stay_cheapest')})`
+      }`,
       ...(lodging.url ? [`${t('stay_recap_link')} : ${lodging.url}`] : []),
       '',
       `${t('stay_recap_costs')} :`,

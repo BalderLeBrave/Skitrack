@@ -30,7 +30,7 @@ import { NoImage } from './ResultCard'
 import { ProviderBadge } from './ProviderBadge'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
-import { freshnessOf, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
+import { sizeLabel, srcOf, trackKey } from '@/data/lodgings'
 import { partyVerdict } from '@/data/lodgingFilter'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import { availabilityOf } from '@/data/lodgingAvailability'
@@ -48,7 +48,6 @@ interface Props {
 export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Element {
   const { t } = useI18n()
   const { eur, fmt, fmtDay } = useFormat()
-  const { lang } = useI18n()
   const { state, patch } = useApp()
 
   const criteria = {
@@ -84,7 +83,6 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
   const inCompare = state.compareIds.includes(lg.id)
   const inSelection = state.selLodgings[domain.id] === lg.id
   const tracked = state.tracked.some((tr) => tr.key === trackKey(lg))
-  const fresh = freshnessOf(lg, lang, state.lastScan)
   const dups = lg.dups ?? []
   const dense = state.density === 'compact'
 
@@ -237,9 +235,27 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
       onClick={openSheet}
       onKeyDown={onKeyDown}
     >
+      {/*
+        Grisée seulement quand l'annonce est **introuvable**, plus quand le
+        relevé date — 2026-09-01.
+        `lodgcard__media--stale` applique `grayscale(1)` et `opacity: .5` : la
+        langue visuelle de « ce logement n'est plus à prendre ». La poser sur
+        `fresh.stale`, c'est-à-dire sur un relevé de plus de 48 h
+        (`STALE_MIN`), revenait à dire d'une annonce parfaitement disponible
+        qu'elle ne l'est pas — l'âge du relevé parle de **notre** donnée, pas
+        du logement. Constaté par l'utilisateur : « certains logements
+        paraissent grisés alors qu'ils sont disponibles. »
+        Ce qui reste dit, et qui est le signal utile : `priceStale` plus bas,
+        qui annonce un tarif relevé pour **d'autres dates** et propose de le
+        rafraîchir. L'âge brut du relevé, lui, n'est plus porté par la vignette
+        — `freshnessOf` n'y avait pas d'autre lecteur que ce grisage. C'est
+        assumé : un relevé de 49 h dont le prix vaut toujours pour ces dates-ci
+        ne mérite pas d'avertissement, et l'écran Offres, lui, continue de le
+        signaler (`offerrow--dim`).
+      */}
       <div
         className={`lodgcard__media lodgcard__media--${dense ? 'square' : 'wide'}${
-          fresh.stale || gone ? ' lodgcard__media--stale' : ''
+          gone ? ' lodgcard__media--stale' : ''
         }`}
       >
         {showImage ? (

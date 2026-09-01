@@ -457,11 +457,13 @@ export interface ProviderAccommodation {
   ratingScale?: number
   reviewCount?: number
   images?: string[]
-  availabilityStatus: 'available' | 'unavailable' | 'unknown'
+  availabilityStatus: 'available' | 'unavailable' | 'unknown' | 'listing_gone'
   priceConfidence: 'total_confirmed' | 'partial' | 'unknown'
   /** Dates du séjour pour lesquelles le prix a été relevé (AAAA-MM-JJ). */
   checkIn?: string
   checkOut?: string
+  searchPageIndex?: number
+  searchRank?: number
 }
 
 /** Une erreur par source, jamais globale : une panne n'en vide pas d'autres. */
@@ -470,6 +472,8 @@ export interface ProviderOutcome {
   results: ProviderAccommodation[]
   error: string | null
   elapsedMs: number
+  reasonCode?: import('./reasonCodes').ReasonCode
+  pagination?: import('./reasonCodes').PaginationReport
 }
 
 export interface ProviderAggregate {

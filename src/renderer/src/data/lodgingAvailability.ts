@@ -63,6 +63,9 @@ export interface Stay {
   checkOut: string
 }
 
+/** TTL par défaut du schéma d'acceptation : un relevé plus vieux est à revalider. */
+export const AVAILABILITY_TTL_MS = 6 * 60 * 60 * 1000
+
 /**
  * Carte qui n'ouvre pas une annonce datée.
  *
@@ -105,7 +108,15 @@ export function availabilityOf(lodging: Lodging, stay: Stay): AvailabilityVerdic
   const sameStay =
     lodging.priceCheckIn === stay.checkIn && lodging.priceCheckOut === stay.checkOut
 
-  if (priced && sameStay) return { status: 'confirmed', reason: null }
+  if (priced && sameStay) {
+    if (
+      lodging.scannedAt != null &&
+      Date.now() - lodging.scannedAt > AVAILABILITY_TTL_MS
+    ) {
+      return { status: 'unconfirmed', reason: 'other_dates' }
+    }
+    return { status: 'confirmed', reason: null }
+  }
 
   // Listée par la source, mais sans tarif pour ces dates. C'est la forme sous
   // laquelle Airbnb annonce qu'il ne peut pas vendre ce bien à ces dates-là.

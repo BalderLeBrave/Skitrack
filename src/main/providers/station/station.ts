@@ -93,6 +93,7 @@ import { isCetoHost } from '../ceto/hosts'
 import { isUbloHost } from '../ublo/hosts'
 import { isOpenSystemHost } from '../opensystem/hosts'
 import { shouldAttemptIngenie } from './ingenieHosts'
+import { emptyStationReason } from './centralLookup'
 import { CircuitBreaker } from '../resilience'
 import {
   cleanProductUrl,
@@ -1175,8 +1176,11 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
       // plus bas, une fois par relevé.
       const gate = shouldAttemptIngenie(central)
       if (!gate.attempt) {
-        // Site institutionnel / plateforme inconnue : ne pas allumer le navigateur.
-        return []
+        const code = emptyStationReason(central)
+        if (code === 'delegated') return []
+        throw new Error(
+          `[${code}] ${host} n'a pas d'adapter station-web (${gate.reason ?? 'hors-ingenie'}).`
+        )
       }
 
       if (breaker.open) {

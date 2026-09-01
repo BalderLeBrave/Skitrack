@@ -465,13 +465,9 @@ export interface AppState {
   /**
    * Masquer les annonces qui n'annoncent pas ce que les critères demandent.
    *
-   * **Éteint par défaut** : elles s'affichent, avec un badge « capacité non
-   * annoncée » — le masquage est l'option. Le défaut inverse a été essayé le
-   * 2026-08-29 et retiré le lendemain : il mettait 103 annonces de côté d'un
-   * coup et vidait l'écran (« ça marchait parfaitement bien avant »). Ce qui
-   * est connu **trop petit** reste écarté dans tous les cas — un studio
-   * annoncé 2 personnes ne répond jamais à une recherche à 8 ; c'était la
-   * plainte d'origine, et elle reste couverte.
+   * **Allumé par défaut depuis le schéma 8.** Demander 8 personnes et 4
+   * chambres puis recevoir un studio sans capacité publiée est le défaut que
+   * ce drapeau existe pour éviter. On peut toujours les réafficher.
    */
   lodgHideUnannounced: boolean
   /**
@@ -704,7 +700,7 @@ export const INITIAL_STATE: AppState = {
   hideBadGeo: false,
   lodgOnlyAvailable: false,
   lodgConfirmedPrices: false,
-  lodgHideUnannounced: false,
+  lodgHideUnannounced: true,
   stayBarCollapsed: false,
   flexOpen: false,
   ficheId: null,
@@ -841,8 +837,12 @@ function purgeLegacyPrefs(): void {
  * Schéma 7 (2026-08-30) : les annonces rattachées à un domaine sous une
  * numérotation qui n'est pas celle du catalogue sont rerattachées par leur
  * position. Voir `rerattacherParPosition`.
+ *
+ * Schéma 8 (2026-09-01) : `lodgHideUnannounced` allumé par défaut. Les
+ * annonces sans capacité ni chambres publiées sortent du mosaïque client
+ * (`matchesDemand`) ; le bouton de l'écran les réaffiche (seau debug).
  */
-const PREFS_SCHEMA = 7
+const PREFS_SCHEMA = 8
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -978,6 +978,9 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
   // veut le filtre le rallume, et son choix est alors réenregistré.
   delete out.lodgOnlyAvailable
   delete out.lodgMapSync
+
+  // Schéma 8 — masquer les non-annoncées par défaut (`matchesDemand`).
+  if ((saved.prefsSchema ?? 0) < 8) delete out.lodgHideUnannounced
 
   // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
   const rattache = rerattacherParPosition(out.imported)

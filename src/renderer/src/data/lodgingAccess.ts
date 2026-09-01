@@ -104,7 +104,9 @@ function mergeMetrics(
           : metric.dist_to_nearest_lift_m != null && dist === metric.dist_to_nearest_lift_m
             ? 'remontee'
             : lodging.accessPoint,
-    accessComputed: dist != null || metric.slope_access_type != null
+    accessComputed: dist != null || metric.slope_access_type != null,
+    distanceStatus:
+      dist != null ? 'ok' : metric.slope_access_type != null ? 'ok' : 'no_slope_geom'
   }
 }
 

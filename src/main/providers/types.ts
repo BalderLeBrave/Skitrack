@@ -17,10 +17,12 @@
  *    relisant ce qui a réellement été reçu, sans relancer de recherche.
  */
 
+import type { PaginationReport, ReasonCode } from '@shared/reasonCodes'
+
 /** Ce qu'on sait de la disponibilité. Apparaître dans une recherche ne prouve
  *  rien : beaucoup de sources listent des biens dont le calendrier n'est pas
  *  confirmé pour les dates demandées. */
-export type AvailabilityStatus = 'available' | 'unavailable' | 'unknown'
+export type AvailabilityStatus = 'available' | 'unavailable' | 'unknown' | 'listing_gone'
 
 /** Ce qu'on sait du prix. `partial` = un tarif à la nuit sans total confirmé. */
 export type PriceConfidence = 'total_confirmed' | 'partial' | 'unknown'
@@ -120,6 +122,11 @@ export interface Accommodation {
   /** Plus précis que `availability` : distingue « indisponible » d'« inconnu ». */
   availabilityStatus: AvailabilityStatus
   priceConfidence: PriceConfidence
+
+  /** Rang 0-based dans la SERP paginée. Absent si la source ne pagine pas. */
+  searchPageIndex?: number
+  /** Rang 0-based dans l'union dédoublonnée de cette source. */
+  searchRank?: number
 
   /**
    * Identifiant d'offre réservable *dans* l'application, quand la source est un
@@ -257,6 +264,9 @@ export interface ProviderOutcome {
   results: Accommodation[]
   error: string | null
   elapsedMs: number
+  /** Obligatoire dès qu'il n'y a pas d'offres : jamais un zéro muet. */
+  reasonCode?: ReasonCode
+  pagination?: PaginationReport
 }
 
 export function nowIso(): string {

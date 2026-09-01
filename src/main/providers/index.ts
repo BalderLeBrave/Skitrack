@@ -60,6 +60,8 @@ import { SearchEngine } from './searchEngine'
 import { debugLog } from './debug'
 import type { AggregateResult, ProviderOutcome, SearchParams } from './types'
 import { OUT_OF_ZONE_MARGIN_KM, coordsUsable, filterToZone, searchZone } from '@shared/geo'
+import { classifyProviderError, type PaginationReport, type ReasonCode } from '@shared/reasonCodes'
+import { centralsLoaded, emptyStationReason } from './station/centralLookup'
 
 export interface EngineOptions {
   /** Active les scrapers Playwright (Booking, centrales de station). */
@@ -216,6 +218,31 @@ function keepInZone(outcomes: ProviderOutcome[], params: SearchParams): Provider
   return filtered
 }
 
+function annotateOutcome(outcome: ProviderOutcome, params: SearchParams): ProviderOutcome {
+  const pages = new Set(
+    outcome.results
+      .map((r) => r.searchPageIndex)
+      .filter((n): n is number => typeof n === 'number')
+  )
+  const pagination: PaginationReport | undefined =
+    outcome.results.length > 0
+      ? {
+          pagesFetched: pages.size || 1,
+          listingsFound: outcome.results.length,
+          listingsDeduped: outcome.results.length,
+          stoppedReason: pages.size >= 5 ? 'max_pages' : 'exhausted'
+        }
+      : undefined
+
+  let reasonCode: ReasonCode
+  if (outcome.results.length > 0) reasonCode = 'ok'
+  else if (outcome.error) reasonCode = classifyProviderError(outcome.error)
+  else if (outcome.provider === 'station-web') reasonCode = emptyStationReason(params.officialUrl)
+  else reasonCode = '0_after_parse'
+
+  return { ...outcome, reasonCode, pagination }
+}
+
 /**
  * Recherche agrégée.
  *
@@ -238,9 +265,9 @@ export async function aggregateResults(
     if (!onOutcome) return
     // Même filet de zone que le résultat final, appliqué source par source.
     const [filtered] = keepInZone([raw], params)
-    onOutcome(filtered)
+    onOutcome(annotateOutcome(filtered, params))
   })
-  const outcomes = keepInZone(report.outcomes, params)
+  const outcomes = keepInZone(report.outcomes, params).map((o) => annotateOutcome(o, params))
 
   /** Prix comparable d'une offre, `null` si la source n'en donne pas d'exploitable. */
   const priceOf = (item: { totalPrice?: number; nightlyPrice?: number }): number | null =>
@@ -259,7 +286,9 @@ export async function aggregateResults(
   debugLog('Aggregate', 'Number of deduplicated results', {
     listings: listings.length,
     properties: report.properties.length,
-    errors: outcomes.filter((o) => o.error).length
+    errors: outcomes.filter((o) => o.error).length,
+    centrals: centralsLoaded(),
+    reasons: outcomes.map((o) => `${o.provider}:${o.reasonCode ?? '?'}`)
   })
 
   return {

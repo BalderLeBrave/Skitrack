@@ -89,23 +89,15 @@ function shrinkKeyOf(lg: Lodging): string {
  * Position d'une annonce sur la carte.
  *
  * Quand la source publie des coordonnées, elles sont utilisées telles quelles.
- * Sinon, une dispersion déterministe autour du domaine : le même bien retombe
- * toujours au même endroit d'une session à l'autre, sans quoi les épingles
- * danseraient à chaque rendu. L'amplitude suit la distance annoncée aux pistes
- * — un bien « à 80 m des pistes » ne peut pas être dispersé sur trois
- * kilomètres.
+ * Sinon, **rien** : on ne disperse plus autour du centroïde du domaine. Une
+ * épingle au village se lisait comme une mesure. Sans GPS, pas de pin, et
+ * `distanceStatus = no_gps`.
  */
-export function lodgingCoords(d: Domain, lg: Lodging, shrink: GeoShrink = {}): [number, number] {
+export function lodgingCoords(d: Domain, lg: Lodging, shrink: GeoShrink = {}): [number, number] | null {
+  void d
+  void shrink
   if (lg.lat != null && lg.lon != null) return [lg.lon, lg.lat]
-  const key = shrinkKeyOf(lg)
-  let h = 0
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % 10007
-  const near = Math.max(0.25, Math.min(1, (lg.dist || 300) / 900))
-  const factor = Math.pow(0.45, shrink[key] ?? 0)
-  return [
-    d.lon + (((h % 100) - 50) / 2600) * near * factor,
-    d.lat + (((Math.floor(h / 100) % 100) - 50) / 4200) * near * factor
-  ]
+  return null
 }
 
 export function coordKey(c: [number, number]): string {
@@ -135,7 +127,27 @@ export function geoStatus(
   shrink: GeoShrink = {}
 ): GeoStatus {
   const est = lg.lat == null || lg.lon == null
+  if (est) {
+    return {
+      level: 'warn',
+      txt: 'sans GPS — distance non calculée, pas de pin au centroïde',
+      alt: null,
+      km: 0,
+      est: true,
+      moved: false
+    }
+  }
   const c = lodgingCoords(d, lg, shrink)
+  if (!c) {
+    return {
+      level: 'warn',
+      txt: 'sans GPS — distance non calculée, pas de pin au centroïde',
+      alt: null,
+      km: 0,
+      est: true,
+      moved: false
+    }
+  }
   const g = checks[coordKey(c)]
   const km = kmBetween(c[1], c[0], d.lat, d.lon)
   const alt = g?.alt ?? null
@@ -331,6 +343,7 @@ export function useLodgingGeo(domain: Domain | null, lodgings: Lodging[]): Lodgi
           const todo: Point[] = []
           for (const lg of lodgings) {
             const c = lodgingCoords(domain, lg, shrink.current)
+            if (!c) continue
             const k = coordKey(c)
             if (seen.has(k)) continue
             seen.add(k)
@@ -345,7 +358,9 @@ export function useLodgingGeo(domain: Domain | null, lodgings: Lodging[]): Lodgi
             const key = shrinkKeyOf(lg)
             const level = shrink.current[key] ?? 0
             if (level >= 2) continue
-            const g = checks.current[coordKey(lodgingCoords(domain, lg, shrink.current))]
+            const coords = lodgingCoords(domain, lg, shrink.current)
+            if (!coords) continue
+            const g = checks.current[coordKey(coords)]
             const bad =
               g != null &&
               (g.water === true ||
@@ -370,6 +385,7 @@ export function useLodgingGeo(domain: Domain | null, lodgings: Lodging[]): Lodgi
       const suspects: Point[] = []
       for (const lg of lodgings) {
         const c = lodgingCoords(domain, lg, shrink.current)
+        if (!c) continue
         const k = coordKey(c)
         if (seen.has(k) || checks.current[k]?.water !== undefined) continue
         seen.add(k)

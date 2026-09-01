@@ -33,6 +33,7 @@ import {
   gitesSearchUrl,
   vrboSearchUrl
 } from './urls'
+import type { PaginationReport, StoppedReason } from '@shared/reasonCodes'
 
 function mapCards(
   source: string,
@@ -72,7 +73,9 @@ function mapCards(
           // `pers` valait toujours 0 et que `partyVerdict` classait toutes les
           // annonces relevées en « non annoncé ».
           guests: c.guests,
-          images: c.image ? [c.image] : undefined
+          images: c.image ? [c.image] : undefined,
+          searchPageIndex: c.pageIndex,
+          searchRank: c.searchRank
         },
         params
       )
@@ -223,30 +226,58 @@ export async function collectPages(
   maxPages = BOOKING_MAX_PAGES,
   budgetMs = BOOKING_PAGES_BUDGET_MS
 ): Promise<RawCard[]> {
-  const all: RawCard[] = []
+  const all: RawCard[] & { report?: PaginationReport } = []
   const seen = new Set<string>()
   const startedAt = Date.now()
+  let stoppedReason: StoppedReason = 'exhausted'
+  let pagesFetched = 0
+  let listingsFound = 0
 
   for (let index = 0; index < maxPages; index++) {
     // La première page se lit toujours : sans elle il n'y a pas de relevé.
-    if (index > 0 && Date.now() - startedAt >= budgetMs) break
+    if (index > 0 && Date.now() - startedAt >= budgetMs) {
+      stoppedReason = 'budget'
+      break
+    }
     const cards = await fetchPage(urlFor(index * pageSize))
-    if (cards.length === 0) break
+    pagesFetched++
+    listingsFound += cards.length
+    if (cards.length === 0) {
+      stoppedReason = index === 0 ? 'empty_page' : 'exhausted'
+      break
+    }
 
     let fresh = 0
     for (const card of cards) {
       const key = card.sourceId || card.url
       if (!key || seen.has(key)) continue
       seen.add(key)
-      all.push(card)
+      all.push({ ...card, pageIndex: index, searchRank: all.length })
       fresh++
     }
 
-    if (fresh === 0) break
-    if (cards.length < pageSize) break
+    if (fresh === 0) {
+      stoppedReason = 'no_fresh'
+      break
+    }
+    if (cards.length < pageSize) {
+      stoppedReason = 'exhausted'
+      break
+    }
+    if (index === maxPages - 1) stoppedReason = 'max_pages'
   }
 
+  all.report = {
+    pagesFetched,
+    listingsFound,
+    listingsDeduped: all.length,
+    stoppedReason
+  }
   return all
+}
+
+export function paginationOf(cards: RawCard[]): PaginationReport | undefined {
+  return (cards as RawCard[] & { report?: PaginationReport }).report
 }
 
 /**

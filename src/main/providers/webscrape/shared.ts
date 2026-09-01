@@ -197,6 +197,8 @@ export function baseAccommodation(
     guests?: number
     amenities?: string[]
     country?: string
+    searchPageIndex?: number
+    searchRank?: number
   },
   params: SearchParams
 ): Accommodation {
@@ -234,7 +236,9 @@ export function baseAccommodation(
     reviewCount: partial.reviewCount,
     amenities: partial.amenities,
     images: partial.images,
-    availabilityStatus: 'unknown',
+    searchPageIndex: partial.searchPageIndex,
+    searchRank: partial.searchRank,
+    availabilityStatus: hasTotal ? 'available' : 'unknown',
     priceConfidence: hasTotal ? 'total_confirmed' : hasNightly ? 'partial' : 'unknown',
     retrievedAt: nowIso()
   }

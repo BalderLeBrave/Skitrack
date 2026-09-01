@@ -55,6 +55,8 @@ export interface RunAirbnbSearchParams {
   zone?: SearchZone | null
   /** Override timeout global (ms). */
   timeoutMs?: number
+  /** Transmis à Airbnb `min_bedrooms` — le scraper savait, l'appelant omettait. */
+  bedrooms?: number
 }
 
 export interface RunAirbnbSearchOk {
@@ -258,7 +260,8 @@ async function scrapeOnce(params: RunAirbnbSearchParams, band: PriceBand = {}) {
     children: params.children ?? 0,
     minPrice: band.minPrice,
     maxPrice: band.maxPrice,
-    scrollCount: 3,
+    bedrooms: params.bedrooms,
+    scrollCount: 8,
     maxRetries: 3,
     // Headed (défaut main) : meilleur score reCAPTCHA. Ne pas forcer headless.
     timeoutMs: 60_000

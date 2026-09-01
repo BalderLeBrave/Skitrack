@@ -125,22 +125,18 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
   useEffect(() => {
     if (!loaded || !map.current) return
     for (const mk of markers.current) mk.remove()
-    markers.current = lodgList.map((lg) => {
+    markers.current = lodgList.flatMap((lg) => {
+      const coords = lodgingCoords(domain, lg)
+      if (!coords) return []
       const el = document.createElement('button')
       // L'épingle élue reste distinguée sur la carte, comme celle dont la fiche
       // est ouverte : sinon rien ne dirait laquelle vient d'être remontée.
       const selected = lg.id === state.ficheId || lg.id === state.lodgPickId
       /*
-       * Une épingle sans position relevée le dit.
-       *
-       * Quand la source ne publie pas de coordonnées, `lodgingCoords` disperse
-       * l'annonce autour du centre du domaine — de façon déterministe, mais
-       * l'épingle avait exactement la même tête qu'une position mesurée, et
-       * l'utilisateur lisait une carte qui affirmait ce qu'elle ne savait pas.
-       * Constaté le 2026-08-29 : « la localisation des logements est des fois
-       * totalement aléatoire ». Elle l'était, et rien ne le disait.
+       * Sans GPS publié : pas d'épingle. L'ancienne dispersion autour du
+       * centroïde du domaine se lisait comme une mesure.
        */
-      const positionEstimee = lg.lat == null || lg.lon == null
+      const positionEstimee = false
       el.type = 'button'
       el.className = `pricepin${selected ? ' pricepin--on' : ''}${positionEstimee ? ' pricepin--approx' : ''}`
       el.title = positionEstimee
@@ -158,9 +154,11 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
       // Même calcul que le panneau « Positions » : deux dispersions
       // différentes placeraient l'épingle ailleurs que le point vérifié, et le
       // diagnostic parlerait d'un endroit que la carte ne montre pas.
-      return new maplibregl.Marker({ element: el })
-        .setLngLat(lodgingCoords(domain, lg))
-        .addTo(map.current!)
+      return [
+        new maplibregl.Marker({ element: el })
+          .setLngLat(coords)
+          .addTo(map.current!)
+      ]
     })
   }, [lodgList, domain, state.ficheId, state.lodgPickId, loaded, patch])
 

@@ -1,0 +1,46 @@
+{
+  "station": "Les 2 Alpes",
+  "check_in": "2027-02-13",
+  "check_out": "2027-02-20",
+  "guests": 8,
+  "bedrooms": 4,
+  "note": "Exemple de forme — pas un relevé live. Chaque outcome porte reasonCode.",
+  "outcomes": [
+    {
+      "provider": "booking-web",
+      "reasonCode": "ok",
+      "pagination": {
+        "pagesFetched": 5,
+        "listingsFound": 125,
+        "listingsDeduped": 118,
+        "stoppedReason": "max_pages"
+      }
+    },
+    {
+      "provider": "gites-web",
+      "reasonCode": "selector_miss",
+      "pagination": null,
+      "error": "gites-web: aucune carte extraite — la page a répondu, les sélecteurs sont à revoir"
+    },
+    {
+      "provider": "vrbo-web",
+      "reasonCode": "blocked",
+      "error": "vrbo-web: relevé refusé par la source (captcha ou blocage anti-robot)"
+    },
+    {
+      "provider": "station-web",
+      "reasonCode": "ok",
+      "host": "reservation.les2alpes.com"
+    },
+    {
+      "provider": "airbnb",
+      "reasonCode": "ok",
+      "note": "chemin IPC airbnb:scrape, hors SearchEngine"
+    }
+  ],
+  "exclusions": {
+    "excluded_incomplete_capacity": "matchesDemand : pers==0 ou bedrooms null",
+    "excluded_too_small": "partyVerdict trop-petit / matchesDemand capacity|bedrooms",
+    "excluded_unavailable": "availabilityStatus unavailable|listing_gone"
+  }
+}

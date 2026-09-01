@@ -29,6 +29,7 @@ import {
 } from './dynamicHtml'
 import { nextProxy, toPlaywrightProxy, type ProxyConfig } from '../proxy'
 import { diagnoseEmptySearch } from './calendarBlocks'
+import { trySolveVisibleCaptcha } from '../../captchaBridge'
 
 export interface AirbnbScrapeParams extends AirbnbUrlParams {
   timeoutMs?: number
@@ -631,12 +632,16 @@ async function scrapeAirbnbSearchOnce(params: AirbnbScrapeParams): Promise<Airbn
       challengeBrowser = visible.browser
       page = visible.page
       if ((await waitForCaptchaSolved(page, captchaTimeoutMs)) === 'timeout') {
-        return {
-          ok: false,
-          error:
-            'CAPTCHA non résolu (3 min). Validez le défi dans la fenêtre Chrome, puis relancez.',
-          url
+        const auto = await trySolveVisibleCaptcha(page)
+        if (!auto) {
+          return {
+            ok: false,
+            error:
+              'CAPTCHA non résolu (3 min) [challenge_unresolved]. Validez le défi dans la fenêtre Chrome, ou renseignez CAPTCHA_API_KEY pour le solveur sidecar, puis relancez.',
+            url
+          }
         }
+        captchaSolved = true
       }
       captchaSolved = true
     } else {
@@ -654,13 +659,17 @@ async function scrapeAirbnbSearchOnce(params: AirbnbScrapeParams): Promise<Airbn
           challengeBrowser = visible.browser
           page = visible.page
           if ((await waitForCaptchaSolved(page, captchaTimeoutMs)) === 'timeout') {
-            return {
-              ok: false,
-              error:
-                'Page sans résultats (souvent score reCAPTCHA v3 trop bas). ' +
-                'Fenêtre Chrome ouverte : laissez les annonces apparaître ou naviguez un peu, puis relancez.',
-              url
+            const auto = await trySolveVisibleCaptcha(page)
+            if (!auto) {
+              return {
+                ok: false,
+                error:
+                  'Page sans résultats (souvent score reCAPTCHA v3 trop bas) [challenge_unresolved]. ' +
+                  'Fenêtre Chrome ouverte : laissez les annonces apparaître, ou renseignez CAPTCHA_API_KEY, puis relancez.',
+                url
+              }
             }
+            captchaSolved = true
           }
           if (visibleCap) captchaSolved = true
         }

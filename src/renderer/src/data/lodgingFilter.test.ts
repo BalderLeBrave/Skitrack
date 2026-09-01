@@ -13,7 +13,9 @@
 
 import {
   fitsParty,
+  matchesDemand,
   matchesLodgingFilters,
+  normalizedBedrooms,
   partyVerdict,
   type LodgingFilterCriteria
 } from './lodgingFilter'
@@ -486,6 +488,55 @@ check('pas de note → chaîne vide', noteOnFive(undefined, 10) === '')
 // Une note hors échelle signale une source dont le barème n'est pas déclaré.
 // Absente vaut mieux que fausse : c'est la règle du projet.
 check('note impossible → abandonnée', noteOnFive(8.2, undefined) === '', noteOnFive(8.2, undefined))
+
+console.log('\n12. matchesDemand — 4p/2chb, null exclus, 0 studio')
+const STRICT_PARTY: LodgingFilterCriteria = { ...CRITERIA, includeUnannounced: false, rooms: 2, travelers: 4 }
+const demand42 = { guests: 4, bedrooms: 2, datesSet: true }
+check(
+  '4p/2chb, appart 4 pers 2 ch tarifé → retenu',
+  matchesDemand(lodging({ pers: 4, ch: 2, total: 1200, availabilityStatus: 'available' }), demand42)
+)
+check(
+  '4p/2chb, studio 1 pièce → 0 studio',
+  !matchesDemand(lodging({ pers: 4, ch: 0, rooms: 1, type: 'Studio', total: 900 }), demand42)
+)
+check(
+  '4p/2chb, type Studio → 0 studio',
+  !matchesDemand(lodging({ pers: 8, ch: 0, rooms: 1, type: 'Studio', total: 900 }), demand42)
+)
+check(
+  'capacité null (pers 0) → exclue',
+  !matchesDemand(lodging({ pers: 0, ch: 2, total: 1200 }), demand42)
+)
+check(
+  'chambres null (ch 0, rooms unset) → exclue',
+  !matchesDemand(lodging({ pers: 4, ch: 0, total: 1200 }), demand42)
+)
+check(
+  'listing_gone → exclue',
+  !matchesDemand(
+    lodging({ pers: 4, ch: 2, total: 1200, availabilityStatus: 'listing_gone' }),
+    demand42
+  )
+)
+check(
+  '1 chambre demandée, studio + capacité OK → retenu',
+  matchesDemand(lodging({ pers: 2, ch: 0, rooms: 1, type: 'Studio', total: 500 }), {
+    guests: 2,
+    bedrooms: 1,
+    datesSet: true
+  })
+)
+check('normalised : 5 pièces → 4 chambres', normalizedBedrooms(lodging({ pers: 8, ch: 0, rooms: 5 })) === 4)
+check('normalised : studio 1 pièce → 0', normalizedBedrooms(lodging({ pers: 2, ch: 0, rooms: 1 })) === 0)
+check(
+  'UI 4p/2chb, includeUnannounced false, studio écarté',
+  !keeps({ pers: 4, ch: 0, rooms: 1, type: 'Studio', total: 800 }, STRICT_PARTY)
+)
+check(
+  'UI 4p/2chb, appart 4/2 retenu',
+  keeps({ pers: 4, ch: 2, total: 1400, availabilityStatus: 'available' }, STRICT_PARTY)
+)
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

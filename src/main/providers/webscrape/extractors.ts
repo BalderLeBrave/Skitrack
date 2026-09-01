@@ -53,6 +53,9 @@ export interface RawCard {
    * dans une chambre double.
    */
   guests?: number
+  /** Page 0-based dans la SERP, posée par `collectPages`, pas par l'extracteur. */
+  pageIndex?: number
+  searchRank?: number
 }
 
 /** Booking.com — cartes [data-testid="property-card"] ou liens /hotel/ */

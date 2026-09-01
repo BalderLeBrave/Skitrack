@@ -140,6 +140,12 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
    * publie, prime toujours.
    */
   fitsGuests?: number
+  /** Statut relevé par le connecteur, quand il le pose. */
+  availabilityStatus?: 'available' | 'unavailable' | 'unknown' | 'listing_gone'
+  /** Page 0-based de la SERP. */
+  searchPageIndex?: number
+  /** Distances : `ok` seulement après `enrichWithAccess`. Sans GPS : `no_gps`. */
+  distanceStatus?: 'ok' | 'no_gps' | 'no_slope_geom' | 'skipped'
   /**
    * Heure du relevé qui a rapporté **cette** annonce.
    *

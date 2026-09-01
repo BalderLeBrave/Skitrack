@@ -1,5 +1,88 @@
 # Architecture
 
+## Recherche logements (2026-09-01, audit)
+
+Carte **prouvée par lecture**. Les flèches portent `fichier:fonction`. Les
+connexions manquantes sont en rouge dans le mermaid (commentées) et listées
+après.
+
+```mermaid
+flowchart TD
+  UI["LodgingsPage.launchSearch\nrenderer/pages/LodgingsPage.tsx"]
+  UI --> AB["runAirbnbSearch\ndata/runAirbnbSearch.ts"]
+  UI --> RP["runProviderSearch\ndata/runProviderSearch.ts"]
+
+  AB --> IPC1["IPC airbnb:scrape\nmain/index.ts"]
+  IPC1 --> SCR["scrapeAirbnbSearch\nairbnb/scrape.ts"]
+  SCR --> PROG["extractProgressive\nairbnb/dynamicHtml.ts\nscrollCount=2..3"]
+  SCR -.->|CAPTCHA humain, pas 2captcha| HUM["waitForCaptchaSolved"]
+  AB --> MERGEA["mergeAirbnbPaste\nairbnbMerge.ts"]
+
+  RP --> IPC2["IPC providers.search\nprovidersBridge.searchProviders"]
+  IPC2 --> AGG["aggregateResults\nproviders/index.ts"]
+  AGG --> ENG["SearchEngine.search\nsearchEngine.ts"]
+
+  ENG --> BKG["BookingProvider.search\nbooking/booking.ts"]
+  ENG --> BWEB["createBookingWebProvider\nwebscrape/providers.ts"]
+  ENG --> GWEB["createGitesWebProvider"]
+  ENG --> VWEB["createVrboWebProvider"]
+  ENG --> CWEB["createCozycozyWebProvider"]
+  ENG --> ST["createStationProvider.search\nstation/station.ts"]
+  ENG --> CETO["createCeto*Provider"]
+  ENG --> UBLO["createUbloProvider"]
+  ENG --> OS["createOpenSystemProvider"]
+
+  ST -->|CENTRALS via centralLookup| CL["emptyStationReason / familyOfHost"]
+  ST -->|hors Ingénie not_wired| NW["throw [not_wired]"]
+  ST -->|Ceto Ublo OS| SIL["delegated, []"]
+
+  BWEB --> COL["collectPages max=5\nstopped_reason ABSENT"]
+  GWEB --> COL
+  VWEB --> COL
+
+  AGG --> ZONE["keepInZone\nproviders/index.ts + shared/geo.ts"]
+  ZONE --> MAP["toLodging\nrunProviderSearch.ts"]
+  MERGEA --> ENR
+  MAP --> ENR["enrichWithAccess\nlodgingAccess.ts"]
+  ENR --> SIDE["POST /api/lodgings/access\nlodgings.py → access.compute_access"]
+
+  MAP --> FILT["matchesLodgingFilters\nlodgingFilter.ts"]
+  FILT --> GRID["UI ResultGrid / LodgingCard"]
+
+  SIDE2["POST /api/scrape/{provider}\nlodging.py + CaptchaSolver"] -.->|aucun appelant renderer/main| DEAD2["pile sidecar scrape morte"]
+```
+
+### Flèches (fichier:fonction)
+
+| étape | fichier:fonction |
+| --- | --- |
+| Clic Logements | `DomainCard.tsx` / `DomainSheet.tsx` → `patch({ tab:'logements', lodgPhase:'searching' })` |
+| Déclenchement | `LodgingsPage.tsx` `useEffect` → `launchSearch` |
+| Airbnb | `runAirbnbSearch` → IPC → `scrapeAirbnbSearch` |
+| Autres sources | `runProviderSearch` → `searchProviders` → `aggregateResults` → `SearchEngine.search` → `provider.search` |
+| Zone | `keepInZone` / `filterToZone` (`@shared/geo`) |
+| Pivot → UI | `toLodging` / `lodgingsFromOutcome` |
+| Pistes | `enrichWithAccess` → sidecar `lodgings_access` → `compute_access` |
+| Filtre | `selectors.tsx` `lodgAll` → `matchesLodgingFilters` |
+
+### Connexions manquantes (import mort / jamais appelé)
+
+1. ~~`CENTRALS` jamais importé~~ **branché** : `station/centralLookup.ts`.
+2. ~~`CaptchaSolver` jamais appelé par Electron~~ **rebranché** : `captchaBridge.ts` → `POST /api/scrape/captcha/solve` après wait humain Airbnb.
+3. `POST /api/scrape/{provider}` (pile Python scrape) toujours hors UI — volontaire ; le solveur passe par `/captcha/solve`.
+4. **`createExpediaWebProvider` existe, non `register()`**.
+5. ~~`lodgFailed` jamais lu~~ **affiché** sur LodgingsPage.
+6. **`paginationComplete` Ceto / `truncated` station** jamais remontés à l’UI (le rapport `pagination` webscrape l’est).
+7. ~~`matchesDemand` absent~~ **dans** `lodgingFilter.ts`, chemin `selectors.tsx`.
+8. Neuf hôtes CENTRALS `not_wired` — **motif explicite**, pas d’adapter inventé.
+
+La suite de ce fichier décrit Electron ↔ sidecar (handshake, sécurité, cache
+HTTP). Elle reste exacte pour le moteur local ; elle ne décrit pas le relevé
+logements ci-dessus.
+
+---
+
+
 ## Vue d'ensemble
 
 ```

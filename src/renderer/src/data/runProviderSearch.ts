@@ -79,6 +79,7 @@ export interface ProviderSearchOutcome {
   count: number
   error: string | null
   elapsedMs: number
+  reasonCode?: string
 }
 
 export interface RunProviderSearchResult {
@@ -175,6 +176,14 @@ function toLodging(
     // `webscrape/urls.ts` et `deeplinks.ts`. La source n'a rendu cette annonce
     // que parce qu'elle accepte ce groupe-là.
     fitsGuests: params.adults > 0 ? params.adults : undefined,
+    availabilityStatus:
+      a.availabilityStatus === 'unavailable' || a.availabilityStatus === 'listing_gone'
+        ? a.availabilityStatus
+        : a.totalPrice && a.totalPrice > 0
+          ? 'available'
+          : a.availabilityStatus ?? 'unknown',
+    searchPageIndex: a.searchPageIndex,
+    distanceStatus: a.latitude != null && a.longitude != null ? undefined : 'no_gps',
     // Les centrales de station comptent des **pièces**, pas des chambres, et
     // n'annoncent les secondes nulle part : `ch` reste à zéro — « non annoncé »
     // — plutôt que de traduire un deux-pièces en une chambre, qui serait une
@@ -190,8 +199,6 @@ function toLodging(
     m2: a.areaSqm ?? null,
     note: noteOnFive(a.rating, a.ratingScale),
     avis: a.reviewCount ?? 0,
-    // Accès aux pistes : calculé par le moteur local depuis la position, pas
-    // fourni par la source. Reste à zéro tant qu'il ne l'a pas été.
     dist: 0,
     walk: 0,
     den: 0,
@@ -244,6 +251,9 @@ export function lodgingsFromOutcome(
   const out: Lodging[] = []
   for (const item of outcome.results) {
     if (!item.url || seenUrls.has(item.url)) continue
+    if (item.availabilityStatus === 'unavailable' || item.availabilityStatus === 'listing_gone') {
+      continue
+    }
     const lodging = toLodging(item, params)
     if (!lodging) continue
     seenUrls.add(item.url)
@@ -364,7 +374,8 @@ export function outcomeSummary(o: ProviderOutcome): ProviderSearchOutcome {
     provider: o.provider,
     count: o.results.length,
     error: o.error,
-    elapsedMs: o.elapsedMs
+    elapsedMs: o.elapsedMs,
+    reasonCode: o.reasonCode
   }
 }
 

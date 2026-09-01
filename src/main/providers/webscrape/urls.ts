@@ -100,9 +100,12 @@ export function gitesSearchUrl(params: SearchParams, offset = 0): string {
   if (params.checkIn) u.searchParams.set('search[from]', params.checkIn)
   if (params.checkOut) u.searchParams.set('search[to]', params.checkOut)
   u.searchParams.set('search[capacity]', String(params.adults ?? 2))
-  // `page` est numérotée à partir de 1 ; la première s'obtient sans paramètre,
-  // comme quand on tape l'adresse à la main.
-  if (offset > 0) u.searchParams.set('page', String(offset))
+  // `page` est 1-indexée. `collectPages` passe un offset 0-based (0, 1, 2…)
+  // parce que `GITES_PAGE_STEP = 1`. Poser `page=offset` rejouait la page 1
+  // à la deuxième itération (`page=1`), `fresh === 0`, et le relevé s'arrêtait
+  // sur le premier écran. La première page s'obtient sans paramètre.
+  const page = offset + 1
+  if (page > 1) u.searchParams.set('page', String(page))
   return u.toString()
 }
 
@@ -115,6 +118,7 @@ export function cozycozySearchUrl(params: SearchParams, offset = 0): string {
   u.searchParams.set('adults', String(params.adults ?? 2))
   if (params.children) u.searchParams.set('children', String(params.children))
   u.searchParams.set('nights', String(nights(params)))
-  if (offset > 0) u.searchParams.set('page', String(offset))
+  const page = offset + 1
+  if (page > 1) u.searchParams.set('page', String(page))
   return u.toString()
 }

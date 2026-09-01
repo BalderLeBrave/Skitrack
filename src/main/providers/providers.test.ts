@@ -17,9 +17,11 @@
 
 import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
-import { collectBookingPages, collectPages } from './webscrape/providers'
+import { collectBookingPages, collectPages, paginationOf } from './webscrape/providers'
 import { bookingSearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
 import type { RawCard } from './webscrape/extractors'
+import { classifyProviderError } from '@shared/reasonCodes'
+import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
 import { buildEngine } from './index'
 import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
@@ -494,16 +496,20 @@ async function main(): Promise<void> {
     (offset) => gitesSearchUrl(stay, offset),
     1,
     async (url) => {
-      const page = Number(new URL(url).searchParams.get('page') ?? 0)
+      const page = Number(new URL(url).searchParams.get('page') ?? '1')
       pagesGites.push(page)
-      return page < 2 ? cards(page * 10, 1) : []
+      return page <= 2 ? cards(page * 10, 1) : []
     }
   )
-  check('pagination générique : trois lectures', pagesGites.length === 3, pagesGites)
-  check('rangs 0, 1, 2 demandés', pagesGites.join(',') === '0,1,2', pagesGites.join(','))
+  check('pagination Gîtes : page 1 puis 2 puis 3 (vide)', pagesGites.join(',') === '1,2,3', pagesGites.join(','))
   check('les deux pages non vides sont rendues', lot.length === 2, lot.length)
   check('page 1 sans paramètre', !gitesSearchUrl(stay).includes('page='))
-  check('page 2 numérotée', gitesSearchUrl(stay, 2).includes('page=2'), gitesSearchUrl(stay, 2))
+  check('offset 0-based 1 → page=2', gitesSearchUrl(stay, 1).includes('page=2'), gitesSearchUrl(stay, 1))
+  check('page_index stampée sur la 1re carte', lot[0]?.pageIndex === 0, lot[0]?.pageIndex)
+  check('page_index de la 2e page', lot[1]?.pageIndex === 1, lot[1]?.pageIndex)
+  const rapport = paginationOf(lot)
+  check('stopped_reason exhausted', rapport?.stoppedReason === 'exhausted', rapport?.stoppedReason)
+  check('pages_fetched = 3', rapport?.pagesFetched === 3, rapport?.pagesFetched)
 
   // Problème 1b : VRBO n'avait aucune URL de recherche.
   const vrbo = vrboSearchUrl(stay, 50)
@@ -524,6 +530,39 @@ async function main(): Promise<void> {
     'capacité absente : elle reste absente, jamais la demande',
     sansCapacite?.guests === undefined,
     sansCapacite?.guests
+  )
+
+  heading('14. centrals.ts branché + reason_code')
+  check('CENTRALS chargé (74 attendues)', centralsLoaded() >= 74, centralsLoaded())
+  check('Les 2 Alpes = ingenie', familyOfHost('reservation.les2alpes.com') === 'ingenie')
+  check('Chamonix = ceto', familyOfHost('booking.chamonix.com') === 'ceto')
+  check('Karellis = not_wired', familyOfHost('www.karellis.com') === 'not_wired')
+  check(
+    'sans URL officielle → no_official_url',
+    emptyStationReason(undefined) === 'no_official_url'
+  )
+  check(
+    'Karellis officiel → not_wired',
+    emptyStationReason('https://www.karellis.com/') === 'not_wired'
+  )
+  check(
+    'Chamonix officiel → delegated (ceto)',
+    emptyStationReason('https://booking.chamonix.com/fr/') === 'delegated'
+  )
+  check(
+    'captcha message → blocked',
+    classifyProviderError('gites-web: relevé refusé par la source (captcha ou blocage anti-robot)') ===
+      'blocked'
+  )
+  check(
+    'sélecteurs → selector_miss',
+    classifyProviderError('vrbo-web: aucune carte extraite — la page a répondu, les sélecteurs sont à revoir') ===
+      'selector_miss'
+  )
+  check(
+    'challenge_unresolved',
+    classifyProviderError('CAPTCHA non résolu (3 min) [challenge_unresolved].') ===
+      'challenge_unresolved'
   )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)

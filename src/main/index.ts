@@ -23,8 +23,13 @@ import { closeAirbnbBrowser, scrapeAirbnbSearch } from './providers/airbnb/scrap
 import { getPairingToken, startPasteBridge, stopPasteBridge } from './pasteBridge'
 import { decryptAll, deleteSecret, isEncryptionAvailable, listSecrets, setSecret } from './secrets'
 import { Sidecar } from './sidecar'
+import { bindSidecarCaptcha } from './captchaBridge'
 
 const sidecar = new Sidecar()
+bindSidecarCaptcha(() => {
+  const state = sidecar.getState()
+  return state.status === 'ready' ? { baseUrl: state.baseUrl, token: state.token } : null
+})
 let mainWindow: BrowserWindow | null = null
 
 /**

@@ -21,7 +21,7 @@
 
 import type { Lodging } from './lodgings'
 import { srcOf } from './lodgings'
-import { isBookable, type Stay } from './lodgingAvailability'
+import { isBookable, isDoorway, type Stay } from './lodgingAvailability'
 import { inRange } from './range'
 
 export interface LodgingFilterCriteria {
@@ -139,6 +139,59 @@ export function minRoomsFor(bedrooms: number): number {
  */
 export type PartyVerdict = 'convient' | 'trop-petit' | 'non-annonce'
 
+export interface Demand {
+  guests: number
+  bedrooms: number
+  datesSet: boolean
+}
+
+/**
+ * Chambres comparables, après autopsie des sources.
+ *
+ * - `ch > 0` : la source a publié des chambres (Booking, Airbnb quand le
+ *   champ est lu) → on les prend telles quelles.
+ * - sinon `rooms` : convention française des centrales, « N pièces » =
+ *   séjour + (N-1) chambres. Un studio est un 1 pièce → 0 chambre.
+ * - sinon `null` : la source s'est tue. Ce n'est pas un zéro.
+ */
+export function normalizedBedrooms(listing: Lodging): number | null {
+  if (listing.ch > 0) return listing.ch
+  if (listing.rooms != null && listing.rooms > 0) return Math.max(0, listing.rooms - 1)
+  return null
+}
+
+export function isStudioListing(listing: Lodging): boolean {
+  if (listing.type.toLowerCase().includes('studio')) return true
+  if (listing.rooms === 1 && !(listing.ch > 0)) return true
+  return normalizedBedrooms(listing) === 0
+}
+
+/**
+ * Filtre strict du schéma d'acceptation.
+ *
+ * `null` ne passe plus. Un studio ne passe que si la demande est ≤ 1 chambre
+ * et que la capacité tient. Intégré dans `matchesLodgingFilters` (chemin UI),
+ * pas une fonction orpheline.
+ */
+export function matchesDemand(listing: Lodging, demand: Demand): boolean {
+  const guest_capacity_max = listing.pers > 0 ? listing.pers : null
+  const bedrooms = normalizedBedrooms(listing)
+  if (guest_capacity_max == null || bedrooms == null) return false
+
+  const availability_status = listing.availabilityStatus
+  if (availability_status === 'unavailable' || availability_status === 'listing_gone') return false
+  if (demand.datesSet && !isDoorway(listing) && availability_status !== 'available' && !(listing.total > 0)) {
+    return false
+  }
+
+  if (guest_capacity_max < demand.guests) return false
+  if (demand.bedrooms > 0) {
+    if (isStudioListing(listing)) return demand.bedrooms <= 1
+    if (bedrooms < demand.bedrooms) return false
+  }
+  return true
+}
+
 /**
  * Trois verdicts, parce qu'il y a trois situations et non deux.
  *
@@ -244,7 +297,16 @@ export function matchesLodgingFilters(
   // elle n'a simplement pas sa place dans la liste.
   if (criteria.confirmedPricesOnly && !hasConfirmedPrice(lodging, stay)) return false
 
-  if (!fitsParty(lodging, criteria, criteria.includeUnannounced)) return false
+  const demand: Demand = {
+    guests: criteria.travelers,
+    bedrooms: criteria.rooms,
+    datesSet: Boolean(stay.checkIn && stay.checkOut)
+  }
+  if (!criteria.includeUnannounced) {
+    if (!matchesDemand(lodging, demand)) return false
+  } else if (!fitsParty(lodging, criteria, true)) {
+    return false
+  }
   if (!fitsKind(lodging, criteria)) return false
 
   // Carte-redirection : hébergement OpenStreetMap, ou annonce vue sans tarif.

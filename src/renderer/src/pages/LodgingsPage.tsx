@@ -86,7 +86,10 @@ export function LodgingsPage(): JSX.Element {
     // de la liste au moment où on le choisit : la carte se recentre parfois
     // juste après, et le rectangle publié l'aurait alors exclu.
     if (lg.id === state.lodgPickId) return true
-    const [lon, lat] = lodgingCoords(d, lg)
+    if (lg.lat == null || lg.lon == null) return true
+    const coords = lodgingCoords(d, lg)
+    if (!coords) return true
+    const [lon, lat] = coords
     return lon >= b.w && lon <= b.e && lat >= b.s && lat <= b.n
   }
 
@@ -334,7 +337,8 @@ export function LodgingsPage(): JSX.Element {
           capacity: state.travelers,
           nights: derived.nights,
           imported: state.imported,
-          zone: hasCoords(d) ? domainZone(d) : null
+          zone: hasCoords(d) ? domainZone(d) : null,
+          bedrooms: state.rooms > 0 ? state.rooms : undefined
         }),
         runProviderSearch(searchParams)
       ])
@@ -1107,6 +1111,17 @@ export function LodgingsPage(): JSX.Element {
               ) : (
                 <strong style={{ fontWeight: 600 }}>{recheck.state.message}</strong>
               )}
+            </div>
+          )}
+
+          {(state.lodgFailed.length > 0 || state.lodgEmpty.length > 0) && (
+            <div className="srcbanner" style={{ borderColor: 'var(--warn)' }}>
+              {state.lodgFailed.map((s) => (
+                <div key={`f-${s}`}>{t('lodg_src_unavailable').replace('{s}', s)}</div>
+              ))}
+              {state.lodgEmpty.map((s) => (
+                <div key={`e-${s}`}>{t('lodg_src_no_result').replace('{s}', s)}</div>
+              ))}
             </div>
           )}
 

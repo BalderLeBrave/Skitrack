@@ -33,6 +33,28 @@ def get_captcha_solver():
     return CaptchaSolver()
 
 
+@router.post("/captcha/solve")
+async def solve_captcha(
+    request: dict,
+    captcha_solver: CaptchaSolver = Depends(get_captcha_solver),
+):
+    """Rebranche le `CaptchaSolver` existant (2captcha) sur un sitekey déjà vu.
+
+    Appelé par Electron (`src/main/captchaBridge.ts`) après un challenge
+    visible. Pas une nouvelle technique : même solveur, même clé `CAPTCHA_API_KEY`.
+    Échec → `success: false`, jamais une liste vide côté client.
+    """
+    site_key = request.get("site_key")
+    page_url = request.get("page_url")
+    version = request.get("version", "v2")
+    if not site_key or not page_url:
+        raise HTTPException(status_code=400, detail="site_key et page_url requis")
+    token = await captcha_solver.solve_recaptcha(str(site_key), str(page_url), str(version))
+    if not token:
+        return {"success": False, "reason": "challenge_unresolved"}
+    return {"success": True, "token": token}
+
+
 @router.post("/{provider_name}")
 async def scrape_lodgings(
     provider_name: str,

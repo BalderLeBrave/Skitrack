@@ -94,12 +94,23 @@ export function vrboSearchUrl(params: SearchParams, offset = 0): string {
 }
 
 export function gitesSearchUrl(params: SearchParams, offset = 0): string {
-  // Recherche texte Gîtes de France
+  // Formulaire Drupal `search_api_page_block_form` (dump 2026-09-01) :
+  // `destination`, `date-start`, `date-end`, `adults` — pas `search[value]`.
+  // GET `search[value]=Les 2 Alpes` populait `drupalSettings.currentQuery.search`
+  // et laissait le champ `destination` **vide** + `.g2f-searchResult-noResults`.
+  // GET `destination=` idem : `currentQuery.destination` rempli, `entity_id`
+  // toujours vide, même message « Oups ! … au moins une destination. »
+  //
+  // `entity_id` vient de l'autocomplete `/fr/g2f_autocomplete` (attribut
+  // `data-autocomplete-url` du champ). Sans dump JSON de cet endpoint, on ne
+  // l'invente pas. Cette URL aligne les **noms** de champs ; elle ne prétend
+  // pas produire une SERP de cartes.
   const u = new URL('https://www.gites-de-france.com/fr/search')
-  u.searchParams.set('search[value]', params.destination)
-  if (params.checkIn) u.searchParams.set('search[from]', params.checkIn)
-  if (params.checkOut) u.searchParams.set('search[to]', params.checkOut)
-  u.searchParams.set('search[capacity]', String(params.adults ?? 2))
+  u.searchParams.set('destination', params.destination)
+  if (params.checkIn) u.searchParams.set('date-start', params.checkIn)
+  if (params.checkOut) u.searchParams.set('date-end', params.checkOut)
+  u.searchParams.set('adults', String(params.adults ?? 2))
+  if (params.children) u.searchParams.set('children', String(params.children))
   // `page` est 1-indexée. `collectPages` passe un offset 0-based (0, 1, 2…)
   // parce que `GITES_PAGE_STEP = 1`. Poser `page=offset` rejouait la page 1
   // à la deuxième itération (`page=1`), `fresh === 0`, et le relevé s'arrêtait

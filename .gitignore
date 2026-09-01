@@ -57,3 +57,7 @@ credentials.json
 __pycache__/
 tools/extract-listings/.venv/
 tools/extract-listings/out/
+
+# Captures Playwright brutes (tokens Drupal, pages challenge 100+ Ko).
+# La preuve versionnée est dumps/capture-report.json + discovery_*.md.
+docs/diagnostics/dumps/*.html

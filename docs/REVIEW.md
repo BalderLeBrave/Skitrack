@@ -23,8 +23,10 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 
 ## Ce qui reste rouge
 
-1. VRBO/Gîtes : **pas de HAR**. Parseurs non retouchés. 0 live → `blocked` / `selector_miss` / `0_after_parse` désormais **nommé**, pas silencieux.
-2. 9 centrales `not_wired` : motif explicite, pas d'adapter.
-3. Sidecar `/api/scrape/{provider}` toujours hors chemin UI (Playwright Electron reste le chemin). Le solveur est rebranché via `/captcha/solve`.
-4. `ttl_availability` 6 h : appliqué sur `scannedAt` dans `availabilityOf`. Pas de cache dispo Electron séparé.
-5. Typecheck `src/main/**/*.test.ts` exclu du `tsconfig.node.json` (déjà le cas).
+1. VRBO live = **429 `Bot or Not?`** (dump 2026-09-01). Motif désormais `blocked`, pas `selector_miss`. Parseur **non** retouché — pas de SERP.
+2. Gîtes 0 = **destination Drupal sans `entity_id`**, pas un `.gite-card` mort. GET `search[value]` et GET `destination=` : même `.g2f-searchResult-noResults`. Parseur **non** retouché.
+3. 9 centrales `not_wired` : motif explicite, pas d'adapter.
+4. Sidecar `/api/scrape/{provider}` toujours hors chemin UI (Playwright Electron reste le chemin). Le solveur est rebranché via `/captcha/solve`.
+5. `ttl_availability` 6 h : appliqué sur `scannedAt` dans `availabilityOf`. Pas de cache dispo Electron séparé.
+6. Typecheck `src/main/**/*.test.ts` exclu du `tsconfig.node.json` (déjà le cas).
+7. Inventaire 2 Alpes 13–20 fév. 2027 : **non chiffré** — VRBO bloqué, Gîtes non résolu, centrale Ingénie homepage sans datepicker monté.

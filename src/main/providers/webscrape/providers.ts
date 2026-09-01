@@ -18,6 +18,7 @@ import {
 } from './extractors'
 import {
   baseAccommodation,
+  gitesSearchEmptyKind,
   looksBlocked,
   parsePrice,
   scrollToEnd,
@@ -114,10 +115,26 @@ async function loadAndExtract(
  * depuis les journaux.
  */
 async function emptyReason(page: Page, name: string): Promise<Error> {
+  if (await looksBlocked(page)) {
+    return new Error(`${name}: relevé refusé par la source (captcha ou blocage anti-robot)`)
+  }
+  let html = ''
+  try {
+    html = await page.content()
+  } catch {
+    html = ''
+  }
+  const gites = gitesSearchEmptyKind(html)
+  if (gites === 'destination_missing') {
+    return new Error(
+      `${name}: destination non résolue (entity_id vide) [empty_inventory]`
+    )
+  }
+  if (gites === 'no_results') {
+    return new Error(`${name}: stock vide [empty_inventory]`)
+  }
   return new Error(
-    (await looksBlocked(page))
-      ? `${name}: relevé refusé par la source (captcha ou blocage anti-robot)`
-      : `${name}: aucune carte extraite — la page a répondu, les sélecteurs sont à revoir`
+    `${name}: aucune carte extraite — la page a répondu, les sélecteurs sont à revoir`
   )
 }
 

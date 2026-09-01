@@ -1,0 +1,101 @@
+[
+  {
+    "id": "gites_p1",
+    "url": "https://www.gites-de-france.com/fr/search?search%5Bvalue%5D=Les+2+Alpes&search%5Bfrom%5D=2027-02-13&search%5Bto%5D=2027-02-20&search%5Bcapacity%5D=8",
+    "capturedAt": "2026-09-01",
+    "status": 200,
+    "title": "Rechercher une location de vacances | Gîtes de France®",
+    "htmlBytes": 79940,
+    "blocked": false,
+    "found": [
+      "class g2f-searchResult-noResults",
+      "Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.",
+      "form#search-api-page-block-form POST /fr/search",
+      "input name=destination value=\"\"",
+      "input name=entity_id value=\"\"",
+      "input name=date-start",
+      "input name=date-end",
+      "input name=adults",
+      "data-autocomplete-url=/fr/g2f_autocomplete",
+      "drupalSettings currentQuery.search.{value,from,to,capacity} rempli"
+    ],
+    "selectorHits": {
+      "a[href*=\"/fr/\"]": 32,
+      "article": 0,
+      ".gite-card": 0,
+      ".g2f-searchResult-noResults": 1,
+      "[data-stid=\"property-listing\"]": 0,
+      "script[type=\"application/ld+json\"]": 0
+    }
+  },
+  {
+    "id": "gites_dest",
+    "url": "https://www.gites-de-france.com/fr/search?destination=Les+2+Alpes&date-start=2027-02-13&date-end=2027-02-20&adults=8",
+    "capturedAt": "2026-09-01",
+    "status": 200,
+    "title": "Rechercher une location de vacances | Gîtes de France®",
+    "htmlBytes": 219565,
+    "blocked": false,
+    "found": [
+      "même g2f-searchResult-noResults + Oups",
+      "currentQuery.{destination,date-start,date-end,adults} rempli",
+      "form destination=\"\" entity_id=\"\" toujours"
+    ],
+    "selectorHits": {
+      ".gite-card": 0,
+      ".g2f-searchResult-noResults": 1
+    }
+  },
+  {
+    "id": "gites_home",
+    "url": "https://www.gites-de-france.com/fr",
+    "capturedAt": "2026-09-01",
+    "status": null,
+    "title": "Attention Required! | Cloudflare",
+    "htmlBytes": 5218,
+    "blocked": true,
+    "found": ["Sorry, you have been blocked", "unable to access gites-de-france.com"]
+  },
+  {
+    "id": "vrbo_p1",
+    "url": "https://www.vrbo.com/search?destination=Les+2+Alpes&startDate=2027-02-13&endDate=2027-02-20&adults=8",
+    "capturedAt": "2026-09-01",
+    "status": 429,
+    "title": "Bot or Not?",
+    "htmlBytes": 114961,
+    "blocked": true,
+    "found": ["Show us your human side...", "We can't tell if you're a human or a bot."],
+    "selectorHits": {
+      "[data-stid=\"property-listing\"]": 0,
+      "section.uitk-card": 0,
+      "script[type=\"application/ld+json\"]": 0
+    }
+  },
+  {
+    "id": "abritel_p1",
+    "url": "https://www.abritel.fr/search?destination=Les+2+Alpes&startDate=2027-02-13&endDate=2027-02-20&adults=8",
+    "capturedAt": "2026-09-01",
+    "status": 429,
+    "title": "Robot ou pas robot ?",
+    "htmlBytes": 115040,
+    "blocked": true,
+    "found": ["Vous êtes humain, n’est-ce pas ?"],
+    "selectorHits": {
+      "[data-stid=\"property-listing\"]": 0
+    }
+  },
+  {
+    "id": "les2alpes_central",
+    "url": "https://reservation.les2alpes.com/location-appartement-2-alpes.html",
+    "capturedAt": "2026-09-01",
+    "status": 200,
+    "title": "Location et réservation d'appartement | Les 2 Alpes Réservation",
+    "htmlBytes": 118511,
+    "blocked": false,
+    "found": ["homepage Ingénie, datepicker non monté dans ce dump"],
+    "selectorHits": {
+      "input.datepicker": 0,
+      "script[type=\"application/ld+json\"]": 1
+    }
+  }
+]

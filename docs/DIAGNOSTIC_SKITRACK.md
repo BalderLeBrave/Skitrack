@@ -66,11 +66,26 @@ Dates du formulaire : déjà envoyées (`urls.ts`, `LodgingsPage`).
 ## BUG 5 — VRBO / Gîtes = 0 silencieux — PATCHED (motif, pas parseur)
 
 - Connecteurs déjà `register()` (`providers/index.ts`)
-- 0 cartes → throw `emptyReason` (blocked vs selector_miss) — **déjà là**
+- 0 cartes → throw `emptyReason` (blocked vs selector_miss vs empty_inventory)
 - `reasonCode` posé sur chaque outcome
 - `station-web` hôte hors adapter → `[not_wired]` au lieu de `[]`
 - `lodgFailed` / `lodgEmpty` **réaffichés** sur l’écran Logements
-- VRBO extracteur : **pas touché** (pas de HAR) — voir `discovery_vrbo.md`
+- VRBO extracteur : **pas touché** (SERP absente) — voir `discovery_vrbo.md`
+- Gîtes extracteur : **pas touché** (SERP absente) — voir `discovery_gites.md`
+
+### Live 2026-09-01 (Les 2 Alpes, 13–20 fév. 2027, 8 pers.)
+
+| source | HTTP | motif réel | reasonCode désormais |
+| --- | --- | --- | --- |
+| VRBO | 429 | title `Bot or Not?` | `blocked` (`pageLooksBlocked`) |
+| Abritel | 429 | title `Robot ou pas robot ?` | `blocked` |
+| Gîtes GET `search[value]` | 200 | `.g2f-searchResult-noResults` + « Oups ! … destination » ; `entity_id=""` | `empty_inventory` (destination_missing) |
+| Gîtes GET `destination=` | 200 | **même** noResults — le nom de champ ne suffit pas | idem |
+| Gîtes 2ᵉ visite | CF | `Attention Required!` | `blocked` |
+
+`looksBlocked` avant ce dump : `/captcha\|are you a robot\|…/` — **ne matchait pas** « Bot or Not? ». Un 0 VRBO live serait sorti `selector_miss`.
+
+`gitesSearchUrl` aligne `destination` / `date-start` / `date-end` / `adults`. **Sans `entity_id` autocomplete, toujours 0 cartes.** Pas de parseur inventé.
 
 ---
 

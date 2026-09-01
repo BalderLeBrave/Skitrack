@@ -66,7 +66,10 @@ export function classifyProviderError(message: string | null | undefined): Reaso
     m.includes('captcha') ||
     m.includes('blocage anti-robot') ||
     m.includes('relevé refusé') ||
-    m.includes('are you a robot')
+    m.includes('are you a robot') ||
+    m.includes('bot or not') ||
+    m.includes('robot ou pas robot') ||
+    m.includes('attention required')
   ) {
     return 'blocked'
   }

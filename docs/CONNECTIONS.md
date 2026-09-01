@@ -30,12 +30,13 @@ Checklist bloquante. Une case non cochée = travail restant, pas un nice-to-have
 | `CaptchaSolver` | `sidecar/skitrack/services/captcha_solver.py` | **gardé** |
 | injection | `sidecar/skitrack/api/routes/lodging.py` | **gardé** + `/captcha/solve` |
 | `STEALTH_INIT` | `webscrape/shared.ts`, `airbnb/scrape.ts` | **gardé** |
-| `looksBlocked` | `webscrape/shared.ts` | **gardé** ; 0 → throw blocked/selector_miss |
+| `looksBlocked` | `webscrape/shared.ts` | **gardé** + phrases dump VRBO/Abritel/CF ; Gîtes `.g2f-searchResult-noResults` → `empty_inventory` |
 | `ProxyManager` | `sidecar/skitrack/services/proxy_manager.py` | **gardé** |
 | robots.txt | `station/robots.ts` | permissif (plus un veto) |
 
 ## Écarts justifiés
 
-1. **Pas de nouveau parseur** Valberg / Les Angles / Sancy / VRBO DOM sans dump.
-2. **Pas de nouveau kit Cloudflare**.
+1. **Pas de nouveau parseur** Valberg / Les Angles / Sancy / VRBO DOM / Gîtes cartes — dumps 2026-09-01 = challenge 429 ou SERP vide `entity_id`, pas des cartes.
+2. **Pas de nouveau kit Cloudflare**. 429 VRBO / CF Gîtes → `blocked` + CaptchaSolver existant.
 3. Sidecar `/api/scrape/{name}` reste hors UI ; le solveur est joint via `/captcha/solve`.
+4. HTML dumps non commis (`form_build_id`) ; `capture-report.json` + `discovery_*.md` oui.

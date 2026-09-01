@@ -297,14 +297,53 @@ export async function scrollToEnd(page: Page, maxSteps = 12): Promise<void> {
  * périmés, et un blocage anti-robot — sous un seul message qui n'aidait à
  * choisir ni l'une ni l'autre. On lit ce que la page affiche : elle le dit en
  * toutes lettres quand elle bloque.
+ *
+ * Phrases relevées le 2026-09-01 (dumps, pas inventées) :
+ * - VRBO 429, title + body : « Bot or Not? Show us your human side... »
+ * - Abritel 429 : « Robot ou pas robot ? »
+ * - Gîtes 2ᵉ visite : Cloudflare « Attention Required! » / « you have been blocked »
+ *
+ * L'ancienne regex (`are you a robot`) ne matchait aucune des trois.
  */
+export function pageLooksBlocked(text: string): boolean {
+  return /captcha|are you a robot|access denied|unusual traffic|vérification de sécurité|bot or not|robot ou pas robot|attention required|you have been blocked|show us your human side/i.test(
+    text
+  )
+}
+
+/**
+ * Marqueur Gîtes de France d'une SERP sans cartes.
+ *
+ * Dump 2026-09-01 (`gites_p1.html`, `gites_dest.html`) : la classe
+ * `.g2f-searchResult-noResults` est posée avec le texte
+ * « Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins
+ * une destination. » — y compris quand `search[value]` ou `destination=` est
+ * dans l'URL. Ce n'est pas un sélecteur de carte mort, c'est une recherche
+ * qui n'a pas été exécutée (`entity_id` vide).
+ *
+ * Sans dump d'une SERP de résultats, on ne distingue pas un stock vraiment
+ * vide d'une destination manquante autrement que par cette phrase.
+ */
+export function gitesSearchEmptyKind(
+  html: string
+): 'destination_missing' | 'no_results' | null {
+  if (!html.includes('g2f-searchResult-noResults')) return null
+  if (
+    /vous devez affiner votre recherche de séjour en indiquant au moins une destination/i.test(
+      html
+    )
+  ) {
+    return 'destination_missing'
+  }
+  return 'no_results'
+}
+
 export async function looksBlocked(page: Page): Promise<boolean> {
   try {
-    return await page.evaluate(() =>
-      /captcha|are you a robot|access denied|unusual traffic|vérification de sécurité/i.test(
-        document.body.innerText.slice(0, 4000)
-      )
+    const text = await page.evaluate(
+      () => `${document.title}\n${document.body?.innerText ?? ''}`.slice(0, 8_000)
     )
+    return pageLooksBlocked(text)
   } catch {
     // Page injoignable : on ne conclut pas au blocage sur une absence de preuve.
     return false

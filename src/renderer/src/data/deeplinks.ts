@@ -84,10 +84,12 @@ const BUILDERS: Record<string, Builder> = {
   // constructeur réellement exercé contre le site.
   'Gîtes de France': (c) => {
     const u = new URL('https://www.gites-de-france.com/fr/search')
-    u.searchParams.set('search[value]', destination(c))
-    u.searchParams.set('search[from]', c.arrDate)
-    u.searchParams.set('search[to]', c.depDate)
-    u.searchParams.set('search[capacity]', String(c.travelers))
+    // Noms du formulaire Drupal (dump 2026-09-01), alignés sur `gitesSearchUrl`.
+    // Sans `entity_id` d'autocomplete le site ignore encore la destination.
+    u.searchParams.set('destination', destination(c))
+    u.searchParams.set('date-start', c.arrDate)
+    u.searchParams.set('date-end', c.depDate)
+    u.searchParams.set('adults', String(c.travelers))
     return u.toString()
   },
   'Booking.com': (c) => {

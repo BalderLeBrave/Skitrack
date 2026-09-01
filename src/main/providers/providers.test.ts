@@ -19,6 +19,7 @@ import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
 import { collectBookingPages, collectPages, paginationOf } from './webscrape/providers'
 import { bookingSearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
+import { gitesSearchEmptyKind, pageLooksBlocked } from './webscrape/shared'
 import type { RawCard } from './webscrape/extractors'
 import { classifyProviderError } from '@shared/reasonCodes'
 import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
@@ -505,6 +506,13 @@ async function main(): Promise<void> {
   check('les deux pages non vides sont rendues', lot.length === 2, lot.length)
   check('page 1 sans paramètre', !gitesSearchUrl(stay).includes('page='))
   check('offset 0-based 1 → page=2', gitesSearchUrl(stay, 1).includes('page=2'), gitesSearchUrl(stay, 1))
+  check(
+    'Gîtes : destination= (plus search[value])',
+    gitesSearchUrl(stay).includes('destination=Les+2+Alpes') &&
+      !gitesSearchUrl(stay).includes('search%5Bvalue%5D'),
+    gitesSearchUrl(stay)
+  )
+  check('Gîtes : date-start / date-end / adults', gitesSearchUrl(stay).includes('date-start=2027-02-06') && gitesSearchUrl(stay).includes('date-end=2027-02-13') && gitesSearchUrl(stay).includes('adults=2'))
   check('page_index stampée sur la 1re carte', lot[0]?.pageIndex === 0, lot[0]?.pageIndex)
   check('page_index de la 2e page', lot[1]?.pageIndex === 1, lot[1]?.pageIndex)
   const rapport = paginationOf(lot)
@@ -563,6 +571,58 @@ async function main(): Promise<void> {
     'challenge_unresolved',
     classifyProviderError('CAPTCHA non résolu (3 min) [challenge_unresolved].') ===
       'challenge_unresolved'
+  )
+  check(
+    'Bot or Not? (dump VRBO) → blocked',
+    classifyProviderError('vrbo-web: Bot or Not?') === 'blocked'
+  )
+  check(
+    'Robot ou pas robot (dump Abritel) → blocked',
+    classifyProviderError('vrbo-web: Robot ou pas robot ?') === 'blocked'
+  )
+  check(
+    'destination entity_id vide → empty_inventory',
+    classifyProviderError(
+      'gites-web: destination non résolue (entity_id vide) [empty_inventory]'
+    ) === 'empty_inventory'
+  )
+
+  heading('15. Dumps 2026-09-01 — looksBlocked / Gîtes noResults')
+  check(
+    'VRBO « Bot or Not? » est un blocage',
+    pageLooksBlocked("Bot or Not? Show us your human side... We can't tell if you're a human or a bot.")
+  )
+  check(
+    'Abritel « Robot ou pas robot » est un blocage',
+    pageLooksBlocked('Robot ou pas robot ? Vous êtes humain, n’est-ce pas ?')
+  )
+  check(
+    'Cloudflare « Attention Required » est un blocage',
+    pageLooksBlocked('Attention Required! | Cloudflare Sorry, you have been blocked')
+  )
+  check(
+    'Gîtes Oups destination n’est pas un blocage',
+    !pageLooksBlocked(
+      'Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.'
+    )
+  )
+  check(
+    'regex historique « are you a robot » tient',
+    pageLooksBlocked('Are you a robot? Unusual traffic')
+  )
+  const gitesNoDest =
+    '<div class="g2f-searchResult-noResults"><p> Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.</p></div>'
+  check(
+    'noResults + phrase dump → destination_missing',
+    gitesSearchEmptyKind(gitesNoDest) === 'destination_missing'
+  )
+  check(
+    'noResults seul → no_results (pas selector_miss)',
+    gitesSearchEmptyKind('<div class="g2f-searchResult-noResults"></div>') === 'no_results'
+  )
+  check(
+    'sans marqueur Gîtes → null',
+    gitesSearchEmptyKind('<article class="gite-card">rien</article>') === null
   )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)

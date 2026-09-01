@@ -1,0 +1,725 @@
+{
+  "at": "2026-09-01T22:25:51.035Z",
+  "round": 8,
+  "items": [
+    {
+      "id": "angles_os",
+      "title": "REFUGE CAL CHALON - Les Angles",
+      "osEval": {
+        "keys": [
+          "closed",
+          "onclose",
+          "oncontentvisibilityautostatechange",
+          "oncontextlost",
+          "onlostpointercapture",
+          "crossOriginIsolated",
+          "close",
+          "postMessage",
+          "attps_close_popup",
+          "axeptioSettings",
+          "et_fix_pricing_currency_position",
+          "et_pb_reposition_menu_module_dropdowns",
+          "et_calculating_scroll_position",
+          "heateorSssCloseIconPath",
+          "webpackChunk_axeptio_widget_client",
+          "pauseAllVideosInModal",
+          "get_post_popup",
+          "et_change_primary_nav_position",
+          "et_fix_page_container_position",
+          "__axeptioSDK",
+          "axeptioSDK",
+          "_oslib_WTooltip",
+          "_oslib_OsPlanning",
+          "_oslib_UICore",
+          "_oslib_UIDatePicker"
+        ],
+        "scripts": [
+          "https://gadget.open-system.fr/widgets-libs/rel/noyau-1.0.min.js"
+        ],
+        "inst": "Widget.Instance ) {\n                                        return setTimeout( tscInitOS, 120 );\n                                    }\n                                    try {\n                                        var w = AllianceReseaux.Widget.Instance( \"Produit\", {\n                                            idPanier:      \"hliEhoY\",\n                                            idIntegration: 1395,\n                                            langue:        \"fr\",\n                                            ui:            \"OSMB-129086-1\"                                        });\n                                        w.Initialise();\n                                    } catch ( e ) {\n                                        if ( window.console && console.warn ) {\n                                      ",
+        "login": null,
+        "vue": [],
+        "osClass": 4
+      },
+      "bodyPreview": "Salut c'est nous...\nles Cookies !\nOn a attendu d'être sûrs que le contenu de ce site vous intéresse avant de vous déranger, mais on aimerait bien vous accompagner pendant votre visite...\nC'est OK pour vous ?\n\nPour modifier vos préférences par la suite, cliquez sur le lien 'Préférences de cookies' situé dans le pied de page.\n\nConsentements certifiés par\nNon merci\nJe choisis\nOK pour moi\nAxeptio consent\n\nPlateforme de Gestion du Consentement : Personnalisez vos Options\n\nNotre plateforme vous permet d'adapter et de gérer vos paramètres de confidentialité, en garantissant la conformité avec les réglementations. Personnalisez vos préférences pour contrôler la manière dont vos informations sont man",
+      "xhr": [
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/rel/noyau-1.0.min.js",
+          "status": 200,
+          "bytes": 253281,
+          "preview": "/* noyau-1.0, build fba1868a, 2026-08-26T07:53:25+0000 */(function(){ !function(f,k){if(!f.AllianceReseaux){f.AllianceReseaux={};function p(e,n){return n.toUpperCase()}function R(){g.addEventListener?(g.removeEventListener(\"DOMContentLoaded\",a,!1),f.removeEventListener(\"load\",a,!"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/rel/osproduit/osproduit-pack-1.0.min.js",
+          "status": 200,
+          "bytes": 37724,
+          "preview": "/* osproduit-pack-1.0, build fba1868a, 2026-08-26T07:53:50+0000 */(function(){ !function(){function e(o){var t,e,n,a,i,s,r=(new RegExp(\"[?&]_wos=([^&#$]*)\",\"i\").exec(o)||{})[1],l=r?decodeURIComponent(r).split(\",\"):[],c=function(e){return e.replace(/^\\s|\\s$/gi,\"\")},r=l[0]||\"v1\",d="
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/api/json/produit/osproduit-textes-fr.js",
+          "status": 200,
+          "bytes": 4662,
+          "preview": "AllianceReseaux.Textes.prototype['osproduit-textes-fr'] = function(options) { return { \"motifOccup\" : \"Du {0} au {1}\", \"btnReserver\":\"R\\351server\", \"errDispo\" : \"Erreur d'acc\\350s aux disponibilit\\351s\", \"altDispo\" : \"Aucune disponibilit\\351 trouv\\351e.\", \"nbCh"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/integration/1300/1395.js",
+          "status": 200,
+          "bytes": 966,
+          "preview": "AllianceReseaux.Integrations[1395] = { \"theme\" : \"api\", \"theme_version\" : \"1.5\", \"personnalisation\" : \"lesangles\", \"panier\" : { \"domaine\" : { \"fr\" : \"//reservation.lesangles.com\", \"uk\" : \"//reservation.lesangles.com\", \"es\" : \"//reservation.lesangles.com\" "
+        },
+        {
+          "url": "https://quota.for-system.com/index.aspx?callback=jQuery110208617972872407188_1788301552183&i=1395&a=OsProduit&_=1788301552184",
+          "status": 200,
+          "bytes": 64,
+          "preview": "jQuery110208617972872407188_1788301552183( { \"status\" : \"ok\" } )"
+        },
+        {
+          "url": "https://etape-rest.for-system.com/index.aspx?callback=jQuery110208617972872407188_1788301552185&ref=json-config-fournisseur&q=OSMB-129086-1&_=1788301552186",
+          "status": 200,
+          "bytes": 155,
+          "preview": "jQuery110208617972872407188_1788301552185({\"configFournisseur\":{\"os\":{\"nbProduitsTotal\":1},\"openpro\":{\"typeDispo\":0},\"devise\":{\"code\":978,\"symbole\":\"€\"}}})"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/libs/wtooltip.min.js",
+          "status": 200,
+          "bytes": 3185,
+          "preview": "/* Wayfarer Tooltip * Version 1.0.2 * Author Abel Mohler * URI: http://www.wayfarerweb.com/wtooltip.php * Released with the MIT License: http://www.wayfarerweb.com/mit.php */ (function(a){a.fn.osLibWTooltip=function(f,r){f=a.extend({content:null,ajax:null,follow:true,a"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/rel/osplanning/osplanning-pack-1.0.min.js",
+          "status": 200,
+          "bytes": 58488,
+          "preview": "/* osplanning-pack-1.0, build fba1868a, 2026-08-26T07:53:49+0000 */(function(){ !function($){var escapeable=/[\"\\\\\\x00-\\x1f\\x7f-\\x9f]/g,meta={\"\\b\":\"\\\\b\",\"\\t\":\"\\\\t\",\"\\n\":\"\\\\n\",\"\\f\":\"\\\\f\",\"\\r\":\"\\\\r\",'\"':'\\\\\"',\"\\\\\":\"\\\\\\\\\"};$.toJSON=function(e){if(null===e)return\"null\";var n,i,a=typeo"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/libs/jquery-ui-1.8.11.core.min.js",
+          "status": 200,
+          "bytes": 4395,
+          "preview": "/*! * jQuery UI 1.8.11 * * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about) * Dual licensed under the MIT or GPL Version 2 licenses. * http://jquery.org/license * * http://docs.jquery.com/UI */ (function(c,j){function k(a){return!c(a).parents().andSelf().f"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/libs/jquery-ui-1.8.11.datepicker.min.js",
+          "status": 200,
+          "bytes": 37042,
+          "preview": "!function($,undefined){var encours=null,positionnerCalendrier=function(){if(encours){AllianceReseaux.OsBase.IsMobile()&&encours.input.attr(\"readonly\",!0);var e=$(encours.input[0]).offset(),t=e.top+encours.input[0].offsetHeight;if(t>0&&$(encours.dpDiv[0]).height()>0&&$(window).hei"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/ospanier/overlay.js",
+          "status": 200,
+          "bytes": 6639,
+          "preview": "( function() { var textesDefaut = { \"fr\" : { titre:\"Mon Panier\", article:\"article\", articles:\"articles\",pasdarticle:\"votre panier est vide\", valider:\"valider mon panier\",supprimer:\"supprimer cet article\", voirmesarticles:\"voir mes articles\", total:\"Montant total\", prefi"
+        },
+        {
+          "url": "https://quota.for-system.com/index.aspx?callback=jQuery110208617972872407188_1788301552183&i=1395&a=OsPlanning&_=1788301552188",
+          "status": 200,
+          "bytes": 64,
+          "preview": "jQuery110208617972872407188_1788301552183( { \"status\" : \"ok\" } )"
+        },
+        {
+          "url": "https://etape-rest.for-system.com/index.aspx?callback=jQuery110208617972872407188_1788301552189&ref=json-planning-openpro&q=OSMB-129086-1%7C0%7C*%7C2026-09-02%7C2026-10-15",
+          "status": 200,
+          "bytes": 364,
+          "preview": "jQuery110208617972872407188_1788301552189({\"resume\":{\"IdFournisseur\":129086,\"ParamDelaiResa\":{\"st\":\"2026-09-02T00:25:54.7753075+02:00\",\"d\":12,\"h\":23,\"m\":59}},\"produits\":[{\"hash\":\"2067790\",\"IdProduit\":2067790,\"cmin\":1,\"cmax\":12,\"IdInterne\":\"1\",\"estVendable\":1,\"TypeDispo\":0,\"titre\""
+        },
+        {
+          "url": "https://static.axept.io/cookies-widget.js",
+          "status": 200,
+          "bytes": 34143,
+          "preview": "\"use strict\";(self.webpackChunk_axeptio_widget_client=self.webpackChunk_axeptio_widget_client||[]).push([[305],{30269:function(e,t,n){n.r(t),n.d(t,{default:function(){return U}});var r=n(58168),i=n(54705),o=n(53986),a=n(96540),l=n(67008),c=n(19420),s=n(55029),u=n(78124),d=n(40003"
+        }
+      ]
+    },
+    {
+      "id": "clusaz_shadow",
+      "shadow": [
+        {
+          "host": "div",
+          "inputs": [
+            {
+              "tag": "input",
+              "type": "hidden",
+              "name": "axeptio_cookies_la clusaz-fr_value",
+              "id": "",
+              "ph": null,
+              "text": ""
+            },
+            {
+              "tag": "button",
+              "type": "button",
+              "name": null,
+              "id": "",
+              "ph": null,
+              "text": "Consentements certifiés par"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "axeptio_btn_dismiss",
+              "ph": null,
+              "text": "Non merci"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "axeptio_btn_configure",
+              "ph": null,
+              "text": "Je choisis"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "axeptio_btn_acceptAll",
+              "ph": null,
+              "text": "OK pour moi"
+            },
+            {
+              "tag": "input",
+              "type": "checkbox",
+              "name": "axeptio_cookies_la clusaz-fr_accept",
+              "id": "axeptio_consent_checkbox",
+              "ph": null,
+              "text": ""
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "axeptio_main_button",
+              "ph": null,
+              "text": ""
+            }
+          ],
+          "child": []
+        },
+        {
+          "host": "dw-app-container",
+          "inputs": [
+            {
+              "tag": "div",
+              "type": null,
+              "name": null,
+              "id": "",
+              "ph": null,
+              "text": "Skip to content"
+            },
+            {
+              "tag": "a",
+              "type": null,
+              "name": null,
+              "id": "",
+              "ph": null,
+              "text": "Connexion / S'enregistrer"
+            },
+            {
+              "tag": "button",
+              "type": "button",
+              "name": null,
+              "id": "",
+              "ph": null,
+              "text": "S'enregistrer"
+            },
+            {
+              "tag": "button",
+              "type": "button",
+              "name": null,
+              "id": "",
+              "ph": null,
+              "text": "Connexion"
+            },
+            {
+              "tag": "input",
+              "type": null,
+              "name": null,
+              "id": "arrival",
+              "ph": null,
+              "text": ""
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "",
+              "ph": null,
+              "text": ""
+            },
+            {
+              "tag": "button",
+              "type": "button",
+              "name": null,
+              "id": "btnDisplayMonthYear",
+              "ph": null,
+              "text": "septembre 2026"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day1",
+              "ph": null,
+              "text": "1"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day2",
+              "ph": null,
+              "text": "2"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day3",
+              "ph": null,
+              "text": "3"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day4",
+              "ph": null,
+              "text": "4"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day5",
+              "ph": null,
+              "text": "5"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day6",
+              "ph": null,
+              "text": "6"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day7",
+              "ph": null,
+              "text": "7"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day8",
+              "ph": null,
+              "text": "8"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day9",
+              "ph": null,
+              "text": "9"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day10",
+              "ph": null,
+              "text": "10"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day11",
+              "ph": null,
+              "text": "11"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day12",
+              "ph": null,
+              "text": "12"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day13",
+              "ph": null,
+              "text": "13"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day14",
+              "ph": null,
+              "text": "14"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day15",
+              "ph": null,
+              "text": "15"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day16",
+              "ph": null,
+              "text": "16"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day17",
+              "ph": null,
+              "text": "17"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day18",
+              "ph": null,
+              "text": "18"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day19",
+              "ph": null,
+              "text": "19"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day20",
+              "ph": null,
+              "text": "20"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day21",
+              "ph": null,
+              "text": "21"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day22",
+              "ph": null,
+              "text": "22"
+            },
+            {
+              "tag": "button",
+              "type": null,
+              "name": null,
+              "id": "day23",
+              "ph": null,
+              "text": "23"
+            }
+          ],
+          "child": []
+        }
+      ],
+      "bodyPreview": "live\nPISTES\n0\n/\n0\nREMONTÉES\n0\n/\n0\nMÉTÉO\nMatin\n12°C\nAprès-midi\n23°C\nINFO ROUTES\nLa Clusaz\nVOIR LES WEBCAMS\nBULLETIN DÉTAILLÉ\nAU MENU\nLIVE\nSkip to content\nLE VILLAGE\nSKI\nVTT\nACTIVITÉS\nAGENDA\nLE MAG\nBOUTIQUE\nRÉSERVER MON SÉJOUR\nACHETER MON FORFAIT\nLIVE\nRechercher :\nFR\nAccueil  Réservation\nPrevious\nNext\nVOTRE HÉBERGEMENT À LA CLUSAZ\n\nRéservez dès maintenant votre hébergement à La Clusaz parmi une larg",
+      "xhr": [
+        {
+          "kind": "req",
+          "method": "POST",
+          "url": "https://webapi.deskline.net/filters",
+          "post": "{\"filterObject\":{\"id\":\"00000000-0000-0000-0000-000000000000\",\"_hashCode\":0,\"filterGeneral\":{},\"filterAddServices\":{\"name\":\"\"},\"filterAccommodation\":{\"name\":\"\",\"bestPrice\":false,\"specialPrice\":false,\"specialOffer\":false},\"filterEvent\":{},\"filterInfrastructure\":{},\"filterBrochure\":{},\"filterPackage\":{},\"filterTour\":{}}}"
+        },
+        {
+          "kind": "res",
+          "status": 201,
+          "url": "https://webapi.deskline.net/filters",
+          "preview": "{\n  \"id\": \"f88970ff-1701-4ebc-8346-5ca2e7d8a9c2\",\n  \"filterGeneral\": {},\n  \"filterAddServices\": {\n    \"types\": null,\n    \"holidayThemes\": null,\n    \"locations\": null,\n    \"guestCards\": null,\n    \"name"
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:534)&currency=&pageNo=1&pageSize=10000",
+          "post": null
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/f88970ff-1701-4ebc-8346-5ca2e7d8a9c2?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9",
+          "post": null
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=f88970ff-1701-4ebc-8346-5ca2e7d8a9c2&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,",
+          "post": null
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=f88970ff-1701-4ebc-8346-5ca2e7d8a9c2&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,",
+          "preview": "{\n  \"data\": [\n    {\n      \"id\": \"8032a511-42f2-48db-ad41-8e4c62c63c40\",\n      \"owner\": \"LACLUSAZ\",\n      \"location\": {\n        \"district\": \"Vallée des Aravis\",\n        \"town\": \"La Clusaz\",\n        \"re"
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/f88970ff-1701-4ebc-8346-5ca2e7d8a9c2?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9",
+          "preview": "{\n  \"categories\": [\n    {\n      \"id\": \"ab4f2086-f06d-4dac-8b99-09eda5577c67\",\n      \"name\": \"Hôtel\",\n      \"count\": 20\n    },\n    {\n      \"id\": \"9e802064-0a21-4cbe-b5cc-2e442e32cc7c\",\n      \"name\": \"C"
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:534)&currency=&pageNo=1&pageSize=10000",
+          "preview": "{\n  \"data\": [\n    {\n      \"categories\": [\n        {\n          \"id\": \"ec3c8e0c-961c-4cfd-900e-1f2875acce63\",\n          \"name\": \"Location\",\n          \"order\": 8\n        },\n        {\n          \"id\": \"274"
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Short_stay_offer.png",
+          "post": null
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Short_stay_offer.png",
+          "preview": "�PNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0001\u0000\u0000\u0000\u0000�\b\u0006\u0000\u0000\u00006�S�\u0000\u0000\u0000\tpHYs\u0000\u0000\u000b\u0012\u0000\u0000\u000b\u0012\u0001��~�\u0000\u0000\u0000�eXIfII*\u0000\b\u0000\u0000\u0000\u0006\u0000\u0012\u0001\u0003\u0000\u0001\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u001a\u0001\u0005\u0000\u0001\u0000\u0000\u0000V\u0000\u0000\u0000\u001b\u0001\u0005\u0000\u0001\u0000\u0000\u0000^\u0000\u0000\u0000(\u0001\u0003\u0000\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0013\u0002\u0003\u0000\u0001\u0000\u0000\u0000\u0001\u0000\u0000\u0000i�\u0004\u0000\u0001\u0000\u0000\u0000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000/\u0019\u0001\u0000�\u0003\u0000\u0000/\u0019\u0001\u0000�\u0003\u0000\u0000\u0006\u0000\u0000�\u0007\u0000\u0004\u0000\u0000\u00000210\u0001�\u0007\u0000\u0004\u0000\u0000\u0000\u0001\u0002\u0003\u0000\u0000�\u0007\u0000\u0004\u0000\u0000\u000001"
+        }
+      ]
+    },
+    {
+      "id": "karellis_ot",
+      "url": "https://www.karellis.com/",
+      "http": 200,
+      "finalUrl": "https://www.karellis.com/",
+      "title": "Les Karellis : station de ski familiale en Maurienne",
+      "htmlBytes": 264125,
+      "challenge": false,
+      "markers": {
+        "os": 0,
+        "msem": 0,
+        "elloha": 0,
+        "deskline": 0,
+        "ingenie": 0
+      },
+      "bodyPreview": "Aller au contenu\nFR\nMenu\nFR\nFermer\nDécouvrez Les Karellis\nDécouvrez la station\nNos valeurs\nComment venir aux Karellis\nLes Karellis en été\nContact\nSkier aux Karellis\nActivités\nMon séjour\nAgenda\nInfo live\nContactez-nous\nFAQ\nDocumentation\nVotre avis\nAux Karellis\nRéservez votre séjour\n\nWebcams\n\nMétéo\n\nPlan de pistes\n\nInfo trafic\n\nAux Karellis,\n\nOn s’y retrouve\n\nDu 19 décembre 2026 au 10 avril 2027\n\nRéservez votre\n\nSÉJOUR\n\nAchetez votre\n\nFORFAIT\n\nLes Karellis\n\nPartez à la découverte de la station\n\nNichée au milieu d’une forêt de Mélèzes, bordée par le Lac de Pramol, notre station des Karellis offre une accessibilité facilitée, un partage collectif et une multitude d’activités de découverte de not",
+      "links": [
+        "https://www.karellis-reservation.com/",
+        "https://www.karellis-reservation.com/liste-offres-thematisee/"
+      ],
+      "xhr": [
+        {
+          "url": "https://www.lisio-solution.com/widget/dist-site/widget.html?v=1787728013353",
+          "status": 200,
+          "body": "<!doctype html>\n<html lang=\"fr\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta\n      name=\"viewport\"\n      content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"\n    />\n    <meta name=\"robots\" content=\"noi"
+        },
+        {
+          "url": "https://www.lisio-solution.com/widget/dist-site/assets/widget-DXvXHVAh.js",
+          "status": 200,
+          "body": "function _0x48cc(_0xe34985,_0x28ea5e){const _0x5820e6=_0x4c81();return _0x48cc=function(_0x3e00c7,_0x3b652d){_0x3e00c7=_0x3e00c7-0xc5;let _0x4c819d=_0x5820e6[_0x3e00c7];return _0x4c819d;},_0x48cc(_0xe34985,_0x28ea5e);}(f"
+        }
+      ]
+    },
+    {
+      "id": "karellis_heberg",
+      "url": "https://www.karellis.com/hebergements/",
+      "http": 404,
+      "finalUrl": "https://www.karellis.com/hebergements/",
+      "title": "Page non trouvée - Les Karellis",
+      "htmlBytes": 262872,
+      "challenge": false,
+      "markers": {
+        "os": 0,
+        "msem": 0,
+        "elloha": 0,
+        "deskline": 0,
+        "ingenie": 0
+      },
+      "bodyPreview": "Aller au contenu\n\nRéservez votre séjour\n\nFR\nMenu\nFR\nFermer\nDécouvrez Les Karellis\nDécouvrez la station\nNos valeurs\nComment venir aux Karellis\nLes Karellis en hiver\nRandonner aux Karellis\nActivités\nMon séjour\nAgenda\nInfo live\nContactez-nous\nFAQ\nDocumentation\nVotre avis\nAux Karellis\nRéservez votre séjour\n404\n\nCette page n’existe pas.\nRetour vers la page d’accueil\n\nAux Karellis, on s’y retrouve…\n\nVéritable station de montagne été/hiver, les Karellis sont au cœur de vos vacances pratiques et sans contraintes.\n\nLiens utiles\nFAQ\nWebcam\nDocumentation\nAgenda\nPodcast Les Amis de Karl\nTourisme adapté\nContacts\ninfo@karellis.com\n04 79 59 50 36\nRéservation\nRéservez votre séjour\nAchetez votre forfait\n\nLes",
+      "links": [
+        "https://www.karellis.com/hebergements/#wp--skip-link--target",
+        "https://www.karellis-reservation.com/",
+        "https://www.karellis-reservation.com/liste-offres-thematisee/",
+        "https://www.karellis.com/hebergements/#"
+      ],
+      "xhr": [
+        {
+          "url": "https://www.lisio-solution.com/widget/dist-site/widget.html?v=1787728013353",
+          "status": 200,
+          "body": "<!doctype html>\n<html lang=\"fr\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta\n      name=\"viewport\"\n      content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"\n    />\n    <meta name=\"robots\" content=\"noi"
+        },
+        {
+          "url": "https://www.lisio-solution.com/widget/dist-site/assets/widget-DXvXHVAh.js",
+          "status": 200,
+          "body": "function _0x48cc(_0xe34985,_0x28ea5e){const _0x5820e6=_0x4c81();return _0x48cc=function(_0x3e00c7,_0x3b652d){_0x3e00c7=_0x3e00c7-0xc5;let _0x4c819d=_0x5820e6[_0x3e00c7];return _0x4c819d;},_0x48cc(_0xe34985,_0x28ea5e);}(f"
+        }
+      ]
+    },
+    {
+      "id": "sancy_agences",
+      "url": "https://www.sancy.com/hebergement/agences-location/",
+      "http": 404,
+      "finalUrl": "https://www.sancy.com/hebergement/agences-location/",
+      "title": "Page non trouvée - Massif du Sancy",
+      "htmlBytes": 220906,
+      "challenge": false,
+      "markers": {
+        "os": 0,
+        "msem": 0,
+        "elloha": 0,
+        "deskline": 0,
+        "ingenie": 0
+      },
+      "bodyPreview": "Aller au contenu principal\nAller au menu\nAller au pied de page\n\nBilletterie\nEn direct\nLe blog\nDÉCOUVRIR\nA VOIR, À FAIRE\nSE RÉGALER\nAGENDA\nHÉBERGEMENT\nPRATIQUE\n0\nFAVORIS\n\n404\n\nOUPS! CETTE PAGE N'EXISTE PAS\n\nVous pouvez naviguer dans notre menu\nou utiliser cette barre de recherche:\n\nSearch\nSearch\n\nInscrivez-vous à la newsletter\n\nJE M'INSCRIS\n\nSuivez-nous !\n\nIcon-facebook\n \nIcon-x-twitter\n \nIcon-instagram\n \nIcon-youtube-brands\n \nIcon-pinterest\n \nIcon-tiktok\n\nOffice de Tourisme du Sancy\n\nNos bureaux\nNos services\nBilletterie\nLE SANCY EN DIRECT\nWebcams\nSuper-Besse\nLe Mont-Dore\nTéléphériques\nLa destination Auvergne\nTourisme adapté\nQuestions fréquentes\nEspace Pro\nEspace Groupe\nEspace Presse\nMENTION ",
+      "links": [
+        "https://www.sancy.com/hebergement/agences-location/#main",
+        "https://www.sancy.com/hebergement/agences-location/#main-menu",
+        "https://www.sancy.com/hebergement/agences-location/#main-footer",
+        "https://www.sancy.com/decouvrir/panoramas-sites-naturels/reserves-naturelles/",
+        "https://www.sancy.com/hebergement/hotels/",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/",
+        "https://www.sancy.com/hebergement/chambres-hotes/",
+        "https://www.sancy.com/hebergement/campings/",
+        "https://www.sancy.com/hebergement/aires-camping-cars/",
+        "https://www.sancy.com/hebergement/villages-vacances/",
+        "https://www.sancy.com/hebergement/residences-tourisme-villages-gites/",
+        "https://www.sancy.com/hebergement/gites-etape-gite-groupe/"
+      ],
+      "xhr": [
+        {
+          "url": "https://www.sancy.com/plugins/lae-elementor-widgets-site/assets/lib/lazysizes.min.js",
+          "status": 200,
+          "body": "/*! lazysizes - v5.3.0 */\n\n!function(e){var t=function(u,D,f){\"use strict\";var k,H;if(function(){var e;var t={lazyClass:\"lazyload\",loadedClass:\"lazyloaded\",loadingClass:\"lazyloading\",preloadClass:\"lazypreload\",errorClass"
+        }
+      ]
+    },
+    {
+      "id": "angles_offres8",
+      "url": "https://lesangles.com/offres-hebergements/",
+      "http": 200,
+      "finalUrl": "https://lesangles.com/offres-hebergements/",
+      "title": "Offres Hébergements - Les Angles",
+      "htmlBytes": 429289,
+      "challenge": false,
+      "markers": {
+        "os": 0,
+        "msem": 0,
+        "elloha": 0,
+        "deskline": 0,
+        "ingenie": 0
+      },
+      "bodyPreview": "Salut c'est nous...\nles Cookies !\nOn a attendu d'être sûrs que le contenu de ce site vous intéresse avant de vous déranger, mais on aimerait bien vous accompagner pendant votre visite...\nC'est OK pour vous ?\n\nPour modifier vos préférences par la suite, cliquez sur le lien 'Préférences de cookies' situé dans le pied de page.\n\nConsentements certifiés par\nNon merci\nJe choisis\nOK pour moi\nAxeptio consent\n\nPlateforme de Gestion du Consentement : Personnalisez vos Options\n\nNotre plateforme vous permet d'adapter et de gérer vos paramètres de confidentialité, en garantissant la conformité avec les réglementations. Personnalisez vos préférences pour contrôler la manière dont vos informations sont man",
+      "links": [
+        "https://lesangles.com/tous-les-hebergements/",
+        "https://lesangles.com/hebergement/refuge-cal-chalon/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-chalet/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-la-ferme/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-cabanat/",
+        "https://lesangles.com/hebergement/cottage-des-pleiades/",
+        "https://lesangles.com/hebergement/chalet-cosy/",
+        "https://lesangles.com/hebergement/verges-christophe/",
+        "https://lesangles.com/hebergement/au-lodge-de-balcere-chalet-cosy-spa-et-sauna-privatifs-aux-angles/",
+        "https://lesangles.com/hebergement/maison-village-rue-de-lecole/",
+        "https://lesangles.com/hebergement/appartement-cosy-coeur-de-station/",
+        "https://lesangles.com/hebergement/appartement-bouquetin/"
+      ],
+      "xhr": [
+        {
+          "url": "https://static.axept.io/cookies-widget.js",
+          "status": 200,
+          "body": "\"use strict\";(self.webpackChunk_axeptio_widget_client=self.webpackChunk_axeptio_widget_client||[]).push([[305],{30269:function(e,t,n){n.r(t),n.d(t,{default:function(){return U}});var r=n(58168),i=n(54705),o=n(53986),a=n("
+        }
+      ]
+    },
+    {
+      "id": "elloha_search_q",
+      "url": "https://reservation.elloha.com/Search/Index/6dec24ec-415c-4251-af67-baa0b206d31f?StartDate=05/09/2026&Duration=7&AdultNumber0=2",
+      "http": 200,
+      "finalUrl": "https://reservation.elloha.com/Search/Index/6dec24ec-415c-4251-af67-baa0b206d31f?StartDate=05/09/2026&Duration=7&AdultNumber0=2",
+      "title": "Réservez en direct",
+      "htmlBytes": 34307,
+      "challenge": false,
+      "markers": {
+        "os": 0,
+        "msem": 0,
+        "elloha": 2,
+        "deskline": 0,
+        "ingenie": 0
+      },
+      "bodyPreview": "EUR \nÀ partir du\nNombre de nuits\n1 nuit\n2 nuits\n3 nuits\n4 nuits\n5 nuits\n6 nuits\n1 semaine\n8 nuits\n9 nuits\n10 nuits\n11 nuits\n12 nuits\n13 nuits\n2 semaines\n15 nuits\n16 nuits\n17 nuits\n18 nuits\n19 nuits\n20 nuits\n3 semaines\n22 nuits\n23 nuits\n24 nuits\n25 nuits\n26 nuits\n27 nuits\n4 semaines\n29 nuits\n30 nuits\n31 nuits\n32 nuits\n33 nuits\n34 nuits\n5 semaines\n36 nuits\n37 nuits\n38 nuits\n39 nuits\n40 nuits\n6 semaines\n7 semaines\n8 semaines\n9 semaines\n10 semaines\n11 semaines\n12 semaines\n13 semaines\n14 semaines\n15 semaines\n16 semaines\n17 semaines\n18 semaines\n19 semaines\n20 semaines\n21 semaines\n22 semaines\n23 semaines\n24 semaines\n25 semaines\n26 semaines\n27 semaines\n28 semaines\n29 semaines\n30 semaines\n31 semaines",
+      "links": [
+        "https://reservation.elloha.com/Search/Index/6dec24ec-415c-4251-af67-baa0b206d31f?StartDate=05/09/2026&Duration=7&AdultNumber0=2#"
+      ],
+      "xhr": [
+        {
+          "url": "https://reservation.elloha.com/Search/Index/6dec24ec-415c-4251-af67-baa0b206d31f?StartDate=05/09/2026&Duration=7&AdultNumber0=2",
+          "status": 200,
+          "body": "\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <meta charset=\"utf-8\" />\r\n    <meta name=\"viewport\" content=\"initial-scale=1.0,maximum-scale=1.0,user-scalable=no,width=device-width,height=device-height\">\r\n    <meta name=\"robots\" "
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/bxslider/css?v=6Gdw_s5CWVElMfNRMZqzaVSF-xgQNIBv6a0EWOp_rTI1",
+          "status": 200,
+          "body": ".bx-wrapper{position:relative;margin:0 auto 60px;padding:0;*zoom:1}.bx-wrapper img{width:100%;max-width:100%;display:block}.bx-wrapper .bx-viewport{-moz-box-shadow:0 0 5px #ccc;-webkit-box-shadow:0 0 5px #ccc;box-shadow:"
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/default-skin/css?v=EyTiKxBDtlq3ct3Eg0Oa5rQiwkjX8kiT0JbonTv-SGY1",
+          "status": 200,
+          "body": ".pswp__button{width:44px;height:44px;position:relative;background:none;cursor:pointer;overflow:visible;-webkit-appearance:none;display:block;border:0;padding:0;margin:0;float:right;opacity:.75;-webkit-transition:opacity "
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/Vendors/css?v=WpqSGT5VnriEhrCnB2DRNZ-c_0CLv-qrZ_U9-v3hnj01",
+          "status": 200,
+          "body": "html{font-family:sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}body{margin:0}article,aside,details,figcaption,figure,footer,header,hgroup,main,menu,nav,section,summary{display:block}audio,canvas,prog"
+        },
+        {
+          "url": "https://reservation.elloha.com/bundles/modernizr?v=inCVuEFe6J4Q07A0AcRsbJic_UE5MwpRMNGcOtk94TE1",
+          "status": 200,
+          "body": "window.Modernizr=function(n,t,i){function a(n){c.cssText=n}function vt(n,t){return a(y.join(n+\";\")+(t||\"\"))}function h(n,t){return typeof n===t}function v(n,t){return!!~(\"\"+n).indexOf(t)}function lt(n,t){var u,r;for(u in"
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/css?v=hR1kIZJIfmYxtZpu--kOqy3T0GjN9m4CErkZeAB4QtA1",
+          "status": 200,
+          "body": "/* Minification failed. Returning unminified contents.\r\n(6228,31): run-time error CSS1046: Expect comma, found '0'\r\n(6228,35): run-time error CSS1046: Expect comma, found '/'\r\n(11569,21): run-time error CSS1039: Token no"
+        },
+        {
+          "url": "https://reservation.elloha.com/Scripts/maps?v=WEbVFN975HCerHa4Sd8ymlY6mzayNcYimrs3JPUeHsQ1",
+          "status": 200,
+          "body": "function MarkerClusterer(n,t,i){var r,u;this.extend(MarkerClusterer,google.maps.OverlayView);this.map_=n;this.markers_=[];this.clusters_=[];this.sizes=[53,56,66,78,90];this.styles_=[];this.ready_=!1;r=i||{};this.gridSize"
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/fonts/Montserrat-SemiBold.ttf",
+          "status": 200,
+          "body": "\u0000\u0001\u0000\u0000\u0000\u0011\u0001\u0000\u0000\u0004\u0000\u0010GDEF�l�\\\u0000\u0002o@\u0000\u0000\u0002~GPOS%u\u001at\u0000\u0002q�\u0000\u0001\u0017�GSUB��YF\u0000\u0003�@\u0000\u0000/&OS/2Vr�Z\u0000\u0001��\u0000\u0000\u0000`cmap_ �i\u0000\u0001�,\u0000\u0000\n�cvt 2\u0019\u0017�\u0000\u0002\u0015X\u0000\u0000\u0000�fpgmM$�|\u0000\u0002\u0007\u0010\u0000\u0000\rmgasp\u0000\u0000\u0000\u0010\u0000\u0002o8\u0000\u0000\u0000\bglyf\u0001�J�\u0000\u0000\u0001\u001c\u0000\u0001͐head\u000eZ��\u0000\u0001ݰ\u0000\u0000\u00006hhea\u0006�\f6\u0000\u0001��\u0000\u0000\u0000$hmtx��P\u0000\u0001��\u0000\u0000\u001d�locaRD��\u0000\u0001��\u0000\u0000\u000e�max"
+        },
+        {
+          "url": "https://reservation.elloha.com/Scripts/js?v=kwCbv7Tz6WIihzG_5IebQC0Oorv13AyVnvo8VvckQU41",
+          "status": 200,
+          "body": "/* Minification failed. Returning unminified contents.\r\n(13121,16-17): run-time error JS1195: Expected expression: )\r\n(13121,19-20): run-time error JS1195: Expected expression: >\r\n(13124,10-11): run-time error JS1195: Ex"
+        },
+        {
+          "url": "https://reservation.elloha.com/api/WebService/GetCalendarAvailability?idOi=f74875ea-e624-4667-be17-ca8cf7fe84b6",
+          "status": 200,
+          "body": "[{\"Date\":\"2026-08-28T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-08-29T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-08-30T00:00:00\",\"IsArrivalPossible\":true,\"HasPromot"
+        }
+      ]
+    }
+  ]
+}

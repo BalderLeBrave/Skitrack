@@ -1,0 +1,218 @@
+{
+  "at": "2026-09-01T22:28:33.372Z",
+  "round": "8b",
+  "items": [
+    {
+      "id": "angles_resa",
+      "title": "Office de Tourisme des Angles - Reservation en ligne",
+      "finalUrl": "https://reservation.lesangles.com/",
+      "http": 200,
+      "eval": {
+        "inst": [],
+        "vueinfo": [],
+        "login": [],
+        "title": "Office de Tourisme des Angles - Reservation en ligne"
+      },
+      "bodyPreview": "Découvrir\nla station\nRandonnées\n& Expériences\nActivités\n& Loisirs\nGuide\nPratique\nEn\nFamille\nVotre panier est vide.\nRETOUR\nAvenue de Mont-Louis\n66210 | Les Angles\n\n\n+33 4 68 04 32 76\nLes Angles c All right reserved. Réalisation AttrapTemps\nMentions légales | CGV\n\n\nLIENS\nHÉBERGEMENTS\nACCÈS ROUTE\nLES ANGLES EN FAMILLE\nBROCHURES\nNOS AUTRES SITES\nMAIRIE LES ANGLES\nANGLÉO\nLOU BAC MOUNTAIN\nBIKE PARK",
+      "xhr": [
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/rel/noyau-1.0.min.js",
+          "status": 200,
+          "bytes": 253281,
+          "preview": "/* noyau-1.0, build fba1868a, 2026-08-26T07:53:25+0000 */(function(){ !function(f,k){if(!f.AllianceReseaux){f.AllianceReseaux={};function p(e,n){return n.toUpperCase()}function R(){g.addEventListener?(g.removeEventListener(\"DOMContentLoaded"
+        },
+        {
+          "url": "https://gadget.open-system.fr/wtooltip.min.js",
+          "status": 200,
+          "bytes": 3152,
+          "preview": "/* Wayfarer Tooltip * Version 1.0.2 * Author Abel Mohler * URI: http://www.wayfarerweb.com/wtooltip.php * Released with the MIT License: http://www.wayfarerweb.com/mit.php */ (function(a){a.fn.wTooltip=function(f,r){f=a.extend({c"
+        },
+        {
+          "url": "https://gadget.open-system.fr/jquery.lightbox.min.js",
+          "status": 200,
+          "bytes": 5987,
+          "preview": "eval(function(p,a,c,k,e,r){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)r[e(c)]=k[c]||e(c);k=[function(e){return r[e]}];e=function(){return'\\\\w+'}"
+        },
+        {
+          "url": "https://js.for-system.com/tracking.js",
+          "status": 200,
+          "bytes": 6319,
+          "preview": "function MoneyG(valeur) { var ch = new String(valeur).toString(); return ch.replace(new RegExp(\",\",\"g\"),\".\"); } var ObjOsTrackerArticle = function(sku,nom,categorie,prix,qt,situationId,nomcourt,nomstructure,categorie2,formule,local"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/integration/1300/1395.js",
+          "status": 200,
+          "bytes": 966,
+          "preview": "AllianceReseaux.Integrations[1395] = { \"theme\" : \"api\", \"theme_version\" : \"1.5\", \"personnalisation\" : \"lesangles\", \"panier\" : { \"domaine\" : { \"fr\" : \"//reservation.lesangles.com\", \"uk\" : \"//reservation.lesangles.com\", "
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/std/json/tracking/dico.js",
+          "status": 200,
+          "bytes": 7532,
+          "preview": "AllianceReseaux.Tracking.GetDico = function(options) { return { /** Widget Panier */ \"widget-panier-continuer\": [ \"RESA-$integration-$langue#Widget_Panier\", \"Widget_Panier#Btn_ContinuerAchats\", \"Widget_Panier#ContinuerAchats\" ], "
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets-libs/libs/wtooltip.min.js",
+          "status": 200,
+          "bytes": 3185,
+          "preview": "/* Wayfarer Tooltip * Version 1.0.2 * Author Abel Mohler * URI: http://www.wayfarerweb.com/wtooltip.php * Released with the MIT License: http://www.wayfarerweb.com/mit.php */ (function(a){a.fn.osLibWTooltip=function(f,r){f=a.exte"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/ospanier/overlay.js",
+          "status": 200,
+          "bytes": 6639,
+          "preview": "( function() { var textesDefaut = { \"fr\" : { titre:\"Mon Panier\", article:\"article\", articles:\"articles\",pasdarticle:\"votre panier est vide\", valider:\"valider mon panier\",supprimer:\"supprimer cet article\", voirmesarticles:\"voir mes"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/std/json/tracking/dico-lesangles.js",
+          "status": 200,
+          "bytes": 3199,
+          "preview": "AllianceReseaux.Tracking.GetDicolesangles = function(options) { return { /** Widget Panier */ \"widget-panier-valider\": [ \"Boutons\", \"Commande\", \"Passer-Commande\" ], /** Etape 5 - Tracking avant Paiement*/ \"click-paiement-gr"
+        }
+      ]
+    },
+    {
+      "id": "clusaz_arrival",
+      "fill": {
+        "ok": true,
+        "arrivalTag": "DW-DATEPICKER",
+        "depId": "departure",
+        "ids": [
+          "",
+          "sp_start_modal",
+          "",
+          "",
+          "sp_end_modal",
+          "arrival",
+          "arrival",
+          "calendar-instructions",
+          "sp_start_modal",
+          "btnDisplayMonthYear",
+          "day1",
+          "day2",
+          "day3",
+          "day4",
+          "day5",
+          "day6",
+          "day7",
+          "day8",
+          "day9",
+          "day10",
+          "day11",
+          "day12",
+          "day13",
+          "day14",
+          "day15",
+          "day16",
+          "day17",
+          "day18",
+          "day19",
+          "day20",
+          "day21",
+          "day22",
+          "day23",
+          "day24",
+          "day25",
+          "day26",
+          "day27",
+          "day28",
+          "day29",
+          "day30"
+        ]
+      },
+      "bodyPreview": "live\nPISTES\n0\n/\n0\nREMONTÉES\n0\n/\n0\nMÉTÉO\nMatin\n12°C\nAprès-midi\n23°C\nINFO ROUTES\nLa Clusaz\nVOIR LES WEBCAMS\nBULLETIN DÉTAILLÉ\nAU MENU\nLIVE\nSkip to content\nLE VILLAGE\nSKI\nVTT\nACTIVITÉS\nAGENDA\nLE MAG\nBOUTIQUE\nRÉSERVER MON SÉJOUR\nACHETER MON FORFAIT\nLIVE\nRechercher :\nFR\nAccueil  Réservation\nPrevious\nNext\nVOTRE HÉBERGEMENT À LA CLUSAZ\n\nRéservez dès maintenant votre hébergement à La Clusaz parmi une large sélection de chalets, appartements et hôtels.\n\nProfitez de vacances inoubliables dans un cadre mon",
+      "xhr": [
+        {
+          "kind": "req",
+          "method": "POST",
+          "url": "https://webapi.deskline.net/filters",
+          "post": "{\"filterObject\":{\"id\":\"00000000-0000-0000-0000-000000000000\",\"_hashCode\":0,\"filterGeneral\":{},\"filterAddServices\":{\"name\":\"\"},\"filterAccommodation\":{\"name\":\"\",\"bestPrice\":false,\"specialPrice\":false,\"specialOffer\":false},\"filterEvent\":{},\"filterInfrastructure\":{},\"filterBrochure\":{},\"filterPackage\":{},\"filterTour\":{}}}"
+        },
+        {
+          "kind": "res",
+          "status": 201,
+          "url": "https://webapi.deskline.net/filters",
+          "n": null,
+          "preview": "{\n  \"id\": \"d732908c-c298-4cc4-813a-e67833688a52\",\n  \"filterGeneral\": {},\n  \"filterAddServices\": {\n    \"types\": null,\n    \"holidayThemes\": null,\n    \"locations\":"
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:482)&currency=&pageNo=1&pageSize=10000",
+          "post": null
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/d732908c-c298-4cc4-813a-e67833688a52?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9",
+          "post": null
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=d732908c-c298-4cc4-813a-e67833688a52&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,",
+          "post": null
+        },
+        {
+          "kind": "req",
+          "method": "GET",
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Short_stay_offer.png",
+          "post": null
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/d732908c-c298-4cc4-813a-e67833688a52?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719",
+          "n": null,
+          "preview": "{\n  \"categories\": [\n    {\n      \"id\": \"ab4f2086-f06d-4dac-8b99-09eda5577c67\",\n      \"name\": \"Hôtel\",\n      \"count\": 20\n    },\n    {\n      \"id\": \"9e802064-0a21-4"
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:482)&currency=&pageNo=1&pageSize=10000",
+          "n": 898,
+          "preview": "{\n  \"data\": [\n    {\n      \"categories\": [\n        {\n          \"id\": \"ec3c8e0c-961c-4cfd-900e-1f2875acce63\",\n          \"name\": \"Location\",\n          \"order\": 8\n "
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=d732908c-c298-4cc4-813a-e67833688a52&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromP",
+          "n": 24,
+          "preview": "{\n  \"data\": [\n    {\n      \"id\": \"78715de6-1932-447e-bd4b-caac4d45c8bf\",\n      \"owner\": \"LACLUSAZ\",\n      \"location\": {\n        \"district\": \"Vallée des Aravis\",\n"
+        },
+        {
+          "kind": "res",
+          "status": 200,
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Short_stay_offer.png",
+          "n": null,
+          "preview": "�PNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0001\u0000\u0000\u0000\u0000�\b\u0006\u0000\u0000\u00006�S�\u0000\u0000\u0000\tpHYs\u0000\u0000\u000b\u0012\u0000\u0000\u000b\u0012\u0001��~�\u0000\u0000\u0000�eXIfII*\u0000\b\u0000\u0000\u0000\u0006\u0000\u0012\u0001\u0003\u0000\u0001\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u001a\u0001\u0005\u0000\u0001\u0000\u0000\u0000V\u0000\u0000\u0000\u001b\u0001\u0005\u0000\u0001\u0000\u0000\u0000^\u0000\u0000\u0000(\u0001\u0003\u0000\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0013\u0002\u0003\u0000\u0001\u0000\u0000\u0000\u0001\u0000\u0000\u0000i�\u0004\u0000\u0001\u0000\u0000\u0000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000/\u0019\u0001\u0000�\u0003\u0000\u0000/\u0019\u0001\u0000"
+        }
+      ],
+      "after": {
+        "arrivalVal": "ArrivéeUtilisez les flèches pour naviguer à travers les jours du calendrier.septembre 2026lumamejevesadi 1  2  3  4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30 octobre 2026lumamejevesadi 1  2  3  4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31 ",
+        "btnTexts": [
+          "S'enregistrer",
+          "Connexion",
+          "septembre 2026",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17"
+        ]
+      }
+    }
+  ]
+}

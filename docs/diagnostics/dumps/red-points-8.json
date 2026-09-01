@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-01T22:28Z",
+  "note": "Round 8 dump-proven. No parser.",
+  "angles": {
+    "integrationId": 1395,
+    "login": "les-angles",
+    "panier": "https://reservation.lesangles.com",
+    "widget": "Produit",
+    "ui": "OSMB-129086-1",
+    "nbProduitsTotal": 1,
+    "planning_cmax": 12,
+    "vueinfo": null,
+    "vueId": null
+  },
+  "clusaz": {
+    "shadow_host": "dw-app-container",
+    "arrival": "DW-DATEPICKER#arrival",
+    "departure": "#departure",
+    "click_day_changed_filters": false
+  },
+  "karellis": {
+    "ot": "https://www.karellis.com/ HTTP 200",
+    "booking_link": "https://www.karellis-reservation.com",
+    "booking_http": 403
+  }
+}

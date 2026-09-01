@@ -394,6 +394,8 @@ async function main(): Promise<void> {
   check('Tignes est Ingénie', !isKnownNonIngenie('reservation.tignes.net'))
   check('Chamonix est Orchestra', bookingFamilyOf('https://booking.chamonix.com/fr/') === 'orchestra')
   check('Alpe d’Huez est Ublo, pas Ingénie', bookingFamilyOf('reservation.alpedhuez.com') === 'ublo')
+  check('Valberg est Ublo, pas Ingénie', bookingFamilyOf('www.valberg.com') === 'ublo')
+  check('Écrins est Ublo (PDE)', bookingFamilyOf('www.paysdesecrins.com') === 'ublo')
   check('La Bresse est Open System', bookingFamilyOf('www.labresse.net') === 'opensystem')
   check('La Toussuire est Open System', bookingFamilyOf('reservation.la-toussuire.com') === 'opensystem')
   check('Sancy n’est pas Ingénie', bookingFamilyOf('www.sancy.com') === 'sancy')
@@ -545,6 +547,8 @@ async function main(): Promise<void> {
   check('Les 2 Alpes = ingenie', familyOfHost('reservation.les2alpes.com') === 'ingenie')
   check('Chamonix = ceto', familyOfHost('booking.chamonix.com') === 'ceto')
   check('Karellis = not_wired', familyOfHost('www.karellis.com') === 'not_wired')
+  check('Valberg = ublo (ids dumpés)', familyOfHost('www.valberg.com') === 'ublo')
+  check('Écrins = ublo (ids dumpés)', familyOfHost('www.paysdesecrins.com') === 'ublo')
   check(
     'sans URL officielle → no_official_url',
     emptyStationReason(undefined) === 'no_official_url'
@@ -552,6 +556,14 @@ async function main(): Promise<void> {
   check(
     'Karellis officiel → not_wired',
     emptyStationReason('https://www.karellis.com/') === 'not_wired'
+  )
+  check(
+    'Valberg officiel → delegated (ublo)',
+    emptyStationReason('https://www.valberg.com/sejourner/reserver-votre-sejour/') === 'delegated'
+  )
+  check(
+    'Écrins officiel → delegated (ublo)',
+    emptyStationReason('https://www.paysdesecrins.com/hebergements/') === 'delegated'
   )
   check(
     'Chamonix officiel → delegated (ceto)',

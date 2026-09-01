@@ -18,5 +18,7 @@ pages challenge Expedia. Ils restent locaux (`.gitignore` `*.html` ici).
 | `cozycozy_curl.html` | 200 | (vide) coquille SPA | non |
 | `cozycozy_p1.html` | 200 | (vide) joli-root, 0 carte | non |
 | `capture-report.json` | — | métadonnées | **oui** |
+| `msem-valberg-ecrins.json` | 200 | catalogue + offres MSEM (ids dumpés) | **oui** |
+| `capture-red-points-5.json` | — | round 5 (7 restantes) | **oui** |
 
 Voir `discovery_gites.md`, `discovery_vrbo.md` et `discovery_cozycozy.md`.

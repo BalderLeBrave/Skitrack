@@ -6,7 +6,7 @@
  */
 
 export interface UbloSite {
-  id: 'alpedhuez' | 'saintefoy' | 'sfl' | 'isola'
+  id: 'alpedhuez' | 'saintefoy' | 'sfl' | 'isola' | 'valberg' | 'ecrins'
   /** Hôte canonique (sans www si le site n’en sert pas). */
   host: string
   origin: string
@@ -76,6 +76,49 @@ const SITES: UbloSite[] = [
      * URL déjà enregistrées. Vérifié le 2026-08-26 : le widget réécrit sa
      * propre route au chargement, viser `#/lodgings` serait illusoire.
      */
+    pathPrefix: ''
+  },
+  /*
+   * Valberg — WordPress + widget MSEM, comme Isola. Ids relevés le 2026-09-01
+   * sur l'appel du widget, page `/sejourner/reserver-votre-sejour/` :
+   *
+   *   GET services.msem.tech/api/location/map-config?r=665
+   *     → {id:665, libelle:"Valberg-Beuil"}
+   *   GET services.msem.tech/api/lodging/resort/665/OT-665 → 40 logements
+   *   GET services.msem.tech/api/tunnel/offers/OT-665/665
+   *
+   * `channel` vaut `OT-665` (le motif OT-<resort> tient ici) — ce n'est pas
+   * une extrapolation : c'est l'URL que le widget a appelée. `/hebergements/{slug}`
+   * rend 404 ; page d'entrée dans `UBLO_ENTRY_ONLY`. Pas de parseur HTML.
+   */
+  {
+    id: 'valberg',
+    host: 'www.valberg.com',
+    origin: 'https://www.valberg.com',
+    channel: 'OT-665',
+    resort: 665,
+    lang: 'fr',
+    pathPrefix: ''
+  },
+  /*
+   * Pays des Écrins / Puy-Saint-Vincent — WordPress + plugin ws-msem.
+   * Ids relevés le 2026-09-01 sur `/hebergements/` :
+   *
+   *   GET services.msem.tech/api/location/map-config?r=30015
+   *     → {id:30015, libelle:"Pays des Ecrins"}
+   *   GET services.msem.tech/api/lodging/getLodgingChannelConfig/PDE
+   *   GET services.msem.tech/api/lodging/resort/30015/PDE → 186 logements
+   *
+   * `channel` vaut `PDE`, pas `OT-30015`. Même leçon qu'Isola : ne pas
+   * extrapoler OT-<resort>. `/hebergements/{slug}` rend 404.
+   */
+  {
+    id: 'ecrins',
+    host: 'www.paysdesecrins.com',
+    origin: 'https://www.paysdesecrins.com',
+    channel: 'PDE',
+    resort: 30015,
+    lang: 'fr',
     pathPrefix: ''
   }
 ]

@@ -79,11 +79,11 @@ VRBO, Gîtes de France, CozyCozy **ne sont pas** dans `CENTRALS`. Ils existent c
 | c52-reservation-orcieres-com | Orcières Merlette | reservation.orcieres.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Orcières Merlette | ingenie | checkIn, checkOut, guests, submit |  |
 | c53-www-risoul-com | Forêt Blanche : Vars/Risoul | www.risoul.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Forêt Blanche : Vars/Risoul | ingenie | stayType, checkIn, duration, guests, submit |  |
 | c54-www-alpes-sudlocations-com | Forêt Blanche : Vars/Risoul | www.alpes-sudlocations.com | NONE | — | — | — | no | Forêt Blanche : Vars/Risoul | not_wired | checkIn, duration, guests, submit |  |
-| c55-www-valberg-com | Valberg | www.valberg.com | NONE | — | — | — | no | Valberg | not_wired | ∅ | Formulaire SPA / non inspecté — contrôles vides |
+| c55-www-valberg-com | Valberg | www.valberg.com | src/main/providers/ublo/provider.ts | createUbloProvider.search | ublo/msem.ts | API MSEM coords | yes | Valberg | ublo | ∅ | WordPress + widget. Ids dumpés 2026-09-01 : resort 665 / OT-665 |
 | c56-reservation-lesorres-com | Les Orres | reservation.lesorres.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Les Orres | ingenie | checkIn, checkOut, guests, submit |  |
 | c57-reservation-montgenevre-com | Montgenèvre | reservation.montgenevre.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Montgenèvre | ingenie-heuristic | station, checkIn, checkOut, submit |  |
 | c58-reservation-montgenevre-com | Les Alberts | reservation.montgenevre.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Les Alberts | ingenie-heuristic | station, checkIn, checkOut, submit |  |
-| c59-www-paysdesecrins-com | Puy-Saint-Vincent | www.paysdesecrins.com | NONE | — | — | — | no | Puy-Saint-Vincent | not_wired | ∅ | Formulaire SPA / non inspecté — contrôles vides |
+| c59-www-paysdesecrins-com | Puy-Saint-Vincent | www.paysdesecrins.com | src/main/providers/ublo/provider.ts | createUbloProvider.search | ublo/msem.ts | API MSEM coords | yes | Puy-Saint-Vincent | ublo | ∅ | WordPress + ws-msem. Ids dumpés 2026-09-01 : resort 30015 / PDE |
 | c60-reservation-serre-chevalier-com | Serre-Chevalier | reservation.serre-chevalier.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Serre-Chevalier | ingenie | checkIn, checkOut, guests, submit |  |
 | c61-www-valdallos-com | Val d'Allos - La Foux | www.valdallos.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Val d'Allos - La Foux | ingenie | stayType, checkIn, duration, guests, submit |  |
 | c62-www-valdallos-com | Val d'Allos - Le Seignus | www.valdallos.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Val d'Allos - Le Seignus | ingenie | stayType, checkIn, duration, guests, submit |  |
@@ -106,26 +106,28 @@ VRBO, Gîtes de France, CozyCozy **ne sont pas** dans `CENTRALS`. Ils existent c
 | ingenie | 35 | `station-web` si officialUrl |
 | ingenie-heuristic | 3 | `shouldAttemptIngenie` (préfixe reservation.*) — Combloux, Montgenèvre, Les Alberts |
 | ceto | 14 | `ceto-*` si officialUrl (12 Plagne + Chamonix + Méribel) |
-| ublo | 4 | `ublo-msem` |
+| ublo | 6 | `ublo-msem` |
 | opensystem | 7 | `opensystem` |
 | ota-airbnb | 1 | IPC `airbnb:scrape`, **pas** `SearchEngine.register` |
 | ota-booking | 1 | `booking` + `booking-web` |
-| not_wired | 9 | silence ou lien seulement |
+| not_wired | 7 | silence ou lien seulement |
 
 ## not_wired — tickets concrets
 
 | station | host | fichier à créer | contrat |
 | --- | --- | --- | --- |
 | Les Karellis | www.karellis.com | `src/main/providers/karellis.ts` **après** discovery dump | `AccommodationProvider.search` ; 0 → reason_code |
-| Pralognan | www.reservationpralognan.fr | idem | idem |
-| La Clusaz | www.laclusaz.com | idem | SPA probable |
-| Vars (2e centrale) | www.alpes-sudlocations.com | idem | hors Ingénie |
-| Valberg | www.valberg.com | **pas de parseur** tant que `docs/diagnostics/discovery_valberg.md` n’existe pas | note CENTRALS : Formulaire SPA / non inspecté |
-| Puy-Saint-Vincent | www.paysdesecrins.com | idem | SPA |
-| Les Angles | lesangles.com | idem | SPA |
-| Super Besse + Mont Dore | www.sancy.com | idem | dates sans guests selector |
+| Pralognan | www.reservationpralognan.fr | idem | locvacances + ajax.req.4g.php MakeResults (cookie wall) |
+| La Clusaz | www.laclusaz.com | idem | Gardeners ski-widget + XHR Deskline addservices — pas de SERP lodging |
+| Vars (2e centrale) | www.alpes-sudlocations.com | idem | Elloha POST Search 0 résultat 8p fév. 2027 |
+| Les Angles | lesangles.com | idem | pages éditoriales ; classe CSS widget-os seulement |
+| Super Besse + Mont Dore | www.sancy.com | idem | OT éditorial, pas de moteur dumpé |
 
-**Interdit** : inventer un parseur pour ces 9 hôtes sans dump HAR/HTML.
+Valberg et Pays des Écrins **sortis du rouge** le 2026-09-01 : même connecteur
+`ublo-msem` qu’Isola, ids relevés sur l’XHR (`665/OT-665`, `30015/PDE`). Voir
+`docs/diagnostics/discovery_valberg.md` et `discovery_ecrins.md`.
+
+**Interdit** : inventer un parseur pour ces 7 hôtes sans dump HAR/HTML.
 
 ## Hôtes partagés
 

@@ -68,6 +68,15 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
    */
   'isola2000.com': 'ublo',
   'www.isola2000.com': 'ublo',
+  /*
+   * Valberg et Pays des Écrins : **Ublo / MSEM**, mesuré 2026-09-01 sur
+   * l'XHR du widget (`lodging/resort/665/OT-665`, `lodging/resort/30015/PDE`).
+   * La home WordPress ne dit pas le moteur ; l'API si.
+   */
+  'www.valberg.com': 'ublo',
+  'valberg.com': 'ublo',
+  'www.paysdesecrins.com': 'ublo',
+  'paysdesecrins.com': 'ublo',
   'www.alpes-sudlocations.com': 'elloha',
   /*
    * Ces deux hôtes portaient la famille `blocked` — c'est-à-dire un verdict

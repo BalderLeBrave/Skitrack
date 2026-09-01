@@ -99,6 +99,45 @@ check(
     'https://reservation.alpedhuez.com/hebergements/chalet-x'
 )
 
+console.log('\n6. Valberg et Écrins — WordPress + widget, ids dumpés 2026-09-01')
+check('Valberg est Ublo', bookingFamilyOf('www.valberg.com') === 'ublo')
+check('Écrins est Ublo', bookingFamilyOf('www.paysdesecrins.com') === 'ublo')
+check(
+  'Valberg a une page d’entrée, pas de fiche',
+  UBLO_ENTRY_ONLY['valberg.com'] === '/sejourner/reserver-votre-sejour/'
+)
+check('Écrins a une page d’entrée, pas de fiche', UBLO_ENTRY_ONLY['paysdesecrins.com'] === '/hebergements/')
+const valbergEntree = ubloEntryUrl(
+  'https://www.valberg.com',
+  UBLO_ENTRY_ONLY['valberg.com'],
+  'ancolies-8'
+)
+check(
+  'lien Valberg = page d’entrée + lodging',
+  valbergEntree === 'https://www.valberg.com/sejourner/reserver-votre-sejour/?lodging=ancolies-8',
+  valbergEntree
+)
+check(
+  'ancienne URL 404 Valberg ramenée sur l’entrée',
+  repairUbloListingUrl('https://www.valberg.com/hebergements/ancolies-8') === valbergEntree,
+  repairUbloListingUrl('https://www.valberg.com/hebergements/ancolies-8')
+)
+const ecrinsEntree = ubloEntryUrl(
+  'https://www.paysdesecrins.com',
+  UBLO_ENTRY_ONLY['paysdesecrins.com'],
+  'residence-dame-blanche'
+)
+check(
+  'lien Écrins = /hebergements/?lodging=',
+  ecrinsEntree === 'https://www.paysdesecrins.com/hebergements/?lodging=residence-dame-blanche',
+  ecrinsEntree
+)
+check(
+  'ancienne URL 404 Écrins ramenée sur l’entrée',
+  repairUbloListingUrl('https://www.paysdesecrins.com/hebergements/residence-dame-blanche') ===
+    ecrinsEntree
+)
+
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)
   process.exit(1)

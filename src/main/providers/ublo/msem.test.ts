@@ -22,6 +22,14 @@ const isola = ubloSiteOf('https://isola2000.com/reservez-votre-sejour/')
 assert(isola?.resort === 386 && isola.channel === 'ISOLA', 'Isola 2000')
 assert(ubloSiteOf('www.isola2000.com')?.channel === 'ISOLA', 'Isola avec www')
 
+// Valberg / Écrins : ids dumpés le 2026-09-01, même connecteur, pas un parseur.
+const valberg = ubloSiteOf('https://www.valberg.com/sejourner/reserver-votre-sejour/')
+assert(valberg?.resort === 665 && valberg.channel === 'OT-665', 'Valberg 665/OT-665')
+assert(ubloSiteOf('valberg.com')?.channel === 'OT-665', 'Valberg sans www')
+const ecrins = ubloSiteOf('https://www.paysdesecrins.com/hebergements/')
+assert(ecrins?.resort === 30015 && ecrins.channel === 'PDE', 'Écrins 30015/PDE — pas OT-30015')
+assert(ubloSiteOf('paysdesecrins.com')?.channel === 'PDE', 'Écrins sans www')
+
 // Isola ne publie pas de fiche par logement : le patron `/hebergements/{slug}`
 // des trois autres centrales y rendait une 404. Le lien mène à la page de la
 // centrale, sans critères accrochés — voir `UbloSite.fallbackPath`.
@@ -39,6 +47,17 @@ assert(
 )
 // Aucun critère de séjour accroché : le widget ne les lit pas.
 assert(!urlIsola.includes('from=') && !urlIsola.includes('adults='), `Isola sans critères — ${urlIsola}`)
+const urlValberg = lodgingUrl(valberg!, 'ancolies-8', '2027-02-13', '2027-02-20', 8, 0)
+assert(
+  urlValberg === 'https://www.valberg.com/sejourner/reserver-votre-sejour/?lodging=ancolies-8',
+  `Valberg sans fiche — ${urlValberg}`
+)
+assert(!urlValberg.includes('from='), `Valberg sans critères — ${urlValberg}`)
+const urlEcrins = lodgingUrl(ecrins!, 'residence-dame-blanche-dba-127', '2027-02-13', '2027-02-20', 8, 0)
+assert(
+  urlEcrins === 'https://www.paysdesecrins.com/hebergements/?lodging=residence-dame-blanche-dba-127',
+  `Écrins sans fiche — ${urlEcrins}`
+)
 const urlAdh = lodgingUrl(site!, 'un-slug', '2027-02-06', '2027-02-13', 2, 0)
 assert(urlAdh.includes('/hebergements/un-slug') && urlAdh.includes('from=2027-02-06'), `Alpe d’Huez garde sa fiche — ${urlAdh}`)
 assert(ubloSiteOf('reservation.les2alpes.com') == null, '2 Alpes n’est pas Ublo')

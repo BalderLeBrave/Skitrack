@@ -1,5 +1,6 @@
 /**
- * Connecteur Ublo / MSEM — Alpe d’Huez, Sainte-Foy, Saint-François-Longchamp.
+ * Connecteur Ublo / MSEM — Alpe d’Huez, Sainte-Foy, Saint-François-Longchamp,
+ * Isola 2000, Valberg, Pays des Écrins.
  *
  * Prix séjour daté (pas un « à partir de ») : POST offers MSEM.
  */

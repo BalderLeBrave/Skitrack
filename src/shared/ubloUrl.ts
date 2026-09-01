@@ -32,7 +32,13 @@ export const UBLO_LISTING_SEGMENT = 'hebergements'
  * forme. C'est la même raison d'être que le reste de ce fichier.
  */
 export const UBLO_ENTRY_ONLY: Record<string, string> = {
-  'isola2000.com': '/reservez-votre-sejour/'
+  'isola2000.com': '/reservez-votre-sejour/',
+  /*
+   * Valberg et Écrins : WordPress + widget, `/hebergements/{slug}` = 404
+   * (mesuré 2026-09-01). Même contrat qu'Isola.
+   */
+  'valberg.com': '/sejourner/reserver-votre-sejour/',
+  'paysdesecrins.com': '/hebergements/'
 }
 
 /**

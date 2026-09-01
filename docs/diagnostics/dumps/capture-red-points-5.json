@@ -1,0 +1,362 @@
+{
+  "at": "2026-09-01T21:10:04.847Z",
+  "round": 5,
+  "items": [
+    {
+      "id": "pralognan_resultats",
+      "url": "https://www.reservationpralognan.fr/reservation/resultats/",
+      "xhr": [
+        {
+          "url": "https://www.reservationpralognan.fr/reservation/resultats/",
+          "status": 200,
+          "body": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n\t\t<meta charset=\"utf-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\t<title>Pralognan la Vanoise : locations et réservations d'appartements</title>\n\t<met"
+        },
+        {
+          "url": "https://matomo.2lagence.fr/matomo.php?action_name=Pralognan%20la%20Vanoise%20%3A%20locations%20et%20r%C3%A9servations%20d%27appartements&idsite=3&rec=1&r=780198&h=23&m=10&s=6&url=https%3A%2F%2Fwww.reservationpralognan.fr%2Freservation%2Fres",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "body": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i>  Résultats</a></div>"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "body": "list"
+        }
+      ],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 1,
+        "recaptcha": 1
+      },
+      "title": "Pralognan la Vanoise : locations et réservations d'appartements",
+      "http": 200,
+      "finalUrl": "https://www.reservationpralognan.fr/reservation/resultats/",
+      "error": null,
+      "htmlBytes": 202962,
+      "links": [
+        "https://www.reservationpralognan.fr/",
+        "https://www.reservationpralognan.fr/reservation/resultats/#",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FCustomer",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FOwner",
+        "https://www.reservationpralognan.fr/8/contact/",
+        "https://www.reservationpralognan.com/reservation/resultats/",
+        "https://www.reservationpralognan.fr/reservation/resultats/",
+        "https://www.reservationpralognan.fr/location/catalogue/",
+        "https://www.reservationpralognan.fr/3-1/pralognan-la-vanoise/pralognan-l-ete/",
+        "https://www.reservationpralognan.fr/3-2/pralognan-la-vanoise/pralognan-l-hiver/",
+        "https://www.reservationpralognan.fr/location/promotions/",
+        "https://www.reservationpralognan.fr/location/court-sejours/",
+        "https://www.reservationpralognan.fr/location/evenements/",
+        "https://www.reservationpralognan.fr/5-1/qui-sommes-nous/qui-sommes-nous/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Continuer sans accepter →\n\nNous utilisons des cookies pour améliorer votre expérience sur notre site, vous proposer du contenu ou des publicités adaptés sur les sites internet que vous visitez, et réaliser des statistiques de navigation. Cliquez sur le bouton pour donner votre consentement à ces opérations et profiter d'une expérience personnalisée. Vous pouvez modifier vos préférences à tout moment en revenant sur ce site.\nAvec votre accord, nous et nos 3 partenaires utilisons des cookies ou technologies similaires pour stocker, consulter et traiter des données personnelles telles que votre visite sur ce site internet, les adresses IP et les identifiants de cookie. Certains partenaires ne d"
+    },
+    {
+      "id": "pralognan_catalogue",
+      "url": "https://www.reservationpralognan.fr/location/catalogue/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 1,
+        "recaptcha": 1
+      },
+      "title": "Pralognan la Vanoise : locations et réservations d'appartements",
+      "http": 200,
+      "finalUrl": "https://www.reservationpralognan.fr/location/catalogue/",
+      "error": null,
+      "htmlBytes": 165956,
+      "links": [
+        "https://www.reservationpralognan.fr/",
+        "https://www.reservationpralognan.fr/location/catalogue/#",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FCustomer",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FOwner",
+        "https://www.reservationpralognan.fr/8/contact/",
+        "https://www.reservationpralognan.com/location/catalogue/",
+        "https://www.reservationpralognan.fr/reservation/resultats/",
+        "https://www.reservationpralognan.fr/location/catalogue/",
+        "https://www.reservationpralognan.fr/3-1/pralognan-la-vanoise/pralognan-l-ete/",
+        "https://www.reservationpralognan.fr/3-2/pralognan-la-vanoise/pralognan-l-hiver/",
+        "https://www.reservationpralognan.fr/location/promotions/",
+        "https://www.reservationpralognan.fr/location/court-sejours/",
+        "https://www.reservationpralognan.fr/location/evenements/",
+        "https://www.reservationpralognan.fr/5-1/qui-sommes-nous/qui-sommes-nous/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Continuer sans accepter →\n\nNous utilisons des cookies pour améliorer votre expérience sur notre site, vous proposer du contenu ou des publicités adaptés sur les sites internet que vous visitez, et réaliser des statistiques de navigation. Cliquez sur le bouton pour donner votre consentement à ces opérations et profiter d'une expérience personnalisée. Vous pouvez modifier vos préférences à tout moment en revenant sur ce site.\nAvec votre accord, nous et nos 3 partenaires utilisons des cookies ou technologies similaires pour stocker, consulter et traiter des données personnelles telles que votre visite sur ce site internet, les adresses IP et les identifiants de cookie. Certains partenaires ne d"
+    },
+    {
+      "id": "sancy_agences",
+      "url": "https://www.sancy.com/hebergement/agences-de-location/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 0,
+        "recaptcha": 0
+      },
+      "title": "Agences immobilières et agences de locations dans le Massif du Sancy.",
+      "http": 200,
+      "finalUrl": "https://www.sancy.com/hebergement/agences-de-location/",
+      "error": null,
+      "htmlBytes": 287723,
+      "links": [
+        "https://www.sancy.com/hebergement/agences-de-location/#lae-rgpd-pop",
+        "https://www.sancy.com/hebergement/agences-de-location/#main",
+        "https://www.sancy.com/hebergement/agences-de-location/#main-menu",
+        "https://www.sancy.com/hebergement/agences-de-location/#main-footer",
+        "https://www.sancy.com/decouvrir/panoramas-sites-naturels/reserves-naturelles/",
+        "https://www.sancy.com/hebergement/hotels/",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/",
+        "https://www.sancy.com/hebergement/chambres-hotes/",
+        "https://www.sancy.com/hebergement/campings/",
+        "https://www.sancy.com/hebergement/aires-camping-cars/",
+        "https://www.sancy.com/hebergement/villages-vacances/",
+        "https://www.sancy.com/hebergement/residences-tourisme-villages-gites/",
+        "https://www.sancy.com/hebergement/gites-etape-gite-groupe/",
+        "https://www.sancy.com/groupes/hebergements/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Panneau de gestion des cookies\nNous respectons votre vie privée !\n\nLes cookies nous sont très utiles pour améliorer votre expérience de navigation, analyser et mesurer votre engagement avec nos contenus.\n\nPolitique de confidentialité\n\nTout refuser\nPersonnaliser\nTout accepter\nAller au bandeau consentement cookies\nAller au contenu principal\nAller au menu\nAller au pied de page\n\nBilletterie\nEn direct\nLe blog\nDÉCOUVRIR\nA VOIR, À FAIRE\nSE RÉGALER\nAGENDA\nHÉBERGEMENT\nPRATIQUE\n0\nFAVORIS\nACCUEIL\nHÉBERGEMENT\nAgences de location\n\nBesoin d'écoute et d'un service personnalisé pour trouver votre location de vacances ? Faites appel aux agences de location du Massif du Sancy.\n\nAller aux résultats\nMOTS-CLÉS\nC"
+    },
+    {
+      "id": "sancy_gites",
+      "url": "https://www.sancy.com/hebergement/gites-locations-vacances/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 0,
+        "recaptcha": 0
+      },
+      "title": "Gîtes en Auvergne : location de gîtes près du Puy de Sancy",
+      "http": 200,
+      "finalUrl": "https://www.sancy.com/hebergement/gites-locations-vacances/",
+      "error": null,
+      "htmlBytes": 712468,
+      "links": [
+        "https://www.sancy.com/hebergement/gites-locations-vacances/#lae-rgpd-pop",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/#main",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/#main-menu",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/#main-footer",
+        "https://www.sancy.com/decouvrir/panoramas-sites-naturels/reserves-naturelles/",
+        "https://www.sancy.com/hebergement/hotels/",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/",
+        "https://www.sancy.com/hebergement/chambres-hotes/",
+        "https://www.sancy.com/hebergement/campings/",
+        "https://www.sancy.com/hebergement/aires-camping-cars/",
+        "https://www.sancy.com/hebergement/villages-vacances/",
+        "https://www.sancy.com/hebergement/residences-tourisme-villages-gites/",
+        "https://www.sancy.com/hebergement/gites-etape-gite-groupe/",
+        "https://www.sancy.com/groupes/hebergements/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Panneau de gestion des cookies\nNous respectons votre vie privée !\n\nLes cookies nous sont très utiles pour améliorer votre expérience de navigation, analyser et mesurer votre engagement avec nos contenus.\n\nPolitique de confidentialité\n\nTout refuser\nPersonnaliser\nTout accepter\nAller au bandeau consentement cookies\nAller au contenu principal\nAller au menu\nAller au pied de page\n\nBilletterie\nEn direct\nLe blog\nDÉCOUVRIR\nA VOIR, À FAIRE\nSE RÉGALER\nAGENDA\nHÉBERGEMENT\nPRATIQUE\n0\nFAVORIS\nACCUEIL\nHÉBERGEMENT\nGîtes Puy de Sancy : gîtes et locations de vacances en Auvergne\n\nPour une escapade ressourçante au milieu des volcans, réservez un gîte près du Puy de Sancy : nous avons sélectionné des locations s"
+    },
+    {
+      "id": "angles_tous",
+      "url": "https://lesangles.com/tous-les-hebergements/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 1,
+        "gardeners": 0,
+        "locvacances": 0,
+        "recaptcha": 0
+      },
+      "title": "Tous les hébergements - Les Angles",
+      "http": 200,
+      "finalUrl": "https://lesangles.com/tous-les-hebergements/",
+      "error": null,
+      "htmlBytes": 429383,
+      "links": [
+        "https://lesangles.com/tous-les-hebergements/",
+        "https://lesangles.com/hebergement/refuge-cal-chalon/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-chalet/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-la-ferme/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-cabanat/",
+        "https://lesangles.com/hebergement/cottage-des-pleiades/",
+        "https://lesangles.com/hebergement/anthemis-ii/",
+        "https://lesangles.com/hebergement/famille-bigot/",
+        "https://lesangles.com/hebergement/le-petit-relais/",
+        "https://lesangles.com/hebergement/verges-christophe/",
+        "https://lesangles.com/hebergement/chalet-cosy/",
+        "https://lesangles.com/hebergement/chalet-pin-dur/",
+        "https://lesangles.com/hebergement/au-lodge-de-balcere-chalet-cosy-spa-et-sauna-privatifs-aux-angles/",
+        "https://lesangles.com/ca/tous-les-hebergements/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Salut c'est nous...\nles Cookies !\nOn a attendu d'être sûrs que le contenu de ce site vous intéresse avant de vous déranger, mais on aimerait bien vous accompagner pendant votre visite...\nC'est OK pour vous ?\n\nPour modifier vos préférences par la suite, cliquez sur le lien 'Préférences de cookies' situé dans le pied de page.\n\nConsentements certifiés par\nNon merci\nJe choisis\nOK pour moi\nAxeptio consent\n\nPlateforme de Gestion du Consentement : Personnalisez vos Options\n\nNotre plateforme vous permet d'adapter et de gérer vos paramètres de confidentialité, en garantissant la conformité avec les réglementations. Personnalisez vos préférences pour contrôler la manière dont vos informations sont man"
+    },
+    {
+      "id": "clusaz_reservation",
+      "url": "https://www.laclusaz.com/reservation/",
+      "xhr": [
+        {
+          "url": "https://www.laclusaz.com/app/plugins/gardeners-e-liberty/src/ski-widget.js?ver=1.0",
+          "status": 200,
+          "body": "jQuery(document).ready(function ($) {\n    // Récupérer la langue actuelle\n    var currentLocale = $('#ski-locale').val() || 'fr';\n\n    // Map language codes to Flatpickr locale names and date formats\n    var langMapping "
+        },
+        {
+          "url": "https://www.laclusaz.com/app/plugins/gardeners-numbirds/assets/js/numbirds-newsletter.js",
+          "status": 200,
+          "body": "document.addEventListener('DOMContentLoaded', function () {\n    const form = document.getElementById('numbirds-newsletter-form');\n    const responseDiv = document.getElementById('numbirds-newsletter-response');\n    const"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/addservices/filterresults?fields=types{id,name,count},holidayThemes{id,name,count},locations(locTypes:[3]){id,name,count},guestCards{id,name,count,type,typeId,iconUrl,webLink},classifications{id,name,",
+          "status": 200,
+          "body": "{\n  \"types\": [\n    {\n      \"id\": \"47db4f0f-4f4c-4bd3-a3c4-eadbc991b117\",\n      \"name\": \"Location matériel\",\n      \"count\": 28\n    },\n    {\n      \"id\": \"03e9dac3-525e-46e5-99ca-14f24c867119\",\n      \"name\": \"Forfaits\",\n   "
+        }
+      ],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 1,
+        "locvacances": 0,
+        "recaptcha": 1
+      },
+      "title": "Hébergements à La Clusaz | Séjours et Locations de Vacances",
+      "http": 200,
+      "finalUrl": "https://www.laclusaz.com/reservation/",
+      "error": null,
+      "htmlBytes": 146585,
+      "links": [
+        "https://www.laclusaz.com/reservation/pois#primary",
+        "https://www.laclusaz.com/reservation/hebergements",
+        "https://www.laclusaz.com/reservation/pois#",
+        "https://www.laclusaz.com/en/booking/accomodations/",
+        "https://www.laclusaz.com/reservation/bon-plan-fevrier/hebergements",
+        "https://www.laclusaz.com/reservation/offre-early-booking/hebergements",
+        "https://www.laclusaz.com/reservation/offre-sejour-un-noel-magique/hebergements",
+        "https://www.laclusaz.com/reservation/offre-evasion/hebergements",
+        "https://www.laclusaz.com/reservation/pois#D%C3%A9cidez%20comment%20Google%20utilise%20vos%20donn%C3%A9es",
+        "https://www.laclusaz.com/reservation/pois#Statistiques%20et%20audience",
+        "https://www.laclusaz.com/reservation/pois#Marketing",
+        "https://www.laclusaz.com/reservation/experiences",
+        "https://www.laclusaz.com/reservation/Locationmateriel",
+        "https://www.laclusaz.com/reservation/Coursdeski"
+      ],
+      "iframes": [
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVzYXouY29tOjQ0Mw..&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=5cl6iofsces5",
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVzYXouY29tOjQ0Mw..&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=osqdmbyvpg8v"
+      ],
+      "bodyPreview": "live\nPISTES\n0\n/\n0\nREMONTÉES\n0\n/\n0\nMÉTÉO\nMatin\n10°C\nAprès-midi\n17°C\nINFO ROUTES\nLa Clusaz\nVOIR LES WEBCAMS\nBULLETIN DÉTAILLÉ\nAU MENU\nLIVE\nSkip to content\nLE VILLAGE\nSKI\nVTT\nACTIVITÉS\nAGENDA\nLE MAG\nBOUTIQUE\nRÉSERVER MON SÉJOUR\nACHETER MON FORFAIT\nLIVE\nRechercher :\nFR\nAccueil  Réservation\nPrevious\nNext\nVOTRE HÉBERGEMENT À LA CLUSAZ\n\nRéservez dès maintenant votre hébergement à La Clusaz parmi une large sélection de chalets, appartements et hôtels.\n\nProfitez de vacances inoubliables dans un cadre montagnard authentique avec des activités variées toute l’année. Nos conseillères en séjours sont à votre disposition pour vous aider à planifier votre séjour.\n\nNewsletter\nChaque mois, recevez tous les b"
+    },
+    {
+      "id": "karellis_resa",
+      "url": "https://www.karellis-reservation.com/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 0,
+        "recaptcha": 0
+      },
+      "title": "Just a moment...",
+      "http": 403,
+      "finalUrl": "https://www.karellis-reservation.com/?__cf_chl_rt_tk=CettK4qjBkr7cCPv29FKHB8FYAYoI2iiTSMa8vaxgzw-1788297074-1.0.1.1-EqQObZv3ViJobZ8CCGHkzsJlXWtxQFXZMaoD7CTAR4c",
+      "error": null,
+      "htmlBytes": 27516,
+      "links": [],
+      "iframes": [],
+      "bodyPreview": "www.karellis-reservation.com\nVérification de sécurité en cours\n\nCe site utilise un service de sécurité pour se protéger contre les bots malveillants. Cette page s’affiche pendant que le site vérifie que vous n’êtes pas un bot.\n\nRay ID: a34744445f73811f\nPerformances et sécurité par Cloudflare\nConfidentialité"
+    },
+    {
+      "id": "superbesse_hiver",
+      "url": "https://superbesse.com/hiver/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 0,
+        "recaptcha": 1
+      },
+      "title": "Super-Besse | Station de ski multi-activités en toutes saisons",
+      "http": 200,
+      "finalUrl": "https://superbesse.com/accueil-ete/",
+      "error": null,
+      "htmlBytes": 3479969,
+      "links": [],
+      "iframes": [
+        "about:blank",
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LfFU-kqAAAAAL5m6_5x__sBjTmundzH_-X24UQg&co=aHR0cHM6Ly9zdXBlcmJlc3NlLmNvbTo0NDM.&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=6s0xp4chnyzd"
+      ],
+      "bodyPreview": "LA STATION EN HIVER\nLA STATION\nLE DOMAINE\nACTIVITÉS\nANIMATIONS ET ÉVÉNEMENTS\nMON COMPTE\nPRO / CSE / GROUPE\nWebcam\nMétéo\nPlan VTT\nPlan randonnée\nACHETER MON FORFAIT\nSANCY FM\nLecteur vidéo\nSuper-Besse\nStation de ski\nmulti-activités\nBienvenue !\n\n \n\nVous êtes sur la version « été » de notre site.\n\nSaison hivernale : pour parcourir les différentes activités de décembre à mars, veuillez basculer sur le mode « hiver ».\n\nSaison estivale 2026 : pour parcourir les différentes activités d’avril à novembre 2026, vous êtes au bon endroit.\n\nAu plaisir de vous accueillir à Super-Besse !\n\n \n\nOn recrute pour la saison d’été !\n\nVous voulez travailler à Super-Besse ?\n\nFaites partie de l’aventure où plus de 60 "
+    },
+    {
+      "id": "mont_dore_home",
+      "url": "https://www.sancy.com/stations/le-mont-dore/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 0,
+        "recaptcha": 0
+      },
+      "title": "Office de Tourisme du Mont-Dore en Auvergne, Tourisme au Mont-Dore, Météo au Mont-Dore",
+      "http": 200,
+      "finalUrl": "https://www.sancy.com/decouvrir/toutes-les-communes/le-mont-dore/",
+      "error": null,
+      "htmlBytes": 277892,
+      "links": [
+        "https://www.sancy.com/decouvrir/panoramas-sites-naturels/reserves-naturelles/",
+        "https://www.sancy.com/hebergement/hotels/",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/",
+        "https://www.sancy.com/hebergement/chambres-hotes/",
+        "https://www.sancy.com/hebergement/campings/",
+        "https://www.sancy.com/hebergement/aires-camping-cars/",
+        "https://www.sancy.com/hebergement/villages-vacances/",
+        "https://www.sancy.com/hebergement/residences-tourisme-villages-gites/",
+        "https://www.sancy.com/hebergement/gites-etape-gite-groupe/",
+        "https://www.sancy.com/groupes/hebergements/",
+        "https://www.sancy.com/hebergement/agences-de-location/",
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/",
+        "https://www.sancy.com/famille-plus/hebergements-famille-plus/",
+        "https://www.sancy.com/tourisme-et-handicap/lieux-accessibles/hebergements-tourisme-adapte/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Panneau de gestion des cookies\nNous respectons votre vie privée !\n\nLes cookies nous sont très utiles pour améliorer votre expérience de navigation, analyser et mesurer votre engagement avec nos contenus.\n\nPolitique de confidentialité\n\nTout refuser\nPersonnaliser\nTout accepter\nAller au bandeau consentement cookies\nAller au contenu principal\nAller au menu\nAller au pied de page\n\nBilletterie\nEn direct\nLe blog\nDÉCOUVRIR\nA VOIR, À FAIRE\nSE RÉGALER\nAGENDA\nHÉBERGEMENT\nPRATIQUE\n0\nFAVORIS\nACCUEIL\nDÉCOUVRIR LE SANCY\nTOUTES LES COMMUNES\nLe Mont-Dore\nLe Mont-Dore\nHébergements au Mont-Dore\nRestaurants au Mont-Dore\nA voir, à faire au Mont-Dore\nCommerces et Services au Mont-Dore\nAgenda au Mont-Dore\nWebcams M"
+    },
+    {
+      "id": "besse_loueurs",
+      "url": "https://www.locations-besse-superbesse.com/",
+      "xhr": [],
+      "markers": {},
+      "title": "",
+      "http": null,
+      "finalUrl": "",
+      "error": "Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.locations-besse-superbesse.com/\nCall log:\n  - navigating to \"https://www.locations-besse-superbesse.com/\", waiting until \"domcontentloaded\"\n"
+    }
+  ]
+}

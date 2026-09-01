@@ -22,6 +22,8 @@ check('La Plagne = orchestra', bookingFamilyOf('www.laplagneresort.com') === 'or
 check('Alpe d’Huez = ublo', bookingFamilyOf('reservation.alpedhuez.com') === 'ublo')
 check('Sainte-Foy = ublo', bookingFamilyOf('www.saintefoy-reservation.com') === 'ublo')
 check('Saint-François = ublo (MSEM)', bookingFamilyOf('reservation.saintfrancoislongchamp.com') === 'ublo')
+check('Valberg = ublo (MSEM dump 2026-09-01)', bookingFamilyOf('www.valberg.com') === 'ublo')
+check('Écrins = ublo (PDE, pas OT-n)', bookingFamilyOf('www.paysdesecrins.com') === 'ublo')
 check('La Bresse = opensystem', bookingFamilyOf('www.labresse.net') === 'opensystem')
 check('Toussuire = opensystem', bookingFamilyOf('https://reservation.la-toussuire.com/') === 'opensystem')
 check('Dévoluy = opensystem', bookingFamilyOf('reservation.ledevoluy.com') === 'opensystem')

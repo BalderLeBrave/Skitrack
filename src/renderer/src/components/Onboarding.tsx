@@ -119,7 +119,7 @@ export function Onboarding(): JSX.Element {
 
         <div className="filters__pair filters__pair--wide">
           <div>
-            <p className="sheet__label">{t('nav_travelers')}</p>
+            <p className="sheet__label">{t('lodg_travelers_field')}</p>
             {/* Mêmes bornes qu'ailleurs, et pour cause : elles vivent
                 maintenant dans `data/partyLimits.ts`. Recopiées ici et dans
                 `LodgingFilters`, elles valaient 12 et 6 et personne ne pouvait
@@ -128,7 +128,7 @@ export function Onboarding(): JSX.Element {
               value={state.travelers}
               min={PARTY_LIMITS.travelers.min}
               max={PARTY_LIMITS.travelers.max}
-              label={t('nav_travelers')}
+              label={t('lodg_travelers_field')}
               onChange={(n) =>
                 patch({ travelers: n, children: Math.min(state.children, n - 1) })
               }
@@ -146,6 +146,7 @@ export function Onboarding(): JSX.Element {
             />
           </div>
         </div>
+        <p className="filters__help">{t('lodg_party_floor_help')}</p>
 
         <div>
           <p className="sheet__label">Station</p>

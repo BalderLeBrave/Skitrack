@@ -566,6 +566,7 @@ const CATALOG = {
   scan_searching_lodgings: ['Recherche de logements à', 'Searching stays in'],
   scan_offers_found: ['offres connues', 'offers known'],
   scan_travelers: ['voyageur(s)', 'traveller(s)'],
+  scan_travelers_min: ['voyageur(s) minimum', 'traveller(s) minimum'],
   scan_rooms_min: ['chambre(s) minimum', 'room(s) minimum'],
   scan_src_querying: ['interrogation…', 'querying…'],
   // Dire « en attente » laisserait croire que la source sera interrogée ensuite.
@@ -1505,6 +1506,11 @@ const CATALOG = {
    */
   stay_nights_count: ['{n} nuit(s)', '{n} night(s)'],
   lodg_rooms_field: ['Chambres min', 'Min. bedrooms'],
+  lodg_travelers_field: ['Voyageurs min', 'Min. guests'],
+  lodg_party_floor_help: [
+    'Personnes et chambres sont un plancher. Un gîte 14 pers / 7 chb est proposé pour 8 pers / 4 chb ; un 6 pers / 3 chb est écarté. Pas de plafond de capacité.',
+    'Guests and bedrooms are a floor. A 14-guest / 7-bedroom gîte is shown for 8 guests / 4 bedrooms; a 6-guest / 3-bedroom listing is dropped. No capacity ceiling.',
+  ],
   kids_count_label: ['dont enfants (moins de 13 ans)', 'of which children (under 13)'],
   lodg_free_cancel: ['Annulation gratuite uniquement', 'Free cancellation only'],
   /*

@@ -538,6 +538,37 @@ check(
   keeps({ pers: 4, ch: 2, total: 1400, availabilityStatus: 'available' }, STRICT_PARTY)
 )
 
+console.log('\n12 bis. Plancher, pas un match exact — 8p/4chb')
+const demand84 = { guests: 8, bedrooms: 4, datesSet: true }
+check(
+  '8p/4chb, gîte 14 pers 7 ch → retenu',
+  matchesDemand(lodging({ pers: 14, ch: 7, total: 3200, availabilityStatus: 'available' }), demand84)
+)
+check(
+  '8p/4chb, 8 pers 4 ch → retenu (plancher atteint)',
+  matchesDemand(lodging({ pers: 8, ch: 4, total: 2400, availabilityStatus: 'available' }), demand84)
+)
+check(
+  '8p/4chb, 16 pers 8 ch → retenu',
+  matchesDemand(lodging({ pers: 16, ch: 8, total: 4800, availabilityStatus: 'available' }), demand84)
+)
+check(
+  '8p/4chb, 7 pers 4 ch → trop petit',
+  !matchesDemand(lodging({ pers: 7, ch: 4, total: 1800, availabilityStatus: 'available' }), demand84)
+)
+check(
+  '8p/4chb, 8 pers 3 ch → trop petit',
+  !matchesDemand(lodging({ pers: 8, ch: 3, total: 1800, availabilityStatus: 'available' }), demand84)
+)
+check(
+  '8p/4chb, 6 pers 3 ch → trop petit',
+  !matchesDemand(lodging({ pers: 6, ch: 3, total: 1400, availabilityStatus: 'available' }), demand84)
+)
+check(
+  'partyVerdict 14/7 convient pour 8/4',
+  partyVerdict(annonce({ pers: 14, ch: 7 }), PARTY) === 'convient'
+)
+
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)
   process.exit(1)

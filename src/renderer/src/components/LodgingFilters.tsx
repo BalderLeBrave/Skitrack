@@ -126,7 +126,7 @@ export function LodgingFilters(): JSX.Element {
         <div className="filters__pair">
           <div>
             <span className="filters__help" style={{ margin: 0 }}>
-              {t('nav_travelers')}
+              {t('lodg_travelers_field')}
             </span>
             {/* Le nombre d'enfants suit le groupe : réduire les voyageurs ne
                 doit jamais laisser plus d'enfants que de personnes. */}
@@ -134,7 +134,7 @@ export function LodgingFilters(): JSX.Element {
               value={state.travelers}
               min={PARTY_LIMITS.travelers.min}
               max={PARTY_LIMITS.travelers.max}
-              label={t('nav_travelers')}
+              label={t('lodg_travelers_field')}
               onChange={(n) =>
                 patch({ travelers: n, children: Math.min(state.children, n - 1) })
               }
@@ -154,6 +154,7 @@ export function LodgingFilters(): JSX.Element {
             />
           </div>
         </div>
+        <p className="filters__help">{t('lodg_party_floor_help')}</p>
 
         <div style={{ marginTop: 6 }}>
           <span className="filters__help" style={{ margin: 0 }}>

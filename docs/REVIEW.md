@@ -31,3 +31,22 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 6. `ttl_availability` 6 h : appliqué sur `scannedAt` dans `availabilityOf`. Pas de cache dispo Electron séparé.
 7. Typecheck `src/main/**/*.test.ts` exclu du `tsconfig.node.json` (déjà le cas).
 8. Inventaire 2 Alpes 13–20 fév. 2027 : **non chiffré** — VRBO bloqué, Gîtes non résolu, CozyCozy SPA non lancée, centrale Ingénie homepage sans datepicker monté.
+
+## Plancher personnes / chambres (2026-09-01)
+
+`matchesDemand` / `partyVerdict` comparaient déjà en `<` (plancher). Le défaut n’était pas le prédicat : c’était le **contrat UI**.
+
+- Libellé « Voyageurs » sans « min » alors que « Chambres min » existait.
+- Aucune puce « N voyageur(s) minimum ».
+- Corpus et titres collés à 8 pers / 4 chb : un 14/7 n’apparaissait pas, donc le filtre **paraissait exact**.
+
+Correctifs : `lodg_travelers_field`, `lodg_party_floor_help`, puce voyageurs, tests §12 bis (14/7 retenu, 7/4 et 8/3 écartés).
+
+## Critique
+
+1. **Fixture ≠ live.** CozyCozy 9 cartes et Gîtes 8 dans l’aperçu sont un corpus interne. Live : SPA 0 carte / Drupal destination vide. Un zéro live n’est pas un succès.
+2. **CozyCozy est un méta-moteur.** Même une SERP live dupliquerait Airbnb/Booking/VRBO. Le garder comme source a un coût anti-bot pour un inventaire non original.
+3. **Booking ne transmet pas le plancher chambres** (`no_rooms=1` = unités). Le 4 chb min n’est appliqué qu’en aval : on ramène trop de 2 pièces pour les jeter.
+4. **PARTY_LIMITS 20 / 9** borne l’UI, pas le prédicat. Un gîte 24 pers ne peut pas s’exprimer comme *demande*, mais passerait le filtre si relevé.
+5. **`includeUnannounced`** (défaut off) reste le vrai trou : beaucoup d’OTA n’écrivent pas les chambres. Strict = liste courte ; relâché = studios.
+

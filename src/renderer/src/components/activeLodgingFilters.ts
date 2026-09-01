@@ -76,6 +76,13 @@ export function useActiveLodgingFilters(): {
   // Plus de puce « Disponibilité confirmée uniquement » : la réservabilité
   // n'est plus un filtre qu'on relâche, c'est une règle de l'écran. Une puce
   // avec une croix promettait de la lever.
+  if (state.travelers > 1) {
+    add(
+      'travelers',
+      `${state.travelers} ${t('scan_travelers_min')}`,
+      { travelers: 1, children: Math.min(state.children, 0) }
+    )
+  }
   if (state.rooms > 0) {
     add('rooms', `${state.rooms} ${t('scan_rooms_min')}`, { rooms: 0 })
   }

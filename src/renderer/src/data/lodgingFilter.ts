@@ -172,6 +172,9 @@ export function isStudioListing(listing: Lodging): boolean {
  * `null` ne passe plus. Un studio ne passe que si la demande est ≤ 1 chambre
  * et que la capacité tient. Intégré dans `matchesLodgingFilters` (chemin UI),
  * pas une fonction orpheline.
+ *
+ * Personnes et chambres sont un **plancher**. Demande 8 pers / 4 chb :
+ * un gîte 14 pers / 7 chb passe ; un 6 pers / 3 chb est écarté. Pas de plafond.
  */
 export function matchesDemand(listing: Lodging, demand: Demand): boolean {
   const guest_capacity_max = listing.pers > 0 ? listing.pers : null

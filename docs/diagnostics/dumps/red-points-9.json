@@ -1,0 +1,27 @@
+{
+  "at": "2026-09-01T22:51Z",
+  "note": "Round 9 dump-proven. No parser.",
+  "sancy": {
+    "url": "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/?id1[d]=~2027-02-13~2027-02-20&id1[prestation]=resa",
+    "counter": "142 résultats",
+    "widget": "lae-diffusio",
+    "card": ".list-item-TFO2809643",
+    "card_capacity": 8,
+    "card_bedrooms": null,
+    "card_price": null,
+    "fiche": {
+      "id": "TFO2809643",
+      "pers": 8,
+      "chambres": 3,
+      "price": "Semaine : de 770 à 2 000 €"
+    }
+  },
+  "clusaz": {
+    "verify": "Vérifier disponibilités",
+    "searchresults": 8,
+    "sample": "Hôtel Les Sapins Wellness & Gourmet",
+    "fromPrice": { "value": 344.4, "meal": 1 },
+    "bedrooms": null,
+    "default_occupancy": "1 unité pour 2 adultes"
+  }
+}

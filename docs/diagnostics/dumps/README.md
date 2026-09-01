@@ -15,6 +15,8 @@ Captures Playwright du 2026-09-01. Les HTML bruts **ne sont pas versionnés**
 | `red-points-7.json` | r7 compact : lot 111, 1 300 €, 0 chambre | **oui** |
 | `capture-red-points-8.json` | r8 : Angles OS 1395, Deskline shadow | **oui** |
 | `red-points-8.json` | r8 compact : login les-angles, 1 OSMB | **oui** |
+| `sancy_lae-dispo-accueil.js` | r9 : construction URL `id1[d]` | **oui** |
+| `red-points-9.json` | r9 compact : 142 Diffusio, Deskline 8 hôtels | **oui** |
 
 Voir `discovery_gites.md`, `discovery_vrbo.md`, `discovery_cozycozy.md`,
 `discovery_valberg.md`, `discovery_ecrins.md`, `discovery_pralognan.md`,

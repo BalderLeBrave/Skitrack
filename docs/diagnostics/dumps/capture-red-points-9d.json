@@ -1,0 +1,116 @@
+{
+  "at": "2026-09-01T22:51:38.187Z",
+  "round": "9d",
+  "searchUrl": "https://webapi.deskline.net/laclusaz/fr/accommodations/searchresults/eb3984c5-102e-40c9-8e9d-6cb418aa78a6?filterId=79696b97-e812-4759-a659-15b173d058c0&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,meal,isBestPrice},dbCode,name,urlFriendlyName,images(count:1,sizes:[54]){imagesFields...,description},rating{ratingFields...},isSpecialPrice&sortingFields=-bookable,random(seed:456)&currency=EUR&pageNo=1&pageSize=24&hashS=51537190",
+  "searchBytes": 13963,
+  "search": {
+    "n": 8,
+    "paging": {
+      "pageNo": 1,
+      "pageSize": 24,
+      "pageCount": 1,
+      "totalRecordCount": 8
+    },
+    "sampleKeys": [
+      "id",
+      "owner",
+      "location",
+      "stars",
+      "categories",
+      "classifications",
+      "fromPrice",
+      "dbCode",
+      "name",
+      "urlFriendlyName",
+      "images",
+      "rating",
+      "isSpecialPrice"
+    ],
+    "fromPrice": {
+      "value": 344.4,
+      "meal": 1,
+      "isBestPrice": false
+    },
+    "name": "Hôtel Les Sapins Wellness & Gourmet"
+  },
+  "sancy": {
+    "counter": "142 résultats",
+    "nNodes": 48,
+    "nAll": 68,
+    "texts": [
+      {
+        "tag": "DIV",
+        "cls": "list-item list-item-TFO2809643",
+        "text": "Réservable en ligne Chalets de Fougerousse N°6 Capacité : 8 personnes Chambon-sur-Lac Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/chalets-de-fougerousse-n6-chambon-sur-lac_TFO2809643/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item-id1 list-item-TFO2809643",
+        "text": "Réservable en ligne Chalets de Fougerousse N°6 Capacité : 8 personnes Chambon-sur-Lac Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/chalets-de-fougerousse-n6-chambon-sur-lac_TFO2809643/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item list-item-TFO4609524",
+        "text": "Réservable en ligne Gîte Scopa Capacité : 4 personnes Murol Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/gite-scopa-murol_TFO4609524/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item-id1 list-item-TFO4609524",
+        "text": "Réservable en ligne Gîte Scopa Capacité : 4 personnes Murol Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/gite-scopa-murol_TFO4609524/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item list-item-TFO5179781",
+        "text": "Réservable en ligne Villa les Trembles Capacité : 8 personnes Chambon-sur-Lac Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/villa-les-trembles-chambon-sur-lac_TFO5179781/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item-id1 list-item-TFO5179781",
+        "text": "Réservable en ligne Villa les Trembles Capacité : 8 personnes Chambon-sur-Lac Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/villa-les-trembles-chambon-sur-lac_TFO5179781/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item list-item-TFO6471612",
+        "text": "Réservable en ligne Camping le Panoramique Murat-le-Quaire Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hotellerie-plein-air/camping-le-panoramique-murat-le-quaire_TFO6471612/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item-id1 list-item-TFO6471612",
+        "text": "Réservable en ligne Camping le Panoramique Murat-le-Quaire Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hotellerie-plein-air/camping-le-panoramique-murat-le-quaire_TFO6471612/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item list-item-TFO7022360",
+        "text": "Réservable en ligne L'Arverne du Rocher Capacité : 6 personnes La Bourboule Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/l-arverne-du-rocher-la-bourboule_TFO7022360/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item-id1 list-item-TFO7022360",
+        "text": "Réservable en ligne L'Arverne du Rocher Capacité : 6 personnes La Bourboule Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/l-arverne-du-rocher-la-bourboule_TFO7022360/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item list-item-TFO5927398",
+        "text": "Réservable en ligne Résidence Le Sarciron - n°210 Capacité : 5 personnes Mont-Dore Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/residence-le-sarciron-n210-mont-dore_TFO5927398/"
+      },
+      {
+        "tag": "DIV",
+        "cls": "list-item-id1 list-item-TFO5927398",
+        "text": "Réservable en ligne Résidence Le Sarciron - n°210 Capacité : 5 personnes Mont-Dore Voir l'offre",
+        "href": "https://www.sancy.com/fr/fiche/hebergement-locatif/residence-le-sarciron-n210-mont-dore_TFO5927398/"
+      }
+    ],
+    "htmlPreview": "\n\t\t\t\t<div class=\"elementor-widget-container\">\n\t\t\t\t\t<a class=\"hidden-aria\" href=\"#Dsio-id1--list\">Aller aux résultats</a><div id=\"Dsio-id1\" class=\"dsio-app animated fadeIn slow id1 mixte\"><div class=\"dsio-container lgrid-column-noGutter\"><header class=\"dsio-header\"><div class=\"dsio-header--top\"><div class=\"centered-content lgrid-middle-noWrap-equalHeight-spaceBetween\"><div class=\"filterWrapper textSearch lcol filter-q\"><div class=\"content\"><div class=\"floating-placeholder lgrid-noWrap-noGutter\"><div class=\"lgrid-column-noGutter-center-noWrap-equalHeight lcol\"><label for=\"text-search--q\" class=\"placeholder\">\n          Mots-clés\n        </label><input id=\"text-search--q\" type=\"text\" name=\"q\"></div><!----><button aria-label=\"Rechercher\" class=\"no-button textSearch--submit\"><span class=\"hidden\">Rechercher</span><i aria-hidden=\"true\" class=\"dsio-search-light\"></i></button></div></div></div><fieldset class=\"dateFilter filterWrapper lcol filter-d\"><button aria-controls=\"filter--popup--d\" class=\"title\"><span><span class=\"date\">13 févr. 2027</span><i class=\"dsio-arrows-h-light\"></i><span class=\"date\">20 févr. 2027</span><i class=\"icon-calendar dsio-calendar-check-light\"></i></span></button><div id=\"filter--popup--d\" class=\"filter--popup\"><p class=\"hidden-desktop title\">\n      Dates\n    </p><div class=\"lgrid-noGutter-noWrap-middle\"><div><div class=\"lgrid-noGutter-noWrap-middle dateinput--wrapper\"><label for=\"dateStart\" class=\"hidden\"><span>Du</span></label><div class=\"date-input--wrapper\"><input aria-label=\"Arrivée\" type=\"date\"></div><i aria-hidden=\"true\" class=\"dsio-arrows-h-light ml-10 mr-10\"></i><label for=\"dateEnd\" class=\"hidden\"><span>au</span></label><div class=\"date-input--wrapper\"><input aria-label=\"Départ\" type=\"date\" min=\"2027-02-13\"></div></div></div></div><div class=\"action-buttons lgrid-noWrap-middle\"><button title=\"Réinitialiser\" aria-label=\"Réinitialiser &lt;span class=&quot;date&quot;&gt;13 févr. 2027&lt;/span&gt;&lt;i class=&quot;dsio-arrows-h-light&quot;&gt;&lt;/i&gt;&lt;span class=&quot;date&quot;&gt;20 févr. 2027&lt;/span&gt;&lt;i class=&quot;icon-calendar dsio-calendar-check-light&quot; /&gt;\" class=\"btn\"><span>Réinitialiser</span><i aria-hidden=\"true\" class=\"dsio-undo-light mr-10 ml-5\"></i></button><button title=\"Appliquer\" aria-label=\"Appliquer &lt;span class=&quot;date&quot;&gt;13 févr. 2027&lt;/span&gt;&lt;i class=&quot;dsio-arrows-h-light&quot;&gt;&lt;/i&gt;&lt;span class=&quot;date&quot;&gt;20 févr. 2027&lt;/span&gt;&lt;i class=&quot;icon-calendar dsio-calendar-check-light&quot; /&gt;\" class=\"btn colored\"><span>Appliquer</span></button></div></div></fieldset><div class=\"filterWrapper geoFilter lcol filter-commune\"><button class=\"no-button hidden-aria\">\n    Communes\n  </button><div dir=\"auto\" class=\"v-select vs--single vs--searchable\"> <div id=\"vs1__combobox\" role=\"combobox\" aria-expanded=\"false\" aria-owns=\"vs1__listbox\" aria-controls=\"vs1__listbox\" aria-label=\"Rechercher une option\" class=\"vs__dropdown-toggle\"><div class=\"vs__selected-options\"> <input placeholder=\"Communes\" aria-autocomplete=\"list\" aria-labelledby=\"vs1__combobox\" aria-controls=\"vs1__listbox\" type=\"search\" autocomplete=\"off\" class=\"vs__search\"></div> <div class=\"vs__actions\"><button type=\"button\" title=\"Clear Selected\" aria-label=\"Effacer la sélection\" class=\"vs__clear\" style=\"display: none;\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\"><path d=\"M6.895455 5l2.842897-2.842898c.348864-.348863.348864-.914488 0-1.263636L9.106534.261648c-.348864-.348864-.914489-.348864-1.263636 0L5 3.104545 2.157102.261648c-.348863-.348864-.914488-.348864-1.263636 0L.261648.893466c-.348864.348864-.348864.914489 0 1.263636L3.104545 5 .261648 7.842898c-.348864.348863-.348864.914488 0 1.263636l.631818.631818c.348864.348864.914773.348864 1.263636 0L5 6.895455l2.842898 2.842897c.348863.348864.914772.348864 1.263636 0l.631818-.631818c.348864-.348864.348864-.914489 0-1.263636L6.895455 5z\"></path></svg></button> <span role=\"presentation\" class=\"vs__open-indicator\"><i aria-hidden=\"true\" role=\"presentation\" class=\"open-indicator\"></i></span> <div class=\"vs__spinner\" style=\"display: none;\">Loading...</div></div></div> <ul id=\"vs1__listbox\" role=\"listbox\" style=\"display: none; visibility: hidden;\"></ul> </div><!----><!----></div><fieldset class=\"facetFilter filterWrapper lcol filter-type-d-hebergement\"><button aria-controls=\"filter--popup--type-d-hebergement\" class=\"no-button title\"><span>Type d'hébergement</span><!----><i aria-hidden=\"true\" class=\"dsio-angle-down icon-arrow\"></i></button><div id=\"filter--popup--type-d-hebergement\" class=\"filter--popup\"><div class=\"facetFilterCheckbox\"><input id=\"id1_gites-et-location\" type=\"checkbox\" value=\"gites-et-location\"><label for=\"id1_gites-et-location\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Gîtes et locations\n          </span><span class=\"count lcol-auto\">\n            (95)\n          </span></label></div><div class=\"facetFilterCheckbox\"><input id=\"id1_chambres-d-hotes\" type=\"checkbox\" value=\"chambres-d-hotes\"><label for=\"id1_chambres-d-hotes\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Chambres d'hôtes\n          </span><span class=\"count lcol-auto\">\n            (3)\n          </span></label></div><div class=\"facetFilterCheckbox\"><input id=\"id1_hotels\" type=\"checkbox\" value=\"hotels\"><label for=\"id1_hotels\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Hôtels\n          </span><span class=\"count lcol-auto\">\n            (19)\n          </span></label></div><div class=\"facetFilterCheckbox\"><input id=\"id1_campings-et-aires-de-camping-c\" type=\"checkbox\" value=\"campings-et-aires-de-camping-c\"><label for=\"id1_campings-et-aires-de-camping-c\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Campings et Aires de camping-cars \n          </span><span class=\"count lcol-auto\">\n            (16)\n          </span></label></div><div class=\"facetFilterCheckbox\"><input id=\"id1_villages-vacances\" type=\"checkbox\" value=\"villages-vacances\"><label for=\"id1_villages-vacances\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Villages vacances\n          </span><span class=\"count lcol-auto\">\n            (4)\n          </span></label></div><div class=\"facetFilterCheckbox\"><input id=\"id1_residences-appartements\" type=\"checkbox\" value=\"residences-appartements\"><label for=\"id1_residences-appartements\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Résidences d'appartements\n          </span><span class=\"count lcol-auto\">\n            (4)\n          </span></label></div><div class=\"facetFilterCheckbox\"><input id=\"id1_gites-d-etape-sejour\" type=\"checkbox\" value=\"gites-d-etape-sejour\"><label for=\"id1_gites-d-etape-sejour\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Gîtes d'étape/séjour\n          </span><span class=\"count lcol-auto\">\n            (1)\n          </span></label></div><div class=\"facetFilterCheckbox zero\"><input id=\"id1_centres-de-vacances\" type=\"checkbox\" value=\"centres-de-vacances\"><label for=\"id1_centres-de-vacances\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Centres de vacances\n          </span><span class=\"count lcol-auto\">\n            (0)\n          </span></label></div><div class=\"facetFilterCheckbox zero\"><input id=\"id1_auberges-collective\" type=\"checkbox\" value=\"auberges-collective\"><label for=\"id1_auberges-collective\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Auberges collective\n          </span><span class=\"count lcol-auto\">\n            (0)\n          </span></label></div><div class=\"facetFilterCheckbox zero\"><input id=\"id1_autres-hebergements\" type=\"checkbox\" value=\"autres-hebergements\"><label for=\"id1_autres-hebergements\" class=\"lgrid-noGutter-center-noWrap\"><span class=\"label lcol\">\n            Autres hébergements\n          </span><span class=\"count lcol-auto\">\n            (0)\n          </span>"
+  }
+}

@@ -127,7 +127,7 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 | La Clusaz | www.laclusaz.com | idem | Deskline 898, shadow dw-app-container, filters sans dates |
 | Vars (2e centrale) | www.alpes-sudlocations.com | idem | Elloha POST Search 0 résultat 8p fév. 2027 |
 | Les Angles | lesangles.com | idem | OS 1395 / login les-angles, 1 produit OSMB, 0 vueinfo |
-| Super Besse + Mont Dore | www.sancy.com | idem | OT éditorial, pas de moteur dumpé |
+| Super Besse + Mont Dore | www.sancy.com | idem | Diffusio 142 (13–20 fév. 2027), capa sur carte, chambres/prix fourchette sur fiche |
 
 Valberg et Pays des Écrins **sortis du rouge** le 2026-09-01 : même connecteur
 `ublo-msem` qu’Isola, ids relevés sur l’XHR (`665/OT-665`, `30015/PDE`). Voir

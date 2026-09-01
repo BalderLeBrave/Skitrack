@@ -1,0 +1,56 @@
+{
+  "at": "2026-09-01T20:26:19.651Z",
+  "items": [
+    {
+      "id": "gites_entity_poi497",
+      "url": "https://www.gites-de-france.com/fr/search?destination=Les+2+Alpes&date-start=2027-02-13&date-end=2027-02-20&adults=8&entity_id=497&entity_type=pois",
+      "http": 200,
+      "title": "Rechercher une location de vacances | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?destination=Les+2+Alpes&date-start=2027-02-13&date-end=2027-02-20&adults=8&entity_id=497&entity_type=pois",
+      "bytes": 80974,
+      "giteCard": 0,
+      "noResults": true,
+      "article": 0,
+      "ldjson": 0,
+      "oups": "Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.",
+      "form": {
+        "entity_id": "",
+        "entity_type": ""
+      }
+    },
+    {
+      "id": "gites_entity_town50301",
+      "url": "https://www.gites-de-france.com/fr/search?destination=Les+2+Alpes&date-start=2027-02-13&date-end=2027-02-20&adults=8&entity_id=50301&entity_type=towns",
+      "http": 200,
+      "title": "Rechercher une location de vacances | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?destination=Les+2+Alpes&date-start=2027-02-13&date-end=2027-02-20&adults=8&entity_id=50301&entity_type=towns",
+      "bytes": 81055,
+      "giteCard": 0,
+      "noResults": true,
+      "article": 0,
+      "ldjson": 0,
+      "oups": "Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.",
+      "form": {
+        "entity_id": "",
+        "entity_type": ""
+      }
+    },
+    {
+      "id": "gites_entity_poi424697",
+      "url": "https://www.gites-de-france.com/fr/search?destination=Les+2+Alpes&date-start=2027-02-13&date-end=2027-02-20&adults=8&entity_id=424697&entity_type=pois",
+      "http": 200,
+      "title": "Rechercher une location de vacances | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?destination=Les+2+Alpes&date-start=2027-02-13&date-end=2027-02-20&adults=8&entity_id=424697&entity_type=pois",
+      "bytes": 81055,
+      "giteCard": 0,
+      "noResults": true,
+      "article": 0,
+      "ldjson": 0,
+      "oups": "Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.",
+      "form": {
+        "entity_id": "",
+        "entity_type": ""
+      }
+    }
+  ]
+}

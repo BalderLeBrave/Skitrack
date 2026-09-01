@@ -101,10 +101,13 @@ export function gitesSearchUrl(params: SearchParams, offset = 0): string {
   // GET `destination=` idem : `currentQuery.destination` rempli, `entity_id`
   // toujours vide, même message « Oups ! … au moins une destination. »
   //
-  // `entity_id` vient de l'autocomplete `/fr/g2f_autocomplete` (attribut
-  // `data-autocomplete-url` du champ). Sans dump JSON de cet endpoint, on ne
-  // l'invente pas. Cette URL aligne les **noms** de champs ; elle ne prétend
-  // pas produire une SERP de cartes.
+  // `entity_id` vient de l'autocomplete `/fr/g2f_autocomplete` (dump
+  // `gites_autocomplete.json` : 497 / pois « Les 2 Alpes »). GET avec ces
+  // champs laisse encore le formulaire vide. POST in-page du formulaire
+  // `search_api_page_block_form` (form_build_id de session + entity_id=497,
+  // 2026-09-01 21:30) : Cloudflare 403. Cette URL aligne les **noms** de
+  // champs ; elle ne prétend pas produire une SERP de cartes.
+  // `extractGitesCards` inchangé : 0 .gite-card.
   const u = new URL('https://www.gites-de-france.com/fr/search')
   u.searchParams.set('destination', params.destination)
   if (params.checkIn) u.searchParams.set('date-start', params.checkIn)
@@ -132,7 +135,9 @@ export function cozycozySearchUrl(params: SearchParams, offset = 0): string {
   // Dump main.f7e84b9d7beb408c.js 2026-09-01 :
   // FilterSettings.minBedRoomCount sérialisé en query `e` (`u.minBedRoomCount="e"`).
   // Sans `e`, 4 chambres n'est pas transmis. Le parseur cartes n'est PAS réécrit :
-  // Playwright 2026-09-01 = SPA joli-root, recherche non lancée, 0 carte.
+  // Playwright 2026-09-01 = SPA joli-root, `launch` / `getResultList` jamais
+  // appelés (seul logVisit). `location=` ne résout pas le lieu : le bundle
+  // passe par `searchInputLocation({q})` puis `launch({searchId})`.
   if (params.bedrooms != null && params.bedrooms > 0) {
     u.searchParams.set('e', String(params.bedrooms))
   }

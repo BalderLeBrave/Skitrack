@@ -1,7 +1,8 @@
 # discovery_gites.md
 
-**Status : CAPTURED_NO_SERP** — dumps 2026-09-01, HTML brut **non versionné**
-(tokens `form_build_id`). Preuve : `dumps/capture-report.json` + extraits ci-dessous.
+**Status : CAPTURED_NO_SERP** — dumps 2026-09-01. HTML brut **non versionné**
+(tokens `form_build_id`, pages challenge). Preuve : `dumps/capture-gites-cozy-2.json`,
+`dumps/gites_autocomplete.json`, `dumps/capture-gites-entity.json`.
 
 ## Ce que le code dit
 
@@ -19,26 +20,24 @@
 | `gites_p1.html` | 200 | `.g2f-searchResult-noResults` | GET `search[value]=Les 2 Alpes&search[from]=…` **ignoré** par l’UI |
 | `gites_dest.html` | 200 | même classe, même « Oups » | GET `destination=` **aussi ignoré** sans `entity_id` |
 | `gites_home.html` | CF | `Attention Required! \| Cloudflare` | 2ᵉ visite Playwright = WAF, pas un parseur |
+| `gites_autocomplete.json` | 200 | JSON | `entity_id=497` / pois « Les 2 Alpes » (score 18.43) ; 424697 domaine ; 50301 towns |
+| `gites_entity_poi497` | 200 | Oups + form vide | GET `entity_id=497` **laisse** `entity_id=""` dans le formulaire |
+| `gites_inpage_post` | GET 200 puis POST **403** | Cloudflare « Sorry, you have been blocked » | Champs remplis en session (`destination`, `entity_id=497`, `entity_type=pois`, dates, `adults=8`, `op=Rechercher`) puis `form.submit()` **dans** la page. Ray `a3475ff08e9744a6`. 0 `.gite-card` |
 
-Phrase exacte (p1 + dest) :
+Phrase exacte (GET) :
 
 > Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.
 
 Champs du formulaire POST `action="/fr/search"` `id="search-api-page-block-form"` :
 
-`destination` (vide), `entity_id` (vide), `entity_type` (vide), `date-start`, `date-end`, `adults`, `children`, `infants`, `min_price`, `max_price`, `distance`, `promo_only`, `arrival`, `departure`.
+`form_build_id`, `form_id=search_api_page_block_form` (**pas** de `form_token`),
+`destination`, `entity_id`, `entity_type`, `date-start`, `date-end`, `adults`,
+`children`, `infants`, `arrival`, `departure`, `op=Rechercher`.
 
-Autocomplete : `data-autocomplete-url="/fr/g2f_autocomplete"` sur `#edit-destination`. Curl = 403 Cloudflare. **Pas de dump JSON** → pas de résolution `entity_id` inventée.
-
-Drupal `currentQuery` :
-
-- p1 (`search[value]`) : `search.{value,from,to,capacity}` rempli, form `destination=""` `entity_id=""`
-- dest (`destination=`) : `{destination,date-start,date-end,adults}` remplis, form `destination=""` `entity_id=""`
-
-Sélecteurs de cartes sur ces pages : `.gite-card` = 0, `article` = 0, JSON-LD = 0. `a[href*="/fr/"]` = nav, pas des annonces.
+Sélecteurs de cartes sur ces pages : `.gite-card` = 0, `article` = 0, JSON-LD = 0.
 
 ## MISSING / NEXT
 
-- MISSING : SERP avec cartes, page 2, fiche, studio, indisponible, réponse autocomplete
-- NEXT : capturer `/fr/g2f_autocomplete?q=Les%202%20Alpes` **puis** une recherche POST avec `entity_id` réel. **Pas de nouveau parseur** avant ce dump.
-- `extractGitesCards` **non retouché**.
+- MISSING : SERP avec cartes, page 2, fiche, studio, indisponible
+- NEXT : POST depuis un client qui passe Cloudflare, **puis** dump `.gite-card > 0`
+- `extractGitesCards` **non retouché**. Inventer un parseur sur un 403 n’est pas une SERP.

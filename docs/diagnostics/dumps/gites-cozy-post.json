@@ -1,0 +1,54 @@
+{
+  "at": "2026-09-01T21:30:08.551Z",
+  "note": "Compact proof. No parser. HTML not stored.",
+  "gites": {
+    "autocomplete": {
+      "q": "Les 2 Alpes",
+      "entity_id": "497",
+      "entity_type": "pois",
+      "dump": "gites_autocomplete.json"
+    },
+    "get_with_entity": {
+      "http": 200,
+      "form_entity_id": "",
+      "gite_card": 0,
+      "oups": true,
+      "dump": "capture-gites-entity.json"
+    },
+    "inpage_post": {
+      "get_http": 200,
+      "filled": {
+        "destination": "Les 2 Alpes",
+        "entity_id": "497",
+        "entity_type": "pois",
+        "date-start": "2027-02-13",
+        "adults": "8",
+        "form_id": "search_api_page_block_form"
+      },
+      "post_http": 403,
+      "title": "Attention Required! | Cloudflare",
+      "gite_card": 0,
+      "ray": "a3475ff08e9744a6",
+      "dump": "capture-gites-cozy-2.json"
+    }
+  },
+  "cozycozy": {
+    "url": "https://www.cozycozy.com/fr/search?location=Les+2+Alpes&checkin=2027-02-13&checkout=2027-02-20&adults=8&nights=7&e=4",
+    "http": 200,
+    "joli_root": true,
+    "router_outlet": true,
+    "offer_href": 0,
+    "xhr_catalogue": [],
+    "xhr_seen": ["logVisit", "GTM"],
+    "bundle": {
+      "main": "https://www.cozycozy.com/main.f7e84b9d7beb408c.js",
+      "minBedRoomCount": "e",
+      "resolve_place": "searchInputLocation({q, siteCode, locale})",
+      "start_search": "launch({searchId})",
+      "cards": "getResultList({searchId, offset, count, filters})"
+    },
+    "cosmos_api": "https://cw-1036.fusionauth-cozycozy-backend.deployment.joli.space/cosmos-api",
+    "cosmos_api_get_input_location": 404,
+    "parser_rewritten": false
+  }
+}

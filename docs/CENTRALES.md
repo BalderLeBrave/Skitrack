@@ -117,8 +117,8 @@ VRBO, Gîtes de France, CozyCozy **ne sont pas** dans `CENTRALS`. Ils existent c
 | station | host | fichier à créer | contrat |
 | --- | --- | --- | --- |
 | Les Karellis | www.karellis.com | `src/main/providers/karellis.ts` **après** discovery dump | `AccommodationProvider.search` ; 0 → reason_code |
-| Pralognan | www.reservationpralognan.fr | idem | 427 cartes `.Card_Lots` undatées ; getNB fév. 2027 vide |
-| La Clusaz | www.laclusaz.com | idem | Deskline 898 logements, DW-Source=desklineweb, session requise |
+| Pralognan | www.reservationpralognan.fr | idem | 26 tarifs séjour 5–12 sept. ; 0 chambre ; fév. 2027 vide |
+| La Clusaz | www.laclusaz.com | idem | Deskline 898, shadow dw-app-container, filters sans dates |
 | Vars (2e centrale) | www.alpes-sudlocations.com | idem | Elloha POST Search 0 résultat 8p fév. 2027 |
 | Les Angles | lesangles.com | idem | pages éditoriales ; classe CSS widget-os seulement |
 | Super Besse + Mont Dore | www.sancy.com | idem | OT éditorial, pas de moteur dumpé |

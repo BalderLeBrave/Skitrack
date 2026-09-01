@@ -50,6 +50,24 @@ export interface EnrichResult {
   lodgings: Lodging[]
   /** Message court pour le journal d'import. Null si rien à signaler. */
   note: string | null
+  /**
+   * Rien à signaler à l'écran — et non « tout est mesuré ».
+   *
+   * Faux dès qu'une position est restée sans distance pour une raison qui se
+   * nomme et qui a un remède : moteur éteint, domaine non rapproché, domaine
+   * sans tracés, lot en échec. Vrai quand le moteur a simplement rendu une
+   * ligne vide pour une position qu'il n'a pas su rapprocher — la vignette dit
+   * alors « distance non calculée », ce qui est exact, et hisser un bandeau
+   * au-dessus de la liste donnerait un remède là où il n'y a pas de panne.
+   *
+   * Sans ce drapeau, l'écran Logements décide d'afficher la raison en regardant
+   * si **aucune** annonce n'a été mesurée. Le raccourci valait quand l'appel
+   * était unique — un refus valait zéro mesure — mais depuis le découpage en
+   * lots, un lot perdu sur deux laisse 200 distances arrivées et 158
+   * manquantes : le test est vrai, aucun message ne monte, et `accessTried`
+   * interdit toute nouvelle tentative de la session. Voir `LodgingsPage`.
+   */
+  ok: boolean
 }
 
 /** Traduit le type d'accès du sidecar en distance/dénivelé exploitables par la carte. */
@@ -127,13 +145,15 @@ export async function enrichWithAccess(
   if (!isClientReady()) {
     return {
       lodgings,
-      note: 'Moteur local non démarré — distances aux pistes non calculées.'
+      note: 'Moteur local non démarré — distances aux pistes non calculées.',
+      ok: false
     }
   }
   if (engineDomainId == null) {
     return {
       lodgings,
-      note: 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.'
+      note: 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.',
+      ok: false
     }
   }
 
@@ -142,7 +162,9 @@ export async function enrichWithAccess(
       typeof lodging.lat === 'number' && typeof lodging.lon === 'number'
   )
   if (geoItems.length === 0) {
-    return { lodgings, note: null }
+    // Rien à mesurer n'est pas une panne : une annonce sans position relevée
+    // est signalée ailleurs, et l'épingle « ≈ » le dit déjà sur la carte.
+    return { lodgings, note: null, ok: true }
   }
 
   const batches: (typeof geoItems)[] = []
@@ -188,14 +210,16 @@ export async function enrichWithAccess(
   if (failedBatches === batches.length) {
     return {
       lodgings,
-      note: `Distances aux pistes non calculées (${lastError instanceof Error ? lastError.message : 'moteur indisponible'}).`
+      note: `Distances aux pistes non calculées (${lastError instanceof Error ? lastError.message : 'moteur indisponible'}).`,
+      ok: false
     }
   }
 
   if (slopesAvailable === 0 && liftsAvailable === 0) {
     return {
       lodgings,
-      note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
+      note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.',
+      ok: false
     }
   }
 
@@ -210,6 +234,9 @@ export async function enrichWithAccess(
   const reste = failedBatches > 0 ? ` ${failedBatches} lot(s) sur ${batches.length} n’ont pas abouti.` : ''
   return {
     lodgings: enriched,
-    note: computed > 0 ? `Distances aux pistes calculées pour ${computed} logement(s).${reste}` : null
+    note: computed > 0 ? `Distances aux pistes calculées pour ${computed} logement(s).${reste}` : null,
+    // Un lot perdu est une panne qui a un remède — relancer — donc l'écran doit
+    // pouvoir le dire, même quand les autres lots ont abouti.
+    ok: failedBatches === 0
   }
 }

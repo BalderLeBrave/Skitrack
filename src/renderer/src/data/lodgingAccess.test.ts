@@ -92,6 +92,10 @@ check(
   'et le reste est dit, pas tu',
   partiel.note === 'Distances aux pistes calculées pour 200 logement(s). 1 lot(s) sur 2 n’ont pas abouti.'
 )
+// Le cas qui rend `ok` nécessaire : l'écran Logements teste sinon « aucune
+// annonce mesurée » pour décider d'afficher la raison, et 200 distances
+// arrivées suffisent à rendre les 158 manquantes complètement muettes.
+check('l’écran a de quoi le dire', partiel.ok === false)
 
 // --- Tous les lots échouent : rien n'est inventé -----------------------------
 
@@ -105,12 +109,14 @@ const rien = await enrichWithAccess(lots(358), 1)
 
 check('aucun logement n’est modifié', rien.lodgings.every((l) => l.accessComputed == null))
 check('le motif est rapporté tel quel', rien.note === 'Distances aux pistes non calculées (moteur coupé).')
+check('l’écran a de quoi le dire', rien.ok === false)
 
 // --- Un seul lot quand la liste est petite ----------------------------------
 
 g.__ACCESS_STUB__ = { calls: [], handler: repondre }
-await enrichWithAccess(lots(12), 1)
+const petit = await enrichWithAccess(lots(12), 1)
 check('12 logements tiennent en un seul appel', g.__ACCESS_STUB__.calls.length === 1)
+check('et rien n’est signalé à l’écran', petit.ok)
 
 // --- Le domaine sans tracés reste annoncé comme tel --------------------------
 
@@ -123,6 +129,34 @@ check(
   'sans tracés ni remontées, on le dit au lieu de mesurer',
   sansTraces.note === 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
 )
+check('l’écran a de quoi le dire', sansTraces.ok === false)
+
+// --- Domaine non rapproché du moteur : aucune requête ------------------------
+
+g.__ACCESS_STUB__ = { calls: [], handler: repondre }
+const sansMoteur = await enrichWithAccess(lots(10), undefined)
+check('rien n’est parti', g.__ACCESS_STUB__.calls.length === 0)
+check(
+  'et le motif est dit',
+  sansMoteur.note === 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.'
+)
+check('l’écran a de quoi le dire', sansMoteur.ok === false)
+
+// --- Les annonces sans position ne partent pas et ne lèvent rien -------------
+
+g.__ACCESS_STUB__ = { calls: [], handler: repondre }
+const melange = [
+  ...lots(5),
+  ...lots(3).map((l, i) => ({ ...l, id: 9000 + i, lat: undefined, lon: undefined }))
+]
+const avecSansPos = await enrichWithAccess(melange, 1)
+check(
+  'cinq positions envoyées, pas huit',
+  g.__ACCESS_STUB__.calls[0]?.lodgings.length === 5
+)
+check('les huit annonces sont rendues', avecSansPos.lodgings.length === 8)
+// Rien à mesurer n'est pas une panne : l'épingle « ≈ » le dit déjà sur la carte.
+check('et aucun bandeau n’est levé pour autant', avecSansPos.ok)
 
 if (failures > 0) {
   console.error(`\n${failures} échec(s).`)

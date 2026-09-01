@@ -528,6 +528,31 @@ select {
 }
 
 /** Compteur − valeur + (voyageurs, chambres, enfants). */
+/*
+ * Deux champs de comptage cote a cote — « Voyageurs » et « Chambres min ».
+ *
+ * `minmax(0, 1fr)` et non `1fr` : `1fr` vaut `minmax(auto, 1fr)`, et ce minimum
+ * automatique est la taille min-content de la colonne. Or un `input` de type
+ * texte a une largeur intrinseque d'environ 160 px, que `min-width: 0` autorise
+ * a retrecir sans pour autant l'effacer du calcul du minimum. Les deux colonnes
+ * se calaient donc a 232 px chacune — 470 px avec l'espace — dans un panneau de
+ * 328 px : la colonne de droite, « Chambres min », sortait du survol et se
+ * faisait couper. Mesure du 2026-08-31, popover de 380 px.
+ *
+ * `auto-fit` en prime : sous 286 px de large, les deux champs passent l'un sous
+ * l'autre au lieu de se serrer jusqu'a l'illisible. C'est la meme idiome que
+ * `minmax(0,1fr)` deja employe par `LodgingsPage`.
+ */
+.filters__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+}
+
+.filters__pair--wide {
+  gap: 8px;
+}
+
 .stepper {
   display: flex;
   align-items: center;
@@ -3075,9 +3100,17 @@ select {
 /** Trois chiffres clés : trois colonnes, pas un `auto-fit` qui replierait la
  *  rangée en 2 + 1 sur une carte étroite. Les trois valeurs se comparent en
  *  balayant une colonne d'une carte à l'autre ; un retour à la ligne casse
- *  cette lecture verticale. */
+ *  cette lecture verticale.
+ *
+ *  Les trois parts ne sont pas égales, et elles ne peuvent pas l'être : la
+ *  première porte une **plage** — « 1 559 – 3 456 m », deux nombres, un tiret
+ *  et une unité — quand les deux autres portent une seule valeur. À parts
+ *  égales, mesuré le 2026-08-31 sur une carte de 452 px, l'altitude réclamait
+ *  122 px pour 98 disponibles : le « m » passait sous le `overflow: hidden` du
+ *  cadre et disparaissait. La carte affichait « 1 559 – 3 456 », une altitude
+ *  sans unité, à côté d'un « 341,5 km » qui gardait la sienne. */
 .domcard__tiles--three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr) minmax(0, 0.85fr);
 }
 
 .domcard__tile {
@@ -7207,4 +7240,88 @@ select {
     inset: 0 auto auto 0;
     width: 100%;
   }
+}
+
+/* ------------------------------------------------------------------------
+   Pastille de source (`ProviderBadge`).
+
+   Une teinte de marque et un nom. La teinte est un repère de balayage : elle
+   ne porte aucune information que le nom ne dise déjà, ce qui la rend sûre
+   dans les deux thèmes et pour qui ne distingue pas les couleurs.
+
+   Les teintes sont choisies pour rester lisibles sur fond clair *et* sur fond
+   sombre — c'est pourquoi le bleu de Booking n'est pas son #003580 officiel,
+   invisible sur le thème sombre.
+   ------------------------------------------------------------------------ */
+.provbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.provbadge__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--provbadge-tint, currentColor);
+}
+
+.provbadge__name {
+  /* Indispensable pour que le nom cède avant la pastille dans un conteneur
+     flex — sans quoi il déborde au lieu de se tronquer. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provbadge--sm .provbadge__dot {
+  width: 6px;
+  height: 6px;
+}
+
+.provbadge--lg .provbadge__dot {
+  width: 10px;
+  height: 10px;
+}
+
+.provbadge--airbnb {
+  --provbadge-tint: #ff5a5f;
+}
+
+.provbadge--booking {
+  --provbadge-tint: #3b82c4;
+}
+
+.provbadge--expedia {
+  --provbadge-tint: #f0b429;
+}
+
+.provbadge--vrbo {
+  --provbadge-tint: #2f9e5f;
+}
+
+.provbadge--gites {
+  --provbadge-tint: #8bbf3f;
+}
+
+.provbadge--cozycozy {
+  --provbadge-tint: #ff8a3d;
+}
+
+.provbadge--liteapi {
+  --provbadge-tint: #8b7cf0;
+}
+
+.provbadge--centrale {
+  --provbadge-tint: #5aa9c9;
+}
+
+/* Import manuel et sources inconnues : aucune marque à représenter, donc
+   aucune teinte inventée — le gris dit « pas une plateforme ». */
+.provbadge--manual,
+.provbadge--unknown {
+  --provbadge-tint: #9aa3ad;
 }

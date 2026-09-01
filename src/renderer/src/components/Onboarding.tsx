@@ -117,7 +117,7 @@ export function Onboarding(): JSX.Element {
           <p className="filters__help">{nights} nuit(s)</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div className="filters__pair filters__pair--wide">
           <div>
             <p className="sheet__label">{t('nav_travelers')}</p>
             {/* Mêmes bornes qu'ailleurs, et pour cause : elles vivent

@@ -1,7 +1,0 @@
-{
-  "name": "skitrack-preview-launcher",
-  "private": true,
-  "scripts": {
-    "start": "bash /app/scripts/preview-serve.sh"
-  }
-}

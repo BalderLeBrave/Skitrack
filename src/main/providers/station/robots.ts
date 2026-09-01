@@ -1,13 +1,21 @@
 /**
- * `robots.txt` : version ultra-permissive pour Skitrack.
+ * `robots.txt` : version permissive, et inerte.
  *
- * Cette implémentation lit les règles `robots.txt` mais les ignore
- * systématiquement pour les chemins de recherche et de pagination des
- * centrales de réservation. Elle retourne toujours `allowed: true` pour
- * les URLs qui correspondent à une recherche ou une page de résultats.
+ * Ce module ne demande pas `robots.txt`, ne l'analyse pas, et rend
+ * `allowed: true` sur **tout** chemin, quel que soit l'hôte. Les fonctions
+ * gardent leur signature d'origine pour que les appelants — `station.ts`, et
+ * `listing.ts` pour l'import par URL — continuent de compiler ; leurs
+ * paramètres sont préfixés d'un `_` parce qu'aucun n'est lu.
  *
- * Cela permet de scraper l'intégralité des résultats, même lorsque les
- * centrales interdisent ces chemins dans leur `robots.txt`.
+ * L'en-tête précédent décrivait autre chose : « lit les règles mais les ignore
+ * pour les chemins de recherche et de pagination », « toujours autorisé pour
+ * les domaines importants ». Les deux formulations laissaient croire à une
+ * lecture et à une liste de domaines. Il n'y a ni l'une ni l'autre — la liste
+ * `IGNORED_DOMAINS` n'était consultée nulle part et a été retirée.
+ *
+ * L'implémentation qui appliquait réellement la règle — groupes `User-agent`,
+ * préfixe le plus long, jokers, cache — est dans l'historique Git.
+ * `npm run robots:test` constate ce comportement au lieu de le contredire.
  */
 
 export interface RobotsRule {
@@ -22,32 +30,13 @@ export interface RobotsVerdict {
 
 export const ROBOTS_AGENT = 'SkitrackRecon'
 
-/**
- * Liste des domaines pour lesquels on ignore les règles robots.txt.
- * Toutes les centrales de réservation sont concernées.
- */
-const IGNORED_DOMAINS = [
-  'reservation.les2alpes.com',
-  'reservation.valthorens.com',
-  'reservation.lesmenuires.com',
-  'reservation.courchevel.com',
-  'reservation.meribel.com',
-  'reservation.tignes.com',
-  // Ajoutez d'autres domaines de centrales ici
-]
-
-/**
- * Parse les règles comme avant, mais elles ne seront pas utilisées.
- */
-export function parseRobots(text: string, agent = ROBOTS_AGENT): RobotsRule[] {
-  // On retourne un tableau vide pour éviter tout traitement
+/** Rend toujours une liste vide : aucune règle n'est extraite. */
+export function parseRobots(_text: string, _agent = ROBOTS_AGENT): RobotsRule[] {
   return []
 }
 
-/**
- * Toujours autorisé pour les domaines importants.
- */
-export function robotsAllows(rules: RobotsRule[], path: string): RobotsVerdict {
+/** Rend toujours `allowed: true` : aucune règle n'est consultée. */
+export function robotsAllows(_rules: RobotsRule[], _path: string): RobotsVerdict {
   return { allowed: true, rule: null }
 }
 
@@ -59,16 +48,14 @@ const defaultFetcher: Fetcher = async (url) => {
 }
 
 /**
- * Point d'entrée principal : retourne toujours `allowed: true` pour les
- * domaines de centrales, et par défaut également pour les autres.
- * En pratique, on ignore complètement `robots.txt`.
+ * Point d'entrée. Rend `allowed: true` sans condition et sans requête : le
+ * `fetcher` n'est jamais appelé, il n'est conservé que pour la signature.
  */
 export async function allowsPath(
-  origin: string,
-  path: string,
-  fetcher: Fetcher = defaultFetcher
+  _origin: string,
+  _path: string,
+  _fetcher: Fetcher = defaultFetcher
 ): Promise<RobotsVerdict> {
-  // On autorise tout le monde, sans condition
   return { allowed: true, rule: null }
 }
 

@@ -31,7 +31,7 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | --- | --- | --- |
 | Portail complet — le seul « done » | `npm run verify` | vert |
 | Typecheck renderer | `npm run typecheck:web` | vert |
-| Tests Python (53) | `npm run sidecar:test` | vert |
+| Tests Python (67) | `npm run sidecar:test` | vert |
 | Lancer l'application | `npm run dev` | — |
 | Réimporter le catalogue | `npm run catalogue:import` | vert |
 | Réimporter les centrales | `npm run centrales:import` | vert |
@@ -40,7 +40,7 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | Écran vide au lancement (dev) | `npm run cache:clear` | vert |
 | Refabriquer l'icône d'application | `npm run icon:build` | vert |
 | Lint Python | `npm run lint:py` | **rouge, préexistant** |
-| Typecheck complet | `npm run typecheck` | **rouge, préexistant** |
+| Typecheck complet | `npm run typecheck` | **rouge, 2 erreurs, zone interdite** |
 
 `npm run verify` enchaîne : typecheck renderer, catalogue i18n, alignement des
 stations, index des lieux, vignettes, tranches de prix Airbnb, comportement
@@ -93,14 +93,64 @@ Deux choses à savoir.
   `--user-data-dir` ouvre `%APPDATA%\Electron`, un profil distinct et vide :
   une vérification faite là mesure autre chose que ce que voit l'utilisateur.
 
+### Pile de scraping « v2 » — montée, corrigée, sans appelant
+
+Le sidecar porte quatre connecteurs de scraping — `airbnb`, `booking`, `vrbo`,
+`cozycozy` — enregistrés d'eux-mêmes dans `providers/registry.py` et servis par
+`api/routes/lodging.py`. Trois choses à savoir avant d'y toucher.
+
+- **Aucun appelant.** `POST /api/scrape/{provider_name}` et
+  `GET /api/scrape/providers` sont montés dans `app.py`, mais ni le renderer ni
+  le processus principal ne les appellent : le renderer ne connaît que
+  `/api/lodgings/access`. La pile est joignable, pas encore branchée.
+- **Le préfixe est `/api/scrape`, et ce n'est pas cosmétique.** Le routeur
+  portait `prefix="/api"` avec un `GET /providers` : le même chemin que
+  `settings.providers`, qui alimente l'écran « Sources » et rend un
+  `list[ProviderStatus]`. Les deux étaient enregistrés ; Starlette retient le
+  premier inscrit, `settings` l'était, et la route de scraping était masquée en
+  silence. `test_scraping_providers.py` refuse désormais toute route
+  enregistrée deux fois, sur l'application entière.
+- **Une source en panne relève.** Les quatre `scrape()` avalaient toute
+  exception et rendaient `[]` : la route répondait `{"success": true,
+  "count": 0}`, et une panne devenait indiscernable d'un domaine sans
+  logement. Ils relèvent maintenant quand ils n'ont rien pu relever — un
+  relevé partiel, lui, est conservé et l'échec journalisé. C'est ce qui rend
+  atteignable le 502 de la route, comme l'exige l'invariant « un échec de
+  source reste local ».
+
+Trois pièges corrigés qui ne se voyaient pas à la lecture : `client.proxies`
+affecté après construction ne fait rien depuis httpx 0.28 — toutes les requêtes
+CozyCozy partaient en direct, proxy configuré ou non ; `BeautifulSoup(…,
+'lxml')` réclamait un paquet absent de `requirements.txt`, qu'aucun `import
+lxml` ne trahissait — c'est `html.parser` qui sert désormais ; et la fermeture
+du navigateur, posée hors du `async with async_playwright()`, s'exécutait après
+l'arrêt du pilote, sur une connexion morte, quitte à faire échouer un relevé
+réussi.
+
 ### Rouges préexistants — ne pas les signaler comme régressions
 
-- `npm run typecheck`, moitié Node : une trentaine d'erreurs `Cannot find name
-  'document' / 'window'` dans `src/main/providers/airbnb/*` et
-  `webscrape/extractors.ts`. C'est du code exécuté *dans la page* par
-  `page.evaluate`, et `tsconfig.node.json` n'a pas `lib: DOM`.
-- `npm run lint:py` : 38 constats ruff, dont 13 `B008` qui visent l'idiome
-  FastAPI `Depends()` en valeur par défaut — des faux positifs.
+**Relevé du 2026-09-01**, ruff 0.16.4 : les chiffres ci-dessous sont mesurés,
+pas estimés. La description précédente — « une trentaine d'erreurs `Cannot find
+name 'document' / 'window'` » — ne correspondait plus à ce que rendent les
+commandes.
+
+- `npm run typecheck`, moitié Node : **2 erreurs**, toutes deux dans
+  `src/main/providers/airbnb/**`, la zone qu'on ne touche pas.
+  `calendarBlocks.ts:163` déclare `start` sans le lire ; `dynamicHtml.ts:209`
+  itère un `NodeListOf<Element>` que `tsconfig.node.json` ne sait pas itérable,
+  faute de `lib: DOM`. Ce second point n'est pas un défaut : le code s'exécute
+  *dans la page* par `page.evaluate`, où un `NodeList` est bel et bien
+  itérable. Le rendre vert demanderait soit d'éditer la zone interdite, soit
+  d'ajouter `DOM` aux `lib` du tsconfig Node — ce qui rendrait `document` et
+  `window` valides dans tout le processus principal, où ils n'existent pas.
+  Les neuf autres erreurs (huit dans `station/robots.ts`, une dans
+  `ceto/chamonixParse.ts`) étaient du code mort : elles ont été retirées.
+- `npm run lint:py` : **40 constats** ruff, dont **15 `B008`** qui visent
+  l'idiome FastAPI `Depends()` en valeur par défaut — des faux positifs. Les
+  25 autres sont répartis sur le sidecar d'origine. Les connecteurs de
+  scraping n'y contribuent plus rien hors `B008` : les captures larges qui
+  subsistent portent un `# noqa: BLE001` motivé, et sont délibérées (une carte
+  illisible ne doit pas emporter le relevé entier).
 
 ### Icône d'application
 

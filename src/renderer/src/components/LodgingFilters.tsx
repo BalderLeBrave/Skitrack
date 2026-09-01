@@ -5,6 +5,7 @@ import { PARTY_LIMITS } from '@/data/partyLimits'
 import { hasConfirmedPrice } from '@/data/lodgingFilter'
 import { useActiveLodgingFilters } from './activeLodgingFilters'
 import { lodgingSources, LODG_TYPES, srcOf } from '@/data/lodgings'
+import { ProviderBadge } from '@/components/ProviderBadge'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { LODG_FILTER_RESET, stayCriteriaReady, useApp } from '@/state/appState'
@@ -122,7 +123,7 @@ export function LodgingFilters(): JSX.Element {
           {t('stay_nights_count').replace('{n}', String(nights))}
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <div className="filters__pair">
           <div>
             <span className="filters__help" style={{ margin: 0 }}>
               {t('nav_travelers')}
@@ -243,7 +244,8 @@ export function LodgingFilters(): JSX.Element {
                   })
                 }
               >
-                {key} <span className="chip__count">{countBySource(key)}</span>
+                <ProviderBadge provider={key} size="sm" />
+                <span className="chip__count">{countBySource(key)}</span>
               </button>
             )
           })}

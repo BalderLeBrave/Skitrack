@@ -1563,6 +1563,28 @@ const CATALOG = {
     'Altitudes from the Open-Meteo elevation model; water and buildings from OpenStreetMap. An inferred position is placed around the snow front, never at the property’s real address — it locates, it does not guide.'
   ],
   tracking_quiet_hours: ['Ne pas notifier entre 22 h et 8 h', 'No notifications between 10 pm and 8 am'],
+  /*
+   * Le seuil d'alerte, en toutes lettres.
+   *
+   * Il était fabriqué en dur dans `TrackingPage` puis concaténé à des
+   * fragments traduits : l'application anglaise affichait « Baisse d'au moins
+   * 5 % · no notifications between 10 pm and 8 am », deux langues dans une
+   * seule phrase. Le scan de traduction ne pouvait pas le voir — il cherche
+   * des accents en position de littéral, et cette chaîne-là en portait bien,
+   * mais dans un fichier de `pages/` qu'il relève sans faire échouer.
+   */
+  tracking_drop_pct: ['Baisse d’au moins {n} %', 'Drop of at least {n}%'],
+  tracking_drop_eur: ['Baisse d’au moins {n}', 'Drop of at least {n}'],
+  tracking_title: ['Suivi de prix', 'Price tracking'],
+  offers_title: ['Meilleures offres, tous domaines', 'Best offers, all resorts'],
+  offers_subline: [
+    '{v} · {n} · logement + forfaits + route',
+    '{v} · {n} · lodging + passes + travel'
+  ],
+  offers_lede: [
+    'La question n’est pas « quel logement à Val Thorens » mais « où partir cette semaine pour ce budget ». Pour chaque domaine qui passe vos filtres, l’offre la moins chère toutes dépenses comprises : logement, forfaits et route.',
+    'The question is not “which lodging in Val Thorens” but “where to go this week for this budget”. For every resort that passes your filters, the cheapest offer with all costs included: lodging, passes and travel.'
+  ],
   tracking_quiet_hours_short: [
     'pas de notification entre 22 h et 8 h',
     'no notifications between 10 pm and 8 am'

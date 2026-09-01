@@ -81,10 +81,13 @@ export function TrackingPage(): JSX.Element {
     .join(' ')
   const delta = values.length >= 2 ? values[values.length - 1] - values[values.length - 2] : 0
 
+  // Les deux moitiés de cette phrase venaient de deux mondes : la première
+  // écrite en français dans ce fichier, la seconde traduite. En anglais, cela
+  // donnait « Baisse d’au moins 5 % · no notifications between 10 pm and 8 am ».
   const alertSummary =
     (state.alertMode === 'pct'
-      ? `Baisse d’au moins ${state.alertPct} %`
-      : `Baisse d’au moins ${fmt(state.alertEur)} €`) +
+      ? t('tracking_drop_pct').replace('{n}', String(state.alertPct))
+      : t('tracking_drop_eur').replace('{n}', eur(state.alertEur))) +
     (state.quietHours ? ` · ${t('tracking_quiet_hours_short')}` : '') +
     (state.digest ? ` · ${t('digest_short')}` : '')
 
@@ -92,7 +95,7 @@ export function TrackingPage(): JSX.Element {
     <div className="page">
       <div className="page__inner" style={{ maxWidth: 1100 }}>
         <header className="page-head" style={{ marginBottom: 18 }}>
-          <h2>Suivi de prix</h2>
+          <h2>{t('tracking_title')}</h2>
           <span className="u-muted" style={{ fontSize: 13 }}>
             {t('tracking_sub')}
           </span>

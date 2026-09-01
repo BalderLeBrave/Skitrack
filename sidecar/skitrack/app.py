@@ -19,6 +19,7 @@ from .api.routes import (
     referential,
     settings as settings_routes,
 )
+from .api.routes.lodging import router as lodging_router
 from .config import get_settings
 from .db.bootstrap import initialize
 from .db.session import init_engine, session_scope
@@ -137,4 +138,9 @@ def create_app() -> FastAPI:
     app.include_router(lodgings.router, prefix="/api")
     app.include_router(referential.router, prefix="/api")
     app.include_router(settings_routes.router, prefix="/api")
+    # Routes de scraping (pile « v2 »). Sans préfixe : le routeur porte déjà le
+    # sien (`/api`). Elles étaient montées sur une seconde application créée au
+    # niveau du module, que `__main__.py` ne sert jamais — donc injoignables, et
+    # sans le middleware de token qui protège tout le reste.
+    app.include_router(lodging_router)
     return app

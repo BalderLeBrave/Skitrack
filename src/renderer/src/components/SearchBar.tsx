@@ -50,6 +50,7 @@ export function SearchBar(): JSX.Element {
   const [open, setOpen] = useState<Segment | null>(null)
   const [cursor, setCursor] = useState(-1)
   const root = useRef<HTMLDivElement>(null)
+  const input = useRef<HTMLInputElement>(null)
 
   // Un clic ailleurs referme le segment ouvert. Sans cela, le popover d'altitude
   // reste posé sur la page pendant qu'on lit les massifs en dessous.
@@ -106,8 +107,34 @@ export function SearchBar(): JSX.Element {
   const nearbyOpen = indexSilent && (nearbyBusy || nearby != null)
   const listOpen = open === 'dest' && suggestions.length > 0
 
-  /** Sélection : exactement ce que faisait la saisie libre suivie d'Entrée. */
-  const go = (text: string): void => {
+  /**
+   * Choisir une destination — et rien d'autre.
+   *
+   * Sélectionner n'est pas lancer. Le clic sur une suggestion changeait d'écran
+   * sur-le-champ : impossible de choisir « Méribel » puis d'ajuster ses dates,
+   * ses voyageurs ou son budget avant de comparer, alors que ce sont les trois
+   * segments voisins dans la même pilule. Le champ est rempli, la liste se
+   * ferme, le focus revient à la saisie — et l'écran ne bouge pas.
+   */
+  const select = (text: string): void => {
+    patch({ domainQuery: text })
+    // L'ordre compte : `focus()` déclenche `onFocus` de façon synchrone, et
+    // `onFocus` rouvre la liste. Fermer d'abord puis rendre le focus rouvrirait
+    // aussitôt la liste qu'on vient de refermer — on rend donc le focus, *puis*
+    // on ferme.
+    input.current?.focus()
+    setOpen(null)
+    setCursor(-1)
+  }
+
+  /**
+   * Lancer la comparaison — le seul geste qui ouvre un écran.
+   *
+   * La loupe, et Entrée quand aucune suggestion n'est surlignée. C'est ce que
+   * l'en-tête de ce fichier décrit depuis toujours ; le code ne le respectait
+   * plus.
+   */
+  const submit = (text: string): void => {
     setOpen(null)
     setCursor(-1)
     patch({ domainQuery: text, tab: 'recherche' })
@@ -130,9 +157,16 @@ export function SearchBar(): JSX.Element {
     }
     if (e.key === 'Enter') {
       const picked = listOpen && cursor >= 0 ? suggestions[cursor] : null
+      if (picked) {
+        // Entrée sur une suggestion surlignée la choisit, comme le clic. Un
+        // second Entrée lance : c'est le comportement attendu d'une liste de
+        // complétion, et il laisse la place à un ajustement des dates.
+        select(picked.query)
+        return
+      }
       // Sans sélection, la saisie libre part telle quelle : `matchesFilters`
       // lit le même index et sait déjà résoudre un nom de village.
-      go(picked ? picked.query : state.domainQuery)
+      submit(state.domainQuery)
     }
   }
 
@@ -157,6 +191,7 @@ export function SearchBar(): JSX.Element {
           {t('sb_destination')}
         </span>
         <input
+          ref={input}
           className="sb__input"
           value={state.domainQuery}
           role="combobox"
@@ -182,7 +217,7 @@ export function SearchBar(): JSX.Element {
                   type="button"
                   className={`sb__opt${i === cursor ? ' sb__opt--on' : ''}`}
                   onMouseEnter={() => setCursor(i)}
-                  onClick={() => go(s.query)}
+                  onClick={() => select(s.query)}
                 >
                   <span className="sb__opt-name">{s.label}</span>
                   {/* « Montchavin · Paradiski » : le lieu, puis le domaine
@@ -212,7 +247,7 @@ export function SearchBar(): JSX.Element {
             </li>
             {(nearby?.stations ?? []).map((hit) => (
               <li key={hit.station.id} role="option" aria-selected={false}>
-                <button type="button" className="sb__opt" onClick={() => go(hit.station.name)}>
+                <button type="button" className="sb__opt" onClick={() => select(hit.station.name)}>
                   <span className="sb__opt-name">{hit.station.name}</span>
                   {hit.station.pass && <span className="sb__opt-context">· {hit.station.pass}</span>}
                   <span className="sb__opt-kind u-num">{fmt(hit.km)} km</span>
@@ -332,7 +367,7 @@ export function SearchBar(): JSX.Element {
         )}
       </div>
 
-      <button type="button" className="sb__go" title={t('sb_go')} aria-label={t('sb_go')} onClick={() => go(state.domainQuery)}>
+      <button type="button" className="sb__go" title={t('sb_go')} aria-label={t('sb_go')} onClick={() => submit(state.domainQuery)}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="11" cy="11" r="6.5" />
           <path d="M16 16l4.5 4.5" />

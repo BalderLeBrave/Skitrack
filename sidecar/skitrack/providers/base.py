@@ -1,21 +1,129 @@
-"""Interface commune des connecteurs de logement.
-
-**Aucune implémentation de niveau 1 n'est livrée en phase 1**, et ce n'est pas un
-oubli : Booking Demand API et Expedia Rapid exigent un compte partenaire validé.
-Écrire un connecteur contre une documentation qu'on n'a pas pu exécuter
-produirait du code plausible et faux. L'interface, elle, est posée maintenant
-pour que la phase 3 n'ait qu'à la remplir — et pour que le reste de
-l'application (normalisation, cache, comparateur) soit écrit contre elle.
-
-Voir PROVIDERS.md pour l'état légal et la procédure d'accès de chaque source.
 """
-
-from __future__ import annotations
-
+Base provider avec méthode de scraping générique
+"""
 import datetime as dt
+import logging
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any, Literal
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class LodgingSearchParams:
+    destination: str
+    checkin: date | None = None
+    checkout: date | None = None
+    guests: int = 2
+    latitude: float | None = None
+    longitude: float | None = None
+    radius_km: float | None = None
+    max_results: int = 50
+
+
+@dataclass
+class LodgingResult:
+    title: str
+    price_per_night: float | None
+    currency: str
+    rating: float | None = None
+    reviews_count: int | None = None
+    url: str = ""
+    image_url: str | None = None
+    source: str = ""
+    room_type: str | None = None
+    location: str | None = None
+    
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "title": self.title,
+            "price_per_night": self.price_per_night,
+            "currency": self.currency,
+            "rating": self.rating,
+            "reviews_count": self.reviews_count,
+            "url": self.url,
+            "image_url": self.image_url,
+            "source": self.source,
+            "room_type": self.room_type,
+            "location": self.location,
+        }
+
+
+class BaseProvider(ABC):
+    """Classe de base pour tous les providers de scraping"""
+    
+    name: str = "base"
+    base_url: str = ""
+    
+    def __init__(self, proxy_manager=None, captcha_solver=None):
+        self.proxy_manager = proxy_manager
+        self.captcha_solver = captcha_solver
+        self.logger = logging.getLogger(self.__class__.__name__)
+    
+    @abstractmethod
+    async def scrape(
+        self, 
+        params: LodgingSearchParams, 
+        respect_robots: bool = False
+    ) -> list[LodgingResult]:
+        pass
+    
+    async def search(
+        self, 
+        params: LodgingSearchParams, 
+        respect_robots: bool = False
+    ) -> list[LodgingResult]:
+        return await self.scrape(params, respect_robots)
+    
+    def normalize_price(self, price_text: str) -> tuple[float | None, str]:
+        """Rend `(None, devise)` quand aucun nombre n'est lisible.
+
+        Elle rendait `0.0` : un prix absent devenait « 0 € », c'est-à-dire une
+        valeur inventée présentée comme une mesure. L'invariant du projet est
+        l'inverse — une valeur absente reste absente, et l'interface sait
+        afficher « non renseigné ».
+        """
+        currency = "EUR"
+        if '$' in price_text or 'USD' in price_text:
+            currency = "USD"
+        elif '£' in price_text or 'GBP' in price_text:
+            currency = "GBP"
+        elif 'CHF' in price_text:
+            currency = "CHF"
+        
+        numbers = re.findall(r'[\d\s.,]+', price_text)
+        if numbers:
+            num_str = numbers[0].replace(' ', '').replace(',', '.')
+            try:
+                if '.' in num_str:
+                    parts = num_str.split('.')
+                    if len(parts[-1]) == 2:
+                        price = float(num_str)
+                    else:
+                        price = float(num_str.replace('.', ''))
+                else:
+                    price = float(num_str)
+                return price, currency
+            except ValueError:
+                pass
+        return None, currency
+
+
+# ---------------------------------------------------------------------------
+# Modèles pivots du contrat d'origine.
+#
+# `providers/__init__.py` exporte `ProviderInfo` et `SearchCriteria`, et
+# `registry.provider_statuses()` construit l'écran « Sources » à partir de
+# `ProviderInfo`. La réécriture les avait supprimés : le paquet `providers`
+# entier ne s'importait plus (`cannot import name 'ProviderInfo'`), donc la
+# pile de scraping non plus.
+#
+# Ils coexistent avec `LodgingSearchParams` / `LodgingResult` ci-dessus, qui
+# décrivent le scraping. Les deux contrats ne se recouvrent pas.
+# ---------------------------------------------------------------------------
 
 ProviderKind = Literal["api", "deeplink", "manual"]
 
@@ -96,45 +204,3 @@ class NormalizedOffer:
     cancellation_policy: str | None = None
     availability_status: str = "available"
     raw: dict[str, Any] | None = None
-
-
-class BaseProvider(ABC):
-    """Contrat que doit remplir tout connecteur.
-
-    Règles imposées à toute implémentation :
-
-    * `search()` ne lève jamais pour cause de clé manquante — elle renvoie une
-      liste vide et `is_configured()` vaut `False`. Une source non configurée ne
-      doit pas casser la recherche des autres.
-    * Tous les appels réseau passent par `services.http` (rate-limit, retry,
-      cache TTL) — jamais `httpx` directement.
-    * `normalize()` est une fonction pure, testable sur une charge utile figée
-      sans réseau.
-    """
-
-    info: ProviderInfo
-
-    @abstractmethod
-    def is_configured(self) -> bool:
-        """Vrai si les clés nécessaires sont présentes dans le coffre en mémoire."""
-
-    @abstractmethod
-    async def search(
-        self, criteria: SearchCriteria
-    ) -> tuple[list[NormalizedAccommodation], list[NormalizedOffer]]:
-        """Recherche. Renvoie ([], []) si non configuré."""
-
-    @abstractmethod
-    async def get_details(self, source_id: str) -> NormalizedAccommodation | None:
-        """Fiche complète d'un logement."""
-
-    @staticmethod
-    @abstractmethod
-    def normalize(payload: dict[str, Any]) -> NormalizedAccommodation:
-        """Charge utile brute -> objet pivot. Pure, sans I/O."""
-
-    def unavailable_reason(self) -> str | None:
-        if self.is_configured():
-            return None
-        missing = ", ".join(self.info.requires_keys) or "configuration"
-        return f"Source non configurée ({missing})"

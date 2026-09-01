@@ -5,6 +5,10 @@
 # COMPILER depuis les sources, ce qui échoue sur un poste sans Rust/C++
 # (« Building wheel for pydantic-core did not run successfully »). Les versions
 # ci-dessous sont les premières a publier des roues cp314 pour Windows x64.
+#
+# Ces planchers avaient été abaissés (fastapi>=0.104, pydantic>=2.5) sans que le
+# commentaire ci-dessus ne change : la raison d'être des versions disparaissait
+# en silence. Ils sont rétablis.
 fastapi>=0.115
 uvicorn>=0.30
 sqlalchemy>=2.0.36
@@ -15,3 +19,17 @@ ijson>=3.3
 PyYAML>=6.0.2           # 6.0.2 apporte les roues cp313/cp314
 shapely>=2.0.6          # 2.0.6 publie les roues cp314 Windows
 orjson>=3.10.7
+
+# --- Connecteurs de scraping (pile « v2 ») ---------------------------------
+#
+# Seules les dépendances réellement importées figurent ici. La liste précédente
+# ajoutait pandas, numpy, python-jose, passlib, aiofiles, lxml, aiohttp et
+# python-multipart : aucun n'est importé nulle part dans `sidecar/skitrack`.
+#
+# playwright-stealth : plancher 2.0 et non 1.0.6. La 2.x a retiré
+# `stealth_async` au profit de `Stealth().apply_stealth_async()` — c'est
+# l'API qu'utilisent les connecteurs, et un 1.x les casserait.
+playwright>=1.40
+playwright-stealth>=2.0
+fake-useragent>=1.4
+beautifulsoup4>=4.12

@@ -1,281 +1,131 @@
 /**
- * Le découpage en lots de l'appel au moteur local.
+ * Le découpage en lots de l'enrichissement d'accès.
  *
- * Le cas qui a motivé ce fichier, constaté le 2026-08-30 sur le profil réel :
- * un domaine de 349 annonces affichait « Distances aux pistes non calculées
- * (Trop de logements en un appel (349 > 200). Découpez la recherche.) ». Le
- * moteur borne un appel à 200 logements — `MAX_LODGINGS`, voir
- * `sidecar/skitrack/api/routes/lodgings.py` — et son message dit quoi faire ;
- * personne ne le faisait, et la totalité des distances était perdue dès qu'un
- * domaine dépassait la borne. Aucun test ne pouvait le voir : l'appel partait
- * en dur vers `api.lodgingsAccess`.
+ * Le sidecar refuse plus de 200 logements par appel. `enrichWithAccess` en
+ * envoyait la totalité d'un coup : sur un relevé réel de 358 logements
+ * (Méribel, 2026-08-31), l'appel repartait en 413 et le `catch` rendait la
+ * liste **inchangée** — zéro distance calculée, alors que 200 étaient à
+ * portée. L'écran disait « Découpez la recherche », c'est-à-dire demandait à
+ * l'utilisateur de faire à la main ce que le code pouvait faire.
  *
- * Le découpage ne se relit pas, il se compte. Ces cas passent donc un
- * `AccessCaller` qui note la taille de chaque requête reçue.
+ * Ce qui est vérifié ici est ce qu'une relecture ne garantit pas : que les
+ * lots respectent le plafond du serveur, qu'ils partent tous, et surtout qu'un
+ * lot en échec n'emporte pas les autres — la règle déjà tenue par les
+ * itinéraires en masse (`domain/travel.ts`).
  *
- *   npm run access:test
+ *   npm run lodgaccess:test
  */
 
-import { configureClient } from '@/api/client'
-import type { LodgingAccessRequest, LodgingAccessResponse } from '@/api/types'
-import { enrichWithAccess, type AccessCaller } from './lodgingAccess'
+import { enrichWithAccess } from './lodgingAccess'
 import type { Lodging } from './lodgings'
 
-// `enrichWithAccess` refuse avant toute requête tant que le client n'a pas reçu
-// son URL de base. Ce n'est pas un contournement : c'est le handshake Electron,
-// joué à la main.
-configureClient('http://127.0.0.1:0', 'test')
-
 let failures = 0
-const check = (label: string, ok: boolean, seen?: unknown): void => {
-  if (ok) {
-    console.log(`  ✓ ${label}`)
-    return
-  }
+const check = (label: string, condition: boolean): void => {
+  if (condition) return
   failures++
-  console.error(`  ✗ ${label}${seen === undefined ? '' : ` — vu : ${String(seen)}`}`)
+  console.error(`FAIL  ${label}`)
 }
 
-/**
- * N annonces positionnées, toutes distinctes par leur `id`.
- *
- * Le contrat complet est écrit, sans raccourci de transtypage : les mesures
- * sont recollées par `id`, et un objet approximatif ferait passer le test pour
- * de mauvaises raisons.
- */
-const lodgings = (n: number, from = 0): Lodging[] =>
-  Array.from({ length: n }, (_, i): Lodging => {
-    const at = from + i
-    return {
-      id: at,
-      name: `Annonce ${at}`,
-      type: 'appart',
-      pers: 0,
-      ch: 0,
-      m2: null,
-      note: '4,5',
-      avis: 12,
-      dist: 0,
-      walk: 0,
-      den: 0,
-      skiIn: false,
-      src: 'Airbnb',
-      pp: 150,
-      lift: '',
-      liftDist: 0,
-      photo: '',
-      annul: false,
-      total: 900,
-      alt: 0,
-      stock: 1,
-      lat: 45.3 + at / 10000,
-      lon: 6.58 + at / 10000
-    }
-  })
-
-/**
- * Un moteur de bureau d'études : il note ce qu'on lui demande, refuse
- * exactement comme le vrai au-delà de 200, et peut tomber en panne sur les
- * `panne` premiers lots.
- */
-function moteur(options: { panne?: number } = {}): {
-  call: AccessCaller
-  lots: number[]
-} {
-  const lots: number[] = []
-  let restantes = options.panne ?? 0
-  const call: AccessCaller = async (body: LodgingAccessRequest) => {
-    lots.push(body.lodgings.length)
-    // La borne du sidecar, reproduite : sans elle, ce test passerait même si le
-    // découpage disparaissait.
-    if (body.lodgings.length > 200) {
-      throw new Error(
-        `Trop de logements en un appel (${body.lodgings.length} > 200). Découpez la recherche.`
-      )
-    }
-    if (restantes > 0) {
-      restantes--
-      throw new Error('moteur en panne')
-    }
-    const response: LodgingAccessResponse = {
-      domain_id: body.domain_id,
-      slopes_available: 0,
-      lifts_available: 12,
-      results: body.lodgings.map((item) => ({
-        ref: item.ref,
-        dist_to_nearest_slope_m: null,
-        denivele_to_slope_m: null,
-        dist_to_nearest_lift_m: 300,
-        denivele_to_lift_m: null,
-        dist_to_slopes_m: 300,
-        denivele_m: 40,
-        dist_to_center_m: null,
-        altitude_m: 1500,
-        slope_access_type: 'navette',
-        precision: 'exact'
-      }))
-    }
-    return response
-  }
-  return { call, lots }
+interface Payload {
+  lodgings: { ref: string; lat: number; lon: number }[]
 }
-
-const mesures = (list: Lodging[]): number => list.filter((lg) => lg.accessComputed).length
-
-async function main(): Promise<void> {
-  console.log('1. 349 annonces — le domaine qui ne calculait plus rien')
-  {
-    const { call, lots } = moteur()
-    const out = await enrichWithAccess(lodgings(349), 42, call)
-    check('deux lots : 200 puis 149', JSON.stringify(lots) === '[200,149]', JSON.stringify(lots))
-    check('les 349 portent leur distance', mesures(out.lodgings) === 349, mesures(out.lodgings))
-    check(
-      'et rien ne parle d’échec',
-      out.note === 'Distances aux pistes calculées pour 349 logement(s).',
-      out.note
-    )
-    check('rien à signaler à l’écran', out.ok)
-  }
-
-  console.log('\n2. La borne elle-même')
-  {
-    const { call, lots } = moteur()
-    await enrichWithAccess(lodgings(200), 42, call)
-    check('200 pile tient en un lot', JSON.stringify(lots) === '[200]', JSON.stringify(lots))
-  }
-  {
-    const { call, lots } = moteur()
-    await enrichWithAccess(lodgings(201), 42, call)
-    check('201 en fait deux', JSON.stringify(lots) === '[200,1]', JSON.stringify(lots))
-  }
-
-  console.log('\n3. Les annonces sans position ne partent pas, et ne bloquent rien')
-  {
-    const { call, lots } = moteur()
-    // Des `id` distincts de ceux du premier lot : les mesures sont recollées
-    // par `id`, et deux annonces qui en partagent un se recopieraient l'une sur
-    // l'autre — ce que le test irait alors prendre pour une réussite.
-    const sans = lodgings(3, 900).map(
-      (lg): Lodging => ({ ...lg, lat: undefined, lon: undefined })
-    )
-    const out = await enrichWithAccess([...lodgings(5), ...sans], 42, call)
-    check('cinq positions envoyées, pas huit', JSON.stringify(lots) === '[5]', JSON.stringify(lots))
-    check('les trois sans position sont rendues intactes', out.lodgings.length === 8)
-    check('et seules les cinq positionnées sont mesurées', mesures(out.lodgings) === 5)
-    // Rien à mesurer n'est pas une panne : les annonces sans position sont
-    // signalées ailleurs, et l'épingle « ≈ » le dit déjà sur la carte.
-    check('les trois sans position ne lèvent aucun bandeau', out.ok)
-  }
-
-  console.log('\n4. Un échec de source reste local')
-  {
-    const { call } = moteur({ panne: 1 })
-    const out = await enrichWithAccess(lodgings(349), 42, call)
-    check('le second lot est mesuré malgré la panne du premier', mesures(out.lodgings) === 149)
-    // Le compte est dit, et le total avec : « 200 non calculées » seul
-    // laisserait ignorer sur combien porte le manque. Une seule phrase couvre
-    // la panne totale et la panne partielle, parce qu'elle porte le compte.
-    check(
-      'le message dit combien manquent, et sur combien',
-      out.note ===
-        'Distances aux pistes non calculées pour 200 logement(s) sur 349 (moteur en panne).',
-      out.note
-    )
-    // Le cas qui rend ce champ nécessaire : sans lui, l'écran Logements teste
-    // « aucune annonce mesurée » et laisse la panne partielle sans un mot.
-    check('l’écran a de quoi le dire', out.ok === false)
-  }
-  {
-    const { call } = moteur({ panne: 9 })
-    const out = await enrichWithAccess(lodgings(349), 42, call)
-    check('moteur muet : aucune mesure', mesures(out.lodgings) === 0)
-    check('les annonces sont rendues quand même', out.lodgings.length === 349)
-    check(
-      'et l’échec est signalé, pas transformé en erreur',
-      out.note === 'Distances aux pistes non calculées pour 349 logement(s) sur 349 (moteur en panne).',
-      out.note
-    )
-    check('l’écran a de quoi le dire', out.ok === false)
-  }
-
-  console.log('\n5. Domaine importé sans tracés ni remontées')
-  {
-    const call: AccessCaller = async (body) => ({
-      domain_id: body.domain_id,
-      slopes_available: 0,
-      lifts_available: 0,
-      // Un domaine sans géométrie renvoie bien une ligne par logement, toutes
-      // nulles : c'est le nombre de tracés qui fait foi, pas le nombre de
-      // lignes. Confondre les deux ferait disparaître ce message.
-      results: body.lodgings.map((item) => ({
-        ref: item.ref,
-        dist_to_nearest_slope_m: null,
-        denivele_to_slope_m: null,
-        dist_to_nearest_lift_m: null,
-        denivele_to_lift_m: null,
-        dist_to_slopes_m: null,
-        denivele_m: null,
-        dist_to_center_m: null,
-        altitude_m: null,
-        slope_access_type: null,
-        precision: 'exact'
-      }))
-    })
-    const out = await enrichWithAccess(lodgings(300), 42, call)
-    check(
-      'le motif est nommé',
-      out.note ===
-        'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.',
-      out.note
-    )
-    check('et rien n’est prétendu mesuré', mesures(out.lodgings) === 0)
-    check('l’écran a de quoi le dire', out.ok === false)
-  }
-
-  console.log('\n5 bis. Panne d’un lot ET géométrie absente : c’est la panne qu’on nomme')
-  {
-    // Le remède diffère : un domaine sans tracés se répare par un import, un
-    // lot perdu par une relance. Et rien ne dit que le domaine soit vraiment
-    // sans tracés — c'est peut-être le lot muet qui l'aurait montré.
-    let premier = true
-    const call: AccessCaller = async (body) => {
-      if (premier) {
-        premier = false
-        throw new Error('moteur en panne')
-      }
-      return {
-        domain_id: body.domain_id,
-        slopes_available: 0,
-        lifts_available: 0,
-        results: []
-      }
-    }
-    const out = await enrichWithAccess(lodgings(300), 42, call)
-    check(
-      'la panne l’emporte sur « sans tracés »',
-      out.note === 'Distances aux pistes non calculées pour 300 logement(s) sur 300 (moteur en panne).',
-      out.note
-    )
-  }
-
-  console.log('\n6. Domaine non rapproché du moteur : aucune requête')
-  {
-    const { call, lots } = moteur()
-    const out = await enrichWithAccess(lodgings(10), undefined, call)
-    check('rien n’est parti', lots.length === 0)
-    check(
-      'et le motif est dit',
-      out.note === 'Ce domaine n’est pas rapproché du moteur local — distances non calculables.',
-      out.note
-    )
-    check('l’écran a de quoi le dire', out.ok === false)
-  }
-
-  if (failures > 0) {
-    console.error(`\n${failures} test(s) en échec.`)
-    process.exit(1)
-  }
-  console.log('\nAccès aux pistes : le découpage tient, et chaque panne est dite.')
+interface Stub {
+  ready?: boolean
+  calls: Payload[]
+  handler: (payload: Payload) => unknown
 }
+const g = globalThis as unknown as { __ACCESS_STUB__?: Stub }
 
-void main()
+/** Une réponse du sidecar qui mesure tout le lot, à 100 m des pistes. */
+const repondre = (payload: Payload): unknown => ({
+  domain_id: 1,
+  slopes_available: 42,
+  lifts_available: 7,
+  results: payload.lodgings.map((item) => ({
+    ref: item.ref,
+    dist_to_slopes_m: 100,
+    denivele_m: 10,
+    dist_to_nearest_slope_m: 100,
+    dist_to_nearest_lift_m: 250,
+    altitude_m: 1800,
+    slope_access_type: 'a_pied'
+  }))
+})
+
+const lots = (n: number): Lodging[] =>
+  Array.from({ length: n }, (_, i) => ({ id: i + 1, lat: 45.4, lon: 6.57 }) as unknown as Lodging)
+
+// --- 358 logements : deux lots, tout est mesuré -----------------------------
+
+g.__ACCESS_STUB__ = { calls: [], handler: repondre }
+const gros = await enrichWithAccess(lots(358), 1)
+const appels = g.__ACCESS_STUB__.calls
+
+check('358 logements partent en 2 lots', appels.length === 2)
+check('aucun lot ne dépasse le plafond du sidecar', appels.every((c) => c.lodgings.length <= 200))
+check('les deux lots couvrent tout le monde', appels[0].lodgings.length + appels[1].lodgings.length === 358)
+check('aucun logement en double entre les lots', new Set(appels.flatMap((c) => c.lodgings.map((l) => l.ref))).size === 358)
+check(
+  'les 358 sont enrichis',
+  gros.lodgings.filter((l) => l.accessComputed).length === 358
+)
+check('la note annonce le compte', gros.note === 'Distances aux pistes calculées pour 358 logement(s).')
+
+// --- Un lot échoue : les autres tiennent ------------------------------------
+
+let appel = 0
+g.__ACCESS_STUB__ = {
+  calls: [],
+  handler: (payload) => {
+    appel++
+    if (appel === 2) throw new Error('413')
+    return repondre(payload)
+  }
+}
+const partiel = await enrichWithAccess(lots(358), 1)
+
+check(
+  'le lot survivant est conservé',
+  partiel.lodgings.filter((l) => l.accessComputed).length === 200
+)
+check(
+  'et le reste est dit, pas tu',
+  partiel.note === 'Distances aux pistes calculées pour 200 logement(s). 1 lot(s) sur 2 n’ont pas abouti.'
+)
+
+// --- Tous les lots échouent : rien n'est inventé -----------------------------
+
+g.__ACCESS_STUB__ = {
+  calls: [],
+  handler: () => {
+    throw new Error('moteur coupé')
+  }
+}
+const rien = await enrichWithAccess(lots(358), 1)
+
+check('aucun logement n’est modifié', rien.lodgings.every((l) => l.accessComputed == null))
+check('le motif est rapporté tel quel', rien.note === 'Distances aux pistes non calculées (moteur coupé).')
+
+// --- Un seul lot quand la liste est petite ----------------------------------
+
+g.__ACCESS_STUB__ = { calls: [], handler: repondre }
+await enrichWithAccess(lots(12), 1)
+check('12 logements tiennent en un seul appel', g.__ACCESS_STUB__.calls.length === 1)
+
+// --- Le domaine sans tracés reste annoncé comme tel --------------------------
+
+g.__ACCESS_STUB__ = {
+  calls: [],
+  handler: (payload) => ({ ...(repondre(payload) as object), slopes_available: 0, lifts_available: 0 })
+}
+const sansTraces = await enrichWithAccess(lots(250), 1)
+check(
+  'sans tracés ni remontées, on le dit au lieu de mesurer',
+  sansTraces.note === 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
+)
+
+if (failures > 0) {
+  console.error(`\n${failures} échec(s).`)
+  process.exit(1)
+}
+console.log('Découpage de l’enrichissement d’accès : tous les cas passent.')

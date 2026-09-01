@@ -140,6 +140,11 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
    * publie, prime toujours.
    */
   fitsGuests?: number
+  /**
+   * Plancher chambres appliqué par la source (filtre SERP), pas un décompte
+   * publié. Deskline POST `bedrooms: [4,5,…]`.
+   */
+  fitsBedrooms?: number
   /** Statut relevé par le connecteur, quand il le pose. */
   availabilityStatus?: 'available' | 'unavailable' | 'unknown' | 'listing_gone'
   /** Page 0-based de la SERP. */

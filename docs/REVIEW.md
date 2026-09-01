@@ -7,7 +7,7 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 | question | réponse |
 | --- | --- |
 | Ai-je ouvert centrals.ts et listé 100 % des id ? | **Oui.** 74 entrées, tableau CENTRALES.md. Import vivant : `centralLookup.ts` → `aggregateResults` (`centralsLoaded()`). |
-| Ai-je patché un adapter jamais appelé ? | **Non.** Expedia-web reste non `register()` (documenté, pas enabled). 7 hôtes `not_wired` : pas de parseur inventé. |
+| Ai-je patché un adapter jamais appelé ? | **Non.** Expedia-web reste non `register()` (documenté, pas enabled). 6 hôtes `not_wired` : pas de parseur inventé. Deskline Clusaz `register()` + `familyOfHost`. |
 | Ai-je cassé le résolveur captcha/WAF ? | **Non.** `CaptchaSolver` intact. `STEALTH_INIT` intact. Ajout : `POST /api/scrape/captcha/solve` + `captchaBridge.ts` appelé **après** le wait humain Airbnb. Pas de nouveau kit. |
 | `matchesDemand` est-il sur le chemin UI réel ? | **Oui.** `matchesLodgingFilters` → `selectors.tsx` `lodgFiltered`. Défaut `lodgHideUnannounced: true` (schéma 8). |
 | Airbnb/Booking appellent-ils geo pistes ? | **Oui, inchangé.** `enrichWithAccess`. Sans GPS : plus de pin centroïde (`lodgingCoords` → `null`). |
@@ -26,7 +26,7 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 1. VRBO live = **429 `Bot or Not?`** (dump 2026-09-01). Motif `blocked`. Parseur **non** retouché — pas de SERP.
 2. Gîtes : GET `towns=50301` + `.js-search-tile` dumpés (33 résultats, 16 ≥ 8p/4ch). Live Electron **non relancé** ici → 0 carte tant que Playwright n’a pas couru. Pas d’inventaire fictif.
 3. CozyCozy : catalogue SEO `article.hoj_seo_card` dumpé. `getResultList` **jamais** vu (clic Search → Booking affiliate). Pas de connecteur JSON inventé.
-4. **7** centrales `not_wired` : motif explicite `reasonCode=not_wired`. Dumps : Karellis CF 403 ; Pralognan 26 tarifs sans chambres ; Clusaz Deskline 898 fromPrice/nuit, filters sans dates ; Elloha 0 SERP logements ; Angles OS 1395 / 1 produit, 0 vueinfo ; Sancy OT éditorial.
+4. **6** centrales `not_wired` : motif explicite `reasonCode=not_wired`. Dumps : Karellis CF 403 ; Pralognan 26 tarifs sans chambres ; Elloha 0 SERP logements ; Angles OS 1395 / 1 produit, 0 vueinfo ; Sancy Diffusio 142, chambres seulement sur fiche. La Clusaz : Deskline branché (31 offres 8p/4chb).
 5. Sidecar `/api/scrape/{provider}` hors chemin UI. Solveur rebranché via `/captcha/solve`.
 6. `ttl_availability` 6 h sur `scannedAt`. Pas de cache dispo Electron séparé.
 7. Expedia-web **existe**, **non `register()`** — pas un `central_id` enabled.
@@ -34,9 +34,15 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 
 Valberg / Écrins **sortis du rouge** (Ublo 665/OT-665, 30015/PDE).
 
-## Plancher personnes / chambres (2026-09-01)
+## Plancher personnes / chambres (2026-09-01, précisé 2026-09-02)
 
-`matchesDemand` / `partyVerdict` comparaient déjà en `<` (plancher). Correctifs UI : `lodg_travelers_field`, `lodg_party_floor_help`, puce voyageurs, tests §12 bis (14/7 retenu, 7/4 et 8/3 écartés). Défaut `includeUnannounced=false`.
+`matchesDemand` / `partyVerdict` : plancher, pas un match exact. Un gîte 14/7 passe pour 8/4.
+
+**Appartement / chalet / gîte** : le nombre de chambres demandé doit être **dans le logement**. Un 8 pers / 3 chb est écarté.
+
+**Hôtel** (chambre, 0–1 chb publiée) : on propose N chambres pour le groupe. Demande 8 pers / 4 chb, occupancy 2 → 4 chambres. Une suite ≥ 2 chambres reste une unité.
+
+Tests §12 ter. Défaut `includeUnannounced=false`. Null capacity/bedrooms toujours exclus.
 
 ## Critique
 

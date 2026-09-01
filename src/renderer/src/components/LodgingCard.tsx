@@ -31,7 +31,7 @@ import { ProviderBadge } from './ProviderBadge'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { freshnessOf, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
-import { partyVerdict } from '@/data/lodgingFilter'
+import { hotelRoomsNeeded, isCombinableHotel, partyVerdict } from '@/data/lodgingFilter'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import { useFormat } from '@/hooks/useFormat'
@@ -130,12 +130,24 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
   const nonAnnoncee =
     partyVerdict(lg, { travelers: state.travelers, rooms: state.rooms }) === 'non-annonce'
 
+  const hotelOffer =
+    isCombinableHotel(lg) && lg.pers > 0
+      ? {
+          rooms: hotelRoomsNeeded(lg.pers, { guests: state.travelers, bedrooms: state.rooms }),
+          occupancy: lg.pers
+        }
+      : null
+
   const place = [
     domain.name || null,
     lg.alt ? `${fmt(lg.alt)} m` : null,
     lg.type || null,
-    lg.pers ? `${lg.pers} pers` : null,
-    sizeLabel(lg, t),
+    hotelOffer
+      ? `${hotelOffer.rooms} ch. hôtel · ${hotelOffer.rooms * hotelOffer.occupancy} pers`
+      : lg.pers
+        ? `${lg.pers} pers`
+        : null,
+    hotelOffer ? null : sizeLabel(lg, t),
     lg.m2 ? `${lg.m2} m²` : null,
     nonAnnoncee ? `⚠ ${t('lodg_unannounced_badge')}` : null
   ]

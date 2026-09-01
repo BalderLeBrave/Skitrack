@@ -557,6 +557,7 @@ async function main(): Promise<void> {
   check('Karellis = not_wired', familyOfHost('www.karellis.com') === 'not_wired')
   check('Valberg = ublo (ids dumpés)', familyOfHost('www.valberg.com') === 'ublo')
   check('Écrins = ublo (ids dumpés)', familyOfHost('www.paysdesecrins.com') === 'ublo')
+  check('La Clusaz = deskline', familyOfHost('www.laclusaz.com') === 'deskline')
   check(
     'sans URL officielle → no_official_url',
     emptyStationReason(undefined) === 'no_official_url'
@@ -572,6 +573,10 @@ async function main(): Promise<void> {
   check(
     'Écrins officiel → delegated (ublo)',
     emptyStationReason('https://www.paysdesecrins.com/hebergements/') === 'delegated'
+  )
+  check(
+    'La Clusaz officiel → delegated (deskline)',
+    emptyStationReason('https://www.laclusaz.com/') === 'delegated'
   )
   check(
     'Chamonix officiel → delegated (ceto)',

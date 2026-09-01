@@ -17,6 +17,9 @@ Captures Playwright du 2026-09-01. Les HTML bruts **ne sont pas versionnés**
 | `red-points-8.json` | r8 compact : login les-angles, 1 OSMB | **oui** |
 | `sancy_lae-dispo-accueil.js` | r9 : construction URL `id1[d]` | **oui** |
 | `red-points-9.json` | r9 compact : 142 Diffusio, Deskline 8 hôtels | **oui** |
+| `clusaz_filter_bedrooms_list.json` | r10 : 17/31 searchresults 8p + bedrooms[] | **oui** |
+| `clusaz_deskline_cold.json` | r10 : session froide Q+timestamp, 31 offres | **oui** |
+
 
 Voir `discovery_gites.md`, `discovery_vrbo.md`, `discovery_cozycozy.md`,
 `discovery_valberg.md`, `discovery_ecrins.md`, `discovery_pralognan.md`,

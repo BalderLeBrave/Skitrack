@@ -1,0 +1,18 @@
+{
+  "at": "2026-09-01T23:15Z",
+  "note": "Cold session Q+Date.now(), no browser. Dump-proven Deskline bypass.",
+  "session_format": "Q${Date.now()}",
+  "searches": { "status": 201, "adults": 8, "from": "2027-02-13", "to": "2027-02-20" },
+  "filters": { "status": 201, "bedrooms": [4, 5, 6, 7, 8, 9, 10, 12] },
+  "searchresults": {
+    "status": 200,
+    "client": "laclusaz",
+    "paging": { "pageNo": 1, "pageSize": 8, "pageCount": 4, "totalRecordCount": 31 },
+    "sample": [
+      { "name": "Chalet La Patna", "fromPrice": 12136.6, "cats": ["Chalet individuel", "Location"], "gps": { "lat": 45.897688, "lng": 6.428284 } },
+      { "name": "Résidence Les Grandes Alpes - T6 10/12 -A51", "fromPrice": 7215.6, "cats": ["Résidence de tourisme", "Location"], "gps": { "lat": 45.9063446, "lng": 6.4242579 } },
+      { "name": "Piste du Soleil n°6 / Bartavelles", "fromPrice": 5058.6, "cats": ["Appartement", "Location"], "gps": { "lat": 45.888704, "lng": 6.431804 } }
+    ]
+  },
+  "parser_rewritten": false
+}

@@ -13,7 +13,7 @@ pose un `reasonCode` (`not_wired` / `delegated` / `empty_inventory`) sur un
 
 Le moteur n’itère pas la table pour lancer 74 adapters : une recherche passe
 `SearchParams.officialUrl` à `station-web` **et** aux familles Ceto / Ublo /
-Open System. La table sert à **nommer** l’hôte, pas à inventer un parseur.
+Open System / Deskline. La table sert à **nommer** l’hôte, pas à inventer un parseur.
 
 VRBO, Gîtes de France, CozyCozy **ne sont pas** dans `CENTRALS`. Ils existent
 comme connecteurs webscrape enregistrés dans `buildEngine`.
@@ -64,7 +64,7 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 | c31-www-valmeinier-reservation-com | Valmeinier | www.valmeinier-reservation.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Valmeinier | ingenie | checkIn, duration, guests, submit |  |
 | c32-www-valmorel-com | Valmorel | www.valmorel.com | src/main/providers/opensystem/provider.ts | createOpenSystemProvider.search | opensystem/extract.ts | vueinfo.js coords | yes | Valmorel | opensystem | station, checkIn, checkOut, guests, submit |  |
 | c33-reservation-combloux-com | Combloux | reservation.combloux.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Combloux | ingenie-heuristic | guests, submit |  |
-| c34-www-laclusaz-com | La Clusaz | www.laclusaz.com | NONE | — | — | — | no | La Clusaz | not_wired | checkIn, checkOut, submit |  |
+| c34-www-laclusaz-com | La Clusaz | www.laclusaz.com | src/main/providers/deskline/{provider,extract,hosts}.ts | createDesklineProvider.search | extractDeskline (POST /searches + /filters bedrooms[] + GET searchresults) | location.coordinate | yes | La Clusaz | deskline | checkIn, checkOut, submit | Session `Q`+timestamp. fromPrice = tarif séjour. Chambres = plancher filtre, pas un décompte publié. |
 | c35-reservation-alpedhuez-com | Alpe d'Huez Grand Domaine | reservation.alpedhuez.com | src/main/providers/ublo/provider.ts | createUbloProvider.search | ublo/msem.ts | API MSEM coords | yes | Alpe d'Huez Grand Domaine | ublo | checkIn, checkOut, guests, submit |  |
 | c36-reservation-haute-maurienne-vanoise-com | Aussois | reservation.haute-maurienne-vanoise.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Aussois | ingenie | checkIn, checkOut, guests |  |
 | c37-reservation-haute-maurienne-vanoise-com | Bonneval-sur-Arc | reservation.haute-maurienne-vanoise.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Bonneval-sur-Arc | ingenie | checkIn, checkOut, guests |  |
@@ -114,9 +114,10 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 | ceto | 14 | `ceto-*` si officialUrl (12 Plagne + Chamonix + Méribel) |
 | ublo | 6 | `ublo-msem` |
 | opensystem | 7 | `opensystem` |
+| deskline | 1 | `deskline` (La Clusaz) |
 | ota-airbnb | 1 | IPC `airbnb:scrape`, **pas** `SearchEngine.register` |
 | ota-booking | 1 | `booking` + `booking-web` |
-| not_wired | 7 | silence ou lien seulement |
+| not_wired | 6 | silence ou lien seulement |
 
 ## not_wired — tickets concrets
 
@@ -124,7 +125,6 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 | --- | --- | --- | --- |
 | Les Karellis | www.karellis.com | `src/main/providers/karellis.ts` **après** discovery dump | `AccommodationProvider.search` ; 0 → reason_code |
 | Pralognan | www.reservationpralognan.fr | idem | 26 tarifs séjour 5–12 sept. ; 0 chambre ; fév. 2027 vide |
-| La Clusaz | www.laclusaz.com | idem | Deskline 898, shadow dw-app-container, filters sans dates |
 | Vars (2e centrale) | www.alpes-sudlocations.com | idem | Elloha POST Search 0 résultat 8p fév. 2027 |
 | Les Angles | lesangles.com | idem | OS 1395 / login les-angles, 1 produit OSMB, 0 vueinfo |
 | Super Besse + Mont Dore | www.sancy.com | idem | Diffusio 142 (13–20 fév. 2027), capa sur carte, chambres/prix fourchette sur fiche |
@@ -133,7 +133,11 @@ Valberg et Pays des Écrins **sortis du rouge** le 2026-09-01 : même connecteur
 `ublo-msem` qu’Isola, ids relevés sur l’XHR (`665/OT-665`, `30015/PDE`). Voir
 `docs/diagnostics/discovery_valberg.md` et `discovery_ecrins.md`.
 
-**Interdit** : inventer un parseur pour ces 7 hôtes sans dump HAR/HTML.
+La Clusaz **sortie du rouge** le 2026-09-01 : connecteur Deskline dumpé
+(`POST /searches` 8 pers. + `POST /filters bedrooms:[4,…]` + `GET searchresults`,
+31 logements 13–20 fév. 2027). Voir `docs/diagnostics/discovery_clusaz.md`.
+
+**Interdit** : inventer un parseur pour ces 6 hôtes sans dump HAR/HTML.
 
 ## Hôtes partagés
 

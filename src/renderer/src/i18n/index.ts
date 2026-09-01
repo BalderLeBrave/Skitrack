@@ -1508,8 +1508,8 @@ const CATALOG = {
   lodg_rooms_field: ['Chambres min', 'Min. bedrooms'],
   lodg_travelers_field: ['Voyageurs min', 'Min. guests'],
   lodg_party_floor_help: [
-    'Personnes et chambres sont un plancher. Un gîte 14 pers / 7 chb est proposé pour 8 pers / 4 chb ; un 6 pers / 3 chb est écarté. Pas de plafond de capacité.',
-    'Guests and bedrooms are a floor. A 14-guest / 7-bedroom gîte is shown for 8 guests / 4 bedrooms; a 6-guest / 3-bedroom listing is dropped. No capacity ceiling.',
+    'Personnes et chambres sont un plancher. Un appartement doit avoir au moins ce nombre de chambres (un 8 pers / 3 chb est écarté ; un gîte 14/7 est proposé). Un hôtel peut combiner des chambres — 4 chambres pour 8 personnes. Pas de plafond de capacité.',
+    'Guests and bedrooms are a floor. An apartment must have at least that many bedrooms (8 guests / 3 bedrooms is dropped; a 14/7 gîte is shown). A hotel can combine rooms — 4 rooms for 8 guests. No capacity ceiling.',
   ],
   kids_count_label: ['dont enfants (moins de 13 ans)', 'of which children (under 13)'],
   lodg_free_cancel: ['Annulation gratuite uniquement', 'Free cancellation only'],

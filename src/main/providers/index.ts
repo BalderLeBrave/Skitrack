@@ -54,6 +54,7 @@ import { createCetoPlagneProvider } from './ceto/plagne'
 import { createCetoMegeveProvider } from './ceto/megeve'
 import { createUbloProvider } from './ublo/provider'
 import { createOpenSystemProvider } from './opensystem/provider'
+import { createDesklineProvider } from './deskline/provider'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -115,6 +116,7 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     next.register(createCetoMegeveProvider())
     next.register(createUbloProvider())
     next.register(createOpenSystemProvider())
+    next.register(createDesklineProvider())
   }
 
   // Airbnb n'est pas un connecteur : il n'interroge rien. Voir airbnb/airbnb.ts.

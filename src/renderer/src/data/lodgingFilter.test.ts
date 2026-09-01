@@ -17,6 +17,8 @@ import {
   matchesLodgingFilters,
   normalizedBedrooms,
   partyVerdict,
+  hotelRoomsNeeded,
+  isCombinableHotel,
   type LodgingFilterCriteria
 } from './lodgingFilter'
 import { medianTotal } from './lodgings'
@@ -567,6 +569,42 @@ check(
 check(
   'partyVerdict 14/7 convient pour 8/4',
   partyVerdict(annonce({ pers: 14, ch: 7 }), PARTY) === 'convient'
+)
+
+console.log('\n12 ter. Appartement = chambres du bien ; hôtel = chambres combinables')
+check(
+  '8p/4chb, appart 8 pers 3 ch → trop petit (chambres du logement)',
+  !matchesDemand(lodging({ pers: 8, ch: 3, type: 'Appartement', total: 1800, availabilityStatus: 'available' }), demand84)
+)
+check(
+  '8p/4chb, hôtel chambre 2 pers / 1 ch → 4 chambres pour 8 pers',
+  matchesDemand(lodging({ pers: 2, ch: 1, type: 'Hôtel', total: 900, availabilityStatus: 'available' }), demand84)
+)
+check(
+  'combinable : hôtel 1 ch',
+  isCombinableHotel(lodging({ pers: 2, ch: 1, type: 'Hôtel' }))
+)
+check(
+  'non combinable : suite 3 ch',
+  !isCombinableHotel(lodging({ pers: 6, ch: 3, type: 'Hôtel' }))
+)
+check(
+  '8p/4chb, suite hôtel 3 ch / 6 pers → trop petit (unité)',
+  !matchesDemand(lodging({ pers: 6, ch: 3, type: 'Hôtel', total: 2100, availabilityStatus: 'available' }), demand84)
+)
+check('4 chambres × occ. 2 = 4', hotelRoomsNeeded(2, { guests: 8, bedrooms: 4 }) === 4)
+check('occ. 1 → 8 chambres', hotelRoomsNeeded(1, { guests: 8, bedrooms: 4 }) === 8)
+check(
+  'appart-hôtel 3 ch n’est pas un hôtel combinable',
+  !isCombinableHotel(lodging({ pers: 6, ch: 3, type: 'Appart-hôtel' }))
+)
+check(
+  'partyVerdict hôtel 2p/1ch convient pour 8/4',
+  partyVerdict(annonce({ pers: 2, ch: 1, type: 'Hôtel' }), PARTY) === 'convient'
+)
+check(
+  'partyVerdict appart 8p/3ch trop-petit',
+  partyVerdict(annonce({ pers: 8, ch: 3, type: 'Appartement' }), PARTY) === 'trop-petit'
 )
 
 if (failures > 0) {

@@ -1,0 +1,427 @@
+{
+  "searchId": "580b5db5-1bc5-4633-8ea2-7dd8b3005662",
+  "attempts": [
+    {
+      "extra": {
+        "bedrooms": [
+          4
+        ]
+      },
+      "filterStatus": 201,
+      "filterBedrooms": [
+        4
+      ],
+      "listStatus": 200,
+      "paging": {
+        "pageNo": 1,
+        "pageSize": 8,
+        "pageCount": 3,
+        "totalRecordCount": 17
+      },
+      "sample": [
+        {
+          "name": "Piste du Soleil n°6 / Bartavelles",
+          "fromPrice": 5058.6,
+          "cats": [
+            "Appartement",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.888704,
+            "long": 6.431804,
+            "name": "PISTES DU SOLEIL 6 / BARTAVELLES"
+          }
+        },
+        {
+          "name": "Paturage",
+          "fromPrice": 4365.2,
+          "cats": [
+            "Appartement dans chalet",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.914525,
+            "long": 6.469826,
+            "name": "Paturage"
+          }
+        },
+        {
+          "name": "Chalet Le Crêt - L'Amont",
+          "fromPrice": 8601.6,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [
+            "Promotion Early booking"
+          ],
+          "gps": {
+            "lat": 45.8984655,
+            "long": 6.4266012,
+            "name": "Chalet Le Crêt - L'Amont"
+          }
+        },
+        {
+          "name": "Chalet Mon Alpe",
+          "fromPrice": 7599.4,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.90214,
+            "long": 6.418403,
+            "name": "MON ALPE"
+          }
+        },
+        {
+          "name": "Chalet l Escalada",
+          "fromPrice": 2683,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.925486,
+            "long": 6.418048,
+            "name": "CHALET L ESCALADA"
+          }
+        },
+        {
+          "name": "Chalet Demima",
+          "fromPrice": 2548,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.917454,
+            "long": 6.471859,
+            "name": ""
+          }
+        },
+        {
+          "name": "Chalet Océane",
+          "fromPrice": 4325.2,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.912658,
+            "long": 6.459733,
+            "name": "CHALET OCEANE"
+          }
+        },
+        {
+          "name": "Chalet de La Serraz",
+          "fromPrice": 3150,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.882283,
+            "long": 6.4413,
+            "name": ""
+          }
+        }
+      ]
+    },
+    {
+      "extra": {
+        "bedrooms": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          12
+        ]
+      },
+      "filterStatus": 201,
+      "filterBedrooms": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12
+      ],
+      "listStatus": 200,
+      "paging": {
+        "pageNo": 1,
+        "pageSize": 8,
+        "pageCount": 4,
+        "totalRecordCount": 31
+      },
+      "sample": [
+        {
+          "name": "Chalet La Patna",
+          "fromPrice": 12136.6,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.897688,
+            "long": 6.428284,
+            "name": ""
+          }
+        },
+        {
+          "name": "Résidence Les Grandes Alpes - T6 10/12 -A51",
+          "fromPrice": 7215.6,
+          "cats": [
+            "Résidence de tourisme",
+            "Location"
+          ],
+          "classif": [
+            "Promotion Early booking"
+          ],
+          "gps": {
+            "lat": 45.9063446,
+            "long": 6.4242579,
+            "name": "Résidence Les Grandes Alpes - A51"
+          }
+        },
+        {
+          "name": "Piste du Soleil n°6 / Bartavelles",
+          "fromPrice": 5058.6,
+          "cats": [
+            "Appartement",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.888704,
+            "long": 6.431804,
+            "name": "PISTES DU SOLEIL 6 / BARTAVELLES"
+          }
+        },
+        {
+          "name": "Paturage",
+          "fromPrice": 4365.2,
+          "cats": [
+            "Appartement dans chalet",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.914525,
+            "long": 6.469826,
+            "name": "Paturage"
+          }
+        },
+        {
+          "name": "Chalet Le Crêt - L'Amont",
+          "fromPrice": 8601.6,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [
+            "Promotion Early booking"
+          ],
+          "gps": {
+            "lat": 45.8984655,
+            "long": 6.4266012,
+            "name": "Chalet Le Crêt - L'Amont"
+          }
+        },
+        {
+          "name": "Chalet Catuglie",
+          "fromPrice": 7178.4,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.893397861310056,
+            "long": 6.436433217510034,
+            "name": "CHALET CATUGLIE"
+          }
+        },
+        {
+          "name": "Chalet Mon Alpe",
+          "fromPrice": 7599.4,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.90214,
+            "long": 6.418403,
+            "name": "MON ALPE"
+          }
+        },
+        {
+          "name": "Le Chalet Le Bossonnet",
+          "fromPrice": 23651.6,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [
+            "Promotion Early booking"
+          ],
+          "gps": {
+            "lat": 45.905629,
+            "long": 6.431755,
+            "name": "Le Chalet du Bossonnet"
+          }
+        }
+      ]
+    },
+    {
+      "extra": {
+        "rooms": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      "filterStatus": 201,
+      "filterBedrooms": "{\n  \"id\": \"41a3bd33-3041-4751-a06b-9e964e64492e\",\n  \"filterGeneral\": {},\n  \"filterAddServices\": {\n    \"types\": null,\n    \"holidayThemes\": null,\n    \"locations\": null,\n    \"guestCar",
+      "listStatus": 200,
+      "paging": {
+        "pageNo": 1,
+        "pageSize": 8,
+        "pageCount": 5,
+        "totalRecordCount": 39
+      },
+      "sample": [
+        {
+          "name": "Chalet Chouan",
+          "fromPrice": 5142.6,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": null
+        },
+        {
+          "name": "Chalet La Patna",
+          "fromPrice": 12136.6,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.897688,
+            "long": 6.428284,
+            "name": ""
+          }
+        },
+        {
+          "name": "La Berraz 2",
+          "fromPrice": 2713.2,
+          "cats": [
+            "Appartement",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.909582,
+            "long": 6.44843,
+            "name": "LA BERRAZ"
+          }
+        },
+        {
+          "name": "Résidence Les Grandes Alpes - T6 10/12 -A51",
+          "fromPrice": 7215.6,
+          "cats": [
+            "Résidence de tourisme",
+            "Location"
+          ],
+          "classif": [
+            "Promotion Early booking"
+          ],
+          "gps": {
+            "lat": 45.9063446,
+            "long": 6.4242579,
+            "name": "Résidence Les Grandes Alpes - A51"
+          }
+        },
+        {
+          "name": "Piste du Soleil n°6 / Bartavelles",
+          "fromPrice": 5058.6,
+          "cats": [
+            "Appartement",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.888704,
+            "long": 6.431804,
+            "name": "PISTES DU SOLEIL 6 / BARTAVELLES"
+          }
+        },
+        {
+          "name": "Résidence Les Grandes Alpes - T4 6/8 - A41",
+          "fromPrice": 5325.6,
+          "cats": [
+            "Résidence de tourisme",
+            "Location"
+          ],
+          "classif": [
+            "Promotion Early booking"
+          ],
+          "gps": {
+            "lat": 45.9063446,
+            "long": 6.4242579,
+            "name": "Résidence Les Grandes Alpes - A41"
+          }
+        },
+        {
+          "name": "Paturage",
+          "fromPrice": 4365.2,
+          "cats": [
+            "Appartement dans chalet",
+            "Location"
+          ],
+          "classif": [],
+          "gps": {
+            "lat": 45.914525,
+            "long": 6.469826,
+            "name": "Paturage"
+          }
+        },
+        {
+          "name": "Chalet Le Crêt - L'Amont",
+          "fromPrice": 8601.6,
+          "cats": [
+            "Chalet individuel",
+            "Location"
+          ],
+          "classif": [
+            "Promotion Early booking"
+          ],
+          "gps": {
+            "lat": 45.8984655,
+            "long": 6.4266012,
+            "name": "Chalet Le Crêt - L'Amont"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -167,6 +167,31 @@ export function isStudioListing(listing: Lodging): boolean {
 }
 
 /**
+ * Hôtel (pas appart-hôtel). Une chambre d'hôtel 2 pers. n'est pas un logement-unité :
+ * on peut proposer 4 chambres pour 8 personnes. Une suite ≥ 2 chambres reste une unité.
+ */
+export function isHotelListing(listing: Pick<Lodging, 'type'>): boolean {
+  const t = listing.type.toLowerCase()
+  if (t.includes('appart')) return false
+  return t.includes('hôtel') || t.includes('hotel')
+}
+
+export function isCombinableHotel(listing: Lodging): boolean {
+  if (!isHotelListing(listing)) return false
+  const beds = normalizedBedrooms(listing)
+  return beds != null && beds <= 1
+}
+
+/** N chambres d'hôtel pour le groupe. Demande 8 pers / 4 chb, occ. 2 → 4. */
+export function hotelRoomsNeeded(
+  occupancyPerRoom: number,
+  demand: Pick<Demand, 'guests' | 'bedrooms'>
+): number {
+  if (occupancyPerRoom <= 0) return Number.POSITIVE_INFINITY
+  return Math.max(demand.bedrooms, Math.ceil(demand.guests / occupancyPerRoom))
+}
+
+/**
  * Filtre strict du schéma d'acceptation.
  *
  * `null` ne passe plus. Un studio ne passe que si la demande est ≤ 1 chambre
@@ -174,12 +199,14 @@ export function isStudioListing(listing: Lodging): boolean {
  * pas une fonction orpheline.
  *
  * Personnes et chambres sont un **plancher**. Demande 8 pers / 4 chb :
- * un gîte 14 pers / 7 chb passe ; un 6 pers / 3 chb est écarté. Pas de plafond.
+ * un gîte 14 pers / 7 chb passe ; un appartement 8 pers / 3 chb est écarté.
+ * Un hôtel (chambre 2 pers) : 4 chambres pour 8 personnes, proposé.
+ * Pas de plafond.
  */
 export function matchesDemand(listing: Lodging, demand: Demand): boolean {
-  const guest_capacity_max = listing.pers > 0 ? listing.pers : null
+  const guest_capacity_max = listing.pers > 0 ? listing.pers : listing.fitsGuests != null ? listing.fitsGuests : null
   const bedrooms = normalizedBedrooms(listing)
-  if (guest_capacity_max == null || bedrooms == null) return false
+  const bedroomFloor = bedrooms ?? (listing.fitsBedrooms != null && listing.fitsBedrooms > 0 ? listing.fitsBedrooms : null)
 
   const availability_status = listing.availabilityStatus
   if (availability_status === 'unavailable' || availability_status === 'listing_gone') return false
@@ -187,10 +214,17 @@ export function matchesDemand(listing: Lodging, demand: Demand): boolean {
     return false
   }
 
+  if (isCombinableHotel(listing)) {
+    if (guest_capacity_max == null || bedroomFloor == null) return false
+    const rooms = hotelRoomsNeeded(guest_capacity_max, demand)
+    return Number.isFinite(rooms) && rooms * guest_capacity_max >= demand.guests && rooms >= demand.bedrooms
+  }
+
+  if (guest_capacity_max == null || bedroomFloor == null) return false
   if (guest_capacity_max < demand.guests) return false
   if (demand.bedrooms > 0) {
     if (isStudioListing(listing)) return demand.bedrooms <= 1
-    if (bedrooms < demand.bedrooms) return false
+    if (bedroomFloor < demand.bedrooms) return false
   }
   return true
 }
@@ -230,7 +264,9 @@ export function partyVerdict(
   let ignore = false
 
   if (criteria.travelers > 0) {
-    if (pers > 0) {
+    if (isCombinableHotel(lodging)) {
+      // Occupancy par chambre : jugée avec le nombre de chambres, pas comme un logement-unité.
+    } else if (pers > 0) {
       if (pers < criteria.travelers) return 'trop-petit'
     } else if (lodging.fitsGuests != null && lodging.fitsGuests >= criteria.travelers) {
       // Pas de capacité publiée, mais la source a rendu l'annonce pour une
@@ -244,9 +280,14 @@ export function partyVerdict(
   }
 
   if (criteria.rooms > 0) {
-    // Chambres si l'annonce en publie, pièces sinon — jamais l'une traduite en
-    // l'autre. Voir `minRoomsFor`.
-    if (ch > 0) {
+    if (isCombinableHotel(lodging)) {
+      const occ = pers > 0 ? pers : lodging.fitsGuests != null && lodging.fitsGuests > 0 ? lodging.fitsGuests : null
+      if (occ == null || occ <= 0) ignore = true
+      else {
+        const rooms = hotelRoomsNeeded(occ, { guests: criteria.travelers, bedrooms: criteria.rooms })
+        if (!Number.isFinite(rooms) || rooms * occ < criteria.travelers) return 'trop-petit'
+      }
+    } else if (ch > 0) {
       if (ch < criteria.rooms) return 'trop-petit'
     } else if (rooms != null && rooms > 0) {
       if (rooms < minRoomsFor(criteria.rooms)) return 'trop-petit'

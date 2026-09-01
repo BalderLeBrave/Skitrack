@@ -338,6 +338,20 @@ export function gitesSearchEmptyKind(
   return 'no_results'
 }
 
+/**
+ * CozyCozy — dump Playwright 2026-09-01, Les 2 Alpes.
+ *
+ * HTTP 200, Angular `joli-root` monté, `router-outlet` vide, 0 XHR search,
+ * 0 carte. Ce n'est pas un challenge, ce n'est pas un `.gite-card` mort.
+ * Appelé seulement quand l'extracteur a déjà rendu 0 carte.
+ */
+export function cozycozySearchEmptyKind(html: string): 'spa_unlaunched' | null {
+  if (!html.toLowerCase().includes('joli-root')) return null
+  if (/resultitemprice|joli-result|application\/ld\+json/i.test(html)) return null
+  if (html.includes('router-outlet')) return 'spa_unlaunched'
+  return null
+}
+
 export async function looksBlocked(page: Page): Promise<boolean> {
   try {
     const text = await page.evaluate(

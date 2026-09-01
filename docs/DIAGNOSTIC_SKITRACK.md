@@ -82,10 +82,13 @@ Dates du formulaire : déjà envoyées (`urls.ts`, `LodgingsPage`).
 | Gîtes GET `search[value]` | 200 | `.g2f-searchResult-noResults` + « Oups ! … destination » ; `entity_id=""` | `empty_inventory` (destination_missing) |
 | Gîtes GET `destination=` | 200 | **même** noResults — le nom de champ ne suffit pas | idem |
 | Gîtes 2ᵉ visite | CF | `Attention Required!` | `blocked` |
+| CozyCozy GET + Playwright | 200 | SPA `joli-root`, 0 XHR search, `router-outlet` vide | `0_after_parse` (`cozycozySearchEmptyKind`) |
 
 `looksBlocked` avant ce dump : `/captcha\|are you a robot\|…/` — **ne matchait pas** « Bot or Not? ». Un 0 VRBO live serait sorti `selector_miss`.
 
 `gitesSearchUrl` aligne `destination` / `date-start` / `date-end` / `adults`. **Sans `entity_id` autocomplete, toujours 0 cartes.** Pas de parseur inventé.
+
+`cozycozySearchUrl` ajoute `e` (`minBedRoomCount`, dump `main.js`). **Sans SERP cartes, `extractCozycozyCards` inchangé.** Voir `discovery_cozycozy.md`.
 
 ---
 

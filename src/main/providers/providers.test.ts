@@ -18,8 +18,8 @@
 import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
 import { collectBookingPages, collectPages, paginationOf } from './webscrape/providers'
-import { bookingSearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
-import { gitesSearchEmptyKind, pageLooksBlocked } from './webscrape/shared'
+import { bookingSearchUrl, cozycozySearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
+import { cozycozySearchEmptyKind, gitesSearchEmptyKind, pageLooksBlocked } from './webscrape/shared'
 import type { RawCard } from './webscrape/extractors'
 import { classifyProviderError } from '@shared/reasonCodes'
 import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
@@ -623,6 +623,41 @@ async function main(): Promise<void> {
   check(
     'sans marqueur Gîtes → null',
     gitesSearchEmptyKind('<article class="gite-card">rien</article>') === null
+  )
+
+  heading('16. CozyCozy dump 2026-09-01 — URL e= + SPA non lancée')
+  const cozyStay = { ...stay, adults: 8, bedrooms: 4 }
+  const cozyUrl = cozycozySearchUrl(cozyStay)
+  check('CozyCozy /fr/search', cozyUrl.includes('https://www.cozycozy.com/fr/search'))
+  check('CozyCozy location', cozyUrl.includes('location=Les+2+Alpes'), cozyUrl)
+  check('CozyCozy adults=8 (pas guests=)', cozyUrl.includes('adults=8') && !cozyUrl.includes('guests='), cozyUrl)
+  check(
+    'CozyCozy e=4 (minBedRoomCount dump main.js)',
+    cozyUrl.includes('e=4'),
+    cozyUrl
+  )
+  check('sans chambres → pas de e=', !cozycozySearchUrl(stay).includes('e='), cozycozySearchUrl(stay))
+  const cozyShell =
+    '<joli-root ng-version="16.2.6" ng-server-context="ssr"><router-outlet></router-outlet><joli-market>'
+  check(
+    'joli-root + router-outlet vide → spa_unlaunched',
+    cozycozySearchEmptyKind(cozyShell) === 'spa_unlaunched'
+  )
+  check(
+    'joli-root n’est pas un blocage',
+    !pageLooksBlocked('joli-root Explorer Favoris')
+  )
+  check(
+    'message SPA → 0_after_parse (pas selector_miss)',
+    classifyProviderError(
+      'cozycozy-web: SPA Cosmos montée, recherche non lancée (router-outlet vide) [0_after_parse]'
+    ) === '0_after_parse'
+  )
+  check(
+    'catalogue ResultItemPrice → plus spa_unlaunched',
+    cozycozySearchEmptyKind(
+      '<joli-root><div class="ResultItemPriceTotal">120 €</div></joli-root>'
+    ) === null
   )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)

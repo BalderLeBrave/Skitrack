@@ -25,8 +25,9 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 
 1. VRBO live = **429 `Bot or Not?`** (dump 2026-09-01). Motif désormais `blocked`, pas `selector_miss`. Parseur **non** retouché — pas de SERP.
 2. Gîtes 0 = **destination Drupal sans `entity_id`**, pas un `.gite-card` mort. GET `search[value]` et GET `destination=` : même `.g2f-searchResult-noResults`. Parseur **non** retouché.
-3. 9 centrales `not_wired` : motif explicite, pas d'adapter.
-4. Sidecar `/api/scrape/{provider}` toujours hors chemin UI (Playwright Electron reste le chemin). Le solveur est rebranché via `/captcha/solve`.
-5. `ttl_availability` 6 h : appliqué sur `scannedAt` dans `availabilityOf`. Pas de cache dispo Electron séparé.
-6. Typecheck `src/main/**/*.test.ts` exclu du `tsconfig.node.json` (déjà le cas).
-7. Inventaire 2 Alpes 13–20 fév. 2027 : **non chiffré** — VRBO bloqué, Gîtes non résolu, centrale Ingénie homepage sans datepicker monté.
+3. CozyCozy live = **HTTP 200 SPA Angular `joli-root`**, recherche **non lancée** (0 XHR catalogue, `router-outlet` vide). Motif `[0_after_parse]`, pas `selector_miss`. `extractCozycozyCards` **non** réécrit. Seul patch URL : query `e` = `minBedRoomCount` (dump `main.js`) ; sidecar `guests=` → `adults=`.
+4. 9 centrales `not_wired` : motif explicite, pas d'adapter.
+5. Sidecar `/api/scrape/{provider}` toujours hors chemin UI (Playwright Electron reste le chemin). Le solveur est rebranché via `/captcha/solve`.
+6. `ttl_availability` 6 h : appliqué sur `scannedAt` dans `availabilityOf`. Pas de cache dispo Electron séparé.
+7. Typecheck `src/main/**/*.test.ts` exclu du `tsconfig.node.json` (déjà le cas).
+8. Inventaire 2 Alpes 13–20 fév. 2027 : **non chiffré** — VRBO bloqué, Gîtes non résolu, CozyCozy SPA non lancée, centrale Ingénie homepage sans datepicker monté.

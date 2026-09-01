@@ -129,6 +129,13 @@ export function cozycozySearchUrl(params: SearchParams, offset = 0): string {
   u.searchParams.set('adults', String(params.adults ?? 2))
   if (params.children) u.searchParams.set('children', String(params.children))
   u.searchParams.set('nights', String(nights(params)))
+  // Dump main.f7e84b9d7beb408c.js 2026-09-01 :
+  // FilterSettings.minBedRoomCount sérialisé en query `e` (`u.minBedRoomCount="e"`).
+  // Sans `e`, 4 chambres n'est pas transmis. Le parseur cartes n'est PAS réécrit :
+  // Playwright 2026-09-01 = SPA joli-root, recherche non lancée, 0 carte.
+  if (params.bedrooms != null && params.bedrooms > 0) {
+    u.searchParams.set('e', String(params.bedrooms))
+  }
   const page = offset + 1
   if (page > 1) u.searchParams.set('page', String(page))
   return u.toString()

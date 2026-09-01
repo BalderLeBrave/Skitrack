@@ -19,6 +19,7 @@ import {
 import {
   baseAccommodation,
   gitesSearchEmptyKind,
+  cozycozySearchEmptyKind,
   looksBlocked,
   parsePrice,
   scrollToEnd,
@@ -132,6 +133,12 @@ async function emptyReason(page: Page, name: string): Promise<Error> {
   }
   if (gites === 'no_results') {
     return new Error(`${name}: stock vide [empty_inventory]`)
+  }
+  const cozy = cozycozySearchEmptyKind(html)
+  if (cozy === 'spa_unlaunched') {
+    return new Error(
+      `${name}: SPA Cosmos montée, recherche non lancée (router-outlet vide) [0_after_parse]`
+    )
   }
   return new Error(
     `${name}: aucune carte extraite — la page a répondu, les sélecteurs sont à revoir`

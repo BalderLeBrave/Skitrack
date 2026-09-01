@@ -112,6 +112,7 @@ const BUILDERS: Record<string, Builder> = {
     u.searchParams.set('checkout', c.depDate)
     u.searchParams.set('adults', String(c.travelers))
     u.searchParams.set('nights', String(nightsBetween(c.arrDate, c.depDate)))
+    if (c.rooms > 0) u.searchParams.set('e', String(c.rooms))
     return u.toString()
   },
   Expedia: (c) => {

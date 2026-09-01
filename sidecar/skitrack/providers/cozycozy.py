@@ -37,7 +37,7 @@ class CozyCozyProvider(BaseProvider):
                 url += f"&checkout={params.checkout.isoformat()}"
 
             if params.guests:
-                url += f"&guests={params.guests}"
+                url += f"&adults={params.guests}"
 
             self.logger.info(f"CozyCozy: {url}")
 

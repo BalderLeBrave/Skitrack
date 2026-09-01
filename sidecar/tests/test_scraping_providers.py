@@ -156,3 +156,5 @@ def test_cozycozy_n_utilise_ni_lxml_ni_l_attribut_proxies_mort():
     # direct. Le proxy se passe au constructeur, au singulier.
     assert "client.proxies =" not in code
     assert "proxy=proxy," in code
+    assert "&adults=" in source
+    assert "&guests=" not in code

@@ -15,6 +15,8 @@ pages challenge Expedia. Ils restent locaux (`.gitignore` `*.html` ici).
 | `vrbo_p1.html` | 429 | Bot or Not? | non |
 | `abritel_p1.html` | 429 | Robot ou pas robot ? | non |
 | `les2alpes_central.html` | 200 | Location et réservation d'appartement | non |
+| `cozycozy_curl.html` | 200 | (vide) coquille SPA | non |
+| `cozycozy_p1.html` | 200 | (vide) joli-root, 0 carte | non |
 | `capture-report.json` | — | métadonnées | **oui** |
 
-Voir `discovery_gites.md` et `discovery_vrbo.md`.
+Voir `discovery_gites.md`, `discovery_vrbo.md` et `discovery_cozycozy.md`.

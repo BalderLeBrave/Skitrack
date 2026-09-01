@@ -97,5 +97,50 @@
       "input.datepicker": 0,
       "script[type=\"application/ld+json\"]": 1
     }
+  },
+  {
+    "id": "cozycozy_curl",
+    "url": "https://www.cozycozy.com/fr/search?location=Les%202%20Alpes&checkin=2027-02-13&checkout=2027-02-20&adults=8&nights=7",
+    "capturedAt": "2026-09-01",
+    "status": 200,
+    "title": "",
+    "htmlBytes": 59390,
+    "blocked": false,
+    "found": [
+      "Express + Cloudflare",
+      "empty <title>",
+      "SPA shell runtime/polyfills/main.js",
+      "no cards, no JSON-LD"
+    ],
+    "selectorHits": {
+      "article": 0,
+      "a[href*=\"/offer\"]": 0,
+      ".accommodation-card": 0,
+      "script[type=\"application/ld+json\"]": 0
+    }
+  },
+  {
+    "id": "cozycozy_p1",
+    "url": "https://www.cozycozy.com/fr/search?location=Les%202%20Alpes&checkin=2027-02-13&checkout=2027-02-20&adults=8&nights=7&e=4",
+    "capturedAt": "2026-09-01",
+    "status": 200,
+    "title": "",
+    "htmlBytes": 77007,
+    "blocked": false,
+    "found": [
+      "joli-root ng-version=16.2.6",
+      "router-outlet vide (filters/map/details named outlets)",
+      "joli-user-navmobile Explorer / Favoris",
+      "0 XHR search — only logVisit, CMP InMobi, GTM",
+      "main.js FilterSettings.minBedRoomCount serialized as query e"
+    ],
+    "selectorHits": {
+      "joli-root": 1,
+      "article": 0,
+      "a[href*=\"/offer\"]": 0,
+      "a[href*=\"/listing\"]": 0,
+      "[class*=\"Offer\"]": 0,
+      "script[type=\"application/ld+json\"]": 0
+    }
   }
 ]

@@ -334,36 +334,37 @@ export function extractGitesCards(): RawCard[] {
     }
   })
 
-  document.querySelectorAll('a[href*="/fr/"], article, .search-result, .gite-card, .card').forEach((node) => {
+  document.querySelectorAll(
+    '.js-search-tile, .g2f-accommodationTile, a[href*="/fr/"], article, .search-result, .gite-card, .card'
+  ).forEach((node) => {
     const link =
-      node.tagName === 'A'
+      (node.querySelector('a.g2f-accommodationTile-link') as HTMLAnchorElement | null) ||
+      (node.tagName === 'A'
         ? (node as HTMLAnchorElement)
-        : (node.querySelector('a[href*="gites-de-france"], a[href*="/fr/"]') as HTMLAnchorElement | null)
+        : (node.querySelector('a[href*="gites-de-france"], a[href*="/fr/"]') as HTMLAnchorElement | null))
     const href = link?.href
     if (!href || !href.includes('gites-de-france')) return
     if (!/\/fr\/.+/.test(href)) return
-    const sourceId = href.replace(/\/$/, '').split('/').pop() || href
+    const sourceId = href.replace(/\/$/, '').split('/').pop()?.split('?')[0] || href
     if (seen.has(sourceId)) return
     seen.add(sourceId)
     const title =
-      node.querySelector('h2, h3, .title, .card-title')?.textContent?.trim() ||
+      node.querySelector('h2, h3, a.g2f-accommodationTile-link, .title, .card-title')?.textContent?.trim() ||
+      link?.getAttribute('title')?.trim() ||
       link?.textContent?.trim() ||
       ''
     if (!title || title.length < 3) return
-    const priceText = node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
+    const priceText =
+      node.querySelector('.g2f-accommodationTile-text-price-new')?.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0] ||
+      node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
     /*
      * Un résultat sans prix n'est pas un résultat.
      *
-     * Le sélecteur ci-dessus prend `a[href*="/fr/"]`, ce qui attrape **tout le
-     * menu du site** : constaté le 2026-08-30 dans les données d'un
-     * utilisateur, 29 lignes enregistrées comme logements, dont « Régions de
-     * France », « Camping » et « Le Top 100 des sites touristiques ». Elles
-     * s'affichaient sur l'écran Logements comme des annonces.
-     *
-     * Le prix est le discriminant sûr : une carte de résultat de location en
-     * porte toujours un, une entrée de navigation jamais. Restreindre le
-     * sélecteur aurait demandé de deviner la forme des URL d'annonce du site
-     * sans pouvoir l'observer ; cette condition-ci se vérifie sur la page même.
+     * Dump 2026-09-01 21:47 (`gites_towns_50301`) : les cartes sont
+     * `.js-search-tile` / `.g2f-accommodationTile`, pas `.gite-card`.
+     * Le prix est sur la tuile (`g2f-accommodationTile-text-price-new`).
+     * L’ancien sélecteur `a[href*="/fr/"]` prenait le menu et l’image, sans
+     * prix → 0 carte sur une SERP de 33.
      */
     if (!priceText) return
     const img = (node.querySelector('img') as HTMLImageElement | null)?.src
@@ -428,7 +429,46 @@ export function extractCozycozyCards(): RawCard[] {
     }
   })
 
+  /*
+   * Dump 2026-09-01 21:47 : catalogue SEO `article.hoj_seo_card`.
+   * Pas de href sur la carte (bouton « Voir »). Prix « À partir de N €/nuit ».
+   * Ancien sélecteur `/offer` = 0. `article` sans prix attrapait une FAQ.
+   */
+  document.querySelectorAll('article.hoj_seo_card, .hoj_seo_card').forEach((node) => {
+    const title =
+      node.querySelector('h3.title, h3, .title')?.textContent?.trim() || ''
+    if (!title || title.length < 3) return
+    const priceText =
+      node.querySelector('.price')?.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0] ||
+      node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
+    if (!priceText) return
+    const sourceId = title.toLowerCase().replace(/\s+/g, '-').slice(0, 80)
+    if (seen.has(sourceId)) return
+    seen.add(sourceId)
+    const hash = [...document.querySelectorAll('a[href*="#cp:details"]')].find((a) =>
+      (a.textContent || '').includes(title.slice(0, 24))
+    ) as HTMLAnchorElement | undefined
+    const href = hash?.href || `${location.origin}${location.pathname}#${encodeURIComponent(sourceId)}`
+    const img = (node.querySelector('img') as HTMLImageElement | null)?.src
+    const texte = node.textContent || ''
+    const lire = (m: RegExpExecArray | null): number | undefined => {
+      if (!m) return undefined
+      const n = Number(m[1])
+      return Number.isFinite(n) && n > 0 ? n : undefined
+    }
+    out.push({
+      sourceId,
+      title,
+      url: href,
+      priceText,
+      image: img,
+      guests: lire(/(\d+)\s*(?:voyageurs?|personnes?|guests?)/i.exec(texte)),
+      bedrooms: lire(/(\d+)\s*(?:chambres?|bedrooms?)/i.exec(texte))
+    })
+  })
+
   document.querySelectorAll('a[href*="/offer"], a[href*="/listing"], article, [class*="Offer"], [class*="result"]').forEach((node) => {
+    if ((node as HTMLElement).classList?.contains('hoj_seo_card')) return
     const link =
       node.tagName === 'A'
         ? (node as HTMLAnchorElement)
@@ -445,6 +485,7 @@ export function extractCozycozyCards(): RawCard[] {
       ''
     if (!title || title.length < 3) return
     const priceText = node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
+    if (!priceText) return
     const img = (node.querySelector('img') as HTMLImageElement | null)?.src
     const texte = node.textContent || ''
     const lire = (m: RegExpExecArray | null): number | undefined => {

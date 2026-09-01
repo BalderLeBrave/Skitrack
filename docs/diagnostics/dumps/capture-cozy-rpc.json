@@ -1,0 +1,146 @@
+{
+  "at": "2026-09-01T21:48:24.970Z",
+  "finalUrl": "https://www.booking.com/searchresults.fr.html?ss=Les%20Deux%20Alpes%20(station%20de%20ski)%2C%20France&aid=2141456&dest_type=latlong&latitude=45.008922&longitude=6.170614&checkin_monthday=12&checkin_month=9&checkin_year=2026&checkout_monthday=19&checkout_month=9&checkout_year=2026&no_rooms=1&group_adults=2&group_children=0&room1=A%2CA%2C&label=7tv3S68mWBaNAxM2&chal_t=1788299302057&force_referer=",
+  "title": "Booking.com: Résultats de votre recherche: Les Deux Alpes (station de ski), France. Réservez votre hôtel dès maintenant !",
+  "calls": [
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://www.cozycozy.com/api/logVisit",
+      "headers": {
+        "content-type": "application/json",
+        "x-split-id": "0"
+      },
+      "post": "{\"visitId\":\"xasx5GkOCsgMlvzZ\",\"visitorId\":\"LEgnqinNYNrYvmoo\",\"browserId\":\"LEgnqinNYNrYvmoo\",\"timestampUtc\":\"2026-09-01T21:48:11.742Z\",\"platform\":\"web\",\"isMobile\":false,\"marketCode\":\"fr\",\"pageUrl\":\"https://www.cozycozy.com/fr/location-vacances-les-2-alpes\",\"pageReferrer\":\"\",\"pageType\":\"catalog\",\"utmMedium\":\"(none)\",\"utmSource\":\"(direct)\",\"utmCampaign\":\"(not set)\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36\",\"userTimeZoneName\":\"Europe/Paris\",\"userTimeZoneOffset\":-120,\"userTime\":1788299291745,\"connectionType\":\"4g\",\"screenWidth\":1440,\"screenHeight\":900}"
+    },
+    {
+      "kind": "res",
+      "url": "https://www.cozycozy.com/api/logVisit",
+      "status": 200,
+      "ctype": "application/json; charset=utf-8",
+      "body": "null"
+    },
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://www.cozycozy.com/api/searchInputLocation",
+      "headers": {
+        "content-type": "application/json",
+        "x-split-id": "0"
+      },
+      "post": "{\"query\":\"Les Deux Alpes (station de ski), France\",\"siteCode\":\"cozycozy\",\"locale\":\"fr-fr\"}"
+    },
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://www.cozycozy.com/api/logPrelaunch",
+      "headers": {
+        "content-type": "application/json",
+        "x-search-id": "lVp7oGuzgU4oYdcC",
+        "x-split-id": "0"
+      },
+      "post": "{\"visitId\":\"xasx5GkOCsgMlvzZ\",\"searchId\":\"lVp7oGuzgU4oYdcC\",\"launchParam\":{\"fromDate\":[2026,8,12,0,0,0,0],\"toDate\":[2026,8,19,0,0,0,0],\"adults\":2,\"children\":0,\"location\":{\"name\":\"Les Deux Alpes (station de ski)\",\"cityName\":\"\",\"countryCode\":\"FR\",\"countryName\":\"France\",\"stateCode\":\"\",\"level\":50,\"type\":0,\"bounds\":{\"west\":6.09424565914794,\"south\":44.9771853844746,\"east\":6.24698316126173,\"north\":45.0406579714734},\"coordinates\":{\"latitude\":45.008922,\"longitude\":6.170614},\"catalogDestinationId\":4233},\"roomCount\":1,\"childAges\":[],\"marketCode\":\"fr\",\"siteCode\":\"cozycozy\"},\"trigger\":\"CHANGE_LOCATION\"}"
+    },
+    {
+      "kind": "res",
+      "url": "https://www.cozycozy.com/api/searchInputLocation",
+      "status": 200,
+      "ctype": "application/json; charset=utf-8",
+      "body": "{\"location\":{\"name\":\"Les Deux Alpes (station de ski)\",\"cityName\":\"\",\"countryCode\":\"FR\",\"countryName\":\"France\",\"stateCode\":\"\",\"level\":50,\"type\":0,\"bounds\":{\"west\":6.09424565914794,\"south\":44.9771853844746,\"east\":6.24698316126173,\"north\":45.0406579714734},\"coordinates\":{\"latitude\":45.008922,\"longitude\":6.170614}},\"text\":\"Les Deux Alpes (station de ski), France\"}"
+    },
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://analytics.ahrefs.com/api/event",
+      "headers": {
+        "content-type": "text/plain"
+      },
+      "post": "{\"n\":\"pageview\",\"u\":\"https://www.cozycozy.com/fr/location-vacances-les-2-alpes\",\"l\":[\"fr-FR\"],\"k\":\"Z56VyOLXLBdlkiWFrEJM2g\",\"r\":null,\"sw\":1440,\"sh\":900,\"sr\":1,\"t\":\"Locations Vacances et Airbnb Les Deux Alpes | cozycozy\"}"
+    },
+    {
+      "kind": "res",
+      "url": "https://analytics.ahrefs.com/api/event",
+      "status": 200,
+      "ctype": "application/json",
+      "body": "[\"Ok\",null]"
+    },
+    {
+      "kind": "res",
+      "url": "https://www.cozycozy.com/api/logPrelaunch",
+      "status": 200,
+      "ctype": "application/json; charset=utf-8",
+      "body": "null"
+    },
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://www.cozycozy.com/api/logOpenedPrelaunch",
+      "headers": {
+        "content-type": "application/json",
+        "x-search-id": "lVp7oGuzgU4oYdcC",
+        "x-split-id": "0"
+      },
+      "post": "{\"visitId\":\"xasx5GkOCsgMlvzZ\",\"searchId\":\"lVp7oGuzgU4oYdcC\",\"elapsedTime\":4647}"
+    },
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://www.cozycozy.com/api/logNonResultRedirect",
+      "headers": {
+        "content-type": "application/json",
+        "x-search-id": "lVp7oGuzgU4oYdcC",
+        "x-split-id": "0"
+      },
+      "post": "{\"clickId\":\"7tv3S68mWBaNAxM2\",\"step\":1,\"searchId\":\"lVp7oGuzgU4oYdcC\",\"partnerCode\":\"booking\",\"targetUrl\":\"https://www.booking.com/searchresults.fr.html?ss=Les%20Deux%20Alpes%20(station%20de%20ski)%2C%20France&aid=2141456&dest_type=latlong&latitude=45.008922&longitude=6.170614&checkin_monthday=12&checkin_month=9&checkin_year=2026&checkout_monthday=19&checkout_month=9&checkout_year=2026&no_rooms=1&group_adults=2&group_children=0&room1=A%2CA%2C&label=7tv3S68mWBaNAxM2\",\"source\":\"cs\",\"positionInResultList\":0}"
+    },
+    {
+      "kind": "res",
+      "url": "https://www.cozycozy.com/api/logOpenedPrelaunch",
+      "status": 200,
+      "ctype": "application/json; charset=utf-8",
+      "body": "null"
+    },
+    {
+      "kind": "res",
+      "url": "https://www.cozycozy.com/api/logNonResultRedirect",
+      "status": 200,
+      "ctype": "application/json; charset=utf-8",
+      "body": ""
+    },
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://www.cozycozy.com/api/getSiteConfigData",
+      "headers": {
+        "content-type": "application/json",
+        "x-split-id": "0"
+      },
+      "post": "{}"
+    },
+    {
+      "kind": "req",
+      "method": "POST",
+      "url": "https://www.cozycozy.com/api/logNonResultRedirect",
+      "headers": {
+        "content-type": "application/json",
+        "x-search-id": "lVp7oGuzgU4oYdcC",
+        "x-split-id": "0"
+      },
+      "post": "{\"clickId\":\"7tv3S68mWBaNAxM2\",\"step\":3,\"searchId\":\"lVp7oGuzgU4oYdcC\",\"partnerCode\":\"booking\",\"targetUrl\":\"https://www.booking.com/searchresults.fr.html?ss=Les%20Deux%20Alpes%20(station%20de%20ski)%2C%20France&aid=2141456&dest_type=latlong&latitude=45.008922&longitude=6.170614&checkin_monthday=12&checkin_month=9&checkin_year=2026&checkout_monthday=19&checkout_month=9&checkout_year=2026&no_rooms=1&group_adults=2&group_children=0&room1=A%2CA%2C&label=7tv3S68mWBaNAxM2\",\"source\":\"cs\",\"positionInResultList\":0}"
+    },
+    {
+      "kind": "res",
+      "url": "https://www.cozycozy.com/api/getSiteConfigData",
+      "status": 200,
+      "ctype": "application/json; charset=utf-8",
+      "body": "{\"siteCode\":\"cozycozy\",\"configData\":{\"siteCode\":\"cozycozy\",\"fonts\":{\"primary\":{\"name\":\"Parkinsans\",\"variants\":\"wght@300..800\"},\"secondary\":{\"name\":\"Public Sans\",\"variants\":\"wght@100..900\"}},\"isAuthenticationEnabled\":true,\"isAdsEnabled\":true,\"isFaqHeaderIconEnabled\":false,\"isFavoritesEnabled\":true,\"brandLogos\":{\"brand-white\":{\"default\":\"brand-white\"},\"brand-primary\":{\"default\":\"brand-primary\"},\"brand-header\":{\"default\":\"brand-white\",\"tablet\":\"brand-primary\",\"mobile-header\":\"brand-primary-square\"},\"brand-resultpage-header\":{\"default\":\"brand-primary-square\",\"tablet\":\"brand-primary\"},\"brand-catalog\":{\"default\":\"brand-white-square\",\"tablet\":\"brand-white\"},\"brand-catalog-sticky\":{\"default\":\"brand-primary-square\",\"tablet\":\"brand-primary\"},\"domain-white\":{\"default\":\"domain-white\"}},\"mainDomain\":\"cozycozy.com\",\"enabledMarketCodeList\":[\"ar\",\"arabic\",\"at\",\"au\",\"br\",\"ca\",\"cl\",\"co\",\"cr\",\"cz\",\"de\",\"de-ch\",\"ec\",\"en\",\"en-ae\",\"en-hk\",\"en-id\",\"en-in\",\"en-my\",\"en-ph\",\"en-sg\",\"en-th\",\"es\",\"es-us\",\"fi\",\"fr\",\"fr-be\",\"fr-ca\",\"fr-ch\",\"gb\",\"gt\",\"hn\",\"hu\",\"ie\",\"it\",\"jp\",\"kr\",\"mx\",\"nl\",\"nl-be\",\"no\",\"nz\",\"pe\",\"pl\",\"pt\",\"py\",\"ro\",\"ru\",\"se\",\"si\",\"sk\",\"tr\",\"tw\",\"ua\",\"us\",\"uy\",\"vn\",\"za\"],\"destinationDiscoveryMarketCodes\":[\"fr\",\"us\",\"gb\",\"fr-be\"],\"styles\":{\"$debugName\":\"cozycozy-styles\",\"--color-white\":\"rgb(255, 255, 255)\",\"--color-pure-black\":\"rgb(10, 50, 70)\",\"--color-primary\":\"rgb(176, 29, 137)\",\"--color-primary-accent\":\"rgb(189, 1, 137)\",\"--color-primary-hover\":\"rgb(149, 25, 116)\",\"--color-primary-light\":\"rgb(239, 131, 198)\",\"--color-primary-ultra-light\":\"rgb(255, 239, 251)\",\"--color-primary-dark\":\"rgb(103, 29, 115)\",\"--color-primary-dark-hover\":\"rgb(80, 23, 90)\",\"--color-secondary\":\"rgb(215, 255, 0)\",\"--color-success\":\"rgb(0, 199, 50)\",\"--color-warning\":\"rgb(211, 0, 102)\",\"--color-separator\":\"var(--color-change-grey-02)\",\"--color-overlay\":\"lch(from var(--color-pure-black) l c h / 0.8)\",\"--color-overlay-drawer\":\"rgba(10, 50, 70, 0.4)\",\"--color-grey-00\":\"hsl(200, 14.00000%, 96%)\",\"--color-grey-01\":\"hsl(203, 27%, 94%)\",\"--color-grey-02\":\"hsl(200, 16%, 89%)\",\"--color-grey-03\":\"hsl(196, 14.00000%, 78%)\",\"--color-grey-04\":\"hsl(200, 20%, 55.00000%)\",\"--color-grey-05\":\"hsl(195, 18%, 44%)\",\"--color-grey-06\":\"hsl(198, 37%, 28.00000%)\",\"--color-grey-07\":\"hsl(199, 37%, 17%)\",\"--color-grey-08\":\"hsl(200, 31%, 10%)\",\"--color-azure-16\":\"rgb(10, 50, 70)\",\"--color-change-grey-00\":\"var(--color-grey-00)\",\"--color-change-grey-01\":\"var(--color-grey-01)\",\"--color-change-grey-02\":\"var(--color-grey-02)\",\"--color-change-grey-03\":\"var(--color-grey-03)\",\"--color-change-grey-04\":\"var(--color-grey-04)\",\"--color-change-grey-05\":\"var(--color-grey-05)\",\"--color-change-grey-06\":\"var(--color-grey-06)\",\"--color-change-grey-07\":\"var(--color-grey-07)\",\"--color-change-grey-08\":\"var(--color-grey-08)\",\"--color-button-primary-bg\":\"var(--color-primary)\",\"--color-button-primary-bg-hover\":\"var(--color-primary-hover)\",\"--color-button-secondary-bg\":\"var(--color-secondary)\",\"--color-button-secondary-bg-hover\":\"var(--color-secondary)\",\"--color-button-disabled-bg\":\"var(--color-grey-01)\",\"--color-button-disabled-color\":\"var(--color-grey-04)\",\"--color-button-label-primary\":\"var(--color-white)\",\"--color-button-label-secondary\":\"var(--color-primary-dark)\",\"--color-button-label-invert\":\"var(--color-white)\",\"--color-button-cta-bg\":\"var(--color-primary-accent)\",\"--color-button-cta-bg-hover\":\"var(--color-primary-hover)\",\"--color-button-label-cta\":\"var(--color-white)\",\"--color-button-tertiary-bg\":\"var(--color-surface-light)\",\"--color-button-label-tertiary\":\"var(--font-color-body)\",\"--color-button-tertiary-bg-hover\":\"var(--color-change-grey-02)\",\"--color-surface-default\":\"var(--color-white)\",\"--color-surface-light\":\"var(--color-change-grey-01)\",\"--color-surface-ultralight\":\"var(--color-change-grey-00)\",\"--color-surface-invert\":\"var(--color-pure-black)\",\"--color-surface-pure-white\":\"var(--color-white)\",\"--color-surface-hover\":\"var(--color-grey-00)\",\"--color-surface-overlay\":\"lch(from var(--color-pure-black) l c h "
+    },
+    {
+      "kind": "res",
+      "url": "https://www.cozycozy.com/api/logNonResultRedirect",
+      "status": 200,
+      "ctype": "application/json; charset=utf-8",
+      "body": "null"
+    }
+  ]
+}

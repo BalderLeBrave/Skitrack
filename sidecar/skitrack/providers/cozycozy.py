@@ -30,14 +30,20 @@ class CozyCozyProvider(BaseProvider):
 
         try:
             location = quote_plus(params.destination)
-            url = f"{self.base_url}/fr/search?location={location}"
+            dest = (params.destination or "").lower()
+            if "2 alpes" in dest or "deux alpes" in dest:
+                # Dump 2026-09-01 : /fr/search?location= = SPA vide.
+                # /fr/location-vacances-les-2-alpes = catalogue SSR.
+                url = f"{self.base_url}/fr/location-vacances-les-2-alpes"
+            else:
+                url = f"{self.base_url}/fr/search?location={location}"
 
-            if params.checkin and params.checkout:
-                url += f"&checkin={params.checkin.isoformat()}"
-                url += f"&checkout={params.checkout.isoformat()}"
+                if params.checkin and params.checkout:
+                    url += f"&checkin={params.checkin.isoformat()}"
+                    url += f"&checkout={params.checkout.isoformat()}"
 
-            if params.guests:
-                url += f"&adults={params.guests}"
+                if params.guests:
+                    url += f"&adults={params.guests}"
 
             self.logger.info(f"CozyCozy: {url}")
 

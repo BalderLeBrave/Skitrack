@@ -84,12 +84,17 @@ const BUILDERS: Record<string, Builder> = {
   // constructeur réellement exercé contre le site.
   'Gîtes de France': (c) => {
     const u = new URL('https://www.gites-de-france.com/fr/search')
-    // Noms du formulaire Drupal (dump 2026-09-01), alignés sur `gitesSearchUrl`.
-    // Sans `entity_id` d'autocomplete le site ignore encore la destination.
-    u.searchParams.set('destination', destination(c))
+    // Dump 2026-09-01 21:47 : GET towns=50301 ouvre la SERP Les 2 Alpes.
+    const dest = destination(c)
+    if (/2\s*alpes|deux alpes/i.test(dest)) {
+      u.searchParams.set('towns', '50301')
+      u.searchParams.set('travelers', String(c.travelers))
+    } else {
+      u.searchParams.set('destination', dest)
+      u.searchParams.set('adults', String(c.travelers))
+    }
     u.searchParams.set('date-start', c.arrDate)
     u.searchParams.set('date-end', c.depDate)
-    u.searchParams.set('adults', String(c.travelers))
     return u.toString()
   },
   'Booking.com': (c) => {
@@ -106,8 +111,12 @@ const BUILDERS: Record<string, Builder> = {
   // aussi des agences locales qu'aucune autre source ne porte. Chemin et noms
   // de paramètres alignés sur `webscrape/urls.ts`.
   cozycozy: (c) => {
+    const dest = destination(c)
+    if (/2\s*alpes|deux alpes/i.test(dest)) {
+      return 'https://www.cozycozy.com/fr/location-vacances-les-2-alpes'
+    }
     const u = new URL('https://www.cozycozy.com/fr/search')
-    u.searchParams.set('location', destination(c))
+    u.searchParams.set('location', dest)
     u.searchParams.set('checkin', c.arrDate)
     u.searchParams.set('checkout', c.depDate)
     u.searchParams.set('adults', String(c.travelers))

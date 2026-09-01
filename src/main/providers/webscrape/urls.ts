@@ -93,38 +93,62 @@ export function vrboSearchUrl(params: SearchParams, offset = 0): string {
   return u.toString()
 }
 
+/**
+ * Recherche Gîtes de France.
+ *
+ * Dump 2026-09-01 21:47 : GET `towns=50301` (id towns de l'autocomplete) ouvre
+ * une SERP. GET `entity_id=` et POST `search_api_page_block_form` ne le font
+ * pas (form vide / Cloudflare 403). `travelers=` est le plancher voyageurs
+ * (8 → 33 résultats). Sélecteur cartes : `.js-search-tile`.
+ *
+ * Pour une destination hors dump, on garde `destination=` (peut rester Oups).
+ */
+export function gitesTownsIdForDestination(destination: string): string | null {
+  const n = destination
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+  if (n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
+    return '50301'
+  }
+  return null
+}
+
+export function cozycozySeoPathForDestination(destination: string): string | null {
+  const n = destination
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+  if (n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
+    return '/fr/location-vacances-les-2-alpes'
+  }
+  return null
+}
+
 export function gitesSearchUrl(params: SearchParams, offset = 0): string {
-  // Formulaire Drupal `search_api_page_block_form` (dump 2026-09-01) :
-  // `destination`, `date-start`, `date-end`, `adults` — pas `search[value]`.
-  // GET `search[value]=Les 2 Alpes` populait `drupalSettings.currentQuery.search`
-  // et laissait le champ `destination` **vide** + `.g2f-searchResult-noResults`.
-  // GET `destination=` idem : `currentQuery.destination` rempli, `entity_id`
-  // toujours vide, même message « Oups ! … au moins une destination. »
-  //
-  // `entity_id` vient de l'autocomplete `/fr/g2f_autocomplete` (dump
-  // `gites_autocomplete.json` : 497 / pois « Les 2 Alpes »). GET avec ces
-  // champs laisse encore le formulaire vide. POST in-page du formulaire
-  // `search_api_page_block_form` (form_build_id de session + entity_id=497,
-  // 2026-09-01 21:30) : Cloudflare 403. Cette URL aligne les **noms** de
-  // champs ; elle ne prétend pas produire une SERP de cartes.
-  // `extractGitesCards` inchangé : 0 .gite-card.
   const u = new URL('https://www.gites-de-france.com/fr/search')
-  u.searchParams.set('destination', params.destination)
+  const towns = gitesTownsIdForDestination(params.destination)
+  if (towns) {
+    u.searchParams.set('towns', towns)
+    u.searchParams.set('travelers', String(params.adults ?? 2))
+  } else {
+    u.searchParams.set('destination', params.destination)
+    u.searchParams.set('adults', String(params.adults ?? 2))
+  }
   if (params.checkIn) u.searchParams.set('date-start', params.checkIn)
   if (params.checkOut) u.searchParams.set('date-end', params.checkOut)
-  u.searchParams.set('adults', String(params.adults ?? 2))
   if (params.children) u.searchParams.set('children', String(params.children))
-  // `page` est 1-indexée. `collectPages` passe un offset 0-based (0, 1, 2…)
-  // parce que `GITES_PAGE_STEP = 1`. Poser `page=offset` rejouait la page 1
-  // à la deuxième itération (`page=1`), `fresh === 0`, et le relevé s'arrêtait
-  // sur le premier écran. La première page s'obtient sans paramètre.
   const page = offset + 1
   if (page > 1) u.searchParams.set('page', String(page))
   return u.toString()
 }
 
 export function cozycozySearchUrl(params: SearchParams, offset = 0): string {
-  // CozyCozy — méta-moteur locations vacances
+  const seo = cozycozySeoPathForDestination(params.destination)
+  if (seo) {
+    // Catalogue SSR dumpé. /fr/search?location= ne lance pas la recherche.
+    return `https://www.cozycozy.com${seo}`
+  }
   const u = new URL('https://www.cozycozy.com/fr/search')
   u.searchParams.set('location', params.destination)
   if (params.checkIn) u.searchParams.set('checkin', params.checkIn)
@@ -132,12 +156,6 @@ export function cozycozySearchUrl(params: SearchParams, offset = 0): string {
   u.searchParams.set('adults', String(params.adults ?? 2))
   if (params.children) u.searchParams.set('children', String(params.children))
   u.searchParams.set('nights', String(nights(params)))
-  // Dump main.f7e84b9d7beb408c.js 2026-09-01 :
-  // FilterSettings.minBedRoomCount sérialisé en query `e` (`u.minBedRoomCount="e"`).
-  // Sans `e`, 4 chambres n'est pas transmis. Le parseur cartes n'est PAS réécrit :
-  // Playwright 2026-09-01 = SPA joli-root, `launch` / `getResultList` jamais
-  // appelés (seul logVisit). `location=` ne résout pas le lieu : le bundle
-  // passe par `searchInputLocation({q})` puis `launch({searchId})`.
   if (params.bedrooms != null && params.bedrooms > 0) {
     u.searchParams.set('e', String(params.bedrooms))
   }

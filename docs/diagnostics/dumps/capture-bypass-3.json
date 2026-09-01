@@ -1,0 +1,487 @@
+{
+  "at": "2026-09-01T21:47:03.779Z",
+  "round": "bypass-3",
+  "items": [
+    {
+      "id": "gites_dates_fresh",
+      "url": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "http": 200,
+      "title": "Rechercher une location de vacances Les Deux Alpes | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "cf": false,
+      "resultCount": "33 Résultats",
+      "offres": null,
+      "extra": {
+        "n": 20,
+        "head": [
+          {
+            "title": "Chalet de Pré-Forent Mitoyen - 3***",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-de-pre-forent-mitoyen-3-38g253101",
+            "price": "1 208 €",
+            "guests": "15",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Gîte auberge La Mansio",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/gite-auberge-la-mansio-38g253115",
+            "price": "35 €",
+            "guests": "50",
+            "bedrooms": "12"
+          },
+          {
+            "title": "Chalet les Copains",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122",
+            "price": "1 330 €",
+            "guests": "14",
+            "bedrooms": "5"
+          },
+          {
+            "title": "CHALET  MARADRI",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-maradri-38g20200",
+            "price": "1 700 €",
+            "guests": "8",
+            "bedrooms": "3"
+          },
+          {
+            "title": "Auberge La Brindille",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/auberge-la-brindille-38g549050",
+            "price": "90 €",
+            "guests": "14",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Chalet Centaurée (ou Chalet Sabot de Vénus)",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-centauree-ou-chalet-sabot-de-venus-38g52734",
+            "price": "1 400 €",
+            "guests": "10",
+            "bedrooms": "4"
+          },
+          {
+            "title": "L'Etoile des Glaciers - Le Mas d'Oisans 1",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/letoile-des-glaciers-le-mas-doisans-1-38g52103",
+            "price": "3 050 €",
+            "guests": "10",
+            "bedrooms": "5"
+          },
+          {
+            "title": "La Maison des Grands Champs",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-maison-des-grands-champs-38g40026",
+            "price": "1 000 €",
+            "guests": "13",
+            "bedrooms": "3"
+          },
+          {
+            "title": "La Citriere",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-citriere-38g40102",
+            "price": "443 €",
+            "guests": "9",
+            "bedrooms": "3"
+          },
+          {
+            "title": "Lys Lodge",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/lys-lodge-38g52202",
+            "price": "2 068 €",
+            "guests": "12",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Les Feuillardiers",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-feuillardiers-38g52200",
+            "price": "950 €",
+            "guests": "8",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Les Arias",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-arias-38g375027",
+            "price": "25 €",
+            "guests": "15",
+            "bedrooms": "6"
+          }
+        ],
+        "ge8_4": [
+          {
+            "title": "Chalet de Pré-Forent Mitoyen - 3***",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-de-pre-forent-mitoyen-3-38g253101",
+            "price": "1 208 €",
+            "guests": "15",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Gîte auberge La Mansio",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/gite-auberge-la-mansio-38g253115",
+            "price": "35 €",
+            "guests": "50",
+            "bedrooms": "12"
+          },
+          {
+            "title": "Chalet les Copains",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122",
+            "price": "1 330 €",
+            "guests": "14",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Auberge La Brindille",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/auberge-la-brindille-38g549050",
+            "price": "90 €",
+            "guests": "14",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Chalet Centaurée (ou Chalet Sabot de Vénus)",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-centauree-ou-chalet-sabot-de-venus-38g52734",
+            "price": "1 400 €",
+            "guests": "10",
+            "bedrooms": "4"
+          },
+          {
+            "title": "L'Etoile des Glaciers - Le Mas d'Oisans 1",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/letoile-des-glaciers-le-mas-doisans-1-38g52103",
+            "price": "3 050 €",
+            "guests": "10",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Lys Lodge",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/lys-lodge-38g52202",
+            "price": "2 068 €",
+            "guests": "12",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Les Feuillardiers",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-feuillardiers-38g52200",
+            "price": "950 €",
+            "guests": "8",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Les Arias",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-arias-38g375027",
+            "price": "25 €",
+            "guests": "15",
+            "bedrooms": "6"
+          },
+          {
+            "title": "L' Ancolie",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/l-ancolie-38g191104",
+            "price": "2 800 €",
+            "guests": "14",
+            "bedrooms": "7"
+          },
+          {
+            "title": "Le Denali",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-denali-38g191105",
+            "price": "1 600 €",
+            "guests": "10",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Le Chalet de Bassey",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-chalet-de-bassey-38g52730",
+            "price": "1 470 €",
+            "guests": "12",
+            "bedrooms": "5"
+          },
+          {
+            "title": "La Darse",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-darse-38g550213",
+            "price": "1 900 €",
+            "guests": "9",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Les Fractales 4****",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-fractales-4-38g550102",
+            "price": "1 000 €",
+            "guests": "11",
+            "bedrooms": "4"
+          },
+          {
+            "title": "La Tanière de l'Ours",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-taniere-de-lours-38g285029",
+            "price": "1 300 €",
+            "guests": "15",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Gîte des Ours",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/gite-des-ours-38g285010",
+            "price": "2 299 €",
+            "guests": "19",
+            "bedrooms": "6"
+          }
+        ]
+      },
+      "xhr": []
+    },
+    {
+      "id": "gites_travelers8_tiles",
+      "url": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=8",
+      "http": 200,
+      "title": "Rechercher une location de vacances Les Deux Alpes | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=8",
+      "cf": false,
+      "resultCount": "33 Résultats",
+      "offres": null,
+      "extra": {
+        "n": 20,
+        "head": [
+          {
+            "title": "Chalet de Pré-Forent Mitoyen - 3***",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-de-pre-forent-mitoyen-3-38g253101",
+            "price": "1 208 €",
+            "guests": "15",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Gîte auberge La Mansio",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/gite-auberge-la-mansio-38g253115",
+            "price": "35 €",
+            "guests": "50",
+            "bedrooms": "12"
+          },
+          {
+            "title": "Chalet les Copains",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122",
+            "price": "1 330 €",
+            "guests": "14",
+            "bedrooms": "5"
+          },
+          {
+            "title": "CHALET  MARADRI",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-maradri-38g20200",
+            "price": "1 700 €",
+            "guests": "8",
+            "bedrooms": "3"
+          },
+          {
+            "title": "Auberge La Brindille",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/auberge-la-brindille-38g549050",
+            "price": "90 €",
+            "guests": "14",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Chalet Centaurée (ou Chalet Sabot de Vénus)",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-centauree-ou-chalet-sabot-de-venus-38g52734",
+            "price": "1 400 €",
+            "guests": "10",
+            "bedrooms": "4"
+          },
+          {
+            "title": "L'Etoile des Glaciers - Le Mas d'Oisans 1",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/letoile-des-glaciers-le-mas-doisans-1-38g52103",
+            "price": "3 050 €",
+            "guests": "10",
+            "bedrooms": "5"
+          },
+          {
+            "title": "La Maison des Grands Champs",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-maison-des-grands-champs-38g40026",
+            "price": "1 000 €",
+            "guests": "13",
+            "bedrooms": "3"
+          },
+          {
+            "title": "La Citriere",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-citriere-38g40102",
+            "price": "443 €",
+            "guests": "9",
+            "bedrooms": "3"
+          },
+          {
+            "title": "Lys Lodge",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/lys-lodge-38g52202",
+            "price": "2 068 €",
+            "guests": "12",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Les Feuillardiers",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-feuillardiers-38g52200",
+            "price": "950 €",
+            "guests": "8",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Les Arias",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-arias-38g375027",
+            "price": "25 €",
+            "guests": "15",
+            "bedrooms": "6"
+          },
+          {
+            "title": "L' Ancolie",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/l-ancolie-38g191104",
+            "price": "2 800 €",
+            "guests": "14",
+            "bedrooms": "7"
+          },
+          {
+            "title": "Le Denali",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-denali-38g191105",
+            "price": "1 600 €",
+            "guests": "10",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Le Chalet de Bassey",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-chalet-de-bassey-38g52730",
+            "price": "1 470 €",
+            "guests": "12",
+            "bedrooms": "5"
+          }
+        ],
+        "ge8": 20,
+        "ge8_4": [
+          {
+            "title": "Chalet de Pré-Forent Mitoyen - 3***",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-de-pre-forent-mitoyen-3-38g253101",
+            "price": "1 208 €",
+            "guests": "15",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Gîte auberge La Mansio",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/gite-auberge-la-mansio-38g253115",
+            "price": "35 €",
+            "guests": "50",
+            "bedrooms": "12"
+          },
+          {
+            "title": "Chalet les Copains",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122",
+            "price": "1 330 €",
+            "guests": "14",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Auberge La Brindille",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/auberge-la-brindille-38g549050",
+            "price": "90 €",
+            "guests": "14",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Chalet Centaurée (ou Chalet Sabot de Vénus)",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-centauree-ou-chalet-sabot-de-venus-38g52734",
+            "price": "1 400 €",
+            "guests": "10",
+            "bedrooms": "4"
+          },
+          {
+            "title": "L'Etoile des Glaciers - Le Mas d'Oisans 1",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/letoile-des-glaciers-le-mas-doisans-1-38g52103",
+            "price": "3 050 €",
+            "guests": "10",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Lys Lodge",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/lys-lodge-38g52202",
+            "price": "2 068 €",
+            "guests": "12",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Les Feuillardiers",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-feuillardiers-38g52200",
+            "price": "950 €",
+            "guests": "8",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Les Arias",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-arias-38g375027",
+            "price": "25 €",
+            "guests": "15",
+            "bedrooms": "6"
+          },
+          {
+            "title": "L' Ancolie",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/l-ancolie-38g191104",
+            "price": "2 800 €",
+            "guests": "14",
+            "bedrooms": "7"
+          },
+          {
+            "title": "Le Denali",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-denali-38g191105",
+            "price": "1 600 €",
+            "guests": "10",
+            "bedrooms": "5"
+          },
+          {
+            "title": "Le Chalet de Bassey",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-chalet-de-bassey-38g52730",
+            "price": "1 470 €",
+            "guests": "12",
+            "bedrooms": "5"
+          },
+          {
+            "title": "La Darse",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-darse-38g550213",
+            "price": "1 900 €",
+            "guests": "9",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Les Fractales 4****",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-fractales-4-38g550102",
+            "price": "1 000 €",
+            "guests": "11",
+            "bedrooms": "4"
+          },
+          {
+            "title": "La Tanière de l'Ours",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-taniere-de-lours-38g285029",
+            "price": "1 300 €",
+            "guests": "15",
+            "bedrooms": "4"
+          },
+          {
+            "title": "Gîte des Ours",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/gite-des-ours-38g285010",
+            "price": "2 299 €",
+            "guests": "19",
+            "bedrooms": "6"
+          }
+        ]
+      },
+      "xhr": []
+    },
+    {
+      "id": "cozy_click_search",
+      "url": "https://www.cozycozy.com/fr/location-vacances-les-2-alpes",
+      "http": 200,
+      "title": "Locations Vacances et Airbnb Les Deux Alpes | cozycozy",
+      "finalUrl": "https://www.cozycozy.com/fr/location-vacances-les-2-alpes",
+      "cf": false,
+      "resultCount": null,
+      "offres": "3729 offres",
+      "extra": {
+        "clicked": true,
+        "urlAfter": "https://www.booking.com/searchresults.fr.html?ss=Les%20Deux%20Alpes%20(station%20de%20ski)%2C%20France&aid=2141456&dest_type=latlong&latitude=45.008922&longitude=6.170614&checkin_monthday=12&checkin_month=9&checkin_year=2026&checkout_monthday=19&checkout_month=9&checkout_year=2026&no_rooms=1&group_adults=2&group_children=0&room1=A%2CA%2C&label=4l7XYDgyikEZ4BIl&chal_t=1788299245349&force_referer=",
+        "offer": 0,
+        "hoj": 0,
+        "text": "Accéder au contenu principal"
+      },
+      "xhr": [
+        {
+          "u": "https://www.cozycozy.com/api/searchInputLocation",
+          "s": 200
+        },
+        {
+          "u": "https://www.cozycozy.com/api/logPrelaunch",
+          "s": 200
+        },
+        {
+          "u": "https://www.cozycozy.com/api/logOpenedPrelaunch",
+          "s": 200
+        }
+      ]
+    }
+  ]
+}

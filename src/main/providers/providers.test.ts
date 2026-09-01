@@ -509,12 +509,20 @@ async function main(): Promise<void> {
   check('page 1 sans paramètre', !gitesSearchUrl(stay).includes('page='))
   check('offset 0-based 1 → page=2', gitesSearchUrl(stay, 1).includes('page=2'), gitesSearchUrl(stay, 1))
   check(
-    'Gîtes : destination= (plus search[value])',
-    gitesSearchUrl(stay).includes('destination=Les+2+Alpes') &&
-      !gitesSearchUrl(stay).includes('search%5Bvalue%5D'),
+    'Gîtes Les 2 Alpes : towns=50301 (contournement GET)',
+    gitesSearchUrl(stay).includes('towns=50301') &&
+      gitesSearchUrl(stay).includes('travelers=2') &&
+      !gitesSearchUrl(stay).includes('search%5Bvalue%5D') &&
+      !gitesSearchUrl(stay).includes('entity_id='),
     gitesSearchUrl(stay)
   )
-  check('Gîtes : date-start / date-end / adults', gitesSearchUrl(stay).includes('date-start=2027-02-06') && gitesSearchUrl(stay).includes('date-end=2027-02-13') && gitesSearchUrl(stay).includes('adults=2'))
+  check('Gîtes : date-start / date-end', gitesSearchUrl(stay).includes('date-start=2027-02-06') && gitesSearchUrl(stay).includes('date-end=2027-02-13'))
+  const gitesOther = gitesSearchUrl({ ...stay, destination: 'Val Thorens' })
+  check(
+    'Gîtes hors dump : destination= (pas towns=)',
+    gitesOther.includes('destination=Val+Thorens') && !gitesOther.includes('towns='),
+    gitesOther
+  )
   check('page_index stampée sur la 1re carte', lot[0]?.pageIndex === 0, lot[0]?.pageIndex)
   check('page_index de la 2e page', lot[1]?.pageIndex === 1, lot[1]?.pageIndex)
   const rapport = paginationOf(lot)
@@ -637,18 +645,14 @@ async function main(): Promise<void> {
     gitesSearchEmptyKind('<article class="gite-card">rien</article>') === null
   )
 
-  heading('16. CozyCozy dump 2026-09-01 — URL e= + SPA non lancée')
+  heading('16. CozyCozy dump 2026-09-01 — SEO Les 2 Alpes, SPA ailleurs')
   const cozyStay = { ...stay, adults: 8, bedrooms: 4 }
   const cozyUrl = cozycozySearchUrl(cozyStay)
-  check('CozyCozy /fr/search', cozyUrl.includes('https://www.cozycozy.com/fr/search'))
-  check('CozyCozy location', cozyUrl.includes('location=Les+2+Alpes'), cozyUrl)
-  check('CozyCozy adults=8 (pas guests=)', cozyUrl.includes('adults=8') && !cozyUrl.includes('guests='), cozyUrl)
-  check(
-    'CozyCozy e=4 (minBedRoomCount dump main.js)',
-    cozyUrl.includes('e=4'),
-    cozyUrl
-  )
-  check('sans chambres → pas de e=', !cozycozySearchUrl(stay).includes('e='), cozycozySearchUrl(stay))
+  check('CozyCozy Les 2 Alpes → page catalogue SEO', cozyUrl === 'https://www.cozycozy.com/fr/location-vacances-les-2-alpes', cozyUrl)
+  const cozyOther = cozycozySearchUrl({ destination: 'Val Thorens', checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 8, bedrooms: 4 })
+  check('CozyCozy hors dump → /fr/search', cozyOther.includes('https://www.cozycozy.com/fr/search'), cozyOther)
+  check('CozyCozy hors dump e=4', cozyOther.includes('e=4'), cozyOther)
+  check('sans chambres → pas de e=', !cozycozySearchUrl(stay).includes('e=') || cozycozySearchUrl(stay).includes('location-vacances'), cozycozySearchUrl(stay))
   const cozyShell =
     '<joli-root ng-version="16.2.6" ng-server-context="ssr"><router-outlet></router-outlet><joli-market>'
   check(
@@ -669,6 +673,12 @@ async function main(): Promise<void> {
     'catalogue ResultItemPrice → plus spa_unlaunched',
     cozycozySearchEmptyKind(
       '<joli-root><div class="ResultItemPriceTotal">120 €</div></joli-root>'
+    ) === null
+  )
+  check(
+    'catalogue hoj_seo_card → plus spa_unlaunched',
+    cozycozySearchEmptyKind(
+      '<joli-root ng-version="16.2.6"><article class="hoj_seo_card">chalet 1032 €</article></joli-root>'
     ) === null
   )
 

@@ -347,7 +347,7 @@ export function gitesSearchEmptyKind(
  */
 export function cozycozySearchEmptyKind(html: string): 'spa_unlaunched' | null {
   if (!html.toLowerCase().includes('joli-root')) return null
-  if (/resultitemprice|joli-result|application\/ld\+json/i.test(html)) return null
+  if (/resultitemprice|joli-result|application\/ld\+json|hoj_seo_card/i.test(html)) return null
   if (html.includes('router-outlet')) return 'spa_unlaunched'
   return null
 }

@@ -40,7 +40,7 @@ pistes, forfaits relevés, coût complet du séjour pour un groupe.
 | Écran vide au lancement (dev) | `npm run cache:clear` | vert |
 | Refabriquer l'icône d'application | `npm run icon:build` | vert |
 | Lint Python | `npm run lint:py` | **rouge, préexistant** |
-| Typecheck complet | `npm run typecheck` | **rouge, 2 erreurs, zone interdite** |
+| Typecheck complet | `npm run typecheck` | vert |
 
 `npm run verify` enchaîne : typecheck renderer, catalogue i18n, alignement des
 stations, index des lieux, vignettes, tranches de prix Airbnb, comportement
@@ -127,6 +127,36 @@ du navigateur, posée hors du `async with async_playwright()`, s'exécutait apr�
 l'arrêt du pilote, sur une connexion morte, quitte à faire échouer un relevé
 réussi.
 
+### Sources de logement — ce qui est interrogé, et ce qui ne l'est pas
+
+Depuis le 2026-09-01, `buildEngine` (`src/main/providers/index.ts`) enregistre
+**Gîtes de France, cozycozy et VRBO** sous `enableWebScrape`, en plus de Booking
+et des sept connecteurs de centrale. Les trois premiers existaient déjà,
+exportés et complets ; seul l'appel `register()` manquait.
+
+Le retour s'est accompagné de ce qui leur manquait pour être utilisables :
+
+- **coordonnées** lues dans le JSON-LD des pages (`webscrape/extractors.ts`).
+  Sans elles, `keepInZone` jetait leur lot entier dès qu'une annonce située
+  tombait hors zone — une source rebranchée aurait rendu zéro résultat ;
+- **capacité en personnes**, que `RawCard` ne portait pas : le champ existait au
+  modèle pivot, `baseAccommodation` le recopiait, `runProviderSearch` le lisait,
+  et personne ne l'écrivait jamais ;
+- **pagination**, généralisée par `collectPages` : seul Booking l'avait, les
+  autres s'arrêtaient au premier écran de résultats.
+
+Deux choses restent vraies et méritent d'être sues.
+
+- **Expedia et LiteAPI restent dehors.** `createExpediaWebProvider` existe et
+  n'est pas enregistré : ses sélecteurs n'ont pas été vérifiés en conditions
+  réelles. Une ligne de filtre qu'aucun relevé ne rafraîchit n'est pas un
+  filtre.
+- **Rien de tout cela n'a été exercé en réseau.** Les extracteurs s'exécutent
+  dans la page par `page.evaluate` et la suite de tests est hermétique : ce que
+  `providers.test.ts` vérifie est le *branchement* — connecteurs enregistrés,
+  URL paginées, capacité traversant le mapping — pas que les sélecteurs
+  trouvent quoi que ce soit sur les pages d'aujourd'hui.
+
 ### Rouges préexistants — ne pas les signaler comme régressions
 
 **Relevé du 2026-09-01**, ruff 0.16.4 : les chiffres ci-dessous sont mesurés,
@@ -134,17 +164,17 @@ pas estimés. La description précédente — « une trentaine d'erreurs `Cannot
 name 'document' / 'window'` » — ne correspondait plus à ce que rendent les
 commandes.
 
-- `npm run typecheck`, moitié Node : **2 erreurs**, toutes deux dans
-  `src/main/providers/airbnb/**`, la zone qu'on ne touche pas.
-  `calendarBlocks.ts:163` déclare `start` sans le lire ; `dynamicHtml.ts:209`
-  itère un `NodeListOf<Element>` que `tsconfig.node.json` ne sait pas itérable,
-  faute de `lib: DOM`. Ce second point n'est pas un défaut : le code s'exécute
-  *dans la page* par `page.evaluate`, où un `NodeList` est bel et bien
-  itérable. Le rendre vert demanderait soit d'éditer la zone interdite, soit
-  d'ajouter `DOM` aux `lib` du tsconfig Node — ce qui rendrait `document` et
-  `window` valides dans tout le processus principal, où ils n'existent pas.
-  Les neuf autres erreurs (huit dans `station/robots.ts`, une dans
-  `ceto/chamonixParse.ts`) étaient du code mort : elles ont été retirées.
+- `npm run typecheck` est **vert depuis le 2026-09-01**, et cette ligne le
+  reste : toute erreur qui y apparaît est désormais une régression.
+
+  Il a longtemps été rouge, et le diagnostic écrit ici était faux :
+  « `tsconfig.node.json` n'a pas `lib: DOM` » — il l'avait. Ce qui manquait
+  était `DOM.Iterable`, d'où la seule vraie erreur de cette famille
+  (`NodeListOf<Element>` non itérable dans `dynamicHtml.ts`). L'ajouter n'élargit
+  rien : `document` et `window` étaient déjà typés côté Node, puisque ce code
+  s'exécute *dans la page* par `page.evaluate`. Les onze autres erreurs étaient
+  du code mort — huit dans `station/robots.ts`, une dans `ceto/chamonixParse.ts`,
+  une déclaration jamais lue dans `airbnb/calendarBlocks.ts`.
 - `npm run lint:py` : **40 constats** ruff, dont **15 `B008`** qui visent
   l'idiome FastAPI `Depends()` en valeur par défaut — des faux positifs. Les
   25 autres sont répartis sur le sidecar d'origine. Les connecteurs de

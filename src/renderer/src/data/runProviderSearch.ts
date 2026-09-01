@@ -56,6 +56,7 @@ const SOURCE_LABEL: Record<string, string> = {
   'gites-de-france': 'Gîtes de France',
   'gites-web': 'Gîtes de France',
   'cozycozy-web': 'cozycozy',
+  'vrbo-web': 'VRBO',
   liteapi: 'LiteAPI',
   airbnb: 'Airbnb',
   'station-web': CENTRALE_SOURCE,

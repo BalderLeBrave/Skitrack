@@ -17,8 +17,8 @@
 
 import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
-import { collectBookingPages } from './webscrape/providers'
-import { bookingSearchUrl } from './webscrape/urls'
+import { collectBookingPages, collectPages } from './webscrape/providers'
+import { bookingSearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
 import type { RawCard } from './webscrape/extractors'
 import { buildEngine } from './index'
 import { extractToolPayload, parseSseMessages } from './mcp/client'
@@ -233,10 +233,11 @@ async function main(): Promise<void> {
   heading('9. Agrégation — un échec de source n’arrête pas les autres')
   // Aucun identifiant fourni : Booking doit échouer proprement, sans lever.
   //
-  // Expedia, Gîtes de France, cozycozy et LiteAPI ne sont plus enregistrés —
-  // voir `buildEngine`. Leurs modules restent testés plus haut (normalisation,
-  // signature, transport) : ce sont des unités toujours justes, mais qu'aucun
-  // relevé n'appelle plus. Sans `enableWebScrape`, il ne reste donc que Booking.
+  // Gîtes de France, cozycozy et VRBO sont de nouveau enregistrés depuis le
+  // 2026-09-01, mais **seulement sous `enableWebScrape`** — ce sont des relevés
+  // Playwright. L'appel ci-dessous ne l'active pas : il ne reste donc que
+  // Booking, et ce test mesure toujours la même chose. Expedia et LiteAPI, eux,
+  // restent hors du moteur. Voir l'en-tête de `buildEngine`.
   const engine = buildEngine({ vault: () => undefined })
   const report = await engine.search(PARAMS)
   for (const outcome of report.outcomes) {
@@ -245,7 +246,11 @@ async function main(): Promise<void> {
   check('seules les sources retenues sont interrogées', report.outcomes.length === 1, report.outcomes.length)
   check(
     'aucun connecteur retiré n’est enregistré',
-    !report.outcomes.some((o) => ['liteapi', 'expedia', 'gites-de-france', 'cozycozy'].includes(o.provider)),
+    !report.outcomes.some((o) =>
+      ['liteapi', 'expedia', 'expedia-web', 'gites-web', 'cozycozy-web', 'vrbo-web'].includes(
+        o.provider
+      )
+    ),
     report.outcomes.map((o) => o.provider).join(', ')
   )
   check(
@@ -458,6 +463,68 @@ async function main(): Promise<void> {
     0
   )
   check('budget épuisé : la première page est lue quand même', lues === 1 && pressé.length === 25, lues)
+
+  heading('13. Sources rebranchées — capacité, pagination, VRBO')
+
+  /*
+   * Ce que cette section retient, et pourquoi.
+   *
+   * Les extracteurs eux-mêmes ne sont pas exerçables ici : ils s'exécutent dans
+   * la page par `page.evaluate`, et cette suite est hermétique. Ce qui se
+   * vérifie sans navigateur, c'est le **branchement** — les connecteurs sont-ils
+   * enregistrés, les URL paginent-elles, la capacité traverse-t-elle le
+   * mapping — et c'est précisément ce qui manquait.
+   */
+
+  // Problème 1 : le code des connecteurs existait, l'enregistrement manquait.
+  const moteurWeb = buildEngine({ vault: () => undefined, enableWebScrape: true })
+  for (const attendu of ['gites-web', 'cozycozy-web', 'vrbo-web']) {
+    check(`${attendu} est enregistré`, moteurWeb.names.includes(attendu), moteurWeb.names.join(', '))
+  }
+  check(
+    'les connecteurs non vérifiés restent dehors',
+    !moteurWeb.names.includes('expedia-web'),
+    moteurWeb.names.join(', ')
+  )
+
+  // Problème 3 : la pagination n'existait que chez Booking. `collectPages` la
+  // rend générique, y compris pour les sites qui numérotent les pages (pas 1).
+  const pagesGites: number[] = []
+  const lot = await collectPages(
+    (offset) => gitesSearchUrl(stay, offset),
+    1,
+    async (url) => {
+      const page = Number(new URL(url).searchParams.get('page') ?? 0)
+      pagesGites.push(page)
+      return page < 2 ? cards(page * 10, 1) : []
+    }
+  )
+  check('pagination générique : trois lectures', pagesGites.length === 3, pagesGites)
+  check('rangs 0, 1, 2 demandés', pagesGites.join(',') === '0,1,2', pagesGites.join(','))
+  check('les deux pages non vides sont rendues', lot.length === 2, lot.length)
+  check('page 1 sans paramètre', !gitesSearchUrl(stay).includes('page='))
+  check('page 2 numérotée', gitesSearchUrl(stay, 2).includes('page=2'), gitesSearchUrl(stay, 2))
+
+  // Problème 1b : VRBO n'avait aucune URL de recherche.
+  const vrbo = vrboSearchUrl(stay, 50)
+  check('VRBO : destination transmise', vrbo.includes('destination=Les+2+Alpes'), vrbo)
+  check('VRBO : dates transmises', vrbo.includes('startDate=2027-02-06'), vrbo)
+  check('VRBO : rang de départ', vrbo.includes('startIndex=50'), vrbo)
+  check('VRBO : première page sans rang', !vrboSearchUrl(stay).includes('startIndex'))
+
+  // Problème 4 : la capacité, que le mapping perdait.
+  const avecCapacite = normalizeBooking(
+    { id: 42, name: 'Chalet', url: 'https://x', max_occupancy: 8, rooms: 3 },
+    undefined,
+    stay
+  )
+  check('capacité lue quand la source la publie', avecCapacite?.guests === 8, avecCapacite?.guests)
+  const sansCapacite = normalizeBooking({ id: 43, name: 'Studio', url: 'https://y' }, undefined, stay)
+  check(
+    'capacité absente : elle reste absente, jamais la demande',
+    sansCapacite?.guests === undefined,
+    sansCapacite?.guests
+  )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

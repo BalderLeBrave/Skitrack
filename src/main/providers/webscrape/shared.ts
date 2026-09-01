@@ -260,3 +260,49 @@ export async function scrollPage(page: Page, times: number): Promise<void> {
     await sleep(800 + Math.random() * 400)
   }
 }
+
+/**
+ * Défile jusqu'à ce que la page cesse de grandir.
+ *
+ * Deux défilements fixes ne suffisaient pas : Booking charge ses cartes au fur
+ * et à mesure, et une page arrêtée au deuxième écran rendait moins de vingt-cinq
+ * cartes. `collectBookingPages` y lisait « page plus courte qu'une page
+ * pleine », en concluait que c'était la dernière et **arrêtait le relevé** —
+ * une collecte tronquée qui ressemblait à une collecte complète.
+ *
+ * On s'arrête sur la hauteur du document, pas sur un compte de tours : c'est la
+ * page qui dit quand elle a fini. Le plafond n'est qu'un garde-fou.
+ */
+export async function scrollToEnd(page: Page, maxSteps = 12): Promise<void> {
+  let previous = 0
+  for (let step = 0; step < maxSteps; step++) {
+    const height = await page.evaluate(() => {
+      window.scrollBy({ top: window.innerHeight * 0.85 })
+      return document.body.scrollHeight
+    })
+    await sleep(700 + Math.random() * 400)
+    if (height === previous) return
+    previous = height
+  }
+}
+
+/**
+ * La page a-t-elle refusé le relevé ?
+ *
+ * « Aucune carte extraite » recouvrait deux causes opposées — des sélecteurs
+ * périmés, et un blocage anti-robot — sous un seul message qui n'aidait à
+ * choisir ni l'une ni l'autre. On lit ce que la page affiche : elle le dit en
+ * toutes lettres quand elle bloque.
+ */
+export async function looksBlocked(page: Page): Promise<boolean> {
+  try {
+    return await page.evaluate(() =>
+      /captcha|are you a robot|access denied|unusual traffic|vérification de sécurité/i.test(
+        document.body.innerText.slice(0, 4000)
+      )
+    )
+  } catch {
+    // Page injoignable : on ne conclut pas au blocage sur une absence de preuve.
+    return false
+  }
+}

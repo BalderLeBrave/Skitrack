@@ -53,7 +53,11 @@ export function bookingSearchUrl(params: SearchParams, offset = 0): string {
   return u.toString()
 }
 
-export function expediaSearchUrl(params: SearchParams): string {
+/**
+ * Page suivante d'une recherche Expedia. `startIndex` est le rang du premier
+ * résultat, pas le numéro de page — c'est ce que le site pose lui-même.
+ */
+export function expediaSearchUrl(params: SearchParams, offset = 0): string {
   const u = new URL('https://www.expedia.fr/Hotel-Search')
   u.searchParams.set('destination', params.destination)
   if (params.checkIn) u.searchParams.set('startDate', params.checkIn)
@@ -62,20 +66,47 @@ export function expediaSearchUrl(params: SearchParams): string {
   // Même raison que pour Booking : « rooms » compte les unités réservées, pas
   // les chambres du bien. Voir le commentaire de `bookingSearchUrl`.
   u.searchParams.set('rooms', '1')
+  if (offset > 0) u.searchParams.set('startIndex', String(offset))
   return u.toString()
 }
 
-export function gitesSearchUrl(params: SearchParams): string {
+/**
+ * Recherche VRBO.
+ *
+ * VRBO appartient au groupe Expedia et partage sa mécanique d'URL : une
+ * destination en clair, des dates, un nombre d'adultes, et un rang de départ
+ * pour la pagination. Le connecteur n'existait pas — `data/providers.ts`
+ * portait une entrée « VRBO » sans aucun connecteur derrière.
+ *
+ * `bedrooms` n'est **pas** transmis : comme chez Booking et Expedia, le
+ * paramètre de chambres du site compte des unités à réserver, pas les chambres
+ * du bien. Le critère reste appliqué en aval.
+ */
+export function vrboSearchUrl(params: SearchParams, offset = 0): string {
+  const u = new URL('https://www.vrbo.com/search')
+  u.searchParams.set('destination', params.destination)
+  if (params.checkIn) u.searchParams.set('startDate', params.checkIn)
+  if (params.checkOut) u.searchParams.set('endDate', params.checkOut)
+  u.searchParams.set('adults', String(params.adults ?? 2))
+  if (params.children) u.searchParams.set('children', String(params.children))
+  if (offset > 0) u.searchParams.set('startIndex', String(offset))
+  return u.toString()
+}
+
+export function gitesSearchUrl(params: SearchParams, offset = 0): string {
   // Recherche texte Gîtes de France
   const u = new URL('https://www.gites-de-france.com/fr/search')
   u.searchParams.set('search[value]', params.destination)
   if (params.checkIn) u.searchParams.set('search[from]', params.checkIn)
   if (params.checkOut) u.searchParams.set('search[to]', params.checkOut)
   u.searchParams.set('search[capacity]', String(params.adults ?? 2))
+  // `page` est numérotée à partir de 1 ; la première s'obtient sans paramètre,
+  // comme quand on tape l'adresse à la main.
+  if (offset > 0) u.searchParams.set('page', String(offset))
   return u.toString()
 }
 
-export function cozycozySearchUrl(params: SearchParams): string {
+export function cozycozySearchUrl(params: SearchParams, offset = 0): string {
   // CozyCozy — méta-moteur locations vacances
   const u = new URL('https://www.cozycozy.com/fr/search')
   u.searchParams.set('location', params.destination)
@@ -84,5 +115,6 @@ export function cozycozySearchUrl(params: SearchParams): string {
   u.searchParams.set('adults', String(params.adults ?? 2))
   if (params.children) u.searchParams.set('children', String(params.children))
   u.searchParams.set('nights', String(nights(params)))
+  if (offset > 0) u.searchParams.set('page', String(offset))
   return u.toString()
 }

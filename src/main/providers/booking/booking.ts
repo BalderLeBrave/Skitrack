@@ -102,10 +102,20 @@ export function normalizeBooking(row: BookingRow, affiliateId: string | undefine
     country: row.location?.country,
     checkIn: context.checkIn,
     checkOut: context.checkOut,
-    // La Demand API ne rend pas d'occupation par bien dans cette réponse :
-    // le champ reste vide plutôt que de renvoyer la demande. La donnée brute
-    // est conservée dans `rawProviderData` si elle s'y trouve un jour.
-    guests: undefined,
+    /*
+     * Capacité du bien, si la réponse la porte.
+     *
+     * Le commentaire précédent affirmait que « la Demand API ne rend pas
+     * d'occupation par bien » — alors que `BookingRow` déclare `max_occupancy`
+     * six lignes plus haut. L'une des deux affirmations était fausse et le
+     * module n'a jamais été exécuté contre le service réel (voir l'en-tête).
+     * On lit donc le champ **s'il est là**, et on ne renvoie jamais la demande
+     * en guise de capacité : absent, il reste absent.
+     */
+    guests:
+      typeof row.max_occupancy === 'number' && row.max_occupancy > 0
+        ? row.max_occupancy
+        : undefined,
     bedrooms: row.rooms,
     nightlyPrice: nightly,
     totalPrice: total,
@@ -149,7 +159,27 @@ export class BookingProvider implements AccommodationProvider {
     }
     if (this.breaker.open) throw new Error(`Booking.com : ${this.breaker.reason}`)
 
-    const key = JSON.stringify([params.destination, params.checkIn, params.checkOut, params.adults, params.children])
+    /*
+     * Toute entrée de `SearchParams` qui change le résultat doit entrer dans la
+     * clé, sans quoi le cache rend la réponse d'une autre question.
+     *
+     * `bedrooms` est arrivé au contrat (`types.ts`) sans être ajouté ici :
+     * chercher « 8 personnes, 2 chambres » puis « 8 personnes, 5 chambres » sur
+     * la même station dans les dix minutes du TTL rendait le premier résultat.
+     * Les coordonnées et le rayon manquaient pour la même raison — deux
+     * domaines voisins portant le même nom de station partageaient une entrée.
+     */
+    const key = JSON.stringify([
+      params.destination,
+      params.checkIn,
+      params.checkOut,
+      params.adults,
+      params.children,
+      params.bedrooms,
+      params.latitude,
+      params.longitude,
+      params.radiusMeters
+    ])
     const cached = this.cache.get(key)
     if (cached) return cached
 

@@ -160,8 +160,9 @@ export function shiftToAvailableWeekend(
   const startBase = opts.fromIso ?? checkIn
 
   for (let w = 0; w <= maxWeeks; w++) {
-    const start = nextSaturday(addDaysIso(startBase, w === 0 ? 0 : w * 7))
-    // si w=0 et startBase n'est pas samedi, nextSaturday avance déjà
+    // `const start` vivait ici, calculé puis jamais lu : `actualStart` refait le
+    // même calcul avec les deux cas particuliers en plus. Retiré — c'est une
+    // déclaration morte, pas un défaut de relevé.
     const actualStart =
       w === 0 && startBase === checkIn && checkIn === nextSaturday(checkIn)
         ? checkIn

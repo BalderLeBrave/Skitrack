@@ -78,11 +78,13 @@ export const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: 'vrbo',
-    label: 'VRBO',
+    // Dérivé comme tous les autres. Le libellé était écrit en dur ici — la
+    // seule entrée de la table à contredire son propre en-tête — parce
+    // qu'aucun connecteur VRBO n'existait et que `sourceLabelOf` n'avait donc
+    // rien à rendre. `vrbo-web` existe désormais.
+    label: sourceLabelOf('vrbo-web'),
     kind: 'scraping',
-    // Aucun connecteur à ce jour : l'entrée est prête, la puce n'apparaîtra
-    // que le jour où un relevé rapportera cette source.
-    connectors: []
+    connectors: ['vrbo-web']
   },
   {
     id: 'gites',

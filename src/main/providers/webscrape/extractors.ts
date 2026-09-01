@@ -39,6 +39,20 @@ export interface RawCard {
   bedrooms?: number
   beds?: number
   areaSqm?: number
+  /**
+   * Capacité en **personnes**, telle que la page l'écrit.
+   *
+   * Le champ manquait au type, et c'est tout ce qui manquait : `Accommodation`
+   * le porte (`providers/types.ts`), `baseAccommodation` le relaie
+   * (`webscrape/shared.ts`) et `runProviderSearch` le lit (`pers`). Personne
+   * ne l'écrivait jamais, si bien que toute annonce relevée arrivait sans
+   * capacité et tombait en « non annoncé » dans `partyVerdict`.
+   *
+   * Elle n'est **jamais** déduite des lits : « 6 lits » ne dit pas combien de
+   * personnes le bien accepte, et six lits simples ne valent pas six couchages
+   * dans une chambre double.
+   */
+  guests?: number
 }
 
 /** Booking.com — cartes [data-testid="property-card"] ou liens /hotel/ */
@@ -164,6 +178,9 @@ export function extractBookingCards(): RawCard[] {
     // des types de chambre, et l'absence est alors la bonne réponse.
     const bedrooms = lire(/(\d+)\s*chambres?/i.exec(unites))
     const beds = lire(/(\d+)\s*lits?/i.exec(unites))
+    // « 4 voyageurs », « Pour 4 personnes » — la capacité, quand la carte
+    // l'écrit. Les hôtels ne l'écrivent pas ; l'absence est alors la réponse.
+    const guests = lire(/(\d+)\s*(?:voyageurs?|personnes?)/i.exec(unites))
     // Surface habitable, quand la page la publie : « 49 m² » ou « 49 m2 ».
     const areaSqm = lire(/(\d+)\s*m(?:²|2)(?![0-9])/i.exec(unites))
 
@@ -179,6 +196,7 @@ export function extractBookingCards(): RawCard[] {
       bedrooms,
       beds,
       areaSqm,
+      guests,
     })
   })
   return out
@@ -188,6 +206,38 @@ export function extractBookingCards(): RawCard[] {
 export function extractExpediaFamilyCards(): RawCard[] {
   const out: RawCard[] = []
   const seen = new Set<string>()
+
+  /*
+   * Positions publiées par la page, lues dans le JSON-LD.
+   *
+   * Le bloc est inline et non factorisé : cette fonction est sérialisée puis
+   * exécutée dans la page par `page.evaluate`, où aucune fermeture du module
+   * n'existe. Un helper partagé lèverait « ... is not defined » à l'exécution,
+   * sans rien signaler à la compilation.
+   */
+  const geo: Record<string, { lat: number; lon: number }> = {}
+  document.querySelectorAll('script[type="application/ld+json"]').forEach((tag) => {
+    try {
+      const parsed: unknown = JSON.parse(tag.textContent || '')
+      const walk = (node: unknown): void => {
+        if (!node || typeof node !== 'object') return
+        if (Array.isArray(node)) {
+          node.forEach(walk)
+          return
+        }
+        const obj = node as Record<string, unknown>
+        const url = typeof obj.url === 'string' ? obj.url : null
+        const g = obj.geo as Record<string, unknown> | undefined
+        if (url && g && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
+          geo[url] = { lat: g.latitude, lon: g.longitude }
+        }
+        for (const key in obj) walk(obj[key])
+      }
+      walk(parsed)
+    } catch {
+      /* fiche sans JSON-LD lisible : la carte sortira sans position */
+    }
+  })
   const anchors = document.querySelectorAll(
     'a[href*="/Hotel-Search"], a[href*="/ho"], a[data-stid="open-hotel-information"]'
   )
@@ -211,7 +261,24 @@ export function extractExpediaFamilyCards(): RawCard[] {
       root.querySelector('[data-stid="price-lockup-text"], .uitk-text-emphasis-theme')?.textContent?.trim() ||
       root.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
     const img = (root.querySelector('img') as HTMLImageElement | null)?.src
-    out.push({ sourceId: id, title, url: href, priceText, image: img })
+    const texte = root.textContent || ''
+    const lire = (m: RegExpExecArray | null): number | undefined => {
+      if (!m) return undefined
+      const n = Number(m[1])
+      return Number.isFinite(n) && n > 0 ? n : undefined
+    }
+    const pos = geo[href] || geo[href.split('?')[0]]
+    out.push({
+      sourceId: id,
+      title,
+      url: href,
+      priceText,
+      image: img,
+      lat: pos?.lat,
+      lon: pos?.lon,
+      guests: lire(/(\d+)\s*(?:voyageurs?|personnes?|guests?)/i.exec(texte)),
+      bedrooms: lire(/(\d+)\s*(?:chambres?|bedrooms?)/i.exec(texte))
+    })
   })
   // fallback liens seuls
   if (out.length === 0) {
@@ -231,6 +298,39 @@ export function extractExpediaFamilyCards(): RawCard[] {
 export function extractGitesCards(): RawCard[] {
   const out: RawCard[] = []
   const seen = new Set<string>()
+
+  /*
+   * Positions publiées par la page, lues dans le JSON-LD.
+   *
+   * Recopié plutôt que factorisé, et c'est délibéré : cette fonction est
+   * sérialisée puis exécutée DANS la page par `page.evaluate`, où la portée du
+   * module n'existe pas. Un helper partagé lèverait « ... is not defined » à
+   * l'exécution, sans que rien ne le signale à la compilation.
+   */
+  const geo: Record<string, { lat: number; lon: number }> = {}
+  document.querySelectorAll('script[type="application/ld+json"]').forEach((tag) => {
+    try {
+      const parsed: unknown = JSON.parse(tag.textContent || '')
+      const walk = (node: unknown): void => {
+        if (!node || typeof node !== 'object') return
+        if (Array.isArray(node)) {
+          node.forEach(walk)
+          return
+        }
+        const obj = node as Record<string, unknown>
+        const url = typeof obj.url === 'string' ? obj.url : null
+        const g = obj.geo as Record<string, unknown> | undefined
+        if (url && g && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
+          geo[url] = { lat: g.latitude, lon: g.longitude }
+        }
+        for (const key in obj) walk(obj[key])
+      }
+      walk(parsed)
+    } catch {
+      /* fiche sans JSON-LD lisible : la carte sortira sans position */
+    }
+  })
+
   document.querySelectorAll('a[href*="/fr/"], article, .search-result, .gite-card, .card').forEach((node) => {
     const link =
       node.tagName === 'A'
@@ -264,7 +364,26 @@ export function extractGitesCards(): RawCard[] {
      */
     if (!priceText) return
     const img = (node.querySelector('img') as HTMLImageElement | null)?.src
-    out.push({ sourceId, title, url: href, priceText, image: img })
+    const texte = node.textContent || ''
+    const lire = (m: RegExpExecArray | null): number | undefined => {
+      if (!m) return undefined
+      const n = Number(m[1])
+      return Number.isFinite(n) && n > 0 ? n : undefined
+    }
+    const pos = geo[href] || geo[href.split('?')[0]]
+    out.push({
+      sourceId,
+      title,
+      url: href,
+      priceText,
+      image: img,
+      lat: pos?.lat,
+      lon: pos?.lon,
+      // « 6 personnes », « Capacité : 4 personnes » — Gîtes de France affiche la
+      // capacité sur ses cartes de résultat. Rien n'est déduit des lits.
+      guests: lire(/(\d+)\s*(?:personnes?|voyageurs?)/i.exec(texte)),
+      bedrooms: lire(/(\d+)\s*chambres?/i.exec(texte))
+    })
   })
   return out
 }
@@ -273,6 +392,39 @@ export function extractGitesCards(): RawCard[] {
 export function extractCozycozyCards(): RawCard[] {
   const out: RawCard[] = []
   const seen = new Set<string>()
+
+  /*
+   * Positions publiées par la page, lues dans le JSON-LD.
+   *
+   * Recopié plutôt que factorisé, et c'est délibéré : cette fonction est
+   * sérialisée puis exécutée DANS la page par `page.evaluate`, où la portée du
+   * module n'existe pas. Un helper partagé lèverait « ... is not defined » à
+   * l'exécution, sans que rien ne le signale à la compilation.
+   */
+  const geo: Record<string, { lat: number; lon: number }> = {}
+  document.querySelectorAll('script[type="application/ld+json"]').forEach((tag) => {
+    try {
+      const parsed: unknown = JSON.parse(tag.textContent || '')
+      const walk = (node: unknown): void => {
+        if (!node || typeof node !== 'object') return
+        if (Array.isArray(node)) {
+          node.forEach(walk)
+          return
+        }
+        const obj = node as Record<string, unknown>
+        const url = typeof obj.url === 'string' ? obj.url : null
+        const g = obj.geo as Record<string, unknown> | undefined
+        if (url && g && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
+          geo[url] = { lat: g.latitude, lon: g.longitude }
+        }
+        for (const key in obj) walk(obj[key])
+      }
+      walk(parsed)
+    } catch {
+      /* fiche sans JSON-LD lisible : la carte sortira sans position */
+    }
+  })
+
   document.querySelectorAll('a[href*="/offer"], a[href*="/listing"], article, [class*="Offer"], [class*="result"]').forEach((node) => {
     const link =
       node.tagName === 'A'
@@ -291,7 +443,128 @@ export function extractCozycozyCards(): RawCard[] {
     if (!title || title.length < 3) return
     const priceText = node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
     const img = (node.querySelector('img') as HTMLImageElement | null)?.src
-    out.push({ sourceId, title, url: href, priceText, image: img })
+    const texte = node.textContent || ''
+    const lire = (m: RegExpExecArray | null): number | undefined => {
+      if (!m) return undefined
+      const n = Number(m[1])
+      return Number.isFinite(n) && n > 0 ? n : undefined
+    }
+    const pos = geo[href] || geo[href.split('?')[0]]
+    out.push({
+      sourceId,
+      title,
+      url: href,
+      priceText,
+      image: img,
+      lat: pos?.lat,
+      lon: pos?.lon,
+      guests: lire(/(\d+)\s*(?:voyageurs?|personnes?|guests?)/i.exec(texte)),
+      bedrooms: lire(/(\d+)\s*(?:chambres?|bedrooms?)/i.exec(texte))
+    })
   })
+  return out
+}
+
+/**
+ * VRBO — cartes de résultat.
+ *
+ * Il n'existait aucun extracteur VRBO : `data/providers.ts` portait une entrée
+ * « VRBO » avec `connectors: []`, c'est-à-dire une puce que rien ne pouvait
+ * jamais allumer. Le seul code VRBO du dépôt vivait dans
+ * `sidecar/skitrack/providers/vrbo.py`, dans un autre processus, derrière une
+ * route sans appelant.
+ *
+ * VRBO appartient au groupe Expedia et sert la même structure `uitk-card` avec
+ * des `data-stid` : les sélecteurs suivent donc ceux d'Expedia, avec l'URL de
+ * fiche `/<id>` propre à VRBO comme discriminant.
+ */
+export function extractVrboCards(): RawCard[] {
+  const out: RawCard[] = []
+  const seen = new Set<string>()
+
+  /*
+   * Positions publiées par la page, lues dans le JSON-LD.
+   *
+   * Recopié plutôt que factorisé, et c'est délibéré : cette fonction est
+   * sérialisée puis exécutée DANS la page par `page.evaluate`, où la portée du
+   * module n'existe pas. Un helper partagé lèverait « ... is not defined » à
+   * l'exécution, sans que rien ne le signale à la compilation.
+   */
+  const geo: Record<string, { lat: number; lon: number }> = {}
+  document.querySelectorAll('script[type="application/ld+json"]').forEach((tag) => {
+    try {
+      const parsed: unknown = JSON.parse(tag.textContent || '')
+      const walk = (node: unknown): void => {
+        if (!node || typeof node !== 'object') return
+        if (Array.isArray(node)) {
+          node.forEach(walk)
+          return
+        }
+        const obj = node as Record<string, unknown>
+        const url = typeof obj.url === 'string' ? obj.url : null
+        const g = obj.geo as Record<string, unknown> | undefined
+        if (url && g && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
+          geo[url] = { lat: g.latitude, lon: g.longitude }
+        }
+        for (const key in obj) walk(obj[key])
+      }
+      walk(parsed)
+    } catch {
+      /* fiche sans JSON-LD lisible : la carte sortira sans position */
+    }
+  })
+
+  document
+    .querySelectorAll('[data-stid="property-listing"], [data-stid*="lodging-card"], section.uitk-card, li.uitk-card')
+    .forEach((root) => {
+      const link = root.querySelector('a[href]') as HTMLAnchorElement | null
+      const href = link?.href
+      if (!href) return
+      // Une carte de résultat mène à une fiche de bien ; le reste est de la
+      // navigation. Sans ce test, le menu du site entrerait dans la liste —
+      // c'est exactement ce qui s'était produit sur Gîtes de France.
+      if (!/\/\d{4,}(?:[/?#]|$)/.test(href) && !/\/p\d+/i.test(href)) return
+      const sourceId =
+        href.match(/\/(\d{4,})(?:[/?#]|$)/)?.[1] ||
+        href.match(/\/p(\d+)/i)?.[1] ||
+        href.split('?')[0]
+      if (seen.has(sourceId)) return
+      seen.add(sourceId)
+
+      const title =
+        root.querySelector('h3, h2, [data-stid="content-hotel-title"]')?.textContent?.trim() ||
+        link?.getAttribute('title') ||
+        ''
+      if (!title || title.length < 3) return
+
+      const texte = root.textContent || ''
+      const priceText =
+        root.querySelector('[data-stid="price-lockup-text"], [data-stid*="price"]')?.textContent?.trim() ||
+        texte.match(/\d[\d\s.,]*\s*€/)?.[0]
+      // Comme pour Gîtes : une carte de résultat porte un prix, une entrée de
+      // navigation jamais. C'est le discriminant qui se vérifie sur la page.
+      if (!priceText) return
+
+      const img = (root.querySelector('img') as HTMLImageElement | null)?.src
+      const lire = (m: RegExpExecArray | null): number | undefined => {
+        if (!m) return undefined
+        const n = Number(m[1])
+        return Number.isFinite(n) && n > 0 ? n : undefined
+      }
+      const pos = geo[href] || geo[href.split('?')[0]]
+
+      out.push({
+        sourceId,
+        title,
+        url: href.split('?')[0],
+        priceText,
+        image: img,
+        lat: pos?.lat,
+        lon: pos?.lon,
+        guests: lire(/(\d+)\s*(?:voyageurs?|personnes?|guests?|sleeps)/i.exec(texte)),
+        bedrooms: lire(/(\d+)\s*(?:chambres?|bedrooms?)/i.exec(texte)),
+        beds: lire(/(\d+)\s*(?:lits?|beds?)/i.exec(texte))
+      })
+    })
   return out
 }

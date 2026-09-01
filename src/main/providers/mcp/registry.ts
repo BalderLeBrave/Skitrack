@@ -27,7 +27,27 @@ export interface McpRegistryLoad {
   rejected: { name: string; reason: string }[]
 }
 
-const RESERVED = new Set(['liteapi', 'booking', 'expedia', 'gites-de-france', 'airbnb'])
+/**
+ * Noms qu'une source MCP déclarée ne peut pas prendre.
+ *
+ * Les connecteurs intégrés y figurent tous, y compris ceux qui ne sont plus
+ * enregistrés : le nom reste réservé pour qu'une source tierce ne puisse pas se
+ * faire passer pour eux dans les filtres ni dans les journaux.
+ */
+const RESERVED = new Set([
+  'liteapi',
+  'booking',
+  'booking-web',
+  'expedia',
+  'expedia-web',
+  'gites-de-france',
+  'gites-web',
+  'cozycozy',
+  'cozycozy-web',
+  'vrbo',
+  'vrbo-web',
+  'airbnb'
+])
 
 function fail(name: string, reason: string): { name: string; reason: string } {
   return { name, reason }

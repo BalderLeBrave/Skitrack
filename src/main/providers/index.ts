@@ -1,18 +1,35 @@
 /**
  * Assemblage du comparateur multi-sources.
  *
- * Trois sources sont interrogées, et trois seulement :
+ * Les sources interrogées :
  *
  *     booking            Demand API v3          clés requises, repli scraper web
+ *     booking-web        relevé Playwright      pagination, 125 biens au plus
+ *     gites-web          relevé Playwright      Gîtes de France
+ *     cozycozy-web       relevé Playwright      méta-moteur
+ *     vrbo-web           relevé Playwright      groupe Expedia
  *     station            centrale de la station lue avec Playwright, voir station/
+ *     ceto-* / ublo / opensystem                 prestataires de centrales
  *     airbnb             aucune API             relevé à part, voir airbnb/scrape.ts
  *     «déclarées»        serveurs MCP tiers     lues dans mcp-sources.json
  *
- * Expedia, Hotels.com, Gîtes de France, cozycozy et LiteAPI ont été retirés.
- * Les laisser enregistrés aurait suffi à les faire réapparaître comme lignes de
- * filtre par la réunion que fait `lodgingSources` côté renderer : une ligne
- * qu'aucun relevé ne peut rafraîchir n'est pas un filtre, c'est un souvenir.
- * `RESERVED` dans `mcp/registry.ts` garde leurs noms — ils restent réservés
+ * ## Gîtes de France, cozycozy et VRBO, rebranchés le 2026-09-01
+ *
+ * Ce fichier a longtemps dit : « Expedia, Hotels.com, Gîtes de France, cozycozy
+ * et LiteAPI ont été retirés… une ligne qu'aucun relevé ne peut rafraîchir n'est
+ * pas un filtre, c'est un souvenir ». L'argument reste juste, et c'est
+ * précisément pourquoi le retour de ces sources s'accompagne de ce qui leur
+ * manquait pour être rafraîchies :
+ *
+ * - leurs extracteurs lisent désormais les **coordonnées** (JSON-LD) — sans
+ *   elles, `keepInZone` plus bas jetait leur lot entier dès qu'une annonce
+ *   située tombait hors zone ;
+ * - ils lisent la **capacité** et les **chambres**, que personne ne relayait ;
+ * - ils **paginent**, là où ils s'arrêtaient au premier écran de résultats.
+ *
+ * Expedia et LiteAPI restent hors du moteur : `createExpediaWebProvider` existe
+ * et n'est pas enregistré, faute d'avoir été vérifié en conditions réelles.
+ * `RESERVED` dans `mcp/registry.ts` garde tous ces noms — ils restent réservés
  * pour qu'une source MCP déclarée ne puisse pas se faire passer pour eux.
  *
  * L'ordre d'enregistrement n'a aucune importance : les sources sont interrogées
@@ -23,7 +40,12 @@
  */
 
 import { airbnbRedirect } from './airbnb/airbnb'
-import { createBookingWebProvider } from './webscrape'
+import {
+  createBookingWebProvider,
+  createCozycozyWebProvider,
+  createGitesWebProvider,
+  createVrboWebProvider
+} from './webscrape'
 import { BookingProvider, resolveBookingCredentials } from './booking/booking'
 import { createStationProvider } from './station/station'
 import { createCetoChamonixProvider } from './ceto/chamonix'
@@ -75,6 +97,11 @@ export function buildEngine(options: EngineOptions): SearchEngine {
   // Préférer l'API Booking quand des clés sont présentes.
   if (options.enableWebScrape) {
     next.register(createBookingWebProvider())
+    // Trois connecteurs qui existaient, exportés, et que personne n'appelait :
+    // le code était complet, seul l'enregistrement manquait. Voir l'en-tête.
+    next.register(createGitesWebProvider())
+    next.register(createCozycozyWebProvider())
+    next.register(createVrboWebProvider())
     // Centrale de réservation de la station : le seul connecteur qui interroge
     // le site du domaine lui-même, avec l'adresse que le renderer lui passe.
     next.register(createStationProvider())

@@ -13,12 +13,14 @@ import {
   extractCozycozyCards,
   extractExpediaFamilyCards,
   extractGitesCards,
+  extractVrboCards,
   type RawCard
 } from './extractors'
 import {
   baseAccommodation,
+  looksBlocked,
   parsePrice,
-  scrollPage,
+  scrollToEnd,
   sleep,
   withPage,
   withRetries,
@@ -28,7 +30,8 @@ import {
   bookingSearchUrl,
   cozycozySearchUrl,
   expediaSearchUrl,
-  gitesSearchUrl
+  gitesSearchUrl,
+  vrboSearchUrl
 } from './urls'
 
 function mapCards(
@@ -48,8 +51,9 @@ function mapCards(
           sourceId: c.sourceId,
           title: c.title,
           url: c.url,
-          // Position de la carte de résultat (Booking : `data-atlas-latlng`).
-          // Absente sur les autres sources : le champ reste vide.
+          // Position publiée par la page de résultats. Booking la lit dans son
+          // magasin Apollo ; Gîtes de France, CozyCozy, VRBO et Expedia dans le
+          // JSON-LD de la page. Absente, le champ reste vide — jamais fabriqué.
           latitude: c.lat,
           longitude: c.lon,
           totalPrice: price,
@@ -62,6 +66,12 @@ function mapCards(
           bedrooms: c.bedrooms,
           beds: c.beds,
           areaSqm: c.areaSqm,
+          // La capacité en personnes, enfin relayée. `Accommodation.guests`
+          // existait, `baseAccommodation` le recopiait et `runProviderSearch`
+          // le lisait — mais aucun connecteur ne l'écrivait, si bien que
+          // `pers` valait toujours 0 et que `partyVerdict` classait toutes les
+          // annonces relevées en « non annoncé ».
+          guests: c.guests,
           images: c.image ? [c.image] : undefined
         },
         params
@@ -75,12 +85,13 @@ async function loadAndExtract(
   page: Page,
   url: string,
   timeoutMs: number,
-  extract: () => RawCard[],
-  scrolls = 2
+  extract: () => RawCard[]
 ): Promise<RawCard[]> {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
   await sleep(1500 + Math.random() * 800)
-  await scrollPage(page, scrolls)
+  // Deux défilements fixes tronquaient les pages à chargement différé — voir
+  // `scrollToEnd`. On descend jusqu'à ce que la page cesse de grandir.
+  await scrollToEnd(page)
   try {
     await page.waitForLoadState('networkidle', { timeout: 6_000 })
   } catch {
@@ -90,10 +101,39 @@ async function loadAndExtract(
   return page.evaluate(extract)
 }
 
+/**
+ * Le motif d'un relevé vide, distingué au lieu d'être supposé.
+ *
+ * « aucune carte extraite (page dynamique ou blocage anti-bot) » recouvrait
+ * deux causes opposées sous un seul message : des sélecteurs périmés, qu'on
+ * corrige dans `extractors.ts`, et un refus de la source, contre lequel il n'y
+ * a rien à corriger. Les confondre rendait le diagnostic impossible à faire
+ * depuis les journaux.
+ */
+async function emptyReason(page: Page, name: string): Promise<Error> {
+  return new Error(
+    (await looksBlocked(page))
+      ? `${name}: relevé refusé par la source (captcha ou blocage anti-robot)`
+      : `${name}: aucune carte extraite — la page a répondu, les sélecteurs sont à revoir`
+  )
+}
+
+/**
+ * Connecteur de relevé web, paginé.
+ *
+ * `pageStep` est le pas de `offset` du site : c'est une donnée de la source,
+ * pas un réglage. Zéro le désactive — le connecteur ne lit alors que la
+ * première page, comme avant.
+ *
+ * La pagination manquait ici, et à personne d'autre : seul Booking l'avait,
+ * dans son propre connecteur. Expedia, Gîtes de France, CozyCozy et VRBO
+ * s'arrêtaient donc au premier écran de résultats, sans que rien ne le dise.
+ */
 function makeProvider(
   name: string,
-  buildUrl: (p: SearchParams) => string,
+  buildUrl: (p: SearchParams, offset?: number) => string,
   extract: () => RawCard[],
+  pageStep = 0,
   opts?: ScrapeAttemptOptions
 ): AccommodationProvider {
   return {
@@ -102,15 +142,25 @@ function makeProvider(
       const timeoutMs = opts?.timeoutMs ?? 45_000
       const headless = opts?.headless !== false
       return withRetries(name, opts ?? {}, async (attempt) => {
+        let blocked: Error | null = null
         const cards = await withPage(
           headless,
-          (page) => loadAndExtract(page, buildUrl(params), timeoutMs, extract, 2),
+          async (page) => {
+            const collected =
+              pageStep > 0
+                ? await collectPages(
+                    (offset) => buildUrl(params, offset),
+                    pageStep,
+                    (url) => loadAndExtract(page, url, timeoutMs, extract)
+                  )
+                : await loadAndExtract(page, buildUrl(params), timeoutMs, extract)
+            if (collected.length === 0) blocked = await emptyReason(page, name)
+            return collected
+          },
           attempt > 1
         )
         const list = mapCards(name, cards, params)
-        if (list.length === 0) {
-          throw new Error(`${name}: aucune carte extraite (page dynamique ou blocage anti-bot)`)
-        }
+        if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
         return list
       })
     },
@@ -166,8 +216,9 @@ const BOOKING_PAGES_BUDGET_MS = 60_000
  * page coûterait cher et ressemblerait beaucoup plus à un robot qu'un visiteur
  * qui clique « page suivante ».
  */
-export async function collectBookingPages(
-  params: SearchParams,
+export async function collectPages(
+  urlFor: (offset: number) => string,
+  pageSize: number,
   fetchPage: (url: string) => Promise<RawCard[]>,
   maxPages = BOOKING_MAX_PAGES,
   budgetMs = BOOKING_PAGES_BUDGET_MS
@@ -179,8 +230,7 @@ export async function collectBookingPages(
   for (let index = 0; index < maxPages; index++) {
     // La première page se lit toujours : sans elle il n'y a pas de relevé.
     if (index > 0 && Date.now() - startedAt >= budgetMs) break
-    const url = bookingSearchUrl(params, index * BOOKING_PAGE_SIZE)
-    const cards = await fetchPage(url)
+    const cards = await fetchPage(urlFor(index * pageSize))
     if (cards.length === 0) break
 
     let fresh = 0
@@ -193,10 +243,32 @@ export async function collectBookingPages(
     }
 
     if (fresh === 0) break
-    if (cards.length < BOOKING_PAGE_SIZE) break
+    if (cards.length < pageSize) break
   }
 
   return all
+}
+
+/**
+ * Le cas Booking, inchangé.
+ *
+ * La signature est conservée telle quelle : `providers.test.ts` l'exerce sur
+ * cinq cas — trois pages, offset figé, page vide, plafond, budget — et ces
+ * tests décrivent un comportement qui n'a pas de raison de changer.
+ */
+export async function collectBookingPages(
+  params: SearchParams,
+  fetchPage: (url: string) => Promise<RawCard[]>,
+  maxPages = BOOKING_MAX_PAGES,
+  budgetMs = BOOKING_PAGES_BUDGET_MS
+): Promise<RawCard[]> {
+  return collectPages(
+    (offset) => bookingSearchUrl(params, offset),
+    BOOKING_PAGE_SIZE,
+    fetchPage,
+    maxPages,
+    budgetMs
+  )
 }
 
 export function createBookingWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
@@ -207,21 +279,23 @@ export function createBookingWebProvider(opts?: ScrapeAttemptOptions): Accommoda
     name,
     async search(params: SearchParams): Promise<Accommodation[]> {
       return withRetries(name, opts ?? {}, async (attempt) => {
+        let blocked: Error | null = null
         const cards = await withPage(
           headless,
-          (page) =>
-            collectBookingPages(params, (url) =>
-              loadAndExtract(page, url, timeoutMs, extractBookingCards, 2)
-            ),
+          async (page) => {
+            const collected = await collectBookingPages(params, (url) =>
+              loadAndExtract(page, url, timeoutMs, extractBookingCards)
+            )
+            // Zéro carte sur la **première** page : la station a toujours au
+            // moins un hébergement, donc la page a menti ou refusé. On lui
+            // demande laquelle des deux avant de fermer l'onglet.
+            if (collected.length === 0) blocked = await emptyReason(page, name)
+            return collected
+          },
           attempt > 1
         )
         const list = mapCards(name, cards, params)
-        // Zéro carte sur la **première** page, c'est un blocage : la station a
-        // toujours au moins un hébergement. Zéro carte sur la suivante, c'est
-        // la fin de la liste, et `collectBookingPages` s'y est déjà arrêté.
-        if (list.length === 0) {
-          throw new Error(`${name}: aucune carte extraite (page dynamique ou blocage anti-bot)`)
-        }
+        if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
         return list
       })
     },
@@ -235,21 +309,50 @@ export function createBookingWebProvider(opts?: ScrapeAttemptOptions): Accommoda
   }
 }
 
+/**
+ * Pas de pagination de chaque source.
+ *
+ * Ce sont des données des sites, relevées dans leurs propres liens « page
+ * suivante », et non des réglages : Expedia et VRBO comptent en rang de
+ * résultat, Gîtes de France et CozyCozy en numéro de page.
+ */
+const EXPEDIA_PAGE_SIZE = 50
+const VRBO_PAGE_SIZE = 50
+const GITES_PAGE_STEP = 1
+const COZYCOZY_PAGE_STEP = 1
+
 export function createExpediaWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
-  return makeProvider('expedia-web', expediaSearchUrl, extractExpediaFamilyCards, opts)
+  return makeProvider(
+    'expedia-web',
+    expediaSearchUrl,
+    extractExpediaFamilyCards,
+    EXPEDIA_PAGE_SIZE,
+    opts
+  )
 }
 
 export function createGitesWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
-  return makeProvider('gites-web', gitesSearchUrl, extractGitesCards, opts)
+  return makeProvider('gites-web', gitesSearchUrl, extractGitesCards, GITES_PAGE_STEP, opts)
 }
 
 export function createCozycozyWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
-  return makeProvider('cozycozy-web', cozycozySearchUrl, extractCozycozyCards, opts)
+  return makeProvider(
+    'cozycozy-web',
+    cozycozySearchUrl,
+    extractCozycozyCards,
+    COZYCOZY_PAGE_STEP,
+    opts
+  )
+}
+
+export function createVrboWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
+  return makeProvider('vrbo-web', vrboSearchUrl, extractVrboCards, VRBO_PAGE_SIZE, opts)
 }
 
 export const WEB_SCRAPE_PROVIDER_NAMES = [
   'booking-web',
   'expedia-web',
   'gites-web',
-  'cozycozy-web'
+  'cozycozy-web',
+  'vrbo-web'
 ] as const

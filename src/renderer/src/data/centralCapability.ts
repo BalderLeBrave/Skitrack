@@ -11,6 +11,9 @@
  * - Ingénie : connecteur `station-web` (Playwright, formulaire)
  * - Ublo / MSEM : connecteur `ublo-msem` (JSON offers)
  * - Open System : connecteur `opensystem` (JSONP / HTML)
+ * - Deskline : connecteur `deskline` (POST /searches)
+ * - LocVacances : connecteur `locvacances` (getListe)
+ * - Diffusio : connecteur `diffusio` (SERP + fiche)
  * - `docs/diagnostics/centrales-reconnaissance.md`
  */
 
@@ -30,7 +33,7 @@ export interface CentralCapability {
   /** Connecteur technique attendu, si live. */
   connector?: string
   /** Famille technique, pour diagnostics. */
-  family?: 'orchestra' | 'ingenie' | 'opensystem' | 'ublo' | 'eliberty' | 'other'
+  family?: 'orchestra' | 'ingenie' | 'opensystem' | 'ublo' | 'eliberty' | 'deskline' | 'locvacances' | 'sancy' | 'other'
 }
 
 /** Orchestra / Ceto — extracteur HTML sans navigateur. */
@@ -175,6 +178,39 @@ export function centralCapabilityOf(officialUrl: string | null | undefined): Cen
       family: 'opensystem',
       labelFr: 'prix pour vos dates (Open System)',
       labelEn: 'prices for your dates (Open System)'
+    }
+  }
+
+  if (family === 'deskline') {
+    return {
+      mode: 'live',
+      host,
+      connector: 'deskline',
+      family: 'deskline',
+      labelFr: 'prix pour vos dates (Deskline)',
+      labelEn: 'prices for your dates (Deskline)'
+    }
+  }
+
+  if (family === 'locvacances') {
+    return {
+      mode: 'live',
+      host,
+      connector: 'locvacances',
+      family: 'locvacances',
+      labelFr: 'prix pour vos dates (LocVacances)',
+      labelEn: 'prices for your dates (LocVacances)'
+    }
+  }
+
+  if (family === 'sancy') {
+    return {
+      mode: 'live',
+      host,
+      connector: 'diffusio',
+      family: 'sancy',
+      labelFr: 'prix semaine (fourchette Diffusio)',
+      labelEn: 'weekly range (Diffusio)'
     }
   }
 

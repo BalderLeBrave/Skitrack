@@ -24,6 +24,8 @@ export type BookingFamily =
   | 'elloha'
   | 'yoplanning'
   | 'sancy'
+  | 'locvacances'
+  | 'deskline'
   // Plus de `blocked` : c'était un verdict `robots.txt` déguisé en moteur de
   // réservation. La règle appartient à `providers/station/robots.ts`, et ce
   // registre ne porte que ce qu'il sait dire — qui opère la centrale.
@@ -57,6 +59,11 @@ export const NON_INGENIE_HOSTS: Record<string, BookingFamily> = {
   'reservation.saintfrancoislongchamp.com': 'ublo',
   // Autres
   'www.sancy.com': 'sancy',
+  'sancy.com': 'sancy',
+  'www.reservationpralognan.fr': 'locvacances',
+  'reservationpralognan.fr': 'locvacances',
+  'www.laclusaz.com': 'deskline',
+  'laclusaz.com': 'deskline',
   /*
    * Isola 2000 : **Ublo / MSEM**, et non Yoplanning.
    *

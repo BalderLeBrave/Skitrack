@@ -115,7 +115,10 @@ export const PROVIDERS: ProviderConfig[] = [
       'ceto-plagne',
       'ceto-megeve',
       'ublo-msem',
-      'opensystem'
+      'opensystem',
+      'deskline',
+      'locvacances',
+      'diffusio'
     ]
   },
   {

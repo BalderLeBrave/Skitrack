@@ -306,7 +306,13 @@ const CONNECTOR_STAY_KEY: Record<string, string> = {
  *
  * On ne touche donc pas à ce qu'ils rendent.
  */
-const SELF_DATED_CONNECTORS = new Set(['ublo-msem', 'opensystem'])
+const SELF_DATED_CONNECTORS = new Set([
+  'ublo-msem',
+  'opensystem',
+  'deskline',
+  'locvacances',
+  'diffusio'
+])
 
 /**
  * La même question, posée au nom d'hôte.
@@ -321,7 +327,13 @@ const SELF_DATED_CONNECTORS = new Set(['ublo-msem', 'opensystem'])
  */
 function isSelfDatedHost(host: string): boolean {
   const family = bookingFamilyOf(host)
-  return family === 'ublo' || family === 'opensystem'
+  return (
+    family === 'ublo' ||
+    family === 'opensystem' ||
+    family === 'sancy' ||
+    family === 'locvacances' ||
+    family === 'deskline'
+  )
 }
 
 /**

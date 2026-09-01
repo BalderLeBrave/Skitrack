@@ -13,7 +13,7 @@ pose un `reasonCode` (`not_wired` / `delegated` / `empty_inventory`) sur un
 
 Le moteur n’itère pas la table pour lancer 74 adapters : une recherche passe
 `SearchParams.officialUrl` à `station-web` **et** aux familles Ceto / Ublo /
-Open System / Deskline. La table sert à **nommer** l’hôte, pas à inventer un parseur.
+Open System / Deskline / LocVacances / Diffusio. La table sert à **nommer** l’hôte, pas à inventer un parseur.
 
 VRBO, Gîtes de France, CozyCozy **ne sont pas** dans `CENTRALS`. Ils existent
 comme connecteurs webscrape enregistrés dans `buildEngine`.
@@ -55,7 +55,7 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 | c22-reservation-larosiere-net | La Rosière | reservation.larosiere.net | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | La Rosière | ingenie | lodging, checkIn, checkOut, guests, submit |  |
 | c23-www-karellis-com | Les Karellis | www.karellis.com | NONE | — | — | — | no | Les Karellis | not_wired | checkIn, checkOut, guests, submit |  |
 | c24-reservation-lessaisies-com | Les Saisies | reservation.lessaisies.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Les Saisies | ingenie | stayType, checkIn, duration, guests, submit |  |
-| c25-www-reservationpralognan-fr | Pralognan la Vanoise | www.reservationpralognan.fr | NONE | — | — | — | no | Pralognan la Vanoise | not_wired | checkIn, checkOut, guests, submit |  |
+| c25-www-reservationpralognan-fr | Pralognan la Vanoise | www.reservationpralognan.fr | src/main/providers/locvacances/{provider,extract,hosts}.ts | createLocvacancesProvider.search | parseListeCards + getFiche si pièces absentes | initGmap sur fiche | yes | Pralognan la Vanoise | locvacances | checkIn, checkOut, guests, submit | Session cookies + getListe page. Pièces (pas chambres). Tarif séjour daté. |
 | c26-reservation-saintfrancoislongchamp-com | Saint François Longchamp | reservation.saintfrancoislongchamp.com | src/main/providers/ublo/provider.ts | createUbloProvider.search | ublo/msem.ts | API MSEM coords | yes | Saint François Longchamp | ublo | checkIn, checkOut, guests, submit |  |
 | c27-fr-locationsaintmartin-com | Saint Martin de Belleville | fr.locationsaintmartin.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Saint Martin de Belleville | ingenie | checkIn, checkOut, guests, submit |  |
 | c28-www-saintefoy-reservation-com | Sainte-Foy Tarentaise | www.saintefoy-reservation.com | src/main/providers/ublo/provider.ts | createUbloProvider.search | ublo/msem.ts | API MSEM coords | yes | Sainte-Foy Tarentaise | ublo | checkIn, checkOut, guests, submit |  |
@@ -97,8 +97,8 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 | c64-www-n-py-com | Grand Tourmalet | www.n-py.com | src/main/providers/opensystem/provider.ts | createOpenSystemProvider.search | opensystem/extract.ts | vueinfo.js coords | yes | Grand Tourmalet | opensystem | station, checkIn, checkOut, guests, submit |  |
 | c65-lesangles-com | Les Angles | lesangles.com | NONE | — | — | — | no | Les Angles | not_wired | ∅ | Formulaire SPA / non inspecté — contrôles vides |
 | c66-resa-saintlary-com | Saint Lary | resa.saintlary.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Saint Lary | ingenie | stayType, checkIn, duration, guests, submit |  |
-| c67-www-sancy-com | Super Besse | www.sancy.com | NONE | — | — | — | no | Super Besse | not_wired | checkIn, checkOut, submit |  |
-| c68-www-sancy-com | le Mont Dore | www.sancy.com | NONE | — | — | — | no | le Mont Dore | not_wired | checkIn, checkOut, submit |  |
+| c67-www-sancy-com | Super Besse | www.sancy.com | src/main/providers/diffusio/{provider,extract,hosts}.ts | createDiffusioProvider.search | parseSerpCards + parseFiche | commune `.place` | yes | Super Besse | diffusio | checkIn, checkOut, submit | SERP capacité ; chambres + fourchette semaine sur fiche (`partial`) |
+| c68-www-sancy-com | le Mont Dore | www.sancy.com | src/main/providers/diffusio/{provider,extract,hosts}.ts | createDiffusioProvider.search | parseSerpCards + parseFiche | commune `.place` | yes | le Mont Dore | diffusio | checkIn, checkOut, submit | Même hôte / même SERP que Super Besse |
 | c69-www-labresse-net | La Bresse Hohneck | www.labresse.net | src/main/providers/opensystem/provider.ts | createOpenSystemProvider.search | opensystem/extract.ts | vueinfo.js coords | yes | La Bresse Hohneck | opensystem | checkIn, checkOut, guests, submit |  |
 | c70-www-ballons-hautes-vosges-com | Saint Maurice sur Moselle | www.ballons-hautes-vosges.com | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Saint Maurice sur Moselle | ingenie | stayType, checkIn, duration, guests, submit |  |
 | c71-www-gerardmer-reservation-net | Gérardmer | www.gerardmer-reservation.net | src/main/providers/station/station.ts | createStationProvider.search | extractStationCards + fichePrice.ts | application/ld+json lat/lng | yes | Gérardmer | ingenie | station, stayType, checkIn, duration, guests, submit |  |
@@ -115,19 +115,25 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 | ublo | 6 | `ublo-msem` |
 | opensystem | 7 | `opensystem` |
 | deskline | 1 | `deskline` (La Clusaz) |
+| locvacances | 1 | `locvacances` (Pralognan) |
+| diffusio | 2 | `diffusio` (Super Besse + Mont-Dore) |
 | ota-airbnb | 1 | IPC `airbnb:scrape`, **pas** `SearchEngine.register` |
 | ota-booking | 1 | `booking` + `booking-web` |
-| not_wired | 6 | silence ou lien seulement |
+| not_wired | 3 | silence ou lien seulement |
 
 ## not_wired — tickets concrets
 
 | station | host | fichier à créer | contrat |
 | --- | --- | --- | --- |
-| Les Karellis | www.karellis.com | `src/main/providers/karellis.ts` **après** discovery dump | `AccommodationProvider.search` ; 0 → reason_code |
-| Pralognan | www.reservationpralognan.fr | idem | 26 tarifs séjour 5–12 sept. ; 0 chambre ; fév. 2027 vide |
-| Vars (2e centrale) | www.alpes-sudlocations.com | idem | Elloha POST Search 0 résultat 8p fév. 2027 |
+| Les Karellis | www.karellis.com | `src/main/providers/karellis.ts` **après** dump lodging (CF 403) | `AccommodationProvider.search` ; 0 → reason_code |
+| Vars (2e centrale) | www.alpes-sudlocations.com | idem | Elloha : pages résidence WP, pas une SERP logements datée |
 | Les Angles | lesangles.com | idem | OS 1395 / login les-angles, 1 produit OSMB, 0 vueinfo |
-| Super Besse + Mont Dore | www.sancy.com | idem | Diffusio 142 (13–20 fév. 2027), capa sur carte, chambres/prix fourchette sur fiche |
+
+Pralognan **sorti du rouge** le 2026-09-02 : LocVacances `getListe` + `getFiche`
+si « Chalet - N personnes » sans pièces. Voir `discovery_pralognan.md`.
+
+Super Besse + Mont-Dore **sortis du rouge** le 2026-09-02 : Diffusio SERP datée
++ fiche chambres / fourchette semaine. Voir `discovery_sancy.md`.
 
 Valberg et Pays des Écrins **sortis du rouge** le 2026-09-01 : même connecteur
 `ublo-msem` qu’Isola, ids relevés sur l’XHR (`665/OT-665`, `30015/PDE`). Voir
@@ -137,7 +143,7 @@ La Clusaz **sortie du rouge** le 2026-09-01 : connecteur Deskline dumpé
 (`POST /searches` 8 pers. + `POST /filters bedrooms:[4,…]` + `GET searchresults`,
 31 logements 13–20 fév. 2027). Voir `docs/diagnostics/discovery_clusaz.md`.
 
-**Interdit** : inventer un parseur pour ces 6 hôtes sans dump HAR/HTML.
+**Interdit** : inventer un parseur pour les 3 hôtes restants sans dump HAR/HTML.
 
 ## Hôtes partagés
 

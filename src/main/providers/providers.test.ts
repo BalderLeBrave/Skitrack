@@ -399,6 +399,8 @@ async function main(): Promise<void> {
   check('La Bresse est Open System', bookingFamilyOf('www.labresse.net') === 'opensystem')
   check('La Toussuire est Open System', bookingFamilyOf('reservation.la-toussuire.com') === 'opensystem')
   check('Sancy n’est pas Ingénie', bookingFamilyOf('www.sancy.com') === 'sancy')
+  check('Pralognan = locvacances', bookingFamilyOf('www.reservationpralognan.fr') === 'locvacances')
+  check('La Clusaz famille = deskline', bookingFamilyOf('www.laclusaz.com') === 'deskline')
 
   heading('7. Booking — la pagination, et son garde-fou')
   const stay = { destination: 'Les 2 Alpes', checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 2 }
@@ -483,7 +485,7 @@ async function main(): Promise<void> {
 
   // Problème 1 : le code des connecteurs existait, l'enregistrement manquait.
   const moteurWeb = buildEngine({ vault: () => undefined, enableWebScrape: true })
-  for (const attendu of ['gites-web', 'cozycozy-web', 'vrbo-web']) {
+  for (const attendu of ['gites-web', 'cozycozy-web', 'vrbo-web', 'deskline', 'locvacances', 'diffusio']) {
     check(`${attendu} est enregistré`, moteurWeb.names.includes(attendu), moteurWeb.names.join(', '))
   }
   check(
@@ -558,6 +560,10 @@ async function main(): Promise<void> {
   check('Valberg = ublo (ids dumpés)', familyOfHost('www.valberg.com') === 'ublo')
   check('Écrins = ublo (ids dumpés)', familyOfHost('www.paysdesecrins.com') === 'ublo')
   check('La Clusaz = deskline', familyOfHost('www.laclusaz.com') === 'deskline')
+  check('Pralognan = locvacances', familyOfHost('www.reservationpralognan.fr') === 'locvacances')
+  check('Sancy = diffusio', familyOfHost('www.sancy.com') === 'diffusio')
+  check('Vars Elloha = not_wired', familyOfHost('www.alpes-sudlocations.com') === 'not_wired')
+  check('Les Angles = not_wired', familyOfHost('lesangles.com') === 'not_wired')
   check(
     'sans URL officielle → no_official_url',
     emptyStationReason(undefined) === 'no_official_url'
@@ -577,6 +583,14 @@ async function main(): Promise<void> {
   check(
     'La Clusaz officiel → delegated (deskline)',
     emptyStationReason('https://www.laclusaz.com/') === 'delegated'
+  )
+  check(
+    'Pralognan officiel → delegated (locvacances)',
+    emptyStationReason('https://www.reservationpralognan.fr/') === 'delegated'
+  )
+  check(
+    'Sancy officiel → delegated (diffusio)',
+    emptyStationReason('https://www.sancy.com/hebergement/') === 'delegated'
   )
   check(
     'Chamonix officiel → delegated (ceto)',

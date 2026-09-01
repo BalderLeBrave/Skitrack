@@ -15,9 +15,20 @@ import { isCetoHost } from '../ceto/hosts'
 import { isUbloHost } from '../ublo/hosts'
 import { isOpenSystemHost } from '../opensystem/hosts'
 import { isDesklineHost } from '../deskline/hosts'
+import { isLocvacancesHost } from '../locvacances/hosts'
+import { isDiffusioHost } from '../diffusio/hosts'
 import type { ReasonCode } from '@shared/reasonCodes'
 
-export type CentralFamily = 'ingenie' | 'ceto' | 'ublo' | 'opensystem' | 'deskline' | 'ota' | 'not_wired'
+export type CentralFamily =
+  | 'ingenie'
+  | 'ceto'
+  | 'ublo'
+  | 'opensystem'
+  | 'deskline'
+  | 'locvacances'
+  | 'diffusio'
+  | 'ota'
+  | 'not_wired'
 
 export function hostOfOfficialUrl(url: string | null | undefined): string | null {
   if (!url) return null
@@ -40,6 +51,8 @@ export function familyOfHost(host: string): CentralFamily {
   if (isUbloHost(h) || isUbloHost(`https://${h}/`)) return 'ublo'
   if (isOpenSystemHost(h) || isOpenSystemHost(`https://${h}/`)) return 'opensystem'
   if (isDesklineHost(h) || isDesklineHost(`https://${h}/`)) return 'deskline'
+  if (isLocvacancesHost(h) || isLocvacancesHost(`https://${h}/`)) return 'locvacances'
+  if (isDiffusioHost(h) || isDiffusioHost(`https://${h}/`)) return 'diffusio'
   const gate = shouldAttemptIngenie(`https://${h}/`)
   if (gate.attempt) return 'ingenie'
   return 'not_wired'
@@ -48,16 +61,25 @@ export function familyOfHost(host: string): CentralFamily {
 /**
  * Pourquoi `station-web` a rendu zéro carte.
  *
- * `delegated` n'est pas une panne : Ceto / Ublo / Open System ont leur propre
- * connecteur, et `station-web` s'efface. `not_wired` est le trou à combler
- * par un discovery, pas par un parseur inventé.
+ * `delegated` n'est pas une panne : Ceto / Ublo / Open System / Deskline /
+ * LocVacances / Diffusio ont leur propre connecteur, et `station-web` s'efface.
+ * `not_wired` est le trou à combler par un discovery, pas par un parseur inventé.
  */
 export function emptyStationReason(officialUrl: string | null | undefined): ReasonCode {
   if (!officialUrl) return 'no_official_url'
   const host = hostOfOfficialUrl(officialUrl)
   if (!host) return 'no_official_url'
   const family = familyOfHost(host)
-  if (family === 'ceto' || family === 'ublo' || family === 'opensystem' || family === 'deskline') return 'delegated'
+  if (
+    family === 'ceto' ||
+    family === 'ublo' ||
+    family === 'opensystem' ||
+    family === 'deskline' ||
+    family === 'locvacances' ||
+    family === 'diffusio'
+  ) {
+    return 'delegated'
+  }
   if (family === 'not_wired') return 'not_wired'
   if (family === 'ota') return 'delegated'
   return 'empty_inventory'

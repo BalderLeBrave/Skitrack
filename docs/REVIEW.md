@@ -7,7 +7,7 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 | question | réponse |
 | --- | --- |
 | Ai-je ouvert centrals.ts et listé 100 % des id ? | **Oui.** 74 entrées, tableau CENTRALES.md. Import vivant : `centralLookup.ts` → `aggregateResults` (`centralsLoaded()`). |
-| Ai-je patché un adapter jamais appelé ? | **Non.** Expedia-web reste non `register()` (documenté, pas enabled). 6 hôtes `not_wired` : pas de parseur inventé. Deskline Clusaz `register()` + `familyOfHost`. |
+| Ai-je patché un adapter jamais appelé ? | **Non.** Expedia-web reste non `register()` (documenté, pas enabled). 3 hôtes `not_wired` : pas de parseur inventé. Deskline / LocVacances / Diffusio `register()` + `familyOfHost`. |
 | Ai-je cassé le résolveur captcha/WAF ? | **Non.** `CaptchaSolver` intact. `STEALTH_INIT` intact. Ajout : `POST /api/scrape/captcha/solve` + `captchaBridge.ts` appelé **après** le wait humain Airbnb. Pas de nouveau kit. |
 | `matchesDemand` est-il sur le chemin UI réel ? | **Oui.** `matchesLodgingFilters` → `selectors.tsx` `lodgFiltered`. Défaut `lodgHideUnannounced: true` (schéma 8). |
 | Airbnb/Booking appellent-ils geo pistes ? | **Oui, inchangé.** `enrichWithAccess`. Sans GPS : plus de pin centroïde (`lodgingCoords` → `null`). |
@@ -26,7 +26,7 @@ Relecture adverse après patch, dépôt `scrape-barriers`.
 1. VRBO live = **429 `Bot or Not?`** (dump 2026-09-01). Motif `blocked`. Parseur **non** retouché — pas de SERP.
 2. Gîtes : GET `towns=50301` + `.js-search-tile` dumpés (33 résultats, 16 ≥ 8p/4ch). Live Electron **non relancé** ici → 0 carte tant que Playwright n’a pas couru. Pas d’inventaire fictif.
 3. CozyCozy : catalogue SEO `article.hoj_seo_card` dumpé. `getResultList` **jamais** vu (clic Search → Booking affiliate). Pas de connecteur JSON inventé.
-4. **6** centrales `not_wired` : motif explicite `reasonCode=not_wired`. Dumps : Karellis CF 403 ; Pralognan 26 tarifs sans chambres ; Elloha 0 SERP logements ; Angles OS 1395 / 1 produit, 0 vueinfo ; Sancy Diffusio 142, chambres seulement sur fiche. La Clusaz : Deskline branché (31 offres 8p/4chb).
+4. **3** centrales `not_wired` : motif explicite `reasonCode=not_wired`. Dumps : Karellis CF 403 ; Elloha 0 SERP logements (pages résidence WP) ; Angles OS 1395 / 1 produit, 0 vueinfo. Pralognan : LocVacances getListe + getFiche. Sancy : Diffusio SERP + fiche. La Clusaz : Deskline branché (31 offres 8p/4chb).
 5. Sidecar `/api/scrape/{provider}` hors chemin UI. Solveur rebranché via `/captcha/solve`.
 6. `ttl_availability` 6 h sur `scannedAt`. Pas de cache dispo Electron séparé.
 7. Expedia-web **existe**, **non `register()`** — pas un `central_id` enabled.

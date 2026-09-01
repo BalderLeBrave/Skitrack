@@ -31,6 +31,8 @@ check('Valmorel résa = opensystem', bookingFamilyOf('reservation.valmorel.com')
 check('N-PY résa = opensystem', bookingFamilyOf('reservation.n-py.com') === 'opensystem')
 check('Megève = orchestra', bookingFamilyOf('megeve-booking.com') === 'orchestra')
 check('Sancy = sancy', bookingFamilyOf('www.sancy.com') === 'sancy')
+check('Pralognan = locvacances', bookingFamilyOf('www.reservationpralognan.fr') === 'locvacances')
+check('La Clusaz = deskline', bookingFamilyOf('www.laclusaz.com') === 'deskline')
 // Plus de famille `blocked` : elle portait un verdict `robots.txt`, qui
 // n'appartient qu'à `providers/station/robots.ts`. Ces deux hôtes portent
 // maintenant leur moteur, mesuré par `npm run centrales:recon`.

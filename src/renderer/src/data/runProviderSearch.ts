@@ -37,11 +37,11 @@ import { bookingCentralOf, stationNameOf } from './stations'
  *
  * - `booking` et `booking-web` sont deux chemins — API et relevé Playwright —
  *   vers le même inventaire Booking.com ;
- * - `station-web`, `ceto-*`, `ublo-msem` et `opensystem` sont sept
- *   implémentations d'une seule chose, la centrale de réservation de la
- *   station. Le prestataire qui l'opère est une information de maintenance, pas
- *   un choix offert à l'utilisateur : il reste dans `srcConnector` et dans les
- *   journaux, pas dans les filtres.
+ * - `station-web`, `ceto-*`, `ublo-msem`, `opensystem`, `deskline`,
+ *   `locvacances` et `diffusio` sont des implémentations d'une seule chose,
+ *   la centrale de réservation de la station. Le prestataire qui l'opère est
+ *   une information de maintenance, pas un choix offert à l'utilisateur : il
+ *   reste dans `srcConnector` et dans les journaux, pas dans les filtres.
  *
  * Un nom absent de cette table est conservé tel quel plutôt que masqué — mieux
  * vaut une source au nom technique visible qu'une offre silencieusement perdue.
@@ -65,7 +65,10 @@ const SOURCE_LABEL: Record<string, string> = {
   'ceto-plagne': CENTRALE_SOURCE,
   'ceto-megeve': CENTRALE_SOURCE,
   'ublo-msem': CENTRALE_SOURCE,
-  opensystem: CENTRALE_SOURCE
+  opensystem: CENTRALE_SOURCE,
+  deskline: CENTRALE_SOURCE,
+  locvacances: CENTRALE_SOURCE,
+  diffusio: CENTRALE_SOURCE
 }
 
 export function sourceLabelOf(provider: string): string {

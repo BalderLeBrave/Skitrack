@@ -4,13 +4,19 @@ Source de vérité : `src/main/providers/station/centrals.ts` (généré par `np
 
 **Lu en entier.** 74 entrées, 52 hôtes, 72 centrales locales + 2 OTA.
 
-## Constat bloquant
+## Import vivant
 
-`CENTRALS` n’est **importé par aucun fichier de `src/`**. Seuls `tools/import-centrales.mjs` (générateur) et `tools/recon-centrales.mjs` (recon hors moteur) le lisent. Grep `from .*centrals` dans `src/` : 0 hit.
+`CENTRALS` est importé par `src/main/providers/station/centralLookup.ts`
+(`centralsLoaded`, `familyOfHost`, `emptyStationReason`). `aggregateResults`
+pose un `reasonCode` (`not_wired` / `delegated` / `empty_inventory`) sur un
+`station-web` muet au lieu d’un zéro silencieux.
 
-Le moteur interroge `SearchParams.officialUrl` (une URL par domaine, côté renderer) via **un** connecteur `station-web`, plus les familles Ceto / Ublo / Open System / OTA. Il ne parcourt pas cette table.
+Le moteur n’itère pas la table pour lancer 74 adapters : une recherche passe
+`SearchParams.officialUrl` à `station-web` **et** aux familles Ceto / Ublo /
+Open System. La table sert à **nommer** l’hôte, pas à inventer un parseur.
 
-VRBO, Gîtes de France, CozyCozy **ne sont pas** dans `CENTRALS`. Ils existent comme connecteurs webscrape enregistrés dans `buildEngine`.
+VRBO, Gîtes de France, CozyCozy **ne sont pas** dans `CENTRALS`. Ils existent
+comme connecteurs webscrape enregistrés dans `buildEngine`.
 
 ## Légende `enabled`
 

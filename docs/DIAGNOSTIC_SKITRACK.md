@@ -71,7 +71,8 @@ Dates du formulaire : déjà envoyées (`urls.ts`, `LodgingsPage`).
 - `station-web` hôte hors adapter → `[not_wired]` au lieu de `[]`
 - `lodgFailed` / `lodgEmpty` **réaffichés** sur l’écran Logements
 - VRBO extracteur : **pas touché** (SERP absente) — voir `discovery_vrbo.md`
-- Gîtes extracteur : **pas touché** (SERP absente) — voir `discovery_gites.md`
+- Gîtes extracteur : sélecteur dumpé `.js-search-tile` (GET `towns=`) — voir `discovery_gites.md`
+- CozyCozy extracteur : `article.hoj_seo_card` (catalogue SEO) — voir `discovery_cozycozy.md`. `getResultList` jamais dumpé.
 
 ### Live 2026-09-01 (Les 2 Alpes, 13–20 fév. 2027, 8 pers.)
 
@@ -86,9 +87,9 @@ Dates du formulaire : déjà envoyées (`urls.ts`, `LodgingsPage`).
 
 `looksBlocked` avant ce dump : `/captcha\|are you a robot\|…/` — **ne matchait pas** « Bot or Not? ». Un 0 VRBO live serait sorti `selector_miss`.
 
-`gitesSearchUrl` aligne `destination` / `date-start` / `date-end` / `adults`. **Sans `entity_id` autocomplete, toujours 0 cartes.** Pas de parseur inventé.
+`gitesSearchUrl` : dump 2026-09-01 21:47, GET `towns=50301` + `travelers=` + dates ouvre la SERP Les 2 Alpes (33 résultats). Hors dump : `destination=` (toujours 0 sans towns). Sélecteur `.js-search-tile`.
 
-`cozycozySearchUrl` ajoute `e` (`minBedRoomCount`, dump `main.js`). **Sans SERP cartes, `extractCozycozyCards` inchangé.** Voir `discovery_cozycozy.md`.
+`cozycozySearchUrl` : Les 2 Alpes → `/fr/location-vacances-les-2-alpes` (catalogue SEO `hoj_seo_card`). `getResultList` jamais dumpé.
 
 ---
 

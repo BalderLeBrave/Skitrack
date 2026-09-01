@@ -2,17 +2,14 @@
  * Vraisemblance des positions de logements.
  *
  * Aucune plateforme ne publie l'adresse exacte d'un bien avant réservation :
- * les positions sont soit floutées, soit absentes. L'application place alors
- * l'annonce autour du front de neige, de façon déterministe — et c'est
- * précisément là que le mensonge commence, parce qu'une épingle posée sur une
- * carte a l'air d'une mesure.
+ * les positions sont soit floutées, soit absentes. **Sans GPS publié, pas
+ * d'épingle** (`lodgingCoords` → `null`). On ne disperse plus autour du
+ * centroïde du domaine : une épingle au village se lisait comme une mesure.
  *
- * Ce module vérifie donc ce qu'il peut vérifier : l'altitude du point (modèle
- * d'élévation Open-Meteo), sa présence sur un plan d'eau et l'existence d'un
- * bâtiment à moins de 180 m (OpenStreetMap). Un point 400 m au-dessus de la
- * station est en pleine montagne, un point au milieu d'un lac n'est pas un
- * chalet. Les positions estimées manifestement fausses sont resserrées vers la
- * station, et ce qui reste douteux est **dit** plutôt que masqué.
+ * Quand des coordonnées existent, ce module vérifie ce qu'il peut : altitude
+ * (Open-Meteo), plan d'eau, bâtiment à moins de 180 m (OSM). Un point 400 m
+ * au-dessus de la station est en montagne ; un point au milieu d'un lac n'est
+ * pas un chalet. Ce qui reste douteux est **dit** plutôt que masqué.
  *
  * Rien ici ne prétend localiser un bien. Le but est l'inverse : empêcher la
  * carte d'affirmer une position qu'elle ne connaît pas.

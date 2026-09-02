@@ -57,6 +57,7 @@ import { createOpenSystemProvider } from './opensystem/provider'
 import { createDesklineProvider } from './deskline/provider'
 import { createLocvacancesProvider } from './locvacances/provider'
 import { createDiffusioProvider } from './diffusio/provider'
+import { createTourinsoftProvider } from './tourinsoft/provider'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -121,6 +122,7 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     next.register(createDesklineProvider())
     next.register(createLocvacancesProvider())
     next.register(createDiffusioProvider())
+    next.register(createTourinsoftProvider())
   }
 
   // Airbnb n'est pas un connecteur : il n'interroge rien. Voir airbnb/airbnb.ts.

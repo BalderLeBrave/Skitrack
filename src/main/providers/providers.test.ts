@@ -485,7 +485,7 @@ async function main(): Promise<void> {
 
   // Problème 1 : le code des connecteurs existait, l'enregistrement manquait.
   const moteurWeb = buildEngine({ vault: () => undefined, enableWebScrape: true })
-  for (const attendu of ['gites-web', 'cozycozy-web', 'vrbo-web', 'deskline', 'locvacances', 'diffusio']) {
+  for (const attendu of ['gites-web', 'cozycozy-web', 'vrbo-web', 'deskline', 'locvacances', 'diffusio', 'tourinsoft']) {
     check(`${attendu} est enregistré`, moteurWeb.names.includes(attendu), moteurWeb.names.join(', '))
   }
   check(
@@ -562,8 +562,8 @@ async function main(): Promise<void> {
   check('La Clusaz = deskline', familyOfHost('www.laclusaz.com') === 'deskline')
   check('Pralognan = locvacances', familyOfHost('www.reservationpralognan.fr') === 'locvacances')
   check('Sancy = diffusio', familyOfHost('www.sancy.com') === 'diffusio')
+  check('Les Angles = tourinsoft', familyOfHost('lesangles.com') === 'tourinsoft')
   check('Vars Elloha = not_wired', familyOfHost('www.alpes-sudlocations.com') === 'not_wired')
-  check('Les Angles = not_wired', familyOfHost('lesangles.com') === 'not_wired')
   check(
     'sans URL officielle → no_official_url',
     emptyStationReason(undefined) === 'no_official_url'
@@ -591,6 +591,10 @@ async function main(): Promise<void> {
   check(
     'Sancy officiel → delegated (diffusio)',
     emptyStationReason('https://www.sancy.com/hebergement/') === 'delegated'
+  )
+  check(
+    'Les Angles officiel → delegated (tourinsoft)',
+    emptyStationReason('https://lesangles.com/tous-les-hebergements/') === 'delegated'
   )
   check(
     'Chamonix officiel → delegated (ceto)',
@@ -664,10 +668,25 @@ async function main(): Promise<void> {
     gitesSearchEmptyKind('<article class="gite-card">rien</article>') === null
   )
 
-  heading('16. CozyCozy dump 2026-09-01 — SEO Les 2 Alpes, SPA ailleurs')
+  heading('16. CozyCozy dump 2026-09-01/02 — SEO Les 2 Alpes + 3 rouges, SPA ailleurs')
   const cozyStay = { ...stay, adults: 8, bedrooms: 4 }
   const cozyUrl = cozycozySearchUrl(cozyStay)
   check('CozyCozy Les 2 Alpes → page catalogue SEO', cozyUrl === 'https://www.cozycozy.com/fr/location-vacances-les-2-alpes', cozyUrl)
+  check(
+    'CozyCozy Les Karellis → SEO dump 2026-09-02',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Les Karellis' }) ===
+      'https://www.cozycozy.com/fr/location-vacances-les-karellis'
+  )
+  check(
+    'CozyCozy Les Angles → SEO dump 2026-09-02',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Les Angles' }) ===
+      'https://www.cozycozy.com/fr/location-vacances-les-angles'
+  )
+  check(
+    'CozyCozy Vars → SEO dump 2026-09-02',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Vars' }) ===
+      'https://www.cozycozy.com/fr/location-vacances-vars'
+  )
   const cozyOther = cozycozySearchUrl({ destination: 'Val Thorens', checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 8, bedrooms: 4 })
   check('CozyCozy hors dump → /fr/search', cozyOther.includes('https://www.cozycozy.com/fr/search'), cozyOther)
   check('CozyCozy hors dump e=4', cozyOther.includes('e=4'), cozyOther)

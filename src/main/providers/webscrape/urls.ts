@@ -122,6 +122,14 @@ export function cozycozySeoPathForDestination(destination: string): string | nul
   if (n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
     return '/fr/location-vacances-les-2-alpes'
   }
+  // Dump 2026-09-02 : pages SEO SSR hoj_seo_card (HTTP 200).
+  if (n.includes('karellis')) return '/fr/location-vacances-les-karellis'
+  if (/\bles angles\b/.test(n) || n.includes('les-angles')) {
+    return '/fr/location-vacances-les-angles'
+  }
+  if (/\bvars\b/.test(n) || n.includes('foret blanche')) {
+    return '/fr/location-vacances-vars'
+  }
   return null
 }
 

@@ -1,27 +1,36 @@
-# Découverte Les Angles — 2026-09-01 (round 8)
+# Découverte Les Angles — 2026-09-02 (round 9)
 
-Parseur **non écrit**. Open System **Produit** unitaire, pas un catalogue.
+Parseur **écrit** : `src/main/providers/tourinsoft/` — cartes `article.tsc-card` du catalogue.
+
+Open System **Produit** unitaire (1395) **non branché**.
 
 ## Captures
 
 | id | HTTP | fait |
 | --- | --- | --- |
-| fiche `refuge-cal-chalon` | 200 | `Widget.Instance("Produit", { idIntegration: 1395, ui: "OSMB-129086-1" })` |
-| `integration/1300/1395.js` | 200 | `produit.login = "les-angles"`, panier `reservation.lesangles.com` |
-| etape-rest `json-config-fournisseur` | 200 | `nbProduitsTotal: 1` |
-| etape-rest `json-planning-openpro` | 200 | 1 produit, `cmax: 12`, IdFournisseur 129086 |
-| `reservation.lesangles.com` | 200 | overlay panier vide, **0 vueinfo**, 0 Widget Recherche |
-| `tous-les-hebergements` | 200 | classe CSS `widget-os` seulement |
+| `GET /wp-json/wp/v2/types` | 200 | CPT `tsc_hebergement` rest_base identique |
+| `GET /wp-json/wp/v2/tsc_hebergement?per_page=100` | 200 | `X-WP-Total: 100`, acf vide, occupancy dans le prose seulement |
+| Playwright `/tous-les-hebergements/` | 200 | 12 × `article.tsc-card.tsc-card-design[data-id]`, compteur 100 |
+| curl HTML catalogue | 403 | CF — le fetch froid peut échouer ; Playwright dump 200 |
+| fiche `refuge-cal-chalon` OS | 200 | Widget Produit 1395, 1 produit, 0 vueId |
 
-## Contrat dumpé
+## Contrat dumpé (SERP)
 
-- `integrationId`: 1395
-- `login`: `les-angles`
-- origine panier : `https://reservation.lesangles.com`
-- zones (1395.js) : boutique 8717, sejour 8728, eliberty `zoneRech` 11538
-- **Pas de `vueinfo.js` / `vueId` de catalogue.**
+```
+article.tsc-card.tsc-card-design[data-id]
+  a.tsc-card-link → /hebergement/{slug}/
+  h3.tsc-card-title
+  span.tsc-pill  N pers.
+  span.tsc-pill  N ch.
+  span.tsc-card-price-tag  à partir de N €
+```
+
+Exemple : REFUGE CAL CHALON · 12 pers. / 4 ch. · 2 230 €.
+
+Page 1 = 12 cartes. Pagination Search Filter **non dumpée**.
 
 ## Ce qu’on n’écrit pas
 
-Brancher le connecteur Open System existant : sans `vueId` il rend `items: []`.
-Un parseur du widget Produit d’une fiche n’est pas une SERP.
+- Occupancy extraite du contenu REST (« N personnes » dans un paragraphe).
+- Connecteur Open System sans `vueId`.
+- Page 2+ inventée.

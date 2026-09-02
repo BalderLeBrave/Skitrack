@@ -17,6 +17,7 @@ import { isOpenSystemHost } from '../opensystem/hosts'
 import { isDesklineHost } from '../deskline/hosts'
 import { isLocvacancesHost } from '../locvacances/hosts'
 import { isDiffusioHost } from '../diffusio/hosts'
+import { isTourinsoftHost } from '../tourinsoft/hosts'
 import type { ReasonCode } from '@shared/reasonCodes'
 
 export type CentralFamily =
@@ -27,6 +28,7 @@ export type CentralFamily =
   | 'deskline'
   | 'locvacances'
   | 'diffusio'
+  | 'tourinsoft'
   | 'ota'
   | 'not_wired'
 
@@ -53,6 +55,7 @@ export function familyOfHost(host: string): CentralFamily {
   if (isDesklineHost(h) || isDesklineHost(`https://${h}/`)) return 'deskline'
   if (isLocvacancesHost(h) || isLocvacancesHost(`https://${h}/`)) return 'locvacances'
   if (isDiffusioHost(h) || isDiffusioHost(`https://${h}/`)) return 'diffusio'
+  if (isTourinsoftHost(h) || isTourinsoftHost(`https://${h}/`)) return 'tourinsoft'
   const gate = shouldAttemptIngenie(`https://${h}/`)
   if (gate.attempt) return 'ingenie'
   return 'not_wired'
@@ -62,7 +65,7 @@ export function familyOfHost(host: string): CentralFamily {
  * Pourquoi `station-web` a rendu zéro carte.
  *
  * `delegated` n'est pas une panne : Ceto / Ublo / Open System / Deskline /
- * LocVacances / Diffusio ont leur propre connecteur, et `station-web` s'efface.
+ * LocVacances / Diffusio / Tourinsoft ont leur propre connecteur, et `station-web` s'efface.
  * `not_wired` est le trou à combler par un discovery, pas par un parseur inventé.
  */
 export function emptyStationReason(officialUrl: string | null | undefined): ReasonCode {
@@ -76,7 +79,8 @@ export function emptyStationReason(officialUrl: string | null | undefined): Reas
     family === 'opensystem' ||
     family === 'deskline' ||
     family === 'locvacances' ||
-    family === 'diffusio'
+    family === 'diffusio' ||
+    family === 'tourinsoft'
   ) {
     return 'delegated'
   }

@@ -18,7 +18,7 @@ Preuve grep 2026-09-02, master.
 | [x] cache clé dates+guests + ttl | `availability.ts` ttl 6 h. Un total séjour daté = disponible. |
 | [x] 0 résultat → reason_code | `vrbo-web` : 429 vrbo.com documenté ; 0 Abritel → motif. Gîtes empty_inventory. |
 | [x] bandeau hidden_* honnête | Bandeaux « N masquée(s) parce qu’elles n’annoncent pas », « sans position relevée », « N écarté(s) plus bas » **retirés** de `LodgingsPage.tsx`. Le filtre reste silencieux. |
-| [x] dédup intra-centrale | `seen` sur accommodationId. Inter : fusion existante `airbnbMerge` / `dups`. |
+| [x] dédup intra-centrale | `listingKey` : code Gîtes / id Abritel / slug Booking, hors `adults` et dates. `mergeDupes` + `mergeProviderReadings` + `seen` du relevé. Une fiche = une carte. |
 | [x] book_url présent | Abritel canonique `destination:` unwrap. Gîtes fiche + adults. |
 | [x] Gîtes photos tuile | Dump `gites-discovery/search-d2a-0613.html` : 20/20 Drupal `?itok=`. `gitesTilesFromSearchHtml` + `mergeGitesCardsFromHtml` après `page.evaluate` (currentSrc lazy = URL HTML rejeté). Widget `og:image` ITEA si tuile vide. Jamais inventé. |
 | [x] accueil chambres | `SearchBar` segment Groupe : voyageurs + chambres (`state.rooms`). Pill `N pers.` si rooms=0, `N pers. · X ch.` sinon. |

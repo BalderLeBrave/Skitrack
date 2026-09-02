@@ -26,7 +26,7 @@
 
 import type { ProviderAccommodation, ProviderOutcome } from '@shared/ipc-contract'
 import type { Lodging } from './lodgings'
-import { CENTRALE_SOURCE } from './lodgings'
+import { CENTRALE_SOURCE, listingKey, listingKeyFromUrl } from './lodgings'
 import { hasConfirmedPrice, isDroppedGitesOffer, matchesDemand } from './lodgingFilter'
 import { bookingCentralOf, stationNameOf } from './stations'
 
@@ -123,8 +123,9 @@ export interface RunProviderSearchParams {
 /** Identifiant local stable, dérivé de l'URL : deux relevés du même bien se
  *  rapportent à la même vignette au lieu d'en créer une par passage. */
 function idFromUrl(url: string): number {
+  const key = listingKeyFromUrl(url) ?? url
   let h = 0
-  for (const ch of url) h = (h * 31 + ch.charCodeAt(0)) | 0
+  for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) | 0
   // Décalé hors de la plage des identifiants du catalogue et des imports Airbnb.
   return 900_000_000 + Math.abs(h % 90_000_000)
 }
@@ -251,7 +252,10 @@ export function lodgingsFromOutcome(
   }
   const out: Lodging[] = []
   for (const item of outcome.results) {
-    if (!item.url || seenUrls.has(item.url)) continue
+    if (!item.url) continue
+    const identity = listingKeyFromUrl(item.url)
+    if (identity && seenUrls.has(identity)) continue
+    if (seenUrls.has(item.url)) continue
     if (isDroppedListingSource(item.source, item.url)) continue
     if (
       isDroppedGitesOffer({
@@ -269,6 +273,10 @@ export function lodgingsFromOutcome(
     if (!lodging) continue
     if (!matchesDemand(lodging, demand)) continue
     if (!hasConfirmedPrice(lodging, stay)) continue
+    const key = listingKey(lodging)
+    if (seenUrls.has(key)) continue
+    seenUrls.add(key)
+    if (identity) seenUrls.add(identity)
     seenUrls.add(item.url)
     out.push(lodging)
   }
@@ -303,16 +311,17 @@ export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]):
   const readingsClean = readings.filter(keep)
   if (readingsClean.length === 0) return existingClean
 
-  const byUrl = new Map<string, Lodging>()
+  const byKey = new Map<string, Lodging>()
   for (const reading of readingsClean) {
-    if (reading.url) byUrl.set(reading.url, reading)
+    byKey.set(listingKey(reading), reading)
   }
 
   const used = new Set<string>()
   const merged = existingClean.map((lodging) => {
-    const reading = lodging.url ? byUrl.get(lodging.url) : undefined
+    const key = listingKey(lodging)
+    const reading = byKey.get(key)
     if (!reading) return lodging
-    used.add(lodging.url as string)
+    used.add(key)
     return {
       ...lodging,
       name: reading.name || lodging.name,
@@ -346,7 +355,7 @@ export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]):
     }
   })
 
-  const added = readingsClean.filter((r) => r.url && !used.has(r.url))
+  const added = readingsClean.filter((r) => !used.has(listingKey(r)))
   return added.length > 0 ? [...merged, ...added] : merged
 }
 

@@ -279,6 +279,75 @@ export function publishedPhotoUrl(lg: Pick<Lodging, 'image' | 'photo'>): string 
 }
 
 /**
+ * Paramètres de séjour / tracking : ils changent l'URL, pas le logement.
+ * Dump Gîtes : `?adults=8&children=0&infants=0` vs la même fiche datée.
+ * Dump Abritel : `startDate` / `adults` posés par `abritelCanonicalUrl`.
+ */
+const LISTING_URL_NOISE =
+  /^(adults?|children|child|infants?|travelers?|guests?|date-start|date-end|checkin|checkout|startDate|endDate|chkin|chkout|group_adults|group_children|no_rooms|selected_currency|lang|label|mp[abdeq]|camref|clickedRef|dest_id|sb_travel_purpose|utm_.*|aid|sid|from|to)$/i
+
+function foldListingName(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+/**
+ * Identité d'une fiche, hors dates et voyageurs.
+ *
+ * Sans ça, le même Gîte (38G253122) ou le même Abritel (p6410325a) entre
+ * deux fois : une URL avec `adults=8`, une avec les dates. La liste les
+ * montrait comme deux appartements.
+ */
+export function listingKeyFromUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  const gites = url.match(/(\d{2}g\d{3,})/i)
+  if (gites) return `gites:${gites[1].toUpperCase()}`
+  const airbnb = url.match(/airbnb\.[^/]+\/rooms\/(\d+)/i)
+  if (airbnb) return `airbnb:${airbnb[1]}`
+  const abritel = url.match(/(?:abritel\.fr|vrbo\.com)\/(?:location-vacances\/)?(p\d+[a-z]?|\d{6,})/i)
+  if (abritel) return `abritel:${abritel[1].toLowerCase()}`
+  const booking = url.match(/booking\.com\/hotel\/([^?#]+)/i)
+  if (booking) return `booking:${booking[1].replace(/\/+$/, '').toLowerCase()}`
+  try {
+    const u = new URL(url)
+    let host = u.hostname.replace(/^www\./, '').toLowerCase()
+    if (host === 'vrbo.com') host = 'abritel.fr'
+    for (const key of [...u.searchParams.keys()]) {
+      if (LISTING_URL_NOISE.test(key)) u.searchParams.delete(key)
+    }
+    const path = u.pathname.replace(/\/+$/, '') || '/'
+    const qs = u.searchParams.toString()
+    return `url:${host}${path}${qs ? `?${qs}` : ''}`
+  } catch {
+    const stripped = url.split('#')[0]?.split('?')[0]?.replace(/\/+$/, '')
+    return stripped ? `url:${stripped.toLowerCase()}` : null
+  }
+}
+
+export function listingKey(
+  lg: Pick<Lodging, 'url' | 'id' | 'name' | 'src' | 'pers' | 'ch'> & {
+    srcConnector?: string
+    lat?: number
+    lon?: number
+  }
+): string {
+  const fromUrl = listingKeyFromUrl(lg.url)
+  if (fromUrl) return fromUrl
+  const name = foldListingName(lg.name ?? '')
+  const src = foldListingName(srcOf(lg))
+  if (name.length >= 16 && src) {
+    const geo =
+      lg.lat != null && lg.lon != null ? `:${lg.lat.toFixed(4)},${lg.lon.toFixed(4)}` : ''
+    return `name:${src}:${name}:${lg.pers}:${lg.ch}${geo}`
+  }
+  return `u${lg.id}`
+}
+
+/**
  * Sources à afficher pour une liste d'offres donnée.
  *
  * `queried` est la liste des connecteurs réellement interrogés au dernier
@@ -522,11 +591,10 @@ export function belongsToDomain(
  * pour qu'on voie l'écart plutôt que de le cacher.
  */
 export function mergeDupes(list: Lodging[], enabled: boolean): Lodging[] {
-  if (!enabled) return list.map((l) => ({ ...l, dups: [] }))
   const by: Record<string, Lodging> = {}
   const out: Lodging[] = []
   for (const l of list) {
-    const k = l.dup ?? `u${l.id}`
+    const k = listingKey(l) || (enabled && l.dup ? l.dup : `u${l.id}`)
     const kept = by[k]
     if (!kept) {
       const copy: Lodging = { ...l, dups: [] }
@@ -534,11 +602,15 @@ export function mergeDupes(list: Lodging[], enabled: boolean): Lodging[] {
       out.push(copy)
       continue
     }
-    if (l.total < kept.total) {
+    if (l.total > 0 && (kept.total <= 0 || l.total < kept.total)) {
       const dups = (kept.dups ?? []).concat([{ src: kept.src, total: kept.total }])
-      Object.assign(kept, l, { dups })
+      Object.assign(kept, l, { id: kept.id, dups })
     } else {
       kept.dups = (kept.dups ?? []).concat([{ src: l.src, total: l.total }])
+      if (!publishedPhotoUrl(kept) && publishedPhotoUrl(l)) {
+        kept.image = l.image
+        kept.photo = l.photo
+      }
     }
   }
   return out

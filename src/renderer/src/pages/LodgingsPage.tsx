@@ -14,7 +14,7 @@ import { StayBar } from '@/components/StayBar'
 import { deepLinks } from '@/data/deeplinks'
 import { lodgingCoords, useLodgingGeo } from '@/data/lodgingGeo'
 import type { Lodging } from '@/data/lodgings'
-import { belongsToDomain } from '@/data/lodgings'
+import { belongsToDomain, listingKey } from '@/data/lodgings'
 import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
 import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearch'
 import { centralCapabilityOf } from '@/data/centralCapability'
@@ -257,7 +257,7 @@ export function LodgingsPage(): JSX.Element {
       existing: state.imported
     }
     const baseImported = state.imported
-    const seen = new Set(baseImported.map((l) => l.url).filter(Boolean) as string[])
+    const seen = new Set(baseImported.map((l) => listingKey(l)))
     const progressive: Lodging[] = []
     const progressiveOutcomes: ReturnType<typeof outcomeSummary>[] = []
 

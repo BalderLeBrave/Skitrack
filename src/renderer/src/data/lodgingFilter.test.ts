@@ -22,7 +22,7 @@ import {
   isCombinableHotel,
   type LodgingFilterCriteria
 } from './lodgingFilter'
-import { medianTotal, keptLodgingId } from './lodgings'
+import { medianTotal, keptLodgingId, listingKey, listingKeyFromUrl, mergeDupes } from './lodgings'
 import { mergeProviderReadings, noteOnFive } from './runProviderSearch'
 import type { Lodging } from './lodgings'
 
@@ -713,6 +713,52 @@ check('mapping hors liste → null', keptLodgingId({ 1042: 99 }, 1042, [{ id: 1 
 check('mapping d’un autre domaine → null', keptLodgingId({ 7: 1 }, 1042, [{ id: 1 }]) === null)
 check('retenu présent → id', keptLodgingId({ 1042: 1 }, 1042, [{ id: 1 }]) === 1)
 check('id non numérique → null', keptLodgingId({ 1042: Number.NaN }, 1042, [{ id: 1 }]) === null)
+
+console.log('\n13. Doublons — même logement, URL de séjour différente')
+const gitesBare =
+  'https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122'
+const gitesAdults = `${gitesBare}?adults=8&children=0&infants=0`
+const gitesDated = `${gitesBare}?adults=8&date-start=2027-02-06&date-end=2027-02-13`
+check(
+  'Gîtes : adults / dates / fiche = même clé',
+  listingKeyFromUrl(gitesBare) === 'gites:38G253122' &&
+    listingKeyFromUrl(gitesAdults) === 'gites:38G253122' &&
+    listingKeyFromUrl(gitesDated) === 'gites:38G253122'
+)
+check(
+  'Abritel : startDate ne change pas p6410325a',
+  listingKeyFromUrl('https://www.abritel.fr/location-vacances/p6410325a?startDate=2027-02-13&adults=8') ===
+    listingKeyFromUrl('https://www.abritel.fr/location-vacances/p6410325a') &&
+    listingKeyFromUrl('https://www.vrbo.com/location-vacances/p6410325a') === 'abritel:p6410325a'
+)
+check(
+  'Booking : query affiliate ignorée',
+  listingKeyFromUrl('https://www.booking.com/hotel/fr/foo.html?aid=1&checkin=2027-02-06') ===
+    listingKeyFromUrl('https://www.booking.com/hotel/fr/foo.html')
+)
+const a = lodging({
+  id: 11,
+  name: 'Chalet les Copains',
+  url: gitesAdults,
+  src: 'Gîtes de France',
+  pers: 14,
+  ch: 5,
+  total: 4261.52
+})
+const b = lodging({
+  id: 12,
+  name: 'Chalet les Copains',
+  url: gitesDated,
+  src: 'Gîtes de France',
+  pers: 14,
+  ch: 5,
+  total: 4261.52
+})
+const fused = mergeDupes([a, b], true)
+check('mergeDupes : une seule carte Gîtes', fused.length === 1, fused.length)
+check('listingKey identique', listingKey(a) === listingKey(b))
+const fusedReadings = mergeProviderReadings([a], [b])
+check('relevé daté met à jour, ne duplique pas', fusedReadings.length === 1, fusedReadings.length)
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

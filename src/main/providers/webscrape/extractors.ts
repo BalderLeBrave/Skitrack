@@ -383,7 +383,9 @@ export function extractGitesCards(): RawCard[] {
     }
   })
 
-  document.querySelectorAll('.js-search-tile, .g2f-accommodationTile').forEach((node) => {
+  const tiles = document.querySelectorAll('.js-search-tile')
+  const nodes = tiles.length > 0 ? tiles : document.querySelectorAll('.g2f-accommodationTile')
+  nodes.forEach((node) => {
     const link =
       (node.querySelector('a.g2f-accommodationTile-link') as HTMLAnchorElement | null) ||
       (node.querySelector('a.g2f-accommodationTile-image') as HTMLAnchorElement | null) ||

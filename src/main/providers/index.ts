@@ -6,7 +6,7 @@
  *     booking            Demand API v3          clés requises, repli scraper web
  *     booking-web        relevé Playwright      pagination, 125 biens au plus
  *     gites-web          relevé Playwright      Gîtes de France
- *     vrbo-web           relevé Playwright      Abritel / VRBO (via getResultList)
+ *     vrbo-web           relevé Playwright      Abritel (via getResultList)
  *     station            centrale de la station lue avec Playwright, voir station/
  *     ceto-* / ublo / opensystem                 prestataires de centrales
  *     airbnb             aucune API             relevé à part, voir airbnb/scrape.ts
@@ -16,8 +16,8 @@
  *
  * CozyCozy n'est plus une source : agrégateur Airbnb / Booking / Gîtes, doublon.
  * Tourinsoft n'est plus une source : tarif « à partir de », pas un séjour daté.
- * VRBO / Abritel se lit encore via getResultList (vrbo.com = 429), mais les
- * cartes sortent étiquetées VRBO, jamais CozyCozy.
+ * Abritel se lit encore via getResultList (abritel.fr = 429), mais les
+ * cartes sortent étiquetées Abritel, jamais CozyCozy.
  *
  * L'ordre d'enregistrement n'a aucune importance : les sources sont interrogées
  * en parallèle et le tri se fait sur le prix, pas sur la provenance.

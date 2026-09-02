@@ -838,11 +838,12 @@ function purgeLegacyPrefs(): void {
  * numérotation qui n'est pas celle du catalogue sont rerattachées par leur
  * position. Voir `rerattacherParPosition`.
  *
- * Schéma 9 (2026-09-02) : uniquement des logements disponibles, au plancher
- * (capacité + chambres publiées), avec un prix de séjour formel. CozyCozy et
- * Tourinsoft ne sont plus des sources.
+ * Schéma 10 (2026-09-02) : `selLodgings` vidé. Un mapping domaine→annonce
+ * d'une session précédente présentait un hôtel (souvent le moins cher du
+ * nouveau relevé, collision d'id) comme « Logement retenu » alors que
+ * personne n'avait cliqué Retenir sur ce relevé.
  */
-const PREFS_SCHEMA = 9
+const PREFS_SCHEMA = 10
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -988,6 +989,9 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
     out.lodgConfirmedPrices = true
     out.lodgHideUnannounced = true
   }
+
+  // Schéma 10 — ne plus afficher un hôtel comme retenu sans geste explicite.
+  if ((saved.prefsSchema ?? 0) < 10) out.selLodgings = {}
 
   // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
   const rattache = rerattacherParPosition(out.imported)

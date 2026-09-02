@@ -78,10 +78,7 @@ export const PROVIDERS: ProviderConfig[] = [
   },
   {
     id: 'vrbo',
-    // Dérivé comme tous les autres. Le libellé était écrit en dur ici — la
-    // seule entrée de la table à contredire son propre en-tête — parce
-    // qu'aucun connecteur VRBO n'existait et que `sourceLabelOf` n'avait donc
-    // rien à rendre. `vrbo-web` existe désormais.
+    // Abritel = même plateforme. Le connecteur reste `vrbo-web`.
     label: sourceLabelOf('vrbo-web'),
     kind: 'scraping',
     connectors: ['vrbo-web']

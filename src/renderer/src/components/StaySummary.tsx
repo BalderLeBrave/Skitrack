@@ -12,7 +12,7 @@
  */
 import { useEffect, useState } from 'react'
 import { CloseIcon } from './Icons'
-import { srcOf } from '@/data/lodgings'
+import { srcOf, keptLodgingId } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
@@ -38,11 +38,9 @@ export function StaySummary(): JSX.Element | null {
   const domain = derived.lodgDomain
   if (!domain) return null
 
-  const keptId = state.selLodgings[domain.id]
+  const keptId = keptLodgingId(state.selLodgings, domain.id, derived.lodgAll)
   const lodging =
-    (keptId != null ? derived.lodgAll.find((lg) => lg.id === keptId) : null) ??
-    derived.lodgAll.filter((lg) => lg.total > 0).sort((a, b) => a.total - b.total)[0] ??
-    null
+    keptId != null ? derived.lodgAll.find((lg) => lg.id === keptId) ?? null : null
 
   const cost = lodging ? derived.sejourCost(lodging, domain) : null
   const heads = cost ? Math.max(1, cost.adults + cost.kids) : 1

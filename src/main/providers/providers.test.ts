@@ -567,10 +567,11 @@ async function main(): Promise<void> {
 
   // Problème 1b : VRBO n'avait aucune URL de recherche.
   const vrbo = vrboSearchUrl(stay, 50)
-  check('VRBO : destination transmise', vrbo.includes('destination=Les+2+Alpes'), vrbo)
-  check('VRBO : dates transmises', vrbo.includes('startDate=2027-02-06'), vrbo)
-  check('VRBO : rang de départ', vrbo.includes('startIndex=50'), vrbo)
-  check('VRBO : première page sans rang', !vrboSearchUrl(stay).includes('startIndex'))
+  check('Abritel : destination transmise', vrbo.includes('destination=Les+2+Alpes'), vrbo)
+  check('Abritel : dates transmises', vrbo.includes('startDate=2027-02-06'), vrbo)
+  check('Abritel : rang de départ', vrbo.includes('startIndex=50'), vrbo)
+  check('Abritel : fiche sur abritel.fr', vrbo.includes('abritel.fr'), vrbo)
+  check('Abritel : première page sans rang', !vrboSearchUrl(stay).includes('startIndex'))
 
   // Problème 4 : la capacité, que le mapping perdait.
   const avecCapacite = normalizeBooking(
@@ -854,7 +855,7 @@ async function main(): Promise<void> {
     looksWeeklyFromPriceText('1 200 €') === false
   )
 
-  heading('19. VRBO / Abritel — getResultList CozyCozy, pas la SERP 429')
+  heading('19. Abritel — getResultList CozyCozy, pas la SERP 429')
   const cozyVrbo = parseCozyResultPayload({
     entries: [
       {
@@ -885,12 +886,24 @@ async function main(): Promise<void> {
   check('total séjour 3363,28 € (pas la nuit)', cozyVrbo[0]?.stay === 3363.28, cozyVrbo[0]?.stay)
   check('8 pers / 4 chb libellés', cozyVrbo[0]?.guests === 8 && cozyVrbo[0]?.bedrooms === 4)
   check('photo media.vrbo.com', Boolean(cozyVrbo[0]?.photo?.includes('media.vrbo.com')))
-  check('famille VRBO', isVrboFamilyProvider('abritel', 'abritel.fr', cozyVrbo[0]?.deeplink) === true)
+  check('famille Abritel', isVrboFamilyProvider('abritel', 'abritel.fr', cozyVrbo[0]?.deeplink) === true)
   check(
     'deeplink canonique Abritel sans mpd',
     abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '').startsWith(
       'https://www.abritel.fr/location-vacances/p6410325a'
     ) && !abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '').includes('mpd=')
+  )
+  const datedFiche = abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '', {
+    checkIn: '2027-02-13',
+    checkOut: '2027-02-20',
+    adults: 8
+  })
+  check(
+    'fiche Abritel datée (startDate + adults)',
+    datedFiche.includes('startDate=2027-02-13') &&
+      datedFiche.includes('endDate=2027-02-20') &&
+      datedFiche.includes('adults=8') &&
+      !datedFiche.includes('mpd=')
   )
   check(
     'indicatif sauté',

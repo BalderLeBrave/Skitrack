@@ -57,6 +57,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
     depDate: state.depDate,
     travelers: state.travelers,
     rooms: state.rooms,
+    children: state.children,
     officialUrl: domain.booking ?? domain.website
   }
   const searchUrl = searchUrlFor(srcOf(lg), criteria)

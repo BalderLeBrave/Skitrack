@@ -1,18 +1,13 @@
 /**
  * Bandeau de séjour — le pied fixe de l'écran Logements.
  *
- * L'étape 2 du parcours se terminait sans rien dire : on retenait un logement,
- * et il fallait retrouver seul le chemin de la comparaison. Ce bandeau tient
- * le fil — la station, le logement retenu, le total du séjour — et porte les
- * deux seuls gestes qui closent l'étape : partager le récapitulatif, ou aller
- * trancher.
- *
- * Il ne calcule rien de neuf : `sejourCost` est le même appel que les écrans
- * Offres et Décision, pour que le total ne diverge pas d'un écran à l'autre.
- * Sans logement retenu, il annonce le moins cher **et le dit**, plutôt que de
- * laisser croire à un choix déjà fait.
+ * Uniquement quand un logement a été **retenu** (bouton « Retenir »). Sans
+ * ça, afficher un hôtel — même le moins cher, même en le disant — faisait
+ * croire à un choix déjà fait. Le coût du moins cher reste dans l'en-tête,
+ * légendé « sur le logement le moins cher ».
  */
 import type { Domain } from '@/data/referentiel'
+import { keptLodgingId } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
@@ -24,10 +19,8 @@ export function StayBar({ domain }: { domain: Domain }): JSX.Element | null {
   const { eur } = useFormat()
   const { t } = useI18n()
 
-  const keptId = state.selLodgings[domain.id]
-  const kept = keptId != null ? derived.lodgAll.find((lg) => lg.id === keptId) ?? null : null
-  const cheapest = derived.lodgAll.filter((lg) => lg.total > 0).sort((a, b) => a.total - b.total)[0] ?? null
-  const lodging = kept ?? cheapest
+  const keptId = keptLodgingId(state.selLodgings, domain.id, derived.lodgAll)
+  const lodging = keptId != null ? derived.lodgAll.find((lg) => lg.id === keptId) ?? null : null
   if (!lodging) return null
 
   // Fiche ouverte : le bandeau s'efface. Il est à z-index 8, la fiche à 6 —
@@ -43,7 +36,7 @@ export function StayBar({ domain }: { domain: Domain }): JSX.Element | null {
   if (state.stayBarCollapsed) {
     return (
       <div className="staybar staybar--mini" data-testid="stay-bar">
-        <span className="staybar__eyebrow">{kept ? t('stay_kept') : t('stay_cheapest')}</span>
+        <span className="staybar__eyebrow">{t('stay_kept')}</span>
         <strong className="u-num crn-calcul" data-testid="stay-bar-total">
           {eur(cost.total)}
         </strong>
@@ -63,7 +56,7 @@ export function StayBar({ domain }: { domain: Domain }): JSX.Element | null {
   return (
     <div className="staybar" data-testid="stay-bar">
       <div className="staybar__who">
-        <span className="staybar__eyebrow">{kept ? t('stay_kept') : t('stay_cheapest')}</span>
+        <span className="staybar__eyebrow">{t('stay_kept')}</span>
         <span className="staybar__name" title={lodging.name} data-testid="stay-bar-lodging">
           {lodging.name}
         </span>

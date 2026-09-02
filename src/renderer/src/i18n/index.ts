@@ -1623,8 +1623,8 @@ const CATALOG = {
   lodg_picked_clear: ['retirer la mise en avant', 'remove the highlight'],
   lodg_source_toggle: ['Afficher / masquer cette source', 'Show / hide this source'],
   lodg_sources_note: [
-    'Une bulle pleine est une source affichée. Cliquez-la pour masquer ses offres ; le décompte reste visible.',
-    'A filled bubble is a source being shown. Click it to hide its offers; the count stays visible.'
+    'Le chiffre est le nombre d’offres affichées, pas le total ramassé par la source. Une bulle pleine est une source visible ; cliquez-la pour la masquer.',
+    'The number is how many stays are on screen, not how many the source scraped. A filled bubble is shown; click it to hide that source.'
   ],
   lodg_prefilled_search: ['Recherche pré-remplie sur le site', 'Pre-filled search on the site'],
   lodg_official_site: ['Site officiel de la station', 'Resort’s official site'],

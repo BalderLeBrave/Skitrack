@@ -1,6 +1,6 @@
 /**
  * Politique produit : CozyCozy est interdit (agrégateur Airbnb / Booking / Gîtes).
- * Airbnb, Booking, VRBO / Abritel et Gîtes de France restent lisibles.
+ * Airbnb, Booking, Abritel et Gîtes de France restent lisibles.
  *
  * Les solveurs captcha (sidecar `CaptchaSolver` / 2captcha) et l'évasion WAF
  * (Playwright stealth, proxies, empreinte Chrome) restent en place. Ce fichier

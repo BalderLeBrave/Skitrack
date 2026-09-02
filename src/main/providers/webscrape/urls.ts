@@ -63,19 +63,13 @@ export function expediaSearchUrl(params: SearchParams, offset = 0): string {
 }
 
 /**
- * Recherche VRBO.
+ * Recherche Abritel (marque FR, même plateforme).
  *
- * VRBO appartient au groupe Expedia et partage sa mécanique d'URL : une
- * destination en clair, des dates, un nombre d'adultes, et un rang de départ
- * pour la pagination. Le connecteur n'existait pas — `data/providers.ts`
- * portait une entrée « VRBO » sans aucun connecteur derrière.
- *
- * `bedrooms` n'est **pas** transmis : comme chez Booking et Expedia, le
- * paramètre de chambres du site compte des unités à réserver, pas les chambres
- * du bien. Le critère reste appliqué en aval.
+ * abritel.fr SERP = 429 ; le connecteur lit getResultList. Cette URL reste
+ * le lien public daté (destination, dates, adultes) pour ouvrir le site.
  */
 export function vrboSearchUrl(params: SearchParams, offset = 0): string {
-  const u = new URL('https://www.vrbo.com/search')
+  const u = new URL('https://www.abritel.fr/search')
   u.searchParams.set('destination', params.destination)
   if (params.checkIn) u.searchParams.set('startDate', params.checkIn)
   if (params.checkOut) u.searchParams.set('endDate', params.checkOut)

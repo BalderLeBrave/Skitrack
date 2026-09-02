@@ -225,11 +225,14 @@ export function LodgingsPage(): JSX.Element {
     if (!d || !criteriaReady || running.current) return
     running.current = true
     setSearchError(null)
+    const nextKept = { ...state.selLodgings }
+    delete nextKept[d.id]
     patch({
       lodgPhase: 'searching',
       lodgSearchMsg: 'Recherche des logements…',
       lodgEmpty: [],
-      lodgFailed: []
+      lodgFailed: [],
+      selLodgings: nextKept
     })
 
     // Accumulateur local : les outcomes arrivent hors de React, on fusionne
@@ -449,6 +452,7 @@ export function LodgingsPage(): JSX.Element {
     state.travelers,
     state.children,
     state.imported,
+    state.selLodgings,
     derived.nights,
     patch
   ])

@@ -2,7 +2,6 @@ import { RangeFilter } from './RangeFilter'
 import { StayDatesField } from './StayDatesField'
 import { CountStepper } from '@/components/CountStepper'
 import { PARTY_LIMITS } from '@/data/partyLimits'
-import { hasConfirmedPrice } from '@/data/lodgingFilter'
 import { useActiveLodgingFilters } from './activeLodgingFilters'
 import { lodgingSources, LODG_TYPES, srcOf } from '@/data/lodgings'
 import { ProviderBadge } from '@/components/ProviderBadge'
@@ -30,21 +29,19 @@ export function LodgingFilters(): JSX.Element {
   const sources = lodgingSources(lodgAll, state.lodgQueried)
 
   /**
-   * Compte affiché sur la puce d'une source : ce que cocher cette source peut
-   * réellement faire apparaître.
+   * Compte affiché sur la puce d'une source : ce que la mosaïque montre
+   * vraiment pour cette source, pas ce que le relevé a ramassé.
    *
-   * Compté sur `lodgAll`, il annonçait « Airbnb 61 » alors que la liste ne
-   * pouvait en montrer aucune — les annonces écartées faute de prix vérifié
-   * étaient comptées comme si elles allaient s'afficher. Un compte qui promet
-   * ce que le filtre ne peut pas tenir est pire qu'une absence de compte.
+   * Compté sur `lodgAll` + prix confirmé, il annonçait « Airbnb 243 » alors
+   * que le plancher (voyageurs, chambres, dispo) n'en laissait passer qu'une
+   * poignée — et la mosaïque, toutes sources confondues, n'affichait que 39.
+   * Un compte qui promet plus que la liste est un mensonge.
    *
-   * Le décompte ignore volontairement l'état des autres sources : sinon les
-   * nombres changeraient à chaque case cochée, et on ne saurait plus ce qu'on
-   * lit.
+   * `lodgList` est déjà passé par les mêmes filtres que les vignettes. Une
+   * source décochée y vaut 0 : elle n'apparaît plus.
    */
-  const stay = { checkIn: state.arrDate, checkOut: state.depDate }
   const countBySource = (key: string): number =>
-    lodgAll.filter((l) => srcOf(l) === key && hasConfirmedPrice(l, stay)).length
+    lodgList.filter((l) => srcOf(l) === key).length
 
   /**
    * Ce que les filtres écartent se lit désormais ici et nulle part ailleurs :

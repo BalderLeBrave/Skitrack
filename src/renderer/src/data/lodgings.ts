@@ -352,7 +352,24 @@ export const STALE_MIN = 2880
 export function srcOf(lodging: Pick<Lodging, 'src'>): string {
   if (lodging.src.indexOf('Import') === 0) return MANUAL_SOURCE
   if (LEGACY_CENTRALE_SOURCES.has(lodging.src)) return CENTRALE_SOURCE
+  if (lodging.src === 'VRBO' || lodging.src === 'vrbo' || lodging.src === 'vrbo-web') return 'Abritel'
   return lodging.src
+}
+
+/**
+ * Logement vraiment retenu pour ce domaine : un identifiant posé par
+ * « Retenir », encore présent dans la liste. Pas le moins cher, pas un
+ * reliquat d'une session précédente dont l'annonce a disparu.
+ */
+export function keptLodgingId(
+  selLodgings: Record<number, number> | undefined,
+  domainId: number,
+  list: readonly { id: number }[]
+): number | null {
+  if (!selLodgings) return null
+  const id = selLodgings[domainId]
+  if (typeof id !== 'number' || !Number.isFinite(id) || id <= 0) return null
+  return list.some((lg) => lg.id === id) ? id : null
 }
 
 /**

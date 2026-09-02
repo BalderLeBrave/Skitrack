@@ -49,6 +49,7 @@ import {
   parseGitesWidgetContext
 } from './gitesFichePrice'
 import {
+  abritelCanonicalUrl,
   cozyHitsToRawCards,
   isVrboFamilyProvider,
   parseCozyResultPayloads
@@ -637,8 +638,8 @@ async function enrichGitesStayTotals(
 }
 
 /**
- * Abritel / VRBO : vrbo.com = 429. Inventaire lu via getResultList
- * (providerCode=abritel uniquement). CozyCozy n'émet aucune carte propre.
+ * Abritel : abritel.fr SERP = 429. Inventaire lu via getResultList
+ * (providerCode=abritel). CozyCozy n'émet aucune carte propre.
  */
 export function createVrboWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
   const name = 'vrbo-web'
@@ -675,14 +676,22 @@ export function createVrboWebProvider(opts?: ScrapeAttemptOptions): Accommodatio
               blocked = (await looksBlocked(page))
                 ? new Error(`${name}: relevé refusé par la source (captcha ou blocage anti-robot)`)
                 : new Error(
-                    `${name}: Abritel/VRBO absent du relevé CozyCozy — vrbo.com reste en 429`
+                    `${name}: Abritel absent du relevé CozyCozy — abritel.fr reste en 429`
                   )
             }
             return collected
           },
           attempt > 1
         )
-        const list = mapCards(name, cards, params)
+        const list = mapCards(name, cards, params).map((a) => ({
+          ...a,
+          url: abritelCanonicalUrl(a.url, {
+            checkIn: params.checkIn,
+            checkOut: params.checkOut,
+            adults: params.adults,
+            children: params.children
+          })
+        }))
         if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
         return list
       })
@@ -691,7 +700,7 @@ export function createVrboWebProvider(opts?: ScrapeAttemptOptions): Accommodatio
       return {
         name,
         reachable: true,
-        detail: 'Abritel/VRBO via CozyCozy getResultList (vrbo.com 429)'
+        detail: 'Abritel via CozyCozy getResultList (abritel.fr 429)'
       }
     }
   }

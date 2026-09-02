@@ -1,7 +1,7 @@
 /**
  * Scrapers web multi-sources (repli hors API).
  *
- * Sources : Booking, Expedia, Gîtes de France, VRBO.
+ * Sources : Booking, Expedia, Gîtes de France, Abritel.
  * CozyCozy n'est pas une source (doublon). Tourinsoft non plus.
  * Airbnb reste dans providers/airbnb (pipeline dédié marque-page / deferred-state).
  */

@@ -22,6 +22,8 @@ export interface StayCriteria {
   depDate: string
   travelers: number
   rooms: number
+  /** Enfants, si la source les distingue des adultes. */
+  children?: number
   /**
    * Site officiel connu du moteur local, pour les domaines absents de la table
    * vérifiée de `data/stations.ts`. Facultatif : les appelants qui n'ont pas de
@@ -115,11 +117,22 @@ const BUILDERS: Record<string, Builder> = {
     u.searchParams.set('adults', String(c.travelers))
     u.searchParams.set('rooms', String(Math.max(1, c.rooms)))
     return u.toString()
+  },
+  Abritel: (c) => {
+    const u = new URL('https://www.abritel.fr/search')
+    const kids = c.children ?? 0
+    const adults = Math.max(1, c.travelers - kids)
+    u.searchParams.set('destination', destination(c))
+    u.searchParams.set('startDate', c.arrDate)
+    u.searchParams.set('endDate', c.depDate)
+    u.searchParams.set('adults', String(adults))
+    if (kids > 0) u.searchParams.set('children', String(kids))
+    return u.toString()
   }
 }
 
 /** Sources proposées dans le panneau de filtres. */
-export const DEEPLINK_SOURCES = ['Airbnb', 'Gîtes de France', 'Booking.com', 'Expedia']
+export const DEEPLINK_SOURCES = ['Airbnb', 'Gîtes de France', 'Booking.com', 'Abritel']
 
 /** Libellé du lien vers la centrale de réservation de la station. */
 export const OFFICIAL_SOURCE = 'Site officiel de la station'
@@ -204,6 +217,18 @@ const STAY_PARAMS: Record<string, (c: StayCriteria) => Record<string, string>> =
     endDate: c.depDate,
     adults: String(c.travelers)
   }),
+  Abritel: (c) => {
+    const kids = c.children ?? 0
+    const adults = Math.max(1, c.travelers - kids)
+    return {
+      startDate: c.arrDate,
+      endDate: c.depDate,
+      chkin: c.arrDate,
+      chkout: c.depDate,
+      adults: String(adults),
+      children: String(kids)
+    }
+  },
   Airbnb: (c) => ({
     check_in: c.arrDate,
     check_out: c.depDate,
@@ -272,6 +297,8 @@ const CONNECTOR_STAY_KEY: Record<string, string> = {
   booking: 'Booking.com',
   'booking-web': 'Booking.com',
   airbnb: 'Airbnb',
+  'vrbo-web': 'Abritel',
+  vrbo: 'Abritel',
   'station-web': OFFICIAL_SOURCE,
   'ceto-chamonix': ORCHESTRA_STAY_KEY
 }
@@ -335,7 +362,14 @@ export function listingUrlWithStay(url: string, source: string, criteria: StayCr
   try {
     const u = new URL(url)
     const host = u.hostname.toLowerCase()
-    if (isSelfDatedHost(host)) return url
+    const hostBare = host.replace(/^www\./, '')
+    if (isSelfDatedHost(host) || isSelfDatedHost(hostBare)) return url
+
+    const abritelHost = hostBare === 'abritel.fr' || hostBare === 'vrbo.com'
+    if (abritelHost) {
+      u.hostname = 'www.abritel.fr'
+      u.protocol = 'https:'
+    }
 
     // Orchestra / Ceto : dates dans le hash (#s_checkinDate=…).
     const orchestra =
@@ -348,27 +382,32 @@ export function listingUrlWithStay(url: string, source: string, criteria: StayCr
 
     const build =
       STAY_PARAMS[key] ||
+      (abritelHost ? STAY_PARAMS.Abritel : null) ||
       (orchestra ? STAY_PARAMS[ORCHESTRA_STAY_KEY] : null) ||
       // Centrales Ingénie / réservation.* sans label exact → params site officiel
       (/^reservation\./i.test(host) || /location.*\.com$/i.test(host)
         ? STAY_PARAMS[OFFICIAL_SOURCE]
         : null)
 
-    if (!build) return url
+    if (!build) return u.toString()
     const params = build(criteria)
 
     if (orchestra) {
       const hash = new URLSearchParams(u.hash.startsWith('#') ? u.hash.slice(1) : u.hash)
-      for (const [key, value] of Object.entries(params)) {
-        if (value && !hash.has(key)) hash.set(key, value)
+      for (const [paramKey, value] of Object.entries(params)) {
+        if (value && !hash.has(paramKey)) hash.set(paramKey, value)
       }
       if (!hash.has('s_channel') && host.includes('chamonix')) hash.set('s_channel', 'CMB')
       u.hash = hash.toString()
       return u.toString()
     }
 
-    for (const [key, value] of Object.entries(params)) {
-      if (value && !u.searchParams.has(key)) u.searchParams.set(key, value)
+    // Abritel : toujours les dates et le groupe courants (pas un calendrier
+    // figé d'un relevé précédent). Dump : startDate + endDate + adults.
+    const overwrite = abritelHost || key === 'Abritel'
+    for (const [paramKey, value] of Object.entries(params)) {
+      if (!value) continue
+      if (overwrite || !u.searchParams.has(paramKey)) u.searchParams.set(paramKey, value)
     }
     return u.toString()
   } catch {

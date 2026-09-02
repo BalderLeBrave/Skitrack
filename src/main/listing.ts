@@ -3,7 +3,7 @@
  *
  * Politique produit (barrières Claude retirées, 2026-09-01) :
  *
- * - Airbnb, Booking, VRBO / Abritel, Gîtes de France : lisibles.
+ * - Airbnb, Booking, Abritel, Gîtes de France : lisibles.
  *   CozyCozy est interdit (doublon Airbnb / Booking / Gîtes).
  * - `robots.txt` n'est pas un veto interne (`robots.ts` est permissif).
  * - User-Agent Chrome desktop, pas un identifiant d'application.

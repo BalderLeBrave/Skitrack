@@ -22,7 +22,7 @@ import {
   isCombinableHotel,
   type LodgingFilterCriteria
 } from './lodgingFilter'
-import { medianTotal } from './lodgings'
+import { medianTotal, keptLodgingId } from './lodgings'
 import { mergeProviderReadings, noteOnFive } from './runProviderSearch'
 import type { Lodging } from './lodgings'
 
@@ -706,6 +706,13 @@ check(
   'partyVerdict appart 8p/3ch trop-petit',
   partyVerdict(annonce({ pers: 8, ch: 3, type: 'Appartement' }), PARTY) === 'trop-petit'
 )
+
+console.log('\n12 quater. Logement retenu — seulement un geste explicite encore dans la liste')
+check('rien de retenu → null', keptLodgingId({}, 1042, [{ id: 1 }]) === null)
+check('mapping hors liste → null', keptLodgingId({ 1042: 99 }, 1042, [{ id: 1 }]) === null)
+check('mapping d’un autre domaine → null', keptLodgingId({ 7: 1 }, 1042, [{ id: 1 }]) === null)
+check('retenu présent → id', keptLodgingId({ 1042: 1 }, 1042, [{ id: 1 }]) === 1)
+check('id non numérique → null', keptLodgingId({ 1042: Number.NaN }, 1042, [{ id: 1 }]) === null)
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

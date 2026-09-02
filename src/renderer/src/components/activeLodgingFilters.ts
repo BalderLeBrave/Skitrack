@@ -13,10 +13,9 @@
  */
 
 import { useI18n } from '@/i18n'
-import { srcOf } from '@/data/lodgings'
 import type { AppState } from '@/state/appState'
 import { FILTER_RANGES, LODG_FILTER_RESET, useApp } from '@/state/appState'
-import { rangeOpen, useDerived } from '@/state/selectors'
+import { rangeOpen } from '@/state/selectors'
 import { useFormat } from '@/hooks/useFormat'
 
 export interface ActiveLodgingFilter {
@@ -30,7 +29,6 @@ export function useActiveLodgingFilters(): {
   resetAll: () => void
 } {
   const { state, patch } = useApp()
-  const { lodgAll } = useDerived()
   const { eur, fmt } = useFormat()
   const { t } = useI18n()
 
@@ -66,8 +64,7 @@ export function useActiveLodgingFilters(): {
   // Une source décochée est le filtre le plus discret et le plus radical :
   // elle retire d'un coup tout ce qu'un relevé a rapporté.
   for (const source of state.lodgSrcOff) {
-    const count = lodgAll.filter((l) => srcOf(l) === source).length
-    add(`src:${source}`, `${source} ${t('lodg_src_hidden')} (${count})`, {
+    add(`src:${source}`, `${source} ${t('lodg_src_hidden')}`, {
       lodgSrcOff: state.lodgSrcOff.filter((x) => x !== source)
     })
   }

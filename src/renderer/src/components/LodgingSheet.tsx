@@ -66,7 +66,8 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
     arrDate: state.arrDate,
     depDate: state.depDate,
     travelers: state.travelers,
-    rooms: state.rooms
+    rooms: state.rooms,
+    children: state.children
   }
   const searchUrl = searchUrlFor(srcOf(lodging), criteria)
   // L'annonce s'ouvre aux dates et au groupe déjà saisis : les extracteurs

@@ -1,9 +1,12 @@
 /**
- * Cartes Abritel / VRBO lues dans GET /api/getResultList.
+ * Cartes Abritel lues dans GET /api/getResultList.
  *
  * CozyCozy n'est PAS une source : agrégateur Airbnb + Booking + Gîtes, doublon.
  * On n'en retient que providerCode abritel / vrbo / homeaway (vrbo.com = 429).
  * Occupancy, total séjour non indicatif, GPS, photo, dates — dump 2026-09-02.
+ *
+ * Abritel est la marque FR (même plateforme). Les fiches s'ouvrent sur
+ * abritel.fr avec startDate / endDate / adults — dump deeplink CozyCozy.
  */
 
 export type CozyResultHit = {
@@ -25,20 +28,55 @@ export type CozyResultHit = {
   toDate?: string
 }
 
+export type AbritelStay = {
+  checkIn?: string | null
+  checkOut?: string | null
+  adults?: number | null
+  children?: number | null
+}
+
 export function isVrboFamilyProvider(code?: string, name?: string, url?: string): boolean {
   const s = `${code ?? ''} ${name ?? ''} ${url ?? ''}`.toLowerCase()
   return /\b(abritel|vrbo|homeaway)\b/.test(s)
 }
 
-/** Deeplink affilié CozyCozy → URL Abritel/VRBO datée, sans tracking mpd/mpe. */
-export function abritelCanonicalUrl(deeplink: string): string {
+const ABRITEL_TRACKING = ['mpd', 'mpe', 'mpb', 'mpa', 'mpq', 'label', 'camref', 'clickedRef']
+
+/**
+ * Deeplink affilié → fiche Abritel.
+ * Dump : `startDate` + `endDate` + `adults` (ex. p6410325a, 13–20/02, 8 pers.).
+ * Tracking `mpd`/`mpe` retiré. vrbo.com réécrit en abritel.fr.
+ */
+export function abritelCanonicalUrl(deeplink: string, stay?: AbritelStay): string {
   const m = deeplink.match(
     /destination:(https:\/\/(?:www\.)?(?:abritel\.fr|vrbo\.com)[^&\s]+)/i
   )
   const raw = m ? decodeURIComponent(m[1]) : deeplink
   try {
     const u = new URL(raw)
-    for (const key of ['mpd', 'mpe', 'mpb', 'mpa', 'mpq', 'label']) u.searchParams.delete(key)
+    const host = u.hostname.replace(/^www\./, '').toLowerCase()
+    if (host === 'vrbo.com' || host === 'abritel.fr') {
+      u.hostname = 'www.abritel.fr'
+      u.protocol = 'https:'
+    }
+    for (const key of ABRITEL_TRACKING) u.searchParams.delete(key)
+    if (stay) {
+      if (stay.checkIn) {
+        u.searchParams.set('startDate', stay.checkIn)
+        u.searchParams.set('chkin', stay.checkIn)
+      }
+      if (stay.checkOut) {
+        u.searchParams.set('endDate', stay.checkOut)
+        u.searchParams.set('chkout', stay.checkOut)
+      }
+      if (stay.adults != null && stay.adults > 0) {
+        u.searchParams.set('adults', String(stay.adults))
+      }
+      const children = stay.children != null && stay.children > 0 ? stay.children : 0
+      if (stay.adults != null && stay.adults > 0) {
+        u.searchParams.set('children', String(children))
+      }
+    }
     return u.toString()
   } catch {
     return raw
@@ -171,11 +209,16 @@ export function parseCozyResultPayloads(payloads: unknown[]): CozyResultHit[] {
 /** Vers le modèle carte du relevé web. Prix = total séjour daté. */
 export function cozyHitsToRawCards(hits: CozyResultHit[]): import('./extractors').RawCard[] {
   return hits.map((h) => {
-    const vrbo = isVrboFamilyProvider(h.providerCode, h.providerName, h.deeplink)
+    const family = isVrboFamilyProvider(h.providerCode, h.providerName, h.deeplink)
     return {
       sourceId: String(h.accommodationId),
       title: h.name,
-      url: vrbo ? abritelCanonicalUrl(h.deeplink) : h.deeplink,
+      url: family
+        ? abritelCanonicalUrl(h.deeplink, {
+            checkIn: h.fromDate,
+            checkOut: h.toDate
+          })
+        : h.deeplink,
       priceText: `${h.stay} € pour 7 nuits`,
       stayAmount: h.stay,
       image: h.photo,

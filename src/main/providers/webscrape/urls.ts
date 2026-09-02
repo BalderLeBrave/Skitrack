@@ -2,14 +2,6 @@
 
 import type { SearchParams } from '../types'
 
-function nights(params: SearchParams): number {
-  if (!params.checkIn || !params.checkOut) return 1
-  const a = Date.parse(params.checkIn)
-  const b = Date.parse(params.checkOut)
-  if (!Number.isFinite(a) || !Number.isFinite(b) || b <= a) return 1
-  return Math.max(1, Math.round((b - a) / 86_400_000))
-}
-
 /**
  * Recherche Booking, page par page.
  *
@@ -133,7 +125,7 @@ export function cozycozySeoPathForDestination(destination: string): string | nul
   if (n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
     return '/fr/location-vacances-les-2-alpes'
   }
-  // Dump 2026-09-02 : pages SEO SSR hoj_seo_card (HTTP 200).
+  // Dump 2026-09-02 : pages SEO SSR hoj_seo_card (HTTP 200). Sans dates.
   if (n.includes('karellis')) return '/fr/location-vacances-les-karellis'
   if (/\bles angles\b/.test(n) || n.includes('les-angles')) {
     return '/fr/location-vacances-les-angles'
@@ -144,7 +136,31 @@ export function cozycozySeoPathForDestination(destination: string): string | nul
   return null
 }
 
+/**
+ * Segment lieu du GET daté.
+ *
+ * Dump 2026-09-02 `cozy-dated-results.json` : path
+ * `/fr/search/{place}/{from}/{to}/{chambres}-{adultes}-{enfants}/results`
+ * lance searchInputLocation + launch + getResultList. Prix « N € pour 7 nuits ».
+ *
+ * Les 2 Alpes : « Les Deux Alpes station de ski, France » (URL fournie, 180 offres).
+ * Méribel / Karellis / Vars / Angles : « {Nom}, France ».
+ */
+export function cozycozyDatedPlace(destination: string): string {
+  const n = destination
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+  if (n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
+    return 'Les Deux Alpes station de ski, France'
+  }
+  const trimmed = destination.replace(/\s+/g, ' ').trim()
+  if (/,\s*france\s*$/i.test(trimmed)) return trimmed
+  return `${trimmed}, France`
+}
+
 export function gitesSearchUrl(params: SearchParams, offset = 0): string {
+
   const u = new URL('https://www.gites-de-france.com/fr/search')
   const towns = gitesTownsIdForDestination(params.destination)
   if (towns) {
@@ -163,18 +179,26 @@ export function gitesSearchUrl(params: SearchParams, offset = 0): string {
 }
 
 export function cozycozySearchUrl(params: SearchParams, offset = 0): string {
+  if (params.checkIn && params.checkOut) {
+    const place = encodeURIComponent(cozycozyDatedPlace(params.destination))
+    const bedrooms = params.bedrooms ?? 0
+    const adults = params.adults ?? 2
+    const children = params.children ?? 0
+    // Pagination du path /results non dumpée — page 1 seulement.
+    if (offset > 0) {
+      /* no-op : pas de ?page= dumpé sur cette SERP */
+    }
+    return `https://www.cozycozy.com/fr/search/${place}/${params.checkIn}/${params.checkOut}/${bedrooms}-${adults}-${children}/results`
+  }
   const seo = cozycozySeoPathForDestination(params.destination)
   if (seo) {
-    // Catalogue SSR dumpé. /fr/search?location= ne lance pas la recherche.
+    // Catalogue SSR, sans dates. /fr/search?location= ne lance pas la recherche.
     return `https://www.cozycozy.com${seo}`
   }
   const u = new URL('https://www.cozycozy.com/fr/search')
   u.searchParams.set('location', params.destination)
-  if (params.checkIn) u.searchParams.set('checkin', params.checkIn)
-  if (params.checkOut) u.searchParams.set('checkout', params.checkOut)
   u.searchParams.set('adults', String(params.adults ?? 2))
   if (params.children) u.searchParams.set('children', String(params.children))
-  u.searchParams.set('nights', String(nights(params)))
   if (params.bedrooms != null && params.bedrooms > 0) {
     u.searchParams.set('e', String(params.bedrooms))
   }

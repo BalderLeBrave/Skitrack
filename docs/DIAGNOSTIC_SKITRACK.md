@@ -89,7 +89,7 @@ Dates du formulaire : déjà envoyées (`urls.ts`, `LodgingsPage`).
 
 `gitesSearchUrl` : dump 2026-09-01 21:47, GET `towns=50301` + `travelers=` + dates ouvre la SERP Les 2 Alpes (33 résultats). Hors dump : `destination=` (toujours 0 sans towns). Sélecteur `.js-search-tile`.
 
-`cozycozySearchUrl` : Les 2 Alpes → `/fr/location-vacances-les-2-alpes` (catalogue SEO `hoj_seo_card`). `getResultList` jamais dumpé.
+`cozycozySearchUrl` : dates → `/fr/search/{lieu}/{from}/{to}/{ch-ad-enf}/results` (`joli-resultitem`, « N € pour 7 nuits », getResultList dumpé). Sans dates → catalogue SEO `hoj_seo_card`.
 
 ---
 

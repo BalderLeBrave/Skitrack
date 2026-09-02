@@ -392,7 +392,7 @@ export function extractGitesCards(): RawCard[] {
   return out
 }
 
-/** CozyCozy — méta-résultats. Tarif « À partir de N €/nuit », pas le séjour. */
+/** CozyCozy — SERP datée (`joli-resultitem`) ou catalogue SEO (`hoj_seo_card`). */
 export function extractCozycozyCards(): RawCard[] {
   const out: RawCard[] = []
   const seen = new Set<string>()
@@ -427,6 +427,36 @@ export function extractCozycozyCards(): RawCard[] {
     } catch {
       /* fiche sans JSON-LD lisible : la carte sortira sans position */
     }
+  })
+
+  /*
+   * Dump 2026-09-02 (cozy-dated-cards.json) : SERP `/search/{lieu}/{dates}/{ch-ad-enf}/results`.
+   * Cartes `joli-resultitem`, prix `.pricetag-stacked` « 6692 € pour 7 nuits »,
+   * lien `a.fake-deeplink`. Occupancy non libellée (6 6 13) — on ne l'invente pas.
+   */
+  document.querySelectorAll('joli-resultitem').forEach((node) => {
+    const priceNode = node.querySelector('.pricetag-stacked, .sum, span.total')
+    const priceText =
+      priceNode?.textContent?.match(/\d[\d\s\u00a0\u202f\u2009.,]*\s*€(?:\s*pour\s+\d+\s+nuits?)?/i)?.[0] ||
+      node.textContent?.match(/\d[\d\s\u00a0\u202f\u2009.,]*\s*€\s*pour\s+\d+\s+nuits?/i)?.[0]
+    if (!priceText) return
+    const link = node.querySelector('a.fake-deeplink') as HTMLAnchorElement | null
+    const href = link?.href
+    if (!href || !href.includes('cozycozy')) return
+    const sourceId = href.match(/clickId=([^&]+)/i)?.[1] || href.slice(-48)
+    if (seen.has(sourceId)) return
+    seen.add(sourceId)
+    const raw =
+      node.querySelector('.content-wrapper')?.textContent?.replace(/\s+/g, ' ').trim() || ''
+    const title = raw.replace(/Voir l['’]offre.*$/i, '').trim().slice(0, 80) || 'Offre CozyCozy'
+    const img = (node.querySelector('img') as HTMLImageElement | null)?.src
+    out.push({
+      sourceId,
+      title,
+      url: href,
+      priceText,
+      image: img
+    })
   })
 
   /*
@@ -469,6 +499,7 @@ export function extractCozycozyCards(): RawCard[] {
 
   document.querySelectorAll('a[href*="/offer"], a[href*="/listing"], article, [class*="Offer"], [class*="result"]').forEach((node) => {
     if ((node as HTMLElement).classList?.contains('hoj_seo_card')) return
+    if (node.tagName === 'JOLI-RESULTITEM') return
     const link =
       node.tagName === 'A'
         ? (node as HTMLAnchorElement)

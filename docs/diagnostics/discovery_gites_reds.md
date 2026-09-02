@@ -31,7 +31,7 @@ Officiels restés bloqués :
 
 Playwright : première URL 200, suivantes 403 CF. Les deux SERP Karellis/Vars sont lues par fetch GET daté (titre + cartes).
 
-CozyCozy `/fr/location-vacances-*` reste un catalogue nuit — pas cette solution.
+CozyCozy daté : GET `/fr/search/{lieu}/{dates}/4-8-0/results` (dump 2026-09-02). Le catalogue SEO `/location-vacances-*` reste la page sans dates.
 
 ## Branchement
 

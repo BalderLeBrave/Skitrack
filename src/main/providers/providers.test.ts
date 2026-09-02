@@ -18,14 +18,15 @@
 import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
 import { collectBookingPages, collectPages, paginationOf } from './webscrape/providers'
-import { bookingSearchUrl, cozycozySearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
 import {
   cozycozySearchEmptyKind,
   gitesSearchEmptyKind,
   looksNightlyPriceText,
+  looksStayPriceText,
   pageLooksBlocked,
   webscrapePriceFields
 } from './webscrape/shared'
+import { bookingSearchUrl, cozycozyDatedPlace, cozycozySearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
 import type { RawCard } from './webscrape/extractors'
 import { classifyProviderError } from '@shared/reasonCodes'
 import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
@@ -686,29 +687,67 @@ async function main(): Promise<void> {
     gitesSearchEmptyKind('<article class="gite-card">rien</article>') === null
   )
 
-  heading('16. CozyCozy dump 2026-09-01/02 — SEO Les 2 Alpes + 3 rouges, SPA ailleurs')
+  heading('16. CozyCozy dump 2026-09-02 — GET daté /results, pas le catalogue SEO')
   const cozyStay = { ...stay, adults: 8, bedrooms: 4 }
   const cozyUrl = cozycozySearchUrl(cozyStay)
-  check('CozyCozy Les 2 Alpes → page catalogue SEO', cozyUrl === 'https://www.cozycozy.com/fr/location-vacances-les-2-alpes', cozyUrl)
   check(
-    'CozyCozy Les Karellis → SEO dump 2026-09-02',
+    'CozyCozy Les 2 Alpes → /search/Les Deux Alpes station de ski…/4-8-0/results',
+    cozyUrl ===
+      'https://www.cozycozy.com/fr/search/Les%20Deux%20Alpes%20station%20de%20ski%2C%20France/2027-02-06/2027-02-13/4-8-0/results',
+    cozyUrl
+  )
+  check(
+    'lieu 2 Alpes dumpé',
+    cozycozyDatedPlace('Les 2 Alpes') === 'Les Deux Alpes station de ski, France'
+  )
+  check(
+    'CozyCozy Les Karellis → /search/Les%20Karellis%2C%20France/…/4-8-0/results',
     cozycozySearchUrl({ ...cozyStay, destination: 'Les Karellis' }) ===
-      'https://www.cozycozy.com/fr/location-vacances-les-karellis'
+      'https://www.cozycozy.com/fr/search/Les%20Karellis%2C%20France/2027-02-06/2027-02-13/4-8-0/results'
   )
   check(
-    'CozyCozy Les Angles → SEO dump 2026-09-02',
-    cozycozySearchUrl({ ...cozyStay, destination: 'Les Angles' }) ===
-      'https://www.cozycozy.com/fr/location-vacances-les-angles'
+    'CozyCozy Les Angles daté',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Les Angles' }).includes(
+      '/fr/search/Les%20Angles%2C%20France/'
+    ) &&
+      cozycozySearchUrl({ ...cozyStay, destination: 'Les Angles' }).endsWith('/4-8-0/results')
   )
   check(
-    'CozyCozy Vars → SEO dump 2026-09-02',
-    cozycozySearchUrl({ ...cozyStay, destination: 'Vars' }) ===
-      'https://www.cozycozy.com/fr/location-vacances-vars'
+    'CozyCozy Vars daté',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Vars' }).includes('/fr/search/Vars%2C%20France/')
   )
-  const cozyOther = cozycozySearchUrl({ destination: 'Val Thorens', checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 8, bedrooms: 4 })
-  check('CozyCozy hors dump → /fr/search', cozyOther.includes('https://www.cozycozy.com/fr/search'), cozyOther)
-  check('CozyCozy hors dump e=4', cozyOther.includes('e=4'), cozyOther)
-  check('sans chambres → pas de e=', !cozycozySearchUrl(stay).includes('e=') || cozycozySearchUrl(stay).includes('location-vacances'), cozycozySearchUrl(stay))
+  const cozyMeribel = cozycozySearchUrl({
+    destination: 'Méribel, France',
+    checkIn: '2027-02-13',
+    checkOut: '2027-02-20',
+    adults: 8,
+    bedrooms: 4
+  })
+  check(
+    'CozyCozy Méribel (exemple fourni)',
+    cozyMeribel ===
+      'https://www.cozycozy.com/fr/search/M%C3%A9ribel%2C%20France/2027-02-13/2027-02-20/4-8-0/results',
+    cozyMeribel
+  )
+  const cozyOther = cozycozySearchUrl({
+    destination: 'Val Thorens',
+    checkIn: '2027-02-06',
+    checkOut: '2027-02-13',
+    adults: 8,
+    bedrooms: 4
+  })
+  check(
+    'CozyCozy hors dump : même path daté, {Nom}, France',
+    cozyOther.includes('/fr/search/Val%20Thorens%2C%20France/') && cozyOther.endsWith('/4-8-0/results'),
+    cozyOther
+  )
+  check('path daté : pas de e=', !cozyUrl.includes('e=4'))
+  const cozyNoDates = cozycozySearchUrl({ destination: 'Les 2 Alpes', adults: 8, bedrooms: 4 })
+  check(
+    'sans dates : catalogue SEO (pas /results)',
+    cozyNoDates === 'https://www.cozycozy.com/fr/location-vacances-les-2-alpes',
+    cozyNoDates
+  )
   const cozyShell =
     '<joli-root ng-version="16.2.6" ng-server-context="ssr"><router-outlet></router-outlet><joli-market>'
   check(
@@ -737,8 +776,14 @@ async function main(): Promise<void> {
       '<joli-root ng-version="16.2.6"><article class="hoj_seo_card">chalet 1032 €</article></joli-root>'
     ) === null
   )
+  check(
+    'SERP datée joli-resultitem → plus spa_unlaunched',
+    cozycozySearchEmptyKind(
+      '<joli-root><joli-resultitem><div class="pricetag-stacked">6692 € pour 7 nuits</div></joli-resultitem></joli-root>'
+    ) === null
+  )
 
-  heading('17. CozyCozy — tarif par nuit, pas le séjour')
+  heading('17. CozyCozy — /nuit = nuit ; « pour 7 nuits » = séjour')
   const cozyNuit = webscrapePriceFields('cozycozy-web', 'À partir de 89 €/nuit')
   check(
     'CozyCozy 89 €/nuit → nightlyPrice, pas total',
@@ -751,6 +796,14 @@ async function main(): Promise<void> {
     cozyBare.nightlyPrice === 89 && cozyBare.totalPrice === undefined,
     cozyBare
   )
+  const cozyStayPrice = webscrapePriceFields('cozycozy-web', '6692 € pour 7 nuits')
+  check(
+    'CozyCozy 6692 € pour 7 nuits → totalPrice (dump SERP datée)',
+    cozyStayPrice.totalPrice === 6692 && cozyStayPrice.nightlyPrice === undefined,
+    cozyStayPrice
+  )
+  check('texte « pour 7 nuits » est un séjour', looksStayPriceText('6692 € pour 7 nuits') === true)
+  check('texte « /nuit » n’est pas un séjour', looksStayPriceText('89 €/nuit') === false)
   const bookingStay = webscrapePriceFields('booking-web', '1 200 €')
   check(
     'Booking 1 200 € → total de séjour',

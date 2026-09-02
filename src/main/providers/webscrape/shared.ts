@@ -247,9 +247,9 @@ export function baseAccommodation(
 /** Parse un prix FR/EN typique : « 1 234 € », « €123 », « 123,50 ». */
 export function parsePrice(text: string | null | undefined): number | undefined {
   if (!text) return undefined
-  const m = text.match(/\d[\d\u00a0\u202f .,]*\d|\d/)
+  const m = text.match(/\d[\d\u00a0\u202f\u2009 .,]*\d|\d/)
   if (!m) return undefined
-  let token = m[0].replace(/[\u00a0\u202f ]/g, '')
+  let token = m[0].replace(/[\u00a0\u202f\u2009 ]/g, '')
   const lastComma = token.lastIndexOf(',')
   const lastDot = token.lastIndexOf('.')
   if (lastComma > lastDot) token = token.replace(/\./g, '').replace(',', '.')
@@ -268,12 +268,19 @@ export function looksNightlyPriceText(text: string | null | undefined): boolean 
   return /\/\s*nuit|\bpar nuit\b|\/\s*night|\bper night\b/i.test(text)
 }
 
+/** Dump 2026-09-02 SERP datée : « 6692 € pour 7 nuits » = total du séjour. */
+export function looksStayPriceText(text: string | null | undefined): boolean {
+  if (!text) return false
+  return /pour\s+\d+\s+nuits?/i.test(text)
+}
+
 export function webscrapePriceFields(
   source: string,
   priceText: string | undefined
 ): { totalPrice?: number; nightlyPrice?: number } {
   const price = parsePrice(priceText)
   if (price == null) return {}
+  if (looksStayPriceText(priceText)) return { totalPrice: price }
   const nightly =
     source === 'cozycozy-web' || source === 'cozycozy' || looksNightlyPriceText(priceText)
   return nightly ? { nightlyPrice: price } : { totalPrice: price }

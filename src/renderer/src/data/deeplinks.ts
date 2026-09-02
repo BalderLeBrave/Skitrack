@@ -112,17 +112,18 @@ const BUILDERS: Record<string, Builder> = {
   // de paramètres alignés sur `webscrape/urls.ts`.
   cozycozy: (c) => {
     const dest = destination(c)
-    if (/2\s*alpes|deux alpes/i.test(dest)) {
-      return 'https://www.cozycozy.com/fr/location-vacances-les-2-alpes'
-    }
-    const u = new URL('https://www.cozycozy.com/fr/search')
-    u.searchParams.set('location', dest)
-    u.searchParams.set('checkin', c.arrDate)
-    u.searchParams.set('checkout', c.depDate)
-    u.searchParams.set('adults', String(c.travelers))
-    u.searchParams.set('nights', String(nightsBetween(c.arrDate, c.depDate)))
-    if (c.rooms > 0) u.searchParams.set('e', String(c.rooms))
-    return u.toString()
+    const n = dest
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .toLowerCase()
+    const place =
+      n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)
+        ? 'Les Deux Alpes station de ski, France'
+        : /,\s*france\s*$/i.test(dest)
+          ? dest
+          : `${dest}, France`
+    const bedrooms = c.rooms > 0 ? c.rooms : 0
+    return `https://www.cozycozy.com/fr/search/${encodeURIComponent(place)}/${c.arrDate}/${c.depDate}/${bedrooms}-${c.travelers}-0/results`
   },
   Expedia: (c) => {
     const u = new URL('https://www.expedia.fr/Hotel-Search')

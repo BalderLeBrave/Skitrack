@@ -6,31 +6,18 @@
  *     booking            Demand API v3          clés requises, repli scraper web
  *     booking-web        relevé Playwright      pagination, 125 biens au plus
  *     gites-web          relevé Playwright      Gîtes de France
- *     cozycozy-web       relevé Playwright      méta-moteur
- *     vrbo-web           relevé Playwright      groupe Expedia
+ *     vrbo-web           relevé Playwright      Abritel / VRBO (via getResultList)
  *     station            centrale de la station lue avec Playwright, voir station/
  *     ceto-* / ublo / opensystem                 prestataires de centrales
  *     airbnb             aucune API             relevé à part, voir airbnb/scrape.ts
  *     «déclarées»        serveurs MCP tiers     lues dans mcp-sources.json
  *
- * ## Gîtes de France, cozycozy et VRBO, rebranchés le 2026-09-01
+ * ## Gîtes de France et VRBO, rebranchés le 2026-09-01
  *
- * Ce fichier a longtemps dit : « Expedia, Hotels.com, Gîtes de France, cozycozy
- * et LiteAPI ont été retirés… une ligne qu'aucun relevé ne peut rafraîchir n'est
- * pas un filtre, c'est un souvenir ». L'argument reste juste, et c'est
- * précisément pourquoi le retour de ces sources s'accompagne de ce qui leur
- * manquait pour être rafraîchies :
- *
- * - leurs extracteurs lisent désormais les **coordonnées** (JSON-LD) — sans
- *   elles, `keepInZone` plus bas jetait leur lot entier dès qu'une annonce
- *   située tombait hors zone ;
- * - ils lisent la **capacité** et les **chambres**, que personne ne relayait ;
- * - ils **paginent**, là où ils s'arrêtaient au premier écran de résultats.
- *
- * Expedia et LiteAPI restent hors du moteur : `createExpediaWebProvider` existe
- * et n'est pas enregistré, faute d'avoir été vérifié en conditions réelles.
- * `RESERVED` dans `mcp/registry.ts` garde tous ces noms — ils restent réservés
- * pour qu'une source MCP déclarée ne puisse pas se faire passer pour eux.
+ * CozyCozy n'est plus une source : agrégateur Airbnb / Booking / Gîtes, doublon.
+ * Tourinsoft n'est plus une source : tarif « à partir de », pas un séjour daté.
+ * VRBO / Abritel se lit encore via getResultList (vrbo.com = 429), mais les
+ * cartes sortent étiquetées VRBO, jamais CozyCozy.
  *
  * L'ordre d'enregistrement n'a aucune importance : les sources sont interrogées
  * en parallèle et le tri se fait sur le prix, pas sur la provenance.
@@ -42,7 +29,6 @@
 import { airbnbRedirect } from './airbnb/airbnb'
 import {
   createBookingWebProvider,
-  createCozycozyWebProvider,
   createGitesWebProvider,
   createVrboWebProvider
 } from './webscrape'
@@ -57,7 +43,6 @@ import { createOpenSystemProvider } from './opensystem/provider'
 import { createDesklineProvider } from './deskline/provider'
 import { createLocvacancesProvider } from './locvacances/provider'
 import { createDiffusioProvider } from './diffusio/provider'
-import { createTourinsoftProvider } from './tourinsoft/provider'
 import { McpAccommodationProvider } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
 import { SearchEngine } from './searchEngine'
@@ -106,7 +91,6 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     // Trois connecteurs qui existaient, exportés, et que personne n'appelait :
     // le code était complet, seul l'enregistrement manquait. Voir l'en-tête.
     next.register(createGitesWebProvider())
-    next.register(createCozycozyWebProvider())
     next.register(createVrboWebProvider())
     // Centrale de réservation de la station : le seul connecteur qui interroge
     // le site du domaine lui-même, avec l'adresse que le renderer lui passe.
@@ -122,7 +106,6 @@ export function buildEngine(options: EngineOptions): SearchEngine {
     next.register(createDesklineProvider())
     next.register(createLocvacancesProvider())
     next.register(createDiffusioProvider())
-    next.register(createTourinsoftProvider())
   }
 
   // Airbnb n'est pas un connecteur : il n'interroge rien. Voir airbnb/airbnb.ts.

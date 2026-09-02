@@ -263,32 +263,11 @@ export function LodgingFilters(): JSX.Element {
           />
           {t('lodg_free_cancel')}
         </label>
-
-        {/* Les deux filtres qui furent des « règles de l'écran ».
-            Rendus à l'utilisateur le 2026-08-30, éteints par défaut : câblés en
-            dur, ils retiraient des annonces sans qu'aucun compteur ne les
-            mentionne, alors que la vignette sait déjà porter l'avertissement
-            correspondant. Voir `data/lodgingAvailability.ts` et le journal de
-            `state/appState.tsx`. */}
-        <label className="check" style={{ margin: '8px 0 0' }}>
-          <input
-            type="checkbox"
-            checked={state.lodgOnlyAvailable}
-            onChange={(e) => patch({ lodgOnlyAvailable: e.target.checked })}
-          />
-          {t('lodg_only_available')}
-        </label>
-        <p className="filters__help">{t('lodg_only_available_help')}</p>
-
-        <label className="check" style={{ margin: '8px 0 0' }}>
-          <input
-            type="checkbox"
-            checked={state.lodgConfirmedPrices}
-            onChange={(e) => patch({ lodgConfirmedPrices: e.target.checked })}
-          />
-          {t('lodg_confirmed_prices')}
-        </label>
-        <p className="filters__help">{t('lodg_confirmed_prices_help')}</p>
+        <p className="filters__help">
+          Uniquement des logements disponibles, au plancher de capacité et de
+          chambres, avec le prix réel de la semaine. CozyCozy et Tourinsoft ne
+          sont pas des sources.
+        </p>
       </section>
 
       <section className="filters__section">

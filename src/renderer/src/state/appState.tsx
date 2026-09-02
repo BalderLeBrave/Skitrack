@@ -698,8 +698,8 @@ export const INITIAL_STATE: AppState = {
   mergeDupes: true,
   lodgStatusOpen: false,
   hideBadGeo: false,
-  lodgOnlyAvailable: false,
-  lodgConfirmedPrices: false,
+  lodgOnlyAvailable: true,
+  lodgConfirmedPrices: true,
   lodgHideUnannounced: true,
   stayBarCollapsed: false,
   flexOpen: false,
@@ -770,8 +770,8 @@ export const LODG_FILTER_RESET: Partial<AppState> = {
   lodgSort: 'pp_asc',
   lodgSrcOff: [],
   lodgAnnul: false,
-  lodgOnlyAvailable: false,
-  lodgConfirmedPrices: false,
+  lodgOnlyAvailable: true,
+  lodgConfirmedPrices: true,
   rooms: 0
 }
 
@@ -838,11 +838,11 @@ function purgeLegacyPrefs(): void {
  * numérotation qui n'est pas celle du catalogue sont rerattachées par leur
  * position. Voir `rerattacherParPosition`.
  *
- * Schéma 8 (2026-09-01) : `lodgHideUnannounced` allumé par défaut. Les
- * annonces sans capacité ni chambres publiées sortent du mosaïque client
- * (`matchesDemand`) ; le bouton de l'écran les réaffiche (seau debug).
+ * Schéma 9 (2026-09-02) : uniquement des logements disponibles, au plancher
+ * (capacité + chambres publiées), avec un prix de séjour formel. CozyCozy et
+ * Tourinsoft ne sont plus des sources.
  */
-const PREFS_SCHEMA = 8
+const PREFS_SCHEMA = 9
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -981,6 +981,13 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
 
   // Schéma 8 — masquer les non-annoncées par défaut (`matchesDemand`).
   if ((saved.prefsSchema ?? 0) < 8) delete out.lodgHideUnannounced
+
+  // Schéma 9 — uniquement dispo confirmée + prix de séjour formel + plancher.
+  if ((saved.prefsSchema ?? 0) < 9) {
+    out.lodgOnlyAvailable = true
+    out.lodgConfirmedPrices = true
+    out.lodgHideUnannounced = true
+  }
 
   // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
   const rattache = rerattacherParPosition(out.imported)

@@ -94,6 +94,11 @@ export interface Accommodation {
     policy?: string
   }[]
   nightlyPrice?: number
+  /**
+   * Tarif d'appel **à la semaine** (Gîtes de France tuile
+   * « À partir de N € par semaine »). Pas le séjour daté.
+   */
+  weeklyPrice?: number
   cleaningFee?: number
   serviceFee?: number
   taxes?: number
@@ -117,6 +122,9 @@ export interface Accommodation {
   amenities?: string[]
 
   images?: string[]
+
+  /** Libellé de type publié par la source (tuile Gîtes « Gîte », pas le titre). */
+  propertyType?: string
 
   availability?: boolean
   /** Plus précis que `availability` : distingue « indisponible » d'« inconnu ». */

@@ -2,7 +2,7 @@
  * Relevé des sources autres qu'Airbnb.
  *
  * Le moteur multi-sources vit dans le processus principal depuis toujours —
- * Booking, Expedia, Gîtes de France, LiteAPI, cozycozy, centrales de station — et il est
+ * Booking, Expedia, Gîtes de France, LiteAPI, centrales de station — et il est
  * exposé jusqu'au preload. Ce qui manquait était l'appel : aucun fichier du
  * renderer n'invoquait `window.skitrack.providers.search`, si bien que l'écran
  * Logements ne voyait qu'Airbnb, relevé par un chemin séparé
@@ -27,6 +27,7 @@
 import type { ProviderAccommodation, ProviderOutcome } from '@shared/ipc-contract'
 import type { Lodging } from './lodgings'
 import { CENTRALE_SOURCE } from './lodgings'
+import { hasConfirmedPrice, isDroppedGitesOffer, matchesDemand } from './lodgingFilter'
 import { bookingCentralOf, stationNameOf } from './stations'
 
 /**
@@ -55,7 +56,6 @@ const SOURCE_LABEL: Record<string, string> = {
   'expedia-web': 'Expedia',
   'gites-de-france': 'Gîtes de France',
   'gites-web': 'Gîtes de France',
-  'cozycozy-web': 'cozycozy',
   'vrbo-web': 'VRBO',
   liteapi: 'LiteAPI',
   airbnb: 'Airbnb',
@@ -73,6 +73,16 @@ const SOURCE_LABEL: Record<string, string> = {
 
 export function sourceLabelOf(provider: string): string {
   return SOURCE_LABEL[provider] ?? provider
+}
+
+const DROPPED_SOURCES = new Set(['cozycozy', 'cozycozy-web', 'tourinsoft'])
+
+/** CozyCozy (doublon) et Tourinsoft (tarif d'appel) ne sont plus des sources. */
+export function isDroppedListingSource(source?: string | null, url?: string | null): boolean {
+  const s = (source ?? '').toLowerCase()
+  if (DROPPED_SOURCES.has(s) || s.includes('cozycozy') || s.includes('tourinsoft')) return true
+  if (url && /cozycozy\.com/i.test(url)) return true
+  return false
 }
 
 export interface ProviderSearchOutcome {
@@ -146,66 +156,42 @@ function toLodging(
   params: RunProviderSearchParams
 ): Lodging | null {
   if (!a.url || !a.title) return null
+  if (isDroppedListingSource(a.source, a.url)) return null
+  if (
+    isDroppedGitesOffer({
+      src: sourceLabelOf(a.source),
+      url: a.url,
+      type: a.propertyType ?? ''
+    })
+  ) {
+    return null
+  }
 
-  // Montant du séjour si fourni. CozyCozy : tarif par nuit, pas un séjour.
-  // On n'invente pas un total (nightly × nuits) — ça ferait passer 89 €/nuit
-  // pour 89 € la semaine.
+  // Séjour formel seulement. Nuit × 7 et « à partir de /semaine » ne passent pas.
   const total =
-    a.totalPrice != null && a.totalPrice > 0 ? Math.round(a.totalPrice) : 0
-  const nightly =
-    a.nightlyPrice != null && a.nightlyPrice > 0 ? Math.round(a.nightlyPrice) : 0
+    a.totalPrice != null && a.totalPrice > 0 ? Math.round(a.totalPrice * 100) / 100 : 0
+  if (total <= 0) return null
+  if (a.priceConfidence === 'partial') return null
+  if (a.availabilityStatus === 'unavailable' || a.availabilityStatus === 'listing_gone') {
+    return null
+  }
 
   const nights = Math.max(1, params.nights)
-  const guests = a.guests && a.guests > 0 ? a.guests : params.adults
-  const pp =
-    total > 0
-      ? Math.round((total / nights / Math.max(1, guests)) * 10) / 10
-      : nightly > 0
-        ? Math.round((nightly / Math.max(1, guests)) * 10) / 10
-        : 0
-
-  // Centrale Ingénie : un total relevé via `#total-prestation` est le montant
-  // du séjour, pas un « à partir de ». Ne pas le rabattre en `partial`.
-  const confidence =
-    a.source === 'station-web' && total > 0 && a.priceConfidence !== 'partial'
-      ? 'total_confirmed'
-      : a.priceConfidence === 'total_confirmed' || a.priceConfidence === 'partial'
-        ? a.priceConfidence
-        : total > 0
-          ? 'partial'
-          : 'unknown'
+  const publishedGuests = a.guests && a.guests > 0 ? a.guests : 0
+  const pp = Math.round((total / nights / Math.max(1, publishedGuests || params.adults)) * 10) / 10
+  const image = a.images?.[0] ?? null
 
   return {
     id: idFromUrl(a.url),
     name: a.title,
-    // Le modèle pivot ne porte pas de typologie exploitable : laisser vide
-    // plutôt que deviner « Appartement ».
-    type: '',
-    pers: a.guests ?? 0,
-    // La recherche envoyée au connecteur portait le groupe : Booking reçoit
-    // `group_adults`, Airbnb `adults`, les centrales `search[capacity]` — voir
-    // `webscrape/urls.ts` et `deeplinks.ts`. La source n'a rendu cette annonce
-    // que parce qu'elle accepte ce groupe-là.
+    type: a.propertyType ?? '',
+    pers: publishedGuests,
     fitsGuests: params.adults > 0 ? params.adults : undefined,
-    availabilityStatus:
-      a.availabilityStatus === 'unavailable' || a.availabilityStatus === 'listing_gone'
-        ? a.availabilityStatus
-        : a.totalPrice && a.totalPrice > 0
-          ? 'available'
-          : a.availabilityStatus ?? 'unknown',
+    availabilityStatus: 'available',
     searchPageIndex: a.searchPageIndex,
     distanceStatus: a.latitude != null && a.longitude != null ? undefined : 'no_gps',
-    // Les centrales de station comptent des **pièces**, pas des chambres, et
-    // n'annoncent les secondes nulle part : `ch` reste à zéro — « non annoncé »
-    // — plutôt que de traduire un deux-pièces en une chambre, qui serait une
-    // convention d'annonce et non une donnée relevée.
     ch: a.bedrooms ?? 0,
-    // Les pièces, elles, sont bien là : c'est la mesure que publient Ingénie et
-    // Ublo. Les jeter, comme on le faisait, rendait toute annonce de centrale
-    // infiltrable sur la taille — `ch` valant zéro, elles traversaient
-    // n'importe quel « 4 chambres minimum ».
     rooms: a.rooms != null && a.rooms > 0 ? a.rooms : undefined,
-    // Barème de la centrale, quand elle en publie un.
     priceOptions: a.priceOptions?.length ? a.priceOptions : undefined,
     m2: a.areaSqm ?? null,
     note: noteOnFive(a.rating, a.ratingScale),
@@ -215,31 +201,28 @@ function toLodging(
     den: 0,
     skiIn: false,
     src: sourceLabelOf(a.source),
-    // Le connecteur exact, que le libellé regroupé ne dit plus : c'est lui qui
-    // décide des paramètres de séjour recollés sur l'URL de l'annonce.
     srcConnector: a.source,
     pp,
     lift: '',
     liftDist: 0,
-    photo: '',
+    photo: image ?? '',
     annul: false,
     total,
-    nightly: nightly > 0 ? nightly : undefined,
+    nightly: undefined,
+    weekly: undefined,
     alt: 0,
     stock: 0,
     url: a.url,
-    image: a.images?.[0] ?? null,
+    image,
     lat: a.latitude,
     lon: a.longitude,
     locPrecision: a.latitude != null ? 'exact' : undefined,
     importDomainId: params.domainId,
-    // Dates du relevé : celles de la fiche si le connecteur les a figées,
-    // sinon les critères de recherche (cas nominal Ceto / Booking).
     scannedAt: Date.now(),
     priceCheckIn: a.checkIn || params.checkIn,
     priceCheckOut: a.checkOut || params.checkOut,
     accessComputed: false,
-    priceConfidence: confidence
+    priceConfidence: 'total_confirmed'
   }
 }
 
@@ -260,14 +243,32 @@ export function lodgingsFromOutcome(
   params: RunProviderSearchParams,
   seenUrls: Set<string>
 ): Lodging[] {
+  const stay = { checkIn: params.checkIn, checkOut: params.checkOut }
+  const demand = {
+    guests: params.adults,
+    bedrooms: params.bedrooms ?? 0,
+    datesSet: Boolean(params.checkIn && params.checkOut)
+  }
   const out: Lodging[] = []
   for (const item of outcome.results) {
     if (!item.url || seenUrls.has(item.url)) continue
+    if (isDroppedListingSource(item.source, item.url)) continue
+    if (
+      isDroppedGitesOffer({
+        src: sourceLabelOf(item.source),
+        url: item.url,
+        type: item.propertyType ?? ''
+      })
+    ) {
+      continue
+    }
     if (item.availabilityStatus === 'unavailable' || item.availabilityStatus === 'listing_gone') {
       continue
     }
     const lodging = toLodging(item, params)
     if (!lodging) continue
+    if (!matchesDemand(lodging, demand)) continue
+    if (!hasConfirmedPrice(lodging, stay)) continue
     seenUrls.add(item.url)
     out.push(lodging)
   }
@@ -294,21 +295,26 @@ export function lodgingsFromOutcome(
  *   est une information : il vaut mieux que l'ancien mensonge.
  */
 export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]): Lodging[] {
-  if (readings.length === 0) return existing
+  const keep = (lg: Lodging): boolean =>
+    !isDroppedListingSource(lg.src, lg.url) &&
+    !isDroppedListingSource(lg.srcConnector, lg.url) &&
+    !isDroppedGitesOffer(lg)
+  const existingClean = existing.filter(keep)
+  const readingsClean = readings.filter(keep)
+  if (readingsClean.length === 0) return existingClean
 
   const byUrl = new Map<string, Lodging>()
-  for (const reading of readings) {
+  for (const reading of readingsClean) {
     if (reading.url) byUrl.set(reading.url, reading)
   }
 
   const used = new Set<string>()
-  const merged = existing.map((lodging) => {
+  const merged = existingClean.map((lodging) => {
     const reading = lodging.url ? byUrl.get(lodging.url) : undefined
     if (!reading) return lodging
     used.add(lodging.url as string)
     return {
       ...lodging,
-      // Ce que la source vient de publier.
       name: reading.name || lodging.name,
       pers: reading.pers,
       fitsGuests: reading.fitsGuests ?? lodging.fitsGuests,
@@ -319,38 +325,28 @@ export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]):
       note: reading.note || lodging.note,
       avis: reading.avis || lodging.avis,
       image: reading.image ?? lodging.image,
+      photo: reading.image ?? lodging.photo,
       lat: reading.lat ?? lodging.lat,
       lon: reading.lon ?? lodging.lon,
       src: reading.src,
       srcConnector: reading.srcConnector,
-      // Un relevé muet n'efface pas un prix déjà mesuré.
-      // Un tarif nuit (CozyCozy) remplace un total erroné : on ne garde pas
-      // 89 € « séjour » si le nouveau relevé dit 89 €/nuit.
+      availabilityStatus: reading.availabilityStatus ?? lodging.availabilityStatus,
       ...(reading.total > 0
         ? {
             total: reading.total,
             nightly: undefined,
+            weekly: undefined,
             pp: reading.pp,
-            priceConfidence: reading.priceConfidence,
+            priceConfidence: 'total_confirmed' as const,
             priceCheckIn: reading.priceCheckIn,
             priceCheckOut: reading.priceCheckOut,
             missingSince: undefined
           }
-        : reading.nightly != null && reading.nightly > 0
-          ? {
-              total: 0,
-              nightly: reading.nightly,
-              pp: reading.pp,
-              priceConfidence: reading.priceConfidence,
-              priceCheckIn: reading.priceCheckIn,
-              priceCheckOut: reading.priceCheckOut,
-              missingSince: undefined
-            }
-          : {})
+        : {})
     }
   })
 
-  const added = readings.filter((r) => r.url && !used.has(r.url))
+  const added = readingsClean.filter((r) => r.url && !used.has(r.url))
   return added.length > 0 ? [...merged, ...added] : merged
 }
 

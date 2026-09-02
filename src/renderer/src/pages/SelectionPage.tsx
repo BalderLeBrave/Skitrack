@@ -127,6 +127,8 @@ function LodgingTile({ lg, domain }: { lg: Lodging; domain: Domain | null }): JS
           <strong className="u-num crn-releve">
             {priceShown(lg).unit === 'night'
               ? `${eur(priceShown(lg).amount)} /nuit`
+              : priceShown(lg).unit === 'week'
+                ? `${eur(priceShown(lg).amount)} /sem.`
               : eur(lg.total)}
           </strong>
         </p>

@@ -180,6 +180,7 @@ export function baseAccommodation(
     url: string
     totalPrice?: number
     nightlyPrice?: number
+    weeklyPrice?: number
     currency?: string
     latitude?: number
     longitude?: number
@@ -199,11 +200,13 @@ export function baseAccommodation(
     country?: string
     searchPageIndex?: number
     searchRank?: number
+    propertyType?: string
   },
   params: SearchParams
 ): Accommodation {
   const hasTotal = typeof partial.totalPrice === 'number' && partial.totalPrice > 0
   const hasNightly = typeof partial.nightlyPrice === 'number' && partial.nightlyPrice > 0
+  const hasWeekly = typeof partial.weeklyPrice === 'number' && partial.weeklyPrice > 0
   return {
     source,
     sourceId: partial.sourceId,
@@ -230,16 +233,18 @@ export function baseAccommodation(
     rooms: partial.rooms,
     areaSqm: partial.areaSqm,
     nightlyPrice: partial.nightlyPrice,
+    weeklyPrice: partial.weeklyPrice,
     totalPrice: partial.totalPrice,
     currency: partial.currency ?? 'EUR',
     rating: partial.rating,
     reviewCount: partial.reviewCount,
     amenities: partial.amenities,
     images: partial.images,
+    propertyType: partial.propertyType,
     searchPageIndex: partial.searchPageIndex,
     searchRank: partial.searchRank,
     availabilityStatus: hasTotal ? 'available' : 'unknown',
-    priceConfidence: hasTotal ? 'total_confirmed' : hasNightly ? 'partial' : 'unknown',
+    priceConfidence: hasTotal ? 'total_confirmed' : hasNightly || hasWeekly ? 'partial' : 'unknown',
     retrievedAt: nowIso()
   }
 }
@@ -274,13 +279,22 @@ export function looksStayPriceText(text: string | null | undefined): boolean {
   return /pour\s+\d+\s+nuits?/i.test(text)
 }
 
+/** Dump 2026-09-01 tuile Gîtes : « À partir de N € par semaine » = catalogue. */
+export function looksWeeklyFromPriceText(text: string | null | undefined): boolean {
+  if (!text) return false
+  return /(?:à|a)\s+partir\s+de/i.test(text) && /(?:par|\/)\s*semaine/i.test(text)
+}
+
 export function webscrapePriceFields(
   source: string,
   priceText: string | undefined
-): { totalPrice?: number; nightlyPrice?: number } {
+): { totalPrice?: number; nightlyPrice?: number; weeklyPrice?: number } {
   const price = parsePrice(priceText)
   if (price == null) return {}
   if (looksStayPriceText(priceText)) return { totalPrice: price }
+  const weekly =
+    source === 'gites-web' || source === 'gites-de-france' || looksWeeklyFromPriceText(priceText)
+  if (weekly) return { weeklyPrice: price }
   const nightly =
     source === 'cozycozy-web' || source === 'cozycozy' || looksNightlyPriceText(priceText)
   return nightly ? { nightlyPrice: price } : { totalPrice: price }

@@ -93,12 +93,6 @@ export const PROVIDERS: ProviderConfig[] = [
     connectors: ['gites-de-france', 'gites-web']
   },
   {
-    id: 'cozycozy',
-    label: sourceLabelOf('cozycozy-web'),
-    kind: 'scraping',
-    connectors: ['cozycozy-web']
-  },
-  {
     id: 'liteapi',
     label: sourceLabelOf('liteapi'),
     kind: 'api',

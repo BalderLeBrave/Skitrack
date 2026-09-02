@@ -23,13 +23,19 @@ import {
   gitesSearchEmptyKind,
   looksNightlyPriceText,
   looksStayPriceText,
+  looksWeeklyFromPriceText,
   pageLooksBlocked,
   webscrapePriceFields
 } from './webscrape/shared'
 import { bookingSearchUrl, cozycozyDatedPlace, cozycozySearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
 import type { RawCard } from './webscrape/extractors'
-import { classifyProviderError } from '@shared/reasonCodes'
+import {
+  abritelCanonicalUrl,
+  isVrboFamilyProvider,
+  parseCozyResultPayload
+} from './webscrape/cozyResultList'
 import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
+import { classifyProviderError } from '@shared/reasonCodes'
 import { buildEngine } from './index'
 import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
@@ -243,11 +249,10 @@ async function main(): Promise<void> {
   heading('9. Agrégation — un échec de source n’arrête pas les autres')
   // Aucun identifiant fourni : Booking doit échouer proprement, sans lever.
   //
-  // Gîtes de France, cozycozy et VRBO sont de nouveau enregistrés depuis le
-  // 2026-09-01, mais **seulement sous `enableWebScrape`** — ce sont des relevés
-  // Playwright. L'appel ci-dessous ne l'active pas : il ne reste donc que
-  // Booking, et ce test mesure toujours la même chose. Expedia et LiteAPI, eux,
-  // restent hors du moteur. Voir l'en-tête de `buildEngine`.
+  // Gîtes de France et VRBO sont de nouveau enregistrés depuis le
+  // 2026-09-01, mais **seulement sous `enableWebScrape`**. CozyCozy n'est
+  // plus une source. L'appel ci-dessous ne l'active pas : il ne reste donc que
+  // Booking. Expedia et LiteAPI restent hors du moteur.
   const engine = buildEngine({ vault: () => undefined })
   const report = await engine.search(PARAMS)
   for (const outcome of report.outcomes) {
@@ -492,9 +497,19 @@ async function main(): Promise<void> {
 
   // Problème 1 : le code des connecteurs existait, l'enregistrement manquait.
   const moteurWeb = buildEngine({ vault: () => undefined, enableWebScrape: true })
-  for (const attendu of ['gites-web', 'cozycozy-web', 'vrbo-web', 'deskline', 'locvacances', 'diffusio', 'tourinsoft']) {
+  for (const attendu of ['gites-web', 'vrbo-web', 'deskline', 'locvacances', 'diffusio']) {
     check(`${attendu} est enregistré`, moteurWeb.names.includes(attendu), moteurWeb.names.join(', '))
   }
+  check(
+    'CozyCozy n’est plus une source',
+    !moteurWeb.names.includes('cozycozy-web'),
+    moteurWeb.names.join(', ')
+  )
+  check(
+    'Tourinsoft n’est plus une source',
+    !moteurWeb.names.includes('tourinsoft'),
+    moteurWeb.names.join(', ')
+  )
   check(
     'les connecteurs non vérifiés restent dehors',
     !moteurWeb.names.includes('expedia-web'),
@@ -612,8 +627,8 @@ async function main(): Promise<void> {
     emptyStationReason('https://www.sancy.com/hebergement/') === 'delegated'
   )
   check(
-    'Les Angles officiel → delegated (tourinsoft)',
-    emptyStationReason('https://lesangles.com/tous-les-hebergements/') === 'delegated'
+    'Les Angles officiel → not_wired (Tourinsoft retiré)',
+    emptyStationReason('https://lesangles.com/tous-les-hebergements/') === 'not_wired'
   )
   check(
     'Chamonix officiel → delegated (ceto)',
@@ -812,6 +827,94 @@ async function main(): Promise<void> {
   )
   check('texte « 120 €/nuit » est nightly', looksNightlyPriceText('120 €/nuit') === true)
   check('texte « 1 200 € » n’est pas nightly', looksNightlyPriceText('1 200 €') === false)
+
+  heading('18. Gîtes — « À partir de N € par semaine » = indicatif, pas le séjour')
+  const gitesSemaine = webscrapePriceFields('gites-web', 'À partir de 1 700 € par semaine')
+  check(
+    'Gîtes 1 700 € /semaine → weeklyPrice, pas total',
+    gitesSemaine.weeklyPrice === 1700 && gitesSemaine.totalPrice === undefined,
+    gitesSemaine
+  )
+  const gitesBare = webscrapePriceFields('gites-web', '1 700 €')
+  check(
+    'Gîtes source seule, même sans « par semaine » dans le texte',
+    gitesBare.weeklyPrice === 1700 && gitesBare.totalPrice === undefined,
+    gitesBare
+  )
+  check(
+    'texte « À partir de 1 700 € par semaine » est weekly',
+    looksWeeklyFromPriceText('À partir de 1 700 € par semaine') === true
+  )
+  check(
+    'texte « Total 2448,40€ » n’est pas weekly',
+    looksWeeklyFromPriceText('Total 2448,40€') === false
+  )
+  check(
+    'Booking 1 200 € n’est pas weekly',
+    looksWeeklyFromPriceText('1 200 €') === false
+  )
+
+  heading('19. VRBO / Abritel — getResultList CozyCozy, pas la SERP 429')
+  const cozyVrbo = parseCozyResultPayload({
+    entries: [
+      {
+        accommodationId: 11032591,
+        name: 'Beau Duplex Familial',
+        title: 'appartement',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 8 },
+        coordinates: { latitude: 45.00577, longitude: 6.11819 },
+        lightThumbnails: {
+          firstUrls: ['https://media.vrbo.com/lodging/19000000/x.jpg']
+        },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 3363.280029296875, indicative: false },
+            deeplinkUrl:
+              'https://prf.hn/click/camref:x/destination:https://www.abritel.fr/location-vacances/p6410325a?mpd=EUR&mpe=1',
+            fromDate: '2027-02-13',
+            toDate: '2027-02-20',
+            bedRoomCount: 4
+          }
+        ]
+      }
+    ]
+  })
+  check('1 fiche Abritel retenue', cozyVrbo.length === 1, cozyVrbo.length)
+  check('total séjour 3363,28 € (pas la nuit)', cozyVrbo[0]?.stay === 3363.28, cozyVrbo[0]?.stay)
+  check('8 pers / 4 chb libellés', cozyVrbo[0]?.guests === 8 && cozyVrbo[0]?.bedrooms === 4)
+  check('photo media.vrbo.com', Boolean(cozyVrbo[0]?.photo?.includes('media.vrbo.com')))
+  check('famille VRBO', isVrboFamilyProvider('abritel', 'abritel.fr', cozyVrbo[0]?.deeplink) === true)
+  check(
+    'deeplink canonique Abritel sans mpd',
+    abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '').startsWith(
+      'https://www.abritel.fr/location-vacances/p6410325a'
+    ) && !abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '').includes('mpd=')
+  )
+  check(
+    'indicatif sauté',
+    parseCozyResultPayload({
+      entries: [
+        {
+          name: 'x',
+          highlightedResults: [
+            {
+              providerCode: 'airbnb',
+              totalPrice: { value: 10, indicative: true },
+              deeplinkUrl: 'https://www.airbnb.fr/rooms/1'
+            }
+          ]
+        }
+      ]
+    }).length === 0
+  )
+  const vrboStay = webscrapePriceFields('vrbo-web', '3363.28 € pour 7 nuits')
+  check(
+    'vrbo-web « pour 7 nuits » → total séjour',
+    vrboStay.totalPrice != null && vrboStay.nightlyPrice === undefined,
+    vrboStay
+  )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

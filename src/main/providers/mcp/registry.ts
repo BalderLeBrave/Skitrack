@@ -44,6 +44,7 @@ const RESERVED = new Set([
   'gites-web',
   'cozycozy',
   'cozycozy-web',
+  'tourinsoft',
   'vrbo',
   'vrbo-web',
   'airbnb'

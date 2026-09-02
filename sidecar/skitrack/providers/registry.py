@@ -60,12 +60,8 @@ def _auto_register():
         register_provider("vrbo", VRBOProvider)
     except ImportError as e:
         log.warning("Connecteur VRBO indisponible : %s", e)
-    
-    try:
-        from .cozycozy import CozyCozyProvider
-        register_provider("cozycozy", CozyCozyProvider)
-    except ImportError as e:
-        log.warning("Connecteur CozyCozy indisponible : %s", e)
+
+    # CozyCozy n'est plus une source (doublon Airbnb + Booking + Gîtes).
 
 
 _auto_register()

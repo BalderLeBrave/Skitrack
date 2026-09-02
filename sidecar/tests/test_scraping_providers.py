@@ -1,10 +1,7 @@
 """Pile de scraping (« v2 ») : les garde-fous qui manquaient.
 
-Aucun réseau. Le seul connecteur exercé ici est CozyCozy, parce qu'il passe par
-`httpx` et non par Playwright : on remplace sa méthode de transport et tout se
-joue en mémoire. Les trois autres partagent la même forme de gestion d'échec,
-vérifiée ici par lecture du code plutôt que par un navigateur qu'on ne lancera
-pas dans une suite hermétique.
+Aucun réseau. Les connecteurs enregistrés sont Airbnb, Booking et VRBO.
+CozyCozy n'est plus une source (doublon Airbnb + Booking + Gîtes).
 
 Ce que ces tests retiennent, et pourquoi :
 
@@ -22,16 +19,14 @@ Ce que ces tests retiennent, et pourquoi :
 
 from __future__ import annotations
 
-import asyncio
 from collections import Counter
 from pathlib import Path
 
-import httpx
 import pytest
 
 import skitrack
 from skitrack.app import create_app
-from skitrack.providers.base import BaseProvider, LodgingSearchParams
+from skitrack.providers.base import BaseProvider
 from skitrack.providers.registry import create_provider, list_providers
 
 # Ancré sur le paquet, et non sur le répertoire courant : `pytest` peut être
@@ -95,8 +90,9 @@ def test_les_deux_chemins_providers_coexistent():
     assert "/api/scrape/{provider_name}" in chemins
 
 
-def test_les_quatre_connecteurs_s_enregistrent():
-    assert sorted(list_providers()) == ["airbnb", "booking", "cozycozy", "vrbo"]
+def test_les_connecteurs_s_enregistrent_sans_cozycozy():
+    assert sorted(list_providers()) == ["airbnb", "booking", "vrbo"]
+    assert create_provider("cozycozy") is None
 
 
 @pytest.mark.parametrize(
@@ -113,24 +109,16 @@ def test_prix_illisible_reste_absent(texte, attendu):
     assert Sonde().normalize_price(texte)[0] == attendu
 
 
-def test_source_en_panne_relève_au_lieu_de_rendre_une_liste_vide(monkeypatch):
-    """`asyncio.run` plutôt qu'un test `async` : la suite n'a pas de mode
-    asynchrone configuré, et un marqueur non reconnu ferait passer le test en
-    l'ignorant — le pire des résultats pour un garde-fou."""
-
-    async def refuser(*args, **kwargs):
-        raise httpx.ConnectError("port fermé (simulé)")
-
-    monkeypatch.setattr(httpx.AsyncClient, "get", refuser)
-
-    connecteur = create_provider("cozycozy")
-    with pytest.raises(httpx.ConnectError):
-        asyncio.run(connecteur.scrape(LodgingSearchParams(destination="Tignes")))
+def test_source_en_panne_relève_au_lieu_de_rendre_une_liste_vide():
+    """CozyCozy n'est plus enregistré : une source retirée ne se fait pas
+    passer pour un inventaire vide."""
+    assert create_provider("cozycozy") is None
+    assert create_provider("tourinsoft") is None
 
 
 @pytest.mark.parametrize(
     "module",
-    ["airbnb", "booking", "vrbo", "cozycozy"],
+    ["airbnb", "booking", "vrbo"],
 )
 def test_chaque_connecteur_relève_quand_il_n_a_rien_relevé(module):
     """Les trois connecteurs Playwright ne sont pas lancés ici — on constate la
@@ -142,19 +130,8 @@ def test_chaque_connecteur_relève_quand_il_n_a_rien_relevé(module):
     )
 
 
-def test_cozycozy_n_utilise_ni_lxml_ni_l_attribut_proxies_mort():
-    source = (PROVIDERS / "cozycozy.py").read_text(encoding="utf-8")
-    code = "\n".join(
-        ligne for ligne in source.split("\n") if not ligne.lstrip().startswith("#")
-    )
-
-    # `lxml` n'est pas déclaré dans requirements.txt : le réclamer comme parseur
-    # ferait lever `FeatureNotFound` sur une installation propre.
-    assert "'lxml'" not in code
-    # httpx a retiré l'attribut `proxies` en 0.28 : l'affecter après
-    # construction posait un attribut mort et toutes les requêtes partaient en
-    # direct. Le proxy se passe au constructeur, au singulier.
-    assert "client.proxies =" not in code
-    assert "proxy=proxy," in code
-    assert "&adults=" in source
-    assert "&guests=" not in code
+def test_cozycozy_n_est_plus_une_source():
+    """CozyCozy n'est plus enregistré : agrégateur Airbnb / Booking / Gîtes."""
+    assert create_provider("cozycozy") is None
+    assert "cozycozy" not in list_providers()
+    assert create_provider("tourinsoft") is None

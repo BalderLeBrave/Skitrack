@@ -107,24 +107,6 @@ const BUILDERS: Record<string, Builder> = {
     u.searchParams.set('selected_currency', 'EUR')
     return u.toString()
   },
-  // Méta-moteur : il agrège des plateformes déjà interrogées ici, mais ratisse
-  // aussi des agences locales qu'aucune autre source ne porte. Chemin et noms
-  // de paramètres alignés sur `webscrape/urls.ts`.
-  cozycozy: (c) => {
-    const dest = destination(c)
-    const n = dest
-      .normalize('NFD')
-      .replace(/\p{M}/gu, '')
-      .toLowerCase()
-    const place =
-      n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)
-        ? 'Les Deux Alpes station de ski, France'
-        : /,\s*france\s*$/i.test(dest)
-          ? dest
-          : `${dest}, France`
-    const bedrooms = c.rooms > 0 ? c.rooms : 0
-    return `https://www.cozycozy.com/fr/search/${encodeURIComponent(place)}/${c.arrDate}/${c.depDate}/${bedrooms}-${c.travelers}-0/results`
-  },
   Expedia: (c) => {
     const u = new URL('https://www.expedia.fr/Hotel-Search')
     u.searchParams.set('destination', destination(c))
@@ -137,7 +119,7 @@ const BUILDERS: Record<string, Builder> = {
 }
 
 /** Sources proposées dans le panneau de filtres. */
-export const DEEPLINK_SOURCES = ['Airbnb', 'Gîtes de France', 'Booking.com', 'Expedia', 'cozycozy']
+export const DEEPLINK_SOURCES = ['Airbnb', 'Gîtes de France', 'Booking.com', 'Expedia']
 
 /** Libellé du lien vers la centrale de réservation de la station. */
 export const OFFICIAL_SOURCE = 'Site officiel de la station'

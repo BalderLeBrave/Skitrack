@@ -167,7 +167,7 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
               >
               {(() => {
                 const shown = priceShown(lodging)
-                if (shown.unit === 'night') {
+                if (shown.unit === 'night' || shown.unit === 'week') {
                   return `${t('price_from')} ${eur(shown.amount)}`
                 }
                 return lodging.priceConfidence === 'partial'
@@ -178,22 +178,26 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
               <span className="u-muted" style={{ fontSize: 12 }}>
                 {priceShown(lodging).unit === 'night'
                   ? t('sheet_price_nightly')
+                  : priceShown(lodging).unit === 'week'
+                    ? t('sheet_price_weekly')
                   : lodging.priceConfidence === 'total_confirmed'
                     ? t('sheet_price_confirmed')
                     : lodging.priceConfidence === 'partial'
                       ? t('sheet_teaser_rate')
                       : t('sheet_price_unqualified')}{' '}
-                {priceShown(lodging).unit === 'night'
+                {priceShown(lodging).unit === 'night' || priceShown(lodging).unit === 'week'
                   ? `· ${state.travelers} pers.`
                   : `· ${nights} nuits · ${state.travelers} pers.`}
               </span>
               <span className="u-spacer" />
+              {priceShown(lodging).unit === 'stay' && lodging.pp > 0 ? (
               <span style={{ fontSize: 14 }}>
                 {eur(lodging.pp)}{' '}
                 <span className="u-muted" style={{ fontSize: 11 }}>
                   /pers/nuit
                 </span>
               </span>
+              ) : null}
             </div>
 
             {/*
@@ -464,6 +468,14 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                     : lodging.priceConfidence === 'partial'
                       ? t('sheet_price_teaser')
                       : t('sheet_price_to_confirm')}
+                </>
+              ) : priceShown(lodging).unit === 'week' ? (
+                <>
+                  {t('price_from')} {eur(priceShown(lodging).amount)} · {t('sheet_price_weekly')}
+                </>
+              ) : priceShown(lodging).unit === 'night' ? (
+                <>
+                  {t('price_from')} {eur(priceShown(lodging).amount)} · {t('sheet_price_nightly')}
                 </>
               ) : (
                 t('sheet_price_unpublished')

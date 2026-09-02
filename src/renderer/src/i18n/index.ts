@@ -496,6 +496,7 @@ const CATALOG = {
   price_unit_confirmed: ['séjour · {pp}/pers/nuit', 'stay · {pp}/pers/night'],
   price_unit_partial: ['indicatif · {pp}/pers/nuit — confirmer sur le site', 'indicative · {pp}/pers/night — confirm on site'],
   price_unit_nightly: ['par nuit — pas le séjour', 'per night — not the stay'],
+  price_unit_weekly: ['par semaine — tarif indicatif, pas le séjour', 'per week — indicative, not the stay'],
   price_badge_confirmed: ['Confirmé', 'Confirmed'],
   price_badge_partial: ['À partir de', 'From'],
   price_badge_confirmed_title: [
@@ -1840,6 +1841,7 @@ const CATALOG = {
   sheet_price_teaser: ['à partir de (tarif d’appel)', 'starting price (teaser rate)'],
   sheet_teaser_rate: ['tarif d’appel', 'teaser rate'],
   sheet_price_nightly: ['par nuit, pas un total de séjour', 'per night, not a stay total'],
+  sheet_price_weekly: ['indicatif / semaine, pas un total de séjour', 'indicative / week, not a stay total'],
   sheet_price_to_confirm: ['à confirmer sur le site', 'to be confirmed on the site'],
   sheet_price_unpublished: [
     'non publié — ouverture de la source pour le tarif',

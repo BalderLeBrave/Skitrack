@@ -70,6 +70,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
   const shown = priceShown(lg)
   const redirect = shown.unit === 'none'
   const nightly = shown.unit === 'night'
+  const weekly = shown.unit === 'week'
   const priceStale =
     !redirect &&
     lg.priceCheckIn != null &&
@@ -183,7 +184,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
         .join(' · ')
 
   const conf = lg.priceConfidence
-  const partial = conf === 'partial' || nightly
+  const partial = conf === 'partial' || nightly || weekly
   const price = redirect
     ? { amount: t('lodg_price_on_source').replace('{s}', srcOf(lg)), unit: '' }
     : nightly
@@ -191,7 +192,12 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
           amount: `${t('price_from')} ${eur(shown.amount)}`,
           unit: t('price_unit_nightly')
         }
-      : {
+      : weekly
+        ? {
+            amount: `${t('price_from')} ${eur(shown.amount)}`,
+            unit: t('price_unit_weekly')
+          }
+        : {
           amount: partial ? `${t('price_from')} ${eur(lg.total)}` : eur(lg.total),
           unit: partial
             ? t('price_unit_partial').replace('{pp}', eur(lg.pp))
@@ -233,6 +239,8 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
           ? ''
           : nightly
             ? `, ${t('price_from')} ${eur(shown.amount)} ${t('price_unit_nightly')}`
+            : weekly
+              ? `, ${t('price_from')} ${eur(shown.amount)} ${t('price_unit_weekly')}`
             : partial
               ? `, ${t('price_from')} ${eur(lg.total)}`
               : `, ${eur(lg.total)} ${t('price_all_in')}`
@@ -253,6 +261,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
             alt=""
             loading={index < 6 ? 'eager' : 'lazy'}
             decoding="async"
+            referrerPolicy="no-referrer"
             fetchPriority={index < 6 ? 'high' : 'low'}
             width={400}
             height={250}

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { isForbiddenListingHost } from '@shared/listingHosts'
 import { ComparePanel } from '@/components/ComparePanel'
 import { SkiSearchLoading } from '@/components/SkiSearchLoading'
 import { StayDatesField } from '@/components/StayDatesField'
@@ -10,7 +9,6 @@ import { LodgingFilters } from '@/components/LodgingFilters'
 import { useActiveLodgingFilters } from '@/components/activeLodgingFilters'
 import { LodgingMap } from '@/components/LodgingMap'
 import { LodgingSheet } from '@/components/LodgingSheet'
-import { REJECTED_ANCHOR, RejectedLodgings } from '@/components/RejectedLodgings'
 import { ResultGrid } from '@/components/ResultGrid'
 import { StayBar } from '@/components/StayBar'
 import { deepLinks } from '@/data/deeplinks'
@@ -35,7 +33,6 @@ import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { LODG_FILTER_RESET, stayCriteriaReady, useApp } from '@/state/appState'
-import { useGeoResolve } from '@/hooks/useGeoResolve'
 import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 
@@ -97,26 +94,6 @@ export function LodgingsPage(): JSX.Element {
   // sans l'annoncer. `voir tout le domaine` a disparu avec le bandeau ; on
   // rouvre la liste entière en coupant la synchronisation de la carte.
   const afterBounds = boundsActive ? derived.lodgList.filter(inBounds) : derived.lodgList
-  // Même exemption pour le masquage des positions invraisemblables : une bulle
-  // cliquée sur la carte doit se retrouver dans la liste, pas s'y évaporer.
-  const geoResolve = useGeoResolve()
-  /** Annonces affichées dont la position n'est pas relevée : épingle « ≈ ». */
-  /*
-   * Les annonces sans position, séparées selon ce qu'on peut réellement faire
-   * pour elles.
-   *
-   * `sansPositionLisibles` : leur page peut être lue, le bouton a un sens.
-   * `sansPositionRefusees` : leur hôte figure sur la liste de refus de
-   * `shared/listingHosts.ts`, et `src/main/listing.ts` rendra `blockedReason`
-   * sans émettre de requête. Les compter dans le bouton faisait proposer
-   * « Relever les positions (161) » là où le résultat était connu d'avance :
-   * 161 refus. Ce qui les comble est un relevé refait, qui rapporte les
-   * coordonnées depuis la page de résultats — c'est ce que la ligne dit.
-   */
-  const sansPosition = afterBounds.filter((lg) => lg.url && (lg.lat == null || lg.lon == null))
-  const sansPositionRefusees = sansPosition.filter((lg) => isForbiddenListingHost(lg.url))
-  const sansPositionLisibles = sansPosition.filter((lg) => !isForbiddenListingHost(lg.url))
-
   const visibleLodgings = state.hideBadGeo
     ? afterBounds.filter((lg) => lg.id === state.lodgPickId || geo.statusOf(lg).level !== 'bad')
     : afterBounds
@@ -786,14 +763,6 @@ export function LodgingsPage(): JSX.Element {
                   />
                 )}
 
-                {/* Les écartés ferment la liste : ils sont sous les offres
-                    retenues, jamais mêlés à elles, et le compteur de la barre
-                    de filtres y saute. */}
-                <RejectedLodgings
-                  rejected={derived.lodgRejected}
-                  compact={narrow || splitOpen}
-                  dense={state.density === 'compact'}
-                />
               </div>
             </div>
           )}
@@ -937,106 +906,10 @@ export function LodgingsPage(): JSX.Element {
                 .replace('{n}', String(derived.nights))
                 .replace('{p}', String(state.travelers))}
             </span>
-            {/* Compteur des écartés : il ne se contente pas d'annoncer un
-                nombre, il mène à la section qui le justifie. Sans ce saut,
-                l'écart entre ce que la source a renvoyé et ce que l'écran
-                montre resterait à chercher soi-même en bas de page. */}
-            {/* Les annonces qui n'annoncent pas ce que les critères demandent
-                sont AFFICHÉES par défaut, avec leur badge — le masquage est
-                l'option. La ligne nomme l'axe qui manque et ne promet que ce
-                qu'un relevé peut réellement combler : les pièces d'Airbnb et
-                de Booking ne sont jamais rapportées, la capacité peut l'être. */}
-            {derived.lodgUnannounced > 0 && (
-              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {t(state.lodgHideUnannounced ? 'lodg_unannounced_hidden' : 'lodg_unannounced_visible').replace(
-                  '{n}',
-                  String(derived.lodgUnannounced)
-                )}
-                {derived.lodgUnannouncedRooms > 0 && (
-                  <> {t('lodg_unannounced_rooms_axis').replace('{n}', String(derived.lodgUnannouncedRooms))}</>
-                )}
-                {derived.lodgUnannouncedCapacity > 0 && (
-                  <> {t('lodg_unannounced_capacity_axis').replace('{n}', String(derived.lodgUnannouncedCapacity))}</>
-                )}{' '}
-                <button
-                  type="button"
-                  className="linkbtn linkbtn--sm"
-                  onClick={() => patch({ lodgHideUnannounced: !state.lodgHideUnannounced })}
-                >
-                  {t(state.lodgHideUnannounced ? 'lodg_unannounced_show' : 'lodg_unannounced_hide')}
-                </button>
-              </p>
-            )}
-            {/* Pourquoi la distance aux pistes manque, quand elle manque. */}
             {accessNote && (
               <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
                 {accessNote}
               </p>
-            )}
-            {/* Rattachement hérité d'une ancienne numérotation, invérifiable. */}
-            {derived.lodgRattachementIncertain > 0 && (
-              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {t('lodg_attach_unverified').replace('{n}', String(derived.lodgRattachementIncertain))}
-              </p>
-            )}
-            {/* Hors de la zone du domaine : la position le dit, on le dit aussi. */}
-            {derived.lodgHorsZone > 0 && (
-              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {t('lodg_out_of_zone').replace('{n}', String(derived.lodgHorsZone))}
-              </p>
-            )}
-            {/* Le seul retrait non demandé par l'utilisateur — donc annoncé. */}
-            {derived.lodgSansPrix > 0 && (
-              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {t('lodg_no_price_ever').replace('{n}', String(derived.lodgSansPrix))}
-              </p>
-            )}
-            {/* Les épingles « ≈ » sont dispersées autour de la station faute
-                de position relevée. Deux cas, et deux phrases : la page peut
-                être lue — le bouton la lit, une requête par annonce, à la
-                demande — ou l'hôte refuse la lecture automatisée, et c'est
-                alors un relevé refait qui rapporte la position. */}
-            {(sansPosition.length > 0 || geoResolve.message) && (
-              <p className="u-muted" style={{ margin: '2px 0 0', fontSize: 12, flexBasis: '100%' }}>
-                {sansPositionLisibles.length > 0 && !geoResolve.busy && (
-                  <>
-                    {t('geo_resolve_help').replace('{n}', String(sansPositionLisibles.length))}{' '}
-                    <button
-                      type="button"
-                      className="linkbtn linkbtn--sm"
-                      onClick={() => void geoResolve.resoudre(sansPositionLisibles, d.engineId)}
-                    >
-                      {t('geo_resolve_btn').replace(
-                        '{n}',
-                        String(Math.min(sansPositionLisibles.length, 15))
-                      )}
-                    </button>
-                  </>
-                )}
-                {sansPositionRefusees.length > 0 && !geoResolve.busy && (
-                  <span style={{ display: 'block', marginTop: 2 }}>
-                    {t('geo_resolve_blocked').replace('{n}', String(sansPositionRefusees.length))}
-                  </span>
-                )}
-                {geoResolve.message && (
-                  <span style={{ display: 'block', marginTop: 2 }}>{geoResolve.message}</span>
-                )}
-              </p>
-            )}
-
-
-            {derived.lodgRejected.length > 0 && (
-              <button
-                type="button"
-                className="linkbtn lodgrej__jump"
-                onClick={() => {
-                  document
-                    .getElementById(REJECTED_ANCHOR)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-              >
-                {t('lodg_rejected_jump').replace('{n}', String(derived.lodgRejected.length))}
-              </button>
             )}
             <span className="u-spacer" />
             <button
@@ -1247,21 +1120,6 @@ export function LodgingsPage(): JSX.Element {
                   <LodgingCard key={lg.id} lodging={lg} domain={d} index={i} />
                 ))}
               </ResultGrid>
-              {/* Masquer sans le dire transformerait un doute sur la position
-                  en disparition silencieuse de l'offre. */}
-              {state.hideBadGeo && afterBounds.length > visibleLodgings.length && (
-                <p className="u-muted" style={{ fontSize: 12, margin: '10px 0 0' }}>
-                  {afterBounds.length - visibleLodgings.length} annonce(s) masquée(s) pour position
-                  invraisemblable —{' '}
-                  <button
-                    type="button"
-                    className="linkbtn linkbtn--sm"
-                    onClick={() => patch({ hideBadGeo: false })}
-                  >
-                    tout afficher
-                  </button>
-                </p>
-              )}
             </div>
 
             {splitOpen && (

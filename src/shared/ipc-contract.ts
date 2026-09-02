@@ -440,6 +440,8 @@ export interface ProviderAccommodation {
     policy?: string
   }[]
   nightlyPrice?: number
+  /** Gîtes : « À partir de N € /semaine », pas le séjour. */
+  weeklyPrice?: number
   totalPrice?: number
   currency?: string
   rating?: number
@@ -457,6 +459,8 @@ export interface ProviderAccommodation {
   ratingScale?: number
   reviewCount?: number
   images?: string[]
+  /** Libellé de type publié (tuile Gîtes « Gîte » / « Gîte de groupe »). */
+  propertyType?: string
   availabilityStatus: 'available' | 'unavailable' | 'unknown' | 'listing_gone'
   priceConfidence: 'total_confirmed' | 'partial' | 'unknown'
   /** Dates du séjour pour lesquelles le prix a été relevé (AAAA-MM-JJ). */

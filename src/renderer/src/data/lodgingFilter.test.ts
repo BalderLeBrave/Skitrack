@@ -13,6 +13,7 @@
 
 import {
   fitsParty,
+  isDroppedGitesOffer,
   matchesDemand,
   matchesLodgingFilters,
   normalizedBedrooms,
@@ -477,7 +478,7 @@ check(
   matchesLodgingFilters(confirme({ total: 0 }), CRITERIA, STAY)
 )
 
-console.log('\n10b. CozyCozy : tarif par nuit, pas un séjour de 89 €')
+console.log('\n10b. Tarif par nuit : jamais un séjour confirmé')
 check(
   '89 €/nuit n’est pas un prix de séjour confirmé',
   !matchesLodgingFilters(
@@ -486,34 +487,95 @@ check(
     STAY
   )
 )
-check(
-  '89 €/nuit s’affiche quand on n’exige pas un séjour confirmé',
-  matchesLodgingFilters(
-    confirme({ total: 0, nightly: 89, priceConfidence: 'partial' }),
-    CRITERIA,
-    STAY
-  )
-)
 
-console.log('\n10c. Relevé CozyCozy : un tarif nuit remplace un faux total de séjour')
-const fauxSejour = lodging({
-  url: 'https://www.cozycozy.com/fr/x',
-  src: 'cozycozy',
+console.log('\n10c. CozyCozy n’est plus une source — cartes purgées à la fusion')
+const cozyCard = lodging({
+  url: 'https://www.cozycozy.com/fr/search/x',
+  src: 'cozycozy-web',
+  srcConnector: 'cozycozy-web',
   total: 89,
   priceConfidence: 'unknown'
 })
-const vraiNuit = lodging({
-  url: 'https://www.cozycozy.com/fr/x',
-  src: 'cozycozy',
+check(
+  'une carte CozyCozy déjà enregistrée est purgée',
+  mergeProviderReadings([cozyCard], []).length === 0
+)
+
+console.log('\n10c-bis. Gîte de groupe — hors liste, même avec séjour daté')
+const groupeCard = lodging({
+  src: 'Gîtes de France',
+  type: 'Gîte',
+  url: 'https://www.gites-de-france.com/fr/isere/gite-de-groupe-alpe-38g253115',
+  pers: 50,
+  ch: 12,
+  total: 2100,
+  priceConfidence: 'total_confirmed'
+})
+check('URL gite-de-groupe écartée', isDroppedGitesOffer(groupeCard) === true)
+check(
+  'filtre UI écarte le gîte de groupe',
+  matchesLodgingFilters(groupeCard, { ...CRITERIA, confirmedPricesOnly: true, includeUnannounced: false }, STAY) === false
+)
+check(
+  'matchesDemand écarte le gîte de groupe',
+  matchesDemand(groupeCard, { guests: 8, bedrooms: 4, datesSet: true }) === false
+)
+check(
+  'fusion purge un gîte de groupe déjà enregistré',
+  mergeProviderReadings([groupeCard], []).length === 0
+)
+const giteOk = lodging({
+  src: 'Gîtes de France',
+  type: 'Gîte',
+  url: 'https://www.gites-de-france.com/fr/isere/chalet-les-copains-38g253122',
+  pers: 14,
+  ch: 5,
+  total: 4261.52,
+  priceConfidence: 'total_confirmed'
+})
+check('Gîte individuel (Copains 14 pers.) conservé', isDroppedGitesOffer(giteOk) === false)
+const fauxSejour = lodging({
+  url: 'https://www.booking.com/hotel/fr/x.html',
+  src: 'Booking.com',
+  total: 2448.4,
+  priceConfidence: 'total_confirmed'
+})
+const relevéMuet = lodging({
+  url: 'https://www.booking.com/hotel/fr/x.html',
+  src: 'Booking.com',
   total: 0,
   nightly: 89,
-  pp: 11.1,
   priceConfidence: 'partial'
 })
-const fusionNuit = mergeProviderReadings([fauxSejour], [vraiNuit])
-check('le faux 89 € séjour disparaît', fusionNuit[0].total === 0, fusionNuit[0].total)
-check('le tarif 89 €/nuit est conservé', fusionNuit[0].nightly === 89, fusionNuit[0].nightly)
-check('la confiance passe en partial', fusionNuit[0].priceConfidence === 'partial')
+const fusionMuet = mergeProviderReadings([fauxSejour], [relevéMuet])
+check('un relevé sans séjour ne gomme pas le total confirmé', fusionMuet[0].total === 2448.4)
+
+console.log('\n10d. Gîtes : tarif /semaine indicatif, pas un séjour de 1700 €')
+check(
+  '1700 €/semaine n’est pas un prix de séjour confirmé',
+  !matchesLodgingFilters(
+    confirme({ total: 0, weekly: 1700, priceConfidence: 'partial' }),
+    STRICT,
+    STAY
+  )
+)
+const itea = lodging({
+  url: 'https://www.gites-de-france.com/fr/x',
+  src: 'Gîtes de France',
+  srcConnector: 'gites-web',
+  total: 2448.4,
+  priceConfidence: 'total_confirmed'
+})
+const teaser = lodging({
+  url: 'https://www.gites-de-france.com/fr/x',
+  src: 'Gîtes de France',
+  srcConnector: 'gites-web',
+  total: 0,
+  weekly: 1700,
+  priceConfidence: 'partial'
+})
+const fusionItea = mergeProviderReadings([itea], [teaser])
+check('le teaser /semaine ne remplace pas le total ITEA', fusionItea[0].total === 2448.4)
 
 console.log('\n11. Notes ramenées sur 5, quelle que soit l’échelle de la source')
 check('Booking 8,2 sur 10 devient 4,1', noteOnFive(8.2, 10) === '4,1', noteOnFive(8.2, 10))
@@ -561,7 +623,7 @@ check(
 )
 check(
   '1 chambre demandée, studio + capacité OK → retenu',
-  matchesDemand(lodging({ pers: 2, ch: 0, rooms: 1, type: 'Studio', total: 500 }), {
+  matchesDemand(lodging({ pers: 2, ch: 0, rooms: 1, type: 'Studio', total: 500, availabilityStatus: 'available' }), {
     guests: 2,
     bedrooms: 1,
     datesSet: true

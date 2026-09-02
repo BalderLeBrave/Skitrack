@@ -1,13 +1,13 @@
 /**
  * Scrapers web multi-sources (repli hors API).
  *
- * Sources : Booking, Expedia, Gîtes de France, CozyCozy, VRBO.
+ * Sources : Booking, Expedia, Gîtes de France, VRBO.
+ * CozyCozy n'est pas une source (doublon). Tourinsoft non plus.
  * Airbnb reste dans providers/airbnb (pipeline dédié marque-page / deferred-state).
  */
 
 export {
   createBookingWebProvider,
-  createCozycozyWebProvider,
   createExpediaWebProvider,
   createGitesWebProvider,
   createVrboWebProvider,

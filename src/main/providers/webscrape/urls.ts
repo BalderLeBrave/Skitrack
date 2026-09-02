@@ -172,6 +172,8 @@ export function gitesSearchUrl(params: SearchParams, offset = 0): string {
   }
   if (params.checkIn) u.searchParams.set('date-start', params.checkIn)
   if (params.checkOut) u.searchParams.set('date-end', params.checkOut)
+  // Dump gites_towns_50301.html : Gîte only. Pas chambre d'hôtes, pas groupe.
+  u.searchParams.set('f[0]', 'type:36172')
   if (params.children) u.searchParams.set('children', String(params.children))
   const page = offset + 1
   if (page > 1) u.searchParams.set('page', String(page))

@@ -25,6 +25,7 @@ import { domainZone, filterToZone } from '@shared/geo'
 import { inRange, inRangeOrNull, rangeOpen } from '@/data/range'
 import { fitsParty, hasConfirmedPrice, matchesLodgingFilters, partyVerdict } from '@/data/lodgingFilter'
 import type { LodgingFilterCriteria } from '@/data/lodgingFilter'
+import { isDroppedListingSource } from '@/data/runProviderSearch'
 import { stationOwning } from '@/data/stationList'
 import type { Domain, Forfait } from '@/data/referentiel'
 import { estimateForfait, forfaitIndexByArea, forfaitIndexBySlug, hasCoords } from '@/data/referentiel'
@@ -687,7 +688,9 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
      * traite ce qui est déjà enregistré, et protège des mêmes surprises.
      */
     const lodgSansPrix = lodgRaw.filter((lg) => !hasPricedOffer(lg)).length
-    const lodgOffres = lodgRaw.filter((lg) => hasPricedOffer(lg))
+    const lodgOffres = lodgRaw
+      .filter((lg) => hasPricedOffer(lg))
+      .filter((lg) => !isDroppedListingSource(lg.src, lg.url) && !isDroppedListingSource(lg.srcConnector, lg.url))
     const lodgAll = mergeDupesList(lodgOffres, state.mergeDupes)
     const dupMerged = lodgRaw.length - lodgAll.length
 
@@ -706,13 +709,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const lodgCriteria: LodgingFilterCriteria = {
       travelers: state.travelers,
       rooms: state.rooms,
-      // Redevenu un réglage le 2026-08-30, éteint par défaut. Câblé à `true`,
-      // il retirait des annonces sans que rien à l'écran ne dise combien : le
-      // raisonnement — « l'afficher demandait d'aller vérifier ce que
-      // l'application savait déjà » — supposait que l'application le savait,
-      // alors qu'elle sait seulement que son dernier relevé ne l'a pas vue.
-      // La vignette porte l'avertissement (`components/LodgingCard.tsx`).
-      onlyAvailable: state.lodgOnlyAvailable,
+      onlyAvailable: true,
       freeCancelOnly: state.lodgAnnul,
       budgetMin: state.lodgBudgetMin,
       budgetMax: state.lodgBudgetMax,
@@ -722,10 +719,8 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       distCeiling: FILTER_RANGES.lodgDist.max,
       types: state.lodgTypes,
       srcOff: state.lodgSrcOff,
-      // Même histoire, même date : un prix relevé pour d'autres dates est une
-      // information périmée, affichée comme telle, pas un motif de disparition.
-      confirmedPricesOnly: state.lodgConfirmedPrices,
-      includeUnannounced: !state.lodgHideUnannounced
+      confirmedPricesOnly: true,
+      includeUnannounced: false
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
 

@@ -6,8 +6,9 @@
  * est présente : ces providers web sont destinés au mode « scrape » explicite.
  */
 
-import type { Page } from 'playwright'
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
+import type { Page } from 'playwright'
+import type { PaginationReport, StoppedReason } from '@shared/reasonCodes'
 import {
   extractBookingCards,
   extractCozycozyCards,
@@ -32,10 +33,26 @@ import {
   bookingSearchUrl,
   cozycozySearchUrl,
   expediaSearchUrl,
-  gitesSearchUrl,
-  vrboSearchUrl
+  gitesSearchUrl
 } from './urls'
-import type { PaginationReport, StoppedReason } from '@shared/reasonCodes'
+import {
+  applyGitesClientContract,
+  classifyGitesTypology,
+  gitesCodeFromUrl,
+  gitesDatesNotFillable,
+  gitesQuoteFailed,
+  gitesResaForm,
+  gitesWidgetUrl,
+  interpretGitesQuoteBody,
+  isKeptIndividualGiteOffer,
+  isoToFrDate,
+  parseGitesWidgetContext
+} from './gitesFichePrice'
+import {
+  cozyHitsToRawCards,
+  isVrboFamilyProvider,
+  parseCozyResultPayloads
+} from './cozyResultList'
 
 function mapCards(
   source: string,
@@ -45,7 +62,25 @@ function mapCards(
   const out: Accommodation[] = []
   for (const c of cards) {
     if (!c.title || !c.url) continue
-    const { totalPrice, nightlyPrice } = webscrapePriceFields(source, c.priceText)
+    if (/cozycozy\.com/i.test(c.url)) continue
+    if (source === 'gites-web' && !isKeptIndividualGiteOffer({ type: c.propertyType, url: c.url })) {
+      continue
+    }
+    const parsed = webscrapePriceFields(source, c.priceText)
+    // Gîtes tuile = /semaine, jamais un total. Le séjour arrive du widget ITEA.
+    const totalPrice =
+      typeof c.stayAmount === 'number' && c.stayAmount > 0
+        ? Math.round(c.stayAmount * 100) / 100
+        : source === 'gites-web'
+          ? undefined
+          : parsed.totalPrice
+    // VRBO : séjour daté + occupancy obligatoires. Gîtes : tuile d'abord,
+    // le total ITEA arrive ensuite sur la fiche.
+    if (source === 'vrbo-web') {
+      if (totalPrice == null || totalPrice <= 0) continue
+      if (c.guests == null || c.bedrooms == null) continue
+    }
+    const { nightlyPrice, weeklyPrice } = parsed
     const rating = c.ratingText ? parseFloat(c.ratingText.replace(',', '.')) : undefined
     out.push(
       baseAccommodation(
@@ -59,10 +94,12 @@ function mapCards(
           // JSON-LD de la page. Absente, le champ reste vide — jamais fabriqué.
           latitude: c.lat,
           longitude: c.lon,
-          // CozyCozy : tarif par nuit. Les autres sources : total de séjour
-          // tel que la carte le publie. On ne multiplie jamais nightly × nuits.
+          // Abritel/VRBO via getResultList : total séjour daté.
+          // Gîtes tuile : indicatif /semaine, remplacé par le widget ITEA.
+          // On ne multiplie jamais nightly × nuits ni weekly × semaines.
           totalPrice,
           nightlyPrice,
+          weeklyPrice,
           currency: 'EUR',
           rating: Number.isFinite(rating) ? rating : undefined,
           // Taille du bien, telle que la page de résultats l'écrit. Ces champs
@@ -78,6 +115,7 @@ function mapCards(
           // `pers` valait toujours 0 et que `partyVerdict` classait toutes les
           // annonces relevées en « non annoncé ».
           guests: c.guests,
+          propertyType: c.propertyType,
           images: c.image ? [c.image] : undefined,
           searchPageIndex: c.pageIndex,
           searchRank: c.searchRank
@@ -87,6 +125,33 @@ function mapCards(
     )
   }
   return out
+}
+
+/**
+ * Intercepte getResultList / getResults sur la SERP datée CozyCozy.
+ * Dump 2026-09-02 : occupancy, total séjour, GPS, photos, providerCode.
+ */
+async function collectCozyApiHits(page: Page, url: string, timeoutMs: number): Promise<RawCard[]> {
+  const payloads: unknown[] = []
+  const onResponse = async (res: { url: () => string; json: () => Promise<unknown> }): Promise<void> => {
+    if (!/\/api\/(getResultList|getResults)(?:\?|$)/.test(res.url())) return
+    try {
+      payloads.push(await res.json())
+    } catch {
+      /* corps non JSON : on ignore */
+    }
+  }
+  page.on('response', onResponse)
+  try {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+    const until = Date.now() + Math.min(16_000, timeoutMs)
+    while (payloads.length === 0 && Date.now() < until) await sleep(400)
+    await scrollToEnd(page)
+    await sleep(1800)
+  } finally {
+    page.off('response', onResponse)
+  }
+  return cozyHitsToRawCards(parseCozyResultPayloads(payloads))
 }
 
 async function loadAndExtract(
@@ -375,9 +440,7 @@ export function createBookingWebProvider(opts?: ScrapeAttemptOptions): Accommoda
  * résultat, Gîtes de France et CozyCozy en numéro de page.
  */
 const EXPEDIA_PAGE_SIZE = 50
-const VRBO_PAGE_SIZE = 50
 const GITES_PAGE_STEP = 1
-const COZYCOZY_PAGE_STEP = 1
 
 export function createExpediaWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
   return makeProvider(
@@ -390,27 +453,253 @@ export function createExpediaWebProvider(opts?: ScrapeAttemptOptions): Accommoda
 }
 
 export function createGitesWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
-  return makeProvider('gites-web', gitesSearchUrl, extractGitesCards, GITES_PAGE_STEP, opts)
+  const base = makeProvider('gites-web', gitesSearchUrl, extractGitesCards, GITES_PAGE_STEP, opts)
+  return {
+    name: 'gites-web',
+    async search(params: SearchParams): Promise<Accommodation[]> {
+      const list = await base.search(params)
+      return enrichGitesStayTotals(list, params, opts)
+    },
+    health: () =>
+      base.health?.() ??
+      Promise.resolve({
+        name: 'gites-web',
+        reachable: true,
+        detail: 'Gîtes de France — devis ITEA daté, gîtes seulement'
+      })
+  }
 }
 
-export function createCozycozyWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
-  return makeProvider(
-    'cozycozy-web',
-    cozycozySearchUrl,
-    extractCozycozyCards,
-    COZYCOZY_PAGE_STEP,
-    opts
-  )
+const GITES_ENRICH_BUDGET_MS = 180_000
+const GITES_ENRICH_LIMIT = 40
+
+/**
+ * Tuile Gîtes = « À partir de N € /semaine ». Le total daté n'existe qu'après
+ * POST gereResa.php (dump catalogue : Copains 4261,52 ≠ 1330, Centaurée
+ * 2899,36 ≠ 1400, Feuillardiers 1898,40 ≠ 950). Sans devis, hors liste.
+ * Typologie / capacité / chambres filtrées avant et après devis.
+ */
+async function enrichGitesStayTotals(
+  list: Accommodation[],
+  params: SearchParams,
+  opts?: ScrapeAttemptOptions
+): Promise<Accommodation[]> {
+  const deb = isoToFrDate(params.checkIn)
+  const fin = isoToFrDate(params.checkOut)
+  if (!deb || !fin || !params.checkIn || !params.checkOut) return []
+  const adults = Math.max(1, params.adults ?? 2)
+  const bedrooms = params.bedrooms ?? 0
+
+  const eligible = list.filter((a) => {
+    if (!gitesCodeFromUrl(a.url)) return false
+    const typ = classifyGitesTypology({ type: a.propertyType, url: a.url })
+    if (typ !== 'gite') return false
+    if (a.guests == null || a.bedrooms == null) return false
+    if (a.guests < adults) return false
+    if (a.bedrooms < bedrooms) return false
+    return true
+  })
+  const need = eligible.slice(0, GITES_ENRICH_LIMIT)
+  if (need.length === 0) return []
+
+  const timeoutMs = opts?.timeoutMs ?? 45_000
+  const headless = opts?.headless !== false
+  const deadline = Date.now() + GITES_ENRICH_BUDGET_MS
+  const quoted = new Map<
+    string,
+    { total?: number; unavailable?: boolean; ident?: string }
+  >()
+  try {
+    await withPage(headless, async (page) => {
+      for (const card of need) {
+        if (Date.now() >= deadline) break
+        const code = gitesCodeFromUrl(card.url)
+        if (!code) continue
+        try {
+          await page.goto(gitesWidgetUrl(code), {
+            waitUntil: 'domcontentloaded',
+            timeout: Math.min(timeoutMs, 20_000)
+          })
+          await sleep(900)
+          const html = await page.content()
+          const ctx = parseGitesWidgetContext(html)
+          if (!ctx) continue
+          const identTyp = classifyGitesTypology({ ident: ctx.ident, url: card.url })
+          if (identTyp !== 'gite') {
+            quoted.set(card.url, { unavailable: true, ident: ctx.ident })
+            continue
+          }
+          const body = await page.evaluate(
+            async (args: { formExo: string; formTab: string }) => {
+              const post = async (form: string) => {
+                const res = await fetch('/lib_2/ajax/gereResa.php', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: form
+                })
+                return res.text()
+              }
+              const exo = await post(args.formExo)
+              let exercice = ''
+              try {
+                const j = JSON.parse(exo) as { exercice?: string }
+                if (j.exercice) exercice = String(j.exercice)
+              } catch {
+                /* HTML ou vide */
+              }
+              const tabForm = exercice
+                ? args.formTab.replace(/exercice=[^&]*/, `exercice=${encodeURIComponent(exercice)}`)
+                : args.formTab
+              return post(tabForm)
+            },
+            {
+              formExo: gitesResaForm(ctx, {
+                dateDeb: deb,
+                dateFin: fin,
+                adults,
+                type: 'getExerciceByDateFin'
+              }),
+              formTab: gitesResaForm(ctx, {
+                dateDeb: deb,
+                dateFin: fin,
+                adults,
+                type: 'getHTMLTabPrixFormulesSejour'
+              })
+            }
+          )
+          const parsed = interpretGitesQuoteBody(body)
+          if (parsed.price_firm && parsed.stay) {
+            quoted.set(card.url, { total: parsed.stay, ident: ctx.ident })
+          } else if (
+            gitesDatesNotFillable(body) ||
+            gitesQuoteFailed(body) ||
+            !parsed.available
+          ) {
+            quoted.set(card.url, { unavailable: true, ident: ctx.ident })
+          }
+        } catch {
+          /* une fiche rate : pas de teaser /semaine — on n'invente pas le séjour */
+        }
+      }
+    })
+  } catch {
+    return []
+  }
+
+  const catalog = need.map((a) => {
+    const q = quoted.get(a.url)
+    return {
+      listing_id: a.url,
+      ident: q?.ident,
+      property_type: a.propertyType,
+      url: a.url,
+      guests: a.guests ?? null,
+      bedrooms: a.bedrooms ?? null,
+      price_from: a.weeklyPrice ?? null,
+      quote: q?.total
+        ? {
+            check_in: params.checkIn!,
+            check_out: params.checkOut!,
+            guests: adults,
+            stay: q.total,
+            available: true
+          }
+        : {
+            check_in: params.checkIn!,
+            check_out: params.checkOut!,
+            guests: adults,
+            stay: null,
+            available: false
+          }
+    }
+  })
+  const verdict = applyGitesClientContract(catalog, {
+    check_in: params.checkIn,
+    check_out: params.checkOut,
+    guests: adults,
+    bedrooms
+  })
+  const byUrl = new Map(list.map((a) => [a.url, a]))
+  return verdict.shown.flatMap((kept) => {
+    const a = byUrl.get(kept.listing_id)
+    if (!a) return []
+    return [
+      {
+        ...a,
+        totalPrice: kept.price_total_stay_amount,
+        weeklyPrice: undefined,
+        nightlyPrice: undefined,
+        priceConfidence: 'total_confirmed' as const,
+        availabilityStatus: 'available' as const
+      }
+    ]
+  })
 }
 
+/**
+ * Abritel / VRBO : vrbo.com = 429. Inventaire lu via getResultList
+ * (providerCode=abritel uniquement). CozyCozy n'émet aucune carte propre.
+ */
 export function createVrboWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
-  return makeProvider('vrbo-web', vrboSearchUrl, extractVrboCards, VRBO_PAGE_SIZE, opts)
+  const name = 'vrbo-web'
+  const timeoutMs = opts?.timeoutMs ?? 45_000
+  const headless = opts?.headless !== false
+  return {
+    name,
+    async search(params: SearchParams): Promise<Accommodation[]> {
+      return withRetries(name, opts ?? {}, async (attempt) => {
+        let blocked: Error | null = null
+        const cards = await withPage(
+          headless,
+          async (page) => {
+            /*
+             * vrbo.com / abritel.fr SERP = 429 « Bot or Not? » (dump 2026-09-01).
+             * L'inventaire Abritel est déjà dans CozyCozy getResultList
+             * (providerCode=abritel, total séjour, photo, GPS, capacité).
+             */
+            const url = cozycozySearchUrl(params)
+            let collected = (await collectCozyApiHits(page, url, timeoutMs)).filter((c) =>
+              isVrboFamilyProvider(undefined, undefined, c.url)
+            )
+            if (collected.length === 0) {
+              collected = (await page.evaluate(extractCozycozyCards)).filter((c) =>
+                isVrboFamilyProvider(undefined, undefined, c.url)
+              )
+            }
+            if (collected.length === 0) {
+              collected = (await page.evaluate(extractVrboCards)).filter((c) =>
+                isVrboFamilyProvider(undefined, undefined, c.url)
+              )
+            }
+            if (collected.length === 0) {
+              blocked = (await looksBlocked(page))
+                ? new Error(`${name}: relevé refusé par la source (captcha ou blocage anti-robot)`)
+                : new Error(
+                    `${name}: Abritel/VRBO absent du relevé CozyCozy — vrbo.com reste en 429`
+                  )
+            }
+            return collected
+          },
+          attempt > 1
+        )
+        const list = mapCards(name, cards, params)
+        if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
+        return list
+      })
+    },
+    async health(): Promise<import('../types').ProviderHealth> {
+      return {
+        name,
+        reachable: true,
+        detail: 'Abritel/VRBO via CozyCozy getResultList (vrbo.com 429)'
+      }
+    }
+  }
 }
 
 export const WEB_SCRAPE_PROVIDER_NAMES = [
   'booking-web',
   'expedia-web',
   'gites-web',
-  'cozycozy-web',
   'vrbo-web'
 ] as const

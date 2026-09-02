@@ -4,8 +4,7 @@
  * Politique produit (barrières Claude retirées, 2026-09-01) :
  *
  * - Airbnb, Booking, VRBO / Abritel, Gîtes de France : lisibles.
- *   `FORBIDDEN_LISTING_HOSTS` est vide ; on n'écarte plus un hôte au nom
- *   de ses CGU.
+ *   CozyCozy est interdit (doublon Airbnb / Booking / Gîtes).
  * - `robots.txt` n'est pas un veto interne (`robots.ts` est permissif).
  * - User-Agent Chrome desktop, pas un identifiant d'application.
  * - Le rendu Playwright réutilise le contexte stealth / proxy de

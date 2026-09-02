@@ -149,6 +149,8 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
       const pin =
         shown.unit === 'night'
           ? `${shown.amount} €/n`
+          : shown.unit === 'week'
+            ? `${shown.amount} €/sem`
           : `${fmt(shown.amount)} €`
       el.textContent = `${positionEstimee ? '≈ ' : ''}${pin}`
       // Cliquer une bulle **met en avant**, cela n'ouvre pas la fiche : ce sont

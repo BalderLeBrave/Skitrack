@@ -12,6 +12,11 @@ export interface RawCard {
   ratingText?: string
   image?: string
   /**
+   * Total séjour déjà chiffré (getResultList). Si présent, mapCards
+   * l'utilise tel quel — parsePrice arrondit à l'euro et perdrait 3363,28.
+   */
+  stayAmount?: number
+  /**
    * Position publiée par la page de résultats, quand elle la porte.
    *
    * Booking l'embarque dans son magasin Apollo (voir `extractBookingCards`) ;
@@ -53,7 +58,8 @@ export interface RawCard {
    * dans une chambre double.
    */
   guests?: number
-  /** Page 0-based dans la SERP, posée par `collectPages`, pas par l'extracteur. */
+  /** Libellé tuile Gîtes (`.g2f-accommodationTile-text-type`). */
+  propertyType?: string
   pageIndex?: number
   searchRank?: number
 }
@@ -345,6 +351,7 @@ export function extractGitesCards(): RawCard[] {
     const href = link?.href
     if (!href || !href.includes('gites-de-france')) return
     if (!/\/fr\/.+/.test(href)) return
+    if (/gite[-_]de[-_]groupe|gite[-_]de[-_]sejour|chambre[-_]d[-_]hotes/i.test(href)) return
     const sourceId = href.replace(/\/$/, '').split('/').pop()?.split('?')[0] || href
     if (seen.has(sourceId)) return
     seen.add(sourceId)
@@ -354,17 +361,36 @@ export function extractGitesCards(): RawCard[] {
       link?.textContent?.trim() ||
       ''
     if (!title || title.length < 3) return
+    /*
+     * Dump `gites_towns_50301.html` : facet type:36172 = Gîte.
+     * Chambre d'hôtes (36174) et Gîte de groupe (36171) sont exclus.
+     * La tuile porte `.g2f-accommodationTile-text-type` (« Gîte »).
+     */
+    const typeLabel =
+      node.querySelector('.g2f-accommodationTile-text-type')?.textContent?.replace(/\s+/g, ' ').trim() ||
+      ''
+    const typeFold = typeLabel
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+    if (!typeFold || /chambre/.test(typeFold) || /groupe/.test(typeFold) || !/\bgites?\b/.test(typeFold)) {
+      return
+    }
+    const priceBox = node.querySelector('.g2f-accommodationTile-text-price')
     const priceText =
-      node.querySelector('.g2f-accommodationTile-text-price-new')?.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0] ||
+      priceBox?.textContent?.replace(/\s+/g, ' ').trim() ||
+      node.querySelector('.g2f-accommodationTile-text-price-new')?.textContent?.replace(/\s+/g, ' ').trim() ||
+      node.textContent?.match(/(?:À|A)\s+partir\s+de\s+\d[\d\s.,]*\s*€[^.]{0,20}/i)?.[0] ||
       node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
     /*
      * Un résultat sans prix n'est pas un résultat.
      *
      * Dump 2026-09-01 21:47 (`gites_towns_50301`) : les cartes sont
      * `.js-search-tile` / `.g2f-accommodationTile`, pas `.gite-card`.
-     * Le prix est sur la tuile (`g2f-accommodationTile-text-price-new`).
-     * L’ancien sélecteur `a[href*="/fr/"]` prenait le menu et l’image, sans
-     * prix → 0 carte sur une SERP de 33.
+     * Le prix est sur la tuile (`g2f-accommodationTile-text-price`) :
+     * « À partir de 800 € par semaine » — cache teaser, pas le séjour.
+     * On garde « À partir de » / « par semaine » pour ne pas ranger 800 €
+     * en total de séjour.
      */
     if (!priceText) return
     const img = (node.querySelector('img') as HTMLImageElement | null)?.src
@@ -381,6 +407,7 @@ export function extractGitesCards(): RawCard[] {
       url: href,
       priceText,
       image: img,
+      propertyType: typeLabel,
       lat: pos?.lat,
       lon: pos?.lon,
       // « 6 personnes », « Capacité : 4 personnes » — Gîtes de France affiche la
@@ -429,6 +456,21 @@ export function extractCozycozyCards(): RawCard[] {
     }
   })
 
+  const photoOfNode = (node: Element): string | undefined => {
+    const imgEl = node.querySelector('img') as HTMLImageElement | null
+    if (!imgEl) return undefined
+    const raw =
+      imgEl.currentSrc ||
+      imgEl.getAttribute('src') ||
+      imgEl.getAttribute('data-src') ||
+      imgEl.getAttribute('data-lazy-src') ||
+      imgEl.srcset?.split(',')[0]?.trim().split(/\s+/)[0] ||
+      undefined
+    if (!raw) return undefined
+    if (/placeholder|blank|spacer|data:image\/gif|1x1/i.test(raw)) return undefined
+    return raw
+  }
+
   /*
    * Dump 2026-09-02 (cozy-dated-cards.json) : SERP `/search/{lieu}/{dates}/{ch-ad-enf}/results`.
    * Cartes `joli-resultitem`, prix `.pricetag-stacked` « 6692 € pour 7 nuits »,
@@ -449,13 +491,12 @@ export function extractCozycozyCards(): RawCard[] {
     const raw =
       node.querySelector('.content-wrapper')?.textContent?.replace(/\s+/g, ' ').trim() || ''
     const title = raw.replace(/Voir l['’]offre.*$/i, '').trim().slice(0, 80) || 'Offre CozyCozy'
-    const img = (node.querySelector('img') as HTMLImageElement | null)?.src
     out.push({
       sourceId,
       title,
       url: href,
       priceText,
-      image: img
+      image: photoOfNode(node)
     })
   })
 
@@ -479,7 +520,6 @@ export function extractCozycozyCards(): RawCard[] {
       (a.textContent || '').includes(title.slice(0, 24))
     ) as HTMLAnchorElement | undefined
     const href = hash?.href || `${location.origin}${location.pathname}#${encodeURIComponent(sourceId)}`
-    const img = (node.querySelector('img') as HTMLImageElement | null)?.src
     const texte = node.textContent || ''
     const lire = (m: RegExpExecArray | null): number | undefined => {
       if (!m) return undefined
@@ -491,7 +531,7 @@ export function extractCozycozyCards(): RawCard[] {
       title,
       url: href,
       priceText,
-      image: img,
+      image: photoOfNode(node),
       guests: lire(/(\d+)\s*(?:voyageurs?|personnes?|guests?)/i.exec(texte)),
       bedrooms: lire(/(\d+)\s*(?:chambres?|bedrooms?)/i.exec(texte))
     })
@@ -519,7 +559,6 @@ export function extractCozycozyCards(): RawCard[] {
     // ranger ce montant en total de séjour.
     const priceText = node.textContent?.match(/\d[\d\s.,]*\s*€(?:\s*\/\s*nuit)?/i)?.[0]
     if (!priceText) return
-    const img = (node.querySelector('img') as HTMLImageElement | null)?.src
     const texte = node.textContent || ''
     const lire = (m: RegExpExecArray | null): number | undefined => {
       if (!m) return undefined
@@ -532,7 +571,7 @@ export function extractCozycozyCards(): RawCard[] {
       title,
       url: href,
       priceText,
-      image: img,
+      image: photoOfNode(node),
       lat: pos?.lat,
       lon: pos?.lon,
       guests: lire(/(\d+)\s*(?:voyageurs?|personnes?|guests?)/i.exec(texte)),
@@ -622,7 +661,14 @@ export function extractVrboCards(): RawCard[] {
       // navigation jamais. C'est le discriminant qui se vérifie sur la page.
       if (!priceText) return
 
-      const img = (root.querySelector('img') as HTMLImageElement | null)?.src
+      const imgEl = root.querySelector('img') as HTMLImageElement | null
+      const img =
+        imgEl?.currentSrc ||
+        imgEl?.getAttribute('src') ||
+        imgEl?.getAttribute('data-src') ||
+        imgEl?.getAttribute('data-lazy-src') ||
+        imgEl?.srcset?.split(',')[0]?.trim().split(/\s+/)[0] ||
+        undefined
       const lire = (m: RegExpExecArray | null): number | undefined => {
         if (!m) return undefined
         const n = Number(m[1])

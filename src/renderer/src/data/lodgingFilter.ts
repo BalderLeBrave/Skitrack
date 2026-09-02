@@ -24,6 +24,31 @@ import { srcOf } from './lodgings'
 import { isBookable, isDoorway, type Stay } from './lodgingAvailability'
 import { inRange } from './range'
 
+function foldType(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+}
+
+/**
+ * Gîte de groupe, gîte de séjour, chambre d'hôtes : hors liste.
+ *
+ * Preuve = libellé de type **ou** chemin SEO (`/gite-de-groupe-`,
+ * `/chambre-d-hotes-`). Un libellé « Gîte » ne sauve pas une URL de groupe.
+ * Copains (14 pers., ident .G) reste un Gîte.
+ */
+export function isDroppedGitesOffer(
+  listing: Pick<Lodging, 'src' | 'url' | 'type'>
+): boolean {
+  const src = foldType(srcOf(listing))
+  const isGites = src.includes('gite')
+  const blob = foldType(`${listing.type ?? ''} ${listing.url ?? ''}`)
+  if (/gites?[-_ /]*de[-_ ]*groupe|gite[-_ ]de[-_ ]sejour/.test(blob)) return true
+  if (isGites && /chambre[-_ ]d[-_ ]?hotes/.test(blob)) return true
+  return false
+}
+
 export interface LodgingFilterCriteria {
   /** Taille du groupe : `travelers` couchages au minimum. */
   travelers: number
@@ -204,13 +229,14 @@ export function hotelRoomsNeeded(
  * Pas de plafond.
  */
 export function matchesDemand(listing: Lodging, demand: Demand): boolean {
-  const guest_capacity_max = listing.pers > 0 ? listing.pers : listing.fitsGuests != null ? listing.fitsGuests : null
+  if (isDroppedGitesOffer(listing)) return false
+  const guest_capacity_max = listing.pers > 0 ? listing.pers : null
   const bedrooms = normalizedBedrooms(listing)
-  const bedroomFloor = bedrooms ?? (listing.fitsBedrooms != null && listing.fitsBedrooms > 0 ? listing.fitsBedrooms : null)
+  const bedroomFloor = bedrooms ?? (listing.rooms != null && listing.rooms > 0 ? listing.rooms : null)
 
   const availability_status = listing.availabilityStatus
   if (availability_status === 'unavailable' || availability_status === 'listing_gone') return false
-  if (demand.datesSet && !isDoorway(listing) && availability_status !== 'available' && !(listing.total > 0)) {
+  if (demand.datesSet && !isDoorway(listing) && availability_status !== 'available') {
     return false
   }
 
@@ -329,6 +355,7 @@ export function matchesLodgingFilters(
   criteria: LodgingFilterCriteria,
   stay: Stay
 ): boolean {
+  if (isDroppedGitesOffer(lodging)) return false
   // Disponibilité, d'abord. Une annonce listée mais non tarifée pour ces dates
   // n'est pas réservable : l'ouvrir mène à « Ces dates ne sont pas
   // disponibles ». Les cartes non jugées — porte d'entrée OpenStreetMap, saisie
@@ -356,6 +383,7 @@ export function matchesLodgingFilters(
   // Carte-redirection : hébergement OpenStreetMap, ou annonce vue sans tarif.
   // Elle n'a pas de prix à comparer, donc ni budget ni annulation ne la
   // concernent. La distance non plus : elle n'a pas été calculée.
+  // L'écran produit force confirmedPricesOnly : ces cartes n'apparaissent pas.
   if (lodging.total <= 0) return true
 
   return (

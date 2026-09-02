@@ -79,11 +79,11 @@ export function emptyStationReason(officialUrl: string | null | undefined): Reas
     family === 'opensystem' ||
     family === 'deskline' ||
     family === 'locvacances' ||
-    family === 'diffusio' ||
-    family === 'tourinsoft'
+    family === 'diffusio'
   ) {
     return 'delegated'
   }
+  if (family === 'tourinsoft') return 'not_wired'
   if (family === 'not_wired') return 'not_wired'
   if (family === 'ota') return 'delegated'
   return 'empty_inventory'

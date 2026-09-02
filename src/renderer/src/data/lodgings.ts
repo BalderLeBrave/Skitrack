@@ -220,6 +220,12 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
    * On ne multiplie jamais `nightly` × nuits pour fabriquer `total`.
    */
   nightly?: number
+  /**
+   * Tarif d'appel **à la semaine** (Gîtes de France :
+   * « À partir de N € par semaine »). Absent si le montant est un total daté.
+   * On ne le convertit jamais en séjour.
+   */
+  weekly?: number
 }
 
 export const LODG_TYPES = ['Appartement', 'Chalet', 'Studio', 'Hôtel', 'Gîte', 'Import']
@@ -247,19 +253,21 @@ export const BASE_SOURCES = ['Airbnb']
 /**
  * Montant à afficher et son unité.
  *
- * CozyCozy publie un tarif par nuit : `nightly` est rempli, `total` reste 0.
- * On n'invente pas un séjour (nightly × nuits). Un `total` > 0 reste un séjour.
+ * Gîtes publie un tarif d'appel à la semaine : `weekly` est rempli, `total`
+ * reste 0 tant que le widget ITEA n'a pas calculé le séjour.
+ * On n'invente pas un séjour (nightly × nuits, weekly × semaines).
  */
-export function priceShown(lg: Pick<Lodging, 'total' | 'nightly'>): {
+export function priceShown(lg: Pick<Lodging, 'total' | 'nightly' | 'weekly'>): {
   amount: number
-  unit: 'stay' | 'night' | 'none'
+  unit: 'stay' | 'night' | 'week' | 'none'
 } {
   if (lg.total > 0) return { amount: lg.total, unit: 'stay' }
   if (lg.nightly != null && lg.nightly > 0) return { amount: lg.nightly, unit: 'night' }
+  if (lg.weekly != null && lg.weekly > 0) return { amount: lg.weekly, unit: 'week' }
   return { amount: 0, unit: 'none' }
 }
 
-export function hasPricedOffer(lg: Pick<Lodging, 'total' | 'nightly'>): boolean {
+export function hasPricedOffer(lg: Pick<Lodging, 'total' | 'nightly' | 'weekly'>): boolean {
   return priceShown(lg).unit !== 'none'
 }
 
@@ -285,7 +293,9 @@ export function lodgingSources(list: Lodging[], queried: string[] = []): string[
   // distributeur ne font pas deux sources à cocher, et les afficher en double
   // laisserait croire à deux inventaires distincts.
   const add = (source: string): void => {
-    if (source !== MANUAL_SOURCE && !out.includes(source)) out.push(source)
+    if (source !== MANUAL_SOURCE && !out.includes(source) && !/cozycozy|tourinsoft/i.test(source)) {
+      out.push(source)
+    }
   }
   for (const source of queried) add(source)
   for (const lodging of list) add(srcOf(lodging))

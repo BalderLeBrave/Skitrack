@@ -382,15 +382,18 @@ export async function collectPages(
       stoppedReason = 'no_fresh'
       break
     }
-    if (all.length >= maxListings) {
-      stoppedReason = 'max_listings'
-      break
-    }
     if (cards.length < pageSize) {
       stoppedReason = 'exhausted'
       break
     }
-    if (index === maxPages - 1) stoppedReason = 'max_pages'
+    if (index === maxPages - 1) {
+      stoppedReason = 'max_pages'
+      break
+    }
+    if (all.length >= maxListings) {
+      stoppedReason = 'max_listings'
+      break
+    }
   }
 
   all.report = {

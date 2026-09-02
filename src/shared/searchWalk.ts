@@ -1,18 +1,19 @@
 /**
  * Garde-fous du walk SERP — une station, pas une page.
  *
- * 15 pages × 25 (Booking) = 375 bruts, coupés à 250. Gîtes page=N idem.
- * Airbnb : scrolls infinis, idle 2 cycles. Abritel : re-scroll getResultList.
- * Budget 3 min : 15 pages lentes ne doivent pas coller l’écran plus longtemps.
+ * Booking / Gîtes / Abritel : 30 pages. Booking 30×25 = 750 bruts.
+ * Airbnb : scrolls infinis, idle 2 cycles, max 30 (pas de cursor HAR).
+ * Abritel : re-scroll getResultList, idle 2, max 30.
+ * Budget 6 min : 30 pages lentes ne doivent pas coller l’écran plus longtemps.
  */
 
 export const SEARCH_WALK = {
-  maxPages: 15,
-  maxListings: 250,
+  maxPages: 30,
+  maxListings: 750,
   bookingPageSize: 25,
-  pagesBudgetMs: 180_000,
-  cozyMaxScrolls: 15,
-  airbnbMaxScrolls: 15,
+  pagesBudgetMs: 360_000,
+  cozyMaxScrolls: 30,
+  airbnbMaxScrolls: 30,
   idleCycles: 2
 } as const
 

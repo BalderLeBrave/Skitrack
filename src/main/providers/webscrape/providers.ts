@@ -23,6 +23,7 @@ import {
   cozycozySearchEmptyKind,
   listingPhotoUrl,
   looksBlocked,
+  mergeGitesCardsFromHtml,
   webscrapePriceFields,
   scrollToEnd,
   sleep,
@@ -47,7 +48,8 @@ import {
   interpretGitesQuoteBody,
   isKeptIndividualGiteOffer,
   isoToFrDate,
-  parseGitesWidgetContext
+  parseGitesWidgetContext,
+  parseGitesWidgetPhoto
 } from './gitesFichePrice'
 import {
   abritelCanonicalUrl,
@@ -174,7 +176,16 @@ async function loadAndExtract(
     // ignore
   }
   await sleep(500)
-  return page.evaluate(extract)
+  const cards = await page.evaluate(extract)
+  try {
+    const html = await page.content()
+    if (/js-search-tile|g2f-accommodationTile/.test(html)) {
+      return mergeGitesCardsFromHtml(cards, html)
+    }
+  } catch {
+    /* HTML illisible : on garde le relevé DOM */
+  }
+  return cards
 }
 
 /**
@@ -510,7 +521,7 @@ async function enrichGitesStayTotals(
   const deadline = Date.now() + GITES_ENRICH_BUDGET_MS
   const quoted = new Map<
     string,
-    { total?: number; unavailable?: boolean; ident?: string }
+    { total?: number; unavailable?: boolean; ident?: string; photo?: string }
   >()
   try {
     await withPage(headless, async (page) => {
@@ -526,10 +537,11 @@ async function enrichGitesStayTotals(
           await sleep(900)
           const html = await page.content()
           const ctx = parseGitesWidgetContext(html)
+          const photo = parseGitesWidgetPhoto(html)
           if (!ctx) continue
           const identTyp = classifyGitesTypology({ ident: ctx.ident, url: card.url })
           if (identTyp !== 'gite') {
-            quoted.set(card.url, { unavailable: true, ident: ctx.ident })
+            quoted.set(card.url, { unavailable: true, ident: ctx.ident, photo })
             continue
           }
           const body = await page.evaluate(
@@ -572,13 +584,13 @@ async function enrichGitesStayTotals(
           )
           const parsed = interpretGitesQuoteBody(body)
           if (parsed.price_firm && parsed.stay) {
-            quoted.set(card.url, { total: parsed.stay, ident: ctx.ident })
+            quoted.set(card.url, { total: parsed.stay, ident: ctx.ident, photo })
           } else if (
             gitesDatesNotFillable(body) ||
             gitesQuoteFailed(body) ||
             !parsed.available
           ) {
-            quoted.set(card.url, { unavailable: true, ident: ctx.ident })
+            quoted.set(card.url, { unavailable: true, ident: ctx.ident, photo })
           }
         } catch {
           /* une fiche rate : pas de teaser /semaine — on n'invente pas le séjour */
@@ -626,9 +638,14 @@ async function enrichGitesStayTotals(
   return verdict.shown.flatMap((kept) => {
     const a = byUrl.get(kept.listing_id)
     if (!a) return []
+    const q = quoted.get(kept.listing_id)
+    const existing = a.images?.find((u) => /^https?:\/\//i.test(u))
+    const widget = listingPhotoUrl(q?.photo, a.url)
+    const photo = existing ?? widget
     return [
       {
         ...a,
+        images: photo ? [photo] : a.images,
         totalPrice: kept.price_total_stay_amount,
         weeklyPrice: undefined,
         nightlyPrice: undefined,

@@ -204,6 +204,22 @@ export function parseGitesWidgetContext(html: string): GitesWidgetContext | null
   return { ident, instance, exercice }
 }
 
+/**
+ * Photo publiée par le widget ITEA (`og:image` / JSON-LD `image`).
+ * Dump widget Copains : `https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg`.
+ * On ne fabrique pas le chemin (photo3 vs photo33) : seulement l'URL écrite.
+ */
+export function parseGitesWidgetPhoto(html: string): string | undefined {
+  const og =
+    html.match(/property=["']og:image["'][^>]*content=["'](https?:\/\/[^"']+)["']/i)?.[1] ??
+    html.match(/content=["'](https?:\/\/[^"']+)["'][^>]*property=["']og:image["']/i)?.[1]
+  const ld = html.match(/"image"\s*:\s*"(https?:\\?\/\\?\/[^"]+)"/)?.[1]?.replace(/\\+/g, '')
+  const itea = html.match(/https?:\/\/widget-fngf\.itea\.fr\/photos\/[^"'\s>]+\.(?:jpe?g|png|webp)/i)?.[0]
+  const raw = og || ld || itea
+  if (!raw || /pictos|favicon|ajax-loader|placeholder|1x1|pixel/i.test(raw)) return undefined
+  return /^https?:\/\//i.test(raw) ? raw : undefined
+}
+
 function parseEuroAmount(raw: string): number | undefined {
   const n = Number(raw.replace(/\s/g, '').replace(',', '.'))
   if (!Number.isFinite(n) || n <= 0) return undefined

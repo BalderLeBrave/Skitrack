@@ -1,12 +1,12 @@
 /**
- * Barre de recherche en pilule — quatre segments et une loupe.
+ * Barre de recherche en pilule — destination, dates, groupe, altitude, loupe.
  *
  * Elle ne calcule rien et n'ouvre aucun écran de son propre chef : chaque
  * segment écrit dans **l'état existant** (`domainQuery`, `arrDate`/`depDate`,
- * `travelers`, `baseMin`/`baseMax`) et la loupe fait ce que faisait le bouton
- * « Comparer les domaines » — `patch({ tab: 'recherche' })`. Aucun second
- * système de dates : les semaines sont celles de `data/snow.ts`, les mêmes que
- * l'écran Logements applique.
+ * `travelers`/`rooms`, `baseMin`/`baseMax`) et la loupe fait ce que faisait le
+ * bouton « Comparer les domaines » — `patch({ tab: 'recherche' })`. Aucun
+ * second système de dates : les semaines sont celles de `data/snow.ts`, les
+ * mêmes que l'écran Logements applique.
  *
  * L'autocomplétion cherche dans **tous** les vocabulaires que l'utilisateur a
  * en tête : le domaine (« Les Arcs – Peisey-Vallandry »), le forfait relié
@@ -16,11 +16,17 @@
  * écrit dans `domainQuery` le **domaine ou le forfait** résolu, pas le mot
  * tapé : c'est ce qui fait qu'un village ouvre le même parcours que la
  * sélection directe du domaine. Voir `data/places.ts`.
+ *
+ * Le groupe (voyageurs + chambres min) se règle ici, pas seulement sur
+ * Logements : un plancher posé trop tard laissait croire que la recherche
+ * d'accueil n'avait pas de critère de chambres.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DateRangePicker } from './DateRangePicker'
 import { RangeFilter } from './RangeFilter'
+import { CountStepper } from '@/components/CountStepper'
+import { PARTY_LIMITS } from '@/data/partyLimits'
 import { placeIndex } from '@/data/places'
 import type { PlaceSuggestion } from '@/data/places'
 import { stationsNear } from '@/data/nearbyStations'
@@ -36,12 +42,10 @@ const MAX_SUGGESTIONS = 8
 /** Une lettre suffit à faire correspondre presque tout : deux, c'est un début. */
 const MIN_QUERY = 2
 
-const TRAVELERS_MAX = 12
-
 /** Une frappe n'est pas une requete : on attend que la saisie se pose. */
 const NEARBY_DEBOUNCE_MS = 450
 
-type Segment = 'dest' | 'dates' | 'people' | 'alt'
+type Segment = 'dest' | 'dates' | 'party' | 'alt'
 
 export function SearchBar(): JSX.Element {
   const { state, patch, setPeople, domains } = useApp()
@@ -182,6 +186,39 @@ export function SearchBar(): JSX.Element {
       ? `${fmtStay(state.arrDate, state.depDate)} · ${t('dp_nights').replace('{n}', String(nights))}`
       : t('sb_week_any')
 
+  const partyLabel =
+    state.rooms > 0
+      ? t('sb_party_with_rooms')
+          .replace('{p}', String(state.travelers))
+          .replace('{r}', String(state.rooms))
+      : t('sb_party_people').replace('{p}', String(state.travelers))
+
+  /**
+   * Même chemin que le tiroir Voyageurs : la liste des personnes est la source,
+   * `travelers` en est le décompte. Un `patch({ travelers })` ici et un
+   * `setPeople` ailleurs, c'est le groupe affiché qui n'était plus le groupe
+   * facturé.
+   */
+  const setTravelers = (n: number): void => {
+    const next = Math.min(PARTY_LIMITS.travelers.max, Math.max(PARTY_LIMITS.travelers.min, n))
+    if (state.people.length > 0) {
+      if (next <= state.people.length) {
+        setPeople(state.people.slice(0, next))
+        return
+      }
+      const extra = Array.from({ length: next - state.people.length }, (_, i) => ({
+        id: Date.now() + i,
+        first: `Voyageur ${state.people.length + i + 1}`,
+        last: '',
+        age: 30,
+        home: 0
+      }))
+      setPeople([...state.people, ...extra])
+      return
+    }
+    patch({ travelers: next, children: Math.min(state.children, next - 1) })
+  }
+
   const segClass = (seg: Segment): string => `sb__seg${open === seg ? ' sb__seg--open' : ''}`
 
   return (
@@ -281,67 +318,43 @@ export function SearchBar(): JSX.Element {
         )}
       </div>
 
-      <div className="sb__seg">
-        <span className="sb__label">{t('nav_travelers')}</span>
-        {/* Boutons ronds à traits SVG : le glyphe « − » n'est pas centré dans sa
-            gouttière et se lisait décalé de deux pixels dans un cercle de
-            24 px. */}
-        <div className="sb__stepper">
-          {/*
-            La pilule passe par `setPeople`, comme le tiroir Voyageurs — et non
-            par un `patch({ travelers })` direct. Les deux compteurs avaient
-            divergé : la pilule montait `travelers` à 8, l'en-tête Logements
-            annonçait « 8 voyageur(s) », mais le poste Forfaits comptait les
-            personnes du tiroir, restées à une. Le total du séjour contredisait
-            le groupe affiché, en silence. Constaté le 2026-08-30.
-
-            `setPeople` recalcule `travelers` et `children` d'après la liste :
-            un seul chemin d'écriture, plus de divergence possible. Le repli sur
-            `patch` ne sert que si la liste est vide — l'état d'avant le premier
-            passage par le tiroir.
-          */}
-          <button
-            type="button"
-            className="sb__round"
-            aria-label={t('sb_less')}
-            disabled={state.travelers <= 1}
-            onClick={() => {
-              if (state.people.length > 1) setPeople(state.people.slice(0, -1))
-              else if (state.people.length === 0)
-                patch({
-                  travelers: Math.max(1, state.travelers - 1),
-                  children: Math.min(state.children, Math.max(1, state.travelers - 1) - 1)
-                })
-            }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 12h10" />
-            </svg>
-          </button>
-          <span className="sb__count u-num">{state.travelers}</span>
-          <button
-            type="button"
-            className="sb__round"
-            aria-label={t('sb_more')}
-            disabled={state.travelers >= TRAVELERS_MAX}
-            onClick={() => {
-              if (state.people.length > 0)
-                setPeople([
-                  ...state.people,
-                  // Même gabarit que « Ajouter un voyageur » du tiroir : un
-                  // adulte générique, rattaché au premier départ. Les âges
-                  // s'affinent dans le tiroir — la pilule ne compte que des
-                  // têtes.
-                  { id: Date.now(), first: `Voyageur ${state.people.length + 1}`, last: '', age: 30, home: 0 }
-                ])
-              else patch({ travelers: Math.min(TRAVELERS_MAX, state.travelers + 1) })
-            }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 7v10M7 12h10" />
-            </svg>
-          </button>
-        </div>
+      <div className={segClass('party')}>
+        <span className="sb__label">{t('sb_party')}</span>
+        <button
+          type="button"
+          className="sb__value"
+          aria-expanded={open === 'party'}
+          aria-haspopup="dialog"
+          onClick={() => setOpen(open === 'party' ? null : 'party')}
+        >
+          {partyLabel}
+        </button>
+        {open === 'party' && (
+          <div className="sb__pop sb__pop--party" role="dialog" aria-label={t('sb_party')}>
+            <div className="sb__party-row">
+              <p className="sb__party-label">{t('lodg_travelers_field')}</p>
+              <CountStepper
+                value={state.travelers}
+                min={PARTY_LIMITS.travelers.min}
+                max={PARTY_LIMITS.travelers.max}
+                label={t('lodg_travelers_field')}
+                onChange={setTravelers}
+              />
+            </div>
+            <div className="sb__party-row">
+              <p className="sb__party-label">{t('lodg_rooms_field')}</p>
+              <CountStepper
+                value={state.rooms}
+                min={PARTY_LIMITS.rooms.min}
+                max={PARTY_LIMITS.rooms.max}
+                label={t('lodg_rooms_field')}
+                minLabel={t('lodg_rooms_studio')}
+                onChange={(n) => patch({ rooms: n })}
+              />
+            </div>
+            <p className="sb__party-help">{t('sb_party_help')}</p>
+          </div>
+        )}
       </div>
 
       <div className={segClass('alt')}>

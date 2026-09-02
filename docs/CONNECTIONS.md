@@ -20,7 +20,8 @@ Preuve grep 2026-09-02, master.
 | [x] bandeau hidden_* honnête | Bandeaux « N masquée(s) parce qu’elles n’annoncent pas », « sans position relevée », « N écarté(s) plus bas » **retirés** de `LodgingsPage.tsx`. Le filtre reste silencieux. |
 | [x] dédup intra-centrale | `seen` sur accommodationId. Inter : fusion existante `airbnbMerge` / `dups`. |
 | [x] book_url présent | Abritel canonique `destination:` unwrap. Gîtes fiche + adults. |
-| [x] pas d’import mort | `createCozycozyWebProvider` n’est plus enregistré. `createVrboWebProvider` ouvre CozyCozy getResultList, étiquette VRBO. |
+| [x] Gîtes photos tuile | Dump `gites-discovery/search-d2a-0613.html` : 20/20 Drupal `?itok=`. `gitesTilesFromSearchHtml` + `mergeGitesCardsFromHtml` après `page.evaluate` (currentSrc lazy = URL HTML rejeté). Widget `og:image` ITEA si tuile vide. Jamais inventé. |
+| [x] accueil chambres | `SearchBar` segment Groupe : voyageurs + chambres (`state.rooms`). Pill `N pers.` si rooms=0, `N pers. · X ch.` sinon. |
 
 ## VRBO pérenne
 

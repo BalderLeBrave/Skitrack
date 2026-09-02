@@ -19,7 +19,8 @@ import {
   isoToFrDate,
   looksWeeklyFromPriceText,
   parseGitesStayTotal,
-  parseGitesWidgetContext
+  parseGitesWidgetContext,
+  parseGitesWidgetPhoto
 } from './gitesFichePrice'
 
 let failures = 0
@@ -63,6 +64,25 @@ check('widget ITEA', gitesWidgetUrl('38g20200').includes('fiche-38G20200.html') 
 const ctx = parseGitesWidgetContext(WIDGET)
 check('ident dumpé', ctx?.ident === 'gites38_b2026.1.20200.G', ctx)
 check('instance gites38', ctx?.instance === 'gites38')
+check(
+  'og:image widget ITEA',
+  parseGitesWidgetPhoto(
+    '<meta property="og:image" content="https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg">'
+  ) === 'https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg'
+)
+check(
+  'JSON-LD image widget',
+  parseGitesWidgetPhoto('"image" : "https://widget-fngf.itea.fr/photos/gites38/G/photo3/20200.jpg"') ===
+    'https://widget-fngf.itea.fr/photos/gites38/G/photo3/20200.jpg'
+)
+check('picto widget rejeté', parseGitesWidgetPhoto('<img src="/api_externe/images/pictos/close.svg">') === undefined)
+check(
+  'img ITEA photos/ si og:image absent',
+  parseGitesWidgetPhoto(
+    '<img src="https://widget-fngf.itea.fr/photos/gites38/G/photo3/52200.jpg">'
+  ) === 'https://widget-fngf.itea.fr/photos/gites38/G/photo3/52200.jpg'
+)
+check('pas de chemin inventé', parseGitesWidgetPhoto('<div data-ident="x.G"></div>') === undefined)
 
 check('teaser sans dates → pas de total', parseGitesStayTotal(TEASER) === undefined)
 check('8 pers. 06–13/02/2027 → 2448,40 €', parseGitesStayTotal(DATED_8P) === 2448.4)

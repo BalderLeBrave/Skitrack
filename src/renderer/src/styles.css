@@ -1991,6 +1991,35 @@ select {
   padding: 14px;
 }
 
+.sb__pop--party {
+  min-width: min(300px, calc(100vw - 48px));
+  max-height: none;
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.sb__party-row {
+  display: grid;
+  gap: 4px;
+}
+
+.sb__party-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sb__party-help {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .sb__opt {
   display: flex;
   align-items: baseline;
@@ -2503,6 +2532,10 @@ select {
   }
   .sb__pop--wide {
     width: 100%;
+  }
+  .sb__pop--party {
+    width: 100%;
+    left: 0;
   }
   /* Deux colonnes : trois tuiles côte à côte sous 900 px descendent sous les
      150 px de large et la photo n'est plus qu'une texture. */

@@ -310,6 +310,14 @@ const CATALOG = {
   ],
   sb_less: ['Un voyageur de moins', 'One traveller fewer'],
   sb_more: ['Un voyageur de plus', 'One traveller more'],
+  sb_party: ['Groupe', 'Party'],
+  sb_party_people: ['{p} pers.', '{p} guests'],
+  sb_party_with_rooms: ['{p} pers. · {r} ch.', '{p} guests · {r} bd'],
+  sb_party_studio: ['{p} pers. · studio', '{p} guests · studio'],
+  sb_party_help: [
+    'Plancher : un logement plus grand convient. Un hôtel peut combiner des chambres.',
+    'A floor, not an exact match. A hotel can combine rooms.'
+  ],
   sb_go: ['Lancer la recherche', 'Start the search'],
   home_by_massif: ['Explorer par', 'Explore by'],
   home_by_massif_word: ['massif', 'range'],

@@ -253,21 +253,221 @@ export function baseAccommodation(
  * URL de photo publiée, rendue absolue. Les tuiles Gîtes (et d'autres SERP)
  * portent un chemin `/sites/default/files/…` : collé tel quel dans la
  * vignette, il pointe vers l'app et la carte s'affiche sans image.
+ *
+ * Pictos, SVG de thème et pixels lazysizes ne sont pas des photos de logement.
  */
 export function listingPhotoUrl(
   raw: string | undefined,
-  baseUrl: string | undefined
+  baseUrl?: string
 ): string | undefined {
   if (!raw) return undefined
-  const first = raw.split(',')[0]?.trim().split(/\s+/)[0]
+  const first = raw.split(',')[0]?.trim().split(/\s+/)[0]?.replace(/&/gi, '&')
   if (!first || /^(data:|blob:)/i.test(first)) return undefined
-  if (/placeholder|blank\.gif|spacer|1x1|pixel/i.test(first)) return undefined
+  if (
+    /placeholder|blank\.gif|spacer|1x1|pixel|\.svg(?:$|\?)|\/themes\/|pictos|favicon|ajax-loader|sprite|\.html?(?:$|\?)|\/search[/?]/i.test(
+      first
+    )
+  ) {
+    return undefined
+  }
+  const base =
+    baseUrl ||
+    (/^\/sites\/default\/files\//i.test(first)
+      ? 'https://www.gites-de-france.com/'
+      : /^\/photos\/|^https?:\/\/widget-fngf\.itea\.fr/i.test(first)
+        ? 'https://widget-fngf.itea.fr/'
+        : undefined)
   try {
-    const abs = new URL(first, baseUrl || undefined).href
+    const abs = new URL(first, base).href
     return /^https?:\/\//i.test(abs) ? abs : undefined
   } catch {
     return undefined
   }
+}
+
+/**
+ * Photo d'une tuile Gîtes, lue dans le HTML (src, srcset lazy, innerHTML).
+ *
+ * Dump `gites-discovery/search-d2a-0613.html` : le swiper pose `data-src` /
+ * `data-srcset` tant que la slide n'est pas chargée, et `?itok=` fait partie
+ * de l'URL Drupal. On ne fabrique pas le chemin.
+ */
+export function gitesPhotoFromTileHtml(html: string, baseUrl?: string): string | undefined {
+  if (!html) return undefined
+  const candidates: string[] = []
+  const attrRe =
+    /\s(?:src|data-src|data-lazy-src|data-original|data-bg|srcset|data-srcset)=["']([^"']+)["']/gi
+  let attrHit: RegExpExecArray | null
+  while ((attrHit = attrRe.exec(html)) !== null) {
+    const raw = attrHit[1]
+    if (raw) candidates.push(raw)
+  }
+  const bg = html.match(/url\(["']?([^"')]+)["']?\)/i)?.[1]
+  if (bg) candidates.push(bg)
+  const fileRe = /\/sites\/default\/files\/[^"'\s>]+\.(?:jpe?g|png|webp)(?:\?[^"'\s>]*)?/gi
+  let fileHit: RegExpExecArray | null
+  while ((fileHit = fileRe.exec(html)) !== null) candidates.push(fileHit[0])
+  const iteaRe = /https?:\/\/widget-fngf\.itea\.fr\/photos\/[^"'\s>]+\.(?:jpe?g|png|webp)/gi
+  while ((fileHit = iteaRe.exec(html)) !== null) candidates.push(fileHit[0])
+  const decoded = candidates.map((u) => u.replace(/&/gi, '&'))
+  const preferred = decoded.find((u) => /\/sites\/default\/files|itea\.fr\/photos/i.test(u))
+  return listingPhotoUrl(preferred || decoded[0], baseUrl)
+}
+
+const GITES_SITE_ORIGIN = 'https://www.gites-de-france.com'
+
+function stripHtmlText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&#160;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function gitesCodeIn(url: string): string | undefined {
+  const m = url.match(/(\d{2}g\d{3,})/i)
+  return m ? m[1].toUpperCase() : undefined
+}
+
+function positiveInt(m: RegExpMatchArray | null): number | undefined {
+  if (!m) return undefined
+  const n = Number(m[1])
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+/** Tuile SERP dump-lue : photo Drupal, capacité, typologie. Pas un devis. */
+export type GitesSearchHtmlTile = {
+  code: string
+  url: string
+  title?: string
+  image?: string
+  guests?: number
+  bedrooms?: number
+  priceText?: string
+  propertyType?: string
+}
+
+/**
+ * Tuiles `.js-search-tile` d'une SERP Gîtes, lues dans le HTML.
+ *
+ * Dump `gites-discovery/search-d2a-0613.html` : 20 tuiles, chacune avec
+ * `/sites/default/files/…jpg?itok=` + « N chambres N personnes ».
+ * `page.evaluate` peut renvoyer `currentSrc` = l'URL HTML de la recherche
+ * (swiper lazy) : on relit le HTML ici, hors du navigateur.
+ */
+export function gitesTilesFromSearchHtml(html: string): GitesSearchHtmlTile[] {
+  if (!html) return []
+  const blocks =
+    html.match(
+      /<div class="[^"]*js-search-tile[^"]*"[\s\S]*?(?=<div class="[^"]*js-search-tile|$)/gi
+    ) ?? []
+  const out: GitesSearchHtmlTile[] = []
+  const seen = new Set<string>()
+  for (const chunk of blocks) {
+    const href =
+      chunk.match(/href="(\/fr\/[^"]*\d{2}g\d{3,}[^"]*)"/i)?.[1] ??
+      chunk.match(/href="(https?:\/\/www\.gites-de-france\.com\/fr\/[^"]*\d{2}g\d{3,}[^"]*)"/i)?.[1]
+    if (!href) continue
+    const abs = href.replace(/&/gi, '&')
+    const url = abs.startsWith('http') ? abs : `${GITES_SITE_ORIGIN}${abs}`
+    const code = gitesCodeIn(url)
+    if (!code || seen.has(code)) continue
+    seen.add(code)
+    const propertyType =
+      chunk
+        .match(/g2f-accommodationTile-text-type[^>]*>([\s\S]*?)<\//i)?.[1]
+        ?.replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim() || undefined
+    const title =
+      chunk.match(/title="([^"]+)"[^>]*class="[^"]*g2f-accommodationTile-image/i)?.[1] ||
+      chunk
+        .match(/g2f-accommodationTile-link[^>]*>([\s\S]*?)<\//i)?.[1]
+        ?.replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim() ||
+      undefined
+    const capHtml =
+      chunk.match(
+        /g2f-accommodationTile-text-capacity[\s\S]*?(?=g2f-accommodationTile-text-2cols|g2f-accommodationTile-text-price|$)/i
+      )?.[0] ?? chunk
+    const cap = stripHtmlText(capHtml)
+    const guests = positiveInt(/(\d+)\s*(?:personnes?|voyageurs?)/i.exec(cap))
+    const bedrooms = positiveInt(/(\d+)\s*chambres?/i.exec(cap))
+    const priceHtml =
+      chunk.match(/g2f-accommodationTile-text-price[\s\S]{0,500}/i)?.[0] ?? ''
+    const priceText = stripHtmlText(priceHtml) || undefined
+    out.push({
+      code,
+      url,
+      title,
+      propertyType,
+      guests,
+      bedrooms,
+      priceText,
+      image: gitesPhotoFromTileHtml(chunk, url)
+    })
+  }
+  return out
+}
+
+function photoLooksPublished(url: string | undefined): boolean {
+  if (!url) return false
+  return /\/sites\/default\/files|itea\.fr\/photos|\.(jpe?g|png|webp|avif)(?:$|\?)/i.test(url)
+}
+
+/**
+ * Complète (ou remplace) les cartes Playwright par les champs lus dans le HTML.
+ * Photo Drupal prioritaire. Capacité / chambres si l'évaluateur les a laissées nulles.
+ */
+export function mergeGitesCardsFromHtml<
+  T extends {
+    url: string
+    sourceId?: string
+    title?: string
+    image?: string
+    guests?: number
+    bedrooms?: number
+    priceText?: string
+    propertyType?: string
+  }
+>(cards: T[], html: string): T[] {
+  const tiles = gitesTilesFromSearchHtml(html)
+  if (tiles.length === 0) return cards
+  const byCode = new Map(tiles.map((t) => [t.code, t]))
+  const seen = new Set<string>()
+  const merged = cards.map((c) => {
+    const code = gitesCodeIn(c.url)
+    if (code) seen.add(code)
+    const t = code ? byCode.get(code) : undefined
+    if (!t) return c
+    const keepPhoto = photoLooksPublished(listingPhotoUrl(c.image, c.url))
+    return {
+      ...c,
+      image: keepPhoto ? c.image : t.image ?? c.image,
+      guests: c.guests ?? t.guests,
+      bedrooms: c.bedrooms ?? t.bedrooms,
+      propertyType: c.propertyType || t.propertyType,
+      priceText: c.priceText || t.priceText,
+      title: c.title || t.title || c.title
+    }
+  })
+  for (const t of tiles) {
+    if (seen.has(t.code) || !t.title || !t.url) continue
+    merged.push({
+      sourceId: t.url.replace(/\/$/, '').split('/').pop()?.split('?')[0] || t.code,
+      title: t.title,
+      url: t.url,
+      image: t.image,
+      guests: t.guests,
+      bedrooms: t.bedrooms,
+      priceText: t.priceText,
+      propertyType: t.propertyType
+    } as T)
+  }
+  return merged
 }
 
 /** Parse un prix FR/EN typique : « 1 234 € », « €123 », « 123,50 ». */

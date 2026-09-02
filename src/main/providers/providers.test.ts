@@ -20,14 +20,20 @@ import { normalizeBooking } from './booking/booking'
 import { collectBookingPages, collectPages, paginationOf } from './webscrape/providers'
 import {
   cozycozySearchEmptyKind,
+  gitesPhotoFromTileHtml,
   gitesSearchEmptyKind,
+  gitesTilesFromSearchHtml,
   listingPhotoUrl,
   looksNightlyPriceText,
   looksStayPriceText,
   looksWeeklyFromPriceText,
+  mergeGitesCardsFromHtml,
   pageLooksBlocked,
   webscrapePriceFields
 } from './webscrape/shared'
+import { parseGitesWidgetPhoto } from './webscrape/gitesFichePrice'
+import { readFileSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { bookingSearchUrl, cozycozyDatedPlace, cozycozySearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
 import type { RawCard } from './webscrape/extractors'
 import {
@@ -939,6 +945,31 @@ async function main(): Promise<void> {
     ) === 'https://www.gites-de-france.com/sites/default/files/styles/landscape_375_240/public/images/x.jpg'
   )
   check(
+    'chemin Gîtes sans base d’annonce',
+    listingPhotoUrl('/sites/default/files/x.jpg') ===
+      'https://www.gites-de-france.com/sites/default/files/x.jpg'
+  )
+  check(
+    'picto / thème rejeté',
+    listingPhotoUrl('/themes/custom/g2f/build/svg/heart.svg', 'https://www.gites-de-france.com/') ===
+      undefined
+  )
+  const lazyTile = `<div class="g2f-accommodationTile-image">
+    <img src="/themes/custom/g2f/favicon/favicon-32x32.png" alt="">
+    <img loading="lazy" data-g2f-swiper-lazy="" data-srcset="/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122_14f76d537746f8047d1ce70054576c5b.jpg?itok=MBjhiKU9 375w" data-src="/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122_14f76d537746f8047d1ce70054576c5b.jpg?itok=MBjhiKU9" class="swiper-lazy">
+  </div>`
+  const lazyPhoto = gitesPhotoFromTileHtml(lazyTile)
+  check(
+    'tuile Gîtes lazy data-src + itok, picto ignoré',
+    lazyPhoto ===
+      'https://www.gites-de-france.com/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122_14f76d537746f8047d1ce70054576c5b.jpg?itok=MBjhiKU9',
+    lazyPhoto
+  )
+  check(
+    'tuile sans photo publiée : rien',
+    gitesPhotoFromTileHtml('<div class="g2f-accommodationTile-image"></div>') === undefined
+  )
+  check(
     'srcset : premier token, pas les largeurs',
     listingPhotoUrl('/a.jpg 375w, /b.jpg 520w', 'https://www.gites-de-france.com/fr/x') ===
       'https://www.gites-de-france.com/a.jpg'
@@ -954,6 +985,75 @@ async function main(): Promise<void> {
       'https://media.vrbo.com/lodging/x.jpg'
   )
   check('sans URL publiée : rien', listingPhotoUrl(undefined, 'https://www.booking.com/') === undefined)
+  check(
+    'currentSrc HTML de recherche rejeté',
+    listingPhotoUrl(
+      'https://www.gites-de-france.com/fr/search?towns=50301',
+      'https://www.gites-de-france.com/fr/search?towns=50301'
+    ) === undefined
+  )
+  const fakeDom = [
+    {
+      sourceId: 'chalet-les-copains-38g253122',
+      title: 'Chalet les Copains',
+      url: 'https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122',
+      image: 'https://www.gites-de-france.com/fr/search?towns=50301'
+    }
+  ]
+  const mergedFake = mergeGitesCardsFromHtml(
+    fakeDom,
+    `<div class="js-search-tile">
+      <a href="/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122" title="Chalet les Copains" class="g2f-accommodationTile-image">
+        <img data-src="/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122.jpg?itok=abc">
+      </a>
+      <div class="g2f-accommodationTile-text-type">Gîte</div>
+      <div class="g2f-accommodationTile-text-capacity">5 chambres 14 personnes</div>
+      <div class="g2f-accommodationTile-text-price">À partir de 1 330 € par semaine</div>
+    </div>`
+  )
+  check(
+    'merge HTML remplace currentSrc search par Drupal + capacité',
+    Boolean(
+      mergedFake[0]?.image?.includes('253122') &&
+        mergedFake[0]?.image?.includes('itok=abc') &&
+        mergedFake[0]?.guests === 14 &&
+        mergedFake[0]?.bedrooms === 5
+    ),
+    mergedFake[0]
+  )
+
+  const dumpHtmlPath = join(process.cwd(), 'gites-discovery/search-d2a-0613.html')
+  const widgetPath = join(process.cwd(), 'gites-discovery/widget-38G253122.html')
+  if (existsSync(dumpHtmlPath)) {
+    const dumpHtml = readFileSync(dumpHtmlPath, 'utf8')
+    const tiles = gitesTilesFromSearchHtml(dumpHtml)
+    const withPhoto = tiles.filter((t) => t.image && /sites\/default\/files/.test(t.image))
+    const withCap = tiles.filter((t) => t.guests && t.bedrooms)
+    const copains = tiles.find((t) => t.code === '38G253122')
+    check('dump SERP D2A : 20 tuiles', tiles.length === 20, tiles.length)
+    check('dump SERP D2A : 20 photos Drupal', withPhoto.length === 20, withPhoto.length)
+    check('dump SERP D2A : 20 capacités', withCap.length === 20, withCap.length)
+    check(
+      'dump Copains photo + 14p/5ch',
+      Boolean(
+        copains?.image?.includes('253122') &&
+          copains?.image?.includes('itok=') &&
+          copains?.guests === 14 &&
+          copains?.bedrooms === 5
+      ),
+      copains
+    )
+  } else {
+    check('dump SERP D2A présent (optionnel)', true)
+  }
+  if (existsSync(widgetPath)) {
+    const widgetHtml = readFileSync(widgetPath, 'utf8')
+    check(
+      'dump widget Copains og:image ITEA',
+      parseGitesWidgetPhoto(widgetHtml) ===
+        'https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg'
+    )
+  }
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

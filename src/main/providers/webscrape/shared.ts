@@ -258,6 +258,27 @@ export function parsePrice(text: string | null | undefined): number | undefined 
   return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined
 }
 
+/**
+ * CozyCozy publie « À partir de N €/nuit » — un tarif **par nuit**, pas le
+ * séjour. Dump 2026-09-01, cartes catalogue. Le ranger en `totalPrice`
+ * faisait passer 89 €/nuit pour 89 € la semaine.
+ */
+export function looksNightlyPriceText(text: string | null | undefined): boolean {
+  if (!text) return false
+  return /\/\s*nuit|\bpar nuit\b|\/\s*night|\bper night\b/i.test(text)
+}
+
+export function webscrapePriceFields(
+  source: string,
+  priceText: string | undefined
+): { totalPrice?: number; nightlyPrice?: number } {
+  const price = parsePrice(priceText)
+  if (price == null) return {}
+  const nightly =
+    source === 'cozycozy-web' || source === 'cozycozy' || looksNightlyPriceText(priceText)
+  return nightly ? { nightlyPrice: price } : { totalPrice: price }
+}
+
 export async function scrollPage(page: Page, times: number): Promise<void> {
   for (let i = 0; i < times; i++) {
     await page.evaluate(() => window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' }))

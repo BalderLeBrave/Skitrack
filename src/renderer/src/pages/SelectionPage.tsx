@@ -21,7 +21,7 @@
 import { SelectionNotes } from '@/components/SelectionNotes'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import type { Lodging } from '@/data/lodgings'
-import { srcOf } from '@/data/lodgings'
+import { hasPricedOffer, priceShown, srcOf } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { massifColor } from '@/domain/massif'
 import { scoreBadgeColors, scoreLabel } from '@/domain/scoring'
@@ -122,9 +122,13 @@ function LodgingTile({ lg, domain }: { lg: Lodging; domain: Domain | null }): JS
       </p>
       {/* Pas de montant quand la source n'en publie pas : `total <= 0` est le
           test que les sélecteurs utilisent déjà sous le nom `priceless`. */}
-      {lg.total > 0 && (
+      {hasPricedOffer(lg) && (
         <p className="seltile__price">
-          <strong className="u-num crn-releve">{eur(lg.total)}</strong>
+          <strong className="u-num crn-releve">
+            {priceShown(lg).unit === 'night'
+              ? `${eur(priceShown(lg).amount)} /nuit`
+              : eur(lg.total)}
+          </strong>
         </p>
       )}
       <SelectionNotes kind="lodging" targetId={lg.id} />

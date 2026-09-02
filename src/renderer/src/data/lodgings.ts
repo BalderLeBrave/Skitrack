@@ -214,6 +214,12 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
    * Absent sur les imports manuels anciens.
    */
   priceConfidence?: 'total_confirmed' | 'partial' | 'unknown'
+  /**
+   * Tarif **par nuit** quand la source le publie ainsi (CozyCozy :
+   * « À partir de N €/nuit »). Absent si le montant est un total de séjour.
+   * On ne multiplie jamais `nightly` × nuits pour fabriquer `total`.
+   */
+  nightly?: number
 }
 
 export const LODG_TYPES = ['Appartement', 'Chalet', 'Studio', 'Hôtel', 'Gîte', 'Import']
@@ -237,6 +243,25 @@ export const LODG_TYPES = ['Appartement', 'Chalet', 'Studio', 'Hôtel', 'Gîte',
  * restent toujours visibles, et leur fraîcheur est traitée à part.
  */
 export const BASE_SOURCES = ['Airbnb']
+
+/**
+ * Montant à afficher et son unité.
+ *
+ * CozyCozy publie un tarif par nuit : `nightly` est rempli, `total` reste 0.
+ * On n'invente pas un séjour (nightly × nuits). Un `total` > 0 reste un séjour.
+ */
+export function priceShown(lg: Pick<Lodging, 'total' | 'nightly'>): {
+  amount: number
+  unit: 'stay' | 'night' | 'none'
+} {
+  if (lg.total > 0) return { amount: lg.total, unit: 'stay' }
+  if (lg.nightly != null && lg.nightly > 0) return { amount: lg.nightly, unit: 'night' }
+  return { amount: 0, unit: 'none' }
+}
+
+export function hasPricedOffer(lg: Pick<Lodging, 'total' | 'nightly'>): boolean {
+  return priceShown(lg).unit !== 'none'
+}
 
 /**
  * Sources à afficher pour une liste d'offres donnée.

@@ -21,7 +21,7 @@ import {
   gitesSearchEmptyKind,
   cozycozySearchEmptyKind,
   looksBlocked,
-  parsePrice,
+  webscrapePriceFields,
   scrollToEnd,
   sleep,
   withPage,
@@ -45,7 +45,7 @@ function mapCards(
   const out: Accommodation[] = []
   for (const c of cards) {
     if (!c.title || !c.url) continue
-    const price = parsePrice(c.priceText)
+    const { totalPrice, nightlyPrice } = webscrapePriceFields(source, c.priceText)
     const rating = c.ratingText ? parseFloat(c.ratingText.replace(',', '.')) : undefined
     out.push(
       baseAccommodation(
@@ -59,7 +59,10 @@ function mapCards(
           // JSON-LD de la page. Absente, le champ reste vide — jamais fabriqué.
           latitude: c.lat,
           longitude: c.lon,
-          totalPrice: price,
+          // CozyCozy : tarif par nuit. Les autres sources : total de séjour
+          // tel que la carte le publie. On ne multiplie jamais nightly × nuits.
+          totalPrice,
+          nightlyPrice,
           currency: 'EUR',
           rating: Number.isFinite(rating) ? rating : undefined,
           // Taille du bien, telle que la page de résultats l'écrit. Ces champs

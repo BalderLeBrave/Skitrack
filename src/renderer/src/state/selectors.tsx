@@ -17,7 +17,7 @@
 import { createContext, useContext, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Lodging } from '@/data/lodgings'
-import { belongsToDomain, mergeDupes as mergeDupesList } from '@/data/lodgings'
+import { belongsToDomain, hasPricedOffer, mergeDupes as mergeDupesList } from '@/data/lodgings'
 import { FM_BY_ID } from '@/data/catalogue'
 import type { AvailabilityVerdict } from '@/data/lodgingAvailability'
 import { availabilityOf, isBookable } from '@/data/lodgingAvailability'
@@ -686,8 +686,8 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
      * qu'elles rapportent. L'extracteur est corrigé par ailleurs ; cette règle
      * traite ce qui est déjà enregistré, et protège des mêmes surprises.
      */
-    const lodgSansPrix = lodgRaw.filter((lg) => !(lg.total > 0)).length
-    const lodgOffres = lodgRaw.filter((lg) => lg.total > 0)
+    const lodgSansPrix = lodgRaw.filter((lg) => !hasPricedOffer(lg)).length
+    const lodgOffres = lodgRaw.filter((lg) => hasPricedOffer(lg))
     const lodgAll = mergeDupesList(lodgOffres, state.mergeDupes)
     const dupMerged = lodgRaw.length - lodgAll.length
 
@@ -789,9 +789,16 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     // Les cartes sans prix (OSM → Airbnb) passent toujours après les offres
     // chiffrées, quel que soit le tri : sans cela, un `total` de 0 les ferait
     // remonter en tête d'un tri par prix, devant de vraies offres moins chères.
-    const priceless = (lg: Lodging): boolean => lg.total <= 0
+    const priceless = (lg: Lodging): boolean => lg.total <= 0 && !(lg.nightly != null && lg.nightly > 0)
+    const nightlyOnly = (lg: Lodging): boolean => lg.total <= 0 && (lg.nightly ?? 0) > 0
     const lodgList = [...lodgFiltered].sort((a, b) => {
       if (priceless(a) !== priceless(b)) return priceless(a) ? 1 : -1
+      if (state.lodgSort === 'total_asc' && nightlyOnly(a) !== nightlyOnly(b)) {
+        return nightlyOnly(a) ? 1 : -1
+      }
+      if (state.lodgSort === 'total_asc' && nightlyOnly(a) && nightlyOnly(b)) {
+        return (a.nightly ?? 0) - (b.nightly ?? 0)
+      }
       return (lodgSorters[state.lodgSort] ?? lodgSorters.pp_asc)(a, b)
     })
 

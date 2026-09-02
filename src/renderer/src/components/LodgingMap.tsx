@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import maplibregl, { type StyleSpecification } from 'maplibre-gl'
 import { lodgingCoords } from '@/data/lodgingGeo'
+import { priceShown } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { useFormat } from '@/hooks/useFormat'
 import { useApp } from '@/state/appState'
@@ -144,7 +145,12 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
         : lg.locPrecision === 'approximate'
           ? t('pin_position_approx')
           : ''
-      el.textContent = `${positionEstimee ? '≈ ' : ''}${fmt(lg.total)} €`
+      const shown = priceShown(lg)
+      const pin =
+        shown.unit === 'night'
+          ? `${shown.amount} €/n`
+          : `${fmt(shown.amount)} €`
+      el.textContent = `${positionEstimee ? '≈ ' : ''}${pin}`
       // Cliquer une bulle **met en avant**, cela n'ouvre pas la fiche : ce sont
       // deux gestes, et les confondre empêchait de se servir de la carte pour
       // situer une offre dans la liste.

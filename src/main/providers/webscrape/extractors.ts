@@ -392,7 +392,7 @@ export function extractGitesCards(): RawCard[] {
   return out
 }
 
-/** CozyCozy — méta-résultats */
+/** CozyCozy — méta-résultats. Tarif « À partir de N €/nuit », pas le séjour. */
 export function extractCozycozyCards(): RawCard[] {
   const out: RawCard[] = []
   const seen = new Set<string>()
@@ -439,8 +439,8 @@ export function extractCozycozyCards(): RawCard[] {
       node.querySelector('h3.title, h3, .title')?.textContent?.trim() || ''
     if (!title || title.length < 3) return
     const priceText =
-      node.querySelector('.price')?.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0] ||
-      node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
+      node.querySelector('.price')?.textContent?.match(/\d[\d\s.,]*\s*€(?:\s*\/\s*nuit)?/i)?.[0] ||
+      node.textContent?.match(/\d[\d\s.,]*\s*€(?:\s*\/\s*nuit)?/i)?.[0]
     if (!priceText) return
     const sourceId = title.toLowerCase().replace(/\s+/g, '-').slice(0, 80)
     if (seen.has(sourceId)) return
@@ -484,7 +484,9 @@ export function extractCozycozyCards(): RawCard[] {
       link?.textContent?.trim() ||
       ''
     if (!title || title.length < 3) return
-    const priceText = node.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
+    // Dump : « À partir de 89 €/nuit ». On garde « /nuit » pour ne pas
+    // ranger ce montant en total de séjour.
+    const priceText = node.textContent?.match(/\d[\d\s.,]*\s*€(?:\s*\/\s*nuit)?/i)?.[0]
     if (!priceText) return
     const img = (node.querySelector('img') as HTMLImageElement | null)?.src
     const texte = node.textContent || ''

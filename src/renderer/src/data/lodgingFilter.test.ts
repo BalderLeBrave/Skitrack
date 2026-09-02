@@ -477,6 +477,44 @@ check(
   matchesLodgingFilters(confirme({ total: 0 }), CRITERIA, STAY)
 )
 
+console.log('\n10b. CozyCozy : tarif par nuit, pas un séjour de 89 €')
+check(
+  '89 €/nuit n’est pas un prix de séjour confirmé',
+  !matchesLodgingFilters(
+    confirme({ total: 0, nightly: 89, priceConfidence: 'partial' }),
+    STRICT,
+    STAY
+  )
+)
+check(
+  '89 €/nuit s’affiche quand on n’exige pas un séjour confirmé',
+  matchesLodgingFilters(
+    confirme({ total: 0, nightly: 89, priceConfidence: 'partial' }),
+    CRITERIA,
+    STAY
+  )
+)
+
+console.log('\n10c. Relevé CozyCozy : un tarif nuit remplace un faux total de séjour')
+const fauxSejour = lodging({
+  url: 'https://www.cozycozy.com/fr/x',
+  src: 'cozycozy',
+  total: 89,
+  priceConfidence: 'unknown'
+})
+const vraiNuit = lodging({
+  url: 'https://www.cozycozy.com/fr/x',
+  src: 'cozycozy',
+  total: 0,
+  nightly: 89,
+  pp: 11.1,
+  priceConfidence: 'partial'
+})
+const fusionNuit = mergeProviderReadings([fauxSejour], [vraiNuit])
+check('le faux 89 € séjour disparaît', fusionNuit[0].total === 0, fusionNuit[0].total)
+check('le tarif 89 €/nuit est conservé', fusionNuit[0].nightly === 89, fusionNuit[0].nightly)
+check('la confiance passe en partial', fusionNuit[0].priceConfidence === 'partial')
+
 console.log('\n11. Notes ramenées sur 5, quelle que soit l’échelle de la source')
 check('Booking 8,2 sur 10 devient 4,1', noteOnFive(8.2, 10) === '4,1', noteOnFive(8.2, 10))
 check('Booking 10 sur 10 devient 5', noteOnFive(10, 10) === '5', noteOnFive(10, 10))

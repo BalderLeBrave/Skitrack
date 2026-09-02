@@ -147,14 +147,22 @@ function toLodging(
 ): Lodging | null {
   if (!a.url || !a.title) return null
 
-  // Montant du séjour si fourni. On affiche dès qu'il y a un prix > 0 :
-  // une confiance inconnue ne doit pas faire disparaître l'offre.
+  // Montant du séjour si fourni. CozyCozy : tarif par nuit, pas un séjour.
+  // On n'invente pas un total (nightly × nuits) — ça ferait passer 89 €/nuit
+  // pour 89 € la semaine.
   const total =
     a.totalPrice != null && a.totalPrice > 0 ? Math.round(a.totalPrice) : 0
+  const nightly =
+    a.nightlyPrice != null && a.nightlyPrice > 0 ? Math.round(a.nightlyPrice) : 0
 
   const nights = Math.max(1, params.nights)
   const guests = a.guests && a.guests > 0 ? a.guests : params.adults
-  const pp = total > 0 ? Math.round((total / nights / Math.max(1, guests)) * 10) / 10 : 0
+  const pp =
+    total > 0
+      ? Math.round((total / nights / Math.max(1, guests)) * 10) / 10
+      : nightly > 0
+        ? Math.round((nightly / Math.max(1, guests)) * 10) / 10
+        : 0
 
   // Centrale Ingénie : un total relevé via `#total-prestation` est le montant
   // du séjour, pas un « à partir de ». Ne pas le rabattre en `partial`.
@@ -216,6 +224,7 @@ function toLodging(
     photo: '',
     annul: false,
     total,
+    nightly: nightly > 0 ? nightly : undefined,
     alt: 0,
     stock: 0,
     url: a.url,
@@ -315,17 +324,29 @@ export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]):
       src: reading.src,
       srcConnector: reading.srcConnector,
       // Un relevé muet n'efface pas un prix déjà mesuré.
+      // Un tarif nuit (CozyCozy) remplace un total erroné : on ne garde pas
+      // 89 € « séjour » si le nouveau relevé dit 89 €/nuit.
       ...(reading.total > 0
         ? {
             total: reading.total,
+            nightly: undefined,
             pp: reading.pp,
             priceConfidence: reading.priceConfidence,
             priceCheckIn: reading.priceCheckIn,
             priceCheckOut: reading.priceCheckOut,
-            // Revue au relevé : la marque d'absence tombe.
             missingSince: undefined
           }
-        : {})
+        : reading.nightly != null && reading.nightly > 0
+          ? {
+              total: 0,
+              nightly: reading.nightly,
+              pp: reading.pp,
+              priceConfidence: reading.priceConfidence,
+              priceCheckIn: reading.priceCheckIn,
+              priceCheckOut: reading.priceCheckOut,
+              missingSince: undefined
+            }
+          : {})
     }
   })
 

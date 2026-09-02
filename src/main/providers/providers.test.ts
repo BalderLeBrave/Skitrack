@@ -19,7 +19,13 @@ import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
 import { collectBookingPages, collectPages, paginationOf } from './webscrape/providers'
 import { bookingSearchUrl, cozycozySearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
-import { cozycozySearchEmptyKind, gitesSearchEmptyKind, pageLooksBlocked } from './webscrape/shared'
+import {
+  cozycozySearchEmptyKind,
+  gitesSearchEmptyKind,
+  looksNightlyPriceText,
+  pageLooksBlocked,
+  webscrapePriceFields
+} from './webscrape/shared'
 import type { RawCard } from './webscrape/extractors'
 import { classifyProviderError } from '@shared/reasonCodes'
 import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
@@ -731,6 +737,28 @@ async function main(): Promise<void> {
       '<joli-root ng-version="16.2.6"><article class="hoj_seo_card">chalet 1032 €</article></joli-root>'
     ) === null
   )
+
+  heading('17. CozyCozy — tarif par nuit, pas le séjour')
+  const cozyNuit = webscrapePriceFields('cozycozy-web', 'À partir de 89 €/nuit')
+  check(
+    'CozyCozy 89 €/nuit → nightlyPrice, pas total',
+    cozyNuit.nightlyPrice === 89 && cozyNuit.totalPrice === undefined,
+    cozyNuit
+  )
+  const cozyBare = webscrapePriceFields('cozycozy-web', '89 €')
+  check(
+    'CozyCozy source seule, même sans « /nuit » dans le texte',
+    cozyBare.nightlyPrice === 89 && cozyBare.totalPrice === undefined,
+    cozyBare
+  )
+  const bookingStay = webscrapePriceFields('booking-web', '1 200 €')
+  check(
+    'Booking 1 200 € → total de séjour',
+    bookingStay.totalPrice === 1200 && bookingStay.nightlyPrice === undefined,
+    bookingStay
+  )
+  check('texte « 120 €/nuit » est nightly', looksNightlyPriceText('120 €/nuit') === true)
+  check('texte « 1 200 € » n’est pas nightly', looksNightlyPriceText('1 200 €') === false)
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

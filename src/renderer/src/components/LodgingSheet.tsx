@@ -13,7 +13,7 @@
 
 import { useRef } from 'react'
 import { CloseIcon, ExternalIcon } from './Icons'
-import { srcOf, trackKey } from '@/data/lodgings'
+import { priceShown, srcOf, trackKey } from '@/data/lodgings'
 import { accessTimeOf } from '@/data/accessTime'
 import { isClientReady } from '@/api/client'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
@@ -165,17 +165,27 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
                   color: 'var(--brand)'
                 }}
               >
-                {lodging.priceConfidence === 'partial'
+              {(() => {
+                const shown = priceShown(lodging)
+                if (shown.unit === 'night') {
+                  return `${t('price_from')} ${eur(shown.amount)}`
+                }
+                return lodging.priceConfidence === 'partial'
                   ? t('sheet_price_from').replace('{p}', eur(lodging.total))
-                  : eur(lodging.total)}
+                  : eur(lodging.total)
+              })()}
               </span>
               <span className="u-muted" style={{ fontSize: 12 }}>
-                {lodging.priceConfidence === 'total_confirmed'
-                  ? t('sheet_price_confirmed')
-                  : lodging.priceConfidence === 'partial'
-                    ? t('sheet_teaser_rate')
-                    : t('sheet_price_unqualified')}{' '}
-                · {nights} nuits · {state.travelers} pers.
+                {priceShown(lodging).unit === 'night'
+                  ? t('sheet_price_nightly')
+                  : lodging.priceConfidence === 'total_confirmed'
+                    ? t('sheet_price_confirmed')
+                    : lodging.priceConfidence === 'partial'
+                      ? t('sheet_teaser_rate')
+                      : t('sheet_price_unqualified')}{' '}
+                {priceShown(lodging).unit === 'night'
+                  ? `· ${state.travelers} pers.`
+                  : `· ${nights} nuits · ${state.travelers} pers.`}
               </span>
               <span className="u-spacer" />
               <span style={{ fontSize: 14 }}>

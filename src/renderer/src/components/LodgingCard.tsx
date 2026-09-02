@@ -30,7 +30,7 @@ import { NoImage } from './ResultCard'
 import { ProviderBadge } from './ProviderBadge'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
-import { freshnessOf, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
+import { freshnessOf, priceShown, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
 import { hotelRoomsNeeded, isCombinableHotel, partyVerdict } from '@/data/lodgingFilter'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import { availabilityOf } from '@/data/lodgingAvailability'
@@ -67,7 +67,9 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
     ? listingUrlWithStay(lg.url, lg.srcConnector ?? srcOf(lg), criteria)
     : searchUrl
 
-  const redirect = lg.total <= 0
+  const shown = priceShown(lg)
+  const redirect = shown.unit === 'none'
+  const nightly = shown.unit === 'night'
   const priceStale =
     !redirect &&
     lg.priceCheckIn != null &&
@@ -181,15 +183,20 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
         .join(' · ')
 
   const conf = lg.priceConfidence
-  const partial = conf === 'partial'
+  const partial = conf === 'partial' || nightly
   const price = redirect
     ? { amount: t('lodg_price_on_source').replace('{s}', srcOf(lg)), unit: '' }
-    : {
-        amount: partial ? `${t('price_from')} ${eur(lg.total)}` : eur(lg.total),
-        unit: partial
-          ? t('price_unit_partial').replace('{pp}', eur(lg.pp))
-          : t('price_unit_confirmed').replace('{pp}', eur(lg.pp))
-      }
+    : nightly
+      ? {
+          amount: `${t('price_from')} ${eur(shown.amount)}`,
+          unit: t('price_unit_nightly')
+        }
+      : {
+          amount: partial ? `${t('price_from')} ${eur(lg.total)}` : eur(lg.total),
+          unit: partial
+            ? t('price_unit_partial').replace('{pp}', eur(lg.pp))
+            : t('price_unit_confirmed').replace('{pp}', eur(lg.pp))
+        }
 
   /*
    * Plus de teinte selon la confiance du prix : la liste n'admet que des prix
@@ -224,9 +231,11 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
       aria-label={`${lg.name} — ${place || srcOf(lg)}${lg.note ? `, note ${lg.note}` : ''}${
         redirect
           ? ''
-          : partial
-            ? `, ${t('price_from')} ${eur(lg.total)}`
-            : `, ${eur(lg.total)} ${t('price_all_in')}`
+          : nightly
+            ? `, ${t('price_from')} ${eur(shown.amount)} ${t('price_unit_nightly')}`
+            : partial
+              ? `, ${t('price_from')} ${eur(lg.total)}`
+              : `, ${eur(lg.total)} ${t('price_all_in')}`
       }`}
       aria-current={selected ? 'true' : undefined}
       onClick={openSheet}

@@ -30,6 +30,7 @@ import {
 import { nextProxy, toPlaywrightProxy, type ProxyConfig } from '../proxy'
 import { diagnoseEmptySearch } from './calendarBlocks'
 import { trySolveVisibleCaptcha } from '../../captchaBridge'
+import { SEARCH_WALK } from '@shared/searchWalk'
 
 export interface AirbnbScrapeParams extends AirbnbUrlParams {
   timeoutMs?: number
@@ -581,7 +582,7 @@ function exponentialBackoffMs(
 async function scrapeAirbnbSearchOnce(params: AirbnbScrapeParams): Promise<AirbnbScrapeOutcome> {
   const url = buildAirbnbSearchUrl(params)
   const timeoutMs = params.timeoutMs ?? 45_000
-  const scrollCount = params.scrollCount ?? 8
+  const scrollCount = params.scrollCount ?? SEARCH_WALK.airbnbMaxScrolls
   // Pour le score v3, le headed est nettement meilleur ; on garde headless par
   // défaut pour l’UX, mais optimizeScore force plus de warm-up / humanisation.
   // Headless par défaut : pas de fenêtre Chrome surprise pendant la recherche.

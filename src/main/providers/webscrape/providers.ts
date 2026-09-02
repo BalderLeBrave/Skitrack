@@ -9,6 +9,7 @@
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
 import type { Page } from 'playwright'
 import type { PaginationReport, StoppedReason } from '@shared/reasonCodes'
+import { SEARCH_WALK, isPrivateOrSharedListing } from '@shared/searchWalk'
 import {
   extractBookingCards,
   extractCozycozyCards,
@@ -58,6 +59,12 @@ import {
   parseCozyResultPayloads
 } from './cozyResultList'
 
+/**
+ * Logement entier seulement. Type source, pas le titre.
+ * Réexporté pour les tests du connecteur.
+ */
+export { SEARCH_WALK, isPrivateOrSharedListing } from '@shared/searchWalk'
+
 function mapCards(
   source: string,
   cards: RawCard[],
@@ -84,6 +91,7 @@ function mapCards(
       if (totalPrice == null || totalPrice <= 0) continue
       if (c.guests == null || c.bedrooms == null) continue
     }
+    if (isPrivateOrSharedListing(c.propertyType)) continue
     const { nightlyPrice, weeklyPrice } = parsed
     const rating = c.ratingText ? parseFloat(c.ratingText.replace(',', '.')) : undefined
     const photo = listingPhotoUrl(c.image, c.url)
@@ -151,12 +159,31 @@ async function collectCozyApiHits(page: Page, url: string, timeoutMs: number): P
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
     const until = Date.now() + Math.min(16_000, timeoutMs)
     while (payloads.length === 0 && Date.now() < until) await sleep(400)
-    await scrollToEnd(page)
-    await sleep(1800)
+    // Dump D2A : 2 payloads / 45 entries après un seul scrollToEnd.
+    // Site Abritel > 300 : on re-scroll tant que getResultList apporte des ids.
+    let previous = 0
+    let idle = 0
+    for (let step = 0; step < SEARCH_WALK.cozyMaxScrolls; step++) {
+      await scrollToEnd(page, 4)
+      await sleep(900)
+      const n = parseCozyResultPayloads(payloads).length
+      if (n >= SEARCH_WALK.maxListings) break
+      if (n === previous) {
+        idle++
+        if (idle >= 2) break
+      } else {
+        idle = 0
+        previous = n
+      }
+    }
   } finally {
     page.off('response', onResponse)
   }
-  return cozyHitsToRawCards(parseCozyResultPayloads(payloads))
+  const cards = cozyHitsToRawCards(parseCozyResultPayloads(payloads))
+  cards.forEach((c, i) => {
+    c.pageIndex = Math.floor(i / 20)
+  })
+  return cards
 }
 
 async function loadAndExtract(
@@ -284,29 +311,11 @@ function makeProvider(
 }
 
 /**
- * Résultats par page d'une SERP Booking, et pas d'une SERP en général : c'est
- * le pas de `offset`, donc une donnée du site, pas un réglage.
+ * Garde-fous du walk SERP — une station, pas une page.
+ * Source unique : `@shared/searchWalk`.
  */
-const BOOKING_PAGE_SIZE = 25
-
-/**
- * Pages au maximum, garde-fou de volume.
- *
- * Cinq pages, c'est cent vingt-cinq biens et une dizaine de secondes de plus.
- * Au-delà, on ne rend plus service à qui compare une semaine de vacances : on
- * fait du volume sur un site qui n'a rien demandé.
- */
-const BOOKING_MAX_PAGES = 5
-
-/**
- * Temps au-delà duquel on ne commence plus de page.
- *
- * Le plafond de pages ne borne pas la durée : chaque page porte son propre
- * délai de chargement et ses propres retentes, et cinq pages lentes tiennent
- * l'écran de recherche plusieurs minutes. Ce budget ne coupe jamais une page
- * en cours — il décide seulement si l'on en ouvre une de plus.
- */
-const BOOKING_PAGES_BUDGET_MS = 60_000
+const BOOKING_PAGE_SIZE = SEARCH_WALK.bookingPageSize
+const BOOKING_MAX_PAGES = SEARCH_WALK.maxPages
 
 /**
  * Parcourt les pages de résultats et rend l'union, dédoublonnée.
@@ -329,8 +338,9 @@ export async function collectPages(
   urlFor: (offset: number) => string,
   pageSize: number,
   fetchPage: (url: string) => Promise<RawCard[]>,
-  maxPages = BOOKING_MAX_PAGES,
-  budgetMs = BOOKING_PAGES_BUDGET_MS
+  maxPages = SEARCH_WALK.maxPages,
+  budgetMs = SEARCH_WALK.pagesBudgetMs,
+  maxListings = SEARCH_WALK.maxListings
 ): Promise<RawCard[]> {
   const all: RawCard[] & { report?: PaginationReport } = []
   const seen = new Set<string>()
@@ -345,7 +355,13 @@ export async function collectPages(
       stoppedReason = 'budget'
       break
     }
-    const cards = await fetchPage(urlFor(index * pageSize))
+    let cards: RawCard[]
+    try {
+      cards = await fetchPage(urlFor(index * pageSize))
+    } catch {
+      stoppedReason = 'blocked'
+      break
+    }
     pagesFetched++
     listingsFound += cards.length
     if (cards.length === 0) {
@@ -364,6 +380,10 @@ export async function collectPages(
 
     if (fresh === 0) {
       stoppedReason = 'no_fresh'
+      break
+    }
+    if (all.length >= maxListings) {
+      stoppedReason = 'max_listings'
       break
     }
     if (cards.length < pageSize) {
@@ -396,15 +416,16 @@ export function paginationOf(cards: RawCard[]): PaginationReport | undefined {
 export async function collectBookingPages(
   params: SearchParams,
   fetchPage: (url: string) => Promise<RawCard[]>,
-  maxPages = BOOKING_MAX_PAGES,
-  budgetMs = BOOKING_PAGES_BUDGET_MS
+  maxPages = SEARCH_WALK.maxPages,
+  budgetMs = SEARCH_WALK.pagesBudgetMs
 ): Promise<RawCard[]> {
   return collectPages(
     (offset) => bookingSearchUrl(params, offset),
     BOOKING_PAGE_SIZE,
     fetchPage,
     maxPages,
-    budgetMs
+    budgetMs,
+    SEARCH_WALK.maxListings
   )
 }
 
@@ -484,8 +505,8 @@ export function createGitesWebProvider(opts?: ScrapeAttemptOptions): Accommodati
   }
 }
 
-const GITES_ENRICH_BUDGET_MS = 180_000
-const GITES_ENRICH_LIMIT = 40
+const GITES_ENRICH_BUDGET_MS = SEARCH_WALK.pagesBudgetMs
+const GITES_ENRICH_LIMIT = SEARCH_WALK.maxListings
 
 /**
  * Tuile Gîtes = « À partir de N € /semaine ». Le total daté n'existe qu'après

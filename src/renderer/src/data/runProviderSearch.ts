@@ -25,6 +25,7 @@
  */
 
 import type { ProviderAccommodation, ProviderOutcome } from '@shared/ipc-contract'
+import { formatStationRun } from '@shared/searchWalk'
 import type { Lodging } from './lodgings'
 import { CENTRALE_SOURCE, listingKey, listingKeyFromUrl } from './lodgings'
 import { hasConfirmedPrice, isDroppedGitesOffer, matchesDemand } from './lodgingFilter'
@@ -436,10 +437,34 @@ export async function runProviderSearch(
   // `mergeProviderReadings`, qui met à jour au lieu d'écarter.
   const seen = new Set<string>()
   const lodgings: Lodging[] = []
+  const shownByProvider = new Map<string, number>()
 
   for (const outcome of aggregate.outcomes) {
+    const before = lodgings.length
     lodgings.push(...lodgingsFromOutcome(outcome, params, seen))
+    shownByProvider.set(outcome.provider, lodgings.length - before)
   }
+
+  const stationRun = formatStationRun(
+    {
+      destination: stationNameOf(params.domainName) || params.domainName,
+      checkIn: params.checkIn,
+      checkOut: params.checkOut,
+      adults: params.adults,
+      bedrooms: params.bedrooms
+    },
+    aggregate.outcomes.map((o) => ({
+      provider: o.provider,
+      fetched: o.pagination?.listingsFound ?? o.results.length,
+      parsed: o.results.length,
+      shown: shownByProvider.get(o.provider) ?? 0,
+      pages_fetched: o.pagination?.pagesFetched ?? (o.results.length > 0 ? 1 : 0),
+      stopped_reason: o.pagination?.stoppedReason,
+      reason_code: o.reasonCode,
+      error: o.error
+    }))
+  )
+  console.info('[SKITRACK] station_run', JSON.stringify(stationRun))
 
   return {
     lodgings,

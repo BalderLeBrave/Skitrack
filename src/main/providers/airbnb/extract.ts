@@ -82,6 +82,12 @@ export function occupancyFromStaySearchResult(record: Record<string, unknown>): 
       if (guests == null && (k === 'personcapacity' || k === 'guestcapacity' || k === 'maxguestcapacity')) {
         guests = takeInt(v)
       }
+      if (
+        bedrooms == null &&
+        (k === 'bedroomcount' || k === 'bedrooms' || k === 'numberofbedrooms' || k === 'bedroomscount')
+      ) {
+        bedrooms = takeInt(v)
+      }
       if (typeof v === 'string' && v.length > 0 && v.length <= 80) {
         const ch = /(\d+)\s*chambres?\b/i.exec(v)
         if (ch && bedrooms == null) {

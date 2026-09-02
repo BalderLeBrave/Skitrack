@@ -11,6 +11,7 @@ import type { Lodging } from './lodgings'
 import { stationNameOf } from './stations'
 import type { SearchZone } from '@shared/geo'
 import { filterToZone } from '@shared/geo'
+import { SEARCH_WALK, formatStationRun } from '@shared/searchWalk'
 
 /** Délai max d'**une** passe (ms). Couvre les retries Playwright de cette passe. */
 export const AIRBNB_PASS_TIMEOUT_MS = 120_000
@@ -261,7 +262,7 @@ async function scrapeOnce(params: RunAirbnbSearchParams, band: PriceBand = {}) {
     minPrice: band.minPrice,
     maxPrice: band.maxPrice,
     bedrooms: params.bedrooms,
-    scrollCount: 8,
+    scrollCount: SEARCH_WALK.airbnbMaxScrolls,
     maxRetries: 3,
     // Headed (défaut main) : meilleur score reCAPTCHA. Ne pas forcer headless.
     timeoutMs: 60_000
@@ -474,6 +475,32 @@ export async function runAirbnbSearch(
         'Le nom de station envoyé a probablement été compris comme une autre commune.'
     }
   }
+
+  console.info(
+    '[SKITRACK] station_run',
+    JSON.stringify(
+      formatStationRun(
+        {
+          destination: params.domainName,
+          checkIn: params.checkIn,
+          checkOut: params.checkOut,
+          adults: params.adults,
+          bedrooms: params.bedrooms
+        },
+        [
+          {
+            provider: 'airbnb',
+            fetched: listings.length,
+            parsed: listings.length,
+            shown: retenues.length,
+            pages_fetched: passes,
+            stopped_reason: sweepComplete ? 'exhausted' : 'budget',
+            reason_code: retenues.length > 0 ? 'ok' : '0_after_parse'
+          }
+        ]
+      )
+    )
+  )
 
   const { imported, added, updated, missing } = mergeAirbnbPaste(params.imported, retenues, {
     checkIn: meta.checkIn ?? params.checkIn,

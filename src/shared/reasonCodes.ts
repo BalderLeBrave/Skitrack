@@ -28,9 +28,11 @@ export type ReasonCode = (typeof REASON_CODES)[number]
 export const STOPPED_REASONS = [
   'exhausted',
   'max_pages',
+  'max_listings',
   'budget',
   'empty_page',
-  'no_fresh'
+  'no_fresh',
+  'blocked'
 ] as const
 
 export type StoppedReason = (typeof STOPPED_REASONS)[number]

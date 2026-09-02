@@ -15,6 +15,7 @@ import {
   type CheerioAirbnbMeta
 } from './cheerioExtract'
 import type { AirbnbClipListing, AirbnbClipPayload } from './extract'
+import { SEARCH_WALK } from '@shared/searchWalk'
 
 export interface DynamicWaitOptions {
   /** Sélecteur principal. Défaut #data-deferred-state-0 */
@@ -155,7 +156,7 @@ export async function extractProgressive(
   page: Page,
   options: ProgressiveExtractOptions = {}
 ): Promise<AirbnbClipPayload> {
-  const scrollCount = options.scrollCount ?? 8
+  const scrollCount = options.scrollCount ?? SEARCH_WALK.airbnbMaxScrolls
   const scrollPauseMs = options.scrollPauseMs ?? 1100
   const meta = options.meta
 
@@ -180,10 +181,28 @@ export async function extractProgressive(
   await snapshot()
 
   let previous = merged.length
+  let idle = 0
   for (let i = 0; i < scrollCount; i++) {
-    await page.evaluate((ratio) => {
-      window.scrollBy({ top: window.innerHeight * ratio, behavior: 'smooth' })
-    }, 0.75 + i * 0.05)
+    if (merged.length >= SEARCH_WALK.maxListings) break
+    await page.evaluate(() => {
+      const card = document.querySelector(
+        '[data-testid="card-container"], [itemprop="itemListElement"], a[href*="/rooms/"]'
+      )
+      let p: HTMLElement | null = card?.parentElement ?? null
+      while (p && p !== document.documentElement) {
+        const st = window.getComputedStyle(p)
+        const oy = st.overflowY
+        if (
+          (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+          p.scrollHeight > p.clientHeight + 80
+        ) {
+          p.scrollTop += Math.max(p.clientHeight * 0.9, 400)
+          return
+        }
+        p = p.parentElement
+      }
+      window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' })
+    })
 
     // Attendre activité réseau brève (XHR résultats) puis stabilité
     try {
@@ -201,8 +220,13 @@ export async function extractProgressive(
     }
 
     await snapshot()
-    if (merged.length === previous) break
-    previous = merged.length
+    if (merged.length === previous) {
+      idle++
+      if (idle >= SEARCH_WALK.idleCycles) break
+    } else {
+      idle = 0
+      previous = merged.length
+    }
   }
 
   if (merged.length === 0) {

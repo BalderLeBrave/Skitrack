@@ -4,7 +4,7 @@
  * Les sources interrogées :
  *
  *     booking            Demand API v3          clés requises, repli scraper web
- *     booking-web        relevé Playwright      pagination, 125 biens au plus
+ *     booking-web        relevé Playwright      pagination, 250 biens au plus
  *     gites-web          relevé Playwright      Gîtes de France
  *     vrbo-web           relevé Playwright      Abritel (via getResultList)
  *     station            centrale de la station lue avec Playwright, voir station/
@@ -49,7 +49,8 @@ import { SearchEngine } from './searchEngine'
 import { debugLog } from './debug'
 import type { AggregateResult, ProviderOutcome, SearchParams } from './types'
 import { OUT_OF_ZONE_MARGIN_KM, coordsUsable, filterToZone, searchZone } from '@shared/geo'
-import { classifyProviderError, type PaginationReport, type ReasonCode } from '@shared/reasonCodes'
+import { classifyProviderError, type PaginationReport, type ReasonCode, type StoppedReason } from '@shared/reasonCodes'
+import { SEARCH_WALK, formatStationRun } from '@shared/searchWalk'
 import { centralsLoaded, emptyStationReason } from './station/centralLookup'
 
 export interface EngineOptions {
@@ -209,21 +210,27 @@ function keepInZone(outcomes: ProviderOutcome[], params: SearchParams): Provider
   return filtered
 }
 
-function annotateOutcome(outcome: ProviderOutcome, params: SearchParams): ProviderOutcome {
+function paginationFromResults(results: ProviderOutcome['results']): PaginationReport | undefined {
+  if (results.length === 0) return undefined
   const pages = new Set(
-    outcome.results
+    results
       .map((r) => r.searchPageIndex)
       .filter((n): n is number => typeof n === 'number')
   )
-  const pagination: PaginationReport | undefined =
-    outcome.results.length > 0
-      ? {
-          pagesFetched: pages.size || 1,
-          listingsFound: outcome.results.length,
-          listingsDeduped: outcome.results.length,
-          stoppedReason: pages.size >= 5 ? 'max_pages' : 'exhausted'
-        }
-      : undefined
+  const pagesFetched = pages.size || 1
+  let stoppedReason: StoppedReason = 'exhausted'
+  if (results.length >= SEARCH_WALK.maxListings) stoppedReason = 'max_listings'
+  else if (pagesFetched >= SEARCH_WALK.maxPages) stoppedReason = 'max_pages'
+  return {
+    pagesFetched,
+    listingsFound: results.length,
+    listingsDeduped: results.length,
+    stoppedReason
+  }
+}
+
+function annotateOutcome(outcome: ProviderOutcome, params: SearchParams): ProviderOutcome {
+  const pagination = paginationFromResults(outcome.results)
 
   let reasonCode: ReasonCode
   if (outcome.results.length > 0) reasonCode = 'ok'
@@ -259,6 +266,22 @@ export async function aggregateResults(
     onOutcome(annotateOutcome(filtered, params))
   })
   const outcomes = keepInZone(report.outcomes, params).map((o) => annotateOutcome(o, params))
+
+  const stationRun = formatStationRun(params, outcomes.map((o) => ({
+    provider: o.provider,
+    fetched: o.pagination?.listingsFound ?? o.results.length,
+    parsed: o.results.length,
+    shown: o.results.length,
+    pages_fetched: o.pagination?.pagesFetched ?? (o.results.length > 0 ? 1 : 0),
+    stopped_reason: o.pagination?.stoppedReason,
+    reason_code: o.reasonCode,
+    error: o.error
+  })))
+  debugLog('station_run', 'walk', {
+    station: stationRun.station,
+    sources: stationRun.sources.map((s) => `${s.provider}:${s.pages_fetched}p/${s.parsed} ${s.fork ?? s.reason_code ?? ''}`)
+  })
+  console.info('[SKITRACK] station_run', JSON.stringify(stationRun))
 
   /** Prix comparable d'une offre, `null` si la source n'en donne pas d'exploitable. */
   const priceOf = (item: { totalPrice?: number; nightlyPrice?: number }): number | null =>

@@ -39,10 +39,12 @@ import type { RawCard } from './webscrape/extractors'
 import {
   abritelCanonicalUrl,
   isVrboFamilyProvider,
-  parseCozyResultPayload
+  parseCozyResultPayload,
+  parseCozyResultPayloads
 } from './webscrape/cozyResultList'
 import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
 import { classifyProviderError } from '@shared/reasonCodes'
+import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing } from '@shared/searchWalk'
 import {
   extractListingsFromDeferredState,
   occupancyFromStaySearchResult
@@ -472,12 +474,51 @@ async function main(): Promise<void> {
   check('page vide : une seule lecture', vide === 1 && rien.length === 0)
 
   const plafond: string[] = []
-  const bridé = await collectBookingPages(stay, async (url) => {
-    plafond.push(url)
-    const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
-    return cards(rang, 25)
-  })
+  const bridé = await collectBookingPages(
+    stay,
+    async (url) => {
+      plafond.push(url)
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return cards(rang, 25)
+    },
+    5
+  )
   check('le plafond de pages tient', plafond.length === 5 && bridé.length === 125, plafond.length)
+
+  const page1 = cards(0, 25)
+  const page2 = cards(25, 25)
+  const union = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return rang === 0 ? page1 : rang === 25 ? page2 : []
+    }
+  )
+  check('T2 Booking offset 0 ∪ N > page 1', union.length === 50 && union.length > page1.length)
+  check('T1 ids page 2 exclusifs dans l’union', new Set(union.map((c) => c.sourceId)).size === 50)
+  check('SEARCH_WALK max_pages 15 / max_listings 250', SEARCH_WALK.maxPages === 15 && SEARCH_WALK.maxListings === 250)
+  check('T5 chambre privée drop', isPrivateOrSharedListing('Private room') === true)
+  check('T5 chambre d’hôtes drop', isPrivateOrSharedListing("Chambre d'hôtes") === true)
+  check('T5 type absent conservé (pas 0 premature)', isPrivateOrSharedListing(undefined) === false)
+  check('T5 appartement entire keep', isPrivateOrSharedListing('Appartement') === false)
+
+  let blockedPages = 0
+  const afterBlock = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async () => {
+      blockedPages++
+      if (blockedPages === 1) return cards(0, 25)
+      throw new Error('challenge')
+    }
+  )
+  check('walk : page 2 bloquée, page 1 conservée', afterBlock.length === 25, afterBlock.length)
+  check(
+    'walk : stopped_reason blocked',
+    paginationOf(afterBlock)?.stoppedReason === 'blocked',
+    paginationOf(afterBlock)?.stoppedReason
+  )
 
   // Le budget de temps ne coupe pas une page en cours : il décide si l'on en
   // ouvre une de plus. Budget nul = une seule page, celle sans laquelle il n'y
@@ -575,6 +616,20 @@ async function main(): Promise<void> {
   const rapport = paginationOf(lot)
   check('stopped_reason exhausted', rapport?.stoppedReason === 'exhausted', rapport?.stoppedReason)
   check('pages_fetched = 3', rapport?.pagesFetched === 3, rapport?.pagesFetched)
+  check('T4 pages_fetched>=2 quand has_next', (rapport?.pagesFetched ?? 0) >= 2)
+  const run = formatStationRun(stay, [
+    {
+      provider: 'booking-web',
+      fetched: lot.length,
+      parsed: lot.length,
+      shown: lot.length,
+      pages_fetched: rapport?.pagesFetched ?? 0,
+      stopped_reason: rapport?.stoppedReason,
+      reason_code: 'ok'
+    }
+  ])
+  check('T4 station_run pages_fetched>=2', run.sources[0]?.pages_fetched >= 2)
+  check('T4 fork pas F5 si pages>=2', run.sources[0]?.fork !== 'F5')
 
   // Problème 1b : VRBO n'avait aucune URL de recherche.
   const vrbo = vrboSearchUrl(stay, 50)
@@ -674,6 +729,32 @@ async function main(): Promise<void> {
     classifyProviderError(
       'gites-web: destination non résolue (entity_id vide) [empty_inventory]'
     ) === 'empty_inventory'
+  )
+  check(
+    'T6 fetched=0 sans message → 0_after_parse (pas silence)',
+    classifyProviderError('') === '0_after_parse' && classifyProviderError(undefined) === '0_after_parse'
+  )
+  check(
+    'T6 F1 fetched=0',
+    forkOf({
+      provider: 'booking-web',
+      fetched: 0,
+      parsed: 0,
+      shown: 0,
+      pages_fetched: 0,
+      reason_code: '0_after_parse'
+    }) === 'F1'
+  )
+  check(
+    'T6 F2 blocked',
+    forkOf({
+      provider: 'vrbo-web',
+      fetched: 0,
+      parsed: 0,
+      shown: 0,
+      pages_fetched: 0,
+      reason_code: 'blocked'
+    }) === 'F2'
   )
 
   heading('15. Dumps 2026-09-01 — looksBlocked / Gîtes noResults')
@@ -894,6 +975,61 @@ async function main(): Promise<void> {
     ]
   })
   check('1 fiche Abritel retenue', cozyVrbo.length === 1, cozyVrbo.length)
+  const batch2 = {
+    entries: [
+      cozyVrbo[0] && {
+        accommodationId: 11032591,
+        name: 'Beau Duplex Familial',
+        title: 'appartement',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 8 },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 3363.28, indicative: false },
+            deeplinkUrl: cozyVrbo[0].deeplink
+          }
+        ]
+      },
+      {
+        accommodationId: 11109514,
+        name: 'Chalet Cosy',
+        title: 'châlet',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 12 },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 5507.12, indicative: false },
+            deeplinkUrl: 'https://www.abritel.fr/location-vacances/p6412825a'
+          }
+        ]
+      }
+    ]
+  }
+  const batch3 = {
+    entries: [
+      {
+        accommodationId: 99900001,
+        name: 'Appart 3',
+        title: 'appartement',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 8 },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 2100, indicative: false },
+            deeplinkUrl: 'https://www.abritel.fr/location-vacances/p2208204'
+          }
+        ]
+      }
+    ]
+  }
+  const one = parseCozyResultPayloads([ { entries: [batch2.entries[0]] } ])
+  const two = parseCozyResultPayloads([ { entries: [batch2.entries[0]] }, batch2 ])
+  const three = parseCozyResultPayloads([ { entries: [batch2.entries[0]] }, batch2, batch3 ])
+  check('T3 Abritel 1 batch < 3 batchs', one.length < three.length && two.length < three.length)
+  check('T3 dédup id entre batchs', three.filter((h) => String(h.accommodationId) === '11032591').length === 1)
   check('total séjour 3363,28 € (pas la nuit)', cozyVrbo[0]?.stay === 3363.28, cozyVrbo[0]?.stay)
   check('8 pers / 4 chb libellés', cozyVrbo[0]?.guests === 8 && cozyVrbo[0]?.bedrooms === 4)
   check('photo media.vrbo.com', Boolean(cozyVrbo[0]?.photo?.includes('media.vrbo.com')))
@@ -1049,6 +1185,35 @@ async function main(): Promise<void> {
     occupancyFromStaySearchResult({ __typename: 'StaySearchResult', subtitle: 'Les 2 Alpes' }).guests ===
       undefined
   )
+  check(
+    'bedroomCount numérique',
+    occupancyFromStaySearchResult({ bedroomCount: 4 }).bedrooms === 4
+  )
+
+  const stayOf = (id: string): Record<string, unknown> => ({
+    __typename: 'StaySearchResult',
+    demandStayListing: {
+      id: Buffer.from(`DemandStayListing:${id}`).toString('base64'),
+      personCapacity: 8,
+      bedroomCount: 4,
+      location: { coordinate: { latitude: 45.0, longitude: 6.1 } }
+    },
+    subtitle: 'Appartement entier',
+    title: `Chalet ${id}`,
+    structuredContent: { primaryLine: '4 chambres · 8 lits · 2 salles de bain' },
+    structuredDisplayPrice: { accessibilityLabel: '2 000 € au total' }
+  })
+  const airbnbPage1 = extractListingsFromDeferredState({ data: { results: [stayOf('111'), stayOf('222')] } })
+  const airbnbPage2 = extractListingsFromDeferredState({ data: { results: [stayOf('333'), stayOf('444')] } })
+  const page1Ids = new Set(airbnbPage1.listings.map((l) => l.id))
+  const page2Fresh = airbnbPage2.listings.filter((l) => !page1Ids.has(l.id))
+  check('T1 Airbnb page2 ids exclusifs', page2Fresh.length === 2 && page2Fresh.every((l) => l.id === '333' || l.id === '444'))
+  check(
+    'T1 union 4 ids',
+    new Set([...airbnbPage1.listings, ...airbnbPage2.listings].map((l) => l.id)).size === 4
+  )
+  check('T5 Airbnb entire keep', isPrivateOrSharedListing('Appartement entier') === false)
+  check('T5 Airbnb chambre privée drop', isPrivateOrSharedListing("Chambre privée chez l'habitant") === true)
 
   const dumpHtmlPath = join(process.cwd(), 'gites-discovery/search-d2a-0613.html')
   const widgetPath = join(process.cwd(), 'gites-discovery/widget-38G253122.html')

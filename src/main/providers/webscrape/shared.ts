@@ -529,27 +529,56 @@ export async function scrollPage(page: Page, times: number): Promise<void> {
 }
 
 /**
- * Défile jusqu'à ce que la page cesse de grandir.
+ * Défile jusqu'à ce que la page (ou le conteneur des cartes) cesse de grandir.
  *
  * Deux défilements fixes ne suffisaient pas : Booking charge ses cartes au fur
  * et à mesure, et une page arrêtée au deuxième écran rendait moins de vingt-cinq
  * cartes. `collectBookingPages` y lisait « page plus courte qu'une page
- * pleine », en concluait que c'était la dernière et **arrêtait le relevé** —
- * une collecte tronquée qui ressemblait à une collecte complète.
+ * pleine », en concluait que c'était la dernière et **arrêtait le relevé**.
  *
- * On s'arrête sur la hauteur du document, pas sur un compte de tours : c'est la
- * page qui dit quand elle a fini. Le plafond n'est qu'un garde-fou.
+ * On scrolle le conteneur overflow qui porte les cartes (spec : ne pas scroller
+ * le body si les cards sont dans un div interne). Sélecteurs = ceux des
+ * extracteurs déjà dans ce dépôt. Idle 2 cycles avant d'arrêter.
  */
 export async function scrollToEnd(page: Page, maxSteps = 12): Promise<void> {
-  let previous = 0
+  let previous = -1
+  let idle = 0
   for (let step = 0; step < maxSteps; step++) {
     const height = await page.evaluate(() => {
+      const sels = [
+        '[data-testid="card-container"]',
+        '[data-testid="property-card"]',
+        '.js-search-tile',
+        '[itemprop="itemListElement"]'
+      ]
+      for (const sel of sels) {
+        const card = document.querySelector(sel)
+        if (!card) continue
+        let p: HTMLElement | null = card.parentElement
+        while (p && p !== document.documentElement) {
+          const st = window.getComputedStyle(p)
+          const oy = st.overflowY
+          if (
+            (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+            p.scrollHeight > p.clientHeight + 80
+          ) {
+            p.scrollTop += Math.max(p.clientHeight * 0.9, 400)
+            return p.scrollHeight
+          }
+          p = p.parentElement
+        }
+      }
       window.scrollBy({ top: window.innerHeight * 0.85 })
       return document.body.scrollHeight
     })
     await sleep(700 + Math.random() * 400)
-    if (height === previous) return
-    previous = height
+    if (height === previous) {
+      idle++
+      if (idle >= 2) return
+    } else {
+      idle = 0
+      previous = height
+    }
   }
 }
 

@@ -10,10 +10,10 @@
       "provider": "booking-web",
       "reasonCode": "ok",
       "pagination": {
-        "pagesFetched": 5,
-        "listingsFound": 125,
-        "listingsDeduped": 118,
-        "stoppedReason": "max_pages"
+        "pagesFetched": 15,
+        "listingsFound": 250,
+        "listingsDeduped": 241,
+        "stoppedReason": "max_listings"
       }
     },
     {

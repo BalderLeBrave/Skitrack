@@ -34,6 +34,7 @@
  */
 
 import type { RawListing } from './bulkImport'
+import { isPrivateOrSharedListing } from '@shared/searchWalk'
 
 /** Une annonce telle que le marque-page la dépose. Tout est optionnel sauf id+name. */
 export interface AirbnbClipListing {
@@ -218,6 +219,7 @@ export function parseAirbnbClipboard(text: string): AirbnbParseResult {
     }
     if (seen.has(id)) return
     seen.add(id)
+    if (isPrivateOrSharedListing(item.subtitle)) return
 
     const total = parseAirbnbPrice(item.priceLabel)
     const rating = parseAirbnbRating(item.ratingLabel)

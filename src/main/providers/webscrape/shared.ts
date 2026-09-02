@@ -249,6 +249,27 @@ export function baseAccommodation(
   }
 }
 
+/**
+ * URL de photo publiée, rendue absolue. Les tuiles Gîtes (et d'autres SERP)
+ * portent un chemin `/sites/default/files/…` : collé tel quel dans la
+ * vignette, il pointe vers l'app et la carte s'affiche sans image.
+ */
+export function listingPhotoUrl(
+  raw: string | undefined,
+  baseUrl: string | undefined
+): string | undefined {
+  if (!raw) return undefined
+  const first = raw.split(',')[0]?.trim().split(/\s+/)[0]
+  if (!first || /^(data:|blob:)/i.test(first)) return undefined
+  if (/placeholder|blank\.gif|spacer|1x1|pixel/i.test(first)) return undefined
+  try {
+    const abs = new URL(first, baseUrl || undefined).href
+    return /^https?:\/\//i.test(abs) ? abs : undefined
+  } catch {
+    return undefined
+  }
+}
+
 /** Parse un prix FR/EN typique : « 1 234 € », « €123 », « 123,50 ». */
 export function parsePrice(text: string | null | undefined): number | undefined {
   if (!text) return undefined

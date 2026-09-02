@@ -230,7 +230,7 @@ export function mergeAirbnbPaste(
       stock: 0,
       url: item.url,
       image: item.image ?? null,
-      photo: item.name,
+      photo: item.image ?? '',
       lat: item.lat,
       lon: item.lon,
       locPrecision: item.locPrecision ?? 'approximate',

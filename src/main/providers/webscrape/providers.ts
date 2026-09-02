@@ -21,6 +21,7 @@ import {
   baseAccommodation,
   gitesSearchEmptyKind,
   cozycozySearchEmptyKind,
+  listingPhotoUrl,
   looksBlocked,
   webscrapePriceFields,
   scrollToEnd,
@@ -83,6 +84,7 @@ function mapCards(
     }
     const { nightlyPrice, weeklyPrice } = parsed
     const rating = c.ratingText ? parseFloat(c.ratingText.replace(',', '.')) : undefined
+    const photo = listingPhotoUrl(c.image, c.url)
     out.push(
       baseAccommodation(
         source,
@@ -117,7 +119,7 @@ function mapCards(
           // annonces relevées en « non annoncé ».
           guests: c.guests,
           propertyType: c.propertyType,
-          images: c.image ? [c.image] : undefined,
+          images: photo ? [photo] : undefined,
           searchPageIndex: c.pageIndex,
           searchRank: c.searchRank
         },

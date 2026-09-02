@@ -96,7 +96,11 @@ function hitFromEntry(e: Record<string, unknown>): Record<string, unknown> | nul
 }
 
 function httpUrl(v: unknown): string | undefined {
-  return typeof v === 'string' && /^https?:\/\//i.test(v) ? v : undefined
+  if (typeof v !== 'string') return undefined
+  const s = v.trim()
+  if (/^https?:\/\//i.test(s)) return s
+  if (s.startsWith('//')) return `https:${s}`
+  return undefined
 }
 
 function firstPhotoFrom(obj: Record<string, unknown> | null | undefined): string | undefined {

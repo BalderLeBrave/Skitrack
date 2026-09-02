@@ -271,6 +271,13 @@ export function hasPricedOffer(lg: Pick<Lodging, 'total' | 'nightly' | 'weekly'>
   return priceShown(lg).unit !== 'none'
 }
 
+/** URL http(s) publiée par l'annonce. Relatif, data: et le nom du logement ne passent pas. */
+export function publishedPhotoUrl(lg: Pick<Lodging, 'image' | 'photo'>): string | null {
+  if (typeof lg.image === 'string' && /^https?:\/\//i.test(lg.image)) return lg.image
+  if (typeof lg.photo === 'string' && /^https?:\/\//i.test(lg.photo)) return lg.photo
+  return null
+}
+
 /**
  * Sources à afficher pour une liste d'offres donnée.
  *

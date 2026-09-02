@@ -133,6 +133,16 @@ check('et n’annonce aucune disparition', tronque.missing === 0)
 const parDefaut = mergeAirbnbPaste(connue(), [], base)
 check('le défaut est de ne pas conclure', parDefaut.imported[0].missingSince === undefined)
 
+check('sans image publiée, photo n’est pas le nom', lodgAvec.photo === '')
+check(
+  'photo publiée conservée',
+  mergeAirbnbPaste(
+    [],
+    [{ name: 'Chalet', total: 2000, url: 'https://www.airbnb.fr/rooms/9', image: 'https://a0.muscache.com/im/pictures/x.jpg' }],
+    { ...base, searchAdults: 4 }
+  ).added[0].photo === 'https://a0.muscache.com/im/pictures/x.jpg'
+)
+
 if (failures > 0) {
   console.error(`\n${failures} échec(s).`)
   process.exit(1)

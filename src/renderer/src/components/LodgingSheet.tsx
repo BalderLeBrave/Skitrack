@@ -13,7 +13,7 @@
 
 import { useRef } from 'react'
 import { CloseIcon, ExternalIcon } from './Icons'
-import { priceShown, srcOf, trackKey } from '@/data/lodgings'
+import { priceShown, publishedPhotoUrl, srcOf, trackKey } from '@/data/lodgings'
 import { accessTimeOf } from '@/data/accessTime'
 import { isClientReady } from '@/api/client'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
@@ -91,6 +91,8 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
     setTimeout(() => window.print(), 60)
   }
 
+  const photo = publishedPhotoUrl(lodging)
+
   return (
     <>
       <div className="scrim scrim--local" style={{ zIndex: 5 }} onClick={close} />
@@ -132,8 +134,8 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
         </div>
 
         <div style={{ padding: 20, display: 'grid', gap: 18 }}>
-          {lodging.image ? (
-            <img className="sheet__photo" src={lodging.image} alt={lodging.name} loading="lazy" decoding="async" />
+          {photo ? (
+            <img className="sheet__photo" src={photo} alt={lodging.name} loading="lazy" decoding="async" referrerPolicy="no-referrer" />
           ) : (
             <div className="photogrid">
               <div className="photogrid__main">

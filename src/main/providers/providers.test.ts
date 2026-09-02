@@ -21,6 +21,7 @@ import { collectBookingPages, collectPages, paginationOf } from './webscrape/pro
 import {
   cozycozySearchEmptyKind,
   gitesSearchEmptyKind,
+  listingPhotoUrl,
   looksNightlyPriceText,
   looksStayPriceText,
   looksWeeklyFromPriceText,
@@ -928,6 +929,31 @@ async function main(): Promise<void> {
     vrboStay.totalPrice != null && vrboStay.nightlyPrice === undefined,
     vrboStay
   )
+
+  heading('9. Photos publiées — URL absolue, jamais un chemin relatif')
+  check(
+    'tuile Gîtes /sites/default/files → gites-de-france.com',
+    listingPhotoUrl(
+      '/sites/default/files/styles/landscape_375_240/public/images/x.jpg',
+      'https://www.gites-de-france.com/fr/isere/chalet-x-38g1'
+    ) === 'https://www.gites-de-france.com/sites/default/files/styles/landscape_375_240/public/images/x.jpg'
+  )
+  check(
+    'srcset : premier token, pas les largeurs',
+    listingPhotoUrl('/a.jpg 375w, /b.jpg 520w', 'https://www.gites-de-france.com/fr/x') ===
+      'https://www.gites-de-france.com/a.jpg'
+  )
+  check(
+    'placeholder data: rejeté',
+    listingPhotoUrl('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') ===
+      undefined
+  )
+  check(
+    'protocole relatif //media.vrbo.com',
+    listingPhotoUrl('//media.vrbo.com/lodging/x.jpg', 'https://www.cozycozy.com/') ===
+      'https://media.vrbo.com/lodging/x.jpg'
+  )
+  check('sans URL publiée : rien', listingPhotoUrl(undefined, 'https://www.booking.com/') === undefined)
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

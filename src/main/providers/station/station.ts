@@ -80,7 +80,7 @@
 
 import { request, type APIRequestContext, type Page } from 'playwright'
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
-import { baseAccommodation, parsePrice, sleep, withPage, withRetries, type ScrapeAttemptOptions } from '../webscrape/shared'
+import { baseAccommodation, listingPhotoUrl, parsePrice, sleep, withPage, withRetries, type ScrapeAttemptOptions } from '../webscrape/shared'
 import {
   AJAX_TIMEOUT,
   attachAjaxProbe,
@@ -617,6 +617,16 @@ export function extractStationCards(): StationCard[] {
     const split = label.match(/^(.*?)\s+(Appartement|Chalet|Studio|H[ôo]tel|R[ée]sidence|Maison|G[îi]te)\b/i)
     const title = (split ? split[1] : label).trim()
     if (!title || !url) continue
+
+    if (!image) {
+      const imgNode = node.querySelector('img')
+      image =
+        imgNode?.getAttribute('src') ||
+        imgNode?.getAttribute('data-src') ||
+        imgNode?.getAttribute('data-srcset') ||
+        imgNode?.getAttribute('srcset') ||
+        null
+    }
 
     const text = (node.innerText || '').replace(/\s+/g, ' ').trim()
     const priceNode = node.querySelector('.prix_en_cours')
@@ -1293,6 +1303,7 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
               if (total == null || total <= 0) continue
               // « à partir de » sans montant daté : ce n'est pas le prix du séjour.
               if (card.fromPrice) continue
+              const photo = listingPhotoUrl(card.image ?? undefined, card.url)
               const offer = baseAccommodation(
                 name,
                 {
@@ -1309,7 +1320,7 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
                   areaSqm: card.area ?? undefined,
                   reviewCount: card.reviewCount ?? undefined,
                   amenities: card.amenities.length > 0 ? card.amenities : undefined,
-                  images: card.image ? [card.image] : undefined
+                  images: photo ? [photo] : undefined
                 },
                 params
               )

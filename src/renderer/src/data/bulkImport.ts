@@ -125,7 +125,8 @@ export function toLodging(raw: RawListing, index: number, ctx: BulkContext): Lod
     stock: 1,
     url: typeof raw.url === 'string' ? raw.url : undefined,
     image: typeof raw.image === 'string' ? raw.image : null,
-    photo: name,
+    photo:
+      typeof raw.image === 'string' && /^https?:\/\//i.test(raw.image) ? raw.image : '',
     // Le prix est celui du séjour affiché : c'est ce qui rend l'annonce
     // visible sur les écrans qui additionnent. Voir `BulkContext.checkIn`.
     priceConfidence: 'total_confirmed',

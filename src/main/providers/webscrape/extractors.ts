@@ -69,6 +69,34 @@ export function extractBookingCards(): RawCard[] {
   const out: RawCard[] = []
   const seen = new Set<string>()
 
+  const cardPhoto = (node: Element): string | undefined => {
+    const pick = (raw: string | null | undefined): string | undefined => {
+      if (!raw) return undefined
+      const first = raw.split(',')[0]?.trim().split(/\s+/)[0]
+      if (!first || /placeholder|blank|spacer|data:image|1x1|pixel/i.test(first)) return undefined
+      try {
+        return new URL(first, location.href).href
+      } catch {
+        return undefined
+      }
+    }
+    for (const img of Array.from(node.querySelectorAll('img'))) {
+      const el = img as HTMLImageElement
+      const hit =
+        pick(el.currentSrc) ||
+        pick(el.getAttribute('src')) ||
+        pick(el.getAttribute('data-src')) ||
+        pick(el.getAttribute('data-lazy-src')) ||
+        pick(el.getAttribute('data-srcset')) ||
+        pick(el.getAttribute('srcset'))
+      if (hit) return hit
+    }
+    const styled = node.querySelector('[style*="background"]') as HTMLElement | null
+    const bg = styled?.style?.backgroundImage || styled?.getAttribute('style')
+    const m = bg?.match(/url\(["']?([^"')]+)["']?\)/)
+    return pick(m?.[1])
+  }
+
   /*
    * Positions des biens, lues dans le magasin Apollo embarqué.
    *
@@ -142,7 +170,7 @@ export function extractBookingCards(): RawCard[] {
       root.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
     const ratingText =
       root.querySelector('[data-testid="review-score"], [aria-label*="note"]')?.textContent?.trim() || undefined
-    const img = (root.querySelector('img') as HTMLImageElement | null)?.src
+    const img = cardPhoto(root)
     // Position du bien : jointure avec le magasin Apollo par le slug de l'URL.
     const slug = href.match(/\/hotel\/[a-z]{2}\/([^./?#]+)/i)?.[1]
     const pos = slug ? positions[slug] : undefined
@@ -269,7 +297,22 @@ export function extractExpediaFamilyCards(): RawCard[] {
     const priceText =
       root.querySelector('[data-stid="price-lockup-text"], .uitk-text-emphasis-theme')?.textContent?.trim() ||
       root.textContent?.match(/\d[\d\s.,]*\s*€/)?.[0]
-    const img = (root.querySelector('img') as HTMLImageElement | null)?.src
+    const pickRawEx = (raw: string | null | undefined): string | undefined => {
+      if (!raw) return undefined
+      const first = raw.split(',')[0]?.trim().split(/\s+/)[0]
+      if (!first || /placeholder|blank|spacer|data:image|1x1|pixel/i.test(first)) return undefined
+      return first
+    }
+    let img: string | undefined
+    for (const imgEl of Array.from(root.querySelectorAll('img'))) {
+      const el = imgEl as HTMLImageElement
+      img =
+        pickRawEx(el.currentSrc) ||
+        pickRawEx(el.getAttribute('src')) ||
+        pickRawEx(el.getAttribute('data-src')) ||
+        pickRawEx(el.getAttribute('srcset'))
+      if (img) break
+    }
     const texte = root.textContent || ''
     const lire = (m: RegExpExecArray | null): number | undefined => {
       if (!m) return undefined
@@ -393,7 +436,23 @@ export function extractGitesCards(): RawCard[] {
      * en total de séjour.
      */
     if (!priceText) return
-    const img = (node.querySelector('img') as HTMLImageElement | null)?.src
+    const pickRaw = (raw: string | null | undefined): string | undefined => {
+      if (!raw) return undefined
+      const first = raw.split(',')[0]?.trim().split(/\s+/)[0]
+      if (!first || /placeholder|blank|spacer|data:image|1x1|pixel/i.test(first)) return undefined
+      return first
+    }
+    let img: string | undefined
+    for (const imgEl of Array.from(node.querySelectorAll('img'))) {
+      const el = imgEl as HTMLImageElement
+      img =
+        pickRaw(el.currentSrc) ||
+        pickRaw(el.getAttribute('src')) ||
+        pickRaw(el.getAttribute('data-src')) ||
+        pickRaw(el.getAttribute('data-srcset')) ||
+        pickRaw(el.getAttribute('srcset'))
+      if (img) break
+    }
     const texte = node.textContent || ''
     const lire = (m: RegExpExecArray | null): number | undefined => {
       if (!m) return undefined
@@ -457,18 +516,26 @@ export function extractCozycozyCards(): RawCard[] {
   })
 
   const photoOfNode = (node: Element): string | undefined => {
+    const pick = (raw: string | null | undefined): string | undefined => {
+      if (!raw) return undefined
+      const first = raw.split(',')[0]?.trim().split(/\s+/)[0]
+      if (!first || /placeholder|blank|spacer|data:image\/gif|1x1/i.test(first)) return undefined
+      try {
+        return new URL(first, location.href).href
+      } catch {
+        return undefined
+      }
+    }
     const imgEl = node.querySelector('img') as HTMLImageElement | null
     if (!imgEl) return undefined
-    const raw =
-      imgEl.currentSrc ||
-      imgEl.getAttribute('src') ||
-      imgEl.getAttribute('data-src') ||
-      imgEl.getAttribute('data-lazy-src') ||
-      imgEl.srcset?.split(',')[0]?.trim().split(/\s+/)[0] ||
-      undefined
-    if (!raw) return undefined
-    if (/placeholder|blank|spacer|data:image\/gif|1x1/i.test(raw)) return undefined
-    return raw
+    return (
+      pick(imgEl.currentSrc) ||
+      pick(imgEl.getAttribute('src')) ||
+      pick(imgEl.getAttribute('data-src')) ||
+      pick(imgEl.getAttribute('data-lazy-src')) ||
+      pick(imgEl.getAttribute('data-srcset')) ||
+      pick(imgEl.getAttribute('srcset'))
+    )
   }
 
   /*
@@ -661,14 +728,23 @@ export function extractVrboCards(): RawCard[] {
       // navigation jamais. C'est le discriminant qui se vérifie sur la page.
       if (!priceText) return
 
-      const imgEl = root.querySelector('img') as HTMLImageElement | null
-      const img =
-        imgEl?.currentSrc ||
-        imgEl?.getAttribute('src') ||
-        imgEl?.getAttribute('data-src') ||
-        imgEl?.getAttribute('data-lazy-src') ||
-        imgEl?.srcset?.split(',')[0]?.trim().split(/\s+/)[0] ||
-        undefined
+      const pickRawV = (raw: string | null | undefined): string | undefined => {
+        if (!raw) return undefined
+        const first = raw.split(',')[0]?.trim().split(/\s+/)[0]
+        if (!first || /placeholder|blank|spacer|data:image|1x1|pixel/i.test(first)) return undefined
+        return first
+      }
+      let img: string | undefined
+      for (const imgEl of Array.from(root.querySelectorAll('img'))) {
+        const el = imgEl as HTMLImageElement
+        img =
+          pickRawV(el.currentSrc) ||
+          pickRawV(el.getAttribute('src')) ||
+          pickRawV(el.getAttribute('data-src')) ||
+          pickRawV(el.getAttribute('data-lazy-src')) ||
+          pickRawV(el.getAttribute('srcset'))
+        if (img) break
+      }
       const lire = (m: RegExpExecArray | null): number | undefined => {
         if (!m) return undefined
         const n = Number(m[1])

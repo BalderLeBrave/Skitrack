@@ -30,7 +30,7 @@ import { NoImage } from './ResultCard'
 import { ProviderBadge } from './ProviderBadge'
 import type { Lodging } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
-import { freshnessOf, priceShown, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
+import { freshnessOf, priceShown, publishedPhotoUrl, sizeLabel, srcOf, trackKey } from '@/data/lodgings'
 import { hotelRoomsNeeded, isCombinableHotel, partyVerdict } from '@/data/lodgingFilter'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
 import { availabilityOf } from '@/data/lodgingAvailability'
@@ -228,7 +228,8 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
     e.preventDefault()
     openSheet()
   }
-  const showImage = Boolean(lg.image) && !broken
+  const photoUrl = publishedPhotoUrl(lg)
+  const showImage = Boolean(photoUrl) && !broken
 
   const card = (
     <article
@@ -258,7 +259,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
         {showImage ? (
           <img
             className="lodgcard__img"
-            src={lg.image as string}
+            src={photoUrl as string}
             alt=""
             loading={index < 6 ? 'eager' : 'lazy'}
             decoding="async"

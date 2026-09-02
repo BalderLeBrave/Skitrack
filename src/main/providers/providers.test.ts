@@ -43,6 +43,10 @@ import {
 } from './webscrape/cozyResultList'
 import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
 import { classifyProviderError } from '@shared/reasonCodes'
+import {
+  extractListingsFromDeferredState,
+  occupancyFromStaySearchResult
+} from './airbnb/extract'
 import { buildEngine } from './index'
 import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
@@ -1020,6 +1024,30 @@ async function main(): Promise<void> {
         mergedFake[0]?.bedrooms === 5
     ),
     mergedFake[0]
+  )
+
+  heading('Airbnb StaySearchResult — occupancy (F4)')
+  const stayNode = {
+    __typename: 'StaySearchResult',
+    demandStayListing: {
+      id: Buffer.from('DemandStayListing:40088811').toString('base64'),
+      location: { coordinate: { latitude: 45.456, longitude: 6.9 } },
+      personCapacity: 4
+    },
+    subtitle: 'Appartement en résidence · Modane',
+    title: 'Spacieux appartement cœur de station avec garage',
+    structuredContent: { primaryLine: '2 chambres · 6 lits · 1 salle de bain et 1 toilette' },
+    structuredDisplayPrice: { accessibilityLabel: '1 754 € au total' }
+  }
+  const occ = occupancyFromStaySearchResult(stayNode)
+  check('personCapacity → 4 voyageurs', occ.guests === 4, occ)
+  check('ligne « 2 chambres » → bedrooms 2', occ.bedrooms === 2, occ)
+  const clip = extractListingsFromDeferredState({ data: { results: [stayNode] } })
+  check('StaySearchResult clip porte guests+bedrooms', clip.listings[0]?.guests === 4 && clip.listings[0]?.bedrooms === 2)
+  check(
+    'sans occupancy : null, pas 0 inventé',
+    occupancyFromStaySearchResult({ __typename: 'StaySearchResult', subtitle: 'Les 2 Alpes' }).guests ===
+      undefined
   )
 
   const dumpHtmlPath = join(process.cwd(), 'gites-discovery/search-d2a-0613.html')

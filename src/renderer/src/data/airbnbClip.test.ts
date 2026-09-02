@@ -14,7 +14,8 @@ import {
   airbnbRoomUrl,
   parseAirbnbClipboard,
   parseAirbnbPrice,
-  parseAirbnbRating
+  parseAirbnbRating,
+  tailleAnnoncee
 } from './airbnbClip'
 
 let failures = 0
@@ -33,6 +34,22 @@ check(
 )
 check('libellé sans prix → null', parseAirbnbPrice('Nouvel hébergement') === null)
 check('absent → null', parseAirbnbPrice(undefined) === null)
+
+check(
+  'carte 2026-08-30 : 2 chambres · 6 lits',
+  tailleAnnoncee({
+    name: 'Spacieux appartement cœur de station avec garage',
+    subtitle: 'Appartement en résidence ⋅ Modane · 2 chambres · 6 lits · 1 salle de bain et 1 toilette'
+  }).chambres === 2 &&
+    tailleAnnoncee({
+      name: 'Spacieux appartement cœur de station avec garage',
+      subtitle: 'Appartement en résidence ⋅ Modane · 2 chambres · 6 lits · 1 salle de bain et 1 toilette'
+    }).lits === 6
+)
+check(
+  'sans ligne de taille → undefined, pas 0',
+  tailleAnnoncee({ name: 'Chalet aux 2 Alpes', subtitle: 'Les 2 Alpes' }).chambres === undefined
+)
 
 // --- Note ------------------------------------------------------------------
 check(
@@ -71,6 +88,24 @@ check('image conservée', result.listings[0].image === 'https://x/p.jpg')
 check('note conservée sur la 2e', result.listings[1].note === '4,98')
 check('annonce sans prix → total 0 (carte redirection)', result.listings[2].total === 0)
 check('dates et compte remontés dans meta', result.meta.checkIn === '2027-02-06' && result.meta.count === 3)
+
+const sized = parseAirbnbClipboard(
+  JSON.stringify({
+    source: 'airbnb',
+    listings: [
+      {
+        id: '40088811',
+        name: 'Spacieux appartement',
+        subtitle: '2 chambres · 6 lits · 1 salle de bain',
+        guests: 4,
+        bedrooms: 2,
+        priceLabel: '1754 € au total'
+      }
+    ]
+  })
+)
+check('personCapacity du JSON → capacity 4', sized.listings[0]?.capacity === 4)
+check('bedrooms du JSON prime sur le texte', sized.listings[0]?.rooms === 2)
 
 check('collage illisible signalé, pas de plantage', parseAirbnbClipboard('{cassé').errors.length === 1)
 check('tableau nu accepté', parseAirbnbClipboard('[{"id":"9","name":"X","priceLabel":"200 €"}]').listings.length === 1)

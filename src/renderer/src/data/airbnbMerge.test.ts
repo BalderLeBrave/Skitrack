@@ -98,6 +98,15 @@ check(
 // dans `guests` et rapportaient « 8 pers » pour tout bien trouvé à huit.
 check('le plancher ne contamine jamais pers', lodgAvec.pers === 0 && lodgSans.pers === 0)
 
+const avecCapacite = mergeAirbnbPaste(
+  [],
+  [{ name: 'Appart 4p 2ch', total: 1754, url: 'https://www.airbnb.fr/rooms/40088811', capacity: 4, rooms: 2 }],
+  { ...base, searchAdults: 4 }
+)
+check('personCapacity publié → pers 4', avecCapacite.added[0].pers === 4)
+check('2 chambres de carte → ch 2', avecCapacite.added[0].ch === 2)
+check('le plancher reste à côté, il ne remplace pas pers', avecCapacite.added[0].fitsGuests === 4)
+
 // --- « Probablement réservée » n'est dit que si le relevé a tout vu ----------
 
 const connue = (): Lodging[] => [

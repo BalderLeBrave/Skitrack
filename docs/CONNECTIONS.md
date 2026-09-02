@@ -7,11 +7,11 @@ Preuve grep 2026-09-02, master.
 | [x] centrals.ts consommé | `station/centralLookup.ts` + `recon-centrales.mjs`. Moteur = `buildEngine` (`providers/index.ts`) itère les connecteurs enregistrés, pas une liste hardcodée de 4 marques. |
 | [x] chaque enabled a un adapter OU not_wired | 71/74 câblées. Rouges : Les Angles (Tourinsoft retiré). Voir `CENTRALES.md` / inventory subagent. |
 | [x] search appelé avec dates+guests+bbox UI | `runProviderSearch.ts` + `cozycozySearchUrl({checkIn,checkOut,adults,bedrooms})`. |
-| [x] pagination bouclée | Booking `collectPages` 5×25. VRBO : 1 page getResultList (pas de cursor dump-prouvé). |
+| [x] pagination bouclée | Booking `collectPages` 5×25. Gîtes `page` 1-based, pas 1. Airbnb scroll jusqu’à plus de nouvel id (max 8). VRBO : 1 page getResultList (pas de cursor dump-prouvé). |
 | [x] détail/quote si liste incomplète | Gîtes : `enrichGitesStayTotals` → widget ITEA `gereResa.php`. Dates non remplissables → `unavailable`. |
 | [x] listingHosts cohérent | `src/shared/listingHosts.ts`. CozyCozy interdit comme source (doublon). Abritel/VRBO lisibles. |
 | [x] matchesDemand après enrich | `lodgingFilter.ts` `fitsParty` + `hasConfirmedPrice`. Null capacité = non éligible (plus « non annoncé » affiché en bandeau). |
-| [x] null capacity/bedrooms exclus | getResultList exige `guestCapacity` + `bedRoomCount`. HTML « 6 6 13 » ignoré. |
+| [x] null capacity/bedrooms exclus | getResultList exige `guestCapacity` + `bedRoomCount`. HTML « 6 6 13 » ignoré. Airbnb : `personCapacity` (clé StaysPdpSections 2026-08-30) + ligne « N chambres » du StaySearchResult. Absent → null, pas le groupe UI. |
 | [x] geo pistes si lat/lng | `attachSlopeDistance` / `enrichWithAccess`. Jamais centroïde. GPS CozyCozy `coordinates` → `approximate_public`. |
 | [x] pas de fallback centroïde | `gps_precision=missing` → distance null. |
 | [x] résolveur WAF/captcha | Conservé (`scrape-policy`, `resilience`). Call site `withPage` / `looksBlocked`. |

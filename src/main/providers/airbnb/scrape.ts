@@ -581,7 +581,7 @@ function exponentialBackoffMs(
 async function scrapeAirbnbSearchOnce(params: AirbnbScrapeParams): Promise<AirbnbScrapeOutcome> {
   const url = buildAirbnbSearchUrl(params)
   const timeoutMs = params.timeoutMs ?? 45_000
-  const scrollCount = params.scrollCount ?? 2
+  const scrollCount = params.scrollCount ?? 8
   // Pour le score v3, le headed est nettement meilleur ; on garde headless par
   // défaut pour l’UX, mais optimizeScore force plus de warm-up / humanisation.
   // Headless par défaut : pas de fenêtre Chrome surprise pendant la recherche.

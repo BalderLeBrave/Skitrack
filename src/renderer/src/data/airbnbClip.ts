@@ -49,6 +49,8 @@ export interface AirbnbClipListing {
   image?: string
   /** URL directe de l'annonce, si le marque-page a pu la construire. */
   url?: string
+  guests?: number
+  bedrooms?: number
 }
 
 export interface AirbnbClipboard {
@@ -235,8 +237,9 @@ export function parseAirbnbClipboard(text: string): AirbnbParseResult {
       type: undefined,
       // Chambres et lits, lus dans le libellé de la carte. Voir
       // `tailleAnnoncee` : Airbnb les écrit, l'application les jetait.
-      rooms: taille.chambres,
+      rooms: (typeof item.bedrooms === 'number' && item.bedrooms > 0 ? item.bedrooms : undefined) ?? taille.chambres,
       beds: taille.lits,
+      capacity: typeof item.guests === 'number' && item.guests > 0 ? item.guests : undefined,
       // Coordonnées lues dans le bloc de données de la page. Airbnb ne publie
       // qu'une position approximative avant réservation : on le déclare, pour
       // que le calcul d'accès arrondisse au lieu de feindre la précision.

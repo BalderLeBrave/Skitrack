@@ -155,7 +155,7 @@ export async function extractProgressive(
   page: Page,
   options: ProgressiveExtractOptions = {}
 ): Promise<AirbnbClipPayload> {
-  const scrollCount = options.scrollCount ?? 2
+  const scrollCount = options.scrollCount ?? 8
   const scrollPauseMs = options.scrollPauseMs ?? 1100
   const meta = options.meta
 
@@ -179,6 +179,7 @@ export async function extractProgressive(
 
   await snapshot()
 
+  let previous = merged.length
   for (let i = 0; i < scrollCount; i++) {
     await page.evaluate((ratio) => {
       window.scrollBy({ top: window.innerHeight * ratio, behavior: 'smooth' })
@@ -200,6 +201,8 @@ export async function extractProgressive(
     }
 
     await snapshot()
+    if (merged.length === previous) break
+    previous = merged.length
   }
 
   if (merged.length === 0) {

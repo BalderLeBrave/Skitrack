@@ -183,7 +183,8 @@ export function mergeAirbnbPaste(
       note: typeof hit.note === 'string' && hit.note ? hit.note : lodging.note,
       // Un relevé plus récent peut annoncer les chambres que le précédent
       // taisait ; l'inverse n'efface rien.
-      ch: hit.rooms ?? lodging.ch
+      ch: hit.rooms ?? lodging.ch,
+      pers: hit.capacity != null && hit.capacity > 0 ? hit.capacity : lodging.pers
     }
   })
 
@@ -210,7 +211,7 @@ export function mergeAirbnbPaste(
       // `ch` restait à zéro pour toutes les annonces Airbnb. C'est
       // `airbnbClip.tailleAnnoncee` qui les lit maintenant, et `item.rooms`
       // les porte jusqu'ici.
-      pers: 0,
+      pers: item.capacity != null && item.capacity > 0 ? item.capacity : 0,
       fitsGuests: searchAdults,
       ch: item.rooms ?? 0,
       m2: null,

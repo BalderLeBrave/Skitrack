@@ -35,7 +35,9 @@ function mergeListings(items: AirbnbClipListing[]): AirbnbClipListing[] {
       image: item.image || prev.image,
       lat: item.lat ?? prev.lat,
       lon: item.lon ?? prev.lon,
-      ratingLabel: item.ratingLabel || prev.ratingLabel
+      ratingLabel: item.ratingLabel || prev.ratingLabel,
+      guests: item.guests ?? prev.guests,
+      bedrooms: item.bedrooms ?? prev.bedrooms
     })
   }
   return [...map.values()]

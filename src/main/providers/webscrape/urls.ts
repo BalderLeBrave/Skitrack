@@ -101,7 +101,9 @@ export function vrboSearchUrl(params: SearchParams, offset = 0): string {
  * pas (form vide / Cloudflare 403). `travelers=` est le plancher voyageurs
  * (8 → 33 résultats). Sélecteur cartes : `.js-search-tile`.
  *
- * Pour une destination hors dump, on garde `destination=` (peut rester Oups).
+ * Dump 2026-09-02 : mêmes GET pour Les Angles (`61540`, 27 résultats,
+ * Playwright 20 × `.js-search-tile`), Montricher-Albanne / Karellis (`64400`,
+ * 107) et Vars Hautes-Alpes (`38123`, 42). Hors dump : `destination=`.
  */
 export function gitesTownsIdForDestination(destination: string): string | null {
   const n = destination
@@ -111,6 +113,15 @@ export function gitesTownsIdForDestination(destination: string): string | null {
   if (n.includes('deux alpes') || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
     return '50301'
   }
+  // Dump 2026-09-02 : GET towns= ouvre une SERP (même contrat que Les 2 Alpes).
+  // Autocomplete : Montricher-Albanne towns=64400 ; q=Karellis = pois 425067.
+  if (n.includes('karellis') || n.includes('montricher')) return '64400'
+  // Pyrénées-Orientales 61540, pas Hautes-Pyrénées 61077 ni Angles-sur-Corrèze 42616.
+  if (/angles-sur-correze/.test(n)) return null
+  if (/\bles angles\b/.test(n) || n.includes('les-angles')) return '61540'
+  // Vars (Hautes-Alpes / Forêt Blanche). Pas Vars-sur-Roseix (towns=42881) ni Haute-Saône 63410.
+  if (/vars-sur-roseix/.test(n)) return null
+  if (/\bvars\b/.test(n) || n.includes('foret blanche')) return '38123'
   return null
 }
 

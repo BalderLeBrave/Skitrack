@@ -525,6 +525,18 @@ async function main(): Promise<void> {
     gitesOther.includes('destination=Val+Thorens') && !gitesOther.includes('towns='),
     gitesOther
   )
+  const gitesKar = gitesSearchUrl({ ...stay, destination: 'Les Karellis' })
+  check('Gîtes Karellis : towns=64400', gitesKar.includes('towns=64400') && gitesKar.includes('travelers='), gitesKar)
+  const gitesMontricher = gitesSearchUrl({ ...stay, destination: 'Montricher-Albanne' })
+  check('Gîtes Montricher : towns=64400', gitesMontricher.includes('towns=64400'), gitesMontricher)
+  const gitesAng = gitesSearchUrl({ ...stay, destination: 'Les Angles' })
+  check('Gîtes Les Angles : towns=61540', gitesAng.includes('towns=61540'), gitesAng)
+  const gitesAngCor = gitesSearchUrl({ ...stay, destination: 'Les Angles-sur-Corrèze' })
+  check('Gîtes Angles-sur-Corrèze : pas 61540', !gitesAngCor.includes('towns=61540'), gitesAngCor)
+  const gitesVars = gitesSearchUrl({ ...stay, destination: 'Vars' })
+  check('Gîtes Vars : towns=38123', gitesVars.includes('towns=38123'), gitesVars)
+  const gitesRoseix = gitesSearchUrl({ ...stay, destination: 'Vars-sur-Roseix' })
+  check('Gîtes Vars-sur-Roseix : pas 38123', !gitesRoseix.includes('towns=38123'), gitesRoseix)
   check('page_index stampée sur la 1re carte', lot[0]?.pageIndex === 0, lot[0]?.pageIndex)
   check('page_index de la 2e page', lot[1]?.pageIndex === 1, lot[1]?.pageIndex)
   const rapport = paginationOf(lot)

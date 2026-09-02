@@ -36,7 +36,7 @@ Checklist bloquante. Une case non cochée = travail restant, pas un nice-to-have
 
 ## Écarts justifiés
 
-1. **Parseurs uniquement dump-prouvés.** Les Angles : `article.tsc-card` (Tourinsoft, 2026-09-02). Karellis / Vars : moteur officiel CF / Elloha GetDetail agence — **page SEO CozyCozy** `hoj_seo_card` (même contrat que Les 2 Alpes). VRBO DOM non. Pralognan LocVacances, Sancy Diffusio, La Clusaz Deskline, Gîtes GET `towns=50301`.
+1. **Parseurs uniquement dump-prouvés.** Les Angles : `article.tsc-card` (Tourinsoft). Karellis / Vars / Angles : GET Gîtes `towns=64400` (autocomplete Montricher) / `38123` (Vars Hautes-Alpes) / `61540` (Les Angles PO) — même contrat que `50301`, dates 13–20 fév. 2027, `.js-search-tile`. Officiel Karellis = catalogue Hospitality sans prix ; Elloha Vars = GetDetail agence. CozyCozy SEO = catalogue nuit, pas cette solution. VRBO DOM non. Pralognan LocVacances, Sancy Diffusio, La Clusaz Deskline.
 2. **Pas de nouveau kit Cloudflare**. 429 VRBO / CF Karellis → `blocked` + CaptchaSolver existant.
 3. Sidecar `/api/scrape/{name}` reste hors UI ; le solveur est joint via `/captcha/solve`.
 4. HTML dumps non commis (`form_build_id`) ; `capture-report.json` + `discovery_*.md` oui.

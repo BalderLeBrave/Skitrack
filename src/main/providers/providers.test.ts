@@ -30,6 +30,7 @@ import {
   mergeGitesCardsFromHtml,
   pageLooksBlocked,
   shouldCloseSharedContext,
+  stampStayOnUrl,
   webscrapePriceFields
 } from './webscrape/shared'
 import { parseGitesWidgetPhoto } from './webscrape/gitesFichePrice'
@@ -578,6 +579,27 @@ async function main(): Promise<void> {
     'walk s’arrête au total annoncé (40), pas 15 pages',
     advWalk.length === 40 && advPages === 2 && paginationOf(advWalk)?.stoppedReason === 'advertised',
     { n: advWalk.length, pages: advPages, stop: paginationOf(advWalk)?.stoppedReason }
+  )
+
+  const shortFirst: RawCard[] = []
+  for (let i = 0; i < 80; i++) shortFirst.push({ sourceId: `s${i}`, title: `S${i}`, url: `https://b.test/s${i}` })
+  shortFirst[0] = { ...shortFirst[0], advertisedTotal: 80 }
+  let shortPages = 0
+  const shortWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      shortPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      if (rang === 0) return shortFirst.slice(0, 15)
+      return shortFirst.slice(rang, rang + 25)
+    },
+    5
+  )
+  check(
+    'page 1 incomplète (15) + annoncé 80 → on continue',
+    shortWalk.length > 15 && shortPages >= 2,
+    { n: shortWalk.length, pages: shortPages, stop: paginationOf(shortWalk)?.stoppedReason }
   )
 
   let blockedPages = 0
@@ -1427,6 +1449,27 @@ async function main(): Promise<void> {
   check(
     'sans rotation : le Chromium reste',
     shouldCloseSharedContext({ openPages: 1, rotateProxy: false }) === false
+  )
+
+  heading('22. Dates collées + photo Gîtes &')
+  const dated = stampStayOnUrl('https://www.booking.com/hotel/fr/foo.html', {
+    destination: 'Les 2 Alpes',
+    checkIn: '2027-02-13',
+    checkOut: '2027-02-20',
+    adults: 4
+  })
+  check(
+    'Booking fiche porte checkin/checkout/adults',
+    dated.includes('checkin=2027-02-13') &&
+      dated.includes('checkout=2027-02-20') &&
+      dated.includes('group_adults=4')
+  )
+  check(
+    'photo Drupal décode entité itok',
+    listingPhotoUrl(
+      '/sites/default/files/x.jpg?itok=abc\u0026amp;foo=1',
+      'https://www.gites-de-france.com/fr/x'
+    ) === 'https://www.gites-de-france.com/sites/default/files/x.jpg?itok=abc&foo=1'
   )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)

@@ -475,12 +475,11 @@ export async function runAirbnbSearch(
    * Arc 2000, ceux qui ne publiaient pas leur position.
    */
   const situees = zoned.kept.filter((l) => l.lat != null && l.lon != null)
-  const egaree = zoned.rejected.length > 0 && situees.length < zoned.rejected.length
-  const retenues = egaree ? situees : zoned.kept
-  if (egaree) {
+  const retenues = zoned.kept
+  if (zoned.rejected.length > 0 && situees.length < zoned.rejected.length) {
     console.info(
-      `[SKITRACK] Airbnb : lot jugé égaré (${situees.length} situées en zone contre ` +
-        `${zoned.rejected.length} hors zone) — les annonces sans position sont écartées aussi.`
+      `[SKITRACK] Airbnb : ${zoned.rejected.length} hors zone, ${situees.length} situées en zone — ` +
+        `les annonces sans GPS du nom de station sont conservées (${retenues.length - situees.length}).`
     )
   }
   if (zoned.rejected.length > 0) {
@@ -538,11 +537,7 @@ export async function runAirbnbSearch(
     // `params.adults` dans `guests` et rapportaient « 8 pers » pour tout bien
     // trouvé en cherchant pour huit.
     searchAdults: meta.adults ?? params.adults,
-    // Conclure « probablement réservée » exige d'avoir tout vu. Deux conditions
-    // et non une : le balayage est allé à son terme, **et** le lot n'a pas été
-    // jugé égaré — auquel cas on a soi-même écarté les annonces sans position,
-    // et leur absence est de notre fait, pas de celui d'Airbnb.
-    absenceConclusive: sweepComplete && !egaree,
+    absenceConclusive: sweepComplete,
     nights: params.nights,
     fallbackAltitude: params.villageOrMinAlt
   })

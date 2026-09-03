@@ -351,6 +351,33 @@ export function baseAccommodation(
 }
 
 /**
+ * Recolle les dates UI sur l'URL de fiche. L'extracteur Booking coupe à `?`
+ * (`href.split('?')[0]`) : sans ça, ouvrir la carte ignore le séjour.
+ */
+export function stampStayOnUrl(url: string, params: SearchParams): string {
+  try {
+    const u = new URL(url)
+    const host = u.hostname.replace(/^www\./, '').toLowerCase()
+    if (host === 'booking.com' || host.endsWith('.booking.com')) {
+      if (params.checkIn) u.searchParams.set('checkin', params.checkIn)
+      if (params.checkOut) u.searchParams.set('checkout', params.checkOut)
+      if (params.adults) u.searchParams.set('group_adults', String(params.adults))
+    } else if (host.includes('gites-de-france')) {
+      if (params.checkIn) u.searchParams.set('date-start', params.checkIn)
+      if (params.checkOut) u.searchParams.set('date-end', params.checkOut)
+      if (params.adults) u.searchParams.set('adults', String(params.adults))
+    } else if (host.includes('airbnb.')) {
+      if (params.checkIn) u.searchParams.set('check_in', params.checkIn)
+      if (params.checkOut) u.searchParams.set('check_out', params.checkOut)
+      if (params.adults) u.searchParams.set('adults', String(params.adults))
+    }
+    return u.toString()
+  } catch {
+    return url
+  }
+}
+
+/**
  * URL de photo publiée, rendue absolue. Les tuiles Gîtes (et d'autres SERP)
  * portent un chemin `/sites/default/files/…` : collé tel quel dans la
  * vignette, il pointe vers l'app et la carte s'affiche sans image.
@@ -362,7 +389,7 @@ export function listingPhotoUrl(
   baseUrl?: string
 ): string | undefined {
   if (!raw) return undefined
-  const first = raw.split(',')[0]?.trim().split(/\s+/)[0]?.replace(/&/gi, '&')
+  const first = raw.split(',')[0]?.trim().split(/\s+/)[0]?.replace(/&amp;/gi, '&')
   if (!first || /^(data:|blob:)/i.test(first)) return undefined
   if (
     /placeholder|blank\.gif|spacer|1x1|pixel|\.svg(?:$|\?)|\/themes\/|pictos|favicon|ajax-loader|sprite|\.html?(?:$|\?)|\/search[/?]/i.test(
@@ -410,7 +437,7 @@ export function gitesPhotoFromTileHtml(html: string, baseUrl?: string): string |
   while ((fileHit = fileRe.exec(html)) !== null) candidates.push(fileHit[0])
   const iteaRe = /https?:\/\/widget-fngf\.itea\.fr\/photos\/[^"'\s>]+\.(?:jpe?g|png|webp)/gi
   while ((fileHit = iteaRe.exec(html)) !== null) candidates.push(fileHit[0])
-  const decoded = candidates.map((u) => u.replace(/&/gi, '&'))
+  const decoded = candidates.map((u) => u.replace(/&amp;/gi, '&'))
   const preferred = decoded.find((u) => /\/sites\/default\/files|itea\.fr\/photos/i.test(u))
   return listingPhotoUrl(preferred || decoded[0], baseUrl)
 }
@@ -471,7 +498,7 @@ export function gitesTilesFromSearchHtml(html: string): GitesSearchHtmlTile[] {
       chunk.match(/href="(\/fr\/[^"]*\d{2}g\d{3,}[^"]*)"/i)?.[1] ??
       chunk.match(/href="(https?:\/\/www\.gites-de-france\.com\/fr\/[^"]*\d{2}g\d{3,}[^"]*)"/i)?.[1]
     if (!href) continue
-    const abs = href.replace(/&/gi, '&')
+    const abs = href.replace(/&amp;/gi, '&')
     const url = abs.startsWith('http') ? abs : `${GITES_SITE_ORIGIN}${abs}`
     const code = gitesCodeIn(url)
     if (!code || seen.has(code)) continue

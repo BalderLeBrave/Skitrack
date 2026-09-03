@@ -14,7 +14,7 @@ import { StayBar } from '@/components/StayBar'
 import { deepLinks } from '@/data/deeplinks'
 import { lodgingCoords, useLodgingGeo } from '@/data/lodgingGeo'
 import type { Lodging } from '@/data/lodgings'
-import { belongsToDomain, listingKey } from '@/data/lodgings'
+import { belongsToDomain, listingKey, srcOf } from '@/data/lodgings'
 import { useAirbnbRecheck } from '@/data/useAirbnbRecheck'
 import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearch'
 import { centralCapabilityOf } from '@/data/centralCapability'
@@ -40,7 +40,13 @@ import { LODG_FILTER_RESET, stayCriteriaReady, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 
-function WalkBanner({ walk }: { walk: StationRunLog | null }): JSX.Element | null {
+function WalkBanner({
+  walk,
+  onScreen
+}: {
+  walk: StationRunLog | null
+  onScreen: Lodging[]
+}): JSX.Element | null {
   if (!walk) return null
   const rows = walk.sources.filter((s) => {
     if (s.reason_code === 'delegated') return false
@@ -52,15 +58,17 @@ function WalkBanner({ walk }: { walk: StationRunLog | null }): JSX.Element | nul
     <div className="walkbanner" data-testid="station-walk">
       {rows.map((s) => {
         const stop = stoppedReasonLabel(s.stopped_reason)
+        const label = sourceLabelOf(s.provider)
+        const visible = onScreen.filter((l) => srcOf(l) === label).length
         const bits = [
-          `${s.shown} logement${s.shown === 1 ? '' : 's'}`,
+          `${visible} à l'écran / ${s.fetched} scrapés`,
           `${s.pages_fetched} page${s.pages_fetched === 1 ? '' : 's'}`,
           stop || null,
           s.fork || null
         ].filter(Boolean)
         return (
           <div key={s.provider}>
-            {sourceLabelOf(s.provider)} : {bits.join(' · ')}
+            {label} : {bits.join(' · ')}
           </div>
         )
       })}
@@ -802,7 +810,7 @@ export function LodgingsPage(): JSX.Element {
                 // pas ce que les filtres laissent passer.
                 known={derived.lodgAll}
               />
-              <WalkBanner walk={state.lodgWalk} />
+              <WalkBanner walk={state.lodgWalk} onScreen={derived.lodgList} />
               {/*
                 Premières offres au fil de l'eau + squelettes pour la place
                 restante : rien ne saute quand le relevé se termine.
@@ -1071,7 +1079,7 @@ export function LodgingsPage(): JSX.Element {
             </div>
           )}
 
-          <WalkBanner walk={state.lodgWalk} />
+          <WalkBanner walk={state.lodgWalk} onScreen={derived.lodgList} />
 
           {(state.lodgFailed.length > 0 || state.lodgEmpty.length > 0) && (
             <div className="srcbanner" style={{ borderColor: 'var(--warn)' }}>

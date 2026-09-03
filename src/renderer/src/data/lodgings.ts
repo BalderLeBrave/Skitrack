@@ -319,7 +319,9 @@ export function listingKeyFromUrl(url: string | null | undefined): string | null
     for (const key of [...u.searchParams.keys()]) {
       if (LISTING_URL_NOISE.test(key)) u.searchParams.delete(key)
     }
-    const path = u.pathname.replace(/\/+$/, '') || '/'
+    const path = (u.pathname.replace(/\/+$/, '') || '/')
+      .replace(/-?\d+-personnes?/gi, '')
+      .replace(/\/{2,}/g, '/')
     const qs = u.searchParams.toString()
     return `url:${host}${path}${qs ? `?${qs}` : ''}`
   } catch {
@@ -336,13 +338,19 @@ export function listingKey(
   }
 ): string {
   const fromUrl = listingKeyFromUrl(lg.url)
-  if (fromUrl) return fromUrl
+  if (fromUrl && !fromUrl.startsWith('url:')) return fromUrl
   const name = foldListingName(lg.name ?? '')
+  const geo =
+    lg.lat != null && lg.lon != null ? `${lg.lat.toFixed(4)},${lg.lon.toFixed(4)}` : ''
+  // Nom distinctif + GPS : même appart Booking / centrale, URLs différentes.
+  // On exige un identifiant dans le nom (n° 12), pas « studio 4 personnes ».
+  if (name.length >= 16 && geo && /\bn(?:o|°)?\s*\d+\b|\bapt\.?\s*\d+\b/.test(name)) {
+    return `geo:${name}:${geo}`
+  }
+  if (fromUrl) return fromUrl
   const src = foldListingName(srcOf(lg))
   if (name.length >= 16 && src) {
-    const geo =
-      lg.lat != null && lg.lon != null ? `:${lg.lat.toFixed(4)},${lg.lon.toFixed(4)}` : ''
-    return `name:${src}:${name}${geo}`
+    return `name:${src}:${name}${geo ? `:${geo}` : ''}`
   }
   return `u${lg.id}`
 }

@@ -803,6 +803,11 @@ const occ6 = lodging({
   total: 1200
 })
 check('même fiche 4 pers et 6 pers : une clé', listingKey(occ4) === listingKey(occ6))
+check(
+  'slug -4-personnes vs -6-personnes : même clé',
+  listingKeyFromUrl('https://reservation.les2alpes.com/les-bergers-12-4-personnes.html') ===
+    listingKeyFromUrl('https://reservation.les2alpes.com/les-bergers-12-6-personnes.html')
+)
 const keep4 = mergeDupes([occ6, occ4], true, 4)
 check('recherche 4 pers : on garde le tarif 4, pas le 6 moins cher', keep4.length === 1 && keep4[0].pers === 4 && keep4[0].total === 1400, {
   n: keep4.length,

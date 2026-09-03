@@ -27,6 +27,7 @@ import {
   listingPhotoUrl,
   looksBlocked,
   mergeGitesCardsFromHtml,
+  stampStayOnUrl,
   webscrapePriceFields,
   scrollToEnd,
   sleep,
@@ -104,7 +105,7 @@ function mapCards(
         {
           sourceId: c.sourceId,
           title: c.title,
-          url: c.url,
+          url: stampStayOnUrl(c.url, params),
           // Position publiée par la page de résultats. Booking la lit dans son
           // magasin Apollo ; Gîtes de France, CozyCozy, VRBO et Expedia dans le
           // JSON-LD de la page. Absente, le champ reste vide — jamais fabriqué.
@@ -197,11 +198,19 @@ async function loadAndExtract(
 ): Promise<RawCard[]> {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
   await sleep(400 + Math.random() * 400)
+  try {
+    await page.waitForSelector(
+      '[data-testid="property-card"], [data-testid="card-container"], .js-search-tile, .g2f-accommodationTile',
+      { timeout: 8_000 }
+    )
+  } catch {
+    /* sélecteurs morts : emptyReason plus bas */
+  }
   let cards = await page.evaluate(extract)
-  // Page déjà pleine (Booking 25, seuil 80 %) : scroller et networkidle
-  // n'ajoutent rien et coûtaient 6–12 s par page.
-  if (cards.length < 20) {
-    await scrollToEnd(page, 6)
+  // Booking = 25 / page. Sauter le scroll dès 20 cartes laissait 15–19
+  // (lazy load) et `pageLooksLast` arrêtait le walk (1 page, exhausted).
+  if (cards.length < 25) {
+    await scrollToEnd(page, 8)
     cards = await page.evaluate(extract)
   }
   if (cards.length === 0 && (await looksBlocked(page))) {
@@ -403,9 +412,14 @@ export async function collectPages(
       stoppedReason = 'advertised'
       break
     }
+    // Page courte = fin, SAUF si la SERP a annoncé un catalogue plus grand
+    // que ce qu'on a (extract incomplet, live Booking 15 cartes / 487).
     if (pageLooksLast(cards.length, pageSize)) {
-      stoppedReason = 'exhausted'
-      break
+      const catalogBigger = advertised != null && advertised > all.length
+      if (!catalogBigger) {
+        stoppedReason = 'exhausted'
+        break
+      }
     }
     if (index === maxPages - 1) {
       stoppedReason = 'max_pages'

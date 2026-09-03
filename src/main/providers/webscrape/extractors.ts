@@ -259,12 +259,16 @@ export function extractBookingCards(): RawCard[] {
   const header =
     document.querySelector('[data-testid="property-list-header"]')?.textContent ||
     document.querySelector('h1')?.textContent ||
+    document.body?.innerText?.slice(0, 400) ||
     ''
-  const advertisedMatch = header.replace(/\u00a0/g, ' ').match(
+  const t = header.replace(/\u00a0/g, ' ')
+  const sur = t.match(/sur\s+([\d][\d\s.,]{0,10})/i)
+  const plain = t.match(
     /([\d][\d\s.,]{0,10})\s*(?:établissements?|logements?|hébergements?|properties|results)/i
   )
-  if (advertisedMatch && out[0]) {
-    const n = Number(advertisedMatch[1].replace(/[\s.,]/g, ''))
+  const advertisedRaw = sur?.[1] ?? plain?.[1]
+  if (advertisedRaw && out[0]) {
+    const n = Number(advertisedRaw.replace(/[\s.,]/g, ''))
     if (Number.isFinite(n) && n > 0 && n <= 50_000) out[0].advertisedTotal = n
   }
   return out

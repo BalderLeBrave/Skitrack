@@ -25,6 +25,7 @@ import {
 import { medianTotal, keptLodgingId, listingKey, listingKeyFromUrl, mergeDupes } from './lodgings'
 import {
   conclusiveSourceLabels,
+  lodgingsFromOutcome,
   markAbsentFromScan,
   mergeProviderReadings,
   noteOnFive,
@@ -929,6 +930,49 @@ const fresh = lodging({
 })
 const fusedScan = mergeProviderReadings([stale], [fresh])
 check('fusion recopie scannedAt du relevé', fusedScan[0].scannedAt === 50, fusedScan[0].scannedAt)
+
+console.log('\n15. Cartes scrapées → liste, occupancy tuile optionnelle')
+const scraped = lodgingsFromOutcome(
+  {
+    provider: 'booking-web',
+    results: [
+      {
+        source: 'booking-web',
+        sourceId: 'd2a-1',
+        title: 'Appartement Les 2 Alpes',
+        url: 'https://www.booking.com/hotel/fr/appart-d2a.html',
+        totalPrice: 1680,
+        checkIn: STAY.checkIn,
+        checkOut: STAY.checkOut,
+        availabilityStatus: 'available',
+        priceConfidence: 'total_confirmed'
+      }
+    ],
+    error: null,
+    elapsedMs: 1
+  },
+  {
+    domainId: 1,
+    domainName: 'Les 2 Alpes',
+    checkIn: STAY.checkIn,
+    checkOut: STAY.checkOut,
+    adults: 4,
+    bedrooms: 2,
+    nights: 7,
+    existing: []
+  },
+  new Set()
+)
+check('Booking scrapé sans pers/ch entre dans imported', scraped.length === 1, scraped.length)
+check('total séjour conservé', scraped[0]?.total === 1680)
+check(
+  'sans occupancy : non-annonce, pas trop-petit',
+  partyVerdict(scraped[0], { travelers: 4, rooms: 2 }) === 'non-annonce'
+)
+check(
+  'écran : visible si on n’exige pas l’occupancy',
+  matchesLodgingFilters(scraped[0], { ...CRITERIA, travelers: 4, rooms: 2, includeUnannounced: true }, STAY)
+)
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

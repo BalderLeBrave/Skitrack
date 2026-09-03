@@ -709,7 +709,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const lodgCriteria: LodgingFilterCriteria = {
       travelers: state.travelers,
       rooms: state.rooms,
-      onlyAvailable: true,
+      onlyAvailable: state.lodgOnlyAvailable,
       freeCancelOnly: state.lodgAnnul,
       budgetMin: state.lodgBudgetMin,
       budgetMax: state.lodgBudgetMax,
@@ -719,8 +719,8 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       distCeiling: FILTER_RANGES.lodgDist.max,
       types: state.lodgTypes,
       srcOff: state.lodgSrcOff,
-      confirmedPricesOnly: true,
-      includeUnannounced: false
+      confirmedPricesOnly: state.lodgConfirmedPrices,
+      includeUnannounced: !state.lodgHideUnannounced
     }
     const lodgFiltered = lodgAll.filter((lg) => matchesLodgingFilters(lg, lodgCriteria, stay))
 

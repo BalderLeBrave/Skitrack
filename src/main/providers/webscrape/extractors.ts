@@ -114,6 +114,7 @@ export function extractBookingCards(): RawCard[] {
    * sans position, comme avant, jamais avec une position fabriquée.
    */
   const positions: Record<string, { lat: number; lon: number }> = {}
+  const occupancy: Record<string, { guests?: number; bedrooms?: number; type?: string }> = {}
   try {
     const store = document.querySelector('script[data-capla-store-data="apollo"]')
     if (store && store.textContent) {
@@ -126,21 +127,33 @@ export function extractBookingCards(): RawCard[] {
         const obj = node as Record<string, unknown>
         const loc = obj.location as Record<string, unknown> | undefined
         const pageName = obj.pageName
-        if (
-          typeof pageName === 'string' &&
-          loc &&
-          typeof loc.latitude === 'number' &&
-          typeof loc.longitude === 'number' &&
-          (loc.latitude !== 0 || loc.longitude !== 0)
-        ) {
-          positions[pageName] = { lat: loc.latitude, lon: loc.longitude }
+        if (typeof pageName === 'string') {
+          if (
+            loc &&
+            typeof loc.latitude === 'number' &&
+            typeof loc.longitude === 'number' &&
+            (loc.latitude !== 0 || loc.longitude !== 0)
+          ) {
+            positions[pageName] = { lat: loc.latitude, lon: loc.longitude }
+          }
+          const slot = occupancy[pageName] ?? {}
+          const occu = obj.occupancy as Record<string, unknown> | undefined
+          const maxP = occu?.maxPersons ?? occu?.maxGuests ?? obj.maxPersons ?? obj.numberOfGuests
+          if (typeof maxP === 'number' && maxP > 0) slot.guests = maxP
+          const br = obj.numberOfBedrooms ?? obj.bedroomCount ?? obj.bedrooms
+          if (typeof br === 'number' && br > 0) slot.bedrooms = br
+          for (const key of ['accommodationTypeName', 'propertyType', 'accType'] as const) {
+            const t = obj[key]
+            if (typeof t === 'string' && t.trim().length > 1) slot.type = t.trim()
+          }
+          occupancy[pageName] = slot
         }
         for (const key in obj) walk(obj[key])
       }
       walk(JSON.parse(store.textContent))
     }
   } catch {
-    /* magasin illisible : les cartes sortiront sans position */
+    /* magasin illisible : les cartes sortiront sans position ni occupancy Apollo */
   }
   const cards = document.querySelectorAll('[data-testid="property-card"], [data-testid="property-card-container"]')
   const nodes = cards.length
@@ -176,6 +189,7 @@ export function extractBookingCards(): RawCard[] {
     // Position du bien : jointure avec le magasin Apollo par le slug de l'URL.
     const slug = href.match(/\/hotel\/[a-z]{2}\/([^./?#]+)/i)?.[1]
     const pos = slug ? positions[slug] : undefined
+    const extra = slug ? occupancy[slug] : undefined
 
     /*
      * Taille du bien, lue dans la description de l'unité recommandée.
@@ -215,13 +229,16 @@ export function extractBookingCards(): RawCard[] {
     }
     // « 3 chambres », « 1 chambre ». Les hôtels n'en publient pas : ils listent
     // des types de chambre, et l'absence est alors la bonne réponse.
-    const bedrooms = lire(/(\d+)\s*chambres?/i.exec(unites))
+    const bedrooms = lire(/(\d+)\s*chambres?/i.exec(unites)) ?? extra?.bedrooms
     const beds = lire(/(\d+)\s*lits?/i.exec(unites))
-    // « 4 voyageurs », « Pour 4 personnes » — la capacité, quand la carte
-    // l'écrit. Les hôtels ne l'écrivent pas ; l'absence est alors la réponse.
-    const guests = lire(/(\d+)\s*(?:voyageurs?|personnes?)/i.exec(unites))
-    // Surface habitable, quand la page la publie : « 49 m² » ou « 49 m2 ».
+    const guests = lire(/(\d+)\s*(?:voyageurs?|personnes?)/i.exec(unites)) ?? extra?.guests
     const areaSqm = lire(/(\d+)\s*m(?:²|2)(?![0-9])/i.exec(unites))
+    const typeHint = unites.split(/[•·|]/)[0]?.trim()
+    const propertyType =
+      extra?.type ||
+      (typeHint && typeHint.length >= 2 && typeHint.length < 48 && !/^\d/.test(typeHint)
+        ? typeHint
+        : undefined)
 
     out.push({
       sourceId,
@@ -236,6 +253,7 @@ export function extractBookingCards(): RawCard[] {
       beds,
       areaSqm,
       guests,
+      propertyType,
     })
   })
   const header =

@@ -707,7 +707,7 @@ export const INITIAL_STATE: AppState = {
   hideBadGeo: false,
   lodgOnlyAvailable: true,
   lodgConfirmedPrices: true,
-  lodgHideUnannounced: true,
+  lodgHideUnannounced: false,
   stayBarCollapsed: false,
   flexOpen: false,
   ficheId: null,
@@ -849,8 +849,12 @@ function purgeLegacyPrefs(): void {
  * d'une session précédente présentait un hôtel (souvent le moins cher du
  * nouveau relevé, collision d'id) comme « Logement retenu » alors que
  * personne n'avait cliqué Retenir sur ce relevé.
+ *
+ * Schéma 11 (2026-09-03) : `lodgHideUnannounced` éteint. Les cartes scrapées
+ * sans « N chambres » sur la tuile (Booking, parfois Airbnb) disparaissaient
+ * avant l'écran alors que le relevé les avait. Trop petit annoncé reste filtré.
  */
-const PREFS_SCHEMA = 10
+const PREFS_SCHEMA = 11
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -999,6 +1003,9 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
 
   // Schéma 10 — ne plus afficher un hôtel comme retenu sans geste explicite.
   if ((saved.prefsSchema ?? 0) < 10) out.selLodgings = {}
+
+  // Schéma 11 — les logements scrapés sans occupancy tuile restent visibles.
+  if ((saved.prefsSchema ?? 0) < 11) out.lodgHideUnannounced = false
 
   // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
   const rattache = rerattacherParPosition(out.imported)

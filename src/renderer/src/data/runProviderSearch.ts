@@ -28,7 +28,7 @@ import type { ProviderAccommodation, ProviderOutcome } from '@shared/ipc-contrac
 import { formatStationRun, type StationRunLog, type StationRunSource } from '@shared/searchWalk'
 import type { Lodging } from './lodgings'
 import { CENTRALE_SOURCE, listingKey, listingKeyFromUrl, srcOf } from './lodgings'
-import { hasConfirmedPrice, isDroppedGitesOffer, matchesDemand } from './lodgingFilter'
+import { isDroppedGitesOffer } from './lodgingFilter'
 import { isDoorway } from './lodgingAvailability'
 import { bookingCentralOf, stationNameOf } from './stations'
 
@@ -252,12 +252,6 @@ export function lodgingsFromOutcome(
   params: RunProviderSearchParams,
   seenUrls: Set<string>
 ): Lodging[] {
-  const stay = { checkIn: params.checkIn, checkOut: params.checkOut }
-  const demand = {
-    guests: params.adults,
-    bedrooms: params.bedrooms ?? 0,
-    datesSet: Boolean(params.checkIn && params.checkOut)
-  }
   const out: Lodging[] = []
   for (const item of outcome.results) {
     if (!item.url) continue
@@ -279,8 +273,9 @@ export function lodgingsFromOutcome(
     }
     const lodging = toLodging(item, params)
     if (!lodging) continue
-    if (!matchesDemand(lodging, demand)) continue
-    if (!hasConfirmedPrice(lodging, stay)) continue
+    // Occupancy et plancher : l'écran filtre (`matchesLodgingFilters`). Les
+    // jeter ici faisait disparaitre des cartes scrapées (Booking sans
+    // « N chambres » sur la tuile) avant même `imported`.
     const key = listingKey(lodging)
     if (seenUrls.has(key)) continue
     seenUrls.add(key)

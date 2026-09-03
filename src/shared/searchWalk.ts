@@ -58,6 +58,14 @@ export interface StationRunLog {
 }
 
 export function forkOf(row: Omit<StationRunSource, 'fork'>): StationRunFork | null {
+  // Skip intentionnel : pas une panne de collecte.
+  if (
+    row.reason_code === 'delegated' ||
+    row.reason_code === 'not_wired' ||
+    row.reason_code === 'no_official_url'
+  ) {
+    return null
+  }
   const blocked =
     row.reason_code === 'blocked' || row.reason_code === 'challenge_unresolved'
   if (row.fetched === 0 && blocked) return 'F2'
@@ -66,6 +74,19 @@ export function forkOf(row: Omit<StationRunSource, 'fork'>): StationRunFork | nu
   if (row.shown === 0) return 'F4'
   if (row.pages_fetched <= 1) return 'F5'
   return null
+}
+
+/**
+ * Une page SERP est-elle la dernière ?
+ *
+ * Booking affiche 25 cartes ; l'extracteur en lit parfois 23. Traiter 23 comme
+ * « dernière page » arrêtait le walk (station_run live : 25, 1 page, exhausted).
+ * Seuil 80 % : une vraie dernière page de reliquat (15/25) s'arrête encore.
+ * pageSize ≤ 1 (Gîtes `page=` 1-based) : vide = fin, une carte = page pleine.
+ */
+export function pageLooksLast(cardCount: number, pageSize: number): boolean {
+  if (pageSize <= 1) return cardCount < pageSize
+  return cardCount < Math.ceil(pageSize * 0.8)
 }
 
 export function formatStationRun(

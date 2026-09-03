@@ -152,10 +152,10 @@ export class BookingProvider implements AccommodationProvider {
   async search(params: SearchParams): Promise<Accommodation[]> {
     const credentials = this.credentials()
     if (!credentials) {
-      throw new Error(
-        'Booking.com : aucun jeton Demand API. Renseignez-le dans Réglages → Clés d’API, ou via ' +
-          'BOOKING_DEMAND_TOKEN. Le programme d’affiliation seul ne donne pas accès aux prix.'
-      )
+      // Pas une panne : le repli `booking-web` interroge la SERP. Un throw
+      // apparaissait dans station_run comme « erreur Booking.com » alors que
+      // le scrape avait déjà 25 offres (Les 2 Alpes 2027-02-13, live).
+      return []
     }
     if (this.breaker.open) throw new Error(`Booking.com : ${this.breaker.reason}`)
 

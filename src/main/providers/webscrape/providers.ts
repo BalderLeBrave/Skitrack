@@ -8,8 +8,9 @@
 
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
 import type { Page } from 'playwright'
-import type { PaginationReport, StoppedReason } from '@shared/reasonCodes'
-import { SEARCH_WALK, isPrivateOrSharedListing } from '@shared/searchWalk'
+import { stampPagination, type PaginationReport, type StoppedReason } from '@shared/reasonCodes'
+import { SEARCH_WALK, isPrivateOrSharedListing, pageLooksLast } from '@shared/searchWalk'
+import { trySolveVisibleCaptcha } from '../../captchaBridge'
 import {
   extractBookingCards,
   extractCozycozyCards,
@@ -203,7 +204,20 @@ async function loadAndExtract(
     // ignore
   }
   await sleep(500)
-  const cards = await page.evaluate(extract)
+  let cards = await page.evaluate(extract)
+  if (cards.length === 0 && (await looksBlocked(page))) {
+    // Résolveur déjà dans le dépôt (sidecar 2captcha). Page 2 Booking
+    // souvent challenge : 0 cartes ≠ inventaire épuisé.
+    const solved = await trySolveVisibleCaptcha(page)
+    if (solved) {
+      await sleep(1200)
+      await scrollToEnd(page)
+      cards = await page.evaluate(extract)
+    }
+    if (cards.length === 0 && (await looksBlocked(page))) {
+      throw new Error('relevé refusé par la source (captcha ou blocage anti-robot)')
+    }
+  }
   try {
     const html = await page.content()
     if (/js-search-tile|g2f-accommodationTile/.test(html)) {
@@ -295,7 +309,7 @@ function makeProvider(
           },
           attempt > 1
         )
-        const list = mapCards(name, cards, params)
+        const list = stampPagination(mapCards(name, cards, params), paginationOf(cards))
         if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
         return list
       })
@@ -335,7 +349,7 @@ const BOOKING_MAX_PAGES = SEARCH_WALK.maxPages
  * qui clique « page suivante ».
  */
 export async function collectPages(
-  urlFor: (offset: number) => string,
+  urlFor: (offset: number) => string | Promise<string>,
   pageSize: number,
   fetchPage: (url: string) => Promise<RawCard[]>,
   maxPages = SEARCH_WALK.maxPages,
@@ -357,7 +371,7 @@ export async function collectPages(
     }
     let cards: RawCard[]
     try {
-      cards = await fetchPage(urlFor(index * pageSize))
+      cards = await fetchPage(await urlFor(index * pageSize))
     } catch {
       stoppedReason = 'blocked'
       break
@@ -382,7 +396,7 @@ export async function collectPages(
       stoppedReason = 'no_fresh'
       break
     }
-    if (cards.length < pageSize) {
+    if (pageLooksLast(cards.length, pageSize)) {
       stoppedReason = 'exhausted'
       break
     }
@@ -410,6 +424,38 @@ export function paginationOf(cards: RawCard[]): PaginationReport | undefined {
 }
 
 /**
+ * Lien « page suivante » que Booking pose lui-même (`offset=`).
+ *
+ * `bookingSearchUrl` reconstruit une URL minimale (ss + dates). Le lien réel
+ * porte dest_id / dest_type / session — les suivre évite de relancer une
+ * recherche qui retombe sur les 25 premiers (live 2 Alpes : 1 page, F5).
+ */
+export async function bookingNextPageUrl(
+  page: Page,
+  currentOffset: number
+): Promise<string | null> {
+  try {
+    return await page.evaluate((current) => {
+      let best: { href: string; offset: number } | null = null
+      for (const node of Array.from(document.querySelectorAll('a[href*="offset="]'))) {
+        const href = (node as HTMLAnchorElement).href
+        if (!href) continue
+        try {
+          const off = Number(new URL(href, location.href).searchParams.get('offset') || 'NaN')
+          if (!Number.isFinite(off) || off <= current) continue
+          if (!best || off < best.offset) best = { href, offset: off }
+        } catch {
+          /* href illisible */
+        }
+      }
+      return best?.href ?? null
+    }, currentOffset)
+  } catch {
+    return null
+  }
+}
+
+/**
  * Le cas Booking, inchangé.
  *
  * La signature est conservée telle quelle : `providers.test.ts` l'exerce sur
@@ -420,10 +466,17 @@ export async function collectBookingPages(
   params: SearchParams,
   fetchPage: (url: string) => Promise<RawCard[]>,
   maxPages = SEARCH_WALK.maxPages,
-  budgetMs = SEARCH_WALK.pagesBudgetMs
+  budgetMs = SEARCH_WALK.pagesBudgetMs,
+  page?: Page
 ): Promise<RawCard[]> {
   return collectPages(
-    (offset) => bookingSearchUrl(params, offset),
+    async (offset) => {
+      if (offset > 0 && page) {
+        const next = await bookingNextPageUrl(page, offset - BOOKING_PAGE_SIZE)
+        if (next) return next
+      }
+      return bookingSearchUrl(params, offset)
+    },
     BOOKING_PAGE_SIZE,
     fetchPage,
     maxPages,
@@ -444,8 +497,12 @@ export function createBookingWebProvider(opts?: ScrapeAttemptOptions): Accommoda
         const cards = await withPage(
           headless,
           async (page) => {
-            const collected = await collectBookingPages(params, (url) =>
-              loadAndExtract(page, url, timeoutMs, extractBookingCards)
+            const collected = await collectBookingPages(
+              params,
+              (url) => loadAndExtract(page, url, timeoutMs, extractBookingCards),
+              SEARCH_WALK.maxPages,
+              SEARCH_WALK.pagesBudgetMs,
+              page
             )
             // Zéro carte sur la **première** page : la station a toujours au
             // moins un hébergement, donc la page a menti ou refusé. On lui
@@ -455,7 +512,7 @@ export function createBookingWebProvider(opts?: ScrapeAttemptOptions): Accommoda
           },
           attempt > 1
         )
-        const list = mapCards(name, cards, params)
+        const list = stampPagination(mapCards(name, cards, params), paginationOf(cards))
         if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
         return list
       })
@@ -726,7 +783,7 @@ export function createVrboWebProvider(opts?: ScrapeAttemptOptions): Accommodatio
           },
           attempt > 1
         )
-        const list = mapCards(name, cards, params).map((a) => ({
+        const mapped = mapCards(name, cards, params).map((a) => ({
           ...a,
           url: abritelCanonicalUrl(a.url, {
             checkIn: params.checkIn,
@@ -735,6 +792,15 @@ export function createVrboWebProvider(opts?: ScrapeAttemptOptions): Accommodatio
             children: params.children
           })
         }))
+        const pages = new Set(
+          cards.map((c) => c.pageIndex).filter((n): n is number => typeof n === 'number')
+        )
+        const list = stampPagination(mapped, {
+          pagesFetched: Math.max(pages.size, cards.length > 0 ? 1 : 0),
+          listingsFound: cards.length,
+          listingsDeduped: mapped.length,
+          stoppedReason: cards.length >= SEARCH_WALK.maxListings ? 'max_listings' : 'exhausted'
+        })
         if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
         return list
       })

@@ -11,14 +11,20 @@
 
 import { CENTRALS, OTA_HOSTS, type Central } from './centrals'
 import { shouldAttemptIngenie } from './ingenieHosts'
-import { isCetoHost } from '../ceto/hosts'
+import {
+  isCetoHost,
+  isChamonixCentral,
+  isMegeveCentral,
+  isMeribelCentral,
+  isPlagneCentral
+} from '../ceto/hosts'
 import { isUbloHost } from '../ublo/hosts'
 import { isOpenSystemHost } from '../opensystem/hosts'
 import { isDesklineHost } from '../deskline/hosts'
 import { isLocvacancesHost } from '../locvacances/hosts'
 import { isDiffusioHost } from '../diffusio/hosts'
 import { isTourinsoftHost } from '../tourinsoft/hosts'
-import type { ReasonCode } from '@shared/reasonCodes'
+import { classifyProviderError, type ReasonCode } from '@shared/reasonCodes'
 
 export type CentralFamily =
   | 'ingenie'
@@ -87,6 +93,59 @@ export function emptyStationReason(officialUrl: string | null | undefined): Reas
   if (family === 'not_wired') return 'not_wired'
   if (family === 'ota') return 'delegated'
   return 'empty_inventory'
+}
+
+/**
+ * Un connecteur spécialiste s'applique-t-il à cette URL officielle ?
+ *
+ * Live Les 2 Alpes : `ceto-chamonix` etc. rendaient 0 + F1 alors qu'ils
+ * n'avaient rien à interroger (hôte Ingénie). Ce n'est pas un fetch raté.
+ */
+export function specialistApplies(provider: string, officialUrl: string): boolean {
+  switch (provider) {
+    case 'ceto-chamonix':
+      return isChamonixCentral(officialUrl)
+    case 'ceto-meribel':
+      return isMeribelCentral(officialUrl)
+    case 'ceto-plagne':
+      return isPlagneCentral(officialUrl)
+    case 'ceto-megeve':
+      return isMegeveCentral(officialUrl)
+    case 'ublo-msem':
+      return isUbloHost(officialUrl)
+    case 'opensystem':
+      return isOpenSystemHost(officialUrl)
+    case 'deskline':
+      return isDesklineHost(officialUrl)
+    case 'locvacances':
+      return isLocvacancesHost(officialUrl)
+    case 'diffusio':
+      return isDiffusioHost(officialUrl)
+    default:
+      return false
+  }
+}
+
+export function emptyProviderReason(
+  provider: string,
+  officialUrl: string | null | undefined,
+  error: string | null
+): ReasonCode {
+  if (error) return classifyProviderError(error)
+  if (provider === 'booking') return 'not_wired'
+  if (provider === 'station-web') return emptyStationReason(officialUrl)
+  if (
+    provider.startsWith('ceto-') ||
+    provider === 'ublo-msem' ||
+    provider === 'opensystem' ||
+    provider === 'deskline' ||
+    provider === 'locvacances' ||
+    provider === 'diffusio'
+  ) {
+    if (!officialUrl || !specialistApplies(provider, officialUrl)) return 'delegated'
+    return '0_after_parse'
+  }
+  return '0_after_parse'
 }
 
 /** Force l'évaluation de `CENTRALS` : la table n'est plus morte. */

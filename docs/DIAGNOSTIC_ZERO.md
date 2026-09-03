@@ -1,19 +1,41 @@
 # DIAGNOSTIC_ZERO — 0 Airbnb / 0 Booking vs 100+ site
 
-Preuve **code + dumps + tests**, 2026-09-03, `master`. Pas de `station_run` live Windows dans ce bac : les compteurs *live* sont produits par `formatStationRun` (`[SKITRACK] station_run` dans le journal). Les `fetched` d’une session utilisateur ne sont pas dans le dépôt.
+Preuve **code + dumps + tests + station_run live**, 2026-09-03.
 
-Recherche UI visée : station + dates + guests + logement entier.
+## Live Windows — Les 2 Alpes 2027-02-13→20, 4 pers, 2 chb
+
+`[SKITRACK] station_run` (avant ce patch) :
+
+| provider | fetched | pages | stop | fork | lecture |
+| --- | ---: | ---: | --- | --- | --- |
+| booking (Demand API) | 0 | 0 | — | F1 | **pas une panne** : pas de jeton. Message « Réglages → Clés d’API » dans le JSON. Repli = booking-web. |
+| booking-web | 25 | 1 | exhausted | **F5** | Page pleine (25) traitée comme dernière ; rapport reconstruit après zone (écrase le walk). |
+| gites-web | 14 | 3 | exhausted | — | Walk OK. |
+| vrbo-web (Abritel) | 168 | 9 | exhausted | — | Walk OK. |
+| station-web | 319 | 1 | exhausted | F5 | AJAX 2 Alpes, un écran. |
+| ceto-* / ublo / opensystem / deskline / locvacances / diffusio | 0 | 0 | — | F1 | **delegated** : hôte Ingénie, pas leur station. |
+
+Airbnb n’est **pas** dans ce JSON : autre IPC (`runAirbnbSearch`).
+
+## Correctifs (ce patch)
+
+- `collectPages` : page « pleine » = ≥ 80 % (23/25 continue). Gîtes pageSize=1 inchangé.
+- Booking : suivre le lien `offset=` **de la page** (dest_id session), pas une URL minimale reconstruite.
+- Rapport `collectPages` stampé sur la liste → `SearchEngine` → `annotateOutcome` ne l’écrase plus.
+- Page 0 cartes + `looksBlocked` → `trySolveVisibleCaptcha` (déjà dans le dépôt), sinon `blocked` (page 1 conservée).
+- Demand API sans jeton : `[]`, `not_wired`, plus de throw.
+- Spécialistes hors hôte : `delegated`, fork null.
 
 ## Tableau (fork depuis le code, après walk)
 
 | centrale | fetched (code) | parsed | shown (après matchesDemand) | pages_fetched | fork | stop fichier:ligne |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
 | Airbnb | scrape IPC, **pas** `SearchEngine` | StaySearchResult | 0 si `pers==0` ou `ch==0` | scroll max **30**, idle **2**, **pas de cursor** (INCONNU sans HAR) | **F4** si occupancy absente ; **F5** si pages_fetched===1 live | `index.ts` « pas un connecteur » · `dynamicHtml.ts` extractProgressive · `lodgingFilter.ts:249` |
-| Booking API | 0 sans jeton Demand | 0 | 0 | 0 | **F1** | `booking.ts` clés requises |
-| Booking web | Playwright si `SKITRACK_WEB_SCRAPE≠0` | cartes `property-card` | 0 si occupancy regex rate | `offset` pas 25, **max 30** / 750 | **F5** si live pages_fetched===1 ; **F4** si parsed>0 shown=0 | `searchWalk.ts` SEARCH_WALK · `providers.ts` collectPages |
+| Booking API | 0 sans jeton Demand | 0 | 0 | 0 | **null** (`not_wired`) | `booking.ts` return [] |
+| Booking web | Playwright si `SKITRACK_WEB_SCRAPE≠0` | cartes `property-card` | occupancy regex | lien `offset=` page, **max 30** / 750 | **F5** si live pages_fetched===1 | `searchWalk.ts` pageLooksLast · `providers.ts` collectPages |
 | Abritel (vrbo-web) | re-scroll getResultList idle 2 / 30 | occupancy obligatoire | quelques si dump 1 écran | **walk** jusqu’à idle / 750 | **F5** tant que live = 1 payload | `providers.ts` collectCozyApiHits |
 | Gîtes | GET `towns=` + `page=` | tuiles `.js-search-tile` | devis ITEA, cap **750** (budget 6 min) | `GITES_PAGE_STEP=1`, max **30** | **F5** si pages=1 live · **F4** hors devis | `urls.ts:172-173` · `providers.ts` collectPages |
-| Autres centrals.ts | délégué famille / `not_wired` | — | — | — | **F1** Karellis, Vars Elloha, Les Angles | `centralLookup.ts` `not_wired` |
+| Autres centrals.ts | délégué famille / `not_wired` | — | — | — | **null** delegated ; **F1** Karellis / Elloha | `centralLookup.ts` emptyProviderReason |
 
 ## Fork (ordre figé)
 
@@ -27,15 +49,15 @@ Recherche UI visée : station + dates + guests + logement entier.
 
 **Booking**
 
-- F1 [FAUX] web scrape enregistré sauf `SKITRACK_WEB_SCRAPE=0`.
-- F2 [INCONNU] live. `looksBlocked` + `emptyReason` → error.
+- F1 [FAUX] web scrape enregistré sauf `SKITRACK_WEB_SCRAPE=0`. Demand API absente = `not_wired`, pas F1.
+- F2 live : `looksBlocked` → résolveur sidecar, sinon `blocked` (page 1 conservée).
 - F3 [INCONNU] sans dump SERP. Sélecteur `property-card`.
 - F4 [VRAI] si cartes sans « N chambres » / « N voyageurs » : `ch=0` → exclu.
-- F5 **walk** : `SEARCH_WALK.maxPages = 30`. Site > 80 → 30×25=750. Si extract page 1 < 25, `collectPages` s’arrête en croyant la dernière page (`scrollToEnd` idle 2 mitige).
+- F5 **walk** : `SEARCH_WALK.maxPages = 30`. Live avant patch : 25 / 1 page / exhausted. Seuil 80 % + lien suivant Booking + rapport non écrasé.
 
 **Abritel**
 
-- F5 **walk** : re-scroll CozyCozy tant que `getResultList` apporte des ids (idle 2, max 30, 750). Dump D2A avant patch : 2 payloads / 45 entries.
+- F5 **walk** : re-scroll CozyCozy tant que `getResultList` apporte des ids (idle 2, max 30, 750). Live 2 Alpes : 168 / 9 pages.
 
 **listingHosts** : Airbnb/Booking **non** veto (`listingHosts.ts` cozycozy only).
 
@@ -44,10 +66,11 @@ Recherche UI visée : station + dates + guests + logement entier.
 ## Cible après patch
 
 - `max_pages` défaut **30** (Booking, Gîtes, Abritel), `max_listings` **750** (`SEARCH_WALK`). Airbnb : 30 scrolls.
-- Booking `offset` jusqu’à exhausted / max_pages / max_listings / blocked (page 2 bloquée **conserve** page 1).
+- Booking suit le lien `offset=` de la SERP ; URL reconstruite en repli.
+- Page 2 bloquée **conserve** page 1, `stopped_reason=blocked`.
 - Abritel : re-scroll CozyCozy.
 - Airbnb : scroll idle 2, max 30 ; curseur **non inventé**.
-- Compteurs `pagination` + journal `station_run`.
+- Compteurs `pagination` du walk, pas reconstruits après `keepInZone`.
 
 ## Tests
 
@@ -56,5 +79,6 @@ Recherche UI visée : station + dates + guests + logement entier.
 - T3 Abritel 1 batch < 3 batchs, dédup id.
 - T4 `station_run` pages_fetched>=2.
 - T5 entire : chambre privée / hôtes drop ; type absent conservé.
-- T6 fetched=0 → F1 / F2, pas silence.
+- T6 fetched=0 → F1 / F2, pas silence. delegated / not_wired → fork null.
+- Extract 23/25 ne coupe pas le walk.
 - T7 `npm run providers:test` + typecheck.

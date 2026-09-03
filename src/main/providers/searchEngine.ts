@@ -12,6 +12,7 @@ import { deduplicate, type Property } from './dedup'
 import { debugLog } from './debug'
 import { recordProviderOutcome } from './metrics'
 import type { AccommodationProvider, ProviderOutcome, SearchParams } from './types'
+import { paginationOfList } from '@shared/reasonCodes'
 
 export interface SearchReport {
   properties: Property[]
@@ -55,7 +56,13 @@ export class SearchEngine {
         let outcome: ProviderOutcome
         try {
           const results = await provider.search(params)
-          outcome = { provider: provider.name, results, error: null, elapsedMs: Date.now() - started }
+          outcome = {
+            provider: provider.name,
+            results,
+            error: null,
+            elapsedMs: Date.now() - started,
+            pagination: paginationOfList(results)
+          }
         } catch (error) {
           // Chaque source encaisse son erreur seule.
           outcome = {

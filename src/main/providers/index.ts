@@ -49,9 +49,9 @@ import { SearchEngine } from './searchEngine'
 import { debugLog } from './debug'
 import type { AggregateResult, ProviderOutcome, SearchParams } from './types'
 import { OUT_OF_ZONE_MARGIN_KM, coordsUsable, filterToZone, searchZone } from '@shared/geo'
-import { classifyProviderError, type PaginationReport, type ReasonCode, type StoppedReason } from '@shared/reasonCodes'
+import { type PaginationReport, type ReasonCode, type StoppedReason } from '@shared/reasonCodes'
 import { SEARCH_WALK, formatStationRun } from '@shared/searchWalk'
-import { centralsLoaded, emptyStationReason } from './station/centralLookup'
+import { centralsLoaded, emptyProviderReason } from './station/centralLookup'
 
 export interface EngineOptions {
   /** Active les scrapers Playwright (Booking, centrales de station). */
@@ -230,13 +230,14 @@ function paginationFromResults(results: ProviderOutcome['results']): PaginationR
 }
 
 function annotateOutcome(outcome: ProviderOutcome, params: SearchParams): ProviderOutcome {
-  const pagination = paginationFromResults(outcome.results)
+  // Le walk (collectPages) est la vérité. Reconstruire depuis les cartes
+  // *après* keepInZone faisait 25 listings / 1 page / exhausted alors que
+  // d'autres pages avaient été lues (ou tentées). Live 2 Alpes 2027-02-13.
+  const pagination = outcome.pagination ?? paginationFromResults(outcome.results)
 
   let reasonCode: ReasonCode
   if (outcome.results.length > 0) reasonCode = 'ok'
-  else if (outcome.error) reasonCode = classifyProviderError(outcome.error)
-  else if (outcome.provider === 'station-web') reasonCode = emptyStationReason(params.officialUrl)
-  else reasonCode = '0_after_parse'
+  else reasonCode = emptyProviderReason(outcome.provider, params.officialUrl, outcome.error)
 
   return { ...outcome, reasonCode, pagination }
 }

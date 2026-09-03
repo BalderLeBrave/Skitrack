@@ -42,9 +42,9 @@ import {
   parseCozyResultPayload,
   parseCozyResultPayloads
 } from './webscrape/cozyResultList'
-import { emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
-import { classifyProviderError } from '@shared/reasonCodes'
-import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing } from '@shared/searchWalk'
+import { emptyProviderReason, emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
+import { classifyProviderError, paginationOfList, stampPagination } from '@shared/reasonCodes'
+import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing, pageLooksLast } from '@shared/searchWalk'
 import {
   extractListingsFromDeferredState,
   occupancyFromStaySearchResult
@@ -282,8 +282,9 @@ async function main(): Promise<void> {
     report.outcomes.map((o) => o.provider).join(', ')
   )
   check(
-    'Booking échoue avec un motif explicite',
-    Boolean(report.outcomes.find((o) => o.provider === 'booking')?.error?.includes('Demand API'))
+    'Booking sans jeton : 0 offre, pas une exception (repli booking-web)',
+    report.outcomes.find((o) => o.provider === 'booking')?.error == null &&
+      report.outcomes.find((o) => o.provider === 'booking')?.results.length === 0
   )
   check('l’agrégat n’a pas levé', true)
 
@@ -541,6 +542,32 @@ async function main(): Promise<void> {
     paginationOf(afterBlock)?.stoppedReason
   )
 
+  const shortThenFull: string[] = []
+  const nearFull = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      shortThenFull.push(url)
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      if (rang === 0) return cards(0, 23)
+      if (rang === 25) return cards(25, 25)
+      return []
+    }
+  )
+  check(
+    'extract 23/25 n’arrête pas le walk (seuil 80 %)',
+    nearFull.length === 48 && shortThenFull.length >= 3,
+    { n: nearFull.length, pages: shortThenFull.length, stop: paginationOf(nearFull)?.stoppedReason }
+  )
+  check('pageLooksLast 23/25 = false', pageLooksLast(23, 25) === false)
+  check('pageLooksLast 15/25 = true', pageLooksLast(15, 25) === true)
+  check('pageLooksLast 0/1 Gîtes = true', pageLooksLast(0, 1) === true)
+  check(
+    'rapport collectPages stampé sur la liste d’offres',
+    paginationOfList(stampPagination([], paginationOf(nearFull)))?.pagesFetched ===
+      paginationOf(nearFull)?.pagesFetched
+  )
+
   // Le budget de temps ne coupe pas une page en cours : il décide si l'on en
   // ouvre une de plus. Budget nul = une seule page, celle sans laquelle il n'y
   // aurait pas de relevé du tout.
@@ -776,6 +803,37 @@ async function main(): Promise<void> {
       pages_fetched: 0,
       reason_code: 'blocked'
     }) === 'F2'
+  )
+  check(
+    'Ceto hors station → delegated, pas F1',
+    emptyProviderReason('ceto-chamonix', 'https://reservation.les2alpes.com/', null) ===
+      'delegated' &&
+      forkOf({
+        provider: 'ceto-chamonix',
+        fetched: 0,
+        parsed: 0,
+        shown: 0,
+        pages_fetched: 0,
+        reason_code: 'delegated'
+      }) === null
+  )
+  check(
+    'Booking API sans jeton → not_wired, pas F1',
+    emptyProviderReason('booking', undefined, null) === 'not_wired' &&
+      forkOf({
+        provider: 'booking',
+        fetched: 0,
+        parsed: 0,
+        shown: 0,
+        pages_fetched: 0,
+        reason_code: 'not_wired'
+      }) === null
+  )
+  check(
+    'Demand API message → not_wired',
+    classifyProviderError(
+      'Booking.com : aucun jeton Demand API. Renseignez-le dans Réglages.'
+    ) === 'not_wired'
   )
 
   heading('15. Dumps 2026-09-01 — looksBlocked / Gîtes noResults')

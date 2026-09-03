@@ -44,6 +44,19 @@ export interface PaginationReport {
   stoppedReason: StoppedReason
 }
 
+/** Liste d'offres portant le rapport de walk, pas une reconstruction aval. */
+export type PaginatedList<T> = T[] & { pagination?: PaginationReport }
+
+export function stampPagination<T>(items: T[], report?: PaginationReport): PaginatedList<T> {
+  const listed = items as PaginatedList<T>
+  if (report) listed.pagination = report
+  return listed
+}
+
+export function paginationOfList<T>(items: T[]): PaginationReport | undefined {
+  return (items as PaginatedList<T>).pagination
+}
+
 /**
  * Traduit un message d'erreur de connecteur déjà écrit dans le dépôt.
  *
@@ -56,6 +69,12 @@ export function classifyProviderError(message: string | null | undefined): Reaso
   if (m.includes('[not_wired]') || m.includes('not_wired')) return 'not_wired'
   if (m.includes('[delegated]')) return 'delegated'
   if (m.includes('[no_official_url]')) return 'no_official_url'
+  if (
+    m.includes('jeton demand api') ||
+    (m.includes('demand api') && (m.includes('jeton') || m.includes('token')))
+  ) {
+    return 'not_wired'
+  }
   if (m.includes('interdit') && m.includes('hôte')) return 'host_forbidden'
   if (
     m.includes('challenge_unresolved') ||

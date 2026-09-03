@@ -284,7 +284,7 @@ export function publishedPhotoUrl(lg: Pick<Lodging, 'image' | 'photo'>): string 
  * Dump Abritel : `startDate` / `adults` posés par `abritelCanonicalUrl`.
  */
 const LISTING_URL_NOISE =
-  /^(adults?|children|child|infants?|travelers?|guests?|date-start|date-end|checkin|checkout|startDate|endDate|chkin|chkout|group_adults|group_children|no_rooms|selected_currency|lang|label|mp[abdeq]|camref|clickedRef|dest_id|sb_travel_purpose|utm_.*|aid|sid|from|to)$/i
+  /^(adults?|children|child|infants?|travelers?|guests?|personnes|adultes|enfants|nb_personnes|date-start|date-end|datedeb|datefin|duree|checkin|checkout|startDate|endDate|chkin|chkout|group_adults|group_children|no_rooms|selected_currency|lang|label|mp[abdeq]|camref|clickedRef|dest_id|dest_type|sb_travel_purpose|cid|action|type_date|type_prestataire|criteres(\[\])?|search|offset|page|rows|startIndex|sb|nflt|order|aid|sid|from|to|utm_.*)$/i
 
 function foldListingName(value: string): string {
   return value
@@ -342,7 +342,7 @@ export function listingKey(
   if (name.length >= 16 && src) {
     const geo =
       lg.lat != null && lg.lon != null ? `:${lg.lat.toFixed(4)},${lg.lon.toFixed(4)}` : ''
-    return `name:${src}:${name}:${lg.pers}:${lg.ch}${geo}`
+    return `name:${src}:${name}${geo}`
   }
   return `u${lg.id}`
 }
@@ -586,25 +586,73 @@ export function belongsToDomain(
 }
 
 /**
- * Fusion des annonces du même bien publiées sur plusieurs sources.
- * L'offre la moins chère est conservée ; les autres restent visibles en note
- * pour qu'on voie l'écart plutôt que de le cacher.
+ * Écart d'occupation entre l'annonce et la demande.
+ *
+ * 0 = correspondance exacte (4 pers demandées, tarif 4 pers). Un 6 pers pour
+ * une recherche à 4 est plus loin : taxe de séjour et total ne sont pas ceux
+ * du groupe. Trop petit (2 pour 4) est encore plus loin — on ne le choisit
+ * que s'il n'y a rien d'autre.
  */
-export function mergeDupes(list: Lodging[], enabled: boolean): Lodging[] {
+export function occupancyMatchScore(pers: number, demand: number): number {
+  if (!(demand > 0)) return 0
+  if (!(pers > 0)) return 10_000
+  if (pers === demand) return 0
+  if (pers > demand) return pers - demand
+  return 1_000 + (demand - pers)
+}
+
+/** Total du séjour pour le groupe demandé, lu dans le barème s'il existe. */
+export function stayTotalForGuests(
+  lodging: Pick<Lodging, 'total' | 'priceOptions'>,
+  demand: number
+): number {
+  if (demand > 0 && lodging.priceOptions && lodging.priceOptions.length > 0) {
+    const exact = lodging.priceOptions.find((o) => o.guests === demand && o.total > 0)
+    if (exact) return exact.total
+    const above = lodging.priceOptions
+      .filter((o) => o.guests >= demand && o.total > 0)
+      .sort((a, b) => a.guests - b.guests)[0]
+    if (above) return above.total
+  }
+  return lodging.total
+}
+
+/**
+ * Fusion des annonces du même bien publiées sur plusieurs sources.
+ * À occupancy égale, l'offre la moins chère est conservée. Si deux cartes
+ * du même appartement portent 4 et 6 personnes, on garde celle du groupe
+ * demandé — taxe de séjour comprise.
+ */
+export function mergeDupes(list: Lodging[], enabled: boolean, demand = 0): Lodging[] {
   const by: Record<string, Lodging> = {}
   const out: Lodging[] = []
   for (const l of list) {
     const k = listingKey(l) || (enabled && l.dup ? l.dup : `u${l.id}`)
     const kept = by[k]
     if (!kept) {
-      const copy: Lodging = { ...l, dups: [] }
+      const copy: Lodging = {
+        ...l,
+        total: stayTotalForGuests(l, demand) || l.total,
+        dups: []
+      }
       by[k] = copy
       out.push(copy)
       continue
     }
-    if (l.total > 0 && (kept.total <= 0 || l.total < kept.total)) {
+    const incomingTotal = stayTotalForGuests(l, demand)
+    const keptTotal = stayTotalForGuests(kept, demand)
+    const incomingFit = occupancyMatchScore(l.pers, demand)
+    const keptFit = occupancyMatchScore(kept.pers, demand)
+    const betterFit = incomingFit < keptFit
+    const sameFitCheaper =
+      incomingFit === keptFit && incomingTotal > 0 && (keptTotal <= 0 || incomingTotal < keptTotal)
+    if (betterFit || sameFitCheaper) {
       const dups = (kept.dups ?? []).concat([{ src: kept.src, total: kept.total }])
-      Object.assign(kept, l, { id: kept.id, dups })
+      Object.assign(kept, l, {
+        id: kept.id,
+        dups,
+        total: incomingTotal > 0 ? incomingTotal : l.total
+      })
     } else {
       kept.dups = (kept.dups ?? []).concat([{ src: l.src, total: l.total }])
       if (!publishedPhotoUrl(kept) && publishedPhotoUrl(l)) {

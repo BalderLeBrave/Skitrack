@@ -22,7 +22,7 @@ import {
   isCombinableHotel,
   type LodgingFilterCriteria
 } from './lodgingFilter'
-import { medianTotal, keptLodgingId, listingKey, listingKeyFromUrl, mergeDupes } from './lodgings'
+import { medianTotal, keptLodgingId, listingKey, listingKeyFromUrl, mergeDupes, occupancyMatchScore, stayTotalForGuests } from './lodgings'
 import {
   conclusiveSourceLabels,
   lodgingsFromOutcome,
@@ -774,6 +774,56 @@ check('mergeDupes : une seule carte Gîtes', fused.length === 1, fused.length)
 check('listingKey identique', listingKey(a) === listingKey(b))
 const fusedReadings = mergeProviderReadings([a], [b])
 check('relevé daté met à jour, ne duplique pas', fusedReadings.length === 1, fusedReadings.length)
+
+check(
+  'centrale : cid / datedeb / action ne dupliquent pas la fiche',
+  listingKeyFromUrl(
+    'https://reservation.les2alpes.com/vacanceole-residence-champame-studio-3-personnes-les-2-alpes.html?cid=5&action=result&datedeb=16%2F01%2F2027'
+  ) ===
+    listingKeyFromUrl(
+      'https://reservation.les2alpes.com/vacanceole-residence-champame-studio-3-personnes-les-2-alpes.html'
+    )
+)
+const occ4 = lodging({
+  id: 21,
+  name: 'Les Bergers n°12',
+  url: 'https://reservation.les2alpes.com/les-bergers-12.html?personnes=4',
+  src: 'Centrale',
+  pers: 4,
+  ch: 2,
+  total: 1400
+})
+const occ6 = lodging({
+  id: 22,
+  name: 'Les Bergers n°12',
+  url: 'https://reservation.les2alpes.com/les-bergers-12.html?personnes=6',
+  src: 'Centrale',
+  pers: 6,
+  ch: 2,
+  total: 1200
+})
+check('même fiche 4 pers et 6 pers : une clé', listingKey(occ4) === listingKey(occ6))
+const keep4 = mergeDupes([occ6, occ4], true, 4)
+check('recherche 4 pers : on garde le tarif 4, pas le 6 moins cher', keep4.length === 1 && keep4[0].pers === 4 && keep4[0].total === 1400, {
+  n: keep4.length,
+  pers: keep4[0]?.pers,
+  total: keep4[0]?.total
+})
+check('score occupancy : 4 pour 4 = 0', occupancyMatchScore(4, 4) === 0)
+check('score occupancy : 6 pour 4 > 0', occupancyMatchScore(6, 4) > 0)
+check(
+  'barème : total du groupe demandé',
+  stayTotalForGuests(
+    lodging({
+      total: 1200,
+      priceOptions: [
+        { guests: 4, total: 1400 },
+        { guests: 6, total: 1200 }
+      ]
+    }),
+    4
+  ) === 1400
+)
 
 console.log('\n14. Disponibilité garantie aux dates du séjour')
 check(

@@ -823,9 +823,10 @@ async function loadAllCards(
     pages++
     let fresh = 0
     for (const card of read) {
-      if (seenUrls.has(card.url)) continue
-      seenUrls.add(card.url)
-      cards.push(card)
+      const identity = cleanProductUrl(card.url)
+      if (seenUrls.has(identity)) continue
+      seenUrls.add(identity)
+      cards.push({ ...card, url: identity })
       fresh++
     }
     debugLog('station-ajax', 'cards-page', {

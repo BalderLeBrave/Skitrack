@@ -1,19 +1,19 @@
 /**
  * Garde-fous du walk SERP — une station, pas une page.
  *
- * Booking / Gîtes / Abritel / Airbnb : 15 pages (ou 15 scrolls).
- * Booking 15×25 = 375 bruts. On s'arrête plus tôt si la SERP annonce un total.
- * Budget 3 min : 15 pages lentes ne collent pas l'écran.
+ * Booking / Gîtes / Abritel / Airbnb : 30 pages (ou 30 scrolls).
+ * Booking 30×25 = 750 bruts. On s'arrête plus tôt si la SERP annonce un total.
+ * Budget 6 min : 30 pages lentes ne collent pas l'écran.
  */
 
 export const SEARCH_WALK = {
-  maxPages: 15,
-  gitesMaxPages: 15,
-  maxListings: 375,
+  maxPages: 30,
+  gitesMaxPages: 30,
+  maxListings: 750,
   bookingPageSize: 25,
-  pagesBudgetMs: 180_000,
-  cozyMaxScrolls: 15,
-  airbnbMaxScrolls: 15,
+  pagesBudgetMs: 360_000,
+  cozyMaxScrolls: 30,
+  airbnbMaxScrolls: 30,
   idleCycles: 2
 } as const
 
@@ -97,6 +97,11 @@ export function pageLooksLast(cardCount: number, pageSize: number): boolean {
 export function parseAdvertisedCount(text: string | null | undefined): number | null {
   if (!text) return null
   const t = text.replace(/\u00a0/g, ' ')
+  const sur = t.match(/sur\s+([\d][\d\s.,]{0,10})/i)
+  if (sur) {
+    const n = Number(sur[1].replace(/[\s.,]/g, ''))
+    if (Number.isFinite(n) && n > 0 && n <= 50_000) return n
+  }
   const m = t.match(
     /([\d][\d\s.,]{0,10})\s*(?:établissements?|logements?|hébergements?|résultats?|properties|results|annonces?)/i
   )
@@ -108,7 +113,7 @@ export function parseAdvertisedCount(text: string | null | undefined): number | 
 
 export const STOPPED_REASON_LABEL: Record<string, string> = {
   exhausted: 'fin de liste',
-  max_pages: 'plafond 15 pages',
+  max_pages: 'plafond 30 pages',
   max_listings: 'plafond logements',
   budget: 'temps max',
   empty_page: 'page vide',

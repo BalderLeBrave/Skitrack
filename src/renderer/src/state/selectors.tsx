@@ -691,7 +691,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const lodgOffres = lodgRaw
       .filter((lg) => hasPricedOffer(lg))
       .filter((lg) => !isDroppedListingSource(lg.src, lg.url) && !isDroppedListingSource(lg.srcConnector, lg.url))
-    const lodgAll = mergeDupesList(lodgOffres, state.mergeDupes)
+    const lodgAll = mergeDupesList(lodgOffres, state.mergeDupes, state.travelers)
     const dupMerged = lodgRaw.length - lodgAll.length
 
     /**

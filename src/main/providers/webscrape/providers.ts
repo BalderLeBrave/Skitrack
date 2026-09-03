@@ -402,7 +402,7 @@ export async function collectPages(
       stoppedReason = 'no_fresh'
       break
     }
-    if (advertised != null && all.length >= advertised) {
+    if (advertised != null && advertised > pageSize && all.length >= advertised) {
       stoppedReason = 'advertised'
       break
     }
@@ -440,27 +440,53 @@ export function paginationOf(cards: RawCard[]): PaginationReport | undefined {
  * `bookingSearchUrl` reconstruit une URL minimale (ss + dates). Le lien réel
  * porte dest_id / dest_type / session — les suivre évite de relancer une
  * recherche qui retombe sur les 25 premiers (live 2 Alpes : 1 page, F5).
+ *
+ * Repli : l'URL **courante** après la 1re page (Booking y a collé dest_id)
+ * + `offset`. Sans ça, reconstruire `ss=` ignore la session et rend la page 1.
  */
+export function bookingUrlWithOffset(currentHref: string, offset: number): string | null {
+  try {
+    const u = new URL(currentHref)
+    if (!/booking\.com$/i.test(u.hostname.replace(/^www\./, ''))) return null
+    if (offset > 0) u.searchParams.set('offset', String(offset))
+    else u.searchParams.delete('offset')
+    return u.toString()
+  } catch {
+    return null
+  }
+}
+
 export async function bookingNextPageUrl(
   page: Page,
   currentOffset: number
 ): Promise<string | null> {
   try {
-    return await page.evaluate((current) => {
-      let best: { href: string; offset: number } | null = null
-      for (const node of Array.from(document.querySelectorAll('a[href*="offset="]'))) {
-        const href = (node as HTMLAnchorElement).href
-        if (!href) continue
+    const fromLinks = await page.evaluate((current) => {
+      const labels = /suivante|next page|page suivante/i
+      const found: { href: string; offset: number }[] = []
+      const consider = (href: string, offHint?: number): void => {
+        if (!href) return
         try {
-          const off = Number(new URL(href, location.href).searchParams.get('offset') || 'NaN')
-          if (!Number.isFinite(off) || off <= current) continue
-          if (!best || off < best.offset) best = { href, offset: off }
+          const u = new URL(href, location.href)
+          const off = Number(u.searchParams.get('offset') || String(offHint ?? 'NaN'))
+          if (!Number.isFinite(off) || off <= current) return
+          found.push({ href: u.toString(), offset: off })
         } catch {
           /* href illisible */
         }
       }
-      return best?.href ?? null
+      for (const node of Array.from(document.querySelectorAll('a[href]'))) {
+        const a = node as HTMLAnchorElement
+        const label = `${a.getAttribute('aria-label') || ''} ${a.textContent || ''}`
+        if (a.href.includes('offset=')) consider(a.href)
+        else if (labels.test(label)) consider(a.href, current + 25)
+      }
+      found.sort((a, b) => a.offset - b.offset)
+      return found[0]?.href ?? null
     }, currentOffset)
+    if (fromLinks) return fromLinks
+    const here = page.url()
+    return bookingUrlWithOffset(here, currentOffset + 25)
   } catch {
     return null
   }
@@ -485,6 +511,8 @@ export async function collectBookingPages(
       if (offset > 0 && page) {
         const next = await bookingNextPageUrl(page, offset - BOOKING_PAGE_SIZE)
         if (next) return next
+        const fromSession = bookingUrlWithOffset(page.url(), offset)
+        if (fromSession) return fromSession
       }
       return bookingSearchUrl(params, offset)
     },

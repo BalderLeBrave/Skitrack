@@ -17,7 +17,7 @@
 
 import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
 import { normalizeBooking } from './booking/booking'
-import { collectBookingPages, collectPages, paginationOf } from './webscrape/providers'
+import { collectBookingPages, collectPages, paginationOf, bookingUrlWithOffset } from './webscrape/providers'
 import {
   cozycozySearchEmptyKind,
   gitesPhotoFromTileHtml,
@@ -486,19 +486,19 @@ async function main(): Promise<void> {
   )
   check('le plafond de pages tient', plafond.length === 5 && bridé.length === 125, plafond.length)
 
-  const quinze: string[] = []
-  const jusqua15 = await collectBookingPages(
+  const trente: string[] = []
+  const jusqua30 = await collectBookingPages(
     stay,
     async (url) => {
-      quinze.push(url)
+      trente.push(url)
       const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
       return cards(rang, 25)
     }
   )
   check(
-    'défaut SEARCH_WALK : 15 pages Booking, pas 16',
-    quinze.length === 15 && jusqua15.length === 375 && paginationOf(jusqua15)?.stoppedReason === 'max_pages',
-    { pages: quinze.length, n: jusqua15.length, stop: paginationOf(jusqua15)?.stoppedReason }
+    'défaut SEARCH_WALK : 30 pages Booking, pas 31',
+    trente.length === 30 && jusqua30.length === 750 && paginationOf(jusqua30)?.stoppedReason === 'max_pages',
+    { pages: trente.length, n: jusqua30.length, stop: paginationOf(jusqua30)?.stoppedReason }
   )
 
   const page1 = cards(0, 25)
@@ -514,11 +514,11 @@ async function main(): Promise<void> {
   check('T2 Booking offset 0 ∪ N > page 1', union.length === 50 && union.length > page1.length)
   check('T1 ids page 2 exclusifs dans l’union', new Set(union.map((c) => c.sourceId)).size === 50)
   check(
-    'SEARCH_WALK 15 pages Booking/Gîtes/Abritel/Airbnb',
-    SEARCH_WALK.maxPages === 15 &&
-      SEARCH_WALK.gitesMaxPages === 15 &&
-      SEARCH_WALK.cozyMaxScrolls === 15 &&
-      SEARCH_WALK.airbnbMaxScrolls === 15
+    'SEARCH_WALK 30 pages Booking/Gîtes/Abritel/Airbnb',
+    SEARCH_WALK.maxPages === 30 &&
+      SEARCH_WALK.gitesMaxPages === 30 &&
+      SEARCH_WALK.cozyMaxScrolls === 30 &&
+      SEARCH_WALK.airbnbMaxScrolls === 30
   )
   check('T5 chambre privée drop', isPrivateOrSharedListing('Private room') === true)
   check('T5 chambre d’hôtes drop', isPrivateOrSharedListing("Chambre d'hôtes") === true)
@@ -526,6 +526,37 @@ async function main(): Promise<void> {
   check('T5 appartement entire keep', isPrivateOrSharedListing('Appartement') === false)
   check('annoncé 87 établissements', parseAdvertisedCount('Les 2 Alpes : 87 établissements trouvés') === 87)
   check('annoncé ignore 3 chambres', parseAdvertisedCount('Appartement · 3 chambres') === null)
+  check('annoncé « 1–25 sur 487 » = 487', parseAdvertisedCount('1-25 sur 487 logements') === 487)
+
+  const session = bookingUrlWithOffset(
+    'https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes&dest_id=-145000&dest_type=city&offset=0',
+    25
+  )
+  check(
+    'page 2 reprend dest_id de la session',
+    Boolean(session && session.includes('offset=25') && session.includes('dest_id=-145000')),
+    session
+  )
+
+  const pageSized: RawCard[] = []
+  for (let i = 0; i < 50; i++) pageSized.push({ sourceId: `p${i}`, title: `P${i}`, url: `https://b.test/${i}` })
+  pageSized[0] = { ...pageSized[0], advertisedTotal: 25 }
+  let sizedPages = 0
+  const sizedWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      sizedPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return pageSized.slice(rang, rang + 25)
+    },
+    3
+  )
+  check(
+    'annoncé = taille de page (25) n’arrête pas le walk',
+    sizedWalk.length === 50 && sizedPages >= 2,
+    { n: sizedWalk.length, pages: sizedPages, stop: paginationOf(sizedWalk)?.stoppedReason }
+  )
 
   const announced: RawCard[] = []
   for (let i = 0; i < 40; i++) announced.push({ sourceId: `a${i}`, title: `A${i}`, url: `https://b.test/${i}` })

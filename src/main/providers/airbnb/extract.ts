@@ -7,6 +7,8 @@
  * parseur, testable sans navigateur.
  */
 
+import { isPrivateOrSharedListing } from '@shared/searchWalk'
+
 export interface AirbnbClipListing {
   id: string
   name: string
@@ -103,7 +105,48 @@ export function occupancyFromStaySearchResult(record: Record<string, unknown>): 
     }
   }
   walk(record, 0)
+  if (guests == null || bedrooms == null) {
+    const fromText = occupancyFromPublishedText(
+      typeof record.title === 'string' ? record.title : undefined,
+      typeof record.subtitle === 'string' ? record.subtitle : undefined
+    )
+    if (guests == null) guests = fromText.guests
+    if (bedrooms == null) bedrooms = fromText.bedrooms
+  }
   return { guests, bedrooms, line }
+}
+
+/**
+ * Capacité / chambres écrites sur la tuile (« 8p », « 10 personnes », « 4 CH »).
+ * Pas les lits, pas les m².
+ */
+export function occupancyFromPublishedText(
+  ...texts: (string | undefined | null)[]
+): { guests?: number; bedrooms?: number } {
+  const t = texts.filter((s): s is string => Boolean(s && s.trim())).join(' · ')
+  if (!t) return {}
+  let guests: number | undefined
+  let bedrooms: number | undefined
+  const pers = t.match(/(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:personnes?|pers\.?|voyageurs?|pax)\b/i)
+  if (pers) {
+    const a = Number(pers[1])
+    const b = pers[2] ? Number(pers[2]) : a
+    const n = Math.max(a, b)
+    if (Number.isFinite(n) && n > 0 && n <= 50) guests = n
+  }
+  if (guests == null) {
+    const p = t.match(/\b(\d+)\s*p\b/i)
+    if (p) {
+      const n = Number(p[1])
+      if (Number.isFinite(n) && n > 0 && n <= 50) guests = n
+    }
+  }
+  const ch = t.match(/(\d+)\s*(?:chambres?|ch\b)/i)
+  if (ch) {
+    const n = Number(ch[1])
+    if (Number.isFinite(n) && n > 0 && n <= 50) bedrooms = n
+  }
+  return { guests, bedrooms }
 }
 
 /**
@@ -144,22 +187,26 @@ export function extractListingsFromDeferredState(
       const pictures = (record.contextualPictures ?? []) as Array<Record<string, unknown>>
       const firstPicture = pictures.length ? (pictures[0].picture as string | undefined) : undefined
 
-      const name =
-        (typeof record.subtitle === 'string' && record.subtitle.trim()) ||
-        (typeof record.title === 'string' && record.title.trim()) ||
-        ''
+      const title = typeof record.title === 'string' ? record.title.trim() : ''
+      const sub = typeof record.subtitle === 'string' ? record.subtitle.trim() : ''
+      const name = title || sub
+      if (isPrivateOrSharedListing(sub) || isPrivateOrSharedListing(title)) return
 
       if (numericId && name) {
         const occ = occupancyFromStaySearchResult(record)
-        const subtitleParts = [
-          typeof record.subtitle === 'string' ? record.subtitle : undefined,
-          occ.line
-        ].filter((s): s is string => Boolean(s && s.trim()))
+        const subtitleParts = [sub || undefined, occ.line].filter(
+          (s): s is string => Boolean(s && s.trim())
+        )
         const subtitle = [...new Set(subtitleParts)].join(' · ') || undefined
+        const query = new URLSearchParams()
+        if (meta?.checkIn) query.set('check_in', meta.checkIn)
+        if (meta?.checkOut) query.set('check_out', meta.checkOut)
+        const qs = query.toString()
         results.push({
           id: numericId,
           name,
           subtitle,
+          url: `https://www.airbnb.fr/rooms/${encodeURIComponent(numericId)}${qs ? `?${qs}` : ''}`,
           priceLabel: priceLabelOf(record.structuredDisplayPrice),
           lat: typeof coordinate.latitude === 'number' ? coordinate.latitude : undefined,
           lon: typeof coordinate.longitude === 'number' ? coordinate.longitude : undefined,

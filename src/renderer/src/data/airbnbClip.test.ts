@@ -50,6 +50,10 @@ check(
   'sans ligne de taille → undefined, pas 0',
   tailleAnnoncee({ name: 'Chalet aux 2 Alpes', subtitle: 'Les 2 Alpes' }).chambres === undefined
 )
+check(
+  '8p dans le nom → 8 personnes',
+  tailleAnnoncee({ name: 'Grand appartement Ski aux pieds 8p 63m2', subtitle: 'Les 2 Alpes' }).personnes === 8
+)
 
 // --- Note ------------------------------------------------------------------
 check(
@@ -87,6 +91,17 @@ check('URL d’annonce reconstruite depuis l’id', result.listings[0].url?.incl
 check('image conservée', result.listings[0].image === 'https://x/p.jpg')
 check('note conservée sur la 2e', result.listings[1].note === '4,98')
 check('annonce sans prix → total 0 (carte redirection)', result.listings[2].total === 0)
+
+const hotelClip = parseAirbnbClipboard(
+  JSON.stringify({
+    source: 'airbnb',
+    listings: [
+      { id: '1', name: 'Base Camp', subtitle: 'Hôtel · Les Deux Alpes', priceLabel: '3901 € au total' },
+      { id: '2', name: 'Appart 8p', subtitle: 'Appartement entier · Les 2 Alpes', priceLabel: '2694 € au total' }
+    ]
+  })
+)
+check('hôtel tuile écarté du collage', hotelClip.listings.length === 1 && hotelClip.listings[0].name === 'Appart 8p')
 check('dates et compte remontés dans meta', result.meta.checkIn === '2027-02-06' && result.meta.count === 3)
 
 const sized = parseAirbnbClipboard(

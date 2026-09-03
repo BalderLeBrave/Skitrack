@@ -158,7 +158,7 @@ export function airbnbRoomUrl(
 export function tailleAnnoncee(item: {
   name?: unknown
   subtitle?: unknown
-}): { chambres?: number; lits?: number } {
+}): { chambres?: number; lits?: number; personnes?: number } {
   const morceaux = [item.subtitle, item.name]
     .filter((v): v is string => typeof v === 'string' && v.length > 0)
     .join(' · ')
@@ -169,11 +169,14 @@ export function tailleAnnoncee(item: {
     const n = Number(m[1])
     return Number.isFinite(n) && n > 0 ? n : undefined
   }
+  const pers =
+    lire(/(\d+)\s*(?:[-–]\s*\d+)?\s*(?:personnes?|pers\.?|voyageurs?|pax)\b/i.exec(morceaux)) ??
+    lire(/\b(\d+)\s*p\b/i.exec(morceaux))
   return {
-    // « 2 chambres », « 1 chambre ». « Studio » n'est pas traduit en 0 chambre :
-    // c'est une convention d'annonce, pas un décompte publié.
-    chambres: lire(/(\d+)\s*chambres?\b/i.exec(morceaux)),
-    lits: lire(/(\d+)\s*lits?\b/i.exec(morceaux))
+    chambres:
+      lire(/(\d+)\s*chambres?\b/i.exec(morceaux)) ?? lire(/(\d+)\s*ch\b/i.exec(morceaux)),
+    lits: lire(/(\d+)\s*lits?\b/i.exec(morceaux)),
+    personnes: pers
   }
 }
 
@@ -220,6 +223,7 @@ export function parseAirbnbClipboard(text: string): AirbnbParseResult {
     if (seen.has(id)) return
     seen.add(id)
     if (isPrivateOrSharedListing(item.subtitle)) return
+    if (isPrivateOrSharedListing(item.name)) return
 
     const total = parseAirbnbPrice(item.priceLabel)
     const rating = parseAirbnbRating(item.ratingLabel)
@@ -241,7 +245,9 @@ export function parseAirbnbClipboard(text: string): AirbnbParseResult {
       // `tailleAnnoncee` : Airbnb les écrit, l'application les jetait.
       rooms: (typeof item.bedrooms === 'number' && item.bedrooms > 0 ? item.bedrooms : undefined) ?? taille.chambres,
       beds: taille.lits,
-      capacity: typeof item.guests === 'number' && item.guests > 0 ? item.guests : undefined,
+      capacity:
+        (typeof item.guests === 'number' && item.guests > 0 ? item.guests : undefined) ??
+        taille.personnes,
       // Coordonnées lues dans le bloc de données de la page. Airbnb ne publie
       // qu'une position approximative avant réservation : on le déclare, pour
       // que le calcul d'accès arrondisse au lieu de feindre la précision.

@@ -1,19 +1,18 @@
 /**
  * Garde-fous du walk SERP — une station, pas une page.
  *
- * Booking / Gîtes / Abritel / Airbnb : 30 pages (ou 30 scrolls).
- * Booking 30×25 = 750 bruts. On s'arrête plus tôt si la SERP annonce un total.
- * Budget 6 min : 30 pages lentes ne collent pas l'écran.
+ * Booking / Gîtes / Abritel / Airbnb : 15 pages (ou 15 scrolls).
+ * Booking 15×25 = 375 bruts. On s'arrête plus tôt si la SERP annonce un total.
  */
 
 export const SEARCH_WALK = {
-  maxPages: 30,
-  gitesMaxPages: 30,
-  maxListings: 750,
+  maxPages: 15,
+  gitesMaxPages: 15,
+  maxListings: 375,
   bookingPageSize: 25,
   pagesBudgetMs: 360_000,
-  cozyMaxScrolls: 30,
-  airbnbMaxScrolls: 30,
+  cozyMaxScrolls: 15,
+  airbnbMaxScrolls: 15,
   idleCycles: 2
 } as const
 
@@ -31,6 +30,8 @@ export function isPrivateOrSharedListing(propertyType?: string | null): boolean 
   if (/chambre d[' ]?hotes|bed[- ]and[- ]breakfast/.test(t)) return true
   if (/private[ _-]?room|chambre privee|shared[ _-]?room|chambre partage/.test(t)) return true
   if (/hotel_room|chambre d[' ]?hotel/.test(t)) return true
+  // Tuile Airbnb « Hôtel · Les 2 Alpes » : pas un logement entier.
+  if (/^h[oô]tels?\b/.test(t) && !/appartement|chalet|maison|logement entier/.test(t)) return true
   return false
 }
 
@@ -77,6 +78,9 @@ export function forkOf(row: Omit<StationRunSource, 'fork'>): StationRunFork | nu
   if (row.fetched === 0) return 'F1'
   if (row.parsed === 0) return 'F3'
   if (row.shown === 0) return 'F4'
+  // Centrale Ingénie : une SERP AJAX, pas des pages Booking. 98 logements /
+  // 1 page / exhausted n'est pas F5.
+  if (row.provider === 'station-web' && row.fetched > 0) return null
   if (row.pages_fetched <= 1) return 'F5'
   return null
 }
@@ -117,7 +121,7 @@ export function parseAdvertisedCount(text: string | null | undefined): number | 
 
 export const STOPPED_REASON_LABEL: Record<string, string> = {
   exhausted: 'fin de liste',
-  max_pages: 'plafond 30 pages',
+  max_pages: 'plafond 15 pages',
   max_listings: 'plafond logements',
   budget: 'temps max',
   empty_page: 'page vide',

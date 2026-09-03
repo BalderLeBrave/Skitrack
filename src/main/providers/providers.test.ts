@@ -49,6 +49,7 @@ import { classifyProviderError, paginationOfList, stampPagination } from '@share
 import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing, pageLooksLast, parseAdvertisedCount } from '@shared/searchWalk'
 import {
   extractListingsFromDeferredState,
+  occupancyFromPublishedText,
   occupancyFromStaySearchResult
 } from './airbnb/extract'
 import { buildEngine } from './index'
@@ -500,8 +501,8 @@ async function main(): Promise<void> {
     }
   )
   check(
-    'défaut SEARCH_WALK : 30 pages Booking, pas 31',
-    trente.length === 30 && jusqua30.length === 750 && paginationOf(jusqua30)?.stoppedReason === 'max_pages',
+    'défaut SEARCH_WALK : 15 pages Booking, pas 16',
+    trente.length === 15 && jusqua30.length === 375 && paginationOf(jusqua30)?.stoppedReason === 'max_pages',
     { pages: trente.length, n: jusqua30.length, stop: paginationOf(jusqua30)?.stoppedReason }
   )
 
@@ -518,12 +519,13 @@ async function main(): Promise<void> {
   check('T2 Booking offset 0 ∪ N > page 1', union.length === 50 && union.length > page1.length)
   check('T1 ids page 2 exclusifs dans l’union', new Set(union.map((c) => c.sourceId)).size === 50)
   check(
-    'SEARCH_WALK 30 pages Booking/Gîtes/Abritel/Airbnb',
-    SEARCH_WALK.maxPages === 30 &&
-      SEARCH_WALK.gitesMaxPages === 30 &&
-      SEARCH_WALK.cozyMaxScrolls === 30 &&
-      SEARCH_WALK.airbnbMaxScrolls === 30
+    'SEARCH_WALK 15 pages Booking/Gîtes/Abritel/Airbnb',
+    SEARCH_WALK.maxPages === 15 &&
+      SEARCH_WALK.gitesMaxPages === 15 &&
+      SEARCH_WALK.cozyMaxScrolls === 15 &&
+      SEARCH_WALK.airbnbMaxScrolls === 15
   )
+  check('T5 hôtel tuile Airbnb drop', isPrivateOrSharedListing('Hôtel · Les Deux Alpes') === true)
   check('T5 chambre privée drop', isPrivateOrSharedListing('Private room') === true)
   check('T5 chambre d’hôtes drop', isPrivateOrSharedListing("Chambre d'hôtes") === true)
   check('T5 type absent conservé (pas 0 premature)', isPrivateOrSharedListing(undefined) === false)
@@ -600,6 +602,26 @@ async function main(): Promise<void> {
     'page 1 incomplète (15) + annoncé 80 → on continue',
     shortWalk.length > 15 && shortPages >= 2,
     { n: shortWalk.length, pages: shortPages, stop: paginationOf(shortWalk)?.stoppedReason }
+  )
+
+  const noAdv: RawCard[] = []
+  for (let i = 0; i < 41; i++) noAdv.push({ sourceId: `n${i}`, title: `N${i}`, url: `https://b.test/n${i}` })
+  let noAdvPages = 0
+  const noAdvWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      noAdvPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      if (rang === 0) return noAdv.slice(0, 16)
+      return noAdv.slice(rang, rang + 25)
+    },
+    5
+  )
+  check(
+    'page 1 = 16 cartes sans annoncé → on tente page 2',
+    noAdvWalk.length > 16 && noAdvPages >= 2,
+    { n: noAdvWalk.length, pages: noAdvPages, stop: paginationOf(noAdvWalk)?.stoppedReason }
   )
 
   let blockedPages = 0
@@ -880,6 +902,18 @@ async function main(): Promise<void> {
       pages_fetched: 0,
       reason_code: 'blocked'
     }) === 'F2'
+  )
+  check(
+    'centrale 2 Alpes 1 SERP / 98 offres : pas F5',
+    forkOf({
+      provider: 'station-web',
+      fetched: 98,
+      parsed: 98,
+      shown: 98,
+      pages_fetched: 1,
+      stopped_reason: 'exhausted',
+      reason_code: 'ok'
+    }) === null
   )
   check(
     'Ceto hors station → delegated, pas F1',
@@ -1336,6 +1370,41 @@ async function main(): Promise<void> {
   check('ligne « 2 chambres » → bedrooms 2', occ.bedrooms === 2, occ)
   const clip = extractListingsFromDeferredState({ data: { results: [stayNode] } })
   check('StaySearchResult clip porte guests+bedrooms', clip.listings[0]?.guests === 4 && clip.listings[0]?.bedrooms === 2)
+  check(
+    'StaySearchResult clip porte URL rooms/id',
+    clip.listings[0]?.url?.includes('/rooms/40088811') === true,
+    clip.listings[0]?.url
+  )
+  check(
+    'nom = title, pas le sous-titre lieu',
+    clip.listings[0]?.name === 'Spacieux appartement cœur de station avec garage'
+  )
+  check(
+    '8p dans le titre → 8 voyageurs',
+    occupancyFromPublishedText('Grand appartement Ski aux pieds 8p 63m2').guests === 8
+  )
+  check(
+    '10 personnes dans le titre → 10',
+    occupancyFromPublishedText('Appartement 10 personnes, 4 chambres').guests === 10 &&
+      occupancyFromPublishedText('Appartement 10 personnes, 4 chambres').bedrooms === 4
+  )
+  check(
+    'hôtel tuile écartée du clip',
+    extractListingsFromDeferredState({
+      data: {
+        results: [
+          {
+            __typename: 'StaySearchResult',
+            demandStayListing: {
+              id: Buffer.from('DemandStayListing:9').toString('base64')
+            },
+            subtitle: 'Hôtel · Les Deux Alpes',
+            title: 'Base Camp Lodge'
+          }
+        ]
+      }
+    }).listings.length === 0
+  )
   check(
     'sans occupancy : null, pas 0 inventé',
     occupancyFromStaySearchResult({ __typename: 'StaySearchResult', subtitle: 'Les 2 Alpes' }).guests ===

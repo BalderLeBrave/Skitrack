@@ -412,11 +412,14 @@ export async function collectPages(
       stoppedReason = 'advertised'
       break
     }
-    // Page courte = fin, SAUF si la SERP a annoncé un catalogue plus grand
-    // que ce qu'on a (extract incomplet, live Booking 15 cartes / 487).
+    // Page courte = fin, SAUF :
+    // - la SERP a annoncé plus que ce qu'on a (extract incomplet) ;
+    // - c'est la 1re page et elle n'est pas vide (live Booking 16 cartes,
+    //   advertised absent → on tentait pas l'offset=25).
     if (pageLooksLast(cards.length, pageSize)) {
       const catalogBigger = advertised != null && advertised > all.length
-      if (!catalogBigger) {
+      const firstPageHasCards = index === 0 && cards.length > 0 && (advertised == null || advertised > all.length)
+      if (!catalogBigger && !firstPageHasCards) {
         stoppedReason = 'exhausted'
         break
       }

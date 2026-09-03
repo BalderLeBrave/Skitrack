@@ -284,7 +284,8 @@ function makeProvider(
   buildUrl: (p: SearchParams, offset?: number) => string,
   extract: () => RawCard[],
   pageStep = 0,
-  opts?: ScrapeAttemptOptions
+  opts?: ScrapeAttemptOptions,
+  maxPages: number = SEARCH_WALK.maxPages
 ): AccommodationProvider {
   return {
     name,
@@ -301,7 +302,8 @@ function makeProvider(
                 ? await collectPages(
                     (offset) => buildUrl(params, offset),
                     pageStep,
-                    (url) => loadAndExtract(page, url, timeoutMs, extract)
+                    (url) => loadAndExtract(page, url, timeoutMs, extract),
+                    maxPages
                   )
                 : await loadAndExtract(page, buildUrl(params), timeoutMs, extract)
             if (collected.length === 0) blocked = await emptyReason(page, name)
@@ -352,9 +354,9 @@ export async function collectPages(
   urlFor: (offset: number) => string | Promise<string>,
   pageSize: number,
   fetchPage: (url: string) => Promise<RawCard[]>,
-  maxPages = SEARCH_WALK.maxPages,
-  budgetMs = SEARCH_WALK.pagesBudgetMs,
-  maxListings = SEARCH_WALK.maxListings
+  maxPages: number = SEARCH_WALK.maxPages,
+  budgetMs: number = SEARCH_WALK.pagesBudgetMs,
+  maxListings: number = SEARCH_WALK.maxListings
 ): Promise<RawCard[]> {
   const all: RawCard[] & { report?: PaginationReport } = []
   const seen = new Set<string>()
@@ -465,8 +467,8 @@ export async function bookingNextPageUrl(
 export async function collectBookingPages(
   params: SearchParams,
   fetchPage: (url: string) => Promise<RawCard[]>,
-  maxPages = SEARCH_WALK.maxPages,
-  budgetMs = SEARCH_WALK.pagesBudgetMs,
+  maxPages: number = SEARCH_WALK.maxPages,
+  budgetMs: number = SEARCH_WALK.pagesBudgetMs,
   page?: Page
 ): Promise<RawCard[]> {
   return collectPages(
@@ -548,7 +550,14 @@ export function createExpediaWebProvider(opts?: ScrapeAttemptOptions): Accommoda
 }
 
 export function createGitesWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
-  const base = makeProvider('gites-web', gitesSearchUrl, extractGitesCards, GITES_PAGE_STEP, opts)
+  const base = makeProvider(
+    'gites-web',
+    gitesSearchUrl,
+    extractGitesCards,
+    GITES_PAGE_STEP,
+    opts,
+    SEARCH_WALK.gitesMaxPages
+  )
   return {
     name: 'gites-web',
     async search(params: SearchParams): Promise<Accommodation[]> {

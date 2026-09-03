@@ -486,19 +486,19 @@ async function main(): Promise<void> {
   )
   check('le plafond de pages tient', plafond.length === 5 && bridé.length === 125, plafond.length)
 
-  const trente: string[] = []
-  const jusqua30 = await collectBookingPages(
+  const vingtCinq: string[] = []
+  const jusqua25 = await collectBookingPages(
     stay,
     async (url) => {
-      trente.push(url)
+      vingtCinq.push(url)
       const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
       return cards(rang, 25)
     }
   )
   check(
-    'défaut SEARCH_WALK : 30 pages Booking, pas 31',
-    trente.length === 30 && jusqua30.length === 750 && paginationOf(jusqua30)?.stoppedReason === 'max_pages',
-    { pages: trente.length, n: jusqua30.length, stop: paginationOf(jusqua30)?.stoppedReason }
+    'défaut SEARCH_WALK : 25 pages Booking, pas 26',
+    vingtCinq.length === 25 && jusqua25.length === 625 && paginationOf(jusqua25)?.stoppedReason === 'max_pages',
+    { pages: vingtCinq.length, n: jusqua25.length, stop: paginationOf(jusqua25)?.stoppedReason }
   )
 
   const page1 = cards(0, 25)
@@ -514,11 +514,11 @@ async function main(): Promise<void> {
   check('T2 Booking offset 0 ∪ N > page 1', union.length === 50 && union.length > page1.length)
   check('T1 ids page 2 exclusifs dans l’union', new Set(union.map((c) => c.sourceId)).size === 50)
   check(
-    'SEARCH_WALK Booking/Gîtes 30 pages, Abritel/Airbnb 30 scrolls',
-    SEARCH_WALK.maxPages === 30 &&
-      SEARCH_WALK.cozyMaxScrolls === 30 &&
-      SEARCH_WALK.airbnbMaxScrolls === 30 &&
-      SEARCH_WALK.maxListings === 750
+    'SEARCH_WALK Booking/Abritel/Airbnb 25, Gîtes 30',
+    SEARCH_WALK.maxPages === 25 &&
+      SEARCH_WALK.gitesMaxPages === 30 &&
+      SEARCH_WALK.cozyMaxScrolls === 25 &&
+      SEARCH_WALK.airbnbMaxScrolls === 25
   )
   check('T5 chambre privée drop', isPrivateOrSharedListing('Private room') === true)
   check('T5 chambre d’hôtes drop', isPrivateOrSharedListing("Chambre d'hôtes") === true)

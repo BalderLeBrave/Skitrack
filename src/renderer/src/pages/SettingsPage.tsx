@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/app/router'
 import type { AppInfo, SecretKey, SecretPresence } from '@shared/ipc-contract'
 import { ExternalIcon } from '@/components/Icons'
 import { api, isClientReady } from '@/api/client'
@@ -129,6 +131,7 @@ const ADMIN_SUBTABS: [AppState['admSub'], TranslationKey][] = [
 
 export function SettingsPage(): JSX.Element {
   const { fmt } = useFormat()
+  const navigate = useNavigate()
   const { state, patch, ref, refOrigin, domains, domainSource, domainWarning } = useApp()
   const { origins } = useDerived()
   const { t, lang, setLang } = useI18n()
@@ -754,7 +757,7 @@ export function SettingsPage(): JSX.Element {
               </div>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                <button type="button" className="btn" onClick={() => patch({ tab: 'import-referentiel' })}>
+                <button type="button" className="btn" onClick={() => navigate(PATHS.referential)}>
                   {t('referential_manage')}
                 </button>
               </div>

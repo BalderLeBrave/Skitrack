@@ -6,8 +6,10 @@
  */
 
 import { useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { LogoIcon } from './Icons'
-import { StayDatesField } from './StayDatesField'
+import { PATHS } from '@/app/router'
+import { SearchStayBar } from '@/app/ui/SearchStayBar'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
@@ -51,6 +53,7 @@ function fmtShort(iso: string, lang: string): string {
 export function Onboarding(): JSX.Element {
   const { t, lang } = useI18n()
   const { state, patch, domains } = useApp()
+  const navigate = useNavigate()
   const { origins, nights } = useDerived()
   const ref = useRef<HTMLDivElement>(null)
   useFocusTrap(ref)
@@ -76,10 +79,10 @@ export function Onboarding(): JSX.Element {
         onboard: false,
         selectedId: matched.id,
         lodgingDomainId: matched.id,
-        tab: 'logements',
         lodgPhase: 'criteria',
         lodgSearchMsg: null
       })
+      navigate(PATHS.lodgings)
       return
     }
     patch({ onboard: false })
@@ -111,7 +114,7 @@ export function Onboarding(): JSX.Element {
 
         <div>
           <p className="sheet__label">{t('your_stay')}</p>
-          <StayDatesField />
+          <SearchStayBar compact />
           <p className="filters__help">{nights} nuit(s)</p>
         </div>
 

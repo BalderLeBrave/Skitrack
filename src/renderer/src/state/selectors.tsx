@@ -30,7 +30,7 @@ import { placeIndex, squash } from '@/data/places'
 import { skiAreaIndex } from '@/data/skiAreas'
 import type { Week } from '@/data/snow'
 import { WEEKS, weekByArrival, weekFactorFor } from '@/data/snow'
-import type { SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
+import type { Person, SejourCost, SejourInputs, Split, TripCost } from '@/domain/costs'
 import { activeOrigins, adultsCount, esfRate, kidsCount, lessonIndex, sejourCost, splitRows, tripCost } from '@/domain/costs'
 import { dur as durFmt, nightsBetween, slug } from '@/domain/format'
 import type { Origin, Travel } from '@/domain/travel'
@@ -165,13 +165,21 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
 
   const value = useMemo<Derived>(() => {
     const origins = originsOf(state.places)
-    const hh = activeOrigins(state.people, origins)
+    // Le groupe tarifé suit toujours le compteur « voyageurs » : la liste
+    // nominative n'est utilisée que si elle a la même taille.
+    const costPeople: Person[] =
+      state.people.length === state.travelers
+        ? state.people
+        : Array.from({ length: Math.max(1, state.travelers) }, (_, i) =>
+            state.people[i] ?? { id: -(i + 1), first: '', last: '', age: i < state.travelers - state.children ? 35 : 10, home: state.people[0]?.home ?? 0 }
+          )
+    const hh = activeOrigins(costPeople, origins)
     const hasOrigin = hh.some((o) => o.lat != null && o.lon != null)
     const nights = nightsBetween(state.arrDate, state.depDate)
     const week = weekByArrival(state.arrDate)
     const weekFactor = week ? week.f : 0
-    const adults = state.people.length ? adultsCount(state.people) : Math.max(1, state.travelers - state.children)
-    const kids = state.people.length ? kidsCount(state.people) : state.children
+    const adults = adultsCount(costPeople)
+    const kids = kidsCount(costPeople)
 
     const forfaitIndex = forfaitIndexBySlug(ref, slug)
     const areaForfaitIndex = forfaitIndexByArea(ref, squash)
@@ -384,7 +392,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     }
 
     const sejourInputs = (d: Domain): SejourInputs => ({
-      people: state.people,
+      people: costPeople,
       forfait: forfaitOf(d),
       trip: tripOf(d),
       optRental: state.optRental,

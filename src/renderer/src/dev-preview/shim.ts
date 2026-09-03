@@ -85,11 +85,11 @@ const skitrack = {
 // Prévisualisation : ouvrir directement un écran via le hash de l'URL
 // (#recherche, #logements, #offres…), sans dépendre d'un clic. `appState` lit
 // `window.__DEMO_OVERRIDES__` au premier rendu. Uniquement pour la maquette.
-const hash = location.hash.replace('#', '')
+const hash = location.hash.replace(/^#\/?/, '')
 if (hash) {
   const [scr, extra] = hash.split('/')
-  const overrides: Record<string, unknown> = { tab: scr }
-  if (scr === 'logements') {
+  const overrides: Record<string, unknown> = {}
+  if (scr === 'logements' || scr === 'reservation') {
     overrides.lodgingDomainId = 1
     overrides.lodgPhase = 'results'
     // Trois annonces factices, tarifées pour ces dates exactement : sans elles

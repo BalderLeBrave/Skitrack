@@ -39,14 +39,14 @@ export function useWeather(): WeatherContextValue {
 
 export function WeatherProvider({ children }: { children: ReactNode }): JSX.Element {
   const { state, domains } = useApp()
-  const { filtered } = useDerived()
+  const { filtered, lodgDomain } = useDerived()
   const [map, setMap] = useState<WeatherMap>({})
   const [loading, setLoading] = useState(false)
   const inFlight = useRef(false)
 
   const wanted = useMemo(() => {
     const list = filtered.slice(0, VISIBLE_DOMAINS)
-    const extra = [state.domFicheId, state.lodgingDomainId, state.selectedId]
+    const extra = [state.domFicheId, state.lodgingDomainId, lodgDomain?.id ?? null, state.selectedId]
       .filter((id): id is number => id != null)
       .map((id) => domains.find((d) => d.id === id))
       .filter((d): d is NonNullable<typeof d> => d != null)
@@ -54,15 +54,24 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
     return [...list, ...extra.filter((d) => !seen.has(d.id))]
     // La clé de dépendance est la liste d'identifiants, pas les objets : le
     // tableau `filtered` est recréé à chaque dérivation.
-  }, [filtered, domains, state.domFicheId, state.lodgingDomainId, state.selectedId])
+  }, [filtered, domains, state.domFicheId, state.lodgingDomainId, lodgDomain?.id, state.selectedId])
 
   const key = useMemo(() => wanted.map((d) => d.id).join(','), [wanted])
   // Incrémenté par `refresh` : c'est ce qui relance l'effet sans que la liste
   // des domaines voulus ait changé.
   const [round, setRound] = useState(0)
+  // Une liste arrivée pendant une requête en cours (station ouverte depuis la
+  // fiche, logements…) est rejouée à la fin de celle-ci, sinon elle serait
+  // perdue et la station resterait sans relevé.
+  const [tick, setTick] = useState(0)
+  const pending = useRef(false)
 
   useEffect(() => {
-    if (wanted.length === 0 || inFlight.current) return
+    if (wanted.length === 0) return
+    if (inFlight.current) {
+      pending.current = true
+      return
+    }
     let cancelled = false
     inFlight.current = true
     setLoading(true)
@@ -70,11 +79,16 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
     // cache est ignoré pour ce lot, sans quoi le clic ne ferait rien de visible.
     void fetchWeather(wanted, map, round > 0)
       .then((next) => {
-        if (!cancelled) setMap((prev) => ({ ...prev, ...next }))
+        // Un relevé arrivé après un changement de liste reste bon : on le garde.
+        setMap((prev) => ({ ...prev, ...next }))
       })
       .finally(() => {
         inFlight.current = false
         if (!cancelled) setLoading(false)
+        if (pending.current || cancelled) {
+          pending.current = false
+          setTick((n) => n + 1)
+        }
       })
     return () => {
       cancelled = true
@@ -82,7 +96,7 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
     // `map` est volontairement hors dépendances : il est relu à chaque appel et
     // l'inclure relancerait la requête à chaque réponse.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, round])
+  }, [key, round, tick])
 
   const fetchedAt = useMemo(() => {
     const stamps = Object.values(map).map((w) => w.fetchedAt)

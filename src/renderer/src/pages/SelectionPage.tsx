@@ -19,6 +19,8 @@
  */
 
 import { SelectionNotes } from '@/components/SelectionNotes'
+import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/app/router'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import type { Lodging } from '@/data/lodgings'
 import { srcOf } from '@/data/lodgings'
@@ -133,7 +135,8 @@ function LodgingTile({ lg, domain }: { lg: Lodging; domain: Domain | null }): JS
 }
 
 export function SelectionPage(): JSX.Element {
-  const { state, patch, domains } = useApp()
+  const { state, domains } = useApp()
+  const navigate = useNavigate()
   const derived = useDerived()
   const { eur, fmtStay } = useFormat()
   const { t } = useI18n()
@@ -257,11 +260,11 @@ export function SelectionPage(): JSX.Element {
               type="button"
               className="btn btn--primary"
               disabled={picked.length < 2}
-              onClick={() => patch({ tab: 'combinaisons' })}
+              onClick={() => navigate(PATHS.compare)}
             >
               {t('sel_go_compare')}
             </button>
-            <button type="button" className="btn" onClick={() => patch({ tab: 'recherche' })}>
+            <button type="button" className="btn" data-testid="sel-go-search" onClick={() => navigate(PATHS.compare)}>
               {t('sel_go_search')}
             </button>
           </div>

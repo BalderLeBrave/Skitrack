@@ -1,4 +1,6 @@
 import { CloseIcon, TrendIcon } from '@/components/Icons'
+import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/app/router'
 import { srcOf } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
@@ -65,6 +67,7 @@ export function TrackingPage(): JSX.Element {
   const { eur, fmt } = useFormat()
   const { t } = useI18n()
   const { state, patch, history } = useApp()
+  const navigate = useNavigate()
 
   const selected = state.tracked[state.trackedSel]
   const { values, real } = selected ? seriesOf(selected, history) : { values: [], real: false }
@@ -110,7 +113,8 @@ export function TrackingPage(): JSX.Element {
               type="button"
               className="btn btn--primary btn--round"
               style={{ marginTop: 6 }}
-              onClick={() => patch({ tab: 'recherche' })}
+              data-testid="track-go-search"
+              onClick={() => navigate(PATHS.compare)}
             >
               Chercher un domaine
             </button>

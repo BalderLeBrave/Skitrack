@@ -22,21 +22,19 @@ import '@fontsource/ibm-plex-mono/600.css'
 // jamais — deux poids suffisent, sans italique.
 import '@fontsource/playfair-display/400.css'
 import '@fontsource/playfair-display/500.css'
-import { App } from './App'
+import { AppRoot } from './app/AppRoot'
 // Cairn passe AVANT `styles.css` : il pose les rôles, et son pont de
 // compatibilité en fin de fichier réexpose les anciens noms (--bg, --panel,
 // --muted…) que toute la feuille suivante consomme encore.
-import './styles/cairn.css'
+import './app/theme.css'
 import './styles.css'
-import './styles/result-cards.css'
-import './styles/journey.css'
+import './app/app.css'
 // L'accueil a sa propre feuille : c'est le seul écran en registre
 // d'affiche, et mêler ses règles à celles des écrans-outils ferait dériver
 // les deux. Elle vient en dernier et ne parle que de `.acc-`.
-import './styles/station-photos.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <AppRoot />
   </React.StrictMode>
 )

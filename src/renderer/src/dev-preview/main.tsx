@@ -11,12 +11,10 @@ import '@fontsource/ibm-plex-mono/500.css'
 import '@fontsource/ibm-plex-mono/600.css'
 import '@fontsource/playfair-display/400.css'
 import '@fontsource/playfair-display/500.css'
-import '../styles/cairn.css'
+import '../app/theme.css'
 import '../styles.css'
-import '../styles/result-cards.css'
-import '../styles/journey.css'
-import '../styles/station-photos.css'
-import { App } from '../App'
+import '../app/app.css'
+import { AppRoot } from '../app/AppRoot'
 
 const show = (label: string, e: unknown): void => {
   const root = document.getElementById('root')
@@ -52,5 +50,5 @@ class Boundary extends React.Component<{ children: React.ReactNode }, { err: unk
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  React.createElement(Boundary, null, React.createElement(App))
+  React.createElement(Boundary, null, React.createElement(AppRoot))
 )

@@ -151,3 +151,44 @@ envoi serveur) ; (4) livrer E1 seul, valider, puis E2→E5.
 - Rouge restant (Phase F) : `.map__btn--accent` « Afficher les zones de temps
   de trajet » est un 2ᵉ CTA corail sur l'écran Stations ; contraste blanc sur
   corail 3.1:1 (AA large seulement) ; nav utilitaire déborde sous 390 px.
+
+## Recomposition — passe correctifs (2026-06, fork 3)
+Demandes utilisateur : bug de navigation entre pages ; météo valable par
+station ; belles photos par station ; « vraie » montagne 3D animée (neige,
+remontées, skieurs, village, flocons) ; améliorer l'interface Logements.
+- **Routeur** (`app/router.tsx`) : URL = seule source de vérité. `RouteStoreSync`
+  sens unique (chemin → `state.tab`) ; `/stations` et `/reservation` mappés ;
+  tous les `patch({ tab })` gelés remplacés par `useNavigate` (useShortcuts,
+  Onboarding, SelectionPage, TrackingPage, SettingsPage, ReferentialPage).
+- **Météo** (`state/weather.tsx`) : couvre `domFicheId` (posé par la fiche) et
+  `lodgDomain` ; rejoue une liste arrivée pendant une requête ; lots de 10
+  domaines (`BATCH_LOCATIONS = 20`). Fiche : bloc `station-hero-weather`.
+- **Scène 3D** (`app/ui/MountainScene.tsx`) : relief ridged + 3 sommets + chaîne
+  lointaine + vallée, couleurs par sommet, ombres, piste damée, village de 14
+  chalets (fenêtres allumées, point light), 170 sapins instanciés, télésiège
+  (7 pylônes, 2 câbles, 10 cabines animées), 16 skieurs instanciés, 1 400 flocons.
+  Plus d'erreur NaN. Camera (0,20,84) → lookAt (0,3,-20).
+- **Photos** : outils `tools/commons-candidates.py` (planche-contact Commons) et
+  `tools/commons-fetch.py` (téléchargement 1600 px + crédit dans
+  `data/stationPhotos.json`). Remplacées : avoriaz-1800, plagne-villages,
+  serre-chevalier-le-monetier, combloux, saint-sorlin-d-arves, tignes-le-lac,
+  alpe-d-huez-grand-domaine.
+- **Logements** : `StationRibbon` (`lodgings-ribbon*`), repères calculés
+  (`lodge-badges-{id}` : moins cher / plus près des pistes), vignette sans photo
+  = photo station floutée + « Photo non fournie par {source} », `StayBar`
+  collant (`stay-bar`, `stay-bar-lodging`, `stay-bar-total`, `stay-bar-go`).
+  Mobile : pilule `stay-bar-summary` « Modifier » remplace la barre compacte.
+  Garde `#/logements` sans station centrée (`rc-page--guard`).
+- **Coût** : `costPeople` dans `selectors.tsx` — forfaits × `travelers` même si
+  `state.people` n'a pas la même taille (bug iteration_2).
+- **Sombre** : `.rc-h1` / `.rc-muted` tenus. testids `sel-go-search`, `track-go-search`.
+- Testé : iteration_3.json (95 %), tsc ✓, i18n:test (909×2) ✓.
+
+## Backlog restant
+- P2 : La Daille / Le Fornet / Tignes affichent les mêmes agrégats (forfait
+  relié Espace Killy) — décider si l'on montre les données village.
+- P2 : découper `appState.tsx` (1166 l.) et `selectors.tsx`.
+- P2 : le shim n'injecte les 3 annonces qu'au chargement direct de
+  `#/logements` — navigation in-app depuis la fiche montre l'état vide (attendu
+  hors Electron).
+- P3 : scène 3D — textures (neige scintillante), nuages, cycle jour/nuit.

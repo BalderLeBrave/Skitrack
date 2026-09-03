@@ -9,6 +9,8 @@
  */
 
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/app/router'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 
@@ -17,6 +19,7 @@ const MAX_RESULTS = 40
 export function useShortcuts(): void {
   const { state, patch, screen } = useApp()
   const { filtered } = useDerived()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -53,7 +56,8 @@ export function useShortcuts(): void {
           // marche, sinon la liste resterait filtrée par une carte fermée.
           patch({ searchMapOpen: !state.searchMapOpen, domMapSync: true })
         } else if (e.key === 'Enter' && state.selectedId != null) {
-          patch({ tab: 'logements', lodgingDomainId: state.selectedId })
+          patch({ lodgingDomainId: state.selectedId })
+          navigate(PATHS.lodgings)
         }
       } else if (screen === 'logements') {
         if (e.key === 'f') patch({ lodgFiltersOpen: !state.lodgFiltersOpen })
@@ -63,7 +67,7 @@ export function useShortcuts(): void {
 
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [state, patch, screen, filtered])
+  }, [state, patch, screen, filtered, navigate])
 }
 
 /**

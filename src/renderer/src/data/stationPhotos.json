@@ -15,13 +15,15 @@
   "avoriaz-1800": {
     "station": "Avoriaz 1800",
     "massif": "Alpes du Nord",
-    "titre": "File:Piste de luge d'été à Morzine - panoramio.jpg",
-    "auteur": "Eric Bajart",
-    "licence": "CC BY-SA 3.0",
-    "page": "https://commons.wikimedia.org/wiki/File:Piste_de_luge_d%27%C3%A9t%C3%A9_%C3%A0_Morzine_-_panoramio.jpg",
-    "largeur": 1920,
-    "hauteur": 1440,
-    "distanceM": 1642,
+    "titre": "File:Avoriaz - 2024.jpg",
+    "auteur": "Christian David",
+    "licence": "CC BY-SA 4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Avoriaz_-_2024.jpg",
+    "largeur": 1600,
+    "hauteur": 900,
+    "fichier": "station-avoriaz-1800.jpg",
+    "description": "Avoriaz vu du sud-ouest.",
+    "distanceM": null,
     "neigeDite": true,
     "moisPriseDeVue": null
   },
@@ -210,15 +212,17 @@
   "combloux": {
     "station": "Combloux",
     "massif": "Alpes du Nord",
-    "titre": "File:Front de neige, Combloux, 2025.jpg",
-    "auteur": "DimiTalen",
-    "licence": "CC0",
-    "page": "https://commons.wikimedia.org/wiki/File:Front_de_neige,_Combloux,_2025.jpg",
-    "largeur": 1920,
-    "hauteur": 1277,
-    "distanceM": 1924,
+    "titre": "File:Combloux - Pertuis - panoramio.jpg",
+    "auteur": "Patrick Nouhailler's…",
+    "licence": "CC BY-SA 3.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Combloux_-_Pertuis_-_panoramio.jpg",
+    "largeur": 1600,
+    "hauteur": 1067,
+    "fichier": "station-combloux.jpg",
+    "description": "Combloux - Pertuis",
+    "distanceM": null,
     "neigeDite": true,
-    "moisPriseDeVue": 3
+    "moisPriseDeVue": null
   },
   "cordon": {
     "station": "Cordon",
@@ -873,15 +877,17 @@
   "plagne-villages": {
     "station": "Plagne Villages",
     "massif": "Alpes du Nord",
-    "titre": "File:2018.01.05.-02-Paradiski-Plagne Villages--Schneesperlinge-im Schlichtkleid.jpg",
-    "auteur": "Andreas Eichler",
+    "titre": "File:Domaine skiable de La Plagne en hiver (février 2024).JPG",
+    "auteur": "Florian Pépellin",
     "licence": "CC BY-SA 4.0",
-    "page": "https://commons.wikimedia.org/wiki/File:2018.01.05.-02-Paradiski-Plagne_Villages--Schneesperlinge-im_Schlichtkleid.jpg",
-    "largeur": 1920,
-    "hauteur": 1838,
-    "distanceM": 142,
+    "page": "https://commons.wikimedia.org/wiki/File:Domaine_skiable_de_La_Plagne_en_hiver_(f%C3%A9vrier_2024).JPG",
+    "largeur": 1600,
+    "hauteur": 1200,
+    "fichier": "station-plagne-villages.jpg",
+    "description": "Sight, in winter from Roche de Mio gondola lift, of La Plagne ski resort in Savoie</a",
+    "distanceM": null,
     "neigeDite": true,
-    "moisPriseDeVue": 1
+    "moisPriseDeVue": null
   },
   "plateau-de-beauregard": {
     "station": "Plateau de Beauregard",
@@ -990,15 +996,17 @@
   "saint-sorlin-d-arves": {
     "station": "Saint Sorlin D'Arves",
     "massif": "Alpes du Nord",
-    "titre": "File:Arvan à Saint-Sorlin-d'Arves (hiver 2015).JPG",
-    "auteur": "Florian Pépellin",
-    "licence": "CC BY-SA 3.0",
-    "page": "https://commons.wikimedia.org/wiki/File:Arvan_%C3%A0_Saint-Sorlin-d%27Arves_(hiver_2015).JPG",
-    "largeur": 1920,
-    "hauteur": 1440,
-    "distanceM": 431,
+    "titre": "File:Saint-Sorlin-d'Arves (4323294298).jpg",
+    "auteur": "larsjuh",
+    "licence": "CC BY 2.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Saint-Sorlin-d%27Arves_(4323294298).jpg",
+    "largeur": 1600,
+    "hauteur": 1066,
+    "fichier": "station-saint-sorlin-d-arves.jpg",
+    "description": "Saint-Sorlin-d'Arves",
+    "distanceM": null,
     "neigeDite": true,
-    "moisPriseDeVue": 3
+    "moisPriseDeVue": null
   },
   "saint-gervais-mont-blanc": {
     "station": "Saint-Gervais Mont-Blanc",
@@ -1107,15 +1115,17 @@
   "tignes-le-lac": {
     "station": "Tignes Le Lac",
     "massif": "Alpes du Nord",
-    "titre": "File:Cloudy snow mountains (Unsplash).jpg",
-    "auteur": "Rob Bye robertbye",
-    "licence": "CC0",
-    "page": "https://commons.wikimedia.org/wiki/File:Cloudy_snow_mountains_(Unsplash).jpg",
-    "largeur": 1920,
-    "hauteur": 1441,
-    "distanceM": 251,
+    "titre": "File:Centre Tignes 1800 en hiver (février 2026).JPG",
+    "auteur": "Florian Pépellin",
+    "licence": "CC BY-SA 4.0",
+    "page": "https://commons.wikimedia.org/wiki/File:Centre_Tignes_1800_en_hiver_(f%C3%A9vrier_2026).JPG",
+    "largeur": 1600,
+    "hauteur": 1195,
+    "fichier": "station-tignes-le-lac.jpg",
+    "description": "Sight, in winter, of Tignes 1800 village, part of Tignes ski resort, in <a href=\"//commo",
+    "distanceM": null,
     "neigeDite": true,
-    "moisPriseDeVue": 1
+    "moisPriseDeVue": null
   },
   "val-thorens": {
     "station": "Val Thorens",
@@ -1523,15 +1533,17 @@
   "serre-chevalier-le-monetier": {
     "station": "Serre Chevalier Le Monêtier",
     "massif": "Alpes du Sud",
-    "titre": "File:Serre-Chevalier 1500 - Les Bains de Monêtier (4649359221).jpg",
-    "auteur": "Frédérique Voisin-Demery from Grenoble, France",
-    "licence": "CC BY 2.0",
-    "page": "https://commons.wikimedia.org/wiki/File:Serre-Chevalier_1500_-_Les_Bains_de_Mon%C3%AAtier_(4649359221).jpg",
-    "largeur": 1920,
-    "hauteur": 1441,
-    "distanceM": 552,
+    "titre": "File:Serre Chevalier 1.JPG",
+    "auteur": "This Photo was taken by FredrikLähnn\nAll my photos are public domain, but if you use them outside Wikimedia I will appreciate if you credit it Fredrik Lähnn and send me an email or contact me at my userpage.",
+    "licence": "Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Serre_Chevalier_1.JPG",
+    "largeur": 1600,
+    "hauteur": 1200,
+    "fichier": "station-serre-chevalier-le-monetier.jpg",
+    "description": "Serre Chevalier - a french ski resort",
+    "distanceM": null,
     "neigeDite": true,
-    "moisPriseDeVue": 1
+    "moisPriseDeVue": null
   },
   "serre-chevalier-villeneuve": {
     "station": "Serre Chevalier Villeneuve",
@@ -2002,5 +2014,20 @@
     "description": "Les pistes des Aillons-Margériaz, Savoie, France",
     "neigeDite": true,
     "moisPriseDeVue": 12
+  },
+  "alpe-d-huez-grand-domaine": {
+    "station": "Alpe d'Huez Grand Domaine",
+    "massif": "Alpes du Nord",
+    "titre": "File:L'Alpe d'Huez et la chaîne de Belledonne 028.jpg",
+    "auteur": "Simdaperce",
+    "licence": "CC BY-SA 3.0",
+    "page": "https://commons.wikimedia.org/wiki/File:L%27Alpe_d%27Huez_et_la_cha%C3%AEne_de_Belledonne_028.jpg",
+    "largeur": 1600,
+    "hauteur": 1200,
+    "fichier": "station-alpe-d-huez-grand-domaine.jpg",
+    "description": "Domaine de l'Alpe d'Huez",
+    "distanceM": null,
+    "neigeDite": true,
+    "moisPriseDeVue": null
   }
 }

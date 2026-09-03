@@ -81,6 +81,7 @@ export interface AirbnbScrapeError {
 export type AirbnbScrapeOutcome = AirbnbScrapeResult | AirbnbScrapeError
 
 let sharedContext: BrowserContext | null = null
+let launchLock: Promise<BrowserContext> | null = null
 
 const VISIBLE_CAPTCHA_INDICATORS = [
   'text=Just a moment',
@@ -478,17 +479,41 @@ async function getSharedContext(headless: boolean, rotate = false): Promise<Brow
       sharedContext = null
     }
   }
-  if (sharedContext && rotate) {
-    try {
-      await sharedContext.close()
-    } catch {
-      // ignore
+  if (launchLock) return launchLock
+  launchLock = (async () => {
+    if (sharedContext && rotate) {
+      try {
+        await sharedContext.close()
+      } catch {
+        // ignore
+      }
+      sharedContext = null
     }
-    sharedContext = null
+    if (sharedContext) {
+      try {
+        void sharedContext.pages()
+        return sharedContext
+      } catch {
+        sharedContext = null
+      }
+    }
+    const proxy = nextProxy()
+    const ctx = await openPersistentContext(headless, proxy)
+    for (const page of ctx.pages()) {
+      try {
+        if (page.url() === 'about:blank') await page.close()
+      } catch {
+        /* ignore */
+      }
+    }
+    sharedContext = ctx
+    return ctx
+  })()
+  try {
+    return await launchLock
+  } finally {
+    launchLock = null
   }
-  const proxy = nextProxy()
-  sharedContext = await openPersistentContext(headless, proxy)
-  return sharedContext
 }
 
 export async function closeAirbnbBrowser(): Promise<void> {
@@ -498,6 +523,7 @@ export async function closeAirbnbBrowser(): Promise<void> {
     // ignore
   }
   sharedContext = null
+  launchLock = null
 }
 
 async function extractFromPage(

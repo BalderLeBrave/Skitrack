@@ -29,6 +29,7 @@ import {
   looksWeeklyFromPriceText,
   mergeGitesCardsFromHtml,
   pageLooksBlocked,
+  shouldCloseSharedContext,
   webscrapePriceFields
 } from './webscrape/shared'
 import { parseGitesWidgetPhoto } from './webscrape/gitesFichePrice'
@@ -1412,6 +1413,20 @@ async function main(): Promise<void> {
       { url: 'https://reservation.les2alpes.com/x.html', fromPrice: true, guests: 8, rooms: 2 },
       { adults: 4, bedrooms: 2 }
     ) === false
+  )
+
+  heading('21. Sessions Playwright')
+  check(
+    'retry Booking ne tue pas Gîtes en cours (onglets > 1)',
+    shouldCloseSharedContext({ openPages: 3, rotateProxy: true }) === false
+  )
+  check(
+    'recycle seulement si plus personne et rotation proxy',
+    shouldCloseSharedContext({ openPages: 1, rotateProxy: true }) === true
+  )
+  check(
+    'sans rotation : le Chromium reste',
+    shouldCloseSharedContext({ openPages: 1, rotateProxy: false }) === false
   )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)

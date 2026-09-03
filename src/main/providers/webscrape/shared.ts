@@ -35,6 +35,8 @@ const STEALTH_INIT = `
 `
 
 let sharedContext: BrowserContext | null = null
+let launchLock: Promise<BrowserContext> | null = null
+let activeProxyRaw: string | null = null
 
 function profileDir(): string {
   return join(app.getPath('userData'), 'webscrape-browser-profile')
@@ -49,34 +51,47 @@ export function exponentialBackoffMs(attempt: number, base: number, cap: number)
   return Math.floor(Math.random() * (exp + 1))
 }
 
-let activeProxyRaw: string | null = null
+function contextAlive(ctx: BrowserContext | null): ctx is BrowserContext {
+  if (!ctx) return false
+  try {
+    void ctx.pages()
+    return true
+  } catch {
+    return false
+  }
+}
 
-export async function getScrapeContext(
-  headless = true,
-  proxy?: ProxyConfig | null
+/**
+ * Faut-il tuer le Chromium partagé après un essai raté ?
+ *
+ * Booking, Gîtes, Abritel et la centrale tournent **en parallèle** dans le
+ * même contexte. Fermer le navigateur au 1er retry Booking (ancien `withRetries`)
+ * fermait leurs onglets en cours — relevé à zéro, relance Chromium × N.
+ * On ne recycle que s'il n'y a plus d'onglet métier, et seulement pour
+ * changer de proxy.
+ */
+export function shouldCloseSharedContext(opts: {
+  openPages: number
+  rotateProxy: boolean
+}): boolean {
+  if (!opts.rotateProxy) return false
+  return opts.openPages <= 1
+}
+
+async function dropLaunchBlank(ctx: BrowserContext): Promise<void> {
+  for (const page of ctx.pages()) {
+    try {
+      if (page.url() === 'about:blank') await page.close()
+    } catch {
+      /* déjà fermée */
+    }
+  }
+}
+
+async function launchContext(
+  headless: boolean,
+  desiredProxy: ProxyConfig | null
 ): Promise<BrowserContext> {
-  const desiredProxy = proxy === undefined ? nextProxy() : proxy
-  const desiredRaw = desiredProxy?.raw ?? null
-
-  // Recréer le contexte si le proxy change (Playwright ne permet pas de switcher à chaud).
-  if (sharedContext && activeProxyRaw !== desiredRaw) {
-    try {
-      await sharedContext.close()
-    } catch {
-      // ignore
-    }
-    sharedContext = null
-  }
-
-  if (sharedContext) {
-    try {
-      void sharedContext.pages()
-      return sharedContext
-    } catch {
-      sharedContext = null
-    }
-  }
-
   const common: Parameters<typeof chromium.launchPersistentContext>[1] = {
     headless,
     locale: 'fr-FR',
@@ -92,26 +107,146 @@ export async function getScrapeContext(
     },
     args: ['--disable-blink-features=AutomationControlled', '--disable-dev-shm-usage', '--no-first-run']
   }
+  if (desiredProxy) common.proxy = toPlaywrightProxy(desiredProxy)
 
-  if (desiredProxy) {
-    common.proxy = toPlaywrightProxy(desiredProxy)
-  }
-
+  let ctx: BrowserContext
   try {
-    sharedContext = await chromium.launchPersistentContext(profileDir(), {
+    ctx = await chromium.launchPersistentContext(profileDir(), {
       ...common,
       channel: 'chrome'
     })
   } catch {
-    sharedContext = await chromium.launchPersistentContext(profileDir(), {
+    ctx = await chromium.launchPersistentContext(profileDir(), {
       ...common,
       args: [...(common.args as string[]), '--no-sandbox']
     })
   }
-  activeProxyRaw = desiredRaw
-  await sharedContext.addInitScript(STEALTH_INIT)
-  await blockHeavyResources(sharedContext)
-  return sharedContext
+  await ctx.addInitScript(STEALTH_INIT)
+  await blockHeavyResources(ctx)
+  await dropLaunchBlank(ctx)
+  ctx.setDefaultNavigationTimeout(45_000)
+  ctx.setDefaultTimeout(20_000)
+  return ctx
+}
+
+export async function getScrapeContext(
+  headless = true,
+  proxy?: ProxyConfig | null
+): Promise<BrowserContext> {
+  const desiredProxy = proxy === undefined ? nextProxy() : proxy
+  const desiredRaw = desiredProxy?.raw ?? null
+
+  if (contextAlive(sharedContext)) {
+    if (activeProxyRaw === desiredRaw) return sharedContext
+    if (sharedContext.pages().length > 0) return sharedContext
+  }
+
+  if (launchLock) return launchLock
+
+  const pending = (async () => {
+    if (contextAlive(sharedContext) && activeProxyRaw === desiredRaw) {
+      return sharedContext
+    }
+    if (sharedContext) {
+      try {
+        await sharedContext.close()
+      } catch {
+        /* ignore */
+      }
+      sharedContext = null
+    }
+    const ctx = await launchContext(headless, desiredProxy)
+    sharedContext = ctx
+    activeProxyRaw = desiredRaw
+    return ctx
+  })()
+  launchLock = pending
+  try {
+    return await pending
+  } finally {
+    if (launchLock === pending) launchLock = null
+  }
+}
+
+export async function closeWebscrapeBrowser(): Promise<void> {
+  try {
+    await sharedContext?.close()
+  } catch {
+    // ignore
+  }
+  sharedContext = null
+  launchLock = null
+}
+
+export async function withPage<T>(
+  headless: boolean,
+  fn: (page: Page) => Promise<T>,
+  rotateProxy = false
+): Promise<T> {
+  const proxy = rotateProxy ? nextProxy() : undefined
+  const ctx = await getScrapeContext(headless, proxy === null ? null : proxy)
+  const page = await ctx.newPage()
+  try {
+    return await fn(page)
+  } finally {
+    try {
+      await page.close()
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/**
+ * N onglets d'un même contexte, réutilisés. Ceto ouvrait un onglet par fiche
+ * (`withPage` × 40) : launch est partagé, mais newPage/close × 40 reste cher.
+ */
+export async function withPagePool<T>(
+  size: number,
+  headless: boolean,
+  fn: (pages: Page[]) => Promise<T>
+): Promise<T> {
+  const n = Math.max(1, size)
+  const ctx = await getScrapeContext(headless)
+  const pages: Page[] = []
+  try {
+    for (let i = 0; i < n; i++) pages.push(await ctx.newPage())
+    return await fn(pages)
+  } finally {
+    await Promise.all(pages.map((p) => p.close().catch(() => undefined)))
+  }
+}
+
+export async function withRetries<T>(
+  label: string,
+  options: ScrapeAttemptOptions,
+  run: (attempt: number) => Promise<T>
+): Promise<T> {
+  const maxRetries = Math.max(1, options.maxRetries ?? 3)
+  const base = options.baseDelayMs ?? 1_500
+  const cap = options.maxDelayMs ?? 20_000
+  let lastErr: unknown
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await run(attempt)
+    } catch (err) {
+      lastErr = err
+      if (attempt >= maxRetries) break
+      const openPages = contextAlive(sharedContext) ? sharedContext.pages().length : 0
+      if (shouldCloseSharedContext({ openPages, rotateProxy: true })) {
+        try {
+          await closeWebscrapeBrowser()
+        } catch {
+          // ignore
+        }
+      }
+      const delay = exponentialBackoffMs(attempt, base, cap)
+      await sleep(delay)
+    }
+  }
+  throw lastErr instanceof Error
+    ? lastErr
+    : new Error(`${label}: échec après ${maxRetries} essai(s)`)
 }
 
 /**
@@ -136,65 +271,6 @@ export async function blockHeavyResources(context: BrowserContext): Promise<void
     },
     (route) => route.abort()
   )
-}
-
-export async function closeWebscrapeBrowser(): Promise<void> {
-  try {
-    await sharedContext?.close()
-  } catch {
-    // ignore
-  }
-  sharedContext = null
-}
-
-export async function withPage<T>(
-  headless: boolean,
-  fn: (page: Page) => Promise<T>,
-  /** Si true, tire un nouveau proxy (rotation) avant d’ouvrir le contexte. */
-  rotateProxy = false
-): Promise<T> {
-  const proxy = rotateProxy ? nextProxy() : undefined
-  const ctx = await getScrapeContext(headless, proxy === null ? null : proxy)
-  const page = await ctx.newPage()
-  try {
-    return await fn(page)
-  } finally {
-    try {
-      await page.close()
-    } catch {
-      // ignore
-    }
-  }
-}
-
-export async function withRetries<T>(
-  label: string,
-  options: ScrapeAttemptOptions,
-  run: (attempt: number) => Promise<T>
-): Promise<T> {
-  const maxRetries = Math.max(1, options.maxRetries ?? 3)
-  const base = options.baseDelayMs ?? 1_500
-  const cap = options.maxDelayMs ?? 20_000
-  let lastErr: unknown
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await run(attempt)
-    } catch (err) {
-      lastErr = err
-      if (attempt >= maxRetries) break
-      // Force rotation proxy au prochain essai
-      try {
-        await closeWebscrapeBrowser()
-      } catch {
-        // ignore
-      }
-      const delay = exponentialBackoffMs(attempt, base, cap)
-      await sleep(delay)
-    }
-  }
-  throw lastErr instanceof Error
-    ? lastErr
-    : new Error(`${label}: échec après ${maxRetries} essai(s)`)
 }
 
 export function baseAccommodation(

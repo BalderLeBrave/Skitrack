@@ -31,7 +31,7 @@
  */
 
 import type { Page } from 'playwright'
-import { withPage } from '../webscrape/shared'
+import { withPagePool } from '../webscrape/shared'
 import { debugLog } from '../debug'
 import {
   ficheUrlWithStay,
@@ -193,36 +193,37 @@ export async function readFicheOccupancies(
   let ranOutOfTime = 0
   if (todo.length > 0) {
     const deadline = Date.now() + BUDGET_MS
-    let cursor = 0
-    const worker = async (): Promise<void> => {
-      for (;;) {
-        const index = cursor++
-        if (index >= todo.length) return
-        // Le budget se vérifie **avant** d'ouvrir, pas après : commencer une
-        // fiche qu'on n'aura pas le temps de finir ne fait que retarder tout
-        // le monde.
-        if (Date.now() >= deadline) {
-          ranOutOfTime += todo.length - index
-          return
-        }
-        const url = todo[index]
-        try {
-          const grid = await withPage(headless, (page) => readOne(page, url, from, to, channel))
-          cache.set(cacheKey(url, from, to), grid)
-          if (grid) byUrl.set(url, grid)
-          else failed++
-        } catch (err) {
-          // Échec local : la fiche garde ce que la SERP en disait.
-          cache.set(cacheKey(url, from, to), null)
-          failed++
-          debugLog('ceto-fiche', 'Number of failed fiche reads', {
-            url,
-            reason: err instanceof Error ? err.message : String(err)
-          })
-        }
-      }
-    }
-    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, todo.length) }, worker))
+    const workers = Math.min(CONCURRENCY, todo.length)
+    await withPagePool(workers, headless, async (pages) => {
+      let cursor = 0
+      await Promise.all(
+        pages.map(async (page) => {
+          for (;;) {
+            const index = cursor++
+            if (index >= todo.length) return
+            if (Date.now() >= deadline) {
+              ranOutOfTime += 1
+              return
+            }
+            const url = todo[index]
+            try {
+              if (page.isClosed()) return
+              const grid = await readOne(page, url, from, to, channel)
+              cache.set(cacheKey(url, from, to), grid)
+              if (grid) byUrl.set(url, grid)
+              else failed++
+            } catch (err) {
+              cache.set(cacheKey(url, from, to), null)
+              failed++
+              debugLog('ceto-fiche', 'Number of failed fiche reads', {
+                url,
+                reason: err instanceof Error ? err.message : String(err)
+              })
+            }
+          }
+        })
+      )
+    })
   }
 
   const totalSkipped = skipped + ranOutOfTime

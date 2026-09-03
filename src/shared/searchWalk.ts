@@ -46,6 +46,10 @@ export interface StationRunSource {
   reason_code?: string
   error?: string | null
   advertised?: number
+  quote_fetches?: number
+  cache_hits?: number
+  ms_search?: number
+  ms_quote?: number
   fork: StationRunFork | null
 }
 

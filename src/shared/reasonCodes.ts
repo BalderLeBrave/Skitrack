@@ -45,6 +45,10 @@ export interface PaginationReport {
   stoppedReason: StoppedReason
   /** Total annoncé par la SERP, si lu. */
   advertised?: number
+  quoteFetches?: number
+  cacheHits?: number
+  msSearch?: number
+  msQuote?: number
 }
 
 /** Liste d'offres portant le rapport de walk, pas une reconstruction aval. */

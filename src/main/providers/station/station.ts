@@ -95,6 +95,7 @@ import { isOpenSystemHost } from '../opensystem/hosts'
 import { shouldAttemptIngenie } from './ingenieHosts'
 import { emptyStationReason } from './centralLookup'
 import { CircuitBreaker } from '../resilience'
+import { getQuote, quoteCacheKey, setQuote } from '../quoteCache'
 import {
   cleanProductUrl,
   extractTarifsPrestationId,
@@ -888,6 +889,26 @@ function hostOfOrigin(origin: string): string {
  * avec un prix qui n'est pas celui du séjour.
  */
 const ENRICH_BUDGET_MS = 240_000
+/**
+ * Faut-il un devis HTTP pour cette fiche ?
+ *
+ * La tuile « à partir de » n'est pas le séjour. Mais si la SERP a déjà publié
+ * une capacité trop petite pour le groupe, le devis ne changera pas ça — on
+ * n'ouvre pas la fiche.
+ */
+export function stationCardNeedsQuote(
+  card: Pick<StationCard, 'fromPrice' | 'priceText' | 'guests' | 'rooms' | 'url'>,
+  params: { adults?: number; bedrooms?: number }
+): boolean {
+  if (!card.url) return false
+  const adults = params.adults ?? 0
+  const bedrooms = params.bedrooms ?? 0
+  if (adults > 0 && card.guests != null && card.guests < adults) return false
+  if (bedrooms > 0 && card.rooms != null && card.rooms < bedrooms + 1) return false
+  if (card.fromPrice) return true
+  if (!card.priceText) return true
+  return false
+}
 /** Timeout d’un aller-retour searchAjax / tarifs / calculerTotal. */
 const ENRICH_REQUEST_MS = 8_000
 /**
@@ -1053,6 +1074,7 @@ async function enrichExactPrices(
   const need: StationCard[] = []
   for (const c of ranked) {
     if (seen.has(c.url)) continue
+    if (!stationCardNeedsQuote(c, params)) continue
     seen.add(c.url)
     need.push(c)
     if (need.length >= limit) break
@@ -1102,6 +1124,22 @@ async function enrichExactPrices(
           const index = cursor++
           if (index >= need.length) return
           const card = need[index]
+          const cacheKey = quoteCacheKey(
+            'station',
+            card.url,
+            params.checkIn ?? '',
+            params.checkOut ?? '',
+            (params.adults ?? 0) + (params.children ?? 0)
+          )
+          const cached = getQuote(cacheKey)
+          if (cached) {
+            if (cached.total != null && cached.total > 0) {
+              card.priceText = `${cached.total} €`
+              card.fromPrice = false
+              done++
+            }
+            continue
+          }
           const total = await resolveExactPriceOnFiche(
             api,
             origin,
@@ -1113,7 +1151,10 @@ async function enrichExactPrices(
           if (total != null && total > 0) {
             card.priceText = `${total} €`
             card.fromPrice = false
+            setQuote(cacheKey, { total })
             done++
+          } else {
+            setQuote(cacheKey, { total: null, unavailable: true })
           }
         }
       })

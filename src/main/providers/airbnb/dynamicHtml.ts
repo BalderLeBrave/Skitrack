@@ -206,11 +206,14 @@ export async function extractProgressive(
 
     // Attendre activité réseau brève (XHR résultats) puis stabilité
     try {
-      await page.waitForLoadState('networkidle', { timeout: 5_000 })
+      await page.waitForResponse(
+        (r) => /\/api\/v3\/StaysSearch/i.test(r.url()) && r.ok(),
+        { timeout: 2_500 }
+      )
     } catch {
-      // networkidle strict rarement atteint sur Airbnb : ignore
+      // pas de XHR visible : on continue sur le DOM
     }
-    await page.waitForTimeout(scrollPauseMs)
+    await page.waitForTimeout(Math.min(scrollPauseMs, 500))
 
     // Si de nouveaux nœuds deferred apparaissent (data-deferred-state-1…), stabiliser
     try {

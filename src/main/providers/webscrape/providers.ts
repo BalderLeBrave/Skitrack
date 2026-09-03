@@ -7,8 +7,9 @@
  */
 
 import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams } from '../types'
-import type { Page } from 'playwright'
-import { stampPagination, type PaginationReport, type StoppedReason } from '@shared/reasonCodes'
+import type { APIRequestContext, Page } from 'playwright'
+import { request as playwrightRequest } from 'playwright'
+import { stampPagination, paginationOfList, type PaginationReport, type StoppedReason } from '@shared/reasonCodes'
 import { SEARCH_WALK, isPrivateOrSharedListing, pageLooksLast } from '@shared/searchWalk'
 import { trySolveVisibleCaptcha } from '../../captchaBridge'
 import {
@@ -53,6 +54,7 @@ import {
   parseGitesWidgetContext,
   parseGitesWidgetPhoto
 } from './gitesFichePrice'
+import { getQuote, quoteCacheKey, setQuote } from '../quoteCache'
 import {
   abritelCanonicalUrl,
   cozyHitsToRawCards,
@@ -194,24 +196,19 @@ async function loadAndExtract(
   extract: () => RawCard[]
 ): Promise<RawCard[]> {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
-  await sleep(1500 + Math.random() * 800)
-  // Deux défilements fixes tronquaient les pages à chargement différé — voir
-  // `scrollToEnd`. On descend jusqu'à ce que la page cesse de grandir.
-  await scrollToEnd(page)
-  try {
-    await page.waitForLoadState('networkidle', { timeout: 6_000 })
-  } catch {
-    // ignore
-  }
-  await sleep(500)
+  await sleep(400 + Math.random() * 400)
   let cards = await page.evaluate(extract)
+  // Page déjà pleine (Booking 25, seuil 80 %) : scroller et networkidle
+  // n'ajoutent rien et coûtaient 6–12 s par page.
+  if (cards.length < 20) {
+    await scrollToEnd(page, 6)
+    cards = await page.evaluate(extract)
+  }
   if (cards.length === 0 && (await looksBlocked(page))) {
-    // Résolveur déjà dans le dépôt (sidecar 2captcha). Page 2 Booking
-    // souvent challenge : 0 cartes ≠ inventaire épuisé.
     const solved = await trySolveVisibleCaptcha(page)
     if (solved) {
-      await sleep(1200)
-      await scrollToEnd(page)
+      await sleep(800)
+      await scrollToEnd(page, 6)
       cards = await page.evaluate(extract)
     }
     if (cards.length === 0 && (await looksBlocked(page))) {
@@ -613,6 +610,79 @@ export function createGitesWebProvider(opts?: ScrapeAttemptOptions): Accommodati
 
 const GITES_ENRICH_BUDGET_MS = SEARCH_WALK.pagesBudgetMs
 const GITES_ENRICH_LIMIT = SEARCH_WALK.maxListings
+const GITES_QUOTE_WORKERS = 4
+const GITES_RESA_URL = 'https://widget-fngf.itea.fr/lib_2/ajax/gereResa.php'
+
+async function postGitesResa(api: APIRequestContext, body: string, timeoutMs: number): Promise<string> {
+  const res = await api.post(GITES_RESA_URL, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    data: body,
+    timeout: timeoutMs
+  })
+  return res.text()
+}
+
+async function quoteGiteHttp(
+  api: APIRequestContext,
+  card: Accommodation,
+  args: { deb: string; fin: string; adults: number; checkIn: string; checkOut: string; timeoutMs: number }
+): Promise<{ total?: number; unavailable?: boolean; ident?: string; photo?: string; cache: boolean }> {
+  const code = gitesCodeFromUrl(card.url)
+  if (!code) return { unavailable: true, cache: false }
+  const key = quoteCacheKey('gites', code, args.checkIn, args.checkOut, args.adults)
+  const cached = getQuote(key)
+  if (cached) {
+    return { total: cached.total ?? undefined, unavailable: cached.unavailable, cache: true }
+  }
+  const htmlRes = await api.get(gitesWidgetUrl(code), { timeout: args.timeoutMs })
+  const html = await htmlRes.text()
+  const ctx = parseGitesWidgetContext(html)
+  const photo = parseGitesWidgetPhoto(html)
+  if (!ctx) {
+    setQuote(key, { total: null, unavailable: true })
+    return { unavailable: true, photo, cache: false }
+  }
+  const identTyp = classifyGitesTypology({ ident: ctx.ident, url: card.url })
+  if (identTyp !== 'gite') {
+    setQuote(key, { total: null, unavailable: true })
+    return { unavailable: true, ident: ctx.ident, photo, cache: false }
+  }
+  const exoBody = await postGitesResa(
+    api,
+    gitesResaForm(ctx, {
+      dateDeb: args.deb,
+      dateFin: args.fin,
+      adults: args.adults,
+      type: 'getExerciceByDateFin'
+    }),
+    args.timeoutMs
+  )
+  let exercice = ''
+  try {
+    const j = JSON.parse(exoBody) as { exercice?: string }
+    if (j.exercice) exercice = String(j.exercice)
+  } catch {
+    /* HTML ou vide */
+  }
+  const tabForm = gitesResaForm(ctx, {
+    dateDeb: args.deb,
+    dateFin: args.fin,
+    adults: args.adults,
+    type: 'getHTMLTabPrixFormulesSejour',
+    exercice: exercice || undefined
+  })
+  const body = await postGitesResa(api, tabForm, args.timeoutMs)
+  const parsed = interpretGitesQuoteBody(body)
+  if (parsed.price_firm && parsed.stay) {
+    setQuote(key, { total: parsed.stay })
+    return { total: parsed.stay, ident: ctx.ident, photo, cache: false }
+  }
+  if (gitesDatesNotFillable(body) || gitesQuoteFailed(body) || !parsed.available) {
+    setQuote(key, { total: null, unavailable: true })
+    return { unavailable: true, ident: ctx.ident, photo, cache: false }
+  }
+  return { ident: ctx.ident, photo, cache: false }
+}
 
 /**
  * Tuile Gîtes = « À partir de N € /semaine ». Le total daté n'existe qu'après
@@ -643,90 +713,50 @@ async function enrichGitesStayTotals(
   const need = eligible.slice(0, GITES_ENRICH_LIMIT)
   if (need.length === 0) return []
 
-  const timeoutMs = opts?.timeoutMs ?? 45_000
-  const headless = opts?.headless !== false
+  const timeoutMs = Math.min(opts?.timeoutMs ?? 45_000, 20_000)
   const deadline = Date.now() + GITES_ENRICH_BUDGET_MS
   const quoted = new Map<
     string,
     { total?: number; unavailable?: boolean; ident?: string; photo?: string }
   >()
+  let quoteFetches = 0
+  let cacheHits = 0
+  const quoteStarted = Date.now()
+  const api = await playwrightRequest.newContext({
+    extraHTTPHeaders: { 'Accept-Language': 'fr-FR,fr;q=0.9' }
+  })
   try {
-    await withPage(headless, async (page) => {
-      for (const card of need) {
-        if (Date.now() >= deadline) break
-        const code = gitesCodeFromUrl(card.url)
-        if (!code) continue
-        try {
-          await page.goto(gitesWidgetUrl(code), {
-            waitUntil: 'domcontentloaded',
-            timeout: Math.min(timeoutMs, 20_000)
-          })
-          await sleep(900)
-          const html = await page.content()
-          const ctx = parseGitesWidgetContext(html)
-          const photo = parseGitesWidgetPhoto(html)
-          if (!ctx) continue
-          const identTyp = classifyGitesTypology({ ident: ctx.ident, url: card.url })
-          if (identTyp !== 'gite') {
-            quoted.set(card.url, { unavailable: true, ident: ctx.ident, photo })
-            continue
+    let cursor = 0
+    const workers = Math.max(1, Math.min(GITES_QUOTE_WORKERS, need.length))
+    await Promise.all(
+      Array.from({ length: workers }, async () => {
+        for (;;) {
+          if (Date.now() >= deadline) return
+          const index = cursor++
+          if (index >= need.length) return
+          const card = need[index]
+          try {
+            const q = await quoteGiteHttp(api, card, {
+              deb,
+              fin,
+              adults,
+              checkIn: params.checkIn!,
+              checkOut: params.checkOut!,
+              timeoutMs
+            })
+            if (q.cache) cacheHits++
+            else quoteFetches++
+            quoted.set(card.url, q)
+          } catch {
+            /* une fiche rate : pas de teaser /semaine */
           }
-          const body = await page.evaluate(
-            async (args: { formExo: string; formTab: string }) => {
-              const post = async (form: string) => {
-                const res = await fetch('/lib_2/ajax/gereResa.php', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                  body: form
-                })
-                return res.text()
-              }
-              const exo = await post(args.formExo)
-              let exercice = ''
-              try {
-                const j = JSON.parse(exo) as { exercice?: string }
-                if (j.exercice) exercice = String(j.exercice)
-              } catch {
-                /* HTML ou vide */
-              }
-              const tabForm = exercice
-                ? args.formTab.replace(/exercice=[^&]*/, `exercice=${encodeURIComponent(exercice)}`)
-                : args.formTab
-              return post(tabForm)
-            },
-            {
-              formExo: gitesResaForm(ctx, {
-                dateDeb: deb,
-                dateFin: fin,
-                adults,
-                type: 'getExerciceByDateFin'
-              }),
-              formTab: gitesResaForm(ctx, {
-                dateDeb: deb,
-                dateFin: fin,
-                adults,
-                type: 'getHTMLTabPrixFormulesSejour'
-              })
-            }
-          )
-          const parsed = interpretGitesQuoteBody(body)
-          if (parsed.price_firm && parsed.stay) {
-            quoted.set(card.url, { total: parsed.stay, ident: ctx.ident, photo })
-          } else if (
-            gitesDatesNotFillable(body) ||
-            gitesQuoteFailed(body) ||
-            !parsed.available
-          ) {
-            quoted.set(card.url, { unavailable: true, ident: ctx.ident, photo })
-          }
-        } catch {
-          /* une fiche rate : pas de teaser /semaine — on n'invente pas le séjour */
         }
-      }
-    })
-  } catch {
-    return []
+      })
+    )
+  } finally {
+    await api.dispose().catch(() => undefined)
   }
+  const msQuote = Date.now() - quoteStarted
 
   const catalog = need.map((a) => {
     const q = quoted.get(a.url)
@@ -762,7 +792,7 @@ async function enrichGitesStayTotals(
     bedrooms
   })
   const byUrl = new Map(list.map((a) => [a.url, a]))
-  return verdict.shown.flatMap((kept) => {
+  const shown = verdict.shown.flatMap((kept) => {
     const a = byUrl.get(kept.listing_id)
     if (!a) return []
     const q = quoted.get(kept.listing_id)
@@ -780,6 +810,17 @@ async function enrichGitesStayTotals(
         availabilityStatus: 'available' as const
       }
     ]
+  })
+  const prev = paginationOfList(list)
+  return stampPagination(shown, {
+    pagesFetched: prev?.pagesFetched ?? 1,
+    listingsFound: prev?.listingsFound ?? list.length,
+    listingsDeduped: shown.length,
+    stoppedReason: prev?.stoppedReason ?? 'exhausted',
+    advertised: prev?.advertised,
+    quoteFetches,
+    cacheHits,
+    msQuote
   })
 }
 

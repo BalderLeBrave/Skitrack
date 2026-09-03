@@ -276,7 +276,12 @@ export async function aggregateResults(
     pages_fetched: o.pagination?.pagesFetched ?? (o.results.length > 0 ? 1 : 0),
     stopped_reason: o.pagination?.stoppedReason,
     reason_code: o.reasonCode,
-    error: o.error
+    error: o.error,
+    advertised: o.pagination?.advertised,
+    quote_fetches: o.pagination?.quoteFetches,
+    cache_hits: o.pagination?.cacheHits,
+    ms_search: o.pagination?.msSearch,
+    ms_quote: o.pagination?.msQuote
   })))
   debugLog('station_run', 'walk', {
     station: stationRun.station,

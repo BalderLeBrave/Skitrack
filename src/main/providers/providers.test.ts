@@ -50,6 +50,8 @@ import {
   occupancyFromStaySearchResult
 } from './airbnb/extract'
 import { buildEngine } from './index'
+import { clearQuoteCache, getQuote, quoteCacheKey, setQuote } from './quoteCache'
+import { stationCardNeedsQuote } from './station/station'
 import { extractToolPayload, parseSseMessages } from './mcp/client'
 import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
 import { loadMcpProviderConfigs } from './mcp/registry'
@@ -1378,6 +1380,39 @@ async function main(): Promise<void> {
         'https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg'
     )
   }
+
+  heading('20. Cache devis + skip fiche trop petite')
+  clearQuoteCache()
+  const qk = quoteCacheKey('gites', '38G253122', '2027-02-06', '2027-02-13', 8)
+  check('clé quote porte dates et guests', qk.includes('2027-02-06') && qk.includes('|8'))
+  setQuote(qk, { total: 4261.52 })
+  check('cache hit même séjour', getQuote(qk)?.total === 4261.52)
+  const otherWeek = quoteCacheKey('gites', '38G253122', '2027-02-13', '2027-02-20', 8)
+  check('S4 autre semaine = miss', getQuote(otherWeek) === undefined)
+  const otherGuests = quoteCacheKey('gites', '38G253122', '2027-02-06', '2027-02-13', 6)
+  check('autre nb de personnes = miss', getQuote(otherGuests) === undefined)
+
+  check(
+    'S2 6 pers pour 8 : pas de devis fiche',
+    stationCardNeedsQuote(
+      { url: 'https://reservation.les2alpes.com/x.html', fromPrice: true, priceText: '900 €', guests: 6, rooms: 4 },
+      { adults: 8, bedrooms: 2 }
+    ) === false
+  )
+  check(
+    'S2 8 pers fromPrice : devis requis',
+    stationCardNeedsQuote(
+      { url: 'https://reservation.les2alpes.com/x.html', fromPrice: true, priceText: '900 €', guests: 8, rooms: 4 },
+      { adults: 8, bedrooms: 2 }
+    ) === true
+  )
+  check(
+    '2 pièces pour 2 chambres : pas de devis',
+    stationCardNeedsQuote(
+      { url: 'https://reservation.les2alpes.com/x.html', fromPrice: true, guests: 8, rooms: 2 },
+      { adults: 4, bedrooms: 2 }
+    ) === false
+  )
 
   heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
   if (failures > 0) process.exitCode = 1

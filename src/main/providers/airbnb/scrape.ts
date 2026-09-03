@@ -31,6 +31,7 @@ import { nextProxy, toPlaywrightProxy, type ProxyConfig } from '../proxy'
 import { diagnoseEmptySearch } from './calendarBlocks'
 import { trySolveVisibleCaptcha } from '../../captchaBridge'
 import { SEARCH_WALK } from '@shared/searchWalk'
+import { blockHeavyResources } from '../webscrape/shared'
 
 export interface AirbnbScrapeParams extends AirbnbUrlParams {
   timeoutMs?: number
@@ -455,6 +456,7 @@ async function openPersistentContext(
       channel: 'chrome'
     })
     await context.addInitScript(STEALTH_INIT)
+    await blockHeavyResources(context)
     return context
   } catch {
     const context = await chromium.launchPersistentContext(profileDir(), {
@@ -462,6 +464,7 @@ async function openPersistentContext(
       args: [...((common.args as string[]) || []), '--no-sandbox']
     })
     await context.addInitScript(STEALTH_INIT)
+    await blockHeavyResources(context)
     return context
   }
 }

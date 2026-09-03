@@ -110,7 +110,32 @@ export async function getScrapeContext(
   }
   activeProxyRaw = desiredRaw
   await sharedContext.addInitScript(STEALTH_INIT)
+  await blockHeavyResources(sharedContext)
   return sharedContext
+}
+
+/**
+ * Images / polices / média / analytics : le parseur lit des URL et du JSON,
+ * pas les pixels. Mapbox et les tuiles n'entrent dans aucun critère.
+ * Les XHR métier (search, quote, Apollo) passent.
+ */
+export async function blockHeavyResources(context: BrowserContext): Promise<void> {
+  await context.route(
+    (url) => {
+      const href = url.toString()
+      if (
+        /\.(?:png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf|eot|mp4|webm|mp3|m4a|avi)(?:\?|$)/i.test(
+          href
+        )
+      ) {
+        return true
+      }
+      return /google-analytics|googletagmanager|doubleclick|facebook\.net|hotjar|mapbox|tiles\.openstreetmap|clarity\.ms|scorecardresearch/i.test(
+        href
+      )
+    },
+    (route) => route.abort()
+  )
 }
 
 export async function closeWebscrapeBrowser(): Promise<void> {

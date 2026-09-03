@@ -174,6 +174,7 @@ export function mergeAirbnbPaste(
       ...lodging,
       // Retrouvée : la marque d'absence tombe.
       missingSince: undefined,
+      availabilityStatus: 'available' as const,
       total: Math.round(total),
       pp: pricePerPersonNight(total),
       scannedAt: Date.now(),
@@ -238,7 +239,8 @@ export function mergeAirbnbPaste(
       importDomainId: domainId,
       scannedAt: Date.now(),
       priceCheckIn: priced ? checkIn : undefined,
-      priceCheckOut: priced ? checkOut : undefined
+      priceCheckOut: priced ? checkOut : undefined,
+      availabilityStatus: priced ? ('available' as const) : undefined
     }
   })
 

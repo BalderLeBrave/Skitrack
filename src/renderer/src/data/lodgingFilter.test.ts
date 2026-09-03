@@ -23,7 +23,14 @@ import {
   type LodgingFilterCriteria
 } from './lodgingFilter'
 import { medianTotal, keptLodgingId, listingKey, listingKeyFromUrl, mergeDupes } from './lodgings'
-import { mergeProviderReadings, noteOnFive } from './runProviderSearch'
+import {
+  conclusiveSourceLabels,
+  markAbsentFromScan,
+  mergeProviderReadings,
+  noteOnFive,
+  sourceScanIsConclusive
+} from './runProviderSearch'
+import { availabilityOf, isBookable } from './lodgingAvailability'
 import type { Lodging } from './lodgings'
 
 const STAY = { checkIn: '2027-02-06', checkOut: '2027-02-13' }
@@ -412,7 +419,14 @@ check(
     STAY
   )
 )
-check('un prix non daté mais complet passe', matchesLodgingFilters(confirme({}), STRICT, STAY))
+check(
+  'un prix non daté est écarté dès que le séjour a des dates',
+  !matchesLodgingFilters(
+    confirme({ priceCheckIn: undefined, priceCheckOut: undefined }),
+    STRICT,
+    STAY
+  )
+)
 // Le relevé Airbnb (`airbnbMerge.ts`) date ses prix mais ne renseigne jamais
 // `priceConfidence`. Exiger le seul drapeau écartait la totalité des annonces
 // Airbnb : ne garder qu'elles rendait une liste vide sous un compte de 61.
@@ -759,6 +773,162 @@ check('mergeDupes : une seule carte Gîtes', fused.length === 1, fused.length)
 check('listingKey identique', listingKey(a) === listingKey(b))
 const fusedReadings = mergeProviderReadings([a], [b])
 check('relevé daté met à jour, ne duplique pas', fusedReadings.length === 1, fusedReadings.length)
+
+console.log('\n14. Disponibilité garantie aux dates du séjour')
+check(
+  'Airbnb tarifé aux dates, sans champ availabilityStatus → matchesDemand',
+  matchesDemand(
+    lodging({
+      pers: 8,
+      ch: 4,
+      total: 2400,
+      src: 'Airbnb',
+      url: 'https://www.airbnb.fr/rooms/42',
+      priceCheckIn: STAY.checkIn,
+      priceCheckOut: STAY.checkOut
+    }),
+    { guests: 8, bedrooms: 4, datesSet: true }
+  )
+)
+check(
+  'unavailable explicite → écarté',
+  !matchesDemand(
+    lodging({ pers: 8, ch: 4, total: 2400, availabilityStatus: 'unavailable' }),
+    { guests: 8, bedrooms: 4, datesSet: true }
+  )
+)
+
+const ghost = lodging({
+  id: 101,
+  url: 'https://www.booking.com/hotel/fr/ghost.html',
+  src: 'Booking.com',
+  pers: 8,
+  ch: 4,
+  total: 1800,
+  priceConfidence: 'total_confirmed',
+  priceCheckIn: STAY.checkIn,
+  priceCheckOut: STAY.checkOut,
+  importDomainId: 7,
+  scannedAt: 1
+})
+const kept = lodging({
+  id: 102,
+  url: 'https://www.booking.com/hotel/fr/kept.html',
+  src: 'Booking.com',
+  pers: 8,
+  ch: 4,
+  total: 2100,
+  priceConfidence: 'total_confirmed',
+  priceCheckIn: STAY.checkIn,
+  priceCheckOut: STAY.checkOut,
+  importDomainId: 7,
+  scannedAt: 2
+})
+const otherStay = lodging({
+  id: 103,
+  url: 'https://www.booking.com/hotel/fr/other.html',
+  src: 'Booking.com',
+  pers: 8,
+  ch: 4,
+  total: 900,
+  priceConfidence: 'total_confirmed',
+  priceCheckIn: '2027-01-09',
+  priceCheckOut: '2027-01-16',
+  importDomainId: 7
+})
+const airbnbGhost = lodging({
+  id: 104,
+  url: 'https://www.airbnb.fr/rooms/99',
+  src: 'Airbnb',
+  pers: 8,
+  ch: 4,
+  total: 2500,
+  priceCheckIn: STAY.checkIn,
+  priceCheckOut: STAY.checkOut,
+  importDomainId: 7
+})
+const seen = new Set([listingKey(kept)])
+const afterAbsence = markAbsentFromScan([ghost, kept, otherStay, airbnbGhost], seen, {
+  checkIn: STAY.checkIn,
+  checkOut: STAY.checkOut,
+  domainId: 7,
+  conclusiveSources: new Set(['Booking.com']),
+  at: 99
+})
+check('absente d’un relevé Booking complet → missingSince', afterAbsence[0].missingSince?.at === 99)
+check(
+  'donc plus réservable',
+  availabilityOf(afterAbsence[0], STAY).status === 'gone' && !isBookable(afterAbsence[0], STAY)
+)
+check('revue dans le relevé → intacte', afterAbsence[1].missingSince === undefined)
+check('autre séjour → intacte', afterAbsence[2].missingSince === undefined)
+check('Airbnb n’est pas marqué ici', afterAbsence[3].missingSince === undefined)
+
+const incomplete = markAbsentFromScan([ghost], new Set(), {
+  checkIn: STAY.checkIn,
+  checkOut: STAY.checkOut,
+  domainId: 7,
+  conclusiveSources: new Set(),
+  at: 99
+})
+check('relevé incomplet → aucune absence conclue', incomplete[0].missingSince === undefined)
+
+const blocked = markAbsentFromScan([ghost], new Set(), {
+  checkIn: STAY.checkIn,
+  checkOut: STAY.checkOut,
+  domainId: 7,
+  conclusiveSources: new Set(['Gîtes de France']),
+  at: 99
+})
+check('autre source conclusive → Booking intact', blocked[0].missingSince === undefined)
+
+check(
+  'pagination exhausted → conclusif',
+  sourceScanIsConclusive({ error: null, count: 12, stoppedReason: 'exhausted' }) === true
+)
+check(
+  'max_pages → pas conclusif',
+  sourceScanIsConclusive({ error: null, count: 750, stoppedReason: 'max_pages' }) === false
+)
+check(
+  'blocked → pas conclusif',
+  sourceScanIsConclusive({ error: 'captcha', count: 0, stoppedReason: 'blocked', reasonCode: 'blocked' }) === false
+)
+check(
+  'not_wired → ignoré',
+  sourceScanIsConclusive({ error: null, count: 0, reasonCode: 'not_wired' }) === 'skip'
+)
+check(
+  'API sans pagination, lot non vide → conclusif',
+  sourceScanIsConclusive({ error: null, count: 8 }) === true
+)
+check(
+  'zéro sans pagination → pas conclusif',
+  sourceScanIsConclusive({ error: null, count: 0 }) === false
+)
+const labels = conclusiveSourceLabels([
+  { source: 'Booking.com', provider: 'booking-web', count: 20, error: null, elapsedMs: 1, stoppedReason: 'exhausted' },
+  { source: 'Booking.com', provider: 'booking', count: 20, error: null, elapsedMs: 1, stoppedReason: 'max_pages' },
+  { source: 'Gîtes de France', provider: 'gites-web', count: 4, error: null, elapsedMs: 1, stoppedReason: 'exhausted' }
+])
+check('Booking mixte exhausted + max_pages → pas conclusif', !labels.has('Booking.com'))
+check('Gîtes exhausted seul → conclusif', labels.has('Gîtes de France'))
+
+const stale = lodging({
+  url: CHAMONIX,
+  total: 1161,
+  scannedAt: 10,
+  pers: 8
+})
+const fresh = lodging({
+  url: CHAMONIX,
+  total: 2736,
+  scannedAt: 50,
+  pers: 6,
+  priceConfidence: 'total_confirmed'
+})
+const fusedScan = mergeProviderReadings([stale], [fresh])
+check('fusion recopie scannedAt du relevé', fusedScan[0].scannedAt === 50, fusedScan[0].scannedAt)
 
 if (failures > 0) {
   console.error(`\n${failures} test(s) en échec.`)

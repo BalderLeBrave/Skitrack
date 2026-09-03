@@ -37,6 +37,7 @@ import { availabilityOf } from '@/data/lodgingAvailability'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
+import { pushUiUndo } from '@/state/uiUndo'
 
 interface Props {
   lodging: Lodging
@@ -220,7 +221,10 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
 
   const picked = lg.id === state.lodgPickId
 
-  const openSheet = (): void => patch({ ficheId: lg.id })
+  const openSheet = (): void => {
+    pushUiUndo({ ficheId: state.ficheId })
+    patch({ ficheId: lg.id })
+  }
   const onKeyDown = (e: ReactKeyboardEvent<HTMLElement>): void => {
     if (e.key !== 'Enter' && e.key !== ' ') return
     // Espace ferait défiler la page sous la carte, Entrée validerait un
@@ -400,6 +404,7 @@ export function LodgingCard({ lodging: lg, domain, index = 99 }: Props): JSX.Ele
             data-testid={`lodgcard-keep-${lg.id}`}
             onClick={(e) => {
               stop(e)
+              pushUiUndo({ selLodgings: { ...state.selLodgings } })
               const next = { ...state.selLodgings }
               if (inSelection) delete next[domain.id]
               else next[domain.id] = lg.id

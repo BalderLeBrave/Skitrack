@@ -62,6 +62,8 @@ export interface RawCard {
   propertyType?: string
   pageIndex?: number
   searchRank?: number
+  /** Total annoncé par la SERP (« 87 établissements »). Lu sur la 1re carte. */
+  advertisedTotal?: number
 }
 
 /** Booking.com — cartes [data-testid="property-card"] ou liens /hotel/ */
@@ -236,6 +238,17 @@ export function extractBookingCards(): RawCard[] {
       guests,
     })
   })
+  const header =
+    document.querySelector('[data-testid="property-list-header"]')?.textContent ||
+    document.querySelector('h1')?.textContent ||
+    ''
+  const advertisedMatch = header.replace(/\u00a0/g, ' ').match(
+    /([\d][\d\s.,]{0,10})\s*(?:établissements?|logements?|hébergements?|properties|results)/i
+  )
+  if (advertisedMatch && out[0]) {
+    const n = Number(advertisedMatch[1].replace(/[\s.,]/g, ''))
+    if (Number.isFinite(n) && n > 0 && n <= 50_000) out[0].advertisedTotal = n
+  }
   return out
 }
 

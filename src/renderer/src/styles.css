@@ -850,6 +850,7 @@ select {
   top: 0;
   background: var(--panel);
   z-index: 2;
+  flex-wrap: wrap;
 }
 
 .drawer__head h3 {
@@ -857,6 +858,38 @@ select {
   font-size: 18px;
   flex: 1;
   min-width: 0;
+}
+
+.drawer__back {
+  flex: 1 0 100%;
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--duree-1, 0.16s) var(--standard, ease);
+}
+.drawer__back:hover {
+  color: var(--accent);
+}
+
+.walkbanner {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .drawer__body {

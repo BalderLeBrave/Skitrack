@@ -25,10 +25,11 @@
  */
 
 import type { ProviderAccommodation, ProviderOutcome } from '@shared/ipc-contract'
-import { formatStationRun } from '@shared/searchWalk'
+import { formatStationRun, type StationRunLog, type StationRunSource } from '@shared/searchWalk'
 import type { Lodging } from './lodgings'
-import { CENTRALE_SOURCE, listingKey, listingKeyFromUrl } from './lodgings'
+import { CENTRALE_SOURCE, listingKey, listingKeyFromUrl, srcOf } from './lodgings'
 import { hasConfirmedPrice, isDroppedGitesOffer, matchesDemand } from './lodgingFilter'
+import { isDoorway } from './lodgingAvailability'
 import { bookingCentralOf, stationNameOf } from './stations'
 
 /**
@@ -94,11 +95,17 @@ export interface ProviderSearchOutcome {
   error: string | null
   elapsedMs: number
   reasonCode?: string
+  /** Motif d'arrêt de la pagination, quand le connecteur en rend un. */
+  stoppedReason?: string
+  pagesFetched?: number
+  fetched?: number
+  advertised?: number
 }
 
 export interface RunProviderSearchResult {
   lodgings: Lodging[]
   outcomes: ProviderSearchOutcome[]
+  stationRun: StationRunLog
 }
 
 export interface RunProviderSearchParams {
@@ -350,7 +357,9 @@ export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]):
             priceConfidence: 'total_confirmed' as const,
             priceCheckIn: reading.priceCheckIn,
             priceCheckOut: reading.priceCheckOut,
-            missingSince: undefined
+            scannedAt: reading.scannedAt ?? Date.now(),
+            missingSince: undefined,
+            availabilityStatus: reading.availabilityStatus ?? 'available'
           }
         : {})
     }
@@ -358,6 +367,98 @@ export function mergeProviderReadings(existing: Lodging[], readings: Lodging[]):
 
   const added = readingsClean.filter((r) => !used.has(listingKey(r)))
   return added.length > 0 ? [...merged, ...added] : merged
+}
+
+/**
+ * Un relevé autorise-t-il à conclure qu'une annonce absente n'est plus libre ?
+ *
+ * `'skip'` : le connecteur n'a pas interrogé (pas câblé, délégué, pas d'URL).
+ * `false` : panne, blocage, pagination coupée — l'absence ne prouve rien.
+ * `true` : l'inventaire a été vu jusqu'au bout, ou la source a dit stock vide.
+ */
+export function sourceScanIsConclusive(
+  outcome: Pick<ProviderSearchOutcome, 'error' | 'reasonCode' | 'stoppedReason' | 'count'>
+): boolean | 'skip' {
+  const reason = outcome.reasonCode
+  if (reason === 'not_wired' || reason === 'delegated' || reason === 'no_official_url') {
+    return 'skip'
+  }
+  if (outcome.error) return false
+  if (reason && reason !== 'ok' && reason !== 'empty_inventory') return false
+  const stop = outcome.stoppedReason
+  if (stop === 'exhausted' || stop === 'empty_page') return true
+  if (
+    stop === 'max_pages' ||
+    stop === 'max_listings' ||
+    stop === 'budget' ||
+    stop === 'no_fresh' ||
+    stop === 'blocked'
+  ) {
+    return false
+  }
+  // API sans rapport de pagination : un lot non vide est l'inventaire rendu.
+  // Un zéro sans motif n'est pas une preuve — ça peut être un parse manqué.
+  return outcome.count > 0
+}
+
+/** Libellés dont **tous** les connecteurs interrogés ont conclu. */
+export function conclusiveSourceLabels(outcomes: ProviderSearchOutcome[]): Set<string> {
+  const byLabel = new Map<string, boolean[]>()
+  for (const outcome of outcomes) {
+    const verdict = sourceScanIsConclusive(outcome)
+    if (verdict === 'skip') continue
+    const flags = byLabel.get(outcome.source) ?? []
+    flags.push(verdict)
+    byLabel.set(outcome.source, flags)
+  }
+  const out = new Set<string>()
+  for (const [label, flags] of byLabel) {
+    if (flags.length > 0 && flags.every(Boolean)) out.add(label)
+  }
+  return out
+}
+
+export interface ScanAbsenceContext {
+  checkIn: string
+  checkOut: string
+  domainId: number
+  conclusiveSources: Set<string>
+  at: number
+}
+
+/**
+ * Marque `missingSince` les annonces d'une source conclusive que ce relevé
+ * n'a pas revues, au même séjour et au même domaine.
+ *
+ * Airbnb a son propre chemin (`mergeAirbnbPaste`, `absenceConclusive`) : on
+ * ne le retouche pas ici. Un import manuel et une porte d'entrée OSM non plus
+ * — aucune source ne les a confrontés à un inventaire.
+ *
+ * Marquée, pas supprimée. L'écran les retire via `isBookable` ; un relevé
+ * ultérieur qui les retrouve lève la marque.
+ */
+export function markAbsentFromScan(
+  lodgings: Lodging[],
+  seenKeys: Set<string>,
+  ctx: ScanAbsenceContext
+): Lodging[] {
+  if (ctx.conclusiveSources.size === 0) return lodgings
+  return lodgings.map((lodging) => {
+    if (isDoorway(lodging) || srcOf(lodging) === 'Import manuel') return lodging
+    const source = srcOf(lodging)
+    if (source === 'Airbnb') return lodging
+    if (!ctx.conclusiveSources.has(source)) return lodging
+    const sameStay =
+      lodging.priceCheckIn === ctx.checkIn && lodging.priceCheckOut === ctx.checkOut
+    const sameDomain = lodging.importDomainId == null || lodging.importDomainId === ctx.domainId
+    if (!sameStay || !sameDomain) return lodging
+    if (seenKeys.has(listingKey(lodging))) return lodging
+    if (lodging.missingSince) return lodging
+    return {
+      ...lodging,
+      missingSince: { checkIn: ctx.checkIn, checkOut: ctx.checkOut, at: ctx.at }
+    }
+  })
 }
 
 /**
@@ -405,8 +506,39 @@ export function outcomeSummary(o: ProviderOutcome): ProviderSearchOutcome {
     count: o.results.length,
     error: o.error,
     elapsedMs: o.elapsedMs,
-    reasonCode: o.reasonCode
+    reasonCode: o.reasonCode,
+    stoppedReason: o.pagination?.stoppedReason,
+    pagesFetched: o.pagination?.pagesFetched,
+    fetched: o.pagination?.listingsFound ?? o.results.length,
+    advertised: o.pagination?.advertised
   }
+}
+
+export function stationRunFromOutcomes(
+  params: {
+    destination: string
+    checkIn?: string
+    checkOut?: string
+    adults?: number
+    bedrooms?: number
+  },
+  outcomes: ProviderSearchOutcome[],
+  extra: Omit<StationRunSource, 'fork'>[] = []
+): StationRunLog {
+  return formatStationRun(params, [
+    ...outcomes.map((o) => ({
+      provider: o.provider,
+      fetched: o.fetched ?? o.count,
+      parsed: o.count,
+      shown: o.count,
+      pages_fetched: o.pagesFetched ?? (o.count > 0 ? 1 : 0),
+      stopped_reason: o.stoppedReason,
+      reason_code: o.reasonCode,
+      error: o.error,
+      advertised: o.advertised
+    })),
+    ...extra
+  ])
 }
 
 export async function runProviderSearch(
@@ -461,13 +593,14 @@ export async function runProviderSearch(
       pages_fetched: o.pagination?.pagesFetched ?? (o.results.length > 0 ? 1 : 0),
       stopped_reason: o.pagination?.stoppedReason,
       reason_code: o.reasonCode,
-      error: o.error
+      error: o.error,
+      advertised: o.pagination?.advertised
     }))
   )
-  console.info('[SKITRACK] station_run', JSON.stringify(stationRun))
 
   return {
     lodgings,
-    outcomes: aggregate.outcomes.map(outcomeSummary)
+    outcomes: aggregate.outcomes.map(outcomeSummary),
+    stationRun
   }
 }

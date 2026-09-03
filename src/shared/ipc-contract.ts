@@ -113,7 +113,7 @@ export interface AirbnbScrapeParams {
   minPrice?: number
   maxPrice?: number
   bedrooms?: number
-  /** Nombre de scrolls pour charger plus de résultats (défaut SEARCH_WALK.airbnbMaxScrolls = 25). */
+  /** Nombre de scrolls pour charger plus de résultats (défaut SEARCH_WALK.airbnbMaxScrolls = 15). */
   scrollCount?: number
   /** Tentatives max avec backoff exponentiel (défaut 3). */
   maxRetries?: number

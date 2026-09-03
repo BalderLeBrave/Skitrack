@@ -7,7 +7,7 @@ Preuve grep 2026-09-02, master.
 | [x] centrals.ts consommé | `station/centralLookup.ts` + `recon-centrales.mjs`. Moteur = `buildEngine` (`providers/index.ts`) itère les connecteurs enregistrés, pas une liste hardcodée de 4 marques. |
 | [x] chaque enabled a un adapter OU not_wired | 71/74 câblées. Rouges : Les Angles (Tourinsoft retiré). Voir `CENTRALES.md` / inventory subagent. |
 | [x] search appelé avec dates+guests+bbox UI | `runProviderSearch.ts` + `cozycozySearchUrl({checkIn,checkOut,adults,bedrooms})`. |
-| [x] pagination bouclée | Booking `collectPages` **25×25** (plafond 625, `max_listings` 750). Gîtes `page` 1-based, max **30**. Airbnb scroll idle 2 / max **25**. Abritel : re-scroll getResultList idle 2 / **25**. `SEARCH_WALK`. Live 2 Alpes avant patch : Booking 25/1p F5 ; Abritel 168/9p ; Gîtes 14/3p. |
+| [x] pagination bouclée | Booking `collectPages` **15×25** (plafond 375). Arrêt si la SERP annonce N logements (`advertised`). Gîtes `page` 1-based, max **15**. Airbnb scroll idle 2 / max **15**. Abritel re-scroll idle 2 / **15**. `SEARCH_WALK`. |
 | [x] détail/quote si liste incomplète | Gîtes : `enrichGitesStayTotals` → widget ITEA `gereResa.php`. Dates non remplissables → `unavailable`. |
 | [x] listingHosts cohérent | `src/shared/listingHosts.ts`. CozyCozy interdit comme source (doublon). Abritel/VRBO lisibles. |
 | [x] matchesDemand après enrich | `lodgingFilter.ts` `fitsParty` + `hasConfirmedPrice`. Null capacité = non éligible (plus « non annoncé » affiché en bandeau). |

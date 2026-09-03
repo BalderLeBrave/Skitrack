@@ -32,7 +32,8 @@ export const STOPPED_REASONS = [
   'budget',
   'empty_page',
   'no_fresh',
-  'blocked'
+  'blocked',
+  'advertised'
 ] as const
 
 export type StoppedReason = (typeof STOPPED_REASONS)[number]
@@ -42,6 +43,8 @@ export interface PaginationReport {
   listingsFound: number
   listingsDeduped: number
   stoppedReason: StoppedReason
+  /** Total annoncé par la SERP, si lu. */
+  advertised?: number
 }
 
 /** Liste d'offres portant le rapport de walk, pas une reconstruction aval. */

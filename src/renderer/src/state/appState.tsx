@@ -35,6 +35,7 @@ import { hasCoords, loadReferential } from '@/data/referentiel'
 import type { Person } from '@/domain/costs'
 import type { Place, RouteTable } from '@/domain/travel'
 import { loadRoutes } from '@/domain/travel'
+import type { StationRunLog } from '@shared/searchWalk'
 
 export type Screen =
   | 'accueil'
@@ -408,6 +409,11 @@ export interface AppState {
    */
   lodgEmpty: string[]
   /**
+   * Dernier journal unifié du relevé (Airbnb + centrales), pour l'écran.
+   * Non persisté : un walk d'une autre recherche au redémarrage mentirait.
+   */
+  lodgWalk: StationRunLog | null
+  /**
    * Logement mis en avant depuis la carte.
    *
    * Cliquer une bulle de prix et ouvrir une fiche sont deux gestes distincts :
@@ -693,6 +699,7 @@ export const INITIAL_STATE: AppState = {
   lodgQueried: [],
   lodgFailed: [],
   lodgEmpty: [],
+  lodgWalk: null,
   lodgPickId: null,
   lastScan: null,
   mergeDupes: true,

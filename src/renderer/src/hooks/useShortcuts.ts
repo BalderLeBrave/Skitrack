@@ -11,6 +11,7 @@
 import { useEffect } from 'react'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+import { popUiUndo } from '@/state/uiUndo'
 
 const MAX_RESULTS = 40
 
@@ -22,6 +23,20 @@ export function useShortcuts(): void {
     const onKey = (e: KeyboardEvent): void => {
       const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase() ?? ''
       if (tag === 'input' || tag === 'select' || tag === 'textarea') return
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        const snapshot = popUiUndo()
+        if (snapshot) {
+          e.preventDefault()
+          patch(snapshot)
+          return
+        }
+        if (state.ficheId != null) {
+          e.preventDefault()
+          patch({ ficheId: null })
+        }
+        return
+      }
 
       if (e.key === 'Escape') {
         patch({

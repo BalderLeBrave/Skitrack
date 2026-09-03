@@ -44,7 +44,7 @@ import {
 } from './webscrape/cozyResultList'
 import { emptyProviderReason, emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
 import { classifyProviderError, paginationOfList, stampPagination } from '@shared/reasonCodes'
-import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing, pageLooksLast } from '@shared/searchWalk'
+import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing, pageLooksLast, parseAdvertisedCount } from '@shared/searchWalk'
 import {
   extractListingsFromDeferredState,
   occupancyFromStaySearchResult
@@ -486,19 +486,19 @@ async function main(): Promise<void> {
   )
   check('le plafond de pages tient', plafond.length === 5 && bridé.length === 125, plafond.length)
 
-  const vingtCinq: string[] = []
-  const jusqua25 = await collectBookingPages(
+  const quinze: string[] = []
+  const jusqua15 = await collectBookingPages(
     stay,
     async (url) => {
-      vingtCinq.push(url)
+      quinze.push(url)
       const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
       return cards(rang, 25)
     }
   )
   check(
-    'défaut SEARCH_WALK : 25 pages Booking, pas 26',
-    vingtCinq.length === 25 && jusqua25.length === 625 && paginationOf(jusqua25)?.stoppedReason === 'max_pages',
-    { pages: vingtCinq.length, n: jusqua25.length, stop: paginationOf(jusqua25)?.stoppedReason }
+    'défaut SEARCH_WALK : 15 pages Booking, pas 16',
+    quinze.length === 15 && jusqua15.length === 375 && paginationOf(jusqua15)?.stoppedReason === 'max_pages',
+    { pages: quinze.length, n: jusqua15.length, stop: paginationOf(jusqua15)?.stoppedReason }
   )
 
   const page1 = cards(0, 25)
@@ -514,16 +514,37 @@ async function main(): Promise<void> {
   check('T2 Booking offset 0 ∪ N > page 1', union.length === 50 && union.length > page1.length)
   check('T1 ids page 2 exclusifs dans l’union', new Set(union.map((c) => c.sourceId)).size === 50)
   check(
-    'SEARCH_WALK Booking/Abritel/Airbnb 25, Gîtes 30',
-    SEARCH_WALK.maxPages === 25 &&
-      SEARCH_WALK.gitesMaxPages === 30 &&
-      SEARCH_WALK.cozyMaxScrolls === 25 &&
-      SEARCH_WALK.airbnbMaxScrolls === 25
+    'SEARCH_WALK 15 pages Booking/Gîtes/Abritel/Airbnb',
+    SEARCH_WALK.maxPages === 15 &&
+      SEARCH_WALK.gitesMaxPages === 15 &&
+      SEARCH_WALK.cozyMaxScrolls === 15 &&
+      SEARCH_WALK.airbnbMaxScrolls === 15
   )
   check('T5 chambre privée drop', isPrivateOrSharedListing('Private room') === true)
   check('T5 chambre d’hôtes drop', isPrivateOrSharedListing("Chambre d'hôtes") === true)
   check('T5 type absent conservé (pas 0 premature)', isPrivateOrSharedListing(undefined) === false)
   check('T5 appartement entire keep', isPrivateOrSharedListing('Appartement') === false)
+  check('annoncé 87 établissements', parseAdvertisedCount('Les 2 Alpes : 87 établissements trouvés') === 87)
+  check('annoncé ignore 3 chambres', parseAdvertisedCount('Appartement · 3 chambres') === null)
+
+  const announced: RawCard[] = []
+  for (let i = 0; i < 40; i++) announced.push({ sourceId: `a${i}`, title: `A${i}`, url: `https://b.test/${i}` })
+  announced[0] = { ...announced[0], advertisedTotal: 40 }
+  let advPages = 0
+  const advWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      advPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return announced.slice(rang, rang + 25)
+    }
+  )
+  check(
+    'walk s’arrête au total annoncé (40), pas 15 pages',
+    advWalk.length === 40 && advPages === 2 && paginationOf(advWalk)?.stoppedReason === 'advertised',
+    { n: advWalk.length, pages: advPages, stop: paginationOf(advWalk)?.stoppedReason }
+  )
 
   let blockedPages = 0
   const afterBlock = await collectPages(

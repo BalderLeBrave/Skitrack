@@ -364,6 +364,7 @@ export async function collectPages(
   let stoppedReason: StoppedReason = 'exhausted'
   let pagesFetched = 0
   let listingsFound = 0
+  let advertised: number | undefined
 
   for (let index = 0; index < maxPages; index++) {
     // La première page se lit toujours : sans elle il n'y a pas de relevé.
@@ -380,6 +381,9 @@ export async function collectPages(
     }
     pagesFetched++
     listingsFound += cards.length
+    if (advertised == null && cards[0]?.advertisedTotal && cards[0].advertisedTotal > 0) {
+      advertised = cards[0].advertisedTotal
+    }
     if (cards.length === 0) {
       stoppedReason = index === 0 ? 'empty_page' : 'exhausted'
       break
@@ -396,6 +400,10 @@ export async function collectPages(
 
     if (fresh === 0) {
       stoppedReason = 'no_fresh'
+      break
+    }
+    if (advertised != null && all.length >= advertised) {
+      stoppedReason = 'advertised'
       break
     }
     if (pageLooksLast(cards.length, pageSize)) {
@@ -416,7 +424,8 @@ export async function collectPages(
     pagesFetched,
     listingsFound,
     listingsDeduped: all.length,
-    stoppedReason
+    stoppedReason,
+    advertised
   }
   return all
 }

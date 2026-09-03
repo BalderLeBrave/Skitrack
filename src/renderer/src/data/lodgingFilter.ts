@@ -21,7 +21,7 @@
 
 import type { Lodging } from './lodgings'
 import { srcOf } from './lodgings'
-import { isBookable, isDoorway, type Stay } from './lodgingAvailability'
+import { isBookable, type Stay } from './lodgingAvailability'
 import { inRange } from './range'
 
 function foldType(s: string): string {
@@ -99,29 +99,32 @@ export interface LodgingFilterCriteria {
 /**
  * Prix mesuré, complet, et pour les dates demandées.
  *
- * Deux preuves possibles, et il en faut **une** :
+ * Quand le séjour a des dates, il en faut **une** preuve, et une seule : le
+ * tarif porte exactement ces dates. Un drapeau `total_confirmed` sans dates
+ * ne suffit plus — il ne dit pas *pour quel* séjour le total a été vu.
  *
- *  - la source a qualifié son tarif de complet (`total_confirmed`) ;
- *  - le tarif porte les dates du séjour en cours, ce qui vaut mesure.
- *
- * La seconde n'est pas un assouplissement de confort : le relevé Airbnb
- * (`data/airbnbMerge.ts`) date ses prix mais ne renseigne jamais
- * `priceConfidence`. Exiger le seul drapeau écartait donc la totalité des
- * annonces Airbnb, y compris celles relevées aux bonnes dates — c'est le
- * défaut qui vidait la liste quand on ne gardait qu'Airbnb.
+ * Sans dates dans l'UI, un total confirmé ou un tarif déjà daté reste une
+ * mesure. Le relevé Airbnb date ses prix et ne renseigne jamais
+ * `priceConfidence` : le match de dates le fait passer, le drapeau non.
  *
  * Ce qui reste écarté sans discussion : un « à partir de » (`partial`), un
- * tarif daté d'une autre semaine — Airbnb comme les centrales recalculent à
- * chaque période — et un prix ni qualifié ni daté, que rien n'atteste.
+ * tarif daté d'une autre semaine, et un prix ni qualifié ni daté.
  */
 export function hasConfirmedPrice(lodging: Lodging, stay: Stay): boolean {
   if (lodging.total <= 0) return false
   if (lodging.priceConfidence === 'partial' || lodging.priceConfidence === 'unknown') return false
 
-  const dated = lodging.priceCheckIn != null
-  if (dated) {
+  const staySet = Boolean(stay.checkIn && stay.checkOut)
+  if (staySet) {
+    // Dates renseignées : le tarif doit porter exactement ce séjour.
+    // Un `total_confirmed` sans dates ne prouve rien pour *ces* dates-là —
+    // c'est le défaut qui laissait des cartes d'un autre relevé traverser
+    // l'écran Logements.
     return lodging.priceCheckIn === stay.checkIn && lodging.priceCheckOut === stay.checkOut
   }
+
+  const dated = lodging.priceCheckIn != null
+  if (dated) return true
   return lodging.priceConfidence === 'total_confirmed'
 }
 
@@ -236,9 +239,9 @@ export function matchesDemand(listing: Lodging, demand: Demand): boolean {
 
   const availability_status = listing.availabilityStatus
   if (availability_status === 'unavailable' || availability_status === 'listing_gone') return false
-  if (demand.datesSet && !isDoorway(listing) && availability_status !== 'available') {
-    return false
-  }
+  // Un statut absent n'est pas un refus. Airbnb ne pose pas le champ ; la
+  // preuve de disponibilité pour les dates UI vit dans `hasConfirmedPrice`
+  // (total daté de ce séjour). Exiger `=== 'available'` ici vidait Airbnb.
 
   if (isCombinableHotel(listing)) {
     if (guest_capacity_max == null || bedroomFloor == null) return false

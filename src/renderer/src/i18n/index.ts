@@ -2069,6 +2069,7 @@ const CATALOG = {
   kb_filters: ['Afficher / masquer les filtres', 'Show / hide the filters'],
   kb_map: ['Afficher / masquer la carte', 'Show / hide the map'],
   kb_close: ['Fermer fiche / comparateur', 'Close details / comparison'],
+  kb_undo: ['Annuler (fiche, retenir)', 'Undo (details, keep)'],
   kb_enter: ['Entrée', 'Enter'],
   kb_esc: ['Échap', 'Esc'],
 

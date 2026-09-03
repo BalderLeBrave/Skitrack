@@ -11,7 +11,7 @@ import type { Lodging } from './lodgings'
 import { stationNameOf } from './stations'
 import type { SearchZone } from '@shared/geo'
 import { filterToZone } from '@shared/geo'
-import { SEARCH_WALK, formatStationRun } from '@shared/searchWalk'
+import { SEARCH_WALK, type StationRunSource } from '@shared/searchWalk'
 
 /** Délai max d'**une** passe (ms). Couvre les retries Playwright de cette passe. */
 export const AIRBNB_PASS_TIMEOUT_MS = 120_000
@@ -74,15 +74,28 @@ export interface RunAirbnbSearchOk {
    */
   missing: number
   message: string
+  walk: Omit<StationRunSource, 'fork'>
 }
 
 export interface RunAirbnbSearchFail {
   ok: false
   error: string
   timedOut?: boolean
+  walk: Omit<StationRunSource, 'fork'>
 }
 
 export type RunAirbnbSearchResult = RunAirbnbSearchOk | RunAirbnbSearchFail
+
+function airbnbWalk(partial: Partial<Omit<StationRunSource, 'fork'>>): Omit<StationRunSource, 'fork'> {
+  return {
+    provider: 'airbnb',
+    fetched: 0,
+    parsed: 0,
+    shown: 0,
+    pages_fetched: 0,
+    ...partial
+  }
+}
 
 function timeoutPromise(ms: number): Promise<never> {
   return new Promise((_, reject) => {
@@ -347,7 +360,16 @@ export async function runAirbnbSearch(
   // visiteur voit en arrivant. Les tranches viennent après, pour élargir.
   const first = await runPass(params, {}, Math.min(AIRBNB_PASS_TIMEOUT_MS, budgetMs))
   if (!('listings' in first)) {
-    return { ok: false, timedOut: first.timedOut, error: first.error }
+    return {
+      ok: false,
+      timedOut: first.timedOut,
+      error: first.error,
+      walk: airbnbWalk({
+        stopped_reason: first.timedOut ? 'budget' : 'blocked',
+        reason_code: first.timedOut ? '0_after_parse' : 'blocked',
+        error: first.error
+      })
+    }
   }
 
   const byUrl = new Map<string, RawListing>()
@@ -472,35 +494,27 @@ export async function runAirbnbSearch(
       ok: false,
       error:
         `Les ${listings.length} annonce(s) rendues par Airbnb sont toutes hors du périmètre du domaine. ` +
-        'Le nom de station envoyé a probablement été compris comme une autre commune.'
+        'Le nom de station envoyé a probablement été compris comme une autre commune.',
+      walk: airbnbWalk({
+        fetched: listings.length,
+        parsed: listings.length,
+        shown: 0,
+        pages_fetched: passes,
+        stopped_reason: sweepComplete ? 'exhausted' : 'budget',
+        reason_code: '0_after_parse',
+        error: 'hors zone'
+      })
     }
   }
 
-  console.info(
-    '[SKITRACK] station_run',
-    JSON.stringify(
-      formatStationRun(
-        {
-          destination: params.domainName,
-          checkIn: params.checkIn,
-          checkOut: params.checkOut,
-          adults: params.adults,
-          bedrooms: params.bedrooms
-        },
-        [
-          {
-            provider: 'airbnb',
-            fetched: listings.length,
-            parsed: listings.length,
-            shown: retenues.length,
-            pages_fetched: passes,
-            stopped_reason: sweepComplete ? 'exhausted' : 'budget',
-            reason_code: retenues.length > 0 ? 'ok' : '0_after_parse'
-          }
-        ]
-      )
-    )
-  )
+  const walk = airbnbWalk({
+    fetched: listings.length,
+    parsed: listings.length,
+    shown: retenues.length,
+    pages_fetched: passes,
+    stopped_reason: sweepComplete ? 'exhausted' : 'budget',
+    reason_code: retenues.length > 0 ? 'ok' : '0_after_parse'
+  })
 
   const { imported, added, updated, missing } = mergeAirbnbPaste(params.imported, retenues, {
     checkIn: meta.checkIn ?? params.checkIn,
@@ -541,7 +555,8 @@ export async function runAirbnbSearch(
       updated: 0,
       count: zoned.kept.length,
       missing,
-      message: `Les ${zoned.kept.length} annonce(s) sont déjà à jour.`
+      message: `Les ${zoned.kept.length} annonce(s) sont déjà à jour.`,
+      walk
     }
   }
 
@@ -568,6 +583,7 @@ export async function runAirbnbSearch(
     updated,
     count: zoned.kept.length,
     missing,
-    message: parts.join(' · ') + (note ? ` — ${note}` : '')
+    message: parts.join(' · ') + (note ? ` — ${note}` : ''),
+    walk
   }
 }

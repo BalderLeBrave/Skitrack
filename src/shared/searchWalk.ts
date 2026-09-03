@@ -1,21 +1,19 @@
 /**
  * Garde-fous du walk SERP — une station, pas une page.
  *
- * Booking : 25 pages (25×25 = 625 bruts).
- * Abritel : re-scroll getResultList, idle 2, max 25.
- * Airbnb : scrolls infinis, idle 2, max 25 (pas de cursor HAR).
- * Gîtes : page 1-based, max 30 (inchangé : pas dans la demande 25).
- * Budget 5 min : 25 pages lentes ne doivent pas coller l’écran plus longtemps.
+ * Booking / Gîtes / Abritel / Airbnb : 15 pages (ou 15 scrolls).
+ * Booking 15×25 = 375 bruts. On s'arrête plus tôt si la SERP annonce un total.
+ * Budget 3 min : 15 pages lentes ne collent pas l'écran.
  */
 
 export const SEARCH_WALK = {
-  maxPages: 25,
-  gitesMaxPages: 30,
-  maxListings: 750,
+  maxPages: 15,
+  gitesMaxPages: 15,
+  maxListings: 375,
   bookingPageSize: 25,
-  pagesBudgetMs: 300_000,
-  cozyMaxScrolls: 25,
-  airbnbMaxScrolls: 25,
+  pagesBudgetMs: 180_000,
+  cozyMaxScrolls: 15,
+  airbnbMaxScrolls: 15,
   idleCycles: 2
 } as const
 
@@ -47,6 +45,7 @@ export interface StationRunSource {
   stopped_reason?: string
   reason_code?: string
   error?: string | null
+  advertised?: number
   fork: StationRunFork | null
 }
 
@@ -89,6 +88,38 @@ export function forkOf(row: Omit<StationRunSource, 'fork'>): StationRunFork | nu
 export function pageLooksLast(cardCount: number, pageSize: number): boolean {
   if (pageSize <= 1) return cardCount < pageSize
   return cardCount < Math.ceil(pageSize * 0.8)
+}
+
+/**
+ * Total annoncé par la SERP (« 87 établissements trouvés »).
+ * Hors bornes 1–50 000 : ce n'est pas un décompte, on ignore.
+ */
+export function parseAdvertisedCount(text: string | null | undefined): number | null {
+  if (!text) return null
+  const t = text.replace(/\u00a0/g, ' ')
+  const m = t.match(
+    /([\d][\d\s.,]{0,10})\s*(?:établissements?|logements?|hébergements?|résultats?|properties|results|annonces?)/i
+  )
+  if (!m) return null
+  const n = Number(m[1].replace(/[\s.,]/g, ''))
+  if (!Number.isFinite(n) || n <= 0 || n > 50_000) return null
+  return n
+}
+
+export const STOPPED_REASON_LABEL: Record<string, string> = {
+  exhausted: 'fin de liste',
+  max_pages: 'plafond 15 pages',
+  max_listings: 'plafond logements',
+  budget: 'temps max',
+  empty_page: 'page vide',
+  no_fresh: 'pagination figée',
+  blocked: 'bloqué',
+  advertised: 'catalogue annoncé'
+}
+
+export function stoppedReasonLabel(reason?: string | null): string {
+  if (!reason) return ''
+  return STOPPED_REASON_LABEL[reason] ?? reason
 }
 
 export function formatStationRun(

@@ -125,9 +125,9 @@ comme connecteurs webscrape enregistrés dans `buildEngine`.
 
 | station | host | fichier à créer | contrat |
 | --- | --- | --- | --- |
-| Les Karellis | www.karellis.com | `src/main/providers/karellis.ts` **après** dump lodging (CF 403) | `AccommodationProvider.search` ; 0 → reason_code |
-| Vars (2e centrale) | www.alpes-sudlocations.com | idem | Elloha : pages résidence WP, pas une SERP logements datée |
-| Les Angles | lesangles.com | idem | OS 1395 / login les-angles, 1 produit OSMB, 0 vueinfo |
+| Les Karellis | www.karellis.com | dump 2026-09-03 : OT 200, `/hebergements/` **404**, `karellis-reservation.com` **403 CF Turnstile**. Pas d’adapter. | `AccommodationProvider.search` ; 0 → reason_code |
+| Vars (2e centrale) | www.alpes-sudlocations.com | dump 2026-09-03 : widget Elloha `idoi=f74875ea-…` + `GetCalendarAvailability`, reCAPTCHA. Calendrier, pas SERP logements. | Elloha : pages résidence WP |
+| Les Angles | lesangles.com | dump 2026-09-03 : catalogue WP SEO + `reservation.lesangles.com` widget Open System panier vide. | OS gadget lesangles, 0 SERP datée |
 
 Pralognan **sorti du rouge** le 2026-09-02 : LocVacances `getListe` + `getFiche`
 si « Chalet - N personnes » sans pièces. Voir `discovery_pralognan.md`.

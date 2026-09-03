@@ -30,11 +30,11 @@ Airbnb n’est **pas** dans ce JSON : autre IPC (`runAirbnbSearch`).
 
 | centrale | fetched (code) | parsed | shown (après matchesDemand) | pages_fetched | fork | stop fichier:ligne |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| Airbnb | scrape IPC, **pas** `SearchEngine` | StaySearchResult | 0 si `pers==0` ou `ch==0` | scroll max **25**, idle **2**, **pas de cursor** (INCONNU sans HAR) | **F4** si occupancy absente ; **F5** si pages_fetched===1 live | `index.ts` « pas un connecteur » · `dynamicHtml.ts` extractProgressive · `lodgingFilter.ts:249` |
+| Airbnb | scrape IPC, **pas** `SearchEngine` | StaySearchResult | 0 si `pers==0` ou `ch==0` | scroll max **15**, idle **2**, **pas de cursor** (INCONNU sans HAR) | **F4** si occupancy absente ; **F5** si pages_fetched===1 live | `index.ts` « pas un connecteur » · `dynamicHtml.ts` extractProgressive · `lodgingFilter.ts` |
 | Booking API | 0 sans jeton Demand | 0 | 0 | 0 | **null** (`not_wired`) | `booking.ts` return [] |
-| Booking web | Playwright si `SKITRACK_WEB_SCRAPE≠0` | cartes `property-card` | occupancy regex | lien `offset=` page, **max 25** / 625 | **F5** si live pages_fetched===1 | `searchWalk.ts` pageLooksLast · `providers.ts` collectPages |
-| Abritel (vrbo-web) | re-scroll getResultList idle 2 / 25 | occupancy obligatoire | quelques si dump 1 écran | **walk** jusqu’à idle / 750 | **F5** tant que live = 1 payload | `providers.ts` collectCozyApiHits |
-| Gîtes | GET `towns=` + `page=` | tuiles `.js-search-tile` | devis ITEA, cap **750** (budget 6 min) | `GITES_PAGE_STEP=1`, max **30** | **F5** si pages=1 live · **F4** hors devis | `urls.ts:172-173` · `providers.ts` collectPages |
+| Booking web | Playwright si `SKITRACK_WEB_SCRAPE≠0` | cartes `property-card` | occupancy regex | lien `offset=` page, **max 15** / 375, stop `advertised` | **F5** si live pages_fetched===1 ; **F2** sandbox challenge | `searchWalk.ts` pageLooksLast · `providers.ts` collectPages |
+| Abritel (vrbo-web) | re-scroll getResultList idle 2 / 15 | occupancy obligatoire | quelques si dump 1 écran | **walk** jusqu’à idle / 375 | **F5** tant que live = 1 payload | `providers.ts` collectCozyApiHits |
+| Gîtes | GET `towns=` + `page=` | tuiles `.js-search-tile` | devis ITEA, cap **375** (budget 3 min) | `GITES_PAGE_STEP=1`, max **15** | **F5** si pages=1 live · **F4** hors devis | `urls.ts` · `providers.ts` collectPages |
 | Autres centrals.ts | délégué famille / `not_wired` | — | — | — | **null** delegated ; **F1** Karellis / Elloha | `centralLookup.ts` emptyProviderReason |
 
 ## Fork (ordre figé)
@@ -45,7 +45,7 @@ Airbnb n’est **pas** dans ce JSON : autre IPC (`runAirbnbSearch`).
 - F2 [INCONNU] sans log session. Chemin challenge : `scrape.ts` `trySolveVisibleCaptcha` → `challenge_unresolved` / `blocked`.
 - F3 [FAUX] si `data-deferred-state-0` présent : parser `StaySearchResult`.
 - F4 [VRAI] **tant que** occupancy absente du nœud search : `matchesDemand` exige `pers>0` et chambres. `personCapacity` + `bedroomCount` + « N chambres » lus.
-- F5 **walk** : scroll 25 / idle 2 / max 750. Cursor source **INCONNU** (pas de HAR) → pas inventé. Prouver live : `pages_fetched` dans `station_run`.
+- F5 **walk** : scroll 15 / idle 2 / max 375. Cursor source **INCONNU** (pas de HAR) → pas inventé. Prouver live : `pages_fetched` dans `station_run`.
 
 **Booking**
 
@@ -53,11 +53,11 @@ Airbnb n’est **pas** dans ce JSON : autre IPC (`runAirbnbSearch`).
 - F2 live : `looksBlocked` → résolveur sidecar, sinon `blocked` (page 1 conservée).
 - F3 [INCONNU] sans dump SERP. Sélecteur `property-card`.
 - F4 [VRAI] si cartes sans « N chambres » / « N voyageurs » : `ch=0` → exclu.
-- F5 **walk** : `SEARCH_WALK.maxPages = 25`. Live avant patch : 25 / 1 page / exhausted. Seuil 80 % + lien suivant Booking + rapport non écrasé.
+- F5 **walk** : `SEARCH_WALK.maxPages = 15`. Live avant patch : 25 / 1 page / exhausted. Seuil 80 % + lien suivant Booking + rapport non écrasé. Dump sandbox 2026-09-03 : Booking SERP → `__challenge_` puis accueil (`blocked`, 0 cartes) — le walk ne peut pas s'exercer sans le résolveur headed.
 
 **Abritel**
 
-- F5 **walk** : re-scroll CozyCozy tant que `getResultList` apporte des ids (idle 2, max 25, 750). Live 2 Alpes : 168 / 9 pages.
+- F5 **walk** : re-scroll CozyCozy tant que `getResultList` apporte des ids (idle 2, max 15, 375). Live 2 Alpes : 168 / 9 pages.
 
 **listingHosts** : Airbnb/Booking **non** veto (`listingHosts.ts` cozycozy only).
 
@@ -65,11 +65,11 @@ Airbnb n’est **pas** dans ce JSON : autre IPC (`runAirbnbSearch`).
 
 ## Cible après patch
 
-- `max_pages` défaut **25** (Booking, Abritel, Airbnb), Gîtes **30**, `max_listings` **750** (`SEARCH_WALK`).
+- `max_pages` défaut **15** (Booking, Gîtes, Abritel, Airbnb), `max_listings` **375**. Arrêt anticipé si la SERP annonce un total (`stopped_reason=advertised`).
 - Booking suit le lien `offset=` de la SERP ; URL reconstruite en repli.
 - Page 2 bloquée **conserve** page 1, `stopped_reason=blocked`.
 - Abritel : re-scroll CozyCozy.
-- Airbnb : scroll idle 2, max 25 ; curseur **non inventé**.
+- Airbnb : scroll idle 2, max 15 ; curseur **non inventé**.
 - Compteurs `pagination` du walk, pas reconstruits après `keepInZone`.
 
 ## Tests

@@ -111,6 +111,14 @@ export function LodgingSheet({ domain: d }: { domain: Domain }): JSX.Element | n
         aria-label="Fiche logement"
       >
         <div className="drawer__head">
+          <button
+            type="button"
+            className="drawer__back"
+            data-testid="lodging-sheet-back"
+            onClick={close}
+          >
+            {t('back_to_results')}
+          </button>
           <h3>{lodging.name}</h3>
           {/* La note revient à droite du titre, comme sur la vignette. Elle
               vivait dans la ligne « type · capacité · note · source » retirée

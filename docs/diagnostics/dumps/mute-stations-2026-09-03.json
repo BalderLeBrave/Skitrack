@@ -1,0 +1,449 @@
+{
+  "at": "2026-09-03T08:04:46.993Z",
+  "items": [
+    {
+      "id": "booking_d2a_p1",
+      "url": "https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes&checkin=2027-02-13&checkout=2027-02-20&group_adults=4&no_rooms=1&selected_currency=EUR",
+      "finalUrl": "https://www.booking.com/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec463&srpvid=477c38d09549045f&&errorc_searchstring_not_found=ss",
+      "status": 202,
+      "title": "Booking.com | Site officiel | Hôtels, vols, voitures de location et hébergements",
+      "bytes": 645856,
+      "blocked": null,
+      "bodyPreview": "Booking.com | Site officiel | Hôtels, vols, voitures de location et hébergements Accéder au contenu principal EUR Ajouter mon établissement S'inscrire Se connecter Séjours Vols Vol + hôtel Voitures de location Croisières Attractions Taxis aéroport Trouvez des offres pour chaque saison Des chambres d'hôtes cosy aux hôtels de luxe Indiquez la destination Choisir des dates. Date d'arrivée — Date de départ Sélectionnez le nombre d'hébergements et de clients 2 adultes · 0 enfant · 1&nbsp;chambre Rechercher Je voyage pour le travail Ajouter des vols à ma recherche Pourquoi choisir Booking.com&nbsp;? Réservez maintenant et payez sur place Annulation GRATUITE sur la plupart des hébergements Plus de 300&nbsp;millions de commentaires Obtenez des informations de clients comme vous. Plus de 2&nbsp;millions d'établissements à travers le monde Hôtels, maisons d'hôtes, appartements, etc. Un Service Clients de confiance, disponible 24h/24 et 7j/7 Nous sommes là pour vous aider, à tout moment Offres Des promotions, des réductions et des offres spécialement pour vous Earn 6% in Travel Credits on stays with the Genius Rewards Visa® Plus get $150 in Credits after qualifying purchases on your card, an upgrade to Genius Level 3, and more. Terms apply. Learn more Évadez-vous à moindre coût avec nos Offres Saisonnières Il n’y a aucun piège, choisissez simplement votre escapade Bénéficiez de -15&nbsp;% ou plus sur certains séjours dans le monde entier. Réservez et profitez. Économiser avec une Offre Saisonnière Destinations en vogue Options les plus populaires parmi les voyageurs habitant aux États-Unis Las Vegas Orlando New York Atlanta Tokyo Voyagez plus en dépensant moins Connectez-vous pour économiser Économisez au moins 10&nbsp;% en repérant les établissements dotés du logo bleu Genius. Se",
+      "xhrs": [
+        {
+          "url": "https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes&checkin=2027-02-13&checkout=2027-02-20&group_adults=4&no_rooms=1&selected_currency=EUR",
+          "status": 202,
+          "type": "document"
+        },
+        {
+          "url": "https://www.booking.com/__challenge_h78IRKX3kpQxScCExxShBNwRUlb/d8c14d4960ca/a18a4859af9c/challenge.js",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://www.booking.com/__challenge_h78IRKX3kpQxScCExxShBNwRUlb/d8c14d4960ca/a18a4859af9c/inputs?client=browser",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/__challenge_h78IRKX3kpQxScCExxShBNwRUlb/d8c14d4960ca/a18a4859af9c/mp_verify",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/__challenge_h78IRKX3kpQxScCExxShBNwRUlb/d8c14d4960ca/a18a4859af9c/mp_verify",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/__challenge_h78IRKX3kpQxScCExxShBNwRUlb/d8c14d4960ca/a18a4859af9c/telemetry",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes&checkin=2027-02-13&checkout=2027-02-20&group_adults=4&no_rooms=1&selected_currency=EUR&chal_t=1788422687468&force_referer=",
+          "status": 302,
+          "type": "document"
+        },
+        {
+          "url": "https://www.booking.com/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394e",
+          "status": 200,
+          "type": "document"
+        },
+        {
+          "url": "https://cf.bstatic.com/psb/capla/static/js/node_modules_bookingcom_bui-react_components_BUIProvider_BUIProvider_context_js-_874b1.aaf45c7e.js",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://cdn.cookielaw.org/consent/3ea94870-d4b1-483a-b1d2-faf1d982bb31/3ea94870-d4b1-483a-b1d2-faf1d982bb31.json",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://www.booking.com/page/v0/chunk-metadata?chunk=8d036236&mfe=b-index-lp-web-mfe&lang=fr&namespace=dRBJZWCF",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://cdn.cookielaw.org/consent/3ea94870-d4b1-483a-b1d2-faf1d982bb31/01971113-1449-7d95-a048-a052802d94fc/fr.json",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://account.booking.com/privacy-consents/implicit",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://sink.gw.booking.com/v1/sink",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://www.booking.com/dml/graphql?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec4",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/dml/graphql?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec4",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/dml/graphql?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec4",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/dml/graphql?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec4",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/dml/graphql?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec4",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://www.booking.com/dml/graphql?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec4",
+          "status": 200,
+          "type": "fetch"
+        }
+      ],
+      "booking": {
+        "header": "Trouvez des offres pour chaque saison",
+        "cards": 0,
+        "nextOffsets": []
+      },
+      "lodgingHrefs": [
+        "https://www.booking.com/hotel/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec463&aid=304142",
+        "https://www.booking.com/chalet/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec463&aid=304142",
+        "https://www.booking.com/aparthotels/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec463&aid=304142",
+        "https://www.booking.com/capsule-hotel/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec463&aid=304142",
+        "https://www.booking.com/aparthotels/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=8b4c4d4efb2ffd8b067c0c4a394ec463&aid=304142",
+        "https://www.booking.com/hotel/index.fr.html?label=gen173nr-10CAQoggJCEnNlYXJjaF9sZXMgMiBhbHBlc0gNWARojAKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AqDU5NQGwAIB0gIkYzVmMDMzNjEtZTc1ZC00MTcyLWJhZjctNjlmOGU5ZjI0MGFj2AIB4AIB&sid=9e6a274b57b23c2e0b2b24f5e12d3bd3&aid=304142"
+      ]
+    },
+    {
+      "id": "karellis_ot",
+      "url": "https://www.karellis.com/",
+      "finalUrl": "https://www.karellis.com/",
+      "status": 200,
+      "title": "Les Karellis : station de ski familiale en Maurienne",
+      "bytes": 264125,
+      "blocked": null,
+      "bodyPreview": "Les Karellis : station de ski familiale en Maurienne Les Karellis : station de ski familiale en Maurienne Aller au contenu Réservez votre séjour Achetez votre forfait fr en Menu fr en Fermer Réservez votre séjour Achetez votre forfait Découvrez Les Karellis Découvrez la station Nos valeurs Comment venir aux Karellis Les Karellis en été Contact Skier aux Karellis Skier aux Karellis Le domaine skiable Forfaits de ski Location du matériel Cours de ski Activités Balades &amp; Randonnées Intérieur Extérieur Voir toutes les activités Mon séjour Hébergements aux Karellis Offres et bons plans Une semaine idéale aux Karellis Commerces Services Où manger ? Où boire ? Le blog des Karellis Agenda Info live Webcams Plan des pistes Météo Info trafic Contactez-nous FAQ Documentation Votre avis Aux Karellis Réservez votre séjour Webcams Météo Plan de pistes Info trafic Aux Karellis, On s’y retrouve Du 19 décembre 2026 au 10 avril 2027 Réservez votre Séjour Achetez votre Forfait Votre navigateur ne supporte pas les vidéos HTML Les Karellis Partez à la découverte de la station Nichée au milieu d’une forêt de Mélèzes, bordée par le Lac de Pramol, notre station des Karellis offre une accessibilité facilitée, un partage collectif et une multitude d’activités de découverte de notre environnement naturel.&nbsp; Nos garanties sont des vacances sans contraintes, pour tous à 1600 mètres d’altitude. Outdoor First Trace Outdoor Piste ludique Outdoor Balade en chiens de traîneau Balades et randonnées Randonnée en raquettes Outdoor Domaine Nordique Outdoor Domaine Alpin Voir toutes les activités hiver La station des Karellis Quelques chiffres clés 34 pistes de ski alpin et nordique 24 km de randonnées raquettes balisés 14 activités 25 événements 2520 mêtres d’altitude Nos coups de cœur Lors de chaqu",
+      "xhrs": [
+        {
+          "url": "https://www.karellis.com/wp-json/complianz/v1/banner?lang=fr&locale=fr_FR&token=qmice",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-V2CYQ5JNG1&gtm=45je6911v9105249756za200zd9105249756&_p=1788422692723&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AAAAAGA&are=1&cid=1285504815.1788422693&frm=0&pscdl=noapi&rcb=2&sr=1440x900&uaa=x8",
+          "status": 204,
+          "type": "fetch"
+        }
+      ],
+      "lodgingHrefs": [
+        "https://www.karellis-reservation.com/liste-offres-thematisee/"
+      ]
+    },
+    {
+      "id": "karellis_resa",
+      "url": "https://www.karellis-reservation.com/",
+      "finalUrl": "https://www.karellis-reservation.com/",
+      "status": 403,
+      "title": "Un instant…",
+      "bytes": 28773,
+      "blocked": "cloudflare",
+      "bodyPreview": "Un instant… www.karellis-reservation.com Vérification de sécurité en cours Ce site utilise un service de sécurité pour se protéger contre les bots malveillants. Cette page s’affiche pendant que le site vérifie que vous n’êtes pas un bot. Vérification réussie. En attente de la réponse de www.karellis-reservation.com. Enable JavaScript and cookies to continue Ray ID: a3533f11fdff13bc Performances et sécurité par Cloudflare Confidentialité",
+      "xhrs": [
+        {
+          "url": "https://challenges.cloudflare.com/turnstile/v0/g/330e41bb475c/api.js?onload=khCN8&render=explicit",
+          "status": 200,
+          "type": "script"
+        }
+      ],
+      "lodgingHrefs": []
+    },
+    {
+      "id": "karellis_heberg",
+      "url": "https://www.karellis.com/hebergements/",
+      "finalUrl": "https://www.karellis.com/hebergements/",
+      "status": 404,
+      "title": "Page non trouvée - Les Karellis",
+      "bytes": 262872,
+      "blocked": null,
+      "bodyPreview": "Page non trouvée - Les Karellis Page non trouvée - Les Karellis Aller au contenu Réservez votre séjour fr en Menu fr en Fermer Réservez votre séjour Découvrez Les Karellis Découvrez la station Nos valeurs Comment venir aux Karellis Les Karellis en hiver Randonner aux Karellis Randonner aux Karellis Itinéraire de randonnées Club nature Club montagne Activités Balades et randonnées Bien-Être Extérieur Intérieur Voir toutes les activités Découvrez les Pass Activités Mon séjour Hébergements aux Karellis Offres et bons plans Une semaine idéale aux Karellis Commerces Services Où manger ? Où boire ? Le blog des Karellis Agenda Info live Webcams Météo Info trafic Contactez-nous FAQ Documentation Votre avis Aux Karellis Réservez votre séjour 404 Cette page n’existe pas. Retour vers la page d’accueil Aux Karellis, on s’y retrouve… Véritable station de montagne été/hiver, les Karellis sont au cœur de vos vacances pratiques et sans contraintes. Liens utiles FAQ Webcam Documentation Agenda Podcast Les Amis de Karl Tourisme adapté Contacts info@karellis.com 04 79 59 50 36 Réservation Réservez votre séjour Achetez votre forfait Les Karellis 2024 – Cookies – Mentions légales – Politique de confidentialté – Conditions générales de ventes Accessibilité : non-conforme , en cours d’amélioration Mis à flot par Pilot’in Vous n’êtes pas sur la bonne saison du site Voir la saison actuelle Gérer le consentement Pour offrir les meilleures expériences, nous utilisons des technologies telles que les cookies pour stocker et/ou accéder aux informations des appareils. Le fait de consentir à ces technologies nous permettra de traiter des données telles que le comportement de navigation ou les ID uniques sur ce site. Le fait de ne pas consentir ou de retirer son consentement peut avoir un effet négatif",
+      "xhrs": [
+        {
+          "url": "https://www.karellis.com/wp-json/complianz/v1/banner?lang=fr&locale=fr_FR&token=inabt",
+          "status": 200,
+          "type": "xhr"
+        }
+      ],
+      "lodgingHrefs": [
+        "https://www.karellis.com/hebergements/#wp--skip-link--target",
+        "https://www.karellis-reservation.com/liste-offres-thematisee/",
+        "https://www.karellis.com/hebergements/#",
+        "https://www.karellis.com/hebergements/#",
+        "https://www.karellis.com/hebergements/#",
+        "https://www.karellis.com/hebergements/#",
+        "https://www.karellis.com/hebergements/#",
+        "https://www.karellis.com/hebergements/#",
+        "https://www.karellis.com/hebergements/#"
+      ]
+    },
+    {
+      "id": "vars_elloha",
+      "url": "https://www.alpes-sudlocations.com/",
+      "finalUrl": "https://www.alpes-sudlocations.com/",
+      "status": 200,
+      "title": "Alpes sud location - séjour hiver été à Vars - séjour ski locations",
+      "bytes": 306472,
+      "blocked": "challenge",
+      "bodyPreview": "Alpes sud location - séjour hiver été à Vars - séjour ski locations Gérer le consentement aux cookies Pour offrir les meilleures expériences, nous utilisons des technologies telles que les cookies pour stocker et/ou accéder aux informations des appareils. Le fait de consentir à ces technologies nous permettra de traiter des données telles que le comportement de navigation ou les ID uniques sur ce site. Le fait de ne pas consentir ou de retirer son consentement peut avoir un effet négatif sur certaines caractéristiques et fonctions. Fonctionnel Fonctionnel Toujours activé Le stockage ou l’accès technique est strictement nécessaire dans la finalité d’intérêt légitime de permettre l’utilisation d’un service spécifique explicitement demandé par l’abonné ou l’utilisateur, ou dans le seul but d’effectuer la transmission d’une communication sur un réseau de communications électroniques. Préférences Préférences Le stockage ou l’accès technique est nécessaire dans la finalité d’intérêt légitime de stocker des préférences qui ne sont pas demandées par l’abonné ou la personne utilisant le service. Statistiques Statistiques Le stockage ou l’accès technique qui est utilisé exclusivement à des fins statistiques. Le stockage ou l’accès technique qui est utilisé exclusivement dans des finalités statistiques anonymes. En l’absence d’une assignation à comparaître, d’une conformité volontaire de la part de votre fournisseur d’accès à internet ou d’enregistrements supplémentaires provenant d’une tierce partie, les informations stockées ou extraites à cette seule fin ne peuvent généralement pas être utilisées pour vous identifier. Marketing Marketing Le stockage ou l’accès technique est nécessaire pour créer des profils d’utilisateurs afin d’envoyer des publicités, ou pour suivre l’utilisat",
+      "xhrs": [
+        {
+          "url": "https://fonts.googleapis.com/css?family=Nunito%3A1%2C300%2C400%2C400italic%2C500%2C700%2C700italic%7CPT%20Serif%3A400%2C400%7CRoboto%3A100%2C100italic%2C200%2C200italic%2C300%2C300italic%2C400%2C400italic%2C500%2C500italic%2C600%2C600italic",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@500&family=Playpen+Sans:wght@400;500&display=swap",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://www.google.com/recaptcha/api.js?render=6LcScrQpAAAAAJrdi72EgfpBmCV3cGFEznZkOFRt&ver=3.0",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcScrQpAAAAAJrdi72EgfpBmCV3cGFEznZkOFRt&co=aHR0cHM6Ly93d3cuYWxwZXMtc3VkbG9jYXRpb25zLmNvbTo0NDM.&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=ynbgupt",
+          "status": 200,
+          "type": "document"
+        },
+        {
+          "url": "https://reservation.elloha.com/Widget/BookingEngine/6dec24ec-415c-4251-af67-baa0b206d31f?idoi=f74875ea-e624-4667-be17-ca8cf7fe84b6&culture=fr-FR",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://www.youtube.com/iframe_api",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://reservation.elloha.com/Widget/BookingEngineCustomUi/6dec24ec-415c-4251-af67-baa0b206d31f?timestamp=20241106143845",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://www.gstatic.com/recaptcha/api2/logo_48.png",
+          "status": 200,
+          "type": "image"
+        },
+        {
+          "url": "https://www.google.com/recaptcha/api2/webworker.js?hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://www.youtube.com/s/player/9470c977/www-widgetapi.vflset/www-widgetapi.js",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://reservation.elloha.com/API/WebService/GetCalendarAvailability?idOi=f74875ea-e624-4667-be17-ca8cf7fe84b6&idListPrestations=f7a38984-c902-48f7-a79a-10126b5e65ea_265b6300-9bd7-4a35-8f7c-8434ab7c6eb4_6299bbc1-3996-43f3-a046-b283feea8148",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://www.youtube.com/embed/Wu5AIvBOMoM?controls=1&rel=0&playsinline=0&modestbranding=0&autoplay=0&enablejsapi=1&origin=https%3A%2F%2Fwww.alpes-sudlocations.com&widgetid=1&forigin=https%3A%2F%2Fwww.alpes-sudlocations.com%2F&aoriginsup=1&v",
+          "status": 200,
+          "type": "document"
+        },
+        {
+          "url": "https://www.google.com/recaptcha/api2/reload?k=6LcScrQpAAAAAJrdi72EgfpBmCV3cGFEznZkOFRt",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT",
+          "status": 200,
+          "type": "xhr"
+        },
+        {
+          "url": "https://www.google.com/recaptcha/api2/clr?k=6LcScrQpAAAAAJrdi72EgfpBmCV3cGFEznZkOFRt",
+          "status": 200,
+          "type": "fetch"
+        }
+      ],
+      "lodgingHrefs": [
+        "https://www.secure-hotel-booking.com/Residence-ARYA-Living-Stone/JT2Z/",
+        "https://hotelecureuil.com/",
+        "https://hotelecureuil.com/",
+        "https://hotelecureuil.com/"
+      ]
+    },
+    {
+      "id": "angles_list",
+      "url": "https://lesangles.com/tous-les-hebergements/",
+      "finalUrl": "https://lesangles.com/tous-les-hebergements/",
+      "status": 200,
+      "title": "Tous les hébergements - Les Angles",
+      "bytes": 407252,
+      "blocked": "challenge",
+      "bodyPreview": "Tous les hébergements - Les Angles Axeptio consent Plateforme de Gestion du Consentement : Personnalisez vos Options Notre plateforme vous permet d'adapter et de gérer vos paramètres de confidentialité, en garantissant la conformité avec les réglementations. Personnalisez vos préférences pour contrôler la manière dont vos informations sont manipulées. Webcams En Famille Forfaits Découvrir la station&nbsp; Randonnées &amp; Expériences&nbsp; Activités &amp; Loisirs&nbsp; Guide pratique&nbsp; Découvrir la station Préparez votre séjour aux Angles en vous informant sur les transports, l’état des routes et les différents hébergements. Respectueuse de l’environnement, la station vous détaille ses engagements (labels, normes, bornes électriques,…). En savoir + Tous les hébergements Station Nature Nos Brochures Se déplacer Accès / Routes Les Angles pour tous Randonnées &amp; Expériences A pied à en VTT, profitez de nos parcours adaptés à tous les niveaux. Nous proposons des randonnées pédestres sous différentes formes : sentiers thématiques, courses d’orientations ou randonnées classiques en Capcir. En savoir + Les parcours pédestres Les parcours VTT Loueurs de matériels Les incontournables Les expériences BaladAngles Activités &amp; Loisirs Découvrez toutes les activités et les loisirs à faire en famille ou entre amis proposés par l’ensemble de nos prestataires. Les bons plans activités, c’est par là ! En savoir + Activités Natures Activités Détentes Activités Ludiques Activités Sensations Activités Culturelles Guide pratique Restauration, commerces, services, agenda… Retrouvez notre guide qui vous permettra d’accéder rapidement aux informations utiles pour la préparation et le bon déroulement de votre séjour aux Angles. En savoir + Se restaurer S’informer Services Se déplacer ",
+      "xhrs": [
+        {
+          "url": "https://lesangles.com/wp-content/plugins/smartsearchwp/css/main.css?ver=2.8.6",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://lesangles.com/wp-content/plugins/search-filter-pro/public/assets/css/search-filter.min.css?ver=2.5.21",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://lesangles.com/wp-content/plugins/smartsearchwp/js/scripts/fontawesome-bafa15e11b.js?ver=2.8.6",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://lesangles.com/wp-content/plugins/smartsearchwp/js/dist/wdgpt.main.bundle.js?ver=2.8.6",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-FFJ75JYV3S&gtm=45je6911h1v890510748za200zd890510748&_p=1788422707977&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&gdid=dZTNiMT&_eu=AAAAAGAC&are=1&cid=195283134.1788422709&frm=0&pscdl=noapi&rcb=2&sr=14",
+          "status": 204,
+          "type": "fetch"
+        },
+        {
+          "url": "https://client.axept.io/projectconfigurations/brands/6151eb304a163615c3150195.json?r=0",
+          "status": 200,
+          "type": "fetch"
+        },
+        {
+          "url": "https://fonts.axept.io/fonts.googleapis.com/css?family=Source%20Sans%203:regular,500,600,700",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://api.axept.io/v1/analytics/evts",
+          "status": 204,
+          "type": "fetch"
+        },
+        {
+          "url": "https://api.axept.io/v1/analytics/evts",
+          "status": 204,
+          "type": "ping"
+        },
+        {
+          "url": "https://static.axept.io/pack_fr-json.js",
+          "status": 200,
+          "type": "script"
+        }
+      ],
+      "lodgingHrefs": [
+        "https://lesangles.com/tous-les-hebergements/",
+        "https://lesangles.com/tous-les-services/?_sft_categories-service=commerce%2Cservice&tsc_cat=bar-restaurant%2Chotel-restaurant%2Crestaurant%2Crestauration-rapide",
+        "https://lesangles.com/tous-les-hebergements/",
+        "https://lesangles.com/tous-les-services/?_sft_categories-service=commerce%2Cservice&tsc_cat=bar-restaurant%2Chotel-restaurant%2Crestaurant%2Crestauration-rapide",
+        "https://lesangles.com/hebergement/refuge-cal-chalon/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-chalet/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-cabanat/",
+        "https://lesangles.com/hebergement/cottage-des-pleiades/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-la-ferme/",
+        "https://lesangles.com/hebergement/chalet-pin-dur/",
+        "https://lesangles.com/hebergement/appartement-bouquetin/",
+        "https://lesangles.com/hebergement/appartement-cosy-coeur-de-station/",
+        "https://lesangles.com/hebergement/maison-village-rue-de-lecole/",
+        "https://lesangles.com/hebergement/la-grange-de-la-petite-ourse/",
+        "https://lesangles.com/hebergement/chalet-cosy/",
+        "https://lesangles.com/hebergement/le-petit-relais/",
+        "https://lesangles.com/tous-les-hebergements/",
+        "https://lesangles.com/ca/tous-les-hebergements/",
+        "https://lesangles.com/es/tous-les-hebergements/",
+        "https://lesangles.com/en/tous-les-hebergements/",
+        "https://lesangles.com/tous-les-hebergements/"
+      ]
+    },
+    {
+      "id": "angles_resa",
+      "url": "https://reservation.lesangles.com/",
+      "finalUrl": "https://reservation.lesangles.com/",
+      "status": 200,
+      "title": "Office de Tourisme des Angles - Reservation en ligne",
+      "bytes": 23916,
+      "blocked": null,
+      "bodyPreview": "Office de Tourisme des Angles - Reservation en ligne --> Découvrir la station Randonnées &amp; Expériences Activités &amp; Loisirs Guide Pratique En Famille Mon panier Mes coordonnées Finaliser ma réservation Votre panier est vide. Retour $Total/Parametres/ParamGlobales/Globales/PageDefaut/Contenus/Contenu[@IdLangue=$IdLangue] --> $ResaAmorcee index $IdLangue!='fr' _ $IdLangue .aspx Retour Retour --> Avenue de Mont-Louis 66210 | Les Angles +33 4 68 04 32 76 Les Angles c All right reserved. Réalisation AttrapTemps Mentions légales | CGV LIENS Hébergements Accès Route Les Angles en famille Brochures NOS AUTRES SITES Mairie Les Angles Angléo Lou Bac Mountain Bike Park Les Angles c All right reserved. Réalisation AttrapTemps Mentions légales | CGV &nbsp;",
+      "xhrs": [
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Poppins:wght@400;800&display=swap",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/api15/rel/themes/lesangles/app.min.css",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i,700,700i",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/std/json/tracking/dico.js",
+          "status": 200,
+          "type": "script"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/api15/rel/fonts/poppins/poppins-medium.woff2",
+          "status": 200,
+          "type": "font"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/api15/rel/fonts/poppins/poppins-bold.woff2",
+          "status": 200,
+          "type": "font"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/api15/rel/themes/lesangles/api-panier.min.css",
+          "status": 200,
+          "type": "stylesheet"
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-QSGR7238SN&gtm=45je6920h2v9125446120za20g&_p=1788422714545&gcd=13l3l3l3l2l1&npa=0&dma=0&_eu=EBAI&are=1&cid=195283134.1788422709&frm=0&ir=1&ngs=1&pscdl=noapi&rcb=19&sr=1440x900&uaa=x86&uab",
+          "status": 204,
+          "type": "fetch"
+        },
+        {
+          "url": "https://gadget.open-system.fr/widgets/themes/std/json/tracking/dico-lesangles.js",
+          "status": 200,
+          "type": "script"
+        }
+      ],
+      "lodgingHrefs": [
+        "https://lesangles.com/nos-hebergements/"
+      ]
+    }
+  ]
+}

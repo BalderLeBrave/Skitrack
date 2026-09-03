@@ -20,21 +20,53 @@ import { AIRBNB_SEARCH_TIMEOUT_MS, runAirbnbSearch } from '@/data/runAirbnbSearc
 import { centralCapabilityOf } from '@/data/centralCapability'
 import { enrichWithAccess } from '@/data/lodgingAccess'
 import {
+  conclusiveSourceLabels,
   lodgingsFromOutcome,
+  markAbsentFromScan,
   mergeProviderReadings,
   outcomeSummary,
   runProviderSearch,
   sourceLabelOf,
-  sourceStatuses
+  sourceStatuses,
+  stationRunFromOutcomes
 } from '@/data/runProviderSearch'
 import { hasCoords } from '@/data/referentiel'
 import { domainRadiusKm, domainZone } from '@shared/geo'
+import { stoppedReasonLabel, type StationRunLog } from '@shared/searchWalk'
 import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { LODG_FILTER_RESET, stayCriteriaReady, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
+
+function WalkBanner({ walk }: { walk: StationRunLog | null }): JSX.Element | null {
+  if (!walk) return null
+  const rows = walk.sources.filter((s) => {
+    if (s.reason_code === 'delegated') return false
+    if (s.provider === 'booking' && (s.reason_code === 'not_wired' || s.fetched === 0)) return false
+    return true
+  })
+  if (rows.length === 0) return null
+  return (
+    <div className="walkbanner" data-testid="station-walk">
+      {rows.map((s) => {
+        const stop = stoppedReasonLabel(s.stopped_reason)
+        const bits = [
+          `${s.shown} logement${s.shown === 1 ? '' : 's'}`,
+          `${s.pages_fetched} page${s.pages_fetched === 1 ? '' : 's'}`,
+          stop || null,
+          s.fork || null
+        ].filter(Boolean)
+        return (
+          <div key={s.provider}>
+            {sourceLabelOf(s.provider)} : {bits.join(' · ')}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 export function LodgingsPage(): JSX.Element {
   const { eur, fmt, fmtDay } = useFormat()
@@ -232,6 +264,7 @@ export function LodgingsPage(): JSX.Element {
       lodgSearchMsg: 'Recherche des logements…',
       lodgEmpty: [],
       lodgFailed: [],
+      lodgWalk: null,
       selLodgings: nextKept
     })
 
@@ -261,17 +294,27 @@ export function LodgingsPage(): JSX.Element {
     const progressive: Lodging[] = []
     const progressiveOutcomes: ReturnType<typeof outcomeSummary>[] = []
 
+    const walkParams = {
+      destination: d.name,
+      checkIn: state.arrDate,
+      checkOut: state.depDate,
+      adults: state.travelers,
+      bedrooms: state.rooms > 0 ? state.rooms : undefined
+    }
+
     const unsub = window.skitrack.providers.onOutcome((raw) => {
       progressiveOutcomes.push(outcomeSummary(raw))
       const batch = lodgingsFromOutcome(raw, searchParams, seen)
       const label = sourceLabelOf(raw.provider)
+      const liveWalk = stationRunFromOutcomes(walkParams, progressiveOutcomes)
       if (batch.length > 0) {
         progressive.push(...batch)
         patch({
           // Fusion, pas concaténation : une annonce déjà connue est mise à jour
           // à son rang au lieu d'apparaître en double.
           imported: mergeProviderReadings(baseImported, progressive),
-          lodgSearchMsg: `${sourceLabelOf(raw.provider)} · +${batch.length} — ${progressive.length} au total`
+          lodgSearchMsg: `${sourceLabelOf(raw.provider)} · +${batch.length} — ${progressive.length} au total`,
+          lodgWalk: liveWalk
         })
       } else if (raw.error) {
         // Message court : ne pas coller la stack technique dans le bandeau.
@@ -284,14 +327,16 @@ export function LodgingsPage(): JSX.Element {
           lodgSearchMsg:
             progressive.length > 0
               ? `${progressive.length} offre(s) — ${soft}`
-              : soft
+              : soft,
+          lodgWalk: liveWalk
         })
       } else {
         patch({
           lodgSearchMsg:
             progressive.length > 0
               ? `${progressive.length} offre(s) — recherche en cours…`
-              : `${label} : aucune offre pour ces dates`
+              : `${label} : aucune offre pour ces dates`,
+          lodgWalk: liveWalk
         })
       }
     })
@@ -342,8 +387,8 @@ export function LodgingsPage(): JSX.Element {
       // connecteurs.
       const queried =
         others.status === 'fulfilled'
-          ? [...new Set(outcomes.map((o) => o.source))]
-          : state.lodgQueried
+          ? [...new Set([...outcomes.map((o) => o.source), 'Airbnb'])]
+          : [...new Set([...(state.lodgQueried ?? []), 'Airbnb'])]
 
       // Le relevé **met à jour** ce qui est déjà connu au lieu de s'effacer
       // devant lui. Une annonce enregistrée gardait sinon à vie le prix et la
@@ -393,6 +438,32 @@ export function LodgingsPage(): JSX.Element {
         imported = merged.map((l) => byId.get(l.id) ?? l)
       }
 
+      const airbnbWalk =
+        airbnb.status === 'fulfilled'
+          ? airbnb.value.walk
+          : {
+              provider: 'airbnb',
+              fetched: 0,
+              parsed: 0,
+              shown: 0,
+              pages_fetched: 0,
+              stopped_reason: 'blocked',
+              reason_code: 'blocked',
+              error: String(airbnb.reason)
+            }
+      const unifiedWalk = stationRunFromOutcomes(
+        {
+          destination: d.name,
+          checkIn: state.arrDate,
+          checkOut: state.depDate,
+          adults: state.travelers,
+          bedrooms: state.rooms > 0 ? state.rooms : undefined
+        },
+        others.status === 'fulfilled' ? others.value.outcomes : progressiveOutcomes,
+        [airbnbWalk]
+      )
+      console.info('[SKITRACK] station_run', JSON.stringify(unifiedWalk))
+
       if (!ok && otherLodgings.length === 0) {
         const why = [
           airbnb.status === 'rejected'
@@ -407,21 +478,28 @@ export function LodgingsPage(): JSX.Element {
           ...new Set(outcomes.filter((o) => o.error).map((o) => `${o.source} : ${o.error}`))
         ].filter(Boolean)
         setSearchError(why.join(' · ') || t('scan_no_source_answered'))
-        patch({ lodgPhase: 'criteria', lodgSearchMsg: null, lodgQueried: queried })
+        patch({ lodgPhase: 'criteria', lodgSearchMsg: null, lodgQueried: queried, lodgWalk: unifiedWalk })
         return
       }
 
-      // Une source muette doit se voir même quand la recherche aboutit par
-      // ailleurs : sans cela, un Booking sans clé serait indiscernable d'un
-      // Booking sans offre. L'information descend dans « État du relevé »,
-      // consultable à tout moment, au lieu de passer dans un bandeau qu'on lit
-      // une fois et qu'on referme.
-      //
-      // L'agrégation se fait par libellé et non par connecteur : plusieurs
-      // connecteurs partagent un libellé — les centrales, les deux chemins
-      // Booking — et un libellé ne peut pas être à la fois en panne et sans
-      // offre. Voir `sourceStatuses`.
       const { failed, empty } = sourceStatuses(outcomes)
+      if (!ok) {
+        if (!failed.includes('Airbnb')) failed.push('Airbnb')
+      } else if (ok.count === 0 && !empty.includes('Airbnb')) {
+        empty.push('Airbnb')
+      }
+
+      if (others.status === 'fulfilled') {
+        const conclusive = conclusiveSourceLabels(outcomes)
+        const seenKeys = new Set(otherLodgings.map((l) => listingKey(l)))
+        imported = markAbsentFromScan(imported, seenKeys, {
+          checkIn: state.arrDate,
+          checkOut: state.depDate,
+          domainId: d.id,
+          conclusiveSources: conclusive,
+          at: Date.now()
+        })
+      }
 
       patch({
         imported,
@@ -435,6 +513,7 @@ export function LodgingsPage(): JSX.Element {
         lodgQueried: queried,
         lodgFailed: failed,
         lodgEmpty: empty,
+        lodgWalk: unifiedWalk,
         lastScan: Date.now()
       })
     } catch (err) {
@@ -723,6 +802,7 @@ export function LodgingsPage(): JSX.Element {
                 // pas ce que les filtres laissent passer.
                 known={derived.lodgAll}
               />
+              <WalkBanner walk={state.lodgWalk} />
               {/*
                 Premières offres au fil de l'eau + squelettes pour la place
                 restante : rien ne saute quand le relevé se termine.
@@ -990,6 +1070,8 @@ export function LodgingsPage(): JSX.Element {
               )}
             </div>
           )}
+
+          <WalkBanner walk={state.lodgWalk} />
 
           {(state.lodgFailed.length > 0 || state.lodgEmpty.length > 0) && (
             <div className="srcbanner" style={{ borderColor: 'var(--warn)' }}>

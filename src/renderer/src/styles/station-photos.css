@@ -102,7 +102,7 @@
 }
 
 .stphotos__lien {
-  color: var(--accent-texte);
+  color: var(--link);
   text-decoration: underline;
   margin-top: 2px;
   align-self: flex-start;
@@ -174,7 +174,7 @@
 }
 
 .stphoto__lien {
-  color: var(--accent-texte);
+  color: var(--link);
   text-decoration: underline;
   flex-shrink: 0;
 }

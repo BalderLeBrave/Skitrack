@@ -21,6 +21,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 // distribution de l'application — le fichier est embarqué dans le paquet.
 import heroJpg from '@/assets/hero.jpg'
 import { Flocons } from '@/components/Flocons'
+import { PopularStations } from '@/components/PopularStations'
 import { SearchBar } from '@/components/SearchBar'
 import { massifPhoto } from '@/components/photos'
 import { useFormat } from '@/hooks/useFormat'
@@ -230,12 +231,6 @@ export function HomePage(): JSX.Element {
             neutralisé pour ne pas assombrir deux fois. */}
         <div className="home__hero-photo" style={{ backgroundImage: `url(${heroJpg})` }} aria-hidden />
         <div className="home__hero-veil" aria-hidden />
-        {/* Le mot géant passe DERRIÈRE le contenu et devant la photo : c'est une
-            texture, pas un titre. Le vrai titre est le `h1` plus bas, et lui
-            seul est lu. */}
-        <span className="home__geant" aria-hidden>
-          {t('appName')}
-        </span>
         {/* Même réglage que la neige des écrans-outils : qui la coupe dans
             Réglages la coupe partout, y compris ici. */}
         {state.snowfall && <Flocons />}
@@ -279,6 +274,7 @@ export function HomePage(): JSX.Element {
         </div>
       </header>
 
+      <PopularStations />
 
       {/* Sommaire de massifs : titre collant à gauche, cartes empilées au
           centre, index numéroté collant à droite. L'index suit le défilement

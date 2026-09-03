@@ -120,3 +120,34 @@ ligne, libellés longs **tronqués** (ellipse) au lieu de passer à la ligne.
 - P2 : version étroite de l'écran Logements — la carte occupe encore la moitié.
 - P2 : carte du domaine absente en prévisualisation (MapLibre non chargé dans le
   shim) — vérifier dans l'app Electron.
+
+## Passe « 21st-inspired » (2026-06, brief Fable 5.1) — Phase A/B/C
+Décisions utilisateur : (1) jetons du brief — CTA corail #FF5A3C, fond #F7FBFE,
+glacier #E8F3FA, texte #0B1F33 ; (2) E2 = panneau « Comparer » sur l'écran
+Stations (cases sur les cartes → tableau) ; (3) E5 = écran « Demande de
+réservation » (récap + formulaire court → récap texte + deep link OTA, aucun
+envoi serveur) ; (4) livrer E1 seul, valider, puis E2→E5.
+- 21st.dev : CLI présent mais exige un login → blocs reconstruits
+  « 21st-inspired, no registry ». Pas de Tailwind/shadcn ajouté.
+- **Jetons** (`styles/cairn.css`) : rampe `--crn-corail-*` ; `--accent` = corail
+  (CTA unique), nouveau rôle `--marque` = azur (données, états, liens, focus) ;
+  pont `--brand/--brand-soft/--link` → marque. Sombre : corail-400. Rayon carte
+  16px. Dans `styles.css`/`journey.css`/`result-cards.css`, les usages « état »
+  de `--accent` (onglet actif, toggles, votes, calendrier, avatars, survols de
+  carte…) sont passés à `--brand` ; seuls les CTA restent corail.
+- **E1 Accueil** : `SearchBar.tsx` — segment Altitude remplacé par **Chambres**
+  (`state.rooms`, 0 = Toutes, max 6) ; loupe → pilule corail « Rechercher »
+  (`sb-go`, `sb-rooms-less/more/count`) ; pilule empilée sous 760 px. Mot géant
+  en `background-clip: text` retiré (interdit par le brief). Nouveau
+  `components/PopularStations.tsx` : 6 cartes = plus grands domaines du
+  référentiel (un par forfait relié ; représentant = photo créditée puis
+  village le plus haut), photo + crédit CC, neige **seulement** si relevé, km
+  pistes, altitudes, case « Comparer » → `state.stationCompareIds` (persisté),
+  lien « Comparer {n} stations → » vers `recherche` (tableau à venir en E2).
+  Clic photo → fiche (`domFicheId`). `data-testid` : `home-popular`,
+  `popcard-{id}`, `popcard-open-{id}`, `popcard-compare-{id}`,
+  `popcard-snow-{id}`, `home-popular-compare-go`.
+- Vérifié : tsc ✓, i18n:test (774×2) ✓, aperçu clair/sombre/390 px ✓.
+- Rouge restant (Phase F) : `.map__btn--accent` « Afficher les zones de temps
+  de trajet » est un 2ᵉ CTA corail sur l'écran Stations ; contraste blanc sur
+  corail 3.1:1 (AA large seulement) ; nav utilitaire déborde sous 390 px.

@@ -3,7 +3,7 @@
  *
  * Elle ne calcule rien et n'ouvre aucun écran de son propre chef : chaque
  * segment écrit dans **l'état existant** (`domainQuery`, `arrDate`/`depDate`,
- * `travelers`, `baseMin`/`baseMax`) et la loupe fait ce que faisait le bouton
+ * `travelers`, `rooms`) et le bouton « Rechercher » fait ce que faisait le bouton
  * « Comparer les domaines » — `patch({ tab: 'recherche' })`. Aucun second
  * système de dates : les semaines sont celles de `data/snow.ts`, les mêmes que
  * l'écran Logements applique.
@@ -20,7 +20,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DateRangePicker } from './DateRangePicker'
-import { RangeFilter } from './RangeFilter'
 import { placeIndex } from '@/data/places'
 import type { PlaceSuggestion } from '@/data/places'
 import { stationsNear } from '@/data/nearbyStations'
@@ -38,10 +37,13 @@ const MIN_QUERY = 2
 
 const TRAVELERS_MAX = 12
 
+/** Même plafond que le champ « chambres min » de l'écran Logements. */
+const ROOMS_MAX = 6
+
 /** Une frappe n'est pas une requete : on attend que la saisie se pose. */
 const NEARBY_DEBOUNCE_MS = 450
 
-type Segment = 'dest' | 'dates' | 'people' | 'alt'
+type Segment = 'dest' | 'dates' | 'people'
 
 export function SearchBar(): JSX.Element {
   const { state, patch, domains } = useApp()
@@ -283,34 +285,45 @@ export function SearchBar(): JSX.Element {
         </div>
       </div>
 
-      <div className={segClass('alt')}>
-        <span className="sb__label">{t('altitude_bottom')}</span>
-        <button
-          type="button"
-          className="sb__value"
-          aria-expanded={open === 'alt'}
-          onClick={() => setOpen(open === 'alt' ? null : 'alt')}
-        >
-          {`${fmt(state.baseMin)} m`}
-        </button>
-        {open === 'alt' && (
-          <div className="sb__pop sb__pop--wide">
-            <RangeFilter
-              range="base"
-              label={t('altitude_bottom')}
-              openKey="range_all_altitudes"
-              format={(v) => `${fmt(v)} m`}
-              unit="m"
-            />
-          </div>
-        )}
+      <div className="sb__seg">
+        <span className="sb__label">{t('sb_rooms')}</span>
+        <div className="sb__stepper">
+          <button
+            type="button"
+            className="sb__round"
+            aria-label={t('sb_rooms_less')}
+            disabled={state.rooms <= 0}
+            data-testid="sb-rooms-less"
+            onClick={() => patch({ rooms: Math.max(0, state.rooms - 1) })}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 12h10" />
+            </svg>
+          </button>
+          <span className="sb__count u-num" data-testid="sb-rooms-count">
+            {state.rooms === 0 ? t('sb_rooms_any') : state.rooms}
+          </span>
+          <button
+            type="button"
+            className="sb__round"
+            aria-label={t('sb_rooms_more')}
+            disabled={state.rooms >= ROOMS_MAX}
+            data-testid="sb-rooms-more"
+            onClick={() => patch({ rooms: Math.min(ROOMS_MAX, state.rooms + 1) })}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 7v10M7 12h10" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <button type="button" className="sb__go" title={t('sb_go')} aria-label={t('sb_go')} onClick={() => go(state.domainQuery)}>
+      <button type="button" className="sb__go" data-testid="sb-go" onClick={() => go(state.domainQuery)}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="11" cy="11" r="6.5" />
           <path d="M16 16l4.5 4.5" />
         </svg>
+        <span>{t('sb_go')}</span>
       </button>
     </div>
   )

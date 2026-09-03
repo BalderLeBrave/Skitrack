@@ -5,7 +5,9 @@
        `main.tsx` ;
      * le sélecteur du thème sombre passe de `[data-cairn='sombre']` à
        `[data-theme='dark']`, l'attribut que `appState.tsx` pose sur <html>.
-   Tout le reste est mot pour mot l'original.
+   Passe « 21st-inspired » (2026-06) : le corail #FF5A3C revient comme **seul**
+   CTA (`--accent`), l'azur descend au rôle `--marque` (données, états,
+   liens, focus). Fond #F7FBFE, glacier #E8F3FA, texte #0B1F33.
    ==========================================================================
 
    CAIRN — système de conception SKITRACK
@@ -50,6 +52,21 @@
   --crn-ardoise-900:  #1b242c;
   --crn-ardoise-950:  #111820;
   --crn-ardoise-1000: #0b1015;
+
+  /* Nuit — encre et fonds du brief : fond, glacier, texte */
+  --crn-nuit-fond:    #f7fbfe;
+  --crn-nuit-glacier: #e8f3fa;
+  --crn-nuit-glacier-2: #d6e8f3;
+  --crn-nuit-texte:   #0b1f33;
+
+  /* Corail — l'action, et rien d'autre. Un seul CTA par zone de décision */
+  --crn-corail-50:  #fff1ed;
+  --crn-corail-100: #ffd9d0;
+  --crn-corail-300: #ff9c87;
+  --crn-corail-400: #ff7a5f;
+  --crn-corail-500: #ff5a3c;
+  --crn-corail-600: #e8482c;
+  --crn-corail-700: #b83a22;
 
   /* Azur — marque. Le 600 est la valeur déjà validée, tout est construit autour */
   --crn-azur-50:   #eef6fd;
@@ -107,12 +124,12 @@
    -------------------------------------------------------------------------- */
 
 [data-cairn], :root {
-  --fond:              var(--crn-ardoise-0);
+  --fond:              var(--crn-nuit-fond);
   --panneau:           var(--crn-ardoise-0);
-  --surface:           var(--crn-ardoise-50);
-  --surface-appuyee:   var(--crn-ardoise-100);
+  --surface:           var(--crn-nuit-glacier);
+  --surface-appuyee:   var(--crn-nuit-glacier-2);
 
-  --texte:             var(--crn-ardoise-800);   /* 12.50:1 sur fond — AAA */
+  --texte:             var(--crn-nuit-texte);    /* 16.9:1 sur fond — AAA */
   --texte-2:           var(--crn-ardoise-500);   /*  5.01:1 sur fond — AA  */
   --texte-3:           var(--crn-ardoise-450);   /*  3.79:1 — libellés non essentiels et texte substitut uniquement */
   --texte-inverse:     var(--crn-ardoise-0);
@@ -121,11 +138,19 @@
   --bordure:           var(--crn-ardoise-300);   /* contour de carte */
   --bordure-forte:     var(--crn-ardoise-400);   /*  3.23:1 — contour de champ saisissable */
 
-  --accent:            var(--crn-azur-600);      /*  5.16:1 sur fond — AA */
-  --accent-appuye:     var(--crn-azur-700);
-  --accent-tenu:       var(--crn-azur-50);
-  --accent-texte:      var(--crn-azur-700);      /*  6.52:1 sur --accent-tenu */
-  --sur-accent:        var(--crn-ardoise-0);     /*  5.16:1 sur --accent */
+  /* CTA unique : corail. Texte blanc à 3.1:1 — réservé aux libellés ≥ 15px
+     en graisse 600 ; l'appui (survol) remonte à 4.0:1. */
+  --accent:            var(--crn-corail-500);
+  --accent-appuye:     var(--crn-corail-600);
+  --accent-tenu:       var(--crn-corail-50);
+  --accent-texte:      var(--crn-corail-700);    /*  5.6:1 sur fond */
+  --sur-accent:        var(--crn-ardoise-0);
+
+  /* Marque : l'azur validé, pour les données, les états et les liens */
+  --marque:            var(--crn-azur-600);      /*  5.16:1 sur fond — AA */
+  --marque-appuyee:    var(--crn-azur-700);
+  --marque-tenue:      var(--crn-azur-50);
+  --marque-texte:      var(--crn-azur-700);      /*  6.52:1 sur --marque-tenue */
 
   --ok:                var(--crn-sapin-600);
   --ok-tenu:           var(--crn-sapin-50);
@@ -168,11 +193,16 @@
   --bordure:           #2b3945;
   --bordure-forte:     var(--crn-ardoise-600);   /*  3.44:1 sur fond */
 
-  --accent:            var(--crn-azur-400);
-  --accent-appuye:     var(--crn-azur-300);
-  --accent-tenu:       var(--crn-azur-950);
-  --accent-texte:      var(--crn-azur-300);      /*  8.66:1 */
+  --accent:            var(--crn-corail-400);
+  --accent-appuye:     var(--crn-corail-300);
+  --accent-tenu:       #3a1d16;
+  --accent-texte:      var(--crn-corail-300);    /*  7.1:1 sur fond */
   --sur-accent:        var(--crn-ardoise-0);
+
+  --marque:            var(--crn-azur-400);
+  --marque-appuyee:    var(--crn-azur-300);
+  --marque-tenue:      var(--crn-azur-950);
+  --marque-texte:      var(--crn-azur-300);      /*  8.66:1 */
 
   --ok:                var(--crn-sapin-300);
   --ok-tenu:           #102b22;
@@ -265,7 +295,7 @@
      une liste dense prend un air de page marketing. */
   --rayon-champ:    8px;
   --rayon-controle: 10px;
-  --rayon-carte:    14px;
+  --rayon-carte:    16px;
   --rayon-plein:    999px;
 
   /* Trois niveaux, définis par ce qu'ils signifient, pas par leur profondeur.
@@ -352,8 +382,8 @@
 }
 .crn-chip:hover { border-color: var(--bordure-forte); }
 .crn-chip[aria-pressed='true'] {
-  background: var(--accent-tenu); border-color: var(--accent);
-  color: var(--accent-texte); font-weight: var(--gras-action);
+  background: var(--marque-tenue); border-color: var(--marque);
+  color: var(--marque-texte); font-weight: var(--gras-action);
 }
 
 /* Badge d'état — porte le sens, jamais une action */
@@ -366,7 +396,7 @@
 .crn-badge--ok        { background: var(--ok-tenu);        color: var(--ok-texte); }
 .crn-badge--attention { background: var(--attention-tenu); color: var(--attention-texte); }
 .crn-badge--alerte    { background: var(--alerte-tenu);    color: var(--alerte-texte); }
-.crn-badge--marque    { background: var(--accent-tenu);    color: var(--accent-texte); }
+.crn-badge--marque    { background: var(--marque-tenue);   color: var(--marque-texte); }
 .crn-badge--mineral   { background: var(--mineral-tenu);   color: var(--mineral-texte); }
 .crn-badge--neige     { background: var(--neige);          color: var(--neige-texte); }
 
@@ -388,7 +418,7 @@
   transition: box-shadow var(--duree-2) var(--standard), border-color var(--duree-2) var(--standard);
 }
 .crn-carte--interactive:hover { box-shadow: var(--elev-flottant); }
-.crn-carte--retenue { border: 2px solid var(--accent); }
+.crn-carte--retenue { border: 2px solid var(--marque); }
 .crn-carte--ecartee { opacity: .62; }
 .crn-carte--ecartee img, .crn-carte--ecartee .crn-photo { filter: grayscale(.75); }
 
@@ -402,7 +432,7 @@
   transition: transform var(--duree-1) var(--standard);
 }
 .crn-pin:hover { transform: scale(1.06); }
-.crn-pin[aria-pressed='true'] { background: var(--accent); color: var(--sur-accent); border-color: transparent; }
+.crn-pin[aria-pressed='true'] { background: var(--marque); color: var(--sur-accent); border-color: transparent; }
 
 /* Ligne de tableau comparatif */
 .crn-ligne { padding: var(--pad-ligne) var(--esp-6); }
@@ -415,7 +445,7 @@
 /* Jauge — une seule échelle, toujours légendée par ses bornes */
 .crn-jauge { height: 6px; border-radius: var(--rayon-plein); background: var(--surface-appuyee); overflow: hidden; }
 .crn-jauge > i { display: block; height: 100%; border-radius: var(--rayon-plein); background: var(--neige); }
-.crn-jauge--score > i { background: var(--accent); }
+.crn-jauge--score > i { background: var(--marque); }
 
 /* État vide — une phrase de constat, une phrase d'issue, une action */
 .crn-vide { padding: var(--esp-11) var(--esp-7); text-align: center; color: var(--texte-2); }
@@ -436,11 +466,11 @@
   --dim: var(--texte-3);
   --accent-soft: var(--accent-tenu);
   --on-accent: var(--sur-accent);
-  --brand: var(--accent);
-  --brand-soft: var(--accent-tenu);
+  --brand: var(--marque);
+  --brand-soft: var(--marque-tenue);
   --snow-light: var(--neige);
   --snow-ink: var(--neige-texte);
-  --link: var(--accent-texte);
+  --link: var(--marque-texte);
   --ok-soft: var(--ok-tenu);
   --warn: var(--attention);
   --warn-soft: var(--attention-tenu);

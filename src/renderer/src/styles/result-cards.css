@@ -130,7 +130,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  color: var(--accent);
+  color: var(--brand);
   font-size: 11px;
   font-weight: 600;
   text-align: center;

@@ -6,6 +6,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import heroJpg from '@/assets/hero.jpg'
+import { Flocons } from '@/components/Flocons'
 import { massifPhoto, stationPhoto } from '@/components/photos'
 import { BASE_SOURCES } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
@@ -104,6 +105,17 @@ export function HomeScreen(): JSX.Element {
           <HeroPhoto />
         </div>
         <div className="rc-hero__veil" aria-hidden />
+        <Flocons
+          count={240}
+          sizeMin={0.45}
+          sizeMax={1.8}
+          speedMin={0.22}
+          speedMax={0.95}
+          wind={0.14}
+          windVariation={0.4}
+          opacityMin={22}
+          opacityMax={68}
+        />
         <div className="rc-hero__inner">
           <span className="rc-hero__eyebrow" data-testid="home-badge">
             {t('home_badge').replace('{n}', fmt(domains.length)).replace('{m}', String(massifCount))}

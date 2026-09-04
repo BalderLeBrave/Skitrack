@@ -291,7 +291,8 @@
 /* --- Hero + Search (E1) ----------------------------------------------------- */
 .rc-hero__scene { position: absolute; inset: 0; background: linear-gradient(180deg, #1f4f86 0%, #4a8ac4 30%, #9cc6e6 58%, #e6f0f7 100%); }
 .rc-hero__scene canvas { display: block; width: 100% !important; height: 100% !important; }
-.rc-hero__photo { position: absolute; inset: 0; background: var(--ink) center 32% / cover no-repeat; }
+.rc-hero__photo { position: absolute; inset: 0; background: var(--ink) center 28% / cover no-repeat; }
+.rc-hero .flocons { z-index: 1; }
 
 /* Verre liquide : une seule surface, la barre de recherche. */
 .rc-glass { position: relative; width: 100%; max-width: 980px; margin-top: 10px; border-radius: 999px; isolation: isolate; --gx: 50%; --gy: 0%; }

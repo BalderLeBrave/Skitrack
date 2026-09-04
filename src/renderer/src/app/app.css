@@ -243,6 +243,7 @@
 
 /* --- Mise en page ----------------------------------------------------------- */
 .rc-page { max-width: 1240px; margin: 0 auto; padding: 32px 28px 96px; display: grid; gap: 28px; }
+.rc-page--map { max-width: none; width: 100%; padding-left: 20px; padding-right: 20px; padding-bottom: 24px; }
 .rc-page--guard { min-height: calc(100vh - 220px); align-content: center; }
 .rc-page__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
 .rc-page__head .rc-muted { margin-top: 8px; max-width: 70ch; text-wrap: pretty; }
@@ -269,7 +270,48 @@
 .rc-card { display: grid; gap: 12px; padding: 20px 22px; border-radius: var(--radius); background: var(--panneau); border: 1px solid var(--bordure-douce); box-shadow: var(--elev-carte); }
 .rc-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .rc-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.rc-mapwrap { height: 420px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--bordure-douce); }
+.rc-mapwrap { height: min(78dvh, 920px); min-height: 640px; border-radius: var(--radius); overflow: hidden; }
+.rc-cmpsplit, .rc-lodgsplit { display: grid; gap: 16px; }
+.rc-cmpsplit--map, .rc-lodgsplit--map {
+  grid-template-columns: minmax(280px, 0.88fr) minmax(560px, 1.35fr);
+  align-items: stretch;
+}
+.rc-cmpsplit__map, .rc-lodgsplit__map {
+  position: sticky;
+  top: 80px;
+  height: calc(100dvh - 100px);
+  min-height: 680px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--carte-fond);
+}
+.rc-cmpsplit__map .map,
+.rc-lodgsplit__map .lodgmap {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  border: none;
+  border-radius: inherit;
+  box-shadow: none;
+  background: transparent;
+  overflow: hidden;
+}
+.rc-cmpsplit__map .map__canvas,
+.rc-lodgsplit__map .map__canvas,
+.rc-cmpsplit__map .maplibregl-map,
+.rc-lodgsplit__map .maplibregl-map,
+.rc-cmpsplit__map .maplibregl-canvas-container,
+.rc-lodgsplit__map .maplibregl-canvas-container,
+.rc-cmpsplit__map .maplibregl-canvas,
+.rc-lodgsplit__map .maplibregl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: inherit;
+}
 
 .rc-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
 .rc-facts--wide { grid-template-columns: repeat(6, minmax(0, 1fr)); padding: 18px 22px; border-radius: var(--radius); background: var(--panneau); border: 1px solid var(--bordure-douce); }
@@ -417,9 +459,6 @@ thead .rc-cmp__crit { background: var(--panneau); }
 .rc-progress { position: relative; display: grid; gap: 8px; padding: 14px 18px; border-radius: var(--radius); background: var(--marque-tenue); color: var(--marque-texte); font-size: 14px; font-weight: 600; overflow: hidden; }
 .rc-progress__bar { display: block; height: 4px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--marque), transparent); background-size: 40% 100%; animation: rc-slide 1.4s linear infinite; }
 @keyframes rc-slide { from { background-position: -40% 0; } to { background-position: 140% 0; } }
-.rc-lodgsplit { display: grid; gap: 20px; }
-.rc-lodgsplit--map { grid-template-columns: minmax(0, 1fr) minmax(320px, 42%); align-items: start; }
-.rc-lodgsplit__map { position: sticky; top: 148px; height: calc(100vh - 180px); min-height: 420px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--bordure-douce); }
 .rc-counters ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; color: var(--texte-2); }
 .rc-counters b { color: var(--texte); font-weight: 800; }
 
@@ -491,8 +530,8 @@ thead .rc-cmp__crit { background: var(--panneau); }
   .rc-station__cols { grid-template-columns: 1fr; }
   .rc-sticky { position: static; }
   .rc-facts--wide { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .rc-lodgsplit--map { grid-template-columns: 1fr; }
-  .rc-lodgsplit__map { position: static; height: 380px; }
+  .rc-cmpsplit--map, .rc-lodgsplit--map { grid-template-columns: 1fr; }
+  .rc-cmpsplit__map, .rc-lodgsplit__map { position: relative; top: 0; height: min(70dvh, 780px); min-height: 520px; }
   .rc-stay { grid-template-columns: minmax(0, 1fr) auto; }
   .rc-stay__detail { display: none; }
   .rc-ck { grid-template-columns: 1fr; }

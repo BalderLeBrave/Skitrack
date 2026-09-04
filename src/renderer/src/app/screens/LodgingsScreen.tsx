@@ -80,7 +80,7 @@ export function LodgingsScreen(): JSX.Element {
   const mapOpen = state.lodgMapOpen && !narrow
 
   return (
-    <div className="rc-page" data-testid="lodgings-screen">
+    <div className={`rc-page${mapOpen ? ' rc-page--map' : ''}`} data-testid="lodgings-screen">
       <header className="rc-page__head rc-page__head--split">
         <div>
           <span className="rc-eyebrow">{t('rc_step_2')}</span>

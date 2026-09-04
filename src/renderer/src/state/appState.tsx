@@ -1285,7 +1285,9 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
 
   // --- Thème --------------------------------------------------------------
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', state.theme)
+    const root = document.documentElement
+    root.setAttribute('data-theme', state.theme)
+    root.style.colorScheme = state.theme
   }, [state.theme])
 
   // --- Persistance (debounced : `imported` peut faire plusieurs Mo) --------

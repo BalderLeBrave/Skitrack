@@ -529,7 +529,15 @@ export function DomainMap(): JSX.Element {
     })
 
     map.current = m
+    const host = container.current
+    const ro = host
+      ? new ResizeObserver(() => {
+          m.resize()
+        })
+      : null
+    if (host && ro) ro.observe(host)
     return () => {
+      ro?.disconnect()
       m.remove()
       map.current = null
       setLoaded(false)

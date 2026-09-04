@@ -76,7 +76,15 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
     m.addControl(new maplibregl.AttributionControl({ compact: true }))
     m.on('load', () => setLoaded(true))
     map.current = m
+    const host = container.current
+    const ro = host
+      ? new ResizeObserver(() => {
+          m.resize()
+        })
+      : null
+    if (host && ro) ro.observe(host)
     return () => {
+      ro?.disconnect()
       m.remove()
       map.current = null
       setLoaded(false)

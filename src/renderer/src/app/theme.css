@@ -445,8 +445,10 @@
    Ancien nom → nouveau rôle. Permet de basculer styles.css progressivement.
    -------------------------------------------------------------------------- */
 
+/* Jetons que `styles.css` (widgets et écrans utilitaires gardés) attend encore.
+   Ne jamais réassigner --bg/--ink/--glacier/--cta ici : --fond les lit déjà,
+   et `--bg: var(--fond)` refermait une boucle — fond invalide = fenêtre noire. */
 :root {
-  --bg: var(--fond);
   --panel: var(--panneau);
   --border: var(--bordure);
   --border-soft: var(--bordure-douce);
@@ -493,4 +495,19 @@
   --photo-b: #1e3e58;
   --danger-soft: #33240f;
   --danger-ink: #f2cf9b;
+}
+
+html {
+  color-scheme: light;
+  background: var(--bg);
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body,
+#root {
+  background: var(--bg);
+  color: var(--texte);
 }

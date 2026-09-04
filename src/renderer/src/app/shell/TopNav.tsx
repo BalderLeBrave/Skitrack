@@ -141,6 +141,7 @@ export function TopNav(): JSX.Element {
       </nav>
 
       <div className="rc-nav__utils">
+        <ThemeToggle />
         <button
           type="button"
           className="rc-chip rc-chip--btn"

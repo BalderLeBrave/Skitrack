@@ -3,7 +3,7 @@
  * résultats filtrable (référentiel réel), carte des domaines en option.
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DomainMap } from '@/components/DomainMap'
 import { FilterPanel } from '@/components/FilterPanel'
@@ -32,12 +32,12 @@ const SORTS: [SortKey, string][] = [
 ]
 
 export function CompareScreen(): JSX.Element {
-  const { state, patch, domains } = useApp()
+  const { state, patch, domains, narrow } = useApp()
   const derived = useDerived()
   const { fmt } = useFormat()
   const { t } = useI18n()
   const navigate = useNavigate()
-  const [mapOpen, setMapOpen] = useState(false)
+  const mapOpen = state.searchMapOpen && !narrow
   const { active, resetAll } = useActiveFilters()
 
   const compared = useMemo(
@@ -59,7 +59,7 @@ export function CompareScreen(): JSX.Element {
   const anyFilter = active.length > 0 || chips.some((c) => c.on) || state.domainQuery.trim() !== ''
 
   return (
-    <div className="rc-page" data-testid="compare-screen">
+    <div className={`rc-page${mapOpen ? ' rc-page--map' : ''}`} data-testid="compare-screen">
       <header className="rc-page__head">
         <div>
           <span className="rc-eyebrow">{t('rc_step_1')}</span>
@@ -102,28 +102,39 @@ export function CompareScreen(): JSX.Element {
                 ))}
               </select>
             </label>
-            <button type="button" className={`rc-chip${mapOpen ? ' rc-chip--on' : ''}`} aria-pressed={mapOpen} data-testid="compare-map-toggle" onClick={() => { setMapOpen((o) => !o); patch({ searchMapOpen: !mapOpen, domMapSync: true }) }}>
-              {t('rc_map')}
-            </button>
+            {!narrow && (
+              <button
+                type="button"
+                className={`rc-chip${mapOpen ? ' rc-chip--on' : ''}`}
+                aria-pressed={mapOpen}
+                data-testid="compare-map-toggle"
+                onClick={() => patch({ searchMapOpen: !state.searchMapOpen, domMapSync: true })}
+              >
+                {t('rc_map')}
+              </button>
+            )}
           </div>
         </div>
 
-        {mapOpen && (
-          <div className="rc-mapwrap" data-testid="compare-map">
-            <DomainMap />
+        <div className={`rc-cmpsplit${mapOpen ? ' rc-cmpsplit--map' : ''}`}>
+          <div className="rc-cmpsplit__list">
+            {list.length === 0 ? (
+              <EmptyHonest testid="compare-no-results" title={t('rc_cmp_none_title')} hint={t('rc_cmp_none_hint')} action={{ label: t('rc_reset'), onClick: resetAll, testid: 'compare-empty-reset' }} />
+            ) : (
+              <div className={`rc-grid ${mapOpen ? 'rc-grid--2' : 'rc-grid--3'}`}>
+                {list.map((d) => <StationCard key={d.id} d={d} onLodgings={(x) => openLodgings(x, patch, navigate)} />)}
+              </div>
+            )}
+            {derived.filtered.length > MAX_RESULTS && (
+              <p className="rc-muted rc-center">{t('rc_cmp_more').replace('{n}', fmt(derived.filtered.length - MAX_RESULTS))}</p>
+            )}
           </div>
-        )}
-
-        {list.length === 0 ? (
-          <EmptyHonest testid="compare-no-results" title={t('rc_cmp_none_title')} hint={t('rc_cmp_none_hint')} action={{ label: t('rc_reset'), onClick: resetAll, testid: 'compare-empty-reset' }} />
-        ) : (
-          <div className="rc-grid rc-grid--3">
-            {list.map((d) => <StationCard key={d.id} d={d} onLodgings={(x) => openLodgings(x, patch, navigate)} />)}
-          </div>
-        )}
-        {derived.filtered.length > MAX_RESULTS && (
-          <p className="rc-muted rc-center">{t('rc_cmp_more').replace('{n}', fmt(derived.filtered.length - MAX_RESULTS))}</p>
-        )}
+          {mapOpen && (
+            <div className="rc-cmpsplit__map" data-testid="compare-map">
+              <DomainMap />
+            </div>
+          )}
+        </div>
       </section>
     </div>
   )

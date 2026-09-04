@@ -501,9 +501,11 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
 
     const cost = (lodging: Pick<Lodging, 'total'>, d: Domain): SejourCost => sejourCost(lodging, sejourInputs(d))
 
-    // Les écrans transversaux ne travaillent que sur la tête de liste : calculer
-    // les offres des 277 domaines à chaque frappe serait payé par l'utilisateur.
-    const compared = filtered.slice(0, MAX_COMPARED_DOMAINS)
+    // Les écrans Offres / Combinaisons n'existent plus dans la coquille Fable,
+    // mais le type Derived les expose encore. Ne pas parcourir 60 domaines ×
+    // 12 semaines à chaque frappe sur l'accueil.
+    const needCostGrid = screen === 'offres' || screen === 'combinaisons'
+    const compared = needCostGrid ? filtered.slice(0, MAX_COMPARED_DOMAINS) : []
 
     // --- Meilleure offre par domaine ------------------------------------
     const bestOffers: BestOffer[] = []

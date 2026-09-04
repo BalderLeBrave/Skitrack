@@ -7,7 +7,7 @@
  * filtres serait à la fois inutile et discourtois envers un service gratuit.
  */
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, startTransition, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { DomainWeather, WeatherMap } from '@/data/weather'
 import { fetchWeather } from '@/data/weather'
@@ -38,14 +38,15 @@ export function useWeather(): WeatherContextValue {
 }
 
 export function WeatherProvider({ children }: { children: ReactNode }): JSX.Element {
-  const { state, domains } = useApp()
+  const { state, domains, screen } = useApp()
   const { filtered, lodgDomain } = useDerived()
   const [map, setMap] = useState<WeatherMap>({})
   const [loading, setLoading] = useState(false)
   const inFlight = useRef(false)
 
   const wanted = useMemo(() => {
-    const list = filtered.slice(0, VISIBLE_DOMAINS)
+    const cap = screen === 'accueil' || screen === 'suivi' || screen === 'reglages' ? 8 : VISIBLE_DOMAINS
+    const list = filtered.slice(0, cap)
     const extra = [state.domFicheId, state.lodgingDomainId, lodgDomain?.id ?? null, state.selectedId]
       .filter((id): id is number => id != null)
       .map((id) => domains.find((d) => d.id === id))
@@ -54,7 +55,7 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
     return [...list, ...extra.filter((d) => !seen.has(d.id))]
     // La clé de dépendance est la liste d'identifiants, pas les objets : le
     // tableau `filtered` est recréé à chaque dérivation.
-  }, [filtered, domains, state.domFicheId, state.lodgingDomainId, lodgDomain?.id, state.selectedId])
+  }, [filtered, domains, screen, state.domFicheId, state.lodgingDomainId, lodgDomain?.id, state.selectedId])
 
   const key = useMemo(() => wanted.map((d) => d.id).join(','), [wanted])
   // Incrémenté par `refresh` : c'est ce qui relance l'effet sans que la liste
@@ -83,7 +84,9 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
         // `fetchWeather` rend un bilan `{ map, error, … }` — pas la carte seule.
         // Étaler l'objet entier injectait `error: null` dans la carte, puis
         // `null.fetchedAt` plantait tout l'accueil.
-        setMap((prev) => ({ ...prev, ...next.map }))
+        startTransition(() => {
+          setMap((prev) => ({ ...prev, ...next.map }))
+        })
       })
       .finally(() => {
         inFlight.current = false

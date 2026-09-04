@@ -9,6 +9,10 @@ import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
+import { DEFAULT_BASEMAP, type BasemapKey } from './basemap'
+
+export type { BasemapKey }
+export { DEFAULT_BASEMAP }
 
 /**
  * Carte des domaines.
@@ -142,21 +146,6 @@ export const BASEMAPS = [
   }
 ] as const
 
-export type BasemapKey = (typeof BASEMAPS)[number]['key']
-
-/**
- * Le fond de départ : topographie française, plus les pistes dessinées.
- *
- * C'était le Plan IGN nu. Les pistes n'apparaissaient qu'en 3D, par une requête
- * Overpass, et un échec de cette requête faisait dessiner huit descentes
- * inventées. La surcouche OpenSnowMap les montre en 2D, à tous les zooms, à
- * partir des mêmes données OpenStreetMap — et le fond nu reste à un clic pour
- * qui veut lire les hameaux sans le tracé par-dessus.
- *
- * Le réglage est enregistré : un poste qui affichait déjà le Plan IGN nu le
- * garde, seule une nouvelle installation démarre ici.
- */
-export const DEFAULT_BASEMAP: BasemapKey = 'pistes'
 
 /** Fonds portant une surcouche de pistes, à allumer et éteindre avec eux. */
 type BasemapDef = (typeof BASEMAPS)[number]

@@ -18,8 +18,8 @@ import { repairUbloListingUrl } from '@shared/ubloUrl'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { isLanguage, type Language } from '@/i18n'
-import type { BasemapKey } from '@/components/DomainMap'
-import { DEFAULT_BASEMAP } from '@/components/DomainMap'
+import type { BasemapKey } from '@/components/basemap'
+import { DEFAULT_BASEMAP } from '@/components/basemap'
 import { distanceKm, domainZone, zoneVerdict } from '@shared/geo'
 import { FM_BY_ID } from '@/data/catalogue'
 import { FM_STATIONS } from '@/data/franceMontagnesStations'
@@ -1258,10 +1258,15 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
   useEffect(() => {
     if (domains.length === 0 || domains.every(hasCoords)) return
     let stopped = false
+    let lastGeoUi = 0
     void resolveMissingCoords(
       domains,
       ref,
       (p) => {
+        // Ne pas rerendre toute l'app à chaque point géocodé.
+        const now = Date.now()
+        if (p.done < p.total && now - lastGeoUi < 400) return
+        lastGeoUi = now
         if (!stopped) setState((s) => ({ ...s, geoResolve: p.done < p.total ? p : null }))
       },
       () => stopped
@@ -1283,15 +1288,22 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     document.documentElement.setAttribute('data-theme', state.theme)
   }, [state.theme])
 
-  // --- Persistance --------------------------------------------------------
+  // --- Persistance (debounced : `imported` peut faire plusieurs Mo) --------
+  const stateRef = useRef(state)
+  stateRef.current = state
   useEffect(() => {
-    const payload: Record<string, unknown> = { prefsSchema: PREFS_SCHEMA }
-    for (const key of PERSISTED_KEYS) payload[key] = state[key]
-    try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify(payload))
-    } catch {
-      /* quota dépassé : la session reste utilisable, seule la reprise est perdue */
+    const persist = (): void => {
+      const s = stateRef.current
+      const payload: Record<string, unknown> = { prefsSchema: PREFS_SCHEMA }
+      for (const key of PERSISTED_KEYS) payload[key] = s[key]
+      try {
+        localStorage.setItem(PREFS_KEY, JSON.stringify(payload))
+      } catch {
+        /* quota dépassé : la session reste utilisable, seule la reprise est perdue */
+      }
     }
+    const id = window.setTimeout(persist, 400)
+    return () => window.clearTimeout(id)
   }, [state])
 
   // --- Relevé horaire des prix suivis -------------------------------------

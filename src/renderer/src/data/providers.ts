@@ -60,7 +60,7 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: 'airbnb',
     label: sourceLabelOf('airbnb'),
-    // Airbnb n'est pas relevé : l'application y renvoie l'utilisateur.
+    // Relevé parallèle (Omkar / Playwright), hors SearchEngine — voir runAirbnbSearch.
     kind: 'redirect',
     connectors: ['airbnb']
   },

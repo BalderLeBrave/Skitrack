@@ -102,6 +102,12 @@ export async function providersHealth(): Promise<
   // Une source déclarée mais refusée n'apparaît nulle part ailleurs : sans cette
   // ligne, une faute de frappe dans mcp-sources.json serait parfaitement muette.
   return [
+    {
+      name: 'airbnb',
+      reachable: true,
+      detail: 'relevé Playwright / Omkar — hors SearchEngine',
+      registered: true
+    },
     ...health.map((entry) => ({ ...entry, registered: true })),
     ...rejectedMcpSources().map((entry) => ({
       name: entry.name,

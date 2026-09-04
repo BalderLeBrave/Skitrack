@@ -30,8 +30,12 @@ export function useProviderRegistry(): void {
       ?.health?.()
       .then((list) => {
         if (cancelled) return
-        const labels = [...new Set(list.filter((p) => p.registered).map((p) => sourceLabelOf(p.name)))]
-        if (labels.length > 0) patch({ lodgQueried: labels })
+        const labels = [
+          'Airbnb',
+          ...new Set(list.filter((p) => p.registered).map((p) => sourceLabelOf(p.name)))
+        ]
+        const unique = [...new Set(labels)]
+        if (unique.length > 0) patch({ lodgQueried: unique })
       })
       .catch(() => {
         // Moteur injoignable : la liste reste celle du dernier relevé, ou le

@@ -106,7 +106,11 @@ export function useLodgingSearch(): { searchError: string | null; elapsedSec: nu
       const base: Lodging[] = ok ? ok.imported : state.imported
       const otherLodgings = others.status === 'fulfilled' ? others.value.lodgings : progressive
       const outcomes = others.status === 'fulfilled' ? others.value.outcomes : progressiveOutcomes
-      const queried = others.status === 'fulfilled' ? [...new Set(outcomes.map((o) => o.source))] : state.lodgQueried
+      const airbnbLabel = sourceLabelOf('airbnb')
+      const queried = [
+        airbnbLabel,
+        ...(others.status === 'fulfilled' ? outcomes.map((o) => o.source) : state.lodgQueried)
+      ].filter((v, i, a) => Boolean(v) && a.indexOf(v) === i)
       const merged = mergeProviderReadings(base, otherLodgings)
       const ofDomain = merged.filter((l) => belongsToDomain(l, d) && typeof l.lat === 'number' && typeof l.lon === 'number')
       let imported = merged
@@ -135,6 +139,11 @@ export function useLodgingSearch(): { searchError: string | null; elapsedSec: nu
       running.current = false
     }
   }, [d, criteriaReady, state.arrDate, state.depDate, state.travelers, state.children, state.imported, state.lodgQueried, derived.nights, patch, t])
+
+  useEffect(() => {
+    if (state.lodgPhase !== 'searching' || !criteriaReady || running.current) return
+    void launch()
+  }, [state.lodgPhase, criteriaReady, launch])
 
   const accessTried = useRef<Set<number>>(new Set())
   useEffect(() => {

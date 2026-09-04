@@ -8,12 +8,15 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { LodgingMap } from '@/components/LodgingMap'
+import { FilterPopover } from '@/components/FilterPopover'
+import { LodgingFilters } from '@/components/LodgingFilters'
+import { useActiveLodgingFilters } from '@/components/activeLodgingFilters'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import { LODG_TYPES, srcOf } from '@/data/lodgings'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import type { LodgSortKey } from '@/state/appState'
-import { FILTER_RANGES, LODG_FILTER_RESET, useApp } from '@/state/appState'
+import { FILTER_RANGES, useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { useLodgingSearch } from '../features/useLodgingSearch'
 import { stayDatesLabel } from '../lib/stay'
@@ -34,6 +37,7 @@ export function LodgingsScreen(): JSX.Element {
   const { fmt, fmtStay } = useFormat()
   const { t } = useI18n()
   const { searchError, elapsedSec, launch, criteriaReady } = useLodgingSearch()
+  const lodgActive = useActiveLodgingFilters()
   const d = derived.lodgDomain
 
   const rejected = useMemo(() => {
@@ -71,7 +75,7 @@ export function LodgingsScreen(): JSX.Element {
     { id: 'annul', label: t('rc_lodge_free_cancel'), on: state.lodgAnnul, onToggle: () => patch({ lodgAnnul: !state.lodgAnnul }) },
     ...sources.map((s) => ({ id: `src-${s}`, label: s, on: !state.lodgSrcOff.includes(s), onToggle: () => patch({ lodgSrcOff: state.lodgSrcOff.includes(s) ? state.lodgSrcOff.filter((x) => x !== s) : [...state.lodgSrcOff, s] }) }))
   ]
-  const anyFilter = budgetOn || state.lodgTypes.length > 0 || state.lodgAnnul || state.lodgSrcOff.length > 0
+  const anyFilter = budgetOn || state.lodgTypes.length > 0 || state.lodgAnnul || state.lodgSrcOff.length > 0 || lodgActive.active.length > 0
   const searching = state.lodgPhase === 'searching'
   const mapOpen = state.lodgMapOpen && !narrow
 
@@ -114,10 +118,20 @@ export function LodgingsScreen(): JSX.Element {
 
       <section className="rc-block" data-testid="lodgings-results">
         <div className="rc-toolbar">
+          <FilterPopover
+            open={state.lodgFiltersOpen}
+            onToggle={() => patch({ lodgFiltersOpen: !state.lodgFiltersOpen })}
+            onClose={() => patch({ lodgFiltersOpen: false })}
+            label={t('rc_filters')}
+            count={lodgActive.active.length}
+            buttonClassName="rc-chip"
+          >
+            <LodgingFilters />
+          </FilterPopover>
           <FilterChips chips={chips} label={t('rc_filters')} testid="lodgings-chips" />
           <div className="rc-toolbar__right">
             <span className="rc-muted u-num" data-testid="lodgings-count">{t(derived.lodgList.length === 1 ? 'rc_lodg_count_one' : 'rc_lodg_count').replace('{n}', fmt(derived.lodgList.length))}</span>
-            {anyFilter && <button type="button" className="rc-link rc-link--muted" data-testid="lodgings-reset" onClick={() => patch({ ...LODG_FILTER_RESET })}>{t('rc_reset')}</button>}
+            {anyFilter && <button type="button" className="rc-link rc-link--muted" data-testid="lodgings-reset" onClick={lodgActive.resetAll}>{t('rc_reset')}</button>}
             <label className="rc-sort">
               <span>{t('sort_by')}</span>
               <select className="rc-select" value={state.lodgSort} data-testid="lodgings-sort" onChange={(e) => patch({ lodgSort: e.target.value as LodgSortKey })}>
@@ -139,7 +153,7 @@ export function LodgingsScreen(): JSX.Element {
                 testid="lodgings-empty"
                 title={derived.lodgAll.length === 0 ? t('rc_lodg_empty_title') : t('lodg_empty_hidden_title').replace('{n}', String(derived.lodgHidden + derived.lodgRejected.length))}
                 hint={derived.lodgAll.length === 0 ? t('rc_lodg_empty_hint') : t('lodg_empty_hidden_hint').replace('{d}', d.name)}
-                action={derived.lodgAll.length === 0 && criteriaReady ? { label: t('rc_lodg_refresh'), onClick: () => void launch(), testid: 'lodgings-empty-launch' } : anyFilter ? { label: t('rc_reset'), onClick: () => patch({ ...LODG_FILTER_RESET }), testid: 'lodgings-empty-reset' } : undefined}
+                action={derived.lodgAll.length === 0 && criteriaReady ? { label: t('rc_lodg_refresh'), onClick: () => void launch(), testid: 'lodgings-empty-launch' } : anyFilter ? { label: t('rc_reset'), onClick: lodgActive.resetAll, testid: 'lodgings-empty-reset' } : undefined}
               />
             ) : (
               <div className={`rc-grid ${mapOpen ? 'rc-grid--2' : 'rc-grid--3'}`}>

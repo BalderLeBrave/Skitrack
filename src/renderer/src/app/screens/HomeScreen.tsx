@@ -5,7 +5,6 @@
 
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import heroJpg from '@/assets/hero.jpg'
 import { massifPhoto, stationPhoto } from '@/components/photos'
 import { BASE_SOURCES } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
@@ -107,16 +106,16 @@ export function HomeScreen(): JSX.Element {
 
   return (
     <div className="rc-home" data-testid="home-screen">
-      <section className="rc-hero" style={{ backgroundImage: `url(${heroJpg})` }} data-testid="home-hero">
-        {webgl && sceneOn && (
-          <div className="rc-hero__scene" aria-hidden data-testid="home-scene">
+      <section className="rc-hero" data-testid="home-hero">
+        <div className="rc-hero__scene" aria-hidden data-testid="home-scene">
+          {webgl && sceneOn && (
             <SceneGuard>
               <Suspense fallback={null}>
                 <MountainScene still={still} />
               </Suspense>
             </SceneGuard>
-          </div>
-        )}
+          )}
+        </div>
         <div className="rc-hero__veil" aria-hidden />
         <div className="rc-hero__inner">
           <span className="rc-hero__eyebrow" data-testid="home-badge">

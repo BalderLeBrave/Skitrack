@@ -6,6 +6,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DomainMap } from '@/components/DomainMap'
+import { FilterPanel } from '@/components/FilterPanel'
+import { FilterPopover } from '@/components/FilterPopover'
+import { useActiveFilters } from '@/components/activeFilters'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import type { AppState, SortKey } from '@/state/appState'
@@ -28,14 +31,6 @@ const SORTS: [SortKey, string][] = [
   ['name_asc', 'sort_name_asc']
 ]
 
-const RESET: Partial<AppState> = {
-  kmMin: FILTER_RANGES.km.min, kmMax: FILTER_RANGES.km.max,
-  baseMin: FILTER_RANGES.base.min, baseMax: FILTER_RANGES.base.max,
-  forfaitMin: FILTER_RANGES.forfait.min, forfaitMax: FILTER_RANGES.forfait.max,
-  travelMin: FILTER_RANGES.travel.min, travelMax: FILTER_RANGES.travel.max,
-  glacier: false, linked: false, massifs: [], domainQuery: ''
-}
-
 export function CompareScreen(): JSX.Element {
   const { state, patch, domains } = useApp()
   const derived = useDerived()
@@ -43,6 +38,7 @@ export function CompareScreen(): JSX.Element {
   const { t } = useI18n()
   const navigate = useNavigate()
   const [mapOpen, setMapOpen] = useState(false)
+  const { active, resetAll } = useActiveFilters()
 
   const compared = useMemo(
     () => state.stationCompareIds.map((id) => domains.find((d) => d.id === id)).filter((d): d is NonNullable<typeof d> => d != null),
@@ -60,7 +56,7 @@ export function CompareScreen(): JSX.Element {
     { id: 'linked', label: t('rc_chip_linked'), on: state.linked, onToggle: () => patch({ linked: !state.linked }) },
     ...state.massifs.map((m) => ({ id: `massif-${m}`, label: m, on: true, onToggle: () => patch({ massifs: state.massifs.filter((x) => x !== m) }) }))
   ]
-  const anyFilter = chips.some((c) => c.on) || state.domainQuery.trim() !== ''
+  const anyFilter = active.length > 0 || chips.some((c) => c.on) || state.domainQuery.trim() !== ''
 
   return (
     <div className="rc-page" data-testid="compare-screen">
@@ -78,13 +74,23 @@ export function CompareScreen(): JSX.Element {
 
       <section className="rc-block" data-testid="compare-results">
         <div className="rc-toolbar">
+          <FilterPopover
+            open={state.searchFiltersOpen}
+            onToggle={() => patch({ searchFiltersOpen: !state.searchFiltersOpen })}
+            onClose={() => patch({ searchFiltersOpen: false })}
+            label={t('rc_filters')}
+            count={active.length}
+            buttonClassName="rc-chip"
+          >
+            <FilterPanel />
+          </FilterPopover>
           <FilterChips chips={chips} label={t('rc_filters')} testid="compare-chips" />
           <div className="rc-toolbar__right">
             <span className="rc-muted u-num" data-testid="compare-count">
               {t('rc_cmp_count').replace('{n}', fmt(derived.filtered.length)).replace('{t}', fmt(domains.length))}
             </span>
             {anyFilter && (
-              <button type="button" className="rc-link rc-link--muted" data-testid="compare-reset" onClick={() => patch(RESET)}>
+              <button type="button" className="rc-link rc-link--muted" data-testid="compare-reset" onClick={resetAll}>
                 {t('rc_reset')}
               </button>
             )}
@@ -109,7 +115,7 @@ export function CompareScreen(): JSX.Element {
         )}
 
         {list.length === 0 ? (
-          <EmptyHonest testid="compare-no-results" title={t('rc_cmp_none_title')} hint={t('rc_cmp_none_hint')} action={{ label: t('rc_reset'), onClick: () => patch(RESET), testid: 'compare-empty-reset' }} />
+          <EmptyHonest testid="compare-no-results" title={t('rc_cmp_none_title')} hint={t('rc_cmp_none_hint')} action={{ label: t('rc_reset'), onClick: resetAll, testid: 'compare-empty-reset' }} />
         ) : (
           <div className="rc-grid rc-grid--3">
             {list.map((d) => <StationCard key={d.id} d={d} onLodgings={(x) => openLodgings(x, patch, navigate)} />)}

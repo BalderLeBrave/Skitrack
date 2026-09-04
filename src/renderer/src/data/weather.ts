@@ -82,7 +82,18 @@ interface OpenMeteoPoint {
 function readCache(): WeatherMap {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
-    return raw ? (JSON.parse(raw) as WeatherMap) : {}
+    if (!raw) return {}
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    const out: WeatherMap = {}
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      const id = Number(key)
+      if (!Number.isFinite(id) || value == null || typeof value !== 'object') continue
+      const entry = value as Partial<DomainWeather>
+      if (typeof entry.fetchedAt !== 'number') continue
+      out[id] = value as DomainWeather
+    }
+    return out
   } catch {
     return {}
   }

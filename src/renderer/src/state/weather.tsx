@@ -80,7 +80,10 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
     void fetchWeather(wanted, map, round > 0)
       .then((next) => {
         // Un relevé arrivé après un changement de liste reste bon : on le garde.
-        setMap((prev) => ({ ...prev, ...next }))
+        // `fetchWeather` rend un bilan `{ map, error, … }` — pas la carte seule.
+        // Étaler l'objet entier injectait `error: null` dans la carte, puis
+        // `null.fetchedAt` plantait tout l'accueil.
+        setMap((prev) => ({ ...prev, ...next.map }))
       })
       .finally(() => {
         inFlight.current = false
@@ -99,7 +102,9 @@ export function WeatherProvider({ children }: { children: ReactNode }): JSX.Elem
   }, [key, round, tick])
 
   const fetchedAt = useMemo(() => {
-    const stamps = Object.values(map).map((w) => w.fetchedAt)
+    const stamps = Object.values(map)
+      .filter((w): w is NonNullable<typeof w> => w != null && typeof w.fetchedAt === 'number')
+      .map((w) => w.fetchedAt)
     return stamps.length ? Math.min(...stamps) : null
   }, [map])
 

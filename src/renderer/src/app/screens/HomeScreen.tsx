@@ -3,7 +3,7 @@
  * (données réelles ou état vide), massifs, chiffres du référentiel.
  */
 
-import { Suspense, lazy, useMemo } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import heroJpg from '@/assets/hero.jpg'
 import { massifPhoto, stationPhoto } from '@/components/photos'
@@ -21,6 +21,7 @@ import { EmptyHonest } from '../ui/EmptyHonest'
 import { LiquidGlass } from '../ui/LiquidGlass'
 import { SearchStayBar } from '../ui/SearchStayBar'
 import { StationCard } from '../ui/StationCard'
+import { SceneGuard } from '../ui/SceneGuard'
 
 const MAX_POPULAR = 6
 
@@ -62,6 +63,11 @@ export function HomeScreen(): JSX.Element {
   const popular = useMemo(() => popularStations(domains), [domains])
   const webgl = useMemo(webglAvailable, [])
   const still = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
+  const [sceneOn, setSceneOn] = useState(false)
+  useEffect(() => {
+    const t = window.setTimeout(() => setSceneOn(true), 250)
+    return () => window.clearTimeout(t)
+  }, [])
   const massifCount = new Set(domains.map((d) => d.massif).filter(Boolean)).size
 
   const massifs = useMemo(() => {
@@ -102,11 +108,13 @@ export function HomeScreen(): JSX.Element {
   return (
     <div className="rc-home" data-testid="home-screen">
       <section className="rc-hero" style={{ backgroundImage: `url(${heroJpg})` }} data-testid="home-hero">
-        {webgl && (
+        {webgl && sceneOn && (
           <div className="rc-hero__scene" aria-hidden data-testid="home-scene">
-            <Suspense fallback={null}>
-              <MountainScene still={still} />
-            </Suspense>
+            <SceneGuard>
+              <Suspense fallback={null}>
+                <MountainScene still={still} />
+              </Suspense>
+            </SceneGuard>
           </div>
         )}
         <div className="rc-hero__veil" aria-hidden />

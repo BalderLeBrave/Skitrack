@@ -11,6 +11,9 @@ import { DerivedProvider } from '@/state/selectors'
 import { WeatherProvider } from '@/state/weather'
 import { AppRouter } from './router'
 import { Boot } from './shell/Boot'
+import { AppGuard } from './ui/AppGuard'
+
+const BOOT_GRACE_MS = 2000
 
 function I18nBridge({ children }: { children: React.ReactNode }): JSX.Element {
   const { state, patch } = useApp()
@@ -33,19 +36,28 @@ function Gate(): JSX.Element {
     if (sidecar.status === 'ready') reloadDomains()
   }, [sidecar.status, reloadDomains])
 
-  if (sidecar.status === 'starting') {
-    return <Boot message="Lecture des domaines, des forfaits et des tarifs." isError={false} log={log} onRetry={restart} onSkip={() => setSkipped(true)} />
-  }
+  // Le sidecar Python peut rester « starting » 30 s (ou jamais). Pendant ce
+  // temps l'ancien écran masquait Continuer — l'app paraissait crashée.
+  useEffect(() => {
+    if (sidecar.status === 'ready' || skipped) return
+    const t = window.setTimeout(() => setSkipped(true), BOOT_GRACE_MS)
+    return () => window.clearTimeout(t)
+  }, [sidecar.status, skipped])
+
   if (!skipped && sidecar.status !== 'ready') {
     return (
       <Boot
         message={
           sidecar.status === 'error'
             ? sidecar.message
-            : 'Le moteur local est arrêté. Les temps de trajet calculés et les clés d’API ne sont pas disponibles.'
+            : 'Lecture des domaines, des forfaits et des tarifs.'
         }
-        hint={sidecar.status === 'error' ? sidecar.hint : undefined}
-        isError
+        hint={
+          sidecar.status === 'error'
+            ? sidecar.hint
+            : 'Vous pouvez continuer tout de suite : le référentiel est déjà dans l’application.'
+        }
+        isError={sidecar.status === 'error'}
         log={log}
         onRetry={restart}
         onSkip={() => setSkipped(true)}
@@ -57,14 +69,16 @@ function Gate(): JSX.Element {
 
 export function AppRoot(): JSX.Element {
   return (
-    <AppProvider>
-      <DerivedProvider>
-        <WeatherProvider>
-          <I18nBridge>
-            <Gate />
-          </I18nBridge>
-        </WeatherProvider>
-      </DerivedProvider>
-    </AppProvider>
+    <AppGuard>
+      <AppProvider>
+        <DerivedProvider>
+          <WeatherProvider>
+            <I18nBridge>
+              <Gate />
+            </I18nBridge>
+          </WeatherProvider>
+        </DerivedProvider>
+      </AppProvider>
+    </AppGuard>
   )
 }

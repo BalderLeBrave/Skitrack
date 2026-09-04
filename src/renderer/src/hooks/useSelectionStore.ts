@@ -105,7 +105,8 @@ export function useSelectionSync(): void {
 
     void (async () => {
       try {
-        let snapshot = await window.skitrack.selection.load()
+        let snapshot = await window.skitrack?.selection?.load()
+        if (!snapshot) return
         if (annule) return
 
         if (!snapshot.legacyImported) {
@@ -130,7 +131,7 @@ export function useSelectionSync(): void {
                 ]
               })
             })
-          snapshot = await window.skitrack.selection.apply({
+          snapshot = await window.skitrack?.selection?.apply({
             type: 'import-legacy',
             notes: s.selNotes.map((n) => ({
               kind: n.kind,
@@ -141,6 +142,7 @@ export function useSelectionSync(): void {
             })),
             votes
           })
+          if (!snapshot) return
           if (annule) return
         }
 

@@ -26,8 +26,8 @@ export function useProviderRegistry(): void {
   const { patch } = useApp()
   useEffect(() => {
     let cancelled = false
-    void window.skitrack.providers
-      .health()
+    void window.skitrack?.providers
+      ?.health?.()
       .then((list) => {
         if (cancelled) return
         const labels = [...new Set(list.filter((p) => p.registered).map((p) => sourceLabelOf(p.name)))]

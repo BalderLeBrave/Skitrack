@@ -16,16 +16,16 @@ export function Boot({ message, hint, isError, log, onRetry, onSkip }: Props): J
         <h2>{isError ? 'Le moteur local ne démarre pas' : 'Démarrage du moteur local…'}</h2>
         <p>{message}</p>
         {hint && <p>{hint}</p>}
-        {isError && (
-          <div className="rc-boot__actions">
+        <div className="rc-boot__actions">
+          {isError && (
             <button type="button" className="rc-btn rc-btn--cta" onClick={onRetry} data-testid="boot-retry">
               Réessayer
             </button>
-            <button type="button" className="rc-btn rc-btn--ghost" onClick={onSkip} data-testid="boot-skip">
-              Continuer sans le moteur
-            </button>
-          </div>
-        )}
+          )}
+          <button type="button" className="rc-btn rc-btn--ghost" onClick={onSkip} data-testid="boot-skip">
+            Continuer sans le moteur
+          </button>
+        </div>
         {log.length > 0 && (
           <details className="rc-boot__log">
             <summary>Journal</summary>

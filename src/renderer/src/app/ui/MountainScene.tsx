@@ -13,7 +13,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 
-const SEG = 240
+const SEG = 96
 const SIZE = 150
 /* Position du plan de terrain dans le monde (translation) et son axe Y local. */
 const T_Y = -4
@@ -182,7 +182,7 @@ function buildTerrain(): THREE.BufferGeometry {
 function Terrain(): JSX.Element {
   const geo = useMemo(buildTerrain, [])
   return (
-    <mesh geometry={geo} rotation={[-Math.PI / 2, 0, 0]} position={[0, T_Y, T_Z]} castShadow receiveShadow>
+    <mesh geometry={geo} rotation={[-Math.PI / 2, 0, 0]} position={[0, T_Y, T_Z]}>
       <meshStandardMaterial vertexColors roughness={0.9} metalness={0.02} />
     </mesh>
   )
@@ -248,7 +248,7 @@ function Village(): JSX.Element {
 /* ------------------------------------------------------------------------ */
 /* Sapins enneigés (instanciés)                                              */
 
-const TREES = 170
+const TREES = 80
 
 function Trees(): JSX.Element {
   const items = useMemo(() => {
@@ -420,7 +420,7 @@ function Skiers({ still }: { still: boolean }): JSX.Element {
 /* ------------------------------------------------------------------------ */
 /* Flocons                                                                   */
 
-const FLAKES = 1400
+const FLAKES = 360
 
 function Snow({ still }: { still: boolean }): JSX.Element {
   const ref = useRef<THREE.Points>(null)
@@ -471,19 +471,35 @@ export function MountainScene({ still = false }: { still?: boolean }): JSX.Eleme
   return (
     <Canvas
       className="rc-scene"
-      dpr={[1, 1.5]}
+      dpr={[1, 1]}
       frameloop={still ? 'demand' : 'always'}
       camera={{ position: [0, 20, 84], fov: 44, near: 0.5, far: 320 }}
-      shadows
-      gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
+      shadows={false}
+      gl={{
+        antialias: false,
+        alpha: true,
+        powerPreference: 'low-power',
+        failIfMajorPerformanceCaveat: false,
+        stencil: false,
+        depth: true
+      }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 0.9
+        const el = gl.domElement
+        el.addEventListener(
+          'webglcontextlost',
+          (e) => {
+            e.preventDefault()
+            el.style.visibility = 'hidden'
+          },
+          false
+        )
       }}
     >
       <fog attach="fog" args={['#b7d3ea', 95, 270]} />
       <hemisphereLight args={['#cfe3f7', '#3f5f7d', 0.7]} />
-      <directionalLight position={[-70, 42, -10]} intensity={2.4} color="#ffe9c9" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0006} shadow-camera-near={10} shadow-camera-far={260} shadow-camera-left={-110} shadow-camera-right={110} shadow-camera-top={110} shadow-camera-bottom={-110} />
+      <directionalLight position={[-70, 42, -10]} intensity={2.4} color="#ffe9c9" />
       <directionalLight position={[40, 20, 40]} intensity={0.35} color="#8fbfe8" />
       <Terrain />
       <Trees />

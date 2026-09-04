@@ -28,9 +28,10 @@
  */
 
 import { existsSync, mkdirSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { app } from 'electron'
-import Database from 'better-sqlite3'
+import type BetterSqlite3 from 'better-sqlite3'
 import type {
   SelectionMutation,
   SelectionNoteRow,
@@ -38,7 +39,21 @@ import type {
   SelectionVoteRow
 } from '@shared/ipc-contract'
 
-let db: Database.Database | null = null
+const nodeRequire = createRequire(import.meta.url)
+
+let db: BetterSqlite3.Database | null = null
+let sqliteBroken = false
+
+function sqliteCtor(): typeof BetterSqlite3 | null {
+  if (sqliteBroken) return null
+  try {
+    return nodeRequire('better-sqlite3') as typeof BetterSqlite3
+  } catch (err) {
+    sqliteBroken = true
+    console.error('[skitrack] better-sqlite3 indisponible — notes en mémoire seulement', err)
+    return null
+  }
+}
 
 function fichier(): string {
   return join(app.getPath('userData'), 'selection.db')
@@ -51,18 +66,18 @@ function fichier(): string {
  * pour l'instant qu'une version du schéma. Le jour où il y en aura deux, la
  * table `meta` ci-dessous portera le numéro et le remplacement se fera ici.
  */
-function ouvrir(): Database.Database {
+function ouvrir(): BetterSqlite3.Database | null {
   if (db) return db
+  const Database = sqliteCtor()
+  if (!Database) return null
   const chemin = fichier()
   const dossier = dirname(chemin)
   if (!existsSync(dossier)) mkdirSync(dossier, { recursive: true })
 
-  const base = new Database(chemin)
-  // `WAL` pour que la lecture ne bloque pas l'écriture ; `NORMAL` parce qu'une
-  // note perdue en cas de coupure de courant est un moindre mal comparé à un
-  // `fsync` à chaque frappe.
-  base.pragma('journal_mode = WAL')
-  base.pragma('synchronous = NORMAL')
+  try {
+    const base = new Database(chemin)
+    base.pragma('journal_mode = WAL')
+    base.pragma('synchronous = NORMAL')
 
   base.exec(`
     CREATE TABLE IF NOT EXISTS selection_notes (
@@ -91,18 +106,23 @@ function ouvrir(): Database.Database {
     );
   `)
 
-  db = base
-  return base
+    db = base
+    return base
+  } catch (err) {
+    sqliteBroken = true
+    console.error('[skitrack] ouverture selection.db impossible', err)
+    return null
+  }
 }
 
-function lireMeta(base: Database.Database, cle: string): string | null {
+function lireMeta(base: BetterSqlite3.Database, cle: string): string | null {
   const ligne = base.prepare('SELECT valeur FROM meta WHERE cle = ?').get(cle) as
     | { valeur: string }
     | undefined
   return ligne?.valeur ?? null
 }
 
-function ecrireMeta(base: Database.Database, cle: string, valeur: string): void {
+function ecrireMeta(base: BetterSqlite3.Database, cle: string, valeur: string): void {
   base
     .prepare('INSERT INTO meta (cle, valeur) VALUES (?, ?) ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur')
     .run(cle, valeur)
@@ -111,6 +131,7 @@ function ecrireMeta(base: Database.Database, cle: string, valeur: string): void 
 /** L'état complet, tel que le renderer le tient en mémoire. */
 export function loadSelection(): SelectionSnapshot {
   const base = ouvrir()
+  if (!base) return { notes: [], votes: [], legacyImported: false }
   const notes = base
     .prepare(
       `SELECT id, kind, target_id AS targetId, author_id AS authorId,
@@ -142,6 +163,7 @@ export function loadSelection(): SelectionSnapshot {
  */
 export function applySelection(mutation: SelectionMutation): SelectionSnapshot {
   const base = ouvrir()
+  if (!base) return { notes: [], votes: [], legacyImported: false }
 
   switch (mutation.type) {
     case 'note-add':

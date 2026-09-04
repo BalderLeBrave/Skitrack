@@ -15,9 +15,9 @@
  * 3. `SKITRACK_PROXY` / `SKITRACK_PROXY_LIST`               → type **residential**
  * 4. Coffre `scrape_proxy`
  *
- * Si des proxies **mobiles** sont configurés, ils sont utilisés en premier.
- * Les résidentiels servent de secours quand la liste mobile est vide ou épuisée
- * selon la stratégie.
+ * Si des proxies **résidentiels** sont configurés (ou dérivés de Bright Data),
+ * ils sont utilisés par défaut. Les mobiles restent disponibles via
+ * `SKITRACK_PROXY_MODE=prefer_mobile` ou `mobile`.
  *
  * ## Format d’URL
  *
@@ -34,10 +34,15 @@
  *
  * `SKITRACK_PROXY_MODE` :
  * - `mobile`       — mobiles uniquement
- * - `residential`  — résidentiels uniquement
- * - `prefer_mobile` (défaut) — mobiles puis résidentiels
+ * - `residential`  — résidentiels uniquement (défaut)
+ * - `prefer_mobile` — mobiles puis résidentiels
  * - `rotate_all`   — mélange round-robin de toute la liste
+ *
+ * Sans `scrape_proxy`, un résidentiel Bright Data est dérivé du WS
+ * `brightdata_browser` (pays FR, session sticky).
  */
+
+import { brightDataResidentialFromBrowserWs, resolveBrightDataBrowserWs } from './booking/brightdata'
 
 export type ProxyKind = 'mobile' | 'residential'
 
@@ -141,11 +146,11 @@ function collect(
 }
 
 export function resolveProxyMode(): ProxyMode {
-  const m = (process.env.SKITRACK_PROXY_MODE || 'prefer_mobile').toLowerCase()
+  const m = (process.env.SKITRACK_PROXY_MODE || 'residential').toLowerCase()
   if (m === 'mobile' || m === 'residential' || m === 'prefer_mobile' || m === 'rotate_all') {
     return m
   }
-  return 'prefer_mobile'
+  return 'residential'
 }
 
 /**
@@ -165,12 +170,23 @@ export function loadProxyList(vaultGet?: (key: string) => string | undefined): P
   )
 
   const residential = collect(
-    process.env.SKITRACK_PROXY || process.env.SKITRACK_PROXY_URL,
+    process.env.SKITRACK_PROXY ||
+      process.env.SKITRACK_PROXY_URL ||
+      process.env.BRIGHTDATA_RESIDENTIAL,
     process.env.SKITRACK_PROXY_LIST,
     'scrape_proxy',
     'residential',
     get
   )
+  if (residential.length === 0) {
+    const ws = resolveBrightDataBrowserWs(
+      get ? { brightdata_browser: get('brightdata_browser') } : {},
+      process.env
+    )
+    const derived = ws ? brightDataResidentialFromBrowserWs(ws) : undefined
+    const parsed = derived ? parseProxyUrl(derived, 'residential') : null
+    if (parsed) residential.push(parsed)
+  }
 
   const mode = resolveProxyMode()
   let ordered: ProxyConfig[]
@@ -199,9 +215,19 @@ export function loadProxyList(vaultGet?: (key: string) => string | undefined): P
 }
 
 /**
- * Prochain proxy (round-robin). Si `sticky` est true (défaut pour mobile),
- * ajoute un session-id au username pour garder la même IP pendant la session
- * navigateur (comportement attendu des pools mobiles).
+ * Cible un pays sur un username Bright Data (`-country-fr`).
+ * No-op si ce n'est pas du Bright Data, ou si le pays est déjà posé.
+ */
+export function withBrightDataCountry(proxy: ProxyConfig, country = 'fr'): ProxyConfig {
+  if (!proxy.username || !/^brd-customer-/i.test(proxy.username)) return proxy
+  if (/-country-/i.test(proxy.username)) return proxy
+  const cc = (country || 'fr').toLowerCase()
+  return { ...proxy, username: `${proxy.username}-country-${cc}` }
+}
+
+/**
+ * Prochain proxy (round-robin). Session sticky par défaut : même IP tout
+ * le walk SERP (pagination Booking). Bright Data est géociblé FR.
  */
 export function nextProxy(
   vaultGet?: (key: string) => string | undefined,
@@ -211,8 +237,8 @@ export function nextProxy(
   if (list.length === 0) return null
   let item = list[cursor % list.length]
   cursor += 1
-
-  const sticky = opts?.sticky ?? item.kind === 'mobile'
+  item = withBrightDataCountry(item, 'fr')
+  const sticky = opts?.sticky !== false
   if (sticky) {
     item = withStickySession(item, opts?.sessionId)
   }

@@ -55,7 +55,8 @@ import {
   occupancyFromStaySearchResult
 } from './airbnb/extract'
 import { mapOmkarSearchHit, mapOmkarSearchPage, resolveOmkarAirbnbKey } from './airbnb/omkar'
-import { isBrightDataAuthError, resolveBrightDataBrowserWs } from './booking/brightdata'
+import { isBrightDataAuthError, resolveBrightDataBrowserWs, brightDataResidentialFromBrowserWs } from './booking/brightdata'
+import { parseProxyUrl, resetProxyCache, loadProxyList, nextProxy, withBrightDataCountry } from './proxy'
 import { buildEngine } from './index'
 import { clearQuoteCache, getQuote, quoteCacheKey, setQuote } from './quoteCache'
 import { stationCardNeedsQuote } from './station/station'
@@ -1619,6 +1620,53 @@ async function main(): Promise<void> {
   )
   check('Bright Data 401 = blocked', isBrightDataAuthError(new Error('Unauthorized 401')))
   check('Bright Data timeout ≠ auth', isBrightDataAuthError(new Error('Timeout 30000ms exceeded')) === false)
+  const bdWs =
+    'wss://brd-customer-hl_abc-zone-scraping_browser:s3cret@brd.superproxy.io:9222'
+  const bdRes = brightDataResidentialFromBrowserWs(bdWs, {})
+  check(
+    'BD WS → HTTP résidentiel FR',
+    Boolean(
+      bdRes &&
+        bdRes.startsWith('http://') &&
+        bdRes.includes('zone-residential-country-fr') &&
+        bdRes.includes('brd.superproxy.io:33335') &&
+        bdRes.includes('s3cret')
+    ),
+    bdRes
+  )
+  const geo = withBrightDataCountry(
+    parseProxyUrl('http://brd-customer-hl_abc-zone-residential:x@brd.superproxy.io:33335', 'residential')!,
+    'fr'
+  )
+  check('BD country-fr une seule fois', geo.username === 'brd-customer-hl_abc-zone-residential-country-fr')
+  const prevWs = process.env.BRIGHTDATA_BROWSER_WS
+  const prevMode = process.env.SKITRACK_PROXY_MODE
+  const prevProxy = process.env.SKITRACK_PROXY
+  delete process.env.SKITRACK_PROXY
+  process.env.BRIGHTDATA_BROWSER_WS = bdWs
+  process.env.SKITRACK_PROXY_MODE = 'residential'
+  resetProxyCache()
+  const derivedList = loadProxyList()
+  check(
+    'liste proxy dérive le WS Booking',
+    derivedList.length === 1 &&
+      derivedList[0].kind === 'residential' &&
+      (derivedList[0].username || '').includes('residential-country-fr'),
+    derivedList[0]?.username
+  )
+  const sticky = nextProxy()
+  check(
+    'session sticky sur le résidentiel',
+    Boolean(sticky?.username?.includes('-session-') && sticky.username.includes('-country-fr')),
+    sticky?.username
+  )
+  if (prevWs === undefined) delete process.env.BRIGHTDATA_BROWSER_WS
+  else process.env.BRIGHTDATA_BROWSER_WS = prevWs
+  if (prevMode === undefined) delete process.env.SKITRACK_PROXY_MODE
+  else process.env.SKITRACK_PROXY_MODE = prevMode
+  if (prevProxy === undefined) delete process.env.SKITRACK_PROXY
+  else process.env.SKITRACK_PROXY = prevProxy
+  resetProxyCache()
 
   const dumpHtmlPath = join(process.cwd(), 'gites-discovery/search-d2a-0613.html')
   const widgetPath = join(process.cwd(), 'gites-discovery/widget-38G253122.html')

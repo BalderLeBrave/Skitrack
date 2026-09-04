@@ -58,7 +58,7 @@ const KEY_LABELS: Record<SecretKey, { label: string; help: string; url?: string 
     label: 'Omkar — Airbnb Scraper API',
     help:
       'Relevé Airbnb en JSON (recherche + total séjour), sans navigateur. ' +
-      'Plus rapide que Playwright. Plafond 15 pages. Variable OMKAR_AIRBNB_KEY possible en dev.',
+      'Plus rapide que Playwright. Plafond 80 pages. Variable OMKAR_AIRBNB_KEY possible en dev.',
     url: 'https://www.omkar.cloud/tools/airbnb-scraper-api'
   },
   brightdata_browser: {
@@ -76,8 +76,10 @@ const KEY_LABELS: Record<SecretKey, { label: string; help: string; url?: string 
   scrape_proxy: {
     label: 'Proxy résidentiel (relevés web)',
     help:
-      'Optionnel. Format http://user:pass@hote:port, plusieurs séparés par des virgules. ' +
-      'Sert aux relevés des sites qui n’exposent pas d’API.'
+      'IP résidentielle, pays FR. Format http://user:pass@hote:port (plusieurs : virgules). ' +
+      'Bright Data : brd-customer-…-zone-residential-country-fr @ brd.superproxy.io:33335. ' +
+      'Si le navigateur Booking est renseigné et ce champ vide, un résidentiel est dérivé automatiquement. ' +
+      'Variable SKITRACK_PROXY / BRIGHTDATA_RESIDENTIAL en dev.'
   },
   scrape_proxy_mobile: {
     label: 'Proxy mobile 4G/5G (relevés web)',

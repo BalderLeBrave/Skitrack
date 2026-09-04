@@ -31,6 +31,39 @@ export function resolveBrightDataBrowserWs(
   return ws
 }
 
+/**
+ * Proxy HTTP résidentiel Bright Data, dérivé du WS Scraping Browser.
+ *
+ * Même customer + mot de passe. Zone `scraping_browser*` → `residential`
+ * (surcharge `BRIGHTDATA_RESIDENTIAL_ZONE`). Pays FR, port 33335
+ * (surcharge `BRIGHTDATA_RESIDENTIAL_PORT`, 44445 si le certificat neuf est en place).
+ */
+export function brightDataResidentialFromBrowserWs(
+  ws: string,
+  env: NodeJS.ProcessEnv = process.env
+): string | undefined {
+  let u: URL
+  try {
+    u = new URL(ws.trim())
+  } catch {
+    return undefined
+  }
+  const username = decodeURIComponent(u.username || '')
+  const password = decodeURIComponent(u.password || '')
+  if (!username || !password) return undefined
+  if (!/^brd-customer-/i.test(username)) return undefined
+  const m = username.match(/^(brd-customer-.+?-zone-)([^-\s]+)/i)
+  if (!m) return undefined
+  const zoneOverride = (env.BRIGHTDATA_RESIDENTIAL_ZONE || '').trim()
+  let zone = zoneOverride || m[2]
+  if (!zoneOverride && /scraping[_-]?browser/i.test(zone)) zone = 'residential'
+  const country = ((env.BRIGHTDATA_RESIDENTIAL_COUNTRY || 'fr').trim() || 'fr').toLowerCase()
+  const port = (env.BRIGHTDATA_RESIDENTIAL_PORT || '33335').trim() || '33335'
+  const host = u.hostname || 'brd.superproxy.io'
+  const user = `${m[1]}${zone}-country-${country}`
+  return `http://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}`
+}
+
 export function isBrightDataAuthError(err: unknown): boolean {
   const m = err instanceof Error ? err.message : String(err)
   return /401|403|407|unauthorized|authentication|invalid.*(password|token|key)|login failed/i.test(

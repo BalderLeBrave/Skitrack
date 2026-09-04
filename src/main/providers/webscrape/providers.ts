@@ -57,6 +57,12 @@ import {
 } from './gitesFichePrice'
 import { getQuote, quoteCacheKey, setQuote } from '../quoteCache'
 import {
+  closeBookingPopup,
+  isBrightDataAuthError,
+  resolveBrightDataBrowserWs,
+  withBrightDataPage
+} from '../booking/brightdata'
+import {
   abritelCanonicalUrl,
   cozyHitsToRawCards,
   isVrboFamilyProvider,
@@ -538,43 +544,87 @@ export async function collectBookingPages(
   )
 }
 
-export function createBookingWebProvider(opts?: ScrapeAttemptOptions): AccommodationProvider {
+export function createBookingWebProvider(opts?: ScrapeAttemptOptions & {
+  vault?: (key: string) => string | undefined
+}): AccommodationProvider {
   const name = 'booking-web'
   const timeoutMs = opts?.timeoutMs ?? 45_000
   const headless = opts?.headless !== false
+  const paramsHolder: { current: SearchParams } = { current: {} as SearchParams }
+
+  const runLocal = async (attempt: number): Promise<Accommodation[]> => {
+    let blocked: Error | null = null
+    const cards = await withPage(
+      headless,
+      async (page) => {
+        const collected = await collectBookingPages(
+          paramsHolder.current,
+          (url) => loadAndExtract(page, url, timeoutMs, extractBookingCards),
+          SEARCH_WALK.maxPages,
+          SEARCH_WALK.pagesBudgetMs,
+          page
+        )
+        if (collected.length === 0) blocked = await emptyReason(page, name)
+        return collected
+      },
+      attempt > 1
+    )
+    const list = stampPagination(mapCards(name, cards, paramsHolder.current), paginationOf(cards))
+    if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
+    return list
+  }
+
   return {
     name,
     async search(params: SearchParams): Promise<Accommodation[]> {
-      return withRetries(name, opts ?? {}, async (attempt) => {
-        let blocked: Error | null = null
-        const cards = await withPage(
-          headless,
-          async (page) => {
+      paramsHolder.current = params
+      const ws = resolveBrightDataBrowserWs({
+        brightdata_browser: opts?.vault?.('brightdata_browser')
+      })
+      if (ws) {
+        try {
+          const cards = await withBrightDataPage(ws, async (page) => {
             const collected = await collectBookingPages(
               params,
-              (url) => loadAndExtract(page, url, timeoutMs, extractBookingCards),
+              async (url) => {
+                const batch = await loadAndExtract(
+                  page,
+                  url,
+                  Math.max(timeoutMs, 60_000),
+                  extractBookingCards
+                )
+                await closeBookingPopup(page)
+                return batch
+              },
               SEARCH_WALK.maxPages,
               SEARCH_WALK.pagesBudgetMs,
               page
             )
-            // Zéro carte sur la **première** page : la station a toujours au
-            // moins un hébergement, donc la page a menti ou refusé. On lui
-            // demande laquelle des deux avant de fermer l'onglet.
-            if (collected.length === 0) blocked = await emptyReason(page, name)
             return collected
-          },
-          attempt > 1
-        )
-        const list = stampPagination(mapCards(name, cards, params), paginationOf(cards))
-        if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
-        return list
-      })
+          })
+          const list = stampPagination(mapCards(name, cards, params), paginationOf(cards))
+          if (list.length === 0) {
+            throw new Error(`${name}: Bright Data — aucune carte retenue`)
+          }
+          return list
+        } catch (err) {
+          if (isBrightDataAuthError(err)) throw err
+          const msg = err instanceof Error ? err.message : String(err)
+          if (/aucune carte retenue/i.test(msg)) throw err
+          // Réseau / session : repli Playwright local, pas une liste vide.
+        }
+      }
+      return withRetries(name, opts ?? {}, runLocal)
     },
     async health(): Promise<ProviderHealth> {
       return {
         name,
         reachable: true,
-        detail: `scraper Playwright, ${BOOKING_MAX_PAGES} page(s) au plus (repli web — préférer API si disponible)`
+        detail: resolveBrightDataBrowserWs({
+          brightdata_browser: opts?.vault?.('brightdata_browser')
+        })
+          ? `Bright Data Scraping Browser + ${SEARCH_WALK.maxPages} pages (repli Playwright)`
+          : `scraper Playwright, ${BOOKING_MAX_PAGES} page(s) au plus (repli web — préférer API si disponible)`
       }
     }
   }

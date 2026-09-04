@@ -490,6 +490,8 @@ export interface AppState {
   ficheId: number | null
   compareIds: number[]
   compareOpen: boolean
+  /** Stations cochées « Comparer » (accueil, résultats) : colonnes du tableau comparatif. */
+  stationCompareIds: number[]
   imported: Lodging[]
   importOpen: boolean
   importUrl: string
@@ -713,6 +715,7 @@ export const INITIAL_STATE: AppState = {
   ficheId: null,
   compareIds: [],
   compareOpen: false,
+  stationCompareIds: [],
   imported: [],
   importOpen: false,
   importUrl: '',
@@ -796,7 +799,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits', 'stationCompareIds'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**

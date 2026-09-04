@@ -32,6 +32,8 @@ import { diagnoseEmptySearch } from './calendarBlocks'
 import { trySolveVisibleCaptcha } from '../../captchaBridge'
 import { SEARCH_WALK } from '@shared/searchWalk'
 import { blockHeavyResources } from '../webscrape/shared'
+import { scrapeAirbnbViaOmkar, resolveOmkarAirbnbKey } from './omkar'
+import { decryptAll } from '../../secrets'
 
 export interface AirbnbScrapeParams extends AirbnbUrlParams {
   timeoutMs?: number
@@ -68,6 +70,9 @@ export interface AirbnbScrapeResult {
   recaptchaV3Fallback?: boolean
   /** Tentative qui a réussi (1-based). */
   attempts?: number
+  via?: 'omkar' | 'playwright'
+  pagesFetched?: number
+  advertised?: number | null
 }
 
 export interface AirbnbScrapeError {
@@ -796,6 +801,47 @@ async function scrapeAirbnbSearchOnce(params: AirbnbScrapeParams): Promise<Airbn
 export async function scrapeAirbnbSearch(
   params: AirbnbScrapeParams
 ): Promise<AirbnbScrapeOutcome> {
+  let vault: Record<string, string> = {}
+  try {
+    vault = decryptAll()
+  } catch {
+    vault = {}
+  }
+  const omkarKey = resolveOmkarAirbnbKey(vault)
+  if (omkarKey) {
+    const viaOmkar = await scrapeAirbnbViaOmkar(
+      {
+        city: params.city,
+        checkIn: params.checkIn,
+        checkOut: params.checkOut,
+        adults: params.adults,
+        children: params.children,
+        infants: params.infants,
+        pets: params.pets,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+        maxPages: params.scrollCount ?? SEARCH_WALK.airbnbMaxScrolls
+      },
+      omkarKey
+    )
+    if (viaOmkar.ok) {
+      return {
+        ok: true,
+        payload: viaOmkar.payload,
+        url: viaOmkar.url,
+        count: viaOmkar.payload.listings.length,
+        attempts: 1,
+        via: 'omkar',
+        pagesFetched: viaOmkar.meta.pagesFetched,
+        advertised: viaOmkar.meta.advertised
+      }
+    }
+    if (viaOmkar.blocked) {
+      return { ok: false, error: viaOmkar.error, url: viaOmkar.url, attempts: 1 }
+    }
+    // Réseau / JSON : on retombe sur Playwright plutôt que d'afficher 0 silencieux.
+  }
+
   const maxRetries = Math.max(1, params.maxRetries ?? 3)
   const baseDelayMs = params.retryBaseDelayMs ?? 1_500
   const maxDelayMs = params.retryMaxDelayMs ?? 20_000
@@ -808,7 +854,7 @@ export async function scrapeAirbnbSearch(
     last = await scrapeAirbnbSearchOnce(workingParams)
 
     if (last.ok) {
-      return { ...last, attempts: attempt }
+      return { ...last, attempts: attempt, via: last.via ?? 'playwright' }
     }
 
     // Décalage calendrier : une retente avec nouvelles dates

@@ -123,8 +123,7 @@ const api = {
     return () => ipcRenderer.removeListener('airbnb:paste', handler)
   },
   /**
-   * Recherche Airbnb automatisée (Puppeteer) : charge la page et lit
-   * data-deferred-state-0. Contourne robots.txt.
+   * Recherche Airbnb : Omkar HTTP si clé, sinon Playwright (data-deferred-state-0).
    */
   airbnbScrape: (params: AirbnbScrapeParams): Promise<AirbnbScrapeOutcome> =>
     ipcRenderer.invoke(IPC.airbnbScrape, params),

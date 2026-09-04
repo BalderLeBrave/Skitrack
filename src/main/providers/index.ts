@@ -88,7 +88,7 @@ export function buildEngine(options: EngineOptions): SearchEngine {
   // Scrapers web (Playwright) — activés si enableWebScrape (bridge: SKITRACK_WEB_SCRAPE≠0).
   // Préférer l'API Booking quand des clés sont présentes.
   if (options.enableWebScrape) {
-    next.register(createBookingWebProvider())
+    next.register(createBookingWebProvider({ vault: options.vault }))
     // Trois connecteurs qui existaient, exportés, et que personne n'appelait :
     // le code était complet, seul l'enregistrement manquait. Voir l'en-tête.
     next.register(createGitesWebProvider())

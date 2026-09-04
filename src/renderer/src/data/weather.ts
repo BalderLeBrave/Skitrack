@@ -27,7 +27,7 @@ const CACHE_KEY = 'skitrack-v3-weather'
  *  suffisent largement pour un usage de planification. */
 const TTL_MS = 3 * 3600 * 1000
 /** Points par requête. Deux par domaine, donc 40 domaines par appel. */
-const BATCH_LOCATIONS = 80
+const BATCH_LOCATIONS = 20
 
 export type SkyKind = 'sun' | 'cloud' | 'snow'
 

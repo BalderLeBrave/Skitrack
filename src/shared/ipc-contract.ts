@@ -134,6 +134,10 @@ export interface AirbnbScrapeResult {
   recaptchaV3Fallback?: boolean
   /** Tentative réussie (1-based). */
   attempts?: number
+  /** `omkar` = HTTP JSON (pas de navigateur). */
+  via?: 'omkar' | 'playwright'
+  pagesFetched?: number
+  advertised?: number | null
 }
 
 
@@ -174,6 +178,8 @@ export const SECRET_KEYS = [
   'expedia_rapid_key',
   'expedia_rapid_secret',
   'booking_demand',
+  'omkar_airbnb',
+  'brightdata_browser',
   'meteofrance',
   'scrape_proxy',
   'scrape_proxy_mobile'

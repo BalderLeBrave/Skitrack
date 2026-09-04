@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/app/router'
 import type { AppInfo, SecretKey, SecretPresence } from '@shared/ipc-contract'
 import { ExternalIcon } from '@/components/Icons'
 import { api, isClientReady } from '@/api/client'
@@ -52,6 +54,20 @@ const KEY_LABELS: Record<SecretKey, { label: string; help: string; url?: string 
     help: 'Validation partenaire Booking obligatoire. Connecteur prévu en phase 4.',
     url: 'https://developers.booking.com/'
   },
+  omkar_airbnb: {
+    label: 'Omkar — Airbnb Scraper API',
+    help:
+      'Relevé Airbnb en JSON (recherche + total séjour), sans navigateur. ' +
+      'Plus rapide que Playwright. Plafond 15 pages. Variable OMKAR_AIRBNB_KEY possible en dev.',
+    url: 'https://www.omkar.cloud/tools/airbnb-scraper-api'
+  },
+  brightdata_browser: {
+    label: 'Bright Data — navigateur Booking',
+    help:
+      'Endpoint WebSocket du Scraping Browser (wss://brd-customer-…@brd.superproxy.io:9222). ' +
+      'Relevé Booking sans jeton Demand, 15 pages. Variable BRIGHTDATA_BROWSER_WS en dev.',
+    url: 'https://docs.brightdata.com/scraping-automation/scraping-browser/introduction'
+  },
   meteofrance: {
     label: 'Météo-France',
     help: 'Bulletins neige et risque d’avalanche (BRA). Optionnel.',
@@ -89,9 +105,9 @@ const STATIC_SOURCES: { kind: string; label: string; reason: string | null }[] =
   {
     kind: 'scraping',
     label: 'Booking.com',
-    reason: 'API partenaire — validation de compte requise.'
+    reason: 'Navigateur Bright Data si clé, sinon Playwright. Demand API optionnelle.'
   },
-  { kind: 'lodging', label: 'Airbnb', reason: 'Aucune API publique — import d’annonce par URL uniquement.' },
+  { kind: 'lodging', label: 'Airbnb', reason: 'Omkar API si clé renseignée, sinon Playwright / marque-page.' },
   {
     kind: 'lodging',
     label: 'Gîtes de France',
@@ -132,6 +148,7 @@ const ADMIN_SUBTABS: [AppState['admSub'], TranslationKey][] = [
 
 export function SettingsPage(): JSX.Element {
   const { fmt } = useFormat()
+  const navigate = useNavigate()
   const { state, patch, ref, refOrigin, domains, domainSource, domainWarning } = useApp()
   const { origins, forfaitOf } = useDerived()
   const { t, lang, setLang } = useI18n()
@@ -813,7 +830,7 @@ export function SettingsPage(): JSX.Element {
               </div>
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                <button type="button" className="btn" onClick={() => patch({ tab: 'import-referentiel' })}>
+                <button type="button" className="btn" onClick={() => navigate(PATHS.referential)}>
                   {t('referential_manage')}
                 </button>
               </div>

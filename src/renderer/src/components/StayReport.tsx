@@ -87,7 +87,7 @@ export function StayReport({ context }: { context?: StayReportContext } = {}): J
   const { eur, fmt } = useFormat()
   const { state } = useApp()
   const derived = useDerived()
-  const { weatherOf, lastSuccessAt } = useWeather()
+  const { weatherOf, fetchedAt: lastSuccessAt } = useWeather()
 
   const ctx = context ?? derived.decisionCtx
   if (!ctx) return null

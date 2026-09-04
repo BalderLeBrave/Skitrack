@@ -27,7 +27,7 @@ export function isPrivateOrSharedListing(propertyType?: string | null): boolean 
     .toLowerCase()
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
-  if (/chambre d[' ]?hotes|bed[- ]and[- ]breakfast/.test(t)) return true
+  if (/chambre d[' ]?hotes|bed[- ]and[- ]breakfast|maison d[' ]?hotes/.test(t)) return true
   if (/private[ _-]?room|chambre privee|shared[ _-]?room|chambre partage/.test(t)) return true
   if (/hotel_room|chambre d[' ]?hotel/.test(t)) return true
   // Tuile Airbnb « Hôtel · Les 2 Alpes » : pas un logement entier.

@@ -300,6 +300,9 @@ interface PassResult {
   }
   captchaSolved: boolean
   attempts: number
+  via?: 'omkar' | 'playwright'
+  pagesFetched?: number
+  advertised?: number | null
 }
 
 /** Une passe, son délai propre. `null` = rien d'exploitable de ce côté-là. */
@@ -341,7 +344,10 @@ async function runPass(
     listings,
     meta,
     captchaSolved: Boolean(outcome.captchaSolved),
-    attempts: outcome.attempts ?? 1
+    attempts: outcome.attempts ?? 1,
+    via: outcome.via,
+    pagesFetched: outcome.pagesFetched,
+    advertised: outcome.advertised ?? null
   }
 }
 
@@ -385,26 +391,18 @@ export async function runAirbnbSearch(
 
   collect(first.listings)
   /*
-   * Ce balayage a-t-il vu tout ce qu'Airbnb propose ?
-   *
-   * La question n'est pas rhétorique : c'est elle qui autorise — ou non — à
-   * marquer une annonce absente « probablement réservée ». Une première passe
-   * non pleine a tout montré (voir `AIRBNB_PAGE_SIZE`). Sinon, il faut que
-   * toutes les tranches soient passées sans interruption.
+   * Omkar paginé (jusqu'à 15 pages) a déjà le catalogue : relancer 4 bandes
+   * de prix multiplierait le quota (~60 appels) pour le même inventaire.
+   * Playwright 1ère page pleine (18 cartes) : les bandes restent utiles.
    */
-  let sweepComplete = first.listings.length < AIRBNB_PAGE_SIZE
+  const omkarComplete = first.via === 'omkar'
+  let sweepComplete = omkarComplete || first.listings.length < AIRBNB_PAGE_SIZE
   const meta = first.meta
   let captchaSolved = first.captchaSolved
   let attempts = first.attempts
-  let passes = 1
+  let passes = first.pagesFetched ?? 1
 
-  /*
-   * Le balayage ne se déclenche que si la première page était **pleine**. Une
-   * station qui rend douze annonces les a toutes rendues : quatre passes de
-   * plus n'y ajouteraient rien et coûteraient quatre relevés à un site qui
-   * n'a rien demandé.
-   */
-  if (first.listings.length >= AIRBNB_PAGE_SIZE) {
+  if (!omkarComplete && first.listings.length >= AIRBNB_PAGE_SIZE) {
     sweepComplete = true
     for (const band of priceBands(first.listings, params.nights)) {
       // Sous une passe de marge, on s'arrête : entamer un relevé qu'on sait

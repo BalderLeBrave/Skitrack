@@ -1,4 +1,6 @@
 import type { ChangeEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { PATHS } from '@/app/router'
 import {
   BUNDLED_REFERENTIAL,
   clearStoredReferential,
@@ -23,6 +25,7 @@ export function ReferentialPage(): JSX.Element {
   const { t } = useI18n()
   const { fmtDate } = useFormat()
   const { ref, refOrigin, refError, setReferential, setRefError, patch } = useApp()
+  const navigate = useNavigate()
 
   const onFile = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0]
@@ -31,8 +34,8 @@ export function ReferentialPage(): JSX.Element {
       .then((next) => {
         clearRoutes()
         setReferential(next, `fichier importé — ${file.name}`)
+        navigate(PATHS.compare)
         patch({
-          tab: 'recherche',
           selectedId: null,
           pinnedId: null,
           lodgingDomainId: null,

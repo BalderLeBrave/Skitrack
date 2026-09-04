@@ -190,8 +190,7 @@ function registerIpc(): void {
   // l'URL du marque-page que l'utilisateur installera.
   ipcMain.handle(IPC.pasteToken, () => getPairingToken())
 
-  // Scraping Airbnb (Puppeteer) : charge la page de recherche et lit
-  // data-deferred-state-0. Contourne robots.txt — usage à vos risques.
+  // Airbnb : Omkar (HTTP JSON) si clé, sinon Playwright.
   ipcMain.handle(
     IPC.airbnbScrape,
     async (_e, params: AirbnbScrapeParams): Promise<AirbnbScrapeOutcome> => {
@@ -218,7 +217,10 @@ function registerIpc(): void {
         url: outcome.url,
         captchaSolved: outcome.captchaSolved,
         recaptchaV3Fallback: outcome.recaptchaV3Fallback,
-        attempts: outcome.attempts
+        attempts: outcome.attempts,
+        via: outcome.via,
+        pagesFetched: outcome.pagesFetched,
+        advertised: outcome.advertised ?? undefined
       }
     }
   )

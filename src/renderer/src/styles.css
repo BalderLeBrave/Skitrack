@@ -28,64 +28,7 @@
 
    Restent l'encre de la barre supérieure, les fonds de photo, les rayons, les
    ombres et l'encart destructif : Cairn n'a pas de rôle pour eux. */
-:root,
-[data-theme='light'] {
-  --on-brand: #ffffff;
-
-  --ink: #222b33;
-  --nav-bg: #ffffff;
-  /* Voile de la barre supérieure : le contenu défile dessous et se devine. */
-  --nav-veil: rgba(255, 255, 255, 0.94);
-  --nav-fg: #222b33;
-  --nav-muted: #6b7680;
-  --nav-hover: #f7f9fb;
-
-  --photo-a: #eaf4fc;
-  --photo-b: #bfe0f7;
-
-  --radius-card: 16px;
-  --radius-pill: 999px;
-
-  /* Ombres en trois couches : un liseré à 2 %, un contact court, une portée
-     large. Une seule ombre plate ne détache pas une carte blanche d'un fond
-     blanc — c'est tout l'enjeu d'une interface sans bordures. */
-  --shadow:
-    rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 2px 6px,
-    rgba(0, 0, 0, 0.09) 0 6px 18px;
-  --shadow-hover:
-    rgba(0, 0, 0, 0.03) 0 0 0 1px, rgba(0, 0, 0, 0.08) 0 8px 16px,
-    rgba(0, 0, 0, 0.13) 0 14px 32px;
-  --shadow-lg: 0 12px 34px rgba(0, 0, 0, 0.14);
-
-  /* Encart d'avertissement destructif (référentiel). */
-  --danger-soft: #fdf3e7;
-  --danger-ink: #7a5320;
-}
-
-[data-theme='dark'] {
-  --on-brand: #ffffff;
-
-  --ink: #e8edf2;
-  --nav-bg: #0f1519;
-  --nav-veil: rgba(15, 21, 25, 0.94);
-  --nav-fg: #e8edf2;
-  --nav-muted: #8fa0ae;
-  --nav-hover: #1a222a;
-
-  --photo-a: #12283a;
-  --photo-b: #1e3e58;
-
-  --shadow:
-    rgba(0, 0, 0, 0.5) 0 0 0 1px, rgba(0, 0, 0, 0.45) 0 2px 6px,
-    rgba(0, 0, 0, 0.5) 0 6px 18px;
-  --shadow-hover:
-    rgba(0, 0, 0, 0.55) 0 0 0 1px, rgba(0, 0, 0, 0.5) 0 8px 16px,
-    rgba(0, 0, 0, 0.55) 0 14px 32px;
-  --shadow-lg: 0 12px 34px rgba(0, 0, 0, 0.6);
-
-  --danger-soft: #33240f;
-  --danger-ink: #f2cf9b;
-}
+/* Jetons : voir app/theme.css (seul fichier de rôles de couleur). */
 
 * {
   box-sizing: border-box;
@@ -117,7 +60,7 @@ h3 {
 }
 
 ::selection {
-  background: var(--accent);
+  background: var(--brand);
   color: var(--on-accent);
 }
 
@@ -284,9 +227,9 @@ select {
  *  elle seule obligerait à lire le texte de chaque bouton d'une grille pour
  *  savoir lesquels sont retenus. */
 .btn--on {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent-texte, var(--accent));
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  color: var(--link);
 }
 
 .btn:disabled {
@@ -528,31 +471,6 @@ select {
 }
 
 /** Compteur − valeur + (voyageurs, chambres, enfants). */
-/*
- * Deux champs de comptage cote a cote — « Voyageurs » et « Chambres min ».
- *
- * `minmax(0, 1fr)` et non `1fr` : `1fr` vaut `minmax(auto, 1fr)`, et ce minimum
- * automatique est la taille min-content de la colonne. Or un `input` de type
- * texte a une largeur intrinseque d'environ 160 px, que `min-width: 0` autorise
- * a retrecir sans pour autant l'effacer du calcul du minimum. Les deux colonnes
- * se calaient donc a 232 px chacune — 470 px avec l'espace — dans un panneau de
- * 328 px : la colonne de droite, « Chambres min », sortait du survol et se
- * faisait couper. Mesure du 2026-08-31, popover de 380 px.
- *
- * `auto-fit` en prime : sous 286 px de large, les deux champs passent l'un sous
- * l'autre au lieu de se serrer jusqu'a l'illisible. C'est la meme idiome que
- * `minmax(0,1fr)` deja employe par `LodgingsPage`.
- */
-.filters__pair {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 6px;
-}
-
-.filters__pair--wide {
-  gap: 8px;
-}
-
 .stepper {
   display: flex;
   align-items: center;
@@ -576,27 +494,6 @@ select {
 .stepper__value {
   flex: 1;
   text-align: center;
-}
-
-/* Le champ central de `CountStepper` : un `input`, pour qu'un groupe de vingt
-   se tape au lieu de se cliquer. Il emprunte la typographie de son entourage —
-   un champ qui se distingue du texte qu'il remplace attire l'oeil sur un
-   détail sans importance. */
-.stepper__input {
-  min-width: 0;
-  background: none;
-  border: none;
-  padding: 0;
-  color: inherit;
-  font: inherit;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.stepper__input:focus-visible {
-  outline: 2px solid var(--link);
-  outline-offset: 2px;
-  border-radius: 3px;
 }
 
 .panel {
@@ -703,32 +600,6 @@ select {
   white-space: nowrap;
 }
 
-/* --- Filtre en plage ------------------------------------------------------ */
-
-.rangefilter + .rangefilter {
-  margin-top: 14px;
-}
-
-/* En-tête sur deux lignes : la valeur d'une plage est trop longue pour tenir
-   en regard du libellé dans un panneau étroit. */
-.rangefilter__head {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.rangefilter__label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.rangefilter__value {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
 /* --- Slicer de plage ------------------------------------------------------ */
 
 .slicer {
@@ -807,17 +678,6 @@ select {
   font-size: 12px;
 }
 
-/** Poignée de redimensionnement des colonnes de l'écran Recherche. */
-.gutter {
-  cursor: col-resize;
-  background: var(--border-soft);
-  width: 6px;
-}
-
-.gutter:hover {
-  background: var(--brand);
-}
-
 .scrim {
   position: fixed;
   inset: 0;
@@ -850,7 +710,6 @@ select {
   top: 0;
   background: var(--panel);
   z-index: 2;
-  flex-wrap: wrap;
 }
 
 .drawer__head h3 {
@@ -858,38 +717,6 @@ select {
   font-size: 18px;
   flex: 1;
   min-width: 0;
-}
-
-.drawer__back {
-  flex: 1 0 100%;
-  align-self: flex-start;
-  background: none;
-  border: 0;
-  padding: 0;
-  margin: 0 0 2px;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition: color var(--duree-1, 0.16s) var(--standard, ease);
-}
-.drawer__back:hover {
-  color: var(--accent);
-}
-
-.walkbanner {
-  display: grid;
-  gap: 4px;
-  margin: 8px 0 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.45;
 }
 
 .drawer__body {
@@ -909,61 +736,6 @@ select {
   color: var(--muted);
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-.skeleton {
-  background: var(--surface);
-  border-radius: 6px;
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-/* --- Amorçage ------------------------------------------------------------ */
-
-.boot {
-  display: grid;
-  place-items: center;
-  height: 100vh;
-  padding: 32px;
-}
-
-.boot__panel {
-  max-width: 640px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 28px 32px;
-  display: grid;
-  gap: 12px;
-}
-
-.boot__panel h1 {
-  margin: 0;
-  letter-spacing: 0.12em;
-  font-size: 22px;
-}
-
-.boot__panel h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.boot__msg {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  max-width: 56ch;
-}
-
-.boot__log pre {
-  max-height: 260px;
-  overflow: auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
-  font-size: 12px;
-  white-space: pre-wrap;
 }
 
 /* --- Coque --------------------------------------------------------------- */
@@ -1106,7 +878,7 @@ select {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--brand);
   margin: 2px 0 0 3px;
   flex: 0 0 auto;
 }
@@ -1182,145 +954,11 @@ select {
 .tab--on {
   color: var(--nav-fg);
   font-weight: 700;
-  box-shadow: inset 0 -2px 0 var(--accent);
+  box-shadow: inset 0 -2px 0 var(--brand);
 }
 
 .tab--narrow {
   padding: 0 8px;
-}
-
-/** Groupe segmenté « Offres · Combinaisons · Décision ».
- *
- *  Trois vues d'une même comparaison, pas trois destinations : le liseré des
- *  onglets primaires dirait « vous avez changé d'écran », ce qui est faux. Un
- *  segment posé sur un fond tenu dit « vous avez changé d'angle ». La pastille
- *  active remonte en surface de panneau avec une ombre courte, comme un onglet
- *  de classeur.
- *
- *  Rayons et durées viennent de Cairn : le segment est un contrôle, pas une
- *  carte, il prend donc `--rayon-plein` et non le rayon des cartes. */
-.navseg {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 10px;
-  padding: 3px;
-  border-radius: var(--rayon-plein);
-  background: var(--surface);
-  flex: 0 0 auto;
-}
-
-.navseg__btn {
-  background: none;
-  border: none;
-  padding: 6px 13px;
-  border-radius: var(--rayon-plein);
-  cursor: pointer;
-  color: var(--nav-muted);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background var(--duree-1) var(--standard), color var(--duree-1) var(--standard);
-}
-
-.navseg__btn:hover {
-  color: var(--nav-fg);
-}
-
-.navseg__btn--on {
-  background: var(--nav-bg);
-  color: var(--nav-fg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-/** Onglet secondaire (Suivi, Réglages, Voyageurs) : une pilule discrète. */
-.tab2 {
-  background: none;
-  border: 1px solid transparent;
-  padding: 7px 13px;
-  border-radius: 999px;
-  cursor: pointer;
-  color: var(--nav-muted);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  flex: 0 0 auto;
-}
-
-.tab2:hover {
-  color: var(--nav-fg);
-  background: var(--nav-hover);
-}
-
-.tab2--on {
-  background: var(--nav-hover);
-  border-color: var(--border);
-  color: var(--nav-fg);
-}
-
-/* Ouvrir le tiroir des voyageurs est une action : elle prend l'accent plein. */
-.tab2--accent {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-}
-
-.tab-people {
-  padding: 6px 13px;
-}
-
-.themeswitch {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px 2px;
-  color: var(--nav-muted);
-  flex: 0 0 auto;
-}
-
-.themeswitch__label {
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* Mêmes mesures que l'interrupteur générique : 42 × 24, pastille de 20 px. Deux
-   bascules de tailles voisines mais différentes se voient, et se lisent comme un
-   défaut d'alignement. */
-.themeswitch__track {
-  position: relative;
-  display: inline-block;
-  width: 42px;
-  height: 24px;
-  border-radius: 999px;
-  /* Piste éteinte sur fond blanc : le gris de bordure, pas un blanc translucide
-     qui disparaissait avec le bandeau encre. */
-  background: var(--border);
-  transition: background 0.2s ease;
-  flex: 0 0 auto;
-}
-
-.themeswitch__track--on {
-  background: var(--accent);
-}
-
-.themeswitch__knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: left 0.2s ease;
-}
-
-.themeswitch__track--on .themeswitch__knob {
-  left: 20px;
 }
 
 /**
@@ -1356,7 +994,7 @@ select {
 }
 
 .toggle__track--on {
-  background: var(--accent);
+  background: var(--brand);
 }
 
 .toggle__knob {
@@ -1550,30 +1188,6 @@ select {
   );
 }
 
-/** Mot géant en dégradé fondu.
- *
- *  `background-clip: text` sur un dégradé blanc qui s'éteint vers le bas : le
- *  mot naît du haut de l'image et se dissout avant d'atteindre le titre. Il ne
- *  capte ni clic ni sélection, et `aria-hidden` le retire de la lecture — le
- *  titre de l'écran est le `h1`, pas cette texture. */
-.home__geant {
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 0;
-  font-weight: 800;
-  font-size: clamp(96px, 15vw, 218px);
-  letter-spacing: -0.045em;
-  line-height: 1;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  color: transparent;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.05) 92%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
 
 /** Chute de neige : une toile posée sur le héros, transparente aux clics et
  *  muette pour les lecteurs d'écran. Sous le contenu, jamais dessus. */
@@ -1669,7 +1283,7 @@ select {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--brand);
 }
 
 .home__snowcard-row {
@@ -1721,7 +1335,7 @@ select {
   margin: 0 auto;
   /* Le rembourrage haut s'ouvre : le mot géant occupe le tiers supérieur, et
      le contenu doit passer dessous plutôt que dedans. */
-  padding: 150px 32px 76px;
+  padding: 96px 32px 72px;
   display: flex;
   align-items: flex-end;
   gap: 40px;
@@ -1760,7 +1374,7 @@ select {
 
 .home__title {
   margin: 20px auto 0;
-  font-size: 52px;
+  font-size: clamp(34px, 3vw, 46px);
   line-height: 1.05;
   font-weight: 800;
   /* Assez large pour que chaque moitié du titre tienne sur sa ligne : le saut
@@ -1785,6 +1399,24 @@ select {
   text-wrap: pretty;
 }
 
+@media (max-width: 760px) {
+  .home__hero {
+    min-height: 0;
+  }
+
+  .home__hero-inner {
+    padding: 72px 18px 40px;
+  }
+
+  .home__title {
+    font-size: clamp(30px, 8.5vw, 40px);
+  }
+
+  .home__lead {
+    font-size: 15px;
+  }
+}
+
 .home__shortcuts {
   display: flex;
   gap: 8px;
@@ -1807,309 +1439,6 @@ select {
 .home__shortcut:hover {
   background: rgba(13, 32, 52, 0.5);
   border-color: rgba(255, 255, 255, 0.6);
-}
-
-/* --- Barre de recherche en pilule ------------------------------------------
-   Voir components/SearchBar.tsx. Une seule pilule blanche, des segments séparés
-   par un filet, et la loupe en cercle plein : c'est le seul bouton bleu du
-   héro, donc la seule action que l'œil doit trouver. */
-
-/**
- * La pilule pose son propre jeton de texte, et c'est indispensable.
- *
- * `.home__hero` force `color: #ffffff` — la surface est sombre dans les deux
- * thèmes et `--text` y serait illisible. Cette règle descendait jusque dans la
- * pilule, qui est blanche : tout ce qui n'avait pas de couleur propre s'y
- * affichait en blanc sur blanc. Le nombre de voyageurs était invisible, et il
- * l'aurait été de la même façon dans n'importe quel élément ajouté plus tard à
- * la pilule ou à ses popovers.
- *
- * La couleur est donc réaffirmée à la racine du composant plutôt que corrigée
- * élément par élément : c'est la frontière entre le fond sombre du héro et la
- * carte claire posée dessus, et c'est là que l'héritage doit s'arrêter.
- */
-.sb {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 26px auto 0;
-  max-width: 940px;
-  background: var(--panel);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 8px 8px 8px 28px;
-  box-shadow: var(--shadow);
-  text-align: left;
-}
-
-.sb__seg {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 2px 14px;
-  border-left: 1px solid var(--border-soft);
-}
-
-/* Le premier segment n'a pas de séparateur à sa gauche : c'est le bord de la
-   pilule qui le borne. */
-.sb__seg:first-child {
-  border-left: none;
-  padding-left: 0;
-}
-
-.sb__seg--dest {
-  flex: 2 1 0;
-}
-
-.sb__label {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.sb__input {
-  width: 100%;
-  border: none;
-  background: none;
-  padding: 2px 0 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.sb__input::placeholder {
-  color: var(--dim);
-  font-weight: 500;
-}
-
-.sb__value {
-  display: block;
-  width: 100%;
-  border: none;
-  background: none;
-  padding: 2px 0 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sb__stepper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 2px;
-}
-
-/* Traits SVG centrés dans un cercle de 24 px : le glyphe « − » de la police est
-   décalé dans sa gouttière et se voyait de travers. */
-.sb__round {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--panel);
-  color: var(--text);
-  cursor: pointer;
-}
-
-.sb__round svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.sb__round:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.sb__round:disabled {
-  color: var(--dim);
-  cursor: default;
-}
-
-.sb__count {
-  font-size: 15px;
-  font-weight: 700;
-  min-width: 1.5ch;
-  text-align: center;
-}
-
-.sb__go {
-  flex: 0 0 auto;
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  border: none;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  cursor: pointer;
-}
-
-.sb__go svg {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-}
-
-.sb__go:hover {
-  filter: brightness(1.08);
-}
-
-/** Liste de suggestions et popovers : même carte blanche, même ombre. */
-.sb__list,
-.sb__pop {
-  position: absolute;
-  top: calc(100% + 14px);
-  left: -8px;
-  min-width: 260px;
-  max-height: 320px;
-  overflow: auto;
-  margin: 0;
-  padding: 6px;
-  list-style: none;
-  background: var(--panel);
-  border: 1px solid var(--border-soft);
-  border-radius: 14px;
-  box-shadow: var(--shadow-hover);
-  z-index: 5;
-}
-
-/* La liste déborde volontairement de son segment : « Montchavin – Les Coches ·
-   Paradiski · domaine » ne tient pas dans 260 px, et un contexte tronqué à
-   « Parad… » ne lève plus l'ambiguïté qu'il est là pour lever. */
-.sb__list {
-  min-width: min(380px, calc(100vw - 48px));
-}
-
-/* Le filet geographique porte sa propre teinte : l'utilisateur doit voir qu'on
-   lui repond autre chose que ce qu'il a demande. */
-.sb__list--nearby {
-  border-color: var(--brand);
-}
-
-.sb__nearby-head {
-  padding: 8px 10px 6px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--brand);
-}
-
-.sb__pop--wide {
-  width: 340px;
-  right: 0;
-  left: auto;
-  padding: 14px;
-}
-
-.sb__pop--party {
-  min-width: min(300px, calc(100vw - 48px));
-  max-height: none;
-  padding: 14px 16px 16px;
-  display: grid;
-  gap: 12px;
-}
-
-.sb__party-row {
-  display: grid;
-  gap: 4px;
-}
-
-.sb__party-label {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.sb__party-help {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--muted);
-}
-
-.sb__opt {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  width: 100%;
-  border: none;
-  background: none;
-  border-radius: 9px;
-  padding: 8px 10px;
-  cursor: pointer;
-  text-align: left;
-  color: var(--text);
-}
-
-.sb__opt--on,
-.sb__opt:hover {
-  background: var(--surface);
-}
-
-.sb__opt-name {
-  font-size: 14px;
-  font-weight: 600;
-  flex: 0 0 auto;
-}
-
-/* Le domaine auquel mène un village, en clair sur la même ligne : « Montchavin
-   · Paradiski ». Il se replie avant le nom quand la liste est étroite, jamais
-   l'inverse — c'est le nom tapé qu'on cherche à relire. */
-.sb__opt-context {
-  font-size: 12px;
-  color: var(--muted);
-  font-style: italic;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sb__opt-kind {
-  font-size: 11px;
-  color: var(--muted);
-  margin-left: auto;
-  flex: 0 0 auto;
-}
-
-/* --- Calendrier de séjour --------------------------------------------------
-   Voir components/DateRangePicker.tsx. Deux mois côte à côte, la plage peinte
-   en bleu pâle et ses deux extrémités en bleu plein : la bande dit la durée
-   d'un coup d'œil, là où deux dates isolées obligent à compter. */
-
-.sb__pop--cal {
-  width: max-content;
-  max-width: min(660px, calc(100vw - 48px));
-  max-height: none;
-  left: -8px;
-  right: auto;
-  padding: 14px 16px 12px;
 }
 
 .dp {
@@ -2157,8 +1486,8 @@ select {
 }
 
 .dp__nav:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--brand);
+  color: var(--brand);
 }
 
 .dp__months {
@@ -2254,7 +1583,7 @@ select {
 }
 
 .dp__day:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--brand);
   outline-offset: -2px;
   border-radius: 8px;
 }
@@ -2307,7 +1636,6 @@ select {
   padding: 26px 32px 48px;
 }
 
-
 .home__h2 {
   margin: 0;
   font-size: 26px;
@@ -2318,6 +1646,71 @@ select {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 14px;
+}
+
+/* --- Stations populaires (21st-inspired product cards, sans registre) ------ */
+.home__popular {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 64px 32px 8px;
+}
+
+.home__popular-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.home__popular-head .home__section-note {
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.home__popular-go {
+  flex: 0 0 auto;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.home__popular-hint {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.home__popular-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  align-items: stretch;
+}
+
+.home__popular-grid > * {
+  height: 100%;
+}
+
+@media (max-width: 1000px) {
+  .home__popular-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .home__popular {
+    padding: 40px 18px 0;
+  }
+
+  .home__popular-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .home__popular-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 /**
@@ -2387,7 +1780,7 @@ select {
 .home__mass-num {
   display: block;
   font-size: 11px;
-  color: var(--accent);
+  color: var(--brand);
   font-weight: 700;
   letter-spacing: 0.08em;
   height: 14px;
@@ -2397,81 +1790,6 @@ select {
 
 .home__mass-index button[data-on='true'] .home__mass-num {
   opacity: 1;
-}
-
-.mcard {
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--panel);
-  border: 1px solid var(--border-soft);
-  box-shadow: var(--elev-carte);
-  margin-bottom: 28px;
-  /* La carte s'arrête sous la barre supérieure quand le sommaire l'y amène. */
-  scroll-margin-top: 110px;
-}
-
-.mcard__photo {
-  height: 290px;
-  background-size: cover;
-  background-position: center;
-}
-
-.mcard__photo--plain {
-  background-size: auto;
-}
-
-.mcard__foot {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-}
-
-.mcard__id {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.mcard__name {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.mcard__ex {
-  font-size: 12.5px;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/** Disque fléché au pied de carte : la cible de 44 px que réclame un pointeur,
- *  et le seul élément cliquable de la carte — le reste est de la lecture. */
-.mcard__disc {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background: var(--accent-soft);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  font-size: 17px;
-  margin-left: auto;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition:
-    background var(--duree-1) var(--standard),
-    color var(--duree-1) var(--standard),
-    transform var(--duree-1) var(--standard);
-}
-
-.mcard:hover .mcard__disc {
-  background: var(--accent);
-  color: var(--on-accent);
-  transform: translateX(2px);
 }
 
 @media (max-width: 1100px) {
@@ -2545,31 +1863,6 @@ select {
     padding-left: 20px;
     padding-right: 20px;
   }
-  .sb {
-    flex-wrap: wrap;
-    border-radius: 20px;
-    padding: 14px;
-  }
-  .sb__seg {
-    flex: 1 1 100%;
-    border-left: none;
-    border-top: 1px solid var(--border-soft);
-    padding: 8px 0 4px;
-  }
-  .sb__seg:first-child {
-    border-top: none;
-    padding-top: 0;
-  }
-  .sb__go {
-    margin-left: auto;
-  }
-  .sb__pop--wide {
-    width: 100%;
-  }
-  .sb__pop--party {
-    width: 100%;
-    left: 0;
-  }
   /* Deux colonnes : trois tuiles côte à côte sous 900 px descendent sous les
      150 px de large et la photo n'est plus qu'une texture. */
   .home__massifs {
@@ -2595,21 +1888,9 @@ select {
     display: none !important;
   }
 
-  /* Les tiroirs ne s'impriment pas — sauf quand une vue d'impression nommée
-     les réclame. La condition portait sur la seule valeur `fiche` ; depuis que
-     le récapitulatif peut être monté **dans** la fiche d'un logement, elle le
-     masquait avec son tiroir, et le PDF sortait vide. Toute vue nommée est
-     désormais exemptée, et c'est à elle de dire ce qu'elle montre. */
-  html:not([data-print]) .drawer,
-  html:not([data-print]) .domsheet {
+  html:not([data-print='fiche']) .drawer,
+  html:not([data-print='fiche']) .domsheet {
     display: none !important;
-  }
-
-  /* La fiche domaine s'imprime telle quelle : plus de position fixe, plus de
-     scrim, et les webcams ne rendent rien sur papier. */
-  .domsheet {
-    position: static !important;
-    overflow: visible !important;
   }
 
   .domsheet .camframe,
@@ -2629,25 +1910,6 @@ select {
 
   html[data-print='fiche'] body * {
     visibility: hidden;
-  }
-
-  html[data-print='fiche'] .lodging-sheet,
-  html[data-print='fiche'] .lodging-sheet * {
-    visibility: visible;
-  }
-
-  html[data-print='fiche'] .lodging-sheet {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    box-shadow: none !important;
-    border: none !important;
-    overflow: visible !important;
-  }
-
-  html[data-print='fiche'] .lodging-sheet button {
-    display: none !important;
   }
 }
 
@@ -2692,7 +1954,6 @@ select {
   gap: 6px;
   margin-bottom: 4px;
 }
-
 
 .filters__details > summary {
   font-size: 13px;
@@ -2744,17 +2005,6 @@ select {
   font-size: 11px;
 }
 
-.hh-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  font-size: 13px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border-soft);
-}
-
 /**
  * Colonne de liste : elle défile pour elle seule, la carte restant fixe à côté.
  *
@@ -2773,29 +2023,6 @@ select {
   border-right: none;
 }
 
-/** Rangée de puces des filtres posés, au-dessus de la liste. */
-.filterchips {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 14px;
-}
-
-/**
- * Puces des filtres posés, à l'intérieur du panneau de réglage.
- *
- * Elles ne sont plus au-dessus de la mosaïque : l'écran Logements ne parle de
- * filtrage que dans cette fenêtre. Un filet bas les sépare des réglages qui
- * les ont produites, sans quoi la liste des critères actifs se lit comme la
- * première section de formulaire.
- */
-.filterchips--infilters {
-  margin: 0 0 10px;
-  padding: 0 0 10px;
-  border-bottom: 1px solid var(--border-soft);
-}
-
 /** Le relevé se relance depuis le panneau : action pleine, pleine largeur. */
 .filters__search {
   width: 100%;
@@ -2810,54 +2037,6 @@ select {
   text-align: left;
 }
 
-/**
- * Panneau de filtres : un survol ancré à son bouton.
- *
- * `position: absolute` et non `sticky` : posé dans le flux, le panneau poussait
- * la liste sous la ligne de flottaison — on réglait un critère sans jamais voir
- * ce qu'il changeait. Il se pose maintenant **par-dessus**, sous le bouton qui
- * l'ouvre, et la liste continue de se mettre à jour derrière.
- *
- * Trois cent quatre-vingts pixels : en dessous de 300 px les curseurs de plage
- * deviennent imprécis, au-delà le panneau commence à cacher la liste qu'il
- * sert à trier. `max-height` le borne à la hauteur visible, faute de quoi la
- * dernière section passe sous le pli sans moyen d'y accéder.
- */
-.filteranchor {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-/** Pastille du nombre de filtres posés, dans le bouton déclencheur. */
-.filteranchor__count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 18px;
-  height: 18px;
-  margin-left: 6px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--brand);
-  color: var(--on-brand);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.filterpop {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  z-index: 30;
-  width: 380px;
-  max-width: calc(100vw - 32px);
-  max-height: min(66vh, 560px);
-  overflow: auto;
-  background: var(--panel);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-hover);
-}
-
 /* Dans le survol, le panneau n'a plus de bord droit ni de fond propre : c'est
    la carte qui les porte. */
 .filterpop .filters {
@@ -2865,62 +2044,6 @@ select {
   padding: 18px 20px;
   overflow: visible;
   background: none;
-}
-
-/** Barre de recherche : le champ prend la place, le bouton « autour d'une
- *  commune » reste au bout, jamais renvoyé à la ligne seul. */
-.searchbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-
-.searchbar__field {
-  flex: 1 1 320px;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 9px 16px;
-  box-shadow: var(--shadow);
-}
-
-.searchbar__field input {
-  flex: 1;
-  min-width: 0;
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  color: var(--text);
-  font-family: inherit;
-}
-
-.geobanner,
-.wxage {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 0 0 12px;
-  font-size: 13px;
-}
-
-.geobanner {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 9px 14px;
-}
-
-.wxage {
-  font-size: 12px;
-  color: var(--muted);
 }
 
 /**
@@ -2986,90 +2109,6 @@ select {
   align-items: stretch;
 }
 
-/**
- * Badge du domaine skiable, sur une vignette de station.
- *
- * Un bouton et non une pastille : il mene aux stations voisines du meme
- * domaine, et cette action doit se voir. Discret au repos, il prend la teinte
- * de marque au survol — c'est un raccourci, pas la donnee principale de la
- * vignette, qui reste la station.
- */
-.domcard__area {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  max-width: 100%;
-  margin: 8px 0 0;
-  padding: 5px 11px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.domcard__area:hover {
-  border-color: var(--brand);
-  background: var(--brand-soft);
-}
-
-.domcard__area-name {
-  font-weight: 700;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.domcard__area-facts {
-  color: var(--muted);
-  flex: 0 0 auto;
-}
-
-/* --- Vignette de domaine -------------------------------------------------- */
-
-.domcard {
-  display: flex;
-  gap: 18px;
-  background: var(--panel);
-  border: 1px solid transparent;
-  border-radius: var(--radius-card);
-  padding: 20px;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition:
-    box-shadow 0.18s ease,
-    border-color 0.18s ease;
-}
-
-/* Le survol vient de deux endroits — la souris sur la vignette, ou la souris sur
-   l'épingle de la carte — et doit se voir pareil dans les deux cas. */
-.domcard:hover,
-.domcard--hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-hover);
-}
-
-.domcard--on {
-  border-color: var(--text);
-  box-shadow: var(--shadow-hover);
-}
-
-.domcard--dense {
-  gap: 12px;
-  padding: 12px 14px;
-}
-
-.domcard__head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 /** Pastille de massif : teinte portée par `massifColor`, posée en style
  *  inline — la couleur dépend de la donnée, pas d'une classe. */
 .domcard__massif {
@@ -3081,29 +2120,6 @@ select {
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
-}
-
-/** Note sur 5 : fond ambre, à droite de la ligne haute. */
-.domcard__note {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  background: var(--warn-soft);
-  color: var(--warn);
-}
-
-.domcard__ident {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1 1 180px;
-  min-width: 0;
 }
 
 .domcard__logo {
@@ -3120,283 +2136,6 @@ select {
   border: 1px solid var(--border-soft);
 }
 
-.domcard__name {
-  margin: 6px 0 0;
-  font-size: 17px;
-  font-weight: 700;
-  min-width: 0;
-}
-
-.domcard__badges {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-}
-
-.domcard__sub {
-  margin: 2px 0 8px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-/**
- * Les quatre chiffres décisifs de la vignette.
- *
- * Encadrés en haut et en bas pour former un bloc que l'œil saisit d'un coup,
- * là où sept données alignées se lisaient une à une. Seul le bas des pistes
- * porte l'accent : c'est le critère qui départage vraiment deux domaines.
- */
-/** Tuiles de statistiques.
- *
- *  Le fond de la grille fait les filets : à `gap: 1px`, il ne reste qu'un trait
- *  d'un pixel entre deux cellules, sans doublon aux jonctions ni décalage au
- *  retour à la ligne — ce qu'une bordure par cellule ne sait pas faire. */
-.domcard__tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
-  gap: 1px;
-  margin: 12px 0 0;
-  background: var(--border-soft);
-  border: 1px solid var(--border-soft);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/** Trois chiffres clés : trois colonnes, pas un `auto-fit` qui replierait la
- *  rangée en 2 + 1 sur une carte étroite. Les trois valeurs se comparent en
- *  balayant une colonne d'une carte à l'autre ; un retour à la ligne casse
- *  cette lecture verticale.
- *
- *  Les trois parts ne sont pas égales, et elles ne peuvent pas l'être : la
- *  première porte une **plage** — « 1 559 – 3 456 m », deux nombres, un tiret
- *  et une unité — quand les deux autres portent une seule valeur. À parts
- *  égales, mesuré le 2026-08-31 sur une carte de 452 px, l'altitude réclamait
- *  122 px pour 98 disponibles : le « m » passait sous le `overflow: hidden` du
- *  cadre et disparaissait. La carte affichait « 1 559 – 3 456 », une altitude
- *  sans unité, à côté d'un « 341,5 km » qui gardait la sienne. */
-.domcard__tiles--three {
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr) minmax(0, 0.85fr);
-}
-
-.domcard__tile {
-  background: var(--panel);
-  padding: 9px 10px;
-}
-
-.domcard__tile dt {
-  display: block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-
-.domcard__tileval {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-/* Le bas des pistes est le critère structurant : il porte la couleur de
-   donnée, pas celle des actions. */
-.domcard__tileval--data {
-  color: var(--brand);
-}
-
-.domcard__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.domcard__tag {
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.domcard__meta {
-  margin: 8px 0 0;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.domcard__stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: 6px 12px;
-  margin: 0;
-}
-
-.domcard__stats dt {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.domcard__stats dd {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.domcard__forfait {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.domcard__line {
-  margin: 8px 0 0;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.domcard__trend {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-
-.domcard__linkrow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-
-.domcard__snow {
-  margin: 4px 0 0;
-  font-size: 13px;
-}
-
-.domcard__footer {
-  display: flex;
-  gap: 12px 16px;
-  margin-top: auto;
-  padding-top: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-/** Colonne de contenu de la carte de station.
- *
- *  Colonne flex pour que le pied — prix, « Retenir », « Voir les logements » —
- *  soit poussé en bas (`margin-top: auto` ci-dessus). Deux stations dont les
- *  lignes de contexte n'ont pas la même longueur gardent ainsi leurs boutons
- *  sur la même ligne. */
-.domcard__col {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-/** Bloc de prix de la carte de domaine.
- *
- *  Trois lignes hiérarchisées : le montant du groupe, ce qu'il couvre, puis le
- *  tarif unitaire. L'ordre est l'inverse de celui d'avant, où le tarif adulte
- *  était le grand chiffre : c'est le total du groupe qu'on paie, et c'est lui
- *  qui départage deux domaines. */
-.domcard__price {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.domcard__price-val {
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text);
-  line-height: 1.15;
-}
-
-.domcard__price-scope {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/** Le tarif unitaire descend en légende : il reste vérifiable d'un coup d'œil
- *  sans prétendre être le prix du séjour. */
-.domcard__price-unit {
-  font-size: 12px;
-  color: var(--dim);
-}
-
-/** Hiérarchie du pied de carte.
- *
- *  Une carte de station pose deux gestes, et un seul fait avancer le parcours :
- *  aller voir les logements. Il prend donc la pilule d'accent, pleine et
- *  franche ; « Retenir » redevient ce qu'il est — un marque-page — sans cadre
- *  ni fond, jusqu'à ce qu'il soit posé. */
-.domcard__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: var(--rayon-plein, 999px);
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
-  transition: transform var(--duree-1, 0.16s) var(--standard, ease), box-shadow var(--duree-1, 0.16s)
-      var(--standard, ease), filter var(--duree-1, 0.16s) var(--standard, ease);
-}
-.domcard__cta:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 32%, transparent);
-}
-.domcard__cta:active {
-  transform: translateY(0);
-}
-
-.domcard__save {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: 0;
-  padding: 8px 10px;
-  border-radius: var(--rayon-plein, 999px);
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color var(--duree-1, 0.16s) var(--standard, ease), background-color var(--duree-1, 0.16s)
-    var(--standard, ease);
-}
-.domcard__save:hover {
-  color: var(--text);
-  background: var(--surface);
-}
-.domcard__save--on {
-  color: var(--accent);
-}
-.domcard__save:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .domcard__cta,
-  .domcard__save {
-    transition: none;
-  }
-  .domcard__cta:hover:not(:disabled) {
-    transform: none;
-  }
-}
-
-
 .scorebadge {
   display: inline-flex;
   align-items: baseline;
@@ -3406,76 +2145,6 @@ select {
   padding: 6px 14px;
   cursor: pointer;
   line-height: 1.1;
-}
-
-.domcard__drawer {
-  margin-top: 10px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.domcard__drawer-title {
-  margin: 0 0 2px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.domcard__drawer-sub {
-  margin: 0 0 10px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.domcard__drawer-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px 14px;
-  margin: 0;
-}
-
-.domcard__drawer-grid dt {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.domcard__drawer-grid dd {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.domcard__drawer-note {
-  margin: 10px 0 0;
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.scorelist {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.scorelist li {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.scorelist__head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: baseline;
-  font-size: 12px;
-}
-
-.scorelist__why {
-  font-size: 11px;
-  color: var(--muted);
 }
 
 /* --- Carte ---------------------------------------------------------------- */
@@ -3615,13 +2284,9 @@ select {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--brand);
   border: 3px solid #ffffff;
-  box-shadow: 0 0 0 2px var(--accent);
-}
-
-.maplibregl-ctrl-attrib {
-  font-size: 10px;
+  box-shadow: 0 0 0 2px var(--brand);
 }
 
 /* --- Écran Logements ------------------------------------------------------ */
@@ -3631,144 +2296,6 @@ select {
   flex-direction: column;
   height: 100%;
   position: relative;
-}
-
-/** En-tête de contexte de l'écran Logements.
- *
- *  L'ancienne barre posait retour, titre, station, altitude, dates et groupe
- *  sur une même ligne de 12 px : on ne savait plus dans quelle station on
- *  cherchait. Deux niveaux lèvent l'ambiguïté — le nom de la station en titre,
- *  les critères du séjour en jetons dessous — et le coût garde sa droite. */
-.lodgctx {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px 24px;
-  padding: 14px clamp(16px, 3vw, 24px);
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-}
-
-.lodgctx__left {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.lodgctx__back {
-  align-self: flex-start;
-  background: none;
-  border: 0;
-  padding: 0;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color var(--duree-1, 0.16s) var(--standard, ease);
-}
-.lodgctx__back:hover {
-  color: var(--accent);
-}
-
-.lodgctx__title {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.lodgctx__eyebrow {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.lodgctx__station {
-  margin: 0;
-  font-size: clamp(20px, 2.4vw, 26px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--text);
-}
-
-.lodgctx__chips {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-/** Jeton de critère : clé atténuée, valeur en encre, précision en légende.
- *  Les trois tiennent sur une ligne — c'est un rappel, pas un formulaire. */
-.lodgctx__chip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: var(--rayon-plein, 999px);
-  background: var(--surface);
-  font-size: 12px;
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.lodgctx__chip-k {
-  color: var(--dim);
-  font-weight: 600;
-}
-.lodgctx__chip-v {
-  color: var(--text);
-  font-weight: 700;
-}
-.lodgctx__chip-n {
-  color: var(--muted);
-}
-
-@media (max-width: 900px) {
-  .lodgctx__chip-n {
-    display: none;
-  }
-}
-
-/** Coût du séjour, à droite de la barre.
- *
- *  Encadré plutôt que posé à plat : c'est la seule valeur de la ligne qui se
- *  recalcule quand on retient un logement, et elle doit se retrouver du regard
- *  après un aller-retour dans la liste. */
-.lodgcost {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--rayon-plein);
-  background: var(--accent-soft);
-  flex: 0 0 auto;
-}
-
-.lodgcost__label {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.lodgcost__val {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.lodgcost__scope {
-  font-size: 11px;
-  color: var(--muted);
 }
 
 /** Section des logements écartés.
@@ -4051,8 +2578,8 @@ select {
 /** L'état pressé porte un fond ET un liseré : la couleur seule ne dit pas
  *  qu'on a voté. */
 .selnote__vote[aria-pressed='true'] {
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand);
 }
 
 .selnote__tally {
@@ -4071,8 +2598,8 @@ select {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent-texte, var(--accent));
+  background: var(--brand-soft);
+  color: var(--link);
   display: grid;
   place-items: center;
   font-size: 11px;
@@ -4168,58 +2695,6 @@ select {
   color: var(--text);
 }
 
-/** Bandeau de mise en avant depuis la carte. */
-.pickbanner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand);
-  border-radius: 10px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: var(--text);
-}
-
-/**
- * Vignette élue.
- *
- * Fond teinté, retrait et liseré épais : sur une vignette sans cadre, un
- * liseré de un pixel ne se voit pas au milieu d'une mosaïque.
- */
-.lodgcard__picked {
-  background: var(--brand-soft);
-  border: 2px solid var(--brand);
-  border-radius: 14px;
-  padding: 8px;
-}
-
-.lodgcard__pickedtag {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--brand);
-}
-
-.lodggrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
-  gap: 16px;
-  align-items: start;
-}
-
-/** Liste et carte côte à côte, séparées par une poignée déplaçable. */
-.lodgsplit {
-  display: grid;
-  flex: 1;
-  min-height: 0;
-}
-
 /**
  * Dans le partage, la carte remplit sa colonne au lieu de sa hauteur fixe.
  *
@@ -4233,35 +2708,6 @@ select {
   top: auto;
   height: 100%;
   min-height: 0;
-}
-
-.lodgsplit__list {
-  overflow: auto;
-  min-width: 0;
-  padding-right: 4px;
-}
-
-.lodgsplit__handle {
-  position: relative;
-  cursor: col-resize;
-  background: var(--border-soft);
-  touch-action: none;
-}
-
-.lodgsplit__handle:hover {
-  background: var(--brand);
-}
-
-.lodgsplit__grip {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 4px;
-  height: 44px;
-  border-radius: 999px;
-  background: var(--dim);
-  pointer-events: none;
 }
 
 /** Ce que le cadrage de la carte écarte de la liste, dit plutôt que subi. */
@@ -4342,399 +2788,6 @@ select {
 .check--inline {
   margin: 0;
   font-size: 12px;
-}
-
-.srcbanner {
-  display: flex;
-  align-items: center;
-  gap: 8px 14px;
-  flex-wrap: wrap;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  font-size: 13px;
-  box-shadow: var(--shadow);
-}
-
-.srcrow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-size: 13px;
-  text-align: left;
-  width: 100%;
-}
-
-/* `.weekrow` / `.weekrow--on` retirés avec le panneau « Dates flexibles ». */
-
-/* --- Vignette de logement ------------------------------------------------- */
-
-.lodgcard {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: box-shadow 0.18s ease;
-  /* Sans ce `min-width`, la vignette garde le `min-width: auto` d'un élément
-     de grille : un titre d'annonce long — les sources en produisent de très
-     longs — élargit sa colonne au lieu d'être tronqué, la carte déborde et les
-     photos voisines prennent des hauteurs différentes. C'est la même cause
-     pour les trois défauts. */
-  min-width: 0;
-}
-
-.lodgcard:hover {
-  border-color: var(--link);
-}
-
-.lodgcard--on {
-  border-color: var(--text);
-  box-shadow: var(--shadow-lg);
-}
-
-.lodgcard__media {
-  aspect-ratio: 16/10;
-  background: repeating-linear-gradient(45deg, var(--photo-a) 0 12px, var(--photo-b) 12px 24px);
-  position: relative;
-  display: grid;
-  place-items: center;
-  /* Rien ne dépasse du cadre, quelle que soit la proportion de la photo. */
-  overflow: hidden;
-}
-
-/**
- * La photo remplit le cadre, elle ne le dimensionne pas.
- *
- * En élément de grille centré (`place-items: center`), sa hauteur se négociait
- * avec son contenu : deux vignettes voisines finissaient avec des photos de
- * hauteurs différentes selon la proportion du fichier reçu, alors que leur
- * cadre annonçait le même 16/10. Sortie du flux, elle ne peut plus peser sur
- * la hauteur du cadre — c'est `aspect-ratio` seul qui la fixe, donc la même
- * pour toutes.
- *
- * Portée limitée au média de la vignette : `.lodgcard__img` est partagé avec
- * la photo de `LodgingSheet`, qui a sa propre hauteur.
- */
-.lodgcard__media .lodgcard__img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.lodgcard__media--stale {
-  filter: grayscale(1);
-  opacity: 0.5;
-}
-
-/* ——— Pastilles de logement ———
-   Une seule géométrie pour toutes : même hauteur, même rayon, même graisse,
-   même corps. Les variantes ne changent QUE la couleur. La hauteur est fixée
-   plutôt que déduite du padding, sinon un libellé plus gras ou une langue plus
-   longue rendrait deux pastilles voisines de tailles différentes — ce que le
-   coup d'œil repère immédiatement sur une grille de vignettes.
-
-   Ni majuscules ni interlettrage : la pastille nomme, elle n'interpelle pas. */
-.lodgcard__badge {
-  position: absolute;
-  top: 10px;
-  display: inline-flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
-}
-
-/* Posée sur une photo, la pastille ne suit pas les jetons de thème : elle a
-   pour fond l'image, pas l'application. D'où un blanc opaque et un texte
-   sombre dans les deux thèmes — le parti d'Airbnb, et le seul qui reste
-   lisible sur une façade enneigée comme sur un salon sombre. */
-.lodgcard__badge--ski {
-  left: 10px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #1c1f24;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
-}
-
-/* La source informe sans revendiquer : même pastille, teinte en retrait. */
-.lodgcard__badge--note {
-  background: rgba(0, 0, 0, 0.55);
-  color: #f5c542;
-  font-variant-numeric: tabular-nums;
-}
-/* Pastille de source : blanche à texte foncé, comme la maquette et comme
-   « Ski aux pieds », sa voisine de rangée. */
-/* Rangée des pastilles du média : une seule bande en haut de la photo, dont
-   les pastilles redeviennent des éléments de flux. C'est elle qui garantit
-   qu'aucune ne peut en recouvrir une autre, quelle que soit la longueur du nom
-   de la source. `min-width: 0` sur la pastille de source pour qu'elle cède la
-   première — « Ski aux pieds » est court et ne se tronque jamais. */
-.lodgcard__badges {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  pointer-events: none;
-}
-
-.lodgcard__badges .lodgcard__badge {
-  position: static;
-}
-
-.lodgcard__badge--src {
-  min-width: 0;
-  background: rgba(255, 255, 255, 0.94);
-  /* Encre fixe et non `var(--text)` : la pastille garde son fond blanc dans
-     les deux thèmes, et le jeton de texte devenait clair en sombre — le nom de
-     la source disparaissait alors sur son propre fond. */
-  color: #12181f;
-  box-shadow: 0 1px 3px rgba(15, 22, 32, 0.18);
-  backdrop-filter: blur(2px);
-}
-
-/* Pastilles plus discrètes sur la photo d'une vignette : à 24 px et 12 px
-   elles pesaient autant que le titre. Portée volontairement limitée au média
-   de la vignette — `LodgingSheet` emploie les mêmes classes et garde sa
-   propre échelle. */
-.lodgcard__media .lodgcard__badge {
-  height: 21px;
-  padding: 0 9px;
-  font-size: 11px;
-}
-
-/* L'ellipse porte sur le nom, pas sur la pastille : `text-overflow` n'a aucun
-   effet sur un conteneur flex, et la pastille en est un pour tenir sa hauteur
-   fixe. Le compte « +N » reste donc toujours lisible, même nom tronqué. */
-.lodgcard__srcname {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Confiance prix : posée à gauche de la source, lisible sur photo. */
-.lodgcard__badge--priceok {
-  right: 88px;
-  background: rgba(14, 138, 95, 0.92);
-  color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
-}
-.lodgcard__badge--pricewarn {
-  right: 88px;
-  background: rgba(180, 83, 9, 0.92);
-  color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
-}
-
-/* Dans l'en-tête de la fiche, la pastille suit le flux au lieu de flotter, et
-   retrouve les jetons de thème : là, elle est posée sur le panneau. */
-.lodgcard__badge--inline {
-  position: static;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
-.lodgcard__body {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  /* Colonne flex et non grille : c'est ce qui permet au pied de la vignette
-     (`__foot`) d'être poussé en bas par `margin-top: auto`, donc d'être à la
-     même hauteur sur toutes les cartes d'une rangée. */
-  flex: 1;
-  min-width: 0;
-}
-
-/**
- * Le `min-width: 0` doit descendre sur **chaque** enfant du corps.
- *
- * C'est le piège qui a fait échouer la première correction : poser la règle
- * sur `.lodgcard` et sur `.lodgcard__body` ne suffit pas, parce que chaque
- * enfant d'une grille repart de `min-width: auto`. Un titre d'annonce sans
- * espace, ou un libellé « Ouvrir sur Booking.com », élargissait alors la
- * colonne interne au-delà de la carte, et l'`overflow: hidden` de la vignette
- * coupait le texte net — sans jamais l'ellipse attendue.
- */
-.lodgcard__body > * {
-  min-width: 0;
-}
-
-/* La troncature sur une ligne (voir plus bas) remplace le repli : une phrase
-   longue s'abrège désormais, elle ne pousse ni ne rallonge la colonne. */
-
-.lodgcard__name {
-  margin: 0;
-  font-size: 15px;
-}
-
-.lodgcard__sub {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-  /* Une ligne, tronquée : la faire passer sur deux lignes décalait le prix et
-     le bouton d'une carte à l'autre. Le texte complet reste au survol
-     (`title`). */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.lodgcard__price {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-  margin-top: 2px;
-}
-
-.lodgcard__total {
-  font-size: 20px;
-  font-weight: 700;
-  /* Discipline de l'accent : le prix est une donnée, pas une action. Le gras
-     et la taille suffisent à le hiérarchiser. */
-  color: var(--text);
-  letter-spacing: -0.03em;
-}
-
-/* ——— Vignette de logement : gabarit dédié ———————————————————————————————
-   Ajouts du passage au gabarit propre à l'écran Logements. Tout ce qui suit
-   est déclaré après les règles de base ci-dessus : à spécificité égale, c'est
-   la dernière qui l'emporte, et une variante posée avant serait reprise. */
-
-/* Le nom et la note partagent la première ligne. `min-width: 0` sur le titre,
-   sans quoi un nom long pousserait la note hors de la vignette au lieu d'être
-   tronqué — c'est le titre qui cède, jamais la note. */
-.lodgcard__titlerow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.lodgcard__titlerow .lodgcard__name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.lodgcard__note {
-  flex: none;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.lodgcard__unit {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-/**
- * Le montant du séjour, au bleu de marque — celui des puces de filtre.
- *
- * Il portait trois teintes selon la confiance du prix. Depuis que la liste
- * n'admet que des prix vérifiés, cette confiance vaut « confirmé » pour toutes
- * les vignettes : le vert ne distinguait plus rien, il colorait seulement. Une
- * couleur qui ne sépare plus deux cas n'est plus une information.
- *
- * Déclaré après `.lodgcard__total`, dont il reprend la teinte.
- */
-.lodgcard__total {
-  color: var(--brand);
-}
-
-/* Deux proportions de photo, selon la densité choisie dans les réglages. */
-.lodgcard__media--wide {
-  aspect-ratio: 16/10;
-}
-
-.lodgcard__media--square {
-  aspect-ratio: 1/1;
-}
-
-/* Nombre d'autres sources portant la même annonce, dans la pastille. Cadré en
-   accent : c'est un compte, pas la suite du nom de la centrale. */
-.lodgcard__srcplus {
-  margin-left: 6px;
-  color: var(--link);
-  font-weight: 700;
-}
-
-/* Action principale : pleine largeur, au-dessus des deux actions secondaires.
-   Elle sort de l'application, elle mérite la ligne entière. */
-.lodgcard__open {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 2px;
-  /* « Ouvrir sur Les Menuires Réservation » est plus large que la vignette :
-     le libellé se tronque, la flèche reste visible. */
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-/* --- Fiche logement ------------------------------------------------------- */
-
-.photogrid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  grid-template-rows: 96px 96px;
-  gap: 6px;
-}
-
-.photogrid__main,
-.photogrid__cell {
-  background: repeating-linear-gradient(45deg, var(--photo-a) 0 12px, var(--photo-b) 12px 24px);
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  position: relative;
-}
-
-.photogrid__main {
-  grid-row: 1 / 3;
-}
-
-.photogrid__more {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-  background: var(--panel);
-  border-radius: 999px;
-  padding: 2px 8px;
-  font-size: 11px;
-  box-shadow: var(--shadow);
 }
 
 .sheet__label {
@@ -4841,40 +2894,6 @@ select {
   flex-wrap: wrap;
 }
 
-/* --- Bandeau de séjour (StayBar) ------------------------------------------ */
-
-/** Pied de l'écran Logements : il clôt l'étape 2.
- *
- *  Ce n'est pas une pilule flottante comme le tiroir du comparateur, mais un
- *  vrai pied d'écran : `.lodgings` est une colonne flex de hauteur pleine, le
- *  bandeau y reste posé tandis que la mosaïque défile au-dessus. Une pilule
- *  centrée de plus, sous celle du comparateur, en aurait fait deux qui se
- *  recouvrent. */
-.staybar {
-  display: flex;
-  align-items: center;
-  gap: 10px 20px;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  padding: 12px clamp(16px, 3vw, 24px);
-  background: var(--panel);
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -8px 24px rgba(16, 24, 40, 0.06);
-  z-index: 8;
-  animation: staybar-in 0.26s cubic-bezier(0.22, 0.61, 0.36, 1) both;
-}
-
-/* Bandeau replié : une ligne fine, le total, la poignée pour rouvrir. */
-.staybar--mini {
-  padding: 6px clamp(16px, 3vw, 24px);
-  gap: 12px;
-  flex-wrap: nowrap;
-}
-
-.staybar__collapse {
-  align-self: center;
-}
-
 @keyframes staybar-in {
   from {
     opacity: 0;
@@ -4886,179 +2905,10 @@ select {
   }
 }
 
-.staybar__who {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1 1 220px;
-}
-
-.staybar__eyebrow {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.staybar__name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.staybar__place {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.staybar__cost {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  min-width: 0;
-}
-
-.staybar__total {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--text);
-}
-
-.staybar__scope {
-  font-size: 11px;
-  color: var(--dim);
-  white-space: nowrap;
-}
-
-.staybar__share {
-  background: none;
-  border: 0;
-  padding: 8px 10px;
-  border-radius: var(--rayon-plein, 999px);
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color var(--duree-1, 0.16s) var(--standard, ease), background-color var(--duree-1, 0.16s)
-    var(--standard, ease);
-}
-.staybar__share:hover {
-  color: var(--accent);
-  background: var(--surface);
-}
-
-.staybar__cta {
-  border-radius: var(--rayon-plein, 999px);
-  padding: 11px 20px;
-  font-size: 14px;
-  font-weight: 700;
-  transition: transform var(--duree-1, 0.16s) var(--standard, ease), box-shadow var(--duree-1, 0.16s)
-    var(--standard, ease);
-}
-.staybar__cta:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 32%, transparent);
-}
-
-/** Texte du récapitulatif : monospace, pour qu'on voie ce qui sera collé. */
-.staysum__text {
-  width: 100%;
-  resize: vertical;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-/** Action primaire de la vignette de logement : retenir. Pleine largeur, en
- *  accent, elle referme l'étape 2 ; « Ouvrir sur la source » redescend avec les
- *  actions discrètes puisqu'il fait quitter l'application. */
-.lodgcard__cta {
-  width: 100%;
-  padding: 10px 16px;
-  border: 1px solid var(--accent);
-  border-radius: var(--rayon-plein, 999px);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: filter var(--duree-1, 0.16s) var(--standard, ease), background-color var(--duree-1, 0.16s)
-    var(--standard, ease), color var(--duree-1, 0.16s) var(--standard, ease);
-}
-.lodgcard__cta:hover {
-  filter: brightness(0.95);
-}
-.lodgcard__cta--on {
-  background: var(--accent-soft);
-  color: var(--accent-texte, var(--accent));
-}
-
 /** Parcours replié, sur fenêtre étroite (voir `narrow` dans l'état). */
 .nav__jump {
   font-weight: 700;
   max-width: 190px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .staybar,
-  .staybar__cta,
-  .staybar__share,
-  .lodgcard__cta {
-    animation: none;
-    transition: none;
-  }
-  .staybar__cta:hover:not(:disabled) {
-    transform: none;
-  }
-}
-
-/* --- Comparateur ---------------------------------------------------------- */
-
-/* Tiroir du comparateur : une pilule encre posée en bas de l'écran, au-dessus de
-   la mosaïque qui continue de défiler dessous. Le contraste est garanti dans les
-   deux thèmes puisque les deux jetons s'échangent avec eux. */
-.comparebar {
-  position: absolute;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  z-index: 7;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--text);
-  color: var(--bg);
-  border-radius: 999px;
-  padding: 8px 8px 8px 20px;
-  box-shadow: var(--shadow-hover);
-}
-
-.comparebar__cta {
-  background: var(--accent);
-  color: var(--on-accent);
-  border: none;
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.comparebar__close {
-  background: none;
-  border: none;
-  color: var(--bg);
-  opacity: 0.7;
-  cursor: pointer;
-  padding: 4px 8px;
 }
 
 .compare {
@@ -5153,15 +3003,6 @@ select {
   flex-wrap: wrap;
 }
 
-.votebtn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 13px;
-}
-
 /* --- Carte des logements -------------------------------------------------- */
 
 /* Carte des logements : mêmes coins et même ombre qu'une carte de résultat —
@@ -5203,14 +3044,6 @@ select {
   border: 1px solid rgba(0, 0, 0, 0.25);
   background: #ffffff;
   color: #222222;
-}
-
-/* Position dispersée faute de coordonnées relevées : l'épingle se distingue —
-   contour en pointillés, aplat éteint — et son infobulle dit pourquoi. Une
-   épingle pleine reste réservée aux positions que la source a publiées. */
-.pricepin--approx {
-  opacity: 0.62;
-  border-style: dashed;
 }
 
 .pricepin--on {
@@ -5281,209 +3114,6 @@ select {
   border-radius: 14px;
 }
 
-/**
- * Ligne dense d'une offre.
- *
- * Quatre blocs : la note du domaine, les noms et les postes, la jauge de neige,
- * le prix. Le rayon descend à 14 px — c'est le repère des lignes denses, là où
- * les cartes à photo restent à 16 — et les chiffres passent en chasse tabulaire
- * pour que deux prix se comparent colonne à colonne.
- */
-.offerrow {
-  display: grid;
-  /* Colonnes de largeur **fixe** de part et d'autre du bloc central : chaque
-     rangée est sa propre grille, donc des colonnes `auto` se dimensionnaient
-     sur leur seul contenu — « 76 · Très bon » décalait le nom d'une ligne à
-     l'autre, et « 0 / 0 cm » décalait le prix. */
-  grid-template-columns: 100px minmax(0, 1fr) 56px 132px;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-  padding: 14px 16px;
-  text-align: left;
-  font-family: inherit;
-  color: var(--text);
-  background: var(--panel);
-  border: 1px solid transparent;
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transition:
-    box-shadow 0.18s ease,
-    border-color 0.18s ease;
-}
-
-.offerrow:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-hover);
-}
-
-/* Relevé périmé : la ligne s'atténue sans disparaître — le prix reste vrai à sa
-   date, et c'est la date qui est douteuse. */
-.offerrow--dim {
-  opacity: 0.72;
-}
-
-.offerrow__score {
-  align-self: flex-start;
-  border-radius: 999px;
-  padding: 3px 9px;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-  /* La pastille remplit sa colonne fixe : son texte reste centré, et le nom de
-     l'offre part au même x sur toutes les rangées. */
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.offerrow__main {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.offerrow__place {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.offerrow__name {
-  font-size: 15px;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.offerrow__meta {
-  font-size: 12px;
-  color: var(--muted);
-  /* Une ligne par mention : à deux lignes, les rangées n'avaient plus la même
-     hauteur et les colonnes de droite ne s'alignaient plus entre elles. */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/** Jauge de neige : une colonne bleu pâle remplie jusqu'au sommet relevé. */
-.offerrow__snow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.offerrow__snowbar {
-  position: relative;
-  display: block;
-  width: 8px;
-  height: 40px;
-  border-radius: 999px;
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.offerrow__snowfill {
-  position: absolute;
-  inset: auto 0 0 0;
-  background: var(--snow-light);
-}
-
-.offerrow__snowtxt {
-  font-size: 12px;
-  color: var(--snow-ink);
-}
-
-.offerrow__price {
-  display: grid;
-  justify-items: end;
-  gap: 1px;
-  text-align: right;
-}
-
-.offerrow__total {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.offerrow__unit {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-@media (max-width: 760px) {
-  .offerrow {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .offerrow__score,
-  .offerrow__snow {
-    grid-column: 1 / -1;
-  }
-}
-
-/** Légende de la grille : trois paliers de l'échelle, plus le liseré vacances. */
-.heatlegend {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin: 0 0 12px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.heatlegend__item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.heatlegend__swatch {
-  width: 22px;
-  height: 14px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-}
-
-.heatlegend__swatch--holiday {
-  background: var(--surface);
-  box-shadow: inset 0 -3px 0 var(--accent);
-}
-
-.combogrid {
-  display: grid;
-  grid-template-columns: minmax(200px, 1.4fr) repeat(5, minmax(96px, 1fr)) minmax(90px, 0.7fr);
-  gap: 8px;
-  align-items: center;
-  min-width: 760px;
-}
-
-.combosel {
-  padding: 16px 18px;
-  margin-top: 16px;
-  display: grid;
-  gap: 12px;
-  border-color: var(--brand);
-}
-
-.votepill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 3px 6px 3px 10px;
-}
-
 .section__title {
   margin: 0 0 10px;
   font-size: 14px;
@@ -5515,49 +3145,12 @@ select {
   border: none;
 }
 
-.homerow {
-  border-top: 1px solid var(--border-soft);
-  padding-top: 12px;
-}
-
-.homerow__head {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.homerow__avatars {
-  display: inline-flex;
-  flex: 0 0 auto;
-}
-
-/* Pastilles d'initiales : elles se chevauchent légèrement, comme une pile de
-   jetons — c'est ce qui les lit comme un groupe et non comme une liste. */
-.avatar {
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent);
-  border: 2px solid var(--panel);
-  font-size: 11px;
-  font-weight: 700;
-  margin-right: -6px;
-}
-
-.avatar:last-child {
-  margin-right: 0;
-}
-
 /** Encart d'écart au partage égal : bleu pâle, jamais alarmant. */
 .decision__delta {
   margin: 8px 0 0;
   padding: 7px 10px;
   border-radius: 10px;
-  background: var(--accent-soft);
+  background: var(--brand-soft);
   color: var(--snow-ink);
   font-size: 12px;
   font-weight: 600;
@@ -5611,7 +3204,7 @@ select {
 }
 
 .trackrow:hover {
-  border-color: var(--accent);
+  border-color: var(--brand);
   box-shadow: var(--shadow-hover);
 }
 
@@ -5705,99 +3298,6 @@ select {
   padding-top: 10px;
 }
 
-/* --- Fiche domaine -------------------------------------------------------- */
-
-.meteoday {
-  background: var(--surface);
-  border-radius: 10px;
-  padding: 8px 4px;
-  display: grid;
-  gap: 3px;
-  justify-items: center;
-  text-align: center;
-}
-
-.expo {
-  display: grid;
-  grid-template-columns: 80px 1fr 46px;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-}
-
-/**
- * Fiche domaine plein écran.
- *
- * La grille se remplit d'elle-même : les blocs étroits (profil, carte
- * d'identité, exposition, tendance de prix) tiennent en colonnes, ceux qui se
- * lisent de bout en bout (météo, prévisions, forfaits, bulletin) réclament la
- * largeur entière via `.domsheet__full`.
- */
-.domsheet {
-  position: fixed;
-  inset: 0;
-  background: var(--panel);
-  overflow: auto;
-  z-index: 16;
-  animation: fadeIn 0.18s ease-out;
-}
-
-.domsheet__head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 28px;
-  border-bottom: 1px solid var(--border-soft);
-  position: sticky;
-  top: 0;
-  background: var(--panel);
-  z-index: 2;
-}
-
-.domsheet__head h3 {
-  margin: 0;
-  font-size: 20px;
-  letter-spacing: -0.01em;
-  min-width: 0;
-}
-
-.domsheet__body {
-  padding: 26px 28px 40px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
-  gap: 24px 28px;
-  align-content: start;
-  align-items: start;
-  max-width: 1240px;
-  margin: 0 auto;
-}
-
-.domsheet__full {
-  grid-column: 1 / -1;
-  min-width: 0;
-}
-
-/* --- Neige au sol --------------------------------------------------------- */
-
-.snowblock__row {
-  display: flex;
-  gap: 28px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  margin-top: 10px;
-}
-
-/* Une hauteur de neige est une donnée, pas une action : elle prend le bleu. */
-.snowblock__value {
-  margin: 2px 0 0;
-  font-size: 38px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: var(--brand);
-}
-
 /* --- Forfaits ------------------------------------------------------------- */
 
 .passgrid {
@@ -5815,14 +3315,6 @@ select {
   margin: 1px 0 0;
   font-weight: 700;
   font-size: 16px;
-}
-
-/* --- Météo du domaine ----------------------------------------------------- */
-
-.wxlevels {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-  gap: 10px;
 }
 
 .wxlevel {
@@ -5900,23 +3392,6 @@ select {
   gap: 3px;
   justify-items: center;
   text-align: center;
-}
-
-/* --- Webcam --------------------------------------------------------------- */
-
-.camframe {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  background: #000;
-  aspect-ratio: 16 / 9;
-}
-
-.camframe iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
 }
 
 /* --- Bulletin d'avalanche ------------------------------------------------- */
@@ -6351,17 +3826,6 @@ select {
   margin: 0;
 }
 
-.refbar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-}
-
 .map__error {
   background: var(--panel);
   border: 1px solid var(--warn);
@@ -6397,246 +3861,8 @@ select {
   border-radius: 12px;
 }
 
-.lodgcard__noimg {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--dim);
-  font-size: 11px;
-  text-align: center;
-}
-
-
-/* ——— Écran de relevé des logements (maquette Claude Design) ———
-   Panneau sobre : rotor, titre + critères, compteur d'offres, barre de
-   progression, puis l'état source par source. Aucune décoration animée : ce
-   que l'écran montre doit correspondre à ce que la recherche fait vraiment. */
-.lodgscan {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px 20px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
-}
-.lodgscan__head {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.lodgscan__spinner {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 3px solid var(--border);
-  border-top-color: var(--brand);
-  animation: lodgscan-spin 0.8s linear infinite;
-  flex: none;
-  margin-top: 2px;
-}
-.lodgscan__ident {
-  min-width: 220px;
-  flex: 1;
-}
-.lodgscan__title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-.lodgscan__criteria {
-  margin: 3px 0 0;
-  font-size: 12px;
-  color: var(--muted);
-}
-.lodgscan__tally {
-  text-align: right;
-  min-width: 120px;
-}
-.lodgscan__count {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.lodgscan__count-label {
-  margin: 0;
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.lodgscan__bar {
-  height: 5px;
-  border-radius: 999px;
-  background: var(--surface);
-  overflow: hidden;
-  margin: 14px 0 4px;
-}
-.lodgscan__bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--brand), var(--link));
-  border-radius: 999px;
-  transition: width 0.28s ease;
-}
-.lodgscan__rows {
-  display: grid;
-  gap: 2px;
-  margin-top: 10px;
-}
-.lodgscan__row {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13px;
-  padding: 4px 0;
-  transition: opacity 0.2s;
-}
-.lodgscan__row--idle { opacity: 0.6; }
-.lodgscan__row--off { opacity: 0.45; }
-.lodgscan__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex: none;
-  background: var(--border);
-}
-.lodgscan__dot--active {
-  background: var(--link);
-  animation: pulse 0.8s ease-in-out infinite;
-}
-.lodgscan__dot--done { background: var(--ok); }
-.lodgscan__dot--off { background: var(--muted); }
-.lodgscan__name {
-  font-weight: 600;
-  min-width: 110px;
-}
-.lodgscan__status {
-  color: var(--muted);
-  font-size: 12px;
-}
-.lodgscan__row-count {
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
-.lodgscan__row-count--strong {
-  color: var(--text);
-  font-weight: 600;
-}
-.lodgscan__foot {
-  margin: 10px 0 0;
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.45;
-}
-
 @keyframes lodgscan-spin {
   to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lodgscan__spinner { animation-duration: 2.4s; }
-  .lodgscan__dot--active { animation: none; }
-}
-
-/* ——— Mosaïque de résultats ———————————————————————————————————————————
-   Un seul gabarit de vignette pour les deux écrans de résultats, et une
-   grille sans media query : la fenêtre d'une application de bureau change de
-   taille en continu, `auto-fill` suit le mouvement là où des paliers figés se
-   verraient. Voir components/ResultCard.tsx et components/ResultGrid.tsx. */
-
-/* → styles/result-cards.css */
-/** Bulletin neige en tête de la mosaïque des logements. */
-.lodgsnow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 0 0 14px;
-  padding: 10px 14px;
-  background: var(--surface);
-  border-radius: 12px;
-  font-size: 13px;
-}
-
-/**
- * Encadré à part entière, plutôt qu'une barre de plus sous l'en-tête.
- *
- * Le fond seul se confondait avec les contrôles au-dessus, alors que la neige
- * ne parle pas de la même chose que la liste : la bordure et la marge basse la
- * détachent en bloc autonome, sans toucher à la disposition interne.
- *
- * Déclaré **après** `.lodgsnow` : à spécificité égale c'est la dernière règle
- * qui gagne, et placé avant, son rembourrage serait repris par la base.
- */
-.lodgsnow--boxed {
-  border: 1px solid var(--border);
-  padding: 12px 16px;
-  margin: 0 0 18px;
-}
-
-.lodgsnow__label {
-  font-weight: 700;
-}
-
-.lodgsnow__val {
-  color: var(--snow-ink);
-  font-size: 15px;
-}
-
-.lodgsnow__lifts {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-/* Ce que l'écran Logements ajoute sous le gabarit commun : signalements,
-   doublons, fraîcheur et actions. Séparé par un filet, comme le prix l'était
-   dans l'ancienne vignette encadrée. */
-.lodgcard__extra {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-}
-
-/** Sans mention à afficher, le bloc n'est qu'un filet perdu : on le retire. */
-.lodgcard__extra:empty {
-  display: none;
-}
-
-/** Pied de la vignette : l'action principale et les actions discrètes.
- *
- *  `margin-top: auto` le colle au bas de la carte. C'est ce qui aligne les
- *  boutons « Retenir ce logement » d'une rangée entre eux, quel que soit le
- *  nombre de mentions (annulation gratuite, dernier logement à ce tarif…)
- *  affichées au-dessus. */
-.lodgcard__foot {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 8px;
-}
-
-.lodgcard__flag {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.lodgcard__flag--warn {
-  color: var(--warn);
-}
-
-.lodgcard__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
 }
 
 /* Dans une colonne de 290 px, trois actions ne tiennent pas sur une ligne :
@@ -6645,178 +3871,6 @@ select {
 .lodgcard__actions .linkbtn,
 .lodgcard__actions .actpill {
   white-space: nowrap;
-}
-
-/**
- * Action en pilule discrète.
- *
- * Trois actions par vignette et cent vignettes à l'écran : elles doivent se
- * trouver au survol sans jamais concurrencer le prix. D'où la bordure seule,
- * sans aplat — sauf la dernière, l'ouverture de l'annonce, qui est la seule à
- * sortir de l'application.
- */
-.actpill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border: 1px solid var(--border);
-  background: var(--panel);
-  border-radius: 999px;
-  padding: 5px 11px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: inherit;
-  color: var(--muted);
-  cursor: pointer;
-  /* Un libellé long — « Ouvrir sur Centrale de station » — s'abrège au lieu de
-     passer sur deux lignes et de décaler la rangée d'actions. */
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/** Ouvrir sur la source : sa propre rangée, pleine largeur. Mêlée aux deux
- *  pilules courtes, elle repliait la rangée sur deux lignes dans les seules
- *  cartes dont la source a un nom long — d'où des pieds inégaux. */
-.actpill--open {
-  flex: 1 0 100%;
-  justify-content: center;
-}
-
-.actpill:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.actpill--strong {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.actpill--strong:hover {
-  background: var(--accent-soft);
-}
-
-/**
- * Bande neige de la vignette.
- *
- * Une jauge horizontale et deux nombres : la hauteur au bas des pistes et celle
- * au sommet. La barre ne remplace pas les chiffres, elle donne l'ordre de
- * grandeur avant qu'on les lise — et quand le relevé manque, la barre reste
- * vide plutôt que d'aller chercher une valeur ailleurs.
- */
-.lodgcard__snow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.lodgcard__snowbar {
-  position: relative;
-  flex: 1 1 auto;
-  min-width: 24px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.lodgcard__snowfill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: var(--snow-light);
-}
-
-.lodgcard__snowtxt {
-  color: var(--snow-ink);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.lodgcard__snowlifts {
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-/** Sources d'un même bien : la gagnante en bleu, les autres barrées. */
-.lodgcard__srcs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  margin: 2px 0 0;
-  font-size: 11px;
-}
-
-.lodgcard__srcwin {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.lodgcard__srclost {
-  color: var(--dim);
-  text-decoration: line-through;
-}
-
-
-
-/* ——— Chantier 3 : hiérarchie carte logement + densitéité + compare ——— */
-
-.resultcard__price--ok .resultcard__amount {
-  color: var(--ok);
-}
-.resultcard__price--warn .resultcard__amount {
-  color: var(--warn);
-}
-
-/* Actions secondaires : visibles au survol / focus, toujours sur tactile. */
-.lodgcard__actions {
-  opacity: 0.55;
-  transition: opacity 0.15s ease;
-}
-.resultcard:hover .lodgcard__actions,
-.resultcard:focus-within .lodgcard__actions,
-.lodgcard__actions:focus-within {
-  opacity: 1;
-}
-@media (hover: none) {
-  .lodgcard__actions {
-    opacity: 1;
-  }
-}
-
-.actpill--on {
-  border-color: var(--accent, var(--ok));
-  color: var(--accent, var(--ok));
-  font-weight: 600;
-}
-
-/* Grille dense (density=compact) : plus d'offres à l'écran. */
-.resultgrid--dense {
-  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
-  column-gap: 14px;
-  row-gap: 22px;
-}
-.resultgrid--dense .resultcard__body {
-  min-height: 96px;
-  gap: 6px;
-}
-.resultgrid--dense .resultcard__title {
-  font-size: 14px;
-}
-.resultgrid--dense .resultcard__place,
-.resultgrid--dense .resultcard__facts {
-  font-size: 12px;
-}
-
-/* Placeholder photo = nom de station, pas « sans photo ». */
-.resultcard__noimg {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  opacity: 0.85;
 }
 
 /**
@@ -6898,50 +3952,6 @@ select {
   text-align: center;
 }
 
-/* Barre comparer : geste principal, sticky. */
-.comparebar {
-  position: sticky;
-  bottom: 16px;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px auto 8px;
-  padding: 12px 16px;
-  max-width: 520px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--text) 92%, transparent);
-  color: var(--bg, #fff);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(8px);
-}
-.comparebar__cta {
-  margin-left: auto;
-  font-weight: 700;
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: none;
-  background: var(--ok, #0e8a5f);
-  color: #fff;
-  cursor: pointer;
-}
-.comparebar__cta:hover {
-  filter: brightness(1.06);
-}
-.comparebar__close {
-  background: transparent;
-  border: none;
-  color: inherit;
-  opacity: 0.7;
-  cursor: pointer;
-  font-size: 16px;
-}
-.comparebar__close:hover {
-  opacity: 1;
-}
-
-
-
 /* ——— Onboarding guidé + pastille distance ——— */
 
 .onboard__sentence {
@@ -6983,40 +3993,6 @@ select {
   border-color: var(--text);
 }
 
-/* Pastille distance — coin bas-gauche de la photo, différenciateur. */
-.lodgcard__badge--dist {
-  left: 10px;
-  right: auto;
-  top: auto;
-  bottom: 10px;
-  background: rgba(15, 22, 32, 0.82);
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
-}
-.lodgcard__badge--dist-ski {
-  background: rgba(14, 138, 95, 0.92);
-}
-
-/* Ski-in badge historique : déplacé dans --dist-ski */
-.lodgcard__badge--ski {
-  left: 10px;
-  right: auto;
-}
-
-
-/* Images / grille : ne pas peindre hors viewport. */
-.resultcard {
-  content-visibility: auto;
-  contain-intrinsic-size: 280px 320px;
-}
-.resultcard__img {
-  content-visibility: auto;
-}
-
 .settings__metrics { overflow-x: auto; }
 .settings__table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .settings__table th, .settings__table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
@@ -7038,19 +4014,6 @@ select {
 }
 .sheet__verified-list li {
   margin-bottom: 4px;
-}
-
-.lodgscan--banner {
-  padding: 14px 16px;
-  margin-bottom: 12px;
-}
-.lodgscan--banner .lodgscan__head {
-  margin-bottom: 10px;
-}
-.lodgscan--banner .lodgscan__tally,
-.lodgscan--banner .lodgscan__rows,
-.lodgscan--banner .lodgscan__foot {
-  display: none;
 }
 
 /* La note du panneau reprend celle de la vignette. Le titre porte déjà
@@ -7148,21 +4111,21 @@ select {
   height: 3px;
   border-radius: 50%;
   transform: translateX(-50%);
-  background: var(--accent);
+  background: var(--brand);
 }
 .staycal__day--in {
-  background: var(--accent-soft);
+  background: var(--brand-soft);
   border-radius: 0;
 }
 .staycal__day--start,
 .staycal__day--end {
-  background: var(--accent);
+  background: var(--brand);
   color: var(--accent-texte);
   font-weight: 700;
 }
 .staycal__day--start:hover:not(:disabled),
 .staycal__day--end:hover:not(:disabled) {
-  background: var(--accent);
+  background: var(--brand);
 }
 .staycal__day--start.staycal__day--sat::after,
 .staycal__day--end.staycal__day--sat::after {
@@ -7182,212 +4145,4 @@ select {
   margin: 6px 0 0;
   font-size: 11px;
   color: var(--dim);
-}
-
-/* --- Récapitulatif imprimable du séjour ----------------------------------
-   Le rapport vit dans l'arbre en permanence : `printToPDF` photographie la
-   page telle qu'elle est, et un composant monté au dernier moment n'aurait
-   pas fini de charger ses tuiles de fond de carte. Il est donc rendu, mais
-   retiré du flux — jamais affiché à l'écran, jamais lu par les lecteurs
-   d'écran, et sans coût de mise en page.
-
-   `data-print="rapport"` est posé par l'écran Décision juste avant l'appel,
-   et retiré ensuite quoi qu'il arrive. */
-.report {
-  display: none;
-}
-
-/* Le masquage du reste de l'écran se fait dans le bloc `@media print` plus
-   bas, et pas ici : `printToPDF` rend la page en média « print », et une règle
-   à base de `:has()` posée hors de ce bloc s'appliquerait aussi à l'écran
-   pendant les quelques secondes de la génération — avec, sur un sélecteur de
-   cette forme, un risque de tout faire disparaître pour de bon. */
-
-.report__section {
-  margin-top: 14px;
-  break-inside: avoid;
-}
-
-.report__section h2 {
-  font-size: 13px;
-  margin: 0 0 6px;
-  padding-bottom: 3px;
-  border-bottom: 1px solid var(--border);
-}
-
-.report__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 8px 16px;
-  margin: 0;
-}
-
-.report__grid dt {
-  font-size: 10.5px;
-  color: var(--muted);
-}
-
-.report__grid dd {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.report__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.report__table th {
-  text-align: left;
-  font-weight: 600;
-  padding: 4px 0;
-}
-
-.report__table td {
-  text-align: right;
-  padding: 4px 0;
-  white-space: nowrap;
-}
-
-.report__table td:first-of-type {
-  text-align: center;
-}
-
-.report__total th,
-.report__total td {
-  border-top: 1.5px solid var(--text);
-  font-weight: 800;
-  padding-top: 6px;
-}
-
-.report__missing {
-  break-inside: avoid;
-}
-
-@media print {
-  /* En impression du rapport, **tout** le reste disparaît.
-     Une liste de classes à masquer laisse toujours passer ce qu'on a oublié —
-     ici le paragraphe « X € par personne » et la vignette du logement de
-     l'écran Décision, qui se retrouvaient en tête du PDF. On inverse donc la
-     règle, comme le fait déjà `data-print='fiche'` : tout est caché, et seul le
-     rapport est réaffiché. Une classe ajoutée demain à l'écran Décision n'a
-     alors aucun moyen d'entrer dans le document. */
-  html[data-print='rapport'] body * {
-    visibility: hidden;
-  }
-
-  html[data-print='rapport'] .report,
-  html[data-print='rapport'] .report * {
-    visibility: visible;
-  }
-
-  /* Le rapport peut être monté depuis la fiche d'un logement, c'est-à-dire à
-     l'intérieur d'un tiroir de 480 px en `overflow: hidden`. Rendu visible mais
-     laissé dans cette boîte, il sortirait rogné à la largeur du tiroir. Ses
-     conteneurs sont donc neutralisés — même geste que `data-print='fiche'` pour
-     la fiche domaine, et pour la même raison. */
-  html[data-print='rapport'] .drawer,
-  html[data-print='rapport'] .lodging-sheet,
-  html[data-print='rapport'] .page__inner {
-    position: static !important;
-    overflow: visible !important;
-    width: auto !important;
-    max-width: none !important;
-    height: auto !important;
-    box-shadow: none !important;
-    border: 0 !important;
-  }
-
-  html[data-print='rapport'] .report {
-    display: block !important;
-    position: absolute !important;
-    inset: 0 auto auto 0;
-    width: 100%;
-  }
-}
-
-/* ------------------------------------------------------------------------
-   Pastille de source (`ProviderBadge`).
-
-   Une teinte de marque et un nom. La teinte est un repère de balayage : elle
-   ne porte aucune information que le nom ne dise déjà, ce qui la rend sûre
-   dans les deux thèmes et pour qui ne distingue pas les couleurs.
-
-   Les teintes sont choisies pour rester lisibles sur fond clair *et* sur fond
-   sombre — c'est pourquoi le bleu de Booking n'est pas son #003580 officiel,
-   invisible sur le thème sombre.
-   ------------------------------------------------------------------------ */
-.provbadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.provbadge__dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--provbadge-tint, currentColor);
-}
-
-.provbadge__name {
-  /* Indispensable pour que le nom cède avant la pastille dans un conteneur
-     flex — sans quoi il déborde au lieu de se tronquer. */
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.provbadge--sm .provbadge__dot {
-  width: 6px;
-  height: 6px;
-}
-
-.provbadge--lg .provbadge__dot {
-  width: 10px;
-  height: 10px;
-}
-
-.provbadge--airbnb {
-  --provbadge-tint: #ff5a5f;
-}
-
-.provbadge--booking {
-  --provbadge-tint: #3b82c4;
-}
-
-.provbadge--expedia {
-  --provbadge-tint: #f0b429;
-}
-
-.provbadge--vrbo {
-  --provbadge-tint: #2f9e5f;
-}
-
-.provbadge--gites {
-  --provbadge-tint: #8bbf3f;
-}
-
-.provbadge--cozycozy {
-  --provbadge-tint: #ff8a3d;
-}
-
-.provbadge--liteapi {
-  --provbadge-tint: #8b7cf0;
-}
-
-.provbadge--centrale {
-  --provbadge-tint: #5aa9c9;
-}
-
-/* Import manuel et sources inconnues : aucune marque à représenter, donc
-   aucune teinte inventée — le gris dit « pas une plateforme ». */
-.provbadge--manual,
-.provbadge--unknown {
-  --provbadge-tint: #9aa3ad;
 }

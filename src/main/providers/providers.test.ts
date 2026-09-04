@@ -52,6 +52,8 @@ import {
   occupancyFromPublishedText,
   occupancyFromStaySearchResult
 } from './airbnb/extract'
+import { mapOmkarSearchHit, mapOmkarSearchPage, resolveOmkarAirbnbKey } from './airbnb/omkar'
+import { isBrightDataAuthError, resolveBrightDataBrowserWs } from './booking/brightdata'
 import { buildEngine } from './index'
 import { clearQuoteCache, getQuote, quoteCacheKey, setQuote } from './quoteCache'
 import { stationCardNeedsQuote } from './station/station'
@@ -1439,6 +1441,111 @@ async function main(): Promise<void> {
   )
   check('T5 Airbnb entire keep', isPrivateOrSharedListing('Appartement entier') === false)
   check('T5 Airbnb chambre privée drop', isPrivateOrSharedListing("Chambre privée chez l'habitant") === true)
+  check('T5 maison d’hôtes drop', isPrivateOrSharedListing("Maison d'hôtes ⋅ Les Deux Alpes") === true)
+
+  const omkarDates = { checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 8 }
+  const omkar8p = mapOmkarSearchHit(
+    {
+      id: '1757046953983158073',
+      name: 'Grand appartement chaleureux Ski aux pieds 8p 63m2',
+      title: 'Appartement ⋅ Les Deux Alpes',
+      link: 'https://www.airbnb.fr/rooms/1757046953983158073',
+      summary: ['13 minutes à pied'],
+      bedrooms: null,
+      price: { amount: 2695, currency: 'EUR', qualifier: 'au total' },
+      coordinates: { latitude: 45.0162, longitude: 6.1286 },
+      images: ['https://a0.muscache.com/im/pictures/hosting/Hosting-1/original/x.jpg']
+    },
+    omkarDates
+  )
+  check('Omkar 8p : capacité depuis le titre', omkar8p?.guests === 8)
+  check('Omkar 8p : total séjour 2695', omkar8p?.priceLabel === '2695 € au total')
+  check('Omkar 8p : photo', Boolean(omkar8p?.image?.startsWith('https://a0.muscache.com/')))
+  check('Omkar 8p : GPS', omkar8p?.lat === 45.0162 && omkar8p?.lon === 6.1286)
+  check(
+    'Omkar 4 CH : chambres depuis le nom',
+    mapOmkarSearchHit(
+      {
+        id: '2',
+        name: 'Chalet Petite Mariande 4 CH 4 SDB',
+        title: 'Chalet ⋅ Les Deux Alpes',
+        price: { amount: 4000, currency: 'EUR' },
+        coordinates: { latitude: 45.01, longitude: 6.12 }
+      },
+      omkarDates
+    )?.bedrooms === 4
+  )
+  check(
+    'Omkar drop maison d’hôtes',
+    mapOmkarSearchHit(
+      {
+        id: '3',
+        name: 'Les 2 Alpes-Venosc/ SPA /Piscine',
+        title: "Maison d'hôtes ⋅ Les Deux Alpes",
+        price: { amount: 900, currency: 'EUR' }
+      },
+      omkarDates
+    ) === null
+  )
+  check(
+    'Omkar drop sans prix aux dates',
+    mapOmkarSearchHit({ id: '4', name: 'Studio', title: 'Appartement ⋅ Les Deux Alpes' }, omkarDates) ===
+      null
+  )
+  const omkarPage = mapOmkarSearchPage(
+    {
+      results: [
+        {
+          id: '111',
+          name: 'Appart 8p',
+          title: 'Appartement ⋅ Les Deux Alpes',
+          price: { amount: 2000, currency: 'EUR' }
+        },
+        {
+          id: '222',
+          name: 'Chalet 10 personnes',
+          title: 'Chalet ⋅ Les Deux Alpes',
+          price: { amount: 3100, currency: 'EUR' }
+        }
+      ]
+    },
+    omkarDates
+  )
+  const omkarPage2 = mapOmkarSearchPage(
+    {
+      results: [
+        {
+          id: '222',
+          name: 'Chalet 10 personnes',
+          title: 'Chalet ⋅ Les Deux Alpes',
+          price: { amount: 3100, currency: 'EUR' }
+        },
+        {
+          id: '333',
+          name: 'Duplex 8 personnes',
+          title: 'Appartement ⋅ Les Deux Alpes',
+          price: { amount: 2500, currency: 'EUR' }
+        }
+      ]
+    },
+    omkarDates
+  )
+  const omkarIds = new Set([...omkarPage, ...omkarPage2].map((l) => l.id))
+  check('Omkar T1 page2 apporte un id nouveau', omkarPage2.some((l) => l.id === '333') && omkarIds.size === 3)
+  check('Omkar clé absente', resolveOmkarAirbnbKey({}, {}) === undefined)
+  check('Omkar clé env', resolveOmkarAirbnbKey({}, { OMKAR_AIRBNB_KEY: ' ok_test ' }) === 'ok_test')
+  check('Omkar clé coffre avant env', resolveOmkarAirbnbKey({ omkar_airbnb: 'vault' }, { OMKAR_AIRBNB_KEY: 'env' }) === 'vault')
+  check('Bright Data WS absent', resolveBrightDataBrowserWs({}, {}) === undefined)
+  check('Bright Data WS http refusé', resolveBrightDataBrowserWs({}, { BRIGHTDATA_BROWSER_WS: 'http://x' }) === undefined)
+  check(
+    'Bright Data WS coffre',
+    resolveBrightDataBrowserWs(
+      { brightdata_browser: 'wss://brd.example/x' },
+      { BRIGHTDATA_BROWSER_WS: 'wss://env' }
+    ) === 'wss://brd.example/x'
+  )
+  check('Bright Data 401 = blocked', isBrightDataAuthError(new Error('Unauthorized 401')))
+  check('Bright Data timeout ≠ auth', isBrightDataAuthError(new Error('Timeout 30000ms exceeded')) === false)
 
   const dumpHtmlPath = join(process.cwd(), 'gites-discovery/search-d2a-0613.html')
   const widgetPath = join(process.cwd(), 'gites-discovery/widget-38G253122.html')

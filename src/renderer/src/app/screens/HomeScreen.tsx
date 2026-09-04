@@ -31,7 +31,10 @@ const MountainScene = lazy(() => import('../ui/MountainScene'))
 function webglAvailable(): boolean {
   try {
     const c = document.createElement('canvas')
-    return Boolean(c.getContext('webgl2') ?? c.getContext('webgl'))
+    return Boolean(
+      c.getContext('webgl2', { failIfMajorPerformanceCaveat: false }) ??
+        c.getContext('webgl', { failIfMajorPerformanceCaveat: false })
+    )
   } catch {
     return false
   }

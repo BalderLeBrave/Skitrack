@@ -384,6 +384,39 @@ function Trees() {
   )
 }
 
+function ForegroundPines() {
+  const geo = useMemo(makeTreeGeo, [])
+  const ramp = useMemo(toonRamp, [])
+  const spots = useMemo(() => {
+    const dummy = new THREE.Object3D()
+    const m: THREE.Matrix4[] = []
+    const pts = [
+      [0.84, 0.185, 2.1],
+      [0.92, 0.23, 1.55],
+      [0.32, 0.175, 1.85],
+      [0.22, 0.22, 1.4]
+    ] as const
+    for (const [u, v, s] of pts) {
+      dummy.position.copy(onTerrain(u, v, 0))
+      dummy.scale.set(s, s * 1.12, s)
+      dummy.rotation.set(0, u * 7, 0)
+      dummy.updateMatrix()
+      m.push(dummy.matrix.clone())
+    }
+    return m
+  }, [])
+  const apply = (mesh: THREE.InstancedMesh | null): void => {
+    if (!mesh) return
+    spots.forEach((mat, i) => mesh.setMatrixAt(i, mat))
+    mesh.instanceMatrix.needsUpdate = true
+  }
+  return (
+    <instancedMesh ref={apply} args={[geo, undefined, 4]} frustumCulled={false}>
+      <meshToonMaterial vertexColors gradientMap={ramp} />
+    </instancedMesh>
+  )
+}
+
 /* ------------------------------------------------------------------------ */
 /* Télésiège                                                                */
 
@@ -538,7 +571,7 @@ function Skiers({ still }: { still: boolean }) {
       dummy.up.set(0, 1, 0)
       dummy.lookAt(look)
       dummy.rotateZ(carve * 18)
-      dummy.scale.setScalar(2.35)
+      dummy.scale.setScalar(3.9)
       dummy.updateMatrix()
       mesh.matrix.copy(dummy.matrix)
       mesh.matrixAutoUpdate = false
@@ -667,11 +700,11 @@ function Snow({ still }: { still: boolean }) {
 
 function Rig({ still }: { still: boolean }): null {
   useFrame(({ camera, clock }) => {
-    const t = still ? 0 : clock.getElapsedTime() * 0.045
-    camera.position.x = 10 + Math.sin(t) * 7
-    camera.position.y = 16 + Math.sin(t * 0.7) * 0.7
-    camera.position.z = 52
-    camera.lookAt(2, 5, -10)
+    const t = still ? 0 : clock.getElapsedTime() * 0.035
+    camera.position.x = 14 + Math.sin(t) * 3
+    camera.position.y = 8.2 + Math.sin(t * 0.6) * 0.35
+    camera.position.z = 20
+    camera.lookAt(1.5, 11, -26)
   })
   return null
 }
@@ -683,7 +716,7 @@ export function MountainScene({ still = false, onFail }: { still?: boolean; onFa
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       dpr={[1, 1]}
       frameloop={still ? 'demand' : 'always'}
-      camera={{ position: [10, 16, 52], fov: 40, near: 0.5, far: 420 }}
+      camera={{ position: [14, 8.2, 20], fov: 36, near: 0.5, far: 420 }}
       shadows={false}
       gl={{
         antialias: false,
@@ -708,7 +741,7 @@ export function MountainScene({ still = false, onFail }: { still?: boolean; onFa
         )
       }}
     >
-      <fog attach="fog" args={['#c5def0', 70, 230]} />
+      <fog attach="fog" args={['#c5def0', 90, 260]} />
       <hemisphereLight args={['#fff1d6', '#5f88b0', 1.05]} />
       <directionalLight position={[-60, 50, 10]} intensity={1.55} color="#ffe6b8" />
       <directionalLight position={[40, 18, 40]} intensity={0.35} color="#9ec9f2" />
@@ -719,6 +752,7 @@ export function MountainScene({ still = false, onFail }: { still?: boolean; onFa
       </mesh>
       <Terrain />
       <Trees />
+      <ForegroundPines />
       <Village />
       <Lift still={still} />
       <Skiers still={still} />

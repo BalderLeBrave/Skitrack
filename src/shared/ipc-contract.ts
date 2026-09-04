@@ -179,6 +179,7 @@ export const SECRET_KEYS = [
   'expedia_rapid_secret',
   'booking_demand',
   'omkar_airbnb',
+  'omkar_booking',
   'brightdata_browser',
   'meteofrance',
   'scrape_proxy',

@@ -55,6 +55,13 @@ import {
   occupancyFromStaySearchResult
 } from './airbnb/extract'
 import { mapOmkarSearchHit, mapOmkarSearchPage, resolveOmkarAirbnbKey } from './airbnb/omkar'
+import {
+  isBookingHotelListing,
+  mapOmkarBookingHit,
+  mapOmkarBookingPage,
+  pickDestination,
+  resolveOmkarBookingKey
+} from './booking/omkar'
 import { isBrightDataAuthError, resolveBrightDataBrowserWs, brightDataResidentialFromBrowserWs } from './booking/brightdata'
 import { parseProxyUrl, resetProxyCache, loadProxyList, nextProxy, withBrightDataCountry } from './proxy'
 import { buildEngine } from './index'
@@ -1609,6 +1616,117 @@ async function main(): Promise<void> {
   check('Omkar clé absente', resolveOmkarAirbnbKey({}, {}) === undefined)
   check('Omkar clé env', resolveOmkarAirbnbKey({}, { OMKAR_AIRBNB_KEY: ' ok_test ' }) === 'ok_test')
   check('Omkar clé coffre avant env', resolveOmkarAirbnbKey({ omkar_airbnb: 'vault' }, { OMKAR_AIRBNB_KEY: 'env' }) === 'vault')
+  check('Omkar Booking clé absente', resolveOmkarBookingKey({}, {}) === undefined)
+  check(
+    'Omkar Booking réutilise Airbnb',
+    resolveOmkarBookingKey({ omkar_airbnb: 'ok_shared' }, {}) === 'ok_shared'
+  )
+  check(
+    'Omkar Booking coffre dédié avant Airbnb',
+    resolveOmkarBookingKey({ omkar_booking: 'ok_b', omkar_airbnb: 'ok_a' }, { OMKAR_API_KEY: 'ok_e' }) ===
+      'ok_b'
+  )
+  check('Omkar Booking env API', resolveOmkarBookingKey({}, { OMKAR_API_KEY: ' ok_env ' }) === 'ok_env')
+  check('Booking hôtel drop', isBookingHotelListing('hotel') === true)
+  check('Booking appart keep', isBookingHotelListing('apartment') === false)
+  check('Booking aparthotel keep', isBookingHotelListing('aparthotel') === false)
+  const bkStay: SearchParams = {
+    destination: 'Les 2 Alpes',
+    checkIn: '2027-02-06',
+    checkOut: '2027-02-13',
+    adults: 8
+  }
+  const bkApt = mapOmkarBookingHit(
+    {
+      id: 3800123,
+      name: 'Résidence Le Côte Brune',
+      link: 'https://www.booking.com/hotel/fr/residence-le-cote-brune.html',
+      accommodation_type: 'apartment',
+      image: 'https://cf.bstatic.com/xdata/images/hotel/square600/x.jpg',
+      location: { city: 'Les Deux Alpes', country_code: 'fr', latitude: 45.01, longitude: 6.12 },
+      rating: { score: 8.2, count: 412 },
+      unit: { beds: 4, bedrooms: 2 },
+      price: { currency: 'EUR', total: 2140.5, per_night: null },
+      is_sold_out: false
+    },
+    bkStay
+  )
+  check('Omkar Booking appart : total 2140.5', bkApt?.totalPrice === 2140.5)
+  check('Omkar Booking appart : 2 chambres', bkApt?.bedrooms === 2)
+  check('Omkar Booking appart : GPS', bkApt?.latitude === 45.01 && bkApt?.longitude === 6.12)
+  check('Omkar Booking appart : note /10', bkApt?.rating === 8.2 && bkApt?.ratingScale === 10)
+  check('Omkar Booking appart : photo', Boolean(bkApt?.images?.[0]?.includes('bstatic.com')))
+  check('Omkar Booking appart : source booking-web', bkApt?.source === 'booking-web')
+  check(
+    'Omkar Booking hôtel drop',
+    mapOmkarBookingHit(
+      {
+        id: 1,
+        name: 'Hyatt Place',
+        link: 'https://www.booking.com/hotel/us/hyatt.html',
+        accommodation_type: 'hotel',
+        price: { currency: 'EUR', total: 800 }
+      },
+      bkStay
+    ) === null
+  )
+  check(
+    'Omkar Booking sold out drop',
+    mapOmkarBookingHit(
+      {
+        id: 2,
+        name: 'Chalet',
+        link: 'https://www.booking.com/hotel/fr/chalet.html',
+        accommodation_type: 'chalet',
+        price: { currency: 'EUR', total: 900 },
+        is_sold_out: true
+      },
+      bkStay
+    ) === null
+  )
+  check(
+    'Omkar Booking sans prix aux dates drop',
+    mapOmkarBookingHit(
+      {
+        id: 3,
+        name: 'Appart',
+        link: 'https://www.booking.com/hotel/fr/a.html',
+        accommodation_type: 'apartment'
+      },
+      bkStay
+    ) === null
+  )
+  const bkPage = mapOmkarBookingPage(
+    {
+      results: [
+        {
+          id: 11,
+          name: 'Appart 8p',
+          link: 'https://www.booking.com/hotel/fr/a.html',
+          accommodation_type: 'apartment',
+          price: { currency: 'EUR', total: 2000 }
+        },
+        {
+          id: 22,
+          name: 'Grand Hôtel',
+          link: 'https://www.booking.com/hotel/fr/h.html',
+          accommodation_type: 'hotel',
+          price: { currency: 'EUR', total: 1100 }
+        }
+      ]
+    },
+    bkStay
+  )
+  check('Omkar Booking page : hôtel filtré', bkPage.length === 1 && bkPage[0].sourceId === '11')
+  const dest = pickDestination(
+    [
+      { dest_id: '1', dest_type: 'hotel', name: 'Les 2 Alpes', country_code: 'fr' },
+      { dest_id: '900187201', dest_type: 'landmark', name: 'Les 2 Alpes', country_code: 'fr' },
+      { dest_id: '2', dest_type: 'hotel', name: 'Studio les 2 Alpes', country_code: 'fr' }
+    ],
+    'Les 2 Alpes'
+  )
+  check('Omkar Booking dest = landmark, pas un hôtel', dest?.dest_id === '900187201' && dest?.dest_type === 'landmark')
   check('Bright Data WS absent', resolveBrightDataBrowserWs({}, {}) === undefined)
   check('Bright Data WS http refusé', resolveBrightDataBrowserWs({}, { BRIGHTDATA_BROWSER_WS: 'http://x' }) === undefined)
   check(

@@ -4,7 +4,7 @@
  * Les sources interrogées :
  *
  *     booking            Demand API v3          clés requises, repli scraper web
- *     booking-web        relevé Playwright      pagination, 15 pages / 375 biens
+ *     booking-web        Omkar HTTP (15 pages) puis Bright Data / Playwright
  *     gites-web          relevé Playwright      Gîtes de France
  *     vrbo-web           relevé Playwright      Abritel (via getResultList)
  *     station            centrale de la station lue avec Playwright, voir station/

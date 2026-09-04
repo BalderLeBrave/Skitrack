@@ -62,6 +62,7 @@ import {
   resolveBrightDataBrowserWs,
   withBrightDataPage
 } from '../booking/brightdata'
+import { resolveOmkarBookingKey, scrapeBookingViaOmkar } from '../booking/omkar'
 import {
   abritelCanonicalUrl,
   advertisedFromCozyPayload,
@@ -631,6 +632,16 @@ export function createBookingWebProvider(opts?: ScrapeAttemptOptions & {
     name,
     async search(params: SearchParams): Promise<Accommodation[]> {
       paramsHolder.current = params
+      const omkarKey = resolveOmkarBookingKey({
+        omkar_booking: opts?.vault?.('omkar_booking'),
+        omkar_airbnb: opts?.vault?.('omkar_airbnb')
+      })
+      if (omkarKey) {
+        const viaOmkar = await scrapeBookingViaOmkar(params, omkarKey, SEARCH_WALK.maxPages)
+        if (viaOmkar.ok) return viaOmkar.list
+        if (viaOmkar.blocked) throw new Error(viaOmkar.error)
+        // Réseau / JSON vide : repli Bright Data puis Playwright.
+      }
       const ws = resolveBrightDataBrowserWs({
         brightdata_browser: opts?.vault?.('brightdata_browser')
       })
@@ -670,14 +681,21 @@ export function createBookingWebProvider(opts?: ScrapeAttemptOptions & {
       return withRetries(name, opts ?? {}, runLocal)
     },
     async health(): Promise<ProviderHealth> {
+      const omkar = resolveOmkarBookingKey({
+        omkar_booking: opts?.vault?.('omkar_booking'),
+        omkar_airbnb: opts?.vault?.('omkar_airbnb')
+      })
+      const bd = resolveBrightDataBrowserWs({
+        brightdata_browser: opts?.vault?.('brightdata_browser')
+      })
       return {
         name,
         reachable: true,
-        detail: resolveBrightDataBrowserWs({
-          brightdata_browser: opts?.vault?.('brightdata_browser')
-        })
-          ? `Bright Data Scraping Browser + ${SEARCH_WALK.maxPages} pages (repli Playwright)`
-          : `scraper Playwright, ${BOOKING_MAX_PAGES} page(s) au plus (repli web — préférer API si disponible)`
+        detail: omkar
+          ? `Omkar Booking HTTP + ${SEARCH_WALK.maxPages} pages (repli Bright Data / Playwright)`
+          : bd
+            ? `Bright Data Scraping Browser + ${SEARCH_WALK.maxPages} pages (repli Playwright)`
+            : `scraper Playwright, ${BOOKING_MAX_PAGES} page(s) au plus (repli web — préférer API si disponible)`
       }
     }
   }

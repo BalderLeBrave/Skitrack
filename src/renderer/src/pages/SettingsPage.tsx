@@ -58,8 +58,15 @@ const KEY_LABELS: Record<SecretKey, { label: string; help: string; url?: string 
     label: 'Omkar — Airbnb Scraper API',
     help:
       'Relevé Airbnb en JSON (recherche + total séjour), sans navigateur. ' +
-      'Plus rapide que Playwright. Plafond 80 pages. Variable OMKAR_AIRBNB_KEY possible en dev.',
+      'Plus rapide que Playwright. Plafond 80 pages. Variable OMKAR_AIRBNB_KEY / OMKAR_API_KEY possible en dev.',
     url: 'https://www.omkar.cloud/tools/airbnb-scraper-api'
+  },
+  omkar_booking: {
+    label: 'Omkar — Booking Scraper API',
+    help:
+      'Relevé Booking en JSON (25 / page, 15 pages), sans navigateur ni proxy. ' +
+      'Si vide, la clé Omkar Airbnb / OMKAR_API_KEY est réutilisée. Repli Bright Data puis Playwright.',
+    url: 'https://www.omkar.cloud/tools/booking-scraper'
   },
   brightdata_browser: {
     label: 'Bright Data — navigateur Booking',

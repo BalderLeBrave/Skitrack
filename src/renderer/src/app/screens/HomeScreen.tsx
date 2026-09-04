@@ -3,7 +3,7 @@
  * (données réelles ou état vide), massifs, chiffres du référentiel.
  */
 
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import heroJpg from '@/assets/hero.jpg'
 import { massifPhoto, stationPhoto } from '@/components/photos'
@@ -21,27 +21,11 @@ import { EmptyHonest } from '../ui/EmptyHonest'
 import { LiquidGlass } from '../ui/LiquidGlass'
 import { SearchStayBar } from '../ui/SearchStayBar'
 import { StationCard } from '../ui/StationCard'
-import { SceneGuard } from '../ui/SceneGuard'
 
 const MAX_POPULAR = 6
-
-/* La scène 3D (three + fiber) ne se charge qu'ici, à la demande. */
-const MountainScene = lazy(() => import('../ui/MountainScene'))
-
-function webglAvailable(): boolean {
-  try {
-    const c = document.createElement('canvas')
-    return Boolean(
-      c.getContext('webgl2', { failIfMajorPerformanceCaveat: false }) ??
-        c.getContext('webgl', { failIfMajorPerformanceCaveat: false })
-    )
-  } catch {
-    return false
-  }
-}
 const MAX_MASSIFS = 6
 
-/** Fond photo : seulement si la 3D n’est pas là. Jamais sous le canvas. */
+/** Fond photo de l’accueil. */
 function HeroPhoto(): JSX.Element {
   return (
     <div
@@ -76,16 +60,7 @@ export function HomeScreen(): JSX.Element {
   const navigate = useNavigate()
 
   const popular = useMemo(() => popularStations(domains), [domains])
-  const webgl = useMemo(webglAvailable, [])
-  const still = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
-  const [sceneOn, setSceneOn] = useState(false)
-  const [sceneDead, setSceneDead] = useState(false)
-  useEffect(() => {
-    const t = window.setTimeout(() => setSceneOn(true), 250)
-    return () => window.clearTimeout(t)
-  }, [])
   const massifCount = new Set(domains.map((d) => d.massif).filter(Boolean)).size
-  const sceneLive = webgl && sceneOn && !sceneDead
 
   const massifs = useMemo(() => {
     const by = new Map<string, Domain[]>()
@@ -126,15 +101,7 @@ export function HomeScreen(): JSX.Element {
     <div className="rc-home" data-testid="home-screen">
       <section className="rc-hero" data-testid="home-hero">
         <div className="rc-hero__scene" aria-hidden data-testid="home-scene">
-          {sceneLive ? (
-            <SceneGuard fallback={<HeroPhoto />}>
-              <Suspense fallback={null}>
-                <MountainScene still={still} onFail={() => setSceneDead(true)} />
-              </Suspense>
-            </SceneGuard>
-          ) : !webgl || sceneDead ? (
-            <HeroPhoto />
-          ) : null}
+          <HeroPhoto />
         </div>
         <div className="rc-hero__veil" aria-hidden />
         <div className="rc-hero__inner">

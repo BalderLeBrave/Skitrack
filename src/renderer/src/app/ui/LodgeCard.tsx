@@ -39,14 +39,21 @@ export function LodgeCard({ lg, d, nights, badges = [], fallback = null }: Props
   const criteria = { domainName: d.name, arrDate: state.arrDate, depDate: state.depDate, travelers: state.travelers, rooms: state.rooms }
   const url = lg.url ? listingUrlWithStay(lg.url, src, criteria) : null
   const kept = state.selLodgings[d.id] === lg.id
+  const picked = state.lodgPickId === lg.id || state.ficheId === lg.id
 
   const reserve = (): void => {
     patch({ selLodgings: { ...state.selLodgings, [d.id]: lg.id } })
     navigate(PATHS.reservation(lg.id))
   }
 
+  const openSheet = (): void => patch({ ficheId: lg.id })
+
   return (
-    <article className={`rc-lodge${kept ? ' rc-lodge--kept' : ''}`} data-testid={`lodge-card-${lg.id}`}>
+    <article
+      className={`rc-lodge${kept ? ' rc-lodge--kept' : ''}${picked ? ' rc-lodge--pick' : ''}`}
+      data-testid={`lodge-card-${lg.id}`}
+      onClick={openSheet}
+    >
       <div className={`rc-lodge__media${!lg.image && fallback ? ' rc-lodge__media--fallback' : ''}`} style={lg.image ? { backgroundImage: `url(${lg.image})` } : fallback ? { backgroundImage: `url(${fallback})` } : undefined}>
         {!lg.image && <span className="rc-lodge__nophoto">{t('rc_lodge_nophoto_src').replace('{s}', src)}</span>}
         <span className="rc-lodge__src" data-testid={`lodge-src-${lg.id}`}>{src}</span>
@@ -75,11 +82,11 @@ export function LodgeCard({ lg, d, nights, badges = [], fallback = null }: Props
         <div className="rc-lodge__foot">
           <PriceFirm total={lg.total} verdict={verdict} nights={nights} travelers={state.travelers} testid={`lodge-price-${lg.id}`} />
           <div className="rc-lodge__acts">
-            <button type="button" className="rc-btn rc-btn--cta rc-btn--sm" data-testid={`lodge-reserve-${lg.id}`} onClick={reserve} disabled={verdict.status !== 'confirmed'}>
+            <button type="button" className="rc-btn rc-btn--cta rc-btn--sm" data-testid={`lodge-reserve-${lg.id}`} onClick={(e) => { e.stopPropagation(); reserve() }} disabled={verdict.status !== 'confirmed'}>
               {t('rc_lodge_reserve')}
             </button>
             {url && (
-              <button type="button" className="rc-link" data-testid={`lodge-open-${lg.id}`} onClick={() => void window.skitrack.openExternal(url)}>
+              <button type="button" className="rc-link" data-testid={`lodge-open-${lg.id}`} onClick={(e) => { e.stopPropagation(); void window.skitrack.openExternal(url) }}>
                 {t('rc_lodge_open').replace('{s}', src)} ↗
               </button>
             )}

@@ -24,6 +24,7 @@ import { PATHS } from '../router'
 import { EmptyHonest } from '../ui/EmptyHonest'
 import { FilterChips, type Chip } from '../ui/FilterChips'
 import { LodgeCard } from '../ui/LodgeCard'
+import { LodgeSheet } from '../ui/LodgeSheet'
 import { StationRibbon } from '../ui/StationRibbon'
 import { stationPhotoOf } from '../ui/StationCard'
 import { StayBar } from '../ui/StayBar'
@@ -180,6 +181,7 @@ export function LodgingsScreen(): JSX.Element {
       </section>
 
       <StayBar d={d} list={derived.lodgList} />
+      {state.ficheId != null && <LodgeSheet domain={d} />}
     </div>
   )
 }

@@ -502,6 +502,7 @@ function Lift({ still }: { still: boolean }) {
 /* Skieurs cartoon : tête, casque, bras, jambes, skis                       */
 
 const SKIERS = 9
+const SPRAY_N = SKIERS * 36
 const SKI_JACKETS = ['#ff4d3a', '#2f7bff', '#ffd23a', '#27ae60', '#9b51e0', '#ff7ad9', '#1f2937', '#ffffff', '#ff8a3d']
 
 function makeSkierGeo(jacket: string): THREE.BufferGeometry {
@@ -542,6 +543,9 @@ function Skiers({ still }: { still: boolean }) {
   const meshes = useRef<(THREE.Mesh | null)[]>([])
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const look = useMemo(() => new THREE.Vector3(), [])
+  const sprayMesh = useRef<THREE.InstancedMesh>(null)
+  const sprayDummy = useMemo(() => new THREE.Object3D(), [])
+  const spawnAt = useRef(0)
   const sk = useMemo(
     () =>
       Array.from({ length: SKIERS }, (_, i) => ({
@@ -549,6 +553,20 @@ function Skiers({ still }: { still: boolean }) {
         speed: 0.026 + hash(i, 43) * 0.018,
         side: (hash(i, 47) - 0.5) * 0.02,
         wob: hash(i, 53) * Math.PI * 2
+      })),
+    []
+  )
+  const spray = useMemo(
+    () =>
+      Array.from({ length: SPRAY_N }, () => ({
+        x: 0,
+        y: -80,
+        z: 0,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        life: 0,
+        max: 0.6
       })),
     []
   )
@@ -563,18 +581,65 @@ function Skiers({ still }: { still: boolean }) {
       s.t += step * s.speed
       if (s.t > 1) s.t -= 1
       const v = PISTE_TOP - (PISTE_TOP - PISTE_BOT) * s.t
-      const carve = still ? 0 : Math.sin(time * 2.15 + s.wob) * 0.012
+      const carve = still ? 0 : Math.sin(time * 1.7 + s.wob) * 0.018
       const u = pisteU(v) + s.side + carve
       const p = onTerrain(u, v, 0.02)
-      dummy.position.copy(p)
-      look.set(p.x + carve * 10, p.y, p.z + 3)
+      const hop = still ? 0 : Math.abs(Math.sin(time * 9 + s.wob)) * 0.12
+      dummy.position.set(p.x, p.y + hop, p.z)
+      look.set(p.x + carve * 14, p.y, p.z + 3)
       dummy.up.set(0, 1, 0)
       dummy.lookAt(look)
-      dummy.rotateZ(carve * 18)
-      dummy.scale.setScalar(3.9)
+      dummy.rotateZ(carve * 24)
+      dummy.rotateX(0.1 + Math.abs(carve) * 4)
+      const crouch = 0.9 + Math.abs(Math.sin(time * 8 + s.wob)) * 0.12
+      dummy.scale.set(3.9, 3.9 * crouch, 3.9)
       dummy.updateMatrix()
       mesh.matrix.copy(dummy.matrix)
       mesh.matrixAutoUpdate = false
+
+      if (!still && step > 0) {
+        const burst = Math.abs(carve) > 0.01 ? 3 : 2
+        const fx = carve * 14
+        const fz = 3
+        const len = Math.hypot(fx, fz) || 1
+        const nx = fx / len
+        const nz = fz / len
+        for (let k = 0; k < burst; k++) {
+          const sp = spray[spawnAt.current % SPRAY_N]
+          spawnAt.current++
+          const side = (Math.random() - 0.5) * 1.1
+          sp.x = p.x - nx * 0.5 + side
+          sp.y = p.y + 0.08
+          sp.z = p.z - nz * 0.5
+          sp.vx = -nx * (2.2 + Math.random() * 3.4) + (Math.random() - 0.5) * 2.2 + carve * 55
+          sp.vy = 1.6 + Math.random() * 3.2
+          sp.vz = -nz * (2.2 + Math.random() * 3.4) + (Math.random() - 0.5) * 1.4
+          sp.max = 0.4 + Math.random() * 0.45
+          sp.life = sp.max
+        }
+      }
+    }
+
+    const cloud = sprayMesh.current
+    if (cloud) {
+      for (let i = 0; i < SPRAY_N; i++) {
+        const sp = spray[i]
+        if (sp.life > 0 && step > 0) {
+          sp.life -= step
+          sp.vy -= 11 * step
+          sp.x += sp.vx * step
+          sp.y += sp.vy * step
+          sp.z += sp.vz * step
+        }
+        const alive = sp.life > 0
+        const k = alive ? sp.life / sp.max : 0
+        const sc = alive ? 0.35 + (1 - k) * 1.5 : 0
+        sprayDummy.position.set(sp.x, alive ? sp.y : -80, sp.z)
+        sprayDummy.scale.setScalar(sc)
+        sprayDummy.updateMatrix()
+        cloud.setMatrixAt(i, sprayDummy.matrix)
+      }
+      cloud.instanceMatrix.needsUpdate = true
     }
   })
 
@@ -592,6 +657,10 @@ function Skiers({ still }: { still: boolean }) {
           <meshToonMaterial vertexColors gradientMap={ramp} />
         </mesh>
       ))}
+      <instancedMesh ref={sprayMesh} args={[undefined, undefined, SPRAY_N]} frustumCulled={false}>
+        <sphereGeometry args={[0.22, 5, 4]} />
+        <meshBasicMaterial color="#f7fbff" transparent opacity={0.78} depthWrite={false} />
+      </instancedMesh>
     </group>
   )
 }
@@ -663,38 +732,78 @@ function Clouds({ still }: { still: boolean }) {
   )
 }
 
-const FLAKES = 280
+const FLAKES = 420
+const NEAR_FLAKES = 90
 
 function Snow({ still }: { still: boolean }) {
-  const ref = useRef<THREE.Points>(null)
-  const geo = useMemo(() => {
+  const far = useRef<THREE.Points>(null)
+  const near = useRef<THREE.Points>(null)
+  const farGeo = useMemo(() => {
     const arr = new Float32Array(FLAKES * 3)
     for (let i = 0; i < FLAKES; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 100
-      arr[i * 3 + 1] = Math.random() * 44 - 6
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 90
+      arr[i * 3] = (Math.random() - 0.5) * 110
+      arr[i * 3 + 1] = Math.random() * 48 - 6
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 100
     }
     const g = new THREE.BufferGeometry()
     g.setAttribute('position', new THREE.BufferAttribute(arr, 3))
     g.computeBoundingSphere()
     return g
   }, [])
-  useFrame((_, dt) => {
-    if (still || !ref.current) return
-    const step = Math.min(dt, 0.05)
-    const p = ref.current.geometry.attributes.position as THREE.BufferAttribute
-    for (let i = 0; i < FLAKES; i++) {
-      let y = p.getY(i) - step * (1.4 + (i % 5) * 0.35)
-      if (y < -6) y = 38
-      p.setY(i, y)
-      p.setX(i, p.getX(i) + Math.sin(y * 0.5 + i) * step * 0.5)
+  const nearGeo = useMemo(() => {
+    const arr = new Float32Array(NEAR_FLAKES * 3)
+    for (let i = 0; i < NEAR_FLAKES; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 28
+      arr[i * 3 + 1] = Math.random() * 18
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 28
     }
-    p.needsUpdate = true
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.BufferAttribute(arr, 3))
+    g.computeBoundingSphere()
+    return g
+  }, [])
+  useFrame(({ camera, clock }, dt) => {
+    if (still) return
+    const step = Math.min(dt, 0.05)
+    const gust = Math.sin(clock.getElapsedTime() * 0.35) * 1.4
+    if (far.current) {
+      const p = far.current.geometry.attributes.position as THREE.BufferAttribute
+      for (let i = 0; i < FLAKES; i++) {
+        let y = p.getY(i) - step * (1.8 + (i % 5) * 0.55)
+        if (y < -6) y = 42
+        p.setY(i, y)
+        p.setX(i, p.getX(i) + (Math.sin(y * 0.45 + i) * 0.7 + gust) * step)
+      }
+      p.needsUpdate = true
+    }
+    if (near.current) {
+      const p = near.current.geometry.attributes.position as THREE.BufferAttribute
+      const cx = camera.position.x
+      const cy = camera.position.y
+      const cz = camera.position.z
+      for (let i = 0; i < NEAR_FLAKES; i++) {
+        let x = p.getX(i) + (gust * 0.6 + Math.sin(i + cy) * 0.4) * step
+        let y = p.getY(i) - step * (2.4 + (i % 4) * 0.5)
+        let z = p.getZ(i)
+        if (y < cy - 8) y = cy + 10
+        if (x < cx - 14) x += 28
+        if (x > cx + 14) x -= 28
+        if (z < cz - 14) z += 28
+        if (z > cz + 14) z -= 28
+        p.setXYZ(i, x, y, z)
+      }
+      p.needsUpdate = true
+    }
   })
   return (
-    <points ref={ref} geometry={geo}>
-      <pointsMaterial color="#ffffff" size={0.28} sizeAttenuation transparent opacity={0.85} depthWrite={false} />
-    </points>
+    <group>
+      <points ref={far} geometry={farGeo}>
+        <pointsMaterial color="#ffffff" size={0.32} sizeAttenuation transparent opacity={0.82} depthWrite={false} />
+      </points>
+      <points ref={near} geometry={nearGeo}>
+        <pointsMaterial color="#ffffff" size={0.55} sizeAttenuation transparent opacity={0.9} depthWrite={false} />
+      </points>
+    </group>
   )
 }
 

@@ -523,11 +523,13 @@ async function main(): Promise<void> {
   check('T2 Booking offset 0 ∪ N > page 1', union.length === 50 && union.length > page1.length)
   check('T1 ids page 2 exclusifs dans l’union', new Set(union.map((c) => c.sourceId)).size === 50)
   check(
-    'SEARCH_WALK 15 pages Booking/Gîtes/Abritel/Airbnb',
+    'SEARCH_WALK Booking 15 · Gîtes 15 · Airbnb tout le catalogue · Abritel jusqu’à l’annoncé',
     SEARCH_WALK.maxPages === 15 &&
       SEARCH_WALK.gitesMaxPages === 15 &&
-      SEARCH_WALK.cozyMaxScrolls === 15 &&
-      SEARCH_WALK.airbnbMaxScrolls === 15
+      SEARCH_WALK.airbnbMaxPages >= 80 &&
+      SEARCH_WALK.airbnbMaxScrolls >= 80 &&
+      SEARCH_WALK.airbnbMaxListings > SEARCH_WALK.maxListings &&
+      SEARCH_WALK.cozyMaxScrolls >= 40
   )
   check('T5 hôtel tuile Airbnb drop', isPrivateOrSharedListing('Hôtel · Les Deux Alpes') === true)
   check('T5 chambre privée drop', isPrivateOrSharedListing('Private room') === true)

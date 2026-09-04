@@ -196,10 +196,11 @@ async function collectCozyApiHits(page: Page, url: string, timeoutMs: number): P
         }
       }
       const parsed = parseCozyResultPayloads(payloads).length
-      if (parsed >= SEARCH_WALK.maxListings) break
       if (advertised != null && parsed >= advertised) break
       if (payloads.length === previous) {
         idle++
+        // Catalogue annoncé plus grand : ne pas s'arrêter à 2 idle (74 vs 300).
+        if (advertised != null && parsed < advertised) continue
         if (idle >= SEARCH_WALK.idleCycles && step >= 2) break
       } else {
         idle = 0
@@ -1001,11 +1002,16 @@ export function createVrboWebProvider(opts?: ScrapeAttemptOptions): Accommodatio
         const pages = new Set(
           cards.map((c) => c.pageIndex).filter((n): n is number => typeof n === 'number')
         )
+        const advertised = cards[0]?.advertisedTotal
         const list = stampPagination(mapped, {
           pagesFetched: Math.max(pages.size, cards.length > 0 ? 1 : 0),
           listingsFound: cards.length,
           listingsDeduped: mapped.length,
-          stoppedReason: cards.length >= SEARCH_WALK.maxListings ? 'max_listings' : 'exhausted'
+          advertised,
+          stoppedReason:
+            advertised != null && cards.length >= advertised
+              ? 'advertised'
+              : 'exhausted'
         })
         if (list.length === 0) throw blocked ?? new Error(`${name}: aucune carte retenue`)
         return list

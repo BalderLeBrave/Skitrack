@@ -820,7 +820,7 @@ export async function scrapeAirbnbSearch(
         pets: params.pets,
         minPrice: params.minPrice,
         maxPrice: params.maxPrice,
-        maxPages: params.scrollCount ?? SEARCH_WALK.airbnbMaxScrolls
+        maxPages: params.scrollCount ?? SEARCH_WALK.airbnbMaxPages
       },
       omkarKey
     )

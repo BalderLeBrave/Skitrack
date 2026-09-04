@@ -19,7 +19,7 @@ import {
   type AirbnbClipListing,
   type AirbnbClipPayload
 } from './extract'
-import { SEARCH_WALK } from '@shared/searchWalk'
+import { SEARCH_WALK, parseAdvertisedCount } from '@shared/searchWalk'
 
 export interface DynamicWaitOptions {
   /** Sélecteur principal. Défaut #data-deferred-state-0 */
@@ -130,6 +130,22 @@ function mergeListings(
   return [...map.values()]
 }
 
+/** Pagination numérotée Airbnb — « Suivant » / « Next ». */
+async function clickAirbnbNext(page: Page): Promise<boolean> {
+  const sel =
+    'a[aria-label="Suivant"]:not([aria-disabled="true"]), a[aria-label="Next"]:not([aria-disabled="true"]), button[aria-label="Suivant"]:not([aria-disabled="true"]), button[aria-label="Next"]:not([aria-disabled="true"])'
+  try {
+    const next = page.locator(sel).first()
+    if (!(await next.isVisible({ timeout: 600 }))) return false
+    const disabled = await next.getAttribute('aria-disabled')
+    if (disabled === 'true') return false
+    await next.click({ timeout: 2_000 })
+    return true
+  } catch {
+    return false
+  }
+}
+
 /**
  * Snapshot HTML → Cheerio. En cas d’échec, retourne null (pas d’exception).
  */
@@ -153,8 +169,8 @@ export interface ProgressiveExtractOptions {
 }
 
 /**
- * Extraction progressive : parse → scroll → re-parse → fusion par id.
- * Gère le HTML dynamique chargé au fur et à mesure du scroll infini.
+ * Extraction progressive : parse → scroll / page suivante → re-parse → fusion par id.
+ * Marche tout le catalogue (plafond SEARCH_WALK.airbnbMaxScrolls), pas 15 pages.
  */
 export async function extractProgressive(
   page: Page,
@@ -162,6 +178,7 @@ export async function extractProgressive(
 ): Promise<AirbnbClipPayload> {
   const scrollCount = options.scrollCount ?? SEARCH_WALK.airbnbMaxScrolls
   const scrollPauseMs = options.scrollPauseMs ?? 1100
+  const listingCap = SEARCH_WALK.airbnbMaxListings
   const meta = options.meta
 
   let merged: AirbnbClipListing[] = []
@@ -198,13 +215,32 @@ export async function extractProgressive(
     if (xhrBuffer.length) merged = mergeListings(merged, xhrBuffer)
   }
 
+  const waitSearch = async (): Promise<void> => {
+    try {
+      await page.waitForResponse(
+        (r) => /\/api\/v3\/StaysSearch/i.test(r.url()) && r.ok(),
+        { timeout: 3_500 }
+      )
+    } catch {
+      // pas de XHR visible : on continue sur le DOM
+    }
+    await page.waitForTimeout(Math.min(scrollPauseMs, 500))
+    try {
+      await waitForStableDeferredState(page, { timeoutMs: 4_000, stableMs: 400 })
+    } catch {
+      // pas grave
+    }
+  }
+
   try {
     await snapshot()
 
     let previous = merged.length
     let idle = 0
+    let advertised: number | null = null
     for (let i = 0; i < scrollCount; i++) {
-      if (merged.length >= SEARCH_WALK.maxListings) break
+      if (merged.length >= listingCap) break
+      if (advertised != null && merged.length >= advertised) break
       await page.evaluate(() => {
         const card = document.querySelector(
           '[data-testid="card-container"], [itemprop="itemListElement"], a[href*="/rooms/"]'
@@ -225,30 +261,40 @@ export async function extractProgressive(
         window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' })
       })
 
-      try {
-        await page.waitForResponse(
-          (r) => /\/api\/v3\/StaysSearch/i.test(r.url()) && r.ok(),
-          { timeout: 3_500 }
-        )
-      } catch {
-        // pas de XHR visible : on continue sur le DOM
-      }
-      await page.waitForTimeout(Math.min(scrollPauseMs, 500))
-
-      try {
-        await waitForStableDeferredState(page, { timeoutMs: 4_000, stableMs: 400 })
-      } catch {
-        // pas grave
-      }
-
+      await waitSearch()
       await snapshot()
-      if (merged.length === previous) {
-        idle++
-        if (idle >= SEARCH_WALK.idleCycles && i >= 2) break
-      } else {
+
+      if (advertised == null) {
+        try {
+          const bodyText = await page.evaluate(() => document.body?.innerText?.slice(0, 4000) ?? '')
+          advertised = parseAdvertisedCount(bodyText)
+        } catch {
+          advertised = null
+        }
+      }
+      if (advertised != null && merged.length >= advertised) break
+
+      if (merged.length > previous) {
         idle = 0
         previous = merged.length
+        continue
       }
+
+      const wentNext = await clickAirbnbNext(page)
+      if (wentNext) {
+        await waitSearch()
+        await snapshot()
+        if (merged.length > previous) {
+          idle = 0
+          previous = merged.length
+          continue
+        }
+      }
+
+      idle++
+      // Catalogue annoncé plus grand : on continue jusqu'au plafond de scrolls.
+      if (advertised != null && merged.length < advertised) continue
+      if (idle >= SEARCH_WALK.idleCycles && !wentNext) break
     }
   } finally {
     page.off('response', onResponse)

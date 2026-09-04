@@ -14,7 +14,7 @@ import { filterToZone } from '@shared/geo'
 import { SEARCH_WALK, type StationRunSource } from '@shared/searchWalk'
 
 /** Délai max d'**une** passe (ms). Couvre les retries Playwright de cette passe. */
-export const AIRBNB_PASS_TIMEOUT_MS = 120_000
+export const AIRBNB_PASS_TIMEOUT_MS = 360_000
 
 /**
  * Budget total du relevé (ms) — plusieurs passes, voir `PriceBand`.
@@ -25,7 +25,7 @@ export const AIRBNB_PASS_TIMEOUT_MS = 120_000
  * blocage. Épuisé, le budget n'annule rien : le relevé fusionne les passes
  * déjà obtenues.
  */
-export const AIRBNB_SEARCH_TIMEOUT_MS = 300_000
+export const AIRBNB_SEARCH_TIMEOUT_MS = 480_000
 
 export interface RunAirbnbSearchParams {
   domainId: number

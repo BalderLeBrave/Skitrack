@@ -6,7 +6,7 @@
  *   price.amount = total séjour EUR (ex. 2695 « au total »)
  *   details 1,00 s / id (donc interdit en boucle : 270 fiches ≈ 270 s + quota)
  *
- * Plafond : SEARCH_WALK.airbnbMaxScrolls pages (15), 18 cartes / page.
+ * Plafond : SEARCH_WALK.airbnbMaxPages pages (toutes, jusqu'au garde-fou).
  * Fiches `/rooms/details` : seulement hors de ce module, jamais pendant le walk.
  */
 
@@ -262,7 +262,7 @@ export async function scrapeAirbnbViaOmkar(
   apiKey: string
 ): Promise<OmkarSearchOutcome> {
   const t0 = Date.now()
-  const maxPages = Math.max(1, params.maxPages ?? SEARCH_WALK.airbnbMaxScrolls)
+  const maxPages = Math.max(1, params.maxPages ?? SEARCH_WALK.airbnbMaxPages)
   let place: { query: string; placeId?: string }
   try {
     place = await resolvePlace(params.city, apiKey)

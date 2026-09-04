@@ -1,18 +1,25 @@
 /**
  * Garde-fous du walk SERP — une station, pas une page.
  *
- * Booking / Gîtes / Abritel / Airbnb : 15 pages (ou 15 scrolls).
- * Booking 15×25 = 375 bruts. On s'arrête plus tôt si la SERP annonce un total.
+ * Booking Playwright / Bright Data : 15 pages × 25 = 375 bruts.
+ * Gîtes Drupal : 15 pages. Abritel (Cozy) : jusqu’à l’annoncé, 40 scrolls.
+ * Airbnb : TOUTES les pages Omkar (`total_pages`), plafond de sécurité 80.
+ * On s'arrête plus tôt si la SERP annonce un total déjà atteint.
  */
 
 export const SEARCH_WALK = {
+  /** Booking Playwright + Bright Data — jamais plus. */
   maxPages: 15,
   gitesMaxPages: 15,
+  /** Booking 15 × 25. Ne pas s'en servir pour clipper Airbnb / Abritel. */
   maxListings: 375,
   bookingPageSize: 25,
   pagesBudgetMs: 360_000,
-  cozyMaxScrolls: 15,
-  airbnbMaxScrolls: 15,
+  cozyMaxScrolls: 40,
+  /** Omkar : min(total_pages, airbnbMaxPages). Gold D2A count=270 = 15 pages. */
+  airbnbMaxPages: 80,
+  airbnbMaxScrolls: 80,
+  airbnbMaxListings: 2000,
   idleCycles: 2
 } as const
 
@@ -121,7 +128,7 @@ export function parseAdvertisedCount(text: string | null | undefined): number | 
 
 export const STOPPED_REASON_LABEL: Record<string, string> = {
   exhausted: 'fin de liste',
-  max_pages: 'plafond 15 pages',
+  max_pages: 'plafond de pages',
   max_listings: 'plafond logements',
   budget: 'temps max',
   empty_page: 'page vide',

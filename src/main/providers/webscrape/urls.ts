@@ -87,6 +87,10 @@ export function vrboSearchUrl(params: SearchParams, offset = 0): string {
  * pas (form vide / Cloudflare 403). `travelers=` est le plancher voyageurs
  * (8 → 33 résultats). Sélecteur cartes : `.js-search-tile`.
  *
+ * Pager Drupal 0-based : page 1 sans `page=`, page 2 = `page=1`.
+ * `page=2` (ex-offset+1) sautait les 13 reliquats (live 20 fetched / 33
+ * annoncés, 2 pages, exhausted).
+ *
  * Dump 2026-09-02 : mêmes GET pour Les Angles (`61540`, 27 résultats,
  * Playwright 20 × `.js-search-tile`), Montricher-Albanne / Karellis (`64400`,
  * 107) et Vars Hautes-Alpes (`38123`, 42). Hors dump : `destination=`.
@@ -169,8 +173,9 @@ export function gitesSearchUrl(params: SearchParams, offset = 0): string {
   // Dump gites_towns_50301.html : Gîte only. Pas chambre d'hôtes, pas groupe.
   u.searchParams.set('f[0]', 'type:36172')
   if (params.children) u.searchParams.set('children', String(params.children))
-  const page = offset + 1
-  if (page > 1) u.searchParams.set('page', String(page))
+  // Drupal views : `page` est 0-based. offset 0 = SERP sans paramètre ;
+  // offset 1 = page=1 (2e écran). Pas offset+1 → page=2 (3e écran vide).
+  if (offset > 0) u.searchParams.set('page', String(offset))
   return u.toString()
 }
 

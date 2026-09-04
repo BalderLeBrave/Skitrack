@@ -96,6 +96,8 @@ import { shouldAttemptIngenie } from './ingenieHosts'
 import { emptyStationReason } from './centralLookup'
 import { CircuitBreaker } from '../resilience'
 import { getQuote, quoteCacheKey, setQuote } from '../quoteCache'
+import { cityMismatch, matchVillageOption, mergeStationNextHref } from './stationVillage'
+import { stampPagination } from '@shared/reasonCodes'
 import {
   cleanProductUrl,
   extractTarifsPrestationId,
@@ -207,58 +209,6 @@ const FIELD = {
    *  large, un pour le mobile — et que le premier venu peut être caché. */
   submit: 'input[name="search"]:visible, input.form_search:visible, button[type="submit"]:visible'
 } as const
-
-/** Normalise un libellé de station pour comparer destination ↔ option du select. */
-function normPlace(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-}
-
-/**
- * Choisit l'option `criteres[]` qui correspond à la station demandée.
- *
- * Sur Val d'Arly, la même centrale dessert Crest-Voland, Flumet, La Giettaz et
- * Notre-Dame-de-Bellecombe. Sans sélection explicite du village, la recherche
- * mélange les inventaires (ex. Giettaz → appartements à Bellecombe).
- */
-function matchVillageOption(options: Choice[], destination: string): Choice | null {
-  const target = normPlace(destination)
-  if (!target) return null
-  const usable = options.filter((o) => o.value && o.value.trim() !== '')
-  // Correspondance exacte (après normalisation), puis inclusion.
-  const exact = usable.find((o) => normPlace(o.label) === target)
-  if (exact) return exact
-  const contains = usable.find((o) => {
-    const label = normPlace(o.label)
-    return label.includes(target) || target.includes(label)
-  })
-  if (contains) return contains
-  // Dernier recours : tokens significatifs (ex. « La Giettaz en Aravis » ↔ « Giettaz »).
-  const tokens = target.split(' ').filter((t) => t.length >= 4)
-  if (tokens.length === 0) return null
-  return (
-    usable.find((o) => {
-      const label = normPlace(o.label)
-      return tokens.every((t) => label.includes(t))
-    }) ?? null
-  )
-}
-
-/** La fiche appartient-elle clairement à une autre commune que la destination ? */
-function cityMismatch(city: string | null | undefined, destination: string): boolean {
-  if (!city || !destination) return false
-  const c = normPlace(city)
-  const d = normPlace(destination)
-  if (!c || !d) return false
-  if (c === d || c.includes(d) || d.includes(c)) return false
-  const tokens = d.split(' ').filter((t) => t.length >= 4)
-  if (tokens.length > 0 && tokens.every((t) => c.includes(t))) return false
-  return true
-}
 
 /** Rythme de séjour du moteur : `LL` ouvre le calendrier quand la semaine
  *  fixe du samedi au samedi (`SS`, le défaut) ne propose pas la date voulue. */
@@ -759,6 +709,21 @@ async function loadCards(page: Page, timeoutMs: number): Promise<StationCard[]> 
   } catch {
     // Pas de fiche : soit aucune disponibilité, soit une autre plateforme.
   }
+  // Premier paint : 4–8 fiches, le reste arrive en AJAX (dump 319 / 1 écran).
+  const deadline = Date.now() + Math.min(8_000, timeoutMs)
+  let prev = -1
+  let idle = 0
+  while (Date.now() < deadline) {
+    const n = await page.locator('.fiche-info').count().catch(() => 0)
+    if (n > 0 && n === prev) {
+      idle++
+      if (idle >= 3) break
+    } else {
+      idle = 0
+      prev = n
+    }
+    await sleep(400)
+  }
   return page.evaluate(extractStationCards)
 }
 
@@ -840,7 +805,9 @@ async function loadAllCards(
     if (fresh === 0 && pages > 1) return { cards, pages, truncated: false }
 
     const href = await page.evaluate(readNextResultsHref).catch(() => null)
-    if (!href || seenHrefs.has(href) || !leadsElsewhereOnSite(href, page.url())) {
+    const merged = href ? mergeStationNextHref(page.url(), href) : null
+    const target = merged && leadsElsewhereOnSite(merged, page.url()) ? merged : null
+    if (!target || seenHrefs.has(target)) {
       return { cards, pages, truncated: false }
     }
 
@@ -849,9 +816,9 @@ async function loadAllCards(
       return { cards, pages, truncated: true }
     }
 
-    seenHrefs.add(href)
+    seenHrefs.add(target)
     try {
-      await page.goto(href, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+      await page.goto(target, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
     } catch {
       // Page suivante inaccessible : on rend ce qui a été lu, pas une erreur.
       return { cards, pages, truncated: true }
@@ -1302,6 +1269,7 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
             debugLog('station-ajax', 'results-ready', { summary: probe.summary() })
             const read = await loadAllCards(page, timeoutMs, maxPages, PAGING_BUDGET_MS)
             let cards = read.cards
+            const rawCount = cards.length
             // Combien la SERP a rendu, sur combien de pages, et combien portent
             // un « à partir de » : l'écart entre ce compte et le nombre d'offres
             // affichées ne se lit nulle part ailleurs.
@@ -1317,6 +1285,10 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
             // les fiches dont la commune schema.org est clairement une autre
             // station (ex. Notre-Dame-de-Bellecombe alors qu'on a demandé Giettaz).
             //
+            // « Les 2 Alpes » (schema.org) ≡ « Les Deux Alpes » (UI) — voir
+            // stationVillage.cityMismatch. L'ancienne copie locale jetait le
+            // stock (live 6 vs dump 98).
+            //
             // Avant la tarification, et non après : chaque fiche coûte trois
             // allers-retours, et il n'y a pas de raison de les dépenser pour une
             // fiche qu'on écartera ensuite.
@@ -1331,9 +1303,15 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
             // Budget séparé du timeout de page : un Tignes lent ne jette pas
             // les TOTAL déjà obtenus, et n'ouvre pas le disjoncteur global.
             await enrichExactPrices(page, cards, params, timeoutMs, priceLimit, ENRICH_BUDGET_MS)
+            const walkReport = {
+              pagesFetched: Math.max(read.pages, rawCount > 0 ? 1 : 0),
+              listingsFound: rawCount,
+              listingsDeduped: 0,
+              stoppedReason: read.truncated ? ('max_pages' as const) : ('exhausted' as const)
+            }
             if (cards.length === 0) {
               // Stock vide pour ces dates : ce n'est pas une panne du connecteur.
-              return []
+              return stampPagination([], walkReport)
             }
 
             const out: Accommodation[] = []
@@ -1374,7 +1352,7 @@ export function createStationProvider(opts?: StationProviderOptions): Accommodat
               out.push(offer)
             }
             // Sans prix → on n'affiche rien plutôt qu'un « échec » technique.
-            return out
+            return stampPagination(out, { ...walkReport, listingsDeduped: out.length })
             } finally {
               probe.dispose()
             }

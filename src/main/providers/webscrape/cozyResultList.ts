@@ -210,6 +210,21 @@ export function parseCozyResultPayloads(payloads: unknown[]): CozyResultHit[] {
   return out
 }
 
+/**
+ * Total annoncé par getResultList (dump D2A : filteredCountInBounds 170,
+ * filteredCount 180, allCount 335). Pas un décompte Abritel — on s'en sert
+ * pour ne pas arrêter le scroll après 2 batches Airbnb-only.
+ */
+export function advertisedFromCozyPayload(json: unknown): number | null {
+  if (!json || typeof json !== 'object') return null
+  const root = json as Record<string, unknown>
+  for (const key of ['filteredCountInBounds', 'filteredCount', 'allCount', 'count'] as const) {
+    const n = root[key]
+    if (typeof n === 'number' && Number.isFinite(n) && n > 0 && n <= 50_000) return n
+  }
+  return null
+}
+
 /** Vers le modèle carte du relevé web. Prix = total séjour daté. */
 export function cozyHitsToRawCards(hits: CozyResultHit[]): import('./extractors').RawCard[] {
   return hits.map((h) => {

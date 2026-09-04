@@ -14,7 +14,11 @@ import {
   extractAirbnbFromHtml,
   type CheerioAirbnbMeta
 } from './cheerioExtract'
-import type { AirbnbClipListing, AirbnbClipPayload } from './extract'
+import {
+  extractListingsFromDeferredState,
+  type AirbnbClipListing,
+  type AirbnbClipPayload
+} from './extract'
 import { SEARCH_WALK } from '@shared/searchWalk'
 
 export interface DynamicWaitOptions {
@@ -162,6 +166,21 @@ export async function extractProgressive(
 
   let merged: AirbnbClipListing[] = []
   let lastMeta: CheerioAirbnbMeta = { ...meta }
+  const xhrBuffer: AirbnbClipListing[] = []
+
+  // Live D2A 2026-09-03 : 23 cartes DOM vs Omkar count=270. Le catalogue
+  // arrive dans POST /api/v3/StaysSearch ; on le lisait (wait) sans le parser.
+  const onResponse = (res: { url: () => string; ok: () => boolean; json: () => Promise<unknown> }): void => {
+    if (!/\/api\/v3\/StaysSearch/i.test(res.url()) || !res.ok()) return
+    void res
+      .json()
+      .then((json) => {
+        const extra = extractListingsFromDeferredState(json, lastMeta).listings
+        if (extra.length) xhrBuffer.push(...extra)
+      })
+      .catch(() => undefined)
+  }
+  page.on('response', onResponse)
 
   const snapshot = async (): Promise<void> => {
     // Laisser un tick au moteur pour flusher le DOM
@@ -176,61 +195,66 @@ export async function extractProgressive(
         destination: parsed.destination ?? lastMeta.destination
       }
     }
+    if (xhrBuffer.length) merged = mergeListings(merged, xhrBuffer)
   }
 
-  await snapshot()
-
-  let previous = merged.length
-  let idle = 0
-  for (let i = 0; i < scrollCount; i++) {
-    if (merged.length >= SEARCH_WALK.maxListings) break
-    await page.evaluate(() => {
-      const card = document.querySelector(
-        '[data-testid="card-container"], [itemprop="itemListElement"], a[href*="/rooms/"]'
-      )
-      let p: HTMLElement | null = card?.parentElement ?? null
-      while (p && p !== document.documentElement) {
-        const st = window.getComputedStyle(p)
-        const oy = st.overflowY
-        if (
-          (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
-          p.scrollHeight > p.clientHeight + 80
-        ) {
-          p.scrollTop += Math.max(p.clientHeight * 0.9, 400)
-          return
-        }
-        p = p.parentElement
-      }
-      window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' })
-    })
-
-    // Attendre activité réseau brève (XHR résultats) puis stabilité
-    try {
-      await page.waitForResponse(
-        (r) => /\/api\/v3\/StaysSearch/i.test(r.url()) && r.ok(),
-        { timeout: 2_500 }
-      )
-    } catch {
-      // pas de XHR visible : on continue sur le DOM
-    }
-    await page.waitForTimeout(Math.min(scrollPauseMs, 500))
-
-    // Si de nouveaux nœuds deferred apparaissent (data-deferred-state-1…), stabiliser
-    try {
-      await waitForStableDeferredState(page, { timeoutMs: 4_000, stableMs: 400 })
-    } catch {
-      // pas grave
-    }
-
+  try {
     await snapshot()
-    if (merged.length === previous) {
-      idle++
-      if (idle >= SEARCH_WALK.idleCycles) break
-    } else {
-      idle = 0
-      previous = merged.length
+
+    let previous = merged.length
+    let idle = 0
+    for (let i = 0; i < scrollCount; i++) {
+      if (merged.length >= SEARCH_WALK.maxListings) break
+      await page.evaluate(() => {
+        const card = document.querySelector(
+          '[data-testid="card-container"], [itemprop="itemListElement"], a[href*="/rooms/"]'
+        )
+        let p: HTMLElement | null = card?.parentElement ?? null
+        while (p && p !== document.documentElement) {
+          const st = window.getComputedStyle(p)
+          const oy = st.overflowY
+          if (
+            (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+            p.scrollHeight > p.clientHeight + 80
+          ) {
+            p.scrollTop += Math.max(p.clientHeight * 0.9, 400)
+            return
+          }
+          p = p.parentElement
+        }
+        window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' })
+      })
+
+      try {
+        await page.waitForResponse(
+          (r) => /\/api\/v3\/StaysSearch/i.test(r.url()) && r.ok(),
+          { timeout: 3_500 }
+        )
+      } catch {
+        // pas de XHR visible : on continue sur le DOM
+      }
+      await page.waitForTimeout(Math.min(scrollPauseMs, 500))
+
+      try {
+        await waitForStableDeferredState(page, { timeoutMs: 4_000, stableMs: 400 })
+      } catch {
+        // pas grave
+      }
+
+      await snapshot()
+      if (merged.length === previous) {
+        idle++
+        if (idle >= SEARCH_WALK.idleCycles && i >= 2) break
+      } else {
+        idle = 0
+        previous = merged.length
+      }
     }
+  } finally {
+    page.off('response', onResponse)
   }
+
+  if (xhrBuffer.length) merged = mergeListings(merged, xhrBuffer)
 
   if (merged.length === 0) {
     // Dernière tentative : evaluate direct + cheerio

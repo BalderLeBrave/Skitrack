@@ -264,7 +264,7 @@ export function extractBookingCards(): RawCard[] {
   const t = header.replace(/\u00a0/g, ' ')
   const sur = t.match(/sur\s+([\d][\d\s.,]{0,10})/i)
   const plain = t.match(
-    /([\d][\d\s.,]{0,10})\s*(?:établissements?|logements?|hébergements?|properties|results)/i
+    /([\d][\d\s.,]{0,10})\s*(?:établissements?|logements?|hébergements?|r[ée]sultats?|properties|results)/i
   )
   const advertisedRaw = sur?.[1] ?? plain?.[1]
   if (advertisedRaw && out[0]) {
@@ -452,9 +452,12 @@ export function extractGitesCards(): RawCard[] {
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-    if (!typeFold || /chambre/.test(typeFold) || /groupe/.test(typeFold) || !/\bgites?\b/.test(typeFold)) {
-      return
-    }
+    // Preuve = champ typologie, pas le mot « gîte » dans le titre.
+    // Type vide → on garde (facet type:36172 + classifyGitesTypology plus loin).
+    // Exiger `\bgites?\b` droppait les chalets (20/33 live D2A).
+    if (/chambre d[' ]?hotes|bed[- ]and[- ]breakfast|maison d[' ]?hotes/.test(typeFold)) return
+    if (/\bgite(?:s)?\s+de\s+(?:groupe|sejour)\b/.test(typeFold) || /\bgroupe\b/.test(typeFold)) return
+    if (/\bcamping\b/.test(typeFold)) return
     const priceBox = node.querySelector('.g2f-accommodationTile-text-price')
     const priceText =
       priceBox?.textContent?.replace(/\s+/g, ' ').trim() ||
@@ -545,6 +548,12 @@ export function extractGitesCards(): RawCard[] {
       bedrooms: lire(/(\d+)\s*chambres?/i.exec(capText))
     })
   })
+  const head = (document.body?.innerText || '').slice(0, 1600).replace(/\u00a0/g, ' ')
+  const adv = head.match(/([\d][\d\s.,]{0,10})\s*(?:r[ée]sultats?|logements?|h[ée]bergements?)/i)
+  if (adv && out[0]) {
+    const n = Number(adv[1].replace(/[\s.,]/g, ''))
+    if (Number.isFinite(n) && n > 0 && n <= 50_000) out[0].advertisedTotal = n
+  }
   return out
 }
 

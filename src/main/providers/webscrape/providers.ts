@@ -10,7 +10,7 @@ import type { Accommodation, AccommodationProvider, ProviderHealth, SearchParams
 import type { APIRequestContext, Page } from 'playwright'
 import { request as playwrightRequest } from 'playwright'
 import { stampPagination, paginationOfList, type PaginationReport, type StoppedReason } from '@shared/reasonCodes'
-import { SEARCH_WALK, isPrivateOrSharedListing, pageLooksLast } from '@shared/searchWalk'
+import { SEARCH_WALK, isPrivateOrSharedListing, pageLooksLast, parseAdvertisedCount } from '@shared/searchWalk'
 import { trySolveVisibleCaptcha } from '../../captchaBridge'
 import {
   extractBookingCards,
@@ -64,6 +64,7 @@ import {
 } from '../booking/brightdata'
 import {
   abritelCanonicalUrl,
+  advertisedFromCozyPayload,
   cozyHitsToRawCards,
   isVrboFamilyProvider,
   parseCozyResultPayloads
@@ -170,30 +171,65 @@ async function collectCozyApiHits(page: Page, url: string, timeoutMs: number): P
     const until = Date.now() + Math.min(16_000, timeoutMs)
     while (payloads.length === 0 && Date.now() < until) await sleep(400)
     // Dump D2A : 2 payloads / 45 entries après un seul scrollToEnd.
-    // Site Abritel > 300 : on re-scroll tant que getResultList apporte des ids.
-    let previous = 0
+    // Idle sur le *nombre de payloads* : un batch Airbnb-only ne change pas
+    // le compte Abritel parsé et arrêtait le walk (74 vs 300 site).
+    let previous = payloads.length
     let idle = 0
+    let advertised: number | undefined
     for (let step = 0; step < SEARCH_WALK.cozyMaxScrolls; step++) {
+      const pending = page
+        .waitForResponse(
+          (r) => /\/api\/(getResultList|getResults)(?:\?|$)/.test(r.url()) && r.ok(),
+          { timeout: 4_000 }
+        )
+        .catch(() => null)
       await scrollToEnd(page, 4)
-      await sleep(900)
-      const n = parseCozyResultPayloads(payloads).length
-      if (n >= SEARCH_WALK.maxListings) break
-      if (n === previous) {
+      await pending
+      await sleep(500)
+      if (advertised == null) {
+        for (const p of payloads) {
+          const n = advertisedFromCozyPayload(p)
+          if (n != null) {
+            advertised = n
+            break
+          }
+        }
+      }
+      const parsed = parseCozyResultPayloads(payloads).length
+      if (parsed >= SEARCH_WALK.maxListings) break
+      if (advertised != null && parsed >= advertised) break
+      if (payloads.length === previous) {
         idle++
-        if (idle >= 2) break
+        if (idle >= SEARCH_WALK.idleCycles && step >= 2) break
       } else {
         idle = 0
-        previous = n
+        previous = payloads.length
       }
     }
   } finally {
     page.off('response', onResponse)
   }
   const cards = cozyHitsToRawCards(parseCozyResultPayloads(payloads))
+  const adv = payloads.map(advertisedFromCozyPayload).find((n) => n != null)
   cards.forEach((c, i) => {
     c.pageIndex = Math.floor(i / 20)
+    if (i === 0 && adv != null) c.advertisedTotal = adv
   })
   return cards
+}
+
+function bookingLandedOnHome(url: string, html: string): boolean {
+  try {
+    const u = new URL(url)
+    const host = u.hostname.replace(/^www\./, '').toLowerCase()
+    if (host !== 'booking.com') return false
+    const path = u.pathname.replace(/\/+$/, '') || '/'
+    const onHome = path === '/' || /\/index\.html$/i.test(path)
+    const noCards = !/data-testid="property-card"/.test(html)
+    return onHome && noCards
+  } catch {
+    return false
+  }
 }
 
 async function loadAndExtract(
@@ -211,6 +247,15 @@ async function loadAndExtract(
     )
   } catch {
     /* sélecteurs morts : emptyReason plus bas */
+  }
+  let html = ''
+  try {
+    html = await page.content()
+  } catch {
+    html = ''
+  }
+  if (bookingLandedOnHome(page.url(), html)) {
+    throw new Error('relevé refusé par la source (captcha ou blocage anti-robot)')
   }
   let cards = await page.evaluate(extract)
   // Booking = 25 / page. Sauter le scroll dès 20 cartes laissait 15–19
@@ -231,9 +276,12 @@ async function loadAndExtract(
     }
   }
   try {
-    const html = await page.content()
+    html = await page.content()
     if (/js-search-tile|g2f-accommodationTile/.test(html)) {
-      return mergeGitesCardsFromHtml(cards, html)
+      const merged = mergeGitesCardsFromHtml(cards, html)
+      const adv = parseAdvertisedCount(html.replace(/<[^>]+>/g, ' '))
+      if (adv && merged[0] && !merged[0].advertisedTotal) merged[0].advertisedTotal = adv
+      return merged
     }
   } catch {
     /* HTML illisible : on garde le relevé DOM */
@@ -414,7 +462,11 @@ export async function collectPages(
       stoppedReason = 'no_fresh'
       break
     }
-    if (advertised != null && advertised > pageSize && all.length >= advertised) {
+    // Annoncé = taille de page (25) : souvent le décompte de l'écran, pas du
+    // catalogue — on ne s'arrête pas. Annoncé 16 < 25 (live Booking 2 Alpes) :
+    // si on ignore, l'offset suivant quitte dest_id et ramène 75 fiches d'une
+    // autre recherche (stopped no_fresh).
+    if (advertised != null && advertised !== pageSize && all.length >= advertised) {
       stoppedReason = 'advertised'
       break
     }

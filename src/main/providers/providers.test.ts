@@ -40,11 +40,13 @@ import { bookingSearchUrl, cozycozyDatedPlace, cozycozySearchUrl, gitesSearchUrl
 import type { RawCard } from './webscrape/extractors'
 import {
   abritelCanonicalUrl,
+  advertisedFromCozyPayload,
   isVrboFamilyProvider,
   parseCozyResultPayload,
   parseCozyResultPayloads
 } from './webscrape/cozyResultList'
 import { emptyProviderReason, emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
+import { cityMismatch, mergeStationNextHref, normPlace } from './station/stationVillage'
 import { classifyProviderError, paginationOfList, stampPagination } from '@shared/reasonCodes'
 import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing, pageLooksLast, parseAdvertisedCount } from '@shared/searchWalk'
 import {
@@ -535,6 +537,12 @@ async function main(): Promise<void> {
   check('annoncé 87 établissements', parseAdvertisedCount('Les 2 Alpes : 87 établissements trouvés') === 87)
   check('annoncé ignore 3 chambres', parseAdvertisedCount('Appartement · 3 chambres') === null)
   check('annoncé « 1–25 sur 487 » = 487', parseAdvertisedCount('1-25 sur 487 logements') === 487)
+  check('annoncé Gîtes « 33 Résultats »', parseAdvertisedCount('33 Résultats') === 33)
+  check(
+    'Cozy getResultList filteredCountInBounds',
+    advertisedFromCozyPayload({ filteredCountInBounds: 170, filteredCount: 180, allCount: 335 }) === 170
+  )
+  check('Cozy payload vide → null', advertisedFromCozyPayload({}) === null)
 
   const session = bookingUrlWithOffset(
     'https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes&dest_id=-145000&dest_type=city&offset=0',
@@ -624,6 +632,26 @@ async function main(): Promise<void> {
     'page 1 = 16 cartes sans annoncé → on tente page 2',
     noAdvWalk.length > 16 && noAdvPages >= 2,
     { n: noAdvWalk.length, pages: noAdvPages, stop: paginationOf(noAdvWalk)?.stoppedReason }
+  )
+
+  const overAdv: RawCard[] = []
+  for (let i = 0; i < 75; i++) overAdv.push({ sourceId: `o${i}`, title: `O${i}`, url: `https://b.test/o${i}` })
+  overAdv[0] = { ...overAdv[0], advertisedTotal: 16 }
+  let overPages = 0
+  const overWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      overPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return overAdv.slice(rang, rang + 25)
+    },
+    5
+  )
+  check(
+    'annoncé 16 < page 25 → stop advertised (pas 75 no_fresh)',
+    overWalk.length === 25 && overPages === 1 && paginationOf(overWalk)?.stoppedReason === 'advertised',
+    { n: overWalk.length, pages: overPages, stop: paginationOf(overWalk)?.stoppedReason }
   )
 
   let blockedPages = 0
@@ -724,15 +752,36 @@ async function main(): Promise<void> {
     (offset) => gitesSearchUrl(stay, offset),
     1,
     async (url) => {
-      const page = Number(new URL(url).searchParams.get('page') ?? '1')
+      const raw = new URL(url).searchParams.get('page')
+      const page = raw == null ? 0 : Number(raw)
       pagesGites.push(page)
-      return page <= 2 ? cards(page * 10, 1) : []
+      return page < 2 ? cards(page * 10, 1) : []
     }
   )
-  check('pagination Gîtes : page 1 puis 2 puis 3 (vide)', pagesGites.join(',') === '1,2,3', pagesGites.join(','))
+  check('pagination Gîtes Drupal : 0 puis 1 puis 2 (vide)', pagesGites.join(',') === '0,1,2', pagesGites.join(','))
   check('les deux pages non vides sont rendues', lot.length === 2, lot.length)
   check('page 1 sans paramètre', !gitesSearchUrl(stay).includes('page='))
-  check('offset 0-based 1 → page=2', gitesSearchUrl(stay, 1).includes('page=2'), gitesSearchUrl(stay, 1))
+  check('offset 0-based 1 → page=1 (pas page=2)', gitesSearchUrl(stay, 1).includes('page=1') && !gitesSearchUrl(stay, 1).includes('page=2'), gitesSearchUrl(stay, 1))
+  const gitesSerp: RawCard[] = []
+  for (let i = 0; i < 33; i++) gitesSerp.push({ sourceId: `gd${i}`, title: `GD${i}`, url: `https://g.test/gd${i}` })
+  let gitesWalkPages = 0
+  const gitesWalk = await collectPages(
+    (offset) => gitesSearchUrl(stay, offset),
+    1,
+    async (url) => {
+      gitesWalkPages++
+      const raw = new URL(url).searchParams.get('page')
+      const page = raw == null ? 0 : Number(raw)
+      const slice = gitesSerp.slice(page * 20, page * 20 + 20).map((c) => ({ ...c }))
+      if (slice[0] && page === 0) slice[0].advertisedTotal = 33
+      return slice
+    }
+  )
+  check(
+    'Gîtes 20+13 = 33 (page=1, pas saut page=2)',
+    gitesWalk.length === 33 && gitesWalkPages >= 2,
+    { n: gitesWalk.length, pages: gitesWalkPages, stop: paginationOf(gitesWalk)?.stoppedReason }
+  )
   check(
     'Gîtes Les 2 Alpes : towns=50301 (contournement GET)',
     gitesSearchUrl(stay).includes('towns=50301') &&
@@ -916,6 +965,28 @@ async function main(): Promise<void> {
       stopped_reason: 'exhausted',
       reason_code: 'ok'
     }) === null
+  )
+  check('« Les 2 Alpes » ≡ « Les Deux Alpes »', !cityMismatch('Les 2 Alpes', 'Les Deux Alpes'))
+  check('commune vide : on ne jette pas', !cityMismatch(null, 'Les Deux Alpes'))
+  check(
+    'Bellecombe ≠ Giettaz',
+    cityMismatch('Notre-Dame-de-Bellecombe', 'La Giettaz')
+  )
+  check('normPlace 2 → deux', normPlace('Les 2 Alpes') === normPlace('Les Deux Alpes'))
+  const nextStay = mergeStationNextHref(
+    'https://reservation.les2alpes.com/booking?action=result&cid=5&datedeb=07/02/2027&duree=7',
+    '/sejour-semaine.html?page=2&mid=2&action=result&origine_affinage=true&idMenu=4226'
+  )
+  const nextStayUrl = nextStay ? new URL(nextStay) : null
+  check(
+    'PLUS DE RÉSULTATS recopie datedeb',
+    Boolean(
+      nextStayUrl &&
+        nextStayUrl.searchParams.get('page') === '2' &&
+        nextStayUrl.searchParams.get('datedeb') === '07/02/2027' &&
+        nextStayUrl.searchParams.get('cid') === '5'
+    ),
+    nextStay
   )
   check(
     'Ceto hors station → delegated, pas F1',

@@ -2,7 +2,8 @@ import { Component, type ErrorInfo, type ReactNode } from 'react'
 
 /**
  * La scène 3D (R3F / WebGL) ne doit jamais emporter l'accueil.
- * Un contexte GPU perdu ou un NaN Three.js = fond photo, pas un crash.
+ * Un contexte GPU perdu ou un NaN Three.js = hero.jpg, pas un crash.
+ * La photo n’est rendue que via `fallback` : jamais sous un canvas vivant.
  */
 export class SceneGuard extends Component<{ children: ReactNode; fallback?: ReactNode }, { dead: boolean }> {
   state = { dead: false }

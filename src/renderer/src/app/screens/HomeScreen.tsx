@@ -5,6 +5,7 @@
 
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import heroJpg from '@/assets/hero.jpg'
 import { massifPhoto, stationPhoto } from '@/components/photos'
 import { BASE_SOURCES } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
@@ -37,6 +38,18 @@ function webglAvailable(): boolean {
 }
 const MAX_MASSIFS = 6
 
+/** Fond photo : seulement si la 3D n’est pas là. Jamais sous le canvas. */
+function HeroPhoto(): JSX.Element {
+  return (
+    <div
+      className="rc-hero__photo"
+      style={{ backgroundImage: `url(${heroJpg})` }}
+      data-testid="home-hero-photo"
+      aria-hidden
+    />
+  )
+}
+
 /** Un domaine par forfait relié ; représentant = photo créditée, puis le plus haut. */
 export function popularStations(domains: Domain[]): Domain[] {
   const rank = (d: Domain): number => (creditPhoto(d.name) && stationPhoto(d.slug) ? 100000 : 0) + d.village
@@ -63,11 +76,13 @@ export function HomeScreen(): JSX.Element {
   const webgl = useMemo(webglAvailable, [])
   const still = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
   const [sceneOn, setSceneOn] = useState(false)
+  const [sceneDead, setSceneDead] = useState(false)
   useEffect(() => {
     const t = window.setTimeout(() => setSceneOn(true), 250)
     return () => window.clearTimeout(t)
   }, [])
   const massifCount = new Set(domains.map((d) => d.massif).filter(Boolean)).size
+  const sceneLive = webgl && sceneOn && !sceneDead
 
   const massifs = useMemo(() => {
     const by = new Map<string, Domain[]>()
@@ -108,13 +123,15 @@ export function HomeScreen(): JSX.Element {
     <div className="rc-home" data-testid="home-screen">
       <section className="rc-hero" data-testid="home-hero">
         <div className="rc-hero__scene" aria-hidden data-testid="home-scene">
-          {webgl && sceneOn && (
-            <SceneGuard>
+          {sceneLive ? (
+            <SceneGuard fallback={<HeroPhoto />}>
               <Suspense fallback={null}>
-                <MountainScene still={still} />
+                <MountainScene still={still} onFail={() => setSceneDead(true)} />
               </Suspense>
             </SceneGuard>
-          )}
+          ) : !webgl || sceneDead ? (
+            <HeroPhoto />
+          ) : null}
         </div>
         <div className="rc-hero__veil" aria-hidden />
         <div className="rc-hero__inner">

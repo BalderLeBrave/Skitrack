@@ -467,7 +467,7 @@ function Rig({ still }: { still: boolean }): null {
   return null
 }
 
-export function MountainScene({ still = false }: { still?: boolean }): JSX.Element {
+export function MountainScene({ still = false, onFail }: { still?: boolean; onFail?: () => void }): JSX.Element {
   return (
     <Canvas
       className="rc-scene"
@@ -492,6 +492,7 @@ export function MountainScene({ still = false }: { still?: boolean }): JSX.Eleme
           (e) => {
             e.preventDefault()
             el.style.visibility = 'hidden'
+            onFail?.()
           },
           false
         )

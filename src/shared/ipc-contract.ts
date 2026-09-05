@@ -330,6 +330,25 @@ export interface ListingExtract {
   address: string | null
   /** Champs que la page n'exposait pas et qu'il faudra saisir à la main. */
   missing: string[]
+  /** Statut de la récupération HTTP — absent des lectures d'avant ce champ. */
+  fetchStatus?:
+    | 'success'
+    | 'partial_content'
+    | 'rate_limited'
+    | 'access_denied'
+    | 'timeout'
+    | 'network_error'
+    | 'parse_error'
+  resolutionStrategy?: 'auto_retry' | 'user_manual_entry' | 'partial_with_form' | 'abort' | 'proceed'
+  canonicalUrl?: string | null
+  priceUnit?: 'night' | 'week' | 'stay' | 'unknown' | null
+  priceIsFrom?: boolean
+  completenessScore?: number
+  listingHash?: string
+  offerHash?: string
+  missingCriticalFields?: string[]
+  geoPrecision?: 'exact' | 'approximate' | 'none'
+  feesComplete?: boolean
 }
 
 /**

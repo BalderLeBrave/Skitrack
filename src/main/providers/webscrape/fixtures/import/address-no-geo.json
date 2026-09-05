@@ -1,0 +1,16 @@
+{
+  "@context": "https://schema.org",
+  "@type": "LodgingBusiness",
+  "name": "Maison du village",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "3 place de l'Église",
+    "addressLocality": "Valloire",
+    "postalCode": "73450"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": 1200,
+    "priceCurrency": "EUR"
+  }
+}

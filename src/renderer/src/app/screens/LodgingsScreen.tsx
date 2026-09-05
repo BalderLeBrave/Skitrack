@@ -8,6 +8,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { LodgingMap } from '@/components/LodgingMap'
+import { ImportListingForm } from '@/components/ImportListingForm'
 import { FilterPopover } from '@/components/FilterPopover'
 import { LodgingFilters } from '@/components/LodgingFilters'
 import { useActiveLodgingFilters } from '@/components/activeLodgingFilters'
@@ -92,6 +93,9 @@ export function LodgingsScreen(): JSX.Element {
           </p>
         </div>
         <div className="rc-page__acts">
+          <button type="button" className="rc-btn rc-btn--ghost" data-testid="lodgings-import" onClick={() => patch({ importOpen: true })}>
+            {t('import_open')}
+          </button>
           <button type="button" className="rc-btn rc-btn--ghost" data-testid="lodgings-refresh" disabled={searching || !criteriaReady} onClick={() => void launch()}>
             {searching ? t('rc_lodg_searching').replace('{s}', String(elapsedSec)) : t('rc_lodg_refresh')}
           </button>
@@ -182,6 +186,7 @@ export function LodgingsScreen(): JSX.Element {
 
       <StayBar d={d} list={derived.lodgList} />
       {state.ficheId != null && <LodgeSheet domain={d} />}
+      {state.importOpen && <ImportListingForm domain={d} />}
     </div>
   )
 }

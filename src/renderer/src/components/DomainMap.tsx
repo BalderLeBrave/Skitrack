@@ -565,7 +565,7 @@ export function DomainMap(): JSX.Element {
             onClick={() => patch({ baseOpen: !state.baseOpen })}
             aria-expanded={state.baseOpen}
           >
-            {t('basemap')} · {BASEMAPS.find((b) => b.key === active)?.label ?? BASEMAPS[0].label}
+            {t('basemap')} · {t((BASEMAPS.find((b) => b.key === active) ?? BASEMAPS[0]).label)}
           </button>
           {state.baseOpen && (
             <div className="basepicker">
@@ -576,8 +576,8 @@ export function DomainMap(): JSX.Element {
                   className={`basepicker__row${active === b.key ? ' basepicker__row--on' : ''}`}
                   onClick={() => patch({ basemap: b.key, baseOpen: false })}
                 >
-                  <span className="basepicker__label">{b.label}</span>
-                  <span className="basepicker__sub">{b.sub}</span>
+                  <span className="basepicker__label">{t(b.label)}</span>
+                  <span className="basepicker__sub">{t(b.sub)}</span>
                 </button>
               ))}
             </div>

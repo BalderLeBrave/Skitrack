@@ -682,6 +682,36 @@ thead .rc-cmp__crit { background: var(--panneau); }
   border-top: 1px solid var(--bordure-douce);
   background: var(--panneau);
 }
+.rc-import__body { gap: 28px; }
+.rc-import__field { display: grid; gap: 6px; font-size: 13px; color: var(--texte-2); }
+.rc-import__field input,
+.rc-import__field select,
+.rc-import__field textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--texte);
+  font: inherit;
+}
+.rc-import__field textarea { min-height: 8rem; resize: vertical; }
+.rc-import__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rc-import__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.rc-import__check { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.rc-import__src { margin: 4px 0 0; font-size: 12px; color: var(--texte-2); }
+.rc-import__total { margin: 8px 0 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.rc-import__map {
+  position: relative;
+  height: 220px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--carte-fond);
+}
+@media (max-width: 700px) {
+  .rc-import__grid { grid-template-columns: 1fr; }
+}
 .rc-ok-text { color: var(--ok-texte); }
 .rc-lodge { cursor: pointer; }
 @media (max-width: 900px) {

@@ -9,8 +9,8 @@
  * - User-Agent Chrome desktop, pas un identifiant d'application.
  * - Le rendu Playwright réutilise le contexte stealth / proxy de
  *   `webscrape/shared.ts` (évasion WAF conservée).
- * - Les solveurs captcha du sidecar (`CaptchaSolver`, 2captcha) restent
- *   branchés sur les relevés de catalogue.
+ * - Un 403 n'est **pas** relancé dans le navigateur : c'est un refus,
+ *   le formulaire manuel prend le relais.
  *
  * Cette lecture vit dans le processus principal parce que le renderer est sous
  * une CSP stricte qui lui interdit toute origine distante — et c'est très bien
@@ -18,8 +18,20 @@
  */
 
 import type { ListingExtract } from '@shared/ipc-contract'
+import { isForbiddenListingHost } from '@shared/listingHosts'
+import {
+  classifyHttpStatus,
+  resolveFetchStrategy,
+  retryDelayMs,
+  type FetchStatus,
+  type ResolutionStrategy
+} from '@shared/listingImport'
+import { parseMetadata } from '@shared/normalizeJsonLd'
 import { allowsPath } from './providers/station/robots'
 import { withPage } from './providers/webscrape/shared'
+import { generateListingHash, generateOfferHash } from './listingHash'
+
+export { readCoords } from '@shared/listingCoords'
 
 /** Chrome desktop — le même que le socle Playwright stealth. */
 const USER_AGENT =
@@ -28,8 +40,16 @@ const TIMEOUT_MS = 15_000
 /** Au-delà, ce n'est pas une page d'annonce : on abandonne plutôt que d'avaler. */
 const MAX_BYTES = 3_000_000
 
+function siteOf(host: string): string {
+  return host.replace(/^www\./, '')
+}
 
-function emptyExtract(url: string, site: string, blockedReason: string | null): ListingExtract {
+function emptyExtract(
+  url: string,
+  site: string,
+  blockedReason: string | null,
+  extra?: Partial<ListingExtract>
+): ListingExtract {
   return {
     ok: blockedReason === null,
     blockedReason,
@@ -45,84 +65,18 @@ function emptyExtract(url: string, site: string, blockedReason: string | null): 
     rooms: null,
     capacity: null,
     address: null,
-    missing: ['titre', 'prix', 'chambres', 'capacité', 'position']
+    missing: ['titre', 'prix', 'chambres', 'capacité', 'position'],
+    fetchStatus: extra?.fetchStatus ?? 'parse_error',
+    resolutionStrategy: extra?.resolutionStrategy ?? 'user_manual_entry',
+    listingHash: extra?.listingHash,
+    completenessScore: extra?.completenessScore ?? 0,
+    missingCriticalFields: extra?.missingCriticalFields ?? ['priceBase', 'checkIn', 'checkOut', 'guests'],
+    ...extra
   }
 }
 
-/**
- * Coordonnées d'une page d'annonce, lues **hors JSON-LD**.
- *
- * Les trois porteurs ci-dessous ont été constatés le 2026-08-30 sur une fiche
- * Booking réelle (`club-du-soleil-valfrejus`), rendue dans un navigateur ; les
- * trois s'accordaient à la sixième décimale. Ils sont essayés dans l'ordre de
- * leur précision : l'attribut porte la valeur complète, la variable JavaScript
- * est arrondie à huit décimales.
- *
- * Aucune valeur n'est fabriquée : sans porteur, la fonction rend `null`, et
- * l'annonce reste sans position — visible, mais sans position.
- */
-export function readCoords(html: string): { lat: number; lon: number } | null {
-  const plausible = (lat: number, lon: number): { lat: number; lon: number } | null =>
-    Number.isFinite(lat) &&
-    Number.isFinite(lon) &&
-    Math.abs(lat) <= 90 &&
-    Math.abs(lon) <= 180 &&
-    // Le point (0, 0) est au large du golfe de Guinée : c'est la marque d'un
-    // champ vide sérialisé en nombre, jamais celle d'un logement.
-    !(lat === 0 && lon === 0)
-      ? { lat, lon }
-      : null
-
-  const atlas = /data-atlas-latlng="(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)"/.exec(html)
-  if (atlas) {
-    const hit = plausible(Number(atlas[1]), Number(atlas[2]))
-    if (hit) return hit
-  }
-
-  const mapLat = /b_map_center_latitude\s*=\s*(-?\d+(?:\.\d+)?)/.exec(html)
-  const mapLon = /b_map_center_longitude\s*=\s*(-?\d+(?:\.\d+)?)/.exec(html)
-  if (mapLat && mapLon) {
-    const hit = plausible(Number(mapLat[1]), Number(mapLon[1]))
-    if (hit) return hit
-  }
-
-  const pair = /"latitude"\s*:\s*(-?\d+(?:\.\d+)?)\s*,\s*"longitude"\s*:\s*(-?\d+(?:\.\d+)?)/.exec(html)
-  if (pair) {
-    const hit = plausible(Number(pair[1]), Number(pair[2]))
-    if (hit) return hit
-  }
-
-  return null
-}
-
-/**
- * Rendu de la page dans le navigateur partagé, en dernier recours.
- *
- * Mesuré le 2026-08-30 : une requête `fetch` sur une fiche Booking reçoit un
- * HTTP 202 et 3 962 octets de page anti-robot — sans titre, sans prix, sans
- * coordonnées. La même adresse ouverte dans un navigateur rend la fiche
- * complète. Le repli ne sert donc pas à contourner un refus : il sert à obtenir
- * la page que l'hôte sert à un navigateur, celle que l'utilisateur verrait.
- *
- * Il est volontairement le second choix : la lecture directe reste la voie
- * normale, moins coûteuse et sans navigateur à démarrer.
- */
-async function renderHtml(url: string): Promise<string | null> {
-  try {
-    return await withPage(true, async (page) => {
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS * 3 })
-      // Les coordonnées de Booking arrivent avec le script de carte, après le
-      // DOM initial : sans cette pause, une fiche sur deux revient sans elles.
-      await page.waitForTimeout(2_500)
-      return await page.content()
-    })
-  } catch {
-    return null
-  }
-}
-
-function siteOf(host: string): string {
-  return host.replace(/^www\./, '')
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function get(url: string, signal: AbortSignal): Promise<Response> {
@@ -135,22 +89,7 @@ async function get(url: string, signal: AbortSignal): Promise<Response> {
 
 /**
  * `robots.txt` de l'hôte — **délégué à `providers/station/robots.ts`**.
- *
- * Cette fonction portait sa propre lecture du fichier : groupes `User-agent`,
- * `Allow`/`Disallow`, correspondance par préfixe. Deux implémentations de la
- * même règle dans un même dépôt, c'est une de trop — elles finissent par
- * diverger, et plus personne ne sait laquelle décide. `robots.ts` fait
- * autorité ; celle-ci l'appelle, et rien d'autre ne lit `robots.txt` ici.
- *
- * Le `fetcher` reste celui de l'import : même User-Agent, même délai
- * d'abandon. C'est cette requête-là qu'il faut pouvoir interrompre, pas une
- * autre.
- *
- * Conséquence à connaître : `robots.ts` étant permissif depuis le 2026-08-26,
- * cette fonction rend toujours `true` et le fichier n'est même plus demandé.
- * L'import par URL ne refuse donc plus une page au nom de `robots.txt`. Le
- * refus des hôtes dont les **CGU** interdisent l'accès automatisé est une autre
- * règle, elle vit plus haut dans `extractListing`, et elle tient toujours.
+ * Permissif depuis le 2026-08-26 : rend toujours `true`.
  */
 export async function isAllowedByRobots(target: URL, signal: AbortSignal): Promise<boolean> {
   const verdict = await allowsPath(target.origin, target.pathname + target.search, async (url) => {
@@ -160,69 +99,61 @@ export async function isAllowedByRobots(target: URL, signal: AbortSignal): Promi
   return verdict.allowed
 }
 
-function decodeEntities(value: string): string {
-  return value
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-}
-
-function metaContent(html: string, property: string): string | null {
-  const pattern = new RegExp(
-    `<meta[^>]+(?:property|name)\\s*=\\s*["']${property}["'][^>]*content\\s*=\\s*["']([^"']*)["']`,
-    'i'
-  )
-  const reversed = new RegExp(
-    `<meta[^>]+content\\s*=\\s*["']([^"']*)["'][^>]*(?:property|name)\\s*=\\s*["']${property}["']`,
-    'i'
-  )
-  const m = pattern.exec(html) ?? reversed.exec(html)
-  return m ? decodeEntities(m[1]).trim() : null
-}
-
-type Json = Record<string, unknown>
-
-/** Aplatit `@graph` et les tableaux : les sites imbriquent de façons variées. */
-function flattenJsonLd(node: unknown, out: Json[]): void {
-  if (Array.isArray(node)) {
-    for (const item of node) flattenJsonLd(item, out)
-    return
+async function renderHtml(url: string): Promise<string | null> {
+  try {
+    return await withPage(true, async (page) => {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS * 3 })
+      await page.waitForTimeout(2_500)
+      return await page.content()
+    })
+  } catch {
+    return null
   }
-  if (typeof node !== 'object' || node === null) return
-  const obj = node as Json
-  out.push(obj)
-  if ('@graph' in obj) flattenJsonLd(obj['@graph'], out)
 }
 
-function readJsonLd(html: string): Json[] {
-  const out: Json[] = []
-  const pattern = /<script[^>]+type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
-  let m: RegExpExecArray | null
-  while ((m = pattern.exec(html)) !== null) {
-    try {
-      flattenJsonLd(JSON.parse(m[1].trim()), out)
-    } catch {
-      /* bloc JSON-LD invalide : les sites en publient régulièrement */
-    }
+function toExtract(
+  parsed: ReturnType<typeof parseMetadata>,
+  rawUrl: string,
+  site: string,
+  status: FetchStatus,
+  strategy: ResolutionStrategy
+): ListingExtract {
+  const geo = parsed.geo
+  const missingLabels: [unknown, string][] = [
+    [parsed.title, 'titre'],
+    [parsed.priceBase, 'prix'],
+    [parsed.rooms, 'chambres'],
+    [parsed.guests ?? parsed.occupancyMax, 'capacité'],
+    [geo, 'position']
+  ]
+  return {
+    ok: status === 'success' || status === 'partial_content',
+    blockedReason: status === 'access_denied' ? `${site} a refusé la lecture automatique.` : null,
+    url: parsed.canonicalUrl?.value ?? rawUrl,
+    site,
+    title: parsed.title?.value ?? null,
+    description: parsed.description?.value ?? null,
+    images: parsed.image ? [parsed.image.value] : [],
+    price: parsed.priceBase?.value ?? null,
+    currency: parsed.priceBase?.currency ?? null,
+    lat: geo?.value.lat ?? null,
+    lon: geo?.value.lon ?? null,
+    rooms: parsed.rooms?.value ?? null,
+    capacity: parsed.guests?.value ?? parsed.occupancyMax?.value ?? null,
+    address: parsed.addressText?.value ?? null,
+    missing: missingLabels.filter(([v]) => v == null).map(([, l]) => l),
+    fetchStatus: status,
+    resolutionStrategy: strategy,
+    canonicalUrl: parsed.canonicalUrl?.value ?? null,
+    priceUnit: parsed.priceBase?.unit ?? null,
+    priceIsFrom: parsed.priceBase?.isFrom ?? false,
+    completenessScore: parsed.completenessScore,
+    listingHash: parsed.listingHash,
+    offerHash: parsed.offerHash,
+    missingCriticalFields: parsed.missingCriticalFields,
+    geoPrecision: geo?.precision ?? 'none',
+    feesComplete: parsed.fees?.isComplete ?? false
   }
-  return out
-}
-
-function num(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
-  if (typeof value === 'string') {
-    const parsed = parseFloat(value.replace(/[^\d.,-]/g, '').replace(',', '.'))
-    return Number.isFinite(parsed) ? parsed : null
-  }
-  return null
-}
-
-function str(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 export async function fetchListing(rawUrl: string): Promise<ListingExtract> {
@@ -230,107 +161,129 @@ export async function fetchListing(rawUrl: string): Promise<ListingExtract> {
   try {
     target = new URL(rawUrl)
   } catch {
-    return { ...emptyExtract(rawUrl, '—', 'URL invalide.'), ok: false }
+    return emptyExtract(rawUrl, '—', 'URL invalide.', { fetchStatus: 'parse_error' })
   }
   if (target.protocol !== 'http:' && target.protocol !== 'https:') {
-    return emptyExtract(rawUrl, '—', 'Seules les adresses http(s) sont acceptées.')
+    return emptyExtract(rawUrl, '—', 'Seules les adresses http(s) sont acceptées.', { fetchStatus: 'parse_error' })
   }
 
   const host = target.hostname.toLowerCase()
   const site = siteOf(host)
+  const listingHash = generateListingHash(target.toString())
 
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  if (isForbiddenListingHost(target.toString())) {
+    return emptyExtract(rawUrl, site, `${site} n’est pas lu automatiquement (agrégateur).`, {
+      fetchStatus: 'access_denied',
+      listingHash,
+      resolutionStrategy: 'user_manual_entry'
+    })
+  }
 
-  try {
-    // robots.txt n'est pas un veto : isAllowedByRobots rend toujours true.
-    void (await isAllowedByRobots(target, controller.signal))
+  let attempt = 0
+  let lastStatus: FetchStatus = 'network_error'
+  let lastHttp: number | undefined
+  let html: string | null = null
 
-    /*
-     * Deux tentatives, dans cet ordre : la lecture directe, puis le rendu dans
-     * le navigateur partagé si elle n'a rien donné d'exploitable.
-     *
-     * Le critère de bascule est le résultat, pas le code HTTP : Booking répond
-     * « 202 » à une lecture directe, ce qui n'est pas une erreur, et sert
-     * pourtant une page vide de tout. On juge donc sur ce qu'on a obtenu — un
-     * titre, ou une position — plutôt que sur ce que l'hôte prétend.
-     */
-    let html: string | null = null
-    const res = await get(target.toString(), controller.signal).catch(() => null)
-    if (res && res.ok) {
+  while (attempt < 4) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+    try {
+      void (await isAllowedByRobots(target, controller.signal))
+      const res = await get(target.toString(), controller.signal)
+      lastHttp = res.status
+      const classified = classifyHttpStatus(res.status)
+      if (classified) {
+        lastStatus = classified
+        const strategy = resolveFetchStrategy({ status: classified }, attempt)
+        if (strategy === 'auto_retry') {
+          attempt++
+          await sleep(retryDelayMs(attempt - 1))
+          continue
+        }
+        return emptyExtract(rawUrl, site, `${site} a répondu ${res.status}.`, {
+          fetchStatus: classified,
+          listingHash,
+          resolutionStrategy: strategy
+        })
+      }
+
+      if (res.status >= 400) {
+        lastStatus = 'network_error'
+        return emptyExtract(rawUrl, site, `${site} a répondu ${res.status}.`, {
+          fetchStatus: 'network_error',
+          listingHash,
+          resolutionStrategy: 'user_manual_entry'
+        })
+      }
+
       const buffer = await res.arrayBuffer()
       if (buffer.byteLength > MAX_BYTES) {
-        return emptyExtract(rawUrl, site, 'Page trop volumineuse pour être analysée.')
+        return emptyExtract(rawUrl, site, 'Page trop volumineuse pour être analysée.', {
+          fetchStatus: 'parse_error',
+          listingHash
+        })
       }
       html = new TextDecoder('utf-8').decode(buffer)
+      lastStatus = 'success'
+      break
+    } catch (err) {
+      const aborted = err instanceof Error && err.name === 'AbortError'
+      lastStatus = aborted ? 'timeout' : 'network_error'
+      const strategy = resolveFetchStrategy({ status: lastStatus }, attempt)
+      if (strategy === 'auto_retry') {
+        attempt++
+        await sleep(retryDelayMs(attempt - 1))
+        continue
+      }
+      return emptyExtract(
+        rawUrl,
+        site,
+        `Lecture impossible (${aborted ? 'délai dépassé' : String(err)}).`,
+        { fetchStatus: lastStatus, listingHash, resolutionStrategy: 'user_manual_entry' }
+      )
+    } finally {
+      clearTimeout(timer)
     }
+  }
 
-    if (html === null || (readJsonLd(html).length === 0 && readCoords(html) === null)) {
+  if (html !== null) {
+    const preview = parseMetadata(html, target.toString(), { listingHash })
+    const empty =
+      !preview.title &&
+      !preview.priceBase &&
+      !preview.geo &&
+      (!preview.rawJsonLd || (Array.isArray(preview.rawJsonLd) && preview.rawJsonLd.length === 0))
+    if (empty) {
       const rendered = await renderHtml(target.toString())
       if (rendered !== null) html = rendered
     }
-
-    if (html === null) {
-      return emptyExtract(rawUrl, site, `${site} a répondu ${res ? res.status : 'sans contenu lisible'}.`)
-    }
-
-    const pageCoords = readCoords(html)
-    const blocks = readJsonLd(html)
-    const accommodation =
-      blocks.find((b) => {
-        const type = b['@type']
-        const types = Array.isArray(type) ? type : [type]
-        return types.some(
-          (t) => typeof t === 'string' && /Accommodation|Lodging|House|Apartment|Hotel|Product|Offer/i.test(t)
-        )
-      }) ?? blocks[0]
-
-    const offer = (accommodation?.offers ?? {}) as Json
-    const offerNode = (Array.isArray(offer) ? (offer[0] as Json) : offer) ?? {}
-    const geo = (accommodation?.geo ?? {}) as Json
-    const address = accommodation?.address
-
-    const extract: ListingExtract = {
-      ok: true,
-      blockedReason: null,
-      url: target.toString(),
-      site,
-      title: str(accommodation?.name) ?? metaContent(html, 'og:title') ?? null,
-      description: str(accommodation?.description) ?? metaContent(html, 'og:description'),
-      images: [metaContent(html, 'og:image')].filter((v): v is string => Boolean(v)),
-      price: num(offerNode.price) ?? num(metaContent(html, 'product:price:amount')),
-      currency: str(offerNode.priceCurrency) ?? metaContent(html, 'product:price:currency'),
-      // Le JSON-LD reste prioritaire : c'est une déclaration de l'hôte. Les
-      // porteurs de page prennent le relais quand il n'en publie pas — c'est le
-      // cas de Booking, dont aucune fiche n'expose `geo` dans son JSON-LD.
-      lat: num(geo.latitude) ?? pageCoords?.lat ?? null,
-      lon: num(geo.longitude) ?? pageCoords?.lon ?? null,
-      rooms: num(accommodation?.numberOfRooms) ?? num(accommodation?.numberOfBedrooms),
-      capacity: num((accommodation?.occupancy as Json)?.value) ?? num(accommodation?.occupancy),
-      address:
-        typeof address === 'string'
-          ? address
-          : str((address as Json)?.streetAddress) ?? str((address as Json)?.addressLocality),
-      missing: []
-    }
-
-    extract.missing = (
-      [
-        [extract.title, 'titre'],
-        [extract.price, 'prix'],
-        [extract.rooms, 'chambres'],
-        [extract.capacity, 'capacité'],
-        [extract.lat, 'position']
-      ] as [unknown, string][]
-    )
-      .filter(([value]) => value == null)
-      .map(([, label]) => label)
-
-    return extract
-  } catch (err) {
-    const message = err instanceof Error && err.name === 'AbortError' ? 'délai dépassé' : String(err)
-    return emptyExtract(rawUrl, site, `Lecture impossible (${message}).`)
-  } finally {
-    clearTimeout(timer)
   }
+
+  if (html === null) {
+    return emptyExtract(rawUrl, site, `${site} a répondu ${lastHttp ?? 'sans contenu lisible'}.`, {
+      fetchStatus: lastStatus,
+      listingHash,
+      resolutionStrategy: 'user_manual_entry'
+    })
+  }
+
+  const parsed = parseMetadata(html, target.toString(), { listingHash })
+  parsed.listingHash = listingHash
+  const stayIn = parsed.checkIn?.value
+  const stayOut = parsed.checkOut?.value
+  const guests = parsed.guests?.value ?? parsed.occupancyMax?.value
+  if (stayIn && stayOut && guests != null) {
+    parsed.offerHash = generateOfferHash(listingHash, stayIn, stayOut, guests)
+  }
+
+  const thin = parsed.completenessScore < 60
+  const status: FetchStatus = thin ? 'partial_content' : 'success'
+  const strategy: ResolutionStrategy =
+    status === 'partial_content' ? 'partial_with_form' : parsed.completenessScore < 80 ? 'partial_with_form' : 'proceed'
+  parsed.fetchMetadata.fetchStatus = status
+  parsed.fetchMetadata.resolutionStrategy = strategy
+  parsed.fetchMetadata.attempts = Math.max(1, attempt + 1)
+  parsed.fetchMetadata.httpStatus = lastHttp
+
+  return toExtract(parsed, rawUrl, site, status, strategy)
 }

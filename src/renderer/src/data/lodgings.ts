@@ -226,6 +226,22 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
    * On ne le convertit jamais en séjour.
    */
   weekly?: number
+  /** Hash d'identité du bien (URL canonique), posé à l'import par URL. */
+  listingHash?: string
+  offerHash?: string
+  /** Prix d'appel (« à partir de ») — jamais un total comparable. */
+  priceIsFrom?: boolean
+  priceFlags?: string[]
+  geoPrecision?: 'exact' | 'approximate' | 'none'
+  feesBreakdown?: {
+    cleaning?: number
+    touristTax?: number
+    service?: number
+    utilities?: number
+    deposit?: number
+    depositRefundable?: boolean
+    isComplete: boolean
+  }
 }
 
 export const LODG_TYPES = ['Appartement', 'Chalet', 'Studio', 'Hôtel', 'Gîte', 'Import']

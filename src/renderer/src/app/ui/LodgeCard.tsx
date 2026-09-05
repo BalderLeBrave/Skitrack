@@ -77,7 +77,11 @@ export function LodgeCard({ lg, d, nights, badges = [], fallback = null }: Props
           {measured && lg.skiIn && <li>{t('badge_ski_in')}</li>}
           {measured && !lg.skiIn && lg.dist > 0 && <li className="crn-releve">{t('rc_lodge_dist').replace('{m}', fmt(lg.dist))}</li>}
           {!measured && <li className="rc-muted">{t('rc_lodge_dist_unknown')}</li>}
-          {lg.annul && <li>{t('rc_lodge_free_cancel')}</li>}
+          {lg.priceIsFrom && <li className="rc-muted">{t('import_call_price')}</li>}
+          {!lg.priceIsFrom &&
+            Boolean(lg.priceFlags?.some((f) => f === 'incomplete_fees' || f === 'unit_mismatch' || f === 'unit_unknown')) && (
+              <li className="rc-muted">{t('import_incomplete_price')}</li>
+            )}
         </ul>
         <div className="rc-lodge__foot">
           <PriceFirm total={lg.total} verdict={verdict} nights={nights} travelers={state.travelers} testid={`lodge-price-${lg.id}`} />

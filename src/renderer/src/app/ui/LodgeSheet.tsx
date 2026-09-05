@@ -112,7 +112,7 @@ export function LodgeSheet({ domain: d }: { domain: Domain }): JSX.Element | nul
           <div className="rc-fiche__kicker">
             <span className="rc-badge">{src}</span>
             <span className="rc-muted">{lodging.type}{size ? ` · ${size}` : ''} · {t('rc_lodge_cap').replace('{n}', String(lodging.pers || state.travelers))}</span>
-            {lodging.skiIn && <span className="rc-badge rc-badge--ok">{t('badge_ski_in')}</span>}
+            {lodging.accessComputed === true && lodging.skiIn && <span className="rc-badge rc-badge--ok">{t('badge_ski_in')}</span>}
             {kept && <span className="rc-badge rc-badge--ok">{t('rc_stay_kept')}</span>}
           </div>
           <h2 id="lodge-sheet-title" className="rc-fiche__title">{lodging.name}</h2>

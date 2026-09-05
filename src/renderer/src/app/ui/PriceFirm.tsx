@@ -19,9 +19,9 @@ interface Props {
 export function PriceFirm({ total, verdict, nights, travelers, size = 'card', testid }: Props): JSX.Element {
   const { eur } = useFormat()
   const { t } = useI18n()
-  const firm = verdict.status === 'confirmed' && total > 0
+  const showAmount = total > 0 && (verdict.status === 'confirmed' || verdict.status === 'unrated')
 
-  if (!firm) {
+  if (!showAmount) {
     const why =
       verdict.reason === 'unpriced'
         ? t('rc_price_unpriced')
@@ -45,7 +45,7 @@ export function PriceFirm({ total, verdict, nights, travelers, size = 'card', te
         {t('rc_price_stay').replace('{n}', String(nights))}
         {travelers > 0 && ` · ${eur(Math.round(total / travelers))} ${t('rc_price_pp')}`}
       </span>
-      <span className="rc-badge rc-badge--ok">{t('rc_price_firm')}</span>
+      {verdict.status === 'confirmed' && <span className="rc-badge rc-badge--ok">{t('rc_price_firm')}</span>}
     </div>
   )
 }

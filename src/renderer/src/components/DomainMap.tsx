@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
-import maplibregl, { type GeoJSONSource, type StyleSpecification } from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
 import { api } from '@/api/client'
-import type { Domain } from '@/data/referentiel'
 import { hasCoords } from '@/data/referentiel'
 import { ensureSidecarOrigin } from '@/domain/origins'
 import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
-import { DEFAULT_BASEMAP, type BasemapKey } from './basemap'
+import { BASEMAPS, resolvedBasemap, type BasemapKey } from './basemap'
+import { skiMapStyle } from './skiMapStyle'
+import maplibregl, { type GeoJSONSource } from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import { useEffect, useRef, useState } from 'react'
 
 export type { BasemapKey }
-export { DEFAULT_BASEMAP }
+export { DEFAULT_BASEMAP, BASEMAPS } from './basemap'
 
 /**
  * Carte des domaines.
@@ -22,245 +22,14 @@ export { DEFAULT_BASEMAP }
  * politique d'usage impose l'attribution (affichée en permanence) et un usage
  * modéré — d'où l'absence de préchargement de tuiles et le zoom plafonné à 15.
  *
- * La vue 3D bascule sur un modèle numérique de terrain et va chercher le tracé
- * réel des pistes du domaine sélectionné dans OpenStreetMap. Les réponses
- * Overpass sont mises en cache : le service est public, lent et contingenté, et
- * refaire la requête à chaque bascule serait à la fois impoli et pénible.
+ * Les pistes réelles viennent d'OpenSnowMap (tuiles OSM, sans clé). La vue 3D
+ * drape ce fond sur un MNT Terrarium. Overpass n'est plus interrogé : la
+ * surcouche couvre toutes les stations, à tous les zooms.
  */
 
-const PISTE_KEY = 'skitrack-v3-pistes'
-
-/**
- * Contour de l'épingle sélectionnée — copie du jeton `--accent` de `styles.css`.
- *
- * MapLibre peint ses couches en WebGL à partir d'une spécification de style : il
- * ne résout aucune variable CSS. La valeur est donc dupliquée ici, et les deux
- * doivent bouger ensemble. C'est la seule couleur d'interface du fichier — les
- * autres (`PISTE_COLORS`, l'échelle d'altitude) encodent des données.
- */
 const ACCENT = '#0b6fc2'
 
-const PISTE_COLORS: Record<string, string> = {
-  novice: '#3aa655',
-  easy: '#2a78d6',
-  intermediate: '#d0021b',
-  advanced: '#101418',
-  expert: '#101418'
-}
-
-const STYLE: StyleSpecification = {
-  version: 8,
-  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-  sources: {
-  },
-  layers: []
-}
-
-/**
- * Fonds de carte proposés par le sélecteur.
- *
- * Chacun répond à une question différente : le Plan IGN pour lire les hameaux
- * et les accès, l'orthophoto pour juger les pentes et les barres rocheuses,
- * OpenTopoMap pour la lecture classique aux courbes de niveau, le satellite
- * mondial parce que les fonds IGN s'arrêtent à la frontière, et un fond clair
- * sur lequel les épingles de prix ressortent.
- */
-export const BASEMAPS = [
-  {
-    key: 'ign',
-    label: 'Plan IGN',
-    sub: 'topographie française, la plus lisible pour le relief et les hameaux',
-    tiles: [
-      'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'
-    ],
-    maxzoom: 15,
-    attribution: '© <a href="https://www.ign.fr">IGN</a> · Plan IGN v2'
-  },
-  {
-    key: 'ortho',
-    label: 'Photo aérienne',
-    sub: 'orthophoto IGN — on voit les pentes, les forêts et les barres rocheuses',
-    tiles: [
-      'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'
-    ],
-    maxzoom: 18,
-    attribution: '© <a href="https://www.ign.fr">IGN</a> · BD ORTHO'
-  },
-  {
-    key: 'topo',
-    label: 'OpenTopoMap',
-    sub: 'courbes de niveau marquées, lecture classique de carte de montagne',
-    tiles: ['https://a.tile.opentopomap.org/{z}/{x}/{y}.png'],
-    maxzoom: 15,
-    attribution:
-      '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> · ' +
-      '<a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'
-  },
-  {
-    key: 'sat',
-    label: 'Satellite',
-    sub: 'imagerie mondiale — utile près des frontières suisse et italienne',
-    tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-    maxzoom: 18,
-    attribution: '© Esri · Maxar, Earthstar Geographics'
-  },
-  {
-    key: 'pistes',
-    label: 'Plan IGN + pistes',
-    sub: 'topographie française, avec les pistes et remontées dessinées par OpenSnowMap',
-    tiles: [
-      'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}'
-    ],
-    maxzoom: 15,
-    attribution: '© <a href="https://www.ign.fr">IGN</a> · Plan IGN v2',
-    /**
-     * Surcouche de pistes, posée par-dessus le fond.
-     *
-     * OpenSnowMap rend les pistes et les remontées d'OpenStreetMap — les mêmes
-     * données que le calque 3D interroge par Overpass, mais déjà dessinées et
-     * servies en tuiles : lisibles à tous les niveaux de zoom, et sans requête
-     * Overpass à chaque bascule.
-     *
-     * Thunderforest « Outdoors » rendait le même service ; il exige une clé
-     * d'API commerciale, et une entrée de carte qui ne s'affiche pas tant que
-     * personne n'a créé de compte n'est pas une entrée de carte. OpenSnowMap
-     * est en CC-BY-SA, sans clé, et cite OpenStreetMap comme il se doit.
-     */
-    overlay: {
-      tiles: ['https://tiles.opensnowmap.org/pistes/{z}/{x}/{y}.png'],
-      maxzoom: 18,
-      attribution:
-        '© <a href="https://opensnowmap.org">OpenSnowMap</a> · ' +
-        '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> (CC-BY-SA)'
-    }
-  },
-  {
-    key: 'sobre',
-    label: 'Sobre',
-    sub: 'fond clair et discret — les prix et les épingles ressortent',
-    tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
-    maxzoom: 19,
-    attribution:
-      '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> · ' +
-      '© <a href="https://carto.com/attributions">CARTO</a>'
-  }
-] as const
-
-
-/** Fonds portant une surcouche de pistes, à allumer et éteindre avec eux. */
-type BasemapDef = (typeof BASEMAPS)[number]
-function overlayOf(b: BasemapDef): { tiles: readonly string[]; maxzoom: number; attribution: string } | null {
-  return 'overlay' in b ? b.overlay : null
-}
-
-for (const b of BASEMAPS) {
-  STYLE.sources[`bm-${b.key}`] = {
-    type: 'raster',
-    tiles: [...b.tiles],
-    tileSize: 256,
-    maxzoom: b.maxzoom,
-    attribution: b.attribution
-  }
-  const ov = overlayOf(b)
-  if (ov) {
-    STYLE.sources[`ov-${b.key}`] = {
-      type: 'raster',
-      tiles: [...ov.tiles],
-      tileSize: 256,
-      maxzoom: ov.maxzoom,
-      attribution: ov.attribution
-    }
-  }
-}
-STYLE.layers = [
-  { id: 'bg', type: 'background', paint: { 'background-color': '#eef2f5' } },
-  ...BASEMAPS.flatMap((b) => {
-    const visibility = (b.key === DEFAULT_BASEMAP ? 'visible' : 'none') as 'visible' | 'none'
-    const base = {
-      id: `bm-${b.key}`,
-      type: 'raster' as const,
-      source: `bm-${b.key}`,
-      layout: { visibility }
-    }
-    // La surcouche suit son fond : même visibilité, posée juste au-dessus, donc
-    // sous les pistes 3D, les domaines et les isochrones qui viennent ensuite.
-    return overlayOf(b)
-      ? [base, { id: `ov-${b.key}`, type: 'raster' as const, source: `ov-${b.key}`, layout: { visibility } }]
-      : [base]
-  })
-]
-
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
-
-type PisteCache = Record<string, GeoJSON.FeatureCollection>
-
-function readPisteCache(): PisteCache {
-  try {
-    const raw = localStorage.getItem(PISTE_KEY)
-    return raw ? (JSON.parse(raw) as PisteCache) : {}
-  } catch {
-    return {}
-  }
-}
-
-interface OverpassElement {
-  geometry?: { lat: number; lon: number }[]
-  tags?: Record<string, string>
-}
-
-async function loadPistes(d: Domain, cache: PisteCache): Promise<GeoJSON.FeatureCollection | null> {
-  const key = `p${d.id}`
-  if (cache[key]) return cache[key]
-
-  const r = 0.055
-  const bbox = [d.lat - r * 0.7, d.lon - r, d.lat + r * 0.7, d.lon + r].map((v) => v.toFixed(4)).join(',')
-  const query =
-    `[out:json][timeout:25];(way["piste:type"="downhill"](${bbox});way["aerialway"](${bbox}););out geom;`
-
-  try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    })
-    if (!res.ok) throw new Error(`overpass ${res.status}`)
-    const json = (await res.json()) as { elements?: OverpassElement[] }
-    const features: GeoJSON.Feature[] = (json.elements ?? [])
-      .filter((e) => e.geometry && e.geometry.length > 1)
-      .map((e) => {
-        const tags = e.tags ?? {}
-        const lift = Boolean(tags.aerialway)
-        return {
-          type: 'Feature' as const,
-          properties: {
-            lift,
-            color: lift ? '#6b7280' : (PISTE_COLORS[tags['piste:difficulty']] ?? '#2a78d6'),
-            name: tags.name ?? ''
-          },
-          geometry: {
-            type: 'LineString' as const,
-            coordinates: e.geometry!.map((p) => [p.lon, p.lat])
-          }
-        }
-      })
-    const fc: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features }
-    cache[key] = fc
-    try {
-      localStorage.setItem(PISTE_KEY, JSON.stringify(cache))
-    } catch {
-      /* cache plein : on recalculera à la prochaine bascule */
-    }
-    return fc
-  } catch {
-    // Rien n'est dessiné à la place. Il y avait ici `syntheticPistes()` : des
-    // descentes pseudo-aléatoires « plausibles », convergeant vers le front de
-    // neige, tracées sans un mot à l'écran. Une carte est lue comme un relevé —
-    // c'est même la seule chose qu'une carte prétende être — et huit lignes de
-    // couleur inventées y valaient affirmation. `null` distingue « pas de
-    // tracés » de « aucune piste ici », et l'appelant l'annonce.
-    return null
-  }
-}
 
 /** Paliers affichés, en minutes : 2 h, 4 h et 6 h de route. */
 const ISO_RANGES = [120, 240, 360]
@@ -274,15 +43,12 @@ export function DomainMap(): JSX.Element {
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const markers = useRef<maplibregl.Marker[]>([])
-  const pisteCache = useRef<PisteCache>(readPisteCache())
   const is3D = useRef(false)
-  const pisteShown = useRef<number | null>(null)
   const signatures = useRef<Record<string, string>>({})
   const [loaded, setLoaded] = useState(false)
   const [iso, setIso] = useState<GeoJSON.FeatureCollection | null>(null)
   const [isoError, setIsoError] = useState<string | null>(null)
-  /** Overpass n'a pas répondu pour le domaine affiché en 3D. */
-  const [runsMissing, setRunsMissing] = useState(false)
+  const active = resolvedBasemap(state.basemap)
 
   /** Ne repousse la donnée que si elle a changé : `setData` invalide les tuiles
    *  vectorielles et reprojette tout, ce qui se voit à chaque frappe. */
@@ -299,7 +65,7 @@ export function DomainMap(): JSX.Element {
     if (!container.current || map.current) return
     const m = new maplibregl.Map({
       container: container.current,
-      style: STYLE,
+      style: skiMapStyle(state.basemap, state.pisteOverlay),
       center: [6.5, 45.4],
       zoom: 6,
       attributionControl: false,
@@ -308,6 +74,9 @@ export function DomainMap(): JSX.Element {
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
     m.addControl(new maplibregl.AttributionControl({ compact: true }))
     m.addControl(new maplibregl.ScaleControl({ unit: 'metric' }))
+    const host = container.current
+    const ro = host ? new ResizeObserver(() => m.resize()) : null
+    if (host && ro) ro.observe(host)
     // Le bruit d'erreurs de tuiles (CORS, réseau coupé) ne dit rien d'utile :
     // la carte reste fonctionnelle, seul le fond manque.
     m.on('error', (e) => {
@@ -336,7 +105,6 @@ export function DomainMap(): JSX.Element {
         tileSize: 256,
         maxzoom: 13
       })
-      m.addSource('pistes', { type: 'geojson', data: EMPTY })
       m.addSource('isochrones', { type: 'geojson', data: EMPTY })
 
       try {
@@ -356,28 +124,8 @@ export function DomainMap(): JSX.Element {
         id: 'hillshade',
         type: 'hillshade',
         source: 'dem-shade',
-        layout: { visibility: 'visible' },
+        layout: { visibility: 'none' },
         paint: { 'hillshade-exaggeration': 0.28 }
-      })
-      m.addLayer({
-        id: 'pistes',
-        type: 'line',
-        source: 'pistes',
-        filter: ['!=', ['get', 'lift'], true],
-        layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': ['get', 'color'], 'line-width': 2.6, 'line-opacity': 0.95 }
-      })
-      m.addLayer({
-        id: 'lifts',
-        type: 'line',
-        source: 'pistes',
-        filter: ['==', ['get', 'lift'], true],
-        paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 1.6,
-          'line-dasharray': [2, 1.6],
-          'line-opacity': 0.95
-        }
       })
       // Les isochrones passent sous les points : on veut lire les domaines,
       // pas la zone de temps de trajet.
@@ -519,23 +267,17 @@ export function DomainMap(): JSX.Element {
       m.on('mouseleave', 'points', () => patch({ hoveredId: null }))
 
       setLoaded(true)
+      m.resize()
 
       const bounds = new maplibregl.LngLatBounds()
       const placed = domains.filter(hasCoords)
       for (const d of placed) bounds.extend([d.lon, d.lat])
       const home = hh.find((o) => o.lat != null && o.lon != null)
       if (home) bounds.extend([home.lon!, home.lat!])
-      if (placed.length > 0) m.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 })
+      if (placed.length > 0) m.fitBounds(bounds, { padding: 48, maxZoom: 11, duration: 0 })
     })
 
     map.current = m
-    const host = container.current
-    const ro = host
-      ? new ResizeObserver(() => {
-          m.resize()
-        })
-      : null
-    if (host && ro) ro.observe(host)
     return () => {
       ro?.disconnect()
       m.remove()
@@ -588,7 +330,7 @@ export function DomainMap(): JSX.Element {
     if (placed.length > 0) {
       const bounds = new maplibregl.LngLatBounds()
       for (const d of placed) bounds.extend([d.lon, d.lat])
-      m.fitBounds(bounds, { padding: 60, maxZoom: 10, duration: 0 })
+      m.fitBounds(bounds, { padding: 48, maxZoom: 10, duration: 0 })
     }
     patch({ domFitWanted: false })
   }, [state.domFitWanted, loaded, filtered, patch])
@@ -656,12 +398,11 @@ export function DomainMap(): JSX.Element {
     // qu'on vient regarder en 3D.
     const bare = state.threeD && state.relief === 'ombre'
     for (const b of BASEMAPS) {
-      const on = !bare && b.key === state.basemap ? 'visible' : 'none'
-      // Le fond et sa surcouche de pistes s'allument ensemble : une surcouche
-      // restée seule dessinerait des pistes au-dessus du vide.
-      for (const id of [`bm-${b.key}`, `ov-${b.key}`]) {
-        if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', on)
-      }
+      const on = !bare && b.key === active ? 'visible' : 'none'
+      if (m.getLayer(`bm-${b.key}`)) m.setLayoutProperty(`bm-${b.key}`, 'visibility', on)
+    }
+    if (m.getLayer('ov-pistes')) {
+      m.setLayoutProperty('ov-pistes', 'visibility', state.pisteOverlay ? 'visible' : 'none')
     }
     // L'ombrage n'est allumé qu'en mode « relief ombré » : par-dessus un fond
     // raster il double l'information et salit les couleurs. Les valeurs sont
@@ -675,9 +416,9 @@ export function DomainMap(): JSX.Element {
         m.setPaintProperty('hillshade', 'hillshade-accent-color', '#8d97a4')
       }
     }
-  }, [state.basemap, state.relief, state.threeD, loaded])
+  }, [active, state.pisteOverlay, state.relief, state.threeD, loaded])
 
-  // --- Relief et pistes ----------------------------------------------------
+  // --- Relief 3D -----------------------------------------------------------
   useEffect(() => {
     const m = map.current
     if (!loaded || !m || !m.getSource('dem')) return
@@ -685,9 +426,6 @@ export function DomainMap(): JSX.Element {
     const d = domains.find((x) => x.id === state.selectedId) ?? domains[0]
     if (!d) return
 
-    // La visibilité de l'ombrage appartient à l'effet « fond de carte » : deux
-    // effets qui écrivent la même propriété se défont l'un l'autre selon
-    // l'ordre de rendu, et le relief clignotait au passage en 3D.
     if (want && !is3D.current) {
       is3D.current = true
       m.setTerrain({ source: 'dem', exaggeration: 1.15 })
@@ -704,25 +442,6 @@ export function DomainMap(): JSX.Element {
     for (const id of ['iso-fill', 'iso-line']) {
       if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', want ? 'none' : 'visible')
     }
-
-    const source = m.getSource('pistes') as GeoJSONSource | undefined
-    if (!source) return
-    if (!want) {
-      pisteShown.current = null
-      setRunsMissing(false)
-      pushData(source, 'pistes', EMPTY)
-      return
-    }
-    if (pisteShown.current === d.id) return
-    pisteShown.current = d.id
-    setRunsMissing(false)
-    void loadPistes(d, pisteCache.current).then((fc) => {
-      if (!map.current || pisteShown.current !== d.id) return
-      // `null` = Overpass injoignable. La carte reste nue et le dit ; elle ne
-      // se remplit plus de tracés fabriqués.
-      setRunsMissing(fc === null)
-      pushData(map.current.getSource('pistes') as GeoJSONSource, 'pistes', fc ?? EMPTY)
-    })
   }, [state.threeD, state.selectedId, domains, loaded])
 
   /**
@@ -763,9 +482,9 @@ export function DomainMap(): JSX.Element {
     <div className="map">
       <div ref={container} className="map__canvas" />
       <div className="map__overlay">
-        {state.threeD && (
+        {state.pisteOverlay && (
           <div className="map__legend">
-            <span style={{ fontWeight: 600, color: 'var(--text)' }}>Pistes du domaine — OpenStreetMap</span>
+            <span style={{ fontWeight: 600, color: 'var(--text)' }}>Pistes — OpenSnowMap / OSM</span>
             <span className="map__legend-row">
               <span className="map__swatch" style={{ background: '#3aa655' }} />
               verte
@@ -804,9 +523,17 @@ export function DomainMap(): JSX.Element {
           type="button"
           className="map__btn map__btn--dark"
           onClick={() => patch({ threeD: !state.threeD })}
-          title="Relief 3D et tracé des pistes du domaine sélectionné (OpenStreetMap)"
+          title="Relief 3D du domaine sélectionné"
         >
-          {state.threeD ? 'Vue 2D' : 'Vue 3D · relief et pistes'}
+          {state.threeD ? 'Vue 2D' : 'Vue 3D · relief'}
+        </button>
+
+        <button
+          type="button"
+          className={`map__btn${state.pisteOverlay ? ' map__btn--accent' : ''}`}
+          onClick={() => patch({ pisteOverlay: !state.pisteOverlay })}
+        >
+          {state.pisteOverlay ? t('map_pistes_on') : t('map_pistes_off')}
         </button>
 
         {/* La bascule ne s'affiche qu'en 3D : sans terrain, « relief ombré »
@@ -838,7 +565,7 @@ export function DomainMap(): JSX.Element {
             onClick={() => patch({ baseOpen: !state.baseOpen })}
             aria-expanded={state.baseOpen}
           >
-            {t('basemap')} · {BASEMAPS.find((b) => b.key === state.basemap)?.label ?? BASEMAPS[0].label}
+            {t('basemap')} · {BASEMAPS.find((b) => b.key === active)?.label ?? BASEMAPS[0].label}
           </button>
           {state.baseOpen && (
             <div className="basepicker">
@@ -846,7 +573,7 @@ export function DomainMap(): JSX.Element {
                 <button
                   key={b.key}
                   type="button"
-                  className={`basepicker__row${state.basemap === b.key ? ' basepicker__row--on' : ''}`}
+                  className={`basepicker__row${active === b.key ? ' basepicker__row--on' : ''}`}
                   onClick={() => patch({ basemap: b.key, baseOpen: false })}
                 >
                   <span className="basepicker__label">{b.label}</span>
@@ -863,12 +590,6 @@ export function DomainMap(): JSX.Element {
           <p className="map__error">
             {isoError}
             <span className="u-muted"> {t('iso_needs_engine')}</span>
-          </p>
-        )}
-        {runsMissing && (
-          <p className="map__error">
-            {t('map_runs_missing')}
-            <span className="u-muted"> {t('map_runs_missing_help')}</span>
           </p>
         )}
       </div>

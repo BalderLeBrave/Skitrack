@@ -220,8 +220,10 @@ export interface AppState {
   threeD: boolean
   isoBusy: boolean
   isoShown: boolean
-  /** Fond de carte choisi — voir `BASEMAPS` dans `components/DomainMap`. */
+  /** Fond de carte choisi — voir `BASEMAPS` dans `components/basemap`. */
   basemap: BasemapKey
+  /** Surcouche OpenSnowMap (pistes et remontées OSM), indépendante du fond. */
+  pisteOverlay: boolean
   /** En vue 3D, montrer le fond raster ou le seul relief ombré. */
   relief: 'carte' | 'ombre'
   baseOpen: boolean
@@ -623,6 +625,7 @@ export const INITIAL_STATE: AppState = {
   isoBusy: false,
   isoShown: false,
   basemap: DEFAULT_BASEMAP,
+  pisteOverlay: true,
   relief: 'carte',
   baseOpen: false,
   domBounds: null,
@@ -799,7 +802,7 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits', 'stationCompareIds'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'pisteOverlay', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits', 'stationCompareIds'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**

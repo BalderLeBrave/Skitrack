@@ -766,6 +766,8 @@ const CATALOG = {
   basemap_plan_sub: ['routes et villages — OpenStreetMap', 'roads and villages — OpenStreetMap'],
   relief_map: ['Carte', 'Map'],
   relief_hillshade: ['Relief ombré', 'Hillshade'],
+  map_pistes_on: ['Pistes OSM · visibles', 'OSM runs · shown'],
+  map_pistes_off: ['Pistes OSM · masquées', 'OSM runs · hidden'],
 
   // --- Origine ------------------------------------------------------------
   origin: ['Point de départ', 'Starting point'],

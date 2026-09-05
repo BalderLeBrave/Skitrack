@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
-import maplibregl, { type StyleSpecification } from 'maplibre-gl'
 import { lodgingCoords } from '@/data/lodgingGeo'
 import { priceShown } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { useFormat } from '@/hooks/useFormat'
+import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
-import { useI18n } from '@/i18n'
+import { BASEMAPS, resolvedBasemap } from './basemap'
+import { skiMapStyle } from './skiMapStyle'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Carte des logements du domaine, marqueurs au prix tout compris.
@@ -15,30 +18,10 @@ import { useI18n } from '@/i18n'
  * plupart ne donnent qu'un cercle d'approximation. Les positions sont donc
  * dérivées de façon déterministe autour du centre du domaine : la carte sert à
  * lire la dispersion des prix, pas à retrouver une adresse.
+ *
+ * Fond et pistes : mêmes tuiles libres que la carte des domaines (OpenTopoMap +
+ * OpenSnowMap), sans clé.
  */
-
-const STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    opentopomap: {
-      type: 'raster',
-      tiles: ['https://a.tile.opentopomap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      /*
-       * 17, le niveau le plus profond publié par OpenTopoMap.
-       *
-       * Il était à 15 : au-delà, MapLibre n'a plus de tuile à demander et
-       * **étire** celles du niveau 15. D'où une carte franchement pixelisée
-       * dès qu'on zoomait, alors que les tuiles nettes existaient.
-       */
-      maxzoom: 17,
-      attribution:
-        '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> · ' +
-        '<a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'
-    }
-  },
-  layers: [{ id: 'basemap', type: 'raster', source: 'opentopomap' }]
-}
 
 export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
   const { t } = useI18n()
@@ -48,25 +31,19 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const markers = useRef<maplibregl.Marker[]>([])
+  const is3D = useRef(false)
   const [loaded, setLoaded] = useState(false)
+  const active = resolvedBasemap(state.basemap)
 
   useEffect(() => {
     if (!container.current || map.current) return
     const m = new maplibregl.Map({
       container: container.current,
-      style: STYLE,
+      style: skiMapStyle(state.basemap, state.pisteOverlay),
       center: [domain.lon, domain.lat],
       zoom: 13.2,
-      /*
-       * Le zoom s'arrête là où l'imagerie s'arrête.
-       *
-       * Sans ce plafond, MapLibre laisse aller jusqu'à 22 et rend de la bouillie
-       * étirée depuis le niveau 17. Offrir un zoom dont l'image n'existe pas
-       * n'apporte rien — d'autant que les positions des logements sont
-       * approchées, comme l'explique l'en-tête de ce fichier : à ce niveau de
-       * détail, la carte dirait une précision qu'elle n'a pas.
-       */
       maxZoom: 17,
+      maxPitch: 60,
       attributionControl: false
     })
     m.on('error', (e) => {
@@ -74,7 +51,17 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
     })
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
     m.addControl(new maplibregl.AttributionControl({ compact: true }))
-    m.on('load', () => setLoaded(true))
+    m.on('load', () => {
+      m.addSource('dem', {
+        type: 'raster-dem',
+        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+        encoding: 'terrarium',
+        tileSize: 256,
+        maxzoom: 14
+      })
+      setLoaded(true)
+      m.resize()
+    })
     map.current = m
     const host = container.current
     const ro = host
@@ -98,7 +85,12 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
   useEffect(() => {
     if (!loaded || !map.current) return
     patch({ lodgBounds: null })
-    map.current.easeTo({ center: [domain.lon, domain.lat], zoom: 13.2, duration: 600 })
+    map.current.easeTo({
+      center: [domain.lon, domain.lat],
+      zoom: state.threeD ? 13.4 : 13.2,
+      pitch: state.threeD ? 54 : 0,
+      duration: 600
+    })
     // `patch` est stable ; l'inclure relancerait le recentrage à chaque rendu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain.id, domain.lat, domain.lon, loaded])
@@ -132,6 +124,34 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
   }, [loaded, state.lodgMapSync])
 
   useEffect(() => {
+    const m = map.current
+    if (!loaded || !m) return
+    const bare = state.threeD && state.relief === 'ombre'
+    for (const b of BASEMAPS) {
+      const on = !bare && b.key === active ? 'visible' : 'none'
+      if (m.getLayer(`bm-${b.key}`)) m.setLayoutProperty(`bm-${b.key}`, 'visibility', on)
+    }
+    if (m.getLayer('ov-pistes')) {
+      m.setLayoutProperty('ov-pistes', 'visibility', state.pisteOverlay ? 'visible' : 'none')
+    }
+  }, [active, state.pisteOverlay, state.relief, state.threeD, loaded])
+
+  useEffect(() => {
+    const m = map.current
+    if (!loaded || !m || !m.getSource('dem')) return
+    const want = state.threeD
+    if (want && !is3D.current) {
+      is3D.current = true
+      m.setTerrain({ source: 'dem', exaggeration: 1.15 })
+      m.easeTo({ center: [domain.lon, domain.lat], zoom: 13.4, pitch: 54, bearing: -18, duration: 1100 })
+    } else if (!want && is3D.current) {
+      is3D.current = false
+      m.setTerrain(null)
+      m.easeTo({ pitch: 0, bearing: 0, duration: 700 })
+    }
+  }, [state.threeD, domain.lat, domain.lon, loaded])
+
+  useEffect(() => {
     if (!loaded || !map.current) return
     for (const mk of markers.current) mk.remove()
     markers.current = lodgList.flatMap((lg) => {
@@ -159,24 +179,18 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
           ? `${shown.amount} €/n`
           : shown.unit === 'week'
             ? `${shown.amount} €/sem`
-          : `${fmt(shown.amount)} €`
+            : `${fmt(shown.amount)} €`
       el.textContent = `${positionEstimee ? '≈ ' : ''}${pin}`
       // Cliquer une bulle **met en avant**, cela n'ouvre pas la fiche : ce sont
       // deux gestes, et les confondre empêchait de se servir de la carte pour
       // situer une offre dans la liste.
-      el.addEventListener('click', () =>
-        patch({ lodgPickId: state.lodgPickId === lg.id ? null : lg.id })
-      )
+      el.addEventListener('click', () => patch({ lodgPickId: state.lodgPickId === lg.id ? null : lg.id }))
       // Même calcul que le panneau « Positions » : deux dispersions
       // différentes placeraient l'épingle ailleurs que le point vérifié, et le
       // diagnostic parlerait d'un endroit que la carte ne montre pas.
-      return [
-        new maplibregl.Marker({ element: el })
-          .setLngLat(coords)
-          .addTo(map.current!)
-      ]
+      return [new maplibregl.Marker({ element: el }).setLngLat(coords).addTo(map.current!)]
     })
-  }, [lodgList, domain, state.ficheId, state.lodgPickId, loaded, patch])
+  }, [lodgList, domain, state.ficheId, state.lodgPickId, loaded, patch, fmt, t])
 
   return (
     <div className="lodgmap">
@@ -184,14 +198,56 @@ export function LodgingMap({ domain }: { domain: Domain }): JSX.Element {
       <div className="lodgmap__hint">
         <span>{t('lodgmap_hint')}</span>
       </div>
-      <label className="lodgmap__sync">
-        <input
-          type="checkbox"
-          checked={state.lodgMapSync}
-          onChange={(e) => patch({ lodgMapSync: e.target.checked })}
-        />
-        {t('map_search_on_move')}
-      </label>
+      <div className="map__overlay map__overlay--lodg">
+        <button
+          type="button"
+          className="map__btn map__btn--dark"
+          onClick={() => patch({ threeD: !state.threeD })}
+        >
+          {state.threeD ? 'Vue 2D' : 'Vue 3D · relief'}
+        </button>
+        <button
+          type="button"
+          className={`map__btn${state.pisteOverlay ? ' map__btn--accent' : ''}`}
+          onClick={() => patch({ pisteOverlay: !state.pisteOverlay })}
+        >
+          {state.pisteOverlay ? t('map_pistes_on') : t('map_pistes_off')}
+        </button>
+        <div style={{ position: 'relative' }}>
+          <button
+            type="button"
+            className="map__btn"
+            style={{ width: '100%', textAlign: 'left' }}
+            onClick={() => patch({ baseOpen: !state.baseOpen })}
+            aria-expanded={state.baseOpen}
+          >
+            {t('basemap')} · {BASEMAPS.find((b) => b.key === active)?.label ?? BASEMAPS[0].label}
+          </button>
+          {state.baseOpen && (
+            <div className="basepicker">
+              {BASEMAPS.map((b) => (
+                <button
+                  key={b.key}
+                  type="button"
+                  className={`basepicker__row${active === b.key ? ' basepicker__row--on' : ''}`}
+                  onClick={() => patch({ basemap: b.key, baseOpen: false })}
+                >
+                  <span className="basepicker__label">{b.label}</span>
+                  <span className="basepicker__sub">{b.sub}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <label className="lodgmap__sync lodgmap__sync--inoverlay">
+          <input
+            type="checkbox"
+            checked={state.lodgMapSync}
+            onChange={(e) => patch({ lodgMapSync: e.target.checked })}
+          />
+          {t('map_search_on_move')}
+        </label>
+      </div>
     </div>
   )
 }

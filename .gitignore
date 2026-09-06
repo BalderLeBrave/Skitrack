@@ -1,0 +1,7 @@
+# Dépôt public : uniquement ce que les visiteurs GitHub doivent voir.
+# Tout le code, les secrets, caches, dumps et relais restent locaux.
+
+*
+!.gitignore
+!README.md
+!PROVIDERS.md

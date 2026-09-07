@@ -38,6 +38,7 @@ scrape/**/.browsers/
 scrape/**/debug_out/
 scrape/**/*.log
 scrape/booking/.engine-state.json
+scrape/airbnb/tools/
 scrape/booking/tools/booking.com_crawler/
 scrape/booking/tools/bookingdotcom-scraper/
 scrape/booking/tools/botasaurus/

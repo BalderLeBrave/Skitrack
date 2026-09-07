@@ -1,4 +1,5 @@
 # Worker Booking isolé — API HTTP puis 3 moteurs stealth.
+playwright>=1.49.0
 invisible-playwright>=0.9.0
 camoufox[geoip]>=0.4.11
 seleniumbase>=4.33.0

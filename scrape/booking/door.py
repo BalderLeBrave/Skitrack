@@ -19,9 +19,26 @@ from bridge import (
 )
 from store import write_results
 
-CHROME = os.environ.get("SKITRACK_CHROME") or str(
-    Path(__file__).resolve().parent / ".browsers" / "chrome-linux64" / "chrome"
-)
+CHROME = os.environ.get("SKITRACK_CHROME") or ""
+
+
+def _chrome_bin() -> str | None:
+    here = Path(__file__).resolve().parent
+    pw_path = here / ".browsers" / "pw"
+    if pw_path.is_dir():
+        os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", str(pw_path))
+    if CHROME and Path(CHROME).is_file():
+        return CHROME
+    names = (
+        here / ".browsers" / "chrome-linux64" / "chrome",
+        here / ".browsers" / "chrome-win64" / "chrome.exe",
+        here / ".browsers" / "chrome-mac-x64" / "Google Chrome for Testing.app" / "Contents" / "MacOS" / "Google Chrome for Testing",
+        here / ".browsers" / "chrome-mac-arm64" / "Google Chrome for Testing.app" / "Contents" / "MacOS" / "Google Chrome for Testing",
+    )
+    for path in names:
+        if path.is_file():
+            return str(path)
+    return None
 
 
 def _ingest_env() -> None:
@@ -71,8 +88,9 @@ def collect(
     payloads: list[dict] = []
     all_done = False
     with sync_playwright() as pw:
+        chrome = _chrome_bin()
         browser = pw.chromium.launch(
-            executable_path=CHROME if Path(CHROME).is_file() else None,
+            executable_path=chrome,
             headless=True,
             args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
         )

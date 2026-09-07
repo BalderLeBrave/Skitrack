@@ -78,10 +78,17 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     )
 
     eligible: list[dict[str, Any]] = []
+    dropped_rooms = 0
+    dropped_guests = 0
     for t in tiles:
-        if bedrooms and int(t.get("bedrooms") or 0) < bedrooms:
+        rooms = t.get("bedrooms")
+        guests = t.get("guests")
+        # Inconnu ≠ trop petit : on ne jette que si le chiffre de la tuile est lu et sous le plancher.
+        if bedrooms and rooms is not None and int(rooms) < bedrooms:
+            dropped_rooms += 1
             continue
-        if adults and int(t.get("guests") or 0) and int(t["guests"]) < adults:
+        if adults and guests is not None and int(guests) < adults:
+            dropped_guests += 1
             continue
         eligible.append(t)
 
@@ -128,7 +135,8 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         "serpTiles": len(tiles),
         "eligible": len(eligible),
         "quoted": len(to_quote),
-        "unavailable": skipped,
+        "droppedRooms": dropped_rooms,
+        "droppedGuests": dropped_guests,
         "advertised": advertised,
         "results": hits,
         "error": None if hits else "aucun gîte avec total séjour",

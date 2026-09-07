@@ -15,7 +15,7 @@ class IteaLiveTests(unittest.TestCase):
         q = quote("38G253122", "2027-02-06", "2027-02-13", 8)
         self.assertTrue(q.get("available"), q)
         self.assertEqual(q.get("totalPrice"), 4261.52)
-        self.assertTrue(str(q.get("ident") or "").endswith(".G"))
+        self.assertEqual(q.get("exercice"), "2027")
 
 
 if __name__ == "__main__":

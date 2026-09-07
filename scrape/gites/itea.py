@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import urllib.parse
 import urllib.request
 from typing import Any
@@ -36,6 +37,22 @@ def _read(url: str, data: bytes | None = None) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
+def _post(ctx: dict[str, str], *, date_deb: str, date_fin: str, adults: int, typ: str, exercice: str) -> str:
+    form = urllib.parse.urlencode(
+        {
+            "nbAdultes": str(adults),
+            "dateDeb": date_deb,
+            "dateFin": date_fin,
+            "instance": ctx["instance"],
+            "ident": ctx["ident"],
+            "exercice": exercice,
+            "estpresentsurfiche": "true",
+            "type": typ,
+        }
+    ).encode()
+    return _read(AJAX, data=form)
+
+
 def quote(code: str, check_in: str, check_out: str, adults: int) -> dict[str, Any]:
     deb, fin = iso_to_fr(check_in), iso_to_fr(check_out)
     if not deb or not fin:
@@ -45,19 +62,24 @@ def quote(code: str, check_in: str, check_out: str, adults: int) -> dict[str, An
     if not ctx:
         return {"available": False, "price_firm": False}
     photo = widget_photo(page)
-    form = urllib.parse.urlencode(
-        {
-            "nbAdultes": str(adults),
-            "dateDeb": deb,
-            "dateFin": fin,
-            "instance": ctx["instance"],
-            "ident": ctx["ident"],
-            "exercice": ctx["exercice"],
-            "estpresentsurfiche": "true",
-            "type": "getHTMLTabPrixFormulesSejour",
-        }
-    ).encode()
-    body = _read(AJAX, data=form)
+    exercice = ctx["exercice"]
+    exo_body = _post(
+        ctx, date_deb=deb, date_fin=fin, adults=adults, typ="getExerciceByDateFin", exercice=exercice
+    )
+    try:
+        exo = json.loads(exo_body)
+        if exo.get("exercice"):
+            exercice = str(exo["exercice"])
+    except (json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    body = _post(
+        ctx,
+        date_deb=deb,
+        date_fin=fin,
+        adults=adults,
+        typ="getHTMLTabPrixFormulesSejour",
+        exercice=exercice,
+    )
     stay = parse_stay_total(body)
     if stay is None or quote_blocked(body):
         return {
@@ -65,6 +87,7 @@ def quote(code: str, check_in: str, check_out: str, adults: int) -> dict[str, An
             "price_firm": False,
             "ident": ctx["ident"],
             "photo": photo,
+            "exercice": exercice,
         }
     return {
         "available": True,
@@ -73,6 +96,7 @@ def quote(code: str, check_in: str, check_out: str, adults: int) -> dict[str, An
         "currency": "EUR",
         "ident": ctx["ident"],
         "photo": photo,
+        "exercice": exercice,
         "checkIn": check_in,
         "checkOut": check_out,
     }

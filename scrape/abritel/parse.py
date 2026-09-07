@@ -83,7 +83,14 @@ def parse_abritel_hits(payload: Any) -> list[dict[str, Any]]:
         )
         if not url:
             return
-        sid = str(hit.get("externalId") or raw.get("accommodationId") or hit.get("accommodationId") or url)
+        pid = re.search(r"/(p\d+[a-z]?)(?:/|$|\?)", url, re.I)
+        sid = str(
+            (pid.group(1).lower() if pid else None)
+            or hit.get("externalId")
+            or raw.get("accommodationId")
+            or hit.get("accommodationId")
+            or url
+        )
         if sid in seen:
             return
         seen.add(sid)
@@ -95,6 +102,7 @@ def parse_abritel_hits(payload: Any) -> list[dict[str, Any]]:
         row: dict[str, Any] = {
             "source": "vrbo-web",
             "sourceId": sid,
+            "listingKey": f"abritel:{sid.lower()}",
             "title": title,
             "url": url,
             "totalPrice": round(float(stay), 2),

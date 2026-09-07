@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Porte CozyCozy → Abritel. Intercepte getResultList jusqu’à allProcessed."""
+"""Porte CozyCozy → Abritel. getResultList seulement, images/pubs coupées."""
 
 from __future__ import annotations
 
@@ -7,12 +7,24 @@ import json
 import os
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 from parse import parse_abritel_hits
 from store import write_results
 from urls import cozy_search_url
 
 CHROME = os.environ.get("SKITRACK_CHROME") or ""
+SKIP_TYPES = {"image", "media", "font"}
+SKIP_HOST = (
+    "googletagmanager.com",
+    "google-analytics.com",
+    "doubleclick.net",
+    "facebook.net",
+    "hotjar.com",
+    "sentry.io",
+    "scorecardresearch.com",
+    "cookielaw.org",
+)
 
 
 def _chrome_bin() -> str | None:
@@ -45,6 +57,18 @@ def _ingest_env() -> None:
                 os.environ[k] = v
 
 
+def _block(route) -> None:
+    req = route.request
+    if req.resource_type in SKIP_TYPES:
+        route.abort()
+        return
+    host = (urlparse(req.url).hostname or "").lower()
+    if any(h in host for h in SKIP_HOST):
+        route.abort()
+        return
+    route.continue_()
+
+
 def collect(
     destination: str,
     check_in: str,
@@ -58,17 +82,26 @@ def collect(
         destination, check_in, check_out, adults=adults, bedrooms=bedrooms
     )
     payloads: list[dict] = []
-    all_done = False
     with sync_playwright() as pw:
         browser = pw.chromium.launch(
             executable_path=_chrome_bin(),
             headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--blink-settings=imagesEnabled=false",
+            ],
         )
-        page = browser.new_context(locale="fr-FR", viewport={"width": 1440, "height": 1100}).new_page()
+        ctx = browser.new_context(
+            locale="fr-FR",
+            viewport={"width": 1280, "height": 900},
+            service_workers="block",
+        )
+        page = ctx.new_page()
+        page.route("**/*", _block)
 
         def on_response(res) -> None:
-            nonlocal all_done
             u = res.url or ""
             if "/api/getResultList" not in u and "/api/getResults" not in u:
                 return
@@ -78,26 +111,22 @@ def collect(
                 return
             if isinstance(data, dict):
                 payloads.append(data)
-                if data.get("allProcessed") is True:
-                    all_done = True
 
         page.on("response", on_response)
-        page.goto(url, wait_until="domcontentloaded", timeout=45_000)
-        deadline = time.time() + 42
+        page.goto(url, wait_until="domcontentloaded", timeout=25_000)
+        deadline = time.time() + 20
         idle = 0
         prev = 0
         while time.time() < deadline:
-            page.mouse.wheel(0, 2400)
-            page.wait_for_timeout(550)
+            page.mouse.wheel(0, 3600)
+            page.wait_for_timeout(220)
             n = len(payloads)
             if n == prev:
                 idle += 1
             else:
                 idle = 0
                 prev = n
-            if all_done and idle >= 2:
-                break
-            if idle >= 12 and n:
+            if idle >= 12 and n >= 2:
                 break
         browser.close()
     return payloads
@@ -113,19 +142,22 @@ def search(
     output_dir: str | None = None,
 ) -> dict:
     _ingest_env()
+    t0 = time.perf_counter()
     payloads = collect(destination, check_in, check_out, adults, bedrooms=bedrooms)
     hits: list[dict] = []
     seen: set[str] = set()
     for payload in payloads:
         for row in parse_abritel_hits(payload):
-            if row["sourceId"] in seen:
+            key = row.get("listingKey") or row["sourceId"]
+            if key in seen:
                 continue
             if bedrooms and row.get("bedrooms") is not None and int(row["bedrooms"]) < bedrooms:
                 continue
             if adults and row.get("guests") is not None and int(row["guests"]) < adults:
                 continue
-            seen.add(row["sourceId"])
+            seen.add(key)
             hits.append(row)
+    elapsed_ms = int((time.perf_counter() - t0) * 1000)
     out = {
         "ok": bool(hits),
         "source": "vrbo-web",
@@ -135,11 +167,12 @@ def search(
         "checkIn": check_in,
         "checkOut": check_out,
         "payloads": len(payloads),
+        "elapsedMs": elapsed_ms,
         "results": hits,
         "error": None if hits else "aucune fiche Abritel au total séjour",
     }
     if output_dir and hits:
-        out["files"] = write_results(hits, output_dir, extra={"via": "cozy-door"})
+        out["files"] = write_results(hits, output_dir, extra={"via": "cozy-door", "elapsedMs": elapsed_ms})
     return out
 
 

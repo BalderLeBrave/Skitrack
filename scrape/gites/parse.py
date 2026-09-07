@@ -106,6 +106,20 @@ def widget_photo(html: str) -> str | None:
     return itea.group(0) if itea else None
 
 
+def last_page_index(html: str) -> int:
+    """Drupal `page=` 0-based. 0 si un seul écran."""
+    nums = [int(n) for n in re.findall(r"[?&]page=(\d+)", html or "")]
+    return max(nums) if nums else 0
+
+
+def advertised_count(html: str) -> int | None:
+    m = re.search(r"(\d+)\s*R[ée]sultats?", html or "", re.I)
+    if not m:
+        return None
+    n = int(m.group(1))
+    return n if 0 < n < 50_000 else None
+
+
 def tiles_from_html(html: str) -> list[dict[str, Any]]:
     blocks = TILE_RE.findall(html or "")
     if not blocks and "js-search-tile" in (html or ""):
@@ -122,7 +136,7 @@ def tiles_from_html(html: str) -> list[dict[str, Any]]:
             )
         if not href:
             continue
-        raw = href.group(1).replace("&", "&")
+        raw = htmlmod.unescape(href.group(1))
         url = raw if raw.startswith("http") else urljoin("https://www.gites-de-france.com", raw)
         code = code_from_url(url)
         if not code or code in seen:

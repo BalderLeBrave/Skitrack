@@ -7,7 +7,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-from parse import classify, keep_gite, parse_stay_total, quote_blocked, tiles_from_html  # noqa: E402
+from parse import advertised_count, classify, keep_gite, last_page_index, parse_stay_total, quote_blocked, tiles_from_html  # noqa: E402
 from urls import iso_to_fr, search_url, towns_id  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -45,7 +45,10 @@ class GitesParseTests(unittest.TestCase):
         self.assertTrue(keep_gite(ident="x.G"))
         self.assertFalse(keep_gite(url="https://www.gites-de-france.com/fr/isere/chambre-d-hotes-x"))
 
-    def test_stay_total_not_weekly(self) -> None:
+    def test_pager(self) -> None:
+        html = '24 Résultats <a href="/fr/search?page=1">2</a> <a href="/fr/search?towns=50301&page=2">3</a>'
+        self.assertEqual(advertised_count(html), 24)
+        self.assertEqual(last_page_index(html), 2)
         self.assertEqual(parse_stay_total(COPAINS), 4261.52)
         self.assertTrue(quote_blocked(CLOSED))
         self.assertFalse(quote_blocked(COPAINS))

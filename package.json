@@ -12,6 +12,7 @@
     "scrape:bundle": "esbuild src/main/providers/scrapeWorker/server.ts --bundle --platform=node --format=cjs --outfile=scrape/dist/worker.cjs --external:playwright --alias:@shared=./src/shared --alias:electron=./tools/lib/electron-stub.mjs --log-level=error",
     "pyairbnb:test": "python3 scrape/airbnb/test_map.py && python3 scrape/airbnb/test_occupancy.py && python3 scrape/airbnb/test_session.py",
     "booking:test": "python3 scrape/booking/test_map.py && python3 scrape/booking/test_config.py && python3 scrape/booking/test_failover.py",
+    "gites:test": "python3 scrape/gites/test_parse.py && python3 scrape/gites/test_itea.py",
     "scrape:up": "docker compose -f scrape/docker-compose.yml up --build -d",
     "scrape:down": "docker compose -f scrape/docker-compose.yml down",
     "cache:clear": "node scripts/clear-caches.mjs",

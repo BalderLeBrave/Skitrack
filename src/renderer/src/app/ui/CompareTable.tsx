@@ -16,11 +16,10 @@ import { useDerived } from '@/state/selectors'
 import { useWeather } from '@/state/weather'
 import { openLodgings } from '../lib/journey'
 import { PATHS } from '../router'
-import { EmptyHonest } from './EmptyHonest'
 
 const NONE = '—'
 
-export function CompareTable({ stations }: { stations: Domain[] }): JSX.Element {
+export function CompareTable({ stations }: { stations: Domain[] }): JSX.Element | null {
   const { state, patch } = useApp()
   const derived = useDerived()
   const { weatherOf } = useWeather()
@@ -29,9 +28,7 @@ export function CompareTable({ stations }: { stations: Domain[] }): JSX.Element 
   const navigate = useNavigate()
   const [chosen, setChosen] = useState<number | null>(null)
 
-  if (stations.length === 0) {
-    return <EmptyHonest testid="compare-empty" title={t('rc_cmp_empty_title')} hint={t('rc_cmp_empty_hint')} />
-  }
+  if (stations.length === 0) return null
 
   const pick = stations.find((d) => d.id === chosen) ?? stations[0]
   const remove = (id: number): void => patch({ stationCompareIds: state.stationCompareIds.filter((x) => x !== id) })

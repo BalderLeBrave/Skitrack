@@ -56,17 +56,17 @@ def search_url(
     tid = towns or towns_id(destination)
     if tid:
         q["towns"] = tid
-        q["travelers"] = str(adults)
     else:
         q["destination"] = destination
-        q["adults"] = str(adults)
+    # Contrat UI 2026 : adults/arrival/departure (pas travelers/date-start).
+    # Ex. https://www.gites-de-france.com/fr/search?towns=50301&adults=8&children=0&infants=0&arrival=2027-02-06&departure=2027-02-13
+    q["adults"] = str(adults)
+    q["children"] = str(children)
+    q["infants"] = "0"
     if check_in:
-        q["date-start"] = check_in
+        q["arrival"] = check_in
     if check_out:
-        q["date-end"] = check_out
-    q["f[0]"] = FACET_GITE
-    if children:
-        q["children"] = str(children)
+        q["departure"] = check_out
     if page > 0:
         q["page"] = str(page)
     return "https://www.gites-de-france.com/fr/search?" + urlencode(q)

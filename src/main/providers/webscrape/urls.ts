@@ -89,8 +89,8 @@ export function vrboSearchUrl(params: SearchParams, offset = 0): string {
  *
  * Dump 2026-09-01 21:47 : GET `towns=50301` (id towns de l'autocomplete) ouvre
  * une SERP. GET `entity_id=` et POST `search_api_page_block_form` ne le font
- * pas (form vide / Cloudflare 403). `travelers=` est le plancher voyageurs
- * (8 → 33 résultats). Sélecteur cartes : `.js-search-tile`.
+ * pas (form vide / Cloudflare 403). UI 2026 : `adults` + `arrival`/`departure`
+ * (8 pers. Les 2 Alpes → 19 résultats). Sélecteur cartes : `.js-search-tile`.
  *
  * Pager Drupal 0-based : page 1 sans `page=`, page 2 = `page=1`.
  * `page=2` (ex-offset+1) sautait les 13 reliquats (live 20 fetched / 33
@@ -168,16 +168,15 @@ export function gitesSearchUrl(params: SearchParams, offset = 0): string {
   const towns = gitesTownsIdForDestination(params.destination)
   if (towns) {
     u.searchParams.set('towns', towns)
-    u.searchParams.set('travelers', String(params.adults ?? 2))
   } else {
     u.searchParams.set('destination', params.destination)
-    u.searchParams.set('adults', String(params.adults ?? 2))
   }
-  if (params.checkIn) u.searchParams.set('date-start', params.checkIn)
-  if (params.checkOut) u.searchParams.set('date-end', params.checkOut)
-  // Dump gites_towns_50301.html : Gîte only. Pas chambre d'hôtes, pas groupe.
-  u.searchParams.set('f[0]', 'type:36172')
-  if (params.children) u.searchParams.set('children', String(params.children))
+  // UI 2026 : adults/arrival/departure (dump navigateur Les 2 Alpes).
+  u.searchParams.set('adults', String(params.adults ?? 2))
+  u.searchParams.set('children', String(params.children ?? 0))
+  u.searchParams.set('infants', '0')
+  if (params.checkIn) u.searchParams.set('arrival', params.checkIn)
+  if (params.checkOut) u.searchParams.set('departure', params.checkOut)
   // Drupal views : `page` est 0-based. offset 0 = SERP sans paramètre ;
   // offset 1 = page=1 (2e écran). Pas offset+1 → page=2 (3e écran vide).
   if (offset > 0) u.searchParams.set('page', String(offset))

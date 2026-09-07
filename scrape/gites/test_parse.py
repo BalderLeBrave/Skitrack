@@ -21,8 +21,11 @@ class GitesParseTests(unittest.TestCase):
         self.assertEqual(towns_id("Les 2 Alpes"), "50301")
         url = search_url("Les 2 Alpes", "2027-02-06", "2027-02-13", adults=8)
         self.assertIn("towns=50301", url)
-        self.assertIn("36172", url)
-        self.assertIn("travelers=8", url)
+        self.assertIn("adults=8", url)
+        self.assertIn("arrival=2027-02-06", url)
+        self.assertIn("departure=2027-02-13", url)
+        self.assertNotIn("travelers=", url)
+        self.assertNotIn("date-start", url)
 
     def test_iso_fr(self) -> None:
         self.assertEqual(iso_to_fr("2027-02-06"), "06/02/2027")

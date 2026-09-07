@@ -802,12 +802,13 @@ async function main(): Promise<void> {
   check(
     'Gîtes Les 2 Alpes : towns=50301 (contournement GET)',
     gitesSearchUrl(stay).includes('towns=50301') &&
-      gitesSearchUrl(stay).includes('travelers=2') &&
+      gitesSearchUrl(stay).includes('adults=2') &&
+      gitesSearchUrl(stay).includes('arrival=2027-02-06') &&
       !gitesSearchUrl(stay).includes('search%5Bvalue%5D') &&
       !gitesSearchUrl(stay).includes('entity_id='),
     gitesSearchUrl(stay)
   )
-  check('Gîtes : date-start / date-end', gitesSearchUrl(stay).includes('date-start=2027-02-06') && gitesSearchUrl(stay).includes('date-end=2027-02-13'))
+  check('Gîtes : arrival / departure', gitesSearchUrl(stay).includes('arrival=2027-02-06') && gitesSearchUrl(stay).includes('departure=2027-02-13'))
   const gitesOther = gitesSearchUrl({ ...stay, destination: 'Val Thorens' })
   check(
     'Gîtes hors dump : destination= (pas towns=)',
@@ -815,7 +816,7 @@ async function main(): Promise<void> {
     gitesOther
   )
   const gitesKar = gitesSearchUrl({ ...stay, destination: 'Les Karellis' })
-  check('Gîtes Karellis : towns=64400', gitesKar.includes('towns=64400') && gitesKar.includes('travelers='), gitesKar)
+  check('Gîtes Karellis : towns=64400', gitesKar.includes('towns=64400') && gitesKar.includes('adults='), gitesKar)
   const gitesMontricher = gitesSearchUrl({ ...stay, destination: 'Montricher-Albanne' })
   check('Gîtes Montricher : towns=64400', gitesMontricher.includes('towns=64400'), gitesMontricher)
   const gitesAng = gitesSearchUrl({ ...stay, destination: 'Les Angles' })

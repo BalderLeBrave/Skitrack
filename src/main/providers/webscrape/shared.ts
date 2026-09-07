@@ -396,9 +396,11 @@ export function stampStayOnUrl(url: string, params: SearchParams): string {
       if (params.checkOut) u.searchParams.set('checkout', params.checkOut)
       if (params.adults) u.searchParams.set('group_adults', String(params.adults))
     } else if (host.includes('gites-de-france')) {
-      if (params.checkIn) u.searchParams.set('date-start', params.checkIn)
-      if (params.checkOut) u.searchParams.set('date-end', params.checkOut)
+      if (params.checkIn) u.searchParams.set('arrival', params.checkIn)
+      if (params.checkOut) u.searchParams.set('departure', params.checkOut)
       if (params.adults) u.searchParams.set('adults', String(params.adults))
+      u.searchParams.set('children', String(params.children ?? 0))
+      u.searchParams.set('infants', '0')
     } else if (host.includes('airbnb.')) {
       if (params.checkIn) u.searchParams.set('check_in', params.checkIn)
       if (params.checkOut) u.searchParams.set('check_out', params.checkOut)

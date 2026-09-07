@@ -1,0 +1,24 @@
+{
+  "@context": "https://schema.org",
+  "@type": "LodgingBusiness",
+  "name": "Chalet des Écrins",
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 44.9321,
+    "longitude": 6.4267
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "12 rue des Pistes",
+    "addressLocality": "Puy-Saint-Vincent",
+    "postalCode": "05290",
+    "addressCountry": "FR"
+  },
+  "occupancy": { "@type": "QuantitativeValue", "value": 8 },
+  "numberOfRooms": 4,
+  "offers": {
+    "@type": "Offer",
+    "price": 1890,
+    "priceCurrency": "EUR"
+  }
+}

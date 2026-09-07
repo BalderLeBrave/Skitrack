@@ -1,0 +1,4232 @@
+/* SKITRACK — feuille de style unique.
+
+   Deux thèmes complets, pilotés par `data-theme` sur <html>. Le thème clair est
+   la valeur par défaut : l'application se consulte surtout en journée, et les
+   cartes de domaines portent beaucoup de texte dense qui se lit mieux sur fond
+   clair. Le thème sombre reste un vrai thème, pas une inversion mécanique.
+
+   Direction « Airbnb × Skiinfo » : fond blanc, photo d'abord, **un seul**
+   accent — le bleu. L'orange corail des versions précédentes disparaît : il
+   désignait à la fois « cliquez ici » et « ceci est sélectionné », donc plus
+   rien. `--accent` et `--brand` portent désormais le même bleu, le premier pour
+   les actions, le second pour les données et les états ; les garder distincts
+   laisse la porte ouverte à une divergence future sans réécrire les appels.
+   `--ink` n'est plus une surface de navigation mais l'encre du texte : le
+   bandeau bleu nuit est abandonné au profit d'une barre blanche. Les surfaces
+   sombres restantes sont les voiles posés sur les photos, écrits en clair là où
+   ils servent. */
+
+/* Ce qui reste ici est ce que Cairn ne couvre pas.
+
+   Les rôles de couleur — --bg, --panel, --surface, --border, --border-soft,
+   --text, --muted, --dim, --accent, --accent-soft, --on-accent, --brand,
+   --brand-soft, --link, --ok, --ok-soft, --warn, --warn-soft, --violet,
+   --violet-soft, --snow-light, --snow-ink — ont quitté ce fichier. Ils
+   viennent du pont de compatibilité de `styles/cairn.css`, importé juste
+   avant. Les redéclarer ici les écraserait : même spécificité, fichier plus
+   tardif dans la cascade, et le pont n'aurait strictement aucun effet.
+
+   Restent l'encre de la barre supérieure, les fonds de photo, les rayons, les
+   ombres et l'encart destructif : Cairn n'a pas de rôle pour eux. */
+/* Jetons : voir app/theme.css (seul fichier de rôles de couleur). */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--brand);
+  color: var(--on-accent);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 3px solid var(--bg);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dim);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--link);
+  text-underline-offset: 3px;
+}
+
+/* Curseurs et cases expriment un état, pas une action : ils prennent le bleu. */
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--brand);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--brand);
+}
+
+input[type='date'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] input[type='date'] {
+  color-scheme: dark;
+}
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+button,
+a,
+input,
+select {
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/**
+ * Mouvement réduit : les transitions tombent, les animations restent traitées
+ * au cas par cas.
+ *
+ * Une transition n'est ici jamais porteuse d'information — elle adoucit un
+ * changement d'état déjà lisible à l'arrêt. Les animations, elles, disent
+ * parfois quelque chose (un relevé en cours), et une coupure aveugle les
+ * effacerait : chaque cas est traité dans son propre bloc `prefers-reduced-
+ * motion` plus bas, celui de la neige compris.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- Primitives partagées ------------------------------------------------ */
+
+.u-nowrap {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.u-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.u-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.u-muted {
+  color: var(--muted);
+}
+
+.u-ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--text);
+}
+
+/** Bouton secondaire en état retenu.
+ *
+ *  Fond tenu et liseré d'accent : la coche du libellé porte déjà le sens, mais
+ *  elle seule obligerait à lire le texte de chaque bouton d'une grille pour
+ *  savoir lesquels sont retenus. */
+.btn--on {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  color: var(--link);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn--primary:hover:not(:disabled) {
+  border-color: var(--accent);
+  filter: brightness(0.95);
+}
+
+.btn--strong {
+  border-color: var(--text);
+  padding: 11px 18px;
+  font-size: 15px;
+}
+
+/** Action destructrice : bordée d'avertissement, jamais pleine — le rouge
+ *  plein d'un bouton primaire invite au clic, ce qui n'est pas le but ici. */
+.btn--warn {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.btn--warn:hover:not(:disabled) {
+  border-color: var(--warn);
+  background: color-mix(in oklab, var(--warn) 10%, transparent);
+}
+
+.btn--pill {
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.btn--small {
+  padding: 5px 10px;
+}
+
+.btn--round {
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/** Lien-bouton : action secondaire posée dans un flux de texte. */
+.linkbtn {
+  background: none;
+  border: none;
+  color: var(--link);
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  text-align: left;
+}
+
+.linkbtn--sm {
+  font-size: 12px;
+}
+
+.linkbtn--underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.linkbtn--muted {
+  color: var(--muted);
+}
+
+.iconbtn {
+  background: var(--surface);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+}
+
+.iconbtn--bare {
+  background: none;
+  color: var(--muted);
+  width: auto;
+  height: auto;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+/* Hauteur fixe et graisse unique : la sélection se lit à la couleur, jamais à
+   la taille. Passer en gras à la sélection élargissait la pastille, et toute
+   la rangée se réagençait au clic. */
+/* `gap` et non un espace dans le JSX : la puce est un conteneur flex, et un
+   nœud de texte réduit à une espace n'y produit aucun élément. « sans limite✕ »
+   et « Alpes du Nord12 » venaient de là. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.chip--on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
+
+.chip__count {
+  opacity: 0.65;
+}
+
+/** Pilule de segment (sans cours / collectif / particulier, ski / snow). */
+.seg {
+  display: flex;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.seg__btn {
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--muted);
+}
+
+.seg__btn--on {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.tag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tag--link {
+  border-color: var(--link);
+  color: var(--link);
+  font-size: 11px;
+}
+
+.tag--ok {
+  border-color: var(--ok);
+  color: var(--ok);
+  font-size: 11px;
+}
+
+.tag--pin {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  color: var(--brand);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.notice {
+  margin: 0;
+  font-size: 13px;
+}
+
+.notice--error,
+.notice--warn {
+  color: var(--warn);
+}
+
+.notice--info {
+  color: var(--link);
+}
+
+.field {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: var(--text);
+}
+
+.field--panel {
+  background: var(--panel);
+  font-size: 13px;
+}
+
+.field--accent {
+  border-color: var(--brand);
+  padding: 10px 12px;
+}
+
+.field-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
+  align-items: baseline;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/** Compteur − valeur + (voyageurs, chambres, enfants). */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 9px;
+  margin-top: 3px;
+}
+
+.stepper__btn {
+  background: none;
+  border: none;
+  color: var(--link);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.stepper__value {
+  flex: 1;
+  text-align: center;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.panel--flat {
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.panel--empty {
+  border-style: dashed;
+  padding: 48px 32px;
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+/** Cadre secondaire posé dans un panneau (récapitulatifs de coût). */
+.inset {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.dl {
+  display: grid;
+  margin: 0;
+}
+
+.dl dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dl dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  background: var(--surface);
+  height: 5px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: block;
+}
+
+.bar__fill {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+}
+
+.page {
+  height: 100%;
+  overflow: auto;
+  padding: 24px;
+}
+
+.page__inner {
+  margin: 0 auto;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.page-head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 78ch;
+}
+
+/** Puce du cadrage : bleu, comme tout ce qui décrit un état de la sélection. */
+.results__viewchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand);
+  color: var(--brand);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* --- Slicer de plage ------------------------------------------------------ */
+
+.slicer {
+  margin-top: 2px;
+}
+
+.slicer__track {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  /* Marge latérale de 8 px : les poignées débordent de la piste d'un rayon,
+     et sans elle la borne au plancher sortait de la colonne. */
+  margin: 12px 8px 14px;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.slicer__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--brand);
+  border-radius: 999px;
+}
+
+.slicer__handle {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: var(--panel);
+  border: 2px solid var(--brand);
+  box-shadow: var(--shadow);
+  cursor: grab;
+  touch-action: none;
+  z-index: 2;
+}
+
+/* La poignée haute passe devant : les deux se superposent quand la plage est
+   refermée, et c'est celle-là qu'on veut pouvoir ressaisir. */
+.slicer__handle--hi {
+  z-index: 3;
+}
+
+.slicer__handle:active {
+  cursor: grabbing;
+}
+
+.slicer__fields {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slicer__num {
+  width: 82px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.slicer__dash {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.slicer__unit {
+  font-size: 12px;
+}
+
+/* --- Filtre en plage (panneau restauré) ----------------------------------- */
+
+.rangefilter + .rangefilter {
+  margin-top: 14px;
+}
+
+.rangefilter__head {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rangefilter__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.rangefilter__value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.filteranchor {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.filteranchor__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.filterpop {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 30;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  max-height: min(66vh, 560px);
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-hover);
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 16, 0.45);
+}
+
+.scrim--local {
+  position: absolute;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  overflow: auto;
+  animation: slideIn 0.22s ease-out;
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 2;
+}
+
+.drawer__head h3 {
+  margin: 0;
+  font-size: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer__body {
+  padding: 22px;
+  display: grid;
+  gap: 20px;
+}
+
+.drawer__section {
+  display: grid;
+  gap: 10px;
+}
+
+.drawer__section h4 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* --- Coque --------------------------------------------------------------- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/**
+ * Barre supérieure : voile blanc translucide, filet clair, trois groupes.
+ *
+ * Trois groupes en `flex`, les onglets au milieu et centrés dans l'espace
+ * restant. Une grille `1fr auto 1fr` centrerait les onglets sur l'axe exact de
+ * la fenêtre, mais elle impose aux deux colonnes latérales la même largeur : le
+ * groupe de droite — Suivi, Réglages, langue, voyageurs, thème — en demande le
+ * triple du logo et repartait à la ligne dès 1 440 px. Un centrage optique qui
+ * tient à toutes les largeurs vaut mieux qu'un centrage exact qui casse la
+ * rangée.
+ *
+ * `backdrop-filter` est **statique** : le flou ne s'anime jamais, il ne coûte
+ * qu'une composition. Le voile s'appuie sur un jeton par thème, un blanc à 94 %
+ * sur fond sombre étant un aplat clair et non un voile.
+ */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 0 20px;
+  min-height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--nav-veil);
+  backdrop-filter: blur(8px);
+  color: var(--nav-fg);
+  border-bottom: 1px solid var(--border-soft);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1100px) {
+  .nav {
+    padding: 8px 14px;
+  }
+}
+
+/** Groupes latéraux : dimensionnés au contenu, jamais comprimés. */
+.nav__side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.nav__side--right {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+/** Cadre du parcours : les trois temps de la tâche, tenus ensemble.
+ *
+ *  À plat, « Stations », « Logements » et le segment de comparaison avaient le
+ *  même poids que « Favoris » ou « Réglages » — rien ne disait lesquels
+ *  s'enchaînent. Un fond tenu et deux chevrons suffisent à le dire, sans
+ *  ajouter de couleur. */
+.nav__journey {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 6px;
+  border-radius: var(--rayon-plein, 999px);
+  background: var(--surface);
+  border: 1px solid var(--border-soft, var(--border));
+  flex: 0 0 auto;
+}
+
+.nav__journey .tab {
+  height: 34px;
+}
+
+.nav__journey .navseg {
+  margin-left: 4px;
+  background: var(--panel);
+}
+
+.nav__journey-arrow {
+  color: var(--dim);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+/** Utilitaires : hors parcours, donc séparés par un filet. */
+.nav__utils {
+  gap: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--border-soft, var(--border));
+}
+
+@media (max-width: 1100px) {
+  .nav__utils {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .nav__journey-arrow {
+    display: none;
+  }
+}
+
+/**
+ * Logo typographique — voir components/BrandLogo.tsx.
+ *
+ * La hiérarchie ne tient qu'à la graisse : « ski » en 400 atténué, « track » en
+ * 800 encre, et le point bleu en exposant qui sert de signature. Aucun
+ * pictogramme : l'ancienne icône reste dans Icons.tsx pour d'autres usages.
+ */
+.brand {
+  display: inline-flex;
+  align-items: flex-start;
+  font-size: 23px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.brand__ski {
+  font-weight: 400;
+  color: var(--nav-muted);
+}
+
+.brand__track {
+  font-weight: 800;
+  color: var(--nav-fg);
+}
+
+.brand__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+  margin: 2px 0 0 3px;
+  flex: 0 0 auto;
+}
+
+.nav__tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+/** Sélecteur de langue : une pilule de la même famille que les onglets.
+ *
+ *  Fond **opaque** et non translucide : le menu système déroulé hérite de la
+ *  couleur du champ, et un fond transparent donnait un menu illisible. Depuis
+ *  que la barre est blanche, `color-scheme` suit le thème au lieu d'être forcé
+ *  en sombre — Windows ne le déduit pas seul. */
+.nav__lang {
+  background: var(--nav-bg);
+  border: 1px solid var(--border);
+  color: var(--nav-fg);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.nav select {
+  color-scheme: light;
+}
+
+[data-theme='dark'] .nav select {
+  color-scheme: dark;
+}
+
+.nav select option {
+  background: var(--nav-bg);
+  color: var(--nav-fg);
+}
+
+/**
+ * Onglet principal : une puce sans fond, soulignée quand elle est active.
+ *
+ * Le soulignement est un `box-shadow` intérieur et non une bordure : une
+ * bordure ajouterait deux pixels de hauteur à l'onglet actif, décalant toute la
+ * rangée à chaque changement d'écran.
+ */
+.tab {
+  background: none;
+  border: none;
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 0;
+  cursor: pointer;
+  color: var(--nav-muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.tab:hover {
+  color: var(--nav-fg);
+}
+
+.tab--on {
+  color: var(--nav-fg);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--brand);
+}
+
+.tab--narrow {
+  padding: 0 8px;
+}
+
+/**
+ * Interrupteur générique — piste 42 × 24, pastille 20 px, bleu actif.
+ *
+ * Distinct de `.themeswitch`, qui porte deux libellés autour de sa piste et
+ * vivait sur un bandeau encre. Celui-ci sert aux réglages booléens ordinaires,
+ * en commençant par la neige animée.
+ */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.toggle__track {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.2s ease;
+  flex: 0 0 auto;
+}
+
+.toggle__track--on {
+  background: var(--brand);
+}
+
+.toggle__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: left 0.2s ease;
+}
+
+.toggle__track--on .toggle__knob {
+  left: 20px;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+}
+
+/** Passage d'un écran à l'autre : une montée courte, jouée par le remontage
+ *  (`key={screen}`). Elle donne le sens du parcours — on avance — sans faire
+ *  attendre : 220 ms, opacité et translation seules. */
+.main--enter {
+  animation: main-enter 0.22s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes main-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main--enter {
+    animation: none;
+  }
+}
+
+/* --- Neige animée ---------------------------------------------------------- */
+
+/**
+ * Couche décorative posée sur la fenêtre entière — voir components/Snowfall.tsx.
+ *
+ * `z-index: 4` la place au-dessus du contenu ordinaire (qui ne dépasse pas 3) et
+ * sous tout ce qui se superpose à la page : popover d'altitude (5), fiche
+ * logement (5 / 6), comparateur (7 / 8), modales et import (9 / 10), fiche
+ * domaine (15 / 16), tiroir des voyageurs (17 / 18), accueil guidé (20). Un
+ * flocon qui passe devant un dialogue se lit comme un défaut d'affichage, pas
+ * comme un décor.
+ */
+.snowfall {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.snowfall__fall {
+  position: absolute;
+  top: 0;
+  animation-name: snow-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.snowfall__dot {
+  display: block;
+  border-radius: 50%;
+  /* Sur fond blanc, un flocon blanc n'existe pas : le thème clair prend le bleu
+     pâle de la neige. */
+  background: var(--snow-light);
+  animation-name: snow-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  will-change: transform;
+}
+
+/* En thème sombre, `--snow-light` est le fond de jauge (bleu profond) : le
+   flocon reprend le blanc, qui est là la couleur de la neige. */
+[data-theme='dark'] .snowfall__dot {
+  background: #ffffff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.35);
+}
+
+/* La chute et la dérive sont deux `transform` sur deux éléments imbriqués : un
+   seul élément n'en porte qu'un, et une chute rectiligne ne ressemble à rien. */
+@keyframes snow-fall {
+  from {
+    transform: translate3d(0, -12vh, 0);
+  }
+  to {
+    transform: translate3d(0, 112vh, 0);
+  }
+}
+
+@keyframes snow-sway {
+  from {
+    transform: translate3d(calc(var(--snow-drift) * -0.5), 0, 0);
+  }
+  to {
+    transform: translate3d(calc(var(--snow-drift) * 0.5), 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Des flocons figés au milieu de l'écran seraient plus perturbants que la
+     chute : la couche disparaît entièrement. */
+  .snowfall {
+    display: none;
+  }
+}
+
+/* --- Accueil -------------------------------------------------------------- */
+
+.home {
+  height: 100%;
+  overflow: auto;
+}
+
+/**
+ * Héro pleine largeur, photo d'abord.
+ *
+ * La photo est le **fond** du héro et non une colonne de la grille : en
+ * colonne, elle se retrouvait comprimée à côté du texte et n'avait plus rien
+ * d'un paysage. Le voile en dégradé est ce qui rend le texte lisible par-dessus
+ * n'importe quelle image, du ciel blanc au sous-bois sombre — il descend à 50 %
+ * en haut, s'éclaircit au milieu où le titre respire, et se redensifie en bas
+ * derrière la barre de recherche.
+ *
+ * Tant qu'aucune photo n'est déposée dans `assets/img/`, le fond encre et la
+ * hachure tiennent le héro ; `components/photos.ts` la posera d'elle-même.
+ *
+ * Les couleurs de texte du héro sont écrites en clair et non par jeton : la
+ * surface est sombre dans les **deux** thèmes, et `--text` y serait illisible en
+ * clair.
+ */
+.home__hero {
+  position: relative;
+  /* 68 vh, mais jamais moins de 540 px : sous cette hauteur, le titre, la barre
+     de recherche et les puces se serrent au point de ne plus respirer. */
+  min-height: max(540px, min(68vh, 720px));
+  display: flex;
+  align-items: center;
+  background: var(--ink);
+  color: #ffffff;
+  /* Pas de `overflow: hidden` : le calendrier de la pilule descend sous le bord
+     bas du héro, et il y était tronqué — les deux dernières rangées de jours et
+     les semaines relevées disparaissaient. Rien n'a besoin d'être rogné ici :
+     la photo, le voile et la hachure sont posés en `inset: 0`. */
+}
+
+.home__hero-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  /* Cadrage à 32 % de la hauteur : la ligne de crête tombe alors au tiers
+     supérieur, et le bas de l'image — la neige la plus claire — reste sous le
+     bloc de texte, là où le voile est le plus dense. */
+  background-position: center 32%;
+}
+
+/** Voile de lisibilité. Un seul, et il n'est pas décoratif.
+ *
+ *  L'accroche est blanche et elle est posée sur de la neige blanche. Le
+ *  dégradé est donc dissymétrique : à peine marqué en haut, où l'image est
+ *  sombre et où seul passe le mot géant, dense en bas où le texte se lit. Les
+ *  valeurs sont celles du prototype.
+ *
+ *  Il n'y a plus de second voile générique par-dessus : deux couches
+ *  assombrissaient l'image sans que personne ne l'ait décidé. */
+.home__hero-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(9, 44, 70, 0.22) 0%,
+    rgba(11, 80, 140, 0.1) 45%,
+    rgba(7, 25, 42, 0.66) 100%
+  );
+}
+
+
+/** Chute de neige : une toile posée sur le héros, transparente aux clics et
+ *  muette pour les lecteurs d'écran. Sous le contenu, jamais dessus. */
+.flocons {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.flocons__toile {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/** CTA pilule à pastille fléchée.
+ *
+ *  Le rembourrage est dissymétrique — large à gauche, étroit à droite — parce
+ *  que la pastille apporte sa propre marge visuelle. Le prototype gardait un
+ *  rembourrage droit égal au gauche et la pastille venait mordre le texte ;
+ *  ici le `gap` de 14 px et le rembourrage droit de 8 px les tiennent
+ *  séparés. */
+.home__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 7px 8px 7px 22px;
+  margin-bottom: 22px;
+  border: none;
+  border-radius: var(--rayon-plein);
+  background: #ffffff;
+  color: #222b33;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--duree-1) var(--standard);
+}
+
+.home__cta:hover {
+  transform: translateY(-1px);
+}
+
+.home__cta-disc {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition: transform var(--duree-1) var(--standard);
+}
+
+.home__cta:hover .home__cta-disc {
+  transform: translateX(2px);
+}
+
+/** Encart « Neige relevée ce matin », flottant sur le héros.
+ *
+ *  Panneau opaque et non translucide : les chiffres qu'il porte sont des
+ *  relevés, et un relevé posé sur une photo qui transparaît se lit mal. */
+.home__snowcard {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  width: 300px;
+  flex: 0 0 auto;
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home__snowcard-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.home__snowcard-title::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+.home__snowcard-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  align-items: baseline;
+}
+
+.home__snowcard-place {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home__snowcard-val {
+  color: var(--snow-ink);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.home__snowcard-gauge {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: var(--rayon-plein);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.home__snowcard-gauge > i {
+  display: block;
+  height: 100%;
+  border-radius: var(--rayon-plein);
+  background: var(--snow-light);
+}
+
+.home__snowcard-note {
+  font-size: 11.5px;
+  color: var(--dim);
+}
+
+.home__hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  /* Le rembourrage haut s'ouvre : le mot géant occupe le tiers supérieur, et
+     le contenu doit passer dessous plutôt que dedans. */
+  padding: 96px 32px 72px;
+  display: flex;
+  align-items: flex-end;
+  gap: 40px;
+}
+
+@media (max-width: 1100px) {
+  .home__hero-inner {
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 120px;
+  }
+
+  .home__snowcard {
+    width: 100%;
+  }
+}
+
+/* Contenu centré : le titre, la barre et les puces partagent le même axe. */
+.home__hero-text {
+  min-width: 0;
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.home__badge {
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(13, 32, 52, 0.3);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.home__title {
+  margin: 20px auto 0;
+  font-size: clamp(34px, 3vw, 46px);
+  line-height: 1.05;
+  font-weight: 800;
+  /* Assez large pour que chaque moitié du titre tienne sur sa ligne : le saut
+     est posé dans le JSX, entre les deux propositions, et un repli
+     supplémentaire imposé par la largeur casserait la mesure. */
+  max-width: 36ch;
+  color: #ffffff;
+  text-shadow: 0 1px 24px rgba(13, 32, 52, 0.45);
+}
+
+/* Bleu clair, pas le jeton d'accent : sur un voile sombre, le #0B6FC2 du thème
+   clair tomberait sous le seuil AA. */
+.home__title-accent {
+  color: #9bd2f5;
+}
+
+.home__lead {
+  margin: 16px auto 0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+@media (max-width: 760px) {
+  .home__hero {
+    min-height: 0;
+  }
+
+  .home__hero-inner {
+    padding: 72px 18px 40px;
+  }
+
+  .home__title {
+    font-size: clamp(30px, 8.5vw, 40px);
+  }
+
+  .home__lead {
+    font-size: 15px;
+  }
+}
+
+.home__shortcuts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.home__shortcut {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(13, 32, 52, 0.32);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.home__shortcut:hover {
+  background: rgba(13, 32, 52, 0.5);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.dp {
+  display: grid;
+  gap: 10px;
+}
+
+.dp__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dp__state {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dp__nav {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.dp__nav svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dp__nav:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.dp__months {
+  display: flex;
+  gap: 22px;
+}
+
+.dp__month {
+  min-width: 238px;
+}
+
+.dp__caption {
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.dp__weekdays,
+.dp__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 34px);
+}
+
+.dp__weekdays {
+  margin-bottom: 2px;
+}
+
+.dp__weekdays span {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* Les cases sont jointives : c'est ce qui fait de la plage une bande continue
+   et non une file de pastilles. Le rayon n'est posé qu'aux deux extrémités. */
+.dp__day {
+  height: 34px;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.dp__day:hover:not(:disabled) {
+  background: var(--surface);
+  border-radius: 8px;
+}
+
+.dp__day--out {
+  color: var(--dim);
+  font-weight: 500;
+}
+
+/* Un jour passé n'est pas grisé « pour décorer » : aucun séjour ne s'y réserve,
+   et le rendre cliquable produirait une plage impossible. */
+.dp__day--past {
+  color: var(--dim);
+  text-decoration: line-through;
+  cursor: default;
+}
+
+.dp__day--today {
+  box-shadow: inset 0 0 0 1px var(--border);
+  border-radius: 8px;
+}
+
+.dp__day--in {
+  background: var(--brand-soft);
+  border-radius: 0;
+}
+
+.dp__day--start,
+.dp__day--end {
+  background: var(--brand);
+  color: var(--on-brand);
+  border-radius: 8px;
+}
+
+.dp__day--start:hover:not(:disabled),
+.dp__day--end:hover:not(:disabled) {
+  background: var(--brand);
+  border-radius: 8px;
+}
+
+.dp__day:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.dp__weeks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.dp__weeks-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.dp__weeks .chip {
+  height: 28px;
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+@media (max-width: 720px) {
+  .dp__months {
+    gap: 0;
+  }
+  .dp__weekdays,
+  .dp__grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .dp__month {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.home__section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 38px 32px 12px;
+}
+
+.home__section--last {
+  padding: 26px 32px 48px;
+}
+
+.home__h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.home__section-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* --- Stations populaires (21st-inspired product cards, sans registre) ------ */
+.home__popular {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 64px 32px 8px;
+}
+
+.home__popular-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.home__popular-head .home__section-note {
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.home__popular-go {
+  flex: 0 0 auto;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.home__popular-hint {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.home__popular-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  align-items: stretch;
+}
+
+.home__popular-grid > * {
+  height: 100%;
+}
+
+@media (max-width: 1000px) {
+  .home__popular-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .home__popular {
+    padding: 40px 18px 0;
+  }
+
+  .home__popular-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .home__popular-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/**
+ * Six massifs, deux rangées de trois.
+ *
+ * `auto-fit` les alignait sur une seule rangée dès que la fenêtre le
+ * permettait : six vignettes de 210 px, trop petites pour que la photo dise
+ * quoi que ce soit du massif, et un pavé horizontal qui se lisait comme une
+ * barre d'onglets plutôt que comme six destinations. À trois colonnes, chaque
+ * tuile fait plus du double de surface et le rapport 4:3 tient la photo.
+ */
+/** Sommaire de massifs.
+ *
+ *  Trois colonnes : le titre à gauche, les cartes empilées au centre, l'index
+ *  numéroté à droite. Titre et index sont collants ; la colonne centrale est
+ *  la seule qui défile, ce qui donne au sommaire son sens — on sait toujours
+ *  où l'on est dans la pile. */
+.home__mass {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 210px;
+  gap: 48px;
+  padding: 72px 32px 24px;
+  max-width: 1180px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.home__mass-title {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.home__mass-list {
+  min-width: 0;
+}
+
+.home__mass-index {
+  position: sticky;
+  top: 120px;
+  display: flex;
+  flex-direction: column;
+}
+
+.home__mass-index button {
+  padding: 13px 6px;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  background: none;
+  color: var(--dim);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: color var(--duree-1) var(--standard);
+}
+
+.home__mass-index button[data-on='true'] {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/** Le numéro n'apparaît que sur l'entrée active : afficher les six numéros en
+ *  permanence transformerait le sommaire en tableau de nombres. */
+.home__mass-num {
+  display: block;
+  font-size: 11px;
+  color: var(--brand);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  height: 14px;
+  opacity: 0;
+  transition: opacity var(--duree-1) var(--standard);
+}
+
+.home__mass-index button[data-on='true'] .home__mass-num {
+  opacity: 1;
+}
+
+@media (max-width: 1100px) {
+  .home__mass {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .home__mass-title,
+  .home__mass-index {
+    position: static;
+  }
+
+  .home__mass-index {
+    display: none;
+  }
+}
+
+/* Quatre cartes blanches détachées, plutôt qu'un bloc quadrillé : le fond de
+   l'écran est blanc lui aussi, seule l'ombre sépare encore. */
+.home__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.home__stat {
+  background: var(--panel);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+}
+
+.home__stat-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.home__stat-value {
+  display: block;
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.home__stat-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Fenêtre étroite : un titre de 52 px déborde d'une colonne fractionnaire, et
+   la pilule de recherche ne tient plus ses quatre segments sur une ligne — elle
+   se déplie en carte, chaque segment sur sa propre rangée. */
+@media (max-width: 900px) {
+  .home__hero-inner {
+    padding: 34px 20px 40px;
+  }
+  .home__title {
+    margin-top: 16px;
+    font-size: 34px;
+  }
+  .home__section,
+  .home__section--last {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  /* Deux colonnes : trois tuiles côte à côte sous 900 px descendent sous les
+     150 px de large et la photo n'est plus qu'une texture. */
+  .home__massifs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+/* Une seule colonne : à deux tuiles par rangée sous 560 px, le nom du massif
+   et ses deux exemples ne tiennent plus sur une ligne chacun. */
+@media (max-width: 560px) {
+  .home__massifs {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Impression ---------------------------------------------------------- */
+
+@media print {
+  .nav,
+  .map,
+  .lodgmap {
+    display: none !important;
+  }
+
+  html:not([data-print='fiche']) .drawer,
+  html:not([data-print='fiche']) .domsheet {
+    display: none !important;
+  }
+
+  .domsheet .camframe,
+  .domsheet .iconbtn {
+    display: none !important;
+  }
+
+  .compare {
+    position: static !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  html[data-print='fiche'] body * {
+    visibility: hidden;
+  }
+}
+
+/* --- Écran Recherche ------------------------------------------------------ */
+
+.search {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.filters {
+  overflow: auto;
+  padding: 24px;
+  border-right: 1px solid var(--border-soft);
+  background: var(--panel);
+}
+
+.filters__head {
+  display: flex;
+  align-items: center;
+  gap: 8px 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filters__badge {
+  background: var(--brand-soft);
+  border: 1px solid var(--brand);
+  color: var(--brand);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.filters__details > summary {
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  margin: -6px 0;
+}
+
+.filters__details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.filters__summary {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.filters__title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.filters__section {
+  padding: 18px 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.filters__legend {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.filters__help {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+.filters__help--tight {
+  font-size: 11px;
+}
+
+/**
+ * Colonne de liste : elle défile pour elle seule, la carte restant fixe à côté.
+ *
+ * `position: relative` sert d'ancre au panneau de filtres, qui n'est plus une
+ * colonne mais un survol posé sous la rangée de puces.
+ */
+.results {
+  position: relative;
+  overflow: auto;
+  padding: 24px 28px;
+  border-right: 1px solid var(--border-soft);
+}
+
+/** Carte masquée : plus de colonne à droite, donc plus de filet. */
+.results--full {
+  border-right: none;
+}
+
+/** Le relevé se relance depuis le panneau : action pleine, pleine largeur. */
+.filters__search {
+  width: 100%;
+  margin: 0 0 12px;
+}
+
+/** Compte des annonces écartées, sous les puces qui disent par quoi. */
+.filters__hidden {
+  display: block;
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-align: left;
+}
+
+/* Dans le survol, le panneau n'a plus de bord droit ni de fond propre : c'est
+   la carte qui les porte. */
+.filterpop .filters {
+  border-right: none;
+  padding: 18px 20px;
+  overflow: visible;
+  background: none;
+}
+
+/**
+ * Bandeau d'outils : il occupe toute la largeur de sa colonne.
+ *
+ * Ses commandes se serraient à gauche et laissaient un vide à droite, si bien
+ * que le bandeau paraissait garder la largeur qu'il avait carte ouverte alors
+ * que la colonne, elle, s'était bien élargie. Le tri part maintenant au bord
+ * droit : le bandeau tient les deux extrémités et suit réellement la colonne.
+ *
+ * `column-gap` généreux : c'est lui qui sépare « Filtres », « Afficher la
+ * carte » et le compte de résultats, qui se lisaient collés.
+ */
+.results__head {
+  display: flex;
+  align-items: center;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.results__sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  flex: 0 0 auto;
+  /* Au bord droit du bandeau, et sur une seule ligne : « Trier par » se
+     repliait en « Trier / par » contre le sélecteur. */
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.results__sort select {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Le compte de résultats est un libellé, pas un titre : il annonce la liste,
+   il ne lui dispute pas l'attention. */
+.results__count {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+/* `.results__empty` est défini plus bas, en un seul endroit. Il y avait ici une
+   première règle `padding / text-align: center / color` que la seconde écrasait
+   à moitié : le titre s'alignait à gauche (grille `justify-items: start`) et le
+   paragraphe restait centré, dans la même carte. */
+
+.results__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(430px, 100%), 1fr));
+  gap: 16px;
+  /* Même règle que la mosaïque des logements : les cartes d'une rangée
+     partagent leur hauteur, et leurs pieds s'alignent. */
+  align-items: stretch;
+}
+
+/** Pastille de massif : teinte portée par `massifColor`, posée en style
+ *  inline — la couleur dépend de la donnée, pas d'une classe. */
+.domcard__massif {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.domcard__logo {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+}
+
+.scorebadge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  line-height: 1.1;
+}
+
+/* --- Carte ---------------------------------------------------------------- */
+
+/* La carte est collée au bord droit, pleine hauteur : elle ne défile pas avec la
+   liste, et ses coins restent vifs — un arrondi sur une surface qui touche deux
+   bords de la fenêtre ne se lit pas comme une carte posée, seulement comme un
+   défaut. */
+.map-shell,
+.map {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.map__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--panel);
+}
+
+.map .maplibregl-map,
+.lodgmap .maplibregl-map,
+.map .maplibregl-canvas-container,
+.lodgmap .maplibregl-canvas-container,
+.map .maplibregl-canvas,
+.lodgmap .maplibregl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.map__overlay {
+  position: absolute;
+  left: 12px;
+  bottom: 28px;
+  z-index: 2;
+  display: grid;
+  gap: 6px;
+  max-width: 300px;
+}
+
+.map__overlay--lodg {
+  bottom: 14px;
+}
+
+.lodgmap__sync--inoverlay {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  width: fit-content;
+}
+
+.map__legend {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  display: grid;
+  gap: 5px;
+}
+
+.map__legend-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.map__swatch {
+  width: 16px;
+  height: 3px;
+  flex: 0 0 auto;
+}
+
+.map__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.map__dot--small {
+  width: 6px;
+  height: 6px;
+  opacity: 0.7;
+  margin: 0 1.5px;
+}
+
+.map__btn {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.map__btn--dark {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.map__btn--accent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/** Sélecteur de fond : s'ouvre vers le haut, la commande étant en bas de carte. */
+.basepicker {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  width: 250px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 2px;
+  z-index: 5;
+}
+
+.basepicker__row {
+  display: grid;
+  gap: 1px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+}
+
+.basepicker__row:hover {
+  background: var(--surface);
+}
+
+.basepicker__row--on {
+  background: var(--surface);
+}
+
+.basepicker__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.basepicker__sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.map-origin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px var(--brand);
+}
+
+/* --- Écran Logements ------------------------------------------------------ */
+
+.lodgings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+/** Section des logements écartés.
+ *
+ *  Séparée de la liste par un filet, pas par une couleur : ce sont les mêmes
+ *  annonces, dans le même relevé, mises de côté pour un motif nommé. Un fond
+ *  d'alerte les ferait lire comme des erreurs. */
+.lodgrej {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  scroll-margin-top: 16px;
+}
+
+.lodgrej__head {
+  margin-bottom: 14px;
+}
+
+.lodgrej__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.lodgrej__count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.lodgrej__sub {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+/** Pastille du motif, posée sur la vignette grisée. Teinte d'attention et non
+ *  d'alerte : l'annonce n'est pas fautive, elle ne convient pas à ces dates. */
+.lodgrej__badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: var(--rayon-plein);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/** La donnée qui explique le motif, sous la carte. */
+.lodgrej__why {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.lodgrej__jump {
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------------- Sélection */
+
+/** Deux colonnes : la liste, et un résumé collant qui reste lisible pendant
+ *  qu'on descend dans les notes. */
+.selpage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 28px;
+  align-items: start;
+}
+
+.selpage__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.selpage__head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selpage__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.selpage__chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/** Pile d'avatars des voyageurs. Le chevauchement dit « un groupe », pas
+ *  « une liste » ; le liseré au fond du panneau les détache l'un de l'autre. */
+.selpage__avstack {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.selpage__avstack .selnote__av {
+  margin-left: -8px;
+  border: 2px solid var(--panel);
+}
+
+.selpage__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selpage__h {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.selpage__empty {
+  margin: 0;
+  font-size: 13px;
+}
+
+.selpage__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.selpage__aside {
+  position: sticky;
+  top: 76px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--rayon-carte);
+  box-shadow: var(--elev-carte);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selsum {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selsum > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.selsum dt {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.selsum dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.selgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.seltile {
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--rayon-carte);
+  box-shadow: var(--elev-carte);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/** Une offre perdue reste lisible mais recule : grisée, jamais barrée de
+ *  rouge — elle n'est pas fautive, elle n'est plus disponible. */
+.seltile--gone {
+  opacity: 0.62;
+}
+
+.seltile__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seltile__drop {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px;
+}
+
+.seltile__drop:hover {
+  color: var(--text);
+}
+
+.seltile__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.seltile__facts {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.seltile__price {
+  margin: 2px 0 0;
+  font-size: 13px;
+}
+
+/* ---- Notes et votes ---- */
+
+.selnote {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selnote__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selnote__toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-align: left;
+  margin-right: auto;
+  padding: 0;
+}
+
+.selnote__vote {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 9px;
+  font-size: 15px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/** L'état pressé porte un fond ET un liseré : la couleur seule ne dit pas
+ *  qu'on a voté. */
+.selnote__vote[aria-pressed='true'] {
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+
+.selnote__tally {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.selnote__row {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+
+.selnote__av {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--link);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.selnote__body {
+  min-width: 0;
+  font-size: 12.5px;
+}
+
+.selnote__meta {
+  display: block;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.selnote__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selnote__ta {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: var(--surface);
+  resize: vertical;
+  min-height: 56px;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.selnote__actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 1100px) {
+  .selpage {
+    grid-template-columns: 1fr;
+  }
+
+  .selpage__aside {
+    position: static;
+  }
+}
+
+.lodgings__shell {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lodgings__head {
+  display: flex;
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+/**
+ * Contrôle d'en-tête : un bouton-texte.
+ *
+ * Le rembourrage vertical de 15 px, annulé par une marge négative, garde une
+ * zone tactile de 44 px sans occuper la place correspondante dans la ligne —
+ * le retrait du fond ne doit pas rendre la cible plus difficile à viser.
+ */
+.linkbtn--head {
+  background: none;
+  border: 0;
+  padding: 15px 0;
+  margin: -15px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.linkbtn--head:hover {
+  color: var(--text);
+}
+
+/* L'action principale de l'en-tête : lisible, mais pas un bouton plein. */
+.linkbtn--head.is-strong {
+  color: var(--text);
+}
+
+/**
+ * Dans le partage, la carte remplit sa colonne au lieu de sa hauteur fixe.
+ *
+ * `relative` et non `static` : la légende et la case « rechercher quand je
+ * déplace la carte » sont positionnées en absolu par rapport à la carte. En
+ * `static`, elles remonteraient jusqu'à `.lodgings` et iraient se coller au
+ * coin de l'écran.
+ */
+.lodgsplit > .lodgmap {
+  position: relative;
+  top: auto;
+  height: 100%;
+  min-height: 0;
+}
+
+/** Ce que le cadrage de la carte écarte de la liste, dit plutôt que subi. */
+/* `.outofview` retiré avec le bandeau « hors du cadrage actuel ». */
+
+.lodgmap__sync {
+  position: absolute;
+  bottom: 14px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: var(--shadow);
+}
+
+/** État des positions : un panneau de diagnostic, pas une alerte permanente. */
+.geopanel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 6px;
+  max-width: 640px;
+}
+
+.geopanel__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/** Seconde moitié du panneau : les positions, séparées de la santé des sources. */
+.geopanel__title--section {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 12px;
+  margin-top: 6px;
+}
+
+.geopanel__line {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.geopanel__line--bad {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.geopanel__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.geopanel__note {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+  text-wrap: pretty;
+}
+
+.check--inline {
+  margin: 0;
+  font-size: 12px;
+}
+
+.sheet__label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sheet__dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  margin: 0;
+}
+
+.sheet__dl dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sheet__dl dd {
+  margin: 0;
+}
+
+.breakdown {
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  padding-top: 12px;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.breakdown--flush {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.breakdown__total {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+/* Le total du séjour prend le bleu de marque, comme le montant en tête de
+   fiche et comme le prix des vignettes. Seul ce total : colorer aussi les
+   lignes de détail au-dessus reviendrait à ne plus rien mettre en avant. */
+.breakdown__total .u-num {
+  color: var(--brand);
+}
+
+.sheet__options {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.sheet__footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+  border-top: 1px solid var(--border-soft);
+  padding: 14px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+/* --- Modale d'import ------------------------------------------------------ */
+
+.modal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: min(620px, 94%);
+  max-height: 88%;
+  overflow: auto;
+  background: var(--panel);
+  border-radius: 20px;
+  box-shadow: var(--shadow-hover);
+  animation: fadeIn 0.18s ease-out;
+}
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--border-soft);
+  flex-wrap: wrap;
+}
+
+@keyframes staybar-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/** Parcours replié, sur fenêtre étroite (voir `narrow` dans l'état). */
+.nav__jump {
+  font-weight: 700;
+  max-width: 190px;
+}
+
+.compare {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  z-index: 8;
+  overflow: auto;
+  padding: 24px;
+  animation: fadeIn 0.18s ease-out;
+}
+
+.compare__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.compare__head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.compare__grid {
+  display: grid;
+  align-items: stretch;
+}
+
+.compare__col {
+  padding: 14px;
+  display: grid;
+  gap: 2px;
+  border-left: 1px solid var(--border-soft);
+}
+
+.compare__label {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.compare__cell {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-soft);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* Trois marques pour le gagnant — trophée, couleur, fond — parce qu'aucune ne
+   suffit seule : le trophée se voit sans couleur, le fond se voit de loin. */
+.compare__cell--best {
+  color: var(--ok);
+  font-weight: 700;
+  background: var(--ok-soft);
+}
+
+.compare__val {
+  display: block;
+}
+
+.compare__bar {
+  display: block;
+  margin-top: 6px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.compare__bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--dim);
+  border-radius: 999px;
+}
+
+.compare__cell--best .compare__bar-fill {
+  background: var(--ok);
+}
+
+.compare__vote {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* --- Carte des logements -------------------------------------------------- */
+
+/* Carte des logements : mêmes coins et même ombre qu'une carte de résultat —
+   c'est un objet posé sur la page, pas un cadre encastré. Le comportement, lui,
+   ne change pas : même bascule `state.lodgMapOpen`, même raccourci « m ». */
+.lodgmap {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+  border: none;
+  border-radius: inherit;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.lodgmap__hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  display: grid;
+  gap: 4px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pricepin {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: 600 12px 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: #ffffff;
+  color: #222222;
+}
+
+.pricepin--on {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+/* --- Offres, combinaisons, decision --------------------------------------- */
+
+.offers__bar {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+
+.offers__note {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/**
+ * Deux colonnes, « dans le budget » et « juste au-dessus ».
+ *
+ * Le partage est visuel et non un filtre : ce qui dépasse le plafond par nuit
+ * reste sous les yeux, à un pas de distance. Sous 1 100 px les deux colonnes
+ * n'ont plus la largeur d'une ligne dense et s'empilent.
+ */
+.offers__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .offers__cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+.offers__col {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.offers__coltitle {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.offers__empty {
+  margin: 0;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--surface);
+  border-radius: 14px;
+}
+
+.section__title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.posteline {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+
+/* --- Écran Décision -------------------------------------------------------- */
+
+/* Tous les montants de l'écran en chasse tabulaire : c'est une colonne de
+   chiffres qu'on additionne du regard. */
+.decision {
+  font-variant-numeric: tabular-nums;
+}
+
+.decision__card {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  border: none;
+}
+
+/** Encart d'écart au partage égal : bleu pâle, jamais alarmant. */
+.decision__delta {
+  margin: 8px 0 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--snow-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.decision__delta--even {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* --- Suivi de prix -------------------------------------------------------- */
+
+.tracking__grid {
+  display: grid;
+  grid-template-columns: minmax(min(300px, 100%), 340px) minmax(min(320px, 100%), 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+/* La colonne de gauche s'élargit : une ligne-carte porte cinq colonnes, pas
+   trois lignes empilées. */
+.tracking__grid {
+  grid-template-columns: minmax(min(420px, 100%), 460px) minmax(min(320px, 100%), 1fr);
+}
+
+.trackrows {
+  display: grid;
+  gap: 10px;
+}
+
+/**
+ * Ligne-carte d'un suivi.
+ *
+ * Cinq colonnes sur une ligne : le logement, le prix actuel avec ses extrêmes,
+ * la tendance, la courbe, et la croix pour ne plus suivre. La grille est fixe et
+ * non fluide : trois suivis alignés se comparent colonne par colonne, ce qu'une
+ * disposition au contenu ne garantit pas.
+ */
+.trackrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto 96px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid transparent;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.trackrow:hover {
+  border-color: var(--brand);
+  box-shadow: var(--shadow-hover);
+}
+
+.trackrow--on {
+  border-color: var(--text);
+  box-shadow: var(--shadow-hover);
+}
+
+.trackrow__main {
+  display: grid;
+  min-width: 0;
+}
+
+.trackrow__name {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackrow__sub {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackrow__price {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+
+.trackrow__price strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.trackrow__trend {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.trackrow__spark {
+  width: 96px;
+  height: 30px;
+}
+
+/* Mention de simulation : elle passe sous la courbe, sur toute la largeur de la
+   ligne, pour rester lisible quel que soit l'espace laissé par les colonnes. */
+.trackrow__sim {
+  grid-column: 4;
+  grid-row: 2;
+  font-size: 10px;
+  color: var(--dim);
+  text-align: center;
+}
+
+.trackrow__close {
+  align-self: start;
+}
+
+/* --- Voyageurs ------------------------------------------------------------ */
+
+.personcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.personcard__lessons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+
+.esfrates {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 10px;
+}
+
+/* --- Forfaits ------------------------------------------------------------- */
+
+.passgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.passgrid dt {
+  font-size: 12px;
+}
+
+.passgrid dd {
+  margin: 1px 0 0;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.wxlevel {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.wxlevel__title {
+  margin: 0 0 9px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wxlevel__slots {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.wxlevel__slots > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.wxlevel__temp {
+  margin: 1px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.wxlevel__dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  font-size: 12px;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 9px;
+}
+
+.wxlevel__dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wxlevel__dl dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* --- Prévisions 14 jours -------------------------------------------------- */
+
+.wxstrip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.wxstrip__day {
+  flex: 0 0 100px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 9px 6px;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  text-align: center;
+}
+
+/* --- Bulletin d'avalanche ------------------------------------------------- */
+
+.brapanel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: var(--surface);
+  display: grid;
+  gap: 11px;
+}
+
+.brapanel__badge {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
+.brapanel__scale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 10px;
+}
+
+.brabtn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.brabtn--on {
+  border-width: 2px;
+  font-weight: 800;
+}
+
+/* --- Premier lancement ---------------------------------------------------- */
+
+.onboard {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 16, 0.5);
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.onboard__panel {
+  width: min(560px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: var(--panel);
+  border-radius: 20px;
+  padding: 28px;
+  display: grid;
+  gap: 18px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 0.18s ease-out;
+}
+
+/* --- Reglages et referentiel ---------------------------------------------- */
+
+.settings {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.settings__tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 12px;
+}
+
+/* Sous-barre de l'Administration : même famille, un cran plus discrète, sans
+   filet — elle vit à l'intérieur d'un panneau, pas au-dessus de l'écran. */
+.settings__tabs--sub {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-top: 12px;
+}
+
+/**
+ * Gabarit deux colonnes des Réglages.
+ *
+ * Le sommaire est sticky et ne liste que les sections de l'onglet ouvert : les
+ * trois onglets restent la navigation principale — ils sont dans l'état — et le
+ * sommaire n'est qu'un accès rapide à l'intérieur de l'onglet. Sous 900 px il
+ * passe au-dessus du contenu et cesse de coller : sur une fenêtre étroite, une
+ * colonne de sommaire mange la moitié de la place du réglage.
+ */
+.settings__cols {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.settings__cols--bare {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.settings__toc {
+  position: sticky;
+  top: 12px;
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+
+.settings__tocitem {
+  border: none;
+  background: none;
+  border-radius: 9px;
+  padding: 7px 10px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.settings__tocitem:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.settings__main {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .settings__cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings__toc {
+    position: static;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+  }
+}
+
+.settings__section {
+  padding: 20px 22px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  border: none;
+}
+
+.settings__section h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+/**
+ * Une ligne, un réglage : libellé à gauche, contrôle à droite.
+ *
+ * Les sections qui portent une table (clés, sources, provenance) ou un jeu de
+ * curseurs (poids) gardent leur disposition propre : les plier en lignes
+ * libellé-contrôle aurait coupé des colonnes qui se lisent ensemble.
+ */
+.setrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.setrow:first-of-type {
+  border-top: none;
+}
+
+.setrow__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.setrow__ctl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.settings__help {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 4px 0 10px;
+  max-width: 64ch;
+}
+
+/**
+ * Encart d'avertissement avant une action destructive.
+ *
+ * Orange doux et non rouge : effacer les itinéraires en changeant de référentiel
+ * est une conséquence à connaître, pas une erreur commise. Le rouge se réserve à
+ * ce qui a déjà mal tourné, sinon il cesse d'être lu. L'encart n'est pas
+ * repliable et se place **avant** les boutons : un avertissement qu'on découvre
+ * après avoir cliqué n'avertit de rien.
+ */
+.dangerbox {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger-ink);
+  border-left: 4px solid var(--warn);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 72ch;
+}
+
+/** Mentions légales : des paragraphes qui se lisent, pas des libellés. */
+.legal {
+  display: grid;
+  gap: 10px;
+}
+
+.legal p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 70ch;
+  text-wrap: pretty;
+}
+
+.legal--warn {
+  border-color: var(--warn);
+  background: var(--surface);
+}
+
+.legal--warn > p:first-of-type {
+  color: var(--text);
+}
+
+.legal__dl {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.legal__dl dt {
+  font-weight: 600;
+}
+
+.legal__dl dd {
+  margin: 2px 0 0;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/** Deux colonnes quand la place le permet : un glossaire de licences se lit
+ *  mieux avec le nom de la source en regard de sa condition d'usage. */
+.legal__dl--split > div {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) 1fr;
+  gap: 6px 14px;
+}
+
+.legal__dl--split dd {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .legal__dl--split > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 24px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.shortcuts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shortcuts dd {
+  margin: 0;
+}
+
+.keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.keys__row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.keys__actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-content: start;
+}
+
+.pill {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 8px;
+}
+
+.pill--ok {
+  border-color: var(--ok);
+  color: var(--ok);
+  font-size: 11px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table td {
+  padding: 8px 6px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.provrow {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 8px;
+}
+
+/* Une ligne corrigeable empile sa ligne calculée, sa correction et son
+   formulaire : la correction se lit **sous** l'original, jamais à sa place. */
+.provrow--stack {
+  display: block;
+}
+
+.provrow__main {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.provrow__edit {
+  margin: 6px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--brand);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.provrow__form {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+.enginebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  flex-wrap: wrap;
+}
+
+.enginedl {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.enginedl > div {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+}
+
+.enginedl dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.enginedl dd {
+  margin: 0;
+}
+
+.map__error {
+  background: var(--panel);
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0;
+  font-size: 11px;
+  color: var(--warn);
+}
+
+/* --- Logos et photos ------------------------------------------------------ */
+
+.domcard__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 9px;
+  /* Le fond teinté reste visible derrière un logo transparent : c'est ce qui
+     donne à la vignette sa masse visuelle même quand l'icône est minuscule. */
+  padding: 3px;
+}
+
+.lodgcard__img,
+.sheet__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sheet__photo {
+  height: 198px;
+  border-radius: 12px;
+}
+
+@keyframes lodgscan-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Dans une colonne de 290 px, trois actions ne tiennent pas sur une ligne :
+   elles passent à la ligne proprement plutôt que de couper « Suivre le prix »
+   en deux au milieu d'un mot. */
+.lodgcard__actions .linkbtn,
+.lodgcard__actions .actpill {
+  white-space: nowrap;
+}
+
+/**
+ * États vides — présentation typographique, sans cadre ni pictogramme.
+ *
+ * Le bloc ne se met plus en carte : ni fond, ni bordure pointillée, ni pastille
+ * d'emoji. Une carte dessinée au milieu d'une zone déjà vide ajoute un objet à
+ * regarder là où il n'y a rien à voir ; le vide se tient tout seul dès qu'on
+ * lui donne un titre lisible et de la marge. Il ne reste que trois niveaux :
+ * un titre, une phrase, les gestes.
+ *
+ * L'enveloppe prend la place qu'aurait prise la mosaïque — sans elle, le bloc
+ * se collait en haut à gauche d'un écran large et laissait un vide jusqu'à la
+ * carte géographique.
+ */
+.results__emptywrap {
+  display: grid;
+  place-items: center;
+  min-height: min(360px, 50vh);
+  padding: 48px 24px;
+}
+
+/* Carte ouverte : la colonne de liste a une hauteur définie, le bloc la prend
+   entièrement et se cale sur le milieu de la carte. Sans cette règle il se
+   posait au tiers supérieur, avec un vide de 300 px en dessous. Hors partage
+   la hauteur du parent est auto, le `100 %` retombe alors sur le minimum
+   ci-dessus. */
+.lodgsplit__list .results__emptywrap {
+  min-height: 100%;
+}
+
+.results__empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* `gap` porte seul l'espacement : les marges par défaut des `<p>` s'y
+   ajouteraient. L'écran Recherche pose ses paragraphes sans classe. */
+.results__empty > p {
+  margin: 0;
+}
+
+/* Le titre porte le poids de la carte disparue : c'est lui, et non un cadre,
+   qui signale qu'il se passe quelque chose. */
+.results__empty-title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.results__empty-hint {
+  max-width: 38ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* Un seul geste bordé, le second en lien souligné : deux boutons de même poids
+   dans un écran vide se disputent le clic sans qu'aucun ne soit le bon. */
+.results__empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.results__empty-actions .linkbtn {
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ——— Onboarding guidé + pastille distance ——— */
+
+.onboard__sentence {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent, #3b82f6) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent, #3b82f6) 28%, var(--border));
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.onboard__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.onboard__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.onboard__actions .btn--ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.onboard__actions .btn--ghost:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.settings__metrics { overflow-x: auto; }
+.settings__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.settings__table th, .settings__table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.settings__table th { color: var(--muted); font-weight: 600; }
+
+.sheet__verified {
+  margin: 0 20px 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.sheet__verified-list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.sheet__verified-list li {
+  margin-bottom: 4px;
+}
+
+/* La note du panneau reprend celle de la vignette. Le titre porte déjà
+   `flex: 1`, elle est donc poussée à droite sans aide — et `flex: none` lui
+   évite d'être compressée par un nom d'annonce long : c'est le titre qui se
+   tronque, jamais elle. */
+.drawer__head .lodgcard__note {
+  flex: none;
+}
+
+/* ————— Calendrier de séjour (StayDatesField) —————
+   Un seul geste pour la plage, à la place de deux champs date.
+   Les samedis portent un point : c'est la maille de vente des centrales. */
+.staycal {
+  position: relative;
+}
+.staycal__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+.staycal__panel {
+  margin-top: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.staycal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.staycal__month {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.staycal__nav {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.staycal__nav:hover {
+  background: var(--border-soft);
+}
+.staycal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.staycal__wd {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  text-transform: capitalize;
+  padding-bottom: 2px;
+}
+.staycal__day {
+  position: relative;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  padding: 6px 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.staycal__day:hover:not(:disabled) {
+  background: var(--border-soft);
+}
+.staycal__day:disabled {
+  color: var(--dim);
+  cursor: default;
+}
+/* Le point du samedi : la maille de vente, pas une décoration. */
+.staycal__day--sat:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--brand);
+}
+.staycal__day--in {
+  background: var(--brand-soft);
+  border-radius: 0;
+}
+.staycal__day--start,
+.staycal__day--end {
+  background: var(--brand);
+  color: var(--accent-texte);
+  font-weight: 700;
+}
+.staycal__day--start:hover:not(:disabled),
+.staycal__day--end:hover:not(:disabled) {
+  background: var(--brand);
+}
+.staycal__day--start.staycal__day--sat::after,
+.staycal__day--end.staycal__day--sat::after {
+  background: var(--accent-texte);
+}
+.staycal__hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.staycal__snap {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.staycal__note {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--dim);
+}

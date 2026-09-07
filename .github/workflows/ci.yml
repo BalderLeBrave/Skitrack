@@ -1,0 +1,55 @@
+# CI Skitrack — typecheck renderer + tests smoke
+#
+# Le typecheck Node (`tsconfig.node.json`) échoue encore sur les callbacks
+# Playwright (`document` / `window` dans page.evaluate) : hors périmètre
+# sprint Ceto. On typecheck le renderer (où vivent les cartes logements).
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  pull_request:
+    branches: [master, main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck renderer
+        run: npx tsc --noEmit -p tsconfig.web.json
+
+      - name: Smoke tests
+        run: |
+          npm run robots:test
+          npm run stations:test
+          npm run places:test
+          npm run avail:test
+
+      - name: Ceto location mapping
+        run: |
+          mkdir -p node_modules/.cache
+          npx esbuild src/main/providers/ceto/chamonixExtract.test.ts \
+            --bundle --platform=node --format=esm \
+            --outfile=node_modules/.cache/ceto-test.mjs --log-level=error
+          node node_modules/.cache/ceto-test.mjs
+
+      - name: Ceto SERP parse (fixture)
+        run: npm run ceto:parse-test

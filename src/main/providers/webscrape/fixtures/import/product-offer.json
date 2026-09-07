@@ -1,0 +1,11 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Appartement 6 personnes Les 2 Alpes",
+  "offers": {
+    "@type": "Offer",
+    "price": 210,
+    "priceCurrency": "EUR",
+    "unitText": "per night"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Studio à partir de 90 €",
+  "offers": {
+    "@type": "AggregateOffer",
+    "lowPrice": 90,
+    "highPrice": 240,
+    "priceCurrency": "EUR",
+    "unitText": "per night"
+  }
+}

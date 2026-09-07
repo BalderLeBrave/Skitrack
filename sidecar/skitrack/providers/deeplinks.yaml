@@ -1,0 +1,80 @@
+# Patterns d'URL de recherche pré-remplie (niveau 2 : deep-links, pas de scraping).
+#
+# Ces formats changent souvent — c'est précisément pourquoi ils vivent dans un
+# fichier de données éditable et non dans le code. Chaque entrée porte un champ
+# `verified` : la date à laquelle le pattern a été constaté fonctionnel, ou
+# `false` s'il n'a pas été vérifié. L'UI affiche cette date, pour qu'un lien qui
+# tombe à côté soit immédiatement imputable au pattern et non à l'app.
+#
+# Placeholders disponibles :
+#   {query}      texte de destination (nom du domaine ou de la commune), URL-encodé
+#   {check_in}   date d'arrivée, format défini par `date_format`
+#   {check_out}  date de départ
+#   {adults}     nombre de voyageurs
+#   {bedrooms}   nombre de chambres minimum
+#   {lat} {lon}  centroïde du domaine
+#
+# AUCUNE de ces URLs n'est appelée par l'application : elles sont ouvertes dans
+# le navigateur de l'utilisateur (ou une BrowserView). Aucun contenu n'est
+# récupéré automatiquement — voir docs/RISQUES.md § « Ce qu'on ne fait pas ».
+
+version: 1
+
+sites:
+  - name: airbnb
+    label: Airbnb
+    verified: false
+    date_format: "%Y-%m-%d"
+    url: "https://www.airbnb.fr/s/{query}/homes?checkin={check_in}&checkout={check_out}&adults={adults}&min_bedrooms={bedrooms}"
+    note: >-
+      Airbnb n'expose aucune API publique et ses CGU interdisent l'accès
+      automatisé. Deep-link uniquement. Les paramètres de recherche évoluent
+      régulièrement ; un lien qui n'applique plus les dates doit être corrigé ici.
+
+  - name: gites_de_france
+    label: Gîtes de France
+    verified: false
+    date_format: "%d/%m/%Y"
+    url: "https://www.gites-de-france.com/fr/recherche?destination={query}&arrivee={check_in}&depart={check_out}&voyageurs={adults}"
+    note: >-
+      Pas d'API publique. Le formulaire de recherche du site évolue : ce pattern
+      est à vérifier avant usage sérieux.
+
+  - name: booking
+    label: Booking.com
+    verified: false
+    date_format: "%Y-%m-%d"
+    url: "https://www.booking.com/searchresults.fr.html?ss={query}&checkin={check_in}&checkout={check_out}&group_adults={adults}&no_rooms=1"
+    note: >-
+      Deep-link de secours tant que l'accès Demand API n'est pas validé.
+
+  - name: abritel
+    label: Abritel / Vrbo
+    verified: false
+    date_format: "%Y-%m-%d"
+    url: "https://www.abritel.fr/search?destination={query}&startDate={check_in}&endDate={check_out}&adults={adults}"
+    note: >-
+      Même groupe qu'Expedia. Si l'accès Rapid est obtenu, préférer le
+      connecteur API — mais l'inventaire location saisonnière n'y est pas garanti.
+
+  - name: expedia
+    label: Expedia
+    verified: false
+    date_format: "%Y-%m-%d"
+    url: "https://www.expedia.fr/Hotel-Search?destination={query}&startDate={check_in}&endDate={check_out}&adults={adults}"
+
+  - name: leboncoin
+    label: leboncoin — Locations de vacances
+    verified: false
+    date_format: "%Y-%m-%d"
+    url: "https://www.leboncoin.fr/recherche?category=12&text={query}"
+    note: "Pas de paramètre de dates exploitable dans l'URL publique."
+
+# Sites de réservation propres aux domaines. La clé est le slug du domaine ;
+# l'URL de base peut aussi venir du champ `official_booking_url` du référentiel,
+# qui a priorité.
+domain_sites:
+  les-deux-alpes:
+    label: Réservation Les 2 Alpes
+    url: "https://reservation.les2alpes.com/"
+    verified: false

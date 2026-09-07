@@ -1,0 +1,6 @@
+# Booking — maison entiere (capacite au niveau logement)
+https://www.booking.com/hotel/fr/type-relax-challeet-val-frejus.fr.html
+# Booking — hotel classique (capacite par type de chambre)
+https://www.booking.com/hotel/fr/le-valfrejus.fr.html
+# Airbnb — logement entier
+https://www.airbnb.fr/rooms/40088811

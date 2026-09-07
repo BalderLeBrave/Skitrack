@@ -1,0 +1,123 @@
+# Correspondance code ISO 3166-2 -> massif.
+#
+# OpenSkiMap ne fournit pas de notion de massif : il donne un pays, une région et
+# un code ISO 3166-2 (« FR-73 »). Cette table sert à reconstituer le massif, qui
+# est la maille de raisonnement naturelle quand on cherche de la neige.
+#
+# Limite assumée : un département n'est pas un massif. L'Isère (FR-38) contient
+# l'Oisans (Alpes du Nord) *et* le Vercors ; la Drôme (FR-26) contient le Vercors
+# sud et le Diois. On classe au plus fréquent et on corrige au cas par cas dans
+# data/curated/domains_fr.yaml, qui gagne toujours.
+
+by_admin_code:
+  # --- France : Alpes du Nord ---
+  FR-74: Alpes du Nord
+  FR-73: Alpes du Nord
+  FR-38: Alpes du Nord
+
+  # --- France : Alpes du Sud ---
+  FR-05: Alpes du Sud
+  FR-04: Alpes du Sud
+  FR-06: Alpes du Sud
+  FR-26: Alpes du Sud
+  FR-83: Alpes du Sud
+  FR-84: Alpes du Sud
+
+  # --- France : Pyrénées ---
+  FR-64: Pyrénées
+  FR-65: Pyrénées
+  FR-31: Pyrénées
+  FR-09: Pyrénées
+  FR-66: Pyrénées
+  FR-11: Pyrénées
+
+  # --- France : Jura ---
+  FR-39: Jura
+  FR-25: Jura
+  FR-01: Jura
+
+  # --- France : Vosges ---
+  FR-88: Vosges
+  FR-68: Vosges
+  FR-67: Vosges
+  FR-90: Vosges
+  FR-70: Vosges
+  FR-54: Vosges
+  FR-57: Vosges
+
+  # --- France : Massif central ---
+  FR-63: Massif central
+  FR-15: Massif central
+  FR-43: Massif central
+  FR-07: Massif central
+  FR-48: Massif central
+  FR-12: Massif central
+  FR-42: Massif central
+  FR-69: Massif central
+  FR-19: Massif central
+  FR-23: Massif central
+  FR-87: Massif central
+
+  # --- France : Corse ---
+  FR-2A: Corse
+  FR-2B: Corse
+  FR-20R: Corse
+
+  # --- Autriche ---
+  AT-7: Tyrol
+  AT-8: Vorarlberg
+  AT-5: Salzbourg
+  AT-6: Styrie
+  AT-2: Carinthie
+  AT-3: Basse-Autriche
+  AT-4: Haute-Autriche
+
+  # --- Italie ---
+  IT-BZ: Dolomites
+  IT-TN: Dolomites
+  IT-32: Dolomites
+  IT-34: Dolomites
+  IT-36: Alpes juliennes
+  IT-23: Val d'Aoste
+  IT-21: Piémont
+  IT-25: Alpes lombardes
+
+  # --- Suisse ---
+  CH-VS: Valais
+  CH-BE: Oberland bernois
+  CH-GR: Grisons
+  CH-VD: Alpes vaudoises
+  CH-FR: Préalpes fribourgeoises
+  CH-TI: Tessin
+  CH-UR: Suisse centrale
+  CH-OW: Suisse centrale
+  CH-NW: Suisse centrale
+  CH-SZ: Suisse centrale
+  CH-GL: Suisse centrale
+  CH-SG: Suisse orientale
+  CH-AI: Suisse orientale
+  CH-AR: Suisse orientale
+
+  # --- Espagne / Andorre ---
+  ES-CT: Pyrénées
+  ES-AR: Pyrénées
+  ES-NC: Pyrénées
+  ES-PV: Pyrénées
+  ES-AN: Sierra Nevada
+  ES-CB: Cordillère Cantabrique
+  ES-AS: Cordillère Cantabrique
+
+  # --- Allemagne / Slovénie ---
+  DE-BY: Alpes bavaroises
+  SI-: Alpes juliennes
+
+# Repli quand le code ISO 3166-2 est absent du dump.
+by_country:
+  AD: Pyrénées
+  AT: Alpes autrichiennes
+  CH: Alpes suisses
+  DE: Alpes allemandes
+  ES: Pyrénées
+  FR: France (massif indéterminé)
+  IT: Alpes italiennes
+  SI: Alpes juliennes

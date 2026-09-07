@@ -1,0 +1,139 @@
+
+		<div class="row">
+			<div class="col-12 col-lg-4 col-xl-3 order-last order-lg-first">
+				<div class="encart-tunnel-resa">
+					<h3 class="inline-center heading-nomargins">
+						Réservez votre séjour
+					</h3>
+					<div class="topSpacer">
+						<form method="post" action="/reservation/prestations/" id="resaSubm">
+							<input type="hidden" name="lot_no" id="lot_no" value="513">
+							<input type="hidden" name="lot_site_no" id="lot_site_no" value="1">
+							<div class="SearchBox_Home_Date_Container">
+								<input type="text" class="form-control form-date" name="startDateResa" id="startDateResa" value="05/09/2026" placeholder="Date d'arrivée" onchange="javascript:getDateResa('df','513','1');">
+							</div>
+							<div class="SearchBox_Home_Date_Container topSpacer">
+								<input type="text" class="form-control form-date" name="endDateResa" id="endDateResa" value="12/09/2026" placeholder="Date de départ" onchange="javascript:getDateResa('df','513','1');">
+							</div>
+						</form>
+					</div>
+		 			<div id="loadingBTN" class="js-hidden inline-center aSide_Resa_elem"><img src="/images/ajax-loader.gif" class="icones"></div> 
+					<div id="btnresa" class="inline-center aSide_Resa_elem"></div>
+					<div class="inline-center topSpacer"><b><a href="/reservation/resultats/" class=""><i class="fas fa-arrow-alt-circle-left"></i> Retour à la liste</a></b></div>
+				<script>getPlanning('513','1');</script>
+					<div class="js-hidden loadingRates inline-center"><img src="/images/ajax-loader.gif"></div>
+					<div id="rates"></div>
+					<div class="js-hidden loadingPlanning inline-center"><img src="/images/ajax-loader.gif"></div>
+					<div class="js-hidden aSide_Resa_elem Fiche_planning" id="Fiche_planning">
+						<h4 class="inline-center">Planning des disponibilités :</h4>
+						<div id="planning" class="inline-center"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-12 col-lg-8 col-xl-9 order-first order-lg-last">
+				<div class="row row-grid Fiche_Container">
+					<div class="col-12 col-xl-6 order-last order-xl-first">
+						<div class='Fiche_PhotoPrincipale'><a href='https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_01.jpg?20251205164041' class='colorBox' rel='gal'><img src='https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_01.jpg?20251205164041' class='img-fluid' alt=''></a></div>
+							<div class="Fiche_sliderContainer">
+								<div class="Fiche_slider">
+									
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_02.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_02_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_03.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_03_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_04.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_04_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_05.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_05_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_06.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_06_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_07.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_07_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_08.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_08_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_09.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_09_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_10.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_10_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_11.jpg?20251205164041" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_11_s.jpg?20251205164041"></a></div>
+								
+									<div class="Fiche_slide"><a href="https://reservationpralognan.locvacances.com/lv/images/imme/0000000304_01.jpg?20240812110409" class="colorBox" rel="gal"><img class="Fiche_slideImage" src="https://reservationpralognan.locvacances.com/lv/images/imme/0000000304_01_s.jpg?20240812110409"></a></div>
+								
+								</div>
+							</div>
+							
+					</div>
+					<div class="col-12 col-xl-6 order-first order-xl-last">
+						<h2>CHALET MONTRACHET</h2>
+						<h4>Le Plan</h4>
+						<h4>Réf. MONTRACHET</h4>
+						<h5>5 pièces mezzanine | lits doubles : 2 | 12 personnes</h5>
+								<h5 class="Fiche_Classement" title="3 Étoiles">Classement : <i class="fa-sharp fa-solid fa-star"></i><i class="fa-sharp fa-solid fa-star"></i><i class="fa-sharp fa-solid fa-star"></i></h5>
+								<div class="Fiche_Avis"><h5>Avis clients (1) : <i class="fa-sharp fa-solid fa-heart"></i><i class="fa-sharp fa-solid fa-heart"></i><i class="fa-sharp fa-solid fa-heart"></i><i class="fa-sharp fa-regular fa-heart-half-stroke"></i><i class="fa-sharp fa-regular fa-heart"></i></h5><div><a href="#" class="ancre" data-ancre="#avis">Voir les avis</a></div></div>
+								<div class="Fiche_Elem">
+									<h5>Description de la résidence :</h5>
+									<div>Magnifique chalet indépendant en bois, pour 12 personnes situé dans le quartier du Plan.</div>
+								</div>
+								<div class="Fiche_Elem Fiche_Pictos">
+									
+								</div>
+							
+								<div class="Fiche_Elem Fiche_Functions bottomSpacer-max-large">
+									<ul class="Fiche_actions">
+										<li><a href="/processPDF.php?id=ficheLOC&lot_no=513"><i class="fas fa-download"></i> Télécharger la fiche</a></li>
+										<li><a href="/ajax/modal.php?id=sendF&link=/location/catalogue/513/le-plan/5-pieces-mezzanine/chalet-montrachet/&idBien=513&rubr=loc&rf=1788306369" class="colorBox"><i class="fas fa-reply"></i> Envoyer à un ami</a></li>								
+											
+<li><a href="javascript:initGmap('45.381136','6.7177037','PGg0IGNsYXNzPSdpbmxpbmUtY2VudGVyJyBzdHlsZT0nMTYwcHg7Y29sb3I6IzQ0NDsnPkNIQUxFVCBNT05UUkFDSEVUPC9oND48ZGl2IGNsYXNzPSdpbmxpbmUtY2VudGVyJyBzdHlsZT0nMTYwcHg7Y29sb3I6IzQ0NDsnPkNoYWxldDwvZGl2PjxkaXYgY2xhc3M9J2lubGluZS1jZW50ZXInIHN0eWxlPScxNjBweDtjb2xvcjojNDQ0Oyc+TGUgUGxhbjwvZGl2PjxkaXYgY2xhc3M9J2lubGluZS1jZW50ZXIgdG9wU3BhY2VyLXNtJz48aW1nIHNyYz0naHR0cHM6Ly9yZXNlcnZhdGlvbnByYWxvZ25hbi5sb2N2YWNhbmNlcy5jb20vbHYvaW1hZ2VzL2xvdC8wMDAwMDAwNTEzXzAxX3MuanBnPzIwMjUxMjA1MTY0MDQxJyBzdHlsZT0nd2lkdGg6MTYwcHg7aGVpZ2h0OmF1dG87Jz48L2Rpdj4=');"><i class='fas fa-map-marker-alt'></i> Situation Google MAP</a></li><li><a href="/ajax/modal.php?id=planLoc&lot_coord_xy=880.680" class="colorBox"><i class="fas fa-map"></i> Situer sur le plan station</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+						
+							<div class="row">
+								<div class="col-12">
+									<div><h3>Description du bien :</h3>Chalet indépendant 125m2, capacité 12 personnes, 3*<br />
+Terrasse, Jardin, exposition sud<br />
+Grand salon/salle à manger avec une cuisine ouverte.<br />
+<br />
+CUISINE : <br />
+Four traditionnel, four microonde, réfrigérateur, congélateur, lave-vaisselle, plaques vitro, lave-linge, sèche-linge, cafetière filtre, appareil à crêpes, appareil à fondue, appareil à raclette, grille-pain, bouilloire.<br />
+<br />
+CHAMBRE 1 : 2 lits 90 cm (matelas electriques de relaxation). Rapprochables<br />
+CHAMBRE 2 : 1 lit 160 cm + 2 lits superposés<br />
+CHAMBRE 3 : 1 lit 160cm<br />
+CHAMBRE 4 : 1 lit 140 cm<br />
+MEZZANINE : 1 matelas 140 cm<br />
+Literie équipée de couettes, draps et linge de toilette non fournis<br />
+<br />
+SANITAIRES :<br />
+2 salles de douche dont une avec 1 WC  <br />
+1 salle de douche dans la chambre 1 + 1 WC<br />
+1 WC indépendant<br />
+1 sauna<br />
+<br />
+DIVERS : <br />
+Animaux acceptés, avec supplément de 100€ pour le séjour, à verser au propriétaire.<br />
+Télévision, accès internet (sous réserve du bon fonctionnement du réseau) jeux de société<br />
+Matériel bébé : 2 lits + 1 chaise haute<br />
+Mobilier de jardin, barbecue<br />
+Parking privé et garage<br />
+<br />
+PRESTATIONS COMPLEMENTAIRES<br />
+La taxe de séjour est à régler en supplément à la Centrale de réservation selon le tarif en vigueur.<br />
+Chèque de caution de 1500 € à adresser au propriétaire par voie postale 3 semaines avant l'arrivée.<br />
+Ménage de fin de séjour compris, sauf pour les séjours de moins de 7 nuits (dans ce cas il est facturé en supplément 120€).<br />
+Logement non accessible aux personnes à mobilité réduite</div>
+								</div>
+							</div>
+							<h3 class="Fiche_Avis_Titre" id="avis">Avis clients :</h3><div class="Fiche_Avis_Container"><div class="Fiche_Avis_Titre"><b>Avis déposé par guillaume le 09/03/2026 - séjour du 28/02/2026 au 07/03/2026</b></div>
+									<div class="Fiche_Avis_Desc">
+										<div class="Fiche_Avis_Question">
+											<div>Commentaires, améliorations, suggestions :</div>
+											<div class="Fiche_Avis_Etoiles"><i class="fa-sharp fa-solid fa-heart"></i><i class="fa-sharp fa-solid fa-heart"></i><i class="fa-sharp fa-solid fa-heart"></i><i class="fa-sharp fa-regular fa-heart-half-stroke"></i><i class="fa-sharp fa-regular fa-heart"></i> (3.4 / 5)</div>
+										</div>
+										<div class="Fiche_Avis_Reponse">Points lumineux pas assez forts, on n'y voit pas assez.</div>
+									</div>
+									</div>
+					</div>				
+				</div>
+			

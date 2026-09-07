@@ -1,0 +1,2210 @@
+/**
+ * Test des modules sources.
+ *
+ * Ce qui est testable sans identifiant l'est réellement : construction d'URL
+ * Airbnb, normalisation Booking sur une charge utile figée, décodage du
+ * transport MCP, validation des sources déclarées, tri de l'agrégat et emprise
+ * géographique. Les appels réseau aux API partenaires ne sont pas simulés —
+ * sans clé, ils échouent, et c'est ce que le test vérifie : l'échec est isolé
+ * et motivé, pas masqué.
+ *
+ * Depuis le retrait des connecteurs LiteAPI, Expedia et Gîtes de France, **ce
+ * test ne sort plus sur le réseau du tout** : `PROVIDERS_OFFLINE=true` n'a plus
+ * d'effet ici, et le portail est hermétique par construction.
+ *
+ *     npm run providers:test
+ */
+
+import { buildAirbnbSearchUrl, airbnbRedirect } from './airbnb/airbnb'
+import { normalizeBooking } from './booking/booking'
+import { collectBookingPages, collectPages, paginationOf, bookingUrlWithOffset } from './webscrape/providers'
+import {
+  cozycozySearchEmptyKind,
+  gitesPhotoFromTileHtml,
+  gitesSearchEmptyKind,
+  gitesTilesFromSearchHtml,
+  listingPhotoUrl,
+  looksNightlyPriceText,
+  looksStayPriceText,
+  looksWeeklyFromPriceText,
+  mergeGitesCardsFromHtml,
+  pageLooksBlocked,
+  shouldCloseSharedContext,
+  shouldRecycleScraperContext,
+  stampStayOnUrl,
+  webscrapePriceFields
+} from './webscrape/shared'
+import { parseGitesWidgetPhoto } from './webscrape/gitesFichePrice'
+import { defaultWorkerPort, isWorkerSource, WORKER_SOURCES, workerUrlEnvKey } from './scrapeWorker/protocol'
+import { resolveWorkerBase, resetWorkerProbes } from './scrapeWorker/client'
+import { readFileSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { bookingSearchUrl, cozycozyDatedPlace, cozycozySearchUrl, gitesSearchUrl, vrboSearchUrl } from './webscrape/urls'
+import type { RawCard } from './webscrape/extractors'
+import {
+  abritelCanonicalUrl,
+  advertisedFromCozyPayload,
+  isVrboFamilyProvider,
+  parseCozyResultPayload,
+  parseCozyResultPayloads
+} from './webscrape/cozyResultList'
+import { emptyProviderReason, emptyStationReason, familyOfHost, centralsLoaded } from './station/centralLookup'
+import { cityMismatch, mergeStationNextHref, normPlace } from './station/stationVillage'
+import { classifyProviderError, paginationOfList, stampPagination } from '@shared/reasonCodes'
+import { SEARCH_WALK, formatStationRun, forkOf, isPrivateOrSharedListing, pageLooksLast, parseAdvertisedCount } from '@shared/searchWalk'
+import {
+  extractListingsFromDeferredState,
+  occupancyFromPublishedText,
+  occupancyFromStaySearchResult
+} from './airbnb/extract'
+import { mapOmkarSearchHit, mapOmkarSearchPage, resolveOmkarAirbnbKey } from './airbnb/omkar'
+import {
+  isBookingHotelListing,
+  mapOmkarBookingHit,
+  mapOmkarBookingPage,
+  pickDestination,
+  resolveOmkarBookingKey
+} from './booking/omkar'
+import { isBrightDataAuthError, resolveBrightDataBrowserWs, brightDataResidentialFromBrowserWs } from './booking/brightdata'
+import { resolveCrawlbaseToken } from './booking/crawlbase'
+import { resolveScrapingBeeKey } from './booking/scrapingbee'
+import { parseProxyUrl, resetProxyCache, loadProxyList, nextProxy, withBrightDataCountry } from './proxy'
+import { buildEngine } from './index'
+import { clearQuoteCache, getQuote, quoteCacheKey, setQuote } from './quoteCache'
+import { stationCardNeedsQuote } from './station/station'
+import { extractToolPayload, parseSseMessages } from './mcp/client'
+import { asNumber, mapMcpItem, readPath, resolveArguments, searchContext } from './mcp/mcpProvider'
+import { loadMcpProviderConfigs } from './mcp/registry'
+import type { SearchParams } from './types'
+import { coordsUsable, domainZone, OUT_OF_ZONE_MARGIN_KM, boxContains, distanceKm, domainRadiusKm, filterToZone, searchZone, zoneVerdict } from '@shared/geo'
+import { bookingFamilyOf, isKnownNonIngenie } from '@shared/bookingFamilies'
+import { comparableStayTotal, compareByStayTotal } from '@shared/stayPrice'
+import { cheapestOffer, type Property } from './dedup'
+
+
+
+let failures = 0
+
+function check(label: string, condition: boolean, detail?: unknown): void {
+  console.log(`  ${condition ? '✓' : '✗'} ${label}${condition || detail === undefined ? '' : ` — ${JSON.stringify(detail)}`}`)
+  if (!condition) failures++
+}
+
+function heading(title: string): void {
+  console.log(`\n${'='.repeat(70)}\n${title}\n${'='.repeat(70)}`)
+}
+
+const PARAMS: SearchParams = {
+  destination: 'Val Thorens, France',
+  checkIn: '2027-02-07',
+  checkOut: '2027-02-14',
+  adults: 4,
+  children: 2
+}
+
+/** Coordonnées de la station, telles qu'utilisées par le référentiel. */
+const GEO: SearchParams = { ...PARAMS, latitude: 45.2967, longitude: 6.5806, radiusMeters: 12_000 }
+
+
+async function main(): Promise<void> {
+  heading('1. Airbnb — construction d’URL, aucune requête')
+  const url = buildAirbnbSearchUrl({
+    city: 'Val Thorens, France',
+    checkIn: '2027-02-07',
+    checkOut: '2027-02-14',
+    adults: 4,
+    children: 2,
+    maxPrice: 4000
+  })
+  console.log(`  ${url}`)
+  check('segment ville encodé', url.includes('/s/Val-Thorens--France/homes'))
+  check('dates transmises', url.includes('checkin=2027-02-07') && url.includes('checkout=2027-02-14'))
+  check('voyageurs transmis', url.includes('adults=4') && url.includes('children=2'))
+  check('prix maximum transmis', url.includes('price_max=4000'))
+
+  const redirect = airbnbRedirect(PARAMS)
+  check('marqué comme redirection, pas comme offre', redirect.kind === 'redirect')
+  check('aucun prix exposé', !('totalPrice' in redirect))
+
+  // — L'emprise de carte, la correction du cas « Arc 2000 rend Arcachon ».
+  //
+  // Un nom se géocode, un rectangle non. Ces vérifications portent sur la seule
+  // chose qu'on maîtrise : ce qui part dans l'URL. Ce qu'Airbnb en fait se
+  // mesure au relevé, pas ici.
+  const zoneArc = domainZone({ lat: 45.5714, lon: 6.8286, km: 341.5 })
+  const urlBoite = buildAirbnbSearchUrl({
+    city: 'Arc 2000, Savoie, France',
+    bounds: { north: zoneArc.north, south: zoneArc.south, east: zoneArc.east, west: zoneArc.west }
+  })
+  console.log(`  ${urlBoite}`)
+  check('coin nord-est transmis', urlBoite.includes('ne_lat=') && urlBoite.includes('ne_lng='))
+  check('coin sud-ouest transmis', urlBoite.includes('sw_lat=') && urlBoite.includes('sw_lng='))
+  check('recherche par carte demandée', urlBoite.includes('search_by_map=true'))
+  const zoomLu = Number(new URL(urlBoite).searchParams.get('zoom'))
+  // Une boîte de ~0,6° de large se regarde vers le zoom 11, pas le zoom 8 :
+  // trois niveaux d'écart, c'est une vue de région contre une vue de vallée.
+  check('zoom cadré sur l’emprise', zoomLu >= 10 && zoomLu <= 12, zoomLu)
+  const zoomPetit = Number(
+    new URL(
+      buildAirbnbSearchUrl({
+        city: 'Petite station',
+        bounds: { north: 45.05, south: 44.95, east: 6.05, west: 5.95 }
+      })
+    ).searchParams.get('zoom')
+  )
+  check('une petite boîte se regarde de plus près', zoomPetit > zoomLu, zoomPetit)
+  check(
+    'la boîte envoyée est celle du domaine',
+    Number(new URL(urlBoite).searchParams.get('ne_lat')) === zoneArc.north &&
+      Number(new URL(urlBoite).searchParams.get('sw_lng')) === zoneArc.west
+  )
+  // Arcachon est en Gironde : la boîte d'Arc 2000 ne peut pas la contenir.
+  check(
+    'Arcachon est hors de l’emprise envoyée',
+    !boxContains(zoneArc, 44.658, -1.168)
+  )
+  // Sans emprise, l'URL reste exactement celle d'avant : l'ajout est facultatif.
+  const urlSansBoite = buildAirbnbSearchUrl({ city: 'Val Thorens, France' })
+  check(
+    'sans emprise, aucune trace de carte dans l’URL',
+    !urlSansBoite.includes('search_by_map') && !urlSansBoite.includes('ne_lat')
+  )
+
+  heading('2. Booking — normalisation sur charge utile figée')
+  const booking = normalizeBooking(
+    {
+      id: 12345,
+      name: 'Résidence Le Sherpa',
+      url: 'https://www.booking.com/hotel/fr/sherpa.html',
+      location: { latitude: 45.29, longitude: 6.58, city: 'Val Thorens', country: 'FR' },
+      price: { total: 2480, currency: 'EUR' },
+      review: { score: 8.6, count: 214 },
+      rooms: 3
+    },
+    'aff-123',
+    PARAMS
+  )
+  check('normalisé', booking !== null)
+  check('identifiant affilié ajouté à l’URL', booking?.url.includes('aid=aff-123') ?? false, booking?.url)
+  check('prix total marqué confirmé', booking?.priceConfidence === 'total_confirmed')
+  check('disponibilité affirmée (endpoint de disponibilité)', booking?.availabilityStatus === 'available')
+  check('charge utile conservée', booking?.rawProviderData !== undefined)
+  check('ligne sans nom rejetée', normalizeBooking({ id: 9 }, undefined, PARAMS) === null)
+
+  heading('6. MCP — décodage du transport, sans réseau')
+  const sse =
+    'event: message\n' +
+    'data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18"}}\n\n' +
+    ': commentaire ignoré\n' +
+    'data: {"jsonrpc":"2.0","id":2,"result":{"tools":[]}}\n\n'
+  const messages = parseSseMessages(sse)
+  check('deux enveloppes extraites du flux SSE', messages.length === 2, messages.length)
+  check('identifiants préservés', messages[1]?.id === 2)
+  check(
+    'fragment illisible ignoré sans perdre le reste',
+    parseSseMessages('data: {cassé\n\ndata: {"jsonrpc":"2.0","id":7}\n\n').length === 1
+  )
+  check(
+    'charge utile JSON extraite du bloc texte',
+    (extractToolPayload({ content: [{ type: 'text', text: '{"data":[1,2]}' }] }) as { data: number[] }).data.length === 2
+  )
+  check(
+    'contenu structuré préféré au texte',
+    extractToolPayload({ structuredContent: { ok: true }, content: [{ type: 'text', text: 'ignoré' }] }) !== 'ignoré'
+  )
+
+  heading('7. MCP générique — gabarit d’arguments et correspondance de champs')
+  const context = searchContext(GEO)
+  const args = resolveArguments(
+    {
+      latitude: '{{lat}}',
+      longitude: '{{lon}}',
+      radius: '{{radius}}',
+      adults: '{{adults}}',
+      label: 'séjour à {{destination}}',
+      absent: '{{inexistant}}',
+      occupancies: [{ adults: '{{adults}}' }]
+    },
+    context
+  )
+  check('nombre transmis comme nombre, pas comme chaîne', typeof args.latitude === 'number', typeof args.latitude)
+  check('interpolation dans une chaîne', args.label === 'séjour à Val Thorens, France')
+  check('jeton sans valeur → argument supprimé', !('absent' in args))
+  check('gabarit imbriqué résolu', (args.occupancies as { adults: number }[])[0].adults === 4)
+  check('sept nuits calculées', context.nights === 7, context.nights)
+  check('chemin pointé avec index', readPath({ rooms: [{ price: 42 }] }, 'rooms.0.price') === 42)
+
+  const mapped = mapMcpItem(
+    { id: 'h-1', name: ' Chalet Test ', loc: { lat: 45.3, lon: 6.6 }, prix: '2 480,00', devise: 'EUR' },
+    {
+      name: 'source-test',
+      server: { name: 'source-test', url: 'https://exemple.tld/mcp' },
+      tool: 'search',
+      arguments: {},
+      legalBasis: 'test',
+      fields: {
+        sourceId: 'id',
+        title: 'name',
+        latitude: 'loc.lat',
+        longitude: 'loc.lon',
+        totalPrice: 'prix',
+        currency: 'devise'
+      }
+    },
+    GEO
+  )
+  check('titre nettoyé', mapped?.title === 'Chalet Test')
+  check('prix textuel français converti', mapped?.totalPrice === 2480, mapped?.totalPrice)
+  check('virgule décimale distinguée du séparateur de milliers', asNumber('1 234,56') === 1234.56, asNumber('1 234,56'))
+  check('convention anglaise également traitée', asNumber('$1,234.56') === 1234.56, asNumber('$1,234.56'))
+  check('texte non numérique refusé', asNumber('sur demande') === undefined)
+  check('disponibilité laissée inconnue par défaut', mapped?.availabilityStatus === 'unknown')
+  check(
+    'annonce sans identifiant écartée',
+    mapMcpItem({ name: 'X' }, { name: 'n', server: { name: 'n', url: 'https://x.tld' }, tool: 't', arguments: {}, legalBasis: 'test', fields: { sourceId: 'id', title: 'name' } }, GEO) === null
+  )
+
+  heading('8. Sources MCP déclarées — validation stricte')
+  const registry = loadMcpProviderConfigs(
+    JSON.stringify({
+      sources: [
+        { name: 'liteapi', server: { url: 'https://x.tld/mcp' }, tool: 't', fields: { sourceId: 'id', title: 'n' }, legalBasis: 'x' },
+        { name: 'sans-base', server: { url: 'https://x.tld/mcp' }, tool: 't', fields: { sourceId: 'id', title: 'n' } },
+        { name: 'en-clair', server: { url: 'http://x.tld/mcp' }, tool: 't', fields: { sourceId: 'id', title: 'n' }, legalBasis: 'x' },
+        { name: 'valide', server: { url: 'https://x.tld/mcp' }, tool: 't', fields: { sourceId: 'id', title: 'n' }, legalBasis: 'API publique' },
+        { name: 'coupée', enabled: false, server: { url: 'https://x.tld/mcp' }, tool: 't', fields: { sourceId: 'id', title: 'n' }, legalBasis: 'x' }
+      ]
+    })
+  )
+  check('une seule source retenue', registry.configs.length === 1, registry.configs.map((c) => c.name))
+  check('nom réservé refusé', registry.rejected.some((r) => r.name === 'liteapi'))
+  check('base légale exigée', registry.rejected.some((r) => r.reason.includes('legalBasis')))
+  check('HTTP en clair refusé', registry.rejected.some((r) => r.name === 'en-clair'))
+  check('source désactivée ignorée sans erreur', !registry.rejected.some((r) => r.name === 'coupée'))
+  check('JSON illisible signalé, pas levé', loadMcpProviderConfigs('{').rejected.length === 1)
+
+  heading('9. Agrégation — un échec de source n’arrête pas les autres')
+  // Aucun identifiant fourni : Booking doit échouer proprement, sans lever.
+  //
+  // Gîtes de France et VRBO sont de nouveau enregistrés depuis le
+  // 2026-09-01, mais **seulement sous `enableWebScrape`**. CozyCozy n'est
+  // plus une source. L'appel ci-dessous ne l'active pas : il ne reste donc que
+  // Booking. Expedia et LiteAPI restent hors du moteur.
+  const engine = buildEngine({ vault: () => undefined })
+  const report = await engine.search(PARAMS)
+  for (const outcome of report.outcomes) {
+    console.log(`  ${outcome.provider.padEnd(16)} ${outcome.results.length} résultat(s)  ${outcome.error ?? 'OK'}`)
+  }
+  check('seules les sources retenues sont interrogées', report.outcomes.length === 1, report.outcomes.length)
+  check(
+    'aucun connecteur retiré n’est enregistré',
+    !report.outcomes.some((o) =>
+      ['liteapi', 'expedia', 'expedia-web', 'gites-web', 'cozycozy-web', 'vrbo-web'].includes(
+        o.provider
+      )
+    ),
+    report.outcomes.map((o) => o.provider).join(', ')
+  )
+  check(
+    'Booking sans jeton : 0 offre, pas une exception (repli booking-web)',
+    report.outcomes.find((o) => o.provider === 'booking')?.error == null &&
+      report.outcomes.find((o) => o.provider === 'booking')?.results.length === 0
+  )
+  check('l’agrégat n’a pas levé', true)
+
+  heading('11. Zone géographique — emprise du domaine et rejet des hors-zone')
+
+  /**
+   * Coordonnées **lues dans le référentiel livré** (`data/referentiel.json`),
+   * pas estimées : ce sont celles que l'application envoie réellement aux
+   * sources. Trois domaines de tailles très différentes, parce que c'est
+   * exactement ce qu'une emprise fixe rate — les 3 Vallées débordent d'une
+   * petite boîte, un domaine des Vosges se noie dans une grande.
+   */
+  const PARIS = { lat: 48.8566, lon: 2.3522 }
+
+  // — Les 3 Vallées, vues depuis Val Thorens – Orelle (150 km de pistes).
+  const troisVallees = searchZone(45.298, 6.58, domainRadiusKm(150))
+  const stations3V = [
+    { name: 'Val Thorens', lat: 45.298, lon: 6.58 },
+    { name: 'Les Menuires – Saint-Martin', lat: 45.325, lon: 6.539 },
+    { name: 'Méribel', lat: 45.396, lon: 6.566 },
+    { name: 'Courchevel', lat: 45.415, lon: 6.635 },
+    { name: 'Orelle', lat: 45.216, lon: 6.548 },
+    { name: 'Brides-les-Bains', lat: 45.452, lon: 6.567 }
+  ]
+  check(
+    'Les 3 Vallées — les six stations du domaine sont dans la boîte',
+    stations3V.every((st) => boxContains(troisVallees, st.lat, st.lon)),
+    stations3V.filter((st) => !boxContains(troisVallees, st.lat, st.lon)).map((st) => st.name)
+  )
+  check('Les 3 Vallées — Paris est hors de la boîte', !boxContains(troisVallees, PARIS.lat, PARIS.lon))
+
+  // — Paradiski, vu depuis La Plagne (225 km de pistes).
+  const paradiski = searchZone(45.507, 6.678, domainRadiusKm(225))
+  const stationsParadiski = [
+    { name: 'La Plagne', lat: 45.507, lon: 6.678 },
+    { name: 'Les Arcs – Peisey-Vallandry', lat: 45.572, lon: 6.829 },
+    { name: 'Champagny-en-Vanoise', lat: 45.462, lon: 6.716 },
+    { name: 'Montchavin – Les Coches', lat: 45.567, lon: 6.735 },
+    { name: 'Villaroger', lat: 45.611, lon: 6.899 }
+  ]
+  check(
+    'Paradiski — les cinq stations du domaine sont dans la boîte',
+    stationsParadiski.every((st) => boxContains(paradiski, st.lat, st.lon)),
+    stationsParadiski.filter((st) => !boxContains(paradiski, st.lat, st.lon)).map((st) => st.name)
+  )
+  check('Paradiski — Paris est hors de la boîte', !boxContains(paradiski, PARIS.lat, PARIS.lon))
+
+  // — Le Lac Blanc – Orbey, Vosges (14 km de pistes) : la boîte doit rester
+  //   petite, sinon le rayon ne sert à rien.
+  const lacBlanc = searchZone(48.13, 7.104, domainRadiusKm(14))
+  check('Vosges — la station est dans sa propre boîte', boxContains(lacBlanc, 48.13, 7.104))
+  check('Vosges — Paris est hors de la boîte', !boxContains(lacBlanc, PARIS.lat, PARIS.lon))
+  check('Vosges — Colmar (18 km à l’est) est hors de la boîte', !boxContains(lacBlanc, 48.0794, 7.3585))
+  check(
+    'Vosges — un petit domaine reçoit une emprise plus petite qu’un grand',
+    lacBlanc.radiusKm < troisVallees.radiusKm && troisVallees.radiusKm < paradiski.radiusKm,
+    { vosges: lacBlanc.radiusKm, troisVallees: troisVallees.radiusKm, paradiski: paradiski.radiusKm }
+  )
+
+  // — Le piège du rayon en degrés : la boîte doit être plus large en degrés de
+  //   longitude que de latitude, sans quoi le rayon est faux d’un tiers.
+  const dLat = troisVallees.north - troisVallees.lat
+  const dLon = troisVallees.east - troisVallees.lon
+  check('boîte corrigée du cosinus de la latitude', dLon > dLat * 1.3, { dLat, dLon })
+  check(
+    'le bord nord est bien à la distance du rayon',
+    Math.abs(distanceKm(troisVallees.lat, troisVallees.lon, troisVallees.north, troisVallees.lon) - troisVallees.radiusKm) < 0.5
+  )
+  check(
+    'le bord est aussi',
+    Math.abs(distanceKm(troisVallees.lat, troisVallees.lon, troisVallees.lat, troisVallees.east) - troisVallees.radiusKm) < 0.5
+  )
+
+  // — Verdict par annonce, et filtre de l’agrégat.
+  check('annonce dans la station : retenue', zoneVerdict(troisVallees, 45.3, 6.58) === 'in')
+  check('annonce à Paris : rejetée', zoneVerdict(troisVallees, PARIS.lat, PARIS.lon) === 'out')
+  check('annonce sans position : verdict inconnu, pas un rejet', zoneVerdict(troisVallees, undefined, undefined) === 'unknown')
+  check(
+    'la marge est appliquée, pas ignorée',
+    zoneVerdict(troisVallees, 45.298 + (troisVallees.radiusKm + OUT_OF_ZONE_MARGIN_KM - 1) / 110.574, 6.58) === 'in' &&
+      zoneVerdict(troisVallees, 45.298 + (troisVallees.radiusKm + OUT_OF_ZONE_MARGIN_KM + 2) / 110.574, 6.58) === 'out'
+  )
+
+  const mixed = [
+    { title: 'Résidence à Val Thorens', latitude: 45.297, longitude: 6.581 },
+    { title: 'Studio à Paris 15e', latitude: PARIS.lat, longitude: PARIS.lon },
+    { title: 'Appartement à Barcelone', latitude: 41.3874, longitude: 2.1686 },
+    { title: 'Chalet sans position', latitude: undefined, longitude: undefined }
+  ]
+  const zoned = filterToZone(mixed, troisVallees, (a) => ({ lat: a.latitude, lon: a.longitude }))
+  check('deux hors-zone rejetés', zoned.rejected.length === 2, zoned.rejected.map((a) => a.title))
+  check('aucune autre ville dans le résultat', !zoned.kept.some((a) => /Paris|Barcelone/.test(a.title)))
+  check('annonce sans position conservée et comptée à part', zoned.unlocated === 1 && zoned.kept.length === 2)
+
+  // — La règle du « lot égaré », celle qui a laissé passer Arcachon pour Arc 2000.
+  //
+  // Une source qui a compris une autre commune rend surtout des offres hors
+  // zone. Ses offres **sans position** viennent du même endroit : les garder
+  // parce qu'elles se taisent revient à laisser entrer précisément celles qu'on
+  // ne peut pas vérifier. Le test se fait par source, sur le rapport entre
+  // situées-en-zone et rejetées.
+  const egare = [
+    { title: 'Appartement à Arcachon', latitude: 44.658, longitude: -1.168 },
+    { title: 'Villa au Cap Ferret', latitude: 44.63, longitude: -1.24 },
+    { title: 'Studio à Arcachon centre', latitude: 44.66, longitude: -1.16 },
+    { title: 'Logement sans position', latitude: undefined, longitude: undefined }
+  ]
+  const zEgare = filterToZone(egare, troisVallees, (a) => ({ lat: a.latitude, lon: a.longitude }))
+  const situeesEgare = zEgare.kept.filter((a) => coordsUsable(a.latitude, a.longitude))
+  check('lot égaré : trois offres situées hors zone', zEgare.rejected.length === 3)
+  check('lot égaré : aucune offre située ne survit', situeesEgare.length === 0)
+  check(
+    'lot égaré : la règle écarte aussi l’offre sans position',
+    situeesEgare.length < zEgare.rejected.length && zEgare.kept.length === 1
+  )
+
+  // Le cas symétrique : une source juste, dont une offre se tait, garde tout.
+  const juste = [
+    { title: 'Résidence Val Thorens', latitude: 45.297, longitude: 6.581 },
+    { title: 'Chalet Les Menuires', latitude: 45.32, longitude: 6.54 },
+    { title: 'Studio sans position', latitude: undefined, longitude: undefined },
+    { title: 'Erreur isolée à Paris', latitude: PARIS.lat, longitude: PARIS.lon }
+  ]
+  const zJuste = filterToZone(juste, troisVallees, (a) => ({ lat: a.latitude, lon: a.longitude }))
+  const situeesJuste = zJuste.kept.filter((a) => coordsUsable(a.latitude, a.longitude))
+  check(
+    'source juste : une erreur isolée n’écarte pas les offres muettes',
+    situeesJuste.length >= zJuste.rejected.length && zJuste.kept.length === 3
+  )
+
+  heading('6. Familles de centrales — Ingénie vs le reste')
+  check('2 Alpes est Ingénie', !isKnownNonIngenie('https://reservation.les2alpes.com/'))
+  check('Tignes est Ingénie', !isKnownNonIngenie('reservation.tignes.net'))
+  check('Chamonix est Orchestra', bookingFamilyOf('https://booking.chamonix.com/fr/') === 'orchestra')
+  check('Alpe d’Huez est Ublo, pas Ingénie', bookingFamilyOf('reservation.alpedhuez.com') === 'ublo')
+  check('Valberg est Ublo, pas Ingénie', bookingFamilyOf('www.valberg.com') === 'ublo')
+  check('Écrins est Ublo (PDE)', bookingFamilyOf('www.paysdesecrins.com') === 'ublo')
+  check('La Bresse est Open System', bookingFamilyOf('www.labresse.net') === 'opensystem')
+  check('La Toussuire est Open System', bookingFamilyOf('reservation.la-toussuire.com') === 'opensystem')
+  check('Sancy n’est pas Ingénie', bookingFamilyOf('www.sancy.com') === 'sancy')
+  check('Pralognan = locvacances', bookingFamilyOf('www.reservationpralognan.fr') === 'locvacances')
+  check('La Clusaz famille = deskline', bookingFamilyOf('www.laclusaz.com') === 'deskline')
+
+  heading('7. Booking — la pagination, et son garde-fou')
+  const stay = { destination: 'Les 2 Alpes', checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 2 }
+  check('page 1 : aucun paramètre de rang', !bookingSearchUrl(stay).includes('offset'))
+  check('page 2 : rang 25', bookingSearchUrl(stay, 25).includes('offset=25'), bookingSearchUrl(stay, 25))
+  check(
+    'la pagination ne touche à rien d’autre',
+    bookingSearchUrl(stay, 50).includes('checkin=2027-02-06') &&
+      bookingSearchUrl(stay, 50).includes('ss=Les+2+Alpes')
+  )
+
+  /** Une page de `n` cartes distinctes, numérotées à partir de `from`. */
+  const cards = (from: number, n: number): RawCard[] =>
+    Array.from({ length: n }, (_, i) => ({
+      sourceId: `h${from + i}`,
+      title: `Hôtel ${from + i}`,
+      url: `https://www.booking.com/hotel/fr/h${from + i}.html`
+    }))
+
+  const pagesVues: string[] = []
+  const troisPages = await collectBookingPages(stay, async (url) => {
+    pagesVues.push(url)
+    const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+    // Deux pages pleines, puis une page courte : la fin de la liste.
+    return rang === 0 ? cards(0, 25) : rang === 25 ? cards(25, 25) : cards(50, 9)
+  })
+  check('trois pages parcourues', pagesVues.length === 3, pagesVues.length)
+  check('cinquante-neuf biens ramenés', troisPages.length === 59, troisPages.length)
+  check('aucun doublon', new Set(troisPages.map((c) => c.sourceId)).size === troisPages.length)
+
+  // Le garde-fou : si Booking cessait d'honorer `offset`, chaque page rendrait
+  // la même liste. On doit s'en apercevoir à la deuxième, pas à la cinquième.
+  let appels = 0
+  const figé = await collectBookingPages(stay, async () => {
+    appels++
+    return cards(0, 25)
+  })
+  check('rang ignoré : on s’arrête à la deuxième page', appels === 2, appels)
+  check('et on rend la première page, pas une erreur', figé.length === 25, figé.length)
+
+  let vide = 0
+  const rien = await collectBookingPages(stay, async () => {
+    vide++
+    return []
+  })
+  check('page vide : une seule lecture', vide === 1 && rien.length === 0)
+
+  const plafond: string[] = []
+  const bridé = await collectBookingPages(
+    stay,
+    async (url) => {
+      plafond.push(url)
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return cards(rang, 25)
+    },
+    5
+  )
+  check('le plafond de pages tient', plafond.length === 5 && bridé.length === 125, plafond.length)
+
+  const trente: string[] = []
+  const jusqua30 = await collectBookingPages(
+    stay,
+    async (url) => {
+      trente.push(url)
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return cards(rang, 25)
+    }
+  )
+  check(
+    'défaut SEARCH_WALK : 15 pages Booking, pas 16',
+    trente.length === 15 && jusqua30.length === 375 && paginationOf(jusqua30)?.stoppedReason === 'max_pages',
+    { pages: trente.length, n: jusqua30.length, stop: paginationOf(jusqua30)?.stoppedReason }
+  )
+
+  const page1 = cards(0, 25)
+  const page2 = cards(25, 25)
+  const union = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return rang === 0 ? page1 : rang === 25 ? page2 : []
+    }
+  )
+  check('T2 Booking offset 0 ∪ N > page 1', union.length === 50 && union.length > page1.length)
+  check('T1 ids page 2 exclusifs dans l’union', new Set(union.map((c) => c.sourceId)).size === 50)
+  check(
+    'SEARCH_WALK Booking 15 · Gîtes 15 · Airbnb tout le catalogue · Abritel jusqu’à l’annoncé',
+    SEARCH_WALK.maxPages === 15 &&
+      SEARCH_WALK.gitesMaxPages === 15 &&
+      SEARCH_WALK.airbnbMaxPages >= 80 &&
+      SEARCH_WALK.airbnbMaxScrolls >= 80 &&
+      SEARCH_WALK.airbnbMaxListings > SEARCH_WALK.maxListings &&
+      SEARCH_WALK.cozyMaxScrolls >= 40
+  )
+  check('T5 hôtel tuile Airbnb drop', isPrivateOrSharedListing('Hôtel · Les Deux Alpes') === true)
+  check('T5 chambre privée drop', isPrivateOrSharedListing('Private room') === true)
+  check('T5 chambre d’hôtes drop', isPrivateOrSharedListing("Chambre d'hôtes") === true)
+  check('T5 type absent conservé (pas 0 premature)', isPrivateOrSharedListing(undefined) === false)
+  check('T5 appartement entire keep', isPrivateOrSharedListing('Appartement') === false)
+  check('annoncé 87 établissements', parseAdvertisedCount('Les 2 Alpes : 87 établissements trouvés') === 87)
+  check('annoncé ignore 3 chambres', parseAdvertisedCount('Appartement · 3 chambres') === null)
+  check('annoncé « 1–25 sur 487 » = 487', parseAdvertisedCount('1-25 sur 487 logements') === 487)
+  check('annoncé Gîtes « 33 Résultats »', parseAdvertisedCount('33 Résultats') === 33)
+  check(
+    'Cozy getResultList filteredCountInBounds',
+    advertisedFromCozyPayload({ filteredCountInBounds: 170, filteredCount: 180, allCount: 335 }) === 170
+  )
+  check('Cozy payload vide → null', advertisedFromCozyPayload({}) === null)
+
+  const session = bookingUrlWithOffset(
+    'https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes&dest_id=-145000&dest_type=city&offset=0',
+    25
+  )
+  check(
+    'page 2 reprend dest_id de la session',
+    Boolean(session && session.includes('offset=25') && session.includes('dest_id=-145000')),
+    session
+  )
+
+  const pageSized: RawCard[] = []
+  for (let i = 0; i < 50; i++) pageSized.push({ sourceId: `p${i}`, title: `P${i}`, url: `https://b.test/${i}` })
+  pageSized[0] = { ...pageSized[0], advertisedTotal: 25 }
+  let sizedPages = 0
+  const sizedWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      sizedPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return pageSized.slice(rang, rang + 25)
+    },
+    3
+  )
+  check(
+    'annoncé = taille de page (25) n’arrête pas le walk',
+    sizedWalk.length === 50 && sizedPages >= 2,
+    { n: sizedWalk.length, pages: sizedPages, stop: paginationOf(sizedWalk)?.stoppedReason }
+  )
+
+  const announced: RawCard[] = []
+  for (let i = 0; i < 40; i++) announced.push({ sourceId: `a${i}`, title: `A${i}`, url: `https://b.test/${i}` })
+  announced[0] = { ...announced[0], advertisedTotal: 40 }
+  let advPages = 0
+  const advWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      advPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return announced.slice(rang, rang + 25)
+    }
+  )
+  check(
+    'walk s’arrête au total annoncé (40), pas 15 pages',
+    advWalk.length === 40 && advPages === 2 && paginationOf(advWalk)?.stoppedReason === 'advertised',
+    { n: advWalk.length, pages: advPages, stop: paginationOf(advWalk)?.stoppedReason }
+  )
+
+  const shortFirst: RawCard[] = []
+  for (let i = 0; i < 80; i++) shortFirst.push({ sourceId: `s${i}`, title: `S${i}`, url: `https://b.test/s${i}` })
+  shortFirst[0] = { ...shortFirst[0], advertisedTotal: 80 }
+  let shortPages = 0
+  const shortWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      shortPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      if (rang === 0) return shortFirst.slice(0, 15)
+      return shortFirst.slice(rang, rang + 25)
+    },
+    5
+  )
+  check(
+    'page 1 incomplète (15) + annoncé 80 → on continue',
+    shortWalk.length > 15 && shortPages >= 2,
+    { n: shortWalk.length, pages: shortPages, stop: paginationOf(shortWalk)?.stoppedReason }
+  )
+
+  const noAdv: RawCard[] = []
+  for (let i = 0; i < 41; i++) noAdv.push({ sourceId: `n${i}`, title: `N${i}`, url: `https://b.test/n${i}` })
+  let noAdvPages = 0
+  const noAdvWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      noAdvPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      if (rang === 0) return noAdv.slice(0, 16)
+      return noAdv.slice(rang, rang + 25)
+    },
+    5
+  )
+  check(
+    'page 1 = 16 cartes sans annoncé → on tente page 2',
+    noAdvWalk.length > 16 && noAdvPages >= 2,
+    { n: noAdvWalk.length, pages: noAdvPages, stop: paginationOf(noAdvWalk)?.stoppedReason }
+  )
+
+  const overAdv: RawCard[] = []
+  for (let i = 0; i < 75; i++) overAdv.push({ sourceId: `o${i}`, title: `O${i}`, url: `https://b.test/o${i}` })
+  overAdv[0] = { ...overAdv[0], advertisedTotal: 16 }
+  let overPages = 0
+  const overWalk = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      overPages++
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      return overAdv.slice(rang, rang + 25)
+    },
+    5
+  )
+  check(
+    'annoncé 16 < page 25 → stop advertised (pas 75 no_fresh)',
+    overWalk.length === 25 && overPages === 1 && paginationOf(overWalk)?.stoppedReason === 'advertised',
+    { n: overWalk.length, pages: overPages, stop: paginationOf(overWalk)?.stoppedReason }
+  )
+
+  let blockedPages = 0
+  const afterBlock = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async () => {
+      blockedPages++
+      if (blockedPages === 1) return cards(0, 25)
+      throw new Error('challenge')
+    }
+  )
+  check('walk : page 2 bloquée, page 1 conservée', afterBlock.length === 25, afterBlock.length)
+  check(
+    'walk : stopped_reason blocked',
+    paginationOf(afterBlock)?.stoppedReason === 'blocked',
+    paginationOf(afterBlock)?.stoppedReason
+  )
+
+  const shortThenFull: string[] = []
+  const nearFull = await collectPages(
+    (offset) => `https://www.booking.com/searchresults.fr.html?offset=${offset}`,
+    25,
+    async (url) => {
+      shortThenFull.push(url)
+      const rang = Number(new URL(url).searchParams.get('offset') ?? 0)
+      if (rang === 0) return cards(0, 23)
+      if (rang === 25) return cards(25, 25)
+      return []
+    }
+  )
+  check(
+    'extract 23/25 n’arrête pas le walk (seuil 80 %)',
+    nearFull.length === 48 && shortThenFull.length >= 3,
+    { n: nearFull.length, pages: shortThenFull.length, stop: paginationOf(nearFull)?.stoppedReason }
+  )
+  check('pageLooksLast 23/25 = false', pageLooksLast(23, 25) === false)
+  check('pageLooksLast 15/25 = true', pageLooksLast(15, 25) === true)
+  check('pageLooksLast 0/1 Gîtes = true', pageLooksLast(0, 1) === true)
+  check(
+    'rapport collectPages stampé sur la liste d’offres',
+    paginationOfList(stampPagination([], paginationOf(nearFull)))?.pagesFetched ===
+      paginationOf(nearFull)?.pagesFetched
+  )
+
+  // Le budget de temps ne coupe pas une page en cours : il décide si l'on en
+  // ouvre une de plus. Budget nul = une seule page, celle sans laquelle il n'y
+  // aurait pas de relevé du tout.
+  let lues = 0
+  const pressé = await collectBookingPages(
+    stay,
+    async (url) => {
+      lues++
+      return cards(Number(new URL(url).searchParams.get('offset') ?? 0), 25)
+    },
+    5,
+    0
+  )
+  check('budget épuisé : la première page est lue quand même', lues === 1 && pressé.length === 25, lues)
+
+  heading('13. Sources rebranchées — capacité, pagination, VRBO')
+
+  /*
+   * Ce que cette section retient, et pourquoi.
+   *
+   * Les extracteurs eux-mêmes ne sont pas exerçables ici : ils s'exécutent dans
+   * la page par `page.evaluate`, et cette suite est hermétique. Ce qui se
+   * vérifie sans navigateur, c'est le **branchement** — les connecteurs sont-ils
+   * enregistrés, les URL paginent-elles, la capacité traverse-t-elle le
+   * mapping — et c'est précisément ce qui manquait.
+   */
+
+  // Problème 1 : le code des connecteurs existait, l'enregistrement manquait.
+  const moteurWeb = buildEngine({ vault: () => undefined, enableWebScrape: true })
+  for (const attendu of ['gites-web', 'vrbo-web', 'deskline', 'locvacances', 'diffusio']) {
+    check(`${attendu} est enregistré`, moteurWeb.names.includes(attendu), moteurWeb.names.join(', '))
+  }
+  check(
+    'CozyCozy n’est plus une source',
+    !moteurWeb.names.includes('cozycozy-web'),
+    moteurWeb.names.join(', ')
+  )
+  check(
+    'Tourinsoft n’est plus une source',
+    !moteurWeb.names.includes('tourinsoft'),
+    moteurWeb.names.join(', ')
+  )
+  check(
+    'les connecteurs non vérifiés restent dehors',
+    !moteurWeb.names.includes('expedia-web'),
+    moteurWeb.names.join(', ')
+  )
+
+  // Problème 3 : la pagination n'existait que chez Booking. `collectPages` la
+  // rend générique, y compris pour les sites qui numérotent les pages (pas 1).
+  const pagesGites: number[] = []
+  const lot = await collectPages(
+    (offset) => gitesSearchUrl(stay, offset),
+    1,
+    async (url) => {
+      const raw = new URL(url).searchParams.get('page')
+      const page = raw == null ? 0 : Number(raw)
+      pagesGites.push(page)
+      return page < 2 ? cards(page * 10, 1) : []
+    }
+  )
+  check('pagination Gîtes Drupal : 0 puis 1 puis 2 (vide)', pagesGites.join(',') === '0,1,2', pagesGites.join(','))
+  check('les deux pages non vides sont rendues', lot.length === 2, lot.length)
+  check('page 1 sans paramètre', !gitesSearchUrl(stay).includes('page='))
+  check('offset 0-based 1 → page=1 (pas page=2)', gitesSearchUrl(stay, 1).includes('page=1') && !gitesSearchUrl(stay, 1).includes('page=2'), gitesSearchUrl(stay, 1))
+  const gitesSerp: RawCard[] = []
+  for (let i = 0; i < 33; i++) gitesSerp.push({ sourceId: `gd${i}`, title: `GD${i}`, url: `https://g.test/gd${i}` })
+  let gitesWalkPages = 0
+  const gitesWalk = await collectPages(
+    (offset) => gitesSearchUrl(stay, offset),
+    1,
+    async (url) => {
+      gitesWalkPages++
+      const raw = new URL(url).searchParams.get('page')
+      const page = raw == null ? 0 : Number(raw)
+      const slice = gitesSerp.slice(page * 20, page * 20 + 20).map((c) => ({ ...c }))
+      if (slice[0] && page === 0) slice[0].advertisedTotal = 33
+      return slice
+    }
+  )
+  check(
+    'Gîtes 20+13 = 33 (page=1, pas saut page=2)',
+    gitesWalk.length === 33 && gitesWalkPages >= 2,
+    { n: gitesWalk.length, pages: gitesWalkPages, stop: paginationOf(gitesWalk)?.stoppedReason }
+  )
+  check(
+    'Gîtes Les 2 Alpes : towns=50301 (contournement GET)',
+    gitesSearchUrl(stay).includes('towns=50301') &&
+      gitesSearchUrl(stay).includes('travelers=2') &&
+      !gitesSearchUrl(stay).includes('search%5Bvalue%5D') &&
+      !gitesSearchUrl(stay).includes('entity_id='),
+    gitesSearchUrl(stay)
+  )
+  check('Gîtes : date-start / date-end', gitesSearchUrl(stay).includes('date-start=2027-02-06') && gitesSearchUrl(stay).includes('date-end=2027-02-13'))
+  const gitesOther = gitesSearchUrl({ ...stay, destination: 'Val Thorens' })
+  check(
+    'Gîtes hors dump : destination= (pas towns=)',
+    gitesOther.includes('destination=Val+Thorens') && !gitesOther.includes('towns='),
+    gitesOther
+  )
+  const gitesKar = gitesSearchUrl({ ...stay, destination: 'Les Karellis' })
+  check('Gîtes Karellis : towns=64400', gitesKar.includes('towns=64400') && gitesKar.includes('travelers='), gitesKar)
+  const gitesMontricher = gitesSearchUrl({ ...stay, destination: 'Montricher-Albanne' })
+  check('Gîtes Montricher : towns=64400', gitesMontricher.includes('towns=64400'), gitesMontricher)
+  const gitesAng = gitesSearchUrl({ ...stay, destination: 'Les Angles' })
+  check('Gîtes Les Angles : towns=61540', gitesAng.includes('towns=61540'), gitesAng)
+  const gitesAngCor = gitesSearchUrl({ ...stay, destination: 'Les Angles-sur-Corrèze' })
+  check('Gîtes Angles-sur-Corrèze : pas 61540', !gitesAngCor.includes('towns=61540'), gitesAngCor)
+  const gitesVars = gitesSearchUrl({ ...stay, destination: 'Vars' })
+  check('Gîtes Vars : towns=38123', gitesVars.includes('towns=38123'), gitesVars)
+  const gitesRoseix = gitesSearchUrl({ ...stay, destination: 'Vars-sur-Roseix' })
+  check('Gîtes Vars-sur-Roseix : pas 38123', !gitesRoseix.includes('towns=38123'), gitesRoseix)
+  check('page_index stampée sur la 1re carte', lot[0]?.pageIndex === 0, lot[0]?.pageIndex)
+  check('page_index de la 2e page', lot[1]?.pageIndex === 1, lot[1]?.pageIndex)
+  const rapport = paginationOf(lot)
+  check('stopped_reason exhausted', rapport?.stoppedReason === 'exhausted', rapport?.stoppedReason)
+  check('pages_fetched = 3', rapport?.pagesFetched === 3, rapport?.pagesFetched)
+  check('T4 pages_fetched>=2 quand has_next', (rapport?.pagesFetched ?? 0) >= 2)
+  const run = formatStationRun(stay, [
+    {
+      provider: 'booking-web',
+      fetched: lot.length,
+      parsed: lot.length,
+      shown: lot.length,
+      pages_fetched: rapport?.pagesFetched ?? 0,
+      stopped_reason: rapport?.stoppedReason,
+      reason_code: 'ok'
+    }
+  ])
+  check('T4 station_run pages_fetched>=2', run.sources[0]?.pages_fetched >= 2)
+  check('T4 fork pas F5 si pages>=2', run.sources[0]?.fork !== 'F5')
+
+  // Problème 1b : VRBO n'avait aucune URL de recherche.
+  const vrbo = vrboSearchUrl(stay, 50)
+  check('Abritel : destination transmise', vrbo.includes('destination=Les+2+Alpes'), vrbo)
+  check('Abritel : dates transmises', vrbo.includes('startDate=2027-02-06'), vrbo)
+  check('Abritel : rang de départ', vrbo.includes('startIndex=50'), vrbo)
+  check('Abritel : fiche sur abritel.fr', vrbo.includes('abritel.fr'), vrbo)
+  check('Abritel : première page sans rang', !vrboSearchUrl(stay).includes('startIndex'))
+
+  // Problème 4 : la capacité, que le mapping perdait.
+  const avecCapacite = normalizeBooking(
+    { id: 42, name: 'Chalet', url: 'https://x', max_occupancy: 8, rooms: 3 },
+    undefined,
+    stay
+  )
+  check('capacité lue quand la source la publie', avecCapacite?.guests === 8, avecCapacite?.guests)
+  const sansCapacite = normalizeBooking({ id: 43, name: 'Studio', url: 'https://y' }, undefined, stay)
+  check(
+    'capacité absente : elle reste absente, jamais la demande',
+    sansCapacite?.guests === undefined,
+    sansCapacite?.guests
+  )
+
+  heading('14. centrals.ts branché + reason_code')
+  check('CENTRALS chargé (74 attendues)', centralsLoaded() >= 74, centralsLoaded())
+  check('Les 2 Alpes = ingenie', familyOfHost('reservation.les2alpes.com') === 'ingenie')
+  check('Chamonix = ceto', familyOfHost('booking.chamonix.com') === 'ceto')
+  check('Karellis = not_wired', familyOfHost('www.karellis.com') === 'not_wired')
+  check('Valberg = ublo (ids dumpés)', familyOfHost('www.valberg.com') === 'ublo')
+  check('Écrins = ublo (ids dumpés)', familyOfHost('www.paysdesecrins.com') === 'ublo')
+  check('La Clusaz = deskline', familyOfHost('www.laclusaz.com') === 'deskline')
+  check('Pralognan = locvacances', familyOfHost('www.reservationpralognan.fr') === 'locvacances')
+  check('Sancy = diffusio', familyOfHost('www.sancy.com') === 'diffusio')
+  check('Les Angles = tourinsoft', familyOfHost('lesangles.com') === 'tourinsoft')
+  check('Vars Elloha = not_wired', familyOfHost('www.alpes-sudlocations.com') === 'not_wired')
+  check(
+    'sans URL officielle → no_official_url',
+    emptyStationReason(undefined) === 'no_official_url'
+  )
+  check(
+    'Karellis officiel → not_wired',
+    emptyStationReason('https://www.karellis.com/') === 'not_wired'
+  )
+  check(
+    'Valberg officiel → delegated (ublo)',
+    emptyStationReason('https://www.valberg.com/sejourner/reserver-votre-sejour/') === 'delegated'
+  )
+  check(
+    'Écrins officiel → delegated (ublo)',
+    emptyStationReason('https://www.paysdesecrins.com/hebergements/') === 'delegated'
+  )
+  check(
+    'La Clusaz officiel → delegated (deskline)',
+    emptyStationReason('https://www.laclusaz.com/') === 'delegated'
+  )
+  check(
+    'Pralognan officiel → delegated (locvacances)',
+    emptyStationReason('https://www.reservationpralognan.fr/') === 'delegated'
+  )
+  check(
+    'Sancy officiel → delegated (diffusio)',
+    emptyStationReason('https://www.sancy.com/hebergement/') === 'delegated'
+  )
+  check(
+    'Les Angles officiel → not_wired (Tourinsoft retiré)',
+    emptyStationReason('https://lesangles.com/tous-les-hebergements/') === 'not_wired'
+  )
+  check(
+    'Chamonix officiel → delegated (ceto)',
+    emptyStationReason('https://booking.chamonix.com/fr/') === 'delegated'
+  )
+  check(
+    'captcha message → blocked',
+    classifyProviderError('gites-web: relevé refusé par la source (captcha ou blocage anti-robot)') ===
+      'blocked'
+  )
+  check(
+    'sélecteurs → selector_miss',
+    classifyProviderError('vrbo-web: aucune carte extraite — la page a répondu, les sélecteurs sont à revoir') ===
+      'selector_miss'
+  )
+  check(
+    'challenge_unresolved',
+    classifyProviderError('CAPTCHA non résolu (3 min) [challenge_unresolved].') ===
+      'challenge_unresolved'
+  )
+  check(
+    'Bot or Not? (dump VRBO) → blocked',
+    classifyProviderError('vrbo-web: Bot or Not?') === 'blocked'
+  )
+  check(
+    'Robot ou pas robot (dump Abritel) → blocked',
+    classifyProviderError('vrbo-web: Robot ou pas robot ?') === 'blocked'
+  )
+  check(
+    'destination entity_id vide → empty_inventory',
+    classifyProviderError(
+      'gites-web: destination non résolue (entity_id vide) [empty_inventory]'
+    ) === 'empty_inventory'
+  )
+  check(
+    'T6 fetched=0 sans message → 0_after_parse (pas silence)',
+    classifyProviderError('') === '0_after_parse' && classifyProviderError(undefined) === '0_after_parse'
+  )
+  check(
+    'T6 F1 fetched=0',
+    forkOf({
+      provider: 'booking-web',
+      fetched: 0,
+      parsed: 0,
+      shown: 0,
+      pages_fetched: 0,
+      reason_code: '0_after_parse'
+    }) === 'F1'
+  )
+  check(
+    'T6 F2 blocked',
+    forkOf({
+      provider: 'vrbo-web',
+      fetched: 0,
+      parsed: 0,
+      shown: 0,
+      pages_fetched: 0,
+      reason_code: 'blocked'
+    }) === 'F2'
+  )
+  check(
+    'centrale 2 Alpes 1 SERP / 98 offres : pas F5',
+    forkOf({
+      provider: 'station-web',
+      fetched: 98,
+      parsed: 98,
+      shown: 98,
+      pages_fetched: 1,
+      stopped_reason: 'exhausted',
+      reason_code: 'ok'
+    }) === null
+  )
+  check('« Les 2 Alpes » ≡ « Les Deux Alpes »', !cityMismatch('Les 2 Alpes', 'Les Deux Alpes'))
+  check('commune vide : on ne jette pas', !cityMismatch(null, 'Les Deux Alpes'))
+  check(
+    'Bellecombe ≠ Giettaz',
+    cityMismatch('Notre-Dame-de-Bellecombe', 'La Giettaz')
+  )
+  check('normPlace 2 → deux', normPlace('Les 2 Alpes') === normPlace('Les Deux Alpes'))
+  const nextStay = mergeStationNextHref(
+    'https://reservation.les2alpes.com/booking?action=result&cid=5&datedeb=07/02/2027&duree=7',
+    '/sejour-semaine.html?page=2&mid=2&action=result&origine_affinage=true&idMenu=4226'
+  )
+  const nextStayUrl = nextStay ? new URL(nextStay) : null
+  check(
+    'PLUS DE RÉSULTATS recopie datedeb',
+    Boolean(
+      nextStayUrl &&
+        nextStayUrl.searchParams.get('page') === '2' &&
+        nextStayUrl.searchParams.get('datedeb') === '07/02/2027' &&
+        nextStayUrl.searchParams.get('cid') === '5'
+    ),
+    nextStay
+  )
+  check(
+    'Ceto hors station → delegated, pas F1',
+    emptyProviderReason('ceto-chamonix', 'https://reservation.les2alpes.com/', null) ===
+      'delegated' &&
+      forkOf({
+        provider: 'ceto-chamonix',
+        fetched: 0,
+        parsed: 0,
+        shown: 0,
+        pages_fetched: 0,
+        reason_code: 'delegated'
+      }) === null
+  )
+  check(
+    'Booking API sans jeton → not_wired, pas F1',
+    emptyProviderReason('booking', undefined, null) === 'not_wired' &&
+      forkOf({
+        provider: 'booking',
+        fetched: 0,
+        parsed: 0,
+        shown: 0,
+        pages_fetched: 0,
+        reason_code: 'not_wired'
+      }) === null
+  )
+  check(
+    'Demand API message → not_wired',
+    classifyProviderError(
+      'Booking.com : aucun jeton Demand API. Renseignez-le dans Réglages.'
+    ) === 'not_wired'
+  )
+
+  heading('15. Dumps 2026-09-01 — looksBlocked / Gîtes noResults')
+  check(
+    'VRBO « Bot or Not? » est un blocage',
+    pageLooksBlocked("Bot or Not? Show us your human side... We can't tell if you're a human or a bot.")
+  )
+  check(
+    'Abritel « Robot ou pas robot » est un blocage',
+    pageLooksBlocked('Robot ou pas robot ? Vous êtes humain, n’est-ce pas ?')
+  )
+  check(
+    'Cloudflare « Attention Required » est un blocage',
+    pageLooksBlocked('Attention Required! | Cloudflare Sorry, you have been blocked')
+  )
+  check(
+    'Gîtes Oups destination n’est pas un blocage',
+    !pageLooksBlocked(
+      'Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.'
+    )
+  )
+  check(
+    'regex historique « are you a robot » tient',
+    pageLooksBlocked('Are you a robot? Unusual traffic')
+  )
+  const gitesNoDest =
+    '<div class="g2f-searchResult-noResults"><p> Oups ! Vous devez affiner votre recherche de séjour en indiquant au moins une destination.</p></div>'
+  check(
+    'noResults + phrase dump → destination_missing',
+    gitesSearchEmptyKind(gitesNoDest) === 'destination_missing'
+  )
+  check(
+    'noResults seul → no_results (pas selector_miss)',
+    gitesSearchEmptyKind('<div class="g2f-searchResult-noResults"></div>') === 'no_results'
+  )
+  check(
+    'sans marqueur Gîtes → null',
+    gitesSearchEmptyKind('<article class="gite-card">rien</article>') === null
+  )
+
+  heading('16. CozyCozy dump 2026-09-02 — GET daté /results, pas le catalogue SEO')
+  const cozyStay = { ...stay, adults: 8, bedrooms: 4 }
+  const cozyUrl = cozycozySearchUrl(cozyStay)
+  check(
+    'CozyCozy Les 2 Alpes → /search/Les Deux Alpes station de ski…/4-8-0/results',
+    cozyUrl ===
+      'https://www.cozycozy.com/fr/search/Les%20Deux%20Alpes%20station%20de%20ski%2C%20France/2027-02-06/2027-02-13/4-8-0/results',
+    cozyUrl
+  )
+  check(
+    'lieu 2 Alpes dumpé',
+    cozycozyDatedPlace('Les 2 Alpes') === 'Les Deux Alpes station de ski, France'
+  )
+  check(
+    'CozyCozy Les Karellis → /search/Les%20Karellis%2C%20France/…/4-8-0/results',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Les Karellis' }) ===
+      'https://www.cozycozy.com/fr/search/Les%20Karellis%2C%20France/2027-02-06/2027-02-13/4-8-0/results'
+  )
+  check(
+    'CozyCozy Les Angles daté',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Les Angles' }).includes(
+      '/fr/search/Les%20Angles%2C%20France/'
+    ) &&
+      cozycozySearchUrl({ ...cozyStay, destination: 'Les Angles' }).endsWith('/4-8-0/results')
+  )
+  check(
+    'CozyCozy Vars daté',
+    cozycozySearchUrl({ ...cozyStay, destination: 'Vars' }).includes('/fr/search/Vars%2C%20France/')
+  )
+  const cozyMeribel = cozycozySearchUrl({
+    destination: 'Méribel, France',
+    checkIn: '2027-02-13',
+    checkOut: '2027-02-20',
+    adults: 8,
+    bedrooms: 4
+  })
+  check(
+    'CozyCozy Méribel (exemple fourni)',
+    cozyMeribel ===
+      'https://www.cozycozy.com/fr/search/M%C3%A9ribel%2C%20France/2027-02-13/2027-02-20/4-8-0/results',
+    cozyMeribel
+  )
+  const cozyOther = cozycozySearchUrl({
+    destination: 'Val Thorens',
+    checkIn: '2027-02-06',
+    checkOut: '2027-02-13',
+    adults: 8,
+    bedrooms: 4
+  })
+  check(
+    'CozyCozy hors dump : même path daté, {Nom}, France',
+    cozyOther.includes('/fr/search/Val%20Thorens%2C%20France/') && cozyOther.endsWith('/4-8-0/results'),
+    cozyOther
+  )
+  check('path daté : pas de e=', !cozyUrl.includes('e=4'))
+  const cozyNoDates = cozycozySearchUrl({ destination: 'Les 2 Alpes', adults: 8, bedrooms: 4 })
+  check(
+    'sans dates : catalogue SEO (pas /results)',
+    cozyNoDates === 'https://www.cozycozy.com/fr/location-vacances-les-2-alpes',
+    cozyNoDates
+  )
+  const cozyShell =
+    '<joli-root ng-version="16.2.6" ng-server-context="ssr"><router-outlet></router-outlet><joli-market>'
+  check(
+    'joli-root + router-outlet vide → spa_unlaunched',
+    cozycozySearchEmptyKind(cozyShell) === 'spa_unlaunched'
+  )
+  check(
+    'joli-root n’est pas un blocage',
+    !pageLooksBlocked('joli-root Explorer Favoris')
+  )
+  check(
+    'message SPA → 0_after_parse (pas selector_miss)',
+    classifyProviderError(
+      'cozycozy-web: SPA Cosmos montée, recherche non lancée (router-outlet vide) [0_after_parse]'
+    ) === '0_after_parse'
+  )
+  check(
+    'catalogue ResultItemPrice → plus spa_unlaunched',
+    cozycozySearchEmptyKind(
+      '<joli-root><div class="ResultItemPriceTotal">120 €</div></joli-root>'
+    ) === null
+  )
+  check(
+    'catalogue hoj_seo_card → plus spa_unlaunched',
+    cozycozySearchEmptyKind(
+      '<joli-root ng-version="16.2.6"><article class="hoj_seo_card">chalet 1032 €</article></joli-root>'
+    ) === null
+  )
+  check(
+    'SERP datée joli-resultitem → plus spa_unlaunched',
+    cozycozySearchEmptyKind(
+      '<joli-root><joli-resultitem><div class="pricetag-stacked">6692 € pour 7 nuits</div></joli-resultitem></joli-root>'
+    ) === null
+  )
+
+  heading('17. CozyCozy — /nuit = nuit ; « pour 7 nuits » = séjour')
+  const cozyNuit = webscrapePriceFields('cozycozy-web', 'À partir de 89 €/nuit')
+  check(
+    'CozyCozy 89 €/nuit → nightlyPrice, pas total',
+    cozyNuit.nightlyPrice === 89 && cozyNuit.totalPrice === undefined,
+    cozyNuit
+  )
+  const cozyBare = webscrapePriceFields('cozycozy-web', '89 €')
+  check(
+    'CozyCozy source seule, même sans « /nuit » dans le texte',
+    cozyBare.nightlyPrice === 89 && cozyBare.totalPrice === undefined,
+    cozyBare
+  )
+  const cozyStayPrice = webscrapePriceFields('cozycozy-web', '6692 € pour 7 nuits')
+  check(
+    'CozyCozy 6692 € pour 7 nuits → totalPrice (dump SERP datée)',
+    cozyStayPrice.totalPrice === 6692 && cozyStayPrice.nightlyPrice === undefined,
+    cozyStayPrice
+  )
+  check('texte « pour 7 nuits » est un séjour', looksStayPriceText('6692 € pour 7 nuits') === true)
+  check('texte « /nuit » n’est pas un séjour', looksStayPriceText('89 €/nuit') === false)
+  const bookingStay = webscrapePriceFields('booking-web', '1 200 €')
+  check(
+    'Booking 1 200 € → total de séjour',
+    bookingStay.totalPrice === 1200 && bookingStay.nightlyPrice === undefined,
+    bookingStay
+  )
+  check('texte « 120 €/nuit » est nightly', looksNightlyPriceText('120 €/nuit') === true)
+  check('texte « 1 200 € » n’est pas nightly', looksNightlyPriceText('1 200 €') === false)
+
+  heading('18. Gîtes — « À partir de N € par semaine » = indicatif, pas le séjour')
+  const gitesSemaine = webscrapePriceFields('gites-web', 'À partir de 1 700 € par semaine')
+  check(
+    'Gîtes 1 700 € /semaine → weeklyPrice, pas total',
+    gitesSemaine.weeklyPrice === 1700 && gitesSemaine.totalPrice === undefined,
+    gitesSemaine
+  )
+  const gitesBare = webscrapePriceFields('gites-web', '1 700 €')
+  check(
+    'Gîtes source seule, même sans « par semaine » dans le texte',
+    gitesBare.weeklyPrice === 1700 && gitesBare.totalPrice === undefined,
+    gitesBare
+  )
+  check(
+    'texte « À partir de 1 700 € par semaine » est weekly',
+    looksWeeklyFromPriceText('À partir de 1 700 € par semaine') === true
+  )
+  check(
+    'texte « Total 2448,40€ » n’est pas weekly',
+    looksWeeklyFromPriceText('Total 2448,40€') === false
+  )
+  check(
+    'Booking 1 200 € n’est pas weekly',
+    looksWeeklyFromPriceText('1 200 €') === false
+  )
+
+  heading('19. Abritel — getResultList CozyCozy, pas la SERP 429')
+  const cozyVrbo = parseCozyResultPayload({
+    entries: [
+      {
+        accommodationId: 11032591,
+        name: 'Beau Duplex Familial',
+        title: 'appartement',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 8 },
+        coordinates: { latitude: 45.00577, longitude: 6.11819 },
+        lightThumbnails: {
+          firstUrls: ['https://media.vrbo.com/lodging/19000000/x.jpg']
+        },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 3363.280029296875, indicative: false },
+            deeplinkUrl:
+              'https://prf.hn/click/camref:x/destination:https://www.abritel.fr/location-vacances/p6410325a?mpd=EUR&mpe=1',
+            fromDate: '2027-02-13',
+            toDate: '2027-02-20',
+            bedRoomCount: 4
+          }
+        ]
+      }
+    ]
+  })
+  check('1 fiche Abritel retenue', cozyVrbo.length === 1, cozyVrbo.length)
+  const cozyAirbnbFirst = parseCozyResultPayload({
+    entries: [
+      {
+        accommodationId: 99001,
+        name: 'Chalet mixte',
+        title: 'chalet',
+        subTitleDetails: { bedRoomCount: 3, guestCapacity: 8 },
+        highlightedResults: [
+          {
+            providerCode: 'airbnb',
+            providerName: 'airbnb.fr',
+            totalPrice: { value: 4100, indicative: false },
+            deeplinkUrl: 'https://www.airbnb.fr/rooms/1'
+          },
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 2697.81, indicative: false },
+            deeplinkUrl:
+              'https://prf.hn/click/camref:x/destination:https://www.abritel.fr/location-vacances/p99a'
+          }
+        ]
+      }
+    ]
+  })
+  check(
+    'Abritel retenu même si highlightedResults[0] est Airbnb',
+    cozyAirbnbFirst.length === 1 && cozyAirbnbFirst[0]?.stay === 2697.81,
+    cozyAirbnbFirst[0]
+  )
+  const batch2 = {
+    entries: [
+      cozyVrbo[0] && {
+        accommodationId: 11032591,
+        name: 'Beau Duplex Familial',
+        title: 'appartement',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 8 },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 3363.28, indicative: false },
+            deeplinkUrl: cozyVrbo[0].deeplink
+          }
+        ]
+      },
+      {
+        accommodationId: 11109514,
+        name: 'Chalet Cosy',
+        title: 'châlet',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 12 },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 5507.12, indicative: false },
+            deeplinkUrl: 'https://www.abritel.fr/location-vacances/p6412825a'
+          }
+        ]
+      }
+    ]
+  }
+  const batch3 = {
+    entries: [
+      {
+        accommodationId: 99900001,
+        name: 'Appart 3',
+        title: 'appartement',
+        subTitleDetails: { bedRoomCount: 4, guestCapacity: 8 },
+        highlightedResults: [
+          {
+            providerCode: 'abritel',
+            providerName: 'abritel.fr',
+            totalPrice: { value: 2100, indicative: false },
+            deeplinkUrl: 'https://www.abritel.fr/location-vacances/p2208204'
+          }
+        ]
+      }
+    ]
+  }
+  const one = parseCozyResultPayloads([ { entries: [batch2.entries[0]] } ])
+  const two = parseCozyResultPayloads([ { entries: [batch2.entries[0]] }, batch2 ])
+  const three = parseCozyResultPayloads([ { entries: [batch2.entries[0]] }, batch2, batch3 ])
+  check('T3 Abritel 1 batch < 3 batchs', one.length < three.length && two.length < three.length)
+  check('T3 dédup id entre batchs', three.filter((h) => String(h.accommodationId) === '11032591').length === 1)
+  check('total séjour 3363,28 € (pas la nuit)', cozyVrbo[0]?.stay === 3363.28, cozyVrbo[0]?.stay)
+  check('8 pers / 4 chb libellés', cozyVrbo[0]?.guests === 8 && cozyVrbo[0]?.bedrooms === 4)
+  check('photo media.vrbo.com', Boolean(cozyVrbo[0]?.photo?.includes('media.vrbo.com')))
+  check('famille Abritel', isVrboFamilyProvider('abritel', 'abritel.fr', cozyVrbo[0]?.deeplink) === true)
+  check(
+    'deeplink canonique Abritel sans mpd',
+    abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '').startsWith(
+      'https://www.abritel.fr/location-vacances/p6410325a'
+    ) && !abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '').includes('mpd=')
+  )
+  const datedFiche = abritelCanonicalUrl(cozyVrbo[0]?.deeplink ?? '', {
+    checkIn: '2027-02-13',
+    checkOut: '2027-02-20',
+    adults: 8
+  })
+  check(
+    'fiche Abritel datée (startDate + adults)',
+    datedFiche.includes('startDate=2027-02-13') &&
+      datedFiche.includes('endDate=2027-02-20') &&
+      datedFiche.includes('adults=8') &&
+      !datedFiche.includes('mpd=')
+  )
+  check(
+    'indicatif sauté',
+    parseCozyResultPayload({
+      entries: [
+        {
+          name: 'x',
+          highlightedResults: [
+            {
+              providerCode: 'airbnb',
+              totalPrice: { value: 10, indicative: true },
+              deeplinkUrl: 'https://www.airbnb.fr/rooms/1'
+            }
+          ]
+        }
+      ]
+    }).length === 0
+  )
+  const vrboStay = webscrapePriceFields('vrbo-web', '3363.28 € pour 7 nuits')
+  check(
+    'vrbo-web « pour 7 nuits » → total séjour',
+    vrboStay.totalPrice != null && vrboStay.nightlyPrice === undefined,
+    vrboStay
+  )
+
+  heading('9. Photos publiées — URL absolue, jamais un chemin relatif')
+  check(
+    'tuile Gîtes /sites/default/files → gites-de-france.com',
+    listingPhotoUrl(
+      '/sites/default/files/styles/landscape_375_240/public/images/x.jpg',
+      'https://www.gites-de-france.com/fr/isere/chalet-x-38g1'
+    ) === 'https://www.gites-de-france.com/sites/default/files/styles/landscape_375_240/public/images/x.jpg'
+  )
+  check(
+    'chemin Gîtes sans base d’annonce',
+    listingPhotoUrl('/sites/default/files/x.jpg') ===
+      'https://www.gites-de-france.com/sites/default/files/x.jpg'
+  )
+  check(
+    'picto / thème rejeté',
+    listingPhotoUrl('/themes/custom/g2f/build/svg/heart.svg', 'https://www.gites-de-france.com/') ===
+      undefined
+  )
+  const lazyTile = `<div class="g2f-accommodationTile-image">
+    <img src="/themes/custom/g2f/favicon/favicon-32x32.png" alt="">
+    <img loading="lazy" data-g2f-swiper-lazy="" data-srcset="/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122_14f76d537746f8047d1ce70054576c5b.jpg?itok=MBjhiKU9 375w" data-src="/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122_14f76d537746f8047d1ce70054576c5b.jpg?itok=MBjhiKU9" class="swiper-lazy">
+  </div>`
+  const lazyPhoto = gitesPhotoFromTileHtml(lazyTile)
+  check(
+    'tuile Gîtes lazy data-src + itok, picto ignoré',
+    lazyPhoto ===
+      'https://www.gites-de-france.com/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122_14f76d537746f8047d1ce70054576c5b.jpg?itok=MBjhiKU9',
+    lazyPhoto
+  )
+  check(
+    'tuile sans photo publiée : rien',
+    gitesPhotoFromTileHtml('<div class="g2f-accommodationTile-image"></div>') === undefined
+  )
+  check(
+    'srcset : premier token, pas les largeurs',
+    listingPhotoUrl('/a.jpg 375w, /b.jpg 520w', 'https://www.gites-de-france.com/fr/x') ===
+      'https://www.gites-de-france.com/a.jpg'
+  )
+  check(
+    'placeholder data: rejeté',
+    listingPhotoUrl('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') ===
+      undefined
+  )
+  check(
+    'protocole relatif //media.vrbo.com',
+    listingPhotoUrl('//media.vrbo.com/lodging/x.jpg', 'https://www.cozycozy.com/') ===
+      'https://media.vrbo.com/lodging/x.jpg'
+  )
+  check('sans URL publiée : rien', listingPhotoUrl(undefined, 'https://www.booking.com/') === undefined)
+  check(
+    'currentSrc HTML de recherche rejeté',
+    listingPhotoUrl(
+      'https://www.gites-de-france.com/fr/search?towns=50301',
+      'https://www.gites-de-france.com/fr/search?towns=50301'
+    ) === undefined
+  )
+  const fakeDom = [
+    {
+      sourceId: 'chalet-les-copains-38g253122',
+      title: 'Chalet les Copains',
+      url: 'https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122',
+      image: 'https://www.gites-de-france.com/fr/search?towns=50301'
+    }
+  ]
+  const mergedFake = mergeGitesCardsFromHtml(
+    fakeDom,
+    `<div class="js-search-tile">
+      <a href="/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122" title="Chalet les Copains" class="g2f-accommodationTile-image">
+        <img data-src="/sites/default/files/styles/landscape_375_240/public/images/468645/468645-0_253122.jpg?itok=abc">
+      </a>
+      <div class="g2f-accommodationTile-text-type">Gîte</div>
+      <div class="g2f-accommodationTile-text-capacity">5 chambres 14 personnes</div>
+      <div class="g2f-accommodationTile-text-price">À partir de 1 330 € par semaine</div>
+    </div>`
+  )
+  check(
+    'merge HTML remplace currentSrc search par Drupal + capacité',
+    Boolean(
+      mergedFake[0]?.image?.includes('253122') &&
+        mergedFake[0]?.image?.includes('itok=abc') &&
+        mergedFake[0]?.guests === 14 &&
+        mergedFake[0]?.bedrooms === 5
+    ),
+    mergedFake[0]
+  )
+
+  heading('Airbnb StaySearchResult — occupancy (F4)')
+  const stayNode = {
+    __typename: 'StaySearchResult',
+    demandStayListing: {
+      id: Buffer.from('DemandStayListing:40088811').toString('base64'),
+      location: { coordinate: { latitude: 45.456, longitude: 6.9 } },
+      personCapacity: 4
+    },
+    subtitle: 'Appartement en résidence · Modane',
+    title: 'Spacieux appartement cœur de station avec garage',
+    structuredContent: { primaryLine: '2 chambres · 6 lits · 1 salle de bain et 1 toilette' },
+    structuredDisplayPrice: { accessibilityLabel: '1 754 € au total' }
+  }
+  const occ = occupancyFromStaySearchResult(stayNode)
+  check('personCapacity → 4 voyageurs', occ.guests === 4, occ)
+  check('ligne « 2 chambres » → bedrooms 2', occ.bedrooms === 2, occ)
+  const clip = extractListingsFromDeferredState({ data: { results: [stayNode] } })
+  check('StaySearchResult clip porte guests+bedrooms', clip.listings[0]?.guests === 4 && clip.listings[0]?.bedrooms === 2)
+  check(
+    'StaySearchResult clip porte URL rooms/id',
+    clip.listings[0]?.url?.includes('/rooms/40088811') === true,
+    clip.listings[0]?.url
+  )
+  check(
+    'nom = title, pas le sous-titre lieu',
+    clip.listings[0]?.name === 'Spacieux appartement cœur de station avec garage'
+  )
+  const nightlyFirst = extractListingsFromDeferredState({
+    data: {
+      results: [
+        {
+          ...stayNode,
+          structuredDisplayPrice: {
+            primaryLine: { accessibilityLabel: '250 € / nuit' },
+            explanationData: { accessibilityLabel: '1 754 € au total' }
+          }
+        }
+      ]
+    }
+  })
+  check(
+    'priceLabelOf préfère « au total » au teaser /nuit',
+    nightlyFirst.listings[0]?.priceLabel === '1 754 € au total',
+    nightlyFirst.listings[0]?.priceLabel
+  )
+  check(
+    '8p dans le titre → 8 voyageurs',
+    occupancyFromPublishedText('Grand appartement Ski aux pieds 8p 63m2').guests === 8
+  )
+  check(
+    '10 personnes dans le titre → 10',
+    occupancyFromPublishedText('Appartement 10 personnes, 4 chambres').guests === 10 &&
+      occupancyFromPublishedText('Appartement 10 personnes, 4 chambres').bedrooms === 4
+  )
+  check(
+    'hôtel tuile écartée du clip',
+    extractListingsFromDeferredState({
+      data: {
+        results: [
+          {
+            __typename: 'StaySearchResult',
+            demandStayListing: {
+              id: Buffer.from('DemandStayListing:9').toString('base64')
+            },
+            subtitle: 'Hôtel · Les Deux Alpes',
+            title: 'Base Camp Lodge'
+          }
+        ]
+      }
+    }).listings.length === 0
+  )
+  check(
+    'sans occupancy : null, pas 0 inventé',
+    occupancyFromStaySearchResult({ __typename: 'StaySearchResult', subtitle: 'Les 2 Alpes' }).guests ===
+      undefined
+  )
+  check(
+    'bedroomCount numérique',
+    occupancyFromStaySearchResult({ bedroomCount: 4 }).bedrooms === 4
+  )
+
+  const stayOf = (id: string): Record<string, unknown> => ({
+    __typename: 'StaySearchResult',
+    demandStayListing: {
+      id: Buffer.from(`DemandStayListing:${id}`).toString('base64'),
+      personCapacity: 8,
+      bedroomCount: 4,
+      location: { coordinate: { latitude: 45.0, longitude: 6.1 } }
+    },
+    subtitle: 'Appartement entier',
+    title: `Chalet ${id}`,
+    structuredContent: { primaryLine: '4 chambres · 8 lits · 2 salles de bain' },
+    structuredDisplayPrice: { accessibilityLabel: '2 000 € au total' }
+  })
+  const airbnbPage1 = extractListingsFromDeferredState({ data: { results: [stayOf('111'), stayOf('222')] } })
+  const airbnbPage2 = extractListingsFromDeferredState({ data: { results: [stayOf('333'), stayOf('444')] } })
+  const page1Ids = new Set(airbnbPage1.listings.map((l) => l.id))
+  const page2Fresh = airbnbPage2.listings.filter((l) => !page1Ids.has(l.id))
+  check('T1 Airbnb page2 ids exclusifs', page2Fresh.length === 2 && page2Fresh.every((l) => l.id === '333' || l.id === '444'))
+  check(
+    'T1 union 4 ids',
+    new Set([...airbnbPage1.listings, ...airbnbPage2.listings].map((l) => l.id)).size === 4
+  )
+  check('T5 Airbnb entire keep', isPrivateOrSharedListing('Appartement entier') === false)
+  check('T5 Airbnb chambre privée drop', isPrivateOrSharedListing("Chambre privée chez l'habitant") === true)
+  check('T5 maison d’hôtes drop', isPrivateOrSharedListing("Maison d'hôtes ⋅ Les Deux Alpes") === true)
+
+  const omkarDates = { checkIn: '2027-02-06', checkOut: '2027-02-13', adults: 8 }
+  const omkar8p = mapOmkarSearchHit(
+    {
+      id: '1757046953983158073',
+      name: 'Grand appartement chaleureux Ski aux pieds 8p 63m2',
+      title: 'Appartement ⋅ Les Deux Alpes',
+      link: 'https://www.airbnb.fr/rooms/1757046953983158073',
+      summary: ['13 minutes à pied'],
+      bedrooms: null,
+      price: { amount: 2695, currency: 'EUR', qualifier: 'au total' },
+      coordinates: { latitude: 45.0162, longitude: 6.1286 },
+      images: ['https://a0.muscache.com/im/pictures/hosting/Hosting-1/original/x.jpg']
+    },
+    omkarDates
+  )
+  check('Omkar 8p : capacité depuis le titre', omkar8p?.guests === 8)
+  check('Omkar 8p : total séjour 2695', omkar8p?.priceLabel === '2695 € au total')
+  check('Omkar 8p : photo', Boolean(omkar8p?.image?.startsWith('https://a0.muscache.com/')))
+  check('Omkar 8p : GPS', omkar8p?.lat === 45.0162 && omkar8p?.lon === 6.1286)
+  check(
+    'Omkar 4 CH : chambres depuis le nom',
+    mapOmkarSearchHit(
+      {
+        id: '2',
+        name: 'Chalet Petite Mariande 4 CH 4 SDB',
+        title: 'Chalet ⋅ Les Deux Alpes',
+        price: { amount: 4000, currency: 'EUR' },
+        coordinates: { latitude: 45.01, longitude: 6.12 }
+      },
+      omkarDates
+    )?.bedrooms === 4
+  )
+  check(
+    'Omkar drop maison d’hôtes',
+    mapOmkarSearchHit(
+      {
+        id: '3',
+        name: 'Les 2 Alpes-Venosc/ SPA /Piscine',
+        title: "Maison d'hôtes ⋅ Les Deux Alpes",
+        price: { amount: 900, currency: 'EUR' }
+      },
+      omkarDates
+    ) === null
+  )
+  check(
+    'Omkar drop sans prix aux dates',
+    mapOmkarSearchHit({ id: '4', name: 'Studio', title: 'Appartement ⋅ Les Deux Alpes' }, omkarDates) ===
+      null
+  )
+  const omkarPage = mapOmkarSearchPage(
+    {
+      results: [
+        {
+          id: '111',
+          name: 'Appart 8p',
+          title: 'Appartement ⋅ Les Deux Alpes',
+          price: { amount: 2000, currency: 'EUR' }
+        },
+        {
+          id: '222',
+          name: 'Chalet 10 personnes',
+          title: 'Chalet ⋅ Les Deux Alpes',
+          price: { amount: 3100, currency: 'EUR' }
+        }
+      ]
+    },
+    omkarDates
+  )
+  const omkarPage2 = mapOmkarSearchPage(
+    {
+      results: [
+        {
+          id: '222',
+          name: 'Chalet 10 personnes',
+          title: 'Chalet ⋅ Les Deux Alpes',
+          price: { amount: 3100, currency: 'EUR' }
+        },
+        {
+          id: '333',
+          name: 'Duplex 8 personnes',
+          title: 'Appartement ⋅ Les Deux Alpes',
+          price: { amount: 2500, currency: 'EUR' }
+        }
+      ]
+    },
+    omkarDates
+  )
+  const omkarIds = new Set([...omkarPage, ...omkarPage2].map((l) => l.id))
+  check('Omkar T1 page2 apporte un id nouveau', omkarPage2.some((l) => l.id === '333') && omkarIds.size === 3)
+  check('Omkar clé absente', resolveOmkarAirbnbKey({}, {}) === undefined)
+  check('Omkar clé env', resolveOmkarAirbnbKey({}, { OMKAR_AIRBNB_KEY: ' ok_test ' }) === 'ok_test')
+  check('Omkar clé coffre avant env', resolveOmkarAirbnbKey({ omkar_airbnb: 'vault' }, { OMKAR_AIRBNB_KEY: 'env' }) === 'vault')
+  check('Omkar Booking clé absente', resolveOmkarBookingKey({}, {}) === undefined)
+  check(
+    'Omkar Booking réutilise Airbnb',
+    resolveOmkarBookingKey({ omkar_airbnb: 'ok_shared' }, {}) === 'ok_shared'
+  )
+  check(
+    'Omkar Booking coffre dédié avant Airbnb',
+    resolveOmkarBookingKey({ omkar_booking: 'ok_b', omkar_airbnb: 'ok_a' }, { OMKAR_API_KEY: 'ok_e' }) ===
+      'ok_b'
+  )
+  check('Omkar Booking env API', resolveOmkarBookingKey({}, { OMKAR_API_KEY: ' ok_env ' }) === 'ok_env')
+  check('Booking hôtel drop', isBookingHotelListing('hotel') === true)
+  check('Booking appart keep', isBookingHotelListing('apartment') === false)
+  check('Booking aparthotel keep', isBookingHotelListing('aparthotel') === false)
+  const bkStay: SearchParams = {
+    destination: 'Les 2 Alpes',
+    checkIn: '2027-02-06',
+    checkOut: '2027-02-13',
+    adults: 8
+  }
+  const bkApt = mapOmkarBookingHit(
+    {
+      id: 3800123,
+      name: 'Résidence Le Côte Brune',
+      link: 'https://www.booking.com/hotel/fr/residence-le-cote-brune.html',
+      accommodation_type: 'apartment',
+      image: 'https://cf.bstatic.com/xdata/images/hotel/square600/x.jpg',
+      location: { city: 'Les Deux Alpes', country_code: 'fr', latitude: 45.01, longitude: 6.12 },
+      rating: { score: 8.2, count: 412 },
+      unit: { beds: 4, bedrooms: 2 },
+      price: { currency: 'EUR', total: 2140.5, per_night: null },
+      is_sold_out: false
+    },
+    bkStay
+  )
+  check('Omkar Booking appart : total 2140.5', bkApt?.totalPrice === 2140.5)
+  check('Omkar Booking appart : 2 chambres', bkApt?.bedrooms === 2)
+  check('Omkar Booking appart : GPS', bkApt?.latitude === 45.01 && bkApt?.longitude === 6.12)
+  check('Omkar Booking appart : note /10', bkApt?.rating === 8.2 && bkApt?.ratingScale === 10)
+  check('Omkar Booking appart : photo', Boolean(bkApt?.images?.[0]?.includes('bstatic.com')))
+  check('Omkar Booking appart : source booking-web', bkApt?.source === 'booking-web')
+  check(
+    'Omkar Booking hôtel drop',
+    mapOmkarBookingHit(
+      {
+        id: 1,
+        name: 'Hyatt Place',
+        link: 'https://www.booking.com/hotel/us/hyatt.html',
+        accommodation_type: 'hotel',
+        price: { currency: 'EUR', total: 800 }
+      },
+      bkStay
+    ) === null
+  )
+  check(
+    'Omkar Booking sold out drop',
+    mapOmkarBookingHit(
+      {
+        id: 2,
+        name: 'Chalet',
+        link: 'https://www.booking.com/hotel/fr/chalet.html',
+        accommodation_type: 'chalet',
+        price: { currency: 'EUR', total: 900 },
+        is_sold_out: true
+      },
+      bkStay
+    ) === null
+  )
+  check(
+    'Omkar Booking sans prix aux dates drop',
+    mapOmkarBookingHit(
+      {
+        id: 3,
+        name: 'Appart',
+        link: 'https://www.booking.com/hotel/fr/a.html',
+        accommodation_type: 'apartment'
+      },
+      bkStay
+    ) === null
+  )
+  const bkPage = mapOmkarBookingPage(
+    {
+      results: [
+        {
+          id: 11,
+          name: 'Appart 8p',
+          link: 'https://www.booking.com/hotel/fr/a.html',
+          accommodation_type: 'apartment',
+          price: { currency: 'EUR', total: 2000 }
+        },
+        {
+          id: 22,
+          name: 'Grand Hôtel',
+          link: 'https://www.booking.com/hotel/fr/h.html',
+          accommodation_type: 'hotel',
+          price: { currency: 'EUR', total: 1100 }
+        }
+      ]
+    },
+    bkStay
+  )
+  check('Omkar Booking page : hôtel filtré', bkPage.length === 1 && bkPage[0].sourceId === '11')
+  const dest = pickDestination(
+    [
+      { dest_id: '1', dest_type: 'hotel', name: 'Les 2 Alpes', country_code: 'fr' },
+      { dest_id: '900187201', dest_type: 'landmark', name: 'Les 2 Alpes', country_code: 'fr' },
+      { dest_id: '2', dest_type: 'hotel', name: 'Studio les 2 Alpes', country_code: 'fr' }
+    ],
+    'Les 2 Alpes'
+  )
+  check('Omkar Booking dest = landmark, pas un hôtel', dest?.dest_id === '900187201' && dest?.dest_type === 'landmark')
+  check('Bright Data WS absent', resolveBrightDataBrowserWs({}, {}) === undefined)
+  check('Bright Data WS http refusé', resolveBrightDataBrowserWs({}, { BRIGHTDATA_BROWSER_WS: 'http://x' }) === undefined)
+  check(
+    'Bright Data WS coffre',
+    resolveBrightDataBrowserWs(
+      { brightdata_browser: 'wss://brd.example/x' },
+      { BRIGHTDATA_BROWSER_WS: 'wss://env' }
+    ) === 'wss://brd.example/x'
+  )
+  check('Bright Data 401 = blocked', isBrightDataAuthError(new Error('Unauthorized 401')))
+  check('Bright Data timeout ≠ auth', isBrightDataAuthError(new Error('Timeout 30000ms exceeded')) === false)
+  check(
+    'Crawlbase coffre prioritaire',
+    resolveCrawlbaseToken({ crawlbase_token: 'cb_vault' }, { CRAWLBASE_TOKEN: 'cb_env' }) === 'cb_vault'
+  )
+  check('Crawlbase env', resolveCrawlbaseToken({}, { CRAWLBASE_TOKEN: 'cb_env' }) === 'cb_env')
+  check('Crawlbase absent', resolveCrawlbaseToken({}, {}) === undefined)
+  check(
+    'ScrapingBee coffre prioritaire',
+    resolveScrapingBeeKey({ scrapingbee_key: 'sb_vault' }, { SCRAPINGBEE_API_KEY: 'sb_env' }) === 'sb_vault'
+  )
+  check('ScrapingBee env', resolveScrapingBeeKey({}, { SCRAPINGBEE_API_KEY: 'sb_env' }) === 'sb_env')
+  const bdWs =
+    'wss://brd-customer-hl_abc-zone-scraping_browser:s3cret@brd.superproxy.io:9222'
+  const bdRes = brightDataResidentialFromBrowserWs(bdWs, {})
+  check(
+    'BD WS → HTTP résidentiel FR',
+    Boolean(
+      bdRes &&
+        bdRes.startsWith('http://') &&
+        bdRes.includes('zone-residential-country-fr') &&
+        bdRes.includes('brd.superproxy.io:33335') &&
+        bdRes.includes('s3cret')
+    ),
+    bdRes
+  )
+  const geo = withBrightDataCountry(
+    parseProxyUrl('http://brd-customer-hl_abc-zone-residential:x@brd.superproxy.io:33335', 'residential')!,
+    'fr'
+  )
+  check('BD country-fr une seule fois', geo.username === 'brd-customer-hl_abc-zone-residential-country-fr')
+  const prevWs = process.env.BRIGHTDATA_BROWSER_WS
+  const prevMode = process.env.SKITRACK_PROXY_MODE
+  const prevProxy = process.env.SKITRACK_PROXY
+  delete process.env.SKITRACK_PROXY
+  process.env.BRIGHTDATA_BROWSER_WS = bdWs
+  process.env.SKITRACK_PROXY_MODE = 'residential'
+  resetProxyCache()
+  const derivedList = loadProxyList()
+  check(
+    'liste proxy dérive le WS Booking',
+    derivedList.length === 1 &&
+      derivedList[0].kind === 'residential' &&
+      (derivedList[0].username || '').includes('residential-country-fr'),
+    derivedList[0]?.username
+  )
+  const sticky = nextProxy()
+  check(
+    'session sticky sur le résidentiel',
+    Boolean(sticky?.username?.includes('-session-') && sticky.username.includes('-country-fr')),
+    sticky?.username
+  )
+  if (prevWs === undefined) delete process.env.BRIGHTDATA_BROWSER_WS
+  else process.env.BRIGHTDATA_BROWSER_WS = prevWs
+  if (prevMode === undefined) delete process.env.SKITRACK_PROXY_MODE
+  else process.env.SKITRACK_PROXY_MODE = prevMode
+  if (prevProxy === undefined) delete process.env.SKITRACK_PROXY
+  else process.env.SKITRACK_PROXY = prevProxy
+  resetProxyCache()
+
+  const dumpHtmlPath = join(process.cwd(), 'gites-discovery/search-d2a-0613.html')
+  const widgetPath = join(process.cwd(), 'gites-discovery/widget-38G253122.html')
+  if (existsSync(dumpHtmlPath)) {
+    const dumpHtml = readFileSync(dumpHtmlPath, 'utf8')
+    const tiles = gitesTilesFromSearchHtml(dumpHtml)
+    const withPhoto = tiles.filter((t) => t.image && /sites\/default\/files/.test(t.image))
+    const withCap = tiles.filter((t) => t.guests && t.bedrooms)
+    const copains = tiles.find((t) => t.code === '38G253122')
+    check('dump SERP D2A : 20 tuiles', tiles.length === 20, tiles.length)
+    check('dump SERP D2A : 20 photos Drupal', withPhoto.length === 20, withPhoto.length)
+    check('dump SERP D2A : 20 capacités', withCap.length === 20, withCap.length)
+    check(
+      'dump Copains photo + 14p/5ch',
+      Boolean(
+        copains?.image?.includes('253122') &&
+          copains?.image?.includes('itok=') &&
+          copains?.guests === 14 &&
+          copains?.bedrooms === 5
+      ),
+      copains
+    )
+  } else {
+    check('dump SERP D2A présent (optionnel)', true)
+  }
+  if (existsSync(widgetPath)) {
+    const widgetHtml = readFileSync(widgetPath, 'utf8')
+    check(
+      'dump widget Copains og:image ITEA',
+      parseGitesWidgetPhoto(widgetHtml) ===
+        'https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg'
+    )
+  }
+
+  heading('20. Cache devis + skip fiche trop petite')
+  clearQuoteCache()
+  const qk = quoteCacheKey('gites', '38G253122', '2027-02-06', '2027-02-13', 8)
+  check('clé quote porte dates et guests', qk.includes('2027-02-06') && qk.includes('|8'))
+  setQuote(qk, { total: 4261.52 })
+  check('cache hit même séjour', getQuote(qk)?.total === 4261.52)
+  const otherWeek = quoteCacheKey('gites', '38G253122', '2027-02-13', '2027-02-20', 8)
+  check('S4 autre semaine = miss', getQuote(otherWeek) === undefined)
+  const otherGuests = quoteCacheKey('gites', '38G253122', '2027-02-06', '2027-02-13', 6)
+  check('autre nb de personnes = miss', getQuote(otherGuests) === undefined)
+
+  check(
+    'S2 6 pers pour 8 : pas de devis fiche',
+    stationCardNeedsQuote(
+      { url: 'https://reservation.les2alpes.com/x.html', fromPrice: true, priceText: '900 €', guests: 6, rooms: 4 },
+      { adults: 8, bedrooms: 2 }
+    ) === false
+  )
+  check(
+    'S2 8 pers fromPrice : devis requis',
+    stationCardNeedsQuote(
+      { url: 'https://reservation.les2alpes.com/x.html', fromPrice: true, priceText: '900 €', guests: 8, rooms: 4 },
+      { adults: 8, bedrooms: 2 }
+    ) === true
+  )
+  check(
+    '2 pièces pour 2 chambres : pas de devis',
+    stationCardNeedsQuote(
+      { url: 'https://reservation.les2alpes.com/x.html', fromPrice: true, guests: 8, rooms: 2 },
+      { adults: 4, bedrooms: 2 }
+    ) === false
+  )
+
+  heading('21. Sessions Playwright')
+  check(
+    '3 onglets DU scraper : on ne recycle pas',
+    shouldCloseSharedContext({ openPages: 3, rotateProxy: true }) === false
+  )
+  check(
+    'recycle seulement si plus personne et rotation proxy',
+    shouldCloseSharedContext({ openPages: 1, rotateProxy: true }) === true
+  )
+  check(
+    'sans rotation : le Chromium reste',
+    shouldCloseSharedContext({ openPages: 1, rotateProxy: false }) === false
+  )
+
+  heading('22. Dates collées + photo Gîtes &')
+  const dated = stampStayOnUrl('https://www.booking.com/hotel/fr/foo.html', {
+    destination: 'Les 2 Alpes',
+    checkIn: '2027-02-13',
+    checkOut: '2027-02-20',
+    adults: 4
+  })
+  check(
+    'Booking fiche porte checkin/checkout/adults',
+    dated.includes('checkin=2027-02-13') &&
+      dated.includes('checkout=2027-02-20') &&
+      dated.includes('group_adults=4')
+  )
+  check(
+    'photo Drupal décode entité itok',
+    listingPhotoUrl(
+      '/sites/default/files/x.jpg?itok=abc\u0026amp;foo=1',
+      'https://www.gites-de-france.com/fr/x'
+    ) === 'https://www.gites-de-france.com/sites/default/files/x.jpg?itok=abc&foo=1'
+  )
+
+  heading('23. Prix comparable — total confirmé seulement, jamais la nuit')
+  check(
+    'nuit 89 n’est pas un séjour',
+    comparableStayTotal({ nightlyPrice: 89, priceConfidence: 'partial' }) === null
+  )
+  check(
+    'semaine d’appel 1700 n’est pas un séjour',
+    comparableStayTotal({ weeklyPrice: 1700, priceConfidence: 'partial' }) === null
+  )
+  check(
+    'total confirmé passe',
+    comparableStayTotal({ totalPrice: 2215, priceConfidence: 'total_confirmed' }) === 2215
+  )
+  check(
+    'à partir de (isFrom) rejeté même rangé en total',
+    comparableStayTotal({ totalPrice: 900, priceIsFrom: true, priceConfidence: 'total_confirmed' }) ===
+      null
+  )
+  check(
+    'unknown rejeté même avec un chiffre',
+    comparableStayTotal({ totalPrice: 900, priceConfidence: 'unknown' }) === null
+  )
+  check(
+    'total sans confiance déclarée reste comparable (relevé collé)',
+    comparableStayTotal({ totalPrice: 3469 }) === 3469
+  )
+  const cheapNight: Property = {
+    propertyId: 'x',
+    title: 'X',
+    images: [],
+    sources: [],
+    offers: [
+      {
+        source: 'a',
+        sourceId: '1',
+        url: 'https://a.example/n',
+        nightlyPrice: 89,
+        priceConfidence: 'partial',
+        availabilityStatus: 'unknown',
+        retrievedAt: 't'
+      },
+      {
+        source: 'b',
+        sourceId: '2',
+        url: 'https://b.example/s',
+        totalPrice: 2215,
+        priceConfidence: 'total_confirmed',
+        availabilityStatus: 'available',
+        retrievedAt: 't'
+      }
+    ]
+  }
+  check('cheapestOffer ignore la nuit 89', cheapestOffer(cheapNight)?.totalPrice === 2215)
+  const sorted = [
+    { totalPrice: undefined, nightlyPrice: 89, priceConfidence: 'partial' as const },
+    { totalPrice: 4261.52, priceConfidence: 'total_confirmed' as const },
+    { totalPrice: 2215, priceConfidence: 'total_confirmed' as const }
+  ].sort(compareByStayTotal)
+  check(
+    'tri : 2215 avant 4261, la nuit à la fin',
+    sorted[0]?.totalPrice === 2215 &&
+      sorted[1]?.totalPrice === 4261.52 &&
+      sorted[2]?.nightlyPrice === 89
+  )
+
+
+  heading('24. Isolation des scrapers — un fichier, un Chromium')
+  check(
+    'recycle = onglets de CE scraper seulement',
+    shouldRecycleScraperContext({ ownPages: 1, rotateProxy: true }) === true
+  )
+  check(
+    'Gîtes à 3 onglets n’est pas recyclé parce que Booking retry',
+    shouldRecycleScraperContext({ ownPages: 3, rotateProxy: true }) === false
+  )
+  const bookingExt = readFileSync(join(process.cwd(), 'src/main/providers/webscrape/extractors/booking.ts'), 'utf8')
+  const gitesExt = readFileSync(join(process.cwd(), 'src/main/providers/webscrape/extractors/gites.ts'), 'utf8')
+  const vrboExt = readFileSync(join(process.cwd(), 'src/main/providers/webscrape/extractors/vrbo.ts'), 'utf8')
+  check(
+    'extracteur Booking n’embarque pas les tuiles Gîtes',
+    !/g2f-accommodation|js-search-tile|gites-de-france/i.test(bookingExt)
+  )
+  check(
+    'extracteur Gîtes n’embarque pas les cartes Booking',
+    !/property-card|card-container|booking\.com/i.test(gitesExt)
+  )
+  check(
+    'extracteur VRBO n’embarque pas les tuiles Gîtes',
+    !/g2f-accommodation|js-search-tile/i.test(vrboExt)
+  )
+  const providersSrc = readFileSync(join(process.cwd(), 'src/main/providers/webscrape/providers.ts'), 'utf8')
+  check(
+    'waitForSelector n’attend plus Booking et Gîtes collés',
+    !/property-card.*g2f-accommodationTile/.test(providersSrc.replace(/\s+/g, ' '))
+  )
+  const bookingPrice = webscrapePriceFields('booking-web', 'À partir de 1 700 € par semaine')
+  const gitesPrice = webscrapePriceFields('gites-web', 'À partir de 1 700 € par semaine')
+  check(
+    'un libellé /semaine Gîtes ne requalifie pas Booking',
+    bookingPrice.totalPrice === 1700 && gitesPrice.weeklyPrice === 1700,
+    { bookingPrice, gitesPrice }
+  )
+
+
+  heading('25. Workers isolés — un process par source')
+  const prevDocker = process.env.SKITRACK_SCRAPE_DOCKER
+  const prevGitesUrl = process.env.SKITRACK_SCRAPE_URL_GITES_WEB
+  process.env.SKITRACK_SCRAPE_DOCKER = '0'
+  delete process.env.SKITRACK_SCRAPE_URL_GITES_WEB
+  resetWorkerProbes()
+  check('SOURCE gites-web reconnue', isWorkerSource('gites-web'))
+  check('CozyCozy n’est pas un worker', isWorkerSource('cozycozy-web') === false)
+  check(
+    'cinq ports distincts',
+    new Set(WORKER_SOURCES.map(defaultWorkerPort)).size === WORKER_SOURCES.length
+  )
+  check('Gîtes écoute 18702', defaultWorkerPort('gites-web') === 18702)
+  check('clé d’URL Gîtes', workerUrlEnvKey('gites-web') === 'SKITRACK_SCRAPE_URL_GITES_WEB')
+  check(
+    'docker=0 : pas de worker',
+    (await resolveWorkerBase('gites-web')) === null
+  )
+  process.env.SKITRACK_SCRAPE_URL_GITES_WEB = 'http://127.0.0.1:18702/'
+  check(
+    'URL explicite gagne même si docker=0',
+    (await resolveWorkerBase('gites-web')) === 'http://127.0.0.1:18702'
+  )
+  const compose = readFileSync(join(process.cwd(), 'scrape/docker-compose.yml'), 'utf8')
+  check('compose ne publie que la boucle locale', compose.includes('127.0.0.1:18701:8080'))
+  check('compose Gîtes SOURCE', /SOURCE:\s*gites-web/.test(compose))
+  check('compose Abritel SOURCE vrbo-web', /SOURCE:\s*vrbo-web/.test(compose))
+  check('compose Airbnb SOURCE', /SOURCE:\s*airbnb/.test(compose))
+  const dockerFile = readFileSync(join(process.cwd(), 'scrape/Dockerfile'), 'utf8')
+  check('image : une SOURCE au runtime, pas cuite', dockerFile.includes('CMD ["node", "worker.cjs"]'))
+  if (prevDocker === undefined) delete process.env.SKITRACK_SCRAPE_DOCKER
+  else process.env.SKITRACK_SCRAPE_DOCKER = prevDocker
+  if (prevGitesUrl === undefined) delete process.env.SKITRACK_SCRAPE_URL_GITES_WEB
+  else process.env.SKITRACK_SCRAPE_URL_GITES_WEB = prevGitesUrl
+  resetWorkerProbes()
+
+  heading('26. Airbnb pyairbnb — process Python isolé')
+  const airbnbDocker = readFileSync(join(process.cwd(), 'scrape/airbnb/Dockerfile'), 'utf8')
+  check('image Airbnb : Python, pas Playwright', /^\s*FROM python:/m.test(airbnbDocker) && /CMD \["python", "worker.py"\]/.test(airbnbDocker))
+  check('compose Airbnb build dédié', /dockerfile:\s*scrape\/airbnb\/Dockerfile/.test(compose))
+  check(
+    'compose Airbnb n’hérite plus de l’ancre Playwright',
+    /scrape-airbnb:\n    build:/.test(compose) && !/scrape-airbnb:\n    <<: \*worker/.test(compose)
+  )
+  const airbnbMap = readFileSync(join(process.cwd(), 'scrape/airbnb/map.py'), 'utf8')
+  check('mappeur Airbnb refuse la nuit', /NIGHTLY/.test(airbnbMap) && /FROM_PRICE/.test(airbnbMap))
+  check(
+    'mappeur Airbnb n’embarque pas Gîtes ni Booking',
+    !/g2f-accommodation|property-card|gites-de-france|booking\.com/i.test(airbnbMap)
+  )
+  const airbnbWorkerPy = readFileSync(join(process.cwd(), 'scrape/airbnb/worker.py'), 'utf8')
+  check('worker Python n’importe pas Playwright', !/^(?:from|import)\s+playwright/m.test(airbnbWorkerPy))
+  const scrapeTs = readFileSync(join(process.cwd(), 'src/main/providers/airbnb/scrape.ts'), 'utf8')
+  const pyIdx = scrapeTs.indexOf('scrapeAirbnbViaPyairbnb')
+  const omkarIdx = scrapeTs.indexOf('scrapeAirbnbViaOmkar(')
+  check('pyairbnb est tenté avant Omkar', pyIdx >= 0 && omkarIdx > pyIdx)
+  const sidecarAirbnb = readFileSync(join(process.cwd(), 'sidecar/skitrack/providers/airbnb.py'), 'utf8')
+  check('sidecar Airbnb n’importe plus Playwright', !/^(?:from|import)\s+playwright/m.test(sidecarAirbnb))
+  check('sidecar Airbnb relève si vide', sidecarAirbnb.includes('if not results:\n                raise'))
+  check(
+    'stl-scraper vendu à côté de pyairbnb',
+    existsSync(join(process.cwd(), 'scrape/airbnb/stl_scraper/stl/endpoint/pdp.py'))
+  )
+  const stlPdp = readFileSync(join(process.cwd(), 'scrape/airbnb/pdp.py'), 'utf8')
+  check('PDP STL n’importe pas Booking/Gîtes', !/^(?:from|import)\s+.*(gites|booking|playwright)/im.test(stlPdp))
+  const occPy = readFileSync(join(process.cwd(), 'scrape/airbnb/occupancy.py'), 'utf8')
+  check('occupancy lit personCapacity STL', /personCapacity/.test(occPy))
+  const airbnbStays = readFileSync(join(process.cwd(), 'scrape/airbnb/stays.py'), 'utf8')
+  check('walk Airbnb lit pageCursors 2026', /next_search_cursor/.test(airbnbStays))
+  heading('27. Booking stealth — Crawlbase puis 3 moteurs, isolés')
+  check(
+    'pas d’outils HTTP vendus',
+    !existsSync(join(process.cwd(), 'scrape/booking/tools/BookingScraper/booking.py')) &&
+      !existsSync(join(process.cwd(), 'scrape/booking/tools/booking.com_crawler/booking/booking.py'))
+  )
+  const bookingDocker = readFileSync(join(process.cwd(), 'scrape/booking/Dockerfile'), 'utf8')
+  check(
+    'image Booking : Python stealth, pas le Chromium commun',
+    /^\s*FROM python:/m.test(bookingDocker) && /CMD \["python", "worker.py"\]/.test(bookingDocker)
+  )
+  check('compose Booking build dédié', /dockerfile:\s*scrape\/booking\/Dockerfile/.test(compose))
+  check(
+    'compose Booking n’hérite plus de l’ancre Playwright',
+    /scrape-booking:\n    build:/.test(compose) && !/scrape-booking:\n    <<: \*worker/.test(compose)
+  )
+  const bookingMap = readFileSync(join(process.cwd(), 'scrape/booking/map.py'), 'utf8')
+  check('mappeur Booking refuse la nuit', /NIGHTLY/.test(bookingMap) && /FROM_PRICE/.test(bookingMap))
+  check(
+    'mappeur Booking n’embarque pas Gîtes ni Airbnb',
+    !/g2f-accommodation|StaySearchResult|pyairbnb|gites-de-france/i.test(bookingMap)
+  )
+  const bookingFail = readFileSync(join(process.cwd(), 'scrape/booking/failover.py'), 'utf8')
+  check(
+    'bascule crawlbase → scrapingbee → navigateurs',
+    /crawlbase/i.test(bookingFail) &&
+      /scrapingbee|booking.engine/i.test(bookingFail) &&
+      /invisible_playwright/i.test(bookingFail) &&
+      /camoufox/i.test(bookingFail) &&
+      /seleniumbase/i.test(bookingFail)
+  )
+  const bookingCfg = readFileSync(join(process.cwd(), 'scrape/booking/config.py'), 'utf8')
+  check(
+    'ordre des moteurs figé',
+    /ENGINE_ORDER = \("crawlbase", "scrapingbee", "invisible_playwright", "camoufox", "seleniumbase_uc"\)/.test(
+      bookingCfg
+    )
+  )
+  check(
+    'échec rapide : probe 8 s, pas 45',
+    /probe_timeout_seconds/.test(bookingCfg) && /=\s*8\.0/.test(bookingCfg)
+  )
+  check(
+    'moteur fiable mémorisé',
+    existsSync(join(process.cwd(), 'scrape/booking/state.py')) &&
+      /lastGood/.test(readFileSync(join(process.cwd(), 'scrape/booking/state.py'), 'utf8'))
+  )
+  check(
+    'session chaude depuis l’accueil Booking',
+    /index\.fr\.html/.test(readFileSync(join(process.cwd(), 'scrape/booking/engines/browse.py'), 'utf8'))
+  )
+  check(
+    'Camoufox ne force pas d’en-têtes HTTP',
+    !/set_extra_http_headers/.test(
+      readFileSync(join(process.cwd(), 'scrape/booking/engines/camoufox_engine.py'), 'utf8')
+    )
+  )
+  check(
+    'recherche Booking arrive comme un clic accueil (src=index)',
+    /"src":\s*"searchresults" if offset/.test(
+      readFileSync(join(process.cwd(), 'scrape/booking/urls.py'), 'utf8')
+    )
+  )
+  const bookingWorkerPy = readFileSync(join(process.cwd(), 'scrape/booking/worker.py'), 'utf8')
+  check('worker Booking n’importe pas Playwright', !/^(?:from|import)\s+playwright/m.test(bookingWorkerPy))
+  const providersTs = readFileSync(join(process.cwd(), 'src/main/providers/webscrape/providers.ts'), 'utf8')
+  const stealthIdx = providersTs.indexOf('await scrapeBookingViaStealth')
+  const omkarBIdx = providersTs.indexOf('await scrapeBookingViaOmkar')
+  check('Booking stealth est tenté avant Omkar', stealthIdx >= 0 && omkarBIdx > stealthIdx)
+  check(
+    'URL Booking demande encore le total de séjour',
+    /sb_price_type/.test(readFileSync(join(process.cwd(), 'src/main/providers/webscrape/urls.ts'), 'utf8'))
+  )
+
+  heading(failures === 0 ? 'TOUS LES TESTS PASSENT' : `${failures} TEST(S) EN ÉCHEC`)
+  if (failures > 0) process.exitCode = 1
+}
+
+main().catch((error) => {
+  console.error(error)
+  process.exitCode = 1
+})

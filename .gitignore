@@ -1,7 +1,46 @@
-# Dépôt public : uniquement ce que les visiteurs GitHub doivent voir.
-# Tout le code, les secrets, caches, dumps et relais restent locaux.
+node_modules/
+out/
+dist/
+release/
+openapi.json
 
-*
-!.gitignore
-!README.md
-!PROVIDERS.md
+# Sidecar Python
+sidecar/.venv/
+sidecar/**/__pycache__/
+sidecar/*.egg-info/
+sidecar/.pytest_cache/
+*.pyc
+__pycache__/
+
+# Données locales — jamais versionnées : la base contient les recherches et le
+# coffre contient des clés d'API chiffrées.
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+secrets.enc.json
+data/cache/
+.env
+.env.local
+**/.env
+
+.vscode/
+.idea/
+Thumbs.db
+
+*.tsbuildinfo
+
+.claude/worktrees/
+
+# Scrapers — binaires, venv, clones et dumps
+scrape/**/.venv/
+scrape/**/.browsers/
+scrape/**/tools/
+scrape/**/debug_out/
+scrape/**/*.log
+scrape/booking/.env
+scrape/booking/.engine-state.json
+scrape/booking/proxies/
+.screenshots/
+.claude/settings.local.json
+docs/diagnostics/dumps/
+artifacts/

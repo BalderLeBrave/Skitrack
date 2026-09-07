@@ -9,6 +9,7 @@ import unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from parse import parse_abritel_hits  # noqa: E402
+from stealth import STEALTH_JS, USER_AGENT  # noqa: E402
 from urls import canonical_abritel_url, cozy_search_url, is_abritel_family  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -34,6 +35,10 @@ class AbritelParseTests(unittest.TestCase):
         self.assertTrue(is_abritel_family("abritel", "abritel.fr", ""))
         self.assertTrue(is_abritel_family("vrbo", "", "https://www.vrbo.com/x"))
         self.assertFalse(is_abritel_family("booking", "booking.com", ""))
+
+    def test_stealth_hides_webdriver(self) -> None:
+        self.assertIn("webdriver", STEALTH_JS)
+        self.assertIn("Chrome/", USER_AGENT)
 
     def test_payload(self) -> None:
         hits = parse_abritel_hits(PAYLOAD)

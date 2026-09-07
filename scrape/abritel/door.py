@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Porte CozyCozy → Abritel. getResultList seulement, images/pubs coupées."""
+"""Porte CozyCozy → Abritel. Scroll calé sur les XHR, empreinte navigateur masquée."""
 
 from __future__ import annotations
 
 import json
 import os
+import random
 import time
 from pathlib import Path
 from urllib.parse import urlparse
 
 from parse import parse_abritel_hits
+from stealth import HEADERS, LAUNCH_ARGS, USER_AGENT, attach
 from store import write_results
 from urls import cozy_search_url
 
@@ -23,7 +25,6 @@ SKIP_HOST = (
     "hotjar.com",
     "sentry.io",
     "scorecardresearch.com",
-    "cookielaw.org",
 )
 
 
@@ -86,18 +87,18 @@ def collect(
         browser = pw.chromium.launch(
             executable_path=_chrome_bin(),
             headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--blink-settings=imagesEnabled=false",
-            ],
+            args=LAUNCH_ARGS,
+            ignore_default_args=["--enable-automation"],
         )
         ctx = browser.new_context(
             locale="fr-FR",
-            viewport={"width": 1280, "height": 900},
+            timezone_id="Europe/Paris",
+            viewport={"width": 1440, "height": 900},
+            user_agent=USER_AGENT,
+            extra_http_headers=HEADERS,
             service_workers="block",
         )
+        attach(ctx)
         page = ctx.new_page()
         page.route("**/*", _block)
 
@@ -114,18 +115,26 @@ def collect(
 
         page.on("response", on_response)
         page.goto(url, wait_until="domcontentloaded", timeout=25_000)
+        page.mouse.move(720, 420)
         deadline = time.time() + 20
         idle = 0
         prev = 0
         while time.time() < deadline:
-            page.mouse.wheel(0, 3600)
-            page.wait_for_timeout(220)
+            page.mouse.wheel(0, random.randint(3000, 4000))
+            grew = False
+            wait_end = time.time() + 0.22
+            while time.time() < wait_end:
+                if len(payloads) > prev:
+                    grew = True
+                    break
+                page.wait_for_timeout(30)
             n = len(payloads)
-            if n == prev:
-                idle += 1
-            else:
+            if grew:
                 idle = 0
                 prev = n
+                continue
+            idle += 1
+            prev = n
             if idle >= 12 and n >= 2:
                 break
         browser.close()

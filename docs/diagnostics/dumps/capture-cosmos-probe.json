@@ -1,0 +1,84 @@
+{
+  "at": "2026-09-01T21:31:11.525Z",
+  "mainBytes": 2281260,
+  "snips": {
+    "searchInputLocation": "=>U.location?.city&&U.location?.coordinates?z.placesService.searchInputLocation({siteCode:z.siteConfig.siteCode,locale:(0,u.J)(K.MarketCode),query:L(U.location),aroundCoordinates:U.location.coordinates}):(0,e.of)(null)),(0,h.U)(U=>U?.location)));return z.transferState.set(_.w1,w),w})()}static#e=this.\\u0275fac=function(K){return new(K||R)(A.LFG(I.yh),A.LFG(P.jQ),A.LFG(S.c),A.LFG(H.Qp),A.LFG(M.l),A.LFG(A.kie),A.LFG(b.F0),A.LFG(v.dl))};static#t=this.\\u0275prov=A.Yz7({token:R,fac",
+    "getResultList": "n u.E;const et=X.gj;return this.backend.getResultList({searchId:vt.searchId,sorting:Te,offset:0,count:et,filters:je,estimateBounds:null,processNewResults:!0,columnCount:pe.listColumnLayout,excludeAds:!0}).pipe((0,C.z)(ot=>[Q.N.create.destinationListReady({searchId:vt.searchId,count:et,entries:ot.entries,allProcessed:ot.allProcessed,allCount:ot.allCount,filteredCount:ot.filteredCount,filt",
+    "getPlacePredictions": "Math.random())^+new Date).toString(36))}getPlacePredictions(M,b){var v=this;return(0,c.Z)(function*(){return v.getPlacePredictionsForLocale(yield v.getLocale(),M,b)})()}getPlacePredictionsForLocale(M,b,v){var C=this;return(0,c.Z)(function*(){return(0,E.z)(C.backend.getPlacePredictions({siteCode:C.siteConfig.siteCode,locale:M,input:b,sessi",
+    "launch": "sTimeout:ae.hK/1e3}};return this.backend.launch({searchId:Oe,multidestinationId:pe,visitId:(0,z.cU)(),browserId:(0,z.NN)(),splitId:x.C,frontEndParam:je,sourceForTracking:Ge.toString(),isPpcSession:!1,isReload:!1,isMobile:(0,U.tq)(),isStandaloneApp:this.pwaUtilsService.isStandaloneApp(),bro",
+    "cosmosSession": "Hvnu\",f=\"X-Split-Id\",e=\"X-Search-Id\",h=\"X-Cosmos-Session-Id\",g={\"brand-white\":{default:\"brand-white\"},\"brand-primary\":{default:\"brand-primary\"},\"brand-header\":{default:\"brand-white\",tablet:\"brand-primary\",\"mobile-header\":\"brand-primary-squa",
+    "siteCode": "earchInputLocation({siteCode:z.siteConfig.siteCode,locale:(0,u.J)(K.MarketCode),query:L(U.location),aroundCoordinates:U.location.coordinates}):(0,e.of)(null)),(0,h.U)(U=>U?.location)));return z.transf"
+  },
+  "swagger": {
+    "status": 200,
+    "urls": [],
+    "hrefs": [
+      "./cosmos-api/swagger-ui.css",
+      "./cosmos-api/favicon-32x32.png",
+      "./cosmos-api/favicon-16x16.png"
+    ],
+    "preview": " <!-- HTML for static distribution bundle build --> <!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <title>Swagger UI</title> <link rel=\"stylesheet\" type=\"text/css\" href=\"./cosmos-api/swagger-ui.css\" > <link rel=\"icon\" type=\"image/png\" href=\"./cosmos-api/favicon-32x32.png\" sizes=\"32x32\" /><link rel=\"icon\" type=\"image/png\" href=\"./cosmos-api/favicon-16x16.png\" sizes=\"16x16\" /> <style> html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; } *, *:before, *:after { box-sizing: inherit; } body { margin:0; background: #fafafa; } </style> </head> <body>"
+  },
+  "probes": [
+    {
+      "url": "https://cw-1036.fusionauth-cozycozy-backend.deployment.joli.space/cosmos-api/swagger.json",
+      "status": 404,
+      "ctype": "application/json; charset=utf-8",
+      "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/swagger.json\",\"error\":\"Not Found\"}"
+    },
+    {
+      "url": "https://cw-1036.fusionauth-cozycozy-backend.deployment.joli.space/cosmos-api/swagger/v1/swagger.json",
+      "status": 404,
+      "ctype": "application/json; charset=utf-8",
+      "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/swagger/v1/swagger.json\",\"error\":\"Not Found\"}"
+    },
+    {
+      "url": "https://cw-1036.fusionauth-cozycozy-backend.deployment.joli.space/cosmos-api/api-json",
+      "status": 404,
+      "ctype": "application/json; charset=utf-8",
+      "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/api-json\",\"error\":\"Not Found\"}"
+    },
+    {
+      "url": "https://cw-1036.fusionauth-cozycozy-backend.deployment.joli.space/swagger.json",
+      "status": 404,
+      "ctype": "application/json; charset=utf-8",
+      "body": "{\"statusCode\":404,\"message\":\"Cannot GET /swagger.json\",\"error\":\"Not Found\"}"
+    },
+    {
+      "url": "https://cw-1036.fusionauth-cozycozy-backend.deployment.joli.space/api-json",
+      "status": 404,
+      "ctype": "application/json; charset=utf-8",
+      "body": "{\"statusCode\":404,\"message\":\"Cannot GET /api-json\",\"error\":\"Not Found\"}"
+    },
+    {
+      "host": "cozycozy.com",
+      "path": "/api/logVisit",
+      "status": 404,
+      "body": "<!DOCTYPE html><html dir=\"ltr\"><head><base href=\"/\">\n    <meta charset=\"utf-8\">\n    <title>Nothing to be found here!</title>\n\n    <meta name=\"description\" conte"
+    },
+    {
+      "host": "cozycozy.com",
+      "path": "/api/searchInputLocation",
+      "status": 404,
+      "body": "<!DOCTYPE html><html dir=\"ltr\"><head><base href=\"/\">\n    <meta charset=\"utf-8\">\n    <title>Nothing to be found here!</title>\n\n    <meta name=\"description\" conte"
+    },
+    {
+      "host": "cozycozy.com",
+      "path": "/api/getPlacePredictions",
+      "status": 404,
+      "body": "<!DOCTYPE html><html dir=\"ltr\"><head><base href=\"/\">\n    <meta charset=\"utf-8\">\n    <title>Nothing to be found here!</title>\n\n    <meta name=\"description\" conte"
+    },
+    {
+      "host": "cozycozy.com",
+      "path": "/api/getResultList",
+      "status": 404,
+      "body": "<!DOCTYPE html><html dir=\"ltr\"><head><base href=\"/\">\n    <meta charset=\"utf-8\">\n    <title>Nothing to be found here!</title>\n\n    <meta name=\"description\" conte"
+    },
+    {
+      "host": "cozycozy.com",
+      "path": "/api/launch",
+      "status": 404,
+      "body": "<!DOCTYPE html><html dir=\"ltr\"><head><base href=\"/\">\n    <meta charset=\"utf-8\">\n    <title>Nothing to be found here!</title>\n\n    <meta name=\"description\" conte"
+    }
+  ]
+}

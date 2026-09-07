@@ -1,0 +1,66 @@
+{
+  "at": "2026-09-02T07:59:12.588Z",
+  "items": [
+    {
+      "id": "gites_angles_61540",
+      "url": "https://www.gites-de-france.com/fr/search?towns=61540&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "http": 200,
+      "title": "Rechercher une location de vacances Les Angles | Gîtes de France®",
+      "error": null,
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=61540&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "evaled": {
+        "jsSearchTile": 20,
+        "giteCard": 0,
+        "countPhrase": "27",
+        "pers": 21,
+        "chambres": 19,
+        "cards": [
+          "Ajouter/Supprimer des favoris image suivante image précedente Gîte Anthemis II à LES-ANGLES - Pyrénées-Orientales 3 chambres 8 personnes À partir de 1 848 € par semaine 2 avis",
+          "Ajouter/Supprimer des favoris image suivante image précedente Gîte Anthemis III à LES-ANGLES - Pyrénées-Orientales 5 chambres 12 personnes À partir de 2 772 € par semaine 2 avis",
+          "Ajouter/Supprimer des favoris image suivante image précedente Tout Compris Gîte LES FERMES DE CAL PANCHE - LE CORPS DE FERME à LES ANGLES - Pyrénées-Orientales 7 chambres 15 person",
+          "Ajouter/Supprimer des favoris image suivante image précedente Tout Compris Gîte LES FERMES DE CAL PANCHE - LA FERME à LES ANGLES - Pyrénées-Orientales 5 chambres 11 personnes À par",
+          "Ajouter/Supprimer des favoris image suivante image précedente Gîte de groupe La Dressere à FORMIGUERES - Pyrénées-Orientales 7 chambres 18 personnes À partir de 280 € par semaine",
+          "Ajouter/Supprimer des favoris image suivante image précedente Gîte La casa del pastor à FORMIGUERES - Pyrénées-Orientales 4 chambres 8 personnes À partir de 525 € par semaine 6 avi"
+        ],
+        "cf": false,
+        "oups": false
+      }
+    },
+    {
+      "id": "gites_karellis_64400",
+      "url": "https://www.gites-de-france.com/fr/search?towns=64400&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "http": 403,
+      "title": "Attention Required! | Cloudflare",
+      "error": null,
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=64400&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "evaled": {
+        "jsSearchTile": 0,
+        "giteCard": 0,
+        "countPhrase": null,
+        "pers": 0,
+        "chambres": 0,
+        "cards": [],
+        "cf": false,
+        "oups": false
+      }
+    },
+    {
+      "id": "gites_vars_38123",
+      "url": "https://www.gites-de-france.com/fr/search?towns=38123&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "http": 403,
+      "title": "Attention Required! | Cloudflare",
+      "error": null,
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=38123&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "evaled": {
+        "jsSearchTile": 0,
+        "giteCard": 0,
+        "countPhrase": null,
+        "pers": 0,
+        "chambres": 0,
+        "cards": [],
+        "cf": false,
+        "oups": false
+      }
+    }
+  ]
+}

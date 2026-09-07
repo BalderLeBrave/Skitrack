@@ -1,0 +1,171 @@
+{
+  "url": "https://www.cozycozy.com/fr/search/Les%20Deux%20Alpes%20station%20de%20ski%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+  "dump": {
+    "title": "Les Deux Alpes (station de ski), 13/02–20/02",
+    "countPhrase": "180 offres trouvées sur 21 sites",
+    "interesting": [
+      {
+        "tag": "JOLI-RESULTITEM",
+        "className": "ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c4057228697=",
+          "_nghost-cosmos-c581286231=",
+          "class=ng-star-inserted"
+        ],
+        "text": "1 / 15 9.9 56 avis Châlet Hébergement entier 6 6 13 Les Deux Alpes Voir l’offre 6692 € pour 7 nuits Voir l’offre Airbnb"
+      },
+      {
+        "tag": "MAIN",
+        "className": "context-redesign context-default ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "class=context-redesign context-default ng-star-inserted"
+        ],
+        "text": "1 / 15 9.9 56 avis Châlet Hébergement entier 6 6 13 Les Deux Alpes Voir l’offre 6692 € pour 7 nuits Voir l’offre Airbnb"
+      },
+      {
+        "tag": "DIV",
+        "className": "content-wrapper ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "class=content-wrapper ng-star-inserted"
+        ],
+        "text": "Châlet Hébergement entier 6 6 13 Les Deux Alpes Voir l’offre 6692 € pour 7 nuits Voir l’offre Airbnb"
+      },
+      {
+        "tag": "DIV",
+        "className": "price-container ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "class=price-container ng-star-inserted"
+        ],
+        "text": "Voir l’offre 6692 € pour 7 nuits Voir l’offre Airbnb"
+      },
+      {
+        "tag": "A",
+        "className": "fake-deeplink ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "target=_blank",
+          "class=fake-deeplink ng-star-inserted",
+          "href=/redirect/?marketCode=fr&searchId=G6okcQVqYEEaRKow&clickId=I8rqVZ54swiyo39s&to=h"
+        ],
+        "text": "Voir l’offre"
+      },
+      {
+        "tag": "DIV",
+        "className": "pricetag-stacked ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "target=_blank",
+          "class=pricetag-stacked ng-star-inserted"
+        ],
+        "text": "6692 € pour 7 nuits"
+      },
+      {
+        "tag": "DIV",
+        "className": "sum ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "class=sum ng-star-inserted"
+        ],
+        "text": "6692 € pour 7 nuits"
+      },
+      {
+        "tag": "SPAN",
+        "className": "total",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "class=total"
+        ],
+        "text": "pour 7 nuits (956 € / nuit)"
+      },
+      {
+        "tag": "SPAN",
+        "className": "pernight",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "class=pernight"
+        ],
+        "text": "6692 € pour 7 nuits"
+      },
+      {
+        "tag": "DIV",
+        "className": "redesign-deeplink-container ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "class=redesign-deeplink-container ng-star-inserted"
+        ],
+        "text": "Voir l’offre Airbnb"
+      },
+      {
+        "tag": "A",
+        "className": "redesign-deeplink",
+        "attrs": [
+          "_ngcontent-cosmos-c581286231=",
+          "target=_blank",
+          "class=redesign-deeplink",
+          "href=/redirect/?marketCode=fr&searchId=G6okcQVqYEEaRKow&clickId=r5vsWeERsfRjqdLo&to=h"
+        ],
+        "text": "Voir l’offre"
+      },
+      {
+        "tag": "JOLI-RESULTITEM",
+        "className": "ng-star-inserted",
+        "attrs": [
+          "_ngcontent-cosmos-c4057228697=",
+          "_nghost-cosmos-c581286231=",
+          "class=ng-star-inserted"
+        ],
+        "text": "1 / 22 9.7 38 avis Appartement Hébergement entier 4 6 8 Les Deux Alpes Voir l’offre 3469 € pour 7 nuits Voir l’offre Airbnb"
+      }
+    ],
+    "byClass": {
+      "per-night-prices ng-star-inserted": 1,
+      "results-header ng-star-inserted": 1,
+      "results-header-container": 1,
+      "results-header-logos": 1,
+      "results-header-form-container": 1,
+      "o-dropdown__header results-header-modal-header": 1,
+      "results-header-buttons ng-star-inserted": 1,
+      "main hoj_is_results ng-tns-c562773810-0 ng-star-inserted": 1,
+      "header-result ng-tns-c562773810-0": 1,
+      "button filter hoj_results_filters_button badge": 1,
+      "button hoj_results_price_button": 1,
+      "button hoj_results_type_button": 1,
+      "button hoj_results_cancellation_button": 1,
+      "button instant hoj_results_instant_button badge": 1,
+      "price-container ng-star-inserted": 9,
+      "pricetag-stacked ng-star-inserted": 9,
+      "price price-total-size-m price-per-night-size-default": 7,
+      "price price-total-size-m price-per-night-size-m": 2,
+      "m-card-button": 1,
+      "m-card-button__text": 1,
+      "m-card-button__label-long": 1,
+      "m-card-button__label-short": 1,
+      "m-card-button__image": 1
+    }
+  },
+  "apis": [
+    {
+      "url": "https://www.cozycozy.com/api/searchInputLocation",
+      "status": 200,
+      "body": "{\"location\":{\"name\":\"Les Deux Alpes (station de ski)\",\"cityName\":\"\",\"countryCode\":\"FR\",\"countryName\":\"France\",\"stateCode\":\"\",\"level\":50,\"type\":0,\"bounds\":{\"west\":6.09424565914794,\"south\":44.9771853844746,\"east\":6.24698316126173,\"north\":45.0406579714734},\"coordinates\":{\"latitude\":45.008922,\"longitude\":6.170614}},\"text\":\"Les Deux Alpes (station de ski), France\"}"
+    },
+    {
+      "url": "https://www.cozycozy.com/api/launch",
+      "status": 200,
+      "body": "{\"searchId\":\"G6okcQVqYEEaRKow\"}"
+    },
+    {
+      "url": "https://www.cozycozy.com/api/getResultList",
+      "status": 200,
+      "body": "{\"processedResultCount\":637,\"averageHighlightedPricePerNight\":{\"currencyCode\":\"EUR\",\"value\":1145.9270874023437},\"allProcessed\":false,\"allCount\":335,\"displayedCount\":9,\"filteredCount\":180,\"filteredCountInBounds\":170,\"estimatedBounds\":{\"zoomLevel\":15,\"center\":{\"latitude\":45.01145,\"longitude\":6.125247},\"bounds\":{\"north\":45.02413157608659,\"east\":6.135804174682629,\"south\":44.99876761573237,\"west\":6.114689825317394}},\"countsPerAreaCode\":{},\"lastAlbatrossPredictionIds\":[],\"entries\":[{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":38697912,\"uid\":\"38697912-620\",\"title\":\"châlet\",\"subTitle\":\"6 chambres • 13 personnes\",\"subTitleDetails\":{\"bedRoomCount\":6,\"bedCount\":6,\"guestCapacity\":13},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":620,\"accommodationId\":38697912,\"providerName\":\"Airbnb\",\"providerCode\":\"airbnb\",\"providerLogoCode\":\"airbnb\",\"providerText\":\"Airbnb\",\"totalPrice\":{\"value\":6692,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.airbnb.fr/rooms/43227685?check_in=2027-02-13&check_out=2027-02-20&guests=8&adults=8&children=0&infants=0&currency=EUR&locale=fr\",\"mapSearchId\":null,\"requiresLogin\":true,\"bedRoomCount\":6,\"externalId\":\"43227685\",\"eurPriceValue\":6692,\"eurPricePerNight\":956,\"unitId\":\"43227685\",\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":1,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://a0.muscache.com/im/pictures/miso/Hosting-43227685/original/d05e02cd-e6af-4d1f-824f-05a76773d29f.jpeg?im_w=720\",\"https://a0.muscache.com/im/pictures/miso/Hosting-43227685/original/b8ee5aa7-ef57-4bd6-a124-4249d6bd8240.jpeg?im_w=720\"],\"lastUrl\":\"https://a0.muscache.com/im/pictures/miso/Hosting-43227685/original/ed06bb6b-6ece-45fb-b62f-db6e220e5090.jpeg?im_w=720\",\"count\":15},\"instantBooking\":true,\"ratingCount\":56,\"ratingScore\":99,\"coordinates\":{\"latitude\":45.008750915527344,\"longitude\":6.122281551361084},\"cancellationCategory\":0,\"cancellationPolicy\":0,\"prioritizedAccommodation\":false,\"name\":\"Chalet Neuf Vue Sur La Muzelle 13 Places\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":44962396,\"uid\":\"44962396-613\",\"title\":\"appartement\",\"subTitle\":\"4 chambres • 8 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":6,\"guestCapacity\":8},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":613,\"accommodationId\":44962396,\"providerName\":\"Airbnb\",\"providerCode\":\"airbnb\",\"providerLogoCode\":\"airbnb\",\"providerText\":\"Airbnb\",\"totalPrice\":{\"value\":3469,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.airbnb.fr/rooms/28901570?check_in=2027-02-13&check_out=2027-02-20&guests=8&adults=8&children=0&infants=0&currency=EUR&locale=fr\",\"mapSearchId\":null,\"requiresLogin\":true,\"bedRoomCount\":4,\"externalId\":\"28901570\",\"eurPriceValue\":3469,\"eurPricePerNight\":495.57142857142856,\"unitId\":\"28901570\",\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":1,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://a0.muscache.com/im/pictures/19655484-1232-4234-9f94-133a8df1a28d.jpg?im_w=720\",\"https://a0.muscache.com/im/pictures/miso/Hosting-28901570/original/6490ae69-ab31-4bc7-9d14-c85e7dfcfa1c.jpeg?im_w=720\"],\"lastUrl\":\"https://a0.muscache.com/im/pictures/miso/Hosting-28901570/original/b15232d2-6d46-43df-bff3-7c112f51393d.jpeg?im_w=720\",\"count\":22},\"instantBooking\":true,\"ratingCount\":38,\"ratingScore\":97,\"coordinates\":{\"latitude\":45.019798278808594,\"longitude\":6.127299785614014},\"cancellationCategory\":0,\"cancellationPolicy\":0,\"prioritizedAccommodation\":false,\"name\":\"Le Jardin Alpin : Les 2 Alpes\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":40128453,\"uid\":\"40128453-623\",\"title\":\"châlet\",\"subTitle\":\"4 chambres • 10 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":9,\"guestCapacity\":10},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":623,\"accommodationId\":40128453,\"providerName\":\"Airbnb\",\"providerCode\":\"airbnb\",\"providerLogoCode\":\"airbnb\",\"providerText\":\"Airbnb\",\"totalPrice\":{\"value\":7056,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.airbnb.fr/rooms/45468017?check_in=2027-02-13&check_out=2027-02-20&guests=8&adults=8&children=0&infants=0&currency=EUR&locale=fr\",\"mapSearchId\":null,\"requiresLogin\":true,\"bedRoomCount\":4,\"externalId\":\"45468017\",\"eurPriceValue\":7056,\"eurPricePerNight\":1008,\"unitId\":\"45468017\",\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":1,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://a0.muscache.com/im/pictures/20776429-8f7d-4b8a-8b37-3d5f034cc138.jpg?im_w=720\",\"https://a0.muscache.com/im/pictures/abaf7190-20d4-4a2f-b80a-ed7e6200f4bc.jpg?im_w=720\"],\"lastUrl\":\"https://a0.muscache.com/im/pictures/c7e8e3ba-74fc-4ee6-bea1-7c19a931fe99.jpg?im_w=720\",\"count\":61},\"instantBooking\":true,\"ratingCount\":91,\"ratingScore\":99,\"coordinates\":{\"latitude\":45.01279830932617,\"longitude\":6.124499797821045},\"cancellationCategory\":0,\"cancellationPolicy\":0,\"prioritizedAccommodation\":false,\"name\":\"Chalet Duplex 10 Pers, Cœur Station, Proche Pistes\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":93057882,\"uid\":\"93057882-183\",\"title\":\"hôtel\",\"subTitle\":\"Chamois Lodge\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":5,\"guestCapacity\":8},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":183,\"accommodationId\":93057882,\"providerName\":\"booking.com\",\"providerCode\":\"booking\",\"providerLogoCode\":\"booking\",\"providerText\":\"booking.com\",\"totalPrice\":{\"value\":5760.72021484375,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"4× Chambre (2 personnes) + 🥐\",\"shortText\":\"4× Chambre (2 🕺) + 🥐\",\"deeplinkUrl\":\"https://www.booking.com/hotel/fr/le-chamois-les-deux-alpes.html?aid=1311119&checkin=2027-02-13&checkout=2027-02-20&no_rooms=4&group_adults=8&selected_currency=EUR&label=%CLICK_ID%\",\"mapSearchId\":null,\"requiresLogin\":false,\"bedRoomCount\":4,\"externalId\":\"320986\",\"eurPriceValue\":5760.72021484375,\"eurPricePerNight\":822.9600306919643,\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":1,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://q-xx.bstatic.com/xdata/images/hotel/max600/124143571.jpg?k=b7bb4d3deb8a8c54108c169d70d543ab16f17e0bb31c3930bbff2b15cf0b0dc7&o=&a=1311119\",\"https://q-xx.bstatic.com/xdata/images/hotel/max600/125016756.jpg?k=20fa59a106b45d8c96b0ee2b46ba8e5f265679ea2feacbc5f82a3bf7bfaef158&o=&a=1311119\"],\"lastUrl\":\"https://q-xx.bstatic.com/xdata/images/hotel/max600/567556914.jpg?k=f1d234d22753fce72fc57701885fbd218121df57ee1a0e8bc57176d09ed5d97d&o=&a=1311119\",\"count\":10},\"instantBooking\":true,\"ratingCount\":253,\"ratingScore\":90,\"coordinates\":{\"latitude\":45.00688552856445,\"longitude\":6.121705055236816},\"cancellationCategory\":0,\"cancellationPolicy\":4,\"prioritizedAccommodation\":false,\"name\":\"Chamois Lodge\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":22992034,\"uid\":\"22992034-629\",\"title\":\"appartement\",\"subTitle\":\"4 chambres • 12 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":8,\"guestCapacity\":12},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":629,\"accommodationId\":22992034,\"providerName\":\"Airbnb\",\"providerCode\":\"airbnb\",\"providerLogoCode\":\"airbnb\",\"providerText\":\"Airbnb\",\"totalPrice\":{\"value\":3671,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.airbnb.fr/rooms/38344212?check_in=2027-02-13&check_out=2027-02-20&guests=8&adults=8&children=0&infants=0&currency=EUR&locale=fr\",\"mapSearchId\":null,\"requiresLogin\":true,\"bedRoomCount\":4,\"externalId\":\"383"
+    },
+    {
+      "url": "https://www.cozycozy.com/api/getResults",
+      "status": 200,
+      "body": "{\"results\":[{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":101869995,\"uid\":\"101869995-615\",\"title\":\"appartement\",\"subTitle\":\"4 chambres • 10 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":8,\"guestCapacity\":10},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":615,\"accommodationId\":101869995,\"providerName\":\"Airbnb\",\"providerCode\":\"airbnb\",\"providerLogoCode\":\"airbnb\",\"providerText\":\"Airbnb\",\"totalPrice\":{\"value\":3745,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.airbnb.fr/rooms/1421035482355725773?check_in=2027-02-13&check_out=2027-02-20&guests=8&adults=8&children=0&infants=0&currency=EUR&locale=fr\",\"mapSearchId\":null,\"requiresLogin\":true,\"bedRoomCount\":4,\"externalId\":\"1421035482355725773\",\"eurPriceValue\":3745,\"eurPricePerNight\":535,\"unitId\":\"1421035482355725773\",\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":1,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://a0.muscache.com/im/pictures/hosting/Hosting-1421035482355725773/original/2bbc035d-541a-4239-ae89-9c0a6c7049fd.jpeg?im_w=720\",\"https://a0.muscache.com/im/pictures/hosting/Hosting-1421035482355725773/original/e77a6fcc-bb10-40fb-acde-5e35a2f5c10f.jpeg?im_w=720\"],\"lastUrl\":\"https://a0.muscache.com/im/pictures/hosting/Hosting-1421035482355725773/original/bc0d820a-2be8-48f7-96c7-7e71612076f8.jpeg?im_w=720\",\"count\":23},\"instantBooking\":true,\"ratingCount\":7,\"ratingScore\":97,\"coordinates\":{\"latitude\":45.01139831542969,\"longitude\":6.1234002113342285},\"cancellationCategory\":0,\"cancellationPolicy\":0,\"prioritizedAccommodation\":false,\"name\":\"Grand Duplex Dernier éTage Centre Station\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":99399861,\"uid\":\"99399861-631\",\"title\":\"châlet\",\"subTitle\":\"4 chambres • 12 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":12,\"guestCapacity\":12},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":631,\"accommodationId\":99399861,\"providerName\":\"Airbnb\",\"providerCode\":\"airbnb\",\"providerLogoCode\":\"airbnb\",\"providerText\":\"Airbnb\",\"totalPrice\":{\"value\":10765,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.airbnb.fr/rooms/1364249438379867511?check_in=2027-02-13&check_out=2027-02-20&guests=8&adults=8&children=0&infants=0&currency=EUR&locale=fr\",\"mapSearchId\":null,\"requiresLogin\":true,\"bedRoomCount\":4,\"externalId\":\"1364249438379867511\",\"eurPriceValue\":10765,\"eurPricePerNight\":1537.857142857143,\"unitId\":\"1364249438379867511\",\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":1,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://a0.muscache.com/im/pictures/prohost-api/Hosting-1364249438379867511/original/497ebc27-55e6-4a9a-ad1e-ab99bdf66f37.jpeg?im_w=720\",\"https://a0.muscache.com/im/pictures/prohost-api/Hosting-1364249438379867511/original/3893bdb4-66b4-41be-bdca-853f586dd150.jpeg?im_w=720\"],\"lastUrl\":\"https://a0.muscache.com/im/pictures/prohost-api/Hosting-1364249438379867511/original/8ec90168-9aa6-4c7e-aede-32a35ceb5494.jpeg?im_w=720\",\"count\":36},\"instantBooking\":true,\"ratingCount\":8,\"ratingScore\":100,\"coordinates\":{\"latitude\":45.01029968261719,\"longitude\":6.122099876403809},\"cancellationCategory\":0,\"cancellationPolicy\":0,\"prioritizedAccommodation\":false,\"name\":\"Chalet \\\"Première Loge\\\" : 12 Pers Vue Dominante\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":89654209,\"uid\":\"89654209-172\",\"title\":\"châlet\",\"subTitle\":\"5 chambres • 12 personnes\",\"subTitleDetails\":{\"bedRoomCount\":5,\"bedCount\":6,\"guestCapacity\":12},\"surfaceText\":\"100 m²\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":172,\"accommodationId\":89654209,\"providerName\":\"booking.com\",\"providerCode\":\"booking\",\"providerLogoCode\":\"booking\",\"providerText\":\"booking.com\",\"totalPrice\":{\"value\":9702,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.booking.com/hotel/fr/horizon-blanc-chalets-dans-les-2-alpes.html?aid=1311119&checkin=2027-02-13&checkout=2027-02-20&no_rooms=4&group_adults=8&selected_currency=EUR&label=%CLICK_ID%\",\"mapSearchId\":null,\"requiresLogin\":false,\"bedRoomCount\":5,\"externalId\":\"11636905\",\"eurPriceValue\":9702,\"eurPricePerNight\":1386,\"unitId\":\"1163690502\",\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":1,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://q-xx.bstatic.com/xdata/images/hotel/max600/538901604.jpg?k=c93402eb2d1cd8efd596edadb7af57fb642aa71c54a5383eb8faf679d0080628&o=&a=1311119\",\"https://q-xx.bstatic.com/xdata/images/hotel/max600/629690913.jpg?k=7bed347ce6a712f96ba790a9599cec199ac342fa1b023700cf5f189c55b4562b&o=&a=1311119\"],\"lastUrl\":\"https://q-xx.bstatic.com/xdata/images/hotel/max600/580077388.jpg?k=3f9c85b68c88fc86e9d6eb21ceeec745d79730a552d11d2fc64c433095a203d6&o=&a=1311119\",\"count\":10},\"instantBooking\":true,\"ratingCount\":6,\"ratingScore\":98,\"coordinates\":{\"latitude\":45.0091438293457,\"longitude\":6.121599197387695},\"cancellationCategory\":0,\"cancellationPolicy\":4,\"prioritizedAccommodation\":false,\"name\":\"Chalets Horizon Blanc - Vue Exceptionnelle Loup Blanc -Sauna Extérieur Ours Des Glaces -5 éToiles\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":58589897,\"uid\":\"58589897-104.388\",\"title\":\"châlet\",\"subTitle\":\"Odalys Chalet Chambertin Lodge\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":1,\"guestCapacity\":12},\"surfaceText\":\"130 m²\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":104,\"accommodationId\":58589897,\"providerName\":\"belvilla.fr\",\"providerCode\":\"belvilla\",\"providerLogoCode\":\"belvilla\",\"providerText\":\"belvilla.fr\",\"totalPrice\":{\"value\":9570.4501953125,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.belvilla.fr/pvct/redirecthouse?pt=cozy&pid=checkout&housecode=FR-38860-82&ad=2027-02-13&nig=7\",\"mapSearchId\":null,\"requiresLogin\":false,\"bedRoomCount\":4,\"externalId\":\"BV|FR-38860-82\",\"eurPriceValue\":9570.4501953125,\"eurPricePerNight\":1367.2071707589287,\"unitId\":\"BV|FR-38860-82\",\"fromDate\":\"2027-02-13\",\"toDate\":\"2027-02-20\"}],\"resultCount\":2,\"cityName\":\"Les Deux Alpes\",\"lightThumbnails\":{\"firstUrls\":[\"https://q-xx.bstatic.com/xdata/images/hotel/max600/330854693.jpg?k=10b2fec506d8240bf5e10713c9876abcf0aa016a21d07f626111de87a3b18912&o=&a=1311119\",\"https://q-xx.bstatic.com/xdata/images/hotel/max600/330854697.jpg?k=7e6a75512e844d657b0c0df6d4a30d7725926ba812f0d731e5fc95d1fe7794d9&o=&a=1311119\"],\"lastUrl\":\"https://q-xx.bstatic.com/xdata/images/hotel/max600/330854716.jpg?k=6326f0d588ba6bf1ecc87c7290e2de4baaae72a60960630ae6fd01e15d2a593b&o=&a=1311119\",\"count\":10},\"instantBooking\":true,\"ratingCount\":36,\"ratingScore\":86,\"coordinates\":{\"latitude\":45.01104736328125,\"longitude\":6.123427867889404},\"cancellationCategory\":1,\"cancellationPolicy\":3,\"prioritizedAccommodation\":false,\"name\":\"Odalys Chalet Chambertin Lodge\"},{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":53483892,\"uid\":\"53483892-614\",\"title\":\"châlet\",\"subTitle\":\"4 chambres • 8 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":8,\"guestCapacity\":8},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":614,\"accommodationId\":53483892,\"providerName\":\"Airbnb\",\"providerCode\":\"airbnb\",\"providerLogoCode\":\"airbnb\",\"providerText\":\"Airbnb\",\"totalPrice\":{\"value\":6152,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"instantBooking\":true,\"text\":\"Hébergement entier\",\"shortText\":\"\",\"deeplinkUrl\":\"https://www.airbnb.fr/rooms/51053819?check_in=2027-02-13&check_out=2027-02-20&guests=8&adults=8&children=0&infants=0&currency=EUR&locale=fr\",\"mapSearchId\":null,\"requiresLogin\":true,\"bedRoomCount\":4,\"exte"
+    }
+  ]
+}

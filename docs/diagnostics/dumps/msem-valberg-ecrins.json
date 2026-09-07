@@ -1,0 +1,134 @@
+{
+  "at": "2026-09-01",
+  "note": "Compact MSEM proof. Full accommodation arrays not stored. Same contract as Isola: GET list + POST offers. No new parser.",
+  "sites": [
+    {
+      "id": "valberg",
+      "origin": "https://www.valberg.com",
+      "resort": 665,
+      "channel": "OT-665",
+      "entry": "/sejourner/reserver-votre-sejour/",
+      "list_url": "https://services.msem.tech/api/lodging/resort/665/OT-665?language=fr&facet=0",
+      "list_http": 200,
+      "catalogue": 40,
+      "sample": [
+        {
+          "id": 202847,
+          "slug": "ancolies-10",
+          "name": "Résidence Les Ancolies - n°10 Appart.T3 5 pers. 2 Etoiles",
+          "maxCapacity": 5,
+          "nbRooms": 3,
+          "kind": "MEUBLE"
+        },
+        {
+          "id": 206471,
+          "slug": "chalet-luane-beuil",
+          "name": "Chalet Luane -Beuil - 8 personnes - 4 Etoiles",
+          "maxCapacity": 8,
+          "nbRooms": 6,
+          "kind": "MEUBLE"
+        },
+        {
+          "id": 202838,
+          "slug": "ancolies-5",
+          "name": "Résidence Les Ancolies - N°5 Appart T2 4 pers. 2 Etoiles",
+          "maxCapacity": 4,
+          "nbRooms": 2,
+          "kind": "MEUBLE"
+        }
+      ],
+      "listing_path_404": "/hebergements/test-slug",
+      "offers": [
+        {
+          "adults": 2,
+          "start": "2027-02-13",
+          "end": "2027-02-20",
+          "http": 200,
+          "keys": 19,
+          "priced": 19,
+          "sample_prices": [
+            649.98,
+            899.98,
+            899.98,
+            899.98,
+            903.76
+          ]
+        },
+        {
+          "adults": 8,
+          "start": "2027-02-13",
+          "end": "2027-02-20",
+          "http": 200,
+          "keys": 0,
+          "priced": 0,
+          "sample_prices": []
+        }
+      ]
+    },
+    {
+      "id": "ecrins",
+      "origin": "https://www.paysdesecrins.com",
+      "resort": 30015,
+      "channel": "PDE",
+      "entry": "/hebergements/",
+      "list_url": "https://services.msem.tech/api/lodging/resort/30015/PDE?language=fr&facet=0",
+      "list_http": 200,
+      "catalogue": 186,
+      "sample": [
+        {
+          "id": 227404,
+          "slug": "residence-dame-blanche-dbac-22-appt-2-chambres-balcon-6-personnes-secteur-1800",
+          "name": "Résidence Dame Blanche - DBAC22 - APPT 2 CHAMBRES - BALCON - 6 PERSONNES - Secteur 1800",
+          "maxCapacity": 6,
+          "nbRooms": 3,
+          "kind": "MEUBLE"
+        },
+        {
+          "id": 227449,
+          "slug": "residence-parc-aux-etoiles-ch-18-pae-chalet-duplex-2-chambres-terrasse-et-balcon",
+          "name": "Résidence Parc Aux Etoiles - CH18PAE - CHALET DUPLEX 2 CHAMBRES, TERRASSE ET BALCON",
+          "maxCapacity": 7,
+          "nbRooms": 3,
+          "kind": "MEUBLE"
+        },
+        {
+          "id": 227453,
+          "slug": "residence-parc-aux-etoiles-ch-23-pae-chalet-triplex-en-bord-de-pistes-4-chambres",
+          "name": "Résidence Parc Aux Etoiles - CH23PAE - CHALET TRIPLEX EN BORD DE PISTES, 4 CHAMBRES",
+          "maxCapacity": 8,
+          "nbRooms": 5,
+          "kind": "MEUBLE"
+        }
+      ],
+      "listing_path_404": "/hebergements/test-slug",
+      "offers": [
+        {
+          "adults": 2,
+          "start": "2027-02-13",
+          "end": "2027-02-20",
+          "http": 200,
+          "keys": 37,
+          "priced": 37,
+          "sample_prices": [
+            506.18,
+            356.18,
+            776.18,
+            1626.18,
+            1742
+          ]
+        },
+        {
+          "adults": 8,
+          "start": "2027-02-13",
+          "end": "2027-02-20",
+          "http": 200,
+          "keys": 1,
+          "priced": 1,
+          "sample_prices": [
+            1704.72
+          ]
+        }
+      ]
+    }
+  ]
+}

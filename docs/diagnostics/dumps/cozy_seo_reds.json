@@ -1,0 +1,28 @@
+{
+  "at": "2026-09-02T07:41:00Z",
+  "pages": [
+    {
+      "station": "Les Karellis",
+      "url": "https://www.cozycozy.com/fr/location-vacances-les-karellis",
+      "http": 200,
+      "hoj_seo_card": 56,
+      "searchInputLocation": "Les Karellis, Montricher-Albanne"
+    },
+    {
+      "station": "Les Angles",
+      "url": "https://www.cozycozy.com/fr/location-vacances-les-angles",
+      "http": 200,
+      "hoj_seo_card": 56,
+      "offres": 1732
+    },
+    {
+      "station": "Vars",
+      "url": "https://www.cozycozy.com/fr/location-vacances-vars",
+      "http": 200,
+      "hoj_seo_card": 56,
+      "offres": 2856
+    }
+  ],
+  "selector": "article.hoj_seo_card",
+  "parser": "extractCozycozyCards existing"
+}

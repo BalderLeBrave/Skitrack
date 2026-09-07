@@ -1,0 +1,157 @@
+{
+  "at": "2026-09-01T21:45:42.141Z",
+  "round": "bypass-2",
+  "items": [
+    {
+      "id": "gites_towns_only",
+      "url": "https://www.gites-de-france.com/fr/search?towns=50301",
+      "http": 200,
+      "title": "Rechercher une location de vacances Les Deux Alpes | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=50301",
+      "cf": false,
+      "resultCount": "117 Résultats",
+      "offres": null,
+      "oups": false
+    },
+    {
+      "id": "gites_travelers_8",
+      "url": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=8",
+      "http": 200,
+      "title": "Rechercher une location de vacances Les Deux Alpes | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=8",
+      "cf": false,
+      "resultCount": "33 Résultats",
+      "offres": null,
+      "oups": false
+    },
+    {
+      "id": "gites_travelers_2_repeat",
+      "url": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=2",
+      "http": 200,
+      "title": "Rechercher une location de vacances Les Deux Alpes | Gîtes de France®",
+      "finalUrl": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=2",
+      "cf": false,
+      "resultCount": "117 Résultats",
+      "offres": null,
+      "oups": false,
+      "extra": {
+        "oldN": 0,
+        "dumpN": 40,
+        "dumpHead": [
+          {
+            "title": "Le poucet",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-poucet-38g253103",
+            "price": "800 €",
+            "guests": "6",
+            "bedrooms": "3"
+          },
+          {
+            "title": "Le poucet",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-poucet-38g253103",
+            "price": "800 €",
+            "guests": "6",
+            "bedrooms": "3"
+          },
+          {
+            "title": "Le Chalet - 3***",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-chalet-3-38g253124",
+            "price": "700 €",
+            "guests": "6",
+            "bedrooms": "2"
+          },
+          {
+            "title": "Le Chalet - 3***",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/le-chalet-3-38g253124",
+            "price": "700 €",
+            "guests": "6",
+            "bedrooms": "2"
+          },
+          {
+            "title": "Chalet 2 Alpes Les Séquoias",
+            "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-2-alpes-les-sequoias-38g253125",
+            "price": "990 €",
+            "guests": "4",
+            "bedrooms": "2"
+          }
+        ],
+        "oldHead": []
+      }
+    },
+    {
+      "id": "cozy_seo_extract",
+      "url": "https://www.cozycozy.com/fr/location-vacances-les-2-alpes",
+      "http": 200,
+      "title": "Locations Vacances et Airbnb Les Deux Alpes | cozycozy",
+      "finalUrl": "https://www.cozycozy.com/fr/location-vacances-les-2-alpes",
+      "cf": false,
+      "resultCount": null,
+      "offres": "3729 offres",
+      "oups": false,
+      "extra": {
+        "oldN": 1,
+        "dumpN": 28,
+        "dumpHead": [
+          {
+            "title": "Chalet Mitoyen Neuf  10/12 Pers - Vue Station Et Pistes - 2 Terrasses/balcon",
+            "href": null,
+            "price": "1032 €",
+            "guests": "13",
+            "bedrooms": "5",
+            "cta": "Voir"
+          },
+          {
+            "title": "Appartement Skis Aux Pieds (101)",
+            "href": null,
+            "price": "168 €",
+            "guests": null,
+            "bedrooms": null,
+            "cta": "Voir"
+          },
+          {
+            "title": "Le Pic / Venosc-les 2 Alpes",
+            "href": null,
+            "price": "715 €",
+            "guests": null,
+            "bedrooms": null,
+            "cta": "Voir"
+          },
+          {
+            "title": "Séjour Alpin Spacieux Pour 8 Personnes",
+            "href": null,
+            "price": "523 €",
+            "guests": "8",
+            "bedrooms": null,
+            "cta": "Voir"
+          },
+          {
+            "title": "Chalet Familial - Skis Aux Pieds - Quartier Calme",
+            "href": null,
+            "price": "903 €",
+            "guests": null,
+            "bedrooms": null,
+            "cta": "Voir"
+          },
+          {
+            "title": "9 Perspied Des Pistesemplacementn°1sauna&balnéo",
+            "href": null,
+            "price": "430 €",
+            "guests": null,
+            "bedrooms": null,
+            "cta": "Voir"
+          }
+        ],
+        "oldHead": [
+          {
+            "sourceId": "location-vacances-les-2-alpes#cp:details/14545460",
+            "title": "Questions fréquentes sur les locations vacances Les Deux Alpes",
+            "url": "https://www.cozycozy.com/fr/location-vacances-les-2-alpes#cp:details/14545460",
+            "priceText": null
+          }
+        ],
+        "searchButtons": [
+          "Rechercher"
+        ]
+      }
+    }
+  ]
+}

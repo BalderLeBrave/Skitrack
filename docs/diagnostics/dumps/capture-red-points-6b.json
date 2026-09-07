@@ -1,0 +1,927 @@
+{
+  "at": "2026-09-01T22:06:48.712Z",
+  "round": "6b",
+  "items": [
+    {
+      "id": "pralognan_liste",
+      "title": "Pralognan la Vanoise : locations et réservations d'appartements",
+      "ajax": [
+        {
+          "id": "getCompare",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getCompare",
+          "status": 200,
+          "bytes": 5,
+          "preview": "false"
+        },
+        {
+          "id": "dd",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=dd",
+          "status": 200,
+          "bytes": 1041,
+          "preview": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09/2026\",\"03/10/2026\",\"04/10/2026\",\"10/10/2026\",\"11/10/2026\",\"17/10/2026\",\"18/10/2026\",\"24/10/2026\",\"25/10/2026\",\"31/10/20"
+        },
+        {
+          "id": "df",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=df&dd=",
+          "status": 200,
+          "bytes": 1041,
+          "preview": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09/2026\",\"03/10/2026\",\"04/10/2026\",\"10/10/2026\",\"11/10/2026\",\"17/10/2026\",\"18/10/2026\",\"24/10/2026\",\"25/10/2026\",\"31/10/20"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=&df=&ctxt=&typeCombo=&resetSession=&typeLOC=location",
+          "status": 200,
+          "bytes": 77357,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'>\n\t\t\t\t\t\t<div class=\"checkbox\"><input type=\"checkbox\" name=\"lot_type_cial\" id=\"chklot_type_cial|100\" class=\"critChk\" value=\"100\" onclick=\"javascript:getCombos('"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 143,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i>  Résultats</a></div>"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 12736,
+          "preview": "\n\t\t<div class=\"col-12 col-lg-6 col-xl-4\">\n\t\t\t<div class=\"Card Card_Lots\">\n\t\t\t<div class=\"Card_Price\"><span>à partir de</span> 1 800 &euro;</div>\n\t\t\t\t<div class=\"Card_Medias\">\n\t\t\t\t\t<a href=\"/reservation/resultats/112/\"><img src=\"https://reservationpralognan.locvacances.com/lv/images/lot/0000000112_01_s.jpg?20240802115435\" alt=\"\"></a>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"Card_Content\">\n\t\t\t\t\t<div class=\"Card_T"
+        },
+        {
+          "id": "multipage",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "bytes": 638,
+          "preview": "\n<li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li>\n<li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li>\n<li><span class=\"pagination-item\">1 sur 36</span></li>\n<li><a href=\"javascript:getListe('2','lot_random');\" class=\"pagination-link pagination-next"
+        },
+        {
+          "id": "trieCombo",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=",
+          "status": 200,
+          "bytes": 292,
+          "preview": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</option></select>"
+        },
+        {
+          "id": "getNB",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "bytes": 13,
+          "preview": "427 Résultats"
+        }
+      ],
+      "cardCount": 12,
+      "sample": "à partir de\n1 800 €\nMONTAGNY\nPRALOGNAN LA VANOISE\nClassement\nAucun avis client\nRéf. MONTAG10\nChalet - 19 personnes\nEN SAVOIR +",
+      "bodyPreview": " +33 (0)4 58 24 00 24\nOuvert du lundi au samedi de 9h00 à 12h00 et de 14h00 à 17h00.\nFermé les jours fériés.\n\n  Mon compte  Contact \nACCUEIL\n \nLOCATION\n \nPRALOGNAN LA VANOISE\n \nPROMOTIONS\n \nQUI SOMMES NOUS\n \nPRÉPARER SON SÉJOUR\n \nSERVICES\nAccueil Location Réservation en ligne\nCRITÈRES & DISPONIBILITÉS\nDÉTAIL\nSERVICES & COORDONNÉES\nCONFIRMATION\nVOTRE RECHERCHE :\nLocations saisonnières   Hotels\nType de lot\nRésidence\nQuartier\nNombre de couchages\nAutres critères\n427 RÉSULTATS\nTri aléatoire\nPlus faible capacité\nPlus grande capacité\n12 Résultats par page\n24 Résultats par page\n48 Résultats par page\n64 Résultats par page\n  1 SUR 36  \nà partir de\n1 800 €\nMONTAGNY\nPRALOGNAN LA VANOISE\nClassement\nAucun avis client\nRéf. MONTAG10\nChalet - 19 personnes\nEN SAVOIR +\nà partir de\n1 500 €\nLE BILOKO\nPRALOGNAN LA VANOISE\nClassement\nAucun avis client\nRéf. BILOKO18PERS\nChalet - 18 personnes\nEN SAVOIR +\nà parti"
+    },
+    {
+      "id": "clusaz_deskline",
+      "title": "Hébergements - La Clusaz",
+      "reqs": [
+        {
+          "url": "https://resc.deskline.net/DW5/start/LACLUSAZ/0a6466c6-8058-4958-b502-d52767741f5b/index.js?ver=6.6",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/tag-loader.js?3kp5praat8nkhpbx6briaps_5p8kbbijqsg1trldxga",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/lib/webcomponentsjs@2.2.10/webcomponents-bundle.js",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/allfonts",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/design/092d6230-d054-4b4e-981c-27cdbfb1969f/desklineweb/default/styles.css?jimauc3xyiyax4ntyrbq9pn7cxfqxwu3borc4iytgrk",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/vendor.js?n661r2zjjghfz68pw1r4rrgoik22fywalfg114lo3yk",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/tags/laclusaz/0a6466c6-8058-4958-b502-d52767741f5b/tagcontext.js?54330581",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/i18n/locale.fr-fr.js?bfjexckwnyieau3oxig1qwm_5p0ehwr1h66fthwksdo",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/main-client.js?wcosub7liz2z3prviab0-_5mfttbiswhigkjvgokltw54330581",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/currencies",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/languages?onlyActive=false",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/organisations/fr/LACLUSAZ?fields=name",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/datasets?fields=sales{posCode},accessibilityStatement",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/4_05efbd2bb8c95ceaa231.js",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/0_05efbd2bb8c95ceaa231.js",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/1_05efbd2bb8c95ceaa231.js",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/2_05efbd2bb8c95ceaa231.js",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/8_05efbd2bb8c95ceaa231.js",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/endusers/portaldata?fields=userDetailsUrl,userTransactionsUrl,registrationBenefits",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/datasets?fields=sales{posCode}",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/filters",
+          "method": "POST",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/requestpool/options",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/countries/fr",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/salutations/fr",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/datasets?fields=locations(locTypes:[3]){id,name,parentId,type},category{id,name,order},stars{id,level,name,url,image,order},topCriteria(top:[%222ce8161c-2337-47d6-8e81-c2426e880be1%22,%22e33a2268-9226-4c2d-8283-26527a71708a%22,%22031b8977-1",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/pos?fields=name,descriptions(types:[22,452]){description,type}",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:178)&currency=&pageNo=1&pageSize=10000",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/88b2311f-e01f-4381-97e5-331adb1ab00d?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9-5655-4573-b83e-07cf",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=88b2311f-e01f-4381-97e5-331adb1ab00d&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,calcDuration,meal,is",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/e3eac701-b2e1-4094-8016-109a33985e0f/54/Facade_sud.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/81f68b3b-4821-401f-bbb2-b7d9b0bbf7c4/54/HELIANTHES_A7_1.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/d78484cf-bbfd-430e-bca9-689b080e2a7f/54/Forge_3_Salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/0d7f824c-a1c9-44b4-a15f-9b5784ec73e2/54/Chalet_La_Farandole_1_-_%c3%a9t%c3%a9.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/ad82564f-be19-4afb-a14d-56952816a756/54/Salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/753b06fd-0da7-4efa-b263-4b5f903c790c/54/A47A9164-HDR.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/4d4e3ea6-4a1c-4980-8eea-63167cc66b7f/54/R%c3%a9sidence_MGM_-_Hameau_de_lOurs_MBar.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/0d82822e-a9bd-4a43-8a3a-c8c43064c291/54/Le_Christiania_-_Ext%c3%a9rieur_Hiver.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/bd1e9918-727e-4a19-a9e7-034bf794c56a/54/Auberge_de_jeunesse.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/7f5d2285-6925-499d-8a73-6a20ef5fa57b/54/152135_1.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/f527a527-772b-4483-acf6-c53276e5bf54/54/Capfun_Hiver.JPG",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/4/17313ccd-8623-4b27-85da-5031c643414d/2_%c3%a9toiles.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/acf93b7f-d741-4254-a932-9b56e453cb88/54/Le_Panorama_10.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/4/ea752e0a-1ef9-46ce-9349-d835853088d3/3_%c3%a9toiles.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/4/d8c717a6-1a3c-4d72-a544-fb69bfd32835/4_%c3%a9toiles.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/8b7c363d-5e5f-4587-b446-0f6b125bec8b/54/Salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/efb2a49f-1143-4144-91d1-b36bab84f356/54/Les_Sil%c3%a8nes_2.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/be82564d-b6ff-4503-a03d-94db3895e965/54/La_Famelye.jpeg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/2/bc4e4099-d19d-486a-9903-7db538b7737a/Promotion.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/f9e46b31-ea66-4872-850d-dd67d37d8915/Promotion_LCZ.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/dcdb0784-37f1-4911-874c-f4875101851b/54/Salon_2.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/5467253e-25e6-4e97-b85e-c3d829c533c8/54/IMG_0996.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/85eef1fc-0a3f-45ef-a2c0-04915e123858/54/AFP-ENLYS-120326-30.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/d067fe4c-3553-4b41-a111-e0423b8a3015/54/Chalet_Anthocyane.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/4/44824bef-c20b-4f86-a955-d6ba0cc0d1dc/5_%c3%a9toiles.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/7513ad6b-b9ce-4f84-8f70-cb2caec28959/54/Les_Grandes_Alpes_-_Exterieur_Et%c3%a9.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/2/8527742a-74b2-40d7-9683-8ab5719f115e/Promotion_Early_booking.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/532ae713-b672-4df5-a2c6-ea454bd34350/Promotion_LCZ.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/a3356a91-c218-41de-9f45-d9d6d5f1d34b/54/Bossonnet_2_s%c3%a9jour.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/5d1970ea-335c-4247-b97e-46cc8c32d7d2/54/RES_CENTRE_A17_003.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/ef4c86f6-3cc3-4fec-9f77-4c42eb61f9d7/54/GRIZZLY_1.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/21d9d22f-0c2b-401b-a246-58943d76aa5b/54/SAPAUDIA-salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/e775f224-23bc-426c-b56a-8678700d4e8e/54/R%c3%a9sidence_lEden_Roc.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/2581ec84-5cc7-4930-bdca-91f8bcf31741/54/S%c3%a9jour_salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/fa1a3c5e-ba7d-42d6-a8d6-a66ac4955591/54/20251114_093820.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/e8b1d449-19cb-4026-881e-dd41793d6074/54/S%c3%a9jour_salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/ee0b7c99-c259-4a6a-af15-263447c9c812/54/S%c3%a9jour.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/0d7f824c-a1c9-44b4-a15f-9b5784ec73e2/54/Chalet_La_Farandole_1_-_%C3%A9t%C3%A9.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/location/all?locations=1&locations=2&locations=3&locations=4",
+          "method": "GET",
+          "dwSource": "desklineweb",
+          "headers": {
+            "dw-source": "desklineweb",
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR",
+            "accept": "application/json, text/plain, */*",
+            "dw-sessionid": "A1788300423911"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Promotion_court_s%c3%a9jour.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/476e63a3-baad-439c-8fb2-f263eb0c64a9/Logo_Promo_1.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "referer": "https://www.laclusaz.com/",
+            "accept-language": "fr-FR"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/4d4e3ea6-4a1c-4980-8eea-63167cc66b7f/54/R%C3%A9sidence_MGM_-_Hameau_de_lOurs_MBar.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/acf93b7f-d741-4254-a932-9b56e453cb88/54/image_1.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/8b7c363d-5e5f-4587-b446-0f6b125bec8b/54/Salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/efb2a49f-1143-4144-91d1-b36bab84f356/54/Les_Sil%C3%A8nes_2.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/be82564d-b6ff-4503-a03d-94db3895e965/54/IMG_7082.jpeg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/dcdb0784-37f1-4911-874c-f4875101851b/54/Salon_2.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/5467253e-25e6-4e97-b85e-c3d829c533c8/54/IMG_0996.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/85eef1fc-0a3f-45ef-a2c0-04915e123858/54/AFP-ENLYS-120326-30.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/5d1970ea-335c-4247-b97e-46cc8c32d7d2/54/RES_CENTRE_A17_003.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/e775f224-23bc-426c-b56a-8678700d4e8e/54/R%C3%A9sidence_lEden_Roc.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/2581ec84-5cc7-4930-bdca-91f8bcf31741/54/S%C3%A9jour_salon.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/1/ee0b7c99-c259-4a6a-af15-263447c9c812/54/S%C3%A9jour.jpg",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        },
+        {
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Short_stay_offer.png",
+          "method": "GET",
+          "dwSource": null,
+          "headers": {
+            "accept-language": "fr-FR",
+            "referer": "https://www.laclusaz.com/"
+          }
+        }
+      ],
+      "resps": [
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:178)&currency=&pageNo=1&pageSize=10000",
+          "status": 200,
+          "bytes": 496842,
+          "n": 898,
+          "keys": [
+            "data",
+            "paging",
+            "links"
+          ]
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=88b2311f-e01f-4381-97e5-331adb1ab00d&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,calcDuration,meal,is",
+          "status": 200,
+          "bytes": 41372,
+          "n": 24,
+          "keys": [
+            "data",
+            "paging",
+            "links"
+          ]
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/88b2311f-e01f-4381-97e5-331adb1ab00d?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9-5655-4573-b83e-07cf",
+          "status": 200,
+          "bytes": 6877,
+          "n": null,
+          "keys": [
+            "categories",
+            "topClassifications",
+            "criteria",
+            "locations",
+            "bedrooms",
+            "price",
+            "bestprice",
+            "rating"
+          ]
+        }
+      ],
+      "bodyPreview": "live\nPISTES\n0\n/\n0\nREMONTÉES\n0\n/\n0\nMÉTÉO\nMatin\n10°C\nAprès-midi\n17°C\nINFO ROUTES\nLa Clusaz\nVOIR LES WEBCAMS\nBULLETIN DÉTAILLÉ\nAU MENU\nLIVE\nSkip to content\nLE VILLAGE\nSKI\nVTT\nACTIVITÉS\nAGENDA\nLE MAG\nBOUTIQUE\nRÉSERVER MON SÉJOUR\nACHETER MON FORFAIT\nLIVE\nRechercher :\nFR\nAccueil  Réservation\nPrevious\nNext\nVOTRE HÉBERGEMENT À LA CLUSAZ\n\nRéservez dès maintenant votre hébergement à La Clusaz parmi une large sélection de chalets, appartements et hôtels.\n\nProfitez de vacances inoubliables dans un cadre montagnard authentique avec des activités variées toute l’année. Nos conseillères en séjours sont à vot"
+    }
+  ]
+}

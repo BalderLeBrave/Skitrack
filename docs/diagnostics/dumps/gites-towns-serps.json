@@ -1,0 +1,85 @@
+{
+  "at": "2026-09-02T08:10:00.000Z",
+  "contract": "GET /fr/search?towns={id}&travelers=8&date-start=2027-02-13&date-end=2027-02-20 — same extractor as Les 2 Alpes towns=50301 (.js-search-tile). No new parser.",
+  "autocomplete": [
+    {
+      "q": "Montricher",
+      "entity_id": "64400",
+      "entity_type": "towns",
+      "raw": "Montricher-Albanne - Savoie (Auvergne-Rhône-Alpes)",
+      "note": "Commune des Karellis. q=Karellis returns only pois 425067."
+    },
+    {
+      "q": "Karellis",
+      "entity_id": "425067",
+      "entity_type": "pois",
+      "raw": "Les Karellis - Savoie",
+      "note": "GET entity_id does not open a SERP (same as Les 2 Alpes 497)."
+    },
+    {
+      "q": "Vars",
+      "entity_id": "38123",
+      "entity_type": "towns",
+      "raw": "Vars - Hautes-Alpes (Provence-Alpes-Côte d'Azur)",
+      "rejected": [
+        { "entity_id": "42881", "raw": "Vars-sur-Roseix - Corrèze" },
+        { "entity_id": "63410", "raw": "Vars - Haute-Saône" }
+      ]
+    },
+    {
+      "q": "Les Angles",
+      "entity_id": "61540",
+      "entity_type": "towns",
+      "raw": "Les Angles - Pyrénées-Orientales (Occitanie)",
+      "poi_ski": { "entity_id": "392836", "entity_type": "pois" },
+      "rejected": [
+        { "entity_id": "61077", "raw": "Les Angles - Hautes-Pyrénées" },
+        { "entity_id": "42616", "raw": "Les Angles-sur-Corrèze" }
+      ]
+    }
+  ],
+  "serps": [
+    {
+      "towns": "64400",
+      "station": "Les Karellis",
+      "url": "https://www.gites-de-france.com/fr/search?towns=64400&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "title": "Rechercher une location de vacances Montricher-Albanne",
+      "results": 107,
+      "selector": ".js-search-tile",
+      "sample": [
+        "Chalet De L'ermite - L'albanne · MONTRICHER ALBANNE · 8 pers. / 3 ch. / 760 € sem.",
+        "Chalet De L'aiguille Noire · MONTRICHER ALBANNE · 12 pers. / 5 ch. / 800 € sem."
+      ],
+      "playwright": { "http": 403, "note": "CF after first Gîtes hit; SERP proven via fetch of the dated GET." }
+    },
+    {
+      "towns": "38123",
+      "station": "Vars",
+      "url": "https://www.gites-de-france.com/fr/search?towns=38123&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "title": "Rechercher une location de vacances Vars",
+      "results": 42,
+      "selector": ".js-search-tile",
+      "sample": [
+        "Chalet Constellation · VARS - Hautes-Alpes · 8 pers. / 4 ch. / 850 € sem."
+      ],
+      "playwright": { "http": 403, "note": "CF after first Gîtes hit; SERP proven via fetch of the dated GET." }
+    },
+    {
+      "towns": "61540",
+      "station": "Les Angles",
+      "url": "https://www.gites-de-france.com/fr/search?towns=61540&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+      "title": "Rechercher une location de vacances Les Angles",
+      "results": 27,
+      "selector": ".js-search-tile",
+      "tiles_page1": 20,
+      "sample": [
+        "Gîte Anthemis II à LES-ANGLES - Pyrénées-Orientales · 3 chambres · 8 personnes · 1 848 € sem."
+      ],
+      "playwright": { "http": 200, "jsSearchTile": 20 }
+    }
+  ],
+  "not_wired_official": {
+    "karellis-reservation.com": "Hospitality CF 403 FR; /en/accommodation/ catalogue 62 units, no price, no bedrooms, no dates — no parser.",
+    "alpes-sudlocations.com": "Elloha POST Search → 302 GetDetail/HLOPAC0050005312 (agency fiche, not lodging SERP) — no parser."
+  }
+}

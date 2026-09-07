@@ -1,0 +1,680 @@
+{
+  "at": "2026-09-01T22:15:10.306Z",
+  "round": 7,
+  "items": [
+    {
+      "id": "pralognan_dated",
+      "setStart": {
+        "ok": true,
+        "start": "05/09/2026"
+      },
+      "startVal": "05/09/2026",
+      "endVal": "12/09/2026",
+      "nbRes": "26 RÉSULTATS",
+      "cards": 12,
+      "sample": "1 300 €\nMONTAGNY\nPRALOGNAN LA VANOISE\nClassement\nAvis clients (1)\nRéf. MONTAG6\n6 pièces - 12 personnes\nEN SAVOIR +",
+      "bodyPreview": " +33 (0)4 58 24 00 24\nOuvert du lundi au samedi de 9h00 à 12h00 et de 14h00 à 17h00.\nFermé les jours fériés.\n\n  Mon compte  Contact \nACCUEIL\n \nLOCATION\n \nPRALOGNAN LA VANOISE\n \nPROMOTIONS\n \nQUI SOMMES NOUS\n \nPRÉPARER SON SÉJOUR\n \nSERVICES\nAccueil Location Réservation en ligne\nCRITÈRES & DISPONIBILITÉS\nDÉTAIL\nSERVICES & COORDONNÉES\nCONFIRMATION\nVOTRE RECHERCHE :\nLocations saisonnières   Hotels\nType de lot\nRésidence\nQuartier\nNombre de couchages\n14 (1)\n12 (3)\n11 (2)\n10 (6)\n9 (3)\n8 (16)\n7 (3)\n6 (20)\n5 (9)\n4 (22)\n3 (1)\n2 (1)\nAutres critères\n26 RÉSULTATS\nTri aléatoire\nPlus faible capacité\nPlus grande capacité\nPrix croissant\nPrix décroissant\n12 Résultats par page\n24 Résultats par page\n48 Résultats par page\n64 Résultats par page\n  1 SUR 3  \n1 300 €\nMONTAGNY\nPRALOGNAN LA VANOISE\nClassement\nAvis clients (1)\nRéf. MONTAG6\n6 pièces - 12 personnes\nEN SAVOIR +\n1 200 €\nCHALET MONTRACHET\nPRALOGNAN LA VAN",
+      "ajax": [
+        {
+          "id": "getCompare",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getCompare",
+          "status": 200,
+          "bytes": 5,
+          "preview": "false"
+        },
+        {
+          "id": "dd",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=dd",
+          "status": 200,
+          "bytes": 1041,
+          "preview": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09"
+        },
+        {
+          "id": "df",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=df&dd=",
+          "status": 200,
+          "bytes": 1041,
+          "preview": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=&df=&ctxt=&typeCombo=&resetSession=&typeLOC=location",
+          "status": 200,
+          "bytes": 77357,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'> <div class=\"checkbox\"><input ty"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 143,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> Résultats</a></div>"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 12736,
+          "preview": " <div class=\"col-12 col-lg-6 col-xl-4\"> <div class=\"Card Card_Lots\"> <div class=\"Card_Price\"><span>à partir de</span> 1 800 &euro;</div> <div class=\"Card_Medias\"> <a href=\"/reservation/resultats/112/\"><img src=\"https://reservationpralognan.locvacances.com/lv/imag"
+        },
+        {
+          "id": "getNB",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "bytes": 13,
+          "preview": "427 Résultats"
+        },
+        {
+          "id": "multipage",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "bytes": 638,
+          "preview": " <li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li> <li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li> <li><span class=\"paginatio"
+        },
+        {
+          "id": "trieCombo",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=",
+          "status": 200,
+          "bytes": 292,
+          "preview": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</opti"
+        },
+        {
+          "id": "df",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=df&dd=05%2F09%2F2026",
+          "status": 200,
+          "bytes": 105,
+          "preview": "[\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"12/09/2026\",\"19/09/2026\",\"26/09/2026\",\"03/10/2026\"]"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=05%2F09%2F2026&df=07%2F09%2F2026&ctxt=&typeCombo=&resetSession=all&typeLOC=location",
+          "status": 200,
+          "bytes": 13485,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'> <div class=\"checkbox\"><input ty"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 146,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> 427 Résultats</a></div>"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 13076,
+          "preview": " <div class=\"col-12 col-lg-6 col-xl-4\"> <div class=\"Card Card_Lots\"> <div class=\"Card_Price\">480 &euro;</div> <div class=\"Card_Medias\"> <a href=\"/reservation/resultats/513/\"><img src=\"https://reservationpralognan.locvacances.com/lv/images/lot/0000000513_01_s.jpg?"
+        },
+        {
+          "id": "getNB",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "bytes": 12,
+          "preview": "20 Résultats"
+        },
+        {
+          "id": "trieCombo",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=05%2F09%2F2026",
+          "status": 200,
+          "bytes": 383,
+          "preview": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</opti"
+        },
+        {
+          "id": "multipage",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "bytes": 636,
+          "preview": " <li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li> <li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li> <li><span class=\"paginatio"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=05%2F09%2F2026&df=12%2F09%2F2026&ctxt=&typeCombo=&resetSession=all&typeLOC=location",
+          "status": 200,
+          "bytes": 32041,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'> <div class=\"checkbox\"><input ty"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 145,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> 20 Résultats</a></div>"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 13153,
+          "preview": " <div class=\"col-12 col-lg-6 col-xl-4\"> <div class=\"Card Card_Lots\"> <div class=\"Card_Price\">1 300 &euro;</div> <div class=\"Card_Medias\"> <a href=\"/reservation/resultats/111/\"><img src=\"https://reservationpralognan.locvacances.com/lv/images/lot/0000000111_01_s.jp"
+        },
+        {
+          "id": "multipage",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "bytes": 636,
+          "preview": " <li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li> <li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li> <li><span class=\"paginatio"
+        },
+        {
+          "id": "trieCombo",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=05%2F09%2F2026",
+          "status": 200,
+          "bytes": 383,
+          "preview": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</opti"
+        },
+        {
+          "id": "getNB",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "bytes": 12,
+          "preview": "87 Résultats"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=05%2F09%2F2026&df=12%2F09%2F2026&ctxt=lot_pax%3D14%26lot_pax%3D12%26lot_pax%3D10%26lot_pax%3D8&typeCombo=checkbox&resetSession=&typeLOC=location",
+          "status": 200,
+          "bytes": 17919,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'> <div class=\"checkbox\"><input ty"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=05%2F09%2F2026&df=12%2F09%2F2026&ctxt=lot_pax%3D14%26lot_pax%3D12%26lot_pax%3D10%26lot_pax%3D8&typeCombo=checkbox&resetSession=&typeLOC=location",
+          "status": 200,
+          "bytes": 17919,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'> <div class=\"checkbox\"><input ty"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 145,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> 87 Résultats</a></div>"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=05%2F09%2F2026&df=12%2F09%2F2026&ctxt=lot_pax%3D14%26lot_pax%3D12%26lot_pax%3D10%26lot_pax%3D8&typeCombo=checkbox&resetSession=&typeLOC=location",
+          "status": 200,
+          "bytes": 17919,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'> <div class=\"checkbox\"><input ty"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 145,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> 87 Résultats</a></div>"
+        },
+        {
+          "id": "criteres",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=05%2F09%2F2026&df=12%2F09%2F2026&ctxt=lot_pax%3D14%26lot_pax%3D12%26lot_pax%3D10%26lot_pax%3D8&typeCombo=checkbox&resetSession=&typeLOC=location",
+          "status": 200,
+          "bytes": 17919,
+          "preview": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'> <div class=\"checkbox\"><input ty"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 13029,
+          "preview": " <div class=\"col-12 col-lg-6 col-xl-4\"> <div class=\"Card Card_Lots\"> <div class=\"Card_Price\">1 300 &euro;</div> <div class=\"Card_Medias\"> <a href=\"/reservation/resultats/111/\"><img src=\"https://reservationpralognan.locvacances.com/lv/images/lot/0000000111_01_s.jp"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 145,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> 26 Résultats</a></div>"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "MakeResults",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "bytes": 145,
+          "preview": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> 26 Résultats</a></div>"
+        },
+        {
+          "id": "multipage",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "bytes": 636,
+          "preview": " <li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li> <li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li> <li><span class=\"paginatio"
+        },
+        {
+          "id": "getNB",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "bytes": 12,
+          "preview": "26 Résultats"
+        },
+        {
+          "id": "trieCombo",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=05%2F09%2F2026",
+          "status": 200,
+          "bytes": 383,
+          "preview": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</opti"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 13029,
+          "preview": " <div class=\"col-12 col-lg-6 col-xl-4\"> <div class=\"Card Card_Lots\"> <div class=\"Card_Price\">1 300 &euro;</div> <div class=\"Card_Medias\"> <a href=\"/reservation/resultats/111/\"><img src=\"https://reservationpralognan.locvacances.com/lv/images/lot/0000000111_01_s.jp"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "getResultType",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "bytes": 4,
+          "preview": "list"
+        },
+        {
+          "id": "multipage",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "bytes": 636,
+          "preview": " <li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li> <li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li> <li><span class=\"paginatio"
+        },
+        {
+          "id": "getNB",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "bytes": 12,
+          "preview": "26 Résultats"
+        },
+        {
+          "id": "trieCombo",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=05%2F09%2F2026",
+          "status": 200,
+          "bytes": 383,
+          "preview": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</opti"
+        }
+      ]
+    },
+    {
+      "id": "clusaz_deskline_dated",
+      "frames": [
+        "https://www.laclusaz.com/reservation/hebergements",
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVz",
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVz",
+        "about:blank",
+        "about:blank",
+        "about:blank"
+      ],
+      "inputs": {
+        "n": 10,
+        "names": [
+          {
+            "tag": "INPUT",
+            "name": "s",
+            "type": "search",
+            "id": "",
+            "placeholder": "Rechercher…"
+          },
+          {
+            "tag": "INPUT",
+            "name": null,
+            "type": "submit",
+            "id": "",
+            "placeholder": null
+          },
+          {
+            "tag": "INPUT",
+            "name": "firstname",
+            "type": "text",
+            "id": "",
+            "placeholder": "Prénom *"
+          },
+          {
+            "tag": "INPUT",
+            "name": "lastname",
+            "type": "text",
+            "id": "",
+            "placeholder": "Nom *"
+          },
+          {
+            "tag": "INPUT",
+            "name": "zipcode",
+            "type": "text",
+            "id": "",
+            "placeholder": "Code postal *"
+          },
+          {
+            "tag": "INPUT",
+            "name": "email",
+            "type": "email",
+            "id": "",
+            "placeholder": "Email *"
+          },
+          {
+            "tag": "INPUT",
+            "name": null,
+            "type": "submit",
+            "id": "numbirds-submit",
+            "placeholder": null
+          },
+          {
+            "tag": "INPUT",
+            "name": "terms",
+            "type": "checkbox",
+            "id": "",
+            "placeholder": null
+          },
+          {
+            "tag": "INPUT",
+            "name": "numbirds_nonce",
+            "type": "hidden",
+            "id": "",
+            "placeholder": null
+          },
+          {
+            "tag": "INPUT",
+            "name": "g-recaptcha-response",
+            "type": "hidden",
+            "id": "g-recaptcha-response",
+            "placeholder": null
+          }
+        ]
+      },
+      "bodyPreview": "live\nPISTES\n0\n/\n0\nREMONTÉES\n0\n/\n0\nMÉTÉO\nMatin\n10°C\nAprès-midi\n17°C\nINFO ROUTES\nLa Clusaz\nVOIR LES WEBCAMS\nBULLETIN DÉTAILLÉ\nAU MENU\nLIVE\nSkip to content\nLE VILLAGE\nSKI\nVTT\nACTIVITÉS\nAGENDA\nLE MAG\nBOUTIQUE\nRÉSERVER MON SÉJOUR\nACHETER MON FORFAIT\nLIVE\nRechercher :\nFR\nAccueil  Réservation\nPrevious\nNext\nVOTRE HÉBERGEMENT À LA CLUSAZ\n\nRéservez dès maintenant votre hébergement à La Clusaz parmi une large sélection de chalets, appartements et hôtels.\n\nProfitez de vacances inoubliables dans un cadre montagnard authentique avec des activités variées toute l’année. Nos conseillères en séjours sont à votre disposition pour vous aider à planifier votre séjour.\n\nNewsletter\nChaque mois, recevez tous les b",
+      "reqs": [
+        {
+          "method": "POST",
+          "url": "https://webapi.deskline.net/filters",
+          "dwSource": "desklineweb",
+          "session": "M1788300937025",
+          "post": "{\"filterObject\":{\"id\":\"00000000-0000-0000-0000-000000000000\",\"_hashCode\":0,\"filterGeneral\":{},\"filterAddServices\":{\"name\":\"\"},\"filterAccommodation\":{\"name\":\"\",\"bestPrice\":false,\"specialPrice\":false,\"specialOffer\":false},\"filterEvent\":{},\"filterInfrastructure\":{},\"filterBrochure\":{},\"filterPackage\":{},\"filterTour\":{}}}"
+        },
+        {
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:616)&currency=&pageNo=1&pageSize=10000",
+          "dwSource": "desklineweb",
+          "session": "M1788300937025",
+          "post": null
+        },
+        {
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/39d62250-ae17-4954-b283-75f3f5741b0b?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9-5655-4573-b83e-07cf8f708c35%22]){id,nam",
+          "dwSource": "desklineweb",
+          "session": "M1788300937025",
+          "post": null
+        },
+        {
+          "method": "GET",
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=39d62250-ae17-4954-b283-75f3f5741b0b&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,calcDuration,meal,isBestPrice},dbCode,na",
+          "dwSource": "desklineweb",
+          "session": "M1788300937025",
+          "post": null
+        },
+        {
+          "method": "GET",
+          "url": "https://resc.deskline.net/images/FRA/2/8527742a-74b2-40d7-9683-8ab5719f115e/Promotion_Early_booking.png",
+          "dwSource": null,
+          "session": null,
+          "post": null
+        },
+        {
+          "method": "GET",
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Short_stay_offer.png",
+          "dwSource": null,
+          "session": null,
+          "post": null
+        }
+      ],
+      "resps": [
+        {
+          "status": 201,
+          "url": "https://webapi.deskline.net/filters",
+          "bytes": 1917,
+          "n": null,
+          "preview": "{\n  \"id\": \"39d62250-ae17-4954-b283-75f3f5741b0b\",\n  \"filterGeneral\": {},\n  \"filterAddServices\": {\n    \"types\": null,\n    \"holidayThemes\": null,\n    \"locations\":"
+        },
+        {
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:616)&currency=&pageNo=1&pageSize=10000",
+          "bytes": 496842,
+          "n": 898,
+          "preview": "{\n  \"data\": [\n    {\n      \"categories\": [\n        {\n          \"id\": \"ec3c8e0c-961c-4cfd-900e-1f2875acce63\",\n          \"name\": \"Location\",\n          \"order\": 8\n "
+        },
+        {
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/39d62250-ae17-4954-b283-75f3f5741b0b?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9-5655-4573-b83e-07cf",
+          "bytes": 6877,
+          "n": null,
+          "preview": "{\n  \"categories\": [\n    {\n      \"id\": \"ab4f2086-f06d-4dac-8b99-09eda5577c67\",\n      \"name\": \"Hôtel\",\n      \"count\": 20\n    },\n    {\n      \"id\": \"9e802064-0a21-4"
+        },
+        {
+          "status": 200,
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=39d62250-ae17-4954-b283-75f3f5741b0b&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,calcDuration,meal,is",
+          "bytes": 40635,
+          "n": 24,
+          "preview": "{\n  \"data\": [\n    {\n      \"id\": \"b67ac4ca-ff10-4ded-88ce-456a62598080\",\n      \"owner\": \"LACLUSAZ\",\n      \"location\": {\n        \"district\": \"Haut du centre villa"
+        },
+        {
+          "status": 200,
+          "url": "https://resc.deskline.net/images/FRA/2/817180d9-5655-4573-b83e-07cf8f708c35/Short_stay_offer.png",
+          "bytes": 6931,
+          "n": null,
+          "preview": "�PNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0001\u0000\u0000\u0000\u0000�\b\u0006\u0000\u0000\u00006�S�\u0000\u0000\u0000\tpHYs\u0000\u0000\u000b\u0012\u0000\u0000\u000b\u0012\u0001��~�\u0000\u0000\u0000�eXIfII*\u0000\b\u0000\u0000\u0000\u0006\u0000\u0012\u0001\u0003\u0000\u0001\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u001a\u0001\u0005\u0000\u0001\u0000\u0000\u0000V\u0000\u0000\u0000\u001b\u0001\u0005\u0000\u0001\u0000\u0000\u0000^\u0000\u0000\u0000(\u0001\u0003\u0000\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0013\u0002\u0003\u0000\u0001\u0000\u0000\u0000\u0001\u0000\u0000\u0000i�\u0004\u0000\u0001\u0000\u0000\u0000f\u0000\u0000\u0000\u0000\u0000\u0000\u0000/\u0019\u0001\u0000�\u0003\u0000\u0000/\u0019\u0001\u0000"
+        }
+      ]
+    },
+    {
+      "id": "karellis_pw",
+      "url": "https://www.karellis-reservation.com/",
+      "xhr": [],
+      "http": 403,
+      "finalUrl": "https://www.karellis-reservation.com/?__cf_chl_rt_tk=hKZ73KafkkEY_FY6uFCb89dL1Z2KfJrCXSL6tUGM1QM-1788300958-1.0.1.1-9fQUsU3yLavGDflvcKA6Sm5wSwHPmOsV.gixBLGfz0A",
+      "title": "Just a moment...",
+      "htmlBytes": 27347,
+      "challenge": false,
+      "bodyPreview": "www.karellis-reservation.com\nVérification de sécurité en cours\n\nCe site utilise un service de sécurité pour se protéger contre les bots malveillants. Cette page s’affiche pendant que le site vérifie que vous n’êtes pas un bot.\n\nRay ID: a347a2fe48c92040\nPerformances et sécurité par Cloudflare\nConfidentialité",
+      "links": []
+    },
+    {
+      "id": "karellis_residence_pw",
+      "url": "https://www.karellis-reservation.com/residence/",
+      "xhr": [],
+      "http": 403,
+      "finalUrl": "https://www.karellis-reservation.com/residence/?__cf_chl_rt_tk=ODugcPRX6tzCrSXf7hVWMKtiITNXfUPc5jAyfX_t2WI-1788300965-1.0.1.1-Bi9Ka51YBXnN4Bf1hZRdNe1DGX2cC.QZEQ1Qz.a6wcg",
+      "title": "Just a moment...",
+      "htmlBytes": 27524,
+      "challenge": false,
+      "bodyPreview": "www.karellis-reservation.com\nVérification de sécurité en cours\n\nCe site utilise un service de sécurité pour se protéger contre les bots malveillants. Cette page s’affiche pendant que le site vérifie que vous n’êtes pas un bot.\n\nRay ID: a347a3464ad5d62c\nPerformances et sécurité par Cloudflare\nConfidentialité",
+      "links": []
+    },
+    {
+      "id": "sancy_tous_ok",
+      "url": "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/",
+      "xhr": [
+        {
+          "url": "https://www.sancy.com/plugins/lae-elementor-widgets-site/assets/lib/lazysizes.min.js",
+          "status": 200,
+          "body": "/*! lazysizes - v5.3.0 */\n\n!function(e){var t=function(u,D,f){\"use strict\";var k,H;if(function(){var e;var t={lazyClass:\"lazyload\",loadedClass:\"lazyloaded\",loadingClass:\"lazyloading\",preloadClass:\"lazypreload\",errorClass"
+        },
+        {
+          "url": "https://www.sancy.com/plugins/lae-elementor-widgets-site/assets/js/lae-header-photo.js",
+          "status": 200,
+          "body": "( function( $ ) {\n\n\tvar LaeHeaderPhoto = function ($scope) {\n\n\t\tthis.$scope = $scope;\n\t\tthis.sliderID = 'slider-' + $scope.data('id');\n\t\tthis.$body = $('body');\n\t\tthis.$logo = $('.site-logo img:first');\n\t\t\n\t\tif (!this.$b"
+        },
+        {
+          "url": "https://www.sancy.com/plugins/lae-elementor-widgets-site/assets/js/lae-menu-courant.js",
+          "status": 200,
+          "body": "( function( $ ) {\n\t\n\tvar MenuCourant = function ($scope) {\n\t\tthis.$scope = $scope;\t\t\n\t\tthis.mode = $('body').attr('data-elementor-device-mode');\n\t\tthis.sliderID = 'h_mc';\t\n\t\tthis.slider = null;\n\t\tthis.initialized = false"
+        }
+      ],
+      "http": 200,
+      "finalUrl": "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/",
+      "title": "Location vacances Puy de Sancy, hébergement Massif Central",
+      "htmlBytes": 725583,
+      "challenge": false,
+      "bodyPreview": "Aller au contenu principal\nAller au menu\nAller au pied de page\n\nBilletterie\nEn direct\nLe blog\nDÉCOUVRIR\nA VOIR, À FAIRE\nSE RÉGALER\nAGENDA\nHÉBERGEMENT\nPRATIQUE\n0\nFAVORIS\nACCUEIL\nHÉBERGEMENT\nLes hébergements et locations dans le Sancy\n+\n\nHébergement\nHôtels\nGîtes et locations de vacances\nChambres d’hôtes\nCampings\nAires de camping-cars\nVillages Vacances\nRésidences de tourisme et villages de gîtes\nGîtes d’étape, auberges de jeunesse et auberges collectives\nHébergements de groupe et centres de vacances\nAgences de location\nHébergements insolites\nHébergements avec mon chien\nHébergements avec mon chien labellisés Toutou Sancy\nTous les hébergements\nInformations pratiques gîtes et locations de vacances",
+      "links": [
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/#main",
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/#main-menu",
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/#main-footer",
+        "https://www.sancy.com/decouvrir/panoramas-sites-naturels/reserves-naturelles/",
+        "https://www.sancy.com/hebergement/hotels/",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/",
+        "https://www.sancy.com/hebergement/chambres-hotes/",
+        "https://www.sancy.com/hebergement/campings/",
+        "https://www.sancy.com/hebergement/aires-camping-cars/",
+        "https://www.sancy.com/hebergement/villages-vacances/",
+        "https://www.sancy.com/hebergement/residences-tourisme-villages-gites/",
+        "https://www.sancy.com/hebergement/gites-etape-gite-groupe/"
+      ]
+    },
+    {
+      "id": "elloha_result_list",
+      "url": "https://reservation.elloha.com/Result/Search?idPublication=6dec24ec-415c-4251-af67-baa0b206d31f",
+      "xhr": [
+        {
+          "url": "https://reservation.elloha.com/Result/Search?idPublication=6dec24ec-415c-4251-af67-baa0b206d31f",
+          "status": 302,
+          "body": ""
+        },
+        {
+          "url": "https://reservation.elloha.com/Error/Index",
+          "status": 200,
+          "body": "\r\n\r\n\r\n\r\n\r\n\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <meta name=\"viewport\" content=\"initial-scale=1.0,maximum-scale=1.0,user-scalable=no,width=device-width,height=device-height\">\r\n    <meta name=\"robots\" content=\"noindex\">"
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/css?v=hR1kIZJIfmYxtZpu--kOqy3T0GjN9m4CErkZeAB4QtA1",
+          "status": 200,
+          "body": "/* Minification failed. Returning unminified contents.\r\n(6228,31): run-time error CSS1046: Expect comma, found '0'\r\n(6228,35): run-time error CSS1046: Expect comma, found '/'\r\n(11569,21): run-time error CSS1039: Token no"
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/fonts/Montserrat-Bold.ttf",
+          "status": 200,
+          "body": "\u0000\u0001\u0000\u0000\u0000\u0011\u0001\u0000\u0000\u0004\u0000\u0010DSIG\u0000\u0000\u0000\u0001\u0000\u0000sp\u0000\u0000\u0000\bFFTMc�=D\u0000\u0000\\T\u0000\u0000\u0000\u001cGDEF\u00014\u0000\u0006\u0000\u0000\\p\u0000\u0000\u0000 GPOS�\r��\u0000\u0000\\�\u0000\u0000\u0016�GSUBl�t�\u0000\u0000sP\u0000\u0000\u0000 OS/2��=)\u0000\u0000\u0001�\u0000\u0000\u0000`cmap�ξ�\u0000\u0000\u0006\u0014\u0000\u0000\u0003�gasp\u0000\u0000\u0000\u0010\u0000\u0000\\L\u0000\u0000\u0000\bglyfa�?�\u0000\u0000\u000b�\u0000\u0000G8head�\f\fU\u0000\u0000\u0001\u001c\u0000\u0000\u00006hhea\u0007�\u0004'\u0000\u0000\u0001T\u0000\u0000\u0000$hmtxY�-�\u0000\u0000\u0001�\u0000\u0000\u0004\u001aloca���\u0000\u0000\u0000\t�\u0000\u0000\u0002\u0010m"
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/fonts/Montserrat-Light.ttf",
+          "status": 200,
+          "body": "\u0000\u0001\u0000\u0000\u0000\u0011\u0001\u0000\u0000\u0004\u0000\u0010GDEF�l�\\\u0000\u0002h�\u0000\u0000\u0002~GPOST�~e\u0000\u0002kH\u0000\u0001\u0017\"GSUB��YF\u0000\u0003�l\u0000\u0000/&OS/2U?�:\u0000\u0001�l\u0000\u0000\u0000`cmap_ �i\u0000\u0001��\u0000\u0000\n�cvt .:\u0014G\u0000\u0002\u000e�\u0000\u0000\u0000�fpgmM$�|\u0000\u0002\u0000�\u0000\u0000\rmgasp\u0000\u0000\u0000\u0010\u0000\u0002h�\u0000\u0000\u0000\bglyf\u001d�e\u0000\u0000\u0001\u001c\u0000\u0001�0head\u000e<�e\u0000\u0001�P\u0000\u0000\u00006hhea\u0006�\f\u0000\u0000\u0001�H\u0000\u0000\u0000$hmtxg�\u0010�\u0000\u0001׈\u0000\u0000\u001d�loca��=M\u0000\u0001�l\u0000\u0000\u000e�m"
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/fonts/Montserrat-Medium.ttf",
+          "status": 200,
+          "body": "\u0000\u0001\u0000\u0000\u0000\u0011\u0001\u0000\u0000\u0004\u0000\u0010GDEF�l�\\\u0000\u0002m\u0014\u0000\u0000\u0002~GPOSvY��\u0000\u0002o�\u0000\u0001\u0017.GSUB��YF\u0000\u0003��\u0000\u0000/&OS/2V\f�N\u0000\u0001��\u0000\u0000\u0000`cmap_ �i\u0000\u0001�\u0010\u0000\u0000\n�cvt 0�\u0016�\u0000\u0002\u0013<\u0000\u0000\u0000�fpgmM$�|\u0000\u0002\u0004�\u0000\u0000\rmgasp\u0000\u0000\u0000\u0010\u0000\u0002m\f\u0000\u0000\u0000\bglyf�\u001b\u001d�\u0000\u0000\u0001\u001c\u0000\u0001�thead\u000eP�x\u0000\u0001۔\u0000\u0000\u00006hhea\u0006�\f\"\u0000\u0001��\u0000\u0000\u0000$hmtx����\u0000\u0001��\u0000\u0000\u001d�loca�\u001b�2\u0000\u0001̰\u0000\u0000\u000e�ma"
+        }
+      ],
+      "http": 200,
+      "finalUrl": "https://reservation.elloha.com/Error/Index",
+      "title": "Erreur lors de votre réservation",
+      "htmlBytes": 1190,
+      "challenge": false,
+      "bodyPreview": "Désolé, un problème technique est survenu\n\nVous pouvez contacter notre support à l'adresse suivante :\n\nsupport@elloha.com",
+      "links": [
+        "mailto:support@elloha.com"
+      ]
+    },
+    {
+      "id": "angles_tous7",
+      "url": "https://lesangles.com/tous-les-hebergements/",
+      "xhr": [
+        {
+          "url": "https://lesangles.com/wp-content/plugins/smartsearchwp/js/scripts/fontawesome-bafa15e11b.js?ver=2.8.6",
+          "status": 200,
+          "body": "window.FontAwesomeKitConfig = {\"asyncLoading\":{\"enabled\":false},\"autoA11y\":{\"enabled\":true},\"baseUrl\":\"https://ka-f.fontawesome.com\",\"baseUrlKit\":\"https://kit.fontawesome.com\",\"detectConflictsUntil\":null,\"iconUploads\":{}"
+        },
+        {
+          "url": "https://lesangles.com/wp-content/plugins/smartsearchwp/js/dist/wdgpt.main.bundle.js?ver=2.8.6",
+          "status": 200,
+          "body": "/*! For license information please see wdgpt.main.bundle.js.LICENSE.txt */\n(()=>{var e={9282:(e,t,r)=>{\"use strict\";var n=r(4155),o=r(5108);function a(e){return a=\"function\"==typeof Symbol&&\"symbol\"==typeof Symbol.iterat"
+        },
+        {
+          "url": "https://static.axept.io/cookies-widget.js",
+          "status": 200,
+          "body": "\"use strict\";(self.webpackChunk_axeptio_widget_client=self.webpackChunk_axeptio_widget_client||[]).push([[305],{30269:function(e,t,n){n.r(t),n.d(t,{default:function(){return U}});var r=n(58168),i=n(54705),o=n(53986),a=n("
+        }
+      ],
+      "http": 200,
+      "finalUrl": "https://lesangles.com/tous-les-hebergements/",
+      "title": "Tous les hébergements - Les Angles",
+      "htmlBytes": 429471,
+      "challenge": false,
+      "bodyPreview": "Salut c'est nous...\nles Cookies !\nOn a attendu d'être sûrs que le contenu de ce site vous intéresse avant de vous déranger, mais on aimerait bien vous accompagner pendant votre visite...\nC'est OK pour vous ?\n\nPour modifier vos préférences par la suite, cliquez sur le lien 'Préférences de cookies' situé dans le pied de page.\n\nConsentements certifiés par\nNon merci\nJe choisis\nOK pour moi\nAxeptio consent\n\nPlateforme de Gestion du Consentement : Personnalisez vos Options\n\nNotre plateforme vous permet d'adapter et de gérer vos paramètres de confidentialité, en garantissant la conformité avec les réglementations. Personnalisez vos préférences pour contrôler la manière dont vos informations sont man",
+      "links": [
+        "https://lesangles.com/tous-les-hebergements/",
+        "https://lesangles.com/hebergement/refuge-cal-chalon/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-chalet/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-le-cabanat/",
+        "https://lesangles.com/hebergement/les-fermes-de-cal-panche-la-ferme/",
+        "https://lesangles.com/hebergement/cottage-des-pleiades/",
+        "https://lesangles.com/hebergement/la-grange-de-la-petite-ourse/",
+        "https://lesangles.com/hebergement/au-lodge-de-balcere-chalet-cosy-spa-et-sauna-privatifs-aux-angles/",
+        "https://lesangles.com/hebergement/residence-vacanceole-les-chalets-de-lisard/",
+        "https://lesangles.com/hebergement/anthemis-i/",
+        "https://lesangles.com/hebergement/chalet-pin-dur/",
+        "https://lesangles.com/hebergement/desmet-n98/"
+      ]
+    },
+    {
+      "id": "arvernha",
+      "url": "https://www.arvernha-resorts.com/hebergements/",
+      "xhr": [],
+      "http": 200,
+      "finalUrl": "https://www.arvernha-resorts.com/hebergements/",
+      "title": "Chalets - Arvernha Resorts",
+      "htmlBytes": 95651,
+      "challenge": false,
+      "bodyPreview": "Bon séjour en Auvergne !\n\n 04 73 88 66 46\n\nFR\n\n ESPACE CLIENT\nArvernha ResortsVivez votre séjour en Auvergne\nCRÉEZ VOTRE SÉJOUR\nARVERNHA RESORTS\nDESTINATION AUVERGNE\nCONTACT\nRecherche\n\nArvernha Resorts\n\nActualités\n27 juin 2026\nGîte – Le Chardonneret Du Sancy\n26 juin 2026\nGîte – L’Hirondelle Des Sarments\n23 avril 2026\nGîte – Aux Marches Du Château\n19 février 2026\nChalet – Chalet Juliette\n18 février 2026\nChalet – Trappeur 8\n25 janvier 2026\nChalet 4 pièces – Chalets De La Gougère\n25 janvier 2026\nChalet 4 pièces – Chalets De La Gougère\n25 janvier 2026\nChalet 4 pièces – Chalets De La Gougère\n22 janvier 2026\nChalet 4 pièces – Chalets De La Gougère\n31 décembre 2025\nChalet – Alpaga\n1 2 3 … 9\n\nARVERN",
+      "links": [
+        "https://www.arvernha-resorts.com/creez-votre-sejour/hebergements-1-2-personnes/",
+        "https://www.arvernha-resorts.com/creez-votre-sejour/hebergements-3-4-personnes/",
+        "https://www.arvernha-resorts.com/creez-votre-sejour/hebergements-5-6-personnes/",
+        "https://www.arvernha-resorts.com/creez-votre-sejour/hebergements-7-8-personnes/",
+        "https://www.arvernha-resorts.com/creez-votre-sejour/hebergements-9-10-personnes/",
+        "https://www.arvernha-resorts.com/creez-votre-sejour/hebergements-de-10-personnes/",
+        "https://www.arvernha-resorts.com/creez-votre-sejour/tous-les-hebergements/",
+        "https://www.arvernha-resorts.com/hebergements/#search",
+        "https://www.arvernha-resorts.com/hebergements/#nav",
+        "https://www.arvernha-resorts.com/hebergements/#close",
+        "https://www.arvernha-resorts.com/hebergements/gite-le-chardonneret/",
+        "https://www.arvernha-resorts.com/hebergements/gite-lhirondelle-des-sar/"
+      ]
+    }
+  ]
+}

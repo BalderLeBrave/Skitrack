@@ -1,0 +1,192 @@
+{
+  "at": "2026-09-01T21:30:08.551Z",
+  "round": "gites-cozy-2",
+  "items": [
+    {
+      "id": "gites_inpage_post",
+      "http": 200,
+      "title": "Rechercher une location de vacances | Gîtes de France®",
+      "cookie": null,
+      "filled": {
+        "destination": true,
+        "entity_id": true,
+        "entity_type": true,
+        "dateStart": true,
+        "dateEnd": true,
+        "arrival": true,
+        "departure": true,
+        "adults": true,
+        "values": {
+          "destination": "Les 2 Alpes",
+          "entity_id": "497",
+          "entity_type": "pois",
+          "dateStart": "2027-02-13",
+          "adults": "8",
+          "form_build_id": "form-ttKqSBN0gW7AKr7"
+        }
+      },
+      "finalUrl": "https://www.gites-de-france.com/fr/search",
+      "finalTitle": "Attention Required! | Cloudflare",
+      "serp": {
+        "giteCard": 0,
+        "noResults": false,
+        "oups": null,
+        "article": 0,
+        "ldjson": 0,
+        "offerHref": 0,
+        "euro": [],
+        "joliRoot": false,
+        "routerOutlet": false,
+        "cf": true
+      },
+      "form_after": {
+        "entity_id": null,
+        "entity_type": null,
+        "destination": null
+      },
+      "bodyPreview": "Sorry, you have been blocked You are unable to access gites-de-france.com Why have I been blocked? This website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data. What can I do to resolve this? You can email the site owner to let them know you were blocked. Please include what you were doing when this page came up and the Cloudflare Ray ID found at the bottom of this page. Cloudflare Ray ID: a3475ff08e9744a6 • Your IP: Click to reveal • Performance & security by Cloudflare",
+      "xhr": [
+        {
+          "url": "https://www.gites-de-france.com/fr/search",
+          "status": 200
+        },
+        {
+          "url": "https://www.gites-de-france.com/fr/search",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "id": "cozycozy_api",
+      "cookie": null,
+      "title": "",
+      "finalUrl": "https://www.cozycozy.com/fr/search?location=Les%202%20Alpes&checkin=2027-02-13&checkout=2027-02-20&adults=8&nights=7&e=4",
+      "stats": {
+        "giteCard": 0,
+        "noResults": false,
+        "oups": null,
+        "article": 0,
+        "ldjson": 0,
+        "offerHref": 0,
+        "euro": [],
+        "joliRoot": true,
+        "routerOutlet": true,
+        "cf": false
+      },
+      "bodyPreview": "",
+      "console": [
+        "warning: Google basic consent is not applicable.",
+        "warning: Regulation is not applicable, hence visit event is not sent.",
+        "error: Provider's accounts list is empty.",
+        "error: [GSI_LOGGER]: FedCM get() rejects with NetworkError: Error retrieving a token."
+      ],
+      "mainSrc": "https://www.cozycozy.com/main.f7e84b9d7beb408c.js",
+      "mainBytes": 2281260,
+      "cosmosApi": "ith(O.mainDomain);return{issuer:O.authBaseUrl,backendBaseUrl:E?`${O.authBaseUrl}cosmos-api`:\"https://cw-1036.fusionauth-cozycozy-backend.deployment.joli.space/cosmos-api\",tenantId:E?O.authTenantIdProd:O.authTenantIdDev,clientId:E?O.authClientIdProd:O.authClientIdDev}}i.d($,{g:()=>n})},62315:(ve,$,i)=>{\"use strict\";i.d($,{Ci:()=>e,I7:()=>c,PO:()=>g,RH:()=>O,bh:()=>n,e4:()=>f,x7:()=>h});const n=\"hvnu\",c=30,O=\"getHvnu\",f=\"X-Split-Id\",e=\"X-Search-Id\",h=\"X-Cosmos-Session-Id\",g={\"b",
+      "getInputLocation": "K.translator.getTranslations());try{const U=Number(z.accommodationId),T=yield K.getInputLocationFor(U,w);if(!T)throw new Error(`No location for accommodationId '${z.accommodationId}'`);let x=O()(W.fromDate,D,!0);(!x.isValid()||x.isBefore(O()().startOf(\"day\")))&&(x=O()().days(O()().day()>5?20:13).startOf(\"day\"));let B=O()(W.toDate,D,!0);return(!B.isValid()||B",
+      "searchByText": "ode:v.siteConfig.siteCode,locale:yield v.getLocale(),session:b}))).location})()}searchByText(M,b){var v=this;return(0,c.Z)(function*(){if(!M)return null;const C=yield v.getLocale(),L=`cosmos.GooglePlaces.searchByText6:${C}:${M}`;if(A&&!b){const V=A.getItem(L);if(V)return JSON.parse(V)}const d=(yield(0,E.z)(v.backend.searchInputLocation({q",
+      "backendMethods": [
+        "getPersonal",
+        "logVisitUser",
+        "deleteAccount",
+        "getPlacePredictions",
+        "getInputLocation",
+        "searchInputLocation",
+        "createList",
+        "updateList",
+        "deleteList",
+        "getLists",
+        "getList",
+        "addToList",
+        "deleteFromList",
+        "keepAlive",
+        "getSearchStateWhenNot",
+        "getResultList",
+        "getResultPageStats",
+        "launch",
+        "getFilterRanges",
+        "getLaunchParam",
+        "getOfferStrip",
+        "getInstagramMedia",
+        "handle"
+      ],
+      "rpcNames": [],
+      "apiProbes": [
+        {
+          "path": "(root)",
+          "status": 200,
+          "body": "\n<!-- HTML for static distribution bundle build -->\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Swagger UI</title>\n  <link rel=\"stylesheet\" type=\"text"
+        },
+        {
+          "path": "/",
+          "status": 200,
+          "body": "\n<!-- HTML for static distribution bundle build -->\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Swagger UI</title>\n  <link rel=\"stylesheet\" type=\"text"
+        },
+        {
+          "path": "/docs",
+          "status": 404,
+          "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/docs\",\"error\":\"Not Found\"}"
+        },
+        {
+          "path": "/openapi.json",
+          "status": 404,
+          "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/openapi.json\",\"error\":\"Not Found\"}"
+        },
+        {
+          "path": "/health",
+          "status": 404,
+          "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/health\",\"error\":\"Not Found\"}"
+        },
+        {
+          "path": "/v1",
+          "status": 404,
+          "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/v1\",\"error\":\"Not Found\"}"
+        },
+        {
+          "path": "/search",
+          "status": 404,
+          "body": "{\"statusCode\":404,\"message\":\"Cannot GET /cosmos-api/search\",\"error\":\"Not Found\"}"
+        },
+        {
+          "method": "POST",
+          "path": "/getInputLocation",
+          "status": 404,
+          "body": "{\"statusCode\":404,\"message\":\"Cannot POST /cosmos-api/getInputLocation\",\"error\":\"Not Found\"}"
+        },
+        {
+          "method": "POST",
+          "path": "(root)",
+          "status": 404,
+          "body": "{\"statusCode\":404,\"message\":\"Cannot POST /cosmos-api\",\"error\":\"Not Found\"}"
+        }
+      ],
+      "xhr_interesting": [
+        {
+          "url": "https://www.cozycozy.com/fr/search?location=Les+2+Alpes&checkin=2027-02-13&checkout=2027-02-20&adults=8&nights=7&e=4",
+          "status": 200
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logVisit",
+          "status": 200
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=18&frm=0&apvc=1&ae=g&auid=771181266.1788298217&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%3Flocation%3DLes%2B2%2BAlpes%26checkin%3D2027-02-13%26checkout%3D2027-02-",
+          "status": 200
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=16&frm=0&apvc=0&auid=771181266.1788298217&tid=AW-862603817&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%3Flocation%3DLes%2B2%2BAlpes%26checkin%3D2027-02-13%26checkou",
+          "status": 200
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=16&frm=0&apvc=0&ae=g&auid=771181266.1788298217&tid=AW-862603817&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%3Flocation%3DLes%2B2%2BAlpes%26checkin%3D2027-02-13%26checkout%3D2027",
+          "status": 200
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=16&frm=0&apvc=0&auid=771181266.1788298217&tid=AW-862603817&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch&scrsrc=www.googletagmanager.com&rnd=673317346.1788298217&navt",
+          "status": 200
+        }
+      ],
+      "xhr_count": 68
+    }
+  ]
+}

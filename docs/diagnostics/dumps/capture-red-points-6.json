@@ -1,0 +1,1107 @@
+{
+  "at": "2026-09-01T22:03:21.759Z",
+  "round": 6,
+  "items": [
+    {
+      "id": "deskline_laclusaz_fr_accommodations",
+      "url": "https://webapi.deskline.net/laclusaz/fr/accommodations",
+      "method": "GET",
+      "http": 400,
+      "error": null,
+      "preview": "Must provide value for header DW-Source",
+      "jsonKeys": null,
+      "bytes": 39
+    },
+    {
+      "id": "deskline_laclusaz_fr_accommodations",
+      "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults",
+      "method": "GET",
+      "http": 400,
+      "error": null,
+      "preview": "Must provide value for header DW-Source",
+      "jsonKeys": null,
+      "bytes": 39
+    },
+    {
+      "id": "deskline_laclusaz_fr_accommodationunits",
+      "url": "https://webapi.deskline.net/laclusaz/fr/accommodationunits",
+      "method": "GET",
+      "http": 400,
+      "error": null,
+      "preview": "Must provide value for header DW-Source",
+      "jsonKeys": null,
+      "bytes": 39
+    },
+    {
+      "id": "deskline_laclusaz_fr_acco",
+      "url": "https://webapi.deskline.net/laclusaz/fr/acco/filterresults",
+      "method": "GET",
+      "http": 400,
+      "error": null,
+      "preview": "Must provide value for header DW-Source",
+      "jsonKeys": null,
+      "bytes": 39
+    },
+    {
+      "id": "deskline_laclusaz_fr_hotels",
+      "url": "https://webapi.deskline.net/laclusaz/fr/hotels",
+      "method": "GET",
+      "http": 400,
+      "error": null,
+      "preview": "Must provide value for header DW-Source",
+      "jsonKeys": null,
+      "bytes": 39
+    },
+    {
+      "id": "deskline_laclusaz_fr_addservices",
+      "url": "https://webapi.deskline.net/laclusaz/fr/addservices/filterresults?fields=types{id,name,count}",
+      "method": "GET",
+      "http": 400,
+      "error": null,
+      "preview": "Must provide value for header DW-Source",
+      "jsonKeys": null,
+      "bytes": 39
+    },
+    {
+      "id": "deskline_laclusaz_fr_",
+      "url": "https://booking.deskline.net/laclusaz/fr/",
+      "method": "GET",
+      "http": null,
+      "error": "TypeError: fetch failed",
+      "preview": "",
+      "jsonKeys": null
+    },
+    {
+      "id": "deskline_",
+      "url": "https://booking.laclusaz.com/",
+      "method": "GET",
+      "http": null,
+      "error": "TypeError: fetch failed",
+      "preview": "",
+      "jsonKeys": null
+    },
+    {
+      "id": "elloha_calendar",
+      "url": "https://reservation.elloha.com/api/WebService/GetCalendarAvailability?idOi=f74875ea-e624-4667-be17-ca8cf7fe84b6",
+      "method": "GET",
+      "http": 200,
+      "error": null,
+      "preview": "[{\"Date\":\"2026-09-01T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-09-02T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-09-03T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-09-04T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-09-05T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-",
+      "jsonKeys": {
+        "type": "array",
+        "n": 13,
+        "sample": [
+          "Date",
+          "IsArrivalPossible",
+          "HasPromotion"
+        ]
+      },
+      "bytes": 1002
+    },
+    {
+      "id": "karellis_residence_curl",
+      "url": "https://www.karellis-reservation.com/residence/",
+      "method": "GET",
+      "http": 403,
+      "error": null,
+      "preview": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"><meta name=\"robots\" content=\"noindex,nofollow\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"content-security-policy\" content=\"default-src &#39;none&#39;; script-src &#39",
+      "jsonKeys": null,
+      "bytes": 5798
+    },
+    {
+      "id": "karellis_appart_curl",
+      "url": "https://www.karellis-reservation.com/liste-offres-thematisee/nos-appartements-au-pied-des-pistes/",
+      "method": "GET",
+      "http": 403,
+      "error": null,
+      "preview": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"><meta name=\"robots\" content=\"noindex,nofollow\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"content-security-policy\" content=\"default-src &#39;none&#39;; script-src &#39",
+      "jsonKeys": null,
+      "bytes": 6012
+    },
+    {
+      "id": "karellis_home_curl",
+      "url": "https://www.karellis-reservation.com/",
+      "method": "GET",
+      "http": 403,
+      "error": null,
+      "preview": "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"><meta name=\"robots\" content=\"noindex,nofollow\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"content-security-policy\" content=\"default-src &#39;none&#39;; script-src &#39",
+      "jsonKeys": null,
+      "bytes": 5747
+    },
+    {
+      "id": "karellis_dest_curl",
+      "url": "https://www.karellis.com/destination-endpoint.php",
+      "method": "GET",
+      "http": 404,
+      "error": null,
+      "preview": "<!DOCTYPE html> <html lang=\"fr-FR\"> <head> <meta charset=\"UTF-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <meta name='robots' content='noindex, follow' /> <title>Page non trouvée - Les Karellis</title> <meta property=\"og:locale\" content=\"fr_FR\" /> <meta property=\"og:title\" content=\"Page non trouvée - Les Karellis\" /> <meta property=\"og:site_name\" content=\"Le",
+      "jsonKeys": null,
+      "bytes": 167990
+    },
+    {
+      "id": "pralognan_cookies",
+      "url": "https://www.reservationpralognan.fr/reservation/resultats/",
+      "xhr": [
+        {
+          "url": "https://www.reservationpralognan.fr/reservation/resultats/",
+          "status": 200,
+          "body": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n\t\t<meta charset=\"utf-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\t<title>Pralognan la Vanoise : locations et réservations d'appartements</title>\n\t<meta name=\"description\" content=\"Locations et réservations d'ap"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getCompare",
+          "status": 200,
+          "body": "false"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=dd",
+          "status": 200,
+          "body": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=df&dd=",
+          "status": 200,
+          "body": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09"
+        },
+        {
+          "url": "https://matomo.2lagence.fr/matomo.php?action_name=Pralognan%20la%20Vanoise%20%3A%20locations%20et%20r%C3%A9servations%20d%27appartements&idsite=3&rec=1&r=835632&h=0&m=3&s=30&url=https%3A%2F%2Fwww.reservationpralognan.fr%2Freservation%2Fresultats%2F&_id=d67d17a",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=&df=&ctxt=&typeCombo=&resetSession=&typeLOC=location",
+          "status": 200,
+          "body": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'>\n\t\t\t\t\t\t<div class=\"checkbox\"><input ty"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "body": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i>  Résultats</a></div>"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "body": "list"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "body": "\n\t\t<div class=\"col-12 col-lg-6 col-xl-4\">\n\t\t\t<div class=\"Card Card_Lots\">\n\t\t\t<div class=\"Card_Price\"><span>à partir de</span> 1 800 &euro;</div>\n\t\t\t\t<div class=\"Card_Medias\">\n\t\t\t\t\t<a href=\"/reservation/resultats/112/\"><img src=\"https://reservationpralognan.locvacances.com/lv/imag"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "body": "\n<li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li>\n<li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li>\n<li><span class=\"paginatio"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=",
+          "status": 200,
+          "body": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</opti"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "body": "427 Résultats"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/reservation/resultats/",
+          "status": 200,
+          "body": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n\t\t<meta charset=\"utf-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\t<title>Pralognan la Vanoise : locations et réservations d'appartements</title>\n\t<meta name=\"description\" content=\"Locations et réservations d'ap"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getCompare",
+          "status": 200,
+          "body": "false"
+        },
+        {
+          "url": "https://matomo.2lagence.fr/matomo.php?action_name=Pralognan%20la%20Vanoise%20%3A%20locations%20et%20r%C3%A9servations%20d%27appartements&idsite=3&rec=1&r=648710&h=0&m=3&s=38&url=https%3A%2F%2Fwww.reservationpralognan.fr%2Freservation%2Fresultats%2F&urlref=http",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=dd",
+          "status": 200,
+          "body": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=df&dd=",
+          "status": 200,
+          "body": "[\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/09/2026\",\"17/09/2026\",\"18/09/2026\",\"19/09/2026\",\"20/09/2026\",\"21/09/2026\",\"22/09/2026\",\"23/09/2026\",\"24/09/2026\",\"26/09/2026\",\"27/09"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=criteres&dd=&df=&ctxt=&typeCombo=&resetSession=&typeLOC=location",
+          "status": 200,
+          "body": "<div class=\"col-12\"><div id=\"SearchBox_1\"><div class='SearchBox_Elem SearchBox_Close' id='SearchBox_Elem_1'><div class=\"SearchBox_Elem_Title\" onclick=\"TriggerCrit('1');\">Type de lot</div><div class='SearchBox_Container js-hidden' id='Cont_1'>\n\t\t\t\t\t\t<div class=\"checkbox\"><input ty"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=MakeResults",
+          "status": 200,
+          "body": "<div class=\"inline-center\"><a href=\"/reservation/resultats/\" class=\"btn btn-secondary\"><i class=\"far fa-check-circle\"></i> 427 Résultats</a></div>"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getResultType",
+          "status": 200,
+          "body": "list"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "body": "\n\t\t<div class=\"col-12 col-lg-6 col-xl-4\">\n\t\t\t<div class=\"Card Card_Lots\">\n\t\t\t<div class=\"Card_Price\"><span>à partir de</span> 1 800 &euro;</div>\n\t\t\t\t<div class=\"Card_Medias\">\n\t\t\t\t\t<a href=\"/reservation/resultats/112/\"><img src=\"https://reservationpralognan.locvacances.com/lv/imag"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=multipage",
+          "status": 200,
+          "body": "\n<li><a href=\"#\" class=\"pagination-link pagination-first\"><span class=\"fa fa-chevron-left\"></span><span class=\"fa fa-chevron-left\"></span></a></li>\n<li><a href=\"#\" class=\"pagination-link pagination-prev\"><span class=\"fa fa-chevron-left\"></span></a></li>\n<li><span class=\"paginatio"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getNB",
+          "status": 200,
+          "body": "427 Résultats"
+        },
+        {
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=trieCombo&dd=",
+          "status": 200,
+          "body": "<select id=\"orderBy\" class=\"form-control\" name=\"orderBy\" onChange=\"javascript:getListe('',$(this).val());\"><option value=\"lot_random\" selected=\"selected\">Tri aléatoire</option><option value=\"lot_pax\">Plus faible capacité</option><option value=\"lot_paxD\">Plus grande capacité</opti"
+        }
+      ],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 1,
+        "deskline": 0,
+        "recaptcha": 1
+      },
+      "title": "Pralognan la Vanoise : locations et réservations d'appartements",
+      "http": 200,
+      "finalUrl": "https://www.reservationpralognan.fr/reservation/resultats/",
+      "error": null,
+      "afterCookieUrl": "https://www.reservationpralognan.fr/reservation/resultats/",
+      "afterCookiePreview": " +33 (0)4 58 24 00 24\nOuvert du lundi au samedi de 9h00 à 12h00 et de 14h00 à 17h00.\nFermé les jours fériés.\n\n  Mon compte  Contact \nACCUEIL\n \nLOCATION\n \nPRALOGNAN LA VANOISE\n \nPROMOTIONS\n \nQUI SOMMES NOUS\n \nPRÉPARER SON SÉJOUR\n \nSERVICES\nAccueil Location Réservation en ligne\nCRITÈRES & DISPONIBILITÉS\nDÉTAIL\nSERVICES & COORDONNÉES\nCONFIRMATION\nVOTRE RECHERCHE :\nLocations saisonnières   Hotels\nType de lot\nRésidence\nQuartier\nNombre de couchages\nAutres critères\n427 RÉSULTATS\nTri aléatoire\nPlus faible capacité\nPlus grande capacité\n12 Résultats par page\n24 Résultats par page\n48 Résultats par page\n64 Résultats par page\n  1 SUR 36  \nà partir de\n1 800 €\nMONTAGNY\nPRALOGNAN LA VANOISE\nClassement\nAucun avis client\nRéf. MONTAG10\nChalet - 19 personnes\nEN SAVOIR +\nà partir de\n1 500 €\nLE BILOKO\nPRALOGNAN",
+      "htmlBytes": 113212,
+      "links": [
+        "https://www.reservationpralognan.fr/",
+        "https://www.reservationpralognan.fr/reservation/resultats/#",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FCustomer",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FOwner",
+        "https://www.reservationpralognan.fr/8/contact/",
+        "https://www.reservationpralognan.com/reservation/resultats/",
+        "https://www.reservationpralognan.fr/reservation/resultats/",
+        "https://www.reservationpralognan.fr/location/catalogue/",
+        "https://www.reservationpralognan.fr/3-1/pralognan-la-vanoise/pralognan-l-ete/",
+        "https://www.reservationpralognan.fr/3-2/pralognan-la-vanoise/pralognan-l-hiver/",
+        "https://www.reservationpralognan.fr/location/promotions/",
+        "https://www.reservationpralognan.fr/location/court-sejours/",
+        "https://www.reservationpralognan.fr/location/evenements/",
+        "https://www.reservationpralognan.fr/5-1/qui-sommes-nous/qui-sommes-nous/"
+      ],
+      "iframes": [],
+      "bodyPreview": " +33 (0)4 58 24 00 24\nOuvert du lundi au samedi de 9h00 à 12h00 et de 14h00 à 17h00.\nFermé les jours fériés.\n\n  Mon compte  Contact \nACCUEIL\n \nLOCATION\n \nPRALOGNAN LA VANOISE\n \nPROMOTIONS\n \nQUI SOMMES NOUS\n \nPRÉPARER SON SÉJOUR\n \nSERVICES\nAccueil Location Réservation en ligne\nCRITÈRES & DISPONIBILITÉS\nDÉTAIL\nSERVICES & COORDONNÉES\nCONFIRMATION\nVOTRE RECHERCHE :\nLocations saisonnières   Hotels\nType de lot\nRésidence\nQuartier\nNombre de couchages\nAutres critères\n427 RÉSULTATS\nTri aléatoire\nPlus faible capacité\nPlus grande capacité\n12 Résultats par page\n24 Résultats par page\n48 Résultats par page\n64 Résultats par page\n  1 SUR 36  \nà partir de\n1 800 €\nMONTAGNY\nPRALOGNAN LA VANOISE\nClassement\nAucun avis client\nRéf. MONTAG10\nChalet - 19 personnes\nEN SAVOIR +\nà partir de\n1 500 €\nLE BILOKO\nPRALOGNAN LA VANOISE\nClassement\nAucun avis client\nRéf. BILOKO18PERS\nChalet - 18 personnes\nEN SAVOIR +\nà parti"
+    },
+    {
+      "id": "pralognan_locvac_search",
+      "url": "https://reservationpralognan.locvacances.com/fr-FR/",
+      "xhr": [
+        {
+          "url": "https://reservationpralognan.locvacances.com/Content/themes/base/css?v=6gXKPa5juFRmvMncvsgaAsRBCPiVxbQ6k2nm5-mWec81",
+          "status": 200,
+          "body": ".ui-helper-hidden{display:none}.ui-helper-hidden-accessible{border:0;clip:rect(0 0 0 0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px}.ui-helper-reset{margin:0;padding:0;border:0;outline:0;line-height:1.3;text-decoration:none;font-size:100%;list-sty"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/fr-FR/",
+          "status": 200,
+          "body": "\r\n<!DOCTYPE html>\r\n<html lang=\"fr\">\r\n<head>\r\n    <meta charset=\"utf-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\r\n    <meta name=\"description\" content=\"\">\r\n    <meta name=\"author\" content=\"Pralognan Domaine de montagne\">\r\n       "
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/Content/cssResponsive?v=QfxVUACMf18PtvCRv71zpXfbEjLcyq4Yd0jZXKSa9Q01",
+          "status": 200,
+          "body": "/* Échec de l'agrandissement. Renvoi du contenu non agrandi.\r\n(4338,10): run-time error CSS1038: Expected hex color, found '#fffff'\r\n(4343,12): run-time error CSS1038: Expected hex color, found '#fffff'\r\n(4358,3): run-time error CSS1062: Expected semicolon or closing curly-brace,"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/bundles/jquery?v=PcwDATiMV_9VcD7jHzPAOZl4TyeTFDjeP-6dqrwqtos1",
+          "status": 200,
+          "body": "!function(n,t){\"object\"==typeof module&&\"object\"==typeof module.exports?module.exports=n.document?t(n,!0):function(n){if(!n.document)throw new Error(\"jQuery requires a window with a document\");return t(n)}:t(n)}(\"undefined\"!=typeof window?window:this,function(n,t){function ri(n){"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/bundles/func?v=teViBnKSzkvvwuNst-Zmg9EkeDUbjEnD6aXTpbxOxdw1",
+          "status": 200,
+          "body": "function ark_right(n,t){return t<=0?\"\":t>String(n).length?n:String(n).substring(String(n).length,String(n).length-t)}function resaStartsDates(n){var t=n.getDay();for(i=0;i<StartsDates.length;i++)if(n.getDate()==StartsDates[i][0]&&n.getMonth()==StartsDates[i][1]-1&&n.getFullYear()"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/bundles/jqueryi18n?v=o6FUGFNDtdBF1eGPzHJ8fHecQ8mI3Am8v4qhLDtIUto1",
+          "status": 200,
+          "body": "jQuery(function(n){n.datepicker.regional.af={closeText:\"Selekteer\",prevText:\"Vorige\",nextText:\"Volgende\",currentText:\"Vandag\",monthNames:[\"Januarie\",\"Februarie\",\"Maart\",\"April\",\"Mei\",\"Junie\",\"Julie\",\"Augustus\",\"September\",\"Oktober\",\"November\",\"Desember\"],monthNamesShort:[\"Jan\",\"F"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/scripts/jquery.simple-expand.min.js",
+          "status": 200,
+          "body": "/* Copyright (C) 2012 Sylvain Hamel\r\nProject: https://github.com/redhotsly/simple-expand\r\nMIT Licence: https://raw.github.com/redhotsly/simple-expand/master/licence-mit.txt */\r\n(function($){\"use strict\";function SimpleExpand(){var that=this;that.defaults={hideMode:\"fadeToggle\",de"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/bundles/bootstrapJS?v=I_Tjr7JHvFTlFmZtgfrvy-UtB2n705qw5oZ6fL3kbGw1",
+          "status": 200,
+          "body": "(function(n,t){typeof exports==\"object\"&&typeof module!=\"undefined\"?t(exports,require(\"jquery\")):typeof define==\"function\"&&define.amd?define([\"exports\",\"jquery\"],t):t(n.bootstrap={},n.jQuery)})(this,function(n,t){\"use strict\";function af(n,t){for(var i,r=0;r<t.length;r++)i=t[r],"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/bundles/jqueryui?v=whtd9UEXBHDvLNCZ-7BHueQNTv-sm9b3y1motkzi3ao1",
+          "status": 200,
+          "body": "(function(n){\"function\"==typeof define&&define.amd?define([\"jquery\"],n):n(jQuery)})(function(n){function h(t,i){var r,u,f,e=t.nodeName.toLowerCase();return\"area\"===e?(r=t.parentNode,u=r.name,t.href&&u&&\"map\"===r.nodeName.toLowerCase()?(f=n(\"img[usemap='#\"+u+\"']\")[0],!!f&&c(f)):!1"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/scripts/jquery.easy-autocomplete.min.js",
+          "status": 200,
+          "body": "var EasyAutocomplete=function(n){return n.Configuration=function(n){function i(){n.dataType===\"xml\"&&(n.getValue||(n.getValue=function(n){return $(n).text()}),n.list||(n.list={}),n.list.sort||(n.list.sort={}),n.list.sort.method=function(t,i){return(t=n.getValue(t),i=n.getValue(i)"
+        },
+        {
+          "url": "https://reservationpralognan.locvacances.com/scripts/jquery-ui-slider-pips.min.js",
+          "status": 200,
+          "body": "/*! jQuery-ui-Slider-Pips - v1.10.7 - 2015-08-20\r\n* Copyright (c) 2015 Simon Goellner <simey.me@gmail.com>; Licensed MIT */\r\n!function(a){\"use strict\";var b={pips:function(b){function c(b){var c,d,e,f,g,h=[],i=0;if(q&&q.length){for(e=l.element.slider(\"values\"),f=a.map(e,function("
+        },
+        {
+          "url": "https://resa.arkiane.com/ressources/js/jquery/easyAutocomplete/1.3.6/dist/jquery.easy-autocomplete.min.js",
+          "status": 200,
+          "body": "/*\n * easy-autocomplete\n * jQuery plugin for autocompletion\n * \n * @author Łukasz Pawełczak (http://github.com/pawelczak)\n * @version 1.4.0\n * Copyright  License: \n */\n\nvar EasyAutocomplete=function(a){return a.Configuration=function(a){function b(){if(\"xml\"===a.dataType&&(a.getV"
+        }
+      ],
+      "markers": {
+        "ingenie": 1,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 1,
+        "deskline": 0,
+        "recaptcha": 0
+      },
+      "title": "Découvrez notre catalogue | Pralognan Domaine de montagne",
+      "http": 200,
+      "finalUrl": "https://reservationpralognan.locvacances.com/fr-FR/",
+      "error": null,
+      "htmlBytes": 523035,
+      "links": [
+        "https://reservationpralognan.locvacances.com/fr-FR/",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login",
+        "http://www.reservationpralognan.fr/",
+        "https://reservationpralognan.locvacances.com/?ReturnUrl=~%2Ffr-FR%2F",
+        "https://reservationpralognan.locvacances.com/fr-FR/#",
+        "https://reservationpralognan.locvacances.com/fr-FR/Offers",
+        "https://reservationpralognan.locvacances.com/fr-FR/Offers?comm_categorie=PACKAGE",
+        "https://reservationpralognan.locvacances.com/fr-FR/Offers?comm_categorie=PROMOTION",
+        "https://reservationpralognan.locvacances.com/fr-FR/Offers?comm_categorie=EARLY_BOOKING",
+        "https://reservationpralognan.locvacances.com/fr-FR/Offers?comm_categorie=LAST_MINUTE",
+        "https://reservationpralognan.locvacances.com/fr-FR/Offers?comm_categorie=COURT_SEJOUR",
+        "https://reservationpralognan.locvacances.com/fr-FR/Offers?comm_categorie=EVENT",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FCustomer",
+        "https://reservationpralognan.locvacances.com/fr-FR/Account/Login?ReturnUrl=~%2Ffr-FR%2FOwner"
+      ],
+      "iframes": [],
+      "bodyPreview": "Ce site utilise les cookies pour vous délivrer la meilleure expérience possible. En savoir plus\nJ'ai compris!\nRéservation\nOffres Spéciales \nEspace Client\nEspace Propriétaire\nLangue  \n Connexion\nVOTRE SÉJOUR\nArrivée\nSeptembre2026\nLun\tMar\tMer\tJeu\tVen\tSam\tDim\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\n\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\nAujourd'huiEffacerFermer\nDépart\nSeptembre2026\nLun\tMar\tMer\tJeu\tVen\tSam\tDim\n\n31\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t\n1\n\t\n2\n\t\n3\n\t\n4\n\n\n5\n\t\n6\n\t\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\nAujourd'huiEffacerFermer\nPlus de critères\nDécouvrez notre catalogue\n\nTrouvez la location idéale pour vos prochaines vacances en parcourant nos offres !\n\n523 offres\n1\n2\n3\n20\n40\nTrier par\nP"
+    },
+    {
+      "id": "clusaz_hebergements6",
+      "url": "https://www.laclusaz.com/reservation/hebergements",
+      "xhr": [
+        {
+          "url": "https://www.laclusaz.com/app/plugins/gardeners-numbirds/assets/js/numbirds-newsletter.js",
+          "status": 200,
+          "body": "document.addEventListener('DOMContentLoaded', function () {\n    const form = document.getElementById('numbirds-newsletter-form');\n    const responseDiv = document.getElementById('numbirds-newsletter-response');\n    const submitBtn = document.getElementById('numbirds-submit');\n\n  "
+        },
+        {
+          "url": "https://www.laclusaz.com/app/themes/la-clusaz/assets/js/feratel.js?ver=1.0.0",
+          "status": 200,
+          "body": "!function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c=\"function\"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);throw(f=new Error(\"Cannot find module '\"+i+\"'\")).code=\"MODULE_NOT_FOUND\",f}c=n[i]={exports:{}},e[i][0].call(c.exports,function(r){return o("
+        },
+        {
+          "url": "https://www.laclusaz.com/app/plugins/gardeners-e-liberty/src/ski-widget.js?ver=1.0",
+          "status": 200,
+          "body": "jQuery(document).ready(function ($) {\n    // Récupérer la langue actuelle\n    var currentLocale = $('#ski-locale').val() || 'fr';\n\n    // Map language codes to Flatpickr locale names and date formats\n    var langMapping = {\n        'fr': {\n            locale: 'fr',\n            da"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/start/LACLUSAZ/0a6466c6-8058-4958-b502-d52767741f5b/index.js?ver=6.6",
+          "status": 200,
+          "body": "(function(){window.dw=window.dw||function(){(dw.q=dw.q||[]).push(arguments)};dw('create','0a6466c6-8058-4958-b502-d52767741f5b',{'selector':'dw-app','defaultLang':'fr','appLocation':'apps/desklineweb/material/default','styleResources':['https://resc.deskline.net/DW5/design/092d62"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/tag-loader.js?3kp5praat8nkhpbx6briaps_5p8kbbijqsg1trldxga",
+          "status": 200,
+          "body": "!function(e){var t={};function n(o){if(t[o])return t[o].exports;var i=t[o]={i:o,l:!1,exports:{}};return e[o].call(i.exports,i,i.exports,n),i.l=!0,i.exports}n.m=e,n.c=t,n.d=function(e,t,o){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},n.r=function(e){\"undefined\"!=typ"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/lib/webcomponentsjs@2.2.10/webcomponents-bundle.js",
+          "status": 200,
+          "body": "/**\n@license @nocompile\nCopyright (c) 2018 The Polymer Project Authors. All rights reserved.\nThis code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt\nThe complete set of authors may be found at http://polymer.github.io/AUTHORS.txt\nThe c"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/allfonts",
+          "status": 200,
+          "body": "\n/* roboto-300 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */\n@font-face {\n  font-family: 'Roboto';\n  font-style: normal;\n  font-weight: 300;\n  src: url('https://resc.deskline.net/DW5/fonts/roboto-v29-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/vendor.js?n661r2zjjghfz68pw1r4rrgoik22fywalfg114lo3yk",
+          "status": 200,
+          "body": "var vendor=function(t){var e={};function n(r){if(e[r])return e[r].exports;var i=e[r]={i:r,l:!1,exports:{}};return t[r].call(i.exports,i,i.exports,n),i.l=!0,i.exports}return n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t)"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/tags/laclusaz/0a6466c6-8058-4958-b502-d52767741f5b/tagcontext.js?54330581",
+          "status": 200,
+          "body": "var tagContext_3={\"orgCode\":\"LACLUSAZ\",\"appContext\":{\"targetRoute\":[],\"pageContextUniqueId\":null,\"linkKey\":\"laclusaz\",\"urlOptionalParams\":\"\",\"defaultCurrency\":null},\"tagOptions\":{\"userHashNavigation\":false,\"buildClientSideOnly\":true,\"languages\":[\"fr\",\"en\",\"nl\"],\"usePOSLanguages\":"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/i18n/locale.fr-fr.js?bfjexckwnyieau3oxig1qwm_5p0ehwr1h66fthwksdo",
+          "status": 200,
+          "body": "var i18n=function(e){var r={};function s(n){if(r[n])return r[n].exports;var t=r[n]={i:n,l:!1,exports:{}};return e[n].call(t.exports,t,t.exports,s),t.l=!0,t.exports}return s.m=e,s.c=r,s.d=function(e,r,n){s.o(e,r)||Object.defineProperty(e,r,{enumerable:!0,get:n})},s.r=function(e){\""
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/main-client.js?wcosub7liz2z3prviab0-_5mfttbiswhigkjvgokltw54330581",
+          "status": 200,
+          "body": "!function(t){function e(e){for(var n,r,o=e[0],a=e[1],s=0,l=[];s<o.length;s++)r=o[s],Object.prototype.hasOwnProperty.call(i,r)&&i[r]&&l.push(i[r][0]),i[r]=0;for(n in a)Object.prototype.hasOwnProperty.call(a,n)&&(t[n]=a[n]);for(c&&c(e);l.length;)l.shift()()}var n={},i={6:0};functio"
+        },
+        {
+          "url": "https://webapi.deskline.net/languages?onlyActive=false",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"18ebcbbd-7228-4e54-a8e5-037a86fcb419\",\n    \"lang\": \"sr\",\n    \"isActive\": false,\n    \"name\": \"Serbian\"\n  },\n  {\n    \"id\": \"f2aed064-d010-49fc-947a-0471a951946a\",\n    \"lang\": \"bg\",\n    \"isActive\": true,\n    \"name\": \"Български\"\n  },\n  {\n    \"id\": \"e465b313-5d57-4d5a"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/currencies",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"7ef1ec71-7ea3-4510-b38f-ca38d2e050ea\",\n    \"name\": \"Euro\",\n    \"owner\": \"LACLUSAZ\",\n    \"code\": \"EUR\",\n    \"factor\": 1.0,\n    \"roundTo\": 1,\n    \"subDivision\": \"euro-cents\",\n    \"subDivisionFactor\": 100,\n    \"symbol\": \"€    \"\n  }\n]"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/4_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[4],{1337:function(l,n,e){\"use strict\";e.d(n,\"a\",function(){return c}),e.d(n,\"b\",function(){return o});var t=e(0),u=e(226),i=e(33),a=e(7),r=e(29),b=e(11),c=(t.Eb(u.b,[],function(l){return t.Ob([t.Pb(512,t"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/0_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[0],{1325:function(l,e,n){\"use strict\";var t=n(0),a=n(367),u=n(33),i=n(1337),o=n(7),r=n(226),c=n(29),d=n(11),s=n(567);n.d(e,\"a\",function(){return m}),n.d(e,\"b\",function(){return p});var b=[[\"\"]],m=t.Fb({e"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/1_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[1],{1326:function(l,n,e){\"use strict\";var u=e(0),t=e(578),i=e(309),o=e(230);e.d(n,\"a\",function(){return r}),e.d(n,\"b\",function(){return s});var a=[[\"\"]],r=u.Fb({encapsulation:0,styles:a,data:{}});functio"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/2_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[2],{1317:function(l,n,u){\"use strict\";var e=u(0),t=u(403),i=u(37),o=u(27),a=u(50),c=u(70),r=u(3),s=u(581),b=[[\"\"]],p=e.Fb({encapsulation:0,styles:b,data:{animation:[{type:7,name:\"state\",definitions:[{typ"
+        },
+        {
+          "url": "https://webapi.deskline.net/organisations/fr/LACLUSAZ?fields=name",
+          "status": 200,
+          "body": "{\n  \"name\": \"Centrale de réservation de La Clusaz\"\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/datasets?fields=sales{posCode},accessibilityStatement",
+          "status": 200,
+          "body": "{\n  \"sales\": {\n    \"posCode\": \"LACLUSAZ\"\n  },\n  \"accessibilityStatement\": \"<p><strong>Remarque concernant les déclarations d’accessibilité suivantes</strong></p>\\n<p>Les deux déclarations d’accessibilité suivantes concernent la même application TOSC5. Elles sont présentées séparé"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/8_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[8,3,5],{1308:function(l,n,e){\"use strict\";e.r(n);var u=e(0),t=function(){return function(){}}(),i=e(268),o=e(670),c=e(665),a=e(669),r=e(671),s=e(672),b=e(673),d=e(674),f=e(675),m=e(1334),p=e(654),g=e(140"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/datasets?fields=sales{posCode}",
+          "status": 200,
+          "body": "{\n  \"sales\": {\n    \"posCode\": \"LACLUSAZ\"\n  }\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/countries/fr",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"24383212-0217-45fa-a157-eaa958c006fb\",\n    \"name\": \"Afghanistan\",\n    \"code\": \"AF\",\n    \"format\": \"C-Z T\",\n    \"currency\": \"AFA\",\n    \"dialCode\": \"+93  \",\n    \"isFavorite\": false\n  },\n  {\n    \"id\": \"e657fda2-3d8e-4568-800e-b683ada2cf5e\",\n    \"name\": \"Afrique du S"
+        },
+        {
+          "url": "https://webapi.deskline.net/salutations/fr",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"37d1386c-bdbe-4585-b8fd-294a4dfdad99\",\n    \"name\": \"Monsieur\"\n  },\n  {\n    \"id\": \"0fbab9fb-185b-435d-8c1f-8109ad73e5a9\",\n    \"name\": \"Madame\"\n  },\n  {\n    \"id\": \"ad362059-b720-40c2-ba8e-e109eb0f4f31\",\n    \"name\": \"Famille\"\n  },\n  {\n    \"id\": \"b0d419ae-b3c5-4ab0-9"
+        },
+        {
+          "url": "https://webapi.deskline.net/filters",
+          "status": 201,
+          "body": "{\n  \"id\": \"3a99e76c-ab43-4ad3-8593-cbfa8cb30be8\",\n  \"filterGeneral\": {},\n  \"filterAddServices\": {\n    \"types\": null,\n    \"holidayThemes\": null,\n    \"locations\": null,\n    \"guestCards\": null,\n    \"name\": \"\",\n    \"serviceClassifications\": null,\n    \"topServiceClassifications\": null"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/pos?fields=name,descriptions(types:[22,452]){description,type}",
+          "status": 200,
+          "body": "{\n  \"name\": \"Centrale de réservation de La Clusaz\",\n  \"descriptions\": [\n    {\n      \"description\": \"\",\n      \"type\": 452\n    },\n    {\n      \"description\": \"\",\n      \"type\": 22\n    }\n  ]\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/endusers/portaldata?fields=userDetailsUrl,userTransactionsUrl,registrationBenefits",
+          "status": 200,
+          "body": "{\n  \"userDetailsUrl\": \"https://my.bookingandmore.com/user/detail\",\n  \"userTransactionsUrl\": \"https://my.bookingandmore.com\",\n  \"registrationBenefits\": \"<ul><li>Réserver et annuler plus efficacement</li><li>Modification des réservations à tout instant</li><li>Enregistrer mes donné"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/datasets?fields=locations(locTypes:[3]){id,name,parentId,type},category{id,name,order},stars{id,level,name,url,image,order},topCriteria(top:[%222ce8161c-2337-47d6-8e81-c2426e880be1%22,%22e33a2268-9226-4c2d-8283-26527a717",
+          "status": 200,
+          "body": "{\n  \"locations\": [\n    {\n      \"id\": \"221e61a8-9fec-4570-a7f3-d4b1f8416361\",\n      \"name\": \"La Clusaz\",\n      \"parentId\": \"4d94302b-a6e5-4122-af35-94e0be0156de\",\n      \"type\": 3\n    },\n    {\n      \"id\": \"29d68b29-4149-4090-bcc3-8ef7e7012cf0\",\n      \"name\": \"Manigod\",\n      \"paren"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/requestpool/options",
+          "status": 200,
+          "body": "{\n  \"active\": false,\n  \"requestDeadLine\": 12,\n  \"numberOfOffers\": {\n    \"min\": 5,\n    \"max\": 10,\n    \"default\": 5\n  }\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=3a99e76c-ab43-4ad3-8593-cbfa8cb30be8&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,",
+          "status": 200,
+          "body": "{\n  \"data\": [\n    {\n      \"id\": \"9f1c30a6-ad3f-4963-9cef-246bddb312cd\",\n      \"owner\": \"LACLUSAZ\",\n      \"location\": {\n        \"district\": \"Haut du centre village\",\n        \"town\": \"La Clusaz\",\n        \"regions\": [\n          \"Auvergne-Rhône-Alpes\"\n        ],\n        \"country\": \"F"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:329)&currency=&pageNo=1&pageSize=10000",
+          "status": 200,
+          "body": "{\n  \"data\": [\n    {\n      \"categories\": [\n        {\n          \"id\": \"ec3c8e0c-961c-4cfd-900e-1f2875acce63\",\n          \"name\": \"Location\",\n          \"order\": 8\n        },\n        {\n          \"id\": \"9683cb46-ba0c-485a-abce-2d3d0af38c86\",\n          \"name\": \"Résidence de tourisme\",\n "
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/accommodations/filterresults/3a99e76c-ab43-4ad3-8593-cbfa8cb30be8?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9",
+          "status": 200,
+          "body": "{\n  \"categories\": [\n    {\n      \"id\": \"ab4f2086-f06d-4dac-8b99-09eda5577c67\",\n      \"name\": \"Hôtel\",\n      \"count\": 20\n    },\n    {\n      \"id\": \"9e802064-0a21-4cbe-b5cc-2e442e32cc7c\",\n      \"name\": \"Camping\",\n      \"count\": 1\n    },\n    {\n      \"id\": \"bdf7e267-43f2-4a63-9c35-8aea"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/fr/location/all?locations=1&locations=2&locations=3&locations=4",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"4d94302b-a6e5-4122-af35-94e0be0156de\",\n    \"parentId\": \"be162394-0a2f-40b0-b861-c5c620df26ff\",\n    \"name\": \"Auvergne-Rhône-Alpes\",\n    \"type\": 2\n  },\n  {\n    \"id\": \"f14f9d36-ac73-4873-b6ef-74d7dee0dfcf\",\n    \"parentId\": \"221e61a8-9fec-4570-a7f3-d4b1f8416361\",\n   "
+        }
+      ],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 1,
+        "locvacances": 0,
+        "deskline": 1,
+        "recaptcha": 1
+      },
+      "title": "Hébergements à La Clusaz | Séjours et Locations de Vacances",
+      "http": 200,
+      "finalUrl": "https://www.laclusaz.com/reservation/hebergements",
+      "error": null,
+      "htmlBytes": 152285,
+      "links": [
+        "https://www.laclusaz.com/reservation/hebergements#primary",
+        "https://www.laclusaz.com/reservation/hebergements",
+        "https://www.laclusaz.com/reservation/hebergements#",
+        "https://www.laclusaz.com/en/booking/accomodations/",
+        "https://www.laclusaz.com/reservation/bon-plan-fevrier/hebergements",
+        "https://www.laclusaz.com/reservation/offre-early-booking/hebergements",
+        "https://www.laclusaz.com/reservation/offre-sejour-un-noel-magique/hebergements",
+        "https://www.laclusaz.com/reservation/offre-evasion/hebergements",
+        "https://www.laclusaz.com/reservation/hebergements#D%C3%A9cidez%20comment%20Google%20utilise%20vos%20donn%C3%A9es",
+        "https://www.laclusaz.com/reservation/hebergements#Statistiques%20et%20audience",
+        "https://www.laclusaz.com/reservation/hebergements#Marketing",
+        "https://www.laclusaz.com/reservation/experiences",
+        "https://www.laclusaz.com/reservation/Locationmateriel",
+        "https://www.laclusaz.com/reservation/Coursdeski"
+      ],
+      "iframes": [
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVzYXouY29tOjQ0Mw..&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=g6itvmperk5t",
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVzYXouY29tOjQ0Mw..&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=vtq2u9j7jhqo"
+      ],
+      "bodyPreview": "live\nPISTES\n0\n/\n0\nREMONTÉES\n0\n/\n0\nMÉTÉO\nMatin\n10°C\nAprès-midi\n17°C\nINFO ROUTES\nLa Clusaz\nVOIR LES WEBCAMS\nBULLETIN DÉTAILLÉ\nAU MENU\nLIVE\nSkip to content\nLE VILLAGE\nSKI\nVTT\nACTIVITÉS\nAGENDA\nLE MAG\nBOUTIQUE\nRÉSERVER MON SÉJOUR\nACHETER MON FORFAIT\nLIVE\nRechercher :\nFR\nAccueil  Réservation\nPrevious\nNext\nVOTRE HÉBERGEMENT À LA CLUSAZ\n\nRéservez dès maintenant votre hébergement à La Clusaz parmi une large sélection de chalets, appartements et hôtels.\n\nProfitez de vacances inoubliables dans un cadre montagnard authentique avec des activités variées toute l’année. Nos conseillères en séjours sont à votre disposition pour vous aider à planifier votre séjour.\n\nNewsletter\nChaque mois, recevez tous les bons plans, les actus et les nouveautés de la station.\n J'ai lu et j'accepte la politique de confidentialité de la station.\nPartenaires\nPRIVÉS\nLabels\nOffice de tourisme : +33 (0)4 50 32 65 00\nCentrale "
+    },
+    {
+      "id": "clusaz_en_accom",
+      "url": "https://www.laclusaz.com/en/booking/accommodations",
+      "xhr": [
+        {
+          "url": "https://www.laclusaz.com/en/booking/accommodations",
+          "status": 200,
+          "body": "<!doctype html>\n<html lang=\"en-US\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <link rel=\"profile\" href=\"https://gmpg.org/xfn/11\">\n\n    <meta name='robots' content='index, follow, max-image-preview:large, max-sni"
+        },
+        {
+          "url": "https://www.laclusaz.com/app/plugins/gardeners-numbirds/assets/js/numbirds-newsletter.js",
+          "status": 200,
+          "body": "document.addEventListener('DOMContentLoaded', function () {\n    const form = document.getElementById('numbirds-newsletter-form');\n    const responseDiv = document.getElementById('numbirds-newsletter-response');\n    const submitBtn = document.getElementById('numbirds-submit');\n\n  "
+        },
+        {
+          "url": "https://www.laclusaz.com/app/plugins/gardeners-e-liberty/src/ski-widget.js?ver=1.0",
+          "status": 200,
+          "body": "jQuery(document).ready(function ($) {\n    // Récupérer la langue actuelle\n    var currentLocale = $('#ski-locale').val() || 'fr';\n\n    // Map language codes to Flatpickr locale names and date formats\n    var langMapping = {\n        'fr': {\n            locale: 'fr',\n            da"
+        },
+        {
+          "url": "https://www.laclusaz.com/app/themes/la-clusaz/assets/js/feratel.js?ver=1.0.0",
+          "status": 200,
+          "body": "!function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c=\"function\"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);throw(f=new Error(\"Cannot find module '\"+i+\"'\")).code=\"MODULE_NOT_FOUND\",f}c=n[i]={exports:{}},e[i][0].call(c.exports,function(r){return o("
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/start/LACLUSAZ/0a6466c6-8058-4958-b502-d52767741f5b/index.js?ver=6.6",
+          "status": 200,
+          "body": "(function(){window.dw=window.dw||function(){(dw.q=dw.q||[]).push(arguments)};dw('create','0a6466c6-8058-4958-b502-d52767741f5b',{'selector':'dw-app','defaultLang':'fr','appLocation':'apps/desklineweb/material/default','styleResources':['https://resc.deskline.net/DW5/design/092d62"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/tag-loader.js?3kp5praat8nkhpbx6briaps_5p8kbbijqsg1trldxga",
+          "status": 200,
+          "body": "!function(e){var t={};function n(o){if(t[o])return t[o].exports;var i=t[o]={i:o,l:!1,exports:{}};return e[o].call(i.exports,i,i.exports,n),i.l=!0,i.exports}n.m=e,n.c=t,n.d=function(e,t,o){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},n.r=function(e){\"undefined\"!=typ"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/lib/webcomponentsjs@2.2.10/webcomponents-bundle.js",
+          "status": 200,
+          "body": "/**\n@license @nocompile\nCopyright (c) 2018 The Polymer Project Authors. All rights reserved.\nThis code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt\nThe complete set of authors may be found at http://polymer.github.io/AUTHORS.txt\nThe c"
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=10&frm=0&apvc=1&ae=g&en=page_view&dl=https%3A%2F%2Fwww.laclusaz.com%2Fen%2Fbooking%2Faccommodations&scrsrc=www.googletagmanager.com&rnd=277344746.1788300254&navt=n&npa=1&ep.ads_data_redaction=0&gdid=dNGFkYj",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=15&frm=0&apvc=0&tid=AW-1001456173&en=page_view&dl=https%3A%2F%2Fwww.laclusaz.com%2Fen%2Fbooking%2Faccommodations&scrsrc=www.googletagmanager.com&rnd=277344746.1788300254&navt=n&npa=1&did=dNGFkYj&gdid=dNGFkY",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=15&frm=0&apvc=0&ae=g&tid=AW-1001456173&en=page_view&dl=https%3A%2F%2Fwww.laclusaz.com%2Fen%2Fbooking%2Faccommodations&scrsrc=www.googletagmanager.com&rnd=277344746.1788300254&navt=n&npa=1&ep.ads_data_redact",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-YZBCKLYWZS&gtm=45je68v0v886991667z89104458749za20gzb9104458749zd9104458749&_p=1788300252745&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dNGFkYj&ecid=1505590284&_eu=AAAAAGAC&are=1&cid=638708602.17883",
+          "status": 204,
+          "body": ""
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/allfonts",
+          "status": 200,
+          "body": "\n/* roboto-300 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */\n@font-face {\n  font-family: 'Roboto';\n  font-style: normal;\n  font-weight: 300;\n  src: url('https://resc.deskline.net/DW5/fonts/roboto-v29-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/vendor.js?n661r2zjjghfz68pw1r4rrgoik22fywalfg114lo3yk",
+          "status": 200,
+          "body": "var vendor=function(t){var e={};function n(r){if(e[r])return e[r].exports;var i=e[r]={i:r,l:!1,exports:{}};return t[r].call(i.exports,i,i.exports,n),i.l=!0,i.exports}return n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t)"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/tags/laclusaz/0a6466c6-8058-4958-b502-d52767741f5b/tagcontext.js?54330581",
+          "status": 200,
+          "body": "var tagContext_3={\"orgCode\":\"LACLUSAZ\",\"appContext\":{\"targetRoute\":[],\"pageContextUniqueId\":null,\"linkKey\":\"laclusaz\",\"urlOptionalParams\":\"\",\"defaultCurrency\":null},\"tagOptions\":{\"userHashNavigation\":false,\"buildClientSideOnly\":true,\"languages\":[\"fr\",\"en\",\"nl\"],\"usePOSLanguages\":"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/i18n/locale.en.js?bfjexckwnyieau3oxig1qwm_5p0ehwr1h66fthwksdo",
+          "status": 200,
+          "body": "var i18n=function(e){var o={};function t(a){if(o[a])return o[a].exports;var r=o[a]={i:a,l:!1,exports:{}};return e[a].call(r.exports,r,r.exports,t),r.l=!0,r.exports}return t.m=e,t.c=o,t.d=function(e,o,a){t.o(e,o)||Object.defineProperty(e,o,{enumerable:!0,get:a})},t.r=function(e){\""
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/main-client.js?wcosub7liz2z3prviab0-_5mfttbiswhigkjvgokltw54330581",
+          "status": 200,
+          "body": "!function(t){function e(e){for(var n,r,o=e[0],a=e[1],s=0,l=[];s<o.length;s++)r=o[s],Object.prototype.hasOwnProperty.call(i,r)&&i[r]&&l.push(i[r][0]),i[r]=0;for(n in a)Object.prototype.hasOwnProperty.call(a,n)&&(t[n]=a[n]);for(c&&c(e);l.length;)l.shift()()}var n={},i={6:0};functio"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/currencies",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"7ef1ec71-7ea3-4510-b38f-ca38d2e050ea\",\n    \"name\": \"Euro\",\n    \"owner\": \"LACLUSAZ\",\n    \"code\": \"EUR\",\n    \"factor\": 1.0,\n    \"roundTo\": 1,\n    \"subDivision\": \"euro-cents\",\n    \"subDivisionFactor\": 100,\n    \"symbol\": \"€    \"\n  }\n]"
+        },
+        {
+          "url": "https://webapi.deskline.net/languages?onlyActive=false",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"18ebcbbd-7228-4e54-a8e5-037a86fcb419\",\n    \"lang\": \"sr\",\n    \"isActive\": false,\n    \"name\": \"Serbian\"\n  },\n  {\n    \"id\": \"f2aed064-d010-49fc-947a-0471a951946a\",\n    \"lang\": \"bg\",\n    \"isActive\": true,\n    \"name\": \"Български\"\n  },\n  {\n    \"id\": \"e465b313-5d57-4d5a"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/4_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[4],{1337:function(l,n,e){\"use strict\";e.d(n,\"a\",function(){return c}),e.d(n,\"b\",function(){return o});var t=e(0),u=e(226),i=e(33),a=e(7),r=e(29),b=e(11),c=(t.Eb(u.b,[],function(l){return t.Ob([t.Pb(512,t"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/0_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[0],{1325:function(l,e,n){\"use strict\";var t=n(0),a=n(367),u=n(33),i=n(1337),o=n(7),r=n(226),c=n(29),d=n(11),s=n(567);n.d(e,\"a\",function(){return m}),n.d(e,\"b\",function(){return p});var b=[[\"\"]],m=t.Fb({e"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/1_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[1],{1326:function(l,n,e){\"use strict\";var u=e(0),t=e(578),i=e(309),o=e(230);e.d(n,\"a\",function(){return r}),e.d(n,\"b\",function(){return s});var a=[[\"\"]],r=u.Fb({encapsulation:0,styles:a,data:{}});functio"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/2_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[2],{1317:function(l,n,u){\"use strict\";var e=u(0),t=u(403),i=u(37),o=u(27),a=u(50),c=u(70),r=u(3),s=u(581),b=[[\"\"]],p=e.Fb({encapsulation:0,styles:b,data:{animation:[{type:7,name:\"state\",definitions:[{typ"
+        },
+        {
+          "url": "https://webapi.deskline.net/organisations/en/LACLUSAZ?fields=name",
+          "status": 200,
+          "body": "{\n  \"name\": \"Centrale de réservation de La Clusaz\"\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/datasets?fields=sales{posCode},accessibilityStatement",
+          "status": 200,
+          "body": "{\n  \"sales\": {\n    \"posCode\": \"LACLUSAZ\"\n  },\n  \"accessibilityStatement\": \"<p><strong>Note on the following accessibility statements</strong><p>\\n<p>The following two accessibility statements refer to the same TOSC5 application. They are provided separately for private-sector and"
+        },
+        {
+          "url": "https://resc.deskline.net/DW5/apps/desklineweb/material/default/8_05efbd2bb8c95ceaa231.js",
+          "status": 200,
+          "body": "(window.desklineweb_webpackJsonp=window.desklineweb_webpackJsonp||[]).push([[8,3,5],{1308:function(l,n,e){\"use strict\";e.r(n);var u=e(0),t=function(){return function(){}}(),i=e(268),o=e(670),c=e(665),a=e(669),r=e(671),s=e(672),b=e(673),d=e(674),f=e(675),m=e(1334),p=e(654),g=e(140"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/endusers/portaldata?fields=userDetailsUrl,userTransactionsUrl,registrationBenefits",
+          "status": 200,
+          "body": "{\n  \"userDetailsUrl\": \"https://my.bookingandmore.com/user/detail\",\n  \"userTransactionsUrl\": \"https://my.bookingandmore.com\",\n  \"registrationBenefits\": \"<ul><li>Book and cancel your reservations faster</li><li>Manage your bookings at any time</li><li>Remember and reuse your person"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/datasets?fields=sales{posCode}",
+          "status": 200,
+          "body": "{\n  \"sales\": {\n    \"posCode\": \"LACLUSAZ\"\n  }\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/datasets?fields=locations(locTypes:[3]){id,name,parentId,type},category{id,name,order},stars{id,level,name,url,image,order},topCriteria(top:[%222ce8161c-2337-47d6-8e81-c2426e880be1%22,%22e33a2268-9226-4c2d-8283-26527a717",
+          "status": 200,
+          "body": "{\n  \"locations\": [\n    {\n      \"id\": \"221e61a8-9fec-4570-a7f3-d4b1f8416361\",\n      \"name\": \"La Clusaz\",\n      \"parentId\": \"4d94302b-a6e5-4122-af35-94e0be0156de\",\n      \"type\": 3\n    },\n    {\n      \"id\": \"29d68b29-4149-4090-bcc3-8ef7e7012cf0\",\n      \"name\": \"Manigod\",\n      \"paren"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/pos?fields=name,descriptions(types:[22,452]){description,type}",
+          "status": 200,
+          "body": "{\n  \"name\": \"Centrale de réservation de La Clusaz\",\n  \"descriptions\": [\n    {\n      \"description\": \"\",\n      \"type\": 22\n    },\n    {\n      \"description\": \"\",\n      \"type\": 452\n    }\n  ]\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/salutations/en",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"5640fbfd-8103-4b68-b04a-469a4b57863e\",\n    \"name\": \"Mr\"\n  },\n  {\n    \"id\": \"e34c5bba-25c2-4910-bdbd-160d6b147d7c\",\n    \"name\": \"Mrs\"\n  },\n  {\n    \"id\": \"ce74ac48-ffe4-49b2-be06-cb36eb31eedb\",\n    \"name\": \"\"\n  },\n  {\n    \"id\": \"b8dd6b8b-029a-41e3-97c0-44c35117c110"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/requestpool/options",
+          "status": 200,
+          "body": "{\n  \"active\": false,\n  \"requestDeadLine\": 12,\n  \"numberOfOffers\": {\n    \"min\": 5,\n    \"max\": 10,\n    \"default\": 5\n  }\n}"
+        },
+        {
+          "url": "https://webapi.deskline.net/countries/en",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"24383212-0217-45fa-a157-eaa958c006fb\",\n    \"name\": \"Afghanistan\",\n    \"code\": \"AF\",\n    \"format\": \"C-Z T\",\n    \"currency\": \"AFA\",\n    \"dialCode\": \"+93  \",\n    \"isFavorite\": false\n  },\n  {\n    \"id\": \"ee605428-2079-419b-93e7-9551a249e71b\",\n    \"name\": \"Åland Island"
+        },
+        {
+          "url": "https://webapi.deskline.net/filters",
+          "status": 201,
+          "body": "{\n  \"id\": \"09145d48-d4ab-405e-b6df-7c0e82316409\",\n  \"filterGeneral\": {},\n  \"filterAddServices\": {\n    \"types\": null,\n    \"holidayThemes\": null,\n    \"locations\": null,\n    \"guestCards\": null,\n    \"name\": \"\",\n    \"serviceClassifications\": null,\n    \"topServiceClassifications\": null"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/accommodations?filterId=09145d48-d4ab-405e-b6df-7c0e82316409&fields=id,owner,location{locationFields...},stars{starsFields...},categories{id,name,order},classifications{classificationsFields...},fromPrice{value,calcRule,",
+          "status": 200,
+          "body": "{\n  \"data\": [\n    {\n      \"id\": \"f23397a0-91f2-4e49-98d5-1a97c1926fed\",\n      \"owner\": \"LACLUSAZ\",\n      \"location\": {\n        \"district\": \"Les Riffroids/ Les Riondes\",\n        \"town\": \"La Clusaz\",\n        \"regions\": [\n          \"Auvergne-Rhône-Alpes\"\n        ],\n        \"country\""
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/accommodations?filterId=&fields=categories{id,name,order},images(count:1,sizes:[54]){urls,name,description}&sortingFields=sprpriority,random(seed:900)&currency=&pageNo=1&pageSize=10000",
+          "status": 200,
+          "body": "{\n  \"data\": [\n    {\n      \"categories\": [\n        {\n          \"id\": \"2745c486-7458-4125-92c1-8354d922d2f5\",\n          \"name\": \"Flat\",\n          \"order\": 1014\n        },\n        {\n          \"id\": \"ec3c8e0c-961c-4cfd-900e-1f2875acce63\",\n          \"name\": \"holiday apartment\",\n      "
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/accommodations/filterresults/09145d48-d4ab-405e-b6df-7c0e82316409?fields=categories{id,name,count},topClassifications(top:[%22bc4e4099-d19d-486a-9903-7db538b7737a%22,%228527742a-74b2-40d7-9683-8ab5719f115e%22,%22817180d9",
+          "status": 200,
+          "body": "{\n  \"categories\": [\n    {\n      \"id\": \"ab4f2086-f06d-4dac-8b99-09eda5577c67\",\n      \"name\": \"hotel\",\n      \"count\": 20\n    },\n    {\n      \"id\": \"9e802064-0a21-4cbe-b5cc-2e442e32cc7c\",\n      \"name\": \"campsite\",\n      \"count\": 1\n    },\n    {\n      \"id\": \"bdf7e267-43f2-4a63-9c35-8ae"
+        },
+        {
+          "url": "https://webapi.deskline.net/laclusaz/en/location/all?locations=1&locations=2&locations=3&locations=4",
+          "status": 200,
+          "body": "[\n  {\n    \"id\": \"4d94302b-a6e5-4122-af35-94e0be0156de\",\n    \"parentId\": \"be162394-0a2f-40b0-b861-c5c620df26ff\",\n    \"name\": \"Auvergne-Rhône-Alpes\",\n    \"type\": 2\n  },\n  {\n    \"id\": \"f14f9d36-ac73-4873-b6ef-74d7dee0dfcf\",\n    \"parentId\": \"221e61a8-9fec-4570-a7f3-d4b1f8416361\",\n   "
+        },
+        {
+          "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-YZBCKLYWZS&gtm=45je68v0v886991667z89104458749za20gzb9104458749zd9104458749&_p=1788300252745&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dNGFkYj&ecid=1505590284&_eu=AAAAAGAC&are=1&cid=638708602.17883",
+          "status": 204,
+          "body": ""
+        }
+      ],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 1,
+        "locvacances": 0,
+        "deskline": 1,
+        "recaptcha": 1
+      },
+      "title": "Booking | La Clusaz",
+      "http": 200,
+      "finalUrl": "https://www.laclusaz.com/en/booking/accommodations",
+      "error": null,
+      "htmlBytes": 100357,
+      "links": [
+        "https://www.laclusaz.com/en/booking/accommodations#primary",
+        "https://www.laclusaz.com/en/booking/accommodations",
+        "https://www.laclusaz.com/en/booking/accommodations#",
+        "https://www.laclusaz.com/reservation/hebergements/",
+        "https://www.laclusaz.com/en/booking/february-deal/accommodation",
+        "https://www.laclusaz.com/en/booking/early-booking-offer/accommodation",
+        "https://www.laclusaz.com/en/booking/magical-christmas-stay/accommodation",
+        "https://www.laclusaz.com/en/booking/getaway-offer/accommodation",
+        "https://www.laclusaz.com/en/booking/accommodations#D%C3%A9cidez%20comment%20Google%20utilise%20vos%20donn%C3%A9es",
+        "https://www.laclusaz.com/en/booking/accommodations#Statistiques%20et%20audience",
+        "https://www.laclusaz.com/en/booking/accommodations#Marketing",
+        "https://www.laclusaz.com/en/booking/experiences",
+        "https://www.laclusaz.com/en/booking/Equipmentrental",
+        "https://www.laclusaz.com/en/booking/Skilessons"
+      ],
+      "iframes": [
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVzYXouY29tOjQ0Mw..&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=3trqlj11bi9j",
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcF2xclAAAAAFH-8aYML-1K2novVXScJmaHeUGH&co=aHR0cHM6Ly93d3cubGFjbHVzYXouY29tOjQ0Mw..&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=d5hd8iqiu9eg"
+      ],
+      "bodyPreview": "AU MENU\nSkip to content\nTHE VILLAGE\nSKI\nMOUNTAIN BIKE\nACTIVITIES\nAGENDA\nTHE MAG\nBOOK MY STAY\nBUY MY SKI PASS\nSearch for:\nEN\nHome  Booking\nPrevious\nNext\nNewsletter\nEvery month, receive all the good deals, news and new features of the station.\n J'ai lu et j'accepte la politique de confidentialité de la station.\nPartners\nPRIVÉS\nLabels\nTourist office : +33 (0)4 50 32 65 00\nReservation centre : +33 (0)4 50 32 38 33\nCONTACT US BY E-MAIL\nPROFESSIONALS\nGroups and Seminars\nPress area\nMédiathèque des Aravis\nPartners\nCity Hall website\nSports Club website\nSocio-professionals\nTOURISM OFFICE\nContact us\nBrochures\nLabels\nJob offers\nSustainable development\nPrivacy Policy\nIn Annecy Mountains\nCancellation Insurance terms\nCGV Séjours\nBy Gardeners\n© La Clusaz 2026 All rights reserved\nSitemap\n- Préférences cookies\nL’Office de Tourisme ne référence actuellement que les socio-professionnels de la destination pa"
+    },
+    {
+      "id": "atherac_home",
+      "url": "https://www.laclusaz-reservation.com/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 1,
+        "deskline": 0,
+        "recaptcha": 0
+      },
+      "title": "Location de vacances à La Clusaz - ATHERAC",
+      "http": 200,
+      "finalUrl": "https://www.laclusaz-reservation.com/",
+      "error": null,
+      "htmlBytes": 207256,
+      "links": [
+        "https://www.laclusaz-reservation.com/",
+        "https://www.laclusaz-reservation.com/decouvrez-nos-services-sur-mesure",
+        "https://www.laclusaz-reservation.com/agence-atherac",
+        "https://www.laclusaz-reservation.com/ajouter-votre-propriete",
+        "https://laclusaz-reservation.locvacances.com/fr-FR/Account/Login",
+        "https://www.laclusaz-reservation.com/locations-chalets",
+        "https://www.laclusaz-reservation.com/locations-appartements",
+        "https://www.laclusaz-reservation.com/paques",
+        "https://www.laclusaz-reservation.com/nouvel-an",
+        "https://www.laclusaz-reservation.com/location-de-vacances-noel",
+        "https://www.laclusaz-reservation.com/appartement-ski-la-clusaz",
+        "https://www.laclusaz-reservation.com/avec-spa",
+        "https://www.laclusaz-reservation.com/en-famille",
+        "https://www.laclusaz-reservation.com/collection-premium"
+      ],
+      "iframes": [
+        "about:blank"
+      ],
+      "bodyPreview": "DATES\nPERS.\nFILTRE\nSERVICES\nAGENCE\nLOUER MON BIEN\nACCÈS CLIENT\nVotre location de vacances à La Clusaz\nPRÉCÉDENT\nSUIVANT\nNOS CHALETS\nNOS APPARTEMENTS\n73 propriétés\nPâques\n29 propriétés\nNouvel An 2026\n41 propriétés\nNoël 2026\n80 propriétés\nAppartement ski La Clusaz\n17 propriétés\nAvec spa\n36 propriétés\nFamille\n18 propriétés\nPremium\n19 propriétés\nConfort\n76 propriétés\nAnimaux bienvenus\n71 propriétés\nVacances d'été\n29 propriétés\nBudget\n0 propriété\nAscension\n73 propriétés\nPâques\n29 propriétés\nNouvel An 2026\n41 propriétés\nNoël 2026\n80 propriétés\nAppartement ski La Clusaz\n17 propriétés\nAvec spa\n36 propriétés\nFamille\n18 propriétés\nPremium\n19 propriétés\nConfort\n76 propriétés\nAnimaux bienvenus\n71 propriétés\nVacances d'été\n29 propriétés\nBudget\n0 propriété\nAscension\n73 propriétés\nPâques\nAgence de référence\nImplantés à La Clusaz depuis 1958, grâce à notre parfaite connaissance du territoire, nos consei"
+    },
+    {
+      "id": "sancy_tous",
+      "url": "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 0,
+        "deskline": 0,
+        "recaptcha": 0
+      },
+      "title": "Location vacances Puy de Sancy, hébergement Massif Central",
+      "http": 200,
+      "finalUrl": "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/",
+      "error": null,
+      "htmlBytes": 726397,
+      "links": [
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/#lae-rgpd-pop",
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/#main",
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/#main-menu",
+        "https://www.sancy.com/hebergement/tous-les-hebergements-sancy/#main-footer",
+        "https://www.sancy.com/decouvrir/panoramas-sites-naturels/reserves-naturelles/",
+        "https://www.sancy.com/hebergement/hotels/",
+        "https://www.sancy.com/hebergement/gites-locations-vacances/",
+        "https://www.sancy.com/hebergement/chambres-hotes/",
+        "https://www.sancy.com/hebergement/campings/",
+        "https://www.sancy.com/hebergement/aires-camping-cars/",
+        "https://www.sancy.com/hebergement/villages-vacances/",
+        "https://www.sancy.com/hebergement/residences-tourisme-villages-gites/",
+        "https://www.sancy.com/hebergement/gites-etape-gite-groupe/",
+        "https://www.sancy.com/groupes/hebergements/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Panneau de gestion des cookies\nNous respectons votre vie privée !\n\nLes cookies nous sont très utiles pour améliorer votre expérience de navigation, analyser et mesurer votre engagement avec nos contenus.\n\nPolitique de confidentialité\n\nTout refuser\nPersonnaliser\nTout accepter\nAller au bandeau consentement cookies\nAller au contenu principal\nAller au menu\nAller au pied de page\n\nBilletterie\nEn direct\nLe blog\nDÉCOUVRIR\nA VOIR, À FAIRE\nSE RÉGALER\nAGENDA\nHÉBERGEMENT\nPRATIQUE\n0\nFAVORIS\nACCUEIL\nHÉBERGEMENT\nLes hébergements et locations dans le Sancy\n+\n\nHébergement\nHôtels\nGîtes et locations de vacances\nChambres d’hôtes\nCampings\nAires de camping-cars\nVillages Vacances\nRésidences de tourisme et villages de gîtes\nGîtes d’étape, auberges de jeunesse et auberges collectives\nHébergements de groupe et centres de vacances\nAgences de location\nHébergements insolites\nHébergements avec mon chien\nHébergements "
+    },
+    {
+      "id": "angles_hebergement_page",
+      "url": "https://lesangles.com/hebergement/refuge-cal-chalon/",
+      "xhr": [],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 0,
+        "opensystem": 1,
+        "gardeners": 0,
+        "locvacances": 0,
+        "deskline": 0,
+        "recaptcha": 0
+      },
+      "title": "REFUGE CAL CHALON - Les Angles",
+      "http": 200,
+      "finalUrl": "https://lesangles.com/hebergement/refuge-cal-chalon/",
+      "error": null,
+      "htmlBytes": 438106,
+      "links": [
+        "https://lesangles.com/tous-les-hebergements/",
+        "https://lesangles.com/hebergement/refuge-cal-chalon/#",
+        "https://lesangles.com/hebergement/refuge-cal-chalon/",
+        "https://lesangles.com/ca/hebergement/riveill-dirat-paulette/",
+        "https://lesangles.com/es/hebergement/riveill-dirat-paulette/",
+        "https://lesangles.com/en/hebergement/refuge-cal-chalon/"
+      ],
+      "iframes": [],
+      "bodyPreview": "Salut c'est nous...\nles Cookies !\nOn a attendu d'être sûrs que le contenu de ce site vous intéresse avant de vous déranger, mais on aimerait bien vous accompagner pendant votre visite...\nC'est OK pour vous ?\n\nPour modifier vos préférences par la suite, cliquez sur le lien 'Préférences de cookies' situé dans le pied de page.\n\nConsentements certifiés par\nNon merci\nJe choisis\nOK pour moi\nAxeptio consent\n\nPlateforme de Gestion du Consentement : Personnalisez vos Options\n\nNotre plateforme vous permet d'adapter et de gérer vos paramètres de confidentialité, en garantissant la conformité avec les réglementations. Personnalisez vos préférences pour contrôler la manière dont vos informations sont manipulées.\n\nWebcams\nEn Famille\nForfaits\nDécouvrir\nla station \nRandonnées\n& Expériences \nActivités\n& Loisirs \nGuide\npratique \nMEUBLÉS\nREFUGE CAL CHALON\nAfficher les 8 photos\n12\npers.\n4\nch.\n4\nlits double\n"
+    },
+    {
+      "id": "alpes_sud_reservation",
+      "url": "https://www.alpes-sudlocations.com/reservation-sejour-vars/",
+      "xhr": [
+        {
+          "url": "https://reservation.elloha.com/Scripts/widget-loader.min.js?v=42",
+          "status": 200,
+          "body": "if(typeof constellationWidgetAlreadyLoaded==\"undefined\"&&window.constellationWidgetAlreadyLoaded!==!0){window.constellationWidgetAlreadyLoaded=!0;var widgetDatePicker,availableDays,availableDaysLastUpdatedAt,availabilityCacheTtlMs;widgetDatePicker=[];availableDays=[];availableDay"
+        },
+        {
+          "url": "https://reservation.elloha.com/Widget/BookingEngine/6dec24ec-415c-4251-af67-baa0b206d31f?idoi=f74875ea-e624-4667-be17-ca8cf7fe84b6&culture=fr-FR",
+          "status": 200,
+          "body": "\r\n\r\n<link rel=\"stylesheet\" href=\"https://reservation.elloha.com/Content/font-awesome/font-awesome-widget.css\">\r\n<link rel=\"stylesheet\" href=\"https://reservation.elloha.com/Content/line-awesome/line-awesome.css\">\r\n\r\n\r\n\r\n<div data-widget-id=\"6dec24ec-415c-4251-af67-baa0b206d31f\">\r\n"
+        },
+        {
+          "url": "https://reservation.elloha.com/Widget/BookingEngineCustomUi/6dec24ec-415c-4251-af67-baa0b206d31f?timestamp=20241106143845",
+          "status": 200,
+          "body": "\r\n\r\n\r\ndiv[data-widget-id=\"6dec24ec-415c-4251-af67-baa0b206d31f\"] .co-widget input,\r\ndiv[data-widget-id=\"6dec24ec-415c-4251-af67-baa0b206d31f\"] .co-widget .co-widget-styled,\r\ndiv[data-widget-id=\"6dec24ec-415c-4251-af67-baa0b206d31f\"] .co-widget .co-widget-occupancy .co-widget-occu"
+        },
+        {
+          "url": "https://reservation.elloha.com/API/WebService/GetCalendarAvailability?idOi=f74875ea-e624-4667-be17-ca8cf7fe84b6&idListPrestations=f7a38984-c902-48f7-a79a-10126b5e65ea_265b6300-9bd7-4a35-8f7c-8434ab7c6eb4_6299bbc1-3996-43f3-a046-b283feea8148_7151dc86-d7a6-400c-",
+          "status": 200,
+          "body": "[{\"Date\":\"2026-08-28T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-08-29T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-08-30T00:00:00\",\"IsArrivalPossible\":true,\"HasPromotion\":false},{\"Date\":\"2026-08-31T00:00:00\",\"IsArrivalPossible"
+        }
+      ],
+      "markers": {
+        "ingenie": 0,
+        "msem": 0,
+        "elloha": 1,
+        "opensystem": 0,
+        "gardeners": 0,
+        "locvacances": 0,
+        "deskline": 0,
+        "recaptcha": 1
+      },
+      "title": "Réserver votre séjour à Vars dans les Hautes-Alpes",
+      "http": 200,
+      "finalUrl": "https://www.alpes-sudlocations.com/reservation-sejour-vars/",
+      "error": null,
+      "htmlBytes": 219196,
+      "links": [
+        "https://www.alpes-sudlocations.com/reservation-sejour-vars/#",
+        "https://www.alpes-sudlocations.com/reservation-sejour-vars/",
+        "https://reservation.elloha.com/Search/Index/6dec24ec-415c-4251-af67-baa0b206d31f?idoi=f74875ea-e624-4667-be17-ca8cf7fe84b6&onlyGifts=1&culture=fr-FR",
+        "https://www.secure-hotel-booking.com/modification/Residence-ARYA-Living-Stone/JT2Z",
+        "https://www.secure-hotel-booking.com/Residence-ARYA-Living-Stone/JT2Z/",
+        "https://www.alpes-sudlocations.com/reservation-sejour-montagne"
+      ],
+      "iframes": [
+        "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcScrQpAAAAAJrdi72EgfpBmCV3cGFEznZkOFRt&co=aHR0cHM6Ly93d3cuYWxwZXMtc3VkbG9jYXRpb25zLmNvbTo0NDM.&hl=fr&v=ox8dsmiqR62P1bqhciWOn7Fg&size=invisible&anchor-ms=20000&execute-ms=30000&cb=l2meskanx1c3"
+      ],
+      "bodyPreview": "Gérer le consentement aux cookies\nPour offrir les meilleures expériences, nous utilisons des technologies telles que les cookies pour stocker et/ou accéder aux informations des appareils. Le fait de consentir à ces technologies nous permettra de traiter des données telles que le comportement de navigation ou les ID uniques sur ce site. Le fait de ne pas consentir ou de retirer son consentement peut avoir un effet négatif sur certaines caractéristiques et fonctions.\nAccepter\nRefuser\nVoir les préférences\nMentions Légales\nAlpes Sud Location - séjour hiver été Vars04 92 46 51 02contact@alpes-sudlocations.com\nAccueil\nRésidence ARYA\nLocations Vars\nForfait ski\nContact\nRéserver votre séjour\nRéserver votre séjour\nà Vars\nRéservation en ligne\nRÉSERVEZ EN DIRECT\nÀ partir du\nNombre de nuits\n1 nuit\n2 nuits\n3 nuits\n4 nuits\n5 nuits\n6 nuits\n1 semaine\n8 nuits\n9 nuits\n10 nuits\n11 nuits\n12 nuits\n13 nuits\n2 "
+    },
+    {
+      "id": "elloha_post_near",
+      "finalUrl": "https://reservation.elloha.com/Result/GetDetail/HLOPAC0050005312?idPublication=6dec24ec-415c-4251-af67-baa0b206d31f",
+      "title": "Réservez en direct",
+      "htmlBytes": 351572,
+      "xhr": [
+        {
+          "url": "https://reservation.elloha.com/Search/Index/6dec24ec-415c-4251-af67-baa0b206d31f",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/Vendors/css?v=WpqSGT5VnriEhrCnB2DRNZ-c_0CLv-qrZ_U9-v3hnj01",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/default-skin/css?v=EyTiKxBDtlq3ct3Eg0Oa5rQiwkjX8kiT0JbonTv-SGY1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/css?v=hR1kIZJIfmYxtZpu--kOqy3T0GjN9m4CErkZeAB4QtA1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/bundles/modernizr?v=inCVuEFe6J4Q07A0AcRsbJic_UE5MwpRMNGcOtk94TE1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/bxslider/css?v=6Gdw_s5CWVElMfNRMZqzaVSF-xgQNIBv6a0EWOp_rTI1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Scripts/maps?v=WEbVFN975HCerHa4Sd8ymlY6mzayNcYimrs3JPUeHsQ1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/fonts/Montserrat-SemiBold.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Scripts/js?v=kwCbv7Tz6WIihzG_5IebQC0Oorv13AyVnvo8VvckQU41",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/api/WebService/GetCalendarAvailability?idOi=f74875ea-e624-4667-be17-ca8cf7fe84b6",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Search/Search?idPublication=6dec24ec-415c-4251-af67-baa0b206d31f",
+          "status": 302
+        },
+        {
+          "url": "https://reservation.elloha.com/Result/GetDetail/HLOPAC0050005312?idPublication=6dec24ec-415c-4251-af67-baa0b206d31f",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/Vendors/css?v=WpqSGT5VnriEhrCnB2DRNZ-c_0CLv-qrZ_U9-v3hnj01",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/default-skin/css?v=EyTiKxBDtlq3ct3Eg0Oa5rQiwkjX8kiT0JbonTv-SGY1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/bxslider/css?v=6Gdw_s5CWVElMfNRMZqzaVSF-xgQNIBv6a0EWOp_rTI1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/css?v=hR1kIZJIfmYxtZpu--kOqy3T0GjN9m4CErkZeAB4QtA1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/bundles/modernizr?v=inCVuEFe6J4Q07A0AcRsbJic_UE5MwpRMNGcOtk94TE1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Scripts/js?v=kwCbv7Tz6WIihzG_5IebQC0Oorv13AyVnvo8VvckQU41",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Scripts/maps?v=WEbVFN975HCerHa4Sd8ymlY6mzayNcYimrs3JPUeHsQ1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/intlTelInputCss?v=CVd7sbO8YWaSL2TV8FpKKlkv1zpH0YUW_RugA_hSLTU1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/fonts/Montserrat-SemiBold.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Scripts/intlTelInputMask?v=YWY794v5xrtlZuW-peVWaLGCP46JX6AFUzIaurKn71k1",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/mini-loader.gif",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/fonts/OpenSans-Bold.ttf",
+          "status": 200
+        },
+        {
+          "url": "https://reservation.elloha.com/Content/bxslider/images/bx_loader.gif",
+          "status": 200
+        }
+      ],
+      "bodyPreview": "EUR \n0\nPanier\n Nos offres\n du 05/09/2026 au 12/09/2026  2 adultes 1 hébergement\nModifier\nAlpes Sud Locations\n3 Impasse Des Sagnes Sainte Marie - 05560 VARS  Voir sur une carte\nÀ partir de\n495,00 €\npour 7 nuits, 2 adultes\nou 70,71 € / nuit\nVoir les prix\n\nAlpes Sud locations Réserver votre séjour à Vars avec Alpes Sud Locations Agence réceptive tourisme spécialisée montagne à Vars. Séjour ski, séjour rando, séjour montagne…\nLire la description\n\n Services  Voir en détail\n Langues parlées Voir en détail\nChoisissez votre hébergement parmi les 9 disponibles\n \nArya STUDIO 2 personnes\n1 canapé-lit double\nEn savoir plus\nPrix Standard\nMeilleur tarif pour cette offre\nPaiement 100% en ligne\nOffre annulable sous conditions \nLe prix comprend : SERVICES INCLUS : draps, kit linge de toilette, kit entretien, TV et Wifi\nLe prix ne comprend pas : Parking couvert = 70 € / semaine / véhicule - Lit bébé = 45 € / semaine - Animal = 60 € / semaine - Ménage de fin séjour = 45 € / studio 2, 55 € / 2P4, 65 € / 2P6 et 3P6 Caution = 400 € / appartement - Taxe de séjour = 3 € / nuit / personne +18 ans Forfaits ski et matériel de ski à tarifs préférentiels (en pré-réservation) Bagagerie, salle de réunion et serv",
+      "empty": false
+    }
+  ]
+}

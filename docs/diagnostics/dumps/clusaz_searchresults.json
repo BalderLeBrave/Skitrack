@@ -1,0 +1,503 @@
+{
+  "data": [
+    {
+      "id": "667429b9-a496-4ae8-974e-d87435e278cd",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Col de la Croix Fry",
+        "town": "Manigod",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": null
+      },
+      "stars": {
+        "name": "4 étoiles",
+        "level": "4",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/d8c717a6-1a3c-4d72-a544-fb69bfd32835/4_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ec3c8e0c-961c-4cfd-900e-1f2875acce63",
+          "name": "Location",
+          "order": 8
+        },
+        {
+          "id": "ab4f2086-f06d-4dac-8b99-09eda5577c67",
+          "name": "Hôtel",
+          "order": 1
+        }
+      ],
+      "classifications": [],
+      "fromPrice": {
+        "value": 344.4,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Hôtel Les Sapins Wellness & Gourmet",
+      "urlFriendlyName": "hotel-les-sapins-wellness---gourmet",
+      "images": [
+        {
+          "id": "069360c0-cb0c-4e71-a5c3-011c7f65a4c1",
+          "name": "Anna Ivanova - Les Sapins - BD-147",
+          "copyright": "",
+          "author": "",
+          "license": "",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/069360c0-cb0c-4e71-a5c3-011c7f65a4c1/54/Anna_Ivanova_-_Les_Sapins_-_BD-147.jpg"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": null,
+      "isSpecialPrice": false
+    },
+    {
+      "id": "2ac741c9-7270-4690-927b-18bb5fe1adb8",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Haut du centre village",
+        "town": "La Clusaz",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": {
+          "name": "",
+          "long": 6.427002,
+          "lat": 45.907151
+        }
+      },
+      "stars": {
+        "name": "3 étoiles",
+        "level": "3",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/ea752e0a-1ef9-46ce-9349-d835853088d3/3_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ab4f2086-f06d-4dac-8b99-09eda5577c67",
+          "name": "Hôtel",
+          "order": 1
+        }
+      ],
+      "classifications": [],
+      "fromPrice": {
+        "value": 143.4,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Hôtel Carlina",
+      "urlFriendlyName": "hotel-carlina",
+      "images": [
+        {
+          "id": "af2a3e0b-8b69-43e7-b3ed-2c70b41ecc9c",
+          "name": "Façade été Hôtel Carlina La Clusaz",
+          "copyright": "",
+          "author": "",
+          "license": "",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/af2a3e0b-8b69-43e7-b3ed-2c70b41ecc9c/54/Fa%c3%a7ade_%c3%a9t%c3%a9_H%c3%b4tel_Carlina_La_Clusaz.jpg"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": null,
+      "isSpecialPrice": false
+    },
+    {
+      "id": "5c57f966-e86b-4a89-a0b8-3fb7f065fbc8",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Haut du centre village",
+        "town": "La Clusaz",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": {
+          "name": "",
+          "long": 6.429305,
+          "lat": 45.907106
+        }
+      },
+      "stars": {
+        "name": "4 étoiles",
+        "level": "4",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/d8c717a6-1a3c-4d72-a544-fb69bfd32835/4_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ab4f2086-f06d-4dac-8b99-09eda5577c67",
+          "name": "Hôtel",
+          "order": 1
+        }
+      ],
+      "classifications": [],
+      "fromPrice": {
+        "value": 305.2,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Hôtel St-Alban Hôtel & Spa",
+      "urlFriendlyName": "hotel-st-alban-hotel---spa",
+      "images": [
+        {
+          "id": "ec2290b9-c138-4804-884b-30e344bb4985",
+          "name": "St-Alban Hotel & Spa - Façade avec vue pistes",
+          "copyright": "",
+          "author": "",
+          "license": "",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/ec2290b9-c138-4804-884b-30e344bb4985/54/St-Alban_Hotel___Spa_-_Fa%c3%a7ade_avec_vue_pistes.jpg"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": {
+        "type": 0,
+        "value": 4.8,
+        "ratingsCount": 1,
+        "isRecommended": true,
+        "remoteId": null,
+        "satisfaction": 5.0,
+        "maxValue": 5
+      },
+      "isSpecialPrice": false
+    },
+    {
+      "id": "975eff7f-98f5-4f98-a4bd-895ff7fbb5a3",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Bas du centre village",
+        "town": "La Clusaz",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": {
+          "name": "",
+          "long": 6.425023,
+          "lat": 45.90536
+        }
+      },
+      "stars": {
+        "name": "3 étoiles",
+        "level": "3",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/ea752e0a-1ef9-46ce-9349-d835853088d3/3_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ab4f2086-f06d-4dac-8b99-09eda5577c67",
+          "name": "Hôtel",
+          "order": 1
+        }
+      ],
+      "classifications": [
+        {
+          "id": "8527742a-74b2-40d7-9683-8ab5719f115e",
+          "name": "Promotion Early booking",
+          "order": 1043,
+          "url": "",
+          "icon": "//resc.deskline.net/images/FRA/2/8527742a-74b2-40d7-9683-8ab5719f115e/Promotion_Early_booking.png",
+          "image": "//resc.deskline.net/images/FRA/1/532ae713-b672-4df5-a2c6-ea454bd34350/Promotion_LCZ.png"
+        }
+      ],
+      "fromPrice": {
+        "value": 94.4,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Hôtel Christiania",
+      "urlFriendlyName": "hotel-christiania",
+      "images": [
+        {
+          "id": "0d82822e-a9bd-4a43-8a3a-c8c43064c291",
+          "name": "Le Christiania - Extérieur Hiver",
+          "copyright": "Matthieu Cellard",
+          "author": "",
+          "license": "Copyright - tous droits réservés(C)",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/0d82822e-a9bd-4a43-8a3a-c8c43064c291/54/Le_Christiania_-_Ext%c3%a9rieur_Hiver.jpg"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": {
+        "type": 0,
+        "value": 4.9,
+        "ratingsCount": 3,
+        "isRecommended": true,
+        "remoteId": null,
+        "satisfaction": 5.0,
+        "maxValue": 5
+      },
+      "isSpecialPrice": false
+    },
+    {
+      "id": "49e98d56-4dcd-464d-a7cf-83b5e6bdf208",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Vallée des Aravis",
+        "town": "La Clusaz",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": null
+      },
+      "stars": {
+        "name": "2 étoiles",
+        "level": "2",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/17313ccd-8623-4b27-85da-5031c643414d/2_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ab4f2086-f06d-4dac-8b99-09eda5577c67",
+          "name": "Hôtel",
+          "order": 1
+        }
+      ],
+      "classifications": [],
+      "fromPrice": {
+        "value": 119.81,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Hôtel U'Fredy",
+      "urlFriendlyName": "hotel-u-fredy",
+      "images": [
+        {
+          "id": "8d1399ab-752c-4fa8-9592-c241f4efe358",
+          "name": "Hôtel U'Fredy",
+          "copyright": "",
+          "author": "",
+          "license": "",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/8d1399ab-752c-4fa8-9592-c241f4efe358/54/H%c3%b4tel_UFredy.png"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": null,
+      "isSpecialPrice": false
+    },
+    {
+      "id": "4d95d7b2-27e6-4d7b-ba53-ecbc890bb2a9",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Vallée des Confins",
+        "town": "La Clusaz",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": null
+      },
+      "stars": {
+        "name": "2 étoiles",
+        "level": "2",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/17313ccd-8623-4b27-85da-5031c643414d/2_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ec3c8e0c-961c-4cfd-900e-1f2875acce63",
+          "name": "Location",
+          "order": 8
+        },
+        {
+          "id": "9683cb46-ba0c-485a-abce-2d3d0af38c86",
+          "name": "Résidence de tourisme",
+          "order": 9
+        }
+      ],
+      "classifications": [
+        {
+          "id": "7e01ed5a-dc80-4476-9223-97b144ab40b6",
+          "name": "Famille Plus",
+          "order": 1002,
+          "url": "",
+          "icon": "//resc.deskline.net/images/FRA/2/7e01ed5a-dc80-4476-9223-97b144ab40b6/Famille_Plus.png",
+          "image": null
+        }
+      ],
+      "fromPrice": {
+        "value": 146.2,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Village vacances - Azureva Les Confins",
+      "urlFriendlyName": "village-vacances---azureva-les-confins",
+      "images": [
+        {
+          "id": "ccd60536-abb2-4d17-be09-281ad05603c8",
+          "name": "Village vacance Azuréva",
+          "copyright": "",
+          "author": "",
+          "license": "",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/ccd60536-abb2-4d17-be09-281ad05603c8/54/Village_vacance_Azur%c3%a9va.jpg"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": null,
+      "isSpecialPrice": false
+    },
+    {
+      "id": "75b50c7e-3a58-4b83-b468-f32bd1598672",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Bas du centre village",
+        "town": "La Clusaz",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": {
+          "name": "",
+          "long": 6.425741,
+          "lat": 45.906207
+        }
+      },
+      "stars": {
+        "name": "3 étoiles",
+        "level": "3",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/ea752e0a-1ef9-46ce-9349-d835853088d3/3_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ab4f2086-f06d-4dac-8b99-09eda5577c67",
+          "name": "Hôtel",
+          "order": 1
+        }
+      ],
+      "classifications": [
+        {
+          "id": "8527742a-74b2-40d7-9683-8ab5719f115e",
+          "name": "Promotion Early booking",
+          "order": 1043,
+          "url": "",
+          "icon": "//resc.deskline.net/images/FRA/2/8527742a-74b2-40d7-9683-8ab5719f115e/Promotion_Early_booking.png",
+          "image": "//resc.deskline.net/images/FRA/1/532ae713-b672-4df5-a2c6-ea454bd34350/Promotion_LCZ.png"
+        }
+      ],
+      "fromPrice": {
+        "value": 174.4,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Hôtel Alpen Roc",
+      "urlFriendlyName": "hotel-alpen-roc",
+      "images": [
+        {
+          "id": "1708168f-dd7c-4aa7-975a-104130bb86ed",
+          "name": "Hotel Alpen Roc - Extérieur Été",
+          "copyright": "DGC Photographie",
+          "author": "",
+          "license": "Copyright - tous droits réservés(C)",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/1708168f-dd7c-4aa7-975a-104130bb86ed/54/Hotel_Alpen_Roc_-_Ext%c3%a9rieur_%c3%89t%c3%a9.jpg"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": {
+        "type": 0,
+        "value": 4.6,
+        "ratingsCount": 1,
+        "isRecommended": true,
+        "remoteId": null,
+        "satisfaction": 5.0,
+        "maxValue": 5
+      },
+      "isSpecialPrice": false
+    },
+    {
+      "id": "1d9f92a4-a6b5-47ea-aa94-15cf6a7d1dd4",
+      "owner": "LACLUSAZ",
+      "location": {
+        "district": "Haut du centre village",
+        "town": "La Clusaz",
+        "regions": [
+          "Auvergne-Rhône-Alpes"
+        ],
+        "country": "France",
+        "coordinate": {
+          "name": "",
+          "long": 6.427597,
+          "lat": 45.907263
+        }
+      },
+      "stars": {
+        "name": "3 étoiles",
+        "level": "3",
+        "url": null,
+        "image": "//resc.deskline.net/images/FRA/4/ea752e0a-1ef9-46ce-9349-d835853088d3/3_%c3%a9toiles.png"
+      },
+      "categories": [
+        {
+          "id": "ab4f2086-f06d-4dac-8b99-09eda5577c67",
+          "name": "Hôtel",
+          "order": 1
+        }
+      ],
+      "classifications": [],
+      "fromPrice": {
+        "value": 120.4,
+        "meal": 1,
+        "isBestPrice": false
+      },
+      "dbCode": "FRA",
+      "name": "Hôtel Beaulieu",
+      "urlFriendlyName": "hotel-beaulieu",
+      "images": [
+        {
+          "id": "e32d483a-9dd9-4b4f-af43-711b0c0800a5",
+          "name": "Façade été Hôtel Beaulieu La Clusaz",
+          "copyright": "",
+          "author": "",
+          "license": "",
+          "urls": [
+            "//resc.deskline.net/images/FRA/1/e32d483a-9dd9-4b4f-af43-711b0c0800a5/54/Fa%c3%a7ade_%c3%a9t%c3%a9_H%c3%b4tel_Beaulieu_La_Clusaz.jpg"
+          ],
+          "description": ""
+        }
+      ],
+      "rating": {
+        "type": 0,
+        "value": 4.4,
+        "ratingsCount": 1,
+        "isRecommended": true,
+        "remoteId": null,
+        "satisfaction": 5.0,
+        "maxValue": 5
+      },
+      "isSpecialPrice": false
+    }
+  ],
+  "paging": {
+    "pageNo": 1,
+    "pageSize": 24,
+    "pageCount": 1,
+    "totalRecordCount": 8
+  },
+  "links": {
+    "prev": null,
+    "next": null
+  }
+}

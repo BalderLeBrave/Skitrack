@@ -1,0 +1,2460 @@
+{
+  "at": "2026-09-02T08:42:18.170Z",
+  "items": [
+    {
+      "id": "d2a_user",
+      "url": "https://www.cozycozy.com/fr/search/Les%20Deux%20Alpes%20station%20de%20ski%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "http": 200,
+      "title": "Les Deux Alpes (station de ski), 13/02–20/02",
+      "error": null,
+      "xhr": [
+        {
+          "url": "https://www.cozycozy.com/fr/search/Les%20Deux%20Alpes%20station%20de%20ski%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+          "status": 200,
+          "ct": "text/html; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/main.f7e84b9d7beb408c.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logVisit",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=4&frm=0&apvc=1&ae=g&auid=220615218.1788338539&dt=Les%20Deux%20Alpes%20station%20de%20ski%2C%2013%2F02%E2%80%9320%2F02&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Deux%2520Alpes%2520station%2520de%2520ski%252C%2520F",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://ad.doubleclick.net/ccm/s/collect?auid=220615218.1788338539&gtm=45He68v1v76033684za200zd76033684xea&fmt=8",
+          "status": 204,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/openid-configuration?tenantId=b2a00fd6-c370-4efd-96b8-48764873649f",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/authorize\",\n  \"backchannel_logout_supported\" : false,\n  \"claims_supported\" : [\n    \"applicationId\",\n    \"at_hash\",\n    \"aud\",\n    \"authenticationType\",\n    \"birthdate\",\n    \"c_hash\",\n    \"email\",\n    \"email_verified\",\n    \"exp\",\n    \"family_name\",\n    \"given_name\",\n    \"iat\",\n    \"iss\",\n    \"jti\",\n    \"middle_name\",\n    \"name\",\n    \"nbf\",\n    \"nonce\",\n    \"phone_number\",\n    \"picture\",\n    \"preferred_username\",\n    \"roles\",\n    \"sub\"\n  ],\n  \"device_authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/device_authorize\",\n "
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=7&frm=0&apvc=0&auid=220615218.1788338539&dt=Les%20Deux%20Alpes%20station%20de%20ski%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Deux%2520Alpes%2520station%2520de%2520sk",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/rmkt/collect/862603817/?random=1788338539562&cv=11&fst=1788338539562&fmt=8&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tag_exp=115938466~115938469~118897920~118897930~119259605~119404699~120",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=1788338539562&cv=11&fst=1788338539562&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tag_exp=115938466~115938469~118897920~118897930~",
+          "status": 200,
+          "ct": "text/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=7&frm=0&apvc=0&ae=g&auid=220615218.1788338539&dt=Les%20Deux%20Alpes%20station%20de%20ski%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Deux%2520Alpes%2520station%2520de%2520ski%252C%2",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/jwks.json",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"keys\" : [\n    {\n      \"alg\" : \"RS256\",\n      \"e\" : \"AQAB\",\n      \"kid\" : \"UycvFdocSstr6CbmSqwi43V8_ZA\",\n      \"kty\" : \"RSA\",\n      \"n\" : \"6tqL-vnsK__06OO6yrp_OKnuuX4MkEuggUTgLnanpFJMd8LTf9zGZ1Q_--mDECnYWy051cM73m9iigRgNWytxedBguTXzz4e6JAB1LDF5UtEeD3RNyJR-GbbcRB8NlRSzlG3lhIPNUoFAtl91EjtUFi_KH9fpv1kl3k0vV2FZeNTVYCgCM-kEmOsZU-Dn4MzqxbJmBiZxTjEwUQcgqeXTmyDvNkc870vdd53N_ukgwn5rLyqGxCRkyO66R19TDjHkhFHP9oX6mFLs2fbc9TAGIHDr-OlHDOCYELqb8vB-ha4FzvaUfeWUJ1P_CB_4YVPawc2wExhYVDin6IJnJIiFw\",\n      \"use\" : \"sig\",\n      \"x5c\" : [\n        \"MIIC1TCCAb2gAwIBAQIRAIr0gfRTxUV1omyPOP9ezrcwDQYJKoZIhvcNAQELBQAwJj"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/t/26016635",
+          "status": 200,
+          "ct": "application/x-javascript",
+          "body": ""
+        },
+        {
+          "url": "https://accounts.google.com/gsi/client",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"location\":{\"name\":\"Les Deux Alpes (station de ski)\",\"cityName\":\"\",\"countryCode\":\"FR\",\"countryName\":\"France\",\"stateCode\":\"\",\"level\":50,\"type\":0,\"bounds\":{\"west\":6.09424565914794,\"south\":44.9771853844746,\"east\":6.24698316126173,\"north\":45.0406579714734},\"coordinates\":{\"latitude\":45.008922,\"longitude\":6.170614}},\"text\":\"Les Deux Alpes (station de ski), France\"}"
+        },
+        {
+          "url": "https://www.google.com/pagead/1p-user-list/862603817/?random=1788338539562&cv=11&fst=1788336000000&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tag_exp=115938466~115938469~118897920~118897930~119259605~119404699~12",
+          "status": 200,
+          "ct": "image/gif",
+          "body": ""
+        },
+        {
+          "url": "https://accounts.google.com/gsi/style",
+          "status": 200,
+          "ct": "text/css; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/s/0.8.69",
+          "status": 200,
+          "ct": "application/javascript;charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchId\":\"Xs99teFFQHAbxsDN\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://google.com/.well-known/web-identity",
+          "status": 200,
+          "ct": "application/json",
+          "body": "{\n  \"provider_urls\": [\n    \"https://accounts.google.com/gsi/fedcm.json\"\n  ],\n  \"accounts_endpoint\": \"https://accounts.google.com/gsi/fedcm/listaccounts\",\n  \"login_url\": \"https://accounts.google.com/gsi/fedcm/signin\"\n}\n"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/fedcm.json",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\n\"idtoken_endpoint\": \"https://accounts.google.com/gsi/fedcm/issue\",\n\"id_token_endpoint\": \"https://accounts.google.com/gsi/fedcm/issue\",\n\"id_assertion_endpoint\": \"https://accounts.google.com/o/fedcm/authorization\",\n\"metrics_endpoint\": \"https://accounts.google.com/gsi/fedcm/metrics\",\n\"accounts_endpoint\": \"https://accounts.google.com/gsi/fedcm/listaccounts\",\n\"client_metadata_endpoint\": \"https://accounts.google.com/gsi/fedcm/clientmetadata\",\n\"client_id_metadata_endpoint\": \"https://accounts.google.com/gsi/fedcm/clientmetadata\",\n\"signin_url\": \"https://accounts.google.com/gsi/fedcm/signin\",\n\"login_u"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/fedcm/listaccounts",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"accounts\":[],\"site_salt\":\"9e48cdc1932d3b808d3fab8c8d563f25\"}"
+        },
+        {
+          "url": "https://s.d.adup-tech.com/jsapi",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19889,\"progressTimeoutLength\":20000,\"resultGroupCount\":58}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/c/r",
+          "status": 204,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/i18n/pixel/static/main.MWI2NmQxNWY3MQ.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://cdn.fuseplatform.net/telemetry/noconsent?v=1&ttm=1788338540343&cookie=true&res=1440x900&device=desktop&browser=chrome&fuuid=2c3d0360-f81b-5470-848a-f25710890a52&fid=3729&pubid=6&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Deux%2520Alpes%2520station%2520de%2",
+          "status": 200,
+          "ct": "application/octet-stream",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://analytics-ipv6.tiktokw.us/ipv6/enrich_ipv6",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://sync.intentiq.com/profiles_engine/ProfilesEngineServlet?at=20&mi=10&secure=1&dpi=768420746&iiqidtype=2&iiqpcid=d29183a4-db6c-19c4-670c-c78f885eb0f9&iiqpciddate=1788338540510&tsrnd=781_1788338540518&jsver=6.253&testPercentage=95&testGroup=A&uh=%7B%220%22%3A%22%5C%22Not%3DA",
+          "status": 302,
+          "ct": "image/gif",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        }
+      ],
+      "finalUrl": "https://www.cozycozy.com/fr/search/Les%20Deux%20Alpes%20station%20de%20ski%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "evaled": {
+        "hoj": 0,
+        "resultItem": 0,
+        "joliRoot": 1,
+        "routerOutlet": 16,
+        "articles": 0,
+        "comparing": false,
+        "prices": [
+          "6692 €",
+          "3469 €",
+          "7056 €",
+          "5761 €",
+          "3671 €",
+          "3745 €",
+          "3354 €",
+          "6152 €",
+          "9128 €"
+        ],
+        "cards": [
+          {
+            "tag": "HEADER",
+            "className": "results-header ng-star-inserted",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "A",
+            "className": "results-header-logos",
+            "text": ""
+          },
+          {
+            "tag": "SECTION",
+            "className": "results-header-form-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher"
+          },
+          {
+            "tag": "HEADER",
+            "className": "o-dropdown__header results-header-modal-header",
+            "text": " Modifier votre recherche "
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-buttons ng-star-inserted",
+            "text": "Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "main hoj_is_results ng-tns-c562773810-0 ng-star-inserted",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 180 offres trouvées sur 21 sites Trier 1 / 15 9.9 56 avis Châlet Hébergement entier 6 6 13 Les Deux Alpes Voir "
+          },
+          {
+            "tag": "HEADER",
+            "className": "header-result ng-tns-c562773810-0",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée"
+          }
+        ]
+      },
+      "bodyPreview": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter 2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 180 offres trouvées sur 21 sites Trier 1 / 15 9.9 56 avis Châlet Hébergement entier 6 6 13 Les Deux Alpes Voir l’offre 6692 € pour 7 nuits Voir l’offre Airbnb 1 / 22 9.7 38 avis Appartement Hébergement entier 4 6 8 Les Deux Alpes Voir l’offre 3469 € pour 7 nuits Voir l’offre Airbnb 1 / 61 9.9 91 avis Châlet Hébergement entier 4 9 10 Les Deux Alpes Voir l’offre 7056 € pour 7 nuits Voir l’offre Airbnb 1 / 10 9.0 253 avis Hôtel 4× Chambre (2 personnes) + 🥐 4 5 8 Les Deux Alpes Voir l’offre 5761 € pour 7 nuits Voir l’offre booking.com 1 / 15 9.2 13 avis Appartement Hébergement entier 4 8 12 Les Deux Alpes Voir l’offre 3671 € pour 7 nuits Voir l’offre Airbnb 1 / 23 9.7 7 avis Appartement Hébergement entier 4 8 10 Les Deux Alpes Voir l’offre 3745 € pour 7 nuits Voir",
+      "htmlBytes": 509106,
+      "apiHits": [
+        {
+          "url": "https://www.cozycozy.com/api/logVisit",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "body": "{\"location\":{\"name\":\"Les Deux Alpes (station de ski)\",\"cityName\":\"\",\"countryCode\":\"FR\",\"countryName\":\"France\",\"stateCode\":\"\",\"level\":50,\"type\":0,\"bounds\":{\"west\":6.09424565914794,\"south\":44.9771853844746,\"east\":6.24698316126173,\"north\":45.0406579714734},\"coordinates\":{\"latitude\":45.008922,\"longitude\":6.170614}},\"text\":\"Les Deux Alpes (station de ski), France\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "body": "{\"searchId\":\"Xs99teFFQHAbxsDN\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19889,\"progressTimeoutLength\":20000,\"resultGroupCount\":58}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel/act",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/monitor",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5-api.js",
+          "status": 200,
+          "body": "/**\n * @id5io/id5-api.js\n * @version v1.0.97\n * @link https://id5.io/\n * @license Apache-2.0\n */\n!function(){\"use strict\";function r(t,e){var i,r=Object.keys(t);return Object.getOwnPropertySymbols&&(i=Object.getOwnPropertySymbols(t),e&&(i=i.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),r.push.apply(r,i)),r}function h(t){for(var e=1;e<arguments.length;e++){var i=null!"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":307,\"providerCount\":19,\"combinedTypesWithCount\":[{\"type\":{\"position\":1,\"code\":\"$HOSTEL/ROOM\",\"parentCode\":\"$HOSTEL\",\"name\":\"Chambre privée\",\"pluralName\":\"Chambres privées\"},\"count\":1},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\":\"$HOTEL\",\"position\":1},\"count\":21},{\"type\":{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":335,\"providerCount\":21,\"combinedTypesWithCount\":[{\"type\":{\"position\":1,\"code\":\"$HOSTEL/ROOM\",\"parentCode\":\"$HOSTEL\",\"name\":\"Chambre privée\",\"pluralName\":\"Chambres privées\"},\"count\":2},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\":\"$HOTEL\",\"position\":1},\"count\":24},{\"type\":{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":2,\"progressTimeoutLeft\":14999,\"progressTimeoutLength\":20000,\"resultGroupCount\":335}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResultList",
+          "status": 200,
+          "body": "{\"processedResultCount\":637,\"averageHighlightedPricePerNight\":{\"currencyCode\":\"EUR\",\"value\":1145.9270874023437},\"allProcessed\":false,\"allCount\":335,\"displayedCount\":9,\"filteredCount\":180,\"filteredCountInBounds\":170,\"estimatedBounds\":{\"zoomLevel\":15,\"center\":{\"latitude\":45.01145,\"longitude\":6.125247},\"bounds\":{\"north\":45.02413157608659,\"east\":6.135804174682629,\"south\":44.99876761573237,\"west\":6.114"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getFilterRanges",
+          "status": 200,
+          "body": "{\"minPrice\":{\"value\":1844.0999755859375,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"maxPrice\":{\"value\":35300.16015625,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"hasStarRatings\":true,\"combinedTypeTree\":[{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName\":\"Hôtels\",\"children\":[{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentC"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResults",
+          "status": 200,
+          "body": "{\"results\":[{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":101869995,\"uid\":\"101869995-615\",\"title\":\"appartement\",\"subTitle\":\"4 chambres • 10 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":8,\"guestCapacity\":10},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"Les Deux Alpes\",\"highlightedResults\":[{\"uid\":615,\"accommodationId\":101869995,\"providerName\":\"Airbnb\",\"providerCod"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/js?v=3&callback=GoogleMaps_cb_588105183&key=AIzaSyDrw51w2VVyux4V0FJzpnz350uQISSc9a4&libraries=places&language=fr&region=FR",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/map.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/marker.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logAlbatrossEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+          "status": 200,
+          "body": "{}\n"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/log.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/mapConfigs:batchGet?language=fr&region=FR&alt=protojson&major_version=65&minor_version=12f&map_ids=442e8e0631e97605&map_type=1",
+          "status": 200,
+          "body": "[[[\"442e8e0631e97605\",null,null,null,null,null,null,null,null,null,null,[[null,\"11783100833063425208\",null,[[2,3]],[47083502,56565656]],[null,null,[]],[[13,\"https://www.gstatic.com/maps/res/CompactLegendSdk-Navigation-EnhancedNavStyleHoldbackForGeoD-FetchableStyleSetSdk-1a3526d41f56b63c5a03286466976b2c\"],[5,\"https://www.gstatic.com/maps/res/CompactLegendSdk-NavigationLowLight-EnhancedNavStyleHoldb"
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5PrebidModule.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/onion.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://id5-sync.com/api/config/prebid",
+          "status": 200,
+          "body": "{\"fetchCall\":{\"url\":\"https://id5-sync.com/g/v2/1189.json\",\"overrides\":{\"pbExtensions\":{\"bounce\":{\"setCookie\":true}}}},\"extensionsCall\":{\"url\":\"https://lb.eu-1-id5-sync.com/lb/v1\",\"method\":\"GET\"}}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        }
+      ]
+    },
+    {
+      "id": "meribel_user",
+      "url": "https://www.cozycozy.com/fr/search/M%C3%A9ribel%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "http": 200,
+      "title": "Méribel, 13/02–20/02",
+      "error": null,
+      "xhr": [
+        {
+          "url": "https://www.cozycozy.com/fr/search/M%C3%A9ribel%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+          "status": 200,
+          "ct": "text/html; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/main.f7e84b9d7beb408c.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=17&frm=0&apvc=1&ae=g&auid=220615218.1788338539&dt=M%C3%A9ribel%2C%2013%2F02%E2%80%9320%2F02&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FM%25C3%25A9ribel%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fresults&scrsrc=ww",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/openid-configuration?tenantId=b2a00fd6-c370-4efd-96b8-48764873649f",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/authorize\",\n  \"backchannel_logout_supported\" : false,\n  \"claims_supported\" : [\n    \"applicationId\",\n    \"at_hash\",\n    \"aud\",\n    \"authenticationType\",\n    \"birthdate\",\n    \"c_hash\",\n    \"email\",\n    \"email_verified\",\n    \"exp\",\n    \"family_name\",\n    \"given_name\",\n    \"iat\",\n    \"iss\",\n    \"jti\",\n    \"middle_name\",\n    \"name\",\n    \"nbf\",\n    \"nonce\",\n    \"phone_number\",\n    \"picture\",\n    \"preferred_username\",\n    \"roles\",\n    \"sub\"\n  ],\n  \"device_authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/device_authorize\",\n "
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"location\":{\"level\":0,\"type\":0,\"cityName\":\"Méribel\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":45.39683899999999,\"longitude\":6.566576},\"bounds\":{\"north\":45.3981691802915,\"east\":6.567865280291502,\"south\":45.3954712197085,\"west\":6.565167319708498},\"distance\":0,\"innerBounds\":null},\"text\":\"Méribel, France\"}"
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/jwks.json",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"keys\" : [\n    {\n      \"alg\" : \"RS256\",\n      \"e\" : \"AQAB\",\n      \"kid\" : \"UycvFdocSstr6CbmSqwi43V8_ZA\",\n      \"kty\" : \"RSA\",\n      \"n\" : \"6tqL-vnsK__06OO6yrp_OKnuuX4MkEuggUTgLnanpFJMd8LTf9zGZ1Q_--mDECnYWy051cM73m9iigRgNWytxedBguTXzz4e6JAB1LDF5UtEeD3RNyJR-GbbcRB8NlRSzlG3lhIPNUoFAtl91EjtUFi_KH9fpv1kl3k0vV2FZeNTVYCgCM-kEmOsZU-Dn4MzqxbJmBiZxTjEwUQcgqeXTmyDvNkc870vdd53N_ukgwn5rLyqGxCRkyO66R19TDjHkhFHP9oX6mFLs2fbc9TAGIHDr-OlHDOCYELqb8vB-ha4FzvaUfeWUJ1P_CB_4YVPawc2wExhYVDin6IJnJIiFw\",\n      \"use\" : \"sig\",\n      \"x5c\" : [\n        \"MIIC1TCCAb2gAwIBAQIRAIr0gfRTxUV1omyPOP9ezrcwDQYJKoZIhvcNAQELBQAwJj"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/client",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchId\":\"yakUnIOZV1OCRhWk\"}"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/style",
+          "status": 200,
+          "ct": "text/css; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/t/26016635",
+          "status": 200,
+          "ct": "application/x-javascript",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/s/0.8.69",
+          "status": 200,
+          "ct": "application/javascript;charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://s.d.adup-tech.com/jsapi",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19856,\"progressTimeoutLength\":20000,\"resultGroupCount\":7}"
+        },
+        {
+          "url": "https://cdn.fuseplatform.net/telemetry/noconsent?v=1&ttm=1788338559055&cookie=true&res=1440x900&device=desktop&browser=chrome&fuuid=2c3d0360-f81b-5470-848a-f25710890a52&fid=3729&pubid=6&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FM%25C3%25A9ribel%252C%2520France%2F2027-02-",
+          "status": 200,
+          "ct": "application/octet-stream",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/c/r",
+          "status": 204,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/i18n/pixel/static/main.MWI2NmQxNWY3MQ.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://aax.amazon-adsystem.com/e/dtb/bid/14225.34/0/prebid?adunitid=hljkl_300x250_5243850",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://btloader.com/tag?o=5708166709903360&upapi=true",
+          "status": 200,
+          "ct": "application/javascript",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/rmkt/collect/862603817/?random=1788338558793&cv=11&fst=1788338558793&fmt=8&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938466~115938468~118897920~118897930~11",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338558309&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=8&sr=1440x900&",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=1788338558793&cv=11&fst=1788338558793&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938466~115938468",
+          "status": 200,
+          "ct": "text/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338558309&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAQAGQC&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&rcb=8&sr",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338558309&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=8&sr=1440x900&",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.googleadservices.com/ccm/conversion/862603817/?random=1788338558981&cv=11&fst=1788338558981&fmt=3&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~1159384",
+          "status": 200,
+          "ct": "image/gif",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748za20gzb76033684zd76033684&_p=1788338558309&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AEAAAGQC&ae=a&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=8&sr=1440x900&uaa=x",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.googleadservices.com/pagead/conversion/862603817/?random=1788338558981&cv=11&fst=1788338558981&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~1159",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "event: message\ndata: {\"fetch\":[\"https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=1479576915&cv=11&fst=1788338558981&fmt=8&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938466~115938468~118897920~118897930~119259605~119404698~120385423&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FM%25C3%25A9ribel%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogress%3Fthen%3D%252Ffr%252Fsearch%252FM%2525C3%2525A9ribel%25252C%25252"
+        },
+        {
+          "url": "https://www.google.com/measurement/conversion?random=1788338558982&cv=11&tid=G-BP1QCKGB87&fst=1788338558982&fmt=8&en=search&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684xec&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938466~115938469~118897920~118897930~1192",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=12&frm=0&apvc=0&auid=220615218.1788338539&dt=M%C3%A9ribel%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FM%25C3%25A9ribel%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogr",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338558309&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=8&sr=1440x900&",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338558309&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&_prs=ok&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=12&frm=0&apvc=0&ae=g&auid=220615218.1788338539&dt=M%C3%A9ribel%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FM%25C3%25A9ribel%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogress%3Fth",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        }
+      ],
+      "finalUrl": "https://www.cozycozy.com/fr/search/M%C3%A9ribel%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "evaled": {
+        "hoj": 0,
+        "resultItem": 0,
+        "joliRoot": 1,
+        "routerOutlet": 16,
+        "articles": 0,
+        "comparing": false,
+        "prices": [
+          "8067 €",
+          "7302 €",
+          "6544 €",
+          "5483 €",
+          "8333 €",
+          "8463 €",
+          "6593 €",
+          "11300 €",
+          "6868 €"
+        ],
+        "cards": [
+          {
+            "tag": "HEADER",
+            "className": "results-header ng-star-inserted",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "A",
+            "className": "results-header-logos",
+            "text": ""
+          },
+          {
+            "tag": "SECTION",
+            "className": "results-header-form-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher"
+          },
+          {
+            "tag": "HEADER",
+            "className": "o-dropdown__header results-header-modal-header",
+            "text": " Modifier votre recherche "
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-buttons ng-star-inserted",
+            "text": "Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "main hoj_is_results ng-tns-c562773810-0 ng-star-inserted",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 715 offres trouvées sur 13 sites Trier 1 / 18 9.5 113 avis Appartement Hébergement entier 4 6 10 Les Allues - 3"
+          },
+          {
+            "tag": "HEADER",
+            "className": "header-result ng-tns-c562773810-0",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée"
+          }
+        ]
+      },
+      "bodyPreview": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter 2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 715 offres trouvées sur 13 sites Trier 1 / 18 9.5 113 avis Appartement Hébergement entier 4 6 10 Les Allues - 350 m des pistes Voir l’offre 8067 € pour 7 nuits Voir l’offre Airbnb 10 2 avis Maison276 m² Hébergement entier 5 6 10 Les Allues - 100 m des pistes Voir l’offre 7302 € pour 7 nuits Voir l’offre booking.com 1 / 10 8.9 9 avis Appartement Hébergement entier 4 5 8 Les Allues - 200 m des pistes Voir l’offre 6544 € pour 7 nuits Voir l’offre Airbnb 1 / 10 10 3 avis Maison120 m² Hébergement entier 4 5 9 Les Allues - 250 m des pistes Voir l’offre 5483 € pour 7 nuits Voir l’offre booking.com 1 / 25 9.8 9 avis Appartement Hébergement entier 4 10 12 Les Allues - 100 m des pistes Voir l’offre 8333 € pour 7 nuits Voir l’offre Airbnb 1 / 22 10 5 avis Appartement Hébe",
+      "htmlBytes": 501895,
+      "apiHits": [
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "body": "{\"location\":{\"level\":0,\"type\":0,\"cityName\":\"Méribel\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":45.39683899999999,\"longitude\":6.566576},\"bounds\":{\"north\":45.3981691802915,\"east\":6.567865280291502,\"south\":45.3954712197085,\"west\":6.565167319708498},\"distance\":0,\"innerBounds\":null},\"text\":\"Méribel, France\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "body": "{\"searchId\":\"yakUnIOZV1OCRhWk\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19856,\"progressTimeoutLength\":20000,\"resultGroupCount\":7}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5-api.js",
+          "status": 200,
+          "body": "/**\n * @id5io/id5-api.js\n * @version v1.0.97\n * @link https://id5.io/\n * @license Apache-2.0\n */\n!function(){\"use strict\";function r(t,e){var i,r=Object.keys(t);return Object.getOwnPropertySymbols&&(i=Object.getOwnPropertySymbols(t),e&&(i=i.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),r.push.apply(r,i)),r}function h(t){for(var e=1;e<arguments.length;e++){var i=null!"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel/act",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/monitor",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":958,\"providerCount\":12,\"combinedTypesWithCount\":[{\"type\":{\"name\":\"chambre d’hôtes\",\"pluralName\":\"chambres d’hôtes\",\"code\":\"$GUEST/GUEST\",\"parentCode\":\"$GUEST\",\"position\":1},\"count\":1},{\"type\":{\"position\":1,\"code\":\"$HOSTEL/ROOM\",\"parentCode\":\"$HOSTEL\",\"name\":\"Chambre privée\",\"pluralName\":\"Chambres privées\"},\"count\":2},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":1136,\"providerCount\":13,\"combinedTypesWithCount\":[{\"type\":{\"name\":\"chambre d’hôtes\",\"pluralName\":\"chambres d’hôtes\",\"code\":\"$GUEST/GUEST\",\"parentCode\":\"$GUEST\",\"position\":1},\"count\":1},{\"type\":{\"position\":1,\"code\":\"$HOSTEL/ROOM\",\"parentCode\":\"$HOSTEL\",\"name\":\"Chambre privée\",\"pluralName\":\"Chambres privées\"},\"count\":2},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":2,\"progressTimeoutLeft\":15000,\"progressTimeoutLength\":20000,\"resultGroupCount\":1136}"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResultList",
+          "status": 200,
+          "body": "{\"processedResultCount\":1405,\"averageHighlightedPricePerNight\":{\"currencyCode\":\"EUR\",\"value\":1912.4296609933037},\"allProcessed\":false,\"allCount\":1136,\"displayedCount\":9,\"filteredCount\":715,\"filteredCountInBounds\":211,\"estimatedBounds\":{\"zoomLevel\":14,\"center\":{\"latitude\":45.396753,\"longitude\":6.565788},\"bounds\":{\"north\":45.421946134190335,\"east\":6.586902349365249,\"south\":45.37156063416135,\"west\":6"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getFilterRanges",
+          "status": 200,
+          "body": "{\"minPrice\":{\"value\":1388.8399658203125,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"maxPrice\":{\"value\":228025,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"hasStarRatings\":true,\"combinedTypeTree\":[{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName\":\"Hôtels\",\"children\":[{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\":\"$H"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResults",
+          "status": 200,
+          "body": "{\"results\":[{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":116857204,\"uid\":\"116857204-492\",\"title\":\"maison\",\"subTitle\":\"5 chambres • 10 personnes\",\"subTitleDetails\":{\"bedRoomCount\":5,\"bedCount\":6,\"guestCapacity\":10},\"surfaceText\":\"276 m²\",\"locationWarning\":false,\"locationText\":\"100 m des pistes\",\"highlightedResults\":[{\"uid\":492,\"accommodationId\":116857204,\"providerName\":\"booking.com\",\"pro"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/js?v=3&callback=GoogleMaps_cb_677575579&key=AIzaSyDrw51w2VVyux4V0FJzpnz350uQISSc9a4&libraries=places&language=fr&region=FR",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/marker.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/map.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getPhotos",
+          "status": 200,
+          "body": "[{\"url\":\"https://q-xx.bstatic.com/xdata/images/hotel/max1440/897553971.jpg?k=274bfedf4ad5c8ed266c4cd9ae536b711bd3b52cb8df46596ddaa90bda92da7a&o=&a=1311119\",\"thumbnailUrl\":\"https://q-xx.bstatic.com/xdata/images/hotel/max600/897553971.jpg?k=274bfedf4ad5c8ed266c4cd9ae536b711bd3b52cb8df46596ddaa90bda92da7a&o=&a=1311119\"},{\"url\":\"https://q-xx.bstatic.com/xdata/images/hotel/max1440/897554771.jpg?k=5f680"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+          "status": 200,
+          "body": "{}\n"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/log.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/onion.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/mapConfigs:batchGet?language=fr&region=FR&alt=protojson&major_version=65&minor_version=12f&map_ids=442e8e0631e97605&map_type=1",
+          "status": 200,
+          "body": "[[[\"442e8e0631e97605\",null,null,null,null,null,null,null,null,null,null,[[null,\"11783100833063425208\",null,[[2,3]],[47083502,56565656]],[null,null,[]],[[19,\"https://www.gstatic.com/maps/res/CompactLegendSdk-Roadmap-EnhancedNavStyleHoldbackForGeoD-FetchableStyleSetSdk-1a3526d41f56b63c5a03286466976b2c\"],[38,\"https://www.gstatic.com/maps/res/CompactLegendSdk-NavigationHighDetailLowLight-EnhancedNavSt"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logAlbatrossEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5PrebidModule.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://id5-sync.com/api/config/prebid",
+          "status": 200,
+          "body": "{\"fetchCall\":{\"url\":\"https://id5-sync.com/g/v2/1189.json\",\"overrides\":{\"pbExtensions\":{\"bounce\":{\"setCookie\":false}}}},\"extensionsCall\":{\"url\":\"https://lb.eu-1-id5-sync.com/lb/v1\",\"method\":\"GET\"}}"
+        }
+      ]
+    },
+    {
+      "id": "karellis_fr",
+      "url": "https://www.cozycozy.com/fr/search/Les%20Karellis%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "http": 200,
+      "title": "Les Karellis, 13/02–20/02",
+      "error": null,
+      "xhr": [
+        {
+          "url": "https://www.cozycozy.com/fr/search/Les%20Karellis%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+          "status": 200,
+          "ct": "text/html; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/main.f7e84b9d7beb408c.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=19&frm=0&apvc=1&ae=g&auid=220615218.1788338539&dt=Les%20Karellis%2C%2013%2F02%E2%80%9320%2F02&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Karellis%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fresults&scrsrc=",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/openid-configuration?tenantId=b2a00fd6-c370-4efd-96b8-48764873649f",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/authorize\",\n  \"backchannel_logout_supported\" : false,\n  \"claims_supported\" : [\n    \"applicationId\",\n    \"at_hash\",\n    \"aud\",\n    \"authenticationType\",\n    \"birthdate\",\n    \"c_hash\",\n    \"email\",\n    \"email_verified\",\n    \"exp\",\n    \"family_name\",\n    \"given_name\",\n    \"iat\",\n    \"iss\",\n    \"jti\",\n    \"middle_name\",\n    \"name\",\n    \"nbf\",\n    \"nonce\",\n    \"phone_number\",\n    \"picture\",\n    \"preferred_username\",\n    \"roles\",\n    \"sub\"\n  ],\n  \"device_authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/device_authorize\",\n "
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"location\":{\"level\":-50,\"type\":0,\"name\":\"Les Karellis\",\"cityName\":\"Montricher-Albanne\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":45.2274742,\"longitude\":6.4048037},\"bounds\":{\"north\":45.22886468029149,\"east\":6.406238230291502,\"south\":45.2261667197085,\"west\":6.403540269708498},\"distance\":0,\"innerBounds\":null},\"text\":\"Les Karellis, Montricher-Albanne, France\"}"
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/jwks.json",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"keys\" : [\n    {\n      \"alg\" : \"RS256\",\n      \"e\" : \"AQAB\",\n      \"kid\" : \"UycvFdocSstr6CbmSqwi43V8_ZA\",\n      \"kty\" : \"RSA\",\n      \"n\" : \"6tqL-vnsK__06OO6yrp_OKnuuX4MkEuggUTgLnanpFJMd8LTf9zGZ1Q_--mDECnYWy051cM73m9iigRgNWytxedBguTXzz4e6JAB1LDF5UtEeD3RNyJR-GbbcRB8NlRSzlG3lhIPNUoFAtl91EjtUFi_KH9fpv1kl3k0vV2FZeNTVYCgCM-kEmOsZU-Dn4MzqxbJmBiZxTjEwUQcgqeXTmyDvNkc870vdd53N_ukgwn5rLyqGxCRkyO66R19TDjHkhFHP9oX6mFLs2fbc9TAGIHDr-OlHDOCYELqb8vB-ha4FzvaUfeWUJ1P_CB_4YVPawc2wExhYVDin6IJnJIiFw\",\n      \"use\" : \"sig\",\n      \"x5c\" : [\n        \"MIIC1TCCAb2gAwIBAQIRAIr0gfRTxUV1omyPOP9ezrcwDQYJKoZIhvcNAQELBQAwJj"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/client",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchId\":\"w3g3EjKxEXtUb7tu\"}"
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/t/26016635",
+          "status": 200,
+          "ct": "application/x-javascript",
+          "body": ""
+        },
+        {
+          "url": "https://accounts.google.com/gsi/style",
+          "status": 200,
+          "ct": "text/css; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/s/0.8.69",
+          "status": 200,
+          "ct": "application/javascript;charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://s.d.adup-tech.com/jsapi",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19853,\"progressTimeoutLength\":20000,\"resultGroupCount\":0}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://cdn.fuseplatform.net/telemetry/noconsent?v=1&ttm=1788338578001&cookie=true&res=1440x900&device=desktop&browser=chrome&fuuid=2c3d0360-f81b-5470-848a-f25710890a52&fid=3729&pubid=6&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Karellis%252C%2520France%2F2027-02-",
+          "status": 200,
+          "ct": "application/octet-stream",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://aax.amazon-adsystem.com/e/dtb/bid/14225.34/0/prebid?adunitid=hljkl_300x250_5243850",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/c/r",
+          "status": 204,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/i18n/pixel/static/main.MWI2NmQxNWY3MQ.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://config.aps.amazon-adsystem.com/configs/8b48e249-e9e6-4a52-8b48-396ea93403e8",
+          "status": 200,
+          "ct": "application/javascript",
+          "body": ""
+        },
+        {
+          "url": "https://www.googleadservices.com/ccm/conversion/862603817/?random=1788338577909&cv=11&fst=1788338577909&fmt=3&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938466~1159384",
+          "status": 200,
+          "ct": "image/gif",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/rmkt/collect/862603817/?random=1788338577745&cv=11&fst=1788338577745&fmt=8&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938466~115938469~118897920~118897930~120385423&u_",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338577252&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=14&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=1788338577745&cv=11&fst=1788338577745&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938466~115938469~118897920",
+          "status": 200,
+          "ct": "text/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338577252&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAQAGQC&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&rcb=14&s",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338577252&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=14&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748za20gzb76033684zd76033684&_p=1788338577252&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AEAAAGQC&ae=a&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=14&sr=1440x900&uaa=",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338577252&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=14&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=11&frm=0&apvc=0&auid=220615218.1788338539&dt=Les%20Karellis%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Karellis%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fpro",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/measurement/conversion?random=1788338577909&cv=11&tid=G-BP1QCKGB87&fst=1788338577909&fmt=8&en=search&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684xec&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616986~115938466~115938469~118897920~1188",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338577252&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&_prs=ok&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=11&frm=0&apvc=0&ae=g&auid=220615218.1788338539&dt=Les%20Karellis%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Karellis%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogress%3F",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://btloader.com/tag?o=5708166709903360&upapi=true",
+          "status": 200,
+          "ct": "application/javascript",
+          "body": ""
+        }
+      ],
+      "finalUrl": "https://www.cozycozy.com/fr/search/Les%20Karellis%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "evaled": {
+        "hoj": 0,
+        "resultItem": 0,
+        "joliRoot": 1,
+        "routerOutlet": 16,
+        "articles": 0,
+        "comparing": false,
+        "prices": [
+          "1811 €",
+          "2228 €",
+          "2254 €",
+          "2246 €",
+          "2158 €",
+          "1842 €",
+          "2512 €",
+          "2973 €",
+          "2066 €"
+        ],
+        "cards": [
+          {
+            "tag": "HEADER",
+            "className": "results-header ng-star-inserted",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "A",
+            "className": "results-header-logos",
+            "text": ""
+          },
+          {
+            "tag": "SECTION",
+            "className": "results-header-form-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher"
+          },
+          {
+            "tag": "HEADER",
+            "className": "o-dropdown__header results-header-modal-header",
+            "text": " Modifier votre recherche "
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-buttons ng-star-inserted",
+            "text": "Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "main hoj_is_results ng-tns-c562773810-0 ng-star-inserted",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 205 offres trouvées sur 8 sites Trier 1 / 25 9.5 70 avis Maison Hébergement entier 4 5 8 Saint-Michel-de-Maurie"
+          },
+          {
+            "tag": "HEADER",
+            "className": "header-result ng-tns-c562773810-0",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée"
+          }
+        ]
+      },
+      "bodyPreview": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter 2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 205 offres trouvées sur 8 sites Trier 1 / 25 9.5 70 avis Maison Hébergement entier 4 5 8 Saint-Michel-de-Maurienne - Saint-Michel-de-Maurienne est à 5.5 km de Les Karellis Voir l’offre 1811 € pour 7 nuits Voir l’offre Airbnb 1 / 48 9.4 27 avis Châlet130 m² Hébergement entier 4 1 8 Valmeinier - Valmeinier est à 7 km de Les Karellis Voir l’offre 2228 € pour 7 nuits Voir l’offre abritel.fr 1 / 18 9.3 35 avis Appartement Hébergement entier 4 6 10 Albiez-Montrond - Albiez-Montrond est à 6.8 km de Les Karellis Voir l’offre 2254 € pour 7 nuits Voir l’offre Airbnb 1 / 23 9.9 42 avis Châlet Hébergement entier 4 5 8 Saint-Michel-de-Maurienne - Saint-Michel-de-Maurienne est à 5.4 km de Les Karellis Voir l’offre 2246 € pour 7 nuits Voir l’offre Airbnb 1 / 20 9.2 49 avis Ma",
+      "htmlBytes": 501278,
+      "apiHits": [
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "body": "{\"location\":{\"level\":-50,\"type\":0,\"name\":\"Les Karellis\",\"cityName\":\"Montricher-Albanne\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":45.2274742,\"longitude\":6.4048037},\"bounds\":{\"north\":45.22886468029149,\"east\":6.406238230291502,\"south\":45.2261667197085,\"west\":6.403540269708498},\"distance\":0,\"innerBounds\":null},\"text\":\"Les Karellis, Montricher-Albanne, France\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "body": "{\"searchId\":\"w3g3EjKxEXtUb7tu\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19853,\"progressTimeoutLength\":20000,\"resultGroupCount\":0}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5-api.js",
+          "status": 200,
+          "body": "/**\n * @id5io/id5-api.js\n * @version v1.0.97\n * @link https://id5.io/\n * @license Apache-2.0\n */\n!function(){\"use strict\";function r(t,e){var i,r=Object.keys(t);return Object.getOwnPropertySymbols&&(i=Object.getOwnPropertySymbols(t),e&&(i=i.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),r.push.apply(r,i)),r}function h(t){for(var e=1;e<arguments.length;e++){var i=null!"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel/act",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/monitor",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":357,\"providerCount\":7,\"combinedTypesWithCount\":[{\"type\":{\"name\":\"chambre d’hôtes\",\"pluralName\":\"chambres d’hôtes\",\"code\":\"$GUEST/GUEST\",\"parentCode\":\"$GUEST\",\"position\":1},\"count\":2},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\":\"$HOTEL\",\"position\":1},\"count\":20},{\"type\":{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName\""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":392,\"providerCount\":8,\"combinedTypesWithCount\":[{\"type\":{\"name\":\"chambre d’hôtes\",\"pluralName\":\"chambres d’hôtes\",\"code\":\"$GUEST/GUEST\",\"parentCode\":\"$GUEST\",\"position\":1},\"count\":2},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\":\"$HOTEL\",\"position\":1},\"count\":20},{\"type\":{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName\""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":3,\"progressTimeoutLeft\":15247,\"progressTimeoutLength\":20000,\"resultGroupCount\":392}"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResultList",
+          "status": 200,
+          "body": "{\"processedResultCount\":451,\"averageHighlightedPricePerNight\":{\"currencyCode\":\"EUR\",\"value\":628.8414411272322},\"allProcessed\":true,\"allCount\":392,\"displayedCount\":9,\"filteredCount\":205,\"filteredCountInBounds\":132,\"estimatedBounds\":{\"zoomLevel\":12,\"center\":{\"latitude\":45.243017,\"longitude\":6.401286},\"bounds\":{\"north\":45.344061789371366,\"east\":6.485743397460948,\"south\":45.141972493399706,\"west\":6.31"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getFilterRanges",
+          "status": 200,
+          "body": "{\"minPrice\":{\"value\":629.2999877929688,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"maxPrice\":{\"value\":38900.078125,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"hasStarRatings\":true,\"combinedTypeTree\":[{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName\":\"Hôtels\",\"children\":[{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResults",
+          "status": 200,
+          "body": "{\"results\":[{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":108220730,\"uid\":\"108220730-420\",\"title\":\"appartement\",\"subTitle\":\"4 chambres • 8 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":6,\"guestCapacity\":8},\"surfaceText\":\"\",\"locationWarning\":true,\"locationText\":\"Valloire est à 7.4 km de Les Karellis\",\"highlightedResults\":[{\"uid\":420,\"accommodationId\":108220730,\"providerName\":\""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/js?v=3&callback=GoogleMaps_cb_78192793&key=AIzaSyDrw51w2VVyux4V0FJzpnz350uQISSc9a4&libraries=places&language=fr&region=FR",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/map.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/marker.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+          "status": 200,
+          "body": "{}\n"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/log.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/onion.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/mapConfigs:batchGet?language=fr&region=FR&alt=protojson&major_version=65&minor_version=12f&map_ids=442e8e0631e97605&map_type=1",
+          "status": 200,
+          "body": "[[[\"442e8e0631e97605\",null,null,null,null,null,null,null,null,null,null,[[null,\"11783100833063425208\",null,[[2,3]],[47083502,56565656]],[null,null,[]],[[9,\"https://www.gstatic.com/maps/res/CompactLegendSdk-RoadmapAmbiactive-EnhancedNavStyleHoldbackForGeoD-FetchableStyleSetSdk-1a3526d41f56b63c5a03286466976b2c\"],[17,\"https://www.gstatic.com/maps/res/CompactLegendSdk-NavigationLowLight-EnhancedNavSty"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logAlbatrossEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        }
+      ]
+    },
+    {
+      "id": "vars_fr",
+      "url": "https://www.cozycozy.com/fr/search/Vars%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "http": 200,
+      "title": "Vars, 13/02–20/02",
+      "error": null,
+      "xhr": [
+        {
+          "url": "https://www.cozycozy.com/fr/search/Vars%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+          "status": 200,
+          "ct": "text/html; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/main.f7e84b9d7beb408c.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=18&frm=0&apvc=1&ae=g&auid=220615218.1788338539&dt=Vars%2C%2013%2F02%E2%80%9320%2F02&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FVars%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fresults&scrsrc=www.googletagmanager.c",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/openid-configuration?tenantId=b2a00fd6-c370-4efd-96b8-48764873649f",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/authorize\",\n  \"backchannel_logout_supported\" : false,\n  \"claims_supported\" : [\n    \"applicationId\",\n    \"at_hash\",\n    \"aud\",\n    \"authenticationType\",\n    \"birthdate\",\n    \"c_hash\",\n    \"email\",\n    \"email_verified\",\n    \"exp\",\n    \"family_name\",\n    \"given_name\",\n    \"iat\",\n    \"iss\",\n    \"jti\",\n    \"middle_name\",\n    \"name\",\n    \"nbf\",\n    \"nonce\",\n    \"phone_number\",\n    \"picture\",\n    \"preferred_username\",\n    \"roles\",\n    \"sub\"\n  ],\n  \"device_authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/device_authorize\",\n "
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/jwks.json",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"keys\" : [\n    {\n      \"alg\" : \"RS256\",\n      \"e\" : \"AQAB\",\n      \"kid\" : \"UycvFdocSstr6CbmSqwi43V8_ZA\",\n      \"kty\" : \"RSA\",\n      \"n\" : \"6tqL-vnsK__06OO6yrp_OKnuuX4MkEuggUTgLnanpFJMd8LTf9zGZ1Q_--mDECnYWy051cM73m9iigRgNWytxedBguTXzz4e6JAB1LDF5UtEeD3RNyJR-GbbcRB8NlRSzlG3lhIPNUoFAtl91EjtUFi_KH9fpv1kl3k0vV2FZeNTVYCgCM-kEmOsZU-Dn4MzqxbJmBiZxTjEwUQcgqeXTmyDvNkc870vdd53N_ukgwn5rLyqGxCRkyO66R19TDjHkhFHP9oX6mFLs2fbc9TAGIHDr-OlHDOCYELqb8vB-ha4FzvaUfeWUJ1P_CB_4YVPawc2wExhYVDin6IJnJIiFw\",\n      \"use\" : \"sig\",\n      \"x5c\" : [\n        \"MIIC1TCCAb2gAwIBAQIRAIr0gfRTxUV1omyPOP9ezrcwDQYJKoZIhvcNAQELBQAwJj"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/client",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"location\":{\"level\":0,\"type\":0,\"cityName\":\"Vars\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":44.5726618,\"longitude\":6.679992099999999},\"bounds\":{\"north\":44.642662,\"east\":6.799907999999999,\"south\":44.538835,\"west\":6.642285999999999},\"distance\":0,\"innerBounds\":null},\"text\":\"Vars, France\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/style",
+          "status": 200,
+          "ct": "text/css; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchId\":\"S5839vdnFKAdwVLm\"}"
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/t/26016635",
+          "status": 200,
+          "ct": "application/x-javascript",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/s/0.8.69",
+          "status": 200,
+          "ct": "application/javascript;charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://s.d.adup-tech.com/jsapi",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19891,\"progressTimeoutLength\":20000,\"resultGroupCount\":12}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://cdn.fuseplatform.net/telemetry/noconsent?v=1&ttm=1788338596948&cookie=true&res=1440x900&device=desktop&browser=chrome&fuuid=2c3d0360-f81b-5470-848a-f25710890a52&fid=3729&pubid=6&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FVars%252C%2520France%2F2027-02-13%2F2027-02",
+          "status": 200,
+          "ct": "application/octet-stream",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/c/r",
+          "status": 204,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/i18n/pixel/static/main.MWI2NmQxNWY3MQ.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://aax.amazon-adsystem.com/e/dtb/bid/14225.34/0/prebid?adunitid=hljkl_300x250_5243850",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://btloader.com/tag?o=5708166709903360&upapi=true",
+          "status": 200,
+          "ct": "application/javascript",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338596213&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338596213&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAQAGQC&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&rcb=11&s",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/rmkt/collect/862603817/?random=1788338596664&cv=11&fst=1788338596664&fmt=8&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938465~115938469~118897920~118897930~120385423&u_",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338596213&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748za20gzb76033684zd76033684&_p=1788338596213&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AEAAAGQC&ae=a&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900&uaa=",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=1788338596664&cv=11&fst=1788338596664&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938465~115938469~118897920",
+          "status": 200,
+          "ct": "text/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.googleadservices.com/ccm/conversion/862603817/?random=1788338596886&cv=11&fst=1788338596886&fmt=3&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938465~1159384",
+          "status": 200,
+          "ct": "image/gif",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338596213&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338596213&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&_prs=ok&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=9&frm=0&apvc=0&auid=220615218.1788338539&dt=Vars%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FVars%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogress%3Fthen%3D%252Ffr%",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/measurement/conversion?random=1788338596887&cv=11&tid=G-BP1QCKGB87&fst=1788338596887&fmt=8&en=search&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684xec&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938465~115938468~118897920~1188",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.googleadservices.com/pagead/conversion/862603817/?random=1788338596886&cv=11&fst=1788338596886&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938465~1159",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "event: message\ndata: {\"fetch\":[\"https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=257992101&cv=11&fst=1788338596886&fmt=8&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115938465~115938469~118897920~118897930~120385423&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FVars%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogress%3Fthen%3D%252Ffr%252Fsearch%252FVars%25252C%252520France%252F2027-02-13%252F2027-02-20%252F4-8-0%252Fresults"
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=9&frm=0&apvc=0&ae=g&auid=220615218.1788338539&dt=Vars%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FVars%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogress%3Fthen%3D%252Ffr%252Fsear",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        }
+      ],
+      "finalUrl": "https://www.cozycozy.com/fr/search/Vars%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "evaled": {
+        "hoj": 0,
+        "resultItem": 0,
+        "joliRoot": 1,
+        "routerOutlet": 16,
+        "articles": 0,
+        "comparing": false,
+        "prices": [
+          "3680 €",
+          "3334 €",
+          "2400 €",
+          "2807 €",
+          "2570 €",
+          "2486 €",
+          "2807 €",
+          "2807 €",
+          "2999 €"
+        ],
+        "cards": [
+          {
+            "tag": "HEADER",
+            "className": "results-header ng-star-inserted",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "A",
+            "className": "results-header-logos",
+            "text": ""
+          },
+          {
+            "tag": "SECTION",
+            "className": "results-header-form-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher"
+          },
+          {
+            "tag": "HEADER",
+            "className": "o-dropdown__header results-header-modal-header",
+            "text": " Modifier votre recherche "
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-buttons ng-star-inserted",
+            "text": "Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "main hoj_is_results ng-tns-c562773810-0 ng-star-inserted",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 142 offres trouvées sur 14 sites Trier 1 / 25 9.4 42 avis Châlet Hébergement entier 4 8 10 Vars - 200 m des pis"
+          },
+          {
+            "tag": "HEADER",
+            "className": "header-result ng-tns-c562773810-0",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée"
+          }
+        ]
+      },
+      "bodyPreview": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter 2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 142 offres trouvées sur 14 sites Trier 1 / 25 9.4 42 avis Châlet Hébergement entier 4 8 10 Vars - 200 m des pistes Voir l’offre 3680 € pour 7 nuits Voir l’offre Airbnb 1 / 13 9.7 28 avis Châlet500 m² Hébergement entier 14 1 65 Vars - 800 m des pistes Voir l’offre 3334 € pour 7 nuits Voir l’offre abritel.fr 1 / 7 9.5 13 avis Châlet Hébergement entier 4 7 10 Vars - 850 m des pistes Voir l’offre 2400 € pour 7 nuits Voir l’offre Airbnb 1 / 27 9.4 7 avis Châlet Hébergement entier 4 7 10 Vars - 200 m des pistes Voir l’offre 2807 € pour 7 nuits Voir l’offre Airbnb 1 / 10 8.5 275 avis Hôtel 4× Ch. Double 4 5 9 Vars - 800 m des pistes Voir l’offre 2570 € pour 7 nuits Voir l’offre booking.com 1 / 40 10 3 avis Appartement Hébergement entier 4 10 12 Vars - 700 m des pistes",
+      "htmlBytes": 492374,
+      "apiHits": [
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "body": "{\"location\":{\"level\":0,\"type\":0,\"cityName\":\"Vars\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":44.5726618,\"longitude\":6.679992099999999},\"bounds\":{\"north\":44.642662,\"east\":6.799907999999999,\"south\":44.538835,\"west\":6.642285999999999},\"distance\":0,\"innerBounds\":null},\"text\":\"Vars, France\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "body": "{\"searchId\":\"S5839vdnFKAdwVLm\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19891,\"progressTimeoutLength\":20000,\"resultGroupCount\":12}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5-api.js",
+          "status": 200,
+          "body": "/**\n * @id5io/id5-api.js\n * @version v1.0.97\n * @link https://id5.io/\n * @license Apache-2.0\n */\n!function(){\"use strict\";function r(t,e){var i,r=Object.keys(t);return Object.getOwnPropertySymbols&&(i=Object.getOwnPropertySymbols(t),e&&(i=i.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),r.push.apply(r,i)),r}function h(t){for(var e=1;e<arguments.length;e++){var i=null!"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel/act",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/monitor",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":272,\"providerCount\":13,\"combinedTypesWithCount\":[{\"type\":{\"name\":\"chambre d’hôtes\",\"pluralName\":\"chambres d’hôtes\",\"code\":\"$GUEST/GUEST\",\"parentCode\":\"$GUEST\",\"position\":1},\"count\":5},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\":\"$HOTEL\",\"position\":1},\"count\":18},{\"type\":{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":306,\"providerCount\":14,\"combinedTypesWithCount\":[{\"type\":{\"name\":\"chambre d’hôtes\",\"pluralName\":\"chambres d’hôtes\",\"code\":\"$GUEST/GUEST\",\"parentCode\":\"$GUEST\",\"position\":1},\"count\":5},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\":\"$HOTEL\",\"position\":1},\"count\":18},{\"type\":{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":2,\"progressTimeoutLeft\":15001,\"progressTimeoutLength\":20000,\"resultGroupCount\":306}"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResultList",
+          "status": 200,
+          "body": "{\"processedResultCount\":443,\"averageHighlightedPricePerNight\":{\"currencyCode\":\"EUR\",\"value\":857.8208061154149},\"allProcessed\":false,\"allCount\":306,\"displayedCount\":9,\"filteredCount\":142,\"filteredCountInBounds\":85,\"estimatedBounds\":{\"zoomLevel\":14,\"center\":{\"latitude\":44.583858,\"longitude\":6.687512},\"bounds\":{\"north\":44.609410998366684,\"east\":6.708626349365234,\"south\":44.558305770092836,\"west\":6.66"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getFilterRanges",
+          "status": 200,
+          "body": "{\"minPrice\":{\"value\":1154.81005859375,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"maxPrice\":{\"value\":94863.359375,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"hasStarRatings\":true,\"combinedTypeTree\":[{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName\":\"Hôtels\",\"children\":[{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parentCode\""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResults",
+          "status": 200,
+          "body": "{\"results\":[{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":2455473,\"uid\":\"2455473-419\",\"title\":\"châlet\",\"subTitle\":\"4 chambres • 10 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":8,\"guestCapacity\":10},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"200 m des pistes\",\"highlightedResults\":[{\"uid\":419,\"accommodationId\":2455473,\"providerName\":\"Airbnb\",\"providerCode\":\"airbn"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/js?v=3&callback=GoogleMaps_cb_910839664&key=AIzaSyDrw51w2VVyux4V0FJzpnz350uQISSc9a4&libraries=places&language=fr&region=FR",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/map.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/marker.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+          "status": 200,
+          "body": "{}\n"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/log.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/onion.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/mapConfigs:batchGet?language=fr&region=FR&alt=protojson&major_version=65&minor_version=12f&map_ids=442e8e0631e97605&map_type=1",
+          "status": 200,
+          "body": "[[[\"442e8e0631e97605\",null,null,null,null,null,null,null,null,null,null,[[null,\"11783100833063425208\",null,[[2,3]],[47083502,56565656]],[null,null,[]],[[32,\"https://www.gstatic.com/maps/res/CompactLegendSdk-RoadmapDark-EnhancedNavStyleHoldbackForGeoD-FetchableStyleSetSdk-1a3526d41f56b63c5a03286466976b2c\"],[1,\"https://www.gstatic.com/maps/res/CompactLegendSdk-RoadmapSatellite-EnhancedNavStyleHoldba"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logAlbatrossEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5PrebidModule.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://id5-sync.com/api/config/prebid",
+          "status": 200,
+          "body": "{\"fetchCall\":{\"url\":\"https://id5-sync.com/g/v2/1189.json\",\"overrides\":{\"pbExtensions\":{\"bounce\":{\"setCookie\":false}}}},\"extensionsCall\":{\"url\":\"https://lb.eu-1-id5-sync.com/lb/v1\",\"method\":\"GET\"}}"
+        }
+      ]
+    },
+    {
+      "id": "angles_fr",
+      "url": "https://www.cozycozy.com/fr/search/Les%20Angles%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "http": 200,
+      "title": "Les Angles, 13/02–20/02",
+      "error": null,
+      "xhr": [
+        {
+          "url": "https://www.cozycozy.com/fr/search/Les%20Angles%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+          "status": 200,
+          "ct": "text/html; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/main.f7e84b9d7beb408c.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=14&frm=0&apvc=1&ae=g&auid=220615218.1788338539&dt=Les%20Angles%2C%2013%2F02%E2%80%9320%2F02&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Angles%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fresults&scrsrc=www.",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/cdn-cgi/rum?",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/openid-configuration?tenantId=b2a00fd6-c370-4efd-96b8-48764873649f",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/authorize\",\n  \"backchannel_logout_supported\" : false,\n  \"claims_supported\" : [\n    \"applicationId\",\n    \"at_hash\",\n    \"aud\",\n    \"authenticationType\",\n    \"birthdate\",\n    \"c_hash\",\n    \"email\",\n    \"email_verified\",\n    \"exp\",\n    \"family_name\",\n    \"given_name\",\n    \"iat\",\n    \"iss\",\n    \"jti\",\n    \"middle_name\",\n    \"name\",\n    \"nbf\",\n    \"nonce\",\n    \"phone_number\",\n    \"picture\",\n    \"preferred_username\",\n    \"roles\",\n    \"sub\"\n  ],\n  \"device_authorization_endpoint\" : \"https://login.cozycozy.com/oauth2/device_authorize\",\n "
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"location\":{\"level\":0,\"type\":0,\"cityName\":\"Les Angles\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":42.5772819,\"longitude\":2.073585},\"bounds\":{\"north\":42.614824,\"east\":2.113623,\"south\":42.54455799999999,\"west\":1.9842461},\"distance\":0,\"innerBounds\":null},\"text\":\"Les Angles, France\"}"
+        },
+        {
+          "url": "https://login.cozycozy.com/.well-known/jwks.json",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "{\n  \"keys\" : [\n    {\n      \"alg\" : \"RS256\",\n      \"e\" : \"AQAB\",\n      \"kid\" : \"UycvFdocSstr6CbmSqwi43V8_ZA\",\n      \"kty\" : \"RSA\",\n      \"n\" : \"6tqL-vnsK__06OO6yrp_OKnuuX4MkEuggUTgLnanpFJMd8LTf9zGZ1Q_--mDECnYWy051cM73m9iigRgNWytxedBguTXzz4e6JAB1LDF5UtEeD3RNyJR-GbbcRB8NlRSzlG3lhIPNUoFAtl91EjtUFi_KH9fpv1kl3k0vV2FZeNTVYCgCM-kEmOsZU-Dn4MzqxbJmBiZxTjEwUQcgqeXTmyDvNkc870vdd53N_ukgwn5rLyqGxCRkyO66R19TDjHkhFHP9oX6mFLs2fbc9TAGIHDr-OlHDOCYELqb8vB-ha4FzvaUfeWUJ1P_CB_4YVPawc2wExhYVDin6IJnJIiFw\",\n      \"use\" : \"sig\",\n      \"x5c\" : [\n        \"MIIC1TCCAb2gAwIBAQIRAIr0gfRTxUV1omyPOP9ezrcwDQYJKoZIhvcNAQELBQAwJj"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/client",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchId\":\"xbEu0mu5VznzVpnN\"}"
+        },
+        {
+          "url": "https://accounts.google.com/gsi/style",
+          "status": 200,
+          "ct": "text/css; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://s.d.adup-tech.com/jsapi",
+          "status": 200,
+          "ct": "application/javascript; charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/t/26016635",
+          "status": 200,
+          "ct": "application/x-javascript",
+          "body": ""
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/s/0.8.69",
+          "status": 200,
+          "ct": "application/javascript;charset=utf-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19842,\"progressTimeoutLength\":20000,\"resultGroupCount\":3}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://cdn.fuseplatform.net/telemetry/noconsent?v=1&ttm=1788338615942&cookie=true&res=1440x900&device=desktop&browser=chrome&fuuid=2c3d0360-f81b-5470-848a-f25710890a52&fid=3729&pubid=6&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Angles%252C%2520France%2F2027-02-13",
+          "status": 200,
+          "ct": "application/octet-stream",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://bat.bing.com/p/insights/c/r",
+          "status": 204,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/i18n/pixel/static/main.MWI2NmQxNWY3MQ.js",
+          "status": 200,
+          "ct": "application/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://aax.amazon-adsystem.com/e/dtb/bid/14225.34/0/prebid?adunitid=hljkl_300x250_5243850",
+          "status": 200,
+          "ct": "text/javascript;charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "ct": "application/json; charset=utf-8",
+          "body": "null"
+        },
+        {
+          "url": "https://config.aps.amazon-adsystem.com/configs/8b48e249-e9e6-4a52-8b48-396ea93403e8",
+          "status": 200,
+          "ct": "application/javascript",
+          "body": ""
+        },
+        {
+          "url": "https://btloader.com/tag?o=5708166709903360&upapi=true",
+          "status": 200,
+          "ct": "application/javascript",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338615188&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338615188&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAQAGQC&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&rcb=11&s",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=1788338615685&cv=11&fst=1788338615685&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938466~115938469",
+          "status": 200,
+          "ct": "text/javascript; charset=UTF-8",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/rmkt/collect/862603817/?random=1788338615685&cv=11&fst=1788338615685&fmt=8&bg=ffffff&guid=ON&async=1&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938466~115938469~118897920~118897930~11",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338615188&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748za20gzb76033684zd76033684&_p=1788338615188&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AEAAAGQC&ae=a&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900&uaa=",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.googleadservices.com/ccm/conversion/862603817/?random=1788338615852&cv=11&fst=1788338615852&fmt=3&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~1159384",
+          "status": 200,
+          "ct": "image/gif",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338615188&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&are=1&cid=718309396.1788338541&frm=0&pscdl=noapi&rcb=11&sr=1440x900",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://analytics.google.com/g/collect?v=2&tid=G-BP1QCKGB87&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684&_p=1788338615188&gcs=G111&gcd=13t3t3l3l5l1&npa=0&dma=0&tcfd=1000g&ecid=1046205554&_eu=AAAAAGQC&_prs=ok&are=1&cid=718309396.1788338541&ec_mode=a&frm=0&pscdl=noapi&",
+          "status": 204,
+          "ct": "text/plain",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/ccm/collect?rcb=15&frm=0&apvc=0&auid=220615218.1788338539&dt=Les%20Angles%2C%2013%2F02%E2%80%9320%2F02&tid=AW-862603817&en=page_view&dl=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Angles%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogres",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.google.com/measurement/conversion?random=1788338615853&cv=11&tid=G-BP1QCKGB87&fst=1788338615853&fmt=8&en=search&gtm=45je68v1v894692748z876033684za20gzb76033684zd76033684xec&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938466~115938468~118897920~1188",
+          "status": 200,
+          "ct": "",
+          "body": ""
+        },
+        {
+          "url": "https://www.googleadservices.com/pagead/conversion/862603817/?random=1788338615852&cv=11&fst=1788338615852&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~1159",
+          "status": 200,
+          "ct": "application/json; charset=UTF-8",
+          "body": "event: message\ndata: {\"fetch\":[\"https://googleads.g.doubleclick.net/pagead/viewthroughconversion/862603817/?random=767448742&cv=11&fst=1788338615852&fmt=8&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be68v1v9176777791z876033684za20gzb76033684zd76033684xea&gcs=G111&gcd=13t3t3l3l5l1&dma=0&tcfd=1000g&tag_exp=115616985~115938466~115938469~118897920~118897930~119259606~120385422&u_w=1440&u_h=900&url=https%3A%2F%2Fwww.cozycozy.com%2Ffr%2Fsearch%2FLes%2520Angles%252C%2520France%2F2027-02-13%2F2027-02-20%2F4-8-0%2Fprogress%3Fthen%3D%252Ffr%252Fsearch%252FLes%252520Angles%25252C%252520France%252F2027-"
+        }
+      ],
+      "finalUrl": "https://www.cozycozy.com/fr/search/Les%20Angles%2C%20France/2027-02-13/2027-02-20/4-8-0/results",
+      "evaled": {
+        "hoj": 0,
+        "resultItem": 0,
+        "joliRoot": 1,
+        "routerOutlet": 16,
+        "articles": 0,
+        "comparing": false,
+        "prices": [
+          "2280 €",
+          "3285 €",
+          "2511 €",
+          "2564 €",
+          "3275 €",
+          "3176 €",
+          "3347 €",
+          "3180 €",
+          "2783 €"
+        ],
+        "cards": [
+          {
+            "tag": "HEADER",
+            "className": "results-header ng-star-inserted",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter"
+          },
+          {
+            "tag": "A",
+            "className": "results-header-logos",
+            "text": ""
+          },
+          {
+            "tag": "SECTION",
+            "className": "results-header-form-container",
+            "text": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher"
+          },
+          {
+            "tag": "HEADER",
+            "className": "o-dropdown__header results-header-modal-header",
+            "text": " Modifier votre recherche "
+          },
+          {
+            "tag": "DIV",
+            "className": "results-header-buttons ng-star-inserted",
+            "text": "Se connecter"
+          },
+          {
+            "tag": "DIV",
+            "className": "main hoj_is_results ng-tns-c562773810-0 ng-star-inserted",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 191 offres trouvées sur 14 sites Trier 1 / 35 9.5 34 avis Châlet Hébergement entier 4 7 8 Les Angles - 800 m de"
+          },
+          {
+            "tag": "HEADER",
+            "className": "header-result ng-tns-c562773810-0",
+            "text": "2 Filtres Prix Type d’hébergement Annulation Réservation instantanée"
+          }
+        ]
+      },
+      "bodyPreview": "sam. 13 févr. - sam. 20 févr. 7 8 4 Rechercher Se connecter 2 Filtres Prix Type d’hébergement Annulation Réservation instantanée 191 offres trouvées sur 14 sites Trier 1 / 35 9.5 34 avis Châlet Hébergement entier 4 7 8 Les Angles - 800 m des pistes Voir l’offre 2280 € pour 7 nuits Voir l’offre Airbnb 1 / 31 9.5 40 avis Châlet165 m² Hébergement entier 4 1 10 Les Angles - 550 m des pistes Voir l’offre 3285 € pour 7 nuits Voir l’offre abritel.fr 1 / 29 9.6 39 avis Châlet Hébergement entier 4 3 8 Les Angles - 1 km des pistes Voir l’offre 2511 € pour 7 nuits Voir l’offre Airbnb 1 / 19 10 9 avis Châlet Hébergement entier 5 6 10 Les Angles - 350 m des pistes Voir l’offre 2564 € pour 7 nuits Voir l’offre Airbnb 1 / 37 8.8 58 avis Appartement Hébergement entier 4 5 8 Les Angles - 650 m des pistes Voir l’offre 3275 € pour 7 nuits Voir l’offre Airbnb 1 / 22 9.5 19 avis Châlet Hébergement entier 4 7",
+      "htmlBytes": 486163,
+      "apiHits": [
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/searchInputLocation",
+          "status": 200,
+          "body": "{\"location\":{\"level\":0,\"type\":0,\"cityName\":\"Les Angles\",\"countryName\":\"France\",\"countryCode\":\"FR\",\"coordinates\":{\"latitude\":42.5772819,\"longitude\":2.073585},\"bounds\":{\"north\":42.614824,\"east\":2.113623,\"south\":42.54455799999999,\"west\":1.9842461},\"distance\":0,\"innerBounds\":null},\"text\":\"Les Angles, France\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/launch",
+          "status": 200,
+          "body": "{\"searchId\":\"xbEu0mu5VznzVpnN\"}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":1,\"progressTimeoutLeft\":19842,\"progressTimeoutLength\":20000,\"resultGroupCount\":3}"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logMCAE",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5-api.js",
+          "status": 200,
+          "body": "/**\n * @id5io/id5-api.js\n * @version v1.0.97\n * @link https://id5.io/\n * @license Apache-2.0\n */\n!function(){\"use strict\";function r(t,e){var i,r=Object.keys(t);return Object.getOwnPropertySymbols&&(i=Object.getOwnPropertySymbols(t),e&&(i=i.filter(function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable})),r.push.apply(r,i)),r}function h(t){for(var e=1;e<arguments.length;e++){var i=null!"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel/act",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/monitor",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getProgressSummary",
+          "status": 200,
+          "body": "{\"groupCount\":284,\"providerCount\":13,\"combinedTypesWithCount\":[{\"type\":{\"name\":\"chambre d’hôtes\",\"pluralName\":\"chambres d’hôtes\",\"code\":\"$GUEST/GUEST\",\"parentCode\":\"$GUEST\",\"position\":1},\"count\":2},{\"type\":{\"position\":1,\"code\":\"$HOSTEL/ROOM\",\"parentCode\":\"$HOSTEL\",\"name\":\"Chambre privée\",\"pluralName\":\"Chambres privées\"},\"count\":2},{\"type\":{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getSearchStateWhenNot",
+          "status": 200,
+          "body": "{\"searchState\":3,\"progressTimeoutLeft\":15926,\"progressTimeoutLength\":20000,\"resultGroupCount\":315}"
+        },
+        {
+          "url": "https://analytics.tiktok.com/api/v2/pixel",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResultList",
+          "status": 200,
+          "body": "{\"processedResultCount\":366,\"averageHighlightedPricePerNight\":{\"currencyCode\":\"EUR\",\"value\":576.5548846688688},\"allProcessed\":true,\"allCount\":315,\"displayedCount\":9,\"filteredCount\":191,\"filteredCountInBounds\":62,\"estimatedBounds\":{\"zoomLevel\":14,\"center\":{\"latitude\":42.590702,\"longitude\":2.087088},\"bounds\":{\"north\":42.6171154642124,\"east\":2.1082023493652446,\"south\":42.56428934276246,\"west\":2.06597"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getFilterRanges",
+          "status": 200,
+          "body": "{\"minPrice\":{\"value\":813.4299926757812,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"maxPrice\":{\"value\":10202.5595703125,\"currencyCode\":\"EUR\",\"min\":0,\"max\":0,\"indicative\":false},\"hasStarRatings\":true,\"combinedTypeTree\":[{\"position\":1,\"allowsAnyChild\":true,\"code\":\"$HOTEL\",\"name\":\"Hôtel\",\"pluralName\":\"Hôtels\",\"children\":[{\"name\":\"hôtel\",\"pluralName\":\"hôtels\",\"code\":\"$HOTEL/HOTEL\",\"parent"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/getResults",
+          "status": 200,
+          "body": "{\"results\":[{\"type\":\"result\",\"isExactMatch\":false,\"accommodationId\":46598309,\"uid\":\"46598309-329\",\"title\":\"châlet\",\"subTitle\":\"4 chambres • 8 personnes\",\"subTitleDetails\":{\"bedRoomCount\":4,\"bedCount\":7,\"guestCapacity\":8},\"surfaceText\":\"\",\"locationWarning\":false,\"locationText\":\"800 m des pistes\",\"highlightedResults\":[{\"uid\":329,\"accommodationId\":46598309,\"providerName\":\"Airbnb\",\"providerCode\":\"airb"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/js?v=3&callback=GoogleMaps_cb_241896252&key=AIzaSyDrw51w2VVyux4V0FJzpnz350uQISSc9a4&libraries=places&language=fr&region=FR",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/map.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/marker.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logAlbatrossEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+          "status": 200,
+          "body": "{}\n"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://cdn.id5-sync.com/api/1.0/id5PrebidModule.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/log.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps-api-v3/api/js/65/12f/intl/fr_ALL/onion.js",
+          "status": 200,
+          "body": ""
+        },
+        {
+          "url": "https://maps.googleapis.com/maps/api/mapsjs/mapConfigs:batchGet?language=fr&region=FR&alt=protojson&major_version=65&minor_version=12f&map_ids=442e8e0631e97605&map_type=1",
+          "status": 200,
+          "body": "[[[\"442e8e0631e97605\",null,null,null,null,null,null,null,null,null,null,[[null,\"11783100833063425208\",null,[[2,3]],[47083502,56565656]],[null,null,[]],[[23,\"https://www.gstatic.com/maps/res/CompactLegendSdk-NavigationAmbientDark-EnhancedNavStyleHoldbackForGeoD-FetchableStyleSetSdk-1a3526d41f56b63c5a03286466976b2c\"],[49,\"https://www.gstatic.com/maps/res/CompactLegendSdk-AirQualityHeatmapDark-Enhanc"
+        },
+        {
+          "url": "https://www.cozycozy.com/api/logUserEvent",
+          "status": 200,
+          "body": "null"
+        },
+        {
+          "url": "https://id5-sync.com/api/config/prebid",
+          "status": 200,
+          "body": "{\"fetchCall\":{\"url\":\"https://id5-sync.com/g/v2/1189.json\",\"overrides\":{\"pbExtensions\":{\"bounce\":{\"setCookie\":false}}}},\"extensionsCall\":{\"url\":\"https://lb.eu-1-id5-sync.com/lb/v1\",\"method\":\"GET\"}}"
+        }
+      ]
+    }
+  ]
+}

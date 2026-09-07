@@ -1,0 +1,118 @@
+{
+  "at": "2026-09-01T21:47:03.779Z",
+  "note": "GET towns= bypasses Gites POST CF. CozyCozy SEO catalog, not getResultList. No invented parser.",
+  "gites": {
+    "working_url": "https://www.gites-de-france.com/fr/search?towns=50301&travelers=8&date-start=2027-02-13&date-end=2027-02-20",
+    "towns": "50301",
+    "entity_type": "towns",
+    "http": 200,
+    "results": "33 Résultats",
+    "page1_tiles": 20,
+    "selector": ".js-search-tile / .g2f-accommodationTile (not .gite-card)",
+    "old_extractor": 0,
+    "dump_extractor": 40,
+    "ge8_4_page1": 16,
+    "sample_ge8_4": [
+      {
+        "title": "Chalet de Pré-Forent Mitoyen - 3***",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-de-pre-forent-mitoyen-3-38g253101",
+        "price": "1 208 €",
+        "guests": "15",
+        "bedrooms": "5"
+      },
+      {
+        "title": "Gîte auberge La Mansio",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/gite-auberge-la-mansio-38g253115",
+        "price": "35 €",
+        "guests": "50",
+        "bedrooms": "12"
+      },
+      {
+        "title": "Chalet les Copains",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122",
+        "price": "1 330 €",
+        "guests": "14",
+        "bedrooms": "5"
+      },
+      {
+        "title": "Auberge La Brindille",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/auberge-la-brindille-38g549050",
+        "price": "90 €",
+        "guests": "14",
+        "bedrooms": "4"
+      },
+      {
+        "title": "Chalet Centaurée (ou Chalet Sabot de Vénus)",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-centauree-ou-chalet-sabot-de-venus-38g52734",
+        "price": "1 400 €",
+        "guests": "10",
+        "bedrooms": "4"
+      },
+      {
+        "title": "L'Etoile des Glaciers - Le Mas d'Oisans 1",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/letoile-des-glaciers-le-mas-doisans-1-38g52103",
+        "price": "3 050 €",
+        "guests": "10",
+        "bedrooms": "5"
+      },
+      {
+        "title": "Lys Lodge",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/lys-lodge-38g52202",
+        "price": "2 068 €",
+        "guests": "12",
+        "bedrooms": "5"
+      },
+      {
+        "title": "Les Feuillardiers",
+        "href": "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/les-feuillardiers-38g52200",
+        "price": "950 €",
+        "guests": "8",
+        "bedrooms": "4"
+      }
+    ],
+    "post_still_403": "same-session extra GETs were CF 403; fresh browser GET works",
+    "curl": "403 Cloudflare"
+  },
+  "cozycozy": {
+    "working_url": "https://www.cozycozy.com/fr/location-vacances-les-2-alpes",
+    "http": 200,
+    "offres": "3729 offres",
+    "selector": "article.hoj_seo_card",
+    "cards": 28,
+    "old_extractor": 1,
+    "search_click": "POST /api/searchInputLocation 200 then logNonResultRedirect to Booking affiliate. No getResultList.",
+    "searchInputLocation_post": {
+      "query": "Les Deux Alpes (station de ski), France",
+      "siteCode": "cozycozy",
+      "locale": "fr-fr"
+    },
+    "coordinates": {
+      "latitude": 45.008922,
+      "longitude": 6.170614
+    },
+    "rpc": [
+      {
+        "kind": "req",
+        "method": "POST",
+        "url": "https://www.cozycozy.com/api/searchInputLocation",
+        "post": "{\"query\":\"Les Deux Alpes (station de ski), France\",\"siteCode\":\"cozycozy\",\"locale\":\"fr-fr\"}"
+      },
+      {
+        "kind": "res",
+        "status": 200,
+        "url": "https://www.cozycozy.com/api/searchInputLocation",
+        "body": "{\"location\":{\"name\":\"Les Deux Alpes (station de ski)\",\"cityName\":\"\",\"countryCode\":\"FR\",\"countryName\":\"France\",\"stateCode\":\"\",\"level\":50,\"type\":0,\"bounds\":{\"west\":6.09424565914794,\"south\":44.9771853844746,\"east\":6.24698316126173,\"north\":45.0406579714734},\"coordinates\":{\"latitude\":45.008922,\"longitude\":6.170614}},\"text\":\"Les Deux Alpes (station de ski), France\"}"
+      },
+      {
+        "kind": "req",
+        "url": "logNonResultRedirect",
+        "post": "{\"clickId\":\"7tv3S68mWBaNAxM2\",\"step\":1,\"searchId\":\"lVp7oGuzgU4oYdcC\",\"partnerCode\":\"booking\",\"targetUrl\":\"https://www.booking.com/searchresults.fr.html?ss=Les%20Deux%20Alpes%20(station%20de%20ski)%2C%20France&aid=2141456&dest_type=latlong&latitude=45.008922&longitude=6.170614&checkin_monthday=12&checkin_month=9&checkin_year=2026&checkout_monthday=19&checkout_month=9&checkout_year=2026&no_rooms=1&g"
+      },
+      {
+        "kind": "req",
+        "url": "logNonResultRedirect",
+        "post": "{\"clickId\":\"7tv3S68mWBaNAxM2\",\"step\":3,\"searchId\":\"lVp7oGuzgU4oYdcC\",\"partnerCode\":\"booking\",\"targetUrl\":\"https://www.booking.com/searchresults.fr.html?ss=Les%20Deux%20Alpes%20(station%20de%20ski)%2C%20France&aid=2141456&dest_type=latlong&latitude=45.008922&longitude=6.170614&checkin_monthday=12&checkin_month=9&checkin_year=2026&checkout_monthday=19&checkout_month=9&checkout_year=2026&no_rooms=1&g"
+      }
+    ]
+  }
+}

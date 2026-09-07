@@ -30,17 +30,17 @@ Thumbs.db
 *.tsbuildinfo
 
 .claude/worktrees/
+.claude/settings.local.json
 
-# Scrapers — binaires, venv, clones et dumps
+# Scrapers — binaires, venv, clones lourds (pas les dumps ni les fixtures)
 scrape/**/.venv/
 scrape/**/.browsers/
-scrape/**/tools/
 scrape/**/debug_out/
 scrape/**/*.log
-scrape/booking/.env
 scrape/booking/.engine-state.json
-scrape/booking/proxies/
-.screenshots/
-.claude/settings.local.json
-docs/diagnostics/dumps/
+scrape/booking/tools/booking.com_crawler/
+scrape/booking/tools/bookingdotcom-scraper/
+scrape/booking/tools/botasaurus/
+scrape/booking/tools/*_out/
+scrape/dist/
 artifacts/

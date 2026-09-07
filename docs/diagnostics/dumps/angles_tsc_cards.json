@@ -1,0 +1,17 @@
+{
+  "at": "2026-09-02T07:41:00Z",
+  "url": "https://lesangles.com/tous-les-hebergements/",
+  "http": 200,
+  "listed": 100,
+  "selector": "article.tsc-card.tsc-card-design",
+  "cards_page1": 12,
+  "rest": "GET /wp-json/wp/v2/tsc_hebergement per_page=100 → X-WP-Total 100",
+  "os": "integration 1395, 1 product, no vueId — not wired",
+  "ge8p4": [
+    "REFUGE CAL CHALON",
+    "COTTAGE DES PLEIADES",
+    "LES FERMES DE CAL PANCHE : LA FERME",
+    "CHALET PIN DUR"
+  ],
+  "sample": "REFUGE CAL CHALON · 12 pers. / 4 ch. · 2230 €"
+}

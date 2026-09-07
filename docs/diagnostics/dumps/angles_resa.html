@@ -1,0 +1,501 @@
+<!DOCTYPE html><html lang="fr" xmlns="http://www.w3.org/1999/xhtml" xmlns:for="http://www.open-system.fr/def-maquette/v1"><head><link href="https://gadget.open-system.fr/widgets/themes/api15/rel/themes/lesangles/api-panier.min.css" rel="stylesheet" type="text/css"><script async="" src="//www.google-analytics.com/analytics.js"></script><script type="text/javascript" async="" src="https://www.googletagmanager.com/gtag/js?id=G-QSGR7238SN&amp;cx=c&amp;_slc=1"></script><script type="text/javascript" async="" src="https://www.google-analytics.com/plugins/ua/linkid.js"></script><script async="" src="//www.google-analytics.com/analytics.js"></script>
+<meta name="description" content="">
+<meta name="keywords" content="">
+
+<title>Office de Tourisme des Angles - Reservation en ligne</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.4.1/jquery-migrate.min.js" integrity="sha256-SOuLUArmo4YXtXONKz+uxIGSKneCJG4x0nVcA0pFzV0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/3.0.1/jquery-migrate.min.js" integrity="sha256-F0O1TmEa4I8N24nY0bya59eP6svWcshqX1uzwaWC4F4=" crossorigin="anonymous"></script><script type="text/javascript" src="//gadget.open-system.fr/wtooltip.min.js"></script><script><!--
+				if( !document._v1500_tooltip_xsl ) { 
+					document._v1500_tooltip_xsl = new Object(); 
+					document._v1500_tooltip_xsl.tooltip = function() { jQuery("*[id^='_tooltip_']").wTooltip( { style:'', content:true, callBefore: function( tooltip, node ) { jQuery(tooltip).html( jQuery('#' + node.id + '_tooltip').html() ); } } ); } 
+					jQuery( function() { document._v1500_tooltip_xsl.tooltip(); });
+				}			
+		--></script>
+
+<!-- inclusion head -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;800&amp;display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">	
+<link href="inclusions/css/bootstrap-4.4.1.css" rel="stylesheet">
+<link href="inclusions/css/theme.css" rel="stylesheet">
+<!-- fin inclusion head -->
+
+<link rel="stylesheet" href="https://gadget.open-system.fr/widgets/themes/api15/rel/themes/lesangles/app.min.css">
+
+<script language="javascript" xml:space="preserve">
+ $ = jQuery;
+
+ $(function(){
+			//$(".list-resultats").addClass("ModeCard");
+			
+			//slide section-filtre
+			$('.JsOsSlideFiltre, .JsCloseFiltre').click(function () {
+				$( ".os-scenario" ).toggleClass( "open-filtre" );
+			});
+		
+		//Toggle affichage ModeCard | ModeList
+		
+				$('.JsOsToggleListeCard').click(function () {
+	
+	if ($('.list-resultats').hasClass("ModeCard")){	
+		$('.list-resultats').removeClass("ModeCard").addClass("ModeList");
+		$('.JsOsToggleListeCard').removeClass("ico-liste").addClass("ico-card");
+		
+	} else {
+		$('.list-resultats').removeClass("ModeList").addClass("ModeCard");
+		$('.JsOsToggleListeCard').removeClass("ico-card").addClass("ico-liste");
+	}
+});
+
+			 }); 
+					</script>
+
+<meta charset="utf-8">
+<meta content="IE=edge" http-equiv="X-UA-Compatible">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+
+<!-- Swiper -->
+<!--<link rel="stylesheet" type="text/css" href="script/swiper/css/swiper.css"/>-->
+<script type="text/javascript" src="osjs/osscript/swiper/js/swiper.min.js" xml:space="preserve"></script>
+
+<link rel="stylesheet" type="text/css" href="osjs/osscript/prettyphoto/prettyPhoto.css">
+<script type="text/javascript" src="osjs/osscript/prettyphoto/jquery.prettyPhoto.js" xml:space="preserve"></script>
+
+
+<script type="text/javascript" src="osjs/osscript/jquery.mobile.custom.min.js" xml:space="preserve"></script>
+
+
+
+<script type="text/javascript" xml:space="preserve">
+<!--
+/*	(function () {
+
+	var largeurPrecedente;
+	function resizeMobile() {
+		$("#widget-panier").appendTo(".is-mobile .navbar.navbar-default .container .navbar-header");
+	}
+
+	function resizeEcran() {
+		$("#widget-panier").insertAfter(".is-desktop .navbar-default .navbar-collapse .nav.navbar-nav");
+	}
+
+	function resetMobile() {
+		$("#widget-panier").appendTo(".is-mobile .navbar.navbar-default .container .navbar-header");
+	}
+
+	function resize() {
+		var largeur = jQuery(window).width();
+
+		if (largeurPrecedente != null) {
+			if (largeurPrecedente <= 991) {
+				resetMobile();
+			}
+		}
+
+		if (largeur <= 991) {
+			resizeMobile();
+		}
+
+		if (largeur >= 992) {
+			resizeEcran();
+		}
+		largeurPrecedente = largeur;
+
+	}
+
+
+	jQuery(function () {
+		var largeurResize = '0';
+
+		resize();
+
+		jQuery(window).on('throttledresize', function () {
+			var largeurEcranInit = jQuery(window).width();
+
+			if (largeurEcranInit != largeurResize) {
+				resize();
+				largeurResize = largeurEcranInit;
+			}
+		});
+
+	});
+
+
+
+})();*/
+// -->
+	</script>
+
+    
+
+
+
+
+<script type="text/javascript" src="//gadget.open-system.fr/widgets-libs/rel/noyau-1.0.min.js"></script><script type="text/javascript" src="//gadget.open-system.fr/jquery.lightbox.min.js"></script><script type="text/javascript" src="//js.for-system.com/tracking.js"></script><script type="text/javascript"><!-- 
+var widgetPanier1 = AllianceReseaux.InstancePanier( { id:"hliEhoY", idIntegration:1395, langue:"fr" } );
+ --></script><script type="text/javascript"><!-- 
+
+ --></script><script type="text/javascript"><!-- 
+
+				var OsTracker = new ObjOsTracker("universal","fr","etape2","Dossier","UA-132747932-2", );
+				
+					var panier;
+					
+ --></script><script type="text/javascript"><!-- 
+
+                                ( function( AR, jQuery, undefined ) {
+                                    AR.OsBase.Attendre( 
+                                        function() { return window.OsTracker; }, 
+                                        function() { 
+                                            AR.Tracking.Cree( { 
+                                                    ID:OsTracker.Cle, 
+                                                    universal:{}, requireDisplayFeatures:true, requireLinkId:true, requireLinker:true, linkerAutoLink:[/lesangles.com|for-system.com/]
+                                                }, { 
+                                                    langue : 'fr'
+                                            } );
+                                            
+                                                AR.Tracking.TrackPage( OsTracker.Cle, OsTracker.NomPageGoogle() );
+                                            
+                                                AR.Tracking.TrackDicoEvent( OsTracker.Cle, 'dossier-etape-2' );
+                                            
+                                        }
+                                    );
+                                } )( AllianceReseaux, AllianceReseaux.jQuery );
+                            
+ --></script><script type="text/javascript"><!-- 
+              
+              AllianceReseaux.jQuery( function(jQuery) {
+                AllianceReseaux.Tracking.Cree( 
+                    { 
+                        
+                            universal : true, 
+                        
+                        ID:'UA-1986002-6', 
+                        Domaine:"none" , 
+                        Dico:'lesangles'          
+                    }, 
+                    {
+                        langue:'fr', 
+                        domaine:'http://reservation.lesangles.com/' 
+                    }
+                );
+                jQuery( '.js-tracking[os-tracking-dico]' ).removeClass('js-tracking').click( function() {
+                    AllianceReseaux.Tracking.TrackDicoEvent('UA-1986002-6', jQuery(this).attr('os-tracking-dico'), { href:this.href } );
+                    var href = this.href;
+                    if( ( href || "" ).match(/javascript/i) )
+                        return true;
+                    else if( href ) {
+                        setTimeout( function() { document.location = href; }, 100 );
+                        return false;
+                    }
+                });
+                jQuery( '.js-tracking-load[os-tracking-dico]' ).removeClass('js-tracking-load').each( function() {
+                    AllianceReseaux.Tracking.TrackDicoEvent('UA-1986002-6', jQuery(this).attr('os-tracking-dico'), { total:0 } );
+                });
+              });
+          
+ --></script><style type="text/css">.OsPanier .EnteteTotal { display:none; }
+.OsPanier .contenu .Details .Titre { display:none; }
+</style></head>
+
+
+ 
+<body class="OsLanguefr SlideFiltre  SlideFiltreBoutique   " style="">
+	
+
+
+
+<!-- inclusion header -->
+
+<header class="container-fluid">
+	<div class="container">
+	   <div class="row">
+			<div class="col-4 logo"><a href="https://lesangles.com" target="_blank" title="Les Angles" shape="rect"><img src="inclusions/img/Logo_LesAngles_Bleu-1.svg" alt="Logo Les Angles"></a></div>
+			<div class="col-8 container-nav">
+				<nav class="navbar navbar-light bg-light navbar-expand-lg">
+					<!--Début-->
+					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+						<span class="navbar-toggler-icon"></span>
+					</button>	
+					<!--##Début-->		  	
+					<div class="collapse navbar-collapse" id="navbarSupportedContent">
+						<ul class="navbar-nav mr-auto">
+							<li class="nav-item"><a class="nav-link" href="https://lesangles.com/decouvrir-les-angles/" title="Découvrir la station" shape="rect">Découvrir<br>la station</a></li>
+							<li class="nav-item"><a class="nav-link" href="https://lesangles.com/randonnees-experiences/" title="Randonnées &amp; expériences" shape="rect">Randonnées<br>&amp; Expériences</a></li>
+							<li class="nav-item"><a class="nav-link" href="https://lesangles.com/activites-loisirs/" title="Activités et loisirs" shape="rect">Activités<br>&amp; Loisirs</a></li>
+							<li class="nav-item"><a class="nav-link" href="https://lesangles.com/guide-pratique/" title="Guide Pratique" shape="rect">Guide<br>Pratique</a></li>
+							<li class="nav-item"><a class="nav-link" href="https://lesangles.com/family-plus/" title="En famille" shape="rect">En<br>Famille</a></li>
+						</ul>
+					</div>
+				</nav>
+			</div>
+		</div>
+	</div>
+</header>
+
+<section class="container">
+<div class="row">
+<!-- fin inclusion header -->
+
+<main class="os-content">
+	<div class="section ">
+		<div class="container">
+			<div class="container-fluid">
+				
+<style xml:space="preserve">
+body .OsPanier.api .ospanier .btn-supprimer {
+    display: none!important;
+}
+ body .OsPanier.api .ospanier .prix{
+    padding: 5px 0!important;
+}
+</style>
+
+
+<div id="ZoneDossier" class="os-scenario Scenario-dossier">
+
+
+  
+<script language="javascript" xml:space="preserve">
+	window.EtapeResaDossier = "E1";
+</script>
+  <div class="LVDossier">
+      <div class="FdLVDossier InitEtape">
+        <div class="ColLVDossier E1 Actif">
+          <div class="LibelleLVDossier">
+            <div class="IcoEtape">
+      
+            </div>
+            <span class="LibelleLvPanier">Mon panier</span>
+          </div>
+        </div>
+        <div class="ColLVDossier E2">
+          <div class="LibelleLVDossier">
+            <div class="IcoEtape">
+   
+            </div>
+            <span class="LibelleLvPanier">Mes coordonnées</span>
+          </div>
+        </div>
+        <div class="ColLVDossier E3">
+          <div class="LibelleLVDossier">
+            <div class="IcoEtape">
+     
+            </div>
+            <span class="LibelleLvPanier">Finaliser ma réservation</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+
+
+
+
+<form name="Caddie" action="index.aspx" method="post" enctype="application/x-www-form-urlencoded" xmlns=""><input type="hidden" name="Rf" value="HVD2Z65VPX4T855KPDDFVLVFCZ"><input type="hidden" name="Globales/RZ" value="8707"><input type="hidden" name="NumEtape" value="1"><input type="hidden" name="Param/IdInterne" value=""><input type="hidden" name="Param/Action" value="0"><input type="hidden" name="Param/Redefinition" value=""><input type="hidden" name="Param/SuppressionPossible" value="1"><input type="hidden" name="Param/ExisteContinuerAchat" value="1"><input type="hidden" name="Param/ExistePasserCommande" value="1">
+<style xml:space="preserve" xmlns="http://www.w3.org/1999/xhtml">
+.TxtInfoTunnel,
+.LVDossier{ display:none!important}
+</style>
+
+<div class="PanierVide py-5 flex-column align-center" xmlns="http://www.w3.org/1999/xhtml">
+  Votre panier est vide.
+
+</div>
+<div class="pb-3 row flex-column " xmlns="http://www.w3.org/1999/xhtml">
+<a href="http://www.lesangles.com/" class="osw-btn btn-secondary mx-auto" shape="rect">Retour</a>
+</div>
+</form>
+
+
+
+
+
+
+  <!-- <for:champ attribut="href"><for:champ type="eval">$Total/Parametres/ParamGlobales/Globales/PageDefaut/Contenus/Contenu[@IdLangue=$IdLangue]</for:champ></for:champ>-->
+  
+</div><!--<for:champ type="bascule">
+								<for:condition>$ResaAmorcee</for:condition>
+								<for:vrai>
+<div class="BigBtRetour"><a><for:champ attribut="href">index<for:champ type="bascule">
+<for:condition>$IdLangue!='fr'</for:condition>
+<for:vrai>_<for:champ type="eval">$IdLangue</for:champ></for:vrai></for:champ>.aspx</for:champ><span><for:local nom="BtRetour" >Retour</for:local></span></a></div>
+</for:vrai>
+<for:faux>
+<div class="BigBtRetour"><a href="javascript:history.back();"><span><for:local nom="BtRetour" >Retour</for:local></span></a></div>
+</for:faux>
+</for:champ>-->
+
+<script language="javascript" type="text/javascript" xml:space="preserve">
+( function( jQuery, AR, undefined ) { 
+	var Alias = "__a";
+	var IdLangueLienDossier = "fr";
+	jQuery( function() {
+		jQuery( ".ColLVDossier" ).click( function() { 
+			var ItemLocal = jQuery(this);    
+		  	if(!ItemLocal.hasClass("ResaAmorcee")) {
+			   if (ItemLocal.hasClass("E1")) {
+        		   window.location.href = "z1e2_"+IdLangueLienDossier+"-.aspx";
+		        } else if (ItemLocal.hasClass("E2")) {
+        		   window.location.href = "z1e4_"+IdLangueLienDossier+"-.aspx";
+		        }
+			}		
+		} );
+		
+		if( window.ResaAmorcee )
+		{
+			jQuery(".ColLVDossier.E0,.ColLVDossier.E1, .ColLVDossier.E2, .ColLVDossier.E3").addClass("Valide");
+			jQuery(".ColLVDossier.E0,.ColLVDossier.E1, .ColLVDossier.E2, .ColLVDossier.E3").addClass("ResaAmorcee");	
+		}
+		else 
+		{		
+			jQuery(".ColLVDossier."+EtapeResaDossier).addClass("Actif");
+			switch(EtapeResaDossier)
+			{
+				case "E1" : 
+					jQuery(".ColLVDossier.E0").addClass("Valide")
+ jQuery(".LVDossier .FdLVDossier").addClass("InitEtape");
+					break;
+				case "E2" :
+					jQuery(".ColLVDossier.E0,.ColLVDossier.E1").addClass("Valide");
+					jQuery(".LVDossier .FdLVDossier").addClass("EtapeTransition1");
+					break;
+				case "E3" :
+					jQuery(".ColLVDossier.E0,.ColLVDossier.E1, .ColLVDossier.E2").addClass("Valide");
+					jQuery(".LVDossier .FdLVDossier").addClass("EtapeTransition2");
+					break;
+			}
+		}
+	} );
+
+} )( AllianceReseaux.jQuery, AllianceReseaux );
+
+</script>
+
+
+			</div>
+		</div>
+	</div>
+</main>
+
+<!-- inclusion footer -->
+		</div>
+	</section>
+			 
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-5">
+            <a href="https://lesangles.com" target="_blank" class="logo-footer" shape="rect"><img src="inclusions/img/Logo_LesAnglesStation_vecto.svg" alt="Logo Les Angles"></a>
+			  <div class="adresse"><i class="fas fa-map-marker-alt icone"></i> Avenue de Mont-Louis<br>
+				66210 | Les Angles<br><br>
+		  </div>
+
+			  <div class="telephone"><i class="fas fa-phone icone"></i> +33 4 68 04 32 76</div>
+
+			  <div class="reseaux">
+				<ul class="liste-reseaux">
+					<li><a href="https://www.instagram.com/lesangles_stationdeski/" target="_blank" rel="noopener noreferrer" title="Instagram" shape="rect"><i class="fab fa-instagram"></i></a></li>
+					<li><a target="_blank" href="https://www.facebook.com/LesAnglesSki" rel="noopener" title="Facebook" shape="rect"><i class="fab fa-facebook-f"></i></a></li>
+					<li><a target="_blank" href="https://www.youtube.com/channel/UClCHwSiXZT1YgGjfR1dhHlg" rel="noopener" title="Youtube" shape="rect"><i class="fab fa-youtube"></i></a></li>
+					<li><a target="_blank" href="https://twitter.com/lesanglesski" rel="noopener" title="Twitter" shape="rect"><i class="fab fa-twitter"></i></a></li>
+				</ul>
+			  </div>
+			  
+			   <div class="mentions site">
+					Les Angles c All right reserved. Réalisation <a href="https://attraptemps.fr" target="_blank" title="" shape="rect">AttrapTemps</a><br>
+				<a href="https://lesangles.com/mentions-legales/" target="_blank" title="Mentions légales" shape="rect">Mentions légales</a> | <a href="https://angleo.com/conditions-generales-de-vente/" target="_blank" title="CGV" shape="rect">CGV</a><br><br>
+			  </div>
+          </div>
+		
+			<div class="col-lg-7 menu-footer">
+				<div class="row">
+					<div class="col-6 ">
+					<h4>LIENS</h4>
+						<ul>
+							<li><a href="https://lesangles.com/nos-hebergements/" target="_blank" class="link-footer" title="Hébergements" shape="rect">Hébergements</a></li>
+							<li><a href="https://lesangles.com/acces-routes/" target="_blank" class="link-footer" title="Accès route" shape="rect">Accès Route</a></li>
+							<li><a href="https://lesangles.com/family-plus/" target="_blank" class="link-footer" title="Les Angles en famille" shape="rect">Les Angles en famille</a></li>
+							<li><a href="https://lesangles.com/nos-brochures/" target="_blank" class="link-footer" title="Brochures" shape="rect">Brochures</a></li>
+						</ul>
+					</div>
+					
+					<div class="col-6 border-left">
+					<h4>NOS AUTRES SITES</h4>
+ 
+						<ul>
+							<li><a href="http://www.lesangles.fr/index.php" target="_blank" class="link-footer" title="Mairie Les Angles" shape="rect">Mairie Les Angles</a></li>
+							<li><a href="https://angleo.com/" target="_blank" class="link-footer" title="Angléo" shape="rect">Angléo</a></li>
+							<li><a href="http://loubacmountain.com/" target="_blank" class="link-footer" title="Lou bac Mountain" shape="rect">Lou Bac Mountain</a></li>
+							<li><a href="http://bikeparklesangles.com/" target="_blank" class="link-footer" title="Bike Park" shape="rect"> Bike Park</a></li>
+						</ul>
+					
+					</div>
+					<div class="col-12 label">
+						<div class="separator"></div>
+						<img src="inclusions/img/footer-familleplus@2x-1.png" alt="Label Famille Plus">	
+						<img src="inclusions/img/footer-qse@2x.png" alt="Logo AFAQ">
+						<img src="inclusions/img/footer-iso@2x-1.png" alt="Logo AFAQ ISO">
+					</div>	
+					
+				</div>
+
+				<div class="mentions mobile">
+					Les Angles c All right reserved.<br>Réalisation <a href="https://attraptemps.fr" target="_blank" title="" shape="rect">AttrapTemps</a><br>
+				<a href="https://lesangles.com/mentions-legales/" target="_blank" title="Mentions légales" shape="rect">Mentions légales</a> | <a href="https://angleo.com/conditions-generales-de-vente/" target="_blank" title="CGV" shape="rect">CGV</a><br><br>
+			  </div>
+          </div>
+			
+        </div>
+      </div>
+	</footer>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js" xml:space="preserve"></script>
+    <script src="inclusions/js/bootstrap-4.4.1.js" xml:space="preserve"></script>
+<!-- fin inclusion footer -->
+
+ 
+<img src="https://static.for-system.com/shim.gif" style="position:absolute;left:1px;top:1px" onload="PlaceTrackingSortantG();" alt=""><img src="//static.for-system.com/shim.gif" class="" os-tracking-dico="" alt="" style="width:0px!important;height:0px!important;">
+<div id="LoaderTransition" style="display: none;">&nbsp;</div>
+
+<script type="text/javascript" src="script/script_os.js" xml:space="preserve"></script>
+
+
+<div class="OsPanierPopIn CssCustom Attente" style="visibility: hidden; position: absolute; top: -2000px;"><style>.OsPanierPopIn { font-size:12px; background-color:#fff; border-radius:4px; width:600px; min-height:100px; color:#000; } .OsPanierPopIn .Clear { clear:both; }
+ .OsPanierPopIn .BlocAttente { display:none; }
+ .OsPanierPopIn.Attente .BlocAttente { display:block; }
+ .OsPanierPopIn.Attente .BlocContenu { display:none; }
+ .OsPanierPopIn.Attente .close { display:none; }
+ .OsPanierPopIn .BlocPage { padding:10px; }
+ .OsPanierPopIn .BlocTitre { background-image: none; background-color: transparent; border-bottom: 1px dotted #CCC; color: #666; font-size: 14px; font-weight: bold; line-height: 23px; margin-bottom: 5px; text-align: left; padding: 3px 0 0; }
+ .OsPanierPopIn .BlocAttente { height:100px; width:100%; }
+ .OsPanierPopIn .TableSupplement { width:100%; font-size:12px;border-bottom: 1px solid #E6E7E8;padding-bottom: 0; }
+ .OsPanierPopIn .TableSupplement TD { border:0; padding:0; vertical-align:top; text-align:left; }
+ .OsPanierPopIn .BlocContenu { width:100%; }
+ .OsPanierPopIn .BlocSupplement .Info { color: white; font-weight: bold; cursor: help; display: inline; margin-left: 5px; margin-right: 0px; border-radius: 4px; padding: 1px 4px; border: 1px solid #292929; background-color: #A99E96; font-size: 9px; box-shadow: 1px 1px 2px #888; }
+ .OsPanierPopIn .BlocSupplement .Info.Over { background-color: #000; }
+ .OsPanierPopIn.OverlayPlusInfo { width:400px; border-radius: 4px; padding:15px; font-size:15px; }
+ .OsPanierPopIn.Lock .close { background:url(//gadget.open-system.fr/widgets/themes/std/commun/images/close.png) no-repeat; position:absolute; right:-15px; top:-15px; cursor:pointer; height:35px;  width:35px; padding:0; border:none; }
+ .OsPanierPopIn.Lock .close span { display:none; } .OsPanierPopIn.Lock.overlay .close span { display:block; }
+ .OsPanierPopIn .OverlayLibelle { border-bottom:1px dotted #CCC; color:#666; font-size:15px; font-weight:bold; }
+ .OsPanierPopIn .OverlayDescription { margin-top:10px;margin-bottom:10px; font-size:15px; }
+ .OsPanierPopIn .BlocSupplement .Operation { width:292px; }
+ .OsPanierPopIn .BlocSupplement .NbPers { float:right; width:45px; line-height:25px; padding: 5px 0 0 0; text-align:center; padding: 2px 0 0 0; }
+ .OsPanierPopIn .BlocSupplement .Quantite { float:right; width:45px; padding: 5px 0 0 0; text-align:right; }
+ .OsPanierPopIn .BlocSupplement .Quantite select { background: none repeat scroll 0 0 white; border: 1px solid #DDD; color: #8C8C8C; font-size: 11px; height: 18px; width:35px; padding:0; -webkit-padding:0; -webkit-appearance:menulist; }
+ .OsPanierPopIn .BlocSupplement .Libelle { line-height:25px; padding: 2px 0px 0px 0; color:#000; }
+ .OsPanierPopIn .BlocSupplement .Operateur { float:right; width:20px; line-height:25px; text-align:center; padding: 2px 0 0 0; }
+ .OsPanierPopIn .BlocSupplement .Prix { float:right; width:65px; line-height:25px; text-align:right; padding: 2px 0 0 0; }
+ .OsPanierPopIn .BlocSupplement .NbJours { float:right; width:42px; line-height:25px; text-align:center; padding: 2px 0 0 0; }
+ .OsPanierPopIn .BlocSupplement .Total { float:right; width:65px; line-height: 25px; font-weight: bold; font-size: 13px; text-align:right; padding: 2px 0px 0px 0;}
+ .OsPanierPopIn .BlocPrix { padding-top: 10px; color: #333; float:right; width:110px; }
+ .OsPanierPopIn .BlocPrix .LibellePrixOption { float: left; line-height: 25px; font-weight: bold; color:#666; font-size: 14px; }
+ .OsPanierPopIn .BlocPrix .PrixOption { float: right; line-height: 25px; font-weight: bold; font-size: 13px; }
+ .OsPanierPopIn .BlocPrix .BlocPrixTotal { color: black; border-top: 1px solid #E6E7E8; display:none; }
+ .OsPanierPopIn .BlocPrix .LibellePrixTotal  { float: left; line-height: 25px; font-weight: bold; font-size: 15px; text-transform: uppercase; }
+ .OsPanierPopIn .BlocPrix .PrixTotal { float: right; line-height: 25px; font-weight: bold; font-size: 18px; }
+ </style><div class="BlocPage"><div class="BlocAttente"></div><div class="BlocContenu js-bloc-contenu"></div></div></div></body></html>

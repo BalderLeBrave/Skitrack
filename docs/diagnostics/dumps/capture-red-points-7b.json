@@ -1,0 +1,67 @@
+{
+  "at": "2026-09-01T22:18:05.621Z",
+  "round": "7b",
+  "items": [
+    {
+      "id": "pralognan_fiche",
+      "title": "Location 6 pièces à Pralognan la Vanoise / 150.00 m² (12 personnes) - Résidence : MONTAGNY",
+      "bodyPreview": " +33 (0)4 58 24 00 24\nOuvert du lundi au samedi de 9h00 à 12h00 et de 14h00 à 17h00.\nFermé les jours fériés.\n\n  Mon compte  Contact \nACCUEIL\n \nLOCATION\n \nPRALOGNAN LA VANOISE\n \nPROMOTIONS\n \nQUI SOMMES NOUS\n \nPRÉPARER SON SÉJOUR\n \nSERVICES\nAccueil Location Réservation en ligne\nCRITÈRES & DISPONIBILITÉS\nDÉTAIL\nSERVICES & COORDONNÉES\nCONFIRMATION\nRÉSERVEZ VOTRE SÉJOUR\nPRIX DE VOTRE SÉJOUR :\n1 300 €\nRÉSERVEZ\n Retour à la liste\nGRILLE DE TARIF :\n\n05/09/2026 - 12/09/2026\t1 300,00 €\n12/09/2026 - 19/09/2026\t1 300,00 €\n19/09/2026 - 26/09/2026\t1 300,00 €\n02/01/2027 - 09/01/2027\t1 900,00 €\n09/01/2027 - 16/01/2027\t2 000,00 €\n23/01/2027 - 30/01/2027\t2 600,00 €\n06/03/2027 - 13/03/2027\t2 650,00 €\n13/03/2027 - 20/03/2027\t2 100,00 €\n20/03/2027 - 27/03/2027\t2 000,00 €\nPLANNING DES DISPONIBILITÉS :\nPrécédent\nSuivant\nseptembre 2026\nL\tM\tM\tJ\tV\tS\tD\n \t\n1\n\t\n2\n\t\n3\n\t\n4\n\t\n5\n\t\n6\n\n\n7\n\t\n8\n\t\n9\n\t\n10\n\t\n11\n\t\n12\n\t\n13\n\n\n14\n\t\n15\n\t\n16\n\t\n17\n\t\n18\n\t\n19\n\t\n20\n\n\n21\n\t\n22\n\t\n23\n\t\n24\n\t\n25\n\t\n26\n\t\n27\n\n\n28\n\t\n29\n\t\n30\n\t \t \t \t \nPrev\nNext\nMONTAGNY\nLES HAUTS DES DARBELAYS\nRÉF. MONTAG6\n6 PIÈCES | LITS DOUBLES : 4 | 12 PERSONNES | ETAGE : REZ DE CHAUSSÉE\nCLASSEMENT : \nAVIS CLIENTS (1) : Voir les avis\nDESCRIPTION DE LA RÉSIDENCE :\nGrand chalet entièrement neuf, composé de 2 appartements communicants.\nLe chalet est situé dans le quartier du Haut des Darbelays, à 500 m du centre du village et à 100m du téléski de Lancegralette.\nLe chalet ",
+      "ajax": [
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 12736,
+          "preview": "\n\t\t<div class=\"col-12 col-lg-6 col-xl-4\">\n\t\t\t<div class=\"Card Card_Lots\">\n\t\t\t<div class=\"Card_Price\"><span>à partir de</span> 1 800 &euro;</div>\n\t\t\t\t<div class=\"Card_Medias\">\n\t\t\t\t\t<a href=\"/reservation/resultats/112/\"><img src=\"https://rese"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 13076,
+          "preview": "\n\t\t<div class=\"col-12 col-lg-6 col-xl-4\">\n\t\t\t<div class=\"Card Card_Lots\">\n\t\t\t<div class=\"Card_Price\">480 &euro;</div>\n\t\t\t\t<div class=\"Card_Medias\">\n\t\t\t\t\t<a href=\"/reservation/resultats/513/\"><img src=\"https://reservationpralognan.locvacance"
+        },
+        {
+          "id": "getListe",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getListe",
+          "status": 200,
+          "bytes": 13153,
+          "preview": "\n\t\t<div class=\"col-12 col-lg-6 col-xl-4\">\n\t\t\t<div class=\"Card Card_Lots\">\n\t\t\t<div class=\"Card_Price\">1 300 &euro;</div>\n\t\t\t\t<div class=\"Card_Medias\">\n\t\t\t\t\t<a href=\"/reservation/resultats/111/\"><img src=\"https://reservationpralognan.locvacan"
+        },
+        {
+          "id": "getPlanning",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getPlanning&lot_no=111",
+          "status": 200,
+          "bytes": 1002,
+          "preview": "[\"29/08/2026\",\"30/08/2026\",\"31/08/2026\",\"01/09/2026\",\"02/09/2026\",\"03/09/2026\",\"04/09/2026\",\"05/09/2026\",\"06/09/2026\",\"07/09/2026\",\"08/09/2026\",\"09/09/2026\",\"10/09/2026\",\"11/09/2026\",\"12/09/2026\",\"13/09/2026\",\"14/09/2026\",\"15/09/2026\",\"16/0"
+        },
+        {
+          "id": "getRates",
+          "url": "https://www.reservationpralognan.fr/ajax/ajax.req.4g.php?id=getRates&lot_no=111&lot_site_no=0&dd=05%2F09%2F2026&df=12%2F09%2F2026",
+          "status": 200,
+          "bytes": 1886,
+          "preview": "<div class='aSide_Resa_elem'><table class='Rates_Tbl'>\n\t\t<tr>\n\t\t\t<td colspan='2'><h4 class='inline-center heading-nomargins'>Grille de tarif :</h4></td>\n\t\t</tr>\n\t<tr><td><a href=\"javascript:ResaFromRates('111','0','05/09/2026','12/09/2026')"
+        }
+      ]
+    },
+    {
+      "id": "clusaz_filter_dated",
+      "shadow": {
+        "custom": [
+          "dw-app-container"
+        ],
+        "withShadow": [
+          "div",
+          "dw-app-container"
+        ]
+      },
+      "session": "I1788301112180",
+      "filterPost": "{\"filterObject\":{\"id\":\"00000000-0000-0000-0000-000000000000\",\"_hashCode\":0,\"filterGeneral\":{},\"filterAddServices\":{\"name\":\"\"},\"filterAccommodation\":{\"name\":\"\",\"bestPrice\":false,\"specialPrice\":false,\"specialOffer\":false},\"filterEvent\":{},\"filterInfrastructure\":{},\"filterBrochure\":{},\"filterPackage\":{},\"filterTour\":{}}}",
+      "datedFilter": {
+        "status": 201,
+        "text": "{\n  \"id\": \"31a26a48-ccf0-4add-9f56-ef5cc468c7a3\",\n  \"filterGeneral\": {},\n  \"filterAddServices\": {\n    \"types\": null,\n    \"holidayThemes\": null,\n    \"locations\": null,\n    \"guestCards\": null,\n    \"name\": \"\",\n    \"serviceClassifications\": null,\n    \"topServiceClassifications\": null,\n    \"topServiceClassificationsBehaviour\": 0\n  },\n  \"filterAccommodation\": {\n    \"categories\": null,\n    \"locations\": null,\n    \"rooms\": null,\n    \"bedrooms\": null,\n    \"stars\": null,\n    \"criterias\": null,\n    \"criteriasBehaviour\": 0,\n    \"classifications\": null,\n    \"topClassifications\": null,\n    \"topClassificationsBehaviour\": 1,\n    \"marketinggroups\": null,\n    \"name\": \"\",\n    \"price\": null,\n    \"bestPrice\": false,\n    \"specialPrice\": false,\n    \"specialOffer\": false,\n    \"packageCategories\": null,\n    \"rating"
+      },
+      "filterId": null
+    }
+  ]
+}

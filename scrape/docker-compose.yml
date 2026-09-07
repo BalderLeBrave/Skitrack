@@ -69,14 +69,16 @@ services:
       - "127.0.0.1:18702:8080"
 
   scrape-abritel:
-    <<: *worker
+    build:
+      context: ..
+      dockerfile: scrape/abritel/Dockerfile
+    init: true
+    shm_size: 2gb
+    mem_limit: 2g
+    restart: unless-stopped
     environment:
       SOURCE: vrbo-web
       PORT: "8080"
-      SKITRACK_SCRAPE_PROFILE: /data/profile
-      SKITRACK_PROXY: ${SKITRACK_PROXY:-}
-      SKITRACK_PROXY_LIST: ${SKITRACK_PROXY_LIST:-}
-      SKITRACK_PROXY_MODE: ${SKITRACK_PROXY_MODE:-}
     ports:
       - "127.0.0.1:18703:8080"
 

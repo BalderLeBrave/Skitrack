@@ -70,7 +70,7 @@ export function LodgeCard({ lg, d, nights, badges = [], fallback = null }: Props
           <span className="rc-lodge__sub">
             {lg.type}
             {size ? ` · ${size}` : ''}
-            {` · ${t('rc_lodge_cap').replace('{n}', String(lg.pers))}`}
+            {lg.pers > 0 ? ` · ${t('rc_lodge_cap').replace('{n}', String(lg.pers))}` : ''}
           </span>
         </div>
         <ul className="rc-lodge__facts">

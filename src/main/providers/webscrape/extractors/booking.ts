@@ -167,9 +167,16 @@ export function extractBookingCards(): RawCard[] {
     }
     // « 3 chambres », « 1 chambre ». Les hôtels n'en publient pas : ils listent
     // des types de chambre, et l'absence est alors la bonne réponse.
-    const bedrooms = lire(/(\d+)\s*chambres?/i.exec(unites)) ?? extra?.bedrooms
+    const times = /(\d+)\s*[×x]\s*(?:chambres?|ch\.?|rooms?)\D{0,32}(\d+)\s*(?:personnes?|pers)/i.exec(
+      unites
+    )
+    const bedrooms =
+      (times ? Number(times[1]) : undefined) ?? lire(/(\d+)\s*chambres?/i.exec(unites)) ?? extra?.bedrooms
     const beds = lire(/(\d+)\s*lits?/i.exec(unites))
-    const guests = lire(/(\d+)\s*(?:voyageurs?|personnes?)/i.exec(unites)) ?? extra?.guests
+    const guests =
+      (times ? Number(times[1]) * Number(times[2]) : undefined) ??
+      lire(/(\d+)\s*(?:voyageurs?|personnes?)/i.exec(unites)) ??
+      extra?.guests
     const areaSqm = lire(/(\d+)\s*m(?:²|2)(?![0-9])/i.exec(unites))
     const typeHint = unites.split(/[•·|]/)[0]?.trim()
     const propertyType =

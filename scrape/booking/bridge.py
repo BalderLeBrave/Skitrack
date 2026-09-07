@@ -18,6 +18,8 @@ import urllib.request
 from typing import Any
 from urllib.parse import parse_qs, urlparse, urlunparse
 
+from map import occupancy_from_text
+
 BOOKING_HOST = re.compile(r"(?:^|\.)booking\.com$", re.I)
 TRACKING = (
     "aid",
@@ -185,6 +187,18 @@ def parse_booking_hits(payload: Any) -> list[dict[str, Any]]:
         guests = _positive_int(details.get("guestCapacity"))
         bedrooms = _positive_int(details.get("bedRoomCount")) or _positive_int(hit.get("bedRoomCount"))
         beds = _positive_int(details.get("bedCount"))
+        br, beds2, g2, _ = occupancy_from_text(
+            str(raw.get("subTitle") or ""),
+            str(hit.get("text") or ""),
+            str(hit.get("shortText") or ""),
+            title,
+        )
+        if guests is None:
+            guests = g2
+        if bedrooms is None:
+            bedrooms = br
+        if beds is None:
+            beds = beds2
         check_in = str(hit.get("fromDate") or "")[:10] or None
         check_out = str(hit.get("toDate") or "")[:10] or None
         url = canonical_booking_url(

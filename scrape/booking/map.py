@@ -29,6 +29,10 @@ GUESTS_RE = re.compile(
     r"(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
     re.I,
 )
+TIMES_OCC_RE = re.compile(
+    r"(\d+)\s*[×x]\s*(?:chambres?|ch\.?|rooms?)\D{0,32}(\d+)\s*(?:personnes?|pers\.?|voyageurs?|🕺)",
+    re.I,
+)
 BEDROOMS_RE = re.compile(r"(\d+)\s*(?:chambres?|bedrooms?|ch\b)", re.I)
 BEDS_RE = re.compile(r"(\d+)\s*lits?", re.I)
 AREA_RE = re.compile(r"(\d+)\s*m(?:²|2)(?![0-9])", re.I)
@@ -246,15 +250,24 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None, int
         return n if 0 < n <= cap else None
 
     guests = None
-    pers = GUESTS_RE.search(blob)
-    if pers:
-        a = int(pers.group(1))
-        b = int(pers.group(2)) if pers.group(2) else a
-        n = max(a, b)
+    bedrooms = take(BEDROOMS_RE.search(blob), 50)
+    times = TIMES_OCC_RE.search(blob)
+    if times:
+        n = int(times.group(1)) * int(times.group(2))
         if 0 < n <= 50:
             guests = n
+        if bedrooms is None and 0 < int(times.group(1)) <= 50:
+            bedrooms = int(times.group(1))
+    if guests is None:
+        pers = GUESTS_RE.search(blob)
+        if pers:
+            a = int(pers.group(1))
+            b = int(pers.group(2)) if pers.group(2) else a
+            n = max(a, b)
+            if 0 < n <= 50:
+                guests = n
     return (
-        take(BEDROOMS_RE.search(blob), 50),
+        bedrooms,
         take(BEDS_RE.search(blob), 50),
         guests,
         take(AREA_RE.search(blob), 2000),

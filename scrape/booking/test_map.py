@@ -96,6 +96,13 @@ class MapTests(unittest.TestCase):
         self.assertEqual(row["advertisedTotal"], 87)
         self.assertEqual(row["engine"], "invisible_playwright")
 
+    def test_hotel_times_occupancy(self) -> None:
+        from map import occupancy_from_text
+
+        br, _beds, guests, _area = occupancy_from_text("4× Chambre (2 personnes)")
+        self.assertEqual(guests, 8)
+        self.assertEqual(br, 4)
+
     def test_apollo_only(self) -> None:
         html = """
         <html><body><h1>Les 2 Alpes : 12 établissements trouvés</h1>

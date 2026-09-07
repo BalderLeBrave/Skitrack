@@ -105,6 +105,8 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["sourceId"], "320986")
         self.assertEqual(rows[0]["totalPrice"], 5760.72)
+        self.assertEqual(rows[0]["guests"], 8)
+        self.assertEqual(rows[0]["bedrooms"], 4)
 
 
 if __name__ == "__main__":

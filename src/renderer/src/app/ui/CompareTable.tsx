@@ -6,7 +6,9 @@
 
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { PisteMixBar } from '@/components/PisteMixBar'
 import { belongsToDomain, medianTotal } from '@/data/lodgings'
+import { domainSlopesOf } from '@/data/pistes'
 import type { Domain } from '@/data/referentiel'
 import { snowDepths } from '@/data/weather'
 import { useFormat } from '@/hooks/useFormat'
@@ -63,6 +65,11 @@ export function CompareTable({ stations }: { stations: Domain[] }): JSX.Element 
     { key: 'snow', label: t('rc_cmp_snow'), cell: snowCell, mono: true },
     { key: 'alt', label: t('rc_fact_alt'), cell: (d) => `${fmt(d.min)}–${fmt(d.max)} m`, mono: true },
     { key: 'km', label: t('rc_fact_km'), cell: (d) => `${fmt(d.km)} km`, mono: true },
+    {
+      key: 'pistes',
+      label: t('rc_cmp_pistes'),
+      cell: (d) => <PisteMixBar slopes={domainSlopesOf(d)} announcedKm={d.km} compact mode={state.pisteMixMode} />
+    },
     { key: 'lifts', label: t('rc_cmp_lifts'), cell: (d) => fmt(d.lifts), mono: true },
     { key: 'pass', label: t('rc_fact_pass'), cell: passCell },
     { key: 'median', label: t('rc_cmp_median'), cell: medianCell, mono: true },

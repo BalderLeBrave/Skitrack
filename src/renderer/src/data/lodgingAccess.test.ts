@@ -27,7 +27,7 @@ const check = (label: string, condition: boolean): void => {
 }
 
 interface Payload {
-  lodgings: { ref: string; lat: number; lon: number }[]
+  lodgings: { ref: string; lat?: number | null; lon?: number | null; address?: string | null }[]
 }
 interface Stub {
   ready?: boolean
@@ -48,7 +48,12 @@ const repondre = (payload: Payload): unknown => ({
     dist_to_nearest_slope_m: 100,
     dist_to_nearest_lift_m: 250,
     altitude_m: 1800,
-    slope_access_type: 'a_pied'
+    altitude_source: 'ign',
+    slope_access_type: 'a_pied',
+    lat: item.lat ?? 45.1654,
+    lon: item.lon ?? 6.4291,
+    location_precision: item.lat == null ? 'address' : 'exact',
+    geocode_source: item.lat == null ? 'ban' : 'provider'
   }))
 })
 
@@ -69,6 +74,9 @@ check(
   'les 358 sont enrichis',
   gros.lodgings.filter((l) => l.accessComputed).length === 358
 )
+check('altitude IGN recopiée, jamais un texte d’annonce', gros.lodgings[0]?.altSource === 'ign')
+check('distance aux pistes = min piste/remontée (100), pas la seule gare', gros.lodgings[0]?.dist === 100)
+check('distance gare aval conservée en plus (liftDist)', gros.lodgings[0]?.liftDist === 250)
 check('la note annonce le compte', gros.note === 'Distances aux pistes calculées pour 358 logement(s).')
 
 // --- Un lot échoue : les autres tiennent ------------------------------------
@@ -123,6 +131,53 @@ check(
   'sans tracés ni remontées, on le dit au lieu de mesurer',
   sansTraces.note === 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
 )
+
+// --- Adresse sans GPS : le lot part quand même, le GPS raffiné est recollé ---
+
+g.__ACCESS_STUB__ = { calls: [], handler: repondre }
+const adresseSeule = await enrichWithAccess(
+  [{ id: 99, addressText: "3 place de l'Église, 73450 Valloire" } as Lodging],
+  1
+)
+check('une adresse sans GPS part au moteur', g.__ACCESS_STUB__.calls[0]?.lodgings.length === 1)
+check('le GPS BAN est recollé', adresseSeule.lodgings[0]?.lat === 45.1654)
+
+g.__ACCESS_STUB__ = { calls: [], handler: repondre }
+await enrichWithAccess([{ id: 7, lat: 0, lon: 0 } as Lodging], 1)
+check('(0, 0) n’est pas envoyé comme un logement', (g.__ACCESS_STUB__.calls[0]?.lodgings.length ?? 0) === 0)
+
+g.__ACCESS_STUB__ = { calls: [], handler: repondre }
+await enrichWithAccess(
+  [{ id: 3, name: 'Chalet les Copains', lat: 45.01, lon: 6.12, ch: 0, pers: 0 } as Lodging],
+  1
+)
+const envoyé = g.__ACCESS_STUB__.calls[0]?.lodgings[0] as
+  | { name?: string | null; bedrooms?: number | null; capacity_max?: number | null }
+  | undefined
+check('le nom part au moteur (collage OSM)', envoyé?.name === 'Chalet les Copains')
+check('chambres inconnues → null, pas 0', envoyé?.bedrooms == null)
+check('capacité inconnue → null, pas 0', envoyé?.capacity_max == null)
+
+g.__ACCESS_STUB__ = {
+  calls: [],
+  handler: (payload) => ({
+    ...(repondre(payload) as object),
+    results: payload.lodgings.map((item) => ({
+      ...(repondre(payload) as { results: object[] }).results[0],
+      ref: item.ref,
+      bedrooms: 3,
+      capacity_max: 8,
+      capacity_source: 'osm'
+    }))
+  })
+}
+const osmFill = await enrichWithAccess(
+  [{ id: 4, name: 'Chalet les Copains', lat: 45.01, lon: 6.12, ch: 0, pers: 0 } as Lodging],
+  1
+)
+check('OSM remplit 8 pers. quand le provider se tait', osmFill.lodgings[0]?.pers === 8)
+check('OSM remplit 3 ch.', osmFill.lodgings[0]?.ch === 3)
+check('la source reste osm', osmFill.lodgings[0]?.capacitySource === 'osm')
 
 if (failures > 0) {
   console.error(`\n${failures} échec(s).`)

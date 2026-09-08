@@ -35,42 +35,55 @@ def _looks_french(query: str) -> bool:
     return "france" in query.lower()
 
 
-async def _geocode_ban(query: str, limit: int) -> list[GeocodeResult]:
+async def _geocode_ban(query: str, limit: int, lat: float | None = None, lon: float | None = None) -> list[GeocodeResult]:
     settings = get_settings()
+    params: dict[str, object] = {"q": query, "limit": limit}
+    if lat is not None and lon is not None:
+        params["lat"] = f"{lat:.6f}"
+        params["lon"] = f"{lon:.6f}"
     data = await get_http().request_json(
         "GET",
         BAN_URL,
         namespace="geocode",
         ttl_s=settings.ttl_geocode_s,
-        params={"q": query, "limit": limit},
+        params=params,
         min_interval_s=0.1,
     )
     out = []
     for feat in (data or {}).get("features", []):
-        lon, lat = feat["geometry"]["coordinates"]
+        lon_v, lat_v = feat["geometry"]["coordinates"]
         props = feat.get("properties", {})
         out.append(
             GeocodeResult(
                 label=props.get("label", query),
-                lat=float(lat),
-                lon=float(lon),
+                lat=float(lat_v),
+                lon=float(lon_v),
                 score=props.get("score"),
                 city=props.get("city"),
                 postcode=props.get("postcode"),
                 provider="ban",
+                kind=props.get("type"),
             )
         )
     return out
 
 
-async def _geocode_nominatim(query: str, limit: int) -> list[GeocodeResult]:
+async def _geocode_nominatim(query: str, limit: int, lat: float | None = None, lon: float | None = None) -> list[GeocodeResult]:
     settings = get_settings()
+    params: dict[str, object] = {
+        "q": query,
+        "format": "jsonv2",
+        "limit": limit,
+        "addressdetails": 1,
+    }
+    if lat is not None and lon is not None:
+        params["viewbox"] = f"{lon - 0.4},{lat + 0.3},{lon + 0.4},{lat - 0.3}"
     data = await get_http().request_json(
         "GET",
         NOMINATIM_URL,
         namespace="geocode",
         ttl_s=settings.ttl_geocode_s,
-        params={"q": query, "format": "jsonv2", "limit": limit, "addressdetails": 1},
+        params=params,
         min_interval_s=1.05,  # politique d'usage Nominatim
     )
     out = []
@@ -85,26 +98,33 @@ async def _geocode_nominatim(query: str, limit: int) -> list[GeocodeResult]:
                 city=addr.get("city") or addr.get("town") or addr.get("village"),
                 postcode=addr.get("postcode"),
                 provider="nominatim",
+                kind=item.get("type") or item.get("addresstype"),
             )
         )
     return out
 
 
-async def geocode(query: str, *, limit: int = 5) -> list[GeocodeResult]:
+async def geocode(
+    query: str,
+    *,
+    limit: int = 5,
+    lat: float | None = None,
+    lon: float | None = None,
+) -> list[GeocodeResult]:
     primary, fallback = (
         (_geocode_ban, _geocode_nominatim)
         if _looks_french(query)
         else (_geocode_nominatim, _geocode_ban)
     )
     try:
-        results = await primary(query, limit)
+        results = await primary(query, limit, lat, lon)
     except Exception as exc:  # noqa: BLE001
         log.warning("Géocodeur principal en échec (%s), bascule sur le secondaire", exc)
         results = []
     if results:
         return results
     try:
-        return await fallback(query, limit)
+        return await fallback(query, limit, lat, lon)
     except Exception as exc:  # noqa: BLE001
         log.error("Aucun géocodeur disponible : %s", exc)
         return []

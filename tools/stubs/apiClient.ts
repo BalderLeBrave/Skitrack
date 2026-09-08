@@ -12,7 +12,14 @@
 interface AccessPayload {
   domain_id: number
   with_elevation: boolean
-  lodgings: { ref: string; lat: number; lon: number; location_precision: string }[]
+  lodgings: {
+    ref: string
+    lat?: number | null
+    lon?: number | null
+    location_precision: string
+    address?: string | null
+    commune?: string | null
+  }[]
 }
 
 interface AccessStub {

@@ -5,6 +5,7 @@
     python -m skitrack.cli curated
     python -m skitrack.cli glaciers --countries FR
     python -m skitrack.cli stats
+    python -m skitrack.cli visual-gps --json listing.json
 
 Sert aussi de chemin de secours quand le téléchargement de 130 Mo passe mal
 depuis l'UI (réseau d'entreprise, proxy).
@@ -144,6 +145,78 @@ def _cmd_stats(_args: argparse.Namespace) -> None:
         print(f"  {massif or '(non classé)':<28} {count}")
 
 
+def _cmd_audit_slopes(args: argparse.Namespace) -> None:
+    import csv
+
+    from sqlalchemy import select
+
+    from .ingest.slopes import alpine_classic_total, normalize_counts
+    from .models import SkiDomain
+
+    top = max(1, int(args.top or 30))
+    rows_out: list[dict[str, object]] = []
+    with session_scope() as session:
+        domains = list(
+            session.execute(
+                select(SkiDomain).where(SkiDomain.country == "FR", SkiDomain.status == "operating")
+            ).scalars()
+        )
+    domains.sort(key=lambda d: -(d.slopes_count_total or 0))
+    for domain in domains[:top]:
+        report = domain.slopes_report if isinstance(domain.slopes_report, dict) else {}
+        counts = normalize_counts(domain.slopes_count_by_color)
+        osm = int(report.get("osm_total") or sum(counts.values()) or 0)
+        curated_total = domain.slopes_count_total if report.get("source") == "curated" else None
+        shown = int(curated_total if curated_total is not None else osm)
+        delta = (shown - osm) if curated_total is not None else 0
+        untagged = counts.get("unknown") or 0
+        pct_untagged = round(100.0 * untagged / osm, 1) if osm else 100.0
+        quality = str(report.get("quality") or "empty")
+        statut = quality
+        if curated_total is not None and osm and abs(delta) / osm > 0.15:
+            statut = "ecart>15%"
+        if quality == "empty" or osm == 0:
+            statut = "vide"
+        rows_out.append(
+            {
+                "domaine": domain.name,
+                "slug": domain.slug,
+                "total_osm": osm,
+                "total_curate": curated_total if curated_total is not None else "",
+                "delta": delta,
+                "pct_untagged": pct_untagged,
+                "classic": alpine_classic_total(counts),
+                "green": counts.get("green") or 0,
+                "blue": counts.get("blue") or 0,
+                "red": counts.get("red") or 0,
+                "black": counts.get("black") or 0,
+                "statut": statut,
+            }
+        )
+    writer = csv.DictWriter(
+        sys.stdout, fieldnames=list(rows_out[0].keys()) if rows_out else ["domaine"]
+    )
+    writer.writeheader()
+    writer.writerows(rows_out)
+
+
+async def _cmd_visual_gps(args: argparse.Namespace) -> None:
+    import json
+    from pathlib import Path
+
+    from .services.visual_gps import resolve_exact_coords
+
+    raw = Path(args.json).read_text(encoding="utf-8") if args.json else sys.stdin.read()
+    listing = json.loads(raw)
+    if isinstance(listing, list):
+        results = [await resolve_exact_coords(item) for item in listing]
+        json.dump(results, sys.stdout, ensure_ascii=False, indent=2)
+    else:
+        json.dump(await resolve_exact_coords(listing), sys.stdout, ensure_ascii=False, indent=2)
+    sys.stdout.write("\n")
+    await close_http()
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="skitrack.cli")
     parser.add_argument("--data-dir", default=None)
@@ -163,6 +236,14 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("curated", help="Réappliquer les données curatées")
     sub.add_parser("stats", help="Statistiques du référentiel")
+    p_audit = sub.add_parser("audit-slopes", help="Contrôle des décomptes de pistes")
+    p_audit.add_argument("--top", type=int, default=30)
+
+    p_gps = sub.add_parser(
+        "visual-gps",
+        help="Épingle exacte d'une annonce au cercle flou (Lens + Gîtes/Booking, jamais le domaine)",
+    )
+    p_gps.add_argument("--json", help="Fichier JSON d'annonce (sinon stdin)")
 
     args = parser.parse_args(argv)
     _setup(args.data_dir)
@@ -175,6 +256,10 @@ def main(argv: list[str] | None = None) -> int:
         _cmd_curated(args)
     elif args.command == "stats":
         _cmd_stats(args)
+    elif args.command == "audit-slopes":
+        _cmd_audit_slopes(args)
+    elif args.command == "visual-gps":
+        asyncio.run(_cmd_visual_gps(args))
     return 0
 
 

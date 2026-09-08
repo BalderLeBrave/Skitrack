@@ -39,6 +39,7 @@ import type { Domain, Referential } from './referentiel'
 import { hasCoords } from './referentiel'
 import { catalogueStations } from './catalogue'
 import { squash } from './places'
+import { domainSlopesOf } from './pistes'
 
 /** Au-delà, on sort du référentiel français ; la borne est un garde-fou, pas
  *  une pagination — l'écran de recherche filtre ensuite localement. */
@@ -131,7 +132,8 @@ function applyEngineOverlay(stations: Domain[], summaries: DomainSummary[]): Dom
       engineId: hit.id,
       glacier: station.glacier || hit.glacier === true,
       website: station.website ?? hit.official_website_url,
-      booking: station.booking ?? hit.official_booking_url
+      booking: station.booking ?? hit.official_booking_url,
+      slopes: domainSlopesOf(hit)
     }
   })
 }

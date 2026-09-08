@@ -175,15 +175,10 @@ const CATALOG = {
   filter_pass_range: ['Forfait 6 jours adulte', '6-day adult pass'],
   filter_lodg_budget_range: ['Budget du séjour', 'Stay budget'],
   /*
-   * « Distance aux pistes » supposait une mesure sur les tracés. Le filtre
-   * porte sur `lg.dist`, que le sidecar définit comme le point skiable le plus
-   * proche — piste **ou** gare de remontée. Le libellé dit maintenant cela, qui
-   * est vrai dans les deux cas ; la vignette, elle, nomme le point mesuré.
+   * Le filtre logements porte sur la gare aval (`dist_to_nearest_lift_m`),
+   * jamais sur un centroïde de domaine ni sur une piste absente.
    */
-  filter_lodg_dist_range: [
-    'Distance au point skiable le plus proche',
-    'Distance to the nearest skiable point'
-  ],
+  filter_lodg_dist_range: ['Distance aux remontées', 'Distance to the lifts'],
   range_no_limit: ['sans limite', 'no limit'],
   range_low: ['Borne basse', 'Lower bound'],
   range_high: ['Borne haute', 'Upper bound'],
@@ -365,7 +360,18 @@ const CATALOG = {
   rc_lodge_nophoto: ['Pas de photo', 'No photo'],
   rc_lodge_available: ['Disponible', 'Available'],
   rc_lodge_cap: ['{n} pers.', '{n} guests'],
+  rc_lodge_rooms_n: ['{n} ch.', '{n} bdrms'],
+  rc_lodge_fact_none: ['—', '—'],
   rc_lodge_dist: ['{m} m des pistes', '{m} m from the runs'],
+  rc_lodge_lifts: ['{d} des remontées', '{d} from the lifts'],
+  rc_lodge_lifts_fuzzy: ['{d} des remontées (point flou)', '{d} from the lifts (approx.)'],
+  rc_lodge_lifts_unit: ['des remontées', 'from the lifts'],
+  rc_lodge_alt_label: ['Altitude', 'Elevation'],
+  rc_lodge_alt_hint: [
+    'Altitude IGN au point de l’annonce, pas l’altitude de la station.',
+    'IGN elevation at the listing point, not the resort altitude.'
+  ],
+  rc_lodge_fuzzy: ['point flou', 'approximate location'],
   rc_lodge_dist_unknown: ['Distance aux pistes non mesurée', 'Distance to runs not measured'],
   rc_lodge_free_cancel: ['Annulation gratuite', 'Free cancellation'],
   rc_lodge_reserve: ['Réserver', 'Book'],
@@ -1423,6 +1429,10 @@ const CATALOG = {
   ],
   settings_key_set: ['Enregistrée', 'Stored'],
   settings_key_unset: ['Non renseignée', 'Not set'],
+  settings_key_serpapi_help: [
+    'Correspondance visuelle pour poser l’épingle exacte d’une annonce au cercle flou (Airbnb, Abritel) quand la même façade est publiée sur Gîtes ou Booking. Jamais le centre de la station. Variable SERPAPI_API_KEY en dev.',
+    'Visual match to pin the exact location of a listing inside its blur circle (Airbnb, Abritel) when the same façade is published on Gîtes or Booking. Never the resort centre. SERPAPI_API_KEY in dev.'
+  ],
   settings_save: ['Enregistrer', 'Save'],
   settings_delete: ['Effacer', 'Clear'],
   settings_routing: ['Fournisseur d’itinéraires', 'Routing provider'],
@@ -2329,7 +2339,92 @@ const CATALOG = {
   sky_snow: ['neige', 'snow'],
   sky_storm: ['orage', 'thunderstorm'],
   sky_variable: ['variable', 'variable'],
-  sky_unknown: ['—', '—']
+  sky_unknown: ['—', '—'],
+
+  // --- Mix de pistes (OpenSkiMap) ----------------------------------------
+  piste_unmapped: ['Pistes non recensées', 'Runs not mapped'],
+  piste_badge_curated: ['fiche station', 'resort sheet'],
+  piste_badge_partial: ['partiel', 'partial'],
+  piste_badge_osm: ['OSM', 'OSM'],
+  piste_bar_aria: [
+    '{v} vertes, {b} bleues, {r} rouges, {n} noires',
+    '{v} green, {b} blue, {r} red, {n} black'
+  ],
+  piste_tooltip: [
+    '{n} {color} · {pct} % des pistes cotées · {km} km',
+    '{n} {color} · {pct} % of graded runs · {km} km'
+  ],
+  piste_green: ['vertes', 'green'],
+  piste_blue: ['bleues', 'blue'],
+  piste_red: ['rouges', 'red'],
+  piste_black: ['noires', 'black'],
+  piste_expert: ['hors-piste coté', 'expert / extreme'],
+  piste_freeride: ['itinéraire', 'freeride'],
+  piste_unknown: ['non coté', 'ungraded'],
+  piste_park: ['snowpark', 'snowpark'],
+  piste_runs: ['pistes', 'runs'],
+  piste_mode_count: ['Nombre', 'Count'],
+  piste_mode_km: ['km', 'km'],
+  piste_mode_pct: ['%', '%'],
+  piste_badge_announced: ['km annoncés', 'listed km'],
+  piste_km_scaled_hint: [
+    '{announced} km annoncés, répartis selon OpenSkiMap ({osm} km cartographiés).',
+    '{announced} km listed, split from OpenSkiMap ({osm} km mapped).'
+  ],
+  piste_osm_link: ['OpenSkiMap', 'OpenSkiMap'],
+  piste_osm_attr: [
+    '© contributeurs OpenStreetMap / OpenSkiMap (ODbL)',
+    '© OpenStreetMap contributors / OpenSkiMap (ODbL)'
+  ],
+  piste_osm_tooltip: ['OSM : {n} pistes', 'OSM: {n} runs'],
+  piste_others: ['Autres', 'Other'],
+  piste_filter_title: ['Typologie des pistes', 'Run mix'],
+  piste_filter_help: [
+    'Les km par couleur sont la part OpenSkiMap appliquée au kilométrage annoncé de la fiche : leur somme est ce total. Filtrer en nombre de pistes, en km, ou en %.',
+    'Kilometres per colour are the OpenSkiMap share applied to the listed total, so the parts add up. Filter by run count, km, or %.'
+  ],
+  piste_filter_unit: ['Unité', 'Unit'],
+  piste_min_green: ['Au moins N vertes', 'At least N green'],
+  piste_min_blue: ['Au moins N bleues', 'At least N blue'],
+  piste_min_red: ['Au moins N rouges', 'At least N red'],
+  piste_min_black: ['Au moins N noires', 'At least N black'],
+  piste_min_other: ['Au moins N autres', 'At least N other'],
+  piste_preset_all: ['Tous', 'All'],
+  piste_preset_famille: ['Famille / débutant', 'Family / beginner'],
+  piste_preset_mixte: ['Mixte', 'Mixed'],
+  piste_preset_engage: ['Engagé', 'Challenging'],
+  piste_preset_expert: ['Expert', 'Expert'],
+  piste_hide_empty: ['Masquer les domaines pistes non recensées', 'Hide resorts with unmapped runs'],
+  piste_show_empty: ['Pistes non recensées visibles', 'Unmapped runs visible'],
+  piste_linked_note: [
+    'Forfait commun « {pass} » : les pistes des stations liées ne sont pas agrégées ici.',
+    'Shared pass “{pass}”: linked resorts’ runs are not aggregated here.'
+  ],
+  piste_profile: ['Profil', 'Profile'],
+  piste_table_color: ['Couleur', 'Colour'],
+  piste_table_count: ['Pistes', 'Runs'],
+  piste_table_km: ['km', 'km'],
+  piste_table_share: ['Part', 'Share'],
+  piste_table_total: ['Total', 'Total'],
+  piste_chip_famille: ['Famille', 'Family'],
+  piste_chip_mixte: ['Mixte', 'Mixed'],
+  piste_chip_engage: ['Engagé', 'Challenging'],
+  piste_chip_expert: ['Expert', 'Expert'],
+  piste_chip_black5: ['≥ 5 noires', '≥ 5 black'],
+  sort_piste_total_desc: ['Total pistes', 'Total runs'],
+  sort_piste_green_blue_share_desc: ['% vertes + bleues', '% green + blue'],
+  sort_piste_red_black_share_desc: ['% rouges + noires', '% red + black'],
+  sort_piste_black_desc: ['Nombre de noires', 'Black run count'],
+  sort_piste_brochure_delta: ['Écart brochure / OSM', 'Brochure vs OSM gap'],
+  rc_cmp_pistes: ['Mix pistes', 'Run mix'],
+  settings_piste_source: [
+    'Pistes : OpenSkiMap (ODbL), overlay manuel brochure. Un compte n’est pas un chiffre officiel de station.',
+    'Runs: OpenSkiMap (ODbL), optional brochure overlay. A count is not an official resort figure.'
+  ],
+  engine_ref_openskimap_help: [
+    'domaines, remontées et pistes alpines — OpenSkiMap, ~centaines de Mo au premier import',
+    'resorts, lifts and alpine runs — OpenSkiMap, hundreds of MB on first import'
+  ]
 } as const satisfies Record<string, Entry>
 
 export type TranslationKey = keyof typeof CATALOG

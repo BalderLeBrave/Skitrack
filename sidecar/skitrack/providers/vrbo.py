@@ -3,10 +3,14 @@ Provider VRBO
 """
 from urllib.parse import quote_plus
 
-from playwright.async_api import async_playwright
-from playwright_stealth import Stealth
-
 from .base import BaseProvider, LodgingResult, LodgingSearchParams
+
+try:
+    from playwright.async_api import async_playwright
+    from playwright_stealth import Stealth
+except ImportError:  # Chromium optionnel : le connecteur s'enregistre quand même
+    async_playwright = None
+    Stealth = None
 
 
 class VRBOProvider(BaseProvider):
@@ -19,6 +23,9 @@ class VRBOProvider(BaseProvider):
         respect_robots: bool = False
     ) -> list[LodgingResult]:
         results = []
+
+        if async_playwright is None:
+            raise RuntimeError("Playwright n'est pas installé")
 
         try:
             async with async_playwright() as p:

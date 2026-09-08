@@ -2128,10 +2128,23 @@ async function main(): Promise<void> {
   const airbnbStays = readFileSync(join(process.cwd(), 'scrape/airbnb/stays.py'), 'utf8')
   check('walk Airbnb lit pageCursors 2026', /next_search_cursor/.test(airbnbStays))
   heading('27. Booking stealth — Crawlbase puis 3 moteurs, isolés')
+  const bookingWorkerPy = readFileSync(join(process.cwd(), 'scrape/booking/worker.py'), 'utf8')
+  const bookingScraperPy = existsSync(join(process.cwd(), 'scrape/booking/scraper.py'))
+    ? readFileSync(join(process.cwd(), 'scrape/booking/scraper.py'), 'utf8')
+    : ''
+  const bookingLive = bookingWorkerPy + bookingScraperPy
   check(
-    'pas d’outils HTTP vendus',
-    !existsSync(join(process.cwd(), 'scrape/booking/tools/BookingScraper/booking.py')) &&
-      !existsSync(join(process.cwd(), 'scrape/booking/tools/booking.com_crawler/booking/booking.py'))
+    'le relevé live n’importe pas les clones Selenium (référence UI, gitignorés)',
+    !/tools\/booking\.com_crawler|tools\/bookingdotcom-scraper|BookingScraper\/booking/i.test(
+      bookingLive
+    )
+  )
+  check(
+    'porte CozyCozy → Booking (getResultList, jamais une source affichée)',
+    existsSync(join(process.cwd(), 'scrape/booking/door.py')) &&
+      existsSync(join(process.cwd(), 'scrape/booking/bridge.py')) &&
+      /Porte CozyCozy/.test(readFileSync(join(process.cwd(), 'scrape/booking/door.py'), 'utf8')) &&
+      /canonical_booking_url/.test(readFileSync(join(process.cwd(), 'scrape/booking/bridge.py'), 'utf8'))
   )
   const bookingDocker = readFileSync(join(process.cwd(), 'scrape/booking/Dockerfile'), 'utf8')
   check(
@@ -2161,7 +2174,7 @@ async function main(): Promise<void> {
   const bookingCfg = readFileSync(join(process.cwd(), 'scrape/booking/config.py'), 'utf8')
   check(
     'ordre des moteurs figé',
-    /ENGINE_ORDER = \("crawlbase", "scrapingbee", "invisible_playwright", "camoufox", "seleniumbase_uc"\)/.test(
+    /ENGINE_ORDER = \("omkar", "crawlbase", "scrapingbee", "invisible_playwright", "camoufox", "seleniumbase_uc"\)/.test(
       bookingCfg
     )
   )
@@ -2190,7 +2203,6 @@ async function main(): Promise<void> {
       readFileSync(join(process.cwd(), 'scrape/booking/urls.py'), 'utf8')
     )
   )
-  const bookingWorkerPy = readFileSync(join(process.cwd(), 'scrape/booking/worker.py'), 'utf8')
   check('worker Booking n’importe pas Playwright', !/^(?:from|import)\s+playwright/m.test(bookingWorkerPy))
   const providersTs = readFileSync(join(process.cwd(), 'src/main/providers/webscrape/providers.ts'), 'utf8')
   const stealthIdx = providersTs.indexOf('await scrapeBookingViaStealth')

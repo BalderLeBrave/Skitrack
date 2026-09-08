@@ -15,6 +15,8 @@ import { app } from 'electron'
 export interface CachedQuote {
   total: number | null
   unavailable?: boolean
+  latitude?: number
+  longitude?: number
 }
 
 const QUOTE_TTL_MS = 20 * 60 * 1000

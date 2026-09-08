@@ -254,6 +254,38 @@ def _round_for_precision(value: float | None, precision: str) -> float | None:
     return round(value, 1)
 
 
+def nearest_lift_base(
+    lat: float,
+    lon: float,
+    lifts: Iterable[Any],
+    _altitude_m: float | None = None,
+) -> tuple[NearestPoint | None, int | None]:
+    """Distance à la gare aval (`base_lat` / `base_lon`), pas au câble.
+
+    C'est la définition retenue pour l'affichage « X m des remontées ».
+    Sans coordonnées de gare, l'appelant retombe sur la géométrie.
+    """
+    best: NearestPoint | None = None
+    best_id: int | None = None
+    for entity in lifts:
+        base_lat = getattr(entity, "base_lat", None)
+        base_lon = getattr(entity, "base_lon", None)
+        if base_lat is None or base_lon is None:
+            continue
+        distance = haversine_m(lat, lon, float(base_lat), float(base_lon))
+        if best is not None and distance >= best.distance_m:
+            continue
+        elevation = getattr(entity, "elevation_min_m", None)
+        best = NearestPoint(
+            distance_m=distance,
+            lat=float(base_lat),
+            lon=float(base_lon),
+            elevation_m=float(elevation) if elevation is not None else None,
+        )
+        best_id = getattr(entity, "id", None)
+    return best, best_id
+
+
 # --- Point d'entrée ----------------------------------------------------------
 
 
@@ -299,6 +331,15 @@ def compute_access(
 
     slope_point, slope_id = scan(slopes, "slopes")
     lift_point, lift_id = scan(lifts, "lifts")
+    base_point, base_id = nearest_lift_base(lat, lon, lifts, altitude_m)
+
+    # Gare aval d'abord : c'est le point qu'un skieur vise à pied.
+    # La géométrie de la ligne n'est qu'un repli (télésiège au-dessus de la vallée).
+    if base_point is not None:
+        lift_point, lift_id = base_point, base_id
+        method_lift = "lift_base"
+    else:
+        method_lift = "lift_geometry"
 
     def denivele(point: NearestPoint | None) -> float | None:
         if point is None or point.elevation_m is None or altitude_m is None:
@@ -328,6 +369,7 @@ def compute_access(
     )
     result.computed_with = {
         "method": "openskimap_geometry",
+        "lift_method": method_lift,
         "precision": precision,
         "scanned": scanned,
         "altitude_known": altitude_m is not None,

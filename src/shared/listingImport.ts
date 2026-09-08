@@ -28,7 +28,7 @@ export type FieldProvenance =
 
 export type PriceUnit = 'night' | 'week' | 'stay' | 'unknown'
 export type ExtractionConfidence = 'high' | 'medium' | 'low' | 'none'
-export type GeoPrecision = 'exact' | 'approximate' | 'none'
+export type GeoPrecision = 'exact' | 'address' | 'approximate' | 'none'
 
 export interface FieldWithProvenance<T> {
   value: T

@@ -26,6 +26,9 @@ export interface RawCard {
    */
   lat?: number
   lon?: number
+  /** Adresse postale publiée (JSON-LD), jamais un titre. */
+  address?: string
+  city?: string
   /**
    * Ce que la page de résultats publie sur la taille du bien.
    *

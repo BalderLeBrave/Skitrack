@@ -18,6 +18,8 @@
  */
 import type { Language } from '@/i18n'
 import { translate } from '@/i18n'
+import type { AltitudeSource, CapacitySource, FieldQuality, LocationPrecision } from '@shared/canonicalListing'
+import { listingsLookSame } from './canonical'
 
 export interface LodgingTemplate {
   name: string
@@ -68,8 +70,8 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
    *  local ; absentes quand la source ne publie pas de position. */
   lat?: number
   lon?: number
-  /** 'exact' ou 'approximate' : Airbnb ne publie qu'une position floue. */
-  locPrecision?: 'exact' | 'approximate'
+  /** exact / address / approximate / unknown — Airbnb et Abritel = cercle flou. */
+  locPrecision?: LocationPrecision
   /**
    * Nombre de **pièces**, tel que la source l'annonce. Absent si elle se tait.
    *
@@ -232,7 +234,7 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
   /** Prix d'appel (« à partir de ») — jamais un total comparable. */
   priceIsFrom?: boolean
   priceFlags?: string[]
-  geoPrecision?: 'exact' | 'approximate' | 'none'
+  geoPrecision?: 'exact' | 'address' | 'approximate' | 'none'
   feesBreakdown?: {
     cleaning?: number
     touristTax?: number
@@ -242,6 +244,12 @@ export interface Lodging extends Omit<LodgingTemplate, 'altOff'> {
     depositRefundable?: boolean
     isComplete: boolean
   }
+  /** Provenance de l'altitude (IGN, jamais le texte d'annonce). */
+  altSource?: AltitudeSource
+  capacitySource?: CapacitySource
+  addressText?: string
+  commune?: string
+  fieldsQuality?: Partial<Record<'altitude_m' | 'bedrooms' | 'capacity_max' | 'dist_to_nearest_lift_m' | 'lat', FieldQuality>>
 }
 
 export const LODG_TYPES = ['Appartement', 'Chalet', 'Studio', 'Hôtel', 'Gîte', 'Import']
@@ -685,7 +693,34 @@ export function mergeDupes(list: Lodging[], enabled: boolean, demand = 0): Lodgi
       }
     }
   }
-  return out
+  if (!enabled) return out
+  return mergeCloseHomonyms(out, demand)
+}
+
+/**
+ * Second passage : même bien publié sous deux URLs, à moins de 40 m, noms proches.
+ * GPS flou et cartes d'une même source : on ne touche pas — le relevé reste intact.
+ */
+function mergeCloseHomonyms(list: Lodging[], demand: number): Lodging[] {
+  const kept: Lodging[] = []
+  for (const l of list) {
+    const twin = kept.find((k) => listingsLookSame(k, l))
+    if (!twin) {
+      kept.push(l)
+      continue
+    }
+    const incomingTotal = stayTotalForGuests(l, demand)
+    const keptTotal = stayTotalForGuests(twin, demand)
+    const incomingFit = occupancyMatchScore(l.pers, demand)
+    const keptFit = occupancyMatchScore(twin.pers, demand)
+    if (incomingFit < keptFit || (incomingFit === keptFit && incomingTotal > 0 && (keptTotal <= 0 || incomingTotal < keptTotal))) {
+      const dups = (twin.dups ?? []).concat([{ src: twin.src, total: twin.total }])
+      Object.assign(twin, l, { id: twin.id, dups, total: incomingTotal > 0 ? incomingTotal : l.total })
+    } else {
+      twin.dups = (twin.dups ?? []).concat([{ src: l.src, total: l.total }])
+    }
+  }
+  return kept
 }
 
 /**

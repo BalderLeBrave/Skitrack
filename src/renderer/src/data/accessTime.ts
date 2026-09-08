@@ -31,8 +31,9 @@ const WALK_M_PER_MIN = 50
  */
 const WALK_MAX_M = 1200
 
-/** En deçà, on est au pied des pistes : il n'y a pas de trajet à chiffrer. */
-const SKI_IN_MAX_M = 100
+/** En deçà, on est au pied des pistes : il n'y a pas de trajet à chiffrer.
+ *  Aligné sur le moteur (`SKI_IN_MAX_DIST_M` = 150 m). */
+const SKI_IN_MAX_M = 150
 
 /** Vitesse sur les routes d'une station en hiver : lentes, étroites, enneigées. */
 const DRIVE_KMH = 25

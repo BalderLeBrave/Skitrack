@@ -43,9 +43,16 @@ def test_map_ski_area_extracts_altitudes_and_places():
 def test_map_ski_area_aggregates_colors_from_european_convention():
     row = map_ski_area(SKI_AREA_TIGNES)
 
-    # novice -> vert, easy -> bleu, intermediate -> rouge, advanced+expert -> noir
-    assert row["slopes_count_by_color"] == {"vert": 58, "bleu": 173, "rouge": 91, "noir": 23}
-    assert row["slopes_km_by_color"]["noir"] == pytest.approx(22.27)
+    # novice -> green, easy -> blue, intermediate -> red, advanced -> black, expert -> expert
+    assert row["slopes_count_by_color"] == {
+        "green": 58,
+        "blue": 173,
+        "red": 91,
+        "black": 22,
+        "expert": 1,
+    }
+    assert row["slopes_km_by_color"]["black"] == pytest.approx(22.01)
+    assert row["slopes_report"]["quality"] == "complete"
     # Seules les pistes alpines comptent : les 1,97 km nordiques sont exclus.
     assert row["slopes_km_total"] == pytest.approx(207.65, abs=0.06)
 
@@ -142,4 +149,8 @@ def test_import_runs_keeps_downhill_and_skips_nordic(db, tmp_geojson):
     assert slope.difficulty == "intermediate"
     assert slope.snowmaking is True
     assert slope.geometry is not None
+    assert slope.geometry["type"] == "LineString"
     assert slope.elevation_min_m == 1850.0
+    with session_scope() as session:
+        domain = session.execute(select(SkiDomain)).scalar_one()
+    assert domain.slopes_count_by_color == {"red": 1}

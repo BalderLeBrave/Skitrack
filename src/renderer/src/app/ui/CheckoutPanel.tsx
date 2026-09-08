@@ -7,8 +7,9 @@
  */
 
 import { useState } from 'react'
+import { capacityMaxOf } from '@/data/canonical'
 import type { Lodging } from '@/data/lodgings'
-import { srcOf } from '@/data/lodgings'
+import { sizeLabel, srcOf } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import type { SejourCost } from '@/domain/costs'
 import { useFormat } from '@/hooks/useFormat'
@@ -33,6 +34,7 @@ export function CheckoutPanel({ lg, d, cost, nights, url, firm }: Props): JSX.El
   const [note, setNote] = useState('')
   const [copied, setCopied] = useState(false)
   const src = srcOf(lg)
+  const size = sizeLabel(lg, t)
 
   const recap = [
     `${t('rc_ck_title')} — ${d.name}`,
@@ -69,7 +71,7 @@ export function CheckoutPanel({ lg, d, cost, nights, url, firm }: Props): JSX.El
           <div><dt>{t('rc_sb_dates')}</dt><dd data-testid="checkout-dates">{fmtStay(state.arrDate, state.depDate)} · {t('dp_nights').replace('{n}', String(nights))}</dd></div>
           <div><dt>{t('nav_travelers')}</dt><dd data-testid="checkout-travelers">{state.travelers}</dd></div>
           <div><dt>{t('sb_rooms')}</dt><dd>{state.rooms === 0 ? t('sb_rooms_any') : state.rooms}</dd></div>
-          <div><dt>{t('rc_ck_lodging')}</dt><dd>{lg.name} · {lg.type}{lg.ch ? ` · ${lg.ch} ch` : ''} · {t('rc_lodge_cap').replace('{n}', String(lg.pers))}</dd></div>
+          <div><dt>{t('rc_ck_lodging')}</dt><dd>{lg.name} · {lg.type}{size ? ` · ${size}` : ''}{capacityMaxOf(lg) != null ? ` · ${t('rc_lodge_cap').replace('{n}', String(capacityMaxOf(lg)))}` : ''}</dd></div>
           <div><dt>{t('rc_ck_source')}</dt><dd data-testid="checkout-source">{src}</dd></div>
         </dl>
         <table className="rc-ck__total" data-testid="checkout-total">

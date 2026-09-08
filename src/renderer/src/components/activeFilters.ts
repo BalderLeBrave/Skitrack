@@ -47,7 +47,15 @@ export const FILTER_DEFAULTS = {
   avoidTolls: false,
   massifs: [] as string[],
   glacier: false,
-  linked: false
+  linked: false,
+  pisteMinGreen: 0,
+  pisteMinBlue: 0,
+  pisteMinRed: 0,
+  pisteMinBlack: 0,
+  pisteMinOther: 0,
+  pistePreset: 'all' as const,
+  pisteHideEmpty: false,
+  pisteFilterUnit: 'count' as const
 } satisfies Partial<AppState>
 
 export interface ActiveFilter {
@@ -98,6 +106,17 @@ export function useActiveFilters(): { active: ActiveFilter[]; resetAll: () => vo
   }
   if (state.glacier) add('glacier', t('filter_glacier'), { glacier: false })
   if (state.linked) add('linked', t('filter_linked'), { linked: false })
+  const unit = state.pisteFilterUnit ?? 'count'
+  const unitSuffix = unit === 'km' ? ' km' : unit === 'pct' ? ' %' : ''
+  if (state.pisteMinGreen) add('pisteGreen', `${t('piste_min_green')} ≥ ${state.pisteMinGreen}${unitSuffix}`, { pisteMinGreen: 0 })
+  if (state.pisteMinBlue) add('pisteBlue', `${t('piste_min_blue')} ≥ ${state.pisteMinBlue}${unitSuffix}`, { pisteMinBlue: 0 })
+  if (state.pisteMinRed) add('pisteRed', `${t('piste_min_red')} ≥ ${state.pisteMinRed}${unitSuffix}`, { pisteMinRed: 0 })
+  if (state.pisteMinBlack) add('pisteBlack', `${t('piste_min_black')} ≥ ${state.pisteMinBlack}${unitSuffix}`, { pisteMinBlack: 0 })
+  if (state.pisteMinOther) add('pisteOther', `${t('piste_min_other')} ≥ ${state.pisteMinOther}${unitSuffix}`, { pisteMinOther: 0 })
+  if (state.pistePreset !== 'all') {
+    add('pistePreset', t(`piste_preset_${state.pistePreset}` as 'piste_preset_famille'), { pistePreset: 'all' })
+  }
+  if (state.pisteHideEmpty) add('pisteHideEmpty', t('piste_hide_empty'), { pisteHideEmpty: false })
 
   return { active, resetAll: () => patch({ ...FILTER_DEFAULTS }) }
 }

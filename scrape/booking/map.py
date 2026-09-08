@@ -45,6 +45,10 @@ BLOCKED = re.compile(
     re.I,
 )
 PRICE_RE = re.compile(r"(\d[\d\s\u00a0\u202f.,]*)\s*(?:€|&euro;|EUR)", re.I)
+ATLAS_RE = re.compile(
+    r'data-atlas-latlng="\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*"',
+    re.I,
+)
 CARD_SPLIT = re.compile(
     r'(?=<div[^>]*(?:data-testid="(?:property-card(?:-container)?|sr-property-card)"|data-hotel-id=))',
     re.I,
@@ -172,6 +176,19 @@ def _price_from_node(node: dict[str, Any]) -> tuple[float | None, str | None]:
     return None, None
 
 
+def _plausible(lat: Any, lon: Any) -> bool:
+    """Un couple utilisable. `(0, 0)` est un SkiLift Apollo vide, pas un chalet."""
+    if isinstance(lat, bool) or isinstance(lon, bool):
+        return False
+    if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+        return False
+    if lat != lat or lon != lon:
+        return False
+    if not (-90.0 <= float(lat) <= 90.0 and -180.0 <= float(lon) <= 180.0):
+        return False
+    return not (float(lat) == 0.0 and float(lon) == 0.0)
+
+
 def _walk_apollo(node: Any, positions: dict, occupancy: dict, props: dict) -> None:
     if node is None or not isinstance(node, (dict, list)):
         return
@@ -183,12 +200,11 @@ def _walk_apollo(node: Any, positions: dict, occupancy: dict, props: dict) -> No
     loc = node.get("location") if isinstance(node.get("location"), dict) else None
     if isinstance(page, str):
         slot = props.get(page) or {}
-        if loc and isinstance(loc.get("latitude"), (int, float)) and isinstance(loc.get("longitude"), (int, float)):
+        if loc and _plausible(loc.get("latitude"), loc.get("longitude")):
             lat, lon = float(loc["latitude"]), float(loc["longitude"])
-            if lat or lon:
-                positions[page] = {"lat": lat, "lon": lon}
-                slot["lat"] = lat
-                slot["lon"] = lon
+            positions[page] = {"lat": lat, "lon": lon}
+            slot["lat"] = lat
+            slot["lon"] = lon
         occu = node.get("occupancy") if isinstance(node.get("occupancy"), dict) else {}
         max_p = occu.get("maxPersons") or occu.get("maxGuests") or node.get("maxPersons") or node.get("numberOfGuests")
         if isinstance(max_p, (int, float)) and 0 < max_p <= 50:
@@ -535,6 +551,12 @@ def listings_from_html(
         slug = _slug(url)
         extra = occupancy.get(slug or "", {})
         pos = positions.get(slug or "", {})
+        if not _plausible(pos.get("lat"), pos.get("lon")):
+            atlas = ATLAS_RE.search(chunk)
+            if atlas and _plausible(float(atlas.group(1)), float(atlas.group(2))):
+                pos = {"lat": float(atlas.group(1)), "lon": float(atlas.group(2))}
+            else:
+                pos = {}
         property_type = extra.get("type") or (type_hint if 2 <= len(type_hint) < 48 and not type_hint[:1].isdigit() else None)
         if is_dropped_listing(property_type) or is_dropped_listing(title):
             continue

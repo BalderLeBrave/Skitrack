@@ -6,13 +6,13 @@
 import { useNavigate } from 'react-router-dom'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import type { Lodging } from '@/data/lodgings'
-import { sizeLabel, srcOf } from '@/data/lodgings'
+import { srcOf } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { listingUrlWithStay } from '@/data/deeplinks'
-import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { PATHS } from '../router'
+import { LodgeFacts } from './LodgeFacts'
 import { PriceFirm } from './PriceFirm'
 
 interface Props {
@@ -27,14 +27,12 @@ interface Props {
 
 export function LodgeCard({ lg, d, nights, badges = [], fallback = null }: Props): JSX.Element {
   const { state, patch } = useApp()
-  const { fmt } = useFormat()
   const { t } = useI18n()
   const navigate = useNavigate()
 
   const stay = { checkIn: state.arrDate, checkOut: state.depDate }
   const verdict = availabilityOf(lg, stay)
   const src = srcOf(lg)
-  const size = sizeLabel(lg, t)
   const measured = lg.accessComputed === true
   const criteria = { domainName: d.name, arrDate: state.arrDate, depDate: state.depDate, travelers: state.travelers, rooms: state.rooms }
   const url = lg.url ? listingUrlWithStay(lg.url, src, criteria) : null
@@ -67,16 +65,11 @@ export function LodgeCard({ lg, d, nights, badges = [], fallback = null }: Props
       <div className="rc-lodge__body">
         <div className="rc-lodge__head">
           <strong className="rc-lodge__name" title={lg.name}>{lg.name}</strong>
-          <span className="rc-lodge__sub">
-            {lg.type}
-            {size ? ` · ${size}` : ''}
-            {lg.pers > 0 ? ` · ${t('rc_lodge_cap').replace('{n}', String(lg.pers))}` : ''}
-          </span>
+          <span className="rc-lodge__sub">{lg.type || src}</span>
         </div>
+        <LodgeFacts lg={lg} />
         <ul className="rc-lodge__facts">
           {measured && lg.skiIn && <li>{t('badge_ski_in')}</li>}
-          {measured && !lg.skiIn && lg.dist > 0 && <li className="crn-releve">{t('rc_lodge_dist').replace('{m}', fmt(lg.dist))}</li>}
-          {!measured && <li className="rc-muted">{t('rc_lodge_dist_unknown')}</li>}
           {lg.priceIsFrom && <li className="rc-muted">{t('import_call_price')}</li>}
           {!lg.priceIsFrom &&
             Boolean(lg.priceFlags?.some((f) => f === 'incomplete_fees' || f === 'unit_mismatch' || f === 'unit_unknown')) && (

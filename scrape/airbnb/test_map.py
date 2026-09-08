@@ -56,6 +56,16 @@ def test_stay_to_listing_total_seulement():
     assert "check_in=2027-02-06" in row["url"]
 
 
+def test_zero_zero_n_est_pas_un_logement():
+    rec = _stay()
+    rec["demandStayListing"]["location"]["coordinate"] = {"latitude": 0, "longitude": 0}
+    row = stay_to_listing(rec, check_in="2027-02-06", check_out="2027-02-13", adults=8)
+    assert row is not None
+    assert row["lat"] is None
+    assert row["lon"] is None
+    assert row["total"] == 2215
+
+
 def test_stay_to_listing_sans_total_est_vide():
     rec = _stay(structuredDisplayPrice={"primaryLine": {"accessibilityLabel": "89 € / nuit"}})
     assert stay_to_listing(rec, check_in="2027-02-06", check_out="2027-02-13", adults=8) is None

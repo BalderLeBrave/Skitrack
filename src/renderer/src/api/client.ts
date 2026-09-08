@@ -115,8 +115,12 @@ export const api = {
    * User-Agent identifiant. Passer par lui évite d'ouvrir la CSP du renderer
    * sur deux hôtes de plus, et garde ces règles à un seul endroit.
    */
-  geocode: (q: string, limit = 5) =>
-    request<GeocodeResult[]>(`/api/geo/geocode?q=${encodeURIComponent(q)}&limit=${limit}`),
+  geocode: (q: string, limit = 5, bias?: { lat?: number; lon?: number }) => {
+    const params = new URLSearchParams({ q, limit: String(limit) })
+    if (typeof bias?.lat === 'number') params.set('lat', String(bias.lat))
+    if (typeof bias?.lon === 'number') params.set('lon', String(bias.lon))
+    return request<GeocodeResult[]>(`/api/geo/geocode?${params}`)
+  },
 
   origins: () => request<Origin[]>('/api/geo/origins'),
 

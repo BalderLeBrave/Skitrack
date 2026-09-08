@@ -96,6 +96,12 @@ class DomainSummaryOut(BaseModel):
     slopes_km_total: float | None = None
     slopes_km_by_color: dict[str, float] | None = None
     slopes_count_by_color: dict[str, int] | None = None
+    slopes_count_total: int | None = None
+    slopes_count_alpine_classic: int | None = None
+    slopes_quality: str | None = None
+    slopes_source: str | None = None
+    slopes_osm_total: int | None = None
+    slopes_computed_at: str | None = None
     lifts_count: int | None = None
     glacier: bool | None = None
     snowmaking_pct: int | None = None

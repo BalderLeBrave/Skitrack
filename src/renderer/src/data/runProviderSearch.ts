@@ -27,6 +27,8 @@
 import type { ProviderAccommodation, ProviderOutcome } from '@shared/ipc-contract'
 import { formatStationRun, type StationRunLog, type StationRunSource } from '@shared/searchWalk'
 import { comparableStayTotal } from '@shared/stayPrice'
+import { locationPrecisionOf } from '@shared/canonicalListing'
+import { coordsUsable } from '@shared/geo'
 import type { Lodging } from './lodgings'
 import { CENTRALE_SOURCE, listingKey, listingKeyFromUrl, srcOf } from './lodgings'
 import { isDroppedGitesOffer } from './lodgingFilter'
@@ -62,6 +64,7 @@ const SOURCE_LABEL: Record<string, string> = {
   'vrbo-web': 'Abritel',
   liteapi: 'LiteAPI',
   airbnb: 'Airbnb',
+  osm: 'OpenStreetMap',
   'station-web': CENTRALE_SOURCE,
   'ceto-chamonix': CENTRALE_SOURCE,
   'ceto-meribel': CENTRALE_SOURCE,
@@ -189,6 +192,7 @@ function toLodging(
   const publishedGuests = a.guests && a.guests > 0 ? a.guests : 0
   const pp = Math.round((total / nights / Math.max(1, publishedGuests || params.adults)) * 10) / 10
   const image = a.images?.[0] ?? null
+  const hasGeo = coordsUsable(a.latitude, a.longitude)
 
   return {
     id: idFromUrl(a.url),
@@ -198,7 +202,7 @@ function toLodging(
     fitsGuests: params.adults > 0 ? params.adults : undefined,
     availabilityStatus: 'available',
     searchPageIndex: a.searchPageIndex,
-    distanceStatus: a.latitude != null && a.longitude != null ? undefined : 'no_gps',
+    distanceStatus: hasGeo ? undefined : 'no_gps',
     ch: a.bedrooms ?? 0,
     rooms: a.rooms != null && a.rooms > 0 ? a.rooms : undefined,
     priceOptions: a.priceOptions?.length ? a.priceOptions : undefined,
@@ -223,9 +227,11 @@ function toLodging(
     stock: 0,
     url: a.url,
     image,
-    lat: a.latitude,
-    lon: a.longitude,
-    locPrecision: a.latitude != null ? 'exact' : undefined,
+    lat: hasGeo ? a.latitude : undefined,
+    lon: hasGeo ? a.longitude : undefined,
+    locPrecision: locationPrecisionOf(a.source, hasGeo),
+    addressText: a.address?.trim() || undefined,
+    commune: a.city?.trim() || undefined,
     importDomainId: params.domainId,
     scannedAt: Date.now(),
     priceCheckIn: a.checkIn || params.checkIn,

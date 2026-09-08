@@ -13,6 +13,10 @@ class GeocodeResult(BaseModel):
     city: str | None = None
     postcode: str | None = None
     provider: str
+    kind: str | None = Field(
+        default=None,
+        description="Type BAN : housenumber / street / locality / municipality. Jamais une précision 'exact'.",
+    )
 
 
 class OriginIn(BaseModel):

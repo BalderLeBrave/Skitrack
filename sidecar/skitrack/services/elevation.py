@@ -29,6 +29,25 @@ IGN_RESOURCE = "ign_rge_alti_wld"
 IGN_MAX_POINTS = 500  # l'API en accepte 5 000, on reste prudent sur la taille d'URL
 IGN_NODATA = -99999.0
 
+# Point de contrôle Val Thorens (gare aval Péclet) : altitude IGN attendue.
+# Fixture : docs/ANNONCES.md + sidecar/tests/test_elevation.py.
+VT_IGN_LAT = 45.2976
+VT_IGN_LON = 6.5850
+VT_IGN_ALT_M = 2304.0
+
+
+def parse_ign_elevations(data: dict | None, expected: int) -> list[float | None]:
+    """Traduit la réponse IGN. Un z NODATA ou un compte décalé → None, jamais 0."""
+    out: list[float | None] = []
+    for item in (data or {}).get("elevations", []):
+        z = item.get("z")
+        out.append(None if z is None or float(z) <= IGN_NODATA else float(z))
+    if len(out) != expected:
+        log.warning("IGN : %d altitudes pour %d points demandés", len(out), expected)
+        return [None] * expected
+    return out
+
+
 OPENTOPO_URL = "https://api.opentopodata.org/v1/{dataset}"
 OPENTOPO_DATASETS = ("eudem25m", "srtm30m")
 OPENTOPO_MAX_POINTS = 100
@@ -53,15 +72,7 @@ async def _ign_batch(points: list[tuple[float, float]]) -> list[float | None]:
         params=params,
         min_interval_s=0.25,  # 5 req/s autorisées, on prend 4
     )
-    out: list[float | None] = []
-    for item in (data or {}).get("elevations", []):
-        z = item.get("z")
-        out.append(None if z is None or float(z) <= IGN_NODATA else float(z))
-    # L'API garantit l'ordre ; si le compte ne tombe pas juste, on préfère renvoyer
-    # des trous plutôt que de décaler silencieusement les altitudes.
-    if len(out) != len(points):
-        log.warning("IGN : %d altitudes pour %d points demandés", len(out), len(points))
-        return [None] * len(points)
+    out = parse_ign_elevations(data, len(points))
     return out
 
 

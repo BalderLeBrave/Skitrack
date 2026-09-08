@@ -126,7 +126,20 @@ export function extractBookingCards(): RawCard[] {
     const img = cardPhoto(root)
     // Position du bien : jointure avec le magasin Apollo par le slug de l'URL.
     const slug = href.match(/\/hotel\/[a-z]{2}\/([^./?#]+)/i)?.[1]
-    const pos = slug ? positions[slug] : undefined
+    let pos = slug ? positions[slug] : undefined
+    if (!pos) {
+      const atlas =
+        root.getAttribute('data-atlas-latlng') ||
+        (root.querySelector('[data-atlas-latlng]') as HTMLElement | null)?.getAttribute('data-atlas-latlng')
+      const parts = atlas?.split(',')
+      if (parts && parts.length >= 2) {
+        const lat = Number(parts[0])
+        const lon = Number(parts[1])
+        if (Number.isFinite(lat) && Number.isFinite(lon) && (lat !== 0 || lon !== 0)) {
+          pos = { lat, lon }
+        }
+      }
+    }
     const extra = slug ? occupancy[slug] : undefined
 
     /*

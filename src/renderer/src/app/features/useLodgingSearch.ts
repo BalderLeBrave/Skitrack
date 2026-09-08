@@ -19,6 +19,7 @@ import {
   sourceLabelOf,
   sourceStatuses
 } from '@/data/runProviderSearch'
+import { keepUncoveredOsmCards, OSM_SOURCE, osmSearchParamsOf, runOsmLodgings } from '@/data/osmLodgings'
 import { domainRadiusKm, domainZone } from '@shared/geo'
 import { useI18n } from '@/i18n'
 import { stayCriteriaReady, useApp } from '@/state/appState'
@@ -84,7 +85,7 @@ export function useLodgingSearch(): { searchError: string | null; elapsedSec: nu
       }
     })
     try {
-      const [airbnb, others] = await Promise.allSettled([
+      const [airbnb, others, osm] = await Promise.allSettled([
         runAirbnbSearch({
           domainId: d.id,
           engineDomainId: d.engineId,
@@ -100,18 +101,32 @@ export function useLodgingSearch(): { searchError: string | null; elapsedSec: nu
           imported: state.imported,
           zone: hasCoords(d) ? domainZone(d) : null
         }),
-        runProviderSearch(searchParams)
+        runProviderSearch(searchParams),
+        hasCoords(d)
+          ? runOsmLodgings(
+              osmSearchParamsOf(d, {
+                checkIn: state.arrDate,
+                checkOut: state.depDate,
+                adults: state.travelers,
+                children: state.children
+              })
+            )
+          : Promise.resolve([] as Lodging[])
       ])
       const ok = airbnb.status === 'fulfilled' && airbnb.value.ok ? airbnb.value : null
       const base: Lodging[] = ok ? ok.imported : state.imported
       const otherLodgings = others.status === 'fulfilled' ? others.value.lodgings : progressive
+      const osmCards = osm.status === 'fulfilled' ? osm.value : []
       const outcomes = others.status === 'fulfilled' ? others.value.outcomes : progressiveOutcomes
       const airbnbLabel = sourceLabelOf('airbnb')
       const queried = [
         airbnbLabel,
+        ...(hasCoords(d) ? [OSM_SOURCE] : []),
         ...(others.status === 'fulfilled' ? outcomes.map((o) => o.source) : state.lodgQueried)
       ].filter((v, i, a) => Boolean(v) && a.indexOf(v) === i)
-      const merged = mergeProviderReadings(base, otherLodgings)
+      const mergedPriced = mergeProviderReadings(base, otherLodgings)
+      const uncoveredOsm = keepUncoveredOsmCards(mergedPriced, osmCards)
+      const merged = mergeProviderReadings(mergedPriced, uncoveredOsm)
       const ofDomain = merged.filter((l) => belongsToDomain(l, d) && typeof l.lat === 'number' && typeof l.lon === 'number')
       let imported = merged
       if (ofDomain.length > 0) {
@@ -119,7 +134,7 @@ export function useLodgingSearch(): { searchError: string | null; elapsedSec: nu
         const byId = new Map(enriched.map((l) => [l.id, l]))
         imported = merged.map((l) => byId.get(l.id) ?? l)
       }
-      if (!ok && otherLodgings.length === 0) {
+      if (!ok && otherLodgings.length === 0 && uncoveredOsm.length === 0) {
         const why = [
           airbnb.status === 'rejected' ? String(airbnb.reason) : airbnb.value.ok ? null : airbnb.value.error,
           others.status === 'rejected' ? String(others.reason) : null,

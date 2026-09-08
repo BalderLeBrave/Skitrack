@@ -56,7 +56,7 @@ class GitesSpider(scrapy.Spider):
             return
         if not keep_gite(ident=str(q.get("ident") or ""), url=card["url"]):
             return
-        yield {
+        row = {
             "source": "gites-web",
             "sourceId": card["sourceId"],
             "title": card.get("title"),
@@ -70,3 +70,11 @@ class GitesSpider(scrapy.Spider):
             "checkIn": self.check_in,
             "checkOut": self.check_out,
         }
+        lat = q.get("latitude") if q.get("latitude") is not None else card.get("latitude")
+        lon = q.get("longitude") if q.get("longitude") is not None else card.get("longitude")
+        if lat is not None and lon is not None:
+            row["latitude"] = lat
+            row["longitude"] = lon
+        if q.get("city") or card.get("city"):
+            row["city"] = card.get("city") or q.get("city")
+        yield row

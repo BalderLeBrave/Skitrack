@@ -27,6 +27,19 @@ GUESTS_RE = re.compile(
 BEDROOMS_RE = re.compile(r"(\d+)\s*(?:chambres?|bedrooms?|ch\b)", re.I)
 
 
+def _plausible_point(lat: Any, lon: Any) -> bool:
+    """Un couple utilisable. `(0, 0)` n'est jamais un logement."""
+    if isinstance(lat, bool) or isinstance(lon, bool):
+        return False
+    if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+        return False
+    if lat != lat or lon != lon:
+        return False
+    if not (-90.0 <= float(lat) <= 90.0 and -180.0 <= float(lon) <= 180.0):
+        return False
+    return not (float(lat) == 0.0 and float(lon) == 0.0)
+
+
 def _fold(text: str) -> str:
     import unicodedata
 
@@ -276,6 +289,8 @@ def stay_to_listing(
     coord = loc.get("coordinate") if isinstance(loc.get("coordinate"), dict) else {}
     lat = coord.get("latitude") if isinstance(coord.get("latitude"), (int, float)) else None
     lon = coord.get("longitude") if isinstance(coord.get("longitude"), (int, float)) else None
+    if not _plausible_point(lat, lon):
+        lat, lon = None, None
     url = f"https://www.airbnb.fr/rooms/{listing_id}"
     if check_in:
         url += f"?check_in={check_in}"

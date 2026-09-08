@@ -225,6 +225,106 @@ export function FilterPanel(): JSX.Element {
         </label>
       </details>
 
+      <details className="filters__section filters__details" data-testid="filter-pistes">
+        <summary>
+          {t('piste_filter_title')}{' '}
+          <span className="filters__summary">
+            {state.pistePreset === 'all' &&
+            !state.pisteMinGreen &&
+            !state.pisteMinBlue &&
+            !state.pisteMinRed &&
+            !state.pisteMinBlack &&
+            !state.pisteMinOther
+              ? t('none_fem')
+              : [
+                  state.pisteFilterUnit !== 'count' ? t(`piste_mode_${state.pisteFilterUnit}` as 'piste_mode_km') : null,
+                  state.pistePreset !== 'all' ? t(`piste_preset_${state.pistePreset}` as 'piste_preset_famille') : null,
+                  state.pisteMinBlack ? `N≥${state.pisteMinBlack}` : null
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || t('piste_profile')}
+          </span>
+        </summary>
+        <p className="filters__help">{t('piste_filter_help')}</p>
+        <fieldset className="filters__radios" data-testid="filter-piste-unit">
+          <legend>{t('piste_filter_unit')}</legend>
+          {(['count', 'km', 'pct'] as const).map((u) => (
+            <label key={u} className="check">
+              <input
+                type="radio"
+                name="piste-unit"
+                checked={(state.pisteFilterUnit ?? 'count') === u}
+                onChange={() => patch({ pisteFilterUnit: u })}
+                data-testid={`filter-piste-unit-${u}`}
+              />
+              {t(`piste_mode_${u}` as 'piste_mode_count')}
+            </label>
+          ))}
+        </fieldset>
+        {([
+          ['pisteMinGreen', 'piste_min_green'],
+          ['pisteMinBlue', 'piste_min_blue'],
+          ['pisteMinRed', 'piste_min_red'],
+          ['pisteMinBlack', 'piste_min_black'],
+          ['pisteMinOther', 'piste_min_other']
+        ] as const).map(([key, label]) => {
+          const value = state[key]
+          const on = value > 0
+          const unit = state.pisteFilterUnit ?? 'count'
+          const max = unit === 'pct' ? 100 : unit === 'km' ? 400 : 80
+          const suffix = unit === 'km' ? 'km' : unit === 'pct' ? '%' : t('piste_runs')
+          return (
+            <label key={key} className="check" style={{ marginTop: 8 }}>
+              <input
+                type="checkbox"
+                checked={on}
+                onChange={(e) => patch({ [key]: e.target.checked ? Math.max(1, value) : 0 })}
+                data-testid={`filter-${key}`}
+              />
+              {t(label)}
+              {on && (
+                <>
+                  <input
+                    type="number"
+                    min={1}
+                    max={max}
+                    value={value}
+                    className="filters__num"
+                    data-testid={`filter-${key}-n`}
+                    onChange={(e) => patch({ [key]: Math.min(max, Math.max(1, Number(e.target.value) || 1)) })}
+                  />
+                  <span className="filters__unit">{suffix}</span>
+                </>
+              )}
+            </label>
+          )
+        })}
+        <fieldset className="filters__radios">
+          <legend>{t('piste_profile')}</legend>
+          {(['all', 'famille', 'mixte', 'engage', 'expert'] as const).map((p) => (
+            <label key={p} className="check">
+              <input
+                type="radio"
+                name="piste-preset"
+                checked={state.pistePreset === p}
+                onChange={() => patch({ pistePreset: p })}
+                data-testid={`filter-piste-preset-${p}`}
+              />
+              {t(`piste_preset_${p}` as 'piste_preset_all')}
+            </label>
+          ))}
+        </fieldset>
+        <label className="check" style={{ marginTop: 10 }}>
+          <input
+            type="checkbox"
+            checked={state.pisteHideEmpty}
+            onChange={(e) => patch({ pisteHideEmpty: e.target.checked })}
+            data-testid="filter-piste-hide-empty"
+          />
+          {t('piste_hide_empty')}
+        </label>
+      </details>
+
       <button type="button" className="btn btn--strong" onClick={resetAll}>
         {t('filter_reset')}
       </button>

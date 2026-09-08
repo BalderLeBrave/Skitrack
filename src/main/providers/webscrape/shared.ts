@@ -318,6 +318,7 @@ export function baseAccommodation(
     currency?: string
     latitude?: number
     longitude?: number
+    address?: string
     city?: string
     rating?: number
     reviewCount?: number
@@ -348,6 +349,7 @@ export function baseAccommodation(
     url: partial.url,
     latitude: partial.latitude,
     longitude: partial.longitude,
+    address: partial.address,
     // Ni ville ni pays inventés. Écrire `city: params.destination` faisait dire
     // « Val Thorens » à une annonce que la source avait trouvée ailleurs, et
     // « FR » à un logement dont personne n'avait vérifié le pays : c'est

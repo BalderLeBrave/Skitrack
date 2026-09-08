@@ -5,7 +5,9 @@
  */
 
 import { Link } from 'react-router-dom'
+import { PisteMixBar } from '@/components/PisteMixBar'
 import { massifPhoto, stationPhoto } from '@/components/photos'
+import { domainSlopesOf } from '@/data/pistes'
 import type { Domain } from '@/data/referentiel'
 import { creditPhoto } from '@/data/stationPhotos'
 import { snowDepths } from '@/data/weather'
@@ -86,6 +88,7 @@ export function StationCard({ d, onLodgings }: Props): JSX.Element {
             </dd>
           </div>
         </dl>
+        <PisteMixBar slopes={domainSlopesOf(d)} announcedKm={d.km} compact mode={state.pisteMixMode} />
         <div className="rc-stcard__foot">
           <label className="rc-check" data-testid={`station-card-compare-${d.id}`}>
             <input type="checkbox" checked={checked} onChange={toggleCompare} />

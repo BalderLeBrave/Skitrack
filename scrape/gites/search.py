@@ -120,6 +120,14 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             row["images"] = [q["photo"]]
         if q.get("ident"):
             row["ident"] = q["ident"]
+        # Pin OSM de la fiche (JSON-LD ITEA / #map-accommodation), pas le centroïde SERP.
+        if q.get("latitude") is not None and q.get("longitude") is not None:
+            row["latitude"] = q["latitude"]
+            row["longitude"] = q["longitude"]
+        if q.get("city") and not row.get("city"):
+            row["city"] = q["city"]
+        if q.get("address") and not row.get("address"):
+            row["address"] = q["address"]
         hits.append(row)
 
     out = {

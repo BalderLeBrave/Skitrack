@@ -32,7 +32,6 @@ def test_distance_mesuree_au_segment_pas_au_sommet():
     classerait le logement en navette au lieu de skis aux pieds.
     """
     piste = Tracé(1, [[6.5800, 45.2970], [6.5890, 45.2970]])
-    # Point centré en longitude, décalé de 0,0005° en latitude ≈ 55 m.
     point = nearest_point_on_geometry(45.29750, 6.58450, piste.geometry)
 
     assert point is not None
@@ -45,18 +44,10 @@ def test_altitude_interpolee_le_long_du_segment():
     point = nearest_point_on_geometry(45.2970, 6.5850, piste.geometry)
 
     assert point is not None
-    # À mi-segment, l'altitude doit être à mi-chemin — pas celle d'un sommet.
     assert point.elevation_m == pytest.approx(2200.0, abs=5)
 
 
 def test_denivele_signe_et_montee_qui_disqualifie_le_skis_aux_pieds():
-    """Onze mètres de la piste, mais cinquante-cinq à remonter.
-
-    Le cas qu'un seuil de distance seul classerait « skis aux pieds » à tort :
-    le logement est à onze mètres du tracé et cinquante-cinq mètres en dessous.
-    En pratique on rentre à pied, donc navette — c'est exactement ce que le
-    plafond de dénivelé sert à attraper.
-    """
     piste = Tracé(1, [[6.5800, 45.2975, 2310.0], [6.5900, 45.2975, 2400.0]])
     result = compute_access(lat=45.29740, lon=6.58500, altitude_m=2300.0, slopes=[piste])
 
@@ -67,7 +58,6 @@ def test_denivele_signe_et_montee_qui_disqualifie_le_skis_aux_pieds():
 
 
 def test_logement_plus_haut_que_la_piste_nest_pas_penalise():
-    """Descendre le matin ne coûte rien ; c'est la remontée du soir qui pèse."""
     assert classify_access(120.0, -80.0, None) == "skis_aux_pieds"
     assert classify_access(120.0, 80.0, None) == "navette"
 
@@ -77,6 +67,29 @@ def test_seuils_de_qualification():
     assert classify_access(600.0, 5.0, 900.0) == "navette"
     assert classify_access(2500.0, 5.0, 3000.0) == "voiture"
     assert classify_access(None, None, None) is None
+
+
+def test_distance_a_la_gare_aval_pas_au_cable():
+    """Le logement est sous le câble mais à ~390 m de la gare aval.
+
+    L'UI dit « des remontées » : c'est la gare qu'on rejoint à pied.
+    """
+
+    class Lift:
+        def __init__(self):
+            self.id = 7
+            self.base_lat = 45.2970
+            self.base_lon = 6.5800
+            self.elevation_min_m = 1800.0
+            self.geometry = {
+                "type": "LineString",
+                "coordinates": [[6.5800, 45.2970, 1800.0], [6.5900, 45.2970, 2200.0]],
+            }
+
+    result = compute_access(lat=45.29715, lon=6.5850, altitude_m=1790.0, lifts=[Lift()])
+    assert result.dist_to_nearest_lift_m == pytest.approx(390, abs=40)
+    assert result.nearest_lift_id == 7
+    assert result.computed_with["lift_method"] == "lift_base"
 
 
 def test_remontee_retenue_si_plus_proche_que_la_piste():
@@ -136,3 +149,4 @@ def test_geometrie_a_un_seul_sommet_traitee_comme_un_point():
     assert point is not None
     assert point.distance_m == pytest.approx(67, abs=10)
     assert point.elevation_m == 2350.0
+

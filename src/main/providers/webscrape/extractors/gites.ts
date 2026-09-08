@@ -10,14 +10,22 @@ export function extractGitesCards(): RawCard[] {
   const seen = new Set<string>()
 
   /*
-   * Positions publiées par la page, lues dans le JSON-LD.
+   * Positions : JSON-LD SERP (geo racine) ou pin OSM de la fiche
+   * (`#map-accommodation[data-lat][data-lng]`). Le JSON-LD Product Drupal
+   * n'embarque pas le GPS.
    *
-   * Recopié plutôt que factorisé, et c'est délibéré : cette fonction est
-   * sérialisée puis exécutée DANS la page par `page.evaluate`, où la portée du
-   * module n'existe pas. Un helper partagé lèverait « ... is not defined » à
-   * l'exécution, sans que rien ne le signale à la compilation.
+   * Recopié plutôt que factorisé : cette fonction est sérialisée puis
+   * exécutée DANS la page par `page.evaluate`.
    */
-  const geo: Record<string, { lat: number; lon: number }> = {}
+  const geo: Record<string, { lat?: number; lon?: number; address?: string; city?: string }> = {}
+  const asCoord = (value: unknown): number | undefined => {
+    const n = typeof value === 'number' ? value : typeof value === 'string' ? Number(value.replace(',', '.')) : NaN
+    return Number.isFinite(n) ? n : undefined
+  }
+  const codeOf = (url: string | null | undefined): string | null => {
+    const m = (url || '').match(/(\d{2}g\d{3,})/i)
+    return m ? m[1].toUpperCase() : null
+  }
   document.querySelectorAll('script[type="application/ld+json"]').forEach((tag) => {
     try {
       const parsed: unknown = JSON.parse(tag.textContent || '')
@@ -29,17 +37,53 @@ export function extractGitesCards(): RawCard[] {
         }
         const obj = node as Record<string, unknown>
         const url = typeof obj.url === 'string' ? obj.url : null
-        const g = obj.geo as Record<string, unknown> | undefined
-        if (url && g && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
-          geo[url] = { lat: g.latitude, lon: g.longitude }
+        const code = codeOf(url)
+        if (code) {
+          const g = obj.geo as Record<string, unknown> | undefined
+          const loc = obj.location as Record<string, unknown> | undefined
+          const locGeo = loc?.geo as Record<string, unknown> | undefined
+          const lat = asCoord(g?.latitude ?? locGeo?.latitude ?? obj.latitude)
+          const lon = asCoord(g?.longitude ?? locGeo?.longitude ?? obj.longitude)
+          const slot = geo[code] ?? {}
+          if (lat != null && lon != null && (lat !== 0 || lon !== 0) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+            slot.lat = lat
+            slot.lon = lon
+          }
+          const addr = obj.address
+          if (typeof addr === 'string' && addr.trim()) slot.address = addr.trim()
+          if (addr && typeof addr === 'object') {
+            const a = addr as Record<string, unknown>
+            const street = typeof a.streetAddress === 'string' ? a.streetAddress.trim() : ''
+            const postal = typeof a.postalCode === 'string' ? a.postalCode.trim() : ''
+            const city = typeof a.addressLocality === 'string' ? a.addressLocality.trim() : ''
+            const parts = [street, postal, city].filter(Boolean)
+            if (parts.length) slot.address = parts.join(', ')
+            if (city) slot.city = city
+          }
+          geo[code] = slot
         }
         for (const key in obj) walk(obj[key])
       }
       walk(parsed)
     } catch {
-      /* fiche sans JSON-LD lisible : la carte sortira sans position */
+      /* JSON-LD Product Drupal : pas de geo. Le pin OSM est #map-accommodation. */
     }
   })
+  const mapEl = document.querySelector('#map-accommodation') as HTMLElement | null
+  const mapLat = asCoord(mapEl?.getAttribute('data-lat'))
+  const mapLon = asCoord(mapEl?.getAttribute('data-lng'))
+  if (mapLat != null && mapLon != null && (mapLat !== 0 || mapLon !== 0)) {
+    const pageCode =
+      codeOf(typeof location !== 'undefined' ? location.href : '') ||
+      codeOf(document.querySelector('link[rel="canonical"]')?.getAttribute('href')) ||
+      codeOf(document.querySelector('meta[property="og:url"]')?.getAttribute('content'))
+    if (pageCode) {
+      const slot = geo[pageCode] ?? {}
+      slot.lat = mapLat
+      slot.lon = mapLon
+      geo[pageCode] = slot
+    }
+  }
 
   const tiles = document.querySelectorAll('.js-search-tile')
   const nodes = tiles.length > 0 ? tiles : document.querySelectorAll('.g2f-accommodationTile')
@@ -158,7 +202,7 @@ export function extractGitesCards(): RawCard[] {
     const capText =
       node.querySelector('.g2f-accommodationTile-text-capacity')?.textContent?.replace(/\s+/g, ' ').trim() ||
       texte
-    const pos = geo[href] || geo[href.split('?')[0]]
+    const pos = geo[sourceId.toUpperCase()] || geo[codeOf(href) || '']
     out.push({
       sourceId,
       title,
@@ -168,6 +212,8 @@ export function extractGitesCards(): RawCard[] {
       propertyType: typeLabel,
       lat: pos?.lat,
       lon: pos?.lon,
+      address: pos?.address,
+      city: pos?.city,
       // « 6 personnes », « Capacité : 4 personnes » — Gîtes de France affiche la
       // capacité sur ses cartes de résultat. Rien n'est déduit des lits.
       guests: lire(/(\d+)\s*(?:personnes?|voyageurs?)/i.exec(capText)),

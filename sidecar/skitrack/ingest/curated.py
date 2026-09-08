@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from ..config import CURATED_DIR
 from ..models import SkiDomain
+from .slopes import overlay_curated_slopes
 
 log = logging.getLogger(__name__)
 
@@ -86,6 +87,10 @@ def apply_curated(session: Session, *, directory: Path | None = None) -> dict[st
             touched = False
             for key, value in entry.items():
                 if key == "match":
+                    continue
+                if key == "slopes" and isinstance(value, dict):
+                    overlay_curated_slopes(domain, value)
+                    touched = True
                     continue
                 if key not in ALLOWED_FIELDS:
                     warnings.append(f"{path.name}: champ inconnu « {key} » ignoré")

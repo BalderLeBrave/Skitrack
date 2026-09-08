@@ -43,6 +43,12 @@ import { originsOf, travelOf, worstDistance, worstTravel } from '@/domain/travel
 import type { Score } from '@/domain/scoring'
 import { scoreOf } from '@/domain/scoring'
 import { FILTER_RANGES, offresBudgetOpen, useApp } from './appState'
+import {
+  comparePisteSort,
+  domainMatchesPisteFilters,
+  domainSlopesOf,
+  pisteFiltersOf
+} from '@/data/pistes'
 
 // Les plages à deux bornes vivent dans `data/range.ts` : `lodgingFilter.ts` en
 // a besoin, et les importer d'ici aurait fermé un cycle.
@@ -215,6 +221,7 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
     const weekFactor = week ? week.f : 0
     const adults = adultsCount(costPeople)
     const kids = kidsCount(costPeople)
+    const hasAnyPiste = domains.some((d) => domainSlopesOf(d).slopes_quality !== 'empty')
 
     const forfaitIndex = forfaitIndexBySlug(ref, slug)
     const areaForfaitIndex = forfaitIndexByArea(ref, squash)
@@ -340,6 +347,13 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
         if (f.estimated) return false
         if (!inRangeOrNull(f.j6 ?? null, state.forfaitMin, state.forfaitMax, R.forfait.max)) return false
       }
+      const slopes = domainSlopesOf(d)
+      const pisteF = pisteFiltersOf(state)
+      // Tant qu'aucun domaine n'a de mix OSM, masquer les « non recensées »
+      // viderait le catalogue. Le filtre ne s'applique que dès qu'un overlay
+      // a réellement posé des comptes.
+      const hideEmpty = pisteF.hideEmpty && hasAnyPiste
+      if (!domainMatchesPisteFilters(slopes, { ...pisteF, hideEmpty }, d.km)) return false
       return true
     }
 
@@ -365,7 +379,14 @@ export function DerivedProvider({ children }: { children: ReactNode }): JSX.Elem
       // Tri par région (puis nom, pour que chaque région soit ordonnée A→Z en
       // interne plutôt que dans un ordre arbitraire).
       region_asc: (a, b) =>
-        (a.region || '').localeCompare(b.region || '', 'fr') || a.name.localeCompare(b.name, 'fr')
+        (a.region || '').localeCompare(b.region || '', 'fr') || a.name.localeCompare(b.name, 'fr'),
+      piste_total_desc: (a, b) => comparePisteSort(domainSlopesOf(a), domainSlopesOf(b), 'total_desc'),
+      piste_green_blue_share_desc: (a, b) =>
+        comparePisteSort(domainSlopesOf(a), domainSlopesOf(b), 'green_blue_share_desc'),
+      piste_red_black_share_desc: (a, b) =>
+        comparePisteSort(domainSlopesOf(a), domainSlopesOf(b), 'red_black_share_desc'),
+      piste_black_desc: (a, b) => comparePisteSort(domainSlopesOf(a), domainSlopesOf(b), 'black_desc'),
+      piste_brochure_delta: (a, b) => comparePisteSort(domainSlopesOf(a), domainSlopesOf(b), 'brochure_delta')
     }
 
     // Une commune cherchée prend le pas sur le tri choisi : c'est ce que

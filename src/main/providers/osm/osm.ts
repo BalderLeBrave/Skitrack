@@ -113,6 +113,10 @@ export interface OsmLodging {
   image?: string
   /** Nombre d'étoiles, quand le tag `stars` existe. */
   stars?: number
+  /** Pièces / lits / capacité OSM. Absents si le tag n'existe pas — jamais inventés. */
+  rooms?: number
+  beds?: number
+  capacity?: number
   /** Origine, toujours OSM — affiché pour l'attribution ODbL. */
   source: 'OpenStreetMap'
 }
@@ -124,6 +128,12 @@ interface OverpassElement {
   lon?: number
   center?: { lat: number; lon: number }
   tags?: Record<string, string>
+}
+
+function positiveInt(raw: string | undefined): number | undefined {
+  if (!raw) return undefined
+  const n = Number.parseInt(raw, 10)
+  return Number.isFinite(n) && n > 0 ? n : undefined
 }
 
 /** Construit la requête Overpass QL, bornée à l'emprise, hébergements seuls. */
@@ -180,6 +190,9 @@ export function toOsmLodging(element: OverpassElement, params: OsmLodgingParams)
     website: tags.website ?? tags['contact:website'] ?? undefined,
     image,
     stars: Number.isFinite(stars) ? stars : undefined,
+    rooms: positiveInt(tags.rooms),
+    beds: positiveInt(tags.beds),
+    capacity: positiveInt(tags.capacity) ?? positiveInt(tags.beds),
     source: 'OpenStreetMap'
   }
 }

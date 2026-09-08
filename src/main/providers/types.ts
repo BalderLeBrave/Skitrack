@@ -39,6 +39,8 @@ export interface Accommodation {
   latitude?: number
   longitude?: number
 
+  /** Adresse postale publiée, jamais un titre. */
+  address?: string
   city?: string
   country?: string
 

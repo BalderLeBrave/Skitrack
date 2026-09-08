@@ -13,6 +13,7 @@
  */
 
 import bundled from './referentiel.json'
+import type { DomainSlopes } from './pistes'
 
 /**
  * Un domaine skiable, tel que l'application le manipule.
@@ -74,6 +75,8 @@ export interface Domain {
   booking: string | null
   /** URL de logo fournie par le référentiel, prioritaire sur l'icône du site. */
   logo: string | null
+  /** Mix de pistes OpenSkiMap (nombre par couleur), overlay moteur. */
+  slopes?: DomainSlopes
   /**
    * Entrées du référentiel repliées dans cette station.
    *

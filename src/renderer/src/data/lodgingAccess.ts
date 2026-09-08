@@ -20,7 +20,9 @@
  */
 
 import { api, isClientReady } from '@/api/client'
+import { coordsUsable } from '@shared/geo'
 import type { Lodging } from './lodgings'
+import type { LocationPrecision } from '@shared/canonicalListing'
 
 /**
  * Taille d'un lot d'enrichissement.
@@ -58,55 +60,123 @@ function mergeMetrics(
   metric: {
     dist_to_slopes_m: number | null
     denivele_m: number | null
-    // Les deux distances d'origine, et pas seulement leur minimum : sans elles,
-    // impossible de dire si la mesure porte sur une piste ou sur une remontée,
-    // et l'étiquette annonçait « des pistes » dans tous les cas.
     dist_to_nearest_slope_m: number | null
     dist_to_nearest_lift_m: number | null
     altitude_m: number | null
+    altitude_source?: string | null
     slope_access_type: string | null
+    lat?: number | null
+    lon?: number | null
+    location_precision?: string | null
+    bedrooms?: number | null
+    capacity_max?: number | null
+    capacity_source?: string | null
   }
 ): Lodging {
+  const lift = metric.dist_to_nearest_lift_m
+  const slope = metric.dist_to_nearest_slope_m
   const dist = metric.dist_to_slopes_m
+  const altSource =
+    metric.altitude_source === 'ign' || metric.altitude_source === 'eudem' || metric.altitude_source === 'curated'
+      ? metric.altitude_source
+      : lodging.altSource
+  const refined = coordsUsable(metric.lat, metric.lon)
+  const lat = refined && metric.lat != null ? metric.lat : coordsUsable(lodging.lat, lodging.lon) ? lodging.lat : undefined
+  const lon = refined && metric.lon != null ? metric.lon : coordsUsable(lodging.lat, lodging.lon) ? lodging.lon : undefined
+  const locPrecision: LocationPrecision | undefined =
+    metric.location_precision === 'exact' ||
+    metric.location_precision === 'address' ||
+    metric.location_precision === 'approximate' ||
+    metric.location_precision === 'unknown'
+      ? metric.location_precision
+      : lodging.locPrecision
+  const osmFill = metric.capacity_source === 'osm'
+  const osmCap =
+    osmFill && lodging.pers <= 0 && metric.capacity_max != null && metric.capacity_max > 0
+      ? metric.capacity_max
+      : null
+  const osmCh = osmFill && lodging.ch <= 0 && metric.bedrooms != null ? metric.bedrooms : null
+  const osmStudio = osmCh === 0
   return {
     ...lodging,
-    // On n'écrase que ce qui a une valeur : un domaine sans tracés renvoie des
-    // nulls, et il ne faut pas remplacer un éventuel 0 par du bruit.
+    lat,
+    lon,
+    locPrecision,
+    pers: osmCap != null ? osmCap : lodging.pers,
+    ch: osmCh != null ? osmCh : lodging.ch,
+    rooms: osmStudio ? 1 : lodging.rooms,
+    capacitySource: osmCap != null || osmCh != null ? 'osm' : lodging.capacitySource,
     dist: dist != null ? Math.round(dist) : lodging.dist,
     den: metric.denivele_m != null ? Math.round(metric.denivele_m) : lodging.den,
-    liftDist:
-      metric.dist_to_nearest_lift_m != null
-        ? Math.round(metric.dist_to_nearest_lift_m)
-        : lodging.liftDist,
+    liftDist: lift != null ? Math.round(lift) : lodging.liftDist,
     alt: metric.altitude_m != null ? Math.round(metric.altitude_m) : lodging.alt,
+    altSource,
     skiIn: metric.slope_access_type === 'skis_aux_pieds',
-    // Conservé en entier, et plus seulement réduit à `skiIn` : « navette » et
-    // « voiture » disent quelque chose que la distance seule ne dit pas.
     accessType:
       metric.slope_access_type === 'skis_aux_pieds' ||
       metric.slope_access_type === 'navette' ||
       metric.slope_access_type === 'voiture'
         ? metric.slope_access_type
         : lodging.accessType,
-    // Estimation du temps à pied : ~50 m/min en station, minimum une minute.
     walk: dist != null ? Math.max(1, Math.round(dist / 50)) : lodging.walk,
-    /*
-     * Lequel des deux points a été mesuré. `dist_to_slopes_m` est le minimum
-     * des deux côté sidecar ; on compare pour savoir lequel a gagné plutôt que
-     * de le supposer — le jour où les tracés seront importés, l'étiquette
-     * suivra sans qu'on y touche.
-     */
     accessPoint:
       dist == null
         ? lodging.accessPoint
-        : metric.dist_to_nearest_slope_m != null && dist === metric.dist_to_nearest_slope_m
+        : slope != null && dist === slope
           ? 'piste'
-          : metric.dist_to_nearest_lift_m != null && dist === metric.dist_to_nearest_lift_m
+          : lift != null && dist === lift
             ? 'remontee'
             : lodging.accessPoint,
     accessComputed: dist != null || metric.slope_access_type != null,
     distanceStatus:
-      dist != null ? 'ok' : metric.slope_access_type != null ? 'ok' : 'no_slope_geom'
+      dist != null || metric.slope_access_type != null
+        ? 'ok'
+        : coordsUsable(lat, lon)
+          ? 'no_slope_geom'
+          : 'no_gps',
+    fieldsQuality: {
+      ...(lodging.fieldsQuality ?? {}),
+      altitude_m: metric.altitude_m != null ? 'ok' : 'missing',
+      dist_to_nearest_lift_m: lift != null ? 'ok' : 'missing',
+      lat: coordsUsable(lat, lon) ? 'ok' : 'missing',
+      capacity_max: osmCap != null || lodging.pers > 0 ? 'ok' : lodging.fieldsQuality?.capacity_max,
+      bedrooms: osmCh != null || lodging.ch > 0 || lodging.rooms === 1 ? 'ok' : lodging.fieldsQuality?.bedrooms
+    }
+  }
+}
+
+function canLocate(lodging: Lodging): boolean {
+  return (
+    coordsUsable(lodging.lat, lodging.lon) ||
+    Boolean(lodging.addressText?.trim()) ||
+    Boolean(lodging.commune?.trim()) ||
+    Boolean(lodging.name && lodging.name.trim().length >= 8)
+  )
+}
+
+function applyRefinedGps(lodging: Lodging, metric: AccessMetric | undefined): Lodging {
+  if (!metric) return lodging
+  const refined = coordsUsable(metric.lat, metric.lon)
+  if (!refined) {
+    return {
+      ...lodging,
+      lat: coordsUsable(lodging.lat, lodging.lon) ? lodging.lat : undefined,
+      lon: coordsUsable(lodging.lat, lodging.lon) ? lodging.lon : undefined
+    }
+  }
+  const locPrecision: LocationPrecision | undefined =
+    metric.location_precision === 'exact' ||
+    metric.location_precision === 'address' ||
+    metric.location_precision === 'approximate' ||
+    metric.location_precision === 'unknown'
+      ? metric.location_precision
+      : lodging.locPrecision
+  return {
+    ...lodging,
+    lat: metric.lat ?? undefined,
+    lon: metric.lon ?? undefined,
+    locPrecision,
+    distanceStatus: lodging.distanceStatus === 'ok' ? lodging.distanceStatus : 'no_slope_geom'
   }
 }
 
@@ -119,8 +189,9 @@ function mergeMetrics(
  * de distance. Le paramètre est donc explicitement nommé, et `undefined` est
  * un cas traité plutôt qu'un identifiant hasardeux envoyé au moteur.
  *
- * Les logements sans `lat`/`lon` sont laissés tels quels : rien à calculer
- * sans position.
+ * Les logements sans `lat`/`lon` **et** sans adresse sont laissés tels quels.
+ * Un (0, 0) n'est pas une position. Une adresse sans GPS part quand même, pour
+ * que le moteur pose le point via la BAN — jamais via le centroïde du domaine.
  */
 export async function enrichWithAccess(
   lodgings: Lodging[],
@@ -139,15 +210,12 @@ export async function enrichWithAccess(
     }
   }
 
-  const geoItems = lodgings.filter(
-    (lodging): lodging is Lodging & { lat: number; lon: number } =>
-      typeof lodging.lat === 'number' && typeof lodging.lon === 'number'
-  )
+  const geoItems = lodgings.filter(canLocate)
   if (geoItems.length === 0) {
     return { lodgings, note: null }
   }
 
-  const batches: (typeof geoItems)[] = []
+  const batches: Lodging[][] = []
   for (let i = 0; i < geoItems.length; i += ACCESS_BATCH) {
     batches.push(geoItems.slice(i, i + ACCESS_BATCH))
   }
@@ -168,9 +236,14 @@ export async function enrichWithAccess(
         with_elevation: true,
         lodgings: batch.map((lodging) => ({
           ref: String(lodging.id),
-          lat: lodging.lat,
-          lon: lodging.lon,
-          location_precision: lodging.locPrecision ?? 'exact'
+          lat: coordsUsable(lodging.lat, lodging.lon) ? lodging.lat : null,
+          lon: coordsUsable(lodging.lat, lodging.lon) ? lodging.lon : null,
+          location_precision: lodging.locPrecision ?? (coordsUsable(lodging.lat, lodging.lon) ? 'exact' : 'unknown'),
+          address: lodging.addressText?.trim() || null,
+          commune: lodging.commune?.trim() || null,
+          name: lodging.name?.trim() || null,
+          bedrooms: lodging.ch > 0 ? lodging.ch : lodging.rooms === 1 ? 0 : null,
+          capacity_max: lodging.pers > 0 ? lodging.pers : null
         }))
       })
       // Le domaine est le même pour tous les lots : ces deux nombres ne varient
@@ -196,7 +269,7 @@ export async function enrichWithAccess(
 
   if (slopesAvailable === 0 && liftsAvailable === 0) {
     return {
-      lodgings,
+      lodgings: lodgings.map((lodging) => applyRefinedGps(lodging, byRef.get(String(lodging.id)))),
       note: 'Ce domaine a été importé sans ses tracés ni ses remontées : distances non calculables.'
     }
   }
@@ -215,3 +288,4 @@ export async function enrichWithAccess(
     note: computed > 0 ? `Distances aux pistes calculées pour ${computed} logement(s).${reste}` : null
   }
 }
+

@@ -19,7 +19,9 @@ import {
   isoToFrDate,
   looksWeeklyFromPriceText,
   parseGitesStayTotal,
+  parseGitesOsmPin,
   parseGitesWidgetContext,
+  parseGitesWidgetGeo,
   parseGitesWidgetPhoto
 } from './gitesFichePrice'
 
@@ -82,6 +84,32 @@ check(
     '<img src="https://widget-fngf.itea.fr/photos/gites38/G/photo3/52200.jpg">'
   ) === 'https://widget-fngf.itea.fr/photos/gites38/G/photo3/52200.jpg'
 )
+
+const DRUPAL_MAP = `
+<link rel="canonical" href="https://www.gites-de-france.com/fr/isere/chalet-les-copains-38g253122">
+<script type="application/ld+json">{"@type":"Product","name":"Gîte - Chalet les Copains"}</script>
+<div data-lat="45.036578" data-lng="6.131021" data-map-info="{}" id="map-accommodation"></div>`
+const ITEA_LD = `
+<script type="application/ld+json">
+{"@type":"LodgingBusiness","url":"/location-vacances/Gite-Les-Deux-Alpes-38G253122.html",
+ "address":{"addressLocality":"LES DEUX ALPES"},
+ "location":{"geo":{"latitude":"45.03657800","longitude":"6.13102100"}}}
+</script>`
+const pin = parseGitesOsmPin(DRUPAL_MAP)
+check('pin OSM fiche Drupal', pin?.lat === 45.036578 && pin?.lon === 6.131021, pin)
+const fromMap = parseGitesWidgetGeo(DRUPAL_MAP)
+check('geo fiche Drupal = pin OSM', fromMap?.lat === 45.036578 && fromMap?.lon === 6.131021, fromMap)
+const fromItea = parseGitesWidgetGeo(ITEA_LD)
+check(
+  'geo widget ITEA = location.geo',
+  fromItea?.lat === 45.036578 && fromItea?.lon === 6.131021 && fromItea?.city === 'LES DEUX ALPES',
+  fromItea
+)
+const preferPin = parseGitesWidgetGeo(
+  ITEA_LD + '<div data-lat="45.04" data-lng="6.13" id="map-accommodation"></div>'
+)
+check('pin OSM primer sur JSON-LD', preferPin?.lat === 45.04 && preferPin?.lon === 6.13, preferPin)
+check('pas de pin inventé', parseGitesWidgetGeo('<p>sans carte</p>') === undefined)
 check('pas de chemin inventé', parseGitesWidgetPhoto('<div data-ident="x.G"></div>') === undefined)
 
 check('teaser sans dates → pas de total', parseGitesStayTotal(TEASER) === undefined)

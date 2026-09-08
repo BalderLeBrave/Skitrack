@@ -127,6 +127,26 @@ class MapTests(unittest.TestCase):
         self.assertEqual(rows[0]["bedrooms"], 4)
         self.assertIn("chalet-apollo", rows[0]["url"])
 
+    def test_zero_zero_apollo_ignore_atlas_pris(self) -> None:
+        html = """
+        <html><h1>Les 2 Alpes : 3 établissements trouvés</h1>
+        <script type="application/json" data-capla-store-data="apollo">
+        {"basicPropertyData":{"pageName":"chalet-neige","location":{"latitude":0,"longitude":0},"occupancy":{"maxPersons":8},"numberOfBedrooms":3,"accommodationTypeName":"Appartement"}}
+        </script>
+        <div data-testid="property-card" data-hotel-id="4242" data-atlas-latlng="45.0106,6.1226">
+          <a href="https://www.booking.com/hotel/fr/chalet-neige.fr.html">
+            <div data-testid="title">Chalet Neige</div>
+          </a>
+          <div data-testid="price-and-discounted-price">1 245 €</div>
+          <div data-testid="recommended-units">Appartement entier • 3 chambres • 8 personnes</div>
+        </div>
+        </html>
+        """
+        rows = listings_from_html(html, check_in="2027-02-06", check_out="2027-02-13", adults=8)
+        self.assertEqual(len(rows), 1, rows)
+        self.assertAlmostEqual(rows[0]["latitude"], 45.0106)
+        self.assertAlmostEqual(rows[0]["longitude"], 6.1226)
+
     def test_challenge_is_blocked(self) -> None:
         from map import looks_blocked
 

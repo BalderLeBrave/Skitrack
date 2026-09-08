@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-from parse import parse_stay_total, quote_blocked, widget_context, widget_photo
+from parse import geo_index_from_html, osm_pin_from_html, parse_stay_total, quote_blocked, widget_context, widget_photo
 from urls import iso_to_fr, widget_url
 
 UA = (
@@ -53,6 +53,20 @@ def _post(ctx: dict[str, str], *, date_deb: str, date_fin: str, adults: int, typ
     return _read(AJAX, data=form)
 
 
+def _geo_slot(page: str, code: str) -> dict[str, Any]:
+    idx = geo_index_from_html(page)
+    hit = idx.get(code.upper())
+    if hit and hit.get("lat") is not None:
+        return hit
+    for slot in idx.values():
+        if slot.get("lat") is not None:
+            return slot
+    lat, lon = osm_pin_from_html(page)
+    if lat is not None and lon is not None:
+        return {"lat": lat, "lon": lon}
+    return {}
+
+
 def quote(code: str, check_in: str, check_out: str, adults: int) -> dict[str, Any]:
     deb, fin = iso_to_fr(check_in), iso_to_fr(check_out)
     if not deb or not fin:
@@ -62,6 +76,7 @@ def quote(code: str, check_in: str, check_out: str, adults: int) -> dict[str, An
     if not ctx:
         return {"available": False, "price_firm": False}
     photo = widget_photo(page)
+    geo = _geo_slot(page, code)
     exercice = ctx["exercice"]
     exo_body = _post(
         ctx, date_deb=deb, date_fin=fin, adults=adults, typ="getExerciceByDateFin", exercice=exercice
@@ -81,22 +96,26 @@ def quote(code: str, check_in: str, check_out: str, adults: int) -> dict[str, An
         exercice=exercice,
     )
     stay = parse_stay_total(body)
+    extra: dict[str, Any] = {"ident": ctx["ident"], "photo": photo, "exercice": exercice}
+    if geo.get("lat") is not None and geo.get("lon") is not None:
+        extra["latitude"] = geo["lat"]
+        extra["longitude"] = geo["lon"]
+    if geo.get("city"):
+        extra["city"] = geo["city"]
+    if geo.get("address"):
+        extra["address"] = geo["address"]
     if stay is None or quote_blocked(body):
         return {
             "available": False,
             "price_firm": False,
-            "ident": ctx["ident"],
-            "photo": photo,
-            "exercice": exercice,
+            **extra,
         }
     return {
         "available": True,
         "price_firm": True,
         "totalPrice": stay,
         "currency": "EUR",
-        "ident": ctx["ident"],
-        "photo": photo,
-        "exercice": exercice,
         "checkIn": check_in,
         "checkOut": check_out,
+        **extra,
     }

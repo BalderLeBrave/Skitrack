@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy import inspect, select
+from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
 from .. import models  # noqa: F401  (peuple Base.metadata)
@@ -46,6 +46,40 @@ DEFAULT_SCORING_WEIGHTS = {
 
 def create_schema() -> None:
     Base.metadata.create_all(get_engine())
+    _ensure_ski_domain_slopes_report()
+    _ensure_accommodation_canonical_columns()
+
+
+def _ensure_ski_domain_slopes_report() -> None:
+    engine = get_engine()
+    try:
+        cols = {c["name"] for c in inspect(engine).get_columns("ski_domain")}
+    except Exception:
+        return
+    if "slopes_report" in cols:
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE ski_domain ADD COLUMN slopes_report JSON"))
+
+
+def _ensure_accommodation_canonical_columns() -> None:
+    engine = get_engine()
+    try:
+        cols = {c["name"] for c in inspect(engine).get_columns("accommodation")}
+    except Exception:
+        return
+    statements = []
+    if "commune" not in cols:
+        statements.append("ALTER TABLE accommodation ADD COLUMN commune VARCHAR(128)")
+    if "capacity_source" not in cols:
+        statements.append("ALTER TABLE accommodation ADD COLUMN capacity_source VARCHAR(16)")
+    if "fields_quality" not in cols:
+        statements.append("ALTER TABLE accommodation ADD COLUMN fields_quality JSON")
+    if not statements:
+        return
+    with engine.begin() as conn:
+        for sql in statements:
+            conn.execute(text(sql))
 
 
 def seed(session: Session) -> None:

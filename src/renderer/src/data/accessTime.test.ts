@@ -44,6 +44,8 @@ check('classé navette → navette', accessTimeOf(365, 'navette')?.mode === 'nav
 
 console.log('\n2. Sans classification, la distance décide')
 check('60 m → skis aux pieds', accessTimeOf(60, undefined)?.mode === 'skis_aux_pieds')
+check('150 m → encore skis aux pieds', accessTimeOf(150, undefined)?.mode === 'skis_aux_pieds')
+check('151 m → à pied', accessTimeOf(151, undefined)?.mode === 'a_pied')
 check('340 m → à pied', accessTimeOf(340, undefined)?.mode === 'a_pied')
 check('340 m → 7 min', accessTimeOf(340, undefined)?.minutes === 7, accessTimeOf(340, undefined))
 check('1 200 m → encore à pied', accessTimeOf(1200, undefined)?.mode === 'a_pied')

@@ -70,7 +70,8 @@ porte l'altitude des pistes et donc la garantie d'enneigement.
 | `altitude_village_m` | int | Front de neige. Absent de la source : estimé par la gare aval la plus basse. |
 | `altitude_source`, `altitude_village_source` | str | `openskimap` / `ign` / `curated` / `derived:lift_base`. **Affiché dans l'UI.** |
 | `slopes_km_total` | float | Pistes alpines uniquement (le nordique est exclu). |
-| `slopes_km_by_color`, `slopes_count_by_color` | JSON | `{"vert":…, "bleu":…, "rouge":…, "noir":…}` |
+| `slopes_km_by_color`, `slopes_count_by_color` | JSON | Clés EN : `{"green":…, "blue":…, "red":…, "black":…, "expert":…, "freeride":…, "unknown":…, "park":…}`. Mapping OSM → UI : voir `docs/PISTES.md`. |
+| `slopes_report` | JSON | `{quality, source, count_total, count_alpine_classic, osm_total, computed_at}`. `quality` : `complete` \| `partial` \| `empty` \| `curated`. |
 | `lifts_count`, `lifts_count_by_type`, `lifts_km_total` | int/JSON/float | |
 | `glacier` | bool | Non dérivable des statistiques : intersection Overpass `natural=glacier`, ou curated. |
 | `snowmaking_pct` | int | `NULL` ≠ `0` — voir ci-dessous. |
@@ -135,26 +136,32 @@ routeur — inutile de calculer un itinéraire vers un domaine à 900 km quand o
 
 ### `accommodation`
 
-`UNIQUE(source, source_id)`. `source` vaut `expedia_rapid`, `booking`, `manual`, `deeplink`.
+`UNIQUE(source, source_id)`. `source` vaut `airbnb_scraper`, `booking_scraper`,
+`abritel_scraper`, `gites_de_france`, `liteapi`, `central:…`, `osm`, `manual`, `deeplink`.
 
 | Colonne notable | Pourquoi |
 |---|---|
-| `location_precision` | `exact` / `approximate`. Airbnb ne publie qu'un cercle flou avant réservation : sans ce drapeau, un `dist_to_nearest_slope_m` au mètre près serait une fausse précision. |
-| `altitude_m` + `altitude_source` | **Toujours** calculée depuis (lat, lon) par API altimétrique, jamais reprise de l'annonce. |
-| `rating` + `rating_scale` | Booking note sur 10, Airbnb sur 5. Comparer sans l'échelle est un piège. |
-| `amenities` | Vocabulaire normalisé maison (`ski_room`, `sauna`, `dishwasher`, `parking`, `pets`, `wifi`…). Chaque provider y mappe dans `normalize()`. |
+| `location_precision` | `exact` / `address` / `approximate` / `unknown`. Airbnb ne publie qu'un cercle flou. |
+| `altitude_m` + `altitude_source` | **Toujours** IGN / EU-DEM du point `(lat, lon)`, jamais le texte d'annonce. |
+| `commune`, `capacity_source`, `fields_quality` | Qualité par champ (`ok` / `inferred` / `missing` / `conflict`). |
+| `rating` + `rating_scale` | Booking /10, Airbnb /5. |
+| `amenities` | Vocabulaire maison. Mapping dans `normalize()`. |
+
+Contrôle : `docs/ANNONCES.md`.
 
 ### `access_metrics`
 
-Toutes les distances d'un logement, **pré-calculées et stockées**, jamais recalculées à
-l'affichage.
+Toutes les distances d'un logement, **pré-calculées**. L'affichage « X m des
+remontées » lit `dist_to_nearest_lift_m`, mesuré vers **`domain_lift.base_lat/base_lon`**
+(gare aval), pas vers le centroïde du domaine, pas vers un câble. `dist_to_center_m`
+existe mais n'est jamais vendu comme distance pistes.
 
 - `dist_to_nearest_slope_m` (vol d'oiseau) **et** `walk_dist_to_slope_m` / `walk_time_to_slope_min`
   (itinéraire piéton réel, souvent 1,5× le vol d'oiseau).
 - `dist_to_nearest_lift_m`, `walk_time_to_lift_min` — la remontée est plus pertinente que la
   piste : personne ne chausse au milieu d'une rouge.
 - **`denivele_to_slope_m`**, signé. Positif = ça monte au retour. 300 m à plat n'est pas 300 m avec
-  60 m de D+ skis à l'épaule. Le badge « skis aux pieds » exige `< 100 m` **et** `D+ < 20 m`.
+  60 m de D+ skis à l'épaule. Le badge « skis aux pieds » exige `≤ 150 m` **et** `D+ ≤ 15 m`.
 - `slope_access_type` : `skis_aux_pieds` / `navette` / `voiture`.
 - `has_ski_bus`, `walk_time_to_busstop_min`.
 - `car_time_from_origin_min`, `transit_time_from_origin_min`.

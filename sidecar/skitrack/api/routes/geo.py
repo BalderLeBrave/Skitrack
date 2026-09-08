@@ -85,8 +85,15 @@ def delete_origin(origin_id: int, session: Session = Depends(get_session)) -> di
 
 
 @router.get("/geocode", response_model=list[GeocodeResult])
-async def geocode_endpoint(q: str, limit: int = 5) -> list[GeocodeResult]:
-    return await geocode(q, limit=limit)
+async def geocode_endpoint(
+    q: str,
+    limit: int = 5,
+    lat: float | None = None,
+    lon: float | None = None,
+) -> list[GeocodeResult]:
+    """BAN / Nominatim. `lat`/`lon` biaisent vers le domaine, sans en écrire le centroïde."""
+    return await geocode(q, limit=limit, lat=lat, lon=lon)
+
 
 
 # --------------------------------------------------------------------------- #

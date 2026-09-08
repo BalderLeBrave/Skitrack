@@ -8,9 +8,10 @@ import { useNavigate } from 'react-router-dom'
 import { CloseIcon, ExternalIcon } from '@/components/Icons'
 import { accessTimeOf } from '@/data/accessTime'
 import { isClientReady } from '@/api/client'
+import { altitudeMOf, distToLiftsMOf, distToRunsMOf } from '@/data/canonical'
 import { availabilityOf } from '@/data/lodgingAvailability'
 import { listingUrlWithStay, searchUrlFor } from '@/data/deeplinks'
-import { sizeLabel, srcOf, trackKey } from '@/data/lodgings'
+import { srcOf, trackKey } from '@/data/lodgings'
 import type { Domain } from '@/data/referentiel'
 import { enfantPrice } from '@/data/referentiel'
 import { lessonsCount } from '@/domain/costs'
@@ -20,6 +21,7 @@ import { useI18n } from '@/i18n'
 import { useApp } from '@/state/appState'
 import { useDerived } from '@/state/selectors'
 import { PATHS } from '../router'
+import { LodgeFacts } from './LodgeFacts'
 import { PriceFirm } from './PriceFirm'
 
 export function LodgeSheet({ domain: d }: { domain: Domain }): JSX.Element | null {
@@ -51,12 +53,14 @@ export function LodgeSheet({ domain: d }: { domain: Domain }): JSX.Element | nul
   const stay = { checkIn: state.arrDate, checkOut: state.depDate }
   const verdict = availabilityOf(lodging, stay)
   const src = srcOf(lodging)
-  const size = sizeLabel(lodging, t)
   const inCompare = state.compareIds.includes(lodging.id)
   const tracked = state.tracked.some((tr) => tr.key === trackKey(lodging))
   const kept = state.selLodgings[d.id] === lodging.id
   const measured = lodging.accessComputed === true
-  const hasAccess = measured && (lodging.dist > 0 || lodging.den !== 0 || lodging.liftDist > 0 || lodging.skiIn)
+  const liftM = distToLiftsMOf(lodging)
+  const runsM = distToRunsMOf(lodging)
+  const altM = altitudeMOf(lodging)
+  const hasAccess = measured && (runsM != null || liftM != null || altM != null || lodging.skiIn || lodging.den !== 0)
 
   const criteria = {
     domainName: d.name,
@@ -111,11 +115,12 @@ export function LodgeSheet({ domain: d }: { domain: Domain }): JSX.Element | nul
         <header className="rc-fiche__head">
           <div className="rc-fiche__kicker">
             <span className="rc-badge">{src}</span>
-            <span className="rc-muted">{lodging.type}{size ? ` · ${size}` : ''} · {t('rc_lodge_cap').replace('{n}', String(lodging.pers || state.travelers))}</span>
+            {lodging.type ? <span className="rc-muted">{lodging.type}</span> : null}
             {lodging.accessComputed === true && lodging.skiIn && <span className="rc-badge rc-badge--ok">{t('badge_ski_in')}</span>}
             {kept && <span className="rc-badge rc-badge--ok">{t('rc_stay_kept')}</span>}
           </div>
           <h2 id="lodge-sheet-title" className="rc-fiche__title">{lodging.name}</h2>
+          <LodgeFacts lg={lodging} testid="lodge-sheet-facts" />
           {lodging.note && lodging.note !== '—' && (
             <p className="rc-muted">
               ★ {lodging.note}
@@ -186,7 +191,7 @@ export function LodgeSheet({ domain: d }: { domain: Domain }): JSX.Element | nul
                       <dt>{t('access_to_runs')}</dt>
                       <dd>
                         {[
-                          lodging.dist > 0 ? `${fmt(lodging.dist)} m` : null,
+                          runsM != null ? `${fmt(runsM)} m` : null,
                           duration ?? (skiIn ? t('access_ski_in') : null),
                           lodging.den > 0
                             ? t('access_climb').replace('{n}', fmt(lodging.den))
@@ -196,16 +201,19 @@ export function LodgeSheet({ domain: d }: { domain: Domain }): JSX.Element | nul
                         ].filter(Boolean).join(' · ')}
                       </dd>
                     </div>
-                    {lodging.liftDist > 0 && (
+                    {liftM != null && (
                       <div>
                         <dt>{t('nearest_lift')}</dt>
-                        <dd>{[lodging.lift || null, `${fmt(lodging.liftDist)} m`].filter(Boolean).join(' · ')}</dd>
+                        <dd>{[lodging.lift || null, `${fmt(liftM)} m ${t('rc_lodge_lifts_unit')}`].filter(Boolean).join(' · ')}</dd>
                       </div>
                     )}
-                    {lodging.alt > 0 && (
+                    {altM != null && (
                       <div>
-                        <dt>Altitude</dt>
-                        <dd>{fmt(lodging.alt)} m</dd>
+                        <dt>{t('rc_lodge_alt_label')}</dt>
+                        <dd className="crn-releve">
+                          {fmt(altM)} m{lodging.altSource === 'ign' ? ' IGN' : lodging.altSource === 'eudem' ? ' EU-DEM' : ''}
+                          {lodging.locPrecision === 'approximate' ? ` · ${t('rc_lodge_fuzzy')}` : ''}
+                        </dd>
                       </div>
                     )}
                     <div>

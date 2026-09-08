@@ -22,7 +22,8 @@
 import type { Lodging } from './lodgings'
 import { srcOf } from './lodgings'
 import { isBookable, type Stay } from './lodgingAvailability'
-import { inRange } from './range'
+import { inRange, rangeOpen } from './range'
+import { distToLiftsMOf, distToRunsMOf } from './canonical'
 
 function foldType(s: string): string {
   return s
@@ -389,9 +390,21 @@ export function matchesLodgingFilters(
   // L'écran produit force confirmedPricesOnly : ces cartes n'apparaissent pas.
   if (lodging.total <= 0) return true
 
+  const distOk = rangeOpen(criteria.distMin, criteria.distMax, criteria.distCeiling)
+    ? true
+    : (() => {
+        const lift = distToLiftsMOf(lodging)
+        if (lift != null) return inRange(lift, criteria.distMin, criteria.distMax, criteria.distCeiling)
+        const runs = distToRunsMOf(lodging)
+        if (runs != null) return inRange(runs, criteria.distMin, criteria.distMax, criteria.distCeiling)
+        // Pas de mesure moteur : le champ `dist` 7a54fbd. Un 0 n'est pas 0 m.
+        if (!lodging.dist) return false
+        return inRange(lodging.dist, criteria.distMin, criteria.distMax, criteria.distCeiling)
+      })()
+
   return (
     (!criteria.freeCancelOnly || lodging.annul) &&
     inRange(lodging.total, criteria.budgetMin, criteria.budgetMax, criteria.budgetCeiling) &&
-    inRange(lodging.dist, criteria.distMin, criteria.distMax, criteria.distCeiling)
+    distOk
   )
 }

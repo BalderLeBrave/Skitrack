@@ -13,6 +13,7 @@ import { useFormat } from '@/hooks/useFormat'
 import { useI18n } from '@/i18n'
 import type { AppState, SortKey } from '@/state/appState'
 import { FILTER_RANGES, useApp } from '@/state/appState'
+import type { PistePreset } from '@/data/pistes'
 import { useDerived } from '@/state/selectors'
 import { openLodgings } from '../lib/journey'
 import { CompareTable } from '../ui/CompareTable'
@@ -28,6 +29,11 @@ const SORTS: [SortKey, string][] = [
   ['slopes_km_desc', 'sort_slopes_km_desc'],
   ['travel_time_asc', 'sort_travel_time_asc'],
   ['forfait_asc', 'sort_forfait_asc'],
+  ['piste_total_desc', 'sort_piste_total_desc'],
+  ['piste_green_blue_share_desc', 'sort_piste_green_blue_share_desc'],
+  ['piste_red_black_share_desc', 'sort_piste_red_black_share_desc'],
+  ['piste_black_desc', 'sort_piste_black_desc'],
+  ['piste_brochure_delta', 'sort_piste_brochure_delta'],
   ['name_asc', 'sort_name_asc']
 ]
 
@@ -54,6 +60,13 @@ export function CompareScreen(): JSX.Element {
     { id: 'near', label: t('home_sc_near'), on: state.travelMax <= 240, onToggle: () => toggleRange(state.travelMax <= 240, { travelMin: 0, travelMax: 240 }, { travelMax: FILTER_RANGES.travel.max }) },
     { id: 'glacier', label: t('rc_cmp_glacier'), on: state.glacier, onToggle: () => patch({ glacier: !state.glacier }) },
     { id: 'linked', label: t('rc_chip_linked'), on: state.linked, onToggle: () => patch({ linked: !state.linked }) },
+    ...(['famille', 'mixte', 'engage', 'expert'] as PistePreset[]).map((p) => ({
+      id: `piste-${p}`,
+      label: t(`piste_chip_${p}` as 'piste_chip_famille'),
+      on: state.pistePreset === p,
+      onToggle: () => patch({ pistePreset: state.pistePreset === p ? 'all' : p })
+    })),
+    { id: 'black5', label: t('piste_chip_black5'), on: state.pisteMinBlack >= 5, onToggle: () => patch({ pisteMinBlack: state.pisteMinBlack >= 5 ? 0 : 5 }) },
     ...state.massifs.map((m) => ({ id: `massif-${m}`, label: m, on: true, onToggle: () => patch({ massifs: state.massifs.filter((x) => x !== m) }) }))
   ]
   const anyFilter = active.length > 0 || chips.some((c) => c.on) || state.domainQuery.trim() !== ''

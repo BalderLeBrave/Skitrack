@@ -184,6 +184,7 @@ export const SECRET_KEYS = [
   'crawlbase_token',
   'scrapingbee_key',
   'meteofrance',
+  'serpapi',
   'scrape_proxy',
   'scrape_proxy_mobile'
 ] as const
@@ -349,7 +350,7 @@ export interface ListingExtract {
   listingHash?: string
   offerHash?: string
   missingCriticalFields?: string[]
-  geoPrecision?: 'exact' | 'approximate' | 'none'
+  geoPrecision?: 'exact' | 'address' | 'approximate' | 'none'
   feesComplete?: boolean
 }
 
@@ -381,6 +382,9 @@ export interface OsmLodgingResult {
   website?: string
   image?: string
   stars?: number
+  rooms?: number
+  beds?: number
+  capacity?: number
   source: 'OpenStreetMap'
 }
 
@@ -430,6 +434,9 @@ export interface ProviderAccommodation {
   url: string
   latitude?: number
   longitude?: number
+  /** Adresse postale publiée par la source, jamais un titre d'annonce. */
+  address?: string
+  city?: string
   guests?: number
   bedrooms?: number
   /**

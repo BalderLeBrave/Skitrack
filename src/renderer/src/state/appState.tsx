@@ -29,6 +29,7 @@ import type { PhotoOverrides } from '@/data/photoOverrides'
 import type { ForfaitsSaisis } from '@/domain/forfait'
 import type { DomainSource } from '@/data/domains'
 import { fallbackDomains, loadDomains } from '@/data/domains'
+import type { PisteMixMode, PistePreset } from '@/data/pistes'
 import { applyResolvedCoords, readGeoCache, resolveMissingCoords } from '@/data/domainGeo'
 import type { Domain, Referential } from '@/data/referentiel'
 import { hasCoords, loadReferential } from '@/data/referentiel'
@@ -100,6 +101,11 @@ export type SortKey =
   | 'region_asc'
   | 'travel_time_asc'
   | 'forfait_asc'
+  | 'piste_total_desc'
+  | 'piste_green_blue_share_desc'
+  | 'piste_red_black_share_desc'
+  | 'piste_black_desc'
+  | 'piste_brochure_delta'
 
 export type LodgSortKey = 'pp_asc' | 'total_asc' | 'dist_asc' | 'note_desc'
 
@@ -291,6 +297,20 @@ export interface AppState {
   glacier: boolean
   linked: boolean
   sort: SortKey
+  /**
+   * Typologie des pistes (Comparer). 0 = filtre éteint.
+   * Ne pèse pas le score séjour — filtre et affichage seulement.
+   */
+  pisteMinGreen: number
+  pisteMinBlue: number
+  pisteMinRed: number
+  pisteMinBlack: number
+  pisteMinOther: number
+  pistePreset: PistePreset
+  pisteHideEmpty: boolean
+  pisteMixMode: PisteMixMode
+  /** Unité des seuils de couleur : nombre de pistes, km annoncés, ou %. */
+  pisteFilterUnit: PisteMixMode
 
   // Itinéraires
   routes: RouteTable
@@ -659,6 +679,15 @@ export const INITIAL_STATE: AppState = {
   glacier: false,
   linked: false,
   sort: 'relevance',
+  pisteMinGreen: 0,
+  pisteMinBlue: 0,
+  pisteMinRed: 0,
+  pisteMinBlack: 0,
+  pisteMinOther: 0,
+  pistePreset: 'all',
+  pisteHideEmpty: false,
+  pisteMixMode: 'count',
+  pisteFilterUnit: 'count',
 
   routes: {},
   routeBusy: false,
@@ -802,7 +831,8 @@ const PERSISTED_KEYS = [
   'travelMin', 'travelMax', 'distMin', 'distMax', 'forfaitMin', 'forfaitMax',
   'lodgBudgetMin', 'lodgBudgetMax', 'lodgDistMin', 'lodgDistMax', 'massifs',
   'glacier', 'linked', 'sort', 'avoidTolls', 'arrDate', 'depDate', 'travelers',
-  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'pisteOverlay', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits', 'stationCompareIds'
+  'rooms', 'tracked', 'logos', 'imported', 'braManual', 'geo', 'basemap', 'pisteOverlay', 'relief', 'hideBadGeo', 'lodgOnlyAvailable', 'lodgConfirmedPrices', 'lodgHideUnannounced', 'stayBarCollapsed', 'lodgMapSync', 'lodgSplit', 'domMapSync', 'provEdits', 'stationCompareIds',
+  'pisteMinGreen', 'pisteMinBlue', 'pisteMinRed', 'pisteMinBlack', 'pisteMinOther', 'pistePreset', 'pisteHideEmpty', 'pisteMixMode', 'pisteFilterUnit'
 ] as const satisfies readonly (keyof AppState)[]
 
 /**
@@ -859,8 +889,15 @@ function purgeLegacyPrefs(): void {
  * Schéma 11 (2026-09-03) : `lodgHideUnannounced` éteint. Les cartes scrapées
  * sans « N chambres » sur la tuile (Booking, parfois Airbnb) disparaissaient
  * avant l'écran alors que le relevé les avait. Trop petit annoncé reste filtré.
+ *
+ * Schéma 12 (2026-09-08) : filtres de mix de pistes (Comparer). Défauts
+ * ouverts : aucun minimum de couleur, profil Tous, domaines sans mix OSM
+ * visibles — comme avant l'overlay, pour ne pas vider Comparer.
+ *
+ * Schéma 14 (2026-09-09) : filtre pistes en nombre, km ou %. Défaut nombre,
+ * comme avant — les seuils existants restent un compte de pistes.
  */
-const PREFS_SCHEMA = 11
+const PREFS_SCHEMA = 14
 
 /**
  * Migre les préférences d'avant les plages vers le schéma 2.
@@ -1012,6 +1049,26 @@ function migratePrefs(saved: Partial<AppState> & { prefsSchema?: number }): Part
 
   // Schéma 11 — les logements scrapés sans occupancy tuile restent visibles.
   if ((saved.prefsSchema ?? 0) < 11) out.lodgHideUnannounced = false
+
+  // Schéma 12 — typologie des pistes : défauts ouverts, hideEmpty éteint.
+  if ((saved.prefsSchema ?? 0) < 12) {
+    out.pisteMinGreen = 0
+    out.pisteMinBlue = 0
+    out.pisteMinRed = 0
+    out.pisteMinBlack = 0
+    out.pistePreset = 'all'
+    out.pisteHideEmpty = false
+    out.pisteMixMode = 'count'
+  }
+
+  // Schéma 13 — Comparer : ne pas masquer les stations sans mix OSM.
+  if ((saved.prefsSchema ?? 0) < 13) out.pisteHideEmpty = false
+
+  // Schéma 14 — unité de filtre pistes : nombre (comportement 7a54fbd+).
+  if ((saved.prefsSchema ?? 0) < 14) {
+    out.pisteFilterUnit = 'count'
+    out.pisteMinOther = 0
+  }
 
   // Schéma 7 — rerattachement par la position. Voir `rerattacherParPosition`.
   const rattache = rerattacherParPosition(out.imported)

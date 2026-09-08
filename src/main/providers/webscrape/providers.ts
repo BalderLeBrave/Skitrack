@@ -56,6 +56,7 @@ import {
   isKeptIndividualGiteOffer,
   isoToFrDate,
   parseGitesWidgetContext,
+  parseGitesWidgetGeo,
   parseGitesWidgetPhoto
 } from './gitesFichePrice'
 import { getQuote, quoteCacheKey, setQuote } from '../quoteCache'
@@ -118,11 +119,12 @@ function mapCards(
           sourceId: c.sourceId,
           title: c.title,
           url: stampStayOnUrl(c.url, params),
-          // Position publiée par la page de résultats. Booking la lit dans son
-          // magasin Apollo ; Gîtes de France, CozyCozy, VRBO et Expedia dans le
-          // JSON-LD de la page. Absente, le champ reste vide — jamais fabriqué.
+          // Position : tuile SERP si elle en porte une. Pour Gîtes, le devis
+          // ITEA / pin OSM de la fiche écrase ensuite le centroïde éventuel.
           latitude: c.lat,
           longitude: c.lon,
+          address: c.address,
+          city: c.city,
           // Abritel/VRBO via getResultList : total séjour daté.
           // Gîtes tuile : indicatif /semaine, remplacé par le widget ITEA.
           // On ne multiplie jamais nightly × nuits ni weekly × semaines.
@@ -788,26 +790,41 @@ async function quoteGiteHttp(
   api: APIRequestContext,
   card: Accommodation,
   args: { deb: string; fin: string; adults: number; checkIn: string; checkOut: string; timeoutMs: number }
-): Promise<{ total?: number; unavailable?: boolean; ident?: string; photo?: string; cache: boolean }> {
+): Promise<{
+  total?: number
+  unavailable?: boolean
+  ident?: string
+  photo?: string
+  cache: boolean
+  latitude?: number
+  longitude?: number
+}> {
   const code = gitesCodeFromUrl(card.url)
   if (!code) return { unavailable: true, cache: false }
   const key = quoteCacheKey('gites', code, args.checkIn, args.checkOut, args.adults)
   const cached = getQuote(key)
   if (cached) {
-    return { total: cached.total ?? undefined, unavailable: cached.unavailable, cache: true }
+    return {
+      total: cached.total ?? undefined,
+      unavailable: cached.unavailable,
+      cache: true,
+      latitude: cached.latitude,
+      longitude: cached.longitude
+    }
   }
   const htmlRes = await api.get(gitesWidgetUrl(code), { timeout: args.timeoutMs })
   const html = await htmlRes.text()
   const ctx = parseGitesWidgetContext(html)
   const photo = parseGitesWidgetPhoto(html)
+  const geo = parseGitesWidgetGeo(html)
   if (!ctx) {
-    setQuote(key, { total: null, unavailable: true })
-    return { unavailable: true, photo, cache: false }
+    setQuote(key, { total: null, unavailable: true, latitude: geo?.lat, longitude: geo?.lon })
+    return { unavailable: true, photo, cache: false, latitude: geo?.lat, longitude: geo?.lon }
   }
   const identTyp = classifyGitesTypology({ ident: ctx.ident, url: card.url })
   if (identTyp !== 'gite') {
-    setQuote(key, { total: null, unavailable: true })
-    return { unavailable: true, ident: ctx.ident, photo, cache: false }
+    setQuote(key, { total: null, unavailable: true, latitude: geo?.lat, longitude: geo?.lon })
+    return { unavailable: true, ident: ctx.ident, photo, cache: false, latitude: geo?.lat, longitude: geo?.lon }
   }
   const exoBody = await postGitesResa(
     api,
@@ -836,14 +853,14 @@ async function quoteGiteHttp(
   const body = await postGitesResa(api, tabForm, args.timeoutMs)
   const parsed = interpretGitesQuoteBody(body)
   if (parsed.price_firm && parsed.stay) {
-    setQuote(key, { total: parsed.stay })
-    return { total: parsed.stay, ident: ctx.ident, photo, cache: false }
+    setQuote(key, { total: parsed.stay, latitude: geo?.lat, longitude: geo?.lon })
+    return { total: parsed.stay, ident: ctx.ident, photo, cache: false, latitude: geo?.lat, longitude: geo?.lon }
   }
   if (gitesDatesNotFillable(body) || gitesQuoteFailed(body) || !parsed.available) {
-    setQuote(key, { total: null, unavailable: true })
-    return { unavailable: true, ident: ctx.ident, photo, cache: false }
+    setQuote(key, { total: null, unavailable: true, latitude: geo?.lat, longitude: geo?.lon })
+    return { unavailable: true, ident: ctx.ident, photo, cache: false, latitude: geo?.lat, longitude: geo?.lon }
   }
-  return { ident: ctx.ident, photo, cache: false }
+  return { ident: ctx.ident, photo, cache: false, latitude: geo?.lat, longitude: geo?.lon }
 }
 
 /**
@@ -879,7 +896,14 @@ async function enrichGitesStayTotals(
   const deadline = Date.now() + GITES_ENRICH_BUDGET_MS
   const quoted = new Map<
     string,
-    { total?: number; unavailable?: boolean; ident?: string; photo?: string }
+    {
+      total?: number
+      unavailable?: boolean
+      ident?: string
+      photo?: string
+      latitude?: number
+      longitude?: number
+    }
   >()
   let quoteFetches = 0
   let cacheHits = 0
@@ -961,10 +985,14 @@ async function enrichGitesStayTotals(
     const existing = a.images?.find((u) => /^https?:\/\//i.test(u))
     const widget = listingPhotoUrl(q?.photo, a.url)
     const photo = existing ?? widget
+    const lat = q?.latitude ?? a.latitude
+    const lon = q?.longitude ?? a.longitude
     return [
       {
         ...a,
         images: photo ? [photo] : a.images,
+        latitude: lat,
+        longitude: lon,
         totalPrice: kept.price_total_stay_amount,
         weeklyPrice: undefined,
         nightlyPrice: undefined,

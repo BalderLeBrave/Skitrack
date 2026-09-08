@@ -772,6 +772,113 @@ const b = lodging({
 const fused = mergeDupes([a, b], true)
 check('mergeDupes : une seule carte Gîtes', fused.length === 1, fused.length)
 check('listingKey identique', listingKey(a) === listingKey(b))
+
+const airSameGps = [
+  lodging({
+    id: 101,
+    name: 'Charmant appartement',
+    url: 'https://www.airbnb.fr/rooms/111',
+    src: 'Airbnb',
+    srcConnector: 'airbnb',
+    lat: 45.297,
+    lon: 6.58,
+    locPrecision: 'approximate',
+    pers: 0,
+    total: 1200
+  }),
+  lodging({
+    id: 102,
+    name: 'Bel appartement',
+    url: 'https://www.airbnb.fr/rooms/222',
+    src: 'Airbnb',
+    srcConnector: 'airbnb',
+    lat: 45.297,
+    lon: 6.58,
+    locPrecision: 'approximate',
+    pers: 0,
+    total: 1300
+  }),
+  lodging({
+    id: 103,
+    name: 'Studio cosy',
+    url: 'https://www.airbnb.fr/rooms/333',
+    src: 'Airbnb',
+    srcConnector: 'airbnb',
+    lat: 45.297,
+    lon: 6.58,
+    locPrecision: 'approximate',
+    pers: 0,
+    total: 900
+  })
+]
+check(
+  'trois Airbnb au même GPS flou restent trois cartes',
+  mergeDupes(airSameGps, true).length === 3
+)
+const hotelRooms = [
+  lodging({
+    id: 201,
+    name: 'Hôtel Le Sherpa Chambre Double',
+    url: 'https://www.booking.com/hotel/fr/le-sherpa.html',
+    src: 'Booking.com',
+    srcConnector: 'booking-web',
+    lat: 45.3,
+    lon: 6.6,
+    locPrecision: 'exact',
+    pers: 2,
+    ch: 1,
+    total: 800
+  }),
+  lodging({
+    id: 202,
+    name: 'Hôtel Le Sherpa Annexe',
+    url: 'https://www.booking.com/hotel/fr/le-sherpa-annexe.html',
+    src: 'Booking.com',
+    srcConnector: 'booking-web',
+    lat: 45.3,
+    lon: 6.6,
+    locPrecision: 'exact',
+    pers: 4,
+    ch: 1,
+    total: 1400
+  })
+]
+check(
+  'deux hôtels Booking au même GPS restent deux cartes',
+  mergeDupes(hotelRooms, true).length === 2
+)
+const twoGites = [
+  lodging({
+    id: 301,
+    name: 'Chalet Les Copains',
+    url: 'https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g111',
+    src: 'Gîtes de France',
+    srcConnector: 'gites',
+    lat: 45.297,
+    lon: 6.58,
+    locPrecision: 'address',
+    pers: 14,
+    ch: 5,
+    total: 4200
+  }),
+  lodging({
+    id: 302,
+    name: 'Chalet Les Copains',
+    url: 'https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-voisin-38g222',
+    src: 'Gîtes de France',
+    srcConnector: 'gites',
+    lat: 45.2971,
+    lon: 6.5801,
+    locPrecision: 'address',
+    pers: 10,
+    ch: 4,
+    total: 3100
+  })
+]
+check(
+  'deux Gîtes distincts au même hameau restent deux cartes',
+  mergeDupes(twoGites, true).length === 2
+)
 const fusedReadings = mergeProviderReadings([a], [b])
 check('relevé daté met à jour, ne duplique pas', fusedReadings.length === 1, fusedReadings.length)
 
@@ -1027,6 +1134,54 @@ check(
 check(
   'écran : visible si on n’exige pas l’occupancy',
   matchesLodgingFilters(scraped[0], { ...CRITERIA, travelers: 4, rooms: 2, includeUnannounced: true }, STAY)
+)
+
+console.log('\nCanonical : ≥ 6 personnes et ≤ 500 m des remontées')
+const SIX: LodgingFilterCriteria = {
+  ...CRITERIA,
+  travelers: 6,
+  rooms: 0,
+  includeUnannounced: false,
+  distMin: 0,
+  distMax: 1000,
+  distCeiling: 1000
+}
+check(
+  '6 pers. passe',
+  keeps({ pers: 6, ch: 2, rooms: 3, total: 1500, availabilityStatus: 'available' }, SIX)
+)
+check(
+  '5 pers. écarté',
+  !keeps({ pers: 5, ch: 2, rooms: 3, total: 1500, availabilityStatus: 'available' }, SIX)
+)
+check(
+  'capacité inconnue n’est pas 0 : écartée',
+  !keeps({ pers: 0, ch: 2, rooms: 3, total: 1500, availabilityStatus: 'available' }, SIX)
+)
+const LIFTS: LodgingFilterCriteria = {
+  ...CRITERIA,
+  travelers: 0,
+  rooms: 0,
+  includeUnannounced: true,
+  distMin: 0,
+  distMax: 500,
+  distCeiling: 5000
+}
+check(
+  '400 m des remontées passe',
+  keeps({ pers: 6, ch: 2, total: 1500, liftDist: 400, accessComputed: true }, LIFTS)
+)
+check(
+  '800 m des remontées écarté',
+  !keeps({ pers: 6, ch: 2, total: 1500, liftDist: 800, accessComputed: true }, LIFTS)
+)
+check(
+  'distance inconnue n’est pas 0 m',
+  !keeps({ pers: 6, ch: 2, total: 1500, dist: 0, liftDist: 0, accessComputed: false }, LIFTS)
+)
+check(
+  '0 m mesuré (skis aux pieds) passe le plafond 500 m',
+  keeps({ pers: 6, ch: 2, total: 1500, liftDist: 0, accessComputed: true }, LIFTS)
 )
 
 if (failures > 0) {

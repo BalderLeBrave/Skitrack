@@ -21,6 +21,9 @@ CSV_FIELDS = (
     "checkIn",
     "checkOut",
     "city",
+    "address",
+    "latitude",
+    "longitude",
 )
 
 

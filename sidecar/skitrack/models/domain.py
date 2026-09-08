@@ -71,9 +71,11 @@ class SkiDomain(Base):
     # --- Taille du domaine ---------------------------------------------------
     slopes_km_total: Mapped[float | None] = mapped_column(Float, index=True)
     slopes_km_by_color: Mapped[dict | None] = mapped_column(JSONType)
-    """{"vert": 12.4, "bleu": 40.1, "rouge": 33.0, "noir": 8.2}"""
+    """{"green": 12.4, "blue": 40.1, "red": 33.0, "black": 8.2} — clés EN."""
     slopes_count_by_color: Mapped[dict | None] = mapped_column(JSONType)
-    """{"vert": 18, "bleu": 52, "rouge": 41, "noir": 9}"""
+    """{"green": 18, "blue": 52, "red": 41, "black": 9, "expert": 1}"""
+    slopes_report: Mapped[dict | None] = mapped_column(JSONType)
+    """quality / source / totaux / computed_at. Voir docs/PISTES.md."""
     lifts_count: Mapped[int | None] = mapped_column(Integer)
     lifts_count_by_type: Mapped[dict | None] = mapped_column(JSONType)
     lifts_km_total: Mapped[float | None] = mapped_column(Float)
@@ -136,6 +138,47 @@ class SkiDomain(Base):
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<SkiDomain {self.id} {self.name!r} {self.altitude_min_m}-{self.altitude_max_m}m>"
+
+    def _report(self) -> dict:
+        return self.slopes_report if isinstance(self.slopes_report, dict) else {}
+
+    @property
+    def slopes_quality(self) -> str | None:
+        q = self._report().get("quality")
+        return str(q) if q else None
+
+    @property
+    def slopes_source(self) -> str | None:
+        s = self._report().get("source")
+        return str(s) if s else None
+
+    @property
+    def slopes_count_total(self) -> int | None:
+        n = self._report().get("count_total")
+        if isinstance(n, int):
+            return n
+        counts = self.slopes_count_by_color or {}
+        total = sum(int(v or 0) for v in counts.values())
+        return total or None
+
+    @property
+    def slopes_count_alpine_classic(self) -> int | None:
+        n = self._report().get("count_alpine_classic")
+        if isinstance(n, int):
+            return n
+        counts = self.slopes_count_by_color or {}
+        classic = sum(int(counts.get(k) or 0) for k in ("green", "blue", "red", "black", "vert", "bleu", "rouge", "noir"))
+        return classic or None
+
+    @property
+    def slopes_osm_total(self) -> int | None:
+        n = self._report().get("osm_total")
+        return int(n) if isinstance(n, (int, float)) else None
+
+    @property
+    def slopes_computed_at(self) -> str | None:
+        v = self._report().get("computed_at")
+        return str(v) if v else None
 
 
 class DomainSlope(Base):

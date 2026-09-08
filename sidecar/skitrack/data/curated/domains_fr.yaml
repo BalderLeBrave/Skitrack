@@ -23,6 +23,30 @@
 #
 # Toutes les clés sont optionnelles. `notes` est libre et s'affiche sur la fiche.
 #
+# COMPTAGE DE PISTES (optionnel)
+# ------------------------------
+# Ne pas inventer un chiffre de brochure. Si vous tenez un décompte officiel
+# sous les yeux (PDF station, office de tourisme), collez-le ici. L'UI affichera
+# ces counts avec une pastille « fiche station » ; le total OpenSkiMap reste
+# en tooltip. Sans ce bloc, SKITRACK montre uniquement le comptage OSM.
+#
+#   slopes:
+#     source: brochure          # brochure | office_tourisme | manuel
+#     as_of: 2025-12-01
+#     url: https://example.invalid/brochure-hiver-2025-26.pdf
+#     counts:
+#       green: 8
+#       blue: 21
+#       red: 14
+#       black: 6
+#       other: 2
+#     km:
+#       green: 12.0
+#       blue: 40.0
+#     note: "Brochure hiver 2025-26, p. 4"
+#
+# Voir docs/PISTES.md. Les 3 Vallées n'agrègent pas les pistes des stations liées.
+#
 # Les quelques entrées ci-dessous sont des exemples renseignés à partir des
 # informations publiques des exploitants ; vérifiez-les avant de vous en servir
 # pour décider d'un séjour, et complétez au fil de vos recherches.

@@ -82,6 +82,27 @@ def bearing_deg(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return (math.degrees(math.atan2(y, x)) + 360) % 360
 
 
+def plausible_point(lat: float | None, lon: float | None) -> bool:
+    """Un couple utilisable : pas NaN, pas (0, 0), dans le globe.
+
+    `(0, 0)` est au large du golfe de Guinée. Booking y pose des `SkiLift`
+    Apollo vides ; ce n'est jamais un logement.
+    """
+    if lat is None or lon is None:
+        return False
+    if isinstance(lat, bool) or isinstance(lon, bool):
+        return False
+    try:
+        lat_f, lon_f = float(lat), float(lon)
+    except (TypeError, ValueError):
+        return False
+    if lat_f != lat_f or lon_f != lon_f:  # NaN
+        return False
+    if not (-90.0 <= lat_f <= 90.0 and -180.0 <= lon_f <= 180.0):
+        return False
+    return not (lat_f == 0.0 and lon_f == 0.0)
+
+
 def in_metropolitan_france(lat: float, lon: float) -> bool:
     """Test grossier de bbox — sert uniquement à choisir l'IGN plutôt que SRTM.
 

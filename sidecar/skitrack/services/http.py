@@ -137,13 +137,69 @@ class HttpClient:
         max_retries: int = 3,
         use_cache: bool = True,
     ) -> Any:
+        body = await self._fetch_body(
+            method,
+            url,
+            namespace=namespace,
+            ttl_s=ttl_s,
+            params=params,
+            json_body=json_body,
+            headers=headers,
+            min_interval_s=min_interval_s,
+            max_retries=max_retries,
+            use_cache=use_cache,
+        )
+        return json.loads(body) if body else None
+
+    async def request_text(
+        self,
+        method: str,
+        url: str,
+        *,
+        namespace: str,
+        ttl_s: int,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        min_interval_s: float = 0.2,
+        max_retries: int = 3,
+        use_cache: bool = True,
+    ) -> str:
+        """HTML / texte. Même cache et mêmes quotas que `request_json`."""
+        body = await self._fetch_body(
+            method,
+            url,
+            namespace=namespace,
+            ttl_s=ttl_s,
+            params=params,
+            json_body=None,
+            headers=headers,
+            min_interval_s=min_interval_s,
+            max_retries=max_retries,
+            use_cache=use_cache,
+        )
+        return body.decode("utf-8", errors="replace") if body else ""
+
+    async def _fetch_body(
+        self,
+        method: str,
+        url: str,
+        *,
+        namespace: str,
+        ttl_s: int,
+        params: dict[str, Any] | None,
+        json_body: Any,
+        headers: dict[str, str] | None,
+        min_interval_s: float,
+        max_retries: int,
+        use_cache: bool,
+    ) -> bytes:
         full_url = str(httpx.URL(url, params=params or {}))
         key = cache_key(method, full_url, json_body)
 
         if use_cache:
             cached = cache_get(key)
             if cached is not None:
-                return json.loads(cached)
+                return cached
 
         host = httpx.URL(url).host or "unknown"
         limiter = self.limiter_for(host, min_interval_s)
@@ -162,8 +218,6 @@ class HttpClient:
 
             if resp.status_code == 429:
                 retry_after = float(resp.headers.get("Retry-After", 2**attempt))
-                # Un 429 sur la dernière tentative est un vrai dépassement de quota,
-                # pas un pic : on le remonte tel quel pour que l'UI l'affiche.
                 if attempt == max_retries - 1:
                     raise RateLimitError(f"{host} : quota dépassé (HTTP 429)")
                 log.warning("429 de %s, nouvelle tentative dans %.0f s", host, retry_after)
@@ -183,7 +237,7 @@ class HttpClient:
             body = resp.content
             if use_cache:
                 cache_put(key, namespace, full_url, resp.status_code, body, ttl_s)
-            return json.loads(body) if body else None
+            return body
 
         raise ProviderUnavailable(f"{host} injoignable après {max_retries} tentatives") from last_exc
 

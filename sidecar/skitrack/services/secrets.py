@@ -17,6 +17,7 @@ KNOWN_KEYS = {
     "expedia_rapid_secret": "Expedia Rapid — shared secret",
     "booking_demand": "Booking.com Demand API — jeton",
     "meteofrance": "Météo-France — clé du portail API",
+    "serpapi": "SerpApi — Google Lens (GPS visuel des cercles flous)",
 }
 
 

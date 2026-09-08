@@ -220,6 +220,90 @@ export function parseGitesWidgetPhoto(html: string): string | undefined {
   return /^https?:\/\//i.test(raw) ? raw : undefined
 }
 
+function asGeoCoord(value: unknown): number | undefined {
+  const n =
+    typeof value === 'number' ? value : typeof value === 'string' ? Number(value.replace(',', '.')) : NaN
+  return Number.isFinite(n) ? n : undefined
+}
+
+function plausibleLatLon(lat: number | undefined, lon: number | undefined): lat is number {
+  if (lat == null || lon == null) return false
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return false
+  return !(lat === 0 && lon === 0)
+}
+
+/**
+ * Pin OpenStreetMap de la fiche Drupal (`#map-accommodation`).
+ * Le JSON-LD Product de gites-de-france.com n'embarque pas le GPS :
+ * le point que le visiteur voit est `data-lat` / `data-lng` sur la carte Leaflet.
+ */
+export function parseGitesOsmPin(html: string): { lat: number; lon: number } | undefined {
+  const tag = html.match(/<[^>]*\bid=["']map-accommodation["'][^>]*>/i)?.[0]
+  if (!tag) return undefined
+  const lat = asGeoCoord(tag.match(/data-lat=["']([^"']+)["']/i)?.[1])
+  const lon = asGeoCoord(tag.match(/data-lng=["']([^"']+)["']/i)?.[1])
+  if (!plausibleLatLon(lat, lon)) return undefined
+  return { lat, lon }
+}
+
+export function parseGitesWidgetGeo(html: string): {
+  lat: number
+  lon: number
+  city?: string
+  address?: string
+} | undefined {
+  let lat: number | undefined
+  let lon: number | undefined
+  let city: string | undefined
+  let address: string | undefined
+  const ldRe = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+  let block: RegExpExecArray | null
+  while ((block = ldRe.exec(html)) !== null) {
+    try {
+      const parsed: unknown = JSON.parse(block[1].trim())
+      const walk = (node: unknown): void => {
+        if (!node || typeof node !== 'object') return
+        if (Array.isArray(node)) {
+          node.forEach(walk)
+          return
+        }
+        const obj = node as Record<string, unknown>
+        const g = obj.geo as Record<string, unknown> | undefined
+        const loc = obj.location as Record<string, unknown> | undefined
+        const locGeo = loc?.geo as Record<string, unknown> | undefined
+        const la = asGeoCoord(g?.latitude ?? locGeo?.latitude ?? obj.latitude)
+        const lo = asGeoCoord(g?.longitude ?? locGeo?.longitude ?? obj.longitude)
+        if (plausibleLatLon(la, lo)) {
+          lat = la
+          lon = lo
+        }
+        const addr = obj.address
+        if (typeof addr === 'string' && addr.trim()) address = addr.trim()
+        if (addr && typeof addr === 'object') {
+          const a = addr as Record<string, unknown>
+          const street = typeof a.streetAddress === 'string' ? a.streetAddress.trim() : ''
+          const postal = typeof a.postalCode === 'string' ? a.postalCode.trim() : ''
+          const locality = typeof a.addressLocality === 'string' ? a.addressLocality.trim() : ''
+          const parts = [street, postal, locality].filter(Boolean)
+          if (parts.length) address = parts.join(', ')
+          if (locality) city = locality
+        }
+        for (const key in obj) walk(obj[key])
+      }
+      walk(parsed)
+    } catch {
+      /* JSON-LD illisible : on retombe sur le pin OSM */
+    }
+  }
+  const pin = parseGitesOsmPin(html)
+  if (pin) {
+    lat = pin.lat
+    lon = pin.lon
+  }
+  if (!plausibleLatLon(lat, lon)) return undefined
+  return { lat, lon, city, address }
+}
+
 function parseEuroAmount(raw: string): number | undefined {
   const n = Number(raw.replace(/\s/g, '').replace(',', '.'))
   if (!Number.isFinite(n) || n <= 0) return undefined

@@ -32,6 +32,12 @@ export interface DomainSummary {
   slopes_km_total: number | null
   slopes_km_by_color: Record<string, number> | null
   slopes_count_by_color: Record<string, number> | null
+  slopes_count_total?: number | null
+  slopes_count_alpine_classic?: number | null
+  slopes_quality?: string | null
+  slopes_source?: string | null
+  slopes_osm_total?: number | null
+  slopes_computed_at?: string | null
   lifts_count: number | null
   glacier: boolean | null
   snowmaking_pct: number | null
@@ -137,6 +143,8 @@ export interface GeocodeResult {
   postcode: string | null
   /** `ban`, `nominatim`… — sert à signaler une position approximative. */
   provider: string
+  /** Type BAN : housenumber / street / locality / municipality. */
+  kind?: string | null
 }
 
 export interface Origin {
@@ -187,13 +195,18 @@ export interface DeepLink {
   note: string | null
 }
 
-/** Un logement à enrichir : référence + coordonnées. */
+/** Un logement à enrichir : référence + GPS facultatif + adresse. */
 export interface LodgingAccessItem {
   ref: string
-  lat: number
-  lon: number
-  /** 'exact' ou 'approximate' — les positions floues sont arrondies à la centaine. */
-  location_precision?: 'exact' | 'approximate'
+  lat?: number | null
+  lon?: number | null
+  /** exact / address / approximate / unknown. Seul `approximate` arrondit à 100 m. */
+  location_precision?: 'exact' | 'address' | 'approximate' | 'unknown'
+  address?: string | null
+  commune?: string | null
+  name?: string | null
+  bedrooms?: number | null
+  capacity_max?: number | null
 }
 
 export interface LodgingAccessRequest {
@@ -216,8 +229,17 @@ export interface LodgingAccessMetrics {
   denivele_m: number | null
   dist_to_center_m: number | null
   altitude_m: number | null
+  altitude_source?: 'ign' | 'eudem' | 'curated' | 'none' | string | null
+  nearest_lift_id?: number | null
   slope_access_type: 'skis_aux_pieds' | 'navette' | 'voiture' | null
   precision: string
+  lat?: number | null
+  lon?: number | null
+  location_precision?: 'exact' | 'address' | 'approximate' | 'unknown'
+  geocode_source?: string | null
+  bedrooms?: number | null
+  capacity_max?: number | null
+  capacity_source?: 'osm' | 'provider' | 'parsed' | 'inferred' | 'none' | string | null
 }
 
 export interface LodgingAccessResponse {

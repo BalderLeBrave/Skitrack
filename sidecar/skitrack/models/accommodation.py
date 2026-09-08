@@ -41,6 +41,7 @@ class Accommodation(Base):
     lat: Mapped[float | None] = mapped_column(Float, index=True)
     lon: Mapped[float | None] = mapped_column(Float, index=True)
     address: Mapped[str | None] = mapped_column(String(512))
+    commune: Mapped[str | None] = mapped_column(String(128))
     location_precision: Mapped[str | None] = mapped_column(String(16))
     """exact / approximate. Airbnb et consorts ne publient qu'un cercle flou tant
     que la réservation n'est pas confirmée : sans ce drapeau, un
@@ -54,6 +55,7 @@ class Accommodation(Base):
     bedrooms: Mapped[int | None] = mapped_column(Integer, index=True)
     beds: Mapped[int | None] = mapped_column(Integer)
     capacity_max: Mapped[int | None] = mapped_column(Integer, index=True)
+    capacity_source: Mapped[str | None] = mapped_column(String(16))
     bathrooms: Mapped[float | None] = mapped_column(Float)
     surface_m2: Mapped[float | None] = mapped_column(Float)
     property_type: Mapped[str | None] = mapped_column(String(32), index=True)
@@ -66,6 +68,7 @@ class Accommodation(Base):
     rating_scale: Mapped[float | None] = mapped_column(Float)
     """Booking note sur 10, Airbnb sur 5. Comparer sans l'échelle est un piège."""
     reviews_count: Mapped[int | None] = mapped_column(Integer)
+    fields_quality: Mapped[dict | None] = mapped_column(JSONType)
 
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
     user_notes: Mapped[str | None] = mapped_column(Text)

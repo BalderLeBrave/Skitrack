@@ -7,7 +7,9 @@
 
 import { useEffect, useMemo } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { PisteMixBar } from '@/components/PisteMixBar'
 import { useDomainWeather } from '@/data/domainWeather'
+import { domainSlopesOf } from '@/data/pistes'
 import { snowDepths } from '@/data/weather'
 import { webcamsFor } from '@/data/webcams'
 import { domainTags } from '@/domain/domainTags'
@@ -95,6 +97,21 @@ export function StationScreen(): JSX.Element {
             <div><dt>{t('rc_fact_pass')}</dt><dd className={forfait.estimated ? '' : 'crn-releve'}>{forfait.j6 != null ? eur(forfait.j6) : '—'}{forfait.j6 != null && forfait.estimated && <small className="rc-est"> {t('estimated')}</small>}</dd></div>
             <div><dt>{t('rc_cmp_travel')}</dt><dd data-testid="station-travel">{travel && !/aucune/i.test(travel) ? travel : '—'}</dd></div>
           </dl>
+
+          <section className="rc-card" data-testid="station-pistes">
+            <div className="rc-card__head">
+              <h2 className="rc-h3">{t('slopes')}</h2>
+              <span className="rc-muted">{t('piste_osm_attr')}</span>
+            </div>
+            <PisteMixBar
+              slopes={domainSlopesOf(d)}
+              announcedKm={d.km}
+              mode={state.pisteMixMode}
+              onMode={(m) => patch({ pisteMixMode: m })}
+              table
+            />
+            {d.pass && <p className="rc-muted">{t('piste_linked_note').replace('{pass}', d.pass)}</p>}
+          </section>
 
           <section className="rc-card rc-snow" data-testid="station-snow">
             <h2 className="rc-h3">{t('snow_on_ground')}</h2>

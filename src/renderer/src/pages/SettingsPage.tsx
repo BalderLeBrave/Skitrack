@@ -94,6 +94,11 @@ const KEY_LABELS: Record<SecretKey, { label: string; help: string; url?: string 
     help: 'Bulletins neige et risque d’avalanche (BRA). Optionnel.',
     url: 'https://portail-api.meteofrance.fr/'
   },
+  serpapi: {
+    label: 'SerpApi — Google Lens',
+    help: '',
+    url: 'https://serpapi.com/google-lens-api'
+  },
   scrape_proxy: {
     label: 'Proxy résidentiel (relevés web)',
     help:
@@ -678,6 +683,7 @@ export function SettingsPage(): JSX.Element {
               <ul className="keys">
                 {secrets.map(({ key, present }) => {
                   const meta = KEY_LABELS[key]
+                  const help = key === 'serpapi' ? t('settings_key_serpapi_help') : meta.help
                   return (
                     <li key={key} className="keys__row">
                       <div>
@@ -685,7 +691,7 @@ export function SettingsPage(): JSX.Element {
                         <span className={`pill${present ? ' pill--ok' : ''}`}>
                           {present ? t('settings_key_set') : t('settings_key_unset')}
                         </span>
-                        <p className="settings__help">{meta.help}</p>
+                        <p className="settings__help">{help}</p>
                         {meta.url && (
                           <button
                             type="button"
@@ -927,6 +933,7 @@ export function SettingsPage(): JSX.Element {
               <p className="settings__help">
                 © contributeurs OpenStreetMap · OpenSkiMap.org — Open Database License (ODbL) 1.0
               </p>
+              <p className="settings__help">{t('settings_piste_source')}</p>
             </section>
 
             {/* Connecteurs de logement du processus principal — Booking,
@@ -1054,7 +1061,7 @@ export function SettingsPage(): JSX.Element {
                   <span className="u-muted" style={{ display: 'block', fontSize: 11 }}>
                     {importJob
                       ? `${importJob.state} · ${importJob.message || `${Math.round(importJob.progress * 100)} %`}`
-                      : 'domaines et remontées, ~130 Mo au premier import'}
+                      : t('engine_ref_openskimap_help')}
                   </span>
                 </span>
                 <button

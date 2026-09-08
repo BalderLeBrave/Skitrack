@@ -7,6 +7,7 @@
 
 import type { ExtractedListing, PriceUnit } from '@shared/listingImport'
 import { differenceInDays, normalizeOffer } from '@shared/listingImport'
+import { coordsUsable } from '@shared/geo'
 import type { Lodging } from './lodgings'
 import { listingKeyFromUrl } from './lodgings'
 
@@ -28,7 +29,7 @@ export function toImportedLodging(
     isFrom?: boolean
     lat?: number
     lon?: number
-    precision?: 'exact' | 'approximate' | 'none'
+    precision?: 'exact' | 'address' | 'approximate' | 'none'
     address?: string
     guests?: number
     rooms?: number
@@ -82,7 +83,7 @@ export function toImportedLodging(
           ? {
               value: { lat: overrides.lat, lon: overrides.lon },
               source: 'manual',
-              confidence: overrides.precision === 'approximate' ? 'medium' : 'high',
+              confidence: overrides.precision === 'exact' ? 'high' : 'medium',
               extractedAt: Date.now(),
               precision: overrides.precision ?? 'exact'
             }
@@ -113,7 +114,8 @@ export function toImportedLodging(
   const offer = normalizeOffer(merged, { checkIn, checkOut, guests })
   const nights = differenceInDays(checkOut, checkIn)
   const geo = merged.geo
-  const hasGeo = geo != null && geo.precision !== 'none'
+  const hasGeo =
+    geo != null && geo.precision !== 'none' && coordsUsable(geo.value.lat, geo.value.lon)
   const total = offer.priceTotal
   const isFrom = Boolean(merged.priceBase?.isFrom) || offer.flags.includes('price_is_from')
 
@@ -150,7 +152,15 @@ export function toImportedLodging(
     photo: merged.image?.value && /^https?:\/\//i.test(merged.image.value) ? merged.image.value : '',
     lat: hasGeo ? geo.value.lat : undefined,
     lon: hasGeo ? geo.value.lon : undefined,
-    locPrecision: hasGeo ? (geo.precision === 'exact' ? 'exact' : 'approximate') : undefined,
+    locPrecision:
+      hasGeo
+        ? geo.precision === 'exact'
+          ? 'exact'
+          : geo.precision === 'address'
+            ? 'address'
+            : 'approximate'
+        : undefined,
+    addressText: merged.addressText?.value,
     importDomainId: stay.domainId,
     priceConfidence,
     priceCheckIn: checkIn,
@@ -161,7 +171,7 @@ export function toImportedLodging(
     offerHash: merged.offerHash,
     priceIsFrom: isFrom,
     priceFlags: offer.flags,
-    geoPrecision: geo?.precision ?? 'none',
+    geoPrecision: geo?.precision === 'exact' ? 'exact' : geo && geo.precision !== 'none' ? 'approximate' : 'none',
     feesBreakdown: merged.fees
       ? {
           cleaning: merged.fees.cleaning,

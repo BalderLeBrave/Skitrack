@@ -47,6 +47,16 @@ from ..config import get_settings
 from ..models import DomainLift, DomainSlope, SkiDomain
 from ..services.geo_math import bbox_of, centroid_of
 from ..services.massif import massif_for
+from .slopes import (
+    OSM_TO_UI,
+    build_report,
+    compact_counts,
+    compact_km,
+    empty_counts,
+    normalize_counts,
+    normalize_km,
+    recount_touched,
+)
 
 log = logging.getLogger(__name__)
 
@@ -56,19 +66,8 @@ DEFAULT_URLS = {
     "runs": "https://tiles.openskimap.org/geojson/runs.geojson",
 }
 
-#: Difficulté OpenSkiData -> couleur européenne. La couleur n'est pas stockée sur
-#: la piste (la même difficulté se colore autrement en Amérique du Nord) mais
-#: agrégée ici, car l'UI française raisonne en vert/bleu/rouge/noir.
-DIFFICULTY_TO_COLOR = {
-    "novice": "vert",
-    "easy": "bleu",
-    "intermediate": "rouge",
-    "advanced": "noir",
-    "expert": "noir",
-    "freeride": "freeride",
-    "extreme": "noir",
-    "other": "autre",
-}
+#: Difficulté OpenSkiData → couleur UI FR (clés EN). Expert n'est pas du noir.
+DIFFICULTY_TO_COLOR = OSM_TO_UI
 
 ProgressFn = Callable[[float, str], None]
 
@@ -172,15 +171,15 @@ def _downhill_stats(props: dict) -> dict[str, Any]:
     runs = stats.get("runs") or {}
     downhill = ((runs.get("byActivity") or {}).get("downhill") or {}).get("byDifficulty") or {}
 
-    km_by_color: dict[str, float] = {}
-    count_by_color: dict[str, int] = {}
+    km_acc: dict[str, float] = {k: 0.0 for k in empty_counts()}
+    count_by_color = empty_counts()
     km_total = 0.0
     km_snowmaking = 0.0
     for difficulty, entry in downhill.items():
-        color = DIFFICULTY_TO_COLOR.get(difficulty, "autre")
+        color = DIFFICULTY_TO_COLOR.get(str(difficulty).lower(), "unknown")
         km = float(entry.get("lengthInKm") or 0.0)
-        km_by_color[color] = round(km_by_color.get(color, 0.0) + km, 2)
-        count_by_color[color] = count_by_color.get(color, 0) + int(entry.get("count") or 0)
+        km_acc[color] = round(km_acc.get(color, 0.0) + km, 2)
+        count_by_color[color] = int(count_by_color.get(color, 0)) + int(entry.get("count") or 0)
         km_total += km
         km_snowmaking += float(entry.get("snowmakingLengthInKm") or 0.0)
 
@@ -197,10 +196,15 @@ def _downhill_stats(props: dict) -> dict[str, Any]:
         round(100.0 * km_snowmaking / km_total) if km_total > 0 and km_snowmaking > 0 else None
     )
 
+    counts = normalize_counts(count_by_color)
+    km_norm = normalize_km(km_acc)
+    report = build_report(counts, km_norm, osm_total=sum(counts.values()))
+
     return {
         "slopes_km_total": round(km_total, 1) if km_total else None,
-        "slopes_km_by_color": km_by_color or None,
-        "slopes_count_by_color": count_by_color or None,
+        "slopes_km_by_color": compact_km(km_norm) or None,
+        "slopes_count_by_color": compact_counts(counts) or None,
+        "slopes_report": report,
         "lifts_count": lifts_count or None,
         "lifts_count_by_type": {k: int(v.get("count") or 0) for k, v in by_type.items()} or None,
         "lifts_km_total": round(lifts_km, 1) if lifts_km else None,
@@ -291,6 +295,7 @@ UPDATABLE_FIELDS = (
     "slopes_km_total",
     "slopes_km_by_color",
     "slopes_count_by_color",
+    "slopes_report",
     "lifts_count",
     "lifts_count_by_type",
     "lifts_km_total",
@@ -559,6 +564,9 @@ def import_runs(
         if isinstance(snow, str):
             snow = snow.lower() in {"yes", "true", "1"}
 
+        length_km = (props.get("statistics") or {}).get("lengthInKm")
+        length_m = _as_int(float(length_km) * 1000) if isinstance(length_km, (int, float)) else None
+
         touched.add(domain.id)
         to_add.append(
             DomainSlope(
@@ -566,9 +574,7 @@ def import_runs(
                 source_id=str(props.get("id") or ""),
                 name=props.get("name"),
                 difficulty=props.get("difficulty") or props.get("grooming"),
-                length_m=_as_int((props.get("statistics") or {}).get("lengthInKm") * 1000)
-                if isinstance((props.get("statistics") or {}).get("lengthInKm"), (int, float))
-                else None,
+                length_m=length_m,
                 elevation_min_m=min(elevations) if elevations else None,
                 elevation_max_m=max(elevations) if elevations else None,
                 snowmaking=bool(snow) if snow is not None else None,
@@ -582,6 +588,7 @@ def import_runs(
             synchronize_session=False
         )
     session.add_all(to_add)
+    recount_touched(session, touched)
     session.commit()
     progress(1.0, f"{imported} pistes importées sur {len(touched)} domaines")
     return {"seen": seen, "imported": imported, "domains_touched": len(touched)}

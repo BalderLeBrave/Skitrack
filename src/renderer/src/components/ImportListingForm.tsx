@@ -18,6 +18,7 @@ import type { Domain } from '@/data/referentiel'
 import { useFocusTrap } from '@/hooks/useShortcuts'
 import { useI18n } from '@/i18n'
 import { parseJsonLdText } from '@shared/normalizeJsonLd'
+import { coordsUsable } from '@shared/geo'
 import {
   calculateCompleteness,
   field,
@@ -146,7 +147,7 @@ export function ImportListingForm({ domain }: { domain: Domain }): JSX.Element |
   const [lat, setLat] = useState('')
   const [lon, setLon] = useState('')
   const [noGeo, setNoGeo] = useState(false)
-  const [geoSource, setGeoSource] = useState<'exact' | 'approximate' | 'none'>('none')
+  const [geoSource, setGeoSource] = useState<'exact' | 'address' | 'approximate' | 'none'>('none')
   const [cleaning, setCleaning] = useState('')
   const [tax, setTax] = useState('')
   const [service, setService] = useState('')
@@ -186,7 +187,7 @@ export function ImportListingForm({ domain }: { domain: Domain }): JSX.Element |
     if (listing.checkIn) setCheckIn(listing.checkIn.value)
     if (listing.checkOut) setCheckOut(listing.checkOut.value)
     if (listing.addressText) setAddress(listing.addressText.value)
-    if (listing.geo && listing.geo.precision !== 'none') {
+    if (listing.geo && listing.geo.precision !== 'none' && coordsUsable(listing.geo.value.lat, listing.geo.value.lon)) {
       setLat(String(listing.geo.value.lat))
       setLon(String(listing.geo.value.lon))
       setNoGeo(false)
@@ -205,6 +206,13 @@ export function ImportListingForm({ domain }: { domain: Domain }): JSX.Element |
     if (strategy === 'user_manual_entry') setMessage(t('import_status_denied'))
     else if (strategy === 'partial_with_form' || listing.completenessScore < 80) setMessage(t('import_status_partial'))
     else setMessage(null)
+    const hasPublishedGeo =
+      listing.geo != null &&
+      listing.geo.precision !== 'none' &&
+      coordsUsable(listing.geo.value.lat, listing.geo.value.lon)
+    if (listing.addressText?.value && !hasPublishedGeo) {
+      void geocodeAddress(listing.addressText.value)
+    }
   }
 
   const readUrl = async (): Promise<void> => {
@@ -241,17 +249,22 @@ export function ImportListingForm({ domain }: { domain: Domain }): JSX.Element |
     applyExtracted(listing)
   }
 
-  const geocode = async (): Promise<void> => {
-    if (!address.trim() || !isClientReady()) return
+  const geocodeAddress = async (query: string): Promise<void> => {
+    if (!query.trim() || !isClientReady()) return
     setBusy(true)
     try {
-      const hits = await api.geocode(address.trim(), 1)
+      const hits = await api.geocode(query.trim(), 5, { lat: domain.lat, lon: domain.lon })
       const hit = hits[0]
-      if (hit && typeof hit.lat === 'number' && typeof hit.lon === 'number') {
+      if (hit && coordsUsable(hit.lat, hit.lon)) {
         setLat(String(hit.lat))
         setLon(String(hit.lon))
         setNoGeo(false)
-        setGeoSource('approximate')
+        const kind = (hit.kind ?? '').toLowerCase()
+        setGeoSource(
+          kind === 'housenumber' || kind === 'street' || kind === 'house' || kind === 'building'
+            ? 'address'
+            : 'approximate'
+        )
         setMessage(t('geocode_done'))
       } else {
         setMessage(t('geocode_none'))
@@ -263,9 +276,13 @@ export function ImportListingForm({ domain }: { domain: Domain }): JSX.Element |
     }
   }
 
+  const geocode = async (): Promise<void> => {
+    await geocodeAddress(address)
+  }
+
   const latN = parseFloat(lat.replace(',', '.'))
   const lonN = parseFloat(lon.replace(',', '.'))
-  const hasCoords = !noGeo && Number.isFinite(latN) && Number.isFinite(lonN)
+  const hasCoords = !noGeo && coordsUsable(latN, lonN)
 
   const save = (): void => {
     const url = state.importUrl.trim() || extracted?.canonicalUrl?.value || extracted?.fetchMetadata.url || ''

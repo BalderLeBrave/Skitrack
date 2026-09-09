@@ -1,0 +1,30 @@
+node_modules/
+dist/
+.output/
+.tanstack/
+.vercel/
+.vite/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.tsbuildinfo
+.env
+.env.local
+.grok/
+.project_id
+.node_modules.lock
+
+artifacts/
+attachments/
+screenshots/
+browsed_files/
+
+# Terrain high-poly trop lourd pour git (>50 Mo)
+public/models/snow-mountain-hi.glb
+
+# Chrome PWA Grok (preview sandbox)
+public/__grok/
+
+# Contrat sandbox, pas le produit
+AGENTS.md
+AGENTS.project.md

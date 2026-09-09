@@ -1,7 +1,11 @@
 import { memo } from "react";
-import { formatDist } from "@/lib/access";
+import { distToGpxM } from "@/lib/accommodation";
+import { formatDist, formatDistFrom, formatLift, formatLiftSpan, sectorOf, skiAccessLabel } from "@/lib/access";
+import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
+import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
+import { useTrack } from "@/lib/track";
 
 export const LodgingCard = memo(function LodgingCard({
   listing,
@@ -12,6 +16,17 @@ export const LodgingCard = memo(function LodgingCard({
 }) {
   const short = useStay((s) => s.shortlist.includes(listing.id));
   const toggle = useStay((s) => s.toggleShort);
+  const hasTrack = useTrack((s) => s.points.length > 0);
+  const byKey = useElevations((s) => s.byKey);
+  const gpxM = hasTrack ? distToGpxM(listing) : null;
+  const sector = sectorOf(listing);
+  const hasGps = listing.lat != null && listing.lon != null;
+  const ski = skiAccessLabel(listing.distToLiftM);
+  const eleM = listingEleM(byKey, listing.lat, listing.lon);
+  const station = stationById(listing.stationId);
+  const vsVillage =
+    eleM != null && station != null ? eleM - station.villageM : null;
+  const span = formatLiftSpan(listing, (lat, lon) => listingEleM(byKey, lat, lon));
 
   return (
     <article
@@ -39,9 +54,27 @@ export const LodgingCard = memo(function LodgingCard({
           {" · "}
           {listing.guests != null ? `${listing.guests} pers.` : "capacité non annoncée"}
         </p>
-        <p className={`text-xs ${listing.distToSlopesM == null ? "text-muted" : "text-ink"}`}>
-          {formatDist(listing.distToSlopesM)}
+        {sector ? <p className="text-xs text-ink">{sector}</p> : null}
+        {ski ? <p className="text-xs font-semibold">{ski}</p> : null}
+        <p className={`text-xs ${listing.distToLiftM == null ? "text-muted" : "text-ink"}`}>
+          {hasGps ? formatLift(listing) : formatDist(listing.distToSlopesM)}
         </p>
+        {span ? <p className="text-xs font-semibold">{span}</p> : null}
+        {eleM != null ? (
+          <p className="text-xs text-ink">
+            {formatAlt(eleM)}
+            {vsVillage != null
+              ? vsVillage >= 0
+                ? " · altitude village ou plus"
+                : ` · ${formatAlt(Math.abs(vsVillage))} sous le village`
+              : " · modèle"}
+          </p>
+        ) : null}
+        {hasTrack ? (
+          <p className={`text-xs ${gpxM == null ? "text-muted" : "text-ink"}`}>
+            {formatDistFrom(gpxM, "de la trace")}
+          </p>
+        ) : null}
         <p className="mt-auto flex items-baseline justify-between pt-1">
           <span className="text-base font-semibold">{formatEuro(listing.total)}</span>
           <span className="text-xs font-medium text-ink">Disponible</span>

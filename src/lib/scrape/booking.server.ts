@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { SCRAPE_UA, sleep } from "./browser.server";
+import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -157,6 +158,7 @@ function pythonBody(input: LiveSearchInput, extra: Record<string, unknown> = {})
 }
 
 export async function scrapeBookingPython(input: LiveSearchInput): Promise<Listing[]> {
+  await allowsPath("https://www.booking.com", "/");
   return spawnBooking(pythonBody(input), 12_000, input);
 }
 

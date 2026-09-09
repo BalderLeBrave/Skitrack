@@ -24,6 +24,16 @@ export type Listing = {
   lat: number | null;
   lon: number | null;
   distToSlopesM?: number | null;
+  locality?: string | null;
+  placeName?: string | null;
+  distToPlaceM?: number | null;
+  distToLiftM?: number | null;
+  liftName?: string | null;
+  liftKind?: string | null;
+  liftLat?: number | null;
+  liftLon?: number | null;
+  liftOtherLat?: number | null;
+  liftOtherLon?: number | null;
   proven: string;
 };
 
@@ -397,7 +407,10 @@ export function listingsForStay(stationId: string, guests: number, bedrooms: num
 }
 
 export function listingById(id: string): Listing | undefined {
-  return RELEVE_2A.find((l) => l.id === id);
+  const row = RELEVE_2A.find((l) => l.id === id);
+  if (!row) return undefined;
+  const station = stationById(row.stationId);
+  return station ? attachAccess(row, station) : row;
 }
 
 export function formatEuro(n: number): string {

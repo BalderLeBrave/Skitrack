@@ -2,7 +2,7 @@
 
 export type PisteColor = "green" | "blue" | "red" | "black" | "other";
 export type PisteUnit = "count" | "km" | "pct";
-export type PistePreset = "all" | "famille" | "mixte" | "engage" | "expert";
+export type PistePreset = "all" | "famille" | "mixte" | "engage" | "expert" | "haut" | "glacier" | "lie" | "itineraires";
 
 export type PisteCounts = Partial<Record<PisteColor, number>>;
 
@@ -21,12 +21,22 @@ export const PISTE_HEX: Record<PisteColor, string> = {
   other: "#718096",
 };
 
-/** Profils sur les parts OSM (comptes), pas sur des km inventés. */
+/** Profils : parts OSM (comptes) + altitudes France Montagnes + glacier catalogue. Pas de km inventés. */
 export const PISTE_PRESETS = {
   famille: { minShareGreenBlue: 0.6, maxShareBlack: 0.15 },
   mixte: { maxShareAnyClassic: 0.5 },
-  engage: { minShareRedBlack: 0.5 },
-  expert: { minBlackCount: 8, minShareBlack: 0.2 },
+  /** Dénivelé FM ≥ 1 800 m, ou ≥ 40 % rouges+noires OSM (Chamonix). */
+  engage: { minDropM: 1800, minShareRedBlack: 0.4 },
+  /** Sommet FM ≥ 3 000 m, ou ≥ 12 noires OSM (Chamonix). */
+  expert: { minMaxM: 3000, minBlackCount: 12 },
+  /** Sommet France Montagnes ≥ 3 000 m. */
+  haut: { minMaxM: 3000 },
+  /** Glacier déclaré dans le catalogue de domaine. */
+  glacier: { needGlacier: true },
+  /** Forfait lié publié (3 Vallées, Espace Killy, MBU…). */
+  lie: { needLinked: true },
+  /** Tracés OSM hors vert/bleu/rouge/noir (itinéraires, snowpark…). */
+  itineraires: { minOther: 4 },
 } as const;
 
 function round1(n: number): number {
@@ -100,7 +110,18 @@ export function pisteMax(unit: PisteUnit): number {
   return 500;
 }
 
-export function stationMatchesPiste(slopes: StationSlopes, f: PisteFilter): boolean {
+export type PisteStationAlt = {
+  minM: number;
+  maxM: number;
+  glacier?: boolean;
+  linked?: boolean;
+};
+
+export function stationMatchesPiste(
+  slopes: StationSlopes,
+  f: PisteFilter,
+  alt?: PisteStationAlt,
+): boolean {
   const split = scaleKm(slopes);
   const value = (color: Exclude<PisteColor, "other">): number => {
     if (f.unit === "count") return slopes.counts[color] ?? 0;
@@ -113,9 +134,12 @@ export function stationMatchesPiste(slopes: StationSlopes, f: PisteFilter): bool
   if (f.minBlack && value("black") < f.minBlack) return false;
 
   const classic = classicCount(slopes.counts);
-  if (classic <= 0 && f.preset !== "all") return false;
+  if (classic <= 0 && f.preset !== "all" && f.preset !== "glacier" && f.preset !== "haut" && f.preset !== "lie" && f.preset !== "itineraires") return false;
   const share = (n: number) => (classic > 0 ? n / classic : 0);
   const c = slopes.counts;
+  const dropM = alt != null ? Math.max(0, alt.maxM - alt.minM) : null;
+  const maxM = alt?.maxM ?? null;
+
   if (f.preset === "famille") {
     return (
       share((c.green ?? 0) + (c.blue ?? 0)) >= PISTE_PRESETS.famille.minShareGreenBlue &&
@@ -126,11 +150,28 @@ export function stationMatchesPiste(slopes: StationSlopes, f: PisteFilter): bool
     return PISTE_CLASSIC.every((k) => share(c[k] ?? 0) <= PISTE_PRESETS.mixte.maxShareAnyClassic);
   }
   if (f.preset === "engage") {
-    return share((c.red ?? 0) + (c.black ?? 0)) >= PISTE_PRESETS.engage.minShareRedBlack;
+    const p = PISTE_PRESETS.engage;
+    const steep = share((c.red ?? 0) + (c.black ?? 0)) >= p.minShareRedBlack;
+    const big = dropM != null && dropM >= p.minDropM;
+    return steep || big;
   }
   if (f.preset === "expert") {
-    const black = c.black ?? 0;
-    return black >= PISTE_PRESETS.expert.minBlackCount || share(black) >= PISTE_PRESETS.expert.minShareBlack;
+    const p = PISTE_PRESETS.expert;
+    const high = maxM != null && maxM >= p.minMaxM;
+    const blacks = (c.black ?? 0) >= p.minBlackCount;
+    return high || blacks;
+  }
+  if (f.preset === "haut") {
+    return maxM != null && maxM >= PISTE_PRESETS.haut.minMaxM;
+  }
+  if (f.preset === "glacier") {
+    return alt?.glacier === true;
+  }
+  if (f.preset === "lie") {
+    return alt?.linked === true;
+  }
+  if (f.preset === "itineraires") {
+    return (c.other ?? 0) >= PISTE_PRESETS.itineraires.minOther;
   }
   return true;
 }

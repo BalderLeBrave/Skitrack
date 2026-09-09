@@ -7,7 +7,10 @@ import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
 import { scrapeAirbnb } from "./airbnb.server";
 import { scrapeBookingPython } from "./booking.server";
+import { fillBookingGps } from "./bookingGps.server";
+import { fillGitesGps } from "./gitesGps.server";
 import { collectCozyPayloads, cozyListings } from "./cozy.server";
+import { allowsPath } from "./robots";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
 
 export type SearchPart = "airbnb" | "gites" | "cozy" | "browser" | "all";
@@ -81,6 +84,15 @@ function applyDump(input: LiveSearchInput, reports: SourceReport[], listings: Li
   }
 }
 
+async function fillGitesIfNeeded(listings: Listing[]) {
+  if (!listings.some((l) => l.source === "Gîtes de France" && (l.lat == null || l.lon == null))) return;
+  try {
+    await fillGitesGps(listings);
+  } catch (err) {
+    console.warn("[gites-gps]", err instanceof Error ? err.message : err);
+  }
+}
+
 async function fillCozy(page: Page, input: LiveSearchInput, reports: SourceReport[], listings: Listing[]) {
   const t0 = Date.now();
   const payloads = await collectCozyPayloads(page, input);
@@ -90,6 +102,9 @@ async function fillCozy(page: Page, input: LiveSearchInput, reports: SourceRepor
   pushReport(reports, listings, "Abritel", abritel, collectMs);
   let booking = fromCozy;
   if (booking.length === 0) booking = await scrapeBookingPython(input);
+  if (booking.some((l) => l.lat == null || l.lon == null)) {
+    await fillBookingGps(page, booking);
+  }
   pushReport(reports, listings, "Booking", booking, booking === fromCozy ? collectMs : Date.now() - t0);
   const gpsA = abritel.filter((l) => l.lat != null && l.lon != null).length;
   const gpsB = booking.filter((l) => l.lat != null && l.lon != null).length;
@@ -118,6 +133,7 @@ async function runGites(input: LiveSearchInput): Promise<LiveSearchResult> {
     }
   }
   applyDump(input, reports, listings, new Set(GITES_SOURCES));
+  await fillGitesIfNeeded(listings);
   return { listings: locate(input, listings), sources: reports };
 }
 
@@ -159,6 +175,7 @@ async function runBrowser(input: LiveSearchInput): Promise<LiveSearchResult> {
     }
   }
   applyDump(input, reports, listings, new Set(BROWSER_SOURCES));
+  await fillGitesIfNeeded(listings);
   return { listings: locate(input, listings), sources: reports };
 }
 
@@ -173,7 +190,7 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
 }
 
 const CACHE_MS = 90_000;
-const CACHE_GEN = "c3";
+const CACHE_GEN = "c7";
 const cache = new Map<string, { at: number; result: LiveSearchResult }>();
 const inflight = new Map<string, Promise<LiveSearchResult>>();
 
@@ -182,6 +199,7 @@ function cacheKey(input: LiveSearchInput, part: SearchPart): string {
 }
 
 export async function runLiveSearch(input: LiveSearchInput, part: SearchPart = "all"): Promise<LiveSearchResult> {
+  await allowsPath("https://skitrack.local", "/");
   const key = cacheKey(input, part);
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.result;

@@ -1,6 +1,7 @@
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { SCRAPE_UA } from "./browser.server";
+import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 
 const KEY = "FNGF-00M562O4";
@@ -172,6 +173,7 @@ async function quoteStay(code: string, checkIn: string, checkOut: string, guests
 }
 
 export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<Listing[]> {
+  await allowsPath("https://www.gites-de-france.com", "/");
   const url = searchUrl(input);
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 22_000 });
   await page

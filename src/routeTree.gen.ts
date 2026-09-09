@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ComparerRouteImport } from './routes/comparer'
+import { Route as ForfaitsRouteImport } from './routes/forfaits'
 import { Route as LogementsRouteImport } from './routes/logements'
+import { Route as TracesRouteImport } from './routes/traces'
 import { Route as ReservationIdRouteImport } from './routes/reservation.$id'
 import { Route as StationsIdRouteImport } from './routes/stations.$id'
 
@@ -25,9 +27,19 @@ const ComparerRoute = ComparerRouteImport.update({
   path: '/comparer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForfaitsRoute = ForfaitsRouteImport.update({
+  id: '/forfaits',
+  path: '/forfaits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LogementsRoute = LogementsRouteImport.update({
   id: '/logements',
   path: '/logements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TracesRoute = TracesRouteImport.update({
+  id: '/traces',
+  path: '/traces',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReservationIdRoute = ReservationIdRouteImport.update({
@@ -44,14 +56,18 @@ const StationsIdRoute = StationsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/comparer': typeof ComparerRoute
+  '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
+  '/traces': typeof TracesRoute
   '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/comparer': typeof ComparerRoute
+  '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
+  '/traces': typeof TracesRoute
   '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
 }
@@ -59,21 +75,38 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/comparer': typeof ComparerRoute
+  '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
+  '/traces': typeof TracesRoute
   '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/comparer' | '/logements' | '/reservation/$id' | '/stations/$id'
+    | '/'
+    | '/comparer'
+    | '/forfaits'
+    | '/logements'
+    | '/traces'
+    | '/reservation/$id'
+    | '/stations/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/comparer' | '/logements' | '/reservation/$id' | '/stations/$id'
+  to:
+    | '/'
+    | '/comparer'
+    | '/forfaits'
+    | '/logements'
+    | '/traces'
+    | '/reservation/$id'
+    | '/stations/$id'
   id:
     | '__root__'
     | '/'
     | '/comparer'
+    | '/forfaits'
     | '/logements'
+    | '/traces'
     | '/reservation/$id'
     | '/stations/$id'
   fileRoutesById: FileRoutesById
@@ -81,7 +114,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ComparerRoute: typeof ComparerRoute
+  ForfaitsRoute: typeof ForfaitsRoute
   LogementsRoute: typeof LogementsRoute
+  TracesRoute: typeof TracesRoute
   ReservationIdRoute: typeof ReservationIdRoute
   StationsIdRoute: typeof StationsIdRoute
 }
@@ -102,11 +137,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComparerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forfaits': {
+      id: '/forfaits'
+      path: '/forfaits'
+      fullPath: '/forfaits'
+      preLoaderRoute: typeof ForfaitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/logements': {
       id: '/logements'
       path: '/logements'
       fullPath: '/logements'
       preLoaderRoute: typeof LogementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/traces': {
+      id: '/traces'
+      path: '/traces'
+      fullPath: '/traces'
+      preLoaderRoute: typeof TracesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reservation/$id': {
@@ -129,7 +178,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ComparerRoute: ComparerRoute,
+  ForfaitsRoute: ForfaitsRoute,
   LogementsRoute: LogementsRoute,
+  TracesRoute: TracesRoute,
   ReservationIdRoute: ReservationIdRoute,
   StationsIdRoute: StationsIdRoute,
 }

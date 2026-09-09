@@ -16,7 +16,8 @@
     "preview:stop": "node scripts/preview.mjs stop",
     "typecheck": "tsc --noEmit",
     "check:auth": "node scripts/check-auth-invariant.mjs",
-    "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/auth/gate-identity.test.ts src/lib/auth/sign-in-gate.test.ts",
+    "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/auth/gate-identity.test.ts src/lib/auth/sign-in-gate.test.ts src/lib/forfaits/extract.test.ts src/lib/forfaits/store.test.ts src/lib/forfaits/catalog.test.ts src/lib/bra/parse.test.ts src/lib/bra/massifs.test.ts src/lib/scrape/robots.test.ts src/lib/i18n/catalog.test.ts src/lib/pistes.test.ts src/lib/access.test.ts src/lib/osmAccess.test.ts",
+    "verify": "npm run typecheck && node --experimental-strip-types --test src/lib/forfaits/extract.test.ts src/lib/forfaits/store.test.ts src/lib/forfaits/catalog.test.ts src/lib/bra/parse.test.ts src/lib/bra/massifs.test.ts src/lib/scrape/robots.test.ts src/lib/i18n/catalog.test.ts src/lib/pistes.test.ts src/lib/access.test.ts src/lib/osmAccess.test.ts",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

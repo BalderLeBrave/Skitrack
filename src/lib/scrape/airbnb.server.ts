@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { SCRAPE_UA } from "./browser.server";
+import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -318,6 +319,7 @@ export async function scrapeAirbnb(
   input: LiveSearchInput,
   pageOrOpen?: Page | (() => Promise<Page>),
 ): Promise<Listing[]> {
+  await allowsPath("https://www.airbnb.fr", "/");
   const viaPy = await scrapeAirbnbPyairbnb(input);
   if (viaPy.length > 0) {
     console.info(`[airbnb] pyairbnb ${viaPy.length}`);

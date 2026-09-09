@@ -61,10 +61,17 @@ export function PisteMixBar({
               ? "100 %"
               : `${formatKm(split.total)} km`}
         </strong>
+        {(slopes.counts.other ?? 0) > 0 ? (
+          <span className="text-muted">I{slopes.counts.other} OSM</span>
+        ) : null}
       </p>
       {!compact && (
         <p className="piste__hint">
-          {formatKm(split.total)} km annoncés, répartis selon OpenStreetMap ({classic} tracés).
+          {formatKm(split.total)} km annoncés, répartis selon OpenStreetMap ({classic} tracés
+          { (slopes.counts.other ?? 0) > 0
+            ? ` · ${slopes.counts.other} hors vert/bleu/rouge/noir`
+            : ""}
+          ).
         </p>
       )}
     </div>

@@ -2,6 +2,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { EMPTY_PISTE_FILTER, type PisteFilter, type PistePreset, type PisteUnit } from "./pistes";
 
+const PRESETS: PistePreset[] = ["all", "famille", "mixte", "engage", "expert", "haut", "glacier", "lie", "itineraires"];
+
+function asPreset(v: unknown): PistePreset {
+  return PRESETS.includes(v as PistePreset) ? (v as PistePreset) : "all";
+}
+
 type Store = PisteFilter & {
   setUnit: (unit: PisteUnit) => void;
   setPreset: (preset: PistePreset) => void;
@@ -34,7 +40,7 @@ export const usePisteFilter = create<Store>()(
           ...current,
           ...p,
           unit: p.unit ?? "count",
-          preset: p.preset ?? "all",
+          preset: asPreset(p.preset),
           minGreen: p.minGreen ?? 0,
           minBlue: p.minBlue ?? 0,
           minRed: p.minRed ?? 0,

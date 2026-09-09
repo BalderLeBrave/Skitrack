@@ -158,3 +158,11 @@ export const STATIONS: Station[] = [
 export function stationById(id: string): Station | undefined {
   return STATIONS.find((s) => s.id === id);
 }
+
+export function dropM(station: Station): number {
+  return Math.max(0, station.maxM - station.minM);
+}
+
+export function formatAlt(n: number): string {
+  return `${n.toLocaleString("fr-FR")} m`;
+}

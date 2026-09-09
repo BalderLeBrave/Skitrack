@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { formatEuro, listingById } from "@/lib/listings";
+import { resolveListing } from "@/lib/accommodation";
+import { formatLift, sectorOf, skiAccessLabel } from "@/lib/access";
+import { formatEuro } from "@/lib/listings";
 import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 
@@ -8,7 +10,7 @@ export const Route = createFileRoute("/reservation/$id")({ component: Reservatio
 
 function Reservation() {
   const { id } = Route.useParams();
-  const listing = listingById(id);
+  const listing = resolveListing(id);
   const stay = useStay();
   const station = stationById(stay.stationId);
   const navigate = useNavigate();
@@ -44,6 +46,11 @@ function Reservation() {
             {listing.source} · {listing.bedrooms ?? "chambres non annoncées"} ·{" "}
             {listing.guests ?? "capacité non annoncée"}
           </p>
+          <p className="mt-2 text-sm">{sectorOf(listing) ?? "Lieu non publié"}</p>
+          {skiAccessLabel(listing.distToLiftM) ? (
+            <p className="text-sm font-semibold">{skiAccessLabel(listing.distToLiftM)}</p>
+          ) : null}
+          <p className="text-sm">{formatLift(listing)}</p>
           <p className="mt-4 text-sm text-muted">{listing.proven}</p>
         </div>
         <aside className="stay-glass h-fit rounded-[var(--radius-card)] p-5">

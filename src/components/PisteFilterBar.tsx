@@ -12,8 +12,12 @@ const PRESETS: { id: PistePreset; label: string; hint: string }[] = [
   { id: "all", label: "Toutes", hint: "aucun profil" },
   { id: "famille", label: "Famille", hint: "≥ 60 % vertes+bleues, ≤ 15 % noires" },
   { id: "mixte", label: "Mixte", hint: "aucune couleur > 50 %" },
-  { id: "engage", label: "Engagé", hint: "≥ 50 % rouges+noires" },
-  { id: "expert", label: "Expert", hint: "≥ 8 noires ou ≥ 20 %" },
+  { id: "engage", label: "Engagé", hint: "dénivelé ≥ 1 800 m ou ≥ 40 % rouges+noires" },
+  { id: "expert", label: "Expert", hint: "sommet ≥ 3 000 m ou ≥ 12 noires" },
+  { id: "haut", label: "Haut", hint: "sommet France Montagnes ≥ 3 000 m" },
+  { id: "glacier", label: "Glacier", hint: "glacier déclaré au catalogue du domaine" },
+  { id: "lie", label: "Forfait lié", hint: "forfait multi-stations publié au catalogue" },
+  { id: "itineraires", label: "Itinéraires", hint: "≥ 4 tracés OSM hors vert/bleu/rouge/noir" },
 ];
 
 export function PisteFilterBar() {
@@ -36,7 +40,8 @@ export function PisteFilterBar() {
   return (
     <div className="piste-filter" data-testid="piste-filter">
       <p className="piste-filter__lead">
-        Filtrer les stations par typologie de pistes — nombre OSM, kilomètres (total annoncé réparti) ou pourcentage.
+        Filtrer par pistes OSM, sommet, dénivelé, glacier, forfait lié et itinéraires — rien n’est
+        inventé.
       </p>
       <div className="piste-filter__row" role="radiogroup" aria-label="Unité">
         {(["count", "km", "pct"] as PisteUnit[]).map((u) => (

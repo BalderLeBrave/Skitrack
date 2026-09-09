@@ -1,8 +1,29 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
+import type { GpxPoint } from "@/lib/gpx";
 import { useMapPrefs } from "@/lib/mapPrefs";
 import { BASEMAPS, MAP_TILE_REV, resolvedBasemap, skiMapStyle } from "@/lib/mapStyle";
+
+export type MapPin = {
+  id: string;
+  lat: number;
+  lon: number;
+  title: string;
+  hint?: string;
+  kind?: "listing" | "lift" | "lift-top";
+};
+
+function esc(s: string): string {
+  const amp = String.fromCharCode(38);
+  return s.replace(/[&<>"']/g, (c) => {
+    if (c === "&") return amp + "amp;";
+    if (c === "<") return amp + "lt;";
+    if (c === ">") return amp + "gt;";
+    if (c === '"') return amp + "quot;";
+    return amp + "#39;";
+  });
+}
 
 export function MapPanel({
   lat,
@@ -10,12 +31,14 @@ export function MapPanel({
   zoom = 12,
   label,
   pins = [],
+  track = [],
 }: {
   lat: number;
   lon: number;
   zoom?: number;
   label?: string;
-  pins?: { id: string; lat: number; lon: number; title: string }[];
+  pins?: MapPin[];
+  track?: Pick<GpxPoint, "lat" | "lon">[];
 }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -95,11 +118,60 @@ export function MapPanel({
       .slice(0, 80)
       .map((p) => {
         const dot = document.createElement("div");
-        dot.className = "map-pin map-pin--listing";
+        dot.className =
+          p.kind === "lift-top"
+            ? "map-pin map-pin--lift-top"
+            : p.kind === "lift"
+              ? "map-pin map-pin--lift"
+              : "map-pin map-pin--listing";
         dot.title = p.title;
-        return new maplibregl.Marker({ element: dot }).setLngLat([p.lon, p.lat]).addTo(m);
+        const mk = new maplibregl.Marker({ element: dot }).setLngLat([p.lon, p.lat]);
+        if (p.hint) {
+          mk.setPopup(
+            new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(
+              `<p class="map-pop__title">${esc(p.title)}</p><p class="map-pop__hint">${esc(p.hint)}</p>`,
+            ),
+          );
+        }
+        return mk.addTo(m);
       });
   }, [lat, lon, zoom, label, ready, threeD, pins]);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    const coords = track
+      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon))
+      .map((p) => [p.lon, p.lat] as [number, number]);
+    const data: GeoJSON.Feature<GeoJSON.LineString> = {
+      type: "Feature",
+      properties: {},
+      geometry: { type: "LineString", coordinates: coords.length >= 2 ? coords : [] },
+    };
+    const src = m.getSource("gpx") as maplibregl.GeoJSONSource | undefined;
+    if (src) {
+      src.setData(data);
+    } else if (coords.length >= 2) {
+      m.addSource("gpx", { type: "geojson", data });
+      m.addLayer({
+        id: "gpx-line",
+        type: "line",
+        source: "gpx",
+        paint: {
+          "line-color": "#ff5a3c",
+          "line-width": 3.5,
+          "line-opacity": 0.92,
+        },
+      });
+    }
+    if (coords.length >= 2) {
+      const b = coords.reduce(
+        (acc, [x, y]) => acc.extend([x, y]),
+        new maplibregl.LngLatBounds(coords[0], coords[0]),
+      );
+      m.fitBounds(b, { padding: 48, maxZoom: 14, duration: 700 });
+    }
+  }, [track, ready]);
 
   useEffect(() => {
     const m = map.current;

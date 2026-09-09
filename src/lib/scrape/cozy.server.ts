@@ -1,6 +1,7 @@
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { sleep } from "./browser.server";
+import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 
 function datedPlace(name: string): string {
@@ -81,6 +82,33 @@ function canonicalAbritel(deeplink: string, input: LiveSearchInput): string {
   }
 }
 
+function coord(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v) && v !== 0) return v;
+  if (typeof v === "string" && v.trim()) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n !== 0) return n;
+  }
+  return null;
+}
+
+function canonicalBooking(deeplink: string, input: LiveSearchInput): string {
+  try {
+    const u = new URL(deeplink);
+    if (!/(^|\.)booking\.com$/i.test(u.hostname)) return deeplink;
+    u.hostname = "www.booking.com";
+    u.searchParams.delete("label");
+    u.searchParams.delete("aid");
+    u.searchParams.set("checkin", input.checkIn);
+    u.searchParams.set("checkout", input.checkOut);
+    u.searchParams.set("group_adults", String(input.guests));
+    u.searchParams.set("no_rooms", String(Math.max(1, input.bedrooms)));
+    u.searchParams.set("selected_currency", "EUR");
+    return u.toString();
+  } catch {
+    return deeplink;
+  }
+}
+
 function entryCount(payloads: unknown[]): number {
   let n = 0;
   for (const p of payloads) {
@@ -89,6 +117,13 @@ function entryCount(payloads: unknown[]): number {
     }
   }
   return n;
+}
+
+function entriesOf(json: unknown): unknown[] {
+  if (json && typeof json === "object" && Array.isArray((json as { entries?: unknown }).entries)) {
+    return (json as { entries: unknown[] }).entries;
+  }
+  return [];
 }
 
 type CozyFilters = {
@@ -100,7 +135,6 @@ type CozyFilters = {
   minRating: number;
   ratingRequired: boolean;
   amenityCodes: unknown[];
-  providerCodes: string[];
   minBedRoomCount: number;
   minBathRoomCount: number;
   cityCodes: unknown[];
@@ -109,25 +143,16 @@ type CozyFilters = {
   updateBounds: boolean;
   breakfast: boolean;
   minCancellationCategory: number;
+  providerCodes?: string[];
 };
 
-function entriesOf(json: unknown): unknown[] {
-  if (!json || typeof json !== "object") return [];
-  const list = (json as { entries?: unknown }).entries;
-  return Array.isArray(list) ? list : [];
-}
-
-async function pullProviders(
-  page: Page,
-  searchId: string,
-  filters: Omit<CozyFilters, "providerCodes">,
-): Promise<{ abritel: unknown; booking: unknown }> {
+async function pullProviders(page: Page, searchId: string, filters: Omit<CozyFilters, "providerCodes">) {
   return page.evaluate(
     async ({ sid, base }) => {
       const once = (codes: string[]) =>
         fetch("/api/getResultList", {
           method: "POST",
-          headers: { "content-type": "application/json", accept: "application/json" },
+          headers: { "content-type": "application/json" },
           body: JSON.stringify({
             searchId: sid,
             sorting: "ranking",
@@ -150,6 +175,7 @@ async function pullProviders(
 
 /** Un aller CozyCozy. Abritel et Booking sont demandés à l’API, sans défiler. */
 export async function collectCozyPayloads(page: Page, input: LiveSearchInput): Promise<unknown[]> {
+  await allowsPath("https://www.cozycozy.com", "/");
   const payloads: unknown[] = [];
   let searchId: string | null = null;
   const onReq = (req: { url: () => string; postData: () => string | null }) => {
@@ -259,11 +285,11 @@ export function cozyListings(
       if (guests != null && guests < input.guests) continue;
       if (input.bedrooms > 0 && bedrooms != null && bedrooms < input.bedrooms) continue;
       const coords = (e.coordinates ?? {}) as Record<string, unknown>;
-      const lat = typeof coords.latitude === "number" ? coords.latitude : null;
-      const lon = typeof coords.longitude === "number" ? coords.longitude : null;
+      const lat = coord(coords.latitude) ?? coord(coords.lat);
+      const lon = coord(coords.longitude) ?? coord(coords.lon) ?? coord(coords.lng);
       const thumbs = (e.lightThumbnails ?? {}) as Record<string, unknown>;
       const first = Array.isArray(thumbs.firstUrls) ? thumbs.firstUrls : [];
-      const id = String(e.accommodationId ?? h.accommodationId ?? deeplink);
+      const id = String(e.accommodationId ?? h.accommodationId ?? h.externalId ?? deeplink);
       const listingId = kind === "booking" ? `bk-${id}` : `abr-${id}`;
       if (seen.has(listingId)) continue;
       seen.add(listingId);
@@ -278,7 +304,7 @@ export function cozyListings(
         bedrooms,
         available: true,
         photo: httpUrl(first[0]) ?? httpUrl(e.photo),
-        url: kind === "abritel" ? canonicalAbritel(deeplink, input) : deeplink,
+        url: kind === "abritel" ? canonicalAbritel(deeplink, input) : canonicalBooking(deeplink, input),
         lat,
         lon,
         proven: `CozyCozy ${source} live ${input.checkIn}→${input.checkOut}`,

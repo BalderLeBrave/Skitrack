@@ -202,20 +202,21 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         }
     enriched = 0
     ms_enrich = 0
-    try:
-        enrich_started = time.perf_counter()
-        listings, enriched = enrich_listings(
-            listings,
-            check_in=str(check_in) if check_in else None,
-            check_out=str(check_out) if check_out else None,
-            adults=int(adults) if adults else None,
-            proxy_url=proxy_url,
-            min_guests=int(adults) if adults else None,
-        )
-        ms_enrich = int((time.perf_counter() - enrich_started) * 1000)
-        listings.sort(key=lambda r: r["total"])
-    except Exception:
-        enriched = 0
+    if not params.get("skipEnrich"):
+        try:
+            enrich_started = time.perf_counter()
+            listings, enriched = enrich_listings(
+                listings,
+                check_in=str(check_in) if check_in else None,
+                check_out=str(check_out) if check_out else None,
+                adults=int(adults) if adults else None,
+                proxy_url=proxy_url,
+                min_guests=int(adults) if adults else None,
+            )
+            ms_enrich = int((time.perf_counter() - enrich_started) * 1000)
+            listings.sort(key=lambda r: r["total"])
+        except Exception:
+            enriched = 0
     if not listings:
         return {
             "ok": False,
@@ -228,9 +229,7 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         "destination": params.get("city") or params.get("destination"),
         "checkIn": check_in,
         "checkOut": check_out,
-        "listings": [
-            {k: v for k, v in row.items() if k != "total" and v is not None} for row in listings
-        ],
+        "listings": [row for row in listings],
     }
     return {
         "ok": True,

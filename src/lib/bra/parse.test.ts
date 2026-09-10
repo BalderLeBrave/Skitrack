@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { parseBulletin } from "./parse.ts";
+import { internalIndex } from "./internal.ts";
 
 const XML = `
 <?xml version="1.0" encoding="UTF-8"?>
@@ -39,5 +40,13 @@ describe("parseBulletin", () => {
     assert.equal(garbage.ok, false);
     assert.equal(garbage.risk, null);
     assert.ok((garbage.error ?? "").length > 0);
+  });
+});
+
+describe("indice interne", () => {
+  it("0 cm et vent faible = 1, pas un tiret", () => {
+    assert.equal(internalIndex(0, 3), 1);
+    assert.equal(internalIndex(null, null), null);
+    assert.equal(internalIndex(12, 10), 3);
   });
 });

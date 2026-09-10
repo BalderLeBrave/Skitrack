@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { distToGpxM, distToGpxStartM } from "@/lib/accommodation";
-import { formatDist, formatDistFrom, formatLift, formatLiftSpan, sectorOf, skiAccessLabel } from "@/lib/access";
+import { formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
 import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
 import { getListingElevation } from "@/lib/snow/api";
@@ -22,6 +22,20 @@ export function LodgeSheet({
   const gpxM = hasTrack ? distToGpxM(listing) : null;
   const gpxStartM = start ? distToGpxStartM(listing) : null;
   const ski = skiAccessLabel(listing.distToLiftM);
+  const other = listing.domainFit === "other"
+    ? otherDomainMessage(
+        {
+          searchedId: listing.stationId,
+          nearestStationId: listing.nearestDomainId ?? null,
+          nearestStationName: listing.nearestDomainName ?? null,
+          distToSearchedPinM: listing.distToSlopesM ?? null,
+          distToNearestPinM: listing.distToNearestDomainM ?? null,
+          verdict: "other",
+          winterBarrier: listing.winterBarrier ?? null,
+        },
+        station?.name ?? listing.stationId,
+      )
+    : null;
   const byKey = useElevations((s) => s.byKey);
   const span = formatLiftSpan(listing, (lat, lon) => listingEleM(byKey, lat, lon));
   const [eleM, setEleM] = useState<number | null | undefined>(undefined);
@@ -115,18 +129,41 @@ export function LodgeSheet({
                     ? " — lieu OSM le plus proche du GPS."
                     : " — pas de GPS publié."}
               </li>
-              <li>
-                <strong>Accès ski</strong> : {ski ?? "non classé"}
-                {listing.distToLiftM != null
-                  ? " — selon la distance OSM mesurée, pas des minutes."
-                  : " — pas de GPS, ou pas de remontée OSM autour de la station."}
-              </li>
-              <li>
-                <strong>Distance aux remontées mécaniques</strong> : {formatLift(listing)}
-                {listing.distToLiftM != null
-                  ? " — gare OSM la plus proche du GPS."
-                  : " — pas de GPS, ou pas de remontée OSM autour de la station."}
-              </li>
+              {other ? (
+                <li data-testid="other-domain">
+                  <strong>Domaine</strong> : {other}
+                </li>
+              ) : null}
+              {other && listing.distToNearestDomainM != null ? (
+                <li>
+                  <strong>Station la plus proche</strong> :{" "}
+                  {formatDistFrom(listing.distToNearestDomainM, `de ${listing.nearestDomainName}`)}
+                  {" — pin de la fiche, pas une piste."}
+                </li>
+              ) : null}
+              {other && listing.searchedLiftM != null ? (
+                <li>
+                  <strong>Vol d’oiseau vers {station?.name}</strong> :{" "}
+                  {formatDistFrom(listing.searchedLiftM, listing.searchedLiftName ? `de ${listing.searchedLiftName}` : "des remontées du domaine recherché")}
+                  {" — hors domaine, ne compte pas comme accès ski."}
+                </li>
+              ) : null}
+              {!other ? (
+                <li>
+                  <strong>Accès ski</strong> : {ski ?? "non classé"}
+                  {listing.distToLiftM != null
+                    ? " — selon la distance OSM mesurée, pas des minutes."
+                    : " — pas de GPS, ou pas de remontée OSM autour de la station."}
+                </li>
+              ) : null}
+              {!other ? (
+                <li>
+                  <strong>Distance aux remontées mécaniques</strong> : {formatLift(listing)}
+                  {listing.distToLiftM != null
+                    ? " — gare OSM la plus proche du GPS, domaine recherché."
+                    : " — pas de GPS, ou pas de remontée OSM autour de la station."}
+                </li>
+              ) : null}
               <li>
                 <strong>Arrivée de la remontée</strong> : {span ?? "non mesurée"}
                 {span
@@ -134,10 +171,11 @@ export function LodgeSheet({
                   : " — les deux gares OSM n’ont pas encore d’altitude modèle."}
               </li>
               <li>
-                <strong>Repère station</strong> : {formatDist(listing.distToSlopesM)}
+                <strong>Repère station recherchée</strong> :{" "}
+                {formatDistFrom(listing.distToSlopesM, `du pin ${station?.name ?? "station"}`)}
                 {listing.lat == null || listing.lon == null
                   ? " — pas de GPS publié."
-                  : " — GPS de l’annonce, pin de la fiche station (pas une piste)."}
+                  : " — GPS de l’annonce vers le pin de la fiche (pas une piste, pas un domaine)."}
               </li>
               <li>
                 <strong>Trace GPX</strong> :{" "}

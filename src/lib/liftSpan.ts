@@ -9,6 +9,25 @@ function alt(n: number): string {
   return `${n.toLocaleString("fr-FR")} m`;
 }
 
+/** Altitude d’arrivée = gare OSM la plus haute. Les deux gares doivent être mesurées. */
+export function liftArrivalM(
+  listing: LiftEnds,
+  eleOf: (lat: number, lon: number) => number | null | undefined,
+): number | null {
+  if (
+    listing.liftLat == null ||
+    listing.liftLon == null ||
+    listing.liftOtherLat == null ||
+    listing.liftOtherLon == null
+  ) {
+    return null;
+  }
+  const a = eleOf(listing.liftLat, listing.liftLon);
+  const b = eleOf(listing.liftOtherLat, listing.liftOtherLon);
+  if (a == null || b == null) return null;
+  return Math.max(a, b);
+}
+
 /** Altitudes modèle des deux gares OSM. Rien n’est inventé. */
 export function formatLiftSpan(
   listing: LiftEnds,

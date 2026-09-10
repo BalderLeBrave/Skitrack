@@ -36,8 +36,11 @@ export async function fetchBra(massifCode: number, force = false): Promise<BraBu
     });
     const body = await res.text();
     if (!res.ok) {
-      const detail = /"(?:description|detail|message)"\s*:\s*"([^"]+)"/.exec(body)?.[1];
-      return emptyBulletin(massifCode, { error: detail ?? `Météo-France a répondu ${res.status}.` });
+      const msg =
+        res.status === 401 || res.status === 403
+          ? "Bulletin Météo-France indisponible (hors saison ou accès refusé)."
+          : `Météo-France a répondu ${res.status}.`;
+      return emptyBulletin(massifCode, { error: msg });
     }
     const value = parseBulletin(massifCode, body);
     cache.set(massifCode, { at: Date.now(), value });

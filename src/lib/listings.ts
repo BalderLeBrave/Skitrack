@@ -7,6 +7,7 @@
  */
 
 import { attachAccess } from "./access";
+import type { DomainVerdict } from "./domainFit";
 import { stationById } from "./stations";
 
 export type Listing = {
@@ -34,6 +35,13 @@ export type Listing = {
   liftLon?: number | null;
   liftOtherLat?: number | null;
   liftOtherLon?: number | null;
+  domainFit?: DomainVerdict;
+  nearestDomainId?: string | null;
+  nearestDomainName?: string | null;
+  distToNearestDomainM?: number | null;
+  winterBarrier?: string | null;
+  searchedLiftM?: number | null;
+  searchedLiftName?: string | null;
   proven: string;
 };
 

@@ -3,9 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { LodgeSheet } from "@/components/LodgeSheet";
 import { LodgingCard } from "@/components/LodgingCard";
-import { MapPanel, type MapPin } from "@/components/MapPanel";
+import { MapPanel, type MapLine, type MapPin } from "@/components/MapPanel";
 import { distToGpxM } from "@/lib/accommodation";
-import { formatLift, isCabinLift, sectorOf, skiAccessLabel, withinLiftM } from "@/lib/access";
+import { formatLift, isCabinLift, liftArrivalM, sectorOf, skiAccessLabel, withinLiftM } from "@/lib/access";
 import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, listingsForStay, type Listing } from "@/lib/listings";
 import { searchStay } from "@/lib/searchStay";
@@ -50,6 +50,23 @@ function uniqueLiftPins(list: Listing[]): MapPin[] {
   return out;
 }
 
+function uniqueLiftLines(list: Listing[]): MapLine[] {
+  const seen = new Set<string>();
+  const out: MapLine[] = [];
+  for (const l of list) {
+    if (l.liftLat == null || l.liftLon == null || l.liftOtherLat == null || l.liftOtherLon == null) continue;
+    const k = `${l.liftLat.toFixed(5)},${l.liftLon.toFixed(5)}-${l.liftOtherLat.toFixed(5)},${l.liftOtherLon.toFixed(5)}`;
+    if (seen.has(k) || out.length >= 40) continue;
+    seen.add(k);
+    out.push({
+      id: `axis-${k}`,
+      a: [l.liftLon, l.liftLat],
+      b: [l.liftOtherLon, l.liftOtherLat],
+    });
+  }
+  return out;
+}
+
 function Logements() {
   const stationId = useStay((s) => s.stationId);
   const guests = useStay((s) => s.guests);
@@ -77,16 +94,20 @@ function Logements() {
   }, [liveListings, liveSources, frozen]);
   const [off, setOff] = useState<string[]>([]);
   const [ficheId, setFicheId] = useState<string | null>(null);
-  const [sort, setSort] = useState<"total" | "lift" | "gpx" | "ele">("total");
+  const [sort, setSort] = useState<"total" | "lift" | "gpx" | "ele" | "top">("total");
   const [liftMax, setLiftMax] = useState<number | null>(null);
   const [villageOnly, setVillageOnly] = useState(false);
   const [cabinOnly, setCabinOnly] = useState(false);
+  const [arriveMin, setArriveMin] = useState<number | null>(null);
+  const [includeOther, setIncludeOther] = useState(false);
   const hasTrack = trackPoints.length > 0;
   const byKey = useElevations((s) => s.byKey);
   const putEle = useElevations((s) => s.put);
+  const otherN = raw.filter((l) => l.domainFit === "other").length;
   const list = useMemo(() => {
     const rows = raw.filter((l) => !off.includes(l.source));
-    let kept = liftMax != null ? rows.filter((l) => withinLiftM(l, liftMax)) : rows;
+    let kept = includeOther ? rows : rows.filter((l) => l.domainFit !== "other");
+    if (liftMax != null) kept = kept.filter((l) => withinLiftM(l, liftMax));
     if (villageOnly && station) {
       kept = kept.filter((l) => {
         const ele = listingEleM(byKey, l.lat, l.lon);
@@ -94,6 +115,12 @@ function Logements() {
       });
     }
     if (cabinOnly) kept = kept.filter((l) => isCabinLift(l.liftKind));
+    if (arriveMin != null) {
+      kept = kept.filter((l) => {
+        const top = liftArrivalM(l, (lat, lon) => listingEleM(byKey, lat, lon));
+        return top != null && top >= arriveMin;
+      });
+    }
     const copy = [...kept];
     if (sort === "lift") {
       copy.sort(
@@ -112,11 +139,17 @@ function Logements() {
         const be = listingEleM(byKey, b.lat, b.lon) ?? Number.NEGATIVE_INFINITY;
         return be - ae;
       });
+    } else if (sort === "top") {
+      copy.sort((a, b) => {
+        const at = liftArrivalM(a, (lat, lon) => listingEleM(byKey, lat, lon)) ?? Number.NEGATIVE_INFINITY;
+        const bt = liftArrivalM(b, (lat, lon) => listingEleM(byKey, lat, lon)) ?? Number.NEGATIVE_INFINITY;
+        return bt - at;
+      });
     } else {
       copy.sort((a, b) => a.total - b.total);
     }
     return copy;
-  }, [raw, off, sort, liftMax, trackPoints, villageOnly, cabinOnly, station, byKey]);
+  }, [raw, off, sort, liftMax, trackPoints, villageOnly, cabinOnly, arriveMin, station, byKey, includeOther]);
   const grid = useRef<HTMLDivElement>(null);
   const [ratio, setRatio] = useState<number | null>(null);
 
@@ -189,7 +222,7 @@ function Logements() {
     const pts: { lat: number; lon: number }[] = [];
     const seen = new Set<string>();
     const consider = (lat: number | null | undefined, lon: number | null | undefined) => {
-      if (lat == null || lon == null || pts.length >= 80) return;
+      if (lat == null || lon == null || pts.length >= 160) return;
       const k = eleKey(lat, lon);
       if (seen.has(k) || k in byKey) return;
       seen.add(k);
@@ -223,6 +256,7 @@ function Logements() {
       }));
     return [...stays, ...uniqueLiftPins(list)];
   }, [list]);
+  const mapLines = useMemo(() => uniqueLiftLines(list), [list]);
 
   return (
     <AppShell
@@ -238,6 +272,17 @@ function Logements() {
           <span className="rounded-full bg-glacier px-3 py-1">
             {bedrooms > 0 ? `${bedrooms}+ ch.` : "chambres : toutes"}
           </span>
+          {otherN > 0 ? (
+            <button
+              type="button"
+              className={`rounded-full px-3 py-1 ${includeOther ? "bg-glacier" : "bg-panel text-muted"}`}
+              aria-pressed={includeOther}
+              onClick={() => setIncludeOther((v) => !v)}
+              title="Logements d’un autre domaine, proches à vol d’oiseau seulement"
+            >
+              Hors domaine · {otherN}
+            </button>
+          ) : null}
           {ALL_SOURCES.map((s) => {
             const n = raw.filter((l) => l.source === s).length;
             const report = liveSources.find((r) => r.source === s);
@@ -285,6 +330,14 @@ function Logements() {
           >
             Plus haut
           </button>
+          <button
+            type="button"
+            className={`rounded-full px-3 py-1 ${sort === "top" ? "bg-glacier" : "bg-panel text-muted"}`}
+            aria-pressed={sort === "top"}
+            onClick={() => setSort("top")}
+          >
+            Plus haute arrivée
+          </button>
           {hasTrack ? (
             <button
               type="button"
@@ -329,6 +382,23 @@ function Logements() {
           >
             Télécabine
           </button>
+          {(
+            [
+              [null, "Toute arrivée"],
+              [2500, "Arrivée ≥ 2 500 m"],
+              [3000, "≥ 3 000 m"],
+            ] as const
+          ).map(([min, label]) => (
+            <button
+              key={label}
+              type="button"
+              className={`rounded-full px-3 py-1 ${arriveMin === min ? "bg-glacier" : "bg-panel text-muted"}`}
+              aria-pressed={arriveMin === min}
+              onClick={() => setArriveMin(min)}
+            >
+              {label}
+            </button>
+          ))}
           <span className="text-muted">
             {searching ? "relevé en cours" : `${list.length} à l’écran`}
             {ratio != null ? ` · grille ${ratio}% viewport` : ""}
@@ -362,6 +432,7 @@ function Logements() {
             label={station.name}
             track={trackPoints}
             pins={mapPins}
+            lines={mapLines}
           />
         ) : null}
       </div>

@@ -93,6 +93,40 @@ export function isCabinLift(kind: string | null | undefined): boolean {
   return kind != null && CABIN_KINDS.has(kind);
 }
 
+export function liftKindLabel(kind: string | null | undefined): string {
+  return KIND_FR[kind ?? ""]?.label ?? "remontée";
+}
+
+export type StationLift = {
+  name: string | null;
+  kind: string;
+  aLat: number;
+  aLon: number;
+  bLat: number | null;
+  bLon: number | null;
+};
+
+export function stationLifts(stationId: string): StationLift[] {
+  const lifts = OSM_ACCESS[stationId]?.lifts ?? [];
+  const seen = new Set<string>();
+  const out: StationLift[] = [];
+  for (const p of lifts) {
+    const key = `${p.n ?? ""}|${p.k}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const other = mateOf(lifts, p);
+    out.push({
+      name: p.n,
+      kind: p.k,
+      aLat: p.lat,
+      aLon: p.lon,
+      bLat: other?.lat ?? null,
+      bLon: other?.lon ?? null,
+    });
+  }
+  return out;
+}
+
 export type LiftFleet = {
   unique: number;
   gondola: number;

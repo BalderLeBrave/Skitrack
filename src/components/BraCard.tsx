@@ -3,32 +3,51 @@ import { getStationBra, type BraPayload } from "@/lib/bra/api";
 import { BRA_LABELS } from "@/lib/bra/parse";
 import { useT } from "@/lib/i18n";
 
+const inflight = new Map<string, Promise<BraPayload>>();
+
+function loadBra(args: {
+  name: string;
+  massif: string;
+  lat: number;
+  lon: number;
+  villageM?: number;
+}): Promise<BraPayload> {
+  const key = `${args.name}|${args.lat}|${args.lon}|${args.villageM ?? ""}`;
+  const hit = inflight.get(key);
+  if (hit) return hit;
+  const p = getStationBra({ data: args });
+  inflight.set(key, p);
+  return p;
+}
+
 export function BraCard({
   name,
   massif,
   lat,
   lon,
+  villageM,
 }: {
   name: string;
   massif: string;
   lat: number;
   lon: number;
+  villageM?: number;
 }) {
   const t = useT();
   const [data, setData] = useState<BraPayload | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    void getStationBra({ data: { name, massif, lat, lon } }).then((r) => {
+    void loadBra({ name, massif, lat, lon, villageM }).then((r) => {
       if (!cancelled) setData(r);
     });
     return () => {
       cancelled = true;
     };
-  }, [name, massif, lat, lon]);
+  }, [name, massif, lat, lon, villageM]);
 
   const official = data?.official;
-  const hasOfficial = official?.ok && official.risk != null;
+  const hasOfficial = Boolean(official?.ok && official.risk != null);
   const internal = data?.internal;
   const label = (n: number | null) => (n != null ? BRA_LABELS[n]?.fr ?? String(n) : "—");
 
@@ -41,17 +60,13 @@ export function BraCard({
       {hasOfficial ? (
         <>
           <p className="mt-1 font-display text-3xl tracking-tight">
-            {official.risk} · {label(official.risk)}
+            {official?.risk} · {label(official?.risk ?? null)}
           </p>
           <p className="mt-1 text-sm text-muted">
-            {official.loc1 && official.risk1 != null
-              ? `${label(official.risk1)} ${official.loc1}`
-              : null}
-            {official.loc2 && official.risk2 != null
-              ? ` · ${label(official.risk2)} ${official.loc2}`
-              : null}
+            {official?.loc1 && official.risk1 != null ? `${label(official.risk1)} ${official.loc1}` : null}
+            {official?.loc2 && official.risk2 != null ? ` · ${label(official.risk2)} ${official.loc2}` : null}
           </p>
-          {official.issuedAt ? (
+          {official?.issuedAt ? (
             <p className="mt-1 text-xs text-muted">Bulletin {official.issuedAt}</p>
           ) : null}
         </>
@@ -71,7 +86,7 @@ export function BraCard({
           ) : null}
           {official?.message ? <p className="mt-1 text-xs text-muted">{official.message}</p> : null}
           {official?.error ? (
-            <p className="mt-1 text-xs text-muted">BRA officiel injoignable pour le moment.</p>
+            <p className="mt-1 text-xs text-muted">{t("bra.unreachable")}</p>
           ) : null}
         </>
       )}

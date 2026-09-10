@@ -28,7 +28,7 @@ export const useMapPrefs = create<MapPrefs>()(
         return {
           ...current,
           ...p,
-          basemap: resolvedBasemap(p.basemap),
+          basemap: resolvedBasemap(p.basemap ?? current.basemap),
         };
       },
     },

@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { isCabinLift, liftFleet, nearestLift } from "./osmAccess.ts";
+import { isCabinLift, liftFleet, nearestLift, stationLifts } from "./osmAccess.ts";
 
 describe("remontées OSM", () => {
   it("apparie les deux gares du télémixte Diable", () => {
@@ -32,5 +32,13 @@ describe("remontées OSM", () => {
     assert.equal(isCabinLift("mixed_lift"), true);
     assert.equal(isCabinLift("chair_lift"), false);
     assert.equal(isCabinLift(null), false);
+  });
+
+  it("stationLifts : Diable a deux gares, 29 appareils aux 2 Alpes", () => {
+    const rows = stationLifts("les-2-alpes");
+    assert.equal(rows.length, 29);
+    const diable = rows.find((r) => r.name === "Diable" && r.kind === "mixed_lift");
+    assert.ok(diable);
+    assert.ok(diable.bLat != null && diable.bLon != null);
   });
 });

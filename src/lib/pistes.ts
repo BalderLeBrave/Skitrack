@@ -1,15 +1,24 @@
-/** Mix de pistes : parts OSM × kilométrage annoncé. On n’invente ni le total ni la répartition. */
+/** Mix de pistes. Source affichée : Skiinfo (bloc Domaine skiable), relevé daté.
+ *  OSM reste le contrat de géométrie, pas le mix brochure. */
 
 export type PisteColor = "green" | "blue" | "red" | "black" | "other";
 export type PisteUnit = "count" | "km" | "pct";
 export type PistePreset = "all" | "famille" | "mixte" | "engage" | "expert" | "haut" | "glacier" | "lie" | "itineraires";
+export type SlopeQuality = "ok" | "segments" | "partial" | "grain_mismatch";
+export type SlopeSource = "osm" | "skiinfo";
 
 export type PisteCounts = Partial<Record<PisteColor, number>>;
 
 export type StationSlopes = {
   announcedKm: number;
   counts: PisteCounts;
-  source: "osm";
+  /** % publiés Skiinfo (peuvent sommer 99–101). */
+  pct?: PisteCounts;
+  kmOsm?: PisteCounts;
+  source: SlopeSource;
+  quality: SlopeQuality;
+  osmArea?: string;
+  skiinfoGrain?: "station" | "valley";
 };
 
 export const PISTE_CLASSIC: Exclude<PisteColor, "other">[] = ["green", "blue", "red", "black"];
@@ -57,6 +66,20 @@ export function allocateToTotal(shares: number[], total: number): number[] {
   return floors.map((n) => n / 10);
 }
 
+/** Plus grande reste : les parts entières somment exactement à `total`. */
+export function allocateInts(shares: number[], total: number): number[] {
+  const weight = shares.reduce((n, s) => n + s, 0);
+  if (weight <= 0 || total <= 0) return shares.map(() => 0);
+  const raw = shares.map((s) => (s / weight) * total);
+  const floors = raw.map(Math.floor);
+  let left = total - floors.reduce((n, v) => n + v, 0);
+  const order = raw
+    .map((v, i) => ({ i, frac: v - floors[i] }))
+    .sort((a, b) => b.frac - a.frac || a.i - b.i);
+  for (let k = 0; k < left; k++) floors[order[k % order.length].i] += 1;
+  return floors;
+}
+
 export type PisteSplit = {
   green: number;
   blue: number;
@@ -66,10 +89,24 @@ export type PisteSplit = {
   total: number;
 };
 
+function colorWeights(slopes: StationSlopes): number[] {
+  const src = slopes.pct ?? slopes.kmOsm ?? slopes.counts;
+  return [src.green ?? 0, src.blue ?? 0, src.red ?? 0, src.black ?? 0, src.other ?? 0];
+}
+
 export function scaleKm(slopes: StationSlopes): PisteSplit {
-  const c = slopes.counts;
-  const weights = [c.green ?? 0, c.blue ?? 0, c.red ?? 0, c.black ?? 0, c.other ?? 0];
-  const parts = allocateToTotal(weights, slopes.announcedKm);
+  const weights = colorWeights(slopes);
+  const measured =
+    (slopes.kmOsm?.green ?? 0) +
+    (slopes.kmOsm?.blue ?? 0) +
+    (slopes.kmOsm?.red ?? 0) +
+    (slopes.kmOsm?.black ?? 0) +
+    (slopes.kmOsm?.other ?? 0);
+  const total =
+    slopes.source !== "skiinfo" && slopes.quality === "grain_mismatch" && measured > 0
+      ? round1(measured)
+      : slopes.announcedKm;
+  const parts = allocateToTotal(weights, total);
   const split: PisteSplit = {
     green: parts[0] ?? 0,
     blue: parts[1] ?? 0,
@@ -84,6 +121,40 @@ export function scaleKm(slopes: StationSlopes): PisteSplit {
 
 export function classicCount(c: PisteCounts): number {
   return PISTE_CLASSIC.reduce((n, k) => n + (c[k] ?? 0), 0);
+}
+
+/** m / tracé OSM. Null si pas de longueur ni de compte. */
+export function metresPerRun(slopes: StationSlopes, color: PisteColor): number | null {
+  const n = slopes.counts[color] ?? 0;
+  const km = slopes.kmOsm?.[color];
+  if (n <= 0 || km == null || km <= 0) return null;
+  return (km * 1000) / n;
+}
+
+/** Heuristique interne : trop de tracés pour trop peu de km. */
+export function isSuspectColor(slopes: StationSlopes, color: PisteColor): boolean {
+  if (slopes.source === "skiinfo") return false;
+  const n = slopes.counts[color] ?? 0;
+  const km = slopes.kmOsm?.[color] ?? 0;
+  if (n >= 15 && km < 1) return true;
+  const m = metresPerRun(slopes, color);
+  return n >= 8 && km > 0 && m != null && m < 80;
+}
+
+export function mixReliable(slopes: StationSlopes): boolean {
+  if (slopes.source === "skiinfo") return slopes.quality === "ok";
+  if (slopes.quality !== "ok") return false;
+  return PISTE_CLASSIC.every((c) => !isSuspectColor(slopes, c));
+}
+
+export function displayPct(slopes: StationSlopes, color: Exclude<PisteColor, "other">): number {
+  if (slopes.pct && slopes.pct[color] != null) return slopes.pct[color] ?? 0;
+  const split = scaleKm(slopes);
+  return split.total > 0 ? Math.round((100 * split[color]) / split.total) : 0;
+}
+
+export function mixHasClassic(slopes: StationSlopes): boolean {
+  return classicCount(slopes.counts) > 0;
 }
 
 export type PisteFilter = {
@@ -117,6 +188,8 @@ export type PisteStationAlt = {
   linked?: boolean;
 };
 
+const COUNT_ONLY_PRESETS: PistePreset[] = ["famille", "mixte", "itineraires"];
+
 export function stationMatchesPiste(
   slopes: StationSlopes,
   f: PisteFilter,
@@ -134,7 +207,13 @@ export function stationMatchesPiste(
   if (f.minBlack && value("black") < f.minBlack) return false;
 
   const classic = classicCount(slopes.counts);
-  if (classic <= 0 && f.preset !== "all" && f.preset !== "glacier" && f.preset !== "haut" && f.preset !== "lie" && f.preset !== "itineraires") return false;
+  if (classic <= 0 && f.preset !== "all" && f.preset !== "glacier" && f.preset !== "haut" && f.preset !== "lie") return false;
+  if (
+    (slopes.quality === "grain_mismatch" || slopes.quality === "partial") &&
+    COUNT_ONLY_PRESETS.includes(f.preset)
+  ) {
+    return false;
+  }
   const share = (n: number) => (classic > 0 ? n / classic : 0);
   const c = slopes.counts;
   const dropM = alt != null ? Math.max(0, alt.maxM - alt.minM) : null;
@@ -158,7 +237,10 @@ export function stationMatchesPiste(
   if (f.preset === "expert") {
     const p = PISTE_PRESETS.expert;
     const high = maxM != null && maxM >= p.minMaxM;
-    const blacks = (c.black ?? 0) >= p.minBlackCount;
+    const blacks =
+      slopes.quality !== "grain_mismatch" &&
+      slopes.quality !== "partial" &&
+      (c.black ?? 0) >= p.minBlackCount;
     return high || blacks;
   }
   if (f.preset === "haut") {
@@ -178,4 +260,36 @@ export function stationMatchesPiste(
 
 export function formatKm(n: number): string {
   return n.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+}
+
+export type RunFeature = {
+  sourceId: string;
+  kind: "relation" | "way";
+  activity: string;
+  difficulty?: string;
+  /** source_id de la relation downhill parente, si le way en est membre. */
+  memberOf?: string | null;
+};
+
+export function difficultyToColor(d?: string): PisteColor {
+  if (d === "novice") return "green";
+  if (d === "easy") return "blue";
+  if (d === "intermediate") return "red";
+  if (d === "advanced") return "black";
+  return "other";
+}
+
+/** 1 relation / 1 run id = 1 piste. Way déjà membre : jamais recompté. Downhill only. expert ≠ black. */
+export function countLogicalRuns(runs: RunFeature[]): PisteCounts {
+  const relIds = new Set(runs.filter((r) => r.kind === "relation" && r.activity === "downhill").map((r) => r.sourceId));
+  const seen = new Set<string>();
+  const counts: Record<PisteColor, number> = { green: 0, blue: 0, red: 0, black: 0, other: 0 };
+  for (const r of runs) {
+    if (r.activity !== "downhill") continue;
+    if (r.kind === "way" && r.memberOf && relIds.has(r.memberOf)) continue;
+    if (seen.has(r.sourceId)) continue;
+    seen.add(r.sourceId);
+    counts[difficultyToColor(r.difficulty)] += 1;
+  }
+  return counts;
 }

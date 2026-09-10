@@ -43,7 +43,7 @@ export const getListingElevations = createServerFn({ method: "POST" })
       points: z
         .array(z.object({ lat: z.number(), lon: z.number() }))
         .min(1)
-        .max(80),
+        .max(160),
     }),
   )
   .handler(async ({ data }): Promise<{ eleM: number | null; lat: number; lon: number }[]> => {

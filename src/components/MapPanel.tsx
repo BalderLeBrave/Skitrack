@@ -5,6 +5,12 @@ import type { GpxPoint } from "@/lib/gpx";
 import { useMapPrefs } from "@/lib/mapPrefs";
 import { BASEMAPS, MAP_TILE_REV, resolvedBasemap, skiMapStyle } from "@/lib/mapStyle";
 
+export type MapLine = {
+  id: string;
+  a: [number, number];
+  b: [number, number];
+};
+
 export type MapPin = {
   id: string;
   lat: number;
@@ -32,6 +38,7 @@ export function MapPanel({
   label,
   pins = [],
   track = [],
+  lines = [],
 }: {
   lat: number;
   lon: number;
@@ -39,6 +46,7 @@ export function MapPanel({
   label?: string;
   pins?: MapPin[];
   track?: Pick<GpxPoint, "lat" | "lon">[];
+  lines?: MapLine[];
 }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -172,6 +180,45 @@ export function MapPanel({
       m.fitBounds(b, { padding: 48, maxZoom: 14, duration: 700 });
     }
   }, [track, ready]);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    const features: GeoJSON.Feature<GeoJSON.LineString>[] = lines
+      .filter(
+        (l) =>
+          Number.isFinite(l.a[0]) &&
+          Number.isFinite(l.a[1]) &&
+          Number.isFinite(l.b[0]) &&
+          Number.isFinite(l.b[1]),
+      )
+      .slice(0, 80)
+      .map((l) => ({
+        type: "Feature",
+        properties: { id: l.id },
+        geometry: { type: "LineString", coordinates: [l.a, l.b] },
+      }));
+    const data: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
+      type: "FeatureCollection",
+      features,
+    };
+    const src = m.getSource("lifts") as maplibregl.GeoJSONSource | undefined;
+    if (src) {
+      src.setData(data);
+    } else if (features.length > 0) {
+      m.addSource("lifts", { type: "geojson", data });
+      m.addLayer({
+        id: "lift-axes",
+        type: "line",
+        source: "lifts",
+        paint: {
+          "line-color": "#ff5a3c",
+          "line-width": 2,
+          "line-opacity": 0.7,
+        },
+      });
+    }
+  }, [lines, ready]);
 
   useEffect(() => {
     const m = map.current;

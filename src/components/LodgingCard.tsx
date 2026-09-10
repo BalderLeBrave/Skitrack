@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { distToGpxM } from "@/lib/accommodation";
-import { formatDist, formatDistFrom, formatLift, formatLiftSpan, sectorOf, skiAccessLabel } from "@/lib/access";
+import { formatDist, formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
 import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
 import { formatAlt, stationById } from "@/lib/stations";
@@ -24,6 +24,18 @@ export const LodgingCard = memo(function LodgingCard({
   const ski = skiAccessLabel(listing.distToLiftM);
   const eleM = listingEleM(byKey, listing.lat, listing.lon);
   const station = stationById(listing.stationId);
+  const other = listing.domainFit === "other" ? otherDomainMessage(
+    {
+      searchedId: listing.stationId,
+      nearestStationId: listing.nearestDomainId ?? null,
+      nearestStationName: listing.nearestDomainName ?? null,
+      distToSearchedPinM: listing.distToSlopesM ?? null,
+      distToNearestPinM: listing.distToNearestDomainM ?? null,
+      verdict: "other",
+      winterBarrier: listing.winterBarrier ?? null,
+    },
+    station?.name ?? listing.stationId,
+  ) : null;
   const vsVillage =
     eleM != null && station != null ? eleM - station.villageM : null;
   const span = formatLiftSpan(listing, (lat, lon) => listingEleM(byKey, lat, lon));
@@ -55,11 +67,22 @@ export const LodgingCard = memo(function LodgingCard({
           {listing.guests != null ? `${listing.guests} pers.` : "capacité non annoncée"}
         </p>
         {sector ? <p className="text-xs text-ink">{sector}</p> : null}
-        {ski ? <p className="text-xs font-semibold">{ski}</p> : null}
-        <p className={`text-xs ${listing.distToLiftM == null ? "text-muted" : "text-ink"}`}>
-          {hasGps ? formatLift(listing) : formatDist(listing.distToSlopesM)}
-        </p>
-        {span ? <p className="text-xs font-semibold">{span}</p> : null}
+        {other ? (
+          <p className="text-xs font-semibold text-ink" data-testid="other-domain">
+            {other}
+          </p>
+        ) : null}
+        {!other && ski ? <p className="text-xs font-semibold">{ski}</p> : null}
+        {!other ? (
+          <p className={`text-xs ${listing.distToLiftM == null ? "text-muted" : "text-ink"}`}>
+            {hasGps ? formatLift(listing) : formatDist(listing.distToSlopesM)}
+          </p>
+        ) : listing.distToNearestDomainM != null ? (
+          <p className="text-xs text-muted">
+            {formatDistFrom(listing.distToNearestDomainM, `de ${listing.nearestDomainName ?? "la station la plus proche"}`)}
+          </p>
+        ) : null}
+        {span && !other ? <p className="text-xs font-semibold">{span}</p> : null}
         {eleM != null ? (
           <p className="text-xs text-ink">
             {formatAlt(eleM)}

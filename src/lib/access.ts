@@ -1,4 +1,4 @@
-import type { Listing } from "./listings";
+import type { Listing } from "./listings.ts";
 import {
   displayLocality,
   isCabinLift,
@@ -6,20 +6,24 @@ import {
   metresBetween,
   nearestLift,
   nearestPlace,
-} from "./osmAccess";
-import type { Station } from "./stations";
-import { withinLiftM as withinM } from "./skiAccess";
+} from "./osmAccess.ts";
+import { domainFit, inSearchedDomain, otherDomainMessage } from "./domainFit.ts";
+import type { Station } from "./stations.ts";
+import { withinLiftM as withinM } from "./skiAccess.ts";
 
 export { metresBetween };
-export { LIFT_FOOT_M, LIFT_NEAR_M, LIFT_KM_M, skiAccessLabel } from "./skiAccess";
+export { LIFT_FOOT_M, LIFT_NEAR_M, LIFT_KM_M, skiAccessLabel } from "./skiAccess.ts";
 export { isCabinLift };
-export { formatLiftSpan } from "./liftSpan";
+export { formatLiftSpan, liftArrivalM } from "./liftSpan.ts";
+export { otherDomainMessage, inSearchedDomain };
 
 export function attachAccess(listing: Listing, station: Station): Listing {
+  const fit = domainFit(listing, station);
+  const keepLift = inSearchedDomain(fit);
   if (listing.lat == null || listing.lon == null) {
     return {
       ...listing,
-      distToSlopesM: null,
+      distToSlopesM: fit.distToSearchedPinM,
       distToLiftM: null,
       liftName: null,
       liftKind: null,
@@ -27,24 +31,38 @@ export function attachAccess(listing: Listing, station: Station): Listing {
       liftLon: null,
       liftOtherLat: null,
       liftOtherLon: null,
-      placeName: null,
+      placeName: listing.placeName ?? null,
       distToPlaceM: null,
+      domainFit: fit.verdict,
+      nearestDomainId: fit.nearestStationId,
+      nearestDomainName: fit.nearestStationName,
+      distToNearestDomainM: fit.distToNearestPinM,
+      winterBarrier: fit.winterBarrier,
+      searchedLiftM: null,
+      searchedLiftName: null,
     };
   }
   const lift = nearestLift(station.id, listing.lat, listing.lon);
   const place = nearestPlace(station.id, listing.lat, listing.lon);
   return {
     ...listing,
-    distToSlopesM: Math.round(metresBetween(listing.lat, listing.lon, station.lat, station.lon)),
-    distToLiftM: lift?.m ?? null,
-    liftName: lift?.name ?? null,
-    liftKind: lift?.kind ?? null,
-    liftLat: lift?.lat ?? null,
-    liftLon: lift?.lon ?? null,
-    liftOtherLat: lift?.otherLat ?? null,
-    liftOtherLon: lift?.otherLon ?? null,
-    placeName: place?.name ?? null,
+    distToSlopesM: fit.distToSearchedPinM,
+    distToLiftM: keepLift ? (lift?.m ?? null) : null,
+    liftName: keepLift ? (lift?.name ?? null) : null,
+    liftKind: keepLift ? (lift?.kind ?? null) : null,
+    liftLat: keepLift ? (lift?.lat ?? null) : null,
+    liftLon: keepLift ? (lift?.lon ?? null) : null,
+    liftOtherLat: keepLift ? (lift?.otherLat ?? null) : null,
+    liftOtherLon: keepLift ? (lift?.otherLon ?? null) : null,
+    placeName: place?.name ?? listing.placeName ?? null,
     distToPlaceM: place?.m ?? null,
+    domainFit: fit.verdict,
+    nearestDomainId: fit.nearestStationId,
+    nearestDomainName: fit.nearestStationName,
+    distToNearestDomainM: fit.distToNearestPinM,
+    winterBarrier: fit.winterBarrier,
+    searchedLiftM: lift?.m ?? null,
+    searchedLiftName: lift?.name ?? null,
   };
 }
 
@@ -71,4 +89,3 @@ export function formatLift(listing: Listing): string {
 export function withinLiftM(listing: Listing, maxM: number): boolean {
   return withinM(listing.distToLiftM, maxM);
 }
-

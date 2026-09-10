@@ -19,10 +19,22 @@ export function domainBySlug(slug: string): DomainForfait | undefined {
   return FORFAIT_CATALOG.find((d) => d.slug === slug);
 }
 
+function cam(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export function domainForStation(stationId: string): DomainForfait | undefined {
   const preferred = STATION_FORFAIT_SLUG[stationId];
   if (preferred) return domainBySlug(preferred);
-  return FORFAIT_CATALOG.find((d) => d.stationIds.includes(stationId));
+  const hit = FORFAIT_CATALOG.find((d) => d.stationIds.includes(stationId) || d.slug === stationId);
+  if (hit) return hit;
+  const key = cam(stationId);
+  return FORFAIT_CATALOG.find((d) => cam(d.slug) === key || cam(d.name) === key);
 }
 
 /** Glacier : drapeau du catalogue de domaine, jamais inventé. */

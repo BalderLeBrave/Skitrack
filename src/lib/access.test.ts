@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { formatLiftSpan } from "./liftSpan.ts";
+import { formatLiftSpan, liftArrivalM } from "./liftSpan.ts";
 import { skiAccessLabel, LIFT_FOOT_M } from "./skiAccess.ts";
 
 describe("accès ski", () => {
@@ -32,7 +32,10 @@ describe("accès ski", () => {
       return null;
     };
     assert.equal(formatLiftSpan(listing, ele), "arrivée 2 410 m · +760 m");
+    assert.equal(liftArrivalM(listing, ele), 2410);
     assert.equal(formatLiftSpan(listing, () => null), null);
+    assert.equal(liftArrivalM(listing, () => null), null);
     assert.equal(formatLiftSpan({}, ele), null);
+    assert.equal(liftArrivalM({}, ele), null);
   });
 });

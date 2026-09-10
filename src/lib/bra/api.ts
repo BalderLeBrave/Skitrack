@@ -18,6 +18,7 @@ export const getStationBra = createServerFn({ method: "POST" })
       massif: z.string().optional(),
       lat: z.number(),
       lon: z.number(),
+      villageM: z.number().optional(),
       force: z.boolean().optional(),
     }),
   )
@@ -29,8 +30,8 @@ export const getStationBra = createServerFn({ method: "POST" })
       const { fetchBra } = await import("./fetch.server");
       official = await fetchBra(code, data.force ?? false);
     }
-    const { fetchSnow } = await import("../snow/openMeteo.server");
-    const snow = await fetchSnow(data.lat, data.lon);
+    const { fetchArome } = await import("../meteo/arome.server");
+    const snow = await fetchArome(data.lat, data.lon, data.villageM);
     const level = internalIndex(snow.snowfall24hCm, snow.windKmh);
     return {
       massif,
@@ -39,11 +40,11 @@ export const getStationBra = createServerFn({ method: "POST" })
       internal: {
         source: "interne",
         label: "indice interne",
-        note: "Indice interne (chutes + vent). Ce n’est pas le BRA officiel Météo-France.",
+        note: "Indice interne (chutes AROME + vent). Ce n’est pas le BRA officiel Météo-France.",
         level,
         snowfall24hCm: snow.snowfall24hCm,
         windKmh: snow.windKmh,
-        snowDepthCm: snow.snowDepthCm,
+        snowDepthCm: null,
       },
     };
   });

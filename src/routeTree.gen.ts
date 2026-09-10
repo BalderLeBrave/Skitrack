@@ -10,9 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AltitudesRouteImport } from './routes/altitudes'
+import { Route as CarteRouteImport } from './routes/carte'
 import { Route as ComparerRouteImport } from './routes/comparer'
 import { Route as ForfaitsRouteImport } from './routes/forfaits'
 import { Route as LogementsRouteImport } from './routes/logements'
+import { Route as OpenskimapRouteImport } from './routes/openskimap'
 import { Route as TracesRouteImport } from './routes/traces'
 import { Route as ReservationIdRouteImport } from './routes/reservation.$id'
 import { Route as StationsIdRouteImport } from './routes/stations.$id'
@@ -20,6 +23,16 @@ import { Route as StationsIdRouteImport } from './routes/stations.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AltitudesRoute = AltitudesRouteImport.update({
+  id: '/altitudes',
+  path: '/altitudes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarteRoute = CarteRouteImport.update({
+  id: '/carte',
+  path: '/carte',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComparerRoute = ComparerRouteImport.update({
@@ -35,6 +48,11 @@ const ForfaitsRoute = ForfaitsRouteImport.update({
 const LogementsRoute = LogementsRouteImport.update({
   id: '/logements',
   path: '/logements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpenskimapRoute = OpenskimapRouteImport.update({
+  id: '/openskimap',
+  path: '/openskimap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TracesRoute = TracesRouteImport.update({
@@ -55,18 +73,24 @@ const StationsIdRoute = StationsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/altitudes': typeof AltitudesRoute
+  '/carte': typeof CarteRoute
   '/comparer': typeof ComparerRoute
   '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
+  '/openskimap': typeof OpenskimapRoute
   '/traces': typeof TracesRoute
   '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/altitudes': typeof AltitudesRoute
+  '/carte': typeof CarteRoute
   '/comparer': typeof ComparerRoute
   '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
+  '/openskimap': typeof OpenskimapRoute
   '/traces': typeof TracesRoute
   '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
@@ -74,9 +98,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/altitudes': typeof AltitudesRoute
+  '/carte': typeof CarteRoute
   '/comparer': typeof ComparerRoute
   '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
+  '/openskimap': typeof OpenskimapRoute
   '/traces': typeof TracesRoute
   '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
@@ -85,27 +112,36 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/altitudes'
+    | '/carte'
     | '/comparer'
     | '/forfaits'
     | '/logements'
+    | '/openskimap'
     | '/traces'
     | '/reservation/$id'
     | '/stations/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/altitudes'
+    | '/carte'
     | '/comparer'
     | '/forfaits'
     | '/logements'
+    | '/openskimap'
     | '/traces'
     | '/reservation/$id'
     | '/stations/$id'
   id:
     | '__root__'
     | '/'
+    | '/altitudes'
+    | '/carte'
     | '/comparer'
     | '/forfaits'
     | '/logements'
+    | '/openskimap'
     | '/traces'
     | '/reservation/$id'
     | '/stations/$id'
@@ -113,9 +149,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AltitudesRoute: typeof AltitudesRoute
+  CarteRoute: typeof CarteRoute
   ComparerRoute: typeof ComparerRoute
   ForfaitsRoute: typeof ForfaitsRoute
   LogementsRoute: typeof LogementsRoute
+  OpenskimapRoute: typeof OpenskimapRoute
   TracesRoute: typeof TracesRoute
   ReservationIdRoute: typeof ReservationIdRoute
   StationsIdRoute: typeof StationsIdRoute
@@ -128,6 +167,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/altitudes': {
+      id: '/altitudes'
+      path: '/altitudes'
+      fullPath: '/altitudes'
+      preLoaderRoute: typeof AltitudesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carte': {
+      id: '/carte'
+      path: '/carte'
+      fullPath: '/carte'
+      preLoaderRoute: typeof CarteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comparer': {
@@ -149,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/logements'
       fullPath: '/logements'
       preLoaderRoute: typeof LogementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/openskimap': {
+      id: '/openskimap'
+      path: '/openskimap'
+      fullPath: '/openskimap'
+      preLoaderRoute: typeof OpenskimapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/traces': {
@@ -177,9 +237,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AltitudesRoute: AltitudesRoute,
+  CarteRoute: CarteRoute,
   ComparerRoute: ComparerRoute,
   ForfaitsRoute: ForfaitsRoute,
   LogementsRoute: LogementsRoute,
+  OpenskimapRoute: OpenskimapRoute,
   TracesRoute: TracesRoute,
   ReservationIdRoute: ReservationIdRoute,
   StationsIdRoute: StationsIdRoute,

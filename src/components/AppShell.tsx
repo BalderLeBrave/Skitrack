@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { AutoSync } from "./AutoSync";
 import { LangToggle } from "./LangToggle";
 import { SearchStayBar } from "./SearchStayBar";
 import { useStay } from "@/lib/stay";
@@ -27,6 +28,7 @@ export function AppShell({
             <SearchStayBar compact />
           </div>
           <LangToggle />
+          <AutoSync />
           <button
             type="button"
             role="switch"
@@ -37,6 +39,15 @@ export function AppShell({
           >
             {theme === "dark" ? "Sombre" : "Clair"}
           </button>
+          <Link to="/carte" className="shrink-0 text-sm text-muted hover:text-ink">
+            {t("nav.map")}
+          </Link>
+          <Link to="/altitudes" className="hidden shrink-0 text-sm text-muted hover:text-ink lg:inline">
+            {t("nav.alt")}
+          </Link>
+          <Link to="/openskimap" className="hidden shrink-0 text-sm text-muted hover:text-ink xl:inline">
+            {t("nav.osm")}
+          </Link>
           <Link to="/forfaits" className="shrink-0 text-sm text-muted hover:text-ink">
             {t("nav.passes")}
           </Link>

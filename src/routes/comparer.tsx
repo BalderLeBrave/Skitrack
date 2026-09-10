@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { distToGpxM, formatPerPerson, resolveListing } from "@/lib/accommodation";
-import { formatDist, formatDistFrom, formatLift, sectorOf, skiAccessLabel } from "@/lib/access";
+import { formatDist, formatDistFrom, formatLift, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
+import { stationById } from "@/lib/stations";
 import { formatEuro } from "@/lib/listings";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
@@ -90,10 +91,26 @@ function Comparer() {
                       {l.bedrooms ?? "—"} ch. · {l.guests ?? "—"} pers. max
                     </p>
                     <p className="mt-2 text-xs">{sectorOf(l) ?? "Lieu non publié"}</p>
-                    {skiAccessLabel(l.distToLiftM) ? (
+                    {l.domainFit === "other" ? (
+                      <p className="mt-1 text-xs font-semibold">
+                        {otherDomainMessage(
+                          {
+                            searchedId: l.stationId,
+                            nearestStationId: l.nearestDomainId ?? null,
+                            nearestStationName: l.nearestDomainName ?? null,
+                            distToSearchedPinM: l.distToSlopesM ?? null,
+                            distToNearestPinM: l.distToNearestDomainM ?? null,
+                            verdict: "other",
+                            winterBarrier: l.winterBarrier ?? null,
+                          },
+                          stationById(l.stationId)?.name ?? l.stationId,
+                        )}
+                      </p>
+                    ) : null}
+                    {l.domainFit !== "other" && skiAccessLabel(l.distToLiftM) ? (
                       <p className="text-xs font-semibold">{skiAccessLabel(l.distToLiftM)}</p>
                     ) : null}
-                    <p className="text-xs">{formatLift(l)}</p>
+                    {l.domainFit !== "other" ? <p className="text-xs">{formatLift(l)}</p> : null}
                     <p className="mt-2 text-xs text-muted">{formatDist(l.distToSlopesM)}</p>
                     <p className="text-xs">
                       {hasTrack

@@ -1,6 +1,4 @@
-# Worker Booking isolé — API HTTP puis 3 moteurs stealth.
-playwright>=1.49.0
-invisible-playwright>=0.9.0
-camoufox[geoip]>=0.4.11
-seleniumbase>=4.33.0
-booking-scraper-api==0.0.1
+# Worker Booking isolé — HTTP (curl_cffi), pas de Chromium Playwright.
+curl_cffi>=0.7
+beautifulsoup4>=4.12
+requests>=2.31

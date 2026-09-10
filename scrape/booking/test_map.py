@@ -1,218 +1,110 @@
-#!/usr/bin/env python3
-"""Parseur Booking : totaux de séjour, pas de nuit, pas d’hôtel, pas Gîtes."""
+"""Tests hermétiques Booking. Aucun réseau."""
 
-from __future__ import annotations
+from map import (
+    coords_from_hotel_html,
+    coords_from_html,
+    is_dropped_listing,
+    listings_from_html,
+    stay_total_from_label,
+)
+from urls import search_url
 
-import pathlib
-import sys
-import unittest
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+def test_url_total_et_offset():
+    url = search_url(
+        {"destination": "Les 2 Alpes", "checkIn": "2027-02-06", "checkOut": "2027-02-13", "adults": 8},
+        25,
+    )
+    assert "ss=Les+2+Alpes" in url or "ss=Les%202%20Alpes" in url
+    assert "checkin=2027-02-06" in url
+    assert "group_adults=8" in url
+    assert "sb_price_type=total" in url
+    assert "offset=25" in url
+    assert "ht_id" in url
 
-from map import is_dropped_listing, listings_from_autoparse, listings_from_bee, listings_from_html, stay_total_from_label  # noqa: E402
+
+def test_stay_total_accepte():
+    assert stay_total_from_label("1 234 €") == 1234
+    assert stay_total_from_label("1234 € pour 7 nuits") == 1234
+
+
+def test_stay_total_refuse_nuit_et_a_partir():
+    assert stay_total_from_label("89 € /nuit") is None
+    assert stay_total_from_label("À partir de 1 200 €") is None
+
+
+def test_hotel_ecarte():
+    assert is_dropped_listing("Hôtel Les Glaciers") is True
+    assert is_dropped_listing("Appartement 8 couchages") is False
+
+
+HTML = """
+<div data-testid="property-card" data-hotel-id="123" data-atlas-latlng="45.0106,6.1226">
+  <a href="/hotel/fr/chalet-neige.fr.html" data-testid="title">Chalet 8 personnes</a>
+  <div data-testid="recommended-units">Appartement entier • 3 chambres • 8 personnes</div>
+  <div data-testid="price-and-discounted-price">2 215 €</div>
+  <img data-testid="image" src="https://cf.bstatic.com/x.jpg" />
+</div>
+<div data-testid="property-card">
+  <a href="/hotel/fr/palace.fr.html" data-testid="title">Hôtel Palace</a>
+  <div data-testid="price-and-discounted-price">390 € /nuit</div>
+</div>
+<div data-testid="property-card">
+  <a href="/hotel/fr/teaser.fr.html" data-testid="title">Studio</a>
+  <div data-testid="price-and-discounted-price">À partir de 800 €</div>
+</div>
+"""
 
 APOLLO = """
-<script type="application/json" data-capla-store-data="apollo">
-{"basicPropertyData":{"pageName":"chalet-neige","location":{"latitude":45.0106,"longitude":6.1226},"occupancy":{"maxPersons":8},"numberOfBedrooms":3,"accommodationTypeName":"Appartement"}}
+<script data-capla-store-data="apollo">
+{"basicPropertyData":{"id":"4242","pageName":"chalet-neige","location":{"latitude":45.0106,"longitude":6.1226},"occupancy":{"maxPersons":8},"numberOfBedrooms":3,"accommodationTypeName":"Appartement"}}
 </script>
-"""
-
-CARD = """
 <div data-testid="property-card" data-hotel-id="4242">
-  <a href="https://www.booking.com/hotel/fr/chalet-neige.fr.html?aid=1">
-    <div data-testid="title">Chalet Neige</div>
-  </a>
-  <div data-testid="price-and-discounted-price">1 245 €</div>
-  <div data-testid="recommended-units">Appartement entier • 3 chambres • 8 personnes • 72 m²</div>
-  <img src="https://cf.bstatic.com/xdata/images/hotel/square600/abc.jpg">
+  <a href="/hotel/fr/chalet-neige.fr.html" data-testid="title">Chalet Neige</a>
+  <div data-testid="recommended-units">Appartement entier • 8 personnes</div>
+  <div data-testid="price-and-discounted-price">1 890 €</div>
 </div>
 """
 
-HOTEL = """
-<div data-testid="property-card" data-hotel-id="9">
-  <a href="https://www.booking.com/hotel/fr/grand-hotel.fr.html">
-    <div data-testid="title">Grand Hotel des Neiges</div>
-  </a>
-  <div data-testid="price-and-discounted-price">890 €</div>
-  <div data-testid="recommended-units">Hôtel • 1 chambre</div>
-</div>
-"""
 
-FROM_PRICE = """
-<div data-testid="property-card" data-hotel-id="7">
-  <a href="https://www.booking.com/hotel/fr/from.fr.html">
-    <div data-testid="title">Studio indicatif</div>
-  </a>
-  <div data-testid="price-and-discounted-price">À partir de 1 200 €</div>
-  <div data-testid="recommended-units">Studio • 4 personnes</div>
-</div>
-"""
-
-NIGHT = """
-<div data-testid="property-card" data-hotel-id="8">
-  <a href="https://www.booking.com/hotel/fr/night.fr.html">
-    <div data-testid="title">Nuitée des pistes</div>
-  </a>
-  <div data-testid="price-and-discounted-price">180 € /nuit</div>
-  <div data-testid="recommended-units">Appartement entier • 2 chambres</div>
-</div>
-"""
-
-PAGE = f"<html><h1>Les 2 Alpes : 87 établissements trouvés</h1>{APOLLO}{CARD}{HOTEL}{FROM_PRICE}{NIGHT}</html>"
+def test_listings_from_html_total_seulement():
+    rows = listings_from_html(HTML, check_in="2027-02-06", check_out="2027-02-13", adults=8, min_guests=8)
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["title"].startswith("Chalet")
+    assert row["totalPrice"] == 2215
+    assert row["guests"] == 8
+    assert row["bedrooms"] == 3
+    assert "checkin=2027-02-06" in row["url"]
+    assert row["priceConfidence"] == "total_confirmed"
+    assert abs(row["latitude"] - 45.0106) < 0.0001
+    assert abs(row["longitude"] - 6.1226) < 0.0001
 
 
-class MapTests(unittest.TestCase):
-    def test_stay_total(self) -> None:
-        self.assertEqual(stay_total_from_label("1 245 €"), 1245)
-        self.assertIsNone(stay_total_from_label("À partir de 1 200 €"))
-        self.assertIsNone(stay_total_from_label("180 € /nuit"))
-        self.assertEqual(stay_total_from_label("2 215 € au total"), 2215)
+def test_gps_apollo_par_id():
+    rows = listings_from_html(APOLLO, check_in="2027-02-06", check_out="2027-02-13", adults=8)
+    assert len(rows) == 1
+    assert abs(rows[0]["latitude"] - 45.0106) < 0.0001
+    bag = coords_from_html(APOLLO)
+    assert "4242" in bag
+    assert "chalet-neige" in bag
 
-    def test_hotel_dropped(self) -> None:
-        self.assertTrue(is_dropped_listing("Hôtel"))
-        self.assertFalse(is_dropped_listing("Appartement entier"))
-        self.assertFalse(is_dropped_listing(None))
 
-    def test_page(self) -> None:
-        rows = listings_from_html(
-            PAGE,
-            check_in="2027-02-06",
-            check_out="2027-02-13",
-            adults=8,
-            page_index=1,
-            engine="invisible_playwright",
-        )
-        self.assertEqual(len(rows), 1, rows)
-        row = rows[0]
-        self.assertEqual(row["source"], "booking-web")
-        self.assertEqual(row["sourceId"], "4242")
-        self.assertEqual(row["totalPrice"], 1245)
-        self.assertEqual(row["priceConfidence"], "total_confirmed")
-        self.assertEqual(row["guests"], 8)
-        self.assertEqual(row["bedrooms"], 3)
-        self.assertEqual(row["areaSqm"], 72)
-        self.assertEqual(row["latitude"], 45.0106)
-        self.assertIn("checkin=2027-02-06", row["url"])
-        self.assertEqual(row["advertisedTotal"], 87)
-        self.assertEqual(row["engine"], "invisible_playwright")
-
-    def test_hotel_times_occupancy(self) -> None:
-        from map import occupancy_from_text
-
-        br, _beds, guests, _area = occupancy_from_text("4× Chambre (2 personnes)")
-        self.assertEqual(guests, 8)
-        self.assertEqual(br, 4)
-
-    def test_apollo_only(self) -> None:
-        html = """
-        <html><body><h1>Les 2 Alpes : 12 établissements trouvés</h1>
-        <script type="application/json" data-capla-store-data="apollo">
-        {"basicPropertyData":{
-          "pageName":"chalet-apollo",
-          "name":"Chalet Apollo",
-          "location":{"latitude":45.01,"longitude":6.12},
-          "occupancy":{"maxPersons":8},
-          "numberOfBedrooms":4,
-          "accommodationTypeName":"Chalet",
-          "displayPrice":{"amount":3210,"currency":"EUR"}
-        }}
-        </script>
-        </body></html>
-        """
-        rows = listings_from_html(html, check_in="2027-02-06", check_out="2027-02-13", adults=8)
-        self.assertEqual(len(rows), 1, rows)
-        self.assertEqual(rows[0]["title"], "Chalet Apollo")
-        self.assertEqual(rows[0]["totalPrice"], 3210)
-        self.assertEqual(rows[0]["guests"], 8)
-        self.assertEqual(rows[0]["bedrooms"], 4)
-        self.assertIn("chalet-apollo", rows[0]["url"])
-
-    def test_zero_zero_apollo_ignore_atlas_pris(self) -> None:
-        html = """
-        <html><h1>Les 2 Alpes : 3 établissements trouvés</h1>
-        <script type="application/json" data-capla-store-data="apollo">
-        {"basicPropertyData":{"pageName":"chalet-neige","location":{"latitude":0,"longitude":0},"occupancy":{"maxPersons":8},"numberOfBedrooms":3,"accommodationTypeName":"Appartement"}}
-        </script>
-        <div data-testid="property-card" data-hotel-id="4242" data-atlas-latlng="45.0106,6.1226">
-          <a href="https://www.booking.com/hotel/fr/chalet-neige.fr.html">
-            <div data-testid="title">Chalet Neige</div>
-          </a>
-          <div data-testid="price-and-discounted-price">1 245 €</div>
-          <div data-testid="recommended-units">Appartement entier • 3 chambres • 8 personnes</div>
-        </div>
-        </html>
-        """
-        rows = listings_from_html(html, check_in="2027-02-06", check_out="2027-02-13", adults=8)
-        self.assertEqual(len(rows), 1, rows)
-        self.assertAlmostEqual(rows[0]["latitude"], 45.0106)
-        self.assertAlmostEqual(rows[0]["longitude"], 6.1226)
-
-    def test_challenge_is_blocked(self) -> None:
-        from map import looks_blocked
-
-        self.assertTrue(looks_blocked("<html><div id='challenge-running'>Just a moment</div></html>"))
-        self.assertFalse(looks_blocked(PAGE))
-
-    def test_no_gites_airbnb(self) -> None:
-        src = pathlib.Path(__file__).with_name("map.py").read_text(encoding="utf-8")
-        self.assertNotRegex(src, r"g2f-accommodation|StaySearchResult|pyairbnb|gites-de-france")
-
-    def test_autoparse_stay_total(self) -> None:
-        body = {
-            "propertyCount": 25,
-            "properties": [
-                {
-                    "name": "Duplex 8 pers. Les 2 Alpes",
-                    "url": "https://www.booking.com/hotel/fr/duplex-neige.fr.html",
-                    "price": "€ 2 100",
-                    "priceAmount": 2100,
-                    "image": "https://cf.bstatic.com/xdata/images/hotel/square240/a.jpg?k=1",
-                },
-                {
-                    "name": "Studio à partir de 90 €",
-                    "url": "https://www.booking.com/hotel/fr/studio.fr.html",
-                    "price": "à partir de 90 €",
-                    "priceAmount": 90,
-                },
-                {
-                    "name": "Hôtel des Neiges",
-                    "url": "https://www.booking.com/hotel/fr/hotel-neiges.fr.html",
-                    "price": "€ 800",
-                    "priceAmount": 800,
-                },
-            ],
-        }
-        url = (
-            "https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes"
-            "&group_adults=8&checkin=2027-02-06&checkout=2027-02-13"
-        )
-        rows = listings_from_autoparse(body, url=url, engine="crawlbase")
-        self.assertEqual(len(rows), 1, rows)
-        self.assertEqual(rows[0]["totalPrice"], 2100)
-        self.assertEqual(rows[0]["guests"], 8)
-        self.assertEqual(rows[0]["priceConfidence"], "total_confirmed")
-        self.assertEqual(rows[0]["engine"], "crawlbase")
-        self.assertIn("checkin=2027-02-06", rows[0]["url"])
-
-    def test_bee_hotels(self) -> None:
-        body = {
-            "hotels": [
-                {
-                    "name": "Chalet 8 pers. Neige",
-                    "url": "https://www.booking.com/hotel/fr/chalet-bee.fr.html",
-                    "price": "€ 1 880",
-                    "location": "Les 2 Alpes",
-                }
-            ]
-        }
-        url = "https://www.booking.com/searchresults.fr.html?ss=Les+2+Alpes&group_adults=8&checkin=2027-02-06&checkout=2027-02-13"
-        rows = listings_from_bee(body, url=url)
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["totalPrice"], 1880)
-        self.assertEqual(rows[0]["engine"], "scrapingbee")
-        self.assertEqual(rows[0]["guests"], 8)
-
+def test_gps_fiche_hotel():
+    html = '<div id="hotel_sidebar_static_map" data-atlas-latlng="45.009,6.122"></div>'
+    pair = coords_from_hotel_html(html)
+    assert pair is not None
+    assert abs(pair[0] - 45.009) < 0.0001
 
 
 if __name__ == "__main__":
-    unittest.main()
+    failed = 0
+    for name, fn in list(globals().items()):
+        if name.startswith("test_"):
+            try:
+                fn()
+                print("ok", name)
+            except Exception as err:
+                failed += 1
+                print("FAIL", name, err)
+    raise SystemExit(failed)

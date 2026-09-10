@@ -1,47 +1,30 @@
 node_modules/
-out/
 dist/
-release/
-openapi.json
-
-# Sidecar Python
-sidecar/.venv/
-sidecar/**/__pycache__/
-sidecar/*.egg-info/
-sidecar/.pytest_cache/
-*.pyc
+.output/
+.tanstack/
+.vercel/
+.vite/
+.pytest_cache/
 __pycache__/
-
-# Données locales — jamais versionnées : la base contient les recherches et le
-# coffre contient des clés d'API chiffrées.
-*.sqlite3
-*.sqlite3-wal
-*.sqlite3-shm
-secrets.enc.json
-data/cache/
+*.pyc
+*.tsbuildinfo
 .env
 .env.local
-**/.env
+.grok/
+.project_id
+.node_modules.lock
 
-.vscode/
-.idea/
-Thumbs.db
-
-*.tsbuildinfo
-
-.claude/worktrees/
-.claude/settings.local.json
-
-# Scrapers — binaires, venv, clones lourds (pas les dumps ni les fixtures)
-scrape/**/.venv/
-scrape/**/.browsers/
-scrape/**/debug_out/
-scrape/**/*.log
-scrape/booking/.engine-state.json
-scrape/airbnb/tools/
-scrape/booking/tools/booking.com_crawler/
-scrape/booking/tools/bookingdotcom-scraper/
-scrape/booking/tools/botasaurus/
-scrape/booking/tools/*_out/
-scrape/dist/
 artifacts/
+attachments/
+screenshots/
+browsed_files/
+
+# Terrain high-poly trop lourd pour git (>50 Mo)
+public/models/snow-mountain-hi.glb
+
+# Chrome PWA Grok (preview sandbox)
+public/__grok/
+
+# Contrat sandbox, pas le produit
+AGENTS.md
+AGENTS.project.md

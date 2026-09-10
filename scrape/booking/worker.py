@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """HTTP du worker Booking. SOURCE=booking-web.
 
-Indépendant des workers Airbnb / Gîtes / Abritel / centrale.
+Indépendant des workers Playwright (Gîtes / Abritel / centrale) et d’Airbnb.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt: str, *args: object) -> None:
-        sys.stderr.write("booking-worker " + (fmt % args) + "\n")
+        sys.stdout.write("booking-worker " + (fmt % args) + "\n")
 
     def _send(self, status: int, body: dict) -> None:
         raw = json.dumps(body, ensure_ascii=False).encode("utf-8")
@@ -38,20 +38,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         path = self.path.split("?", 1)[0]
         if path == "/health":
-            from engines import ordered_engines
-            from config import load_settings
-
-            names = [e.name for e in ordered_engines(load_settings().engines) if e.available()]
-            self._send(
-                200,
-                {
-                    "ok": True,
-                    "source": SOURCE,
-                    "isolated": True,
-                    "engine": "booking-stealth",
-                    "available": names,
-                },
-            )
+            self._send(200, {"ok": True, "source": SOURCE, "isolated": True, "engine": "booking-http"})
             return
         self._send(404, {"ok": False, "error": "inconnu"})
 
@@ -82,7 +69,7 @@ def main() -> None:
         sys.stderr.write(f"SOURCE={SOURCE} : ce worker ne sert que Booking\n")
         sys.exit(1)
     httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    sys.stderr.write(f"skitrack-scrape booking-stealth :{PORT}\n")
+    sys.stdout.write(f"skitrack-scrape booking-http :{PORT}\n")
     httpd.serve_forever()
 
 

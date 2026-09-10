@@ -1,5 +1,0 @@
-scrapy>=2.11
-botasaurus>=4.0.88
-playwright>=1.49.0
-requests>=2.31
-beautifulsoup4>=4.12

@@ -1,6 +1,7 @@
 {
-  "name": "app-builder-workspace",
+  "name": "skitrack",
   "private": true,
+  "main": "desktop/main.mjs",
   "sideEffects": false,
   "type": "module",
   "overrides": {
@@ -8,6 +9,9 @@
   },
   "scripts": {
     "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
+    "start": "node scripts/electron-dev.mjs",
+    "electron": "node scripts/electron-dev.mjs",
+    "electron:dev": "node scripts/electron-dev.mjs",
     "build": "node scripts/with-app-env.mjs vite build && npm run db:migrate",
     "db:migrate": "node scripts/migrate.mjs",
     "build:dev": "node scripts/with-app-env.mjs vite build --mode development",
@@ -97,6 +101,7 @@
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.2.0"
+    "vite": "^8.2.0",
+    "electron": "^39.8.10"
   }
 }

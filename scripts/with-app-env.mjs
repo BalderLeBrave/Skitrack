@@ -20,9 +20,10 @@
  * `process.env`, which is why the merge has to happen before Vite starts.
  */
 import { spawn } from "node:child_process";
-import { readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { createRequire } from "node:module";
 import { constants as osConstants } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const APP_ENV_REL_PATH = ".grok/app-env.json";
@@ -104,6 +105,29 @@ export function isMainModule(moduleUrl) {
   }
 }
 
+/**
+ * Resolve a local npm bin (vite, …) to `node path/to/bin.js`.
+ * Bare `spawn("vite")` fails on Windows: the shim is `vite.cmd`, ENOENT.
+ */
+export function resolveLocalCommand(command, args, root = projectRoot()) {
+  if (!command || command.includes("/") || command.includes("\\") || isAbsolute(command)) {
+    return { command, args };
+  }
+  try {
+    const req = createRequire(join(root, "package.json"));
+    const pkgPath = req.resolve(`${command}/package.json`);
+    const pkg = req(pkgPath);
+    const bin = typeof pkg.bin === "string" ? pkg.bin : pkg.bin?.[command];
+    if (typeof bin === "string") {
+      const script = join(dirname(pkgPath), bin.replace(/^\.\//, ""));
+      if (existsSync(script)) return { command: process.execPath, args: [script, ...args] };
+    }
+  } catch {
+    /* package has no JS bin */
+  }
+  return { command, args };
+}
+
 function main(argv) {
   const [command, ...args] = argv;
   if (!command) {
@@ -111,7 +135,13 @@ function main(argv) {
     process.exit(2);
   }
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
-  const child = spawn(command, args, { stdio: "inherit", env });
+  const resolved = resolveLocalCommand(command, args);
+  const child = spawn(resolved.command, resolved.args, {
+    stdio: "inherit",
+    env,
+    cwd: projectRoot(),
+    shell: process.platform === "win32" && resolved.command === command,
+  });
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
     process.on(signal, () => child.kill(signal));

@@ -11,6 +11,7 @@ import {
   parseAppEnv,
   projectRoot,
   readAppEnv,
+  resolveLocalCommand,
 } from "./with-app-env.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -71,6 +72,19 @@ test("vite loadEnv resolves the wrapped value", () => {
   const root = makeWorkspace('{"VITE_AUTH_ENABLED":"false"}');
   const merged = mergeAppEnv(readAppEnv(root), { PATH: "/usr/bin" });
   assert.equal(merged.VITE_AUTH_ENABLED, "false");
+});
+
+test("vite is launched via node, not a Windows .cmd shim", () => {
+  const { command, args } = resolveLocalCommand("vite", ["dev"]);
+  assert.equal(command, process.execPath);
+  assert.match(args[0].replaceAll("\\", "/"), /vite\/bin\/vite\.js$/);
+  assert.deepEqual(args.slice(1), ["dev"]);
+});
+
+test("an absolute command is left untouched", () => {
+  const { command, args } = resolveLocalCommand(process.execPath, ["-e", "0"]);
+  assert.equal(command, process.execPath);
+  assert.deepEqual(args, ["-e", "0"]);
 });
 
 test("the wrapped command runs with the app env applied", async () => {

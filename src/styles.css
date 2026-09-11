@@ -105,14 +105,6 @@ html[data-theme="dark"] .stay-glass {
   background: var(--color-glacier);
 }
 
-.map-col--fill {
-  position: relative;
-  top: auto;
-  height: calc(100dvh - 7.5rem);
-  min-height: 28rem;
-  border-radius: 0;
-}
-
 .map-col__canvas {
   position: absolute;
   inset: 0;
@@ -482,15 +474,6 @@ html[data-theme="dark"] .stay-glass {
   border-radius: 0.7rem;
   padding: 0.55rem 0.7rem;
   box-shadow: 0 10px 28px rgb(11 31 51 / 0.18);
-}
-
-.map-pop__photo {
-  display: block;
-  width: 16.5rem;
-  height: 9.2rem;
-  object-fit: cover;
-  border-radius: 0.45rem;
-  margin: 0 0 0.45rem;
 }
 
 .map-pop__title {

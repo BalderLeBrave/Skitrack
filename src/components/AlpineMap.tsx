@@ -35,7 +35,7 @@ function popupHtml(p: GeoJSON.GeoJsonProperties): string {
   const pinNote = pin === "sommet" ? "pin au sommet" : pin === "base" ? "pin au village" : "pin IGN";
   const photo = typeof p?.photo === "string" ? p.photo : "";
   const img = photo
-    ? `<img class="map-pop__photo" src="${esc(photo)}" alt="${name}" width="280" height="160" />`
+    ? `<img src="${esc(photo)}" alt="${name}" width="280" height="160" style="display:block;width:16.5rem;height:9.2rem;object-fit:cover;border-radius:0.7rem;margin:0 0 0.45rem" />`
     : "";
   return `${img}<p class="map-pop__title">${name}</p>
 <p class="map-pop__hint">${massif} · ${pinNote}</p>
@@ -229,7 +229,7 @@ export function AlpineMap({ stations, filter }: { stations: Station[]; filter: M
   const current = BASEMAPS.find((b) => b.key === active) ?? BASEMAPS[0];
 
   return (
-    <div className="map-col map-col--fill" data-testid="alpine-map">
+    <div className="map-col" data-testid="alpine-map">
       <div ref={container} className="map-col__canvas" />
       <div className="map-chrome">
         <div className="map-chrome__card">

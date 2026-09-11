@@ -1,0 +1,17 @@
+appId: fr.skitrack.app
+productName: SKITRACK
+directories:
+  output: release
+  buildResources: build
+files:
+  - desktop/**/*
+  - package.json
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: ${productName}-${version}-${arch}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false

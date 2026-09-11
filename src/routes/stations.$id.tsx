@@ -10,9 +10,9 @@ import { LiftBoard } from "@/components/LiftBoard";
 import { MapPanel, type MapLine, type MapPin } from "@/components/MapPanel";
 import { MfCard } from "@/components/MfCard";
 import { PisteMixBar } from "@/components/PisteMixBar";
+import { SnowCard } from "@/components/SnowCard";
 import { stationHasGlacier, passLinkFor } from "@/lib/forfaits/catalog";
 import { dropM, formatAlt, stationById } from "@/lib/stations";
-import { useT } from "@/lib/i18n";
 import { formatFleet, liftFleet, liftKindLabel, stationLifts } from "@/lib/osmAccess";
 import { useStay } from "@/lib/stay";
 import { useSkiinfoLive } from "@/lib/skiinfoLive";
@@ -23,7 +23,6 @@ function StationPage() {
   const { id } = Route.useParams();
   const station = stationById(id);
   const setStay = useStay((s) => s.setStay);
-  const t = useT();
   const photoRev = useSkiinfoLive((s) => s.rows[id]?.photoRev);
 
   if (!station) {
@@ -72,56 +71,51 @@ function StationPage() {
       b: [l.bLon, l.bLat],
     }));
 
+  const photoSrc = station.photo
+    ? photoRev
+      ? `${station.photo}?v=${photoRev}`
+      : station.photo
+    : null;
+
   return (
     <AppShell>
       <article>
         <div className="relative min-h-[32vh] bg-glacier">
-          {station.photo ? (
-            <img
-              src={photoRev ? `${station.photo}?v=${photoRev}` : station.photo}
-              alt={station.name}
-              className="h-[32vh] w-full object-cover"
-            />
+          {photoSrc ? (
+            <img src={photoSrc} alt="" className="h-[32vh] w-full object-cover" />
           ) : (
-            <div className="flex h-[28vh] items-end p-8">
-              <div>
-                <p className="text-sm uppercase tracking-wide text-muted">{station.massif}</p>
-                <h1 className="font-display text-5xl tracking-tight">{station.name}</h1>
-              </div>
-            </div>
+            <div className="flex h-[32vh] items-end p-8 text-muted">photo station manquante</div>
           )}
-          {station.photo ? (
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 to-transparent p-8 text-white">
             <p className="text-sm uppercase tracking-wide text-white/70">{station.massif}</p>
             <h1 className="font-display text-5xl tracking-tight">{station.name}</h1>
             <p className="mt-2 text-lg">
-              {station.fmId || station.pinKind === "base" ? "Village" : "Base"} {formatAlt(station.villageM)} · sommet{" "}
-              {formatAlt(station.maxM)} · {formatAlt(dropM(station))} de dénivelé
-              {station.slopes.announcedKm > 0 ? ` · ${station.slopes.announcedKm} km` : ""}
+              Village {formatAlt(station.villageM)} · sommet {formatAlt(station.maxM)} ·{" "}
+              {formatAlt(dropM(station))} de dénivelé · {station.slopes.announcedKm} km
             </p>
             <p className="mt-1 text-sm text-white/80">
-              {blacks} noire{blacks > 1 ? "s" : ""}
+              {blacks} noire{blacks > 1 ? "s" : ""} OSM
               {other > 0 ? ` · ${other} itinéraire${other > 1 ? "s" : ""} OSM` : ""}
               {glacier ? " · glacier (catalogue du domaine)" : ""}
               {link.line ? ` · ${link.line}` : ""}
             </p>
             <p className="mt-1 text-sm text-white/75">{formatFleet(fleet)}</p>
-            <p className="mt-2 text-xs text-white/60">{t("photo.skiinfo")}</p>
           </div>
-          ) : (
-            <p className="px-8 pb-6 text-lg text-ink">
-              Village {formatAlt(station.villageM)} · sommet {formatAlt(station.maxM)} ·{" "}
-              {formatAlt(dropM(station))} de dénivelé
-              {station.slopes.announcedKm > 0 ? ` · ${station.slopes.announcedKm} km` : ""}
-            </p>
-          )}
         </div>
         <div className="mx-auto grid max-w-none gap-6 px-4 py-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(560px,1.3fr)]">
           <div className="flex flex-col gap-4">
+            <p className="text-muted">
+              Altitudes France Montagnes (id {station.fmId}). Mix Skiinfo × {station.slopes.announcedKm} km
+              annoncés : la somme des couleurs est ce total.
+            </p>
             <FicheDetail station={station} />
-            <IgnSkiCard station={station} />
-            <OsmSkiCard station={station} />
-            <AltCard station={station} />
+            <ForfaitCard stationId={station.id} />
+            <SnowCard
+              lat={station.lat}
+              lon={station.lon}
+              villageM={station.villageM}
+              summitM={station.maxM}
+            />
             <BraCard
               name={station.name}
               massif={station.massif}
@@ -129,14 +123,16 @@ function StationPage() {
               lon={station.lon}
               villageM={station.villageM}
             />
-            <ForfaitCard stationId={station.id} />
+            <PisteMixBar slopes={station.slopes} unit="km" />
+            <IgnSkiCard station={station} />
+            <OsmSkiCard station={station} />
+            <AltCard station={station} />
             <MfCard
               lat={station.lat}
               lon={station.lon}
               villageM={station.villageM}
               summitM={station.maxM}
             />
-            <PisteMixBar slopes={station.slopes} unit="km" />
             <LiftBoard stationId={station.id} />
             <Link
               to="/logements"

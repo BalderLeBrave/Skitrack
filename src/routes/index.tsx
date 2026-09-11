@@ -8,7 +8,6 @@ import { stationHasGlacier, passLinkFor } from "@/lib/forfaits/catalog";
 import { usePisteFilter } from "@/lib/pisteFilter";
 import { stationMatchesPiste } from "@/lib/pistes";
 import { dropM, STATIONS } from "@/lib/stations";
-import { skiinfoPhoto } from "@/lib/skiinfo";
 import { useTheme } from "@/lib/theme";
 import { LangToggle } from "@/components/LangToggle";
 
@@ -17,11 +16,13 @@ export const Route = createFileRoute("/")({ component: Home });
 type StationOrder = "catalog" | "summit" | "drop" | "blacks" | "linked" | "itineraires";
 
 function HeroPhoto() {
-  const src = skiinfoPhoto("les-2-alpes", 1920);
   return (
-    <div className="absolute inset-0 bg-[#1f4f86]" data-testid="home-hero-photo" aria-hidden>
-      {src ? <img src={src} alt="" className="h-full w-full object-cover object-[center_28%]" /> : null}
-    </div>
+    <div
+      className="absolute inset-0 bg-[#1f4f86] bg-cover bg-[center_28%]"
+      style={{ backgroundImage: "url(/hero.jpg)" }}
+      data-testid="home-hero-photo"
+      aria-hidden
+    />
   );
 }
 
@@ -63,9 +64,6 @@ function Home() {
         <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-5 text-white">
           <p className="font-display text-xl tracking-tight">Skitrack</p>
           <div className="flex items-center gap-3 text-sm text-white/80">
-            <Link to="/carte" className="text-white/80 hover:text-white">
-              Carte
-            </Link>
             <Link to="/forfaits" className="text-white/80 hover:text-white">
               Forfaits
             </Link>
@@ -87,7 +85,6 @@ function Home() {
           </div>
         </div>
         <div className="absolute inset-x-0 bottom-0 z-10 mx-auto w-full max-w-5xl px-4 pb-8">
-          <p className="mb-3 text-xs text-white/70">Photo Skiinfo · Les 2 Alpes</p>
           <p className="mb-3 max-w-xl font-display text-3xl text-white sm:text-4xl">
             Un massif. Des dates. Le logement entier.
           </p>
@@ -95,10 +92,10 @@ function Home() {
         </div>
       </section>
       <section className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="font-display text-3xl tracking-tight">Stations ({stations.length})</h2>
+        <h2 className="font-display text-3xl tracking-tight">Stations</h2>
         <p className="mt-2 max-w-xl text-muted">
-          Sommet et dénivelé : France Montagnes (8 stations) ou Skiinfo. Mix de pistes : bloc Skiinfo
-          « Domaine skiable ». Glacier et forfait lié : catalogue. Remontées : OSM.
+          Sommet et dénivelé : France Montagnes. Kilomètres par couleur : total annoncé, réparti selon
+          OpenStreetMap. Glacier et forfait lié : catalogue. Itinéraires et remontées : OSM.
         </p>
         <div className="mt-6 rounded-[var(--radius-card)] border border-line bg-panel p-4">
           <PisteFilterBar />

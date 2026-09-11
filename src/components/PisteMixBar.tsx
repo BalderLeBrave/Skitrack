@@ -36,6 +36,7 @@ export function PisteMixBar({
   const split = scaleKm(slopes);
   const classic = classicCount(slopes.counts);
   const hasMix = mixHasClassic(slopes);
+  const other = slopes.counts.other ?? 0;
   const values = PISTE_CLASSIC.map((color) => {
     const count = slopes.counts[color] ?? 0;
     const km = split[color];
@@ -46,7 +47,11 @@ export function PisteMixBar({
   if (!hasMix) {
     return (
       <div className={`piste${compact ? " piste--compact" : ""}`} data-testid="piste-mix">
-        <p className="piste__hint">{formatKm(slopes.announcedKm)} km · mix indisponible</p>
+        {!compact ? (
+          <p className="piste__hint">{formatKm(slopes.announcedKm)} km · mix indisponible</p>
+        ) : (
+          <div className="piste__bar" role="img" aria-label="Répartition des pistes" />
+        )}
       </div>
     );
   }
@@ -83,10 +88,9 @@ export function PisteMixBar({
               ? `${PISTE_CLASSIC.reduce((n, c) => n + displayPct(slopes, c), 0)} %`
               : `${formatKm(split.total)} km`}
         </strong>
+        {other > 0 ? <span className="text-muted">I{other} OSM</span> : null}
       </p>
-      <p className="piste__hint">
-        {compact ? qualityLabel(slopes) : mixHint(slopes, split, classic)}
-      </p>
+      {!compact ? <p className="piste__hint">{mixHint(slopes, split, classic)}</p> : null}
     </div>
   );
 }
@@ -97,8 +101,7 @@ function mixHint(slopes: StationSlopes, split: { total: number }, classic: numbe
     const kmBit = split.total > 0 ? `${formatKm(split.total)} km · ` : "km non publié · ";
     return `${kmBit}${classic} pistes (${grain}, Skiinfo). % = bloc publié.`;
   }
-  const other = slopes.counts.other ?? 0;
-  const extra = other > 0 ? ` · ${other} hors vert/bleu/rouge/noir` : "";
+  const extra = (slopes.counts.other ?? 0) > 0 ? ` · ${slopes.counts.other} hors vert/bleu/rouge/noir` : "";
   if (slopes.quality === "grain_mismatch") {
     return `${formatKm(slopes.announcedKm)} km annoncés station. OSM décrit ${slopes.osmArea ?? "un domaine lié"} (${formatKm(split.total)} km mesurés, ${classic} tracés${extra}). Pas un mix station.`;
   }

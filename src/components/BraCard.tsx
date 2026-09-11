@@ -26,14 +26,12 @@ export function BraCard({
   lat,
   lon,
   villageM,
-  compact = false,
 }: {
   name: string;
   massif: string;
   lat: number;
   lon: number;
   villageM?: number;
-  compact?: boolean;
 }) {
   const t = useT();
   const [data, setData] = useState<BraPayload | null>(null);
@@ -51,64 +49,44 @@ export function BraCard({
   const official = data?.official;
   const hasOfficial = Boolean(official?.ok && official.risk != null);
   const internal = data?.internal;
-  const level = hasOfficial ? official?.risk ?? null : (internal?.level ?? null);
-  const label = (n: number | null) => (n != null ? BRA_LABELS[n]?.fr ?? String(n) : null);
-  const source = hasOfficial ? t("bra.official") : t("bra.internal");
-  const line = level != null ? `${level} · ${label(level)}` : null;
-
-  if (compact) {
-    return (
-      <p className="mt-2 text-sm text-white/90" data-testid="bra-strip">
-        {t("bra.risk")}
-        {" · "}
-        {data == null
-          ? t("bra.loading")
-          : line
-            ? `${line} (${source}${data.massif ? ` · ${data.massif}` : ""})`
-            : t("bra.unavailable")}
-      </p>
-    );
-  }
+  const label = (n: number | null) => (n != null ? BRA_LABELS[n]?.fr ?? String(n) : "—");
 
   return (
     <section className="rounded-[var(--radius-card)] border border-line bg-panel p-4" data-testid="bra-card">
       <p className="text-xs uppercase tracking-wide text-muted">
-        {t("bra.risk")}
+        {hasOfficial ? t("bra.official") : t("bra.internal")}
         {data?.massif ? ` · ${data.massif}` : ""}
       </p>
-      {data == null ? (
-        <p className="mt-1 text-sm text-muted">{t("bra.loading")}</p>
+      {hasOfficial ? (
+        <>
+          <p className="mt-1 font-display text-3xl tracking-tight">
+            {official?.risk} · {label(official?.risk ?? null)}
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            {official?.loc1 && official.risk1 != null ? `${label(official.risk1)} ${official.loc1}` : null}
+            {official?.loc2 && official.risk2 != null ? ` · ${label(official.risk2)} ${official.loc2}` : null}
+          </p>
+          {official?.issuedAt ? (
+            <p className="mt-1 text-xs text-muted">Bulletin {official.issuedAt}</p>
+          ) : null}
+        </>
       ) : (
         <>
-          <p className="mt-1 font-display text-3xl tracking-tight">{line ?? "—"}</p>
-          <p className="mt-1 text-sm text-ink">{source}</p>
-          {hasOfficial ? (
-            <>
-              <p className="mt-1 text-sm text-muted">
-                {official?.loc1 && official.risk1 != null ? `${label(official.risk1)} ${official.loc1}` : null}
-                {official?.loc2 && official.risk2 != null ? ` · ${label(official.risk2)} ${official.loc2}` : null}
-              </p>
-              {official?.issuedAt ? (
-                <p className="mt-1 text-xs text-muted">Bulletin {official.issuedAt}</p>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <p className="mt-1 text-sm text-muted">{t("bra.notBra")}</p>
-              {official?.message ? <p className="mt-1 text-xs text-muted">{official.message}</p> : null}
-              {official?.error ? (
-                <p className="mt-1 text-xs text-muted">{t("bra.unreachable")}</p>
-              ) : data.code == null ? (
-                <p className="mt-1 text-xs text-muted">{t("bra.none")}</p>
-              ) : null}
-            </>
-          )}
+          <p className="mt-1 font-display text-3xl tracking-tight">
+            {internal?.level != null ? `${internal.level} · ${label(internal.level)}` : "—"}
+          </p>
+          <p className="mt-1 text-sm text-muted">{t("bra.none")}</p>
+          <p className="mt-1 text-xs text-muted">{t("bra.notBra")}</p>
           {internal?.snowfall24hCm != null || internal?.windKmh != null ? (
             <p className="mt-1 text-xs text-muted">
               {internal.snowfall24hCm != null ? `Chutes 24 h ${internal.snowfall24hCm} cm` : null}
               {internal.windKmh != null ? ` · vent ${Math.round(internal.windKmh)} km/h` : null}
               {internal.snowDepthCm != null ? ` · sol ${internal.snowDepthCm} cm` : null}
             </p>
+          ) : null}
+          {official?.message ? <p className="mt-1 text-xs text-muted">{official.message}</p> : null}
+          {official?.error ? (
+            <p className="mt-1 text-xs text-muted">{t("bra.unreachable")}</p>
           ) : null}
         </>
       )}

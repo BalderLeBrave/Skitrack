@@ -488,3 +488,180 @@ html[data-theme="dark"] .stay-glass {
   color: var(--color-muted);
 }
 
+/* Carte des stations : liste + carte côte à côte. */
+.carte {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.carte__panel {
+  position: sticky;
+  top: 5rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 6.5rem);
+  min-height: 42rem;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-panel);
+}
+
+.carte__head {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.carte__lead,
+.carte__empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.carte__empty {
+  padding: 1rem;
+}
+
+.carte__search input {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-size: 0.875rem;
+}
+
+.carte__search input:focus-visible {
+  outline: 2px solid var(--color-cta);
+  outline-offset: 1px;
+}
+
+.carte__orders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.carte__order {
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.carte__order--on {
+  background: var(--color-glacier);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.carte__list {
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.carte-row {
+  border-radius: 0.75rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 4.5rem;
+}
+
+.carte-row--on {
+  background: var(--color-glacier);
+  box-shadow: inset 0 0 0 1px var(--color-cta);
+}
+
+.carte-row__btn {
+  display: grid;
+  grid-template-columns: 3.75rem minmax(0, 1fr);
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.5rem;
+  text-align: left;
+  border-radius: 0.75rem;
+}
+
+.carte-row__btn:hover {
+  background: var(--color-glacier);
+}
+
+.carte-row__thumb {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.carte-row__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carte-row__body {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.carte-row__name {
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.carte-row__meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.carte-row__detail {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.carte-row__link {
+  justify-self: start;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.carte__map {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .carte {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .carte__map {
+    order: -1;
+  }
+
+  .carte__panel {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 0;
+    max-height: 70dvh;
+  }
+}

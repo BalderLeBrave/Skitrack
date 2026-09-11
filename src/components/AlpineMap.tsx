@@ -10,7 +10,7 @@ import {
 } from "@/lib/alpine";
 import { useMapPrefs } from "@/lib/mapPrefs";
 import { BASEMAPS, MAP_TILE_REV, resolvedBasemap, skiMapStyle } from "@/lib/mapStyle";
-import { formatAlt, type Station } from "@/lib/stations";
+import { formatAlt, stationById, type Station } from "@/lib/stations";
 
 function esc(s: string): string {
   const amp = String.fromCharCode(38);
@@ -44,9 +44,23 @@ function popupHtml(p: GeoJSON.GeoJsonProperties): string {
 <p class="map-pop__hint"><a href="/stations/${id}">Fiche station</a></p>`;
 }
 
-export function AlpineMap({ stations, filter }: { stations: Station[]; filter: MapFilter }) {
+export function AlpineMap({
+  stations,
+  filter,
+  selectedId = null,
+  onSelect,
+}: {
+  stations: Station[];
+  filter: MapFilter;
+  /** Station mise en avant (halo + recentrage). */
+  selectedId?: string | null;
+  /** Clic sur un pin : la station devient sélectionnée. */
+  onSelect?: (id: string) => void;
+}) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [pentes, setPentes] = useState(true);
@@ -101,6 +115,18 @@ export function AlpineMap({ stations, filter }: { stations: Station[]; filter: M
           "text-size": 11,
         },
         paint: { "text-color": "#fff" },
+      });
+      m.addLayer({
+        id: "station-selected",
+        type: "circle",
+        source: "stations",
+        filter: ["==", ["get", "id"], ""],
+        paint: {
+          "circle-color": "rgba(255, 90, 60, 0.18)",
+          "circle-radius": 15,
+          "circle-stroke-width": 2.5,
+          "circle-stroke-color": "#ff5a3c",
+        },
       });
       m.addLayer({
         id: "station-pt",
@@ -178,6 +204,8 @@ export function AlpineMap({ stations, filter }: { stations: Station[]; filter: M
     const onPoint = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
       const f = e.features?.[0];
       if (!f) return;
+      const id = f.properties?.id;
+      if (typeof id === "string") onSelectRef.current?.(id);
       new maplibregl.Popup({ offset: 14, closeButton: false })
         .setLngLat(e.lngLat)
         .setHTML(popupHtml(f.properties))
@@ -215,6 +243,17 @@ export function AlpineMap({ stations, filter }: { stations: Station[]; filter: M
       m.off("mouseleave", "clusters", onLeave);
     };
   }, [ready]);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    if (m.getLayer("station-selected")) {
+      m.setFilter("station-selected", ["==", ["get", "id"], selectedId ?? ""]);
+    }
+    const s = selectedId ? stationById(selectedId) : undefined;
+    if (!s) return;
+    m.easeTo({ center: [s.lon, s.lat], zoom: Math.max(m.getZoom(), 10), duration: 600 });
+  }, [selectedId, ready]);
 
   useEffect(() => {
     const m = map.current;

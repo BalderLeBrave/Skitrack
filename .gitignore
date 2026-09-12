@@ -28,3 +28,12 @@ public/__grok/
 # Contrat sandbox, pas le produit
 AGENTS.md
 AGENTS.project.md
+.claude/
+.skitrack-url
+openapi.json
+out/
+scrape/**/tools/
+scrape/**/.browsers/
+sidecar/
+tools/
+vendor/

@@ -1,13 +1,20 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { altBands, altDeltaM } from "./alt.ts";
-import { STATIONS } from "./stations.ts";
+import { DEPOT_STATIONS, STATIONS } from "./stations.ts";
 import { SKIINFO } from "./skiinfo.ts";
 
 describe("altitudes par source", () => {
-  it("chaque station : IGN au pin, min/max = fiche Skiinfo, pas le domaine lié", () => {
-    assert.equal(STATIONS.length, 231);
-    for (const s of STATIONS) {
+  it("chaque station du dépôt : IGN au pin, min/max = fiche Skiinfo, pas le domaine lié", () => {
+    assert.equal(STATIONS.length, 320);
+    assert.equal(DEPOT_STATIONS.length, 231);
+    // Les 88 du classeur n’ont ni relevé IGN au pin ni fiche Skiinfo.
+    assert.ok(
+      STATIONS.filter((s) => s.origin === "classeur").every(
+        (s) => s.demM == null && SKIINFO[s.id] == null,
+      ),
+    );
+    for (const s of DEPOT_STATIONS) {
       assert.ok(s.demM != null && s.demM > 400 && s.demM < 4000, s.id);
       assert.equal(s.minM, SKIINFO[s.id]?.minM, s.id);
       assert.equal(s.maxM, SKIINFO[s.id]?.maxM, s.id);

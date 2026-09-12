@@ -2,7 +2,7 @@
  *  On ne compare pas les km ni le mix : l’IGN n’en publie pas. */
 
 import { SKIINFO } from "./skiinfo.ts";
-import { STATIONS, type Station } from "./stations.ts";
+import { DEPOT_STATIONS, type Station } from "./stations.ts";
 
 export const PIN_NEAR_M = 150;
 
@@ -58,7 +58,9 @@ export const VERDICT_FR: Record<IgnSkiVerdict, string> = {
   manque: "donnée manquante",
 };
 
-export function ignSkiinfoAll(stations: readonly Station[] = STATIONS): IgnSkiRow[] {
+/** Comparaison adossée à la fiche Skiinfo : seules les stations du dépôt
+ *  en ont une, le classeur seul n’est pas comparable. */
+export function ignSkiinfoAll(stations: readonly Station[] = DEPOT_STATIONS): IgnSkiRow[] {
   return stations.map(ignSkiinfo);
 }
 

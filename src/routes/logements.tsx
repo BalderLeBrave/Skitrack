@@ -13,22 +13,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Bouton } from "@/components/base/Bouton";
 import { Tableau } from "@/components/base/Tableau";
 import { Carte } from "@/components/Carte";
+import { Icon } from "@/components/Icon";
+import { getSnowPair, type SnowPair } from "@/lib/snow/api";
 import { Coquille } from "@/components/Coquille";
-import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { LodgeCompare } from "@/components/LodgeCompare";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import { applyFilter, droppedLabel } from "@/lib/stay/lodgingFilter";
-import {
-  datesLbl,
-  distLbl,
-  eur,
-  fmt,
-  groupLbl,
-  stationPhoto,
-  useParcours,
-  useSejour,
-} from "@/lib/parcours";
+import { datesLbl, eur, fmt, groupLbl, useParcours, useSejour } from "@/lib/parcours";
 import { searchStay } from "@/lib/searchStay";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
@@ -47,15 +39,6 @@ const LF_INITIAL = {
   cancel: false,
   sort: "pp" as LodgeSort,
 };
-
-function Fact({ k, v }: { k: string; v: string | number | null }) {
-  return (
-    <div>
-      <dt>{k}</dt>
-      <dd className={`rel${v == null ? " facts__none" : ""}`}>{v ?? "–"}</dd>
-    </div>
-  );
-}
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
@@ -127,6 +110,25 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stationId, checkIn, checkOut, guests, bedrooms, searchNonce, station?.name]);
+}
+
+/** Neige au sol au village et au sommet, du service du dépôt. Absente tant que
+ *  rien ne répond : la bande le dit, elle n'écrit pas zéro à la place. */
+function useNeige(s: Station | undefined): SnowPair | null {
+  const [neige, setNeige] = useState<SnowPair | null>(null);
+  useEffect(() => {
+    if (!s) return;
+    let annule = false;
+    void getSnowPair({ data: { lat: s.lat, lon: s.lon, villageM: s.villageM, summitM: s.maxM } })
+      .then((r) => {
+        if (!annule) setNeige(r);
+      })
+      .catch(() => {});
+    return () => {
+      annule = true;
+    };
+  }, [s]);
+  return neige;
 }
 
 function Logements() {
@@ -210,6 +212,9 @@ function Logements() {
   }, [lodges, LF, trav, bedrooms, checkIn, checkOut]);
 
   const [apercu, setApercu] = useState<string | null>(null);
+  const [filtresOuverts, setFiltresOuverts] = useState(false);
+  const [carteOuverte, setCarteOuverte] = useState(false);
+  const neige = useNeige(s);
   // Toutes les annonces ne publient pas leur position : la carte le dit plutôt
   // que de laisser croire qu'elle montre toute la liste.
   const surCarte = ls.filter(({ l }) => l.lat != null && l.lon != null).length;
@@ -260,155 +265,168 @@ function Logements() {
       <section className="screen on" id="s-lodging" data-screen-label="2 Logements">
         <div className="scroll">
           <div className="wrap lodging__wrap">
-            <header className="lodging__head">
-              <div>
-                <span className="eyebrow">Étape 2 · Logement</span>
-                <h1 className="h1 h1--xl lodging__title" id="lo-title">
-                  Logements à {s.name}
-                </h1>
-                <p className="muted lodging__lead">
-                  <span className="rel js-dates">{datesLbl(checkIn, checkOut, nights)}</span> ·{" "}
-                  <span className="rel js-group">{groupLbl(trav, rooms)}</span> ·{" "}
-                  <a id="lo-fiche" onClick={() => go("fiche", { id: s.id })}>
-                    Fiche station
+            {/* Le haut de l'écran suit le commit 2d960d5 : deux lignes et un
+                bandeau. Fil d'Ariane et séjour sur la première, outils sur la
+                seconde, avec les filtres repliés derrière « Filtres » et la
+                carte derrière « Afficher la carte ». Puis neige, remontées et
+                altitudes sur une bande. Il faisait 463 px, il en fait cent. */}
+            <div className="lodging__tete">
+              <div className="lodging__fil">
+                <span className="lodging__fil-gauche">
+                  <a className="lodging__retour" onClick={() => go("compare")}>
+                    <Icon name="chevron-gauche" /> Comparer
                   </a>
-                </p>
-              </div>
-              <div className="lodging__actions">
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  id="lo-import"
-                  onClick={() =>
-                    P.say("Import JSON / lien : hors maquette (voir skitrack-annonces.json).")
-                  }
-                >
-                  Importer une annonce
-                </button>
-                <button type="button" className="btn btn--ghost" id="lo-demo" disabled>
-                  Charger des annonces d'exemple
-                </button>
-              </div>
-            </header>
-            <section className="ribbon card">
-              <div className="ribbon__img">
-                <ImageSlot
-                  id="v6-ribbon"
-                  placeholder="Photo"
-                  className="ribbon__slot"
-                  src={stationPhoto(s)}
-                />
-              </div>
-              <div className="ribbon__body">
-                <span className="muted" id="lo-crumb">
-                  {s.massif} · {s.dept ?? "–"}
-                  {s.domain ? ` · ${s.domain}` : ""}
+                  <strong className="lodging__station" id="lo-title">
+                    {s.name}
+                  </strong>
+                  {s.minM != null ? (
+                    <span className="rel muted">
+                      {fmt(s.minM)} – {fmt(s.maxM)} m
+                    </span>
+                  ) : null}
                 </span>
-                <dl className="facts ribbon__facts" id="lo-facts">
-                  <Fact
-                    k="Altitude"
-                    v={s.minM != null ? `${fmt(s.minM)}–${fmt(s.maxM)} m` : null}
-                  />
-                  <Fact
-                    k="Pistes (domaine)"
-                    v={s.pistesKm != null ? fmt(s.pistesKm) + " km" : null}
-                  />
-                  <Fact k="Remontées" v={s.lifts} />
-                  <Fact
-                    k="Piste la plus proche"
-                    v={s.distToPisteKm != null ? distLbl(s.distToPisteKm) : null}
-                  />
-                </dl>
+                <span className="lodging__fil-droite muted">
+                  <span className="rel js-dates">{datesLbl(checkIn, checkOut, nights)}</span>
+                  {" · "}
+                  <span className="rel js-group">{groupLbl(trav, rooms)}</span>
+                </span>
               </div>
-              <a id="lo-fiche2" className="ribbon__link" onClick={() => go("fiche", { id: s.id })}>
-                Fiche station →
-              </a>
-            </section>
-            <div className="lfilters">
-              <span className={`chip${LF.budget < BUDGET_MAX ? " chip--on" : ""}`} id="lf-budget">
-                Budget total ·{" "}
-                <b className="rel" id="lf-budget-v">
-                  {LF.budget >= BUDGET_MAX ? "tous" : "≤ " + eur(LF.budget)}
-                </b>
-              </span>
-              <input
-                type="range"
-                id="lf-budget-r"
-                className="lf-range"
-                min={800}
-                max={BUDGET_MAX}
-                step={100}
-                value={LF.budget}
-                onChange={(e) => setLF({ ...LF, budget: +e.target.value })}
-              />
-              {/* Aucune annonce, relevée ou en direct, ne publie son type de
-                  bien ni sa politique d'annulation. Ces deux commandes étaient
-                  actives et vidaient la liste sans un mot dès qu'on s'en
-                  servait. Elles sont désactivées et disent pourquoi. */}
-              <select
-                id="lf-type"
-                className="lf-select"
-                value=""
-                disabled
-                title="Aucune source ne publie le type de bien : le filtre n’aurait rien à comparer."
-              >
-                <option value="">Type de bien : non publié</option>
-              </select>
-              <span
-                className={`chip${LF.near ? " chip--on" : ""}`}
-                id="lf-dist"
-                onClick={() => setLF({ ...LF, near: !LF.near })}
-              >
-                À moins de 500 m d’une remontée
-              </span>
-              <span
-                className="chip chip--off"
-                id="lf-cancel"
-                aria-disabled="true"
-                title="Aucune source ne publie la politique d’annulation : le filtre n’aurait rien à comparer."
-              >
-                Annulation : non publiée
-              </span>
-              <span className="lf-spacer" />
-              <span className="muted" id="lo-count">
-                {lodges.length
-                  ? `${ls.length} logement${ls.length > 1 ? "s" : ""} sur ${lodges.length}`
-                  : ""}
-              </span>
-              <select
-                id="lf-sort"
-                className="lf-select"
-                value={LF.sort}
-                onChange={(e) => setLF({ ...LF, sort: e.target.value as LodgeSort })}
-              >
-                <option value="pp">Tri : prix par personne</option>
-                <option value="total">Tri : prix total</option>
-                <option value="dist">Tri : distance aux remontées</option>
-                <option value="note">Tri : note</option>
-              </select>
-            </div>
-            <p className="muted lo-rule" id="lo-rule">
-              Une caractéristique que l’annonce ne publie pas ne l’écarte pas : Airbnb n’affiche
-              aucune capacité sur ses vignettes, et ses annonces restent dans la liste. Une
-              caractéristique publiée, elle, engage l’annonce.
-              {dropped.total + distDropped + autreDomaine > 0 ? (
-                <>
-                  {" "}
-                  <b className="rel">
-                    {droppedLabel(dropped, [
-                      { singulier: "hors des 500 m", pluriel: "hors des 500 m", n: distDropped },
-                      {
-                        singulier: "d’un autre domaine",
-                        pluriel: "d’un autre domaine",
-                        n: autreDomaine,
-                      },
-                    ])}
-                    .
-                  </b>
-                </>
+
+              <div className="lodging__outils">
+                <span className="lodging__outils-gauche">
+                  <button
+                    type="button"
+                    className={`lodging__pli${filtresOuverts ? " lodging__pli--on" : ""}`}
+                    aria-expanded={filtresOuverts}
+                    aria-controls="lo-filtres"
+                    onClick={() => setFiltresOuverts((v) => !v)}
+                  >
+                    <Icon name="chevron-droite" /> Filtres
+                    {LF.budget < BUDGET_MAX || LF.near ? (
+                      <span className="lodging__pli-n">
+                        {(LF.budget < BUDGET_MAX ? 1 : 0) + (LF.near ? 1 : 0)}
+                      </span>
+                    ) : null}
+                  </button>
+                  <strong className="rel" id="lo-count">
+                    {ls.length} logement{ls.length > 1 ? "s" : ""}
+                  </strong>
+                  <span className="muted">
+                    prix du séjour, {nights} nuit{nights > 1 ? "s" : ""}, {trav} personne
+                    {trav > 1 ? "s" : ""}
+                    {dropped.total + distDropped + autreDomaine > 0 ? (
+                      <>
+                        {" · "}
+                        {droppedLabel(dropped, [
+                          {
+                            singulier: "hors des 500 m",
+                            pluriel: "hors des 500 m",
+                            n: distDropped,
+                          },
+                          {
+                            singulier: "d’un autre domaine",
+                            pluriel: "d’un autre domaine",
+                            n: autreDomaine,
+                          },
+                        ])}
+                      </>
+                    ) : null}
+                  </span>
+                </span>
+                <span className="lodging__outils-droite">
+                  <label className="lodging__tri">
+                    <span className="muted">Trier</span>
+                    <select
+                      id="lf-sort"
+                      value={LF.sort}
+                      aria-label="Ordre de la liste"
+                      onChange={(e) => setLF({ ...LF, sort: e.target.value as LodgeSort })}
+                    >
+                      <option value="pp">prix par personne</option>
+                      <option value="total">prix total</option>
+                      <option value="dist">distance aux remontées</option>
+                      <option value="note">note</option>
+                    </select>
+                  </label>
+                  <a
+                    className="lodging__lien"
+                    id="lo-import"
+                    onClick={() =>
+                      P.say("Import JSON / lien : hors maquette (voir skitrack-annonces.json).")
+                    }
+                  >
+                    <Icon name="plus" /> Importer une annonce
+                  </a>
+                  <a
+                    className={`lodging__lien lodging__lien--fiche${carteOuverte ? " lodging__lien--on" : ""}`}
+                    onClick={() => setCarteOuverte((v) => !v)}
+                    aria-pressed={carteOuverte}
+                  >
+                    {carteOuverte ? "Masquer la carte" : "Afficher la carte"}{" "}
+                    <Icon name={carteOuverte ? "chevron-gauche" : "chevron-droite"} />
+                  </a>
+                </span>
+              </div>
+
+              {filtresOuverts ? (
+                <div className="lodging__filtres" id="lo-filtres">
+                  <span
+                    className={`chip${LF.budget < BUDGET_MAX ? " chip--on" : ""}`}
+                    id="lf-budget"
+                  >
+                    Budget ·{" "}
+                    <b className="rel" id="lf-budget-v">
+                      {LF.budget >= BUDGET_MAX ? "tous" : "≤ " + eur(LF.budget)}
+                    </b>
+                  </span>
+                  <input
+                    type="range"
+                    id="lf-budget-r"
+                    className="lf-range"
+                    min={800}
+                    max={BUDGET_MAX}
+                    step={100}
+                    value={LF.budget}
+                    aria-label="Budget total du séjour, au maximum"
+                    onChange={(e) => setLF({ ...LF, budget: +e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    className={`chip${LF.near ? " chip--on" : ""}`}
+                    id="lf-dist"
+                    aria-pressed={LF.near}
+                    onClick={() => setLF({ ...LF, near: !LF.near })}
+                  >
+                    À moins de 500 m d’une remontée
+                  </button>
+                  <span className="muted lodging__filtres-note">
+                    Type de bien et annulation : aucune source ne les publie, il n’y a rien à
+                    filtrer.
+                  </span>
+                </div>
               ) : null}
-            </p>
-            <div className="lodging__duo">
+
+              {/* La bande de contexte du commit de référence : neige au sol, bas
+                et haut, puis remontées et altitudes. Une hauteur absente est
+                dite absente ; un zéro est une mesure du modèle. */}
+              <div className="lodging__contexte">
+                <span className="lodging__contexte-neige">
+                  <b>Neige au sol</b> <span className="muted">(bas / haut)</span>{" "}
+                  <span className="rel lodging__contexte-cm">
+                    {neige?.village.snowDepthCm != null && neige?.summit.snowDepthCm != null
+                      ? `${fmt(neige.village.snowDepthCm)} / ${fmt(neige.summit.snowDepthCm)} cm`
+                      : "non relevée"}
+                  </span>
+                </span>
+                <span className="muted rel">
+                  {s.lifts != null ? `${fmt(s.lifts)} remontées` : "remontées non comptées"}
+                  {s.minM != null ? ` · ${fmt(s.minM)}–${fmt(s.maxM)} m` : ""}
+                  {s.pistesKm != null ? ` · ${fmt(s.pistesKm)} km de pistes` : ""}
+                </span>
+              </div>
+            </div>
+
+            <div className={`lodging__duo${carteOuverte ? " lodging__duo--carte" : ""}`}>
               <div id="lodges" className="lodging__liste">
                 {!lodges.length ? (
                   <div className="empty card">
@@ -435,7 +453,6 @@ function Logements() {
                      qu'elle est, et rien ne s'alignait d'une ligne à l'autre. */
                   <Tableau
                     className="lodging__t"
-                    legende={`${ls.length} logement${ls.length > 1 ? "s" : ""}, du plus proche des remontées au plus loin quand le tri le demande. Prix relevés pour ${nights} nuits et ${trav} voyageurs.`}
                     surSurvol={setApercu}
                     colonnes={[
                       { cle: "remontee", entete: "Remontée", nombre: true },
@@ -501,35 +518,51 @@ function Logements() {
                     Aucun logement ne remplit tous les critères pour ce groupe et ce budget.
                   </p>
                 )}
+                <details className="repli lodging__regle">
+                  <summary className="repli__tete">Comment la liste est filtrée</summary>
+                  <div className="repli__corps">
+                    <p className="muted">
+                      Une caractéristique que l’annonce ne publie pas ne l’écarte pas : Airbnb
+                      n’affiche aucune capacité sur ses vignettes, et ses annonces restent dans la
+                      liste. Une caractéristique publiée, elle, engage l’annonce.
+                    </p>
+                    <p className="muted">
+                      Une annonce dont le domaine le plus proche n’est pas celui-ci est écartée :
+                      elle appartient à une autre station. Le compte au-dessus dit combien.
+                    </p>
+                  </div>
+                </details>
               </div>
               {/* Marqueurs au prix : le total du séjour se lit sur la carte,
                   sans survol ni clic. */}
-              <Carte
-                className="lodging__carte"
-                ajuster
-                legende={
-                  surCarte === ls.length
-                    ? `Les ${ls.length} logements de la liste, au total du séjour.`
-                    : surCarte === 0
-                      ? "Aucune annonce de la liste ne publie ses coordonnées : la carte reste vide."
-                      : `${surCarte} logement${surCarte > 1 ? "s" : ""} sur ${ls.length} publie${surCarte > 1 ? "nt" : ""} ses coordonnées. Les autres ne sont pas sur la carte.`
-                }
-                epingles={ls
-                  .filter(({ l }) => l.lat != null && l.lon != null)
-                  .map(({ l, total }) => ({
-                    id: l.id,
-                    lat: l.lat as number,
-                    lon: l.lon as number,
-                    titre: l.title,
-                    detail: l.source,
-                    etiquette: eur(total),
-                    sorte: "prix" as const,
-                  }))}
-                selectionne={P.lodgeId}
-                survole={apercu}
-                surSurvol={setApercu}
-                surClic={(id) => P.chooseLodge(P.lodgeId === id ? null : id)}
-              />
+              {carteOuverte ? (
+                <Carte
+                  className="lodging__carte"
+                  ajuster
+                  legende={
+                    surCarte === ls.length
+                      ? `Les ${ls.length} logements de la liste, au total du séjour.`
+                      : surCarte === 0
+                        ? "Aucune annonce de la liste ne publie ses coordonnées : la carte reste vide."
+                        : `${surCarte} logement${surCarte > 1 ? "s" : ""} sur ${ls.length} publie${surCarte > 1 ? "nt" : ""} ses coordonnées. Les autres ne sont pas sur la carte.`
+                  }
+                  epingles={ls
+                    .filter(({ l }) => l.lat != null && l.lon != null)
+                    .map(({ l, total }) => ({
+                      id: l.id,
+                      lat: l.lat as number,
+                      lon: l.lon as number,
+                      titre: l.title,
+                      detail: l.source,
+                      etiquette: eur(total),
+                      sorte: "prix" as const,
+                    }))}
+                  selectionne={P.lodgeId}
+                  survole={apercu}
+                  surSurvol={setApercu}
+                  surClic={(id) => P.chooseLodge(P.lodgeId === id ? null : id)}
+                />
+              ) : null}
             </div>
           </div>
         </div>

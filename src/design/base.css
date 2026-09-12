@@ -355,10 +355,14 @@
   position: absolute;
   z-index: 500;
   left: calc(var(--spacing) * 3);
-  bottom: calc(var(--spacing) * 6);
+  right: calc(var(--spacing) * 3);
+  bottom: calc(var(--spacing) * 7);
   display: grid;
   gap: calc(var(--spacing) * 1);
+  /* Dans une colonne étroite, une largeur fixe débordait sous le cadre : la
+     légende suit la largeur de la carte. */
   max-width: 22rem;
+  justify-self: start;
   padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-surface);

@@ -2552,7 +2552,7 @@ body:has(.v6.app) {
 
 @media (min-width: 1100px) {
   .v6 .lodging__duo {
-    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 2.9fr) minmax(0, 1fr);
   }
 }
 
@@ -2570,7 +2570,7 @@ body:has(.v6.app) {
    de l'écran, et le prix est le critère qu'on vient lire. */
 .v6 .lodging__t th,
 .v6 .lodging__t td {
-  padding: 10px 8px;
+  padding: 9px 6px;
 }
 
 .v6 .lodging__t thead th {
@@ -2610,12 +2610,14 @@ body:has(.v6.app) {
   color: var(--texte-2);
 }
 
-/* Les deux actions empilées : côte à côte, elles coûtaient deux cents pixels
-   de large et repoussaient les prix hors de l'écran. */
+/* Les deux actions côte à côte et compactes : empilées, elles fixaient la
+   hauteur de ligne à 83 px ; en pleine taille côte à côte, elles poussaient les
+   prix hors de l'écran. Petites et en ligne, elles ne coûtent ni l'un ni
+   l'autre. */
 .v6 .lodging__actions {
-  display: grid;
+  display: flex;
+  align-items: center;
   gap: 6px;
-  justify-items: stretch;
   white-space: nowrap;
 }
 
@@ -2633,4 +2635,244 @@ body:has(.v6.app) {
     top: auto;
     height: 24rem;
   }
+}
+
+/* ── Étape 2 : le bandeau, dense ────────────────────────────────────────────
+   Il faisait 463 px avant la première annonce, sur un écran de 900 : un titre
+   de 34 px, une carte photo de la station, une rangée de filtres et un
+   paragraphe de règle. On vient ici filtrer et comparer des prix ; deux lignes
+   suffisent, et la rangée de filtres reste sous la main en défilant. */
+
+.v6 .lodging__barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.v6 .lodging__ident {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-width: 0;
+}
+
+.v6 .lodging__titre {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.v6 .lodging__ctx {
+  margin: 0;
+  font-size: 13px;
+  color: var(--texte-2);
+}
+
+.v6 .lodging__filtres {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--bordure-douce);
+}
+
+.v6 .lodging__compte {
+  font-size: 13px;
+}
+
+.v6 .lodging__regle {
+  border-top: 1px solid var(--bordure-douce);
+  border-bottom: 0;
+}
+
+/* Deux actions par ligne, empilées pour tenir dans la largeur : elles fixent
+   la hauteur de la ligne, donc elles sont compactes. */
+.v6 .lodging__actions .btn {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.v6 .lodging__actions .mini {
+  height: 26px;
+  font-size: 12px;
+}
+
+/* ── Étape 2 : le haut de l'écran, sur le modèle du commit 2d960d5 ──────────
+   Deux lignes de 32 px à deux bords, une bande de contexte, et la liste. Les
+   filtres se déplient derrière « Filtres », la carte derrière « Afficher la
+   carte » : ce qui n'est pas demandé ne prend pas de place. */
+
+.v6 .lodging__fil,
+.v6 .lodging__outils {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  min-height: 34px;
+  font-size: 13px;
+}
+
+.v6 .lodging__fil {
+  border-bottom: 1px solid var(--bordure-douce);
+}
+
+.v6 .lodging__fil-gauche,
+.v6 .lodging__fil-droite,
+.v6 .lodging__outils-gauche,
+.v6 .lodging__outils-droite {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.v6 .lodging__fil-droite,
+.v6 .lodging__outils-droite {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.v6 .lodging__retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--marque);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.v6 .lodging__retour svg,
+.v6 .lodging__pli svg,
+.v6 .lodging__lien svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.4;
+}
+
+.v6 .lodging__station {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.v6 .lodging__pli {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.v6 .lodging__pli--on svg {
+  transform: rotate(90deg);
+}
+
+.v6 .lodging__pli-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--marque-tenue);
+  color: var(--marque-texte);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.v6 .lodging__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.v6 .lodging__lien--on {
+  color: var(--marque-texte);
+}
+
+.v6 .lodging__tri {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.v6 .lodging__tri select {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* Le panneau des filtres, déplié seulement. */
+.v6 .lodging__filtres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bordure-douce);
+}
+
+.v6 .lodging__filtres-note {
+  font-size: 12.5px;
+}
+
+/* La bande de contexte : neige, remontées, altitudes. */
+.v6 .lodging__contexte {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 20px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--glacier);
+  font-size: 13.5px;
+}
+
+.v6 .lodging__contexte-cm {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Sans la carte, la liste prend toute la largeur. */
+.v6 .lodging__duo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1100px) {
+  .v6 .lodging__duo--carte {
+    grid-template-columns: minmax(0, 2.9fr) minmax(0, 1fr);
+  }
+}
+
+/* Les trois lignes du haut, serrées : l'écart de la page (22 px) entre chacune
+   coûtait autant que les lignes elles-mêmes. */
+.v6 .lodging__tete {
+  display: grid;
+  gap: 6px;
 }

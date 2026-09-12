@@ -302,12 +302,32 @@ const REASON_LABEL: Record<DropReason, [string, string]> = {
   disponibilite: ["sans prix à ces dates", "sans prix à ces dates"],
 };
 
-/** « 12 biens masqués : 4 trop petits, 8 hors budget ». Vide si rien n'est masqué. */
-export function droppedLabel(dropped: FilterOutcome<FilterSubject>["dropped"]): string {
-  if (dropped.total === 0) return "";
-  const parts = (Object.entries(dropped.byReason) as [DropReason, number][])
-    .filter(([, n]) => n > 0)
-    .map(([reason, n]) => `${n} ${REASON_LABEL[reason][n > 1 ? 1 : 0]}`);
-  const bien = dropped.total > 1 ? "biens masqués" : "bien masqué";
-  return `${dropped.total} ${bien} : ${parts.join(", ")}`;
+/** Motif venu d'ailleurs que du filtre : la distance aux pistes, par exemple,
+ *  qui vient de l'accès calculé et non de l'annonce. */
+export type ExtraDrop = { singulier: string; pluriel: string; n: number };
+
+/**
+ * « 12 biens masqués : 4 trop petits, 8 hors budget ». Vide si rien n'est
+ * masqué.
+ *
+ * Un seul motif ne se répète pas : « 96 biens masqués : 96 hors budget »
+ * disait deux fois le même nombre. On écrit « 96 biens masqués : hors
+ * budget ».
+ */
+export function droppedLabel(
+  dropped: FilterOutcome<FilterSubject>["dropped"],
+  extra: readonly ExtraDrop[] = [],
+): string {
+  const reasons: { label: [string, string]; n: number }[] = [
+    ...(Object.entries(dropped.byReason) as [DropReason, number][])
+      .filter(([, n]) => n > 0)
+      .map(([reason, n]) => ({ label: REASON_LABEL[reason], n })),
+    ...extra.filter((e) => e.n > 0).map((e) => ({ label: [e.singulier, e.pluriel] as [string, string], n: e.n })),
+  ];
+  const total = reasons.reduce((sum, r) => sum + r.n, 0);
+  if (total === 0) return "";
+  const bien = total > 1 ? "biens masqués" : "bien masqué";
+  if (reasons.length === 1) return `${total} ${bien} : ${reasons[0].label[total > 1 ? 1 : 0]}`;
+  const parts = reasons.map((r) => `${r.n} ${r.label[r.n > 1 ? 1 : 0]}`);
+  return `${total} ${bien} : ${parts.join(", ")}`;
 }

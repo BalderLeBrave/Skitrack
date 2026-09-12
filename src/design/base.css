@@ -162,10 +162,20 @@
   white-space: nowrap;
 }
 
-/* Ce qui se compare s'aligne à droite et garde des chiffres de même chasse. */
-.tableau__nombre {
+/* Ce qui se compare s'aligne à droite et garde des chiffres de même chasse.
+   Le sélecteur porte l'élément : `.tableau__grille th` ci-dessus est plus
+   spécifique qu'une classe seule et gagnait l'alignement à gauche. */
+.tableau__grille th.tableau__nombre,
+.tableau__grille td.tableau__nombre {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* Un texte posé dans une colonne de nombres garde la lecture à gauche : seule
+   une valeur qui se compare chiffre à chiffre gagne à être alignée à droite. */
+.tableau__grille .tableau__texte {
+  display: block;
+  text-align: left;
 }
 
 .tableau__ligne--retenue {

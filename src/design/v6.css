@@ -2471,3 +2471,68 @@ body:has(.v6.app) {
   gap: 12px;
   padding: 0 0 18px;
 }
+
+/* ── Étape 1 : la comparaison à la place de la carte ────────────────────────
+   Le tableau vivait dans un panneau qui glissait par-dessus la carte, donc
+   invisible tant qu'on ne l'ouvrait pas, et la carte doublait celle de
+   « Carte des stations ». La colonne de droite porte maintenant la comparaison,
+   qui est ce que cette étape sert à faire. */
+
+.v6 .cmpcol {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  padding: 22px 24px 28px;
+  background: var(--bg);
+}
+
+.v6 .cmpcol__head {
+  display: grid;
+  gap: 6px;
+}
+
+.v6 .cmpcol__head h1 {
+  margin: 0;
+}
+
+.v6 .cmpcol__t .tableau__grille {
+  background: var(--v6-surface);
+  border: 1px solid var(--bordure-douce);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Une colonne de station porte son nom, sa case et ses deux liens. */
+.v6 .cmp__col {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  font-weight: 400;
+}
+
+.v6 .cmpcol__t thead th {
+  vertical-align: bottom;
+}
+
+/* La meilleure valeur d'un critère, dite par le poids et non par un fond. */
+.v6 .cmp__best {
+  color: var(--marque-texte);
+  font-weight: 800;
+}
+
+.v6 .cmpcol__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .v6 .cmpcol {
+    padding: 18px 16px 24px;
+  }
+}

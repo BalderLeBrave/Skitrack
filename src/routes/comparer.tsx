@@ -10,16 +10,9 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { Icon } from "@/components/Icon";
 import { V6App } from "@/components/v6/App";
 import { useGo } from "@/components/v6/go";
-import {
-  IconCheck,
-  IconChevronLeft,
-  IconClose,
-  IconFilters,
-  IconPlus,
-  IconSearch,
-} from "@/components/v6/icons";
 import { StationMap, type FlyRequest } from "@/components/v6/StationMap";
 import {
   COLS,
@@ -346,7 +339,7 @@ function Comparer() {
                 {P.massif ? `Stations · ${P.massif}` : "Toutes les stations"}
               </h1>
               <label className="search">
-                <IconSearch />
+                <Icon name="loupe" />
                 <input
                   id="q"
                   placeholder="Chamonix, Val Thorens, Les Angles…"
@@ -377,7 +370,7 @@ function Comparer() {
                   id="ftoggle"
                   onClick={() => setFiltersOpen((v) => !v)}
                 >
-                  <IconFilters />
+                  <Icon name="filtres" />
                   Filtres{" "}
                   <span className="fbadge" id="fbadge" style={{ display: nA ? undefined : "none" }}>
                     {nA || ""}
@@ -626,7 +619,7 @@ function Comparer() {
                             className={`mini${inCmp ? " mini--on" : ""}`}
                             data-cmp={s.id}
                           >
-                            {inCmp ? <IconCheck /> : <IconPlus />}
+                            {inCmp ? <Icon name="coche" /> : <Icon name="plus" />}
                             {inCmp ? "Dans la comparaison" : "Comparer"}
                           </button>
                           <button type="button" className="mini" data-fiche={s.id}>
@@ -652,7 +645,7 @@ function Comparer() {
                     <span key={id} className="tag tag--brand">
                       {stationById(id)?.name}
                       <b data-rm={id} onClick={() => P.toggleCmp(id)}>
-                        <IconClose />
+                        <Icon name="croix" />
                       </b>
                     </span>
                   ))}
@@ -691,7 +684,7 @@ function Comparer() {
               title="Replier / déplier le panneau"
               onClick={toggleCollapse}
             >
-              <IconChevronLeft />
+              <Icon name="chevron-gauche" />
             </button>
             <span className="handle__tip">Glisser · double-clic : largeur par défaut</span>
           </div>
@@ -709,7 +702,7 @@ function Comparer() {
             />
             <div className="maptools">
               <span className="chip chip--on">
-                <IconCheck />
+                <Icon name="coche" />
                 Carte
               </span>
               <span className="chip">Fond IGN</span>

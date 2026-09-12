@@ -7,40 +7,14 @@ import {
   type ForecastSlot,
   type SkyKind,
 } from "@/lib/meteo/forecast";
+import { Icon, type IconName } from "@/components/Icon";
 import { formatAlt } from "@/lib/stations";
 
-/** Quatre familles de ciel, quatre dessins. Aucun glyphe Unicode en guise d'icône. */
+/** Quatre familles de ciel, quatre pictogrammes du registre. */
 function SkyIcon({ kind }: { kind: SkyKind }) {
-  const common = { width: 20, height: 20, viewBox: "0 0 24 24", "aria-hidden": true } as const;
-  if (kind === "sun") {
-    return (
-      <svg {...common} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-        <circle cx="12" cy="12" r="4" />
-        <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
-      </svg>
-    );
-  }
-  if (kind === "rain") {
-    return (
-      <svg {...common} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-        <path d="M7 15a4 4 0 010-8 5 5 0 019.6-1A3.5 3.5 0 0117.5 15H7z" />
-        <path d="M8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5" />
-      </svg>
-    );
-  }
-  if (kind === "snow") {
-    return (
-      <svg {...common} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-        <path d="M7 14a4 4 0 010-8 5 5 0 019.6-1A3.5 3.5 0 0117.5 14H7z" />
-        <path d="M9 18h.01M12 20h.01M15 18h.01M10.5 21h.01M13.5 17h.01" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...common} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-      <path d="M7 18a4.5 4.5 0 010-9 5.5 5.5 0 0110.6-1.2A4 4 0 0117.5 18H7z" />
-    </svg>
-  );
+  const nom: IconName =
+    kind === "sun" ? "soleil" : kind === "rain" ? "pluie" : kind === "snow" ? "neige" : "nuage";
+  return <Icon name={nom} taille={20} />;
 }
 
 const JOURS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
@@ -72,7 +46,7 @@ function Slot({ slot }: { slot: ForecastSlot }) {
 
 function Row({ day }: { day: ForecastDay }) {
   return (
-    <div className="grid grid-cols-[6.5rem_1.5rem_1fr_4.5rem_4.5rem] items-center gap-x-2 py-1 text-sm">
+    <div className="grid grid-cols-[6.5rem_1.5rem_1fr_4.5rem_4.5rem] items-center gap-x-2 py-1 text-corps">
       <span className="text-muted">{dayLabel(day.date)}</span>
       <span className="text-muted">
         <SkyIcon kind={day.kind} />
@@ -121,12 +95,12 @@ export function ForecastCard({
 
   return (
     <section
-      className="rounded-[var(--radius-card)] border border-line bg-panel p-4"
+      className="rounded-surface border border-line bg-panel p-4"
       data-testid="forecast-card"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-xs uppercase tracking-wide text-muted">14 jours (modèle Open-Meteo)</p>
-        <div className="flex gap-1 rounded-md border border-line p-0.5 text-xs">
+        <p className="text-note uppercase tracking-wide text-muted">14 jours (modèle Open-Meteo)</p>
+        <div className="flex gap-1 rounded-surface border border-line p-0.5 text-note">
           <button
             type="button"
             onClick={() => setLevel("low")}
@@ -148,10 +122,10 @@ export function ForecastCard({
           comparaison qui compte, pas chaque valeur prise seule. Deux mille
           mètres d'écart valent souvent plus qu'une journée de décalage. */}
       {data != null && (
-        <div className="mt-3 grid grid-cols-[1fr_auto_auto] items-baseline gap-x-3 gap-y-1 text-sm">
+        <div className="mt-3 grid grid-cols-[1fr_auto_auto] items-baseline gap-x-3 gap-y-1 text-corps">
           <span />
-          <span className="text-xs uppercase tracking-wide text-muted">Matin 9 h</span>
-          <span className="text-xs uppercase tracking-wide text-muted">Après-midi 15 h</span>
+          <span className="text-note uppercase tracking-wide text-muted">Matin 9 h</span>
+          <span className="text-note uppercase tracking-wide text-muted">Après-midi 15 h</span>
           {(["low", "high"] as const).map((k) => {
             const lvl = data[k];
             return (
@@ -167,7 +141,7 @@ export function ForecastCard({
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-[6.5rem_1.5rem_1fr_4.5rem_4.5rem] gap-x-2 text-xs text-muted">
+      <div className="mt-3 grid grid-cols-[6.5rem_1.5rem_1fr_4.5rem_4.5rem] gap-x-2 text-note text-muted">
         <span />
         <span />
         <span>Max / min</span>
@@ -176,9 +150,9 @@ export function ForecastCard({
       </div>
 
       {data == null ? (
-        <p className="mt-2 text-sm text-muted">…</p>
+        <p className="mt-2 text-corps text-muted">…</p>
       ) : days.length === 0 ? (
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 text-corps text-muted">
           Prévision non obtenue. Rien n’est affiché plutôt qu’une valeur inventée.
         </p>
       ) : (
@@ -189,7 +163,7 @@ export function ForecastCard({
         </div>
       )}
 
-      <p className="mt-3 text-xs text-muted">
+      <p className="mt-3 text-note text-muted">
         Isotherme 0 °C à midi :{" "}
         {data?.freezingLevelM == null ? "non rendue" : formatAlt(data.freezingLevelM)}. Neige au sol
         aujourd’hui à {formatAlt(shown?.altitudeM ?? villageM)} :{" "}

@@ -3,13 +3,13 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type KeyboardEvent } from "react";
+import { Icon } from "@/components/Icon";
 import { V6App } from "@/components/v6/App";
 import { Flocons } from "@/components/Flocons";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { PhotoCredit } from "@/components/PhotoCredit";
 import { StayDatesField } from "@/components/StayDatesField";
-import { IconChevronRight, IconMinus, IconPlus } from "@/components/v6/icons";
 import {
   fmt,
   stationPhoto,
@@ -70,7 +70,7 @@ function SbarStepper({
         disabled={value <= b.min}
         onClick={() => stepStay(k, -1)}
       >
-        <IconMinus />
+        <Icon name="moins" />
       </button>
       <b className="rel">{display ?? value}</b>
       <button
@@ -79,7 +79,7 @@ function SbarStepper({
         disabled={value >= b.max}
         onClick={() => stepStay(k, 1)}
       >
-        <IconPlus />
+        <Icon name="plus" />
       </button>
     </span>
   );
@@ -304,7 +304,7 @@ function Home() {
                   </p>
                 </div>
                 <a data-go="compare" onClick={() => go("compare")}>
-                  Toutes les stations sur la carte <IconChevronRight />
+                  Toutes les stations sur la carte <Icon name="chevron-droite" />
                 </a>
               </header>
               <div className="grid3" id="home-top">

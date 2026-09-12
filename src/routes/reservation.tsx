@@ -4,10 +4,10 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
 import { V6App } from "@/components/v6/App";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { IconCheck, IconDot } from "@/components/v6/icons";
 import { StayReport } from "@/components/StayReport";
 import { resolveListing } from "@/lib/accommodation";
 import { getForfait } from "@/lib/forfaits/api";
@@ -171,19 +171,19 @@ function Reservation() {
                   <ul className="checklist">
                     <li>
                       <i>
-                        <IconCheck />
+                        <Icon name="coche" />
                       </i>
                       <span>Prix total confirmé aux dates du séjour, taxes et frais compris.</span>
                     </li>
                     <li>
                       <i>
-                        <IconCheck />
+                        <Icon name="coche" />
                       </i>
                       <span>Capacité vérifiée pour le groupe.</span>
                     </li>
                     <li>
                       <i className="todo">
-                        <IconDot />
+                        <Icon name="point" />
                       </i>
                       <span>
                         Forfaits : tarifs non relevés, à confirmer sur le site du domaine.
@@ -191,7 +191,7 @@ function Reservation() {
                     </li>
                     <li>
                       <i className="todo">
-                        <IconDot />
+                        <Icon name="point" />
                       </i>
                       <span>Trajet : itinéraire non calculé dans cette maquette.</span>
                     </li>

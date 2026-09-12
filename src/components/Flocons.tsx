@@ -3,6 +3,7 @@
  * pointer-events none, aria-hidden. Still frame if reduced motion.
  */
 import { useEffect, useRef } from "react";
+import { jeton } from "@/design/jeton";
 
 export function Flocons({
   count = 240,
@@ -68,7 +69,7 @@ export function Flocons({
 
     const draw = () => {
       g.clearRect(0, 0, W, H);
-      g.fillStyle = "#ffffff";
+      g.fillStyle = jeton("--color-flocon", "#fff");
       for (const f of flakes) {
         g.globalAlpha = f.a;
         g.beginPath();

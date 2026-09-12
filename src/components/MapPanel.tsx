@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { GpxPoint } from "@/lib/gpx";
 import { useMapPrefs } from "@/lib/mapPrefs";
 import { BASEMAPS, MAP_TILE_REV, resolvedBasemap, skiMapStyle } from "@/lib/mapStyle";
+import { jeton } from "@/design/jeton";
 
 export type MapLine = {
   id: string;
@@ -166,7 +167,7 @@ export function MapPanel({
         type: "line",
         source: "gpx",
         paint: {
-          "line-color": "#ff5a3c",
+          "line-color": jeton("--color-cta", "#ff5a3c"),
           "line-width": 3.5,
           "line-opacity": 0.92,
         },
@@ -212,7 +213,7 @@ export function MapPanel({
         type: "line",
         source: "lifts",
         paint: {
-          "line-color": "#ff5a3c",
+          "line-color": jeton("--color-cta", "#ff5a3c"),
           "line-width": 2,
           "line-opacity": 0.7,
         },

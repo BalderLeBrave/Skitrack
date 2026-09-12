@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Map as MapIcon, Mountain, Table2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Icon } from "@/components/Icon";
 import { AppShell } from "@/components/AppShell";
 import { ElevationProfile } from "@/components/ElevationProfile";
 import { GpxDrop } from "@/components/GpxDrop";
@@ -87,18 +87,18 @@ function Traces() {
       <div className="flex gap-2 border-b border-line px-4 py-2 lg:hidden">
         {(
           [
-            ["trace", "Trace", Mountain],
-            ["carte", "Carte", MapIcon],
-            ["logements", "Logements", Table2],
+            ["trace", "Trace", "montagne"],
+            ["carte", "Carte", "carte"],
+            ["logements", "Logements", "tableau"],
           ] as const
-        ).map(([id, label, Icon]) => (
+        ).map(([id, label, icone]) => (
           <button
             key={id}
             type="button"
-            className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm ${tab === id ? "bg-glacier font-semibold" : "text-muted"}`}
+            className={`inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-surface text-corps ${tab === id ? "bg-glacier font-semibold" : "text-muted"}`}
             onClick={() => setTab(id)}
           >
-            <Icon className="size-4" aria-hidden />
+            <Icon name={icone} className="size-4" />
             {label}
           </button>
         ))}
@@ -107,22 +107,22 @@ function Traces() {
       <div className="grid flex-1 items-start gap-4 px-4 py-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(520px,1.15fr)]">
         <div className={`${tab === "carte" ? "hidden lg:block" : ""} grid gap-4`}>
           <section
-            className={`rounded-[var(--radius-card)] bg-panel p-4 ${tab === "logements" ? "hidden lg:block" : ""}`}
+            className={`rounded-surface bg-panel p-4 ${tab === "logements" ? "hidden lg:block" : ""}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h1 className="font-display text-2xl tracking-tight">Trace GPX</h1>
-                <p className="mt-1 text-sm text-muted">
+                <h1 className="font-display text-titre tracking-tight">Trace GPX</h1>
+                <p className="mt-1 text-corps text-muted">
                   Distance, D+ / D− et profil : uniquement ce que le fichier contient.
                 </p>
               </div>
               {stats ? (
                 <button
                   type="button"
-                  className="inline-flex h-11 items-center gap-1 rounded-full border border-line px-3 text-sm"
+                  className="inline-flex h-11 items-center gap-1 rounded-full border border-line px-3 text-corps"
                   onClick={clear}
                 >
-                  <Trash2 className="size-4" aria-hidden />
+                  <Icon name="corbeille" className="size-4" aria-hidden />
                   Retirer
                 </button>
               ) : null}
@@ -174,14 +174,14 @@ function Traces() {
                 </div>
               </dl>
             ) : (
-              <p className="mt-4 text-sm text-muted">
+              <p className="mt-4 text-corps text-muted">
                 Aucune trace. Les logements ci-dessous viennent du relevé de séjour, pas d’un jeu
                 inventé.
               </p>
             )}
             {points.length > 0 ? (
               <div className="mt-4">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">
+                <p className="mb-2 text-note font-bold uppercase tracking-wider text-muted">
                   Profil d’altitude
                 </p>
                 <ElevationProfile points={points} />
@@ -190,11 +190,11 @@ function Traces() {
           </section>
 
           <section
-            className={`rounded-[var(--radius-card)] bg-panel p-4 ${tab === "trace" ? "hidden lg:block" : ""}`}
+            className={`rounded-surface bg-panel p-4 ${tab === "trace" ? "hidden lg:block" : ""}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-display text-xl">Logements et départ</h2>
-              <p className="text-sm text-muted">
+              <h2 className="font-display text-section">Logements et départ</h2>
+              <p className="text-corps text-muted">
                 {raw.length === 0 ? "Aucun logement dans ce relevé." : `${raw.length} fiches`}
               </p>
             </div>
@@ -211,7 +211,7 @@ function Traces() {
                 <button
                   key={id}
                   type="button"
-                  className={`rounded-full px-3 py-1.5 text-sm ${sort === id ? "bg-glacier font-semibold" : "border border-line text-muted"}`}
+                  className={`rounded-full px-3 py-1.5 text-corps ${sort === id ? "bg-glacier font-semibold" : "border border-line text-muted"}`}
                   onClick={() => setSort(id)}
                 >
                   {label}
@@ -219,7 +219,7 @@ function Traces() {
               ))}
             </div>
             {rows.length === 0 ? (
-              <p className="mt-4 text-sm text-muted">
+              <p className="mt-4 text-corps text-muted">
                 Pas de relevé pour ces dates. Lancez une recherche logements, ou{" "}
                 <Link to="/logements" className="underline">
                   ouvrez la liste
@@ -250,7 +250,7 @@ function Traces() {
                           >
                             {listing.title}
                           </button>
-                          <p className="text-xs text-muted">
+                          <p className="text-note text-muted">
                             {listing.source}
                             {listing.bedrooms != null ? ` · ${listing.bedrooms} ch.` : ""}
                             {listing.guests != null ? ` · ${listing.guests} pers.` : ""}
@@ -261,7 +261,7 @@ function Traces() {
                         <td>{sectorOf(listing) ?? "–"}</td>
                         <td>
                           {skiAccessLabel(listing.distToLiftM) ? (
-                            <span className="block text-xs font-semibold">
+                            <span className="block text-note font-semibold">
                               {skiAccessLabel(listing.distToLiftM)}
                             </span>
                           ) : null}

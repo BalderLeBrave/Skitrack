@@ -18,7 +18,7 @@ export function PhotoCredit({
   if (!credit) return null;
   return (
     <span
-      className={`absolute bottom-2 right-3 text-[11px] leading-none text-white/55 ${className}`}
+      className={`absolute bottom-2 right-3 text-note leading-none text-white/55 ${className}`}
       title={credit.source.home}
     >
       {credit.label}
@@ -37,7 +37,7 @@ export function PhotoCreditInk({
   const credit = photoCreditFor(stationId);
   if (!credit) return null;
   return (
-    <span className={`text-[11px] leading-none text-muted ${className}`} title={credit.source.home}>
+    <span className={`text-note leading-none text-muted ${className}`} title={credit.source.home}>
       {credit.label}
     </span>
   );

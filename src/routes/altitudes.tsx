@@ -40,7 +40,7 @@ function Altitudes() {
             <button
               key={id}
               type="button"
-              className={`shrink-0 rounded-full px-3 py-1 text-sm ${filter === id ? "bg-glacier font-semibold" : "text-muted"}`}
+              className={`shrink-0 rounded-full px-3 py-1 text-corps ${filter === id ? "bg-glacier font-semibold" : "text-muted"}`}
               onClick={() => setFilter(id)}
             >
               {label}
@@ -50,18 +50,18 @@ function Altitudes() {
       }
     >
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
-        <h1 className="font-display text-4xl tracking-tight">IGN × Skiinfo</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted">
+        <h1 className="font-display text-affiche tracking-tight">IGN × Skiinfo</h1>
+        <p className="mt-2 max-w-2xl text-corps text-muted">
           L’IGN donne l’altitude du pin GPS (RGE ALTI). Skiinfo publie une bande base–sommet.
           Médiane |IGN − base Skiinfo| :{" "}
           {sum.medianAbsBase != null ? `${sum.medianAbsBase} m` : "–"}. Deux pins restent en
           commune, pas au front de neige : Lans-en-Vercors et Goulier. Pas de mix ni de km côté IGN,
           hors comparaison.
         </p>
-        <div className="mt-4 overflow-x-auto rounded-[var(--radius-card)] border border-line bg-panel">
-          <table className="w-full min-w-[40rem] text-left text-sm">
+        <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
+          <table className="w-full min-w-[40rem] text-left text-corps">
             <thead>
-              <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+              <tr className="border-b border-line text-note uppercase tracking-wide text-muted">
                 <th className="px-3 py-2 font-medium">Station</th>
                 <th className="px-3 py-2 font-medium">Skiinfo</th>
                 <th className="px-3 py-2 font-medium">IGN</th>
@@ -80,7 +80,7 @@ function Altitudes() {
                     >
                       {r.name}
                     </Link>
-                    <p className="text-xs text-muted">{r.massif}</p>
+                    <p className="text-note text-muted">{r.massif}</p>
                   </td>
                   <td className="px-3 py-2 tabular-nums">
                     {r.skiMin != null && r.skiMax != null

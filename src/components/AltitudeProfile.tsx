@@ -101,12 +101,12 @@ export function AltitudeProfile({
           </>
         )}
       </svg>
-      <div className="mt-1 flex justify-between text-xs text-muted">
+      <div className="mt-1 flex justify-between text-note text-muted">
         <span>bas {formatAlt(minM)}</span>
         {villageM != null && <span>village {formatAlt(villageM)}</span>}
         <span>sommet {formatAlt(maxM)}</span>
       </div>
-      <p className="muted mt-2 text-xs">
+      <p className="muted mt-2 text-note">
         Silhouette indicative : seules les trois altitudes ci-dessus sont relevées, le tracé qui les
         relie est dessiné.
       </p>

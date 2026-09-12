@@ -1,6 +1,7 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
+import { Icon } from "@/components/Icon";
 import { CARTE_CENTER, CARTE_ZOOM } from "@/lib/alpine";
 import { useMapPrefs } from "@/lib/mapPrefs";
 import { BASEMAPS, MAP_TILE_REV, resolvedBasemap, skiMapStyle } from "@/lib/mapStyle";
@@ -171,9 +172,7 @@ export function AlpineMap({
             onClick={() => setBasemap(b.key)}
           >
             {active === b.key ? (
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 12.5l4.5 4.5L19 7.5" />
-              </svg>
+              <Icon name="coche" />
             ) : null}
             {b.label}
           </button>

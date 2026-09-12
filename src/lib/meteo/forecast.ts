@@ -3,6 +3,43 @@ import { z } from "zod";
 
 export type SkyKind = "sun" | "cloud" | "snow" | "rain";
 
+/**
+ * État du ciel d'un créneau, en code plutôt qu'en français figé.
+ *
+ * Le module d'origine le faisait déjà : le code se traduit à l'affichage, ce
+ * qui laisse la porte ouverte à une seconde langue sans toucher au relevé.
+ */
+export type SkyLabel =
+  | "clear"
+  | "fair"
+  | "overcast"
+  | "fog"
+  | "rain"
+  | "snow"
+  | "storm"
+  | "variable"
+  | "unknown";
+
+/** Un créneau horaire du premier jour : « 09 » le matin, « 15 » l'après-midi. */
+export type ForecastSlot = {
+  hour: string;
+  temp: number | null;
+  sky: SkyLabel;
+};
+
+/** Ce que l'écran écrit pour chaque code. Rien n'est deviné : `unknown` se dit. */
+export const SKY_FR: Record<SkyLabel, string> = {
+  clear: "ciel clair",
+  fair: "peu nuageux",
+  overcast: "couvert",
+  fog: "brouillard",
+  rain: "pluie",
+  snow: "neige",
+  storm: "orage",
+  variable: "variable",
+  unknown: "non rendu",
+};
+
 export type ForecastDay = {
   /** Jour calendaire, AAAA-MM-JJ. */
   date: string;
@@ -20,6 +57,10 @@ export type ForecastDay = {
 /** Une altitude de la station : bas des pistes ou point culminant. */
 export type ForecastLevel = {
   altitudeM: number;
+  /** Créneau de 9 h du premier jour, à cette altitude. */
+  morning: ForecastSlot;
+  /** Créneau de 15 h du premier jour. */
+  afternoon: ForecastSlot;
   days: ForecastDay[];
 };
 

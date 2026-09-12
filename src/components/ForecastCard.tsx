@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   getForecastPair,
+  SKY_FR,
   type ForecastDay,
   type ForecastPair,
+  type ForecastSlot,
   type SkyKind,
 } from "@/lib/meteo/forecast";
 import { formatAlt } from "@/lib/stations";
@@ -52,7 +54,20 @@ function dayLabel(iso: string): string {
 }
 
 function temp(v: number | null): string {
-  return v == null ? "—" : `${v} °C`;
+  return v == null ? "–" : `${v} °C`;
+}
+
+/** Un créneau : température et état du ciel, ou l'absence dite. */
+function Slot({ slot }: { slot: ForecastSlot }) {
+  if (slot.temp == null && slot.sky === "unknown") {
+    return <span className="text-muted">non rendu</span>;
+  }
+  return (
+    <span className="whitespace-nowrap">
+      <b>{slot.temp == null ? "–" : `${slot.temp} °C`}</b>{" "}
+      <span className="text-muted">{SKY_FR[slot.sky]}</span>
+    </span>
+  );
 }
 
 function Row({ day }: { day: ForecastDay }) {
@@ -67,10 +82,10 @@ function Row({ day }: { day: ForecastDay }) {
         <span className="text-muted"> / {temp(day.tempMin)}</span>
       </span>
       <span className={day.snowCm ? "font-semibold" : "text-muted"}>
-        {day.snowCm == null ? "—" : `${day.snowCm.toLocaleString("fr-FR")} cm`}
+        {day.snowCm == null ? "–" : `${day.snowCm.toLocaleString("fr-FR")} cm`}
       </span>
       <span className="text-muted">
-        {day.rainMm == null ? "—" : `${day.rainMm.toLocaleString("fr-FR")} mm`}
+        {day.rainMm == null ? "–" : `${day.rainMm.toLocaleString("fr-FR")} mm`}
       </span>
     </div>
   );
@@ -128,6 +143,29 @@ export function ForecastCard({
           </button>
         </div>
       </div>
+
+      {/* Matin et après-midi du jour, aux deux altitudes en même temps : c'est la
+          comparaison qui compte, pas chaque valeur prise seule. Deux mille
+          mètres d'écart valent souvent plus qu'une journée de décalage. */}
+      {data != null && (
+        <div className="mt-3 grid grid-cols-[1fr_auto_auto] items-baseline gap-x-3 gap-y-1 text-sm">
+          <span />
+          <span className="text-xs uppercase tracking-wide text-muted">Matin 9 h</span>
+          <span className="text-xs uppercase tracking-wide text-muted">Après-midi 15 h</span>
+          {(["low", "high"] as const).map((k) => {
+            const lvl = data[k];
+            return (
+              <Fragment key={k}>
+                <span className="text-muted">
+                  {k === "low" ? "Bas des pistes" : "Point culminant"} {formatAlt(lvl.altitudeM)}
+                </span>
+                <Slot slot={lvl.morning} />
+                <Slot slot={lvl.afternoon} />
+              </Fragment>
+            );
+          })}
+        </div>
+      )}
 
       <div className="mt-3 grid grid-cols-[6.5rem_1.5rem_1fr_4.5rem_4.5rem] gap-x-2 text-xs text-muted">
         <span />

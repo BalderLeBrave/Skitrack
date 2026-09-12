@@ -26,7 +26,14 @@
  * l'écran sait dire.
  */
 
-import type { ForecastDay, ForecastLevel, ForecastPair, SkyKind } from "./forecast.ts";
+import type {
+  ForecastDay,
+  ForecastLevel,
+  ForecastPair,
+  ForecastSlot,
+  SkyKind,
+  SkyLabel,
+} from "./forecast.ts";
 
 const ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 const TTL_MS = 3 * 3600 * 1000;
@@ -35,6 +42,8 @@ const FORECAST_DAYS = 14;
 type OpenMeteoForecast = {
   hourly?: {
     time?: string[];
+    temperature_2m?: (number | null)[];
+    weather_code?: (number | null)[];
     freezing_level_height?: (number | null)[];
   };
   daily?: {
@@ -67,8 +76,34 @@ function round1(v: number | null | undefined): number | null {
   return v == null || !Number.isFinite(v) ? null : Math.round(v * 10) / 10;
 }
 
+const EMPTY_SLOT = (hour: string): ForecastSlot => ({ hour, temp: null, sky: "unknown" });
+
 function emptyLevel(altitudeM: number): ForecastLevel {
-  return { altitudeM, days: [] };
+  return { altitudeM, morning: EMPTY_SLOT("09"), afternoon: EMPTY_SLOT("15"), days: [] };
+}
+
+/** Codes WMO en états de ciel nommés. Plus fin que `skyKindOf`, qui n'a que
+ *  quatre familles parce qu'il sert à choisir un dessin. */
+export function skyLabelOf(code: number | null | undefined): SkyLabel {
+  if (code == null) return "unknown";
+  if (code === 0) return "clear";
+  if ([1, 2].includes(code)) return "fair";
+  if (code === 3) return "overcast";
+  if ([45, 48].includes(code)) return "fog";
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "rain";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "snow";
+  if ([95, 96, 99].includes(code)) return "storm";
+  return "variable";
+}
+
+function slotAt(point: OpenMeteoForecast, hour: string): ForecastSlot {
+  const i = slotIndex(point, hour);
+  if (i < 0) return EMPTY_SLOT(hour);
+  return {
+    hour,
+    temp: round(point.hourly?.temperature_2m?.[i]),
+    sky: skyLabelOf(point.hourly?.weather_code?.[i]),
+  };
 }
 
 function levelOf(point: OpenMeteoForecast, altitudeM: number): ForecastLevel {
@@ -90,7 +125,7 @@ function levelOf(point: OpenMeteoForecast, altitudeM: number): ForecastLevel {
     })(),
     kind: skyKindOf(d?.weather_code?.[k]),
   }));
-  return { altitudeM, days };
+  return { altitudeM, morning: slotAt(point, "09"), afternoon: slotAt(point, "15"), days };
 }
 
 /** Index horaire du créneau `hh` sur le premier jour de la prévision. */
@@ -105,7 +140,10 @@ function urlFor(lat: number, lon: number, elevationM: number): string {
     latitude: String(lat),
     longitude: String(lon),
     elevation: String(Math.round(elevationM)),
-    hourly: "freezing_level_height",
+    // Les créneaux de 9 h et 15 h demandent la température et le code de ciel
+    // horaires. C'est ce que l'écran montre au-dessus des quatorze jours :
+    // « à quoi ressemble la journée, en haut et en bas ».
+    hourly: "temperature_2m,weather_code,freezing_level_height",
     daily: [
       "temperature_2m_max",
       "temperature_2m_min",

@@ -148,7 +148,7 @@ export function SnowHistoryCard({
                 />
                 {s.label} :{" "}
                 {last?.[s.key] == null
-                  ? "—"
+                  ? "–"
                   : `${(last[s.key] as number).toLocaleString("fr-FR")} cm`}
               </span>
             ))}

@@ -7,7 +7,12 @@ scrapers Playwright, wrapper Electron. Cloné et travaillé dans **/app/skitrack
 (branche `feat/claude-assistant`). Je ne peux PAS pousser sur leur GitHub.
 
 ## Fait (2026-06)
-### Intégration Claude Sonnet 5 (assistant ski)
+### Carte des logements façon Airbnb + filtre 5 km (branche feat/lodging-map, base aba6172)
+- `src/components/LodgeMap.tsx` : carte Leaflet, pastilles-prix par annonce, épingle station + cercle 5 km, survol/clic synchronisés liste↔carte.
+- `logements.tsx` : filtre « aucune annonce > 5 km de la station » (haversine `metresBetween`, annonces sans coords conservées car non mesurables), split liste/carte collante, compteur des masqués.
+- Vérifié preview : 21 pastilles, cercle 5 km, « 1 bien masqué : à plus de 5 km » (26/27). Typecheck 0, lint 0. Commit db08c5b · patch `/app/skitrack-lodging-map.patch`.
+
+### Intégration Claude Sonnet 5 (assistant ski, branche feat/claude-assistant, base 6829894)
 - Passerelle LLM Emergent en Node/TS (`src/lib/ai/emergent.server.ts`), endpoint
   OpenAI-compatible `${INTEGRATION_PROXY_URL}/llm/chat/completions`, modèle
   `claude-sonnet-5`, clé `EMERGENT_LLM_KEY`.

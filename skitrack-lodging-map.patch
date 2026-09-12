@@ -1,0 +1,401 @@
+From db08c5b67c84273462bfbe3f2d691b83507d91e4 Mon Sep 17 00:00:00 2001
+From: Skitrack Dev <dev@skitrack.local>
+Date: Sat, 12 Sep 2026 16:12:22 +0000
+Subject: [PATCH] feat(logements): carte des logements facon Airbnb + filtre 5
+ km
+
+- Carte Leaflet des annonces avec pastilles-prix (survol/clic synchronises liste<->carte)
+- Epingle station au centre + cercle des 5 km
+- Aucune annonce a plus de 5 km de la station (les annonces sans coords restent, non mesurables)
+- Split liste/carte collante, responsive, CSS v6
+---
+ src/components/LodgeMap.tsx | 152 ++++++++++++++++++++++++++++++++++++
+ src/design/v6.css           |  85 ++++++++++++++++++++
+ src/routes/logements.tsx    |  60 ++++++++++++--
+ 3 files changed, 292 insertions(+), 5 deletions(-)
+ create mode 100644 src/components/LodgeMap.tsx
+
+diff --git a/src/components/LodgeMap.tsx b/src/components/LodgeMap.tsx
+new file mode 100644
+index 0000000..be7ec24
+--- /dev/null
++++ b/src/components/LodgeMap.tsx
+@@ -0,0 +1,152 @@
++/** Carte des logements, façon Airbnb : une pastille-prix par annonce géolocalisée,
++ *  survol et clic synchronisés avec la liste, épingle station au centre et cercle
++ *  des 5 km (aucune annonce n'est affichée au-delà — filtre posé dans la route).
++ *
++ *  Leaflet lit `window` à l'évaluation : chargé à la demande depuis un effet,
++ *  comme `StationMap`, pour ne pas casser le rendu serveur. */
++
++import type * as Leaflet from "leaflet";
++import "leaflet/dist/leaflet.css";
++import { useEffect, useRef, useState } from "react";
++
++const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
++const ATTRIBUTION = "© OpenStreetMap contributors";
++const RADIUS_M = 5000;
++
++let leafletLoad: Promise<typeof Leaflet> | null = null;
++function loadLeaflet(): Promise<typeof Leaflet> {
++  leafletLoad ??= import("leaflet").then(
++    (m) =>
++      (m as unknown as { default?: typeof Leaflet }).default ?? (m as unknown as typeof Leaflet),
++  );
++  return leafletLoad;
++}
++
++export type LodgePin = {
++  id: string;
++  lat: number;
++  lon: number;
++  label: string;
++  title: string;
++};
++
++export function LodgeMap({
++  center,
++  stationName,
++  pins,
++  active,
++  hover,
++  onHover,
++  onSelect,
++}: {
++  center: { lat: number; lon: number };
++  stationName: string;
++  pins: LodgePin[];
++  active: string | null;
++  hover: string | null;
++  onHover: (id: string | null) => void;
++  onSelect: (id: string) => void;
++}) {
++  const host = useRef<HTMLDivElement>(null);
++  const lib = useRef<typeof Leaflet | null>(null);
++  const map = useRef<Leaflet.Map | null>(null);
++  const markers = useRef<Map<string, Leaflet.Marker>>(new Map());
++  const handlers = useRef({ onHover, onSelect });
++  handlers.current = { onHover, onSelect };
++  const [ready, setReady] = useState(0);
++
++  // Création de la carte : centre station, cercle des 5 km, zoom en bas à droite.
++  useEffect(() => {
++    let cancelled = false;
++    let teardown: (() => void) | null = null;
++    void loadLeaflet().then((Lf) => {
++      if (cancelled || !host.current) return;
++      lib.current = Lf;
++      const m = Lf.map(host.current, { zoomControl: false, scrollWheelZoom: true }).setView(
++        [center.lat, center.lon],
++        13,
++      );
++      Lf.tileLayer(TILES, { attribution: ATTRIBUTION, maxZoom: 18 }).addTo(m);
++      Lf.control.zoom({ position: "bottomright" }).addTo(m);
++      Lf.circle([center.lat, center.lon], {
++        radius: RADIUS_M,
++        color: "#2f6df0",
++        weight: 1,
++        opacity: 0.5,
++        fillColor: "#2f6df0",
++        fillOpacity: 0.05,
++      }).addTo(m);
++      Lf.marker([center.lat, center.lon], {
++        icon: Lf.divIcon({
++          className: "",
++          html: `<div class="lodge-station" title="${stationName}"></div>`,
++          iconSize: [16, 16],
++          iconAnchor: [8, 8],
++        }),
++        interactive: false,
++        zIndexOffset: -1000,
++      }).addTo(m);
++      const ro = new ResizeObserver(() => m.invalidateSize({ pan: false }));
++      ro.observe(host.current);
++      setTimeout(() => m.invalidateSize(), 0);
++      map.current = m;
++      teardown = () => {
++        ro.disconnect();
++        markers.current.clear();
++        m.remove();
++        map.current = null;
++      };
++      setReady((n) => n + 1);
++    });
++    return () => {
++      cancelled = true;
++      teardown?.();
++    };
++    // Vue initiale seulement ; le recentrage suit dans l'effet des pastilles.
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, []);
++
++  // Pastilles-prix : reconstruites à chaque changement de liste.
++  useEffect(() => {
++    const m = map.current;
++    const Lf = lib.current;
++    if (!m || !Lf) return;
++    markers.current.forEach((mk) => mk.remove());
++    markers.current.clear();
++    for (const p of pins) {
++      if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
++      const marker = Lf.marker([p.lat, p.lon], {
++        icon: Lf.divIcon({
++          className: "",
++          html: `<span class="lodge-pin" data-id="${p.id}">${p.label}</span>`,
++          iconSize: [0, 0],
++        }),
++      }).addTo(m);
++      marker.on("mouseover", () => handlers.current.onHover(p.id));
++      marker.on("mouseout", () => handlers.current.onHover(null));
++      marker.on("click", () => handlers.current.onSelect(p.id));
++      markers.current.set(p.id, marker);
++    }
++    const pts = pins.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon));
++    if (pts.length > 0) {
++      const bounds = Lf.latLngBounds(pts.map((p) => [p.lat, p.lon] as [number, number]));
++      bounds.extend([center.lat, center.lon]);
++      m.fitBounds(bounds, { padding: [48, 48], maxZoom: 15 });
++    } else {
++      m.setView([center.lat, center.lon], 13);
++    }
++  }, [pins, center.lat, center.lon, ready]);
++
++  // Surbrillance active / survol.
++  useEffect(() => {
++    markers.current.forEach((marker, id) => {
++      const el = marker.getElement()?.querySelector(".lodge-pin");
++      if (!el) return;
++      el.classList.toggle("on", id === active);
++      el.classList.toggle("hover", id === hover);
++      marker.setZIndexOffset(id === active ? 1000 : id === hover ? 500 : 0);
++    });
++  }, [active, hover, pins, ready]);
++
++  return <div className="lodge-map" ref={host} data-testid="lodge-map" />;
++}
+diff --git a/src/design/v6.css b/src/design/v6.css
+index ffa3632..3d42bc3 100644
+--- a/src/design/v6.css
++++ b/src/design/v6.css
+@@ -1735,6 +1735,91 @@ body:has(.v6.app) {
+   color: var(--ink);
+ }
+ 
++/* ── Carte des logements (façon Airbnb) ─────────────────────────────────────
++   Liste à gauche, carte collante à droite. Une pastille-prix par annonce
++   géolocalisée ; survol et clic synchronisés avec les cartes de la liste. */
++.v6 .lodging__split {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) 440px;
++  gap: 20px;
++  align-items: start;
++}
++.v6 .lodging__split .lodges {
++  grid-template-columns: repeat(2, minmax(0, 1fr));
++}
++.v6 .lodging__map {
++  position: sticky;
++  top: 0;
++  height: calc(100vh - 168px);
++  min-height: 460px;
++  border-radius: 16px;
++  overflow: hidden;
++  border: 1px solid var(--bordure-douce);
++  box-shadow: var(--shadow);
++  background: var(--v6-carte-fond);
++}
++.v6 .lodge-map {
++  position: absolute;
++  inset: 0;
++}
++.v6 .lodge.hover {
++  border-color: var(--marque);
++}
++.v6 .lodge-pin {
++  display: inline-flex;
++  align-items: center;
++  transform: translate(-50%, -50%);
++  padding: 4px 9px;
++  border-radius: 999px;
++  background: var(--v6-surface);
++  color: var(--ink);
++  font-size: 12.5px;
++  font-weight: 700;
++  border: 1px solid var(--bordure);
++  box-shadow: var(--v6-shadow-pin);
++  white-space: nowrap;
++  cursor: pointer;
++  transition:
++    transform 0.12s,
++    background 0.12s,
++    color 0.12s;
++  font-variant-numeric: tabular-nums;
++}
++.v6 .lodge-pin:hover,
++.v6 .lodge-pin.hover {
++  background: var(--ink);
++  color: var(--v6-blanc);
++  border-color: var(--ink);
++}
++.v6 .lodge-pin.on {
++  background: var(--cta);
++  color: var(--v6-blanc);
++  border-color: var(--cta);
++  transform: translate(-50%, -50%) scale(1.08);
++}
++.v6 .lodge-station {
++  width: 16px;
++  height: 16px;
++  border-radius: 50%;
++  background: var(--marque);
++  border: 3px solid var(--v6-blanc);
++  box-shadow: var(--v6-shadow-pin);
++  transform: translate(-50%, -50%);
++}
++@media (max-width: 1100px) {
++  .v6 .lodging__split {
++    grid-template-columns: minmax(0, 1fr);
++  }
++  .v6 .lodging__split .lodges {
++    grid-template-columns: minmax(0, 1fr);
++  }
++  .v6 .lodging__map {
++    position: static;
++    height: 60vh;
++    min-height: 360px;
++  }
++}
++
+ /* ── Réservation ────────────────────────────────────────────────────────── */
+ .v6 .bgrid {
+   display: grid;
+diff --git a/src/routes/logements.tsx b/src/routes/logements.tsx
+index be0fa4a..d875941 100644
+--- a/src/routes/logements.tsx
++++ b/src/routes/logements.tsx
+@@ -16,6 +16,8 @@ import { useGo } from "@/components/v6/go";
+ import { IconCheck, IconPlus } from "@/components/v6/icons";
+ import { LodgeCompare } from "@/components/LodgeCompare";
+ import { listingsForStay, type Listing } from "@/lib/listings";
++import { metresBetween } from "@/lib/access";
++import { LodgeMap, type LodgePin } from "@/components/LodgeMap";
+ import { applyFilter, droppedLabel } from "@/lib/stay/lodgingFilter";
+ import {
+   datesLbl,
+@@ -148,6 +150,7 @@ function Logements() {
+ 
+   const [LF, setLF] = useState(LF_INITIAL);
+   const [cmpOpen, setCmpOpen] = useState(false);
++  const [hoverId, setHoverId] = useState<string | null>(null);
+   const shortlist = useStay((x) => x.shortlist);
+   const toggleShort = useStay((x) => x.toggleShort);
+   /* Les annonces retenues, dans l'ordre où elles ont été cochées. Elles sont
+@@ -171,8 +174,17 @@ function Logements() {
+    *  n'est pas « ne convient pas ». Une capacité absente laisse passer,
+    *  `includeUnannounced` le dit explicitement, et `droppedLabel` nomme ce qui
+    *  a été écarté au lieu de laisser un compte inexpliqué. */
+-  const { ls, dropped, distDropped } = useMemo(() => {
+-    const out = applyFilter(lodges, {
++  const { ls, dropped, distDropped, farDropped } = useMemo(() => {
++    // Aucune annonce à plus de 5 km de la station. Une annonce sans
++    // coordonnées ne peut pas être mesurée : elle n'est pas déclarée « trop
++    // loin », elle reste — l'app montre l'absence, elle ne la comble pas.
++    const near5 = s
++      ? lodges.filter(
++          (l) => l.lat == null || l.lon == null || metresBetween(s.lat, s.lon, l.lat, l.lon) <= 5000,
++        )
++      : lodges;
++    const farDropped = lodges.length - near5.length;
++    const out = applyFilter(near5, {
+       travelers: trav,
+       rooms: bedrooms,
+       stay: { checkIn, checkOut },
+@@ -195,10 +207,25 @@ function Logements() {
+       ls: [...near].sort((a, b) => key[LF.sort](a) - key[LF.sort](b)),
+       dropped: out.dropped,
+       distDropped: rows.length - near.length,
++      farDropped,
+     };
+-  }, [lodges, LF, trav, bedrooms, checkIn, checkOut]);
++  }, [lodges, LF, trav, bedrooms, checkIn, checkOut, s]);
+ 
+   const chosen = lodges.find((l) => l.id === P.lodgeId);
++  const mapPins: LodgePin[] = useMemo(
++    () =>
++      ls
++        .filter(({ l }) => l.lat != null && l.lon != null)
++        .map(({ l, total }) => ({
++          id: l.id,
++          lat: l.lat as number,
++          lon: l.lon as number,
++          label: eur(total),
++          title: l.title,
++        })),
++    [ls],
++  );
++  const showMap = ls.length > 0;
+ 
+   // `syncFoot` (l. 664–668)
+   useEffect(() => {
+@@ -376,18 +403,20 @@ function Logements() {
+               Une caractéristique que l’annonce ne publie pas ne l’écarte pas : Airbnb n’affiche
+               aucune capacité sur ses vignettes, et ses annonces restent dans la liste. Une
+               caractéristique publiée, elle, engage l’annonce.
+-              {dropped.total + distDropped > 0 ? (
++              {dropped.total + distDropped + farDropped > 0 ? (
+                 <>
+                   {" "}
+                   <b className="rel">
+                     {droppedLabel(dropped, [
+                       { singulier: "hors des 500 m", pluriel: "hors des 500 m", n: distDropped },
++                      { singulier: "à plus de 5 km", pluriel: "à plus de 5 km", n: farDropped },
+                     ])}
+                     .
+                   </b>
+                 </>
+               ) : null}
+             </p>
++            <div className={showMap ? "lodging__split" : undefined}>
+             <div id="lodges" className={lodges.length ? "lodges" : undefined}>
+               {!lodges.length ? (
+                 <div className="empty card">
+@@ -415,7 +444,7 @@ function Logements() {
+                 ls.map(({ l, total, dist }) => {
+                   const on = P.lodgeId === l.id;
+                   return (
+-                    <article key={l.id} className={`lodge${on ? " on" : ""}`} data-l={l.id}>
++                    <article key={l.id} className={`lodge${on ? " on" : ""}${hoverId === l.id ? " hover" : ""}`} data-l={l.id} onMouseEnter={() => setHoverId(l.id)} onMouseLeave={() => setHoverId(null)}>
+                       <div className="lodge__img">
+                         <ImageSlot
+                           id={`v6-l-${l.id}`}
+@@ -488,6 +517,27 @@ function Logements() {
+                 </p>
+               )}
+             </div>
++            {showMap ? (
++              <aside className="lodging__map" data-testid="lodging-map">
++                <LodgeMap
++                  center={{ lat: s.lat, lon: s.lon }}
++                  stationName={s.name}
++                  pins={mapPins}
++                  active={P.lodgeId}
++                  hover={hoverId}
++                  onHover={setHoverId}
++                  onSelect={(id) => {
++                    P.chooseLodge(P.lodgeId === id ? null : id);
++                    if (typeof document !== "undefined") {
++                      document
++                        .querySelector(`[data-l="${id}"]`)
++                        ?.scrollIntoView({ behavior: "smooth", block: "center" });
++                    }
++                  }}
++                />
++              </aside>
++            ) : null}
++            </div>
+           </div>
+         </div>
+         {cmpOpen ? (
+-- 
+2.39.5
+

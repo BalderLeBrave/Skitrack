@@ -6,10 +6,10 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
 import { V6App } from "@/components/v6/App";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { IconCheck, IconChevronLeft, IconPlus } from "@/components/v6/icons";
 import { AltitudeProfile } from "@/components/AltitudeProfile";
 import { BraCard } from "@/components/BraCard";
 import { ForecastCard } from "@/components/ForecastCard";
@@ -166,7 +166,7 @@ function FicheBody({ s }: { s: Station }) {
           <div className="wrap fiche__wrap">
             <nav className="fiche__back">
               <a data-go="compare" onClick={() => go("compare")}>
-                <IconChevronLeft /> Comparer les stations
+                <Icon name="chevron-gauche" /> Comparer les stations
               </a>
             </nav>
             <div className="fhero">
@@ -388,11 +388,11 @@ function FicheBody({ s }: { s: Station }) {
                   >
                     {inCmp ? (
                       <>
-                        Dans la comparaison <IconCheck />
+                        Dans la comparaison <Icon name="coche" />
                       </>
                     ) : (
                       <>
-                        <IconPlus /> Ajouter à la comparaison
+                        <Icon name="plus" /> Ajouter à la comparaison
                       </>
                     )}
                   </button>

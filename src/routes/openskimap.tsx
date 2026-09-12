@@ -45,7 +45,7 @@ function OpenSkiMapPage() {
             <button
               key={id}
               type="button"
-              className={`shrink-0 rounded-full px-3 py-1 text-sm ${filter === id ? "bg-glacier font-semibold" : "text-muted"}`}
+              className={`shrink-0 rounded-full px-3 py-1 text-corps ${filter === id ? "bg-glacier font-semibold" : "text-muted"}`}
               onClick={() => setFilter(id)}
             >
               {label}
@@ -55,16 +55,16 @@ function OpenSkiMapPage() {
       }
     >
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
-        <h1 className="font-display text-4xl tracking-tight">OpenSkiMap × Skiinfo</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted">
+        <h1 className="font-display text-affiche tracking-tight">OpenSkiMap × Skiinfo</h1>
+        <p className="mt-2 max-w-2xl text-corps text-muted">
           OpenSkiMap = pistes OSM (même fond qu’OpenSnowMap). Ce n’est pas OpenSnow.com (prévisions
           US, API partenaire). Les comptes OSM sont des tracés ; Skiinfo publie des pistes brochure.
           On n’écrase pas le mix avec OSM.
         </p>
-        <div className="mt-4 overflow-x-auto rounded-[var(--radius-card)] border border-line bg-panel">
-          <table className="w-full min-w-[44rem] text-left text-sm">
+        <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
+          <table className="w-full min-w-[44rem] text-left text-corps">
             <thead>
-              <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+              <tr className="border-b border-line text-note uppercase tracking-wide text-muted">
                 <th className="px-3 py-2 font-medium">Station</th>
                 <th className="px-3 py-2 font-medium">n Skiinfo / OSM</th>
                 <th className="px-3 py-2 font-medium">km Skiinfo / OSM</th>
@@ -83,7 +83,7 @@ function OpenSkiMapPage() {
                     >
                       {r.name}
                     </Link>
-                    <p className="text-xs text-muted">{r.osmName ?? r.massif}</p>
+                    <p className="text-note text-muted">{r.osmName ?? r.massif}</p>
                   </td>
                   <td className="px-3 py-2 tabular-nums">
                     {r.nSki ?? "–"} / {r.nOsm ?? "–"}

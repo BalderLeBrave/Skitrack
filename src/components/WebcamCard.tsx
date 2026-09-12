@@ -15,14 +15,14 @@ export function WebcamCard({ stationId }: { stationId: string }) {
 
   return (
     <section
-      className="rounded-[var(--radius-card)] border border-line bg-panel p-4"
+      className="rounded-surface border border-line bg-panel p-4"
       data-testid="webcam-card"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-xs uppercase tracking-wide text-muted">Webcams</p>
+        <p className="text-note uppercase tracking-wide text-muted">Webcams</p>
         {cams.length > 1 ? (
           <select
-            className="rounded-md border border-line bg-panel px-2 py-1 text-sm"
+            className="rounded-surface border border-line bg-panel px-2 py-1 text-corps"
             value={current?.id ?? ""}
             onChange={(e) => setId(e.target.value)}
             aria-label="Choisir la caméra"
@@ -34,13 +34,13 @@ export function WebcamCard({ stationId }: { stationId: string }) {
             ))}
           </select>
         ) : current ? (
-          <span className="text-sm">{current.label}</span>
+          <span className="text-corps">{current.label}</span>
         ) : null}
       </div>
 
       {current ? (
         <>
-          <div className="mt-3 aspect-video overflow-hidden rounded-[var(--radius-card)] border border-line">
+          <div className="mt-3 aspect-video overflow-hidden rounded-surface border border-line">
             <iframe
               key={current.url}
               src={current.url}
@@ -52,13 +52,13 @@ export function WebcamCard({ stationId }: { stationId: string }) {
               allowFullScreen
             />
           </div>
-          <p className="mt-3 text-xs text-muted">
+          <p className="mt-3 text-note text-muted">
             Flux diffusé par l’exploitant, affiché tel quel. Si l’image ne vient pas, c’est sa
             caméra qui est hors service, pas la fiche.
           </p>
         </>
       ) : (
-        <p className="mt-3 text-sm text-muted">
+        <p className="mt-3 text-corps text-muted">
           Aucune webcam relevée pour cette station. La table est tenue à la main, station par
           station : une caméra absente veut dire qu’elle n’a pas été vérifiée, pas qu’il n’en existe
           pas. Aucune caméra n’est devinée par ressemblance de nom.

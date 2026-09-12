@@ -5,7 +5,7 @@ export function LangToggle({ light = false }: { light?: boolean }) {
   const setLocale = useLocale((s) => s.setLocale);
   const cls = light
     ? "rounded-full border border-white/35 bg-ink/30 px-3 py-1 text-white"
-    : "shrink-0 rounded-full border border-line px-3 py-1.5 text-sm";
+    : "shrink-0 rounded-full border border-line px-3 py-1.5 text-corps";
   return (
     <button
       type="button"

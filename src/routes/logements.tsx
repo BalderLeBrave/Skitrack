@@ -10,10 +10,10 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Icon } from "@/components/Icon";
 import { V6App } from "@/components/v6/App";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { IconCheck, IconPlus } from "@/components/v6/icons";
 import { LodgeCompare } from "@/components/LodgeCompare";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import { applyFilter, droppedLabel } from "@/lib/stay/lodgingFilter";
@@ -455,7 +455,7 @@ function Logements() {
                           >
                             {on ? (
                               <>
-                                Choisi <IconCheck />
+                                Choisi <Icon name="coche" />
                               </>
                             ) : (
                               "Choisir ce logement"
@@ -469,11 +469,11 @@ function Logements() {
                           >
                             {shortlist.includes(l.id) ? (
                               <>
-                                Retenu <IconCheck />
+                                Retenu <Icon name="coche" />
                               </>
                             ) : (
                               <>
-                                <IconPlus /> Comparer
+                                <Icon name="plus" /> Comparer
                               </>
                             )}
                           </button>

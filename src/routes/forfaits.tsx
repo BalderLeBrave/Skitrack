@@ -61,7 +61,7 @@ function ForfaitsPage() {
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="font-display text-4xl tracking-tight">{t("pass.title")}</h1>
+            <h1 className="font-display text-affiche tracking-tight">{t("pass.title")}</h1>
             <p className="mt-2 max-w-xl text-muted">
               Tarifs des domaines français, relevés sur les pages officielles. Un estimé ≈ n’entre
               pas dans le coût du séjour. Rien n’est inventé.
@@ -71,12 +71,12 @@ function ForfaitsPage() {
             type="button"
             onClick={() => void refreshVisible()}
             disabled={busy}
-            className="h-12 rounded-xl bg-cta px-5 font-semibold text-cta-ink"
+            className="h-12 rounded-surface bg-cta px-5 font-semibold text-cta-ink"
           >
             {busy ? "…" : t("pass.refresh")}
           </button>
         </div>
-        <p className="mt-3 text-xs text-muted">
+        <p className="mt-3 text-note text-muted">
           {domains.length} domaines de forfait
           {lastSync ? ` · dernière synchro ${new Date(lastSync).toLocaleString("fr-FR")}` : ""}
         </p>
@@ -84,9 +84,9 @@ function ForfaitsPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Rechercher un domaine"
-          className="mt-4 h-12 w-full rounded-xl border border-line bg-panel px-4"
+          className="mt-4 h-12 w-full rounded-surface border border-line bg-panel px-4"
         />
-        <ul className="mt-6 divide-y divide-line rounded-[var(--radius-card)] border border-line bg-panel">
+        <ul className="mt-6 divide-y divide-line rounded-surface border border-line bg-panel">
           {visible.map((d) => {
             const row = rows[d.slug];
             const confirm = row ? forfaitConfirmLabel(row) : null;
@@ -96,18 +96,18 @@ function ForfaitsPage() {
                 className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3"
               >
                 <div>
-                  <p className="font-display text-lg leading-tight">{d.name}</p>
-                  <p className="text-xs text-muted">
+                  <p className="font-display text-section leading-tight">{d.name}</p>
+                  <p className="text-note text-muted">
                     {d.massif}
                     {d.pass ? ` · ${d.pass}` : ""}
                   </p>
                 </div>
-                <div className="text-right text-sm">
+                <div className="text-right text-corps">
                   <p>
                     {t("pass.day")} {formatEuroTarif(row?.j1 ?? d.seed?.j1)} · {t("pass.six")}{" "}
                     {formatEuroTarif(row?.j6 ?? d.seed?.j6)}
                   </p>
-                  <p className="text-xs text-muted">
+                  <p className="text-note text-muted">
                     {row
                       ? formatForfaitAge(row)
                       : d.seed?.majLabel

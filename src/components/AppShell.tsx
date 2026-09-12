@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { AutoSync } from "./AutoSync";
 import { LangToggle } from "./LangToggle";
 import { SearchStayBar } from "./SearchStayBar";
+import { Icon } from "@/components/Icon";
 import { useStay } from "@/lib/stay";
 import { useTheme } from "@/lib/theme";
 import { useT, type MsgId } from "@/lib/i18n";
@@ -65,9 +66,7 @@ function MoreMenu() {
         onClick={() => setOpen((v) => !v)}
       >
         {t("nav.more")}
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
+        <Icon name="chevron-bas" />
       </button>
       {open ? (
         <div className="more" role="dialog" aria-label={t("nav.more")}>
@@ -166,7 +165,7 @@ export function AppShell({
           </div>
         </div>
         {chips ? (
-          <div className="flex h-11 items-center gap-2 overflow-x-auto border-b border-bordure-douce bg-panel px-4 text-sm">
+          <div className="flex h-11 items-center gap-2 overflow-x-auto border-b border-bordure-douce bg-panel px-4 text-corps">
             {chips}
           </div>
         ) : null}

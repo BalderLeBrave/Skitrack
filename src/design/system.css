@@ -1,0 +1,89 @@
+/* Système SKITRACK : cinq tailles, une base d'espacement, une palette par rôle,
+   deux rayons, une règle d'élévation.
+
+   C'est la seule source de ces valeurs. Un composant qui écrit une taille, une
+   couleur, un rayon ou une ombre en clair sort du système.
+
+   Les couleurs sont celles de la maquette v6 (`src/design/tokens.ts`, bloc
+   `:root` du contrat), reprises sans qu'une valeur change : seuls les noms
+   passent du pigment au rôle. Le reste (typographie, espacement, rayons,
+   élévation) n'existait pas dans la maquette et est ajouté ici. */
+
+@theme {
+  /* ── Typographie : cinq tailles, trois graisses ───────────────────────
+     Une famille. `IBM Plex Mono` n'est plus chargée : l'alignement des
+     chiffres vient de `font-variant-numeric: tabular-nums`. */
+  --font-sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+
+  --text-affiche: 3.25rem; /* 52px — couverture, une fois par écran au plus */
+  --text-affiche--line-height: 1.04;
+  --text-titre: 2.125rem; /* 34px — titre d'écran */
+  --text-titre--line-height: 1.1;
+  --text-section: 1.25rem; /* 20px — titre de section */
+  --text-section--line-height: 1.2;
+  --text-corps: 0.9375rem; /* 15px — texte courant et valeurs */
+  --text-corps--line-height: 1.45;
+  --text-note: 0.78125rem; /* 12.5px — libellés, unités, mentions de source */
+  --text-note--line-height: 1.35;
+
+  /* ── Espacement : base 4px ─────────────────────────────────────────── */
+  --spacing: 0.25rem;
+
+  /* ── Palette par rôle ──────────────────────────────────────────────── */
+  --color-bg: #f7fbfe;
+  --color-surface: #fdfeff;
+  --color-glacier: #e8f3fa;
+  --color-ink: #0b1f33;
+  --color-muted: #63717d;
+  --color-line: #c9d3dc;
+  --color-line-douce: #e9eef2;
+
+  /* Accent : action principale, élément sélectionné, lien. Rien d'autre. */
+  --color-cta: #ff5a3c;
+  --color-cta-ink: #fff7f5;
+  --color-marque: #0b6fc2;
+  --color-marque-tenue: #eef6fd;
+  --color-marque-texte: #0959a0;
+
+  /* Un état par sémantique. */
+  --color-ok: #d3efe3;
+  --color-ok-texte: #0a6b4a;
+  --color-alerte: #fdf1e2;
+  --color-alerte-texte: #92400e;
+  --color-neige: #bfe0f7;
+  --color-neige-texte: #133f63;
+
+  /* Blanc du flocon : seul blanc pur du système, sur une photo sombre. */
+  --color-flocon: #ffffff;
+
+  /* Couleurs de piste : réservées aux pistes. */
+  --color-piste-verte: #2e9e5b;
+  --color-piste-bleue: #0b6fc2;
+  --color-piste-rouge: #d9382e;
+  --color-piste-noire: #1b2530;
+
+  /* ── Rayons : deux valeurs ─────────────────────────────────────────── */
+  --radius-surface: 0.5rem; /* 8px — toute surface */
+  /* Les pastilles et les chips prennent `rounded-full`. */
+
+  /* ── Élévation : une ombre, pour le flottant seulement ─────────────── */
+  --shadow-flottant: 0 1px 2px rgba(17, 24, 32, 0.04), 0 4px 12px rgba(17, 24, 32, 0.07);
+
+  /* ── Mouvement : une durée, une courbe ─────────────────────────────── */
+  --ease-ui: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Jetons hérités, gardés le temps que les écrans non repris les quittent.
+   Ils ne sont pas le système : aucun composant neuf ne doit les employer. */
+@theme {
+  --color-panel: #fdfeff;
+  --color-snow: #f4f8fb;
+  --color-glass: rgb(247 251 254 / 0.72);
+  --color-bordure: #c9d3dc;
+  --color-bordure-douce: #e9eef2;
+  --color-texte-2: #63717d;
+  --color-texte-3: #768593;
+  --font-mono: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  --radius-card: 0.5rem;
+}

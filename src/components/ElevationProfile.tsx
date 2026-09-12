@@ -5,7 +5,7 @@ export function ElevationProfile({ points }: { points: GpxPoint[] }) {
   const data = profileSeries(points);
   if (data.length < 2) {
     return (
-      <p className="text-sm text-muted" data-testid="gpx-profile-empty">
+      <p className="text-corps text-muted" data-testid="gpx-profile-empty">
         Pas d’altitude dans ce GPX — le profil n’est pas tracé.
       </p>
     );

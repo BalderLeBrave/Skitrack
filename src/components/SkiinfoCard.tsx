@@ -42,7 +42,7 @@ export function SkiinfoCard({ stationId }: { stationId: string }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 text-sm" data-testid="skiinfo-refresh">
+    <div className="flex flex-wrap items-center justify-between gap-2 text-corps" data-testid="skiinfo-refresh">
       <p className="text-muted">
         {t("skiinfo.title")}
         {row ? ` · ${formatSkiinfoAge(row)}` : null}
@@ -52,7 +52,7 @@ export function SkiinfoCard({ stationId }: { stationId: string }) {
         type="button"
         onClick={() => void refresh()}
         disabled={busy}
-        className="shrink-0 rounded-full border border-line px-3 py-1.5 text-sm"
+        className="shrink-0 rounded-full border border-line px-3 py-1.5 text-corps"
       >
         {busy ? "…" : t("skiinfo.refresh")}
       </button>

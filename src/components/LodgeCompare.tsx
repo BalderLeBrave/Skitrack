@@ -23,9 +23,9 @@
  * Le tiroir les annonce en pied plutôt que de laisser trois colonnes muettes.
  */
 
+import { Icon } from "@/components/Icon";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { formatEuro, type Listing } from "@/lib/listings";
-import { IconClose } from "@/components/v6/icons";
 
 type Ligne = {
   label: string;
@@ -104,7 +104,7 @@ export function LodgeCompare({
           </p>
         </div>
         <button type="button" className="mini" onClick={onClose} aria-label="Fermer la comparaison">
-          <IconClose /> Fermer
+          <Icon name="croix" /> Fermer
         </button>
       </header>
 

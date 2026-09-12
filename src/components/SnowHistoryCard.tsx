@@ -81,15 +81,15 @@ export function SnowHistoryCard({
 
   return (
     <section
-      className="rounded-[var(--radius-card)] border border-line bg-panel p-4"
+      className="rounded-surface border border-line bg-panel p-4"
       data-testid="snow-history-card"
     >
-      <p className="text-xs uppercase tracking-wide text-muted">
+      <p className="text-note uppercase tracking-wide text-muted">
         Neige au sol, relevé jour par jour
       </p>
 
       {points.length === 0 ? (
-        <p className="mt-3 text-sm text-muted">
+        <p className="mt-3 text-corps text-muted">
           L’historique commence aujourd’hui : SKITRACK enregistre ce qu’il mesure, il n’importe
           aucun passé.
         </p>
@@ -138,7 +138,7 @@ export function SnowHistoryCard({
               : null}
           </svg>
 
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-note">
             {series.map((s) => (
               <span key={s.key} className="flex items-center gap-1.5 text-muted">
                 <span
@@ -154,7 +154,7 @@ export function SnowHistoryCard({
             ))}
           </div>
 
-          <p className="mt-3 text-xs text-muted">
+          <p className="mt-3 text-note text-muted">
             {points.length.toLocaleString("fr-FR")} relevé{points.length > 1 ? "s" : ""}, du{" "}
             {shortDay(points[0].day)} au {shortDay(points[points.length - 1].day)}
             {since && since !== points[0].day

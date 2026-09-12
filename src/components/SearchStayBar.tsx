@@ -17,7 +17,7 @@ export function SearchStayBar({ compact = false }: { compact?: boolean }) {
     void navigate({ to: "/logements" });
   };
 
-  const field = compact ? "h-10 rounded-lg bg-panel px-2 text-sm text-ink" : "h-11 rounded-xl bg-panel px-3 text-sm text-ink";
+  const field = compact ? "h-10 rounded-surface bg-panel px-2 text-corps text-ink" : "h-11 rounded-surface bg-panel px-3 text-corps text-ink";
 
   return (
     <form
@@ -25,10 +25,10 @@ export function SearchStayBar({ compact = false }: { compact?: boolean }) {
       className={
         compact
           ? "grid grid-cols-2 items-center gap-1 sm:grid-cols-[1.3fr_1fr_1fr_4.5rem_4.5rem_auto]"
-          : "stay-glass grid items-end gap-2 rounded-[var(--radius-card)] p-3 sm:grid-cols-[1.4fr_1fr_1fr_5.5rem_5.5rem_auto]"
+          : "stay-glass grid items-end gap-2 rounded-surface p-3 sm:grid-cols-[1.4fr_1fr_1fr_5.5rem_5.5rem_auto]"
       }
     >
-      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-xs text-muted`}>
+      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-note text-muted`}>
         {compact ? <span className="sr-only">Station</span> : "Station"}
         <select
           className={field}
@@ -42,7 +42,7 @@ export function SearchStayBar({ compact = false }: { compact?: boolean }) {
           ))}
         </select>
       </label>
-      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-xs text-muted`}>
+      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-note text-muted`}>
         {compact ? <span className="sr-only">Arrivée</span> : "Arrivée"}
         <input
           type="date"
@@ -52,7 +52,7 @@ export function SearchStayBar({ compact = false }: { compact?: boolean }) {
           suppressHydrationWarning
         />
       </label>
-      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-xs text-muted`}>
+      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-note text-muted`}>
         {compact ? <span className="sr-only">Départ</span> : "Départ"}
         <input
           type="date"
@@ -62,7 +62,7 @@ export function SearchStayBar({ compact = false }: { compact?: boolean }) {
           suppressHydrationWarning
         />
       </label>
-      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-xs text-muted`}>
+      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-note text-muted`}>
         {compact ? <span className="sr-only">Personnes</span> : "Pers."}
         <input
           type="number"
@@ -74,7 +74,7 @@ export function SearchStayBar({ compact = false }: { compact?: boolean }) {
           suppressHydrationWarning
         />
       </label>
-      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-xs text-muted`}>
+      <label className={`grid ${compact ? "gap-0" : "gap-1 px-2"} text-note text-muted`}>
         {compact ? <span className="sr-only">Chambres min</span> : "Ch. min"}
         <input
           type="number"
@@ -90,8 +90,8 @@ export function SearchStayBar({ compact = false }: { compact?: boolean }) {
         type="submit"
         className={
           compact
-            ? "h-10 rounded-lg bg-cta px-4 text-sm font-semibold text-cta-ink"
-            : "h-11 rounded-xl bg-cta px-5 text-sm font-semibold text-cta-ink"
+            ? "h-10 rounded-surface bg-cta px-4 text-corps font-semibold text-cta-ink"
+            : "h-11 rounded-surface bg-cta px-5 text-corps font-semibold text-cta-ink"
         }
       >
         Chercher

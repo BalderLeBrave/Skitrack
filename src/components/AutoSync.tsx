@@ -46,7 +46,7 @@ export function AutoSync() {
   }, []);
 
   return (
-    <span className="hidden shrink-0 text-xs text-muted lg:inline" data-testid="auto-sync" data-running={running}>
+    <span className="hidden shrink-0 text-note text-muted lg:inline" data-testid="auto-sync" data-running={running}>
       {running ? t("sync.running") : t("sync.idle")}
     </span>
   );

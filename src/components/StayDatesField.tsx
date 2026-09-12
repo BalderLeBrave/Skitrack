@@ -13,6 +13,7 @@ import {
   todayIso,
   type YearMonth,
 } from "@/lib/stay/calendar";
+import { Icon } from "@/components/Icon";
 import { useStay } from "@/lib/stay";
 
 /**
@@ -35,18 +36,8 @@ import { useStay } from "@/lib/stay";
  */
 
 function Chevron({ dir }: { dir: "left" | "right" | "down" }) {
-  const d = dir === "left" ? "M14 6l-6 6 6 6" : dir === "right" ? "M10 6l6 6-6 6" : "M6 10l6 6 6-6";
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d={d}
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  const nom = dir === "left" ? "chevron-gauche" : dir === "right" ? "chevron-droite" : "chevron-bas";
+  return <Icon name={nom} taille={16} />;
 }
 
 export function StayDatesField({
@@ -97,9 +88,9 @@ export function StayDatesField({
     week && week.arr >= today && !(week.arr === checkIn && week.dep === checkOut) ? week : null;
 
   const dayClass = (iso: string): string => {
-    const cls = ["relative h-9 w-9 text-sm"];
+    const cls = ["relative h-9 w-9 text-corps"];
     if (isSaturdayIso(iso)) cls.push("rounded-full ring-1 ring-marque");
-    else cls.push("rounded-md");
+    else cls.push("rounded-surface");
     if (pending != null) {
       if (iso === pending) cls.push("bg-marque text-white font-semibold");
     } else {
@@ -114,7 +105,7 @@ export function StayDatesField({
     <div className="relative">
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-2 rounded-md border border-line bg-panel px-3 py-2 text-sm"
+        className="flex w-full items-center justify-between gap-2 rounded-surface border border-line bg-panel px-3 py-2 text-corps"
         aria-expanded={open}
         onClick={() => {
           setOpen(!open);
@@ -150,23 +141,23 @@ export function StayDatesField({
              l'écran, un panneau aligné à gauche sortait du cadre et se
              coupait. Le choix est du ressort de l'appelant, pas d'une
              heuristique. */
-          className={`absolute z-20 mt-1 w-[19rem] max-w-[min(19rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-line bg-panel p-3 shadow-lg ${
+          className={`absolute z-20 mt-1 w-[19rem] max-w-[min(19rem,calc(100vw-2rem))] rounded-surface border border-line bg-panel p-3 shadow-lg ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
           <div className="flex items-center justify-between">
             <button
               type="button"
-              className="rounded-md p-1 hover:bg-glacier"
+              className="rounded-surface p-1 hover:bg-glacier"
               aria-label="Mois précédent"
               onClick={() => setView(shiftMonth(view, -1))}
             >
               <Chevron dir="left" />
             </button>
-            <span className="text-sm font-semibold">{monthLabel(view)}</span>
+            <span className="text-corps font-semibold">{monthLabel(view)}</span>
             <button
               type="button"
-              className="rounded-md p-1 hover:bg-glacier"
+              className="rounded-surface p-1 hover:bg-glacier"
               aria-label="Mois suivant"
               onClick={() => setView(shiftMonth(view, 1))}
             >
@@ -176,7 +167,7 @@ export function StayDatesField({
 
           <div className="mt-2 grid grid-cols-7 justify-items-center gap-y-1">
             {JOURS_COURTS.map((wd, i) => (
-              <span key={`${wd}${i}`} className="text-xs text-muted" aria-hidden>
+              <span key={`${wd}${i}`} className="text-note text-muted" aria-hidden>
                 {wd}
               </span>
             ))}
@@ -201,7 +192,7 @@ export function StayDatesField({
               )}
           </div>
 
-          <p className="mt-2 text-xs text-muted" aria-live="polite">
+          <p className="mt-2 text-note text-muted" aria-live="polite">
             {pending == null
               ? "Cliquez l’arrivée, puis le départ."
               : `Arrivée le ${formatDayIso(pending)}. Cliquez le départ.`}
@@ -210,7 +201,7 @@ export function StayDatesField({
           {suggestion && (
             <button
               type="button"
-              className="mt-2 w-full rounded-md border border-line px-2 py-1.5 text-xs hover:bg-glacier"
+              className="mt-2 w-full rounded-surface border border-line px-2 py-1.5 text-note hover:bg-glacier"
               onClick={() => poser(suggestion.arr, suggestion.dep)}
             >
               Caler sur la semaine du {formatDayIso(suggestion.arr)} au{" "}
@@ -218,7 +209,7 @@ export function StayDatesField({
             </button>
           )}
 
-          <p className="mt-2 text-xs text-muted">
+          <p className="mt-2 text-note text-muted">
             Les samedis sont cerclés : les centrales de station vendent du samedi au samedi et
             refusent une arrivée hors calendrier. Un double-clic pose la semaine entière. Les
             plateformes, elles, acceptent n’importe quelle plage, donc rien ne vous y oblige.

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Upload } from "lucide-react";
+import { Icon } from "@/components/Icon";
 import { useTrack } from "@/lib/track";
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -38,10 +38,10 @@ export function GpxDrop() {
         void take(e.dataTransfer.files[0]);
       }}
     >
-      <Upload className="size-5" aria-hidden />
+      <Icon name="televerser" className="size-5" />
       <span>
         <strong>Déposez un GPX</strong>
-        <span className="block text-sm text-muted">ou cliquez pour choisir un fichier. Lat / lon / altitude lus dans le fichier, rien n’est inventé.</span>
+        <span className="block text-corps text-muted">ou cliquez pour choisir un fichier. Lat / lon / altitude lus dans le fichier, rien n’est inventé.</span>
       </span>
       <input
         type="file"

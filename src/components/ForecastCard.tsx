@@ -99,19 +99,21 @@ export function ForecastCard({
       data-testid="forecast-card"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-note uppercase tracking-wide text-muted">14 jours (modèle Open-Meteo)</p>
+        <p className="text-note text-muted">14 jours (modèle Open-Meteo)</p>
         <div className="flex gap-1 rounded-surface border border-line p-0.5 text-note">
           <button
             type="button"
             onClick={() => setLevel("low")}
-            className={`rounded px-2 py-1 ${level === "low" ? "bg-glacier font-semibold" : "text-muted"}`}
+            className={`chip${level === "low" ? " chip--on" : ""}`}
+            aria-pressed={level === "low"}
           >
             Bas des pistes {formatAlt(villageM)}
           </button>
           <button
             type="button"
             onClick={() => setLevel("high")}
-            className={`rounded px-2 py-1 ${level === "high" ? "bg-glacier font-semibold" : "text-muted"}`}
+            className={`chip${level === "high" ? " chip--on" : ""}`}
+            aria-pressed={level === "high"}
           >
             Point culminant {formatAlt(summitM)}
           </button>
@@ -124,8 +126,8 @@ export function ForecastCard({
       {data != null && (
         <div className="mt-3 grid grid-cols-[1fr_auto_auto] items-baseline gap-x-3 gap-y-1 text-corps">
           <span />
-          <span className="text-note uppercase tracking-wide text-muted">Matin 9 h</span>
-          <span className="text-note uppercase tracking-wide text-muted">Après-midi 15 h</span>
+          <span className="text-note text-muted">Matin 9 h</span>
+          <span className="text-note text-muted">Après-midi 15 h</span>
           {(["low", "high"] as const).map((k) => {
             const lvl = data[k];
             return (

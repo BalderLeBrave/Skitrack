@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AppShell } from "@/components/AppShell";
+import { Coquille } from "@/components/Coquille";
 import {
   OSM_VERDICT_FR,
   osmSkiinfoAll,
@@ -38,7 +38,7 @@ function OpenSkiMapPage() {
   ];
 
   return (
-    <AppShell
+    <Coquille
       chips={
         <>
           {chips.map(([id, label]) => (
@@ -64,7 +64,7 @@ function OpenSkiMapPage() {
         <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
           <table className="w-full min-w-[44rem] text-left text-corps">
             <thead>
-              <tr className="border-b border-line text-note uppercase tracking-wide text-muted">
+              <tr className="border-b border-line text-note text-muted">
                 <th className="px-3 py-2 font-medium">Station</th>
                 <th className="px-3 py-2 font-medium">n Skiinfo / OSM</th>
                 <th className="px-3 py-2 font-medium">km Skiinfo / OSM</th>
@@ -104,6 +104,6 @@ function OpenSkiMapPage() {
           </table>
         </div>
       </main>
-    </AppShell>
+    </Coquille>
   );
 }

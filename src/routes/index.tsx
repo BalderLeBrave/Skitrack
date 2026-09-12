@@ -4,7 +4,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/Icon";
-import { V6App } from "@/components/v6/App";
+import { Coquille } from "@/components/Coquille";
 import { Flocons } from "@/components/Flocons";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
@@ -152,7 +152,7 @@ function Home() {
   };
 
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-home" data-screen-label="Accueil">
         <div className="scroll">
           <div className="hero">
@@ -391,6 +391,6 @@ function Home() {
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }

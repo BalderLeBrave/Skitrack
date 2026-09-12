@@ -5,7 +5,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { V6App } from "@/components/v6/App";
+import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { StayReport } from "@/components/StayReport";
@@ -56,7 +56,7 @@ function Reservation() {
      renvoie là où on le choisit. */
   if (!s || !l) {
     return (
-      <V6App>
+      <Coquille>
         <section className="screen on" id="s-booking" data-screen-label="3 Réservation">
           <div className="scroll">
             <div className="wrap">
@@ -88,7 +88,7 @@ function Reservation() {
             </div>
           </div>
         </section>
-      </V6App>
+      </Coquille>
     );
   }
 
@@ -101,7 +101,7 @@ function Reservation() {
   };
 
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-booking" data-screen-label="3 Réservation">
         <div className="scroll">
           <div className="wrap booking__wrap">
@@ -294,6 +294,6 @@ function Reservation() {
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }

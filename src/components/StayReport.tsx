@@ -49,7 +49,7 @@ function OrigineTag({ origine }: { origine: ReportPoste["origine"] }) {
           ? "text-marque-texte"
           : "text-muted";
   return (
-    <span className={`text-note uppercase tracking-wide ${ton}`}>{ORIGINE_LABEL[origine]}</span>
+    <span className={`text-note ${ton}`}>{ORIGINE_LABEL[origine]}</span>
   );
 }
 
@@ -104,7 +104,7 @@ export function StayReport({
 
       {lat != null && lon != null && (
         <section className="print:hidden">
-          <h2 className="text-note uppercase tracking-wide text-muted">Situation</h2>
+          <h2 className="text-note text-muted">Situation</h2>
           <div className="mt-2 h-56 overflow-hidden rounded-surface border border-line">
             <MapPanel
               lat={lat}
@@ -125,7 +125,7 @@ export function StayReport({
       )}
 
       <section>
-        <h2 className="text-note uppercase tracking-wide text-muted">Budget</h2>
+        <h2 className="text-note text-muted">Budget</h2>
         {report.postes.length === 0 ? (
           <p className="mt-2 text-corps text-muted">
             Aucun montant connu. Rien n’est chiffré ici, et la section suivante dit pourquoi.
@@ -153,7 +153,7 @@ export function StayReport({
       </section>
 
       <section>
-        <h2 className="text-note uppercase tracking-wide text-muted">
+        <h2 className="text-note text-muted">
           Ce que ce document ne dit pas
         </h2>
         {report.manques.length === 0 ? (

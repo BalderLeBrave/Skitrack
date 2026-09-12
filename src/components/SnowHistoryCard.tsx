@@ -84,7 +84,7 @@ export function SnowHistoryCard({
       className="rounded-surface border border-line bg-panel p-4"
       data-testid="snow-history-card"
     >
-      <p className="text-note uppercase tracking-wide text-muted">
+      <p className="text-note text-muted">
         Neige au sol, relevé jour par jour
       </p>
 

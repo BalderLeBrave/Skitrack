@@ -11,7 +11,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Icon } from "@/components/Icon";
-import { V6App } from "@/components/v6/App";
+import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { StationMap, type FlyRequest } from "@/components/v6/StationMap";
 import {
@@ -329,7 +329,7 @@ function Comparer() {
   };
 
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-compare" data-screen-label="1 Comparer">
         <div className={`split${collapsed ? " collapsed" : ""}`} id="split" ref={split}>
           <aside className="side">
@@ -822,6 +822,6 @@ function Comparer() {
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }

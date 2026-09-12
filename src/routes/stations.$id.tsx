@@ -7,7 +7,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { V6App } from "@/components/v6/App";
+import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { AltitudeProfile } from "@/components/AltitudeProfile";
@@ -113,7 +113,7 @@ function useForfaitsEtNeige(s: Station) {
 function FicheInconnue({ id }: { id: string }) {
   const go = useGo();
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-fiche" data-screen-label="Fiche station">
         <div className="scroll">
           <div className="wrap fiche__wrap">
@@ -132,7 +132,7 @@ function FicheInconnue({ id }: { id: string }) {
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }
 
@@ -160,7 +160,7 @@ function FicheBody({ s }: { s: Station }) {
   const eurTarif = (n: number | null | undefined) => (n == null ? null : `${fmt(n)} €`);
 
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-fiche" data-screen-label="Fiche station">
         <div className="scroll">
           <div className="wrap fiche__wrap">
@@ -406,6 +406,6 @@ function FicheBody({ s }: { s: Station }) {
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }

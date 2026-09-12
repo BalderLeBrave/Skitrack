@@ -340,9 +340,7 @@ body:has(.v6.app) {
 }
 .v6 .eyebrow {
   font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--marque-texte);
 }
 .v6 .h1 {
@@ -413,9 +411,7 @@ body:has(.v6.app) {
 }
 .v6 .facts dt {
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .facts dd {
@@ -553,9 +549,7 @@ body:has(.v6.app) {
 .v6 .sbar__f small {
   display: block;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .sbar__f b,
@@ -1040,9 +1034,7 @@ body:has(.v6.app) {
 }
 .v6 .legend b {
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .legend i {
@@ -1253,9 +1245,7 @@ body:has(.v6.app) {
 .v6 table.cmp tbody th {
   width: 220px;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 table.cmp tbody tr:nth-child(odd) {
@@ -1333,9 +1323,7 @@ body:has(.v6.app) {
 }
 .v6 table.cmp .cmp__crit {
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .cmp__pick {
@@ -2278,7 +2266,7 @@ body:has(.v6.app) {
 }
 .v6 .sect > [data-testid="forecast-card"] > p:first-child,
 .v6 .sect > [data-testid="snow-history-card"] > p:first-child,
-.v6 .sect > [data-testid="webcam-card"] .text-xs.uppercase {
+.v6 .sect > [data-testid="webcam-card"] > div:first-child > p:first-child {
   display: none;
 }
 

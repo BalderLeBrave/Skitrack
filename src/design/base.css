@@ -1,0 +1,267 @@
+/* Feuille des composants de base.
+ *
+ * Les écrans du parcours portent la classe `.v6` et leurs règles, plus
+ * spécifiques, continuent de gagner. Ces règles-ci servent partout ailleurs,
+ * pour qu'un bouton soit le même bouton des deux côtés.
+ *
+ * Aucune valeur en clair : tout vient de `system.css`. */
+
+/* ── Bouton ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 2);
+  height: calc(var(--spacing) * 10);
+  padding: 0 calc(var(--spacing) * 5);
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-cta);
+  color: var(--color-cta-ink);
+  font: inherit;
+  font-size: var(--text-corps);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.btn--ghost {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+}
+
+.btn--lg {
+  height: calc(var(--spacing) * 12);
+  padding: 0 calc(var(--spacing) * 6);
+}
+
+.btn--full {
+  width: 100%;
+}
+
+.btn svg {
+  width: calc(var(--spacing) * 4);
+  height: calc(var(--spacing) * 4);
+}
+
+/* ── Étiquette ──────────────────────────────────────────────────────────── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  border-radius: 999px;
+  font-size: var(--text-note);
+  font-weight: 600;
+  background: var(--color-glacier);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.tag--brand {
+  background: var(--color-marque-tenue);
+  color: var(--color-marque-texte);
+}
+.tag--snow {
+  background: var(--color-neige);
+  color: var(--color-neige-texte);
+}
+.tag--ok {
+  background: var(--color-ok);
+  color: var(--color-ok-texte);
+}
+.tag--warn {
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+}
+
+/* ── Champ ──────────────────────────────────────────────────────────────── */
+.champ {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  min-width: 0;
+}
+
+/* Un libellé est une ligne de texte normal : plus petite et plus grise que la
+   valeur qu'elle nomme, jamais des capitales espacées dans un cadre. */
+.champ__label {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.champ__controle {
+  height: calc(var(--spacing) * 10);
+  padding: 0 calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-corps);
+  min-width: 0;
+}
+
+.champ__controle:focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 1px;
+}
+
+.champ__aide {
+  margin: 0;
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+
+/* ── Tableau ────────────────────────────────────────────────────────────── */
+.tableau {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  min-width: 0;
+}
+
+.tableau__legende {
+  margin: 0;
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+
+/* Seul le tableau déborde, jamais la page. */
+.tableau__defilement {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.tableau__grille {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+}
+
+.tableau__grille th,
+.tableau__grille td {
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-line-douce);
+  font-size: var(--text-corps);
+}
+
+.tableau__grille thead th {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Ce qui se compare s'aligne à droite et garde des chiffres de même chasse. */
+.tableau__nombre {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tableau__ligne--retenue {
+  background: var(--color-marque-tenue);
+  box-shadow: inset 3px 0 0 var(--color-marque);
+}
+
+.tableau__absence {
+  color: var(--color-muted);
+}
+
+/* ── Liste de faits ─────────────────────────────────────────────────────── */
+.liste {
+  display: grid;
+  gap: calc(var(--spacing) * 4) calc(var(--spacing) * 6);
+  margin: 0;
+}
+
+.liste__fait {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+
+.liste__libelle {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.liste__valeur {
+  margin: 0;
+  font-size: var(--text-corps);
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.liste__precision {
+  margin: 0;
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+
+.liste__absence {
+  color: var(--color-muted);
+}
+
+@media (min-width: 700px) {
+  .liste--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .liste--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .liste--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Bandeau de filtres sous la barre de parcours, pour les écrans qui en ont un. */
+.coquille__chips {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  height: calc(var(--spacing) * 11);
+  padding: 0 calc(var(--spacing) * 4);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-line-douce);
+  background: var(--color-surface);
+  font-size: var(--text-corps);
+}
+
+/* ── Pastille de choix ──────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  height: calc(var(--spacing) * 9);
+  padding: 0 calc(var(--spacing) * 3.5);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-note);
+  cursor: pointer;
+}
+
+.chip--on {
+  background: var(--color-marque-tenue);
+  border-color: var(--color-marque);
+  color: var(--color-marque-texte);
+  font-weight: 600;
+}
+
+.chip svg {
+  width: calc(var(--spacing) * 3.5);
+  height: calc(var(--spacing) * 3.5);
+}

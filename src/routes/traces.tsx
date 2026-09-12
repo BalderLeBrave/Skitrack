@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { AppShell } from "@/components/AppShell";
+import { Coquille } from "@/components/Coquille";
 import { ElevationProfile } from "@/components/ElevationProfile";
 import { GpxDrop } from "@/components/GpxDrop";
 import { LodgeSheet } from "@/components/LodgeSheet";
@@ -66,7 +66,7 @@ function Traces() {
   const mapCenter = stats?.start ?? (station ? { lat: station.lat, lon: station.lon } : null);
 
   return (
-    <AppShell
+    <Coquille
       chips={
         <>
           <span className="rounded-full bg-glacier px-3 py-1">{station?.name ?? stationId}</span>
@@ -181,7 +181,7 @@ function Traces() {
             )}
             {points.length > 0 ? (
               <div className="mt-4">
-                <p className="mb-2 text-note font-bold uppercase tracking-wider text-muted">
+                <p className="mb-2 text-note text-muted">
                   Profil d’altitude
                 </p>
                 <ElevationProfile points={points} />
@@ -308,6 +308,6 @@ function Traces() {
         ) : null}
       </div>
       {fiche ? <LodgeSheet listing={fiche} onClose={() => setFicheId(null)} /> : null}
-    </AppShell>
+    </Coquille>
   );
 }

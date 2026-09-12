@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlpineMap } from "@/components/AlpineMap";
-import { AppShell } from "@/components/AppShell";
+import { Coquille } from "@/components/Coquille";
 import {
   activeFilterCount,
   CARTE_ORDERS,
@@ -208,7 +208,7 @@ function Carte() {
   const range = COLOR_RANGE[unit];
 
   return (
-    <AppShell>
+    <Coquille>
       <main className="carte" data-testid="carte">
         <aside className="carte__panel">
           <div className="carte__head">
@@ -488,6 +488,6 @@ function Carte() {
           />
         </div>
       </main>
-    </AppShell>
+    </Coquille>
   );
 }

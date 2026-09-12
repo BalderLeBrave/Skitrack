@@ -10,7 +10,9 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Icon } from "@/components/Icon";
+import { Bouton } from "@/components/base/Bouton";
+import { Tableau } from "@/components/base/Tableau";
+import { Carte } from "@/components/Carte";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
@@ -171,7 +173,7 @@ function Logements() {
    *  n'est pas « ne convient pas ». Une capacité absente laisse passer,
    *  `includeUnannounced` le dit explicitement, et `droppedLabel` nomme ce qui
    *  a été écarté au lieu de laisser un compte inexpliqué. */
-  const { ls, dropped, distDropped } = useMemo(() => {
+  const { ls, dropped, distDropped, autreDomaine } = useMemo(() => {
     const out = applyFilter(lodges, {
       travelers: trav,
       rooms: bedrooms,
@@ -181,8 +183,16 @@ function Logements() {
       budgetCeiling: BUDGET_MAX,
       includeUnannounced: true,
     });
-    const rows = out.kept.map((l) => ({ l, total: l.total, dist: l.distToSlopesM ?? null }));
-    // La distance aux pistes n'est pas dans `applyFilter` : elle vient de
+    const tous = out.kept.map((l) => ({ l, total: l.total, dist: l.distToLiftM ?? null }));
+    /* Une annonce dont le domaine le plus proche n'est pas celui-ci n'est pas un
+       logement de cette station. `domainFit` rendait déjà ce verdict, mais rien
+       ne s'en servait pour filtrer : une recherche en direct ramenait des biens
+       à des centaines de kilomètres, que l'écran affichait avec leur distance
+       au repère de la station, lue comme une distance aux pistes. Elles sont
+       écartées, et comptées avec les autres exclusions plutôt que disparues. */
+    const rows = tous.filter((x) => x.l.domainFit !== "other");
+    const autreDomaine = tous.length - rows.length;
+    // La distance aux remontées n'est pas dans `applyFilter` : elle vient de
     // l'accès calculé, pas de l'annonce. Elle se compte à part.
     const near = LF.near ? rows.filter((x) => x.dist != null && x.dist <= 500) : rows;
     const key: Record<LodgeSort, (x: { total: number; dist: number | null }) => number> = {
@@ -195,9 +205,14 @@ function Logements() {
       ls: [...near].sort((a, b) => key[LF.sort](a) - key[LF.sort](b)),
       dropped: out.dropped,
       distDropped: rows.length - near.length,
+      autreDomaine,
     };
   }, [lodges, LF, trav, bedrooms, checkIn, checkOut]);
 
+  const [apercu, setApercu] = useState<string | null>(null);
+  // Toutes les annonces ne publient pas leur position : la carte le dit plutôt
+  // que de laisser croire qu'elle montre toute la liste.
+  const surCarte = ls.filter(({ l }) => l.lat != null && l.lon != null).length;
   const chosen = lodges.find((l) => l.id === P.lodgeId);
 
   // `syncFoot` (l. 664–668)
@@ -344,7 +359,7 @@ function Logements() {
                 id="lf-dist"
                 onClick={() => setLF({ ...LF, near: !LF.near })}
               >
-                Aux pieds des pistes · 500 m
+                À moins de 500 m d’une remontée
               </span>
               <span
                 className="chip chip--off"
@@ -368,7 +383,7 @@ function Logements() {
               >
                 <option value="pp">Tri : prix par personne</option>
                 <option value="total">Tri : prix total</option>
-                <option value="dist">Tri : distance aux pistes</option>
+                <option value="dist">Tri : distance aux remontées</option>
                 <option value="note">Tri : note</option>
               </select>
             </div>
@@ -376,117 +391,145 @@ function Logements() {
               Une caractéristique que l’annonce ne publie pas ne l’écarte pas : Airbnb n’affiche
               aucune capacité sur ses vignettes, et ses annonces restent dans la liste. Une
               caractéristique publiée, elle, engage l’annonce.
-              {dropped.total + distDropped > 0 ? (
+              {dropped.total + distDropped + autreDomaine > 0 ? (
                 <>
                   {" "}
                   <b className="rel">
                     {droppedLabel(dropped, [
                       { singulier: "hors des 500 m", pluriel: "hors des 500 m", n: distDropped },
+                      {
+                        singulier: "d’un autre domaine",
+                        pluriel: "d’un autre domaine",
+                        n: autreDomaine,
+                      },
                     ])}
                     .
                   </b>
                 </>
               ) : null}
             </p>
-            <div id="lodges" className={lodges.length ? "lodges" : undefined}>
-              {!lodges.length ? (
-                <div className="empty card">
-                  <strong className="empty__title">
-                    Aucune annonce relevée pour cette station
-                  </strong>
-                  <p className="muted empty__lead">
-                    Le relevé n'a pas tourné aux dates du séjour. Importez une annonce (JSON ou
-                    lien) ou chargez des annonces d'exemple, clairement marquées comme telles.
-                  </p>
-                  <div className="empty__actions">
-                    <button
-                      type="button"
-                      className="btn btn--ghost"
-                      onClick={() => document.getElementById("lo-import")?.click()}
-                    >
-                      Importer une annonce
-                    </button>
-                    <button type="button" className="btn" disabled>
-                      Charger des annonces d'exemple
-                    </button>
+            <div className="lodging__duo">
+              <div id="lodges" className="lodging__liste">
+                {!lodges.length ? (
+                  <div className="empty card">
+                    <strong className="empty__title">
+                      Aucune annonce relevée pour cette station
+                    </strong>
+                    <p className="muted empty__lead">
+                      Le relevé n'a pas tourné aux dates du séjour. Importez une annonce, par
+                      fichier JSON ou par lien.
+                    </p>
+                    <div className="empty__actions">
+                      <Bouton
+                        ton="fantome"
+                        onClick={() => document.getElementById("lo-import")?.click()}
+                      >
+                        Importer une annonce
+                      </Bouton>
+                    </div>
                   </div>
-                </div>
-              ) : ls.length ? (
-                ls.map(({ l, total, dist }) => {
-                  const on = P.lodgeId === l.id;
-                  return (
-                    <article key={l.id} className={`lodge${on ? " on" : ""}`} data-l={l.id}>
-                      <div className="lodge__img">
-                        <ImageSlot
-                          id={`v6-l-${l.id}`}
-                          placeholder="Photo de l'annonce"
-                          className="lodge__slot"
-                          src={l.photo}
-                        />
-                        <span className="tag lodge__tag--r">{l.source}</span>
-                      </div>
-                      <div className="lodge__body">
-                        <div>
-                          <strong className="lodge__name">{l.title}</strong>
-                          <span className="lodge__meta">
-                            {l.bedrooms != null ? <span>{l.bedrooms} ch.</span> : null}
-                            {dist != null ? (
-                              <span>
-                                piste à <b className="rel">{distLbl(dist / 1000)}</b>
-                              </span>
-                            ) : null}
-                          </span>
-                        </div>
-                        <div className="lodge__price">
-                          <span>
-                            <b className="rel lodge__total">{eur(total)}</b>{" "}
-                            <span className="muted lodge__totalnote">total · {nights} nuits</span>
-                          </span>
-                          <span className="muted">
-                            <b className="rel lodge__pp">{eur(total / trav)}</b> / pers.
-                          </span>
-                        </div>
-                        <div className="lodge__actions">
-                          <button
-                            type="button"
-                            className={`btn${on ? "" : " btn--ghost"}`}
-                            data-pick={l.id}
-                            onClick={() => P.chooseLodge(on ? null : l.id)}
-                          >
-                            {on ? (
+                ) : ls.length ? (
+                  /* Une colonne par critère de décision, la distance aux remontées
+                     en premier. Elle n'est plus écrite sous le nom du logement :
+                     là, elle se lisait comme une précision, pas comme le critère
+                     qu'elle est, et rien ne s'alignait d'une ligne à l'autre. */
+                  <Tableau
+                    className="lodging__t"
+                    legende={`${ls.length} logement${ls.length > 1 ? "s" : ""}, du plus proche des remontées au plus loin quand le tri le demande. Prix relevés pour ${nights} nuits et ${trav} voyageurs.`}
+                    surSurvol={setApercu}
+                    colonnes={[
+                      { cle: "remontee", entete: "Remontée", nombre: true },
+                      { cle: "logement", entete: "Logement" },
+                      { cle: "chambres", entete: "Chambres", nombre: true },
+                      { cle: "capacite", entete: "Couchages", nombre: true },
+                      { cle: "total", entete: "Total séjour", nombre: true },
+                      { cle: "pers", entete: "Par personne", nombre: true },
+                      { cle: "choix", entete: "" },
+                    ]}
+                    lignes={ls.map(({ l, total }) => {
+                      const on = P.lodgeId === l.id;
+                      return {
+                        cle: l.id,
+                        retenue: on,
+                        cellules: {
+                          remontee:
+                            l.distToLiftM != null ? (
                               <>
-                                Choisi <Icon name="coche" />
+                                <b>{fmt(Math.round(l.distToLiftM))} m</b>
+                                {l.liftName ? (
+                                  <span className="lodging__lift">{l.liftName}</span>
+                                ) : null}
                               </>
                             ) : (
-                              "Choisir ce logement"
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            className={`mini${shortlist.includes(l.id) ? " mini--on" : ""}`}
-                            onClick={() => toggleShort(l.id)}
-                            aria-pressed={shortlist.includes(l.id)}
-                          >
-                            {shortlist.includes(l.id) ? (
-                              <>
-                                Retenu <Icon name="coche" />
-                              </>
-                            ) : (
-                              <>
-                                <Icon name="plus" /> Comparer
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })
-              ) : (
-                <p className="muted lodges__empty">
-                  Aucun logement ne remplit tous les critères pour ce groupe et ce budget.
-                </p>
-              )}
+                              <span className="tableau__absence">non mesurée</span>
+                            ),
+                          logement: (
+                            <span className="tableau__texte">
+                              <b className="lodging__nom">{l.title}</b>
+                              <span className="lodging__src">{l.source}</span>
+                            </span>
+                          ),
+                          chambres: l.bedrooms,
+                          capacite: l.guests,
+                          total: <b>{eur(total)}</b>,
+                          pers: eur(total / trav),
+                          choix: (
+                            <span className="lodging__actions">
+                              <Bouton
+                                ton={on ? "principal" : "fantome"}
+                                data-pick={l.id}
+                                onClick={() => P.chooseLodge(on ? null : l.id)}
+                              >
+                                {on ? "Choisi" : "Choisir"}
+                              </Bouton>
+                              <button
+                                type="button"
+                                className={`mini${shortlist.includes(l.id) ? " mini--on" : ""}`}
+                                onClick={() => toggleShort(l.id)}
+                                aria-pressed={shortlist.includes(l.id)}
+                              >
+                                {shortlist.includes(l.id) ? "Retenu" : "Comparer"}
+                              </button>
+                            </span>
+                          ),
+                        },
+                      };
+                    })}
+                  />
+                ) : (
+                  <p className="muted lodges__empty">
+                    Aucun logement ne remplit tous les critères pour ce groupe et ce budget.
+                  </p>
+                )}
+              </div>
+              {/* Marqueurs au prix : le total du séjour se lit sur la carte,
+                  sans survol ni clic. */}
+              <Carte
+                className="lodging__carte"
+                ajuster
+                legende={
+                  surCarte === ls.length
+                    ? `Les ${ls.length} logements de la liste, au total du séjour.`
+                    : surCarte === 0
+                      ? "Aucune annonce de la liste ne publie ses coordonnées : la carte reste vide."
+                      : `${surCarte} logement${surCarte > 1 ? "s" : ""} sur ${ls.length} publie${surCarte > 1 ? "nt" : ""} ses coordonnées. Les autres ne sont pas sur la carte.`
+                }
+                epingles={ls
+                  .filter(({ l }) => l.lat != null && l.lon != null)
+                  .map(({ l, total }) => ({
+                    id: l.id,
+                    lat: l.lat as number,
+                    lon: l.lon as number,
+                    titre: l.title,
+                    detail: l.source,
+                    etiquette: eur(total),
+                    sorte: "prix" as const,
+                  }))}
+                selectionne={P.lodgeId}
+                survole={apercu}
+                surSurvol={setApercu}
+                surClic={(id) => P.chooseLodge(P.lodgeId === id ? null : id)}
+              />
             </div>
           </div>
         </div>

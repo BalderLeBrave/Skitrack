@@ -32,6 +32,7 @@ export function Tableau<C extends string>({
   lignes,
   legende,
   absence = "non communiqué",
+  surSurvol,
   className,
 }: {
   colonnes: readonly Colonne<C>[];
@@ -40,6 +41,8 @@ export function Tableau<C extends string>({
   legende?: ReactNode;
   /** Mot employé quand une cellule n'a pas de donnée. */
   absence?: string;
+  /** Survol d'une ligne, pour éclairer la même donnée ailleurs dans l'écran. */
+  surSurvol?: (cle: string | null) => void;
   className?: string;
 }) {
   return (
@@ -63,7 +66,12 @@ export function Tableau<C extends string>({
           </thead>
           <tbody>
             {lignes.map((l) => (
-              <tr key={l.cle} className={l.retenue ? "tableau__ligne--retenue" : undefined}>
+              <tr
+                key={l.cle}
+                className={l.retenue ? "tableau__ligne--retenue" : undefined}
+                onMouseEnter={surSurvol ? () => surSurvol(l.cle) : undefined}
+                onMouseLeave={surSurvol ? () => surSurvol(null) : undefined}
+              >
                 {colonnes.map((c) => {
                   const v = l.cellules[c.cle];
                   const vide = v === null || v === undefined;

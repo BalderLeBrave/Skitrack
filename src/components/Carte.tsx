@@ -23,7 +23,8 @@ import { chargerLeaflet, type Leaflet } from "@/lib/leaflet";
 import { BASEMAPS, PISTE_OVERLAY, resolvedBasemap } from "@/lib/mapStyle";
 import { useMapPrefs } from "@/lib/mapPrefs";
 
-export type SorteEpingle = "station" | "station-haute" | "logement" | "remontee" | "depart";
+export type SorteEpingle =
+  "station" | "station-haute" | "logement" | "remontee" | "depart" | "prix";
 
 export type Epingle = {
   id: string;
@@ -32,6 +33,9 @@ export type Epingle = {
   titre: string;
   /** Ligne secondaire de l'infobulle. Jamais une valeur inventée. */
   detail?: string;
+  /** Texte porté par le marqueur lui-même : un prix se lit sur la carte, pas
+   *  au survol. Absent, le marqueur reste une pastille. */
+  etiquette?: string;
   sorte?: SorteEpingle;
 };
 
@@ -39,6 +43,13 @@ export type Epingle = {
 export type Segment = { id: string; a: [number, number]; b: [number, number] };
 
 export type Trace = { lat: number; lon: number }[];
+
+/** Le marqueur est du HTML : ce qui vient d'une annonce est échappé. */
+function echapper(t: string): string {
+  return t.replace(/[&<>"']/g, (c) =>
+    c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;",
+  );
+}
 
 export function Carte({
   epingles = [],
@@ -175,14 +186,24 @@ export function Carte({
     marques.current.clear();
     for (const e of epingles) {
       if (!Number.isFinite(e.lat) || !Number.isFinite(e.lon)) continue;
+      const sorte = e.sorte ?? "station";
       const mk = Lf.marker([e.lat, e.lon], {
         title: e.titre,
-        icon: Lf.divIcon({
-          className: "",
-          html: `<div class="pin pin--${e.sorte ?? "station"}"></div>`,
-          iconSize: [12, 12],
-          iconAnchor: [6, 6],
-        }),
+        // `className` porte sur l'élément que Leaflet insère : c'est lui que
+        // `getElement()` rend, et donc lui qui doit porter l'anneau de survol.
+        icon: e.etiquette
+          ? Lf.divIcon({
+              className: `pin-etiquette pin-etiquette--${sorte}`,
+              html: echapper(e.etiquette),
+              iconSize: [1, 1],
+              iconAnchor: [0, 0],
+            })
+          : Lf.divIcon({
+              className: `pin pin--${sorte}`,
+              html: "",
+              iconSize: [12, 12],
+              iconAnchor: [6, 6],
+            }),
       });
       mk.on("mouseover", () => rappels.current.surSurvol?.(e.id));
       mk.on("mouseout", () => rappels.current.surSurvol?.(null));

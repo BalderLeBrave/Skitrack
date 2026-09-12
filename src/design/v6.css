@@ -2536,3 +2536,101 @@ body:has(.v6.app) {
     padding: 18px 16px 24px;
   }
 }
+
+/* ── Étape 2 : la liste dense et la carte en vis-à-vis ──────────────────────
+   La grille de cartes photo n'avait pas de sens avec une photo sur vingt et
+   une annonces : elle réservait un tiers de chaque carte à un cadre vide et
+   n'alignait rien d'une ligne à l'autre. Une colonne par critère de décision,
+   la distance aux remontées en premier, et les écarts se lisent. */
+
+.v6 .lodging__duo {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+  min-width: 0;
+}
+
+@media (min-width: 1100px) {
+  .v6 .lodging__duo {
+    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr);
+  }
+}
+
+.v6 .lodging__liste {
+  min-width: 0;
+}
+
+.v6 .lodging__t .tableau__grille {
+  border: 1px solid var(--bordure-douce);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Sept colonnes dont deux prix : le remplissage par défaut les poussait hors
+   de l'écran, et le prix est le critère qu'on vient lire. */
+.v6 .lodging__t th,
+.v6 .lodging__t td {
+  padding: 10px 8px;
+}
+
+.v6 .lodging__t thead th {
+  font-size: 12.5px;
+}
+
+.v6 .lodging__t tbody tr:hover {
+  background: var(--glacier);
+}
+
+/* Le nom de la remontée sous sa distance, dans la colonne de la remontée :
+   il qualifie la mesure, pas le logement. */
+.v6 .lodging__lift {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--texte-2);
+}
+
+/* Un titre d'annonce peut faire quatre lignes. Deux suffisent à reconnaître
+   le bien ; la fiche porte le titre entier. */
+.v6 .lodging__nom {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.v6 .lodging__t td:nth-child(2) {
+  min-width: 11rem;
+  max-width: 16rem;
+}
+
+.v6 .lodging__src {
+  display: block;
+  font-size: 12px;
+  color: var(--texte-2);
+}
+
+/* Les deux actions empilées : côte à côte, elles coûtaient deux cents pixels
+   de large et repoussaient les prix hors de l'écran. */
+.v6 .lodging__actions {
+  display: grid;
+  gap: 6px;
+  justify-items: stretch;
+  white-space: nowrap;
+}
+
+.v6 .lodging__carte {
+  position: sticky;
+  top: 12px;
+  height: min(72vh, 640px);
+  border: 1px solid var(--bordure-douce);
+  border-radius: 12px;
+}
+
+@media (max-width: 1099px) {
+  .v6 .lodging__carte {
+    position: relative;
+    top: auto;
+    height: 24rem;
+  }
+}

@@ -406,3 +406,32 @@
   stroke: var(--color-cta);
   stroke-opacity: 0.92;
 }
+
+/* Un marqueur qui porte son prix : la valeur se lit sur la carte, sans survol.
+   Leaflet pose l'ancre en haut à gauche ; la translation recentre l'étiquette
+   sur le point, quelle que soit sa largeur. */
+.pin-etiquette {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: var(--text-note);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-flottant);
+}
+
+.pin-etiquette--prix {
+  cursor: pointer;
+}
+
+.pin--vif.pin-etiquette,
+.pin-etiquette.pin--vif {
+  background: var(--color-cta);
+  color: var(--color-cta-ink);
+  border-color: var(--color-cta);
+}

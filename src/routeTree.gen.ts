@@ -16,8 +16,8 @@ import { Route as ComparerRouteImport } from './routes/comparer'
 import { Route as ForfaitsRouteImport } from './routes/forfaits'
 import { Route as LogementsRouteImport } from './routes/logements'
 import { Route as OpenskimapRouteImport } from './routes/openskimap'
+import { Route as ReservationRouteImport } from './routes/reservation'
 import { Route as TracesRouteImport } from './routes/traces'
-import { Route as ReservationIdRouteImport } from './routes/reservation.$id'
 import { Route as StationsIdRouteImport } from './routes/stations.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -55,14 +55,14 @@ const OpenskimapRoute = OpenskimapRouteImport.update({
   path: '/openskimap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReservationRoute = ReservationRouteImport.update({
+  id: '/reservation',
+  path: '/reservation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TracesRoute = TracesRouteImport.update({
   id: '/traces',
   path: '/traces',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReservationIdRoute = ReservationIdRouteImport.update({
-  id: '/reservation/$id',
-  path: '/reservation/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StationsIdRoute = StationsIdRouteImport.update({
@@ -79,8 +79,8 @@ export interface FileRoutesByFullPath {
   '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
   '/openskimap': typeof OpenskimapRoute
+  '/reservation': typeof ReservationRoute
   '/traces': typeof TracesRoute
-  '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
 }
 export interface FileRoutesByTo {
@@ -91,8 +91,8 @@ export interface FileRoutesByTo {
   '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
   '/openskimap': typeof OpenskimapRoute
+  '/reservation': typeof ReservationRoute
   '/traces': typeof TracesRoute
-  '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
 }
 export interface FileRoutesById {
@@ -104,8 +104,8 @@ export interface FileRoutesById {
   '/forfaits': typeof ForfaitsRoute
   '/logements': typeof LogementsRoute
   '/openskimap': typeof OpenskimapRoute
+  '/reservation': typeof ReservationRoute
   '/traces': typeof TracesRoute
-  '/reservation/$id': typeof ReservationIdRoute
   '/stations/$id': typeof StationsIdRoute
 }
 export interface FileRouteTypes {
@@ -118,8 +118,8 @@ export interface FileRouteTypes {
     | '/forfaits'
     | '/logements'
     | '/openskimap'
+    | '/reservation'
     | '/traces'
-    | '/reservation/$id'
     | '/stations/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -130,8 +130,8 @@ export interface FileRouteTypes {
     | '/forfaits'
     | '/logements'
     | '/openskimap'
+    | '/reservation'
     | '/traces'
-    | '/reservation/$id'
     | '/stations/$id'
   id:
     | '__root__'
@@ -142,8 +142,8 @@ export interface FileRouteTypes {
     | '/forfaits'
     | '/logements'
     | '/openskimap'
+    | '/reservation'
     | '/traces'
-    | '/reservation/$id'
     | '/stations/$id'
   fileRoutesById: FileRoutesById
 }
@@ -155,8 +155,8 @@ export interface RootRouteChildren {
   ForfaitsRoute: typeof ForfaitsRoute
   LogementsRoute: typeof LogementsRoute
   OpenskimapRoute: typeof OpenskimapRoute
+  ReservationRoute: typeof ReservationRoute
   TracesRoute: typeof TracesRoute
-  ReservationIdRoute: typeof ReservationIdRoute
   StationsIdRoute: typeof StationsIdRoute
 }
 
@@ -211,18 +211,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpenskimapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reservation': {
+      id: '/reservation'
+      path: '/reservation'
+      fullPath: '/reservation'
+      preLoaderRoute: typeof ReservationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/traces': {
       id: '/traces'
       path: '/traces'
       fullPath: '/traces'
       preLoaderRoute: typeof TracesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reservation/$id': {
-      id: '/reservation/$id'
-      path: '/reservation/$id'
-      fullPath: '/reservation/$id'
-      preLoaderRoute: typeof ReservationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stations/$id': {
@@ -243,8 +243,8 @@ const rootRouteChildren: RootRouteChildren = {
   ForfaitsRoute: ForfaitsRoute,
   LogementsRoute: LogementsRoute,
   OpenskimapRoute: OpenskimapRoute,
+  ReservationRoute: ReservationRoute,
   TracesRoute: TracesRoute,
-  ReservationIdRoute: ReservationIdRoute,
   StationsIdRoute: StationsIdRoute,
 }
 export const routeTree = rootRouteImport

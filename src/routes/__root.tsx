@@ -3,6 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ThemeSync } from "@/lib/theme";
 import appCss from "../styles.css?url";
+import v6Css from "../design/v6.css?url";
 
 const APP_NAME = "Skitrack";
 
@@ -14,13 +15,14 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       {
         name: "description",
-        content: "Logements ski — dates, personnes, chambres. Prix ferme du séjour.",
+        content: "Logements ski : dates, personnes, chambres. Prix ferme du séjour.",
       },
       { name: "theme-color", content: "#0B1F33" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: v6Css },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
       {

@@ -88,6 +88,7 @@ export function StayReport({
     <article
       className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-panel p-5 print:gap-3 print:border-0 print:p-0"
       id="stay-report"
+      data-testid="stay-report"
     >
       <header>
         <h1 className="text-xl font-semibold">{input.stationName}</h1>

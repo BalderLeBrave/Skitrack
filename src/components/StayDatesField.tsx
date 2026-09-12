@@ -9,6 +9,7 @@ import {
   nightsBetween,
   saturdayWeekFrom,
   shiftMonth,
+  stayRangeShort,
   todayIso,
   type YearMonth,
 } from "@/lib/stay/calendar";
@@ -48,7 +49,10 @@ function Chevron({ dir }: { dir: "left" | "right" | "down" }) {
   );
 }
 
-export function StayDatesField() {
+export function StayDatesField({
+  align = "left",
+  compact = false,
+}: { align?: "left" | "right"; compact?: boolean } = {}) {
   const checkIn = useStay((s) => s.checkIn);
   const checkOut = useStay((s) => s.checkOut);
   const setStay = useStay((s) => s.setStay);
@@ -119,21 +123,37 @@ export function StayDatesField() {
           if (shown) setView(shown);
         }}
       >
-        <span>
-          {formatDayIso(checkIn)} au {formatDayIso(checkOut)}
-          {nights == null ? (
-            <span className="text-cta"> (dates illisibles)</span>
-          ) : nights <= 0 ? (
-            <span className="text-cta"> (départ avant l’arrivée)</span>
-          ) : (
-            <span className="text-muted"> · {nights} nuits</span>
-          )}
-        </span>
+        {/* `compact` : la forme longue tient sur trois lignes dans une barre de
+            recherche. La plage y est la même, écrite court. */}
+        {compact ? (
+          <span className={nights == null || nights <= 0 ? "text-cta" : undefined}>
+            {stayRangeShort(checkIn, checkOut)}
+          </span>
+        ) : (
+          <span>
+            {formatDayIso(checkIn)} au {formatDayIso(checkOut)}
+            {nights == null ? (
+              <span className="text-cta"> (dates illisibles)</span>
+            ) : nights <= 0 ? (
+              <span className="text-cta"> (départ avant l’arrivée)</span>
+            ) : (
+              <span className="text-muted"> · {nights} nuits</span>
+            )}
+          </span>
+        )}
         <Chevron dir="down" />
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-1 w-[19rem] rounded-[var(--radius-card)] border border-line bg-panel p-3 shadow-lg">
+        <div
+          /* Ancrage explicite : posé dans la barre du haut, à droite de
+             l'écran, un panneau aligné à gauche sortait du cadre et se
+             coupait. Le choix est du ressort de l'appelant, pas d'une
+             heuristique. */
+          className={`absolute z-20 mt-1 w-[19rem] max-w-[min(19rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-line bg-panel p-3 shadow-lg ${
+            align === "right" ? "right-0" : "left-0"
+          }`}
+        >
           <div className="flex items-center justify-between">
             <button
               type="button"

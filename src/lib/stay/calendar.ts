@@ -168,6 +168,23 @@ export function formatDayIso(iso: string): string {
   return `${p.day} ${MOIS_COURTS[p.month0]} ${p.year}`;
 }
 
+/** « 6 – 13 févr. · 7 nuits ».
+ *
+ *  Forme courte, pour une barre de recherche où la forme longue occupe trois
+ *  lignes. Le mois n'est nommé deux fois que si le séjour les traverse. */
+export function stayRangeShort(checkIn: string, checkOut: string): string {
+  const a = parseIso(checkIn);
+  const b = parseIso(checkOut);
+  const n = nightsBetween(checkIn, checkOut);
+  if (!a || !b || n == null) return `${formatDayIso(checkIn)} au ${formatDayIso(checkOut)}`;
+  const span =
+    a.month0 === b.month0 && a.year === b.year
+      ? `${a.day} – ${b.day} ${MOIS_COURTS[b.month0]}`
+      : `${a.day} ${MOIS_COURTS[a.month0]} – ${b.day} ${MOIS_COURTS[b.month0]}`;
+  if (n <= 0) return `${span} · départ avant l’arrivée`;
+  return `${span} · ${n} nuit${n > 1 ? "s" : ""}`;
+}
+
 /** « 6 févr. 2027 au 13 févr. 2027, 7 nuits », et le dit quand la plage cloche. */
 export function stayRangeLabel(checkIn: string, checkOut: string): string {
   const n = nightsBetween(checkIn, checkOut);

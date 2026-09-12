@@ -8,6 +8,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Liste } from "@/components/base/Liste";
+import { Bouton } from "@/components/base/Bouton";
+import { Etat } from "@/components/base/Etat";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
@@ -110,18 +112,12 @@ function FicheInconnue({ id }: { id: string }) {
       <section className="screen on" id="s-fiche" data-screen-label="Fiche station">
         <div className="scroll">
           <div className="wrap fiche__wrap">
-            <div className="empty card">
-              <strong className="empty__title">Aucune station ne porte cet identifiant</strong>
-              <p className="muted empty__lead">
-                « {id} » ne figure pas au référentiel, qui compte {STATIONS.length} stations. Le
-                lien est peut-être ancien, ou l’adresse mal recopiée.
-              </p>
-              <div className="empty__actions">
-                <button type="button" className="btn" onClick={() => go("compare")}>
-                  Chercher une station
-                </button>
-              </div>
-            </div>
+            <Etat
+              sorte="vide"
+              titre="Aucune station ne porte cet identifiant"
+              cause={`« ${id} » ne figure pas au référentiel, qui compte ${STATIONS.length} stations. Le lien est peut-être ancien, ou l’adresse mal recopiée.`}
+              action={<Bouton onClick={() => go("compare")}>Chercher une station</Bouton>}
+            />
           </div>
         </div>
       </section>

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Etat } from "@/components/base/Etat";
 import { Carte } from "@/components/Carte";
 import { Coquille } from "@/components/Coquille";
 import {
@@ -460,10 +461,13 @@ function PageCarte() {
               <span>Trié par {CARTE_SORT_LABELS[order]}</span>
             </div>
             {rows.length === 0 ? (
-              <p className="carte__empty">
-                Aucune station ne remplit tous les critères. Assouplissez un filtre ou
-                réinitialisez.
-              </p>
+              <Etat
+                sorte="vide"
+                compact
+                className="carte__empty"
+                titre="Aucune station ne remplit tous les critères"
+                cause={`${STATIONS.length} stations au référentiel, aucune pour ces filtres. Assouplissez-en un ou réinitialisez.`}
+              />
             ) : (
               <ul className="carte__list">
                 {rows.map((s) => (

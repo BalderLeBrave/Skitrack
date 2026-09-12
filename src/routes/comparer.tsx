@@ -12,6 +12,7 @@ import {
 } from "react";
 import { Icon } from "@/components/Icon";
 import { Bouton } from "@/components/base/Bouton";
+import { Etat } from "@/components/base/Etat";
 import { Tableau } from "@/components/base/Tableau";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
@@ -673,10 +674,12 @@ function Comparer() {
                     );
                   })
                 ) : (
-                  <p className="muted list__empty">
-                    Aucune station ne remplit tous les critères. Assouplissez un filtre ou
-                    réinitialisez.
-                  </p>
+                  <Etat
+                    sorte="vide"
+                    compact
+                    titre="Aucune station ne remplit tous les critères"
+                    cause={`${STATIONS.length} stations au référentiel, aucune pour ces filtres. Assouplissez-en un ou réinitialisez.`}
+                  />
                 )}
               </div>
               <div className={`tray${P.cmp.length > 0 ? " open" : ""}`} id="tray">
@@ -737,13 +740,11 @@ function Comparer() {
             </header>
 
             {st.length === 0 ? (
-              <div className="empty card">
-                <strong className="empty__title">Aucune station dans la comparaison</strong>
-                <p className="muted empty__lead">
-                  Ajoutez des stations depuis la liste de gauche, avec le bouton « Comparer » de
-                  chaque ligne. Deux suffisent pour que les écarts se lisent.
-                </p>
-              </div>
+              <Etat
+                sorte="vide"
+                titre="Aucune station dans la comparaison"
+                cause="Ajoutez des stations depuis la liste de gauche, avec le bouton « Comparer » de chaque ligne. Deux suffisent pour que les écarts se lisent."
+              />
             ) : (
               <>
                 <Tableau

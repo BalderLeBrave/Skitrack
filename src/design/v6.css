@@ -112,14 +112,19 @@ body:has(.v6.app) {
 .v6 a:hover {
   text-decoration: underline;
 }
+/* `.v6 button` hérite la couleur du texte ; le lien d'action garde la sienne. */
+.v6 .lien {
+  color: var(--marque-texte);
+}
 .v6 button {
   font: inherit;
   color: inherit;
   cursor: pointer;
 }
-/* styles.css impose famille, graisse et interlettrage aux titres, et une
-   bague de focus aux puces ; la maquette n'en a pas. Retour au comportement
-   du navigateur, la maquette pose ensuite ses propres valeurs. */
+/* styles.css impose famille, graisse et interlettrage aux titres ; la
+   maquette n'en a pas. Retour au comportement du navigateur, la maquette pose
+   ensuite ses propres valeurs. La bague de focus, elle, est celle du système
+   (base.css), la même sur tous les écrans. */
 .v6 h1,
 .v6 h2,
 .v6 h3 {
@@ -135,11 +140,6 @@ body:has(.v6.app) {
 }
 .v6 .nav {
   backdrop-filter: none;
-}
-.v6 .chip:focus-visible,
-.v6 .jl:focus-visible {
-  outline: revert;
-  outline-offset: revert;
 }
 
 /* ── Coquille ───────────────────────────────────────────────────────────── */
@@ -1766,62 +1766,6 @@ body:has(.v6.app) {
   background: var(--glacier);
   color: var(--texte-3);
 }
-/* Styles en ligne de la réservation, portés en classes */
-.v6 .booking__wrap {
-  display: grid;
-  gap: 22px;
-}
-.v6 .booking__title {
-  margin-top: 4px;
-}
-.v6 .booking__lead {
-  margin-top: 8px;
-}
-.v6 .booking__main {
-  display: grid;
-  gap: 20px;
-  min-width: 0;
-}
-.v6 .bk-station {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-}
-.v6 .bk-station__name {
-  font-size: 18px;
-}
-.v6 .bk-station__sub {
-  margin-top: 4px;
-}
-.v6 .bk-station__facts {
-  margin-top: 6px;
-}
-.v6 .bk-station__facts .rel {
-  color: var(--ink);
-}
-.v6 .bk-lodge {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 16px;
-  align-items: start;
-}
-.v6 .bk-lodge__img {
-  aspect-ratio: 16/10;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--neige);
-}
-.v6 .bk-lodge__body {
-  display: grid;
-  gap: 6px;
-}
-.v6 .bk-lodge__tag {
-  justify-self: start;
-}
-.v6 .bk-lodge__name {
-  font-size: 16px;
-}
 .v6 .line--total {
   font-size: 16px;
 }
@@ -2029,7 +1973,6 @@ body:has(.v6.app) {
     grid-template-columns: minmax(0, 1fr);
   }
   .v6 .ribbon,
-  .v6 .bk-lodge,
   .v6 .kv {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2252,8 +2195,7 @@ body:has(.v6.app) {
    titre de la section suffit. */
 .v6 .sect > [data-testid="forecast-card"],
 .v6 .sect > [data-testid="snow-history-card"],
-.v6 .sect > [data-testid="webcam-card"],
-.v6 .sect > [data-testid="stay-report"] {
+.v6 .sect > [data-testid="webcam-card"] {
   border: 0;
   border-radius: 0;
   background: none;
@@ -2875,4 +2817,192 @@ body:has(.v6.app) {
 .v6 .lodging__tete {
   display: grid;
   gap: 6px;
+}
+
+/* ── Réservation : le récapitulatif ────────────────────────────────────────
+   Sections séparées par le vide et un titre, à gauche ; le panneau d'action,
+   seule surface bordée de l'écran, à droite. Le tout s'imprime sur une A4. */
+.v6 .recap__wrap {
+  display: grid;
+  gap: 22px;
+}
+.v6 .recap__tete {
+  display: grid;
+  gap: 6px;
+}
+.v6 .recap__lead {
+  max-width: 70ch;
+}
+.v6 .recap__duo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 32px;
+  align-items: start;
+}
+.v6 .recap {
+  display: grid;
+  gap: 28px;
+  min-width: 0;
+}
+.v6 .recap__section {
+  display: grid;
+  gap: 10px;
+}
+.v6 .recap__titre {
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--bordure-douce);
+  font-size: var(--text-section);
+  font-weight: 700;
+}
+.v6 .recap__nom {
+  margin: 0;
+  font-size: 16px;
+}
+.v6 .recap__liens {
+  margin: 0;
+  font-size: 14px;
+}
+.v6 .recap__logement {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.v6 .recap__photo {
+  aspect-ratio: 16/10;
+  border-radius: var(--radius-surface);
+  overflow: hidden;
+  background: var(--neige);
+}
+.v6 .recap__logement-corps {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.v6 .recap__budget .tableau__grille th,
+.v6 .recap__budget .tableau__grille td {
+  padding: 8px 10px;
+}
+.v6 .recap__budget .tableau__grille th:first-child,
+.v6 .recap__budget .tableau__grille td:first-child {
+  padding-left: 0;
+}
+.v6 .recap__budget .tableau__grille th:last-child,
+.v6 .recap__budget .tableau__grille td:last-child {
+  padding-right: 0;
+}
+.v6 .recap__detail {
+  display: block;
+  font-size: var(--text-note);
+}
+.v6 .recap__manques {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--texte-2);
+}
+.v6 .recap__mention {
+  font-size: var(--text-note);
+}
+.v6 .recap__aside {
+  gap: 10px;
+}
+.v6 .recap__attente {
+  width: 72px;
+}
+
+@media (max-width: 1099px) {
+  .v6 .recap__duo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v6 .recap__logement {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v6 .recap__aside {
+    position: static;
+  }
+}
+
+/* ── Impression : une A4, sans la coquille ─────────────────────────────────
+   La coquille cale l'écran sur la hauteur de la fenêtre et fait défiler
+   l'intérieur ; à l'impression cela coupe tout à la première page. La barre,
+   les boutons et les liens d'action sont du bruit sur papier. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  .v6.app {
+    height: auto;
+    min-width: 0;
+  }
+  .v6 .screen {
+    position: static;
+  }
+  .v6 .scroll {
+    overflow: visible;
+  }
+  /* Le panneau d'action répète le budget et porte les boutons : sur papier,
+     le budget suffit. */
+  .v6 .nav,
+  .v6 .coquille__chips,
+  .v6-toast,
+  .v6 .recap__aside,
+  .v6 .recap__liens,
+  .v6 .recap__photo {
+    display: none !important;
+  }
+  .v6 .wrap {
+    max-width: none;
+    padding: 0;
+    font-size: 10pt;
+  }
+  .v6 .recap__wrap {
+    gap: 4mm;
+  }
+  .v6 .h1--xl {
+    font-size: 18pt;
+  }
+  .v6 .recap__duo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v6 .recap {
+    gap: 4mm;
+  }
+  .v6 .recap__section {
+    gap: 2mm;
+    break-inside: avoid;
+  }
+  .v6 .recap__titre {
+    font-size: 12pt;
+    padding-bottom: 1mm;
+  }
+  .v6 .recap__nom,
+  .v6 .recap__manques,
+  .v6 .checklist li,
+  .v6 .recap .liste__valeur,
+  .v6 .recap .tableau__grille th,
+  .v6 .recap .tableau__grille td {
+    font-size: 10pt;
+  }
+  .v6 .recap .liste {
+    gap: 2mm 6mm;
+  }
+  .v6 .recap .liste--3,
+  .v6 .recap .liste--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .v6 .recap__budget .tableau__grille th,
+  .v6 .recap__budget .tableau__grille td {
+    padding: 1.5mm 2mm;
+  }
+  .v6 .checklist {
+    gap: 1mm;
+  }
+  .v6 .recap__logement {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

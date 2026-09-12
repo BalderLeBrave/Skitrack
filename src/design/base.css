@@ -112,11 +112,6 @@
   min-width: 0;
 }
 
-.champ__controle:focus-visible {
-  outline: 2px solid var(--color-marque);
-  outline-offset: 1px;
-}
-
 .champ__aide {
   margin: 0;
   font-size: var(--text-note);
@@ -438,4 +433,198 @@
   background: var(--color-cta);
   color: var(--color-cta-ink);
   border-color: var(--color-cta);
+}
+
+/* ── Focus visible ──────────────────────────────────────────────────────────
+   Une bague, la même partout : ce qui reçoit le clavier le montre, dans la
+   couleur de la marque, à deux pixels du bord. Les puces, les champs, la liste
+   de la carte et les crédits de photo en portaient chacun une, dans deux
+   couleurs. Le sélecteur est sans poids (`:where`) : une bague posée par un
+   composant flottant qui aurait de bonnes raisons de faire autrement gagne. */
+:where(a[href], button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 2px;
+}
+
+/* ── Lien d'action ──────────────────────────────────────────────────────────
+   Un bouton qui se lit comme un lien : « Changer de logement », « Fiche
+   station ». C'est un bouton parce qu'il agit sans changer d'adresse, et
+   qu'un `<a>` sans `href` ne reçoit ni le clavier ni le focus. */
+.lien {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-marque-texte);
+  cursor: pointer;
+}
+.lien:hover {
+  text-decoration: underline;
+}
+
+/* ── Page hors parcours ─────────────────────────────────────────────────────
+   Les écrans de contrôle (forfaits, altitudes) : un titre, une phrase qui dit
+   ce que la page montre, des outils sur une ligne, puis des sections séparées
+   par le vide et un titre. Aucun cadre. */
+.page {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 4) calc(var(--spacing) * 12);
+  display: grid;
+  gap: calc(var(--spacing) * 6);
+}
+
+.page__tete {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+}
+
+.page__titre {
+  margin: 0;
+  font-size: var(--text-titre);
+  line-height: var(--text-titre--line-height);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.page__lead {
+  margin: 0;
+  max-width: 64ch;
+  font-size: var(--text-corps);
+  color: var(--color-muted);
+  text-wrap: pretty;
+}
+
+.page__outils {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: calc(var(--spacing) * 3);
+}
+
+.page__outils .champ {
+  flex: 1 1 18rem;
+}
+
+.page__section {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+}
+
+.page__section-titre {
+  margin: 0;
+  font-size: var(--text-section);
+  line-height: var(--text-section--line-height);
+  font-weight: 700;
+}
+
+.page__section-titre small {
+  font-size: var(--text-corps);
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+/* ── État d'écran : vide, chargement, erreur ────────────────────────────────
+   Dans le flux, à la largeur du contenu, sans cadre ni centrage : un état vide
+   posé dans une carte au milieu d'une page blanche ressemble à une panne. */
+.etat {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 6) 0;
+  max-width: 64ch;
+}
+
+.etat--compact {
+  padding: calc(var(--spacing) * 3) 0;
+}
+
+.etat__titre {
+  margin: 0;
+  font-size: var(--text-corps);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.etat__cause {
+  margin: 0;
+  font-size: var(--text-corps);
+  color: var(--color-muted);
+  text-wrap: pretty;
+}
+
+.etat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+  margin-top: calc(var(--spacing) * 1);
+}
+
+/* L'erreur porte la couleur du rôle « alerte », et rien d'autre ne la porte
+   sur l'écran : un trait à gauche, le fond du rôle, le texte du rôle. */
+.etat--erreur {
+  padding-left: calc(var(--spacing) * 4);
+  padding-right: calc(var(--spacing) * 4);
+  border-left: 3px solid var(--color-alerte-texte);
+  border-radius: 0 var(--radius-surface) var(--radius-surface) 0;
+  background: var(--color-alerte);
+}
+
+.etat--erreur .etat__titre {
+  color: var(--color-alerte-texte);
+}
+
+.etat--erreur .etat__cause {
+  color: var(--color-ink);
+}
+
+/* Le squelette dessine la place de ce qui vient : des lignes de la hauteur
+   d'une ligne de texte, de largeurs inégales comme du texte, avec un reflet
+   lent qui dit que l'application travaille. Le reflet s'arrête pour qui
+   demande moins de mouvement. */
+.squelette {
+  display: grid;
+  gap: calc(var(--spacing) * 2.5);
+  width: 100%;
+}
+
+.squelette__ligne {
+  display: block;
+  height: calc(var(--spacing) * 3.5);
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--color-line-douce) 0%,
+    var(--color-glacier) 40%,
+    var(--color-line-douce) 80%
+  );
+  background-size: 200% 100%;
+  animation: squelette-reflet 1.6s var(--ease-ui) infinite;
+}
+
+.squelette__ligne:nth-child(3n + 1) {
+  width: 100%;
+}
+.squelette__ligne:nth-child(3n + 2) {
+  width: 78%;
+}
+.squelette__ligne:nth-child(3n) {
+  width: 56%;
+}
+
+@keyframes squelette-reflet {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .squelette__ligne {
+    animation: none;
+  }
 }

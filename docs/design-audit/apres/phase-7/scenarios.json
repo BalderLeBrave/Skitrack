@@ -1,0 +1,282 @@
+{
+  "reservation-1440x900": {
+    "cadresDansLeRecap": 0,
+    "titres": [
+      "Station",
+      "Logement",
+      "Budget",
+      "Avant de réserver",
+      "Ce que ce document ne dit pas"
+    ],
+    "budget": [
+      "Logement, 7 nuits · La Citriere · Gîtes de France | relevé | 727 €",
+      "Forfaits, 8 × 6 jours · Les 2 Alpes | relevé | 2 280 €",
+      "Total |  | 3 007 €",
+      "Par personne, 8 |  | 376 €"
+    ],
+    "alignMontant": "right",
+    "manques": [
+      "La distance du logement aux remontées n’est pas mesurée : l’annonce ne publie pas sa position.",
+      "Trajet : aucun itinéraire n’est calculé, donc ni carburant ni péage."
+    ],
+    "hauteur": 1109,
+    "pdfPages": 1,
+    "cachesAImpression": [
+      "none",
+      "none",
+      "inline-flex",
+      "inline-flex",
+      "inline-flex"
+    ],
+    "erreurs": []
+  },
+  "logements-1440x900": {
+    "premierEtat": "etat-vide",
+    "echecTexte": "Abritel, Booking, Gîtes de France : recherche en direct impossible /  / browserType.launch: Executable doesn't exist at /opt/pw-browsers/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headle…. Les annonces de ces sources viennent du relevé enregistré, pas d’une recherche à vos dat",
+    "lignes": 7,
+    "erreurs": []
+  },
+  "forfaits-1440x900": {
+    "hauteurDefilement": 6325,
+    "hauteurPage": 6325,
+    "sections": [
+      "Alpes du Nord · 105 domaines",
+      "Alpes du Sud · 26 domaines",
+      "Pyrénées · 21 domaines",
+      "Jura · 12 domaines",
+      "Massif central · 7 domaines",
+      "Vosges · 2 domaines"
+    ],
+    "faits": [
+      "Domaines de forfait : 173",
+      "Tarifs relevés : 173 sur 173 : un tarif relevé porte sa date ; les autres disent « non relevé »",
+      "Dernière synchronisation : 13/08/2026 12:00:00"
+    ],
+    "nbLignes": 173,
+    "alignementPremiereLigne": [
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left"
+    ],
+    "debordementHorizontal": false,
+    "puces": [
+      "Tous les massifs · 173",
+      "Alpes du Nord · 105",
+      "Alpes du Sud · 26",
+      "Pyrénées · 21",
+      "Jura · 12",
+      "Massif central · 7",
+      "Vosges · 2"
+    ],
+    "focusApres3Tab": {
+      "tag": "BUTTON",
+      "texte": "2\nLogements",
+      "outline": "solid 2px rgb(11, 111, 194)"
+    },
+    "etatVide": "Aucun domaine ne répond à « zzzz-aucun-domaine » /  / La recherche porte sur le nom du domaine, son massif et le forfait lié qu’il partage. /  / Tout afficher",
+    "erreurs": []
+  },
+  "altitudes-1440x900": {
+    "hauteurDefilement": 2354,
+    "hauteurPage": 2354,
+    "sections": [],
+    "faits": [
+      "Écart médian, IGN et base Skiinfo : 19 m : en valeur absolue, sur les stations qui ont les deux altitudes",
+      "Stations comparées : 231",
+      "Point au village ou au sommet publié : 218 : à 150 m près",
+      "Point hors de la bande publiée : 2 : 0 sans donnée"
+    ],
+    "nbLignes": 40,
+    "alignementPremiereLigne": [
+      "left",
+      "right",
+      "right",
+      "right",
+      "left"
+    ],
+    "debordementHorizontal": false,
+    "puces": [
+      "Toutes · 231",
+      "au village · 217",
+      "dans le domaine · 11",
+      "sous la base · 2",
+      "au sommet · 1",
+      "au-dessus du sommet · 0",
+      "sans donnée · 0"
+    ],
+    "focusApres3Tab": {
+      "tag": "BUTTON",
+      "texte": "2\nLogements",
+      "outline": "solid 2px rgb(11, 111, 194)"
+    },
+    "etatVide": "Aucune station pour ce verdict /  / 231 stations comparées, aucune dont le point IGN tombe là. /  / Toutes les stations",
+    "erreurs": []
+  },
+  "reservation-390x844": {
+    "cadresDansLeRecap": 0,
+    "titres": [
+      "Station",
+      "Logement",
+      "Budget",
+      "Avant de réserver",
+      "Ce que ce document ne dit pas"
+    ],
+    "budget": [
+      "Logement, 7 nuits · La Citriere · Gîtes de France | relevé | 727 €",
+      "Forfaits, 8 × 6 jours · Les 2 Alpes | relevé | 2 280 €",
+      "Total |  | 3 007 €",
+      "Par personne, 8 |  | 376 €"
+    ],
+    "alignMontant": "right",
+    "manques": [
+      "La distance du logement aux remontées n’est pas mesurée : l’annonce ne publie pas sa position.",
+      "Trajet : aucun itinéraire n’est calculé, donc ni carburant ni péage."
+    ],
+    "hauteur": 2278,
+    "pdfPages": 1,
+    "cachesAImpression": [
+      "none",
+      "none",
+      "inline-flex",
+      "inline-flex",
+      "inline-flex"
+    ],
+    "erreurs": []
+  },
+  "logements-390x844": {
+    "premierEtat": "etat-vide",
+    "echecTexte": "Gîtes de France, Abritel, Booking : recherche en direct impossible /  / browserType.launch: Executable doesn't exist at /opt/pw-browsers/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headle…. Les annonces de ces sources viennent du relevé enregistré, pas d’une recherche à vos dat",
+    "lignes": 7,
+    "erreurs": []
+  },
+  "forfaits-390x844": {
+    "hauteurDefilement": 14071,
+    "hauteurPage": 14071,
+    "sections": [
+      "Alpes du Nord · 105 domaines",
+      "Alpes du Sud · 26 domaines",
+      "Pyrénées · 21 domaines",
+      "Jura · 12 domaines",
+      "Massif central · 7 domaines",
+      "Vosges · 2 domaines"
+    ],
+    "faits": [
+      "Domaines de forfait : 173",
+      "Tarifs relevés : 173 sur 173 : un tarif relevé porte sa date ; les autres disent « non relevé »",
+      "Dernière synchronisation : 13/08/2026 12:00:00"
+    ],
+    "nbLignes": 173,
+    "alignementPremiereLigne": [
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left",
+      "left",
+      "right",
+      "right",
+      "right",
+      "left"
+    ],
+    "debordementHorizontal": false,
+    "puces": [
+      "Tous les massifs · 173",
+      "Alpes du Nord · 105",
+      "Alpes du Sud · 26",
+      "Pyrénées · 21",
+      "Jura · 12",
+      "Massif central · 7",
+      "Vosges · 2"
+    ],
+    "focusApres3Tab": {
+      "tag": "BUTTON",
+      "texte": "2\nLogements",
+      "outline": "solid 2px rgb(11, 111, 194)"
+    },
+    "etatVide": "Aucun domaine ne répond à « zzzz-aucun-domaine » /  / La recherche porte sur le nom du domaine, son massif et le forfait lié qu’il partage. /  / Tout afficher",
+    "erreurs": []
+  },
+  "altitudes-390x844": {
+    "hauteurDefilement": 3449,
+    "hauteurPage": 3449,
+    "sections": [],
+    "faits": [
+      "Écart médian, IGN et base Skiinfo : 19 m : en valeur absolue, sur les stations qui ont les deux altitudes",
+      "Stations comparées : 231",
+      "Point au village ou au sommet publié : 218 : à 150 m près",
+      "Point hors de la bande publiée : 2 : 0 sans donnée"
+    ],
+    "nbLignes": 40,
+    "alignementPremiereLigne": [
+      "left",
+      "right",
+      "right",
+      "right",
+      "left"
+    ],
+    "debordementHorizontal": false,
+    "puces": [
+      "Toutes · 231",
+      "au village · 217",
+      "dans le domaine · 11",
+      "sous la base · 2",
+      "au sommet · 1",
+      "au-dessus du sommet · 0",
+      "sans donnée · 0"
+    ],
+    "focusApres3Tab": {
+      "tag": "BUTTON",
+      "texte": "2\nLogements",
+      "outline": "solid 2px rgb(11, 111, 194)"
+    },
+    "etatVide": "Aucune station pour ce verdict /  / 231 stations comparées, aucune dont le point IGN tombe là. /  / Toutes les stations",
+    "erreurs": []
+  }
+}

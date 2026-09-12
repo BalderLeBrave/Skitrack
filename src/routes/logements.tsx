@@ -11,6 +11,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Bouton } from "@/components/base/Bouton";
+import { Etat } from "@/components/base/Etat";
 import { Tableau } from "@/components/base/Tableau";
 import { Carte } from "@/components/Carte";
 import { Icon } from "@/components/Icon";
@@ -112,6 +113,15 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   }, [stationId, checkIn, checkOut, guests, bedrooms, searchNonce, station?.name]);
 }
 
+/** La première ligne d'un message d'erreur, bornée : un échec de recherche
+ *  rend parfois la trace complète d'un outil, avec ses cadres et ses conseils
+ *  d'installation, qui n'ont rien à faire sur l'écran. */
+function messageCourt(m: string | null | undefined): string {
+  if (!m) return "sans message";
+  const ligne = m.split(/\r?\n|[╔═╗║╚╝]/)[0].trim();
+  return ligne.length > 140 ? `${ligne.slice(0, 137)}…` : ligne || "sans message";
+}
+
 /** Neige au sol au village et au sommet, du service du dépôt. Absente tant que
  *  rien ne répond : la bande le dit, elle n'écrit pas zéro à la place. */
 function useNeige(s: Station | undefined): SnowPair | null {
@@ -138,6 +148,10 @@ function Logements() {
   const s = P.stationId ? stationById(P.stationId) : undefined;
   const liveListings = useStay((x) => x.liveListings);
   const liveSources = useStay((x) => x.liveSources);
+  const searching = useStay((x) => x.searching);
+  /* Les sources qui n'ont pas répondu : l'écran le dit, avec le message, au
+     lieu de montrer le relevé gelé comme s'il venait d'être fait. */
+  const sourcesEnEchec = liveSources.filter((x) => !x.ok);
   const bedrooms = useStay((x) => x.bedrooms);
   const frozen = useMemo(
     () => (P.stationId ? listingsForStay(P.stationId, trav, bedrooms) : []),
@@ -237,18 +251,12 @@ function Logements() {
             <div className="wrap">
               <span className="eyebrow">Étape 2 · Logement</span>
               <h1 className="h1 h1--xl">Choisissez d’abord une station</h1>
-              <div className="empty card">
-                <strong className="empty__title">Aucune station retenue</strong>
-                <p className="muted empty__lead">
-                  Les logements sont relevés station par station, aux dates du séjour. Retenez une
-                  station et sa liste s’affiche ici.
-                </p>
-                <div className="empty__actions">
-                  <button type="button" className="btn" onClick={() => go("compare")}>
-                    Comparer les stations
-                  </button>
-                </div>
-              </div>
+              <Etat
+                sorte="vide"
+                titre="Aucune station retenue"
+                cause="Les logements sont relevés station par station, aux dates du séjour. Retenez une station et sa liste s’affiche ici."
+                action={<Bouton onClick={() => go("compare")}>Comparer les stations</Bouton>}
+              />
               <p className="muted">
                 <span className="rel js-dates">{datesLbl(checkIn, checkOut, nights)}</span> ·{" "}
                 <span className="rel js-group">{groupLbl(trav, rooms)}</span>
@@ -426,26 +434,42 @@ function Logements() {
               </div>
             </div>
 
+            {sourcesEnEchec.length && !searching ? (
+              <Etat
+                sorte="erreur"
+                compact
+                className="lodging__echec"
+                titre={`${sourcesEnEchec.map((x) => x.source).join(", ")} : recherche en direct impossible`}
+                cause={`${messageCourt(sourcesEnEchec[0].error)}. Les annonces de ${sourcesEnEchec.length > 1 ? "ces sources" : "cette source"} viennent du relevé enregistré, pas d’une recherche à vos dates.`}
+              />
+            ) : null}
+
             <div className={`lodging__duo${carteOuverte ? " lodging__duo--carte" : ""}`}>
               <div id="lodges" className="lodging__liste">
-                {!lodges.length ? (
-                  <div className="empty card">
-                    <strong className="empty__title">
-                      Aucune annonce relevée pour cette station
-                    </strong>
-                    <p className="muted empty__lead">
-                      Le relevé n'a pas tourné aux dates du séjour. Importez une annonce, par
-                      fichier JSON ou par lien.
-                    </p>
-                    <div className="empty__actions">
+                {!lodges.length && searching ? (
+                  /* La recherche en direct tourne et rien n'est encore arrivé :
+                     l'écran dessine la place des annonces au lieu d'affirmer
+                     qu'il n'y en a aucune. */
+                  <Etat
+                    sorte="chargement"
+                    titre={`Recherche des annonces à ${s.name}`}
+                    cause="Airbnb, Gîtes de France, Abritel et Booking sont interrogés aux dates du séjour."
+                    lignes={7}
+                  />
+                ) : !lodges.length ? (
+                  <Etat
+                    sorte="vide"
+                    titre="Aucune annonce relevée pour cette station"
+                    cause="Le relevé n’a pas tourné aux dates du séjour, et la recherche en direct n’a rien rendu. Importez une annonce, par fichier JSON ou par lien."
+                    action={
                       <Bouton
                         ton="fantome"
                         onClick={() => document.getElementById("lo-import")?.click()}
                       >
                         Importer une annonce
                       </Bouton>
-                    </div>
-                  </div>
+                    }
+                  />
                 ) : ls.length ? (
                   /* Une colonne par critère de décision, la distance aux remontées
                      en premier. Elle n'est plus écrite sous le nom du logement :
@@ -514,9 +538,17 @@ function Logements() {
                     })}
                   />
                 ) : (
-                  <p className="muted lodges__empty">
-                    Aucun logement ne remplit tous les critères pour ce groupe et ce budget.
-                  </p>
+                  <Etat
+                    sorte="vide"
+                    compact
+                    titre="Aucun logement ne remplit tous les critères"
+                    cause={`${lodges.length} annonce${lodges.length > 1 ? "s" : ""} relevée${lodges.length > 1 ? "s" : ""}, aucune pour ce groupe, ce budget et cette distance. Relâchez un filtre.`}
+                    action={
+                      <Bouton ton="fantome" onClick={() => setLF(LF_INITIAL)}>
+                        Réinitialiser les filtres
+                      </Bouton>
+                    }
+                  />
                 )}
                 <details className="repli lodging__regle">
                   <summary className="repli__tete">Comment la liste est filtrée</summary>

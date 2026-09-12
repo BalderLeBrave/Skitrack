@@ -147,7 +147,7 @@ test("filterMassif : null rend tout, un massif ne rend que lui", () => {
   assert.ok(corse.every((s) => s.massif === "Corse"));
 });
 
-test("stationTags : type, domaine, statut, hors classeur — rien d’inventé", () => {
+test("stationTags : type, domaine, statut, hors classeur : rien d’inventé", () => {
   const tags = (id: string) => stationTags(STATIONS.find((s) => s.id === id)!);
   assert.match(tags("val-thorens"), /Les Trois Vallées/);
   // Station du dépôt que le classeur ne décrit pas : l’absence est dite.
@@ -157,6 +157,6 @@ test("stationTags : type, domaine, statut, hors classeur — rien d’inventé",
 
 test("formatKm : un tiret quand le domaine ne publie pas de kilométrage", () => {
   assert.equal(formatKm(220), "220 km");
-  assert.equal(formatKm(0), "—");
-  assert.equal(formatKm(null), "—");
+  assert.equal(formatKm(0), "–");
+  assert.equal(formatKm(null), "–");
 });

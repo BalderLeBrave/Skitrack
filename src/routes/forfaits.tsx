@@ -77,7 +77,7 @@ function ForfaitsPage() {
           </button>
         </div>
         <p className="mt-3 text-xs text-muted">
-          {domains.length} domaines FR
+          {domains.length} domaines de forfait
           {lastSync ? ` · dernière synchro ${new Date(lastSync).toLocaleString("fr-FR")}` : ""}
         </p>
         <input
@@ -91,7 +91,10 @@ function ForfaitsPage() {
             const row = rows[d.slug];
             const confirm = row ? forfaitConfirmLabel(row) : null;
             return (
-              <li key={d.slug} className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3">
+              <li
+                key={d.slug}
+                className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-3"
+              >
                 <div>
                   <p className="font-display text-lg leading-tight">{d.name}</p>
                   <p className="text-xs text-muted">
@@ -105,7 +108,11 @@ function ForfaitsPage() {
                     {formatEuroTarif(row?.j6 ?? d.seed?.j6)}
                   </p>
                   <p className="text-xs text-muted">
-                    {row ? formatForfaitAge(row) : d.seed?.majLabel ? `relevé ${d.seed.majLabel}` : "—"}
+                    {row
+                      ? formatForfaitAge(row)
+                      : d.seed?.majLabel
+                        ? `relevé ${d.seed.majLabel}`
+                        : "–"}
                     {confirm ? ` · ${confirm}` : ""}
                   </p>
                 </div>

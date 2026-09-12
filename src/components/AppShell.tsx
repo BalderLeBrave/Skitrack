@@ -109,7 +109,6 @@ export function AppShell({
   children: React.ReactNode;
   chips?: React.ReactNode;
 }) {
-  const guests = useStay((s) => s.guests);
   const t = useT();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -159,10 +158,10 @@ export function AppShell({
               );
             })}
           </nav>
-          <div className="utils">
-            <span className="chip">
-              {t("nav.travelers")} · <b className="num">{guests}</b>
-            </span>
+          {/* Le séjour ne se règle plus depuis l'en-tête : dates, voyageurs et
+              chambres se posent dans la barre de recherche de l'accueil, seul
+              endroit où ils sont modifiables. « Plus » reste. */}
+          <div className="utils min-w-0">
             <MoreMenu />
           </div>
         </div>

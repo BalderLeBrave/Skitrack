@@ -183,7 +183,7 @@ function sameDomainName(a: string, b: string | null): boolean {
 
 /** Km de pistes du domaine. Un tiret quand aucun domaine n'est rattaché. */
 export function formatKm(km: number | null): string {
-  return km != null && km > 0 ? `${Math.round(km).toLocaleString("fr-FR")} km` : "—";
+  return km != null && km > 0 ? `${Math.round(km).toLocaleString("fr-FR")} km` : "–";
 }
 
 /** Recherche sans accents ni casse : « megeve » trouve « Megève ». */

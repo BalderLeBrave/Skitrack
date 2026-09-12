@@ -4,7 +4,15 @@ import raw from "./openskimap.snapshot.json" with { type: "json" };
 import { SKIINFO } from "./skiinfo.ts";
 import { DEPOT_STATIONS, type Station } from "./stations.ts";
 
-export type OsmVerdict = "ok" | "segments" | "km_court" | "grain_domaine" | "ecart_n" | "osm_absent";
+export type OsmVerdict =
+  | "ok"
+  | "segments"
+  | "km_court"
+  | "grain_domaine"
+  | "ecart_n"
+  /** Domaine OSM trouvé, mais aucune piste de descente comptée dedans. */
+  | "osm_vide"
+  | "osm_absent";
 
 export type OsmCounts = { green: number; blue: number; red: number; black: number };
 
@@ -43,6 +51,7 @@ export const OSM_VERDICT_FR: Record<OsmVerdict, string> = {
   km_court: "km OSM < km Skiinfo (mesuré vs annoncé)",
   grain_domaine: "OSM = domaine lié, pas la station seule",
   ecart_n: "écart de comptes > 25 %",
+  osm_vide: "domaine OSM trouvé, aucune piste de descente comptée",
   osm_absent: "pas de domaine downhill OpenSkiMap",
 };
 
@@ -80,7 +89,12 @@ export function osmSkiinfo(station: Station): OsmSkiRow {
     minSki: si?.minM ?? null,
     maxSki: si?.maxM ?? null,
     ignM: station.demM,
-    verdict: osm?.verdict ?? "osm_absent",
+    // Vingt-trois stations ont un domaine OSM dont les comptes valent zéro. Le
+    // verdict du témoin les rangeait en « km OSM < km Skiinfo (mesuré vs
+    // annoncé) » ou « écart de comptes > 25 % » : les deux décrivent un écart
+    // de mesure, alors qu'il n'y a pas de mesure. Le zéro est ce que le témoin
+    // contient ; ce qu'il fallait corriger, c'est ce qu'on en dit.
+    verdict: osm ? (osm.n === 0 && osm.km === 0 ? "osm_vide" : osm.verdict) : "osm_absent",
   };
 }
 
@@ -97,6 +111,7 @@ export type OsmSkiSummary = {
   km_court: number;
   grain_domaine: number;
   ecart_n: number;
+  osm_vide: number;
   osm_absent: number;
 };
 
@@ -109,6 +124,7 @@ export function osmSkiinfoSummary(rows: readonly OsmSkiRow[]): OsmSkiSummary {
     km_court: count("km_court"),
     grain_domaine: count("grain_domaine"),
     ecart_n: count("ecart_n"),
+    osm_vide: count("osm_vide"),
     osm_absent: count("osm_absent"),
   };
 }

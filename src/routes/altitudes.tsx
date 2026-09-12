@@ -1,12 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import {
-  ignSkiinfoAll,
-  ignSkiinfoSummary,
-  VERDICT_FR,
-  type IgnSkiVerdict,
-} from "@/lib/ignSkiinfo";
+import { ignSkiinfoAll, ignSkiinfoSummary, VERDICT_FR, type IgnSkiVerdict } from "@/lib/ignSkiinfo";
 import { formatAlt } from "@/lib/stations";
 
 export const Route = createFileRoute("/altitudes")({ component: Altitudes });
@@ -14,7 +9,7 @@ export const Route = createFileRoute("/altitudes")({ component: Altitudes });
 type Filter = "all" | IgnSkiVerdict;
 
 function delta(n: number | null): string {
-  if (n == null) return "—";
+  if (n == null) return "–";
   const sign = n > 0 ? "+" : "";
   return `${sign}${n.toLocaleString("fr-FR")} m`;
 }
@@ -57,10 +52,11 @@ function Altitudes() {
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
         <h1 className="font-display text-4xl tracking-tight">IGN × Skiinfo</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          L’IGN donne l’altitude du pin GPS (RGE ALTI). Skiinfo publie une bande base–sommet. Médiane
-          |IGN − base Skiinfo| : {sum.medianAbsBase != null ? `${sum.medianAbsBase} m` : "—"}. Deux pins
-          restent en commune, pas au front de neige : Lans-en-Vercors et Goulier. Pas de mix ni de km
-          côté IGN — hors comparaison.
+          L’IGN donne l’altitude du pin GPS (RGE ALTI). Skiinfo publie une bande base–sommet.
+          Médiane |IGN − base Skiinfo| :{" "}
+          {sum.medianAbsBase != null ? `${sum.medianAbsBase} m` : "–"}. Deux pins restent en
+          commune, pas au front de neige : Lans-en-Vercors et Goulier. Pas de mix ni de km côté IGN,
+          hors comparaison.
         </p>
         <div className="mt-4 overflow-x-auto rounded-[var(--radius-card)] border border-line bg-panel">
           <table className="w-full min-w-[40rem] text-left text-sm">
@@ -77,7 +73,11 @@ function Altitudes() {
               {shown.map((r) => (
                 <tr key={r.id} className="border-t border-line">
                   <td className="px-3 py-2">
-                    <Link to="/stations/$id" params={{ id: r.id }} className="font-medium hover:underline">
+                    <Link
+                      to="/stations/$id"
+                      params={{ id: r.id }}
+                      className="font-medium hover:underline"
+                    >
                       {r.name}
                     </Link>
                     <p className="text-xs text-muted">{r.massif}</p>
@@ -85,9 +85,11 @@ function Altitudes() {
                   <td className="px-3 py-2 tabular-nums">
                     {r.skiMin != null && r.skiMax != null
                       ? `${formatAlt(r.skiMin)} – ${formatAlt(r.skiMax)}`
-                      : "—"}
+                      : "–"}
                   </td>
-                  <td className="px-3 py-2 tabular-nums">{r.ignM != null ? formatAlt(r.ignM) : "—"}</td>
+                  <td className="px-3 py-2 tabular-nums">
+                    {r.ignM != null ? formatAlt(r.ignM) : "–"}
+                  </td>
                   <td className="px-3 py-2 tabular-nums">{delta(r.dBase)}</td>
                   <td className="px-3 py-2 text-muted">{VERDICT_FR[r.verdict]}</td>
                 </tr>

@@ -266,7 +266,7 @@ export function MapPanel({
               <span className="map-swatch map-swatch--black" />
               noire
             </p>
-            <p className="piste__hint">IGN / OpenStreetMap — aucune clé, pas de filigrane.</p>
+            <p className="piste__hint">IGN / OpenStreetMap : aucune clé, pas de filigrane.</p>
           </div>
         ) : (
           <div className="map-chrome__card">

@@ -8,7 +8,7 @@
     "nf3": "0.3.17"
   },
   "scripts": {
-    "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
+    "dev": "node scripts/electron-dev.mjs --host 0.0.0.0 --port 8080",
     "start": "node scripts/electron-dev.mjs",
     "electron": "node scripts/electron-dev.mjs",
     "electron:dev": "node scripts/electron-dev.mjs",
@@ -57,6 +57,7 @@
     "@tanstack/react-start": "^1.168.0",
     "@tanstack/react-table": "^8.21.0",
     "@tanstack/router-plugin": "^1.168.0",
+    "@types/leaflet": "1.9",
     "@types/three": "^0.185.4",
     "better-auth": "~1.6.30",
     "class-variance-authority": "^0.7.1",
@@ -65,6 +66,7 @@
     "date-fns": "^4.0.0",
     "jose": "6.2.9",
     "kysely": "^0.28.5",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.510.0",
     "maplibre-gl": "^4.7.1",
     "pg": "^8.16.3",
@@ -90,6 +92,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^39.8.10",
     "eslint": "^9.20.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
@@ -102,7 +105,6 @@
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.2.0",
-    "electron": "^39.8.10"
+    "vite": "^8.2.0"
   }
 }

@@ -1,5 +1,14 @@
 #!/usr/bin/env node
-/** Lance Vite (port 5173) puis la fenêtre SKITRACK. */
+/** Lance Vite puis la fenêtre SKITRACK.
+ *
+ *   node scripts/electron-dev.mjs                     → 127.0.0.1:5173
+ *   node scripts/electron-dev.mjs --host 0.0.0.0 --port 8080
+ *
+ * `npm run dev` passe par ici aussi, pour que la fenêtre s'ouvre dans les deux
+ * cas. Mais `dev` sert également de serveur sans écran — `startup.sh` le lance
+ * dans le bac à sable, `check-auth-invariant` et le smoke test l'interrogent :
+ * `SKITRACK_NO_WINDOW=1`, ou l'absence de DISPLAY sous Linux, garde alors Vite
+ * seul. */
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -7,10 +16,31 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { projectRoot } from "./with-app-env.mjs";
 
+/** `--port 8080` ou `--port=8080`. */
+function flag(name, fallback) {
+  const args = process.argv.slice(2);
+  const i = args.indexOf(`--${name}`);
+  if (i !== -1 && args[i + 1]) return args[i + 1];
+  const inline = args.find((a) => a.startsWith(`--${name}=`));
+  return inline ? inline.slice(name.length + 3) : fallback;
+}
+
 const root = projectRoot();
-const PORT = process.env.ELECTRON_PORT || "5173";
-const HOST = "127.0.0.1";
-const URL = `http://${HOST}:${PORT}/`;
+const PORT = flag("port", process.env.ELECTRON_PORT || "5173");
+/** Adresse d'écoute : `0.0.0.0` expose au réseau local. */
+const BIND = flag("host", "127.0.0.1");
+/** On ne charge jamais 0.0.0.0 dans la fenêtre : ce n'est pas une adresse. */
+const URL = `http://${BIND === "0.0.0.0" ? "127.0.0.1" : BIND}:${PORT}/`;
+
+/** Pas de fenêtre demandée, ou pas d'écran pour l'afficher. */
+function windowWanted() {
+  if (process.env.SKITRACK_NO_WINDOW === "1") return false;
+  if (process.platform === "linux" && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
+    return false;
+  }
+  return true;
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const electronDir = join(root, "node_modules", "electron");
 const pathTxt = join(electronDir, "path.txt");
@@ -67,7 +97,7 @@ async function waitFor(url, tries = 120) {
 
 const vite = spawn(
   process.execPath,
-  [join(here, "with-app-env.mjs"), "vite", "dev", "--host", HOST, "--port", PORT],
+  [join(here, "with-app-env.mjs"), "vite", "dev", "--host", BIND, "--port", PORT],
   { stdio: "inherit", cwd: root, env: process.env },
 );
 vite.on("exit", (code) => {
@@ -82,9 +112,11 @@ try {
   process.exit(1);
 }
 
-const canElectron = electronReady();
+const canElectron = windowWanted() && electronReady();
 let child;
-if (canElectron) {
+if (!windowWanted()) {
+  console.log("Sans fenêtre (SKITRACK_NO_WINDOW ou pas d’écran) — Vite seul.");
+} else if (canElectron) {
   const require = createRequire(join(root, "package.json"));
   const electronBin = require.resolve("electron/cli.js");
   child = spawn(process.execPath, [electronBin, join(root, "desktop/main.mjs")], {

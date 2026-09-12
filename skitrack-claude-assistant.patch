@@ -1,0 +1,494 @@
+From 96f0133735b887eca8d215e950aa8e9c4399a958 Mon Sep 17 00:00:00 2001
+From: Skitrack Dev <dev@skitrack.local>
+Date: Sat, 12 Sep 2026 15:50:47 +0000
+Subject: [PATCH] feat: assistant ski Claude (Sonnet 5) + correctifs securite
+
+- Assistant chat Claude via passerelle LLM Emergent (Node/fetch, OpenAI-compatible)
+- Server functions askSki (multi-tour, modes chat/recommend/summary) + contexte stations FR
+- UI SkiAssistant (bouton flottant, panneau, suggestions) montee dans __root
+- Securite: cle Meteo-France sortie du code vers env (a revoquer/regenerer)
+- Rate-limiting en memoire sur searchStay (scraping) et askSki (IA)
+- .env.example ajoute
+---
+ .env.example                    |   3 +
+ src/components/SkiAssistant.tsx | 161 ++++++++++++++++++++++++++++++++
+ src/lib/ai/api.ts               |  38 ++++++++
+ src/lib/ai/context.server.ts    |  45 +++++++++
+ src/lib/ai/emergent.server.ts   |  89 ++++++++++++++++++
+ src/lib/bra/secrets.server.ts   |   9 +-
+ src/lib/searchStay.ts           |   2 +
+ src/lib/serverRate.server.ts    |  43 +++++++++
+ src/routes/__root.tsx           |   2 +
+ 9 files changed, 389 insertions(+), 3 deletions(-)
+ create mode 100644 .env.example
+ create mode 100644 src/components/SkiAssistant.tsx
+ create mode 100644 src/lib/ai/api.ts
+ create mode 100644 src/lib/ai/context.server.ts
+ create mode 100644 src/lib/ai/emergent.server.ts
+ create mode 100644 src/lib/serverRate.server.ts
+
+diff --git a/.env.example b/.env.example
+new file mode 100644
+index 0000000..e01aefe
+--- /dev/null
++++ b/.env.example
+@@ -0,0 +1,3 @@
++EMERGENT_LLM_KEY=
++METEOFRANCE_API_KEY=
++INTEGRATION_PROXY_URL=https://integrations.emergentagent.com
+diff --git a/src/components/SkiAssistant.tsx b/src/components/SkiAssistant.tsx
+new file mode 100644
+index 0000000..4355a52
+--- /dev/null
++++ b/src/components/SkiAssistant.tsx
+@@ -0,0 +1,161 @@
++import { useEffect, useRef, useState } from "react";
++import { X, Send, Sparkles } from "lucide-react";
++import { askSki } from "@/lib/ai/api";
++
++type Turn = { role: "user" | "assistant"; content: string };
++
++const SUGGESTIONS = [
++  "Recommande-moi une station de haute altitude en Savoie pour février.",
++  "Quelle station a le plus grand domaine skiable relié ?",
++  "Résume les points forts d'un séjour aux Deux Alpes.",
++];
++
++const GREETING =
++  "Bonjour \u2744\ufe0f Je suis l'assistant ski de Skitrack. Posez-moi une question sur les stations françaises, demandez une recommandation ou un résumé de séjour.";
++
++export function SkiAssistant() {
++  const [open, setOpen] = useState(false);
++  const [messages, setMessages] = useState<Turn[]>([]);
++  const [input, setInput] = useState("");
++  const [busy, setBusy] = useState(false);
++  const [error, setError] = useState<string | null>(null);
++  const scroller = useRef<HTMLDivElement>(null);
++
++  useEffect(() => {
++    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
++  }, [messages, busy]);
++
++  const send = async (text: string) => {
++    const clean = text.trim();
++    if (!clean || busy) return;
++    setError(null);
++    const next: Turn[] = [...messages, { role: "user", content: clean }];
++    setMessages(next);
++    setInput("");
++    setBusy(true);
++    try {
++      const res = await askSki({ data: { messages: next } });
++      setMessages((cur) => [...cur, { role: "assistant", content: res.reply }]);
++    } catch (err) {
++      const msg = err instanceof Error ? err.message : String(err);
++      setError(msg);
++    } finally {
++      setBusy(false);
++    }
++  };
++
++  return (
++    <>
++      {!open ? (
++        <button
++          type="button"
++          data-testid="skiassistant-open"
++          onClick={() => setOpen(true)}
++          aria-label="Ouvrir l'assistant ski"
++          className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-glacier px-4 py-3 font-display text-sm text-ink shadow-lg ring-1 ring-black/10 transition-transform duration-200 hover:-translate-y-0.5"
++        >
++          <Sparkles size={18} aria-hidden="true" />
++          Assistant ski
++        </button>
++      ) : null}
++
++      {open ? (
++        <div
++          data-testid="skiassistant-panel"
++          className="fixed bottom-5 right-5 z-40 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden rounded-2xl border border-line bg-panel text-ink shadow-2xl"
++          role="dialog"
++          aria-label="Assistant ski Skitrack"
++        >
++          <header className="flex items-center justify-between border-b border-line px-4 py-3">
++            <span className="flex items-center gap-2 font-display">
++              <Sparkles size={18} aria-hidden="true" />
++              Assistant ski
++            </span>
++            <button
++              type="button"
++              data-testid="skiassistant-close"
++              onClick={() => setOpen(false)}
++              aria-label="Fermer l'assistant"
++              className="rounded-full p-1 text-muted hover:text-ink"
++            >
++              <X size={18} aria-hidden="true" />
++            </button>
++          </header>
++
++          <div
++            ref={scroller}
++            data-testid="skiassistant-messages"
++            className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm"
++          >
++            <p className="rounded-xl bg-bg/60 px-3 py-2 text-muted">{GREETING}</p>
++            {messages.map((m, i) => (
++              <div
++                key={i}
++                className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
++              >
++                <p
++                  className={`max-w-[85%] whitespace-pre-wrap rounded-xl px-3 py-2 ${
++                    m.role === "user" ? "bg-glacier text-ink" : "bg-bg/60 text-ink"
++                  }`}
++                >
++                  {m.content}
++                </p>
++              </div>
++            ))}
++            {busy ? (
++              <p className="text-muted" data-testid="skiassistant-loading">
++                L'assistant réfléchit…
++              </p>
++            ) : null}
++            {error ? (
++              <p className="rounded-xl bg-red-500/10 px-3 py-2 text-red-600" data-testid="skiassistant-error">
++                {error}
++              </p>
++            ) : null}
++          </div>
++
++          {messages.length === 0 ? (
++            <div className="flex flex-wrap gap-2 px-4 pb-2">
++              {SUGGESTIONS.map((s) => (
++                <button
++                  key={s}
++                  type="button"
++                  onClick={() => send(s)}
++                  className="rounded-full border border-line px-3 py-1 text-left text-xs text-muted hover:bg-bg/60"
++                >
++                  {s}
++                </button>
++              ))}
++            </div>
++          ) : null}
++
++          <form
++            className="flex items-center gap-2 border-t border-line px-3 py-3"
++            onSubmit={(e) => {
++              e.preventDefault();
++              void send(input);
++            }}
++          >
++            <input
++              data-testid="skiassistant-input"
++              value={input}
++              onChange={(e) => setInput(e.target.value)}
++              placeholder="Votre question ski…"
++              className="min-w-0 flex-1 rounded-full border border-line bg-bg px-4 py-2 text-sm outline-none focus:border-glacier"
++              disabled={busy}
++            />
++            <button
++              type="submit"
++              data-testid="skiassistant-send"
++              disabled={busy || !input.trim()}
++              aria-label="Envoyer"
++              className="rounded-full bg-glacier p-2 text-ink disabled:opacity-40"
++            >
++              <Send size={18} aria-hidden="true" />
++            </button>
++          </form>
++        </div>
++      ) : null}
++    </>
++  );
++}
+diff --git a/src/lib/ai/api.ts b/src/lib/ai/api.ts
+new file mode 100644
+index 0000000..01d51fe
+--- /dev/null
++++ b/src/lib/ai/api.ts
+@@ -0,0 +1,38 @@
++import { createServerFn } from "@tanstack/react-start";
++import { z } from "zod";
++
++const Turn = z.object({
++  role: z.enum(["user", "assistant"]),
++  content: z.string().min(1).max(4000),
++});
++
++const Input = z.object({
++  messages: z.array(Turn).min(1).max(40),
++  mode: z.enum(["chat", "summary", "recommend"]).optional(),
++});
++
++export type AssistantReply = { reply: string };
++
++/**
++ * Assistant ski Claude (Sonnet 5). Multi-tour : le client renvoie tout
++ * l'historique à chaque appel, le serveur reste sans état.
++ */
++export const askSki = createServerFn({ method: "POST" })
++  .validator(Input)
++  .handler(async ({ data }): Promise<AssistantReply> => {
++    const { rateLimit, clientKey, RateLimitError } = await import("@/lib/serverRate.server");
++    if (!rateLimit(`ai:${clientKey()}`, 15, 60_000)) throw new RateLimitError();
++
++    const { claudeComplete } = await import("@/lib/ai/emergent.server");
++    const { buildSystemPrompt } = await import("@/lib/ai/context.server");
++
++    const mode = data.mode ?? "chat";
++    const messages = [
++      { role: "system" as const, content: buildSystemPrompt(mode) },
++      ...data.messages,
++    ];
++    const reply = await claudeComplete(messages, {
++      maxTokens: mode === "summary" ? 1200 : 900,
++    });
++    return { reply };
++  });
+diff --git a/src/lib/ai/context.server.ts b/src/lib/ai/context.server.ts
+new file mode 100644
+index 0000000..0e589ae
+--- /dev/null
++++ b/src/lib/ai/context.server.ts
+@@ -0,0 +1,45 @@
++/**
++ * Contexte métier (server-only) injecté dans le prompt système de l'assistant.
++ * On embarque un catalogue compact des stations pour l'aide à la décision, et on
++ * cadre le ton : France uniquement, aucune donnée inventée (même contrat que le
++ * reste de Skitrack).
++ */
++import { STATIONS } from "@/lib/stations";
++
++let catalogCache: string | null = null;
++
++/** Une ligne compacte par station : nom, massif, altitudes, km annoncés. */
++export function stationCatalog(): string {
++  if (catalogCache) return catalogCache;
++  const lines = STATIONS.map((s) => {
++    const km = s.pistesKm ?? s.slopes.announcedKm ?? null;
++    const kmPart = km && km > 0 ? `, ~${Math.round(km)} km` : "";
++    return `- ${s.name} (${s.massif}) : village ${s.villageM || "?"} m, domaine ${s.minM}\u2013${s.maxM} m${kmPart}`;
++  });
++  catalogCache = lines.join("\n");
++  return catalogCache;
++}
++
++export type AssistantMode = "chat" | "summary" | "recommend";
++
++const BASE = `Tu es l'assistant ski de Skitrack, une application de comparaison de séjours au ski en France.
++
++Règles absolues :
++- France uniquement. Tu ne parles que de stations et domaines skiables français.
++- N'invente RIEN. Si une donnée précise (prix de forfait du jour, hauteur de neige en temps réel, bulletin d'avalanche BRA) n'est pas fournie dans la conversation, dis clairement que Skitrack l'affiche dans l'app et ne devine pas un chiffre.
++- Les altitudes que tu cites viennent du catalogue ci-dessous (France Montagnes). Ne cite pas d'altitude qui n'y figure pas.
++- Réponds en français, de façon concise et concrète. Utilise des listes courtes quand c'est utile.
++- Tu aides à : (1) répondre aux questions ski, (2) recommander une station selon des critères (altitude, taille du domaine, massif, niveau des pistes, glacier), (3) résumer un séjour ou un comparatif de stations.
++
++Catalogue des stations (référentiel Skitrack) :
++`;
++
++export function buildSystemPrompt(mode: AssistantMode = "chat"): string {
++  const extra =
++    mode === "summary"
++      ? "\n\nTâche : produis un résumé clair et structuré du séjour/comparatif fourni, en mettant en avant altitude réelle du domaine, taille, points forts et réserves. Pas de superlatifs marketing."
++      : mode === "recommend"
++        ? "\n\nTâche : recommande 2 à 4 stations classées, avec en une phrase pourquoi chacune correspond aux critères. Termine en invitant l'utilisateur à ouvrir la fiche station dans Skitrack pour les logements et forfaits à jour."
++        : "";
++  return BASE + stationCatalog() + extra;
++}
+diff --git a/src/lib/ai/emergent.server.ts b/src/lib/ai/emergent.server.ts
+new file mode 100644
+index 0000000..1f49aeb
+--- /dev/null
++++ b/src/lib/ai/emergent.server.ts
+@@ -0,0 +1,89 @@
++/**
++ * Client Claude (server-only) via la passerelle LLM Emergent.
++ *
++ * La passerelle est OpenAI-compatible : on POST sur `${PROXY}/llm/chat/completions`
++ * avec `Authorization: Bearer <EMERGENT_LLM_KEY>` et un corps au format OpenAI
++ * (`{ model, messages }`). Le modèle est nommé directement (`claude-sonnet-5`).
++ *
++ * NE JAMAIS importer depuis le client : la clé ne doit jamais atteindre le
++ * navigateur. Appeler uniquement depuis un handler `createServerFn`.
++ */
++
++const PROXY = (
++  process.env.INTEGRATION_PROXY_URL ??
++  process.env.integration_proxy_url ??
++  "https://integrations.emergentagent.com"
++).replace(/\/+$/, "");
++
++const KEY = process.env.EMERGENT_LLM_KEY?.trim();
++
++/** Identifiant d'app facultatif, utilisé par la passerelle pour l'attribution. */
++const APP_ID = process.env.APP_URL?.trim() || process.env.REACT_APP_BACKEND_URL?.trim();
++
++/** Modèle par défaut choisi par l'utilisateur. */
++export const CLAUDE_MODEL = "claude-sonnet-5";
++
++export type ChatRole = "system" | "user" | "assistant";
++export type ChatMsg = { role: ChatRole; content: string };
++
++export class LlmKeyError extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = "LlmKeyError";
++  }
++}
++
++type Completion = {
++  choices?: { message?: { content?: string | { text?: string }[] } }[];
++};
++
++function readContent(data: Completion): string {
++  const content = data.choices?.[0]?.message?.content;
++  if (typeof content === "string") return content;
++  if (Array.isArray(content)) return content.map((c) => c?.text ?? "").join("");
++  return "";
++}
++
++/**
++ * Une complétion Claude, non-streaming. Renvoie le texte de la réponse.
++ * Lève `LlmKeyError` si la clé est absente/inactive pour un message clair côté UI.
++ */
++export async function claudeComplete(
++  messages: ChatMsg[],
++  opts: { model?: string; maxTokens?: number; temperature?: number } = {},
++): Promise<string> {
++  if (!KEY) {
++    throw new LlmKeyError(
++      "EMERGENT_LLM_KEY absente. Renseignez la clé Universal Emergent dans l'environnement.",
++    );
++  }
++  const res = await fetch(`${PROXY}/llm/chat/completions`, {
++    method: "POST",
++    headers: {
++      "Content-Type": "application/json",
++      Authorization: `Bearer ${KEY}`,
++      ...(APP_ID ? { "X-App-ID": APP_ID } : {}),
++    },
++    body: JSON.stringify({
++      model: opts.model ?? CLAUDE_MODEL,
++      messages,
++      max_tokens: opts.maxTokens ?? 900,
++      temperature: opts.temperature ?? 0.4,
++    }),
++  });
++
++  if (!res.ok) {
++    const body = (await res.text()).slice(0, 400);
++    if (res.status === 401 || res.status === 403 || /inactive|invalid api key/i.test(body)) {
++      throw new LlmKeyError(
++        "Clé Universal Emergent inactive. Activez-la (Profile → Manage plan → Universal Key → Add Balance).",
++      );
++    }
++    throw new Error(`Passerelle LLM ${res.status} : ${body}`);
++  }
++
++  const data = (await res.json()) as Completion;
++  const text = readContent(data).trim();
++  if (!text) throw new Error("Réponse vide du modèle.");
++  return text;
++}
+diff --git a/src/lib/bra/secrets.server.ts b/src/lib/bra/secrets.server.ts
+index 9ae0521..bc88314 100644
+--- a/src/lib/bra/secrets.server.ts
++++ b/src/lib/bra/secrets.server.ts
+@@ -1,4 +1,7 @@
+-/** Clé API Météo-France — serveur uniquement. Jamais exposée au navigateur. */
++/** Clé API Météo-France — serveur uniquement. Jamais exposée au navigateur.
++ *
++ * Lue depuis l'environnement (`METEOFRANCE_API_KEY`). NE PAS remettre la valeur
++ * en dur ici : l'ancienne clé était commitée et doit être révoquée puis
++ * régénérée sur le portail Météo-France, la nouvelle placée dans `.env`. */
+ 
+-export const METEOFRANCE_API_KEY =
+-  "eyJ4NXQiOiJZV0kxTTJZNE1qWTNOemsyTkRZeU5XTTRPV014TXpjek1UVmhNbU14T1RSa09ETXlOVEE0Tnc9PSIsImtpZCI6ImdhdGV3YXlfY2VydGlmaWNhdGVfYWxpYXMiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJiYWxkZXJAY2FyYm9uLnN1cGVyIiwiYXBwbGljYXRpb24iOnsib3duZXIiOiJiYWxkZXIiLCJ0aWVyUXVvdGFUeXBlIjpudWxsLCJ0aWVyIjoiVW5saW1pdGVkIiwibmFtZSI6IkRlZmF1bHRBcHBsaWNhdGlvbiIsImlkIjo0NDYyOCwidXVpZCI6ImU5MDY2ZGE3LThkMjQtNGQwYy04ZDQ0LWVmZjY1NDNlYTg0YSJ9LCJpc3MiOiJodHRwczpcL1wvcG9ydGFsLWFwaS5tZXRlb2ZyYW5jZS5mcjo0NDNcL29hdXRoMlwvdG9rZW4iLCJ0aWVySW5mbyI6eyI1MFBlck1pbiI6eyJ0aWVyUXVvdGFUeXBlIjoicmVxdWVzdENvdW50IiwiZ3JhcGhRTE1heENvbXBsZXhpdHkiOjAsImdyYXBoUUxNYXhEZXB0aCI6MCwic3RvcE9uUXVvdGFSZWFjaCI6dHJ1ZSwic3Bpa2VBcnJlc3RMaW1pdCI6MCwic3Bpa2VBcnJlc3RVbml0Ijoic2VjIn19LCJrZXl0eXBlIjoiUFJPRFVDVElPTiIsInN1YnNjcmliZWRBUElzIjpbeyJzdWJzY3JpYmVyVGVuYW50RG9tYWluIjoiY2FyYm9uLnN1cGVyIiwibmFtZSI6IkFST01FIiwiY29udGV4dCI6IlwvcHVibGljXC9hcm9tZVwvMS4wIiwicHVibGlzaGVyIjoiYWRtaW5fbWYiLCJ2ZXJzaW9uIjoiMS4wIiwic3Vic2NyaXB0aW9uVGllciI6IjUwUGVyTWluIn0seyJzdWJzY3JpYmVyVGVuYW50RG9tYWluIjoiY2FyYm9uLnN1cGVyIiwibmFtZSI6IkFST01FLVBJIiwiY29udGV4dCI6IlwvcHVibGljXC9hcm9tZXBpXC8xLjAiLCJwdWJsaXNoZXIiOiJhZG1pbl9tZiIsInZlcnNpb24iOiIxLjAiLCJzdWJzY3JpcHRpb25UaWVyIjoiNTBQZXJNaW4ifSx7InN1YnNjcmliZXJUZW5hbnREb21haW4iOiJjYXJib24uc3VwZXIiLCJuYW1lIjoiRG9ubmVlc1B1YmxpcXVlc0JSQSIsImNvbnRleHQiOiJcL3B1YmxpY1wvRFBCUkFcL3YxIiwicHVibGlzaGVyIjoiYmFzdGllbmcgIiwidmVyc2lvbiI6InYxIiwic3Vic2NyaXB0aW9uVGllciI6IjUwUGVyTWluIn0seyJzdWJzY3JpYmVyVGVuYW50RG9tYWluIjoiY2FyYm9uLnN1cGVyIiwibmFtZSI6IkRvbm5lZXNQdWJsaXF1ZXNDbGltYXRvbG9naWUiLCJjb250ZXh0IjoiXC9wdWJsaWNcL0RQQ2xpbVwvdjEiLCJwdWJsaXNoZXIiOiJhZG1pbl9tZiIsInZlcnNpb24iOiJ2MSIsInN1YnNjcmlwdGlvblRpZXIiOiI1MFBlck1pbiJ9XSwiZXhwIjoxODgzNjQ1MDkwLCJ0b2tlbl90eXBlIjoiYXBpS2V5IiwiaWF0IjoxNzg4OTcyMjkwLCJqdGkiOiI3YWVkZTI2YS03YTRlLTRlYTAtYWExYi03ZWYyZWJjYTQzMGUifQ==.pZXRTDM84vF4We2luGW4Br_CkItAUkOjHRYkJyxqYYJK67DTy5tDQNOlKlixfXloVcsiXeDaXNBLaXE60VgiU3pC2Hynkmc_Te70cDR1OCytSh0AubOcM0kF45dNWZQHqUOn9-NAho5Atp-FkUyTp_9OcHTGjXIMRQYB63j2UUsfcpGB-NJLNgsf_FE9nokdb1RyOx7AB7U8UOXBhsctMdaHHjO6JGWcXj5BVQjsqI4eumSX-CCgTcr6k5TheDQKOfk69i-Q2WL06fcnayoPbwWOt9-JRqWymcGsQrv6Iw2Nu384PTwrFn8WUHAdbRBflaGZOWLwCUNCXD_qAw2kbg==";
++export const METEOFRANCE_API_KEY = process.env.METEOFRANCE_API_KEY?.trim() ?? "";
+diff --git a/src/lib/searchStay.ts b/src/lib/searchStay.ts
+index 29071a7..8b2337d 100644
+--- a/src/lib/searchStay.ts
++++ b/src/lib/searchStay.ts
+@@ -17,6 +17,8 @@ const Input = z.object({
+ export const searchStay = createServerFn({ method: "POST" })
+   .validator(Input)
+   .handler(async ({ data }): Promise<LiveSearchResult> => {
++    const { rateLimit, clientKey, RateLimitError } = await import("./serverRate.server");
++    if (!rateLimit(`search:${clientKey()}`, 20, 60_000)) throw new RateLimitError();
+     const { runLiveSearch } = await import("./scrape/run.server");
+     return runLiveSearch(data, data.part ?? "all");
+   });
+diff --git a/src/lib/serverRate.server.ts b/src/lib/serverRate.server.ts
+new file mode 100644
+index 0000000..91b5304
+--- /dev/null
++++ b/src/lib/serverRate.server.ts
+@@ -0,0 +1,43 @@
++/**
++ * Limiteur de débit en mémoire (server-only), best-effort.
++ *
++ * Efficace sur un hôte Node persistant (le compteur est partagé par le process).
++ * En serverless éphémère il ne protège qu'à l'échelle d'une instance chaude —
++ * pour une vraie protection multi-instances, adosser à Redis/Upstash.
++ */
++import { getRequest } from "@tanstack/react-start/server";
++
++const hits = new Map<string, number[]>();
++
++/** Retourne false si `key` a dépassé `max` appels dans la fenêtre `windowMs`. */
++export function rateLimit(key: string, max: number, windowMs: number): boolean {
++  const now = Date.now();
++  const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
++  if (recent.length >= max) {
++    hits.set(key, recent);
++    return false;
++  }
++  recent.push(now);
++  hits.set(key, recent);
++  return true;
++}
++
++/** Clé d'appelant depuis l'IP (x-forwarded-for), sinon "anon". */
++export function clientKey(): string {
++  try {
++    const req = getRequest();
++    const fwd = req?.headers.get("x-forwarded-for") ?? "";
++    const ip = fwd.split(",")[0]?.trim();
++    return ip || "anon";
++  } catch {
++    return "anon";
++  }
++}
++
++export class RateLimitError extends Error {
++  readonly status = 429;
++  constructor(message = "Trop de requêtes. Réessayez dans un instant.") {
++    super(message);
++    this.name = "RateLimitError";
++  }
++}
+diff --git a/src/routes/__root.tsx b/src/routes/__root.tsx
+index c9963f3..c195412 100644
+--- a/src/routes/__root.tsx
++++ b/src/routes/__root.tsx
+@@ -1,5 +1,6 @@
+ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+ import { AuthProvider } from "@/lib/auth/provider";
++import { SkiAssistant } from "@/components/SkiAssistant";
+ import { PreviewHostBridge } from "@/components/preview-host-bridge";
+ import { ThemeSync } from "@/lib/theme";
+ import appCss from "../styles.css?url";
+@@ -43,6 +44,7 @@ export const Route = createRootRoute({
+         <ThemeSync />
+         <AuthProvider>
+           <Outlet />
++          <SkiAssistant />
+         </AuthProvider>
+         <Scripts />
+       </body>
+-- 
+2.39.5
+

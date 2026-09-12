@@ -37,3 +37,9 @@ scrape/**/.browsers/
 sidecar/
 tools/
 vendor/
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

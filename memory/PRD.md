@@ -11,6 +11,7 @@ scrapers Playwright, wrapper Electron. Cloné et travaillé dans **/app/skitrack
 - `src/components/LodgeMap.tsx` : carte Leaflet, pastilles-prix par annonce, épingle station + cercle 5 km, survol/clic synchronisés liste↔carte.
 - `logements.tsx` : filtre « aucune annonce > 5 km de la station » (haversine `metresBetween`, annonces sans coords conservées car non mesurables), split liste/carte collante, compteur des masqués.
 - Vérifié preview : 21 pastilles, cercle 5 km, « 1 bien masqué : à plus de 5 km » (26/27). Typecheck 0, lint 0. Commit db08c5b · patch `/app/skitrack-lodging-map.patch`.
+- **v2 (commit d41e5e9)** : rayon réglable 1–10 km, regroupement des pastilles (clusters qui s'éclatent au zoom), pastille prix total/personne selon le tri, vignette (photo+titre) au survol, filtres sources + altitude min, clic annonce → fiche détail (`LodgeSheet` : lieu, accès ski, distance remontées, altitude modèle, GPX). Vérifié preview. Typecheck 0, lint 0.
 
 ### Intégration Claude Sonnet 5 (assistant ski, branche feat/claude-assistant, base 6829894)
 - Passerelle LLM Emergent en Node/TS (`src/lib/ai/emergent.server.ts`), endpoint

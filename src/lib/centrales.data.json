@@ -1,0 +1,278 @@
+{
+ "at": "2026-09-08",
+ "source": "docs/sources/centrales-selecteurs.xlsx, relevé du 19/08/2026, extrait du commit 2d960d5 (sélecteurs de scraping retirés)",
+ "stations": {
+  "les-2-alpes": {
+   "nom": "Les 2 Alpes",
+   "url": "https://reservation.les2alpes.com/location-appartement-2-alpes.html",
+   "host": "reservation.les2alpes.com"
+  },
+  "chamonix": {
+   "nom": "Chamonix",
+   "url": "https://booking.chamonix.com/fr/",
+   "host": "booking.chamonix.com"
+  },
+  "areches-beaufort": {
+   "nom": "Arêches Beaufort",
+   "url": "https://reservation.areches-beaufort.com/",
+   "host": "reservation.areches-beaufort.com"
+  },
+  "crest-voland-cohennoz": {
+   "nom": "Crest-Voland",
+   "url": "https://reservation.valdarly-montblanc.com/",
+   "host": "reservation.valdarly-montblanc.com"
+  },
+  "flumet-st-nicolas-la-chapelle": {
+   "nom": "Flumet",
+   "url": "https://reservation.valdarly-montblanc.com/",
+   "host": "reservation.valdarly-montblanc.com"
+  },
+  "la-giettaz": {
+   "nom": "La Giettaz en Aravis",
+   "url": "https://reservation.valdarly-montblanc.com/",
+   "host": "reservation.valdarly-montblanc.com"
+  },
+  "notre-dame-de-bellecombe": {
+   "nom": "Notre-Dame-de-Bellecombe",
+   "url": "https://reservation.valdarly-montblanc.com/",
+   "host": "reservation.valdarly-montblanc.com"
+  },
+  "la-norma": {
+   "nom": "La Norma",
+   "url": "https://reservation.haute-maurienne-vanoise.com/ac54-la-norma.htm",
+   "host": "reservation.haute-maurienne-vanoise.com"
+  },
+  "la-plagne": {
+   "nom": "Plagne Aime 2000",
+   "url": "https://www.laplagneresort.com/",
+   "host": "www.laplagneresort.com"
+  },
+  "champagny-en-vanoise": {
+   "nom": "Champagny en Vanoise",
+   "url": "https://www.laplagneresort.com/",
+   "host": "www.laplagneresort.com"
+  },
+  "montchavin-les-coches": {
+   "nom": "Montchavin les Coches",
+   "url": "https://www.laplagneresort.com/",
+   "host": "www.laplagneresort.com"
+  },
+  "la-rosiere-1850": {
+   "nom": "La Rosière",
+   "url": "https://reservation.larosiere.net/",
+   "host": "reservation.larosiere.net"
+  },
+  "les-karellis": {
+   "nom": "Les Karellis",
+   "url": "https://www.karellis.com/",
+   "host": "www.karellis.com"
+  },
+  "les-saisies": {
+   "nom": "Les Saisies",
+   "url": "https://reservation.lessaisies.com/",
+   "host": "reservation.lessaisies.com"
+  },
+  "pralognan-la-vanoise": {
+   "nom": "Pralognan la Vanoise",
+   "url": "https://www.reservationpralognan.fr/",
+   "host": "www.reservationpralognan.fr"
+  },
+  "saint-francois-longchamp": {
+   "nom": "Saint François Longchamp",
+   "url": "https://reservation.saintfrancoislongchamp.com/",
+   "host": "reservation.saintfrancoislongchamp.com"
+  },
+  "saint-martin-de-belleville": {
+   "nom": "Saint Martin de Belleville",
+   "url": "https://fr.locationsaintmartin.com/",
+   "host": "fr.locationsaintmartin.com"
+  },
+  "sainte-foy-tarentaise": {
+   "nom": "Sainte-Foy Tarentaise",
+   "url": "https://www.saintefoy-reservation.com/fr/",
+   "host": "www.saintefoy-reservation.com"
+  },
+  "val-cenis": {
+   "nom": "Val Cenis",
+   "url": "https://reservation.haute-maurienne-vanoise.com/ac57-val-cenis.htm",
+   "host": "reservation.haute-maurienne-vanoise.com"
+  },
+  "valloire": {
+   "nom": "Valloire",
+   "url": "https://www.valloire.com/",
+   "host": "www.valloire.com"
+  },
+  "valmeinier": {
+   "nom": "Valmeinier",
+   "url": "https://www.valmeinier-reservation.com/hiver",
+   "host": "www.valmeinier-reservation.com"
+  },
+  "valmorel": {
+   "nom": "Valmorel",
+   "url": "https://www.valmorel.com/",
+   "host": "www.valmorel.com"
+  },
+  "combloux": {
+   "nom": "Combloux",
+   "url": "https://reservation.combloux.com/?lang=fr_FR",
+   "host": "reservation.combloux.com"
+  },
+  "la-clusaz": {
+   "nom": "La Clusaz",
+   "url": "https://www.laclusaz.com/",
+   "host": "www.laclusaz.com"
+  },
+  "aussois": {
+   "nom": "Aussois",
+   "url": "https://reservation.haute-maurienne-vanoise.com/ac62-aussois.htm",
+   "host": "reservation.haute-maurienne-vanoise.com"
+  },
+  "bonneval-sur-arc": {
+   "nom": "Bonneval-sur-Arc",
+   "url": "https://reservation.haute-maurienne-vanoise.com/ac64-bonneval-sur-arc.htm",
+   "host": "reservation.haute-maurienne-vanoise.com"
+  },
+  "courchevel": {
+   "nom": "Courchevel",
+   "url": "https://reservation.courchevel.com/?lang=fr_FR",
+   "host": "reservation.courchevel.com"
+  },
+  "les-arcs-bourg-st-maurice": {
+   "nom": "Les Arcs",
+   "url": "https://www.peisey-vallandry.com/",
+   "host": "www.peisey-vallandry.com"
+  },
+  "valfrejus": {
+   "nom": "Valfréjus",
+   "url": "https://www.valfrejus.com/",
+   "host": "www.valfrejus.com"
+  },
+  "chamrousse": {
+   "nom": "Chamrousse",
+   "url": "https://www.chamrousse.com/hiver",
+   "host": "www.chamrousse.com"
+  },
+  "le-collet-dallevard": {
+   "nom": "Le Collet d'Allevard",
+   "url": "https://reservation.lecollet.com/",
+   "host": "reservation.lecollet.com"
+  },
+  "isola-2000": {
+   "nom": "Isola 2000",
+   "url": "https://isola2000.com/reservez-votre-sejour/#/lodgings",
+   "host": "isola2000.com"
+  },
+  "superdevoluy-la-joue-du-loup": {
+   "nom": "Dévoluy",
+   "url": "https://reservation.ledevoluy.com/",
+   "host": "reservation.ledevoluy.com"
+  },
+  "orcieres": {
+   "nom": "Orcières Merlette",
+   "url": "https://reservation.orcieres.com/",
+   "host": "reservation.orcieres.com"
+  },
+  "valberg": {
+   "nom": "Valberg",
+   "url": "https://www.valberg.com/sejourner/reserver-votre-sejour/#/lodgings",
+   "host": "www.valberg.com"
+  },
+  "les-orres": {
+   "nom": "Les Orres",
+   "url": "https://reservation.lesorres.com/",
+   "host": "reservation.lesorres.com"
+  },
+  "montgenevre": {
+   "nom": "Montgenèvre",
+   "url": "https://reservation.montgenevre.com/",
+   "host": "reservation.montgenevre.com"
+  },
+  "puy-saint-vincent": {
+   "nom": "Puy-Saint-Vincent",
+   "url": "https://www.paysdesecrins.com/hebergements/#/lodgings",
+   "host": "www.paysdesecrins.com"
+  },
+  "serre-chevalier": {
+   "nom": "Serre-Chevalier",
+   "url": "https://reservation.serre-chevalier.com/",
+   "host": "reservation.serre-chevalier.com"
+  },
+  "val-dallos-la-foux-le-seignus": {
+   "nom": "Val d'Allos - La Foux",
+   "url": "https://www.valdallos.com/",
+   "host": "www.valdallos.com"
+  },
+  "ax-3-domaines": {
+   "nom": "Ax 3 Domaines",
+   "url": "https://reservation.ax-ski.com/",
+   "host": "reservation.ax-ski.com"
+  },
+  "la-mongie-bareges": {
+   "nom": "Grand Tourmalet",
+   "url": "https://www.n-py.com/fr/ete/sejour-pyrenees/hebergement",
+   "host": "www.n-py.com"
+  },
+  "les-angles": {
+   "nom": "Les Angles",
+   "url": "https://lesangles.com/offres-hebergements/",
+   "host": "lesangles.com"
+  },
+  "saint-lary-soulan": {
+   "nom": "Saint Lary",
+   "url": "https://resa.saintlary.com/",
+   "host": "resa.saintlary.com"
+  },
+  "besse-super-besse": {
+   "nom": "Super Besse",
+   "url": "https://www.sancy.com/hebergement/",
+   "host": "www.sancy.com"
+  },
+  "le-mont-dore": {
+   "nom": "le Mont Dore",
+   "url": "https://www.sancy.com/hebergement/",
+   "host": "www.sancy.com"
+  },
+  "la-bresse-hohneck": {
+   "nom": "La Bresse Hohneck",
+   "url": "https://www.labresse.net/hebergements-a-la-bresse-hautes-vosges/",
+   "host": "www.labresse.net"
+  },
+  "saint-maurice-sur-moselle": {
+   "nom": "Saint Maurice sur Moselle",
+   "url": "https://www.ballons-hautes-vosges.com/",
+   "host": "www.ballons-hautes-vosges.com"
+  },
+  "gerardmer": {
+   "nom": "Gérardmer",
+   "url": "https://www.gerardmer-reservation.net/",
+   "host": "www.gerardmer-reservation.net"
+  }
+ },
+ "domaines": {
+  "Alpe d'Huez Grand Domaine": {
+   "url": "https://reservation.alpedhuez.com/?user-facet=winter",
+   "host": "reservation.alpedhuez.com"
+  },
+  "Les Trois Vallées": {
+   "url": "https://fr.locationlesmenuires.com/",
+   "host": "fr.locationlesmenuires.com"
+  },
+  "Les Sybelles": {
+   "url": "https://reservation.la-toussuire.com/z14220_fr-.aspx",
+   "host": "reservation.la-toussuire.com"
+  },
+  "Tignes - Val d'Isère": {
+   "url": "https://reservation.tignes.net/",
+   "host": "reservation.tignes.net"
+  },
+  "Forêt Blanche : Vars/Risoul": {
+   "url": "https://www.risoul.com/reserver.html",
+   "host": "www.risoul.com"
+  }
+ },
+ "nonRattachees": [
+  "Les Alberts",
+  "Les Hameaux de la Roche",
+  "Vallée"
+ ]
+}

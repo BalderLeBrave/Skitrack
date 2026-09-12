@@ -8,11 +8,32 @@ describe("OpenSkiMap × Skiinfo", () => {
     const s = osmSkiinfoSummary(osmSkiinfoAll());
     assert.equal(s.n, 231);
     assert.equal(s.segments, 122);
-    assert.equal(s.km_court, 65);
+    assert.equal(s.km_court, 46);
     assert.equal(s.ok, 25);
-    assert.equal(s.ecart_n, 15);
+    assert.equal(s.ecart_n, 11);
     assert.equal(s.grain_domaine, 2);
+    // Vingt-trois stations ont un domaine OSM dont les comptes valent zéro.
+    // Elles étaient réparties entre « km OSM court » (19) et « écart de
+    // comptes » (4), deux verdicts qui décrivent un écart de mesure là où il
+    // n'y a aucune mesure. Elles ont leur propre verdict.
+    assert.equal(s.osm_vide, 23);
     assert.equal(s.osm_absent, 2);
+    assert.equal(
+      s.segments + s.km_court + s.ok + s.ecart_n + s.grain_domaine + s.osm_vide + s.osm_absent,
+      231,
+    );
+  });
+
+  it("un domaine OSM à zéro piste se dit vide, pas plus court", () => {
+    const rows = osmSkiinfoAll().filter((r) => r.verdict === "osm_vide");
+    assert.equal(rows.length, 23);
+    // Le zéro vient bien du témoin, il n'est pas fabriqué ici.
+    for (const r of rows) {
+      assert.equal(r.nOsm, 0);
+      assert.equal(r.kmOsm, 0);
+    }
+    // « absent » reste distinct : là, il n'y a pas de domaine du tout.
+    assert.equal(osmSkiinfoAll().filter((r) => r.verdict === "osm_absent").length, 2);
   });
 
   it("2 Alpes : OSM 225 tracés / 107 km vs Skiinfo 96 pistes / 220 km", () => {

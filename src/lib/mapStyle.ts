@@ -15,7 +15,18 @@ export type BasemapDef = {
   tiles: readonly string[];
   maxzoom: number;
   attribution: string;
+  /** Emprise servie par la source, si elle n'est pas mondiale. */
+  bounds?: readonly [number, number, number, number];
 };
+
+/** France métropolitaine et Corse.
+ *
+ *  Les couches IGN ne servent pas le monde : hors emprise, `data.geopf.fr`
+ *  répond 404, et la console de l'écran Carte en portait un à chaque
+ *  chargement (une tuile au zoom 7, au-dessus de la Suisse). Déclarer l'emprise
+ *  empêche la requête au lieu de la laisser échouer. Les 320 stations du
+ *  référentiel y sont toutes. */
+const FRANCE_BOUNDS = [-5.3, 41.2, 9.8, 51.2] as const;
 
 export const PISTE_OVERLAY = {
   tiles: ["https://tiles.opensnowmap.org/pistes/{z}/{x}/{y}.png"] as const,
@@ -35,6 +46,7 @@ const OPENTOPO = {
 };
 
 const IGN_PLAN = {
+  bounds: FRANCE_BOUNDS,
   tiles: [
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
   ] as const,
@@ -43,6 +55,7 @@ const IGN_PLAN = {
 };
 
 const IGN_ORTHO = {
+  bounds: FRANCE_BOUNDS,
   tiles: [
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
   ] as const,
@@ -51,6 +64,7 @@ const IGN_ORTHO = {
 };
 
 const IGN_PENTES = {
+  bounds: FRANCE_BOUNDS,
   tiles: [
     "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.SLOPES.MOUNTAIN&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
   ] as const,
@@ -97,6 +111,7 @@ export function skiMapStyle(active: BasemapKey = DEFAULT_BASEMAP, pistes = true,
       tileSize: 256,
       maxzoom: b.maxzoom,
       attribution: b.attribution,
+      ...(b.bounds ? { bounds: [...b.bounds] } : {}),
     },
     "ov-pentes": {
       type: "raster",
@@ -104,6 +119,7 @@ export function skiMapStyle(active: BasemapKey = DEFAULT_BASEMAP, pistes = true,
       tileSize: 256,
       maxzoom: IGN_PENTES.maxzoom,
       attribution: IGN_PENTES.attribution,
+      bounds: [...IGN_PENTES.bounds],
     },
     "ov-pistes": {
       type: "raster",

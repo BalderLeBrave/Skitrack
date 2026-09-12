@@ -106,7 +106,9 @@ function Traces() {
 
       <div className="grid flex-1 items-start gap-4 px-4 py-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(520px,1.15fr)]">
         <div className={`${tab === "carte" ? "hidden lg:block" : ""} grid gap-4`}>
-          <section className={`rounded-[var(--radius-card)] bg-panel p-4 ${tab === "logements" ? "hidden lg:block" : ""}`}>
+          <section
+            className={`rounded-[var(--radius-card)] bg-panel p-4 ${tab === "logements" ? "hidden lg:block" : ""}`}
+          >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h1 className="font-display text-2xl tracking-tight">Trace GPX</h1>
@@ -173,18 +175,23 @@ function Traces() {
               </dl>
             ) : (
               <p className="mt-4 text-sm text-muted">
-                Aucune trace. Les logements ci-dessous viennent du relevé de séjour — pas d’un jeu inventé.
+                Aucune trace. Les logements ci-dessous viennent du relevé de séjour, pas d’un jeu
+                inventé.
               </p>
             )}
             {points.length > 0 ? (
               <div className="mt-4">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Profil d’altitude</p>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">
+                  Profil d’altitude
+                </p>
                 <ElevationProfile points={points} />
               </div>
             ) : null}
           </section>
 
-          <section className={`rounded-[var(--radius-card)] bg-panel p-4 ${tab === "trace" ? "hidden lg:block" : ""}`}>
+          <section
+            className={`rounded-[var(--radius-card)] bg-panel p-4 ${tab === "trace" ? "hidden lg:block" : ""}`}
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-xl">Logements et départ</h2>
               <p className="text-sm text-muted">
@@ -251,7 +258,7 @@ function Traces() {
                         </td>
                         <td>{formatEuro(listing.total)}</td>
                         <td>{formatPerPerson(listing.total, guests)}</td>
-                        <td>{sectorOf(listing) ?? "—"}</td>
+                        <td>{sectorOf(listing) ?? "–"}</td>
                         <td>
                           {skiAccessLabel(listing.distToLiftM) ? (
                             <span className="block text-xs font-semibold">
@@ -265,7 +272,7 @@ function Traces() {
                             ? gpxM == null
                               ? "GPS logement manquant"
                               : formatDistFrom(gpxM, "de la trace")
-                            : "—"}
+                            : "–"}
                         </td>
                       </tr>
                     ))}
@@ -285,7 +292,10 @@ function Traces() {
               label={stats ? "Départ GPX" : station?.name}
               track={points}
               pins={raw
-                .filter((l): l is Listing & { lat: number; lon: number } => l.lat != null && l.lon != null)
+                .filter(
+                  (l): l is Listing & { lat: number; lon: number } =>
+                    l.lat != null && l.lon != null,
+                )
                 .map((l) => ({
                   id: l.id,
                   lat: l.lat,

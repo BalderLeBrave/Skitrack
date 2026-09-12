@@ -45,6 +45,31 @@ export const DOMAIN_FIXES: Record<string, string> = {
   Samoens: "Le Grand Massif",
 };
 
+/** Libellé que le classeur emploie quand OpenSkiMap ne publie pas de nom de
+ *  domaine. **Ce n'est pas une identité partagée** : trois domaines distincts
+ *  et sans nom le portent, chacun avec ses mesures propres (1,4 / 0,4 / 0,2 km).
+ *  C'est donc le seul libellé exempté de la règle « un domaine, un jeu de
+ *  chiffres », et l'exemption est vérifiée par `classeur.test.ts`. */
+export const UNNAMED_DOMAIN = "domaine non nommé (OpenStreetMap)";
+
+/** Les chiffres d'échelle domaine, pris ensemble.
+ *
+ *  Ils vont ensemble parce qu'ils décrivent le même objet : corriger le
+ *  rattachement d'une station sans les déplacer laissait le libellé annoncer
+ *  « Les Trois Vallées » à côté des 195,7 km de Galibier-Thabor, c'est-à-dire
+ *  deux affirmations contradictoires sur le même écran. */
+export type DomainMeasure = {
+  km: number | null;
+  slopes: number | null;
+  lifts: number | null;
+  counts: ColorCounts | null;
+  /** Domaine sur lequel OpenSkiMap a mesuré ces chiffres. */
+  measuredOn: string | null;
+  /** Vrai quand `DOMAIN_FIXES` a corrigé le rattachement et que les chiffres
+   *  ont suivi, au lieu de rester ceux du domaine que le classeur avait retenu. */
+  realigned: boolean;
+};
+
 /** Garde-fou de dernier recours sur les correspondances de nom. Généreux : les
  *  deux sources posent le pin à des endroits différents d'une même station
  *  étendue — Les Menuires 5,7 km, Monts Jura 8,0 km, Le Corbier 5,9 km. Il
@@ -134,9 +159,16 @@ export type ClasseurEntry = {
   depotId: string | null;
   kind: StationKind;
   domain: string | null;
+  /** Chiffres d'échelle domaine, réalignés si le rattachement a été corrigé. */
+  measure: DomainMeasure;
 };
 
-function buildEntries(): { entries: ClasseurEntry[]; duplicates: string[]; collisions: string[] } {
+function buildEntries(): {
+  entries: ClasseurEntry[];
+  duplicates: string[];
+  collisions: string[];
+  realigned: string[];
+} {
   const byDepotId = new Map(DEPOT_GEO.map((d) => [d.id, d]));
   const byDepotName = new Map<string, DepotGeo>();
   for (const d of DEPOT_GEO) {
@@ -210,17 +242,51 @@ function buildEntries(): { entries: ClasseurEntry[]; duplicates: string[]; colli
     idOf.set(fm, id);
   }
 
+  // 5. Chiffres d'échelle domaine. Une ligne dont `DOMAIN_FIXES` corrige le
+  //    rattachement garde, dans le classeur, les mesures du domaine que le vote
+  //    de proximité lui avait attribué : Orelle porte les 195,7 km de
+  //    Galibier-Thabor tout en étant rattachée aux Trois Vallées. Le libellé et
+  //    les chiffres se contredisaient alors sur le même écran. On prend donc les
+  //    mesures du domaine d'arrivée, telles qu'une ligne non corrigée de ce
+  //    domaine les publie. Rien n'est recalculé ni moyenné : les chiffres
+  //    existent déjà, ils changent seulement de porteur.
+  const measureOf = (fm: FmStation): DomainMeasure => ({
+    km: fm.km,
+    slopes: fm.slopes,
+    lifts: fm.lifts,
+    counts: countsOf(fm),
+    measuredOn: fm.domain,
+    realigned: false,
+  });
+
+  const nativeByDomain = new Map<string, DomainMeasure>();
+  for (const fm of unique) {
+    if (!fm.domain || fm.domain === UNNAMED_DOMAIN) continue;
+    // Une ligne corrigée ne fait pas autorité sur le domaine qu'elle rejoint.
+    if (DOMAIN_FIXES[fm.fmName]) continue;
+    if (!nativeByDomain.has(fm.domain)) nativeByDomain.set(fm.domain, measureOf(fm));
+  }
+
+  const realigned: string[] = [];
   const entries = unique.map((fm) => {
     const depot = pairedDepot.get(fm);
+    const fixedTo = DOMAIN_FIXES[fm.fmName];
+    const target = fixedTo ? nativeByDomain.get(fixedTo) : undefined;
+    let measure = measureOf(fm);
+    if (fixedTo && target) {
+      measure = { ...target, realigned: true };
+      realigned.push(`${fm.fmName} : ${fm.domain ?? "sans domaine"} → ${fixedTo}`);
+    }
     return {
       fm,
       id: idOf.get(fm)!,
       depotId: depot?.id ?? null,
       kind: fm.kind === "village" ? ("village-station" as const) : ("station" as const),
-      domain: DOMAIN_FIXES[fm.fmName] ?? fm.domain,
+      domain: fixedTo ?? fm.domain,
+      measure,
     };
   });
-  return { entries, duplicates, collisions };
+  return { entries, duplicates, collisions, realigned };
 }
 
 const built = buildEntries();
@@ -233,6 +299,11 @@ export const CLASSEUR_DUPLICATES: string[] = built.duplicates;
 /** Lignes distinctes dont le nom se réduisait à un identifiant déjà pris, et
  *  qui ont reçu leur numéro de classeur en suffixe. */
 export const CLASSEUR_ID_COLLISIONS: string[] = built.collisions;
+
+/** Stations dont les chiffres de domaine ont suivi la correction de
+ *  rattachement. Exporté pour que la correction se lise, plutôt que d'agir en
+ *  silence sur trois lignes perdues dans 284. */
+export const CLASSEUR_REALIGNED: string[] = built.realigned;
 
 /** Répartition par couleur en %, dérivée des tronçons du domaine. `null` quand
  *  aucune couleur n'est comptée — jamais un zéro inventé. */

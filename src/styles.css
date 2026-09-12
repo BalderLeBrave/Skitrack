@@ -10,7 +10,10 @@
   --color-snow: #f4f8fb;
   --color-line: #c5d7e6;
   --color-glass: rgb(247 251 254 / 0.72);
-  --color-panel: #ffffff;
+  /* Blanc pur proscrit par la charte : un fond de carte à #ffffff ne se
+     distingue pas du papier et écrase la teinte bleutée du reste. Blanc à
+     peine teinté, comme `--v6-surface`. */
+  --color-panel: #fdfeff;
   /* Maquette « Carte des stations » : marque, bordures, textes secondaires. */
   --color-marque: #0b6fc2;
   --color-marque-tenue: #eef6fd;
@@ -135,6 +138,17 @@ html[data-theme="dark"] {
   padding: 4px;
   border-radius: 999px;
   background: var(--color-glacier);
+  /* Sans cela, le fil du parcours impose sa largeur à la page : 492 px sur un
+     écran de 390, et tout l'écran défile latéralement. Il défile lui-même. */
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.journey::-webkit-scrollbar {
+  display: none;
+}
+.journey > * {
+  flex: none;
 }
 
 .jl {

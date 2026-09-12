@@ -41,7 +41,7 @@ export function GpxDrop() {
       <Upload className="size-5" aria-hidden />
       <span>
         <strong>Déposez un GPX</strong>
-        <span className="block text-sm text-muted">ou cliquez pour choisir un fichier. Lat / lon / altitude lus dans le fichier — rien n’est inventé.</span>
+        <span className="block text-sm text-muted">ou cliquez pour choisir un fichier. Lat / lon / altitude lus dans le fichier, rien n’est inventé.</span>
       </span>
       <input
         type="file"

@@ -197,6 +197,14 @@ export function AlpineMap({
           <i style={{ background: "var(--color-cta)" }} />
           Station survolée ou sélectionnée
         </span>
+        {/* La carte garde toutes les épingles et estompe celles qui sortent du
+            filtre, au lieu de les retirer. C'est voulu — on voit ce qu'on
+            écarte — mais la liste peut alors annoncer « 0 station sur 320 » à
+            côté d'une carte encore constellée. La légende le dit. */}
+        <span>
+          <i style={{ background: "var(--color-marque)", opacity: 0.18 }} />
+          Hors filtre : estompée, jamais retirée
+        </span>
         <span className="text-texte-2">
           Coordonnées et altitudes : France Montagnes / OpenSkiMap.
         </span>

@@ -50,7 +50,7 @@ function PisteBar({ station }: { station: Station }) {
       : null,
   ]
     .filter(Boolean)
-    .join(" — ");
+    .join(" · ");
   return (
     <span className="carte-row__pistes" title={title}>
       <span className="bar">
@@ -429,7 +429,7 @@ function Carte() {
 
                   <p className="carte__note">
                     Sources : France Montagnes (référentiel), OpenSkiMap (pistes, remontées). Une
-                    station hors classeur n'affiche ni domaine, ni remontées, ni répartition — la
+                    station hors classeur n'affiche ni domaine, ni remontées, ni répartition : la
                     donnée n'est pas estimée.
                   </p>
                 </div>

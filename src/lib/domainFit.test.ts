@@ -33,8 +33,13 @@ const pastourelle = {
 describe("domaine skiable ≠ rayon kilométrique", () => {
   it("Le Fornet est Val d’Isère, pas Bonneval", () => {
     assert.equal(stationIdFromText("Chalet au Fornet"), "val-disere");
+    // Le Fornet est une entrée du classeur depuis la bascule : son propre pin
+    // est à 55 m. Ce qui compte reste qu’il relève de Val d’Isère, pas de
+    // Bonneval, et que son domaine soit bien Tignes – Val d’Isère.
     const fornet = nearestStationPin(45.450318, 7.011062);
-    assert.equal(fornet.station.id, "val-disere");
+    assert.equal(fornet.station.id, "le-fornet");
+    assert.equal(fornet.station.domain, "Tignes - Val d'Isère");
+    assert.notEqual(fornet.station.id, "bonneval-sur-arc");
     const fit = domainFit({ lat: 45.450318, lon: 7.011062, title: "Le Fornet" }, val());
     assert.equal(fit.verdict, "in");
   });

@@ -10,25 +10,30 @@ import {
 import { STATIONS } from "./stations.ts";
 
 describe("carte alpine + IGN", () => {
-  it("156 stations alpines FR, IGN RGE ALTI au pin pour chacune", () => {
+  it("231 stations alpines FR, IGN RGE ALTI au pin pour celles du dépôt", () => {
     const rows = alpineStations();
-    assert.equal(rows.length, 156);
-    assert.equal(rows.filter((s) => s.massif === "Alpes du Nord").length, 112);
-    assert.equal(rows.filter((s) => s.massif === "Alpes du Sud").length, 44);
+    assert.equal(rows.length, 231);
+    assert.equal(rows.filter((s) => s.massif === "Alpes du Nord").length, 167);
+    assert.equal(rows.filter((s) => s.massif === "Alpes du Sud").length, 64);
     assert.ok(STATIONS.filter((s) => !isAlpine(s)).every((s) => !s.massif.startsWith("Alpes")));
     assert.equal(ign.source, "IGN RGE ALTI");
-    for (const s of rows) {
+    // Le classeur n’apporte pas de relevé IGN au pin : l’invariant ne vaut
+    // que pour les stations qui viennent du dépôt.
+    const depot = rows.filter((s) => s.origin === "depot");
+    assert.equal(depot.length, 156);
+    for (const s of depot) {
       assert.equal(s.demM, ign.m[s.id as keyof typeof ign.m], s.id);
       assert.ok(s.demM != null && s.demM > 400 && s.demM < 4000, s.id);
     }
+    assert.ok(rows.filter((s) => s.origin === "classeur").every((s) => s.demM == null));
   });
 
-  it("France entière : 231 pins, massifs hors Alpes présents", () => {
-    assert.equal(mapFilter(STATIONS, "all").length, 231);
-    assert.equal(mapFilter(STATIONS, "pyrenees").length, 35);
-    assert.equal(mapFilter(STATIONS, "jura").length, 9);
-    assert.equal(mapFilter(STATIONS, "vosges").length, 17);
-    assert.equal(mapFilter(STATIONS, "central").length, 13);
+  it("France entière : 320 pins, massifs hors Alpes présents", () => {
+    assert.equal(mapFilter(STATIONS, "all").length, 320);
+    assert.equal(mapFilter(STATIONS, "pyrenees").length, 40);
+    assert.equal(mapFilter(STATIONS, "jura").length, 13);
+    assert.equal(mapFilter(STATIONS, "vosges").length, 19);
+    assert.equal(mapFilter(STATIONS, "central").length, 16);
     assert.equal(mapFilter(STATIONS, "corse").length, 1);
   });
 
@@ -51,7 +56,7 @@ describe("carte alpine + IGN", () => {
 
   it("GeoJSON : Valmeinier ≠ Valloire ; Oz n’est plus au Pic Blanc", () => {
     const fc = alpineFeatureCollection(mapFilter(STATIONS, "all"));
-    assert.equal(fc.features.length, 231);
+    assert.equal(fc.features.length, 320);
     const vt = fc.features.find((f) => f.properties?.id === "valmeinier")!;
     const vo = fc.features.find((f) => f.properties?.id === "valloire")!;
     const oz = fc.features.find((f) => f.properties?.id === "oz-en-oisans")!;
@@ -61,11 +66,16 @@ describe("carte alpine + IGN", () => {
     assert.equal(oz.properties?.demM, 1333);
   });
 
-  it("chaque pin a la photo Skiinfo", () => {
+  it("chaque pin du dépôt a la photo Skiinfo ; le classeur n’en a pas", () => {
     const fc = alpineFeatureCollection(mapFilter(STATIONS, "all"));
+    const origin = new Map(STATIONS.map((s) => [s.id, s.origin]));
     for (const f of fc.features) {
       const photo = f.properties?.photo;
       const id = String(f.properties?.id);
+      if (origin.get(id) === "classeur") {
+        assert.equal(photo, null, id);
+        continue;
+      }
       if (id === "larche" || id === "le-chazelet") {
         assert.equal(photo, null, id);
         continue;

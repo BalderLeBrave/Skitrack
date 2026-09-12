@@ -72,6 +72,10 @@ export function alpineFeatureCollection(stations: readonly Station[]): GeoJSON.F
 export const ALPINE_CENTER: [number, number] = [6.35, 45.15];
 export const ALPINE_ZOOM = 6.6;
 
+/** Vue d’ouverture de l’écran « Carte des stations » : la France entière. */
+export const CARTE_CENTER: [number, number] = [4.6, 45.4];
+export const CARTE_ZOOM = 6;
+
 export function mapView(filter: MapFilter): { center: [number, number]; zoom: number; maxFit: number } {
   if (filter === "nord" || filter === "sud") return { center: ALPINE_CENTER, zoom: 7.2, maxFit: 9.2 };
   if (filter === "pyrenees") return { center: [0.55, 42.85], zoom: 7.2, maxFit: 9 };

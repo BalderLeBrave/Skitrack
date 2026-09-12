@@ -2,7 +2,7 @@
 
 import raw from "./openskimap.snapshot.json" with { type: "json" };
 import { SKIINFO } from "./skiinfo.ts";
-import { STATIONS, type Station } from "./stations.ts";
+import { DEPOT_STATIONS, type Station } from "./stations.ts";
 
 export type OsmVerdict = "ok" | "segments" | "km_court" | "grain_domaine" | "ecart_n" | "osm_absent";
 
@@ -84,7 +84,9 @@ export function osmSkiinfo(station: Station): OsmSkiRow {
   };
 }
 
-export function osmSkiinfoAll(stations: readonly Station[] = STATIONS): OsmSkiRow[] {
+/** Comparaison adossée à la fiche Skiinfo : seules les stations du dépôt
+ *  en ont une, le classeur seul n’est pas comparable. */
+export function osmSkiinfoAll(stations: readonly Station[] = DEPOT_STATIONS): OsmSkiRow[] {
   return stations.map(osmSkiinfo);
 }
 

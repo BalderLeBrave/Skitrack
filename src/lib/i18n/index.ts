@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { STRINGS, type Locale, type MsgId } from "./catalog";
 
+export type { Locale, MsgId };
+
 type I18nStore = {
   locale: Locale;
   setLocale: (locale: Locale) => void;

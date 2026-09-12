@@ -25,13 +25,15 @@ describe("fiche détaillée", () => {
     assert.equal(f.glacier, true);
   });
 
-  it("chaque station FR a une fiche : GPS, IGN, mix ou partial", () => {
-    assert.equal(STATIONS.length, 231);
+  it("chaque station FR a une fiche : GPS toujours, IGN pour le dépôt", () => {
+    assert.equal(STATIONS.length, 320);
     for (const s of STATIONS) {
       const f = stationFiche(s);
       assert.equal(f.id, s.id);
       assert.ok(f.lat && f.lon, s.id);
-      assert.ok(f.demM != null, s.id);
+      // L’altitude IGN au pin n’existe que pour le référentiel du dépôt.
+      if (s.origin === "depot") assert.ok(f.demM != null, s.id);
+      else assert.equal(f.demM, null, s.id);
       if (f.hasMix) {
         assert.equal(f.mix.reduce((n, r) => n + r.n, 0), f.n, s.id);
         assert.ok(f.n > 0, s.id);

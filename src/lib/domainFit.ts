@@ -185,9 +185,14 @@ export function domainFit(listing: GeoHint, searched: Station): DomainFit {
   }
   const col = barrierBetween(searched.id, nearest.id);
   const linked = !col && linkedSkiStations(searched.id).has(nearest.id);
+  // Le classeur découpe les grands domaines en sous-stations (Arc 1600, Plagne
+  // Centre, Le Fornet…). Deux pins du même domaine skiable, sans col fermé
+  // entre eux, sont le même domaine — comparer les identifiants ne suffit plus.
+  const sameDomain = !col && nearest.domain != null && nearest.domain === searched.domain;
   let verdict: DomainVerdict;
   if (nearest.id === searched.id) verdict = "in";
   else if (linked) verdict = "linked";
+  else if (sameDomain) verdict = "in";
   else verdict = "other";
   return {
     searchedId: searched.id,

@@ -43,6 +43,18 @@ export type Listing = {
   searchedLiftM?: number | null;
   searchedLiftName?: string | null;
   proven: string;
+  /* Champs de relevé daté, lus par `stay/availability.ts`.
+   *
+   * Facultatifs et **non renseignés** : le relevé figé ci-dessous n'a pas été
+   * confronté à des dates par une source, et ressort donc « non confirmé ».
+   * C'est exact. Un défaut optimiste les ferait passer pour prouvés. */
+  /** Dates auxquelles ce prix a été relevé. */
+  pricedCheckIn?: string | null;
+  pricedCheckOut?: string | null;
+  /** Horodatage du relevé qui a produit ce prix. */
+  scannedAt?: number | null;
+  /** Dates du relevé qui ne retrouve plus cette annonce. */
+  missingSince?: { checkIn: string; checkOut: string } | null;
 };
 
 export const RELEVE_2A: Listing[] = [

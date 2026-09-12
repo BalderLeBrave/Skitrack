@@ -21,6 +21,7 @@
 
 import overridesRaw from "./photo-credits.overrides.json" with { type: "json" };
 import { SKIINFO_PHOTOS } from "./skiinfo.ts";
+import { resolveStationPhoto } from "./stationPhoto.ts";
 
 export type PhotoSource = {
   /** Nom affiché de la source qui publie la photo. */
@@ -33,6 +34,8 @@ export type PhotoCredit = {
   source: PhotoSource;
   /** Auteur nommé, quand il est connu et déclaré. Sinon `null`. */
   author: string | null;
+  /** Station dont la photo est empruntée. `null` quand c'est la sienne. */
+  borrowedFrom: string | null;
   /** Ligne prête à afficher : « Photo Skiinfo » ou « Photo Untel / Skiinfo ». */
   label: string;
 };
@@ -83,13 +86,23 @@ export function isPhotoRemoved(stationId: string): boolean {
  */
 export function photoCreditFor(stationId: string): PhotoCredit | null {
   if (isPhotoRemoved(stationId)) return null;
-  const source = sourceForUrl(SKIINFO_PHOTOS[stationId]);
+  // Le crédit porte sur le fichier **affiché**. Quand la station emprunte la
+  // photo de son domaine, c'est celle du donneur qu'il faut créditer, et
+  // l'emprunt doit se lire : présenter la photo de La Plagne comme celle
+  // d'Aime 2000 serait faux, même si le domaine est le même.
+  const resolved = resolveStationPhoto(stationId);
+  if (!resolved) return null;
+  const creditedId = resolved.fromId ?? stationId;
+  if (isPhotoRemoved(creditedId)) return null;
+  const source = sourceForUrl(SKIINFO_PHOTOS[creditedId]);
   if (!source) return null;
-  const author = OVERRIDES[stationId]?.author ?? null;
+  const author = OVERRIDES[creditedId]?.author ?? null;
+  const base = author ? `Photo ${author} / ${source.name}` : `Photo ${source.name}`;
   return {
     source,
     author,
-    label: author ? `Photo ${author} / ${source.name}` : `Photo ${source.name}`,
+    borrowedFrom: resolved.fromName,
+    label: resolved.fromName ? `${base} · ${resolved.fromName}, même domaine` : base,
   };
 }
 

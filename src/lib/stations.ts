@@ -16,7 +16,6 @@
 
 import {
   CLASSEUR,
-  countsOf,
   shareFromCounts,
   type ColorCounts,
   type ColorShare,
@@ -134,8 +133,11 @@ function slopesFromClasseur(km: number | null, cnt: ColorCounts | null): Station
 const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
   const { fm } = entry;
   const depot = entry.depotId ? DEPOT_BY_ID.get(entry.depotId) : undefined;
-  const cnt = countsOf(fm);
-  const slopes = depot ? slopesFromSkiinfo(entry.id) : slopesFromClasseur(fm.km, cnt);
+  // Les chiffres de domaine viennent de `entry.measure`, pas de la ligne :
+  // celle d'une station dont le rattachement a été corrigé porte encore les
+  // mesures de l'ancien domaine. Voir `classeur.ts`, étape 5.
+  const cnt = entry.measure.counts;
+  const slopes = depot ? slopesFromSkiinfo(entry.id) : slopesFromClasseur(entry.measure.km, cnt);
   return {
     id: entry.id,
     // Le classeur porte des coquilles (« Gourrette », « Fond d'Urle ») : le nom
@@ -164,11 +166,11 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     status: fm.status || null,
     domain: entry.domain,
     // Échelle domaine : joints tels quels, jamais recalculés.
-    pistesKm: fm.km,
-    pistesKmScale: fm.km != null ? ("domaine" as MeasureScale) : null,
-    segments: fm.slopes,
-    lifts: fm.lifts,
-    liftsScale: fm.lifts != null ? ("domaine" as MeasureScale) : null,
+    pistesKm: entry.measure.km,
+    pistesKmScale: entry.measure.km != null ? ("domaine" as MeasureScale) : null,
+    segments: entry.measure.slopes,
+    lifts: entry.measure.lifts,
+    liftsScale: entry.measure.lifts != null ? ("domaine" as MeasureScale) : null,
     // Échelle station : mesurée ou nulle.
     distToPisteKm: fm.slopeDistance,
     colorShare: shareFromCounts(cnt),

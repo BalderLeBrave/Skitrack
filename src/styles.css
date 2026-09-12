@@ -1287,3 +1287,25 @@ html[data-theme="dark"] .stay-glass {
     z-index: 4;
   }
 }
+
+/* La carte de l'écran des traces : colonne collante, en vis-à-vis du tableau.
+   Elle portait la hauteur de `.map-col`, écrite pour MapLibre ; la carte unique
+   a besoin d'un conteneur qui lui donne sa hauteur, puisqu'elle se pose en
+   absolu dedans. */
+.traces__carte {
+  position: sticky;
+  top: 5rem;
+  height: calc(100dvh - 6.5rem);
+  min-height: 28rem;
+  border-radius: var(--radius-surface);
+  border: 1px solid var(--color-line);
+}
+
+@media (max-width: 1024px) {
+  .traces__carte {
+    position: relative;
+    top: auto;
+    height: 28rem;
+    min-height: 0;
+  }
+}

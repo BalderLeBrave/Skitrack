@@ -17,7 +17,7 @@ import { ForecastCard } from "@/components/ForecastCard";
 import { PhotoCredit } from "@/components/PhotoCredit";
 import { SnowHistoryCard } from "@/components/SnowHistoryCard";
 import { WebcamCard } from "@/components/WebcamCard";
-import { MiniMap } from "@/components/v6/StationMap";
+import { Carte } from "@/components/Carte";
 import { formatForfaitAge, forfaitConfirmLabel } from "@/lib/forfaits/age";
 import { getForfait } from "@/lib/forfaits/api";
 import { domainForStation } from "@/lib/forfaits/catalog";
@@ -251,7 +251,15 @@ function FicheBody({ s }: { s: Station }) {
                         </span>
                       </span>
                     </div>
-                    <MiniMap lat={s.lat} lon={s.lon} />
+                    <Carte
+                      className="minimap"
+                      statique
+                      centre={[s.lat, s.lon]}
+                      zoom={11}
+                      epingles={[
+                        { id: s.id, lat: s.lat, lon: s.lon, titre: s.name, sorte: "station" },
+                      ]}
+                    />
                   </section>
 
                   <section className="sect">

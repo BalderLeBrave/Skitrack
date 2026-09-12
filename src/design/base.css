@@ -282,3 +282,127 @@
   font-weight: 700;
   line-height: 1.25;
 }
+
+/* ── Carte ──────────────────────────────────────────────────────────────── */
+.carte {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-glacier);
+}
+
+.carte__toile {
+  position: absolute;
+  inset: 0;
+}
+
+.carte--statique .carte__toile {
+  position: relative;
+  height: 100%;
+}
+
+.carte__outils {
+  position: absolute;
+  z-index: 500;
+  top: calc(var(--spacing) * 3);
+  right: calc(var(--spacing) * 3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
+
+.carte__fonds {
+  position: relative;
+}
+
+.carte__choix {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--spacing) * 1.5);
+  display: grid;
+  min-width: 13rem;
+  padding: calc(var(--spacing) * 1);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-flottant);
+}
+
+.carte__choix-ligne {
+  display: grid;
+  gap: 1px;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5);
+  border-radius: var(--radius-surface);
+  text-align: left;
+  font-size: var(--text-corps);
+  font-weight: 600;
+}
+
+.carte__choix-ligne--on {
+  background: var(--color-marque-tenue);
+  color: var(--color-marque-texte);
+}
+
+.carte__choix-sub {
+  font-size: var(--text-note);
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.carte__legende {
+  position: absolute;
+  z-index: 500;
+  left: calc(var(--spacing) * 3);
+  bottom: calc(var(--spacing) * 6);
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  max-width: 22rem;
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-flottant);
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+
+/* Épingles : une sorte, une lecture. L'anneau marque ce qui est retenu ou
+   survolé ailleurs dans la page. */
+.pin {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-marque);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 1px rgb(11 31 51 / 0.25);
+}
+
+.pin--station-haute {
+  border-color: var(--color-cta);
+}
+.pin--logement {
+  background: var(--color-ink);
+}
+.pin--remontee {
+  border-radius: 2px;
+  background: var(--color-cta);
+}
+.pin--depart {
+  background: var(--color-cta);
+}
+.pin--vif {
+  background: var(--color-cta);
+  box-shadow: 0 0 0 4px rgb(255 90 60 / 0.3);
+}
+
+.trait-remontee {
+  stroke: var(--color-cta);
+  stroke-opacity: 0.85;
+}
+
+.trait-trace {
+  stroke: var(--color-cta);
+  stroke-opacity: 0.92;
+}

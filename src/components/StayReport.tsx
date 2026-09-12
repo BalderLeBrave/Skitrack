@@ -1,4 +1,3 @@
-import { MapPanel } from "@/components/MapPanel";
 import { stayRangeLabel } from "@/lib/stay/calendar";
 import { formatEuro } from "@/lib/listings";
 import {
@@ -48,9 +47,7 @@ function OrigineTag({ origine }: { origine: ReportPoste["origine"] }) {
         : origine === "saisi"
           ? "text-marque-texte"
           : "text-muted";
-  return (
-    <span className={`text-note ${ton}`}>{ORIGINE_LABEL[origine]}</span>
-  );
+  return <span className={`text-note ${ton}`}>{ORIGINE_LABEL[origine]}</span>;
 }
 
 function Ligne({ poste }: { poste: ReportPoste }) {
@@ -77,7 +74,7 @@ export function StayReport({
   listingTitle,
 }: {
   input: ReportInput;
-  /** Position du logement, pour l'épingle. Absente : pas de carte. */
+  /** Position du logement, dite en toutes lettres. Absente : elle est dite absente. */
   lat?: number | null;
   lon?: number | null;
   listingTitle?: string;
@@ -102,27 +99,23 @@ export function StayReport({
         </p>
       </header>
 
-      {lat != null && lon != null && (
-        <section className="print:hidden">
+      {/* La carte a quitté ce document : il doit tenir sur une A4, et elle
+          n'était de toute façon jamais imprimée, la section portait
+          `print:hidden`. Ce qu'elle montrait se dit ici en toutes lettres, et
+          s'imprime. */}
+      {listingTitle || (lat != null && lon != null) ? (
+        <section>
           <h2 className="text-note text-muted">Situation</h2>
-          <div className="mt-2 h-56 overflow-hidden rounded-surface border border-line">
-            <MapPanel
-              lat={lat}
-              lon={lon}
-              zoom={13}
-              pins={[
-                {
-                  id: "logement",
-                  lat,
-                  lon,
-                  title: listingTitle ?? "Logement retenu",
-                  kind: "listing",
-                },
-              ]}
-            />
-          </div>
+          {listingTitle ? <p className="mt-2 text-corps">{listingTitle}</p> : null}
+          {lat != null && lon != null ? (
+            <p className="mt-1 text-note text-muted tabular-nums">
+              {lat.toFixed(4)}, {lon.toFixed(4)}
+            </p>
+          ) : (
+            <p className="mt-1 text-note text-muted">Position du logement non communiquée.</p>
+          )}
         </section>
-      )}
+      ) : null}
 
       <section>
         <h2 className="text-note text-muted">Budget</h2>
@@ -137,7 +130,9 @@ export function StayReport({
             ))}
             <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 pt-2">
               <span className="text-corps font-semibold">Total</span>
-              <span className="text-section font-semibold tabular-nums">{formatEuro(report.total)}</span>
+              <span className="text-section font-semibold tabular-nums">
+                {formatEuro(report.total)}
+              </span>
             </div>
             {report.parPersonne != null && (
               <div className="grid grid-cols-[1fr_auto] items-baseline gap-x-3">
@@ -153,9 +148,7 @@ export function StayReport({
       </section>
 
       <section>
-        <h2 className="text-note text-muted">
-          Ce que ce document ne dit pas
-        </h2>
+        <h2 className="text-note text-muted">Ce que ce document ne dit pas</h2>
         {report.manques.length === 0 ? (
           <p className="mt-2 text-corps text-muted">
             Rien ne manque à l’appel : chaque poste attendu porte un montant et son origine.

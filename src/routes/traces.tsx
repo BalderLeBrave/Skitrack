@@ -5,7 +5,7 @@ import { Coquille } from "@/components/Coquille";
 import { ElevationProfile } from "@/components/ElevationProfile";
 import { GpxDrop } from "@/components/GpxDrop";
 import { LodgeSheet } from "@/components/LodgeSheet";
-import { MapPanel } from "@/components/MapPanel";
+import { Carte } from "@/components/Carte";
 import { distToGpxM, formatPerPerson } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, sectorOf, skiAccessLabel } from "@/lib/access";
 import { formatEle, formatDuration, formatKm } from "@/lib/gpx";
@@ -181,9 +181,7 @@ function Traces() {
             )}
             {points.length > 0 ? (
               <div className="mt-4">
-                <p className="mb-2 text-note text-muted">
-                  Profil d’altitude
-                </p>
+                <p className="mb-2 text-note text-muted">Profil d’altitude</p>
                 <ElevationProfile points={points} />
               </div>
             ) : null}
@@ -285,13 +283,12 @@ function Traces() {
 
         {mapCenter ? (
           <div className={tab === "trace" || tab === "logements" ? "hidden lg:block" : ""}>
-            <MapPanel
-              lat={mapCenter.lat}
-              lon={mapCenter.lon}
+            <Carte
+              className="traces__carte"
+              centre={[mapCenter.lat, mapCenter.lon]}
               zoom={stats ? 13 : 12}
-              label={stats ? "Départ GPX" : station?.name}
-              track={points}
-              pins={raw
+              trace={points}
+              epingles={raw
                 .filter(
                   (l): l is Listing & { lat: number; lon: number } =>
                     l.lat != null && l.lon != null,
@@ -300,8 +297,9 @@ function Traces() {
                   id: l.id,
                   lat: l.lat,
                   lon: l.lon,
-                  title: l.title,
-                  hint: `${formatEuro(l.total)} · ${sectorOf(l) ?? l.source} · ${formatLift(l)}`,
+                  titre: l.title,
+                  detail: `${formatEuro(l.total)} · ${sectorOf(l) ?? l.source} · ${formatLift(l)}`,
+                  sorte: "logement" as const,
                 }))}
             />
           </div>

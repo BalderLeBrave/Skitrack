@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { AppShell } from "@/components/AppShell";
+import { Coquille } from "@/components/Coquille";
 import { formatEuroTarif, formatForfaitAge, forfaitConfirmLabel } from "@/lib/forfaits/age";
 import { listForfaitDomains, listForfaits, refreshForfaits } from "@/lib/forfaits/api";
 import type { DomainForfait } from "@/lib/forfaits/types";
@@ -57,7 +57,7 @@ function ForfaitsPage() {
   }
 
   return (
-    <AppShell>
+    <Coquille>
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -121,6 +121,6 @@ function ForfaitsPage() {
           })}
         </ul>
       </div>
-    </AppShell>
+    </Coquille>
   );
 }

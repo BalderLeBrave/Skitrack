@@ -11,9 +11,10 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Icon } from "@/components/Icon";
-import { V6App } from "@/components/v6/App";
+import { Bouton } from "@/components/base/Bouton";
+import { Tableau } from "@/components/base/Tableau";
+import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
-import { StationMap, type FlyRequest } from "@/components/v6/StationMap";
 import {
   COLS,
   distLbl,
@@ -113,43 +114,100 @@ const UNIT_MAX: Record<ColorUnit, [number, number, string]> = {
 };
 
 /** `CRIT` (l. 570–582) : libellé, texte, valeur numérique pour la meilleure. */
-const CRIT: [
-  string,
-  (s: Station) => string | number | null,
-  ((s: Station) => number | null) | null,
-][] = [
-  [
-    "Altitude des pistes",
-    (s) => (s.minM != null ? `${fmt(s.minM)}–${fmt(s.maxM)} m` : null),
-    (s) => s.maxM,
-  ],
-  ["Village", (s) => (s.villageM != null ? fmt(s.villageM) + " m" : null), (s) => s.villageM],
-  [
-    "Km de pistes (domaine)",
-    (s) => (s.pistesKm != null ? fmt(s.pistesKm) + " km" : null),
-    (s) => s.pistesKm,
-  ],
-  ["Tronçons de pistes", (s) => s.segments, (s) => s.segments],
-  ["Remontées", (s) => s.lifts, (s) => s.lifts],
-  [
-    "Pistes faciles (vertes + bleues)",
-    (s) => (s.colorShare ? s.colorShare.green + s.colorShare.blue + " %" : null),
-    (s) => (s.colorShare ? s.colorShare.green + s.colorShare.blue : null),
-  ],
-  [
-    "Pistes noires",
-    (s) => (s.colorShare ? s.colorShare.black + " %" : null),
-    (s) => s.colorShare?.black ?? null,
-  ],
-  [
-    "Piste la plus proche",
-    (s) => distLbl(s.distToPisteKm),
-    (s) => (s.distToPisteKm == null ? null : -s.distToPisteKm),
-  ],
-  ["Domaine skiable", (s) => s.domain, null],
-  ["Type", (s) => (s.kind === "village-station" ? "Village-station" : "Station"), null],
-  ["Massif · département", (s) => `${s.massif} · ${s.dept ?? "–"}`, null],
+type Critere = {
+  cle: string;
+  libelle: string;
+  texte: (s: Station) => string | number | null;
+  /** Valeur comparable, quand le critère se classe. `null` sinon. */
+  nombre: ((s: Station) => number | null) | null;
+};
+
+/** Propre à la station : deux stations d'un même domaine peuvent différer.
+ *  La ligne qui décide d'un séjour au ski vient en premier. */
+const CRIT_STATION: Critere[] = [
+  {
+    cle: "altitude",
+    libelle: "Altitude des pistes",
+    texte: (s) => (s.minM != null ? `${fmt(s.minM)}–${fmt(s.maxM)} m` : null),
+    nombre: (s) => s.maxM,
+  },
+  {
+    cle: "proche",
+    libelle: "Piste la plus proche",
+    texte: (s) => distLbl(s.distToPisteKm),
+    nombre: (s) => (s.distToPisteKm == null ? null : -s.distToPisteKm),
+  },
+  {
+    cle: "village",
+    libelle: "Village",
+    texte: (s) => (s.villageM != null ? fmt(s.villageM) + " m" : null),
+    nombre: (s) => s.villageM,
+  },
+  {
+    cle: "type",
+    libelle: "Type",
+    texte: (s) => (s.kind === "village-station" ? "Village-station" : "Station"),
+    nombre: null,
+  },
+  {
+    cle: "massif",
+    libelle: "Massif et département",
+    texte: (s) => [s.massif, s.dept].filter(Boolean).join(" · "),
+    nombre: null,
+  },
 ];
+
+/** Mesuré à l'échelle du domaine : toutes ses stations portent la même valeur.
+ *  Répété par colonne, ce chiffre se lit comme une différence entre stations
+ *  alors qu'il n'en est pas une. Il est donc dit une fois, par domaine. */
+const CRIT_DOMAINE: Critere[] = [
+  {
+    cle: "km",
+    libelle: "Km de pistes",
+    texte: (s) => (s.pistesKm != null ? fmt(s.pistesKm) + " km" : null),
+    nombre: (s) => s.pistesKm,
+  },
+  {
+    cle: "remontees",
+    libelle: "Remontées",
+    texte: (s) => s.lifts,
+    nombre: (s) => s.lifts,
+  },
+  {
+    cle: "troncons",
+    libelle: "Tronçons de pistes",
+    texte: (s) => s.segments,
+    nombre: (s) => s.segments,
+  },
+  {
+    cle: "faciles",
+    libelle: "Pistes faciles",
+    texte: (s) => (s.colorShare ? s.colorShare.green + s.colorShare.blue + " %" : null),
+    nombre: (s) => (s.colorShare ? s.colorShare.green + s.colorShare.blue : null),
+  },
+  {
+    cle: "noires",
+    libelle: "Pistes noires",
+    texte: (s) => (s.colorShare ? s.colorShare.black + " %" : null),
+    nombre: (s) => s.colorShare?.black ?? null,
+  },
+];
+
+/** Un domaine, et les stations comparées qu'il couvre. Une station sans
+ *  domaine renseigné forme son propre groupe : ses chiffres n'engagent qu'elle. */
+type GroupeDomaine = { cle: string; nom: string; stations: Station[] };
+
+function groupesDomaine(stations: readonly Station[]): GroupeDomaine[] {
+  const par = new Map<string, GroupeDomaine>();
+  for (const s of stations) {
+    const cle = s.domain ?? `station:${s.id}`;
+    const nom = s.domain ?? `${s.name} · domaine non renseigné`;
+    const g = par.get(cle) ?? { cle, nom, stations: [] };
+    g.stations.push(s);
+    par.set(cle, g);
+  }
+  return [...par.values()];
+}
 
 const SIDE_KEY = "skitrack.v6.side";
 const SIDE_DEF = 440;
@@ -187,45 +245,25 @@ function Comparer() {
         ),
     [all, P.massif, q, F, P.unit, P.sortKey],
   );
-  const visibleIds = useMemo(() => new Set(rows.map((s) => s.id)), [rows]);
 
   const [active, setActiveId] = useState<string | null>(null);
-  const [fly, setFly] = useState<FlyRequest | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [cmppOpen, setCmppOpen] = useState(false);
   const [cmpPick, setCmpPick] = useState<string | null>(null);
   const list = useRef<HTMLDivElement>(null);
 
-  // `setActive(id, how)` (l. 512–524)
-  const setActive = (id: string | null, how: "hover" | "map" | "fromRow") => {
-    setActiveId(id);
-    if (!id) return;
-    const s = stationById(id);
-    if (how === "map" && list.current) {
-      const row = list.current.querySelector<HTMLElement>(`.row[data-id="${id}"]`);
-      if (row) {
-        const L = list.current;
-        const top = row.offsetTop - L.offsetTop;
-        if (top < L.scrollTop || top + row.offsetHeight > L.scrollTop + L.clientHeight)
-          L.scrollTop = top - 120;
-      }
-    }
-    if (s && how === "fromRow") setFly({ lat: s.lat, lon: s.lon, nonce: Date.now() });
-  };
+  // La station survolée ou choisie dans la liste. Le second argument disait
+  // d'où venait le geste, pour recaler la liste sur l'épingle de la carte ;
+  // la carte a quitté cet écran, il n'a plus d'objet.
+  const setActive = (id: string | null) => setActiveId(id);
 
   // l. 723 : arrivée depuis la recherche de l'accueil.
   useEffect(() => {
     if (!P.selectFirst) return;
     P.setSelectFirst(false);
     const first = rows[0];
-    if (first) setTimeout(() => setActive(first.id, "fromRow"), 50);
+    if (first) setTimeout(() => setActive(first.id), 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [P.selectFirst]);
-
-  const activeStation = active ? stationById(active) : undefined;
-  const activeLabel = activeStation
-    ? `${activeStation.name} · <span class="rel">${fmt(activeStation.villageM)} m</span>`
-    : null;
 
   const nA = activeCount(F);
   const sortLabel =
@@ -233,6 +271,7 @@ function Comparer() {
 
   // `renderCmp` (l. 584–595)
   const st = P.cmp.map((id) => stationById(id)).filter((s): s is Station => !!s);
+  const groupes = groupesDomaine(st);
   const pick = st.some((s) => s.id === cmpPick)
     ? cmpPick
     : P.stationId && P.cmp.includes(P.stationId)
@@ -317,19 +356,20 @@ function Comparer() {
     }
   };
 
-  const openCmp = () => setCmppOpen(true);
+  const cmpcol = useRef<HTMLDivElement>(null);
+  // Au large les deux colonnes sont côte à côte ; à l'étroit elles s'empilent
+  // et le bouton amène le tableau sous les yeux.
+  const openCmp = () => cmpcol.current?.scrollIntoView({ block: "start" });
   const cmpGo = () => {
     if (pick) P.retain(pick);
-    setCmppOpen(false);
     go("lodging");
   };
   const removeFromCmp = (id: string) => {
     P.toggleCmp(id);
-    if (P.cmp.length - 1 < 2) setCmppOpen(false);
   };
 
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-compare" data-screen-label="1 Comparer">
         <div className={`split${collapsed ? " collapsed" : ""}`} id="split" ref={split}>
           <aside className="side">
@@ -552,12 +592,12 @@ function Comparer() {
                         key={s.id}
                         className={`row${s.id === active ? " on" : ""}`}
                         data-id={s.id}
-                        onMouseEnter={() => setActive(s.id, "hover")}
+                        onMouseEnter={() => setActive(s.id)}
                         onClick={(e) => {
                           const t = e.target as HTMLElement;
                           if (t.closest("[data-cmp]")) return P.toggleCmp(s.id);
                           if (t.closest("[data-fiche]")) return go("fiche", { id: s.id });
-                          setActive(s.id, "fromRow");
+                          setActive(s.id);
                         }}
                       >
                         <span className="row__name">{s.name}</span>
@@ -688,140 +728,136 @@ function Comparer() {
             </button>
             <span className="handle__tip">Glisser · double-clic : largeur par défaut</span>
           </div>
-          <div className="mapcol">
-            <StationMap
-              stations={all}
-              visible={visibleIds}
-              cmp={P.cmp}
-              active={active}
-              activeLabel={activeLabel}
-              fly={fly}
-              onHover={(id) => setActive(id, "map")}
-              onClick={(id) => setActive(id, "fromRow")}
-              onDblClick={(id) => go("fiche", { id })}
-            />
-            <div className="maptools">
-              <span className="chip chip--on">
-                <Icon name="coche" />
-                Carte
-              </span>
-              <span className="chip">Fond IGN</span>
-            </div>
-            <div className="legend">
-              <b>Épingles</b>
-              <span>
-                <i className="legend__pin--base" />
-                Station ou village-station
-              </span>
-              <span>
-                <i className="legend__pin--cmp" />
-                Dans la comparaison
-              </span>
-              <span>
-                <i className="legend__pin--on" />
-                Station survolée ou sélectionnée
-              </span>
-              <span className="legend__note">
-                Coordonnées et altitudes : France Montagnes / OpenSkiMap.
-              </span>
-            </div>
-            <div className={`cmpp${cmppOpen ? " open" : ""}`} id="cmpp">
-              <div className="cmpp__in">
-                <header className="cmpp__head">
-                  <div>
-                    <span className="eyebrow">Étape 1 · Station</span>
-                    <h1 className="h1 h1--xl cmpp__title">Comparer les stations</h1>
-                    <p className="muted cmpp__lead">
-                      Données du référentiel. Choisissez la station retenue, puis ouvrez ses
-                      logements – dates et groupe suivent.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="chip"
-                    id="cmp-close"
-                    onClick={() => setCmppOpen(false)}
-                  >
-                    Retour à la carte
-                  </button>
-                </header>
-                <div className="card card--clip">
-                  <table className="cmp" id="cmp-table">
-                    <thead>
-                      <tr>
-                        <th className="cmp__crit">Critère</th>
-                        {st.map((s) => (
-                          <th key={s.id} className={s.id === pick ? "sel" : ""}>
-                            <label className="cmp__pick">
-                              <input
-                                type="radio"
-                                name="pick"
-                                value={s.id}
-                                checked={s.id === pick}
-                                onChange={() => setCmpPick(s.id)}
-                                className="cmp__radio"
-                              />
-                              {s.name}
-                            </label>
-                            <div className="cmp__links">
-                              <a data-fiche={s.id} onClick={() => go("fiche", { id: s.id })}>
-                                Fiche
-                              </a>
-                              <a
-                                data-rm={s.id}
-                                className="cmp__rm"
-                                onClick={() => removeFromCmp(s.id)}
-                              >
-                                Retirer
-                              </a>
-                            </div>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {CRIT.map(([lab, txt, num]) => {
-                        const vals = st.map((s) => (num ? num(s) : null));
-                        const known = vals.filter((v): v is number => v != null);
-                        const best = num && known.length ? Math.max(...known) : null;
-                        return (
-                          <tr key={lab}>
-                            <th>{lab}</th>
-                            {st.map((s, i) => {
-                              const v = txt(s);
-                              const isBest =
-                                num && vals[i] != null && vals[i] === best && known.length > 1;
-                              return (
-                                <td
-                                  key={s.id}
-                                  className={`${s.id === pick ? "sel" : ""}${isBest ? " best" : ""}${v == null ? " cmp__none" : ""}`}
-                                >
-                                  <span className={num ? "rel" : ""}>{v ?? "–"}</span>
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="cmpp__foot">
+          <div className="cmpcol" id="cmpcol" ref={cmpcol}>
+            <header className="cmpcol__head">
+              <h1 className="h1 h1--xl">Comparer les stations</h1>
+              <p className="muted">
+                Cochez la station retenue, puis ouvrez ses logements. Dates et groupe suivent.
+              </p>
+            </header>
+
+            {st.length === 0 ? (
+              <div className="empty card">
+                <strong className="empty__title">Aucune station dans la comparaison</strong>
+                <p className="muted empty__lead">
+                  Ajoutez des stations depuis la liste de gauche, avec le bouton « Comparer » de
+                  chaque ligne. Deux suffisent pour que les écarts se lisent.
+                </p>
+              </div>
+            ) : (
+              <>
+                <Tableau
+                  className="cmpcol__t"
+                  legende="Ce qui distingue ces stations. Surligné : meilleure valeur du critère."
+                  absence="non relevé"
+                  colonnes={[
+                    { cle: "critere", entete: "Critère", largeur: "13rem" },
+                    ...st.map((x) => ({
+                      cle: x.id,
+                      nombre: true,
+                      entete: (
+                        <div className="cmp__col">
+                          <label className="cmp__pick">
+                            <input
+                              type="radio"
+                              name="pick"
+                              value={x.id}
+                              checked={x.id === pick}
+                              onChange={() => setCmpPick(x.id)}
+                              className="cmp__radio"
+                            />
+                            {x.name}
+                          </label>
+                          <span className="cmp__links">
+                            <a data-fiche={x.id} onClick={() => go("fiche", { id: x.id })}>
+                              Fiche
+                            </a>
+                            <a
+                              data-rm={x.id}
+                              className="cmp__rm"
+                              onClick={() => removeFromCmp(x.id)}
+                            >
+                              Retirer
+                            </a>
+                          </span>
+                        </div>
+                      ),
+                    })),
+                  ]}
+                  lignes={CRIT_STATION.map((c) => {
+                    const vals = st.map((x) => (c.nombre ? c.nombre(x) : null));
+                    const connus = vals.filter((v): v is number => v != null);
+                    const meilleur = connus.length > 1 ? Math.max(...connus) : null;
+                    return {
+                      cle: c.cle,
+                      cellules: {
+                        critere: c.libelle,
+                        ...Object.fromEntries(
+                          st.map((x, i) => {
+                            const v = c.texte(x);
+                            if (v == null) return [x.id, null];
+                            if (!c.nombre)
+                              return [x.id, <span className="tableau__texte">{v}</span>];
+                            const gagne = meilleur != null && vals[i] === meilleur;
+                            return [x.id, gagne ? <b className="cmp__best">{v}</b> : v];
+                          }),
+                        ),
+                      },
+                    };
+                  })}
+                />
+
+                {/* Km, remontées, tronçons et parts de couleur sont mesurés sur
+                    le domaine. Répétés colonne par colonne, ils se liraient
+                    comme un écart entre stations. Ils sont dits une fois. */}
+                <Tableau
+                  className="cmpcol__t"
+                  legende={
+                    groupes.length < st.length
+                      ? "Mesuré sur le domaine, donc partagé par les stations d’une même ligne."
+                      : "Mesuré sur le domaine, pas sur la station."
+                  }
+                  absence="non relevé"
+                  colonnes={[
+                    { cle: "domaine", entete: "Domaine", largeur: "13rem" },
+                    { cle: "stations", entete: "Stations comparées" },
+                    ...CRIT_DOMAINE.map((c) => ({
+                      cle: c.cle,
+                      entete: c.libelle,
+                      nombre: true,
+                    })),
+                  ]}
+                  lignes={groupes.map((g) => ({
+                    cle: g.cle,
+                    cellules: {
+                      domaine: g.nom,
+                      stations: (
+                        <span className="tableau__texte">
+                          {g.stations.map((x) => x.name).join(", ")}
+                        </span>
+                      ),
+                      ...Object.fromEntries(
+                        CRIT_DOMAINE.map((c) => [c.cle, c.texte(g.stations[0])]),
+                      ),
+                    },
+                  }))}
+                />
+
+                <div className="cmpcol__foot">
                   <span className="muted">
-                    « – » : donnée absente du référentiel ou non relevée. Surligné : meilleure
-                    valeur du critère.
+                    Une valeur absente est dite absente : rien n’est estimé à sa place.
                   </span>
-                  <button type="button" className="btn btn--lg" id="cmp-go" onClick={cmpGo}>
+                  <Bouton grand id="cmp-go" onClick={cmpGo}>
                     {pickStation
                       ? `Voir les logements à ${pickStation.name}`
                       : "Voir les logements"}
-                  </button>
+                  </Bouton>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }

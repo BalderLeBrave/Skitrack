@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AppShell } from "@/components/AppShell";
+import { Coquille } from "@/components/Coquille";
 import { ignSkiinfoAll, ignSkiinfoSummary, VERDICT_FR, type IgnSkiVerdict } from "@/lib/ignSkiinfo";
 import { formatAlt } from "@/lib/stations";
 
@@ -33,7 +33,7 @@ function Altitudes() {
   ];
 
   return (
-    <AppShell
+    <Coquille
       chips={
         <>
           {chips.map(([id, label]) => (
@@ -61,7 +61,7 @@ function Altitudes() {
         <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
           <table className="w-full min-w-[40rem] text-left text-corps">
             <thead>
-              <tr className="border-b border-line text-note uppercase tracking-wide text-muted">
+              <tr className="border-b border-line text-note text-muted">
                 <th className="px-3 py-2 font-medium">Station</th>
                 <th className="px-3 py-2 font-medium">Skiinfo</th>
                 <th className="px-3 py-2 font-medium">IGN</th>
@@ -98,6 +98,6 @@ function Altitudes() {
           </table>
         </div>
       </main>
-    </AppShell>
+    </Coquille>
   );
 }

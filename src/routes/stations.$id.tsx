@@ -7,7 +7,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { V6App } from "@/components/v6/App";
+import { Liste } from "@/components/base/Liste";
+import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { AltitudeProfile } from "@/components/AltitudeProfile";
@@ -16,7 +17,7 @@ import { ForecastCard } from "@/components/ForecastCard";
 import { PhotoCredit } from "@/components/PhotoCredit";
 import { SnowHistoryCard } from "@/components/SnowHistoryCard";
 import { WebcamCard } from "@/components/WebcamCard";
-import { MiniMap } from "@/components/v6/StationMap";
+import { Carte } from "@/components/Carte";
 import { formatForfaitAge, forfaitConfirmLabel } from "@/lib/forfaits/age";
 import { getForfait } from "@/lib/forfaits/api";
 import { domainForStation } from "@/lib/forfaits/catalog";
@@ -35,17 +36,9 @@ import {
 import { SKIINFO } from "@/lib/skiinfo";
 import { getSnowPair, type SnowPair } from "@/lib/snow/api";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
+import { webcamsForStation } from "@/lib/webcams";
 
 export const Route = createFileRoute("/stations/$id")({ component: Fiche });
-
-function Fact({ k, v }: { k: string; v: string | number | null }) {
-  return (
-    <div>
-      <dt>{k}</dt>
-      <dd className={`rel${v == null ? " facts__none" : ""}`}>{v ?? "–"}</dd>
-    </div>
-  );
-}
 
 /** « 12/09 à 15:15 ». L'horodatage d'Open-Meteo est une heure locale sans
  *  fuseau : il est découpé, pas reparsé, pour ne pas la décaler. */
@@ -113,7 +106,7 @@ function useForfaitsEtNeige(s: Station) {
 function FicheInconnue({ id }: { id: string }) {
   const go = useGo();
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-fiche" data-screen-label="Fiche station">
         <div className="scroll">
           <div className="wrap fiche__wrap">
@@ -132,7 +125,7 @@ function FicheInconnue({ id }: { id: string }) {
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }
 
@@ -158,9 +151,13 @@ function FicheBody({ s }: { s: Station }) {
   const domain = domainForStation(s.id);
   const cm = (n: number | null | undefined) => (n == null ? null : `${fmt(n)} cm`);
   const eurTarif = (n: number | null | undefined) => (n == null ? null : `${fmt(n)} €`);
+  // Un repli s'ouvre quand la donnée est connue avant le rendu. Prévision,
+  // historique et bulletin se chargent eux-mêmes : ils restent repliés.
+  const neigeConnue = snow?.village.snowDepthCm != null;
+  const camsConnues = webcamsForStation(s.id).length > 0;
 
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-fiche" data-screen-label="Fiche station">
         <div className="scroll">
           <div className="wrap fiche__wrap">
@@ -180,7 +177,7 @@ function FicheBody({ s }: { s: Station }) {
               {photo ? <PhotoCredit stationId={s.id} /> : null}
               <div className="fhero__in">
                 <span className="eyebrow fhero__crumb" id="fi-crumb">
-                  {s.massif} · {s.dept ?? "–"} · {s.commune ?? "–"}
+                  {[s.massif, s.dept, s.commune].filter(Boolean).join(" · ")}
                 </span>
                 <h1 id="fi-name">{s.name}</h1>
                 <div className="chips" id="fi-tags">
@@ -204,141 +201,227 @@ function FicheBody({ s }: { s: Station }) {
             </div>
             <div className="fgrid">
               <div className="fiche__main">
-                <dl className="facts card fi-facts" id="fi-facts">
-                  <Fact
-                    k="Altitude des pistes"
-                    v={s.minM != null ? `${fmt(s.minM)}–${fmt(s.maxM)} m` : null}
-                  />
-                  <Fact k="Village" v={s.villageM != null ? fmt(s.villageM) + " m" : null} />
-                  <Fact
-                    k="Pistes (domaine)"
-                    v={s.pistesKm != null ? fmt(s.pistesKm) + " km" : null}
-                  />
-                  <Fact k="Tronçons (domaine)" v={s.segments} />
-                  <Fact k="Remontées (domaine)" v={s.lifts} />
-                  <Fact
-                    k="Piste la plus proche"
-                    v={s.distToPisteKm != null ? distLbl(s.distToPisteKm) : null}
-                  />
-                </dl>
-                {/* Les six chiffres ci-dessus n'ont pas la même échelle, et rien
-                    ne le disait : seul « Pistes » portait la mention. Trois sont
-                    mesurés sur le domaine et valent pour toutes ses stations,
-                    trois sont propres à celle-ci. */}
-                <p className="muted fi-scale">
-                  Km, tronçons et remontées sont mesurés par OpenSkiMap à l’échelle du{" "}
-                  <b>domaine</b> : les{" "}
-                  {s.domain ? "stations qui le partagent" : "stations d’un même domaine"} portent
-                  les mêmes. Altitude du village, coordonnées et distance à la piste sont propres à{" "}
-                  <b>cette station</b>.
-                </p>
-                <section className="sect card">
-                  <h2>Profil altimétrique</h2>
-                  <AltitudeProfile minM={s.minM} villageM={s.villageM} maxM={s.maxM} />
-                </section>
-                <section className="sect card">
-                  <h2>Pistes par couleur</h2>
-                  <div id="fi-pistes">
-                    {s.colorShare ? (
-                      <div className="pistes">
-                        <span className="bar pistes__bar">
-                          {COLS.map((c) => (
-                            <i
-                              key={c.key}
-                              style={{ width: `${s.colorShare![c.key]}%`, background: c.token }}
-                            />
-                          ))}
+                {/* ── Rang 1 : ce qui décide ──────────────────────────────
+                    Quatre valeurs, en grand. Tronçons et remontées comptent,
+                    mais après : ils descendent au rang 2. */}
+                <Liste
+                  className="fiche__cles"
+                  colonnes={4}
+                  taille="grande"
+                  absence="non relevé"
+                  faits={[
+                    {
+                      cle: "altitude",
+                      libelle: "Altitude des pistes",
+                      valeur: s.minM != null ? `${fmt(s.minM)}–${fmt(s.maxM)} m` : null,
+                    },
+                    {
+                      cle: "village",
+                      libelle: "Village",
+                      valeur: s.villageM != null ? `${fmt(s.villageM)} m` : null,
+                    },
+                    {
+                      cle: "pistes",
+                      libelle: "Pistes du domaine",
+                      valeur: s.pistesKm != null ? `${fmt(s.pistesKm)} km` : null,
+                    },
+                    {
+                      cle: "proche",
+                      libelle: "Piste la plus proche",
+                      valeur: s.distToPisteKm != null ? distLbl(s.distToPisteKm) : null,
+                    },
+                  ]}
+                />
+
+                {/* ── Rang 2 : ce qui informe ─────────────────────────────
+                    Des sections séparées par le vide et un titre, sans cadre :
+                    la mise en page dit qu'un bloc est un bloc. */}
+                <div className="fiche__informe">
+                  <section className="sect">
+                    <h2>Profil altimétrique</h2>
+                    <AltitudeProfile minM={s.minM} villageM={s.villageM} maxM={s.maxM} />
+                  </section>
+
+                  <section className="sect">
+                    <div className="sect__row">
+                      <h2>Situation</h2>
+                      <span className="muted" id="fi-coords">
+                        <span className="rel">
+                          {s.lat.toFixed(4)}, {s.lon.toFixed(4)}
                         </span>
-                        <div className="pistes__cols">
-                          {COLS.map((c) => (
-                            <div key={c.key}>
-                              <span className="pistes__t">
-                                <i style={{ background: c.token }} />
-                                {c.label}
-                              </span>
-                              <b className="rel pistes__v">{s.colorShare![c.key]} %</b>
-                              <span className="muted pistes__sub">
-                                {s.colorCounts
-                                  ? `${s.colorCounts[c.key]} tronçon${s.colorCounts[c.key] > 1 ? "s" : ""}`
-                                  : ""}
-                                {s.skiinfoPct ? ` · Skiinfo ${s.skiinfoPct[c.key]} %` : ""}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="muted">Répartition des pistes non relevée.</p>
-                    )}
-                  </div>
-                  <p className="muted" id="fi-pistes-note">
-                    {s.colorShare
-                      ? `Parts OpenSkiMap à l'échelle du domaine${s.skiinfoPct && s.measuredAt ? ` ; répartition Skiinfo relevée le ${s.measuredAt}` : ""}.`
-                      : ""}
-                  </p>
-                </section>
-                <section className="sect card">
-                  <div className="sect__row">
-                    <h2>Situation</h2>
-                    <span className="muted" id="fi-coords">
-                      <span className="rel">
-                        {s.lat.toFixed(4)}, {s.lon.toFixed(4)}
                       </span>
-                    </span>
-                  </div>
-                  <MiniMap lat={s.lat} lon={s.lon} />
+                    </div>
+                    <Carte
+                      className="minimap"
+                      statique
+                      centre={[s.lat, s.lon]}
+                      zoom={11}
+                      epingles={[
+                        { id: s.id, lat: s.lat, lon: s.lon, titre: s.name, sorte: "station" },
+                      ]}
+                    />
+                  </section>
+
+                  <section className="sect">
+                    <h2>Pistes par couleur</h2>
+                    <div id="fi-pistes">
+                      {s.colorShare ? (
+                        <div className="pistes">
+                          <span className="bar pistes__bar">
+                            {COLS.map((c) => (
+                              <i
+                                key={c.key}
+                                style={{ width: `${s.colorShare![c.key]}%`, background: c.token }}
+                              />
+                            ))}
+                          </span>
+                          <div className="pistes__cols">
+                            {COLS.map((c) => (
+                              <div key={c.key}>
+                                <span className="pistes__t">
+                                  <i style={{ background: c.token }} />
+                                  {c.label}
+                                </span>
+                                <b className="rel pistes__v">{s.colorShare![c.key]} %</b>
+                                <span className="muted pistes__sub">
+                                  {s.colorCounts
+                                    ? `${s.colorCounts[c.key]} tronçon${s.colorCounts[c.key] > 1 ? "s" : ""}`
+                                    : ""}
+                                  {s.skiinfoPct ? ` · Skiinfo ${s.skiinfoPct[c.key]} %` : ""}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="muted">Répartition des pistes non relevée.</p>
+                      )}
+                    </div>
+                    <p className="muted" id="fi-pistes-note">
+                      {s.colorShare
+                        ? `Parts OpenSkiMap à l'échelle du domaine${s.skiinfoPct && s.measuredAt ? ` ; répartition Skiinfo relevée le ${s.measuredAt}` : ""}.`
+                        : ""}
+                    </p>
+                  </section>
+
+                  <section className="sect">
+                    <h2>Forfaits</h2>
+                    <Liste
+                      colonnes={2}
+                      absence="non relevé"
+                      faits={[
+                        { cle: "adulte", libelle: "Adulte 6 jours", valeur: eurTarif(forfait?.j6) },
+                        {
+                          cle: "enfant",
+                          libelle: "Enfant 6 jours",
+                          valeur: eurTarif(forfait?.enf6),
+                        },
+                      ]}
+                    />
+                    <p className="muted fi-origin">
+                      {forfaitOrigine(forfait, domain?.name ?? null)}
+                    </p>
+                  </section>
+
+                  {/* Trois chiffres mesurés sur le domaine, que toutes ses
+                      stations partagent. Ils ne décident pas d'un séjour à eux
+                      seuls, ils expliquent les kilomètres du rang 1. */}
+                  <section className="sect">
+                    <h2>Mesures du domaine</h2>
+                    <Liste
+                      colonnes={2}
+                      absence="non relevé"
+                      faits={[
+                        { cle: "troncons", libelle: "Tronçons", valeur: s.segments },
+                        { cle: "remontees", libelle: "Remontées", valeur: s.lifts },
+                      ]}
+                    />
+                    <p className="muted fi-scale">
+                      Km, tronçons et remontées sont mesurés par OpenSkiMap à l’échelle du{" "}
+                      <b>domaine</b> : les{" "}
+                      {s.domain ? "stations qui le partagent" : "stations d’un même domaine"}{" "}
+                      portent les mêmes. Altitude du village, coordonnées et distance à la piste
+                      sont propres à <b>cette station</b>.
+                    </p>
+                  </section>
+                </div>
+
+                {/* ── Rang 3 : ce qui rassure ─────────────────────────────
+                    Cinq sections vides ou partielles pour une large part du
+                    catalogue. Repliées, elles ne font pas douter de l'écran ;
+                    ouvertes quand la donnée est là avant le rendu. */}
+                <section className="fiche__rassure">
+                  <h2>Neige, webcams et avalanche</h2>
+
+                  <details className="repli" open={neigeConnue}>
+                    <summary className="repli__tete">Neige au sol</summary>
+                    <div className="repli__corps">
+                      <Liste
+                        colonnes={2}
+                        absence="non relevé"
+                        faits={[
+                          {
+                            cle: "bas",
+                            libelle: "Au village",
+                            valeur: cm(snow?.village.snowDepthCm),
+                          },
+                          {
+                            cle: "haut",
+                            libelle: "Au sommet",
+                            valeur: cm(snow?.summit.snowDepthCm),
+                          },
+                        ]}
+                      />
+                      <p className="muted fi-origin">{neigeOrigine(snow, s)}</p>
+                    </div>
+                  </details>
+
+                  <details className="repli">
+                    <summary className="repli__tete">Prévision 14 jours</summary>
+                    <div className="repli__corps">
+                      <ForecastCard
+                        lat={s.lat}
+                        lon={s.lon}
+                        villageM={s.villageM}
+                        summitM={s.maxM}
+                      />
+                    </div>
+                  </details>
+
+                  <details className="repli">
+                    <summary className="repli__tete">Neige au sol, jour par jour</summary>
+                    <div className="repli__corps">
+                      <SnowHistoryCard
+                        stationId={s.id}
+                        lat={s.lat}
+                        lon={s.lon}
+                        villageM={s.villageM}
+                        summitM={s.maxM}
+                      />
+                    </div>
+                  </details>
+
+                  <details className="repli" open={camsConnues}>
+                    <summary className="repli__tete">Webcams</summary>
+                    <div className="repli__corps">
+                      <WebcamCard stationId={s.id} />
+                    </div>
+                  </details>
+
+                  <details className="repli">
+                    <summary className="repli__tete">Risque d’avalanche</summary>
+                    <div className="repli__corps">
+                      <BraCard
+                        name={s.name}
+                        massif={s.massif}
+                        lat={s.lat}
+                        lon={s.lon}
+                        villageM={s.villageM}
+                      />
+                    </div>
+                  </details>
                 </section>
-                <section className="sect card">
-                  <h2>Forfaits et neige</h2>
-                  <dl className="facts facts--4">
-                    <Fact k="Adulte 6 j" v={eurTarif(forfait?.j6)} />
-                    <Fact k="Enfant 6 j" v={eurTarif(forfait?.enf6)} />
-                    <Fact k="Neige bas" v={cm(snow?.village.snowDepthCm)} />
-                    <Fact k="Neige sommet" v={cm(snow?.summit.snowDepthCm)} />
-                  </dl>
-                  {/* La phrase qui tenait cette place annonçait « tarifs et
-                      hauteurs de neige non relevés » et « ils s'affichent
-                      « – » », au-dessus de 359 € et de 0 cm. Les deux relevés
-                      tournent ; ce qui manquait, c'était leur origine et leur
-                      date. Un zéro de hauteur de neige en septembre est une
-                      mesure, pas un trou : il faut le dire, sinon on le corrige
-                      à tort. */}
-                  <p className="muted fi-origin">{forfaitOrigine(forfait, domain?.name ?? null)}</p>
-                  <p className="muted fi-origin">{neigeOrigine(snow, s)}</p>
-                </section>
-                <section className="sect card">
-                  <h2>Prévision 14 jours</h2>
-                  <ForecastCard
-                    lat={s.lat}
-                    lon={s.lon}
-                    villageM={s.villageM}
-                    summitM={s.maxM}
-                  />
-                </section>
-                <section className="sect card">
-                  <h2>Neige au sol, jour par jour</h2>
-                  <SnowHistoryCard
-                    stationId={s.id}
-                    lat={s.lat}
-                    lon={s.lon}
-                    villageM={s.villageM}
-                    summitM={s.maxM}
-                  />
-                </section>
-                <section className="sect card">
-                  <h2>Webcams</h2>
-                  <WebcamCard stationId={s.id} />
-                </section>
-                <section className="sect card">
-                  <h2>Risque d’avalanche</h2>
-                  <BraCard
-                    name={s.name}
-                    massif={s.massif}
-                    lat={s.lat}
-                    lon={s.lon}
-                    villageM={s.villageM}
-                  />
-                </section>
+
                 <p className="muted fiche__src" id="fi-src">
                   Sources : France Montagnes (référentiel), OpenSkiMap (pistes, remontées)
                   {src ? (
@@ -406,6 +489,6 @@ function FicheBody({ s }: { s: Station }) {
           </div>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }

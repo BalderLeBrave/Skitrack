@@ -340,9 +340,7 @@ body:has(.v6.app) {
 }
 .v6 .eyebrow {
   font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--marque-texte);
 }
 .v6 .h1 {
@@ -413,9 +411,7 @@ body:has(.v6.app) {
 }
 .v6 .facts dt {
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .facts dd {
@@ -553,9 +549,7 @@ body:has(.v6.app) {
 .v6 .sbar__f small {
   display: block;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .sbar__f b,
@@ -1040,9 +1034,7 @@ body:has(.v6.app) {
 }
 .v6 .legend b {
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .legend i {
@@ -1253,9 +1245,7 @@ body:has(.v6.app) {
 .v6 table.cmp tbody th {
   width: 220px;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 table.cmp tbody tr:nth-child(odd) {
@@ -1333,9 +1323,7 @@ body:has(.v6.app) {
 }
 .v6 table.cmp .cmp__crit {
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--texte-2);
 }
 .v6 .cmp__pick {
@@ -1482,11 +1470,6 @@ body:has(.v6.app) {
   display: grid;
   gap: 20px;
   min-width: 0;
-}
-.v6 .fi-facts {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  padding: 18px 22px;
-  box-shadow: none;
 }
 .v6 .facts__none {
   color: var(--texte-3);
@@ -2278,7 +2261,7 @@ body:has(.v6.app) {
 }
 .v6 .sect > [data-testid="forecast-card"] > p:first-child,
 .v6 .sect > [data-testid="snow-history-card"] > p:first-child,
-.v6 .sect > [data-testid="webcam-card"] .text-xs.uppercase {
+.v6 .sect > [data-testid="webcam-card"] > div:first-child > p:first-child {
   display: none;
 }
 
@@ -2385,5 +2368,171 @@ body:has(.v6.app) {
   }
   .v6 .cmpdr__table tbody th {
     width: 8rem;
+  }
+}
+
+/* ── Fiche station : trois rangs ────────────────────────────────────────────
+   Rang 1, ce qui décide : quatre valeurs en grand, sans cadre. La bande de six
+   chiffres qui tenait cette place les mettait au même poids et serrait les
+   colonnes au point de casser « 1 825–3 230 m » sur trois lignes.
+   Rang 2, ce qui informe : des sections séparées par le vide et un titre.
+   Rang 3, ce qui rassure : cinq replis, ouverts quand la donnée est déjà là. */
+
+.v6 .fiche__cles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--bordure-douce);
+}
+
+@media (min-width: 860px) {
+  .v6 .fiche__cles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.v6 .fiche__informe {
+  display: grid;
+  gap: 28px;
+  align-items: start;
+  min-width: 0;
+}
+
+@media (min-width: 980px) {
+  .v6 .fiche__informe {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Sans cadre, le retrait de la carte n'a plus de raison d'être. */
+.v6 .fiche__informe .sect {
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.v6 .fiche__rassure {
+  display: grid;
+  gap: 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--bordure-douce);
+}
+
+.v6 .fiche__rassure > h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.v6 .repli {
+  border-bottom: 1px solid var(--bordure-douce);
+}
+
+.v6 .repli__tete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.v6 .repli__tete::-webkit-details-marker {
+  display: none;
+}
+
+/* Le chevron est dessiné ici : un repli natif n'a pas de place pour une icône
+   du registre, et ce triangle n'est pas un pictogramme mais un état. */
+.v6 .repli__tete::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--texte-2);
+  border-bottom: 2px solid var(--texte-2);
+  transform: rotate(-45deg);
+  transition: transform 0.15s var(--ease-ui, ease);
+}
+
+.v6 .repli[open] > .repli__tete::before {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v6 .repli__tete::before {
+    transition: none;
+  }
+}
+
+.v6 .repli__corps {
+  display: grid;
+  gap: 12px;
+  padding: 0 0 18px;
+}
+
+/* ── Étape 1 : la comparaison à la place de la carte ────────────────────────
+   Le tableau vivait dans un panneau qui glissait par-dessus la carte, donc
+   invisible tant qu'on ne l'ouvrait pas, et la carte doublait celle de
+   « Carte des stations ». La colonne de droite porte maintenant la comparaison,
+   qui est ce que cette étape sert à faire. */
+
+.v6 .cmpcol {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  padding: 22px 24px 28px;
+  background: var(--bg);
+}
+
+.v6 .cmpcol__head {
+  display: grid;
+  gap: 6px;
+}
+
+.v6 .cmpcol__head h1 {
+  margin: 0;
+}
+
+.v6 .cmpcol__t .tableau__grille {
+  background: var(--v6-surface);
+  border: 1px solid var(--bordure-douce);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Une colonne de station porte son nom, sa case et ses deux liens. */
+.v6 .cmp__col {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  font-weight: 400;
+}
+
+.v6 .cmpcol__t thead th {
+  vertical-align: bottom;
+}
+
+/* La meilleure valeur d'un critère, dite par le poids et non par un fond. */
+.v6 .cmp__best {
+  color: var(--marque-texte);
+  font-weight: 800;
+}
+
+.v6 .cmpcol__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .v6 .cmpcol {
+    padding: 18px 16px 24px;
   }
 }

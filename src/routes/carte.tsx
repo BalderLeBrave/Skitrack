@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlpineMap } from "@/components/AlpineMap";
-import { AppShell } from "@/components/AppShell";
+import { Carte } from "@/components/Carte";
+import { Coquille } from "@/components/Coquille";
 import {
   activeFilterCount,
   CARTE_ORDERS,
@@ -25,7 +25,7 @@ import {
 } from "@/lib/carte";
 import { formatAlt, STATIONS, type Station } from "@/lib/stations";
 
-export const Route = createFileRoute("/carte")({ component: Carte });
+export const Route = createFileRoute("/carte")({ component: PageCarte });
 
 const MASSIFS = stationMassifs(STATIONS);
 const DOMAINS = stationDomains(STATIONS);
@@ -158,7 +158,7 @@ function RangeFilter({
   );
 }
 
-function Carte() {
+function PageCarte() {
   const [massif, setMassif] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [order, setOrder] = useState<CarteOrder>("km");
@@ -166,7 +166,7 @@ function Carte() {
   const [unit, setUnit] = useState<ColorUnit>("pct");
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [flyNonce, setFlyNonce] = useState(0);
+  const [centreId, setCentreId] = useState<string | null>(null);
   // Une activation venue de la carte fait défiler la liste ; l'inverse, non.
   const fromMap = useRef(false);
 
@@ -189,18 +189,20 @@ function Carte() {
     document.getElementById(`carte-row-${activeId}`)?.scrollIntoView({ block: "nearest" });
   }, [activeId]);
 
-  const hoverFromMap = (id: string) => {
+  // Survol : la liste et la carte s'éclairent l'une l'autre, sans recentrage.
+  const hoverFromMap = (id: string | null) => {
     fromMap.current = true;
     setActiveId(id);
   };
+  // Clic : la station devient celle que la carte centre.
   const selectFromMap = (id: string) => {
     fromMap.current = true;
     setActiveId(id);
-    setFlyNonce((n) => n + 1);
+    setCentreId(id);
   };
   const selectFromRow = (id: string) => {
     setActiveId(id);
-    setFlyNonce((n) => n + 1);
+    setCentreId(id);
   };
   const patch = (p: Partial<CarteFilters>) => setFilters((f) => ({ ...f, ...p }));
   const setColor = (c: ColorKey, v: number) =>
@@ -208,7 +210,7 @@ function Carte() {
   const range = COLOR_RANGE[unit];
 
   return (
-    <AppShell>
+    <Coquille>
       <main className="carte" data-testid="carte">
         <aside className="carte__panel">
           <div className="carte__head">
@@ -478,16 +480,31 @@ function Carte() {
           </div>
         </aside>
         <div className="carte__map">
-          <AlpineMap
-            stations={STATIONS}
-            visibleIds={visibleIds}
-            activeId={activeId}
-            flyNonce={flyNonce}
-            onHover={hoverFromMap}
-            onSelect={selectFromMap}
+          <Carte
+            className="carte__toile-hote"
+            epingles={rows.map((x) => ({
+              id: x.id,
+              lat: x.lat,
+              lon: x.lon,
+              titre: x.name,
+              detail: x.domain ?? undefined,
+              sorte: (x.maxM ?? 0) >= 3000 ? ("station-haute" as const) : ("station" as const),
+            }))}
+            selectionne={centreId}
+            survole={activeId}
+            surSurvol={(id) => hoverFromMap(id ?? null)}
+            surClic={selectFromMap}
+            ajuster
+            legende={
+              <>
+                <b>Épingles</b>
+                <span>Une épingle par station de la liste. L’anneau suit le survol.</span>
+                <span>Fonds IGN et OpenTopoMap ; pistes et remontées OpenSnowMap.</span>
+              </>
+            }
           />
         </div>
       </main>
-    </AppShell>
+    </Coquille>
   );
 }

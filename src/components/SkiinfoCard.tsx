@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Bouton } from "@/components/base/Bouton";
 import { getSkiinfo } from "@/lib/skiinfoApi";
 import { useSkiinfoLive } from "@/lib/skiinfoLive";
 import { formatSkiinfoAge, type SkiinfoLive } from "@/lib/skiinfoStore";
@@ -42,20 +43,18 @@ export function SkiinfoCard({ stationId }: { stationId: string }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 text-corps" data-testid="skiinfo-refresh">
+    <div
+      className="flex flex-wrap items-center justify-between gap-2 text-corps"
+      data-testid="skiinfo-refresh"
+    >
       <p className="text-muted">
         {t("skiinfo.title")}
         {row ? ` · ${formatSkiinfoAge(row)}` : null}
         {row?.status === "erreur" && row.lastError ? ` — ${row.lastError}` : null}
       </p>
-      <button
-        type="button"
-        onClick={() => void refresh()}
-        disabled={busy}
-        className="shrink-0 rounded-full border border-line px-3 py-1.5 text-corps"
-      >
+      <Bouton ton="fantome" onClick={() => void refresh()} disabled={busy} className="shrink-0">
         {busy ? "…" : t("skiinfo.refresh")}
-      </button>
+      </Bouton>
     </div>
   );
 }

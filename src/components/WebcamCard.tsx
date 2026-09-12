@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ChampChoix } from "@/components/base/Champ";
 import { webcamsForStation } from "@/lib/webcams";
 
 /**
@@ -14,28 +15,18 @@ export function WebcamCard({ stationId }: { stationId: string }) {
   const current = cams.find((c) => c.id === id) ?? cams[0] ?? null;
 
   return (
-    <section
-      className="rounded-surface border border-line bg-panel p-4"
-      data-testid="webcam-card"
-    >
+    <section className="rounded-surface border border-line bg-panel p-4" data-testid="webcam-card">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-note uppercase tracking-wide text-muted">Webcams</p>
+        <p className="text-note text-muted">Webcams</p>
         {cams.length > 1 ? (
-          <select
-            className="rounded-surface border border-line bg-panel px-2 py-1 text-corps"
+          <ChampChoix
+            label="Caméra"
             value={current?.id ?? ""}
             onChange={(e) => setId(e.target.value)}
-            aria-label="Choisir la caméra"
-          >
-            {cams.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        ) : current ? (
-          <span className="text-corps">{current.label}</span>
+            options={cams.map((c) => ({ valeur: c.id, libelle: c.label }))}
+          />
         ) : null}
+        {cams.length === 1 && current ? <span className="text-corps">{current.label}</span> : null}
       </div>
 
       {current ? (

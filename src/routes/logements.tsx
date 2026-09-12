@@ -11,7 +11,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { V6App } from "@/components/v6/App";
+import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { LodgeCompare } from "@/components/LodgeCompare";
@@ -211,7 +211,7 @@ function Logements() {
      « 2 Logements » y mène. L'étape dit maintenant ce qu'elle attend. */
   if (!s) {
     return (
-      <V6App>
+      <Coquille>
         <section className="screen on" id="s-lodging" data-screen-label="2 Logements">
           <div className="scroll">
             <div className="wrap">
@@ -236,12 +236,12 @@ function Logements() {
             </div>
           </div>
         </section>
-      </V6App>
+      </Coquille>
     );
   }
 
   return (
-    <V6App>
+    <Coquille>
       <section className="screen on" id="s-lodging" data-screen-label="2 Logements">
         <div className="scroll">
           <div className="wrap lodging__wrap">
@@ -545,6 +545,6 @@ function Logements() {
           </button>
         </div>
       </section>
-    </V6App>
+    </Coquille>
   );
 }

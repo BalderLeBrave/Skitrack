@@ -70,7 +70,7 @@ export function LodgeSheet({
         className="relative z-10 grid max-h-[min(860px,calc(100dvh-24px))] w-[min(1120px,calc(100vw-24px))] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-surface bg-panel text-ink shadow-flottant"
       >
         <header className="relative border-b border-line px-6 py-4 pr-14">
-          <p className="text-note uppercase tracking-wide text-muted">{listing.source}</p>
+          <p className="text-note text-muted">{listing.source}</p>
           <h2 id="lodge-sheet-title" className="font-display text-titre tracking-tight">
             {listing.title}
           </h2>
@@ -103,7 +103,7 @@ export function LodgeSheet({
             </div>
           </div>
           <div className="overflow-auto p-6">
-            <p className="text-note font-bold uppercase tracking-wider text-muted">Ce que Skitrack a vérifié</p>
+            <p className="text-note text-muted">Ce que Skitrack a vérifié</p>
             <ul className="mt-3 grid gap-2 text-corps">
               <li>
                 <strong>Dates du relevé</strong> : {stay.checkIn} → {stay.checkOut}

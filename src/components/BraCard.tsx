@@ -53,7 +53,7 @@ export function BraCard({
 
   return (
     <section className="rounded-surface border border-line bg-panel p-4" data-testid="bra-card">
-      <p className="text-note uppercase tracking-wide text-muted">
+      <p className="text-note text-muted">
         {hasOfficial ? t("bra.official") : t("bra.internal")}
         {data?.massif ? ` · ${data.massif}` : ""}
       </p>

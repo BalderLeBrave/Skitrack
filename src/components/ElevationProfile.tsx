@@ -1,46 +1,41 @@
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+/**
+ * Profil d'une trace GPX, posé sur le dessin unique `ProfilAltitude`.
+ *
+ * Chaque point vient du fichier : distance cumulée en abscisse, altitude lue
+ * en ordonnée. Rien n'est lissé ni complété.
+ */
+
+import { ProfilAltitude } from "./ProfilAltitude";
 import { profileSeries, type GpxPoint } from "@/lib/gpx";
 
 export function ElevationProfile({ points }: { points: GpxPoint[] }) {
-  const data = profileSeries(points);
-  if (data.length < 2) {
-    return (
-      <p className="text-corps text-muted" data-testid="gpx-profile-empty">
-        Pas d’altitude dans ce GPX — le profil n’est pas tracé.
-      </p>
-    );
-  }
+  const serie = profileSeries(points);
+  const altitudes = serie.map((p) => p.ele);
+  const bas = altitudes.length ? Math.round(Math.min(...altitudes)) : null;
+  const haut = altitudes.length ? Math.round(Math.max(...altitudes)) : null;
+  const km = serie.length ? serie[serie.length - 1].km : 0;
+
   return (
     <div className="gpx-profile" data-testid="gpx-profile">
-      <ResponsiveContainer width="100%" height={180}>
-        <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <XAxis
-            dataKey="km"
-            tickFormatter={(v: number) => `${Number(v).toFixed(1)}`}
-            tick={{ fontSize: 11 }}
-            unit=" km"
-          />
-          <YAxis
-            dataKey="ele"
-            tickFormatter={(v: number) => `${Math.round(v)}`}
-            tick={{ fontSize: 11 }}
-            width={44}
-            unit=" m"
-          />
-          <Tooltip
-            formatter={(value: number) => [`${Math.round(value)} m`, "Altitude"]}
-            labelFormatter={(label: number) => `${Number(label).toFixed(2)} km`}
-          />
-          <Area
-            type="monotone"
-            dataKey="ele"
-            stroke="var(--color-cta)"
-            fill="var(--color-glacier)"
-            strokeWidth={2}
-            isAnimationActive={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+      <ProfilAltitude
+        points={serie.map((p) => ({ x: p.km, y: p.ele }))}
+        mesure
+        description={
+          bas != null && haut != null
+            ? `Profil de la trace, de ${bas} à ${haut} mètres sur ${km.toFixed(1)} kilomètres`
+            : "Profil de la trace"
+        }
+        bornes={
+          bas != null && haut != null
+            ? [
+                { cle: "bas", texte: `bas ${bas} m` },
+                { cle: "long", texte: `${km.toFixed(1)} km` },
+                { cle: "haut", texte: `haut ${haut} m` },
+              ]
+            : undefined
+        }
+        vide="Pas d’altitude dans ce GPX — le profil n’est pas tracé."
+      />
     </div>
   );
 }

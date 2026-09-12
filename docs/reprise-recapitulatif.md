@@ -7,7 +7,7 @@ aucune route n'est modifiée.
 | Nouveau fichier | Source | Reprise |
 |---|---|---|
 | `src/lib/stay/report.ts` | logique extraite de `2d960d5:.../components/StayReport.tsx` | |
-| `src/components/StayReport.tsx` | réécrit | |
+| `src/components/StayReport.tsx` | réécrit, puis fondu dans `src/routes/reservation.tsx` en phase 7 : l'écran de réservation est le récapitulatif, il n'y a plus de composant à part | |
 | `src/lib/stay/report.test.ts` | nouveau | 11 cas |
 
 ## Le modèle de provenance
@@ -88,9 +88,10 @@ l'application.
 
 ## Point de branchement
 
-`src/routes/reservation.tsx` est le candidat naturel, mais il fait partie de la
-campagne v6 non commitée : le branchement se fera dans la session qui la reprend.
-L'appel ressemble à ceci :
+Fait. `src/routes/reservation.tsx` appelle `buildReport` directement et met en
+page les sections lui-même ; le composant `StayReport` a disparu avec la phase 7
+de la mise en ordre, parce qu'il répétait la station, les dates et le budget
+que l'écran montrait déjà au-dessus de lui. L'appel d'origine, pour mémoire :
 
 ```tsx
 import { StayReport } from "@/components/StayReport";

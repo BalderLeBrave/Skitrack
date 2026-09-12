@@ -217,12 +217,6 @@ html[data-theme="dark"] {
   stroke-linecap: round;
 }
 
-.chip:focus-visible,
-.jl:focus-visible {
-  outline: 2px solid var(--color-cta);
-  outline-offset: 2px;
-}
-
 /* Panneau « Plus » : recherche de séjour et liens secondaires. */
 .more {
   position: absolute;
@@ -810,11 +804,6 @@ html[data-theme="dark"] .stay-glass {
   text-align: right;
 }
 
-.carte__sort:focus-visible {
-  outline: 2px solid var(--color-cta);
-  outline-offset: 2px;
-}
-
 .carte__list {
   flex: 1;
   min-height: 0;
@@ -1308,4 +1297,47 @@ html[data-theme="dark"] .stay-glass {
     height: 28rem;
     min-height: 0;
   }
+}
+
+/* ── Forfaits et altitudes : ce que le tableau de base ne dit pas ─────────── */
+.forfaits__pass {
+  font-size: var(--text-note);
+}
+
+.altitudes__lien {
+  font-weight: 600;
+  color: var(--color-marque-texte);
+}
+
+.altitudes__massif {
+  font-size: var(--text-note);
+  white-space: nowrap;
+}
+
+.altitudes__reste {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.forfaits__releve {
+  font-size: var(--text-note);
+}
+
+.forfaits__t .tableau__grille th,
+.forfaits__t .tableau__grille td {
+  padding: 0.5rem 0.75rem;
+}
+
+/* Le repli d'un massif : le titre de section sert de poignée. */
+.page__repli .repli__tete {
+  cursor: pointer;
+}
+
+/* L'échec d'une source, sous les outils et au-dessus de la liste. */
+.lodging__echec {
+  margin: 8px 0 4px;
+  max-width: none;
 }

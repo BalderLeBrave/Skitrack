@@ -265,3 +265,10 @@
   width: calc(var(--spacing) * 3.5);
   height: calc(var(--spacing) * 3.5);
 }
+
+/* Valeurs qui décident d'un écran : la hiérarchie vient de la taille. */
+.liste--grande .liste__valeur {
+  font-size: var(--text-section);
+  font-weight: 700;
+  line-height: 1.25;
+}

@@ -22,18 +22,28 @@ export type Fait = {
 export function Liste({
   faits,
   colonnes = 1,
+  taille = "normale",
   absence = "non communiqué",
   className,
 }: {
   faits: readonly Fait[];
   /** Nombre de colonnes au large. La liste retombe sur une seule au étroit. */
   colonnes?: 1 | 2 | 3 | 4;
+  /** `grande` pour les valeurs qui décident d'un écran. Une seule par écran. */
+  taille?: "normale" | "grande";
   absence?: string;
   className?: string;
 }) {
   return (
     <dl
-      className={["liste", `liste--${colonnes}`, className].filter(Boolean).join(" ")}
+      className={[
+        "liste",
+        `liste--${colonnes}`,
+        taille === "grande" ? "liste--grande" : null,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       data-testid="liste-faits"
     >
       {faits.map((f) => {

@@ -74,7 +74,7 @@ export type DemandeOpenSystem = {
 };
 
 /** Nombre de fiches par page accepté par le moteur. Au-delà, il retombe à 50. */
-export const OPEN_SYSTEM_PAR_PAGE = 50;
+const OPEN_SYSTEM_PAR_PAGE = 50;
 
 /**
  * L'URL d'une recherche datée.

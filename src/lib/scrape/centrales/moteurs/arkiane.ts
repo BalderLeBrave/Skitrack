@@ -99,7 +99,7 @@ function desechapper(s: string): string {
 }
 
 /** Texte visible d'un fragment, entités rendues et espaces repliés. */
-export function texteArkiane(fragment: string): string {
+function texteArkiane(fragment: string): string {
   return desechapper(fragment.replace(/<[^>]+>/g, " "))
     .replace(/\s+/g, " ")
     .trim();

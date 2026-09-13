@@ -413,17 +413,31 @@ Le registre gagne donc une liste de démentis : le classeur l'emporte partout, s
 
 Le `robots.txt` de l'hôte marchand de Pralognan commence par une marque d'ordre d'octets. Elle est invisible, et elle empêchait la première ligne de s'apparier : le groupe `User-agent` disparaissait, toutes ses règles avec, et le site entier passait pour autorisé. Corrigé et éprouvé.
 
+### Orchestra et Val d'Allos, les deux derniers
+
+**Orchestra avait été écarté sur son coût, et la mesure a corrigé le jugement.** Sa page de résultats groupée est fermée par `robots.txt`, si bien que le prix ne s'obtient qu'un logement à la fois : couvrir La Plagne entière demande onze pages de destination et quatre-vingt-quinze calendriers. Mais aucun de ces appels ne dépend des dates, et une fois retenus en mémoire ils ne coûtent plus rien. Mesuré : mille quatre-vingt-six millisecondes à froid, une milliseconde à chaud. Trente-neuf logements vendables sur quatre-vingt-quinze pour quatre personnes du 6 au 13 février 2027, avec capacité et photo sur les trente-neuf.
+
+Chaque station vise son village : Champagny-en-Vanoise coûte huit appels, Montchavin-les-Coches huit, et seule « La Plagne », qui désigne le domaine, les vise toutes.
+
+Deux pièges de ce moteur méritent d'être nommés. La ville de départ `XXX` est celle qui vend l'hébergement seul ; `PAR`, `LON` et `LIL` vendent un forfait avec le voyage, à des prix bien plus bas. Lire la mauvaise donnerait un total faux et plausible. Et la clé de la catégorie n'est pas fixe : « Housing » chez certains logements, le code commercial du produit chez d'autres.
+
+**Val d'Allos** complète Ingénie : `cid` 8, quatrième des cinq centrales que `robots.txt` laisse passer. Elle n'a qu'une offre ferme à quatre personnes, à 700 €, et neuf de ses dix blocs de tarif affichent « à partir de 0 € ». Un zéro n'est pas un prix : c'est ainsi que cette centrale signale un logement dont elle n'a pas le tarif à ces dates. Elle écrit par ailleurs sa monnaie en entité, « 700 &euro; », ce que l'analyseur ne décodait pas : le défaut aurait faussé tout montant à décimales.
+
+### Le tour complet, à quatre personnes
+
+Les dix-neuf centrales interrogeables ont été appelées dans un processus neuf, pour quatre personnes du 6 au 13 février 2027. Dix-huit rendent des logements, mille deux cent quatre-vingt-onze en tout ; la dix-neuvième, Montclar, rend zéro et dit pourquoi. Aucune n'échoue.
+
 ### Où en est le parc
 
 | | |
 | --- | --- |
 | Centrales connues | 69 |
-| Centrales avec un connecteur | 25 |
-| Centrales réellement interrogées | 17 |
-| Stations qui interrogent leur centrale en direct | 26 |
+| Centrales avec un connecteur | 27 |
+| Centrales réellement interrogées | 19 |
+| Stations qui interrogent leur centrale en direct | 33 |
 | Centrales dont le moteur reste inconnu | 2 |
 
-Les quarante-six centrales sans fichier ne sont pas muettes pour autant : `moteurs/etat.ts` donne à chacun des douze moteurs une phrase qui dit ce que `robots.txt` autorise sur le chemin des prix, ce que le moteur a répondu, et pourquoi cela ne fait pas un prix. L'écran l'affiche telle quelle.
+Les quarante-deux centrales sans fichier ne sont pas muettes pour autant : `moteurs/etat.ts` donne à chacun des treize moteurs une phrase qui dit ce que `robots.txt` autorise sur le chemin des prix, ce que le moteur a répondu, et pourquoi cela ne fait pas un prix. L'écran l'affiche telle quelle.
 
 ---
 
@@ -435,3 +449,69 @@ Les quarante-six centrales sans fichier ne sont pas muettes pour autant : `moteu
 - Moteur reconnu sur l'URL finale, les en-têtes `server` et `x-powered-by`, et le HTML. L'empreinte du `robots.txt` sert de confirmation : un même fichier, un même moteur.
 - Délai de 350 à 400 ms entre deux demandes, cinq à six en parallèle au plus.
 - Les scripts de relevé vivent dans le répertoire de travail de la session, hors du dépôt : ils ne sont pas du code d'application.
+
+---
+
+## 11. Le tour complet, du 6 au 13 février 2027 à quatre
+
+Les dix-neuf centrales interrogeables ont été appelées d'affilée, dans un
+processus neuf, caches vides, sur la même demande : arrivée le 6 février 2027,
+départ le 13, quatre voyageurs, un seul logement pour le groupe.
+
+**Dix-huit rendent des annonces, une répond qu'elle n'a rien, aucune n'échoue.**
+1 293 annonces au total, toutes avec un total de séjour daté.
+
+| Centrale | Moteur | Station interrogée | Annonces | Total du séjour, en euros | Délai |
+|---|---|---|---:|---|---:|
+| Alpe d'Huez Grand Domaine | MSEM | `alpe-d-huez` | 440 | 731 à 15 600 | 6 227 ms |
+| Flaine | MSEM | `flaine` | 152 | 1 040 à 7 924 | 8 234 ms |
+| Saint François Longchamp | MSEM | `saint-francois-longchamp` | 140 | 870 à 6 387 | 1 662 ms |
+| Corrençon-en-Vercors | MSEM | `correncon-en-vercors` | 121 | 470 à 4 061 | 3 049 ms |
+| Haute Maurienne Vanoise | Open System | `aussois` | 104 | 550 à 5 264 | 7 258 ms |
+| Vars | MSEM | `vars` | 62 | 654 à 4 753 | 494 ms |
+| La Clusaz | Deskline / Feratel | `la-clusaz` | 60 | 896 à 21 206 | 3 201 ms |
+| Pays des Écrins | MSEM | `puy-saint-vincent` | 60 | 612 à 3 552 | 1 103 ms |
+| Sainte-Foy Tarentaise | MSEM | `sainte-foy-tarentaise` | 24 | 1 277 à 7 578 | 513 ms |
+| Pralognan la Vanoise | Arkiane | `pralognan-la-vanoise` | 24 | 460 à 1 655 | 2 424 ms |
+| Les Arcs | iResa | `villaroger` | 24 | 609 à 1 088 | 986 ms |
+| Valmeinier | Ingénie | `valmeinier` | 24 | 1 090 à 3 400 | 513 ms |
+| Valberg | MSEM | `valberg` | 17 | 915 à 6 971 | 1 748 ms |
+| Isola 2000 | MSEM | `isola-2000` | 13 | 752 à 2 157 | 407 ms |
+| Forêt Blanche : Vars/Risoul | Ingénie | `risoul` | 10 | 600 à 760 | 3 754 ms |
+| Les Contamines-Montjoie | Ingénie | `les-contamines-montjoie` | 10 | 525 à 2 440 | 816 ms |
+| La Plagne | Orchestra | `aime-2000` | 7 | 1 084 à 1 254 | 508 ms |
+| Val d'Allos - La Foux | Ingénie | `val-dallos-la-foux-le-seignus` | 1 | 700 | 401 ms |
+| Montclar les 2 vallées | MSEM | `saint-jean-montclar` | 0 | rien de libre à ces dates | 401 ms |
+
+Deux remarques sur ce tableau.
+
+**Le zéro de Montclar est un renseignement, pas une panne.** La centrale a
+répondu, elle n'a simplement rien à vendre du 6 au 13 février pour quatre
+personnes. `ResultatCentrale.interrogee` distingue ce zéro de celui d'une
+centrale qu'on n'a pas appelée, et l'écran écrit la phrase correspondante.
+
+**Les sept annonces de La Plagne sont normales.** La station interrogée est
+`aime-2000`, et le connecteur ne demande à Orchestra que la destination du
+village concerné : sept appels, pas les quatre-vingt-quinze du domaine entier.
+C'est la station `la-plagne` qui les vise toutes, et elle seule.
+
+Les huit connecteurs sans `chercher` ont rendu leur phrase d'empêchement, celle
+qui leur est propre plutôt que celle de leur moteur : six sites Open System de
+génération ancienne, et deux `robots.txt` qui disent `Disallow: /`.
+
+## 12. Inventaire du dossier
+
+Tout le dépôt a été passé au crible : pour chaque fichier de code, les
+spécificateurs d'import ont été résolus vers un chemin réel, et ceux que
+personne ne désigne ont été listés.
+
+**Dans les centrales, rien d'inutile ne subsiste.** Aucun fichier orphelin,
+aucun hôte sans station, aucun connecteur absent du catalogue, aucun test hors
+de `npm test`. Trente-deux symboles exportés n'étaient lus nulle part ailleurs :
+douze sont partis, et les vingt qui restent sont des noms de types qui portent
+la signature d'une fonction publique de leur propre fichier. Les désexporter
+rendrait ces signatures innommables du dehors.
+
+**Hors des centrales, l'inventaire a trouvé de quoi alléger, et ce n'est pas de
+ce chantier.** Le détail est remonté à part : il touche du code antérieur, et le
+modifier sortirait du périmètre de ces phases.

@@ -35,12 +35,12 @@
  */
 
 /** Ce que la projection demande au service. Un champ inconnu rend un 400. */
-export const FERATEL_CHAMPS =
+const FERATEL_CHAMPS =
   "id,name,images{id,urls},location{coordinate{lat,long}}," +
   "services{id,name,products{id,name,price{value}}}";
 
 /** Nombre de résultats par page. Soixante est ce que le composant demande. */
-export const FERATEL_PAR_PAGE = 60;
+const FERATEL_PAR_PAGE = 60;
 
 export type DemandeFeratel = {
   checkIn: string;

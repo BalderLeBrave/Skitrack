@@ -38,7 +38,7 @@ const TIMEOUT_MS = 30_000;
 /** Le catalogue vieillit en heures, pas en minutes. */
 const CATALOGUE_TTL_MS = 6 * 60 * 60 * 1000;
 
-export const MSEM_BASE = "https://services.msem.tech";
+const MSEM_BASE = "https://services.msem.tech";
 
 export type ReglageMsem = {
   /** Hôte de la centrale, tel que le registre l'écrit. */
@@ -72,12 +72,6 @@ export type ReglageMsem = {
 };
 
 const catalogues = new Map<string, { at: number; valeur: CatalogueMsem }>();
-
-/** Pour les tests et la recette : vide le cache des catalogues. */
-export function oublierCataloguesMsem(): void {
-  catalogues.clear();
-}
-
 async function json(url: string, corps?: Record<string, unknown>): Promise<unknown> {
   const verdict = await centraleAutorise(url);
   if (verdict.autorise !== true) {

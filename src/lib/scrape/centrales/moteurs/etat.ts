@@ -35,9 +35,9 @@ const ETAT: Record<MoteurCentrale, string> = {
   // Le plus gros moteur du parc : vingt-huit centrales, cinquante-quatre
   // stations. Sa recherche de liste datée est un `GET /booking` portant
   // `action=searchAjax` et `cid=`, forme lue dans le formulaire que
-  // `www.valloire.com` rend côté serveur.
+  // `www.valloire.com` rend côté serveur. Trois d'entre elles ont leur fichier.
   Ingénie:
-    "sa recherche datée est fermée par robots.txt sur vingt-deux des vingt-huit centrales du moteur. Sur les six qui l'autorisent, elle a été appelée et le service ne répond pas : « Une erreur s'est produite » pour la liste, et 503 « Site en maintenance ! » pour la fiche datée. Relevé du 13 septembre 2026.",
+    "sa recherche datée est fermée par robots.txt sur vingt-deux des vingt-huit centrales du moteur, dont celle-ci. Les cinq qui l'autorisent sont interrogées, et elles répondent. Relevé du 13 septembre 2026.",
 
   // Deux centrales, trois stations. Les deux échouent pour des raisons
   // opposées, et la phrase doit porter les deux.

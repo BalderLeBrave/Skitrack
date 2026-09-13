@@ -117,7 +117,7 @@ function desechapper(s: string): string {
   return s
     .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
     .replace(/&#[xX]([0-9a-fA-F]+);/g, (_, n: string) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&([a-zA-Z]+);/g, (m, n: string) => ENTITES[n.toLowerCase()] ?? m);
+    .replace(/&([a-zA-Z][a-zA-Z0-9]*);/g, (m, n: string) => ENTITES[n.toLowerCase()] ?? m);
 }
 
 /** Texte visible d'un fragment : commentaires retirés, balises retirées, espaces repliés. */

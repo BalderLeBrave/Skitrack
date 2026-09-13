@@ -76,7 +76,6 @@ const RANGES: { k: "budget" | "pp" | "cap" | "rooms" | "dist"; label: string; ma
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
-  const stationId = useStay((s) => s.stationId);
   const checkIn = useStay((s) => s.checkIn);
   const checkOut = useStay((s) => s.checkOut);
   const guests = useStay((s) => s.guests);
@@ -92,7 +91,13 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     let pending = 3;
     setLive(null, [], true);
     const payload = {
-      stationId,
+      // L'identifiant vient de la station qu'on affiche, pas du magasin de
+      // séjour. Les deux devraient dire la même chose et le disent presque
+      // toujours ; quand ils divergent, le serveur mesurait l'accès depuis une
+      // autre station — vu en recette : une recherche « Les 2 Alpes » rendue
+      // avec le repère de Brides les Bains, à 60 km, donc 92 annonces sur 96
+      // classées « autre domaine ».
+      stationId: station.id,
       stationName: station.name,
       lat: station.lat,
       lon: station.lon,
@@ -143,7 +148,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stationId, checkIn, checkOut, guests, bedrooms, searchNonce, station?.name]);
+  }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);
 }
 
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };

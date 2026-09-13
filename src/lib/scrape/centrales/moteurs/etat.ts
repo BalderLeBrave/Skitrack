@@ -1,11 +1,11 @@
 /**
  * Pourquoi un moteur n'est pas interrogé, quand il ne l'est pas.
  *
- * Cinquante-six des soixante-sept centrales du parc n'ont pas de connecteur.
- * Leur écrire un fichier chacune pour n'y mettre qu'une phrase serait cinquante-
- * six fichiers vides ; les laisser sans phrase serait pire, parce qu'un zéro
+ * Quarante-huit des soixante-neuf centrales du parc n'ont pas de connecteur.
+ * Leur écrire un fichier chacune pour n'y mettre qu'une phrase serait autant de
+ * fichiers vides ; les laisser sans phrase serait pire, parce qu'un zéro
  * sans motif se lit comme « rien de disponible ». Or elles ne sont pas
- * cinquante-cinq cas différents : ce sont six moteurs, et l'empêchement est le
+ * quarante-huit cas différents : ce sont douze moteurs, et l'empêchement est le
  * même pour toutes celles qui partagent le leur.
  *
  * Ces phrases sortent du sondage du 13 septembre 2026, qui a relu le
@@ -63,6 +63,31 @@ const ETAT: Record<MoteurCentrale, string> = {
   // Une centrale relevée sous ce nom, corrigée depuis. Plus aucune aujourd'hui.
   Elloha:
     "aucune centrale du parc ne tourne sur ce moteur : la seule qui y avait été rangée au relevé du 13 septembre 2026 est en réalité sous MSEM, et la donnée est corrigée.",
+
+  // Trois centrales, dont La Plagne et Chamonix. Le moteur répond et ses prix
+  // sont datés ; c'est sa forme qui ne convient pas à une recherche en direct.
+  Orchestra:
+    "ce moteur répond et ses prix suivent la durée, mais il n'a pas de recherche groupée ouverte : sa page de résultats est fermée par robots.txt, et le prix ne s'obtient qu'un logement à la fois. Interroger une station entière demanderait des dizaines d'appels par recherche, ce qui n'est pas une façon de traiter un serveur. Relevé du 13 septembre 2026.",
+
+  // Une centrale, Pralognan-la-Vanoise.
+  Arkiane:
+    "ce moteur a été identifié et sa recherche datée répond, mais il n'a pas encore de connecteur. Relevé du 13 septembre 2026.",
+
+  // Une centrale, Les Arcs.
+  iResa:
+    "ce moteur a été identifié et sa recherche datée répond, mais il n'a pas encore de connecteur. Relevé du 13 septembre 2026.",
+
+  // Une centrale, Les Karellis.
+  Resalys:
+    "son robots.txt ferme la recherche datée. Relevé du 13 septembre 2026.",
+
+  // Une centrale, les vallées de Gavarnie.
+  Tourinsoft:
+    "ce n'est pas un moteur de réservation mais un système d'information touristique : il sert une grille tarifaire, sans date ni durée. Un prix qui ne bouge pas avec le séjour n'est pas un total de séjour. Relevé du 13 septembre 2026.",
+
+  // Six centrales. Ce n'est pas un échec d'identification, c'est un constat.
+  aucun:
+    "ce site n'a pas de moteur de réservation : il renseigne sur les hébergements sans les vendre. Cherché le 13 septembre 2026, et l'absence est le résultat.",
 
   inconnu:
     "le moteur de cette centrale n'a pas été identifié au relevé du 13 septembre 2026. Sans savoir ce qui la fait tourner, il n'y a rien à interroger de sûr.",

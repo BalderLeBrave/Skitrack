@@ -364,6 +364,52 @@ Aucun contournement de protection anti-robot, aucun proxy, aucune résolution de
 
 ---
 
+## 10. Les vingt-cinq centrales dont le moteur n'était pas nommé
+
+L'audit laissait vingt-cinq hôtes, trente et une stations, sous l'étiquette « non identifié ». Ils ont été sondés un par un le 13 septembre 2026, et chaque prix annoncé a été soumis à une contre-épreuve chargée de le réfuter. Il en reste deux « inconnu », et les deux le sont pour la même raison : leur `robots.txt` dit « Disallow: / », donc rien ne leur a été demandé.
+
+### Ce qui s'est branché
+
+| Centrale | Moteur | Relevé du 6 au 13 février 2027, 8 personnes |
+| --- | --- | --- |
+| Flaine | MSEM | 44 logements, prix doublé sur 14 nuits |
+| Pays des Écrins | MSEM | 5 logements |
+| Valberg | MSEM | 1 logement, 7 042,80 € qui tombent à 3 111,20 € sur 3 nuits |
+| Isola 2000 | MSEM | 0 : les neuf hébergements assez grands sont pris cette semaine-là |
+| La Clusaz | Deskline / Feratel | 60 logements, 56 placés sur la carte, 60 avec photo |
+| Risoul | Ingénie | 8 logements, de 1 300 € à 4 959 € |
+| Les Contamines-Montjoie | Ingénie | 5 logements, les cinq doublent sur 14 nuits |
+| Valmeinier | Ingénie | 4 logements |
+
+### Les moteurs qui n'ont pas été branchés, et pourquoi
+
+- **Orchestra Platform** (Travelsoft), trois centrales dont La Plagne et Chamonix. Le moteur répond, ses prix sont datés et suivent la durée. Mais sa page de résultats groupée est fermée par `robots.txt`, et le prix ne s'obtient qu'un logement à la fois : couvrir une station entière demanderait des dizaines d'appels par recherche. Ce n'est pas une façon de traiter un serveur, et la bonne forme serait une moisson périodique, qui n'est pas du ressort d'un connecteur en direct.
+- **Arkiane** (Pralognan-la-Vanoise) et **iResa** (Les Arcs), une station chacune. Les deux moteurs sont nommés et leur recherche datée répond. Le connecteur reste à écrire ; le rapport coût/couverture les place après le reste.
+- **Resalys** (Les Karellis) : `robots.txt` ferme la recherche datée.
+- **Tourinsoft** (vallées de Gavarnie) : ce n'est pas un moteur de réservation mais un système d'information touristique. Il sert une grille tarifaire, sans date ni durée, et un prix qui ne bouge pas avec le séjour n'est pas un total de séjour.
+- **Alliance Réseaux**, la famille ancienne d'Open System : Montgenèvre, Gourette, Luz-Ardiden, Peyragudes, Praz de Lys Sommand. Coquille statique et prix peints par un composant JavaScript, comme les trois centrales déjà relevées en section 9.
+- **Six sites sans moteur du tout** : Abondance, Les Brasses, Haut-Giffre, Beuil, Font-Romeu, Les Angles. Ils renseignent sur les hébergements sans les vendre. Ce n'est pas une identification manquée, c'est une absence, et la donnée la note comme telle.
+
+### Deux réfutations qui ont porté
+
+La contre-épreuve n'a pas servi qu'à confirmer. **Valfréjus** a été annoncé comme un total de séjour Open System, et réfuté : trois angles tenaient, le quatrième cassait sur l'exemple que la sonde mettait elle-même en tête. La centrale n'est pas branchée.
+
+Et **Chamrousse** a été volontairement laissée fermée. Son `robots.txt` interdit `/*?action=*` et `/*?cid=*`, mais dans l'URL que son propre formulaire fabrique ces paramètres ne sont pas en tête : la chaîne `?action=` n'y apparaît jamais et, à la lettre, la règle ne s'apparie pas. Réordonner les paramètres pour passer serait une exception déguisée.
+
+### Où en est le parc
+
+| | |
+| --- | --- |
+| Centrales connues | 69 |
+| Centrales avec un connecteur | 23 |
+| Centrales réellement interrogées | 15 |
+| Stations qui interrogent leur centrale en direct | 24 |
+| Centrales dont le moteur reste inconnu | 2 |
+
+Les quarante-six centrales sans fichier ne sont pas muettes pour autant : `moteurs/etat.ts` donne à chacun des douze moteurs une phrase qui dit ce que `robots.txt` autorise sur le chemin des prix, ce que le moteur a répondu, et pourquoi cela ne fait pas un prix. L'écran l'affiche telle quelle.
+
+---
+
 ## Annexe B — méthode
 
 - Corpus : `src/lib/centrales.data.json` (49 stations, 5 domaines) et les 169 sites de domaine de `src/lib/forfaits/catalog.json`.

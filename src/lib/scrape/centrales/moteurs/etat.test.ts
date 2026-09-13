@@ -17,6 +17,12 @@ const MOTEURS = [
   "Diffusio",
   "Deskline / Feratel",
   "Elloha",
+  "Orchestra",
+  "Arkiane",
+  "iResa",
+  "Resalys",
+  "Tourinsoft",
+  "aucun",
   "inconnu",
 ] as const;
 

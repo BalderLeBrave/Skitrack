@@ -35,6 +35,13 @@ export type MoteurCentrale =
   | "Diffusio"
   | "Deskline / Feratel"
   | "Elloha"
+  | "Orchestra"
+  | "Arkiane"
+  | "iResa"
+  | "Resalys"
+  | "Tourinsoft"
+  /** Cherché, et il n'y en a pas. Ce n'est pas la même chose qu'inconnu. */
+  | "aucun"
   | "inconnu";
 
 /** Ce qu'un connecteur reçoit : la demande, et l'origine de sa centrale. */

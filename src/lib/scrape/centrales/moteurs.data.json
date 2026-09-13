@@ -4,16 +4,17 @@
  "hotes": {
   "sites.valdabondance.com": {
    "nom": "Abondance",
-   "moteur": "inconnu",
+   "moteur": "aucun",
    "stations": [
     "abondance"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : ce site n'a pas de moteur de réservation. Ce n'est pas une identification manquée, c'est une absence."
   },
   "www.laplagneresort.com": {
    "nom": "Aime 2000",
-   "moteur": "inconnu",
+   "moteur": "Orchestra",
    "stations": [
     "aime-2000",
     "champagny-en-vanoise",
@@ -22,7 +23,8 @@
     "plagne-bellecote"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026, après l'audit : Orchestra Platform (Travelsoft). Sa recherche datée fonctionne, mais elle demande un appel par logement et sa page de résultats groupée est fermée par robots.txt."
   },
   "reservation.alpedhuez.com": {
    "nom": "Alpe d'Huez Grand Domaine",
@@ -99,14 +101,15 @@
   },
   "booking.chamonix.com": {
    "nom": "Chamonix",
-   "moteur": "inconnu",
+   "moteur": "Orchestra",
    "stations": [
     "chamonix",
     "les-houches",
     "vallorcine"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026, après l'audit : Orchestra Platform, même installation que La Plagne sur l'instance du Pays du Mont-Blanc."
   },
   "www.chamrousse.com": {
    "nom": "Chamrousse",
@@ -120,12 +123,13 @@
   },
   "www.chatel.com": {
    "nom": "Châtel",
-   "moteur": "inconnu",
+   "moteur": "Ingénie",
    "stations": [
     "chatel"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Ingénie, dont robots.txt ferme la recherche datée."
   },
   "reservation.combloux.com": {
    "nom": "Combloux",
@@ -134,7 +138,8 @@
     "combloux"
    ],
    "robots": "autorisé (aucune règle)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Son robots.txt dit « Disallow: / » : rien n'a été demandé au-delà, et le moteur reste donc inconnu par respect de cette règle, non par manque de recherche."
   },
   "reservation.courchevel.com": {
    "nom": "Courchevel",
@@ -262,12 +267,13 @@
   },
   "www.mole-brasses.com": {
    "nom": "Les Brasses",
-   "moteur": "inconnu",
+   "moteur": "aucun",
    "stations": [
     "les-brasses"
    ],
    "robots": "autorisé (Allow: /)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : site éditorial, sans moteur de réservation."
   },
   "reservation.lescontamines.com": {
    "nom": "Les Contamines-Montjoie",
@@ -280,30 +286,33 @@
   },
   "www.karellis.com": {
    "nom": "Les Karellis",
-   "moteur": "inconnu",
+   "moteur": "Resalys",
    "stations": [
     "les-karellis"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Resalys, la plateforme d'Open Destination."
   },
   "www.reservationpralognan.fr": {
    "nom": "Pralognan la Vanoise",
-   "moteur": "inconnu",
+   "moteur": "Arkiane",
    "stations": [
     "pralognan-la-vanoise"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Arkiane, plateforme LocVacances, reconnu à son en-tête maison « X-made-with-love-and-coffee-by: Arkiane »."
   },
   "booking.prazsurarly.com": {
    "nom": "Praz-sur-Arly",
-   "moteur": "inconnu",
+   "moteur": "Orchestra",
    "stations": [
     "praz-sur-arly"
    ],
    "robots": "autorisé (aucune règle)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 par le DNS : l'hôte est un alias de pmb.rte.orchestra-platform.com."
   },
   "reservation.saintfrancoislongchamp.com": {
    "nom": "Saint François Longchamp",
@@ -334,21 +343,23 @@
   },
   "www.haut-giffre.fr": {
    "nom": "Sixt-Fer-à-Cheval",
-   "moteur": "inconnu",
+   "moteur": "aucun",
    "stations": [
     "sixt-fer-a-cheval"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : site éditorial, sans moteur de réservation."
   },
   "www.valfrejus.com": {
    "nom": "Valfréjus",
-   "moteur": "inconnu",
+   "moteur": "Open System",
    "stations": [
     "valfrejus"
    ],
    "robots": "illisible (robots.txt illisible)",
-   "reponse": 403
+   "reponse": 403,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Open System, génération moderne. Le prix annoncé a toutefois été réfuté en contre-épreuve, et la centrale n'est pas branchée."
   },
   "www.valloire.com": {
    "nom": "Valloire",
@@ -379,12 +390,13 @@
   },
   "www.lesarcs.com": {
    "nom": "Villaroger",
-   "moteur": "inconnu",
+   "moteur": "iResa",
    "stations": [
     "villaroger"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : iResa porte le stock, les disponibilités et les prix, derrière une vitrine Drupal."
   },
   "isola2000.com": {
    "nom": "Isola 2000",
@@ -427,12 +439,13 @@
   },
   "reservation.montgenevre.com": {
    "nom": "Montgenèvre",
-   "moteur": "inconnu",
+   "moteur": "Open System",
    "stations": [
     "montgenevre"
    ],
    "robots": "interdit (Disallow: /)",
-   "reponse": "non interrogée"
+   "reponse": "non interrogée",
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, la famille d'Open System, reconnu au widget que le site public charge."
   },
   "reservation.orcieres.com": {
    "nom": "Orcières Merlette",
@@ -511,30 +524,33 @@
   },
   "font-romeu.fr": {
    "nom": "Font-Romeu – Pyrénées 2000",
-   "moteur": "inconnu",
+   "moteur": "aucun",
    "stations": [
     "font-romeu-pyrenees-2000"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : aucun moteur de réservation sur ce site."
   },
   "www.valleesdegavarnie.com": {
    "nom": "Gavarnie-Gèdre",
-   "moteur": "inconnu",
+   "moteur": "Tourinsoft",
    "stations": [
     "gavarnie-gedre"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Tourinsoft, le système d'information touristique du comité départemental, qui sert une grille tarifaire et non un total de séjour."
   },
   "www.gourette.com": {
    "nom": "Gourette",
-   "moteur": "inconnu",
+   "moteur": "Open System",
    "stations": [
     "gourette"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
   },
   "www.n-py.com": {
    "nom": "Grand Tourmalet",
@@ -556,30 +572,33 @@
   },
   "lesangles.com": {
    "nom": "Les Angles",
-   "moteur": "inconnu",
+   "moteur": "aucun",
    "stations": [
     "les-angles"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 403
+   "reponse": 403,
+   "corrige": "Cherché le 13 septembre 2026 : aucun moteur de réservation sur ce site."
   },
   "luz-ardiden.com": {
    "nom": "Luz-Ardiden",
-   "moteur": "inconnu",
+   "moteur": "Open System",
    "stations": [
     "luz-ardiden"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
   },
   "peyragudes.com": {
    "nom": "Peyragudes",
-   "moteur": "inconnu",
+   "moteur": "Open System",
    "stations": [
     "peyragudes"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
   },
   "piau-engaly.com": {
    "nom": "Piau-Engaly",
@@ -610,12 +629,13 @@
   },
   "www.labresse.net": {
    "nom": "La Bresse Hohneck",
-   "moteur": "Ingénie",
+   "moteur": "inconnu",
    "stations": [
     "la-bresse-hohneck"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "L'audit l'avait rangée sous Ingénie ; vérifié le 13 septembre 2026, ce n'en est pas. C'est un WordPress, et son moteur n'a pas été identifié."
   },
   "www.ballons-hautes-vosges.com": {
    "nom": "Saint Maurice sur Moselle",
@@ -638,21 +658,23 @@
   },
   "www.prazdelys-sommand.com": {
    "nom": "Praz de Lys – Sommand",
-   "moteur": "inconnu",
+   "moteur": "Open System",
    "stations": [
     "praz-de-lys-sommand"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : widget Alliance Réseaux, famille d'Open System."
   },
   "beuil.fr": {
    "nom": "Beuil – Les Launes",
-   "moteur": "inconnu",
+   "moteur": "aucun",
    "stations": [
     "beuil-les-launes"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : site éditorial, sans moteur de réservation."
   },
   "reservation.vars.com": {
    "nom": "Vars",

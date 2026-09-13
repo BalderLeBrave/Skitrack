@@ -1,0 +1,655 @@
+{
+ "at": "2026-09-13",
+ "source": "docs/centrales/audit.md",
+ "hotes": {
+  "sites.valdabondance.com": {
+   "nom": "Abondance",
+   "moteur": "inconnu",
+   "stations": [
+    "abondance"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.laplagneresort.com": {
+   "nom": "Aime 2000",
+   "moteur": "inconnu",
+   "stations": [
+    "aime-2000",
+    "champagny-en-vanoise",
+    "la-plagne",
+    "montchavin-les-coches",
+    "plagne-bellecote"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.alpedhuez.com": {
+   "nom": "Alpe d'Huez Grand Domaine",
+   "moteur": "Ublo",
+   "stations": [
+    "alpe-d-huez",
+    "auris-en-oisans",
+    "oz-en-oisans",
+    "vaujany",
+    "villard-reculas"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "www.matheysine-tourisme.com": {
+   "nom": "Alpe du Grand Serre",
+   "moteur": "Open System",
+   "stations": [
+    "alpe-du-grand-serre"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.areches-beaufort.com": {
+   "nom": "Arêches Beaufort",
+   "moteur": "Ingénie",
+   "stations": [
+    "areches-beaufort"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.haute-maurienne-vanoise.com": {
+   "nom": "Aussois",
+   "moteur": "Open System",
+   "stations": [
+    "aussois",
+    "bonneval-sur-arc",
+    "la-norma",
+    "val-cenis"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200
+  },
+  "reservation.lessaisies.com": {
+   "nom": "Bisanne 1500",
+   "moteur": "Ingénie",
+   "stations": [
+    "bisanne-1500",
+    "les-saisies"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "fr.locationlesmenuires.com": {
+   "nom": "Les Trois Vallées",
+   "moteur": "Ingénie",
+   "stations": [
+    "brides-les-bains",
+    "courchevel-le-praz",
+    "courchevel-moriond-1650",
+    "courchevel-village-1550",
+    "la-tania",
+    "les-menuires",
+    "meribel",
+    "meribel-village",
+    "meribel-mottaret",
+    "orelle",
+    "reberty",
+    "val-thorens"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "booking.chamonix.com": {
+   "nom": "Chamonix",
+   "moteur": "inconnu",
+   "stations": [
+    "chamonix",
+    "les-houches",
+    "vallorcine"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.chamrousse.com": {
+   "nom": "Chamrousse",
+   "moteur": "Ingénie",
+   "stations": [
+    "chamrousse",
+    "chamrousse-1750"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.chatel.com": {
+   "nom": "Châtel",
+   "moteur": "inconnu",
+   "stations": [
+    "chatel"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.combloux.com": {
+   "nom": "Combloux",
+   "moteur": "inconnu",
+   "stations": [
+    "combloux"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "reservation.courchevel.com": {
+   "nom": "Courchevel",
+   "moteur": "Ingénie",
+   "stations": [
+    "courchevel"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.valdarly-montblanc.com": {
+   "nom": "Crest-Voland",
+   "moteur": "Ingénie",
+   "stations": [
+    "crest-voland-cohennoz",
+    "flumet-st-nicolas-la-chapelle",
+    "la-giettaz",
+    "notre-dame-de-bellecombe"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.flaine.com": {
+   "nom": "Flaine",
+   "moteur": "inconnu",
+   "stations": [
+    "flaine"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200
+  },
+  "www.laclusaz.com": {
+   "nom": "La Clusaz",
+   "moteur": "Deskline / Feratel",
+   "stations": [
+    "la-clusaz"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.tignes.net": {
+   "nom": "Tignes - Val d'Isère",
+   "moteur": "Ingénie",
+   "stations": [
+    "la-daille",
+    "le-fornet",
+    "tignes",
+    "tignes-le-lac",
+    "tignes-les-boisses",
+    "tignes-les-brevieres",
+    "tignes-val-claret",
+    "val-disere"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.larosiere.net": {
+   "nom": "La Rosière",
+   "moteur": "Ingénie",
+   "stations": [
+    "la-rosiere-1850"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.la-toussuire.com": {
+   "nom": "Les Sybelles",
+   "moteur": "Open System",
+   "stations": [
+    "la-toussuire",
+    "le-corbier",
+    "les-bottieres",
+    "saint-sorlin-darves",
+    "st-jean-darves",
+    "saint-pancrace-les-bottieres"
+   ],
+   "robots": "illisible (robots.txt illisible)",
+   "reponse": 200
+  },
+  "www.vercors-experience.com": {
+   "nom": "Lans-en-Vercors",
+   "moteur": "Ingénie",
+   "stations": [
+    "lans-en-vercors"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.lecollet.com": {
+   "nom": "Le Collet d'Allevard",
+   "moteur": "Ingénie",
+   "stations": [
+    "le-collet-dallevard"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.legrandbornand.com": {
+   "nom": "Le Grand-Bornand",
+   "moteur": "Ingénie",
+   "stations": [
+    "le-grand-bornand"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.les2alpes.com": {
+   "nom": "Les 2 Alpes",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-2-alpes"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.peisey-vallandry.com": {
+   "nom": "Les Arcs",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-arcs-bourg-st-maurice"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.mole-brasses.com": {
+   "nom": "Les Brasses",
+   "moteur": "inconnu",
+   "stations": [
+    "les-brasses"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200
+  },
+  "reservation.lescontamines.com": {
+   "nom": "Les Contamines-Montjoie",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-contamines-montjoie"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.karellis.com": {
+   "nom": "Les Karellis",
+   "moteur": "inconnu",
+   "stations": [
+    "les-karellis"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.reservationpralognan.fr": {
+   "nom": "Pralognan la Vanoise",
+   "moteur": "inconnu",
+   "stations": [
+    "pralognan-la-vanoise"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "booking.prazsurarly.com": {
+   "nom": "Praz-sur-Arly",
+   "moteur": "inconnu",
+   "stations": [
+    "praz-sur-arly"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "reservation.saintfrancoislongchamp.com": {
+   "nom": "Saint François Longchamp",
+   "moteur": "Ublo",
+   "stations": [
+    "saint-francois-longchamp"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "fr.locationsaintmartin.com": {
+   "nom": "Saint Martin de Belleville",
+   "moteur": "Ingénie",
+   "stations": [
+    "saint-martin-de-belleville"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.saintefoy-reservation.com": {
+   "nom": "Sainte-Foy Tarentaise",
+   "moteur": "Ublo",
+   "stations": [
+    "sainte-foy-tarentaise"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "www.haut-giffre.fr": {
+   "nom": "Sixt-Fer-à-Cheval",
+   "moteur": "inconnu",
+   "stations": [
+    "sixt-fer-a-cheval"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valfrejus.com": {
+   "nom": "Valfréjus",
+   "moteur": "inconnu",
+   "stations": [
+    "valfrejus"
+   ],
+   "robots": "illisible (robots.txt illisible)",
+   "reponse": 403
+  },
+  "www.valloire.com": {
+   "nom": "Valloire",
+   "moteur": "Ingénie",
+   "stations": [
+    "valloire"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valmeinier-reservation.com": {
+   "nom": "Valmeinier",
+   "moteur": "Ingénie",
+   "stations": [
+    "valmeinier"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valmorel.com": {
+   "nom": "Valmorel",
+   "moteur": "Open System",
+   "stations": [
+    "valmorel"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.lesarcs.com": {
+   "nom": "Villaroger",
+   "moteur": "inconnu",
+   "stations": [
+    "villaroger"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "isola2000.com": {
+   "nom": "Isola 2000",
+   "moteur": "inconnu",
+   "stations": [
+    "isola-2000"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.ledevoluy.com": {
+   "nom": "La Joue du Loup",
+   "moteur": "Open System",
+   "stations": [
+    "la-joue-du-loup",
+    "superdevoluy-la-joue-du-loup"
+   ],
+   "robots": "illisible (robots.txt illisible)",
+   "reponse": 200
+  },
+  "www.risoul.com": {
+   "nom": "Forêt Blanche : Vars/Risoul",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-claux",
+    "risoul",
+    "vars",
+    "vars-sainte-marie"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.lesorres.com": {
+   "nom": "Les Orres",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-orres"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.montgenevre.com": {
+   "nom": "Montgenèvre",
+   "moteur": "inconnu",
+   "stations": [
+    "montgenevre"
+   ],
+   "robots": "interdit (Disallow: /)",
+   "reponse": "non interrogée"
+  },
+  "reservation.orcieres.com": {
+   "nom": "Orcières Merlette",
+   "moteur": "Ingénie",
+   "stations": [
+    "orcieres"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.paysdesecrins.com": {
+   "nom": "Puy-Saint-Vincent",
+   "moteur": "inconnu",
+   "stations": [
+    "puy-saint-vincent"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.serre-chevalier.com": {
+   "nom": "Serre-Chevalier",
+   "moteur": "Ingénie",
+   "stations": [
+    "serre-chevalier"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valdallos.com": {
+   "nom": "Val d'Allos - La Foux",
+   "moteur": "Ingénie",
+   "stations": [
+    "val-dallos-la-foux-le-seignus"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valberg.com": {
+   "nom": "Valberg",
+   "moteur": "inconnu",
+   "stations": [
+    "valberg"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200
+  },
+  "www.lesrousses.com": {
+   "nom": "Les Rousses",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-rousses"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.sancy.com": {
+   "nom": "Super Besse",
+   "moteur": "Diffusio",
+   "stations": [
+    "besse-super-besse",
+    "le-mont-dore"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.ax-ski.com": {
+   "nom": "Ax 3 Domaines",
+   "moteur": "Open System",
+   "stations": [
+    "ax-3-domaines"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200
+  },
+  "font-romeu.fr": {
+   "nom": "Font-Romeu – Pyrénées 2000",
+   "moteur": "inconnu",
+   "stations": [
+    "font-romeu-pyrenees-2000"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valleesdegavarnie.com": {
+   "nom": "Gavarnie-Gèdre",
+   "moteur": "inconnu",
+   "stations": [
+    "gavarnie-gedre"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.gourette.com": {
+   "nom": "Gourette",
+   "moteur": "inconnu",
+   "stations": [
+    "gourette"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.n-py.com": {
+   "nom": "Grand Tourmalet",
+   "moteur": "Diffusio",
+   "stations": [
+    "la-mongie-bareges"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.chioula.fr": {
+   "nom": "Le Chioula",
+   "moteur": "Ingénie",
+   "stations": [
+    "le-chioula"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "lesangles.com": {
+   "nom": "Les Angles",
+   "moteur": "inconnu",
+   "stations": [
+    "les-angles"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 403
+  },
+  "luz-ardiden.com": {
+   "nom": "Luz-Ardiden",
+   "moteur": "inconnu",
+   "stations": [
+    "luz-ardiden"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "peyragudes.com": {
+   "nom": "Peyragudes",
+   "moteur": "inconnu",
+   "stations": [
+    "peyragudes"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "piau-engaly.com": {
+   "nom": "Piau-Engaly",
+   "moteur": "Open System",
+   "stations": [
+    "piau-engaly"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "resa.saintlary.com": {
+   "nom": "Saint Lary",
+   "moteur": "Ingénie",
+   "stations": [
+    "saint-lary-soulan"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.gerardmer-reservation.net": {
+   "nom": "Gérardmer",
+   "moteur": "Ingénie",
+   "stations": [
+    "gerardmer"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.labresse.net": {
+   "nom": "La Bresse Hohneck",
+   "moteur": "Ingénie",
+   "stations": [
+    "la-bresse-hohneck"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.ballons-hautes-vosges.com": {
+   "nom": "Saint Maurice sur Moselle",
+   "moteur": "Ingénie",
+   "stations": [
+    "saint-maurice-sur-moselle"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.villarddelans-correnconenvercors.com": {
+   "nom": "Corrençon-en-Vercors",
+   "moteur": "Elloha",
+   "stations": [
+    "correncon-en-vercors"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.prazdelys-sommand.com": {
+   "nom": "Praz de Lys – Sommand",
+   "moteur": "inconnu",
+   "stations": [
+    "praz-de-lys-sommand"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "beuil.fr": {
+   "nom": "Beuil – Les Launes",
+   "moteur": "inconnu",
+   "stations": [
+    "beuil-les-launes"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  }
+ }
+}

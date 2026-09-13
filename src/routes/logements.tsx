@@ -88,7 +88,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   useEffect(() => {
     if (!station) return;
     let cancelled = false;
-    let pending = 3;
+    let pending = 4;
     setLive(null, [], true);
     const payload = {
       // L'identifiant vient de la station qu'on affiche, pas du magasin de
@@ -110,7 +110,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       pending -= 1;
       if (!cancelled && pending <= 0) setSearching(false);
     };
-    const run = (part: "airbnb" | "gites" | "cozy") => {
+    const run = (part: "airbnb" | "gites" | "cozy" | "centrales") => {
       void searchStay({ data: { ...payload, part } })
         .then((res) => {
           if (cancelled) return;
@@ -129,6 +129,11 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
               frozen.filter((l) => l.source === "Gîtes de France"),
               [{ source: "Gîtes de France", ok: false, count: 0, ms: 0, error }],
             );
+          } else if (part === "centrales") {
+            mergeLive(
+              frozen.filter((l) => l.source === "Centrale"),
+              [{ source: "Centrale", ok: false, count: 0, ms: 0, error }],
+            );
           } else {
             mergeLive(
               frozen.filter((l) => l.source === "Abritel" || l.source === "Booking"),
@@ -144,6 +149,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     run("airbnb");
     run("gites");
     run("cozy");
+    // La centrale officielle de la station. Elle part en même temps que les
+    // plateformes et n'attend rien d'elles : une centrale lente ne doit pas
+    // retarder la liste, et une centrale muette ne doit pas la vider.
+    run("centrales");
     return () => {
       cancelled = true;
     };
@@ -259,6 +268,12 @@ function Logements() {
   ]
     .filter(Boolean)
     .join(", ");
+  // Ce que la centrale officielle a répondu quand elle n'a rien rendu. Le
+  // serveur envoie la phrase toute faite : station sans centrale relevée,
+  // centrale sans connecteur, connecteur qui sait déjà qu'il ne peut pas, ou
+  // appel échoué. Un zéro sans motif se lirait comme « rien de disponible ».
+  const centrale = liveSources.find((x) => x.source === "Centrale");
+  const centraleLbl = centrale && centrale.count === 0 ? (centrale.error ?? null) : null;
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
   const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
   const totalN = (kept?.total ?? 0) + passGroupN;
@@ -445,6 +460,7 @@ function Logements() {
                 <span className="toujours7__regle">Total du séjour, pas « dès »</span>
                 <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
                 {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
+                {centraleLbl ? <span className="toujours7__ecarte">Centrale : {centraleLbl}</span> : null}
                 <span>Une capacité non annoncée n'écarte pas l'annonce : elle est dite non annoncée.</span>
               </div>
               <div className="filtres7__barre">

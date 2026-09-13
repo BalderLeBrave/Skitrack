@@ -12,7 +12,7 @@ const Input = z.object({
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guests: z.number().int().min(1).max(30),
   bedrooms: z.number().int().min(0).max(20),
-  part: z.enum(["airbnb", "gites", "cozy", "browser", "all"]).optional(),
+  part: z.enum(["airbnb", "gites", "cozy", "centrales", "browser", "all"]).optional(),
 });
 
 export const searchStay = createServerFn({ method: "POST" })

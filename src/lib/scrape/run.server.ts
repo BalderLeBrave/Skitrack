@@ -11,9 +11,10 @@ import { fillBookingGps } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
 import { collectCozyPayloads, cozyListings } from "./cozy.server";
 import { allowsPath } from "./robots";
+import { chercherCentrale } from "./centrales/chercher.server";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
 
-export type SearchPart = "airbnb" | "gites" | "cozy" | "browser" | "all";
+export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "browser" | "all";
 
 function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   if (
@@ -35,6 +36,7 @@ const AIRBNB_SOURCES = ["Airbnb"] as const;
 const GITES_SOURCES = ["Gîtes de France"] as const;
 const COZY_SOURCES = ["Abritel", "Booking"] as const;
 const BROWSER_SOURCES = ["Gîtes de France", "Abritel", "Booking"] as const;
+const CENTRALE_SOURCES = ["Centrale"] as const;
 
 function locate(input: LiveSearchInput, listings: Listing[]): Listing[] {
   const station = stationById(input.stationId);
@@ -156,6 +158,44 @@ async function runCozy(input: LiveSearchInput): Promise<LiveSearchResult> {
   return { listings: locate(input, listings), sources: reports };
 }
 
+/**
+ * La centrale officielle de la station.
+ *
+ * Une station, une centrale, et une seule requête : ce n'est pas une plateforme
+ * qu'on interroge partout, c'est l'office de tourisme de l'endroit.
+ * `chercherCentrale` dit lui-même s'il a pu appeler, et pourquoi quand il n'a
+ * pas pu ; cette raison devient le champ `error` du rapport de source, que
+ * l'écran écrit au lieu d'un vide.
+ *
+ * `ok` sépare les deux zéros : vrai quand la centrale a répondu sans rien avoir
+ * de libre, faux quand elle n'a pas été appelée du tout. Le repli sur le relevé
+ * figé se déclenche sur le second, ce qui est voulu — une station dont la
+ * centrale n'est pas branchée garde ce qu'on avait relevé d'elle à la main.
+ */
+async function runCentrales(input: LiveSearchInput): Promise<LiveSearchResult> {
+  const reports: SourceReport[] = [];
+  const listings: Listing[] = [];
+  const t0 = Date.now();
+  try {
+    const res = await chercherCentrale(input);
+    reports.push({
+      source: "Centrale",
+      ok: res.interrogee,
+      count: res.listings.length,
+      ms: Date.now() - t0,
+      ...(res.raison ? { error: res.raison } : {}),
+    });
+    listings.push(...res.listings);
+    console.info(`[centrale] ${res.nom ?? "aucune"} ${res.listings.length} en ${Date.now() - t0}ms`);
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    reports.push({ source: "Centrale", ok: false, count: 0, ms: Date.now() - t0, error });
+    console.warn(`[centrale] échec: ${error}`);
+  }
+  applyDump(input, reports, listings, new Set(CENTRALE_SOURCES));
+  return { listings: locate(input, listings), sources: reports };
+}
+
 async function runBrowser(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
@@ -183,10 +223,24 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
   if (part === "airbnb") return runAirbnb(input);
   if (part === "gites") return runGites(input);
   if (part === "cozy") return runCozy(input);
+  if (part === "centrales") return runCentrales(input);
   if (part === "browser") return runBrowser(input);
-  const [airbnb, gites, cozy] = await Promise.all([runAirbnb(input), runGites(input), runCozy(input)]);
-  const listings = locate(input, [...airbnb.listings, ...gites.listings, ...cozy.listings]);
-  return { listings, sources: [...airbnb.sources, ...gites.sources, ...cozy.sources] };
+  const [airbnb, gites, cozy, centrales] = await Promise.all([
+    runAirbnb(input),
+    runGites(input),
+    runCozy(input),
+    runCentrales(input),
+  ]);
+  const listings = locate(input, [
+    ...airbnb.listings,
+    ...gites.listings,
+    ...cozy.listings,
+    ...centrales.listings,
+  ]);
+  return {
+    listings,
+    sources: [...airbnb.sources, ...gites.sources, ...cozy.sources, ...centrales.sources],
+  };
 }
 
 const CACHE_MS = 90_000;

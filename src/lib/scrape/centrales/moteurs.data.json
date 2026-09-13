@@ -1,0 +1,705 @@
+{
+ "at": "2026-09-13",
+ "source": "docs/centrales/audit.md",
+ "hotes": {
+  "sites.valdabondance.com": {
+   "nom": "Abondance",
+   "moteur": "aucun",
+   "stations": [
+    "abondance"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : ce site n'a pas de moteur de réservation. Ce n'est pas une identification manquée, c'est une absence."
+  },
+  "www.laplagneresort.com": {
+   "nom": "Aime 2000",
+   "moteur": "Orchestra",
+   "stations": [
+    "aime-2000",
+    "champagny-en-vanoise",
+    "la-plagne",
+    "montchavin-les-coches",
+    "plagne-bellecote"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026, après l'audit : Orchestra Platform (Travelsoft). Sa recherche datée fonctionne, mais elle demande un appel par logement et sa page de résultats groupée est fermée par robots.txt."
+  },
+  "reservation.alpedhuez.com": {
+   "nom": "Alpe d'Huez Grand Domaine",
+   "moteur": "MSEM",
+   "stations": [
+    "alpe-d-huez",
+    "auris-en-oisans",
+    "oz-en-oisans",
+    "vaujany",
+    "villard-reculas"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "www.matheysine-tourisme.com": {
+   "nom": "Alpe du Grand Serre",
+   "moteur": "Open System",
+   "stations": [
+    "alpe-du-grand-serre"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.areches-beaufort.com": {
+   "nom": "Arêches Beaufort",
+   "moteur": "Ingénie",
+   "stations": [
+    "areches-beaufort"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.haute-maurienne-vanoise.com": {
+   "nom": "Aussois",
+   "moteur": "Open System",
+   "stations": [
+    "aussois",
+    "bonneval-sur-arc",
+    "la-norma",
+    "val-cenis"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200
+  },
+  "reservation.lessaisies.com": {
+   "nom": "Bisanne 1500",
+   "moteur": "Ingénie",
+   "stations": [
+    "bisanne-1500",
+    "les-saisies"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "fr.locationlesmenuires.com": {
+   "nom": "Les Trois Vallées",
+   "moteur": "Ingénie",
+   "stations": [
+    "brides-les-bains",
+    "courchevel-le-praz",
+    "courchevel-moriond-1650",
+    "courchevel-village-1550",
+    "la-tania",
+    "les-menuires",
+    "meribel",
+    "meribel-village",
+    "meribel-mottaret",
+    "orelle",
+    "reberty",
+    "val-thorens"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "booking.chamonix.com": {
+   "nom": "Chamonix",
+   "moteur": "Orchestra",
+   "stations": [
+    "chamonix",
+    "les-houches",
+    "vallorcine"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026, après l'audit : Orchestra Platform, même installation que La Plagne sur l'instance du Pays du Mont-Blanc."
+  },
+  "www.chamrousse.com": {
+   "nom": "Chamrousse",
+   "moteur": "Ingénie",
+   "stations": [
+    "chamrousse",
+    "chamrousse-1750"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.chatel.com": {
+   "nom": "Châtel",
+   "moteur": "Ingénie",
+   "stations": [
+    "chatel"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Ingénie, dont robots.txt ferme la recherche datée."
+  },
+  "reservation.combloux.com": {
+   "nom": "Combloux",
+   "moteur": "inconnu",
+   "stations": [
+    "combloux"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200,
+   "corrige": "Son robots.txt dit « Disallow: / » : rien n'a été demandé au-delà, et le moteur reste donc inconnu par respect de cette règle, non par manque de recherche."
+  },
+  "reservation.courchevel.com": {
+   "nom": "Courchevel",
+   "moteur": "Ingénie",
+   "stations": [
+    "courchevel"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.valdarly-montblanc.com": {
+   "nom": "Crest-Voland",
+   "moteur": "Ingénie",
+   "stations": [
+    "crest-voland-cohennoz",
+    "flumet-st-nicolas-la-chapelle",
+    "la-giettaz",
+    "notre-dame-de-bellecombe"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.flaine.com": {
+   "nom": "Flaine",
+   "moteur": "MSEM",
+   "stations": [
+    "flaine"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 320, channel « OT-320 », 369 hébergements, 44 vendables à huit personnes du 6 au 13 février 2027, prix exactement doublé sur quatorze nuits."
+  },
+  "www.laclusaz.com": {
+   "nom": "La Clusaz",
+   "moteur": "Deskline / Feratel",
+   "stations": [
+    "la-clusaz"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.tignes.net": {
+   "nom": "Tignes - Val d'Isère",
+   "moteur": "Ingénie",
+   "stations": [
+    "la-daille",
+    "le-fornet",
+    "tignes",
+    "tignes-le-lac",
+    "tignes-les-boisses",
+    "tignes-les-brevieres",
+    "tignes-val-claret",
+    "val-disere"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.larosiere.net": {
+   "nom": "La Rosière",
+   "moteur": "Ingénie",
+   "stations": [
+    "la-rosiere-1850"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.la-toussuire.com": {
+   "nom": "Les Sybelles",
+   "moteur": "Open System",
+   "stations": [
+    "la-toussuire",
+    "le-corbier",
+    "les-bottieres",
+    "saint-sorlin-darves",
+    "st-jean-darves",
+    "saint-pancrace-les-bottieres"
+   ],
+   "robots": "illisible (robots.txt illisible)",
+   "reponse": 200
+  },
+  "www.vercors-experience.com": {
+   "nom": "Lans-en-Vercors",
+   "moteur": "Ingénie",
+   "stations": [
+    "lans-en-vercors"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.lecollet.com": {
+   "nom": "Le Collet d'Allevard",
+   "moteur": "Ingénie",
+   "stations": [
+    "le-collet-dallevard"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.legrandbornand.com": {
+   "nom": "Le Grand-Bornand",
+   "moteur": "Ingénie",
+   "stations": [
+    "le-grand-bornand"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.les2alpes.com": {
+   "nom": "Les 2 Alpes",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-2-alpes"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.peisey-vallandry.com": {
+   "nom": "Peisey-Vallandry",
+   "moteur": "Ingénie",
+   "stations": [
+    "peisey-vallandry"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "L'audit du 13 septembre 2026 lui rattachait Les Arcs sous le nom « Les Arcs », et la mesure du même jour l'a démentie : son titre dit « Peisey-Vallandry, site officiel de l'office de tourisme et de la vallée », sa page d'accueil nomme Peisey, Vallandry et Landry près de trois cents fois chacune contre quatre pour Bourg-Saint-Maurice, et Les Arcs est vendue par sa propre centrale. La station rattachée est donc celle dont c'est l'office."
+  },
+  "www.mole-brasses.com": {
+   "nom": "Les Brasses",
+   "moteur": "aucun",
+   "stations": [
+    "les-brasses"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : site éditorial, sans moteur de réservation."
+  },
+  "reservation.lescontamines.com": {
+   "nom": "Les Contamines-Montjoie",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-contamines-montjoie"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.karellis.com": {
+   "nom": "Les Karellis",
+   "moteur": "Resalys",
+   "stations": [
+    "les-karellis"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Resalys, la plateforme d'Open Destination."
+  },
+  "www.reservationpralognan.fr": {
+   "nom": "Pralognan la Vanoise",
+   "moteur": "Arkiane",
+   "stations": [
+    "pralognan-la-vanoise"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Arkiane, plateforme LocVacances, reconnu à son en-tête maison « X-made-with-love-and-coffee-by: Arkiane »."
+  },
+  "booking.prazsurarly.com": {
+   "nom": "Praz-sur-Arly",
+   "moteur": "Orchestra",
+   "stations": [
+    "praz-sur-arly"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 par le DNS : l'hôte est un alias de pmb.rte.orchestra-platform.com."
+  },
+  "reservation.saintfrancoislongchamp.com": {
+   "nom": "Saint François Longchamp",
+   "moteur": "MSEM",
+   "stations": [
+    "saint-francois-longchamp"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "fr.locationsaintmartin.com": {
+   "nom": "Saint Martin de Belleville",
+   "moteur": "Ingénie",
+   "stations": [
+    "saint-martin-de-belleville"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.saintefoy-reservation.com": {
+   "nom": "Sainte-Foy Tarentaise",
+   "moteur": "MSEM",
+   "stations": [
+    "sainte-foy-tarentaise"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200
+  },
+  "www.haut-giffre.fr": {
+   "nom": "Sixt-Fer-à-Cheval",
+   "moteur": "aucun",
+   "stations": [
+    "sixt-fer-a-cheval"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : site éditorial, sans moteur de réservation."
+  },
+  "www.valfrejus.com": {
+   "nom": "Valfréjus",
+   "moteur": "Open System",
+   "stations": [
+    "valfrejus"
+   ],
+   "robots": "illisible (robots.txt illisible)",
+   "reponse": 403,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Open System, génération moderne. Le prix annoncé a toutefois été réfuté en contre-épreuve, et la centrale n'est pas branchée."
+  },
+  "www.valloire.com": {
+   "nom": "Valloire",
+   "moteur": "Ingénie",
+   "stations": [
+    "valloire"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valmeinier-reservation.com": {
+   "nom": "Valmeinier",
+   "moteur": "Ingénie",
+   "stations": [
+    "valmeinier"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valmorel.com": {
+   "nom": "Valmorel",
+   "moteur": "Open System",
+   "stations": [
+    "valmorel"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.lesarcs.com": {
+   "nom": "Les Arcs",
+   "moteur": "iResa",
+   "stations": [
+    "villaroger",
+    "les-arcs-bourg-st-maurice"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : iResa porte le stock, les disponibilités et les prix, derrière une vitrine Drupal. Rattachement corrigé le 13 septembre 2026, sur mesure : la recherche datée de cette centrale rend des logements d'Arc 1600, Arc 1950, Arc 2000, Charmettoger, le Chantel, Montrigon, le Charvet, les Villards et la Croisette, et son champ de fil d'Ariane dit « Bourg-Saint-Maurice ». Les Arcs était rattachée à la centrale de Peisey-Vallandry, ce que rien ne soutenait."
+  },
+  "isola2000.com": {
+   "nom": "Isola 2000",
+   "moteur": "MSEM",
+   "stations": [
+    "isola-2000"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 386, channel « ISOLA », 44 hébergements, zéro offre à huit personnes cette semaine-là parce que les neuf assez grands sont pris ; deux offres la semaine précédente."
+  },
+  "reservation.ledevoluy.com": {
+   "nom": "La Joue du Loup",
+   "moteur": "Open System",
+   "stations": [
+    "la-joue-du-loup",
+    "superdevoluy-la-joue-du-loup"
+   ],
+   "robots": "illisible (robots.txt illisible)",
+   "reponse": 200
+  },
+  "www.risoul.com": {
+   "nom": "Forêt Blanche : Vars/Risoul",
+   "moteur": "Ingénie",
+   "stations": [
+    "risoul"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "L'audit du 13 septembre 2026 rattachait à cette centrale les quatre stations de la Forêt Blanche. Corrigé le même jour : Vars, Vars Sainte-Marie et Les Claux ont leur propre centrale, reservation.vars.com, sur MSEM, qui répond. Les deux versants du domaine se vendent séparément. Risoul reste seule ici."
+  },
+  "reservation.lesorres.com": {
+   "nom": "Les Orres",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-orres"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.montgenevre.com": {
+   "nom": "Montgenèvre",
+   "moteur": "Open System",
+   "stations": [
+    "montgenevre"
+   ],
+   "robots": "interdit (Disallow: /)",
+   "reponse": "non interrogée",
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, la famille d'Open System, reconnu au widget que le site public charge."
+  },
+  "reservation.orcieres.com": {
+   "nom": "Orcières Merlette",
+   "moteur": "Ingénie",
+   "stations": [
+    "orcieres"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.paysdesecrins.com": {
+   "nom": "Puy-Saint-Vincent",
+   "moteur": "MSEM",
+   "stations": [
+    "puy-saint-vincent"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 30015, channel « PDE », 199 hébergements, 5 vendables à huit personnes, prix doublé sur quatorze nuits."
+  },
+  "reservation.serre-chevalier.com": {
+   "nom": "Serre-Chevalier",
+   "moteur": "Ingénie",
+   "stations": [
+    "serre-chevalier"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valdallos.com": {
+   "nom": "Val d'Allos - La Foux",
+   "moteur": "Ingénie",
+   "stations": [
+    "val-dallos-la-foux-le-seignus"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.valberg.com": {
+   "nom": "Valberg",
+   "moteur": "MSEM",
+   "stations": [
+    "valberg"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 665, channel « OT-665 », 40 hébergements, une offre à huit personnes à 7 042,80 € qui tombe à 3 111,20 € sur trois nuits."
+  },
+  "www.lesrousses.com": {
+   "nom": "Les Rousses",
+   "moteur": "Ingénie",
+   "stations": [
+    "les-rousses"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.sancy.com": {
+   "nom": "Super Besse",
+   "moteur": "Diffusio",
+   "stations": [
+    "besse-super-besse",
+    "le-mont-dore"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "reservation.ax-ski.com": {
+   "nom": "Ax 3 Domaines",
+   "moteur": "Open System",
+   "stations": [
+    "ax-3-domaines"
+   ],
+   "robots": "autorisé (Allow: /)",
+   "reponse": 200
+  },
+  "font-romeu.fr": {
+   "nom": "Font-Romeu – Pyrénées 2000",
+   "moteur": "aucun",
+   "stations": [
+    "font-romeu-pyrenees-2000"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : aucun moteur de réservation sur ce site."
+  },
+  "www.valleesdegavarnie.com": {
+   "nom": "Gavarnie-Gèdre",
+   "moteur": "Tourinsoft",
+   "stations": [
+    "gavarnie-gedre"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Tourinsoft, le système d'information touristique du comité départemental, qui sert une grille tarifaire et non un total de séjour."
+  },
+  "www.gourette.com": {
+   "nom": "Gourette",
+   "moteur": "Open System",
+   "stations": [
+    "gourette"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
+  },
+  "www.n-py.com": {
+   "nom": "Grand Tourmalet",
+   "moteur": "Diffusio",
+   "stations": [
+    "la-mongie-bareges"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.chioula.fr": {
+   "nom": "Le Chioula",
+   "moteur": "Ingénie",
+   "stations": [
+    "le-chioula"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "lesangles.com": {
+   "nom": "Les Angles",
+   "moteur": "aucun",
+   "stations": [
+    "les-angles"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 403,
+   "corrige": "Cherché le 13 septembre 2026 : aucun moteur de réservation sur ce site."
+  },
+  "luz-ardiden.com": {
+   "nom": "Luz-Ardiden",
+   "moteur": "Open System",
+   "stations": [
+    "luz-ardiden"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
+  },
+  "peyragudes.com": {
+   "nom": "Peyragudes",
+   "moteur": "Open System",
+   "stations": [
+    "peyragudes"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, famille d'Open System."
+  },
+  "piau-engaly.com": {
+   "nom": "Piau-Engaly",
+   "moteur": "Open System",
+   "stations": [
+    "piau-engaly"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "resa.saintlary.com": {
+   "nom": "Saint Lary",
+   "moteur": "Ingénie",
+   "stations": [
+    "saint-lary-soulan"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.gerardmer-reservation.net": {
+   "nom": "Gérardmer",
+   "moteur": "Ingénie",
+   "stations": [
+    "gerardmer"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.labresse.net": {
+   "nom": "La Bresse Hohneck",
+   "moteur": "inconnu",
+   "stations": [
+    "la-bresse-hohneck"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "L'audit l'avait rangée sous Ingénie ; vérifié le 13 septembre 2026, ce n'en est pas. C'est un WordPress, et son moteur n'a pas été identifié."
+  },
+  "www.ballons-hautes-vosges.com": {
+   "nom": "Saint Maurice sur Moselle",
+   "moteur": "Ingénie",
+   "stations": [
+    "saint-maurice-sur-moselle"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200
+  },
+  "www.villarddelans-correnconenvercors.com": {
+   "nom": "Corrençon-en-Vercors",
+   "moteur": "MSEM",
+   "stations": [
+    "correncon-en-vercors"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur relevé « Elloha » par l'audit du 13 septembre 2026, corrigé le même jour : le site publie lui-même resort 30002 et channel « OTVDL » vers services.msem.tech, et l'API MSEM répond — 276 hébergements au catalogue, 22 vendables à huit personnes du 6 au 13 février 2027. Les fiches vivent sur reservation.villarddelans-correnconenvercors.com."
+  },
+  "www.prazdelys-sommand.com": {
+   "nom": "Praz de Lys – Sommand",
+   "moteur": "Open System",
+   "stations": [
+    "praz-de-lys-sommand"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Moteur nommé le 13 septembre 2026 : widget Alliance Réseaux, famille d'Open System."
+  },
+  "beuil.fr": {
+   "nom": "Beuil – Les Launes",
+   "moteur": "aucun",
+   "stations": [
+    "beuil-les-launes"
+   ],
+   "robots": "autorisé (aucune règle ne couvre ce chemin)",
+   "reponse": 200,
+   "corrige": "Cherché le 13 septembre 2026 : site éditorial, sans moteur de réservation."
+  },
+  "reservation.vars.com": {
+   "nom": "Vars",
+   "moteur": "MSEM",
+   "stations": [
+    "vars",
+    "vars-sainte-marie",
+    "les-claux"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200,
+   "corrige": "Découverte le 13 septembre 2026, après l'audit. Le mur de partenaires de msem.tech nomme Vars ; son sous-domaine de réservation publie resort 692 et channel « OT-692 » vers services.msem.tech, et l'API répond — 112 hébergements au catalogue, 5 vendables à huit personnes du 6 au 13 février 2027, et le prix double sur quatorze nuits. L'audit rangeait ces stations sous la centrale de Risoul, qui est Ingénie et couvre l'autre versant de la Forêt Blanche."
+  },
+  "www.montclar.com": {
+   "nom": "Montclar les 2 vallées",
+   "moteur": "MSEM",
+   "stations": [
+    "saint-jean-montclar"
+   ],
+   "robots": "autorisé (Disallow: /irisit/ seulement)",
+   "reponse": 200,
+   "corrige": "Découverte le 13 septembre 2026, après l'audit, qui n'avait trouvé aucune centrale pour cette station. Le site publie resort 276 et channel « OT-276 » vers services.msem.tech : 6 hébergements au catalogue, et zéro offre à toutes les dates essayées. La centrale existe et répond ; elle n'a rien à vendre ces jours-là."
+  }
+ },
+ "corrige": "Le champ « moteur » disait « Ublo » pour six centrales. Corrigé le 13 septembre 2026 en « MSEM » : Ublo est le gestionnaire de contenu, signé Valraiso, qui fabrique le site et ne vend rien ; la recherche d'hébergement est un composant chargé à part, « Mon Séjour En Montagne », servi par services.msem.tech. Les tableaux de docs/centrales/audit.md gardent l'ancien nom, et sa section 9 explique pourquoi."
+}

@@ -17,9 +17,17 @@ import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles, htmlPrix, htmlRepere } from "@/components/v7/CarteEpingles";
+import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
+import {
+  clampRayonKm,
+  geoReasonFor,
+  RAYON_DEFAUT_KM,
+  RAYON_MAX_KM,
+  RAYON_MIN_KM,
+} from "@/lib/stay/lodgingFilter";
 import {
   eur,
   eurCents,
@@ -48,13 +56,15 @@ type LF = {
   rooms: number;
   dist: number;
   src: Record<string, boolean>;
+  /** Rayon de recherche autour de la station, en km. Toujours appliqué. */
+  rayon: number;
   measured: boolean;
   link: boolean;
   photo: boolean;
   firm: boolean;
   pos: boolean;
 };
-const LF0: LF = { budget: 0, pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, measured: false, link: false, photo: false, firm: false, pos: false };
+const LF0: LF = { budget: 0, pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, rayon: RAYON_DEFAUT_KM, measured: false, link: false, photo: false, firm: false, pos: false };
 
 const RANGES: { k: "budget" | "pp" | "cap" | "rooms" | "dist"; label: string; max: number; step: number; unit: string; sign: string }[] = [
   { k: "budget", label: "Total du séjour, au plus", max: 6000, step: 250, unit: "€", sign: "≤ " },
@@ -66,7 +76,6 @@ const RANGES: { k: "budget" | "pp" | "cap" | "rooms" | "dist"; label: string; ma
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
-  const stationId = useStay((s) => s.stationId);
   const checkIn = useStay((s) => s.checkIn);
   const checkOut = useStay((s) => s.checkOut);
   const guests = useStay((s) => s.guests);
@@ -79,10 +88,16 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   useEffect(() => {
     if (!station) return;
     let cancelled = false;
-    let pending = 3;
+    let pending = 4;
     setLive(null, [], true);
     const payload = {
-      stationId,
+      // L'identifiant vient de la station qu'on affiche, pas du magasin de
+      // séjour. Les deux devraient dire la même chose et le disent presque
+      // toujours ; quand ils divergent, le serveur mesurait l'accès depuis une
+      // autre station — vu en recette : une recherche « Les 2 Alpes » rendue
+      // avec le repère de Brides les Bains, à 60 km, donc 92 annonces sur 96
+      // classées « autre domaine ».
+      stationId: station.id,
       stationName: station.name,
       lat: station.lat,
       lon: station.lon,
@@ -95,7 +110,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       pending -= 1;
       if (!cancelled && pending <= 0) setSearching(false);
     };
-    const run = (part: "airbnb" | "gites" | "cozy") => {
+    const run = (part: "airbnb" | "gites" | "cozy" | "centrales") => {
       void searchStay({ data: { ...payload, part } })
         .then((res) => {
           if (cancelled) return;
@@ -114,6 +129,11 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
               frozen.filter((l) => l.source === "Gîtes de France"),
               [{ source: "Gîtes de France", ok: false, count: 0, ms: 0, error }],
             );
+          } else if (part === "centrales") {
+            mergeLive(
+              frozen.filter((l) => l.source === "Centrale"),
+              [{ source: "Centrale", ok: false, count: 0, ms: 0, error }],
+            );
           } else {
             mergeLive(
               frozen.filter((l) => l.source === "Abritel" || l.source === "Booking"),
@@ -129,11 +149,15 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     run("airbnb");
     run("gites");
     run("cozy");
+    // La centrale officielle de la station. Elle part en même temps que les
+    // plateformes et n'attend rien d'elles : une centrale lente ne doit pas
+    // retarder la liste, et une centrale muette ne doit pas la vider.
+    run("centrales");
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stationId, checkIn, checkOut, guests, bedrooms, searchNonce, station?.name]);
+  }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);
 }
 
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };
@@ -162,6 +186,12 @@ function Logements() {
   const [lsort, setLsort] = useState<LodgeSort>("pp");
   const [lfOpen, setLfOpen] = useState(false);
   const [sheetId, setSheetId] = useState<string | null>(null);
+  // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
+  // coup d'œil ailleurs efface la liste qu'on venait de constituer.
+  const [suivi, setSuivi] = useState(false);
+  const [bornes, setBornes] = useState<Bornes | null>(null);
+  // L'annonce que la carte désigne, et que la liste éclaire en retour.
+  const [actifCarte, setActifCarte] = useState<string | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
 
   const stay = { checkIn, checkOut };
@@ -193,6 +223,14 @@ function Logements() {
   lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.guests == null || l.guests >= trav, fixed: true });
   if (rooms)
     lp.push({ id: "rooms", label: `Chambres ≥ ${rooms}`, fn: (l) => l.bedrooms == null || l.bedrooms >= rooms, fixed: true });
+  // La zone est toujours appliquée : une recherche de logements a toujours un
+  // périmètre. Son rayon se règle dans le panneau, il ne se retire pas.
+  lp.push({
+    id: "zone",
+    label: `Dans ${lf.rayon} km`,
+    fn: (l) => geoReasonFor(l, lf.rayon) == null,
+    fixed: true,
+  });
   if (lf.budget) lp.push({ id: "budget", label: `Total ≤ ${fmt(lf.budget)} €`, fn: (l) => l.total <= lf.budget, remove: () => patchLf({ budget: 0 }) });
   if (lf.pp) lp.push({ id: "pp", label: `≤ ${fmt(lf.pp)} € / pers.`, fn: (l) => l.total / trav <= lf.pp, remove: () => patchLf({ pp: 0 }) });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
@@ -213,7 +251,29 @@ function Logements() {
     cap: (a, b) => (b.guests ?? 0) - (a.guests ?? 0),
   };
   const lvis = lapply(lp).sort(tri[lsort]);
+  // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
+  // pas de cadre, la carte ne peut ni les montrer ni les cacher.
+  const cadre = suivi ? bornes : null;
+  const parCadre = partagerParBornes(lvis, cadre);
+  const affichees = parCadre.visibles;
+  const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const lfree = lp.filter((p) => !p.fixed);
+  // Ce que la zone seule a écarté, nommé par motif : une liste courte sans
+  // explication se lit comme un relevé pauvre, pas comme un filtre qui a joué.
+  const horsZone = raw.filter((l) => geoReasonFor(l, lf.rayon) === "hors-zone").length;
+  const autreDomaine = raw.filter((l) => geoReasonFor(l, lf.rayon) === "autre-domaine").length;
+  const zoneLbl = [
+    horsZone ? `${horsZone} hors de la zone` : null,
+    autreDomaine ? `${autreDomaine} sur ${autreDomaine > 1 ? "d’autres domaines" : "un autre domaine"}` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  // Ce que la centrale officielle a répondu quand elle n'a rien rendu. Le
+  // serveur envoie la phrase toute faite : station sans centrale relevée,
+  // centrale sans connecteur, connecteur qui sait déjà qu'il ne peut pas, ou
+  // appel échoué. Un zéro sans motif se lirait comme « rien de disponible ».
+  const centrale = liveSources.find((x) => x.source === "Centrale");
+  const centraleLbl = centrale && centrale.count === 0 ? (centrale.error ?? null) : null;
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
   const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
   const totalN = (kept?.total ?? 0) + passGroupN;
@@ -257,7 +317,7 @@ function Logements() {
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
 
   const marqueurs = [
-    { id: "__station", lat: s.lat, lon: s.lon, html: htmlRepere(s.name), zIndex: -100 },
+    { id: "__station", lat: s.lat, lon: s.lon, html: htmlRepere(s.name), zIndex: -100, inerte: true },
     ...lvis
       .filter((l) => l.lat != null && l.lon != null)
       .map((l) => {
@@ -281,8 +341,10 @@ function Logements() {
     const firm = firmOf(l, stay);
     return (
       <article
-        className={`lodge7${isKept ? " lodge7--kept" : ""}`}
+        className={`lodge7${isKept ? " lodge7--kept" : ""}${actifCarte === l.id ? " lodge7--vif" : ""}`}
         onClick={() => openSheet(l.id)}
+        onMouseEnter={() => setActifCarte(l.id)}
+        onMouseLeave={() => setActifCarte(null)}
         data-l={l.id}
       >
         <div className={`lodge7__media lodge7__media--${mediaTon(l)}`}>
@@ -396,6 +458,9 @@ function Logements() {
                 <span className="toujours7__regle">Capacité ≥ {trav}</span>
                 {rooms ? <span className="toujours7__regle">Chambres ≥ {rooms}</span> : null}
                 <span className="toujours7__regle">Total du séjour, pas « dès »</span>
+                <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
+                {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
+                {centraleLbl ? <span className="toujours7__ecarte">{centraleLbl}</span> : null}
                 <span>Une capacité non annoncée n'écarte pas l'annonce : elle est dite non annoncée.</span>
               </div>
               <div className="filtres7__barre">
@@ -434,7 +499,11 @@ function Logements() {
                 ) : null}
                 <span className="filtres7__espace" />
                 <span className="filtres7__compte">
-                  {lvis.length} annonce{lvis.length > 1 ? "s" : ""} sur {raw.length}
+                  {affichees.length} annonce{affichees.length > 1 ? "s" : ""} sur {raw.length}
+                  {suivi && parCadre.horsCadre.length
+                    ? ` · ${parCadre.horsCadre.length} hors du cadre`
+                    : ""}
+                  {sansPos ? ` · ${sansPos}` : ""}
                 </span>
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>
@@ -452,6 +521,29 @@ function Logements() {
                     </button>
                   </div>
                   <div className="pop7__bloc pop7__bloc--sans">
+                    <span className="v7surtitre">Zone de recherche</span>
+                    <span className="pop7__note">
+                      Autour du repère de {s.name}. Le rattachement au domaine prime sur la
+                      distance : un logement d'un autre domaine sort même tout près, un logement du
+                      domaine reste même au-delà. Une annonce sans coordonnées n'est pas lointaine,
+                      elle est non mesurable : elle reste.
+                    </span>
+                  </div>
+                  <label className="curseur">
+                    <span className="curseur__lab">
+                      <span>Rayon autour de la station</span>
+                      <span className="curseur__val">{lf.rayon} km</span>
+                    </span>
+                    <input
+                      type="range"
+                      min={RAYON_MIN_KM}
+                      max={RAYON_MAX_KM}
+                      step={1}
+                      value={lf.rayon}
+                      onChange={(e) => patchLf({ rayon: clampRayonKm(+e.target.value) })}
+                    />
+                  </label>
+                  <div className="pop7__bloc">
                     <span className="v7surtitre">Prix et taille</span>
                     <span className="pop7__note">
                       Capacité ≥ {trav} est toujours appliquée ; ces seuils s'y ajoutent et écartent les
@@ -518,7 +610,7 @@ function Logements() {
                       Réinitialiser
                     </a>
                     <button type="button" className="btn7" onClick={() => setLfOpen(false)}>
-                      Voir {lvis.length} annonce{lvis.length > 1 ? "s" : ""}
+                      Voir {affichees.length} annonce{affichees.length > 1 ? "s" : ""}
                     </button>
                   </div>
                 </div>
@@ -527,12 +619,26 @@ function Logements() {
 
             <div className="v7deux">
               <div className="v7deux__liste">
-                {lvis.length ? (
+                {affichees.length ? (
                   <div className="grille7-2">
-                    {lvis.map((l) => (
+                    {affichees.map((l) => (
                       <Carte key={l.id} l={l} />
                     ))}
                   </div>
+                ) : suivi && lvis.length ? (
+                  <Vide
+                    titre="Aucune annonce dans ce cadre"
+                    actions={
+                      <>
+                        <button type="button" className="btn7" onClick={() => setSuivi(false)}>
+                          Revoir les {lvis.length} annonces
+                        </button>
+                      </>
+                    }
+                  >
+                    La liste suit la carte. Déplacez-la, élargissez-la, ou décochez « Rechercher
+                    quand je déplace la carte » pour retrouver tout ce que le relevé donne.
+                  </Vide>
                 ) : lempty ? (
                   <Vide
                     titre={lempty.title}
@@ -558,6 +664,67 @@ function Logements() {
                   marqueurs={marqueurs}
                   cadrage={cadrage}
                   maxZoom={14}
+                  suivi={suivi}
+                  surSuivi={setSuivi}
+                  surBornes={setBornes}
+                  actif={actifCarte}
+                  surActif={setActifCarte}
+                  ficheDe={(id) => {
+                    const l = raw.find((x) => x.id === id);
+                    if (!l) return null;
+                    const d = distanceOf(l);
+                    const ferme = firmOf(l, stay);
+                    return (
+                      <>
+                        {l.photo ? (
+                          <div className="fc__media">
+                            <ImageSlot
+                              shape="rect"
+                              id={`v7app-fc-${l.id}`}
+                              placeholder="Photo de l'annonce"
+                              className="fc__slot"
+                              src={l.photo}
+                            />
+                            <span className="fc__source">{l.source}</span>
+                          </div>
+                        ) : null}
+                        <div className="fc__texte">
+                          {!l.photo ? (
+                            <span className="toujours7__regle">{l.source}</span>
+                          ) : null}
+                          <strong className="fc__titre">{l.title}</strong>
+                          <span className="fc__ligne">
+                            <span className={l.guests == null ? "absent" : undefined}>
+                              {capLbl(l)}
+                            </span>
+                            <span>{bedLbl(l)}</span>
+                          </span>
+                          <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>
+                            {d.text}
+                          </span>
+                          <span className="fc__prix">
+                            <b>{eurCents(l.total)}</b>
+                            <span>
+                              {nights} nuits · {eurN(l.total / trav)} / pers.
+                            </span>
+                          </span>
+                          <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
+                            <i />
+                            {ferme
+                              ? "Prix relevé aux dates"
+                              : availabilityLabel(availabilityOf(l, stay))}
+                          </span>
+                          <button
+                            type="button"
+                            className="btn7 btn7--fantome fc__action"
+                            onClick={() => openSheet(l.id)}
+                          >
+                            Voir l'annonce
+                          </button>
+                        </div>
+                      </>
+                    );
+                  }}
                   surClic={(id) => {
                     if (id !== "__station") openSheet(id);
                   }}

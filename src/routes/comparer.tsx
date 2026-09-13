@@ -12,6 +12,7 @@ import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles, htmlStation } from "@/components/v7/CarteEpingles";
+import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { CarteStation } from "@/components/v7/CarteStation";
 import { mixLbl, PartPistes } from "@/components/v7/PartPistes";
 import { Vide } from "@/components/v7/Vide";
@@ -27,7 +28,20 @@ import {
   type SortKey,
 } from "@/lib/parcours";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
-import { altLbl, CHIPS, forfaitOf, glacier, kmLbl, liftsLbl, linked, maxM, minM, villageLbl, villageM } from "@/lib/v7";
+import {
+  altLbl,
+  CHIPS,
+  forfaitOf,
+  glacier,
+  kmLbl,
+  liftsLbl,
+  linked,
+  maxM,
+  minM,
+  sub,
+  villageLbl,
+  villageM,
+} from "@/lib/v7";
 
 export const Route = createFileRoute("/comparer")({ component: Comparer });
 
@@ -111,6 +125,11 @@ function Comparer() {
   const F = P.filters;
   const all = STATIONS;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // Le cadre de la carte, et s'il compte. Décoché par défaut.
+  const [suivi, setSuivi] = useState(false);
+  const [bornes, setBornes] = useState<Bornes | null>(null);
+  // La station que la carte désigne, et que la liste éclaire en retour.
+  const [actifCarte, setActifCarte] = useState<string | null>(null);
   const panneau = useRef<HTMLDivElement>(null);
 
   const massifs = useMemo(() => [...new Set(all.map((s) => s.massif))].sort(), [all]);
@@ -194,7 +213,14 @@ function Comparer() {
         ? (forfaitOf(a)?.j6 ?? 9e9) - (forfaitOf(b)?.j6 ?? 9e9)
         : sortVal(b, P.sortKey) - sortVal(a, P.sortKey),
   );
-  const list = sorted.slice(0, LISTE_MAX);
+  // Le cadre s'applique AVANT la tranche, sinon il ne filtrerait que les
+  // quarante premières par kilomètres — toutes alpines — et un cadrage sur les
+  // Pyrénées ne rendrait rien.
+  const cadre = suivi ? bornes : null;
+  const parCadre = partagerParBornes(sorted, cadre);
+  const dansCadre = parCadre.visibles;
+  const sansPos = sansPositionLabel(parCadre.sansPosition.length);
+  const list = dansCadre.slice(0, LISTE_MAX);
 
   /* ---------- État vide : quel filtre bloque ---------- */
   let empty: { title: string; hint: string; fix: (() => void) | null } | null = null;
@@ -397,7 +423,11 @@ function Comparer() {
             ))}
             <span className="filtres7__espace" />
             <span className="filtres7__compte">
-              {visible.length} station{visible.length > 1 ? "s" : ""} sur {all.length}
+              {dansCadre.length} station{dansCadre.length > 1 ? "s" : ""} sur {all.length}
+              {suivi && parCadre.horsCadre.length
+                ? ` · ${parCadre.horsCadre.length} hors du cadre`
+                : ""}
+              {sansPos ? ` · ${sansPos}` : ""}
             </span>
             <select
               className="select7"
@@ -572,16 +602,34 @@ function Comparer() {
               <>
                 <div className="grille7-2">
                   {list.map((s) => (
-                    <CarteStation key={s.id} s={s} variante="liste" />
+                    <CarteStation
+                      key={s.id}
+                      s={s}
+                      variante="liste"
+                      vif={actifCarte === s.id}
+                      surSurvol={setActifCarte}
+                    />
                   ))}
                 </div>
-                {visible.length > LISTE_MAX ? (
+                {dansCadre.length > LISTE_MAX ? (
                   <p className="v7deux__plus">
-                    {visible.length - LISTE_MAX} autres stations : affinez un filtre ou cherchez un
-                    nom.
+                    {dansCadre.length - LISTE_MAX} autres stations : affinez un filtre, resserrez la
+                    carte, ou cherchez un nom.
                   </p>
                 ) : null}
               </>
+            ) : suivi && visible.length ? (
+              <Vide
+                titre="Aucune station dans ce cadre"
+                actions={
+                  <button type="button" className="btn7" onClick={() => setSuivi(false)}>
+                    Revoir les {visible.length} stations
+                  </button>
+                }
+              >
+                La liste suit la carte. Déplacez-la, élargissez-la, ou décochez « Rechercher quand
+                je déplace la carte » pour retrouver les résultats des filtres.
+              </Vide>
             ) : empty ? (
               <Vide
                 titre={empty.title}
@@ -606,6 +654,58 @@ function Comparer() {
             <CarteEpingles
               marqueurs={marqueurs}
               cadrage={list.map((s) => s.id).join(",")}
+              suivi={suivi}
+              surSuivi={setSuivi}
+              surBornes={setBornes}
+              actif={actifCarte}
+              surActif={setActifCarte}
+              ficheDe={(id) => {
+                const st = stationById(id);
+                if (!st) return null;
+                return (
+                  <div className="fc__texte">
+                    <strong className="fc__titre">{st.name}</strong>
+                    <span className="fc__ligne">{sub(st)}</span>
+                    <div className="fc__faits">
+                      <div>
+                        <span>Village</span>
+                        <b className={villageLbl(st) ? undefined : "absent"}>
+                          {villageLbl(st) ?? "non relevé"}
+                        </b>
+                      </div>
+                      <div>
+                        <span>Sommet</span>
+                        <b className={maxM(st) != null ? undefined : "absent"}>
+                          {maxM(st) != null ? `${fmt(maxM(st))} m` : "non relevé"}
+                        </b>
+                      </div>
+                      <div>
+                        <span>Pistes, domaine</span>
+                        <b className={kmLbl(st) ? undefined : "absent"}>
+                          {kmLbl(st) ?? "km non publié"}
+                        </b>
+                      </div>
+                      <div>
+                        <span>Forfait 6 j</span>
+                        <b className={eurN(forfaitOf(st)?.j6) ? undefined : "absent"}>
+                          {eurN(forfaitOf(st)?.j6) ?? "non relevé"}
+                        </b>
+                      </div>
+                    </div>
+                    <PartPistes share={st.colorShare} />
+                    <a
+                      href={`/stations/${st.id}`}
+                      className="fc__lien fc__action"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        void go("fiche", { id: st.id });
+                      }}
+                    >
+                      Fiche station →
+                    </a>
+                  </div>
+                );
+              }}
               surClic={(id) => void go("fiche", { id })}
               legende={
                 <>

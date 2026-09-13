@@ -23,4 +23,26 @@ export function chargerLeaflet(): Promise<typeof Leaflet> {
   return chargement;
 }
 
+/**
+ * Pointeur grossier : un doigt, pas une souris.
+ *
+ * Sert à décider si une carte doit prendre le geste tout de suite. À la
+ * souris, oui : le curseur se pose là où on veut agir, et la molette ne sert
+ * à rien d'autre. Au doigt, non : le même geste fait défiler la page, et une
+ * carte qui l'avale piège le lecteur au milieu de sa liste. Elle attend donc
+ * un premier appui, qui dit l'intention.
+ *
+ * `pointer: coarse` décrit le dispositif de pointage principal, ce qui est la
+ * question posée — plus juste que la largeur de la fenêtre, qu'un portable
+ * tactile large mettrait en défaut.
+ */
+export function pointeurGrossier(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+  try {
+    return window.matchMedia("(pointer: coarse)").matches;
+  } catch {
+    return false;
+  }
+}
+
 export type { Leaflet };

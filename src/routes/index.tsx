@@ -6,9 +6,10 @@
  *  Données : `STATIONS` du dépôt et le catalogue de forfaits. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
+import { Flocons } from "@/components/Flocons";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { Calendrier, usePlage } from "@/components/v7/Calendrier";
@@ -25,10 +26,36 @@ import {
   useSejour,
   type ChipKey,
 } from "@/lib/parcours";
-import { STATIONS, type Station } from "@/lib/stations";
+import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
 
 export const Route = createFileRoute("/")({ component: Home });
+
+/**
+ * La séquence d'entrée ne se joue qu'une fois par session.
+ *
+ * Elle dure une seconde et demie ; revue à chaque retour sur l'accueil, elle
+ * deviendrait un péage. `sessionStorage` retient le passage pour l'onglet, et
+ * son échec — navigation privée, stockage refusé — est sans conséquence : la
+ * séquence se rejoue, ce qui est le pire qui puisse arriver.
+ */
+const CLE_ENTREE = "skitrack.v7.entree";
+
+function dejaVue(): boolean {
+  try {
+    return sessionStorage.getItem(CLE_ENTREE) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function noterVue(): void {
+  try {
+    sessionStorage.setItem(CLE_ENTREE, "1");
+  } catch {
+    /* stockage indisponible : la séquence se rejouera */
+  }
+}
 
 type Panneau = null | "q" | "alt" | "dates" | "guests";
 
@@ -73,8 +100,11 @@ function Home() {
   const go = useGo();
   const P = useParcours();
   const F = P.filters;
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, rooms, nights, valid } = useSejour();
   const plage = usePlage();
+  // La station retenue, s'il y en a une : c'est elle qui décide de ce que
+  // « Rechercher » va ouvrir.
+  const retenue = P.stationId ? stationById(P.stationId) : undefined;
 
   const all = STATIONS;
   const top = useMemo(() => popular(all), [all]);
@@ -82,6 +112,28 @@ function Home() {
 
   const [q, setQ] = useState("");
   const [hp, setHp] = useState<Panneau>(null);
+  // « anime » ne dure que le temps de la séquence. Rien n'est caché : tout est
+  // dans le document dès le premier rendu, seule l'opacité bouge, et la barre
+  // de recherche répond au clavier pendant son propre fondu.
+  const [entree, setEntree] = useState<"anime" | "faite">(() => (dejaVue() ? "faite" : "anime"));
+
+  useEffect(() => {
+    if (entree === "faite") return;
+    noterVue();
+    // Un geste de l'utilisateur termine la séquence sur-le-champ : personne ne
+    // doit attendre une animation pour se servir de l'écran.
+    const finir = () => setEntree("faite");
+    const fin = setTimeout(finir, 1600);
+    window.addEventListener("keydown", finir, { once: true });
+    window.addEventListener("pointerdown", finir, { once: true });
+    return () => {
+      clearTimeout(fin);
+      window.removeEventListener("keydown", finir);
+      window.removeEventListener("pointerdown", finir);
+    };
+    // Une seule fois, au montage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const ouvrir = (p: Panneau) => {
     if (p === "dates") plage.ouvrirArrivee();
@@ -127,11 +179,28 @@ function Home() {
         ]
       : [];
 
-  // La saisie devient `q` de l'écran Comparer ; le massif est levé.
+  // Ce que « Rechercher » va faire, dit avant de le faire. Le bouton est le
+  // seul passage vers l'étape suivante : cliquer une vignette sélectionne, il
+  // ne navigue pas.
+  const manque = !valid ? "Le départ précède l'arrivée : corrigez les dates du séjour." : null;
+  const dira = manque
+    ? manque
+    : retenue
+      ? `Rechercher ouvrira les logements à ${retenue.name}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
+      : q.trim()
+        ? `Rechercher ouvrira les stations qui portent «\u00a0${q.trim()}\u00a0».`
+        : "Rechercher ouvrira la liste des stations. Retenez-en une ci-dessous pour aller droit à ses logements.";
+
   const search = () => {
+    if (manque) return;
+    setHp(null);
+    // Une station retenue, c'est l'étape 1 faite : le pas suivant est le sien.
+    if (retenue) {
+      void go("lodging");
+      return;
+    }
     P.setQ(q.trim());
     P.setMassif(null);
-    setHp(null);
     void go("compare");
   };
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -153,7 +222,7 @@ function Home() {
   return (
     <Coquille>
       <main className="v7main v7main--pleine" id="s-home" data-screen-label="Accueil">
-        <div className="hero7">
+        <div className={`hero7${entree === "anime" ? " hero7--entree" : ""}`}>
           <ImageSlot shape="rect"
             id="v7app-cover"
             placeholder="Photo de couverture : un domaine en février, au petit matin. Crédit obligatoire."
@@ -161,14 +230,28 @@ function Home() {
             src="/hero.jpg"
           />
           <div className="hero7__voile" />
+          {/* Entre le voile et le texte : la neige passe devant la photo, jamais
+              devant ce qui se lit. Densité et opacité sobres, chute lente. */}
+          <Flocons
+            count={130}
+            speedMin={0.14}
+            speedMax={0.5}
+            sizeMin={0.8}
+            sizeMax={2.6}
+            opacityMin={18}
+            opacityMax={52}
+          />
           <div className="hero7__in">
-            <h1>Le bon domaine, à la bonne altitude.</h1>
+            <h1>
+              <span className="hero7__t1">Le bon domaine,</span>{" "}
+              <span className="hero7__t2">à la bonne altitude.</span>
+            </h1>
             <p className="hero7__lead">
               Altitudes réelles, mix de pistes, forfaits relevés et logements au total du séjour. Ce
               qui n'est pas relevé est dit absent.
             </p>
             {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
-            <div className="sbar7__hote">
+            <div className="sbar7__hote hero7__barre">
               <div className={`sbar7${hp ? " sbar7--ouverte" : ""}`}>
                 <label className={seg(hp === "q")} onClick={() => setHp("q")}>
                   <span className="sbar7__k">Destination</span>
@@ -210,7 +293,14 @@ function Home() {
                     <span className="sbar7__k">Voyageurs</span>
                     <span className="sbar7__v">{guestsLbl(trav, rooms)}</span>
                   </button>
-                  <button type="button" className="sbar7__go" title="Rechercher" onClick={search}>
+                  <button
+                    type="button"
+                    className="sbar7__go"
+                    title={dira}
+                    aria-label={dira}
+                    disabled={!!manque}
+                    onClick={search}
+                  >
                     <Icon name="loupe" taille={18} />
                   </button>
                 </div>
@@ -312,6 +402,9 @@ function Home() {
                 </div>
               ) : null}
             </div>
+            <p className={`hero7__dira${manque ? " hero7__dira--manque" : ""}`} aria-live="polite">
+              {dira}
+            </p>
             <div className="hero7__raccourcis">
               {SHORTCUTS.map((sc) => (
                 <button key={sc.k} type="button" className="raccourci" onClick={() => shortcut(sc.k)}>
@@ -320,6 +413,21 @@ function Home() {
               ))}
             </div>
           </div>
+          <span className="hero7__suite" aria-hidden>
+            <span>La suite plus bas</span>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v13M6 13l6 6 6-6" />
+            </svg>
+          </span>
           <span className="hero7__credit">Crédit photo à relever</span>
         </div>
 

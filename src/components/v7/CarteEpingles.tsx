@@ -11,12 +11,19 @@
  *
  * `Carte.tsx` reste la carte des écrans de contrôle, avec ses fonds IGN et sa
  * surcouche de pistes. Celle-ci suit la maquette : fond OpenStreetMap, zoom en
- * bas à droite, pas de molette.
+ * bas à droite.
+ *
+ * Elle se manipule : molette, glisser, double-clic. Elle ne le faisait pas —
+ * `scrollWheelZoom` était coupé et rien ne le disait, si bien que la molette
+ * passée sur la carte faisait défiler la page derrière elle. Au doigt, en
+ * revanche, la carte attend un premier appui avant de prendre le geste : sinon
+ * elle avale le défilement de la page, ce qui est le même défaut à l'envers.
  */
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef, useState } from "react";
-import { chargerLeaflet, type Leaflet } from "@/lib/leaflet";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
+import type { Bornes } from "@/lib/carte";
 
 export type Marqueur = {
   id: string;
@@ -27,6 +34,8 @@ export type Marqueur = {
   zIndex?: number;
   /** Compte dans le cadrage. Vrai par défaut. */
   cadre?: boolean;
+  /** Repère décoratif : ni fenêtre, ni survol, ni clic. */
+  inerte?: boolean;
 };
 
 export function CarteEpingles({
@@ -37,6 +46,12 @@ export function CarteEpingles({
   surClic,
   className,
   legende,
+  suivi = false,
+  surSuivi,
+  surBornes,
+  ficheDe,
+  actif = null,
+  surActif,
 }: {
   marqueurs: readonly Marqueur[];
   /** Change quand il faut recadrer : la liste des identifiants, en pratique. */
@@ -46,6 +61,19 @@ export function CarteEpingles({
   surClic?: (id: string) => void;
   className?: string;
   legende?: React.ReactNode;
+  /** La liste suit-elle le cadre ? Quand oui, la carte cesse de se recadrer
+   *  sur les résultats : c'est l'utilisateur qui la conduit. */
+  suivi?: boolean;
+  surSuivi?: (v: boolean) => void;
+  /** Bornes du cadre, rendues en fin de déplacement ou de zoom, jamais pendant. */
+  surBornes?: (b: Bornes) => void;
+  /** Le contenu de la fenêtre flottante, fourni par l'écran qui sait ce que
+   *  l'épingle désigne. Sans lui, pas de fenêtre. */
+  ficheDe?: (id: string) => ReactNode;
+  /** Épingle à éclairer depuis l'extérieur : la ligne survolée dans la liste. */
+  actif?: string | null;
+  /** Remonte l'épingle vive, pour que la liste éclaire la même. */
+  surActif?: (id: string | null) => void;
 }) {
   const hote = useRef<HTMLDivElement>(null);
   const lib = useRef<typeof Leaflet | null>(null);
@@ -53,8 +81,51 @@ export function CarteEpingles({
   const couche = useRef<Leaflet.LayerGroup | null>(null);
   const rappel = useRef(surClic);
   rappel.current = surClic;
+  const rappelBornes = useRef(surBornes);
+  rappelBornes.current = surBornes;
+  // Lu dans les écouteurs Leaflet, qui vivent plus longtemps qu'un rendu.
+  const suitRef = useRef(suivi);
+  suitRef.current = suivi;
   const cadre = useRef("");
   const [prete, setPrete] = useState(false);
+  // Au doigt, la carte n'attrape le geste qu'après un premier appui : sans
+  // cela elle avale le défilement de la page au milieu de la liste.
+  const [tactile, setTactile] = useState(false);
+  const [engagee, setEngagee] = useState(false);
+  // Survol et clic ne se comportent pas pareil : le survol s'efface quand le
+  // pointeur part, le clic tient jusqu'à fermeture explicite.
+  const [survol, setSurvol] = useState<string | null>(null);
+  const [fixe, setFixe] = useState<string | null>(null);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const marques = useRef(new Map<string, Leaflet.Marker>());
+  const rappelActif = useRef(surActif);
+  rappelActif.current = surActif;
+  // `ficheDe` est une fonction écrite en ligne par l'écran : elle change à
+  // chaque rendu. Lue par une référence, elle ne fait plus reconstruire les
+  // quarante marqueurs à chaque frappe, ce qui effaçait leur éclairage.
+  const ficheRef = useRef(ficheDe);
+  ficheRef.current = ficheDe;
+  const avecFiche = !!ficheDe;
+
+  // L'épingle vive : le clic d'abord, le survol ensuite, la liste en dernier.
+  const vif = fixe ?? survol ?? actif;
+  // La fenêtre ne s'ouvre que sur un geste porté à la carte.
+  const montre = avecFiche ? (fixe ?? survol) : null;
+
+  const survoler = (id: string | null) => {
+    if (minuteur.current) clearTimeout(minuteur.current);
+    if (id == null) {
+      setSurvol(null);
+      rappelActif.current?.(null);
+      return;
+    }
+    // 300 ms : le temps qu'un pointeur qui traverse la carte ne déclenche rien.
+    minuteur.current = setTimeout(() => {
+      setSurvol(id);
+      rappelActif.current?.(id);
+    }, 300);
+  };
 
   useEffect(() => {
     let annule = false;
@@ -62,13 +133,35 @@ export function CarteEpingles({
     void chargerLeaflet().then((Lf) => {
       if (annule || !hote.current) return;
       lib.current = Lf;
-      const m = Lf.map(hote.current, { zoomControl: false, scrollWheelZoom: false });
+      // La molette zoome : c'est une carte de résultats, pas une vignette.
+      const doigt = pointeurGrossier();
+      setTactile(doigt);
+      const m = Lf.map(hote.current, {
+        zoomControl: false,
+        scrollWheelZoom: !doigt,
+        dragging: !doigt,
+        touchZoom: !doigt,
+        doubleClickZoom: true,
+      });
       Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",
         maxZoom: 18,
       }).addTo(m);
       Lf.control.zoom({ position: "bottomright" }).addTo(m);
       couche.current = Lf.layerGroup().addTo(m);
+      // Les bornes ne sortent qu'à la fin du geste. Pendant, elles changeraient
+      // à chaque image et la liste clignoterait sous les doigts.
+      const emettre = () => {
+        const b = m.getBounds();
+        rappelBornes.current?.({
+          sud: b.getSouth(),
+          ouest: b.getWest(),
+          nord: b.getNorth(),
+          est: b.getEast(),
+        });
+      };
+      m.on("moveend", emettre);
+      m.on("zoomend", emettre);
       m.setView(vueVide.centre, vueVide.zoom);
       const redim = new ResizeObserver(() => m.invalidateSize({ pan: false }));
       redim.observe(hote.current);
@@ -95,6 +188,7 @@ export function CarteEpingles({
       c = couche.current;
     if (!prete || !Lf || !m || !c) return;
     c.clearLayers();
+    marques.current.clear();
     const pts: [number, number][] = [];
     for (const mk of marqueurs) {
       if (!Number.isFinite(mk.lat) || !Number.isFinite(mk.lon)) continue;
@@ -102,23 +196,163 @@ export function CarteEpingles({
         icon: Lf.divIcon({ className: "", iconSize: [0, 0], html: mk.html }),
         zIndexOffset: mk.zIndex ?? 0,
       });
-      marker.on("click", () => rappel.current?.(mk.id));
+      if (!mk.inerte)
+        marker.on("click", () => {
+          if (ficheRef.current) setFixe((f) => (f === mk.id ? null : mk.id));
+          else rappel.current?.(mk.id);
+        });
+      if (avecFiche && !mk.inerte && !pointeurGrossier()) {
+        marker.on("mouseover", () => survoler(mk.id));
+        marker.on("mouseout", () => survoler(null));
+      }
       marker.addTo(c);
+      marques.current.set(mk.id, marker);
       if (mk.cadre !== false) pts.push([mk.lat, mk.lon]);
     }
     if (cadre.current !== cadrage) {
       cadre.current = cadrage;
-      if (pts.length) m.fitBounds(Lf.latLngBounds(pts), { padding: [48, 48], maxZoom });
-      else m.setView(vueVide.centre, vueVide.zoom);
+      // Quand la liste suit la carte, la carte ne se recadre plus sur la liste :
+      // les deux se poursuivraient sans fin.
+      if (!suitRef.current) {
+        if (pts.length) m.fitBounds(Lf.latLngBounds(pts), { padding: [48, 48], maxZoom });
+        else m.setView(vueVide.centre, vueVide.zoom);
+      }
     }
-  }, [prete, marqueurs, cadrage, maxZoom, vueVide]);
+  }, [prete, marqueurs, cadrage, maxZoom, vueVide, avecFiche]);
+
+  // Éclairage de l'épingle vive : une classe posée sur l'élément du marqueur.
+  useEffect(() => {
+    for (const [id, mk] of marques.current) {
+      const el = mk.getElement();
+      if (el) el.classList.toggle("epingle--vive", id === vif);
+    }
+  }, [vif, marqueurs, prete]);
+
+  // La fenêtre suit son épingle pendant le déplacement : une fenêtre restée
+  // sur place pendant qu'on glisse la carte désignerait autre chose.
+  useEffect(() => {
+    const m = carte.current;
+    if (!prete || !m || !montre) {
+      setPos(null);
+      return;
+    }
+    const mk = marques.current.get(montre);
+    if (!mk) {
+      setPos(null);
+      return;
+    }
+    const situer = () => {
+      const p = m.latLngToContainerPoint(mk.getLatLng());
+      setPos({ x: p.x, y: p.y });
+    };
+    situer();
+    m.on("move", situer);
+    m.on("zoom", situer);
+    return () => {
+      m.off("move", situer);
+      m.off("zoom", situer);
+    };
+  }, [prete, montre, marqueurs]);
+
+  // Échap ferme la fenêtre épinglée, comme partout ailleurs.
+  useEffect(() => {
+    if (!fixe) return;
+    const echap = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFixe(null);
+    };
+    document.addEventListener("keydown", echap);
+    return () => document.removeEventListener("keydown", echap);
+  }, [fixe]);
+
+  useEffect(
+    () => () => {
+      if (minuteur.current) clearTimeout(minuteur.current);
+    },
+    [],
+  );
+
+  const engager = () => {
+    const m = carte.current;
+    if (!m) return;
+    m.dragging.enable();
+    m.touchZoom.enable();
+    setEngagee(true);
+  };
 
   return (
     <div className={["carte7", className].filter(Boolean).join(" ")}>
       <div className="carte7__toile" ref={hote} />
+      {surSuivi ? (
+        <label className="carte7__suivi">
+          <input type="checkbox" checked={suivi} onChange={(e) => surSuivi(e.target.checked)} />
+          Rechercher quand je déplace la carte
+        </label>
+      ) : null}
+      {tactile && !engagee ? (
+        <button type="button" className="carte7__voile" onClick={engager}>
+          <span>Appuyez pour déplacer la carte</span>
+        </button>
+      ) : null}
+      {montre && ficheDe ? (
+        <div
+          className={`fcarte${tactile ? " fcarte--bas" : ""}`}
+          style={tactile || !pos ? undefined : placer(pos, hote.current)}
+          onMouseEnter={() => {
+            if (minuteur.current) clearTimeout(minuteur.current);
+          }}
+          onMouseLeave={() => {
+            if (!fixe) survoler(null);
+          }}
+        >
+          <button
+            type="button"
+            className="fcarte__fermer"
+            aria-label="Fermer"
+            onClick={() => {
+              setFixe(null);
+              survoler(null);
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            >
+              <path d="M7 7l10 10M17 7L7 17" />
+            </svg>
+          </button>
+          <div className="fcarte__corps">{ficheDe(montre)}</div>
+        </div>
+      ) : null}
       {legende ? <div className="carte7__legende">{legende}</div> : null}
     </div>
   );
+}
+
+/** Cotes de la fenêtre, relevées sur le kit de référence. */
+const FICHE_L = 327;
+const FICHE_H = 289;
+
+/**
+ * La fenêtre se pose au-dessus de l'épingle, et reste dans la carte.
+ *
+ * Au-dessus par défaut, parce que c'est là que le regard va. En dessous quand
+ * il n'y a plus la place au-dessus : une fenêtre à moitié hors du cadre ne se
+ * lit pas.
+ */
+function placer(pos: { x: number; y: number }, hote: HTMLElement | null) {
+  const L = hote?.clientWidth ?? FICHE_L;
+  const H = hote?.clientHeight ?? FICHE_H;
+  const gauche = Math.max(8, Math.min(pos.x - FICHE_L / 2, L - FICHE_L - 8));
+  const haut = pos.y - FICHE_H - 18;
+  return {
+    left: gauche,
+    top: haut >= 8 ? haut : Math.max(8, Math.min(pos.y + 18, H - FICHE_H - 8)),
+  };
 }
 
 /** Le marqueur de station de la maquette : disque, montagne, nom. */

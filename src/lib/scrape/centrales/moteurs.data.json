@@ -26,7 +26,7 @@
   },
   "reservation.alpedhuez.com": {
    "nom": "Alpe d'Huez Grand Domaine",
-   "moteur": "Ublo",
+   "moteur": "MSEM",
    "stations": [
     "alpe-d-huez",
     "auris-en-oisans",
@@ -306,7 +306,7 @@
   },
   "reservation.saintfrancoislongchamp.com": {
    "nom": "Saint François Longchamp",
-   "moteur": "Ublo",
+   "moteur": "MSEM",
    "stations": [
     "saint-francois-longchamp"
    ],
@@ -324,7 +324,7 @@
   },
   "www.saintefoy-reservation.com": {
    "nom": "Sainte-Foy Tarentaise",
-   "moteur": "Ublo",
+   "moteur": "MSEM",
    "stations": [
     "sainte-foy-tarentaise"
    ],
@@ -624,7 +624,7 @@
   },
   "www.villarddelans-correnconenvercors.com": {
    "nom": "Corrençon-en-Vercors",
-   "moteur": "Ublo",
+   "moteur": "MSEM",
    "stations": [
     "correncon-en-vercors"
    ],
@@ -652,7 +652,7 @@
   },
   "reservation.vars.com": {
    "nom": "Vars",
-   "moteur": "Ublo",
+   "moteur": "MSEM",
    "stations": [
     "vars",
     "vars-sainte-marie",
@@ -664,7 +664,7 @@
   },
   "www.montclar.com": {
    "nom": "Montclar les 2 vallées",
-   "moteur": "Ublo",
+   "moteur": "MSEM",
    "stations": [
     "saint-jean-montclar"
    ],
@@ -672,5 +672,6 @@
    "reponse": 200,
    "corrige": "Découverte le 13 septembre 2026, après l'audit, qui n'avait trouvé aucune centrale pour cette station. Le site publie resort 276 et channel « OT-276 » vers services.msem.tech : 6 hébergements au catalogue, et zéro offre à toutes les dates essayées. La centrale existe et répond ; elle n'a rien à vendre ces jours-là."
   }
- }
+ },
+ "corrige": "Le champ « moteur » disait « Ublo » pour six centrales. Corrigé le 13 septembre 2026 en « MSEM » : Ublo est le gestionnaire de contenu, signé Valraiso, qui fabrique le site et ne vend rien ; la recherche d'hébergement est un composant chargé à part, « Mon Séjour En Montagne », servi par services.msem.tech. Les tableaux de docs/centrales/audit.md gardent l'ancien nom, et sa section 9 explique pourquoi."
 }

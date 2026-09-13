@@ -26,7 +26,7 @@ import type { Connecteur } from "../types";
 export const montclar: Connecteur = {
   host: "www.montclar.com",
   nom: "Montclar les 2 vallées",
-  moteur: "Ublo",
+  moteur: "MSEM",
   chercher: (ctx) =>
     chercherMsem(ctx, {
       host: "www.montclar.com",

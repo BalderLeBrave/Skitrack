@@ -17,7 +17,7 @@ import type { Connecteur } from "../types";
 export const saintFrancoisLongchamp: Connecteur = {
   host: "reservation.saintfrancoislongchamp.com",
   nom: "Saint François Longchamp",
-  moteur: "Ublo",
+  moteur: "MSEM",
   chercher: (ctx) =>
     chercherMsem(ctx, {
       host: "reservation.saintfrancoislongchamp.com",

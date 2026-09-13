@@ -42,7 +42,7 @@ export const CENTRALES_AUDIT_AT = FICHIER.at;
 
 const MOTEURS: readonly MoteurCentrale[] = [
   "Open System",
-  "Ublo",
+  "MSEM",
   "Ingénie",
   "Diffusio",
   "Deskline / Feratel",

@@ -25,7 +25,7 @@ import type { Connecteur } from "../types";
 export const vars: Connecteur = {
   host: "reservation.vars.com",
   nom: "Vars",
-  moteur: "Ublo",
+  moteur: "MSEM",
   chercher: (ctx) =>
     chercherMsem(ctx, {
       host: "reservation.vars.com",

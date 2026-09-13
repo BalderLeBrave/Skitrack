@@ -12,7 +12,7 @@ import { etatDuMoteur } from "./etat.ts";
  */
 const MOTEURS = [
   "Open System",
-  "Ublo",
+  "MSEM",
   "Ingénie",
   "Diffusio",
   "Deskline / Feratel",

@@ -1,12 +1,13 @@
 /**
  * Le moteur MSEM, partie pure : lire le catalogue, joindre les prix.
  *
- * **Le moteur ne s'appelle pas comme l'audit le croyait.** L'audit a rangé
- * quatre de ces centrales sous « Ublo ». Ublo est le gestionnaire de contenu
- * (Valraiso) qui fabrique le site ; il ne vend rien. La recherche d'hébergement
- * est un composant chargé à part, « Mon Séjour En Montagne », servi par
- * `services.msem.tech`, et c'est lui qui connaît les prix. Les quatre sites ne
- * sont donc pas quatre moteurs : c'est la même API, à deux identifiants près.
+ * **Le moteur ne s'appelle pas comme l'audit le croyait.** L'audit rangeait ces
+ * centrales sous « Ublo ». Ublo est le gestionnaire de contenu (Valraiso) qui
+ * fabrique le site ; il ne vend rien. La recherche d'hébergement est un
+ * composant chargé à part, « Mon Séjour En Montagne », servi par
+ * `services.msem.tech`, et c'est lui qui connaît les prix. Les six sites ne sont
+ * donc pas six moteurs : c'est la même API, à deux identifiants près — un
+ * numéro de station et un canal de vente, que chaque site publie lui-même.
  *
  * **Deux appels, et ils ne disent pas la même chose.**
  *

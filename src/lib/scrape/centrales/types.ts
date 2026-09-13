@@ -19,10 +19,18 @@
 import type { Listing } from "@/lib/listings";
 import type { LiveSearchInput } from "../types";
 
-/** Les moteurs relevés par l'audit. `inconnu` est un constat, pas un défaut. */
+/**
+ * Les moteurs relevés par l'audit. `inconnu` est un constat, pas un défaut.
+ *
+ * `MSEM` s'appelait `Ublo` au relevé du 13 septembre 2026, et c'était une
+ * erreur de nom : Ublo est le gestionnaire de contenu qui fabrique le site, et
+ * il ne vend rien. Ce qui vend est « Mon Séjour En Montagne », chargé à part.
+ * Les tableaux de `docs/centrales/audit.md` gardent l'ancien nom ; sa section 9
+ * explique pourquoi.
+ */
 export type MoteurCentrale =
   | "Open System"
-  | "Ublo"
+  | "MSEM"
   | "Ingénie"
   | "Diffusio"
   | "Deskline / Feratel"

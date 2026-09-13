@@ -24,7 +24,7 @@ import type { Connecteur } from "../types";
 export const alpeDHuez: Connecteur = {
   host: "reservation.alpedhuez.com",
   nom: "Alpe d'Huez Grand Domaine",
-  moteur: "Ublo",
+  moteur: "MSEM",
   chercher: (ctx) =>
     chercherMsem(ctx, {
       host: "reservation.alpedhuez.com",

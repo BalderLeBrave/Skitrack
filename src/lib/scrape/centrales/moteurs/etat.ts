@@ -5,7 +5,7 @@
  * Leur écrire un fichier chacune pour n'y mettre qu'une phrase serait cinquante-
  * six fichiers vides ; les laisser sans phrase serait pire, parce qu'un zéro
  * sans motif se lit comme « rien de disponible ». Or elles ne sont pas
- * cinquante-six cas différents : ce sont six moteurs, et l'empêchement est le
+ * cinquante-cinq cas différents : ce sont six moteurs, et l'empêchement est le
  * même pour toutes celles qui partagent le leur.
  *
  * Ces phrases sortent du sondage du 13 septembre 2026, qui a relu le
@@ -54,10 +54,10 @@ const ETAT: Record<MoteurCentrale, string> = {
   "Open System":
     "ces centrales tournent sur la génération ancienne du moteur, qui sert une coquille statique et laisse un composant JavaScript peupler la page : avec dates, sans dates, ou sur une autre durée, la réponse est identique à l'octet près et ne porte aucun prix. Relevé du 13 septembre 2026.",
 
-  // Quatre centrales, toutes branchées. Cette phrase ne devrait jamais paraître
-  // à l'écran ; elle existe pour que le jour où une cinquième apparaît au
-  // relevé sans fichier, elle dise quelque chose de juste.
-  Ublo:
+  // Six centrales, toutes branchées. Cette phrase ne devrait jamais paraître à
+  // l'écran ; elle existe pour que le jour où une septième apparaît au relevé
+  // sans fichier, elle dise quelque chose de juste.
+  MSEM:
     "ce moteur est interrogeable, mais cette centrale-ci n'a pas encore son fichier : il lui manque son identifiant de station et son canal de vente, que son site publie.",
 
   // Une centrale relevée sous ce nom, corrigée depuis. Plus aucune aujourd'hui.

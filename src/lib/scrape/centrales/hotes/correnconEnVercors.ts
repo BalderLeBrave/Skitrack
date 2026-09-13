@@ -23,7 +23,7 @@ import type { Connecteur } from "../types";
 export const correnconEnVercors: Connecteur = {
   host: "www.villarddelans-correnconenvercors.com",
   nom: "Corrençon-en-Vercors",
-  moteur: "Ublo",
+  moteur: "MSEM",
   chercher: (ctx) =>
     chercherMsem(ctx, {
       host: "www.villarddelans-correnconenvercors.com",

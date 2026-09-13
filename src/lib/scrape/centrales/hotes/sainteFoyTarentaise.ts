@@ -18,7 +18,7 @@ import type { Connecteur } from "../types";
 export const sainteFoyTarentaise: Connecteur = {
   host: "www.saintefoy-reservation.com",
   nom: "Sainte-Foy Tarentaise",
-  moteur: "Ublo",
+  moteur: "MSEM",
   chercher: (ctx) =>
     chercherMsem(ctx, {
       host: "www.saintefoy-reservation.com",

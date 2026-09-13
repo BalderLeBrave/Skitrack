@@ -35,11 +35,22 @@ export function CarteStation({
   const stationId = useParcours((p) => p.stationId);
   const toggleCmp = useParcours((p) => p.toggleCmp);
   const retain = useParcours((p) => p.retain);
+  const relacher = useParcours((p) => p.relacher);
   const inCmp = cmp.includes(s.id);
   const retained = stationId === s.id;
+  // À l'accueil, un clic **sélectionne** : il ne navigue pas. Le parcours veut
+  // qu'un pas ne s'ouvre que quand le précédent a produit son résultat, et
+  // c'est le bouton Rechercher qui ouvre le suivant.
+  const choisit = variante === "accueil";
   const pass = passLbl(s);
   const ouvrir = (e?: MouseEvent) => {
     e?.preventDefault();
+    if (choisit) {
+      // Un second clic sur une vignette déjà retenue la relâche.
+      if (retained) relacher();
+      else retain(s.id);
+      return;
+    }
     void go("fiche", { id: s.id });
   };
   const logements = (e?: MouseEvent) => {
@@ -55,7 +66,13 @@ export function CarteStation({
       onMouseEnter={surSurvol ? () => surSurvol(s.id) : undefined}
       onMouseLeave={surSurvol ? () => surSurvol(null) : undefined}
     >
-      <div className="stc7__media" onClick={ouvrir} role="link" tabIndex={-1}>
+      <div
+        className="stc7__media"
+        onClick={ouvrir}
+        role={choisit ? "button" : "link"}
+        aria-pressed={choisit ? retained : undefined}
+        tabIndex={-1}
+      >
         <ImageSlot shape="rect"
           id={`v7-${variante}-${s.id}`}
           placeholder={stationPhotoAbsence(s)}
@@ -65,13 +82,19 @@ export function CarteStation({
         <span className="stc7__km" title="Kilomètres de pistes du domaine">
           {kmLbl(s) ?? "km non publié"}
         </span>
-        {variante === "liste" && retained ? <span className="stc7__retenue">Retenue</span> : null}
+        {retained ? <span className="stc7__retenue">Retenue</span> : null}
       </div>
       <div className="stc7__corps">
         <div className="stc7__titre">
-          <a href={`/stations/${s.id}`} onClick={ouvrir} className="stc7__nom">
-            {s.name}
-          </a>
+          {choisit ? (
+            <button type="button" className="stc7__nom stc7__nom--bouton" onClick={() => ouvrir()}>
+              {s.name}
+            </button>
+          ) : (
+            <a href={`/stations/${s.id}`} onClick={ouvrir} className="stc7__nom">
+              {s.name}
+            </a>
+          )}
           <span className="stc7__sub">{sub(s)}</span>
         </div>
         <div className="stc7__faits">
@@ -94,10 +117,14 @@ export function CarteStation({
             <input type="checkbox" checked={inCmp} onChange={() => toggleCmp(s.id)} />
             {inCmp ? "Dans la comparaison" : "Comparer"}
           </label>
-          {variante === "accueil" ? (
-            <a href="/logements" onClick={logements} className="stc7__lodg">
-              Voir les logements →
-            </a>
+          {choisit ? (
+            <button
+              type="button"
+              className={`stc7__choix${retained ? " stc7__choix--on" : ""}`}
+              onClick={() => ouvrir()}
+            >
+              {retained ? "Retenue pour le séjour" : "Retenir cette station"}
+            </button>
           ) : (
             <button type="button" className="stc7__lodg-btn" onClick={() => logements()}>
               Voir les logements

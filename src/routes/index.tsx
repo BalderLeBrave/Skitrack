@@ -25,7 +25,7 @@ import {
   useSejour,
   type ChipKey,
 } from "@/lib/parcours";
-import { STATIONS, type Station } from "@/lib/stations";
+import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -73,8 +73,11 @@ function Home() {
   const go = useGo();
   const P = useParcours();
   const F = P.filters;
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, rooms, nights, valid } = useSejour();
   const plage = usePlage();
+  // La station retenue, s'il y en a une : c'est elle qui décide de ce que
+  // « Rechercher » va ouvrir.
+  const retenue = P.stationId ? stationById(P.stationId) : undefined;
 
   const all = STATIONS;
   const top = useMemo(() => popular(all), [all]);
@@ -127,11 +130,28 @@ function Home() {
         ]
       : [];
 
-  // La saisie devient `q` de l'écran Comparer ; le massif est levé.
+  // Ce que « Rechercher » va faire, dit avant de le faire. Le bouton est le
+  // seul passage vers l'étape suivante : cliquer une vignette sélectionne, il
+  // ne navigue pas.
+  const manque = !valid ? "Le départ précède l'arrivée : corrigez les dates du séjour." : null;
+  const dira = manque
+    ? manque
+    : retenue
+      ? `Rechercher ouvrira les logements à ${retenue.name}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
+      : q.trim()
+        ? `Rechercher ouvrira les stations qui portent «\u00a0${q.trim()}\u00a0».`
+        : "Rechercher ouvrira la liste des stations. Retenez-en une ci-dessous pour aller droit à ses logements.";
+
   const search = () => {
+    if (manque) return;
+    setHp(null);
+    // Une station retenue, c'est l'étape 1 faite : le pas suivant est le sien.
+    if (retenue) {
+      void go("lodging");
+      return;
+    }
     P.setQ(q.trim());
     P.setMassif(null);
-    setHp(null);
     void go("compare");
   };
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -210,7 +230,14 @@ function Home() {
                     <span className="sbar7__k">Voyageurs</span>
                     <span className="sbar7__v">{guestsLbl(trav, rooms)}</span>
                   </button>
-                  <button type="button" className="sbar7__go" title="Rechercher" onClick={search}>
+                  <button
+                    type="button"
+                    className="sbar7__go"
+                    title={dira}
+                    aria-label={dira}
+                    disabled={!!manque}
+                    onClick={search}
+                  >
                     <Icon name="loupe" taille={18} />
                   </button>
                 </div>
@@ -312,6 +339,9 @@ function Home() {
                 </div>
               ) : null}
             </div>
+            <p className={`hero7__dira${manque ? " hero7__dira--manque" : ""}`} aria-live="polite">
+              {dira}
+            </p>
             <div className="hero7__raccourcis">
               {SHORTCUTS.map((sc) => (
                 <button key={sc.k} type="button" className="raccourci" onClick={() => shortcut(sc.k)}>

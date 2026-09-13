@@ -122,6 +122,9 @@ type Parcours = {
   /** Récapitulatif ouvert depuis un lien de partage. Transitoire. */
   shared: boolean;
   retain: (id: string) => void;
+  /** Relâche la station retenue. Un second clic sur une vignette déjà
+   *  sélectionnée doit pouvoir la désélectionner. */
+  relacher: () => void;
   chooseLodge: (id: string | null) => void;
   toggleCmp: (id: string) => void;
   setPick: (id: string | null) => void;
@@ -166,6 +169,7 @@ export const useParcours = create<Parcours>()(
         if (get().stationId !== id) set({ stationId: id, lodgeId: null, booked: false });
         useStay.getState().setStay({ stationId: id });
       },
+      relacher: () => set({ stationId: null, lodgeId: null, booked: false }),
       chooseLodge: (id) => set((s) => ({ lodgeId: id, booked: id === s.lodgeId ? s.booked : false })),
       toggleCmp: (id) => {
         const cmp = get().cmp;

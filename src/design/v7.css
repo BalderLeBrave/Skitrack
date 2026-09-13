@@ -1389,6 +1389,38 @@
 .stc7__cmp--on {
   color: var(--color-marque-texte);
 }
+/* À l'accueil, le pied de vignette dit l'état de sélection, il ne navigue pas. */
+.stc7__choix {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.stc7__choix:hover {
+  border-color: var(--color-ink);
+}
+.stc7__choix--on {
+  background: var(--color-marque-tenue);
+  border-color: var(--color-marque-tenue);
+  color: var(--color-marque-texte);
+}
+.stc7__nom--bouton {
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  font-size: var(--text-corps);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.stc7__nom--bouton:hover {
+  text-decoration: underline;
+}
 .stc7__lodg {
   font-size: var(--text-detail);
   font-weight: 700;
@@ -1558,6 +1590,21 @@
 }
 .sbar7__go:hover {
   background: var(--color-marque-texte);
+}
+/* Ce que « Rechercher » va faire, écrit sous la barre : le bouton est rond et
+   ne peut pas porter son propre libellé. */
+.hero7__dira {
+  font-size: var(--text-detail);
+  color: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  text-shadow: 0 1px 10px rgba(22, 25, 30, 0.45);
+}
+.hero7__dira--manque {
+  font-weight: 700;
+  color: var(--color-surface);
+}
+.sbar7__go:disabled {
+  background: var(--color-texte-3);
+  cursor: not-allowed;
 }
 .hero7__raccourcis {
   display: flex;

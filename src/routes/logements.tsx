@@ -21,6 +21,13 @@ import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import {
+  clampRayonKm,
+  geoReasonFor,
+  RAYON_DEFAUT_KM,
+  RAYON_MAX_KM,
+  RAYON_MIN_KM,
+} from "@/lib/stay/lodgingFilter";
+import {
   eur,
   eurCents,
   eurN,
@@ -48,13 +55,15 @@ type LF = {
   rooms: number;
   dist: number;
   src: Record<string, boolean>;
+  /** Rayon de recherche autour de la station, en km. Toujours appliqué. */
+  rayon: number;
   measured: boolean;
   link: boolean;
   photo: boolean;
   firm: boolean;
   pos: boolean;
 };
-const LF0: LF = { budget: 0, pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, measured: false, link: false, photo: false, firm: false, pos: false };
+const LF0: LF = { budget: 0, pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, rayon: RAYON_DEFAUT_KM, measured: false, link: false, photo: false, firm: false, pos: false };
 
 const RANGES: { k: "budget" | "pp" | "cap" | "rooms" | "dist"; label: string; max: number; step: number; unit: string; sign: string }[] = [
   { k: "budget", label: "Total du séjour, au plus", max: 6000, step: 250, unit: "€", sign: "≤ " },
@@ -193,6 +202,14 @@ function Logements() {
   lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.guests == null || l.guests >= trav, fixed: true });
   if (rooms)
     lp.push({ id: "rooms", label: `Chambres ≥ ${rooms}`, fn: (l) => l.bedrooms == null || l.bedrooms >= rooms, fixed: true });
+  // La zone est toujours appliquée : une recherche de logements a toujours un
+  // périmètre. Son rayon se règle dans le panneau, il ne se retire pas.
+  lp.push({
+    id: "zone",
+    label: `Dans ${lf.rayon} km`,
+    fn: (l) => geoReasonFor(l, lf.rayon) == null,
+    fixed: true,
+  });
   if (lf.budget) lp.push({ id: "budget", label: `Total ≤ ${fmt(lf.budget)} €`, fn: (l) => l.total <= lf.budget, remove: () => patchLf({ budget: 0 }) });
   if (lf.pp) lp.push({ id: "pp", label: `≤ ${fmt(lf.pp)} € / pers.`, fn: (l) => l.total / trav <= lf.pp, remove: () => patchLf({ pp: 0 }) });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
@@ -214,6 +231,16 @@ function Logements() {
   };
   const lvis = lapply(lp).sort(tri[lsort]);
   const lfree = lp.filter((p) => !p.fixed);
+  // Ce que la zone seule a écarté, nommé par motif : une liste courte sans
+  // explication se lit comme un relevé pauvre, pas comme un filtre qui a joué.
+  const horsZone = raw.filter((l) => geoReasonFor(l, lf.rayon) === "hors-zone").length;
+  const autreDomaine = raw.filter((l) => geoReasonFor(l, lf.rayon) === "autre-domaine").length;
+  const zoneLbl = [
+    horsZone ? `${horsZone} hors de la zone` : null,
+    autreDomaine ? `${autreDomaine} sur ${autreDomaine > 1 ? "d’autres domaines" : "un autre domaine"}` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
   const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
   const totalN = (kept?.total ?? 0) + passGroupN;
@@ -396,6 +423,8 @@ function Logements() {
                 <span className="toujours7__regle">Capacité ≥ {trav}</span>
                 {rooms ? <span className="toujours7__regle">Chambres ≥ {rooms}</span> : null}
                 <span className="toujours7__regle">Total du séjour, pas « dès »</span>
+                <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
+                {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
                 <span>Une capacité non annoncée n'écarte pas l'annonce : elle est dite non annoncée.</span>
               </div>
               <div className="filtres7__barre">
@@ -452,6 +481,29 @@ function Logements() {
                     </button>
                   </div>
                   <div className="pop7__bloc pop7__bloc--sans">
+                    <span className="v7surtitre">Zone de recherche</span>
+                    <span className="pop7__note">
+                      Autour du repère de {s.name}. Le rattachement au domaine prime sur la
+                      distance : un logement d'un autre domaine sort même tout près, un logement du
+                      domaine reste même au-delà. Une annonce sans coordonnées n'est pas lointaine,
+                      elle est non mesurable : elle reste.
+                    </span>
+                  </div>
+                  <label className="curseur">
+                    <span className="curseur__lab">
+                      <span>Rayon autour de la station</span>
+                      <span className="curseur__val">{lf.rayon} km</span>
+                    </span>
+                    <input
+                      type="range"
+                      min={RAYON_MIN_KM}
+                      max={RAYON_MAX_KM}
+                      step={1}
+                      value={lf.rayon}
+                      onChange={(e) => patchLf({ rayon: clampRayonKm(+e.target.value) })}
+                    />
+                  </label>
+                  <div className="pop7__bloc">
                     <span className="v7surtitre">Prix et taille</span>
                     <span className="pop7__note">
                       Capacité ≥ {trav} est toujours appliquée ; ces seuils s'y ajoutent et écartent les

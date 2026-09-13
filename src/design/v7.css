@@ -2258,6 +2258,10 @@
   font-weight: 700;
   color: var(--color-texte-3);
 }
+.toujours7__ecarte {
+  color: var(--color-alerte-texte);
+  font-weight: 600;
+}
 .toujours7__regle {
   padding: 5px 10px;
   border-radius: 999px;

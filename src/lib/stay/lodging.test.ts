@@ -11,16 +11,24 @@ import {
 } from "./availability.ts";
 import {
   applyFilter,
+  clampRayonKm,
   droppedLabel,
   dropReasonFor,
   fitsParty,
+  geoReasonFor,
   isDroppedGitesOffer,
   isStudioListing,
   minRoomsFor,
   normalizedBedrooms,
   partyVerdict,
+  RAYON_DEFAUT_KM,
+  RAYON_MAX_KM,
+  RAYON_MIN_KM,
   type FilterSubject,
 } from "./lodgingFilter.ts";
+import { attachAccess } from "../access.ts";
+import { stationById } from "../stations.ts";
+import type { Listing } from "../listings.ts";
 
 const STAY: Stay = { checkIn: "2027-02-06", checkOut: "2027-02-13" };
 const NOW = Date.parse("2027-01-10T12:00:00Z");
@@ -327,6 +335,8 @@ describe("filtre : ce qui sort, et pourquoi", () => {
     assert.equal(out.dropped.total, 6);
     assert.deepEqual(out.dropped.byReason, {
       groupe: 1,
+      "autre-domaine": 0,
+      "hors-zone": 0,
       capacite: 2,
       prix: 2,
       source: 1,
@@ -355,5 +365,113 @@ describe("filtre : ce qui sort, et pourquoi", () => {
     const out = applyFilter([bien({ id: "ok", guests: 8, bedrooms: 4 })], criteres);
     assert.equal(out.dropped.total, 0);
     assert.equal(droppedLabel(out.dropped), "");
+  });
+});
+
+describe("filtre : la zone de recherche", () => {
+  const criteres = { travelers: 8, rooms: 4, stay: STAY, now: NOW };
+  // Un sujet qui satisfait déjà capacité et chambres : seule la géographie
+  // doit pouvoir l'écarter, sans quoi le test mesurerait autre chose.
+  const zone = (over: Partial<FilterSubject> = {}) => bien({ guests: 8, bedrooms: 4, ...over });
+
+  it("un logement à 300 km sort, et le motif le nomme", () => {
+    // Le critère de fin, à la lettre : 300 km du repère de la station, aucun
+    // rattachement de domaine établi, donc c'est la distance qui tranche.
+    const lointain = zone({ id: "loin", distToSlopesM: 300_000 });
+    assert.equal(dropReasonFor(lointain, criteres), "hors-zone");
+    assert.equal(geoReasonFor(lointain), "hors-zone");
+
+    const out = applyFilter([lointain], criteres);
+    assert.deepEqual(out.kept, []);
+    assert.equal(out.dropped.byReason["hors-zone"], 1);
+    assert.equal(droppedLabel(out.dropped), "1 bien masqué : hors de la zone");
+  });
+
+  it("un logement sans coordonnées reste : il n'est pas lointain, il est non mesurable", () => {
+    const sansGps = zone({ id: "sans-gps", distToSlopesM: null });
+    assert.equal(geoReasonFor(sansGps), null);
+    assert.equal(dropReasonFor(sansGps, criteres), null);
+
+    // Le champ entièrement absent se lit comme le champ nul : rien à mesurer.
+    const champAbsent = zone({ id: "absent" });
+    assert.equal(geoReasonFor(champAbsent), null);
+    assert.equal(dropReasonFor(champAbsent, criteres), null);
+
+    const out = applyFilter([sansGps, champAbsent], criteres);
+    assert.equal(out.kept.length, 2);
+    assert.equal(out.dropped.total, 0);
+  });
+
+  it("le domaine prime sur la distance, dans les deux sens", () => {
+    // Un autre domaine sort même tout près : l'Iseran fermé l'hiver en est la
+    // raison, le vol d'oiseau n'est pas un accès.
+    const voisinAutreDomaine = zone({ id: "voisin", distToSlopesM: 3_000, domainFit: "other" });
+    assert.equal(geoReasonFor(voisinAutreDomaine), "autre-domaine");
+    assert.equal(dropReasonFor(voisinAutreDomaine, criteres), "autre-domaine");
+
+    // Le bon domaine reste, même au-delà du rayon.
+    const loinMemeDomaine = zone({ id: "loin-in", distToSlopesM: 18_000, domainFit: "in" });
+    assert.equal(geoReasonFor(loinMemeDomaine), null);
+    assert.equal(dropReasonFor(loinMemeDomaine, criteres), null);
+
+    // Un domaine relié aussi.
+    const relie = zone({ id: "relie", distToSlopesM: 25_000, domainFit: "linked" });
+    assert.equal(geoReasonFor(relie), null);
+  });
+
+  it("le rayon se règle, et se borne à ce qui a un sens", () => {
+    const a20 = zone({ id: "a20", distToSlopesM: 20_000 });
+    assert.equal(geoReasonFor(a20, RAYON_DEFAUT_KM), "hors-zone");
+    assert.equal(geoReasonFor(a20, 25), null);
+    assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 25 }), null);
+    assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 10 }), "hors-zone");
+
+    // La borne est inclusive : à 15 000 m tout rond, on est dans les 15 km.
+    assert.equal(geoReasonFor(zone({ id: "pile", distToSlopesM: 15_000 })), null);
+    assert.equal(geoReasonFor(zone({ id: "juste", distToSlopesM: 15_001 })), "hors-zone");
+
+    // Hors bornes, on ramène dans les bornes plutôt que d'inventer une zone.
+    assert.equal(clampRayonKm(0), RAYON_MIN_KM);
+    assert.equal(clampRayonKm(-5), RAYON_MIN_KM);
+    assert.equal(clampRayonKm(900), RAYON_MAX_KM);
+    assert.equal(clampRayonKm(null), RAYON_DEFAUT_KM);
+    assert.equal(clampRayonKm(Number.NaN), RAYON_DEFAUT_KM);
+    assert.equal(clampRayonKm(12.4), 12);
+  });
+
+  it("sur le référentiel réel : Marseille ne remonte pas dans une recherche La Plagne", () => {
+    // Le symptôme rapporté, reproduit sur les vraies données. Le logement passe
+    // par `attachAccess`, exactement comme le fait la recherche en direct.
+    const plagne = stationById("la-plagne");
+    assert.ok(plagne, "la-plagne doit exister au référentiel");
+    const brut = {
+      id: "marseille",
+      stationId: "la-plagne",
+      title: "Appartement vue Vieux-Port",
+      source: "Airbnb",
+      total: 2100,
+      currency: "EUR",
+      guests: 8,
+      bedrooms: 4,
+      available: true,
+      photo: null,
+      url: "https://www.airbnb.fr/rooms/999",
+      lat: 43.2965,
+      lon: 5.3698,
+      proven: "test",
+    } as Listing;
+    const situe = attachAccess(brut, plagne!);
+
+    // La distance est mesurée, et elle est énorme.
+    assert.ok((situe.distToSlopesM ?? 0) > 250_000);
+    // Le rattachement tranche avant elle, et il est plus précis : ce logement
+    // n'est pas « trop loin », il est sur un autre domaine.
+    assert.equal(situe.domainFit, "other");
+    assert.equal(dropReasonFor(situe, criteres), "autre-domaine");
+
+    // Dans la même vallée, à sept kilomètres, le logement reste.
+    const proche = attachAccess({ ...brut, id: "aime", lat: 45.5547, lon: 6.6486 }, plagne!);
+    assert.equal(proche.domainFit, "in");
+    assert.equal(dropReasonFor(proche, criteres), null);
   });
 });

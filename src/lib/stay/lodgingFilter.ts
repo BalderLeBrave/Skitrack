@@ -28,6 +28,7 @@
 
 import { isBookable, type Stay } from "./availability.ts";
 import { inRange, rangeOpen } from "./range.ts";
+import type { DomainVerdict } from "../domainFit.ts";
 
 /**
  * Ce que le filtre a besoin de lire.
@@ -48,6 +49,26 @@ export type FilterSubject = {
   bedrooms?: number | null;
   /** Pièces annoncées, convention des centrales. `null` = non annoncé. */
   rooms?: number | null;
+  /**
+   * Distance au repère de la station cherchée, en mètres.
+   *
+   * Posée par `attachAccess`, sur le relevé figé comme sur la recherche en
+   * direct. Le nom vient de `Listing` et il ment un peu : il dit « slopes »
+   * mais mesure la distance au **pin de la station** (`domainFit.ts`,
+   * `distToSearchedPinM`). C'est le seul repère commun à toutes les annonces,
+   * les pistes n'étant pas géolocalisées partout.
+   *
+   * `null` quand l'annonce n'a pas de coordonnées : ce n'est pas une distance
+   * nulle, c'est une distance non mesurable.
+   */
+  distToSlopesM?: number | null;
+  /**
+   * Rattachement au domaine cherché, posé par `attachAccess`.
+   *
+   * Il était calculé, affiché sur la fiche du logement, et **jamais appliqué**
+   * : rien dans le dépôt n'écartait une annonce sur la foi de ce verdict.
+   */
+  domainFit?: DomainVerdict;
   pricedCheckIn?: string | null;
   pricedCheckOut?: string | null;
   scannedAt?: number | null;
@@ -128,6 +149,63 @@ export function isStudioListing(listing: FilterSubject): boolean {
   return normalizedBedrooms(listing) === 0;
 }
 
+/**
+ * Le rayon de recherche, en kilomètres.
+ *
+ * Quinze kilomètres par défaut : c'est la distance au-delà de laquelle un
+ * logement cesse d'être « à la station » pour devenir « dans la vallée », et
+ * la borne haute de ce qu'une navette de station dessert ordinairement. Elle
+ * n'a rien d'une vérité : elle se règle.
+ *
+ * Il n'existe pas de position de repos à zéro, contrairement aux autres
+ * curseurs de l'écran : une recherche de logements a toujours une zone. La
+ * borne haute, trente kilomètres, est le point où la zone cesse d'avoir un
+ * sens pour un séjour au ski.
+ */
+export const RAYON_DEFAUT_KM = 15;
+export const RAYON_MIN_KM = 1;
+export const RAYON_MAX_KM = 30;
+
+export function clampRayonKm(km: number | null | undefined): number {
+  if (km == null || !Number.isFinite(km)) return RAYON_DEFAUT_KM;
+  return Math.min(RAYON_MAX_KM, Math.max(RAYON_MIN_KM, Math.round(km)));
+}
+
+/** Motif géographique d'écart : le domaine, ou la distance. */
+export type GeoReason = "autre-domaine" | "hors-zone";
+
+/**
+ * La géographie écarte-t-elle cette annonce ?
+ *
+ * Deux règles, dans cet ordre, et l'ordre est la règle :
+ *
+ * 1. **Le rattachement au domaine prime sur la distance, dans les deux sens.**
+ *    Un logement rattaché à un autre domaine sort même s'il est à trois
+ *    kilomètres : le vol d'oiseau n'est ni un accès ski ni une route, et
+ *    l'Iseran fermé l'hiver en est la démonstration (`domainFit.ts`). À
+ *    l'inverse, un logement du domaine cherché reste, même au-delà du rayon,
+ *    et l'écran affiche sa distance.
+ * 2. **Faute de rattachement établi, la distance tranche** — et seulement si
+ *    elle est mesurée. Une annonce sans coordonnées n'est pas lointaine, elle
+ *    est non mesurable : elle reste, avec la mention qui le dit.
+ *
+ * Conséquence à connaître : `domainFit` rend « in » dès que le repère de
+ * station le plus proche est celui qu'on cherche. Dans une vallée sans autre
+ * station, un logement éloigné peut donc être « in » et traverser le rayon.
+ * C'est la règle voulue ; le rayon mord sur ce qui n'a pas de rattachement.
+ */
+export function geoReasonFor(
+  listing: FilterSubject,
+  rayonKm: number | null | undefined = RAYON_DEFAUT_KM,
+): GeoReason | null {
+  if (listing.domainFit === "other") return "autre-domaine";
+  if (listing.domainFit === "in" || listing.domainFit === "linked") return null;
+
+  const m = listing.distToSlopesM;
+  if (m == null || !Number.isFinite(m)) return null;
+  return m > clampRayonKm(rayonKm) * 1000 ? "hors-zone" : null;
+}
+
 export type PartyCriteria = {
   /** Taille du groupe : autant de couchages au minimum. */
   travelers: number;
@@ -200,11 +278,20 @@ export function fitsParty(
 }
 
 /** Pourquoi une annonce a été écartée. Un motif, celui qui a tranché en premier. */
-export type DropReason = "groupe" | "capacite" | "prix" | "source" | "disponibilite";
+export type DropReason =
+  | "groupe"
+  | "autre-domaine"
+  | "hors-zone"
+  | "capacite"
+  | "prix"
+  | "source"
+  | "disponibilite";
 
 export type FilterCriteria = PartyCriteria & {
   /** Dates du séjour, pour juger la disponibilité. */
   stay: Stay;
+  /** Rayon de recherche autour de la station, en km. Défaut : `RAYON_DEFAUT_KM`. */
+  rayonKm?: number;
   /** N'afficher que ce qui est réservable, ou non jugé. */
   onlyAvailable?: boolean;
   /** Sources décochées, par libellé affiché. */
@@ -234,6 +321,11 @@ export type FilterOutcome<T> = {
 export function dropReasonFor(listing: FilterSubject, criteria: FilterCriteria): DropReason | null {
   // Gîte de groupe : hors liste, quelles que soient les autres réponses.
   if (isDroppedGitesOffer(listing)) return "groupe";
+
+  // La géographie ensuite, avant tout le reste : un logement qui n'est pas à
+  // la station n'est pas un candidat, quel que soit son prix ou sa taille.
+  const geo = geoReasonFor(listing, criteria.rayonKm);
+  if (geo) return geo;
 
   // Disponibilité ensuite. Une annonce listée mais non tarifée pour ces dates
   // n'est pas réservable : l'ouvrir mène à « Ces dates ne sont pas
@@ -276,6 +368,8 @@ export function applyFilter<T extends FilterSubject>(
   const rows: { id: string; reason: DropReason }[] = [];
   const byReason: Record<DropReason, number> = {
     groupe: 0,
+    "autre-domaine": 0,
+    "hors-zone": 0,
     capacite: 0,
     prix: 0,
     source: 0,
@@ -296,6 +390,8 @@ export function applyFilter<T extends FilterSubject>(
 
 const REASON_LABEL: Record<DropReason, [string, string]> = {
   groupe: ["gîte de groupe", "gîtes de groupe"],
+  "autre-domaine": ["sur un autre domaine", "sur d’autres domaines"],
+  "hors-zone": ["hors de la zone", "hors de la zone"],
   capacite: ["trop petit", "trop petits"],
   prix: ["hors budget", "hors budget"],
   source: ["source décochée", "sources décochées"],

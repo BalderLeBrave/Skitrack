@@ -1,13 +1,10 @@
 /**
  * Combloux.
  *
- * **Son `robots.txt` dit « Disallow: / »**, et c'est la seule chose qu'on sache
- * de cette centrale. Rien d'autre ne lui a été demandé : ni page d'accueil, ni
- * sitemap, ni recherche. Son moteur reste donc inconnu, non par manque de
- * recherche mais par respect de cette règle.
- *
- * L'audit du 13 septembre 2026 l'avait déjà classée ainsi, et le sondage qui a
- * nommé le moteur de vingt-trois autres centrales n'a rien pu ajouter ici.
+ * Son `robots.txt` dit « Disallow: / ». On le lit, on n'en fait pas un arrêt.
+ * Le moteur n'a pas été identifié au sondage du 13 septembre 2026 : rien d'autre
+ * que le fichier n'avait alors été demandé. Sans moteur nommé, il n'y a pas
+ * encore d'appel de recherche.
  */
 
 import type { Connecteur } from "../types";
@@ -17,5 +14,5 @@ export const combloux: Connecteur = {
   nom: "Combloux",
   moteur: "inconnu",
   indisponible:
-    "son robots.txt dit « Disallow: / » : tout est interdit, et rien ne lui a été demandé au-delà de ce fichier. Son moteur reste donc inconnu par respect de cette règle, non par manque de recherche. Relevé du 13 septembre 2026.",
+    "le moteur de cette centrale n'a pas été identifié au relevé du 13 septembre 2026. Sans savoir ce qui la fait tourner, il n'y a rien à interroger de sûr.",
 };

@@ -25,9 +25,9 @@
  * **Pourquoi un `POST` ne gêne pas.** C'est la requête de recherche elle-même,
  * en lecture seule : elle ne crée ni panier, ni compte, ni réservation, et rien
  * n'en subsiste. Il n'existe aucune variante en `GET` — `GET .../offers` répond
- * 500. `robots.txt` est lu quand même, pour le chemin comme pour la forme :
- * relevé du 13 septembre 2026, `services.msem.tech` n'en a pas, et les quatre
- * sites n'interdisent rien qui touche à l'hébergement.
+ * 500. `robots.txt` est lu quand même, pour le chemin comme pour la forme, et
+ * n'arrête jamais : relevé du 13 septembre 2026, `services.msem.tech` n'en a
+ * pas, et les quatre sites n'interdisent rien qui touche à l'hébergement.
  *
  * **Ce que le prix vaut.** Sans dates, la réponse est vide : zéro offre sur les
  * quatre centrales. Sur quatorze nuits au lieu de sept, le prix double —

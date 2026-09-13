@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  cidDepuisPage,
   dateIngenie,
   fragmentsIngenie,
   lireIngenie,
@@ -139,5 +140,12 @@ describe("Ingénie : lire une page de résultats datés", () => {
 
   it("le texte visible perd les balises et rend les entités", () => {
     assert.equal(texteIngenie("<b>a</b> &amp; <i>50 m&sup2;</i>"), "a & 50 m²");
+  });
+
+  it("lit le cid sur l'accueil, sous les trois formes du moteur", () => {
+    assert.equal(cidDepuisPage(`new IngenieMenuEngine.Client({ cid: 8, lang: "fr" })`), "8");
+    assert.equal(cidDepuisPage(`<input type="hidden" name="cid" value="4">`), "4");
+    assert.equal(cidDepuisPage(PAGE), "4");
+    assert.equal(cidDepuisPage("<html><body>pas de moteur</body></html>"), null);
   });
 });

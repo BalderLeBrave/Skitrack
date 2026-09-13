@@ -194,8 +194,8 @@ describe("Orchestra : lire le catalogue et le calendrier", () => {
   });
 
   it("les deux URL du moteur sont bien formées", () => {
-    // La page de destination ne porte aucun paramètre : c'est ce qui la met
-    // hors d'atteinte du « Disallow: /*serp? » de la centrale.
+    // La page de destination ne porte aucun paramètre : plus économique que
+    // la recherche groupée, qui porte un Disallow /*serp? lu et ignoré.
     const cat = new URL(urlCatalogueOrchestra("https://exemple.test/", "champagny-en-vanoise"));
     assert.equal(cat.pathname, "/destinations/champagny-en-vanoise");
     assert.equal(cat.search, "");

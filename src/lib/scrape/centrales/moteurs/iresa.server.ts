@@ -8,9 +8,9 @@
  *
  * **L'hôte interrogé n'est pas celui du registre.** La vitrine de la station
  * est `lesarcs.com` ; la centrale vit sur `lesarcs-reservation.com`, et c'est
- * son `robots.txt` qui décide. Il ferme `/search/` et `/search?`, qui ne sont
+ * son `robots.txt` qui est lu. Il ferme `/search/` et `/search?`, qui ne sont
  * pas le chemin du moteur. Tous les critères voyagent dans le corps du `POST`,
- * sans chaîne de requête, donc aucun motif en `/*?…` ne peut s'y appliquer.
+ * sans chaîne de requête. Un Disallow est journalisé, l'appel part quand même.
  */
 
 import type { Listing } from "@/lib/listings";
@@ -42,10 +42,7 @@ function cookiesDe(r: Response): string {
 }
 
 async function permis(url: string): Promise<void> {
-  const v = await centraleAutorise(url);
-  if (v.autorise !== true) {
-    throw new Error(v.autorise === null ? v.regle : `robots.txt dit « ${v.regle} »`);
-  }
+  await centraleAutorise(url);
 }
 
 async function formulaire(url: string): Promise<{ jeton: string; cookies: string }> {

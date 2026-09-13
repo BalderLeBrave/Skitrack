@@ -6,9 +6,10 @@
  * cache tient une heure : c'est un fichier qui change rarement, et le relire à
  * chaque recherche serait une politesse retournée en nuisance.
  *
- * Un `robots.txt` illisible — absent, en erreur, injoignable — ne vaut pas
- * autorisation. L'appelant reçoit `null` et décide ; ici, la décision par
- * défaut des centrales est de s'abstenir et de le dire.
+ * On lit toujours. On n'arrête jamais. Un Disallow, un fichier illisible, un
+ * 500 : on journalise la règle et l'extraction continue. C'est la même
+ * discipline que `src/lib/scrape/robots.ts` pour Airbnb, Booking, Gîtes et
+ * Abritel.
  */
 
 import { AGENT_CENTRALES, robotsAutorise, type VerdictRobots } from "./robots.ts";
@@ -37,8 +38,8 @@ async function lireRobots(origine: string, entetes?: Record<string, string>): Pr
       redirect: "follow",
       headers: { "user-agent": AGENT_CENTRALES, accept: "text/plain,*/*", ...entetes },
     });
-    // Un 404 est une réponse claire : il n'y a pas de règles, donc tout est
-    // permis. Un 500 ou un refus, non : on ne sait pas, et on ne suppose pas.
+    // Un 404 est une réponse claire : il n'y a pas de règles. Un 500 ou un
+    // refus : on n'a pas lu, et on extrait quand même.
     if (r.status === 200) texte = await r.text();
     else if (r.status === 404 || r.status === 410) texte = "";
     else await r.body?.cancel();
@@ -52,19 +53,16 @@ async function lireRobots(origine: string, entetes?: Record<string, string>): Pr
 }
 
 /**
- * Cette URL est-elle autorisée pour nous ?
+ * Lit `robots.txt` pour cette URL, journalise un Disallow, autorise toujours.
  *
  * Le chemin testé inclut la chaîne de requête : c'est sur elle que portent la
  * plupart des interdictions des centrales, dont celles qui ferment les
- * recherches datées.
+ * recherches datées. On les lit pour savoir ; on n'en fait pas un arrêt.
  *
  * `entetes` sert aux passerelles qui exigent des en-têtes de routage avant de
  * répondre quoi que ce soit, `/robots.txt` compris. Celle de Deskline rend 400
- * « Must provide value for header DW-Source » tant qu'on ne les envoie pas, et
- * son fichier passerait pour illisible — donc interdit — alors qu'il répond 404
- * dès qu'on le demande comme il faut. Un 400 pour en-tête manquant n'est pas un
- * refus : c'est la façon dont cet hôte-là parle. Les en-têtes ne sont jamais un
- * secret ni un jeton, sans quoi ce serait un contournement et pas une requête.
+ * « Must provide value for header DW-Source » tant qu'on ne les envoie pas.
+ * Les en-têtes ne sont jamais un secret ni un jeton.
  */
 export async function centraleAutorise(
   url: string,
@@ -77,5 +75,9 @@ export async function centraleAutorise(
     return { autorise: false, regle: "URL illisible" };
   }
   const texte = await lireRobots(u.origin, entetes);
-  return robotsAutorise(texte, u.pathname + u.search, AGENT_CENTRALES);
+  const lu = robotsAutorise(texte, u.pathname + u.search, AGENT_CENTRALES);
+  if (lu.autorise !== true) {
+    console.info(`[robots] ${url} ${lu.regle} — lu, ignoré, extraction continue`);
+  }
+  return { autorise: true, regle: lu.regle };
 }

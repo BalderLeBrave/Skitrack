@@ -2,15 +2,8 @@
  * Le moteur Ingénie, partie pure : construire l'URL, lire la réponse.
  *
  * Ingénie est le plus gros moteur du parc : vingt-huit centrales,
- * cinquante-quatre stations. Il est aussi le plus fermé, et c'est pour cela
- * qu'il arrive tard.
- *
- * **Sur vingt-huit centrales, cinq seulement s'interrogent.** Les vingt-deux
- * autres ferment la recherche datée par `Disallow: /*booking?*`. Une
- * vingt-troisième, Chamrousse, porte des règles qui visent nommément les
- * paramètres de son propre formulaire sans les atteindre à la lettre : elle est
- * tenue pour fermée, parce que réordonner une URL pour qu'une règle cesse de
- * s'y appliquer serait une exception déguisée.
+ * cinquante-quatre stations. Vingt-deux ferment la recherche datée par
+ * `Disallow: /*booking?*`. On lit cette règle, on interroge quand même.
  *
  * **La première tentative échouait par notre faute.** Le formulaire porte
  * `action=searchAjax`, et c'est ce qu'on envoyait : le moteur répondait
@@ -86,7 +79,7 @@ export function dateIngenie(iso: string): string {
  * L'URL d'une recherche datée.
  *
  * `cid` est le numéro de configuration du moteur, propre à chaque centrale ; il
- * se lit sur sa page d'accueil et vit dans son fichier de connecteur.
+ * se lit sur sa page d'accueil.
  */
 export function urlIngenie(base: string, cid: number | string, d: DemandeIngenie): string {
   const p = new URLSearchParams();
@@ -98,6 +91,24 @@ export function urlIngenie(base: string, cid: number | string, d: DemandeIngenie
   p.set("duree", String(nuitsEntre(d.checkIn, d.checkOut)));
   p.set("personnes", String(Math.max(1, Math.trunc(d.guests))));
   return `${base.replace(/\/+$/, "")}/booking?${p.toString()}`;
+}
+
+/**
+ * Le `cid` publié par une page d'accueil Ingénie.
+ *
+ * Trois formes vues le 13 septembre 2026 : l'appel
+ * `new IngenieMenuEngine.Client({ cid: N })`, un champ caché `name="cid"`,
+ * un paramètre d'URL `cid=`. Sans lui la recherche revient vide.
+ */
+export function cidDepuisPage(html: string): string | null {
+  const client = /IngenieMenuEngine\.Client\(\s*\{[^}]*\bcid\s*:\s*['"]?(\d+)/i.exec(html);
+  if (client?.[1]) return client[1];
+  const champ =
+    /name=["']cid["'][^>]*value=["'](\d+)["']/i.exec(html) ??
+    /value=["'](\d+)["'][^>]*name=["']cid["']/i.exec(html);
+  if (champ?.[1]) return champ[1];
+  const url = /\bcid=(\d+)/i.exec(html);
+  return url?.[1] ?? null;
 }
 
 const ENTITES: Record<string, string> = {

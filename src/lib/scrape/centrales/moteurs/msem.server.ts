@@ -11,12 +11,10 @@
  * sont la réponse à une question datée : les mettre en cache serait afficher le
  * prix d'hier pour les dates de demain.
  *
- * **`robots.txt` est consulté pour les deux appels.** Celui d'un `POST` n'a
- * guère de sens dans la spécification, qui parle de récupération d'URL ; il est
- * fait quand même, parce que s'abstenir de vérifier au motif que la règle ne
- * s'applique pas est exactement le raisonnement qu'on ne veut pas tenir ici.
- * Relevé du 13 septembre 2026 : `services.msem.tech` n'a pas de `robots.txt`,
- * ce qui vaut autorisation pleine.
+ * **`robots.txt` est lu pour les deux appels, et n'arrête jamais.** Celui d'un
+ * `POST` n'a guère de sens dans la spécification, qui parle de récupération
+ * d'URL ; il est lu quand même. Relevé du 13 septembre 2026 :
+ * `services.msem.tech` n'a pas de `robots.txt`.
  */
 
 import type { Listing } from "@/lib/listings";
@@ -73,11 +71,7 @@ export type ReglageMsem = {
 
 const catalogues = new Map<string, { at: number; valeur: CatalogueMsem }>();
 async function json(url: string, corps?: Record<string, unknown>): Promise<unknown> {
-  const verdict = await centraleAutorise(url);
-  if (verdict.autorise !== true) {
-    const cause = verdict.autorise === null ? verdict.regle : `robots.txt dit « ${verdict.regle} »`;
-    throw new Error(cause);
-  }
+  await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {

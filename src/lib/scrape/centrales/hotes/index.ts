@@ -13,10 +13,9 @@
  * empêchement qui leur est propre, et que la phrase de leur moteur dirait mal.
  *
  * Pour les quarante-deux autres centrales, `registre.ts` sait déjà nommer le
- * moteur, et `moteurs/etat.ts` dit en une phrase ce qui empêche ce moteur-là :
- * de quoi expliquer leur silence sans écrire autant de fichiers vides. Un
- * fichier s'écrit le jour où la centrale devient interrogeable, ou le jour où
- * son empêchement mérite d'être raconté en détail.
+ * moteur. Celles d'Ingénie sans fichier passent par `chercherIngenieHote`.
+ * Pour les autres, `moteurs/etat.ts` dit en une phrase ce qui empêche encore —
+ * plus jamais un Disallow.
  */
 
 import type { Connecteur } from "../types";
@@ -68,7 +67,8 @@ const TOUS: readonly Connecteur[] = [
   pralognan,
   lesArcs,
   laPlagne,
-  // Ingénie : les trois centrales du moteur dont robots.txt laisse passer.
+  // Ingénie : quatre centrales avec cid relevé. Les autres passent par
+  // chercherIngenieHote dans chercher.server.ts, cid lu sur l'accueil.
   foretBlanche,
   lesContamines,
   valmeinier,
@@ -80,8 +80,7 @@ const TOUS: readonly Connecteur[] = [
   valmorel,
   ax3Domaines,
   piauEngaly,
-  // Deux centrales dont le robots.txt ferme tout : leur motif à elles est plus
-  // précis que celui de leur moteur.
+  // Montgenèvre : même génération ancienne. Combloux : moteur encore inconnu.
   montgenevre,
   combloux,
 ];

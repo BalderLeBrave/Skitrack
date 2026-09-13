@@ -5,10 +5,8 @@
  * sur un fragment figé. Ici, on appelle, et on rend compte.
  *
  * **`robots.txt` d'abord, chemin par chemin.** Le fichier est lu une fois par
- * hôte et retenu une heure (`robots.server.ts`). Un chemin interdit n'est pas
- * appelé ; un `robots.txt` illisible ne vaut pas autorisation et fait renoncer.
- * Dans les deux cas la raison remonte en clair jusqu'à l'écran, qui l'écrit au
- * lieu d'afficher un vide.
+ * hôte et retenu une heure (`robots.server.ts`). Un Disallow est journalisé,
+ * l'appel part quand même. Un fichier illisible n'arrête pas non plus.
  *
  * **On se nomme.** L'agent envoyé est celui sur lequel porte la vérification
  * `robots.txt`. Vérifier les règles sous un nom et appeler sous un autre serait
@@ -53,11 +51,7 @@ type Page = { fiches: FicheOpenSystem[]; refus: string | null };
 
 async function unePage(base: string, chemin: string, ctx: ContexteCentrale): Promise<Page> {
   const url = urlOpenSystem(base, chemin, ctx);
-  const verdict = await centraleAutorise(url);
-  if (verdict.autorise !== true) {
-    const cause = verdict.autorise === null ? verdict.regle : `robots.txt dit « ${verdict.regle} »`;
-    return { fiches: [], refus: `${chemin} : ${cause}` };
-  }
+  await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {

@@ -16,6 +16,7 @@
 import type { Listing } from "@/lib/listings";
 import { connecteurPour } from "./hotes";
 import { etatDuMoteur } from "./moteurs/etat";
+import { chercherIngenieHote } from "./moteurs/ingenie.server";
 import { ficheCentrale } from "./registre";
 import type { ContexteCentrale, MoteurCentrale, ResultatCentrale } from "./types";
 import type { LiveSearchInput } from "../types";
@@ -37,12 +38,9 @@ function origine(url: string, host: string): string {
  * chacun, du sondage du 13 septembre 2026. C'est plus utile qu'un « non pris
  * en charge », qui laisse croire à un oubli.
  *
- * Ce qui n'est **pas** repris ici : le verdict `robots.txt` du relevé, qui
- * porte sur la page d'accueil de la centrale et non sur une recherche datée.
- * L'écrire donnait « autorisé » pour des moteurs dont la recherche est
- * nommément fermée, et donc l'impression qu'il suffirait d'écrire le
- * connecteur. La phrase du moteur dit la vraie permission, celle du chemin qui
- * porterait les prix.
+ * Ce qui n'est **pas** repris ici : le verdict `robots.txt` du relevé. On le
+ * lit à l'exécution et on n'en arrête aucune centrale. La phrase du moteur
+ * dit ce qui empêche encore, quand ce n'est pas un Disallow.
  */
 function sansConnecteur(moteur: MoteurCentrale): string {
   return etatDuMoteur(moteur);
@@ -75,6 +73,18 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
 
   const commun = { host: fiche.host, nom: fiche.nom, moteur: fiche.moteur };
   const connecteur = connecteurPour(fiche.host);
+  const ctx: ContexteCentrale = { ...input, base: origine(fiche.url, fiche.host) };
+
+  if (!connecteur?.chercher && fiche.moteur === "Ingénie") {
+    const listings: Listing[] = await chercherIngenieHote(ctx, fiche.nom, fiche.host);
+    return {
+      ...commun,
+      listings,
+      interrogee: true,
+      raison: listings.length === 0 ? phrase(fiche.nom, "rien de disponible à ces dates pour ce groupe.") : null,
+    };
+  }
+
   if (!connecteur) {
     return {
       ...commun,
@@ -92,7 +102,6 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
     };
   }
 
-  const ctx: ContexteCentrale = { ...input, base: origine(fiche.url, fiche.host) };
   const listings: Listing[] = await connecteur.chercher(ctx);
   return {
     ...commun,

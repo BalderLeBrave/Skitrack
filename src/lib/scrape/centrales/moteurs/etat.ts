@@ -8,10 +8,10 @@
  * quarante-huit cas différents : ce sont douze moteurs, et l'empêchement est le
  * même pour toutes celles qui partagent le leur.
  *
- * Ces phrases sortent du sondage du 13 septembre 2026, qui a relu le
- * `robots.txt` de chaque hôte et appelé, quand il était permis, ce qui pouvait
- * porter un prix. Elles disent un état, pas une fatalité : le jour où l'un de
- * ces moteurs s'ouvre, il gagne un module et ses centrales un fichier.
+ * Ces phrases sortent du sondage du 13 septembre 2026. Elles disent un état,
+ * pas une fatalité : le jour où l'un de ces moteurs s'ouvre, il gagne un
+ * module et ses centrales un fichier. `robots.txt` n'est plus une raison
+ * d'absence.
  *
  * Une centrale qui a son propre fichier n'en passe pas par ici : son motif à
  * elle est plus précis, et il gagne.
@@ -22,10 +22,9 @@ import type { MoteurCentrale } from "../types";
 /**
  * L'état d'un moteur, en une phrase lisible à l'écran.
  *
- * Chaque phrase tient trois choses : ce que `robots.txt` autorise, ce que le
- * moteur a répondu quand on l'a appelé, et pourquoi cela ne fait pas un prix.
- * L'ordre compte : la permission d'abord, parce que c'est elle qui décide si on
- * avait le droit d'essayer.
+ * Chaque phrase tient trois choses : ce que le moteur a répondu quand on l'a
+ * appelé, et pourquoi cela ne fait pas un prix quand on ne l'appelle pas.
+ * `robots.txt` n'entre plus dans cette phrase : il est lu, jamais bloquant.
  *
  * Elles commencent en minuscule et sans nommer la centrale : `chercher.server.ts`
  * les fait suivre « Centrale <nom> : », et une phrase qui se préfixerait
@@ -37,12 +36,12 @@ const ETAT: Record<MoteurCentrale, string> = {
   // `action=result` et `cid=`, forme lue dans le formulaire que
   // `www.valloire.com` rend côté serveur. Quatre d'entre elles ont leur fichier.
   Ingénie:
-    "sa recherche datée est fermée par robots.txt sur vingt-deux des vingt-huit centrales du moteur. Six l'autorisent : quatre sont interrogées et répondent, une reste fermée par choix parce que la règle de son site vise les paramètres du formulaire sans les apparier à la lettre, et la dernière n'a pas encore son fichier. Relevé du 13 septembre 2026.",
+    "ce moteur s'interroge. Les centrales sans fichier propre passent par le connecteur commun, identifiant lu sur la page d'accueil. Un Disallow sur la recherche datée est lu et n'arrête pas. Relevé du 13 septembre 2026.",
 
   // Deux centrales, trois stations. Les deux échouent pour des raisons
   // opposées, et la phrase doit porter les deux.
   Diffusio:
-    "ce moteur affiche ses prix sans qu'aucune date soit demandée, et n'expose aucun filtre de date, de durée ou de personnes : c'est une grille tarifaire, pas un total de séjour. Là où une recherche datée existe, robots.txt nomme un par un les paramètres du formulaire pour les interdire. Relevé du 13 septembre 2026.",
+    "ce moteur affiche ses prix sans qu'aucune date soit demandée, et n'expose aucun filtre de date, de durée ou de personnes : c'est une grille tarifaire, pas un total de séjour. Relevé du 13 septembre 2026.",
 
   // Une seule centrale dans le parc, La Clusaz, et elle est branchée. Cette
   // phrase ne devrait donc jamais paraître à l'écran.
@@ -65,10 +64,11 @@ const ETAT: Record<MoteurCentrale, string> = {
   Elloha:
     "aucune centrale du parc ne tourne sur ce moteur : la seule qui y avait été rangée au relevé du 13 septembre 2026 est en réalité sous MSEM, et la donnée est corrigée.",
 
-  // Trois centrales. La Plagne est branchée ; Praz-sur-Arly dit « Disallow: / »
-  // et le catalogue de Chamonix ne porte pas d'identifiant de logement.
+  // Trois centrales. La Plagne est branchée ; le catalogue de Chamonix ne
+  // porte pas d'identifiant de logement. Praz-sur-Arly n'a pas encore de
+  // fichier.
   Orchestra:
-    "la seule centrale de ce moteur qui s'interroge est branchée, celle de La Plagne. Celle-ci ne l'est pas : soit son robots.txt ferme tout, soit son catalogue n'expose pas les identifiants de logement qu'il faut pour lui demander un prix. Relevé du 13 septembre 2026.",
+    "la seule centrale de ce moteur qui s'interroge est branchée, celle de La Plagne. Celle-ci ne l'est pas : son catalogue n'expose pas les identifiants de logement qu'il faut pour lui demander un prix. Relevé du 13 septembre 2026.",
 
   // Une centrale, Pralognan-la-Vanoise, et elle est branchée.
   Arkiane:
@@ -80,7 +80,7 @@ const ETAT: Record<MoteurCentrale, string> = {
 
   // Une centrale, Les Karellis.
   Resalys:
-    "son robots.txt ferme la recherche datée. Relevé du 13 septembre 2026.",
+    "ce moteur n'a pas encore de connecteur. Relevé du 13 septembre 2026.",
 
   // Une centrale, les vallées de Gavarnie.
   Tourinsoft:

@@ -2,13 +2,13 @@
  * Le moteur Orchestra, partie réseau.
  *
  * **Deux caches, et sans eux ce connecteur ne serait pas tenable.** Le prix
- * s'obtient un logement à la fois, et la recherche groupée est fermée par
- * `robots.txt` : couvrir La Plagne entière demande onze pages de destination et
- * quatre-vingt-quinze calendriers. Mais aucun de ces appels ne dépend des
- * dates — la page de destination est un catalogue, et le calendrier d'un
- * logement porte d'un coup tous ses mois et toutes ses durées. Ils sont donc
- * retenus, et la deuxième recherche ne coûte plus rien, à n'importe quelles
- * dates.
+ * s'obtient un logement à la fois, et la recherche groupée porte un Disallow
+ * `/*serp?` : on le lit, on n'en fait pas un arrêt. Couvrir La Plagne entière
+ * demande onze pages de destination et quatre-vingt-quinze calendriers. Aucun
+ * de ces appels ne dépend des dates — la page de destination est un catalogue,
+ * et le calendrier d'un logement porte d'un coup tous ses mois et toutes ses
+ * durées. Ils sont donc retenus, et la deuxième recherche ne coûte plus rien,
+ * à n'importe quelles dates.
  *
  * Le catalogue tient six heures, le calendrier trois. Ce n'est pas la même
  * chose : une liste de logements bouge en semaines, une disponibilité en
@@ -65,10 +65,7 @@ export type ReglageOrchestra = {
 const catalogues = new Map<string, { at: number; valeur: CarteOrchestra[] }>();
 const calendriers = new Map<string, { at: number; valeur: unknown }>();
 async function json(url: string, texte = false): Promise<unknown> {
-  const verdict = await centraleAutorise(url);
-  if (verdict.autorise !== true) {
-    throw new Error(verdict.autorise === null ? verdict.regle : `robots.txt dit « ${verdict.regle} »`);
-  }
+  await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {

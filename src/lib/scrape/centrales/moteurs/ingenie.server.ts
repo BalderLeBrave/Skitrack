@@ -6,19 +6,17 @@
  * la requête nue rend exactement la même page que la requête précédée d'une
  * session, au millier d'octets près.
  *
- * **`robots.txt` décide, et il décide souvent non.** Vingt-deux des vingt-huit
- * centrales du moteur ferment ce chemin. Le connecteur d'une centrale fermée
- * n'existe pas : ce n'est pas ici qu'on s'en rend compte, c'est
- * `moteurs/etat.ts` qui le dit. La vérification faite ici est la ceinture : si
- * une centrale ouverte se ferme un jour, l'appel s'arrête tout seul et la
- * raison remonte à l'écran.
+ * `robots.txt` est lu avant l'appel et n'arrête jamais. Vingt-deux centrales
+ * ferment `/booking` par `Disallow: /*booking?*` : on le journalise, on
+ * interroge quand même. Les centrales sans fichier propre passent par
+ * `chercherIngenieHote`, qui lit le `cid` sur la page d'accueil.
  */
 
 import type { Listing } from "@/lib/listings";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
-import { lireIngenie, nuitsEntre, urlIngenie, type FicheIngenie } from "./ingenie";
+import { cidDepuisPage, lireIngenie, nuitsEntre, urlIngenie, type FicheIngenie } from "./ingenie";
 
 const UA = `${AGENT_CENTRALES}/1.0 (+https://skitrack.local/robots)`;
 const TIMEOUT_MS = 30_000;
@@ -65,23 +63,8 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
   };
 }
 
-/**
- * Interroge une centrale Ingénie.
- *
- * Lève quand `robots.txt` ferme le chemin ou quand l'appel échoue :
- * `run.server.ts` en fait un rapport de source en échec et l'écran dit
- * pourquoi. Une page sans fiche ne lève pas — c'est la réponse normale quand
- * rien n'est libre à ces dates.
- */
-export async function chercherIngenie(ctx: ContexteCentrale, r: ReglageIngenie): Promise<Listing[]> {
-  const base = ctx.base.replace(/\/+$/, "");
-  const url = urlIngenie(base, r.cid, ctx);
-  const verdict = await centraleAutorise(url);
-  if (verdict.autorise !== true) {
-    throw new Error(
-      verdict.autorise === null ? verdict.regle : `robots.txt dit « ${verdict.regle} »`,
-    );
-  }
+async function html(url: string): Promise<string> {
+  await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -94,10 +77,48 @@ export async function chercherIngenie(ctx: ContexteCentrale, r: ReglageIngenie):
       await rep.body?.cancel();
       throw new Error(`la centrale a répondu ${rep.status}`);
     }
-    const fiches = lireIngenie(await rep.text());
-    console.info(`[centrale] ${r.host} : ${fiches.length} fiches, ${ctx.checkIn}→${ctx.checkOut}`);
-    return fiches.map((f) => enListing(f, base, r, ctx));
+    return await rep.text();
   } finally {
     clearTimeout(minuteur);
   }
+}
+
+/**
+ * Interroge une centrale Ingénie.
+ *
+ * Lève quand l'appel échoue : `run.server.ts` en fait un rapport de source en
+ * échec et l'écran dit pourquoi. Une page sans fiche ne lève pas — c'est la
+ * réponse normale quand rien n'est libre à ces dates. `robots.txt` est lu, pas
+ * appliqué.
+ */
+export async function chercherIngenie(ctx: ContexteCentrale, r: ReglageIngenie): Promise<Listing[]> {
+  const base = ctx.base.replace(/\/+$/, "");
+  const url = urlIngenie(base, r.cid, ctx);
+  const fiches = lireIngenie(await html(url));
+  console.info(`[centrale] ${r.host} : ${fiches.length} fiches, ${ctx.checkIn}→${ctx.checkOut}`);
+  return fiches.map((f) => enListing(f, base, r, ctx));
+}
+
+function cleDepuisHote(host: string): string {
+  const brut = host.replace(/^www\./, "").split(".")[0] ?? "ing";
+  return brut.replace(/[^a-z0-9]/gi, "").slice(0, 8) || "ing";
+}
+
+/**
+ * Centrale Ingénie sans fichier propre : `cid` lu sur l'accueil, puis la
+ * recherche datée. C'est le passage des vingt-deux hôtes que `robots.txt`
+ * fermait et qu'on interroge quand même.
+ */
+export async function chercherIngenieHote(
+  ctx: ContexteCentrale,
+  nom: string,
+  host: string,
+): Promise<Listing[]> {
+  const base = ctx.base.replace(/\/+$/, "");
+  const accueil = await html(`${base}/`);
+  const cid = cidDepuisPage(accueil);
+  if (cid == null) {
+    throw new Error("la page d'accueil n'a pas publié l'identifiant du moteur");
+  }
+  return chercherIngenie(ctx, { host, nom, cle: cleDepuisHote(host), cid });
 }

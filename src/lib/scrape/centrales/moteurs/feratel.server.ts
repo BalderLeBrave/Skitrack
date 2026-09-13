@@ -5,9 +5,9 @@
  * résultats. La recherche n'existe pas sans dates — le service refuse de la
  * créer —, ce qui fait que ces prix sont datés par construction.
  *
- * **`robots.txt` est vérifié sur les deux appels.** Celui de la passerelle
- * répond 404, donc rien n'est interdit ; la vérification reste faite pour que
- * le jour où elle publie des règles, l'appel s'arrête tout seul.
+ * **`robots.txt` est lu sur les deux appels, et n'arrête jamais.** Celui de la
+ * passerelle répond 404. La lecture reste faite pour journaliser le jour où
+ * elle publie des règles.
  *
  * **Un `204 No Content` n'est pas une panne.** C'est la réponse quand rien
  * n'est libre à ces dates pour ce groupe, et elle se lit comme une liste vide.
@@ -70,12 +70,8 @@ async function json(
   corps?: Record<string, unknown>,
 ): Promise<{ statut: number; valeur: unknown }> {
   // La passerelle ne sert même pas son `robots.txt` sans ces en-têtes : sans
-  // eux elle rend 400, le fichier passerait pour illisible, et on s'abstiendrait
-  // d'un hôte qui n'interdit rien.
-  const verdict = await centraleAutorise(url, entetesPasserelle(session));
-  if (verdict.autorise !== true) {
-    throw new Error(verdict.autorise === null ? verdict.regle : `robots.txt dit « ${verdict.regle} »`);
-  }
+  // eux elle rend 400. On les envoie pour lire le fichier, pas pour s'arrêter.
+  await centraleAutorise(url, entetesPasserelle(session));
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {

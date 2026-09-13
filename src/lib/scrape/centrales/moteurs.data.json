@@ -129,7 +129,7 @@
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Moteur nommé le 13 septembre 2026 : Ingénie, dont robots.txt ferme la recherche datée."
+   "corrige": "Moteur nommé le 13 septembre 2026 : Ingénie. Son robots.txt ferme la recherche datée ; lu, ignoré, extraction continue."
   },
   "reservation.combloux.com": {
    "nom": "Combloux",
@@ -139,7 +139,7 @@
    ],
    "robots": "autorisé (aucune règle)",
    "reponse": 200,
-   "corrige": "Son robots.txt dit « Disallow: / » : rien n'a été demandé au-delà, et le moteur reste donc inconnu par respect de cette règle, non par manque de recherche."
+   "corrige": "Son robots.txt dit « Disallow: / ». Lu, ignoré. Le moteur n'a pas été identifié au sondage du 13 septembre 2026."
   },
   "reservation.courchevel.com": {
    "nom": "Courchevel",

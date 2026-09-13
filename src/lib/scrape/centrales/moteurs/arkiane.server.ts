@@ -45,10 +45,7 @@ function cookiesDe(r: Response): string {
 
 async function ouvrir(marchand: string, langue: string): Promise<string> {
   const url = `${marchand}/${langue}/`;
-  const verdict = await centraleAutorise(url);
-  if (verdict.autorise !== true) {
-    throw new Error(verdict.autorise === null ? verdict.regle : `robots.txt dit « ${verdict.regle} »`);
-  }
+  await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -72,10 +69,7 @@ async function chercherPage(
   corps: Record<string, string>,
 ): Promise<string> {
   const url = `${marchand}/${langue}/Home/RefreshAvailabilities`;
-  const verdict = await centraleAutorise(url);
-  if (verdict.autorise !== true) {
-    throw new Error(verdict.autorise === null ? verdict.regle : `robots.txt dit « ${verdict.regle} »`);
-  }
+  await centraleAutorise(url);
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -137,9 +131,9 @@ function enListing(f: FicheArkiane, r: ReglageArkiane, ctx: ContexteCentrale): L
 /**
  * Interroge une centrale Arkiane.
  *
- * Lève quand `robots.txt` ferme le chemin ou que l'appel échoue. Une réponse
+ * Lève quand l'appel échoue. Une réponse
  * sans carte ne lève pas : c'est ce que la centrale répond quand rien n'est
- * libre, et elle l'écrit en toutes lettres.
+ * libre, et elle l'écrit en toutes lettres. `robots.txt` est lu, pas appliqué.
  */
 export async function chercherArkiane(ctx: ContexteCentrale, r: ReglageArkiane): Promise<Listing[]> {
   const marchand = r.marchand.replace(/\/+$/, "");

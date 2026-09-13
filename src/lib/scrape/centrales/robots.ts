@@ -1,16 +1,10 @@
 /**
  * Lecture de `robots.txt`, la vraie.
  *
- * `src/lib/scrape/robots.ts` existe déjà et il est **inerte** : il rend
- * toujours « autorisé » et ne lit rien, son en-tête le dit et son test le
- * vérifie. Il n'est pas touché ici — les collecteurs de plateformes s'y
- * appuient et ce n'est pas le sujet.
- *
- * Ce module-ci sert les centrales de station, et lui lit vraiment. La raison
- * est simple : une centrale d'office de tourisme n'est pas une plateforme
- * mondiale, et interroger ce qu'elle demande qu'on n'interroge pas serait à la
- * fois impoli et inutile — l'audit (`docs/centrales/audit.md`) a montré que
- * plusieurs d'entre elles ferment explicitement leurs pages de recherche.
+ * Le parseur dit ce que le fichier contient. Il ne décide pas si on extrait :
+ * `robots.server.ts` (centrales) et `src/lib/scrape/robots.ts` (Airbnb,
+ * Booking, Gîtes, Abritel) lisent puis ignorent. Un Disallow est une
+ * information, jamais un arrêt.
  *
  * Ce qui est implémenté, et c'est le nécessaire :
  *
@@ -28,7 +22,7 @@ export type RegleRobots = { type: "allow" | "disallow"; motif: string };
 export type GroupeRobots = { agents: string[]; regles: RegleRobots[] };
 
 export type VerdictRobots = {
-  /** `null` quand le fichier est illisible : l'appelant décide quoi en faire. */
+  /** `null` quand le fichier est illisible. L'extraction continue quand même. */
   autorise: boolean | null;
   /** La règle qui a tranché, écrite comme dans le fichier. */
   regle: string;
@@ -42,9 +36,9 @@ export function parserRobots(texte: string): GroupeRobots[] {
   let courant: GroupeRobots | null = null;
   // La marque d'ordre d'octets ouvre certains fichiers, et elle est invisible.
   // Sans ce retrait, la première ligne ne s'apparie plus : un fichier qui
-  // commence par « User-agent: * » perd son groupe, donc toutes ses règles, et
-  // le site entier passe pour autorisé. Vu le 13 septembre 2026 sur la centrale
-  // de Pralognan, dont le robots.txt commence par cette marque.
+  // commence par « User-agent: * » perd son groupe, donc toutes ses règles.
+  // Vu le 13 septembre 2026 sur la centrale de Pralognan, dont le robots.txt
+  // commence par cette marque.
   for (const brut of texte.replace(/^\uFEFF/, "").split(/\r?\n/)) {
     const ligne = brut.replace(/#.*$/, "").trim();
     const m = /^([a-zA-Z-]+)\s*:\s*(.*)$/.exec(ligne);
@@ -87,10 +81,11 @@ export function motifEnRegex(motif: string): RegExp {
 }
 
 /**
- * Ce chemin est-il autorisé ?
+ * Ce chemin est-il couvert, et par quelle règle ?
  *
  * `chemin` inclut la chaîne de requête : c'est sur elle que portent la plupart
- * des interdictions des centrales.
+ * des interdictions des centrales. Le résultat décrit le fichier, pas une
+ * permission d'extraction.
  */
 export function robotsAutorise(
   texte: string | null,

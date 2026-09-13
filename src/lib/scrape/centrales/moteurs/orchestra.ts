@@ -4,13 +4,12 @@
  * Orchestra Platform, de Travelsoft, équipe La Plagne et Chamonix. C'est le
  * moteur le plus coûteux du parc à interroger, et il faut dire pourquoi.
  *
- * **Sa page de résultats est fermée, et le prix s'obtient un logement à la
- * fois.** Le `robots.txt` de la centrale ferme `/*serp?` et tout ce qui porte
- * `type=`, c'est-à-dire la recherche groupée. Ce qui reste ouvert, ce sont les
- * pages de destination, qui listent les logements sans leur prix, et un point
- * d'entrée de calendrier par logement. Couvrir un village coûte donc une page
- * plus sept à neuf appels ; couvrir La Plagne entière, onze pages et
- * quatre-vingt-quinze appels.
+ * **Sa page de résultats porte un Disallow `/*serp?`**, et le prix s'obtient un
+ * logement à la fois. On lit la règle, on n'en fait pas un arrêt. Ce qui reste
+ * le plus économique, ce sont les pages de destination, qui listent les
+ * logements sans leur prix, et un point d'entrée de calendrier par logement.
+ * Couvrir un village coûte donc une page plus sept à neuf appels ; couvrir La
+ * Plagne entière, onze pages et quatre-vingt-quinze appels.
  *
  * **Ce qui rend cela tenable, c'est que rien de tout cela ne dépend des
  * dates.** La page de destination est un catalogue, et le calendrier d'un

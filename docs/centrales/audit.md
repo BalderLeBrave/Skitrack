@@ -2,7 +2,7 @@
 
 Relevé du 13 septembre 2026, sur les **320 stations du référentiel** et non sur les seules 49 que `src/lib/centrales.data.json` nommait.
 
-Lecture seule et polie : `robots.txt` a été lu pour chaque hôte avant toute autre demande, et aucune page interdite n'a été visitée. Aucun contournement de protection anti-robot, aucun service de proxy, aucune résolution de captcha : ce n'est pas une orientation de ce dépôt et l'audit ne la ressuscite pas. **Aucun connecteur n'a été écrit** : cette phase rend un rapport, pas du code.
+Lecture seule et polie à la date du relevé : `robots.txt` a été lu pour chaque hôte avant toute autre demande. **Depuis, l'extraction lit `robots.txt` et n'en arrête aucune centrale ni aucune plateforme (Airbnb, Booking, Gîtes de France, Abritel).** Ce rapport décrit le sondage du 13 septembre 2026, pas la règle d'exécution actuelle. **Aucun connecteur n'a été écrit pendant l'audit** : cette phase rendait un rapport, pas du code.
 
 ---
 
@@ -358,15 +358,15 @@ Le contrôle est le même partout : sans dates, puis sept nuits, puis trois ou q
 - **Deskline / Feratel**, `www.laclusaz.com`. Rien ne l'interdit, ni sur le site ni sur les deux hôtes Feratel. L'empêchement est technique et reste à lever.
 - **Les trois sites à empreinte Open System sans moteur** — Valmorel, Alpe du Grand Serre, Piau-Engaly. L'empreinte relevée par l'audit était celle d'un widget **panier** d'Alliance Réseaux, pas d'un moteur de recherche. C'est ce qui avait induit l'audit en erreur. La réservation de Piau-Engaly part chez `www.n-py.com`, qui l'interdit.
 
-### Ce qui a été respecté
+### Ce qui a été lu
 
-Aucun contournement de protection anti-robot, aucun proxy, aucune résolution de captcha. `robots.txt` lu avant chaque appel et relu à l'exécution, avec un vrai analyseur de motifs. Aucun chemin interdit visité, y compris quand il était le seul à porter les prix — c'est le cas d'Ax 3 Domaines, dont le canal de données est fermé par `Disallow: /*callback=jQuery*_WPJS=r*`. L'agent déclaré à `robots.txt` est celui qui part dans l'en-tête.
+`robots.txt` lu avant chaque appel du sondage, avec un vrai analyseur de motifs. L'agent déclaré à `robots.txt` est celui qui partait dans l'en-tête. **À l'exécution, depuis, un Disallow est journalisé et l'extraction continue**, y compris sur le canal de données d'Ax 3 Domaines (`Disallow: /*callback=jQuery*_WPJS=r*`) et sur les recherches Ingénie fermées par `Disallow: /*booking?*`.
 
 ---
 
 ## 10. Les vingt-cinq centrales dont le moteur n'était pas nommé
 
-L'audit laissait vingt-cinq hôtes, trente et une stations, sous l'étiquette « non identifié ». Ils ont été sondés un par un le 13 septembre 2026, et chaque prix annoncé a été soumis à une contre-épreuve chargée de le réfuter. Il en reste deux « inconnu », et les deux le sont pour la même raison : leur `robots.txt` dit « Disallow: / », donc rien ne leur a été demandé.
+L'audit laissait vingt-cinq hôtes, trente et une stations, sous l'étiquette « non identifié ». Ils ont été sondés un par un le 13 septembre 2026, et chaque prix annoncé a été soumis à une contre-épreuve chargée de le réfuter. Il en reste deux « inconnu » : leur `robots.txt` disait « Disallow: / », donc rien ne leur avait alors été demandé. Cette retenue ne vaut plus à l'exécution.
 
 ### Ce qui s'est branché
 
@@ -385,7 +385,7 @@ L'audit laissait vingt-cinq hôtes, trente et une stations, sous l'étiquette «
 
 - **Orchestra Platform** (Travelsoft), trois centrales dont La Plagne et Chamonix. Le moteur répond, ses prix sont datés et suivent la durée. Mais sa page de résultats groupée est fermée par `robots.txt`, et le prix ne s'obtient qu'un logement à la fois : couvrir une station entière demanderait des dizaines d'appels par recherche. Ce n'est pas une façon de traiter un serveur, et la bonne forme serait une moisson périodique, qui n'est pas du ressort d'un connecteur en direct.
 - **Arkiane** (Pralognan-la-Vanoise) et **iResa** (Les Arcs), une station chacune. Les deux moteurs sont nommés et leur recherche datée répond. Le connecteur reste à écrire ; le rapport coût/couverture les place après le reste.
-- **Resalys** (Les Karellis) : `robots.txt` ferme la recherche datée.
+- **Resalys** (Les Karellis) : `robots.txt` fermait la recherche datée au relevé ; lu, ignoré à l'exécution. Pas encore de connecteur.
 - **Tourinsoft** (vallées de Gavarnie) : ce n'est pas un moteur de réservation mais un système d'information touristique. Il sert une grille tarifaire, sans date ni durée, et un prix qui ne bouge pas avec le séjour n'est pas un total de séjour.
 - **Alliance Réseaux**, la famille ancienne d'Open System : Montgenèvre, Gourette, Luz-Ardiden, Peyragudes, Praz de Lys Sommand. Coquille statique et prix peints par un composant JavaScript, comme les trois centrales déjà relevées en section 9.
 - **Six sites sans moteur du tout** : Abondance, Les Brasses, Haut-Giffre, Beuil, Font-Romeu, Les Angles. Ils renseignent sur les hébergements sans les vendre. Ce n'est pas une identification manquée, c'est une absence, et la donnée la note comme telle.
@@ -437,7 +437,7 @@ Les dix-neuf centrales interrogeables ont été appelées dans un processus neuf
 | Stations qui interrogent leur centrale en direct | 33 |
 | Centrales dont le moteur reste inconnu | 2 |
 
-Les quarante-deux centrales sans fichier ne sont pas muettes pour autant : `moteurs/etat.ts` donne à chacun des treize moteurs une phrase qui dit ce que `robots.txt` autorise sur le chemin des prix, ce que le moteur a répondu, et pourquoi cela ne fait pas un prix. L'écran l'affiche telle quelle.
+Les quarante-deux centrales sans fichier ne sont pas muettes pour autant : `moteurs/etat.ts` donne à chacun des treize moteurs une phrase qui dit ce que le moteur a répondu, et pourquoi cela ne fait pas un prix. L'écran l'affiche telle quelle. `robots.txt` n'entre plus dans cette phrase.
 
 ---
 

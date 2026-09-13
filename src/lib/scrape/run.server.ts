@@ -6,7 +6,7 @@ import { stationById } from "@/lib/stations";
 import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
 import { scrapeAirbnb } from "./airbnb.server";
-import { scrapeBookingPython } from "./booking.server";
+import { scrapeBookingPlaywright, scrapeBookingPython } from "./booking.server";
 import { fillBookingGps } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
 import { collectCozyPayloads, cozyListings } from "./cozy.server";
@@ -104,6 +104,7 @@ async function fillCozy(page: Page, input: LiveSearchInput, reports: SourceRepor
   pushReport(reports, listings, "Abritel", abritel, collectMs);
   let booking = fromCozy;
   if (booking.length === 0) booking = await scrapeBookingPython(input);
+  if (booking.length === 0) booking = await scrapeBookingPlaywright(page, input);
   if (booking.some((l) => l.lat == null || l.lon == null)) {
     await fillBookingGps(page, booking);
   }

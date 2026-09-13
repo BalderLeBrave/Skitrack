@@ -31,17 +31,26 @@ def _headers() -> dict[str, str]:
     }
 
 
-def fetch_page(url: str, proxy_url: str = "") -> tuple[int, str]:
+def fetch_page(url: str, proxy_url: str = "", impersonate: str = "chrome124") -> tuple[int, str]:
     from curl_cffi import requests
 
     proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
-    res = requests.get(
-        url,
-        headers=_headers(),
-        proxies=proxies,
-        timeout=DEFAULT_TIMEOUT,
-        impersonate="chrome124",
-    )
+
+    def once(target: str):
+        return requests.get(
+            url,
+            headers=_headers(),
+            proxies=proxies,
+            timeout=DEFAULT_TIMEOUT,
+            impersonate=target,
+        )
+
+    try:
+        res = once(impersonate)
+    except Exception:
+        if impersonate == "chrome124":
+            raise
+        res = once("chrome124")
     return res.status_code, res.text or ""
 
 
@@ -103,8 +112,13 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             last_status = status
             pages += 1
             if status in (202, 403, 429) or (status == 200 and len(page_html) < 8_000):
-                blocked = True
-                break
+                retry_status, retry_html = fetch_page(page_url, proxy_url, "chrome131")
+                last_status = retry_status
+                if retry_status == 200 and len(retry_html) >= 8_000:
+                    status, page_html = retry_status, retry_html
+                else:
+                    blocked = True
+                    break
             batch = listings_from_html(
                 page_html,
                 check_in=str(check_in) if check_in else None,

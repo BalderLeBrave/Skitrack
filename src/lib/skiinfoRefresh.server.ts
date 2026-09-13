@@ -1,4 +1,4 @@
-/** Relevé Skiinfo. robots.txt n’est pas consulté. France only. */
+/** Relevé Skiinfo. robots.txt lu, jamais bloquant. France only. */
 
 import { writeFile } from "node:fs/promises";
 import { allowsPath } from "@/lib/scrape/robots";

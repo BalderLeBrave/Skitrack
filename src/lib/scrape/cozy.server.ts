@@ -199,7 +199,7 @@ export async function collectCozyPayloads(page: Page, input: LiveSearchInput): P
     const base: Omit<CozyFilters, "providerCodes"> = {
       noBounds: true,
       price: [-0.5, 9007199254740991],
-      instantBooking: true,
+      instantBooking: false,
       combinedTypeCodes: [],
       starRatings: [],
       minRating: 0,

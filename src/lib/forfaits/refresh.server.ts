@@ -1,4 +1,4 @@
-/** Connecteur forfaits. Distinct des logements. robots.txt n’est pas consulté. */
+/** Connecteur forfaits. Distinct des logements. robots.txt lu, jamais bloquant. */
 
 import { allowsPath } from "@/lib/scrape/robots";
 import { domainBySlug, estimateForfait, FORFAIT_CATALOG } from "./catalog";

@@ -26,7 +26,7 @@ def get(proxy_url: str, timeout: Timeout = DEFAULT_TIMEOUT) -> str:
     if proxy_url:
         proxies = {"http": proxy_url, "https": proxy_url}
 
-    response = requests.get(ep, headers=headers, proxies=proxies, timeout=timeout)
+    response = requests.get(ep, headers=headers, proxies=proxies, impersonate="chrome124", timeout=timeout)
     response.raise_for_status()
 
     body = response.text
@@ -45,6 +45,7 @@ def get(proxy_url: str, timeout: Timeout = DEFAULT_TIMEOUT) -> str:
                 data={"version": "1", "payload": payload_value},
                 headers=headers,
                 proxies=proxies,
+                impersonate="chrome124",
                 timeout=60,
             )
             response.raise_for_status()

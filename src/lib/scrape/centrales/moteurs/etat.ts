@@ -32,12 +32,12 @@ import type { MoteurCentrale } from "../types";
  * elle-même donnerait « Centrale Les 2 Alpes : Centrale Les 2 Alpes… ».
  */
 const ETAT: Record<MoteurCentrale, string> = {
-  // Le plus gros moteur du parc : vingt-huit centrales, cinquante-quatre
+  // Le plus gros moteur du parc : vingt-huit centrales, cinquante et une
   // stations. Sa recherche de liste datée est un `GET /booking` portant
-  // `action=searchAjax` et `cid=`, forme lue dans le formulaire que
-  // `www.valloire.com` rend côté serveur. Trois d'entre elles ont leur fichier.
+  // `action=result` et `cid=`, forme lue dans le formulaire que
+  // `www.valloire.com` rend côté serveur. Quatre d'entre elles ont leur fichier.
   Ingénie:
-    "sa recherche datée est fermée par robots.txt sur vingt-deux des vingt-huit centrales du moteur, dont celle-ci. Les cinq qui l'autorisent sont interrogées, et elles répondent. Relevé du 13 septembre 2026.",
+    "sa recherche datée est fermée par robots.txt sur vingt-deux des vingt-huit centrales du moteur. Six l'autorisent : quatre sont interrogées et répondent, une reste fermée par choix parce que la règle de son site vise les paramètres du formulaire sans les apparier à la lettre, et la dernière n'a pas encore son fichier. Relevé du 13 septembre 2026.",
 
   // Deux centrales, trois stations. Les deux échouent pour des raisons
   // opposées, et la phrase doit porter les deux.
@@ -49,13 +49,14 @@ const ETAT: Record<MoteurCentrale, string> = {
   "Deskline / Feratel":
     "ce moteur est interrogeable, et la seule centrale du parc qui l'emploie est branchée. Celle-ci n'a pas encore son fichier : il lui manque sa clé d'organisation, que son site publie.",
 
-  // Sept centrales, seize stations, dont quatre déjà branchées par le fichier
-  // de Haute Maurienne Vanoise. Celles qui restent sont d'une autre génération.
+  // Treize centrales, vingt-deux stations. Une seule s'interroge, celle de
+  // Haute Maurienne Vanoise, et son fichier couvre quatre stations. Les autres
+  // sont d'une autre génération.
   "Open System":
     "ces centrales tournent sur la génération ancienne du moteur, qui sert une coquille statique et laisse un composant JavaScript peupler la page : avec dates, sans dates, ou sur une autre durée, la réponse est identique à l'octet près et ne porte aucun prix. Relevé du 13 septembre 2026.",
 
-  // Six centrales, toutes branchées. Cette phrase ne devrait jamais paraître à
-  // l'écran ; elle existe pour que le jour où une septième apparaît au relevé
+  // Dix centrales, toutes branchées. Cette phrase ne devrait jamais paraître à
+  // l'écran ; elle existe pour que le jour où une onzième apparaît au relevé
   // sans fichier, elle dise quelque chose de juste.
   MSEM:
     "ce moteur est interrogeable, mais cette centrale-ci n'a pas encore son fichier : il lui manque son identifiant de station et son canal de vente, que son site publie.",

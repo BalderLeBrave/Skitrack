@@ -1,5 +1,15 @@
 # Reprise des centrales de réservation
 
+> **Note du 13 septembre 2026.** Ce document date du cinquième lot de reprise et
+> reste le récit de ce lot. Deux de ses affirmations ont cessé d'être vraies
+> depuis. La décision « qui reste vraiment suspendue » à la fin du texte a été
+> prise : les centrales sont interrogées pour de bon, sept moteurs sont branchés
+> et vingt-sept centrales rendent des prix datés. Voir `docs/centrales/audit.md`.
+> Et le branchement décrit plus bas vise `CentraleCard`, un composant que la
+> refonte v7 a retiré ; l'appel passe aujourd'hui par `runCentrales` dans
+> `src/lib/scrape/run.server.ts`, sur l'écran des logements.
+
+
 Cinquième lot. Je l'avais annoncé comme suspendu à votre décision sur les API :
 il ne l'était qu'à moitié. La décision porte sur la façon de relever les prix.
 Le rattachement station vers centrale officielle, lui, reste vrai dans tous les

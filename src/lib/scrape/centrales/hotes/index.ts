@@ -9,7 +9,7 @@
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
  * soixante-neuf ; vingt-sept en ont un ici. Dix-neuf d'entre eux s'interrogent
- * vraiment et couvrent trente stations ; les huit autres racontent un
+ * vraiment et couvrent trente-trois stations ; les huit autres racontent un
  * empêchement qui leur est propre, et que la phrase de leur moteur dirait mal.
  *
  * Pour les quarante-deux autres centrales, `registre.ts` sait déjà nommer le

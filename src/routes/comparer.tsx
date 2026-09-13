@@ -262,18 +262,37 @@ function Comparer() {
     ? `Voir ${visible.length} station${visible.length > 1 ? "s" : ""}`
     : "Aucune station : assouplir";
 
+  /**
+   * **La carte porte toutes les stations retenues par les filtres, pas les
+   * quarante de la liste.**
+   *
+   * La liste est bornée parce qu'une colonne de vignettes ne se parcourt pas
+   * au-delà ; une carte, si. Les épingles suivaient pourtant la même tranche,
+   * si bien que trois cent vingt stations sans filtre n'en montraient que
+   * quarante, toutes alpines puisque le tri par défaut est le kilométrage. La
+   * carte disait donc que le reste de la France n'existait pas.
+   *
+   * Les quarante de la liste gardent leur nom en étiquette : ce sont celles que
+   * la colonne à côté nomme, et l'une éclaire l'autre au survol. Les autres se
+   * posent en pastille seule, sans étiquette, faute de quoi trois cents noms se
+   * recouvriraient. Leur nom n'est pas perdu : la fenêtre qui s'ouvre au survol
+   * ou au clic le porte, comme pour les autres.
+   */
   const marqueurs = useMemo(
-    () =>
-      list.map((s) => ({
+    () => {
+      const nommees = new Set(list.map((s) => s.id));
+      return dansCadre.map((s) => ({
         id: s.id,
         lat: s.lat,
         lon: s.lon,
-        html: htmlStation(s.name, P.cmp.includes(s.id)),
-        zIndex: P.cmp.includes(s.id) ? 100 : 0,
-      })),
-    // La liste change de contenu quand ses identifiants ou la comparaison changent.
+        html: htmlStation(s.name, P.cmp.includes(s.id), !nommees.has(s.id)),
+        zIndex: P.cmp.includes(s.id) ? 100 : nommees.has(s.id) ? 10 : 0,
+      }));
+    },
+    // Le contenu change quand les identifiants, la tranche nommée ou la
+    // comparaison changent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [list.map((s) => s.id).join(","), P.cmp.join(",")],
+    [dansCadre.map((s) => s.id).join(","), list.map((s) => s.id).join(","), P.cmp.join(",")],
   );
 
   return (
@@ -613,8 +632,9 @@ function Comparer() {
                 </div>
                 {dansCadre.length > LISTE_MAX ? (
                   <p className="v7deux__plus">
-                    {dansCadre.length - LISTE_MAX} autres stations : affinez un filtre, resserrez la
-                    carte, ou cherchez un nom.
+                    {dansCadre.length - LISTE_MAX} autres stations sont sur la carte, en pastille
+                    sans nom. Pour les faire entrer dans cette liste, affinez un filtre, resserrez
+                    la carte, ou cherchez un nom.
                   </p>
                 ) : null}
               </>
@@ -653,7 +673,7 @@ function Comparer() {
           <div className="v7deux__carte">
             <CarteEpingles
               marqueurs={marqueurs}
-              cadrage={list.map((s) => s.id).join(",")}
+              cadrage={dansCadre.map((s) => s.id).join(",")}
               suivi={suivi}
               surSuivi={setSuivi}
               surBornes={setBornes}

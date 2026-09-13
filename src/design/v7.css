@@ -1205,6 +1205,18 @@
 .epingle-station--sombre .epingle-station__disque {
   background: var(--color-ink);
 }
+/* La station qui n'est pas dans la tranche nommée par la liste : la pastille
+   seule, plus petite et un peu en retrait, pour que trois cents d'entre elles
+   tiennent sur la carte sans couvrir celles que la liste nomme. */
+.epingle-station--compacte .epingle-station__disque {
+  width: 20px;
+  height: 20px;
+  background: color-mix(in srgb, var(--color-marque) 78%, var(--color-surface));
+}
+.epingle-station--compacte .epingle-station__disque svg {
+  width: 11px;
+  height: 11px;
+}
 .epingle-station__nom {
   padding: 2px 8px;
   border-radius: 999px;

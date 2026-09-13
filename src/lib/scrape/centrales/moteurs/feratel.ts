@@ -29,9 +29,9 @@
  * durée à l'autre** — c'est la vérification qui distingue un total de séjour
  * d'un tarif d'appel, et elle passe sur trente-six logements sur trente-six.
  *
- * **Ce qui manque.** La capacité. Le type de la réponse ne l'expose pas :
- * `maxPersons` est refusé, et l'occupation ne voyage que dans la question, pas
- * dans la réponse. `guests` reste donc vide.
+ * **Ce qui manque en champ structuré.** `maxPersons` est refusé par le type de
+ * la réponse, et l'occupation ne voyage que dans la question. La capacité n'est
+ * donc lue que si le nom du logement ou du service la portent en clair.
  */
 
 /** Ce que la projection demande au service. Un champ inconnu rend un 400. */

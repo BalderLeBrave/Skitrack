@@ -7,6 +7,7 @@ import type { Listing } from "@/lib/listings";
 import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
+import { annoncer, occupancyFromRecord } from "@/lib/stay/occupancy";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -54,25 +55,22 @@ function priceLabelOf(node: unknown): string | undefined {
 }
 
 function occupancy(record: Record<string, unknown>): { guests: number | null; bedrooms: number | null } {
-  let guests: number | null = null;
-  let bedrooms: number | null = null;
-  const take = (n: unknown) => (typeof n === "number" && n > 0 && n <= 50 ? n : null);
-  const walk = (value: unknown, depth: number) => {
-    if (depth > 6 || value == null || typeof value !== "object") return;
+  const title = typeof record.title === "string" ? record.title : "";
+  const sub = typeof record.subtitle === "string" ? record.subtitle : "";
+  const lines: string[] = [];
+  const walk = (value: unknown, depth: number): void => {
+    if (depth > 6 || value == null) return;
     if (Array.isArray(value)) {
       for (const x of value) walk(x, depth + 1);
       return;
     }
-    const r = value as Record<string, unknown>;
-    guests = guests ?? take(r.personCapacity) ?? take(r.guestCapacity);
-    bedrooms = bedrooms ?? take(r.bedroomCount) ?? take(r.bedrooms);
-    const line = typeof r.subtitle === "string" ? r.subtitle : "";
-    const bm = /(\d+)\s*chambres?/i.exec(line);
-    if (!bedrooms && bm) bedrooms = Number(bm[1]);
-    for (const k of Object.keys(r)) walk(r[k], depth + 1);
+    if (typeof value !== "object") return;
+    const rec = value as Record<string, unknown>;
+    if (typeof rec.body === "string" && rec.body.trim()) lines.push(rec.body.trim());
+    for (const v of Object.values(rec)) walk(v, depth + 1);
   };
-  walk(record, 0);
-  return { guests, bedrooms };
+  walk(record.structuredContent, 0);
+  return annoncer(occupancyFromRecord(record), title, sub, ...lines);
 }
 
 function numericId(encoded: string): string {
@@ -206,9 +204,10 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
     if (!id || !name || total == null || seen.has(id)) continue;
     if (isDropped(name) || isDropped(typeof row.subtitle === "string" ? row.subtitle : "")) continue;
     const guests = typeof row.guests === "number" && row.guests > 0 ? row.guests : null;
-    const bedrooms = typeof row.bedrooms === "number" && row.bedrooms > 0 ? row.bedrooms : null;
-    if (guests != null && guests < input.guests) continue;
-    if (input.bedrooms > 0 && bedrooms != null && bedrooms < input.bedrooms) continue;
+    const bedrooms = typeof row.bedrooms === "number" && row.bedrooms >= 0 ? row.bedrooms : null;
+    const occ = annoncer({ guests, bedrooms }, name, typeof row.subtitle === "string" ? row.subtitle : "");
+    if (occ.guests != null && occ.guests < input.guests) continue;
+    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
     seen.add(id);
     out.push({
       id: `abnb-${id}`,
@@ -217,8 +216,8 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
       source: "Airbnb",
       total,
       currency: "EUR",
-      guests,
-      bedrooms,
+      guests: occ.guests,
+      bedrooms: occ.bedrooms,
       available: true,
       photo: typeof row.image === "string" ? row.image : null,
       url:

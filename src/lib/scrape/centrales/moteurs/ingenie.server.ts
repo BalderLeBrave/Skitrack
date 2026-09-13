@@ -13,6 +13,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { occupancyFromText } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -38,6 +39,7 @@ export type ReglageIngenie = {
 
 function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: ContexteCentrale): Listing {
   const nuits = nuitsEntre(ctx.checkIn, ctx.checkOut);
+  const occ = occupancyFromText(f.titre);
   return {
     id: `ing-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -45,11 +47,8 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    // Ni capacité ni chambres : la centrale ne les donne nulle part sous une
-    // forme sûre. Les titres l'annoncent souvent, mais pas toujours de la même
-    // chose — « 2 appartements de 6 personnes face à face » vaut douze places.
-    guests: null,
-    bedrooms: null,
+    guests: occ.guests,
+    bedrooms: occ.bedrooms,
     available: true,
     photo: f.photo,
     url: f.chemin ? new URL(f.chemin, `${base}/`).toString() : base,

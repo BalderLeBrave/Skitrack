@@ -18,6 +18,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { annoncer, bedroomsFromRooms } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -112,6 +113,10 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
   // pour un caractère.
   const chemin = r.ficheChemin ?? "/hebergements/{slug}/";
   const base = (r.siteBase ?? ctx.base).replace(/\/+$/, "");
+  const occ = annoncer(
+    { guests: f.capacite, bedrooms: bedroomsFromRooms(f.pieces) },
+    f.titre,
+  );
   return {
     id: `msem-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -119,11 +124,8 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: f.capacite,
-    // `nbRooms` compte les pièces, pas les chambres : un deux-pièces a une
-    // chambre. Le recopier ici surestimerait chaque logement, et le filtre
-    // « chambres ≥ N » laisserait passer ce qu'il doit écarter.
-    bedrooms: null,
+    guests: occ.guests,
+    bedrooms: occ.bedrooms,
     available: true,
     photo: f.photo,
     url: f.slug && chemin ? `${base}${chemin.replace("{slug}", f.slug)}` : base,

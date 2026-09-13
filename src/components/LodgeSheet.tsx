@@ -119,7 +119,11 @@ export function LodgeSheet({
                 <strong>Capacité</strong> :{" "}
                 {listing.guests != null ? `${listing.guests} pers.` : "non annoncée"}
                 {" · "}
-                {listing.bedrooms != null ? `${listing.bedrooms} ch.` : "chambres non annoncées"}
+                {listing.bedrooms == null
+                  ? "chambres non annoncées"
+                  : listing.bedrooms === 0
+                    ? "studio"
+                    : `${listing.bedrooms} ch.`}
               </li>
               <li>
                 <strong>Lieu</strong> : {sectorOf(listing) ?? "non publié"}

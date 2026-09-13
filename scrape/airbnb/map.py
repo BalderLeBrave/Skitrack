@@ -24,7 +24,13 @@ GUESTS_RE = re.compile(
     r"(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
     re.I,
 )
-BEDROOMS_RE = re.compile(r"(\d+)\s*(?:chambres?|bedrooms?|ch\b)", re.I)
+BEDROOMS_RE = re.compile(r"(\d+)\s*(?:chambres?|bedrooms?)\b", re.I)
+PIECES_RE = re.compile(r"(\d+)\s*pi[eè]ces?\b", re.I)
+STUDIO_RE = re.compile(r"\bstudio\b", re.I)
+MULTI_RE = re.compile(
+    r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s*(?:personnes?|pers)",
+    re.I,
+)
 
 
 def _fold(text: str) -> str:
@@ -111,26 +117,38 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
     if not blob:
         return None, None
     guests = bedrooms = None
-    pers = GUESTS_RE.search(blob)
-    if pers:
-        a = int(pers.group(1))
-        b = int(pers.group(2)) if pers.group(2) else a
-        n = max(a, b)
-        if 0 < n <= 50:
-            guests = n
+    if not MULTI_RE.search(blob):
+        pers = GUESTS_RE.search(blob)
+        if pers:
+            a = int(pers.group(1))
+            b = int(pers.group(2)) if pers.group(2) else a
+            n = max(a, b)
+            if 0 < n <= 50:
+                guests = n
     ch = BEDROOMS_RE.search(blob)
     if ch:
         n = int(ch.group(1))
-        if 0 < n <= 50:
+        if 0 <= n <= 50:
             bedrooms = n
+    if bedrooms is None:
+        pi = PIECES_RE.search(blob)
+        if pi:
+            n = int(pi.group(1))
+            if 0 < n <= 50:
+                bedrooms = n - 1
+    if bedrooms is None and STUDIO_RE.search(blob):
+        bedrooms = 0
     return guests, bedrooms
 
 
 def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None]:
     guests = bedrooms = None
 
-    def take(n: Any) -> int | None:
+    def take_guests(n: Any) -> int | None:
         return n if isinstance(n, int) and 0 < n <= 50 else None
+
+    def take_beds(n: Any) -> int | None:
+        return n if isinstance(n, int) and 0 <= n <= 50 else None
 
     def walk(value: Any, depth: int) -> None:
         nonlocal guests, bedrooms
@@ -142,15 +160,22 @@ def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None]
             return
         for key, val in value.items():
             k = key.lower()
-            if guests is None and k in ("personcapacity", "guestcapacity", "maxguestcapacity"):
-                guests = take(val)
+            if guests is None and k in (
+                "personcapacity",
+                "guestcapacity",
+                "maxguestcapacity",
+                "maxpersons",
+                "numberofguests",
+            ):
+                guests = take_guests(val)
             if bedrooms is None and k in (
                 "bedroomcount",
                 "bedrooms",
+                "bedroom",
                 "numberofbedrooms",
                 "bedroomscount",
             ):
-                bedrooms = take(val)
+                bedrooms = take_beds(val)
             walk(val, depth + 1)
 
     walk(record, 0)

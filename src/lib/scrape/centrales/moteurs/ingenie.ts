@@ -27,18 +27,16 @@
  * doublent aussi. Sans dates, la page ne porte aucune fiche. Ce n'est donc pas
  * un tarif d'affichage, c'est le total d'un séjour réservable à ces dates-là.
  *
- * **Aucune coordonnée, et aucune capacité.** La page de résultats ne porte ni
- * `data-lat`, ni `latitude`, ni bloc de géolocalisation : ces annonces ne
- * paraissent donc pas sur la carte, et l'écran les compte comme « sans
- * localisation ». C'est exact, et mieux qu'un point posé au hasard.
+ * **Aucune coordonnée.** La page de résultats ne porte ni `data-lat`, ni
+ * `latitude`, ni bloc de géolocalisation : ces annonces ne paraissent donc pas
+ * sur la carte, et l'écran les compte comme « sans localisation ». C'est exact,
+ * et mieux qu'un point posé au hasard.
  *
- * La capacité a été lue dans le titre, puis retirée. Beaucoup de titres
- * l'annoncent — « Demi chalet de gauche 8 personnes » — mais pas tous de la
- * même chose. « 2 appartements de 6 personnes face à face » vaut douze places,
- * et la centrale le rend bien pour une recherche à huit : en lire « 6 », c'est
- * faire écarter par le filtre un logement que la centrale vient de proposer.
- * Un nombre juste neuf fois sur dix est un nombre faux. `guests` reste vide, et
- * l'écran dit « capacité non annoncée », ce qui est la vérité.
+ * **La capacité, quand le titre la dit clairement.** « Demi chalet de gauche
+ * 8 personnes » est une annonce. « 2 appartements de 6 personnes face à face »
+ * n'en est pas une : six ou douze, choisir c'est inventer, et le filtre
+ * écarterait un logement que la centrale vient de proposer. Dans ce cas
+ * `guests` reste vide, et l'écran dit « capacité non annoncée ».
  */
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */

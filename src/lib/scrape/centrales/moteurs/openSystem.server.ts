@@ -25,6 +25,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { occupancyFromText } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -91,6 +92,7 @@ async function toutesLesPages(base: string, ctx: ContexteCentrale, rubriques: re
 }
 
 function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: ContexteCentrale): Listing {
+  const occ = occupancyFromText(f.titre, f.adresse);
   return {
     // L'identifiant porte l'identité sans rubrique, pas le chemin : le même
     // logement trouvé sous « tous nos hébergements » et sous « hôtels » doit
@@ -101,12 +103,8 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    // La fiche de résultat n'annonce ni capacité ni nombre de chambres. La
-    // recherche a bien porté sur `nbpers`, donc le logement accueille le
-    // groupe ; mais combien il en accueille au plus, la centrale ne le dit pas
-    // ici, et l'inventer serait pire que de laisser vide.
-    guests: null,
-    bedrooms: null,
+    guests: occ.guests,
+    bedrooms: occ.bedrooms,
     available: true,
     photo: f.photo,
     url: `${base.replace(/\/+$/, "")}${f.chemin}?DateRecherche=${encodeURIComponent(`${ctx.checkIn}|${ctx.checkOut}`)}`,

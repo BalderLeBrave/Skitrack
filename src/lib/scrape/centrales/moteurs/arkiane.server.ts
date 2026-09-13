@@ -12,6 +12,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { annoncer } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -100,6 +101,7 @@ async function chercherPage(
 }
 
 function enListing(f: FicheArkiane, r: ReglageArkiane, ctx: ContexteCentrale): Listing {
+  const occ = annoncer({ guests: f.capacite, bedrooms: null }, f.titre);
   const remise =
     f.avantRemise && f.avantRemise > f.total
       ? ` — remisé depuis ${f.avantRemise.toLocaleString("fr-FR")} €`
@@ -111,8 +113,8 @@ function enListing(f: FicheArkiane, r: ReglageArkiane, ctx: ContexteCentrale): L
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: f.capacite,
-    bedrooms: null,
+    guests: occ.guests,
+    bedrooms: occ.bedrooms,
     available: true,
     photo: f.photo,
     // Le détail d'un lot est lui aussi un `POST` : il n'existe pas d'adresse de

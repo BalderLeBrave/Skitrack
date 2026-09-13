@@ -3,6 +3,7 @@ import type { Listing } from "@/lib/listings";
 import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
+import { annoncer, occupancyFromText } from "@/lib/stay/occupancy";
 
 const KEY = "FNGF-00M562O4";
 
@@ -61,8 +62,7 @@ function isoToFr(iso: string): string {
 type Tile = {
   title: string;
   url: string;
-  guests: number | null;
-  bedrooms: number | null;
+  texte: string;
   photo: string | null;
 };
 
@@ -97,10 +97,8 @@ async function extractTiles(page: Page): Promise<Tile[]> {
       if (/groupe/i.test(typeLabel)) return;
       const cap =
         node.querySelector(".g2f-accommodationTile-text-capacity")?.textContent?.replace(/\s+/g, " ") ||
-        node.textContent ||
         "";
-      const gm = /(\d+)\s*(?:personnes?|voyageurs?)/i.exec(cap);
-      const bm = /(\d+)\s*chambres?/i.exec(cap);
+      const blob = [title, typeLabel, cap, node.textContent ?? ""].join(" ");
       const img = node.querySelector("img") as HTMLImageElement | null;
       const rawPhoto =
         img?.getAttribute("data-src") ||
@@ -117,8 +115,7 @@ async function extractTiles(page: Page): Promise<Tile[]> {
       out.push({
         title,
         url: href.split("?")[0],
-        guests: gm ? Number(gm[1]) : null,
-        bedrooms: bm ? Number(bm[1]) : null,
+        texte: blob.replace(/\s+/g, " ").trim(),
         photo: photo && /^https?:/.test(photo) ? photo : null,
       });
     });
@@ -126,7 +123,23 @@ async function extractTiles(page: Page): Promise<Tile[]> {
   });
 }
 
-async function quoteStay(code: string, checkIn: string, checkOut: string, guests: number): Promise<number | null> {
+function occupancyFromGitesHtml(html: string): { guests: number | null; bedrooms: number | null } {
+  const g =
+    html.match(/"numberOfGuests"\s*:\s*"?(\d+)/i)?.[1] ??
+    html.match(/"occupancy"\s*:\s*\{[^}]{0,280}"maxValue"\s*:\s*"?(\d+)/i)?.[1];
+  const b = html.match(/"numberOfBedrooms"\s*:\s*"?(\d+)/i)?.[1];
+  return annoncer({
+    guests: g ? Number(g) : null,
+    bedrooms: b ? Number(b) : null,
+  });
+}
+
+async function quoteStay(
+  code: string,
+  checkIn: string,
+  checkOut: string,
+  guests: number,
+): Promise<{ total: number; occupancy: { guests: number | null; bedrooms: number | null } } | null> {
   const html = await fetch(widgetUrl(code), {
     headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
   }).then((r) => r.text());
@@ -169,7 +182,8 @@ async function quoteStay(code: string, checkIn: string, checkOut: string, guests
   const m = tab.match(/sp_montantPrixTotal[^>]*data-prix="([\d.]+)"/i);
   if (!m) return null;
   const n = Number(m[1]);
-  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return { total: Math.round(n * 100) / 100, occupancy: occupancyFromGitesHtml(html) };
 }
 
 export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<Listing[]> {
@@ -181,8 +195,9 @@ export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<L
     .catch(() => null);
   const tiles = await extractTiles(page);
   const fit = tiles.filter((t) => {
-    if (t.guests != null && t.guests < input.guests) return false;
-    if (input.bedrooms > 0 && t.bedrooms != null && t.bedrooms < input.bedrooms) return false;
+    const occ = occupancyFromText(t.texte);
+    if (occ.guests != null && occ.guests < input.guests) return false;
+    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) return false;
     return Boolean(codeFromUrl(t.url));
   });
   const need = fit.slice(0, 16);
@@ -198,17 +213,18 @@ export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<L
         const code = codeFromUrl(tile.url);
         if (!code) continue;
         try {
-          const total = await quoteStay(code, input.checkIn, input.checkOut, input.guests);
-          if (total == null) continue;
+          const devis = await quoteStay(code, input.checkIn, input.checkOut, input.guests);
+          if (devis == null) continue;
+          const occ = annoncer(devis.occupancy, tile.texte);
           out.push({
             id: code,
             stationId: input.stationId,
             title: tile.title,
             source: "Gîtes de France",
-            total,
+            total: devis.total,
             currency: "EUR",
-            guests: tile.guests,
-            bedrooms: tile.bedrooms,
+            guests: occ.guests,
+            bedrooms: occ.bedrooms,
             available: true,
             photo: tile.photo,
             url: `${tile.url}?adults=${input.guests}&date-start=${input.checkIn}&date-end=${input.checkOut}`,

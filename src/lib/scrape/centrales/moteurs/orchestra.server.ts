@@ -23,6 +23,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { annoncer } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -134,6 +135,7 @@ function enListing(
   ctx: ContexteCentrale,
 ): Listing {
   const nuits = nuitsOrchestra(ctx.checkIn, ctx.checkOut);
+  const occ = annoncer({ guests: o.capacite, bedrooms: null }, c.titre, o.categorie);
   return {
     id: `orc-${r.cle}-${c.id}`,
     stationId: ctx.stationId,
@@ -141,8 +143,8 @@ function enListing(
     source: "Centrale",
     total: o.total,
     currency: "EUR",
-    guests: o.capacite,
-    bedrooms: null,
+    guests: occ.guests,
+    bedrooms: occ.bedrooms,
     available: true,
     photo: c.photo,
     url: c.chemin ? new URL(c.chemin, `${base}/`).toString() : base,

@@ -131,7 +131,9 @@ export function capLbl(l: Listing): string {
 }
 
 export function bedLbl(l: Listing): string {
-  return l.bedrooms != null ? `${l.bedrooms} ch.` : "chambres non annoncées";
+  if (l.bedrooms == null) return "chambres non annoncées";
+  if (l.bedrooms === 0) return "studio";
+  return `${l.bedrooms} ch.`;
 }
 
 /** Fond du cadre photo vide, par source : la maquette teinte à peine. */

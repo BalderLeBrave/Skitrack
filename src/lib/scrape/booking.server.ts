@@ -7,6 +7,7 @@ import type { Listing } from "@/lib/listings";
 import { SCRAPE_UA, sleep } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
+import { annoncer, occupancyFromRecord } from "@/lib/stay/occupancy";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -67,9 +68,10 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
     const total = typeof row.totalPrice === "number" ? Math.round(row.totalPrice) : null;
     if (!id || !title || total == null || seen.has(id)) continue;
     const guests = typeof row.guests === "number" && row.guests > 0 ? row.guests : null;
-    const bedrooms = typeof row.bedrooms === "number" && row.bedrooms > 0 ? row.bedrooms : null;
-    if (guests != null && guests < input.guests) continue;
-    if (input.bedrooms > 0 && bedrooms != null && bedrooms < input.bedrooms) continue;
+    const bedrooms = typeof row.bedrooms === "number" && row.bedrooms >= 0 ? row.bedrooms : null;
+    const occ = annoncer({ guests, bedrooms }, title);
+    if (occ.guests != null && occ.guests < input.guests) continue;
+    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
     seen.add(id);
     const images = Array.isArray(row.images) ? row.images : [];
     const lat = typeof row.latitude === "number" ? row.latitude : null;
@@ -81,8 +83,8 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
       source: "Booking",
       total,
       currency: "EUR",
-      guests,
-      bedrooms,
+      guests: occ.guests,
+      bedrooms: occ.bedrooms,
       available: true,
       photo: typeof images[0] === "string" ? images[0] : null,
       url: typeof row.url === "string" ? row.url : null,
@@ -328,6 +330,7 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
         lat: el.getAttribute("data-latitude") ?? el.getAttribute("data-lat") ?? "",
         lon: el.getAttribute("data-longitude") ?? el.getAttribute("data-lng") ?? "",
         atlas: el.getAttribute("data-atlas-latlng") ?? el.getAttribute("data-coords") ?? "",
+        texte: el.innerText ?? "",
       };
     });
   });
@@ -349,6 +352,9 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
       lat = Number(a);
       lon = Number(b);
     }
+    const occu = annoncer({ guests: null, bedrooms: null }, row.title, row.texte);
+    if (occu.guests != null && occu.guests < input.guests) continue;
+    if (input.bedrooms > 0 && occu.bedrooms != null && occu.bedrooms < input.bedrooms) continue;
     out.push({
       id: `bk-${id}`,
       stationId: input.stationId,
@@ -356,8 +362,8 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
       source: "Booking",
       total,
       currency: "EUR",
-      guests: null,
-      bedrooms: null,
+      guests: occu.guests,
+      bedrooms: occu.bedrooms,
       available: true,
       photo: row.photo || null,
       url: row.href || null,
@@ -412,15 +418,9 @@ function parseCozyBooking(json: unknown, input: LiveSearchInput): Listing[] {
     const deeplink = typeof h.deeplinkUrl === "string" ? h.deeplinkUrl : "";
     if (!deeplink.includes("booking.com")) continue;
     const details = (e.subTitleDetails ?? {}) as Record<string, unknown>;
-    const guests = typeof details.guestCapacity === "number" && details.guestCapacity > 0 ? details.guestCapacity : null;
-    const bedrooms =
-      typeof details.bedRoomCount === "number" && details.bedRoomCount > 0
-        ? details.bedRoomCount
-        : typeof h.bedRoomCount === "number" && h.bedRoomCount > 0
-          ? h.bedRoomCount
-          : null;
-    if (guests != null && guests < input.guests) continue;
-    if (input.bedrooms > 0 && bedrooms != null && bedrooms < input.bedrooms) continue;
+    const occ = annoncer(occupancyFromRecord({ ...e, subTitleDetails: details, ...h }), name);
+    if (occ.guests != null && occ.guests < input.guests) continue;
+    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
     const coords = (e.coordinates ?? {}) as Record<string, unknown>;
     const lat = typeof coords.latitude === "number" ? coords.latitude : null;
     const lon = typeof coords.longitude === "number" ? coords.longitude : null;
@@ -436,8 +436,8 @@ function parseCozyBooking(json: unknown, input: LiveSearchInput): Listing[] {
       source: "Booking",
       total,
       currency: "EUR",
-      guests,
-      bedrooms,
+      guests: occ.guests,
+      bedrooms: occ.bedrooms,
       available: true,
       photo: typeof first[0] === "string" ? first[0] : null,
       url: deeplink,

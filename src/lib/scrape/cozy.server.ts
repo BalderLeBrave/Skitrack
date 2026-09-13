@@ -3,6 +3,7 @@ import type { Listing } from "@/lib/listings";
 import { sleep } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
+import { annoncer, occupancyFromRecord } from "@/lib/stay/occupancy";
 
 function datedPlace(name: string): string {
   const n = name
@@ -274,16 +275,13 @@ export function cozyListings(
       if (!deeplink) continue;
       if (kind === "booking" && !deeplink.includes("booking.com")) continue;
       const details = (e.subTitleDetails ?? {}) as Record<string, unknown>;
-      const guests =
-        typeof details.guestCapacity === "number" && details.guestCapacity > 0 ? details.guestCapacity : null;
-      const bedrooms =
-        typeof details.bedRoomCount === "number" && details.bedRoomCount > 0
-          ? details.bedRoomCount
-          : typeof h.bedRoomCount === "number" && h.bedRoomCount > 0
-            ? h.bedRoomCount
-            : null;
-      if (guests != null && guests < input.guests) continue;
-      if (input.bedrooms > 0 && bedrooms != null && bedrooms < input.bedrooms) continue;
+      const occ = annoncer(
+        occupancyFromRecord({ ...e, subTitleDetails: details, ...h }),
+        name,
+        typeof e.subTitle === "string" ? e.subTitle : "",
+      );
+      if (occ.guests != null && occ.guests < input.guests) continue;
+      if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
       const coords = (e.coordinates ?? {}) as Record<string, unknown>;
       const lat = coord(coords.latitude) ?? coord(coords.lat);
       const lon = coord(coords.longitude) ?? coord(coords.lon) ?? coord(coords.lng);
@@ -300,8 +298,8 @@ export function cozyListings(
         source,
         total,
         currency: "EUR",
-        guests,
-        bedrooms,
+        guests: occ.guests,
+        bedrooms: occ.bedrooms,
         available: true,
         photo: httpUrl(first[0]) ?? httpUrl(e.photo),
         url: kind === "abritel" ? canonicalAbritel(deeplink, input) : canonicalBooking(deeplink, input),

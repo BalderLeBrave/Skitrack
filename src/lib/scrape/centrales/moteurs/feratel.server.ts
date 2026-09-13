@@ -15,6 +15,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { occupancyFromText } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -103,6 +104,7 @@ async function json(
 
 function enListing(f: FicheFeratel, r: ReglageFeratel, ctx: ContexteCentrale): Listing {
   const base = ctx.base.replace(/\/+$/, "");
+  const occ = occupancyFromText(f.titre, f.service);
   return {
     id: `dw-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -110,11 +112,8 @@ function enListing(f: FicheFeratel, r: ReglageFeratel, ctx: ContexteCentrale): L
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    // Le type de la réponse n'expose pas la capacité : l'occupation voyage
-    // dans la question, pas dans la réponse. `maxPersons` est refusé par le
-    // service, et l'inventer serait pire que de laisser vide.
-    guests: null,
-    bedrooms: null,
+    guests: occ.guests,
+    bedrooms: occ.bedrooms,
     available: true,
     photo: f.photo,
     // Le service ne donne pas d'adresse par hébergement. Le lien mène donc à la

@@ -28,8 +28,8 @@
  * **Deux limites, qui ne se cachent pas.** La centrale rend cinquante fiches au
  * plus par page, et sa pagination ne répond pas en requête simple : les quatre
  * premiers index rendent tous la même page. Le relevé est donc un plancher, pas
- * un inventaire. Et aucune fiche n'annonce sa capacité ni son nombre de
- * chambres : `guests` et `bedrooms` restent vides, ce que l'écran sait dire.
+ * un inventaire. La capacité n'est lue que si le titre ou l'adresse la portent
+ * en clair ; sinon `guests` et `bedrooms` restent vides, ce que l'écran sait dire.
  */
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */

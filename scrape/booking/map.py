@@ -107,19 +107,38 @@ def stay_total_from_label(label: str | None) -> float | None:
 
 def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
     blob = " · ".join(t for t in texts if t and str(t).strip())
+    if not blob:
+        return None, None
     guests = bedrooms = None
-    pers = re.search(
-        r"(\d+)\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b", blob, re.I
-    )
-    if pers:
-        n = int(pers.group(1))
-        if 0 < n <= 50:
-            guests = n
+    if not re.search(
+        r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s*(?:personnes?|pers)",
+        blob,
+        re.I,
+    ):
+        pers = re.search(
+            r"(\d+)\s*(?:[-–/]\s*(\d+))?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
+            blob,
+            re.I,
+        )
+        if pers:
+            a = int(pers.group(1))
+            b = int(pers.group(2)) if pers.group(2) else a
+            n = max(a, b)
+            if 0 < n <= 50:
+                guests = n
     chb = re.search(r"(\d+)\s*(?:chambres?|bedrooms?)\b", blob, re.I)
     if chb:
         n = int(chb.group(1))
-        if 0 < n <= 30:
+        if 0 <= n <= 50:
             bedrooms = n
+    if bedrooms is None:
+        pi = re.search(r"(\d+)\s*pi[eè]ces?\b", blob, re.I)
+        if pi:
+            n = int(pi.group(1))
+            if 0 < n <= 50:
+                bedrooms = n - 1
+    if bedrooms is None and re.search(r"\bstudio\b", blob, re.I):
+        bedrooms = 0
     return guests, bedrooms
 
 
@@ -193,7 +212,7 @@ def harvest_places(node: Any, out: dict[str, dict[str, Any]]) -> None:
         if isinstance(max_p, int) and 0 < max_p <= 50:
             slot["guests"] = max_p
         br = node.get("numberOfBedrooms") or node.get("bedroomCount") or node.get("bedrooms")
-        if isinstance(br, int) and 0 < br <= 30:
+        if isinstance(br, int) and 0 <= br <= 50:
             slot["bedrooms"] = br
         for key in ("accommodationTypeName", "propertyType", "accType"):
             t = node.get(key)
@@ -361,10 +380,11 @@ def listings_from_html(
         if total is None:
             continue
         guests, bedrooms = occupancy_from_text(name, units)
-        if guests is None:
-            guests = extra.get("guests")
-        if bedrooms is None:
-            bedrooms = extra.get("bedrooms")
+        extra_g, extra_b = extra.get("guests"), extra.get("bedrooms")
+        if isinstance(extra_g, int):
+            guests = extra_g
+        if isinstance(extra_b, int):
+            bedrooms = extra_b
         if min_guests and isinstance(guests, int) and guests > 0 and guests < min_guests:
             continue
         if min_bedrooms and isinstance(bedrooms, int) and bedrooms > 0 and bedrooms < min_bedrooms:

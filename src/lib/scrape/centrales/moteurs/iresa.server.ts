@@ -14,6 +14,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { annoncer } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -99,6 +100,7 @@ async function soumettre(url: string, cookies: string, corps: Record<string, str
 
 function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listing {
   const base = r.reservation.replace(/\/+$/, "");
+  const occ = annoncer({ guests: f.capacite, bedrooms: null }, f.titre);
   const remise =
     f.avantRemise && f.avantRemise > f.total
       ? ` — remisé depuis ${Math.round(f.avantRemise).toLocaleString("fr-FR")} €`
@@ -110,8 +112,8 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     source: "Centrale",
     total: f.total,
     currency: "EUR",
-    guests: f.capacite,
-    bedrooms: null,
+    guests: occ.guests,
+    bedrooms: occ.bedrooms,
     available: true,
     photo: f.photo ? new URL(f.photo, `${base}/`).toString() : null,
     // Le gabarit porte l'adresse de la fiche ; à défaut, la page de recherche.

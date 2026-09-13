@@ -1,92 +1,59 @@
-/** Accueil – `#s-home` (maquette l. 219–258, `renderHome` l. 712–727).
- *  Ordre du DOM : contrat § 3.1. Données : `STATIONS` du dépôt. */
+/** Accueil – maquette v7 (`SKITRACK v7 - App.dc.html`, bloc ACCUEIL).
+ *
+ *  Une couverture, une barre de recherche en cinq segments dont chacun ouvre
+ *  son panneau (destination, altitude, arrivée, départ, voyageurs), quatre
+ *  raccourcis, puis « Les plus grands domaines » et « Par massif ».
+ *  Données : `STATIONS` du dépôt et le catalogue de forfaits. */
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
-import { Flocons } from "@/components/Flocons";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { PhotoCredit } from "@/components/PhotoCredit";
-import { StayDatesField } from "@/components/StayDatesField";
+import { Calendrier, usePlage } from "@/components/v7/Calendrier";
+import { CarteStation } from "@/components/v7/CarteStation";
+import { Compteur } from "@/components/v7/Compteur";
 import {
+  arrivalLbl,
+  datesLbl,
+  departLbl,
+  dm,
   fmt,
-  stationPhoto,
-  stationPhotoAbsence,
-  STAY_BOUNDS,
-  stepStay,
+  guestsLbl,
   useParcours,
   useSejour,
+  type ChipKey,
 } from "@/lib/parcours";
 import { STATIONS, type Station } from "@/lib/stations";
+import { maxM } from "@/lib/v7";
 
 export const Route = createFileRoute("/")({ component: Home });
 
-/** Paliers du seuil de sommet. Zéro = pas de seuil. */
-const ALT_STEPS = [0, 1800, 2000, 2200, 2500, 3000, 3500] as const;
+type Panneau = null | "q" | "alt" | "dates" | "guests";
 
-const PRESETS: { key: "big" | "high" | "village" | "family"; label: string }[] = [
-  { key: "big", label: "Grands domaines · 300 km et plus" },
-  { key: "high", label: "Haute altitude · sommet 3 000 m" },
-  { key: "village", label: "Villages-stations" },
-  { key: "family", label: "Plus de 40 % de pistes faciles" },
+/** Les trois repères d'altitude du panneau « Altitude, au minimum ». */
+const ALT_RANGES: { k: "v" | "lo" | "hi"; label: string; max: number; court: string }[] = [
+  { k: "v", label: "Altitude du village", max: 2400, court: "village" },
+  { k: "lo", label: "Bas des pistes", max: 2200, court: "bas" },
+  { k: "hi", label: "Sommet", max: 3500, court: "sommet" },
 ];
 
-/** l. 713 : `<n> stations · <m> massifs · <d> domaines`.
- *
- *  « domaines » est qualifié : ce compte est celui des domaines **skiables**
- *  distincts du classeur. L'écran Forfaits en annonce 173, qui sont des
- *  domaines **de forfait** — deux découpages différents du même massif, et rien
- *  ne le disait. */
-function homeCount(all: Station[]): string {
-  const massifs = new Set(all.map((s) => s.massif)).size;
-  const domaines = new Set(all.map((s) => s.domain).filter(Boolean)).size;
-  return `${all.length} stations · ${massifs} massifs · ${domaines} domaines skiables`;
-}
+const ALT_PRESETS: { label: string; p: Partial<Record<"v" | "lo" | "hi", number>> }[] = [
+  { label: "Village 1 800 m", p: { v: 1800 } },
+  { label: "Sommet 3 000 m", p: { hi: 3000 } },
+  { label: "Bas des pistes 1 500 m", p: { lo: 1500 } },
+];
 
-/** Compteur compact de la barre de recherche.
- *
- *  Les bornes viennent de `STAY_BOUNDS`, donc de `PARTY_LIMITS` : un seul
- *  endroit les tient. Un bouton arrivé à la borne se désactive visiblement,
- *  plutôt que de rester actif et muet. */
-function SbarStepper({
-  k,
-  value,
-  label,
-  display,
-}: {
-  k: "trav" | "rooms";
-  value: number;
-  label: string;
-  display?: string;
-}) {
-  const b = STAY_BOUNDS[k];
-  return (
-    <span className="sbar__step">
-      <button
-        type="button"
-        aria-label={`${label}, un de moins`}
-        disabled={value <= b.min}
-        onClick={() => stepStay(k, -1)}
-      >
-        <Icon name="moins" />
-      </button>
-      <b className="rel">{display ?? value}</b>
-      <button
-        type="button"
-        aria-label={`${label}, un de plus`}
-        disabled={value >= b.max}
-        onClick={() => stepStay(k, 1)}
-      >
-        <Icon name="plus" />
-      </button>
-    </span>
-  );
-}
+const SHORTCUTS: { k: ChipKey; label: string }[] = [
+  { k: "big", label: "Grands domaines · 300 km et plus" },
+  { k: "high", label: "Haute altitude · sommet 3 000 m" },
+  { k: "glacier", label: "Glacier" },
+  { k: "family", label: "Plus de 60 % de pistes faciles" },
+];
 
-/** l. 714 : une station par domaine relié, par km de pistes décroissants, six. */
-function topDomains(all: Station[]): Station[] {
+/** Une station par domaine relié, par km de pistes décroissants, six. */
+function popular(all: Station[]): Station[] {
   const seen = new Set<string>();
   return [...all]
     .sort((a, b) => (b.pistesKm ?? 0) - (a.pistesKm ?? 0))
@@ -94,303 +61,325 @@ function topDomains(all: Station[]): Station[] {
     .slice(0, 6);
 }
 
-/** l. 717 : massifs par nombre de stations décroissant, sommet maximal. */
 function massifCards(all: Station[]): { m: string; n: number; hi: number }[] {
   const ms = new Map<string, Station[]>();
   for (const s of all) ms.set(s.massif, [...(ms.get(s.massif) ?? []), s]);
   return [...ms.entries()]
-    .sort((a, b) => b[1].length - a[1].length)
-    .map(([m, arr]) => ({ m, n: arr.length, hi: Math.max(...arr.map((s) => s.maxM ?? 0)) }));
+    .sort((a, b) => a[0].localeCompare(b[0], "fr"))
+    .map(([m, arr]) => ({ m, n: arr.length, hi: Math.max(...arr.map((s) => maxM(s) ?? 0)) }));
 }
 
 function Home() {
   const go = useGo();
-  const { trav, rooms } = useSejour();
-  const setQ = useParcours((s) => s.setQ);
-  const setMassif = useParcours((s) => s.setMassif);
-  const setFilters = useParcours((s) => s.setFilters);
-  const setColFilter = useParcours((s) => s.setColFilter);
-  const setUnit = useParcours((s) => s.setUnit);
-  const resetFilters = useParcours((s) => s.resetFilters);
+  const P = useParcours();
+  const F = P.filters;
+  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const plage = usePlage();
 
   const all = STATIONS;
-  const count = useMemo(() => homeCount(all), [all]);
-  const top = useMemo(() => topDomains(all), [all]);
+  const top = useMemo(() => popular(all), [all]);
   const massifs = useMemo(() => massifCards(all), [all]);
 
-  const [hq, setHq] = useState("");
-  const [altMin, setAltMin] = useState(0);
-  // l. 720–722 : 7 stations au plus, plus les massifs dont le nom contient la saisie.
-  const v = hq.trim().toLowerCase();
-  const hits = v ? all.filter((s) => s.name.toLowerCase().includes(v)).slice(0, 7) : [];
-  const mh = v ? massifs.filter((x) => x.m.toLowerCase().includes(v)) : [];
-  const suggOpen = mh.length + hits.length > 0;
+  const [q, setQ] = useState("");
+  const [hp, setHp] = useState<Panneau>(null);
 
-  // l. 723 : la saisie devient `q` de l'écran Comparer.
+  const ouvrir = (p: Panneau) => {
+    if (p === "dates") plage.ouvrirArrivee();
+    setHp(p);
+  };
+  const ouvrirDepart = () => {
+    plage.ouvrirDepart();
+    setHp("dates");
+  };
+  const fermer = () => {
+    setHp(null);
+    plage.reset();
+  };
+
+  const ql = q.trim().toLowerCase();
+  const sugg =
+    ql && hp === "q"
+      ? [
+          ...massifs
+            .filter((x) => x.m.toLowerCase().includes(ql))
+            .map((x) => ({
+              key: "m:" + x.m,
+              label: x.m,
+              kind: "massif",
+              pick: () => {
+                P.setMassif(x.m);
+                P.setQ("");
+                void go("compare");
+              },
+            })),
+          ...all
+            .filter((s) => s.name.toLowerCase().includes(ql))
+            .slice(0, 6)
+            .map((s) => ({
+              key: "s:" + s.id,
+              label: s.name,
+              kind: s.domain ?? s.massif,
+              pick: () => {
+                setQ("");
+                void go("fiche", { id: s.id });
+              },
+            })),
+        ]
+      : [];
+
+  // La saisie devient `q` de l'écran Comparer ; le massif est levé.
   const search = () => {
-    const val = hq.trim();
-    setQ(val);
-    // Le seuil de sommet devient le filtre `hi` de l'écran Comparer. À zéro, il
-    // est levé : un filtre laissé au repos ne doit rien écarter.
-    setFilters({ hi: altMin });
-    go("compare");
+    P.setQ(q.trim());
+    P.setMassif(null);
+    setHp(null);
+    void go("compare");
   };
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") search();
   };
-  // l. 726 : préréglages, après réinitialisation des filtres.
-  const preset = (p: (typeof PRESETS)[number]["key"]) => {
-    resetFilters();
-    if (p === "big") setFilters({ km: 300 });
-    if (p === "high") setFilters({ hi: 3000 });
-    if (p === "village") setFilters({ g: "village-station" });
-    if (p === "family") {
-      setUnit("pct");
-      setColFilter("blue", 40);
-    }
-    go("compare");
+  const shortcut = (k: ChipKey) => {
+    P.resetFilters();
+    P.setChip(k, true);
+    void go("compare");
   };
+
+  const altActive = ALT_RANGES.filter((r) => F[r.k]);
+  const altSegLbl = altActive.length
+    ? altActive.map((r) => `${r.court} ≥ ${fmt(F[r.k])}`).join(" · ") + " m"
+    : "Indifférent";
+
+  const seg = (on: boolean) => `sbar7__seg${on ? " sbar7__seg--on" : ""}`;
 
   return (
     <Coquille>
-      <section className="screen on" id="s-home" data-screen-label="Accueil">
-        <div className="scroll">
-          <div className="hero">
-            <div className="hero__bg" />
-            <ImageSlot
-              id="v6-hero"
-              placeholder="Photo de couverture"
-              className="hero__slot"
-              src="/hero.jpg"
-            />
-            <div className="hero__veil" />
-            {/* Neige animée : `Flocons` existait et n'était posé nulle part. Il
-                se coupe de lui-même si le système réduit les animations. */}
-            <Flocons />
-            <div className="hero__in">
-              <span className="tag hero__badge">
-                <span id="home-count" className="rel">
-                  {count}
-                </span>
-              </span>
-              <h1>
-                Le bon domaine, à la bonne altitude, <em>au bon prix.</em>
-              </h1>
-              <p className="hero__lead">
-                Altitudes, pistes, remontées et logements à prix ferme, tirés de sources
-                vérifiables. Rien n'est estimé sans le dire.
-              </p>
-              <div className="sbar">
-                <div className="sbar__f">
-                  <small>Station ou massif</small>
+      <main className="v7main v7main--pleine" id="s-home" data-screen-label="Accueil">
+        <div className="hero7">
+          <ImageSlot shape="rect"
+            id="v7app-cover"
+            placeholder="Photo de couverture : un domaine en février, au petit matin. Crédit obligatoire."
+            className="hero7__slot"
+            src="/hero.jpg"
+          />
+          <div className="hero7__voile" />
+          <div className="hero7__in">
+            <h1>Le bon domaine, à la bonne altitude.</h1>
+            <p className="hero7__lead">
+              Altitudes réelles, mix de pistes, forfaits relevés et logements au total du séjour. Ce
+              qui n'est pas relevé est dit absent.
+            </p>
+            {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
+            <div className="sbar7__hote">
+              <div className={`sbar7${hp ? " sbar7--ouverte" : ""}`}>
+                <label className={seg(hp === "q")} onClick={() => setHp("q")}>
+                  <span className="sbar7__k">Destination</span>
                   <input
                     id="hq"
-                    placeholder="Chamonix, Val Thorens, Pyrénées…"
-                    autoComplete="off"
-                    value={hq}
-                    onChange={(e) => setHq(e.target.value)}
-                    onKeyDown={onKey}
-                  />
-                </div>
-                {/* Ces trois champs affichaient le séjour sans permettre de le
-                    changer : trois `<b>` inertes au milieu d'une barre de
-                    recherche, entre un champ de saisie et un bouton. C'est ici
-                    que le séjour se pose, maintenant. */}
-                <div className="sbar__f">
-                  <small>Dates</small>
-                  <StayDatesField compact />
-                </div>
-                <div className="sbar__f">
-                  <small>Voyageurs</small>
-                  <SbarStepper k="trav" value={trav} label="Voyageurs" />
-                </div>
-                <div className="sbar__f">
-                  <small>Chambres</small>
-                  <SbarStepper k="rooms" value={rooms} label="Chambres" />
-                </div>
-                {/* Altitude : le seuil porte sur le **sommet** du domaine, la
-                    seule altitude qui dit si la neige tient. Il alimente le
-                    filtre `hi` de l'écran Comparer, celui-là même que le
-                    préréglage « Haute altitude » utilise. */}
-                <div className="sbar__f">
-                  <small>Sommet au moins</small>
-                  <select
-                    id="h-alt"
-                    className="sbar__select"
-                    value={String(altMin)}
-                    onChange={(e) => setAltMin(Number(e.target.value))}
-                  >
-                    {ALT_STEPS.map((a) => (
-                      <option key={a} value={a}>
-                        {a === 0 ? "toute altitude" : `${a.toLocaleString("fr-FR")} m`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button type="button" className="btn btn--lg" id="hgo" onClick={search}>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                  >
-                    <circle cx="11" cy="11" r="6.5" />
-                    <path d="M16 16l4.5 4.5" />
-                  </svg>
-                  Rechercher
-                </button>
-                <div className={`sugg${suggOpen ? " open" : ""}`} id="sugg">
-                  {mh.map((x) => (
-                    <div
-                      key={"m:" + x.m}
-                      data-m={x.m}
-                      onClick={() => {
-                        setMassif(x.m);
-                        setHq("");
-                        go("compare");
-                      }}
-                    >
-                      <span>{x.m}</span>
-                      <span className="muted">massif</span>
-                    </div>
-                  ))}
-                  {hits.map((s) => (
-                    <div
-                      key={"s:" + s.id}
-                      data-s={s.id}
-                      onClick={() => {
-                        setHq("");
-                        go("fiche", { id: s.id });
-                      }}
-                    >
-                      <span>{s.name}</span>
-                      <span className="muted rel">
-                        {s.pistesKm != null ? fmt(s.pistesKm) + " km" : ""}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* « studio accepté » ne tient pas dans le champ Chambres : le
-                  champ porte le chiffre, la règle se lit ici. */}
-              <p className="hero__note">
-                Zéro chambre vaut « studio accepté » : c’est l’absence d’exigence, pas un filtre.
-              </p>
-              <div className="hchips" id="hchips">
-                {PRESETS.map((p) => (
-                  <span
-                    key={p.key}
-                    className="chip"
-                    data-preset={p.key}
-                    onClick={() => preset(p.key)}
-                  >
-                    {p.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="wrap home__wrap">
-            <section className="home__section">
-              <header className="home__head">
-                <div>
-                  <h2 className="h1 home__h2">Les plus grands domaines</h2>
-                  <p className="muted home__sub">
-                    Une station par domaine relié, classées par kilomètres de pistes du domaine,
-                    mesurés par OpenSkiMap.
-                  </p>
-                </div>
-                <a data-go="compare" onClick={() => go("compare")}>
-                  Toutes les stations sur la carte <Icon name="chevron-droite" />
-                </a>
-              </header>
-              <div className="grid3" id="home-top">
-                {top.map((s) => (
-                  <article
-                    key={s.id}
-                    className="stc"
-                    data-fiche={s.id}
-                    onClick={() => go("fiche", { id: s.id })}
-                  >
-                    <div className="stc__img">
-                      {/* La légende disait « Photo <station> » là où il n'y a
-                          pas de photo : cela se lit comme le titre d'une image
-                          qu'on ne voit pas. Elle dit l'absence. */}
-                      <ImageSlot
-                        id={`v6-st-${s.id}`}
-                        placeholder={stationPhotoAbsence(s)}
-                        className="stc__slot"
-                        src={stationPhoto(s)}
-                      />
-                      {stationPhoto(s) ? <PhotoCredit stationId={s.id} /> : null}
-                      <span
-                        className="tag tag--snow rel stc__km"
-                        title="Kilomètres de pistes du domaine, mesurés par OpenSkiMap"
-                      >
-                        {fmt(s.pistesKm)} km
-                      </span>
-                    </div>
-                    <div className="stc__body">
-                      <div>
-                        <strong className="stc__name">{s.name}</strong>
-                        <span className="muted">
-                          {s.massif} · {s.domain}
-                        </span>
-                      </div>
-                      <dl className="facts stc__facts">
-                        <div>
-                          <dt>Altitude</dt>
-                          <dd className="rel">
-                            {fmt(s.minM)}–{fmt(s.maxM)} m
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Remontées (domaine)</dt>
-                          <dd className="rel">{s.lifts ?? "–"}</dd>
-                        </div>
-                        <div>
-                          <dt>Faciles</dt>
-                          <dd className="rel">
-                            {s.colorShare ? s.colorShare.green + s.colorShare.blue + " %" : "–"}
-                          </dd>
-                        </div>
-                      </dl>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-            <section className="home__section">
-              <header>
-                <h2 className="h1 home__h2">Par massif</h2>
-                <p className="muted home__sub">Ouvre la carte filtrée sur le massif.</p>
-              </header>
-              <div className="massifs" id="home-massifs">
-                {massifs.map((x) => (
-                  <div
-                    key={x.m}
-                    className="mcard"
-                    data-m={x.m}
-                    onClick={() => {
-                      setMassif(x.m);
-                      go("compare");
+                    value={q}
+                    onChange={(e) => {
+                      setQ(e.target.value);
+                      setHp("q");
                     }}
-                  >
-                    <strong className="mcard__name">{x.m}</strong>
-                    <span className="muted">
-                      <span className="rel mcard__n">{x.n}</span> station{x.n > 1 ? "s" : ""} ·
-                      sommet jusqu'à <span className="rel mcard__n">{fmt(x.hi)} m</span>
+                    onKeyDown={onKey}
+                    onFocus={() => setHp("q")}
+                    placeholder="Station, massif, domaine"
+                    autoComplete="off"
+                  />
+                </label>
+                <button type="button" className={seg(hp === "alt")} onClick={() => ouvrir("alt")}>
+                  <span className="sbar7__k">Altitude</span>
+                  <span className="sbar7__v">{altSegLbl}</span>
+                </button>
+                <button
+                  type="button"
+                  className={seg(hp === "dates" && plage.phase === "from")}
+                  onClick={() => ouvrir("dates")}
+                >
+                  <span className="sbar7__k">Arrivée</span>
+                  <span className="sbar7__v">{dm(checkIn)}</span>
+                </button>
+                <button
+                  type="button"
+                  className={seg(hp === "dates" && plage.phase === "to")}
+                  onClick={ouvrirDepart}
+                >
+                  <span className="sbar7__k">Départ</span>
+                  <span className="sbar7__v">{dm(checkOut)}</span>
+                </button>
+                <div className={`sbar7__fin ${seg(hp === "guests")}`}>
+                  <button type="button" className="sbar7__seg sbar7__seg--nu" onClick={() => ouvrir("guests")}>
+                    <span className="sbar7__k">Voyageurs</span>
+                    <span className="sbar7__v">{guestsLbl(trav, rooms)}</span>
+                  </button>
+                  <button type="button" className="sbar7__go" title="Rechercher" onClick={search}>
+                    <Icon name="loupe" taille={18} />
+                  </button>
+                </div>
+              </div>
+
+              {sugg.length ? (
+                <div className="pop7 pop7--sugg">
+                  <span className="pop7__label">Suggestions</span>
+                  {sugg.map((sg) => (
+                    <button key={sg.key} type="button" className="pop7__sugg" onClick={sg.pick}>
+                      <span>{sg.label}</span>
+                      <span className="pop7__kind">{sg.kind}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {hp === "dates" ? (
+                <div className="pop7 pop7--dates">
+                  <Calendrier plage={plage} onPose={() => setHp("guests")} />
+                  <div className="pop7__pied">
+                    <span />
+                    <span className="pop7__recap">
+                      {nights} nuit{nights > 1 ? "s" : ""} · {arrivalLbl(checkIn)} → {departLbl(checkOut)}
                     </span>
                   </div>
-                ))}
-              </div>
-            </section>
+                </div>
+              ) : null}
+
+              {hp === "alt" ? (
+                <div className="pop7 pop7--alt">
+                  <div className="pop7__tete">
+                    <strong>Altitude, au minimum</strong>
+                    <span>
+                      Trois repères indépendants ; laissez sur « Indifférent » ce qui ne compte pas.
+                    </span>
+                  </div>
+                  {ALT_RANGES.map((r) => (
+                    <label key={r.k} className="curseur">
+                      <span className="curseur__lab">
+                        <span>{r.label}</span>
+                        <span className="curseur__val">
+                          {F[r.k] ? `≥ ${fmt(F[r.k])} m` : "Indifférent"}
+                        </span>
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={r.max}
+                        step={100}
+                        value={F[r.k]}
+                        onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
+                      />
+                    </label>
+                  ))}
+                  <div className="pop7__presets">
+                    {ALT_PRESETS.map((ap) => {
+                      const on = Object.entries(ap.p).every(([k, v]) => F[k as "v" | "lo" | "hi"] === v);
+                      return (
+                        <button
+                          key={ap.label}
+                          type="button"
+                          className={`puce${on ? " puce--on" : ""}`}
+                          onClick={() =>
+                            P.setFilters(
+                              Object.fromEntries(
+                                Object.entries(ap.p).map(([k, v]) => [k, on ? 0 : v]),
+                              ) as Partial<typeof F>,
+                            )
+                          }
+                        >
+                          {ap.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="pop7__pied pop7__pied--trait">
+                    <a
+                      href="#"
+                      className="lien-doux"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        P.setFilters({ v: 0, lo: 0, hi: 0 });
+                      }}
+                    >
+                      Indifférent
+                    </a>
+                    <button type="button" className="btn7 btn7--encre" onClick={() => ouvrir("dates")}>
+                      Suivant : dates
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {hp === "guests" ? (
+                <div className="pop7 pop7--guests">
+                  <Compteur k="trav" titre="Voyageurs" regle="1 à 20 personnes" />
+                  <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" />
+                </div>
+              ) : null}
+            </div>
+            <div className="hero7__raccourcis">
+              {SHORTCUTS.map((sc) => (
+                <button key={sc.k} type="button" className="raccourci" onClick={() => shortcut(sc.k)}>
+                  {sc.label}
+                </button>
+              ))}
+            </div>
           </div>
+          <span className="hero7__credit">Crédit photo à relever</span>
         </div>
-      </section>
+
+        <div className="v7wrap home7">
+          <section className="home7__section">
+            <header className="home7__tete">
+              <div>
+                <h2>Les plus grands domaines</h2>
+                <p>
+                  Une station par forfait relié, classées par kilomètres de pistes. Km et remontées
+                  sont des valeurs de domaine.
+                </p>
+              </div>
+              <a
+                href="/comparer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  P.resetFilters();
+                  void go("compare");
+                }}
+              >
+                Toutes les stations, sur la carte →
+              </a>
+            </header>
+            <div className="home7__grille3">
+              {top.map((s) => (
+                <CarteStation key={s.id} s={s} variante="accueil" />
+              ))}
+            </div>
+          </section>
+          <section className="home7__section">
+            <header className="home7__tete">
+              <div>
+                <h2>Par massif</h2>
+                <p>Ouvre la carte filtrée sur le massif.</p>
+              </div>
+            </header>
+            <div className="home7__massifs">
+              {massifs.map((x) => (
+                <button
+                  key={x.m}
+                  type="button"
+                  className="mcard7"
+                  onClick={() => {
+                    P.setMassif(x.m);
+                    P.setQ("");
+                    void go("compare");
+                  }}
+                >
+                  <strong>{x.m}</strong>
+                  <span>
+                    {x.n} station{x.n > 1 ? "s" : ""} · sommet jusqu'à {fmt(x.hi)} m
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+        <span className="sr-only">{datesLbl(checkIn, checkOut, nights)}</span>
+      </main>
     </Coquille>
   );
 }

@@ -22,11 +22,12 @@ export function useScreen(): Screen {
 
 export function useGo() {
   const navigate = useNavigate();
-  const stationId = useParcours((s) => s.stationId);
-  const lodgeId = useParcours((s) => s.lodgeId);
-  const say = useParcours((s) => s.say);
   return useCallback(
     (screen: Screen, opts: { id?: string } = {}) => {
+      // L'état est lu à l'appel, pas capturé au rendu : « Retenir et voir les
+      // logements » retient la station puis navigue dans le même geste, et un
+      // verrou lu dans une fermeture périmée refusait encore le passage.
+      const { stationId, lodgeId, say } = useParcours.getState();
       if (screen === "lodging" && !stationId) return say("Retenez d’abord une station.");
       if (screen === "booking" && !lodgeId) return say("Choisissez d’abord un logement.");
       if (screen === "home") return navigate({ to: "/" });
@@ -36,6 +37,6 @@ export function useGo() {
       if (screen === "lodging") return navigate({ to: "/logements" });
       if (screen === "booking") return navigate({ to: "/reservation" });
     },
-    [navigate, stationId, lodgeId, say],
+    [navigate],
   );
 }

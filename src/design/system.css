@@ -1,74 +1,87 @@
 /* Système SKITRACK : cinq tailles, une base d'espacement, une palette par rôle,
-   deux rayons, une règle d'élévation.
+   trois rayons, deux règles d'élévation.
 
    C'est la seule source de ces valeurs. Un composant qui écrit une taille, une
    couleur, un rayon ou une ombre en clair sort du système.
 
-   Les couleurs sont celles de la maquette v6 (`src/design/tokens.ts`, bloc
-   `:root` du contrat), reprises sans qu'une valeur change : seuls les noms
-   passent du pigment au rôle. Le reste (typographie, espacement, rayons,
-   élévation) n'existait pas dans la maquette et est ajouté ici. */
+   Les valeurs sont celles de la maquette v7 (`SKITRACK v7 - App.dc.html`,
+   handoff Claude Design du 13 septembre 2026) : une famille, Manrope ; un
+   papier gris neutre et des surfaces presque blanches ; une seule couleur
+   d'action, le bleu de la marque. Le corail de la v6 n'existe plus. */
 
 @theme {
-  /* ── Typographie : cinq tailles, trois graisses ───────────────────────
-     Une famille. `IBM Plex Mono` n'est plus chargée : l'alignement des
-     chiffres vient de `font-variant-numeric: tabular-nums`. */
-  --font-sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-  --font-display: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  /* ── Typographie : une famille, cinq tailles ──────────────────────────
+     L'alignement des chiffres vient de `font-variant-numeric: tabular-nums`,
+     jamais d'une seconde police. */
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
 
-  --text-affiche: 3.25rem; /* 52px — couverture, une fois par écran au plus */
-  --text-affiche--line-height: 1.04;
-  --text-titre: 2.125rem; /* 34px — titre d'écran */
+  --text-affiche: 2.75rem; /* 44px — titre de couverture, une fois par écran au plus */
+  --text-affiche--line-height: 1.05;
+  --text-titre: 1.875rem; /* 30px — titre d'écran, grand chiffre */
   --text-titre--line-height: 1.1;
-  --text-section: 1.25rem; /* 20px — titre de section */
+  --text-section: 1.25rem; /* 20px — titre de section, valeur mise en avant */
   --text-section--line-height: 1.2;
   --text-corps: 0.9375rem; /* 15px — texte courant et valeurs */
   --text-corps--line-height: 1.45;
-  --text-note: 0.78125rem; /* 12.5px — libellés, unités, mentions de source */
+  --text-detail: 0.84375rem; /* 13.5px — texte secondaire, libellés de commande */
+  --text-detail--line-height: 1.4;
+  --text-note: 0.75rem; /* 12px — libellés, unités, mentions de source */
   --text-note--line-height: 1.35;
 
   /* ── Espacement : base 4px ─────────────────────────────────────────── */
   --spacing: 0.25rem;
 
   /* ── Palette par rôle ──────────────────────────────────────────────── */
-  --color-bg: #f7fbfe;
-  --color-surface: #fdfeff;
-  --color-glacier: #e8f3fa;
-  --color-ink: #0b1f33;
-  --color-muted: #63717d;
-  --color-line: #c9d3dc;
-  --color-line-douce: #e9eef2;
+  --color-bg: #f2f3f5;
+  --color-surface: #fafafb;
+  --color-glacier: #e9ebee; /* remplissage neutre : puce, segment, barre vide */
+  --color-ink: #16191e;
+  --color-muted: #5b636e;
+  --color-texte-3: #8a919b; /* libellés, mentions, valeurs absentes */
+  --color-line: #dde0e5;
+  --color-line-douce: #eceef1;
+  --color-carte-fond: #e6e9ed;
+  --color-media: #dfe3e8; /* fond d'un cadre photo vide */
+  --color-hero-fond: #dfe6ee; /* bandeau d'une station sans photo */
 
   /* Accent : action principale, élément sélectionné, lien. Rien d'autre. */
-  --color-cta: #ff5a3c;
-  --color-cta-ink: #fff7f5;
+  --color-cta: #0b6fc2;
+  --color-cta-ink: #fafafb;
   --color-marque: #0b6fc2;
-  --color-marque-tenue: #eef6fd;
-  --color-marque-texte: #0959a0;
+  --color-marque-tenue: #e6f0fa;
+  --color-marque-texte: #085291;
+  --color-marque-colonne: #eef4fb; /* colonne retenue d'un tableau */
 
   /* Un état par sémantique. */
   --color-ok: #d3efe3;
-  --color-ok-texte: #0a6b4a;
-  --color-alerte: #fdf1e2;
-  --color-alerte-texte: #92400e;
-  --color-neige: #bfe0f7;
-  --color-neige-texte: #133f63;
+  --color-ok-texte: #1f7a4d;
+  --color-alerte: #f7ecd6;
+  --color-alerte-texte: #8a5a12;
+  --color-neige: #e6f0fa;
+  --color-neige-texte: #085291;
+  --color-soleil: #c9891f;
 
   /* Blanc du flocon : seul blanc pur du système, sur une photo sombre. */
   --color-flocon: #ffffff;
 
   /* Couleurs de piste : réservées aux pistes. */
-  --color-piste-verte: #2e9e5b;
+  --color-piste-verte: #2f9e5a;
   --color-piste-bleue: #0b6fc2;
-  --color-piste-rouge: #d9382e;
-  --color-piste-noire: #1b2530;
+  --color-piste-rouge: #c8372d;
+  --color-piste-noire: #22262c;
 
-  /* ── Rayons : deux valeurs ─────────────────────────────────────────── */
-  --radius-surface: 0.5rem; /* 8px — toute surface */
-  /* Les pastilles et les chips prennent `rounded-full`. */
+  /* ── Rayons : trois valeurs ────────────────────────────────────────── */
+  --radius-surface: 0.875rem; /* 14px — carte, section, bandeau */
+  --radius-flottant: 1rem; /* 16px — panneau flottant, bandeau photo */
+  --radius-champ: 0.625rem; /* 10px — champ, petite vignette */
+  /* Les pastilles, puces et boutons prennent `rounded-full`. */
 
-  /* ── Élévation : une ombre, pour le flottant seulement ─────────────── */
-  --shadow-flottant: 0 1px 2px rgba(17, 24, 32, 0.04), 0 4px 12px rgba(17, 24, 32, 0.07);
+  /* ── Élévation : le flottant, et l'encadré qui suit le défilement ───── */
+  --shadow-flottant: 0 2px 6px rgba(22, 25, 30, 0.08), 0 18px 48px rgba(22, 25, 30, 0.18);
+  --shadow-encadre: 0 2px 6px rgba(22, 25, 30, 0.06), 0 14px 36px rgba(22, 25, 30, 0.08);
+  --shadow-segment: 0 2px 10px rgba(22, 25, 30, 0.16);
+  --shadow-epingle: 0 2px 8px rgba(22, 25, 30, 0.35);
 
   /* ── Mouvement : une durée, une courbe ─────────────────────────────── */
   --ease-ui: cubic-bezier(0.2, 0, 0, 1);
@@ -77,13 +90,12 @@
 /* Jetons hérités, gardés le temps que les écrans non repris les quittent.
    Ils ne sont pas le système : aucun composant neuf ne doit les employer. */
 @theme {
-  --color-panel: #fdfeff;
-  --color-snow: #f4f8fb;
-  --color-glass: rgb(247 251 254 / 0.72);
-  --color-bordure: #c9d3dc;
-  --color-bordure-douce: #e9eef2;
-  --color-texte-2: #63717d;
-  --color-texte-3: #768593;
-  --font-mono: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-  --radius-card: 0.5rem;
+  --color-panel: #fafafb;
+  --color-snow: #f2f3f5;
+  --color-glass: rgb(250 250 251 / 0.86);
+  --color-bordure: #dde0e5;
+  --color-bordure-douce: #eceef1;
+  --color-texte-2: #5b636e;
+  --font-mono: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 0.875rem;
 }

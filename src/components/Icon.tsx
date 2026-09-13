@@ -35,7 +35,11 @@ export type IconName =
   | "carte"
   | "tableau"
   | "corbeille"
-  | "alerte";
+  | "alerte"
+  | "cadenas"
+  | "fleche-droite"
+  | "epingle"
+  | "externe";
 
 /** Tracés du registre. Grille de 24, trait ouvert, jamais de remplissage. */
 const TRACES: Record<IconName, ReactNode> = {
@@ -80,6 +84,12 @@ const TRACES: Record<IconName, ReactNode> = {
   tableau: <path d="M4 5h16v14H4z M4 10h16 M10 10v9" />,
   corbeille: <path d="M4 7h16 M9 7V5h6v2 M6.5 7l1 12h9l1-12 M10 11v5M14 11v5" />,
   alerte: <path d="M12 4l9 16H3z M12 10v4M12 17h.01" />,
+  cadenas: <path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" />,
+  "fleche-droite": <path d="M5 12h14M13 6l6 6-6 6" />,
+  epingle: (
+    <path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+  ),
+  externe: <path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />,
 };
 
 export function Icon({

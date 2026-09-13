@@ -1,66 +1,61 @@
-/** Comparer – `#s-compare` (maquette l. 261–343 ; script l. 499–613).
- *  Ordre du DOM : contrat § 3.2. Données : `STATIONS` du dépôt, champs
- *  d'échelle domaine joints tels quels, jamais recalculés. */
+/** Comparer – maquette v7 (`SKITRACK v7 - App.dc.html`, bloc COMPARER).
+ *
+ *  En haut, la comparaison : stations en colonnes, critères en lignes, la
+ *  meilleure valeur en gras, une colonne cochée qui mène aux logements. Puis
+ *  la barre des filtres (raccourcis, compteur, tri, jetons actifs, panneau
+ *  flottant), et deux colonnes : les cartes de station, la carte des épingles.
+ *  Données : `STATIONS` du dépôt, champs d'échelle domaine joints tels quels. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Bouton } from "@/components/base/Bouton";
-import { Tableau } from "@/components/base/Tableau";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
+import { CarteEpingles, htmlStation } from "@/components/v7/CarteEpingles";
+import { CarteStation } from "@/components/v7/CarteStation";
+import { mixLbl, PartPistes } from "@/components/v7/PartPistes";
+import { Vide } from "@/components/v7/Vide";
 import {
+  CMP_MAX,
   COLS,
-  distLbl,
+  eurN,
   fmt,
-  subLbl,
   useParcours,
+  type ChipKey,
   type ColorUnit,
-  type Filters,
   type PisteColor,
   type SortKey,
 } from "@/lib/parcours";
-import { SKIINFO_AT } from "@/lib/skiinfo";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
+import { altLbl, CHIPS, forfaitOf, glacier, kmLbl, liftsLbl, linked, maxM, minM, villageLbl, villageM } from "@/lib/v7";
 
 export const Route = createFileRoute("/comparer")({ component: Comparer });
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "km", label: "Tri : km de pistes" },
-  { key: "v", label: "Tri : altitude village" },
-  { key: "lo", label: "Tri : bas des pistes" },
   { key: "hi", label: "Tri : sommet" },
-  { key: "np", label: "Tri : tronçons de pistes" },
-  { key: "lifts", label: "Tri : remontées" },
+  { key: "lo", label: "Tri : bas des pistes" },
+  { key: "v", label: "Tri : altitude village" },
+  { key: "pass", label: "Tri : forfait 6 j" },
   { key: "n", label: "Tri : nom" },
 ];
 
-/** Clé de tri → champ du dépôt (l. 519). */
-function sortVal(s: Station, k: SortKey): number {
-  const v =
-    k === "km"
-      ? s.pistesKm
-      : k === "v"
-        ? s.villageM
-        : k === "lo"
-          ? s.minM
-          : k === "hi"
-            ? s.maxM
-            : k === "np"
-              ? s.segments
-              : k === "lifts"
-                ? s.lifts
-                : null;
-  return v ?? -1;
-}
+/** `RG` de la maquette : clé, libellé, borne, pas, unité. */
+const RG: { k: "v" | "lo" | "hi" | "km" | "pass"; label: string; max: number; step: number; unit: string }[] = [
+  { k: "v", label: "Altitude du village", max: 2400, step: 100, unit: "m" },
+  { k: "lo", label: "Bas des pistes", max: 2200, step: 100, unit: "m" },
+  { k: "hi", label: "Sommet", max: 3500, step: 100, unit: "m" },
+  { k: "km", label: "Km de pistes, domaine", max: 600, step: 10, unit: "km" },
+  { k: "pass", label: "Forfait 6 j adulte, au plus", max: 400, step: 10, unit: "€" },
+];
 
-/** `colVal` (l. 500) : part, tronçons, ou km estimés (part × km du domaine). */
+const UNIT: Record<ColorUnit, { max: number; step: number; suf: string; lbl: string }> = {
+  pct: { max: 60, step: 5, suf: " %", lbl: "%" },
+  n: { max: 200, step: 5, suf: " tronçons", lbl: "tronçons" },
+  km: { max: 200, step: 10, suf: " km", lbl: "km" },
+};
+
+/** `colVal` : part, tronçons, ou km estimés (part × km du domaine). */
 function colVal(s: Station, c: PisteColor, u: ColorUnit): number | null {
   if (!s.colorShare) return null;
   if (u === "pct") return s.colorShare[c];
@@ -68,796 +63,562 @@ function colVal(s: Station, c: PisteColor, u: ColorUnit): number | null {
   return s.pistesKm != null ? Math.round((s.pistesKm * s.colorShare[c]) / 100) : null;
 }
 
-/** `passes` (l. 501–507). `F.np` compare les remontées, comme la maquette. */
-function passes(s: Station, F: Filters, unit: ColorUnit): boolean {
-  if (F.v && (s.villageM ?? 0) < F.v) return false;
-  if (F.lo && (s.minM ?? 0) < F.lo) return false;
-  if (F.hi && (s.maxM ?? 0) < F.hi) return false;
-  if (F.km && (s.pistesKm ?? 0) < F.km) return false;
-  if (F.np && (s.lifts ?? 0) < F.np) return false;
-  if (F.g && s.kind !== F.g) return false;
-  if (F.pass === "__none" ? s.domain : F.pass && s.domain !== F.pass) return false;
-  for (const c of COLS)
-    if (F.col[c.key] && (colVal(s, c.key, unit) ?? 0) < F.col[c.key]) return false;
-  return true;
+function sortVal(s: Station, k: SortKey): number {
+  if (k === "km") return s.pistesKm ?? -1;
+  if (k === "hi") return maxM(s) ?? -1;
+  if (k === "lo") return minM(s) ?? -1;
+  if (k === "v") return villageM(s) ?? -1;
+  return 0;
 }
 
-function activeCount(F: Filters): number {
-  return (
-    (["v", "lo", "hi", "km", "np"] as const).filter((k) => F[k]).length +
-    (F.g ? 1 : 0) +
-    (F.pass ? 1 : 0) +
-    Object.values(F.col).filter(Boolean).length
-  );
-}
+/** Un prédicat actif, avec son jeton et la façon de le retirer. */
+type Pred = { id: string; label: string; fn: (s: Station) => boolean; remove: () => void };
 
-const RANGE_LABELS = {
-  v: (v: number) => (v ? `≥ ${fmt(v)} m` : "Toutes"),
-  lo: (v: number) => (v ? `≥ ${fmt(v)} m` : "Toutes"),
-  hi: (v: number) => (v ? `≥ ${fmt(v)} m` : "Toutes"),
-  km: (v: number) => (v ? `≥ ${v} km` : "Toutes"),
-  np: (v: number) => (v ? `≥ ${v}` : "Toutes"),
+/** `crit` de la maquette : libellé, texte, valeur comparable, note d'échelle. */
+type Crit = {
+  label: string;
+  txt: (s: Station) => string | null;
+  num: ((s: Station) => number | null) | null;
+  note: string | null;
 };
 
-const RANGES: { k: keyof typeof RANGE_LABELS; label: string; max: number; step: number }[] = [
-  { k: "v", label: "Village, au minimum", max: 2400, step: 100 },
-  { k: "lo", label: "Bas des pistes, au minimum", max: 2200, step: 100 },
-  { k: "hi", label: "Sommet, au minimum", max: 3400, step: 100 },
-  { k: "km", label: "Km de pistes, au minimum", max: 600, step: 10 },
-  { k: "np", label: "Remontées, au minimum", max: 150, step: 5 },
-];
-
-const UNIT_MAX: Record<ColorUnit, [number, number, string]> = {
-  pct: [60, 5, "%"],
-  n: [200, 5, " tronçons"],
-  km: [200, 10, " km"],
-};
-
-/** `CRIT` (l. 570–582) : libellé, texte, valeur numérique pour la meilleure. */
-type Critere = {
-  cle: string;
-  libelle: string;
-  texte: (s: Station) => string | number | null;
-  /** Valeur comparable, quand le critère se classe. `null` sinon. */
-  nombre: ((s: Station) => number | null) | null;
-};
-
-/** Propre à la station : deux stations d'un même domaine peuvent différer.
- *  La ligne qui décide d'un séjour au ski vient en premier. */
-const CRIT_STATION: Critere[] = [
+const CRIT: Crit[] = [
+  { label: "Altitude des pistes", txt: (s) => altLbl(s), num: (s) => maxM(s), note: null },
+  { label: "Village", txt: (s) => villageLbl(s), num: (s) => villageM(s), note: null },
+  { label: "Km de pistes", txt: (s) => kmLbl(s), num: (s) => s.pistesKm, note: "valeur du domaine" },
+  { label: "Remontées", txt: (s) => liftsLbl(s), num: (s) => s.lifts, note: "valeur du domaine" },
   {
-    cle: "altitude",
-    libelle: "Altitude des pistes",
-    texte: (s) => (s.minM != null ? `${fmt(s.minM)}–${fmt(s.maxM)} m` : null),
-    nombre: (s) => s.maxM,
+    label: "Forfait 6 j adulte",
+    txt: (s) => eurN(forfaitOf(s)?.j6),
+    num: (s) => (forfaitOf(s)?.j6 != null ? -(forfaitOf(s)!.j6 as number) : null),
+    note: "relevé sur le site du domaine",
   },
+  { label: "Glacier", txt: (s) => (glacier(s) ? "Oui" : "Non"), num: null, note: null },
+  { label: "Forfait relié", txt: (s) => (linked(s) ? s.domain : null), num: null, note: null },
   {
-    cle: "proche",
-    libelle: "Piste la plus proche",
-    texte: (s) => distLbl(s.distToPisteKm),
-    nombre: (s) => (s.distToPisteKm == null ? null : -s.distToPisteKm),
-  },
-  {
-    cle: "village",
-    libelle: "Village",
-    texte: (s) => (s.villageM != null ? fmt(s.villageM) + " m" : null),
-    nombre: (s) => s.villageM,
-  },
-  {
-    cle: "type",
-    libelle: "Type",
-    texte: (s) => (s.kind === "village-station" ? "Village-station" : "Station"),
-    nombre: null,
-  },
-  {
-    cle: "massif",
-    libelle: "Massif et département",
-    texte: (s) => [s.massif, s.dept].filter(Boolean).join(" · "),
-    nombre: null,
+    label: "Massif · département",
+    txt: (s) => [s.massif, s.dept].filter(Boolean).join(" · "),
+    num: null,
+    note: null,
   },
 ];
 
-/** Mesuré à l'échelle du domaine : toutes ses stations portent la même valeur.
- *  Répété par colonne, ce chiffre se lit comme une différence entre stations
- *  alors qu'il n'en est pas une. Il est donc dit une fois, par domaine. */
-const CRIT_DOMAINE: Critere[] = [
-  {
-    cle: "km",
-    libelle: "Km de pistes",
-    texte: (s) => (s.pistesKm != null ? fmt(s.pistesKm) + " km" : null),
-    nombre: (s) => s.pistesKm,
-  },
-  {
-    cle: "remontees",
-    libelle: "Remontées",
-    texte: (s) => s.lifts,
-    nombre: (s) => s.lifts,
-  },
-  {
-    cle: "troncons",
-    libelle: "Tronçons de pistes",
-    texte: (s) => s.segments,
-    nombre: (s) => s.segments,
-  },
-  {
-    cle: "faciles",
-    libelle: "Pistes faciles",
-    texte: (s) => (s.colorShare ? s.colorShare.green + s.colorShare.blue + " %" : null),
-    nombre: (s) => (s.colorShare ? s.colorShare.green + s.colorShare.blue : null),
-  },
-  {
-    cle: "noires",
-    libelle: "Pistes noires",
-    texte: (s) => (s.colorShare ? s.colorShare.black + " %" : null),
-    nombre: (s) => s.colorShare?.black ?? null,
-  },
-];
-
-/** Un domaine, et les stations comparées qu'il couvre. Une station sans
- *  domaine renseigné forme son propre groupe : ses chiffres n'engagent qu'elle. */
-type GroupeDomaine = { cle: string; nom: string; stations: Station[] };
-
-function groupesDomaine(stations: readonly Station[]): GroupeDomaine[] {
-  const par = new Map<string, GroupeDomaine>();
-  for (const s of stations) {
-    const cle = s.domain ?? `station:${s.id}`;
-    const nom = s.domain ?? `${s.name} · domaine non renseigné`;
-    const g = par.get(cle) ?? { cle, nom, stations: [] };
-    g.stations.push(s);
-    par.set(cle, g);
-  }
-  return [...par.values()];
-}
-
-const SIDE_KEY = "skitrack.v6.side";
-const SIDE_DEF = 440;
+const LISTE_MAX = 40;
 
 function Comparer() {
   const go = useGo();
   const P = useParcours();
   const F = P.filters;
   const all = STATIONS;
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const panneau = useRef<HTMLDivElement>(null);
 
   const massifs = useMemo(() => [...new Set(all.map((s) => s.massif))].sort(), [all]);
-  const domains = useMemo(
+  const domPool = P.massif ? all.filter((s) => s.massif === P.massif) : all;
+  const doms = useMemo(
     () =>
-      [...new Set(all.map((s) => s.domain).filter((d): d is string => !!d))].sort((a, b) =>
+      [...new Set(domPool.map((s) => s.domain).filter((d): d is string => !!d))].sort((a, b) =>
         a.localeCompare(b, "fr"),
       ),
-    [all],
+    [domPool],
   );
 
-  // `visible()` (l. 519)
-  const q = P.q.trim().toLowerCase();
-  const rows = useMemo(
+  /* ---------- Prédicats actifs ---------- */
+  const preds: Pred[] = [];
+  const ql = P.q.trim().toLowerCase();
+  if (ql)
+    preds.push({
+      id: "q",
+      label: `« ${P.q.trim()} »`,
+      fn: (s) =>
+        s.name.toLowerCase().includes(ql) ||
+        s.massif.toLowerCase().includes(ql) ||
+        (s.domain ?? "").toLowerCase().includes(ql),
+      remove: () => P.setQ(""),
+    });
+  if (P.massif)
+    preds.push({
+      id: "massif",
+      label: P.massif,
+      fn: (s) => s.massif === P.massif,
+      remove: () => P.setMassif(null),
+    });
+  for (const r of RG) {
+    const v = F[r.k];
+    if (!v) continue;
+    if (r.k === "pass")
+      preds.push({
+        id: r.k,
+        label: `Forfait ≤ ${fmt(v)} €`,
+        fn: (s) => forfaitOf(s)?.j6 != null && (forfaitOf(s)!.j6 as number) <= v,
+        remove: () => P.setFilters({ pass: 0 }),
+      });
+    else {
+      const lire = { v: villageM, lo: minM, hi: maxM, km: (s: Station) => s.pistesKm }[r.k];
+      preds.push({
+        id: r.k,
+        label: `${r.label} ≥ ${fmt(v)} ${r.unit}`,
+        fn: (s) => (lire(s) ?? 0) >= v,
+        remove: () => P.setFilters({ [r.k]: 0 }),
+      });
+    }
+  }
+  for (const c of COLS) {
+    const v = F.col[c.key];
+    if (!v) continue;
+    preds.push({
+      id: "col-" + c.key,
+      label: `${c.label} ≥ ${fmt(v)}${UNIT[P.unit].suf}`,
+      fn: (s) => (colVal(s, c.key, P.unit) ?? -1) >= v,
+      remove: () => P.setColFilter(c.key, 0),
+    });
+  }
+  if (F.dom)
+    preds.push({
+      id: "dom",
+      label: F.dom === "__none" ? "Domaine non renseigné" : F.dom,
+      fn: (s) => (F.dom === "__none" ? !s.domain : s.domain === F.dom),
+      remove: () => P.setFilters({ dom: "" }),
+    });
+  for (const k of Object.keys(CHIPS) as ChipKey[]) {
+    if (!F.chips[k]) continue;
+    preds.push({ id: "c-" + k, label: CHIPS[k].label, fn: CHIPS[k].fn, remove: () => P.setChip(k, false) });
+  }
+
+  const applyAll = (ps: Pred[]) => all.filter((s) => ps.every((p) => p.fn(s)));
+  const visible = applyAll(preds);
+  const sorted = [...visible].sort((a, b) =>
+    P.sortKey === "n"
+      ? a.name.localeCompare(b.name, "fr")
+      : P.sortKey === "pass"
+        ? (forfaitOf(a)?.j6 ?? 9e9) - (forfaitOf(b)?.j6 ?? 9e9)
+        : sortVal(b, P.sortKey) - sortVal(a, P.sortKey),
+  );
+  const list = sorted.slice(0, LISTE_MAX);
+
+  /* ---------- État vide : quel filtre bloque ---------- */
+  let empty: { title: string; hint: string; fix: (() => void) | null } | null = null;
+  if (!visible.length && preds.length) {
+    let best: { p: Pred; n: number } | null = null;
+    for (const p of preds) {
+      const n = applyAll(preds.filter((x) => x !== p)).length;
+      if (!best || n > best.n) best = { p, n };
+    }
+    empty =
+      best && best.n > 0
+        ? {
+            title: `Le filtre « ${best.p.label} » ne laisse aucune station`,
+            hint: `Sans lui, ${best.n} station${best.n > 1 ? "s" : ""} rest${best.n > 1 ? "ent" : "e"} avec les autres critères.`,
+            fix: best.p.remove,
+          }
+        : {
+            title: "Aucune station ne remplit ces critères",
+            hint: `Le référentiel couvre ${all.length} stations françaises. Retirer un seul filtre ne suffit pas : réinitialisez.`,
+            fix: null,
+          };
+  }
+
+  /* ---------- Comparaison ---------- */
+  const cmp = P.cmp.map((id) => stationById(id)).filter((s): s is Station => !!s);
+  const pickId = cmp.some((s) => s.id === P.pick) ? P.pick : (cmp[0]?.id ?? null);
+  const pickName = pickId ? stationById(pickId)?.name : "";
+  const retain = (id: string) => {
+    P.retain(id);
+    void go("lodging");
+  };
+
+  const chips = (Object.keys(CHIPS) as ChipKey[]).map((k) => ({
+    k,
+    label: CHIPS[k].label,
+    on: !!F.chips[k],
+  }));
+  const seeLbl = visible.length
+    ? `Voir ${visible.length} station${visible.length > 1 ? "s" : ""}`
+    : "Aucune station : assouplir";
+
+  const marqueurs = useMemo(
     () =>
-      all
-        .filter(
-          (s) =>
-            (!P.massif || s.massif === P.massif) &&
-            (!q || s.name.toLowerCase().includes(q)) &&
-            passes(s, F, P.unit),
-        )
-        .sort((a, b) =>
-          P.sortKey === "n"
-            ? a.name.localeCompare(b.name, "fr")
-            : sortVal(b, P.sortKey) - sortVal(a, P.sortKey),
-        ),
-    [all, P.massif, q, F, P.unit, P.sortKey],
-  );
-
-  const [active, setActiveId] = useState<string | null>(null);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [cmpPick, setCmpPick] = useState<string | null>(null);
-  const list = useRef<HTMLDivElement>(null);
-
-  // La station survolée ou choisie dans la liste. Le second argument disait
-  // d'où venait le geste, pour recaler la liste sur l'épingle de la carte ;
-  // la carte a quitté cet écran, il n'a plus d'objet.
-  const setActive = (id: string | null) => setActiveId(id);
-
-  // l. 723 : arrivée depuis la recherche de l'accueil.
-  useEffect(() => {
-    if (!P.selectFirst) return;
-    P.setSelectFirst(false);
-    const first = rows[0];
-    if (first) setTimeout(() => setActive(first.id), 50);
+      list.map((s) => ({
+        id: s.id,
+        lat: s.lat,
+        lon: s.lon,
+        html: htmlStation(s.name, P.cmp.includes(s.id)),
+        zIndex: P.cmp.includes(s.id) ? 100 : 0,
+      })),
+    // La liste change de contenu quand ses identifiants ou la comparaison changent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [P.selectFirst]);
-
-  const nA = activeCount(F);
-  const sortLabel =
-    SORTS.find((x) => x.key === P.sortKey)?.label.replace("Tri : ", "Trié par ") ?? "";
-
-  // `renderCmp` (l. 584–595)
-  const st = P.cmp.map((id) => stationById(id)).filter((s): s is Station => !!s);
-  const groupes = groupesDomaine(st);
-  const pick = st.some((s) => s.id === cmpPick)
-    ? cmpPick
-    : P.stationId && P.cmp.includes(P.stationId)
-      ? P.stationId
-      : (st[0]?.id ?? null);
-  const pickStation = pick ? stationById(pick) : undefined;
-
-  // Les km par couleur sont dérivés (part × km du domaine) : notés ≈, règle 6.
-  const colLabel = (c: PisteColor) =>
-    F.col[c] ? `≥ ${P.unit === "km" ? "≈ " : ""}${F.col[c]}${UNIT_MAX[P.unit][2]}` : "Indifférent";
-
-  /* ---------- Poignée (l. 599–613) ---------- */
-  const split = useRef<HTMLDivElement>(null);
-  const handle = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
-  const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => {
-    const el = split.current;
-    if (!el) return;
-    try {
-      const saved = +(localStorage.getItem(SIDE_KEY) ?? 0);
-      if (saved) el.style.setProperty("--side", saved + "px");
-      if (localStorage.getItem(SIDE_KEY + ".collapsed") === "1") setCollapsed(true);
-    } catch {
-      /* stockage indisponible : largeur par défaut */
-    }
-  }, []);
-  const clamp = (w: number) =>
-    Math.min(Math.max(w, 320), (split.current?.getBoundingClientRect().width ?? 0) - 380);
-  const setSide = (w: number) => split.current?.style.setProperty("--side", w + "px");
-  const currentSide = () => parseInt(getComputedStyle(split.current!).getPropertyValue("--side"));
-  const persist = (w: number, c: boolean) => {
-    try {
-      localStorage.setItem(SIDE_KEY, String(w));
-      localStorage.setItem(SIDE_KEY + ".collapsed", c ? "1" : "0");
-    } catch {
-      /* stockage indisponible */
-    }
-  };
-  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest("button")) return;
-    dragging.current = true;
-    handle.current?.setPointerCapture(e.pointerId);
-    handle.current?.classList.add("drag");
-    document.body.style.cursor = "col-resize";
-  };
-  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!dragging.current || !split.current) return;
-    const w = clamp(e.clientX - split.current.getBoundingClientRect().left);
-    setCollapsed(false);
-    setSide(w);
-  };
-  const onPointerEnd = () => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    handle.current?.classList.remove("drag");
-    document.body.style.cursor = "";
-    persist(currentSide(), false);
-  };
-  const onDblClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest("button")) return;
-    setSide(SIDE_DEF);
-    setCollapsed(false);
-    persist(SIDE_DEF, false);
-  };
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const d = e.key === "ArrowLeft" ? -24 : e.key === "ArrowRight" ? 24 : 0;
-    if (!d) return;
-    e.preventDefault();
-    setCollapsed(false);
-    const w = clamp(currentSide() + d);
-    setSide(w);
-    persist(w, false);
-  };
-  const toggleCollapse = () => {
-    const c = !collapsed;
-    setCollapsed(c);
-    try {
-      localStorage.setItem(SIDE_KEY + ".collapsed", c ? "1" : "0");
-    } catch {
-      /* stockage indisponible */
-    }
-  };
-
-  const cmpcol = useRef<HTMLDivElement>(null);
-  // Au large les deux colonnes sont côte à côte ; à l'étroit elles s'empilent
-  // et le bouton amène le tableau sous les yeux.
-  const openCmp = () => cmpcol.current?.scrollIntoView({ block: "start" });
-  const cmpGo = () => {
-    if (pick) P.retain(pick);
-    go("lodging");
-  };
-  const removeFromCmp = (id: string) => {
-    P.toggleCmp(id);
-  };
+    [list.map((s) => s.id).join(","), P.cmp.join(",")],
+  );
 
   return (
     <Coquille>
-      <section className="screen on" id="s-compare" data-screen-label="1 Comparer">
-        <div className={`split${collapsed ? " collapsed" : ""}`} id="split" ref={split}>
-          <aside className="side">
-            <div className="side__head">
-              <span className="eyebrow">Étape 1 · Station</span>
-              <h1 className="h1" id="side-title">
-                {P.massif ? `Stations · ${P.massif}` : "Toutes les stations"}
-              </h1>
-              <label className="search">
-                <Icon name="loupe" />
-                <input
-                  id="q"
-                  placeholder="Chamonix, Val Thorens, Les Angles…"
-                  value={P.q}
-                  onChange={(e) => P.setQ(e.target.value)}
-                />
-              </label>
-              <div className="chips" id="massifs">
-                <span
-                  className={`chip${P.massif === null ? " chip--on" : ""}`}
-                  onClick={() => P.setMassif(null)}
-                >
-                  Tous
-                </span>
-                {massifs.map((m) => (
-                  <span
-                    key={m}
-                    className={`chip${P.massif === m ? " chip--on" : ""}`}
-                    onClick={() => P.setMassif(P.massif === m ? null : m)}
-                  >
-                    {m}
+      <main className="v7main" id="s-compare" data-screen-label="1 Comparer">
+        <header className="v7tete">
+          <span className="v7surtitre">Étape 1 · Station</span>
+          <h1>Comparer les stations</h1>
+          <p>
+            Cochez des stations dans la liste, lisez-les côte à côte, puis ouvrez les logements de
+            celle que vous retenez. Dates et voyageurs suivent.
+          </p>
+        </header>
+
+        {cmp.length ? (
+          <section className="cmp7">
+            <div className="cmp7__defil">
+              <table className="cmp7__table">
+                <thead>
+                  <tr>
+                    <th className="cmp7__critere-tete">Critère</th>
+                    {cmp.map((s) => (
+                      <th
+                        key={s.id}
+                        className={`cmp7__col${s.id === pickId ? " cmp7__col--pick" : ""}`}
+                      >
+                        <label className="cmp7__pick">
+                          <input
+                            type="radio"
+                            name="pick"
+                            checked={s.id === pickId}
+                            onChange={() => P.setPick(s.id)}
+                          />
+                          <span>{s.name}</span>
+                        </label>
+                        <div className="cmp7__liens">
+                          <a
+                            href={`/stations/${s.id}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void go("fiche", { id: s.id });
+                            }}
+                          >
+                            Fiche
+                          </a>
+                          <a
+                            href="#"
+                            className="cmp7__retirer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              P.toggleCmp(s.id);
+                            }}
+                          >
+                            Retirer
+                          </a>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {CRIT.map((c) => {
+                    const vals = cmp.map((s) => (c.num ? c.num(s) : null));
+                    const known = vals.filter((v): v is number => v != null);
+                    const best = known.length > 1 ? Math.max(...known) : null;
+                    return (
+                      <tr key={c.label}>
+                        <th className="cmp7__critere">
+                          {c.label}
+                          {c.note ? <span>{c.note}</span> : null}
+                        </th>
+                        {cmp.map((s, i) => {
+                          const v = c.txt(s);
+                          const gagne = best != null && vals[i] === best;
+                          return (
+                            <td
+                              key={s.id}
+                              className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}${v == null ? " cmp7__cell--absent" : ""}${gagne ? " cmp7__cell--best" : ""}`}
+                            >
+                              {v ?? "non relevé"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                  <tr>
+                    <th className="cmp7__critere">
+                      Pistes par couleur<span>OpenSkiMap, échelle domaine</span>
+                    </th>
+                    {cmp.map((s) => (
+                      <td key={s.id} className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}`}>
+                        <div className="cmp7__mix">
+                          <PartPistes share={s.colorShare} hauteur={8} />
+                          <span>{mixLbl(s.colorShare)}</span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="cmp7__pied">
+              <span>
+                Une valeur absente est dite absente. En gras : la meilleure valeur du critère.{" "}
+                {CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations au plus.
+              </span>
+              <button
+                type="button"
+                className="btn7 btn7--grand"
+                onClick={() => pickId && retain(pickId)}
+              >
+                Voir les logements à {pickName}
+                <Icon name="fleche-droite" taille={16} />
+              </button>
+            </div>
+          </section>
+        ) : (
+          <Vide compact titre="Aucune station cochée">
+            Cochez « Comparer » sur deux stations de la liste pour les lire côte à côte.
+          </Vide>
+        )}
+
+        <section className="filtres7">
+          <div className="filtres7__barre">
+            <button
+              type="button"
+              className={`puce puce--encre${filtersOpen ? " puce--on" : ""}`}
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((v) => !v)}
+            >
+              <Icon name="filtres" taille={14} />
+              Filtres
+              {preds.length ? <span className="puce__badge">{preds.length}</span> : null}
+            </button>
+            {chips.map((ch) => (
+              <button
+                key={ch.k}
+                type="button"
+                className={`puce${ch.on ? " puce--on" : ""}`}
+                aria-pressed={ch.on}
+                onClick={() => P.setChip(ch.k, !ch.on)}
+              >
+                {ch.on ? <Icon name="coche" taille={13} /> : null}
+                {ch.label}
+              </button>
+            ))}
+            <span className="filtres7__espace" />
+            <span className="filtres7__compte">
+              {visible.length} station{visible.length > 1 ? "s" : ""} sur {all.length}
+            </span>
+            <select
+              className="select7"
+              value={P.sortKey}
+              onChange={(e) => P.setSort(e.target.value as SortKey)}
+            >
+              {SORTS.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {preds.length ? (
+            <div className="jetons7">
+              <span className="jetons7__label">Actifs</span>
+              {preds.map((p) => {
+                const bloque = empty?.fix === p.remove;
+                return (
+                  <span key={p.id} className={`jeton${bloque ? " jeton--bloque" : ""}`}>
+                    {p.label}
+                    <button type="button" title="Retirer" onClick={p.remove}>
+                      <Icon name="croix" taille={11} />
+                    </button>
                   </span>
-                ))}
+                );
+              })}
+              <a
+                href="#"
+                className="lien-doux"
+                onClick={(e) => {
+                  e.preventDefault();
+                  P.resetFilters();
+                }}
+              >
+                Tout réinitialiser
+              </a>
+            </div>
+          ) : null}
+
+          {filtersOpen ? (
+            <div className="pop7 pop7--filtres" ref={panneau}>
+              <div className="pop7__tete pop7__tete--ligne">
+                <strong>Filtres</strong>
+                <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setFiltersOpen(false)}>
+                  <Icon name="croix" taille={14} />
+                </button>
               </div>
-              <div className="side__tools">
-                <span
-                  className={`chip${nA > 0 || filtersOpen ? " chip--on" : ""}`}
-                  id="ftoggle"
-                  onClick={() => setFiltersOpen((v) => !v)}
-                >
-                  <Icon name="filtres" />
-                  Filtres{" "}
-                  <span className="fbadge" id="fbadge" style={{ display: nA ? undefined : "none" }}>
-                    {nA || ""}
+              {RG.map((r) => (
+                <label key={r.k} className="curseur">
+                  <span className="curseur__lab">
+                    <span>{r.label}</span>
+                    <span className="curseur__val">
+                      {F[r.k]
+                        ? r.k === "pass"
+                          ? `≤ ${fmt(F[r.k])} €`
+                          : `≥ ${fmt(F[r.k])} ${r.unit}`
+                        : "Indifférent"}
+                    </span>
                   </span>
-                </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={r.max}
+                    step={r.step}
+                    value={F[r.k]}
+                    onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
+                  />
+                </label>
+              ))}
+              <label className="champ7">
+                <span>Massif</span>
                 <select
-                  id="sort"
-                  className="sort-select"
-                  value={P.sortKey}
-                  onChange={(e) => P.setSort(e.target.value as SortKey)}
+                  className="select7 select7--champ"
+                  value={P.massif ?? ""}
+                  onChange={(e) => {
+                    P.setMassif(e.target.value || null);
+                    P.setFilters({ dom: "" });
+                  }}
                 >
-                  {SORTS.map((s) => (
-                    <option key={s.key} value={s.key}>
-                      {s.label}
+                  <option value="">Tous</option>
+                  {massifs.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
-            <div className="side__body">
-              <div className={`filters${filtersOpen ? " open" : ""}`} id="filters">
-                <div className="filters__in">
-                  <div className="two">
-                    {RANGES.map((r) => (
-                      <div className="f" key={r.k}>
-                        <div className="f__lab">
-                          <span>{r.label}</span>
-                          <span className="rel" id={`lab-${r.k}`}>
-                            {RANGE_LABELS[r.k](F[r.k])}
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          id={`f-${r.k}`}
-                          min={0}
-                          max={r.max}
-                          step={r.step}
-                          value={F[r.k]}
-                          onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
-                        />
-                      </div>
-                    ))}
-                    <div className="f">
-                      <div className="f__lab">
-                        <span>Type</span>
-                      </div>
-                      <span className="seg seg--start" id="gseg">
-                        {(
-                          [
-                            ["", "Tous"],
-                            ["station", "Station"],
-                            ["village-station", "Village-station"],
-                          ] as const
-                        ).map(([g, label]) => (
-                          <span
-                            key={g}
-                            className={F.g === g ? "on" : ""}
-                            data-g={g}
-                            onClick={() => P.setFilters({ g })}
-                          >
-                            {label}
-                          </span>
-                        ))}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="f">
-                    <div className="f__lab">
-                      <span>Répartition par couleur, au minimum</span>
-                      <span className="seg" id="unit">
-                        {(
-                          [
-                            ["pct", "%"],
-                            ["n", "tronçons"],
-                            ["km", "km"],
-                          ] as const
-                        ).map(([u, label]) => (
-                          <span
-                            key={u}
-                            className={P.unit === u ? "on" : ""}
-                            data-u={u}
-                            onClick={() => P.setUnit(u)}
-                          >
-                            {label}
-                          </span>
-                        ))}
-                      </span>
-                    </div>
-                    <div className="cols" id="cols">
-                      {COLS.map((c) => (
-                        <div className="col" key={c.key}>
-                          <span className="col__t">
-                            <i style={{ background: c.token }} />
-                            {c.label}
-                          </span>
-                          <input
-                            type="range"
-                            data-c={c.key}
-                            min={0}
-                            max={UNIT_MAX[P.unit][0]}
-                            step={UNIT_MAX[P.unit][1]}
-                            value={F.col[c.key]}
-                            onChange={(e) => P.setColFilter(c.key, +e.target.value)}
-                          />
-                          <span className="col__v" id={`cv-${c.key}`}>
-                            {colLabel(c.key)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="muted filters__note">
-                      Tronçons par couleur : OpenSkiMap, à l'échelle du domaine skiable. Les km par
-                      couleur sont estimés (part × km du domaine).
-                    </p>
-                  </div>
-                  <div className="f">
-                    <div className="f__lab">
-                      <span>Domaine skiable</span>
-                      <select
-                        id="f-pass"
-                        value={F.pass}
-                        onChange={(e) => P.setFilters({ pass: e.target.value })}
+              </label>
+              <label className="champ7">
+                <span>Domaine skiable</span>
+                <select
+                  className="select7 select7--champ"
+                  value={F.dom}
+                  onChange={(e) => P.setFilters({ dom: e.target.value })}
+                >
+                  <option value="">Tous</option>
+                  <option value="__none">Non renseigné</option>
+                  {doms.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="pop7__bloc">
+                <div className="pop7__ligne">
+                  <span className="pop7__stitre">Répartition par couleur, au minimum</span>
+                  <span className="segments">
+                    {(Object.keys(UNIT) as ColorUnit[]).map((u) => (
+                      <button
+                        key={u}
+                        type="button"
+                        className={P.unit === u ? "on" : undefined}
+                        onClick={() => P.setUnit(u)}
                       >
-                        <option value="">Tous</option>
-                        <option value="__none">Non renseigné</option>
-                        {domains.map((d) => (
-                          <option key={d} value={d}>
-                            {d}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <span className="muted filters__src">
-                    Sources : France Montagnes (référentiel), OpenSkiMap (pistes, remontées).
-                    Répartition Skiinfo du{" "}
-                    <span className="rel" id="src-at">
-                      {SKIINFO_AT ?? "–"}
-                    </span>{" "}
-                    en info-bulle quand disponible.
+                        {UNIT[u].lbl}
+                      </button>
+                    ))}
                   </span>
                 </div>
-                <div className="filters__foot">
-                  <button
-                    type="button"
-                    className="reset"
-                    id="reset"
-                    onClick={() => P.resetFilters()}
-                  >
-                    Réinitialiser
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    id="fclose"
-                    onClick={() => {
-                      if (rows.length) setFiltersOpen(false);
-                    }}
-                  >
-                    {rows.length
-                      ? `Voir ${rows.length} station${rows.length > 1 ? "s" : ""}`
-                      : "Aucune station : assouplir"}
-                  </button>
-                </div>
-              </div>
-              <div className="count">
-                <span id="count">
-                  {rows.length} station{rows.length > 1 ? "s" : ""} sur {all.length}
-                </span>
-                <span id="sortlab">{sortLabel}</span>
-              </div>
-              <div className="list" id="list" ref={list}>
-                {rows.length ? (
-                  rows.map((s) => {
-                    const inCmp = P.cmp.includes(s.id);
-                    const skiinfoKm = s.pistesKmScale === "fiche";
-                    return (
-                      <div
-                        key={s.id}
-                        className={`row${s.id === active ? " on" : ""}`}
-                        data-id={s.id}
-                        onMouseEnter={() => setActive(s.id)}
-                        onClick={(e) => {
-                          const t = e.target as HTMLElement;
-                          if (t.closest("[data-cmp]")) return P.toggleCmp(s.id);
-                          if (t.closest("[data-fiche]")) return go("fiche", { id: s.id });
-                          setActive(s.id);
-                        }}
-                      >
-                        <span className="row__name">{s.name}</span>
-                        <span
-                          className="row__km rel"
-                          title={
-                            skiinfoKm
-                              ? "Géométrie OpenSkiMap incomplète ; km, altitudes et répartition : fiche Skiinfo"
-                              : undefined
-                          }
-                        >
-                          {s.pistesKm != null
-                            ? fmt(s.pistesKm) + " km" + (skiinfoKm ? " (Skiinfo)" : "")
-                            : "–"}
+                <div className="pop7__deux">
+                  {COLS.map((c) => (
+                    <label key={c.key} className="curseur">
+                      <span className="curseur__lab curseur__lab--petit">
+                        <span className="curseur__couleur">
+                          <i style={{ background: c.token }} />
+                          {c.label}
                         </span>
-                        <span className="row__sub">
-                          {subLbl(s)}
-                          {!s.inClasseur ? " · Fiche Skiinfo, hors classeur" : ""}
+                        <span className="curseur__val">
+                          {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNIT[P.unit].suf}` : "Indifférent"}
                         </span>
-                        <span className="row__facts">
-                          <span className="rel">
-                            {fmt(s.minM)}–{fmt(s.maxM)} m
-                          </span>
-                          <span className="row__dim">
-                            village <span className="rel">{fmt(s.villageM)} m</span>
-                          </span>
-                          {s.lifts != null ? (
-                            <span className="row__dim">
-                              <span className="rel">{s.lifts}</span> remontée
-                              {(s.lifts ?? 0) > 1 ? "s" : ""}
-                            </span>
-                          ) : null}
-                          {s.distToPisteKm != null ? (
-                            <span className="row__dim">
-                              piste à <span className="rel">{distLbl(s.distToPisteKm)}</span>
-                            </span>
-                          ) : null}
-                        </span>
-                        {s.colorShare ? (
-                          <span className="row__pistes">
-                            <span className="bar">
-                              {COLS.map((c) => (
-                                <i
-                                  key={c.key}
-                                  style={{ width: `${s.colorShare![c.key]}%`, background: c.token }}
-                                />
-                              ))}
-                            </span>
-                            <span className="rel">
-                              {COLS.map((c) => s.colorShare![c.key]).join(" / ")} %
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="row__pistes">Répartition des pistes non relevée</span>
-                        )}
-                        <span className="row__act">
-                          <button
-                            type="button"
-                            className={`mini${inCmp ? " mini--on" : ""}`}
-                            data-cmp={s.id}
-                          >
-                            {inCmp ? <Icon name="coche" /> : <Icon name="plus" />}
-                            {inCmp ? "Dans la comparaison" : "Comparer"}
-                          </button>
-                          <button type="button" className="mini" data-fiche={s.id}>
-                            Fiche
-                          </button>
-                          {P.stationId === s.id ? (
-                            <span className="tag tag--brand">Retenue</span>
-                          ) : null}
-                        </span>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="muted list__empty">
-                    Aucune station ne remplit tous les critères. Assouplissez un filtre ou
-                    réinitialisez.
-                  </p>
-                )}
-              </div>
-              <div className={`tray${P.cmp.length > 0 ? " open" : ""}`} id="tray">
-                <div className="tray__chips" id="tray-chips">
-                  {P.cmp.map((id) => (
-                    <span key={id} className="tag tag--brand">
-                      {stationById(id)?.name}
-                      <b data-rm={id} onClick={() => P.toggleCmp(id)}>
-                        <Icon name="croix" />
-                      </b>
-                    </span>
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={UNIT[P.unit].max}
+                        step={UNIT[P.unit].step}
+                        value={F.col[c.key]}
+                        onChange={(e) => P.setColFilter(c.key, +e.target.value)}
+                      />
+                    </label>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  className="btn"
-                  id="cmp-open"
-                  disabled={P.cmp.length < 2}
-                  onClick={openCmp}
+                <span className="pop7__note">
+                  Tronçons par couleur : OpenSkiMap, à l'échelle du domaine. Les km par couleur sont
+                  estimés (part × km du domaine).
+                </span>
+              </div>
+              <div className="pop7__pied pop7__pied--trait">
+                <a
+                  href="#"
+                  className="lien-doux"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    P.resetFilters();
+                  }}
                 >
-                  {P.cmp.length > 1
-                    ? `Comparer ${P.cmp.length} stations`
-                    : "Ajoutez une 2e station"}
+                  Réinitialiser
+                </a>
+                <button type="button" className="btn7" onClick={() => setFiltersOpen(false)}>
+                  {seeLbl}
                 </button>
               </div>
             </div>
-          </aside>
-          <div
-            className="handle"
-            id="handle"
-            ref={handle}
-            title="Glisser pour redimensionner · double-clic pour revenir à la largeur par défaut"
-            tabIndex={0}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerEnd}
-            onPointerCancel={onPointerEnd}
-            onDoubleClick={onDblClick}
-            onKeyDown={onKeyDown}
-          >
-            <button
-              type="button"
-              className="handle__btn"
-              id="collapse"
-              title="Replier / déplier le panneau"
-              onClick={toggleCollapse}
-            >
-              <Icon name="chevron-gauche" />
-            </button>
-            <span className="handle__tip">Glisser · double-clic : largeur par défaut</span>
-          </div>
-          <div className="cmpcol" id="cmpcol" ref={cmpcol}>
-            <header className="cmpcol__head">
-              <h1 className="h1 h1--xl">Comparer les stations</h1>
-              <p className="muted">
-                Cochez la station retenue, puis ouvrez ses logements. Dates et groupe suivent.
-              </p>
-            </header>
+          ) : null}
+        </section>
 
-            {st.length === 0 ? (
-              <div className="empty card">
-                <strong className="empty__title">Aucune station dans la comparaison</strong>
-                <p className="muted empty__lead">
-                  Ajoutez des stations depuis la liste de gauche, avec le bouton « Comparer » de
-                  chaque ligne. Deux suffisent pour que les écarts se lisent.
-                </p>
-              </div>
-            ) : (
+        <div className="v7deux">
+          <div className="v7deux__liste">
+            {list.length ? (
               <>
-                <Tableau
-                  className="cmpcol__t"
-                  legende="Ce qui distingue ces stations. Surligné : meilleure valeur du critère."
-                  absence="non relevé"
-                  colonnes={[
-                    { cle: "critere", entete: "Critère", largeur: "13rem" },
-                    ...st.map((x) => ({
-                      cle: x.id,
-                      nombre: true,
-                      entete: (
-                        <div className="cmp__col">
-                          <label className="cmp__pick">
-                            <input
-                              type="radio"
-                              name="pick"
-                              value={x.id}
-                              checked={x.id === pick}
-                              onChange={() => setCmpPick(x.id)}
-                              className="cmp__radio"
-                            />
-                            {x.name}
-                          </label>
-                          <span className="cmp__links">
-                            <a data-fiche={x.id} onClick={() => go("fiche", { id: x.id })}>
-                              Fiche
-                            </a>
-                            <a
-                              data-rm={x.id}
-                              className="cmp__rm"
-                              onClick={() => removeFromCmp(x.id)}
-                            >
-                              Retirer
-                            </a>
-                          </span>
-                        </div>
-                      ),
-                    })),
-                  ]}
-                  lignes={CRIT_STATION.map((c) => {
-                    const vals = st.map((x) => (c.nombre ? c.nombre(x) : null));
-                    const connus = vals.filter((v): v is number => v != null);
-                    const meilleur = connus.length > 1 ? Math.max(...connus) : null;
-                    return {
-                      cle: c.cle,
-                      cellules: {
-                        critere: c.libelle,
-                        ...Object.fromEntries(
-                          st.map((x, i) => {
-                            const v = c.texte(x);
-                            if (v == null) return [x.id, null];
-                            if (!c.nombre)
-                              return [x.id, <span className="tableau__texte">{v}</span>];
-                            const gagne = meilleur != null && vals[i] === meilleur;
-                            return [x.id, gagne ? <b className="cmp__best">{v}</b> : v];
-                          }),
-                        ),
-                      },
-                    };
-                  })}
-                />
-
-                {/* Km, remontées, tronçons et parts de couleur sont mesurés sur
-                    le domaine. Répétés colonne par colonne, ils se liraient
-                    comme un écart entre stations. Ils sont dits une fois. */}
-                <Tableau
-                  className="cmpcol__t"
-                  legende={
-                    groupes.length < st.length
-                      ? "Mesuré sur le domaine, donc partagé par les stations d’une même ligne."
-                      : "Mesuré sur le domaine, pas sur la station."
-                  }
-                  absence="non relevé"
-                  colonnes={[
-                    { cle: "domaine", entete: "Domaine", largeur: "13rem" },
-                    { cle: "stations", entete: "Stations comparées" },
-                    ...CRIT_DOMAINE.map((c) => ({
-                      cle: c.cle,
-                      entete: c.libelle,
-                      nombre: true,
-                    })),
-                  ]}
-                  lignes={groupes.map((g) => ({
-                    cle: g.cle,
-                    cellules: {
-                      domaine: g.nom,
-                      stations: (
-                        <span className="tableau__texte">
-                          {g.stations.map((x) => x.name).join(", ")}
-                        </span>
-                      ),
-                      ...Object.fromEntries(
-                        CRIT_DOMAINE.map((c) => [c.cle, c.texte(g.stations[0])]),
-                      ),
-                    },
-                  }))}
-                />
-
-                <div className="cmpcol__foot">
-                  <span className="muted">
-                    Une valeur absente est dite absente : rien n’est estimé à sa place.
-                  </span>
-                  <Bouton grand id="cmp-go" onClick={cmpGo}>
-                    {pickStation
-                      ? `Voir les logements à ${pickStation.name}`
-                      : "Voir les logements"}
-                  </Bouton>
+                <div className="grille7-2">
+                  {list.map((s) => (
+                    <CarteStation key={s.id} s={s} variante="liste" />
+                  ))}
                 </div>
+                {visible.length > LISTE_MAX ? (
+                  <p className="v7deux__plus">
+                    {visible.length - LISTE_MAX} autres stations : affinez un filtre ou cherchez un
+                    nom.
+                  </p>
+                ) : null}
               </>
-            )}
+            ) : empty ? (
+              <Vide
+                titre={empty.title}
+                actions={
+                  <>
+                    {empty.fix ? (
+                      <button type="button" className="btn7" onClick={empty.fix}>
+                        Retirer ce filtre
+                      </button>
+                    ) : null}
+                    <button type="button" className="btn7 btn7--fantome" onClick={() => P.resetFilters()}>
+                      Tout réinitialiser
+                    </button>
+                  </>
+                }
+              >
+                {empty.hint}
+              </Vide>
+            ) : null}
+          </div>
+          <div className="v7deux__carte">
+            <CarteEpingles
+              marqueurs={marqueurs}
+              cadrage={list.map((s) => s.id).join(",")}
+              surClic={(id) => void go("fiche", { id })}
+              legende={
+                <>
+                  <b>
+                    {list.length} épingle{list.length > 1 ? "s" : ""}
+                  </b>
+                  <span>Une par station affichée ; le cadrage suit les résultats. Fond OpenStreetMap.</span>
+                </>
+              }
+            />
           </div>
         </div>
-      </section>
+      </main>
     </Coquille>
   );
 }

@@ -1,299 +1,350 @@
-/** Réservation – `#s-booking` (maquette l. 438–451 ; `renderBooking` l. 681–688).
- *  Ordre du DOM : contrat § 3.5. Station retenue et logement choisi viennent
- *  du parcours ; l'annonce est celle du relevé ou de la recherche en direct. */
+/** Réservation – maquette v7 (`SKITRACK v7 - App.dc.html`, bloc RÉSERVATION).
+ *
+ *  Le logement retenu, la station et le séjour, ce que le récapitulatif ne dit
+ *  pas ; à droite, le coût poste par poste, l'action chez la source, la case
+ *  « réservé », la copie et le lien de partage. Skitrack ne prend pas de
+ *  paiement. Station retenue et logement choisi viennent du parcours ;
+ *  l'annonce est celle du relevé ou de la recherche en direct. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { StayReport } from "@/components/StayReport";
+import { useForfait } from "@/components/v7/useForfait";
 import { resolveListing } from "@/lib/accommodation";
-import { getForfait } from "@/lib/forfaits/api";
-import { domainForStation } from "@/lib/forfaits/catalog";
-import type { ForfaitRow } from "@/lib/forfaits/types";
-import { origineForfait } from "@/lib/stay/report";
-import { datesLbl, distLbl, eur, fmt, useParcours, useSejour } from "@/lib/parcours";
+import {
+  datesLbl,
+  eur,
+  eurCents,
+  eurN,
+  groupLbl,
+  useParcours,
+  useSejour,
+} from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
+import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
+import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, mediaTon } from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
 
-/** Forfait du domaine de la station retenue, s'il y en a un. */
-function useForfait(stationId: string | null) {
-  const [forfait, setForfait] = useState<ForfaitRow | null>(null);
-  const domain = stationId ? domainForStation(stationId) : undefined;
-  useEffect(() => {
-    if (!domain) return setForfait(null);
-    let cancelled = false;
-    void getForfait({ data: { slug: domain.slug } })
-      .then((r) => {
-        if (!cancelled) setForfait(r);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [domain?.slug]);
-  return { forfait, domain };
-}
-
 function Reservation() {
   const go = useGo();
-  const stationId = useParcours((x) => x.stationId);
-  const lodgeId = useParcours((x) => x.lodgeId);
-  const say = useParcours((x) => x.say);
+  const P = useParcours();
   const { checkIn, checkOut, trav, rooms, nights } = useSejour();
-  const s = stationId ? stationById(stationId) : undefined;
-  const l = lodgeId ? resolveListing(lodgeId) : undefined;
-  const { forfait, domain } = useForfait(stationId);
+  const s = P.stationId ? stationById(P.stationId) : undefined;
+  const l = P.lodgeId ? resolveListing(P.lodgeId) : undefined;
+  const forfait = useForfait(s);
 
-  /* La maquette ne rendait rien sans station ni logement (l. 682), parce qu'on
-     n'y arrivait que par le parcours. À l'adresse `/reservation`, ouverte
-     directement ou par l'onglet de navigation, cela donnait une page
-     entièrement vide : ni titre, ni message, rien qui distingue un écran à
-     remplir d'un écran en panne. L'étape dit maintenant ce qui lui manque et
-     renvoie là où on le choisit. */
+  // Sans logement, la maquette renvoie où on le choisit, avec le bandeau.
+  // L'état est relu dans le magasin : au premier rendu du navigateur, le
+  // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
+  useEffect(() => {
+    const { stationId: st, lodgeId: lo } = useParcours.getState();
+    if (!st) {
+      P.say("Retenez d’abord une station.");
+      void go("compare");
+    } else if (!lo || !resolveListing(lo)) {
+      P.say("Choisissez d’abord un logement.");
+      void go("lodging");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s?.id, l?.id]);
+
   if (!s || !l) {
     return (
       <Coquille>
-        <section className="screen on" id="s-booking" data-screen-label="3 Réservation">
-          <div className="scroll">
-            <div className="wrap">
-              <span className="eyebrow">Étape 3 · Réservation</span>
-              <h1 className="h1 h1--xl">Rien à récapituler pour l’instant</h1>
-              <div className="empty card">
-                <strong className="empty__title">
-                  {!s ? "Aucune station retenue" : "Aucun logement choisi"}
-                </strong>
-                <p className="muted empty__lead">
-                  {!s
-                    ? "Le récapitulatif reprend une station, un logement et vos dates. Commencez par retenir une station."
-                    : `${s.name} est retenue. Il reste à choisir un logement parmi ceux relevés à ces dates.`}
-                </p>
-                <div className="empty__actions">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => go(s ? "lodging" : "compare")}
-                  >
-                    {s ? "Voir les logements" : "Choisir une station"}
-                  </button>
-                </div>
-              </div>
-              <p className="muted">
-                <span className="rel js-dates">{datesLbl(checkIn, checkOut, nights)}</span> · le
-                séjour saisi en haut de page suit jusqu’ici.
-              </p>
-            </div>
-          </div>
-        </section>
+        <main className="v7main" id="s-booking" data-screen-label="3 Réservation" />
       </Coquille>
     );
   }
 
-  const total = l.total;
-  const dist = l.distToSlopesM ?? null;
-  const share = () => {
-    const link = `${window.location.href.split("#")[0]}#s=${s.id}&l=${l.id}&n=${nights}&t=${trav}&r=${rooms}`;
+  const stay = { checkIn, checkOut };
+  const firm = firmOf(l, stay);
+  const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
+  const totalN = l.total + passGroupN;
+  const d = distanceOf(l);
+
+  const gaps = [
+    "Taxe de séjour : incluse seulement si la source l'inclut dans son total.",
+    "Trajet : aucun itinéraire calculé, donc ni carburant ni péage.",
+    d.kind === "measured"
+      ? null
+      : d.kind === "no_coords"
+        ? "Distance aux remontées : ce logement n'a pas de position, elle n'est pas mesurée."
+        : d.kind === "other_domain"
+          ? "Distance aux remontées : ce logement est sur un autre domaine que la station retenue."
+          : "Distance aux remontées : pas de données de remontées pour cette station.",
+    !l.url ? "Lien : l'annonce n'en a pas dans le relevé, la réservation se fait à la main." : null,
+  ].filter((x): x is string => x != null);
+
+  const recap = () =>
+    [
+      `Skitrack – ${s.name}`,
+      `${datesLbl(checkIn, checkOut, nights)} · ${groupLbl(trav, rooms)}`,
+      `Logement : ${l.title} (${l.source}) ${eurCents(l.total)}`,
+      `Forfaits : ${forfait?.j6 != null ? eur(passGroupN) : "non relevés"}`,
+      `Total : ${eurCents(totalN)}`,
+    ].join("\n");
+
+  const copyRecap = () => {
+    void navigator.clipboard?.writeText(recap());
+    P.say("Récapitulatif copié.");
+  };
+  const copyLink = () => {
+    const link = `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&r=${rooms}`;
     void navigator.clipboard?.writeText(link);
-    say("Lien de partage copié.");
+    P.say("Lien de partage copié.");
+  };
+  const reserver = () => {
+    if (l.url) {
+      window.open(l.url, "_blank", "noopener");
+      P.setBooked(true);
+      P.say(`Ouverture de l’annonce sur ${l.source} · le récapitulatif est marqué « réservé ».`);
+    } else {
+      P.say("Annonce sans lien : la réservation se fait à la main, puis se marque ici.");
+    }
   };
 
   return (
     <Coquille>
-      <section className="screen on" id="s-booking" data-screen-label="3 Réservation">
-        <div className="scroll">
-          <div className="wrap booking__wrap">
-            <header>
-              <span className="eyebrow">Étape 3 · Réservation</span>
-              <h1 className="h1 h1--xl booking__title">Récapitulatif du séjour</h1>
-              <p className="muted booking__lead">
-                Skitrack ne prend pas de paiement : la réservation se fait sur le site de l'annonce,
-                avec le prix relevé.
-              </p>
-            </header>
-            <div className="bgrid">
-              <div className="booking__main">
-                <section className="sect card">
-                  <h2>Station</h2>
-                  <div id="bk-station">
-                    <div className="bk-station">
-                      <div>
-                        <strong className="bk-station__name">{s.name}</strong>
-                        <p className="muted bk-station__sub">
-                          {s.massif} · {s.dept ?? "–"}
-                          {s.domain ? ` · ${s.domain}` : ""}
-                        </p>
-                        <p className="muted bk-station__facts">
-                          <span className="rel">
-                            {fmt(s.minM)}–{fmt(s.maxM)} m
-                          </span>{" "}
-                          ·{" "}
-                          <span className="rel">
-                            {s.pistesKm != null ? fmt(s.pistesKm) + " km" : "–"}
-                          </span>{" "}
-                          de pistes · <span className="rel">{s.lifts ?? "–"}</span> remontées
-                        </p>
-                      </div>
-                      <a data-go="fiche" onClick={() => go("fiche", { id: s.id })}>
-                        Fiche station
-                      </a>
-                    </div>
-                  </div>
-                </section>
-                <section className="sect card">
-                  <h2>Logement</h2>
-                  <div id="bk-lodge">
-                    <div className="bk-lodge">
-                      <div className="bk-lodge__img">
-                        <ImageSlot
-                          id={`v6-l-${l.id}`}
-                          placeholder="Photo"
-                          className="lodge__slot"
-                          src={l.photo}
-                        />
-                      </div>
-                      <div className="bk-lodge__body">
-                        <span className="tag bk-lodge__tag">{l.source}</span>
-                        <strong className="bk-lodge__name">{l.title}</strong>
-                        <span className="muted">
-                          {l.bedrooms != null ? `${l.bedrooms} chambres` : "chambres non annoncées"}
-                          {dist != null ? ` · piste à ${distLbl(dist / 1000)}` : ""}
-                        </span>
-                        <a onClick={() => go("lodging")}>Changer de logement</a>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-                <section className="sect card">
-                  <h2>Avant de réserver</h2>
-                  <ul className="checklist">
-                    <li>
-                      <i>
-                        <Icon name="coche" />
-                      </i>
-                      <span>Prix total confirmé aux dates du séjour, taxes et frais compris.</span>
-                    </li>
-                    <li>
-                      <i>
-                        <Icon name="coche" />
-                      </i>
-                      <span>Capacité vérifiée pour le groupe.</span>
-                    </li>
-                    <li>
-                      <i className="todo">
-                        <Icon name="point" />
-                      </i>
-                      <span>
-                        Forfaits : tarifs non relevés, à confirmer sur le site du domaine.
-                      </span>
-                    </li>
-                    <li>
-                      <i className="todo">
-                        <Icon name="point" />
-                      </i>
-                      <span>Trajet : itinéraire non calculé dans cette maquette.</span>
-                    </li>
-                  </ul>
-                </section>
-                {/* Récapitulatif imprimable du lot 4 : chaque montant porte son
-                    origine, et les postes sans montant partent dans « ce que ce
-                    document ne dit pas » au lieu de s'afficher à zéro. */}
-                <section className="sect card">
-                  <h2>Récapitulatif imprimable</h2>
-                  <StayReport
-                    lat={l.lat}
-                    lon={l.lon}
-                    listingTitle={l.title}
-                    input={{
-                      stationName: s.name,
-                      checkIn,
-                      checkOut,
-                      voyageurs: trav,
-                      postes: [
-                        {
-                          label: "Logement",
-                          montant: l.total,
-                          origine: "relevé",
-                          detail: `${l.title} · ${l.source}`,
-                        },
-                        {
-                          label: `Forfaits ${trav} × 6 jours`,
-                          montant: forfait?.j6 != null ? forfait.j6 * trav : null,
-                          origine: origineForfait(forfait?.status),
-                          detail: domain?.name ?? null,
-                        },
-                      ],
-                      manquesAutres: [
-                        l.lat == null || l.lon == null
-                          ? "Le logement n’a pas de position : sa distance aux pistes n’est pas mesurée."
-                          : null,
-                        !l.url ? "L’annonce n’a pas de lien : la réservation se fait à la main." : null,
-                        "Trajet : aucun itinéraire n’est calculé, donc ni carburant ni péage.",
-                      ].filter((x): x is string => x != null),
-                    }}
-                  />
-                </section>
-              </div>
-              <aside className="aside card">
-                <span className="eyebrow">Total du séjour</span>
-                <div id="bk-lines">
-                  <div className="line">
-                    <span>Logement · {nights} nuits</span>
-                    <b className="rel">{eur(total)}</b>
-                  </div>
-                  <div className="line">
-                    <span>Forfaits · {trav} × 6 j</span>
-                    {forfait?.j6 != null ? (
-                      <b className="rel">{eur(forfait.j6 * trav)}</b>
-                    ) : (
-                      <span className="line__none">– non relevé</span>
-                    )}
-                  </div>
-                  <div className="line line--total">
-                    <b>Total</b>
-                    <b className="rel">{eur(total + (forfait?.j6 != null ? forfait.j6 * trav : 0))}</b>
-                  </div>
-                  <div className="line">
-                    <span className="muted">Par personne ({trav})</span>
-                    <b className="rel">
-                      {eur((total + (forfait?.j6 != null ? forfait.j6 * trav : 0)) / trav)}
-                    </b>
-                  </div>
-                  <div className="line">
-                    <span className="muted">Dates</span>
-                    <span className="rel">{datesLbl(checkIn, checkOut, nights)}</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn--lg btn--full"
-                  id="bk-open"
-                  disabled={!l.url}
-                  onClick={() => {
-                    if (l.url) window.open(l.url, "_blank", "noopener");
-                  }}
-                >
-                  Ouvrir l'annonce et réserver
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--full"
-                  id="bk-share"
-                  onClick={share}
-                >
-                  Copier le lien de partage
-                </button>
-                <p className="muted aside__note">
-                  Le lien reprend station, logement, dates et groupe : vos co-voyageurs voient
-                  exactement le même récapitulatif.
-                </p>
-              </aside>
-            </div>
+      <main className="v7main" id="s-booking" data-screen-label="3 Réservation">
+        <a
+          href="/logements"
+          className="v7retour"
+          onClick={(e) => {
+            e.preventDefault();
+            void go("lodging");
+          }}
+        >
+          <Icon name="chevron-gauche" taille={14} />
+          Logements à {s.name}
+        </a>
+        <header className="v7tete">
+          <span className="v7surtitre">Étape 3 · Réservation</span>
+          <h1>Récapitulatif du séjour</h1>
+          <p>
+            Skitrack ne prend pas de paiement. La réservation se fait chez la source, avec le prix
+            relevé ; ce récapitulatif se copie et se partage.
+          </p>
+        </header>
+
+        {P.shared ? (
+          <div className="bandeau7 bandeau7--partage">
+            <span>
+              <b>Récapitulatif partagé.</b> Station, logement, dates et voyageurs viennent du lien ;
+              ils remplacent votre séjour en cours.
+            </span>
+            <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => P.setShared(false)}>
+              <Icon name="croix" taille={12} />
+            </button>
           </div>
+        ) : null}
+
+        {P.booked ? (
+          <div className="bandeau7 bandeau7--reserve">
+            <span className="bandeau7__coche">
+              <Icon name="coche" taille={18} />
+            </span>
+            <div>
+              <strong>Séjour marqué comme réservé</strong>
+              <span>
+                La confirmation et le paiement sont chez {l.source}. Skitrack garde le récapitulatif au
+                prix relevé.
+              </span>
+            </div>
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                P.restart();
+                void go("home");
+              }}
+            >
+              Préparer un autre séjour →
+            </a>
+          </div>
+        ) : null}
+
+        <div className="bgrid7">
+          <div className="bgrid7__main">
+            <section className="bk7">
+              <div className={`bk7__media lodge7__media--${mediaTon(l)}`}>
+                {l.photo ? (
+                  <ImageSlot shape="rect" id={`v7app-bk-${l.id}`} placeholder="Photo de l'annonce" className="lodge7__slot" src={l.photo} />
+                ) : (
+                  <span>Pas de photo dans l'annonce</span>
+                )}
+              </div>
+              <div className="bk7__corps">
+                <div className="bk7__tete">
+                  <div>
+                    <span className="bk7__ref">
+                      Logement · {l.source} · réf. {l.id}
+                    </span>
+                    <h2>{l.title}</h2>
+                  </div>
+                  <a
+                    href="/logements"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void go("lodging");
+                    }}
+                  >
+                    Changer
+                  </a>
+                </div>
+                <div className="bk7__faits">
+                  <span>{capLbl(l)}</span>
+                  <span>{bedLbl(l)}</span>
+                  <span className="absent">{d.text}</span>
+                </div>
+                {firm ? (
+                  <div className="bk7__ok">
+                    <Icon name="coche" taille={16} />
+                    <span>
+                      <b>Prix relevé aux dates.</b> La source a tarifé cette annonce pour ce séjour. La
+                      source fera foi.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="bk7__alerte">
+                    <Icon name="alerte" taille={16} />
+                    <span>
+                      <b>Disponibilité non confirmée.</b> {availabilityLabel(availabilityOf(l, stay))}. La
+                      source fera foi.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <div className="bgrid7__deux">
+              <section className="carte7-sect carte7-sect--serre">
+                <div className="carte7-sect__ligne">
+                  <span>Station</span>
+                  <a
+                    href={`/stations/${s.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void go("fiche", { id: s.id });
+                    }}
+                  >
+                    Fiche
+                  </a>
+                </div>
+                <strong className="carte7-sect__grand">{s.name}</strong>
+                <span className="carte7-sect__texte carte7-sect__texte--petit">
+                  {crumb(s)}{s.domain ? ` · ${s.domain}` : ""}
+                </span>
+                <span className="carte7-sect__chiffres">
+                  {altLbl(s) ?? "altitudes non relevées"} · {kmLbl(s) ?? "km non publié"}{" "}
+                  <small>de pistes, domaine</small>
+                </span>
+              </section>
+              <section className="carte7-sect carte7-sect--serre">
+                <div className="carte7-sect__ligne">
+                  <span>Séjour</span>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      P.setStayOpen(!P.stayOpen);
+                    }}
+                  >
+                    Modifier
+                  </a>
+                </div>
+                <strong className="carte7-sect__grand">{datesLbl(checkIn, checkOut, nights)}</strong>
+                <span className="carte7-sect__texte carte7-sect__texte--petit">{groupLbl(trav, rooms)}</span>
+                <span className={`carte7-sect__chiffres${forfait?.j6 != null ? "" : " absent"}`}>
+                  {forfait?.j6 != null
+                    ? `Forfaits 6 jours adulte × ${trav}, au tarif relevé${forfait.releveLbl ? ` le ${forfait.releveLbl}` : ""}`
+                    : "Forfaits non relevés pour ce domaine"}
+                </span>
+              </section>
+            </div>
+
+            <section className="carte7-sect carte7-sect--serre">
+              <h2 className="carte7-sect__h3">Ce que ce récapitulatif ne dit pas</h2>
+              <ul className="manques7">
+                {gaps.map((g) => (
+                  <li key={g}>
+                    <i>
+                      <Icon name="point" taille={10} />
+                    </i>
+                    {g}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          <aside className="aside7 aside7--large">
+            <span className="v7surtitre">Coût du séjour, poste par poste</span>
+            <table className="cout7">
+              <tbody>
+                <tr>
+                  <th>
+                    Logement · {nights} nuits
+                    <span className="cout7__ok">relevé chez la source</span>
+                  </th>
+                  <td>{eurCents(l.total)}</td>
+                </tr>
+                <tr>
+                  <th>
+                    Forfaits · {trav} × 6 j adulte
+                    <span>
+                      {forfait?.j6 != null
+                        ? `calculé sur le prix relevé, ${eurN(forfait.j6)}`
+                        : "aucun tarif relevé"}
+                    </span>
+                  </th>
+                  <td className={forfait?.j6 != null ? undefined : "absent"}>
+                    {forfait?.j6 != null ? eur(passGroupN) : "non relevés"}
+                  </td>
+                </tr>
+                <tr>
+                  <th>Trajet</th>
+                  <td className="absent">non calculé</td>
+                </tr>
+                <tr className="cout7__total">
+                  <th>Total</th>
+                  <td>{eurCents(totalN)}</td>
+                </tr>
+                <tr className="cout7__pp">
+                  <th>Par personne, {trav}</th>
+                  <td>{eurCents(Math.round((totalN / trav) * 100) / 100)}</td>
+                </tr>
+              </tbody>
+            </table>
+            <button
+              type="button"
+              className={`btn7 btn7--grand btn7--pleine${l.url ? "" : " btn7--inerte"}`}
+              onClick={reserver}
+            >
+              {l.url ? `Réserver sur ${l.source}` : "Annonce sans lien : réserver à la main"}
+            </button>
+            <label className="cocher7">
+              <input type="checkbox" checked={P.booked} onChange={() => P.setBooked(!P.booked)} />
+              {P.booked ? "Réservé chez la source" : "Marquer comme réservé"}
+            </label>
+            <div className="aside7__deux">
+              <button type="button" className="btn7 btn7--fantome" onClick={copyRecap}>
+                Copier le récapitulatif
+              </button>
+              <button type="button" className="btn7 btn7--fantome" onClick={copyLink}>
+                Lien de partage
+              </button>
+            </div>
+            <p className="aside7__note">
+              Le lien de partage reprend station, logement, dates et voyageurs : vos co-voyageurs
+              voient le même récapitulatif.
+            </p>
+          </aside>
         </div>
-      </section>
+      </main>
     </Coquille>
   );
 }

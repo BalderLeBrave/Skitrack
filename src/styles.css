@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./design/system.css";
 @import "./design/base.css";
+@import "./design/v7.css";
 html[data-theme="dark"] {
   --color-bg: #0b1622;
   --color-glacier: #122233;

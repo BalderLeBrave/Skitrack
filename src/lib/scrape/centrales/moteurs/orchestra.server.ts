@@ -64,13 +64,6 @@ export type ReglageOrchestra = {
 
 const catalogues = new Map<string, { at: number; valeur: CarteOrchestra[] }>();
 const calendriers = new Map<string, { at: number; valeur: unknown }>();
-
-/** Pour les tests et la recette : vide les deux caches. */
-export function oublierOrchestra(): void {
-  catalogues.clear();
-  calendriers.clear();
-}
-
 async function json(url: string, texte = false): Promise<unknown> {
   const verdict = await centraleAutorise(url);
   if (verdict.autorise !== true) {

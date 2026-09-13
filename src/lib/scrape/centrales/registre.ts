@@ -38,8 +38,6 @@ type FicheHote = {
 
 const FICHIER = data as { at: string; source: string; hotes: Record<string, FicheHote> };
 
-export const CENTRALES_AUDIT_AT = FICHIER.at;
-
 const MOTEURS: readonly MoteurCentrale[] = [
   "Open System",
   "MSEM",
@@ -147,31 +145,4 @@ export function ficheCentrale(stationId: string): FicheCentrale | null {
     robotsReleve: f?.robots ?? null,
     reponseReleve: f?.reponse ?? null,
   };
-}
-
-/** Les hôtes du relevé, pour les écrans de contrôle et les tests. */
-export function hotesReleves(): { host: string; moteur: MoteurCentrale; stations: number }[] {
-  return Object.entries(FICHIER.hotes)
-    .map(([host, f]) => ({ host, moteur: moteurDe(f.moteur), stations: f.stations.length }))
-    .sort((a, b) => b.stations - a.stations || a.host.localeCompare(b.host));
-}
-
-/**
- * Combien de stations un moteur dessert.
- *
- * Sert à décider par quoi commencer : un analyseur qui couvre cinquante-quatre
- * stations vaut mieux que sept connecteurs qui en couvrent une chacun.
- */
-export function couvertureParMoteur(): { moteur: MoteurCentrale; stations: number; hotes: number }[] {
-  const par = new Map<MoteurCentrale, { stations: number; hotes: number }>();
-  for (const f of Object.values(FICHIER.hotes)) {
-    const m = moteurDe(f.moteur);
-    const e = par.get(m) ?? { stations: 0, hotes: 0 };
-    e.stations += f.stations.length;
-    e.hotes += 1;
-    par.set(m, e);
-  }
-  return [...par.entries()]
-    .map(([moteur, v]) => ({ moteur, ...v }))
-    .sort((a, b) => b.stations - a.stations);
 }

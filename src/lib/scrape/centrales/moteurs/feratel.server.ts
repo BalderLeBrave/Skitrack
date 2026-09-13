@@ -31,7 +31,7 @@ import {
 const UA = `${AGENT_CENTRALES}/1.0 (+https://skitrack.local/robots)`;
 const TIMEOUT_MS = 30_000;
 
-export const FERATEL_API = "https://webapi.deskline.net";
+const FERATEL_API = "https://webapi.deskline.net";
 
 /**
  * Les deux en-têtes sans lesquels la passerelle ne répond à rien.

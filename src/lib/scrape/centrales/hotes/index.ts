@@ -97,8 +97,3 @@ export function connecteurPour(host: string): Connecteur | null {
 export function connecteurs(): readonly Connecteur[] {
   return TOUS;
 }
-
-/** Les centrales réellement interrogeables aujourd'hui. */
-export function connecteursActifs(): readonly Connecteur[] {
-  return TOUS.filter((c) => typeof c.chercher === "function");
-}

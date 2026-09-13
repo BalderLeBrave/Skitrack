@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   activeFilterCount,
+  dansLesBornes,
+  partagerParBornes,
+  sansPositionLabel,
+  type Bornes,
   colorValue,
   filterMassif,
   foldName,
@@ -159,4 +163,59 @@ test("formatKm : un tiret quand le domaine ne publie pas de kilométrage", () =>
   assert.equal(formatKm(220), "220 km");
   assert.equal(formatKm(0), "–");
   assert.equal(formatKm(null), "–");
+});
+
+/* ── Le cadre visible de la carte ─────────────────────────────────────────── */
+
+const CADRE: Bornes = { sud: 45.0, ouest: 6.0, nord: 45.6, est: 6.9 };
+
+test("le cadre garde ce qu'il montre et écarte ce qu'il ne montre pas", () => {
+  // Les 2 Alpes, dans le cadre.
+  assert.equal(dansLesBornes({ lat: 45.02, lon: 6.12 }, CADRE), true);
+  // Marseille, loin dessous.
+  assert.equal(dansLesBornes({ lat: 43.29, lon: 5.36 }, CADRE), false);
+  // Sur la bordure : la bordure est dans le cadre.
+  assert.equal(dansLesBornes({ lat: 45.0, lon: 6.0 }, CADRE), true);
+  assert.equal(dansLesBornes({ lat: 45.6, lon: 6.9 }, CADRE), true);
+  // Juste dehors.
+  assert.equal(dansLesBornes({ lat: 44.999, lon: 6.5 }, CADRE), false);
+  assert.equal(dansLesBornes({ lat: 45.3, lon: 6.901 }, CADRE), false);
+});
+
+test("une entrée sans coordonnées reste : elle n'a pas de cadre", () => {
+  assert.equal(dansLesBornes({ lat: null, lon: null }, CADRE), true);
+  assert.equal(dansLesBornes({}, CADRE), true);
+  assert.equal(dansLesBornes({ lat: 45.02, lon: null }, CADRE), true);
+  assert.equal(dansLesBornes({ lat: Number.NaN, lon: 6.1 }, CADRE), true);
+  // Et sans cadre du tout, rien n'est écarté.
+  assert.equal(dansLesBornes({ lat: 43.29, lon: 5.36 }, null), true);
+});
+
+test("le partage compte les trois situations séparément", () => {
+  const rows = [
+    { id: "dedans", lat: 45.02, lon: 6.12 },
+    { id: "dedans2", lat: 45.5, lon: 6.7 },
+    { id: "dehors", lat: 43.29, lon: 5.36 },
+    { id: "sans", lat: null, lon: null },
+    { id: "sans2", lat: null, lon: 6.1 },
+  ];
+  const out = partagerParBornes(rows, CADRE);
+  assert.deepEqual(out.visibles.map((r) => r.id), ["dedans", "dedans2", "sans", "sans2"]);
+  assert.deepEqual(out.horsCadre.map((r) => r.id), ["dehors"]);
+  assert.deepEqual(out.sansPosition.map((r) => r.id), ["sans", "sans2"]);
+  // Les sans-position sont dans « visibles » ET comptés à part : ils
+  // s'affichent, et l'écran peut dire combien ils sont.
+  assert.equal(out.visibles.length + out.horsCadre.length, rows.length);
+
+  // Sans cadre, rien ne sort.
+  const tout = partagerParBornes(rows, null);
+  assert.equal(tout.visibles.length, rows.length);
+  assert.equal(tout.horsCadre.length, 0);
+  assert.equal(tout.sansPosition.length, 2);
+});
+
+test("le compte des sans-position s'écrit, ou ne s'écrit pas", () => {
+  assert.equal(sansPositionLabel(0), "");
+  assert.equal(sansPositionLabel(3), "3 sans localisation");
+  assert.equal(sansPositionLabel(1), "1 sans localisation");
 });

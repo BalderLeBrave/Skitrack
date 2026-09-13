@@ -23,6 +23,7 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
+import type { Bornes } from "@/lib/carte";
 
 export type Marqueur = {
   id: string;
@@ -43,6 +44,9 @@ export function CarteEpingles({
   surClic,
   className,
   legende,
+  suivi = false,
+  surSuivi,
+  surBornes,
 }: {
   marqueurs: readonly Marqueur[];
   /** Change quand il faut recadrer : la liste des identifiants, en pratique. */
@@ -52,6 +56,12 @@ export function CarteEpingles({
   surClic?: (id: string) => void;
   className?: string;
   legende?: React.ReactNode;
+  /** La liste suit-elle le cadre ? Quand oui, la carte cesse de se recadrer
+   *  sur les résultats : c'est l'utilisateur qui la conduit. */
+  suivi?: boolean;
+  surSuivi?: (v: boolean) => void;
+  /** Bornes du cadre, rendues en fin de déplacement ou de zoom, jamais pendant. */
+  surBornes?: (b: Bornes) => void;
 }) {
   const hote = useRef<HTMLDivElement>(null);
   const lib = useRef<typeof Leaflet | null>(null);
@@ -59,6 +69,11 @@ export function CarteEpingles({
   const couche = useRef<Leaflet.LayerGroup | null>(null);
   const rappel = useRef(surClic);
   rappel.current = surClic;
+  const rappelBornes = useRef(surBornes);
+  rappelBornes.current = surBornes;
+  // Lu dans les écouteurs Leaflet, qui vivent plus longtemps qu'un rendu.
+  const suitRef = useRef(suivi);
+  suitRef.current = suivi;
   const cadre = useRef("");
   const [prete, setPrete] = useState(false);
   // Au doigt, la carte n'attrape le geste qu'après un premier appui : sans
@@ -88,6 +103,19 @@ export function CarteEpingles({
       }).addTo(m);
       Lf.control.zoom({ position: "bottomright" }).addTo(m);
       couche.current = Lf.layerGroup().addTo(m);
+      // Les bornes ne sortent qu'à la fin du geste. Pendant, elles changeraient
+      // à chaque image et la liste clignoterait sous les doigts.
+      const emettre = () => {
+        const b = m.getBounds();
+        rappelBornes.current?.({
+          sud: b.getSouth(),
+          ouest: b.getWest(),
+          nord: b.getNorth(),
+          est: b.getEast(),
+        });
+      };
+      m.on("moveend", emettre);
+      m.on("zoomend", emettre);
       m.setView(vueVide.centre, vueVide.zoom);
       const redim = new ResizeObserver(() => m.invalidateSize({ pan: false }));
       redim.observe(hote.current);
@@ -127,8 +155,12 @@ export function CarteEpingles({
     }
     if (cadre.current !== cadrage) {
       cadre.current = cadrage;
-      if (pts.length) m.fitBounds(Lf.latLngBounds(pts), { padding: [48, 48], maxZoom });
-      else m.setView(vueVide.centre, vueVide.zoom);
+      // Quand la liste suit la carte, la carte ne se recadre plus sur la liste :
+      // les deux se poursuivraient sans fin.
+      if (!suitRef.current) {
+        if (pts.length) m.fitBounds(Lf.latLngBounds(pts), { padding: [48, 48], maxZoom });
+        else m.setView(vueVide.centre, vueVide.zoom);
+      }
     }
   }, [prete, marqueurs, cadrage, maxZoom, vueVide]);
 
@@ -143,6 +175,12 @@ export function CarteEpingles({
   return (
     <div className={["carte7", className].filter(Boolean).join(" ")}>
       <div className="carte7__toile" ref={hote} />
+      {surSuivi ? (
+        <label className="carte7__suivi">
+          <input type="checkbox" checked={suivi} onChange={(e) => surSuivi(e.target.checked)} />
+          Rechercher quand je déplace la carte
+        </label>
+      ) : null}
       {tactile && !engagee ? (
         <button type="button" className="carte7__voile" onClick={engager}>
           <span>Appuyez pour déplacer la carte</span>

@@ -17,6 +17,7 @@ import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles, htmlPrix, htmlRepere } from "@/components/v7/CarteEpingles";
+import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
@@ -171,6 +172,10 @@ function Logements() {
   const [lsort, setLsort] = useState<LodgeSort>("pp");
   const [lfOpen, setLfOpen] = useState(false);
   const [sheetId, setSheetId] = useState<string | null>(null);
+  // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
+  // coup d'œil ailleurs efface la liste qu'on venait de constituer.
+  const [suivi, setSuivi] = useState(false);
+  const [bornes, setBornes] = useState<Bornes | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
 
   const stay = { checkIn, checkOut };
@@ -230,6 +235,12 @@ function Logements() {
     cap: (a, b) => (b.guests ?? 0) - (a.guests ?? 0),
   };
   const lvis = lapply(lp).sort(tri[lsort]);
+  // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
+  // pas de cadre, la carte ne peut ni les montrer ni les cacher.
+  const cadre = suivi ? bornes : null;
+  const parCadre = partagerParBornes(lvis, cadre);
+  const affichees = parCadre.visibles;
+  const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const lfree = lp.filter((p) => !p.fixed);
   // Ce que la zone seule a écarté, nommé par motif : une liste courte sans
   // explication se lit comme un relevé pauvre, pas comme un filtre qui a joué.
@@ -463,7 +474,11 @@ function Logements() {
                 ) : null}
                 <span className="filtres7__espace" />
                 <span className="filtres7__compte">
-                  {lvis.length} annonce{lvis.length > 1 ? "s" : ""} sur {raw.length}
+                  {affichees.length} annonce{affichees.length > 1 ? "s" : ""} sur {raw.length}
+                  {suivi && parCadre.horsCadre.length
+                    ? ` · ${parCadre.horsCadre.length} hors du cadre`
+                    : ""}
+                  {sansPos ? ` · ${sansPos}` : ""}
                 </span>
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>
@@ -570,7 +585,7 @@ function Logements() {
                       Réinitialiser
                     </a>
                     <button type="button" className="btn7" onClick={() => setLfOpen(false)}>
-                      Voir {lvis.length} annonce{lvis.length > 1 ? "s" : ""}
+                      Voir {affichees.length} annonce{affichees.length > 1 ? "s" : ""}
                     </button>
                   </div>
                 </div>
@@ -579,12 +594,26 @@ function Logements() {
 
             <div className="v7deux">
               <div className="v7deux__liste">
-                {lvis.length ? (
+                {affichees.length ? (
                   <div className="grille7-2">
-                    {lvis.map((l) => (
+                    {affichees.map((l) => (
                       <Carte key={l.id} l={l} />
                     ))}
                   </div>
+                ) : suivi && lvis.length ? (
+                  <Vide
+                    titre="Aucune annonce dans ce cadre"
+                    actions={
+                      <>
+                        <button type="button" className="btn7" onClick={() => setSuivi(false)}>
+                          Revoir les {lvis.length} annonces
+                        </button>
+                      </>
+                    }
+                  >
+                    La liste suit la carte. Déplacez-la, élargissez-la, ou décochez « Rechercher
+                    quand je déplace la carte » pour retrouver tout ce que le relevé donne.
+                  </Vide>
                 ) : lempty ? (
                   <Vide
                     titre={lempty.title}
@@ -610,6 +639,9 @@ function Logements() {
                   marqueurs={marqueurs}
                   cadrage={cadrage}
                   maxZoom={14}
+                  suivi={suivi}
+                  surSuivi={setSuivi}
+                  surBornes={setBornes}
                   surClic={(id) => {
                     if (id !== "__station") openSheet(id);
                   }}

@@ -217,3 +217,72 @@ export function orderStations(rows: readonly Station[], order: CarteOrder): Stat
   out.sort((a, b) => (value(b) ?? -1) - (value(a) ?? -1));
   return out;
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Le cadre visible de la carte
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Les quatre bornes du cadre, telles que Leaflet les rend.
+ *
+ * Nommées en français et à plat plutôt qu'en `LatLngBounds` : cette fonction
+ * doit se tester sans carte, donc sans Leaflet.
+ */
+export type Bornes = { sud: number; ouest: number; nord: number; est: number };
+
+/** Le minimum qu'il faut porter pour être situé quelque part. */
+export type PointCarte = { lat?: number | null; lon?: number | null };
+
+/**
+ * Ce point est-il dans le cadre ?
+ *
+ * **Une entrée sans coordonnées répond `true`.** Elle n'est pas dans le cadre,
+ * elle n'a pas de cadre : la carte ne peut ni la montrer ni la cacher, et la
+ * masquer parce qu'on ignore où elle est reviendrait à punir un relevé
+ * incomplet. Les écrans la comptent à part et le disent.
+ *
+ * Sans cadre — la carte n'a pas encore rendu ses bornes, ou l'utilisateur n'a
+ * pas demandé à filtrer — tout répond `true`.
+ */
+export function dansLesBornes(p: PointCarte, b: Bornes | null): boolean {
+  if (!b) return true;
+  if (p.lat == null || p.lon == null) return true;
+  if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) return true;
+  if (p.lat < b.sud || p.lat > b.nord) return false;
+  // Un cadre qui enjambe l'antiméridien a son est à l'ouest de son ouest. La
+  // France n'y va pas, mais une carte se déplace sans demander la permission.
+  return b.ouest <= b.est
+    ? p.lon >= b.ouest && p.lon <= b.est
+    : p.lon >= b.ouest || p.lon <= b.est;
+}
+
+/**
+ * Sépare une liste en trois, parce qu'il y a trois situations et non deux :
+ * ce que la carte montre, ce qu'elle ne montre pas, et ce qu'elle ne peut pas
+ * montrer faute de position.
+ */
+export function partagerParBornes<T extends PointCarte>(
+  rows: readonly T[],
+  b: Bornes | null,
+): { visibles: T[]; horsCadre: T[]; sansPosition: T[] } {
+  const visibles: T[] = [];
+  const horsCadre: T[] = [];
+  const sansPosition: T[] = [];
+  for (const r of rows) {
+    const situe = r.lat != null && r.lon != null && Number.isFinite(r.lat) && Number.isFinite(r.lon);
+    if (!situe) {
+      sansPosition.push(r);
+      visibles.push(r);
+      continue;
+    }
+    if (dansLesBornes(r, b)) visibles.push(r);
+    else horsCadre.push(r);
+  }
+  return { visibles, horsCadre, sansPosition };
+}
+
+/** « 3 sans localisation », ou rien du tout. */
+export function sansPositionLabel(n: number): string {
+  if (n <= 0) return "";
+  return `${n} sans localisation`;
+}

@@ -24,7 +24,7 @@ export function oublierRobots(): void {
   cache.clear();
 }
 
-async function lireRobots(origine: string): Promise<string | null> {
+async function lireRobots(origine: string, entetes?: Record<string, string>): Promise<string | null> {
   const hit = cache.get(origine);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.texte;
 
@@ -35,7 +35,7 @@ async function lireRobots(origine: string): Promise<string | null> {
     const r = await fetch(`${origine}/robots.txt`, {
       signal: ctrl.signal,
       redirect: "follow",
-      headers: { "user-agent": AGENT_CENTRALES, accept: "text/plain,*/*" },
+      headers: { "user-agent": AGENT_CENTRALES, accept: "text/plain,*/*", ...entetes },
     });
     // Un 404 est une réponse claire : il n'y a pas de règles, donc tout est
     // permis. Un 500 ou un refus, non : on ne sait pas, et on ne suppose pas.
@@ -57,14 +57,25 @@ async function lireRobots(origine: string): Promise<string | null> {
  * Le chemin testé inclut la chaîne de requête : c'est sur elle que portent la
  * plupart des interdictions des centrales, dont celles qui ferment les
  * recherches datées.
+ *
+ * `entetes` sert aux passerelles qui exigent des en-têtes de routage avant de
+ * répondre quoi que ce soit, `/robots.txt` compris. Celle de Deskline rend 400
+ * « Must provide value for header DW-Source » tant qu'on ne les envoie pas, et
+ * son fichier passerait pour illisible — donc interdit — alors qu'il répond 404
+ * dès qu'on le demande comme il faut. Un 400 pour en-tête manquant n'est pas un
+ * refus : c'est la façon dont cet hôte-là parle. Les en-têtes ne sont jamais un
+ * secret ni un jeton, sans quoi ce serait un contournement et pas une requête.
  */
-export async function centraleAutorise(url: string): Promise<VerdictRobots> {
+export async function centraleAutorise(
+  url: string,
+  entetes?: Record<string, string>,
+): Promise<VerdictRobots> {
   let u: URL;
   try {
     u = new URL(url);
   } catch {
     return { autorise: false, regle: "URL illisible" };
   }
-  const texte = await lireRobots(u.origin);
+  const texte = await lireRobots(u.origin, entetes);
   return robotsAutorise(texte, u.pathname + u.search, AGENT_CENTRALES);
 }

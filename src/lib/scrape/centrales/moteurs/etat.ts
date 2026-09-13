@@ -44,10 +44,10 @@ const ETAT: Record<MoteurCentrale, string> = {
   Diffusio:
     "ce moteur affiche ses prix sans qu'aucune date soit demandée, et n'expose aucun filtre de date, de durée ou de personnes : c'est une grille tarifaire, pas un total de séjour. Là où une recherche datée existe, robots.txt nomme un par un les paramètres du formulaire pour les interdire. Relevé du 13 septembre 2026.",
 
-  // Une centrale, deux stations. Rien ne l'interdit, et c'est le seul moteur
-  // dont l'empêchement soit purement technique.
+  // Une seule centrale dans le parc, La Clusaz, et elle est branchée. Cette
+  // phrase ne devrait donc jamais paraître à l'écran.
   "Deskline / Feratel":
-    "rien ne l'interdit, ni sur le site ni sur les hôtes du moteur, mais sa recherche est une application JavaScript qui se peint dans un Shadow DOM : le HTML servi ne porte pas un seul prix, et il n'y a donc pas d'adresse à interroger. Relevé du 13 septembre 2026.",
+    "ce moteur est interrogeable, et la seule centrale du parc qui l'emploie est branchée. Celle-ci n'a pas encore son fichier : il lui manque sa clé d'organisation, que son site publie.",
 
   // Sept centrales, seize stations, dont quatre déjà branchées par le fichier
   // de Haute Maurienne Vanoise. Celles qui restent sont d'une autre génération.

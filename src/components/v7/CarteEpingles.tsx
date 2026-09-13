@@ -355,9 +355,26 @@ function placer(pos: { x: number; y: number }, hote: HTMLElement | null) {
   };
 }
 
-/** Le marqueur de station de la maquette : disque, montagne, nom. */
-export function htmlStation(nom: string, sombre: boolean): string {
-  return `<div class="epingle-station${sombre ? " epingle-station--sombre" : ""}"><div class="epingle-station__disque"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19l6-11 4 7 2-3 6 7z"/></svg></div><span class="epingle-station__nom">${echappe(nom)}</span></div>`;
+/**
+ * Le marqueur de station de la maquette : disque, montagne, nom.
+ *
+ * `compacte` retire l'étiquette et réduit le disque. Une carte qui porte
+ * plusieurs centaines de stations ne peut pas nommer chacune : les étiquettes
+ * se recouvrent et plus aucune ne se lit. La station reste désignable, et la
+ * fenêtre qui s'ouvre au survol ou au clic la nomme ; `title` la nomme aussi,
+ * pour qui passe le pointeur sans attendre.
+ */
+export function htmlStation(nom: string, sombre: boolean, compacte = false): string {
+  const classes = [
+    "epingle-station",
+    sombre ? "epingle-station--sombre" : null,
+    compacte ? "epingle-station--compacte" : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const disque = `<div class="epingle-station__disque"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19l6-11 4 7 2-3 6 7z"/></svg></div>`;
+  const etiquette = compacte ? "" : `<span class="epingle-station__nom">${echappe(nom)}</span>`;
+  return `<div class="${classes}" title="${echappe(nom)}">${disque}${etiquette}</div>`;
 }
 
 /** Le repère discret de la station retenue, sur la carte des logements. */

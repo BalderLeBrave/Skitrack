@@ -117,6 +117,28 @@ function Home() {
   // de recherche répond au clavier pendant son propre fondu.
   const [entree, setEntree] = useState<"anime" | "faite">(() => (dejaVue() ? "faite" : "anime"));
 
+  // **Arriver à l'accueil relâche la station retenue.**
+  //
+  // L'accueil est le départ du parcours, et ce qu'il montre doit être vrai : une
+  // vignette sélectionnée y annonce que « Rechercher » ouvrira directement ses
+  // logements. Or la station retenue est gardée en mémoire locale, si bien
+  // qu'un choix fait la veille revenait coché tout seul, et la loupe sautait
+  // l'étape de comparaison sans que rien ne l'ait demandé.
+  //
+  // La règle est donc celle-ci : la station se choisit sur cet écran-ci, à
+  // cette visite-ci. Sans choix, la loupe ouvre « Comparer les stations ».
+  //
+  // Exception : un lien de partage porte sa propre station dans le fragment
+  // d'adresse, et `Coquille` la pose puis navigue aussitôt. Ses effets passent
+  // avant celui-ci, qui effacerait ce qu'il vient de poser.
+  useEffect(() => {
+    const partage = new URLSearchParams(window.location.hash.slice(1)).get("s");
+    if (partage) return;
+    // L'état est lu sur le magasin, pas capturé au rendu : l'effet n'a donc
+    // aucune dépendance, et ne rejoue pas quand la station change.
+    useParcours.getState().relacher();
+  }, []);
+
   useEffect(() => {
     if (entree === "faite") return;
     noterVue();

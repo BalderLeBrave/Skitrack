@@ -69,13 +69,13 @@ const ETAT: Record<MoteurCentrale, string> = {
   Orchestra:
     "ce moteur répond et ses prix suivent la durée, mais il n'a pas de recherche groupée ouverte : sa page de résultats est fermée par robots.txt, et le prix ne s'obtient qu'un logement à la fois. Interroger une station entière demanderait des dizaines d'appels par recherche, ce qui n'est pas une façon de traiter un serveur. Relevé du 13 septembre 2026.",
 
-  // Une centrale, Pralognan-la-Vanoise.
+  // Une centrale, Pralognan-la-Vanoise, et elle est branchée.
   Arkiane:
-    "ce moteur a été identifié et sa recherche datée répond, mais il n'a pas encore de connecteur. Relevé du 13 septembre 2026.",
+    "ce moteur est interrogeable, et la seule centrale du parc qui l'emploie est branchée. Celle-ci n'a pas encore son fichier.",
 
-  // Une centrale, Les Arcs.
+  // Une centrale, Les Arcs, et elle est branchée.
   iResa:
-    "ce moteur a été identifié et sa recherche datée répond, mais il n'a pas encore de connecteur. Relevé du 13 septembre 2026.",
+    "ce moteur est interrogeable, et la seule centrale du parc qui l'emploie est branchée. Celle-ci n'a pas encore son fichier.",
 
   // Une centrale, Les Karellis.
   Resalys:

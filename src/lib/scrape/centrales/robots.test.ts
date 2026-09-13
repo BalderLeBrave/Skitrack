@@ -78,6 +78,17 @@ Disallow: /x`);
     assert.ok(!motifEnRegex("/*.php$").test("/a/b.php?x=1"));
   });
 
+  it("une marque d'ordre d'octets ne fait pas perdre les règles", () => {
+    // Elle est invisible et elle ouvre certains fichiers. Sans traitement, la
+    // première ligne cesse de s'apparier : le groupe disparaît, toutes les
+    // règles avec, et le site entier passe pour autorisé. Vu le 13 septembre
+    // 2026 sur la centrale de Pralognan, dont le fichier commence par elle.
+    const avecMarque = "\ufeffUser-agent: *\nDisallow: /Images/";
+    assert.equal(parserRobots(avecMarque).length, 1, "le groupe doit survivre");
+    assert.equal(robotsAutorise(avecMarque, "/Images/x.jpg").autorise, false);
+    assert.equal(robotsAutorise(avecMarque, "/fr-FR/Home/x").autorise, true);
+  });
+
   it("un fichier illisible ne dit ni oui ni non", () => {
     const v = robotsAutorise(null, "/x");
     assert.equal(v.autorise, null);

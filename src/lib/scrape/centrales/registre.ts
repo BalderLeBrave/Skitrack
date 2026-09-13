@@ -68,6 +68,30 @@ for (const [host, f] of Object.entries(FICHIER.hotes)) {
   }
 }
 
+/**
+ * Les rattachements du classeur que la mesure a démentis.
+ *
+ * Le classeur du 19 août 2026 l'emporte partout ailleurs : il a été relevé à la
+ * main et il porte des liens précis. Mais il se trompe parfois, et quand la
+ * mesure le contredit, c'est la mesure qui gagne. Chaque entrée nomme la
+ * station, l'hôte que le classeur lui donnait, et ce qui l'a démenti.
+ *
+ * Un rattachement démenti est simplement mis de côté : la station repasse alors
+ * par le relevé de l'audit, comme si le classeur ne la connaissait pas.
+ */
+const DEMENTIS: Record<string, { host: string; pourquoi: string }> = {
+  // Le classeur donnait Les Arcs à la centrale de Peisey-Vallandry, sous le nom
+  // « Les Arcs ». Or ce site est celui de l'office de Peisey-Vallandry : son
+  // titre le dit, et sa page d'accueil nomme Peisey, Vallandry et Landry près
+  // de trois cents fois chacune contre quatre pour Bourg-Saint-Maurice. La
+  // centrale des Arcs, elle, vend bien Arc 1600, Arc 1950, Arc 2000 et six
+  // autres villages, et son fil d'Ariane dit « Bourg-Saint-Maurice ».
+  "les-arcs-bourg-st-maurice": {
+    host: "www.peisey-vallandry.com",
+    pourquoi: "ce site est l'office de Peisey-Vallandry, et Les Arcs a sa propre centrale",
+  },
+};
+
 /** D'où vient le rattachement station vers centrale. */
 export type OrigineRattachement = "relevé du 19 août 2026" | "audit du 13 septembre 2026";
 
@@ -100,7 +124,11 @@ export type FicheCentrale = {
  * stations restaient muettes derrière la centrale de leur voisine.
  */
 export function ficheCentrale(stationId: string): FicheCentrale | null {
-  const releve = centraleFor(stationId);
+  const brut = centraleFor(stationId);
+  // Un rattachement que la mesure a démenti est mis de côté : la station
+  // repasse par le relevé de l'audit, comme si le classeur l'ignorait.
+  const dementi = DEMENTIS[stationId];
+  const releve = dementi && brut?.host === dementi.host ? null : brut;
   const decouverte = PAR_STATION.get(stationId);
   const precise = releve?.portee === "domaine" && decouverte ? decouverte : null;
   const host = precise?.host ?? releve?.host ?? decouverte?.host;

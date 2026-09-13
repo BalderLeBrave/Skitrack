@@ -396,14 +396,31 @@ La contre-épreuve n'a pas servi qu'à confirmer. **Valfréjus** a été annonc�
 
 Et **Chamrousse** a été volontairement laissée fermée. Son `robots.txt` interdit `/*?action=*` et `/*?cid=*`, mais dans l'URL que son propre formulaire fabrique ces paramètres ne sont pas en tête : la chaîne `?action=` n'y apparaît jamais et, à la lettre, la règle ne s'apparie pas. Réordonner les paramètres pour passer serait une exception déguisée.
 
+### Arkiane et iResa, branchés à leur tour
+
+- **Pralognan-la-Vanoise**, moteur Arkiane. Les prix viennent de l'hôte marchand `reservationpralognan.locvacances.com`, dont le `robots.txt` ne ferme que onze répertoires, aucun ne contenant ce chemin. La garantie que le prix est daté est écrite dans la page : sans dates, chaque carte porte « À partir de … / sem. » et aucun total ; avec dates, ce libellé disparaît. Le connecteur écarte toute carte qui le porte encore. Sept logements pour huit personnes sur la semaine du 6 février 2027, capacité et photo sur les sept.
+- **Les Arcs**, moteur iResa, sur `lesarcs-reservation.com`. Vingt-quatre logements, capacité et photo sur les vingt-quatre.
+
+Ce dernier tend un piège qu'il faut nommer : **quand la durée demandée n'est pas vendue, il ne rend pas une liste vide mais son catalogue non daté**, six cent huit fiches aux prix unitaires, dont des nuitées en dortoir à trente-neuf euros. Les prendre pour des séjours mettrait les moins chers du parc en tête du comparatif. Chaque fiche porte sa propre durée et sa propre date de début, et c'est sur elles que le connecteur filtre.
+
+### Un rattachement du classeur, démenti par la mesure
+
+Le classeur du 19 août donnait Les Arcs à la centrale de Peisey-Vallandry, sous le nom « Les Arcs ». Ce site est en réalité l'office de Peisey-Vallandry : son titre le dit, et sa page d'accueil nomme Peisey, Vallandry et Landry près de trois cents fois chacune contre quatre pour Bourg-Saint-Maurice. La centrale des Arcs, elle, vend Arc 1600, Arc 1950, Arc 2000, Charmettoger, le Chantel, Montrigon, le Charvet, les Villards et la Croisette, et son fil d'Ariane dit « Bourg-Saint-Maurice ».
+
+Le registre gagne donc une liste de démentis : le classeur l'emporte partout, sauf là où une mesure le contredit, et chaque entrée nomme ce qui l'a démenti.
+
+### Un défaut de sécurité trouvé au passage
+
+Le `robots.txt` de l'hôte marchand de Pralognan commence par une marque d'ordre d'octets. Elle est invisible, et elle empêchait la première ligne de s'apparier : le groupe `User-agent` disparaissait, toutes ses règles avec, et le site entier passait pour autorisé. Corrigé et éprouvé.
+
 ### Où en est le parc
 
 | | |
 | --- | --- |
 | Centrales connues | 69 |
-| Centrales avec un connecteur | 23 |
-| Centrales réellement interrogées | 15 |
-| Stations qui interrogent leur centrale en direct | 24 |
+| Centrales avec un connecteur | 25 |
+| Centrales réellement interrogées | 17 |
+| Stations qui interrogent leur centrale en direct | 26 |
 | Centrales dont le moteur reste inconnu | 2 |
 
 Les quarante-six centrales sans fichier ne sont pas muettes pour autant : `moteurs/etat.ts` donne à chacun des douze moteurs une phrase qui dit ce que `robots.txt` autorise sur le chemin des prix, ce que le moteur a répondu, et pourquoi cela ne fait pas un prix. L'écran l'affiche telle quelle.

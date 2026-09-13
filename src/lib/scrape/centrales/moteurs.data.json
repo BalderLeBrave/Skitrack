@@ -257,13 +257,14 @@
    "reponse": 200
   },
   "www.peisey-vallandry.com": {
-   "nom": "Les Arcs",
+   "nom": "Peisey-Vallandry",
    "moteur": "Ingénie",
    "stations": [
-    "les-arcs-bourg-st-maurice"
+    "peisey-vallandry"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "L'audit du 13 septembre 2026 lui rattachait Les Arcs sous le nom « Les Arcs », et la mesure du même jour l'a démentie : son titre dit « Peisey-Vallandry, site officiel de l'office de tourisme et de la vallée », sa page d'accueil nomme Peisey, Vallandry et Landry près de trois cents fois chacune contre quatre pour Bourg-Saint-Maurice, et Les Arcs est vendue par sa propre centrale. La station rattachée est donc celle dont c'est l'office."
   },
   "www.mole-brasses.com": {
    "nom": "Les Brasses",
@@ -389,14 +390,15 @@
    "reponse": 200
   },
   "www.lesarcs.com": {
-   "nom": "Villaroger",
+   "nom": "Les Arcs",
    "moteur": "iResa",
    "stations": [
-    "villaroger"
+    "villaroger",
+    "les-arcs-bourg-st-maurice"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Moteur nommé le 13 septembre 2026 : iResa porte le stock, les disponibilités et les prix, derrière une vitrine Drupal."
+   "corrige": "Moteur nommé le 13 septembre 2026 : iResa porte le stock, les disponibilités et les prix, derrière une vitrine Drupal. Rattachement corrigé le 13 septembre 2026, sur mesure : la recherche datée de cette centrale rend des logements d'Arc 1600, Arc 1950, Arc 2000, Charmettoger, le Chantel, Montrigon, le Charvet, les Villards et la Croisette, et son champ de fil d'Ariane dit « Bourg-Saint-Maurice ». Les Arcs était rattachée à la centrale de Peisey-Vallandry, ce que rien ne soutenait."
   },
   "isola2000.com": {
    "nom": "Isola 2000",

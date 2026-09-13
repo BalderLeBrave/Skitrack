@@ -40,7 +40,12 @@ export const AGENT_CENTRALES = "SkitrackCentrales";
 export function parserRobots(texte: string): GroupeRobots[] {
   const groupes: GroupeRobots[] = [];
   let courant: GroupeRobots | null = null;
-  for (const brut of texte.split(/\r?\n/)) {
+  // La marque d'ordre d'octets ouvre certains fichiers, et elle est invisible.
+  // Sans ce retrait, la première ligne ne s'apparie plus : un fichier qui
+  // commence par « User-agent: * » perd son groupe, donc toutes ses règles, et
+  // le site entier passe pour autorisé. Vu le 13 septembre 2026 sur la centrale
+  // de Pralognan, dont le robots.txt commence par cette marque.
+  for (const brut of texte.replace(/^\uFEFF/, "").split(/\r?\n/)) {
     const ligne = brut.replace(/#.*$/, "").trim();
     const m = /^([a-zA-Z-]+)\s*:\s*(.*)$/.exec(ligne);
     if (!m) continue;

@@ -25,6 +25,10 @@ public/models/snow-mountain-hi.glb
 # Chrome PWA Grok (preview sandbox)
 public/__grok/
 
+# TanStack Router le réécrit à chaque `npm run dev` (surtout sous Windows).
+# Il n'a rien à faire dans Git : sinon chaque pull est bloqué.
+src/routeTree.gen.ts
+
 # Contrat sandbox, pas le produit
 AGENTS.md
 AGENTS.project.md

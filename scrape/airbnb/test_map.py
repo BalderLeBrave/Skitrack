@@ -5,6 +5,7 @@ from __future__ import annotations
 from map import (
     is_dropped_listing,
     listings_from_raw,
+    occupancy_from_text,
     stay_total_from_label,
     stay_to_listing,
 )
@@ -43,6 +44,15 @@ def _stay(**over):
     }
     rec.update(over)
     return rec
+
+
+def test_occupancy_from_text_slug_et_fourchette():
+    assert occupancy_from_text("l-olympe-n11-appartement-8-personnes.html") == (8, None)
+    assert occupancy_from_text("appartement-2-pieces-cabine-8-personnes") == (8, 1)
+    assert occupancy_from_text("Les Deux-Alpes, appartement 6-8 pers, cosy") == (8, None)
+    assert occupancy_from_text("2 appartements de 6 personnes face à face") == (None, None)
+    assert occupancy_from_text("T3 6 personnes") == (6, 2)
+    assert occupancy_from_text("STUDIO CABINE 4 pers.") == (4, 0)
 
 
 def test_stay_to_listing_total_seulement():

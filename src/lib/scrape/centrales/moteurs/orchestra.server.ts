@@ -135,7 +135,7 @@ function enListing(
   ctx: ContexteCentrale,
 ): Listing {
   const nuits = nuitsOrchestra(ctx.checkIn, ctx.checkOut);
-  const occ = annoncer({ guests: o.capacite, bedrooms: null }, c.titre, o.categorie);
+  const occ = annoncer({ guests: o.capacite, bedrooms: null }, c.titre, o.categorie, c.chemin);
   return {
     id: `orc-${r.cle}-${c.id}`,
     stationId: ctx.stationId,

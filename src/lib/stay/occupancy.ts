@@ -8,6 +8,9 @@
  * « N pièces » se traduit en chambres par la convention française déjà tenue
  * par `lodgingFilter` : un 3 pièces a deux chambres, un studio / 1 pièce n'en
  * a aucune. On ne recopie jamais le nombre de pièces dans `bedrooms`.
+ *
+ * Un slug `appartement-8-personnes` ou `2-pieces` est la même phrase, écrite
+ * avec des tirets : on la lit, on n'en déduit rien d'autre.
  */
 
 export type Occupancy = {
@@ -18,17 +21,20 @@ export type Occupancy = {
 const MAX = 50;
 
 const MULTI_UNITE =
-  /(\d+)\s*(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s*(?:personnes?|pers\.?|voyageurs?)\b/i;
+  /(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers\.?|voyageurs?)\b/i;
+
+const MULTI_UNITE_SLUG =
+  /(\d+)-(?:appartements?|chalets?|logements?|maisons?)-de-(\d+)-(?:personnes?|pers)\b/i;
 
 const GUESTS_RANGE =
-  /(\d+)\s*[/\u2013–-]\s*(\d+)\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b/i;
+  /(\d+)\s*[/\u2013–-]\s*(\d+)\s*-?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b/i;
 
 const GUESTS_ONE =
-  /(\d+)\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b/i;
+  /(\d+)\s*-?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b/i;
 
-const BEDROOMS = /(\d+)\s*(?:chambres?|bedrooms?)\b/i;
+const BEDROOMS = /(\d+)\s*-?\s*(?:chambres?|bedrooms?)\b/i;
 
-const PIECES = /(\d+)\s*pi[eè]ces?\b/i;
+const PIECES = /(\d+)\s*-?\s*pi[eè]ces?\b/i;
 
 const T_TYPE = /\bT([1-9])\b/i;
 
@@ -96,8 +102,8 @@ export function mergeOccupancy(base: Occupancy, extra: Occupancy): Occupancy {
 }
 
 /**
- * Lit un titre, un sous-titre, un bloc de tuile. Plusieurs chaînes : on les
- * joint, c'est le même logement qui parle plusieurs fois.
+ * Lit un titre, un sous-titre, un slug, un bloc de tuile. Plusieurs chaînes :
+ * on les joint, c'est le même logement qui parle plusieurs fois.
  */
 export function occupancyFromText(...parts: Array<string | null | undefined>): Occupancy {
   const text = parts.filter((p) => p && p.trim()).join(" · ");
@@ -106,7 +112,7 @@ export function occupancyFromText(...parts: Array<string | null | undefined>): O
   let guests: number | null = null;
   let bedrooms: number | null = null;
 
-  if (!MULTI_UNITE.test(text)) {
+  if (!MULTI_UNITE.test(text) && !MULTI_UNITE_SLUG.test(text)) {
     const range = GUESTS_RANGE.exec(text);
     if (range) {
       guests = takeGuests(Math.max(Number(range[1]), Number(range[2])));
@@ -169,4 +175,14 @@ export function annoncer(connu: Occupancy, ...textes: Array<string | null | unde
     { guests: takeGuests(connu.guests), bedrooms: takeBeds(connu.bedrooms) },
     occupancyFromText(...textes),
   );
+}
+
+/** Relit titre et URL d'une fiche déjà construite, sans toucher au reste. */
+export function occupancyOfListing(l: {
+  guests: number | null;
+  bedrooms: number | null;
+  title?: string | null;
+  url?: string | null;
+}): Occupancy {
+  return annoncer({ guests: l.guests, bedrooms: l.bedrooms }, l.title, l.url);
 }

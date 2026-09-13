@@ -111,12 +111,16 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
         return None, None
     guests = bedrooms = None
     if not re.search(
-        r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s*(?:personnes?|pers)",
+        r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers)",
+        blob,
+        re.I,
+    ) and not re.search(
+        r"(\d+)-(?:appartements?|chalets?|logements?|maisons?)-de-(\d+)-(?:personnes?|pers)",
         blob,
         re.I,
     ):
         pers = re.search(
-            r"(\d+)\s*(?:[-–/]\s*(\d+))?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
+            r"(\d+)\s*(?:[-–/]\s*(\d+))?\s*-?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
             blob,
             re.I,
         )
@@ -126,17 +130,21 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
             n = max(a, b)
             if 0 < n <= 50:
                 guests = n
-    chb = re.search(r"(\d+)\s*(?:chambres?|bedrooms?)\b", blob, re.I)
+    chb = re.search(r"(\d+)\s*-?\s*(?:chambres?|bedrooms?)\b", blob, re.I)
     if chb:
         n = int(chb.group(1))
         if 0 <= n <= 50:
             bedrooms = n
     if bedrooms is None:
-        pi = re.search(r"(\d+)\s*pi[eè]ces?\b", blob, re.I)
+        pi = re.search(r"(\d+)\s*-?\s*pi[eè]ces?\b", blob, re.I)
         if pi:
             n = int(pi.group(1))
             if 0 < n <= 50:
                 bedrooms = n - 1
+    if bedrooms is None:
+        t = re.search(r"\bT([1-9])\b", blob, re.I)
+        if t:
+            bedrooms = int(t.group(1)) - 1
     if bedrooms is None and re.search(r"\bstudio\b", blob, re.I):
         bedrooms = 0
     return guests, bedrooms

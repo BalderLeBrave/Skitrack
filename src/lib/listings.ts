@@ -9,6 +9,7 @@
 import { attachAccess } from "./access";
 import type { DomainVerdict } from "./domainFit";
 import { stationById } from "./stations";
+import { occupancyOfListing } from "./stay/occupancy";
 
 export type Listing = {
   id: string;
@@ -416,21 +417,32 @@ export const RELEVE_2A: Listing[] = [
   },
 ];
 
+function withPublishedOccupancy<T extends { guests: number | null; bedrooms: number | null; title: string; url: string | null }>(
+  l: T,
+): T {
+  const occ = occupancyOfListing(l);
+  if (occ.guests === l.guests && occ.bedrooms === l.bedrooms) return l;
+  return { ...l, guests: occ.guests, bedrooms: occ.bedrooms };
+}
+
 export function listingsForStay(stationId: string, guests: number, bedrooms: number): Listing[] {
   const station = stationById(stationId);
-  return RELEVE_2A.filter((l) => {
-    if (l.stationId !== stationId) return false;
-    if (l.guests != null && l.guests < guests) return false;
-    if (bedrooms > 0 && l.bedrooms != null && l.bedrooms < bedrooms) return false;
-    return true;
-  }).map((l) => (station ? attachAccess(l, station) : l));
+  return RELEVE_2A.filter((l) => l.stationId === stationId)
+    .map(withPublishedOccupancy)
+    .filter((l) => {
+      if (l.guests != null && l.guests < guests) return false;
+      if (bedrooms > 0 && l.bedrooms != null && l.bedrooms < bedrooms) return false;
+      return true;
+    })
+    .map((l) => (station ? attachAccess(l, station) : l));
 }
 
 export function listingById(id: string): Listing | undefined {
   const row = RELEVE_2A.find((l) => l.id === id);
   if (!row) return undefined;
-  const station = stationById(row.stationId);
-  return station ? attachAccess(row, station) : row;
+  const filled = withPublishedOccupancy(row);
+  const station = stationById(filled.stationId);
+  return station ? attachAccess(filled, station) : filled;
 }
 
 export function formatEuro(n: number): string {

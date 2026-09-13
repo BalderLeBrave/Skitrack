@@ -39,7 +39,7 @@ export type ReglageIngenie = {
 
 function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: ContexteCentrale): Listing {
   const nuits = nuitsEntre(ctx.checkIn, ctx.checkOut);
-  const occ = occupancyFromText(f.titre);
+  const occ = occupancyFromText(f.titre, f.chemin);
   return {
     id: `ing-${r.cle}-${f.id}`,
     stationId: ctx.stationId,

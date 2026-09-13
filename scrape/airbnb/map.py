@@ -21,14 +21,19 @@ PRIVATE = re.compile(
 HOTEL_TILE = re.compile(r"^h[oô]tels?\b", re.I)
 ENTIRE = re.compile(r"appartement|chalet|maison|logement entier|entire", re.I)
 GUESTS_RE = re.compile(
-    r"(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
+    r"(\d+)\s*(?:[-–/]\s*(\d+))?\s*-?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
     re.I,
 )
-BEDROOMS_RE = re.compile(r"(\d+)\s*(?:chambres?|bedrooms?)\b", re.I)
-PIECES_RE = re.compile(r"(\d+)\s*pi[eè]ces?\b", re.I)
+BEDROOMS_RE = re.compile(r"(\d+)\s*-?\s*(?:chambres?|bedrooms?)\b", re.I)
+PIECES_RE = re.compile(r"(\d+)\s*-?\s*pi[eè]ces?\b", re.I)
 STUDIO_RE = re.compile(r"\bstudio\b", re.I)
+T_TYPE_RE = re.compile(r"\bT([1-9])\b", re.I)
 MULTI_RE = re.compile(
-    r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s*(?:personnes?|pers)",
+    r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers)",
+    re.I,
+)
+MULTI_SLUG_RE = re.compile(
+    r"(\d+)-(?:appartements?|chalets?|logements?|maisons?)-de-(\d+)-(?:personnes?|pers)",
     re.I,
 )
 
@@ -117,7 +122,7 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
     if not blob:
         return None, None
     guests = bedrooms = None
-    if not MULTI_RE.search(blob):
+    if not MULTI_RE.search(blob) and not MULTI_SLUG_RE.search(blob):
         pers = GUESTS_RE.search(blob)
         if pers:
             a = int(pers.group(1))
@@ -136,6 +141,10 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
             n = int(pi.group(1))
             if 0 < n <= 50:
                 bedrooms = n - 1
+    if bedrooms is None:
+        t = T_TYPE_RE.search(blob)
+        if t:
+            bedrooms = int(t.group(1)) - 1
     if bedrooms is None and STUDIO_RE.search(blob):
         bedrooms = 0
     return guests, bedrooms

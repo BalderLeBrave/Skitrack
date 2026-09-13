@@ -100,7 +100,7 @@ async function soumettre(url: string, cookies: string, corps: Record<string, str
 
 function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listing {
   const base = r.reservation.replace(/\/+$/, "");
-  const occ = annoncer({ guests: f.capacite, bedrooms: null }, f.titre);
+  const occ = annoncer({ guests: f.capacite, bedrooms: null }, f.titre, f.chemin);
   const remise =
     f.avantRemise && f.avantRemise > f.total
       ? ` — remisé depuis ${Math.round(f.avantRemise).toLocaleString("fr-FR")} €`

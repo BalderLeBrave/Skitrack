@@ -5,6 +5,7 @@ import {
   bedroomsFromRooms,
   occupancyFromRecord,
   occupancyFromText,
+  occupancyOfListing,
 } from "./occupancy.ts";
 
 describe("occupancy : ce que la source a écrit, rien de plus", () => {
@@ -21,11 +22,17 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
       guests: null,
       bedrooms: null,
     });
+    assert.deepEqual(occupancyFromText("2-appartements-de-6-personnes"), {
+      guests: null,
+      bedrooms: null,
+    });
   });
 
   it("prend le haut d'une fourchette 7/8", () => {
     assert.equal(occupancyFromText("Capacité 7/8 personnes").guests, 8);
     assert.equal(occupancyFromText("Appartement 3 pièces 7-8 pers.").guests, 8);
+    assert.equal(occupancyFromText("Les Deux-Alpes, appartement 6-8 pers, cosy, calme").guests, 8);
+    assert.equal(occupancyFromText("Grand appartement pied des pistes 13-15 personnes").guests, 15);
   });
 
   it("traduit les pièces en chambres, pas le contraire", () => {
@@ -51,6 +58,17 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
     assert.deepEqual(occupancyFromText("6 lits · 3 chambres"), { guests: null, bedrooms: 3 });
   });
 
+  it("lit un slug à tirets, la même phrase que le titre", () => {
+    assert.equal(
+      occupancyFromText("l-olympe-n11-appartement-8-personnes-les-2-alpes.html").guests,
+      8,
+    );
+    assert.deepEqual(
+      occupancyFromText("vacanceole-l-edelweiss-appartement-2-pieces-cabine-8-personnes"),
+      { guests: 8, bedrooms: 1 },
+    );
+  });
+
   it("le champ publié l'emporte sur le titre", () => {
     const o = annoncer({ guests: 10, bedrooms: 4 }, "8 personnes · 2 chambres");
     assert.deepEqual(o, { guests: 10, bedrooms: 4 });
@@ -59,6 +77,27 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
   it("le titre complète un JSON muet", () => {
     const o = annoncer({ guests: null, bedrooms: null }, "Chalet 10 personnes 4 chambres");
     assert.deepEqual(o, { guests: 10, bedrooms: 4 });
+  });
+
+  it("relit titre et URL d'une fiche déjà construite", () => {
+    assert.deepEqual(
+      occupancyOfListing({
+        guests: null,
+        bedrooms: 3,
+        title: "Les Deux-Alpes, appartement 6-8 pers, cosy, calme",
+        url: null,
+      }),
+      { guests: 8, bedrooms: 3 },
+    );
+    assert.deepEqual(
+      occupancyOfListing({
+        guests: 8,
+        bedrooms: null,
+        title: "Vacancéole - l'Edelweiss-",
+        url: "https://reservation.les2alpes.com/vacanceole-l-edelweiss-appartement-2-pieces-cabine-8-personnes-les-2-alpes.html",
+      }),
+      { guests: 8, bedrooms: 1 },
+    );
   });
 
   it("lit les clés structurées d'une fiche Cozy / Airbnb", () => {

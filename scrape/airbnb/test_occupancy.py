@@ -15,7 +15,7 @@ def _raw(**over):
                                 "roomType": "Entire home/apt",
                             }
                         },
-                        "sharingConfig": {"personCapacity": 8},
+                        "sharingConfig": {"personCapacity": 8, "bedroomCount": 3},
                         "bookingPrefetchData": {"isHotelRatePlanEnabled": False},
                     }
                 }
@@ -29,6 +29,7 @@ def _raw(**over):
 def test_person_capacity():
     occ = occupancy_from_pdp(_raw())
     assert occ["guests"] == 8
+    assert occ["bedrooms"] == 3
     assert occ["room_type"] == "Entire home/apt"
     assert occ["dropped"] is False
 
@@ -52,7 +53,7 @@ def test_chambre_privee_ecartee():
 
 
 def test_merge_complete_guests_sans_inventer_le_prix():
-    listing = {"id": "1", "name": "Chalet", "total": 1775, "guests": None, "bedrooms": 3}
+    listing = {"id": "1", "name": "Chalet", "total": 1775, "guests": None, "bedrooms": None}
     merged = merge_occupancy(listing, occupancy_from_pdp(_raw()))
     assert merged is not None
     assert merged["guests"] == 8

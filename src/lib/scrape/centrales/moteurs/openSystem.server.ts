@@ -92,7 +92,7 @@ async function toutesLesPages(base: string, ctx: ContexteCentrale, rubriques: re
 }
 
 function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: ContexteCentrale): Listing {
-  const occ = occupancyFromText(f.titre, f.adresse);
+  const occ = occupancyFromText(f.titre, f.adresse, f.chemin);
   return {
     // L'identifiant porte l'identité sans rubrique, pas le chemin : le même
     // logement trouvé sous « tous nos hébergements » et sous « hôtels » doit

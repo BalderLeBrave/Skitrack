@@ -3,6 +3,7 @@ import type { Listing } from "@/lib/listings";
 import { RELEVE_2A } from "@/lib/listings";
 import { attachAccess } from "@/lib/access";
 import { stationById } from "@/lib/stations";
+import { occupancyOfListing } from "@/lib/stay/occupancy";
 import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
 import { scrapeAirbnb } from "./airbnb.server";
@@ -26,9 +27,13 @@ function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   }
   return RELEVE_2A.filter((l) => {
     if (!allow.has(l.source)) return false;
-    if (l.guests != null && l.guests < input.guests) return false;
-    if (input.bedrooms > 0 && l.bedrooms != null && l.bedrooms < input.bedrooms) return false;
+    const occ = occupancyOfListing(l);
+    if (occ.guests != null && occ.guests < input.guests) return false;
+    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) return false;
     return true;
+  }).map((l) => {
+    const occ = occupancyOfListing(l);
+    return occ.guests === l.guests && occ.bedrooms === l.bedrooms ? l : { ...l, ...occ };
   });
 }
 

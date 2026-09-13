@@ -6,7 +6,7 @@
  *  Données : `STATIONS` du dépôt et le catalogue de forfaits. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { Flocons } from "@/components/Flocons";
@@ -30,6 +30,32 @@ import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
 
 export const Route = createFileRoute("/")({ component: Home });
+
+/**
+ * La séquence d'entrée ne se joue qu'une fois par session.
+ *
+ * Elle dure une seconde et demie ; revue à chaque retour sur l'accueil, elle
+ * deviendrait un péage. `sessionStorage` retient le passage pour l'onglet, et
+ * son échec — navigation privée, stockage refusé — est sans conséquence : la
+ * séquence se rejoue, ce qui est le pire qui puisse arriver.
+ */
+const CLE_ENTREE = "skitrack.v7.entree";
+
+function dejaVue(): boolean {
+  try {
+    return sessionStorage.getItem(CLE_ENTREE) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function noterVue(): void {
+  try {
+    sessionStorage.setItem(CLE_ENTREE, "1");
+  } catch {
+    /* stockage indisponible : la séquence se rejouera */
+  }
+}
 
 type Panneau = null | "q" | "alt" | "dates" | "guests";
 
@@ -86,6 +112,28 @@ function Home() {
 
   const [q, setQ] = useState("");
   const [hp, setHp] = useState<Panneau>(null);
+  // « anime » ne dure que le temps de la séquence. Rien n'est caché : tout est
+  // dans le document dès le premier rendu, seule l'opacité bouge, et la barre
+  // de recherche répond au clavier pendant son propre fondu.
+  const [entree, setEntree] = useState<"anime" | "faite">(() => (dejaVue() ? "faite" : "anime"));
+
+  useEffect(() => {
+    if (entree === "faite") return;
+    noterVue();
+    // Un geste de l'utilisateur termine la séquence sur-le-champ : personne ne
+    // doit attendre une animation pour se servir de l'écran.
+    const finir = () => setEntree("faite");
+    const fin = setTimeout(finir, 1600);
+    window.addEventListener("keydown", finir, { once: true });
+    window.addEventListener("pointerdown", finir, { once: true });
+    return () => {
+      clearTimeout(fin);
+      window.removeEventListener("keydown", finir);
+      window.removeEventListener("pointerdown", finir);
+    };
+    // Une seule fois, au montage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const ouvrir = (p: Panneau) => {
     if (p === "dates") plage.ouvrirArrivee();
@@ -174,7 +222,7 @@ function Home() {
   return (
     <Coquille>
       <main className="v7main v7main--pleine" id="s-home" data-screen-label="Accueil">
-        <div className="hero7">
+        <div className={`hero7${entree === "anime" ? " hero7--entree" : ""}`}>
           <ImageSlot shape="rect"
             id="v7app-cover"
             placeholder="Photo de couverture : un domaine en février, au petit matin. Crédit obligatoire."
@@ -194,13 +242,16 @@ function Home() {
             opacityMax={52}
           />
           <div className="hero7__in">
-            <h1>Le bon domaine, à la bonne altitude.</h1>
+            <h1>
+              <span className="hero7__t1">Le bon domaine,</span>{" "}
+              <span className="hero7__t2">à la bonne altitude.</span>
+            </h1>
             <p className="hero7__lead">
               Altitudes réelles, mix de pistes, forfaits relevés et logements au total du séjour. Ce
               qui n'est pas relevé est dit absent.
             </p>
             {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
-            <div className="sbar7__hote">
+            <div className="sbar7__hote hero7__barre">
               <div className={`sbar7${hp ? " sbar7--ouverte" : ""}`}>
                 <label className={seg(hp === "q")} onClick={() => setHp("q")}>
                   <span className="sbar7__k">Destination</span>
@@ -362,6 +413,21 @@ function Home() {
               ))}
             </div>
           </div>
+          <span className="hero7__suite" aria-hidden>
+            <span>La suite plus bas</span>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v13M6 13l6 6 6-6" />
+            </svg>
+          </span>
           <span className="hero7__credit">Crédit photo à relever</span>
         </div>
 

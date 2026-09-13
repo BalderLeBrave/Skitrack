@@ -159,12 +159,13 @@
   },
   "www.flaine.com": {
    "nom": "Flaine",
-   "moteur": "inconnu",
+   "moteur": "MSEM",
    "stations": [
     "flaine"
    ],
    "robots": "autorisé (Allow: /)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 320, channel « OT-320 », 369 hébergements, 44 vendables à huit personnes du 6 au 13 février 2027, prix exactement doublé sur quatorze nuits."
   },
   "www.laclusaz.com": {
    "nom": "La Clusaz",
@@ -387,12 +388,13 @@
   },
   "isola2000.com": {
    "nom": "Isola 2000",
-   "moteur": "inconnu",
+   "moteur": "MSEM",
    "stations": [
     "isola-2000"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 386, channel « ISOLA », 44 hébergements, zéro offre à huit personnes cette semaine-là parce que les neuf assez grands sont pris ; deux offres la semaine précédente."
   },
   "reservation.ledevoluy.com": {
    "nom": "La Joue du Loup",
@@ -443,12 +445,13 @@
   },
   "www.paysdesecrins.com": {
    "nom": "Puy-Saint-Vincent",
-   "moteur": "inconnu",
+   "moteur": "MSEM",
    "stations": [
     "puy-saint-vincent"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 30015, channel « PDE », 199 hébergements, 5 vendables à huit personnes, prix doublé sur quatorze nuits."
   },
   "reservation.serre-chevalier.com": {
    "nom": "Serre-Chevalier",
@@ -470,12 +473,13 @@
   },
   "www.valberg.com": {
    "nom": "Valberg",
-   "moteur": "inconnu",
+   "moteur": "MSEM",
    "stations": [
     "valberg"
    ],
    "robots": "autorisé (Allow: /)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur « non identifié » au relevé du 13 septembre 2026, nommé le même jour : MSEM, servi par services.msem.tech, avec resort 665, channel « OT-665 », 40 hébergements, une offre à huit personnes à 7 042,80 € qui tombe à 3 111,20 € sur trois nuits."
   },
   "www.lesrousses.com": {
    "nom": "Les Rousses",

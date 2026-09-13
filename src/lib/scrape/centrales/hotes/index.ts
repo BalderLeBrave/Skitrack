@@ -8,12 +8,13 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-sept ; quatorze en ont un ici : les sept d'Open System, les six de
- * MSEM, et Forêt Blanche, dont le cas Ingénie méritait d'être écrit. Sept de
- * ces quatorze s'interrogent vraiment et couvrent seize stations.
- * Pour les cinquante-cinq autres centrales, `registre.ts` sait déjà nommer le
+ * soixante-neuf ; dix-huit en ont un ici : les sept d'Open System, les dix de
+ * MSEM, et Forêt Blanche, dont le cas Ingénie méritait d'être écrit. Onze de
+ * ces dix-huit s'interrogent vraiment et couvrent vingt stations.
+ *
+ * Pour les cinquante et une autres centrales, `registre.ts` sait déjà nommer le
  * moteur, et `moteurs/etat.ts` dit en une phrase ce qui empêche ce moteur-là :
- * de quoi expliquer leur silence sans écrire cinquante-cinq fichiers vides. Un
+ * de quoi expliquer leur silence sans écrire autant de fichiers vides. Un
  * fichier s'écrit le jour où la centrale devient interrogeable, ou le jour où
  * son empêchement mérite d'être raconté en détail.
  */
@@ -24,13 +25,17 @@ import { alpeDuGrandSerre } from "./alpeDuGrandSerre";
 import { ax3Domaines } from "./ax3Domaines";
 import { correnconEnVercors } from "./correnconEnVercors";
 import { devoluy } from "./devoluy";
+import { flaine } from "./flaine";
 import { foretBlanche } from "./foretBlanche";
 import { hauteMaurienneVanoise } from "./hauteMaurienneVanoise";
+import { isola2000 } from "./isola2000";
 import { lesSybelles } from "./lesSybelles";
 import { montclar } from "./montclar";
+import { paysDesEcrins } from "./paysDesEcrins";
 import { piauEngaly } from "./piauEngaly";
 import { saintFrancoisLongchamp } from "./saintFrancoisLongchamp";
 import { sainteFoyTarentaise } from "./sainteFoyTarentaise";
+import { valberg } from "./valberg";
 import { valmorel } from "./valmorel";
 import { vars } from "./vars";
 
@@ -43,6 +48,10 @@ const TOUS: readonly Connecteur[] = [
   sainteFoyTarentaise,
   correnconEnVercors,
   vars,
+  flaine,
+  isola2000,
+  paysDesEcrins,
+  valberg,
   montclar,
   // Ingénie : sa porte est ouverte ici, mais rien ne répond derrière.
   foretBlanche,

@@ -19,7 +19,7 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
-import { chargerLeaflet, type Leaflet } from "@/lib/leaflet";
+import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
 import { BASEMAPS, PISTE_OVERLAY, resolvedBasemap } from "@/lib/mapStyle";
 import { useMapPrefs } from "@/lib/mapPrefs";
 
@@ -89,6 +89,9 @@ export function Carte({
   rappels.current = { surSurvol, surClic, surDoubleClic };
   const [prete, setPrete] = useState(0);
   const [ouvert, setOuvert] = useState(false);
+  // Même règle que les cartes du parcours : au doigt, un premier appui.
+  const [tactile, setTactile] = useState(false);
+  const [engagee, setEngagee] = useState(false);
 
   const basemap = useMapPrefs((s) => s.basemap);
   const pistes = useMapPrefs((s) => s.pistes);
@@ -104,10 +107,13 @@ export function Carte({
     void chargerLeaflet().then((Lf) => {
       if (annule || !hote.current) return;
       lib.current = Lf;
+      const doigt = !statique && pointeurGrossier();
+      setTactile(doigt);
       const m = Lf.map(hote.current, {
         zoomControl: !statique,
-        scrollWheelZoom: !statique,
-        dragging: !statique,
+        scrollWheelZoom: !statique && !doigt,
+        dragging: !statique && !doigt,
+        touchZoom: !statique && !doigt,
         doubleClickZoom: !statique,
         attributionControl: true,
       });
@@ -258,6 +264,21 @@ export function Carte({
         .join(" ")}
     >
       <div className="carte__toile" ref={hote} />
+      {tactile && !engagee ? (
+        <button
+          type="button"
+          className="carte7__voile"
+          onClick={() => {
+            const m = carte.current;
+            if (!m) return;
+            m.dragging.enable();
+            m.touchZoom.enable();
+            setEngagee(true);
+          }}
+        >
+          <span>Appuyez pour déplacer la carte</span>
+        </button>
+      ) : null}
       {outils && !statique ? (
         <div className="carte__outils">
           <button

@@ -1119,6 +1119,27 @@
 .carte7 .leaflet-control-attribution {
   font-size: 10px;
 }
+/* Voile tactile : la carte attend un appui avant de prendre le geste. Il ne
+   masque pas la carte, il dit seulement qu'elle est en attente. */
+.carte7__voile {
+  position: absolute;
+  inset: 0;
+  z-index: 450;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: color-mix(in srgb, var(--color-ink) 14%, transparent);
+  cursor: pointer;
+}
+.carte7__voile span {
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  color: var(--color-ink);
+  font-size: var(--text-detail);
+  font-weight: 700;
+  box-shadow: var(--shadow-flottant);
+}
 .carte7__legende {
   position: absolute;
   left: 12px;

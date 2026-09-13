@@ -11,12 +11,18 @@
  *
  * `Carte.tsx` reste la carte des écrans de contrôle, avec ses fonds IGN et sa
  * surcouche de pistes. Celle-ci suit la maquette : fond OpenStreetMap, zoom en
- * bas à droite, pas de molette.
+ * bas à droite.
+ *
+ * Elle se manipule : molette, glisser, double-clic. Elle ne le faisait pas —
+ * `scrollWheelZoom` était coupé et rien ne le disait, si bien que la molette
+ * passée sur la carte faisait défiler la page derrière elle. Au doigt, en
+ * revanche, la carte attend un premier appui avant de prendre le geste : sinon
+ * elle avale le défilement de la page, ce qui est le même défaut à l'envers.
  */
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
-import { chargerLeaflet, type Leaflet } from "@/lib/leaflet";
+import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
 
 export type Marqueur = {
   id: string;
@@ -55,6 +61,10 @@ export function CarteEpingles({
   rappel.current = surClic;
   const cadre = useRef("");
   const [prete, setPrete] = useState(false);
+  // Au doigt, la carte n'attrape le geste qu'après un premier appui : sans
+  // cela elle avale le défilement de la page au milieu de la liste.
+  const [tactile, setTactile] = useState(false);
+  const [engagee, setEngagee] = useState(false);
 
   useEffect(() => {
     let annule = false;
@@ -62,7 +72,16 @@ export function CarteEpingles({
     void chargerLeaflet().then((Lf) => {
       if (annule || !hote.current) return;
       lib.current = Lf;
-      const m = Lf.map(hote.current, { zoomControl: false, scrollWheelZoom: false });
+      // La molette zoome : c'est une carte de résultats, pas une vignette.
+      const doigt = pointeurGrossier();
+      setTactile(doigt);
+      const m = Lf.map(hote.current, {
+        zoomControl: false,
+        scrollWheelZoom: !doigt,
+        dragging: !doigt,
+        touchZoom: !doigt,
+        doubleClickZoom: true,
+      });
       Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",
         maxZoom: 18,
@@ -113,9 +132,22 @@ export function CarteEpingles({
     }
   }, [prete, marqueurs, cadrage, maxZoom, vueVide]);
 
+  const engager = () => {
+    const m = carte.current;
+    if (!m) return;
+    m.dragging.enable();
+    m.touchZoom.enable();
+    setEngagee(true);
+  };
+
   return (
     <div className={["carte7", className].filter(Boolean).join(" ")}>
       <div className="carte7__toile" ref={hote} />
+      {tactile && !engagee ? (
+        <button type="button" className="carte7__voile" onClick={engager}>
+          <span>Appuyez pour déplacer la carte</span>
+        </button>
+      ) : null}
       {legende ? <div className="carte7__legende">{legende}</div> : null}
     </div>
   );

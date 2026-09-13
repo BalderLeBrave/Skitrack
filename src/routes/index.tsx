@@ -9,6 +9,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
+import { Flocons } from "@/components/Flocons";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { Calendrier, usePlage } from "@/components/v7/Calendrier";
@@ -181,6 +182,17 @@ function Home() {
             src="/hero.jpg"
           />
           <div className="hero7__voile" />
+          {/* Entre le voile et le texte : la neige passe devant la photo, jamais
+              devant ce qui se lit. Densité et opacité sobres, chute lente. */}
+          <Flocons
+            count={130}
+            speedMin={0.14}
+            speedMax={0.5}
+            sizeMin={0.8}
+            sizeMax={2.6}
+            opacityMin={18}
+            opacityMax={52}
+          />
           <div className="hero7__in">
             <h1>Le bon domaine, à la bonne altitude.</h1>
             <p className="hero7__lead">

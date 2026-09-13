@@ -1463,6 +1463,22 @@
   );
   pointer-events: none;
 }
+/* La neige : au-dessus de la photo et de son voile, sous le texte. Elle ne
+   prend pas le pointeur, et le titre garde son ombre portee pour rester lisible
+   quand un flocon passe derriere une lettre. */
+.hero7__neige {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.hero7__neige-toile {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .hero7__in {
   position: relative;
   width: 100%;

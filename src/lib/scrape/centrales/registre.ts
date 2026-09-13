@@ -17,8 +17,11 @@
  * **Prendre l'un pour l'autre coûte huit stations.** Les six stations des
  * Sybelles, l'Alpe du Grand Serre et Piau-Engaly n'existent que dans le second
  * relevé : s'en tenir au premier les laisse sans centrale, et l'écran leur dit
- * « cette station n'a pas de centrale », ce qui est faux. Le premier garde la
- * priorité quand les deux parlent, parce que lui seul porte un lien précis.
+ * « cette station n'a pas de centrale », ce qui est faux.
+ *
+ * Quand les deux parlent, c'est le rattachement le plus précis qui gagne, et
+ * non le plus ancien : voir `ficheCentrale`. Le classeur l'emporte à portée
+ * égale, parce que lui seul porte un lien de réservation relevé à la main.
  */
 
 import { centraleFor } from "@/lib/centrales";
@@ -75,23 +78,38 @@ export type FicheCentrale = {
   reponseReleve: number | string | null;
 };
 
-/** La centrale d'une station, enrichie du relevé. `null` quand il n'y en a pas. */
+/**
+ * La centrale d'une station, enrichie du relevé. `null` quand il n'y en a pas.
+ *
+ * **Le rattachement le plus précis gagne.** `centraleFor` applique déjà cette
+ * règle à l'intérieur de son propre relevé : une station qui a sa centrale la
+ * garde même si son domaine en a une, parce que Val Thorens vend ses
+ * appartements quand les 3 Vallées vendent le forfait. La même règle vaut
+ * entre les deux relevés : un rattachement de station découvert par l'audit
+ * l'emporte sur un rattachement de domaine du classeur.
+ *
+ * Vars est le cas qui l'a imposée. Le classeur la range sous la Forêt Blanche,
+ * dont la centrale est celle de Risoul, sur moteur Ingénie et fermée. Vars a en
+ * réalité sa propre centrale, sur MSEM, qui répond. Sans cette règle, trois
+ * stations restaient muettes derrière la centrale de leur voisine.
+ */
 export function ficheCentrale(stationId: string): FicheCentrale | null {
   const releve = centraleFor(stationId);
   const decouverte = PAR_STATION.get(stationId);
-  const host = releve?.host ?? decouverte?.host;
+  const precise = releve?.portee === "domaine" && decouverte ? decouverte : null;
+  const host = precise?.host ?? releve?.host ?? decouverte?.host;
   if (!host) return null;
   const f = FICHIER.hotes[host];
   return {
     host,
-    nom: releve?.nom ?? decouverte?.nom ?? host,
+    nom: precise?.nom ?? releve?.nom ?? decouverte?.nom ?? host,
     // L'audit n'a gardé que l'hôte pour ce qu'il a découvert : l'origine est
     // donc la seule adresse qu'il ait réellement appelée pour ces centrales-là.
     // Le relevé du 19 août, quand il couvre la station, donne un lien plus
     // précis, et c'est lui qu'on rend.
-    url: releve?.url ?? `https://${host}/`,
+    url: precise ? `https://${host}/` : (releve?.url ?? `https://${host}/`),
     moteur: moteurDe(f?.moteur),
-    origine: releve ? "relevé du 19 août 2026" : "audit du 13 septembre 2026",
+    origine: precise || !releve ? "audit du 13 septembre 2026" : "relevé du 19 août 2026",
     robotsReleve: f?.robots ?? null,
     reponseReleve: f?.reponse ?? null,
   };

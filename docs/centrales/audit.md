@@ -312,6 +312,19 @@ Cette section corrige et prolonge l'audit ci-dessus. Elle est écrite le même j
 
 Douze stations interrogées en direct, plus huit couvertes par un connecteur qui dit pourquoi il ne peut pas.
 
+### Une méthode que l'audit n'avait pas employée
+
+L'audit demandait à chaque station quel éditeur elle emploie. La question inverse rapporte autant : demander à l'éditeur quelles stations il équipe. `msem.tech` publie un mur de logos partenaires, et il nomme trente-trois clients.
+
+Deux centrales en sont sorties, qu'aucune passe station par station n'avait trouvées.
+
+- **Vars.** L'audit rattachait Vars, Vars Sainte-Marie et Les Claux à la centrale de Risoul, sur moteur Ingénie et fermée. Vars a sa propre centrale, `reservation.vars.com`, sur MSEM : `resort` 692, `channel` « OT-692 », `robots.txt` sans interdit, 112 hébergements au catalogue et 5 vendables à huit personnes du 6 au 13 février 2027. Le prix suit la durée — le « Chalet Marly » passe de 4 753 € à 9 381 € sur quatorze nuits. Les deux versants de la Forêt Blanche se vendent séparément ; la donnée est corrigée et Risoul ne garde que sa station.
+- **Montclar les 2 vallées**, qui n'avait aucune centrale au relevé. `www.montclar.com` publie `resort` 276 et `channel` « OT-276 ». Six hébergements au catalogue, et zéro offre à toutes les dates essayées : la centrale existe et répond, elle n'a rien à vendre ces jours-là. Son lien mène à la centrale et non au logement, parce que les adresses de son site n'ont rien à voir avec les slugs de MSEM et qu'un lien faux vaut moins qu'un lien large.
+
+Cette découverte a imposé une règle au registre : **le rattachement le plus précis gagne**, et non le plus ancien. Un rattachement de station trouvé par l'audit l'emporte sur un rattachement de domaine venu du classeur. Sans elle, trois stations restaient muettes derrière la centrale de leur voisine.
+
+D'autres partenaires du mur restent à élucider : Saint-Gervais, dont le site charge bien un module MSEM mais n'en publie pas les identifiants, Manigod, Bernex, Flumet et La Schlucht.
+
 ### Deux corrections à l'audit
 
 **« Ublo » n'est pas le moteur de réservation.** Ublo est le gestionnaire de contenu, signé Valraiso, qui fabrique le site. La recherche d'hébergement est un composant chargé à part, « Mon Séjour En Montagne », servi par `services.msem.tech`. Les quatre centrales concernées ne sont donc pas quatre moteurs : c'est une seule API, à deux identifiants près — `resort` et `channel`.

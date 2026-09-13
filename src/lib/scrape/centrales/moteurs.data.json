@@ -408,13 +408,11 @@
    "nom": "Forêt Blanche : Vars/Risoul",
    "moteur": "Ingénie",
    "stations": [
-    "les-claux",
-    "risoul",
-    "vars",
-    "vars-sainte-marie"
+    "risoul"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "L'audit du 13 septembre 2026 rattachait à cette centrale les quatre stations de la Forêt Blanche. Corrigé le même jour : Vars, Vars Sainte-Marie et Les Claux ont leur propre centrale, reservation.vars.com, sur MSEM, qui répond. Les deux versants du domaine se vendent séparément. Risoul reste seule ici."
   },
   "reservation.lesorres.com": {
    "nom": "Les Orres",
@@ -651,6 +649,28 @@
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200
+  },
+  "reservation.vars.com": {
+   "nom": "Vars",
+   "moteur": "Ublo",
+   "stations": [
+    "vars",
+    "vars-sainte-marie",
+    "les-claux"
+   ],
+   "robots": "autorisé (aucune règle)",
+   "reponse": 200,
+   "corrige": "Découverte le 13 septembre 2026, après l'audit. Le mur de partenaires de msem.tech nomme Vars ; son sous-domaine de réservation publie resort 692 et channel « OT-692 » vers services.msem.tech, et l'API répond — 112 hébergements au catalogue, 5 vendables à huit personnes du 6 au 13 février 2027, et le prix double sur quatorze nuits. L'audit rangeait ces stations sous la centrale de Risoul, qui est Ingénie et couvre l'autre versant de la Forêt Blanche."
+  },
+  "www.montclar.com": {
+   "nom": "Montclar les 2 vallées",
+   "moteur": "Ublo",
+   "stations": [
+    "saint-jean-montclar"
+   ],
+   "robots": "autorisé (Disallow: /irisit/ seulement)",
+   "reponse": 200,
+   "corrige": "Découverte le 13 septembre 2026, après l'audit, qui n'avait trouvé aucune centrale pour cette station. Le site publie resort 276 et channel « OT-276 » vers services.msem.tech : 6 hébergements au catalogue, et zéro offre à toutes les dates essayées. La centrale existe et répond ; elle n'a rien à vendre ces jours-là."
   }
  }
 }

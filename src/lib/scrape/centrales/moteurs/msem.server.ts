@@ -50,7 +50,14 @@ export type ReglageMsem = {
   resort: number | string;
   /** Canal de vente. C'est lui qui choisit la grille tarifaire. */
   canal: string;
-  /** Chemin d'une fiche sur le site de la centrale, `{slug}` à remplacer. */
+  /**
+   * Chemin d'une fiche sur le site de la centrale, `{slug}` à remplacer.
+   *
+   * La chaîne vide dit qu'il n'y a pas de page par logement : le lien rendu
+   * mène alors à la centrale elle-même. C'est le cas de Montclar, dont le site
+   * est un WordPress aux adresses propres, sans rapport avec les slugs de MSEM.
+   * Un lien vers la bonne centrale vaut mieux qu'un lien vers une erreur 404.
+   */
   ficheChemin?: string;
   /**
    * Site où vivent les fiches, quand ce n'est pas celui du registre.
@@ -131,7 +138,7 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
     bedrooms: null,
     available: true,
     photo: f.photo,
-    url: f.slug ? `${base}${chemin.replace("{slug}", f.slug)}` : base,
+    url: f.slug && chemin ? `${base}${chemin.replace("{slug}", f.slug)}` : base,
     lat: f.lat,
     lon: f.lon,
     locality: f.commune,

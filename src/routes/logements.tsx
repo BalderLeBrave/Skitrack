@@ -176,6 +176,8 @@ function Logements() {
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
   const [suivi, setSuivi] = useState(false);
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  // L'annonce que la carte désigne, et que la liste éclaire en retour.
+  const [actifCarte, setActifCarte] = useState<string | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
 
   const stay = { checkIn, checkOut };
@@ -295,7 +297,7 @@ function Logements() {
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
 
   const marqueurs = [
-    { id: "__station", lat: s.lat, lon: s.lon, html: htmlRepere(s.name), zIndex: -100 },
+    { id: "__station", lat: s.lat, lon: s.lon, html: htmlRepere(s.name), zIndex: -100, inerte: true },
     ...lvis
       .filter((l) => l.lat != null && l.lon != null)
       .map((l) => {
@@ -319,8 +321,10 @@ function Logements() {
     const firm = firmOf(l, stay);
     return (
       <article
-        className={`lodge7${isKept ? " lodge7--kept" : ""}`}
+        className={`lodge7${isKept ? " lodge7--kept" : ""}${actifCarte === l.id ? " lodge7--vif" : ""}`}
         onClick={() => openSheet(l.id)}
+        onMouseEnter={() => setActifCarte(l.id)}
+        onMouseLeave={() => setActifCarte(null)}
         data-l={l.id}
       >
         <div className={`lodge7__media lodge7__media--${mediaTon(l)}`}>
@@ -642,6 +646,64 @@ function Logements() {
                   suivi={suivi}
                   surSuivi={setSuivi}
                   surBornes={setBornes}
+                  actif={actifCarte}
+                  surActif={setActifCarte}
+                  ficheDe={(id) => {
+                    const l = raw.find((x) => x.id === id);
+                    if (!l) return null;
+                    const d = distanceOf(l);
+                    const ferme = firmOf(l, stay);
+                    return (
+                      <>
+                        {l.photo ? (
+                          <div className="fc__media">
+                            <ImageSlot
+                              shape="rect"
+                              id={`v7app-fc-${l.id}`}
+                              placeholder="Photo de l'annonce"
+                              className="fc__slot"
+                              src={l.photo}
+                            />
+                            <span className="fc__source">{l.source}</span>
+                          </div>
+                        ) : null}
+                        <div className="fc__texte">
+                          {!l.photo ? (
+                            <span className="toujours7__regle">{l.source}</span>
+                          ) : null}
+                          <strong className="fc__titre">{l.title}</strong>
+                          <span className="fc__ligne">
+                            <span className={l.guests == null ? "absent" : undefined}>
+                              {capLbl(l)}
+                            </span>
+                            <span>{bedLbl(l)}</span>
+                          </span>
+                          <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>
+                            {d.text}
+                          </span>
+                          <span className="fc__prix">
+                            <b>{eurCents(l.total)}</b>
+                            <span>
+                              {nights} nuits · {eurN(l.total / trav)} / pers.
+                            </span>
+                          </span>
+                          <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
+                            <i />
+                            {ferme
+                              ? "Prix relevé aux dates"
+                              : availabilityLabel(availabilityOf(l, stay))}
+                          </span>
+                          <button
+                            type="button"
+                            className="btn7 btn7--fantome fc__action"
+                            onClick={() => openSheet(l.id)}
+                          >
+                            Voir l'annonce
+                          </button>
+                        </div>
+                      </>
+                    );
+                  }}
                   surClic={(id) => {
                     if (id !== "__station") openSheet(id);
                   }}

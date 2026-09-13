@@ -19,8 +19,13 @@ import { altLbl, kmLbl, passLbl, sub, villageLbl } from "@/lib/v7";
 export function CarteStation({
   s,
   variante,
+  vif = false,
+  surSurvol,
 }: {
   s: Station;
+  /** Désignée par la carte : même éclairage que l'épingle. */
+  vif?: boolean;
+  surSurvol?: (id: string | null) => void;
   /** `accueil` : photo 16/10, lien « Voir les logements → ». `liste` : photo
    *  16/9, anneau quand la station est dans la comparaison, bouton. */
   variante: "accueil" | "liste";
@@ -45,8 +50,10 @@ export function CarteStation({
 
   return (
     <article
-      className={`stc7 stc7--${variante}${inCmp && variante === "liste" ? " stc7--cmp" : ""}`}
+      className={`stc7 stc7--${variante}${inCmp && variante === "liste" ? " stc7--cmp" : ""}${vif ? " stc7--vif" : ""}`}
       data-station={s.id}
+      onMouseEnter={surSurvol ? () => surSurvol(s.id) : undefined}
+      onMouseLeave={surSurvol ? () => surSurvol(null) : undefined}
     >
       <div className="stc7__media" onClick={ouvrir} role="link" tabIndex={-1}>
         <ImageSlot shape="rect"

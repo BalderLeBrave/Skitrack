@@ -28,7 +28,20 @@ import {
   type SortKey,
 } from "@/lib/parcours";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
-import { altLbl, CHIPS, forfaitOf, glacier, kmLbl, liftsLbl, linked, maxM, minM, villageLbl, villageM } from "@/lib/v7";
+import {
+  altLbl,
+  CHIPS,
+  forfaitOf,
+  glacier,
+  kmLbl,
+  liftsLbl,
+  linked,
+  maxM,
+  minM,
+  sub,
+  villageLbl,
+  villageM,
+} from "@/lib/v7";
 
 export const Route = createFileRoute("/comparer")({ component: Comparer });
 
@@ -115,6 +128,8 @@ function Comparer() {
   // Le cadre de la carte, et s'il compte. Décoché par défaut.
   const [suivi, setSuivi] = useState(false);
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  // La station que la carte désigne, et que la liste éclaire en retour.
+  const [actifCarte, setActifCarte] = useState<string | null>(null);
   const panneau = useRef<HTMLDivElement>(null);
 
   const massifs = useMemo(() => [...new Set(all.map((s) => s.massif))].sort(), [all]);
@@ -587,7 +602,13 @@ function Comparer() {
               <>
                 <div className="grille7-2">
                   {list.map((s) => (
-                    <CarteStation key={s.id} s={s} variante="liste" />
+                    <CarteStation
+                      key={s.id}
+                      s={s}
+                      variante="liste"
+                      vif={actifCarte === s.id}
+                      surSurvol={setActifCarte}
+                    />
                   ))}
                 </div>
                 {dansCadre.length > LISTE_MAX ? (
@@ -636,6 +657,55 @@ function Comparer() {
               suivi={suivi}
               surSuivi={setSuivi}
               surBornes={setBornes}
+              actif={actifCarte}
+              surActif={setActifCarte}
+              ficheDe={(id) => {
+                const st = stationById(id);
+                if (!st) return null;
+                return (
+                  <div className="fc__texte">
+                    <strong className="fc__titre">{st.name}</strong>
+                    <span className="fc__ligne">{sub(st)}</span>
+                    <div className="fc__faits">
+                      <div>
+                        <span>Village</span>
+                        <b className={villageLbl(st) ? undefined : "absent"}>
+                          {villageLbl(st) ?? "non relevé"}
+                        </b>
+                      </div>
+                      <div>
+                        <span>Sommet</span>
+                        <b className={maxM(st) != null ? undefined : "absent"}>
+                          {maxM(st) != null ? `${fmt(maxM(st))} m` : "non relevé"}
+                        </b>
+                      </div>
+                      <div>
+                        <span>Pistes, domaine</span>
+                        <b className={kmLbl(st) ? undefined : "absent"}>
+                          {kmLbl(st) ?? "km non publié"}
+                        </b>
+                      </div>
+                      <div>
+                        <span>Forfait 6 j</span>
+                        <b className={eurN(forfaitOf(st)?.j6) ? undefined : "absent"}>
+                          {eurN(forfaitOf(st)?.j6) ?? "non relevé"}
+                        </b>
+                      </div>
+                    </div>
+                    <PartPistes share={st.colorShare} />
+                    <a
+                      href={`/stations/${st.id}`}
+                      className="fc__lien fc__action"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        void go("fiche", { id: st.id });
+                      }}
+                    >
+                      Fiche station →
+                    </a>
+                  </div>
+                );
+              }}
               surClic={(id) => void go("fiche", { id })}
               legende={
                 <>

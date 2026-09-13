@@ -19,5 +19,5 @@ export const ax3Domaines: Connecteur = {
   nom: "Ax 3 Domaines",
   moteur: "Open System",
   indisponible:
-    "Centrale Open System d'ancienne génération : sa recherche passe par un widget JavaScript, sans page de résultats à interroger. Relevé du 13 septembre 2026.",
+    "elle tourne sur la génération ancienne d'Open System, dont la recherche passe par un widget JavaScript, sans page de résultats à interroger. Relevé du 13 septembre 2026.",
 };

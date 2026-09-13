@@ -460,7 +460,7 @@ function Logements() {
                 <span className="toujours7__regle">Total du séjour, pas « dès »</span>
                 <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
                 {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
-                {centraleLbl ? <span className="toujours7__ecarte">Centrale : {centraleLbl}</span> : null}
+                {centraleLbl ? <span className="toujours7__ecarte">{centraleLbl}</span> : null}
                 <span>Une capacité non annoncée n'écarte pas l'annonce : elle est dite non annoncée.</span>
               </div>
               <div className="filtres7__barre">

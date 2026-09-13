@@ -19,5 +19,5 @@ export const valmorel: Connecteur = {
   nom: "Valmorel",
   moteur: "Open System",
   indisponible:
-    "Site d'office de tourisme sans page de résultats datés : l'empreinte Open System vient d'un widget inclus, pas d'un moteur interrogeable. Relevé du 13 septembre 2026.",
+    "son site d'office de tourisme n'a pas de page de résultats datés. L'empreinte Open System relevée par l'audit vient d'un widget inclus, pas d'un moteur interrogeable. Relevé du 13 septembre 2026.",
 };

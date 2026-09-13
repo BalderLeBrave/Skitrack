@@ -15,8 +15,9 @@
 
 import type { Listing } from "@/lib/listings";
 import { connecteurPour } from "./hotes";
+import { etatDuMoteur } from "./moteurs/etat";
 import { ficheCentrale } from "./registre";
-import type { ContexteCentrale, ResultatCentrale } from "./types";
+import type { ContexteCentrale, MoteurCentrale, ResultatCentrale } from "./types";
 import type { LiveSearchInput } from "../types";
 
 /** Origine de la centrale, à partir de l'URL relevée. */
@@ -31,18 +32,32 @@ function origine(url: string, host: string): string {
 /**
  * Ce qu'on peut dire d'une centrale sans connecteur.
  *
- * Le relevé de l'audit suffit à nommer le moteur et à rappeler ce que son
- * `robots.txt` disait. C'est plus utile qu'un « non pris en charge » : le
- * lecteur voit que la centrale est connue, et pourquoi elle est muette.
+ * Le moteur suffit à expliquer le silence, parce que l'empêchement lui
+ * appartient et non à la centrale : `moteurs/etat.ts` tient la phrase de
+ * chacun, du sondage du 13 septembre 2026. C'est plus utile qu'un « non pris
+ * en charge », qui laisse croire à un oubli.
+ *
+ * Ce qui n'est **pas** repris ici : le verdict `robots.txt` du relevé, qui
+ * porte sur la page d'accueil de la centrale et non sur une recherche datée.
+ * L'écrire donnait « autorisé » pour des moteurs dont la recherche est
+ * nommément fermée, et donc l'impression qu'il suffirait d'écrire le
+ * connecteur. La phrase du moteur dit la vraie permission, celle du chemin qui
+ * porterait les prix.
  */
-function sansConnecteur(nom: string, moteur: string, robots: string | null): string {
-  const laQuelle = moteur === "inconnu" ? "dont le moteur n'a pas été identifié" : `sur moteur ${moteur}`;
-  // Le verdict relevé porte sur la page d'accueil de la centrale, pas sur une
-  // recherche datée. Le dire autrement ferait croire qu'il suffirait d'écrire
-  // le connecteur, alors que plusieurs moteurs ferment nommément leurs pages
-  // de recherche. La distinction tient en trois mots, et elle compte.
-  const permission = robots ? ` Son robots.txt, pour sa page d'accueil, était « ${robots} » au relevé.` : "";
-  return `Centrale ${nom}, ${laQuelle} : aucun connecteur écrit à ce jour.${permission}`;
+function sansConnecteur(moteur: MoteurCentrale): string {
+  return etatDuMoteur(moteur);
+}
+
+/**
+ * La phrase complète, nom de la centrale compris.
+ *
+ * Elle est fabriquée ici et nulle part ailleurs : l'écran l'affiche telle
+ * quelle, sans rien y ajouter. Les motifs des connecteurs sont donc écrits
+ * comme des suites de phrase, jamais comme des phrases entières, et aucun ne
+ * recommence par « Centrale ».
+ */
+function phrase(nom: string, suite: string): string {
+  return `Centrale ${nom} : ${suite}`;
 }
 
 export async function chercherCentrale(input: LiveSearchInput): Promise<ResultatCentrale> {
@@ -65,7 +80,7 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
       ...commun,
       listings: [],
       interrogee: false,
-      raison: sansConnecteur(fiche.nom, fiche.moteur, fiche.robotsReleve),
+      raison: phrase(fiche.nom, sansConnecteur(fiche.moteur)),
     };
   }
   if (!connecteur.chercher) {
@@ -73,7 +88,7 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
       ...commun,
       listings: [],
       interrogee: false,
-      raison: connecteur.indisponible ?? sansConnecteur(fiche.nom, fiche.moteur, fiche.robotsReleve),
+      raison: phrase(fiche.nom, connecteur.indisponible ?? sansConnecteur(fiche.moteur)),
     };
   }
 
@@ -83,6 +98,6 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
     ...commun,
     listings,
     interrogee: true,
-    raison: listings.length === 0 ? `${fiche.nom} n'a rien de disponible à ces dates pour ce groupe.` : null,
+    raison: listings.length === 0 ? phrase(fiche.nom, "rien de disponible à ces dates pour ce groupe.") : null,
   };
 }

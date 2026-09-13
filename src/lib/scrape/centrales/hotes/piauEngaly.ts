@@ -18,5 +18,5 @@ export const piauEngaly: Connecteur = {
   nom: "Piau-Engaly",
   moteur: "Open System",
   indisponible:
-    "Site de station sans page de résultats datés : l'empreinte Open System vient d'un widget inclus, pas d'un moteur interrogeable. Relevé du 13 septembre 2026.",
+    "son site de station n'a pas de page de résultats datés. L'empreinte Open System relevée par l'audit vient d'un widget inclus, pas d'un moteur interrogeable. Relevé du 13 septembre 2026.",
 };

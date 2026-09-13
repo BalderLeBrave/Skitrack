@@ -17,7 +17,7 @@ export const Route = createRootRoute({
         name: "description",
         content: "Logements ski : dates, personnes, chambres. Prix ferme du séjour.",
       },
-      { name: "theme-color", content: "#0B1F33" },
+      { name: "theme-color", content: "#16191e" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -31,7 +31,7 @@ export const Route = createRootRoute({
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),

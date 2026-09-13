@@ -1,10 +1,12 @@
-/** État du parcours de la maquette v6 (script l. 457–464 : `S`, `F`, `massif`,
- *  `q`, `sortKey`, `unit`) et ses libellés (`fmt`, `eur`, `distLbl`, `subLbl`,
- *  `datesLbl`, `groupLbl`).
+/** État du parcours de la maquette v7 (`SKITRACK v7 - App.dc.html`, bloc
+ *  `state` du script : `q`, `massif`, `f`, `unit`, `col`, `dom`, `chipsOn`,
+ *  `sort`, `cmp`, `pick`, `station`, `lodge`, `seen`, `booked`) et les libellés
+ *  que la v6 avait déjà posés (`fmt`, `eur`, `distLbl`, `subLbl`).
  *
  *  Dates, voyageurs et chambres viennent de `useStay` (données réelles du
  *  dépôt) ; ici ne vivent que la station retenue, le logement choisi, la
- *  comparaison, les filtres de l'écran Comparer et le bandeau. */
+ *  comparaison, les filtres de l'écran Comparer, les annonces déjà vues, le
+ *  bandeau et l'ouverture du panneau de séjour. */
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -23,8 +25,7 @@ import { useStay } from "./stay";
  *  en toutes lettres, « plus aucun hotlink ».
  *
  *  `null` quand il n'y a pas de fichier : l'écran doit alors dire qu'il n'a pas
- *  de photo, pas en afficher une cassée. `photoCreditFor` accompagne celles qui
- *  s'affichent. */
+ *  de photo, pas en afficher une cassée. */
 export function stationPhoto(s: Station): string | null {
   return resolveStationPhoto(s.id)?.src ?? null;
 }
@@ -37,27 +38,37 @@ export function stationPhotoAbsence(s: Station): string {
 
 export type PisteColor = "green" | "blue" | "red" | "black";
 export type ColorUnit = "pct" | "n" | "km";
-export type SortKey = "km" | "v" | "lo" | "hi" | "np" | "lifts" | "n";
-export type KindFilter = "" | "station" | "village-station";
+/** Clés de tri de la maquette v7 (`<select value="{{ sort }}">`). */
+export type SortKey = "km" | "hi" | "lo" | "v" | "pass" | "n";
+/** Raccourcis de la maquette (`CH`) : chacun est un prédicat sur la station. */
+export type ChipKey = "big" | "high" | "glacier" | "linked" | "family" | "steep";
 
-/** `COLS` de la maquette (l. 460) : clé, libellé, couleur. La couleur est un
- *  jeton de v6.css, jamais une valeur brute. */
+/** `COLS` de la maquette : clé, libellé, couleur. La couleur est un jeton du
+ *  système, jamais une valeur brute. */
 export const COLS: { key: PisteColor; label: string; token: string }[] = [
-  { key: "green", label: "Vertes", token: "var(--v6-piste-verte)" },
-  { key: "blue", label: "Bleues", token: "var(--v6-piste-bleue)" },
-  { key: "red", label: "Rouges", token: "var(--v6-piste-rouge)" },
-  { key: "black", label: "Noires", token: "var(--v6-piste-noire)" },
+  { key: "green", label: "Vertes", token: "var(--color-piste-verte)" },
+  { key: "blue", label: "Bleues", token: "var(--color-piste-bleue)" },
+  { key: "red", label: "Rouges", token: "var(--color-piste-rouge)" },
+  { key: "black", label: "Noires", token: "var(--color-piste-noire)" },
 ];
 
+/** `f`, `col`, `dom`, `chipsOn` de la maquette, réunis. Zéro ou chaîne vide
+ *  vaut « indifférent » : un filtre au repos n'écarte rien. */
 export type Filters = {
+  /** Altitude du village, au moins (m). */
   v: number;
+  /** Bas des pistes, au moins (m). */
   lo: number;
+  /** Sommet, au moins (m). */
   hi: number;
+  /** Km de pistes du domaine, au moins. */
   km: number;
-  np: number;
-  g: KindFilter;
-  pass: string;
+  /** Forfait 6 jours adulte, au plus (€). */
+  pass: number;
+  /** Domaine skiable : nom exact, `__none` pour « non renseigné », vide = tous. */
+  dom: string;
   col: Record<PisteColor, number>;
+  chips: Partial<Record<ChipKey, boolean>>;
 };
 
 export const FILTERS_INITIAL: Filters = {
@@ -65,49 +76,70 @@ export const FILTERS_INITIAL: Filters = {
   lo: 0,
   hi: 0,
   km: 0,
-  np: 0,
-  g: "",
-  pass: "",
+  pass: 0,
+  dom: "",
   col: { green: 0, blue: 0, red: 0, black: 0 },
+  chips: {},
 };
+
+function filtersVierges(): Filters {
+  return { ...FILTERS_INITIAL, col: { ...FILTERS_INITIAL.col }, chips: {} };
+}
 
 /** Bornes du sélecteur de séjour.
  *
  *  Voyageurs et chambres viennent de `PARTY_LIMITS` (`stay/party.ts`), seul
- *  endroit où ces bornes sont tenues. La maquette les fixait à 12 et 1–6 : un
- *  groupe de quatorze ne pouvait pas s'exprimer, et le plancher de 1 chambre
- *  faisait **monter** la valeur quand on appuyait sur « − » à 0 chambre, qui
- *  est la valeur de repos du magasin. */
+ *  endroit où ces bornes sont tenues. Les nuits sont bornées à 21, comme le
+ *  calendrier de la maquette (« 21 nuits au plus »). */
 export const STAY_BOUNDS = {
   trav: { min: PARTY_LIMITS.travelers.min, max: PARTY_LIMITS.travelers.max },
   rooms: { min: PARTY_LIMITS.rooms.min, max: PARTY_LIMITS.rooms.max },
   nights: { min: 1, max: 21 },
 } as const;
 
+/** Quatre stations au plus dans la comparaison (maquette v7 ; la v6 en
+ *  admettait trois). */
+export const CMP_MAX = 4;
+
 type Parcours = {
   stationId: string | null;
   lodgeId: string | null;
   cmp: string[];
+  /** Colonne cochée du tableau de comparaison. */
+  pick: string | null;
+  /** Annonces déjà ouvertes : grisées dans la liste et sur la carte. */
+  seen: Record<string, boolean>;
+  /** Séjour marqué comme réservé chez la source. */
+  booked: boolean;
   massif: string | null;
   q: string;
   sortKey: SortKey;
   unit: ColorUnit;
   filters: Filters;
   toast: { text: string; nonce: number } | null;
-  /** l. 723 : la recherche de l'accueil sélectionne la première station à
-   *  l'arrivée sur Comparer, 50 ms après. */
-  selectFirst: boolean;
-  setSelectFirst: (v: boolean) => void;
+  /** Panneau « Votre séjour » sous la barre. Transitoire. */
+  stayOpen: boolean;
+  /** Récapitulatif ouvert depuis un lien de partage. Transitoire. */
+  shared: boolean;
   retain: (id: string) => void;
   chooseLodge: (id: string | null) => void;
   toggleCmp: (id: string) => void;
+  setPick: (id: string | null) => void;
+  markSeen: (id: string) => void;
+  setBooked: (v: boolean) => void;
   setMassif: (m: string | null) => void;
   setQ: (q: string) => void;
   setSort: (k: SortKey) => void;
   setUnit: (u: ColorUnit) => void;
   setFilters: (patch: Partial<Filters>) => void;
   setColFilter: (c: PisteColor, v: number) => void;
+  setChip: (k: ChipKey, on: boolean) => void;
+  /** `resetAll` de la maquette : recherche, massif, domaine, seuils, raccourcis. */
   resetFilters: () => void;
+  /** `restart` : oublie station, logement, comparaison, annonces vues. */
+  restart: () => void;
+  setStayOpen: (v: boolean) => void;
+  setShared: (v: boolean) => void;
   say: (text: string) => void;
 };
 
@@ -117,62 +149,104 @@ export const useParcours = create<Parcours>()(
       stationId: null,
       lodgeId: null,
       cmp: [],
+      pick: null,
+      seen: {},
+      booked: false,
       massif: null,
       q: "",
       sortKey: "km",
       unit: "pct",
-      filters: FILTERS_INITIAL,
+      filters: filtersVierges(),
       toast: null,
-      selectFirst: false,
-      setSelectFirst: (selectFirst) => set({ selectFirst }),
-      /** `retain(id)` (l. 596) : changer de station oublie le logement. */
+      stayOpen: false,
+      shared: false,
+      /** `retain(id)` : changer de station oublie le logement, et ce qui en
+       *  découlait. */
       retain: (id) => {
-        if (get().stationId !== id) set({ stationId: id, lodgeId: null });
+        if (get().stationId !== id) set({ stationId: id, lodgeId: null, booked: false });
         useStay.getState().setStay({ stationId: id });
       },
-      chooseLodge: (id) => set({ lodgeId: id }),
-      /** `toggleCmp` (l. 530) : trois stations au plus. */
+      chooseLodge: (id) => set((s) => ({ lodgeId: id, booked: id === s.lodgeId ? s.booked : false })),
       toggleCmp: (id) => {
         const cmp = get().cmp;
         if (cmp.includes(id)) return set({ cmp: cmp.filter((x) => x !== id) });
-        if (cmp.length >= 3) return get().say("Trois stations au plus dans la comparaison.");
+        if (cmp.length >= CMP_MAX)
+          return get().say(`${CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations au plus dans la comparaison.`);
         set({ cmp: [...cmp, id] });
       },
+      setPick: (pick) => set({ pick }),
+      markSeen: (id) => set((s) => (s.seen[id] ? {} : { seen: { ...s.seen, [id]: true } })),
+      setBooked: (booked) => set({ booked }),
       setMassif: (massif) => set({ massif }),
       setQ: (q) => set({ q }),
       setSort: (sortKey) => set({ sortKey }),
-      /** Changer d'unité remet les quatre seuils à zéro (l. 746). */
+      /** Changer d'unité remet les quatre seuils de couleur à zéro. */
       setUnit: (unit) =>
         set((s) => ({ unit, filters: { ...s.filters, col: { ...FILTERS_INITIAL.col } } })),
       setFilters: (patch) => set((s) => ({ filters: { ...s.filters, ...patch } })),
       setColFilter: (c, v) =>
         set((s) => ({ filters: { ...s.filters, col: { ...s.filters.col, [c]: v } } })),
-      resetFilters: () => set({ filters: { ...FILTERS_INITIAL, col: { ...FILTERS_INITIAL.col } } }),
+      setChip: (k, on) =>
+        set((s) => ({ filters: { ...s.filters, chips: { ...s.filters.chips, [k]: on } } })),
+      resetFilters: () => set({ q: "", massif: null, filters: filtersVierges() }),
+      restart: () => set({ stationId: null, lodgeId: null, cmp: [], pick: null, booked: false, seen: {} }),
+      setStayOpen: (stayOpen) => set({ stayOpen }),
+      setShared: (shared) => set({ shared }),
       say: (text) => set((s) => ({ toast: { text, nonce: (s.toast?.nonce ?? 0) + 1 } })),
     }),
     {
       name: "skitrack-parcours",
-      partialize: (s) => ({ stationId: s.stationId, lodgeId: s.lodgeId, cmp: s.cmp }),
+      partialize: (s) => ({
+        stationId: s.stationId,
+        lodgeId: s.lodgeId,
+        cmp: s.cmp,
+        pick: s.pick,
+        seen: s.seen,
+        booked: s.booked,
+      }),
     },
   ),
 );
 
-/* ---------- Libellés (l. 457–458, 468–469, 521–522) ---------- */
+/* ---------- Libellés ---------- */
 
 /** Espaces fine (U+202F) et insécable (U+00A0) que `toLocaleString('fr-FR')`
- *  glisse entre les milliers ; la maquette les remplace (l. 457). */
+ *  glisse entre les milliers ; la maquette les remplace. */
 const NARROW_SPACES = new RegExp(
   `[${String.fromCharCode(0x202f)}${String.fromCharCode(0xa0)}]`,
   "g",
 );
 
-/** `fmt` : entier arrondi, séparateur de milliers fr-FR, espace simple. */
+/** `fmt` : entier arrondi, séparateur de milliers fr-FR, espace simple. Un
+ *  nombre absent s'écrit « – » ; les écrans v7 préfèrent `fmtN`, qui rend
+ *  `null` et laisse l'appelant écrire l'absence en toutes lettres. */
 export function fmt(n: number | null | undefined): string {
   return n == null ? "–" : Math.round(n).toLocaleString("fr-FR").replace(NARROW_SPACES, " ");
 }
 
+export function fmtN(n: number | null | undefined): string | null {
+  return n == null ? null : fmt(n);
+}
+
 export function eur(n: number | null | undefined): string {
   return fmt(n) + " €";
+}
+
+export function eurN(n: number | null | undefined): string | null {
+  return n == null ? null : eur(n);
+}
+
+/** `eurCents` de la maquette : les centimes seulement quand il y en a. */
+export function eurCents(n: number | null | undefined): string | null {
+  if (n == null) return null;
+  return (
+    n
+      .toLocaleString("fr-FR", {
+        minimumFractionDigits: n % 1 ? 2 : 0,
+        maximumFractionDigits: 2,
+      })
+      .replace(NARROW_SPACES, " ") + " €"
+  );
 }
 
 /** `distLbl` : mètres sous 1 km, sinon km à une décimale, virgule. */
@@ -182,6 +256,12 @@ export function distLbl(d: number | null | undefined): string {
     : d < 1
       ? Math.round(d * 1000) + " m"
       : d.toFixed(1).replace(".", ",") + " km";
+}
+
+/** `mLbl` de la maquette : une distance en mètres, en m ou en km. */
+export function mLbl(m: number | null | undefined): string | null {
+  if (m == null) return null;
+  return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
 /** `subLbl` : type, domaine, statut hors « En activité ». */
@@ -208,7 +288,7 @@ function isoDay(d: Date): string {
 
 /** Séjour réel : dates de `useStay`, nuits dérivées.
  *
- *  `nights` n'est plus ramené à zéro par un `Math.max` : une plage inversée
+ *  `nights` n'est pas ramené à zéro par un `Math.max` : une plage inversée
  *  rendait « 0 nuit », présenté comme un séjour ordinaire. Le compte brut est
  *  conservé et `valid` dit s'il a un sens, pour que l'écran le signale. */
 export function useSejour() {
@@ -235,37 +315,64 @@ export function nightsBetween(checkIn: string, checkOut: string): number | null 
   return Math.round((b - a) / DAY_MS);
 }
 
-function shortMonth(d: Date): string {
-  return d.toLocaleDateString("fr-FR", { month: "short", timeZone: "UTC" });
+const MOIS_COURTS = [
+  "janv.",
+  "févr.",
+  "mars",
+  "avr.",
+  "mai",
+  "juin",
+  "juil.",
+  "août",
+  "sept.",
+  "oct.",
+  "nov.",
+  "déc.",
+];
+const JOURS_COURTS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+
+/** `dm` de la maquette : « 6 févr. ». Tables fixes, pas d'ICU. */
+export function dm(iso: string): string {
+  const d = parseDay(iso);
+  return `${d.getUTCDate()} ${MOIS_COURTS[d.getUTCMonth()]}`;
 }
 
-/** `datesLbl` (l. 468) : « 6 – 13 févr. · 7 nuits ». La maquette fige le mois ;
- *  avec des dates réelles, un séjour à cheval sur deux mois nomme les deux. */
+/** `stayDatesLbl` : « 6 → 13 févr. · 7 nuits ». Le mois n'est nommé deux fois
+ *  que si le séjour les traverse. Une plage inversée se signale. */
 export function datesLbl(checkIn: string, checkOut: string, nights: number): string {
   const a = parseDay(checkIn),
     b = parseDay(checkOut);
   const span =
     a.getUTCMonth() === b.getUTCMonth() && a.getUTCFullYear() === b.getUTCFullYear()
-      ? `${a.getUTCDate()} – ${b.getUTCDate()} ${shortMonth(b)}`
-      : `${a.getUTCDate()} ${shortMonth(a)} – ${b.getUTCDate()} ${shortMonth(b)}`;
-  // Une plage inversée ou nulle ne s'écrit pas « 0 nuit », ce qui se lirait
-  // comme un séjour d'un jour : elle se signale.
+      ? `${a.getUTCDate()} → ${dm(checkOut)}`
+      : `${dm(checkIn)} → ${dm(checkOut)}`;
   if (nights <= 0) return `${span} · départ avant l’arrivée`;
   return `${span} · ${nights} nuit${nights > 1 ? "s" : ""}`;
 }
 
-/** « Arrivée le 6 févr. » (l. 211). */
-export function arrivalLbl(checkIn: string): string {
-  const a = parseDay(checkIn);
-  return `${a.getUTCDate()} ${shortMonth(a)}`;
+/** `arrivalLbl` : « sam. 6 févr. 2027 ». */
+export function arrivalLbl(iso: string): string {
+  const d = parseDay(iso);
+  return `${JOURS_COURTS[d.getUTCDay()]} ${dm(iso)} ${d.getUTCFullYear()}`;
 }
 
-/** `groupLbl` (l. 469). */
+/** `departLbl` : « sam. 13 févr. ». */
+export function departLbl(iso: string): string {
+  const d = parseDay(iso);
+  return `${JOURS_COURTS[d.getUTCDay()]} ${dm(iso)}`;
+}
+
+/** `guestsLbl` (barre de recherche) : « 8 voyageurs · 2 ch. ». */
+export function guestsLbl(trav: number, rooms: number): string {
+  return `${trav} voyageur${trav > 1 ? "s" : ""}${rooms ? ` · ${rooms} ch.` : ""}`;
+}
+
+/** `stayGroupLbl` : « 8 voyageurs · studio accepté ». */
 export function groupLbl(trav: number, rooms: number): string {
-  return `${trav} voyageurs · ${rooms} chambre${rooms > 1 ? "s" : ""}`;
+  return `${trav} voyageur${trav > 1 ? "s" : ""} · ${rooms ? `${rooms} ch.` : "studio accepté"}`;
 }
 
-/** Sélecteur de séjour (l. 497) : `S[k] = clamp(S[k] + d)`, sur l'état réel. */
+/** Sélecteur de séjour : `S[k] = clamp(S[k] + d)`, sur l'état réel. */
 export function stepStay(k: "trav" | "rooms" | "nights", d: number) {
   const st = useStay.getState();
   const b = STAY_BOUNDS[k];
@@ -277,4 +384,13 @@ export function stepStay(k: "trav" | "rooms" | "nights", d: number) {
   );
   const next = Math.min(b.max, Math.max(b.min, cur + d));
   st.setStay({ checkOut: isoDay(new Date(parseDay(st.checkIn).getTime() + next * DAY_MS)) });
+}
+
+/** Pose une plage complète, arrivée puis départ, bornée à 21 nuits. */
+export function setStayRange(checkIn: string, checkOut: string) {
+  const n = nightsBetween(checkIn, checkOut) ?? 0;
+  const nights = Math.min(STAY_BOUNDS.nights.max, Math.max(STAY_BOUNDS.nights.min, n));
+  useStay
+    .getState()
+    .setStay({ checkIn, checkOut: isoDay(new Date(parseDay(checkIn).getTime() + nights * DAY_MS)) });
 }

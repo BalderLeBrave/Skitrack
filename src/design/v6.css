@@ -96,7 +96,7 @@
 body:has(.v6.app) {
   margin: 0;
   background: var(--bg);
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   color: var(--ink);
   overflow: hidden;
   height: 100%;
@@ -1839,13 +1839,13 @@ body:has(.v6.app) {
   opacity: 0;
   padding: 10px 16px;
   border-radius: 999px;
-  background: var(--ink);
-  color: var(--v6-blanc);
-  font-size: 13.5px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-size: var(--text-detail);
   font-weight: 600;
   transition: all 0.2s;
   pointer-events: none;
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 .v6-toast.show {
   opacity: 1;

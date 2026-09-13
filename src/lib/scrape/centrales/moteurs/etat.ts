@@ -64,10 +64,10 @@ const ETAT: Record<MoteurCentrale, string> = {
   Elloha:
     "aucune centrale du parc ne tourne sur ce moteur : la seule qui y avait été rangée au relevé du 13 septembre 2026 est en réalité sous MSEM, et la donnée est corrigée.",
 
-  // Trois centrales, dont La Plagne et Chamonix. Le moteur répond et ses prix
-  // sont datés ; c'est sa forme qui ne convient pas à une recherche en direct.
+  // Trois centrales. La Plagne est branchée ; Praz-sur-Arly dit « Disallow: / »
+  // et le catalogue de Chamonix ne porte pas d'identifiant de logement.
   Orchestra:
-    "ce moteur répond et ses prix suivent la durée, mais il n'a pas de recherche groupée ouverte : sa page de résultats est fermée par robots.txt, et le prix ne s'obtient qu'un logement à la fois. Interroger une station entière demanderait des dizaines d'appels par recherche, ce qui n'est pas une façon de traiter un serveur. Relevé du 13 septembre 2026.",
+    "la seule centrale de ce moteur qui s'interroge est branchée, celle de La Plagne. Celle-ci ne l'est pas : soit son robots.txt ferme tout, soit son catalogue n'expose pas les identifiants de logement qu'il faut pour lui demander un prix. Relevé du 13 septembre 2026.",
 
   // Une centrale, Pralognan-la-Vanoise, et elle est branchée.
   Arkiane:

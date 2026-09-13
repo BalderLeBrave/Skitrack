@@ -413,14 +413,28 @@ Le registre gagne donc une liste de démentis : le classeur l'emporte partout, s
 
 Le `robots.txt` de l'hôte marchand de Pralognan commence par une marque d'ordre d'octets. Elle est invisible, et elle empêchait la première ligne de s'apparier : le groupe `User-agent` disparaissait, toutes ses règles avec, et le site entier passait pour autorisé. Corrigé et éprouvé.
 
+### Orchestra et Val d'Allos, les deux derniers
+
+**Orchestra avait été écarté sur son coût, et la mesure a corrigé le jugement.** Sa page de résultats groupée est fermée par `robots.txt`, si bien que le prix ne s'obtient qu'un logement à la fois : couvrir La Plagne entière demande onze pages de destination et quatre-vingt-quinze calendriers. Mais aucun de ces appels ne dépend des dates, et une fois retenus en mémoire ils ne coûtent plus rien. Mesuré : mille quatre-vingt-six millisecondes à froid, une milliseconde à chaud. Trente-neuf logements vendables sur quatre-vingt-quinze pour quatre personnes du 6 au 13 février 2027, avec capacité et photo sur les trente-neuf.
+
+Chaque station vise son village : Champagny-en-Vanoise coûte huit appels, Montchavin-les-Coches huit, et seule « La Plagne », qui désigne le domaine, les vise toutes.
+
+Deux pièges de ce moteur méritent d'être nommés. La ville de départ `XXX` est celle qui vend l'hébergement seul ; `PAR`, `LON` et `LIL` vendent un forfait avec le voyage, à des prix bien plus bas. Lire la mauvaise donnerait un total faux et plausible. Et la clé de la catégorie n'est pas fixe : « Housing » chez certains logements, le code commercial du produit chez d'autres.
+
+**Val d'Allos** complète Ingénie : `cid` 8, quatrième des cinq centrales que `robots.txt` laisse passer. Elle n'a qu'une offre ferme à quatre personnes, à 700 €, et neuf de ses dix blocs de tarif affichent « à partir de 0 € ». Un zéro n'est pas un prix : c'est ainsi que cette centrale signale un logement dont elle n'a pas le tarif à ces dates. Elle écrit par ailleurs sa monnaie en entité, « 700 &euro; », ce que l'analyseur ne décodait pas : le défaut aurait faussé tout montant à décimales.
+
+### Le tour complet, à quatre personnes
+
+Les dix-neuf centrales interrogeables ont été appelées dans un processus neuf, pour quatre personnes du 6 au 13 février 2027. Dix-huit rendent des logements, mille deux cent quatre-vingt-onze en tout ; la dix-neuvième, Montclar, rend zéro et dit pourquoi. Aucune n'échoue.
+
 ### Où en est le parc
 
 | | |
 | --- | --- |
 | Centrales connues | 69 |
-| Centrales avec un connecteur | 25 |
-| Centrales réellement interrogées | 17 |
-| Stations qui interrogent leur centrale en direct | 26 |
+| Centrales avec un connecteur | 27 |
+| Centrales réellement interrogées | 19 |
+| Stations qui interrogent leur centrale en direct | 30 |
 | Centrales dont le moteur reste inconnu | 2 |
 
 Les quarante-six centrales sans fichier ne sont pas muettes pour autant : `moteurs/etat.ts` donne à chacun des douze moteurs une phrase qui dit ce que `robots.txt` autorise sur le chemin des prix, ce que le moteur a répondu, et pourquoi cela ne fait pas un prix. L'écran l'affiche telle quelle.

@@ -122,6 +122,7 @@ const ENTITES: Record<string, string> = {
   iuml: "ï",
   euml: "ë",
   sup2: "²",
+  euro: "\u20ac",
 };
 
 function desechapper(s: string): string {
@@ -175,12 +176,21 @@ function photoDe(fragment: string): string | null {
 }
 
 function totalDe(fragment: string): number | null {
-  const m = /class="prix_en_cours"[^>]*>([\s\S]{0,80}?)<\/div>/.exec(fragment);
+  const m = /class="prix_en_cours"[^>]*>([\s\S]{0,160}?)<\/div>/.exec(fragment);
   if (!m) return null;
-  // « 1 300 € », avec une espace insécable de groupement.
-  const chiffres = (m[1] ?? "").split("€")[0]?.replace(/\D/g, "") ?? "";
-  if (!chiffres) return null;
-  const v = Number(chiffres);
+  // Le texte est décodé d'abord : certaines centrales écrivent la monnaie en
+  // entité, « 700 &euro; », et couper sur le signe littéral les manquerait.
+  // Le montant peut porter une virgule décimale et des espaces de groupement,
+  // ici écrites en échappement pour rester visibles dans le source.
+  const p = /([0-9][0-9\u00a0\u202f .]*)(?:,(\d{1,2}))?\s*\u20ac/.exec(
+    texteIngenie(m[1] ?? ""),
+  );
+  if (!p) return null;
+  const entiere = (p[1] ?? "").replace(/\D/g, "");
+  if (!entiere) return null;
+  const v = Number(`${entiere}.${(p[2] ?? "0").padEnd(2, "0")}`);
+  // Un zéro n'est pas un prix : plusieurs centrales affichent « à partir de
+  // 0 € » pour un logement dont elles n'ont pas le tarif à ces dates.
   return Number.isFinite(v) && v > 0 ? v : null;
 }
 

@@ -121,6 +121,22 @@ describe("Ingénie : lire une page de résultats datés", () => {
     assert.equal(dateIngenie("n'importe quoi"), "n'importe quoi");
   });
 
+  it("lit un montant écrit en entité, et refuse un zéro", () => {
+    // Val d'Allos écrit sa monnaie « 700 &euro; » et non « 700 € », et affiche
+    // « à partir de 0 € » pour les logements dont elle n'a pas le tarif à ces
+    // dates. Couper sur le signe littéral manquerait le premier ; prendre le
+    // second pour un prix mettrait des logements gratuits en tête de liste.
+    const carte = (id: string, prix: string) =>
+      `<div class="fiche-info  fiche_liste_immobilier_prestation_OT_v2018" id="PRESTATION-${id}">` +
+      `<a itemprop="name">Appartement ${id}</a>` +
+      `<div class="bloc_prix_en_cours"><div class="libelle_a_partir_de">à partir de</div>` +
+      `<div class="prix_en_cours">${prix}</div></div></div>`;
+    const page = carte("A", "700 &euro;") + carte("B", "0 &euro;") + carte("C", "2&#160;778,65 &euro;");
+    const f = lireIngenie(page);
+    assert.deepEqual(f.map((x) => x.total).sort((a, b) => a - b), [700, 2778.65]);
+    assert.ok(!f.some((x) => x.id.endsWith("-B")), "le zéro ne passe pas");
+  });
+
   it("le texte visible perd les balises et rend les entités", () => {
     assert.equal(texteIngenie("<b>a</b> &amp; <i>50 m&sup2;</i>"), "a & 50 m²");
   });

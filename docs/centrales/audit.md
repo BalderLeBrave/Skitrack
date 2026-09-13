@@ -296,6 +296,55 @@ src/lib/scrape/centrales/
 | `www.vercors-experience.com` | Lans en Vercors |
 | `www.villarddelans-correnconenvercors.com` | Corrençon en Vercors |
 
+## 9. Suite du 13 septembre : cinq centrales sont maintenant appelées
+
+Cette section corrige et prolonge l'audit ci-dessus. Elle est écrite le même jour, après les connecteurs, et elle contredit l'audit sur deux points.
+
+### Ce qui est branché
+
+| Centrale | Moteur | Stations | Relevé du 6 au 13 février 2027, 8 personnes |
+| --- | --- | ---: | --- |
+| Haute Maurienne Vanoise | Open System | 4 | 107 logements, sur 8 rubriques |
+| Alpe d'Huez Grand Domaine | MSEM | 5 | 53 vendables sur 957 au catalogue |
+| Corrençon-en-Vercors | MSEM | 1 | 22 vendables sur 276 |
+| Saint-François-Longchamp | MSEM | 1 | 21 vendables sur 299 |
+| Sainte-Foy Tarentaise | MSEM | 1 | 4 vendables sur 79 |
+
+Douze stations interrogées en direct, plus huit couvertes par un connecteur qui dit pourquoi il ne peut pas.
+
+### Deux corrections à l'audit
+
+**« Ublo » n'est pas le moteur de réservation.** Ublo est le gestionnaire de contenu, signé Valraiso, qui fabrique le site. La recherche d'hébergement est un composant chargé à part, « Mon Séjour En Montagne », servi par `services.msem.tech`. Les quatre centrales concernées ne sont donc pas quatre moteurs : c'est une seule API, à deux identifiants près — `resort` et `channel`.
+
+**Corrençon-en-Vercors n'est pas sous Elloha.** L'audit l'avait classée ainsi ; le site publie lui-même `resort` 30002 et `channel` « OTVDL » vers `services.msem.tech`, et l'API répond. `moteurs.data.json` est corrigé, avec le motif dans le fichier. Elloha ne dessert donc plus aucune centrale du parc.
+
+**Open System existe en deux générations.** La moderne rend ses résultats côté serveur, sur des pages `pr<N>-....htm`, et c'est elle qu'on interroge. L'ancienne — La Toussuire, Ax 3 Domaines, Dévoluy — sert une coquille statique et laisse un widget peupler la page : les trois réponses du triplet de contrôle sont identiques à l'octet près, même somme de contrôle, zéro prix. Ce n'est pas un paramètre mal deviné, c'est une différence d'architecture.
+
+### Le prix, vérifié et non supposé
+
+Le contrôle est le même partout : sans dates, puis sept nuits, puis trois ou quatorze.
+
+| Centrale | Sans dates | Épreuve de durée |
+| --- | --- | --- |
+| Haute Maurienne Vanoise | 0 prix | « La clé des champs » 840 € sur 7 nuits, 360 € sur 3 |
+| Sainte-Foy | 0 offre | « Soldanelle » 2 259,58 € sur 7 nuits, 865,82 € sur 3 |
+| Alpe d'Huez | 0 offre | « Le Kaila 601 » 5 660,16 € sur 7 nuits, 11 320,32 € sur 14 |
+| Saint-François-Longchamp | 0 offre | « L'Ancolie » 3 180,76 € puis 6 335,40 € |
+| Corrençon-en-Vercors | 0 offre | « Maison Sapin Bleu » 2 087,80 € puis 4 160,60 € |
+
+### Ce qui reste fermé, et pourquoi
+
+- **Ingénie**, 28 hôtes et 54 stations. La recherche-liste datée est un `GET /booking?action=searchAjax&cid=<n>&datedeb=…`, forme lue dans le formulaire rendu par `www.valloire.com`. Trois règles indépendantes du `robots.txt` type la couvrent, et la fiche datée en `?datedeb=`, elle autorisée, répond 503 « Site en maintenance ! » sur tous les hôtes essayés. Deux exceptions à noter pour plus tard : `www.risoul.com` ne porte pas les règles de blocage, et `www.lesrousses.com` en porte une plus radicale encore, `Disallow: /*?`, qui ferme toute URL à paramètres.
+- **Diffusio**. `www.sancy.com` affiche 800 prix sans qu'aucune date soit demandée, et son application n'expose aucun filtre de date, de durée ou de personnes : c'est une grille tarifaire, pas un total de séjour. `www.n-py.com` interdit nommément, sous un titre « Filtres pages hebergements », chacun des paramètres de son propre formulaire.
+- **Deskline / Feratel**, `www.laclusaz.com`. Rien ne l'interdit, ni sur le site ni sur les deux hôtes Feratel. L'empêchement est technique et reste à lever.
+- **Les trois sites à empreinte Open System sans moteur** — Valmorel, Alpe du Grand Serre, Piau-Engaly. L'empreinte relevée par l'audit était celle d'un widget **panier** d'Alliance Réseaux, pas d'un moteur de recherche. C'est ce qui avait induit l'audit en erreur. La réservation de Piau-Engaly part chez `www.n-py.com`, qui l'interdit.
+
+### Ce qui a été respecté
+
+Aucun contournement de protection anti-robot, aucun proxy, aucune résolution de captcha. `robots.txt` lu avant chaque appel et relu à l'exécution, avec un vrai analyseur de motifs. Aucun chemin interdit visité, y compris quand il était le seul à porter les prix — c'est le cas d'Ax 3 Domaines, dont le canal de données est fermé par `Disallow: /*callback=jQuery*_WPJS=r*`. L'agent déclaré à `robots.txt` est celui qui part dans l'en-tête.
+
+---
+
 ## Annexe B — méthode
 
 - Corpus : `src/lib/centrales.data.json` (49 stations, 5 domaines) et les 169 sites de domaine de `src/lib/forfaits/catalog.json`.

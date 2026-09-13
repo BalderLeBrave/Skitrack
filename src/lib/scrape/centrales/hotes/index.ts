@@ -8,25 +8,37 @@
  * correction d'analyseur ne soit pas à recopier sept fois.
  *
  * **Toutes les centrales n'ont pas de fichier.** L'audit en a relevé
- * soixante-sept ; sept en ont un ici, celles du moteur Open System. Pour les
- * soixante autres, `registre.ts` sait déjà dire quel moteur les fait tourner et
- * ce que leur `robots.txt` autorisait au relevé : c'est de quoi expliquer leur
- * silence sans écrire soixante fichiers vides. Un fichier s'écrit le jour où la
- * centrale est réellement interrogeable, ou le jour où son empêchement mérite
- * d'être raconté en détail.
+ * soixante-sept ; onze en ont un ici, les sept d'Open System et les quatre de
+ * MSEM. Cinq de ces onze s'interrogent vraiment et couvrent vingt stations.
+ * Pour les cinquante-six autres centrales, `registre.ts` sait déjà nommer le
+ * moteur et rappeler ce que leur `robots.txt` autorisait : c'est de quoi
+ * expliquer leur silence sans écrire cinquante-six fichiers vides. Un fichier
+ * s'écrit le jour où la centrale devient interrogeable, ou le jour où son
+ * empêchement mérite d'être raconté en détail.
  */
 
 import type { Connecteur } from "../types";
+import { alpeDHuez } from "./alpeDHuez";
 import { alpeDuGrandSerre } from "./alpeDuGrandSerre";
 import { ax3Domaines } from "./ax3Domaines";
+import { correnconEnVercors } from "./correnconEnVercors";
 import { devoluy } from "./devoluy";
 import { hauteMaurienneVanoise } from "./hauteMaurienneVanoise";
 import { lesSybelles } from "./lesSybelles";
 import { piauEngaly } from "./piauEngaly";
+import { saintFrancoisLongchamp } from "./saintFrancoisLongchamp";
+import { sainteFoyTarentaise } from "./sainteFoyTarentaise";
 import { valmorel } from "./valmorel";
 
 const TOUS: readonly Connecteur[] = [
+  // Open System, génération moderne : interrogeable.
   hauteMaurienneVanoise,
+  // MSEM : interrogeables.
+  alpeDHuez,
+  saintFrancoisLongchamp,
+  sainteFoyTarentaise,
+  correnconEnVercors,
+  // Open System, génération ancienne, et sites sans moteur interrogeable.
   lesSybelles,
   devoluy,
   alpeDuGrandSerre,

@@ -626,12 +626,13 @@
   },
   "www.villarddelans-correnconenvercors.com": {
    "nom": "Corrençon-en-Vercors",
-   "moteur": "Elloha",
+   "moteur": "Ublo",
    "stations": [
     "correncon-en-vercors"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Moteur relevé « Elloha » par l'audit du 13 septembre 2026, corrigé le même jour : le site publie lui-même resort 30002 et channel « OTVDL » vers services.msem.tech, et l'API MSEM répond — 276 hébergements au catalogue, 22 vendables à huit personnes du 6 au 13 février 2027. Les fiches vivent sur reservation.villarddelans-correnconenvercors.com."
   },
   "www.prazdelys-sommand.com": {
    "nom": "Praz de Lys – Sommand",

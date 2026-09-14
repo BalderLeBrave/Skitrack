@@ -3,10 +3,16 @@
  *  Une couverture, une barre de recherche en cinq segments dont chacun ouvre
  *  son panneau (destination, altitude, arrivée, départ, voyageurs), quatre
  *  raccourcis, puis « Les plus grands domaines » et « Par massif ».
- *  Données : `STATIONS` du dépôt et le catalogue de forfaits. */
+ *  Données : `STATIONS` du dépôt et le catalogue de forfaits.
+ *
+ *  **La loupe est le seul passage vers l'écran suivant.** Choisir une
+ *  suggestion remplit le champ et pose la station ; régler un curseur pose un
+ *  seuil ; cliquer une vignette ouvre la fiche de cette station. Aucun de ces
+ *  gestes ne quitte l'accueil de sa propre initiative : l'utilisateur enchaîne
+ *  ses critères et décide lui-même quand chercher. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { Flocons } from "@/components/Flocons";
@@ -15,6 +21,8 @@ import { useGo } from "@/components/v6/go";
 import { Calendrier, usePlage } from "@/components/v7/Calendrier";
 import { CarteStation } from "@/components/v7/CarteStation";
 import { Compteur } from "@/components/v7/Compteur";
+import { foldName } from "@/lib/carte";
+import { appliquer, SEUILS, usePredicats } from "@/lib/filtres";
 import {
   arrivalLbl,
   datesLbl,
@@ -22,6 +30,8 @@ import {
   dm,
   fmt,
   guestsLbl,
+  nightsBetween,
+  setStayRange,
   useParcours,
   useSejour,
   type ChipKey,
@@ -41,6 +51,10 @@ export const Route = createFileRoute("/")({ component: Home });
  */
 const CLE_ENTREE = "skitrack.v7.entree";
 
+/** `useLayoutEffect` avertit côté serveur, où il ne fait rien ; côté
+ *  navigateur il court avant la peinture, ce qu'il nous faut ici. */
+const avantPeinture = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 function dejaVue(): boolean {
   try {
     return sessionStorage.getItem(CLE_ENTREE) === "1";
@@ -59,12 +73,15 @@ function noterVue(): void {
 
 type Panneau = null | "q" | "alt" | "dates" | "guests";
 
-/** Les trois repères d'altitude du panneau « Altitude, au minimum ». */
-const ALT_RANGES: { k: "v" | "lo" | "hi"; label: string; max: number; court: string }[] = [
-  { k: "v", label: "Altitude du village", max: 2400, court: "village" },
-  { k: "lo", label: "Bas des pistes", max: 2200, court: "bas" },
-  { k: "hi", label: "Sommet", max: 3500, court: "sommet" },
-];
+/** Les trois repères d'altitude du panneau « Altitude, au minimum ».
+ *
+ *  Ils sortent de `SEUILS` (`filtres.ts`) : les bornes des curseurs étaient
+ *  écrites ici, dans Comparer et dans `/carte`, et elles avaient déjà divergé.
+ *  « Altitude du village » lit l'altitude du village — le point de départ —,
+ *  jamais le sommet du domaine. */
+const ALT_RANGES = SEUILS.filter((r): r is (typeof SEUILS)[number] & { k: "v" | "lo" | "hi" } =>
+  r.k === "v" || r.k === "lo" || r.k === "hi",
+);
 
 const ALT_PRESETS: { label: string; p: Partial<Record<"v" | "lo" | "hi", number>> }[] = [
   { label: "Village 1 800 m", p: { v: 1800 } },
@@ -100,7 +117,7 @@ function Home() {
   const go = useGo();
   const P = useParcours();
   const F = P.filters;
-  const { checkIn, checkOut, trav, rooms, nights, valid } = useSejour();
+  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const plage = usePlage();
   // La station retenue, s'il y en a une : c'est elle qui décide de ce que
   // « Rechercher » va ouvrir.
@@ -110,34 +127,44 @@ function Home() {
   const top = useMemo(() => popular(all), [all]);
   const massifs = useMemo(() => massifCards(all), [all]);
 
-  const [q, setQ] = useState("");
+  // **Le champ destination n'a pas d'état local.** Il en avait un, si bien que
+  // le texte affiché et le filtre appliqué étaient deux choses distinctes :
+  // revenir de Comparer laissait un jeton « chamonix » actif là-bas et un champ
+  // vide ici.
+  const q = P.q;
+  const setQ = P.setQ;
   const [hp, setHp] = useState<Panneau>(null);
+  // L'entrée désignée au clavier dans la liste de suggestions. -1 : aucune.
+  const [iSugg, setISugg] = useState(-1);
+  // Un verrou de navigation : deux Entrée rapides ne partent pas deux fois.
+  const enRoute = useRef(false);
   // « anime » ne dure que le temps de la séquence. Rien n'est caché : tout est
   // dans le document dès le premier rendu, seule l'opacité bouge, et la barre
   // de recherche répond au clavier pendant son propre fondu.
-  const [entree, setEntree] = useState<"anime" | "faite">(() => (dejaVue() ? "faite" : "anime"));
-
-  // **Arriver à l'accueil relâche la station retenue.**
+  // « anime » au premier rendu, des deux côtés.
   //
-  // L'accueil est le départ du parcours, et ce qu'il montre doit être vrai : une
-  // vignette sélectionnée y annonce que « Rechercher » ouvrira directement ses
-  // logements. Or la station retenue est gardée en mémoire locale, si bien
-  // qu'un choix fait la veille revenait coché tout seul, et la loupe sautait
-  // l'étape de comparaison sans que rien ne l'ait demandé.
-  //
-  // La règle est donc celle-ci : la station se choisit sur cet écran-ci, à
-  // cette visite-ci. Sans choix, la loupe ouvre « Comparer les stations ».
-  //
-  // Exception : un lien de partage porte sa propre station dans le fragment
-  // d'adresse, et `Coquille` la pose puis navigue aussitôt. Ses effets passent
-  // avant celui-ci, qui effacerait ce qu'il vient de poser.
-  useEffect(() => {
-    const partage = new URLSearchParams(window.location.hash.slice(1)).get("s");
-    if (partage) return;
-    // L'état est lu sur le magasin, pas capturé au rendu : l'effet n'a donc
-    // aucune dépendance, et ne rejoue pas quand la station change.
-    useParcours.getState().relacher();
+  // L'état initial lisait `sessionStorage`, que le serveur n'a pas : au
+  // deuxième passage dans l'onglet, le serveur rendait « anime » et le client
+  // « faite ». React signalait la divergence et rejouait tout le sous-arbre.
+  // La séquence est donc écartée juste après, avant la peinture, de sorte que
+  // rien ne clignote.
+  const [entree, setEntree] = useState<"anime" | "faite">("anime");
+  avantPeinture(() => {
+    if (dejaVue()) setEntree("faite");
   }, []);
+
+  // **Arriver à l'accueil ne relâche plus la station retenue.**
+  //
+  // Un effet la relâchait au montage, pour qu'un choix fait la veille ne
+  // revienne pas coché en silence. Il détruisait aussi le choix de la minute
+  // précédente : revenir sur l'accueil depuis Logements reverrouillait les
+  // étapes 2 et 3, et le lien de partage, qui pose une station puis navigue,
+  // se faisait effacer par lui — son garde-fou lisait un fragment d'adresse que
+  // `Coquille` venait justement d'effacer, et ne se déclenchait jamais.
+  //
+  // Ce que l'effet cherchait à éviter est réglé autrement : le champ destination
+  // porte le nom de la station retenue, et il est persisté avec elle. Rien n'est
+  // donc caché, et modifier le texte la relâche (`setQ`).
 
   useEffect(() => {
     if (entree === "faite") return;
@@ -170,68 +197,129 @@ function Home() {
     plage.reset();
   };
 
-  const ql = q.trim().toLowerCase();
-  const sugg =
-    ql && hp === "q"
-      ? [
-          ...massifs
-            .filter((x) => x.m.toLowerCase().includes(ql))
-            .map((x) => ({
-              key: "m:" + x.m,
-              label: x.m,
-              kind: "massif",
-              pick: () => {
-                P.setMassif(x.m);
-                P.setQ("");
-                void go("compare");
-              },
-            })),
-          ...all
-            .filter((s) => s.name.toLowerCase().includes(ql))
-            .slice(0, 6)
-            .map((s) => ({
-              key: "s:" + s.id,
-              label: s.name,
-              kind: s.domain ?? s.massif,
-              pick: () => {
-                setQ("");
-                void go("fiche", { id: s.id });
-              },
-            })),
-        ]
-      : [];
+  /* ---------- Suggestions ----------
+     Choisir une suggestion **remplit le champ et pose le critère**. Rien de
+     plus : les deux branches naviguaient, l'une vers Comparer, l'autre vers la
+     fiche, en vidant au passage le champ que l'utilisateur venait de remplir. */
+  const ql = foldName(q);
+  const sugg = useMemo(() => {
+    if (!ql || hp !== "q") return [];
+    return [
+      ...massifs
+        .filter((x) => foldName(x.m).includes(ql))
+        .slice(0, 3)
+        .map((x) => ({
+          key: "m:" + x.m,
+          label: x.m,
+          kind: "massif",
+          pick: () => {
+            P.setDestination(null);
+            P.setQ(x.m);
+            P.setMassif(x.m);
+            setHp(null);
+          },
+        })),
+      ...all
+        .filter((s) => foldName(s.name).includes(ql))
+        .slice(0, 6)
+        .map((s) => ({
+          key: "s:" + s.id,
+          label: s.name,
+          kind: s.domain ?? s.massif,
+          pick: () => {
+            P.setDestination(s);
+            setHp(null);
+          },
+        })),
+    ];
+    // `massifs` et `all` sont stables ; `P` ne l'est pas, mais ses actions le sont.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ql, hp, massifs, all]);
 
-  // Ce que « Rechercher » va faire, dit avant de le faire. Le bouton est le
-  // seul passage vers l'étape suivante : cliquer une vignette sélectionne, il
-  // ne navigue pas.
-  const manque = !valid ? "Le départ précède l'arrivée : corrigez les dates du séjour." : null;
-  const dira = manque
-    ? manque
-    : retenue
-      ? `Rechercher ouvrira les logements à ${retenue.name}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
-      : q.trim()
-        ? `Rechercher ouvrira les stations qui portent «\u00a0${q.trim()}\u00a0».`
-        : "Rechercher ouvrira la liste des stations. Retenez-en une ci-dessous pour aller droit à ses logements.";
+  /* ---------- Critères actifs et compte ----------
+     Les mêmes prédicats que l'écran Comparer, pas une seconde écriture. */
+  const preds = usePredicats();
+  const retenues = useMemo(() => appliquer(all, preds).length, [all, preds]);
+
+  /* ---------- Ce que la loupe va faire ----------
+     Trois cas, dits avant d'être faits. La loupe n'est jamais désactivée :
+     une plage de dates inversée se répare au lieu de barrer la route. */
+  const nuitsLues = nightsBetween(checkIn, checkOut);
+  const datesInversees = nuitsLues == null || nuitsLues <= 0;
+  const dira = retenue
+    ? `Rechercher ouvrira les logements à ${retenue.name}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
+    : preds.length
+      ? `Rechercher ouvrira ${retenues} station${retenues > 1 ? "s" : ""} sur ${all.length}, selon vos critères.`
+      : `Rechercher ouvrira les ${all.length} stations, tri par défaut.`;
+  const avertissement = datesInversees
+    ? "Le départ précède l'arrivée : la recherche posera une nuit à partir de l'arrivée."
+    : null;
 
   const search = () => {
-    if (manque) return;
+    // Deux clics rapides, ou une touche Entrée maintenue, ne partent qu'une
+    // fois : le verrou tombe au démontage de l'écran.
+    if (enRoute.current) return;
     setHp(null);
-    // Une station retenue, c'est l'étape 1 faite : le pas suivant est le sien.
+    // Une plage inversée est réparée, pas refusée : la loupe reste franchissable.
+    if (datesInversees) {
+      const lendemain = new Date(Date.parse(`${checkIn}T00:00:00Z`) + 86_400_000);
+      setStayRange(checkIn, lendemain.toISOString().slice(0, 10));
+    }
+    enRoute.current = true;
+    // a. Une station est renseignée : sa page, onglet Logements.
     if (retenue) {
+      P.retain(retenue.id);
       void go("lodging");
       return;
     }
-    P.setQ(q.trim());
-    P.setMassif(null);
+    // b. Au moins un autre critère : Comparer, liste filtrée par ces critères.
+    if (preds.length) {
+      void go("compare");
+      return;
+    }
+    // c. Aucun critère : Comparer, liste complète, tri par défaut.
+    P.setSort("km");
     void go("compare");
   };
+
+  // Le verrou ne survit pas à l'écran : revenir par le bouton Précédent doit
+  // rendre une loupe utilisable.
+  useEffect(() => () => {
+    enRoute.current = false;
+  }, []);
+
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") search();
+    if (e.key === "ArrowDown" && sugg.length) {
+      e.preventDefault();
+      setISugg((i) => (i + 1) % sugg.length);
+      return;
+    }
+    if (e.key === "ArrowUp" && sugg.length) {
+      e.preventDefault();
+      setISugg((i) => (i <= 0 ? sugg.length - 1 : i - 1));
+      return;
+    }
+    if (e.key === "Escape") {
+      setHp(null);
+      setISugg(-1);
+      return;
+    }
+    if (e.key !== "Enter" || e.repeat) return;
+    e.preventDefault();
+    // Entrée sur une suggestion désignée la choisit ; sinon elle cherche.
+    const choisie = iSugg >= 0 ? sugg[iSugg] : undefined;
+    if (choisie) {
+      choisie.pick();
+      setISugg(-1);
+      return;
+    }
+    search();
   };
+
+  /** Un raccourci **ajoute** un prédicat. Il remettait tout à zéro au passage,
+   *  emportant l'altitude que l'utilisateur venait de régler. */
   const shortcut = (k: ChipKey) => {
-    P.resetFilters();
-    P.setChip(k, true);
-    void go("compare");
+    P.setChip(k, !F.chips[k]);
   };
 
   const altActive = ALT_RANGES.filter((r) => F[r.k]);
@@ -283,11 +371,17 @@ function Home() {
                     onChange={(e) => {
                       setQ(e.target.value);
                       setHp("q");
+                      setISugg(-1);
                     }}
                     onKeyDown={onKey}
                     onFocus={() => setHp("q")}
                     placeholder="Station, massif, domaine"
                     autoComplete="off"
+                    role="combobox"
+                    aria-expanded={hp === "q" && !!ql}
+                    aria-controls="hq-sugg"
+                    aria-autocomplete="list"
+                    aria-activedescendant={iSugg >= 0 ? sugg[iSugg]?.key : undefined}
                   />
                 </label>
                 <button type="button" className={seg(hp === "alt")} onClick={() => ouvrir("alt")}>
@@ -315,12 +409,13 @@ function Home() {
                     <span className="sbar7__k">Voyageurs</span>
                     <span className="sbar7__v">{guestsLbl(trav, rooms)}</span>
                   </button>
+                  {/* La loupe ne se désactive pas. Elle l'était dès que la
+                      plage de dates était inversée, ce qui laissait l'écran
+                      sans issue : la recherche répare la plage et part. */}
                   <button
                     type="button"
                     className="sbar7__go"
-                    title={dira}
                     aria-label={dira}
-                    disabled={!!manque}
                     onClick={search}
                   >
                     <Icon name="loupe" taille={18} />
@@ -328,15 +423,37 @@ function Home() {
                 </div>
               </div>
 
-              {sugg.length ? (
-                <div className="pop7 pop7--sugg">
-                  <span className="pop7__label">Suggestions</span>
-                  {sugg.map((sg) => (
-                    <button key={sg.key} type="button" className="pop7__sugg" onClick={sg.pick}>
-                      <span>{sg.label}</span>
-                      <span className="pop7__kind">{sg.kind}</span>
-                    </button>
-                  ))}
+              {hp === "q" && ql ? (
+                <div className="pop7 pop7--sugg" id="hq-sugg" role="listbox">
+                  {sugg.length ? (
+                    <>
+                      <span className="pop7__label">Suggestions</span>
+                      {sugg.map((sg, i) => (
+                        <button
+                          key={sg.key}
+                          id={sg.key}
+                          type="button"
+                          role="option"
+                          aria-selected={i === iSugg}
+                          className={`pop7__sugg${i === iSugg ? " pop7__sugg--vive" : ""}`}
+                          onMouseEnter={() => setISugg(i)}
+                          onClick={sg.pick}
+                        >
+                          <span>{sg.label}</span>
+                          <span className="pop7__kind">{sg.kind}</span>
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    /* Texte saisi sans correspondance : il est traité comme
+                       « pas de station », et l'écran le dit plutôt que de
+                       laisser un panneau vide. */
+                    <span className="pop7__vide">
+                      Aucune station ni massif ne porte «&nbsp;{q.trim()}&nbsp;». Le référentiel
+                      couvre {all.length} stations françaises ; la loupe ouvrira la liste filtrée sur
+                      ce texte.
+                    </span>
+                  )}
                 </div>
               ) : null}
 
@@ -424,12 +541,49 @@ function Home() {
                 </div>
               ) : null}
             </div>
-            <p className={`hero7__dira${manque ? " hero7__dira--manque" : ""}`} aria-live="polite">
+            <p className="hero7__dira" aria-live="polite">
               {dira}
+              {avertissement ? <span className="hero7__dira--manque"> {avertissement}</span> : null}
             </p>
+
+            {/* Les critères actifs, retirables un par un, avec le compte des
+                stations retenues. Ils se réglaient jusqu'ici dans des panneaux
+                qui se referment : rien à l'écran ne disait ce qui était posé. */}
+            {preds.length ? (
+              <div className="hero7__jetons" aria-live="polite">
+                <span className="hero7__jetons-label">
+                  {retenues} station{retenues > 1 ? "s" : ""} retenue{retenues > 1 ? "s" : ""}
+                </span>
+                {preds.map((pr) => (
+                  <span key={pr.id} className="jeton jeton--photo">
+                    {pr.label}
+                    <button type="button" aria-label={`Retirer le critère ${pr.label}`} onClick={pr.retirer}>
+                      <Icon name="croix" taille={11} />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  type="button"
+                  className="hero7__jetons-tout"
+                  onClick={() => {
+                    P.resetFilters();
+                    P.setDestination(null);
+                  }}
+                >
+                  Tout retirer
+                </button>
+              </div>
+            ) : null}
+
             <div className="hero7__raccourcis">
               {SHORTCUTS.map((sc) => (
-                <button key={sc.k} type="button" className="raccourci" onClick={() => shortcut(sc.k)}>
+                <button
+                  key={sc.k}
+                  type="button"
+                  className={`raccourci${F.chips[sc.k] ? " raccourci--on" : ""}`}
+                  aria-pressed={!!F.chips[sc.k]}
+                  onClick={() => shortcut(sc.k)}
+                >
                   {sc.label}
                 </button>
               ))}
@@ -463,15 +617,16 @@ function Home() {
                   sont des valeurs de domaine.
                 </p>
               </div>
+              {/* Un lien de vue, pas une remise à zéro : il emmenait les
+                  critères de l'utilisateur avec lui, sans le dire. */}
               <a
                 href="/comparer"
                 onClick={(e) => {
                   e.preventDefault();
-                  P.resetFilters();
                   void go("compare");
                 }}
               >
-                Toutes les stations, sur la carte →
+                Comparer les stations, sur la carte →
               </a>
             </header>
             <div className="home7__grille3">
@@ -484,7 +639,7 @@ function Home() {
             <header className="home7__tete">
               <div>
                 <h2>Par massif</h2>
-                <p>Ouvre la carte filtrée sur le massif.</p>
+                <p>Pose le massif comme critère. La loupe ouvre la liste.</p>
               </div>
             </header>
             <div className="home7__massifs">
@@ -492,12 +647,9 @@ function Home() {
                 <button
                   key={x.m}
                   type="button"
-                  className="mcard7"
-                  onClick={() => {
-                    P.setMassif(x.m);
-                    P.setQ("");
-                    void go("compare");
-                  }}
+                  className={`mcard7${P.massif === x.m ? " mcard7--on" : ""}`}
+                  aria-pressed={P.massif === x.m}
+                  onClick={() => P.setMassif(P.massif === x.m ? null : x.m)}
                 >
                   <strong>{x.m}</strong>
                   <span>

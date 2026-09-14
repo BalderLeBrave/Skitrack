@@ -78,8 +78,12 @@ export function colorValue(station: Station, color: ColorKey, unit: ColorUnit): 
   return Math.round((station.pistesKm * share) / 100);
 }
 
-/** Un seuil actif sur un champ non mesuré écarte la station. */
-function atLeast(value: number | null | undefined, min: number): boolean {
+/** Un seuil actif sur un champ non mesuré écarte la station.
+ *
+ *  Exportée : `filtres.ts` s'en sert pour l'écran Comparer et pour l'accueil,
+ *  qui écrivaient chacun leur propre `(valeur ?? 0) >= seuil` — même effet
+ *  aujourd'hui, règle différente demain. */
+export function atLeast(value: number | null | undefined, min: number): boolean {
   if (!min) return true;
   return value != null && value >= min;
 }

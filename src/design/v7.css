@@ -156,7 +156,7 @@
 .v7nav__etape--on {
   color: var(--color-ink);
   background: var(--color-surface);
-  box-shadow: 0 1px 2px rgba(22, 25, 30, 0.06), 0 3px 10px rgba(22, 25, 30, 0.08);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ombre) 6%, transparent), 0 3px 10px color-mix(in srgb, var(--color-ombre) 8%, transparent);
 }
 .v7nav__etape--verrou {
   color: var(--color-texte-3);
@@ -178,9 +178,13 @@
   background: var(--color-marque);
   color: var(--color-cta-ink);
 }
+/* Le numéro d'une étape verrouillée : gris, mais lisible. Le couple
+   ligne / texte-3 tombait à 4,07:1 dans les deux thèmes, sous le seuil du
+   texte courant — et c'est un chiffre de 11 px. */
 .v7nav__etape--verrou .v7nav__num {
   background: var(--color-line);
-  color: var(--color-texte-3);
+  color: var(--color-ink);
+  opacity: 0.75;
 }
 .v7nav__utils {
   display: flex;
@@ -274,11 +278,11 @@
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-ink);
-  box-shadow: 0 1px 2px rgba(22, 25, 30, 0.05), 0 6px 20px rgba(22, 25, 30, 0.06);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ombre) 5%, transparent), 0 6px 20px color-mix(in srgb, var(--color-ombre) 6%, transparent);
   font-size: var(--text-detail);
 }
 .v7sejour__pilule:hover {
-  box-shadow: 0 1px 2px rgba(22, 25, 30, 0.06), 0 10px 28px rgba(22, 25, 30, 0.1);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ombre) 6%, transparent), 0 10px 28px color-mix(in srgb, var(--color-ombre) 10%, transparent);
 }
 .v7sejour__station {
   font-weight: 700;
@@ -645,8 +649,15 @@
 .btn7--inerte:hover:not(:disabled) {
   background: var(--color-glacier);
 }
+/* Désactivé : le bouton se voit désactivé sans devenir illisible. Une opacité
+   de 0,5 sur un fond d'accent tombait à 2,4:1 en thème sombre — les critères
+   d'accessibilité n'exigent rien d'une commande inactive, mais un libellé qu'on
+   ne lit plus ne dit plus ce que le bouton fera une fois actif. */
 .btn7:disabled {
-  opacity: 0.5;
+  background: var(--color-glacier);
+  color: var(--color-muted);
+  border-color: var(--color-line);
+  cursor: not-allowed;
 }
 .puce {
   display: inline-flex;
@@ -733,12 +744,29 @@
   color: inherit;
 }
 .jeton button:hover {
-  background: rgba(22, 25, 30, 0.1);
+  background: color-mix(in srgb, var(--color-ombre) 10%, transparent);
 }
+/* Le lien discret. Il sert aussi à des `<button>` — qui n'héritent ni de la
+   couleur, ni du fond transparent, ni du soulignement : posés ici, ils se
+   lisaient comme du texte inerte. */
 .lien-doux {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
   font-size: var(--text-detail);
   font-weight: 600;
   color: var(--color-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.lien-doux:hover:not(:disabled) {
+  color: var(--color-ink);
+}
+.lien-doux:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
 }
 .select7 {
   height: calc(var(--spacing) * 10);
@@ -939,6 +967,15 @@
   gap: 2px;
   padding: calc(var(--spacing) * 2.5);
   border-radius: 20px;
+  /* Une lettre peut ramener beaucoup de monde : la liste défile plutôt que de
+     sortir de l'écran. */
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.pop7__vide {
+  padding: calc(var(--spacing) * 3);
+  font-size: var(--text-detail);
+  color: var(--color-muted);
 }
 .pop7__label {
   padding: 6px 12px 4px;
@@ -958,7 +995,8 @@
   font-size: 14px;
   text-align: left;
 }
-.pop7__sugg:hover {
+.pop7__sugg:hover,
+.pop7__sugg--vive {
   background: var(--color-glacier);
 }
 .pop7__sugg > span:first-child {
@@ -1134,7 +1172,7 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   backdrop-filter: blur(12px);
-  box-shadow: 0 1px 2px rgba(22, 25, 30, 0.12), 0 4px 12px rgba(22, 25, 30, 0.14);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ombre) 12%, transparent), 0 4px 12px color-mix(in srgb, var(--color-ombre) 14%, transparent);
   font-size: var(--text-note);
   font-weight: 700;
   color: var(--color-ink);
@@ -1177,106 +1215,136 @@
   font-size: var(--text-note);
   color: var(--color-muted);
   max-width: 260px;
+  pointer-events: none;
 }
 .carte7__legende b {
   color: var(--color-ink);
 }
-.epingle-station {
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-  /* Le marqueur Leaflet mesure 0 x 0 : sans largeur propre, la grille reste
-     large de zéro, le dessin déborde et la cible du pointeur disparaît. */
-  width: max-content;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-sans);
-  cursor: pointer;
+/* ── Marqueur de carte ─────────────────────────────────────────────────────
+   Une seule géométrie, déclarée ici et nulle part ailleurs. La boîte est carrée
+   et fixe : ni le nom, ni l'altitude, ni le prix, ni le zoom ne la font varier.
+   Les états se lisent à la couleur, à l'anneau et à l'ombre. La seule variation
+   de taille admise est la mise à l'échelle au survol, ci-dessous. */
+.carte7 {
+  --epingle-taille: 32px;
+  --epingle-pastille: 26px;
+  --epingle-bord: 2px;
+  --epingle-survol: 1.14;
 }
-.epingle-station__disque {
+.epingle-hote {
+  /* Leaflet pose déjà la boîte via `iconSize` ; ce qui compte est qu'elle ne
+     grandisse jamais avec son contenu. */
+  box-sizing: border-box;
+  background: none;
+  border: 0;
+}
+.epingle-hote:focus-visible {
+  outline: 3px solid var(--color-marque);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+.epingle {
+  box-sizing: border-box;
+  width: var(--epingle-taille);
+  height: var(--epingle-taille);
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.epingle__pastille {
+  box-sizing: border-box;
+  width: var(--epingle-pastille);
+  height: var(--epingle-pastille);
+  display: grid;
+  place-items: center;
+  border: var(--epingle-bord) solid var(--color-surface);
   border-radius: 50%;
   background: var(--color-marque);
   color: var(--color-cta-ink);
   box-shadow: var(--shadow-epingle);
+  transition: transform 0.12s var(--ease-ui);
 }
-.epingle-station--sombre .epingle-station__disque {
+.epingle__pastille svg {
+  width: 14px;
+  height: 14px;
+}
+/* Dans la comparaison : un anneau, pas une autre taille. */
+.epingle--comparee .epingle__pastille {
   background: var(--color-ink);
+  box-shadow:
+    0 0 0 3px var(--color-marque),
+    var(--shadow-epingle);
 }
-/* La station qui n'est pas dans la tranche nommée par la liste : la pastille
-   seule, plus petite et un peu en retrait, pour que trois cents d'entre elles
-   tiennent sur la carte sans couvrir celles que la liste nomme. */
-.epingle-station--compacte .epingle-station__disque {
-  width: 20px;
-  height: 20px;
-  background: color-mix(in srgb, var(--color-marque) 78%, var(--color-surface));
+/* Le repère de la station retenue sur la carte des logements : en retrait. */
+.epingle--repere {
+  cursor: default;
 }
-.epingle-station--compacte .epingle-station__disque svg {
-  width: 11px;
-  height: 11px;
+.epingle--repere .epingle__pastille {
+  background: var(--color-muted);
 }
-.epingle-station__nom {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-  font-size: var(--text-note);
-  font-weight: 700;
-  color: var(--color-ink);
-  white-space: nowrap;
+/* Désignée — par le survol, le focus, ou la liste à côté. */
+.epingle-hote--vive .epingle__pastille {
+  background: var(--color-ink);
+  transform: scale(var(--epingle-survol));
 }
-.epingle-repere {
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-sans);
+.epingle-hote--fixee .epingle__pastille {
+  box-shadow:
+    0 0 0 3px var(--color-marque),
+    var(--shadow-flottant);
 }
-.epingle-repere__disque {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--color-marque);
-  color: var(--color-cta-ink);
-  box-shadow: 0 1px 4px rgba(22, 25, 30, 0.3);
-}
-.epingle-repere__nom {
-  font-size: var(--text-detail);
-  font-weight: 700;
-  color: var(--color-ink);
-  text-shadow: 0 0 4px var(--color-surface), 0 0 4px var(--color-surface);
+@media (prefers-reduced-motion: reduce) {
+  .epingle__pastille {
+    transition: none;
+  }
+  .epingle-hote--vive .epingle__pastille {
+    transform: none;
+  }
 }
 .epingle-prix {
+  box-sizing: border-box;
   position: relative;
   transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
   height: 29px;
   padding: 0 10px;
+  border: var(--epingle-bord, 2px) solid var(--color-surface);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-ink);
   font: 700 14px/1 var(--font-sans);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(22, 25, 30, 0.12), 0 4px 12px rgba(22, 25, 30, 0.14);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ombre) 12%, transparent), 0 4px 12px color-mix(in srgb, var(--color-ombre) 14%, transparent);
   cursor: pointer;
   transition: transform 0.12s var(--ease-ui);
 }
-.epingle-prix:hover {
-  transform: translate(-50%, -50%) scale(1.09);
-  z-index: 1000;
+.epingle-prix:hover,
+.epingle-hote--vive .epingle-prix {
+  transform: translate(-50%, -50%) scale(var(--epingle-survol, 1.14));
 }
 .epingle-prix--retenue {
   background: var(--color-ink);
   color: var(--color-surface);
+  border-color: var(--color-ink);
 }
+/* « Déjà vue » se marque par un trait, pas par un texte affaibli : le couple
+   ligne / texte-3 tombait à 3,2:1 en thème sombre. */
 .epingle-prix--vue {
-  background: var(--color-line);
-  color: var(--color-texte-3);
+  background: var(--color-glacier);
+  color: var(--color-muted);
+  border-style: dashed;
+  border-color: var(--color-line);
+}
+@media (prefers-reduced-motion: reduce) {
+  .epingle-prix {
+    transition: none;
+  }
+  .epingle-prix:hover,
+  .epingle-hote--vive .epingle-prix {
+    transform: translate(-50%, -50%);
+  }
 }
 
 /* ── Carte de station ───────────────────────────────────────────────────── */
@@ -1306,7 +1374,7 @@
 .stc7__slot {
   position: absolute;
   inset: 0;
-  color: #4a5560;
+  color: var(--color-muted);
 }
 .stc7__km {
   position: absolute;
@@ -1319,17 +1387,6 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink);
-}
-.stc7__retenue {
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--color-marque);
-  color: var(--color-cta-ink);
-  font-size: var(--text-note);
-  font-weight: 700;
 }
 .stc7__corps {
   display: grid;
@@ -1348,6 +1405,9 @@
   font-size: var(--text-corps);
   font-weight: 700;
   color: var(--color-ink);
+}
+.stc7__nom:hover {
+  text-decoration: underline;
 }
 .stc7__sub {
   font-size: var(--text-detail);
@@ -1389,20 +1449,9 @@
 .stc7--liste .stc7__pied {
   padding-top: calc(var(--spacing) * 2.5);
 }
+/* « Comparer » est un bouton : il pose la station dans la comparaison et mène
+   à l'écran qui la lit. C'était une case à cocher, qui ne menait nulle part. */
 .stc7__cmp {
-  display: inline-flex;
-  align-items: center;
-  gap: calc(var(--spacing) * 2);
-  font-size: var(--text-detail);
-  font-weight: 600;
-  color: var(--color-muted);
-  cursor: pointer;
-}
-.stc7__cmp--on {
-  color: var(--color-marque-texte);
-}
-/* À l'accueil, le pied de vignette dit l'état de sélection, il ne navigue pas. */
-.stc7__choix {
   height: 32px;
   padding: 0 12px;
   border: 1px solid var(--color-line);
@@ -1412,26 +1461,13 @@
   font-size: 13px;
   font-weight: 700;
 }
-.stc7__choix:hover {
+.stc7__cmp:hover {
   border-color: var(--color-ink);
 }
-.stc7__choix--on {
+.stc7__cmp--on {
   background: var(--color-marque-tenue);
   border-color: var(--color-marque-tenue);
   color: var(--color-marque-texte);
-}
-.stc7__nom--bouton {
-  border: 0;
-  background: none;
-  padding: 0;
-  text-align: left;
-  font: inherit;
-  font-size: var(--text-corps);
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.stc7__nom--bouton:hover {
-  text-decoration: underline;
 }
 .stc7__lodg {
   font-size: var(--text-detail);
@@ -1459,21 +1495,30 @@
   min-height: calc(100vh - var(--spacing) * 15);
   display: flex;
   align-items: flex-end;
-  background: #c9d3dc;
+  background: var(--color-hero-fond);
 }
 .hero7__slot {
   position: absolute;
   inset: 0;
-  color: #3f4a56;
+  color: var(--color-muted);
 }
+/* Le voile est calé sur le bloc de texte, qui occupe les trois cinquièmes bas
+   de la couverture. Il montait jusqu'ici à 18 % à mi-hauteur et n'atteignait
+   55 % qu'au tout dernier pixel : le titre et le chapô tombaient en plein sur
+   la partie claire de la photo, mesurés à 1,7:1 et 1,8:1 — dans les deux
+   thèmes, le défaut ne venant pas de la palette mais du voile. Le tiers haut
+   de la photo reste dégagé ; en dessous, le fond est assez sombre pour que
+   `--color-photo-texte` tienne ses 4,5:1 quelle que soit l'image. */
 .hero7__voile {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(22, 25, 30, 0.1) 0%,
-    rgba(22, 25, 30, 0.18) 55%,
-    rgba(22, 25, 30, 0.55) 100%
+    color-mix(in srgb, var(--color-photo-voile) 8%, transparent) 0%,
+    color-mix(in srgb, var(--color-photo-voile) 18%, transparent) 24%,
+    color-mix(in srgb, var(--color-photo-voile) 68%, transparent) 44%,
+    color-mix(in srgb, var(--color-photo-voile) 88%, transparent) 64%,
+    color-mix(in srgb, var(--color-photo-voile) 90%, transparent) 100%
   );
   pointer-events: none;
 }
@@ -1504,19 +1549,19 @@
   display: grid;
   gap: calc(var(--spacing) * 5.5);
   justify-items: start;
-  color: var(--color-surface);
+  color: var(--color-photo-texte);
 }
 .hero7__in h1 {
   max-width: 18ch;
   font-size: var(--text-affiche);
   line-height: var(--text-affiche--line-height);
   letter-spacing: -0.025em;
-  text-shadow: 0 1px 18px rgba(22, 25, 30, 0.35);
+  text-shadow: 0 1px 18px color-mix(in srgb, var(--color-photo-voile) 35%, transparent);
 }
 .hero7__lead {
   max-width: 56ch;
   font-size: var(--text-corps);
-  color: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: color-mix(in srgb, var(--color-photo-texte) 90%, transparent);
   text-wrap: pretty;
 }
 .hero7__fond {
@@ -1538,7 +1583,9 @@
   background: color-mix(in srgb, var(--color-surface) 82%, transparent);
   backdrop-filter: blur(18px) saturate(1.4);
   color: var(--color-ink);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 16px 40px rgba(22, 25, 30, 0.28);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-surface) 70%, transparent),
+    0 16px 40px color-mix(in srgb, var(--color-ombre) 28%, transparent);
 }
 .sbar7--ouverte {
   background: color-mix(in srgb, var(--color-glacier) 92%, transparent);
@@ -1559,7 +1606,7 @@
   color: var(--color-ink);
 }
 .sbar7__seg:hover {
-  background: rgba(22, 25, 30, 0.06);
+  background: color-mix(in srgb, var(--color-ombre) 6%, transparent);
 }
 .sbar7__seg--on {
   background: var(--color-surface);
@@ -1627,16 +1674,12 @@
    ne peut pas porter son propre libellé. */
 .hero7__dira {
   font-size: var(--text-detail);
-  color: color-mix(in srgb, var(--color-surface) 88%, transparent);
-  text-shadow: 0 1px 10px rgba(22, 25, 30, 0.45);
+  color: color-mix(in srgb, var(--color-photo-texte) 88%, transparent);
+  text-shadow: 0 1px 10px color-mix(in srgb, var(--color-photo-voile) 45%, transparent);
 }
 .hero7__dira--manque {
   font-weight: 700;
-  color: var(--color-surface);
-}
-.sbar7__go:disabled {
-  background: var(--color-texte-3);
-  cursor: not-allowed;
+  color: var(--color-photo-texte);
 }
 .hero7__raccourcis {
   display: flex;
@@ -1646,20 +1689,55 @@
 .raccourci {
   height: calc(var(--spacing) * 10);
   padding: 0 calc(var(--spacing) * 4);
-  border: 1px solid color-mix(in srgb, var(--color-surface) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-photo-texte) 35%, transparent);
   border-radius: 999px;
-  background: rgba(22, 25, 30, 0.32);
+  background: color-mix(in srgb, var(--color-photo-voile) 32%, transparent);
   backdrop-filter: blur(10px);
-  color: var(--color-surface);
+  color: var(--color-photo-texte);
   font-size: var(--text-detail);
   font-weight: 600;
   transition: transform 0.12s var(--ease-ui);
 }
 .raccourci:hover {
-  background: rgba(22, 25, 30, 0.5);
+  background: color-mix(in srgb, var(--color-photo-voile) 50%, transparent);
 }
 .raccourci:active {
   transform: scale(0.94);
+}
+.raccourci--on {
+  border-color: var(--color-photo-texte);
+  background: color-mix(in srgb, var(--color-photo-voile) 62%, transparent);
+}
+
+/* Les critères actifs, posés sur la couverture : mêmes jetons que Comparer,
+   sur un matériau qui tient au-dessus d'une photo. */
+.hero7__jetons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}
+.hero7__jetons-label {
+  font-size: var(--text-detail);
+  font-weight: 700;
+  color: var(--color-photo-texte);
+}
+.jeton--photo {
+  background: color-mix(in srgb, var(--color-photo-voile) 52%, transparent);
+  color: var(--color-photo-texte);
+  backdrop-filter: blur(10px);
+}
+.jeton--photo button:hover {
+  background: color-mix(in srgb, var(--color-photo-texte) 22%, transparent);
+}
+.hero7__jetons-tout {
+  border: 0;
+  background: none;
+  padding: 0 calc(var(--spacing) * 1);
+  font-size: var(--text-detail);
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-photo-texte) 85%, transparent);
+  text-decoration: underline;
 }
 /* ── Entree de l'accueil ──────────────────────────────────────────────────
    Une seconde et demie en tout : le premier morceau du titre, le second, la
@@ -1736,10 +1814,10 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  color: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  color: color-mix(in srgb, var(--color-photo-texte) 82%, transparent);
   font-size: var(--text-note);
   font-weight: 600;
-  text-shadow: 0 1px 10px rgba(22, 25, 30, 0.5);
+  text-shadow: 0 1px 10px color-mix(in srgb, var(--color-photo-voile) 50%, transparent);
   pointer-events: none;
 }
 .hero7__suite svg {
@@ -1767,7 +1845,7 @@
   right: 14px;
   bottom: 10px;
   font-size: 11px;
-  color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  color: color-mix(in srgb, var(--color-photo-texte) 80%, transparent);
 }
 .home7 {
   display: grid;
@@ -1818,6 +1896,13 @@
 }
 .mcard7:hover {
   box-shadow: 0 0 0 1px var(--color-marque);
+}
+.mcard7--on {
+  background: var(--color-marque-tenue);
+  box-shadow: 0 0 0 2px var(--color-marque);
+}
+.mcard7--on strong {
+  color: var(--color-marque-texte);
 }
 .mcard7 strong {
   font-size: var(--text-corps);
@@ -1976,18 +2061,22 @@
   color: var(--color-ink);
 }
 .fhero7--photo {
-  background: #c9d3dc;
-  color: var(--color-surface);
+  background: var(--color-hero-fond);
+  color: var(--color-photo-texte);
 }
 .fhero7__slot {
   position: absolute;
   inset: 0;
-  color: #3f4a56;
+  color: var(--color-muted);
 }
 .fhero7__voile {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(22, 25, 30, 0.04) 30%, rgba(22, 25, 30, 0.72) 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-photo-voile) 4%, transparent) 30%,
+    color-mix(in srgb, var(--color-photo-voile) 72%, transparent) 100%
+  );
   pointer-events: none;
 }
 .fhero7__in {
@@ -2209,7 +2298,7 @@
   grid-template-columns: 1fr 1fr 1fr;
   gap: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
   padding-top: calc(var(--spacing) * 3);
-  border-top: 1px solid rgba(22, 25, 30, 0.08);
+  border-top: 1px solid color-mix(in srgb, var(--color-ombre) 8%, transparent);
 }
 .wx7__mesures > div {
   display: grid;
@@ -2445,7 +2534,7 @@
 .ruban7__slot {
   position: absolute;
   inset: 0;
-  color: #4a5560;
+  color: var(--color-muted);
 }
 .ruban7__corps {
   display: grid;
@@ -2505,7 +2594,7 @@
   cursor: pointer;
 }
 .lodge7:hover {
-  box-shadow: 0 0 0 1px var(--color-line), 0 8px 24px rgba(22, 25, 30, 0.1);
+  box-shadow: 0 0 0 1px var(--color-line), 0 8px 24px color-mix(in srgb, var(--color-ombre) 10%, transparent);
 }
 .lodge7--kept {
   box-shadow: 0 0 0 2px var(--color-marque);
@@ -2515,22 +2604,22 @@
   aspect-ratio: 16 / 9;
   display: grid;
   place-items: center;
-  color: #6b737d;
+  color: var(--color-muted);
   background: var(--color-media);
 }
 .lodge7__media--airbnb {
-  background: #e8e2d9;
+  background: var(--color-media-airbnb);
 }
 .lodge7__media--gites {
-  background: #dfe8df;
+  background: var(--color-media-gites);
 }
 .lodge7__media--autre {
-  background: #e3e6ea;
+  background: var(--color-media-autre);
 }
 .lodge7__slot {
   position: absolute;
   inset: 0;
-  color: #4a5560;
+  color: var(--color-muted);
 }
 .lodge7__sansphoto {
   font-size: var(--text-note);
@@ -2566,7 +2655,7 @@
   bottom: 8px;
   font-size: 11px;
   font-weight: 700;
-  color: #7b838d;
+  color: var(--color-muted);
 }
 .lodge7__corps {
   display: grid;
@@ -2723,7 +2812,7 @@
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: rgba(22, 25, 30, 0.25);
+  background: color-mix(in srgb, var(--color-photo-voile) 45%, transparent);
 }
 .volet7 {
   position: fixed;
@@ -2736,7 +2825,7 @@
   flex-direction: column;
   background: color-mix(in srgb, var(--color-surface) 97%, transparent);
   backdrop-filter: blur(18px);
-  box-shadow: -2px 0 6px rgba(22, 25, 30, 0.06), -18px 0 48px rgba(22, 25, 30, 0.16);
+  box-shadow: -2px 0 6px color-mix(in srgb, var(--color-ombre) 6%, transparent), -18px 0 48px color-mix(in srgb, var(--color-ombre) 16%, transparent);
   overflow: auto;
   font-family: var(--font-sans);
   color: var(--color-ink);
@@ -2759,7 +2848,7 @@
   height: 240px;
   display: grid;
   place-items: center;
-  color: #6b737d;
+  color: var(--color-muted);
   font-size: 13px;
   font-weight: 600;
 }
@@ -2773,8 +2862,8 @@
   height: 34px;
   border: 0;
   border-radius: 50%;
-  background: rgba(22, 25, 30, 0.55);
-  color: var(--color-surface);
+  background: color-mix(in srgb, var(--color-photo-voile) 55%, transparent);
+  color: var(--color-photo-texte);
   cursor: pointer;
 }
 .volet7__corps {
@@ -2895,23 +2984,35 @@
    327 × 289, posée au-dessus de l'épingle, croix en haut à gauche dans une
    pastille sombre translucide. Au doigt, elle s'ancre en bas de la carte :
    il n'y a pas de survol, et une fenêtre posée sous le pouce se lit mal. */
+/* La fiche de la carte. Deux états d'un même dessin :
+   — de survol : informative, transparente aux clics, sans croix ni actions ;
+   — épinglée : une fenêtre, interactive, au-dessus de la précédente.
+   Sa surface est opaque : posée sur une carte, elle porte du texte dense, et
+   un matériau translucide la rendrait illisible dès qu'une tuile chargée est
+   contrastée. */
 .fcarte {
   position: absolute;
-  /* Au-dessus des pastilles de prix, qui montent à 1000 au survol : les panneaux
-     Leaflet et cette fenêtre partagent le même contexte d'empilement. */
   z-index: 1200;
-  width: 327px;
-  /* 327 x 289 est la cote du kit. La hauteur y est un plancher et non un
-     plafond : le kit suppose une note et une photo, SKITRACK a un verdict de
-     disponibilite et une distance. Fixee, elle ecrasait le titre a zero. */
-  min-height: 289px;
+  /* Fluide sous 350 px de carte : la fiche sortait du cadre à l'étroit. */
+  width: min(327px, calc(100% - 24px));
   max-height: 380px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--radius-surface);
   background: var(--color-surface);
+  color: var(--color-ink);
   box-shadow: var(--shadow-flottant);
+  /* De survol : elle ne prend aucun clic, et ne se met donc jamais entre le
+     pointeur et la pastille voisine. */
+  pointer-events: none;
+}
+.fcarte--epinglee {
+  z-index: 1400;
+  pointer-events: auto;
+  box-shadow:
+    0 0 0 1px var(--color-marque),
+    var(--shadow-flottant);
 }
 .fcarte--bas {
   left: 12px;
@@ -2920,25 +3021,40 @@
   top: auto;
   width: auto;
   height: auto;
+  min-height: 0;
   max-height: 62%;
 }
+/* Croix en SVG, zone cliquable de 32 px au moins. Le couple de jetons est
+   apparié : dérivée de `--color-ink`, elle s'inversait d'un thème à l'autre. */
 .fcarte__fermer {
   position: absolute;
-  left: 10px;
-  top: 10px;
+  right: 8px;
+  top: 8px;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--color-ink) 55%, transparent);
-  color: var(--color-surface);
+  background: color-mix(in srgb, var(--color-photo-voile) 55%, transparent);
+  color: var(--color-photo-texte);
   cursor: pointer;
 }
 .fcarte__fermer:hover {
-  background: color-mix(in srgb, var(--color-ink) 72%, transparent);
+  background: color-mix(in srgb, var(--color-photo-voile) 78%, transparent);
+}
+.fcarte__actions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 3);
+  border-top: 1px solid var(--color-line-douce);
+  background: var(--color-surface);
+}
+.fcarte__actions > * {
+  flex: 1 1 auto;
 }
 .fcarte__corps {
   display: flex;
@@ -2960,7 +3076,7 @@
 .fc__slot {
   position: absolute;
   inset: 0;
-  color: #4a5560;
+  color: var(--color-muted);
 }
 .fc__source {
   position: absolute;
@@ -3067,21 +3183,6 @@
   margin-top: auto;
 }
 
-/* Épingle vive : celle que le survol ou le clic désigne, des deux côtés. */
-.epingle--vive .epingle-prix {
-  background: var(--color-ink);
-  color: var(--color-surface);
-  transform: translate(-50%, -50%) scale(1.09);
-  z-index: 1000;
-}
-.epingle--vive .epingle-station__disque {
-  background: var(--color-ink);
-  transform: scale(1.12);
-}
-.epingle--vive .epingle-station__nom {
-  background: var(--color-ink);
-  color: var(--color-surface);
-}
 /* La carte de la liste que la carte désigne, et réciproquement. */
 .lodge7--vif,
 .stc7--vif {
@@ -3173,7 +3274,7 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  color: #6b737d;
+  color: var(--color-muted);
   font-size: var(--text-note);
   font-weight: 600;
   text-align: center;
@@ -3314,4 +3415,612 @@
 }
 .cocher7 input {
   accent-color: var(--color-ok-texte);
+}
+
+/* ── Onglets d'une station ──────────────────────────────────────────────────
+   La fiche et les logements sont deux pages de la même station ; rien ne le
+   disait, et la loupe de l'accueil, quand une station est renseignée, ouvre
+   justement la station sur son onglet Logements. */
+.ongletsst {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  margin-bottom: calc(var(--spacing) * 3);
+}
+.ongletsst__nom {
+  font-size: var(--text-detail);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.ongletsst__liste {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--color-glacier);
+}
+.ongletsst__onglet {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--color-muted);
+  font-size: var(--text-detail);
+  font-weight: 700;
+}
+.ongletsst__onglet--on {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-segment);
+}
+
+/* Cause technique du bulletin : repliée, jamais dans le libellé principal. */
+.bra7__detail {
+  margin-top: calc(var(--spacing) * 1.5);
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+.bra7__detail summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.bra7__detail code {
+  display: block;
+  margin-top: 4px;
+  padding: calc(var(--spacing) * 2);
+  border-radius: var(--radius-champ);
+  background: var(--color-glacier);
+  color: var(--color-muted);
+  word-break: break-word;
+}
+
+/* ── Plus › Forfaits ────────────────────────────────────────────────────────
+   Deux colonnes : la liste des domaines, qui défile, et la grille tarifaire du
+   domaine choisi. La hauteur est bornée jusqu'en bas de la chaîne, sans quoi
+   rien ne défile. */
+.forf {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  gap: calc(var(--spacing) * 4);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 5);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+.forf__tete {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+}
+.forf__lead {
+  margin-top: calc(var(--spacing) * 2);
+  max-width: 60ch;
+  font-size: var(--text-corps);
+  color: var(--color-muted);
+}
+.forf__actions {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+}
+.forf__erreur,
+.forf__bilan {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  border-radius: var(--radius-champ);
+  font-size: var(--text-detail);
+}
+.forf__erreur {
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+}
+.forf__bilan {
+  background: var(--color-glacier);
+  color: var(--color-muted);
+}
+.forf__deux {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  gap: calc(var(--spacing) * 4);
+}
+.forf__col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: calc(var(--spacing) * 2);
+}
+.forf__q {
+  flex: none;
+  height: calc(var(--spacing) * 11);
+  padding: 0 calc(var(--spacing) * 4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+.forf__liste {
+  /* Le conteneur défilant : hauteur bornée par le parent, rien en `hidden`
+     au-dessus. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+}
+.forf__liste > li + li {
+  border-top: 1px solid var(--color-line-douce);
+}
+.forf__ligne {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  text-align: left;
+}
+.forf__ligne:hover {
+  background: var(--color-glacier);
+}
+.forf__ligne--on {
+  background: var(--color-marque-tenue);
+}
+.forf__nom {
+  font-size: var(--text-corps);
+  font-weight: 700;
+}
+.forf__meta {
+  grid-column: 1;
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+.forf__prix {
+  grid-row: 1;
+  grid-column: 2;
+  display: grid;
+  justify-items: end;
+  font-size: var(--text-corps);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.forf__prix small {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-texte-3);
+}
+.forf__fiab {
+  grid-column: 2;
+  justify-self: end;
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.forf__fiab--confirme {
+  color: var(--color-ok-texte);
+}
+.forf__fiab--a-confirmer,
+.forf__fiab--estime {
+  color: var(--color-alerte-texte);
+}
+.forf__fiab--manuel {
+  color: var(--color-marque-texte);
+}
+.forf__vide {
+  padding: calc(var(--spacing) * 5);
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+}
+.forf__vide--panneau {
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-surface);
+}
+
+/* La grille tarifaire. */
+.forfp {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+}
+.forfp__tete {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+}
+.forfp__tete h2 {
+  font-size: var(--text-section);
+  font-weight: 800;
+}
+.forfp__tete p {
+  margin-top: 2px;
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+.forfp__tete a {
+  white-space: nowrap;
+}
+.forfp__etat {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 3);
+  font-size: var(--text-note);
+}
+.forfp__fraicheur {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.forfp__voie {
+  color: var(--color-texte-3);
+}
+.forfp__detail {
+  flex: none;
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+.forfp__detail summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.forfp__detail code {
+  display: block;
+  margin-top: 4px;
+  padding: calc(var(--spacing) * 2);
+  border-radius: var(--radius-champ);
+  background: var(--color-glacier);
+  color: var(--color-muted);
+  word-break: break-word;
+}
+.forfp__assiste {
+  flex: none;
+  padding: calc(var(--spacing) * 3);
+  border-radius: var(--radius-champ);
+  background: var(--color-neige);
+  color: var(--color-neige-texte);
+  font-size: var(--text-detail);
+}
+.forfp__grille {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--color-line-douce);
+  border-radius: var(--radius-champ);
+}
+.forfp__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-detail);
+}
+.forfp__table th,
+.forfp__table td {
+  border-bottom: 1px solid var(--color-line-douce);
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  text-align: left;
+}
+.forfp__table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-glacier);
+  color: var(--color-muted);
+  font-weight: 700;
+}
+.forfp__table tbody th {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.forfp__case input {
+  width: 6.5rem;
+  height: calc(var(--spacing) * 8);
+  padding: 0 calc(var(--spacing) * 2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-champ);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.forfp__case input:focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 1px;
+}
+.forfp__case--manuel input {
+  border-color: var(--color-marque);
+}
+.forfp__statut {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+.forfp__case--manuel .forfp__statut {
+  color: var(--color-marque-texte);
+}
+.forfp__pied {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 4);
+  font-size: var(--text-detail);
+}
+.forfp__etendre {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  color: var(--color-muted);
+}
+.forfp__etendre input {
+  width: 4.5rem;
+  height: calc(var(--spacing) * 8);
+  padding: 0 calc(var(--spacing) * 2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-champ);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+.forfp__note {
+  flex: none;
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+
+@media (max-width: 900px) {
+  .forf__deux {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* La commande « Mise à jour » du menu Plus. */
+.maj {
+  display: grid;
+  gap: 4px;
+}
+.maj__ligne {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 3);
+}
+.maj__bouton {
+  height: calc(var(--spacing) * 8);
+  padding: 0 calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: var(--text-detail);
+  font-weight: 700;
+}
+.maj__bouton:hover:not(:disabled) {
+  border-color: var(--color-ink);
+}
+.maj__bouton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.maj__etat {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+.maj__detail {
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+.maj__detail code {
+  display: block;
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.forfp__journal {
+  margin: calc(var(--spacing) * 2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+.forfp__journal li {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 1) 0;
+  border-top: 1px solid var(--color-line-douce);
+}
+.forfp__journal-url {
+  grid-column: 1 / -1;
+  color: var(--color-texte-3);
+  word-break: break-all;
+}
+
+/* ── Plus › Clés ────────────────────────────────────────────────────────────
+   Ce que l'application a besoin qu'on lui donne. Un secret n'est jamais relu
+   ici : le champ reste vide, et l'état dit seulement s'il est posé. */
+.cles {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 5) calc(var(--spacing) * 10);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+.cles__lead {
+  margin-top: calc(var(--spacing) * 2);
+  font-size: var(--text-corps);
+  color: var(--color-muted);
+}
+.cles__compte {
+  margin-top: calc(var(--spacing) * 2);
+  font-size: var(--text-detail);
+  font-weight: 700;
+}
+.cles__erreur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  border-radius: var(--radius-champ);
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+  font-size: var(--text-detail);
+}
+.cles__liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+.cle {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+}
+.cle__tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+}
+.cle__tete h2 {
+  font-size: var(--text-section);
+  font-weight: 800;
+}
+.cle__sert {
+  margin-top: 2px;
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+}
+.cle__etat {
+  flex: none;
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  border-radius: 999px;
+  font-size: var(--text-note);
+  font-weight: 700;
+}
+.cle__etat--posee {
+  background: var(--color-ok);
+  color: var(--color-ok-texte);
+}
+.cle__etat--absente {
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+}
+.cle__sans {
+  font-size: var(--text-detail);
+  color: var(--color-ink);
+}
+.cle__sans--tenue {
+  color: var(--color-muted);
+}
+.cle__note {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+.cle__note code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--color-glacier);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+.cle__saisie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: calc(var(--spacing) * 3);
+}
+.cle__champ {
+  flex: 1 1 20rem;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.cle__champ > span {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.cle__champ input {
+  height: calc(var(--spacing) * 11);
+  padding: 0 calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-champ);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-detail);
+  min-width: 0;
+}
+.cle__champ input:focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 1px;
+}
+.cle__pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 4);
+  font-size: var(--text-detail);
+}
+.cle__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  color: var(--color-marque-texte);
+  font-weight: 600;
+}
+.cle__essai {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  border-radius: var(--radius-champ);
+  font-size: var(--text-detail);
+}
+.cle__essai--ok {
+  background: var(--color-ok);
+  color: var(--color-ok-texte);
+}
+.cle__essai--ko {
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+}
+.cles__note {
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
 }

@@ -136,15 +136,30 @@ async function robotsText(origin: string, fetcher: Fetcher): Promise<string> {
   return text;
 }
 
-/** Lit robots.txt, journalise un Disallow, autorise toujours l’extraction. */
-export async function allowsPath(
+/**
+ * Le verdict réel de robots.txt pour un chemin. **Il peut être négatif.**
+ *
+ * `allowsPath` le force à `true` : c'est le contrat, ancien et assumé, du
+ * relevé des logements. Le relevé des tarifs de forfaits, lui, doit respecter
+ * robots.txt : il lit donc ce verdict-ci, et s'arrête quand il dit non.
+ */
+export async function verdictRobots(
   origin: string,
   path: string,
   fetcher: Fetcher = defaultFetcher,
 ): Promise<RobotsVerdict> {
   if (skipOrigin(origin)) return { allowed: true, rule: null };
   const text = await robotsText(origin, fetcher);
-  const matched = robotsAllows(parseRobots(text), path.startsWith("/") ? path : `/${path}`);
+  return robotsAllows(parseRobots(text), path.startsWith("/") ? path : `/${path}`);
+}
+
+/** Lit robots.txt, journalise un Disallow, autorise toujours l’extraction. */
+export async function allowsPath(
+  origin: string,
+  path: string,
+  fetcher: Fetcher = defaultFetcher,
+): Promise<RobotsVerdict> {
+  const matched = await verdictRobots(origin, path, fetcher);
   if (!matched.allowed) {
     console.info(`[robots] ${origin}${path} ${matched.rule} — lu, ignoré, extraction continue`);
   }

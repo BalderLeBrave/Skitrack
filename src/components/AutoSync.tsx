@@ -1,53 +1,64 @@
-import { useEffect, useState } from "react";
-import { tickAutoSync } from "@/lib/autoSync.api";
-import { useT } from "@/lib/i18n";
+/**
+ * L'entrée « Mise à jour » du menu Plus : une commande réelle.
+ *
+ * Elle affichait « Mise à jour… » ou « Données à jour » dans un `<span>` que
+ * rien ne pouvait actionner, masqué sous 1024 px, et dont la boucle de relevé
+ * ne tournait que pendant que le menu était ouvert. Elle lance maintenant une
+ * vérification, montre sa progression, dit son résultat et la date de la
+ * dernière exécution, et peut être arrêtée.
+ */
 
-const PAUSE_MS = 15 * 60 * 1000;
-const TICK_GAP_MS = 400;
+import { anciennete } from "@/lib/forfaits/age";
+import { useMaj } from "@/lib/maj";
 
 export function AutoSync() {
-  const t = useT();
-  const [running, setRunning] = useState(true);
+  const etat = useMaj((s) => s.etat);
+  const faits = useMaj((s) => s.faits);
+  const dernier = useMaj((s) => s.dernier);
+  const reste = useMaj((s) => s.reste);
+  const cause = useMaj((s) => s.cause);
+  const derniereA = useMaj((s) => s.derniereA);
+  const lancer = useMaj((s) => s.lancer);
+  const arreter = useMaj((s) => s.arreter);
 
-  useEffect(() => {
-    let stop = false;
-    let pause: ReturnType<typeof setTimeout> | undefined;
-
-    async function pulse() {
-      setRunning(true);
-      while (!stop) {
-        try {
-          const tick = await tickAutoSync({ data: {} });
-          if (stop) return;
-          if (tick.idle) {
-            setRunning(false);
-            pause = setTimeout(() => {
-              if (!stop) void pulse();
-            }, PAUSE_MS);
-            return;
-          }
-        } catch {
-          if (stop) return;
-          setRunning(false);
-          pause = setTimeout(() => {
-            if (!stop) void pulse();
-          }, PAUSE_MS);
-          return;
-        }
-        await new Promise((r) => setTimeout(r, TICK_GAP_MS));
-      }
-    }
-
-    void pulse();
-    return () => {
-      stop = true;
-      if (pause) clearTimeout(pause);
-    };
-  }, []);
+  const encours = etat === "encours";
+  const quand = derniereA ? Date.parse(derniereA) : NaN;
 
   return (
-    <span className="hidden shrink-0 text-note text-muted lg:inline" data-testid="auto-sync" data-running={running}>
-      {running ? t("sync.running") : t("sync.idle")}
-    </span>
+    <div className="maj" data-testid="auto-sync" data-running={encours}>
+      <div className="maj__ligne">
+        <button
+          type="button"
+          className="maj__bouton"
+          onClick={() => void lancer()}
+          disabled={encours}
+          aria-busy={encours}
+        >
+          {encours ? "Vérification en cours…" : "Vérifier les mises à jour"}
+        </button>
+        {encours ? (
+          <button type="button" className="lien-doux" onClick={arreter}>
+            Arrêter
+          </button>
+        ) : null}
+      </div>
+      <span className="maj__etat" aria-live="polite">
+        {encours
+          ? `${faits} relevé${faits > 1 ? "s" : ""}${dernier ? ` · ${dernier}` : ""}`
+          : etat === "fait"
+            ? `${faits} relevé${faits > 1 ? "s" : ""}${reste ? " · il en reste en file" : " · rien d'autre à jour"}`
+            : etat === "echec"
+              ? "Vérification interrompue par une erreur"
+              : Number.isFinite(quand)
+                ? `Dernière vérification ${anciennete(quand)}`
+                : "Jamais vérifié sur cet appareil"}
+      </span>
+      {etat === "echec" && cause ? (
+        <details className="maj__detail">
+          <summary>Détail technique</summary>
+          <code>{cause}</code>
+        </details>
+      ) : null}
+    </div>
   );
 }

@@ -181,8 +181,9 @@ export function Carte({
     marques.current.clear();
     for (const e of epingles) {
       if (!Number.isFinite(e.lat) || !Number.isFinite(e.lon)) continue;
+      // Pas de `title` : Leaflet le recopie en attribut natif, et l'infobulle
+      // du système se superposait alors à celle de la carte. Une seule.
       const mk = Lf.marker([e.lat, e.lon], {
-        title: e.titre,
         icon: Lf.divIcon({
           className: "",
           html: `<div class="pin pin--${e.sorte ?? "station"}"></div>`,
@@ -194,8 +195,10 @@ export function Carte({
       mk.on("mouseout", () => rappels.current.surSurvol?.(null));
       mk.on("click", () => rappels.current.surClic?.(e.id));
       mk.on("dblclick", () => rappels.current.surDoubleClic?.(e.id));
-      if (e.detail) mk.bindTooltip(`${e.titre} · ${e.detail}`, { direction: "top" });
+      mk.bindTooltip(e.detail ? `${e.titre} · ${e.detail}` : e.titre, { direction: "top" });
       mk.addTo(m);
+      // Après l'ajout : l'élément n'existe pas avant.
+      mk.getElement()?.setAttribute("aria-label", e.titre);
       marques.current.set(e.id, mk);
     }
   }, [prete, epingles]);

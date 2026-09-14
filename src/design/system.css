@@ -38,7 +38,10 @@
   --color-glacier: #e9ebee; /* remplissage neutre : puce, segment, barre vide */
   --color-ink: #16191e;
   --color-muted: #5b636e;
-  --color-texte-3: #8a919b; /* libellés, mentions, valeurs absentes */
+  /* Le gris des libellés, mentions et valeurs absentes. Il valait #8a919b,
+     soit 3,05:1 sur une surface : sous le seuil de lisibilité du texte
+     courant. Il reste plus clair que `--color-muted`, mais lisible. */
+  --color-texte-3: #646b75;
   --color-line: #dde0e5;
   --color-line-douce: #eceef1;
   --color-carte-fond: #e6e9ed;
@@ -55,7 +58,7 @@
 
   /* Un état par sémantique. */
   --color-ok: #d3efe3;
-  --color-ok-texte: #1f7a4d;
+  --color-ok-texte: #1b6f45;
   --color-alerte: #f7ecd6;
   --color-alerte-texte: #8a5a12;
   --color-neige: #e6f0fa;
@@ -64,6 +67,23 @@
 
   /* Blanc du flocon : seul blanc pur du système, sur une photo sombre. */
   --color-flocon: #ffffff;
+
+  /* ── Photo : ce qui se pose dessus ne change pas de thème ───────────
+     Une photo reste une photo dans les deux thèmes, et le voile posé dessus
+     reste une encre. Le texte qui la couvre doit donc rester clair même en
+     thème sombre : écrit avec `--color-surface`, il suivait le thème et
+     disparaissait sur la couverture. */
+  --color-photo-texte: #f7f9fb;
+  --color-photo-voile: #16191e;
+
+  /* Fond d'un cadre photo vide, par source d'annonce. */
+  --color-media-airbnb: #e8e2d9;
+  --color-media-gites: #dfe8df;
+  --color-media-autre: #e3e6ea;
+
+  /* L'encre dont les ombres sont faites. Une ombre teintée d'encre claire ne
+     se voit pas sur un papier sombre : le jeton bascule, les règles non. */
+  --color-ombre: #16191e;
 
   /* Couleurs de piste : réservées aux pistes. */
   --color-piste-verte: #2f9e5a;

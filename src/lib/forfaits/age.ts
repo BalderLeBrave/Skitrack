@@ -1,43 +1,105 @@
-import type { ForfaitRow } from "./types";
+/**
+ * Ce qu'un écran écrit à propos d'un tarif — en **trois champs séparés**.
+ *
+ * Un seul libellé empilait tout : « tarif non à jour, relevé le 11/08/2026 :
+ * HTTP 403, forfait à confirmer ». Quatre informations de nature différente,
+ * sans hiérarchie, dont un code HTTP que personne ne peut utiliser.
+ *
+ * Séparées :
+ *
+ * - **fraîcheur** — la date du dernier relevé réussi, et son ancienneté dite
+ *   simplement. C'est ce qui se lit en premier ;
+ * - **fiabilité** — tarif confirmé, à confirmer, saisi à la main, estimé, ou
+ *   jamais obtenu ;
+ * - **cause technique** — le code, le message d'erreur. Elle ne paraît que
+ *   dans un détail repliable ou dans le journal, jamais dans le libellé
+ *   principal.
+ *
+ * Règle qui gouverne le reste : **un tarif ancien reste affiché avec sa date**
+ * plutôt que remplacé par une erreur ; **un tarif jamais obtenu invite à le
+ * saisir**, il n'affiche pas un code HTTP.
+ */
+
+import type { ForfaitRow } from "./types.ts";
 
 export function formatEuroTarif(n: number | null | undefined): string {
   if (n == null) return "–";
   return `${n.toLocaleString("fr-FR")} €`;
 }
 
-export function formatForfaitAge(row: ForfaitRow, now = Date.now()): string {
-  if (row.status === "manuel" || row.locked) return "saisi à la main";
-  if (row.status === "estimé") return "≈ estimé, hors coût officiel";
-  if (row.fetchedAt == null && row.lastAttemptAt == null) return "tarif non relevé";
-  const at = Date.parse(row.fetchedAt ?? row.lastAttemptAt ?? "");
-  if (!Number.isFinite(at)) return "tarif non relevé";
-  const delta = now - at;
-  if (row.status === "stale" || row.status === "erreur") {
-    if (row.j1 != null || row.j6 != null) {
-      // « tarif non à jour » sans date ne dit pas si le montant affiché a un
-      // mois ou trois ans. La date du relevé est connue : elle s'écrit.
-      const le = row.fetchedAt ? `, relevé le ${new Date(at).toLocaleDateString("fr-FR")}` : "";
-      return `tarif non à jour${le}${row.lastError ? ` : ${row.lastError}` : ""}`;
-    }
-    return row.lastError ? `tarif en erreur : ${row.lastError}` : "tarif en erreur";
-  }
-  if (delta < 60_000) return "à l’instant";
-  if (delta < 3_600_000) return `il y a ${Math.max(1, Math.round(delta / 60_000))} min`;
-  if (delta < 36_000_000) return `il y a ${Math.max(1, Math.round(delta / 3_600_000))} h`;
-  const day = new Date(at);
-  const today = new Date(now);
-  const yday = new Date(now - 86_400_000);
-  const same = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
-  if (same(day, today)) return "aujourd’hui";
-  if (same(day, yday)) return "hier";
-  return day.toLocaleDateString("fr-FR");
+export type Fiabilite = "confirme" | "a-confirmer" | "manuel" | "estime" | "jamais";
+
+export const FIABILITE_LBL: Record<Fiabilite, string> = {
+  confirme: "tarif confirmé",
+  "a-confirmer": "tarif à confirmer",
+  manuel: "tarif saisi manuellement",
+  estime: "estimation, hors coût officiel",
+  jamais: "tarif à saisir",
+};
+
+export type EtatTarif = {
+  /** « relevé le 11/08/2026 · il y a un mois », ou `null` si jamais relevé. */
+  fraicheur: string | null;
+  fiabilite: Fiabilite;
+  fiabiliteLbl: string;
+  /** Cause technique. Détail repliable et journal seulement. */
+  cause: string | null;
+  /** Le tarif porte-t-il un montant ? */
+  chiffre: boolean;
+};
+
+const JOUR_MS = 86_400_000;
+
+/** L'ancienneté, en clair, sans précision trompeuse. */
+export function anciennete(atMs: number, now = Date.now()): string {
+  const d = Math.max(0, now - atMs);
+  if (d < 3_600_000) return "il y a moins d'une heure";
+  if (d < JOUR_MS) return `il y a ${Math.max(1, Math.round(d / 3_600_000))} h`;
+  const jours = Math.round(d / JOUR_MS);
+  if (jours === 1) return "hier";
+  if (jours < 30) return `il y a ${jours} jours`;
+  const mois = Math.round(jours / 30);
+  if (mois < 12) return `il y a ${mois} mois`;
+  const ans = Math.round(mois / 12);
+  return ans <= 1 ? "il y a un an" : `il y a ${ans} ans`;
 }
 
-export function forfaitConfirmLabel(row: ForfaitRow): string | null {
-  if (row.status === "stale" || row.status === "erreur") return "forfait à confirmer";
-  if (row.status === "estimé") return "hors coût officiel";
-  return null;
+function dateFr(atMs: number): string {
+  return new Date(atMs).toLocaleDateString("fr-FR");
+}
+
+export function etatTarif(row: ForfaitRow, now = Date.now()): EtatTarif {
+  const chiffre = row.j1 != null || row.j6 != null;
+  const at = row.fetchedAt ? Date.parse(row.fetchedAt) : NaN;
+  const fraicheur = Number.isFinite(at)
+    ? `relevé le ${dateFr(at)} · ${anciennete(at, now)}`
+    : null;
+  const cause = row.lastError ?? null;
+
+  if (row.status === "manuel" || row.locked) {
+    return { fraicheur, fiabilite: "manuel", fiabiliteLbl: FIABILITE_LBL.manuel, cause: null, chiffre };
+  }
+  if (row.status === "estimé") {
+    return { fraicheur: null, fiabilite: "estime", fiabiliteLbl: FIABILITE_LBL.estime, cause, chiffre };
+  }
+  if (!chiffre) {
+    // Jamais obtenu : on invite à saisir. Le code HTTP part au détail.
+    return { fraicheur: null, fiabilite: "jamais", fiabiliteLbl: FIABILITE_LBL.jamais, cause, chiffre };
+  }
+  if (row.status === "ok") {
+    return { fraicheur, fiabilite: "confirme", fiabiliteLbl: FIABILITE_LBL.confirme, cause: null, chiffre };
+  }
+  // « stale » ou « erreur » avec un montant : le montant reste, avec sa date.
+  return { fraicheur, fiabilite: "a-confirmer", fiabiliteLbl: FIABILITE_LBL["a-confirmer"], cause, chiffre };
+}
+
+/** La seule fraîcheur, pour les écrans qui n'ont la place que d'une ligne. */
+export function formatForfaitAge(row: ForfaitRow, now = Date.now()): string {
+  const e = etatTarif(row, now);
+  return e.fraicheur ?? e.fiabiliteLbl;
+}
+
+export function forfaitConfirmLabel(row: ForfaitRow, now = Date.now()): string | null {
+  const e = etatTarif(row, now);
+  return e.fiabilite === "confirme" ? null : e.fiabiliteLbl;
 }

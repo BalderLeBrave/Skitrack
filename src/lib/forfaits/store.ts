@@ -3,6 +3,19 @@
 import type { ForfaitReading, ForfaitRow, ForfaitStatus } from "./types";
 
 export const DEFAULT_TTL_MS = 4 * 60 * 60 * 1000;
+/**
+ * Validité d'un tarif venu du référentiel : une saison, pas quatre heures.
+ *
+ * Les 173 graines du catalogue datent d'août et se déclaraient « non à jour »
+ * dès quatre heures après le démarrage — soit toutes, tout le temps, avec un
+ * « forfait à confirmer » qui ne voulait plus rien dire. Un tarif de forfait ne
+ * change pas dans la journée.
+ */
+export const TTL_REFERENTIEL_MS = 210 * 24 * 60 * 60 * 1000;
+
+function ttlDe(row: ForfaitRow, ttlMs: number): number {
+  return row.parseKind === "referentiel" ? TTL_REFERENTIEL_MS : ttlMs;
+}
 export const MAX_HISTORY = 24;
 
 export function emptyRow(slug: string, patch: Partial<ForfaitRow> = {}): ForfaitRow {
@@ -30,7 +43,7 @@ export function isStale(row: ForfaitRow, ttlMs: number, now = Date.now()): boole
   if (row.locked) return false;
   if (row.status === "estimé") return true;
   if (row.fetchedAt == null) return true;
-  return now - Date.parse(row.fetchedAt) > ttlMs;
+  return now - Date.parse(row.fetchedAt) > ttlDe(row, ttlMs);
 }
 
 export function markStaleIfNeeded(row: ForfaitRow, ttlMs: number, now = Date.now()): ForfaitRow {
@@ -91,14 +104,20 @@ export function applyExtracted(
   return { row: next, outcome: "updated" };
 }
 
+/**
+ * Un échec date la tentative et note la cause. **Il n'efface jamais un tarif**,
+ * et il ne change pas la nature de la ligne : un « estimé » promu « stale »
+ * devenait, à l'écran, un tarif relevé qui aurait vieilli.
+ */
 export function markFailure(row: ForfaitRow, error: string, nowIso: string): ForfaitRow {
   const hasPrice = row.j1 != null || row.j6 != null;
-  return {
-    ...row,
-    lastAttemptAt: nowIso,
-    lastError: error,
-    status: hasPrice ? (row.status === "manuel" ? "manuel" : "stale") : "erreur",
-  };
+  const status: ForfaitStatus =
+    row.status === "estimé" || row.status === "manuel"
+      ? row.status
+      : hasPrice
+        ? "stale"
+        : "erreur";
+  return { ...row, lastAttemptAt: nowIso, lastError: error, status };
 }
 
 export function lockManual(

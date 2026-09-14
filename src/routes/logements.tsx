@@ -11,13 +11,15 @@
  *  recherche. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { CarteEpingles, htmlPrix, htmlRepere } from "@/components/v7/CarteEpingles";
+import { CarteEpingles } from "@/components/v7/CarteEpingles";
+import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
+import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
@@ -48,9 +50,13 @@ export const Route = createFileRoute("/logements")({ component: Logements });
 
 type LodgeSort = "pp" | "total" | "cap";
 
-/** `lf` de la maquette : les filtres facultatifs de l'écran. */
+/** `lf` de la maquette : les filtres facultatifs de **cet écran**.
+ *
+ *  Le budget n'y est plus : c'est un critère de recherche, au même titre que
+ *  les dates et les voyageurs. Il vit dans `useParcours.filters.budget`, d'où
+ *  il survit à la navigation et s'écrit dans l'adresse ; les réglages
+ *  ci-dessous, eux, ne valent que pour la liste des annonces. */
 type LF = {
-  budget: number;
   pp: number;
   cap: number;
   rooms: number;
@@ -64,10 +70,12 @@ type LF = {
   firm: boolean;
   pos: boolean;
 };
-const LF0: LF = { budget: 0, pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, rayon: RAYON_DEFAUT_KM, measured: false, link: false, photo: false, firm: false, pos: false };
+const LF0: LF = { pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, rayon: RAYON_DEFAUT_KM, measured: false, link: false, photo: false, firm: false, pos: false };
 
-const RANGES: { k: "budget" | "pp" | "cap" | "rooms" | "dist"; label: string; max: number; step: number; unit: string; sign: string }[] = [
-  { k: "budget", label: "Total du séjour, au plus", max: 6000, step: 250, unit: "€", sign: "≤ " },
+/** Le budget est à part : il est lu et écrit sur le magasin partagé. */
+const BUDGET = { label: "Total du séjour, au plus", max: 6000, step: 250, unit: "€", sign: "≤ " };
+
+const RANGES: { k: "pp" | "cap" | "rooms" | "dist"; label: string; max: number; step: number; unit: string; sign: string }[] = [
   { k: "pp", label: "Par personne, au plus", max: 800, step: 25, unit: "€", sign: "≤ " },
   { k: "cap", label: "Capacité annoncée, au moins", max: 16, step: 1, unit: "pers.", sign: "≥ " },
   { k: "rooms", label: "Chambres annoncées, au moins", max: 7, step: 1, unit: "ch.", sign: "≥ " },
@@ -162,11 +170,135 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
 
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };
 
+/**
+ * Une annonce dans la liste.
+ *
+ * Défini dans le corps du rendu, il changeait d'identité à chaque rendu : React
+ * démontait puis remontait toute la liste, les photos repartaient au
+ * chargement et le focus tombait. Ce qu'il lisait par fermeture arrive
+ * désormais en propriétés, et `memo` lui évite de se redessiner quand rien de
+ * ce qui le concerne n'a bougé.
+ */
+const CarteLogement = memo(function CarteLogement({
+  l,
+  retenu,
+  vue,
+  vif,
+  stay,
+  trav,
+  nights,
+  ouvrir,
+  retenir,
+  designer,
+}: {
+  l: Listing;
+  retenu: boolean;
+  vue: boolean;
+  vif: boolean;
+  stay: { checkIn: string; checkOut: string };
+  trav: number;
+  nights: number;
+  ouvrir: (id: string) => void;
+  retenir: (id: string) => void;
+  designer: (id: string | null) => void;
+}) {
+  const isKept = retenu;
+  const seen = vue && !isKept;
+  const d = distanceOf(l);
+  const firm = firmOf(l, stay);
+  return (
+    <article
+      className={`lodge7${isKept ? " lodge7--kept" : ""}${vif ? " lodge7--vif" : ""}`}
+      onClick={() => ouvrir(l.id)}
+      onMouseEnter={() => designer(l.id)}
+      onMouseLeave={() => designer(null)}
+      data-l={l.id}
+    >
+      <div className={`lodge7__media lodge7__media--${mediaTon(l)}`}>
+        {l.photo ? (
+          <ImageSlot shape="rect" id={`v7app-l-${l.id}`} placeholder="Photo de l'annonce" className="lodge7__slot" src={l.photo} />
+        ) : (
+          <span className="lodge7__sansphoto">Pas de photo dans l'annonce {l.source}</span>
+        )}
+        <span className="lodge7__source">{l.source}</span>
+        {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
+        {seen ? <span className="lodge7__vue">déjà vue</span> : null}
+      </div>
+      <div className="lodge7__corps">
+        <strong className="lodge7__titre">{l.title}</strong>
+        <div className="lodge7__meta">
+          <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
+          <span>{bedLbl(l)}</span>
+        </div>
+        <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
+          <Icon name="epingle" taille={13} />
+          {d.text}
+        </span>
+        <div className="lodge7__pied">
+          <div className="lodge7__prix">
+            <b>{eurCents(l.total)}</b>
+            <span>
+              {nights} nuits · {eurN(l.total / trav)} / pers.
+            </span>
+            <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
+              <i />
+              {firm ? "Prix relevé aux dates" : "Disponibilité non confirmée"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={`lodge7__retenir${isKept ? " lodge7__retenir--on" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              retenir(l.id);
+            }}
+          >
+            {isKept ? "Retenu" : "Retenir"}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+});
+
+/**
+ * La garde, et elle seule.
+ *
+ * L'écran vivait dans un composant unique dont la sortie anticipée « pas de
+ * station » précédait des `useMemo` : le nombre de crochets changeait d'un
+ * rendu à l'autre, ce que React interdit. Séparer la garde du corps rend les
+ * crochets inconditionnels sans déplacer une ligne de rendu.
+ */
 function Logements() {
   const go = useGo();
   const P = useParcours();
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const s = P.stationId ? stationById(P.stationId) : undefined;
+
+  // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
+  // L'état est relu dans le magasin : au premier rendu du navigateur, le
+  // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
+  useEffect(() => {
+    if (!useParcours.getState().stationId) {
+      P.say("Retenez d’abord une station.");
+      void go("compare");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s?.id]);
+
+  if (!s) {
+    return (
+      <Coquille>
+        <main className="v7main" id="s-lodging" data-screen-label="2 Logements" />
+      </Coquille>
+    );
+  }
+  return <LogementsStation s={s} />;
+}
+
+function LogementsStation({ s }: { s: Station }) {
+  const go = useGo();
+  const P = useParcours();
+  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const forfait = useForfait(s);
   const liveListings = useStay((x) => x.liveListings);
   const liveSources = useStay((x) => x.liveSources);
@@ -188,35 +320,25 @@ function Logements() {
   const [sheetId, setSheetId] = useState<string | null>(null);
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
-  const [suivi, setSuivi] = useState(false);
+  // Le cadre visible compte toujours : liste, compteur et pastilles rendues
+  // disent la même chose. Même correction que sur Comparer.
   const [bornes, setBornes] = useState<Bornes | null>(null);
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
+  // Le budget du séjour : critère partagé, pas un réglage de cet écran.
+  const budget = P.filters.budget;
+  /** « Tout réinitialiser » relâche les réglages de l'écran **et** le budget,
+   *  qui n'est plus rangé avec eux. */
+  const reinitialiser = () => {
+    setLf(LF0);
+    P.setFilters({ budget: 0 });
+  };
 
-  const stay = { checkIn, checkOut };
-
-  // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
-  // L'état est relu dans le magasin : au premier rendu du navigateur, le
-  // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
-  useEffect(() => {
-    if (!useParcours.getState().stationId) {
-      P.say("Retenez d’abord une station.");
-      void go("compare");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s?.id]);
+  const stay = useMemo(() => ({ checkIn, checkOut }), [checkIn, checkOut]);
 
   const relancer = () => setStay({ searchNonce: Date.now() });
   const importer = () => P.say("Import d’annonce par son lien : hors de cet écran pour l’instant.");
-
-  if (!s) {
-    return (
-      <Coquille>
-        <main className="v7main" id="s-lodging" data-screen-label="2 Logements" />
-      </Coquille>
-    );
-  }
 
   /* ---------- Prédicats ---------- */
   const lp: Pred[] = [];
@@ -231,7 +353,13 @@ function Logements() {
     fn: (l) => geoReasonFor(l, lf.rayon) == null,
     fixed: true,
   });
-  if (lf.budget) lp.push({ id: "budget", label: `Total ≤ ${fmt(lf.budget)} €`, fn: (l) => l.total <= lf.budget, remove: () => patchLf({ budget: 0 }) });
+  if (budget)
+    lp.push({
+      id: "budget",
+      label: `Total ≤ ${fmt(budget)} €`,
+      fn: (l) => l.total <= budget,
+      remove: () => P.setFilters({ budget: 0 }),
+    });
   if (lf.pp) lp.push({ id: "pp", label: `≤ ${fmt(lf.pp)} € / pers.`, fn: (l) => l.total / trav <= lf.pp, remove: () => patchLf({ pp: 0 }) });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
   if (lf.rooms) lp.push({ id: "lrooms", label: `Chambres annoncées ≥ ${lf.rooms}`, fn: (l) => l.bedrooms != null && l.bedrooms >= lf.rooms, remove: () => patchLf({ rooms: 0 }) });
@@ -253,8 +381,7 @@ function Logements() {
   const lvis = lapply(lp).sort(tri[lsort]);
   // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
   // pas de cadre, la carte ne peut ni les montrer ni les cacher.
-  const cadre = suivi ? bornes : null;
-  const parCadre = partagerParBornes(lvis, cadre);
+  const parCadre = partagerParBornes(lvis, bornes);
   const affichees = parCadre.visibles;
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const lfree = lp.filter((p) => !p.fixed);
@@ -309,24 +436,55 @@ function Logements() {
     { k: "firm", label: "Prix relevé aux dates", n: raw.filter((l) => firmOf(l, stay)).length },
   ];
 
-  const openSheet = (id: string) => {
-    P.markSeen(id);
+  // Stables d'un rendu à l'autre : sans cela `memo` sur la carte d'annonce ne
+  // servirait à rien, chaque rendu lui passant de nouvelles fonctions. Les
+  // actions se lisent sur le magasin, qui les garde, et non sur l'instantané.
+  const openSheet = useCallback((id: string) => {
+    useParcours.getState().markSeen(id);
     setSheetId(id);
-  };
-  const keep = (id: string) => P.chooseLodge(P.lodgeId === id ? null : id);
+  }, []);
+  const keep = useCallback((id: string) => {
+    const p = useParcours.getState();
+    p.chooseLodge(p.lodgeId === id ? null : id);
+  }, []);
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
 
-  const marqueurs = [
-    { id: "__station", lat: s.lat, lon: s.lon, html: htmlRepere(s.name), zIndex: -100, inerte: true },
-    ...lvis
-      .filter((l) => l.lat != null && l.lon != null)
-      .map((l) => {
+  const situees = affichees.filter((l) => l.lat != null && l.lon != null);
+  const marqueurs = useMemo(
+    () => [
+      {
+        id: "__station",
+        lat: s.lat,
+        lon: s.lon,
+        nom: `Repère de ${s.name}`,
+        epingle: epingleRepere(s.name),
+        zIndex: ETAGE.repere,
+        inerte: true,
+      },
+      ...situees.map((l) => {
         const sel = sheetId === l.id || P.lodgeId === l.id;
-        const etat = sel ? "retenue" : P.seen[l.id] ? "vue" : "vive";
-        return { id: l.id, lat: l.lat as number, lon: l.lon as number, html: htmlPrix(eur(l.total), etat), zIndex: sel ? 500 : 0 };
+        const etat = sel ? "retenue" : P.seen[l.id] ? "vue" : "normale";
+        return {
+          id: l.id,
+          lat: l.lat as number,
+          lon: l.lon as number,
+          nom: l.title,
+          epingle: epinglePrix(eur(l.total), l.title, etat),
+          zIndex: sel ? ETAGE.designee : ETAGE.normale,
+        };
       }),
-  ];
-  const cadrage = `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`;
+    ],
+    // Le contenu change avec les annonces situées, la sélection et les vues.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [s.id, s.lat, s.lon, s.name, situees.map((l) => l.id).join(","), sheetId, P.lodgeId, P.seen],
+  );
+  /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
+   *  cadre : calculée sur le cadre, recadrer changerait la liste, qui changerait
+   *  la clé, qui recadrerait — sans fin. Même règle que sur Comparer. */
+  const cadrage = useMemo(
+    () => `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
+    [s.id, lvis],
+  );
 
   const lead = raw.length
     ? `${raw.length} annonce${raw.length > 1 ? "s" : ""} : totaux de séjour tels qu'affichés par la source pour ${nights} nuit${nights > 1 ? "s" : ""}. Aucun « à partir de ».${searching ? " Relevé en direct en cours…" : ""}`
@@ -334,69 +492,10 @@ function Logements() {
       ? "Relevé en direct en cours…"
       : "Aucun relevé pour cette station.";
 
-  const Carte = ({ l }: { l: Listing }) => {
-    const isKept = P.lodgeId === l.id;
-    const seen = !!P.seen[l.id] && !isKept;
-    const d = distanceOf(l);
-    const firm = firmOf(l, stay);
-    return (
-      <article
-        className={`lodge7${isKept ? " lodge7--kept" : ""}${actifCarte === l.id ? " lodge7--vif" : ""}`}
-        onClick={() => openSheet(l.id)}
-        onMouseEnter={() => setActifCarte(l.id)}
-        onMouseLeave={() => setActifCarte(null)}
-        data-l={l.id}
-      >
-        <div className={`lodge7__media lodge7__media--${mediaTon(l)}`}>
-          {l.photo ? (
-            <ImageSlot shape="rect" id={`v7app-l-${l.id}`} placeholder="Photo de l'annonce" className="lodge7__slot" src={l.photo} />
-          ) : (
-            <span className="lodge7__sansphoto">Pas de photo dans l'annonce {l.source}</span>
-          )}
-          <span className="lodge7__source">{l.source}</span>
-          {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
-          {seen ? <span className="lodge7__vue">déjà vue</span> : null}
-        </div>
-        <div className="lodge7__corps">
-          <strong className="lodge7__titre">{l.title}</strong>
-          <div className="lodge7__meta">
-            <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
-            <span>{bedLbl(l)}</span>
-          </div>
-          <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
-            <Icon name="epingle" taille={13} />
-            {d.text}
-          </span>
-          <div className="lodge7__pied">
-            <div className="lodge7__prix">
-              <b>{eurCents(l.total)}</b>
-              <span>
-                {nights} nuits · {eurN(l.total / trav)} / pers.
-              </span>
-              <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
-                <i />
-                {firm ? "Prix relevé aux dates" : "Disponibilité non confirmée"}
-              </span>
-            </div>
-            <button
-              type="button"
-              className={`lodge7__retenir${isKept ? " lodge7__retenir--on" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                keep(l.id);
-              }}
-            >
-              {isKept ? "Retenu" : "Retenir"}
-            </button>
-          </div>
-        </div>
-      </article>
-    );
-  };
-
   return (
     <Coquille>
       <main className="v7main v7main--pied" id="s-lodging" data-screen-label="2 Logements">
+        <OngletsStation s={s} actif="logements" />
         <header className="v7tete v7tete--ligne">
           <div>
             <span className="v7surtitre">Étape 2 · Logement</span>
@@ -479,7 +578,11 @@ function Logements() {
                   return (
                     <span key={p.id} className={`jeton${bloque ? " jeton--bloque" : ""}`}>
                       {p.label}
-                      <button type="button" title="Retirer" onClick={p.remove}>
+                      <button
+                        type="button"
+                        aria-label={`Retirer le critère ${p.label}`}
+                        onClick={p.remove}
+                      >
                         <Icon name="croix" taille={11} />
                       </button>
                     </span>
@@ -491,7 +594,7 @@ function Logements() {
                     className="lien-doux"
                     onClick={(e) => {
                       e.preventDefault();
-                      setLf(LF0);
+                      reinitialiser();
                     }}
                   >
                     Tout réinitialiser
@@ -500,9 +603,7 @@ function Logements() {
                 <span className="filtres7__espace" />
                 <span className="filtres7__compte">
                   {affichees.length} annonce{affichees.length > 1 ? "s" : ""} sur {raw.length}
-                  {suivi && parCadre.horsCadre.length
-                    ? ` · ${parCadre.horsCadre.length} hors du cadre`
-                    : ""}
+                  {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
                   {sansPos ? ` · ${sansPos}` : ""}
                 </span>
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
@@ -550,6 +651,22 @@ function Logements() {
                       annonces sans valeur.
                     </span>
                   </div>
+                  <label className="curseur">
+                    <span className="curseur__lab">
+                      <span>{BUDGET.label}</span>
+                      <span className="curseur__val">
+                        {budget ? `${BUDGET.sign}${fmt(budget)} ${BUDGET.unit}` : "Indifférent"}
+                      </span>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={BUDGET.max}
+                      step={BUDGET.step}
+                      value={budget}
+                      onChange={(e) => P.setFilters({ budget: +e.target.value })}
+                    />
+                  </label>
                   {RANGES.map((r) => (
                     <label key={r.k} className="curseur">
                       <span className="curseur__lab">
@@ -604,7 +721,7 @@ function Logements() {
                       className="lien-doux"
                       onClick={(e) => {
                         e.preventDefault();
-                        setLf(LF0);
+                        reinitialiser();
                       }}
                     >
                       Réinitialiser
@@ -622,22 +739,26 @@ function Logements() {
                 {affichees.length ? (
                   <div className="grille7-2">
                     {affichees.map((l) => (
-                      <Carte key={l.id} l={l} />
+                      <CarteLogement
+                        key={l.id}
+                        l={l}
+                        retenu={P.lodgeId === l.id}
+                        vue={!!P.seen[l.id]}
+                        vif={actifCarte === l.id}
+                        stay={stay}
+                        trav={trav}
+                        nights={nights}
+                        ouvrir={openSheet}
+                        retenir={keep}
+                        designer={setActifCarte}
+                      />
                     ))}
                   </div>
-                ) : suivi && lvis.length ? (
-                  <Vide
-                    titre="Aucune annonce dans ce cadre"
-                    actions={
-                      <>
-                        <button type="button" className="btn7" onClick={() => setSuivi(false)}>
-                          Revoir les {lvis.length} annonces
-                        </button>
-                      </>
-                    }
-                  >
-                    La liste suit la carte. Déplacez-la, élargissez-la, ou décochez « Rechercher
-                    quand je déplace la carte » pour retrouver tout ce que le relevé donne.
+                ) : lvis.length ? (
+                  <Vide titre="Aucune annonce dans ce cadre">
+                    La liste suit la carte : {lvis.length} annonce{lvis.length > 1 ? "s" : ""}{" "}
+                    correspond{lvis.length > 1 ? "ent" : ""} au relevé, hors du cadre visible.
+                    Dézoomez ou déplacez la carte pour les retrouver.
                   </Vide>
                 ) : lempty ? (
                   <Vide
@@ -649,7 +770,7 @@ function Logements() {
                             Retirer ce filtre
                           </button>
                         ) : null}
-                        <button type="button" className="btn7 btn7--fantome" onClick={() => setLf(LF0)}>
+                        <button type="button" className="btn7 btn7--fantome" onClick={reinitialiser}>
                           Tout réinitialiser
                         </button>
                       </>
@@ -664,8 +785,6 @@ function Logements() {
                   marqueurs={marqueurs}
                   cadrage={cadrage}
                   maxZoom={14}
-                  suivi={suivi}
-                  surSuivi={setSuivi}
                   surBornes={setBornes}
                   actif={actifCarte}
                   surActif={setActifCarte}
@@ -714,26 +833,39 @@ function Logements() {
                               ? "Prix relevé aux dates"
                               : availabilityLabel(availabilityOf(l, stay))}
                           </span>
-                          <button
-                            type="button"
-                            className="btn7 btn7--fantome fc__action"
-                            onClick={() => openSheet(l.id)}
-                          >
-                            Voir l'annonce
-                          </button>
                         </div>
                       </>
                     );
                   }}
-                  surClic={(id) => {
-                    if (id !== "__station") openSheet(id);
+                  actionsDe={(id) => {
+                    const l = lvis.find((x) => x.id === id);
+                    if (!l) return null;
+                    const retenu = P.lodgeId === l.id;
+                    return (
+                      <>
+                        <button type="button" className="btn7" onClick={() => openSheet(id)}>
+                          Voir l'annonce
+                        </button>
+                        <button
+                          type="button"
+                          className="btn7 btn7--fantome"
+                          aria-pressed={retenu}
+                          onClick={() => keep(l.id)}
+                        >
+                          {retenu ? "Retenu" : "Retenir"}
+                        </button>
+                      </>
+                    );
                   }}
                   legende={
                     <>
-                      <b>{lvis.filter((l) => l.lat != null).length} annonces positionnées</b>
+                      <b>
+                        {affichees.filter((l) => l.lat != null).length} pastille
+                        {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
+                      </b>
                       <span>
-                        {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont pas
-                        sur la carte. Gris = déjà vue.
+                        {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont
+                        pas sur la carte. Contour pointillé = déjà vue.
                       </span>
                     </>
                   }

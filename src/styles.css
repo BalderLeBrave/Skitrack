@@ -2,34 +2,102 @@
 @import "./design/system.css";
 @import "./design/base.css";
 @import "./design/v7.css";
+
+/**
+ * `dark:` suit le thème de l'application, pas celui du système.
+ *
+ * Tailwind v4 rend `dark:` sur `prefers-color-scheme` par défaut. Le thème de
+ * SKITRACK est un attribut posé sur la racine par `ThemeSync`, si bien que les
+ * quelques composants écrits en `dark:` — la porte d'authentification, l'écran
+ * d'erreur — suivaient les réglages du système d'exploitation et restaient sur
+ * l'autre palette quand on basculait le thème dans la barre.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/**
+ * Le thème sombre : **tous** les jetons de `system.css`, pas une partie.
+ *
+ * Un jeton laissé de côté garde sa valeur claire. C'est ce qui rendait des
+ * textes invisibles : `--color-surface` valait encore un gris presque blanc
+ * alors que `--color-ink` était passé au bleu pâle, donc chaque carte, chaque
+ * panneau flottant et chaque fenêtre de carte écrivait clair sur clair.
+ *
+ * La règle tenue ici : **chaque jeton de surface a son jeton de texte apparié**,
+ * et les deux sont redéfinis ensemble. Aucun fond blanc pur ; la surface la plus
+ * claire du thème sombre reste un bleu d'encre.
+ */
 html[data-theme="dark"] {
+  /* Papier et surfaces. */
   --color-bg: #0b1622;
+  --color-surface: #16222f;
   --color-glacier: #122233;
+  --color-carte-fond: #0f1c28;
+  --color-media: #1b2836;
+  --color-hero-fond: #17273a;
+
+  /* Textes, appariés aux surfaces ci-dessus. */
   --color-ink: #e9f1f8;
   --color-muted: #a9b7c4;
-  --color-cta: #ff7a5f;
-  --color-cta-ink: #fff7f5;
-  --color-snow: #e9f1f8;
+  --color-texte-3: #8b98a5;
+
+  /* Traits. */
   --color-line: #2b3945;
-  --color-glass: rgb(19 32 46 / 0.78);
-  --color-panel: #13202e;
+  --color-line-douce: #1f2c39;
+
+  /* Accent : le bleu de la marque des deux côtés. Le corail de la v6 n'existe
+     plus — il restait ici, seul vestige de l'ancienne palette. */
+  --color-cta: #4aa3e8;
+  --color-cta-ink: #0a1520;
   --color-marque: #4aa3e8;
   --color-marque-tenue: #14293c;
-  --color-marque-texte: #8ccbf5;
+  --color-marque-texte: #9ad2f7;
+  --color-marque-colonne: #13283a;
+
+  /* États : fond tenu, texte apparié. */
+  --color-ok: #133328;
+  --color-ok-texte: #79d6ab;
+  --color-alerte: #33290f;
+  --color-alerte-texte: #f0c46f;
+  --color-neige: #14293c;
+  --color-neige-texte: #9ad2f7;
+  --color-soleil: #e5b055;
+
+  /* La photo ne bascule pas : `--color-photo-texte` et `--color-photo-voile`
+     gardent leur valeur. L'ombre, elle, devient noire pour rester visible. */
+  --color-ombre: #000000;
+  --color-media-airbnb: #2c2722;
+  --color-media-gites: #1f2c24;
+  --color-media-autre: #1e242b;
+
+  /* Pistes. La verte, la bleue et la rouge sont éclaircies pour tenir sur un
+     fond sombre ; la noire y devient claire, comme sur les plans de domaine à
+     fond sombre, faute de quoi elle disparaît dans le papier. */
+  --color-piste-verte: #45b872;
+  --color-piste-bleue: #4aa3e8;
+  --color-piste-rouge: #e26055;
+  --color-piste-noire: #c2ccd8;
+
+  /* Élévation : une ombre teintée d'encre claire ne se voit pas sur un papier
+     sombre. Les mêmes ombres, portées par du noir et plus franches. */
+  --shadow-flottant: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 48px rgb(0 0 0 / 0.55);
+  --shadow-encadre: 0 2px 6px rgb(0 0 0 / 0.35), 0 14px 36px rgb(0 0 0 / 0.45);
+  --shadow-segment: 0 2px 10px rgb(0 0 0 / 0.5);
+  --shadow-epingle: 0 2px 8px rgb(0 0 0 / 0.6);
+
+  /* Jetons hérités, tenus en phase le temps que les écrans les quittent. */
+  --color-snow: #122233;
+  --color-glass: rgb(19 32 46 / 0.82);
+  --color-panel: #16222f;
   --color-bordure: #33434f;
   --color-bordure-douce: #223142;
-  --color-texte-2: #a0aeba;
-  --color-texte-3: #8593a0;
+  --color-texte-2: #a9b7c4;
+
   color-scheme: dark;
 }
 
 html {
   color-scheme: light;
   background: var(--color-bg);
-}
-
-html[data-theme="dark"] {
-  color-scheme: dark;
 }
 
 @layer base {
@@ -142,8 +210,8 @@ html[data-theme="dark"] {
   background: var(--color-panel);
   color: var(--color-ink);
   box-shadow:
-    0 1px 2px rgb(17 24 32 / 0.04),
-    0 4px 12px rgb(17 24 32 / 0.07);
+    0 1px 2px color-mix(in srgb, var(--color-ombre) 4%, transparent),
+    0 4px 12px color-mix(in srgb, var(--color-ombre) 7%, transparent);
 }
 
 .jl--locked {
@@ -166,7 +234,7 @@ html[data-theme="dark"] {
 
 .jl--on .jl__step {
   background: var(--color-marque);
-  color: #fff;
+  color: var(--color-cta-ink);
 }
 
 .jl--locked .jl__step {
@@ -238,8 +306,8 @@ html[data-theme="dark"] {
   border-radius: var(--radius-card);
   background: var(--color-panel);
   box-shadow:
-    0 2px 6px rgb(17 24 32 / 0.1),
-    0 16px 40px rgb(17 24 32 / 0.18);
+    0 2px 6px color-mix(in srgb, var(--color-ombre) 10%, transparent),
+    0 16px 40px color-mix(in srgb, var(--color-ombre) 18%, transparent);
 }
 
 /* La barre de séjour est dessinée pour la pleine largeur : dans le panneau
@@ -276,8 +344,8 @@ html[data-theme="dark"] {
 .stay-glass {
   background: var(--color-glass);
   backdrop-filter: blur(14px);
-  border: 1px solid rgb(11 31 51 / 0.08);
-  box-shadow: 0 12px 40px rgb(11 31 51 / 0.12);
+  border: 1px solid color-mix(in srgb, var(--color-ombre) 8%, transparent);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--color-ombre) 12%, transparent);
 }
 
 html[data-theme="dark"] .stay-glass {
@@ -328,38 +396,6 @@ html[data-theme="dark"] .stay-glass {
   width: 100%;
   height: 100%;
   border: 0;
-}
-
-.map-pin {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: var(--color-cta);
-  border: 2px solid var(--color-panel);
-  box-shadow: 0 0 0 1px rgb(11 31 51 / 0.25);
-}
-
-.map-pin--listing {
-  width: 10px;
-  height: 10px;
-  background: var(--color-ink);
-}
-
-.map-pin--lift {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  background: var(--color-cta);
-}
-
-.map-pin--lift-top {
-  width: 0;
-  height: 0;
-  border-radius: 0;
-  background: transparent;
-  border: 7px solid transparent;
-  border-bottom-color: var(--color-cta);
-  box-shadow: none;
 }
 
 .piste {
@@ -506,7 +542,7 @@ html[data-theme="dark"] .stay-glass {
   border-radius: 0.55rem;
   background: var(--color-panel);
   color: var(--color-ink);
-  box-shadow: 0 8px 24px rgb(11 31 51 / 0.12);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-ombre) 12%, transparent);
 }
 
 .map-chrome__card {
@@ -537,16 +573,16 @@ html[data-theme="dark"] .stay-glass {
 }
 
 .map-swatch--green {
-  background: #3aa655;
+  background: var(--color-piste-verte);
 }
 .map-swatch--blue {
-  background: #2a78d6;
+  background: var(--color-piste-bleue);
 }
 .map-swatch--red {
-  background: #d0021b;
+  background: var(--color-piste-rouge);
 }
 .map-swatch--black {
-  background: #101418;
+  background: var(--color-piste-noire);
 }
 
 .map-chrome__btn {
@@ -679,7 +715,7 @@ html[data-theme="dark"] .stay-glass {
   color: var(--color-ink);
   border-radius: 0.7rem;
   padding: 0.55rem 0.7rem;
-  box-shadow: 0 10px 28px rgb(11 31 51 / 0.18);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--color-ombre) 18%, transparent);
 }
 
 .map-pop__title {
@@ -922,7 +958,7 @@ html[data-theme="dark"] .stay-glass {
   padding: 0 0.3125rem;
   border-radius: 999px;
   background: var(--color-marque);
-  color: #fff;
+  color: var(--color-cta-ink);
   font-size: 0.6875rem;
   font-weight: 800;
 }
@@ -1096,7 +1132,7 @@ html[data-theme="dark"] .stay-glass {
 .seg button.on {
   background: var(--color-panel);
   color: var(--color-ink);
-  box-shadow: 0 1px 2px rgb(17 24 32 / 0.08);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ombre) 8%, transparent);
 }
 
 .reset {
@@ -1164,29 +1200,6 @@ html[data-theme="dark"] .stay-glass {
   font-size: 0.625rem;
 }
 
-/* Épingles : bleu marque pour le référentiel, orange pour l'active. */
-.pin {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-marque);
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgb(11 31 51 / 0.4);
-  transition:
-    transform 0.12s,
-    background 0.12s;
-  cursor: pointer;
-}
-
-.pin--on {
-  transform: scale(1.5);
-  background: var(--color-cta);
-}
-
-.pin--dim {
-  opacity: 0.18;
-}
-
 .lbl {
   display: inline-flex;
   align-items: center;
@@ -1199,8 +1212,8 @@ html[data-theme="dark"] .stay-glass {
   font-weight: 600;
   border: 1px solid var(--color-bordure-douce);
   box-shadow:
-    0 2px 6px rgb(17 24 32 / 0.1),
-    0 10px 24px rgb(17 24 32 / 0.14);
+    0 2px 6px color-mix(in srgb, var(--color-ombre) 10%, transparent),
+    0 10px 24px color-mix(in srgb, var(--color-ombre) 14%, transparent);
   white-space: nowrap;
   pointer-events: none;
   transform: translateY(-10px);
@@ -1218,8 +1231,8 @@ html[data-theme="dark"] .stay-glass {
   background: color-mix(in srgb, var(--color-panel) 94%, transparent);
   border: 1px solid var(--color-bordure-douce);
   box-shadow:
-    0 2px 6px rgb(17 24 32 / 0.1),
-    0 10px 24px rgb(17 24 32 / 0.14);
+    0 2px 6px color-mix(in srgb, var(--color-ombre) 10%, transparent),
+    0 10px 24px color-mix(in srgb, var(--color-ombre) 14%, transparent);
   font-size: 0.78125rem;
 }
 

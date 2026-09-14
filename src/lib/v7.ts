@@ -9,13 +9,13 @@
  *  **Rien n'est estimé.** Une altitude à zéro dans le référentiel n'est pas une
  *  mesure : elle se lit « non relevée ». */
 
-import { domainForStation, stationHasGlacier } from "./forfaits/catalog";
-import type { ForfaitSeed } from "./forfaits/types";
-import type { Listing } from "./listings";
-import { eurN, fmt, fmtN, mLbl } from "./parcours";
-import { SKIINFO } from "./skiinfo";
-import type { Station } from "./stations";
-import { availabilityOf, type Stay } from "./stay/availability";
+import { domainForStation, stationHasGlacier } from "./forfaits/catalog.ts";
+import type { ForfaitSeed } from "./forfaits/types.ts";
+import type { Listing } from "./listings.ts";
+import { eurN, fmt, fmtN, mLbl } from "./parcours.ts";
+import { SKIINFO } from "./skiinfo.ts";
+import type { Station } from "./stations.ts";
+import { availabilityOf, type Stay } from "./stay/availability.ts";
 
 /* ---------- Station ---------- */
 

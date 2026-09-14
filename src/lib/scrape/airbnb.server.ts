@@ -8,6 +8,7 @@ import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 import { annoncer, occupancyFromRecord } from "@/lib/stay/occupancy";
+import { assurerCles } from "../cles/store.server";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -238,6 +239,10 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<Listing[]> 
     console.warn("[airbnb] cli.py introuvable");
     return [];
   }
+  // Les clés saisies dans Plus › Clés sont versées dans l'environnement avant
+  // cette lecture : sans cet appel, le chemin renseigné n'existait que pour
+  // l'écran qui l'avait reçu.
+  assurerCles();
   const python = process.env.SKITRACK_PYAIRBNB_PYTHON?.trim() || "python3";
   const body = JSON.stringify({
     city: input.stationName,

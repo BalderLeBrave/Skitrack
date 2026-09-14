@@ -1,9 +1,37 @@
-/** Connecteur forfaits. Distinct des logements. robots.txt lu, jamais bloquant. */
+/**
+ * Connecteur forfaits. **Seule voie de récupération des tarifs.**
+ *
+ * Ce qu'il ne fait plus :
+ *
+ * - il ne se fait plus passer pour Chrome 131 sous Windows. L'en-tête
+ *   d'identification est honnête (`politesse.ts`) ;
+ * - il ne lit plus robots.txt pour l'ignorer : un `Disallow` ferme la voie
+ *   automatique et bascule le domaine en saisie assistée ;
+ * - il n'enchaîne plus huit chemins candidats après un 403. Un refus est un
+ *   refus : la source est marquée non accessible automatiquement, et le lien
+ *   officiel est conservé pour la saisie ;
+ * - il ne martèle plus un domaine : un appel à la fois, deux secondes entre
+ *   deux, et trois échecs consécutifs désactivent la source jusqu'à
+ *   réactivation manuelle.
+ *
+ * Ce qu'il continue de garantir : **un tarif déjà relevé n'est jamais effacé
+ * par un échec**. Il reste affiché avec sa date.
+ */
 
-import { allowsPath } from "@/lib/scrape/robots";
+import { demander, verdictPoli } from "@/lib/scrape/politesse";
 import { domainBySlug, estimateForfait, FORFAIT_CATALOG } from "./catalog";
 import { extractForfaits } from "./extract";
 import { applyExtracted, DEFAULT_TTL_MS, emptyRow, isStale, markFailure, markStaleIfNeeded } from "./store";
+import {
+  echec as noterEchec,
+  noter,
+  refuse as noterRefus,
+  reactiver as reactiverSource,
+  sourceNeuve,
+  succes as noterSucces,
+  tentable,
+  type EtatSource,
+} from "./sources";
 import type { ForfaitRow } from "./types";
 
 const CANDIDATE_PATHS = [
@@ -17,12 +45,8 @@ const CANDIDATE_PATHS = [
   "/fr/forfaits",
 ];
 
-const FETCH_TIMEOUT_MS = 12_000;
-const DELAY_MS = 400;
-const UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
-
 const memory = new Map<string, ForfaitRow>();
+const sources = new Map<string, EtatSource>();
 let ttlMs = DEFAULT_TTL_MS;
 
 export function forfaitTtlMs(): number {
@@ -47,7 +71,10 @@ function seedRow(slug: string): ForfaitRow {
         kind: seed.j6 != null ? "6 jours" : "journée",
         sourceUrl: domain.website,
         fetchedAt,
-        lastAttemptAt: fetchedAt,
+        // `lastAttemptAt` dit une tentative réseau. Une graine de catalogue
+        // n'en est pas une : la laisser ici faisait passer la date d'édition du
+        // catalogue pour une « dernière synchro ».
+        lastAttemptAt: null,
         status: "ok",
         parseKind: "referentiel",
       }),
@@ -71,7 +98,25 @@ export function getStored(slug: string): ForfaitRow {
   return row;
 }
 
-function candidates(website: string): string[] {
+export function getSource(slug: string): EtatSource {
+  const hit = sources.get(slug);
+  if (hit) return hit;
+  const neuf = sourceNeuve(slug, domainBySlug(slug)?.website ?? null);
+  sources.set(slug, neuf);
+  return neuf;
+}
+
+/** Réactive une source désactivée par trois échecs, ou fermée par un refus. */
+export function reactiverForfait(slug: string): EtatSource {
+  const next = reactiverSource(getSource(slug));
+  sources.set(slug, next);
+  return next;
+}
+
+/** Les pages à essayer, **la voie qui a marché en premier**. Elle était
+ *  mémorisée dans `sourceUrl` et jamais relue : chaque relevé repartait du
+ *  premier chemin de la liste. */
+function candidates(website: string, retenue: string | null): string[] {
   const raw = website.trim().startsWith("http") ? website.trim() : `https://${website.trim()}`;
   let origin: string;
   try {
@@ -80,6 +125,7 @@ function candidates(website: string): string[] {
     return [];
   }
   const seen: string[] = [];
+  if (retenue) seen.push(retenue);
   for (const path of CANDIDATE_PATHS) {
     const url = path === "" ? raw : `${origin}${path}`;
     if (!seen.includes(url)) seen.push(url);
@@ -87,76 +133,137 @@ function candidates(website: string): string[] {
   return seen;
 }
 
-async function fetchHtml(url: string): Promise<{ ok: boolean; status: number; text: string }> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, {
-      headers: { "user-agent": UA, accept: "text/html,application/xhtml+xml" },
-      redirect: "follow",
-      signal: controller.signal,
-    });
-    const text = await res.text();
-    return { ok: res.ok, status: res.status, text };
-  } finally {
-    clearTimeout(timer);
-  }
-}
+export type Resultat = {
+  row: ForfaitRow;
+  source: EtatSource;
+  /** Ce qui est arrivé à ce domaine, pour le récapitulatif par station. */
+  issue: "maj" | "inchange" | "manuel" | "refus" | "echec" | "desactivee" | "ignore";
+};
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-export async function refreshOne(slug: string, force = false): Promise<ForfaitRow> {
+export async function refreshOne(slug: string, force = false, signal?: AbortSignal): Promise<Resultat> {
+  const quand = new Date().toISOString();
   const domain = domainBySlug(slug);
-  let row = getStored(slug);
-  if (row.locked) return { ...row, lastAttemptAt: new Date().toISOString() };
-  if (!force && !isStale(row, ttlMs) && row.status === "ok") return row;
+  const row = getStored(slug);
+  let source = getSource(slug);
+
+  if (row.locked) {
+    return { row: { ...row, lastAttemptAt: quand }, source, issue: "manuel" };
+  }
+  if (!force && !isStale(row, ttlMs) && row.status === "ok") {
+    return { row, source, issue: "inchange" };
+  }
+  if (!tentable(source)) {
+    // Ni reprise en boucle, ni relance silencieuse : la source est fermée ou
+    // désactivée, et l'écran le dit.
+    return { row, source, issue: source.desactivee ? "desactivee" : "ignore" };
+  }
   if (!domain?.website) {
-    const next = markFailure(row, "URL source absente.", new Date().toISOString());
+    source = noterEchec(source, "URL source absente.", quand);
+    sources.set(slug, source);
+    const next = markFailure(row, "URL source absente.", quand);
     memory.set(slug, next);
-    return next;
+    return { row: next, source, issue: "echec" };
   }
 
-  const origin = (() => {
-    try {
-      return new URL(domain.website).origin;
-    } catch {
-      return domain.website;
+  let cause = "Aucun tarif lisible.";
+  let interdites = 0;
+  const essais = candidates(domain.website, source.url);
+  for (const url of essais) {
+    if (signal?.aborted) throw new DOMException("Relevé interrompu.", "AbortError");
+    // robots.txt est lu **et respecté**, pour ce chemin-ci et non pour la
+    // racine : il était lu puis jeté.
+    const robots = await verdictPoli(url);
+    if (robots.autorise === false) {
+      interdites += 1;
+      source = noter(source, { at: quand, url, issue: "robots", statut: null, message: robots.regle });
+      continue;
     }
-  })();
-  await allowsPath(origin, "/");
-
-  let lastError = "Aucun tarif lisible.";
-  for (const url of candidates(domain.website)) {
     try {
-      const page = await fetchHtml(url);
+      // La cadence publiée par le site l'emporte sur la nôtre : `delaiMs` porte
+      // le `Crawl-delay` de son robots.txt, calculé jusqu'ici puis jeté.
+      const page = await demander(url, signal, robots.delaiMs);
+      if (page.status === 401 || page.status === 403 || page.status === 429) {
+        // Un refus ne se contourne pas et ne se réessaie pas sur sept autres
+        // chemins du même hôte : la voie automatique se ferme ici.
+        source = noter(noterRefus(source, url, `HTTP ${page.status}`, quand), {
+          at: quand,
+          url,
+          issue: "refus",
+          statut: page.status,
+          message: `HTTP ${page.status}`,
+        });
+        sources.set(slug, source);
+        console.warn(`[forfaits] ${slug} : HTTP ${page.status} — source passée en saisie assistée`);
+        return { row, source, issue: "refus" };
+      }
       if (!page.ok) {
-        lastError = `HTTP ${page.status}`;
+        // Un 404 dit que cette page n'existe pas, pas que l'hôte refuse : on
+        // essaie la suivante.
+        cause = `HTTP ${page.status}`;
+        source = noter(source, { at: quand, url, issue: "panne", statut: page.status, message: cause });
         continue;
       }
       const extracted = extractForfaits(page.text);
       if (!extracted) {
-        lastError = "Page lue, tarif illisible.";
+        cause = "Page lue, aucun tarif reconnu.";
+        source = noter(source, { at: quand, url, issue: "illisible", statut: page.status, message: cause });
         continue;
       }
-      const applied = applyExtracted(row, extracted, url, new Date().toISOString());
+      const applied = applyExtracted(row, extracted, url, quand);
       memory.set(slug, applied.row);
-      return applied.row;
+      source = noter(noterSucces(source, url, quand), {
+        at: quand,
+        url,
+        issue: "ok",
+        statut: page.status,
+        message: `tarif lu (${extracted.kind})`,
+      });
+      sources.set(slug, source);
+      return {
+        row: applied.row,
+        source,
+        issue: applied.outcome === "updated" ? "maj" : applied.outcome === "skipped_manual" ? "manuel" : "inchange",
+      };
     } catch (err) {
-      lastError = err instanceof Error ? err.message : String(err);
+      // Seule l'interruption demandée par l'appelant remonte : un délai dépassé
+      // est une panne ordinaire, qui se journalise et laisse essayer la voie
+      // suivante.
+      if (err instanceof Error && err.name === "AbortError" && signal?.aborted) throw err;
+      cause = err instanceof Error ? err.message : String(err);
+      source = noter(source, { at: quand, url, issue: "panne", statut: null, message: cause });
     }
   }
-  const failed = markFailure(row, lastError, new Date().toISOString());
+  // Toutes les voies interdites par robots.txt : la source est fermée, pas en
+  // panne. Elle bascule en saisie assistée et cesse d'être réessayée.
+  if (interdites === essais.length && essais.length) {
+    source = noterRefus(source, domain.website, "robots.txt interdit toutes les pages tarifs", quand);
+    sources.set(slug, source);
+    console.warn(`[forfaits] ${slug} : robots.txt interdit le relevé automatique`);
+    return { row, source, issue: "refus" };
+  }
+  source = noterEchec(source, cause, quand);
+  sources.set(slug, source);
+  console.warn(`[forfaits] ${slug} : ${cause} (${source.echecs} échec(s) consécutif(s))`);
+  // `markFailure` garde le tarif précédent : un échec n'efface rien.
+  const failed = markFailure(row, cause, quand);
   memory.set(slug, failed);
-  return failed;
+  return { row: failed, source, issue: "echec" };
 }
 
-export async function refreshMany(slugs: string[], force = false): Promise<ForfaitRow[]> {
-  const out: ForfaitRow[] = [];
+export async function refreshMany(
+  slugs: string[],
+  force = false,
+  signal?: AbortSignal,
+): Promise<Resultat[]> {
+  const out: Resultat[] = [];
   for (const slug of slugs) {
-    out.push(await refreshOne(slug, force));
-    await sleep(DELAY_MS);
+    if (signal?.aborted) break;
+    try {
+      out.push(await refreshOne(slug, force, signal));
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError" && signal?.aborted) break;
+      throw err;
+    }
   }
   return out;
 }
@@ -165,11 +272,15 @@ export function listStored(): ForfaitRow[] {
   return FORFAIT_CATALOG.filter((d) => d.country === "FR").map((d) => getStored(d.slug));
 }
 
+export function listSources(): EtatSource[] {
+  return FORFAIT_CATALOG.filter((d) => d.country === "FR").map((d) => getSource(d.slug));
+}
+
+/** La dernière **tentative réseau**. Les graines du catalogue n'en sont pas. */
 export function lastSyncAt(): string | null {
   let latest: string | null = null;
-  for (const row of memory.values()) {
-    const at = row.lastAttemptAt;
-    if (at && (!latest || at > latest)) latest = at;
+  for (const e of sources.values()) {
+    if (e.tenteA && (!latest || e.tenteA > latest)) latest = e.tenteA;
   }
   return latest;
 }

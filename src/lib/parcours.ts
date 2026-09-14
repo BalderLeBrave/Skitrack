@@ -6,14 +6,21 @@
  *  Dates, voyageurs et chambres viennent de `useStay` (données réelles du
  *  dépôt) ; ici ne vivent que la station retenue, le logement choisi, la
  *  comparaison, les filtres de l'écran Comparer, les annonces déjà vues, le
- *  bandeau et l'ouverture du panneau de séjour. */
+ *  bandeau et l'ouverture du panneau de séjour.
+ *
+ *  **C'est le magasin unique des critères de recherche.** L'accueil y écrit —
+ *  destination, altitudes, kilomètres, forfait, budget, domaine, raccourcis,
+ *  tri —, Comparer, la fiche station et Logements y lisent. Rien n'en tient une
+ *  seconde copie : le champ de l'accueil en tenait une, et le texte affiché
+ *  disait alors autre chose que le filtre appliqué. `criteres.ts` en donne
+ *  l'écriture dans l'adresse ; il ne garde aucun état. */
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { resolveStationPhoto } from "./stationPhoto.ts";
 import { PARTY_LIMITS } from "./stay/party.ts";
-import type { Station } from "./stations";
-import { useStay } from "./stay";
+import { stationById, type Station } from "./stations.ts";
+import { useStay } from "./stay.ts";
 
 /** Photo de la station : **la copie locale, ou rien**.
  *
@@ -65,6 +72,8 @@ export type Filters = {
   km: number;
   /** Forfait 6 jours adulte, au plus (€). */
   pass: number;
+  /** Total du séjour, au plus (€). Critère de l'accueil, lu par Logements. */
+  budget: number;
   /** Domaine skiable : nom exact, `__none` pour « non renseigné », vide = tous. */
   dom: string;
   col: Record<PisteColor, number>;
@@ -77,6 +86,7 @@ export const FILTERS_INITIAL: Filters = {
   hi: 0,
   km: 0,
   pass: 0,
+  budget: 0,
   dom: "",
   col: { green: 0, blue: 0, red: 0, black: 0 },
   chips: {},
@@ -131,7 +141,15 @@ type Parcours = {
   markSeen: (id: string) => void;
   setBooked: (v: boolean) => void;
   setMassif: (m: string | null) => void;
+  /** Le texte du champ destination. Il est la seule source de ce texte.
+   *
+   *  Écrire un texte qui n'est plus le nom de la station retenue relâche cette
+   *  station : le champ et l'intention ne peuvent pas diverger. */
   setQ: (q: string) => void;
+  /** Choisir une station dans la liste de suggestions : le champ porte son nom,
+   *  la station est retenue. Aucune navigation — la loupe seule y mène.
+   *  `null` relâche la station et vide le champ. */
+  setDestination: (s: { id: string; name: string } | null) => void;
   setSort: (k: SortKey) => void;
   setUnit: (u: ColorUnit) => void;
   setFilters: (patch: Partial<Filters>) => void;
@@ -167,7 +185,6 @@ export const useParcours = create<Parcours>()(
        *  découlait. */
       retain: (id) => {
         if (get().stationId !== id) set({ stationId: id, lodgeId: null, booked: false });
-        useStay.getState().setStay({ stationId: id });
       },
       relacher: () => set({ stationId: null, lodgeId: null, booked: false }),
       chooseLodge: (id) => set((s) => ({ lodgeId: id, booked: id === s.lodgeId ? s.booked : false })),
@@ -182,7 +199,22 @@ export const useParcours = create<Parcours>()(
       markSeen: (id) => set((s) => (s.seen[id] ? {} : { seen: { ...s.seen, [id]: true } })),
       setBooked: (booked) => set({ booked }),
       setMassif: (massif) => set({ massif }),
-      setQ: (q) => set({ q }),
+      setQ: (q) =>
+        set((s) => {
+          const retenue = s.stationId ? stationById(s.stationId) : null;
+          // Le texte ne correspond plus à la station retenue : elle tombe, et
+          // la recherche redevient une recherche de liste.
+          if (retenue && q.trim() !== retenue.name) {
+            return { q, stationId: null, lodgeId: null, booked: false };
+          }
+          return { q };
+        }),
+      setDestination: (dest) =>
+        set(
+          dest
+            ? { q: dest.name, stationId: dest.id, lodgeId: null, booked: false }
+            : { q: "", stationId: null, lodgeId: null, booked: false },
+        ),
       setSort: (sortKey) => set({ sortKey }),
       /** Changer d'unité remet les quatre seuils de couleur à zéro. */
       setUnit: (unit) =>
@@ -192,7 +224,16 @@ export const useParcours = create<Parcours>()(
         set((s) => ({ filters: { ...s.filters, col: { ...s.filters.col, [c]: v } } })),
       setChip: (k, on) =>
         set((s) => ({ filters: { ...s.filters, chips: { ...s.filters.chips, [k]: on } } })),
-      resetFilters: () => set({ q: "", massif: null, filters: filtersVierges() }),
+      /**
+       * Les critères de **station**, et eux seuls.
+       *
+       * Le budget est un critère de logement : il ne paraît sur aucun des deux
+       * écrans qui portent « Tout retirer », et il y disparaissait donc sans
+       * qu'aucun jeton ne l'ait annoncé. L'écran Logements, lui, le relâche
+       * explicitement avec le reste de ses réglages.
+       */
+      resetFilters: () =>
+        set((s) => ({ q: "", massif: null, filters: { ...filtersVierges(), budget: s.filters.budget } })),
       restart: () => set({ stationId: null, lodgeId: null, cmp: [], pick: null, booked: false, seen: {} }),
       setStayOpen: (stayOpen) => set({ stayOpen }),
       setShared: (shared) => set({ shared }),
@@ -200,6 +241,29 @@ export const useParcours = create<Parcours>()(
     }),
     {
       name: "skitrack-parcours",
+      /**
+       * Version 2 : les critères de recherche entrent dans ce qui est persisté.
+       *
+       * Une entrée écrite par la version 1 porte une station retenue mais aucun
+       * texte de destination — la fusion de zustand est superficielle, et `q`
+       * reprendrait sa valeur initiale. L'écran afficherait alors un champ vide
+       * et une loupe qui ouvre les logements d'une station que rien ne nomme,
+       * ce qui est précisément l'état qu'on voulait supprimer. On relâche donc
+       * la station, et la visite recommence proprement.
+       */
+      version: 2,
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Record<string, unknown>;
+        if (version >= 2) return p;
+        return { ...p, stationId: null, lodgeId: null, booked: false };
+      },
+      /** Ce qui survit à un rechargement.
+       *
+       *  Les critères de recherche y entrent : ils n'y étaient pas, et une
+       *  touche F5 sur Comparer rendait la liste complète sans que rien ne
+       *  l'ait demandé. Le champ destination (`q`) et la station retenue sont
+       *  persistés ensemble — le champ montre donc toujours ce que la loupe
+       *  fera, ce qui était l'objection contre la persistance de la station. */
       partialize: (s) => ({
         stationId: s.stationId,
         lodgeId: s.lodgeId,
@@ -207,6 +271,11 @@ export const useParcours = create<Parcours>()(
         pick: s.pick,
         seen: s.seen,
         booked: s.booked,
+        q: s.q,
+        massif: s.massif,
+        sortKey: s.sortKey,
+        unit: s.unit,
+        filters: s.filters,
       }),
     },
   ),

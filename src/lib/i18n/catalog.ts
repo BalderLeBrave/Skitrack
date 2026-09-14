@@ -3,6 +3,7 @@ export type Locale = "fr" | "en";
 export const STRINGS = {
   fr: {
     "nav.traces": "Traces",
+    "nav.cles": "Clés",
     "nav.compare": "Comparer",
     "nav.passes": "Forfaits",
     "nav.map": "Carte",
@@ -55,6 +56,7 @@ export const STRINGS = {
   },
   en: {
     "nav.traces": "Tracks",
+    "nav.cles": "Keys",
     "nav.compare": "Compare",
     "nav.passes": "Lift passes",
     "nav.map": "Map",

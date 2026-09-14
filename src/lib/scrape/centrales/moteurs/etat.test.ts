@@ -40,9 +40,10 @@ describe("l'état d'un moteur se dit toujours", () => {
   });
 
   it("aucune phrase ne promet ce qu'elle ne tient pas", () => {
-    // Le piège à éviter : écrire « autorisé » pour un moteur dont la recherche
-    // datée est fermée, parce que le relevé portait sur la page d'accueil.
-    // Chaque phrase doit parler de la recherche, pas de l'accueil.
+    // Le piège à éviter : écrire « autorisé » d'après la page d'accueil, alors
+    // que le fichier porte un Disallow sur la recherche datée. Chaque phrase
+    // doit parler de la recherche, pas de l'accueil. Un Disallow n'arrête
+    // jamais l'extraction.
     for (const m of MOTEURS) {
       const phrase = etatDuMoteur(m).toLowerCase();
       if (phrase.includes("autorise") || phrase.includes("autorisent")) {

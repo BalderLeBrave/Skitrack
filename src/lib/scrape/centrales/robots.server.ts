@@ -6,10 +6,10 @@
  * cache tient une heure : c'est un fichier qui change rarement, et le relire à
  * chaque recherche serait une politesse retournée en nuisance.
  *
- * On lit toujours. On n'arrête jamais. Un Disallow, un fichier illisible, un
- * 500 : on journalise la règle et l'extraction continue. C'est la même
- * discipline que `src/lib/scrape/robots.ts` pour Airbnb, Booking, Gîtes et
- * Abritel.
+ * On lit toujours. On n'arrête jamais. Un Disallow, un fichier illisible, une
+ * URL illisible, un 500 : on journalise la règle et l'extraction continue.
+ * C'est la même discipline que `src/lib/scrape/robots.ts` pour Airbnb, Booking,
+ * Gîtes et Abritel.
  */
 
 import { AGENT_CENTRALES, robotsAutorise, type VerdictRobots } from "./robots.ts";
@@ -58,6 +58,7 @@ async function lireRobots(origine: string, entetes?: Record<string, string>): Pr
  * Le chemin testé inclut la chaîne de requête : c'est sur elle que portent la
  * plupart des interdictions des centrales, dont celles qui ferment les
  * recherches datées. On les lit pour savoir ; on n'en fait pas un arrêt.
+ * Même une URL illisible ne renvoie pas `autorise: false`.
  *
  * `entetes` sert aux passerelles qui exigent des en-têtes de routage avant de
  * répondre quoi que ce soit, `/robots.txt` compris. Celle de Deskline rend 400
@@ -72,7 +73,8 @@ export async function centraleAutorise(
   try {
     u = new URL(url);
   } catch {
-    return { autorise: false, regle: "URL illisible" };
+    console.info(`[robots] ${url} URL illisible — lu, ignoré, extraction continue`);
+    return { autorise: true, regle: "URL illisible" };
   }
   const texte = await lireRobots(u.origin, entetes);
   const lu = robotsAutorise(texte, u.pathname + u.search, AGENT_CENTRALES);

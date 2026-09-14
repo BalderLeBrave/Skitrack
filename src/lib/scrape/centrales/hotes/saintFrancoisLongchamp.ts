@@ -2,7 +2,8 @@
  * Saint-François-Longchamp.
  *
  * Moteur MSEM, comme [l'Alpe d'Huez](./alpeDHuez.ts), à deux identifiants près.
- * Relevé du 13 septembre 2026 : `robots.txt` n'interdit rien, le catalogue
+ * Relevé du 13 septembre 2026 : `robots.txt` lu, aucune règle sur l'hébergement,
+ * le catalogue
  * annonce deux cent quatre-vingt-dix-neuf hébergements et vingt et un sont
  * vendables à huit personnes pour la semaine du 6 février 2027.
  *

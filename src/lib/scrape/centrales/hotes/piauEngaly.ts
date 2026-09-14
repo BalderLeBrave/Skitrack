@@ -7,8 +7,8 @@
  * qui est le portail des Nouvelles Pyrénées et non une centrale de cette
  * station.
  *
- * `robots.txt` répond 200 et ne ferme que `/wp-admin/`, en rouvrant
- * `/wp-admin/admin-ajax.php`.
+ * `robots.txt` répond 200 et porte `Disallow: /wp-admin/`, en rouvrant
+ * `/wp-admin/admin-ajax.php`. On le lit. Ce qui manque est une URL de résultats.
  */
 
 import type { Connecteur } from "../types";

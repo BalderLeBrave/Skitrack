@@ -1,10 +1,12 @@
 /**
  * Forêt Blanche — Risoul.
  *
- * **Le seul hôte Ingénie dont le `robots.txt` ne porte aucune des règles de
- * blocage.** Il s'arrête après dix interdictions et ne contient ni
- * `/*booking?*`, ni `/*search?*`, ni `/*?action=*`, ni `/*?cid=*`, ni
- * `/*?ajax=*`. Sur les vingt-huit centrales du moteur, six sont dans ce cas.
+ * **Son `robots.txt` ne porte aucune des règles Disallow habituelles du
+ * moteur.** Il s'arrête après dix motifs et ne contient ni `/*booking?*`, ni
+ * `/*search?*`, ni `/*?action=*`, ni `/*?cid=*`, ni `/*?ajax=*`. On le lit,
+ * on extrait. Sur les vingt-huit centrales du moteur, six sont dans ce cas ;
+ * les vingt-deux autres portent `Disallow: /*booking?*`, journalisé, et
+ * s'extraient de la même façon.
  *
  * **Ce fichier a d'abord dit que la centrale était injoignable, et c'était
  * notre erreur.** Le formulaire porte `action=searchAjax` ; envoyée ainsi, la

@@ -2,10 +2,10 @@
  * Les Arcs — Bourg-Saint-Maurice et Villaroger.
  *
  * Seule centrale du parc sur le moteur iResa. La vitrine de la station est un
- * Drupal ; la réservation vit sur `lesarcs-reservation.com`, et c'est le
- * `robots.txt` de cet hôte-là qui décide. Il ferme `/search/` et `/search?`,
- * qui ne sont pas le chemin du moteur, et la recherche n'a aucune chaîne de
- * requête : tout voyage dans le corps du formulaire.
+ * Drupal ; la réservation vit sur `lesarcs-reservation.com`, et c'est son
+ * `robots.txt` qu'on lit. Il porte `Disallow: /search/` et `/search?`, qui
+ * ne sont pas le chemin du moteur. On journalise, on extrait. La recherche
+ * n'a aucune chaîne de requête : tout voyage dans le corps du formulaire.
  *
  * **Un piège qu'il faut connaître avant de lire cette centrale.** Quand la
  * durée demandée n'est pas vendue, le moteur ne rend pas une liste vide : il

@@ -17,7 +17,8 @@
  * donnerait une erreur 404 une fois sur deux. Un lien juste vers la centrale
  * vaut mieux qu'un lien faux vers le logement.
  *
- * `robots.txt` ne ferme que `/irisit/`, qui n'a rien à voir avec l'hébergement.
+ * `robots.txt` porte `Disallow: /irisit/`, qui n'a rien à voir avec
+ * l'hébergement. On le lit, on extrait.
  */
 
 import { chercherMsem } from "../moteurs/msem.server";

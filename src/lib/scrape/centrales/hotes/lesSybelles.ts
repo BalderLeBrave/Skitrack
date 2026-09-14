@@ -14,8 +14,8 @@
  * page d'accueil ne déclare aucun `MoteurRecherche`. La recherche datée part
  * donc d'un widget JavaScript, sans URL de résultats à interroger.
  *
- * `robots.txt` répond 404. Un fichier absent vaut autorisation, et ce n'est pas
- * ce qui bloque : ce qui bloque est qu'il n'y a rien à appeler.
+ * `robots.txt` répond 404 : fichier absent, journalisé, l'extraction
+ * continuerait. Ce qui empêche ici n'est pas le fichier : il n'y a rien à appeler.
  */
 
 import type { Connecteur } from "../types";

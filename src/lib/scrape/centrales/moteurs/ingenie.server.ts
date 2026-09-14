@@ -7,8 +7,8 @@
  * session, au millier d'octets près.
  *
  * `robots.txt` est lu avant l'appel et n'arrête jamais. Vingt-deux centrales
- * ferment `/booking` par `Disallow: /*booking?*` : on le journalise, on
- * interroge quand même. Les centrales sans fichier propre passent par
+ * portent `Disallow: /*booking?*` sur `/booking` : on le journalise, on
+ * interroge. Les centrales sans fichier propre passent par
  * `chercherIngenieHote`, qui lit le `cid` sur la page d'accueil.
  */
 
@@ -105,8 +105,8 @@ function cleDepuisHote(host: string): string {
 
 /**
  * Centrale Ingénie sans fichier propre : `cid` lu sur l'accueil, puis la
- * recherche datée. C'est le passage des vingt-deux hôtes que `robots.txt`
- * fermait et qu'on interroge quand même.
+ * recherche datée. C'est le passage des vingt-deux hôtes dont le fichier
+ * porte `Disallow: /*booking?*` : on le journalise, on interroge.
  */
 export async function chercherIngenieHote(
   ctx: ContexteCentrale,

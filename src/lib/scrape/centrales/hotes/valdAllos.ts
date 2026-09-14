@@ -1,9 +1,10 @@
 /**
  * Val d'Allos — La Foux et Le Seignus.
  *
- * Quatrième centrale Ingénie branchée, et la dernière des cinq que
- * `robots.txt` laisse passer. Son `cid` vaut 8, lu sur sa page d'accueil comme
- * sur sa page de location.
+ * Quatrième centrale Ingénie branchée. Son `robots.txt` ne porte aucune règle
+ * sur la recherche datée. On le lit comme les vingt-deux hôtes qui portent
+ * `Disallow: /*booking?*`, et on extrait. Son `cid` vaut 8, lu sur sa page
+ * d'accueil comme sur sa page de location.
  *
  * **Elle n'a presque rien à vendre, et elle le dit d'une façon qu'il fallait
  * comprendre.** Relevé du 13 septembre 2026, quatre personnes du 6 au

@@ -9,11 +9,10 @@
  * 3 409,44 € sur quatorze nuits, exactement le double, et deux chalets de
  * Vallouise suivent le même mouvement.
  *
- * `robots.txt` demande un délai de dix secondes entre deux demandes. Il ne
- * s'applique pas ici : les prix ne viennent pas de ce site mais de
- * `services.msem.tech`, qui n'a pas de `robots.txt`, et le connecteur ne fait
- * que deux appels par recherche. Le lien mène à la page de réservation, faute
- * de page par hébergement sous les slugs de MSEM.
+ * Son `robots.txt` porte `Crawl-delay: 10`. On le lit, on n'en fait pas un
+ * arrêt. Les prix viennent de `services.msem.tech`, qui n'a pas de `robots.txt`,
+ * et le connecteur ne fait que deux appels par recherche. Le lien mène à la
+ * page de réservation, faute de page par hébergement sous les slugs de MSEM.
  */
 
 import { chercherMsem } from "../moteurs/msem.server";

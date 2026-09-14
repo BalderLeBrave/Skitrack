@@ -2,7 +2,8 @@
  * Sainte-Foy-Tarentaise.
  *
  * La plus petite des quatre centrales MSEM, et celle qui rend la preuve la plus
- * nette. Relevé du 13 septembre 2026, `robots.txt` n'interdit rien, catalogue
+ * nette. Relevé du 13 septembre 2026, `robots.txt` lu, aucune règle sur
+ * l'hébergement, catalogue
  * de soixante-dix-neuf hébergements.
  *
  * Contrairement à ses voisines, elle vend aussi des séjours courts, ce qui

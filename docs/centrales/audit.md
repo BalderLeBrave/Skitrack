@@ -151,14 +151,16 @@ Les stations desservies par chaque hôte sont listées en annexe A.
 
 ---
 
-## 5. Ce que robots.txt autorise
+## 5. Ce que robots.txt disait au relevé
 
-- **Autorisé** pour la page de réservation : 63 hôtes sur 67.
-- **Interdit** : 1 — `reservation.montgenevre.com`. Ces pages n'ont pas été visitées.
+Le tableau ci-dessous décrit le **fichier** au 13 septembre 2026, pas une permission d'extraction. **À l'exécution, un Disallow est journalisé et n'arrête aucune centrale ni aucune plateforme.**
+
+- **Aucune règle ne couvrait la page de réservation** : 63 hôtes sur 67.
+- **Le fichier portait `Disallow: /`** : 1 — `reservation.montgenevre.com`. Ces pages n'ont alors pas été visitées. À l'exécution, ce Disallow est lu, ignoré ; Montgenèvre reste muette pour une autre raison (Open System, génération ancienne).
 - **robots.txt illisible** (absent ou en erreur) : 3 — `reservation.la-toussuire.com`, `reservation.ledevoluy.com`, `www.valfrejus.com`.
-- **Refus au niveau du serveur** (403, protection anti-robot) : 2 — `lesangles.com`, `www.valfrejus.com`. Constaté, et laissé tel quel : un 403 est une réponse, pas un obstacle à contourner.
+- **Refus au niveau du serveur** (403, protection anti-robot) : 2 — `lesangles.com`, `www.valfrejus.com`. Constaté : un 403 est une réponse du serveur, pas un verdict du fichier.
 
-Une autorisation de robots.txt ne vaut pas autorisation contractuelle. Les conditions d'utilisation de chaque centrale sont à lire avant toute collecte, et l'audit ne les a pas lues.
+`robots.txt` ne dit pas si les conditions d'utilisation autorisent la collecte. L'audit ne les a pas lues.
 
 ---
 
@@ -218,7 +220,7 @@ src/lib/scrape/centrales/
 
 **Avant d'écrire quoi que ce soit**, trois questions restent ouvertes, et elles ne sont pas techniques :
 
-1. Les conditions d'utilisation de chaque centrale autorisent-elles la collecte ? `robots.txt` ne répond pas à cette question.
+1. Les conditions d'utilisation de chaque centrale autorisent-elles la collecte ? `robots.txt` ne répond pas à cette question, et n'arrête de toute façon aucune extraction.
 2. Ingénie documente une passerelle SIT en XML et JSON, réservée aux partenaires. Une convention vaudrait mieux qu'une collecte, et couvrirait 54 stations d'un coup.
 3. Les 2 hôtes qui répondent 403 derrière une protection anti-robot sont hors de portée, et le resteront : c'est une orientation abandonnée.
 
@@ -318,7 +320,7 @@ L'audit demandait à chaque station quel éditeur elle emploie. La question inve
 
 Deux centrales en sont sorties, qu'aucune passe station par station n'avait trouvées.
 
-- **Vars.** L'audit rattachait Vars, Vars Sainte-Marie et Les Claux à la centrale de Risoul, sur moteur Ingénie et fermée. Vars a sa propre centrale, `reservation.vars.com`, sur MSEM : `resort` 692, `channel` « OT-692 », `robots.txt` sans interdit, 112 hébergements au catalogue et 5 vendables à huit personnes du 6 au 13 février 2027. Le prix suit la durée — le « Chalet Marly » passe de 4 753 € à 9 381 € sur quatorze nuits. Les deux versants de la Forêt Blanche se vendent séparément ; la donnée est corrigée et Risoul ne garde que sa station.
+- **Vars.** L'audit rattachait Vars, Vars Sainte-Marie et Les Claux à la centrale de Risoul, sur moteur Ingénie. Vars a sa propre centrale, `reservation.vars.com`, sur MSEM : `resort` 692, `channel` « OT-692 », `robots.txt` lu (aucune règle), 112 hébergements au catalogue et 5 vendables à huit personnes du 6 au 13 février 2027. Le prix suit la durée — le « Chalet Marly » passe de 4 753 € à 9 381 € sur quatorze nuits. Les deux versants de la Forêt Blanche se vendent séparément ; la donnée est corrigée et Risoul ne garde que sa station.
 - **Montclar les 2 vallées**, qui n'avait aucune centrale au relevé. `www.montclar.com` publie `resort` 276 et `channel` « OT-276 ». Six hébergements au catalogue, et zéro offre à toutes les dates essayées : la centrale existe et répond, elle n'a rien à vendre ces jours-là. Son lien mène à la centrale et non au logement, parce que les adresses de son site n'ont rien à voir avec les slugs de MSEM et qu'un lien faux vaut moins qu'un lien large.
 
 Cette découverte a imposé une règle au registre : **le rattachement le plus précis gagne**, et non le plus ancien. Un rattachement de station trouvé par l'audit l'emporte sur un rattachement de domaine venu du classeur. Sans elle, trois stations restaient muettes derrière la centrale de leur voisine.
@@ -349,9 +351,9 @@ Le contrôle est le même partout : sans dates, puis sept nuits, puis trois ou q
 
 - **Ingénie**, 28 hôtes et 54 stations. La recherche-liste datée est un `GET /booking?action=searchAjax&cid=<n>&datedeb=…`, forme lue dans le formulaire rendu par `www.valloire.com`.
 
-  Les vingt-huit `robots.txt` ont été relus un par un et confrontés à cette URL exacte. Vingt-deux la ferment par `Disallow: /*booking?*`. Six ne la couvrent par aucune règle : `www.risoul.com`, `www.chamrousse.com`, `reservation.lescontamines.com`, `www.valmeinier-reservation.com`, `www.valdallos.com` et `www.labresse.net`. Un cas à part, `www.lesrousses.com`, porte `Disallow: /*?`, qui ferme toute URL à paramètres.
+  Les vingt-huit `robots.txt` ont été relus un par un et confrontés à cette URL exacte. Vingt-deux portent `Disallow: /*booking?*`. Six ne la couvrent par aucune règle : `www.risoul.com`, `www.chamrousse.com`, `reservation.lescontamines.com`, `www.valmeinier-reservation.com`, `www.valdallos.com` et `www.labresse.net`. Un cas à part, `www.lesrousses.com`, porte `Disallow: /*?`, qui vise toute URL à paramètres. **À l'exécution, ces Disallow sont journalisés et les vingt-huit hôtes s'extraient de la même façon.**
 
-  `www.chamrousse.com` mérite une mention, parce qu'il pose une question et non une réponse : il porte bien `Disallow: /*?action=*` et `Disallow: /*?cid=*`, mais dans l'URL que son propre formulaire fabrique ces deux paramètres ne sont pas en tête, si bien que la chaîne `?action=` n'y apparaît jamais et que la règle, à la lettre, ne s'apparie pas. L'intention est pourtant claire. Réordonner les paramètres pour passer serait une exception déguisée ; cette centrale est donc tenue pour fermée.
+  `www.chamrousse.com` porte `Disallow: /*?action=*` et `Disallow: /*?cid=*`, mais dans l'URL que son propre formulaire fabrique ces deux paramètres ne sont pas en tête, si bien que la chaîne `?action=` n'y apparaît jamais et que la règle, à la lettre, ne s'apparie pas. L'audit l'avait alors tenue pour fermée. **À l'exécution, Chamrousse passe par `chercherIngenieHote` : le fichier est lu, l'extraction continue.**
 
   Sur les hôtes ouverts, la recherche a été appelée pour de bon. Elle fonctionne et réclame bien des dates — sans dates elle répond « Le format de la date n'est pas valide » — mais avec des dates valides, avec ou sans session, elle répond « Une erreur s'est produite ». La variante `resultatAjax` rend une page de 91 380 octets identique pour sept nuits, quatorze nuits et sans dates, sans un montant. Et la fiche datée, autorisée partout, rend 503 « Site en maintenance ! » sur tous les hôtes essayés. La porte est ouverte, le service ne sert pas. `www.risoul.com` et ses quatre stations sont la centrale à réessayer en premier, et elle a son fichier pour cela.
 - **Diffusio**. `www.sancy.com` affiche 800 prix sans qu'aucune date soit demandée, et son application n'expose aucun filtre de date, de durée ou de personnes : c'est une grille tarifaire, pas un total de séjour. `www.n-py.com` interdit nommément, sous un titre « Filtres pages hebergements », chacun des paramètres de son propre formulaire.
@@ -383,7 +385,7 @@ L'audit laissait vingt-cinq hôtes, trente et une stations, sous l'étiquette «
 
 ### Les moteurs qui n'ont pas été branchés, et pourquoi
 
-- **Orchestra Platform** (Travelsoft), trois centrales dont La Plagne et Chamonix. Le moteur répond, ses prix sont datés et suivent la durée. Mais sa page de résultats groupée est fermée par `robots.txt`, et le prix ne s'obtient qu'un logement à la fois : couvrir une station entière demanderait des dizaines d'appels par recherche. Ce n'est pas une façon de traiter un serveur, et la bonne forme serait une moisson périodique, qui n'est pas du ressort d'un connecteur en direct.
+- **Orchestra Platform** (Travelsoft), trois centrales dont La Plagne et Chamonix. Le moteur répond, ses prix sont datés et suivent la durée. Son `robots.txt` porte `Disallow: /*serp?` : lu, ignoré. Le prix daté se lit logement par logement, sur un calendrier : couvrir une station entière demandait des dizaines d'appels. Ce n'est pas une façon de traiter un serveur, et la bonne forme serait une moisson périodique — La Plagne est branchée depuis, catalogues et calendriers retenus.
 - **Arkiane** (Pralognan-la-Vanoise) et **iResa** (Les Arcs), une station chacune. Les deux moteurs sont nommés et leur recherche datée répond. Le connecteur reste à écrire ; le rapport coût/couverture les place après le reste.
 - **Resalys** (Les Karellis) : `robots.txt` fermait la recherche datée au relevé ; lu, ignoré à l'exécution. Pas encore de connecteur.
 - **Tourinsoft** (vallées de Gavarnie) : ce n'est pas un moteur de réservation mais un système d'information touristique. Il sert une grille tarifaire, sans date ni durée, et un prix qui ne bouge pas avec le séjour n'est pas un total de séjour.
@@ -394,11 +396,11 @@ L'audit laissait vingt-cinq hôtes, trente et une stations, sous l'étiquette «
 
 La contre-épreuve n'a pas servi qu'à confirmer. **Valfréjus** a été annoncé comme un total de séjour Open System, et réfuté : trois angles tenaient, le quatrième cassait sur l'exemple que la sonde mettait elle-même en tête. La centrale n'est pas branchée.
 
-Et **Chamrousse** a été volontairement laissée fermée. Son `robots.txt` interdit `/*?action=*` et `/*?cid=*`, mais dans l'URL que son propre formulaire fabrique ces paramètres ne sont pas en tête : la chaîne `?action=` n'y apparaît jamais et, à la lettre, la règle ne s'apparie pas. Réordonner les paramètres pour passer serait une exception déguisée.
+Et **Chamrousse** avait été volontairement laissée de côté au sondage, parce que son `robots.txt` porte `/*?action=*` et `/*?cid=*`. **À l'exécution, ce Disallow est journalisé et Chamrousse s'extrait** : c'est une centrale Ingénie, `chercherIngenieHote` lit le `cid` sur l'accueil.
 
 ### Arkiane et iResa, branchés à leur tour
 
-- **Pralognan-la-Vanoise**, moteur Arkiane. Les prix viennent de l'hôte marchand `reservationpralognan.locvacances.com`, dont le `robots.txt` ne ferme que onze répertoires, aucun ne contenant ce chemin. La garantie que le prix est daté est écrite dans la page : sans dates, chaque carte porte « À partir de … / sem. » et aucun total ; avec dates, ce libellé disparaît. Le connecteur écarte toute carte qui le porte encore. Sept logements pour huit personnes sur la semaine du 6 février 2027, capacité et photo sur les sept.
+- **Pralognan-la-Vanoise**, moteur Arkiane. Les prix viennent de l'hôte marchand `reservationpralognan.locvacances.com`. Son `robots.txt` porte onze répertoires en Disallow : on le lit, on extrait. Aucun ne contient le chemin de la recherche. La garantie que le prix est daté est écrite dans la page : sans dates, chaque carte porte « À partir de … / sem. » et aucun total ; avec dates, ce libellé disparaît. Le connecteur écarte toute carte qui le porte encore. Sept logements pour huit personnes sur la semaine du 6 février 2027, capacité et photo sur les sept.
 - **Les Arcs**, moteur iResa, sur `lesarcs-reservation.com`. Vingt-quatre logements, capacité et photo sur les vingt-quatre.
 
 Ce dernier tend un piège qu'il faut nommer : **quand la durée demandée n'est pas vendue, il ne rend pas une liste vide mais son catalogue non daté**, six cent huit fiches aux prix unitaires, dont des nuitées en dortoir à trente-neuf euros. Les prendre pour des séjours mettrait les moins chers du parc en tête du comparatif. Chaque fiche porte sa propre durée et sa propre date de début, et c'est sur elles que le connecteur filtre.
@@ -411,17 +413,17 @@ Le registre gagne donc une liste de démentis : le classeur l'emporte partout, s
 
 ### Un défaut de sécurité trouvé au passage
 
-Le `robots.txt` de l'hôte marchand de Pralognan commence par une marque d'ordre d'octets. Elle est invisible, et elle empêchait la première ligne de s'apparier : le groupe `User-agent` disparaissait, toutes ses règles avec, et le site entier passait pour autorisé. Corrigé et éprouvé.
+Le `robots.txt` de l'hôte marchand de Pralognan commence par une marque d'ordre d'octets. Elle est invisible, et elle empêchait la première ligne de s'apparier : le groupe `User-agent` disparaissait, toutes ses règles avec, et le parseur lisait le fichier comme s'il n'avait aucune règle. Corrigé et éprouvé. (Le parseur décrit le fichier ; l'extraction n'en dépend pas.)
 
 ### Orchestra et Val d'Allos, les deux derniers
 
-**Orchestra avait été écarté sur son coût, et la mesure a corrigé le jugement.** Sa page de résultats groupée est fermée par `robots.txt`, si bien que le prix ne s'obtient qu'un logement à la fois : couvrir La Plagne entière demande onze pages de destination et quatre-vingt-quinze calendriers. Mais aucun de ces appels ne dépend des dates, et une fois retenus en mémoire ils ne coûtent plus rien. Mesuré : mille quatre-vingt-six millisecondes à froid, une milliseconde à chaud. Trente-neuf logements vendables sur quatre-vingt-quinze pour quatre personnes du 6 au 13 février 2027, avec capacité et photo sur les trente-neuf.
+**Orchestra avait été écarté sur son coût, et la mesure a corrigé le jugement.** Son `robots.txt` porte `Disallow: /*serp?` : lu, ignoré. Le prix se lit logement par logement : couvrir La Plagne entière demande onze pages de destination et quatre-vingt-quinze calendriers. Aucun de ces appels ne dépend des dates, et une fois retenus en mémoire ils ne coûtent plus rien. Mesuré : mille quatre-vingt-six millisecondes à froid, une milliseconde à chaud. Trente-neuf logements vendables sur quatre-vingt-quinze pour quatre personnes du 6 au 13 février 2027, avec capacité et photo sur les trente-neuf.
 
 Chaque station vise son village : Champagny-en-Vanoise coûte huit appels, Montchavin-les-Coches huit, et seule « La Plagne », qui désigne le domaine, les vise toutes.
 
 Deux pièges de ce moteur méritent d'être nommés. La ville de départ `XXX` est celle qui vend l'hébergement seul ; `PAR`, `LON` et `LIL` vendent un forfait avec le voyage, à des prix bien plus bas. Lire la mauvaise donnerait un total faux et plausible. Et la clé de la catégorie n'est pas fixe : « Housing » chez certains logements, le code commercial du produit chez d'autres.
 
-**Val d'Allos** complète Ingénie : `cid` 8, quatrième des cinq centrales que `robots.txt` laisse passer. Elle n'a qu'une offre ferme à quatre personnes, à 700 €, et neuf de ses dix blocs de tarif affichent « à partir de 0 € ». Un zéro n'est pas un prix : c'est ainsi que cette centrale signale un logement dont elle n'a pas le tarif à ces dates. Elle écrit par ailleurs sa monnaie en entité, « 700 &euro; », ce que l'analyseur ne décodait pas : le défaut aurait faussé tout montant à décimales.
+**Val d'Allos** complète Ingénie : `cid` 8. Son `robots.txt` ne porte aucune règle sur la recherche datée ; on le lit comme les vingt-deux hôtes qui portent `Disallow: /*booking?*`, et on extrait. Elle n'a qu'une offre ferme à quatre personnes, à 700 €, et neuf de ses dix blocs de tarif affichent « à partir de 0 € ». Un zéro n'est pas un prix : c'est ainsi que cette centrale signale un logement dont elle n'a pas le tarif à ces dates. Elle écrit par ailleurs sa monnaie en entité, « 700 &euro; », ce que l'analyseur ne décodait pas : le défaut aurait faussé tout montant à décimales.
 
 ### Le tour complet, à quatre personnes
 
@@ -445,7 +447,7 @@ Les quarante-deux centrales sans fichier ne sont pas muettes pour autant : `mote
 
 - Corpus : `src/lib/centrales.data.json` (49 stations, 5 domaines) et les 169 sites de domaine de `src/lib/forfaits/catalog.json`.
 - Agent déclaré : `SkitrackAudit/1.0 (+audit de faisabilite, lecture seule)`.
-- Pour chaque hôte : `robots.txt`, puis la page seulement si le groupe qui nous vise l'autorise. Règle au plus long motif, `*` et `$` interprétés, `Allow` l'emportant à longueur égale.
+- Pour chaque hôte, **au sondage** : `robots.txt`, puis la page seulement si le groupe qui nous vise l'autorisait. Règle au plus long motif, `*` et `$` interprétés, `Allow` l'emportant à longueur égale. **Cette retenue est celle de l'audit, pas de l'exécution : depuis, un Disallow est journalisé et la page est extraite quand même.**
 - Moteur reconnu sur l'URL finale, les en-têtes `server` et `x-powered-by`, et le HTML. L'empreinte du `robots.txt` sert de confirmation : un même fichier, un même moteur.
 - Délai de 350 à 400 ms entre deux demandes, cinq à six en parallèle au plus.
 - Les scripts de relevé vivent dans le répertoire de travail de la session, hors du dépôt : ils ne sont pas du code d'application.
@@ -496,8 +498,11 @@ village concerné : sept appels, pas les quatre-vingt-quinze du domaine entier.
 C'est la station `la-plagne` qui les vise toutes, et elle seule.
 
 Les huit connecteurs sans `chercher` ont rendu leur phrase d'empêchement, celle
-qui leur est propre plutôt que celle de leur moteur : six sites Open System de
-génération ancienne, et deux `robots.txt` qui disent `Disallow: /`.
+qui leur est propre plutôt que celle de leur moteur : génération ancienne
+d'Open System (widget JavaScript, pas de page de résultats) ou moteur non
+nommé. **Aucun de ces silences ne vient d'un Disallow.** Deux de ces hôtes
+portent `Disallow: /` (`reservation.combloux.com`, `reservation.montgenevre.com`) :
+le fichier est lu, ignoré.
 
 ## 12. Inventaire du dossier
 

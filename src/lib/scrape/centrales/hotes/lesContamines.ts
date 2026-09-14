@@ -2,8 +2,9 @@
  * Les Contamines-Montjoie.
  *
  * Centrale Ingénie, `cid` 3, lu sur sa page d'accueil. Son `robots.txt` porte
- * onze interdictions, dont aucune ne vise la recherche datée : c'est l'une des
- * cinq centrales ouvertes du moteur, sur vingt-huit.
+ * onze motifs Disallow, dont aucun ne vise la recherche datée. On le lit, on
+ * extrait — comme les vingt-deux hôtes dont le fichier porte
+ * `Disallow: /*booking?*`.
  *
  * Relevé du 13 septembre 2026 : cinq logements pour huit personnes sur la
  * semaine du 6 février 2027, et les cinq suivent la durée. Sur quatorze nuits,

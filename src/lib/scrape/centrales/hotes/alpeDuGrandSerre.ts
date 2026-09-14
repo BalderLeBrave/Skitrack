@@ -6,7 +6,7 @@
  * 13 septembre 2026 : aucun `MoteurRecherche`, aucun chemin `pr<N>-....htm`.
  *
  * `robots.txt` répond 200 et dit « User-agent: * / Disallow: », c'est-à-dire
- * qu'il n'interdit rien. Ce n'est pas la permission qui manque.
+ * aucune règle. On le lit. Ce qui manque est une URL de résultats.
  */
 
 import type { Connecteur } from "../types";

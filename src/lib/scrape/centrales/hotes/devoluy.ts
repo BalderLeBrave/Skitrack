@@ -7,8 +7,8 @@
  * `pr<N>-....htm` (404 sur les deux chemins essayés), pas de `sitemap.xml`,
  * aucun `MoteurRecherche` déclaré.
  *
- * `robots.txt` répond 404, donc rien n'est interdit. Ce qui manque est une URL
- * de résultats, pas une permission.
+ * `robots.txt` répond 404 : fichier absent, journalisé. Ce qui manque est une
+ * URL de résultats.
  */
 
 import type { Connecteur } from "../types";

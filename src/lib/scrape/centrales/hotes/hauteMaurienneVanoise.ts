@@ -3,9 +3,9 @@
  *
  * La première centrale branchée, et celle sur laquelle le moteur Open System a
  * été établi. Relevé du 13 septembre 2026 : `robots.txt` dit « User-Agent: * /
- * Allow: / », les huit rubriques répondent 200, et le relevé daté du 6 au
- * 13 février 2027 pour huit personnes rend cent sept logements distincts avec
- * un total de séjour.
+ * Allow: / ». On le lit, on extrait. Les huit rubriques répondent 200, et le
+ * relevé daté du 6 au 13 février 2027 pour huit personnes rend cent sept
+ * logements distincts avec un total de séjour.
  *
  * **Pourquoi les huit rubriques et pas la seule page « tous ».** Le moteur
  * plafonne à cinquante fiches par page et sa pagination ne répond pas en

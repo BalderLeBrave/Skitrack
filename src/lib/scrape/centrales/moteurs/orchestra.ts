@@ -75,7 +75,7 @@ export function dateOrchestra(iso: string): string {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : iso;
 }
 
-/** L'URL d'une page de destination. Elle ne porte aucun paramètre, donc rien que `robots.txt` ferme. */
+/** L'URL d'une page de destination. Sans paramètre : le catalogue, pas le prix. */
 export function urlCatalogueOrchestra(base: string, destination: string): string {
   return `${base.replace(/\/+$/, "")}/destinations/${encodeURIComponent(destination)}`;
 }

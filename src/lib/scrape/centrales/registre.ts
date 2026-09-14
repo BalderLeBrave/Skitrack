@@ -12,7 +12,7 @@
  * 320 stations du référentiel en lisant, sur le site officiel de chaque
  * domaine, le lien « réserver » qu'il publie lui-même. Elle porte la couverture
  * de 54 à 113 stations et 67 hôtes, et donne pour chaque hôte son moteur, ce
- * que son `robots.txt` autorisait et ce qu'il a répondu.
+ * que son `robots.txt` disait et ce qu'il a répondu.
  *
  * **Prendre l'un pour l'autre coûte huit stations.** Les six stations des
  * Sybelles, l'Alpe du Grand Serre et Piau-Engaly n'existent que dans le second

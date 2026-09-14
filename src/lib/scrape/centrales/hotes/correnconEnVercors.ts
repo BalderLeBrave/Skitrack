@@ -13,7 +13,7 @@
  * **Deux sites, et il faut les deux.** Le registre connaît le site de l'office,
  * `www.villarddelans-correnconenvercors.com`, qui porte la configuration du
  * moteur mais rend 404 sur `/hebergements/<slug>/`. Les fiches vivent sur son
- * sous-domaine de réservation, dont le `robots.txt` n'interdit rien non plus.
+ * sous-domaine de réservation, dont le `robots.txt` est lu (aucune règle).
  * D'où `siteBase` : sans lui, chaque lien de la liste mènerait à une erreur.
  */
 

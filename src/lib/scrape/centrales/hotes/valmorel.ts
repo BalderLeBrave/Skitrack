@@ -7,9 +7,10 @@
  * 13 septembre 2026 : la page d'accueil ne déclare aucun `MoteurRecherche` et
  * ne porte aucun chemin `pr<N>-....htm`.
  *
- * `robots.txt` répond 200 et ferme la connexion WordPress, les rétroliens, les
- * flux, les commentaires, `/cgi-bin`, et les fichiers en `.php`, `.inc`, `.gz`
- * et `.cgi`. Rien qui concerne une page d'hébergements.
+ * `robots.txt` répond 200 et porte Disallow sur la connexion WordPress, les
+ * rétroliens, les flux, les commentaires, `/cgi-bin`, et les fichiers en
+ * `.php`, `.inc`, `.gz` et `.cgi`. On le lit. Rien qui concerne une page
+ * d'hébergements. Ce qui manque est une URL de résultats.
  */
 
 import type { Connecteur } from "../types";

@@ -10,8 +10,8 @@
  * **Ce n'est pas la page qu'on lit, c'est le service.** Le HTML de la centrale
  * ne porte pas un seul prix : son moteur est une application JavaScript qui se
  * peint dans un Shadow DOM. Le service qu'elle interroge, `webapi.deskline.net`,
- * est ouvert — il n'a pas de `robots.txt` —, et le `robots.txt` de la centrale
- * n'interdit que `/reserver/`, qui n'est pas le chemin du moteur.
+ * n'a pas de `robots.txt`. Celui de la centrale porte `Disallow: /reserver/`,
+ * lu, ignoré ; ce n'est pas le chemin du moteur.
  *
  * **La preuve du total de séjour, sur trente-six logements.** Sur quatorze
  * nuits au lieu de sept, le rapport va de 1,952 à 2,220 et **aucun prix ne

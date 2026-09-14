@@ -7,9 +7,9 @@
  * répondent 404, et il n'y a pas de `sitemap.xml`.
  *
  * `robots.txt` répond 200 et dit : « User-Agent: * / Disallow:
- * /*callback=jQuery*_WPJS=r* / Allow: / ». Il n'interdit donc qu'un motif de
- * rappel jQuery, et autorise le reste. Là encore, ce n'est pas la permission
- * qui manque.
+ * /*callback=jQuery*_WPJS=r* / Allow: / ». On le lit, on journalise le
+ * Disallow du canal jQuery, on extrairait. Ce qui manque est une URL de
+ * résultats.
  */
 
 import type { Connecteur } from "../types";

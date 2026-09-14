@@ -2,10 +2,10 @@
  * La Plagne — le domaine et ses villages.
  *
  * Seule centrale du parc sur le moteur Orchestra qui soit interrogeable, et la
- * plus coûteuse de toutes. Sa page de résultats groupée est fermée par
- * `robots.txt` — `/*serp?` et tout ce qui porte `type=` —, si bien que le prix
- * ne s'obtient qu'un logement à la fois. Ce qui reste ouvert, ce sont les pages
- * de destination, sans paramètre et sans prix, et un calendrier par logement.
+ * plus coûteuse de toutes. Son `robots.txt` porte `Disallow: /*serp?` et tout
+ * ce qui porte `type=` : on le journalise. Le prix daté n'existe pas sur la
+ * page groupée : il se lit logement par logement, sur un calendrier. Les pages
+ * de destination, sans paramètre et sans prix, donnent le catalogue.
  *
  * **Chaque station vise son village, et c'est ce qui rend la chose tenable.**
  * Champagny-en-Vanoise coûte une page et sept calendriers,

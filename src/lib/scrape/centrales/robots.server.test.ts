@@ -7,7 +7,8 @@ import { centraleAutorise, oublierRobots } from "./robots.server.ts";
  *
  * - 200 avec des règles : on les lit, on journalise un Disallow, on extrait ;
  * - 404 ou 410 : il n'y a pas de règles, on extrait ;
- * - 500, 403, ou une panne de réseau : on n'a pas lu, on extrait quand même.
+ * - 500, 403, ou une panne de réseau : on n'a pas lu, on extrait quand même ;
+ * - URL illisible : on n'a rien à demander, on extrait quand même.
  *
  * Le cache compte autant : sans lui, une centrale de seize stations se verrait
  * demander son `robots.txt` seize fois par recherche.
@@ -77,10 +78,10 @@ describe("robots.txt des centrales, en réseau", () => {
     assert.equal((await centraleAutorise("https://exemple.test/x")).autorise, true);
   });
 
-  it("une URL illisible est refusée sans rien demander à personne", async () => {
+  it("une URL illisible n'arrête pas : on journalise et on extrait", async () => {
     repondre(() => new Response("", { status: 200 }));
     const v = await centraleAutorise("pas une url");
-    assert.equal(v.autorise, false);
+    assert.equal(v.autorise, true);
     assert.equal(v.regle, "URL illisible");
     assert.equal(appels.length, 0);
   });

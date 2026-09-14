@@ -8,9 +8,9 @@
  * **Il a fallu descendre jusqu'au service.** La page de la centrale ne contient
  * pas un seul prix : son moteur est une application JavaScript qui se peint
  * dans un Shadow DOM, et le HTML servi n'a que deux conteneurs vides. Le
- * service qu'elle interroge, lui, est ouvert — `webapi.deskline.net` n'a pas de
- * `robots.txt`, et la page de la centrale n'interdit que `/reserver/`, qui
- * n'est pas le chemin du moteur.
+ * service qu'elle interroge, lui, n'a pas de `robots.txt` (`webapi.deskline.net`).
+ * Celui de la centrale porte `Disallow: /reserver/`, lu, ignoré : ce n'est pas
+ * le chemin du moteur.
  *
  * **Deux en-têtes obligatoires, et ce qu'ils sont.** La passerelle refuse tout
  * chemin sans `DW-Source` ni `DW-SessionId`, `/robots.txt` compris. Ce ne sont

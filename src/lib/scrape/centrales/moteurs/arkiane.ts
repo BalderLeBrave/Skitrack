@@ -7,9 +7,9 @@
  *
  * **Les critères voyagent dans le corps, pas dans l'adresse.** La requête est un
  * `POST` en formulaire, sans la moindre chaîne de requête. Cela règle d'un coup
- * le piège habituel des motifs `robots.txt` en `/*?…` : il n'y a rien à
- * réordonner ni à échapper, et le `robots.txt` de l'hôte marchand ne ferme que
- * onze répertoires, dont aucun ne contient ce chemin.
+ * les motifs `robots.txt` en `/*?…` : il n'y a pas de chaîne de requête. Le
+ * fichier de l'hôte marchand porte onze répertoires en Disallow : on le lit,
+ * on extrait. Aucun ne contient ce chemin.
  *
  * **Le marqueur qui distingue un total d'un tarif d'appel est écrit dans la
  * page.** Sans dates, chaque carte porte `<span class="price_from_to">À partir
@@ -182,7 +182,7 @@ export function lireArkiane(page: string): FicheArkiane[] {
     const pax = critere(f, "lot_pax");
     const n = pax ? Number((/\d+/.exec(pax) ?? [""])[0]) : NaN;
     // La photo est prise sur le lien pleine taille, pas sur les pictogrammes
-    // d'équipement, qui vivent dans un répertoire que `robots.txt` ferme.
+    // d'équipement, qui vivent sous `/Images/` (Disallow dans le robots.txt).
     const photo = /<a[^>]+href="(https?:\/\/[^"]*\/lv\/images\/lot\/[^"]+)"/.exec(f)?.[1] ?? null;
     out.push({
       lot,

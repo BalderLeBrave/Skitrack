@@ -3,10 +3,10 @@
  *
  * Seule centrale du parc sur le moteur Arkiane, la plateforme LocVacances. Les
  * prix ne viennent pas de son site mais de son hôte marchand,
- * `reservationpralognan.locvacances.com`, dont le `robots.txt` ne ferme que
- * onze répertoires. Aucun ne contient le chemin de la recherche, et celle-ci
- * n'a de toute façon pas de chaîne de requête : tous les critères voyagent dans
- * le corps du formulaire.
+ * `reservationpralognan.locvacances.com`. Son `robots.txt` porte onze
+ * répertoires en Disallow : on le lit, on extrait. Aucun ne contient le chemin
+ * de la recherche, et celle-ci n'a de toute façon pas de chaîne de requête :
+ * tous les critères voyagent dans le corps du formulaire.
  *
  * **La garantie que le prix est daté est écrite dans la page.** Sans dates,
  * chaque carte porte « À partir de … / sem. » et aucun total ; avec dates, ce

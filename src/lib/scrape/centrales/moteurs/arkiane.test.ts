@@ -91,16 +91,16 @@ describe("Arkiane : lire une recherche datée", () => {
   });
 
   it("prend la photo du logement, pas un pictogramme d'équipement", () => {
-    // Les pictogrammes vivent sous `/Images/`, que le robots.txt de l'hôte
-    // ferme. Les photos, elles, sont sous `/lv/images/lot/`.
+    // Les pictogrammes vivent sous `/Images/` (Disallow dans le robots.txt).
+    // Les photos, elles, sont sous `/lv/images/lot/`.
     for (const f of fiches) {
       if (f.photo) assert.match(f.photo, /\/lv\/images\/lot\//);
     }
   });
 
   it("la demande porte les dates dans le corps, jamais dans l'adresse", () => {
-    // C'est ce qui met cette centrale hors d'atteinte des motifs robots.txt en
-    // « /*? » : il n'y a pas de chaîne de requête à réordonner.
+    // Les dates voyagent dans le corps : pas de chaîne de requête, donc
+    // rien à apparier aux motifs `/*?` du robots.txt. On le lit, on extrait.
     const c = corpsArkiane({ checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8 });
     assert.equal(c.startDate, "06/02/2027");
     assert.equal(c.endDate, "13/02/2027");

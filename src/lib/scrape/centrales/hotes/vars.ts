@@ -2,8 +2,8 @@
  * Vars — Vars, Vars Sainte-Marie, Les Claux.
  *
  * **Une centrale que l'audit n'avait pas vue.** Il rangeait ces stations sous
- * la Forêt Blanche, dont la centrale est celle de Risoul, sur moteur Ingénie et
- * fermée. Vars a sa propre centrale, sur MSEM, et elle répond. Les deux
+ * la Forêt Blanche, dont la centrale est celle de Risoul, sur moteur Ingénie.
+ * Vars a sa propre centrale, sur MSEM, et elle répond. Les deux
  * versants du domaine se vendent séparément.
  *
  * Elle a été trouvée par l'autre bout : au lieu de demander à chaque station
@@ -13,7 +13,7 @@
  * l'API répond.
  *
  * Relevé du 13 septembre 2026 : `robots.txt` dit « User-agent: * » suivi d'une
- * seule ligne `Sitemap`, donc rien n'est interdit. Cent douze hébergements au
+ * seule ligne `Sitemap`. On le lit, on extrait. Cent douze hébergements au
  * catalogue, cinq vendables à huit personnes du 6 au 13 février 2027. Sur
  * quatorze nuits, le « Chalet Marly » passe de 4 753 € à 9 381 € et un chalet
  * de Sainte-Marie de 2 966,22 € à 5 951,98 € : le prix suit la durée.

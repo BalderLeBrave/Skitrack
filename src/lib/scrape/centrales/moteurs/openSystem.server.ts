@@ -8,9 +8,9 @@
  * hôte et retenu une heure (`robots.server.ts`). Un Disallow est journalisé,
  * l'appel part quand même. Un fichier illisible n'arrête pas non plus.
  *
- * **On se nomme.** L'agent envoyé est celui sur lequel porte la vérification
- * `robots.txt`. Vérifier les règles sous un nom et appeler sous un autre serait
- * se réclamer d'une permission qu'on ne demande pas. La centrale de Haute
+ * **On se nomme.** L'agent envoyé est le même que celui déclaré à `robots.txt`,
+ * pour que le journal et la requête portent le même nom. Ce n'est pas une
+ * permission : un Disallow est lu, l'appel part. La centrale de Haute
  * Maurienne Vanoise répond à ce nom exactement comme à celui d'un navigateur :
  * relevé du 13 septembre 2026, 200 et cinquante prix dans les deux cas.
  *

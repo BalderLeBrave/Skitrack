@@ -3,7 +3,7 @@
  *
  * Centrale MSEM, `resort` 320 et `channel` « OT-320 », publiés en clair par la
  * page de réservation du site. Relevé du 13 septembre 2026 : `robots.txt`
- * n'interdit rien qui touche à l'hébergement, trois cent soixante-neuf
+ * lu, aucune règle sur l'hébergement, trois cent soixante-neuf
  * hébergements au catalogue — tous avec coordonnées, presque tous avec photo et
  * capacité — et quarante-quatre vendables à huit personnes pour la semaine du
  * 6 février 2027.

@@ -3,8 +3,8 @@
  * Vaujany, Villard-Reculas.
  *
  * Cinq stations, la plus grosse prise du moteur MSEM. Relevé du 13 septembre
- * 2026 : `robots.txt` dit « User-agent: * » suivi d'une seule ligne `Sitemap`,
- * donc rien n'est interdit.
+ * 2026 : `robots.txt` dit « User-agent: * » suivi d'une seule ligne `Sitemap`.
+ * On le lit, on extrait.
  *
  * Le catalogue annonce neuf cent cinquante-sept hébergements ; cinquante-trois
  * seulement sont vendables à huit personnes pour la semaine du 6 février 2027.

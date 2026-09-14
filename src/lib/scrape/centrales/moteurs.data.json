@@ -24,7 +24,7 @@
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "Moteur nommé le 13 septembre 2026, après l'audit : Orchestra Platform (Travelsoft). Sa recherche datée fonctionne, mais elle demande un appel par logement et sa page de résultats groupée est fermée par robots.txt."
+   "corrige": "Moteur nommé le 13 septembre 2026, après l'audit : Orchestra Platform (Travelsoft). Sa recherche datée fonctionne. Le fichier porte Disallow /*serp? : lu, ignoré. Le prix se lit logement par logement, sur un calendrier."
   },
   "reservation.alpedhuez.com": {
    "nom": "Alpe d'Huez Grand Domaine",
@@ -447,7 +447,7 @@
    ],
    "robots": "interdit (Disallow: /)",
    "reponse": "non interrogée",
-   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, la famille d'Open System, reconnu au widget que le site public charge."
+   "corrige": "Moteur nommé le 13 septembre 2026 : Alliance Réseaux, la famille d'Open System, reconnu au widget que le site public charge. Son robots.txt dit « Disallow: / ». Lu, ignoré. Ce qui empêche est la génération ancienne du moteur, pas le fichier."
   },
   "reservation.orcieres.com": {
    "nom": "Orcières Merlette",

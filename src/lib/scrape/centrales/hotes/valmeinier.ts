@@ -2,8 +2,8 @@
  * Valmeinier.
  *
  * Centrale Ingénie, `cid` 2, lu dans les champs cachés de son formulaire de
- * recherche. Son `robots.txt` porte neuf interdictions, dont aucune ne vise la
- * recherche datée.
+ * recherche. Son `robots.txt` porte neuf motifs Disallow, dont aucun ne vise la
+ * recherche datée. On le lit, on extrait.
  *
  * Relevé du 13 septembre 2026 : quatre logements pour huit personnes sur la
  * semaine du 6 février 2027. Le seul qui reste vendable sur quatorze nuits,

@@ -12,7 +12,7 @@
  *  ses critères et décide lui-même quand chercher. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { Flocons } from "@/components/Flocons";
@@ -50,6 +50,10 @@ export const Route = createFileRoute("/")({ component: Home });
  * séquence se rejoue, ce qui est le pire qui puisse arriver.
  */
 const CLE_ENTREE = "skitrack.v7.entree";
+
+/** `useLayoutEffect` avertit côté serveur, où il ne fait rien ; côté
+ *  navigateur il court avant la peinture, ce qu'il nous faut ici. */
+const avantPeinture = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 function dejaVue(): boolean {
   try {
@@ -137,7 +141,17 @@ function Home() {
   // « anime » ne dure que le temps de la séquence. Rien n'est caché : tout est
   // dans le document dès le premier rendu, seule l'opacité bouge, et la barre
   // de recherche répond au clavier pendant son propre fondu.
-  const [entree, setEntree] = useState<"anime" | "faite">(() => (dejaVue() ? "faite" : "anime"));
+  // « anime » au premier rendu, des deux côtés.
+  //
+  // L'état initial lisait `sessionStorage`, que le serveur n'a pas : au
+  // deuxième passage dans l'onglet, le serveur rendait « anime » et le client
+  // « faite ». React signalait la divergence et rejouait tout le sous-arbre.
+  // La séquence est donc écartée juste après, avant la peinture, de sorte que
+  // rien ne clignote.
+  const [entree, setEntree] = useState<"anime" | "faite">("anime");
+  avantPeinture(() => {
+    if (dejaVue()) setEntree("faite");
+  }, []);
 
   // **Arriver à l'accueil ne relâche plus la station retenue.**
   //

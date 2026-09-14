@@ -1502,14 +1502,23 @@
   inset: 0;
   color: var(--color-muted);
 }
+/* Le voile est calé sur le bloc de texte, qui occupe les trois cinquièmes bas
+   de la couverture. Il montait jusqu'ici à 18 % à mi-hauteur et n'atteignait
+   55 % qu'au tout dernier pixel : le titre et le chapô tombaient en plein sur
+   la partie claire de la photo, mesurés à 1,7:1 et 1,8:1 — dans les deux
+   thèmes, le défaut ne venant pas de la palette mais du voile. Le tiers haut
+   de la photo reste dégagé ; en dessous, le fond est assez sombre pour que
+   `--color-photo-texte` tienne ses 4,5:1 quelle que soit l'image. */
 .hero7__voile {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--color-photo-voile) 10%, transparent) 0%,
-    color-mix(in srgb, var(--color-photo-voile) 18%, transparent) 55%,
-    color-mix(in srgb, var(--color-photo-voile) 55%, transparent) 100%
+    color-mix(in srgb, var(--color-photo-voile) 8%, transparent) 0%,
+    color-mix(in srgb, var(--color-photo-voile) 18%, transparent) 24%,
+    color-mix(in srgb, var(--color-photo-voile) 68%, transparent) 44%,
+    color-mix(in srgb, var(--color-photo-voile) 88%, transparent) 64%,
+    color-mix(in srgb, var(--color-photo-voile) 90%, transparent) 100%
   );
   pointer-events: none;
 }

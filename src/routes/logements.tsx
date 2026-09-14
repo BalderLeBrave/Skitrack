@@ -25,10 +25,14 @@ import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import {
   clampRayonKm,
+  droppedLabel,
   geoReasonFor,
   RAYON_DEFAUT_KM,
   RAYON_MAX_KM,
   RAYON_MIN_KM,
+  type DropReason,
+  type FilterOutcome,
+  type FilterSubject,
 } from "@/lib/stay/lodgingFilter";
 import {
   eur,
@@ -169,6 +173,23 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
 }
 
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };
+
+/** Les motifs du module, tous à zéro : l'écran nomme les siens par `extra`.
+ *  `droppedLabel` additionne les deux, on ne lui donne donc que les seconds. */
+const AUCUN_ECART: FilterOutcome<FilterSubject>["dropped"] = {
+  total: 0,
+  byReason: {
+    groupe: 0,
+    "autre-domaine": 0,
+    "hors-zone": 0,
+    capacite: 0,
+    "capacite-muette": 0,
+    prix: 0,
+    source: 0,
+    disponibilite: 0,
+  } as Record<DropReason, number>,
+  rows: [],
+};
 
 /**
  * Une annonce dans la liste.
@@ -353,14 +374,25 @@ function LogementsStation({ s }: { s: Station }) {
     fn: (l) => geoReasonFor(l, lf.rayon) == null,
     fixed: true,
   });
+  // Règle 2 de `lodgingFilter` : l'absence de tarif dispense des filtres de
+  // prix, pas des autres. `total` vaut 0 quand la source n'a pas publié de
+  // prix, et `0 <= budget` faisait passer ces annonces pour gratuites — en tête
+  // de liste, et dans tous les budgets.
+  const sansPrix = (l: Listing) => !(l.total > 0);
   if (budget)
     lp.push({
       id: "budget",
       label: `Total ≤ ${fmt(budget)} €`,
-      fn: (l) => l.total <= budget,
+      fn: (l) => sansPrix(l) || l.total <= budget,
       remove: () => P.setFilters({ budget: 0 }),
     });
-  if (lf.pp) lp.push({ id: "pp", label: `≤ ${fmt(lf.pp)} € / pers.`, fn: (l) => l.total / trav <= lf.pp, remove: () => patchLf({ pp: 0 }) });
+  if (lf.pp)
+    lp.push({
+      id: "pp",
+      label: `≤ ${fmt(lf.pp)} € / pers.`,
+      fn: (l) => sansPrix(l) || l.total / trav <= lf.pp,
+      remove: () => patchLf({ pp: 0 }),
+    });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
   if (lf.rooms) lp.push({ id: "lrooms", label: `Chambres annoncées ≥ ${lf.rooms}`, fn: (l) => l.bedrooms != null && l.bedrooms >= lf.rooms, remove: () => patchLf({ rooms: 0 }) });
   if (lf.dist) lp.push({ id: "dist", label: `≤ ${fmt(lf.dist)} m d'une remontée`, fn: (l) => l.distToLiftM != null && l.distToLiftM <= lf.dist, remove: () => patchLf({ dist: 0 }) });
@@ -373,10 +405,20 @@ function LogementsStation({ s }: { s: Station }) {
   if (lf.pos) lp.push({ id: "pos", label: "Position connue", fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
 
   const lapply = (ps: Pred[]) => raw.filter((l) => ps.every((p) => p.fn(l)));
+  /** Ce que la source n'a pas publié se range **après** ce qu'elle a publié,
+   *  jamais au rang de zéro : `?? 0` classait une capacité non annoncée comme
+   *  la plus petite de toutes, et un prix non annoncé comme le moins cher. */
+  const apres = (v: number | null | undefined) => (v == null || !(v > 0) ? null : v);
+  const parNombre = (a: number | null, b: number | null, desc = false) => {
+    if (a == null && b == null) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return desc ? b - a : a - b;
+  };
   const tri: Record<LodgeSort, (a: Listing, b: Listing) => number> = {
-    pp: (a, b) => a.total - b.total,
-    total: (a, b) => a.total - b.total,
-    cap: (a, b) => (b.guests ?? 0) - (a.guests ?? 0),
+    pp: (a, b) => parNombre(apres(a.total), apres(b.total)),
+    total: (a, b) => parNombre(apres(a.total), apres(b.total)),
+    cap: (a, b) => parNombre(a.guests ?? null, b.guests ?? null, true),
   };
   const lvis = lapply(lp).sort(tri[lsort]);
   // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
@@ -405,23 +447,54 @@ function LogementsStation({ s }: { s: Station }) {
   const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
   const totalN = (kept?.total ?? 0) + passGroupN;
 
+  /**
+   * Ce que chaque règle a écarté, règles verrouillées comprises.
+   *
+   * L'état vide ne regardait que les filtres **retirables** : quand la zone ou
+   * la capacité du séjour vidait la liste, il n'avait rien à nommer et se
+   * rabattait sur « Aucune annonce pour N personnes », imputant à la taille du
+   * groupe ce que la distance avait écarté. Il fabriquait de surcroît une
+   * capacité maximale avec `Math.max(… ?? 0)` : un relevé où aucune annonce ne
+   * publie sa capacité annonçait « la plus grande annonce sa capacité à 0
+   * personnes », un chiffre que personne n'a écrit.
+   */
+  const ecarts = lp
+    .map((p) => ({ p, n: raw.filter((l) => !p.fn(l)).length }))
+    .filter((x) => x.n > 0);
+  /** Le libellé des masqués, par le formateur déjà éprouvé de `lodgingFilter`.
+   *  Les motifs de l'écran ne sont pas ceux du module : ils passent donc par
+   *  `extra`, qui existe pour cela. */
+  const masquesLbl = droppedLabel(AUCUN_ECART, [
+    ...ecarts.map((x) => ({ singulier: x.p.label, pluriel: x.p.label, n: x.n })),
+  ]);
+
   let lempty: { title: string; hint: string; fix: (() => void) | null } | null = null;
   if (raw.length && !lvis.length) {
+    // Le filtre le plus coûteux, verrouillé ou non : c'est lui qu'il faut
+    // nommer, même quand on ne peut pas l'enlever d'un clic.
     let best: { p: Pred; n: number } | null = null;
-    for (const p of lfree) {
+    for (const p of lp) {
       const n = lapply(lp.filter((x) => x !== p)).length;
       if (!best || n > best.n) best = { p, n };
     }
+    // La capacité publiée la plus grande du relevé — `null` si **aucune**
+    // annonce n'en publie. On ne dit un chiffre que si quelqu'un l'a écrit.
+    const capacites = raw.map((l) => l.guests).filter((g): g is number => g != null);
+    const plusGrande = capacites.length ? Math.max(...capacites) : null;
+    const muettes = raw.length - capacites.length;
     lempty =
       best && best.n > 0
         ? {
             title: `Le filtre « ${best.p.label} » ne laisse aucune annonce`,
-            hint: `Sans lui, ${best.n} annonce${best.n > 1 ? "s" : ""} rest${best.n > 1 ? "ent" : "e"} pour ${trav} personnes.`,
+            hint: `Sans lui, ${best.n} annonce${best.n > 1 ? "s" : ""} rest${best.n > 1 ? "ent" : "e"} sur les ${raw.length} du relevé.${best.p.remove ? "" : " Ce filtre se règle dans le panneau."}`,
             fix: best.p.remove ?? null,
           }
         : {
             title: `Aucune annonce pour ${trav} personnes${rooms ? ` et ${rooms} chambres` : ""}`,
-            hint: `Le relevé compte ${raw.length} annonces ; la plus grande annonce sa capacité à ${Math.max(...raw.map((l) => l.guests ?? 0))} personnes. Réduisez le groupe ou attendez un nouveau relevé.`,
+            hint:
+              plusGrande != null
+                ? `Le relevé compte ${raw.length} annonce${raw.length > 1 ? "s" : ""} ; la plus grande de celles qui publient leur capacité annonce ${plusGrande} personnes${muettes ? `, et ${muettes} n'en publient aucune` : ""}. Réduisez le groupe ou attendez un nouveau relevé.`
+                : `Le relevé compte ${raw.length} annonce${raw.length > 1 ? "s" : ""}, et aucune ne publie sa capacité : rien ici ne permet de dire si elles conviennent. Réduisez le groupe ou attendez un nouveau relevé.`,
             fix: null,
           };
   }
@@ -605,6 +678,10 @@ function LogementsStation({ s }: { s: Station }) {
                   {affichees.length} annonce{affichees.length > 1 ? "s" : ""} sur {raw.length}
                   {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
                   {sansPos ? ` · ${sansPos}` : ""}
+                  {/* Ce que les règles ont masqué, et par quelle règle. Le
+                      compte disait « 12 sur 96 » sans jamais dire où étaient
+                      passées les 84 autres. */}
+                  {masquesLbl ? ` · ${masquesLbl}` : ""}
                 </span>
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>

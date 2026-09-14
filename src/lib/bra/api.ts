@@ -41,57 +41,67 @@ function lesReperes() {
 }
 
 /**
- * Les bulletins de plusieurs massifs, en un appel.
+ * Le bulletin d'une station : rattachement au massif, puis relevé.
  *
- * Les trois cents stations du référentiel tiennent en une trentaine de massifs,
- * et le cache serveur les partage. Le client groupe ses demandes par lots
- * (`useBra`) plutôt que d'ouvrir une requête par fiche.
+ * Le corps est partagé par l'appel unitaire et l'appel par lot — il n'y a
+ * qu'un chemin de lecture, et `fetchBra` partage son cache et ses requêtes en
+ * vol entre les stations d'un même massif.
  */
-export const getBraMassifs = createServerFn({ method: "POST" })
-  .validator(z.object({ codes: z.array(z.number().int().positive()).min(1).max(40), force: z.boolean().optional() }))
-  .handler(async ({ data }): Promise<Record<number, BraBulletin>> => {
-    const { fetchBra } = await import("./fetch.server");
-    const uniques = [...new Set(data.codes)];
-    const lus = await Promise.all(uniques.map((c) => fetchBra(c, data.force ?? false)));
-    return Object.fromEntries(uniques.map((c, i) => [c, lus[i]!]));
-  });
+async function payloadStation(id: string, force: boolean): Promise<BraPayload> {
+  const releveA = new Date().toISOString();
+  const s = stationById(id);
+  if (!s) {
+    return { massif: null, code: null, voie: null, etat: "non-rattache", official: null, cause: "Station inconnue.", releveA };
+  }
+  const r = rattachementBra(s, lesReperes());
+  if (r.code == null) {
+    // Journalisé station par station : les trous de rattachement étaient
+    // invisibles en exploitation.
+    console.warn(`[bra] ${s.id} : aucun massif Météo-France (${s.massif})`);
+    return {
+      massif: r.massif,
+      code: null,
+      voie: r.voie,
+      etat: r.horsZone ? "hors-zone" : "non-rattache",
+      official: null,
+      cause: r.horsZone
+        ? `Météo-France ne publie pas de bulletin d'avalanche pour le massif « ${s.massif} ».`
+        : "Aucun massif Météo-France ne couvre cette station.",
+      releveA,
+    };
+  }
+  const { fetchBra } = await import("./fetch.server");
+  const official = await fetchBra(r.code, force);
+  if (!official.ok) console.warn(`[bra] ${s.id} (massif ${r.code}) : ${official.error ?? "échec"}`);
+  return {
+    massif: r.massif,
+    code: r.code,
+    voie: r.voie,
+    etat: official.ok ? "ok" : "echec",
+    official,
+    cause: official.ok ? null : (official.error ?? "Bulletin illisible."),
+    releveA,
+  };
+}
 
 /** Le bulletin d'une station, rattachement compris. */
 export const getStationBra = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().min(1), force: z.boolean().optional() }))
-  .handler(async ({ data }): Promise<BraPayload> => {
-    const releveA = new Date().toISOString();
-    const s = stationById(data.id);
-    if (!s) {
-      return { massif: null, code: null, voie: null, etat: "non-rattache", official: null, cause: "Station inconnue.", releveA };
-    }
-    const r = rattachementBra(s, lesReperes());
-    if (r.code == null) {
-      // Journalisé station par station : les trous de rattachement étaient
-      // invisibles en exploitation.
-      console.warn(`[bra] ${s.id} : aucun massif Météo-France (${s.massif})`);
-      return {
-        massif: r.massif,
-        code: null,
-        voie: r.voie,
-        etat: r.horsZone ? "hors-zone" : "non-rattache",
-        official: null,
-        cause: r.horsZone
-          ? `Météo-France ne publie pas de bulletin d'avalanche pour le massif « ${s.massif} ».`
-          : "Aucun massif Météo-France ne couvre cette station.",
-        releveA,
-      };
-    }
-    const { fetchBra } = await import("./fetch.server");
-    const official = await fetchBra(r.code, data.force ?? false);
-    if (!official.ok) console.warn(`[bra] ${s.id} (massif ${r.code}) : ${official.error ?? "échec"}`);
-    return {
-      massif: r.massif,
-      code: r.code,
-      voie: r.voie,
-      etat: official.ok ? "ok" : "echec",
-      official,
-      cause: official.ok ? null : (official.error ?? "Bulletin illisible."),
-      releveA,
-    };
+  .handler(async ({ data }): Promise<BraPayload> => payloadStation(data.id, data.force ?? false));
+
+/**
+ * Les bulletins de plusieurs stations, **en un appel**.
+ *
+ * Le client groupait bien ses demandes dans une fenêtre de quelques
+ * millisecondes, mais en tirait ensuite une requête HTTP par station : le lot
+ * n'existait que de nom. Trois cents stations tiennent en une trentaine de
+ * massifs, et `fetchBra` ne sort sur le réseau qu'une fois par massif ; ce qui
+ * reste à économiser, ce sont les allers-retours avec le serveur du dépôt.
+ */
+export const getStationsBra = createServerFn({ method: "POST" })
+  .validator(z.object({ ids: z.array(z.string().min(1)).min(1).max(40), force: z.boolean().optional() }))
+  .handler(async ({ data }): Promise<Record<string, BraPayload>> => {
+    const uniques = [...new Set(data.ids)];
+    const lus = await Promise.all(uniques.map((id) => payloadStation(id, data.force ?? false)));
+    return Object.fromEntries(uniques.map((id, i) => [id, lus[i]!]));
   });

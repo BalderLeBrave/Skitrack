@@ -17,7 +17,7 @@ import { PartPistes } from "@/components/v7/PartPistes";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
-import { getStationBra, type BraPayload } from "@/lib/bra/api";
+import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
 import { BRA_LABELS } from "@/lib/bra/parse";
 import { getForecastPair, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
 import {
@@ -173,11 +173,33 @@ type EtatBraUI =
   | { status: "pret"; data: BraPayload }
   | { status: "echec"; cause: string };
 
-/** Les demandes émises dans la même fenêtre partent en un seul appel : trente
- *  massifs couvrent trois cents stations, et le serveur les partage. */
+/** Les demandes émises dans la même fenêtre partent en **un seul** appel :
+ *  trente massifs couvrent trois cents stations, et le serveur les partage.
+ *  Le lot ouvrait auparavant une requête HTTP par station — il n'en était un
+ *  que de nom. */
 const LOT_MS = 40;
+/** Borne du validateur de `getStationsBra` : au-delà, on découpe. */
+const LOT_MAX = 40;
 let enAttente: { id: string; resoudre: (p: BraPayload) => void; rejeter: (e: unknown) => void }[] = [];
 let minuteurLot: ReturnType<typeof setTimeout> | null = null;
+
+function envoyer(lot: typeof enAttente): void {
+  // Une station demandée deux fois ne part qu'une fois.
+  const ids = [...new Set(lot.map((d) => d.id))];
+  for (let i = 0; i < ids.length; i += LOT_MAX) {
+    const tranche = ids.slice(i, i + LOT_MAX);
+    const parts = lot.filter((d) => tranche.includes(d.id));
+    void getStationsBra({ data: { ids: tranche } })
+      .then((r) => {
+        for (const d of parts) {
+          const p = r[d.id];
+          if (p) d.resoudre(p);
+          else d.rejeter(new Error("Bulletin absent de la réponse groupée."));
+        }
+      })
+      .catch((e) => parts.forEach((d) => d.rejeter(e)));
+  }
+}
 
 function demanderBra(id: string, force = false): Promise<BraPayload> {
   if (force) return getStationBra({ data: { id, force: true } });
@@ -187,26 +209,24 @@ function demanderBra(id: string, force = false): Promise<BraPayload> {
       const lot = enAttente;
       enAttente = [];
       minuteurLot = null;
-      // Une station demandée deux fois ne part qu'une fois.
-      for (const id2 of new Set(lot.map((d) => d.id))) {
-        const parts = lot.filter((d) => d.id === id2);
-        void getStationBra({ data: { id: id2 } })
-          .then((r) => parts.forEach((d) => d.resoudre(r)))
-          .catch((e) => parts.forEach((d) => d.rejeter(e)));
-      }
+      envoyer(lot);
     }, LOT_MS);
   });
 }
 
 function useBra(stationId: string): { etat: EtatBraUI; reessayer: () => void } {
   const [etat, setEtat] = useState<EtatBraUI>({ status: "chargement" });
-  const [essai, setEssai] = useState(0);
+  const [essai, setEssai] = useState<{ id: string; n: number }>({ id: stationId, n: 0 });
   useEffect(() => {
     let annule = false;
+    // Le rafraîchissement forcé n'appartient qu'à la station où l'on a cliqué :
+    // le compteur porte son identifiant, faute de quoi il restait au-dessus de
+    // zéro et toutes les fiches visitées ensuite contournaient le cache serveur.
+    const force = essai.id === stationId && essai.n > 0;
     // Remis à zéro en entrée : sans cela l'état survivait au changement de
     // station, et la fiche affichait le bulletin de la précédente.
     setEtat({ status: "chargement" });
-    void demanderBra(stationId, essai > 0)
+    void demanderBra(stationId, force)
       .then((r) => {
         if (!annule) setEtat({ status: "pret", data: r });
       })
@@ -220,7 +240,10 @@ function useBra(stationId: string): { etat: EtatBraUI; reessayer: () => void } {
       annule = true;
     };
   }, [stationId, essai]);
-  return { etat, reessayer: () => setEssai((n) => n + 1) };
+  return {
+    etat,
+    reessayer: () => setEssai((e) => (e.id === stationId ? { id: stationId, n: e.n + 1 } : { id: stationId, n: 1 })),
+  };
 }
 
 /** « rattaché par proximité » se dit : une déduction n'est pas un relevé. */

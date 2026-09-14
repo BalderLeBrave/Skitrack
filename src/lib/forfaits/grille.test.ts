@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
-import { cle, durees, DUREES_BASE, fusionnerReleve, grilleVide, lire, saisonDe, CATEGORIES } from "./grille.ts";
+import { cle, durees, DUREES_BASE, fusionnerReleve, grilleVide, lire, saisonDe, useGrilles, CATEGORIES } from "./grille.ts";
 import { emptyRow } from "./store.ts";
 
 const REL = emptyRow("tignes", {
@@ -78,5 +79,41 @@ describe("grille tarifaire", () => {
     const est = emptyRow("x", { j6: 300, status: "estimé", fetchedAt: null });
     const { grille } = fusionnerReleve(grilleVide("x", "2026-27"), est);
     assert.equal(lire(grille, 6, "adulte").statut, "estime");
+  });
+
+  it("l'annulation défait une saisie, pas une frappe", () => {
+    const { poser, annulerDerniere } = useGrilles.getState();
+    // La case porte déjà 60 €, puis l'utilisateur tape « 345 » : `poser` est
+    // appelée à chaque caractère.
+    poser("t", "2026", 1, "adulte", 60);
+    poser("t", "2026", 2, "adulte", 110); // on change de case : la saisie est close
+    poser("t", "2026", 1, "adulte", 3);
+    poser("t", "2026", 1, "adulte", 34);
+    poser("t", "2026", 1, "adulte", 345);
+    annulerDerniere();
+    const g = useGrilles.getState().grilles["t|2026"];
+    assert.equal(g?.cases[cle(1, "adulte")]?.prix, 60, "l'annulation doit rendre la valeur d'avant la saisie");
+  });
+
+  it("un relevé qui réécrit la case rend l'annulation caduque", () => {
+    const { poser, appliquerReleve, annulerDerniere } = useGrilles.getState();
+    // Case vide côté grille, puis un relevé la remplit : il n'y a plus rien à
+    // défaire sur cette case, et la défaire retirerait le relevé.
+    poser("u", "2026", 1, "adulte", 50);
+    poser("u", "2026", 1, "adulte", null); // la case redevient vide
+    appliquerReleve("u", "2026", emptyRow("u", { j1: 55, status: "ok" }));
+    const apres = () => useGrilles.getState().grilles["u|2026"]?.cases[cle(1, "adulte")]?.prix;
+    assert.equal(apres(), 55);
+    annulerDerniere();
+    assert.equal(apres(), 55, "le relevé ne doit pas être défait par une annulation périmée");
+  });
+
+  it("la dernière saisie n'est pas persistée", () => {
+    // Sans `partialize`, `derniere` revenait du stockage local : au lancement
+    // suivant, « Annuler la dernière saisie » défaisait une saisie de la veille
+    // et pouvait écraser un relevé obtenu entre-temps. Le magasin persisté
+    // n'étant pas gréé hors navigateur, l'invariant se lit à la source.
+    const texte = readFileSync(new URL("./grille.ts", import.meta.url), "utf8");
+    assert.match(texte, /partialize:\s*\(s\)\s*=>\s*\(\{\s*grilles:\s*s\.grilles\s*\}\)/);
   });
 });

@@ -179,7 +179,9 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
       continue;
     }
     try {
-      const page = await demander(url, signal);
+      // La cadence publiée par le site l'emporte sur la nôtre : `delaiMs` porte
+      // le `Crawl-delay` de son robots.txt, calculé jusqu'ici puis jeté.
+      const page = await demander(url, signal, robots.delaiMs);
       if (page.status === 401 || page.status === 403 || page.status === 429) {
         // Un refus ne se contourne pas et ne se réessaie pas sur sept autres
         // chemins du même hôte : la voie automatique se ferme ici.
@@ -223,7 +225,10 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
         issue: applied.outcome === "updated" ? "maj" : applied.outcome === "skipped_manual" ? "manuel" : "inchange",
       };
     } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") throw err;
+      // Seule l'interruption demandée par l'appelant remonte : un délai dépassé
+      // est une panne ordinaire, qui se journalise et laisse essayer la voie
+      // suivante.
+      if (err instanceof Error && err.name === "AbortError" && signal?.aborted) throw err;
       cause = err instanceof Error ? err.message : String(err);
       source = noter(source, { at: quand, url, issue: "panne", statut: null, message: cause });
     }
@@ -256,7 +261,7 @@ export async function refreshMany(
     try {
       out.push(await refreshOne(slug, force, signal));
     } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") break;
+      if (err instanceof Error && err.name === "AbortError" && signal?.aborted) break;
       throw err;
     }
   }

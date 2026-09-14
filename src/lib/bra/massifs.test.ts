@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { braCodeOf, braMassifOf, publieUnBra, rattachementBra, reperesBra } from "./massifs.ts";
+import { BRA_KEYWORDS, braCodeOf, braMassifOf, MF_CODES, publieUnBra, rattachementBra, reperesBra } from "./massifs.ts";
 import { STATIONS } from "../stations.ts";
 
 describe("bra massifs FR", () => {
@@ -55,5 +55,41 @@ describe("bra massifs FR", () => {
     assert.ok(voies.has("nom"));
     assert.ok(voies.has("domaine"));
     assert.ok(voies.has("proximite"));
+  });
+
+  it("tout code de la table est atteignable par un mot-clé", () => {
+    // `Thabor` (13) et `Orlu-Saint_Barthelemy` (72) avaient été ajoutés à
+    // `MF_CODES` sans ligne de mots-clés : aucun nom ne pouvait les produire,
+    // et l'ajout ne changeait rien.
+    const avecCles = new Set(BRA_KEYWORDS.map(([m]) => m));
+    assert.deepEqual(
+      Object.keys(MF_CODES).filter((m) => !avecCles.has(m)),
+      [],
+    );
+    // Et l'inverse : un massif de mots-clés sans code ne rend aucun bulletin.
+    assert.deepEqual(
+      [...avecCles].filter((m) => MF_CODES[m] == null),
+      [],
+    );
+  });
+
+  it("le Thabor et l'Orlu sont rattachés par le nom, pas par proximité", () => {
+    const reperes = reperesBra(STATIONS);
+    const par = (id: string) => {
+      const s = STATIONS.find((x) => x.id === id);
+      assert.ok(s, `station ${id} absente du référentiel`);
+      return rattachementBra(s, reperes);
+    };
+    assert.deepEqual(
+      { massif: par("valfrejus").massif, code: par("valfrejus").code, voie: par("valfrejus").voie },
+      { massif: "Thabor", code: 13, voie: "nom" },
+    );
+    assert.equal(par("nevache").code, 13);
+    assert.equal(par("ascou-pailheres").code, 72);
+    assert.equal(par("les-monts-dolmes").code, 72);
+    // Valloire et Valmeinier restent en Maurienne : le déplacement de
+    // « valfrejus » ne les emporte pas.
+    assert.equal(par("valloire").massif, "Maurienne");
+    assert.equal(par("valmeinier").massif, "Maurienne");
   });
 });

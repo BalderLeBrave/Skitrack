@@ -10,18 +10,35 @@ export const listerCles = createServerFn({ method: "POST" })
     return etatCles();
   });
 
+/**
+ * Ce qu'une clé change doit changer tout de suite.
+ *
+ * Le relevé Météo-France garde ses échecs cinq minutes. Sans cet oubli, une
+ * clé fraîchement saisie laissait les fiches station sur « Bulletin non
+ * obtenu » le temps du cache, et l'écran des clés paraissait sans effet.
+ */
+async function oublierCeQueLaCleChange(id: string): Promise<void> {
+  if (id !== "meteofrance") return;
+  const { oublierCacheBra } = await import("../bra/fetch.server");
+  oublierCacheBra();
+}
+
 export const poserCle = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().min(1), valeur: z.string().max(4096) }))
   .handler(async ({ data }): Promise<EtatCle[]> => {
     const { poserCle: poser } = await import("./store.server");
-    return poser(data.id, data.valeur);
+    const etats = poser(data.id, data.valeur);
+    await oublierCeQueLaCleChange(data.id);
+    return etats;
   });
 
 export const retirerCle = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().min(1) }))
   .handler(async ({ data }): Promise<EtatCle[]> => {
     const { retirerCle: retirer } = await import("./store.server");
-    return retirer(data.id);
+    const etats = retirer(data.id);
+    await oublierCeQueLaCleChange(data.id);
+    return etats;
   });
 
 export type Essai = { ok: boolean; message: string };

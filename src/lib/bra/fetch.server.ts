@@ -1,4 +1,6 @@
 import { emptyBulletin, parseBulletin, type BraBulletin } from "./parse";
+import { assurerCles } from "../cles/store.server";
+import { cleParId } from "../cles/registre";
 
 const ENDPOINT = "https://public-api.meteofrance.fr/public/DPBRA/v1/massif/BRA";
 const TIMEOUT_MS = 15_000;
@@ -18,11 +20,30 @@ const enVol = new Map<number, Promise<BraBulletin>>();
  *
  * Elle était écrite en clair dans `secrets.server.ts`, suivi par git et
  * recopié dans le bundle du serveur. Ce fichier est supprimé ; la clé doit être
- * révoquée, recréée, et posée en `METEOFRANCE_API_KEY`.
+ * révoquée, recréée, et posée en `METEOFRANCE_API_KEY` — ou saisie dans
+ * Plus › Clés, que `assurerCles` verse dans l'environnement avant cette
+ * lecture. Il n'y a toujours qu'un chemin de lecture.
+ *
+ * Les noms sont ceux du registre, dans son ordre, et la première valeur **non
+ * vide** gagne : `??` laissait une variable principale posée à la chaîne vide
+ * masquer l'alias, alors que partout ailleurs le vide vaut l'absence.
  */
 export function loadMeteofranceKey(): string | null {
-  const env = process.env.METEOFRANCE_API_KEY ?? process.env.SKITRACK_METEOFRANCE_API_KEY;
-  return env && env.trim() ? env.trim() : null;
+  assurerCles();
+  const noms = cleParId("meteofrance")?.env ?? ["METEOFRANCE_API_KEY"];
+  return noms.map((n) => process.env[n]?.trim()).find(Boolean) ?? null;
+}
+
+/**
+ * Oublier ce qui a été relevé, bulletins et échecs.
+ *
+ * Poser ou retirer la clé change la réponse de Météo-France sur-le-champ ;
+ * sans cela, le cache d'échec faisait répondre « Aucune clé » pendant cinq
+ * minutes après la saisie, et l'écran des clés paraissait sans effet.
+ */
+export function oublierCacheBra(): void {
+  cache.clear();
+  enVol.clear();
 }
 
 export async function fetchBra(massifCode: number, force = false): Promise<BraBulletin> {
@@ -32,10 +53,18 @@ export async function fetchBra(massifCode: number, force = false): Promise<BraBu
   const hit = cache.get(massifCode);
   const ttl = hit?.value.ok ? TTL_MS : TTL_ECHEC_MS;
   if (!force && hit && Date.now() - hit.at < ttl) return hit.value;
-  // Un seul appel à la fois par massif ; les autres attendent le même.
+  // Un seul appel à la fois par massif ; les autres attendent le même, y
+  // compris un appel forcé : le cache a déjà été court-circuité plus haut, la
+  // requête en vol est donc bien un relevé neuf. L'exclusion de `force`
+  // ouvrait un second appel réseau qui écrasait l'entrée du premier, et le
+  // `finally` du premier retirait ensuite celle du second — un troisième appel
+  // repartait alors sur le réseau pendant que le second était encore en vol.
+  // On ne retire que sa propre entrée.
   const vol = enVol.get(massifCode);
-  if (!force && vol) return vol;
-  const p = fetchBraDirect(massifCode).finally(() => enVol.delete(massifCode));
+  if (vol) return vol;
+  const p = fetchBraDirect(massifCode).finally(() => {
+    if (enVol.get(massifCode) === p) enVol.delete(massifCode);
+  });
   enVol.set(massifCode, p);
   return p;
 }
@@ -43,11 +72,11 @@ export async function fetchBra(massifCode: number, force = false): Promise<BraBu
 async function fetchBraDirect(massifCode: number): Promise<BraBulletin> {
   const key = loadMeteofranceKey();
   if (!key) {
-    const vide = emptyBulletin(massifCode, {
-      error: "Aucune clé Météo-France (METEOFRANCE_API_KEY absente de l'environnement).",
+    // Non mis en cache : ce n'est pas une panne réseau mais un état de
+    // configuration, qui change dès que la clé est saisie dans Plus › Clés.
+    return emptyBulletin(massifCode, {
+      error: "Aucune clé Météo-France : renseignez-la dans Plus › Clés, ou posez METEOFRANCE_API_KEY.",
     });
-    cache.set(massifCode, { at: Date.now(), value: vide });
-    return vide;
   }
 
   const controller = new AbortController();

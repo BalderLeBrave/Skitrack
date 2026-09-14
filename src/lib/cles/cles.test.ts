@@ -1,6 +1,6 @@
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CLES, cleParId } from "./registre.ts";
@@ -127,3 +127,45 @@ describe("réévaluation du module (développement)", () => {
     delete process.env.METEOFRANCE_API_KEY;
   });
 });
+
+describe("robustesse du fichier de clés", () => {
+  it("un fichier illisible n'est jamais écrasé : l'erreur remonte", async () => {
+    const coin = mkdtempSync(join(tmpdir(), "skitrack-cles-ko-"));
+    const avant = process.env.SKITRACK_CONFIG_DIR;
+    try {
+      process.env.SKITRACK_CONFIG_DIR = coin;
+      const { poserCle, cheminFichier } = await import("./store.server.ts");
+      // Deux clés valides, puis le fichier est tronqué en dehors de nous.
+      poserCle("pyairbnb", "/usr/bin/python3");
+      const chemin = cheminFichier();
+      const entier = readFileSync(chemin, "utf8");
+      assert.ok(entier.includes("pyairbnb"));
+      writeFileSync(chemin, entier.slice(0, 12), "utf8");
+      // Repartir d'un fichier vide effacerait la clé pyairbnb sans le dire.
+      assert.throws(() => poserCle("meteofrance", "x"), /illisible|JSON|forme attendue/i);
+      assert.equal(readFileSync(chemin, "utf8"), entier.slice(0, 12));
+    } finally {
+      if (avant == null) delete process.env.SKITRACK_CONFIG_DIR;
+      else process.env.SKITRACK_CONFIG_DIR = avant;
+      rmSync(coin, { recursive: true, force: true });
+    }
+  });
+
+  it("un fichier absent est l'état normal du premier lancement", async () => {
+    const coin = mkdtempSync(join(tmpdir(), "skitrack-cles-neuf-"));
+    const avant = process.env.SKITRACK_CONFIG_DIR;
+    try {
+      process.env.SKITRACK_CONFIG_DIR = coin;
+      const { etatCles } = await import("./store.server.ts");
+      assert.equal(
+        etatCles().every((e) => !e.posee),
+        true,
+      );
+    } finally {
+      if (avant == null) delete process.env.SKITRACK_CONFIG_DIR;
+      else process.env.SKITRACK_CONFIG_DIR = avant;
+      rmSync(coin, { recursive: true, force: true });
+    }
+  });
+});
+

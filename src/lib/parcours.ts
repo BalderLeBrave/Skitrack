@@ -224,7 +224,16 @@ export const useParcours = create<Parcours>()(
         set((s) => ({ filters: { ...s.filters, col: { ...s.filters.col, [c]: v } } })),
       setChip: (k, on) =>
         set((s) => ({ filters: { ...s.filters, chips: { ...s.filters.chips, [k]: on } } })),
-      resetFilters: () => set({ q: "", massif: null, filters: filtersVierges() }),
+      /**
+       * Les critères de **station**, et eux seuls.
+       *
+       * Le budget est un critère de logement : il ne paraît sur aucun des deux
+       * écrans qui portent « Tout retirer », et il y disparaissait donc sans
+       * qu'aucun jeton ne l'ait annoncé. L'écran Logements, lui, le relâche
+       * explicitement avec le reste de ses réglages.
+       */
+      resetFilters: () =>
+        set((s) => ({ q: "", massif: null, filters: { ...filtersVierges(), budget: s.filters.budget } })),
       restart: () => set({ stationId: null, lodgeId: null, cmp: [], pick: null, booked: false, seen: {} }),
       setStayOpen: (stayOpen) => set({ stayOpen }),
       setShared: (shared) => set({ shared }),
@@ -232,6 +241,22 @@ export const useParcours = create<Parcours>()(
     }),
     {
       name: "skitrack-parcours",
+      /**
+       * Version 2 : les critères de recherche entrent dans ce qui est persisté.
+       *
+       * Une entrée écrite par la version 1 porte une station retenue mais aucun
+       * texte de destination — la fusion de zustand est superficielle, et `q`
+       * reprendrait sa valeur initiale. L'écran afficherait alors un champ vide
+       * et une loupe qui ouvre les logements d'une station que rien ne nomme,
+       * ce qui est précisément l'état qu'on voulait supprimer. On relâche donc
+       * la station, et la visite recommence proprement.
+       */
+      version: 2,
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Record<string, unknown>;
+        if (version >= 2) return p;
+        return { ...p, stationId: null, lodgeId: null, booked: false };
+      },
       /** Ce qui survit à un rechargement.
        *
        *  Les critères de recherche y entrent : ils n'y étaient pas, et une

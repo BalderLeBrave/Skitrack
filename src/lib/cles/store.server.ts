@@ -38,7 +38,10 @@ type Fichier = { version: 1; cles: Record<string, Enregistre> };
  *
  * `src/lib/db.ts` tient son état de la même façon, et pour la même raison.
  */
-const g = globalThis as typeof globalThis & { __skitrackClesPosees__?: Set<string> };
+const g = globalThis as typeof globalThis & {
+  __skitrackClesPosees__?: Set<string>;
+  __skitrackClesAppliquees__?: boolean;
+};
 const POSEES: Set<string> = (g.__skitrackClesPosees__ ??= new Set<string>());
 
 /** Les variables posées au lancement, hors les nôtres : celles-là font foi. */
@@ -61,19 +64,36 @@ export function cheminFichier(): string {
   return join(base, "cles.json");
 }
 
+/**
+ * Le fichier, ou une erreur.
+ *
+ * « Absent » et « illisible » ne se confondent pas : repartir d'un fichier
+ * vide dans le second cas faisait perdre **toutes** les autres clés à la
+ * première écriture, un disque plein ou un fichier tronqué suffisant à les
+ * effacer. L'absence, elle, est l'état normal au premier lancement.
+ *
+ * Ne jamais journaliser le contenu — il porte des secrets.
+ */
 function lire(): Fichier {
+  let brut: string;
   try {
-    const brut = readFileSync(cheminFichier(), "utf8");
+    brut = readFileSync(cheminFichier(), "utf8");
+  } catch (e: unknown) {
+    if ((e as NodeJS.ErrnoException)?.code === "ENOENT") return { version: 1, cles: {} };
+    throw new Error(
+      `Le fichier de clés est illisible (${(e as NodeJS.ErrnoException)?.code ?? "erreur"}). Rien n'a été écrit.`,
+    );
+  }
+  try {
     const lu: unknown = JSON.parse(brut);
     if (lu && typeof lu === "object" && "cles" in lu) {
       const cles = (lu as { cles: unknown }).cles;
       if (cles && typeof cles === "object") return { version: 1, cles: cles as Record<string, Enregistre> };
     }
   } catch {
-    // Fichier absent ou illisible : on repart d'un fichier vide. Ne jamais
-    // journaliser le contenu — il porte des secrets.
+    throw new Error("Le fichier de clés n'est pas du JSON lisible. Rien n'a été écrit.");
   }
-  return { version: 1, cles: {} };
+  throw new Error("Le fichier de clés n'a pas la forme attendue. Rien n'a été écrit.");
 }
 
 /** Écriture atomique, et lisible du seul propriétaire. */
@@ -93,9 +113,18 @@ function ecrire(f: Fichier): void {
 }
 
 /** Pose dans `process.env` ce que le fichier porte, sans jamais écraser ce que
- *  l'environnement avait déjà. Appelée au chargement, et après chaque écriture. */
+ *  l'environnement avait déjà. Appelée au premier besoin, et après chaque
+ *  écriture. */
 function appliquer(): void {
-  const f = lire();
+  let f: Fichier;
+  try {
+    f = lire();
+  } catch (e: unknown) {
+    // Ici, contrairement à une écriture, on ne peut que continuer sans : le
+    // lecteur obtiendra « aucune clé », ce qui se dit à l'écran.
+    console.warn("[cles] fichier illisible :", e instanceof Error ? e.message : String(e));
+    return;
+  }
   for (const c of CLES) {
     const enr = f.cles[c.id];
     if (!enr?.valeur) continue;
@@ -105,7 +134,23 @@ function appliquer(): void {
   }
 }
 
-appliquer();
+/**
+ * Verser les clés du fichier dans `process.env`, une fois par processus.
+ *
+ * Ce module ne s'évaluait qu'au premier appel de l'API des clés : tant que
+ * l'écran « Clés » n'avait pas été ouvert, une clé enregistrée n'existait pour
+ * personne, et l'application se comportait comme si rien n'avait été saisi.
+ * Les lecteurs — `loadMeteofranceKey`, le relevé Airbnb — appellent donc ceci
+ * avant de lire l'environnement. L'appel est idempotent et sans coût après le
+ * premier.
+ */
+export function assurerCles(): void {
+  if (g.__skitrackClesAppliquees__) return;
+  g.__skitrackClesAppliquees__ = true;
+  appliquer();
+}
+
+assurerCles();
 
 /** Ce que l'écran a le droit de savoir. Aucune valeur secrète n'en sort. */
 export function etatCles(): EtatCle[] {

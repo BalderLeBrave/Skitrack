@@ -11,7 +11,7 @@
  *  recherche. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
@@ -170,11 +170,135 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
 
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };
 
+/**
+ * Une annonce dans la liste.
+ *
+ * Défini dans le corps du rendu, il changeait d'identité à chaque rendu : React
+ * démontait puis remontait toute la liste, les photos repartaient au
+ * chargement et le focus tombait. Ce qu'il lisait par fermeture arrive
+ * désormais en propriétés, et `memo` lui évite de se redessiner quand rien de
+ * ce qui le concerne n'a bougé.
+ */
+const CarteLogement = memo(function CarteLogement({
+  l,
+  retenu,
+  vue,
+  vif,
+  stay,
+  trav,
+  nights,
+  ouvrir,
+  retenir,
+  designer,
+}: {
+  l: Listing;
+  retenu: boolean;
+  vue: boolean;
+  vif: boolean;
+  stay: { checkIn: string; checkOut: string };
+  trav: number;
+  nights: number;
+  ouvrir: (id: string) => void;
+  retenir: (id: string) => void;
+  designer: (id: string | null) => void;
+}) {
+  const isKept = retenu;
+  const seen = vue && !isKept;
+  const d = distanceOf(l);
+  const firm = firmOf(l, stay);
+  return (
+    <article
+      className={`lodge7${isKept ? " lodge7--kept" : ""}${vif ? " lodge7--vif" : ""}`}
+      onClick={() => ouvrir(l.id)}
+      onMouseEnter={() => designer(l.id)}
+      onMouseLeave={() => designer(null)}
+      data-l={l.id}
+    >
+      <div className={`lodge7__media lodge7__media--${mediaTon(l)}`}>
+        {l.photo ? (
+          <ImageSlot shape="rect" id={`v7app-l-${l.id}`} placeholder="Photo de l'annonce" className="lodge7__slot" src={l.photo} />
+        ) : (
+          <span className="lodge7__sansphoto">Pas de photo dans l'annonce {l.source}</span>
+        )}
+        <span className="lodge7__source">{l.source}</span>
+        {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
+        {seen ? <span className="lodge7__vue">déjà vue</span> : null}
+      </div>
+      <div className="lodge7__corps">
+        <strong className="lodge7__titre">{l.title}</strong>
+        <div className="lodge7__meta">
+          <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
+          <span>{bedLbl(l)}</span>
+        </div>
+        <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
+          <Icon name="epingle" taille={13} />
+          {d.text}
+        </span>
+        <div className="lodge7__pied">
+          <div className="lodge7__prix">
+            <b>{eurCents(l.total)}</b>
+            <span>
+              {nights} nuits · {eurN(l.total / trav)} / pers.
+            </span>
+            <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
+              <i />
+              {firm ? "Prix relevé aux dates" : "Disponibilité non confirmée"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={`lodge7__retenir${isKept ? " lodge7__retenir--on" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              retenir(l.id);
+            }}
+          >
+            {isKept ? "Retenu" : "Retenir"}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+});
+
+/**
+ * La garde, et elle seule.
+ *
+ * L'écran vivait dans un composant unique dont la sortie anticipée « pas de
+ * station » précédait des `useMemo` : le nombre de crochets changeait d'un
+ * rendu à l'autre, ce que React interdit. Séparer la garde du corps rend les
+ * crochets inconditionnels sans déplacer une ligne de rendu.
+ */
 function Logements() {
   const go = useGo();
   const P = useParcours();
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const s = P.stationId ? stationById(P.stationId) : undefined;
+
+  // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
+  // L'état est relu dans le magasin : au premier rendu du navigateur, le
+  // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
+  useEffect(() => {
+    if (!useParcours.getState().stationId) {
+      P.say("Retenez d’abord une station.");
+      void go("compare");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s?.id]);
+
+  if (!s) {
+    return (
+      <Coquille>
+        <main className="v7main" id="s-lodging" data-screen-label="2 Logements" />
+      </Coquille>
+    );
+  }
+  return <LogementsStation s={s} />;
+}
+
+function LogementsStation({ s }: { s: Station }) {
+  const go = useGo();
+  const P = useParcours();
+  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const forfait = useForfait(s);
   const liveListings = useStay((x) => x.liveListings);
   const liveSources = useStay((x) => x.liveSources);
@@ -211,29 +335,10 @@ function Logements() {
     P.setFilters({ budget: 0 });
   };
 
-  const stay = { checkIn, checkOut };
-
-  // Sans station retenue : la maquette renvoie vers Comparer avec le bandeau.
-  // L'état est relu dans le magasin : au premier rendu du navigateur, le
-  // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
-  useEffect(() => {
-    if (!useParcours.getState().stationId) {
-      P.say("Retenez d’abord une station.");
-      void go("compare");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s?.id]);
+  const stay = useMemo(() => ({ checkIn, checkOut }), [checkIn, checkOut]);
 
   const relancer = () => setStay({ searchNonce: Date.now() });
   const importer = () => P.say("Import d’annonce par son lien : hors de cet écran pour l’instant.");
-
-  if (!s) {
-    return (
-      <Coquille>
-        <main className="v7main" id="s-lodging" data-screen-label="2 Logements" />
-      </Coquille>
-    );
-  }
 
   /* ---------- Prédicats ---------- */
   const lp: Pred[] = [];
@@ -331,26 +436,32 @@ function Logements() {
     { k: "firm", label: "Prix relevé aux dates", n: raw.filter((l) => firmOf(l, stay)).length },
   ];
 
-  const openSheet = (id: string) => {
-    P.markSeen(id);
+  // Stables d'un rendu à l'autre : sans cela `memo` sur la carte d'annonce ne
+  // servirait à rien, chaque rendu lui passant de nouvelles fonctions. Les
+  // actions se lisent sur le magasin, qui les garde, et non sur l'instantané.
+  const openSheet = useCallback((id: string) => {
+    useParcours.getState().markSeen(id);
     setSheetId(id);
-  };
-  const keep = (id: string) => P.chooseLodge(P.lodgeId === id ? null : id);
+  }, []);
+  const keep = useCallback((id: string) => {
+    const p = useParcours.getState();
+    p.chooseLodge(p.lodgeId === id ? null : id);
+  }, []);
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
 
-  const marqueurs = [
-    {
-      id: "__station",
-      lat: s.lat,
-      lon: s.lon,
-      nom: `Repère de ${s.name}`,
-      epingle: epingleRepere(s.name),
-      zIndex: ETAGE.repere,
-      inerte: true,
-    },
-    ...lvis
-      .filter((l) => l.lat != null && l.lon != null)
-      .map((l) => {
+  const situees = affichees.filter((l) => l.lat != null && l.lon != null);
+  const marqueurs = useMemo(
+    () => [
+      {
+        id: "__station",
+        lat: s.lat,
+        lon: s.lon,
+        nom: `Repère de ${s.name}`,
+        epingle: epingleRepere(s.name),
+        zIndex: ETAGE.repere,
+        inerte: true,
+      },
+      ...situees.map((l) => {
         const sel = sheetId === l.id || P.lodgeId === l.id;
         const etat = sel ? "retenue" : P.seen[l.id] ? "vue" : "normale";
         return {
@@ -362,74 +473,24 @@ function Logements() {
           zIndex: sel ? ETAGE.designee : ETAGE.normale,
         };
       }),
-  ];
-  const cadrage = `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`;
+    ],
+    // Le contenu change avec les annonces situées, la sélection et les vues.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [s.id, s.lat, s.lon, s.name, situees.map((l) => l.id).join(","), sheetId, P.lodgeId, P.seen],
+  );
+  /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
+   *  cadre : calculée sur le cadre, recadrer changerait la liste, qui changerait
+   *  la clé, qui recadrerait — sans fin. Même règle que sur Comparer. */
+  const cadrage = useMemo(
+    () => `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
+    [s.id, lvis],
+  );
 
   const lead = raw.length
     ? `${raw.length} annonce${raw.length > 1 ? "s" : ""} : totaux de séjour tels qu'affichés par la source pour ${nights} nuit${nights > 1 ? "s" : ""}. Aucun « à partir de ».${searching ? " Relevé en direct en cours…" : ""}`
     : searching
       ? "Relevé en direct en cours…"
       : "Aucun relevé pour cette station.";
-
-  const Carte = ({ l }: { l: Listing }) => {
-    const isKept = P.lodgeId === l.id;
-    const seen = !!P.seen[l.id] && !isKept;
-    const d = distanceOf(l);
-    const firm = firmOf(l, stay);
-    return (
-      <article
-        className={`lodge7${isKept ? " lodge7--kept" : ""}${actifCarte === l.id ? " lodge7--vif" : ""}`}
-        onClick={() => openSheet(l.id)}
-        onMouseEnter={() => setActifCarte(l.id)}
-        onMouseLeave={() => setActifCarte(null)}
-        data-l={l.id}
-      >
-        <div className={`lodge7__media lodge7__media--${mediaTon(l)}`}>
-          {l.photo ? (
-            <ImageSlot shape="rect" id={`v7app-l-${l.id}`} placeholder="Photo de l'annonce" className="lodge7__slot" src={l.photo} />
-          ) : (
-            <span className="lodge7__sansphoto">Pas de photo dans l'annonce {l.source}</span>
-          )}
-          <span className="lodge7__source">{l.source}</span>
-          {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
-          {seen ? <span className="lodge7__vue">déjà vue</span> : null}
-        </div>
-        <div className="lodge7__corps">
-          <strong className="lodge7__titre">{l.title}</strong>
-          <div className="lodge7__meta">
-            <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
-            <span>{bedLbl(l)}</span>
-          </div>
-          <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
-            <Icon name="epingle" taille={13} />
-            {d.text}
-          </span>
-          <div className="lodge7__pied">
-            <div className="lodge7__prix">
-              <b>{eurCents(l.total)}</b>
-              <span>
-                {nights} nuits · {eurN(l.total / trav)} / pers.
-              </span>
-              <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
-                <i />
-                {firm ? "Prix relevé aux dates" : "Disponibilité non confirmée"}
-              </span>
-            </div>
-            <button
-              type="button"
-              className={`lodge7__retenir${isKept ? " lodge7__retenir--on" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                keep(l.id);
-              }}
-            >
-              {isKept ? "Retenu" : "Retenir"}
-            </button>
-          </div>
-        </div>
-      </article>
-    );
-  };
 
   return (
     <Coquille>
@@ -678,7 +739,19 @@ function Logements() {
                 {affichees.length ? (
                   <div className="grille7-2">
                     {affichees.map((l) => (
-                      <Carte key={l.id} l={l} />
+                      <CarteLogement
+                        key={l.id}
+                        l={l}
+                        retenu={P.lodgeId === l.id}
+                        vue={!!P.seen[l.id]}
+                        vif={actifCarte === l.id}
+                        stay={stay}
+                        trav={trav}
+                        nights={nights}
+                        ouvrir={openSheet}
+                        retenir={keep}
+                        designer={setActifCarte}
+                      />
                     ))}
                   </div>
                 ) : lvis.length ? (
@@ -760,19 +833,29 @@ function Logements() {
                               ? "Prix relevé aux dates"
                               : availabilityLabel(availabilityOf(l, stay))}
                           </span>
-                          <button
-                            type="button"
-                            className="btn7 btn7--fantome fc__action"
-                            onClick={() => openSheet(l.id)}
-                          >
-                            Voir l'annonce
-                          </button>
                         </div>
                       </>
                     );
                   }}
-                  surClic={(id) => {
-                    if (id !== "__station") openSheet(id);
+                  actionsDe={(id) => {
+                    const l = lvis.find((x) => x.id === id);
+                    if (!l) return null;
+                    const retenu = P.lodgeId === l.id;
+                    return (
+                      <>
+                        <button type="button" className="btn7" onClick={() => openSheet(id)}>
+                          Voir l'annonce
+                        </button>
+                        <button
+                          type="button"
+                          className="btn7 btn7--fantome"
+                          aria-pressed={retenu}
+                          onClick={() => keep(l.id)}
+                        >
+                          {retenu ? "Retenu" : "Retenir"}
+                        </button>
+                      </>
+                    );
                   }}
                   legende={
                     <>

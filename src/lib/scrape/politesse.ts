@@ -21,7 +21,7 @@ export const UA_SKITRACK = `${UA_AGENT}/1.0 (relevé de tarifs de forfaits ; rob
 export const INTERVALLE_MS = 2_000;
 const TIMEOUT_MS = 12_000;
 
-type File = { dernier: number; queue: Promise<unknown> };
+type File = { dernier: number; queue: Promise<unknown>; delaiMs: number };
 const files = new Map<string, File>();
 
 function hote(url: string): string {
@@ -55,17 +55,32 @@ export type Reponse = { ok: boolean; status: number; text: string; url: string }
  * Les appels au même hôte se suivent : jamais deux en parallèle, jamais moins
  * de `INTERVALLE_MS` entre deux. La file est par hôte, donc deux domaines
  * différents avancent en même temps.
+ *
+ * `delaiMs` est la cadence annoncée par le site — `verdictPoli().delaiMs`, qui
+ * lit le `Crawl-delay` de son robots.txt. Elle était calculée puis jetée : la
+ * file restait à deux secondes quoi qu'annonçât le domaine. Elle ne peut
+ * qu'**allonger** l'attente, jamais la raccourcir, et l'hôte la retient pour
+ * les requêtes suivantes.
  */
-export function demander(url: string, signal?: AbortSignal): Promise<Reponse> {
+export function demander(url: string, signal?: AbortSignal, delaiMs?: number): Promise<Reponse> {
   const h = hote(url);
-  const file = files.get(h) ?? { dernier: 0, queue: Promise.resolve() };
+  const file = files.get(h) ?? { dernier: 0, queue: Promise.resolve(), delaiMs: INTERVALLE_MS };
+  if (delaiMs != null && Number.isFinite(delaiMs)) file.delaiMs = Math.max(file.delaiMs, delaiMs);
   files.set(h, file);
   const suite = file.queue.then(async () => {
-    const attente = file.dernier + INTERVALLE_MS - Date.now();
+    const attente = file.dernier + file.delaiMs - Date.now();
     await dormir(attente, signal);
     file.dernier = Date.now();
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    // Le délai dépassé et l'interruption demandée par l'appelant passent tous
+    // deux par `abort` : sans ce drapeau, l'appelant recevait un `AbortError`
+    // dans les deux cas, prenait un site lent pour un arrêt volontaire, sautait
+    // le reste du lot en silence et ne comptait jamais la panne.
+    let expire = false;
+    const timer = setTimeout(() => {
+      expire = true;
+      ctrl.abort();
+    }, TIMEOUT_MS);
     const relais = () => ctrl.abort();
     signal?.addEventListener("abort", relais, { once: true });
     try {
@@ -76,6 +91,9 @@ export function demander(url: string, signal?: AbortSignal): Promise<Reponse> {
       });
       const text = await res.text();
       return { ok: res.ok, status: res.status, text, url };
+    } catch (err) {
+      if (expire && !signal?.aborted) throw new Error(`Délai dépassé (${TIMEOUT_MS / 1000} s).`);
+      throw err;
     } finally {
       clearTimeout(timer);
       signal?.removeEventListener("abort", relais);

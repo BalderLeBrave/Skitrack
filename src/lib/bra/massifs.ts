@@ -24,11 +24,18 @@
  * de se confondre avec un échec.
  */
 
-const BRA_KEYWORDS: [string, string[]][] = [
+/**
+ * Les mots-clés par massif. Exporté pour que le test puisse vérifier
+ * l'invariant qui manquait : **tout code de `MF_CODES` a sa ligne ici**. Un
+ * code sans mot-clé ne peut être produit par aucun nom, et l'ajouter à la
+ * table ne change donc rien — c'était le cas du Thabor et de l'Orlu.
+ */
+export const BRA_KEYWORDS: [string, string[]][] = [
   ["Haute-Tarentaise", ["tignes", "val d isere", "espace killy", "les arcs", "la rosiere", "sainte foy", "peisey", "vallandry", "villaroger", "bourg saint maurice", "paradiski"]],
   ["Vanoise", ["la plagne", "courchevel", "meribel", "les menuires", "val thorens", "3 vallees", "trois vallees", "valmorel", "champagny", "pralognan", "brides", "la tania", "saint martin de belleville"]],
   ["Haute-Maurienne", ["val cenis", "bessans", "bonneval", "haute maurienne", "termignon"]],
-  ["Maurienne", ["valloire", "valmeinier", "karellis", "la toussuire", "le corbier", "saint sorlin", "sybelles", "valfrejus"]],
+  ["Maurienne", ["valloire", "valmeinier", "karellis", "la toussuire", "le corbier", "saint sorlin", "sybelles"]],
+  ["Thabor", ["valfrejus", "nevache", "thabor"]],
   ["Grandes-Rousses", ["alpe d huez", "huez", "vaujany", "oz en oisans", "auris"]],
   ["Oisans", ["les 2 alpes", "les deux alpes", "la grave", "venosc", "mont de lans"]],
   ["Belledonne", ["chamrousse", "7 laux", "sept laux"]],
@@ -52,6 +59,7 @@ const BRA_KEYWORDS: [string, string[]][] = [
   ["Aspe-Ossau", ["gourette", "artouste", "pierre saint martin", "pierre st martin", "la pierre st martin"]],
   ["Luchonnais", ["superbagneres", "luchon"]],
   ["Haute-Ariege", ["ax 3 domaines", "ax les thermes", "ariege"]],
+  ["Orlu-Saint_Barthelemy", ["ascou", "pailheres", "ascou pailheres", "monts d olmes", "olmes", "orlu"]],
   ["Capcir-Puymorens", ["formigueres", "les angles", "porte puymorens"]],
   ["Cerdagne-Canigou", ["font romeu", "pyrenees 2000", "canigou"]],
   ["Couserans", ["guzet", "couserans"]],
@@ -92,8 +100,9 @@ export const MF_CODES: Record<string, number> = {
   "Haute-Ariege": 70,
   "Capcir-Puymorens": 73,
   "Cerdagne-Canigou": 74,
-  // Identifiants qui manquaient à la table : le Thabor était rattaché à la
-  // Maurienne, et la Corse ne pouvait structurellement rien obtenir.
+  // Identifiants qui manquaient à la table. Un code sans mot-clé reste
+  // inatteignable : chacun de ces quatre massifs a sa ligne dans
+  // `BRA_KEYWORDS` ci-dessus, sans quoi l'ajout ne changeait rien.
   Thabor: 13,
   "Cinto-Rotondo": 40,
   "Renoso-Incudine": 41,

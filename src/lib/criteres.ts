@@ -173,6 +173,7 @@ export function appliquerCriteres(c: Criteres): void {
     col: { ...FILTERS_INITIAL.col, ...(c.col ?? {}) },
     chips: Object.fromEntries((c.chips ?? []).map((k) => [k, true])),
   };
+  const avant = useParcours.getState().stationId;
   useParcours.setState({
     q: c.q ?? "",
     stationId: c.station ?? null,
@@ -180,6 +181,10 @@ export function appliquerCriteres(c: Criteres): void {
     sortKey: c.tri ?? "km",
     unit: c.unite ?? "pct",
     filters,
+    // Changer de station emporte le logement choisi et le drapeau « réservé »,
+    // comme partout ailleurs : sans cela, l'adresse d'une station pouvait
+    // rendre une réservation sur une autre.
+    ...(avant !== (c.station ?? null) ? { lodgeId: null, booked: false } : {}),
   });
   const stay: Partial<{ checkIn: string; checkOut: string; guests: number; bedrooms: number }> = {};
   if (c.du) stay.checkIn = c.du;
@@ -230,9 +235,19 @@ export function useCriteresUrl(actif = true, pathname = ""): void {
       if (porteDesCriteres(search)) appliquerCriteres(decoderCriteres(search));
     }
     ecrire();
+    // Le bouton Précédent peut sauter plusieurs crans et retomber sur le même
+    // chemin : l'effet ne rejoue pas, et sans cet écouteur l'adresse rendue
+    // n'était ni relue ni appliquée.
+    const surRetour = () => {
+      const search = window.location.search;
+      if (porteDesCriteres(search)) appliquerCriteres(decoderCriteres(search));
+      else ecrire();
+    };
+    window.addEventListener("popstate", surRetour);
     const off1 = useParcours.subscribe(ecrire);
     const off2 = useStay.subscribe(ecrire);
     return () => {
+      window.removeEventListener("popstate", surRetour);
       off1();
       off2();
     };

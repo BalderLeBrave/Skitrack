@@ -142,6 +142,13 @@ export function fusionnerReleve(
 
 /* ---------- Magasin local ---------- */
 
+/**
+ * De quoi défaire **une saisie**, pas une frappe.
+ *
+ * `poser` est appelée à chaque caractère tapé : mémoriser l'état précédent à
+ * chaque appel ne rendait qu'un caractère. `avant` garde donc la valeur
+ * d'avant la première frappe de la case, tant qu'on n'en a pas changé.
+ */
 type Annulation = { clef: string; k: string; avant: Tarif | undefined };
 
 type GrillesStore = {
@@ -169,7 +176,10 @@ export const useGrilles = create<GrillesStore>()(
           const c = clef(slug, saison);
           const g = s.grilles[c] ?? grilleVide(slug, saison);
           const k = cle(duree, categorie);
-          const avant = g.cases[k];
+          // Tant qu'on reste dans la même case, l'annulation vise toujours ce
+          // qui s'y trouvait avant qu'on y touche.
+          const memeCase = s.derniere?.clef === c && s.derniere.k === k;
+          const avant = memeCase ? s.derniere!.avant : g.cases[k];
           const cases = { ...g.cases };
           if (prix == null) delete cases[k];
           else
@@ -215,7 +225,19 @@ export const useGrilles = create<GrillesStore>()(
             };
           }
         }
-        set((s) => ({ grilles: { ...s.grilles, [c]: { ...grille, cases } } }));
+        // Un relevé qui **réécrit** la case visée rend l'annulation caduque :
+        // la défaire y remettrait une valeur plus ancienne que le relevé.
+        // `fusionnerReleve` ne recopie une case que lorsqu'elle change, donc
+        // l'identité suffit à le dire — et une case manuelle, qu'elle ne
+        // touche jamais, garde son annulation.
+        set((s) => {
+          const d = s.derniere;
+          const reecrite = !!d && d.clef === c && cases[d.k] !== g.cases[d.k];
+          return {
+            grilles: { ...s.grilles, [c]: { ...grille, cases } },
+            derniere: reecrite ? null : d,
+          };
+        });
         return forcer ? 0 : conflits.length;
       },
       annulerDerniere: () =>
@@ -230,6 +252,16 @@ export const useGrilles = create<GrillesStore>()(
           return { grilles: { ...s.grilles, [d.clef]: { ...g, cases } }, derniere: null };
         }),
     }),
-    { name: "skitrack-grilles" },
+    {
+      name: "skitrack-grilles",
+      /**
+       * Seules les grilles survivent au rechargement.
+       *
+       * `derniere` était persistée : au lancement suivant, « Annuler la
+       * dernière saisie » défaisait une saisie d'une session précédente et
+       * pouvait écraser un relevé entre-temps obtenu.
+       */
+      partialize: (s) => ({ grilles: s.grilles }) as GrillesStore,
+    },
   ),
 );

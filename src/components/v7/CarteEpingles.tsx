@@ -20,17 +20,21 @@
  */
 
 import "leaflet/dist/leaflet.css";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
 import type { Bornes } from "@/lib/carte";
 import { EPINGLE, ETAGE, type Epingle } from "./epingle";
+
+/**
+ * La vue par défaut, **hors de la liste des paramètres**.
+ *
+ * Écrite en valeur par défaut de déstructuration, elle produisait un objet neuf
+ * à chaque rendu ; figurant dans les dépendances de l'effet qui pose les
+ * marqueurs, elle le faisait rejouer à chaque rendu. Les trois cent vingt
+ * marqueurs étaient donc détruits et reconstruits à chaque frappe, ce qui
+ * emportait au passage leur éclairage et le focus clavier posé dessus.
+ */
+const VUE_VIDE = { centre: [45.5, 3.5] as [number, number], zoom: 5 };
 
 /** Ouverture de la fiche de survol : le temps qu'un pointeur qui traverse la
  *  carte ne fasse pas clignoter une fiche par pastille. */
@@ -58,7 +62,7 @@ export function CarteEpingles({
   marqueurs,
   cadrage,
   maxZoom = 11,
-  vueVide = { centre: [45.5, 3.5] as [number, number], zoom: 5 },
+  vueVide = VUE_VIDE,
   surClic,
   className,
   legende,
@@ -149,62 +153,69 @@ export function CarteEpingles({
   useEffect(() => {
     let annule = false;
     let demonter: (() => void) | null = null;
-    void chargerLeaflet().then((Lf) => {
-      if (annule || !hote.current) return;
-      lib.current = Lf;
-      // La molette zoome : c'est une carte de résultats, pas une vignette.
-      const doigt = pointeurGrossier();
-      setTactile(doigt);
-      tactileRef.current = doigt;
-      const m = Lf.map(hote.current, {
-        zoomControl: false,
-        scrollWheelZoom: !doigt,
-        dragging: !doigt,
-        touchZoom: !doigt,
-        doubleClickZoom: true,
+    void chargerLeaflet()
+      .then((Lf) => {
+        if (annule || !hote.current) return;
+        lib.current = Lf;
+        // La molette zoome : c'est une carte de résultats, pas une vignette.
+        const doigt = pointeurGrossier();
+        setTactile(doigt);
+        tactileRef.current = doigt;
+        const m = Lf.map(hote.current, {
+          zoomControl: false,
+          scrollWheelZoom: !doigt,
+          dragging: !doigt,
+          touchZoom: !doigt,
+          doubleClickZoom: true,
+        });
+        Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap",
+          maxZoom: 18,
+        }).addTo(m);
+        Lf.control.zoom({ position: "bottomright" }).addTo(m);
+        couche.current = Lf.layerGroup().addTo(m);
+        // Les bornes ne sortent qu'à la fin du geste. Pendant, elles changeraient
+        // à chaque image et la liste clignoterait sous les doigts. Un dernier
+        // filet de 120 ms absorbe la rafale de `moveend` que produit l'inertie.
+        let attente: ReturnType<typeof setTimeout> | null = null;
+        const emettre = () => {
+          if (attente) clearTimeout(attente);
+          attente = setTimeout(() => {
+            const b = m.getBounds();
+            rappelBornes.current?.({
+              sud: b.getSouth(),
+              ouest: b.getWest(),
+              nord: b.getNorth(),
+              est: b.getEast(),
+            });
+          }, 120);
+        };
+        m.on("moveend", emettre);
+        m.on("zoomend", emettre);
+        m.setView(vueVide.centre, vueVide.zoom);
+        // Le redimensionnement du panneau latéral change le cadre visible : la
+        // liste et le compteur doivent le savoir, pas seulement la carte.
+        const redim = new ResizeObserver(() => {
+          m.invalidateSize({ pan: false });
+          emettre();
+        });
+        redim.observe(hote.current);
+        carte.current = m;
+        setPrete(true);
+        demonter = () => {
+          if (attente) clearTimeout(attente);
+          redim.disconnect();
+          couche.current = null;
+          m.remove();
+          carte.current = null;
+        };
+      })
+      // Sans ce filet, un chargement différé en échec — réseau coupé, fichiers
+      // remplacés par un déploiement — partait en rejet non géré jusqu'à la
+      // fenêtre, et la carte restait blanche sans rien dire.
+      .catch((e: unknown) => {
+        console.warn("[carte] Leaflet n'a pas pu être chargé", e);
       });
-      Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap",
-        maxZoom: 18,
-      }).addTo(m);
-      Lf.control.zoom({ position: "bottomright" }).addTo(m);
-      couche.current = Lf.layerGroup().addTo(m);
-      // Les bornes ne sortent qu'à la fin du geste. Pendant, elles changeraient
-      // à chaque image et la liste clignoterait sous les doigts. Un dernier
-      // filet de 120 ms absorbe la rafale de `moveend` que produit l'inertie.
-      let attente: ReturnType<typeof setTimeout> | null = null;
-      const emettre = () => {
-        if (attente) clearTimeout(attente);
-        attente = setTimeout(() => {
-          const b = m.getBounds();
-          rappelBornes.current?.({
-            sud: b.getSouth(),
-            ouest: b.getWest(),
-            nord: b.getNorth(),
-            est: b.getEast(),
-          });
-        }, 120);
-      };
-      m.on("moveend", emettre);
-      m.on("zoomend", emettre);
-      m.setView(vueVide.centre, vueVide.zoom);
-      // Le redimensionnement du panneau latéral change le cadre visible : la
-      // liste et le compteur doivent le savoir, pas seulement la carte.
-      const redim = new ResizeObserver(() => {
-        m.invalidateSize({ pan: false });
-        emettre();
-      });
-      redim.observe(hote.current);
-      carte.current = m;
-      setPrete(true);
-      demonter = () => {
-        if (attente) clearTimeout(attente);
-        redim.disconnect();
-        couche.current = null;
-        m.remove();
-        carte.current = null;
-      };
-    });
     return () => {
       annule = true;
       demonter?.();
@@ -296,11 +307,20 @@ export function CarteEpingles({
     return () => document.removeEventListener("keydown", echap);
   }, [fixe]);
 
-  // Un marqueur disparu du jeu emporte la fiche qui le désignait.
+  // Un marqueur disparu du jeu emporte la fiche qui le désignait — et le
+  // minuteur qui s'apprêtait à l'ouvrir, sans quoi la fiche s'ouvrait sur une
+  // épingle absente, faute de position, à l'écart de l'écran.
   useEffect(() => {
     const ids = new Set(marqueurs.map((m) => m.id));
     setFixe((f) => (f && !ids.has(f) ? null : f));
-    setSurvol((s) => (s && !ids.has(s) ? null : s));
+    setSurvol((s) => {
+      if (s && !ids.has(s)) {
+        annuler();
+        rappelActif.current?.(null);
+        return null;
+      }
+      return s;
+    });
   }, [marqueurs]);
 
   useEffect(() => () => annuler(), []);

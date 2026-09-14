@@ -1,0 +1,102 @@
+# Échoue toute PR qui touche robots, images ou scraps
+# sans la phrase d'accord du propriétaire dans le titre ou le corps.
+name: verrou
+on:
+  pull_request:
+
+jobs:
+  locked:
+    name: surfaces verrouillées
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Refuser le diff sans accord
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: python3 - <<'PY'
+import os, subprocess, sys
+
+def norm(s: str) -> str:
+    return (
+        (s or "")
+        .lower()
+        .replace("\u2019", "'")
+        .replace("\u2018", "'")
+        .replace("\u02bc", "'")
+    )
+
+text = norm(os.environ.get("TITLE", "") + "\n" + os.environ.get("BODY", ""))
+all_ok = "j'autorise la modification de robots, images et scraps" in text
+scraps_ok = all_ok or "j'autorise la modification des scraps" in text
+robots_ok = scraps_ok or "j'autorise la modification de robots" in text
+images_ok = all_ok or "j'autorise la modification des images" in text
+verrou_ok = "j'autorise la modification du verrou" in text
+
+base, head = os.environ["BASE"], os.environ["HEAD"]
+files = subprocess.check_output(
+    ["git", "diff", "--name-only", f"{base}...{head}"], text=True
+).splitlines()
+
+ROBOTS = {
+    "src/lib/scrape/robots.ts",
+    "src/lib/scrape/robots.test.ts",
+    "src/lib/scrape/centrales/robots.ts",
+    "src/lib/scrape/centrales/robots.server.ts",
+    "src/lib/scrape/centrales/robots.test.ts",
+    "src/lib/scrape/centrales/robots.server.test.ts",
+}
+IMAGES = {
+    "public/hero.jpg",
+    "public/og.jpg",
+    "src/lib/skiinfo.photos.json",
+    "src/lib/skiinfo.photos.local.json",
+    "scripts/fetch-missing-photos.mjs",
+}
+VERROU = {
+    "CLAUDE.md",
+    "AGENTS.project.md",
+    ".github/workflows/verrou.yml",
+    "src/lib/scrape/VERROU.md",
+    "scrape/VERROU.md",
+    "public/stations/VERROU.md",
+}
+
+blocked = []
+for p in files:
+    if p in VERROU or p.endswith("/VERROU.md"):
+        if not verrou_ok:
+            blocked.append(p)
+        continue
+    if p.startswith("public/stations/") or p in IMAGES:
+        if not images_ok:
+            blocked.append(p)
+        continue
+    if p in ROBOTS:
+        if not robots_ok:
+            blocked.append(p)
+        continue
+    if p.startswith("src/lib/scrape/") or p.startswith("scrape/"):
+        if not scraps_ok:
+            blocked.append(p)
+
+if blocked:
+    print("Verrouillé. Phrase d'accord absente du titre/corps de la PR.")
+    print("Fichiers refusés :")
+    for p in blocked:
+        print(f"  {p}")
+    print()
+    print("Accord, dans le corps de la PR, l'une de :")
+    print("  j'autorise la modification de robots")
+    print("  j'autorise la modification des images")
+    print("  j'autorise la modification des scraps")
+    print("  j'autorise la modification de robots, images et scraps")
+    print("  j'autorise la modification du verrou")
+    sys.exit(1)
+
+print("Aucun chemin verrouillé, ou accord présent.")
+PY

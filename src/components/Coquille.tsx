@@ -277,7 +277,7 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
   // Les critères de recherche s'écrivent dans l'adresse sur les écrans du
   // parcours : un lien se partage, un signet se repose, et le bouton Précédent
   // rend la recherche qu'il vient de quitter.
-  useCriteresUrl(!controle);
+  useCriteresUrl(!controle, pathname);
 
   // Changer d'écran ferme le panneau de séjour et remonte en haut de page,
   // comme `fromHash` dans la maquette.

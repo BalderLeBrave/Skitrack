@@ -197,20 +197,26 @@ export function porteDesCriteres(search: string): boolean {
 /**
  * Tient l'adresse en phase avec les critères, sur l'écran qui l'appelle.
  *
- * Au premier rendu, l'adresse gagne : c'est elle qui a été ouverte, collée ou
- * rendue par le bouton Précédent. Ensuite, chaque changement de critère la
- * réécrit, par `replaceState` — chaque cran d'un curseur n'a pas à devenir une
- * entrée d'historique.
+ * Trois moments, et un seul sens à chaque fois :
+ *
+ * 1. **à l'arrivée sur une adresse portant des critères**, l'adresse gagne :
+ *    c'est elle qui a été ouverte, collée, ou rendue par le bouton Précédent ;
+ * 2. **à chaque changement d'écran**, les critères sont réécrits dans la
+ *    nouvelle adresse — `go("compare")` navigue vers `/comparer` nu, et sans
+ *    cela la nouvelle entrée d'historique ne porterait rien ;
+ * 3. **à chaque changement de critère**, l'adresse est réécrite par
+ *    `replaceState` : chaque cran d'un curseur n'a pas à devenir une entrée
+ *    d'historique.
+ *
+ * `pathname` est fourni par l'appelant, qui le lit sur le routeur : ce module
+ * n'en dépend pas.
  */
-export function useCriteresUrl(actif = true): void {
-  const luRef = useRef(false);
+export function useCriteresUrl(actif = true, pathname = ""): void {
+  // Ce que l'adresse portait à l'arrivée sur cet écran-ci. Un aller-retour par
+  // le bouton Précédent doit relire, et non écraser.
+  const luRef = useRef<string | null>(null);
   useEffect(() => {
     if (!actif || typeof window === "undefined") return;
-    if (!luRef.current) {
-      luRef.current = true;
-      const search = window.location.search;
-      if (porteDesCriteres(search)) appliquerCriteres(decoderCriteres(search));
-    }
     const ecrire = () => {
       const qs = encoderCriteres(criteresCourants());
       const cible = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
@@ -218,6 +224,11 @@ export function useCriteresUrl(actif = true): void {
         window.history.replaceState(window.history.state, "", cible);
       }
     };
+    if (luRef.current !== pathname) {
+      luRef.current = pathname;
+      const search = window.location.search;
+      if (porteDesCriteres(search)) appliquerCriteres(decoderCriteres(search));
+    }
     ecrire();
     const off1 = useParcours.subscribe(ecrire);
     const off2 = useStay.subscribe(ecrire);
@@ -225,5 +236,5 @@ export function useCriteresUrl(actif = true): void {
       off1();
       off2();
     };
-  }, [actif]);
+  }, [actif, pathname]);
 }

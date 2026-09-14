@@ -27,12 +27,25 @@ import { CLES, cleParId, type EtatCle } from "./registre.ts";
 type Enregistre = { valeur: string; saisieLe: string };
 type Fichier = { version: 1; cles: Record<string, Enregistre> };
 
-/** Les variables déjà posées au lancement. Relevées **avant** toute écriture,
- *  pour pouvoir dire d'où vient une valeur. */
+/**
+ * Les variables que **nous** avons posées, tenues sur `globalThis`.
+ *
+ * Le relevé « d'où vient cette valeur » se fait à l'import du module. En
+ * développement, le module est réévalué à chaque modification : le second
+ * relevé aurait pris nos propres écritures pour la configuration du
+ * déploiement, l'écran aurait annoncé « posée par l'environnement », le champ
+ * de saisie aurait disparu et « Retirer » n'aurait plus rien retiré.
+ *
+ * `src/lib/db.ts` tient son état de la même façon, et pour la même raison.
+ */
+const g = globalThis as typeof globalThis & { __skitrackClesPosees__?: Set<string> };
+const POSEES: Set<string> = (g.__skitrackClesPosees__ ??= new Set<string>());
+
+/** Les variables posées au lancement, hors les nôtres : celles-là font foi. */
 const DEPUIS_ENV = new Set<string>();
 for (const c of CLES) {
   for (const nom of c.env) {
-    if (process.env[nom]?.trim()) DEPUIS_ENV.add(c.id);
+    if (process.env[nom]?.trim() && !POSEES.has(nom)) DEPUIS_ENV.add(c.id);
   }
 }
 
@@ -88,6 +101,7 @@ function appliquer(): void {
     if (!enr?.valeur) continue;
     if (DEPUIS_ENV.has(c.id)) continue;
     process.env[c.env[0]!] = enr.valeur;
+    POSEES.add(c.env[0]!);
   }
 }
 
@@ -132,7 +146,10 @@ export function retirerCle(id: string): EtatCle[] {
   // `appliquer` ne peut pas défaire une variable déjà posée dans ce processus :
   // on la retire explicitement, sauf si elle venait de l'environnement.
   if (!DEPUIS_ENV.has(id)) {
-    for (const nom of cleParId(id)!.env) delete process.env[nom];
+    for (const nom of cleParId(id)!.env) {
+      delete process.env[nom];
+      POSEES.delete(nom);
+    }
   }
   return etatCles();
 }

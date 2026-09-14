@@ -93,3 +93,37 @@ describe("magasin des clés", () => {
     assert.equal(m.etatCles().find((e) => e.id === "meteofrance")!.posee, false);
   });
 });
+
+/** Une réévaluation du module, telle que le rechargement à chaud en produit.
+ *  La chaîne de requête force Node à réexécuter le module ; le type, lui, est
+ *  celui du module réel. */
+async function reevaluer(marque: string): Promise<typeof import("./store.server.ts")> {
+  return (await import(`./store.server.ts?rejeu=${marque}`)) as typeof import("./store.server.ts");
+}
+
+describe("réévaluation du module (développement)", () => {
+  it("une clé que nous avons posée n'est pas prise pour la configuration du déploiement", async () => {
+    const m = await import("./store.server.ts");
+    m.poserCle("meteofrance", "posée-par-nous");
+    assert.equal(process.env.METEOFRANCE_API_KEY, "posée-par-nous");
+
+    // Le rechargement à chaud réévalue le module : le relevé « d'où vient
+    // cette valeur » se refait, alors que `process.env` porte déjà notre
+    // écriture. Sans mémoire partagée, il conclurait « environnement ».
+    const rejoue = await reevaluer("1");
+    const etat = rejoue.etatCles().find((e) => e.id === "meteofrance")!;
+    assert.equal(etat.origine, "saisie", "notre propre écriture a été prise pour l'environnement");
+    rejoue.retirerCle("meteofrance");
+    assert.equal(process.env.METEOFRANCE_API_KEY, undefined, "« Retirer » n'a rien retiré");
+  });
+
+  it("une clé réellement posée par l'environnement l'emporte et ne se retire pas", async () => {
+    process.env.METEOFRANCE_API_KEY = "posée-au-lancement";
+    const m = await reevaluer("2");
+    m.poserCle("meteofrance", "saisie-ici");
+    const etat = m.etatCles().find((e) => e.id === "meteofrance")!;
+    assert.equal(etat.origine, "environnement");
+    assert.equal(process.env.METEOFRANCE_API_KEY, "posée-au-lancement", "l'environnement a été écrasé");
+    delete process.env.METEOFRANCE_API_KEY;
+  });
+});

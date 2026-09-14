@@ -50,9 +50,13 @@ export const Route = createFileRoute("/logements")({ component: Logements });
 
 type LodgeSort = "pp" | "total" | "cap";
 
-/** `lf` de la maquette : les filtres facultatifs de l'écran. */
+/** `lf` de la maquette : les filtres facultatifs de **cet écran**.
+ *
+ *  Le budget n'y est plus : c'est un critère de recherche, au même titre que
+ *  les dates et les voyageurs. Il vit dans `useParcours.filters.budget`, d'où
+ *  il survit à la navigation et s'écrit dans l'adresse ; les réglages
+ *  ci-dessous, eux, ne valent que pour la liste des annonces. */
 type LF = {
-  budget: number;
   pp: number;
   cap: number;
   rooms: number;
@@ -66,10 +70,12 @@ type LF = {
   firm: boolean;
   pos: boolean;
 };
-const LF0: LF = { budget: 0, pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, rayon: RAYON_DEFAUT_KM, measured: false, link: false, photo: false, firm: false, pos: false };
+const LF0: LF = { pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, rayon: RAYON_DEFAUT_KM, measured: false, link: false, photo: false, firm: false, pos: false };
 
-const RANGES: { k: "budget" | "pp" | "cap" | "rooms" | "dist"; label: string; max: number; step: number; unit: string; sign: string }[] = [
-  { k: "budget", label: "Total du séjour, au plus", max: 6000, step: 250, unit: "€", sign: "≤ " },
+/** Le budget est à part : il est lu et écrit sur le magasin partagé. */
+const BUDGET = { label: "Total du séjour, au plus", max: 6000, step: 250, unit: "€", sign: "≤ " };
+
+const RANGES: { k: "pp" | "cap" | "rooms" | "dist"; label: string; max: number; step: number; unit: string; sign: string }[] = [
   { k: "pp", label: "Par personne, au plus", max: 800, step: 25, unit: "€", sign: "≤ " },
   { k: "cap", label: "Capacité annoncée, au moins", max: 16, step: 1, unit: "pers.", sign: "≥ " },
   { k: "rooms", label: "Chambres annoncées, au moins", max: 7, step: 1, unit: "ch.", sign: "≥ " },
@@ -196,6 +202,14 @@ function Logements() {
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
+  // Le budget du séjour : critère partagé, pas un réglage de cet écran.
+  const budget = P.filters.budget;
+  /** « Tout réinitialiser » relâche les réglages de l'écran **et** le budget,
+   *  qui n'est plus rangé avec eux. */
+  const reinitialiser = () => {
+    setLf(LF0);
+    P.setFilters({ budget: 0 });
+  };
 
   const stay = { checkIn, checkOut };
 
@@ -234,7 +248,13 @@ function Logements() {
     fn: (l) => geoReasonFor(l, lf.rayon) == null,
     fixed: true,
   });
-  if (lf.budget) lp.push({ id: "budget", label: `Total ≤ ${fmt(lf.budget)} €`, fn: (l) => l.total <= lf.budget, remove: () => patchLf({ budget: 0 }) });
+  if (budget)
+    lp.push({
+      id: "budget",
+      label: `Total ≤ ${fmt(budget)} €`,
+      fn: (l) => l.total <= budget,
+      remove: () => P.setFilters({ budget: 0 }),
+    });
   if (lf.pp) lp.push({ id: "pp", label: `≤ ${fmt(lf.pp)} € / pers.`, fn: (l) => l.total / trav <= lf.pp, remove: () => patchLf({ pp: 0 }) });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
   if (lf.rooms) lp.push({ id: "lrooms", label: `Chambres annoncées ≥ ${lf.rooms}`, fn: (l) => l.bedrooms != null && l.bedrooms >= lf.rooms, remove: () => patchLf({ rooms: 0 }) });
@@ -497,7 +517,11 @@ function Logements() {
                   return (
                     <span key={p.id} className={`jeton${bloque ? " jeton--bloque" : ""}`}>
                       {p.label}
-                      <button type="button" title="Retirer" onClick={p.remove}>
+                      <button
+                        type="button"
+                        aria-label={`Retirer le critère ${p.label}`}
+                        onClick={p.remove}
+                      >
                         <Icon name="croix" taille={11} />
                       </button>
                     </span>
@@ -509,7 +533,7 @@ function Logements() {
                     className="lien-doux"
                     onClick={(e) => {
                       e.preventDefault();
-                      setLf(LF0);
+                      reinitialiser();
                     }}
                   >
                     Tout réinitialiser
@@ -566,6 +590,22 @@ function Logements() {
                       annonces sans valeur.
                     </span>
                   </div>
+                  <label className="curseur">
+                    <span className="curseur__lab">
+                      <span>{BUDGET.label}</span>
+                      <span className="curseur__val">
+                        {budget ? `${BUDGET.sign}${fmt(budget)} ${BUDGET.unit}` : "Indifférent"}
+                      </span>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={BUDGET.max}
+                      step={BUDGET.step}
+                      value={budget}
+                      onChange={(e) => P.setFilters({ budget: +e.target.value })}
+                    />
+                  </label>
                   {RANGES.map((r) => (
                     <label key={r.k} className="curseur">
                       <span className="curseur__lab">
@@ -620,7 +660,7 @@ function Logements() {
                       className="lien-doux"
                       onClick={(e) => {
                         e.preventDefault();
-                        setLf(LF0);
+                        reinitialiser();
                       }}
                     >
                       Réinitialiser
@@ -657,7 +697,7 @@ function Logements() {
                             Retirer ce filtre
                           </button>
                         ) : null}
-                        <button type="button" className="btn7 btn7--fantome" onClick={() => setLf(LF0)}>
+                        <button type="button" className="btn7 btn7--fantome" onClick={reinitialiser}>
                           Tout réinitialiser
                         </button>
                       </>

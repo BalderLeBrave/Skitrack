@@ -8,10 +8,10 @@ import { useParcours } from "@/lib/parcours";
 
 export type Screen = "home" | "compare" | "fiche" | "lodging" | "booking";
 
-/** Les cinq écrans de contrôle, rangés sous « Plus ». Seule table de ces
- *  chemins : `screenOf` et `horsParcours` en tenaient chacun la leur, et la
- *  première rangeait ces cinq écrans sous « Comparer ». */
-export const AILLEURS_PATHS = ["/carte", "/altitudes", "/openskimap", "/forfaits", "/traces"] as const;
+/** Les écrans de contrôle, rangés sous « Plus ». Seule table de ces chemins :
+ *  `screenOf` et `horsParcours` en tenaient chacun la leur, et la première les
+ *  rangeait tous sous « Comparer ». */
+export const AILLEURS_PATHS = ["/carte", "/altitudes", "/openskimap", "/forfaits", "/traces", "/cles"] as const;
 
 /** L'écran du parcours, ou `null` hors du parcours.
  *

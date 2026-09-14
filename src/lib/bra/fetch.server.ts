@@ -60,10 +60,14 @@ async function fetchBraDirect(massifCode: number): Promise<BraBulletin> {
     });
     const body = await res.text();
     if (!res.ok) {
+      // 401 et 403 ne disent pas la même chose, et l'écran des clés a besoin
+      // de les distinguer : l'un met en cause la clé, l'autre ses droits.
       const msg =
-        res.status === 401 || res.status === 403
-          ? "Bulletin Météo-France indisponible (hors saison ou accès refusé)."
-          : `Météo-France a répondu ${res.status}.`;
+        res.status === 401
+          ? "Clé refusée par Météo-France (401) : vérifiez la clé posée."
+          : res.status === 403
+            ? "Accès refusé par Météo-France (403) : l'abonnement « Données Publiques BRA » manque à cette clé, ou le service est fermé hors saison."
+            : `Météo-France a répondu ${res.status}.`;
       // Chaque échec est journalisé, massif par massif : les trous étaient
       // invisibles en exploitation.
       console.warn(`[bra] massif ${massifCode} : HTTP ${res.status}`);

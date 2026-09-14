@@ -166,15 +166,24 @@ body:has(.v6.app) {
 .v6 * {
   box-sizing: border-box;
 }
-.v6 a {
+/* Ces trois règles sont des **remises à zéro**, pas des styles : elles disent
+   ce qu'un lien ou un bouton fait quand rien d'autre ne le dit. Écrites à leur
+   spécificité naturelle, elles gagnaient sur les classes de composant — `.v6
+   button` (0,1,1) l'emporte sur `.btn7` (0,1,0) —, si bien qu'un bouton d'action
+   posé sur un écran de contrôle perdait sa couleur de texte et écrivait en
+   encre sombre sur le bleu de l'accent, à 3,4:1.
+
+   `:where()` ramène leur spécificité à zéro : elles continuent de poser le
+   défaut, et la première classe venue les corrige. */
+:where(.v6) :where(a) {
   color: var(--marque-texte);
   text-decoration: none;
   cursor: pointer;
 }
-.v6 a:hover {
+:where(.v6) :where(a:hover) {
   text-decoration: underline;
 }
-.v6 button {
+:where(.v6) :where(button) {
   font: inherit;
   color: inherit;
   cursor: pointer;

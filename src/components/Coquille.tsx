@@ -54,6 +54,7 @@ const AILLEURS: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] = [
   { to: "/openskimap", label: "nav.osm" },
   { to: "/forfaits", label: "nav.passes" },
   { to: "/traces", label: "nav.traces" },
+  { to: "/cles", label: "nav.cles" },
 ];
 
 /** Les routes qui ne sont pas une étape du parcours. Une seule question posée

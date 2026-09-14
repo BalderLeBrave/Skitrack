@@ -649,8 +649,15 @@
 .btn7--inerte:hover:not(:disabled) {
   background: var(--color-glacier);
 }
+/* Désactivé : le bouton se voit désactivé sans devenir illisible. Une opacité
+   de 0,5 sur un fond d'accent tombait à 2,4:1 en thème sombre — les critères
+   d'accessibilité n'exigent rien d'une commande inactive, mais un libellé qu'on
+   ne lit plus ne dit plus ce que le bouton fera une fois actif. */
 .btn7:disabled {
-  opacity: 0.5;
+  background: var(--color-glacier);
+  color: var(--color-muted);
+  border-color: var(--color-line);
+  cursor: not-allowed;
 }
 .puce {
   display: inline-flex;
@@ -739,10 +746,27 @@
 .jeton button:hover {
   background: color-mix(in srgb, var(--color-ombre) 10%, transparent);
 }
+/* Le lien discret. Il sert aussi à des `<button>` — qui n'héritent ni de la
+   couleur, ni du fond transparent, ni du soulignement : posés ici, ils se
+   lisaient comme du texte inerte. */
 .lien-doux {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
   font-size: var(--text-detail);
   font-weight: 600;
   color: var(--color-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.lien-doux:hover:not(:disabled) {
+  color: var(--color-ink);
+}
+.lien-doux:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
 }
 .select7 {
   height: calc(var(--spacing) * 10);
@@ -3828,4 +3852,166 @@
   grid-column: 1 / -1;
   color: var(--color-texte-3);
   word-break: break-all;
+}
+
+/* ── Plus › Clés ────────────────────────────────────────────────────────────
+   Ce que l'application a besoin qu'on lui donne. Un secret n'est jamais relu
+   ici : le champ reste vide, et l'état dit seulement s'il est posé. */
+.cles {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: calc(var(--spacing) * 6) calc(var(--spacing) * 5) calc(var(--spacing) * 10);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+.cles__lead {
+  margin-top: calc(var(--spacing) * 2);
+  font-size: var(--text-corps);
+  color: var(--color-muted);
+}
+.cles__compte {
+  margin-top: calc(var(--spacing) * 2);
+  font-size: var(--text-detail);
+  font-weight: 700;
+}
+.cles__erreur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  border-radius: var(--radius-champ);
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+  font-size: var(--text-detail);
+}
+.cles__liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+.cle {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+}
+.cle__tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+}
+.cle__tete h2 {
+  font-size: var(--text-section);
+  font-weight: 800;
+}
+.cle__sert {
+  margin-top: 2px;
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+}
+.cle__etat {
+  flex: none;
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  border-radius: 999px;
+  font-size: var(--text-note);
+  font-weight: 700;
+}
+.cle__etat--posee {
+  background: var(--color-ok);
+  color: var(--color-ok-texte);
+}
+.cle__etat--absente {
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+}
+.cle__sans {
+  font-size: var(--text-detail);
+  color: var(--color-ink);
+}
+.cle__sans--tenue {
+  color: var(--color-muted);
+}
+.cle__note {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+.cle__note code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--color-glacier);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+.cle__saisie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: calc(var(--spacing) * 3);
+}
+.cle__champ {
+  flex: 1 1 20rem;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.cle__champ > span {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.cle__champ input {
+  height: calc(var(--spacing) * 11);
+  padding: 0 calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-champ);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-detail);
+  min-width: 0;
+}
+.cle__champ input:focus-visible {
+  outline: 2px solid var(--color-marque);
+  outline-offset: 1px;
+}
+.cle__pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 4);
+  font-size: var(--text-detail);
+}
+.cle__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  color: var(--color-marque-texte);
+  font-weight: 600;
+}
+.cle__essai {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  border-radius: var(--radius-champ);
+  font-size: var(--text-detail);
+}
+.cle__essai--ok {
+  background: var(--color-ok);
+  color: var(--color-ok-texte);
+}
+.cle__essai--ko {
+  background: var(--color-alerte);
+  color: var(--color-alerte-texte);
+}
+.cles__note {
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
 }

@@ -75,9 +75,13 @@ export function useForfait(s: Station | undefined): Forfait | null {
     let cancelled = false;
     void getForfait({ data: { slug } })
       .then((r) => {
-        if (!cancelled) setRow(r);
+        if (!cancelled) setRow(r.row);
       })
-      .catch(() => {});
+      .catch((e: unknown) => {
+        // Journalisé : le `catch` vide laissait la fiche sans tarif et sans
+        // raison.
+        console.warn(`[forfaits] ${slug} : lecture en échec`, e);
+      });
     return () => {
       cancelled = true;
     };

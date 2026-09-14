@@ -11,8 +11,10 @@ import { useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
-import { CarteEpingles, htmlStation } from "@/components/v7/CarteEpingles";
+import { CarteEpingles } from "@/components/v7/CarteEpingles";
+import { epingleStation, ETAGE } from "@/components/v7/epingle";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
+import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
 import { CarteStation } from "@/components/v7/CarteStation";
 import { mixLbl, PartPistes } from "@/components/v7/PartPistes";
 import { Vide } from "@/components/v7/Vide";
@@ -24,7 +26,6 @@ import {
   useParcours,
   type ChipKey,
   type ColorUnit,
-  type PisteColor,
   type SortKey,
 } from "@/lib/parcours";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
@@ -54,29 +55,6 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "n", label: "Tri : nom" },
 ];
 
-/** `RG` de la maquette : clé, libellé, borne, pas, unité. */
-const RG: { k: "v" | "lo" | "hi" | "km" | "pass"; label: string; max: number; step: number; unit: string }[] = [
-  { k: "v", label: "Altitude du village", max: 2400, step: 100, unit: "m" },
-  { k: "lo", label: "Bas des pistes", max: 2200, step: 100, unit: "m" },
-  { k: "hi", label: "Sommet", max: 3500, step: 100, unit: "m" },
-  { k: "km", label: "Km de pistes, domaine", max: 600, step: 10, unit: "km" },
-  { k: "pass", label: "Forfait 6 j adulte, au plus", max: 400, step: 10, unit: "€" },
-];
-
-const UNIT: Record<ColorUnit, { max: number; step: number; suf: string; lbl: string }> = {
-  pct: { max: 60, step: 5, suf: " %", lbl: "%" },
-  n: { max: 200, step: 5, suf: " tronçons", lbl: "tronçons" },
-  km: { max: 200, step: 10, suf: " km", lbl: "km" },
-};
-
-/** `colVal` : part, tronçons, ou km estimés (part × km du domaine). */
-function colVal(s: Station, c: PisteColor, u: ColorUnit): number | null {
-  if (!s.colorShare) return null;
-  if (u === "pct") return s.colorShare[c];
-  if (u === "n") return s.colorCounts ? s.colorCounts[c] : null;
-  return s.pistesKm != null ? Math.round((s.pistesKm * s.colorShare[c]) / 100) : null;
-}
-
 function sortVal(s: Station, k: SortKey): number {
   if (k === "km") return s.pistesKm ?? -1;
   if (k === "hi") return maxM(s) ?? -1;
@@ -84,9 +62,6 @@ function sortVal(s: Station, k: SortKey): number {
   if (k === "v") return villageM(s) ?? -1;
   return 0;
 }
-
-/** Un prédicat actif, avec son jeton et la façon de le retirer. */
-type Pred = { id: string; label: string; fn: (s: Station) => boolean; remove: () => void };
 
 /** `crit` de la maquette : libellé, texte, valeur comparable, note d'échelle. */
 type Crit = {
@@ -125,8 +100,10 @@ function Comparer() {
   const F = P.filters;
   const all = STATIONS;
   const [filtersOpen, setFiltersOpen] = useState(false);
-  // Le cadre de la carte, et s'il compte. Décoché par défaut.
-  const [suivi, setSuivi] = useState(false);
+  // Le cadre visible de la carte. Il compte toujours : la liste, le compteur et
+  // les pastilles rendues disent la même chose que ce qu'on voit. Une case
+  // « Rechercher quand je déplace la carte » le gouvernait, décochée par
+  // défaut ; zoomer sur trois stations laissait alors le compteur à 320.
   const [bornes, setBornes] = useState<Bornes | null>(null);
   // La station que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
@@ -142,107 +119,49 @@ function Comparer() {
     [domPool],
   );
 
-  /* ---------- Prédicats actifs ---------- */
-  const preds: Pred[] = [];
-  const ql = P.q.trim().toLowerCase();
-  if (ql)
-    preds.push({
-      id: "q",
-      label: `« ${P.q.trim()} »`,
-      fn: (s) =>
-        s.name.toLowerCase().includes(ql) ||
-        s.massif.toLowerCase().includes(ql) ||
-        (s.domain ?? "").toLowerCase().includes(ql),
-      remove: () => P.setQ(""),
-    });
-  if (P.massif)
-    preds.push({
-      id: "massif",
-      label: P.massif,
-      fn: (s) => s.massif === P.massif,
-      remove: () => P.setMassif(null),
-    });
-  for (const r of RG) {
-    const v = F[r.k];
-    if (!v) continue;
-    if (r.k === "pass")
-      preds.push({
-        id: r.k,
-        label: `Forfait ≤ ${fmt(v)} €`,
-        fn: (s) => forfaitOf(s)?.j6 != null && (forfaitOf(s)!.j6 as number) <= v,
-        remove: () => P.setFilters({ pass: 0 }),
-      });
-    else {
-      const lire = { v: villageM, lo: minM, hi: maxM, km: (s: Station) => s.pistesKm }[r.k];
-      preds.push({
-        id: r.k,
-        label: `${r.label} ≥ ${fmt(v)} ${r.unit}`,
-        fn: (s) => (lire(s) ?? 0) >= v,
-        remove: () => P.setFilters({ [r.k]: 0 }),
-      });
-    }
-  }
-  for (const c of COLS) {
-    const v = F.col[c.key];
-    if (!v) continue;
-    preds.push({
-      id: "col-" + c.key,
-      label: `${c.label} ≥ ${fmt(v)}${UNIT[P.unit].suf}`,
-      fn: (s) => (colVal(s, c.key, P.unit) ?? -1) >= v,
-      remove: () => P.setColFilter(c.key, 0),
-    });
-  }
-  if (F.dom)
-    preds.push({
-      id: "dom",
-      label: F.dom === "__none" ? "Domaine non renseigné" : F.dom,
-      fn: (s) => (F.dom === "__none" ? !s.domain : s.domain === F.dom),
-      remove: () => P.setFilters({ dom: "" }),
-    });
-  for (const k of Object.keys(CHIPS) as ChipKey[]) {
-    if (!F.chips[k]) continue;
-    preds.push({ id: "c-" + k, label: CHIPS[k].label, fn: CHIPS[k].fn, remove: () => P.setChip(k, false) });
-  }
+  /* ---------- Prédicats actifs ----------
+     Les mêmes que l'accueil, écrits une seule fois (`filtres.ts`). */
+  const preds = usePredicats();
 
-  const applyAll = (ps: Pred[]) => all.filter((s) => ps.every((p) => p.fn(s)));
-  const visible = applyAll(preds);
-  const sorted = [...visible].sort((a, b) =>
-    P.sortKey === "n"
-      ? a.name.localeCompare(b.name, "fr")
-      : P.sortKey === "pass"
-        ? (forfaitOf(a)?.j6 ?? 9e9) - (forfaitOf(b)?.j6 ?? 9e9)
-        : sortVal(b, P.sortKey) - sortVal(a, P.sortKey),
+  const visible = useMemo(() => appliquer(all, preds), [all, preds]);
+  const sorted = useMemo(
+    () =>
+      [...visible].sort((a, b) =>
+        P.sortKey === "n"
+          ? a.name.localeCompare(b.name, "fr")
+          : P.sortKey === "pass"
+            ? (forfaitOf(a)?.j6 ?? 9e9) - (forfaitOf(b)?.j6 ?? 9e9)
+            : sortVal(b, P.sortKey) - sortVal(a, P.sortKey),
+      ),
+    [visible, P.sortKey],
   );
-  // Le cadre s'applique AVANT la tranche, sinon il ne filtrerait que les
-  // quarante premières par kilomètres — toutes alpines — et un cadrage sur les
-  // Pyrénées ne rendrait rien.
-  const cadre = suivi ? bornes : null;
-  const parCadre = partagerParBornes(sorted, cadre);
+
+  /* ---------- Le cadre visible : une seule source pour les trois ----------
+     Le compteur, la liste et les marqueurs dérivent tous de `dansCadre`. La
+     légende de la carte annonçait `list.length`, borné à quarante : elle disait
+     « 40 épingles » quelles que soient les trois cents posées à côté. */
+  const parCadre = useMemo(() => partagerParBornes(sorted, bornes), [sorted, bornes]);
   const dansCadre = parCadre.visibles;
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const list = dansCadre.slice(0, LISTE_MAX);
 
   /* ---------- État vide : quel filtre bloque ---------- */
-  let empty: { title: string; hint: string; fix: (() => void) | null } | null = null;
-  if (!visible.length && preds.length) {
-    let best: { p: Pred; n: number } | null = null;
-    for (const p of preds) {
-      const n = applyAll(preds.filter((x) => x !== p)).length;
-      if (!best || n > best.n) best = { p, n };
-    }
-    empty =
-      best && best.n > 0
+  const bloquant = !visible.length && preds.length ? critereBloquant(all, preds) : null;
+  const empty: { title: string; hint: string; fix: (() => void) | null } | null = visible.length
+    ? null
+    : preds.length
+      ? bloquant
         ? {
-            title: `Le filtre « ${best.p.label} » ne laisse aucune station`,
-            hint: `Sans lui, ${best.n} station${best.n > 1 ? "s" : ""} rest${best.n > 1 ? "ent" : "e"} avec les autres critères.`,
-            fix: best.p.remove,
+            title: `Le filtre « ${bloquant.pred.label} » ne laisse aucune station`,
+            hint: `Sans lui, ${bloquant.restantes} station${bloquant.restantes > 1 ? "s" : ""} rest${bloquant.restantes > 1 ? "ent" : "e"} avec les autres critères.`,
+            fix: bloquant.pred.retirer,
           }
         : {
             title: "Aucune station ne remplit ces critères",
             hint: `Le référentiel couvre ${all.length} stations françaises. Retirer un seul filtre ne suffit pas : réinitialisez.`,
             fix: null,
-          };
-  }
+          }
+      : null;
 
   /* ---------- Comparaison ---------- */
   const cmp = P.cmp.map((id) => stationById(id)).filter((s): s is Station => !!s);
@@ -263,37 +182,39 @@ function Comparer() {
     : "Aucune station : assouplir";
 
   /**
-   * **La carte porte toutes les stations retenues par les filtres, pas les
-   * quarante de la liste.**
+   * **La carte porte toutes les stations du cadre, la liste en montre quarante.**
    *
    * La liste est bornée parce qu'une colonne de vignettes ne se parcourt pas
    * au-delà ; une carte, si. Les épingles suivaient pourtant la même tranche,
    * si bien que trois cent vingt stations sans filtre n'en montraient que
-   * quarante, toutes alpines puisque le tri par défaut est le kilométrage. La
-   * carte disait donc que le reste de la France n'existait pas.
+   * quarante, toutes alpines puisque le tri par défaut est le kilométrage.
    *
-   * Les quarante de la liste gardent leur nom en étiquette : ce sont celles que
-   * la colonne à côté nomme, et l'une éclaire l'autre au survol. Les autres se
-   * posent en pastille seule, sans étiquette, faute de quoi trois cents noms se
-   * recouvriraient. Leur nom n'est pas perdu : la fenêtre qui s'ouvre au survol
-   * ou au clic le porte, comme pour les autres.
+   * Toutes les pastilles sont identiques : elles ne portent ni nom, ni prix, ni
+   * altitude, et leur taille ne dépend de rien. Ce que chacune désigne se lit
+   * dans la fiche qui s'ouvre au survol, au focus clavier, ou au clic.
    */
   const marqueurs = useMemo(
-    () => {
-      const nommees = new Set(list.map((s) => s.id));
-      return dansCadre.map((s) => ({
-        id: s.id,
-        lat: s.lat,
-        lon: s.lon,
-        html: htmlStation(s.name, P.cmp.includes(s.id), !nommees.has(s.id)),
-        zIndex: P.cmp.includes(s.id) ? 100 : nommees.has(s.id) ? 10 : 0,
-      }));
-    },
-    // Le contenu change quand les identifiants, la tranche nommée ou la
-    // comparaison changent.
+    () =>
+      sorted.map((s) => {
+        const comparee = P.cmp.includes(s.id);
+        return {
+          id: s.id,
+          lat: s.lat,
+          lon: s.lon,
+          nom: s.name,
+          epingle: epingleStation(s.name, comparee ? "comparee" : "normale"),
+          zIndex: comparee ? ETAGE.comparee : ETAGE.normale,
+        };
+      }),
+    // Le contenu change quand les identifiants ou la comparaison changent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dansCadre.map((s) => s.id).join(","), list.map((s) => s.id).join(","), P.cmp.join(",")],
+    [sorted.map((s) => s.id).join(","), P.cmp.join(",")],
   );
+
+  /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
+   *  cadre : calculée sur le cadre, recadrer aurait changé la liste, qui aurait
+   *  changé la clé, qui aurait recadré — sans fin. */
+  const cadrage = useMemo(() => sorted.map((s) => s.id).join(","), [sorted]);
 
   return (
     <Coquille>
@@ -441,11 +362,15 @@ function Comparer() {
               </button>
             ))}
             <span className="filtres7__espace" />
-            <span className="filtres7__compte">
-              {dansCadre.length} station{dansCadre.length > 1 ? "s" : ""} sur {all.length}
-              {suivi && parCadre.horsCadre.length
-                ? ` · ${parCadre.horsCadre.length} hors du cadre`
-                : ""}
+            {/* Le compte des éléments réellement rendus dans le cadre visible :
+                la liste, les pastilles et ce nombre dérivent du même tableau. */}
+            <span className="filtres7__compte" aria-live="polite">
+              {dansCadre.length === 0
+                ? visible.length
+                  ? "Aucune station dans le cadre : dézoomez pour en voir"
+                  : "Aucune station ne remplit ces critères"
+                : `${dansCadre.length} station${dansCadre.length > 1 ? "s" : ""} sur ${all.length}`}
+              {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
               {sansPos ? ` · ${sansPos}` : ""}
             </span>
             <select
@@ -465,11 +390,11 @@ function Comparer() {
             <div className="jetons7">
               <span className="jetons7__label">Actifs</span>
               {preds.map((p) => {
-                const bloque = empty?.fix === p.remove;
+                const bloque = empty?.fix === p.retirer;
                 return (
                   <span key={p.id} className={`jeton${bloque ? " jeton--bloque" : ""}`}>
                     {p.label}
-                    <button type="button" title="Retirer" onClick={p.remove}>
+                    <button type="button" aria-label={`Retirer le critère ${p.label}`} onClick={p.retirer}>
                       <Icon name="croix" taille={11} />
                     </button>
                   </span>
@@ -496,7 +421,7 @@ function Comparer() {
                   <Icon name="croix" taille={14} />
                 </button>
               </div>
-              {RG.map((r) => (
+              {SEUILS.map((r) => (
                 <label key={r.k} className="curseur">
                   <span className="curseur__lab">
                     <span>{r.label}</span>
@@ -556,14 +481,14 @@ function Comparer() {
                 <div className="pop7__ligne">
                   <span className="pop7__stitre">Répartition par couleur, au minimum</span>
                   <span className="segments">
-                    {(Object.keys(UNIT) as ColorUnit[]).map((u) => (
+                    {(Object.keys(UNITES) as ColorUnit[]).map((u) => (
                       <button
                         key={u}
                         type="button"
                         className={P.unit === u ? "on" : undefined}
                         onClick={() => P.setUnit(u)}
                       >
-                        {UNIT[u].lbl}
+                        {UNITES[u].lbl}
                       </button>
                     ))}
                   </span>
@@ -577,14 +502,14 @@ function Comparer() {
                           {c.label}
                         </span>
                         <span className="curseur__val">
-                          {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNIT[P.unit].suf}` : "Indifférent"}
+                          {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNITES[P.unit].suf}` : "Indifférent"}
                         </span>
                       </span>
                       <input
                         type="range"
                         min={0}
-                        max={UNIT[P.unit].max}
-                        step={UNIT[P.unit].step}
+                        max={UNITES[P.unit].max}
+                        step={UNITES[P.unit].step}
                         value={F.col[c.key]}
                         onChange={(e) => P.setColFilter(c.key, +e.target.value)}
                       />
@@ -632,23 +557,17 @@ function Comparer() {
                 </div>
                 {dansCadre.length > LISTE_MAX ? (
                   <p className="v7deux__plus">
-                    {dansCadre.length - LISTE_MAX} autres stations sont sur la carte, en pastille
-                    sans nom. Pour les faire entrer dans cette liste, affinez un filtre, resserrez
-                    la carte, ou cherchez un nom.
+                    {dansCadre.length - LISTE_MAX} autres stations sont sur la carte. Pour les
+                    faire entrer dans cette liste, affinez un filtre, resserrez la carte, ou
+                    cherchez un nom.
                   </p>
                 ) : null}
               </>
-            ) : suivi && visible.length ? (
-              <Vide
-                titre="Aucune station dans ce cadre"
-                actions={
-                  <button type="button" className="btn7" onClick={() => setSuivi(false)}>
-                    Revoir les {visible.length} stations
-                  </button>
-                }
-              >
-                La liste suit la carte. Déplacez-la, élargissez-la, ou décochez « Rechercher quand
-                je déplace la carte » pour retrouver les résultats des filtres.
+            ) : visible.length ? (
+              <Vide titre="Aucune station dans ce cadre">
+                La liste suit la carte : {visible.length} station{visible.length > 1 ? "s" : ""}{" "}
+                remplit{visible.length > 1 ? "ent" : ""} vos critères, hors du cadre visible.
+                Dézoomez ou déplacez la carte pour les retrouver.
               </Vide>
             ) : empty ? (
               <Vide
@@ -673,9 +592,7 @@ function Comparer() {
           <div className="v7deux__carte">
             <CarteEpingles
               marqueurs={marqueurs}
-              cadrage={dansCadre.map((s) => s.id).join(",")}
-              suivi={suivi}
-              surSuivi={setSuivi}
+              cadrage={cadrage}
               surBornes={setBornes}
               actif={actifCarte}
               surActif={setActifCarte}
@@ -713,26 +630,43 @@ function Comparer() {
                       </div>
                     </div>
                     <PartPistes share={st.colorShare} />
-                    <a
-                      href={`/stations/${st.id}`}
-                      className="fc__lien fc__action"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        void go("fiche", { id: st.id });
-                      }}
-                    >
-                      Fiche station →
-                    </a>
                   </div>
                 );
               }}
-              surClic={(id) => void go("fiche", { id })}
+              /* Les actions n'apparaissent que sur la fiche épinglée : celle du
+                 survol est informative et ne reçoit pas les clics. */
+              actionsDe={(id) => {
+                const st = stationById(id);
+                if (!st) return null;
+                const dedans = P.cmp.includes(st.id);
+                return (
+                  <>
+                    <button
+                      type="button"
+                      className="btn7 btn7--fantome"
+                      onClick={() => void go("fiche", { id: st.id })}
+                    >
+                      Voir la fiche station
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn7${dedans ? " btn7--fantome" : ""}`}
+                      aria-pressed={dedans}
+                      onClick={() => P.toggleCmp(st.id)}
+                    >
+                      {dedans ? "Retirer de la comparaison" : "Ajouter à la comparaison"}
+                    </button>
+                  </>
+                );
+              }}
               legende={
                 <>
                   <b>
-                    {list.length} épingle{list.length > 1 ? "s" : ""}
+                    {dansCadre.length} épingle{dansCadre.length > 1 ? "s" : ""}
                   </b>
-                  <span>Une par station affichée ; le cadrage suit les résultats. Fond OpenStreetMap.</span>
+                  <span>
+                    Une par station du cadre ; survolez-en une pour la lire. Fond OpenStreetMap.
+                  </span>
                 </>
               }
             />

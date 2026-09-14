@@ -7,6 +7,11 @@ import v6Css from "../design/v6.css?url";
 
 const APP_NAME = "Skitrack";
 
+/** Lu dans `<head>`, avant la première peinture. Le nom du stockage est celui
+ *  de `useTheme` (`skitrack-theme`) ; un stockage refusé laisse le thème clair,
+ *  qui est la valeur par défaut du magasin. */
+const THEME_AVANT_PEINTURE = `try{var t=JSON.parse(localStorage.getItem("skitrack-theme")||"{}");t=t&&t.state&&t.state.theme;if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);document.documentElement.style.colorScheme=t;}else{document.documentElement.setAttribute("data-theme","light");}}catch(e){document.documentElement.setAttribute("data-theme","light");}`;
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -36,9 +41,17 @@ export const Route = createRootRoute({
     ],
   }),
   component: () => (
-    <html lang="fr" data-theme="light" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <HeadContent />
+        {/* Le thème est posé avant la première peinture.
+         *
+         *  L'attribut valait « light » en dur : qui avait choisi le sombre
+         *  recevait une page claire, corrigée seulement après l'hydratation —
+         *  un éclair blanc à chaque chargement. Ce script lit le même stockage
+         *  que `useTheme` et écrit l'attribut avant que le document ne
+         *  s'affiche ; `ThemeSync` prend la suite pour les bascules à chaud. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_AVANT_PEINTURE }} />
       </head>
       <body>
         <PreviewHostBridge />

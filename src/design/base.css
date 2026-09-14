@@ -376,7 +376,7 @@
   border-radius: 999px;
   background: var(--color-marque);
   border: 2px solid var(--color-surface);
-  box-shadow: 0 0 0 1px rgb(11 31 51 / 0.25);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-ombre) 25%, transparent);
 }
 
 .pin--station-haute {
@@ -394,7 +394,7 @@
 }
 .pin--vif {
   background: var(--color-cta);
-  box-shadow: 0 0 0 4px rgb(255 90 60 / 0.3);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-cta) 30%, transparent);
 }
 
 .trait-remontee {

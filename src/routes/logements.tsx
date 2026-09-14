@@ -16,8 +16,10 @@ import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { CarteEpingles, htmlPrix, htmlRepere } from "@/components/v7/CarteEpingles";
+import { CarteEpingles } from "@/components/v7/CarteEpingles";
+import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
+import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
@@ -188,7 +190,8 @@ function Logements() {
   const [sheetId, setSheetId] = useState<string | null>(null);
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
-  const [suivi, setSuivi] = useState(false);
+  // Le cadre visible compte toujours : liste, compteur et pastilles rendues
+  // disent la même chose. Même correction que sur Comparer.
   const [bornes, setBornes] = useState<Bornes | null>(null);
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
@@ -253,8 +256,7 @@ function Logements() {
   const lvis = lapply(lp).sort(tri[lsort]);
   // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
   // pas de cadre, la carte ne peut ni les montrer ni les cacher.
-  const cadre = suivi ? bornes : null;
-  const parCadre = partagerParBornes(lvis, cadre);
+  const parCadre = partagerParBornes(lvis, bornes);
   const affichees = parCadre.visibles;
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const lfree = lp.filter((p) => !p.fixed);
@@ -317,13 +319,28 @@ function Logements() {
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
 
   const marqueurs = [
-    { id: "__station", lat: s.lat, lon: s.lon, html: htmlRepere(s.name), zIndex: -100, inerte: true },
+    {
+      id: "__station",
+      lat: s.lat,
+      lon: s.lon,
+      nom: `Repère de ${s.name}`,
+      epingle: epingleRepere(s.name),
+      zIndex: ETAGE.repere,
+      inerte: true,
+    },
     ...lvis
       .filter((l) => l.lat != null && l.lon != null)
       .map((l) => {
         const sel = sheetId === l.id || P.lodgeId === l.id;
-        const etat = sel ? "retenue" : P.seen[l.id] ? "vue" : "vive";
-        return { id: l.id, lat: l.lat as number, lon: l.lon as number, html: htmlPrix(eur(l.total), etat), zIndex: sel ? 500 : 0 };
+        const etat = sel ? "retenue" : P.seen[l.id] ? "vue" : "normale";
+        return {
+          id: l.id,
+          lat: l.lat as number,
+          lon: l.lon as number,
+          nom: l.title,
+          epingle: epinglePrix(eur(l.total), l.title, etat),
+          zIndex: sel ? ETAGE.designee : ETAGE.normale,
+        };
       }),
   ];
   const cadrage = `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`;
@@ -397,6 +414,7 @@ function Logements() {
   return (
     <Coquille>
       <main className="v7main v7main--pied" id="s-lodging" data-screen-label="2 Logements">
+        <OngletsStation s={s} actif="logements" />
         <header className="v7tete v7tete--ligne">
           <div>
             <span className="v7surtitre">Étape 2 · Logement</span>
@@ -500,9 +518,7 @@ function Logements() {
                 <span className="filtres7__espace" />
                 <span className="filtres7__compte">
                   {affichees.length} annonce{affichees.length > 1 ? "s" : ""} sur {raw.length}
-                  {suivi && parCadre.horsCadre.length
-                    ? ` · ${parCadre.horsCadre.length} hors du cadre`
-                    : ""}
+                  {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
                   {sansPos ? ` · ${sansPos}` : ""}
                 </span>
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
@@ -625,19 +641,11 @@ function Logements() {
                       <Carte key={l.id} l={l} />
                     ))}
                   </div>
-                ) : suivi && lvis.length ? (
-                  <Vide
-                    titre="Aucune annonce dans ce cadre"
-                    actions={
-                      <>
-                        <button type="button" className="btn7" onClick={() => setSuivi(false)}>
-                          Revoir les {lvis.length} annonces
-                        </button>
-                      </>
-                    }
-                  >
-                    La liste suit la carte. Déplacez-la, élargissez-la, ou décochez « Rechercher
-                    quand je déplace la carte » pour retrouver tout ce que le relevé donne.
+                ) : lvis.length ? (
+                  <Vide titre="Aucune annonce dans ce cadre">
+                    La liste suit la carte : {lvis.length} annonce{lvis.length > 1 ? "s" : ""}{" "}
+                    correspond{lvis.length > 1 ? "ent" : ""} au relevé, hors du cadre visible.
+                    Dézoomez ou déplacez la carte pour les retrouver.
                   </Vide>
                 ) : lempty ? (
                   <Vide
@@ -664,8 +672,6 @@ function Logements() {
                   marqueurs={marqueurs}
                   cadrage={cadrage}
                   maxZoom={14}
-                  suivi={suivi}
-                  surSuivi={setSuivi}
                   surBornes={setBornes}
                   actif={actifCarte}
                   surActif={setActifCarte}
@@ -730,10 +736,13 @@ function Logements() {
                   }}
                   legende={
                     <>
-                      <b>{lvis.filter((l) => l.lat != null).length} annonces positionnées</b>
+                      <b>
+                        {affichees.filter((l) => l.lat != null).length} pastille
+                        {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
+                      </b>
                       <span>
-                        {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont pas
-                        sur la carte. Gris = déjà vue.
+                        {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont
+                        pas sur la carte. Contour pointillé = déjà vue.
                       </span>
                     </>
                   }

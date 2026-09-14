@@ -14,6 +14,7 @@ import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { PartPistes } from "@/components/v7/PartPistes";
+import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { getStationBra, type BraPayload } from "@/lib/bra/api";
@@ -160,26 +161,86 @@ function Bande({ titre, lvl }: { titre: string; lvl: ForecastLevel }) {
   );
 }
 
-/* ---------- Bulletin d'avalanche ---------- */
+/* ---------- Bulletin d'avalanche ----------
 
-const enCours = new Map<string, Promise<BraPayload>>();
-function useBra(s: Station) {
-  const [bra, setBra] = useState<BraPayload | null>(null);
+   Trois états, et jamais un seul message pour les quatre situations. L'ancienne
+   version gardait une `Map` de promesses sans horodatage ni éviction, avalait
+   toute erreur dans un `catch` vide, et ne remettait pas son état à zéro en
+   changeant de station : la fiche B affichait le bulletin de A. */
+
+type EtatBraUI =
+  | { status: "chargement" }
+  | { status: "pret"; data: BraPayload }
+  | { status: "echec"; cause: string };
+
+/** Les demandes émises dans la même fenêtre partent en un seul appel : trente
+ *  massifs couvrent trois cents stations, et le serveur les partage. */
+const LOT_MS = 40;
+let enAttente: { id: string; resoudre: (p: BraPayload) => void; rejeter: (e: unknown) => void }[] = [];
+let minuteurLot: ReturnType<typeof setTimeout> | null = null;
+
+function demanderBra(id: string, force = false): Promise<BraPayload> {
+  if (force) return getStationBra({ data: { id, force: true } });
+  return new Promise((resoudre, rejeter) => {
+    enAttente.push({ id, resoudre, rejeter });
+    minuteurLot ??= setTimeout(() => {
+      const lot = enAttente;
+      enAttente = [];
+      minuteurLot = null;
+      // Une station demandée deux fois ne part qu'une fois.
+      for (const id2 of new Set(lot.map((d) => d.id))) {
+        const parts = lot.filter((d) => d.id === id2);
+        void getStationBra({ data: { id: id2 } })
+          .then((r) => parts.forEach((d) => d.resoudre(r)))
+          .catch((e) => parts.forEach((d) => d.rejeter(e)));
+      }
+    }, LOT_MS);
+  });
+}
+
+function useBra(stationId: string): { etat: EtatBraUI; reessayer: () => void } {
+  const [etat, setEtat] = useState<EtatBraUI>({ status: "chargement" });
+  const [essai, setEssai] = useState(0);
   useEffect(() => {
-    let cancelled = false;
-    const key = `${s.id}`;
-    const p =
-      enCours.get(key) ??
-      getStationBra({ data: { name: s.name, massif: s.massif, lat: s.lat, lon: s.lon, villageM: villageM(s) ?? undefined } });
-    enCours.set(key, p);
-    void p.then((r) => {
-      if (!cancelled) setBra(r);
-    }).catch(() => {});
+    let annule = false;
+    // Remis à zéro en entrée : sans cela l'état survivait au changement de
+    // station, et la fiche affichait le bulletin de la précédente.
+    setEtat({ status: "chargement" });
+    void demanderBra(stationId, essai > 0)
+      .then((r) => {
+        if (!annule) setEtat({ status: "pret", data: r });
+      })
+      .catch((e: unknown) => {
+        // Journalisé par station : le `catch` vide masquait tout.
+        console.warn(`[bra] ${stationId} : appel en échec`, e);
+        if (!annule)
+          setEtat({ status: "echec", cause: e instanceof Error ? e.message : String(e) });
+      });
     return () => {
-      cancelled = true;
+      annule = true;
     };
-  }, [s]);
-  return bra;
+  }, [stationId, essai]);
+  return { etat, reessayer: () => setEssai((n) => n + 1) };
+}
+
+/** « rattaché par proximité » se dit : une déduction n'est pas un relevé. */
+const VOIE_LBL: Record<string, string> = {
+  nom: "",
+  domaine: " (par le domaine)",
+  proximite: " (rattachement par proximité)",
+};
+
+function heureLisible(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString("fr-FR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 /* ---------- Écran ---------- */
@@ -221,7 +282,7 @@ function FicheBody({ s }: { s: Station }) {
   const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const forfait = useForfait(s);
   const { wx, lo, hi } = useForecast(s);
-  const bra = useBra(s);
+  const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
   const [camId, setCamId] = useState<string | null>(null);
   const cam = cams.find((c) => c.id === camId) ?? cams[0] ?? null;
@@ -236,7 +297,8 @@ function FicheBody({ s }: { s: Station }) {
       ? `Photo Skiinfo de ${pret.fromName}, même domaine · crédit à relever`
       : "Photo Skiinfo · crédit à relever"
     : stationPhotoAbsence(s);
-  const official = bra?.official;
+  const braData = bra.etat.status === "pret" ? bra.etat.data : null;
+  const official = braData?.official;
   const risque = official?.ok && official.risk != null ? official.risk : null;
 
   const passGroup = forfait?.j6 != null ? forfait.j6 * trav : null;
@@ -255,6 +317,8 @@ function FicheBody({ s }: { s: Station }) {
           <Icon name="chevron-gauche" taille={14} />
           Comparer les stations
         </a>
+
+        <OngletsStation s={s} actif="fiche" />
 
         <section className={`fhero7${photo ? " fhero7--photo" : ""}`}>
           {photo ? (
@@ -428,40 +492,101 @@ function FicheBody({ s }: { s: Station }) {
               )}
             </section>
 
-            {/* ── Bulletin d'avalanche ─────────────────────────────── */}
+            {/* ── Bulletin d'avalanche ───────────────────────────────
+                Trois états distincts : chargement, données avec heure de
+                relevé, échec avec sa cause. Aucune station ne reste sur une
+                zone vide sans explication. */}
             <section className="bra7">
               <span className={`bra7__badge${risque != null ? ` bra7__badge--${risque}` : ""}`}>
                 {risque != null ? risque : "BRA"}
               </span>
               <div className="bra7__texte">
-                {risque != null ? (
+                {bra.etat.status === "chargement" ? (
+                  <>
+                    <strong>Bulletin en cours de chargement…</strong>
+                    <span>Source : Météo-France, données publiques BRA.</span>
+                  </>
+                ) : risque != null ? (
                   <>
                     <strong>
                       Risque {risque} · {BRA_LABELS[risque]?.fr ?? risque}
-                      {bra?.massif ? ` · ${bra.massif}` : ""}
+                      {braData?.massif ? ` · ${braData.massif}` : ""}
                     </strong>
                     <span>
-                      Bulletin officiel Météo-France{official?.issuedAt ? `, ${official.issuedAt}` : ""}.
+                      Bulletin officiel Météo-France
+                      {heureLisible(official?.issuedAt) ? (
+                        <>
+                          , relevé le <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
+                        </>
+                      ) : null}
+                      {braData?.voie ? VOIE_LBL[braData.voie] : ""}.
                       {official?.loc1 && official.risk1 != null
                         ? ` ${BRA_LABELS[official.risk1]?.fr ?? official.risk1} ${official.loc1}`
                         : ""}
                       {official?.loc2 && official.risk2 != null
                         ? ` · ${BRA_LABELS[official.risk2]?.fr ?? official.risk2} ${official.loc2}`
                         : ""}
+                      {official?.altitude != null ? ` · bascule à ${fmt(official.altitude)} m` : ""}
+                    </span>
+                  </>
+                ) : braData?.etat === "ok" && official?.message ? (
+                  <>
+                    <strong>Pas de risque publié aujourd'hui</strong>
+                    <span>
+                      {official.message} Massif Météo-France : {braData.massif}
+                      {braData.voie ? VOIE_LBL[braData.voie] : ""}.
+                    </span>
+                  </>
+                ) : braData?.etat === "hors-zone" ? (
+                  <>
+                    <strong>Pas de bulletin pour ce massif</strong>
+                    <span>{braData.cause} Rien n'est déduit à sa place.</span>
+                  </>
+                ) : braData?.etat === "non-rattache" ? (
+                  <>
+                    <strong>Station non rattachée à un massif Météo-France</strong>
+                    <span>
+                      {braData.cause} Consultez le bulletin du secteur sur le site de
+                      Météo-France.
                     </span>
                   </>
                 ) : (
                   <>
-                    <strong>Bulletin d'avalanche non lu</strong>
+                    <strong>Bulletin non obtenu</strong>
                     <span>
-                      Le niveau affiché est celui que vous aurez lu sur le bulletin officiel
-                      Météo-France, daté. Rien n'est déduit.
+                      Massif Météo-France : {braData?.massif ?? "non rattaché"}
+                      {braData?.voie ? VOIE_LBL[braData.voie] : ""}. Tentative{" "}
+                      {heureLisible(braData?.releveA) ?? "à l'instant"}.{" "}
+                      <button type="button" className="lien-doux" onClick={bra.reessayer}>
+                        Réessayer
+                      </button>
                     </span>
+                    {/* La cause technique vit dans un détail repliable, jamais
+                        dans le libellé principal. */}
+                    {braData?.cause || bra.etat.status === "echec" ? (
+                      <details className="bra7__detail">
+                        <summary>Détail technique</summary>
+                        <code>
+                          {bra.etat.status === "echec" ? bra.etat.cause : braData?.cause}
+                        </code>
+                      </details>
+                    ) : null}
                   </>
                 )}
               </div>
-              <a href="https://meteofrance.com/meteo-montagne" target="_blank" rel="noopener" className="btn7 btn7--fantome">
-                Lire le bulletin ↗
+              <a
+                href={
+                  braData?.massif
+                    ? `https://meteofrance.com/meteo-montagne/${encodeURIComponent(
+                        braData.massif.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[_\s]+/g, "-"),
+                      )}/bulletin-avalanches`
+                    : "https://meteofrance.com/meteo-montagne"
+                }
+                target="_blank"
+                rel="noopener"
+                className="btn7 btn7--fantome"
+              >
+                {braData?.massif ? `Bulletin ${braData.massif} ↗` : "Trouver le bulletin ↗"}
               </a>
             </section>
           </div>

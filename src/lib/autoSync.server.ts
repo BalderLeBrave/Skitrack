@@ -1,7 +1,7 @@
 /** Tick silencieux : forfaits FR + fiches Skiinfo (mix / photo). */
 
 import { FORFAIT_CATALOG } from "@/lib/forfaits/catalog";
-import { getStored, refreshOne, forfaitTtlMs } from "@/lib/forfaits/refresh.server";
+import { getSource, getStored, refreshOne, forfaitTtlMs } from "@/lib/forfaits/refresh.server";
 import { isStale as forfaitStale } from "@/lib/forfaits/store";
 import { SKIINFO } from "@/lib/skiinfo";
 import { getStoredSkiinfo, refreshSkiinfo } from "@/lib/skiinfoRefresh.server";
@@ -29,6 +29,10 @@ export function syncQueues(): { forfaits: number; skiinfo: number } {
 function forfaitDue(slug: string, now = Date.now()): boolean {
   const row = getStored(slug);
   if (row.locked) return false;
+  // Une source fermée par un refus ou désactivée après trois échecs n'entre
+  // plus dans la file : c'était la reprise en boucle contre un site qui dit non.
+  const source = getSource(slug);
+  if (source.desactivee || source.voie !== "auto") return false;
   if (!forfaitStale(row, forfaitTtlMs(), now)) return false;
   if (row.lastAttemptAt) {
     const attempt = Date.parse(row.lastAttemptAt);

@@ -21,10 +21,11 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AutoSync } from "./AutoSync";
 import { Icon } from "./Icon";
-import { useGo, screenOf, type Screen } from "./v6/go";
+import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
 import { Toast } from "./v6/Toast";
 import { Calendrier, usePlage } from "./v7/Calendrier";
 import { Compteur } from "./v7/Compteur";
+import { useCriteresUrl } from "@/lib/criteres";
 import { useLocale, useT, type MsgId } from "@/lib/i18n";
 import {
   arrivalLbl,
@@ -45,8 +46,9 @@ const PARCOURS: { go: Screen; step: number | null; label: MsgId }[] = [
   { go: "booking", step: 3, label: "nav.booking" },
 ];
 
-/** Écrans de contrôle, hors parcours, rangés sous « Plus ». */
-const AILLEURS: { to: string; label: MsgId }[] = [
+/** Écrans de contrôle, hors parcours, rangés sous « Plus ». Les chemins
+ *  viennent de `AILLEURS_PATHS` (`go.ts`), seule table de ces routes. */
+const AILLEURS: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] = [
   { to: "/carte", label: "nav.map" },
   { to: "/altitudes", label: "nav.alt" },
   { to: "/openskimap", label: "nav.osm" },
@@ -54,10 +56,10 @@ const AILLEURS: { to: string; label: MsgId }[] = [
   { to: "/traces", label: "nav.traces" },
 ];
 
-/** Les cinq routes qui ne sont pas une étape du parcours. */
+/** Les routes qui ne sont pas une étape du parcours. Une seule question posée
+ *  à une seule table : `screenOf` répond `null` hors du parcours. */
 export function horsParcours(pathname: string): boolean {
-  if (pathname === "/" || pathname.startsWith("/stations/")) return false;
-  return !["/comparer", "/logements", "/reservation"].some((p) => pathname.startsWith(p));
+  return screenOf(pathname) === null;
 }
 
 /** Ferme au clic dehors et à Échap. */
@@ -147,7 +149,7 @@ function Barre() {
       <nav className="v7nav__parcours" aria-label="Parcours">
         {PARCOURS.map((j) => {
           // La fiche station allume « Comparer » : elle en est le détail.
-          const actif = j.go === ecran || (ecran === "fiche" && j.go === "compare");
+          const actif = ecran !== null && (j.go === ecran || (ecran === "fiche" && j.go === "compare"));
           const verrou =
             !actif && ((j.go === "lodging" && !stationId) || (j.go === "booking" && !lodgeId));
           const titre =
@@ -174,16 +176,19 @@ function Barre() {
         })}
       </nav>
       <div className="v7nav__utils">
+        {/* L'icône dit le thème en cours ; elle montrait un soleil dans les
+            deux états, donc rien. */}
         <button
           type="button"
           className="v7nav__util v7nav__util--rond"
-          title="Thème"
+          title={theme === "dark" ? "Thème sombre — passer au clair" : "Thème clair — passer au sombre"}
           role="switch"
           aria-checked={theme === "dark"}
+          aria-label="Thème"
           onClick={bascule}
           data-testid="theme-toggle"
         >
-          <Icon name="soleil" taille={18} />
+          <Icon name={theme === "dark" ? "lune" : "soleil"} taille={18} />
         </button>
         <button
           type="button"
@@ -268,6 +273,11 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
   const go = useGo();
   const stayOpen = useParcours((s) => s.stayOpen);
   const setStayOpen = useParcours((s) => s.setStayOpen);
+
+  // Les critères de recherche s'écrivent dans l'adresse sur les écrans du
+  // parcours : un lien se partage, un signet se repose, et le bouton Précédent
+  // rend la recherche qu'il vient de quitter.
+  useCriteresUrl(!controle);
 
   // Changer d'écran ferme le panneau de séjour et remonte en haut de page,
   // comme `fromHash` dans la maquette.

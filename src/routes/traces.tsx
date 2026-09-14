@@ -11,6 +11,7 @@ import { formatDistFrom, formatLift, sectorOf, skiAccessLabel } from "@/lib/acce
 import { formatEle, formatDuration, formatKm } from "@/lib/gpx";
 import { formatEuro, listingsForStay, type Listing } from "@/lib/listings";
 import { stationById } from "@/lib/stations";
+import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
 
@@ -20,11 +21,12 @@ type Tab = "trace" | "carte" | "logements";
 type SortKey = "gpx" | "pistes" | "lift" | "total" | "pp";
 
 function Traces() {
-  const stationId = useStay((s) => s.stationId);
+  // La station courante n'a qu'une source : le parcours.
+  const stationId = useParcours((s) => s.stationId);
   const guests = useStay((s) => s.guests);
   const bedrooms = useStay((s) => s.bedrooms);
   const live = useStay((s) => s.liveListings);
-  const station = stationById(stationId);
+  const station = stationId ? stationById(stationId) : undefined;
   const stats = useTrack((s) => s.stats);
   const points = useTrack((s) => s.points);
   const fileName = useTrack((s) => s.fileName);
@@ -34,7 +36,7 @@ function Traces() {
   const [ficheId, setFicheId] = useState<string | null>(null);
 
   const frozen = useMemo(
-    () => listingsForStay(stationId, guests, bedrooms),
+    () => (stationId ? listingsForStay(stationId, guests, bedrooms) : []),
     [stationId, guests, bedrooms],
   );
   const raw = live ?? frozen;
@@ -69,7 +71,9 @@ function Traces() {
     <Coquille
       chips={
         <>
-          <span className="rounded-full bg-glacier px-3 py-1">{station?.name ?? stationId}</span>
+          <span className="rounded-full bg-glacier px-3 py-1">
+            {station?.name ?? "Aucune station retenue"}
+          </span>
           {stats ? (
             <>
               <span className="rounded-full bg-glacier px-3 py-1">{stats.name}</span>

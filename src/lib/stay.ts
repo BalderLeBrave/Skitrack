@@ -3,8 +3,13 @@ import { persist } from "zustand/middleware";
 import type { Listing } from "./listings";
 import type { SourceReport } from "./scrape/types";
 
+/** Le séjour : dates, groupe, sélection, et le relevé en cours.
+ *
+ *  La station courante n'est **pas** ici : elle vit dans `useParcours`, et
+ *  seule. Elle était tenue des deux côtés, `retain()` écrivait les deux et
+ *  `relacher()` un seul ; /traces montrait alors les traces d'une station que
+ *  le reste de l'application considérait comme relâchée. */
 export type Stay = {
-  stationId: string;
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -27,7 +32,6 @@ type StayStore = Stay & {
 export const useStay = create<StayStore>()(
   persist(
     (set) => ({
-      stationId: "les-2-alpes",
       checkIn: "2027-02-06",
       checkOut: "2027-02-13",
       guests: 8,
@@ -64,7 +68,6 @@ export const useStay = create<StayStore>()(
     {
       name: "skitrack-stay",
       partialize: (s) => ({
-        stationId: s.stationId,
         checkIn: s.checkIn,
         checkOut: s.checkOut,
         guests: s.guests,

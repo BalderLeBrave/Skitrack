@@ -1,14 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  availabilityOf,
-  AVAILABILITY_TTL_MS,
-  isBookable,
-  isDoorway,
-  MANUAL_SOURCE,
-  type AvailabilitySubject,
-  type Stay,
-} from "./availability.ts";
+import { AVAILABILITY_TTL_MS, MANUAL_SOURCE, availabilityLabel, availabilityOf, isBookable, isDoorway, type AvailabilitySubject, type Stay } from "./availability.ts";
 import {
   applyFilter,
   clampRayonKm,
@@ -65,10 +57,30 @@ describe("disponibilité : un prix daté est la seule preuve", () => {
     assert.deepEqual(v, { status: "confirmed", reason: null });
     assert.ok(
       isBookable(
-        annonce({ pricedCheckIn: STAY.checkIn, pricedCheckOut: STAY.checkOut }),
+        annonce({ pricedCheckIn: STAY.checkIn, pricedCheckOut: STAY.checkOut, scannedAt: NOW }),
         STAY,
         NOW,
       ),
+    );
+  });
+
+  it("un prix aux bonnes dates sans instant de mesure n'est pas confirmé", () => {
+    // C'est exactement ce que `searchStay.dater` pose sur le repli vers le
+    // relevé figé : les dates, oui ; l'heure, non, pour ne pas le rajeunir.
+    // Le sauter revenait à confirmer sans âge, et sans péremption possible.
+    const sansHeure = annonce({
+      pricedCheckIn: STAY.checkIn,
+      pricedCheckOut: STAY.checkOut,
+      scannedAt: null,
+    });
+    assert.deepEqual(availabilityOf(sansHeure, STAY, NOW), {
+      status: "unconfirmed",
+      reason: "undated",
+    });
+    assert.ok(!isBookable(sansHeure, STAY, NOW));
+    assert.equal(
+      availabilityLabel(availabilityOf(sansHeure, STAY, NOW)),
+      "Prix de relevé, date de mesure inconnue",
     );
   });
 
@@ -338,6 +350,7 @@ describe("filtre : ce qui sort, et pourquoi", () => {
       "autre-domaine": 0,
       "hors-zone": 0,
       capacite: 2,
+      "capacite-muette": 0,
       prix: 2,
       source: 1,
       disponibilite: 0,
@@ -474,4 +487,43 @@ describe("filtre : la zone de recherche", () => {
     assert.equal(proche.domainFit, "in");
     assert.equal(dropReasonFor(proche, criteres), null);
   });
+
+  it("« trop petit » et « sans capacité annoncée » ne se comptent pas ensemble", () => {
+    // Le cas réel : sur un relevé de station, la plupart des annonces ne
+    // publient aucune capacité. Les compter « trop petites » accusait la
+    // source d'un refus qu'elle n'a jamais prononcé.
+    const rows: FilterSubject[] = [
+      bien({ id: "ok", guests: 8, bedrooms: 4, total: 2000 }),
+      bien({ id: "petit", guests: 4, bedrooms: 4, total: 1000 }),
+      bien({ id: "muet1", guests: null, bedrooms: null, rooms: null, total: 1500 }),
+      bien({ id: "muet2", guests: null, bedrooms: null, rooms: null, total: 1600 }),
+    ];
+    const out = applyFilter(rows, { travelers: 8, rooms: 4, stay: STAY, now: NOW });
+    assert.deepEqual(
+      out.kept.map((r) => r.id),
+      ["ok"],
+    );
+    assert.equal(out.dropped.byReason.capacite, 1);
+    assert.equal(out.dropped.byReason["capacite-muette"], 2);
+    assert.equal(
+      droppedLabel(out.dropped),
+      "3 biens masqués : 1 trop petit, 2 sans capacité annoncée",
+    );
+    // Réaffichées sur demande, elles ne sont plus comptées nulle part.
+    const avec = applyFilter(rows, {
+      travelers: 8,
+      rooms: 4,
+      stay: STAY,
+      now: NOW,
+      includeUnannounced: true,
+    });
+    assert.deepEqual(
+      avec.kept.map((r) => r.id),
+      ["ok", "muet1", "muet2"],
+    );
+    assert.equal(avec.dropped.byReason["capacite-muette"], 0);
+    // Un refus publié reste un refus, même en réaffichant les muettes.
+    assert.equal(avec.dropped.byReason.capacite, 1);
+  });
 });
+

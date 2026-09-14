@@ -53,7 +53,7 @@ export type AvailabilityStatus =
   | "unrated";
 
 /** Pourquoi la disponibilité n'est pas confirmée. */
-export type AvailabilityReason = "unpriced" | "other_dates" | "stale" | "gone" | null;
+export type AvailabilityReason = "unpriced" | "other_dates" | "stale" | "undated" | "gone" | null;
 
 export type AvailabilityVerdict = {
   status: AvailabilityStatus;
@@ -135,7 +135,15 @@ export function availabilityOf(
     listing.pricedCheckIn === stay.checkIn && listing.pricedCheckOut === stay.checkOut;
 
   if (priced && sameStay) {
-    if (listing.scannedAt != null && now - listing.scannedAt > AVAILABILITY_TTL_MS) {
+    // Un prix aux bonnes dates dont on ignore **quand** il a été mesuré n'est
+    // pas un prix confirmé. `searchStay.dater` pose exactement cela sur le
+    // repli vers le relevé figé : les dates, oui ; l'heure, non — pour ne pas
+    // le rajeunir. Le `!= null` faisait alors sauter la péremption, et un
+    // relevé de septembre s'affichait « Prix relevé pour ces dates », sans
+    // âge et sans moyen de vieillir. Une date de mesure inconnue est une
+    // raison de ne pas confirmer, pas une dispense de le faire.
+    if (listing.scannedAt == null) return { status: "unconfirmed", reason: "undated" };
+    if (now - listing.scannedAt > AVAILABILITY_TTL_MS) {
       return { status: "unconfirmed", reason: "stale" };
     }
     return { status: "confirmed", reason: null };
@@ -167,6 +175,8 @@ export function availabilityLabel(verdict: AvailabilityVerdict): string {
       return "Prix relevé pour d’autres dates";
     case "stale":
       return "Prix relevé il y a plus de six heures";
+    case "undated":
+      return "Prix de relevé, date de mesure inconnue";
     default:
       return verdict.status === "confirmed" ? "Prix relevé pour ces dates" : "Non jugée";
   }

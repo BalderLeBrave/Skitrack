@@ -277,12 +277,23 @@ export function fitsParty(
   return v === "convient" || (v === "non-annonce" && includeNonAnnonce);
 }
 
-/** Pourquoi une annonce a été écartée. Un motif, celui qui a tranché en premier. */
+/**
+ * Pourquoi une annonce a été écartée. Un motif, celui qui a tranché en premier.
+ *
+ * `capacite` et `capacite-muette` sont deux motifs parce que ce sont deux
+ * faits : l'un dit que l'annonce est **démontrablement** trop petite, l'autre
+ * que la source **n'a rien publié**. `partyVerdict` les distinguait déjà, et
+ * `dropReasonFor` les refondait aussitôt en un seul, si bien que l'écran
+ * annonçait « 25 biens masqués : trop petits » pour des annonces dont personne
+ * ne connaissait la taille. C'est la règle 1 du fichier, appliquée jusqu'au
+ * libellé : « non annoncé » n'est pas « ne convient pas ».
+ */
 export type DropReason =
   | "groupe"
   | "autre-domaine"
   | "hors-zone"
   | "capacite"
+  | "capacite-muette"
   | "prix"
   | "source"
   | "disponibilite";
@@ -337,7 +348,10 @@ export function dropReasonFor(listing: FilterSubject, criteria: FilterCriteria):
 
   if (criteria.srcOff?.includes(listing.source ?? "")) return "source";
 
-  if (!fitsParty(listing, criteria, criteria.includeUnannounced === true)) return "capacite";
+  // Un refus l'emporte sur une absence, et les deux se disent séparément.
+  const party = partyVerdict(listing, criteria);
+  if (party === "trop-petit") return "capacite";
+  if (party === "non-annonce" && criteria.includeUnannounced !== true) return "capacite-muette";
 
   // Règle 2 : l'absence de tarif dispense des filtres de prix, pas des autres.
   // Une carte sans prix n'a rien à comparer, et un zéro n'est pas un prix.
@@ -371,6 +385,7 @@ export function applyFilter<T extends FilterSubject>(
     "autre-domaine": 0,
     "hors-zone": 0,
     capacite: 0,
+    "capacite-muette": 0,
     prix: 0,
     source: 0,
     disponibilite: 0,
@@ -393,6 +408,8 @@ const REASON_LABEL: Record<DropReason, [string, string]> = {
   "autre-domaine": ["sur un autre domaine", "sur d’autres domaines"],
   "hors-zone": ["hors de la zone", "hors de la zone"],
   capacite: ["trop petit", "trop petits"],
+  // Ni « trop petit » ni « convient » : la source s'est tue, et on le dit.
+  "capacite-muette": ["sans capacité annoncée", "sans capacité annoncée"],
   prix: ["hors budget", "hors budget"],
   source: ["source décochée", "sources décochées"],
   disponibilite: ["sans prix à ces dates", "sans prix à ces dates"],

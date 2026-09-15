@@ -6,6 +6,7 @@ import type { LiveSearchResult, SourceName } from "./scrape/types";
 import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
 import { enrichirListing } from "./stay/enrichir";
+import { estFicheGitesIntrouvable } from "./stay/ficheGites";
 import { purgerTarifFigé } from "./stay/tarif";
 
 const Input = z.object({
@@ -206,5 +207,8 @@ async function completer(
     if (!estTimeout(err)) throw err;
     console.warn("[searchStay] complément de fiches : délai dépassé, on rend ce qui est lu");
   }
-  return poserAcces(rows, stationId);
+  return poserAcces(
+    rows.filter((l) => !estFicheGitesIntrouvable(l)),
+    stationId,
+  );
 }

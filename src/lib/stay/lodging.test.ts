@@ -250,7 +250,14 @@ describe("filtre : « non annoncé » n'est pas « ne convient pas »", () => {
         url: "https://www.gites-de-france.com/fr/chambre-d-hotes-du-col",
       }),
     );
-    // « Copains comme Cochons », 14 personnes, reste un gîte ordinaire.
+    // « Chalet les Copains », 14 personnes, reste un gîte ordinaire.
+    assert.ok(
+      !isDroppedGitesOffer({
+        source: "Gîtes de France",
+        title: "Chalet les Copains",
+        url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122",
+      }),
+    );
     assert.ok(
       !isDroppedGitesOffer({
         source: "Gîtes de France",

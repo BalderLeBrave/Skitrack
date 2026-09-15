@@ -19,13 +19,47 @@ export function titreEstFichier(t: string | null | undefined): boolean {
   return false;
 }
 
+const ENTITES: Record<string, string> = {
+  nbsp: " ",
+  deg: "°",
+  amp: "&",
+  quot: '"',
+  apos: "'",
+  lt: "<",
+  gt: ">",
+  eacute: "é",
+  Eacute: "É",
+  egrave: "è",
+  Egrave: "È",
+  ecirc: "ê",
+  Ecirc: "Ê",
+  euml: "ë",
+  agrave: "à",
+  Agrave: "À",
+  acirc: "â",
+  auml: "ä",
+  icirc: "î",
+  iuml: "ï",
+  ocirc: "ô",
+  ouml: "ö",
+  ugrave: "ù",
+  ucirc: "û",
+  uuml: "ü",
+  ccedil: "ç",
+  Ccedil: "Ç",
+  oelig: "œ",
+  aelig: "æ",
+  ndash: "–",
+  mdash: "—",
+  reg: "®",
+  copy: "©",
+};
+
 function decoder(s: string): string {
   return s
-    .replace(/&nbsp;|&#160;/gi, " ")
-    .replace(/&deg;|&#176;/gi, "°")
-    .replace(/&/gi, "&")
-    .replace(/"/gi, '"')
+    .replace(/&([A-Za-z]+);/g, (brut, nom: string) => ENTITES[nom] ?? brut)
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(Number.parseInt(h, 16)))
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .replace(/^-->/, "")

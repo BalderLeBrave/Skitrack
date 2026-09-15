@@ -386,11 +386,12 @@ export function conserverDevisGites<
     source: Listing["source"] | string;
     id: string;
     url?: string | null;
+    title?: string;
     total: number;
     proven: string;
   },
 >(dump: T[], rows: T[]): T[] {
-  const dumpG = dump.filter((l) => l.source === "Gîtes de France");
+  const dumpG = dump.filter((l) => l.source === "Gîtes de France" && !/fiche introuvable/i.test(l.proven));
   const liveG = rows.filter((l) => l.source === "Gîtes de France");
   if (dumpG.length === 0 || liveG.length === 0) return rows;
   const map = new Map<string, T>();
@@ -404,7 +405,13 @@ export function conserverDevisGites<
     }
     const liveDevis = l.total > 0 && estDevisGitesLive(l.proven);
     const prevDevis = prev.total > 0 && estDevisGitesLive(prev.proven);
-    if (liveDevis || (l.total > 0 && !prevDevis)) map.set(k, l);
+    const url = l.url && /gites-de-france\.com/i.test(l.url) ? l.url : prev.url;
+    const title = l.title && l.title.trim().length >= 4 ? l.title : prev.title;
+    if (liveDevis || (l.total > 0 && !prevDevis)) {
+      map.set(k, { ...l, url: url ?? l.url, title: title ?? l.title });
+    } else {
+      map.set(k, { ...prev, url: url ?? prev.url, title: title ?? prev.title });
+    }
   }
   return [...rows.filter((l) => l.source !== "Gîtes de France"), ...map.values()];
 }

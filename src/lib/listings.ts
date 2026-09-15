@@ -388,7 +388,7 @@ export const RELEVE_2A: Listing[] = [
   {
     id: "38G253122",
     stationId: "les-2-alpes",
-    title: "Gîte Copains comme Cochons",
+    title: "Chalet les Copains",
     source: "Gîtes de France",
     total: 4261.52,
     currency: "EUR",
@@ -396,7 +396,7 @@ export const RELEVE_2A: Listing[] = [
     bedrooms: 7,
     available: true,
     photo: "https://widget-fngf.itea.fr/photos/gites38/G/photo33/253122.jpg",
-    url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/copains-comme-cochons-38g253122",
+    url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/chalet-les-copains-38g253122",
     lat: null,
     lon: null,
     proven: "Devis ITEA 2026-09-03, dates 2027-02-06/13, 8 pers. Pas 1 330 €.",

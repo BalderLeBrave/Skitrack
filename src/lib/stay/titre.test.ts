@@ -34,4 +34,10 @@ describe("titre d'annonce, pas nom de fichier", () => {
     assert.equal(titrePublie("<!-- --><a>CHALET NEVE Chalet 8 personnes</a>"), "CHALET NEVE Chalet 8 personnes");
     assert.equal(titrePublie("_clients_223886005_photos_86a_5156059"), null);
   });
+
+  it("décode les entités HTML du nom publié", () => {
+    assert.equal(titrePublie("Chalet Centaur&eacute;e (ou Chalet Sabot de V&eacute;nus)"), "Chalet Centaurée (ou Chalet Sabot de Vénus)");
+    assert.equal(titrePublie("La P&acirc;ture"), "La Pâture");
+    assert.equal(titrePublie("G&icirc;tes de France&reg;"), "Gîtes de France®");
+  });
 });

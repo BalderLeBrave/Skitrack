@@ -54,6 +54,7 @@ import { useStay } from "@/lib/stay";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites } from "@/lib/stay/tarif";
+import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
@@ -416,7 +417,7 @@ function LogementsStation({ s }: { s: Station }) {
       rows = [...dump.filter((l) => !reported.has(l.source)), ...liveListings];
       if (reported.has("Gîtes de France")) rows = conserverDevisGites(dump, rows);
     }
-    return rows.map(enrichirListing);
+    return rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l));
   }, [liveListings, liveSources, frozen, dumpGps]);
 
   const [lf, setLf] = useState<LF>(LF0);

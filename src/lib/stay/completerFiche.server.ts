@@ -22,6 +22,13 @@ import {
 import { lectureFiche, type LectureFiche } from "./lectureFiche.ts";
 import { poserReleve } from "./poserReleve.ts";
 import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
+import {
+  estPageGitesIntrouvable,
+  marquerFicheIntrouvable,
+  slugGites,
+  slugUrlGites,
+  urlGitesDepuisNom,
+} from "./ficheGites.ts";
 
 const MAX_FICHES = 160;
 const WORKERS = 10;
@@ -147,7 +154,8 @@ export function poserLecture(row: Listing, lect: LectureFiche, tag = "fiche"): b
   }
   if (lect.title && !titreEstFichier(lect.title)) {
     const slug = titreDepuisUrl(row.url);
-    if (titreEstFichier(row.title) || (slug != null && row.title === slug)) {
+    const gitesRenomme = row.source === "Gîtes de France" && row.title !== lect.title;
+    if (titreEstFichier(row.title) || (slug != null && row.title === slug) || gitesRenomme) {
       row.title = lect.title;
       changed = true;
     }
@@ -394,7 +402,8 @@ async function fillAirbnbSeq(targets: Listing[], until: number): Promise<number>
 
 /**
  * Remplit capacité, chambres et GPS encore vides, via la page de fiche que
- * l'annonce porte déjà. Les totaux et titres restent ceux du relevé.
+ * l'annonce porte déjà. Pour Gîtes, on aligne aussi le nom et l'URL
+ * publics : un ancien slug n'est plus la fiche.
  *
  * `budgetMs` borne le réseau : un délai épuisé n'efface pas ce que le relevé
  * ou le cache ont déjà posé.
@@ -402,12 +411,14 @@ async function fillAirbnbSeq(targets: Listing[], until: number): Promise<number>
 export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Promise<number> {
   let filled = poserReleve(listings, RELEVE_2A);
   const until = Date.now() + Math.max(0, budgetMs);
-  const need = listings
-    .filter((l) => trouee(l) && ficheUrlOf(l))
-    .sort((a, b) => trousN(b) - trousN(a));
+  const trous = listings.filter((l) => trouee(l) && ficheUrlOf(l));
+  const gites = listings.filter((l) => l.source === "Gîtes de France" && ficheUrlOf(l));
+  const seen = new Set(trous);
+  const need = [...trous, ...gites.filter((l) => !seen.has(l))].sort((a, b) => trousN(b) - trousN(a));
   if (need.length === 0) {
     if (filled) console.info(`[fiche] ${filled} du relevé`);
     filled += await fillAdresses(listings, until);
+    await verifierFichesGites(listings, until);
     return filled;
   }
 
@@ -439,5 +450,63 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
     console.info(`[fiche] ${filled}/${need.length} · ${cached} cache`);
   }
   filled += await fillAdresses(listings, until);
+  await verifierFichesGites(listings, until);
   return filled;
+}
+
+/**
+ * Une URL publique en 404 n'est pas un gîte. Cloudflare n'en est pas la preuve.
+ * On ne retire que ce que la page dit introuvable.
+ */
+function gitesAVerifier(l: Listing): boolean {
+  if (l.source !== "Gîtes de France" || !l.url || !/gites-de-france\.com/i.test(l.url)) return false;
+  const a = slugUrlGites(l.url);
+  const b = slugGites(l.title);
+  return Boolean(a && b && a !== b);
+}
+
+async function verifierFichesGites(listings: Listing[], until: number): Promise<void> {
+  const cibles = listings.filter(gitesAVerifier);
+  if (cibles.length === 0 || Date.now() >= until) return;
+  try {
+    const { withBrowser } = await import("../scrape/browser.server.ts");
+    await withBrowser(async (open) => {
+      const page = await open();
+      for (const row of cibles) {
+        if (Date.now() >= until) return;
+        const url = row.url;
+        if (!url) continue;
+        try {
+          const res = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 12_000 });
+          const status = res?.status() ?? 0;
+          const html = await page.content();
+          if (estPageGitesIntrouvable(html, status)) {
+            const next = row.title ? urlGitesDepuisNom(url, row.title) : null;
+            if (next && next !== url) {
+              const res2 = await page.goto(next, { waitUntil: "domcontentloaded", timeout: 12_000 });
+              const html2 = await page.content();
+              const st2 = res2?.status() ?? 0;
+              if (!estPageGitesIntrouvable(html2, st2)) {
+                row.url = next;
+                if (!/fiche/.test(row.proven)) row.proven = `${row.proven} · fiche`;
+                if (st2 === 200) poserLecture(row, lectureFiche(html2));
+                continue;
+              }
+            }
+            const marked = marquerFicheIntrouvable(row);
+            row.proven = marked.proven;
+            continue;
+          }
+          if (status === 200) {
+            const lect = lectureFiche(html);
+            poserLecture(row, lect);
+          }
+        } catch {
+          /* réseau : on garde l'URL alignée, on ne déclare pas l'absence */
+        }
+      }
+    });
+  } catch {
+    /* navigateur injoignable : l'alignement widget reste */
+  }
 }

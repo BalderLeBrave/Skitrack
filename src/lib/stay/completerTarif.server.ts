@@ -1,17 +1,20 @@
 /**
- * Seconde passe hors collecteur : le panier de la centrale publie le loyer
- * et la taxe de séjour. On les lit, on les additionne. Sans ce relevé, le
- * total reste le loyer, marqué hors frais.
+ * Seconde passe hors collecteur : le panier de la centrale publie le total
+ * payé (loyer + taxe), via `calculerTotalPrestationAjax`. Sans ce relevé,
+ * le loyer de la tuile reste.
  */
 
 import type { Listing } from "../listings.ts";
 import { cidDepuisPage, dateIngenie, nuitsEntre, urlIngenie } from "../scrape/centrales/moteurs/ingenie.ts";
 import {
+  champsRecap,
   cidDepuisUrl,
   moteurIngenie,
+  poserPanier,
   poserRecap,
   prestationIngenie,
   tarifRecap,
+  totalPanierJson,
 } from "./tarif.ts";
 
 const UA =
@@ -25,6 +28,7 @@ export type StayTarif = { checkIn: string; checkOut: string; guests: number };
 type Session = { cookie: string; cid: string };
 
 const recapCache = new Map<string, { at: number; html: string }>();
+const totalCache = new Map<string, { at: number; json: string }>();
 const cidCache = new Map<string, { at: number; cid: string | null }>();
 
 function originOf(url: string): string | null {
@@ -106,31 +110,58 @@ async function recapDe(
   prestation: string,
   stay: StayTarif,
   until: number,
-): Promise<string> {
+): Promise<{ html: string; cookie: string }> {
   const debut = stay.checkIn.replace(/-/g, "");
   const fin = stay.checkOut.replace(/-/g, "");
   const key = `${origin}|${prestation}|${debut}|${fin}|${stay.guests}`;
   const hit = recapCache.get(key);
-  if (hit && Date.now() - hit.at < HIT_MS) return hit.html;
+  if (hit && Date.now() - hit.at < HIT_MS) return { html: hit.html, cookie: sess.cookie };
   const u = new URL(`${origin}/booking`);
   u.searchParams.set("action", "detailTarifsPrestationAjax");
   u.searchParams.set("cid", sess.cid);
   u.searchParams.set("prestation", prestation);
   u.searchParams.set("new_dateDebut", debut);
   u.searchParams.set("new_dateFin", fin);
-  const { html } = await fetchTexte(u.toString(), sess.cookie, until);
+  const { html, cookie } = await fetchTexte(u.toString(), sess.cookie, until);
   if (html.length > 200) recapCache.set(key, { at: Date.now(), html });
+  return { html, cookie: cookie || sess.cookie };
+}
+
+async function totalDe(
+  origin: string,
+  sess: Session,
+  champs: URLSearchParams,
+  stay: StayTarif,
+  prestation: string,
+  until: number,
+): Promise<string> {
+  const debut = stay.checkIn.replace(/-/g, "");
+  const fin = stay.checkOut.replace(/-/g, "");
+  const key = `${origin}|${prestation}|${debut}|${fin}|${stay.guests}|total`;
+  const hit = totalCache.get(key);
+  if (hit && Date.now() - hit.at < HIT_MS) return hit.json;
+  const u = new URL(`${origin}/booking`);
+  u.searchParams.set("action", "calculerTotalPrestationAjax");
+  u.searchParams.set("cid", sess.cid);
+  for (const [k, v] of champs) {
+    if (k === "action" || k === "cid") continue;
+    u.searchParams.append(k, v);
+  }
+  const { html } = await fetchTexte(u.toString(), sess.cookie, until);
+  if (html.length > 20) totalCache.set(key, { at: Date.now(), json: html });
   return html;
 }
 
 /**
- * Pour chaque loyer de centrale, lit le panier daté et y ajoute la taxe
- * de séjour publiée. Un échec laisse le loyer, hors frais.
+ * Pour chaque loyer de centrale, lit le total du panier (loyer + taxe).
+ * Une taxe en pourcentage n'est pas multipliée ici : le panier publie le total.
  */
 export async function fillTarifs(listings: Listing[], stay: StayTarif, budgetMs: number): Promise<number> {
   if (!(nuitsEntre(stay.checkIn, stay.checkOut) > 0)) return 0;
   const until = Date.now() + Math.max(0, budgetMs);
-  const cibles = listings.filter((l) => l.source === "Centrale" && l.total > 0 && l.url && !/taxe de s[ée]jour/i.test(l.proven));
+  const cibles = listings.filter(
+    (l) => l.source === "Centrale" && l.total > 0 && l.url && !/panier|taxe de s[ée]jour/i.test(l.proven),
+  );
   if (cibles.length === 0 || Date.now() >= until) return 0;
 
   const parOrigine = new Map<string, Listing[]>();
@@ -168,7 +199,22 @@ export async function fillTarifs(listings: Listing[], stay: StayTarif, budgetMs:
             }
           }
           if (!prestation) continue;
-          const html = await recapDe(origin, sess, prestation, stay, until);
+          const recapHtml = await recapDe(origin, sess, prestation, stay, until);
+          if (recapHtml.cookie) sess.cookie = recapHtml.cookie;
+          const html = recapHtml.html;
+          if (!html || html.length < 200) continue;
+          const champs = champsRecap(html, stay.guests);
+          const json = await totalDe(origin, sess, champs, stay, prestation, until);
+          const panier = totalPanierJson(json);
+          if (panier != null && panier > 0) {
+            const next = poserPanier(row, panier);
+            row.total = next.total;
+            row.proven = next.proven;
+            row.priceLabel = next.priceLabel;
+            row.scannedAt = next.scannedAt;
+            n += 1;
+            continue;
+          }
           const recap = tarifRecap(html);
           if (!recap || !(recap.taxeSejour > 0)) continue;
           const next = poserRecap(row, recap);
@@ -180,6 +226,6 @@ export async function fillTarifs(listings: Listing[], stay: StayTarif, budgetMs:
       }),
     );
   }
-  if (n) console.info(`[tarif] ${n} totaux avec taxe de séjour (${dateIngenie(stay.checkIn)})`);
+  if (n) console.info(`[tarif] ${n} totaux de panier (${dateIngenie(stay.checkIn)})`);
   return n;
 }

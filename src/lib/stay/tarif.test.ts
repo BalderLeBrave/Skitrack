@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  champsRecap,
   devisItea,
   estDevisGitesLive,
   eurosItea,
@@ -9,11 +10,13 @@ import {
   horsFraisSejour,
   moteurIngenie,
   poserDevis,
+  poserPanier,
   poserRecap,
   prestationIngenie,
   purgerTarifFigé,
   tarifRecap,
   taxeSejourSomme,
+  totalPanierJson,
   conserverDevisGites,
 } from "./tarif.ts";
 
@@ -37,12 +40,26 @@ describe("tarif : loyer, frais, devis live", () => {
     assert.equal(live.total, 1551.44);
   });
 
+  it("un pourcentage n'est pas un montant en euros", () => {
+    assert.equal(eurosPublie("5.5 %"), null);
+    assert.equal(eurosPublie("5.5&nbsp; %"), null);
+    assert.equal(eurosPublie("5,5 %"), null);
+    assert.equal(eurosPublie("N/A"), null);
+    assert.equal(eurosPublie("3 190 €"), 3190);
+    assert.equal(eurosPublie("3\u202f365,28\u00a0€"), 3365.28);
+    assert.equal(eurosPublie("4\u202f209,52\u00a0€"), 4209.52);
+  });
+
   it("un loyer de centrale n'inclut pas les frais de séjour", () => {
     assert.equal(horsFraisSejour({ source: "Centrale", total: 3500 }), true);
     assert.equal(horsFraisSejour({ source: "Airbnb", total: 3500 }), false);
     assert.equal(horsFraisSejour({ source: "Centrale", total: 0 }), false);
     assert.equal(
       horsFraisSejour({ source: "Centrale", total: 3660.16, proven: "loyer · taxe de séjour 160.16 €" }),
+      false,
+    );
+    assert.equal(
+      horsFraisSejour({ source: "Centrale", total: 3365.28, proven: "Ingénie · panier" }),
       false,
     );
   });
@@ -205,5 +222,68 @@ describe("devis ITEA : total publié aux dates", () => {
     assert.equal(cit?.total, 727.44);
     assert.equal(out.some((l) => l.id === "38G99999"), true);
     assert.equal(out.some((l) => l.id === "ab"), true);
+  });
+});
+
+const EDELWEISS_RECAP = `<form id="frm-tarifs-G-5659687-5660360-1"><input type="hidden" name="cid" value="5" /><input type="hidden" name="prestation" value="G-5659687-5660360" /><input type="hidden" name="num_personne" value="1" /><input type="hidden" name="theme" value="HIVER" /><input type="hidden" name="new_dateDebut" value="20270206" /><input type="hidden" name="new_dateFin" value="20270213" /><input type='hidden' name='stock_lies_nb' value='0' /><tr class="ligne_tarif_formule ligne_tarif_formule_FB"><td class="libelle_formule">Location semaine</td><td class="quantite_formule"><input type="hidden" name="formules[]" id="formule-Location" value="Location" /><input type="hidden" name="nb_personnes_Location" value="1" /><input type="checkbox" id="formule-checked-Location" name="formule-checked-Location" checked="checked" disabled="disabled" /></td><td class="prix_formule">3 990 €</td></tr><tr class="ligne_tarif_formule ligne_tarif_formule_QU"><td class="libelle_formule">Taxe de séjour: Indiquez le nombre de personnes de + 18 ans</td><td class="quantite_formule"><input type="hidden" name="formules[]" id="formule-MTAXENC" value="MTAXENC" /><select name="nb_personnes_MTAXENC" id="nb_personnes_MTAXENC"><option value="1">1</option><option value="8"  selected="selected" >8</option></select></td><td class="prix_formule">5.5&nbsp; %</td></tr><tr class="ligne_total_prestation"><td class="label_total_prestation">TOTAL : </td><td class="total_prestation"><span>N/A</span></td></tr></form>`;
+
+describe("panier Ingénie : total publié, taxe en pourcentage comprise", () => {
+  it("ne prend pas 5,5 % pour une taxe en euros, et n'invente pas le total", () => {
+    const recap = tarifRecap(EDELWEISS_RECAP);
+    assert.equal(recap?.loyer, 3990);
+    assert.equal(recap?.taxeSejour, 0);
+    assert.equal(recap?.total, 3990);
+    assert.notEqual(recap?.total, 3365.28);
+    assert.notEqual(Math.round(3190 * 1.055 * 100) / 100, recap?.total);
+  });
+
+  it("lit le total du JSON de panier, y compris 3 365,28 € et 4 209,52 €", () => {
+    assert.equal(
+      totalPanierJson('{"success":1,"data":{"total":"4\\u202f209,52\\u00a0€"}}'),
+      4209.52,
+    );
+    assert.equal(
+      totalPanierJson('{"success":1,"data":{"total":"3\\u202f365,28\\u00a0€"}}'),
+      3365.28,
+    );
+    assert.equal(totalPanierJson('{"success":1,"data":{"total":"3 365,28 €"}}'), 3365.28);
+    assert.equal(totalPanierJson('{"success":0,"data":{"total":"3 365,28 €"}}'), null);
+    assert.equal(totalPanierJson('{"success":1,"data":{"total":"5.5 %"}}'), null);
+    assert.equal(totalPanierJson("pas du json"), null);
+  });
+
+  it("sérialise le recap : Location + taxe MTAXENC à 8 personnes, y compris les attributs simples", () => {
+    const p = champsRecap(EDELWEISS_RECAP, 8);
+    assert.equal(p.get("cid"), "5");
+    assert.equal(p.get("prestation"), "G-5659687-5660360");
+    assert.equal(p.get("stock_lies_nb"), "0");
+    assert.deepEqual(p.getAll("formules[]"), ["Location", "MTAXENC"]);
+    assert.equal(p.get("nb_personnes_Location"), "1");
+    assert.equal(p.get("nb_personnes_MTAXENC"), "8");
+    assert.equal(p.has("formule-checked-Location"), false);
+  });
+
+  it("pose le total du panier à la place du seul loyer", () => {
+    const pose = poserPanier(
+      {
+        source: "Centrale" as const,
+        total: 3190,
+        proven: "Ingénie",
+        priceLabel: null as string | null,
+        scannedAt: null as number | null,
+      },
+      3365.28,
+      1_700_000_000_000,
+    );
+    assert.equal(pose.total, 3365.28);
+    assert.match(pose.proven, /panier/);
+    assert.equal(horsFraisSejour(pose), false);
+    assert.equal(pose.priceLabel, "loyer et taxe de séjour");
+    assert.equal(pose.scannedAt, 1_700_000_000_000);
+    const inchangé = poserPanier(
+      { source: "Airbnb" as const, total: 3190, proven: "live" },
+      3365.28,
+    );
+    assert.equal(inchangé.total, 3190);
   });
 });

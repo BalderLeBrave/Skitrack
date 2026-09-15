@@ -160,7 +160,6 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
     );
     assert.equal(l.priceIndicative, null);
     assert.equal(l.total, 2855);
-    assert.equal(l.priceLabel, "loyer, hors frais de séjour");
   });
 
   it("un total déjà augmenté de la taxe n'est plus hors frais", () => {

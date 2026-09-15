@@ -10,7 +10,7 @@
 import type { Listing } from "../listings.ts";
 import { galerieOf } from "./completude.ts";
 import { occupancyOfListing } from "./occupancy.ts";
-import { horsFraisSejour, purgerTarifFigé } from "./tarif.ts";
+import { purgerTarifFigé } from "./tarif.ts";
 import { titreDepuisUrl, titreEstFichier } from "./titre.ts";
 
 const HOSTING = /Hosting-([A-Za-z0-9_%=+-]+)/i;
@@ -72,12 +72,6 @@ export function enrichirListing(l: Listing): Listing {
   // total payé : la taxe de séjour s'ajoute au paiement. L'étiquette
   // « à partir de » du gabarit n'en fait pas un tarif d'appel.
   const priceIndicative = l.source === "Centrale" && l.total > 0 ? null : (l.priceIndicative ?? null);
-  const hors = horsFraisSejour({ source: l.source, total: l.total, proven: l.proven, priceLabel: l.priceLabel });
-  const priceLabel = hors
-    ? !l.priceLabel || /partir de/i.test(l.priceLabel)
-      ? "loyer, hors frais de séjour"
-      : l.priceLabel
-    : (l.priceLabel ?? null);
   const next = {
     ...l,
     title,
@@ -86,7 +80,6 @@ export function enrichirListing(l: Listing): Listing {
     url,
     platformId,
     priceIndicative,
-    priceLabel,
   };
   return purgerTarifFigé(next);
 }

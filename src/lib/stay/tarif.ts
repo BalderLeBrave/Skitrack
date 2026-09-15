@@ -1,17 +1,15 @@
 /**
  * Ce que le montant affiché couvre, et ce qu'il ne couvre pas.
  *
- * Un loyer de centrale n'inclut pas la taxe de séjour : 3 500 € sur la
- * tuile, 3 660,16 € au paiement (3 500 + 160,16). Le panier de la
- * centrale publie les deux sommes ; on les additionne. Sans ce relevé,
- * on dit l'écart : « hors frais de séjour ». On n'invente pas un
- * 2,60 × personnes × nuits.
+ * Un loyer de centrale n'est pas le total payé. Le panier publie le
+ * total (`calculerTotalPrestationAjax`) : loyer + taxe, que la taxe
+ * soit une somme ou un pourcentage. On pose ce total, on n'applique
+ * pas nous-mêmes 5,5 %. Sans ce relevé, le loyer de la tuile reste.
  *
  * Un prix Gîtes issu du relevé figé n'est pas un devis à ces dates. Le
  * widget ITEA, lui, publie un total daté : loyer + taxe de séjour
  * (`sp_montantPrixTotal`). Sans ce devis live, le montant n'est pas
- * publié, et la disponibilité n'est pas confirmée. Un « à partir de »
- * par semaine n'est pas ce total.
+ * publié. Un « à partir de » par semaine n'est pas ce total.
  */
 
 import type { Listing } from "../listings.ts";
@@ -28,7 +26,7 @@ export function horsFraisSejour(l: {
   priceLabel?: string | null;
 }): boolean {
   if (l.source !== "Centrale" || !(l.total > 0)) return false;
-  if (l.proven && /taxe de s[ée]jour/i.test(l.proven)) return false;
+  if (l.proven && /panier|taxe de s[ée]jour/i.test(l.proven)) return false;
   if (l.priceLabel && /taxe de s[ée]jour/i.test(l.priceLabel)) return false;
   return true;
 }
@@ -190,6 +188,80 @@ export function poserRecap<
     total: recap.total,
     proven,
     priceLabel: "loyer et taxe de séjour",
+  };
+}
+
+/** Attribut HTML, guillemets doubles ou simples. */
+function attrOf(tag: string, name: string): string | undefined {
+  const m = new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag);
+  if (!m) return undefined;
+  return m[1] ?? m[2] ?? "";
+}
+
+/** Champs du formulaire de recap, pour `calculerTotalPrestationAjax`. */
+export function champsRecap(html: string, guests: number): URLSearchParams {
+  const p = new URLSearchParams();
+  if (!html) return p;
+  const input = /<input\b[^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = input.exec(html))) {
+    const tag = m[0];
+    const name = attrOf(tag, "name");
+    if (!name) continue;
+    const type = (attrOf(tag, "type") ?? "text").toLowerCase();
+    const value = attrOf(tag, "value") ?? "";
+    const disabled = /\bdisabled\b/i.test(tag);
+    if (type === "hidden") p.append(name, value);
+    else if (type === "checkbox" && /\bchecked\b/i.test(tag) && !disabled) p.append(name, value || "on");
+  }
+  const select = /<select\b([^>]*)>([\s\S]*?)<\/select>/gi;
+  while ((m = select.exec(html))) {
+    const name = attrOf(m[1] ?? "", "name") ?? "";
+    const corps = m[2] ?? "";
+    const sel =
+      /<option[^>]*value="([^"]*)"[^>]*\bselected\b/i.exec(corps)?.[1] ??
+      /<option[^>]*\bselected\b[^>]*value="([^"]*)"/i.exec(corps)?.[1] ??
+      /<option[^>]*value='([^']*)'[^>]*\bselected\b/i.exec(corps)?.[1] ??
+      "";
+    const val = /nb_personnes_MTAXE/i.test(name) && guests > 0 ? String(guests) : sel;
+    if (name) p.set(name, val);
+  }
+  return p;
+}
+
+/** Total publié par `calculerTotalPrestationAjax` (`data.total`). */
+export function totalPanierJson(raw: string): number | null {
+  if (!raw) return null;
+  try {
+    const j = JSON.parse(raw) as { success?: unknown; data?: { total?: unknown } };
+    if (j.success !== 1 && j.success !== true) return null;
+    const t = j.data?.total;
+    if (typeof t !== "string" && typeof t !== "number") return null;
+    return typeof t === "number" ? (t > 0 && t <= 200_000 ? Math.round(t * 100) / 100 : null) : eurosPublie(t) ?? eurosItea(t);
+  } catch {
+    return null;
+  }
+}
+
+/** Pose le total du panier, tel que la centrale le calcule. */
+export function poserPanier<
+  T extends {
+    source: Listing["source"];
+    total: number;
+    proven: string;
+    priceLabel?: string | null;
+    scannedAt?: number | null;
+  },
+>(l: T, total: number, scannedAt = Date.now()): T {
+  if (l.source !== "Centrale") return l;
+  if (!(total > 0)) return l;
+  const proven = /panier/i.test(l.proven) ? l.proven : `${l.proven} · panier`;
+  return {
+    ...l,
+    total,
+    proven,
+    scannedAt,
+    priceLabel: l.priceLabel && /taxe de s[ée]jour/i.test(l.priceLabel) ? l.priceLabel : "loyer et taxe de séjour",
   };
 }
 

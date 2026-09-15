@@ -16,7 +16,6 @@ import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
 import { SKIINFO } from "./skiinfo.ts";
 import type { Station } from "./stations.ts";
 import { availabilityOf, type Stay } from "./stay/availability.ts";
-import { horsFraisSejour } from "./stay/tarif.ts";
 
 /* ---------- Station ---------- */
 
@@ -143,11 +142,10 @@ export function bedLbl(l: Listing): string {
   return `${l.bedrooms} ch.`;
 }
 
-/** Un total à 0 n'est pas un prix : c'est « non publié ». Un loyer de centrale n'inclut pas les frais de séjour. */
+/** Un total à 0 n'est pas un prix : c'est « non publié ». Rien d'autre que le montant. */
 export function prixLbl(l: Listing): string {
   if (!(l.total > 0)) return "prix non publié";
-  const euros = eurCents(l.total) ?? "prix non publié";
-  return horsFraisSejour(l) ? `${euros} hors frais de séjour` : euros;
+  return eurCents(l.total) ?? "prix non publié";
 }
 
 /** Par personne, seulement quand un total a été publié. */

@@ -48,18 +48,12 @@ import {
   useParcours,
   useSejour,
 } from "@/lib/parcours";
-import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS } from "@/lib/searchStay";
+import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS, TARIF_MS } from "@/lib/searchStay";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
-import { horsFraisSejour, conserverDevisGites } from "@/lib/stay/tarif";
-import {
-  colonnesPlateforme,
-  CRITERES_PLATEFORME,
-  valeurGagne,
-  voirAnnoncesLbl,
-} from "@/lib/stay/plateformes";
+import { conserverDevisGites } from "@/lib/stay/tarif";
 import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
@@ -152,7 +146,12 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       if (!cancelled && pending <= 0) setSearching(false);
     };
     const run = (part: "airbnb" | "gites" | "cozy" | "centrales") => {
-      const wait = part === "gites" ? SEARCH_PART_MS + DEVIS_MS + 6_000 : SEARCH_PART_MS + 6_000;
+      const wait =
+        part === "gites"
+          ? SEARCH_PART_MS + DEVIS_MS + 6_000
+          : part === "centrales"
+            ? SEARCH_PART_MS + TARIF_MS + 6_000
+            : SEARCH_PART_MS + 6_000;
       void withDeadline(searchStay({ data: { ...payload, part } }), wait, part)
         .then((res) => {
           if (cancelled) return;
@@ -432,7 +431,6 @@ function LogementsStation({ s }: { s: Station }) {
   const [bornes, setBornes] = useState<Bornes | null>(null);
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
-  const [pickSrc, setPickSrc] = useState<string | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
   // Le budget du séjour : critère partagé, pas un réglage de cet écran.
   const budget = P.filters.budget;
@@ -444,14 +442,6 @@ function LogementsStation({ s }: { s: Station }) {
   };
 
   const stay = useMemo(() => ({ checkIn, checkOut }), [checkIn, checkOut]);
-  const colonnes = useMemo(
-    () => colonnesPlateforme(raw, stay, liveSources),
-    [raw, stay, liveSources],
-  );
-  const pickPlateforme = colonnes.some((c) => c.source === pickSrc)
-    ? pickSrc
-    : (colonnes[0]?.source ?? null);
-
   useEffect(() => {
     setPhotoI(0);
   }, [sheetId]);
@@ -709,7 +699,7 @@ function LogementsStation({ s }: { s: Station }) {
   );
 
   const lead = raw.length
-    ? `${raw.length} annonce${raw.length > 1 ? "s" : ""} · ${nCompletes} fiche${nCompletes > 1 ? "s" : ""} complète${nCompletes > 1 ? "s" : ""}${nIncompletes ? ` · ${nIncompletes} incomplète${nIncompletes > 1 ? "s" : ""}${trous ? ` (${trous})` : ""}` : ""}. Un loyer de centrale sans taxe relevée n'est pas le total payé. Un 0 € n'est pas un prix.${searching ? " Relevé en direct en cours…" : ""}`
+    ? `${raw.length} annonce${raw.length > 1 ? "s" : ""} · ${nCompletes} fiche${nCompletes > 1 ? "s" : ""} complète${nCompletes > 1 ? "s" : ""}${nIncompletes ? ` · ${nIncompletes} incomplète${nIncompletes > 1 ? "s" : ""}${trous ? ` (${trous})` : ""}` : ""}. Un « à partir de » n'est pas un total, un 0 € n'est pas un prix.${searching ? " Relevé en direct en cours…" : ""}`
     : searching
       ? "Relevé en direct en cours…"
       : "Aucun relevé pour cette station.";
@@ -770,80 +760,6 @@ function LogementsStation({ s }: { s: Station }) {
             ← Fiche station
           </a>
         </section>
-
-        {colonnes.length ? (
-          <section className="cmp7" aria-label="Comparer les plateformes de réservation">
-            <div className="cmp7__defil">
-              <table className="cmp7__table">
-                <thead>
-                  <tr>
-                    <th className="cmp7__critere-tete">Critère</th>
-                    {colonnes.map((c) => (
-                      <th
-                        key={c.source}
-                        className={`cmp7__col${c.source === pickPlateforme ? " cmp7__col--pick" : ""}`}
-                      >
-                        <label className="cmp7__pick">
-                          <input
-                            type="radio"
-                            name="pick-plateforme"
-                            checked={c.source === pickPlateforme}
-                            onChange={() => setPickSrc(c.source)}
-                          />
-                          <span>{c.source}</span>
-                        </label>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {CRITERES_PLATEFORME.map((crit) => (
-                    <tr key={crit.id}>
-                      <th className="cmp7__critere">
-                        {crit.label}
-                        {crit.note ? <span>{crit.note}</span> : null}
-                      </th>
-                      {colonnes.map((c, i) => {
-                        const v = crit.txt(c);
-                        const gagne = valeurGagne(crit, colonnes, i);
-                        return (
-                          <td
-                            key={c.source}
-                            className={`cmp7__cell${c.source === pickPlateforme ? " cmp7__col--pick" : ""}${v == null ? " cmp7__cell--absent" : ""}${gagne ? " cmp7__cell--best" : ""}`}
-                          >
-                            {v ?? "non publié"}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="cmp7__pied">
-              <span>
-                Comparer les plateformes de réservation. En gras : la meilleure valeur du critère. Un
-                montant absent est dit absent. Un loyer de centrale sans taxe relevée n’est pas le
-                total payé.
-              </span>
-              <button
-                type="button"
-                className="btn7 btn7--grand"
-                disabled={!pickPlateforme || !colonnes.find((c) => c.source === pickPlateforme)?.n}
-                onClick={() => {
-                  if (!pickPlateforme) return;
-                  patchLf({ src: { [pickPlateforme]: true } });
-                }}
-              >
-                {voirAnnoncesLbl(
-                  colonnes.find((c) => c.source === pickPlateforme)?.n ?? 0,
-                  pickPlateforme ?? "",
-                )}
-                <Icon name="fleche-droite" taille={16} />
-              </button>
-            </div>
-          </section>
-        ) : null}
 
         {raw.length ? (
           <>
@@ -1220,7 +1136,7 @@ function LogementsStation({ s }: { s: Station }) {
             <div>
               <dt>Logement</dt>
               <dd className={kept.total > 0 ? undefined : "absent"}>
-                {kept.total > 0 ? prixLbl(kept) : "non publié"}
+                {kept.total > 0 ? eurCents(kept.total) : "non publié"}
               </dd>
             </div>
             <div>
@@ -1234,12 +1150,10 @@ function LogementsStation({ s }: { s: Station }) {
           </dl>
           <div className="pied7__total">
             <span>Total du séjour</span>
-            <b>{kept.total > 0 ? (horsFraisSejour(kept) ? `${eurCents(totalN)} hors frais de séjour` : eurCents(totalN)) : "logement non tarifé"}</b>
+            <b>{kept.total > 0 ? eurCents(totalN) : "logement non tarifé"}</b>
             <span>
               {kept.total > 0
-                ? horsFraisSejour(kept)
-                  ? "taxe de séjour non comprise"
-                  : `${eurCents(Math.round((totalN / trav) * 100) / 100)} par personne`
+                ? `${eurCents(Math.round((totalN / trav) * 100) / 100)} par personne`
                 : "total incomplet"}
             </span>
           </div>
@@ -1299,7 +1213,7 @@ function LogementsStation({ s }: { s: Station }) {
               <div className="volet7__prix">
                 <div>
                   <span>
-                    {horsFraisSejour(sheet) ? "Loyer aux dates" : "Total du séjour"} · {nights} nuits · {trav} pers.
+                    Total du séjour · {nights} nuits · {trav} pers.
                   </span>
                   <b>{prixLbl(sheet)}</b>
                 </div>

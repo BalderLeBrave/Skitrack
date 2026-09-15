@@ -24,6 +24,8 @@ const Input = z.object({
 export const SEARCH_PART_MS = 52_000;
 /** Budget réservé au devis ITEA, après ou pendant le complément de fiches. */
 export const DEVIS_MS = 18_000;
+/** Budget réservé au total du panier Ingénie (loyer + taxe), même si le relevé a tout pris. */
+export const TARIF_MS = 18_000;
 export const PAUSE_DELAI = "Délai dépassé — relevé précédent conservé.";
 
 function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>): SourceName[] {
@@ -89,7 +91,7 @@ export const completerReleve = createServerFn({ method: "POST" })
       data.checkIn && data.checkOut && data.guests
         ? { checkIn: data.checkIn, checkOut: data.checkOut, guests: data.guests }
         : undefined;
-    return completer(listingsForStay(data.stationId, 1, 0), data.stationId, 20_000, stay);
+    return completer(listingsForStay(data.stationId, 1, 0), data.stationId, 28_000, stay);
   });
 
 /**
@@ -151,8 +153,9 @@ async function completer(
 ): Promise<Listing[]> {
   // Copie : les remplisseurs mutent en place, et le relevé figé ne doit pas l'être.
   const rows = listings.map((l) => ({ ...enrichirListing(l) }));
-  const extra = stay && rows.some((l) => l.source === "Gîtes de France") ? DEVIS_MS : 0;
-  const budget = Math.max(budgetMs, extra);
+  const extraDevis = stay && rows.some((l) => l.source === "Gîtes de France") ? DEVIS_MS : 0;
+  const extraTarif = stay && rows.some((l) => l.source === "Centrale" && l.total > 0) ? TARIF_MS : 0;
+  const budget = Math.max(budgetMs, extraDevis, extraTarif);
   if (budget <= 0) return poserAcces(rows, stationId);
   try {
     await withDeadline(
@@ -175,21 +178,21 @@ async function completer(
             /* robots, réseau : les trous restent nommés */
           }
         })(),
-        stay && budgetMs > 0
+        stay && extraTarif > 0
           ? (async () => {
               try {
                 const { fillTarifs } = await import("./stay/completerTarif.server");
-                await fillTarifs(rows, stay, budgetMs);
+                await fillTarifs(rows, stay, extraTarif);
               } catch {
-                /* panier injoignable : le loyer reste, hors frais */
+                /* panier injoignable : le loyer reste */
               }
             })()
           : Promise.resolve(),
-        stay && extra > 0
+        stay && extraDevis > 0
           ? (async () => {
               try {
                 const { fillDevis } = await import("./stay/completerDevis.server");
-                await fillDevis(rows, stay, extra);
+                await fillDevis(rows, stay, extraDevis);
               } catch {
                 /* widget ITEA injoignable : le prix Gîtes reste non publié */
               }

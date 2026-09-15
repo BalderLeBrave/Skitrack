@@ -49,9 +49,9 @@ export type HebergementMsem = {
    * Vérifié sur le catalogue de Saint-François-Longchamp : sur deux cent
    * trente-huit noms qui annoncent eux-mêmes « N PIECES », deux cent vingt et
    * un portent exactement ce N dans `nbRooms`. Un deux-pièces a une chambre ;
-   * recopier ce nombre dans `bedrooms` surestimerait chaque logement d'une
-   * chambre, et le filtre « chambres ≥ N » laisserait passer ce qu'il devrait
-   * écarter. Le champ est donc lu, et volontairement pas utilisé comme tel.
+   * le recopier dans `bedrooms` surestimerait chaque logement d'une chambre,
+   * et c'est pourtant ce que faisait le connecteur. Le champ se pose désormais
+   * dans `rooms`, sous son vrai nom, et seul le filtre le convertit.
    */
   nbRooms?: number | null;
   lat?: number | null;
@@ -73,7 +73,14 @@ export type HebergementMsem = {
 // const`, et un relevé qu'on lit n'a aucune raison d'être modifiable.
 export type CatalogueMsem = { accomodations?: readonly HebergementMsem[] | null };
 
-/** Une offre datée. La centrale n'en rend que pour ce qu'elle peut vendre. */
+/**
+ * Une offre datée. La centrale n'en rend que pour ce qu'elle peut vendre.
+ *
+ * `publicPrice` est publié à côté de `price` — vide sur les quatre centrales au
+ * relevé du 13 septembre 2026, d'où une lecture prudente : il n'est rendu que
+ * s'il porte un nombre, et sous son propre nom. On n'en déduit **pas** une
+ * remise : rien dans la charge ne dit que `price` en descend.
+ */
 export type OffreMsem = { price?: number | null; publicPrice?: number | null };
 
 /** Réponse du `POST` : un objet plat, indexé par l'identifiant du catalogue. */
@@ -89,13 +96,21 @@ export type DemandeMsem = {
 export type FicheMsem = {
   id: string;
   titre: string;
+  /** Total du séjour. **`0` veut dire « la centrale n'a pas publié de prix »**,
+   *  jamais « gratuit » : l'annonce sort quand même, c'est l'écran qui le dit. */
   total: number;
+  /** Prix public, quand l'offre en porte un. Jamais présenté comme un avant-remise. */
+  prixPublic: number | null;
   /** Capacité maximale annoncée par la centrale. */
   capacite: number | null;
-  /** Pièces, pas chambres. Gardé pour la trace, pas pour le filtre. */
+  /** Pièces, pas chambres. C'est ce que la centrale compte, et c'est ainsi
+   *  qu'on le rend : la conversion appartient à la comparaison. */
   pieces: number | null;
   slug: string | null;
   photo: string | null;
+  /** Toutes les photos de la fiche, dans l'ordre publié. `photo` est la
+   *  première ; les suivantes étaient lues puis jetées. */
+  photos: string[];
   lat: number | null;
   lon: number | null;
   adresse: string | null;
@@ -176,12 +191,27 @@ function adresse(h: HebergementMsem): { adresse: string | null; commune: string 
   return { adresse: morceaux.length ? morceaux.join(", ") : null, commune: ville || null };
 }
 
-function photo(h: HebergementMsem): string | null {
-  const direct = typeof h.image === "string" && h.image ? h.image : null;
-  const premiere = h.images?.find((i) => typeof i?.src === "string" && i.src)?.src ?? null;
-  const src = direct ?? premiere;
-  if (!src) return null;
+function adresseImage(src: string): string {
   return src.startsWith("//") ? `https:${src}` : src;
+}
+
+/**
+ * Toutes les photos publiées, la vignette d'abord.
+ *
+ * `images` est un tableau, et seule sa première entrée était retenue : le reste
+ * de la galerie était lu puis jeté. `image` est la vignette ; elle ouvre la
+ * liste quand elle n'y figure pas déjà.
+ */
+function photos(h: HebergementMsem): string[] {
+  const out: string[] = [];
+  const direct = typeof h.image === "string" && h.image ? adresseImage(h.image) : null;
+  if (direct) out.push(direct);
+  for (const i of h.images ?? []) {
+    if (typeof i?.src !== "string" || !i.src) continue;
+    const u = adresseImage(i.src);
+    if (!out.includes(u)) out.push(u);
+  }
+  return out;
 }
 
 /**
@@ -191,6 +221,11 @@ function photo(h: HebergementMsem): string | null {
  * est vendable. Une offre dont l'identifiant ne se retrouve pas au catalogue
  * est écartée — un prix sans nom, sans adresse et sans lien n'est pas une
  * annonce, c'est un nombre.
+ *
+ * **Un prix absent n'écarte plus rien.** Une offre existe parce que la centrale
+ * a répondu pour ces dates ; que son montant manque ou vaille zéro est un
+ * renseignement, pas une raison de supprimer l'annonce. Le total vaut alors
+ * zéro, ce qui se lit « listée sans prix » partout ailleurs dans le dépôt.
  */
 export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem | null): FicheMsem[] {
   const par = new Map<string, HebergementMsem>();
@@ -199,22 +234,25 @@ export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem 
   }
   const out: FicheMsem[] = [];
   for (const [id, offre] of Object.entries(offres ?? {})) {
-    const total = euros(offre?.price);
-    if (total == null || total <= 0) continue;
     const h = par.get(id);
     if (!h) continue;
     const titre = typeof h.name === "string" ? h.name.trim() : "";
     if (!titre) continue;
+    const total = euros(offre?.price);
+    const public_ = euros(offre?.publicPrice);
     const { lat, lon } = point(h);
     const { adresse: rue, commune } = adresse(h);
+    const galerie = photos(h);
     out.push({
       id,
       titre,
-      total,
+      total: total != null && total > 0 ? total : 0,
+      prixPublic: public_ != null && public_ > 0 ? public_ : null,
       capacite: positifOuRien(h.maxCapacity),
       pieces: positifOuRien(h.nbRooms),
       slug: typeof h.slug === "string" && h.slug ? h.slug : null,
-      photo: photo(h),
+      photo: galerie[0] ?? null,
+      photos: galerie,
       lat,
       lon,
       adresse: rue,

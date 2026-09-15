@@ -44,10 +44,25 @@ export type FicheIngenie = {
   /** Identifiant de prestation, stable d'une requête à l'autre. */
   id: string;
   titre: string;
-  /** Total du séjour, en euros. */
+  /**
+   * Total du séjour, en euros.
+   *
+   * **`0` veut dire « la centrale n'a pas de tarif à ces dates »** — elle
+   * l'écrit « à partir de 0 € » —, jamais « gratuit ». La fiche sort quand
+   * même : c'est l'écran qui dira « listée sans prix ».
+   */
   total: number;
   /** L'étiquette au-dessus du prix, par exemple « à partir de ». */
   etiquette: string | null;
+  /**
+   * Le bloc de prix tel qu'il se lit, ses trois morceaux dans l'ordre :
+   * « À partir de 2 090 € pour la location ».
+   *
+   * Le troisième, `nature_prix_en_cours`, dit ce que le prix couvre et n'était
+   * pas lu — or c'est la seule chose qui distingue « pour la location » d'un
+   * prix par personne ou par nuit.
+   */
+  libelle: string | null;
   photo: string | null;
   /** Chemin de la fiche, relatif à la centrale. */
   chemin: string | null;
@@ -184,37 +199,51 @@ function photoDe(fragment: string): string | null {
   return m?.[1] ?? null;
 }
 
-function totalDe(fragment: string): number | null {
+/** Le bloc de tarif : le montant lu, et le montant tel qu'il est écrit. */
+type TarifIngenie = { total: number; montant: string | null };
+
+/**
+ * Lit le bloc de tarif.
+ *
+ * `null` quand il n'y en a pas : sans dates la page n'en porte aucun, et c'est
+ * ainsi que la centrale dit qu'elle ne vend pas cette fiche à ces dates-là.
+ *
+ * Un zéro n'est pas un prix — plusieurs centrales affichent « à partir de 0 € »
+ * pour un logement dont elles n'ont pas le tarif — mais ce n'est pas non plus
+ * une raison de supprimer l'annonce : le total vaut alors zéro, ce qui se lit
+ * « listée sans prix » partout ailleurs dans le dépôt, et l'écran sait le dire.
+ */
+function tarifDe(fragment: string): TarifIngenie | null {
   const m = /class="prix_en_cours"[^>]*>([\s\S]{0,160}?)<\/div>/.exec(fragment);
   if (!m) return null;
   // Le texte est décodé d'abord : certaines centrales écrivent la monnaie en
   // entité, « 700 &euro; », et couper sur le signe littéral les manquerait.
   // Le montant peut porter une virgule décimale et des espaces de groupement,
   // ici écrites en échappement pour rester visibles dans le source.
-  const p = /([0-9][0-9\u00a0\u202f .]*)(?:,(\d{1,2}))?\s*\u20ac/.exec(
-    texteIngenie(m[1] ?? ""),
-  );
-  if (!p) return null;
+  const texte = texteIngenie(m[1] ?? "");
+  const montant = texte || null;
+  const p = /([0-9][0-9\u00a0\u202f .]*)(?:,(\d{1,2}))?\s*\u20ac/.exec(texte);
+  if (!p) return { total: 0, montant };
   const entiere = (p[1] ?? "").replace(/\D/g, "");
-  if (!entiere) return null;
+  if (!entiere) return { total: 0, montant };
   const v = Number(`${entiere}.${(p[2] ?? "0").padEnd(2, "0")}`);
-  // Un zéro n'est pas un prix : plusieurs centrales affichent « à partir de
-  // 0 € » pour un logement dont elles n'ont pas le tarif à ces dates.
-  return Number.isFinite(v) && v > 0 ? v : null;
+  return { total: Number.isFinite(v) && v > 0 ? v : 0, montant };
 }
 
 /**
  * Lit une page de résultats.
  *
- * Une fiche sans prix n'est pas rendue : la centrale la connaît, mais elle ne
- * la vend pas à ces dates-là. Sans dates, la page n'en porte aucune, et c'est
- * ainsi qu'on sait que ces prix sont datés.
+ * Une fiche **sans bloc de tarif** n'est pas rendue : la centrale la connaît,
+ * mais elle ne la vend pas à ces dates-là. Sans dates, la page n'en porte
+ * aucun, et c'est ainsi qu'on sait que ces prix sont datés. Une fiche dont le
+ * bloc est là mais dit « à partir de 0 € » sort, elle, avec un total de zéro :
+ * la centrale la liste sans en publier le tarif, et c'est un renseignement.
  */
 export function lireIngenie(page: string): FicheIngenie[] {
   const par = new Map<string, FicheIngenie>();
   for (const fragment of fragmentsIngenie(page)) {
-    const total = totalDe(fragment);
-    if (total == null) continue;
+    const tarif = tarifDe(fragment);
+    if (tarif == null) continue;
     const ident =
       /id="(PRESTATION-[^"]+)"/.exec(fragment)?.[1] ??
       /data-ga-item-id="([^"]+)"/.exec(fragment)?.[1] ??
@@ -222,15 +251,25 @@ export function lireIngenie(page: string): FicheIngenie[] {
     if (!ident) continue;
     const titre = titreDe(fragment);
     if (!titre) continue;
+    // Une fiche paraît parfois deux fois dans la même page : le moins cher
+    // l'emporte. Zéro n'est pas moins cher, c'est l'absence de prix.
     const deja = par.get(ident);
-    if (deja && deja.total <= total) continue;
+    if (deja && !(tarif.total > 0 && (deja.total <= 0 || tarif.total < deja.total))) continue;
     const etiq = /class="libelle_a_partir_de"[^>]*>([\s\S]{0,80}?)<\/div>/.exec(fragment);
+    // Ce que le prix couvre, écrit à sa droite : « pour la location ». Publié
+    // par les deux gabarits connus, et lu par aucun des deux jusqu'ici.
+    const nat = /class="nature_prix_en_cours"[^>]*>([\s\S]{0,80}?)<\/div>/.exec(fragment);
     const lien = /class="lien_plus_info_resa[^"]*"\s*>\s*<a[^>]+href="([^"]+)"/.exec(fragment);
+    const etiquette = etiq ? texteIngenie(etiq[1] ?? "") || null : null;
+    const nature = nat ? texteIngenie(nat[1] ?? "") || null : null;
     par.set(ident, {
       id: ident,
       titre,
-      total,
-      etiquette: etiq ? texteIngenie(etiq[1] ?? "") || null : null,
+      total: tarif.total,
+      etiquette,
+      // Les trois morceaux du bloc, dans l'ordre où la centrale les écrit :
+      // c'est sa phrase, pas la nôtre.
+      libelle: [etiquette, tarif.montant, nature].filter(Boolean).join(" ") || null,
       photo: photoDe(fragment),
       chemin: lien ? desechapper(lien[1] ?? "") : null,
     });

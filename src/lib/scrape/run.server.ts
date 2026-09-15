@@ -25,15 +25,15 @@ function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   ) {
     return [];
   }
-  return RELEVE_2A.filter((l) => {
-    if (!allow.has(l.source)) return false;
+  // Aucun tri sur la capacité ici : le repli rend ce que le relevé porte, et
+  // c'est le filtre de l'écran qui décide — lui sait distinguer « trop petit »
+  // de « non annoncé », et compter ce qu'il masque. Écarter au collecteur
+  // faisait disparaître des annonces sans que rien ne le dise.
+  return RELEVE_2A.filter((l) => allow.has(l.source)).map((l) => {
     const occ = occupancyOfListing(l);
-    if (occ.guests != null && occ.guests < input.guests) return false;
-    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) return false;
-    return true;
-  }).map((l) => {
-    const occ = occupancyOfListing(l);
-    return occ.guests === l.guests && occ.bedrooms === l.bedrooms ? l : { ...l, ...occ };
+    return occ.guests === l.guests && occ.bedrooms === l.bedrooms && occ.rooms === (l.rooms ?? null)
+      ? l
+      : { ...l, ...occ };
   });
 }
 
@@ -46,7 +46,17 @@ const CENTRALE_SOURCES = ["Centrale"] as const;
 function locate(input: LiveSearchInput, listings: Listing[]): Listing[] {
   const station = stationById(input.stationId);
   const located = station ? listings.map((l) => attachAccess(l, station)) : listings;
-  located.sort((a, b) => a.total - b.total);
+  // `total: 0` veut dire « prix non publié », pas « gratuit » : un tri croissant
+  // brut rangeait ces annonces en tête, devant les moins chères réellement
+  // relevées. Ce qui n'est pas publié passe après ce qui l'est.
+  located.sort((a, b) => {
+    const pa = a.total > 0 ? a.total : null;
+    const pb = b.total > 0 ? b.total : null;
+    if (pa == null && pb == null) return 0;
+    if (pa == null) return 1;
+    if (pb == null) return -1;
+    return pa - pb;
+  });
   return located;
 }
 

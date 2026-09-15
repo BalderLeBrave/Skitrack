@@ -101,11 +101,9 @@ async function soumettre(url: string, cookies: string, corps: Record<string, str
 
 function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listing {
   const base = r.reservation.replace(/\/+$/, "");
+  // Le titre dit souvent « Appartement 3 pièces cabine 6/8 personnes » : les
+  // pièces s'y lisent, et elles se posent dans `rooms`, pas dans `bedrooms`.
   const occ = annoncer({ guests: f.capacite, bedrooms: null }, f.titre, f.chemin);
-  const remise =
-    f.avantRemise && f.avantRemise > f.total
-      ? ` — remisé depuis ${Math.round(f.avantRemise).toLocaleString("fr-FR")} €`
-      : "";
   return {
     id: `irs-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -115,6 +113,7 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     currency: "EUR",
     guests: occ.guests,
     bedrooms: occ.bedrooms,
+    rooms: occ.rooms,
     available: true,
     photo: f.photo ? new URL(f.photo, `${base}/`).toString() : null,
     // Le gabarit porte l'adresse de la fiche ; à défaut, la page de recherche.
@@ -125,7 +124,7 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     locality: f.lieu,
     proven: `${r.nom} (iResa, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${f.nuits} nuit${
       f.nuits > 1 ? "s" : ""
-    }, ${ctx.guests} pers.${remise}`,
+    }, ${ctx.guests} pers.`,
   };
 }
 

@@ -4,10 +4,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
-import { SCRAPE_UA, sleep } from "./browser.server";
-import { allowsPath } from "./robots";
+import { sleep } from "./browser.server.ts";
+import { cozyListings, cozySearchUrl, rangPrix } from "./cozy.server.ts";
+import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
-import { annoncer, occupancyFromRecord } from "@/lib/stay/occupancy";
+import { annoncer } from "../stay/occupancy.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,17 @@ function searchUrl(input: LiveSearchInput): string {
   return u.toString();
 }
 
+/**
+ * Ce qui, dans le bloc d'offres d'une tuile, annonce le bien et non une chambre.
+ *
+ * Booking y écrit « Appartement entier · 3 chambres · 8 personnes » pour une
+ * location, et « Chambre Double (2 personnes) » pour une offre de chambre. Le
+ * mot « entier » est ce qui distingue les deux ; sans lui, on ne lit pas de
+ * capacité là-dedans. Même règle que `ENTIRE_UNIT` dans `scrape/booking/map.py`.
+ */
+const LOGEMENT_ENTIER =
+  /\b(?:logement|appartement|chalet|maison|villa|g[iî]te|studio|duplex|bungalow|cottage)\b[^•·|]{0,30}?\benti[eè]re?s?\b|\bentire\s+(?:home|house|apartment|apt|place|villa|chalet|bungalow|cottage|unit)\b/i;
+
 function plausible(lat: number | null | undefined, lon: number | null | undefined): boolean {
   if (lat == null || lon == null) return false;
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
@@ -54,6 +66,21 @@ function plausible(lat: number | null | undefined, lon: number | null | undefine
   return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
 }
 
+/** Un décompte publié par `map.py`, ou `null`. Jamais un zéro de remplacement. */
+function compte(v: unknown, min = 0): number | null {
+  if (typeof v !== "number" || !Number.isFinite(v)) return null;
+  const n = Math.trunc(v);
+  return n >= min && n <= 50 ? n : null;
+}
+
+/**
+ * Les fiches rendues par `scrape/booking/map.py`.
+ *
+ * On n'y trie plus ni sur le prix ni sur la capacité : une tuile sans total de
+ * séjour ressort à `total: 0`, c'est-à-dire « prix non publié », et une tuile
+ * qui ne dit pas combien elle couche ressort à `null`. C'est le filtre de
+ * l'écran qui décide, et qui compte ce qu'il masque.
+ */
 function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
   if (!payload || typeof payload !== "object") return [];
   const rows = (payload as { results?: unknown }).results;
@@ -65,15 +92,24 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
     const row = raw as Record<string, unknown>;
     const id = String(row.sourceId ?? row.id ?? "");
     const title = typeof row.title === "string" ? row.title.trim() : "";
-    const total = typeof row.totalPrice === "number" ? Math.round(row.totalPrice) : null;
-    if (!id || !title || total == null || seen.has(id)) continue;
-    const guests = typeof row.guests === "number" && row.guests > 0 ? row.guests : null;
-    const bedrooms = typeof row.bedrooms === "number" && row.bedrooms >= 0 ? row.bedrooms : null;
-    const occ = annoncer({ guests, bedrooms }, title);
-    if (occ.guests != null && occ.guests < input.guests) continue;
-    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
+    if (!id || !title || seen.has(id)) continue;
+    // `0` veut dire « total de séjour non publié », jamais « gratuit » : c'est
+    // ce que `map.py` rend pour un « à partir de », un prix à la nuit ou une
+    // tuile sans tarif, et ce que lit `availabilityOf`.
+    const total =
+      typeof row.totalPrice === "number" && Number.isFinite(row.totalPrice) && row.totalPrice > 0
+        ? Math.round(row.totalPrice)
+        : 0;
+    const occ = annoncer(
+      { guests: compte(row.guests, 1), bedrooms: compte(row.bedrooms), rooms: compte(row.rooms, 1) },
+      title,
+    );
     seen.add(id);
-    const images = Array.isArray(row.images) ? row.images : [];
+    // `map.py` ne rend qu'une vignette par tuile aujourd'hui, mais il en rend
+    // un tableau : on le porte entier plutôt que d'en garder la première.
+    const images = (Array.isArray(row.images) ? row.images : []).filter(
+      (u): u is string => typeof u === "string" && /^https?:\/\//i.test(u),
+    );
     const lat = typeof row.latitude === "number" ? row.latitude : null;
     const lon = typeof row.longitude === "number" ? row.longitude : null;
     out.push({
@@ -82,18 +118,25 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
       title,
       source: "Booking",
       total,
-      currency: "EUR",
+      currency: typeof row.currency === "string" && row.currency.trim() ? row.currency.trim() : "EUR",
       guests: occ.guests,
       bedrooms: occ.bedrooms,
+      rooms: occ.rooms,
+      // Type publié par Booking (index Apollo), relevé depuis toujours et
+      // jamais porté sur l'annonce.
+      propertyType: typeof row.propertyType === "string" ? row.propertyType.trim() || null : null,
       available: true,
-      photo: typeof images[0] === "string" ? images[0] : null,
+      photo: images[0] ?? null,
+      photos: images.length > 0 ? images : null,
+      priceLabel: typeof row.priceLabel === "string" ? row.priceLabel.trim() || null : null,
+      priceIndicative: row.priceIndicative === true ? true : null,
       url: typeof row.url === "string" ? row.url : null,
       lat: plausible(lat, lon) ? lat : null,
       lon: plausible(lat, lon) ? lon : null,
       proven: `booking live ${input.checkIn}→${input.checkOut}`,
     });
   }
-  return out.sort((a, b) => a.total - b.total);
+  return out.sort((a, b) => rangPrix(a) - rangPrix(b));
 }
 
 async function spawnBooking(body: unknown, timeoutMs: number, input: LiveSearchInput): Promise<Listing[]> {
@@ -299,7 +342,7 @@ export async function scrapeBookingPlaywright(page: Page, input: LiveSearchInput
     if (still > 0) await fillGpsFromHotelPages(page, listings);
     const gps = listings.filter((l) => plausible(l.lat, l.lon)).length;
     console.info(`[booking] playwright ${listings.length} dont ${gps} avec GPS`);
-    return listings.sort((a, b) => a.total - b.total);
+    return listings.sort((a, b) => rangPrix(a) - rangPrix(b));
   } finally {
     page.off("response", onResponse);
   }
@@ -321,6 +364,8 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
         (el.querySelector('[data-testid="price-and-discounted-price"], [data-testid="price"]') as HTMLElement | null)
           ?.innerText ?? "";
       const img = el.querySelector("img") as HTMLImageElement | null;
+      const units =
+        (el.querySelector('[data-testid="recommended-units"]') as HTMLElement | null)?.innerText ?? "";
       return {
         href: link?.href ?? "",
         title: title.trim(),
@@ -330,7 +375,7 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
         lat: el.getAttribute("data-latitude") ?? el.getAttribute("data-lat") ?? "",
         lon: el.getAttribute("data-longitude") ?? el.getAttribute("data-lng") ?? "",
         atlas: el.getAttribute("data-atlas-latlng") ?? el.getAttribute("data-coords") ?? "",
-        texte: el.innerText ?? "",
+        units: units.trim(),
       };
     });
   });
@@ -338,10 +383,16 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
   const seen = new Set<string>();
   for (const row of rows) {
     const stay = row.price.match(/(\d[\d\s\u00a0.,]*)\s*€/);
-    if (!stay || (/nuit/i.test(row.price) && !/total/i.test(row.price))) continue;
-    const token = stay[1].replace(/[\s\u00a0\u202f.]/g, "").replace(",", ".");
-    const total = Math.round(Number(token));
-    if (!Number.isFinite(total) || total <= 0) continue;
+    // Un prix à la nuit ou un « à partir de » n'est pas un total de séjour.
+    // L'annonce sort quand même, à zéro — « prix non publié » au sens de
+    // `Listing.total` — avec le libellé de la source et le drapeau qui le dit ;
+    // elle disparaissait jusqu'ici sans laisser de trace.
+    const nuitee = /nuit/i.test(row.price) && !/total/i.test(row.price);
+    const aPartirDe = /(?:\u00e0|a)\s+partir\s+de/i.test(row.price);
+    const token = stay ? stay[1].replace(/[\s\u00a0\u202f.]/g, "").replace(",", ".") : "";
+    const montant = Math.round(Number(token));
+    const ferme = !nuitee && !aPartirDe && Boolean(stay) && Number.isFinite(montant) && montant > 0;
+    const total = ferme ? montant : 0;
     const id = row.hotelId || row.href;
     if (!id || !row.title || seen.has(id)) continue;
     seen.add(id);
@@ -352,9 +403,16 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
       lat = Number(a);
       lon = Number(b);
     }
-    const occu = annoncer({ guests: null, bedrooms: null }, row.title, row.texte);
-    if (occu.guests != null && occu.guests < input.guests) continue;
-    if (input.bedrooms > 0 && occu.bedrooms != null && occu.bedrooms < input.bedrooms) continue;
+    // Le bloc d'offres de la tuile annonce une chambre à vendre aussi souvent
+    // qu'un logement : sa capacité n'est celle du bien que lorsqu'il dit
+    // « entier ». Le texte entier de la tuile, lui, n'engage rien du tout, et
+    // c'est pourtant lui qu'on lisait — un « Chambre Double (2 personnes) »
+    // suffisait à écarter l'annonce d'une recherche à huit.
+    const occu = annoncer(
+      { guests: null, bedrooms: null },
+      row.title,
+      LOGEMENT_ENTIER.test(row.units) ? row.units : "",
+    );
     out.push({
       id: `bk-${id}`,
       stationId: input.stationId,
@@ -364,104 +422,18 @@ async function cardsFromDom(page: Page, input: LiveSearchInput): Promise<Listing
       currency: "EUR",
       guests: occu.guests,
       bedrooms: occu.bedrooms,
+      rooms: occu.rooms,
       available: true,
       photo: row.photo || null,
+      priceLabel: row.price || null,
+      priceIndicative: !ferme && (nuitee || aPartirDe) ? true : null,
       url: row.href || null,
       lat: plausible(lat, lon) ? lat : null,
       lon: plausible(lat, lon) ? lon : null,
       proven: `Booking live ${input.checkIn}→${input.checkOut}`,
     });
   }
-  return out;
-}
-
-function isHotelOnly(title: string): boolean {
-  const t = title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "");
-  if (/chambre d[' ]?hotes|maison d[' ]?hotes|private[ _-]?room/.test(t)) return true;
-  if (/^h[oô]tel\b/.test(t) && !/appartement|chalet|maison|villa|residence|gite/.test(t)) return true;
-  return false;
-}
-
-function bookingHit(entry: Record<string, unknown>): Record<string, unknown> | null {
-  const hits = Array.isArray(entry.highlightedResults) ? entry.highlightedResults : [];
-  for (const raw of hits) {
-    if (!raw || typeof raw !== "object") continue;
-    const h = raw as Record<string, unknown>;
-    const blob = `${h.providerCode ?? ""} ${h.providerName ?? ""} ${h.deeplinkUrl ?? ""}`;
-    if (/\bbooking(?:\.com)?\b/i.test(blob)) return h;
-  }
-  return null;
-}
-
-function parseCozyBooking(json: unknown, input: LiveSearchInput): Listing[] {
-  if (!json || typeof json !== "object") return [];
-  const list = Array.isArray((json as { entries?: unknown }).entries)
-    ? ((json as { entries: unknown[] }).entries)
-    : [];
-  const out: Listing[] = [];
-  const seen = new Set<string>();
-  for (const raw of list) {
-    if (!raw || typeof raw !== "object") continue;
-    const e = raw as Record<string, unknown>;
-    const h = bookingHit(e);
-    if (!h) continue;
-    const priceObj = h.totalPrice as Record<string, unknown> | undefined;
-    if (priceObj?.indicative === true) continue;
-    const stayRaw = priceObj?.value ?? h.eurPriceValue;
-    const total = typeof stayRaw === "number" && stayRaw > 0 ? Math.round(stayRaw) : 0;
-    if (total <= 0) continue;
-    const name = typeof e.name === "string" ? e.name.replace(/\s+/g, " ").trim() : "";
-    if (!name || isHotelOnly(name)) continue;
-    const deeplink = typeof h.deeplinkUrl === "string" ? h.deeplinkUrl : "";
-    if (!deeplink.includes("booking.com")) continue;
-    const details = (e.subTitleDetails ?? {}) as Record<string, unknown>;
-    const occ = annoncer(occupancyFromRecord({ ...e, subTitleDetails: details, ...h }), name);
-    if (occ.guests != null && occ.guests < input.guests) continue;
-    if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
-    const coords = (e.coordinates ?? {}) as Record<string, unknown>;
-    const lat = typeof coords.latitude === "number" ? coords.latitude : null;
-    const lon = typeof coords.longitude === "number" ? coords.longitude : null;
-    const thumbs = (e.lightThumbnails ?? {}) as Record<string, unknown>;
-    const first = Array.isArray(thumbs.firstUrls) ? thumbs.firstUrls : [];
-    const id = String(e.accommodationId ?? h.accommodationId ?? deeplink);
-    if (seen.has(id)) continue;
-    seen.add(id);
-    out.push({
-      id: `bk-${id}`,
-      stationId: input.stationId,
-      title: name,
-      source: "Booking",
-      total,
-      currency: "EUR",
-      guests: occ.guests,
-      bedrooms: occ.bedrooms,
-      available: true,
-      photo: typeof first[0] === "string" ? first[0] : null,
-      url: deeplink,
-      lat: plausible(lat, lon) ? lat : null,
-      lon: plausible(lat, lon) ? lon : null,
-      proven: `CozyCozy Booking live ${input.checkIn}→${input.checkOut}`,
-    });
-  }
-  return out;
-}
-
-function cozySearchUrl(input: LiveSearchInput): string {
-  const n = input.stationName
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase();
-  const place =
-    n.includes("deux alpes") || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)
-      ? "Les Deux Alpes station de ski, France"
-      : /,\s*france\s*$/i.test(input.stationName)
-        ? input.stationName.trim()
-        : `${input.stationName.trim()}, France`;
-  const rooms = Math.max(1, input.bedrooms);
-  return `https://www.cozycozy.com/fr/search/${encodeURIComponent(place)}/${input.checkIn}/${input.checkOut}/${rooms}-${input.guests}-0/results`;
+  return out.sort((a, b) => rangPrix(a) - rangPrix(b));
 }
 
 async function scrapeBookingCozy(page: Page, input: LiveSearchInput): Promise<Listing[]> {
@@ -486,18 +458,14 @@ async function scrapeBookingCozy(page: Page, input: LiveSearchInput): Promise<Li
   } finally {
     page.off("response", onRes);
   }
-  const listings: Listing[] = [];
-  const seen = new Set<string>();
-  for (const p of payloads) {
-    for (const row of parseCozyBooking(p, input)) {
-      if (seen.has(row.id)) continue;
-      seen.add(row.id);
-      listings.push(row);
-    }
-  }
+  // Le parseur de la porte CozyCozy, celui d'Abritel : cette fonction en tenait
+  // une copie mot pour mot, avec les mêmes écarts — prix indicatif, prix
+  // absent, capacité trop petite — et rien ne garantissait qu'on les corrige
+  // des deux côtés. Une même charge ne se lit qu'une fois.
+  const listings = cozyListings(payloads, input, "Booking");
   const gps = listings.filter((l) => plausible(l.lat, l.lon)).length;
   console.info(`[booking] cozy ${listings.length} dont ${gps} avec GPS`);
-  return listings.sort((a, b) => a.total - b.total);
+  return listings;
 }
 
 type PageOpener = () => Promise<Page>;

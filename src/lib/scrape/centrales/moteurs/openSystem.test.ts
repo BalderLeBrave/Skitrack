@@ -212,6 +212,36 @@ describe("Open System : lire une page de résultats datés", () => {
     assert.equal(f?.commune, "VAL CENIS SOLLIERES SARDIERES");
   });
 
+  it("prend la commune dans son champ, et non dans le code postal de l'adresse", () => {
+    // `<span class="NomCommune">` est le champ que le gabarit lui consacre. La
+    // déduire du code postal laissait la commune vide dès qu'une adresse n'en
+    // portait pas — ce qui est fréquent sur les fiches sans numéro de rue.
+    const sansCp = PAGE.replace(/73500 VAL CENIS SOLLIERES SARDIERES/g, "Hameau de l'envers");
+    const f = lireOpenSystem(sansCp).find((x) => x.chemin.includes("cabanes-yourtes"));
+    assert.equal(f?.commune, "VAL CENIS SOLLIERES SARDIERES");
+  });
+
+  it("lit le classement que la centrale affiche", () => {
+    // `classement-epi3` est une pastille du `<h3>` : elle était affichée par la
+    // centrale, et le connecteur ne la lisait pas.
+    const fiches = lireOpenSystem(PAGE);
+    assert.equal(fiches.find((x) => x.chemin.includes("cabanes-yourtes"))?.classement, "3 épis");
+    // Rien n'est inventé pour celui qui n'en porte pas.
+    assert.equal(fiches.find((x) => x.chemin.includes("valfrejus"))?.classement, null);
+  });
+
+  it("un bloc de tarif vide n'est pas une fiche à jeter", () => {
+    // Le bloc est là, le montant manque : la centrale liste ce logement sans
+    // en publier le prix. Zéro le dit ; le supprimer ne dirait rien.
+    const vide = PAGE.replace(
+      /<span class="partie-entiere">1512<\/span>/,
+      '<span class="partie-entiere"></span>',
+    );
+    const f = lireOpenSystem(vide).find((x) => x.chemin.includes("valfrejus"));
+    assert.equal(f?.total, 0);
+    assert.equal(f?.titre, "Hôtel Valfréjus Vacances");
+  });
+
   it("lit les coordonnées écrites en notation scientifique", () => {
     const f = lireOpenSystem(PAGE).find((x) => x.chemin.includes("cabanes-yourtes"));
     // `latitude:"4.526054274308790e+001"` vaut 45,26 et non 4,5.

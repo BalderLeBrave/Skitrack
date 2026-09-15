@@ -16,10 +16,38 @@ export type Listing = {
   stationId: string;
   title: string;
   source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale";
+  /**
+   * Total du séjour tel que la source l'a publié, aux dates demandées.
+   *
+   * **`0` veut dire « la source n'a pas publié de prix »**, jamais « gratuit ».
+   * C'est ainsi qu'Airbnb signale qu'il ne peut pas vendre un bien à ces
+   * dates-là, et c'est la convention que lisent `availabilityOf` (verdict
+   * `unpriced`) et les filtres de prix de l'écran, qui s'abstiennent alors.
+   * Les collecteurs jetaient ces annonces ; ils les rendent désormais, car
+   * « listée sans prix » est une information, et sa disparition n'en est pas.
+   */
   total: number;
-  currency: "EUR";
+  /** Devise publiée. « EUR » partout en France, mais lue quand la source la
+   *  donne : elle était écrite en dur dans les quarante et un collecteurs. */
+  currency: string;
   guests: number | null;
   bedrooms: number | null;
+  /**
+   * Pièces annoncées, convention française des centrales — « 3 pièces ».
+   *
+   * Le filtre lisait déjà ce champ (`FilterSubject.rooms`) et le modèle ne le
+   * portait pas : la donnée publiée n'avait nulle part où se poser, et MSEM la
+   * convertissait en chambres que la centrale n'a jamais annoncées. On garde
+   * les deux séparés : la conversion appartient à la comparaison, pas au relevé.
+   */
+  rooms?: number | null;
+  /** Couchages annoncés, quand la source les compte séparément des voyageurs. */
+  beds?: number | null;
+  /** Salles de bain annoncées. */
+  baths?: number | null;
+  /** Type publié par la source : « Appartement », « Chalet », « Gîte »… Jamais
+   *  déduit d'un titre. */
+  propertyType?: string | null;
   available: true;
   photo: string | null;
   url: string | null;
@@ -43,6 +71,32 @@ export type Listing = {
   winterBarrier?: string | null;
   searchedLiftM?: number | null;
   searchedLiftName?: string | null;
+  /** Les autres photos de la tuile, dans l'ordre publié. `photo` reste la
+   *  première ; elles étaient toutes jetées sauf celle-là. */
+  photos?: string[] | null;
+  /**
+   * Le libellé de prix **tel que la source l'écrit**, avec ses mots à elle.
+   *
+   * Airbnb le lisait puis le remplaçait par une chaîne fabriquée
+   * (« 2 231 € au total »), ce qui effaçait au passage un prix barré, une
+   * remise, ou un nombre de nuits que la plateforme affichait.
+   */
+  priceLabel?: string | null;
+  /**
+   * La source annonce ce prix comme un « à partir de ».
+   *
+   * Ce n'est pas un total de séjour, et ça ne se confond pas avec lui. Les
+   * annonces ainsi marquées étaient purement et simplement supprimées ; elles
+   * restent, avec leur drapeau, et l'écran peut le dire.
+   */
+  priceIndicative?: boolean | null;
+  /** L'identifiant du bien **sur sa plateforme**, quand il diffère de `id`,
+   *  qui porte souvent celui d'un intermédiaire. */
+  platformId?: string | null;
+  /** Note et nombre d'avis, **seulement quand la source les publie**. Aucun
+   *  collecteur ne les fabrique, et aucun défaut optimiste ne les remplace. */
+  rating?: number | null;
+  reviewCount?: number | null;
   proven: string;
   /* Champs de relevé daté, lus par `stay/availability.ts`.
    *

@@ -18,7 +18,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
-import { annoncer, bedroomsFromRooms } from "@/lib/stay/occupancy";
+import { annoncer } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
@@ -113,10 +113,11 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
   // pour un caractère.
   const chemin = r.ficheChemin ?? "/hebergements/{slug}/";
   const base = (r.siteBase ?? ctx.base).replace(/\/+$/, "");
-  const occ = annoncer(
-    { guests: f.capacite, bedrooms: bedroomsFromRooms(f.pieces) },
-    f.titre,
-  );
+  // `nbRooms` compte des **pièces**. Elles étaient converties en chambres au
+  // relevé (`bedroomsFromRooms`), si bien qu'un trois-pièces s'affichait
+  // « 2 ch. » sans que la centrale l'ait jamais écrit. Elles se posent
+  // désormais dans `rooms` ; la conversion appartient au filtre, qui compare.
+  const occ = annoncer({ guests: f.capacite, bedrooms: null, rooms: f.pieces }, f.titre);
   return {
     id: `msem-${r.cle}-${f.id}`,
     stationId: ctx.stationId,
@@ -126,8 +127,10 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
     currency: "EUR",
     guests: occ.guests,
     bedrooms: occ.bedrooms,
+    rooms: occ.rooms,
     available: true,
     photo: f.photo,
+    photos: f.photos.length ? f.photos : null,
     url: f.slug && chemin ? `${base}${chemin.replace("{slug}", f.slug)}` : base,
     lat: f.lat,
     lon: f.lon,
@@ -135,6 +138,11 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
     placeName: f.adresse,
     proven: `${r.nom} (MSEM, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.pieces != null ? ` — ${f.pieces} pièce${f.pieces > 1 ? "s" : ""} annoncée${f.pieces > 1 ? "s" : ""}` : ""
+    }${
+      // Le prix public est publié à côté du prix vendu. Il est rendu sous son
+      // nom à elle : l'appeler « avant remise » serait une déduction, et la
+      // centrale n'écrit nulle part que l'un descend de l'autre.
+      f.prixPublic != null ? ` — prix public publié : ${f.prixPublic.toLocaleString("fr-FR")} €` : ""
     }`,
   };
 }
@@ -155,7 +163,8 @@ export async function chercherMsem(ctx: ContexteCentrale, r: ReglageMsem): Promi
   const fiches = joindreMsem(cat, offres);
   const auCatalogue = cat.accomodations?.length ?? 0;
   console.info(
-    `[centrale] ${r.host} : ${fiches.length} vendables sur ${auCatalogue} au catalogue, ${ctx.checkIn}→${ctx.checkOut}`,
+    `[centrale] ${r.host} : ${fiches.length} offres sur ${auCatalogue} au catalogue` +
+      ` (dont ${fiches.filter((f) => f.total <= 0).length} sans prix publié), ${ctx.checkIn}→${ctx.checkOut}`,
   );
   return fiches.map((f) => enListing(f, r, ctx));
 }

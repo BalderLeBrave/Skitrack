@@ -37,10 +37,11 @@ export type FicheIresa = {
   /** Identifiant d'hébergement, stable d'une requête à l'autre. */
   id: string;
   titre: string;
-  /** Total du séjour, en euros. */
+  /**
+   * Total du séjour, en euros. **`0` veut dire « le moteur n'a pas publié de
+   * prix »**, jamais « gratuit » : la fiche sort quand même.
+   */
   total: number;
-  /** Prix avant remise, quand le moteur en annonce une. */
-  avantRemise: number | null;
   capacite: number | null;
   /** Lieu tel que le moteur l'écrit : commune, hameau. */
   lieu: string | null;
@@ -111,6 +112,16 @@ type Datas = {
   name?: unknown;
   prix_total?: unknown;
   prix_brut?: unknown;
+  /**
+   * Publié, et volontairement pas lu.
+   *
+   * Il vaut zéro sur tout le relevé du 13 septembre 2026, et rien dans la
+   * charge ne dit de quoi il est le montant. Le connecteur en fabriquait un
+   * prix barré — `prix_total + montant_valeur_promo` — puis écrivait
+   * « remisé depuis X € » dans la preuve de l'annonce : une déduction présentée
+   * comme une lecture, pour une remise que la centrale n'a jamais annoncée.
+   * Entre deux lectures possibles, on n'en choisit aucune.
+   */
   montant_valeur_promo?: unknown;
   cap_max?: unknown;
   duree?: unknown;
@@ -174,7 +185,18 @@ function cheminDe(template: string): string | null {
  *
  * Le filtre sur `duree` et `date_debut` n'est pas une précaution de style :
  * c'est la seule chose qui distingue une réponse datée du catalogue que le
- * moteur rend quand la durée demandée n'est pas vendue.
+ * moteur rend quand la durée demandée n'est pas vendue. Une fiche qui ne publie
+ * pas sa durée ne peut pas prouver qu'elle couvre le séjour demandé ; elle sort
+ * donc du relevé, et c'est le seul rejet de ce moteur.
+ *
+ * **Un prix manquant n'en est pas un second.** Une fiche datée sans montant est
+ * rendue avec un total de zéro, qui se lit « listée sans prix ».
+ *
+ * **Pas de pagination, et ce n'est pas une borne posée au hasard.** Le moteur
+ * imprime tout son résultat d'un coup dans `script#__datasPrestations` — six
+ * cent huit fiches au relevé du 13 septembre 2026, quand il rend son catalogue
+ * non daté. Il ne publie ni compteur de résultats ni numéro de page, et aucun
+ * paramètre de page n'a été observé : il n'y a donc pas de suite à demander.
  */
 export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
   const nuits = nuitsIresa(d.checkIn, d.checkOut);
@@ -182,19 +204,20 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
   for (const { datas: x, template } of prestationsIresa(page)) {
     if (nombre(x.duree) !== nuits) continue;
     if (typeof x.date_debut === "string" && x.date_debut !== d.checkIn) continue;
-    const total = nombre(x.prix_total) ?? nombre(x.prix_brut);
-    if (total == null || total <= 0) continue;
     const id = String(x.id_prestation_hebergement ?? x.id ?? "");
     const titre = typeof x.name === "string" ? x.name.trim() : "";
     if (!id || !titre) continue;
-    const remise = nombre(x.montant_valeur_promo);
+    const lu = nombre(x.prix_total) ?? nombre(x.prix_brut);
+    const total = lu != null && lu > 0 ? lu : 0;
+    // Le même hébergement paraît sous plusieurs prestations : on garde le
+    // moins cher. Un zéro n'est pas « moins cher », c'est l'absence de prix —
+    // un montant publié l'emporte donc toujours sur une fiche muette.
     const deja = par.get(id);
-    if (deja && deja.total <= total) continue;
+    if (deja && !(total > 0 && (deja.total <= 0 || total < deja.total))) continue;
     par.set(id, {
       id,
       titre,
       total,
-      avantRemise: remise && remise > 0 ? total + remise : null,
       capacite: nombre(x.cap_max),
       lieu: typeof x.lieu === "string" && x.lieu ? x.lieu : null,
       photo: vignette(template),

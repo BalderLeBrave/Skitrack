@@ -1,7 +1,9 @@
 """Cartes Booking → clips Skitrack. Aucune requête.
 
 Sélecteurs 2026 (data-testid=property-card) + héritage actor
-(.sr_property_block, .sr-hotel__name). Total de séjour seulement.
+(.sr_property_block, .sr-hotel__name). Seul un total de séjour est retenu comme
+prix : un « à partir de » ou un tarif à la nuit ressort à zéro, c'est-à-dire
+« total non publié », et l'annonce sort quand même — elle était jetée.
 GPS : Apollo / atlas-latlng / JSON — jamais inventé.
 """
 
@@ -22,6 +24,16 @@ PRIVATE = re.compile(
 )
 HOTEL_TILE = re.compile(r"^h[oô]tels?\b", re.I)
 ENTIRE = re.compile(r"appartement|chalet|maison|villa|logement entier|entire|g[iî]te", re.I)
+# Le bloc d'offres d'une tuile Booking annonce ce qui est vendu : « Appartement
+# entier · 3 chambres · 8 personnes », ou « Chambre Double (2 personnes) ». Seul
+# le premier parle du bien ; on exige donc le mot « entier » pour en lire la
+# capacité (voir `listings_from_html`).
+ENTIRE_UNIT = re.compile(
+    r"\b(?:logement|appartement|chalet|maison|villa|g[iî]te|studio|duplex|bungalow|cottage)\b"
+    r"[^•·|]{0,30}?\benti[eè]re?s?\b"
+    r"|\bentire\s+(?:home|house|apartment|apt|place|villa|chalet|bungalow|cottage|unit)\b",
+    re.I,
+)
 HOTEL_TYPE = re.compile(r"h[oô]tel|hostel|auberge", re.I)
 ATLAS_RE = re.compile(
     r'data-atlas-latlng="\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*"',
@@ -105,11 +117,19 @@ def stay_total_from_label(label: str | None) -> float | None:
     return parse_amount(hit.group(1))
 
 
-def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
+def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None, int | None]:
+    """Voyageurs, chambres, pièces — chacun dans sa colonne.
+
+    Les pièces étaient converties en chambres ici même (« 3 pièces » → deux
+    chambres), si bien qu'une vignette affichait « 2 ch. » pour une annonce qui
+    dit « 3 pièces ». La conversion appartient à la comparaison
+    (`lodgingFilter.normalizedBedrooms`), pas au relevé : on rend les pièces
+    telles qu'elles sont écrites, comme le fait `stay/occupancy.ts`.
+    """
     blob = " · ".join(t for t in texts if t and str(t).strip())
     if not blob:
-        return None, None
-    guests = bedrooms = None
+        return None, None, None
+    guests = bedrooms = rooms = None
     if not re.search(
         r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers)",
         blob,
@@ -135,19 +155,23 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
         n = int(chb.group(1))
         if 0 <= n <= 50:
             bedrooms = n
-    if bedrooms is None:
-        pi = re.search(r"(\d+)\s*-?\s*pi[eè]ces?\b", blob, re.I)
-        if pi:
-            n = int(pi.group(1))
-            if 0 < n <= 50:
-                bedrooms = n - 1
-    if bedrooms is None:
+    pi = re.search(r"(\d+)\s*-?\s*pi[eè]ces?\b", blob, re.I)
+    if pi:
+        n = int(pi.group(1))
+        if 0 < n <= 50:
+            rooms = n
+    if rooms is None:
         t = re.search(r"\bT([1-9])\b", blob, re.I)
         if t:
-            bedrooms = int(t.group(1)) - 1
-    if bedrooms is None and re.search(r"\bstudio\b", blob, re.I):
-        bedrooms = 0
-    return guests, bedrooms
+            rooms = int(t.group(1))
+    # « Studio » est un mot publié qui dit deux choses : une pièce, et aucune
+    # chambre séparée. Les deux sont des lectures, pas des déductions.
+    if re.search(r"\bstudio\b", blob, re.I):
+        if rooms is None:
+            rooms = 1
+        if bedrooms is None:
+            bedrooms = 0
+    return guests, bedrooms, rooms
 
 
 def _attr(node: Any, name: str) -> str:
@@ -227,8 +251,17 @@ def harvest_places(node: Any, out: dict[str, dict[str, Any]]) -> None:
             if isinstance(t, str) and len(t.strip()) > 1:
                 slot["type"] = t.strip()
                 break
-        if hid is not None and str(hid) not in out:
-            out[str(hid)] = slot
+        # La tuile se joint par `data-hotel-id`, le slot riche se range sous
+        # `pageName` : il fallait recopier l'un sur l'autre. Le faisait-on
+        # seulement quand l'identifiant était absent de l'index — or les
+        # coordonnées venaient de l'y inscrire trois lignes plus haut, si bien
+        # que capacité, chambres et type publiés n'atteignaient jamais la
+        # tuile. On complète donc l'entrée sans écraser ce qu'elle porte déjà.
+        label = str(hid).strip() if hid is not None else ""
+        if label and label not in ("0", "None"):
+            alias = out.setdefault(label, {})
+            for key, value in slot.items():
+                alias.setdefault(key, value)
     for value in node.values():
         harvest_places(value, out)
 
@@ -313,9 +346,17 @@ def listings_from_html(
     check_in: str | None = None,
     check_out: str | None = None,
     adults: int | None = None,
-    min_guests: int | None = None,
-    min_bedrooms: int | None = None,
 ) -> list[dict[str, Any]]:
+    """Les tuiles de la page, toutes.
+
+    Le collecteur ne trie plus sur la capacité (`min_guests`, `min_bedrooms`
+    étaient des paramètres de ce module) : une annonce dont la capacité est
+    absente — ou lue sur un libellé de chambre — disparaissait en silence. Le
+    filtre de l'écran (`stay/lodgingFilter.ts`) sait distinguer « non annoncé »
+    de « ne convient pas » et compte ce qu'il masque ; c'est lui qui décide.
+    Seule exclusion conservée ici : ce que Booking ne vend pas comme logement
+    entier (`is_dropped_listing`), et les doublons.
+    """
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html, "html.parser")
@@ -349,7 +390,8 @@ def listings_from_html(
         name = _text(title_el) or _text(link)
         if not name or len(name) < 2:
             continue
-        units = _text(card.select_one('[data-testid="recommended-units"]')) or _text(card)
+        units = _text(card.select_one('[data-testid="recommended-units"]'))
+        blob = units or _text(card)
         extra = apollo.get(str(source_id), {}) or apollo.get(slug or "", {})
         pin = coords.get(str(source_id)) or (coords.get(slug) if slug else None)
         lat_attr = _attr(card, "data-latitude") or _attr(card, "data-lat")
@@ -377,7 +419,7 @@ def listings_from_html(
         if not _plausible(lat, lon):
             lat = lon = None
         property_type = extra.get("type")
-        if is_dropped_listing(name, units, property_type):
+        if is_dropped_listing(name, blob, property_type):
             continue
         price_el = card.select_one(
             '[data-testid="price-and-discounted-price"], [data-testid="price"], '
@@ -385,18 +427,27 @@ def listings_from_html(
         )
         label = _text(price_el)
         total = stay_total_from_label(label)
-        if total is None:
-            continue
-        guests, bedrooms = occupancy_from_text(name, units)
+        # Un « à partir de » et un prix à la nuit ne sont pas des totaux de
+        # séjour, et une tuile sans prix n'en est pas un non plus. Les trois
+        # sortent avec `totalPrice` à zéro — la convention de `Listing.total`,
+        # que l'écran lit comme « listée sans prix à ces dates ». Elles étaient
+        # jetées, ce qui n'apprenait rien à personne.
+        indicative = total is None and bool(
+            label and (FROM_PRICE.search(label) or NIGHTLY.search(label))
+        )
+        # La capacité du LOGEMENT ne se lit pas dans le bloc d'offres de la
+        # tuile : Booking y écrit « Chambre Double (2 personnes) », qui est la
+        # capacité d'une chambre à vendre, pas celle du bien. Sans la jointure
+        # Apollo pour l'écraser, ce « 2 » devenait la capacité de l'annonce, et
+        # l'écartait. On n'accepte donc ce bloc que lorsqu'il annonce le
+        # logement entier, et jamais le texte complet de la tuile.
+        whole_unit = units if ENTIRE_UNIT.search(units) else ""
+        guests, bedrooms, rooms = occupancy_from_text(name, whole_unit)
         extra_g, extra_b = extra.get("guests"), extra.get("bedrooms")
         if isinstance(extra_g, int):
             guests = extra_g
         if isinstance(extra_b, int):
             bedrooms = extra_b
-        if min_guests and isinstance(guests, int) and guests > 0 and guests < min_guests:
-            continue
-        if min_bedrooms and isinstance(bedrooms, int) and bedrooms > 0 and bedrooms < min_bedrooms:
-            continue
         img = card.select_one('[data-testid="image"], img')
         image = _attr(img, "src") or _attr(img, "data-src")
         url = href
@@ -413,16 +464,24 @@ def listings_from_html(
                 "sourceId": source_id,
                 "title": name,
                 "url": url,
-                "totalPrice": int(round(total)),
+                "totalPrice": int(round(total)) if total is not None else 0,
+                # Le montant n'est retenu que s'il porte un « € » : la devise
+                # est lue sur la page, pas supposée.
                 "currency": "EUR",
+                "priceLabel": label or None,
+                "priceIndicative": indicative,
                 "images": [image] if image and image.startswith("http") else [],
                 "latitude": lat if isinstance(lat, (int, float)) else None,
                 "longitude": lon if isinstance(lon, (int, float)) else None,
                 "guests": guests,
                 "bedrooms": bedrooms,
+                "rooms": rooms,
                 "propertyType": property_type,
-                "priceConfidence": "total_confirmed",
-                "availabilityStatus": "available",
+                "priceConfidence": "total_confirmed" if total is not None else "no_stay_total",
+                # Une plateforme tarife ce qu'elle peut vendre : sans total de
+                # séjour, la disponibilité n'est pas prouvée et ne se déclare
+                # pas (même mot que le verdict `unpriced` de `availabilityOf`).
+                "availabilityStatus": "available" if total is not None else "unpriced",
             }
         )
     return out

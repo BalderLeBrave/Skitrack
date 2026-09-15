@@ -131,7 +131,13 @@ export function capLbl(l: Listing): string {
 }
 
 export function bedLbl(l: Listing): string {
-  if (l.bedrooms == null) return "chambres non annoncées";
+  // Ce que la source a écrit, dans ses mots. Les pièces ne se convertissent
+  // plus en chambres au relevé : « 3 pièces » s'affiche « 3 pièces », et la
+  // conversion n'a lieu qu'au moment de comparer (`normalizedBedrooms`).
+  if (l.bedrooms == null) {
+    if (l.rooms != null && l.rooms > 0) return l.rooms === 1 ? "1 pièce" : `${l.rooms} pièces`;
+    return "chambres non annoncées";
+  }
   if (l.bedrooms === 0) return "studio";
   return `${l.bedrooms} ch.`;
 }

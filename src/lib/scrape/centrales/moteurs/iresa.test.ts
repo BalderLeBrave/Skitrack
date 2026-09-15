@@ -10,7 +10,9 @@ import { corpsIresa, dateIresa, jetonIresa, lireIresa, nuitsIresa, prestationsIr
  * construite à l'image de ce que le moteur rend quand la durée demandée n'est
  * pas vendue : une fiche de son catalogue non daté, durée un, trente-neuf euros
  * la nuit en dortoir. C'est le piège que ce moteur tend, et le test est là pour
- * qu'on ne retombe pas dedans.
+ * qu'on ne retombe pas dedans. La quatrième est construite elle aussi : une
+ * fiche bien datée mais sans montant, qui porte un `montant_valeur_promo` non
+ * nul — le champ dont le connecteur fabriquait un « remisé depuis X € ».
  *
  * Les antislashs du gabarit sont doublés : dans un littéral de gabarit, un
  * antislash est une échappée, et sans cela le JSON cesse d'être du JSON.
@@ -59,6 +61,20 @@ const PAGE = `
    "date_debut": "2026-09-19",
    "lieu": "Bourg-Saint-Maurice"
   }
+ },
+ {
+  "template": "",
+  "datas": {
+   "id": "9002",
+   "id_prestation_hebergement": "9002",
+   "name": "Chalet des Glaciers - 4 pièces 8 personnes",
+   "prix_total": 0,
+   "montant_valeur_promo": 150,
+   "cap_max": "8",
+   "duree": 7,
+   "date_debut": "2027-02-06",
+   "lieu": "Arc 1800"
+  }
  }
 ]</script>
 `;
@@ -70,10 +86,30 @@ describe("iResa : ne garder que ce qui répond à la question posée", () => {
     // Quand la durée demandée n'est pas vendue, iResa ne rend pas une liste
     // vide : il rend six cents fiches aux prix unitaires. Les prendre pour des
     // séjours mettrait des nuitées à trente-neuf euros en tête du comparatif.
-    assert.equal(prestationsIresa(PAGE).length, 3);
+    assert.equal(prestationsIresa(PAGE).length, 4);
     const fiches = lireIresa(PAGE, DEMANDE);
-    assert.equal(fiches.length, 2);
+    assert.equal(fiches.length, 3);
     assert.ok(!fiches.some((f) => f.total === 39), "la nuitée de dortoir ne doit pas passer");
+  });
+
+  it("une fiche datée sans montant sort quand même, à zéro", () => {
+    // La durée et la date de début sont les bonnes : la centrale répond bien
+    // pour ces dates-là. L'absence de montant est un renseignement, et la
+    // supprimer n'en est pas un.
+    const f = lireIresa(PAGE, DEMANDE).find((x) => x.id === "9002");
+    assert.equal(f?.total, 0);
+    assert.equal(f?.capacite, 8);
+    assert.equal(f?.nuits, 7);
+  });
+
+  it("aucun prix barré n'est fabriqué à partir de la promo", () => {
+    // `montant_valeur_promo` vaut zéro sur tout le relevé, et rien ne dit de
+    // quoi il est le montant. Le connecteur l'ajoutait au total pour annoncer
+    // « remisé depuis 150 € » : une déduction présentée comme une lecture.
+    const fiches = lireIresa(PAGE, DEMANDE);
+    for (const f of fiches) {
+      assert.equal("avantRemise" in f, false, `${f.titre} porte encore un avant-remise`);
+    }
   });
 
   it("une durée qui ne correspond pas ne rend rien du tout", () => {
@@ -88,7 +124,9 @@ describe("iResa : ne garder que ce qui répond à la question posée", () => {
   });
 
   it("lit le prix, la capacité et le lieu", () => {
-    const f = lireIresa(PAGE, DEMANDE).sort((a, b) => a.total - b.total)[0];
+    // La fiche est choisie par son identifiant, et non par « la moins chère » :
+    // une fiche sans montant sort désormais à zéro, et zéro n'est pas un prix.
+    const f = lireIresa(PAGE, DEMANDE).find((x) => x.id === "1059");
     assert.equal(f?.total, 1911);
     assert.equal(f?.capacite, 8);
     assert.equal(f?.nuits, 7);

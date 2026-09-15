@@ -37,8 +37,29 @@ export type ReglageIngenie = {
   cid: number | string;
 };
 
+/**
+ * La centrale annonce-t-elle son prix comme un « à partir de » ?
+ *
+ * Elle l'écrit en toutes lettres au-dessus du montant, dans sa casse à elle —
+ * « à partir de » à Risoul, « À partir de » aux Contamines. C'était repris dans
+ * la preuve et nulle part ailleurs ; le modèle porte désormais le drapeau, et
+ * l'écran peut dire que ce nombre n'est pas un total de séjour.
+ */
+function annoncePartirDe(etiquette: string | null): boolean {
+  if (!etiquette) return false;
+  const plat = etiquette
+    .toLowerCase()
+    .normalize("NFD")
+    // Les marques diacritiques, écrites en échappement : un caractère
+    // invisible dans le source se relit mal et se recopie plus mal encore.
+    .replace(/[\u0300-\u036f]/g, "");
+  return plat.includes("a partir de");
+}
+
 function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: ContexteCentrale): Listing {
   const nuits = nuitsEntre(ctx.checkIn, ctx.checkOut);
+  // « Chalet - Chalet Santa Claus », « Appartement 3 pièces » : les pièces que
+  // le titre annonce sont des pièces, et `occupancyFromText` les lisait déjà.
   const occ = occupancyFromText(f.titre, f.chemin);
   return {
     id: `ing-${r.cle}-${f.id}`,
@@ -49,8 +70,11 @@ function enListing(f: FicheIngenie, base: string, r: ReglageIngenie, ctx: Contex
     currency: "EUR",
     guests: occ.guests,
     bedrooms: occ.bedrooms,
+    rooms: occ.rooms,
     available: true,
     photo: f.photo,
+    priceLabel: f.libelle,
+    priceIndicative: annoncePartirDe(f.etiquette) ? true : null,
     url: f.chemin ? new URL(f.chemin, `${base}/`).toString() : base,
     // La page de résultats ne porte aucune coordonnée. Ces annonces ne
     // paraissent donc pas sur la carte, et l'écran les dit sans localisation.

@@ -1,7 +1,9 @@
 """Mappage hermétique StaySearchResult → clip Skitrack.
 
 Aucune requête. On ne retient qu’un total de séjour publié (jamais une nuit,
-jamais « à partir de »). Logement entier seulement.
+jamais « à partir de ») ; une tuile sans total sort quand même, avec
+`total: 0`, la convention « prix non publié » de `src/lib/listings.ts`.
+Logement entier seulement.
 """
 
 from __future__ import annotations
@@ -25,6 +27,10 @@ GUESTS_RE = re.compile(
     re.I,
 )
 BEDROOMS_RE = re.compile(r"(\d+)\s*-?\s*(?:chambres?|bedrooms?)\b", re.I)
+# Airbnb écrit « 6 lits » sur la tuile, à côté des chambres. C'est un compte de
+# lits, pas de voyageurs : la ligne était collectée puis ignorée, seules les
+# chambres et les personnes en sortaient.
+BEDS_RE = re.compile(r"(\d+)\s*-?\s*(?:lits?|beds?)\b", re.I)
 PIECES_RE = re.compile(r"(\d+)\s*-?\s*pi[eè]ces?\b", re.I)
 STUDIO_RE = re.compile(r"\bstudio\b", re.I)
 T_TYPE_RE = re.compile(r"\bT([1-9])\b", re.I)
@@ -36,6 +42,17 @@ MULTI_SLUG_RE = re.compile(
     r"(\d+)-(?:appartements?|chalets?|logements?|maisons?)-de-(\d+)-(?:personnes?|pers)",
     re.I,
 )
+# Deux écritures possibles d'une note de tuile : « 4,92 (25) » et
+# « 4,92 sur 5, 25 commentaires ». Aucune n'est prouvée par une fixture du
+# dépôt — voir `rating_of`, qui rend None quand rien n'est écrit.
+RATING_SUR_CINQ_RE = re.compile(r"(\d(?:[.,]\d+)?)\s*(?:sur|/|out of)\s*5\b", re.I)
+RATING_TETE_RE = re.compile(r"^\s*(\d(?:[.,]\d+)?)\b")
+# Un compte d'avis n'a pas de virgule : l'accepter ferait lire « 525 » dans
+# « 4,92 sur 5, 25 commentaires ». Seuls les séparateurs de milliers passent.
+REVIEWS_MOT_RE = re.compile(
+    r"(\d+(?:[\u00a0\u202f ]\d{3})*)\s*(?:commentaires?|avis|reviews?)\b", re.I
+)
+REVIEWS_PAREN_RE = re.compile(r"\(\s*(\d+(?:[\u00a0\u202f ]\d{3})*)\s*\)")
 
 
 def _fold(text: str) -> str:
@@ -117,11 +134,35 @@ def price_label_of(node: Any) -> str | None:
     return None
 
 
-def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
+def published_price_label(node: Any) -> str | None:
+    """Le libellé de prix affiché, même quand ce n'est pas un total de séjour.
+
+    `price_label_of` ne rend que ce qui peut porter un total ; une tuile qui
+    n'annonce qu'un prix par nuit ou un « à partir de » n'en a pas, et ses mots
+    partaient avec l'annonce supprimée. Ils restent : le total vaudra 0, et le
+    libellé dira de lui-même ce qu'Airbnb a écrit.
+    """
+    stay = price_label_of(node)
+    if stay:
+        return stay
+    labels: list[str] = []
+    _walk_labels(node, labels)
+    return labels[0] if labels else None
+
+
+def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None, int | None]:
+    """Rend (voyageurs, chambres, pièces) tels que le texte les écrit.
+
+    Les pièces sortent comme des pièces. « 2 pièces » n'est pas « 1 chambre » :
+    c'est une conversion juste, mais que la source n'a pas écrite, et elle
+    appartient à la comparaison (`src/lib/stay/occupancy.ts`), pas au relevé.
+    Elle était rangée dans les chambres, d'où une vignette annonçant une
+    chambre de moins que la tuile.
+    """
     blob = " · ".join(t for t in texts if t and t.strip())
     if not blob:
-        return None, None
-    guests = bedrooms = None
+        return None, None, None
+    guests = bedrooms = rooms = None
     if not MULTI_RE.search(blob) and not MULTI_SLUG_RE.search(blob):
         pers = GUESTS_RE.search(blob)
         if pers:
@@ -135,23 +176,44 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None]:
         n = int(ch.group(1))
         if 0 <= n <= 50:
             bedrooms = n
-    if bedrooms is None:
-        pi = PIECES_RE.search(blob)
-        if pi:
-            n = int(pi.group(1))
-            if 0 < n <= 50:
-                bedrooms = n - 1
-    if bedrooms is None:
+    pi = PIECES_RE.search(blob)
+    if pi:
+        n = int(pi.group(1))
+        if 0 < n <= 50:
+            rooms = n
+    if rooms is None:
         t = T_TYPE_RE.search(blob)
         if t:
-            bedrooms = int(t.group(1)) - 1
-    if bedrooms is None and STUDIO_RE.search(blob):
-        bedrooms = 0
-    return guests, bedrooms
+            rooms = int(t.group(1))
+    if STUDIO_RE.search(blob):
+        # « Studio » est un mot publié qui dit deux choses à la fois : une
+        # pièce, et aucune chambre séparée. Les deux sont des lectures.
+        if rooms is None:
+            rooms = 1
+        if bedrooms is None:
+            bedrooms = 0
+    return guests, bedrooms, rooms
 
 
-def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None]:
-    guests = bedrooms = None
+def beds_from_text(*texts: str | None) -> int | None:
+    """Le nombre de lits annoncé, quand la tuile l'écrit (« 6 lits »).
+
+    Un lit n'est pas un voyageur, et ce n'est pas non plus un couchage
+    annoncé : `Listing.beds` le porte à part. La ligne était collectée par
+    `structured_lines` et jetée, faute de champ pour la recevoir.
+    """
+    blob = " · ".join(t for t in texts if t and t.strip())
+    if not blob:
+        return None
+    m = BEDS_RE.search(blob)
+    if not m:
+        return None
+    n = int(m.group(1))
+    return n if 0 < n <= 50 else None
+
+
+def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None, int | None]:
+    guests = bedrooms = rooms = None
 
     def take_guests(n: Any) -> int | None:
         return n if isinstance(n, int) and 0 < n <= 50 else None
@@ -188,7 +250,7 @@ def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None]
             walk(val, depth + 1)
 
     walk(record, 0)
-    t_g, t_b = occupancy_from_text(
+    t_g, t_b, t_r = occupancy_from_text(
         record.get("title") if isinstance(record.get("title"), str) else None,
         record.get("subtitle") if isinstance(record.get("subtitle"), str) else None,
     )
@@ -196,7 +258,9 @@ def occupancy_from_stay(record: dict[str, Any]) -> tuple[int | None, int | None]
         guests = t_g
     if bedrooms is None:
         bedrooms = t_b
-    return guests, bedrooms
+    if rooms is None:
+        rooms = t_r
+    return guests, bedrooms, rooms
 
 
 def decode_listing_id(encoded: Any) -> str:
@@ -217,13 +281,70 @@ def decode_listing_id(encoded: Any) -> str:
     return tail if tail.isdigit() else ""
 
 
-def first_photo(record: dict[str, Any]) -> str | None:
+def photos_of(record: dict[str, Any]) -> list[str]:
+    """Toutes les photos publiées par la tuile, dans l'ordre.
+
+    `contextualPictures` en porte plusieurs ; on n'en gardait que la première
+    et les autres tombaient. Attention : la longueur de ce tableau n'est pas le
+    nombre de photos du bien — la tuile n'en montre qu'un aperçu, et ce total
+    n'est publié nulle part ici. On ne le déduit donc pas.
+    """
     pics = record.get("contextualPictures")
-    if isinstance(pics, list) and pics:
-        pic = pics[0]
-        if isinstance(pic, dict) and isinstance(pic.get("picture"), str):
-            return pic["picture"]
-    return None
+    out: list[str] = []
+    if not isinstance(pics, list):
+        return out
+    for pic in pics:
+        if not isinstance(pic, dict):
+            continue
+        url = pic.get("picture")
+        if isinstance(url, str) and url.strip() and url.strip() not in out:
+            out.append(url.strip())
+    return out
+
+
+def first_photo(record: dict[str, Any]) -> str | None:
+    photos = photos_of(record)
+    return photos[0] if photos else None
+
+
+def rating_of(record: dict[str, Any]) -> tuple[float | None, int | None]:
+    """Note et nombre d'avis, seulement quand la tuile les écrit.
+
+    Lecture défensive, et assumée comme telle : aucune fixture du dépôt ne
+    porte ces clés. La seule mention d'`avgRatingLocalized` vit dans
+    pyairbnb/standardize.py, code tiers vendu que Skitrack n'exécute jamais —
+    ce n'est pas une preuve que la clé existe sur le chemin lu ici. Toutes les
+    lectures sont donc optionnelles et rendent None quand rien n'est publié :
+    une note fabriquée serait pire qu'une note absente.
+    """
+    rating: float | None = None
+    reviews: int | None = None
+    brut = record.get("avgRating")
+    if isinstance(brut, (int, float)) and not isinstance(brut, bool) and 0 < float(brut) <= 5:
+        rating = round(float(brut), 2)
+    compte = record.get("reviewsCount")
+    if isinstance(compte, int) and not isinstance(compte, bool) and 0 <= compte <= 1_000_000:
+        reviews = compte
+    for cle in ("avgRatingLocalized", "avgRatingA11yLabel"):
+        label = record.get(cle)
+        if not isinstance(label, str) or not label.strip():
+            continue
+        if rating is None:
+            m = RATING_SUR_CINQ_RE.search(label) or RATING_TETE_RE.search(label)
+            if m:
+                try:
+                    n = float(m.group(1).replace(",", "."))
+                except ValueError:
+                    n = -1.0
+                if 0 < n <= 5:
+                    rating = round(n, 2)
+        if reviews is None:
+            m = REVIEWS_MOT_RE.search(label) or REVIEWS_PAREN_RE.search(label)
+            if m:
+                token = re.sub(r"\D", "", m.group(1))
+                if token and int(token) <= 1_000_000:
+                    reviews = int(token)
+    return rating, reviews
 
 
 def _nested_name(node: Any) -> str:
@@ -296,16 +417,22 @@ def stay_to_listing(
         return None
     if is_dropped_listing(name) or is_dropped_listing(title) or is_dropped_listing(subtitle):
         return None
-    label = price_label_of(record.get("structuredDisplayPrice"))
+    label = published_price_label(record.get("structuredDisplayPrice"))
     total = stay_total_from_label(label)
-    if total is None:
-        return None
-    guests, bedrooms = occupancy_from_stay(record)
-    extra_g, extra_b = occupancy_from_text(name, *structured_lines(record))
+    guests, bedrooms, rooms = occupancy_from_stay(record)
+    lines = structured_lines(record)
+    extra_g, extra_b, extra_r = occupancy_from_text(name, *lines)
     if guests is None:
         guests = extra_g
     if bedrooms is None:
         bedrooms = extra_b
+    if rooms is None:
+        rooms = extra_r
+    # Les lignes de `structuredContent` d'abord : c'est là qu'Airbnb compte les
+    # lits (« 6 lits »), le titre n'en parle qu'en passant.
+    beds = beds_from_text(*lines, name, subtitle)
+    rating, review_count = rating_of(record)
+    photos = photos_of(record)
     loc = demand.get("location") if isinstance(demand.get("location"), dict) else {}
     coord = loc.get("coordinate") if isinstance(loc.get("coordinate"), dict) else {}
     lat = coord.get("latitude") if isinstance(coord.get("latitude"), (int, float)) else None
@@ -321,15 +448,39 @@ def stay_to_listing(
         "id": listing_id,
         "name": name,
         "subtitle": subtitle or None,
-        "priceLabel": f"{int(round(total))} € au total",
+        # Le libellé tel qu'Airbnb l'écrit. On le lisait pour en tirer le
+        # total, puis on le remplaçait par « N € au total » : le prix barré, la
+        # remise et le nombre de nuits affichés par la plateforme partaient
+        # avec. Ses mots valent mieux que les nôtres.
+        "priceLabel": label,
+        "priceIndicative": bool(FROM_PRICE.search(label)) if label else None,
         "lat": lat,
         "lon": lon,
-        "image": first_photo(record),
+        "image": photos[0] if photos else None,
+        "photos": photos,
         "url": url,
         "guests": guests,
         "bedrooms": bedrooms,
-        "total": int(round(total)),
+        "rooms": rooms,
+        "beds": beds,
+        "rating": rating,
+        "reviewCount": review_count,
+        # Airbnb liste des biens qu'il ne peut pas vendre à ces dates : sa
+        # tuile sort alors sans total de séjour. On les supprimait, ce qui
+        # effaçait l'information au lieu de la dire. `0` est la convention
+        # « prix non publié » de `src/lib/listings.ts` — jamais « gratuit ».
+        "total": int(round(total)) if total is not None else 0,
     }
+
+
+def par_prix(row: dict[str, Any]) -> tuple[int, float]:
+    """Clé de tri : ce qui n'a pas de prix publié passe après ce qui en a un.
+
+    `total: 0` veut dire « prix non publié » ; un tri croissant brut rangerait
+    ces annonces en tête, devant les moins chères réellement relevées.
+    """
+    total = row.get("total") or 0
+    return (1, 0.0) if total <= 0 else (0, float(total))
 
 
 def collect_stays(root: Any) -> list[dict[str, Any]]:
@@ -375,5 +526,5 @@ def listings_from_raw(
             continue
         seen.add(row["id"])
         listings.append(row)
-    listings.sort(key=lambda r: r["total"])
+    listings.sort(key=par_prix)
     return listings

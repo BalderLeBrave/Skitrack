@@ -1,6 +1,12 @@
 """Pagination Airbnb 2026 : pageCursors, plus nextPageCursor. Aucun réseau."""
 
-from session import next_search_cursor
+import json
+import tempfile
+import time
+from pathlib import Path
+
+from session import cached, invalidate, next_search_cursor
+import session as session_mod
 
 
 PAGES = [
@@ -31,6 +37,38 @@ def test_next_page_cursor_historique():
 def test_vide():
     assert next_search_cursor({}, "") is None
     assert next_search_cursor({"pageCursors": []}, "") is None
+
+
+def test_cache_disque_evite_un_second_fetch():
+    path = Path(tempfile.mkdtemp()) / "session.json"
+    old = session_mod.SESSION_PATH
+    session_mod.SESSION_PATH = path
+    session_mod._key = ""
+    session_mod._hash = ""
+    session_mod._key_at = 0.0
+    session_mod._hash_at = 0.0
+    n = {"i": 0}
+
+    def fetch():
+        n["i"] += 1
+        return "cle-test"
+
+    try:
+        assert cached("key", fetch) == "cle-test"
+        session_mod._key = ""
+        session_mod._key_at = 0.0
+        assert cached("key", fetch) == "cle-test"
+        assert n["i"] == 1
+        data = json.loads(path.read_text())
+        assert data["key"] == "cle-test"
+        assert time.time() - data["key_at"] < 5
+    finally:
+        invalidate()
+        session_mod.SESSION_PATH = old
+        session_mod._key = ""
+        session_mod._hash = ""
+        session_mod._key_at = 0.0
+        session_mod._hash_at = 0.0
 
 
 if __name__ == "__main__":

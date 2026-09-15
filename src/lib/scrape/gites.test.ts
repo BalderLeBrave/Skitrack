@@ -10,7 +10,7 @@ import {
   type Fiche,
   type Tile,
 } from "./gites.server.ts";
-import { lieuFromGitesHtml } from "./gitesGps.server.ts";
+import { lieuFromGitesHtml, lieuGitesEnCache, retenirLieuGites, viderCacheGitesGps } from "./gitesGps.server.ts";
 import type { LiveSearchInput } from "./types.ts";
 
 /**
@@ -171,6 +171,23 @@ describe("fiche ITEA", () => {
       lon: null,
       locality: null,
     });
+  });
+
+  it("retient un lieu lu, et le rend sans relire la fiche", () => {
+    viderCacheGitesGps();
+    retenirLieuGites("38G40102", { lat: 45.0106, lon: 6.1226, locality: "Venosc" });
+    assert.deepEqual(lieuGitesEnCache("38G40102"), {
+      lat: 45.0106,
+      lon: 6.1226,
+      locality: "Venosc",
+    });
+    assert.deepEqual(lieuGitesEnCache("38g40102"), {
+      lat: 45.0106,
+      lon: 6.1226,
+      locality: "Venosc",
+    });
+    viderCacheGitesGps();
+    assert.equal(lieuGitesEnCache("38G40102"), null);
   });
 });
 

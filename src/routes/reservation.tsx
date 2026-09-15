@@ -25,7 +25,7 @@ import {
 } from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, mediaTon } from "@/lib/v7";
+import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, mediaTon, prixLbl } from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
 
@@ -83,9 +83,9 @@ function Reservation() {
     [
       `Skitrack – ${s.name}`,
       `${datesLbl(checkIn, checkOut, nights)} · ${groupLbl(trav, rooms)}`,
-      `Logement : ${l.title} (${l.source}) ${eurCents(l.total)}`,
+      `Logement : ${l.title} (${l.source}) ${prixLbl(l)}`,
       `Forfaits : ${forfait?.j6 != null ? eur(passGroupN) : "non relevés"}`,
-      `Total : ${eurCents(totalN)}`,
+      `Total : ${l.total > 0 ? eurCents(totalN) : "logement non tarifé"}`,
     ].join("\n");
 
   const copyRecap = () => {
@@ -290,7 +290,7 @@ function Reservation() {
                     Logement · {nights} nuits
                     <span className="cout7__ok">relevé chez la source</span>
                   </th>
-                  <td>{eurCents(l.total)}</td>
+                  <td className={l.total > 0 ? undefined : "absent"}>{prixLbl(l)}</td>
                 </tr>
                 <tr>
                   <th>
@@ -311,11 +311,15 @@ function Reservation() {
                 </tr>
                 <tr className="cout7__total">
                   <th>Total</th>
-                  <td>{eurCents(totalN)}</td>
+                  <td className={l.total > 0 ? undefined : "absent"}>
+                    {l.total > 0 ? eurCents(totalN) : "logement non tarifé"}
+                  </td>
                 </tr>
                 <tr className="cout7__pp">
                   <th>Par personne, {trav}</th>
-                  <td>{eurCents(Math.round((totalN / trav) * 100) / 100)}</td>
+                  <td className={l.total > 0 ? undefined : "absent"}>
+                    {l.total > 0 ? eurCents(Math.round((totalN / trav) * 100) / 100) : "—"}
+                  </td>
                 </tr>
               </tbody>
             </table>

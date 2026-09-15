@@ -284,7 +284,12 @@ def get(api_key:str, cursor:str, check_in:str, check_out:str, ne_lat:float, ne_l
         proxies = {"http": proxy_url, "https": proxy_url}
     response = requests.post(url_parsed, json = inputData, headers=headers_copy, proxies=proxies,  impersonate="chrome124", timeout=timeout)
     if response.status_code != 200:
-        raise Exception("Not corret status code: ", response.status_code, " response body: ",response.text)
+        ra = ""
+        try:
+            ra = response.headers.get("Retry-After") or response.headers.get("retry-after") or ""
+        except Exception:
+            ra = ""
+        raise Exception("Not corret status code: ", response.status_code, " retry-after: ", ra, " response body: ", response.text[:400])
     data = response.json()
     return data
 

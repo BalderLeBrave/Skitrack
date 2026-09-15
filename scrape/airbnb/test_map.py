@@ -55,6 +55,21 @@ def test_occupancy_from_text_slug_et_fourchette():
     assert occupancy_from_text("2 appartements de 6 personnes face à face") == (None, None, None)
 
 
+def test_occupancy_abreviation_p():
+    """« 8p » est une capacité ; « 2p cabine » et « 2 pièces » n'en sont pas."""
+    assert occupancy_from_text("8p · 3 chambres") == (8, 3, None)
+    assert occupancy_from_text("10 P") == (10, None, None)
+    assert occupancy_from_text("Appartement 8p 80m²")[0] == 8
+    assert occupancy_from_text("Superbe Appartement 8P pied des pistes (Réf 32)")[0] == 8
+    assert occupancy_from_text("2p cabine") == (None, None, None)
+    assert occupancy_from_text("Appartement 2 pièces cabine") == (None, None, 2)
+
+
+def test_numero_505_n_est_pas_cinq_cent_cinq_logements():
+    assert occupancy_from_text("LE PRINCE DES ECRINS 505 Appartement 8 personnes") == (8, None, None)
+    assert occupancy_from_text("2 appartements de 6 personnes face à face") == (None, None, None)
+
+
 def test_les_pieces_restent_des_pieces():
     """Un « 2 pièces » annonçait une chambre : c'était une conversion, pas une lecture."""
     assert occupancy_from_text("appartement-2-pieces-cabine-8-personnes") == (8, None, 2)

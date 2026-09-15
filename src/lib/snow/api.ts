@@ -48,6 +48,12 @@ export const getListingElevations = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<{ eleM: number | null; lat: number; lon: number }[]> => {
     const { fetchElevations } = await import("./openMeteo.server");
-    const values = await fetchElevations(data.points);
-    return data.points.map((p, i) => ({ lat: p.lat, lon: p.lon, eleM: values[i] ?? null }));
+    const { withDeadline, estTimeout } = await import("../stay/deadline");
+    try {
+      const values = await withDeadline(fetchElevations(data.points), 15_000, "elevation");
+      return data.points.map((p, i) => ({ lat: p.lat, lon: p.lon, eleM: values[i] ?? null }));
+    } catch (err) {
+      if (!estTimeout(err)) throw err;
+      return data.points.map((p) => ({ lat: p.lat, lon: p.lon, eleM: null }));
+    }
   });

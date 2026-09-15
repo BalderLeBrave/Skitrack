@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { Listing } from "./listings";
-import type { LiveSearchResult } from "./scrape/types";
+import { attachAccess } from "./access";
+import { listingsForStay, type Listing } from "./listings";
+import type { LiveSearchResult, SourceName } from "./scrape/types";
+import { stationById } from "./stations";
+import { estTimeout, withDeadline } from "./stay/deadline";
+import { enrichirListing } from "./stay/enrichir";
 
 const Input = z.object({
   stationId: z.string().min(1),
@@ -15,12 +19,62 @@ const Input = z.object({
   part: z.enum(["airbnb", "gites", "cozy", "centrales", "browser", "all"]).optional(),
 });
 
+/** Une part (Airbnb, Gîtes…) ne doit pas retenir l'écran. Le repli s'affiche. */
+export const SEARCH_PART_MS = 52_000;
+export const PAUSE_DELAI = "Délai dépassé — relevé précédent conservé.";
+
+function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>): SourceName[] {
+  if (part === "airbnb") return ["Airbnb"];
+  if (part === "gites") return ["Gîtes de France"];
+  if (part === "centrales") return ["Centrale"];
+  if (part === "cozy") return ["Abritel", "Booking"];
+  if (part === "browser") return ["Gîtes de France", "Abritel", "Booking"];
+  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale"];
+}
+
+function timedOutResult(part: NonNullable<z.infer<typeof Input>["part"]>, ms: number): LiveSearchResult {
+  return {
+    listings: [],
+    sources: sourcesOf(part).map((source) => ({
+      source,
+      ok: false,
+      count: 0,
+      ms,
+      error: PAUSE_DELAI,
+    })),
+  };
+}
+
 export const searchStay = createServerFn({ method: "POST" })
   .validator(Input)
   .handler(async ({ data }): Promise<LiveSearchResult> => {
+    const part = data.part ?? "all";
+    const t0 = Date.now();
     const { runLiveSearch } = await import("./scrape/run.server");
-    const res = await runLiveSearch(data, data.part ?? "all");
-    return { ...res, listings: res.listings.map((l) => dater(l, data.checkIn, data.checkOut)) };
+    let res: LiveSearchResult;
+    try {
+      res = await withDeadline(runLiveSearch(data, part), SEARCH_PART_MS, `search ${part}`);
+    } catch (err) {
+      if (!estTimeout(err)) throw err;
+      console.warn(`[searchStay] ${part} délai dépassé`);
+      res = timedOutResult(part, Date.now() - t0);
+    }
+    const remain = Math.max(0, SEARCH_PART_MS - (Date.now() - t0));
+    return {
+      ...res,
+      listings: await completer(
+        res.listings.map((l) => dater(l, data.checkIn, data.checkOut)),
+        data.stationId,
+        remain,
+      ),
+    };
+  });
+
+/** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, lien Airbnb déjà écrit. */
+export const completerReleve = createServerFn({ method: "POST" })
+  .validator(z.object({ stationId: z.string().min(1) }))
+  .handler(async ({ data }): Promise<Listing[]> => {
+    return completer(listingsForStay(data.stationId, 1, 0), data.stationId, 20_000);
   });
 
 /**
@@ -52,4 +106,58 @@ function dater(l: Listing, checkIn: string, checkOut: string): Listing {
     pricedCheckOut: l.pricedCheckOut ?? checkOut,
     scannedAt: l.scannedAt ?? (repli ? null : Date.now()),
   };
+}
+
+function poserAcces(rows: Listing[], stationId: string): Listing[] {
+  const station = stationById(stationId);
+  if (!station) return rows;
+  return rows.map((l) => {
+    if (l.lat == null || l.lon == null) return l;
+    if (l.searchedLiftM != null || l.distToLiftM != null) return l;
+    return attachAccess(l, station);
+  });
+}
+
+/**
+ * Seconde passe, hors collecteur : occupancy déjà écrite dans un titre,
+ * photo de galerie, lien Airbnb lu dans une photo, GPS Gîtes encore vide,
+ * capacité / chambres / GPS lus sur la fiche liée (et l'adresse numérotée
+ * si le geo est vide), accès ski dès que le GPS arrive.
+ *
+ * `budgetMs` coupe le réseau : un collecteur lent ne doit pas faire rater
+ * la réponse. Ce qui est déjà lu (relevé figé, titre, cache) reste.
+ */
+async function completer(listings: Listing[], stationId: string, budgetMs: number): Promise<Listing[]> {
+  // Copie : les remplisseurs mutent en place, et le relevé figé ne doit pas l'être.
+  const rows = listings.map((l) => ({ ...enrichirListing(l) }));
+  if (budgetMs <= 0) return poserAcces(rows, stationId);
+  try {
+    await withDeadline(
+      Promise.all([
+        (async () => {
+          if (!rows.some((l) => l.source === "Gîtes de France" && (l.lat == null || l.lon == null))) return;
+          try {
+            const { fillGitesGps } = await import("./scrape/gitesGps.server");
+            await fillGitesGps(rows);
+          } catch {
+            /* robots, réseau : les trous restent nommés */
+          }
+        })(),
+        (async () => {
+          try {
+            const { fillFiches } = await import("./stay/completerFiche.server");
+            await fillFiches(rows, budgetMs);
+          } catch {
+            /* robots, réseau : les trous restent nommés */
+          }
+        })(),
+      ]),
+      budgetMs,
+      "completer",
+    );
+  } catch (err) {
+    if (!estTimeout(err)) throw err;
+    console.warn("[searchStay] complément de fiches : délai dépassé, on rend ce qui est lu");
+  }
+  return poserAcces(rows, stationId);
 }

@@ -10,6 +10,7 @@ import { distToGpxM, formatPerPerson } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, sectorOf, skiAccessLabel } from "@/lib/access";
 import { formatEle, formatDuration, formatKm } from "@/lib/gpx";
 import { formatEuro, listingsForStay, type Listing } from "@/lib/listings";
+import { enrichirListing } from "@/lib/stay/enrichir";
 import { stationById } from "@/lib/stations";
 import { useParcours } from "@/lib/parcours";
 import { useStay } from "@/lib/stay";
@@ -36,7 +37,7 @@ function Traces() {
   const [ficheId, setFicheId] = useState<string | null>(null);
 
   const frozen = useMemo(
-    () => (stationId ? listingsForStay(stationId, guests, bedrooms) : []),
+    () => (stationId ? listingsForStay(stationId, guests, bedrooms).map(enrichirListing) : []),
     [stationId, guests, bedrooms],
   );
   const raw = live ?? frozen;

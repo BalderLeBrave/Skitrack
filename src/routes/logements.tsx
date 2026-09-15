@@ -11,9 +11,10 @@
  *  recherche. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
+import { GalerieAnnonce } from "@/components/LodgeSheet";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
@@ -23,6 +24,10 @@ import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
+import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
+import { getListingElevations } from "@/lib/snow/api";
+import { completudeOf, galerieOf, trouLbl, trousPhrase } from "@/lib/stay/completude";
+import { enrichirListing } from "@/lib/stay/enrichir";
 import {
   clampRayonKm,
   droppedLabel,
@@ -37,22 +42,22 @@ import {
 import {
   eur,
   eurCents,
-  eurN,
   fmt,
   stationPhoto,
   stationPhotoAbsence,
   useParcours,
   useSejour,
 } from "@/lib/parcours";
-import { searchStay } from "@/lib/searchStay";
+import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS } from "@/lib/searchStay";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl } from "@/lib/v7";
+import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
+import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap";
+type LodgeSort = "pp" | "total" | "cap" | "trous";
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
  *
@@ -73,8 +78,24 @@ type LF = {
   photo: boolean;
   firm: boolean;
   pos: boolean;
+  full: boolean;
+  holes: boolean;
 };
-const LF0: LF = { pp: 0, cap: 0, rooms: 0, dist: 0, src: {}, rayon: RAYON_DEFAUT_KM, measured: false, link: false, photo: false, firm: false, pos: false };
+const LF0: LF = {
+  pp: 0,
+  cap: 0,
+  rooms: 0,
+  dist: 0,
+  src: {},
+  rayon: RAYON_DEFAUT_KM,
+  measured: false,
+  link: false,
+  photo: false,
+  firm: false,
+  pos: false,
+  full: false,
+  holes: false,
+};
 
 /** Le budget est à part : il est lu et écrit sur le magasin partagé. */
 const BUDGET = { label: "Total du séjour, au plus", max: 6000, step: 250, unit: "€", sign: "≤ " };
@@ -88,12 +109,13 @@ const RANGES: { k: "pp" | "cap" | "rooms" | "dist"; label: string; max: number; 
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
+  const frozenRef = useRef(frozen);
+  frozenRef.current = frozen;
   const checkIn = useStay((s) => s.checkIn);
   const checkOut = useStay((s) => s.checkOut);
   const guests = useStay((s) => s.guests);
   const bedrooms = useStay((s) => s.bedrooms);
   const searchNonce = useStay((s) => s.searchNonce);
-  const setLive = useStay((s) => s.setLive);
   const mergeLive = useStay((s) => s.mergeLive);
   const setSearching = useStay((s) => s.setSearching);
 
@@ -101,7 +123,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     if (!station) return;
     let cancelled = false;
     let pending = 4;
-    setLive(null, [], true);
+    setSearching(true);
     const payload = {
       // L'identifiant vient de la station qu'on affiche, pas du magasin de
       // séjour. Les deux devraient dire la même chose et le disent presque
@@ -123,32 +145,46 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       if (!cancelled && pending <= 0) setSearching(false);
     };
     const run = (part: "airbnb" | "gites" | "cozy" | "centrales") => {
-      void searchStay({ data: { ...payload, part } })
+      void withDeadline(searchStay({ data: { ...payload, part } }), SEARCH_PART_MS + 6_000, part)
         .then((res) => {
           if (cancelled) return;
-          mergeLive(res.listings, res.sources);
+          if (res.listings.length > 0) {
+            mergeLive(res.listings, res.sources);
+            return;
+          }
+          const dump = frozenRef.current;
+          const fallback =
+            part === "airbnb"
+              ? dump.filter((l) => l.source === "Airbnb")
+              : part === "gites"
+                ? dump.filter((l) => l.source === "Gîtes de France")
+                : part === "centrales"
+                  ? dump.filter((l) => l.source === "Centrale")
+                  : dump.filter((l) => l.source === "Abritel" || l.source === "Booking");
+          if (fallback.length) mergeLive(fallback, res.sources);
         })
         .catch((err: unknown) => {
           if (cancelled) return;
-          const error = err instanceof Error ? err.message : String(err);
+          const raw = err instanceof Error ? err.message : String(err);
+          const error = estTimeout(err) || estPauseApi(raw) ? PAUSE_DELAI : raw;
           if (part === "airbnb") {
             mergeLive(
-              frozen.filter((l) => l.source === "Airbnb"),
+              frozenRef.current.filter((l) => l.source === "Airbnb"),
               [{ source: "Airbnb", ok: false, count: 0, ms: 0, error }],
             );
           } else if (part === "gites") {
             mergeLive(
-              frozen.filter((l) => l.source === "Gîtes de France"),
+              frozenRef.current.filter((l) => l.source === "Gîtes de France"),
               [{ source: "Gîtes de France", ok: false, count: 0, ms: 0, error }],
             );
           } else if (part === "centrales") {
             mergeLive(
-              frozen.filter((l) => l.source === "Centrale"),
+              frozenRef.current.filter((l) => l.source === "Centrale"),
               [{ source: "Centrale", ok: false, count: 0, ms: 0, error }],
             );
           } else {
             mergeLive(
-              frozen.filter((l) => l.source === "Abritel" || l.source === "Booking"),
+              frozenRef.current.filter((l) => l.source === "Abritel" || l.source === "Booking"),
               [
                 { source: "Abritel", ok: false, count: 0, ms: 0, error },
                 { source: "Booking", ok: false, count: 0, ms: 0, error },
@@ -170,6 +206,27 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);
+}
+
+/** GPS Gîtes et lien Airbnb du relevé figé, sans attendre le relevé en direct. */
+function useDumpComplet(stationId: string | undefined) {
+  const [filled, setFilled] = useState<Listing[] | null>(null);
+  useEffect(() => {
+    if (!stationId) return;
+    let cancelled = false;
+    setFilled(null);
+    void completerReleve({ data: { stationId } })
+      .then((rows) => {
+        if (!cancelled) setFilled(rows);
+      })
+      .catch(() => {
+        /* le relevé figé reste, les trous restent nommés */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [stationId]);
+  return filled;
 }
 
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };
@@ -227,6 +284,8 @@ const CarteLogement = memo(function CarteLogement({
   const seen = vue && !isKept;
   const d = distanceOf(l);
   const firm = firmOf(l, stay);
+  const complet = completudeOf(l);
+  const pers = prixPersLbl(l, trav);
   return (
     <article
       className={`lodge7${isKept ? " lodge7--kept" : ""}${vif ? " lodge7--vif" : ""}`}
@@ -242,6 +301,7 @@ const CarteLogement = memo(function CarteLogement({
           <span className="lodge7__sansphoto">Pas de photo dans l'annonce {l.source}</span>
         )}
         <span className="lodge7__source">{l.source}</span>
+        {l.priceIndicative ? <span className="lodge7__indic">à partir de</span> : null}
         {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
         {seen ? <span className="lodge7__vue">déjà vue</span> : null}
       </div>
@@ -251,15 +311,18 @@ const CarteLogement = memo(function CarteLogement({
           <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
           <span>{bedLbl(l)}</span>
         </div>
+        {complet.trous.length ? (
+          <span className="lodge7__trous">{complet.trous.map(trouLbl).join(" · ")}</span>
+        ) : null}
         <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
           <Icon name="epingle" taille={13} />
           {d.text}
         </span>
         <div className="lodge7__pied">
-          <div className="lodge7__prix">
-            <b>{eurCents(l.total)}</b>
+          <div className={`lodge7__prix${l.total > 0 ? "" : " lodge7__prix--muet"}`}>
+            <b>{prixLbl(l)}</b>
             <span>
-              {nights} nuits · {eurN(l.total / trav)} / pers.
+              {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
             </span>
             <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
               <i />
@@ -327,18 +390,27 @@ function LogementsStation({ s }: { s: Station }) {
   const setStay = useStay((x) => x.setStay);
   // Le relevé entier de la station : la capacité s'applique plus bas, en
   // toutes lettres, pour que l'état vide puisse dire ce qu'elle a écarté.
-  const frozen = useMemo(() => (P.stationId ? listingsForStay(P.stationId, 1, 0) : []), [P.stationId]);
-  useLiveSearch(s, frozen);
+  const frozen = useMemo(
+    () => (P.stationId ? listingsForStay(P.stationId, 1, 0) : []).map(enrichirListing),
+    [P.stationId],
+  );
+  const dumpGps = useDumpComplet(P.stationId ?? undefined);
+  useLiveSearch(s, dumpGps ?? frozen);
   const raw = useMemo(() => {
-    if (liveListings == null) return frozen;
-    const reported = new Set(liveSources.map((x) => x.source));
-    return [...frozen.filter((l) => !reported.has(l.source)), ...liveListings];
-  }, [liveListings, liveSources, frozen]);
+    const dump = dumpGps ?? frozen;
+    let rows = dump;
+    if (liveListings != null) {
+      const reported = new Set(liveSources.map((x) => x.source));
+      rows = [...dump.filter((l) => !reported.has(l.source)), ...liveListings];
+    }
+    return rows.map(enrichirListing);
+  }, [liveListings, liveSources, frozen, dumpGps]);
 
   const [lf, setLf] = useState<LF>(LF0);
   const [lsort, setLsort] = useState<LodgeSort>("pp");
   const [lfOpen, setLfOpen] = useState(false);
   const [sheetId, setSheetId] = useState<string | null>(null);
+  const [photoI, setPhotoI] = useState(0);
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
@@ -357,6 +429,36 @@ function LogementsStation({ s }: { s: Station }) {
   };
 
   const stay = useMemo(() => ({ checkIn, checkOut }), [checkIn, checkOut]);
+
+  useEffect(() => {
+    setPhotoI(0);
+  }, [sheetId]);
+
+  useEffect(() => {
+    const byKey = useElevations.getState().byKey;
+    const points: { lat: number; lon: number }[] = [];
+    const seen = new Set<string>();
+    for (const l of raw) {
+      if (l.lat == null || l.lon == null) continue;
+      const k = eleKey(l.lat, l.lon);
+      if (seen.has(k) || listingEleM(byKey, l.lat, l.lon) !== undefined) continue;
+      seen.add(k);
+      points.push({ lat: l.lat, lon: l.lon });
+      if (points.length >= 160) break;
+    }
+    if (!points.length) return;
+    let cancelled = false;
+    void getListingElevations({ data: { points } })
+      .then((rows) => {
+        if (!cancelled) useElevations.getState().put(rows);
+      })
+      .catch(() => {
+        /* modèle injoignable : les fiches diront « non mesurée » */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [raw]);
 
   const relancer = () => setStay({ searchNonce: Date.now() });
   const importer = () => P.say("Import d’annonce par son lien : hors de cet écran pour l’instant.");
@@ -403,6 +505,20 @@ function LogementsStation({ s }: { s: Station }) {
   if (lf.photo) lp.push({ id: "photo", label: "Avec photo", fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
   if (lf.firm) lp.push({ id: "firm", label: "Prix relevé aux dates", fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
   if (lf.pos) lp.push({ id: "pos", label: "Position connue", fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
+  if (lf.full)
+    lp.push({
+      id: "full",
+      label: "Fiche complète",
+      fn: (l) => completudeOf(l).ok,
+      remove: () => patchLf({ full: false }),
+    });
+  if (lf.holes)
+    lp.push({
+      id: "holes",
+      label: "Incomplètes",
+      fn: (l) => !completudeOf(l).ok,
+      remove: () => patchLf({ holes: false }),
+    });
 
   const lapply = (ps: Pred[]) => raw.filter((l) => ps.every((p) => p.fn(l)));
   /** Ce que la source n'a pas publié se range **après** ce qu'elle a publié,
@@ -419,6 +535,10 @@ function LogementsStation({ s }: { s: Station }) {
     pp: (a, b) => parNombre(apres(a.total), apres(b.total)),
     total: (a, b) => parNombre(apres(a.total), apres(b.total)),
     cap: (a, b) => parNombre(a.guests ?? null, b.guests ?? null, true),
+    trous: (a, b) => {
+      const d = completudeOf(b).trous.length - completudeOf(a).trous.length;
+      return d !== 0 ? d : parNombre(apres(a.total), apres(b.total));
+    },
   };
   const lvis = lapply(lp).sort(tri[lsort]);
   // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
@@ -442,7 +562,9 @@ function LogementsStation({ s }: { s: Station }) {
   // centrale sans connecteur, connecteur qui sait déjà qu'il ne peut pas, ou
   // appel échoué. Un zéro sans motif se lirait comme « rien de disponible ».
   const centrale = liveSources.find((x) => x.source === "Centrale");
-  const centraleLbl = centrale && centrale.count === 0 ? (centrale.error ?? null) : null;
+  const centraleLbl =
+    centrale && centrale.count === 0 && !estPauseApi(centrale.error) ? (centrale.error ?? null) : null;
+  const pauses = liveSources.filter((x) => estPauseApi(x.error));
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
   const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
   const totalN = (kept?.total ?? 0) + passGroupN;
@@ -501,12 +623,17 @@ function LogementsStation({ s }: { s: Station }) {
 
   const sources = [...new Set(raw.map((l) => l.source))];
   const bySrc = (src: string) => raw.filter((l) => l.source === src).length;
-  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm"; label: string; n: number }[] = [
+  const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
+  const nIncompletes = raw.length - nCompletes;
+  const trous = trousPhrase(raw);
+  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
     { k: "measured", label: "Distance mesurée", n: raw.filter((l) => distanceOf(l).kind === "measured").length },
     { k: "pos", label: "Position connue", n: raw.filter((l) => l.lat != null).length },
     { k: "link", label: "Lien de réservation", n: raw.filter((l) => l.url).length },
     { k: "photo", label: "Avec photo", n: raw.filter((l) => l.photo).length },
     { k: "firm", label: "Prix relevé aux dates", n: raw.filter((l) => firmOf(l, stay)).length },
+    { k: "full", label: "Fiche complète", n: nCompletes },
+    { k: "holes", label: "Incomplètes", n: nIncompletes },
   ];
 
   // Stables d'un rendu à l'autre : sans cela `memo` sur la carte d'annonce ne
@@ -542,7 +669,7 @@ function LogementsStation({ s }: { s: Station }) {
           lat: l.lat as number,
           lon: l.lon as number,
           nom: l.title,
-          epingle: epinglePrix(eur(l.total), l.title, etat),
+          epingle: epinglePrix(prixPin(l), l.title, etat),
           zIndex: sel ? ETAGE.designee : ETAGE.normale,
         };
       }),
@@ -560,7 +687,7 @@ function LogementsStation({ s }: { s: Station }) {
   );
 
   const lead = raw.length
-    ? `${raw.length} annonce${raw.length > 1 ? "s" : ""} : totaux de séjour tels qu'affichés par la source pour ${nights} nuit${nights > 1 ? "s" : ""}. Aucun « à partir de ».${searching ? " Relevé en direct en cours…" : ""}`
+    ? `${raw.length} annonce${raw.length > 1 ? "s" : ""} · ${nCompletes} fiche${nCompletes > 1 ? "s" : ""} complète${nCompletes > 1 ? "s" : ""}${nIncompletes ? ` · ${nIncompletes} incomplète${nIncompletes > 1 ? "s" : ""}${trous ? ` (${trous})` : ""}` : ""}. Un « à partir de » n'est pas un total, un 0 € n'est pas un prix.${searching ? " Relevé en direct en cours…" : ""}`
     : searching
       ? "Relevé en direct en cours…"
       : "Aucun relevé pour cette station.";
@@ -633,6 +760,11 @@ function LogementsStation({ s }: { s: Station }) {
                 <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
                 {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
                 {centraleLbl ? <span className="toujours7__ecarte">{centraleLbl}</span> : null}
+                {pauses.map((p) => (
+                  <span key={p.source} className="toujours7__ecarte">
+                    {p.error && p.error.startsWith(p.source) ? p.error : `${p.source} : ${p.error}`}
+                  </span>
+                ))}
                 <span>Une capacité non annoncée n'écarte pas l'annonce : elle est dite non annoncée.</span>
               </div>
               <div className="filtres7__barre">
@@ -687,6 +819,7 @@ function LogementsStation({ s }: { s: Station }) {
                   <option value="pp">Tri : prix par personne</option>
                   <option value="total">Tri : prix total</option>
                   <option value="cap">Tri : capacité</option>
+                  <option value="trous">Tri : incomplètes d'abord</option>
                 </select>
               </div>
 
@@ -784,7 +917,15 @@ function LogementsStation({ s }: { s: Station }) {
                       {toggles.map((tg) => (
                         <label key={tg.k}>
                           <span>
-                            <input type="checkbox" checked={lf[tg.k]} onChange={() => patchLf({ [tg.k]: !lf[tg.k] })} />
+                            <input
+                            type="checkbox"
+                            checked={lf[tg.k]}
+                            onChange={() => {
+                              if (tg.k === "full") patchLf({ full: !lf.full, holes: false });
+                              else if (tg.k === "holes") patchLf({ holes: !lf.holes, full: false });
+                              else patchLf({ [tg.k]: !lf[tg.k] });
+                            }}
+                          />
                             {tg.label}
                           </span>
                           <span className="pop7__n">{tg.n} annonces</span>
@@ -870,6 +1011,7 @@ function LogementsStation({ s }: { s: Station }) {
                     if (!l) return null;
                     const d = distanceOf(l);
                     const ferme = firmOf(l, stay);
+                    const pers = prixPersLbl(l, trav);
                     return (
                       <>
                         {l.photo ? (
@@ -882,6 +1024,7 @@ function LogementsStation({ s }: { s: Station }) {
                               src={l.photo}
                             />
                             <span className="fc__source">{l.source}</span>
+                            {l.priceIndicative ? <span className="lodge7__indic">à partir de</span> : null}
                           </div>
                         ) : null}
                         <div className="fc__texte">
@@ -899,9 +1042,9 @@ function LogementsStation({ s }: { s: Station }) {
                             {d.text}
                           </span>
                           <span className="fc__prix">
-                            <b>{eurCents(l.total)}</b>
+                            <b>{prixLbl(l)}</b>
                             <span>
-                              {nights} nuits · {eurN(l.total / trav)} / pers.
+                              {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
                             </span>
                           </span>
                           <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
@@ -980,7 +1123,9 @@ function LogementsStation({ s }: { s: Station }) {
           <dl className="pied7__postes">
             <div>
               <dt>Logement</dt>
-              <dd>{eurCents(kept.total)}</dd>
+              <dd className={kept.total > 0 ? undefined : "absent"}>
+                {kept.total > 0 ? eurCents(kept.total) : "non publié"}
+              </dd>
             </div>
             <div>
               <dt>Forfaits {trav} × 6 j</dt>
@@ -993,8 +1138,12 @@ function LogementsStation({ s }: { s: Station }) {
           </dl>
           <div className="pied7__total">
             <span>Total du séjour</span>
-            <b>{eurCents(totalN)}</b>
-            <span>{eurCents(Math.round((totalN / trav) * 100) / 100)} par personne</span>
+            <b>{kept.total > 0 ? eurCents(totalN) : "logement non tarifé"}</b>
+            <span>
+              {kept.total > 0
+                ? `${eurCents(Math.round((totalN / trav) * 100) / 100)} par personne`
+                : "total incomplet"}
+            </span>
           </div>
           <button type="button" className="btn7 btn7--grand" onClick={() => void go("booking")}>
             Passer à la réservation
@@ -1008,8 +1157,14 @@ function LogementsStation({ s }: { s: Station }) {
           <div className="volet7__fond" onClick={() => setSheetId(null)} />
           <aside className="volet7" role="dialog" aria-modal="true" aria-label={sheet.title}>
             <div className={`volet7__media lodge7__media--${mediaTon(sheet)}`}>
-              {sheet.photo ? (
-                <ImageSlot shape="rect" id={`v7app-sheet-${sheet.id}`} placeholder="Photo de l'annonce" className="lodge7__slot" src={sheet.photo} />
+              {galerieOf(sheet)[photoI] ?? sheet.photo ? (
+                <ImageSlot
+                  shape="rect"
+                  id={`v7app-sheet-${sheet.id}`}
+                  placeholder="Photo de l'annonce"
+                  className="lodge7__slot"
+                  src={galerieOf(sheet)[photoI] ?? sheet.photo}
+                />
               ) : (
                 <span>Pas de photo dans l'annonce {sheet.source}</span>
               )}
@@ -1021,9 +1176,11 @@ function LogementsStation({ s }: { s: Station }) {
               <div>
                 <span className="volet7__ref">
                   {sheet.source} · réf. {sheet.id}
+                  {sheet.priceIndicative ? " · à partir de" : ""}
                 </span>
                 <h2>{sheet.title}</h2>
               </div>
+              <GalerieAnnonce urls={galerieOf(sheet)} index={photoI} onIndex={setPhotoI} />
               <div className="volet7__faits">
                 <div>
                   <span>Capacité</span>
@@ -1038,16 +1195,19 @@ function LogementsStation({ s }: { s: Station }) {
                   <b className="volet7__doux">{distanceOf(sheet).text}</b>
                 </div>
               </div>
+              {completudeOf(sheet).trous.length ? (
+                <p className="lodge7__trous">{completudeOf(sheet).trous.map(trouLbl).join(" · ")}</p>
+              ) : null}
               <div className="volet7__prix">
                 <div>
                   <span>
                     Total du séjour · {nights} nuits · {trav} pers.
                   </span>
-                  <b>{eurCents(sheet.total)}</b>
+                  <b>{prixLbl(sheet)}</b>
                 </div>
                 <div>
                   <span>Par personne</span>
-                  <b className="volet7__pp">{eurN(sheet.total / trav)}</b>
+                  <b className="volet7__pp">{prixPersLbl(sheet, trav) ?? "—"}</b>
                 </div>
                 {firmOf(sheet, stay) ? (
                   <div className="volet7__ok">

@@ -4,9 +4,10 @@ import { RELEVE_2A } from "@/lib/listings";
 import { attachAccess } from "@/lib/access";
 import { stationById } from "@/lib/stations";
 import { occupancyOfListing } from "@/lib/stay/occupancy";
+import { enrichirListing } from "@/lib/stay/enrichir";
 import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
-import { scrapeAirbnb } from "./airbnb.server";
+import { scrapeAirbnbDetailed } from "./airbnb.server";
 import { scrapeBookingPlaywright, scrapeBookingPython } from "./booking.server";
 import { fillBookingGps } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
@@ -29,12 +30,7 @@ function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   // c'est le filtre de l'écran qui décide — lui sait distinguer « trop petit »
   // de « non annoncé », et compter ce qu'il masque. Écarter au collecteur
   // faisait disparaître des annonces sans que rien ne le dise.
-  return RELEVE_2A.filter((l) => allow.has(l.source)).map((l) => {
-    const occ = occupancyOfListing(l);
-    return occ.guests === l.guests && occ.bedrooms === l.bedrooms && occ.rooms === (l.rooms ?? null)
-      ? l
-      : { ...l, ...occ };
-  });
+  return RELEVE_2A.filter((l) => allow.has(l.source)).map(enrichirListing);
 }
 
 const AIRBNB_SOURCES = ["Airbnb"] as const;
@@ -44,8 +40,14 @@ const BROWSER_SOURCES = ["Gîtes de France", "Abritel", "Booking"] as const;
 const CENTRALE_SOURCES = ["Centrale"] as const;
 
 function locate(input: LiveSearchInput, listings: Listing[]): Listing[] {
+  const withOcc = listings.map((l) => {
+    const occ = occupancyOfListing(l);
+    return occ.guests === l.guests && occ.bedrooms === l.bedrooms && occ.rooms === (l.rooms ?? null)
+      ? l
+      : { ...l, ...occ };
+  });
   const station = stationById(input.stationId);
-  const located = station ? listings.map((l) => attachAccess(l, station)) : listings;
+  const located = station ? withOcc.map((l) => attachAccess(l, station)) : withOcc;
   // `total: 0` veut dire « prix non publié », pas « gratuit » : un tri croissant
   // brut rangeait ces annonces en tête, devant les moins chères réellement
   // relevées. Ce qui n'est pas publié passe après ce qui l'est.
@@ -132,7 +134,28 @@ async function fillCozy(page: Page, input: LiveSearchInput, reports: SourceRepor
 async function runAirbnb(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
-  await recordInto(reports, listings, "Airbnb", () => scrapeAirbnb(input));
+  const t0 = Date.now();
+  try {
+    const out = await scrapeAirbnbDetailed(input);
+    const error = out.rateLimited
+      ? out.listings.length
+        ? "Airbnb a demandé une pause (HTTP 429) : le relevé est partiel."
+        : "Airbnb a demandé une pause (HTTP 429) : relevé précédent conservé."
+      : undefined;
+    reports.push({
+      source: "Airbnb",
+      ok: out.listings.length > 0 || !out.rateLimited,
+      count: out.listings.length,
+      ms: Date.now() - t0,
+      ...(error ? { error } : {}),
+    });
+    listings.push(...out.listings);
+    console.info(`[scrape] Airbnb ${out.listings.length} en ${Date.now() - t0}ms${out.rateLimited ? " · 429" : ""}`);
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    reports.push({ source: "Airbnb", ok: false, count: 0, ms: Date.now() - t0, error });
+    console.warn(`[scrape] Airbnb échec: ${error}`);
+  }
   applyDump(input, reports, listings, new Set(AIRBNB_SOURCES));
   return { listings: locate(input, listings), sources: reports };
 }
@@ -260,7 +283,7 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
 }
 
 const CACHE_MS = 90_000;
-const CACHE_GEN = "c7";
+const CACHE_GEN = "c9";
 const cache = new Map<string, { at: number; result: LiveSearchResult }>();
 const inflight = new Map<string, Promise<LiveSearchResult>>();
 

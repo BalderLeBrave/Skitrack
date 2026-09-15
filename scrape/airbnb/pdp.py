@@ -1,29 +1,45 @@
 """Fiches Airbnb via PdpPlatformSections (stl-scraper). Isolé de Playwright.
 
 ExploreSearch de STL est mort (400). La fiche PDP sert encore : capacité,
-type de bien. On ne l’appelle que pour les annonces sans occupancy.
+chambres, GPS. On l'appelle pour les annonces auxquelles la tuile n'a rien dit.
+
+Les appels partent l'un après l'autre. Un 429 ouvre le coupe-circuit partagé
+(`throttle.airbnb_circuit`) : on arrête le lot, on ne vide pas ce qui est lu.
 """
 
 from __future__ import annotations
 
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 from typing import Any
 from urllib.parse import urlencode
 
 from occupancy import merge_occupancy, occupancy_from_pdp
+from throttle import MAX_WAIT_S, RateLimited, airbnb_circuit, retry_after_s
 
 # Hash relevé dans stl-scraper (stl/endpoint/pdp.py). Toujours valide le 2026-09-06.
 PDP_HASH = "625a4ba56ba72f8e8585d60078eb95ea0030428cac8772fde09de073da1bcdd0"
-MAX_ENRICH = 24
-WORKERS = 6
+MAX_ENRICH = 40
+PAUSE_S = 0.8
+BUDGET_S = 22.0
 
 
 def _api_key(proxy_url: str = "") -> str:
     import pyairbnb.api as airbnb_api
     from session import cached
+    from throttle import call_with_retry
 
-    return cached("key", lambda: airbnb_api.get(proxy_url, timeout=20))
+    return cached("key", lambda: call_with_retry(lambda: airbnb_api.get(proxy_url, timeout=20)))
+
+
+def _incomplete(row: dict[str, Any]) -> bool:
+    if row.get("guests") is None:
+        return True
+    if row.get("bedrooms") is None:
+        return True
+    if row.get("lat") is None or row.get("lon") is None:
+        return True
+    return False
 
 
 def fetch_pdp(
@@ -73,13 +89,57 @@ def fetch_pdp(
             timeout=20,
             impersonate="chrome124",
         )
-        res.raise_for_status()
+    except Exception:
+        return None
+    if res.status_code in (429, 503):
+        raise RateLimited(res.status_code, retry_after_s(res.headers))
+    if res.status_code != 200:
+        return None
+    try:
         raw = res.json()
     except Exception:
         return None
     if not isinstance(raw, dict) or raw.get("errors"):
         return None
     return occupancy_from_pdp(raw)
+
+
+def _fetch_pdp_polite(
+    listing_id: str,
+    *,
+    check_in: str | None,
+    check_out: str | None,
+    adults: int | None,
+    api_key: str,
+    proxy_url: str,
+    deadline: float,
+) -> dict[str, Any] | None:
+    """Une fiche, une reprise sur 429, puis on s'arrête si ça continue."""
+    kwargs = dict(
+        check_in=check_in,
+        check_out=check_out,
+        adults=adults,
+        api_key=api_key,
+        proxy_url=proxy_url,
+    )
+    try:
+        occ = fetch_pdp(listing_id, **kwargs)
+        airbnb_circuit.hit_ok()
+        return occ
+    except RateLimited as err:
+        airbnb_circuit.hit_limited(err.retry_after_s)
+        wait = min(err.retry_after_s, MAX_WAIT_S)
+        if time.perf_counter() + wait >= deadline:
+            airbnb_circuit.trip(wait)
+            return None
+        time.sleep(wait)
+        try:
+            occ = fetch_pdp(listing_id, **kwargs)
+            airbnb_circuit.hit_ok()
+            return occ
+        except RateLimited as err2:
+            airbnb_circuit.trip(err2.retry_after_s)
+            return None
 
 
 def enrich_listings(
@@ -90,9 +150,15 @@ def enrich_listings(
     adults: int | None,
     proxy_url: str = "",
     min_guests: int | None = None,
+    max_n: int | None = None,
+    budget_s: float = BUDGET_S,
+    pause_s: float = PAUSE_S,
 ) -> tuple[list[dict[str, Any]], int]:
-    """Complète guests/room_type. Rend (annonces, nb de fiches lues)."""
-    missing = [row for row in listings if row.get("guests") is None][:MAX_ENRICH]
+    """Complète guests / chambres / GPS. Rend (annonces, nb de fiches lues)."""
+    if airbnb_circuit.open():
+        return listings, 0
+    cap = max_n if max_n is not None else MAX_ENRICH
+    missing = [row for row in listings if _incomplete(row)][: max(0, cap)]
     if not missing:
         return listings, 0
     try:
@@ -101,27 +167,28 @@ def enrich_listings(
         return listings, 0
 
     occ_by_id: dict[str, dict[str, Any]] = {}
-    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        futs = {
-            pool.submit(
-                fetch_pdp,
-                row["id"],
-                check_in=check_in,
-                check_out=check_out,
-                adults=adults,
-                api_key=key,
-                proxy_url=proxy_url,
-            ): row["id"]
-            for row in missing
-        }
-        for fut in as_completed(futs):
-            listing_id = futs[fut]
-            try:
-                occ = fut.result()
-            except Exception:
-                occ = None
-            if occ:
-                occ_by_id[listing_id] = occ
+    deadline = time.perf_counter() + max(1.0, budget_s)
+    for i, row in enumerate(missing):
+        if time.perf_counter() >= deadline:
+            break
+        if airbnb_circuit.open():
+            break
+        if i:
+            rest = deadline - time.perf_counter()
+            if rest <= pause_s:
+                break
+            time.sleep(pause_s)
+        occ = _fetch_pdp_polite(
+            row["id"],
+            check_in=check_in,
+            check_out=check_out,
+            adults=adults,
+            api_key=key,
+            proxy_url=proxy_url,
+            deadline=deadline,
+        )
+        if occ:
+            occ_by_id[row["id"]] = occ
 
     out: list[dict[str, Any]] = []
     for row in listings:

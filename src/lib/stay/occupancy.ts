@@ -32,7 +32,7 @@ export type Occupancy = {
 const MAX = 50;
 
 const MULTI_UNITE =
-  /(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers\.?|voyageurs?)\b/i;
+  /(?<!\d)(?:[2-9]|1[0-2])(?!\d)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers\.?|voyageurs?)\b/i;
 
 const MULTI_UNITE_SLUG =
   /(\d+)-(?:appartements?|chalets?|logements?|maisons?)-de-(\d+)-(?:personnes?|pers)\b/i;
@@ -43,11 +43,33 @@ const GUESTS_RANGE =
 const GUESTS_ONE =
   /(\d+)\s*-?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b/i;
 
-const BEDROOMS = /(\d+)\s*-?\s*(?:chambres?|bedrooms?)\b/i;
+/**
+ * « 8p », « 10 P », « 8P pied des pistes » : l'abréviation des tuiles Airbnb.
+ * Une lettre collée refuse : « 2 pièces ». « 2p cabine » aussi — ce n'est pas
+ * deux voyageurs. Un espace puis un autre mot (« pied », « sauna ») passe.
+ */
+const GUESTS_P = /(?<![\p{L}\d])(\d+)\s*[pP](?![\p{L}])(?!\s*(?:cabine|pi[eè]ces?)\b)/u;
+
+const GUESTS_ACCUEIL =
+  /accueill(?:e|ant|ir)\s+(?:jusqu['’]?à\s+)?(\d+)\b/i;
+
+const GUESTS_CAPACITE =
+  /capacit(?:[eé]|y)\s*(?:de\s+|:\s*)?(?:jusqu['’]?à\s+)?(\d+)\b/i;
+
+/** « cap. 8 », « cap 10 » : abréviation des fiches, pas le mot « cape ». */
+const GUESTS_CAP_ABBR = /\bcap\.?\s*[:=]?\s*(\d+)\b/i;
+
+/** `sleeps 8` : le verbe publié par les OTA anglophones, pas un compte de lits. */
+const GUESTS_SLEEPS = /\bsleeps\s+(\d+)\b/i;
+
+const BEDROOMS = /(\d+)\s*-?\s*(?:chambres?|bedrooms?|ch(?![a-zà-ÿ]))/i;
 
 const PIECES = /(\d+)\s*-?\s*pi[eè]ces?\b/i;
 
 const T_TYPE = /\bT([1-9])\b/i;
+
+/** F2, F3 : la même convention que T2, T3, écrite avec un F. */
+const F_TYPE = /\bF([1-9])\b/i;
 
 const GUEST_KEYS = new Set([
   "guestcapacity",
@@ -62,6 +84,9 @@ const GUEST_KEYS = new Set([
   "guest_capacity",
   "capacite",
   "cap_max",
+  "sleeps",
+  "maxoccupancy",
+  "occupancymax",
 ]);
 
 /** Les pièces, quand la source les compte en champ propre. */
@@ -135,6 +160,18 @@ export function occupancyFromText(...parts: Array<string | null | undefined>): O
     } else {
       const one = GUESTS_ONE.exec(text);
       if (one) guests = takeGuests(Number(one[1]));
+      else {
+        const p = GUESTS_P.exec(text);
+        if (p) guests = takeGuests(Number(p[1]));
+        else {
+          const acc =
+            GUESTS_ACCUEIL.exec(text) ??
+            GUESTS_CAPACITE.exec(text) ??
+            GUESTS_SLEEPS.exec(text) ??
+            GUESTS_CAP_ABBR.exec(text);
+          if (acc) guests = takeGuests(Number(acc[1]));
+        }
+      }
     }
   }
 
@@ -146,7 +183,7 @@ export function occupancyFromText(...parts: Array<string | null | undefined>): O
   const pi = PIECES.exec(text);
   if (pi) rooms = takeBeds(Number(pi[1]));
   if (rooms == null) {
-    const t = T_TYPE.exec(text);
+    const t = T_TYPE.exec(text) ?? F_TYPE.exec(text);
     if (t) rooms = takeBeds(Number(t[1]));
   }
   // « Studio » est un mot publié, et il dit deux choses à la fois : une pièce,
@@ -210,13 +247,25 @@ export function annoncer(
   );
 }
 
-/** Relit titre et URL d'une fiche déjà construite, sans toucher au reste. */
+/** Relit titre, URL, type, libellé et photo d'une fiche déjà construite. */
 export function occupancyOfListing(l: {
   guests: number | null;
   bedrooms: number | null;
   rooms?: number | null;
   title?: string | null;
   url?: string | null;
+  propertyType?: string | null;
+  priceLabel?: string | null;
+  photo?: string | null;
+  photos?: string[] | null;
 }): Occupancy {
-  return annoncer({ guests: l.guests, bedrooms: l.bedrooms, rooms: l.rooms ?? null }, l.title, l.url);
+  return annoncer(
+    { guests: l.guests, bedrooms: l.bedrooms, rooms: l.rooms ?? null },
+    l.title,
+    l.url,
+    l.propertyType,
+    l.priceLabel,
+    l.photo,
+    ...(l.photos ?? []),
+  );
 }

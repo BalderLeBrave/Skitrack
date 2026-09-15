@@ -12,7 +12,7 @@
 import { domainForStation, stationHasGlacier } from "./forfaits/catalog.ts";
 import type { ForfaitSeed } from "./forfaits/types.ts";
 import type { Listing } from "./listings.ts";
-import { eurN, fmt, fmtN, mLbl } from "./parcours.ts";
+import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
 import { SKIINFO } from "./skiinfo.ts";
 import type { Station } from "./stations.ts";
 import { availabilityOf, type Stay } from "./stay/availability.ts";
@@ -140,6 +140,22 @@ export function bedLbl(l: Listing): string {
   }
   if (l.bedrooms === 0) return "studio";
   return `${l.bedrooms} ch.`;
+}
+
+/** Un total à 0 n'est pas un prix : c'est « non publié ». */
+export function prixLbl(l: Listing): string {
+  return l.total > 0 ? (eurCents(l.total) ?? "prix non publié") : "prix non publié";
+}
+
+/** Par personne, seulement quand un total a été publié. */
+export function prixPersLbl(l: Listing, trav: number): string | null {
+  if (!(l.total > 0) || !(trav > 0)) return null;
+  return eurN(l.total / trav);
+}
+
+/** Texte de pastille : jamais « 0 € ». */
+export function prixPin(l: Listing): string {
+  return l.total > 0 ? eur(l.total) : "n. p.";
 }
 
 /** Fond du cadre photo vide, par source : la maquette teinte à peine. */

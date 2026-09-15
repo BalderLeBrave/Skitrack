@@ -9,7 +9,7 @@
 import { attachAccess } from "./access";
 import type { DomainVerdict } from "./domainFit";
 import { stationById } from "./stations";
-import { occupancyOfListing } from "./stay/occupancy";
+import { enrichirListing } from "./stay/enrichir";
 
 export type Listing = {
   id: string;
@@ -471,12 +471,8 @@ export const RELEVE_2A: Listing[] = [
   },
 ];
 
-function withPublishedOccupancy<T extends { guests: number | null; bedrooms: number | null; title: string; url: string | null }>(
-  l: T,
-): T {
-  const occ = occupancyOfListing(l);
-  if (occ.guests === l.guests && occ.bedrooms === l.bedrooms) return l;
-  return { ...l, guests: occ.guests, bedrooms: occ.bedrooms };
+function withPublishedOccupancy<T extends Listing>(l: T): T {
+  return enrichirListing(l) as T;
 }
 
 export function listingsForStay(stationId: string, guests: number, bedrooms: number): Listing[] {

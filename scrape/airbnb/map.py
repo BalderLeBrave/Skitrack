@@ -26,6 +26,13 @@ GUESTS_RE = re.compile(
     r"(\d+)\s*(?:[-–/]\s*(\d+))?\s*-?\s*(?:personnes?|pers\.?|voyageurs?|guests?|pax|couchages?)\b",
     re.I,
 )
+# « 8p », « 10 P » : abréviation des tuiles. Une lettre derrière le p, c'est
+# une pièce (« 2 pièces », « 2p cabine »), pas un voyageur. Le second
+# lookahead doit nommer `cabine` : un `\s*` tout seul recule et prend le
+# « 2 » de « 2p cabine » pour une capacité.
+GUESTS_P_RE = re.compile(
+    r"(?<!\w)(\d+)\s*[pP](?![^\W\d_])(?!\s*(?:cabine|pi[eè]ces?)\b)"
+)
 BEDROOMS_RE = re.compile(r"(\d+)\s*-?\s*(?:chambres?|bedrooms?)\b", re.I)
 # Airbnb écrit « 6 lits » sur la tuile, à côté des chambres. C'est un compte de
 # lits, pas de voyageurs : la ligne était collectée puis ignorée, seules les
@@ -35,7 +42,7 @@ PIECES_RE = re.compile(r"(\d+)\s*-?\s*pi[eè]ces?\b", re.I)
 STUDIO_RE = re.compile(r"\bstudio\b", re.I)
 T_TYPE_RE = re.compile(r"\bT([1-9])\b", re.I)
 MULTI_RE = re.compile(
-    r"(\d+)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers)",
+    r"(?<!\d)(?:[2-9]|1[0-2])(?!\d)\s+(?:appartements?|chalets?|logements?|maisons?)\s+(?:de\s+)?(\d+)\s+(?:personnes?|pers)",
     re.I,
 )
 MULTI_SLUG_RE = re.compile(
@@ -171,6 +178,12 @@ def occupancy_from_text(*texts: str | None) -> tuple[int | None, int | None, int
             n = max(a, b)
             if 0 < n <= 50:
                 guests = n
+        else:
+            p = GUESTS_P_RE.search(blob)
+            if p:
+                n = int(p.group(1))
+                if 0 < n <= 50:
+                    guests = n
     ch = BEDROOMS_RE.search(blob)
     if ch:
         n = int(ch.group(1))

@@ -410,11 +410,11 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
   return out.sort(parPrix);
 }
 
-async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<Listing[]> {
+async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<{ listings: Listing[]; rateLimited: boolean }> {
   const cli = cliPath();
   if (!cli) {
     console.warn("[airbnb] cli.py introuvable");
-    return [];
+    return { listings: [], rateLimited: false };
   }
   // Les clés saisies dans Plus › Clés sont versées dans l'environnement avant
   // cette lecture : sans cet appel, le chemin renseigné n'existait que pour
@@ -436,7 +436,8 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<Listing[]> 
     // s'arrête de lui-même quand une page n'apporte plus rien de neuf ou qu'il
     // n'y a plus de curseur : cette borne n'est qu'un garde-fou assumé.
     maxPages: 24,
-    skipEnrich: true,
+    skipEnrich: false,
+    maxEnrich: 40,
   });
   const raw = await new Promise<{ out: string; err: string }>((resolve, reject) => {
     const child = spawn(python, [cli], {
@@ -445,14 +446,13 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<Listing[]> 
     });
     const chunks: Buffer[] = [];
     const errChunks: Buffer[] = [];
-    // Le sidecar borne lui-même sa pagination à `PAGE_BUDGET_S` (60 s) puis
-    // rend ce qu'il a lu. Ce couperet doit rester au-dessus : plus bas, un
-    // relevé un peu long serait tué et rendrait zéro annonce au lieu des
-    // pages déjà collectées.
+    // Le sidecar borne lui-même sa pagination à `PAGE_BUDGET_S` puis enrichit
+    // les fiches incomplètes (PDP). Un 429 interrompt sans tuer ce qui est lu.
+    // Ce couperet reste au-dessus du budget interne.
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
       reject(new Error("pyairbnb timeout"));
-    }, 75_000);
+    }, 95_000);
     child.stdout.on("data", (c: Buffer) => chunks.push(c));
     child.stderr.on("data", (c: Buffer) => errChunks.push(c));
     child.on("error", (err) => {
@@ -474,23 +474,38 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<Listing[]> 
   });
   if (!raw.out) {
     if (raw.err) console.warn("[airbnb] stderr", raw.err.slice(0, 500));
-    return [];
+    return { listings: [], rateLimited: /429/.test(raw.err) };
   }
-  const parsed = lastJsonObject(raw.out) as { ok?: boolean; payload?: unknown; error?: string } | null;
-  if (!parsed || parsed.ok === false) {
-    console.warn("[airbnb] py:", parsed && "error" in parsed ? parsed.error : "json illisible");
-    return [];
+  const parsed = lastJsonObject(raw.out) as {
+    ok?: boolean;
+    payload?: unknown;
+    error?: string;
+    rateLimited?: boolean;
+  } | null;
+  if (!parsed) {
+    console.warn("[airbnb] py: json illisible");
+    return { listings: [], rateLimited: false };
   }
-  return fromPyairbnbPayload(parsed.payload, input);
+  const rateLimited = Boolean(parsed.rateLimited) || /429|503/.test(String(parsed.error ?? ""));
+  const listings = fromPyairbnbPayload(parsed.payload, input);
+  if (parsed.ok === false && listings.length === 0) {
+    console.warn("[airbnb] py:", parsed.error ?? "json illisible", rateLimited ? "· 429" : "");
+    return { listings: [], rateLimited };
+  }
+  return { listings, rateLimited };
 }
 
 async function scrapeAirbnbFetch(input: LiveSearchInput): Promise<Listing[]> {
   const url = searchUrl(input);
-  const html = await fetch(url, {
+  const res = await fetch(url, {
     headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
-  })
-    .then((r) => r.text())
-    .catch(() => "");
+  }).catch(() => null);
+  if (!res) return [];
+  if (res.status === 429 || res.status === 503) {
+    console.warn(`[airbnb] fetch HTTP ${res.status}`);
+    return [];
+  }
+  const html = await res.text().catch(() => "");
   const text = html.match(/<script[^>]*id="data-deferred-state-0"[^>]*>([\s\S]*?)<\/script>/i)?.[1] ?? null;
   return parseDeferred(text, input).sort(parPrix);
 }
@@ -505,21 +520,30 @@ export async function scrapeAirbnbPlaywright(page: Page, input: LiveSearchInput)
   return scrapeAirbnbFetch(input);
 }
 
-/** Chemin principal : pyairbnb isolé. Fetch HTML puis Playwright en repli. */
-export async function scrapeAirbnb(
+export type AirbnbScrape = { listings: Listing[]; rateLimited: boolean };
+
+/**
+ * Chemin principal : pyairbnb isolé. Fetch HTML puis Playwright en repli,
+ * sauf après un 429 — le même refus se reproduirait.
+ */
+export async function scrapeAirbnbDetailed(
   input: LiveSearchInput,
   pageOrOpen?: Page | (() => Promise<Page>),
-): Promise<Listing[]> {
+): Promise<AirbnbScrape> {
   await allowsPath("https://www.airbnb.fr", "/");
   const viaPy = await scrapeAirbnbPyairbnb(input);
-  if (viaPy.length > 0) {
-    console.info(`[airbnb] pyairbnb ${viaPy.length}`);
+  if (viaPy.listings.length > 0) {
+    console.info(`[airbnb] pyairbnb ${viaPy.listings.length}${viaPy.rateLimited ? " · 429 partiel" : ""}`);
     return viaPy;
+  }
+  if (viaPy.rateLimited) {
+    console.warn("[airbnb] 429 — pas de repli HTML");
+    return { listings: [], rateLimited: true };
   }
   const viaFetch = await scrapeAirbnbFetch(input);
   if (viaFetch.length > 0) {
     console.info(`[airbnb] fetch ${viaFetch.length}`);
-    return viaFetch;
+    return { listings: viaFetch, rateLimited: false };
   }
   let page: Page | undefined;
   if (typeof pageOrOpen === "function") page = await pageOrOpen();
@@ -527,8 +551,15 @@ export async function scrapeAirbnb(
   if (page) {
     const viaPw = await scrapeAirbnbPlaywright(page, input);
     console.info(`[airbnb] playwright ${viaPw.length}`);
-    return viaPw;
+    return { listings: viaPw, rateLimited: false };
   }
   console.warn("[airbnb] 0 logement (py, fetch, pas de navigateur)");
-  return [];
+  return { listings: [], rateLimited: false };
+}
+
+export async function scrapeAirbnb(
+  input: LiveSearchInput,
+  pageOrOpen?: Page | (() => Promise<Page>),
+): Promise<Listing[]> {
+  return (await scrapeAirbnbDetailed(input, pageOrOpen)).listings;
 }

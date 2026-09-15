@@ -3,12 +3,44 @@ import { distToGpxM, distToGpxStartM } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
 import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
+import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { bedLbl, capLbl } from "@/lib/v7";
+import { bedLbl, capLbl, prixLbl } from "@/lib/v7";
 import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
+
+export function GalerieAnnonce({
+  urls,
+  index,
+  onIndex,
+}: {
+  urls: string[];
+  index: number;
+  onIndex: (i: number) => void;
+}) {
+  if (urls.length < 2) return null;
+  return (
+    <div className="galerie7" role="tablist" aria-label="Photos de l'annonce">
+      {urls.map((u, i) => (
+        <button
+          type="button"
+          key={u}
+          role="tab"
+          aria-selected={i === index}
+          aria-current={i === index ? "true" : undefined}
+          onClick={(e) => {
+            e.stopPropagation();
+            onIndex(i);
+          }}
+        >
+          <img src={u} alt="" />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function LodgeSheet({
   listing,
@@ -40,31 +72,49 @@ export function LodgeSheet({
     : null;
   const byKey = useElevations((s) => s.byKey);
   const span = formatLiftSpan(listing, (lat, lon) => listingEleM(byKey, lat, lon));
-  const [eleM, setEleM] = useState<number | null | undefined>(undefined);
+  const cachedEle = listingEleM(byKey, listing.lat, listing.lon);
+  const [eleM, setEleM] = useState<number | null | undefined>(cachedEle);
+  const [photoI, setPhotoI] = useState(0);
+  const galerie = galerieOf(listing);
+  const shown = galerie[photoI] ?? galerie[0] ?? null;
   const nights = Math.max(
     1,
     Math.round((Date.parse(stay.checkOut) - Date.parse(stay.checkIn)) / 86400000),
   );
   // `total: 0` veut dire « prix non publié » : diviser ce zéro rendait un
   // « 0 €/pers/nuit » que personne n'a écrit.
-  const pp = listing.total > 0 ? Math.round(listing.total / Math.max(1, stay.guests) / nights) : null;
-  // Ce que l'annonce prouve vraiment, plutôt qu'une affirmation en dur.
+  const ppNuit =
+    listing.total > 0 ? Math.round(listing.total / Math.max(1, stay.guests) / nights) : null;
   const dispo = availabilityOf(listing, { checkIn: stay.checkIn, checkOut: stay.checkOut });
+  const complet = completudeOf(listing);
+
+  useEffect(() => {
+    setPhotoI(0);
+  }, [listing.id]);
 
   useEffect(() => {
     if (listing.lat == null || listing.lon == null) {
       setEleM(null);
       return;
     }
+    const hit = listingEleM(useElevations.getState().byKey, listing.lat, listing.lon);
+    if (hit !== undefined) {
+      setEleM(hit);
+      return;
+    }
     let cancelled = false;
     setEleM(undefined);
     void getListingElevation({ data: { lat: listing.lat, lon: listing.lon } }).then((r) => {
-      if (!cancelled) setEleM(r.eleM);
+      if (cancelled) return;
+      setEleM(r.eleM);
+      useElevations.getState().put([{ lat: listing.lat!, lon: listing.lon!, eleM: r.eleM }]);
     });
     return () => {
       cancelled = true;
     };
   }, [listing.lat, listing.lon]);
+
+  const altitude = listing.lat == null || listing.lon == null ? "no-gps" : eleM !== undefined ? eleM : cachedEle;
 
   return (
     <div className="fixed inset-0 z-40 grid place-items-center p-4" data-testid="lodge-sheet">
@@ -95,17 +145,21 @@ export function LodgeSheet({
         </header>
         <div className="grid min-h-0 overflow-hidden lg:grid-cols-[1.05fr_0.95fr]">
           <div className="grid min-h-0 grid-rows-[minmax(220px,1fr)_auto] bg-glacier">
-            {listing.photo ? (
-              <img src={listing.photo} alt="" className="h-full w-full object-cover" />
+            {shown ? (
+              <img src={shown} alt="" className="h-full w-full object-cover" />
             ) : (
               <div className="flex items-end p-6 text-muted">photo manquante — {listing.source}</div>
             )}
             <div className="grid gap-2 border-t border-line bg-panel p-5">
-              <p className="font-display text-titre">{formatEuro(listing.total)}</p>
+              <GalerieAnnonce urls={galerie} index={photoI} onIndex={setPhotoI} />
+              <p className="font-display text-titre">{prixLbl(listing)}</p>
               <p className="text-corps text-muted">
                 {nights} nuits · {stay.guests} pers.
-                {pp != null ? ` · ${formatEuro(pp)} /pers/nuit` : " · prix non publié"}
+                {ppNuit != null ? ` · ${formatEuro(ppNuit)} /pers/nuit` : " · prix non publié"}
               </p>
+              {listing.priceIndicative ? (
+                <p className="text-note text-muted">Annoncé « à partir de » — ce n’est pas un total de séjour.</p>
+              ) : null}
               <p className="text-note font-medium text-ink">{availabilityLabel(dispo)}</p>
             </div>
           </div>
@@ -123,8 +177,6 @@ export function LodgeSheet({
                 {availabilityLabel(dispo).toLowerCase()}
                 {listing.priceIndicative ? " · annoncé « à partir de », ce n’est pas un total de séjour" : ""}
               </li>
-              {/* Les mots de la source, quand elle en met : un prix barré, une
-                  remise, un nombre de nuits que nous ne reformulons pas. */}
               {listing.priceLabel ? (
                 <li>
                   <strong>Libellé de la source</strong> : « {listing.priceLabel} »
@@ -142,8 +194,6 @@ export function LodgeSheet({
                   {" — telle que la source l’affiche, jamais recalculée."}
                 </li>
               ) : null}
-              {/* Les mêmes libellés que la vignette, par les mêmes fonctions :
-                  la fiche en tenait une seconde copie, qui ignorait les pièces. */}
               <li>
                 <strong>Capacité</strong> : {capLbl(listing)} · {bedLbl(listing)}
                 {listing.beds != null ? ` · ${listing.beds} lit${listing.beds > 1 ? "s" : ""}` : ""}
@@ -151,6 +201,11 @@ export function LodgeSheet({
                   ? ` · ${listing.baths} salle${listing.baths > 1 ? "s" : ""} de bain`
                   : ""}
               </li>
+              {!complet.ok ? (
+                <li>
+                  <strong>Manque</strong> : {complet.trous.map(trouLbl).join(" · ")}
+                </li>
+              ) : null}
               <li>
                 <strong>Lieu</strong> : {sectorOf(listing) ?? "non publié"}
                 {listing.locality
@@ -221,13 +276,13 @@ export function LodgeSheet({
               </li>
               <li>
                 <strong>Altitude du logement</strong> :{" "}
-                {listing.lat == null || listing.lon == null
+                {altitude === "no-gps"
                   ? "non mesurée — pas de GPS publié"
-                  : eleM === undefined
+                  : altitude === undefined
                     ? "modèle en cours…"
-                    : eleM == null
+                    : altitude == null
                       ? "non mesurée — modèle injoignable"
-                      : `${formatAlt(eleM)} (modèle Open-Meteo / Copernicus)`}
+                      : `${formatAlt(altitude)} (modèle Open-Meteo / Copernicus)`}
               </li>
             </ul>
             <p className="mt-6 text-corps text-muted">{listing.proven}</p>

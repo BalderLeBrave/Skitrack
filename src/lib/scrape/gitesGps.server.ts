@@ -12,12 +12,17 @@ import { allowsPath } from "./robots.ts";
  * Ce module reste le repli appelé par `run.server.ts` (`fillGitesIfNeeded`)
  * pour les annonces qui arrivent sans coordonnées : celles du relevé figé de
  * `listings.ts`, et celles dont la fiche n'a pas pu être lue en direct.
+ *
+ * Le cache par code évite de retélécharger une fiche déjà lue (hit 24 h,
+ * absence 30 min) : le second passage ne refait pas le travail du premier.
  */
 
 const KEY = "FNGF-00M562O4";
-const MAX_FICHES = 16;
+const MAX_FICHES = 40;
 const WORKERS = 8;
-const BUDGET_MS = 8_000;
+const BUDGET_MS = 16_000;
+const HIT_MS = 24 * 60 * 60 * 1000;
+const MISS_MS = 30 * 60 * 1000;
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -65,6 +70,56 @@ export type LieuGites = {
 };
 
 const VIDE: LieuGites = { lat: null, lon: null, locality: null };
+
+type CacheEntry = { at: number; lieu: LieuGites; hit: boolean };
+
+const gpsCache = new Map<string, CacheEntry>();
+
+/** Pose le lieu d'une fiche déjà lue, pour ne pas la retélécharger. */
+export function retenirLieuGites(code: string, lieu: LieuGites): void {
+  const c = code.toUpperCase();
+  gpsCache.set(c, {
+    at: Date.now(),
+    lieu: { lat: lieu.lat, lon: lieu.lon, locality: lieu.locality },
+    hit: plausible(lieu.lat, lieu.lon),
+  });
+}
+
+/** Lieu encore frais pour ce code, ou `null` s'il faut (re)lire la fiche. */
+export function lieuGitesEnCache(code: string): LieuGites | null {
+  const c = code.toUpperCase();
+  const e = gpsCache.get(c);
+  if (!e) return null;
+  const ttl = e.hit ? HIT_MS : MISS_MS;
+  if (Date.now() - e.at > ttl) {
+    gpsCache.delete(c);
+    return null;
+  }
+  return e.lieu;
+}
+
+/** Tests uniquement : le cache vit avec le processus. */
+export function viderCacheGitesGps(): void {
+  gpsCache.clear();
+}
+
+function poserLieu(row: Listing, lieu: LieuGites): { gps: boolean; commune: boolean } {
+  let gps = false;
+  let commune = false;
+  if (lieu.locality && !row.locality) {
+    row.locality = lieu.locality;
+    commune = true;
+  }
+  if (plausible(lieu.lat, lieu.lon) && !plausible(row.lat, row.lon)) {
+    row.lat = lieu.lat;
+    row.lon = lieu.lon;
+    if (!/GPS ITEA/.test(row.proven)) {
+      row.proven = `${row.proven} · GPS ITEA`;
+    }
+    gps = true;
+  }
+  return { gps, commune };
+}
 
 /** JSON-LD LodgingBusiness.location.geo du widget ITEA, sinon pin Drupal. */
 export function lieuFromGitesHtml(html: string): LieuGites {
@@ -115,20 +170,44 @@ async function fetchHtml(url: string, until: number): Promise<string | null> {
  *
  * La commune se pose même quand les coordonnées ne sont pas lisibles : une
  * fiche sans `geo` n'est pas une fiche sans lieu.
+ *
+ * Le cache est lu d'abord : une fiche déjà relevée (devis ou passage précédent)
+ * n'est pas retéléchargée.
  */
 export async function fillGitesGps(listings: Listing[]): Promise<number> {
-  const need = listings.filter((l) => {
+  const candidates = listings.filter((l) => {
     if (l.source !== "Gîtes de France") return false;
     if (plausible(l.lat, l.lon)) return false;
     return Boolean(gitesCodeOf(l.id) || gitesCodeOf(l.url));
   });
-  if (need.length === 0) return 0;
+  if (candidates.length === 0) return 0;
+
+  let filled = 0;
+  let communes = 0;
+  let cached = 0;
+  const need: Listing[] = [];
+  for (const row of candidates) {
+    const code = gitesCodeOf(row.id) || gitesCodeOf(row.url);
+    if (!code) continue;
+    const lieu = lieuGitesEnCache(code);
+    if (lieu) {
+      const pose = poserLieu(row, lieu);
+      if (pose.gps) filled += 1;
+      if (pose.commune) communes += 1;
+      cached += 1;
+      continue;
+    }
+    need.push(row);
+  }
+  if (need.length === 0) {
+    console.info(`[gites-gps] ${filled}/${candidates.length} fiches · ${communes} commune(s) · ${cached} cache`);
+    return filled;
+  }
+
   await allowsPath("https://widget-fngf.itea.fr", "/");
   const targets = need.slice(0, MAX_FICHES);
   const until = Date.now() + BUDGET_MS;
   let cursor = 0;
-  let filled = 0;
-  let communes = 0;
   const workers = Math.min(WORKERS, targets.length);
   await Promise.all(
     Array.from({ length: workers }, async () => {
@@ -141,25 +220,23 @@ export async function fillGitesGps(listings: Listing[]): Promise<number> {
         if (!code) continue;
         try {
           const html = await fetchHtml(gitesWidgetUrl(code), until);
-          if (!html) continue;
+          if (!html) {
+            retenirLieuGites(code, VIDE);
+            continue;
+          }
           const lieu = lieuFromGitesHtml(html);
-          if (lieu.locality && !row.locality) {
-            row.locality = lieu.locality;
-            communes += 1;
-          }
-          if (!plausible(lieu.lat, lieu.lon)) continue;
-          row.lat = lieu.lat;
-          row.lon = lieu.lon;
-          if (!/GPS ITEA/.test(row.proven)) {
-            row.proven = `${row.proven} · GPS ITEA`;
-          }
-          filled += 1;
+          retenirLieuGites(code, lieu);
+          const pose = poserLieu(row, lieu);
+          if (pose.gps) filled += 1;
+          if (pose.commune) communes += 1;
         } catch {
           /* fiche bloquée : on laisse non mesurée */
         }
       }
     }),
   );
-  console.info(`[gites-gps] ${filled}/${need.length} fiches · ${communes} commune(s)`);
+  console.info(
+    `[gites-gps] ${filled}/${candidates.length} fiches · ${communes} commune(s) · ${cached} cache · ${targets.length} lues`,
+  );
   return filled;
 }

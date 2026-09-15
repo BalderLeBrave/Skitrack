@@ -2657,6 +2657,53 @@
   font-weight: 700;
   color: var(--color-muted);
 }
+.lodge7__indic {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  font-size: var(--text-note);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.lodge7__trous {
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+  line-height: 1.35;
+}
+.lodge7__prix--muet b {
+  font-size: var(--text-corps);
+  font-weight: 700;
+  color: var(--color-texte-3);
+}
+.galerie7 {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+}
+.galerie7 button {
+  flex: none;
+  width: 56px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-media);
+}
+.galerie7 button[aria-current="true"] {
+  box-shadow: 0 0 0 2px var(--color-marque);
+}
+.galerie7 img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .lodge7__corps {
   display: grid;
   gap: calc(var(--spacing) * 2.5);

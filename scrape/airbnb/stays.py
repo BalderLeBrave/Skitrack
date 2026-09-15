@@ -15,7 +15,8 @@ from urllib.parse import quote, urlencode
 
 from map import listings_from_raw, par_prix
 from pdp import enrich_listings
-from session import cached, next_search_cursor
+from session import cached, invalidate, next_search_cursor
+from throttle import RateLimited, airbnb_circuit, call_with_retry, http_status_of, is_rate_limited
 
 # Paquet vendu à côté de ce fichier.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -29,7 +30,8 @@ MAX_PAGES = 80
 # Une page de plus, c'est un appel de plus au même domaine : on ralentit le
 # rythme plutôt que de l'accélérer, et on s'interdit de tourner indéfiniment.
 PAGE_PAUSE_S = 0.8
-PAGE_BUDGET_S = 60.0
+PAGE_BUDGET_S = 45.0
+ENRICH_BUDGET_S = 22.0
 DEFAULT_TIMEOUT = 45
 CURRENCY = "EUR"
 LANGUAGE = "fr"
@@ -108,21 +110,28 @@ def build_search_url(params: dict[str, Any]) -> str:
 
 def _hash(proxy_url: str) -> str:
     def fetch() -> str:
-        try:
-            return airbnb_search.fetch_stays_search_hash(proxy_url, timeout=DEFAULT_TIMEOUT)
-        except Exception:
-            return ""
+        return call_with_retry(
+            lambda: airbnb_search.fetch_stays_search_hash(proxy_url, timeout=DEFAULT_TIMEOUT)
+        )
 
     return cached("hash", fetch)
 
 
-def _search_pages(url: str, proxy_url: str, max_pages: int) -> tuple[list[Any], int]:
+def _api_key(proxy_url: str) -> str:
+    return cached(
+        "key",
+        lambda: call_with_retry(lambda: airbnb_api.get(proxy_url, timeout=DEFAULT_TIMEOUT)),
+    )
+
+
+def _search_pages(url: str, proxy_url: str, max_pages: int) -> tuple[list[Any], int, bool]:
     raw_params = airbnb_search.url_to_raw_params(url)
-    api_key = cached("key", lambda: airbnb_api.get(proxy_url, timeout=DEFAULT_TIMEOUT))
+    api_key = _api_key(proxy_url)
     op_hash = _hash(proxy_url)
     pages = 0
     raws: list[Any] = []
     cursor = ""
+    rate_limited = False
     call = {
         "currency": CURRENCY,
         "language": LANGUAGE,
@@ -156,8 +165,17 @@ def _search_pages(url: str, proxy_url: str, max_pages: int) -> tuple[list[Any], 
     # neuve ou plus de curseur suivant.
     seen: set[str] = set()
     depart = time.perf_counter()
+    pause = PAGE_PAUSE_S
     while pages < max_pages:
-        raw = airbnb_search.get(api_key=api_key, cursor=cursor, timeout=DEFAULT_TIMEOUT, **call)
+        try:
+            raw = call_with_retry(
+                lambda: airbnb_search.get(api_key=api_key, cursor=cursor, timeout=DEFAULT_TIMEOUT, **call),
+            )
+        except RateLimited:
+            rate_limited = True
+            if raws:
+                print(f"[airbnb] 429 après {pages} page(s) — on garde ce qui est lu", file=sys.stderr)
+            break
         raws.append(raw)
         pages += 1
         pagination = get_nested_value(
@@ -173,9 +191,9 @@ def _search_pages(url: str, proxy_url: str, max_pages: int) -> tuple[list[Any], 
             break
         if time.perf_counter() - depart > PAGE_BUDGET_S:
             break
-        time.sleep(PAGE_PAUSE_S)
+        time.sleep(pause)
         cursor = nxt
-    return raws, pages
+    return raws, pages, rate_limited
 
 
 def run_search(params: dict[str, Any]) -> dict[str, Any]:
@@ -189,10 +207,30 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     proxy_url = str(params.get("proxy_url") or _proxy())
     sink = io.StringIO()
     started = time.perf_counter()
+    rate_limited = False
     try:
         with contextlib.redirect_stdout(sink):
-            raws, pages = _search_pages(url, proxy_url, max_pages)
+            raws, pages, rate_limited = _search_pages(url, proxy_url, max_pages)
+    except RateLimited as err:
+        print(f"[airbnb] HTTP {err.status} — pause {err.retry_after_s:.0f}s", file=sys.stderr)
+        return {
+            "ok": False,
+            "error": "HTTP 429",
+            "rateLimited": True,
+            "url": url,
+            "attempts": 1,
+        }
     except Exception as err:
+        if is_rate_limited(err):
+            print(f"[airbnb] HTTP {http_status_of(err) or 429}", file=sys.stderr)
+            return {
+                "ok": False,
+                "error": f"HTTP {http_status_of(err) or 429}",
+                "rateLimited": True,
+                "url": url,
+                "attempts": 1,
+            }
+        invalidate()
         return {"ok": False, "error": f"pyairbnb: {err}", "url": url, "attempts": 1}
     ms_search = int((time.perf_counter() - started) * 1000)
 
@@ -215,13 +253,17 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     if not listings:
         return {
             "ok": False,
-            "error": "pyairbnb: aucune annonce",
+            "error": "HTTP 429" if rate_limited else "pyairbnb: aucune annonce",
+            "rateLimited": rate_limited,
             "url": url,
             "attempts": 1,
         }
     enriched = 0
     ms_enrich = 0
-    if not params.get("skipEnrich"):
+    # Un 429 en pagination ouvre le coupe-circuit : on n'enchaîne pas 40
+    # fiches PDP sur le même refus. skipEnrich reste honoré.
+    max_enrich = int(params.get("maxEnrich") or 0) or 40
+    if not params.get("skipEnrich") and not rate_limited and not airbnb_circuit.open():
         try:
             enrich_started = time.perf_counter()
             listings, enriched = enrich_listings(
@@ -231,15 +273,21 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                 adults=int(adults) if adults else None,
                 proxy_url=proxy_url,
                 min_guests=int(adults) if adults else None,
+                max_n=max_enrich,
+                budget_s=ENRICH_BUDGET_S,
             )
             ms_enrich = int((time.perf_counter() - enrich_started) * 1000)
             listings.sort(key=par_prix)
+        except RateLimited:
+            rate_limited = True
+            enriched = 0
         except Exception:
             enriched = 0
     if not listings:
         return {
             "ok": False,
             "error": "pyairbnb: aucune annonce",
+            "rateLimited": rate_limited,
             "url": url,
             "attempts": 1,
         }
@@ -263,6 +311,7 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         "stlEnriched": enriched,
         "msSearch": ms_search,
         "msQuote": ms_enrich,
+        "rateLimited": rate_limited,
     }
 
 

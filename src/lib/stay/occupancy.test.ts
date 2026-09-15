@@ -31,6 +31,20 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
     });
   });
 
+  it("N°505 Appartement 8 personnes n'est pas cinq cent cinq logements", () => {
+    assert.equal(occupancyFromText("LE PRINCE DES ECRINS 505 Appartement 8 personnes").guests, 8);
+    assert.equal(occupancyFromText("LE JANDRI 02S01 Appartement 8 personnes").guests, 8);
+    assert.equal(
+      occupancyOfListing({
+        guests: null,
+        bedrooms: null,
+        title: "LE PRINCE DES ECRINS 505 Appartement 8 personnes",
+        url: "https://reservation.les2alpes.com/le-prince-des-ecrins-n505-appartement-8-personnes-les-2-alpes.html",
+      }).guests,
+      8,
+    );
+  });
+
   it("prend le haut d'une fourchette 7/8", () => {
     assert.equal(occupancyFromText("Capacité 7/8 personnes").guests, 8);
     assert.equal(occupancyFromText("Appartement 3 pièces 7-8 pers.").guests, 8);
@@ -143,10 +157,59 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
     );
   });
 
+  it("lit sleeps et maxOccupancy comme une capacité publiée", () => {
+    assert.deepEqual(occupancyFromRecord({ sleeps: 8, bedroomCount: 3 }), {
+      guests: 8,
+      bedrooms: 3,
+      rooms: null,
+    });
+    assert.equal(occupancyFromRecord({ maxOccupancy: 10 }).guests, 10);
+  });
+
   it("lit personCapacity dans loggingContext Airbnb", () => {
     assert.equal(
       occupancyFromRecord({
         loggingContext: { eventDataLogging: { personCapacity: 8 } },
+      }).guests,
+      8,
+    );
+  });
+
+  it("lit l'abréviation 8p / 10 P d'une tuile, pas un 2p cabine", () => {
+    assert.equal(occupancyFromText("8p · 3 chambres").guests, 8);
+    assert.equal(occupancyFromText("10 P").guests, 10);
+    assert.equal(occupancyFromText("Appartement 8p 80m²").guests, 8);
+    assert.equal(occupancyFromText("Superbe Appartement 8P pied des pistes (Réf 32)").guests, 8);
+    assert.equal(occupancyFromText("Chalet 10p sauna /superbe vue").guests, 10);
+    assert.equal(occupancyFromText("2p cabine").guests, null);
+    assert.equal(occupancyFromText("Appartement 2 pièces cabine").guests, null);
+    assert.equal(occupancyFromText("2 pièces · 4 pers.").guests, 4);
+  });
+
+  it("accueille, capacité, F3 et 3 ch. sont des lectures", () => {
+    assert.equal(occupancyFromText("Chalet pouvant accueillir 10").guests, 10);
+    assert.equal(occupancyFromText("Capacité : 8").guests, 8);
+    assert.equal(occupancyFromText("F3 pied des pistes").rooms, 3);
+    assert.equal(occupancyFromText("Appartement 3 ch. sud").bedrooms, 3);
+    assert.equal(occupancyFromText("Grand chalet").bedrooms, null);
+  });
+
+  it("sleeps 8, cap. 8 et capacity 8 sont des lectures", () => {
+    assert.equal(occupancyFromText("Cabin sleeps 8 near the slopes").guests, 8);
+    assert.equal(occupancyFromText("Appartement cap. 8 pied des pistes").guests, 8);
+    assert.equal(occupancyFromText("capacity 10 with sauna").guests, 10);
+    assert.equal(occupancyFromText("cape of 8 mountains").guests, null);
+  });
+
+  it("lit un slug de photo comme un titre", () => {
+    assert.equal(
+      occupancyOfListing({
+        guests: null,
+        bedrooms: null,
+        title: "L'OLYMPE N°11",
+        url: null,
+        photo:
+          "https://reservation.les2alpes.com/medias/images/prestations/l-olympe-appartement-8-personnes-10.jpeg",
       }).guests,
       8,
     );

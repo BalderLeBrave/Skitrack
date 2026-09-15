@@ -4,7 +4,7 @@ import { SCRAPE_UA, sleep } from "./browser.server.ts";
 import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer, type Occupancy } from "../stay/occupancy.ts";
-import { gitesWidgetUrl, lieuFromGitesHtml, type LieuGites } from "./gitesGps.server.ts";
+import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } from "./gitesGps.server.ts";
 
 /**
  * Bornes du relevé, toutes explicites.
@@ -369,6 +369,7 @@ async function relever(
   }).then((r) => r.text());
   const occupancy = occupancyFromGitesHtml(html);
   const lieu = lieuFromGitesHtml(html);
+  retenirLieuGites(code, lieu);
   const devise = deviseFromGitesHtml(html);
   const ident = html.match(/data-ident="([^"]+)"/)?.[1];
   const instance = html.match(/data-instance="([^"]+)"/)?.[1];

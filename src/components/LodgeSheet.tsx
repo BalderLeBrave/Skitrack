@@ -3,6 +3,8 @@ import { distToGpxM, distToGpxStartM } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
 import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
+import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
+import { bedLbl, capLbl } from "@/lib/v7";
 import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
@@ -43,7 +45,11 @@ export function LodgeSheet({
     1,
     Math.round((Date.parse(stay.checkOut) - Date.parse(stay.checkIn)) / 86400000),
   );
-  const pp = Math.round(listing.total / Math.max(1, stay.guests) / nights);
+  // `total: 0` veut dire « prix non publié » : diviser ce zéro rendait un
+  // « 0 €/pers/nuit » que personne n'a écrit.
+  const pp = listing.total > 0 ? Math.round(listing.total / Math.max(1, stay.guests) / nights) : null;
+  // Ce que l'annonce prouve vraiment, plutôt qu'une affirmation en dur.
+  const dispo = availabilityOf(listing, { checkIn: stay.checkIn, checkOut: stay.checkOut });
 
   useEffect(() => {
     if (listing.lat == null || listing.lon == null) {
@@ -97,9 +103,10 @@ export function LodgeSheet({
             <div className="grid gap-2 border-t border-line bg-panel p-5">
               <p className="font-display text-titre">{formatEuro(listing.total)}</p>
               <p className="text-corps text-muted">
-                {nights} nuits · {stay.guests} pers. · {formatEuro(pp)} /pers/nuit
+                {nights} nuits · {stay.guests} pers.
+                {pp != null ? ` · ${formatEuro(pp)} /pers/nuit` : " · prix non publié"}
               </p>
-              <p className="text-note font-medium text-ink">Prix ferme du séjour, relevé pour ces dates.</p>
+              <p className="text-note font-medium text-ink">{availabilityLabel(dispo)}</p>
             </div>
           </div>
           <div className="overflow-auto p-6">
@@ -110,20 +117,39 @@ export function LodgeSheet({
                 <span> — alignées sur votre séjour</span>
               </li>
               <li>
-                <strong>Prix</strong> : {formatEuro(listing.total)} · confirmé pour ces dates
+                <strong>Prix</strong> :{" "}
+                {listing.total > 0 ? formatEuro(listing.total) : "non publié par la source"}
+                {" · "}
+                {availabilityLabel(dispo).toLowerCase()}
+                {listing.priceIndicative ? " · annoncé « à partir de », ce n’est pas un total de séjour" : ""}
               </li>
+              {/* Les mots de la source, quand elle en met : un prix barré, une
+                  remise, un nombre de nuits que nous ne reformulons pas. */}
+              {listing.priceLabel ? (
+                <li>
+                  <strong>Libellé de la source</strong> : « {listing.priceLabel} »
+                </li>
+              ) : null}
               <li>
                 <strong>Source</strong> : {listing.source}
+                {listing.propertyType ? ` · ${listing.propertyType}` : ""}
+                {listing.platformId ? ` · réf. ${listing.platformId}` : ""}
               </li>
+              {listing.rating != null ? (
+                <li>
+                  <strong>Note publiée</strong> : {listing.rating}
+                  {listing.reviewCount != null ? ` sur ${listing.reviewCount} avis` : ""}
+                  {" — telle que la source l’affiche, jamais recalculée."}
+                </li>
+              ) : null}
+              {/* Les mêmes libellés que la vignette, par les mêmes fonctions :
+                  la fiche en tenait une seconde copie, qui ignorait les pièces. */}
               <li>
-                <strong>Capacité</strong> :{" "}
-                {listing.guests != null ? `${listing.guests} pers.` : "non annoncée"}
-                {" · "}
-                {listing.bedrooms == null
-                  ? "chambres non annoncées"
-                  : listing.bedrooms === 0
-                    ? "studio"
-                    : `${listing.bedrooms} ch.`}
+                <strong>Capacité</strong> : {capLbl(listing)} · {bedLbl(listing)}
+                {listing.beds != null ? ` · ${listing.beds} lit${listing.beds > 1 ? "s" : ""}` : ""}
+                {listing.baths != null
+                  ? ` · ${listing.baths} salle${listing.baths > 1 ? "s" : ""} de bain`
+                  : ""}
               </li>
               <li>
                 <strong>Lieu</strong> : {sectorOf(listing) ?? "non publié"}

@@ -55,7 +55,11 @@ export type FicheOpenSystem = {
    */
   reference: string | null;
   titre: string;
-  /** Total du séjour, en euros. */
+  /**
+   * Total du séjour, en euros. **`0` veut dire « le bloc de tarif est là, mais
+   * vide »**, jamais « gratuit » ; une fiche sans bloc de tarif du tout n'est
+   * pas rendue, car c'est ainsi que la centrale dit qu'elle ne vend pas.
+   */
   total: number;
   /** L'étiquette de la centrale au-dessus du prix, par exemple « Prix indicatif ». */
   etiquette: string | null;
@@ -63,8 +67,22 @@ export type FicheOpenSystem = {
   lat: number | null;
   lon: number | null;
   adresse: string | null;
-  /** Commune telle que l'adresse la porte, code postal retiré. */
+  /**
+   * Commune, lue dans le champ que le gabarit lui consacre.
+   *
+   * Le `<h3>` porte `<span class="NomCommune">` : c'est la commune écrite comme
+   * telle. Elle n'était devinée que par le code postal de l'adresse, ce qui la
+   * laissait vide dès qu'une adresse n'en portait pas.
+   */
   commune: string | null;
+  /**
+   * Classement publié, « 3 épis ».
+   *
+   * Le gabarit l'écrit dans le nom de classe d'une pastille,
+   * `ClassementHebe IcoClassement classement-epi3`. Il était affiché par la
+   * centrale et jeté par le connecteur.
+   */
+  classement: string | null;
 };
 
 export type DemandeOpenSystem = {
@@ -173,12 +191,32 @@ function total(fragment: string): number | null {
   const m = /class="prix"\s*>\s*<span class="partie-entiere">([^<]*)<\/span>\s*<span class="partie-decimale">([^<]*)<\/span>/.exec(
     fragment,
   );
+  // Pas de bloc de tarif : c'est l'état sans dates, où le gabarit du prix reste
+  // même en commentaire. La centrale ne vend pas cette fiche, et `null` le dit.
   if (!m) return null;
   const entiere = (m[1] ?? "").replace(/\D/g, "");
-  if (!entiere) return null;
+  // Le bloc est là et le montant manque : la fiche est listée sans prix, ce qui
+  // n'est pas la même chose que pas listée. Zéro est la convention du dépôt.
+  if (!entiere) return 0;
   const decimale = (m[2] ?? "").replace(/\D/g, "").slice(0, 2).padEnd(2, "0");
   const v = Number(entiere) + Number(decimale) / 100;
-  return Number.isFinite(v) && v > 0 ? v : null;
+  return Number.isFinite(v) && v > 0 ? v : 0;
+}
+
+/**
+ * Le classement, écrit dans le nom de classe de sa pastille.
+ *
+ * `classement-epi3` est la forme relevée le 13 septembre 2026 à Haute Maurienne
+ * Vanoise. La forme en étoiles est lue au cas où — même gabarit, même préfixe —
+ * mais elle n'a pas été observée : c'est une lecture prudente, pas un constat.
+ */
+function classementDe(fragment: string): string | null {
+  const m = /\bclassement-(epi|etoile)(\d)\b/.exec(fragment);
+  if (!m) return null;
+  const n = Number(m[2]);
+  if (!Number.isInteger(n) || n <= 0) return null;
+  const mot = m[1] === "epi" ? "épi" : "étoile";
+  return `${n} ${mot}${n > 1 ? "s" : ""}`;
 }
 
 function titre(fragment: string): string {
@@ -197,13 +235,17 @@ function titre(fragment: string): string {
 }
 
 function adresseEtCommune(fragment: string): { adresse: string | null; commune: string | null } {
+  // La commune a son propre champ dans le `<h3>` ; l'adresse ne sert que de
+  // recours, pour les gabarits qui ne porteraient pas la pastille.
+  const propre = /class="NomCommune"[^>]*>([\s\S]{0,120}?)<\/span>/.exec(fragment);
+  const nomCommune = propre ? texteOpenSystem(propre[1] ?? "") || null : null;
   const m = /class="ItemCartoDescrAdresse"[^>]*>([\s\S]*?)<\/div>/.exec(fragment);
-  if (!m) return { adresse: null, commune: null };
+  if (!m) return { adresse: null, commune: nomCommune };
   const brut = texteOpenSystem((m[1] ?? "").replace(/<br\s*\/?>/gi, " | "));
   const adresse = brut.replace(/\s*\|\s*/g, ", ").trim() || null;
   const cp = /\b(\d{5})\s+(.+)$/.exec(brut.replace(/\s*\|\s*/g, " "));
-  const commune = cp ? (cp[2] ?? "").trim() || null : null;
-  return { adresse, commune };
+  const parAdresse = cp ? (cp[2] ?? "").trim() || null : null;
+  return { adresse, commune: nomCommune ?? parAdresse };
 }
 
 function photo(fragment: string): string | null {
@@ -226,9 +268,10 @@ export function identiteOpenSystem(chemin: string): string {
 /**
  * Lit une page de résultats.
  *
- * Une fiche sans total n'est pas rendue : la centrale la connaît, mais elle ne
- * la vend pas à ces dates-là, et une annonce sans prix n'a rien à faire dans
- * une comparaison de prix.
+ * Une fiche sans **bloc de tarif** n'est pas rendue : c'est l'état sans dates,
+ * et la centrale dit par là qu'elle ne la vend pas. Une fiche dont le bloc est
+ * là mais vide sort, elle, avec un total de zéro — « listée sans prix » est un
+ * renseignement, sa disparition n'en est pas un.
  *
  * Le même logement peut apparaître plusieurs fois, une ligne par lot dans une
  * page et une fois par rubrique où il figure. On garde le moins cher, sous son
@@ -244,8 +287,10 @@ export function lireOpenSystem(page: string): FicheOpenSystem[] {
     const nom = titre(fragment);
     if (!chemin || !nom) continue;
     const identite = identiteOpenSystem(chemin);
+    // Le moins cher l'emporte, mais zéro n'est pas « moins cher » : c'est
+    // l'absence de prix, et un montant publié la remplace toujours.
     const dejaLa = par.get(identite);
-    if (dejaLa && dejaLa.total <= somme) continue;
+    if (dejaLa && !(somme > 0 && (dejaLa.total <= 0 || somme < dejaLa.total))) continue;
     const { lat, lon } = coordonnees(fragment);
     const { adresse, commune } = adresseEtCommune(fragment);
     const etiq = /class="prefix"[^>]*>([\s\S]*?)<\/div>/.exec(fragment);
@@ -261,6 +306,7 @@ export function lireOpenSystem(page: string): FicheOpenSystem[] {
       lon,
       adresse,
       commune,
+      classement: classementDe(fragment),
     });
   }
   return [...par.values()];

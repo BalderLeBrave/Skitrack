@@ -26,6 +26,13 @@
  * durée « 8-7 », jours et nuits ; le jour sur deux chiffres. Se tromper d'une
  * seule de ces quatre entrées rend une liste vide sans rien signaler.
  *
+ * **Ce que le jour publie autour du prix, et qui s'ignorait.** `byHousing` dit
+ * que le montant porte sur le logement entier et non par personne ; `nightNb`
+ * dit combien de nuits il couvre ; `minPax` et `maxPax` bornent la bande
+ * tarifaire, et `categoryCode` donne le code commercial du produit. Les deux
+ * premiers sont ce qui permet de ne pas comparer un prix par tête à un total,
+ * et le troisième est ce qu'on prenait pour la capacité du logement.
+ *
  * **Ce que le prix vaut.** Relevé du 13 septembre 2026. Sans dates, la fiche
  * d'un logement annonce « À partir de 2 280 € » et la grille d'une destination
  * un prix d'appel : ce sont bien des « à partir de ». Avec dates, le même
@@ -54,11 +61,34 @@ export type DemandeOrchestra = {
 
 /** Une offre datée, telle que le calendrier la porte. */
 export type OffreOrchestra = {
+  /** Total de la bande retenue. `0` veut dire « pas de prix publié ». */
   total: number;
-  /** Capacité maximale de la bande qui a répondu. */
-  capacite: number | null;
+  /**
+   * Bornes de la **bande tarifaire** qui a répondu, `minPax` et `maxPax`.
+   *
+   * **Ce n'est pas la capacité du logement**, et ce l'a longtemps été : le
+   * connecteur écrivait `maxPax` dans `guests`. Or `maxPax` est le haut de la
+   * bande commerciale — la clé « 1-6 » du dictionnaire, que la catégorie
+   * répète —, c'est-à-dire jusqu'à combien de personnes ce tarif se vend. Un
+   * studio vendu « 1 à 6 personnes » n'en couche pas six. La charge ne publie
+   * nulle part la capacité du bien ; elle reste donc vide, sauf si le nom du
+   * logement l'annonce.
+   */
+  bandeMin: number | null;
+  bandeMax: number | null;
   /** Libellé de la catégorie, quand le calendrier en donne un. */
   categorie: string | null;
+  /** `categoryCode` : le code commercial du produit, celui que porte l'URL. */
+  codeProduit: string | null;
+  /**
+   * `byHousing` : le prix porte sur le logement entier, et non par personne.
+   *
+   * C'est le drapeau qui interdit de comparer un prix par personne à un total.
+   * `null` quand le calendrier ne l'écrit pas : on ne présume ni l'un ni l'autre.
+   */
+  parLogement: boolean | null;
+  /** `nightNb` : les nuits que ce prix couvre, écrites par le calendrier. */
+  nuits: number | null;
 };
 
 /** Nombre de nuits entre deux dates ISO. */
@@ -138,11 +168,21 @@ export function cartesOrchestra(page: string): CarteOrchestra[] {
   return out;
 }
 
+type Categorie = {
+  categoryLabel?: unknown;
+  categoryCode?: unknown;
+};
 type Jour = {
   price?: unknown;
+  /** Bornes de la bande tarifaire, répétées ici par le calendrier. */
   maxPax?: unknown;
+  minPax?: unknown;
+  /** Le prix porte sur le logement entier. */
+  byHousing?: unknown;
+  /** Nuits couvertes par ce prix. */
+  nightNb?: unknown;
   status?: unknown;
-  categories?: Record<string, { categoryLabel?: unknown }> | null;
+  categories?: Record<string, Categorie> | null;
 };
 type Calendrier = {
   availabilities?: Record<string, Record<string, Record<string, Record<string, Record<string, Jour>>>>> | null;
@@ -154,11 +194,38 @@ function nombre(v: unknown): number | null {
 }
 
 /**
+ * La catégorie du jour, libellé et code commercial pris ensemble.
+ *
+ * La clé du dictionnaire n'est pas fixe : c'est « Housing » chez certains
+ * logements et le code commercial du produit chez d'autres, « ccdt052 ». On
+ * prend donc la première entrée qui porte un libellé, sans en présumer le nom,
+ * et son `categoryCode` avec elle — c'est le code que l'URL de la fiche porte
+ * aussi, et il était lu puis jeté.
+ */
+function categorieDuJour(e: Jour | undefined): { libelle: string | null; code: string | null } {
+  const cat = Object.values(e?.categories ?? {}).find(
+    (x) => typeof x?.categoryLabel === "string" && x.categoryLabel,
+  );
+  const libelle = typeof cat?.categoryLabel === "string" && cat.categoryLabel ? cat.categoryLabel : null;
+  const code = typeof cat?.categoryCode === "string" && cat.categoryCode ? cat.categoryCode : null;
+  return { libelle, code };
+}
+
+/**
  * Cherche, dans un calendrier, le prix de la demande.
  *
  * On retient le moins cher parmi les bandes de capacité qui couvrent le groupe :
  * un même logement paraît sous plusieurs bandes, et c'est ce qu'il en coûte d'y
  * dormir qui compte. Un jour dont l'état n'est pas « Available » est écarté.
+ *
+ * **La durée est vérifiée, plus seulement supposée.** La clé `8-7` est une
+ * convention qu'on écrit ; `nightNb` est un nombre que le calendrier écrit. Une
+ * entrée qui publie une autre durée que celle demandée est écartée, plutôt que
+ * de faire passer pour un séjour de sept nuits le prix d'autre chose.
+ *
+ * **Un jour libre sans prix reste une réponse.** La bande est alors rendue avec
+ * un total de zéro, qui se lit « listée sans prix » : c'est un renseignement,
+ * et le supprimer n'en est pas un. Une bande tarifée l'emporte toujours.
  */
 export function prixOrchestra(calendrier: unknown, d: DemandeOrchestra): OffreOrchestra | null {
   const c = (calendrier ?? {}) as Calendrier;
@@ -174,27 +241,36 @@ export function prixOrchestra(calendrier: unknown, d: DemandeOrchestra): OffreOr
   const groupe = Math.max(1, Math.trunc(d.guests));
 
   let meilleure: OffreOrchestra | null = null;
+  let sansPrix: OffreOrchestra | null = null;
   for (const [bande, durees] of Object.entries(sansTransport)) {
     const [lo, hi] = bande.split("-");
     const min = nombre(lo);
     const max = nombre(hi);
     if (min == null || max == null || groupe < min || groupe > max) continue;
     const e = durees?.[duree]?.[mois]?.[jour];
-    const total = nombre(e?.price);
-    if (total == null || total <= 0) continue;
-    if (typeof e?.status === "string" && e.status !== "Available") continue;
-    if (meilleure && meilleure.total <= total) continue;
-    // La clé de la catégorie n'est pas fixe : c'est « Housing » chez certains
-    // logements et le code commercial du produit chez d'autres, « ccdt052 ».
-    // On prend donc le premier libellé qui vient, sans en présumer le nom.
-    const cat = Object.values(e?.categories ?? {}).find(
-      (x) => typeof x?.categoryLabel === "string" && x.categoryLabel,
-    )?.categoryLabel;
-    meilleure = {
-      total,
-      capacite: nombre(e?.maxPax),
-      categorie: typeof cat === "string" && cat ? cat : null,
+    if (!e) continue;
+    if (typeof e.status === "string" && e.status !== "Available") continue;
+    const couvre = nombre(e.nightNb);
+    if (couvre != null && couvre !== nuits) continue;
+    const total = nombre(e.price);
+    const cat = categorieDuJour(e);
+    const offre: OffreOrchestra = {
+      total: total != null && total > 0 ? total : 0,
+      // Les bornes sont écrites deux fois : dans la clé de la bande et dans le
+      // jour lui-même. On lit le champ, et la clé sert de recours.
+      bandeMin: nombre(e.minPax) ?? min,
+      bandeMax: nombre(e.maxPax) ?? max,
+      categorie: cat.libelle,
+      codeProduit: cat.code,
+      parLogement: typeof e.byHousing === "boolean" ? e.byHousing : null,
+      nuits: couvre,
     };
+    if (offre.total <= 0) {
+      sansPrix ??= offre;
+      continue;
+    }
+    if (meilleure && meilleure.total <= offre.total) continue;
+    meilleure = offre;
   }
-  return meilleure;
+  return meilleure ?? sansPrix;
 }

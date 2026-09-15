@@ -13,7 +13,7 @@ import time
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from map import listings_from_raw
+from map import listings_from_raw, par_prix
 from pdp import enrich_listings
 from session import cached, next_search_cursor
 
@@ -26,6 +26,10 @@ import pyairbnb.search as airbnb_search  # noqa: E402
 from pyairbnb.utils import get_nested_value  # noqa: E402
 
 MAX_PAGES = 80
+# Une page de plus, c'est un appel de plus au même domaine : on ralentit le
+# rythme plutôt que de l'accélérer, et on s'interdit de tourner indéfiniment.
+PAGE_PAUSE_S = 0.8
+PAGE_BUDGET_S = 60.0
 DEFAULT_TIMEOUT = 45
 CURRENCY = "EUR"
 LANGUAGE = "fr"
@@ -144,6 +148,14 @@ def _search_pages(url: str, proxy_url: str, max_pages: int) -> tuple[list[Any], 
         "min_beds": 0,
         "min_bathrooms": 0,
     }
+    # StaysSearch ne publie pas de nombre de résultats : `paginationInfo` ne
+    # porte que des curseurs (pyairbnb/start.py s'arrête au même endroit, et
+    # le `totalCount` de stl-scraper venait d'ExploreSearch, mort depuis).
+    # Faute de compteur, `max_pages` est un plancher de sécurité assumé, pas un
+    # total connu : on s'arrête sur un critère honnête, plus aucune annonce
+    # neuve ou plus de curseur suivant.
+    seen: set[str] = set()
+    depart = time.perf_counter()
     while pages < max_pages:
         raw = airbnb_search.get(api_key=api_key, cursor=cursor, timeout=DEFAULT_TIMEOUT, **call)
         raws.append(raw)
@@ -152,9 +164,16 @@ def _search_pages(url: str, proxy_url: str, max_pages: int) -> tuple[list[Any], 
             raw, "data.presentation.staysSearch.results.paginationInfo", {}
         ) or {}
         nxt = next_search_cursor(pagination if isinstance(pagination, dict) else {}, cursor)
-        stays = listings_from_raw(raw)
-        if not stays or not nxt:
+        neuves = 0
+        for row in listings_from_raw(raw):
+            if row["id"] not in seen:
+                seen.add(row["id"])
+                neuves += 1
+        if not neuves or not nxt:
             break
+        if time.perf_counter() - depart > PAGE_BUDGET_S:
+            break
+        time.sleep(PAGE_PAUSE_S)
         cursor = nxt
     return raws, pages
 
@@ -192,11 +211,11 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                 continue
             seen.add(row["id"])
             listings.append(row)
-    listings.sort(key=lambda r: r["total"])
+    listings.sort(key=par_prix)
     if not listings:
         return {
             "ok": False,
-            "error": "pyairbnb: aucune annonce avec total de séjour",
+            "error": "pyairbnb: aucune annonce",
             "url": url,
             "attempts": 1,
         }
@@ -214,13 +233,13 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                 min_guests=int(adults) if adults else None,
             )
             ms_enrich = int((time.perf_counter() - enrich_started) * 1000)
-            listings.sort(key=lambda r: r["total"])
+            listings.sort(key=par_prix)
         except Exception:
             enriched = 0
     if not listings:
         return {
             "ok": False,
-            "error": "pyairbnb: aucune annonce avec total de séjour",
+            "error": "pyairbnb: aucune annonce",
             "url": url,
             "attempts": 1,
         }

@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   corpsRechercheFeratel,
+  FERATEL_PAR_PAGE,
   lireFeratel,
   sessionFeratel,
   urlRechercheFeratel,
@@ -107,10 +108,36 @@ const RELEVE = {
 describe("Deskline / Feratel : lire une recherche datée", () => {
   const fiches = lireFeratel(RELEVE);
 
-  it("ne rend que les hébergements qui portent un prix", () => {
+  it("rend aussi l'hébergement dont aucun produit n'a de prix", () => {
+    // Il était supprimé. Or le service l'a mis dans les résultats d'une
+    // recherche datée : « connu, pas de prix publié à ces dates » est un
+    // renseignement, et zéro est la façon dont le dépôt l'écrit.
     assert.equal(RELEVE.data.length, 3);
-    assert.equal(fiches.length, 2, "celui dont le prix vaut zéro tombe");
-    assert.ok(!fiches.some((f) => f.id === "sans-prix"));
+    assert.equal(fiches.length, 3);
+    const muet = fiches.find((f) => f.id === "sans-prix");
+    assert.equal(muet?.total, 0);
+    // Faute de produit tarifé, il est quand même nommé par ce que la centrale
+    // publie : son service et son produit.
+    assert.equal(muet?.service, "Chalet");
+    assert.equal(muet?.produit, "x");
+  });
+
+  it("lit le nom et l'identifiant du produit vendu", () => {
+    // La projection les demande depuis toujours — `products{id,name,…}` — et
+    // personne ne s'en servait. Le produit est ce qui est vendu ; l'hébergement
+    // n'est que ce qui le contient.
+    const aigles = fiches.find((f) => f.titre === "Les Aigles 1");
+    assert.equal(aigles?.produit, "Les Aigles 1");
+    assert.equal(aigles?.produitId, "f486a204-a684-4f92-a069-0141936503d7");
+  });
+
+  it("rend toute la galerie, une adresse par image", () => {
+    // `urls` liste les rendus d'une même image : en prendre plusieurs
+    // compterait deux fois la même photo.
+    const aigles = fiches.find((f) => f.titre === "Les Aigles 1");
+    assert.equal(aigles?.photos.length, 1);
+    assert.equal(aigles?.photo, aigles?.photos[0]);
+    assert.deepEqual(fiches.find((f) => f.id === "sans-prix")?.photos, []);
   });
 
   it("garde le moins cher des produits d'un hébergement", () => {
@@ -118,7 +145,7 @@ describe("Deskline / Feratel : lire une recherche datée", () => {
     // produits. Ce qu'on montre est ce qu'il en coûte d'y dormir.
     const aigles = fiches.find((f) => f.titre === "Les Aigles 1");
     assert.equal(aigles?.total, 2424);
-    for (const f of fiches) assert.ok(f.total > 0, `${f.titre} : ${f.total}`);
+    assert.equal(fiches.find((f) => f.titre === "Lodge Balmaz")?.total, 17139.6);
   });
 
   it("lit les coordonnées sous le nom que le service leur donne", () => {
@@ -133,8 +160,16 @@ describe("Deskline / Feratel : lire une recherche datée", () => {
   it("complète le protocole des adresses de photo", () => {
     // Le service les rend relatives au protocole : « //resc.deskline.net/… ».
     for (const f of fiches) {
-      if (f.photo) assert.ok(f.photo.startsWith("https://"), f.photo);
+      for (const p of f.photos) assert.ok(p.startsWith("https://"), p);
     }
+  });
+
+  it("la page suivante se demande par son numéro", () => {
+    // Le connecteur ne lisait que la page zéro, et soixante hébergements
+    // exactement en revenaient : c'était le plafond d'une page.
+    const u = new URL(urlResultatsFeratel("https://exemple.test", "laclusaz", "abc-123", 2));
+    assert.equal(u.searchParams.get("pageNo"), "2");
+    assert.equal(u.searchParams.get("pageSize"), String(FERATEL_PAR_PAGE));
   });
 
   it("la recherche n'existe pas sans dates", () => {

@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  ARKIANE_PAR_PAGE,
   corpsArkiane,
   dateArkiane,
   fragmentsArkiane,
@@ -75,6 +76,37 @@ describe("Arkiane : lire une recherche datée", () => {
     const bct = fiches.find((f) => f.reference === "BCT1");
     assert.equal(bct?.capacite, 8);
     assert.equal(bct?.commune, "Pralognan la Vanoise");
+  });
+
+  it("garde le libellé entier que le titre perd en route", () => {
+    // La centrale tronque elle-même ses longs libellés : « - 4* 57… », où 4*
+    // est le classement et 57 le début d'une surface. Le titre s'arrête avant,
+    // parce qu'un titre qui finit par « 57… » est une erreur d'affichage ; le
+    // texte publié, lui, est gardé entier.
+    const bct = fiches.find((f) => f.reference === "BCT1");
+    assert.ok(bct?.libelle.includes("4*"), bct?.libelle);
+    assert.ok(bct?.libelle.endsWith("57…"), bct?.libelle);
+    assert.ok(!bct?.titre.includes("57…"), bct?.titre);
+  });
+
+  it("la pagination se demande, et cinquante est la taille d'une page", () => {
+    // `skip` était figé à un : le relevé s'arrêtait à la première page sans que
+    // rien ne dise que cinquante lots suffisent.
+    assert.equal(corpsArkiane({ checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8 }).skip, "1");
+    assert.equal(corpsArkiane({ checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8 }, 3).skip, "3");
+    assert.equal(
+      corpsArkiane({ checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8 }).take,
+      String(ARKIANE_PAR_PAGE),
+    );
+  });
+
+  it("un bloc de tarif dont le montant ne se lit pas ne jette pas la carte", () => {
+    // Le bloc est là : la carte est bien dans une réponse datée. Zéro dit que
+    // le montant manque, et l'annonce reste.
+    const muet = PAGE.replace(/<div class="rate"> 2&#160;778,65 € <\/div>/, '<div class="rate"> </div>');
+    const f = lireArkiane(muet).find((x) => x.reference === "BCT1");
+    assert.equal(f?.total, 0);
+    assert.equal(f?.capacite, 8);
   });
 
   it("nettoie le titre de ce qui n'en fait pas partie", () => {

@@ -127,6 +127,30 @@ async function calendrier(base: string, id: string, ctx: ContexteCentrale): Prom
   return valeur;
 }
 
+/** « N personnes », avec le pluriel qu'il faut. */
+function personnes(n: number): string {
+  return `${n} personne${n > 1 ? "s" : ""}`;
+}
+
+/**
+ * Ce que le prix couvre, dans les termes que le calendrier publie.
+ *
+ * `byHousing` dit que le montant porte sur le logement entier et non par
+ * personne, et `nightNb` combien de nuits il couvre. Le calendrier les publie
+ * depuis toujours et le connecteur n'en lisait aucun — or sans eux rien ne
+ * distingue un total de séjour d'un tarif par tête.
+ */
+function libellePrix(o: OffreOrchestra): string | null {
+  const porte =
+    o.parLogement === true
+      ? "prix du logement entier"
+      : o.parLogement === false
+        ? "prix par personne"
+        : null;
+  const couvre = o.nuits != null ? `${o.nuits} nuit${o.nuits > 1 ? "s" : ""}` : null;
+  return [o.categorie, porte, couvre].filter(Boolean).join(" · ") || null;
+}
+
 function enListing(
   c: CarteOrchestra,
   o: OffreOrchestra,
@@ -135,7 +159,17 @@ function enListing(
   ctx: ContexteCentrale,
 ): Listing {
   const nuits = nuitsOrchestra(ctx.checkIn, ctx.checkOut);
-  const occ = annoncer({ guests: o.capacite, bedrooms: null }, c.titre, o.categorie, c.chemin);
+  // La capacité rendue était `maxPax`, c'est-à-dire le haut de la bande
+  // tarifaire : jusqu'à combien de personnes ce tarif se vend, et non combien
+  // le logement en couche. Le libellé de catégorie dit la même bande en toutes
+  // lettres — « Logement 1 à 6 personnes » — et le passer au lecteur de texte
+  // ferait rentrer le même nombre par la fenêtre. Ne restent donc que le nom du
+  // logement et son chemin, qui parlent bien du bien.
+  const occ = annoncer({ guests: null, bedrooms: null }, c.titre, c.chemin);
+  const bande =
+    o.bandeMin != null && o.bandeMax != null
+      ? ` — bande tarifaire ${o.bandeMin} à ${personnes(o.bandeMax)}, qui n'est pas la capacité du bien`
+      : "";
   return {
     id: `orc-${r.cle}-${c.id}`,
     stationId: ctx.stationId,
@@ -145,15 +179,21 @@ function enListing(
     currency: "EUR",
     guests: occ.guests,
     bedrooms: occ.bedrooms,
+    rooms: occ.rooms,
     available: true,
     photo: c.photo,
     url: c.chemin ? new URL(c.chemin, `${base}/`).toString() : base,
     // Les pages de destination ne portent pas de coordonnées.
     lat: null,
     lon: null,
+    priceLabel: libellePrix(o),
+    // Un prix par personne n'est pas un total de séjour, et ne se compare pas à
+    // un total. Le drapeau le dit à l'écran plutôt que de le laisser croire.
+    priceIndicative: o.parLogement === false ? true : null,
+    platformId: o.codeProduit,
     proven: `${r.nom} (Orchestra, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${nuits} nuit${
       nuits > 1 ? "s" : ""
-    }, ${ctx.guests} pers.${o.categorie ? ` — ${o.categorie}` : ""}`,
+    }, ${ctx.guests} pers.${o.categorie ? ` — ${o.categorie}` : ""}${bande}`,
   };
 }
 
@@ -198,8 +238,9 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
     if (o) listings.push(enListing(c, o, base, r, ctx));
   }
   console.info(
-    `[centrale] ${r.host} : ${listings.length} vendables sur ${cartes.length} au catalogue` +
-      ` (${destinations.length} destination(s)), ${ctx.checkIn}→${ctx.checkOut}`,
+    `[centrale] ${r.host} : ${listings.length} offres sur ${cartes.length} au catalogue` +
+      ` (dont ${listings.filter((l) => l.total <= 0).length} sans prix publié,` +
+      ` ${destinations.length} destination(s)), ${ctx.checkIn}→${ctx.checkOut}`,
   );
   if (refus.length) console.warn(`[centrale] ${r.host} : ${refus.join(" ; ")}`);
   return listings;

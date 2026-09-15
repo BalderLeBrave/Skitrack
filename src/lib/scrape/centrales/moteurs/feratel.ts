@@ -1,9 +1,10 @@
 /**
  * Le moteur Deskline / Feratel, partie pure : bâtir la recherche, lire le JSON.
  *
- * C'est le mieux servi de tous les moteurs du parc. Deux appels suffisent,
- * contre huit pour Open System, et la réponse porte ce qu'aucun autre ne donne
- * en même temps : le prix daté, les coordonnées et une photo.
+ * C'est le mieux servi de tous les moteurs du parc. Une recherche à ouvrir puis
+ * ses pages de résultats, contre huit rubriques pour Open System, et la réponse
+ * porte ce qu'aucun autre ne donne en même temps : le prix daté, les
+ * coordonnées et une galerie de photos.
  *
  * **Il a fallu descendre jusqu'au service.** La page de la centrale ne contient
  * pas un seul prix : son moteur est une application JavaScript qui se peint
@@ -39,8 +40,15 @@ const FERATEL_CHAMPS =
   "id,name,images{id,urls},location{coordinate{lat,long}}," +
   "services{id,name,products{id,name,price{value}}}";
 
-/** Nombre de résultats par page. Soixante est ce que le composant demande. */
-const FERATEL_PAR_PAGE = 60;
+/**
+ * Nombre de résultats par page. Soixante est ce que le composant demande.
+ *
+ * Exporté parce que c'est lui qui dit quand une page est pleine, et donc quand
+ * il faut en demander une suivante : le connecteur s'arrêtait à la page zéro et
+ * le relevé de La Clusaz comptait exactement soixante hébergements — le
+ * plafond, pas un inventaire.
+ */
+export const FERATEL_PAR_PAGE = 60;
 
 export type DemandeFeratel = {
   checkIn: string;
@@ -51,13 +59,31 @@ export type DemandeFeratel = {
 export type FicheFeratel = {
   id: string;
   titre: string;
-  /** Total du séjour, en euros : le moins cher des produits de l'hébergement. */
+  /**
+   * Total du séjour, en euros : le moins cher des produits de l'hébergement.
+   *
+   * **`0` veut dire « aucun produit n'a de prix à ces dates »**, jamais
+   * « gratuit ». L'hébergement est rendu quand même : le service l'a mis dans
+   * les résultats d'une recherche datée, et ce n'est pas au collecteur de
+   * décider qu'il n'a rien à y faire.
+   */
   total: number;
   /** Nom du service qui porte ce prix, par exemple « Chalet » ou « Appartement ». */
   service: string | null;
+  /**
+   * Nom du **produit** vendu, celui que la projection demande et que personne
+   * ne lisait. Il porte souvent le nom du lot — « Les Aigles 1 » — quand
+   * l'hébergement porte celui de la résidence.
+   */
+  produit: string | null;
+  /** Identifiant du produit chez Feratel : ce qui est vendu, quand l'identifiant
+   *  de l'annonce est celui de l'hébergement qui le contient. */
+  produitId: string | null;
   lat: number | null;
   lon: number | null;
   photo: string | null;
+  /** Toute la galerie, une adresse par image, dans l'ordre publié. */
+  photos: string[];
 };
 
 /**
@@ -126,8 +152,10 @@ export function sessionFeratel(maintenant: number): string {
 }
 
 type Prix = { value?: unknown };
-type Produit = { price?: Prix | null };
+type Produit = { id?: string | null; name?: string | null; price?: Prix | null };
 type Service = { name?: string | null; products?: readonly Produit[] | null };
+/** `urls` porte les rendus d'**une** image : on n'en garde donc qu'une par entrée,
+ *  sans quoi la galerie compterait plusieurs fois la même photo. */
 type Image = { urls?: readonly string[] | null };
 type Hebergement = {
   id?: string | null;
@@ -156,13 +184,27 @@ function point(h: Hebergement): { lat: number | null; lon: number | null } {
   return { lat, lon };
 }
 
-function photo(h: Hebergement): string | null {
+/**
+ * La galerie : une adresse par image publiée.
+ *
+ * Seule la première image était rendue, les autres étaient lues puis jetées.
+ * `urls` est en revanche la liste des rendus d'une même image : on n'en prend
+ * qu'un, sinon la galerie répéterait la même photo.
+ */
+function photos(h: Hebergement): string[] {
+  const out: string[] = [];
   for (const i of h.images ?? []) {
     const u = i?.urls?.find((x) => typeof x === "string" && x.length > 4);
+    if (!u) continue;
     // Les adresses sont relatives au protocole : « //resc.deskline.net/… ».
-    if (u) return u.startsWith("//") ? `https:${u}` : u;
+    const abs = u.startsWith("//") ? `https:${u}` : u;
+    if (!out.includes(abs)) out.push(abs);
   }
-  return null;
+  return out;
+}
+
+function texte(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
 }
 
 /**
@@ -170,7 +212,15 @@ function photo(h: Hebergement): string | null {
  *
  * Un hébergement porte plusieurs services, et chaque service plusieurs
  * produits. On garde le moins cher : c'est ce qu'il en coûte d'y dormir à ces
- * dates. Un hébergement sans le moindre prix n'est pas rendu.
+ * dates.
+ *
+ * **Un hébergement sans prix est rendu quand même**, à zéro. Il était supprimé.
+ * Or la recherche est datée par construction et demande `bookableOnly: false` :
+ * ce que le service met dans ses résultats, il le connaît à ces dates-là. « Pas
+ * de prix publié » est une information ; l'annonce disparue n'en est pas une.
+ *
+ * Le nom et l'identifiant du produit sont lus au passage : la projection les
+ * demande depuis toujours, et personne ne s'en servait.
  */
 export function lireFeratel(reponse: ReponseFeratel): FicheFeratel[] {
   const out: FicheFeratel[] = [];
@@ -180,19 +230,42 @@ export function lireFeratel(reponse: ReponseFeratel): FicheFeratel[] {
     if (!id || !titre) continue;
     let total: number | null = null;
     let service: string | null = null;
+    let produit: string | null = null;
+    let produitId: string | null = null;
+    // À défaut de produit tarifé, on nomme quand même ce que la centrale
+    // propose : le premier service et le premier produit qu'elle publie.
+    let servicePremier: string | null = null;
+    let produitPremier: string | null = null;
+    let produitIdPremier: string | null = null;
     for (const s of h.services ?? []) {
       for (const p of s?.products ?? []) {
+        servicePremier ??= texte(s?.name);
+        produitPremier ??= texte(p?.name);
+        produitIdPremier ??= texte(p?.id);
         const v = nombre(p?.price?.value);
         if (v == null || v <= 0) continue;
         if (total == null || v < total) {
           total = v;
-          service = typeof s?.name === "string" && s.name ? s.name : null;
+          service = texte(s?.name);
+          produit = texte(p?.name);
+          produitId = texte(p?.id);
         }
       }
     }
-    if (total == null) continue;
     const { lat, lon } = point(h);
-    out.push({ id, titre, total, service, lat, lon, photo: photo(h) });
+    const galerie = photos(h);
+    out.push({
+      id,
+      titre,
+      total: total ?? 0,
+      service: service ?? servicePremier,
+      produit: produit ?? produitPremier,
+      produitId: produitId ?? produitIdPremier,
+      lat,
+      lon,
+      photo: galerie[0] ?? null,
+      photos: galerie,
+    });
   }
   return out;
 }

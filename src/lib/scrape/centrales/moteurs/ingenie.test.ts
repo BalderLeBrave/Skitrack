@@ -46,14 +46,25 @@ const PAGE = `
 `;
 
 describe("Ingénie : lire une page de résultats datés", () => {
-  it("ne rend que les fiches qui portent un prix", () => {
+  it("ne rend que les fiches qui portent un bloc de tarif", () => {
+    // Sans bloc de tarif, la centrale ne vend pas cette fiche à ces dates : ce
+    // n'est pas un champ vide, c'est l'absence d'offre.
     assert.equal(fragmentsIngenie(PAGE).length, 3, "trois fiches dans la page");
     const fiches = lireIngenie(PAGE);
-    assert.equal(fiches.length, 2, "mais deux seulement sont vendues à ces dates");
+    assert.equal(fiches.length, 2, "mais une n'a pas de bloc de tarif du tout");
     assert.deepEqual(
       fiches.map((f) => f.id).sort(),
       ["PRESTATION-G-MONTBLANCIMMO-CT817", "PRESTATION-G-SERRE-RENONCULES2"],
     );
+  });
+
+  it("garde le libellé complet du bloc de prix, nature comprise", () => {
+    // « pour la location » dit ce que le prix couvre, et n'était pas lu. Les
+    // trois morceaux sont rendus dans l'ordre où la centrale les écrit.
+    const f = lireIngenie(PAGE);
+    assert.equal(f.find((x) => x.id.includes("CT817"))?.libelle, "À partir de 2 090 € pour la location");
+    // Risoul n'écrit rien dans la nature : le libellé s'arrête au montant.
+    assert.equal(f.find((x) => x.id.includes("RENONCULES2"))?.libelle, "à partir de 1 300 €");
   });
 
   it("lit le prix malgré l'espace insécable des milliers", () => {
@@ -134,8 +145,14 @@ describe("Ingénie : lire une page de résultats datés", () => {
       `<div class="prix_en_cours">${prix}</div></div></div>`;
     const page = carte("A", "700 &euro;") + carte("B", "0 &euro;") + carte("C", "2&#160;778,65 &euro;");
     const f = lireIngenie(page);
-    assert.deepEqual(f.map((x) => x.total).sort((a, b) => a - b), [700, 2778.65]);
-    assert.ok(!f.some((x) => x.id.endsWith("-B")), "le zéro ne passe pas");
+    assert.deepEqual(f.map((x) => x.total).sort((a, b) => a - b), [0, 700, 2778.65]);
+    // Le zéro n'est pas pris pour un prix — il ne devient pas un logement
+    // gratuit en tête de liste — mais l'annonce n'est pas supprimée pour
+    // autant : « à partir de 0 € » veut dire « pas de tarif à ces dates », et
+    // c'est ce que dit un total de zéro dans tout le dépôt.
+    const zero = f.find((x) => x.id.endsWith("-B"));
+    assert.equal(zero?.total, 0);
+    assert.equal(zero?.libelle, "à partir de 0 €");
   });
 
   it("le texte visible perd les balises et rend les entités", () => {

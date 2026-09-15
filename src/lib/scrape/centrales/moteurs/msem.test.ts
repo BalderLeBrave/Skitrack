@@ -7,10 +7,14 @@ import { corpsOffresMsem, joindreMsem, urlCatalogueMsem, urlOffresMsem } from ".
  * Tarentaise), canal OT-595, séjour du 6 au 13 février 2027 à huit personnes.
  *
  * Les deux premiers hébergements et leurs deux offres sont ceux de la centrale,
- * verbatim. Quatre cas leur sont ajoutés pour éprouver les bords, et ils sont
+ * verbatim. Cinq cas leur sont ajoutés pour éprouver les bords, et ils sont
  * construits : un hébergement au catalogue que la centrale ne vend pas à ces
  * dates, une capacité déclarée à zéro comme l'Alpe d'Huez sait en produire, une
- * offre dont l'identifiant ne se retrouve pas au catalogue, et un prix nul.
+ * offre dont l'identifiant ne se retrouve pas au catalogue, un prix nul, et une
+ * offre au catalogue dont le prix manque.
+ *
+ * `publicPrice` est nul partout au relevé ; il porte ici un nombre sur la fiche
+ * construite, pour éprouver la lecture prudente de ce champ.
  */
 const RELEVE = {
   "catalogue": {
@@ -82,11 +86,25 @@ const RELEVE = {
         "lat": 45.09,
         "lng": 6.06,
         "image": "https://images.msem.tech/h.jpg",
+        "images": [
+          { "src": "https://images.msem.tech/h.jpg" },
+          { "src": "//images.msem.tech/h2.jpg" }
+        ],
         "location": {
           "address1": "rue du Poutat",
           "cp": "38750",
           "city": "L'Alpe d'Huez"
         }
+      },
+      {
+        "id": 555555,
+        "name": "Vendu sans montant",
+        "slug": "sans-montant",
+        "maxCapacity": 6,
+        "nbRooms": 2,
+        "lat": 45.1,
+        "lng": 6.07,
+        "image": "https://images.msem.tech/s.jpg"
       }
     ]
   },
@@ -101,6 +119,10 @@ const RELEVE = {
     },
     "424242": {
       "price": 3651.2000000000003,
+      "publicPrice": 3900
+    },
+    "555555": {
+      "price": null,
       "publicPrice": null
     },
     "777777": {
@@ -117,12 +139,43 @@ const RELEVE = {
 describe("MSEM : joindre le catalogue et les offres datées", () => {
   const fiches = joindreMsem(RELEVE.catalogue, RELEVE.offres);
 
-  it("ne rend que ce que la centrale vend vraiment", () => {
-    // Cinq offres, quatre hébergements au catalogue, trois annonces : l'offre
-    // orpheline, le prix nul et l'hébergement invendu tombent tous les trois.
-    assert.equal(Object.keys(RELEVE.offres).length, 5);
-    assert.equal(RELEVE.catalogue.accomodations.length, 4);
-    assert.deepEqual(fiches.map((f) => f.id).sort(), ["192890", "200717", "424242"]);
+  it("ne rend que ce que la centrale connaît, prix ou pas", () => {
+    // Six offres, cinq hébergements au catalogue, quatre annonces. Ne tombent
+    // que les deux offres orphelines — un prix sans nom, sans adresse et sans
+    // lien n'est pas une annonce — et l'hébergement que la centrale ne vend
+    // pas à ces dates, qui n'a pas d'offre du tout.
+    assert.equal(Object.keys(RELEVE.offres).length, 6);
+    assert.equal(RELEVE.catalogue.accomodations.length, 5);
+    assert.deepEqual(fiches.map((f) => f.id).sort(), ["192890", "200717", "424242", "555555"]);
+  });
+
+  it("une offre sans montant sort quand même, à zéro", () => {
+    // Zéro veut dire « la centrale n'a pas publié de prix », jamais
+    // « gratuit ». Supprimer l'annonce ferait disparaître un renseignement :
+    // la centrale a bien répondu pour ces dates, sans montant.
+    const sansMontant = fiches.find((f) => f.id === "555555");
+    assert.equal(sansMontant?.total, 0);
+    assert.equal(sansMontant?.titre, "Vendu sans montant");
+    assert.equal(sansMontant?.capacite, 6);
+    assert.equal(sansMontant?.pieces, 2);
+  });
+
+  it("le prix public est rendu quand il est publié, et jamais deviné", () => {
+    // La centrale le laisse vide presque partout ; il n'est rendu que s'il
+    // porte un nombre, et rien n'en déduit une remise.
+    assert.equal(fiches.find((f) => f.id === "424242")?.prixPublic, 3900);
+    assert.equal(fiches.find((f) => f.id === "192890")?.prixPublic, null);
+  });
+
+  it("toutes les photos de la galerie remontent, pas seulement la première", () => {
+    const horizon = fiches.find((f) => f.id === "424242");
+    assert.deepEqual(horizon?.photos, [
+      "https://images.msem.tech/h.jpg",
+      "https://images.msem.tech/h2.jpg",
+    ]);
+    // La vignette reste la première, et le protocole des adresses relatives
+    // est complété : « //images.msem.tech/… » n'est pas une adresse.
+    assert.equal(horizon?.photo, "https://images.msem.tech/h.jpg");
   });
 
   it("une capacité déclarée à zéro n'est pas une capacité", () => {

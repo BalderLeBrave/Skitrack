@@ -38,14 +38,36 @@ export type FicheArkiane = {
   /** Référence commerciale affichée, par exemple « BCT1 ». */
   reference: string | null;
   titre: string;
-  /** Total du séjour, en euros. */
+  /**
+   * Le libellé complet, tel que la carte le publie.
+   *
+   * `titre` en est la version nettoyée, et ce nettoyage coupe du texte publié :
+   * la centrale tronque elle-même ses longs libellés — « … - 4* 57… » — et le
+   * bout de nombre orphelin est retiré du titre parce qu'il s'y lit comme une
+   * erreur d'affichage. Ce qu'elle a écrit est gardé ici, entier : c'est là que
+   * vivent la surface et le classement, que le modèle n'a pas de champ pour
+   * porter, et c'est aussi ce qu'on donne à lire à la lecture d'occupation.
+   */
+  libelle: string;
+  /**
+   * Total du séjour, en euros. **`0` veut dire « le bloc de tarif est là, mais
+   * son montant ne se lit pas »**, jamais « gratuit ».
+   */
   total: number;
-  /** Prix barré, quand la centrale en affiche un. */
+  /** Prix barré, `<del class="before">`, quand la centrale en affiche un. */
   avantRemise: number | null;
   capacite: number | null;
   commune: string | null;
   photo: string | null;
 };
+
+/**
+ * Cartes par page. Cinquante est ce que la centrale demande elle-même.
+ *
+ * Exporté parce que c'est lui qui dit si une page est pleine, et donc s'il faut
+ * en demander une suivante.
+ */
+export const ARKIANE_PAR_PAGE = 50;
 
 export type DemandeArkiane = {
   checkIn: string;
@@ -65,14 +87,21 @@ export function dateArkiane(iso: string): string {
  * `selectedCriteria` porte les filtres sous la forme `nom|valeur` ; `lot_pax`
  * est la capacité. `take` et `skip` sont la pagination, et cinquante est ce que
  * la centrale demande elle-même.
+ *
+ * **`skip` était figé à un, et rien ne le justifiait.** La centrale ne publie
+ * aucun compteur de résultats dans son fragment, et l'unité de `skip` — un
+ * numéro de page ou un nombre de cartes à sauter — n'a pas été observée. Le
+ * paramètre est donc incrémenté d'un en un, et le connecteur s'arrête dès
+ * qu'une page n'apporte plus de lot inconnu : cette règle-là est juste dans les
+ * deux cas, puisque les lots sont dédoublonnés par leur numéro.
  */
-export function corpsArkiane(d: DemandeArkiane): Record<string, string> {
+export function corpsArkiane(d: DemandeArkiane, skip = 1): Record<string, string> {
   return {
     selectedCriteria: `lot_pax|${Math.max(1, Math.trunc(d.guests))}`,
     startDate: dateArkiane(d.checkIn),
     endDate: dateArkiane(d.checkOut),
-    take: "50",
-    skip: "1",
+    take: String(ARKIANE_PAR_PAGE),
+    skip: String(Math.max(1, Math.trunc(skip))),
     orderBy: "",
     comm_no: "0",
     comm_type: "DEFAUT",
@@ -162,9 +191,16 @@ export function titreArkiane(brut: string): string {
 /**
  * Lit une réponse de recherche.
  *
- * Une carte qui porte encore `price_from_to` est écartée : c'est le libellé
- * que la centrale affiche quand elle n'a pas de dates, et le nombre qui
- * l'accompagne est un tarif hebdomadaire d'appel, pas un total de séjour.
+ * Une carte qui porte encore `price_from_to` est écartée, et c'est le seul
+ * rejet de ce moteur. Ce n'est pas un champ vide qu'on punit : ce marqueur est
+ * la seule preuve, lisible dans le HTML, que la réponse est bien datée. Sans
+ * dates, la centrale rend quarante et une cartes qui le portent toutes, avec un
+ * tarif hebdomadaire d'appel ; les rendre disponibles à des dates qu'elles ne
+ * connaissent pas serait pire que de les taire.
+ *
+ * Une carte sans bloc `.rate` du tout n'est pas rendue non plus — rien ne dit
+ * alors qu'elle soit vendue à ces dates. Mais un bloc présent dont le montant
+ * ne se lit pas donne un total de zéro : la carte sort, sans prix.
  */
 export function lireArkiane(page: string): FicheArkiane[] {
   const out: FicheArkiane[] = [];
@@ -173,10 +209,11 @@ export function lireArkiane(page: string): FicheArkiane[] {
     const lot = /id="form-availability-(\d+)"/.exec(f)?.[1];
     if (!lot) continue;
     const tarif = bloc(f, "rate");
-    const total = tarif ? euros(texteArkiane(tarif)) : null;
-    if (total == null) continue;
+    if (tarif == null) continue;
+    const total = euros(texteArkiane(tarif)) ?? 0;
     const catcher = bloc(f, "availability-catcher");
-    const titre = titreArkiane(catcher ? texteArkiane(catcher) : "");
+    const libelle = catcher ? texteArkiane(catcher) : "";
+    const titre = titreArkiane(libelle);
     if (!titre) continue;
     const barre = bloc(f, "before", "</del>");
     const pax = critere(f, "lot_pax");
@@ -188,6 +225,7 @@ export function lireArkiane(page: string): FicheArkiane[] {
       lot,
       reference: /name="compare"[^>]+value="([^"]+)"/.exec(f)?.[1] ?? null,
       titre,
+      libelle,
       total,
       avantRemise: barre ? euros(texteArkiane(barre)) : null,
       capacite: Number.isFinite(n) && n > 0 ? n : null,

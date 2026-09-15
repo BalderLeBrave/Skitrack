@@ -55,7 +55,9 @@ def fetch_page(url: str, proxy_url: str = "", impersonate: str = "chrome124") ->
 
 
 def _pack(listings: list[dict[str, Any]], url: str, pages: int, via: str) -> dict[str, Any]:
-    listings.sort(key=lambda r: r.get("totalPrice") or 0)
+    # `totalPrice` à zéro veut dire « total non publié », jamais « gratuit » :
+    # ces annonces se rangent après les prix, pas en tête de liste.
+    listings.sort(key=lambda r: r.get("totalPrice") or float("inf"))
     gps = sum(1 for r in listings if isinstance(r.get("latitude"), (int, float)))
     return {
         "ok": True,
@@ -75,7 +77,6 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     check_in = params.get("checkIn") or params.get("checkin")
     check_out = params.get("checkOut") or params.get("checkout")
     adults = params.get("adults") or params.get("guests")
-    min_bedrooms = params.get("bedrooms") or params.get("min_bedrooms")
     html = params.get("html")
     url = search_url(params, 0)
     if isinstance(html, str) and len(html) > 800:
@@ -84,13 +85,11 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             check_in=str(check_in) if check_in else None,
             check_out=str(check_out) if check_out else None,
             adults=int(adults) if adults else None,
-            min_guests=int(adults) if adults else None,
-            min_bedrooms=int(min_bedrooms) if min_bedrooms else None,
         )
         if not rows:
             return {
                 "ok": False,
-                "error": "booking-html: aucune annonce avec total de séjour",
+                "error": "booking-html: aucune tuile lisible",
                 "url": url,
                 "attempts": 1,
                 "blocked": False,
@@ -124,8 +123,6 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                 check_in=str(check_in) if check_in else None,
                 check_out=str(check_out) if check_out else None,
                 adults=int(adults) if adults else None,
-                min_guests=int(adults) if adults else None,
-                min_bedrooms=int(min_bedrooms) if min_bedrooms else None,
             )
             fresh = 0
             for row in batch:
@@ -137,6 +134,12 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                 fresh += 1
             if fresh == 0:
                 break
+            # Booking annonce bien un nombre d'établissements en tête de page,
+            # mais aucune charge enregistrée du dépôt n'en prouve le balisage :
+            # on ne peut donc pas paginer jusqu'à un compteur ici. L'arrêt
+            # repose sur ce qui est observable — une page courte, une page sans
+            # rien de neuf — et sur `max_pages`, qui est un garde-fou et non
+            # une lecture de la source.
             if len(batch) < PAGE_SIZE * 0.6:
                 break
     except Exception as err:
@@ -151,7 +154,7 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         reason = (
             f"booking-http: défi anti-robot (HTTP {last_status})"
             if blocked
-            else "booking-http: aucune annonce avec total de séjour"
+            else "booking-http: aucune tuile lisible"
         )
         return {
             "ok": False,

@@ -92,6 +92,9 @@ async function toutesLesPages(base: string, ctx: ContexteCentrale, rubriques: re
 }
 
 function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: ContexteCentrale): Listing {
+  // Le titre et le chemin disent parfois « 3 pièces » : ce sont des pièces, et
+  // elles se posent dans `rooms`. `occupancyFromText` les lisait déjà, et le
+  // connecteur jetait la seule des trois valeurs qu'il ne savait pas où mettre.
   const occ = occupancyFromText(f.titre, f.adresse, f.chemin);
   return {
     // L'identifiant porte l'identité sans rubrique, pas le chemin : le même
@@ -105,6 +108,7 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     currency: "EUR",
     guests: occ.guests,
     bedrooms: occ.bedrooms,
+    rooms: occ.rooms,
     available: true,
     photo: f.photo,
     url: `${base.replace(/\/+$/, "")}${f.chemin}?DateRecherche=${encodeURIComponent(`${ctx.checkIn}|${ctx.checkOut}`)}`,
@@ -112,9 +116,12 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     lon: f.lon,
     locality: f.commune,
     placeName: f.adresse,
+    // Les mots de la centrale au-dessus de son prix, « Prix indicatif ». Ils
+    // restent aussi dans la preuve ; ici, l'écran peut les citer tels quels.
+    priceLabel: f.etiquette,
     proven: `${r.nom} (Open System, ${r.host}) ${ctx.checkIn}→${ctx.checkOut}, ${ctx.guests} pers.${
       f.etiquette ? ` — étiquette de la centrale : « ${f.etiquette} »` : ""
-    }`,
+    }${f.classement ? ` — classement publié : ${f.classement}` : ""}`,
   };
 }
 
@@ -138,7 +145,10 @@ export async function chercherOpenSystem(ctx: ContexteCentrale, r: ReglageOpenSy
     for (const f of p.fiches) {
       const l = enListing(f, base, r, ctx);
       const deja = par.get(l.id);
-      if (!deja || l.total < deja.total) par.set(l.id, l);
+      // Le même logement paraît sous plusieurs rubriques : le moins cher
+      // l'emporte. Zéro n'est pas moins cher, c'est l'absence de prix, et une
+      // rubrique qui en publie un remplace toujours celle qui se tait.
+      if (!deja || (l.total > 0 && (deja.total <= 0 || l.total < deja.total))) par.set(l.id, l);
     }
   }
   if (refus.length > 0) {

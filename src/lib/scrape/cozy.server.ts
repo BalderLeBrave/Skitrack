@@ -1,9 +1,9 @@
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
-import { sleep } from "./browser.server";
-import { allowsPath } from "./robots";
+import { sleep } from "./browser.server.ts";
+import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
-import { annoncer, occupancyFromRecord } from "@/lib/stay/occupancy";
+import { annoncer, occupancyFromRecord } from "../stay/occupancy.ts";
 
 function datedPlace(name: string): string {
   const n = name
@@ -147,34 +147,63 @@ type CozyFilters = {
   providerCodes?: string[];
 };
 
-async function pullProviders(page: Page, searchId: string, filters: Omit<CozyFilters, "providerCodes">) {
+const PROVIDERS = ["abritel", "booking"] as const;
+const PAGE_SIZE = 40;
+/**
+ * Deux bornes de sécurité, explicites, et ni l'une ni l'autre n'est une lecture
+ * de la source : c'est `processedResultCount` qui commande l'arrêt normal.
+ * Dix pages de quarante fiches par fournisseur couvrent largement une station.
+ */
+const MAX_PAGES = 10;
+const BUDGET_MS = 12_000;
+/** Une requête à la fois par domaine, et cette pause entre deux. */
+const PAUSE_MS = 280;
+
+async function pullPage(
+  page: Page,
+  searchId: string,
+  filters: Omit<CozyFilters, "providerCodes">,
+  codes: string[],
+  offset: number,
+): Promise<unknown> {
   return page.evaluate(
-    async ({ sid, base }) => {
-      const once = (codes: string[]) =>
-        fetch("/api/getResultList", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            searchId: sid,
-            sorting: "ranking",
-            offset: 0,
-            count: 40,
-            filters: { ...base, providerCodes: codes },
-            estimateBounds: null,
-            processNewResults: true,
-            columnCount: 3,
-            excludeAds: false,
-            prefixAccommodationIds: [],
-          }),
-        }).then((r) => r.json());
-      const [abritel, booking] = await Promise.all([once(["abritel"]), once(["booking"])]);
-      return { abritel, booking };
-    },
-    { sid: searchId, base: filters },
+    async ({ sid, base, providerCodes, from, count }) =>
+      fetch("/api/getResultList", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          searchId: sid,
+          sorting: "ranking",
+          offset: from,
+          count,
+          filters: { ...base, providerCodes },
+          estimateBounds: null,
+          processNewResults: true,
+          columnCount: 3,
+          excludeAds: false,
+          prefixAccommodationIds: [],
+        }),
+      }).then((r) => r.json()),
+    { sid: searchId, base: filters, providerCodes: codes, from: offset, count: PAGE_SIZE },
   );
 }
 
-/** Un aller CozyCozy. Abritel et Booking sont demandés à l’API, sans défiler. */
+/**
+ * Le compteur de résultats publié par la charge, ou `null` s'il ne l'est pas.
+ *
+ * Il n'est remplacé par aucune valeur inventée : sans lui, la pagination
+ * s'arrête sur la première page incomplète, ce qui est observable.
+ */
+function processedCount(payload: unknown): number | null {
+  if (!payload || typeof payload !== "object") return null;
+  const n = (payload as { processedResultCount?: unknown }).processedResultCount;
+  return typeof n === "number" && Number.isFinite(n) && n >= 0 ? Math.trunc(n) : null;
+}
+
+/**
+ * Un aller CozyCozy. Abritel et Booking sont demandés à l’API, sans défiler, et
+ * page après page jusqu’au compteur qu’elle publie — une requête à la fois.
+ */
 export async function collectCozyPayloads(page: Page, input: LiveSearchInput): Promise<unknown[]> {
   await allowsPath("https://www.cozycozy.com", "/");
   const payloads: unknown[] = [];
@@ -215,29 +244,45 @@ export async function collectCozyPayloads(page: Page, input: LiveSearchInput): P
       breakfast: false,
       minCancellationCategory: 0,
     };
-    let abritel: unknown = null;
-    let booking: unknown = null;
-    let stagnant = 0;
     const readyUntil = Date.now() + 10_000;
-    while (Date.now() < readyUntil) {
-      const pair = await pullProviders(page, searchId, base);
-      const aN = entriesOf(pair.abritel).length;
-      const bN = entriesOf(pair.booking).length;
-      if (aN > 0) abritel = pair.abritel;
-      if (bN > 0) booking = pair.booking;
-      if (aN > 0 && bN > 0) break;
-      const processed = Math.max(
-        Number((pair.abritel as { processedResultCount?: number } | null)?.processedResultCount ?? 0),
-        Number((pair.booking as { processedResultCount?: number } | null)?.processedResultCount ?? 0),
-      );
-      if (processed > 80 && (abritel || booking)) {
-        stagnant += 1;
-        if (stagnant >= 2) break;
+    for (const code of PROVIDERS) {
+      // La recherche Cozy se remplit en arrière-plan : la première page peut
+      // revenir vide. On la redemande jusqu'à l'échéance — une requête à la
+      // fois, là où les deux fournisseurs partaient ensemble sur le même
+      // domaine.
+      let first: unknown = null;
+      for (;;) {
+        await sleep(PAUSE_MS);
+        first = await pullPage(page, searchId, base, [code], 0);
+        if (entriesOf(first).length > 0) break;
+        if (Date.now() >= readyUntil) break;
       }
-      await sleep(280);
+      let got = entriesOf(first).length;
+      if (got === 0) {
+        console.warn(`[cozy] ${code} : aucune fiche`);
+        continue;
+      }
+      payloads.push(first);
+      // On demandait une page de quarante fiches, une seule fois, et on
+      // laissait le reste à la source. Elle publie pourtant ce qu'elle a
+      // traité : on va jusqu'à ce compteur, et à défaut jusqu'à la première
+      // page incomplète, en tenant le même rythme entre deux appels.
+      const announced = processedCount(first);
+      const until = Date.now() + BUDGET_MS;
+      for (let n = 1; n < MAX_PAGES && got >= PAGE_SIZE; n += 1) {
+        if (announced != null && got >= announced) break;
+        if (Date.now() >= until) break;
+        await sleep(PAUSE_MS);
+        const next = await pullPage(page, searchId, base, [code], got);
+        const fresh = entriesOf(next).length;
+        if (fresh === 0) break;
+        payloads.push(next);
+        got += fresh;
+        if (fresh < PAGE_SIZE) break;
+      }
+      const cible = announced != null ? ` sur ${announced} annoncées` : " (compteur non publié)";
+      console.info(`[cozy] ${code} ${got} fiches${cible}`);
     }
-    if (abritel) payloads.push(abritel);
-    if (booking) payloads.push(booking);
     console.info(`[cozy] ${payloads.length} paquets · ${entryCount(payloads)} fiches`);
   } finally {
     page.off("request", onReq);
@@ -245,6 +290,43 @@ export async function collectCozyPayloads(page: Page, input: LiveSearchInput): P
   return payloads;
 }
 
+/** Un décompte publié, ou `null`. Jamais un zéro de remplacement. */
+function compte(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) {
+    const n = Math.trunc(v);
+    return n >= 0 && n <= 50 ? n : null;
+  }
+  if (typeof v === "string" && /^\d+$/.test(v.trim())) return compte(Number(v.trim()));
+  return null;
+}
+
+/**
+ * Rang de tri : un total à zéro dit « prix non publié », jamais « gratuit ».
+ * Ces annonces se rangent donc après les prix, et non en tête de liste.
+ */
+export function rangPrix(l: Pick<Listing, "total">): number {
+  return l.total > 0 ? l.total : Number.MAX_SAFE_INTEGER;
+}
+
+/** Un identifiant publié, nombre ou chaîne, ramené au texte. */
+function idText(v: unknown): string | null {
+  if (typeof v === "string" && v.trim()) return v.trim();
+  if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  return null;
+}
+
+/**
+ * Les fiches Abritel et Booking d'un aller CozyCozy.
+ *
+ * Le collecteur ne trie plus : ni sur le prix, ni sur la capacité. Une annonce
+ * dont la source n'a pas publié le total, ou qui l'annonce en « à partir de »,
+ * ou qui ne dit pas combien elle couche, sort avec le champ vide — `total: 0`
+ * pour un prix non publié, `null` pour le reste. Le filtre de l'écran
+ * (`stay/lodgingFilter.ts`) sait distinguer « non annoncé » de « ne convient
+ * pas », et compte ce qu'il masque ; ici, ces annonces disparaissaient sans
+ * que personne puisse le savoir. Restent écartés les hôtels, que la source
+ * met elle-même hors périmètre, et les doublons.
+ */
 export function cozyListings(
   payloads: unknown[],
   input: LiveSearchInput,
@@ -264,10 +346,16 @@ export function cozyListings(
       const h = providerHit(e, kind);
       if (!h) continue;
       const priceObj = h.totalPrice as Record<string, unknown> | undefined;
-      if (priceObj?.indicative === true) continue;
+      // Un « à partir de » n'est pas un total de séjour : il ressort à zéro,
+      // c'est-à-dire « prix non publié » au sens de `Listing.total`, avec le
+      // drapeau qui dit pourquoi. Supprimer l'annonce n'apprenait rien.
+      const indicative = priceObj?.indicative === true;
       const stayRaw = priceObj?.value ?? h.eurPriceValue;
-      const total = typeof stayRaw === "number" && stayRaw > 0 ? Math.round(stayRaw) : 0;
-      if (total <= 0) continue;
+      const total =
+        !indicative && typeof stayRaw === "number" && stayRaw > 0 ? Math.round(stayRaw) : 0;
+      // La devise était écrite en dur. On la lit quand la source la publie à
+      // côté du montant ; EUR reste le défaut, faute de charge enregistrée.
+      const devise = typeof priceObj?.currency === "string" ? priceObj.currency.trim() : "";
       const name = typeof e.name === "string" ? e.name.replace(/\s+/g, " ").trim() : "";
       if (!name) continue;
       if (kind === "booking" && isHotelOnly(name)) continue;
@@ -280,14 +368,25 @@ export function cozyListings(
         name,
         typeof e.subTitle === "string" ? e.subTitle : "",
       );
-      if (occ.guests != null && occ.guests < input.guests) continue;
-      if (input.bedrooms > 0 && occ.bedrooms != null && occ.bedrooms < input.bedrooms) continue;
+      // Le décompte de salles de bain a son filtre chez la source
+      // (`minBathRoomCount`), donc son champ ; aucune charge CozyCozy n'est
+      // enregistrée dans le dépôt pour en prouver le nom sur la fiche, d'où
+      // cette lecture facultative, qui reste `null` si la clé est absente.
+      const baths = compte(details.bathRoomCount);
       const coords = (e.coordinates ?? {}) as Record<string, unknown>;
       const lat = coord(coords.latitude) ?? coord(coords.lat);
       const lon = coord(coords.longitude) ?? coord(coords.lon) ?? coord(coords.lng);
       const thumbs = (e.lightThumbnails ?? {}) as Record<string, unknown>;
       const first = Array.isArray(thumbs.firstUrls) ? thumbs.firstUrls : [];
+      // Toutes les vignettes publiées sortent, la première en tête ; seule
+      // celle-là était gardée. `firstUrls` n'est qu'un aperçu : sa longueur
+      // n'est pas le nombre de photos du bien, et on n'en pose aucun.
+      const gallery = first.map(httpUrl).filter((u): u is string => u !== null);
       const id = String(e.accommodationId ?? h.accommodationId ?? h.externalId ?? deeplink);
+      // `id` reste celui de CozyCozy : il est stable et c'est lui qui
+      // dédoublonne. L'identifiant du bien chez Abritel ou Booking partait
+      // avec lui ; il a désormais son champ.
+      const platformId = idText(h.externalId);
       const listingId = kind === "booking" ? `bk-${id}` : `abr-${id}`;
       if (seen.has(listingId)) continue;
       seen.add(listingId);
@@ -297,11 +396,16 @@ export function cozyListings(
         title: name,
         source,
         total,
-        currency: "EUR",
+        currency: devise || "EUR",
         guests: occ.guests,
         bedrooms: occ.bedrooms,
+        rooms: occ.rooms,
+        baths,
         available: true,
-        photo: httpUrl(first[0]) ?? httpUrl(e.photo),
+        photo: gallery[0] ?? httpUrl(e.photo),
+        photos: gallery.length > 0 ? gallery : null,
+        priceIndicative: indicative ? true : null,
+        platformId,
         url: kind === "abritel" ? canonicalAbritel(deeplink, input) : canonicalBooking(deeplink, input),
         lat,
         lon,
@@ -309,5 +413,5 @@ export function cozyListings(
       });
     }
   }
-  return out.sort((a, b) => a.total - b.total);
+  return out.sort((a, b) => rangPrix(a) - rangPrix(b));
 }

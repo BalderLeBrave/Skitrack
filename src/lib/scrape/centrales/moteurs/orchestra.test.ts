@@ -171,7 +171,51 @@ describe("Orchestra : lire le catalogue et le calendrier", () => {
     // la mauvaise ville donnerait un prix deux fois trop bas, et plausible.
     const o = prixOrchestra(CALENDRIER, DEMANDE);
     assert.equal(o?.total, 1730);
-    assert.equal(o?.capacite, 6);
+  });
+
+  it("rend la bande tarifaire pour ce qu'elle est, et non pour une capacité", () => {
+    // `maxPax` vaut six parce que la bande s'appelle « 1-6 » et que la
+    // catégorie dit « Logement 1 à 6 personnes » : c'est jusqu'à combien de
+    // personnes ce tarif se vend, pas combien le logement en couche. Le
+    // connecteur l'écrivait dans `guests`.
+    const o = prixOrchestra(CALENDRIER, DEMANDE);
+    assert.equal(o?.bandeMin, 1);
+    assert.equal(o?.bandeMax, 6);
+    assert.equal(o?.categorie, "Logement 1 à 6 personnes");
+  });
+
+  it("lit les drapeaux qui disent ce que le prix couvre", () => {
+    // Sans eux, rien ne distingue un total de séjour d'un prix par personne,
+    // ni ne prouve que le montant couvre les sept nuits demandées.
+    const o = prixOrchestra(CALENDRIER, DEMANDE);
+    assert.equal(o?.parLogement, true);
+    assert.equal(o?.nuits, 7);
+    assert.equal(o?.codeProduit, "ccdt052");
+  });
+
+  it("une durée publiée qui ne couvre pas le séjour est écartée", () => {
+    // La clé « 8-7 » est une convention qu'on écrit ; `nightNb` est un nombre
+    // que le calendrier écrit. Quand les deux se contredisent, on ne prend pas
+    // le prix de quatorze nuits pour celui de sept.
+    const menteur = {
+      availabilities: {
+        XXX: { "1-6": { "8-7": { "02-2027": { "06": { price: 1730, nightNb: 14, status: "Available" } } } } },
+      },
+    };
+    assert.equal(prixOrchestra(menteur, DEMANDE), null);
+  });
+
+  it("un jour libre sans prix reste une réponse, à zéro", () => {
+    // « Listée sans prix » est un renseignement ; la supprimer n'en est pas un.
+    // Une bande tarifée l'emporte toujours sur une bande muette.
+    const muet = {
+      availabilities: {
+        XXX: { "1-6": { "8-7": { "02-2027": { "06": { nightNb: 7, byHousing: true, status: "Available" } } } } },
+      },
+    };
+    const o = prixOrchestra(muet, DEMANDE);
+    assert.equal(o?.total, 0);
+    assert.equal(o?.parLogement, true);
   });
 
   it("le prix suit la durée", () => {

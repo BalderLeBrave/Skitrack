@@ -133,4 +133,59 @@ describe("enrichir : ce que la fiche porte déjà, ailleurs que dans le champ", 
     assert.ok(completudeOf(jardin).trous.includes("url"));
     assert.ok(completudeOf(jardin).trous.includes("capacite"));
   });
+
+  it("remplace un alt photo par le slug de la fiche", () => {
+    const l = enrichirListing(
+      fiche({
+        source: "Centrale",
+        title: "_clients_223886005_photos_86a_5156059",
+        url: "https://reservation.les2alpes.com/chalet-neve-chalet-8-personnes-les-2-alpes.html",
+        total: 3640,
+        priceIndicative: true,
+      }),
+    );
+    assert.equal(l.title, "chalet neve chalet 8 personnes les 2 alpes");
+    assert.equal(l.guests, 8);
+    assert.equal(l.priceIndicative, null);
+  });
+
+  it("un total de centrale daté n'est pas un « à partir de »", () => {
+    const l = enrichirListing(
+      fiche({
+        source: "Centrale",
+        title: "LES BLEUETS N°52 Appartement 8 personnes",
+        total: 2855,
+        priceIndicative: true,
+      }),
+    );
+    assert.equal(l.priceIndicative, null);
+    assert.equal(l.total, 2855);
+    assert.equal(l.priceLabel, "loyer, hors frais de séjour");
+  });
+
+  it("un total déjà augmenté de la taxe n'est plus hors frais", () => {
+    const l = enrichirListing(
+      fiche({
+        source: "Centrale",
+        title: "CHALET NEVE Chalet 8 personnes",
+        total: 3660.16,
+        proven: "Ingénie · taxe de séjour 160.16 €",
+        priceLabel: "loyer et taxe de séjour",
+      }),
+    );
+    assert.equal(l.total, 3660.16);
+    assert.equal(l.priceLabel, "loyer et taxe de séjour");
+  });
+
+  it("un Gîtes du relevé figé n'est pas un devis publié", () => {
+    const l = enrichirListing(
+      fiche({
+        source: "Gîtes de France",
+        title: "La Citriere",
+        total: 727.44,
+        proven: "ITEA gites-web 2026-09-03, 6–13 fév. 2027, 8 pers.",
+      }),
+    );
+    assert.equal(l.total, 0);
+  });
 });

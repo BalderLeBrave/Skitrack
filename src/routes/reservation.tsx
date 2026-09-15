@@ -25,6 +25,7 @@ import {
 } from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
+import { horsFraisSejour } from "@/lib/stay/tarif";
 import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, mediaTon, prixLbl } from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
@@ -287,8 +288,10 @@ function Reservation() {
               <tbody>
                 <tr>
                   <th>
-                    Logement · {nights} nuits
-                    <span className="cout7__ok">relevé chez la source</span>
+                    {horsFraisSejour(l) ? "Loyer" : "Logement"} · {nights} nuits
+                    <span className="cout7__ok">
+                      {horsFraisSejour(l) ? "hors frais de séjour" : "relevé chez la source"}
+                    </span>
                   </th>
                   <td className={l.total > 0 ? undefined : "absent"}>{prixLbl(l)}</td>
                 </tr>
@@ -312,7 +315,11 @@ function Reservation() {
                 <tr className="cout7__total">
                   <th>Total</th>
                   <td className={l.total > 0 ? undefined : "absent"}>
-                    {l.total > 0 ? eurCents(totalN) : "logement non tarifé"}
+                    {l.total > 0
+                      ? horsFraisSejour(l)
+                        ? `${eurCents(totalN)} hors frais de séjour`
+                        : eurCents(totalN)
+                      : "logement non tarifé"}
                   </td>
                 </tr>
                 <tr className="cout7__pp">

@@ -87,6 +87,24 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(l.lon, 6.11673);
   });
 
+  it("lit le nom véritable sur le h1 d'une fiche Ingénie, pas l'alt photo", () => {
+    const html = `<html><head>
+      <meta property="og:title" content="CHALET NEVE Chalet 8 personnes - Les 2 Alpes : location" />
+    </head><body>
+      <h1>CHALET NEVE Chalet 8 personnes</h1>
+      <img alt="_clients_223886005_photos_86a_5156059" title="_clients_223886005_photos_86a_5156059" />
+    </body></html>`;
+    const l = lectureFiche(html);
+    assert.equal(l.title, "CHALET NEVE Chalet 8 personnes");
+  });
+
+  it("lit une taxe de séjour en somme, pas un tarif à la nuit", () => {
+    const somme = lectureFiche(`<html><p>Taxe de séjour : 160,16 €</p></html>`);
+    assert.equal(somme.taxeSejour, 160.16);
+    const tarif = lectureFiche(`<html><p>taxe de séjour 2,60 € par personne par nuit</p></html>`);
+    assert.equal(tarif.taxeSejour, null);
+  });
+
   it("un geo Ingénie vide n'est pas un GPS", () => {
     const html = `<script type="application/ld+json">${JSON.stringify({
       "@type": "LocalBusiness",
@@ -154,5 +172,37 @@ describe("poserReleve : même annonce, champs déjà lus", () => {
     assert.equal(live[0].bedrooms, 3);
     assert.equal(live[0].lat, 45.022);
     assert.equal(live[0].lon, 6.1247);
+  });
+
+  it("recopie le nom véritable à la place d'un alt photo", () => {
+    const dump = [
+      {
+        id: "ing-2a-neve",
+        source: "Centrale",
+        title: "CHALET NEVE Chalet 8 personnes",
+        guests: 8 as number | null,
+        bedrooms: null as number | null,
+        url: "https://reservation.les2alpes.com/chalet-neve-chalet-8-personnes-les-2-alpes.html",
+        lat: null as number | null,
+        lon: null as number | null,
+        proven: "dump",
+      },
+    ];
+    const live = [
+      {
+        id: "ing-2a-neve",
+        source: "Centrale",
+        title: "_clients_223886005_photos_86a_5156059",
+        guests: null as number | null,
+        bedrooms: null as number | null,
+        url: "https://reservation.les2alpes.com/chalet-neve-chalet-8-personnes-les-2-alpes.html",
+        lat: null as number | null,
+        lon: null as number | null,
+        proven: "live",
+      },
+    ];
+    assert.equal(poserReleve(live, dump), 1);
+    assert.equal(live[0].title, "CHALET NEVE Chalet 8 personnes");
+    assert.equal(live[0].guests, 8);
   });
 });

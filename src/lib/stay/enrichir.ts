@@ -10,6 +10,8 @@
 import type { Listing } from "../listings.ts";
 import { galerieOf } from "./completude.ts";
 import { occupancyOfListing } from "./occupancy.ts";
+import { horsFraisSejour, purgerTarifFigé } from "./tarif.ts";
+import { titreDepuisUrl, titreEstFichier } from "./titre.ts";
 
 const HOSTING = /Hosting-([A-Za-z0-9_%=+-]+)/i;
 const ROOMS_PATH = /\/rooms\/(\d{5,})(?:[/?]|$)/i;
@@ -60,20 +62,31 @@ export function airbnbIdOf(l: {
 }
 
 export function enrichirListing(l: Listing): Listing {
-  const occ = occupancyOfListing(l);
+  const title = titreEstFichier(l.title) ? (titreDepuisUrl(l.url) ?? l.title) : l.title;
+  const occ = occupancyOfListing({ ...l, title });
   const photo = l.photo ?? galerieOf(l)[0] ?? null;
   const airbnbId = l.source === "Airbnb" ? airbnbIdOf(l) : null;
   const url = l.url ?? (airbnbId ? `https://www.airbnb.fr/rooms/${airbnbId}` : null);
   const platformId = l.platformId ?? airbnbId ?? null;
-  if (
-    occ.guests === l.guests &&
-    occ.bedrooms === l.bedrooms &&
-    occ.rooms === (l.rooms ?? null) &&
-    photo === l.photo &&
-    url === l.url &&
-    platformId === (l.platformId ?? null)
-  ) {
-    return l;
-  }
-  return { ...l, ...occ, photo, url, platformId };
+  // Le montant de la centrale est le loyer aux dates demandées, pas le
+  // total payé : la taxe de séjour s'ajoute au paiement. L'étiquette
+  // « à partir de » du gabarit n'en fait pas un tarif d'appel.
+  const priceIndicative = l.source === "Centrale" && l.total > 0 ? null : (l.priceIndicative ?? null);
+  const hors = horsFraisSejour({ source: l.source, total: l.total, proven: l.proven, priceLabel: l.priceLabel });
+  const priceLabel = hors
+    ? !l.priceLabel || /partir de/i.test(l.priceLabel)
+      ? "loyer, hors frais de séjour"
+      : l.priceLabel
+    : (l.priceLabel ?? null);
+  const next = {
+    ...l,
+    title,
+    ...occ,
+    photo,
+    url,
+    platformId,
+    priceIndicative,
+    priceLabel,
+  };
+  return purgerTarifFigé(next);
 }

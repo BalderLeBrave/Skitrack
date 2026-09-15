@@ -5,6 +5,7 @@ import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
+import { horsFraisSejour } from "@/lib/stay/tarif";
 import { bedLbl, capLbl, prixLbl } from "@/lib/v7";
 import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
@@ -160,6 +161,9 @@ export function LodgeSheet({
               {listing.priceIndicative ? (
                 <p className="text-note text-muted">Annoncé « à partir de » — ce n’est pas un total de séjour.</p>
               ) : null}
+              {horsFraisSejour(listing) ? (
+                <p className="text-note text-muted">Loyer publié — la taxe de séjour s’ajoute au paiement.</p>
+              ) : null}
               <p className="text-note font-medium text-ink">{availabilityLabel(dispo)}</p>
             </div>
           </div>
@@ -176,6 +180,7 @@ export function LodgeSheet({
                 {" · "}
                 {availabilityLabel(dispo).toLowerCase()}
                 {listing.priceIndicative ? " · annoncé « à partir de », ce n’est pas un total de séjour" : ""}
+                {horsFraisSejour(listing) ? " · loyer, hors frais de séjour" : ""}
               </li>
               {listing.priceLabel ? (
                 <li>

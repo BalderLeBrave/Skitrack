@@ -6,6 +6,7 @@
 
 import { airbnbIdOf } from "./enrichir.ts";
 import { occupancyOfListing } from "./occupancy.ts";
+import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
 
 export type SujetReleve = {
   source?: string | null;
@@ -97,6 +98,13 @@ export function poserReleve<T extends SujetReleve, D extends SujetReleve>(rows: 
     if (!row.locality && d.locality) {
       row.locality = d.locality;
       changed = true;
+    }
+    if (d.title && !titreEstFichier(d.title)) {
+      const slug = titreDepuisUrl(row.url);
+      if (titreEstFichier(row.title) || (slug != null && row.title === slug)) {
+        row.title = d.title;
+        changed = true;
+      }
     }
     if (changed) {
       if (!/relevé/.test(row.proven)) row.proven = `${row.proven} · relevé`;

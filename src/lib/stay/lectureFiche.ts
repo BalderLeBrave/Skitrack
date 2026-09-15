@@ -8,6 +8,8 @@
  */
 
 import { occupancyFromText, mergeOccupancy, type Occupancy } from "./occupancy.ts";
+import { taxeSejourSomme } from "./tarif.ts";
+import { titrePublie } from "./titre.ts";
 
 export type LectureFiche = Occupancy & {
   lat: number | null;
@@ -15,6 +17,10 @@ export type LectureFiche = Occupancy & {
   locality: string | null;
   /** Rue publiée (JSON-LD `streetAddress`), pour un GPS encore vide. */
   street: string | null;
+  /** Nom de l'annonce tel que la fiche le publie (`h1`, og:title). */
+  title: string | null;
+  /** Taxe de séjour publiée en une somme, pas un tarif à la nuit. */
+  taxeSejour: number | null;
 };
 
 const VIDE: LectureFiche = {
@@ -25,6 +31,8 @@ const VIDE: LectureFiche = {
   lon: null,
   locality: null,
   street: null,
+  title: null,
+  taxeSejour: null,
 };
 
 const MAX = 50;
@@ -80,6 +88,8 @@ function mergeLecture(a: LectureFiche, b: LectureFiche): LectureFiche {
     lon: gps.lon,
     locality: a.locality ?? b.locality,
     street: a.street ?? b.street,
+    title: titrePublie(a.title) ?? titrePublie(b.title),
+    taxeSejour: a.taxeSejour ?? b.taxeSejour,
   };
 }
 
@@ -138,7 +148,15 @@ function fromRecord(o: Record<string, unknown>): LectureFiche {
       : "");
   if (streetRaw) out = { ...out, street: streetRaw.replace(/,\s*$/, "").trim() };
   const name = typeof o.name === "string" ? o.name : null;
-  if (name) out = { ...out, ...mergeOccupancy(out, occupancyFromText(name)) };
+  const kind = String(o["@type"] ?? "");
+  const lodging = /VacationRental|LodgingBusiness|Accommodation|Hotel|Apartment|House|Residence/i.test(kind);
+  if (name) {
+    if (lodging) {
+      const titre = titrePublie(name);
+      if (titre) out = { ...out, title: out.title ?? titre };
+    }
+    out = { ...out, ...mergeOccupancy(out, occupancyFromText(name)) };
+  }
   return out;
 }
 
@@ -212,9 +230,14 @@ function fromMeta(html: string): LectureFiche {
   let m: RegExpExecArray | null;
   while ((m = re.exec(html))) {
     const tag = m[0];
-    if (!/name=["']description["']|property=["']og:description["']/i.test(tag)) continue;
+    if (!/name=["']description["']|property=["']og:(?:description|title)["']/i.test(tag)) continue;
     const content = tag.match(/content=["']([^"']*)["']/i)?.[1];
-    if (content) out = { ...out, ...mergeOccupancy(out, occupancyFromText(decodeHtml(content))) };
+    if (!content) continue;
+    out = { ...out, ...mergeOccupancy(out, occupancyFromText(decodeHtml(content))) };
+    if (/property=["']og:title["']/i.test(tag)) {
+      const titre = titrePublie(decodeHtml(content));
+      if (titre) out = { ...out, title: out.title ?? titre };
+    }
   }
   return out;
 }
@@ -249,6 +272,9 @@ function fromIngenie(html: string): LectureFiche {
   const lat = asCoord(itemLat) ?? asCoord(html.match(/Latitude\s*:\s*(-?\d+(?:[.,]\d+)?)/i)?.[1] ?? null);
   const lon = asCoord(itemLon) ?? asCoord(html.match(/Longitude\s*:\s*(-?\d+(?:[.,]\d+)?)/i)?.[1] ?? null);
   if (plausible(lat, lon)) out = { ...out, lat, lon };
+  const h1 = html.match(/<h1\b[^>]*>([\s\S]{0,220}?)<\/h1>/i)?.[1];
+  const titre = titrePublie(h1 ?? null);
+  if (titre) out = { ...out, title: titre };
   return out;
 }
 
@@ -297,7 +323,11 @@ export function lectureFiche(html: string): LectureFiche {
   for (const block of jsonLdBlocks(html)) out = walk(block, out, 0);
   out = mergeLecture(out, fromRegex(html));
   out = mergeLecture(out, fromMeta(html));
-  out = mergeLecture(out, fromIngenie(html));
+  const ingenie = fromIngenie(html);
+  out = mergeLecture(out, ingenie);
+  if (ingenie.title) out = { ...out, title: ingenie.title };
   if (!plausible(out.lat, out.lon)) out = mergeLecture(out, fromGpsHtml(html));
+  const taxe = taxeSejourSomme(html);
+  if (taxe != null) out = { ...out, taxeSejour: out.taxeSejour ?? taxe };
   return out;
 }

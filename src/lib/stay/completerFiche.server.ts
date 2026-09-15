@@ -21,6 +21,7 @@ import {
 } from "./http429.ts";
 import { lectureFiche, type LectureFiche } from "./lectureFiche.ts";
 import { poserReleve } from "./poserReleve.ts";
+import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
 
 const MAX_FICHES = 160;
 const WORKERS = 10;
@@ -28,7 +29,7 @@ const BUDGET_MS = 36_000;
 const HIT_MS = 24 * 60 * 60 * 1000;
 const MISS_MS = 30 * 60 * 1000;
 const BLOCK_MS = 5 * 60 * 1000;
-const CACHE_GEN = "f4";
+const CACHE_GEN = "f5";
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const CIRCUIT_PATH = process.env.SKITRACK_AIRBNB_CIRCUIT?.trim() || "/tmp/skitrack-airbnb-429";
@@ -46,6 +47,7 @@ function plausible(lat: number | null | undefined, lon: number | null | undefine
 function trouee(l: Listing): boolean {
   if (l.guests == null) return true;
   if (l.bedrooms == null && (l.rooms == null || l.rooms <= 0)) return true;
+  if (titreEstFichier(l.title)) return true;
   if (l.source === "Gîtes de France") return false;
   if (!plausible(l.lat, l.lon)) return true;
   return false;
@@ -115,7 +117,8 @@ function utile(lect: LectureFiche): boolean {
     lect.bedrooms != null ||
     lect.rooms != null ||
     plausible(lect.lat, lect.lon) ||
-    Boolean(lect.street && /\d/.test(lect.street))
+    Boolean(lect.street && /\d/.test(lect.street)) ||
+    Boolean(lect.title && !titreEstFichier(lect.title))
   );
 }
 
@@ -140,6 +143,23 @@ export function poserLecture(row: Listing, lect: LectureFiche, tag = "fiche"): b
   }
   if (!row.locality && lect.locality) {
     row.locality = lect.locality;
+    changed = true;
+  }
+  if (lect.title && !titreEstFichier(lect.title)) {
+    const slug = titreDepuisUrl(row.url);
+    if (titreEstFichier(row.title) || (slug != null && row.title === slug)) {
+      row.title = lect.title;
+      changed = true;
+    }
+  }
+  if (
+    lect.taxeSejour != null &&
+    row.source === "Centrale" &&
+    row.total > 0 &&
+    !/taxe de s[ée]jour/i.test(row.proven)
+  ) {
+    row.total = Math.round((row.total + lect.taxeSejour) * 100) / 100;
+    row.proven = `${row.proven} · taxe de séjour ${lect.taxeSejour} €`;
     changed = true;
   }
   if (changed && tag && !new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(row.proven)) {
@@ -299,6 +319,8 @@ const VIDE: LectureFiche = {
   lon: null,
   locality: null,
   street: null,
+  title: null,
+  taxeSejour: null,
 };
 
 async function fillPool(targets: Listing[], until: number, workers: number): Promise<number> {

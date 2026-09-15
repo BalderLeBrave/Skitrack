@@ -6,6 +6,7 @@ import type { LiveSearchResult, SourceName } from "./scrape/types";
 import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
 import { enrichirListing } from "./stay/enrichir";
+import { purgerTarifFigé } from "./stay/tarif";
 
 const Input = z.object({
   stationId: z.string().min(1),
@@ -21,6 +22,8 @@ const Input = z.object({
 
 /** Une part (Airbnb, Gîtes…) ne doit pas retenir l'écran. Le repli s'affiche. */
 export const SEARCH_PART_MS = 52_000;
+/** Budget réservé au devis ITEA, après ou pendant le complément de fiches. */
+export const DEVIS_MS = 18_000;
 export const PAUSE_DELAI = "Délai dépassé — relevé précédent conservé.";
 
 function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>): SourceName[] {
@@ -66,15 +69,27 @@ export const searchStay = createServerFn({ method: "POST" })
         res.listings.map((l) => dater(l, data.checkIn, data.checkOut)),
         data.stationId,
         remain,
+        { checkIn: data.checkIn, checkOut: data.checkOut, guests: data.guests },
       ),
     };
   });
 
-/** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, lien Airbnb déjà écrit. */
+/** Seconde passe sur le relevé figé : GPS Gîtes, occupancy, devis ITEA daté. */
 export const completerReleve = createServerFn({ method: "POST" })
-  .validator(z.object({ stationId: z.string().min(1) }))
+  .validator(
+    z.object({
+      stationId: z.string().min(1),
+      checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      guests: z.number().int().min(1).max(30).optional(),
+    }),
+  )
   .handler(async ({ data }): Promise<Listing[]> => {
-    return completer(listingsForStay(data.stationId, 1, 0), data.stationId, 20_000);
+    const stay =
+      data.checkIn && data.checkOut && data.guests
+        ? { checkIn: data.checkIn, checkOut: data.checkOut, guests: data.guests }
+        : undefined;
+    return completer(listingsForStay(data.stationId, 1, 0), data.stationId, 20_000, stay);
   });
 
 /**
@@ -93,18 +108,19 @@ export const completerReleve = createServerFn({ method: "POST" })
  * signale qu'il ne peut pas vendre.
  */
 function dater(l: Listing, checkIn: string, checkOut: string): Listing {
-  if (!(l.total > 0)) return l;
+  const row = purgerTarifFigé(l);
+  if (!(row.total > 0)) return row;
   // Quand une source ne rend rien en direct, les collecteurs replient sur le
   // relevé figé et l'écrivent dans `proven`. Ces prix portent bien les dates
   // demandées, mais ils n'ont pas été mesurés à l'instant : leur tamponner
   // `scannedAt` à maintenant les ferait passer pour frais, et la péremption de
   // six heures ne les rattraperait jamais. Les dates, oui ; l'heure, non.
-  const repli = /repli/i.test(l.proven);
+  const repli = /repli/i.test(row.proven);
   return {
-    ...l,
-    pricedCheckIn: l.pricedCheckIn ?? checkIn,
-    pricedCheckOut: l.pricedCheckOut ?? checkOut,
-    scannedAt: l.scannedAt ?? (repli ? null : Date.now()),
+    ...row,
+    pricedCheckIn: row.pricedCheckIn ?? checkIn,
+    pricedCheckOut: row.pricedCheckOut ?? checkOut,
+    scannedAt: row.scannedAt ?? (repli ? null : Date.now()),
   };
 }
 
@@ -127,10 +143,17 @@ function poserAcces(rows: Listing[], stationId: string): Listing[] {
  * `budgetMs` coupe le réseau : un collecteur lent ne doit pas faire rater
  * la réponse. Ce qui est déjà lu (relevé figé, titre, cache) reste.
  */
-async function completer(listings: Listing[], stationId: string, budgetMs: number): Promise<Listing[]> {
+async function completer(
+  listings: Listing[],
+  stationId: string,
+  budgetMs: number,
+  stay?: { checkIn: string; checkOut: string; guests: number },
+): Promise<Listing[]> {
   // Copie : les remplisseurs mutent en place, et le relevé figé ne doit pas l'être.
   const rows = listings.map((l) => ({ ...enrichirListing(l) }));
-  if (budgetMs <= 0) return poserAcces(rows, stationId);
+  const extra = stay && rows.some((l) => l.source === "Gîtes de France") ? DEVIS_MS : 0;
+  const budget = Math.max(budgetMs, extra);
+  if (budget <= 0) return poserAcces(rows, stationId);
   try {
     await withDeadline(
       Promise.all([
@@ -144,6 +167,7 @@ async function completer(listings: Listing[], stationId: string, budgetMs: numbe
           }
         })(),
         (async () => {
+          if (budgetMs <= 0) return;
           try {
             const { fillFiches } = await import("./stay/completerFiche.server");
             await fillFiches(rows, budgetMs);
@@ -151,8 +175,28 @@ async function completer(listings: Listing[], stationId: string, budgetMs: numbe
             /* robots, réseau : les trous restent nommés */
           }
         })(),
+        stay && budgetMs > 0
+          ? (async () => {
+              try {
+                const { fillTarifs } = await import("./stay/completerTarif.server");
+                await fillTarifs(rows, stay, budgetMs);
+              } catch {
+                /* panier injoignable : le loyer reste, hors frais */
+              }
+            })()
+          : Promise.resolve(),
+        stay && extra > 0
+          ? (async () => {
+              try {
+                const { fillDevis } = await import("./stay/completerDevis.server");
+                await fillDevis(rows, stay, extra);
+              } catch {
+                /* widget ITEA injoignable : le prix Gîtes reste non publié */
+              }
+            })()
+          : Promise.resolve(),
       ]),
-      budgetMs,
+      budget,
       "completer",
     );
   } catch (err) {

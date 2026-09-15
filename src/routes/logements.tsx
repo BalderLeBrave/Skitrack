@@ -30,8 +30,11 @@ import { completudeOf, galerieOf, trouLbl, trousPhrase } from "@/lib/stay/comple
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
   clampRayonKm,
+  distFiltrableM,
+  DIST_PALIERS_M,
   droppedLabel,
   geoReasonFor,
+  gpsPrecis,
   RAYON_DEFAUT_KM,
   RAYON_MAX_KM,
   RAYON_MIN_KM,
@@ -53,13 +56,13 @@ import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
-import { conserverDevisGites } from "@/lib/stay/tarif";
+import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap" | "trous";
+type LodgeSort = "pp" | "total" | "cap" | "dist" | "trous";
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
  *
@@ -106,8 +109,14 @@ const RANGES: { k: "pp" | "cap" | "rooms" | "dist"; label: string; max: number; 
   { k: "pp", label: "Par personne, au plus", max: 800, step: 25, unit: "€", sign: "≤ " },
   { k: "cap", label: "Capacité annoncée, au moins", max: 16, step: 1, unit: "pers.", sign: "≥ " },
   { k: "rooms", label: "Chambres annoncées, au moins", max: 7, step: 1, unit: "ch.", sign: "≥ " },
-  { k: "dist", label: "Distance à une remontée, au plus", max: 2000, step: 100, unit: "m", sign: "≤ " },
+  { k: "dist", label: "Distance, au plus", max: 2000, step: 100, unit: "m", sign: "≤ " },
 ];
+
+function palierDistLbl(m: number): string {
+  if (m <= 200) return "Pied des pistes";
+  if (m >= 1000 && m % 1000 === 0) return `≤ ${m / 1000} km`;
+  return `≤ ${m} m`;
+}
 
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
@@ -120,12 +129,14 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   const searchNonce = useStay((s) => s.searchNonce);
   const mergeLive = useStay((s) => s.mergeLive);
   const setSearching = useStay((s) => s.setSearching);
+  const setLive = useStay((s) => s.setLive);
 
   useEffect(() => {
     if (!station) return;
     let cancelled = false;
     let pending = 4;
     setSearching(true);
+    setLive(null, [], true);
     const payload = {
       // L'identifiant vient de la station qu'on affiche, pas du magasin de
       // séjour. Les deux devraient dire la même chose et le disent presque
@@ -417,7 +428,7 @@ function LogementsStation({ s }: { s: Station }) {
       rows = [...dump.filter((l) => !reported.has(l.source)), ...liveListings];
       if (reported.has("Gîtes de France")) rows = conserverDevisGites(dump, rows);
     }
-    return rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l));
+    return rows.map(enrichirListing).filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l));
   }, [liveListings, liveSources, frozen, dumpGps]);
 
   const [lf, setLf] = useState<LF>(LF0);
@@ -486,7 +497,19 @@ function LogementsStation({ s }: { s: Station }) {
   lp.push({
     id: "zone",
     label: `Dans ${lf.rayon} km`,
-    fn: (l) => geoReasonFor(l, lf.rayon) == null,
+    fn: (l) => geoReasonFor(l, lf.rayon, s.dept) == null,
+    fixed: true,
+  });
+  lp.push({
+    id: "gps",
+    label: "Position GPS",
+    fn: (l) => gpsPrecis(l),
+    fixed: true,
+  });
+  lp.push({
+    id: "dispo",
+    label: "Disponible à ces dates",
+    fn: (l) => firmOf(l, stay),
     fixed: true,
   });
   // Règle 2 de `lodgingFilter` : l'absence de tarif dispense des filtres de
@@ -510,7 +533,16 @@ function LogementsStation({ s }: { s: Station }) {
     });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
   if (lf.rooms) lp.push({ id: "lrooms", label: `Chambres annoncées ≥ ${lf.rooms}`, fn: (l) => l.bedrooms != null && l.bedrooms >= lf.rooms, remove: () => patchLf({ rooms: 0 }) });
-  if (lf.dist) lp.push({ id: "dist", label: `≤ ${fmt(lf.dist)} m d'une remontée`, fn: (l) => l.distToLiftM != null && l.distToLiftM <= lf.dist, remove: () => patchLf({ dist: 0 }) });
+  if (lf.dist)
+    lp.push({
+      id: "dist",
+      label: palierDistLbl(lf.dist),
+      fn: (l) => {
+        const m = distFiltrableM(l);
+        return m != null && m <= lf.dist;
+      },
+      remove: () => patchLf({ dist: 0 }),
+    });
   const srcOn = Object.keys(lf.src).filter((k) => lf.src[k]);
   if (srcOn.length) lp.push({ id: "src", label: srcOn.join(" · "), fn: (l) => srcOn.includes(l.source), remove: () => patchLf({ src: {} }) });
   if (lf.measured) lp.push({ id: "measured", label: "Distance mesurée", fn: (l) => distanceOf(l).kind === "measured", remove: () => patchLf({ measured: false }) });
@@ -548,6 +580,7 @@ function LogementsStation({ s }: { s: Station }) {
     pp: (a, b) => parNombre(apres(a.total), apres(b.total)),
     total: (a, b) => parNombre(apres(a.total), apres(b.total)),
     cap: (a, b) => parNombre(a.guests ?? null, b.guests ?? null, true),
+    dist: (a, b) => parNombre(distFiltrableM(a), distFiltrableM(b)),
     trous: (a, b) => {
       const d = completudeOf(b).trous.length - completudeOf(a).trous.length;
       return d !== 0 ? d : parNombre(apres(a.total), apres(b.total));
@@ -562,8 +595,8 @@ function LogementsStation({ s }: { s: Station }) {
   const lfree = lp.filter((p) => !p.fixed);
   // Ce que la zone seule a écarté, nommé par motif : une liste courte sans
   // explication se lit comme un relevé pauvre, pas comme un filtre qui a joué.
-  const horsZone = raw.filter((l) => geoReasonFor(l, lf.rayon) === "hors-zone").length;
-  const autreDomaine = raw.filter((l) => geoReasonFor(l, lf.rayon) === "autre-domaine").length;
+  const horsZone = raw.filter((l) => geoReasonFor(l, lf.rayon, s.dept) === "hors-zone").length;
+  const autreDomaine = raw.filter((l) => geoReasonFor(l, lf.rayon, s.dept) === "autre-domaine").length;
   const zoneLbl = [
     horsZone ? `${horsZone} hors de la zone` : null,
     autreDomaine ? `${autreDomaine} sur ${autreDomaine > 1 ? "d’autres domaines" : "un autre domaine"}` : null,
@@ -699,11 +732,12 @@ function LogementsStation({ s }: { s: Station }) {
     [s.id, lvis],
   );
 
-  const lead = raw.length
-    ? `${raw.length} annonce${raw.length > 1 ? "s" : ""} · ${nCompletes} fiche${nCompletes > 1 ? "s" : ""} complète${nCompletes > 1 ? "s" : ""}${nIncompletes ? ` · ${nIncompletes} incomplète${nIncompletes > 1 ? "s" : ""}${trous ? ` (${trous})` : ""}` : ""}. Un « à partir de » n'est pas un total, un 0 € n'est pas un prix.${searching ? " Relevé en direct en cours…" : ""}`
-    : searching
-      ? "Relevé en direct en cours…"
-      : "Aucun relevé pour cette station.";
+  const lead = (() => {
+    const n = lvis.length;
+    if (searching && n === 0) return "Relevé en cours…";
+    if (n === 0) return "Aucun logement disponible.";
+    return `${n} logement${n > 1 ? "s" : ""} disponible${n > 1 ? "s" : ""}.`;
+  })();
 
   return (
     <Coquille>
@@ -769,8 +803,9 @@ function LogementsStation({ s }: { s: Station }) {
                 <span className="toujours7__label">Toujours appliqué</span>
                 <span className="toujours7__regle">Capacité ≥ {trav}</span>
                 {rooms ? <span className="toujours7__regle">Chambres ≥ {rooms}</span> : null}
-                <span className="toujours7__regle">Total du séjour, pas « dès »</span>
                 <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
+                <span className="toujours7__regle">Position GPS</span>
+                <span className="toujours7__regle">Disponible à ces dates</span>
                 {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
                 {centraleLbl ? <span className="toujours7__ecarte">{centraleLbl}</span> : null}
                 {pauses.map((p) => (
@@ -791,6 +826,16 @@ function LogementsStation({ s }: { s: Station }) {
                   Filtres
                   {lfree.length ? <span className="puce__badge">{lfree.length}</span> : null}
                 </button>
+                {DIST_PALIERS_M.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`puce${lf.dist === m ? " puce--on" : ""}`}
+                    onClick={() => patchLf({ dist: lf.dist === m ? 0 : m })}
+                  >
+                    {palierDistLbl(m)}
+                  </button>
+                ))}
                 {lfree.map((p) => {
                   const bloque = lempty?.fix != null && lempty.fix === p.remove;
                   return (
@@ -820,17 +865,14 @@ function LogementsStation({ s }: { s: Station }) {
                 ) : null}
                 <span className="filtres7__espace" />
                 <span className="filtres7__compte">
-                  {affichees.length} annonce{affichees.length > 1 ? "s" : ""} sur {raw.length}
-                  {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
-                  {sansPos ? ` · ${sansPos}` : ""}
-                  {/* Ce que les règles ont masqué, et par quelle règle. Le
-                      compte disait « 12 sur 96 » sans jamais dire où étaient
-                      passées les 84 autres. */}
-                  {masquesLbl ? ` · ${masquesLbl}` : ""}
+                  {lvis.length === 0
+                    ? "Aucun logement disponible"
+                    : `${lvis.length} logement${lvis.length > 1 ? "s" : ""} disponible${lvis.length > 1 ? "s" : ""}`}
                 </span>
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>
                   <option value="total">Tri : prix total</option>
+                  <option value="dist">Tri : distance</option>
                   <option value="cap">Tri : capacité</option>
                   <option value="trous">Tri : incomplètes d'abord</option>
                 </select>
@@ -847,10 +889,11 @@ function LogementsStation({ s }: { s: Station }) {
                   <div className="pop7__bloc pop7__bloc--sans">
                     <span className="v7surtitre">Zone de recherche</span>
                     <span className="pop7__note">
-                      Autour du repère de {s.name}. Le rattachement au domaine prime sur la
-                      distance : un logement d'un autre domaine sort même tout près, un logement du
-                      domaine reste même au-delà. Une annonce sans coordonnées n'est pas lointaine,
-                      elle est non mesurable : elle reste.
+                      Autour du repère de {s.name}. Dix kilomètres par défaut,
+                      trente au plus. Un logement hors de la station n’apparaît
+                      que s’il est sur le même domaine skiable
+                      {s.domain ? ` (${s.domain})` : ""}. Un autre domaine sort,
+                      même tout près.
                     </span>
                   </div>
                   <label className="curseur">

@@ -18,6 +18,7 @@ import {
   taxeSejourSomme,
   totalPanierJson,
   conserverDevisGites,
+  estOffreGitesVerifiee,
 } from "./tarif.ts";
 
 describe("tarif : loyer, frais, devis live", () => {
@@ -138,6 +139,30 @@ describe("devis ITEA : total publié aux dates", () => {
 
   it("refuse un JSON contactSiNonVendable : prixLoc n'est pas le total", () => {
     assert.equal(devisItea(COPAINS_NON_VENDABLE), null);
+    assert.equal(
+      estOffreGitesVerifiee({
+        source: "Gîtes de France",
+        total: 0,
+        proven: "Fiche ITEA live — aucun prix publié à ces dates.",
+      }),
+      false,
+    );
+    assert.equal(
+      estOffreGitesVerifiee({
+        source: "Gîtes de France",
+        total: 4070,
+        proven: "ITEA gites-web 2026-09-03, dates 2027-02-06/13, 8 pers.",
+      }),
+      false,
+    );
+    assert.equal(
+      estOffreGitesVerifiee({
+        source: "Gîtes de France",
+        total: 727.44,
+        proven: "Devis ITEA live 2027-02-06→2027-02-13, 8 pers.",
+      }),
+      true,
+    );
   });
 
   it("refuse le tarif d'appel du widget, ce n'est pas un devis daté", () => {
@@ -220,7 +245,7 @@ describe("devis ITEA : total publié aux dates", () => {
     const out = conserverDevisGites(dump, live);
     const cit = out.find((l) => l.id === "38G40102");
     assert.equal(cit?.total, 727.44);
-    assert.equal(out.some((l) => l.id === "38G99999"), true);
+    assert.equal(out.some((l) => l.id === "38G99999"), false);
     assert.equal(out.some((l) => l.id === "ab"), true);
   });
 });

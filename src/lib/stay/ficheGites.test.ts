@@ -94,15 +94,15 @@ describe("fiche Gîtes : le nom publié, pas l'ancien slug", () => {
 });
 
 describe("conserverDevisGites : l'URL live, le devis déjà posé", () => {
-  it("garde le total figé et prend l'URL publique du relevé live", () => {
+  it("garde le devis live et l'URL publique, écarte un gîte sans total publié", () => {
     const dump = [
       {
         source: "Gîtes de France" as const,
         id: "38G253122",
         title: "Gîte Copains comme Cochons",
         url: DEAD,
-        total: 727.44,
-        proven: "Devis ITEA live 2027-02-06→2027-02-13, 8 pers.",
+        total: 4261.52,
+        proven: "Devis ITEA 2026-09-03, dates 2027-02-06/13, 8 pers.",
       },
     ];
     const live = [
@@ -114,11 +114,19 @@ describe("conserverDevisGites : l'URL live, le devis déjà posé", () => {
         total: 0,
         proven: "Fiche ITEA live — aucun prix publié à ces dates.",
       },
+      {
+        source: "Gîtes de France" as const,
+        id: "38G40102",
+        title: "La Citriere",
+        url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-citriere-38g40102",
+        total: 727.44,
+        proven: "Devis ITEA live 2027-02-06→2027-02-13, 8 pers.",
+      },
     ];
     const out = conserverDevisGites(dump, live);
-    const row = out.find((l) => l.id === "38G253122");
-    assert.equal(row?.total, 727.44);
-    assert.equal(row?.url, LIVE);
-    assert.equal(row?.title, "Chalet les Copains");
+    assert.equal(out.some((l) => l.id === "38G253122"), false);
+    const cit = out.find((l) => l.id === "38G40102");
+    assert.equal(cit?.total, 727.44);
+    assert.match(cit?.url ?? "", /la-citriere-38g40102/);
   });
 });

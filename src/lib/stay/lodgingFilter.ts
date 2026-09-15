@@ -29,6 +29,8 @@
 import { isBookable, type Stay } from "./availability.ts";
 import { inRange, rangeOpen } from "./range.ts";
 import type { DomainVerdict } from "../domainFit.ts";
+import { LIMITE_TERRITOIRE_M, territoireReasonFor } from "./territoire.ts";
+
 
 /**
  * Ce que le filtre a besoin de lire.
@@ -62,6 +64,12 @@ export type FilterSubject = {
    * nulle, c'est une distance non mesurable.
    */
   distToSlopesM?: number | null;
+  /** Distance à la remontée OSM la plus proche, en mètres. */
+  distToLiftM?: number | null;
+  /** Latitude publiée par la source. `null` : pas de GPS. */
+  lat?: number | null;
+  /** Longitude publiée par la source. `null` : pas de GPS. */
+  lon?: number | null;
   /**
    * Rattachement au domaine cherché, posé par `attachAccess`.
    *
@@ -152,24 +160,47 @@ export function isStudioListing(listing: FilterSubject): boolean {
 /**
  * Le rayon de recherche, en kilomètres.
  *
- * Quinze kilomètres par défaut : c'est la distance au-delà de laquelle un
- * logement cesse d'être « à la station » pour devenir « dans la vallée », et
- * la borne haute de ce qu'une navette de station dessert ordinairement. Elle
- * n'a rien d'une vérité : elle se règle.
- *
- * Il n'existe pas de position de repos à zéro, contrairement aux autres
- * curseurs de l'écran : une recherche de logements a toujours une zone. La
- * borne haute, trente kilomètres, est le point où la zone cesse d'avoir un
- * sens pour un séjour au ski.
+ * Dix par défaut : c'est « à la station ». On peut l'ouvrir jusqu'à trente
+ * pour les villages du **même domaine skiable**. Au-delà, ce n'est plus
+ * une recherche de station.
  */
-export const RAYON_DEFAUT_KM = 15;
+export const RAYON_DEFAUT_KM = 10;
 export const RAYON_MIN_KM = 1;
 export const RAYON_MAX_KM = 30;
+export { LIMITE_TERRITOIRE_M };
+
 
 export function clampRayonKm(km: number | null | undefined): number {
   if (km == null || !Number.isFinite(km)) return RAYON_DEFAUT_KM;
   return Math.min(RAYON_MAX_KM, Math.max(RAYON_MIN_KM, Math.round(km)));
 }
+
+/** Coordonnées publiées, utilisables : pas un (0, 0), pas hors globe. */
+export function gpsPrecis(listing: Pick<FilterSubject, "lat" | "lon">): boolean {
+  const lat = listing.lat;
+  const lon = listing.lon;
+  if (lat == null || lon == null) return false;
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  if (lat === 0 && lon === 0) return false;
+  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
+
+/**
+ * Distance à filtrer, en mètres.
+ *
+ * La remontée OSM d'abord : c'est l'accès ski. À défaut, le pin GPS de la
+ * station. Sans l'un ni l'autre, rien à comparer — le filtre écarte.
+ */
+export function distFiltrableM(listing: Pick<FilterSubject, "distToSlopesM" | "distToLiftM">): number | null {
+  const lift = listing.distToLiftM;
+  if (lift != null && Number.isFinite(lift) && lift >= 0) return lift;
+  const pin = listing.distToSlopesM;
+  if (pin != null && Number.isFinite(pin) && pin >= 0) return pin;
+  return null;
+}
+
+/** Paliers du filtre distance, du pied des pistes à deux kilomètres. */
+export const DIST_PALIERS_M = [200, 500, 1000, 2000] as const;
 
 /** Motif géographique d'écart : le domaine, ou la distance. */
 export type GeoReason = "autre-domaine" | "hors-zone";
@@ -177,34 +208,28 @@ export type GeoReason = "autre-domaine" | "hors-zone";
 /**
  * La géographie écarte-t-elle cette annonce ?
  *
- * Deux règles, dans cet ordre, et l'ordre est la règle :
- *
- * 1. **Le rattachement au domaine prime sur la distance, dans les deux sens.**
- *    Un logement rattaché à un autre domaine sort même s'il est à trois
- *    kilomètres : le vol d'oiseau n'est ni un accès ski ni une route, et
- *    l'Iseran fermé l'hiver en est la démonstration (`domainFit.ts`). À
- *    l'inverse, un logement du domaine cherché reste, même au-delà du rayon,
- *    et l'écran affiche sa distance.
- * 2. **Faute de rattachement établi, la distance tranche** — et seulement si
- *    elle est mesurée. Une annonce sans coordonnées n'est pas lointaine, elle
- *    est non mesurable : elle reste, avec la mention qui le dit.
- *
- * Conséquence à connaître : `domainFit` rend « in » dès que le repère de
- * station le plus proche est celui qu'on cherche. Dans une vallée sans autre
- * station, un logement éloigné peut donc être « in » et traverser le rayon.
- * C'est la règle voulue ; le rayon mord sur ce qui n'a pas de rattachement.
+ * 1. Un autre domaine skiable sort, même à deux kilomètres.
+ * 2. Un logement du domaine cherché (la station ou un village relié) reste
+ *    s'il est dans le rayon — 10 km par défaut, 30 km au plus.
+ * 3. Sans GPS, le département Gîtes peut encore dire « ailleurs ».
  */
 export function geoReasonFor(
   listing: FilterSubject,
   rayonKm: number | null | undefined = RAYON_DEFAUT_KM,
+  searchedDept?: string | null,
 ): GeoReason | null {
   if (listing.domainFit === "other") return "autre-domaine";
-  if (listing.domainFit === "in" || listing.domainFit === "linked") return null;
+
+  const territoire = territoireReasonFor(listing, searchedDept);
+  if (territoire) return territoire;
 
   const m = listing.distToSlopesM;
-  if (m == null || !Number.isFinite(m)) return null;
-  return m > clampRayonKm(rayonKm) * 1000 ? "hors-zone" : null;
+  if (m != null && Number.isFinite(m) && m > clampRayonKm(rayonKm) * 1000) return "hors-zone";
+
+  return null;
 }
+
+
 
 export type PartyCriteria = {
   /** Taille du groupe : autant de couchages au minimum. */
@@ -303,6 +328,8 @@ export type FilterCriteria = PartyCriteria & {
   stay: Stay;
   /** Rayon de recherche autour de la station, en km. Défaut : `RAYON_DEFAUT_KM`. */
   rayonKm?: number;
+  /** Département de la station cherchée, pour écarter un gîte d'un autre territoire. */
+  searchedDept?: string | null;
   /** N'afficher que ce qui est réservable, ou non jugé. */
   onlyAvailable?: boolean;
   /** Sources décochées, par libellé affiché. */
@@ -335,7 +362,7 @@ export function dropReasonFor(listing: FilterSubject, criteria: FilterCriteria):
 
   // La géographie ensuite, avant tout le reste : un logement qui n'est pas à
   // la station n'est pas un candidat, quel que soit son prix ou sa taille.
-  const geo = geoReasonFor(listing, criteria.rayonKm);
+  const geo = geoReasonFor(listing, criteria.rayonKm, criteria.searchedDept);
   if (geo) return geo;
 
   // Disponibilité ensuite. Une annonce listée mais non tarifée pour ces dates

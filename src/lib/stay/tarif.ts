@@ -18,6 +18,22 @@ export function estDevisGitesLive(proven: string): boolean {
   return /devis ITEA live/i.test(proven);
 }
 
+/**
+ * Un gîte n'est une offre que si ITEA a publié un total de séjour
+ * pour ces dates. `prixLoc` d'un `contactSiNonVendable` n'en est pas un
+ * (pas de taxe, et souvent `OCC` : occupé, à appeler). Un relevé figé
+ * non plus. On n'annonce pas la capacité, le GPS ni un prix tant que
+ * ce devis n'est pas lu.
+ */
+export function estOffreGitesVerifiee(l: {
+  source?: string;
+  total?: number | null;
+  proven?: string | null;
+}): boolean {
+  if (l.source !== "Gîtes de France") return true;
+  return (l.total ?? 0) > 0 && estDevisGitesLive(l.proven ?? "");
+}
+
 /** Le loyer d'une centrale n'est pas le total payé, sauf si la taxe y est déjà. */
 export function horsFraisSejour(l: {
   source: string;
@@ -302,8 +318,9 @@ function spanMontant(html: string, classe: string): number | null {
  * `product:price:amount` du widget. C'est `sp_montantPrixTotal` (loyer +
  * taxe), ou la somme des deux lignes quand le total n'est pas marqué.
  *
- * `contactSiNonVendable` : la source ne vend pas en ligne. Un `prixLoc`
- * dans ce JSON n'est pas un total de séjour (la taxe n'y est pas).
+ * `contactSiNonVendable` : la source ne vend pas en ligne à ces dates
+ * (`OCC`, occupé, ou centrale à appeler). Un `prixLoc` dans ce JSON
+ * est un tarif de catalogue, pas le total du séjour.
  */
 export function devisItea(html: string): DevisItea | null {
   if (!html) return null;
@@ -413,5 +430,8 @@ export function conserverDevisGites<
       map.set(k, { ...prev, url: url ?? prev.url, title: title ?? prev.title });
     }
   }
-  return [...rows.filter((l) => l.source !== "Gîtes de France"), ...map.values()];
+  return [
+    ...rows.filter((l) => l.source !== "Gîtes de France"),
+    ...[...map.values()].filter(estOffreGitesVerifiee),
+  ];
 }

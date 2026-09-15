@@ -7,7 +7,7 @@ import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
 import { enrichirListing } from "./stay/enrichir";
 import { estFicheGitesIntrouvable } from "./stay/ficheGites";
-import { purgerTarifFigé } from "./stay/tarif";
+import { estOffreGitesVerifiee, purgerTarifFigé } from "./stay/tarif";
 
 const Input = z.object({
   stationId: z.string().min(1),
@@ -130,11 +130,7 @@ function dater(l: Listing, checkIn: string, checkOut: string): Listing {
 function poserAcces(rows: Listing[], stationId: string): Listing[] {
   const station = stationById(stationId);
   if (!station) return rows;
-  return rows.map((l) => {
-    if (l.lat == null || l.lon == null) return l;
-    if (l.searchedLiftM != null || l.distToLiftM != null) return l;
-    return attachAccess(l, station);
-  });
+  return rows.map((l) => attachAccess(l, station));
 }
 
 /**
@@ -208,7 +204,7 @@ async function completer(
     console.warn("[searchStay] complément de fiches : délai dépassé, on rend ce qui est lu");
   }
   return poserAcces(
-    rows.filter((l) => !estFicheGitesIntrouvable(l)),
+    rows.filter((l) => !estFicheGitesIntrouvable(l) && estOffreGitesVerifiee(l)),
     stationId,
   );
 }

@@ -7,7 +7,9 @@ import {
   droppedLabel,
   dropReasonFor,
   fitsParty,
+  distFiltrableM,
   geoReasonFor,
+  gpsPrecis,
   isDroppedGitesOffer,
   isStudioListing,
   minRoomsFor,
@@ -422,35 +424,36 @@ describe("filtre : la zone de recherche", () => {
     assert.equal(out.dropped.total, 0);
   });
 
-  it("le domaine prime sur la distance, dans les deux sens", () => {
-    // Un autre domaine sort même tout près : l'Iseran fermé l'hiver en est la
-    // raison, le vol d'oiseau n'est pas un accès.
+  it("hors de la station, seulement le même domaine skiable, dans le rayon", () => {
     const voisinAutreDomaine = zone({ id: "voisin", distToSlopesM: 3_000, domainFit: "other" });
     assert.equal(geoReasonFor(voisinAutreDomaine), "autre-domaine");
     assert.equal(dropReasonFor(voisinAutreDomaine, criteres), "autre-domaine");
+    assert.equal(geoReasonFor(voisinAutreDomaine, 30), "autre-domaine");
 
-    // Le bon domaine reste, même au-delà du rayon.
     const loinMemeDomaine = zone({ id: "loin-in", distToSlopesM: 18_000, domainFit: "in" });
-    assert.equal(geoReasonFor(loinMemeDomaine), null);
-    assert.equal(dropReasonFor(loinMemeDomaine, criteres), null);
+    assert.equal(geoReasonFor(loinMemeDomaine), "hors-zone");
+    assert.equal(geoReasonFor(loinMemeDomaine, 25), null);
+    assert.equal(dropReasonFor(loinMemeDomaine, { ...criteres, rayonKm: 25 }), null);
 
-    // Un domaine relié aussi.
     const relie = zone({ id: "relie", distToSlopesM: 25_000, domainFit: "linked" });
-    assert.equal(geoReasonFor(relie), null);
+    assert.equal(geoReasonFor(relie), "hors-zone");
+    assert.equal(geoReasonFor(relie, 25), null);
+    assert.equal(geoReasonFor(relie, 30), null);
+
+    const procheMemeDomaine = zone({ id: "proche-in", distToSlopesM: 8_000, domainFit: "in" });
+    assert.equal(geoReasonFor(procheMemeDomaine), null);
   });
 
-  it("le rayon se règle, et se borne à ce qui a un sens", () => {
-    const a20 = zone({ id: "a20", distToSlopesM: 20_000 });
+  it("le rayon vaut dix par défaut, trente au plus", () => {
+    const a20 = zone({ id: "a20", distToSlopesM: 20_000, domainFit: "in" });
     assert.equal(geoReasonFor(a20, RAYON_DEFAUT_KM), "hors-zone");
     assert.equal(geoReasonFor(a20, 25), null);
     assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 25 }), null);
     assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 10 }), "hors-zone");
 
-    // La borne est inclusive : à 15 000 m tout rond, on est dans les 15 km.
-    assert.equal(geoReasonFor(zone({ id: "pile", distToSlopesM: 15_000 })), null);
-    assert.equal(geoReasonFor(zone({ id: "juste", distToSlopesM: 15_001 })), "hors-zone");
+    assert.equal(geoReasonFor(zone({ id: "pile", distToSlopesM: 10_000, domainFit: "in" })), null);
+    assert.equal(geoReasonFor(zone({ id: "juste", distToSlopesM: 10_001, domainFit: "in" })), "hors-zone");
 
-    // Hors bornes, on ramène dans les bornes plutôt que d'inventer une zone.
     assert.equal(clampRayonKm(0), RAYON_MIN_KM);
     assert.equal(clampRayonKm(-5), RAYON_MIN_KM);
     assert.equal(clampRayonKm(900), RAYON_MAX_KM);
@@ -493,6 +496,89 @@ describe("filtre : la zone de recherche", () => {
     const proche = attachAccess({ ...brut, id: "aime", lat: 45.5547, lon: 6.6486 }, plagne!);
     assert.equal(proche.domainFit, "in");
     assert.equal(dropReasonFor(proche, criteres), null);
+  });
+
+  it("Flumet : Praz-sur-Arly (même domaine) reste, Les 2 Alpes sortent", () => {
+    const flumet = stationById("flumet-st-nicolas-la-chapelle");
+    const praz = stationById("praz-sur-arly");
+    const deuxAlpes = stationById("les-2-alpes");
+    assert.ok(flumet && praz && deuxAlpes);
+
+    const brut = {
+      id: "x",
+      stationId: flumet.id,
+      title: "Chalet",
+      source: "Airbnb",
+      total: 1800,
+      currency: "EUR",
+      guests: 8,
+      bedrooms: 4,
+      available: true,
+      photo: null,
+      url: "https://www.airbnb.fr/rooms/1",
+      proven: "test",
+    } as Listing;
+
+    const voisin = attachAccess({ ...brut, id: "praz", lat: praz.lat, lon: praz.lon }, flumet);
+    assert.ok(voisin.domainFit === "in" || voisin.domainFit === "linked", voisin.domainFit);
+    assert.ok((voisin.distToSlopesM ?? 0) < 10_000);
+    assert.equal(dropReasonFor(voisin, criteres), null);
+
+    const ailleurs = attachAccess({ ...brut, id: "2a", lat: deuxAlpes.lat, lon: deuxAlpes.lon }, flumet);
+    assert.equal(ailleurs.domainFit, "other");
+    assert.equal(dropReasonFor(ailleurs, { ...criteres, rayonKm: 30 }), "autre-domaine");
+  });
+
+  it("un gîte de la Manche ne remonte pas dans une recherche Flumet", () => {
+    const flumet = { ...criteres, searchedDept: "Savoie" };
+    const manche = zone({
+      id: "50G99999",
+      source: "Gîtes de France",
+      title: "Gite communal de Glatigny",
+      url: "https://www.gites-de-france.com/fr/normandie/manche/gite-communal-de-glatigny-50g1140",
+    });
+    assert.equal(geoReasonFor(manche, RAYON_DEFAUT_KM, "Savoie"), "autre-domaine");
+    assert.equal(dropReasonFor(manche, flumet), "autre-domaine");
+
+    const creuse = zone({
+      id: "23G1575",
+      source: "Gîtes de France",
+      url: "https://www.gites-de-france.com/fr/nouvelle-aquitaine/creuse/le-dolmen-23g1575",
+    });
+    assert.equal(geoReasonFor(creuse, RAYON_DEFAUT_KM, "Savoie"), "autre-domaine");
+
+    const savoie = zone({
+      id: "73G52010",
+      source: "Gîtes de France",
+      url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/savoie/le-louison-73g52010",
+    });
+    assert.equal(geoReasonFor(savoie, RAYON_DEFAUT_KM, "Savoie"), null);
+
+    const isere = zone({
+      id: "38G40102",
+      source: "Gîtes de France",
+      url: "https://www.gites-de-france.com/fr/auvergne-rhone-alpes/isere/la-citriere-38g40102",
+    });
+    assert.equal(geoReasonFor(isere, RAYON_DEFAUT_KM, "Savoie"), null);
+
+    const loinMemePin = zone({ id: "700km", distToSlopesM: 721_607, domainFit: "in" });
+    assert.equal(geoReasonFor(loinMemePin), "hors-zone");
+  });
+
+  it("un GPS précis est un point publié, pas un zéro", () => {
+    assert.equal(gpsPrecis({ lat: 45.8181, lon: 6.5144 }), true);
+    assert.equal(gpsPrecis({ lat: null, lon: 6.5144 }), false);
+    assert.equal(gpsPrecis({ lat: 45.8181, lon: null }), false);
+    assert.equal(gpsPrecis({ lat: 0, lon: 0 }), false);
+    assert.equal(gpsPrecis({}), false);
+  });
+
+  it("le filtre distance prend la remontée, sinon le pin GPS", () => {
+    assert.equal(distFiltrableM({ distToLiftM: 180, distToSlopesM: 2_400 }), 180);
+    assert.equal(distFiltrableM({ distToLiftM: null, distToSlopesM: 2_400 }), 2_400);
+    assert.equal(distFiltrableM({ distToLiftM: null, distToSlopesM: null }), null);
+    const tropLoin = zone({ id: "loin-lift", distToLiftM: 3_000, distToSlopesM: 400, guests: 8, bedrooms: 4 });
+    assert.equal(distFiltrableM(tropLoin), 3_000);
   });
 
   it("« trop petit » et « sans capacité annoncée » ne se comptent pas ensemble", () => {

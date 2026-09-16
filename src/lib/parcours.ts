@@ -438,6 +438,16 @@ export function travLbl(trav: number): string {
   return `${trav} voyageur${trav > 1 ? "s" : ""}`;
 }
 
+/** Les dates seules, sans le compte de nuits : « 6 → 13 févr. ». La pilule de
+ *  séjour de l'écran Logements tient sur une ligne, à côté du titre. */
+export function datesCourtes(checkIn: string, checkOut: string): string {
+  const a = parseDay(checkIn),
+    b = parseDay(checkOut);
+  return a.getUTCMonth() === b.getUTCMonth() && a.getUTCFullYear() === b.getUTCFullYear()
+    ? `${a.getUTCDate()} → ${dm(checkOut)}`
+    : `${dm(checkIn)} → ${dm(checkOut)}`;
+}
+
 export function datesLbl(checkIn: string, checkOut: string, nights: number): string {
   const a = parseDay(checkIn),
     b = parseDay(checkOut);

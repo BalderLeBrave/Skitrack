@@ -720,6 +720,13 @@
   border-color: var(--color-ink);
   gap: calc(var(--spacing) * 2);
 }
+/* Les quatre rayons du panneau de Logements : plus courts et plus gras que
+   les puces de barre (App.dc.html:354). */
+.puce--rayon {
+  height: calc(var(--spacing) * 9);
+  font-size: var(--text-sous);
+  font-weight: 700;
+}
 .puce--case {
   height: calc(var(--spacing) * 9);
   padding: 0 calc(var(--spacing) * 3);
@@ -916,6 +923,11 @@
   padding-top: calc(var(--spacing) * 3.5);
   border-top: 1px solid var(--color-line-douce);
 }
+/* Le pied des deux panneaux Filtres tient plus près du trait que celui du
+   panneau d'accueil (App.dc.html:187, 363 contre 114). */
+.pop7--filtres .pop7__pied--trait {
+  padding-top: calc(var(--spacing) * 1.5);
+}
 .pop7__recap {
   font-size: var(--text-detail);
   font-weight: 600;
@@ -935,9 +947,13 @@
   padding-top: calc(var(--spacing) * 3.5);
   border-top: 1px solid var(--color-line-douce);
 }
-.pop7__bloc--sans {
+/* Premier bloc d'un panneau : rien ne le précède, donc pas de trait. */
+.pop7__bloc--premier {
   padding-top: 0;
   border-top: 0;
+}
+/* Un bloc qui n'annonce qu'un titre et sa note serre les deux (App.dc.html:356). */
+.pop7__bloc--serre {
   gap: calc(var(--spacing) * 1);
 }
 /* Premier bloc du panneau : le trait est dessous, pas dessus. */
@@ -1065,7 +1081,11 @@
   gap: 0;
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
 }
+/* `content-box` : le design pose largeur et hauteur maximale sur un panneau
+   rembourré de 20 px, sans `box-sizing`. Les deux panneaux Filtres mesurent
+   donc 40 px de plus en largeur et en hauteur que ce qu'ils déclarent. */
 .pop7--filtres {
+  box-sizing: content-box;
   right: 0;
   top: 48px;
   width: 460px;
@@ -1073,13 +1093,18 @@
   overflow-y: auto;
   padding: calc(var(--spacing) * 5);
   border-radius: var(--radius-flottant);
-  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
-  backdrop-filter: blur(18px);
+  background: var(--color-panneau-fond);
+  backdrop-filter: var(--flou-panneau);
 }
+/* Le panneau de Logements ne pend pas d'un bouton : il s'ancre à gauche du
+   bloc collant, sous la ligne Filtres + tri (App.dc.html:349). */
 .pop7--large {
+  left: 0;
+  right: auto;
+  top: 0;
   width: 520px;
-  top: 100%;
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 310px);
+  background: var(--color-panneau-fond-large);
 }
 
 /* ── Écran : cadre commun ───────────────────────────────────────────────── */
@@ -1090,7 +1115,9 @@
   margin: 0 auto;
   padding: calc(var(--spacing) * 6) calc(var(--spacing) * 10) calc(var(--spacing) * 20);
   display: grid;
-  gap: calc(var(--spacing) * 6);
+  /* 22 px entre les blocs d'un écran : la valeur de Station et de Réservation
+     (App.dc.html:254, 430). Comparer et Logements serrent à 16 (`--serre`). */
+  gap: calc(var(--spacing) * 5.5);
   align-content: start;
 }
 .v7main--pleine {
@@ -1101,7 +1128,6 @@
 }
 .v7main--pied {
   padding-bottom: calc(var(--spacing) * 30);
-  gap: calc(var(--spacing) * 5.5);
 }
 .v7wrap {
   max-width: 1280px;
@@ -1132,7 +1158,11 @@
 .v7tete--titre h1 {
   font-size: var(--text-ecran);
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  /* Le h1 d'écran ne pose pas d'interligne dans le design : il prend celui de
+     la police, 30 px pour 22 px de corps. L'interligne serré de `.v7tete h1`
+     (1,1) le rabotait à 24,2 px, et l'en-tête de Logements perdait 2 px. */
+  line-height: normal;
 }
 /* Comparer et Logements serrent le haut de page : 16 px au lieu de 24. */
 .v7main--serre {
@@ -1195,6 +1225,13 @@
   border-radius: var(--radius-surface);
   overflow: hidden;
   background: var(--color-carte-fond);
+}
+/* Sur Logements le bloc collant tient l'en-tête, le ruban et les filtres :
+   la carte part donc plus bas, et finit à la même distance du bas
+   (App.dc.html:393). */
+.v7deux__carte--bas {
+  top: 254px;
+  height: calc(100vh - 278px);
 }
 .grille7-2 {
   display: grid;
@@ -2161,8 +2198,11 @@
   gap: calc(var(--spacing) * 2);
   flex-wrap: wrap;
 }
-/* Le champ de recherche, premier élément de la barre. */
+/* Le champ de recherche, premier élément de la barre. `content-box` : le
+   design pose `height:40px` sur un `label` bordé, qui mesure donc 42 px et
+   fixe la hauteur de la barre. */
 .filtres7__champ {
+  box-sizing: content-box;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -2185,7 +2225,7 @@
   border: 0;
   background: none;
   font: inherit;
-  font-size: var(--text-corps);
+  font-size: var(--text-liste);
   color: var(--color-ink);
   outline: none;
 }
@@ -2208,6 +2248,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  gap: calc(var(--spacing) * 2);
 }
 .filtres7__espace {
   flex: 1;
@@ -2643,9 +2684,11 @@
   color: var(--color-muted);
   text-wrap: pretty;
 }
+/* L'encadré colle juste sous la barre du haut : 60 px de barre, puis les
+   16 px de marge haute de l'écran. */
 .aside7 {
   position: sticky;
-  top: 138px;
+  top: 76px;
   display: grid;
   gap: calc(var(--spacing) * 3.5);
   padding: calc(var(--spacing) * 5.5);
@@ -2695,46 +2738,143 @@
 }
 
 /* ── Logements ──────────────────────────────────────────────────────────── */
-.ruban7 {
+/* Un seul bloc collant. Il tient, dans cet ordre, l'en-tête, le ruban de
+   station et la ligne Filtres + tri, et il sert d'ancre au panneau de
+   filtres. Le découper en plusieurs conteneurs le ferait décoller : un
+   conteneur intermédiaire a sa propre hauteur, et `sticky` s'arrête au bord
+   de son parent (App.dc.html:320). */
+.bloc7 {
+  position: sticky;
+  top: 60px;
+  z-index: 29;
   display: grid;
-  grid-template-columns: 132px minmax(0, 1fr) auto;
+  gap: calc(var(--spacing) * 2.5);
+  margin: 0 calc(var(--spacing) * -2);
+  padding: calc(var(--spacing) * 2);
+  border-radius: var(--radius-surface);
+  background: var(--color-bloc-fond);
+  backdrop-filter: var(--flou-barre);
+}
+/* L'en-tête tient sur une ligne : le titre à gauche, la pilule de séjour à
+   droite. La barre du haut n'en porte pas sur cet écran. */
+.bloc7__tete {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: calc(var(--spacing) * 5);
-  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 5) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
-  border-radius: var(--radius-surface);
+}
+/* L'ancre du panneau de filtres : un conteneur sans hauteur, posé sous la
+   ligne Filtres + tri, pour que le panneau parte de son bord haut. */
+.bloc7__ancre {
+  position: relative;
+}
+/* La pilule de séjour de Logements : plus courte que celle de la barre du
+   haut (40 px contre 44), et sa loupe relance le relevé au lieu d'ouvrir le
+   panneau (App.dc.html:323). */
+/* `content-box` : le design pose `height:40px` sur une pilule bordée, sans
+   `box-sizing`. Elle mesure donc 42 px au rendu, et l'en-tête avec elle. */
+.sejour7 {
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  height: calc(var(--spacing) * 10);
+  padding: 0 calc(var(--spacing) * 1) 0 calc(var(--spacing) * 4);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+.sejour7__pilule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: calc(var(--spacing) * 9.5);
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.sejour7__station {
+  font-size: var(--text-sous);
+  font-weight: 700;
+  padding-right: calc(var(--spacing) * 3);
+  border-right: 1px solid var(--color-line-coquille);
+}
+.sejour7__dates,
+.sejour7__groupe {
+  font-size: var(--text-sous);
+  font-weight: 500;
+  padding: 0 calc(var(--spacing) * 3);
+  font-variant-numeric: tabular-nums;
+}
+.sejour7__dates {
+  border-right: 1px solid var(--color-line-coquille);
+}
+.sejour7__loupe {
+  display: grid;
+  place-items: center;
+  width: calc(var(--spacing) * 8);
+  height: calc(var(--spacing) * 8);
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-marque);
+  color: var(--color-cta-ink);
+  cursor: pointer;
+}
+.sejour7__loupe:hover {
+  background: var(--color-marque-texte);
+}
+.sejour7__loupe:active {
+  transform: scale(0.9);
+}
+.sejour7__loupe:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.ruban7 {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4) calc(var(--spacing) * 2) calc(var(--spacing) * 2);
+  border-radius: var(--radius-ruban);
   background: var(--color-surface);
 }
 .ruban7__media {
   position: relative;
   aspect-ratio: 4 / 3;
-  border-radius: var(--radius-champ);
+  border-radius: var(--radius-vignette);
   overflow: hidden;
   background: var(--color-media);
 }
 .ruban7__slot {
   position: absolute;
   inset: 0;
-  color: var(--color-muted);
+  color: var(--color-slot);
 }
 .ruban7__corps {
   display: grid;
-  gap: calc(var(--spacing) * 2);
+  gap: 2px;
   min-width: 0;
 }
 .ruban7__crumb {
-  font-size: var(--text-detail);
+  font-size: var(--text-fil);
   color: var(--color-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ruban7__faits {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 28px;
-  font-size: var(--text-corps);
+  gap: 2px 24px;
+  font-size: var(--text-detail);
   font-variant-numeric: tabular-nums;
 }
 .ruban7__faits > span > span {
   display: block;
-  font-size: var(--text-note);
+  font-size: var(--text-mention);
   color: var(--color-texte-3);
 }
 .ruban7__lien {

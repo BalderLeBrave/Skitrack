@@ -70,7 +70,6 @@ système par les jetons, sans autre changement.
 | --- | --- | --- | --- |
 | Couverture | slot vide « crédit obligatoire » | `/hero.jpg` du dépôt, mention « Crédit photo à relever » | décision v6 conservée |
 | Photos de station | « Photo Skiinfo · crédit à relever » | idem, ou « Photo Skiinfo de X, même domaine » quand elle est empruntée (`stationPhoto.ts`) | l'emprunt est dit |
-| Lead des logements | « relevés le 3 sept. 2026 pour 8 personnes… » | compte des annonces et nuits du séjour réel | phrase figée sur des données de démonstration |
 | État vide des logements | « Le relevé du 3 sept. 2026 ne couvre que Les 2 Alpes » | « Aucune annonce relevée pour X » | idem |
 | Sources dans les filtres | Airbnb, Gîtes de France, Centrale, Abritel | les sources présentes dans le relevé (Booking compris) | données réelles |
 | Profil altimétrique, minicarte, historique de neige | absents | retirés de la fiche | pas dans la maquette v7 |
@@ -106,41 +105,118 @@ pas des écrans. Les écrans v7 emploient leur propre vocabulaire (`btn7`,
 
 Un second export du même projet est arrivé le 16 septembre. Comparé bloc par
 bloc au portage, il a donné une trentaine d'écarts réels, corrigés dans les
-commits qui suivent ce document. Restent quatre écarts connus, assumés, et
-c'est ici qu'ils sont écrits pour ne pas se re-signaler à chaque relecture.
+commits qui suivent ce document. Sur les quatre écarts alors assumés, trois
+sont refermés et le quatrième a changé de camp.
 
 1. **Le panneau « Centrales de réservation » (App.dc.html:466-487) n'est pas
-   porté**, et ne le sera pas en l'état. Il est inatteignable dans la maquette
-   elle-même : `auditOpen` naît à `false`, Échap le remet à `false`, et
-   `openAudit` — la seule fonction qui le passerait à `true` — n'est liée à
-   aucun balisage, dans aucun des dix fichiers de l'export. L'objet `cen`
-   (l. 890-892) est mort de la même façon. Le porter demanderait d'inventer un
-   déclencheur que la maquette ne donne pas. Ses textes achèvent de le
-   disqualifier : le bandeau (l. 907) finit par « Les annonces affichées dans
-   **cette maquette** viennent du relevé du 3 sept. 2026 aux 2 Alpes », et ses
-   compteurs — « 49 centrales de station, 5 de domaine », « 27 connecteurs,
-   19 qui répondent » — sont tapés à la main. Le sens de l'autorité est
-   d'ailleurs inversé : les lignes 660-712 de la maquette recopient
-   `src/lib/scrape/centrales/registre.ts` et `hotes/index.ts`, en le disant en
-   commentaire, et la copie est déjà périmée. La source vivante est le dépôt.
-2. **La pilule de séjour reste sur Comparer et sur Logements**, là où la
-   maquette calcule `showStayBar: screen !== 'compare' && screen !== 'lodgings'`
-   (l. 918). Elle la retire parce qu'elle met à la place, sur Logements, un
-   résumé de séjour dans l'en-tête collant (l. 320-330). Tant que ce résumé
-   n'existe pas ici, retirer la pilule supprimerait le seul accès aux dates et
-   au groupe depuis cet écran : on perdrait une commande pour gagner une ligne.
-3. **La loupe de l'accueil ouvre les logements de la station désignée**, là où
-   la maquette ouvre sa fiche (l. 882). C'est une décision écrite
-   (`index.tsx`, en-tête de `v7/OngletsStation.tsx`, commit 408a7cb) : la fiche
-   reste à un clic par l'onglet « Fiche station », et la phrase sous la barre
-   annonce ce que la loupe fera.
-4. **L'indice de défilement de la couverture reste inerte** — `aria-hidden`,
-   `pointer-events: none` —, là où la maquette en fait un bouton qui défile en
-   douceur et s'efface au-delà de 45 % de la hauteur. Le texte de la maquette,
-   lui, est repris : il nomme ce qu'il y a plus bas.
+   porté.** Ce n'est plus un écart mais une décision partagée : la reprise du
+   16 septembre range ce panneau parmi ce qu'il ne faut pas porter. Il était de
+   toute façon inatteignable dans la maquette : `auditOpen` naît à `false`,
+   Échap le remet à `false`, et `openAudit` — la seule fonction qui le passerait
+   à `true` — n'est liée à aucun balisage, dans aucun des dix fichiers de
+   l'export. L'objet `cen` (l. 890-892) est mort de la même façon. Ses textes
+   achèvent de le disqualifier : le bandeau (l. 907) finit par « Les annonces
+   affichées dans **cette maquette** viennent du relevé du 3 sept. 2026 aux
+   2 Alpes », et ses compteurs — « 49 centrales de station, 5 de domaine »,
+   « 27 connecteurs, 19 qui répondent » — sont tapés à la main. Le sens de
+   l'autorité est d'ailleurs inversé : les lignes 660-712 de la maquette
+   recopient `src/lib/scrape/centrales/registre.ts` et `hotes/index.ts`, en le
+   disant en commentaire, et la copie est déjà périmée. La source vivante est
+   le dépôt.
+2. **La pilule de séjour a quitté Comparer et Logements.** Écart refermé :
+   `showStayBar = screen !== 'compare' && screen !== 'lodgings'`. Logements
+   porte maintenant son propre résumé de séjour dans son en-tête collant, avec
+   la loupe qui relance le relevé ; Comparer n'en a pas besoin, l'écran ne
+   dépendant pas des dates. Le panneau « Votre séjour » reste joignable des
+   deux côtés.
+3. **La loupe de l'accueil ouvre la fiche de la station désignée.** L'écart
+   change de camp : le dépôt avait tranché l'inverse (commit `408a7cb`), la
+   maquette tranche ainsi, et c'est elle qui fait foi.
+4. **L'indice de défilement de la couverture est un bouton.** Écart refermé :
+   il défile jusqu'à `hauteur du héros − 60 px`, animé à la main sur 420 ms,
+   s'efface au-delà de 45 % de la hauteur du héros et réapparaît en remontant.
 
 Deux autres écarts de l'export sont déjà couverts plus haut : la neige confinée
 à la couverture, et le voile renforcé de cette même couverture.
+
+## Reprise complète de la maquette v7 (16 septembre 2026)
+
+Reprise écran par écran, mesurée au navigateur contre l'export monté sur son
+banc d'essai : `getBoundingClientRect` et `getComputedStyle` des deux côtés,
+1440 × 900 puis 1280 × 800. Rien n'est jugé à l'œil.
+
+### Données
+
+- **Le référentiel du dépôt fait 320 stations, celui de la maquette 318.** Le
+  dépôt gagne : la maquette lit un instantané exporté, le dépôt assemble ses
+  sources à chaque montage. Les deux stations en plus ne sont pas une erreur de
+  la maquette, c'est son export qui a vieilli.
+- **Vingt-deux coordonnées reprises** de `stations-map-data.json`, dans
+  `GPS_FIXES` (`src/lib/classeur.ts`). Trois identifiants diffèrent de ceux de
+  la maquette et ont été traduits : `avoriaz-1800` → `avoriaz`,
+  `chamonix-mont-blanc` → `chamonix`, `les-carroz-d-araches` → `les-carroz`.
+  `Station.posRelevee` dit, pour chaque station, si sa position est relevée ou
+  ramenée au centre de la commune ; la carte de Comparer l'écrit sur la
+  vignette de survol.
+
+### Ce qui a été porté
+
+| Écran | Ce qui change | Fichiers |
+| --- | --- | --- |
+| Barre du haut | Logo sans pictogramme, pilule retirée de Comparer et de Logements | `Coquille.tsx`, `v7.css` |
+| Accueil | Couverture pleine hauteur, indice de défilement devenu bouton, cascade d'entrée aux temps de la maquette, loupe qui ouvre la fiche, « Toutes les stations → » | `index.tsx`, `v7.css` |
+| Comparer | En-tête sur une ligne, barre collante unique à `top: 60px`, champ de recherche à sa hauteur de maquette (42 px), saisie en 14 px, compte en infobulle, plus de bloc « Aucune station cochée » | `comparer.tsx`, `v7.css` |
+| Carte de Comparer | Étiquettes de nom désencombrées : les épingles gagnent toujours, les noms cèdent par priorité croissante | `CarteEpingles.tsx`, `epingle.ts`, `v7.css` |
+| Logements | Bloc collant unique (en-tête, fiche station, ligne Filtres + tri), pilule de séjour et loupe de relance, fiche station resserrée, panneau de filtres ancré à gauche, carte à `top: 254px` | `logements.tsx`, `v7.css` |
+| Panneau Filtres | Périmètre en quatre boutons (5 / 12 / 25 / 50 km, 12 par défaut), fond et boîte de la maquette, pied resserré | `logements.tsx`, `lodgingFilter.ts`, `v7.css` |
+| Réservation | Bloc « Ce que ce récapitulatif ne dit pas », ligne « Trajet » et phrase sur le paiement retirés | `reservation.tsx` |
+| Jetons | `--color-bloc-fond`, `--color-panneau-fond`, `--color-panneau-fond-large`, `--radius-vignette` | `system.css`, `styles.css` |
+
+### Une classe d'écart qui revenait partout : la boîte
+
+La maquette ne pose `box-sizing` nulle part ; le dépôt est en `border-box`
+depuis la préparation Tailwind. Partout où la maquette écrit une largeur ou une
+hauteur **et** un rembourrage ou une bordure, elle rend deux pixels — ou
+quarante — de plus que ce qu'elle déclare. Trois surfaces étaient concernées et
+repassent en `content-box`, avec la valeur déclarée de la maquette :
+
+- la pilule de séjour de Logements : `height: 40px` + 1 px de bordure = 42 px,
+  et l'en-tête avec elle ;
+- le champ de recherche de Comparer : même compte, et c'est lui qui donne à la
+  barre ses 58 px ;
+- les deux panneaux Filtres : 460 + 40 = 500 px de large sur Comparer,
+  520 + 40 = 560 px sur Logements.
+
+### Écarts assumés, avec leur raison
+
+1. **Les onglets de station restent au-dessus de Logements et de la fiche.**
+   La maquette ne les a pas ; le dépôt les a mis pour dire que la fiche et les
+   logements sont deux pages de la même station. Ils ne sont pas collants : ils
+   décalent le premier écran de 68 px et défilent ensuite. Ils ne figurent pas
+   dans la liste des suppressions de la reprise.
+2. **Les paliers de distance de la barre de Logements** (« Pied des pistes »,
+   « ≤ 500 m », « ≤ 1 km », « ≤ 2 km ») restent, la maquette ne les ayant pas.
+   Ils ne sont pas non plus dans la liste des suppressions, et ils font le
+   travail que le curseur de distance du panneau fait plus lentement.
+3. **Les encadrés collants de la fiche station et de la réservation collent à
+   `top: 76px`**, valeur demandée par la reprise. La maquette, elle, écrit
+   `top: 254px` sur la fiche (App.dc.html:305) et `top: 138px` sur la
+   réservation (l. 448) — deux valeurs différentes pour deux écrans où rien
+   d'autre n'est collant. 76 px, c'est la barre du haut plus la marge de
+   l'écran : l'encadré s'arrête juste sous la barre. La consigne l'emporte ici
+   sur la maquette ; un mot suffit à revenir aux deux valeurs d'origine.
+4. **Deux tris de Logements en moins.** La reprise nomme trois tris — prix par
+   personne, prix total, capacité — et la maquette n'en propose pas d'autres.
+   « Tri : distance » et « Tri : incomplètes d'abord » sont donc retirés. Ce
+   sont les seules commandes supprimées qui ne figuraient pas nommément dans la
+   liste des suppressions : à signaler si ce n'était pas voulu.
+5. **Deux bascules de qualité du relevé en moins.** Même raison : la reprise en
+   nomme cinq, la maquette en a cinq, le dépôt en avait sept. « Fiche complète »
+   et « Incomplètes » sont retirés du panneau et de ses jetons.
+6. **La section vide de comparaison de la maquette n'est pas reproduite.** Sur
+   Comparer, l'export laisse un `<section>` de hauteur nulle entre la barre et
+   les deux colonnes, qui ajoute 16 px d'écart de grille et descend la carte à
+   212 px au lieu de 196. C'est un artefact de son harnais, pas une intention.
 
 ## Deux pièges rencontrés
 
@@ -155,9 +231,17 @@ Deux autres écarts de l'export sont déjà couverts plus haut : la neige confin
 ## Vérification
 
 - `npm run typecheck` : vert.
-- `npm test` : 208 / 208.
-- `npx eslint src` : 4 erreurs préexistantes (`app-data/client.server.ts`,
-  `forfaits/refresh.server.ts`, `pistes.ts`), aucune dans les fichiers touchés.
+- `npm test` : 180 sur 197 ; les 17 rouges sont rouges avant la reprise aussi
+  (gabarit, squelette d'og, écriture atomique), aucune dans les fichiers
+  touchés.
+- `npx eslint src` : 5 erreurs préexistantes (`app-data/client.server.ts`,
+  `pistes.ts`, `stay/tarif.test.ts`), aucune dans les fichiers touchés.
+- Recette de la reprise, mesurée à 1440 × 900 : couverture de 840 px ; indice
+  de défilement qui part à 780 px et revient ; barre de Comparer à 60 px après
+  1 500 px de défilement ; panneau ouvert sous son bouton et fermé au clic sur
+  le titre ; 320 noms sur la carte, 6 affichés au cadrage France sans un seul
+  recouvrement, 18 après deux crans de zoom ; bloc collant de Logements de
+  186 px, carte à 780 px du haut sur 900.
 - Cinq écrans vus tourner dans le navigateur à 1440×900 : panneaux de la barre,
   recherche par Entrée, comparaison à trois stations, filtres, fiche avec et
   sans photo, logements des 2 Alpes (94 annonces, relevé en direct), volet,

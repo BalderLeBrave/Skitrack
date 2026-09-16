@@ -80,19 +80,6 @@ function Reservation() {
   const totalN = l.total + passGroupN;
   const d = distanceOf(l);
 
-  const gaps = [
-    "Taxe de séjour : incluse seulement si la source l'inclut dans son total.",
-    "Trajet : aucun itinéraire calculé, donc ni carburant ni péage.",
-    d.kind === "measured"
-      ? null
-      : d.kind === "no_coords"
-        ? "Distance aux remontées : ce logement n'a pas de position, elle n'est pas mesurée."
-        : d.kind === "other_domain"
-          ? "Distance aux remontées : ce logement est sur un autre domaine que la station retenue."
-          : "Distance aux remontées : pas de données de remontées pour cette station.",
-    !l.url ? "Lien : l'annonce n'en a pas dans le relevé, la réservation se fait à la main." : null,
-  ].filter((x): x is string => x != null);
-
   const recap = () =>
     [
       `Skitrack – ${s.name}`,
@@ -138,10 +125,6 @@ function Reservation() {
         <header className="v7tete">
           <span className="v7surtitre">Étape 3 · Réservation</span>
           <h1>Récapitulatif du séjour</h1>
-          <p>
-            Skitrack ne prend pas de paiement. La réservation se fait chez la source, avec le prix
-            relevé ; ce récapitulatif se copie et se partage.
-          </p>
         </header>
 
         {P.shared ? (
@@ -281,19 +264,6 @@ function Reservation() {
               </section>
             </div>
 
-            <section className="carte7-sect carte7-sect--serre">
-              <h2 className="carte7-sect__h3">Ce que ce récapitulatif ne dit pas</h2>
-              <ul className="manques7">
-                {gaps.map((g) => (
-                  <li key={g}>
-                    <i>
-                      <Icon name="point" taille={10} />
-                    </i>
-                    {g}
-                  </li>
-                ))}
-              </ul>
-            </section>
           </div>
 
           <aside className="aside7 aside7--large">
@@ -319,10 +289,6 @@ function Reservation() {
                   <td className={forfait?.j6 != null ? undefined : "absent"}>
                     {forfait?.j6 != null ? eur(passGroupN) : "non relevés"}
                   </td>
-                </tr>
-                <tr>
-                  <th>Trajet</th>
-                  <td className="absent">non calculé</td>
                 </tr>
                 <tr className="cout7__total">
                   <th>Total</th>

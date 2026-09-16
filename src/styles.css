@@ -60,6 +60,9 @@ html[data-theme="dark"] {
   --color-line-coquille: #253442;
   --color-coquille-fond: rgb(22 34 47 / 0.86);
   --color-barre-fond: rgb(11 22 34 / 0.92);
+  --color-bloc-fond: rgb(11 22 34 / 0.94);
+  --color-panneau-fond: rgb(22 34 47 / 0.96);
+  --color-panneau-fond-large: rgb(22 34 47 / 0.97);
   --color-etiquette-fond: rgb(22 34 47 / 0.92);
   --color-slot: #93a2b0;
   --color-slot-grand: #9fb0bf;

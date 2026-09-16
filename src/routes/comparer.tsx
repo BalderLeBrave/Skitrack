@@ -627,15 +627,15 @@ function Comparer() {
               </>
             ) : visible.length ? (
               <Vide
-                titre="Aucune station dans ce cadre"
+                titre="Aucune station dans ce cadrage"
                 actions={
                   <button type="button" className="btn7" onClick={revoirTout}>
                     Revoir tous les résultats
                   </button>
                 }
               >
-                La liste suit la carte : {visible.length} station{visible.length > 1 ? "s" : ""}{" "}
-                remplit{visible.length > 1 ? "ent" : ""} vos critères, hors du cadre visible.
+                La liste suit la carte. Dézoomez, déplacez-la, ou revenez au cadrage des
+                résultats.
               </Vide>
             ) : empty ? (
               <Vide

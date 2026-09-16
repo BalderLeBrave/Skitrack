@@ -36,7 +36,7 @@ export function Vide({
   titre: ReactNode;
   children?: ReactNode;
   actions?: ReactNode;
-  /** La bande horizontale (« Aucune station cochée ») plutôt que le bloc. */
+  /** La bande horizontale plutôt que le bloc centré. */
   compact?: boolean;
 }) {
   if (compact) {

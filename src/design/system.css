@@ -83,8 +83,16 @@
      couleur sous une autre forme (`color(srgb …)`), et la comparaison au
      design ne tombait pas juste. */
   --color-coquille-fond: rgba(250, 250, 251, 0.86);
-  /* Fond des barres collantes de Comparer et de Logements (App.dc.html:162). */
+  /* Fond de la barre collante de Comparer (App.dc.html:162). */
   --color-barre-fond: rgba(242, 243, 245, 0.92);
+  /* Fond du bloc collant de Logements (App.dc.html:320). Deux centièmes de
+     plus que la barre de Comparer : le bloc est plus haut, il couvre plus de
+     vignettes en défilant. */
+  --color-bloc-fond: rgba(242, 243, 245, 0.94);
+  /* Fond des deux panneaux Filtres. Celui de Logements est un centième plus
+     couvrant : il se pose sur la liste d'annonces (App.dc.html:180, 349). */
+  --color-panneau-fond: rgba(250, 250, 251, 0.96);
+  --color-panneau-fond-large: rgba(250, 250, 251, 0.97);
   /* Pastille d'une étiquette de nom sur la carte (App.dc.html:609). */
   --color-etiquette-fond: rgba(250, 250, 251, 0.92);
   /* Encre d'un emplacement d'image : vignette, puis grand bandeau
@@ -143,6 +151,7 @@
   --radius-surface: 0.875rem; /* 14px — carte, section, bandeau */
   --radius-flottant: 1rem; /* 16px — panneau flottant, bandeau photo */
   --radius-champ: 0.625rem; /* 10px — champ, petite vignette */
+  --radius-vignette: 0.5rem; /* 8px — 2 emplois : vignette du ruban, case d'enneigement */
   --radius-ruban: 0.75rem; /* 12px — ruban de station, bandeau de récapitulatif */
   --radius-grand: 1.5rem; /* 24px — panneau d'accueil, grande carte */
   /* Les pastilles, puces et boutons prennent `rounded-full`. */

@@ -19,8 +19,8 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
-import { useEchap, useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
-import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
+import { useEchap, useFermeture } from "@/components/v7/fermeture";
+import { partagerParBornes, type Bornes } from "@/lib/carte";
 import { dire } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
@@ -28,30 +28,26 @@ import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
 import { getListingElevations } from "@/lib/snow/api";
-import { completudeOf, galerieOf, trouLbl, trousPhrase } from "@/lib/stay/completude";
+import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
-  clampRayonKm,
   distFiltrableM,
   DIST_PALIERS_M,
-  droppedLabel,
   geoReasonFor,
   gpsPrecis,
   normalizedBedrooms,
   RAYON_DEFAUT_KM,
-  RAYON_MAX_KM,
-  RAYON_MIN_KM,
-  type DropReason,
-  type FilterOutcome,
-  type FilterSubject,
+  RAYONS_KM,
 } from "@/lib/stay/lodgingFilter";
 import {
+  datesCourtes,
   eur,
   eurCents,
   fmt,
   nuitsLbl,
   stationPhoto,
   stationPhotoAbsence,
+  travLbl,
   useParcours,
   useSejour,
 } from "@/lib/parcours";
@@ -81,7 +77,7 @@ import {
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap" | "dist" | "trous";
+type LodgeSort = "pp" | "total" | "cap";
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
  *
@@ -95,15 +91,13 @@ type LF = {
   rooms: number;
   dist: number;
   src: Record<string, boolean>;
-  /** Rayon de recherche autour de la station, en km. Toujours appliqué. */
+  /** Rayon de recherche autour de la station, en km. Jamais retirable. */
   rayon: number;
   measured: boolean;
   link: boolean;
   photo: boolean;
   firm: boolean;
   pos: boolean;
-  full: boolean;
-  holes: boolean;
 };
 const LF0: LF = {
   pp: 0,
@@ -117,8 +111,6 @@ const LF0: LF = {
   photo: false,
   firm: false,
   pos: false,
-  full: false,
-  holes: false,
 };
 
 /** Le budget est à part : il est lu et écrit sur le magasin partagé. */
@@ -128,7 +120,7 @@ const RANGES: { k: "pp" | "cap" | "rooms" | "dist"; label: string; max: number; 
   { k: "pp", label: "Par personne, au plus", max: 800, step: 25, unit: "€", sign: "≤ " },
   { k: "cap", label: "Capacité annoncée, au moins", max: 16, step: 1, unit: "pers.", sign: "≥ " },
   { k: "rooms", label: "Chambres annoncées, au moins", max: 7, step: 1, unit: "ch.", sign: "≥ " },
-  { k: "dist", label: "Distance, au plus", max: 2000, step: 100, unit: "m", sign: "≤ " },
+  { k: "dist", label: "Distance à une remontée, au plus", max: 2000, step: 100, unit: "m", sign: "≤ " },
 ];
 
 function palierDistLbl(m: number): string {
@@ -273,23 +265,6 @@ function useDumpComplet(
 }
 
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };
-
-/** Les motifs du module, tous à zéro : l'écran nomme les siens par `extra`.
- *  `droppedLabel` additionne les deux, on ne lui donne donc que les seconds. */
-const AUCUN_ECART: FilterOutcome<FilterSubject>["dropped"] = {
-  total: 0,
-  byReason: {
-    groupe: 0,
-    "autre-domaine": 0,
-    "hors-zone": 0,
-    capacite: 0,
-    "capacite-muette": 0,
-    prix: 0,
-    source: 0,
-    disponibilite: 0,
-  } as Record<DropReason, number>,
-  rows: [],
-};
 
 /**
  * Une annonce dans la liste.
@@ -462,10 +437,8 @@ function LogementsStation({ s }: { s: Station }) {
   const fermerFiltres = useCallback(() => setLfOpen(false), []);
   const fermerVolet = useCallback(() => setSheetId(null), []);
   const panneauFiltres = useRef<HTMLDivElement>(null);
-  const barre = useRef<HTMLElement>(null);
   useFermeture(lfOpen, fermerFiltres, panneauFiltres, '[data-panel-btn="filtres"]');
   useEchap(sheetId != null, fermerVolet);
-  useHauteurCollante(barre, "--filtres-h");
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
@@ -524,8 +497,6 @@ function LogementsStation({ s }: { s: Station }) {
   }, [raw]);
 
   const relancer = () => setStay({ searchNonce: Date.now() });
-  const importer = () => P.say("Import d’annonce par son lien : hors de cet écran pour l’instant.");
-
   /* ---------- Prédicats ---------- */
   const lp: Pred[] = [];
   lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.guests == null || l.guests >= trav, fixed: true });
@@ -613,20 +584,6 @@ function LogementsStation({ s }: { s: Station }) {
   if (lf.photo) lp.push({ id: "photo", label: "Avec photo", fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
   if (lf.firm) lp.push({ id: "firm", label: "Prix relevé aux dates", fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
   if (lf.pos) lp.push({ id: "pos", label: "Position connue", fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
-  if (lf.full)
-    lp.push({
-      id: "full",
-      label: "Fiche complète",
-      fn: (l) => completudeOf(l).ok,
-      remove: () => patchLf({ full: false }),
-    });
-  if (lf.holes)
-    lp.push({
-      id: "holes",
-      label: "Incomplètes",
-      fn: (l) => !completudeOf(l).ok,
-      remove: () => patchLf({ holes: false }),
-    });
 
   const lapply = (ps: Pred[]) => raw.filter((l) => ps.every((p) => p.fn(l)));
   /** Ce que la source n'a pas publié se range **après** ce qu'elle a publié,
@@ -643,37 +600,13 @@ function LogementsStation({ s }: { s: Station }) {
     pp: (a, b) => parNombre(apres(a.total), apres(b.total)),
     total: (a, b) => parNombre(apres(a.total), apres(b.total)),
     cap: (a, b) => parNombre(a.guests ?? null, b.guests ?? null, true),
-    dist: (a, b) => parNombre(distFiltrableM(a), distFiltrableM(b)),
-    trous: (a, b) => {
-      const d = completudeOf(b).trous.length - completudeOf(a).trous.length;
-      return d !== 0 ? d : parNombre(apres(a.total), apres(b.total));
-    },
   };
   const lvis = lapply(lp).sort(tri[lsort]);
   // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
   // pas de cadre, la carte ne peut ni les montrer ni les cacher.
   const parCadre = partagerParBornes(lvis, bornes);
   const affichees = parCadre.visibles;
-  const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const lfree = lp.filter((p) => !p.fixed);
-  // Ce que la zone seule a écarté, nommé par motif : une liste courte sans
-  // explication se lit comme un relevé pauvre, pas comme un filtre qui a joué.
-  const horsZone = raw.filter((l) => geoReasonFor(l, lf.rayon, s.dept) === "hors-zone").length;
-  const autreDomaine = raw.filter((l) => geoReasonFor(l, lf.rayon, s.dept) === "autre-domaine").length;
-  const zoneLbl = [
-    horsZone ? `${horsZone} hors de la zone` : null,
-    autreDomaine ? `${autreDomaine} sur ${autreDomaine > 1 ? "d’autres domaines" : "un autre domaine"}` : null,
-  ]
-    .filter(Boolean)
-    .join(", ");
-  // Ce que la centrale officielle a répondu quand elle n'a rien rendu. Le
-  // serveur envoie la phrase toute faite : station sans centrale relevée,
-  // centrale sans connecteur, connecteur qui sait déjà qu'il ne peut pas, ou
-  // appel échoué. Un zéro sans motif se lirait comme « rien de disponible ».
-  const centrale = liveSources.find((x) => x.source === "Centrale");
-  const centraleLbl =
-    centrale && centrale.count === 0 && !estPauseApi(centrale.error) ? (centrale.error ?? null) : null;
-  const pauses = liveSources.filter((x) => estPauseApi(x.error));
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
   const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
   const totalN = (kept?.total ?? 0) + passGroupN;
@@ -689,16 +622,6 @@ function LogementsStation({ s }: { s: Station }) {
    * publie sa capacité annonçait « la plus grande annonce sa capacité à 0
    * personnes », un chiffre que personne n'a écrit.
    */
-  const ecarts = lp
-    .map((p) => ({ p, n: raw.filter((l) => !p.fn(l)).length }))
-    .filter((x) => x.n > 0);
-  /** Le libellé des masqués, par le formateur déjà éprouvé de `lodgingFilter`.
-   *  Les motifs de l'écran ne sont pas ceux du module : ils passent donc par
-   *  `extra`, qui existe pour cela. */
-  const masquesLbl = droppedLabel(AUCUN_ECART, [
-    ...ecarts.map((x) => ({ singulier: x.p.label, pluriel: x.p.label, n: x.n })),
-  ]);
-
   let lempty: { title: string; hint: string; fix: (() => void) | null } | null = null;
   if (raw.length && !lvis.length) {
     // Le filtre le plus coûteux, verrouillé ou non : c'est lui qu'il faut
@@ -732,17 +655,12 @@ function LogementsStation({ s }: { s: Station }) {
 
   const sources = [...new Set(raw.map((l) => l.source))];
   const bySrc = (src: string) => raw.filter((l) => l.source === src).length;
-  const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
-  const nIncompletes = raw.length - nCompletes;
-  const trous = trousPhrase(raw);
-  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
+  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm"; label: string; n: number }[] = [
     { k: "measured", label: "Distance mesurée", n: raw.filter((l) => distanceOf(l).kind === "measured").length },
     { k: "pos", label: "Position connue", n: raw.filter((l) => l.lat != null).length },
     { k: "link", label: "Lien de réservation", n: raw.filter((l) => l.url).length },
     { k: "photo", label: "Avec photo", n: raw.filter((l) => l.photo).length },
     { k: "firm", label: "Prix relevé aux dates", n: raw.filter((l) => firmOf(l, stay)).length },
-    { k: "full", label: "Fiche complète", n: nCompletes },
-    { k: "holes", label: "Incomplètes", n: nIncompletes },
   ];
 
   // Stables d'un rendu à l'autre : sans cela `memo` sur la carte d'annonce ne
@@ -796,89 +714,89 @@ function LogementsStation({ s }: { s: Station }) {
     [s.id, lvis, recadrages],
   );
 
-  const lead = (() => {
-    const n = lvis.length;
-    if (searching && n === 0) return "Relevé en cours…";
-    if (n === 0) return "Aucun logement disponible.";
-    return `${n} logement${n > 1 ? "s" : ""} disponible${n > 1 ? "s" : ""}.`;
-  })();
-
   return (
     <Coquille>
-      <main className="v7main v7main--pied" id="s-lodging" data-screen-label="2 Logements">
+      <main className="v7main v7main--serre v7main--pied" id="s-lodging" data-screen-label="2 Logements">
         <OngletsStation s={s} actif="logements" />
-        <header className="v7tete v7tete--ligne">
-          <div>
-            <span className="v7surtitre">Étape 2 · Logement</span>
-            <h1>Logements {aStation(s.name)}</h1>
-            <p>{lead}</p>
-          </div>
-          <div className="v7tete__actions">
-            <button type="button" className="btn7 btn7--fantome" onClick={importer}>
-              Importer une annonce
-            </button>
-            <button type="button" className="btn7 btn7--fantome" onClick={relancer} disabled={searching}>
-              {searching ? "Relevé en cours…" : "Relancer le relevé"}
-            </button>
-          </div>
-        </header>
 
-        <section className="ruban7">
-          <div className="ruban7__media">
-            <ImageSlot shape="rect" id={`v7app-ribbon-${s.id}`} placeholder={stationPhotoAbsence(s)} className="ruban7__slot" src={stationPhoto(s)} />
-          </div>
-          <div className="ruban7__corps">
-            <span className="ruban7__crumb">{crumbDomaine(s)}</span>
-            <div className="ruban7__faits">
-              <span>
-                <span>Pistes</span>
-                <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? "non relevées"}</b>
-              </span>
-              <span>
-                <span>Km, domaine</span>
-                <b className={kmLbl(s) ? undefined : "absent"}>{kmLbl(s) ?? "km non publié"}</b>
-              </span>
-              <span>
-                <span>Remontées, domaine</span>
-                <b className={liftsLbl(s) ? undefined : "absent"}>{liftsLbl(s) ?? "non relevé"}</b>
-              </span>
-              <span>
-                <span>Forfait 6 j</span>
-                <b className={passLbl(s) ? undefined : "absent"}>{passLbl(s) ?? "non relevé"}</b>
-              </span>
+        {/* Un seul bloc collant : en-tête, ruban de station et ligne Filtres +
+            tri glissent ensemble, et le panneau de filtres s'y ancre. */}
+        <div className="bloc7">
+          {/* En-tête sur une ligne : le titre à gauche, la pilule de séjour à
+              droite. La barre du haut n'en porte pas sur cet écran. */}
+          <header className="bloc7__tete">
+            <div className="v7tete v7tete--titre">
+              <span className="v7surtitre">Étape 2</span>
+              <h1>Logements {aStation(s.name)}</h1>
             </div>
-          </div>
-          <a
-            href={`/stations/${s.id}`}
-            className="ruban7__lien"
-            onClick={(e) => {
-              e.preventDefault();
-              void go("fiche", { id: s.id });
-            }}
-          >
-            ← Fiche station
-          </a>
-        </section>
+            <div className="sejour7">
+              <button
+                type="button"
+                className="sejour7__pilule"
+                data-sejour-ouvre
+                title="Changer la station, les dates ou le nombre de voyageurs"
+                aria-expanded={P.stayOpen}
+                onClick={() => P.setStayOpen(!P.stayOpen)}
+              >
+                <span className="sejour7__station">{s.name}</span>
+                <span className="sejour7__dates">{datesCourtes(checkIn, checkOut)}</span>
+                <span className="sejour7__groupe">{travLbl(trav)}</span>
+              </button>
+              {/* La loupe relance le relevé pour les dates affichées. C'est la
+                  seule commande de relance : « Relancer le relevé » doublait
+                  l'action. */}
+              <button
+                type="button"
+                className="sejour7__loupe"
+                title="Relancer le relevé pour ces dates"
+                aria-label="Relancer le relevé pour ces dates"
+                onClick={relancer}
+                disabled={searching}
+              >
+                <Icon name="loupe" taille={14} />
+              </button>
+            </div>
+          </header>
 
-        {raw.length ? (
-          <>
-            <section className="filtres7" ref={barre}>
-              <div className="toujours7">
-                <span className="toujours7__label">Toujours appliqué</span>
-                <span className="toujours7__regle">Capacité ≥ {trav}</span>
-                {rooms ? <span className="toujours7__regle">Chambres ≥ {rooms}</span> : null}
-                <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
-                <span className="toujours7__regle">Position GPS</span>
-                <span className="toujours7__regle">Disponible à ces dates</span>
-                {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
-                {centraleLbl ? <span className="toujours7__ecarte">{centraleLbl}</span> : null}
-                {pauses.map((p) => (
-                  <span key={p.source} className="toujours7__ecarte">
-                    {p.error && p.error.startsWith(p.source) ? p.error : `${p.source} : ${p.error}`}
-                  </span>
-                ))}
-                <span>Une capacité non annoncée n'écarte pas l'annonce : elle est dite non annoncée.</span>
+          <section className="ruban7">
+            <div className="ruban7__media">
+              <ImageSlot shape="rect" id={`v7app-ribbon-${s.id}`} placeholder={stationPhotoAbsence(s)} className="ruban7__slot" src={stationPhoto(s)} />
+            </div>
+            <div className="ruban7__corps">
+              <span className="ruban7__crumb">{crumbDomaine(s)}</span>
+              <div className="ruban7__faits">
+                <span>
+                  <span>Pistes</span>
+                  <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? "non relevées"}</b>
+                </span>
+                <span>
+                  <span>Km, domaine</span>
+                  <b className={kmLbl(s) ? undefined : "absent"}>{kmLbl(s) ?? "km non publié"}</b>
+                </span>
+                <span>
+                  <span>Remontées, domaine</span>
+                  <b className={liftsLbl(s) ? undefined : "absent"}>{liftsLbl(s) ?? "non relevé"}</b>
+                </span>
+                <span>
+                  <span>Forfait 6 j</span>
+                  <b className={passLbl(s) ? undefined : "absent"}>{passLbl(s) ?? "non relevé"}</b>
+                </span>
               </div>
+            </div>
+            <a
+              href={`/stations/${s.id}`}
+              className="ruban7__lien"
+              onClick={(e) => {
+                e.preventDefault();
+                void go("fiche", { id: s.id });
+              }}
+            >
+              ← Fiche station
+            </a>
+          </section>
+
+          {raw.length ? (
+            <>
               <div className="filtres7__barre">
                 <button
                   type="button"
@@ -937,296 +855,284 @@ function LogementsStation({ s }: { s: Station }) {
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>
                   <option value="total">Tri : prix total</option>
-                  <option value="dist">Tri : distance</option>
                   <option value="cap">Tri : capacité</option>
-                  <option value="trous">Tri : incomplètes d'abord</option>
                 </select>
               </div>
 
               {lfOpen ? (
-                <div className="pop7 pop7--filtres pop7--large" ref={panneauFiltres}>
-                  <div className="pop7__tete pop7__tete--ligne">
-                    <strong>Filtres</strong>
-                    <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setLfOpen(false)}>
-                      <Icon name="croix" taille={14} />
-                    </button>
-                  </div>
-                  <div className="pop7__bloc pop7__bloc--sans">
-                    <span className="v7surtitre">Zone de recherche</span>
-                    <span className="pop7__note">
-                      Autour du repère de {s.name}. Dix kilomètres par défaut,
-                      trente au plus. Un logement hors de la station n’apparaît
-                      que s’il est sur le même domaine skiable
-                      {s.domain ? ` (${s.domain})` : ""}. Un autre domaine sort,
-                      même tout près.
-                    </span>
-                  </div>
-                  <label className="curseur">
-                    <span className="curseur__lab">
-                      <span>Rayon autour de la station</span>
-                      <span className="curseur__val">{lf.rayon} km</span>
-                    </span>
-                    <input
-                      type="range"
-                      min={RAYON_MIN_KM}
-                      max={RAYON_MAX_KM}
-                      step={1}
-                      value={lf.rayon}
-                      onChange={(e) => patchLf({ rayon: clampRayonKm(+e.target.value) })}
-                    />
-                  </label>
-                  <div className="pop7__bloc">
-                    <span className="v7surtitre">Prix et taille</span>
-                    <span className="pop7__note">
-                      Capacité ≥ {trav} est toujours appliquée ; ces seuils s'y ajoutent et écartent les
-                      annonces qui ne publient pas la valeur.
-                    </span>
-                  </div>
-                  <label className="curseur">
-                    <span className="curseur__lab">
-                      <span>{BUDGET.label}</span>
-                      <span className="curseur__val">
-                        {budget ? `${BUDGET.sign}${fmt(budget)} ${BUDGET.unit}` : "Indifférent"}
+                <div className="bloc7__ancre">
+                  <div className="pop7 pop7--filtres pop7--large" ref={panneauFiltres}>
+                    <div className="pop7__tete pop7__tete--ligne">
+                      <strong>Filtres</strong>
+                      <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setLfOpen(false)}>
+                        <Icon name="croix" taille={14} />
+                      </button>
+                    </div>
+                    <div className="pop7__bloc pop7__bloc--premier">
+                      <span className="v7surtitre">Périmètre de recherche</span>
+                      <span className="pop7__note">
+                        Distance au centre de la station. Une annonce sans coordonnées n'est pas
+                        écartée : elle est dite sans position.
                       </span>
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={BUDGET.max}
-                      step={BUDGET.step}
-                      value={budget}
-                      onChange={(e) => P.setFilters({ budget: +e.target.value })}
-                    />
-                  </label>
-                  {RANGES.map((r) => (
-                    <label key={r.k} className="curseur">
+                      <div className="pop7__puces">
+                        {RAYONS_KM.map((km) => (
+                          <button
+                            key={km}
+                            type="button"
+                            className={`puce puce--rayon${lf.rayon === km ? " puce--on" : ""}`}
+                            onClick={() => patchLf({ rayon: km })}
+                          >
+                            {km} km
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="pop7__bloc pop7__bloc--serre">
+                      <span className="v7surtitre">Prix et taille</span>
+                      <span className="pop7__note">
+                        Capacité ≥ {trav} est toujours appliquée ; ces seuils s'y ajoutent et écartent les
+                        annonces qui ne publient pas la valeur.
+                      </span>
+                    </div>
+                    <label className="curseur">
                       <span className="curseur__lab">
-                        <span>{r.label}</span>
+                        <span>{BUDGET.label}</span>
                         <span className="curseur__val">
-                          {lf[r.k] ? `${r.sign}${fmt(lf[r.k])} ${r.unit}` : "Indifférent"}
+                          {budget ? `${BUDGET.sign}${fmt(budget)} ${BUDGET.unit}` : "Indifférent"}
                         </span>
                       </span>
                       <input
                         type="range"
                         min={0}
-                        max={r.max}
-                        step={r.step}
-                        value={lf[r.k]}
-                        onChange={(e) => patchLf({ [r.k]: +e.target.value })}
+                        max={BUDGET.max}
+                        step={BUDGET.step}
+                        value={budget}
+                        onChange={(e) => P.setFilters({ budget: +e.target.value })}
                       />
                     </label>
-                  ))}
-                  <div className="pop7__bloc">
-                    <span className="v7surtitre">Source</span>
-                    <div className="pop7__sources">
-                      {sources.map((src) => (
-                        <label key={src} className={`puce puce--case${lf.src[src] ? " puce--on" : ""}`}>
-                          <input
-                            type="checkbox"
-                            checked={!!lf.src[src]}
-                            onChange={() => patchLf({ src: { ...lf.src, [src]: !lf.src[src] } })}
-                          />
-                          {src}
-                          <span className="puce__n">{bySrc(src)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="pop7__bloc">
-                    <span className="v7surtitre">Qualité du relevé</span>
-                    <div className="pop7__toggles">
-                      {toggles.map((tg) => (
-                        <label key={tg.k}>
-                          <span>
-                            <input
-                            type="checkbox"
-                            checked={lf[tg.k]}
-                            onChange={() => {
-                              if (tg.k === "full") patchLf({ full: !lf.full, holes: false });
-                              else if (tg.k === "holes") patchLf({ holes: !lf.holes, full: false });
-                              else patchLf({ [tg.k]: !lf[tg.k] });
-                            }}
-                          />
-                            {tg.label}
+                    {RANGES.map((r) => (
+                      <label key={r.k} className="curseur">
+                        <span className="curseur__lab">
+                          <span>{r.label}</span>
+                          <span className="curseur__val">
+                            {lf[r.k] ? `${r.sign}${fmt(lf[r.k])} ${r.unit}` : "Indifférent"}
                           </span>
-                          <span className="pop7__n">{tg.n} annonces</span>
-                        </label>
-                      ))}
+                        </span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={r.max}
+                          step={r.step}
+                          value={lf[r.k]}
+                          onChange={(e) => patchLf({ [r.k]: +e.target.value })}
+                        />
+                      </label>
+                    ))}
+                    <div className="pop7__bloc">
+                      <span className="v7surtitre">Source</span>
+                      <div className="pop7__sources">
+                        {sources.map((src) => (
+                          <label key={src} className={`puce puce--case${lf.src[src] ? " puce--on" : ""}`}>
+                            <input
+                              type="checkbox"
+                              checked={!!lf.src[src]}
+                              onChange={() => patchLf({ src: { ...lf.src, [src]: !lf.src[src] } })}
+                            />
+                            {src}
+                            <span className="puce__n">{bySrc(src)}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="pop7__pied pop7__pied--trait">
-                    <a
-                      href="#"
-                      className="lien-doux"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        reinitialiser();
-                      }}
-                    >
-                      Réinitialiser
-                    </a>
-                    <button type="button" className="btn7" onClick={() => setLfOpen(false)}>
-                      Voir {affichees.length} annonce{affichees.length > 1 ? "s" : ""}
-                    </button>
+                    <div className="pop7__bloc">
+                      <span className="v7surtitre">Qualité du relevé</span>
+                      <div className="pop7__toggles">
+                        {toggles.map((tg) => (
+                          <label key={tg.k}>
+                            <span>
+                              <input
+                              type="checkbox"
+                              checked={lf[tg.k]}
+                              onChange={() => patchLf({ [tg.k]: !lf[tg.k] })}
+                            />
+                              {tg.label}
+                            </span>
+                            <span className="pop7__n">{tg.n} annonces</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="pop7__pied pop7__pied--trait">
+                      <a
+                        href="#"
+                        className="lien-doux"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          reinitialiser();
+                        }}
+                      >
+                        Réinitialiser
+                      </a>
+                      <button type="button" className="btn7" onClick={() => setLfOpen(false)}>
+                        Voir {affichees.length} annonce{affichees.length > 1 ? "s" : ""}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : null}
-            </section>
+            </>
+          ) : null}
+        </div>
 
-            <div className="v7deux">
-              <div className="v7deux__liste">
-                {affichees.length ? (
-                  <div className="grille7-2">
-                    {affichees.map((l) => (
-                      <CarteLogement
-                        key={l.id}
-                        l={l}
-                        retenu={P.lodgeId === l.id}
-                        vue={!!P.seen[l.id]}
-                        vif={actifCarte === l.id}
-                        stay={stay}
-                        trav={trav}
-                        nights={nights}
-                        ouvrir={openSheet}
-                        retenir={keep}
-                        designer={setActifCarte}
-                      />
-                    ))}
-                  </div>
-                ) : lvis.length ? (
-                  <Vide
-                    titre="Aucune annonce dans ce cadre"
-                    actions={
-                      <button type="button" className="btn7" onClick={revoirTout}>
-                        Revoir toutes les annonces
-                      </button>
-                    }
-                  >
-                    La liste suit la carte : {lvis.length} annonce{lvis.length > 1 ? "s" : ""}{" "}
-                    correspond{lvis.length > 1 ? "ent" : ""} au relevé, hors du cadre visible.
-                  </Vide>
-                ) : lempty ? (
-                  <Vide
-                    titre={lempty.title}
-                    actions={
-                      <>
-                        {lempty.fix ? (
-                          <button type="button" className="btn7" onClick={lempty.fix}>
-                            Retirer ce filtre
-                          </button>
-                        ) : null}
-                        <button type="button" className="btn7 btn7--fantome" onClick={reinitialiser}>
-                          Tout réinitialiser
-                        </button>
-                      </>
-                    }
-                  >
-                    {lempty.hint}
-                  </Vide>
-                ) : null}
-              </div>
-              <div className="v7deux__carte">
-                <CarteEpingles
-                  marqueurs={marqueurs}
-                  cadrage={cadrage}
-                  maxZoom={14}
-                  surBornes={setBornes}
-                  actif={actifCarte}
-                  surActif={setActifCarte}
-                  ficheDe={(id) => {
-                    const l = raw.find((x) => x.id === id);
-                    if (!l) return null;
-                    const d = distanceOf(l);
-                    const ferme = firmOf(l, stay);
-                    const pers = prixPersLbl(l, trav);
-                    return (
-                      <>
-                        {l.photo ? (
-                          <div className="fc__media">
-                            <ImageSlot
-                              shape="rect"
-                              id={`v7app-fc-${l.id}`}
-                              placeholder="Photo de l'annonce"
-                              className="fc__slot"
-                              src={l.photo}
-                            />
-                            <span className="fc__source">{l.source}</span>
-                            {l.priceIndicative ? <span className="lodge7__indic">à partir de</span> : null}
-                          </div>
-                        ) : null}
-                        <div className="fc__texte">
-                          {!l.photo ? (
-                            <span className="toujours7__regle">{l.source}</span>
-                          ) : null}
-                          <strong className="fc__titre">{l.title}</strong>
-                          <span className="fc__ligne">
-                            <span className={l.guests == null ? "absent" : undefined}>
-                              {capLbl(l)}
-                            </span>
-                            <span>{bedLbl(l)}</span>
-                          </span>
-                          <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>
-                            {d.text}
-                          </span>
-                          <span className="fc__prix">
-                            <b>{prixLbl(l)}</b>
-                            <span>
-                              {nuitsLbl(nights)}
-                              {pers ? ` · ${pers} / pers.` : ""}
-                            </span>
-                          </span>
-                          <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
-                            <i />
-                            {ferme
-                              ? "Prix relevé aux dates"
-                              : availabilityLabel(availabilityOf(l, stay))}
-                          </span>
-                        </div>
-                      </>
-                    );
-                  }}
-                  actionsDe={(id) => {
-                    const l = lvis.find((x) => x.id === id);
-                    if (!l) return null;
-                    const retenu = P.lodgeId === l.id;
-                    return (
-                      <>
-                        <button type="button" className="btn7" onClick={() => openSheet(id)}>
-                          Voir l'annonce
-                        </button>
-                        <button
-                          type="button"
-                          className="btn7 btn7--fantome"
-                          aria-pressed={retenu}
-                          onClick={() => keep(l.id)}
-                        >
-                          {retenu ? "Retenu" : "Retenir"}
-                        </button>
-                      </>
-                    );
-                  }}
-                  legende={
+        {raw.length ? (
+          <div className="v7deux">
+            <div className="v7deux__liste">
+              {affichees.length ? (
+                <div className="grille7-2">
+                  {affichees.map((l) => (
+                    <CarteLogement
+                      key={l.id}
+                      l={l}
+                      retenu={P.lodgeId === l.id}
+                      vue={!!P.seen[l.id]}
+                      vif={actifCarte === l.id}
+                      stay={stay}
+                      trav={trav}
+                      nights={nights}
+                      ouvrir={openSheet}
+                      retenir={keep}
+                      designer={setActifCarte}
+                    />
+                  ))}
+                </div>
+              ) : lvis.length ? (
+                <Vide
+                  titre="Aucune annonce dans ce cadrage"
+                  actions={
+                    <button type="button" className="btn7" onClick={revoirTout}>
+                      Revoir toutes les annonces
+                    </button>
+                  }
+                >
+                  La liste suit la carte. Déplacez-la, dézoomez, ou revenez au cadrage des
+                  résultats.
+                </Vide>
+              ) : lempty ? (
+                <Vide
+                  titre={lempty.title}
+                  actions={
                     <>
-                      <b>
-                        {affichees.filter((l) => l.lat != null).length} pastille
-                        {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
-                      </b>
-                      <span>
-                        {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont
-                        pas sur la carte. Contour pointillé = déjà vue.
-                      </span>
-                      {parCadre.horsCadre.length ? (
-                        <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                          Revoir les {lvis.length} annonces
-                          <Icon name="fleche-droite" taille={13} />
+                      {lempty.fix ? (
+                        <button type="button" className="btn7" onClick={lempty.fix}>
+                          Retirer ce filtre
                         </button>
                       ) : null}
+                      <button type="button" className="btn7 btn7--fantome" onClick={reinitialiser}>
+                        Tout réinitialiser
+                      </button>
                     </>
                   }
-                />
-              </div>
+                >
+                  {lempty.hint}
+                </Vide>
+              ) : null}
             </div>
-          </>
+            <div className="v7deux__carte v7deux__carte--bas">
+              <CarteEpingles
+                marqueurs={marqueurs}
+                cadrage={cadrage}
+                maxZoom={14}
+                surBornes={setBornes}
+                actif={actifCarte}
+                surActif={setActifCarte}
+                ficheDe={(id) => {
+                  const l = raw.find((x) => x.id === id);
+                  if (!l) return null;
+                  const d = distanceOf(l);
+                  const ferme = firmOf(l, stay);
+                  const pers = prixPersLbl(l, trav);
+                  return (
+                    <>
+                      {l.photo ? (
+                        <div className="fc__media">
+                          <ImageSlot
+                            shape="rect"
+                            id={`v7app-fc-${l.id}`}
+                            placeholder="Photo de l'annonce"
+                            className="fc__slot"
+                            src={l.photo}
+                          />
+                          <span className="fc__source">{l.source}</span>
+                          {l.priceIndicative ? <span className="lodge7__indic">à partir de</span> : null}
+                        </div>
+                      ) : null}
+                      <div className="fc__texte">
+                        {!l.photo ? (
+                          <span className="toujours7__regle">{l.source}</span>
+                        ) : null}
+                        <strong className="fc__titre">{l.title}</strong>
+                        <span className="fc__ligne">
+                          <span className={l.guests == null ? "absent" : undefined}>
+                            {capLbl(l)}
+                          </span>
+                          <span>{bedLbl(l)}</span>
+                        </span>
+                        <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>
+                          {d.text}
+                        </span>
+                        <span className="fc__prix">
+                          <b>{prixLbl(l)}</b>
+                          <span>
+                            {nuitsLbl(nights)}
+                            {pers ? ` · ${pers} / pers.` : ""}
+                          </span>
+                        </span>
+                        <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
+                          <i />
+                          {ferme
+                            ? "Prix relevé aux dates"
+                            : availabilityLabel(availabilityOf(l, stay))}
+                        </span>
+                      </div>
+                    </>
+                  );
+                }}
+                actionsDe={(id) => {
+                  const l = lvis.find((x) => x.id === id);
+                  if (!l) return null;
+                  const retenu = P.lodgeId === l.id;
+                  return (
+                    <>
+                      <button type="button" className="btn7" onClick={() => openSheet(id)}>
+                        Voir l'annonce
+                      </button>
+                      <button
+                        type="button"
+                        className="btn7 btn7--fantome"
+                        aria-pressed={retenu}
+                        onClick={() => keep(l.id)}
+                      >
+                        {retenu ? "Retenu" : "Retenir"}
+                      </button>
+                    </>
+                  );
+                }}
+                legende={
+                  <>
+                    <b>
+                      {affichees.filter((l) => l.lat != null).length} pastille
+                      {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
+                    </b>
+                    {parCadre.horsCadre.length ? (
+                      <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                        Revoir les {lvis.length} annonces →
+                      </button>
+                    ) : null}
+                  </>
+                }
+              />
+            </div>
+          </div>
         ) : (
           <Vide
             titre={`Aucune annonce relevée pour ${s.name}`}
@@ -1234,9 +1140,6 @@ function LogementsStation({ s }: { s: Station }) {
               <>
                 <button type="button" className="btn7" onClick={relancer} disabled={searching}>
                   {searching ? "Relevé en cours…" : "Lancer le relevé"}
-                </button>
-                <button type="button" className="btn7 btn7--fantome" onClick={importer}>
-                  Importer une annonce par son lien
                 </button>
               </>
             }

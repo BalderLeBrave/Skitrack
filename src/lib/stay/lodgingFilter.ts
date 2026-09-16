@@ -160,13 +160,18 @@ export function isStudioListing(listing: FilterSubject): boolean {
 /**
  * Le rayon de recherche, en kilomètres.
  *
- * Dix par défaut : c'est « à la station ». On peut l'ouvrir jusqu'à trente
- * pour les villages du **même domaine skiable**. Au-delà, ce n'est plus
- * une recherche de station.
+ * Douze par défaut : c'est « à la station ». On peut l'ouvrir jusqu'à
+ * cinquante pour les villages du **même domaine skiable**. Au-delà, ce n'est
+ * plus une recherche de station.
+ *
+ * Quatre valeurs proposées, celles de la maquette (App.dc.html:873) : un
+ * curseur au kilomètre près laissait choisir un rayon de 17 km, que personne
+ * ne sait juger.
  */
-export const RAYON_DEFAUT_KM = 10;
+export const RAYONS_KM = [5, 12, 25, 50] as const;
+export const RAYON_DEFAUT_KM = 12;
 export const RAYON_MIN_KM = 1;
-export const RAYON_MAX_KM = 30;
+export const RAYON_MAX_KM = 50;
 export { LIMITE_TERRITOIRE_M };
 
 

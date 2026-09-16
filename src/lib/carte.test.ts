@@ -34,6 +34,7 @@ function station(id: string, name: string, minM: number, maxM: number, km: numbe
     fmMaxM: null,
     demM: null,
     pinKind: "base",
+  posRelevee: true,
     gpsDup: false,
     lat: 45,
     lon: 6,

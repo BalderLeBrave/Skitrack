@@ -16,6 +16,8 @@
 
 import {
   CLASSEUR,
+  GPS_FIXES,
+  posRelevee,
   shareFromCounts,
   type ColorCounts,
   type ColorShare,
@@ -49,6 +51,8 @@ export type Station = {
   gpsDup: boolean;
   lat: number;
   lon: number;
+  /** La position vient-elle d'un relevé, ou du centre de la commune ? */
+  posRelevee: boolean;
   /** Mix de pistes à l'échelle de la fiche Skiinfo. */
   slopes: StationSlopes;
   origin: StationOrigin;
@@ -155,8 +159,12 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     demM: depot?.demM ?? null,
     pinKind: depot?.pinKind ?? "inconnu",
     gpsDup: depot?.gpsDup ?? false,
-    lat: depot?.lat ?? fm.lat,
-    lon: depot?.lon ?? fm.lon,
+    // Une correction relevée à la main prime le pin du dépôt comme le centre
+    // de commune du classeur : c'est la position de la station, pas celle
+    // d'un point d'intérêt voisin.
+    lat: GPS_FIXES[entry.id]?.[0] ?? depot?.lat ?? fm.lat,
+    lon: GPS_FIXES[entry.id]?.[1] ?? depot?.lon ?? fm.lon,
+    posRelevee: posRelevee(entry.id, depot?.pinKind ?? "inconnu"),
     slopes,
     origin: depot ? "depot" : "classeur",
     inClasseur: true,
@@ -192,6 +200,9 @@ const DEPOT_ONLY: Station[] = DEPOT.filter((r) => !IN_CLASSEUR.has(r.id)).map((r
   const slopes = slopesFromSkiinfo(r.id);
   return {
     ...r,
+    lat: GPS_FIXES[r.id]?.[0] ?? r.lat,
+    lon: GPS_FIXES[r.id]?.[1] ?? r.lon,
+    posRelevee: posRelevee(r.id, r.pinKind),
     photo: skiinfoPhoto(r.id),
     slopes,
     origin: "depot",

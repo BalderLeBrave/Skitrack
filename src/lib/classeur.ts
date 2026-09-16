@@ -45,6 +45,49 @@ export const DOMAIN_FIXES: Record<string, string> = {
   Samoens: "Le Grand Massif",
 };
 
+/** Positions relevées à la main sur le centre de la station, le 15 septembre
+ *  2026. Le classeur France Montagnes pose le pin au centre de la **commune** :
+ *  Lanslebourg tombait à 5,7 km de ses pistes, Val Joly à 3,5 km, Arc 1600 à
+ *  2,3 km. Vingt-deux stations sont concernées.
+ *
+ *  Corriger ici et non dans le fichier généré, qui serait écrasé au prochain
+ *  import — même raison que `DOMAIN_FIXES`.
+ *
+ *  Trois identifiants diffèrent de ceux du relevé : `avoriaz-1800`,
+ *  `chamonix-mont-blanc` et `les-carroz-d-araches` s'appellent ici `avoriaz`,
+ *  `chamonix` et `les-carroz`. */
+export const GPS_FIXES: Record<string, readonly [number, number]> = {
+  "aime-2000": [45.5085, 6.6725], // Aime 2000
+  "arc-1600": [45.5735, 6.796], // Arc 1600
+  "arc-1800": [45.5717, 6.806], // Arc 1800
+  "arc-1950": [45.5731, 6.8285], // Arc 1950
+  "arc-2000": [45.5715, 6.8319], // Arc 2000
+  "argentiere": [45.984, 6.928], // Argentière
+  "avoriaz": [46.1917, 6.7733], // Avoriaz 1800
+  "belle-plagne": [45.5128, 6.706], // Belle Plagne
+  "bisanne-1500": [45.7526, 6.5243], // Bisanne 1500
+  "chamonix": [45.9237, 6.8694], // Chamonix Mont-Blanc
+  "courchevel-moriond-1650": [45.4165, 6.652], // Courchevel Moriond 1650
+  "flaine": [46.0056, 6.69], // Flaine
+  "hauteluce-val-joly": [45.7593, 6.6046], // Hauteluce Val Joly
+  "la-daille": [45.4595, 6.962], // La Daille
+  "lanslebourg": [45.286, 6.879], // Lanslebourg
+  "lanslevillard": [45.29, 6.908], // Lanslevillard
+  "le-bettex": [45.86, 6.696], // Le Bettex
+  "le-chinaillon": [45.9647, 6.4509], // Le Chinaillon
+  "le-fornet": [45.4397, 7.019], // Le Fornet
+  "le-tour": [45.9997, 6.9473], // Le Tour
+  "les-carroz": [46.0268, 6.6385], // Les Carroz d'Araches
+  "les-coches": [45.5472, 6.743], // Les Coches
+};
+
+/** Vrai quand la position vient d'un relevé : une correction de `GPS_FIXES`,
+ *  ou un pin mesuré du dépôt (`pinKind` autre qu'`inconnu`). Faux quand elle
+ *  est le centre de la commune, et l'infobulle de la carte le dit. */
+export function posRelevee(id: string, pinKind: string): boolean {
+  return id in GPS_FIXES || pinKind !== "inconnu";
+}
+
 /** Libellé que le classeur emploie quand OpenSkiMap ne publie pas de nom de
  *  domaine. **Ce n'est pas une identité partagée** : trois domaines distincts
  *  et sans nom le portent, chacun avec ses mesures propres (1,4 / 0,4 / 0,2 km).

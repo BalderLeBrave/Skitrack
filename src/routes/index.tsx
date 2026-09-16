@@ -46,7 +46,7 @@ import {
   type ChipKey,
 } from "@/lib/parcours";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
-import { aStation, maxM } from "@/lib/v7";
+import { maxM } from "@/lib/v7";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -168,6 +168,44 @@ function Home() {
   // La séquence est donc écartée juste après, avant la peinture, de sorte que
   // rien ne clignote.
   const [entree, setEntree] = useState<"anime" | "faite">("anime");
+  /** L'indice de défilement : caché au-delà de 45 % de la couverture, revenu
+   *  en remontant. `cueVu` retire le retard d'entrée dès le premier masquage —
+   *  les 4,2 s ne valent que pour le premier affichage de la page. */
+  const hero = useRef<HTMLDivElement>(null);
+  const [cueCache, setCueCache] = useState(false);
+  const [cueVu, setCueVu] = useState(false);
+  useEffect(() => {
+    const lire = () => {
+      const h = hero.current?.offsetHeight ?? window.innerHeight;
+      const passe = window.scrollY > h * 0.45;
+      setCueCache(passe);
+      if (passe) setCueVu(true);
+    };
+    lire();
+    window.addEventListener("scroll", lire, { passive: true });
+    return () => window.removeEventListener("scroll", lire);
+  }, []);
+  /** Descendre jusqu'au bas de la couverture. La maquette anime le défilement
+   *  à la main — 420 ms, courbe quadratique entrante-sortante — plutôt que par
+   *  `scrollIntoView`, dont la durée n'est pas réglable. Sous « mouvement
+   *  réduit », le saut est net. */
+  const descendre = useCallback(() => {
+    const cible = (hero.current?.offsetHeight ?? window.innerHeight) - 60;
+    const depart = window.scrollY;
+    const delta = cible - depart;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      window.scrollTo(0, cible);
+      return;
+    }
+    const t0 = performance.now();
+    const pas = (t: number) => {
+      const p = Math.min(1, (t - t0) / 420);
+      const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+      window.scrollTo(0, depart + delta * e);
+      if (p < 1) requestAnimationFrame(pas);
+    };
+    requestAnimationFrame(pas);
+  }, []);
   avantPeinture(() => {
     if (dejaVue()) setEntree("faite");
   }, []);
@@ -272,7 +310,7 @@ function Home() {
   const nuitsLues = nightsBetween(checkIn, checkOut);
   const datesInversees = nuitsLues == null || nuitsLues <= 0;
   const dira = retenue
-    ? `Rechercher ouvrira les logements ${aStation(retenue.name)}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
+    ? `Rechercher ouvrira la fiche de ${retenue.name}.`
     : preds.length
       ? `Rechercher ouvrira ${retenues} station${retenues > 1 ? "s" : ""} sur ${all.length}, selon vos critères.`
       : `Rechercher ouvrira les ${all.length} stations, tri par défaut.`;
@@ -291,10 +329,15 @@ function Home() {
       setStayRange(checkIn, lendemain.toISOString().slice(0, 10));
     }
     enRoute.current = true;
-    // a. Une station est renseignée : sa page, onglet Logements.
+    // a. Une station est renseignée : sa fiche.
+    //
+    // Le dépôt ouvrait les logements (commit 408a7cb). La maquette ouvre la
+    // fiche, et c'est elle qui fait foi : celui qui nomme une station veut
+    // d'abord la lire — altitude, mix de pistes, forfait — avant d'arriver
+    // devant des annonces. Les logements restent à un clic, par l'onglet.
     if (retenue) {
       P.retain(retenue.id);
-      void go("lodging");
+      void go("fiche", { id: retenue.id });
       return;
     }
     // b. Au moins un autre critère : Comparer, liste filtrée par ces critères.
@@ -357,7 +400,7 @@ function Home() {
   return (
     <Coquille>
       <main className="v7main v7main--pleine" id="s-home" data-screen-label="Accueil">
-        <div className={`hero7${entree === "anime" ? " hero7--entree" : ""}`}>
+        <div className={`hero7${entree === "anime" ? " hero7--entree" : ""}`} ref={hero}>
           <ImageSlot shape="rect"
             id="v7app-cover"
             placeholder="Photo de couverture : un domaine en février, au petit matin. Crédit obligatoire."
@@ -611,7 +654,12 @@ function Home() {
               ))}
             </div>
           </div>
-          <span className="hero7__suite" aria-hidden>
+          <button
+            type="button"
+            className={`hero7__suite${cueVu ? "" : " hero7__suite--premiere"}${cueCache ? " hero7__suite--cache" : ""}`}
+            onClick={descendre}
+            tabIndex={cueCache ? -1 : undefined}
+          >
             <span>Plus bas : grands domaines et massifs</span>
             <svg
               width="18"
@@ -625,7 +673,7 @@ function Home() {
             >
               <path d="M12 5v13M6 13l6 6 6-6" />
             </svg>
-          </span>
+          </button>
           <span className="hero7__credit">Crédit photo à relever</span>
         </div>
 
@@ -633,7 +681,7 @@ function Home() {
           <section className="home7__section">
             <header className="home7__tete">
               <div>
-                <h2>Les plus grands domaines</h2>
+                <h2>Plus grands domaines</h2>
                 <p>
                   Une station par forfait relié, classées par kilomètres de pistes. Km et remontées
                   sont des valeurs de domaine.
@@ -648,7 +696,7 @@ function Home() {
                   void go("compare");
                 }}
               >
-                Comparer les stations, sur la carte →
+                Toutes les stations →
               </a>
             </header>
             <div className="home7__grille3">

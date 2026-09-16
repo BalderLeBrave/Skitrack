@@ -89,7 +89,13 @@ export function predicats(e: EtatRecherche): Pred[] {
   const P = useParcours.getState();
   const out: Pred[] = [];
   const ql = foldName(e.q);
-  if (ql)
+  // Choisir un massif dans les suggestions de l'accueil pose le texte **et** le
+  // critère : le champ montre ce qui est cherché, c'est la règle du magasin.
+  // Deux prédicats en sortaient, donc deux jetons pour un seul geste, à retirer
+  // l'un après l'autre. Quand le texte redit mot pour mot le massif déjà posé,
+  // il ne dit rien de plus : le critère exact l'emporte.
+  const qRedit = !!e.massif && ql === foldName(e.massif);
+  if (ql && !qRedit)
     out.push({
       id: "q",
       label: `« ${e.q.trim()} »`,
@@ -104,7 +110,14 @@ export function predicats(e: EtatRecherche): Pred[] {
       id: "massif",
       label: e.massif,
       fn: (s) => s.massif === e.massif,
-      retirer: () => P.setMassif(null),
+      // Quand le texte redit le massif, ce jeton porte les deux : les retirer
+      // ensemble, sinon le texte reparaîtrait aussitôt sous son propre jeton.
+      retirer: qRedit
+        ? () => {
+            P.setMassif(null);
+            P.setQ("");
+          }
+        : () => P.setMassif(null),
     });
   for (const r of SEUILS) {
     const v = e.filters[r.k];

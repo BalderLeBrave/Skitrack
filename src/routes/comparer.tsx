@@ -157,6 +157,12 @@ function Comparer() {
      Le compteur, la liste et les marqueurs dérivent tous de `dansCadre`. La
      légende de la carte annonçait `list.length`, borné à quarante : elle disait
      « 40 épingles » quelles que soient les trois cents posées à côté. */
+  /** Ce que le champ de recherche annonce au survol : ce qu'il retient
+   *  aujourd'hui, ou ce qu'il accepte quand il est vide. */
+  const cqLbl = P.q
+    ? `${visible.length} station${visible.length > 1 ? "s" : ""} où « ${P.q.trim()} » apparaît dans le nom, le domaine ou le massif${preds.length > 1 ? ", les autres filtres compris" : ""}.`
+    : "Nom de la station, domaine skiable (Les 3 Vallées, Paradiski) ou massif (Vanoise, Vosges). La liste et la carte suivent.";
+
   const parCadre = useMemo(() => partagerParBornes(sorted, bornes), [sorted, bornes]);
   const dansCadre = parCadre.visibles;
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
@@ -359,6 +365,35 @@ function Comparer() {
 
         <section className="filtres7">
           <div className="filtres7__barre">
+            {/* Le texte cherché était un critère qu'on ne pouvait plus corriger :
+                il s'appliquait, il s'écrivait dans l'adresse, il portait un
+                jeton — mais aucun champ ne le saisissait hors de l'accueil. La
+                maquette en fait le premier élément de cette barre. */}
+            <label className="filtres7__champ">
+              <Icon name="loupe" taille={16} />
+              <input
+                value={P.q}
+                onChange={(e) => P.setQ(e.target.value)}
+                placeholder="Station, domaine skiable ou massif"
+                title={cqLbl}
+                aria-label="Chercher une station, un domaine skiable ou un massif"
+              />
+              {P.q ? (
+                <button
+                  type="button"
+                  className="filtres7__vider"
+                  title="Effacer la recherche"
+                  aria-label="Effacer la recherche"
+                  onClick={() => P.setQ("")}
+                >
+                  <Icon name="croix" taille={11} />
+                </button>
+              ) : null}
+            </label>
+            {/* Le panneau s'ancre sous son bouton. Il s'ancrait à gauche de la
+                barre, ce qui le mettait sous le champ de recherche depuis que
+                celui-ci ouvre la ligne. */}
+            <div className="filtres7__groupe">
             <button
               type="button"
               className={`puce puce--encre${filtersOpen ? " puce--on" : ""}`}
@@ -370,18 +405,152 @@ function Comparer() {
               Filtres
               {preds.length ? <span className="puce__badge">{preds.length}</span> : null}
             </button>
-            {chips.map((ch) => (
-              <button
-                key={ch.k}
-                type="button"
-                className={`puce${ch.on ? " puce--on" : ""}`}
-                aria-pressed={ch.on}
-                onClick={() => P.setChip(ch.k, !ch.on)}
-              >
-                {ch.on ? <Icon name="coche" taille={13} /> : null}
-                {ch.label}
-              </button>
-            ))}
+            {filtersOpen ? (
+              <div className="pop7 pop7--filtres" ref={panneau}>
+                <div className="pop7__tete pop7__tete--ligne">
+                  <strong>Filtres</strong>
+                  <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setFiltersOpen(false)}>
+                    <Icon name="croix" taille={14} />
+                  </button>
+                </div>
+                {/* Les raccourcis vivent ici, comme dans la maquette : la barre
+                    porte déjà le champ, le bouton Filtres, le compteur et le
+                    tri, et six pastilles de plus la mettaient sur deux lignes. */}
+                <div className="pop7__bloc pop7__bloc--tete">
+                  <span className="v7surtitre">Raccourcis</span>
+                  <div className="pop7__puces">
+                    {chips.map((ch) => (
+                      <button
+                        key={ch.k}
+                        type="button"
+                        className={`puce${ch.on ? " puce--on" : ""}`}
+                        aria-pressed={ch.on}
+                        onClick={() => P.setChip(ch.k, !ch.on)}
+                      >
+                        {ch.on ? <Icon name="coche" taille={13} /> : null}
+                        {ch.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {SEUILS.map((r) => (
+                  <label key={r.k} className="curseur">
+                    <span className="curseur__lab">
+                      <span>{r.label}</span>
+                      <span className="curseur__val">
+                        {F[r.k]
+                          ? r.k === "pass"
+                            ? `≤ ${fmt(F[r.k])} €`
+                            : `≥ ${fmt(F[r.k])} ${r.unit}`
+                          : "Indifférent"}
+                      </span>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={r.max}
+                      step={r.step}
+                      value={F[r.k]}
+                      onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
+                    />
+                  </label>
+                ))}
+                <label className="champ7">
+                  <span>Massif</span>
+                  <select
+                    className="select7 select7--champ"
+                    value={P.massif ?? ""}
+                    onChange={(e) => {
+                      P.setMassif(e.target.value || null);
+                      P.setFilters({ dom: "" });
+                    }}
+                  >
+                    <option value="">Tous</option>
+                    {massifs.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="champ7">
+                  <span>Domaine skiable</span>
+                  <select
+                    className="select7 select7--champ"
+                    value={F.dom}
+                    onChange={(e) => P.setFilters({ dom: e.target.value })}
+                  >
+                    <option value="">Tous</option>
+                    <option value="__none">Non renseigné</option>
+                    {doms.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="pop7__bloc">
+                  <div className="pop7__ligne">
+                    <span className="pop7__stitre">Répartition par couleur, au minimum</span>
+                    <span className="segments">
+                      {(Object.keys(UNITES) as ColorUnit[]).map((u) => (
+                        <button
+                          key={u}
+                          type="button"
+                          className={P.unit === u ? "on" : undefined}
+                          onClick={() => P.setUnit(u)}
+                        >
+                          {UNITES[u].lbl}
+                        </button>
+                      ))}
+                    </span>
+                  </div>
+                  <div className="pop7__deux">
+                    {COLS.map((c) => (
+                      <label key={c.key} className="curseur">
+                        <span className="curseur__lab curseur__lab--petit">
+                          <span className="curseur__couleur">
+                            <i style={{ background: c.token }} />
+                            {c.label}
+                          </span>
+                          <span className="curseur__val">
+                            {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNITES[P.unit].suf}` : "Indifférent"}
+                          </span>
+                        </span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={UNITES[P.unit].max}
+                          step={UNITES[P.unit].step}
+                          value={F.col[c.key]}
+                          onChange={(e) => P.setColFilter(c.key, +e.target.value)}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <span className="pop7__note">
+                    Tronçons par couleur : OpenSkiMap, à l'échelle du domaine. Les km par couleur sont
+                    estimés (part × km du domaine).
+                  </span>
+                </div>
+                <div className="pop7__pied pop7__pied--trait">
+                  <a
+                    href="#"
+                    className="lien-doux"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      P.resetFilters();
+                    }}
+                  >
+                    Réinitialiser
+                  </a>
+                  <button type="button" className="btn7" onClick={() => setFiltersOpen(false)}>
+                    {seeLbl}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            </div>
             <span className="filtres7__espace" />
             {/* Le compte des éléments réellement rendus dans le cadre visible :
                 la liste, les pastilles et ce nombre dérivent du même tableau. */}
@@ -390,7 +559,7 @@ function Comparer() {
                 ? visible.length
                   ? "Aucune station dans le cadre : dézoomez pour en voir"
                   : "Aucune station ne remplit ces critères"
-                : `${dansCadre.length} station${dansCadre.length > 1 ? "s" : ""} sur ${all.length}`}
+                : `${dansCadre.length} station${dansCadre.length > 1 ? "s" : ""} sur ${visible.length}`}
               {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
               {sansPos ? ` · ${sansPos}` : ""}
             </span>
@@ -434,131 +603,6 @@ function Comparer() {
             </div>
           ) : null}
 
-          {filtersOpen ? (
-            <div className="pop7 pop7--filtres" ref={panneau}>
-              <div className="pop7__tete pop7__tete--ligne">
-                <strong>Filtres</strong>
-                <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setFiltersOpen(false)}>
-                  <Icon name="croix" taille={14} />
-                </button>
-              </div>
-              {SEUILS.map((r) => (
-                <label key={r.k} className="curseur">
-                  <span className="curseur__lab">
-                    <span>{r.label}</span>
-                    <span className="curseur__val">
-                      {F[r.k]
-                        ? r.k === "pass"
-                          ? `≤ ${fmt(F[r.k])} €`
-                          : `≥ ${fmt(F[r.k])} ${r.unit}`
-                        : "Indifférent"}
-                    </span>
-                  </span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={r.max}
-                    step={r.step}
-                    value={F[r.k]}
-                    onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
-                  />
-                </label>
-              ))}
-              <label className="champ7">
-                <span>Massif</span>
-                <select
-                  className="select7 select7--champ"
-                  value={P.massif ?? ""}
-                  onChange={(e) => {
-                    P.setMassif(e.target.value || null);
-                    P.setFilters({ dom: "" });
-                  }}
-                >
-                  <option value="">Tous</option>
-                  {massifs.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="champ7">
-                <span>Domaine skiable</span>
-                <select
-                  className="select7 select7--champ"
-                  value={F.dom}
-                  onChange={(e) => P.setFilters({ dom: e.target.value })}
-                >
-                  <option value="">Tous</option>
-                  <option value="__none">Non renseigné</option>
-                  {doms.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="pop7__bloc">
-                <div className="pop7__ligne">
-                  <span className="pop7__stitre">Répartition par couleur, au minimum</span>
-                  <span className="segments">
-                    {(Object.keys(UNITES) as ColorUnit[]).map((u) => (
-                      <button
-                        key={u}
-                        type="button"
-                        className={P.unit === u ? "on" : undefined}
-                        onClick={() => P.setUnit(u)}
-                      >
-                        {UNITES[u].lbl}
-                      </button>
-                    ))}
-                  </span>
-                </div>
-                <div className="pop7__deux">
-                  {COLS.map((c) => (
-                    <label key={c.key} className="curseur">
-                      <span className="curseur__lab curseur__lab--petit">
-                        <span className="curseur__couleur">
-                          <i style={{ background: c.token }} />
-                          {c.label}
-                        </span>
-                        <span className="curseur__val">
-                          {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNITES[P.unit].suf}` : "Indifférent"}
-                        </span>
-                      </span>
-                      <input
-                        type="range"
-                        min={0}
-                        max={UNITES[P.unit].max}
-                        step={UNITES[P.unit].step}
-                        value={F.col[c.key]}
-                        onChange={(e) => P.setColFilter(c.key, +e.target.value)}
-                      />
-                    </label>
-                  ))}
-                </div>
-                <span className="pop7__note">
-                  Tronçons par couleur : OpenSkiMap, à l'échelle du domaine. Les km par couleur sont
-                  estimés (part × km du domaine).
-                </span>
-              </div>
-              <div className="pop7__pied pop7__pied--trait">
-                <a
-                  href="#"
-                  className="lien-doux"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    P.resetFilters();
-                  }}
-                >
-                  Réinitialiser
-                </a>
-                <button type="button" className="btn7" onClick={() => setFiltersOpen(false)}>
-                  {seeLbl}
-                </button>
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <div className="v7deux">

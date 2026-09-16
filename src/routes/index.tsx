@@ -130,7 +130,7 @@ function Home() {
   const plage = usePlage();
   // La station retenue, s'il y en a une : c'est elle qui décide de ce que
   // « Rechercher » va ouvrir.
-  const retenue = P.stationId ? stationById(P.stationId) : undefined;
+  const retenueChoisie = P.stationId ? stationById(P.stationId) : undefined;
 
   const all = STATIONS;
   const top = useMemo(() => popular(all), [all]);
@@ -142,6 +142,16 @@ function Home() {
   // vide ici.
   const q = P.q;
   const setQ = P.setQ;
+  // Un nom de station tapé en toutes lettres désigne cette station, même sans
+  // passer par une suggestion : la maquette fait ce repli (App.dc.html:881) et
+  // sans lui, taper « Val Thorens » puis Entrée menait à une liste d'une ligne.
+  // Comparaison sur le nom replié, pas sur `toLowerCase` : « megeve » doit
+  // trouver Megève.
+  const retenue = useMemo(() => {
+    if (retenueChoisie) return retenueChoisie;
+    const cible = foldName(q);
+    return cible ? all.find((s) => foldName(s.name) === cible) : undefined;
+  }, [retenueChoisie, q, all]);
   const [hp, setHp] = useState<Panneau>(null);
   // L'entrée désignée au clavier dans la liste de suggestions. -1 : aucune.
   const [iSugg, setISugg] = useState(-1);

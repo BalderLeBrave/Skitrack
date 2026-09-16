@@ -921,6 +921,18 @@
   border-top: 0;
   gap: calc(var(--spacing) * 1);
 }
+/* Premier bloc du panneau : le trait est dessous, pas dessus. */
+.pop7__bloc--tete {
+  padding-top: 0;
+  padding-bottom: calc(var(--spacing) * 3.5);
+  border-top: 0;
+  border-bottom: 1px solid var(--color-line-douce);
+}
+.pop7__puces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
 .pop7__ligne {
   display: flex;
   justify-content: space-between;
@@ -1382,6 +1394,21 @@
   position: absolute;
   inset: 0;
   color: var(--color-muted);
+}
+/* La station retenue se reconnaît dans la liste, en vis-à-vis du kilométrage.
+   L'anneau `stc7--cmp` dit l'appartenance à la comparaison, qui est autre
+   chose. Pastille pleine : le couple marque / surface est apparié dans les
+   deux thèmes, contrairement aux fonds translucides voisins. */
+.stc7__retenue {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-marque);
+  font-size: var(--text-note);
+  font-weight: 700;
+  color: var(--color-surface);
 }
 .stc7__km {
   position: absolute;
@@ -2030,16 +2057,77 @@
   font-size: var(--text-detail);
   color: var(--color-muted);
 }
+/* La barre reste à portée pendant qu'on descend quarante vignettes : le
+   compteur, le tri et le bouton Filtres sont ce qu'on va rechercher en cours
+   de lecture. La maquette la colle à 60 px, sous sa seule barre ; ici la
+   pilule de séjour est conservée, donc l'origine est celle de la carte
+   (138 px), pour que les deux colonnes se calent sur la même ligne.
+   `sticky` est aussi un ancrage : `.pop7--filtres` s'y accroche toujours. */
 .filtres7 {
-  position: relative;
+  position: sticky;
+  top: 138px;
+  z-index: 29;
   display: grid;
   gap: calc(var(--spacing) * 3);
+  margin: 0 calc(var(--spacing) * -2);
+  padding: calc(var(--spacing) * 2);
+  border-radius: var(--radius-surface);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  backdrop-filter: blur(14px);
 }
 .filtres7__barre {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 2);
   flex-wrap: wrap;
+}
+/* Le champ de recherche, premier élément de la barre. */
+.filtres7__champ {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2.5);
+  height: calc(var(--spacing) * 10);
+  padding: 0 calc(var(--spacing) * 4);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+.filtres7__champ:focus-within {
+  border-color: var(--color-ink);
+}
+.filtres7__champ input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-corps);
+  color: var(--color-ink);
+  outline: none;
+}
+.filtres7__vider {
+  display: grid;
+  place-items: center;
+  width: calc(var(--spacing) * 6.5);
+  height: calc(var(--spacing) * 6.5);
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-line-douce);
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.filtres7__vider:hover {
+  background: var(--color-line);
+}
+/* L'ancre du panneau de filtres : son bouton, pas la barre entière. */
+.filtres7__groupe {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 .filtres7__espace {
   flex: 1;

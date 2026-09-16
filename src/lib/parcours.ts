@@ -233,7 +233,22 @@ export const useParcours = create<Parcours>()(
        * explicitement avec le reste de ses réglages.
        */
       resetFilters: () =>
-        set((s) => ({ q: "", massif: null, filters: { ...filtersVierges(), budget: s.filters.budget } })),
+        // Vider le champ relâche la station retenue, ici comme dans `setQ` :
+        // le champ et l'intention ne peuvent pas diverger. Sans cela,
+        // « Tout réinitialiser » depuis Comparer laissait un champ vide, une
+        // station encore retenue, les étapes 2 et 3 déverrouillées sans que
+        // rien ne les nomme, et l'accueil annonçant « Rechercher ouvrira les
+        // logements aux 2 Alpes » au-dessus d'un champ vide. L'accueil s'en
+        // tirait en appelant `setDestination(null)` juste après ; les trois
+        // appels de Comparer, non. La règle appartient au magasin.
+        set((s) => ({
+          q: "",
+          massif: null,
+          stationId: null,
+          lodgeId: null,
+          booked: false,
+          filters: { ...filtersVierges(), budget: s.filters.budget },
+        })),
       restart: () => set({ stationId: null, lodgeId: null, cmp: [], pick: null, booked: false, seen: {} }),
       setStayOpen: (stayOpen) => set({ stayOpen }),
       setShared: (shared) => set({ shared }),

@@ -56,3 +56,32 @@ export function useEchap(ouvert: boolean, fermer: () => void) {
     return () => document.removeEventListener("keydown", echap);
   }, [ouvert, fermer]);
 }
+
+/**
+ * Publie la hauteur d'un élément collant dans une propriété CSS du document.
+ *
+ * La barre de filtres et la carte collent à la même origine : sans cette
+ * mesure, la barre recouvre le haut de la carte dès qu'on descend. Une valeur
+ * figée ne suffit pas — la barre grandit d'une ligne quand les jetons de
+ * critères apparaissent, et de deux quand ils débordent. La maquette n'a pas
+ * ce problème : elle range l'en-tête, le ruban et la barre dans un seul bloc
+ * collant, et cale sa carte 254 px plus bas, à la main.
+ *
+ * Défaut `0px` : sans JavaScript, la carte reste où elle était.
+ */
+export function useHauteurCollante(hote: React.RefObject<HTMLElement | null>, propriete: string) {
+  useEffect(() => {
+    const el = hote.current;
+    const racine = document.documentElement;
+    if (!el) return;
+    const mesurer = () =>
+      racine.style.setProperty(propriete, `${Math.round(el.getBoundingClientRect().height)}px`);
+    mesurer();
+    const ro = new ResizeObserver(mesurer);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      racine.style.removeProperty(propriete);
+    };
+  }, [hote, propriete]);
+}

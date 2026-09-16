@@ -590,10 +590,7 @@ function Home() {
                 <button
                   type="button"
                   className="hero7__jetons-tout"
-                  onClick={() => {
-                    P.resetFilters();
-                    P.setDestination(null);
-                  }}
+                  onClick={() => P.resetFilters()}
                 >
                   Tout retirer
                 </button>

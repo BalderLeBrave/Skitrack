@@ -13,7 +13,7 @@ import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epingleStation, ETAGE } from "@/components/v7/epingle";
-import { useFermeture } from "@/components/v7/fermeture";
+import { useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
 import { CarteStation } from "@/components/v7/CarteStation";
@@ -122,9 +122,11 @@ function Comparer() {
   // « Plus » et le panneau de séjour. La référence était posée sur le panneau
   // et n'était lue nulle part : le portage s'était arrêté là.
   const panneau = useRef<HTMLDivElement>(null);
+  const barre = useRef<HTMLElement>(null);
   const fermerFiltres = useCallback(() => setFiltersOpen(false), []);
 
   useFermeture(filtersOpen, fermerFiltres, panneau, '[data-panel-btn="filtres"]');
+  useHauteurCollante(barre, "--filtres-h");
 
   const massifs = useMemo(() => [...new Set(all.map((s) => s.massif))].sort(), [all]);
   const domPool = P.massif ? all.filter((s) => s.massif === P.massif) : all;
@@ -363,7 +365,7 @@ function Comparer() {
           </Vide>
         )}
 
-        <section className="filtres7">
+        <section className="filtres7" ref={barre}>
           <div className="filtres7__barre">
             {/* Le texte cherché était un critère qu'on ne pouvait plus corriger :
                 il s'appliquait, il s'écrivait dans l'adresse, il portait un

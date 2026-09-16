@@ -1148,10 +1148,14 @@
   font-size: var(--text-detail);
   color: var(--color-muted);
 }
+/* La carte se cale sous la barre de filtres, qui colle à la même origine.
+   `--filtres-h` est mesurée au rendu (`useHauteurCollante`) : la barre grandit
+   d'une ligne quand les jetons de critères apparaissent. Sans JavaScript, la
+   valeur vaut 0 et la carte reste où elle était. */
 .v7deux__carte {
   position: sticky;
-  top: 138px;
-  height: calc(100vh - 162px);
+  top: calc(138px + var(--filtres-h, 0px));
+  height: calc(100vh - 162px - var(--filtres-h, 0px));
   min-height: 520px;
   border-radius: var(--radius-surface);
   overflow: hidden;

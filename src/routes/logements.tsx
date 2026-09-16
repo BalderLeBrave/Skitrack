@@ -19,7 +19,7 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
-import { useEchap, useFermeture } from "@/components/v7/fermeture";
+import { useEchap, useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { dire } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
@@ -37,6 +37,7 @@ import {
   droppedLabel,
   geoReasonFor,
   gpsPrecis,
+  normalizedBedrooms,
   RAYON_DEFAUT_KM,
   RAYON_MAX_KM,
   RAYON_MIN_KM,
@@ -461,8 +462,10 @@ function LogementsStation({ s }: { s: Station }) {
   const fermerFiltres = useCallback(() => setLfOpen(false), []);
   const fermerVolet = useCallback(() => setSheetId(null), []);
   const panneauFiltres = useRef<HTMLDivElement>(null);
+  const barre = useRef<HTMLElement>(null);
   useFermeture(lfOpen, fermerFiltres, panneauFiltres, '[data-panel-btn="filtres"]');
   useEchap(sheetId != null, fermerVolet);
+  useHauteurCollante(barre, "--filtres-h");
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
@@ -526,8 +529,23 @@ function LogementsStation({ s }: { s: Station }) {
   /* ---------- Prédicats ---------- */
   const lp: Pred[] = [];
   lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.guests == null || l.guests >= trav, fixed: true });
+  // Les pièces comptent, comme dans `lodgingFilter`. Les deux règles de
+  // chambres ne lisaient que `bedrooms` : une annonce de centrale publiant
+  // « 2 pièces » sans chambres traversait en silence « Chambres ≥ 4 » — elle en
+  // a une —, et un « 6 pièces » était écarté par « Chambres annoncées ≥ 3 »
+  // alors qu'il en a cinq. La conversion était écrite, documentée et testée
+  // (`normalizedBedrooms`) ; l'écran ne l'appelait pas. `bedLbl` continue
+  // d'afficher le mot de la source : la conversion n'a lieu qu'à la comparaison.
   if (rooms)
-    lp.push({ id: "rooms", label: `Chambres ≥ ${rooms}`, fn: (l) => l.bedrooms == null || l.bedrooms >= rooms, fixed: true });
+    lp.push({
+      id: "rooms",
+      label: `Chambres ≥ ${rooms}`,
+      fn: (l) => {
+        const n = normalizedBedrooms(l);
+        return n == null || n >= rooms;
+      },
+      fixed: true,
+    });
   // La zone est toujours appliquée : une recherche de logements a toujours un
   // périmètre. Son rayon se règle dans le panneau, il ne se retire pas.
   lp.push({
@@ -568,7 +586,16 @@ function LogementsStation({ s }: { s: Station }) {
       remove: () => patchLf({ pp: 0 }),
     });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
-  if (lf.rooms) lp.push({ id: "lrooms", label: `Chambres annoncées ≥ ${lf.rooms}`, fn: (l) => l.bedrooms != null && l.bedrooms >= lf.rooms, remove: () => patchLf({ rooms: 0 }) });
+  if (lf.rooms)
+    lp.push({
+      id: "lrooms",
+      label: `Chambres annoncées ≥ ${lf.rooms}`,
+      fn: (l) => {
+        const n = normalizedBedrooms(l);
+        return n != null && n >= lf.rooms;
+      },
+      remove: () => patchLf({ rooms: 0 }),
+    });
   if (lf.dist)
     lp.push({
       id: "dist",
@@ -835,7 +862,7 @@ function LogementsStation({ s }: { s: Station }) {
 
         {raw.length ? (
           <>
-            <section className="filtres7">
+            <section className="filtres7" ref={barre}>
               <div className="toujours7">
                 <span className="toujours7__label">Toujours appliqué</span>
                 <span className="toujours7__regle">Capacité ≥ {trav}</span>

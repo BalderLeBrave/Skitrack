@@ -63,12 +63,26 @@ export function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
 }
 
-/** Ferme au clic dehors et à Échap. */
-function useFermeture(ouvert: boolean, fermer: () => void, hote: React.RefObject<HTMLElement | null>) {
+/** Ferme au clic dehors et à Échap.
+ *
+ *  `garde` nomme les boutons qui ouvrent ce panneau sans être dedans. Sans
+ *  elle, cliquer sur un tel bouton alors que le panneau est ouvert ferme au
+ *  `mousedown` puis rouvre au `click` : le panneau ne se referme jamais par
+ *  son propre bouton. La maquette tient la même règle autrement, en excluant
+ *  `[data-panel-btn]` de son écouteur (SKITRACK v7 - App.dc.html:552-556). */
+function useFermeture(
+  ouvert: boolean,
+  fermer: () => void,
+  hote: React.RefObject<HTMLElement | null>,
+  garde?: string,
+) {
   useEffect(() => {
     if (!ouvert) return;
     const dehors = (e: MouseEvent) => {
-      if (!hote.current?.contains(e.target as Node)) fermer();
+      const cible = e.target as Node;
+      if (hote.current?.contains(cible)) return;
+      if (garde && cible instanceof Element && cible.closest(garde)) return;
+      fermer();
     };
     const echap = (e: KeyboardEvent) => {
       if (e.key === "Escape") fermer();
@@ -79,7 +93,7 @@ function useFermeture(ouvert: boolean, fermer: () => void, hote: React.RefObject
       document.removeEventListener("mousedown", dehors);
       document.removeEventListener("keydown", echap);
     };
-  }, [ouvert, fermer, hote]);
+  }, [ouvert, fermer, hote, garde]);
 }
 
 function MenuPlus() {
@@ -155,7 +169,7 @@ function Barre() {
             !actif && ((j.go === "lodging" && !stationId) || (j.go === "booking" && !lodgeId));
           const titre =
             j.go === "lodging" && verrou
-              ? "Retenez d'abord une station"
+              ? t("nav.lodgingLocked")
               : j.go === "booking" && verrou
                 ? t("nav.bookingLocked")
                 : undefined;
@@ -218,6 +232,7 @@ function PiluleSejour() {
       <button
         type="button"
         className="v7sejour__pilule"
+        data-sejour-ouvre
         aria-expanded={stayOpen}
         onClick={() => setStayOpen(!stayOpen)}
       >
@@ -238,7 +253,7 @@ function PanneauSejour() {
   const { checkIn, checkOut, nights } = useSejour();
   const plage = usePlage();
   const hote = useRef<HTMLDivElement>(null);
-  useFermeture(true, () => setStayOpen(false), hote);
+  useFermeture(true, () => setStayOpen(false), hote, "[data-sejour-ouvre]");
   return (
     <div className="v7panneau" ref={hote} role="dialog" aria-label="Votre séjour">
       <div className="v7panneau__tete">

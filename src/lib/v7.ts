@@ -84,6 +84,26 @@ export function sub(s: Station): string {
   return `${s.massif} · ${s.domain ?? "domaine non renseigné"}`;
 }
 
+/** « aux 2 Alpes », « au Corbier », « à l'Alpe d'Huez », « à Tignes ».
+ *
+ *  Soixante-quatre stations du référentiel portent un article dans leur nom :
+ *  vingt-six en « Les », trente-cinq en « Le », une en « L' », deux en
+ *  « Alpe ». Coller un « à » invariable devant leur nom écrit « à Les Arcs »
+ *  — une faute visible, et sur un bouton, l'endroit où elle se lit le plus.
+ *
+ *  Les deux dernières règles ne sont pas décoratives : « Alpe d'Huez » et
+ *  « Alpe du Grand Serre » n'ont pas leur article dans le référentiel, mais le
+ *  français le leur donne à l'oral comme à l'écrit. */
+export function aStation(nom: string | null | undefined): string {
+  const n = nom?.trim();
+  if (!n) return "";
+  if (/^les /i.test(n)) return `aux ${n.slice(4)}`;
+  if (/^le /i.test(n)) return `au ${n.slice(3)}`;
+  if (/^l'/i.test(n)) return `à l'${n.slice(2)}`;
+  if (/^alpes? /i.test(n)) return `à l'${n}`;
+  return `à ${n}`;
+}
+
 export const SHARE_VIDE = { green: 0, blue: 0, red: 0, black: 0 } as const;
 
 /** Prédicats des raccourcis de la maquette (`CH`). */

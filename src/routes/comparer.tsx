@@ -31,6 +31,7 @@ import {
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
   altLbl,
+  aStation,
   CHIPS,
   forfaitOf,
   glacier,
@@ -326,7 +327,7 @@ function Comparer() {
                 className="btn7 btn7--grand"
                 onClick={() => pickId && retain(pickId)}
               >
-                Voir les logements à {pickName}
+                Voir les logements {aStation(pickName)}
                 <Icon name="fleche-droite" taille={16} />
               </button>
             </div>

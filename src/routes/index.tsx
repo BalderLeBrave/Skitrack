@@ -37,7 +37,7 @@ import {
   type ChipKey,
 } from "@/lib/parcours";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
-import { maxM } from "@/lib/v7";
+import { aStation, maxM } from "@/lib/v7";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -247,7 +247,7 @@ function Home() {
   const nuitsLues = nightsBetween(checkIn, checkOut);
   const datesInversees = nuitsLues == null || nuitsLues <= 0;
   const dira = retenue
-    ? `Rechercher ouvrira les logements à ${retenue.name}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
+    ? `Rechercher ouvrira les logements ${aStation(retenue.name)}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
     : preds.length
       ? `Rechercher ouvrira ${retenues} station${retenues > 1 ? "s" : ""} sur ${all.length}, selon vos critères.`
       : `Rechercher ouvrira les ${all.length} stations, tri par défaut.`;

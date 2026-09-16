@@ -20,6 +20,7 @@ import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
+import { dire } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
@@ -58,7 +59,7 @@ import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
-import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import { altLbl, aStation, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
@@ -387,7 +388,7 @@ function Logements() {
   // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
   useEffect(() => {
     if (!useParcours.getState().stationId) {
-      P.say("Retenez d’abord une station.");
+      P.say(dire("nav.lodgingLocked"));
       void go("compare");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -746,7 +747,7 @@ function LogementsStation({ s }: { s: Station }) {
         <header className="v7tete v7tete--ligne">
           <div>
             <span className="v7surtitre">Étape 2 · Logement</span>
-            <h1>Logements à {s.name}</h1>
+            <h1>Logements {aStation(s.name)}</h1>
             <p>{lead}</p>
           </div>
           <div className="v7tete__actions">

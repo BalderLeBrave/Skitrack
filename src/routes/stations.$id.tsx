@@ -33,7 +33,18 @@ import {
 } from "@/lib/parcours";
 import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
-import { altLbl, crumb, kmLbl, liftsLbl, maxM, minM, skiinfoUrl, villageLbl, villageM } from "@/lib/v7";
+import {
+  altLbl,
+  aStation,
+  crumb,
+  kmLbl,
+  liftsLbl,
+  maxM,
+  minM,
+  skiinfoUrl,
+  villageLbl,
+  villageM,
+} from "@/lib/v7";
 import { webcamsForStation } from "@/lib/webcams";
 
 export const Route = createFileRoute("/stations/$id")({ component: Fiche });
@@ -645,7 +656,7 @@ function FicheBody({ s }: { s: Station }) {
                 void go("lodging");
               }}
             >
-              {retained ? `Voir les logements à ${s.name}` : "Retenir et voir les logements"}
+              {retained ? `Voir les logements ${aStation(s.name)}` : "Retenir et voir les logements"}
               <Icon name="fleche-droite" taille={16} />
             </button>
             <div>

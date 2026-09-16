@@ -14,6 +14,7 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { useForfait } from "@/components/v7/useForfait";
 import { resolveListing } from "@/lib/accommodation";
+import { dire } from "@/lib/i18n";
 import {
   datesLbl,
   eur,
@@ -25,7 +26,7 @@ import {
 } from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, mediaTon, prixLbl } from "@/lib/v7";
+import { altLbl, aStation, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, mediaTon, prixLbl } from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
 
@@ -43,10 +44,10 @@ function Reservation() {
   useEffect(() => {
     const { stationId: st, lodgeId: lo } = useParcours.getState();
     if (!st) {
-      P.say("Retenez d’abord une station.");
+      P.say(dire("nav.lodgingLocked"));
       void go("compare");
     } else if (!lo || !resolveListing(lo)) {
-      P.say("Choisissez d’abord un logement.");
+      P.say(dire("nav.bookingLocked"));
       void go("lodging");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,7 +120,7 @@ function Reservation() {
           }}
         >
           <Icon name="chevron-gauche" taille={14} />
-          Logements à {s.name}
+          Logements {aStation(s.name)}
         </a>
         <header className="v7tete">
           <span className="v7surtitre">Étape 3 · Réservation</span>
@@ -248,6 +249,7 @@ function Reservation() {
                   <span>Séjour</span>
                   <a
                     href="#"
+                    data-sejour-ouvre
                     onClick={(e) => {
                       e.preventDefault();
                       P.setStayOpen(!P.stayOpen);

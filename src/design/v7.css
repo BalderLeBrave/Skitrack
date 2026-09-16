@@ -1051,7 +1051,7 @@
   gap: 0;
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
 }
-/* Ancré à droite de son bouton, dans le bandeau figé : il s'ouvre sous la barre
+/* Ancré à droite de son bouton, dans la barre figée : il s'ouvre sous la barre
    quel que soit le défilement, et sa hauteur est calée sur la place restante. */
 .pop7--filtres {
   right: 0;
@@ -1091,7 +1091,7 @@
   padding-bottom: calc(var(--spacing) * 30);
   gap: calc(var(--spacing) * 5.5);
 }
-/* Marges resserrées, pour les écrans à bandeau figé : ce qui est collé en haut
+/* Marges resserrées, pour les écrans à barre figée : ce qui est collé en haut
    mange déjà de la hauteur, l'écran ne doit pas en reprendre. */
 .v7main--serre {
   padding-top: calc(var(--spacing) * 4);
@@ -1161,16 +1161,16 @@
   font-size: var(--text-detail);
   color: var(--color-muted);
 }
-/* La carte tient exactement dans la place laissée par le bandeau figé.
-   `--bandeau-h` est mesurée par l'écran quand son bandeau a plusieurs lignes
+/* La carte tient exactement dans la place laissée par la barre figée.
+   `--barre-h` est mesurée par l'écran quand sa barre a plusieurs lignes
    (Logements), et vaut sinon la hauteur d'une ligne (Comparer). Le plancher
-   `min-height: 520px` qu'elle portait la faisait dépasser du cadre dès que le
-   bandeau montait, et poussait la légende hors de l'écran. */
+   `min-height: 520px` qu'elle portait la faisait dépasser du cadre dès que la
+   barre montait, et poussait la légende hors de l'écran. */
 .v7deux__carte {
   position: sticky;
-  /* 60 px de barre, la hauteur du bandeau, 10 px de respiration. */
-  top: calc(60px + var(--bandeau-h, 56px) + 10px);
-  height: calc(100vh - 60px - var(--bandeau-h, 56px) - 34px);
+  /* 60 px de navigation, la hauteur de la barre, 10 px de respiration. */
+  top: calc(60px + var(--barre-h, 56px) + 10px);
+  height: calc(100vh - 60px - var(--barre-h, 56px) - 34px);
   border-radius: var(--radius-surface);
   overflow: hidden;
   background: var(--color-carte-fond);
@@ -1867,20 +1867,35 @@
 }
 
 /* L'indice qu'il y a une suite : discret, decoratif, jamais annonce. */
+/* L'indice de défilement est cliquable : il descend jusqu'aux domaines. Le bas
+   passe à 18 px pour qu'il ne chevauche plus les raccourcis. */
 .hero7__suite {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--spacing) * 4);
+  bottom: calc(var(--spacing) * 4.5);
   transform: translateX(-50%);
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  color: color-mix(in srgb, var(--color-photo-texte) 82%, transparent);
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: color-mix(in srgb, var(--color-photo-texte) 86%, transparent);
   font-size: var(--text-note);
   font-weight: 600;
   text-shadow: 0 1px 10px color-mix(in srgb, var(--color-photo-voile) 50%, transparent);
-  pointer-events: none;
+  cursor: pointer;
+}
+.hero7__suite:hover {
+  color: var(--color-photo-texte);
+}
+/* Au retour en haut de page : il reparaît tout de suite, sans rejouer l'attente
+   de la première arrivée, qui le laissait invisible plusieurs secondes. */
+.hero7__suite--vite {
+  animation: hero7-entre 0.35s var(--ease-ui) both !important;
+  animation-delay: 0s !important;
 }
 .hero7__suite svg {
   animation: hero7-suite 2.4s var(--ease-ui) infinite;
@@ -2080,36 +2095,36 @@
   font-size: var(--text-detail);
   color: var(--color-muted);
 }
-/* ── Bandeau figé de Comparer et de Logements ───────────────────────────────
+/* ── Barre figée de Comparer et de Logements ───────────────────────────────
    Recherche, Filtres et Tri sur une seule ligne, collée sous la barre du haut :
    ils restent atteignables tout le long du défilement, sans reprendre la place
    d'un en-tête pleine hauteur. Les deux écrans partagent ce gabarit — c'est ce
-   qui leur donne la même hauteur de bandeau. */
-.bandeau7 {
+   qui leur donne la même hauteur de barre. */
+.barre7 {
   position: sticky;
   top: 60px;
   z-index: 29;
   display: grid;
   gap: calc(var(--spacing) * 2.5);
   /* Les marges négatives portent le fond jusque sous les jetons voisins : sans
-     elles, le contenu défilant se lisait dans la gouttière du bandeau. */
+     elles, le contenu défilant se lisait dans la gouttière de la barre. */
   margin: 0 calc(var(--spacing) * -2);
   padding: calc(var(--spacing) * 2);
   border-radius: var(--radius-surface);
   background: color-mix(in srgb, var(--color-fond) 92%, transparent);
   backdrop-filter: blur(14px);
 }
-.bandeau7__ligne {
+.barre7__ligne {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 2);
 }
-.bandeau7__espace {
+.barre7__espace {
   flex: 1;
 }
 /* Le séjour de Logements : station · dates · voyageurs, et la loupe qui relance
    le relevé. Il est dans la ligne du titre, à droite, et non dans la barre du
-   haut — c'est ce qui donne à ce bandeau la hauteur de celui de Comparer. */
+   haut — c'est ce qui donne à cette barre la hauteur de celle de Comparer. */
 .sejour7 {
   display: flex;
   align-items: center;
@@ -2220,7 +2235,7 @@
 .rech7__effacer:hover {
   background: var(--color-line);
 }
-/* L'ancre du panneau Filtres. Il s'ouvre depuis le bandeau figé, donc il suit
+/* L'ancre du panneau Filtres. Il s'ouvre depuis la barre figée, donc il suit
    le défilement au lieu de rester au haut du document. */
 .filtres7__ancre {
   position: relative;
@@ -2673,6 +2688,8 @@
   color: var(--color-muted);
   text-wrap: pretty;
 }
+/* L'encadré de droite, collé sous la barre du haut et la pilule de séjour.
+   Une retouche sur les cartes l'avait décalé ; il revient à son calage. */
 .aside7 {
   position: sticky;
   top: 138px;

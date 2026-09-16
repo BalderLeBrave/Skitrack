@@ -459,23 +459,23 @@ function LogementsStation({ s }: { s: Station }) {
   };
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
-  // Le bandeau figé, et l'ancre du panneau Filtres qu'il porte : le panneau
+  // La barre figée, et l'ancre du panneau Filtres qu'elle porte : le panneau
   // s'ouvre sous la barre quel que soit le défilement, et un clic dehors le
   // ferme. Posé plus bas, il restait accroché au haut du document.
-  const bandeau = useRef<HTMLDivElement>(null);
+  const barre = useRef<HTMLDivElement>(null);
   const ancreLf = useRef<HTMLDivElement>(null);
   useFermeturePanneau(lfOpen, () => setLfOpen(false), ancreLf);
-  // La hauteur du bandeau, mesurée et publiée en variable CSS : la carte se
+  // La hauteur de la barre, mesurée et publiée en variable CSS : la carte se
   // cale exactement dessous. Une valeur écrite en dur se décalait dès que les
   // jetons actifs passaient à la ligne, et la carte débordait de l'écran.
   useEffect(() => {
-    const el = bandeau.current;
-    // Sur le `main` et non sur le bandeau : une variable CSS descend, elle ne
-    // traverse pas vers un frère, et la carte est un frère du bandeau.
+    const el = barre.current;
+    // Sur le `main` et non sur la barre : une variable CSS descend, elle ne
+    // traverse pas vers un frère, et la carte est un frère de la barre.
     const cible = el?.closest("main");
     if (!el || !cible) return;
     const mesurer = () =>
-      cible.style.setProperty("--bandeau-h", `${Math.round(el.getBoundingClientRect().height)}px`);
+      cible.style.setProperty("--barre-h", `${Math.round(el.getBoundingClientRect().height)}px`);
     mesurer();
     const ro = new ResizeObserver(mesurer);
     ro.observe(el);
@@ -774,7 +774,7 @@ function LogementsStation({ s }: { s: Station }) {
 
   /** Le compte des annonces, dans la ligne des filtres. Il remplace la phrase
    *  qui tenait sous le titre : elle disait la même chose une ligne plus haut,
-   *  et le bandeau figé n'a pas la place de le dire deux fois. */
+   *  et la barre figée n'a pas la place de le dire deux fois. */
   const compteLbl = (() => {
     const n = lvis.length;
     if (searching && n === 0) return "Relevé en cours…";
@@ -790,15 +790,15 @@ function LogementsStation({ s }: { s: Station }) {
             puis Filtres et tri. Ils étaient dans trois conteneurs, chacun à sa
             propre hauteur, donc aucun ne pouvait glisser sous les deux autres
             et ils se recouvraient au défilement. */}
-        <div className="bandeau7" ref={bandeau}>
-        <header className="bandeau7__ligne">
+        <div className="barre7" ref={barre}>
+        <header className="barre7__ligne">
           <div className="v7tete v7tete--compacte">
             <span className="v7surtitre">Étape 2</span>
             <h1>Logements {aStation(s.name)}</h1>
           </div>
-          <span className="bandeau7__espace" />
+          <span className="barre7__espace" />
           {/* Le séjour est passé ici, à droite du titre : la barre du haut n'en
-              porte plus sur cet écran, et le bandeau garde la hauteur de celui
+              porte plus sur cet écran, et la barre garde la hauteur de celle
               de Comparer. */}
           <div className="sejour7">
             <button
@@ -867,7 +867,7 @@ function LogementsStation({ s }: { s: Station }) {
 
         {raw.length ? (
           <section className="filtres7">
-            <div className="bandeau7__ligne filtres7__ancre" ref={ancreLf}>
+            <div className="barre7__ligne filtres7__ancre" ref={ancreLf}>
                 <button
                   type="button"
                   data-panel-btn="lf"
@@ -1280,10 +1280,8 @@ function LogementsStation({ s }: { s: Station }) {
               <dt>Forfaits {trav} × 6 j</dt>
               <dd className={forfait?.j6 != null ? undefined : "absent"}>{forfait?.j6 != null ? eur(passGroupN) : "non relevés"}</dd>
             </div>
-            <div>
-              <dt>Trajet</dt>
-              <dd className="absent">non calculé</dd>
-            </div>
+            {/* La ligne « Trajet — non calculé » est retirée, ici comme dans le
+                récapitulatif : elle occupait une colonne pour ne rien porter. */}
           </dl>
           <div className="pied7__total">
             <span>Total du séjour</span>

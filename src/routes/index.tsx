@@ -153,6 +153,47 @@ function Home() {
     if (dejaVue()) setEntree("faite");
   }, []);
 
+  /* ---------- L'indice de défilement ----------
+     Il ne sert plus dès que les domaines sont à l'écran, et il revient si l'on
+     remonte tout en haut. `indiceVu` retient qu'il a déjà été affiché : au
+     retour, il reparaît en 0,35 s au lieu de rejouer l'attente de la première
+     arrivée, qui le laissait invisible quatre secondes. */
+  const hero = useRef<HTMLDivElement>(null);
+  const [montrerIndice, setMontrerIndice] = useState(true);
+  const [indiceVu, setIndiceVu] = useState(false);
+  useEffect(() => {
+    const suivre = () => {
+      const h = hero.current;
+      const passe = window.scrollY > (h ? h.offsetHeight * 0.45 : 200);
+      setMontrerIndice(!passe);
+      if (passe) setIndiceVu(true);
+    };
+    window.addEventListener("scroll", suivre, { passive: true });
+    suivre();
+    return () => window.removeEventListener("scroll", suivre);
+  }, []);
+
+  /** Descendre jusqu'aux domaines. Le défilement doux du navigateur ne fait
+   *  rien dans la coquille Electron : l'animation est écrite à la main. */
+  const descendre = () => {
+    const h = hero.current;
+    const vers = h ? h.offsetHeight - 60 : 600;
+    const depuis = window.scrollY;
+    // Respecter le réglage système : un saut net plutôt qu'une animation.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      window.scrollTo(0, vers);
+      return;
+    }
+    const t0 = performance.now();
+    const pas = () => {
+      const k = Math.min(1, (performance.now() - t0) / 420);
+      const e = k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) * (1 - k);
+      window.scrollTo(0, depuis + (vers - depuis) * e);
+      if (k < 1) requestAnimationFrame(pas);
+    };
+    requestAnimationFrame(pas);
+  };
+
   // **Arriver à l'accueil ne relâche plus la station retenue.**
   //
   // Un effet la relâchait au montage, pour qu'un choix fait la veille ne
@@ -332,7 +373,7 @@ function Home() {
   return (
     <Coquille>
       <main className="v7main v7main--pleine" id="s-home" data-screen-label="Accueil">
-        <div className={`hero7${entree === "anime" ? " hero7--entree" : ""}`}>
+        <div className={`hero7${entree === "anime" ? " hero7--entree" : ""}`} ref={hero}>
           <ImageSlot shape="rect"
             id="v7app-cover"
             placeholder="Photo de couverture : un domaine en février, au petit matin. Crédit obligatoire."
@@ -353,12 +394,11 @@ function Home() {
           />
           <div className="hero7__in">
             <h1>
-              <span className="hero7__t1">Le bon domaine,</span>{" "}
-              <span className="hero7__t2">à la bonne altitude.</span>
+              <span className="hero7__t1">Comparez les stations,</span>{" "}
+              <span className="hero7__t2">puis les logements.</span>
             </h1>
             <p className="hero7__lead">
-              Altitudes réelles, mix de pistes, forfaits relevés et logements au total du séjour. Ce
-              qui n'est pas relevé est dit absent.
+              Altitude des pistes, forfait 6 jours et total du séjour, station par station.
             </p>
             {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
             <div className="sbar7__hote hero7__barre">
@@ -589,33 +629,43 @@ function Home() {
               ))}
             </div>
           </div>
-          <span className="hero7__suite" aria-hidden>
-            <span>La suite plus bas</span>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {/* L'indice de défilement est un bouton : il descend jusqu'aux
+              domaines. Il s'efface dès qu'ils sont à l'écran et revient si l'on
+              remonte tout en haut — sans rejouer l'attente du premier
+              affichage, qui le laissait invisible quatre secondes. */}
+          {montrerIndice ? (
+            <button
+              type="button"
+              className={`hero7__suite${indiceVu ? " hero7__suite--vite" : ""}`}
+              onClick={descendre}
             >
-              <path d="M12 5v13M6 13l6 6 6-6" />
-            </svg>
-          </span>
+              <span>Plus bas : grands domaines et massifs</span>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          ) : null}
           <span className="hero7__credit">Crédit photo à relever</span>
         </div>
 
         <div className="v7wrap home7">
           <section className="home7__section">
             <header className="home7__tete">
+              {/* La phrase sous le titre est supprimée : « une station par
+                  forfait relié, classées par kilomètres » ne s'accordait pas et
+                  n'apprenait rien que les cartes ne disent. */}
               <div>
-                <h2>Les plus grands domaines</h2>
-                <p>
-                  Une station par forfait relié, classées par kilomètres de pistes. Km et remontées
-                  sont des valeurs de domaine.
-                </p>
+                <h2>Plus grands domaines</h2>
               </div>
               {/* Un lien de vue, pas une remise à zéro : il emmenait les
                   critères de l'utilisateur avec lui, sans le dire. */}
@@ -626,7 +676,7 @@ function Home() {
                   void go("compare");
                 }}
               >
-                Comparer les stations, sur la carte →
+                Toutes les stations →
               </a>
             </header>
             <div className="home7__grille3">

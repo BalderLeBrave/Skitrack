@@ -39,6 +39,7 @@ import {
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
   altLbl,
+  aStation,
   CHIPS,
   forfaitOf,
   glacier,
@@ -136,16 +137,16 @@ function Comparer() {
   // ouvert, un clic dehors le ferme.
   const ancre = useRef<HTMLDivElement>(null);
   useFermeturePanneau(filtersOpen, () => setFiltersOpen(false), ancre);
-  // La hauteur du bandeau figé, publiée en variable CSS sur le `main` : la
+  // La hauteur de la barre figée, publiée en variable CSS sur le `main` : la
   // carte se cale exactement dessous. Une valeur écrite en dur se décalait dès
   // que le champ de recherche passait à la ligne.
-  const bandeau = useRef<HTMLElement>(null);
+  const barre = useRef<HTMLElement>(null);
   useEffect(() => {
-    const el = bandeau.current;
+    const el = barre.current;
     const cible = el?.closest("main");
     if (!el || !cible) return;
     const mesurer = () =>
-      cible.style.setProperty("--bandeau-h", `${Math.round(el.getBoundingClientRect().height)}px`);
+      cible.style.setProperty("--barre-h", `${Math.round(el.getBoundingClientRect().height)}px`);
     mesurer();
     const ro = new ResizeObserver(mesurer);
     ro.observe(el);
@@ -278,8 +279,8 @@ function Comparer() {
 
         {/* Recherche, Filtres et Tri sur une ligne, collée sous la barre du
             haut : ils restent atteignables tout le long du défilement. */}
-        <section className="bandeau7" ref={bandeau}>
-          <div className="bandeau7__ligne">
+        <section className="barre7" ref={barre}>
+          <div className="barre7__ligne">
             <label className="rech7">
               <Icon name="loupe" taille={16} />
               <input
@@ -568,7 +569,7 @@ function Comparer() {
                 className="btn7 btn7--grand"
                 onClick={() => pickId && retain(pickId)}
               >
-                Voir les logements à {pickName}
+                Voir les logements {aStation(pickName ?? "")}
                 <Icon name="fleche-droite" taille={16} />
               </button>
             </div>

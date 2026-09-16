@@ -19,6 +19,7 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
+import { useFermeturePanneau } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
@@ -43,9 +44,11 @@ import {
   type FilterSubject,
 } from "@/lib/stay/lodgingFilter";
 import {
+  datesLbl,
   eur,
   eurCents,
   fmt,
+  groupLbl,
   stationPhoto,
   stationPhotoAbsence,
   useParcours,
@@ -58,7 +61,7 @@ import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
-import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import { altLbl, aStation, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
@@ -406,6 +409,10 @@ function Logements() {
 function LogementsStation({ s }: { s: Station }) {
   const go = useGo();
   const P = useParcours();
+  // Le panneau « Votre séjour » de la coquille, ouvert depuis la pilule du
+  // bandeau : la barre du haut n'en porte plus sur cet écran.
+  const stayOpen = P.stayOpen;
+  const setStayOpen = P.setStayOpen;
   const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const forfait = useForfait(s);
   const liveListings = useStay((x) => x.liveListings);
@@ -441,8 +448,39 @@ function LogementsStation({ s }: { s: Station }) {
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
   // disent la même chose. Même correction que sur Comparer.
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  // Un compteur de recadrages : il entre dans la clé `cadrage`, donc le lien
+  // « Revoir les N annonces » oublie le cadre **et** redemande à la carte de se
+  // poser sur l'ensemble. Sans lui, la liste revenait mais la carte restait où
+  // l'utilisateur l'avait laissée. Même mécanique que sur Comparer.
+  const [recadrages, setRecadrages] = useState(0);
+  const revoirTout = () => {
+    setBornes(null);
+    setRecadrages((n) => n + 1);
+  };
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
+  // Le bandeau figé, et l'ancre du panneau Filtres qu'il porte : le panneau
+  // s'ouvre sous la barre quel que soit le défilement, et un clic dehors le
+  // ferme. Posé plus bas, il restait accroché au haut du document.
+  const bandeau = useRef<HTMLDivElement>(null);
+  const ancreLf = useRef<HTMLDivElement>(null);
+  useFermeturePanneau(lfOpen, () => setLfOpen(false), ancreLf);
+  // La hauteur du bandeau, mesurée et publiée en variable CSS : la carte se
+  // cale exactement dessous. Une valeur écrite en dur se décalait dès que les
+  // jetons actifs passaient à la ligne, et la carte débordait de l'écran.
+  useEffect(() => {
+    const el = bandeau.current;
+    // Sur le `main` et non sur le bandeau : une variable CSS descend, elle ne
+    // traverse pas vers un frère, et la carte est un frère du bandeau.
+    const cible = el?.closest("main");
+    if (!el || !cible) return;
+    const mesurer = () =>
+      cible.style.setProperty("--bandeau-h", `${Math.round(el.getBoundingClientRect().height)}px`);
+    mesurer();
+    const ro = new ResizeObserver(mesurer);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
   // Le budget du séjour : critère partagé, pas un réglage de cet écran.
   const budget = P.filters.budget;
@@ -591,6 +629,8 @@ function LogementsStation({ s }: { s: Station }) {
   // pas de cadre, la carte ne peut ni les montrer ni les cacher.
   const parCadre = partagerParBornes(lvis, bornes);
   const affichees = parCadre.visibles;
+  /** Les annonces réellement posées sur la carte : la légende les compte. */
+  const positionnees = affichees.filter((l) => l.lat != null);
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const lfree = lp.filter((p) => !p.fixed);
   // Ce que la zone seule a écarté, nommé par motif : une liste courte sans
@@ -728,33 +768,62 @@ function LogementsStation({ s }: { s: Station }) {
    *  cadre : calculée sur le cadre, recadrer changerait la liste, qui changerait
    *  la clé, qui recadrerait — sans fin. Même règle que sur Comparer. */
   const cadrage = useMemo(
-    () => `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
-    [s.id, lvis],
+    () => `${recadrages}#${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
+    [s.id, lvis, recadrages],
   );
 
-  const lead = (() => {
+  /** Le compte des annonces, dans la ligne des filtres. Il remplace la phrase
+   *  qui tenait sous le titre : elle disait la même chose une ligne plus haut,
+   *  et le bandeau figé n'a pas la place de le dire deux fois. */
+  const compteLbl = (() => {
     const n = lvis.length;
     if (searching && n === 0) return "Relevé en cours…";
-    if (n === 0) return "Aucun logement disponible.";
-    return `${n} logement${n > 1 ? "s" : ""} disponible${n > 1 ? "s" : ""}.`;
+    if (n === 0) return "Aucun logement disponible";
+    return `${n} logement${n > 1 ? "s" : ""} disponible${n > 1 ? "s" : ""}`;
   })();
 
   return (
     <Coquille>
       <main className="v7main v7main--pied" id="s-lodging" data-screen-label="2 Logements">
         <OngletsStation s={s} actif="logements" />
-        <header className="v7tete v7tete--ligne">
-          <div>
-            <span className="v7surtitre">Étape 2 · Logement</span>
-            <h1>Logements à {s.name}</h1>
-            <p>{lead}</p>
+        {/* Un seul bloc figé sous la barre : titre et séjour, fiche station,
+            puis Filtres et tri. Ils étaient dans trois conteneurs, chacun à sa
+            propre hauteur, donc aucun ne pouvait glisser sous les deux autres
+            et ils se recouvraient au défilement. */}
+        <div className="bandeau7" ref={bandeau}>
+        <header className="bandeau7__ligne">
+          <div className="v7tete v7tete--compacte">
+            <span className="v7surtitre">Étape 2</span>
+            <h1>Logements {aStation(s.name)}</h1>
           </div>
-          <div className="v7tete__actions">
-            <button type="button" className="btn7 btn7--fantome" onClick={importer}>
-              Importer une annonce
+          <span className="bandeau7__espace" />
+          {/* Le séjour est passé ici, à droite du titre : la barre du haut n'en
+              porte plus sur cet écran, et le bandeau garde la hauteur de celui
+              de Comparer. */}
+          <div className="sejour7">
+            <button
+              type="button"
+              className="sejour7__resume"
+              title="Changer la station, les dates ou le nombre de voyageurs"
+              aria-expanded={stayOpen}
+              onClick={() => setStayOpen(!stayOpen)}
+            >
+              <span className="sejour7__station">{s.name}</span>
+              <span className="sejour7__dates">{datesLbl(checkIn, checkOut, nights)}</span>
+              <span className="sejour7__groupe">{groupLbl(trav, rooms)}</span>
             </button>
-            <button type="button" className="btn7 btn7--fantome" onClick={relancer} disabled={searching}>
-              {searching ? "Relevé en cours…" : "Relancer le relevé"}
+            {/* La loupe est un bouton à part : elle relance le relevé pour les
+                dates affichées. Elle était décorative, et « Relancer le relevé »
+                doublait l'action à côté — ce bouton-là est donc parti. */}
+            <button
+              type="button"
+              className="sejour7__loupe"
+              title="Relancer le relevé pour ces dates"
+              aria-label="Relancer le relevé pour ces dates"
+              onClick={relancer}
+              disabled={searching}
+            >
+              <Icon name="loupe" taille={14} />
             </button>
           </div>
         </header>
@@ -797,27 +866,11 @@ function LogementsStation({ s }: { s: Station }) {
         </section>
 
         {raw.length ? (
-          <>
-            <section className="filtres7">
-              <div className="toujours7">
-                <span className="toujours7__label">Toujours appliqué</span>
-                <span className="toujours7__regle">Capacité ≥ {trav}</span>
-                {rooms ? <span className="toujours7__regle">Chambres ≥ {rooms}</span> : null}
-                <span className="toujours7__regle">Dans {lf.rayon} km de {s.name}</span>
-                <span className="toujours7__regle">Position GPS</span>
-                <span className="toujours7__regle">Disponible à ces dates</span>
-                {zoneLbl ? <span className="toujours7__ecarte">{zoneLbl}</span> : null}
-                {centraleLbl ? <span className="toujours7__ecarte">{centraleLbl}</span> : null}
-                {pauses.map((p) => (
-                  <span key={p.source} className="toujours7__ecarte">
-                    {p.error && p.error.startsWith(p.source) ? p.error : `${p.source} : ${p.error}`}
-                  </span>
-                ))}
-                <span>Une capacité non annoncée n'écarte pas l'annonce : elle est dite non annoncée.</span>
-              </div>
-              <div className="filtres7__barre">
+          <section className="filtres7">
+            <div className="bandeau7__ligne filtres7__ancre" ref={ancreLf}>
                 <button
                   type="button"
+                  data-panel-btn="lf"
                   className={`puce puce--encre${lfOpen ? " puce--on" : ""}`}
                   aria-expanded={lfOpen}
                   onClick={() => setLfOpen((v) => !v)}
@@ -826,16 +879,6 @@ function LogementsStation({ s }: { s: Station }) {
                   Filtres
                   {lfree.length ? <span className="puce__badge">{lfree.length}</span> : null}
                 </button>
-                {DIST_PALIERS_M.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    className={`puce${lf.dist === m ? " puce--on" : ""}`}
-                    onClick={() => patchLf({ dist: lf.dist === m ? 0 : m })}
-                  >
-                    {palierDistLbl(m)}
-                  </button>
-                ))}
                 {lfree.map((p) => {
                   const bloque = lempty?.fix != null && lempty.fix === p.remove;
                   return (
@@ -864,10 +907,9 @@ function LogementsStation({ s }: { s: Station }) {
                   </a>
                 ) : null}
                 <span className="filtres7__espace" />
-                <span className="filtres7__compte">
-                  {lvis.length === 0
-                    ? "Aucun logement disponible"
-                    : `${lvis.length} logement${lvis.length > 1 ? "s" : ""} disponible${lvis.length > 1 ? "s" : ""}`}
+                <span className="filtres7__compte" aria-live="polite">
+                  {compteLbl}
+                  {masquesLbl ? ` · ${masquesLbl}` : ""}
                 </span>
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>
@@ -876,10 +918,9 @@ function LogementsStation({ s }: { s: Station }) {
                   <option value="cap">Tri : capacité</option>
                   <option value="trous">Tri : incomplètes d'abord</option>
                 </select>
-              </div>
 
               {lfOpen ? (
-                <div className="pop7 pop7--filtres pop7--large">
+                <div className="pop7 pop7--filtres pop7--large" data-panel="lf">
                   <div className="pop7__tete pop7__tete--ligne">
                     <strong>Filtres</strong>
                     <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setLfOpen(false)}>
@@ -895,6 +936,19 @@ function LogementsStation({ s }: { s: Station }) {
                       {s.domain ? ` (${s.domain})` : ""}. Un autre domaine sort,
                       même tout près.
                     </span>
+                    {/* Ce que les règles verrouillées ont écarté, et pourquoi.
+                        La ligne « Toujours appliqué » qui portait ces motifs
+                        au-dessus de la liste est retirée ; les motifs, eux,
+                        restent — une liste courte sans explication se lit comme
+                        un relevé pauvre, pas comme un filtre qui a joué. */}
+                    {zoneLbl ? <span className="pop7__ecarte">{zoneLbl}</span> : null}
+                    {centraleLbl ? <span className="pop7__ecarte">{centraleLbl}</span> : null}
+                    {pauses.map((p) => (
+                      <span key={p.source} className="pop7__ecarte">
+                        {p.error && p.error.startsWith(p.source) ? p.error : `${p.source} : ${p.error}`}
+                      </span>
+                    ))}
+                    {sansPos ? <span className="pop7__ecarte">{sansPos}</span> : null}
                   </div>
                   <label className="curseur">
                     <span className="curseur__lab">
@@ -910,6 +964,25 @@ function LogementsStation({ s }: { s: Station }) {
                       onChange={(e) => patchLf({ rayon: clampRayonKm(+e.target.value) })}
                     />
                   </label>
+                  {/* Les paliers de distance aux remontées ont rejoint le
+                      panneau : sur la ligne, ils repoussaient le tri hors de
+                      l'écran et doublaient un critère que « Filtres » porte. */}
+                  <div className="pop7__bloc pop7__bloc--sans">
+                    <span className="pop7__stitre">Distance à une remontée</span>
+                    <div className="pop7__presets">
+                      {DIST_PALIERS_M.map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          className={`puce${lf.dist === m ? " puce--on" : ""}`}
+                          aria-pressed={lf.dist === m}
+                          onClick={() => patchLf({ dist: lf.dist === m ? 0 : m })}
+                        >
+                          {palierDistLbl(m)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="pop7__bloc">
                     <span className="v7surtitre">Prix et taille</span>
                     <span className="pop7__note">
@@ -969,6 +1042,10 @@ function LogementsStation({ s }: { s: Station }) {
                   </div>
                   <div className="pop7__bloc">
                     <span className="v7surtitre">Qualité du relevé</span>
+                    {/* Ce qui manque au relevé, en une phrase. Elle tenait sous
+                        le titre de l'écran, qui n'a plus la place ; elle se lit
+                        ici, au-dessus des cases qui s'en servent. */}
+                    {trous ? <span className="pop7__note">{trous}</span> : null}
                     <div className="pop7__toggles">
                       {toggles.map((tg) => (
                         <label key={tg.k}>
@@ -1006,8 +1083,13 @@ function LogementsStation({ s }: { s: Station }) {
                   </div>
                 </div>
               ) : null}
-            </section>
+            </div>
+          </section>
+        ) : null}
+        </div>
 
+        {raw.length ? (
+          <>
             <div className="v7deux">
               <div className="v7deux__liste">
                 {affichees.length ? (
@@ -1133,16 +1215,27 @@ function LogementsStation({ s }: { s: Station }) {
                       </>
                     );
                   }}
+                  /* Le compte, et le retour au cadrage des résultats. La ligne
+                     sur les annonces sans coordonnées et le rappel du contour
+                     pointillé sont retirés : le premier se lit dans le panneau
+                     Filtres, le second se voit. */
                   legende={
                     <>
                       <b>
-                        {affichees.filter((l) => l.lat != null).length} pastille
-                        {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
+                        {positionnees.length} annonce{positionnees.length > 1 ? "s" : ""} positionnée
+                        {positionnees.length > 1 ? "s" : ""}
                       </b>
-                      <span>
-                        {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont
-                        pas sur la carte. Contour pointillé = déjà vue.
-                      </span>
+                      {positionnees.length < lvis.filter((l) => l.lat != null).length ? (
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            revoirTout();
+                          }}
+                        >
+                          Revoir les {lvis.filter((l) => l.lat != null).length} annonces →
+                        </a>
+                      ) : null}
                     </>
                   }
                 />
@@ -1283,10 +1376,9 @@ function LogementsStation({ s }: { s: Station }) {
                   </div>
                 )}
               </div>
-              <div className="volet7__prov">
-                <span>Provenance</span>
-                <p>{sheet.proven}</p>
-              </div>
+              {/* Le bloc « Provenance » est retiré : la source et la date du
+                  relevé se lisent déjà en tête du volet et dans la mention de
+                  disponibilité juste au-dessus. */}
               <div className="volet7__actions">
                 <button
                   type="button"

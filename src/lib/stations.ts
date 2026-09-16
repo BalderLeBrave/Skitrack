@@ -16,6 +16,7 @@
 
 import {
   CLASSEUR,
+  GPS_FIXES,
   shareFromCounts,
   type ColorCounts,
   type ColorShare,
@@ -49,6 +50,11 @@ export type Station = {
   gpsDup: boolean;
   lat: number;
   lon: number;
+  /** Vrai quand la position vient d'un relevé — le pin Skiinfo du dépôt, ou une
+   *  correction à la main de `GPS_FIXES`. Faux quand c'est le centre de la
+   *  commune hérité du classeur : la carte le dit alors dans son infobulle,
+   *  plutôt que de laisser croire que l'épingle est sur le village. */
+  posRelevee: boolean;
   /** Mix de pistes à l'échelle de la fiche Skiinfo. */
   slopes: StationSlopes;
   origin: StationOrigin;
@@ -133,6 +139,9 @@ function slopesFromClasseur(km: number | null, cnt: ColorCounts | null): Station
 const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
   const { fm } = entry;
   const depot = entry.depotId ? DEPOT_BY_ID.get(entry.depotId) : undefined;
+  // La position, par ordre de fiabilité : le pin du dépôt (Skiinfo + IGN), puis
+  // le relevé à la main, puis le centre de la commune que porte le classeur.
+  const gps = GPS_FIXES[entry.id];
   // Les chiffres de domaine viennent de `entry.measure`, pas de la ligne :
   // celle d'une station dont le rattachement a été corrigé porte encore les
   // mesures de l'ancien domaine. Voir `classeur.ts`, étape 5.
@@ -155,8 +164,9 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     demM: depot?.demM ?? null,
     pinKind: depot?.pinKind ?? "inconnu",
     gpsDup: depot?.gpsDup ?? false,
-    lat: depot?.lat ?? fm.lat,
-    lon: depot?.lon ?? fm.lon,
+    lat: depot?.lat ?? gps?.lat ?? fm.lat,
+    lon: depot?.lon ?? gps?.lon ?? fm.lon,
+    posRelevee: !!depot || !!gps,
     slopes,
     origin: depot ? "depot" : "classeur",
     inClasseur: true,
@@ -193,6 +203,8 @@ const DEPOT_ONLY: Station[] = DEPOT.filter((r) => !IN_CLASSEUR.has(r.id)).map((r
   return {
     ...r,
     photo: skiinfoPhoto(r.id),
+    // Ces stations ne viennent que du dépôt : leur pin est un relevé Skiinfo.
+    posRelevee: true,
     slopes,
     origin: "depot",
     inClasseur: false,

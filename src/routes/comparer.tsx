@@ -1,19 +1,27 @@
 /** Comparer – maquette v7 (`SKITRACK v7 - App.dc.html`, bloc COMPARER).
  *
- *  En haut, la comparaison : stations en colonnes, critères en lignes, la
- *  meilleure valeur en gras, une colonne cochée qui mène aux logements. Puis
- *  la barre des filtres (raccourcis, compteur, tri, jetons actifs, panneau
- *  flottant), et deux colonnes : les cartes de station, la carte des épingles.
+ *  En tête, « Étape 1 · Stations » sur une ligne, puis le bandeau figé :
+ *  recherche (nom, domaine skiable, massif), Filtres et Tri, collés sous la
+ *  barre du haut pendant tout le défilement. Vient ensuite la comparaison —
+ *  stations en colonnes, critères en lignes, la meilleure valeur en gras, une
+ *  colonne cochée qui mène aux logements — mais seulement à partir de la
+ *  première case cochée. Puis les jetons actifs, et deux colonnes : les cartes
+ *  de station, la carte des épingles.
+ *
+ *  Les six raccourcis vivent dans le panneau Filtres, en tête : sur la ligne,
+ *  ils prenaient toute la largeur pour des critères que le panneau porte déjà.
+ *
  *  Données : `STATIONS` du dépôt, champs d'échelle domaine joints tels quels. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epingleStation, ETAGE } from "@/components/v7/epingle";
-import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
+import { useFermeturePanneau } from "@/components/v7/fermeture";
+import { partagerParBornes, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
 import { CarteStation } from "@/components/v7/CarteStation";
 import { mixLbl, PartPistes } from "@/components/v7/PartPistes";
@@ -92,7 +100,14 @@ const CRIT: Crit[] = [
   },
 ];
 
-const LISTE_MAX = 40;
+/** Ce que la liste et la carte portent au plus. Au-delà, une colonne de
+ *  vignettes ne se parcourt plus ; le compte restant est annoncé. */
+const LISTE_MAX = 60;
+
+/** L'aide du champ de recherche, en infobulle : elle tenait sous le champ et
+ *  poussait le bandeau d'une ligne entière. */
+const RECHERCHE_AIDE =
+  "Nom de la station, domaine skiable (Les 3 Vallées, Paradiski) ou massif (Vanoise, Vosges). La liste et la carte suivent.";
 
 function Comparer() {
   const go = useGo();
@@ -105,9 +120,37 @@ function Comparer() {
   // « Rechercher quand je déplace la carte » le gouvernait, décochée par
   // défaut ; zoomer sur trois stations laissait alors le compteur à 320.
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  // Un compteur de recadrages : il entre dans la clé `cadrage`, donc le lien
+  // « Revoir les N résultats » oublie le cadre **et** redemande à la carte de
+  // se poser sur l'ensemble. Sans lui, la liste revenait mais la carte restait
+  // zoomée là où l'utilisateur l'avait laissée.
+  const [recadrages, setRecadrages] = useState(0);
+  const revoirTout = () => {
+    setBornes(null);
+    setRecadrages((n) => n + 1);
+  };
   // La station que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
   const panneau = useRef<HTMLDivElement>(null);
+  // L'ancre porte le bouton, le tri et le panneau : un clic dedans le laisse
+  // ouvert, un clic dehors le ferme.
+  const ancre = useRef<HTMLDivElement>(null);
+  useFermeturePanneau(filtersOpen, () => setFiltersOpen(false), ancre);
+  // La hauteur du bandeau figé, publiée en variable CSS sur le `main` : la
+  // carte se cale exactement dessous. Une valeur écrite en dur se décalait dès
+  // que le champ de recherche passait à la ligne.
+  const bandeau = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = bandeau.current;
+    const cible = el?.closest("main");
+    if (!el || !cible) return;
+    const mesurer = () =>
+      cible.style.setProperty("--bandeau-h", `${Math.round(el.getBoundingClientRect().height)}px`);
+    mesurer();
+    const ro = new ResizeObserver(mesurer);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const massifs = useMemo(() => [...new Set(all.map((s) => s.massif))].sort(), [all]);
   const domPool = P.massif ? all.filter((s) => s.massif === P.massif) : all;
@@ -136,13 +179,12 @@ function Comparer() {
     [visible, P.sortKey],
   );
 
-  /* ---------- Le cadre visible : une seule source pour les trois ----------
-     Le compteur, la liste et les marqueurs dérivent tous de `dansCadre`. La
-     légende de la carte annonçait `list.length`, borné à quarante : elle disait
-     « 40 épingles » quelles que soient les trois cents posées à côté. */
+  /* ---------- Le cadre visible : une seule source pour les deux ----------
+     La liste et le compte de la légende dérivent tous deux de `dansCadre`. La
+     légende annonçait `list.length`, borné : elle disait « 40 épingles »
+     quelles que soient les trois cents posées à côté. */
   const parCadre = useMemo(() => partagerParBornes(sorted, bornes), [sorted, bornes]);
   const dansCadre = parCadre.visibles;
-  const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const list = dansCadre.slice(0, LISTE_MAX);
 
   /* ---------- État vide : quel filtre bloque ---------- */
@@ -195,7 +237,10 @@ function Comparer() {
    */
   const marqueurs = useMemo(
     () =>
-      sorted.map((s) => {
+      // Toutes les stations du résultat, pas la seule tranche de la liste : une
+      // carte se parcourt au-delà de soixante vignettes, et le désencombrement
+      // se charge de ne montrer que les noms qui tiennent.
+      sorted.map((s, rang) => {
         const comparee = P.cmp.includes(s.id);
         return {
           id: s.id,
@@ -204,6 +249,10 @@ function Comparer() {
           nom: s.name,
           epingle: epingleStation(s.name, comparee ? "comparee" : "normale"),
           zIndex: comparee ? ETAGE.comparee : ETAGE.normale,
+          etiquette: s.name,
+          // Qui garde son nom quand deux se chevauchent : les stations de la
+          // comparaison d'abord, puis l'ordre du tri.
+          priorite: comparee ? rang - sorted.length : rang,
         };
       }),
     // Le contenu change quand les identifiants ou la comparaison changent.
@@ -214,19 +263,212 @@ function Comparer() {
   /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
    *  cadre : calculée sur le cadre, recadrer aurait changé la liste, qui aurait
    *  changé la clé, qui aurait recadré — sans fin. */
-  const cadrage = useMemo(() => sorted.map((s) => s.id).join(","), [sorted]);
+  const cadrage = useMemo(
+    () => `${recadrages}#${sorted.map((s) => s.id).join(",")}`,
+    [sorted, recadrages],
+  );
 
   return (
     <Coquille>
-      <main className="v7main" id="s-compare" data-screen-label="1 Comparer">
-        <header className="v7tete">
-          <span className="v7surtitre">Étape 1 · Station</span>
-          <h1>Comparer les stations</h1>
-          <p>
-            Cochez des stations dans la liste, lisez-les côte à côte, puis ouvrez les logements de
-            celle que vous retenez. Dates et voyageurs suivent.
-          </p>
+      <main className="v7main v7main--serre" id="s-compare" data-screen-label="1 Comparer">
+        <header className="v7tete v7tete--compacte">
+          <span className="v7surtitre">Étape 1</span>
+          <h1>Stations</h1>
         </header>
+
+        {/* Recherche, Filtres et Tri sur une ligne, collée sous la barre du
+            haut : ils restent atteignables tout le long du défilement. */}
+        <section className="bandeau7" ref={bandeau}>
+          <div className="bandeau7__ligne">
+            <label className="rech7">
+              <Icon name="loupe" taille={16} />
+              <input
+                value={P.q}
+                onChange={(e) => P.setQ(e.target.value)}
+                placeholder="Station, domaine skiable ou massif"
+                title={RECHERCHE_AIDE}
+                aria-label="Rechercher une station"
+              />
+              {P.q ? (
+                <button
+                  type="button"
+                  className="rech7__effacer"
+                  title="Effacer la recherche"
+                  aria-label="Effacer la recherche"
+                  onClick={() => P.setQ("")}
+                >
+                  <Icon name="croix" taille={11} />
+                </button>
+              ) : null}
+            </label>
+            <div className="filtres7__ancre" ref={ancre}>
+              <button
+                type="button"
+                data-panel-btn="filters"
+                className={`puce puce--encre${filtersOpen ? " puce--on" : ""}`}
+                aria-expanded={filtersOpen}
+                onClick={() => setFiltersOpen((v) => !v)}
+              >
+                <Icon name="filtres" taille={14} />
+                Filtres
+                {preds.length ? <span className="puce__badge">{preds.length}</span> : null}
+              </button>
+              <select
+                className="select7"
+                value={P.sortKey}
+                onChange={(e) => P.setSort(e.target.value as SortKey)}
+                aria-label="Trier les stations"
+              >
+                {SORTS.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+              {filtersOpen ? (
+                <div className="pop7 pop7--filtres" ref={panneau}>
+                  <div className="pop7__tete pop7__tete--ligne">
+                    <strong>Filtres</strong>
+                    <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setFiltersOpen(false)}>
+                      <Icon name="croix" taille={14} />
+                    </button>
+                  </div>
+                  {/* Les six raccourcis ont quitté la ligne au-dessus des
+                      stations, où ils prenaient toute la largeur, pour la tête
+                      du panneau : mêmes critères, moins d'écran mangé. */}
+                  <div className="pop7__bloc pop7__bloc--raccourcis">
+                    <span className="pop7__stitre">Raccourcis</span>
+                    <div className="pop7__presets">
+                      {chips.map((ch) => (
+                        <button
+                          key={ch.k}
+                          type="button"
+                          className={`puce${ch.on ? " puce--on" : ""}`}
+                          aria-pressed={ch.on}
+                          onClick={() => P.setChip(ch.k, !ch.on)}
+                        >
+                          {ch.on ? <Icon name="coche" taille={13} /> : null}
+                          {ch.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {SEUILS.map((r) => (
+                    <label key={r.k} className="curseur">
+                      <span className="curseur__lab">
+                        <span>{r.label}</span>
+                        <span className="curseur__val">
+                          {F[r.k]
+                            ? r.k === "pass"
+                              ? `≤ ${fmt(F[r.k])} €`
+                              : `≥ ${fmt(F[r.k])} ${r.unit}`
+                            : "Indifférent"}
+                        </span>
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={r.max}
+                        step={r.step}
+                        value={F[r.k]}
+                        onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
+                      />
+                    </label>
+                  ))}
+                  <label className="champ7">
+                    <span>Massif</span>
+                    <select
+                      className="select7 select7--champ"
+                      value={P.massif ?? ""}
+                      onChange={(e) => {
+                        P.setMassif(e.target.value || null);
+                        P.setFilters({ dom: "" });
+                      }}
+                    >
+                      <option value="">Tous</option>
+                      {massifs.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="champ7">
+                    <span>Domaine skiable</span>
+                    <select
+                      className="select7 select7--champ"
+                      value={F.dom}
+                      onChange={(e) => P.setFilters({ dom: e.target.value })}
+                    >
+                      <option value="">Tous</option>
+                      <option value="__none">Non renseigné</option>
+                      {doms.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="pop7__bloc">
+                    <div className="pop7__ligne">
+                      <span className="pop7__stitre">Répartition par couleur, au minimum</span>
+                      <span className="segments">
+                        {(Object.keys(UNITES) as ColorUnit[]).map((u) => (
+                          <button
+                            key={u}
+                            type="button"
+                            className={P.unit === u ? "on" : undefined}
+                            onClick={() => P.setUnit(u)}
+                          >
+                            {UNITES[u].lbl}
+                          </button>
+                        ))}
+                      </span>
+                    </div>
+                    <div className="pop7__deux">
+                      {COLS.map((c) => (
+                        <label key={c.key} className="curseur">
+                          <span className="curseur__lab curseur__lab--petit">
+                            <span className="curseur__couleur">
+                              <i style={{ background: c.token }} />
+                              {c.label}
+                            </span>
+                            <span className="curseur__val">
+                              {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNITES[P.unit].suf}` : "Indifférent"}
+                            </span>
+                          </span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={UNITES[P.unit].max}
+                            step={UNITES[P.unit].step}
+                            value={F.col[c.key]}
+                            onChange={(e) => P.setColFilter(c.key, +e.target.value)}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pop7__pied pop7__pied--trait">
+                    <a
+                      href="#"
+                      className="lien-doux"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        P.resetFilters();
+                      }}
+                    >
+                      Réinitialiser
+                    </a>
+                    <button type="button" className="btn7" onClick={() => setFiltersOpen(false)}>
+                      {seeLbl}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
 
         {cmp.length ? (
           <section className="cmp7">
@@ -331,61 +573,12 @@ function Comparer() {
               </button>
             </div>
           </section>
-        ) : (
-          <Vide compact titre="Aucune station cochée">
-            Cochez « Comparer » sur deux stations de la liste pour les lire côte à côte.
-          </Vide>
-        )}
+        ) : null}
+        {/* Rien avant la première case cochée : le rectangle « Aucune station
+            cochée » occupait le haut de l'écran pour ne rien apprendre. Le
+            tableau apparaît dès qu'une station entre dans la comparaison. */}
 
         <section className="filtres7">
-          <div className="filtres7__barre">
-            <button
-              type="button"
-              className={`puce puce--encre${filtersOpen ? " puce--on" : ""}`}
-              aria-expanded={filtersOpen}
-              onClick={() => setFiltersOpen((v) => !v)}
-            >
-              <Icon name="filtres" taille={14} />
-              Filtres
-              {preds.length ? <span className="puce__badge">{preds.length}</span> : null}
-            </button>
-            {chips.map((ch) => (
-              <button
-                key={ch.k}
-                type="button"
-                className={`puce${ch.on ? " puce--on" : ""}`}
-                aria-pressed={ch.on}
-                onClick={() => P.setChip(ch.k, !ch.on)}
-              >
-                {ch.on ? <Icon name="coche" taille={13} /> : null}
-                {ch.label}
-              </button>
-            ))}
-            <span className="filtres7__espace" />
-            {/* Le compte des éléments réellement rendus dans le cadre visible :
-                la liste, les pastilles et ce nombre dérivent du même tableau. */}
-            <span className="filtres7__compte" aria-live="polite">
-              {dansCadre.length === 0
-                ? visible.length
-                  ? "Aucune station dans le cadre : dézoomez pour en voir"
-                  : "Aucune station ne remplit ces critères"
-                : `${dansCadre.length} station${dansCadre.length > 1 ? "s" : ""} sur ${all.length}`}
-              {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
-              {sansPos ? ` · ${sansPos}` : ""}
-            </span>
-            <select
-              className="select7"
-              value={P.sortKey}
-              onChange={(e) => P.setSort(e.target.value as SortKey)}
-            >
-              {SORTS.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {preds.length ? (
             <div className="jetons7">
               <span className="jetons7__label">Actifs</span>
@@ -413,131 +606,6 @@ function Comparer() {
             </div>
           ) : null}
 
-          {filtersOpen ? (
-            <div className="pop7 pop7--filtres" ref={panneau}>
-              <div className="pop7__tete pop7__tete--ligne">
-                <strong>Filtres</strong>
-                <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setFiltersOpen(false)}>
-                  <Icon name="croix" taille={14} />
-                </button>
-              </div>
-              {SEUILS.map((r) => (
-                <label key={r.k} className="curseur">
-                  <span className="curseur__lab">
-                    <span>{r.label}</span>
-                    <span className="curseur__val">
-                      {F[r.k]
-                        ? r.k === "pass"
-                          ? `≤ ${fmt(F[r.k])} €`
-                          : `≥ ${fmt(F[r.k])} ${r.unit}`
-                        : "Indifférent"}
-                    </span>
-                  </span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={r.max}
-                    step={r.step}
-                    value={F[r.k]}
-                    onChange={(e) => P.setFilters({ [r.k]: +e.target.value })}
-                  />
-                </label>
-              ))}
-              <label className="champ7">
-                <span>Massif</span>
-                <select
-                  className="select7 select7--champ"
-                  value={P.massif ?? ""}
-                  onChange={(e) => {
-                    P.setMassif(e.target.value || null);
-                    P.setFilters({ dom: "" });
-                  }}
-                >
-                  <option value="">Tous</option>
-                  {massifs.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="champ7">
-                <span>Domaine skiable</span>
-                <select
-                  className="select7 select7--champ"
-                  value={F.dom}
-                  onChange={(e) => P.setFilters({ dom: e.target.value })}
-                >
-                  <option value="">Tous</option>
-                  <option value="__none">Non renseigné</option>
-                  {doms.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="pop7__bloc">
-                <div className="pop7__ligne">
-                  <span className="pop7__stitre">Répartition par couleur, au minimum</span>
-                  <span className="segments">
-                    {(Object.keys(UNITES) as ColorUnit[]).map((u) => (
-                      <button
-                        key={u}
-                        type="button"
-                        className={P.unit === u ? "on" : undefined}
-                        onClick={() => P.setUnit(u)}
-                      >
-                        {UNITES[u].lbl}
-                      </button>
-                    ))}
-                  </span>
-                </div>
-                <div className="pop7__deux">
-                  {COLS.map((c) => (
-                    <label key={c.key} className="curseur">
-                      <span className="curseur__lab curseur__lab--petit">
-                        <span className="curseur__couleur">
-                          <i style={{ background: c.token }} />
-                          {c.label}
-                        </span>
-                        <span className="curseur__val">
-                          {F.col[c.key] ? `≥ ${fmt(F.col[c.key])}${UNITES[P.unit].suf}` : "Indifférent"}
-                        </span>
-                      </span>
-                      <input
-                        type="range"
-                        min={0}
-                        max={UNITES[P.unit].max}
-                        step={UNITES[P.unit].step}
-                        value={F.col[c.key]}
-                        onChange={(e) => P.setColFilter(c.key, +e.target.value)}
-                      />
-                    </label>
-                  ))}
-                </div>
-                <span className="pop7__note">
-                  Tronçons par couleur : OpenSkiMap, à l'échelle du domaine. Les km par couleur sont
-                  estimés (part × km du domaine).
-                </span>
-              </div>
-              <div className="pop7__pied pop7__pied--trait">
-                <a
-                  href="#"
-                  className="lien-doux"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    P.resetFilters();
-                  }}
-                >
-                  Réinitialiser
-                </a>
-                <button type="button" className="btn7" onClick={() => setFiltersOpen(false)}>
-                  {seeLbl}
-                </button>
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <div className="v7deux">
@@ -557,9 +625,8 @@ function Comparer() {
                 </div>
                 {dansCadre.length > LISTE_MAX ? (
                   <p className="v7deux__plus">
-                    {dansCadre.length - LISTE_MAX} autres stations sont sur la carte. Pour les
-                    faire entrer dans cette liste, affinez un filtre, resserrez la carte, ou
-                    cherchez un nom.
+                    {dansCadre.length - LISTE_MAX} autres stations : affinez un filtre ou cherchez
+                    un nom.
                   </p>
                 ) : null}
               </>
@@ -630,6 +697,13 @@ function Comparer() {
                       </div>
                     </div>
                     <PartPistes share={st.colorShare} />
+                    {/* Une épingle posée au centre de la commune le dit : sans
+                        cela, elle laisse croire qu'elle désigne le village. */}
+                    {st.posRelevee ? null : (
+                      <span className="fc__note">
+                        Position approximative : centre de la commune.
+                      </span>
+                    )}
                   </div>
                 );
               }}
@@ -659,14 +733,25 @@ function Comparer() {
                   </>
                 );
               }}
+              /* La légende ne garde que le compte et le retour au cadrage des
+                 résultats : le reste — « une par station », « survolez-en une »,
+                 le fond de carte — se voit ou se lit dans l'attribution. */
               legende={
                 <>
                   <b>
-                    {dansCadre.length} épingle{dansCadre.length > 1 ? "s" : ""}
+                    {dansCadre.length} station{dansCadre.length > 1 ? "s" : ""} dans le cadrage
                   </b>
-                  <span>
-                    Une par station du cadre ; survolez-en une pour la lire. Fond OpenStreetMap.
-                  </span>
+                  {dansCadre.length < visible.length ? (
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        revoirTout();
+                      }}
+                    >
+                      Revoir les {visible.length} résultats →
+                    </a>
+                  ) : null}
                 </>
               }
             />

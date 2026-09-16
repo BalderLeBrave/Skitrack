@@ -37,6 +37,7 @@ function station(id: string, name: string, minM: number, maxM: number, km: numbe
     gpsDup: false,
     lat: 45,
     lon: 6,
+    posRelevee: true,
     slopes: {
       counts: {},
       announcedKm: km,

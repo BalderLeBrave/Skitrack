@@ -74,6 +74,24 @@ export function skiinfoUrl(s: Station): string | null {
   return SKIINFO[s.id]?.url ?? null;
 }
 
+/**
+ * Le nom d'une station précédé de la bonne préposition : « aux 2 Alpes »,
+ * « au Collet d'Allevard », « à l'Alpe d'Huez », « à La Plagne ».
+ *
+ * Trois libellés l'emploient — le titre de Logements, l'appel de la fiche
+ * station, le bouton de Comparer — et ils écrivaient tous « à Les 2 Alpes ».
+ * Un seul helper pour les trois : la faute se corrigerait autrement trois fois.
+ */
+export function aStation(nom: string): string {
+  if (!nom) return "";
+  if (/^les /i.test(nom)) return `aux ${nom.slice(4)}`;
+  if (/^le /i.test(nom)) return `au ${nom.slice(3)}`;
+  if (/^l'/i.test(nom)) return `à l'${nom.slice(2)}`;
+  // « Alpe d'Huez », « Alpes d'Huez » : l'article manque au référentiel.
+  if (/^alpes? /i.test(nom)) return `à l'${nom}`;
+  return `à ${nom}`;
+}
+
 /** « Alpes du Nord · Isère · Les Deux Alpes » : les seules parts connues. */
 export function crumb(s: Station): string {
   return [s.massif, s.dept, s.commune].filter(Boolean).join(" · ");

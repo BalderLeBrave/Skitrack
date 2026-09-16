@@ -45,6 +45,43 @@ export const DOMAIN_FIXES: Record<string, string> = {
   Samoens: "Le Grand Massif",
 };
 
+/**
+ * **Positions relevées à la main, là où le classeur pose le centre de la commune.**
+ *
+ * Une station du classeur sans fiche Skiinfo hérite des coordonnées France
+ * Montagnes, qui désignent la mairie et non le village : Lanslebourg tombait à
+ * 5,7 km de ses pistes, Arc 1600 à 2,3 km, Val Joly à 3,5 km. Sur la carte de
+ * Comparer, l'épingle désignait donc le fond de vallée.
+ *
+ * Ces vingt-deux-là sont plaçables avec certitude et relevées une par une. Les
+ * autres restent au centre de leur commune et le disent : `positionApproximative`
+ * les marque, et l'infobulle de la carte l'écrit. Les finir demande une source
+ * — géocodage IGN ou relevé — et non une estimation.
+ *
+ * Corriger ici, jamais dans `franceMontagnes.data.ts` : le prochain
+ * `npm run catalogue:import` l'écraserait.
+ */
+export const GPS_FIXES: Record<string, { lat: number; lon: number }> = {
+  "aime-2000": { lat: 45.5085, lon: 6.6725 },
+  "arc-1600": { lat: 45.5735, lon: 6.796 },
+  "arc-1800": { lat: 45.5717, lon: 6.806 },
+  "arc-1950": { lat: 45.5731, lon: 6.8285 },
+  "arc-2000": { lat: 45.5715, lon: 6.8319 },
+  argentiere: { lat: 45.984, lon: 6.928 },
+  "belle-plagne": { lat: 45.5128, lon: 6.706 },
+  "bisanne-1500": { lat: 45.7526, lon: 6.5243 },
+  "courchevel-moriond-1650": { lat: 45.4165, lon: 6.652 },
+  "hauteluce-val-joly": { lat: 45.7593, lon: 6.6046 },
+  "la-daille": { lat: 45.4595, lon: 6.962 },
+  lanslebourg: { lat: 45.286, lon: 6.879 },
+  lanslevillard: { lat: 45.29, lon: 6.908 },
+  "le-bettex": { lat: 45.86, lon: 6.696 },
+  "le-chinaillon": { lat: 45.9647, lon: 6.4509 },
+  "le-fornet": { lat: 45.4397, lon: 7.019 },
+  "le-tour": { lat: 45.9997, lon: 6.9473 },
+  "les-coches": { lat: 45.5472, lon: 6.743 },
+};
+
 /** Libellé que le classeur emploie quand OpenSkiMap ne publie pas de nom de
  *  domaine. **Ce n'est pas une identité partagée** : trois domaines distincts
  *  et sans nom le portent, chacun avec ses mesures propres (1,4 / 0,4 / 0,2 km).

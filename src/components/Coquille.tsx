@@ -63,6 +63,14 @@ export function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
 }
 
+/** Où la pilule de séjour de la barre s'affiche (`showStayBar` de la maquette).
+ *  L'accueil a sa barre de recherche ; Comparer n'a pas de séjour à porter,
+ *  puisqu'aucune station n'est encore retenue ; Logements porte la sienne dans
+ *  la ligne du titre, à hauteur d'écran, et n'en veut pas deux. */
+function montrerSejour(ecran: Screen | null): boolean {
+  return ecran === "fiche" || ecran === "booking";
+}
+
 /** Ferme au clic dehors et à Échap. */
 function useFermeture(ouvert: boolean, fermer: () => void, hote: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -141,11 +149,9 @@ function Barre() {
           void go("home");
         }}
       >
-        <Icon name="montagne" taille={22} className="v7nav__montagne" />
-        <span>
-          <span className="v7nav__ski">ski</span>
-          <span className="v7nav__track">track</span>
-        </span>
+        <span className="v7nav__ski">ski</span>
+        <span className="v7nav__track">track</span>
+        <i className="v7nav__point" aria-hidden="true" />
       </a>
       <nav className="v7nav__parcours" aria-label="Parcours">
         {PARCOURS.map((j) => {
@@ -258,9 +264,7 @@ function PanneauSejour() {
         <Compteur k="trav" titre="Voyageurs" regle="1 à 20" encadre />
         <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" encadre />
       </div>
-      <span className="v7panneau__note">
-        Le séjour survit à la navigation : revenir en arrière ne perd rien.
-      </span>
+      <span className="v7panneau__note">Dates et voyageurs sont conservés d'un écran à l'autre.</span>
     </div>
   );
 }
@@ -329,7 +333,7 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
       <div className={controle ? "v6 app" : "v7 app"}>
         <div className="v7haut">
           <Barre />
-          {!controle && ecran !== "home" ? <PiluleSejour /> : null}
+          {!controle && montrerSejour(ecran) ? <PiluleSejour /> : null}
           {!controle && stayOpen ? <PanneauSejour /> : null}
         </div>
         {chips ? <div className="coquille__chips">{chips}</div> : null}

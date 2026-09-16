@@ -16,7 +16,11 @@
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
 
-  --text-affiche: 2.75rem; /* 44px — titre de couverture, une fois par écran au plus */
+  /* La maquette fait grandir le titre de couverture avec l'écran
+     (`clamp(44px,4.4vw,64px)`, App.dc.html:68) : figé à 44 px, il perdait la
+     moitié de son effet d'affiche sur un écran de 1440. Seul `.hero7__in h1`
+     lit ce jeton. */
+  --text-affiche: clamp(2.75rem, 4.4vw, 4rem); /* 44 → 64 px, une fois par écran au plus */
   --text-affiche--line-height: 1.05;
   --text-titre: 1.875rem; /* 30px — titre d'écran, grand chiffre */
   --text-titre--line-height: 1.1;

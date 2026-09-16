@@ -353,12 +353,12 @@ function Home() {
           />
           <div className="hero7__in">
             <h1>
-              <span className="hero7__t1">Le bon domaine,</span>{" "}
-              <span className="hero7__t2">à la bonne altitude.</span>
+              <span className="hero7__t1">Comparez les stations,</span>
+              <span className="hero7__t2">puis les logements.</span>
             </h1>
             <p className="hero7__lead">
-              Altitudes réelles, mix de pistes, forfaits relevés et logements au total du séjour. Ce
-              qui n'est pas relevé est dit absent.
+              Altitude des pistes, forfait 6 jours et total du séjour, station par station. Ce qui
+              n'est pas relevé est dit absent.
             </p>
             {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
             <div className="sbar7__hote hero7__barre">
@@ -528,7 +528,7 @@ function Home() {
                       Indifférent
                     </a>
                     <button type="button" className="btn7 btn7--encre" onClick={() => ouvrir("dates")}>
-                      Suivant : dates
+                      Choisir les dates
                     </button>
                   </div>
                 </div>
@@ -590,7 +590,7 @@ function Home() {
             </div>
           </div>
           <span className="hero7__suite" aria-hidden>
-            <span>La suite plus bas</span>
+            <span>Plus bas : grands domaines et massifs</span>
             <svg
               width="18"
               height="18"

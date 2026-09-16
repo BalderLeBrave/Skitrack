@@ -123,8 +123,18 @@
   color: var(--color-ink);
   text-decoration: none;
 }
-.v7nav__montagne {
-  color: var(--color-marque);
+/* La marque de la maquette (V7Coquille.dc.html:21-23) : « ski » en clair,
+   « track » en gras, et un point bleu de 6 px calé en haut du mot. */
+.v7nav__mot {
+  display: inline-flex;
+  align-items: flex-start;
+}
+.v7nav__point {
+  width: 6px;
+  height: 6px;
+  margin: 4px 0 0 2px;
+  border-radius: 50%;
+  background: var(--color-marque);
 }
 .v7nav__ski {
   font-weight: 500;
@@ -1552,6 +1562,11 @@
   color: var(--color-photo-texte);
 }
 .hero7__in h1 {
+  /* Grille : les deux temps du titre tiennent chacun leur ligne, quel que soit
+     l'espace. La maquette fait de même (App.dc.html:68). */
+  display: grid;
+  justify-items: start;
+  gap: 4px;
   max-width: 18ch;
   font-size: var(--text-affiche);
   line-height: var(--text-affiche--line-height);
@@ -3461,6 +3476,11 @@
   cursor: pointer;
 }
 .cocher7 input {
+  /* La case gardait sa taille native (≈13 px) et les marges de l'agent
+     utilisateur, ce qui décalait son libellé. La maquette la fixe (App.dc.html:457). */
+  width: 16px;
+  height: 16px;
+  margin: 0;
   accent-color: var(--color-ok-texte);
 }
 

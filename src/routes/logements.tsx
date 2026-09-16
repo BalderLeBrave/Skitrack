@@ -47,6 +47,7 @@ import {
   eur,
   eurCents,
   fmt,
+  nuitsLbl,
   stationPhoto,
   stationPhotoAbsence,
   useParcours,
@@ -56,10 +57,26 @@ import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS, TAR
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
+<<<<<<< HEAD
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import { altLbl, aStation, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+=======
+import {
+  altLbl,
+  aStation,
+  bedLbl,
+  capLbl,
+  crumbDomaine,
+  distanceOf,
+  firmOf,
+  kmLbl,
+  liftsLbl,
+  mediaTon,
+  passLbl,
+} from "@/lib/v7";
+>>>>>>> 06c55ae (Reprend les textes de la maquette là où c'est elle qui a raison.)
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
@@ -347,7 +364,11 @@ const CarteLogement = memo(function CarteLogement({
           <div className={`lodge7__prix${l.total > 0 ? "" : " lodge7__prix--muet"}`}>
             <b>{prixLbl(l)}</b>
             <span>
+<<<<<<< HEAD
               {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
+=======
+              {nuitsLbl(nights)} · {eurN(l.total / trav)} / pers.
+>>>>>>> 06c55ae (Reprend les textes de la maquette là où c'est elle qui a raison.)
             </span>
             <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
               <i />
@@ -765,7 +786,7 @@ function LogementsStation({ s }: { s: Station }) {
             <ImageSlot shape="rect" id={`v7app-ribbon-${s.id}`} placeholder={stationPhotoAbsence(s)} className="ruban7__slot" src={stationPhoto(s)} />
           </div>
           <div className="ruban7__corps">
-            <span className="ruban7__crumb">{crumb(s)}{s.domain ? ` · ${s.domain}` : ""}</span>
+            <span className="ruban7__crumb">{crumbDomaine(s)}</span>
             <div className="ruban7__faits">
               <span>
                 <span>Pistes</span>
@@ -915,7 +936,7 @@ function LogementsStation({ s }: { s: Station }) {
                     <span className="v7surtitre">Prix et taille</span>
                     <span className="pop7__note">
                       Capacité ≥ {trav} est toujours appliquée ; ces seuils s'y ajoutent et écartent les
-                      annonces sans valeur.
+                      annonces qui ne publient pas la valeur.
                     </span>
                   </div>
                   <label className="curseur">
@@ -1101,7 +1122,11 @@ function LogementsStation({ s }: { s: Station }) {
                           <span className="fc__prix">
                             <b>{prixLbl(l)}</b>
                             <span>
+<<<<<<< HEAD
                               {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
+=======
+                              {nuitsLbl(nights)} · {eurN(l.total / trav)} / pers.
+>>>>>>> 06c55ae (Reprend les textes de la maquette là où c'est elle qui a raison.)
                             </span>
                           </span>
                           <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
@@ -1258,7 +1283,7 @@ function LogementsStation({ s }: { s: Station }) {
               <div className="volet7__prix">
                 <div>
                   <span>
-                    Total du séjour · {nights} nuits · {trav} pers.
+                    Total du séjour · {nuitsLbl(nights)} · {trav} pers.
                   </span>
                   <b>{prixLbl(sheet)}</b>
                 </div>

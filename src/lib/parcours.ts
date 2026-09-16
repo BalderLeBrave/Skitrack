@@ -412,6 +412,17 @@ export function dm(iso: string): string {
 
 /** `stayDatesLbl` : « 6 → 13 févr. · 7 nuits ». Le mois n'est nommé deux fois
  *  que si le séjour les traverse. Une plage inversée se signale. */
+/** « 1 nuit », « 7 nuits ». L'accord était recopié à sept endroits, et quatre
+ *  d'entre eux l'avaient figé au pluriel : le séjour descend à une nuit. */
+export function nuitsLbl(nights: number): string {
+  return `${nights} nuit${nights > 1 ? "s" : ""}`;
+}
+
+/** « 1 voyageur », « 8 voyageurs ». */
+export function travLbl(trav: number): string {
+  return `${trav} voyageur${trav > 1 ? "s" : ""}`;
+}
+
 export function datesLbl(checkIn: string, checkOut: string, nights: number): string {
   const a = parseDay(checkIn),
     b = parseDay(checkOut);
@@ -420,7 +431,7 @@ export function datesLbl(checkIn: string, checkOut: string, nights: number): str
       ? `${a.getUTCDate()} → ${dm(checkOut)}`
       : `${dm(checkIn)} → ${dm(checkOut)}`;
   if (nights <= 0) return `${span} · départ avant l’arrivée`;
-  return `${span} · ${nights} nuit${nights > 1 ? "s" : ""}`;
+  return `${span} · ${nuitsLbl(nights)}`;
 }
 
 /** `arrivalLbl` : « sam. 6 févr. 2027 ». */
@@ -437,12 +448,12 @@ export function departLbl(iso: string): string {
 
 /** `guestsLbl` (barre de recherche) : « 8 voyageurs · 2 ch. ». */
 export function guestsLbl(trav: number, rooms: number): string {
-  return `${trav} voyageur${trav > 1 ? "s" : ""}${rooms ? ` · ${rooms} ch.` : ""}`;
+  return `${travLbl(trav)}${rooms ? ` · ${rooms} ch.` : ""}`;
 }
 
 /** `stayGroupLbl` : « 8 voyageurs · studio accepté ». */
 export function groupLbl(trav: number, rooms: number): string {
-  return `${trav} voyageur${trav > 1 ? "s" : ""} · ${rooms ? `${rooms} ch.` : "studio accepté"}`;
+  return `${travLbl(trav)} · ${rooms ? `${rooms} ch.` : "studio accepté"}`;
 }
 
 /** Sélecteur de séjour : `S[k] = clamp(S[k] + d)`, sur l'état réel. */

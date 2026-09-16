@@ -79,6 +79,15 @@ export function crumb(s: Station): string {
   return [s.massif, s.dept, s.commune].filter(Boolean).join(" · ");
 }
 
+/** Le fil d'une station vue depuis un logement : massif, département, domaine.
+ *
+ *  Il diffère de `crumb` par sa dernière part. Poser `crumb` puis y ajouter le
+ *  domaine répétait le même nom deux fois : aux 2 Alpes, la commune s'appelle
+ *  « Les Deux Alpes », et le domaine aussi. */
+export function crumbDomaine(s: Station): string {
+  return [s.massif, s.dept, s.domain].filter(Boolean).join(" · ");
+}
+
 /** Sous-titre d'une carte : massif et domaine. */
 export function sub(s: Station): string {
   return `${s.massif} · ${s.domain ?? "domaine non renseigné"}`;

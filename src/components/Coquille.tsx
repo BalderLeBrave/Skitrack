@@ -155,10 +155,10 @@ function Barre() {
           void go("home");
         }}
       >
-        <Icon name="montagne" taille={22} className="v7nav__montagne" />
-        <span>
+        <span className="v7nav__mot">
           <span className="v7nav__ski">ski</span>
           <span className="v7nav__track">track</span>
+          <i className="v7nav__point" aria-hidden />
         </span>
       </a>
       <nav className="v7nav__parcours" aria-label="Parcours">
@@ -274,7 +274,7 @@ function PanneauSejour() {
         <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" encadre />
       </div>
       <span className="v7panneau__note">
-        Le séjour survit à la navigation : revenir en arrière ne perd rien.
+        Dates et voyageurs sont conservés d’un écran à l’autre.
       </span>
     </div>
   );
@@ -289,6 +289,7 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
   const go = useGo();
   const stayOpen = useParcours((s) => s.stayOpen);
   const setStayOpen = useParcours((s) => s.setStayOpen);
+  const setShared = useParcours((s) => s.setShared);
 
   // Les critères de recherche s'écrivent dans l'adresse sur les écrans du
   // parcours : un lien se partage, un signet se repose, et le bouton Précédent
@@ -297,13 +298,21 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
 
   // Changer d'écran ferme le panneau de séjour et remonte en haut de page,
   // comme `fromHash` dans la maquette.
+  //
+  // Le bandeau « Récapitulatif partagé » décrit l'écran de réservation : le
+  // quitter l'efface. Il ne s'effaçait qu'à la croix, et l'adresse ayant été
+  // nettoyée entre-temps, un aller-retour par Comparer le ramenait devant un
+  // lien qui n'existait plus. La maquette remet `shared` à faux à chaque
+  // navigation (App.dc.html:539) ; ici la condition sur l'écran suffit, et
+  // elle survit à la navigation que la lecture du lien déclenche elle-même.
   useEffect(() => {
+    if (screenOf(pathname) !== "booking") setShared(false);
     setStayOpen(false);
     window.scrollTo(0, 0);
     document.querySelectorAll<HTMLElement>(".v6 .screen.on .scroll").forEach((s) => {
       s.scrollTop = 0;
     });
-  }, [pathname, setStayOpen]);
+  }, [pathname, setStayOpen, setShared]);
 
   // Lien de partage : `#s=<station>&l=<logement>&d=<arrivée>&n=<nuits>&t=<voyageurs>&r=<chambres>`.
   // Station, logement, dates et voyageurs viennent du lien et remplacent le

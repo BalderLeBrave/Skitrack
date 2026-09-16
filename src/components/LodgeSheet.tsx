@@ -3,6 +3,7 @@ import { distToGpxM, distToGpxStartM } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
 import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
+import { nuitsLbl } from "@/lib/parcours";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { bedLbl, capLbl, prixLbl } from "@/lib/v7";
@@ -154,7 +155,7 @@ export function LodgeSheet({
               <GalerieAnnonce urls={galerie} index={photoI} onIndex={setPhotoI} />
               <p className="font-display text-titre">{prixLbl(listing)}</p>
               <p className="text-corps text-muted">
-                {nights} nuits · {stay.guests} pers.
+                {nuitsLbl(nights)} · {stay.guests} pers.
                 {ppNuit != null ? ` · ${formatEuro(ppNuit)} /pers/nuit` : " · prix non publié"}
               </p>
               {listing.priceIndicative ? (

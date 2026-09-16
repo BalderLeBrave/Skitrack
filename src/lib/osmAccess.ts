@@ -1,4 +1,4 @@
-import { OSM_ACCESS, type OsmPt } from "./osmAccess.data.ts";
+import { OSM_ACCESS, OSM_LIFTS, type OsmPt } from "./osmAccess.data.ts";
 
 export type OsmHit = {
   name: string | null;
@@ -57,7 +57,7 @@ function mateOf(lifts: OsmPt[], p: OsmPt): OsmPt | null {
   for (const q of lifts) {
     if (q.n !== p.n || q.k !== p.k) continue;
     const m = metresBetween(p.lat, p.lon, q.lat, q.lon);
-    if (m < 8) continue;
+    if (m < 8 || m > 12_000) continue;
     if (m > bestM) {
       bestM = m;
       best = q;
@@ -82,7 +82,12 @@ function nearest(pts: OsmPt[] | undefined, lat: number, lon: number): OsmHit | n
 }
 
 export function nearestLift(stationId: string, lat: number, lon: number): OsmHit | null {
-  return nearest(OSM_ACCESS[stationId]?.lifts, lat, lon);
+  const local = nearest(OSM_ACCESS[stationId]?.lifts, lat, lon);
+  const world = nearest(OSM_LIFTS, lat, lon);
+  if (world && world.m <= 40_000) {
+    if (!local || world.m < local.m) return world;
+  }
+  return local;
 }
 
 export function nearestPlace(stationId: string, lat: number, lon: number): OsmHit | null {

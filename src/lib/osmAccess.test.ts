@@ -1,6 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { attachAccess } from "./access.ts";
+import { OSM_ACCESS, OSM_LIFTS } from "./osmAccess.data.ts";
 import { isCabinLift, liftFleet, nearestLift, stationLifts } from "./osmAccess.ts";
+import { stationById } from "./stations.ts";
+import type { Listing } from "./listings.ts";
 
 describe("remontées OSM", () => {
   it("apparie les deux gares du télémixte Diable", () => {
@@ -32,6 +36,39 @@ describe("remontées OSM", () => {
     assert.equal(isCabinLift("mixed_lift"), true);
     assert.equal(isCabinLift("chair_lift"), false);
     assert.equal(isCabinLift(null), false);
+  });
+
+  it("chaque station du référentiel a des gares de remontées", () => {
+    assert.ok(OSM_LIFTS.length > 2000, `OSM_LIFTS ${OSM_LIFTS.length}`);
+    assert.ok(Object.keys(OSM_ACCESS).length >= 300, `OSM_ACCESS ${Object.keys(OSM_ACCESS).length}`);
+  });
+
+  it("Flumet, hors des 8 stations d’origine, mesure une remontée au pin", () => {
+    const flumet = stationById("flumet-st-nicolas-la-chapelle");
+    assert.ok(flumet);
+    const hit = nearestLift(flumet.id, flumet.lat, flumet.lon);
+    assert.ok(hit, "aucune remontée autour de Flumet");
+    assert.ok(hit.m < 2_000, `trop loin : ${hit.m} m (${hit.name})`);
+    const listing = attachAccess(
+      {
+        id: "flumet-pin",
+        stationId: flumet.id,
+        title: "Chalet",
+        source: "Airbnb",
+        total: 1800,
+        currency: "EUR",
+        guests: 8,
+        bedrooms: 3,
+        available: true,
+        photo: null,
+        url: "https://www.airbnb.fr/rooms/1",
+        lat: flumet.lat,
+        lon: flumet.lon,
+        proven: "test",
+      } as Listing,
+      flumet,
+    );
+    assert.ok(listing.distToLiftM != null && listing.distToLiftM < 2_000, String(listing.distToLiftM));
   });
 
   it("stationLifts : Diable a deux gares, 29 appareils aux 2 Alpes", () => {

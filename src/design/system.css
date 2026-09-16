@@ -33,6 +33,16 @@
   --text-note: 0.75rem; /* 12px — libellés, unités, mentions de source */
   --text-note--line-height: 1.35;
 
+  /* Le design emploie douze tailles, pas cinq. Les six suivantes étaient
+     absorbées par leur voisine : elles reprennent leur valeur exacte.
+     Le compte d'emplois est celui du relevé des 709 styles en ligne. */
+  --text-sous: 0.8125rem; /* 13px — 31 emplois : lignes de tableau, notes de panneau */
+  --text-mention: 0.6875rem; /* 11px — 13 emplois : « déjà vue », crédit photo */
+  --text-liste: 0.875rem; /* 14px — 12 emplois : lignes de liste, cases à cocher */
+  --text-intertitre: 1.0625rem; /* 17px — 4 emplois : titre de volet, de modale */
+  --text-ecran: 1.375rem; /* 22px — 2 emplois : h1 de Comparer et de Logements */
+  --text-fil: 0.78125rem; /* 12,5px — 1 emploi : fil d'Ariane du ruban de station */
+
   /* ── Espacement : base 4px ─────────────────────────────────────────── */
   --spacing: 0.25rem;
 
@@ -42,15 +52,45 @@
   --color-glacier: #e9ebee; /* remplissage neutre : puce, segment, barre vide */
   --color-ink: #16191e;
   --color-muted: #5b636e;
-  /* Le gris des libellés, mentions et valeurs absentes. Il valait #8a919b,
-     soit 3,05:1 sur une surface : sous le seuil de lisibilité du texte
-     courant. Il reste plus clair que `--color-muted`, mais lisible. */
-  --color-texte-3: #646b75;
+  /* Le gris des libellés, mentions et valeurs absentes. Valeur du design,
+     employée 62 fois (App.dc.html). Elle mesure 3,05:1 sur `--color-surface`,
+     sous le seuil du texte courant : c'est un choix de fidélité, arbitré par
+     le propriétaire le 16 septembre. */
+  --color-texte-3: #8a919b;
+  /* Texte tertiaire au survol (App.dc.html:372, 414, 435 : cadre photo vide). */
+  --color-texte-4: #6b737d;
+  /* Annonce déjà vue : mention et prix de sa pastille (App.dc.html:377, 628). */
+  --color-vue: #7b838d;
+  /* Fond de la pastille d'une annonce déjà vue (App.dc.html:628). */
+  --color-vue-fond: #e2e5e9;
   --color-line: #dde0e5;
   --color-line-douce: #eceef1;
+  /* Séparateur le plus doux : lignes de liste et de tableau (App.dc.html:358, 483). */
+  --color-line-tenue: #f0f1f3;
+  /* Bordure d'un bouton de compteur (App.dc.html:53-54). */
+  --color-line-commande: #c9ced5;
+  /* Survol du bouton d'effacement du champ de recherche (App.dc.html:166). */
+  --color-line-survol: #dcdfe4;
+  /* Étape verrouillée de la barre : texte, et fond de sa pastille numérotée
+     (V7Coquille.dc.html:80-84). */
+  --color-etape-verrou: #9aa1aa;
+  --color-etape-verrou-fond: #dcdfe4;
+  /* Pastille numérotée d'une étape ni active ni verrouillée. */
+  --color-etape-fond: #dfe8f2;
+  /* Trait de la barre du haut et des séparateurs de la pilule de séjour. */
+  --color-line-coquille: #e3e6ea;
+  /* Fond de la barre du haut. Valeur littérale : `color-mix` rendait la même
+     couleur sous une autre forme (`color(srgb …)`), et la comparaison au
+     design ne tombait pas juste. */
+  --color-coquille-fond: rgba(250, 250, 251, 0.86);
+  /* Encre d'un emplacement d'image : vignette, puis grand bandeau
+     (App.dc.html:136, 219, 333 / 65, 254). */
+  --color-slot: #4a5560;
+  --color-slot-grand: #3f4a56;
   --color-carte-fond: #e6e9ed;
   --color-media: #dfe3e8; /* fond d'un cadre photo vide */
-  --color-hero-fond: #dfe6ee; /* bandeau d'une station sans photo */
+  --color-hero-fond: #dfe6ee; /* `heroBg` sans photo, App.dc.html:810 */
+  --color-hero-fond-photo: #c9d3dc; /* `heroBg` avec photo, App.dc.html:64, 810 */
 
   /* Accent : action principale, élément sélectionné, lien. Rien d'autre. */
   --color-cta: #0b6fc2;
@@ -62,7 +102,7 @@
 
   /* Un état par sémantique. */
   --color-ok: #d3efe3;
-  --color-ok-texte: #1b6f45;
+  --color-ok-texte: #1f7a4d; /* App.dc.html:269, 431, 451 */
   --color-alerte: #f7ecd6;
   --color-alerte-texte: #8a5a12;
   --color-neige: #e6f0fa;
@@ -77,7 +117,7 @@
      reste une encre. Le texte qui la couvre doit donc rester clair même en
      thème sombre : écrit avec `--color-surface`, il suivait le thème et
      disparaissait sur la couverture. */
-  --color-photo-texte: #f7f9fb;
+  --color-photo-texte: #fafafb; /* `heroInk` du design, App.dc.html:810 */
   --color-photo-voile: #16191e;
 
   /* Fond d'un cadre photo vide, par source d'annonce. */
@@ -99,16 +139,57 @@
   --radius-surface: 0.875rem; /* 14px — carte, section, bandeau */
   --radius-flottant: 1rem; /* 16px — panneau flottant, bandeau photo */
   --radius-champ: 0.625rem; /* 10px — champ, petite vignette */
+  --radius-ruban: 0.75rem; /* 12px — ruban de station, bandeau de récapitulatif */
+  --radius-grand: 1.5rem; /* 24px — panneau d'accueil, grande carte */
   /* Les pastilles, puces et boutons prennent `rounded-full`. */
 
   /* ── Élévation : le flottant, et l'encadré qui suit le défilement ───── */
   --shadow-flottant: 0 2px 6px rgba(22, 25, 30, 0.08), 0 18px 48px rgba(22, 25, 30, 0.18);
   --shadow-encadre: 0 2px 6px rgba(22, 25, 30, 0.06), 0 14px 36px rgba(22, 25, 30, 0.08);
   --shadow-segment: 0 2px 10px rgba(22, 25, 30, 0.16);
-  --shadow-epingle: 0 2px 8px rgba(22, 25, 30, 0.35);
+  --shadow-epingle: 0 1px 6px rgba(22, 25, 30, 0.35);
 
-  /* ── Mouvement : une durée, une courbe ─────────────────────────────── */
-  --ease-ui: cubic-bezier(0.2, 0, 0, 1);
+  /* Les six autres élévations du design, chacune à son emploi. */
+  --shadow-panneau: 0 2px 6px rgba(22, 25, 30, 0.1), 0 18px 48px rgba(22, 25, 30, 0.22);
+  --shadow-suggestion: 0 2px 6px rgba(22, 25, 30, 0.1), 0 14px 36px rgba(22, 25, 30, 0.18);
+  --shadow-segment-actif: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 16px 40px rgba(22, 25, 30, 0.28);
+  --shadow-volet: -2px 0 6px rgba(22, 25, 30, 0.06), -18px 0 48px rgba(22, 25, 30, 0.16);
+  --shadow-modale: 0 24px 64px rgba(22, 25, 30, 0.32);
+  --shadow-epingle-petite: 0 1px 4px rgba(22, 25, 30, 0.3); /* pastille de 22 px */
+  --shadow-toast: 0 8px 24px rgba(22, 25, 30, 0.3);
+  /* Étape active de la barre (V7Coquille.dc.html:85). */
+  --shadow-etape: 0 1px 2px rgba(22, 25, 30, 0.06), 0 3px 10px rgba(22, 25, 30, 0.08);
+  /* Pilule de séjour, au repos puis au survol (V7Coquille.dc.html:43). */
+  --shadow-pilule: 0 1px 2px rgba(22, 25, 30, 0.05), 0 6px 20px rgba(22, 25, 30, 0.06);
+  --shadow-pilule-survol: 0 1px 2px rgba(22, 25, 30, 0.06), 0 10px 28px rgba(22, 25, 30, 0.1);
+  --shadow-vignette-survol: 0 0 0 1px #c9ced5, 0 8px 24px rgba(22, 25, 30, 0.1);
+  /* Anneaux : sélection d'une vignette, et focus. */
+  --anneau-choisi: inset 0 0 0 1.5px #16191e;
+  --anneau-focus: 0 0 0 1px #0b6fc2;
+
+  /* ── Flous : six valeurs, chacune à sa surface ─────────────────────── */
+  --flou-panneau: blur(18px); /* panneau de séjour, panneau de filtres */
+  --flou-barre: blur(14px); /* barre collante de Comparer et de Logements */
+  --flou-legende: blur(12px); /* légende de carte, fiche de survol */
+  --flou-coquille: blur(16px) saturate(1.3); /* barre du haut, V7Coquille.dc.html:21 */
+  --flou-recherche: blur(18px) saturate(1.4); /* barre de recherche de l'accueil, App.dc.html:71 */
+  --flou-pied: blur(16px); /* barre de retenue en bas de Logements */
+  --flou-toast: blur(10px);
+
+  /* ── Mouvement ──────────────────────────────────────────────────────
+     Le design n'emploie qu'une courbe, `ease-out`, et une seule transition,
+     l'appui d'un bouton. L'entrée de la couverture est une cascade de cinq
+     retards sur la même image-clé `v7fade`. */
+  --ease-ui: ease-out;
+  --duree-appui: 0.12s; /* App.dc.html : `transition:transform .12s` */
+  --duree-appui-court: 0.1s;
+  --entree-duree-titre: 1.1s;
+  --entree-duree: 1s;
+  --entree-retard-t1: 0.3s;
+  --entree-retard-t2: 1.6s;
+  --entree-retard-chapo: 2.7s;
+  --entree-retard-barre: 3.2s;
+  --entree-retard-jetons: 3.7s;
 }
 
 /* Jetons hérités, gardés le temps que les écrans non repris les quittent.

@@ -1817,33 +1817,36 @@
   }
 }
 
+/* La cascade d'entrée de la couverture, aux temps de la maquette : le titre en
+   deux temps (0,3 s puis 1,6 s), la phrase à 2,7 s, la barre à 3,2 s, les
+   raccourcis à 3,7 s. Les deux fragments du titre durent 1,1 s, le reste 1 s. */
 .hero7--entree .hero7__t1,
 .hero7--entree .hero7__t2,
 .hero7--entree .hero7__lead,
 .hero7--entree .hero7__barre,
 .hero7--entree .hero7__dira,
-.hero7--entree .hero7__raccourcis,
-.hero7--entree .hero7__suite {
-  animation: hero7-entre 0.42s var(--ease-ui) both;
+.hero7--entree .hero7__raccourcis {
+  animation: hero7-entre var(--entree-duree) var(--ease-ui) both;
+}
+.hero7--entree .hero7__t1,
+.hero7--entree .hero7__t2 {
+  animation-duration: var(--entree-duree-titre);
 }
 .hero7--entree .hero7__t1 {
-  animation-delay: 0.06s;
+  animation-delay: var(--entree-retard-t1);
 }
 .hero7--entree .hero7__t2 {
-  animation-delay: 0.38s;
+  animation-delay: var(--entree-retard-t2);
 }
 .hero7--entree .hero7__lead {
-  animation-delay: 0.6s;
+  animation-delay: var(--entree-retard-chapo);
 }
 .hero7--entree .hero7__barre {
-  animation-delay: 0.74s;
+  animation-delay: var(--entree-retard-barre);
 }
 .hero7--entree .hero7__dira,
 .hero7--entree .hero7__raccourcis {
-  animation-delay: 0.92s;
-}
-.hero7--entree .hero7__suite {
-  animation-delay: 1.1s;
+  animation-delay: var(--entree-retard-jetons);
 }
 
 /* Les deux morceaux du titre sont des blocs en ligne : sans cela, la
@@ -1861,26 +1864,46 @@
   .hero7--entree .hero7__barre,
   .hero7--entree .hero7__dira,
   .hero7--entree .hero7__raccourcis,
-  .hero7--entree .hero7__suite {
+  .hero7__suite--premiere {
     animation: none;
+  }
+  .hero7__suite {
+    transition: none;
   }
 }
 
 /* L'indice qu'il y a une suite : discret, decoratif, jamais annonce. */
+/* L'indice de défilement est un bouton : il descend la page. Il s'efface
+   au-delà de 45 % de la hauteur de la couverture et revient en remontant ;
+   le retard de 4,2 s ne vaut que pour le premier affichage de la page. */
 .hero7__suite {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--spacing) * 4);
+  bottom: 18px;
   transform: translateX(-50%);
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  color: color-mix(in srgb, var(--color-photo-texte) 82%, transparent);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--color-photo-texte) 86%, transparent);
+  font: inherit;
   font-size: var(--text-note);
   font-weight: 600;
+  cursor: pointer;
   text-shadow: 0 1px 10px color-mix(in srgb, var(--color-photo-voile) 50%, transparent);
+  transition: opacity 0.35s var(--ease-ui);
+}
+.hero7__suite:hover {
+  color: var(--color-photo-texte);
+}
+.hero7__suite--cache {
+  opacity: 0;
   pointer-events: none;
+}
+.hero7__suite--premiere {
+  animation: hero7-entre var(--entree-duree) var(--ease-ui) both;
+  animation-delay: 4.2s;
 }
 .hero7__suite svg {
   animation: hero7-suite 2.4s var(--ease-ui) infinite;

@@ -1,13 +1,19 @@
 /**
  * La neige de la couverture d'accueil, sur un canevas.
  *
- * Elle avait disparu avec le portage de la maquette v7, qui n'en a pas : le
- * composant s'est retrouvé sans appelant et il est parti avec les douze autres
- * orphelins. Il n'était donc ni masqué ni mal empilé, il n'existait plus.
+ * Elle avait disparu avec le portage du handoff du 13 septembre, qui n'en avait
+ * pas : le composant s'est retrouvé sans appelant et il est parti avec les
+ * douze autres orphelins. Il n'était donc ni masqué ni mal empilé, il
+ * n'existait plus.
  *
  * Il est rétabli tel quel, et seuls ses réglages changent au point de montage :
  * moins de flocons, plus transparents, pour que le titre posé dessus se lise
  * sans lutter.
+ *
+ * L'export du 16 septembre, lui, en a — quarante-quatre flocons en
+ * `position: fixed` au-dessus des cinq écrans (App.dc.html:944). Elle reste
+ * ici confinée à la couverture : un voile fixé par-dessus tout passerait devant
+ * le tableau de comparaison, les listes d'annonces et la carte Leaflet.
  *
  * Le canevas ne prend pas le pointeur et se déclare décoratif. Sous
  * la préférence « mouvement réduit », il dessine une seule image et n'ouvre aucune boucle

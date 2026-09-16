@@ -123,11 +123,9 @@ function Barre() {
           void go("home");
         }}
       >
-        <span className="v7nav__mot">
-          <span className="v7nav__ski">ski</span>
-          <span className="v7nav__track">track</span>
-          <i className="v7nav__point" aria-hidden />
-        </span>
+        <span className="v7nav__ski">ski</span>
+        <span className="v7nav__track">track</span>
+        <i className="v7nav__point" aria-hidden />
       </a>
       <nav className="v7nav__parcours" aria-label="Parcours">
         {PARCOURS.map((j) => {
@@ -175,7 +173,7 @@ function Barre() {
         </button>
         <button
           type="button"
-          className="v7nav__util"
+          className="v7nav__util v7nav__util--langue"
           title="Langue"
           aria-label={locale === "fr" ? "English" : "Français"}
           onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
@@ -321,7 +319,15 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
       <div className={controle ? "v6 app" : "v7 app"}>
         <div className="v7haut">
           <Barre />
-          {!controle && ecran !== "home" ? <PiluleSejour /> : null}
+          {/* `showStay` de la maquette : `part === 'top' && screen !== 'home'
+              && showStayBar`, et l'App passe
+              `showStayBar: screen !== 'compare' && screen !== 'lodgings'`
+              (V7Coquille.dc.html:92, App.dc.html:918). La pilule ne paraît
+              donc que sur la fiche station et sur la réservation : Comparer
+              porte sa barre collante, Logements son résumé de séjour. */}
+          {!controle && ecran !== "home" && ecran !== "compare" && ecran !== "lodging" ? (
+            <PiluleSejour />
+          ) : null}
           {!controle && stayOpen ? <PanneauSejour /> : null}
         </div>
         {chips ? <div className="coquille__chips">{chips}</div> : null}

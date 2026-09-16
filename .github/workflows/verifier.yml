@@ -1,0 +1,47 @@
+# Le contrôle du code : types et tests, sur chaque PR et sur master.
+#
+# `verrou.yml`, à côté, ne regarde que les chemins verrouillés — il ne compile
+# rien et ne lance aucun test. Jusqu'ici une PR pouvait donc être verte sans
+# qu'aucune ligne de TypeScript ait été vérifiée.
+name: vérifier
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+# Une PR poussée deux fois de suite n'occupe pas deux runners : le run
+# précédent est abandonné.
+concurrency:
+  group: verifier-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: types et tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 22 : `npm run verify` lance les tests avec
+      # `--experimental-strip-types`, qui n'existe pas avant.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      # `src/routeTree.gen.ts` est ignoré par Git : c'est le greffon TanStack
+      # Start qui l'écrit. Sans lui, `tsc` échoue sur toutes les routes, et le
+      # générateur seul ne suffit pas — il n'écrit pas le bloc `declare module`
+      # que le greffon ajoute, et sans ce bloc un `<Link to="/route-inconnue">`
+      # passe le contrôle sans un mot. La construction est donc la seule façon
+      # d'obtenir l'arbre que l'application emploie vraiment ; au passage, elle
+      # vérifie que le paquet se construit.
+      - name: Construire (et générer l'arbre des routes)
+        run: npm run build:dev
+
+      - name: Types et tests
+        run: npm run verify

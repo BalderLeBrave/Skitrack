@@ -23,6 +23,9 @@
 export const EPINGLE = {
   /** Côté de la boîte, en pixels. C'est aussi la cible du pointeur. */
   taille: 32,
+  /** Diamètre de la pastille visible, bordure comprise. C'est ce rectangle-là
+   *  que le désencombrement des noms oppose aux étiquettes. */
+  pastille: 26,
   /** Hauteur de la pastille au prix, sur la carte des logements. */
   hauteurPrix: 29,
 } as const;

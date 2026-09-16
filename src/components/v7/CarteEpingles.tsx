@@ -23,7 +23,7 @@ import "leaflet/dist/leaflet.css";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
 import type { Bornes } from "@/lib/carte";
-import { EPINGLE, ETAGE, type Epingle } from "./epingle";
+import { echappe, EPINGLE, ETAGE, type Epingle } from "./epingle";
 
 /**
  * La vue par défaut, **hors de la liste des paramètres**.
@@ -43,6 +43,9 @@ const DELAI_OUVERTURE_MS = 120;
  *  fiche sans qu'elle se dérobe. */
 const DELAI_FERMETURE_MS = 80;
 
+/** Hauteur du rectangle d'une étiquette de nom, pour l'arbitrage. */
+const ETIQUETTE_H = 22;
+
 export type Marqueur = {
   id: string;
   lat: number;
@@ -56,6 +59,14 @@ export type Marqueur = {
   cadre?: boolean;
   /** Repère décoratif : ni fiche, ni survol, ni clic. */
   inerte?: boolean;
+  /** Pose le nom en étiquette à côté de la pastille. Les étiquettes se
+   *  masquent plutôt que de se recouvrir : voir `desencombrer`. */
+  etiquette?: boolean;
+  /** Ordre d'arbitrage entre étiquettes, du plus prioritaire au moins.
+   *  Petit nombre = gagne. */
+  priorite?: number;
+  /** Phrase que l'infobulle ajoute avant « Cliquer pour ouvrir la fiche ». */
+  note?: string;
 };
 
 export function CarteEpingles({
@@ -115,6 +126,10 @@ export function CarteEpingles({
   const ouverture = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fermeture = useRef<ReturnType<typeof setTimeout> | null>(null);
   const marques = useRef(new Map<string, Leaflet.Marker>());
+  /** Le désencombrement, joignable depuis les écouteurs posés au montage. */
+  const desencombrerRef = useRef<(() => void) | null>(null);
+  /** Les étiquettes de nom, avec leur priorité d'arbitrage. */
+  const etiquettes = useRef(new Map<string, { marque: Leaflet.Marker; priorite: number }>());
   const rappelActif = useRef(surActif);
   rappelActif.current = surActif;
   // `ficheDe` est une fonction écrite en ligne par l'écran : elle change à
@@ -192,6 +207,11 @@ export function CarteEpingles({
         };
         m.on("moveend", emettre);
         m.on("zoomend", emettre);
+        // Le désencombrement des noms se rejoue à chaque fin de zoom et de
+        // déplacement, sans le filet de 120 ms : il ne coûte qu'un parcours de
+        // rectangles, et attendre ferait clignoter les noms.
+        m.on("moveend", () => desencombrerRef.current?.());
+        m.on("zoomend", () => desencombrerRef.current?.());
         m.setView(vueVide.centre, vueVide.zoom);
         // Le redimensionnement du panneau latéral change le cadre visible : la
         // liste et le compteur doivent le savoir, pas seulement la carte.
@@ -231,6 +251,7 @@ export function CarteEpingles({
     if (!prete || !Lf || !m || !c) return;
     c.clearLayers();
     marques.current.clear();
+    etiquettes.current.clear();
     const pts: [number, number][] = [];
     for (const mk of marqueurs) {
       if (!Number.isFinite(mk.lat) || !Number.isFinite(mk.lon)) continue;
@@ -273,8 +294,26 @@ export function CarteEpingles({
         if (mk.inerte) el.removeAttribute("tabindex");
       }
       marques.current.set(mk.id, marker);
+      if (mk.etiquette) {
+        // Le nom est un marqueur à part, non interactif, posé à droite de la
+        // pastille. Séparé, parce qu'une étiquette dans la boîte du marqueur
+        // étirerait celle-ci et décalerait le disque de son point.
+        const lbl = Lf.marker([mk.lat, mk.lon], {
+          interactive: false,
+          keyboard: false,
+          zIndexOffset: mk.zIndex ?? ETAGE.normale,
+          icon: Lf.divIcon({
+            className: "",
+            iconSize: [0, 0],
+            html: `<span class="v7lbl">${echappe(mk.nom)}</span>`,
+          }),
+        });
+        lbl.addTo(c);
+        etiquettes.current.set(mk.id, { marque: lbl, priorite: mk.priorite ?? 1 });
+      }
       if (mk.cadre !== false) pts.push([mk.lat, mk.lon]);
     }
+    desencombrer();
     // Le recadrage suit la clé `cadrage`, que l'écran calcule sur le **résultat
     // des filtres** et non sur ce qui tombe dans le cadre : sans quoi recadrer
     // changerait la liste, qui changerait la clé, qui recadrerait à nouveau.
@@ -284,6 +323,54 @@ export function CarteEpingles({
       else m.setView(vueVide.centre, vueVide.zoom);
     }
   }, [prete, marqueurs, cadrage, maxZoom, vueVide, avecFiche, survoler]);
+
+  /**
+   * Qui a le droit d'afficher son nom.
+   *
+   * Recalculé à chaque zoom et à chaque déplacement. On empile d'abord les
+   * rectangles des pastilles — **elles gagnent toujours** —, puis on parcourt
+   * les étiquettes par priorité croissante : la station cochée d'abord, puis
+   * l'ordre du tri. Une étiquette qui chevauche un rectangle déjà retenu
+   * passe en `display: none` ; sinon elle s'affiche et son rectangle rejoint
+   * la pile. Une étiquette ne se compare pas à la pastille de sa station.
+   *
+   * Conséquence voulue : au cadrage régional, une grappe serrée n'affiche
+   * qu'un nom ou aucun, et les noms reviennent un à un au zoom.
+   */
+  const desencombrer = useCallback(() => {
+    const Lf = lib.current,
+      m = carte.current;
+    if (!Lf || !m || etiquettes.current.size === 0) return;
+    const P = EPINGLE.pastille;
+    type Rect = { x1: number; y1: number; x2: number; y2: number; id: string };
+    const pris: Rect[] = [];
+    for (const [id, marque] of marques.current) {
+      const p = m.latLngToLayerPoint(marque.getLatLng());
+      pris.push({ x1: p.x - P / 2, y1: p.y - P / 2, x2: p.x + P / 2, y2: p.y + P / 2, id });
+    }
+    const chevauche = (a: Rect, b: Rect) =>
+      a.x1 < b.x2 && a.x2 > b.x1 && a.y1 < b.y2 && a.y2 > b.y1;
+    const rangees = [...etiquettes.current.entries()].sort((a, b) => a[1].priorite - b[1].priorite);
+    for (const [id, { marque }] of rangees) {
+      const el = marque.getElement()?.firstElementChild as HTMLElement | null;
+      if (!el) continue;
+      el.style.display = "";
+      const p = m.latLngToLayerPoint(marque.getLatLng());
+      // Géométrie de `.v7lbl` : posée à 16 px à droite, centrée en hauteur.
+      const r: Rect = {
+        x1: p.x + 16,
+        y1: p.y - ETIQUETTE_H / 2,
+        x2: p.x + 16 + el.offsetWidth,
+        y2: p.y + ETIQUETTE_H / 2,
+        id,
+      };
+      const heurte = pris.some((q) => q.id !== id && chevauche(r, q));
+      if (heurte) el.style.display = "none";
+      else pris.push(r);
+    }
+  }, []);
+
+  desencombrerRef.current = desencombrer;
 
   // Éclairage des épingles : une classe posée sur l'élément du marqueur.
   useEffect(() => {

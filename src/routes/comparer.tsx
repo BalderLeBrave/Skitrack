@@ -161,14 +161,28 @@ function Comparer() {
      « 40 épingles » quelles que soient les trois cents posées à côté. */
   /** Ce que le champ de recherche annonce au survol : ce qu'il retient
    *  aujourd'hui, ou ce qu'il accepte quand il est vide. */
-  const cqLbl = P.q
-    ? `${visible.length} station${visible.length > 1 ? "s" : ""} où « ${P.q.trim()} » apparaît dans le nom, le domaine ou le massif${preds.length > 1 ? ", les autres filtres compris" : ""}.`
-    : "Nom de la station, domaine skiable (Les 3 Vallées, Paradiski) ou massif (Vanoise, Vosges). La liste et la carte suivent.";
-
   const parCadre = useMemo(() => partagerParBornes(sorted, bornes), [sorted, bornes]);
   const dansCadre = parCadre.visibles;
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
   const list = dansCadre.slice(0, LISTE_MAX);
+
+  /** Le compte des résultats, en infobulle du champ : la maquette ne le pose
+   *  plus sous la barre. Il dit ce que la liste montre, ce que le cadre laisse
+   *  dehors, et ce qui n'a pas de position. */
+  const cqLbl = P.q
+    ? `${visible.length} station${visible.length > 1 ? "s" : ""} où « ${P.q.trim()} » apparaît dans le nom, le domaine ou le massif${preds.length > 1 ? ", les autres filtres compris" : ""}.`
+    : [
+        dansCadre.length === 0
+          ? visible.length
+            ? "Aucune station dans le cadre : dézoomez pour en voir."
+            : "Aucune station ne remplit ces critères."
+          : `${dansCadre.length} station${dansCadre.length > 1 ? "s" : ""} sur ${visible.length}.`,
+        parCadre.horsCadre.length ? `${parCadre.horsCadre.length} hors du cadre.` : null,
+        sansPos ? `${sansPos}.` : null,
+        "Nom de la station, domaine skiable ou massif.",
+      ]
+        .filter(Boolean)
+        .join(" ");
 
   /* ---------- État vide : quel filtre bloque ---------- */
   const bloquant = !visible.length && preds.length ? critereBloquant(all, preds) : null;
@@ -229,6 +243,11 @@ function Comparer() {
           nom: s.name,
           epingle: epingleStation(s.name, comparee ? "comparee" : "normale"),
           zIndex: comparee ? ETAGE.comparee : ETAGE.normale,
+          etiquette: true,
+          // Priorité d'arbitrage des noms : la station cochée gagne, puis
+          // l'ordre du tri courant. Une seule table, celle de `sorted`.
+          priorite: comparee ? 0 : 1,
+          note: s.posRelevee ? undefined : "Position approximative : centre de la commune.",
         };
       }),
     // Le contenu change quand les identifiants ou la comparaison changent.
@@ -246,14 +265,10 @@ function Comparer() {
 
   return (
     <Coquille>
-      <main className="v7main" id="s-compare" data-screen-label="1 Comparer">
-        <header className="v7tete">
-          <span className="v7surtitre">Étape 1 · Station</span>
-          <h1>Comparer les stations</h1>
-          <p>
-            Cochez des stations dans la liste, lisez-les côte à côte, puis ouvrez les logements de
-            celle que vous retenez. Dates et voyageurs suivent.
-          </p>
+      <main className="v7main v7main--serre" id="s-compare" data-screen-label="1 Comparer">
+        <header className="v7tete v7tete--titre">
+          <span className="v7surtitre">Étape 1</span>
+          <h1>Stations</h1>
         </header>
 
         {cmp.length ? (
@@ -359,11 +374,7 @@ function Comparer() {
               </button>
             </div>
           </section>
-        ) : (
-          <Vide compact titre="Aucune station cochée">
-            Cochez « Comparer » sur deux stations de la liste pour les lire côte à côte.
-          </Vide>
-        )}
+        ) : null}
 
         <section className="filtres7" ref={barre}>
           <div className="filtres7__barre">
@@ -530,10 +541,6 @@ function Comparer() {
                       </label>
                     ))}
                   </div>
-                  <span className="pop7__note">
-                    Tronçons par couleur : OpenSkiMap, à l'échelle du domaine. Les km par couleur sont
-                    estimés (part × km du domaine).
-                  </span>
                 </div>
                 <div className="pop7__pied pop7__pied--trait">
                   <a
@@ -552,30 +559,18 @@ function Comparer() {
                 </div>
               </div>
             ) : null}
+              <select
+                className="select7"
+                value={P.sortKey}
+                onChange={(e) => P.setSort(e.target.value as SortKey)}
+              >
+                {SORTS.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
             </div>
-            <span className="filtres7__espace" />
-            {/* Le compte des éléments réellement rendus dans le cadre visible :
-                la liste, les pastilles et ce nombre dérivent du même tableau. */}
-            <span className="filtres7__compte" aria-live="polite">
-              {dansCadre.length === 0
-                ? visible.length
-                  ? "Aucune station dans le cadre : dézoomez pour en voir"
-                  : "Aucune station ne remplit ces critères"
-                : `${dansCadre.length} station${dansCadre.length > 1 ? "s" : ""} sur ${visible.length}`}
-              {parCadre.horsCadre.length ? ` · ${parCadre.horsCadre.length} hors du cadre` : ""}
-              {sansPos ? ` · ${sansPos}` : ""}
-            </span>
-            <select
-              className="select7"
-              value={P.sortKey}
-              onChange={(e) => P.setSort(e.target.value as SortKey)}
-            >
-              {SORTS.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
           </div>
 
           {preds.length ? (
@@ -703,6 +698,14 @@ function Comparer() {
                       </div>
                     </div>
                     <PartPistes share={st.colorShare} />
+                    {/* Une position posée au centre de la commune le dit : le
+                        lecteur saurait sinon qu'un pin est faux sans savoir
+                        lequel. */}
+                    {st.posRelevee ? null : (
+                      <span className="fc__ligne absent">
+                        Position approximative : centre de la commune.
+                      </span>
+                    )}
                   </div>
                 );
               }}
@@ -735,15 +738,11 @@ function Comparer() {
               legende={
                 <>
                   <b>
-                    {dansCadre.length} épingle{dansCadre.length > 1 ? "s" : ""}
+                    {dansCadre.length} station{dansCadre.length > 1 ? "s" : ""} dans le cadrage
                   </b>
-                  <span>
-                    Une par station du cadre ; survolez-en une pour la lire. Fond OpenStreetMap.
-                  </span>
                   {parCadre.horsCadre.length ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                      Revoir les {visible.length} résultats
-                      <Icon name="fleche-droite" taille={13} />
+                      Revoir les {visible.length} résultats →
                     </button>
                   ) : null}
                 </>

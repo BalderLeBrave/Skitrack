@@ -59,6 +59,8 @@ html[data-theme="dark"] {
   --color-etape-fond: #17304a;
   --color-line-coquille: #253442;
   --color-coquille-fond: rgb(22 34 47 / 0.86);
+  --color-barre-fond: rgb(11 22 34 / 0.92);
+  --color-etiquette-fond: rgb(22 34 47 / 0.92);
   --color-slot: #93a2b0;
   --color-slot-grand: #9fb0bf;
 

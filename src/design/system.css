@@ -83,6 +83,10 @@
      couleur sous une autre forme (`color(srgb …)`), et la comparaison au
      design ne tombait pas juste. */
   --color-coquille-fond: rgba(250, 250, 251, 0.86);
+  /* Fond des barres collantes de Comparer et de Logements (App.dc.html:162). */
+  --color-barre-fond: rgba(242, 243, 245, 0.92);
+  /* Pastille d'une étiquette de nom sur la carte (App.dc.html:609). */
+  --color-etiquette-fond: rgba(250, 250, 251, 0.92);
   /* Encre d'un emplacement d'image : vignette, puis grand bandeau
      (App.dc.html:136, 219, 333 / 65, 254). */
   --color-slot: #4a5560;

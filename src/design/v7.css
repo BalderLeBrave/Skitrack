@@ -1066,7 +1066,7 @@
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
 }
 .pop7--filtres {
-  left: 0;
+  right: 0;
   top: 48px;
   width: 460px;
   max-height: calc(100vh - 200px);
@@ -1122,6 +1122,23 @@
   max-width: 70ch;
   text-wrap: pretty;
 }
+/* En-tête d'écran sur une ligne, à la ligne de base : « ÉTAPE 1 » puis le nom
+   de l'écran, sans sous-titre (App.dc.html:160). */
+.v7tete--titre {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--spacing) * 3);
+}
+.v7tete--titre h1 {
+  font-size: var(--text-ecran);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+/* Comparer et Logements serrent le haut de page : 16 px au lieu de 24. */
+.v7main--serre {
+  padding-top: calc(var(--spacing) * 4);
+  gap: calc(var(--spacing) * 4);
+}
 .v7tete--ligne {
   display: flex;
   justify-content: space-between;
@@ -1173,9 +1190,8 @@
    valeur vaut 0 et la carte reste où elle était. */
 .v7deux__carte {
   position: sticky;
-  top: calc(138px + var(--filtres-h, 0px));
-  height: calc(100vh - 162px - var(--filtres-h, 0px));
-  min-height: 520px;
+  top: 130px;
+  height: calc(100vh - 154px);
   border-radius: var(--radius-surface);
   overflow: hidden;
   background: var(--color-carte-fond);
@@ -1293,6 +1309,24 @@
   place-items: center;
   cursor: pointer;
   font-family: var(--font-sans);
+}
+/* L'étiquette de nom : un marqueur à part, posé à droite de la pastille et
+   centré sur elle. Elle se masque plutôt que de recouvrir une voisine — voir
+   `desencombrer` dans `CarteEpingles.tsx`. */
+.v7lbl {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  transform: translateY(-50%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-etiquette-fond);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-note);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .epingle__pastille {
   box-sizing: border-box;
@@ -2111,15 +2145,15 @@
    `sticky` est aussi un ancrage : `.pop7--filtres` s'y accroche toujours. */
 .filtres7 {
   position: sticky;
-  top: 138px;
+  top: 60px;
   z-index: 29;
   display: grid;
   gap: calc(var(--spacing) * 3);
   margin: 0 calc(var(--spacing) * -2);
   padding: calc(var(--spacing) * 2);
   border-radius: var(--radius-surface);
-  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
-  backdrop-filter: blur(14px);
+  background: var(--color-barre-fond);
+  backdrop-filter: var(--flou-barre);
 }
 .filtres7__barre {
   display: flex;

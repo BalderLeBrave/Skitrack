@@ -30,21 +30,16 @@ export const Route = createRootRoute({
       { rel: "stylesheet", href: v6Css },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+      // Manrope est embarquée (`src/design/manrope.css`, `public/fonts/`) :
+      // l'application tourne hors ligne, et la mesure au pixel ne dépend plus
+      // d'un aller-retour réseau. Les deux preconnect vers Google et les deux
+      // sous-ensembles qu'ils servaient ne sont plus nécessaires.
       {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
-      // C'est gstatic qui sert les .woff2 de Manrope : sans ce second
-      // preconnect, la poignée de main TLS n'a lieu qu'à la lecture de la
-      // feuille. La maquette en déclare bien deux (App.dc.html:11-12).
-      {
-        rel: "preconnect",
-        href: "https://fonts.gstatic.com",
+        rel: "preload",
+        as: "font",
+        type: "font/woff2",
+        href: "/fonts/manrope-latin.woff2",
         crossOrigin: "anonymous",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),

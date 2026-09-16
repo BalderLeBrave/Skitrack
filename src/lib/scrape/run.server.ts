@@ -35,8 +35,8 @@ function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
 
 const AIRBNB_SOURCES = ["Airbnb"] as const;
 const GITES_SOURCES = ["Gîtes de France"] as const;
-const COZY_SOURCES = ["Abritel", "Booking"] as const;
-const BROWSER_SOURCES = ["Gîtes de France", "Abritel", "Booking"] as const;
+const COZY_SOURCES = ["Airbnb", "Abritel", "Booking"] as const;
+const BROWSER_SOURCES = ["Airbnb", "Gîtes de France", "Abritel", "Booking"] as const;
 const CENTRALE_SOURCES = ["Centrale"] as const;
 
 function locate(input: LiveSearchInput, listings: Listing[]): Listing[] {
@@ -116,8 +116,15 @@ async function fillCozy(page: Page, input: LiveSearchInput, reports: SourceRepor
   const t0 = Date.now();
   const payloads = await collectCozyPayloads(page, input);
   const collectMs = Date.now() - t0;
+  const fromCozyAirbnb = cozyListings(payloads, input, "Airbnb");
   const abritel = cozyListings(payloads, input, "Abritel");
   const fromCozy = cozyListings(payloads, input, "Booking");
+  let airbnb = fromCozyAirbnb;
+  if (airbnb.length === 0) {
+    const via = await scrapeAirbnbDetailed(input);
+    airbnb = via.listings;
+  }
+  pushReport(reports, listings, "Airbnb", airbnb, airbnb === fromCozyAirbnb ? collectMs : Date.now() - t0);
   pushReport(reports, listings, "Abritel", abritel, collectMs);
   let booking = fromCozy;
   if (booking.length === 0) booking = await scrapeBookingPython(input);
@@ -126,9 +133,10 @@ async function fillCozy(page: Page, input: LiveSearchInput, reports: SourceRepor
     await fillBookingGps(page, booking);
   }
   pushReport(reports, listings, "Booking", booking, booking === fromCozy ? collectMs : Date.now() - t0);
+  const gpsAb = airbnb.filter((l) => l.lat != null && l.lon != null).length;
   const gpsA = abritel.filter((l) => l.lat != null && l.lon != null).length;
   const gpsB = booking.filter((l) => l.lat != null && l.lon != null).length;
-  console.info(`[cozy] GPS Abritel ${gpsA}/${abritel.length} · Booking ${gpsB}/${booking.length}`);
+  console.info(`[cozy] GPS Airbnb ${gpsAb}/${airbnb.length} · Abritel ${gpsA}/${abritel.length} · Booking ${gpsB}/${booking.length}`);
 }
 
 async function runAirbnb(input: LiveSearchInput): Promise<LiveSearchResult> {
@@ -136,21 +144,16 @@ async function runAirbnb(input: LiveSearchInput): Promise<LiveSearchResult> {
   const listings: Listing[] = [];
   const t0 = Date.now();
   try {
-    const out = await scrapeAirbnbDetailed(input);
-    const error = out.rateLimited
-      ? out.listings.length
-        ? "Airbnb a demandé une pause (HTTP 429) : le relevé est partiel."
-        : "Airbnb a demandé une pause (HTTP 429) : relevé précédent conservé."
-      : undefined;
-    reports.push({
-      source: "Airbnb",
-      ok: out.listings.length > 0 || !out.rateLimited,
-      count: out.listings.length,
-      ms: Date.now() - t0,
-      ...(error ? { error } : {}),
+    await withBrowser(async (open) => {
+      const page = await open();
+      const payloads = await collectCozyPayloads(page, input, ["airbnb"]);
+      let rows = cozyListings(payloads, input, "Airbnb");
+      if (rows.length === 0) {
+        const via = await scrapeAirbnbDetailed(input);
+        rows = via.listings;
+      }
+      pushReport(reports, listings, "Airbnb", rows, Date.now() - t0);
     });
-    listings.push(...out.listings);
-    console.info(`[scrape] Airbnb ${out.listings.length} en ${Date.now() - t0}ms${out.rateLimited ? " · 429" : ""}`);
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     reports.push({ source: "Airbnb", ok: false, count: 0, ms: Date.now() - t0, error });
@@ -264,21 +267,15 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
   if (part === "cozy") return runCozy(input);
   if (part === "centrales") return runCentrales(input);
   if (part === "browser") return runBrowser(input);
-  const [airbnb, gites, cozy, centrales] = await Promise.all([
-    runAirbnb(input),
+  const [gites, cozy, centrales] = await Promise.all([
     runGites(input),
     runCozy(input),
     runCentrales(input),
   ]);
-  const listings = locate(input, [
-    ...airbnb.listings,
-    ...gites.listings,
-    ...cozy.listings,
-    ...centrales.listings,
-  ]);
+  const listings = locate(input, [...gites.listings, ...cozy.listings, ...centrales.listings]);
   return {
     listings,
-    sources: [...airbnb.sources, ...gites.sources, ...cozy.sources, ...centrales.sources],
+    sources: [...cozy.sources, ...gites.sources, ...centrales.sources],
   };
 }
 

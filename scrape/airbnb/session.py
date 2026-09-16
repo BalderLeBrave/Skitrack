@@ -1,8 +1,8 @@
-"""Cache de la clé API et du hash GraphQL Airbnb.
+"""Session Airbnb : clé API, hash GraphQL, cookies HTTP.
 
-Sans ça, chaque relevé relit la page d’accueil (clé, hash). Un process par
-relevé : le cache mémoire ne survit pas à Relancer. Le fichier tient 30 min,
-ce qui évite de redemander la page d’accueil — premier déclencheur des 429.
+Sans ça, chaque relevé relit la page d’accueil (clé, hash) et arrive
+sans cookie : premier déclencheur des 429. Un process par relevé, le
+cache mémoire ne survit pas à Relancer. Le fichier tient la session.
 """
 
 from __future__ import annotations
@@ -11,16 +11,19 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 TTL_S = 180.0
 DISK_TTL_S = 30 * 60.0
+COOKIE_TTL_S = 12 * 60 * 60.0
 SESSION_PATH = Path(os.environ.get("SKITRACK_AIRBNB_SESSION") or "/tmp/skitrack-airbnb-session.json")
 
 _key = ""
 _key_at = 0.0
 _hash = ""
 _hash_at = 0.0
+_http: Any = None
+_installed = False
 
 
 def _read_disk() -> dict:
@@ -55,6 +58,7 @@ def cached(slot: str, fetch: Callable[[], str]) -> str:
         _key = fetch()
         _key_at = now
         if _key:
+            disk = _read_disk()
             disk["key"] = _key
             disk["key_at"] = wall
             _write_disk(disk)
@@ -70,21 +74,172 @@ def cached(slot: str, fetch: Callable[[], str]) -> str:
     _hash = fetch()
     _hash_at = now
     if _hash:
+        disk = _read_disk()
         disk["hash"] = _hash
         disk["hash_at"] = wall
         _write_disk(disk)
     return _hash
 
 
-def invalidate() -> None:
-    """Jette clé et hash : un hash périmé n'est pas un 429, mais il faut le relire."""
-    global _key, _key_at, _hash, _hash_at
+def cookies_dump() -> list[dict[str, str]]:
+    """Cookies encore valides, pour le sidecar et pour Node."""
+    disk = _read_disk()
+    at = disk.get("cookies_at")
+    if isinstance(at, (int, float)) and time.time() - at > COOKIE_TTL_S:
+        return []
+    raw = disk.get("cookies")
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    for row in raw:
+        if not isinstance(row, dict):
+            continue
+        name = row.get("name")
+        value = row.get("value")
+        if not isinstance(name, str) or not name or not isinstance(value, str):
+            continue
+        out.append(
+            {
+                "name": name,
+                "value": value,
+                "domain": str(row.get("domain") or ""),
+                "path": str(row.get("path") or "/"),
+            }
+        )
+    return out
+
+
+def cookies_store(rows: list[dict[str, str]]) -> None:
+    disk = _read_disk()
+    disk["cookies"] = rows
+    disk["cookies_at"] = time.time()
+    _write_disk(disk)
+
+
+def _jar_rows(session: Any) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    jar = getattr(session, "cookies", None)
+    if jar is None:
+        return rows
+    inner = getattr(jar, "jar", jar)
+    try:
+        cookies = list(inner)
+    except TypeError:
+        cookies = []
+    for c in cookies:
+        name = getattr(c, "name", None)
+        value = getattr(c, "value", None)
+        if not isinstance(name, str) or not name:
+            continue
+        rows.append(
+            {
+                "name": name,
+                "value": "" if value is None else str(value),
+                "domain": str(getattr(c, "domain", "") or ""),
+                "path": str(getattr(c, "path", "") or "/"),
+            }
+        )
+    if rows:
+        return rows
+    getter = getattr(jar, "get_dict", None)
+    if callable(getter):
+        for name, value in getter().items():
+            rows.append({"name": str(name), "value": str(value), "domain": ".airbnb.com", "path": "/"})
+    return rows
+
+
+def persist_http() -> None:
+    if _http is None:
+        return
+    rows = _jar_rows(_http)
+    if rows:
+        cookies_store(rows)
+
+
+def http_session(proxy_url: str = "") -> Any:
+    """Une Session curl_cffi, cookies rechargés. Relancer ne recommence pas à zéro."""
+    global _http
+    if _http is not None:
+        return _http
+    from curl_cffi import requests as cf
+
+    try:
+        _http = cf.Session(impersonate="chrome124")
+    except TypeError:
+        _http = cf.Session()
+    if proxy_url:
+        _http.proxies = {"http": proxy_url, "https": proxy_url}
+    for row in cookies_dump():
+        try:
+            _http.cookies.set(row["name"], row["value"], domain=row["domain"] or None, path=row["path"] or "/")
+        except TypeError:
+            _http.cookies.set(row["name"], row["value"])
+        except Exception:
+            continue
+    return _http
+
+
+def _sans_connection(headers: Any) -> Any:
+    if not isinstance(headers, dict):
+        return headers
+    return {k: v for k, v in headers.items() if str(k).lower() != "connection"}
+
+
+def _wrap(method: str):
+    def fn(*args: Any, **kwargs: Any) -> Any:
+        from taux import pace
+        from throttle import RateLimited
+
+        wait = pace("airbnb")
+        if wait > 0:
+            raise RateLimited(429, wait)
+        proxies = kwargs.get("proxies") if isinstance(kwargs.get("proxies"), dict) else {}
+        proxy = ""
+        if isinstance(proxies, dict):
+            proxy = str(proxies.get("https") or proxies.get("http") or "")
+        session = http_session(proxy)
+        kwargs["headers"] = _sans_connection(kwargs.get("headers"))
+        kwargs.setdefault("impersonate", "chrome124")
+        resp = getattr(session, method)(*args, **kwargs)
+        persist_http()
+        return resp
+
+    return fn
+
+
+def install_shared_http() -> None:
+    """Toutes les requêtes pyairbnb / PDP passent par la même Session."""
+    global _installed
+    if _installed:
+        return
+    from curl_cffi import requests as cf
+
+    cf.get = _wrap("get")
+    cf.post = _wrap("post")
+    _installed = True
+
+
+def invalidate(*, cookies: bool = False) -> None:
+    """Jette clé et hash. Les cookies restent, sauf demande explicite."""
+    global _key, _key_at, _hash, _hash_at, _http
     _key = _hash = ""
     _key_at = _hash_at = 0.0
-    try:
-        SESSION_PATH.unlink()
-    except FileNotFoundError:
-        pass
+    disk = _read_disk()
+    disk.pop("key", None)
+    disk.pop("key_at", None)
+    disk.pop("hash", None)
+    disk.pop("hash_at", None)
+    if cookies:
+        disk.pop("cookies", None)
+        disk.pop("cookies_at", None)
+        _http = None
+    if disk:
+        _write_disk(disk)
+    else:
+        try:
+            SESSION_PATH.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def next_search_cursor(pagination: dict | None, current: str) -> str | None:

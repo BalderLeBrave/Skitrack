@@ -51,11 +51,8 @@ treament = [
 
 headers_global = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-    "Accept-Language": "en",
-    "Cache-Control": "no-cache",
+    "Accept-Language": "fr-FR,fr;q=0.9",
     "content-type": "application/json",
-    "Connection": "close",
-    "Pragma": "no-cache",
     "Sec-Ch-Ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
     "Sec-Ch-Ua-Mobile": "?0",
     "Sec-Ch-Ua-Platform": '"Windows"',

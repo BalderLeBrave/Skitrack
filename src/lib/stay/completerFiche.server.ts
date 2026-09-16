@@ -7,18 +7,14 @@
  * — Relancer pendant la pause ne martèle pas.
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
 import type { Listing } from "../listings.ts";
 import { RELEVE_2A } from "../listings.ts";
 import { gitesCodeOf, gitesWidgetUrl } from "../scrape/gitesGps.server.ts";
+import { airbnbCircuitOpen, tripAirbnbCircuit } from "./airbnbCircuit.server.ts";
+import { airbnbCookieHeader } from "./airbnbSession.server.ts";
+import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
-import {
-  CIRCUIT_COOLDOWN_MS,
-  estHoteAirbnb,
-  estStatutRalenti,
-  htmlEstBloque,
-  retryAfterMs,
-} from "./http429.ts";
+import { estHoteAirbnb, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureFiche, type LectureFiche } from "./lectureFiche.ts";
 import { poserReleve } from "./poserReleve.ts";
 import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
@@ -39,7 +35,6 @@ const BLOCK_MS = 5 * 60 * 1000;
 const CACHE_GEN = "f5";
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
-const CIRCUIT_PATH = process.env.SKITRACK_AIRBNB_CIRCUIT?.trim() || "/tmp/skitrack-airbnb-429";
 
 type CacheEntry = { at: number; lect: LectureFiche; hit: boolean; blocked?: boolean };
 const cache = new Map<string, CacheEntry>();
@@ -272,21 +267,11 @@ async function fillAdresses(listings: Listing[], until: number): Promise<number>
 }
 
 function circuitOpen(): boolean {
-  try {
-    const t = Number(readFileSync(CIRCUIT_PATH, "utf8").trim());
-    return Number.isFinite(t) && Date.now() / 1000 < t;
-  } catch {
-    return false;
-  }
+  return airbnbCircuitOpen();
 }
 
 function tripCircuit(waitMs: number): void {
-  const hold = Math.max(CIRCUIT_COOLDOWN_MS, waitMs) / 1000;
-  try {
-    writeFileSync(CIRCUIT_PATH, String(Date.now() / 1000 + hold));
-  } catch {
-    /* tmp plein : le coupe-circuit reste en mémoire via le cache blocked */
-  }
+  tripAirbnbCircuit(waitMs);
 }
 
 type FetchOutcome =
@@ -294,23 +279,49 @@ type FetchOutcome =
   | { kind: "limited"; status: number; retryAfterMs: number }
   | { kind: "empty" };
 
+function hoteTaux(url: string): "airbnb" | "gites" | null {
+  if (estHoteAirbnb(url)) return "airbnb";
+  try {
+    if (/gites-de-france\.com$/i.test(new URL(url).hostname)) return "gites";
+  } catch {
+    /* URL illisible : pas de file d'attente */
+  }
+  return null;
+}
+
 async function fetchHtml(url: string, until: number): Promise<FetchOutcome> {
   if (Date.now() >= until) return { kind: "empty" };
+  const host = hoteTaux(url);
+  if (host) {
+    const pause = await paceTaux(host, Math.min(5_000, Math.max(0, until - Date.now())));
+    if (pause > 0) return { kind: "limited", status: 429, retryAfterMs: pause };
+  }
   const ctrl = new AbortController();
   const wait = setTimeout(() => ctrl.abort(), Math.max(1_000, until - Date.now()));
   try {
+    const cookie = host === "airbnb" ? airbnbCookieHeader() : "";
     const res = await fetch(url, {
-      headers: { "Accept-Language": "fr-FR,fr;q=0.9", Accept: "text/html", "User-Agent": UA },
+      headers: {
+        "Accept-Language": "fr-FR,fr;q=0.9",
+        Accept: "text/html",
+        "User-Agent": UA,
+        ...(cookie ? { cookie } : {}),
+      },
       redirect: "follow",
       signal: ctrl.signal,
     });
     if (estStatutRalenti(res.status)) {
+      if (host) noterBlocage(host, retryAfterMs(res.headers));
       return { kind: "limited", status: res.status, retryAfterMs: retryAfterMs(res.headers) };
     }
     if (!res.ok) return { kind: "empty" };
     const html = await res.text();
     if (html.length < 400) return { kind: "empty" };
-    if (htmlEstBloque(html)) return { kind: "limited", status: 429, retryAfterMs: retryAfterMs(res.headers) };
+    if (htmlEstBloque(html)) {
+      const waitMs = retryAfterMs(res.headers);
+      if (host) noterBlocage(host, waitMs);
+      return { kind: "limited", status: 429, retryAfterMs: waitMs };
+    }
     return { kind: "html", html };
   } catch {
     return { kind: "empty" };
@@ -395,7 +406,7 @@ async function fillAirbnbSeq(targets: Listing[], until: number): Promise<number>
     const lect = lectureFiche(got.html);
     cache.set(cacheKey(url), { at: Date.now(), lect, hit: utile(lect) });
     if (poserLecture(row, lect)) filled += 1;
-    await new Promise((r) => setTimeout(r, 700));
+    await new Promise((r) => setTimeout(r, 1_200));
   }
   return filled;
 }
@@ -437,7 +448,11 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
   }
   if (todo.length > 0 && Date.now() < until) {
     const targets = todo.slice(0, MAX_FICHES);
-    const airbnb = targets.filter((l) => l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? ""));
+    const airbnb = targets.filter((l) => {
+      if (!(l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? ""))) return false;
+      // GPS déjà là : pas de rooms/. C'est ce fetch qui ouvre le 429.
+      return !plausible(l.lat, l.lon);
+    });
     const autres = targets.filter((l) => !(l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? "")));
     filled += await fillPool(autres, until, WORKERS);
     if (airbnb.length && !circuitOpen()) {

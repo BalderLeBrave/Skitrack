@@ -5,7 +5,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from session import cached, invalidate, next_search_cursor
+from session import cached, cookies_dump, cookies_store, invalidate, next_search_cursor
 import session as session_mod
 
 
@@ -69,6 +69,43 @@ def test_cache_disque_evite_un_second_fetch():
         session_mod._hash = ""
         session_mod._key_at = 0.0
         session_mod._hash_at = 0.0
+
+
+def test_cookies_survivent_a_invalidate():
+    path = Path(tempfile.mkdtemp()) / "session.json"
+    old = session_mod.SESSION_PATH
+    session_mod.SESSION_PATH = path
+    session_mod._key = ""
+    session_mod._hash = ""
+    try:
+        cookies_store([{"name": "bev", "value": "abc", "domain": ".airbnb.com", "path": "/"}])
+        invalidate()
+        rows = cookies_dump()
+        assert rows[0]["name"] == "bev"
+        assert rows[0]["value"] == "abc"
+        assert path.exists()
+    finally:
+        invalidate(cookies=True)
+        session_mod.SESSION_PATH = old
+
+
+def test_cookies_perimes_sont_ignores():
+    path = Path(tempfile.mkdtemp()) / "session.json"
+    old = session_mod.SESSION_PATH
+    session_mod.SESSION_PATH = path
+    try:
+        path.write_text(
+            json.dumps(
+                {
+                    "cookies": [{"name": "bev", "value": "old", "domain": "", "path": "/"}],
+                    "cookies_at": time.time() - 13 * 60 * 60,
+                }
+            )
+        )
+        assert cookies_dump() == []
+    finally:
+        invalidate(cookies=True)
+        session_mod.SESSION_PATH = old
 
 
 if __name__ == "__main__":

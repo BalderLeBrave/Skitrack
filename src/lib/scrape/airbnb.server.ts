@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
+import { airbnbCircuitOpen } from "@/lib/stay/airbnbCircuit.server";
 import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
@@ -411,6 +412,10 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
 }
 
 async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<{ listings: Listing[]; rateLimited: boolean }> {
+  if (airbnbCircuitOpen()) {
+    console.warn("[airbnb] coupe-circuit ouvert — pas d'appel");
+    return { listings: [], rateLimited: true };
+  }
   const cli = cliPath();
   if (!cli) {
     console.warn("[airbnb] cli.py introuvable");
@@ -436,8 +441,8 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<{ listings:
     // s'arrête de lui-même quand une page n'apporte plus rien de neuf ou qu'il
     // n'y a plus de curseur : cette borne n'est qu'un garde-fou assumé.
     maxPages: 24,
-    skipEnrich: false,
-    maxEnrich: 40,
+    skipEnrich: true,
+    maxEnrich: 0,
   });
   const raw = await new Promise<{ out: string; err: string }>((resolve, reject) => {
     const child = spawn(python, [cli], {

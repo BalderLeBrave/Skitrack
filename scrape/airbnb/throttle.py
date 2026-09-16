@@ -135,6 +135,12 @@ class Circuit:
 
     def hit_limited(self, wait_s: float) -> None:
         self.consecutive += 1
+        try:
+            from taux import noter_blocage
+
+            noter_blocage("airbnb", wait_s)
+        except Exception:
+            pass
         if self.consecutive >= self.limit:
             self.trip(wait_s)
 

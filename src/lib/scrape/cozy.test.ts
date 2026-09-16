@@ -44,6 +44,16 @@ function booking(extra: Hit = {}): Hit {
   };
 }
 
+function airbnb(extra: Hit = {}): Hit {
+  return {
+    providerCode: "airbnb",
+    providerName: "Airbnb",
+    externalId: "12345678",
+    deeplinkUrl: "https://www.airbnb.fr/associates/click?dest=" + encodeURIComponent("https://www.airbnb.fr/rooms/12345678"),
+    ...extra,
+  };
+}
+
 function abritel(extra: Hit = {}): Hit {
   return {
     providerCode: "abritel",
@@ -191,5 +201,101 @@ describe("relevé CozyCozy", () => {
       "un zéro dit « prix non publié », il ne vaut pas zéro euro",
     );
     assert.equal(rangPrix({ total: 0 }), Number.MAX_SAFE_INTEGER);
+  });
+
+  it("lit Airbnb comme Booking : lien rooms/, pas la page d'accueil affiliée", () => {
+    const rows = cozyListings(
+      charge(
+        entree("Chalet Edelweiss", airbnb({ totalPrice: { value: 2140 } }), {
+          accommodationId: 9,
+          coordinates: { latitude: 45.01, longitude: 6.12 },
+        }),
+      ),
+      INPUT,
+      "Airbnb",
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].source, "Airbnb");
+    assert.equal(rows[0].total, 2140);
+    assert.equal(rows[0].platformId, "12345678");
+    assert.equal(
+      rows[0].url,
+      "https://www.airbnb.fr/rooms/12345678?check_in=2027-02-06&check_out=2027-02-13&adults=8",
+    );
+    assert.equal(rows[0].lat, 45.01);
+    assert.match(rows[0].proven ?? "", /CozyCozy Airbnb/);
+  });
+
+  it("écarte un hôtel Airbnb, et une tuile sans fiche rooms/", () => {
+    const rows = cozyListings(
+      charge(
+        entree("Hôtel des Deux Alpes", airbnb({ totalPrice: { value: 3901 }, externalId: "1" })),
+        entree("Sans fiche", airbnb({ deeplinkUrl: "https://www.airbnb.fr/s/Les-2-Alpes/homes", externalId: "abc" })),
+        entree("Le Vans", airbnb({ totalPrice: { value: 1800 } }), { accommodationId: 3 }),
+      ),
+      INPUT,
+      "Airbnb",
+    );
+    assert.deepEqual(
+      rows.map((r) => r.title),
+      ["Le Vans"],
+    );
+  });
+
+  it("relève la charge Airbnb telle que CozyCozy la publie : prix, chambres, pers., GPS, photos, lieu", () => {
+    const rows = cozyListings(
+      charge(
+        {
+          type: "result",
+          accommodationId: 45881004,
+          title: "châlet",
+          name: "Chalet Aux 2 Alpes - Skis Aux Pieds",
+          subTitle: "4 chambres • 10 personnes",
+          subTitleDetails: { bedRoomCount: 4, bedCount: 11, guestCapacity: 10 },
+          locationText: "Les Deux Alpes",
+          cityName: "Les Deux Alpes",
+          coordinates: { latitude: 45.02220153808594, longitude: 6.125500202178955 },
+          lightThumbnails: {
+            firstUrls: [
+              "https://a0.muscache.com/im/pictures/a.jpg?im_w=720",
+              "https://a0.muscache.com/im/pictures/b.jpg?im_w=720",
+            ],
+            lastUrl: "https://a0.muscache.com/im/pictures/c.jpg?im_w=720",
+            count: 14,
+          },
+          highlightedResults: [
+            {
+              providerCode: "airbnb",
+              providerName: "Airbnb",
+              externalId: "22782241",
+              deeplinkUrl:
+                "https://www.airbnb.fr/rooms/22782241?check_in=2026-12-05&check_out=2026-12-12&adults=8",
+              totalPrice: { value: 1903, currencyCode: "EUR", indicative: false },
+              eurPriceValue: 1903,
+              bedRoomCount: 4,
+              text: "Hébergement entier",
+            },
+          ],
+        },
+      ),
+      INPUT,
+      "Airbnb",
+    );
+    assert.equal(rows.length, 1);
+    const row = rows[0];
+    assert.equal(row.total, 1903);
+    assert.equal(row.currency, "EUR");
+    assert.equal(row.guests, 10);
+    assert.equal(row.bedrooms, 4);
+    assert.equal(row.beds, 11);
+    assert.equal(row.propertyType, "châlet");
+    assert.equal(row.locality, "Les Deux Alpes");
+    assert.equal(row.placeName, "Les Deux Alpes");
+    assert.ok(Math.abs((row.lat ?? 0) - 45.0222) < 0.001);
+    assert.ok(Math.abs((row.lon ?? 0) - 6.1255) < 0.001);
+    assert.equal(row.photos?.length, 3);
+    assert.equal(row.photo, "https://a0.muscache.com/im/pictures/a.jpg?im_w=720");
+    assert.equal(row.platformId, "22782241");
+    assert.match(row.url ?? "", /airbnb\.fr\/rooms\/22782241/);
   });
 });

@@ -89,6 +89,8 @@ def fetch_pdp(
             timeout=20,
             impersonate="chrome124",
         )
+    except RateLimited:
+        raise
     except Exception:
         return None
     if res.status_code in (429, 503):

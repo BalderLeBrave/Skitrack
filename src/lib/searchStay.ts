@@ -33,8 +33,8 @@ function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>): SourceName
   if (part === "airbnb") return ["Airbnb"];
   if (part === "gites") return ["Gîtes de France"];
   if (part === "centrales") return ["Centrale"];
-  if (part === "cozy") return ["Abritel", "Booking"];
-  if (part === "browser") return ["Gîtes de France", "Abritel", "Booking"];
+  if (part === "cozy") return ["Airbnb", "Abritel", "Booking"];
+  if (part === "browser") return ["Airbnb", "Gîtes de France", "Abritel", "Booking"];
   return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale"];
 }
 

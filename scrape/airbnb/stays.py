@@ -15,7 +15,7 @@ from urllib.parse import quote, urlencode
 
 from map import listings_from_raw, par_prix
 from pdp import enrich_listings
-from session import cached, invalidate, next_search_cursor
+from session import cached, install_shared_http, invalidate, next_search_cursor
 from throttle import RateLimited, airbnb_circuit, call_with_retry, http_status_of, is_rate_limited
 
 # Paquet vendu à côté de ce fichier.
@@ -26,10 +26,12 @@ import pyairbnb.api as airbnb_api  # noqa: E402
 import pyairbnb.search as airbnb_search  # noqa: E402
 from pyairbnb.utils import get_nested_value  # noqa: E402
 
+install_shared_http()
+
 MAX_PAGES = 80
 # Une page de plus, c'est un appel de plus au même domaine : on ralentit le
 # rythme plutôt que de l'accélérer, et on s'interdit de tourner indéfiniment.
-PAGE_PAUSE_S = 0.8
+PAGE_PAUSE_S = 0.4
 PAGE_BUDGET_S = 45.0
 ENRICH_BUDGET_S = 22.0
 DEFAULT_TIMEOUT = 45
@@ -204,6 +206,14 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     max_pages = int(params.get("maxPages") or params.get("scrollCount") or MAX_PAGES)
     max_pages = max(1, min(MAX_PAGES, max_pages))
     url = build_search_url(params)
+    if airbnb_circuit.open():
+        return {
+            "ok": False,
+            "error": "HTTP 429",
+            "rateLimited": True,
+            "url": url,
+            "attempts": 0,
+        }
     proxy_url = str(params.get("proxy_url") or _proxy())
     sink = io.StringIO()
     started = time.perf_counter()

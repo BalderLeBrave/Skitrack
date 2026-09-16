@@ -48,20 +48,58 @@ function isHotelOnly(title: string): boolean {
   return false;
 }
 
-function providerHit(entry: Record<string, unknown>, kind: "abritel" | "booking"): Record<string, unknown> | null {
+function isAirbnb(blob: string): boolean {
+  return /\bairbnb\b/i.test(blob);
+}
+
+function providerHit(entry: Record<string, unknown>, kind: "abritel" | "booking" | "airbnb"): Record<string, unknown> | null {
   const hits = Array.isArray(entry.highlightedResults) ? entry.highlightedResults : [];
   for (const raw of hits) {
     if (!raw || typeof raw !== "object") continue;
     const h = raw as Record<string, unknown>;
     const blob = `${h.providerCode ?? ""} ${h.providerName ?? ""} ${h.deeplinkUrl ?? ""}`;
-    if (kind === "abritel" ? isVrbo(blob) : isBooking(blob)) return h;
+    if (kind === "abritel" && isVrbo(blob)) return h;
+    if (kind === "booking" && isBooking(blob)) return h;
+    if (kind === "airbnb" && isAirbnb(blob)) return h;
   }
-  if (kind === "abritel" && entry.provider && typeof entry.provider === "object") {
+  if ((kind === "abritel" || kind === "airbnb") && entry.provider && typeof entry.provider === "object") {
     const h = entry.provider as Record<string, unknown>;
     const blob = `${h.providerCode ?? ""} ${h.providerName ?? ""} ${h.deeplinkUrl ?? ""}`;
-    if (isVrbo(blob)) return h;
+    if (kind === "abritel" && isVrbo(blob)) return h;
+    if (kind === "airbnb" && isAirbnb(blob)) return h;
   }
   return null;
+}
+
+function unwrapDest(deeplink: string): string {
+  const dest = deeplink.match(/[?&]dest=([^&]+)/i);
+  if (dest) {
+    try {
+      return decodeURIComponent(dest[1]);
+    } catch {
+      /* dest illisible : on garde le lien tel quel */
+    }
+  }
+  const tagged = deeplink.match(/destination:(https:\/\/[^&\s]+)/i);
+  if (tagged) {
+    try {
+      return decodeURIComponent(tagged[1]);
+    } catch {
+      return tagged[1];
+    }
+  }
+  return deeplink;
+}
+
+function canonicalAirbnb(deeplink: string, input: LiveSearchInput, platformId: string | null): string {
+  const raw = unwrapDest(deeplink);
+  const room =
+    raw.match(/airbnb\.(?:fr|com)\/rooms\/(\d+)/i)?.[1] ??
+    (platformId && /^\d+$/.test(platformId) ? platformId : null);
+  if (room) {
+    return `https://www.airbnb.fr/rooms/${room}?check_in=${input.checkIn}&check_out=${input.checkOut}&adults=${input.guests}`;
+  }
+  return raw.startsWith("http") ? raw : deeplink;
 }
 
 function canonicalAbritel(deeplink: string, input: LiveSearchInput): string {
@@ -88,6 +126,76 @@ function coord(v: unknown): number | null {
   if (typeof v === "string" && v.trim()) {
     const n = Number(v);
     if (Number.isFinite(n) && n !== 0) return n;
+  }
+  return null;
+}
+
+function deeplinkOf(h: Record<string, unknown>): string {
+  if (typeof h.deeplinkUrl === "string" && h.deeplinkUrl.trim()) return h.deeplinkUrl.trim();
+  if (typeof h.deeplink === "string" && h.deeplink.trim()) return h.deeplink.trim();
+  const nested = h.deeplink;
+  if (nested && typeof nested === "object" && typeof (nested as { url?: unknown }).url === "string") {
+    return (nested as { url: string }).url.trim();
+  }
+  return "";
+}
+
+function deviseOf(priceObj: Record<string, unknown> | undefined): string {
+  const code = priceObj?.currencyCode ?? priceObj?.currency;
+  return typeof code === "string" ? code.trim() : "";
+}
+
+function prixOf(h: Record<string, unknown>): { total: number; indicative: boolean; devise: string } {
+  const priceObj = (h.totalPrice ?? h.price) as Record<string, unknown> | undefined;
+  const indicative = priceObj?.indicative === true;
+  const stayRaw = priceObj?.value ?? h.eurPriceValue;
+  const total = !indicative && typeof stayRaw === "number" && stayRaw > 0 ? Math.round(stayRaw) : 0;
+  return { total, indicative, devise: deviseOf(priceObj) };
+}
+
+function coordsOf(e: Record<string, unknown>): { lat: number | null; lon: number | null } {
+  const loc = (e.location ?? {}) as Record<string, unknown>;
+  const coords = (e.coordinates ?? loc.coordinates ?? loc) as Record<string, unknown>;
+  return {
+    lat: coord(coords.latitude) ?? coord(coords.lat),
+    lon: coord(coords.longitude) ?? coord(coords.lon) ?? coord(coords.lng),
+  };
+}
+
+function photosOf(e: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (v: unknown) => {
+    const u = httpUrl(v);
+    if (!u || seen.has(u)) return;
+    seen.add(u);
+    out.push(u);
+  };
+  const thumbs = (e.lightThumbnails ?? {}) as Record<string, unknown>;
+  if (Array.isArray(thumbs.firstUrls)) for (const u of thumbs.firstUrls) push(u);
+  push(thumbs.lastUrl);
+  push(e.thumbnailUrl);
+  push(e.photo);
+  if (Array.isArray(e.photos)) {
+    for (const raw of e.photos) {
+      if (typeof raw === "string") push(raw);
+      else if (raw && typeof raw === "object") {
+        const p = raw as Record<string, unknown>;
+        push(p.url ?? p.thumbnailUrl ?? p.originalUrl);
+      }
+    }
+  }
+  return out;
+}
+
+function lieuOf(e: Record<string, unknown>): string | null {
+  for (const v of [e.locationText, e.cityName]) {
+    if (typeof v === "string" && v.trim()) return v.replace(/\s+/g, " ").trim();
+  }
+  const loc = e.location;
+  if (loc && typeof loc === "object") {
+    const city = (loc as { city?: unknown }).city;
+    if (typeof city === "string" && city.trim()) return city.trim();
   }
   return null;
 }
@@ -147,7 +255,8 @@ type CozyFilters = {
   providerCodes?: string[];
 };
 
-const PROVIDERS = ["abritel", "booking"] as const;
+const PROVIDERS = ["airbnb", "abritel", "booking"] as const;
+export type CozyProvider = (typeof PROVIDERS)[number];
 const PAGE_SIZE = 40;
 /**
  * Deux bornes de sécurité, explicites, et ni l'une ni l'autre n'est une lecture
@@ -204,7 +313,11 @@ function processedCount(payload: unknown): number | null {
  * Un aller CozyCozy. Abritel et Booking sont demandés à l’API, sans défiler, et
  * page après page jusqu’au compteur qu’elle publie — une requête à la fois.
  */
-export async function collectCozyPayloads(page: Page, input: LiveSearchInput): Promise<unknown[]> {
+export async function collectCozyPayloads(
+  page: Page,
+  input: LiveSearchInput,
+  only?: readonly CozyProvider[],
+): Promise<unknown[]> {
   await allowsPath("https://www.cozycozy.com", "/");
   const payloads: unknown[] = [];
   let searchId: string | null = null;
@@ -245,7 +358,8 @@ export async function collectCozyPayloads(page: Page, input: LiveSearchInput): P
       minCancellationCategory: 0,
     };
     const readyUntil = Date.now() + 10_000;
-    for (const code of PROVIDERS) {
+    const codes = only && only.length > 0 ? only : PROVIDERS;
+    for (const code of codes) {
       // La recherche Cozy se remplit en arrière-plan : la première page peut
       // revenir vide. On la redemande jusqu'à l'échéance — une requête à la
       // fois, là où les deux fournisseurs partaient ensemble sur le même
@@ -330,9 +444,9 @@ function idText(v: unknown): string | null {
 export function cozyListings(
   payloads: unknown[],
   input: LiveSearchInput,
-  source: "Abritel" | "Booking",
+  source: "Abritel" | "Booking" | "Airbnb",
 ): Listing[] {
-  const kind = source === "Abritel" ? "abritel" : "booking";
+  const kind = source === "Abritel" ? "abritel" : source === "Airbnb" ? "airbnb" : "booking";
   const out: Listing[] = [];
   const seen = new Set<string>();
   for (const json of payloads) {
@@ -345,21 +459,11 @@ export function cozyListings(
       const e = raw as Record<string, unknown>;
       const h = providerHit(e, kind);
       if (!h) continue;
-      const priceObj = h.totalPrice as Record<string, unknown> | undefined;
-      // Un « à partir de » n'est pas un total de séjour : il ressort à zéro,
-      // c'est-à-dire « prix non publié » au sens de `Listing.total`, avec le
-      // drapeau qui dit pourquoi. Supprimer l'annonce n'apprenait rien.
-      const indicative = priceObj?.indicative === true;
-      const stayRaw = priceObj?.value ?? h.eurPriceValue;
-      const total =
-        !indicative && typeof stayRaw === "number" && stayRaw > 0 ? Math.round(stayRaw) : 0;
-      // La devise était écrite en dur. On la lit quand la source la publie à
-      // côté du montant ; EUR reste le défaut, faute de charge enregistrée.
-      const devise = typeof priceObj?.currency === "string" ? priceObj.currency.trim() : "";
+      const { total, indicative, devise } = prixOf(h);
       const name = typeof e.name === "string" ? e.name.replace(/\s+/g, " ").trim() : "";
       if (!name) continue;
-      if (kind === "booking" && isHotelOnly(name)) continue;
-      const deeplink = typeof h.deeplinkUrl === "string" ? h.deeplinkUrl : "";
+      if ((kind === "booking" || kind === "airbnb") && isHotelOnly(name)) continue;
+      const deeplink = deeplinkOf(h);
       if (!deeplink) continue;
       if (kind === "booking" && !deeplink.includes("booking.com")) continue;
       const details = (e.subTitleDetails ?? {}) as Record<string, unknown>;
@@ -367,29 +471,26 @@ export function cozyListings(
         occupancyFromRecord({ ...e, subTitleDetails: details, ...h }),
         name,
         typeof e.subTitle === "string" ? e.subTitle : "",
+        typeof h.text === "string" ? h.text : "",
       );
-      // Le décompte de salles de bain a son filtre chez la source
-      // (`minBathRoomCount`), donc son champ ; aucune charge CozyCozy n'est
-      // enregistrée dans le dépôt pour en prouver le nom sur la fiche, d'où
-      // cette lecture facultative, qui reste `null` si la clé est absente.
-      const baths = compte(details.bathRoomCount);
-      const coords = (e.coordinates ?? {}) as Record<string, unknown>;
-      const lat = coord(coords.latitude) ?? coord(coords.lat);
-      const lon = coord(coords.longitude) ?? coord(coords.lon) ?? coord(coords.lng);
-      const thumbs = (e.lightThumbnails ?? {}) as Record<string, unknown>;
-      const first = Array.isArray(thumbs.firstUrls) ? thumbs.firstUrls : [];
-      // Toutes les vignettes publiées sortent, la première en tête ; seule
-      // celle-là était gardée. `firstUrls` n'est qu'un aperçu : sa longueur
-      // n'est pas le nombre de photos du bien, et on n'en pose aucun.
-      const gallery = first.map(httpUrl).filter((u): u is string => u !== null);
+      const baths = compte(details.bathRoomCount ?? h.bathRoomCount);
+      const beds = compte(details.bedCount ?? h.bedCount);
+      const { lat, lon } = coordsOf(e);
+      const gallery = photosOf(e);
+      const lieu = lieuOf(e);
+      const typePublie = typeof e.title === "string" ? e.title.replace(/\s+/g, " ").trim() : "";
       const id = String(e.accommodationId ?? h.accommodationId ?? h.externalId ?? deeplink);
-      // `id` reste celui de CozyCozy : il est stable et c'est lui qui
-      // dédoublonne. L'identifiant du bien chez Abritel ou Booking partait
-      // avec lui ; il a désormais son champ.
-      const platformId = idText(h.externalId);
-      const listingId = kind === "booking" ? `bk-${id}` : `abr-${id}`;
+      const platformId = idText(h.externalId ?? h.unitId);
+      const listingId = kind === "booking" ? `bk-${id}` : kind === "airbnb" ? `abnb-${id}` : `abr-${id}`;
       if (seen.has(listingId)) continue;
       seen.add(listingId);
+      const url =
+        kind === "abritel"
+          ? canonicalAbritel(deeplink, input)
+          : kind === "airbnb"
+            ? canonicalAirbnb(deeplink, input, platformId)
+            : canonicalBooking(deeplink, input);
+      if (kind === "airbnb" && !/airbnb\.(?:fr|com)\/rooms\/\d+/i.test(url)) continue;
       out.push({
         id: listingId,
         stationId: input.stationId,
@@ -400,15 +501,19 @@ export function cozyListings(
         guests: occ.guests,
         bedrooms: occ.bedrooms,
         rooms: occ.rooms,
+        beds,
         baths,
+        propertyType: typePublie && typePublie.toLowerCase() !== name.toLowerCase() ? typePublie : null,
         available: true,
-        photo: gallery[0] ?? httpUrl(e.photo),
+        photo: gallery[0] ?? null,
         photos: gallery.length > 0 ? gallery : null,
         priceIndicative: indicative ? true : null,
         platformId,
-        url: kind === "abritel" ? canonicalAbritel(deeplink, input) : canonicalBooking(deeplink, input),
+        url,
         lat,
         lon,
+        locality: lieu,
+        placeName: lieu,
         proven: `CozyCozy ${source} live ${input.checkIn}→${input.checkOut}`,
       });
     }

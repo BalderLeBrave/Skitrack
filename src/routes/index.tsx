@@ -12,10 +12,19 @@
  *  ses critères et décide lui-même quand chercher. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { Flocons } from "@/components/Flocons";
+import { useEchap } from "@/components/v7/fermeture";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { Calendrier, usePlage } from "@/components/v7/Calendrier";
@@ -37,7 +46,7 @@ import {
   type ChipKey,
 } from "@/lib/parcours";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
-import { maxM } from "@/lib/v7";
+import { aStation, maxM } from "@/lib/v7";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -121,7 +130,7 @@ function Home() {
   const plage = usePlage();
   // La station retenue, s'il y en a une : c'est elle qui décide de ce que
   // « Rechercher » va ouvrir.
-  const retenue = P.stationId ? stationById(P.stationId) : undefined;
+  const retenueChoisie = P.stationId ? stationById(P.stationId) : undefined;
 
   const all = STATIONS;
   const top = useMemo(() => popular(all), [all]);
@@ -133,6 +142,16 @@ function Home() {
   // vide ici.
   const q = P.q;
   const setQ = P.setQ;
+  // Un nom de station tapé en toutes lettres désigne cette station, même sans
+  // passer par une suggestion : la maquette fait ce repli (App.dc.html:881) et
+  // sans lui, taper « Val Thorens » puis Entrée menait à une liste d'une ligne.
+  // Comparaison sur le nom replié, pas sur `toLowerCase` : « megeve » doit
+  // trouver Megève.
+  const retenue = useMemo(() => {
+    if (retenueChoisie) return retenueChoisie;
+    const cible = foldName(q);
+    return cible ? all.find((s) => foldName(s.name) === cible) : undefined;
+  }, [retenueChoisie, q, all]);
   const [hp, setHp] = useState<Panneau>(null);
   // L'entrée désignée au clavier dans la liste de suggestions. -1 : aucune.
   const [iSugg, setISugg] = useState(-1);
@@ -192,10 +211,16 @@ function Home() {
     plage.ouvrirDepart();
     setHp("dates");
   };
-  const fermer = () => {
+  const fermer = useCallback(() => {
     setHp(null);
     plage.reset();
-  };
+  }, [plage]);
+  // Échap ferme le panneau ouvert, d'où que vienne le focus. Elle n'était
+  // écoutée que sur le champ Destination : une fois le panneau Altitude,
+  // Arrivée, Départ ou Voyageurs ouvert, le focus était dedans et Échap ne
+  // faisait plus rien. La maquette écoute au niveau de la fenêtre
+  // (App.dc.html:557).
+  useEchap(hp != null, fermer);
 
   /* ---------- Suggestions ----------
      Choisir une suggestion **remplit le champ et pose le critère**. Rien de
@@ -247,7 +272,7 @@ function Home() {
   const nuitsLues = nightsBetween(checkIn, checkOut);
   const datesInversees = nuitsLues == null || nuitsLues <= 0;
   const dira = retenue
-    ? `Rechercher ouvrira les logements à ${retenue.name}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
+    ? `Rechercher ouvrira les logements ${aStation(retenue.name)}, pour ${nights} nuit${nights > 1 ? "s" : ""}.`
     : preds.length
       ? `Rechercher ouvrira ${retenues} station${retenues > 1 ? "s" : ""} sur ${all.length}, selon vos critères.`
       : `Rechercher ouvrira les ${all.length} stations, tri par défaut.`;
@@ -353,12 +378,12 @@ function Home() {
           />
           <div className="hero7__in">
             <h1>
-              <span className="hero7__t1">Le bon domaine,</span>{" "}
-              <span className="hero7__t2">à la bonne altitude.</span>
+              <span className="hero7__t1">Comparez les stations,</span>
+              <span className="hero7__t2">puis les logements.</span>
             </h1>
             <p className="hero7__lead">
-              Altitudes réelles, mix de pistes, forfaits relevés et logements au total du séjour. Ce
-              qui n'est pas relevé est dit absent.
+              Altitude des pistes, forfait 6 jours et total du séjour, station par station. Ce qui
+              n'est pas relevé est dit absent.
             </p>
             {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
             <div className="sbar7__hote hero7__barre">
@@ -528,7 +553,7 @@ function Home() {
                       Indifférent
                     </a>
                     <button type="button" className="btn7 btn7--encre" onClick={() => ouvrir("dates")}>
-                      Suivant : dates
+                      Choisir les dates
                     </button>
                   </div>
                 </div>
@@ -565,10 +590,7 @@ function Home() {
                 <button
                   type="button"
                   className="hero7__jetons-tout"
-                  onClick={() => {
-                    P.resetFilters();
-                    P.setDestination(null);
-                  }}
+                  onClick={() => P.resetFilters()}
                 >
                   Tout retirer
                 </button>
@@ -590,7 +612,7 @@ function Home() {
             </div>
           </div>
           <span className="hero7__suite" aria-hidden>
-            <span>La suite plus bas</span>
+            <span>Plus bas : grands domaines et massifs</span>
             <svg
               width="18"
               height="18"

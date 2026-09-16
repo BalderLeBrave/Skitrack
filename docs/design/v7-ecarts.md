@@ -102,6 +102,46 @@ pas des écrans. Les écrans v7 emploient leur propre vocabulaire (`btn7`,
 - **Sections hors maquette** (profil, minicarte, historique de neige,
   récapitulatif imprimable) : retirées avec leurs composants, ci-dessus.
 
+## Conformité à l'export du 16 septembre 2026
+
+Un second export du même projet est arrivé le 16 septembre. Comparé bloc par
+bloc au portage, il a donné une trentaine d'écarts réels, corrigés dans les
+commits qui suivent ce document. Restent quatre écarts connus, assumés, et
+c'est ici qu'ils sont écrits pour ne pas se re-signaler à chaque relecture.
+
+1. **Le panneau « Centrales de réservation » (App.dc.html:466-487) n'est pas
+   porté**, et ne le sera pas en l'état. Il est inatteignable dans la maquette
+   elle-même : `auditOpen` naît à `false`, Échap le remet à `false`, et
+   `openAudit` — la seule fonction qui le passerait à `true` — n'est liée à
+   aucun balisage, dans aucun des dix fichiers de l'export. L'objet `cen`
+   (l. 890-892) est mort de la même façon. Le porter demanderait d'inventer un
+   déclencheur que la maquette ne donne pas. Ses textes achèvent de le
+   disqualifier : le bandeau (l. 907) finit par « Les annonces affichées dans
+   **cette maquette** viennent du relevé du 3 sept. 2026 aux 2 Alpes », et ses
+   compteurs — « 49 centrales de station, 5 de domaine », « 27 connecteurs,
+   19 qui répondent » — sont tapés à la main. Le sens de l'autorité est
+   d'ailleurs inversé : les lignes 660-712 de la maquette recopient
+   `src/lib/scrape/centrales/registre.ts` et `hotes/index.ts`, en le disant en
+   commentaire, et la copie est déjà périmée. La source vivante est le dépôt.
+2. **La pilule de séjour reste sur Comparer et sur Logements**, là où la
+   maquette calcule `showStayBar: screen !== 'compare' && screen !== 'lodgings'`
+   (l. 918). Elle la retire parce qu'elle met à la place, sur Logements, un
+   résumé de séjour dans l'en-tête collant (l. 320-330). Tant que ce résumé
+   n'existe pas ici, retirer la pilule supprimerait le seul accès aux dates et
+   au groupe depuis cet écran : on perdrait une commande pour gagner une ligne.
+3. **La loupe de l'accueil ouvre les logements de la station désignée**, là où
+   la maquette ouvre sa fiche (l. 882). C'est une décision écrite
+   (`index.tsx`, en-tête de `v7/OngletsStation.tsx`, commit 408a7cb) : la fiche
+   reste à un clic par l'onglet « Fiche station », et la phrase sous la barre
+   annonce ce que la loupe fera.
+4. **L'indice de défilement de la couverture reste inerte** — `aria-hidden`,
+   `pointer-events: none` —, là où la maquette en fait un bouton qui défile en
+   douceur et s'efface au-delà de 45 % de la hauteur. Le texte de la maquette,
+   lui, est repris : il nomme ce qu'il y a plus bas.
+
+Deux autres écarts de l'export sont déjà couverts plus haut : la neige confinée
+à la couverture, et le voile renforcé de cette même couverture.
+
 ## Deux pièges rencontrés
 
 - **Verrous lus dans une fermeture.** `useGo` capturait `stationId` au rendu ;

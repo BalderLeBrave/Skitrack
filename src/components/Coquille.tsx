@@ -25,6 +25,7 @@ import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
 import { Toast } from "./v6/Toast";
 import { Calendrier, usePlage } from "./v7/Calendrier";
 import { Compteur } from "./v7/Compteur";
+import { useFermeture } from "./v7/fermeture";
 import { useCriteresUrl } from "@/lib/criteres";
 import { useLocale, useT, type MsgId } from "@/lib/i18n";
 import {
@@ -61,25 +62,6 @@ const AILLEURS: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] = [
  *  à une seule table : `screenOf` répond `null` hors du parcours. */
 export function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
-}
-
-/** Ferme au clic dehors et à Échap. */
-function useFermeture(ouvert: boolean, fermer: () => void, hote: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    if (!ouvert) return;
-    const dehors = (e: MouseEvent) => {
-      if (!hote.current?.contains(e.target as Node)) fermer();
-    };
-    const echap = (e: KeyboardEvent) => {
-      if (e.key === "Escape") fermer();
-    };
-    document.addEventListener("mousedown", dehors);
-    document.addEventListener("keydown", echap);
-    return () => {
-      document.removeEventListener("mousedown", dehors);
-      document.removeEventListener("keydown", echap);
-    };
-  }, [ouvert, fermer, hote]);
 }
 
 function MenuPlus() {
@@ -141,10 +123,10 @@ function Barre() {
           void go("home");
         }}
       >
-        <Icon name="montagne" taille={22} className="v7nav__montagne" />
-        <span>
+        <span className="v7nav__mot">
           <span className="v7nav__ski">ski</span>
           <span className="v7nav__track">track</span>
+          <i className="v7nav__point" aria-hidden />
         </span>
       </a>
       <nav className="v7nav__parcours" aria-label="Parcours">
@@ -155,7 +137,7 @@ function Barre() {
             !actif && ((j.go === "lodging" && !stationId) || (j.go === "booking" && !lodgeId));
           const titre =
             j.go === "lodging" && verrou
-              ? "Retenez d'abord une station"
+              ? t("nav.lodgingLocked")
               : j.go === "booking" && verrou
                 ? t("nav.bookingLocked")
                 : undefined;
@@ -218,6 +200,7 @@ function PiluleSejour() {
       <button
         type="button"
         className="v7sejour__pilule"
+        data-sejour-ouvre
         aria-expanded={stayOpen}
         onClick={() => setStayOpen(!stayOpen)}
       >
@@ -238,7 +221,7 @@ function PanneauSejour() {
   const { checkIn, checkOut, nights } = useSejour();
   const plage = usePlage();
   const hote = useRef<HTMLDivElement>(null);
-  useFermeture(true, () => setStayOpen(false), hote);
+  useFermeture(true, () => setStayOpen(false), hote, "[data-sejour-ouvre]");
   return (
     <div className="v7panneau" ref={hote} role="dialog" aria-label="Votre séjour">
       <div className="v7panneau__tete">
@@ -259,7 +242,7 @@ function PanneauSejour() {
         <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" encadre />
       </div>
       <span className="v7panneau__note">
-        Le séjour survit à la navigation : revenir en arrière ne perd rien.
+        Dates et voyageurs sont conservés d’un écran à l’autre.
       </span>
     </div>
   );
@@ -274,6 +257,7 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
   const go = useGo();
   const stayOpen = useParcours((s) => s.stayOpen);
   const setStayOpen = useParcours((s) => s.setStayOpen);
+  const setShared = useParcours((s) => s.setShared);
 
   // Les critères de recherche s'écrivent dans l'adresse sur les écrans du
   // parcours : un lien se partage, un signet se repose, et le bouton Précédent
@@ -282,13 +266,21 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
 
   // Changer d'écran ferme le panneau de séjour et remonte en haut de page,
   // comme `fromHash` dans la maquette.
+  //
+  // Le bandeau « Récapitulatif partagé » décrit l'écran de réservation : le
+  // quitter l'efface. Il ne s'effaçait qu'à la croix, et l'adresse ayant été
+  // nettoyée entre-temps, un aller-retour par Comparer le ramenait devant un
+  // lien qui n'existait plus. La maquette remet `shared` à faux à chaque
+  // navigation (App.dc.html:539) ; ici la condition sur l'écran suffit, et
+  // elle survit à la navigation que la lecture du lien déclenche elle-même.
   useEffect(() => {
+    if (screenOf(pathname) !== "booking") setShared(false);
     setStayOpen(false);
     window.scrollTo(0, 0);
     document.querySelectorAll<HTMLElement>(".v6 .screen.on .scroll").forEach((s) => {
       s.scrollTop = 0;
     });
-  }, [pathname, setStayOpen]);
+  }, [pathname, setStayOpen, setShared]);
 
   // Lien de partage : `#s=<station>&l=<logement>&d=<arrivée>&n=<nuits>&t=<voyageurs>&r=<chambres>`.
   // Station, logement, dates et voyageurs viennent du lien et remplacent le

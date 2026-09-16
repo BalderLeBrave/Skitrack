@@ -37,9 +37,9 @@ export function CarteStation({
   /** Désignée par la carte : même éclairage que l'épingle. */
   vif?: boolean;
   surSurvol?: (id: string | null) => void;
-  /** `accueil` : photo 16/10. `liste` : photo 16/9, anneau quand la station est
-   *  dans la comparaison. La variante ne change que la mise en forme — jamais
-   *  la destination d'un clic. */
+  /** `accueil` : photo 16/10, et cocher « Comparer » ouvre l'écran qui le lit.
+   *  `liste` : photo 16/9, anneau quand la station est dans la comparaison, et
+   *  « Comparer » bascule dans les deux sens — on est déjà sur l'écran. */
   variante: "accueil" | "liste";
 }) {
   const go = useGo();
@@ -47,6 +47,7 @@ export function CarteStation({
   const toggleCmp = useParcours((p) => p.toggleCmp);
   const retain = useParcours((p) => p.retain);
   const inCmp = cmp.includes(s.id);
+  const retenue = useParcours((p) => p.stationId) === s.id;
   const pass = passLbl(s);
 
   const ouvrir = (e?: MouseEvent) => {
@@ -56,10 +57,20 @@ export function CarteStation({
 
   /** Le bouton Comparer : il pose la station dans la comparaison **et** mène à
    *  l'écran qui la lit. Cocher sans rien ouvrir laissait l'utilisateur devant
-   *  une case cochée et aucun chemin. */
+   *  une case cochée et aucun chemin.
+   *
+   *  Sur l'écran Comparer lui-même, il n'y a rien à ouvrir : c'est une bascule,
+   *  et la maquette y met une case à cocher (App.dc.html:222). Elle ne
+   *  basculait pas — `if (!inCmp)` ne faisait rien quand la station était déjà
+   *  dedans, et `go("compare")` sortait aussitôt puisqu'on y était déjà. Le
+   *  bouton s'annonçait pourtant `aria-pressed` aux lecteurs d'écran. */
   const comparer = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (variante === "liste") {
+      toggleCmp(s.id);
+      return;
+    }
     if (!inCmp) toggleCmp(s.id);
     void go("compare");
   };
@@ -88,6 +99,7 @@ export function CarteStation({
           className="stc7__slot"
           src={stationPhoto(s)}
         />
+        {retenue ? <span className="stc7__retenue">Retenue</span> : null}
         <span className="stc7__km">{kmLbl(s) ?? "km non publié"}</span>
       </div>
       <div className="stc7__corps">

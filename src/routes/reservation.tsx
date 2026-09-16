@@ -14,18 +14,32 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { useForfait } from "@/components/v7/useForfait";
 import { resolveListing } from "@/lib/accommodation";
+import { dire } from "@/lib/i18n";
 import {
   datesLbl,
   eur,
   eurCents,
   eurN,
   groupLbl,
+  nuitsLbl,
+  travLbl,
   useParcours,
   useSejour,
 } from "@/lib/parcours";
 import { stationById } from "@/lib/stations";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, mediaTon, prixLbl } from "@/lib/v7";
+import {
+  altLbl,
+  aStation,
+  bedLbl,
+  capLbl,
+  crumbDomaine,
+  distanceOf,
+  firmOf,
+  kmLbl,
+  mediaTon,
+  prixLbl,
+} from "@/lib/v7";
 
 export const Route = createFileRoute("/reservation")({ component: Reservation });
 
@@ -43,10 +57,10 @@ function Reservation() {
   useEffect(() => {
     const { stationId: st, lodgeId: lo } = useParcours.getState();
     if (!st) {
-      P.say("Retenez d’abord une station.");
+      P.say(dire("nav.lodgingLocked"));
       void go("compare");
     } else if (!lo || !resolveListing(lo)) {
-      P.say("Choisissez d’abord un logement.");
+      P.say(dire("nav.bookingLocked"));
       void go("lodging");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,7 +133,7 @@ function Reservation() {
           }}
         >
           <Icon name="chevron-gauche" taille={14} />
-          Logements à {s.name}
+          Logements {aStation(s.name)}
         </a>
         <header className="v7tete">
           <span className="v7surtitre">Étape 3 · Réservation</span>
@@ -150,8 +164,8 @@ function Reservation() {
             <div>
               <strong>Séjour marqué comme réservé</strong>
               <span>
-                La confirmation et le paiement sont chez {l.source}. Skitrack garde le récapitulatif au
-                prix relevé.
+                La confirmation et le paiement sont chez {l.source}. Le récapitulatif garde le prix
+                relevé.
               </span>
             </div>
             <a
@@ -236,7 +250,7 @@ function Reservation() {
                 </div>
                 <strong className="carte7-sect__grand">{s.name}</strong>
                 <span className="carte7-sect__texte carte7-sect__texte--petit">
-                  {crumb(s)}{s.domain ? ` · ${s.domain}` : ""}
+                  {crumbDomaine(s)}
                 </span>
                 <span className="carte7-sect__chiffres">
                   {altLbl(s) ?? "altitudes non relevées"} · {kmLbl(s) ?? "km non publié"}{" "}
@@ -248,6 +262,7 @@ function Reservation() {
                   <span>Séjour</span>
                   <a
                     href="#"
+                    data-sejour-ouvre
                     onClick={(e) => {
                       e.preventDefault();
                       P.setStayOpen(!P.stayOpen);
@@ -287,7 +302,7 @@ function Reservation() {
               <tbody>
                 <tr>
                   <th>
-                    Logement · {nights} nuits
+                    Logement · {nuitsLbl(nights)}
                     <span className="cout7__ok">relevé chez la source</span>
                   </th>
                   <td className={l.total > 0 ? undefined : "absent"}>{prixLbl(l)}</td>
@@ -318,7 +333,7 @@ function Reservation() {
                   </td>
                 </tr>
                 <tr className="cout7__pp">
-                  <th>Par personne, {trav}</th>
+                  <th>Par personne, sur {travLbl(trav)}</th>
                   <td className={l.total > 0 ? undefined : "absent"}>
                     {l.total > 0 ? eurCents(Math.round((totalN / trav) * 100) / 100) : "—"}
                   </td>
@@ -345,8 +360,8 @@ function Reservation() {
               </button>
             </div>
             <p className="aside7__note">
-              Le lien de partage reprend station, logement, dates et voyageurs : vos co-voyageurs
-              voient le même récapitulatif.
+              Le lien de partage reprend station, logement, dates et voyageurs : les autres
+              voyageurs voient le même récapitulatif.
             </p>
           </aside>
         </div>

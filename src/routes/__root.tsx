@@ -34,6 +34,14 @@ export const Route = createRootRoute({
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
       },
+      // C'est gstatic qui sert les .woff2 de Manrope : sans ce second
+      // preconnect, la poignée de main TLS n'a lieu qu'à la lecture de la
+      // feuille. La maquette en déclare bien deux (App.dc.html:11-12).
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",

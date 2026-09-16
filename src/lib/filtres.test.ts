@@ -78,3 +78,37 @@ describe("prédicats de recherche", () => {
     assert.equal(new Set(cles).size, cles.length);
   });
 });
+
+describe("un geste, un jeton", () => {
+  it("le texte qui redit le massif ne fait pas un second prédicat", () => {
+    const preds = predicats({ q: "Vanoise", massif: "Vanoise", unit: "pct", filters: filtres() });
+    assert.deepEqual(
+      preds.map((p) => p.id),
+      ["massif"],
+    );
+  });
+
+  it("le repli du texte ne dépend ni des accents ni de la casse", () => {
+    const preds = predicats({ q: "  vanoise ", massif: "Vanoise", unit: "pct", filters: filtres() });
+    assert.deepEqual(
+      preds.map((p) => p.id),
+      ["massif"],
+    );
+  });
+
+  it("un texte qui dit autre chose que le massif garde son prédicat", () => {
+    const preds = predicats({ q: "Tignes", massif: "Vanoise", unit: "pct", filters: filtres() });
+    assert.deepEqual(
+      preds.map((p) => p.id),
+      ["q", "massif"],
+    );
+  });
+
+  it("sans massif posé, le texte garde son prédicat", () => {
+    const preds = predicats({ q: "Vanoise", massif: null, unit: "pct", filters: filtres() });
+    assert.deepEqual(
+      preds.map((p) => p.id),
+      ["q"],
+    );
+  });
+});

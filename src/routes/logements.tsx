@@ -19,7 +19,9 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
+import { useEchap, useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
+import { dire } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
@@ -35,6 +37,7 @@ import {
   droppedLabel,
   geoReasonFor,
   gpsPrecis,
+  normalizedBedrooms,
   RAYON_DEFAUT_KM,
   RAYON_MAX_KM,
   RAYON_MIN_KM,
@@ -46,6 +49,7 @@ import {
   eur,
   eurCents,
   fmt,
+  nuitsLbl,
   stationPhoto,
   stationPhotoAbsence,
   useParcours,
@@ -58,7 +62,22 @@ import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
-import { altLbl, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
+import {
+  altLbl,
+  aStation,
+  bedLbl,
+  capLbl,
+  crumbDomaine,
+  distanceOf,
+  firmOf,
+  kmLbl,
+  liftsLbl,
+  mediaTon,
+  passLbl,
+  prixLbl,
+  prixPersLbl,
+  prixPin,
+} from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
@@ -346,7 +365,8 @@ const CarteLogement = memo(function CarteLogement({
           <div className={`lodge7__prix${l.total > 0 ? "" : " lodge7__prix--muet"}`}>
             <b>{prixLbl(l)}</b>
             <span>
-              {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
+              {nuitsLbl(nights)}
+              {pers ? ` · ${pers} / pers.` : ""}
             </span>
             <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
               <i />
@@ -387,7 +407,7 @@ function Logements() {
   // sélecteur sert encore l'instantané du serveur, où rien n'est retenu.
   useEffect(() => {
     if (!useParcours.getState().stationId) {
-      P.say("Retenez d’abord une station.");
+      P.say(dire("nav.lodgingLocked"));
       void go("compare");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -436,11 +456,30 @@ function LogementsStation({ s }: { s: Station }) {
   const [lfOpen, setLfOpen] = useState(false);
   const [sheetId, setSheetId] = useState<string | null>(null);
   const [photoI, setPhotoI] = useState(0);
+  // Le panneau de filtres et le volet d'annonce se ferment à Échap. Le volet
+  // est déclaré `aria-modal` : sans sortie clavier, la croix et le fond en
+  // étaient les seules issues.
+  const fermerFiltres = useCallback(() => setLfOpen(false), []);
+  const fermerVolet = useCallback(() => setSheetId(null), []);
+  const panneauFiltres = useRef<HTMLDivElement>(null);
+  const barre = useRef<HTMLElement>(null);
+  useFermeture(lfOpen, fermerFiltres, panneauFiltres, '[data-panel-btn="filtres"]');
+  useEchap(sheetId != null, fermerVolet);
+  useHauteurCollante(barre, "--filtres-h");
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
   // disent la même chose. Même correction que sur Comparer.
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  // Rendre les annonces que le cadre a laissées dehors. Relâcher les bornes ne
+  // suffit pas : la carte ne recadre que si la clé `cadrage` change, et cette
+  // clé suit le résultat des filtres, qui n'a pas bougé. Même compteur que sur
+  // Comparer, pour la même raison.
+  const [recadrages, setRecadrages] = useState(0);
+  const revoirTout = useCallback(() => {
+    setBornes(null);
+    setRecadrages((n) => n + 1);
+  }, []);
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
@@ -490,8 +529,23 @@ function LogementsStation({ s }: { s: Station }) {
   /* ---------- Prédicats ---------- */
   const lp: Pred[] = [];
   lp.push({ id: "cap", label: `Capacité ≥ ${trav}`, fn: (l) => l.guests == null || l.guests >= trav, fixed: true });
+  // Les pièces comptent, comme dans `lodgingFilter`. Les deux règles de
+  // chambres ne lisaient que `bedrooms` : une annonce de centrale publiant
+  // « 2 pièces » sans chambres traversait en silence « Chambres ≥ 4 » — elle en
+  // a une —, et un « 6 pièces » était écarté par « Chambres annoncées ≥ 3 »
+  // alors qu'il en a cinq. La conversion était écrite, documentée et testée
+  // (`normalizedBedrooms`) ; l'écran ne l'appelait pas. `bedLbl` continue
+  // d'afficher le mot de la source : la conversion n'a lieu qu'à la comparaison.
   if (rooms)
-    lp.push({ id: "rooms", label: `Chambres ≥ ${rooms}`, fn: (l) => l.bedrooms == null || l.bedrooms >= rooms, fixed: true });
+    lp.push({
+      id: "rooms",
+      label: `Chambres ≥ ${rooms}`,
+      fn: (l) => {
+        const n = normalizedBedrooms(l);
+        return n == null || n >= rooms;
+      },
+      fixed: true,
+    });
   // La zone est toujours appliquée : une recherche de logements a toujours un
   // périmètre. Son rayon se règle dans le panneau, il ne se retire pas.
   lp.push({
@@ -532,7 +586,16 @@ function LogementsStation({ s }: { s: Station }) {
       remove: () => patchLf({ pp: 0 }),
     });
   if (lf.cap) lp.push({ id: "lcap", label: `Capacité annoncée ≥ ${lf.cap}`, fn: (l) => l.guests != null && l.guests >= lf.cap, remove: () => patchLf({ cap: 0 }) });
-  if (lf.rooms) lp.push({ id: "lrooms", label: `Chambres annoncées ≥ ${lf.rooms}`, fn: (l) => l.bedrooms != null && l.bedrooms >= lf.rooms, remove: () => patchLf({ rooms: 0 }) });
+  if (lf.rooms)
+    lp.push({
+      id: "lrooms",
+      label: `Chambres annoncées ≥ ${lf.rooms}`,
+      fn: (l) => {
+        const n = normalizedBedrooms(l);
+        return n != null && n >= lf.rooms;
+      },
+      remove: () => patchLf({ rooms: 0 }),
+    });
   if (lf.dist)
     lp.push({
       id: "dist",
@@ -728,8 +791,9 @@ function LogementsStation({ s }: { s: Station }) {
    *  cadre : calculée sur le cadre, recadrer changerait la liste, qui changerait
    *  la clé, qui recadrerait — sans fin. Même règle que sur Comparer. */
   const cadrage = useMemo(
-    () => `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
-    [s.id, lvis],
+    () =>
+      `${recadrages}|${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
+    [s.id, lvis, recadrages],
   );
 
   const lead = (() => {
@@ -746,7 +810,7 @@ function LogementsStation({ s }: { s: Station }) {
         <header className="v7tete v7tete--ligne">
           <div>
             <span className="v7surtitre">Étape 2 · Logement</span>
-            <h1>Logements à {s.name}</h1>
+            <h1>Logements {aStation(s.name)}</h1>
             <p>{lead}</p>
           </div>
           <div className="v7tete__actions">
@@ -764,7 +828,7 @@ function LogementsStation({ s }: { s: Station }) {
             <ImageSlot shape="rect" id={`v7app-ribbon-${s.id}`} placeholder={stationPhotoAbsence(s)} className="ruban7__slot" src={stationPhoto(s)} />
           </div>
           <div className="ruban7__corps">
-            <span className="ruban7__crumb">{crumb(s)}{s.domain ? ` · ${s.domain}` : ""}</span>
+            <span className="ruban7__crumb">{crumbDomaine(s)}</span>
             <div className="ruban7__faits">
               <span>
                 <span>Pistes</span>
@@ -798,7 +862,7 @@ function LogementsStation({ s }: { s: Station }) {
 
         {raw.length ? (
           <>
-            <section className="filtres7">
+            <section className="filtres7" ref={barre}>
               <div className="toujours7">
                 <span className="toujours7__label">Toujours appliqué</span>
                 <span className="toujours7__regle">Capacité ≥ {trav}</span>
@@ -819,6 +883,7 @@ function LogementsStation({ s }: { s: Station }) {
                 <button
                   type="button"
                   className={`puce puce--encre${lfOpen ? " puce--on" : ""}`}
+                  data-panel-btn="filtres"
                   aria-expanded={lfOpen}
                   onClick={() => setLfOpen((v) => !v)}
                 >
@@ -879,7 +944,7 @@ function LogementsStation({ s }: { s: Station }) {
               </div>
 
               {lfOpen ? (
-                <div className="pop7 pop7--filtres pop7--large">
+                <div className="pop7 pop7--filtres pop7--large" ref={panneauFiltres}>
                   <div className="pop7__tete pop7__tete--ligne">
                     <strong>Filtres</strong>
                     <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setLfOpen(false)}>
@@ -914,7 +979,7 @@ function LogementsStation({ s }: { s: Station }) {
                     <span className="v7surtitre">Prix et taille</span>
                     <span className="pop7__note">
                       Capacité ≥ {trav} est toujours appliquée ; ces seuils s'y ajoutent et écartent les
-                      annonces sans valeur.
+                      annonces qui ne publient pas la valeur.
                     </span>
                   </div>
                   <label className="curseur">
@@ -1029,10 +1094,16 @@ function LogementsStation({ s }: { s: Station }) {
                     ))}
                   </div>
                 ) : lvis.length ? (
-                  <Vide titre="Aucune annonce dans ce cadre">
+                  <Vide
+                    titre="Aucune annonce dans ce cadre"
+                    actions={
+                      <button type="button" className="btn7" onClick={revoirTout}>
+                        Revoir toutes les annonces
+                      </button>
+                    }
+                  >
                     La liste suit la carte : {lvis.length} annonce{lvis.length > 1 ? "s" : ""}{" "}
                     correspond{lvis.length > 1 ? "ent" : ""} au relevé, hors du cadre visible.
-                    Dézoomez ou déplacez la carte pour les retrouver.
                   </Vide>
                 ) : lempty ? (
                   <Vide
@@ -1100,7 +1171,8 @@ function LogementsStation({ s }: { s: Station }) {
                           <span className="fc__prix">
                             <b>{prixLbl(l)}</b>
                             <span>
-                              {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
+                              {nuitsLbl(nights)}
+                              {pers ? ` · ${pers} / pers.` : ""}
                             </span>
                           </span>
                           <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
@@ -1143,6 +1215,12 @@ function LogementsStation({ s }: { s: Station }) {
                         {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont
                         pas sur la carte. Contour pointillé = déjà vue.
                       </span>
+                      {parCadre.horsCadre.length ? (
+                        <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                          Revoir les {lvis.length} annonces
+                          <Icon name="fleche-droite" taille={13} />
+                        </button>
+                      ) : null}
                     </>
                   }
                 />
@@ -1257,7 +1335,7 @@ function LogementsStation({ s }: { s: Station }) {
               <div className="volet7__prix">
                 <div>
                   <span>
-                    Total du séjour · {nights} nuits · {trav} pers.
+                    Total du séjour · {nuitsLbl(nights)} · {trav} pers.
                   </span>
                   <b>{prixLbl(sheet)}</b>
                 </div>

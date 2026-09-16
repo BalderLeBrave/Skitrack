@@ -4,6 +4,7 @@
 
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useCallback } from "react";
+import { dire } from "@/lib/i18n";
 import { useParcours } from "@/lib/parcours";
 
 export type Screen = "home" | "compare" | "fiche" | "lodging" | "booking";
@@ -41,8 +42,8 @@ export function useGo() {
       const { stationId, lodgeId, say } = useParcours.getState();
       // Déjà là : deux clics rapides n'empilent pas deux navigations.
       if (screenOf(pathname) === screen && (!opts.id || pathname === `/stations/${opts.id}`)) return;
-      if (screen === "lodging" && !stationId) return say("Retenez d’abord une station.");
-      if (screen === "booking" && !lodgeId) return say("Choisissez d’abord un logement.");
+      if (screen === "lodging" && !stationId) return say(dire("nav.lodgingLocked"));
+      if (screen === "booking" && !lodgeId) return say(dire("nav.bookingLocked"));
       if (screen === "home") return navigate({ to: "/" });
       if (screen === "compare") return navigate({ to: "/comparer" });
       // Un appel sans identifiant ne partait nulle part et ne disait rien.

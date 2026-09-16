@@ -19,6 +19,21 @@ describe("magasin de parcours", () => {
     useParcours.getState().setFilters({ budget: 0 });
   });
 
+  it("« Tout retirer » relâche la station : le champ et l'intention vont ensemble", () => {
+    // Le champ destination porte le nom de la station retenue : le vider sans
+    // relâcher la station laissait les étapes 2 et 3 ouvertes sans que rien ne
+    // les nomme, et l'accueil annonçant les logements d'une station invisible.
+    const P = useParcours.getState();
+    P.setDestination({ id: "tignes", name: "Tignes" });
+    useParcours.setState({ lodgeId: "abc", booked: true });
+    useParcours.getState().resetFilters();
+    const apres = useParcours.getState();
+    assert.equal(apres.q, "");
+    assert.equal(apres.stationId, null);
+    assert.equal(apres.lodgeId, null);
+    assert.equal(apres.booked, false);
+  });
+
   it("changer de destination relâche le logement retenu", () => {
     const P = useParcours.getState();
     P.setDestination({ id: "tignes", name: "Tignes" });

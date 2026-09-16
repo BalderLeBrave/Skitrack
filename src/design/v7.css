@@ -1167,29 +1167,6 @@
 .carte7 .leaflet-control-attribution {
   font-size: 10px;
 }
-/* « Rechercher quand je déplace la carte » : posée en haut de la carte, comme
-   la maquette pose ses légendes en bas. Décochée par défaut — cochée, on perd
-   ses résultats en explorant, et c'est le reproche fait à ce motif partout. */
-.carte7__suivi {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  z-index: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: calc(var(--spacing) * 2);
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ombre) 12%, transparent), 0 4px 12px color-mix(in srgb, var(--color-ombre) 14%, transparent);
-  font-size: var(--text-note);
-  font-weight: 700;
-  color: var(--color-ink);
-  cursor: pointer;
-  user-select: none;
-}
-
 /* Voile tactile : la carte attend un appui avant de prendre le geste. Il ne
    masque pas la carte, il dit seulement qu'elle est en attente. */
 .carte7__voile {
@@ -1225,7 +1202,27 @@
   font-size: var(--text-note);
   color: var(--color-muted);
   max-width: 260px;
+  /* La légende laisse passer le glisser de la carte ; seul le lien de
+     recadrage reprend la souris. */
   pointer-events: none;
+}
+.carte7__revoir {
+  pointer-events: auto;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-marque);
+  cursor: pointer;
+}
+.carte7__revoir:hover {
+  text-decoration: underline;
 }
 .carte7__legende b {
   color: var(--color-ink);

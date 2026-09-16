@@ -12,10 +12,19 @@
  *  ses critères et décide lui-même quand chercher. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { Flocons } from "@/components/Flocons";
+import { useEchap } from "@/components/v7/fermeture";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { Calendrier, usePlage } from "@/components/v7/Calendrier";
@@ -192,10 +201,16 @@ function Home() {
     plage.ouvrirDepart();
     setHp("dates");
   };
-  const fermer = () => {
+  const fermer = useCallback(() => {
     setHp(null);
     plage.reset();
-  };
+  }, [plage]);
+  // Échap ferme le panneau ouvert, d'où que vienne le focus. Elle n'était
+  // écoutée que sur le champ Destination : une fois le panneau Altitude,
+  // Arrivée, Départ ou Voyageurs ouvert, le focus était dedans et Échap ne
+  // faisait plus rien. La maquette écoute au niveau de la fenêtre
+  // (App.dc.html:557).
+  useEchap(hp != null, fermer);
 
   /* ---------- Suggestions ----------
      Choisir une suggestion **remplit le champ et pose le critère**. Rien de

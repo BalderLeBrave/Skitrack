@@ -7,12 +7,13 @@
  *  Données : `STATIONS` du dépôt, champs d'échelle domaine joints tels quels. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epingleStation, ETAGE } from "@/components/v7/epingle";
+import { useFermeture } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
 import { CarteStation } from "@/components/v7/CarteStation";
@@ -106,9 +107,24 @@ function Comparer() {
   // « Rechercher quand je déplace la carte » le gouvernait, décochée par
   // défaut ; zoomer sur trois stations laissait alors le compteur à 320.
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  // Rendre les résultats que le cadre a laissés dehors. Relâcher les bornes ne
+  // suffit pas : la carte ne recadre que si la clé `cadrage` change, et cette
+  // clé suit le résultat des filtres, qui n'a pas bougé. Le compteur la fait
+  // changer, et c'est sa seule raison d'être.
+  const [recadrages, setRecadrages] = useState(0);
+  const revoirTout = useCallback(() => {
+    setBornes(null);
+    setRecadrages((n) => n + 1);
+  }, []);
   // La station que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
+  // Le panneau de filtres se ferme au clic dehors et à Échap, comme le menu
+  // « Plus » et le panneau de séjour. La référence était posée sur le panneau
+  // et n'était lue nulle part : le portage s'était arrêté là.
   const panneau = useRef<HTMLDivElement>(null);
+  const fermerFiltres = useCallback(() => setFiltersOpen(false), []);
+
+  useFermeture(filtersOpen, fermerFiltres, panneau, '[data-panel-btn="filtres"]');
 
   const massifs = useMemo(() => [...new Set(all.map((s) => s.massif))].sort(), [all]);
   const domPool = P.massif ? all.filter((s) => s.massif === P.massif) : all;
@@ -215,7 +231,10 @@ function Comparer() {
   /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
    *  cadre : calculée sur le cadre, recadrer aurait changé la liste, qui aurait
    *  changé la clé, qui aurait recadré — sans fin. */
-  const cadrage = useMemo(() => sorted.map((s) => s.id).join(","), [sorted]);
+  const cadrage = useMemo(
+    () => `${recadrages}|${sorted.map((s) => s.id).join(",")}`,
+    [sorted, recadrages],
+  );
 
   return (
     <Coquille>
@@ -343,6 +362,7 @@ function Comparer() {
             <button
               type="button"
               className={`puce puce--encre${filtersOpen ? " puce--on" : ""}`}
+              data-panel-btn="filtres"
               aria-expanded={filtersOpen}
               onClick={() => setFiltersOpen((v) => !v)}
             >
@@ -565,10 +585,16 @@ function Comparer() {
                 ) : null}
               </>
             ) : visible.length ? (
-              <Vide titre="Aucune station dans ce cadre">
+              <Vide
+                titre="Aucune station dans ce cadre"
+                actions={
+                  <button type="button" className="btn7" onClick={revoirTout}>
+                    Revoir tous les résultats
+                  </button>
+                }
+              >
                 La liste suit la carte : {visible.length} station{visible.length > 1 ? "s" : ""}{" "}
                 remplit{visible.length > 1 ? "ent" : ""} vos critères, hors du cadre visible.
-                Dézoomez ou déplacez la carte pour les retrouver.
               </Vide>
             ) : empty ? (
               <Vide
@@ -668,6 +694,12 @@ function Comparer() {
                   <span>
                     Une par station du cadre ; survolez-en une pour la lire. Fond OpenStreetMap.
                   </span>
+                  {parCadre.horsCadre.length ? (
+                    <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                      Revoir les {visible.length} résultats
+                      <Icon name="fleche-droite" taille={13} />
+                    </button>
+                  ) : null}
                 </>
               }
             />

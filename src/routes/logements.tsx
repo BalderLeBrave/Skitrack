@@ -19,6 +19,7 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
+import { useEchap, useFermeture } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { dire } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
@@ -57,12 +58,9 @@ import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS, TAR
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
-<<<<<<< HEAD
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
-import { altLbl, aStation, bedLbl, capLbl, crumb, distanceOf, firmOf, kmLbl, liftsLbl, mediaTon, passLbl, prixLbl, prixPersLbl, prixPin } from "@/lib/v7";
-=======
 import {
   altLbl,
   aStation,
@@ -75,8 +73,10 @@ import {
   liftsLbl,
   mediaTon,
   passLbl,
+  prixLbl,
+  prixPersLbl,
+  prixPin,
 } from "@/lib/v7";
->>>>>>> 06c55ae (Reprend les textes de la maquette là où c'est elle qui a raison.)
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
@@ -364,11 +364,8 @@ const CarteLogement = memo(function CarteLogement({
           <div className={`lodge7__prix${l.total > 0 ? "" : " lodge7__prix--muet"}`}>
             <b>{prixLbl(l)}</b>
             <span>
-<<<<<<< HEAD
-              {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
-=======
-              {nuitsLbl(nights)} · {eurN(l.total / trav)} / pers.
->>>>>>> 06c55ae (Reprend les textes de la maquette là où c'est elle qui a raison.)
+              {nuitsLbl(nights)}
+              {pers ? ` · ${pers} / pers.` : ""}
             </span>
             <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
               <i />
@@ -458,11 +455,28 @@ function LogementsStation({ s }: { s: Station }) {
   const [lfOpen, setLfOpen] = useState(false);
   const [sheetId, setSheetId] = useState<string | null>(null);
   const [photoI, setPhotoI] = useState(0);
+  // Le panneau de filtres et le volet d'annonce se ferment à Échap. Le volet
+  // est déclaré `aria-modal` : sans sortie clavier, la croix et le fond en
+  // étaient les seules issues.
+  const fermerFiltres = useCallback(() => setLfOpen(false), []);
+  const fermerVolet = useCallback(() => setSheetId(null), []);
+  const panneauFiltres = useRef<HTMLDivElement>(null);
+  useFermeture(lfOpen, fermerFiltres, panneauFiltres, '[data-panel-btn="filtres"]');
+  useEchap(sheetId != null, fermerVolet);
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
   // disent la même chose. Même correction que sur Comparer.
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  // Rendre les annonces que le cadre a laissées dehors. Relâcher les bornes ne
+  // suffit pas : la carte ne recadre que si la clé `cadrage` change, et cette
+  // clé suit le résultat des filtres, qui n'a pas bougé. Même compteur que sur
+  // Comparer, pour la même raison.
+  const [recadrages, setRecadrages] = useState(0);
+  const revoirTout = useCallback(() => {
+    setBornes(null);
+    setRecadrages((n) => n + 1);
+  }, []);
   // L'annonce que la carte désigne, et que la liste éclaire en retour.
   const [actifCarte, setActifCarte] = useState<string | null>(null);
   const patchLf = (p: Partial<LF>) => setLf((x) => ({ ...x, ...p }));
@@ -750,8 +764,9 @@ function LogementsStation({ s }: { s: Station }) {
    *  cadre : calculée sur le cadre, recadrer changerait la liste, qui changerait
    *  la clé, qui recadrerait — sans fin. Même règle que sur Comparer. */
   const cadrage = useMemo(
-    () => `${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
-    [s.id, lvis],
+    () =>
+      `${recadrages}|${s.id}|${lvis.filter((l) => l.lat != null).map((l) => l.id).join(",")}`,
+    [s.id, lvis, recadrages],
   );
 
   const lead = (() => {
@@ -841,6 +856,7 @@ function LogementsStation({ s }: { s: Station }) {
                 <button
                   type="button"
                   className={`puce puce--encre${lfOpen ? " puce--on" : ""}`}
+                  data-panel-btn="filtres"
                   aria-expanded={lfOpen}
                   onClick={() => setLfOpen((v) => !v)}
                 >
@@ -901,7 +917,7 @@ function LogementsStation({ s }: { s: Station }) {
               </div>
 
               {lfOpen ? (
-                <div className="pop7 pop7--filtres pop7--large">
+                <div className="pop7 pop7--filtres pop7--large" ref={panneauFiltres}>
                   <div className="pop7__tete pop7__tete--ligne">
                     <strong>Filtres</strong>
                     <button type="button" className="v7fermer" aria-label="Fermer" onClick={() => setLfOpen(false)}>
@@ -1051,10 +1067,16 @@ function LogementsStation({ s }: { s: Station }) {
                     ))}
                   </div>
                 ) : lvis.length ? (
-                  <Vide titre="Aucune annonce dans ce cadre">
+                  <Vide
+                    titre="Aucune annonce dans ce cadre"
+                    actions={
+                      <button type="button" className="btn7" onClick={revoirTout}>
+                        Revoir toutes les annonces
+                      </button>
+                    }
+                  >
                     La liste suit la carte : {lvis.length} annonce{lvis.length > 1 ? "s" : ""}{" "}
                     correspond{lvis.length > 1 ? "ent" : ""} au relevé, hors du cadre visible.
-                    Dézoomez ou déplacez la carte pour les retrouver.
                   </Vide>
                 ) : lempty ? (
                   <Vide
@@ -1122,11 +1144,8 @@ function LogementsStation({ s }: { s: Station }) {
                           <span className="fc__prix">
                             <b>{prixLbl(l)}</b>
                             <span>
-<<<<<<< HEAD
-                              {nights} nuits{pers ? ` · ${pers} / pers.` : ""}
-=======
-                              {nuitsLbl(nights)} · {eurN(l.total / trav)} / pers.
->>>>>>> 06c55ae (Reprend les textes de la maquette là où c'est elle qui a raison.)
+                              {nuitsLbl(nights)}
+                              {pers ? ` · ${pers} / pers.` : ""}
                             </span>
                           </span>
                           <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
@@ -1169,6 +1188,12 @@ function LogementsStation({ s }: { s: Station }) {
                         {lvis.filter((l) => l.lat == null).length} annonces sans coordonnées ne sont
                         pas sur la carte. Contour pointillé = déjà vue.
                       </span>
+                      {parCadre.horsCadre.length ? (
+                        <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                          Revoir les {lvis.length} annonces
+                          <Icon name="fleche-droite" taille={13} />
+                        </button>
+                      ) : null}
                     </>
                   }
                 />

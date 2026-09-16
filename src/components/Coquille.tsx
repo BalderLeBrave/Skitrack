@@ -25,6 +25,7 @@ import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
 import { Toast } from "./v6/Toast";
 import { Calendrier, usePlage } from "./v7/Calendrier";
 import { Compteur } from "./v7/Compteur";
+import { useFermeture } from "./v7/fermeture";
 import { useCriteresUrl } from "@/lib/criteres";
 import { useLocale, useT, type MsgId } from "@/lib/i18n";
 import {
@@ -61,39 +62,6 @@ const AILLEURS: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] = [
  *  à une seule table : `screenOf` répond `null` hors du parcours. */
 export function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
-}
-
-/** Ferme au clic dehors et à Échap.
- *
- *  `garde` nomme les boutons qui ouvrent ce panneau sans être dedans. Sans
- *  elle, cliquer sur un tel bouton alors que le panneau est ouvert ferme au
- *  `mousedown` puis rouvre au `click` : le panneau ne se referme jamais par
- *  son propre bouton. La maquette tient la même règle autrement, en excluant
- *  `[data-panel-btn]` de son écouteur (SKITRACK v7 - App.dc.html:552-556). */
-function useFermeture(
-  ouvert: boolean,
-  fermer: () => void,
-  hote: React.RefObject<HTMLElement | null>,
-  garde?: string,
-) {
-  useEffect(() => {
-    if (!ouvert) return;
-    const dehors = (e: MouseEvent) => {
-      const cible = e.target as Node;
-      if (hote.current?.contains(cible)) return;
-      if (garde && cible instanceof Element && cible.closest(garde)) return;
-      fermer();
-    };
-    const echap = (e: KeyboardEvent) => {
-      if (e.key === "Escape") fermer();
-    };
-    document.addEventListener("mousedown", dehors);
-    document.addEventListener("keydown", echap);
-    return () => {
-      document.removeEventListener("mousedown", dehors);
-      document.removeEventListener("keydown", echap);
-    };
-  }, [ouvert, fermer, hote, garde]);
 }
 
 function MenuPlus() {

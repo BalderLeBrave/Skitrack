@@ -55,8 +55,17 @@ type Wx = { status: "loading" } | { status: "ok"; data: ForecastPair; at: Date }
 
 function useForecast(s: Station) {
   const [wx, setWx] = useState<Wx>({ status: "loading" });
-  const lo = minM(s) ?? villageM(s) ?? 1500;
-  const hi = maxM(s) ?? 2500;
+  // Deux altitudes à ne pas confondre : celle qu'on demande au modèle, et
+  // celle qu'on écrit. Le repli est un paramètre d'appel — sans lui, la
+  // prévision disparaîtrait pour la station dont l'altitude n'est pas relevée ;
+  // ce n'est pas une mesure, et l'afficher revenait à écrire « Point culminant
+  // 2 500 m » sous un bandeau qui dit « altitudes non relevées ». Une station
+  // sur trois cent vingt est concernée, et la règle du dépôt est « rien n'est
+  // estimé ».
+  const loMesure = minM(s) ?? villageM(s);
+  const hiMesure = maxM(s);
+  const lo = loMesure ?? 1500;
+  const hi = hiMesure ?? 2500;
   useEffect(() => {
     let cancelled = false;
     setWx({ status: "loading" });
@@ -72,7 +81,7 @@ function useForecast(s: Station) {
       cancelled = true;
     };
   }, [s.lat, s.lon, lo, hi]);
-  return { wx, lo, hi };
+  return { wx, lo, hi, loMesure, hiMesure };
 }
 
 const heure = (d: Date) => d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -315,7 +324,7 @@ function FicheBody({ s }: { s: Station }) {
   const toggleCmp = useParcours((x) => x.toggleCmp);
   const { checkIn, checkOut, trav, rooms, nights } = useSejour();
   const forfait = useForfait(s);
-  const { wx, lo, hi } = useForecast(s);
+  const { wx, lo, hi, loMesure, hiMesure } = useForecast(s);
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
   const [camId, setCamId] = useState<string | null>(null);
@@ -430,21 +439,39 @@ function FicheBody({ s }: { s: Station }) {
                 <h2>Aujourd'hui, aux deux altitudes</h2>
                 <span>
                   {wx.status === "ok"
-                    ? `Open-Meteo, modélisé aux deux altitudes, relevé à ${heure(wx.at)}`
+                    ? `Open-Meteo, modélisé à ${fmt(lo)} et ${fmt(hi)} m, relevé à ${heure(wx.at)}`
                     : "Open-Meteo · modélisé, pas relevé au sol"}
                 </span>
               </div>
               <div className="wx7">
-                <Niveau titre="Bas des pistes" alt={`${fmt(lo)} m`} wx={wx} lvl={wx.status === "ok" ? wx.data.low : null} haut={false} />
-                <Niveau titre="Point culminant" alt={`${fmt(hi)} m`} wx={wx} lvl={wx.status === "ok" ? wx.data.high : null} haut />
+                <Niveau
+                  titre="Bas des pistes"
+                  alt={loMesure != null ? `${fmt(loMesure)} m` : "altitude non relevée"}
+                  wx={wx}
+                  lvl={wx.status === "ok" ? wx.data.low : null}
+                  haut={false}
+                />
+                <Niveau
+                  titre="Point culminant"
+                  alt={hiMesure != null ? `${fmt(hiMesure)} m` : "altitude non relevée"}
+                  wx={wx}
+                  lvl={wx.status === "ok" ? wx.data.high : null}
+                  haut
+                />
               </div>
             </section>
 
             {wx.status === "ok" && wx.data.low.days.length ? (
               <section className="carte7-sect">
                 <h2>14 jours</h2>
-                <Bande titre={`Bas des pistes · ${fmt(lo)} m`} lvl={wx.data.low} />
-                <Bande titre={`Point culminant · ${fmt(hi)} m`} lvl={wx.data.high} />
+                <Bande
+                  titre={`Bas des pistes · ${loMesure != null ? `${fmt(loMesure)} m` : "altitude non relevée"}`}
+                  lvl={wx.data.low}
+                />
+                <Bande
+                  titre={`Point culminant · ${hiMesure != null ? `${fmt(hiMesure)} m` : "altitude non relevée"}`}
+                  lvl={wx.data.high}
+                />
               </section>
             ) : null}
 

@@ -59,11 +59,18 @@ type OpenMeteoForecast = {
   };
 };
 
-/** Codes WMO regroupés en quatre familles : celles que la fiche sait dessiner. */
+/** Codes WMO regroupés en quatre familles : celles que la fiche sait dessiner.
+ *
+ *  L'intervalle 51-67 est continu, et tout code au-delà de 95 en est : la
+ *  bruine verglaçante (56, 57), la pluie verglaçante (66, 67) et l'orage (95,
+ *  96, 99) tombaient sur « nuage », c'est-à-dire sur l'icône d'une journée
+ *  couverte. Dans la bande des quatorze jours, l'icône est la seule
+ *  information de ciel : rien à côté ne rattrapait le contresens.
+ *  `skyLabelOf`, juste en dessous, connaît pourtant déjà « storm ». */
 export function skyKindOf(code: number | null | undefined): SkyKind {
   if (code == null) return "cloud";
   if ([71, 73, 75, 77, 85, 86].includes(code)) return "snow";
-  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "rain";
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95) return "rain";
   if ([0, 1].includes(code)) return "sun";
   return "cloud";
 }

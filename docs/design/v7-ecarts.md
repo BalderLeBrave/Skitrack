@@ -205,14 +205,16 @@ repassent en `content-box`, avec la valeur déclarée de la maquette :
    d'autre n'est collant. 76 px, c'est la barre du haut plus la marge de
    l'écran : l'encadré s'arrête juste sous la barre. La consigne l'emporte ici
    sur la maquette ; un mot suffit à revenir aux deux valeurs d'origine.
-4. **Deux tris de Logements en moins.** La reprise nomme trois tris — prix par
-   personne, prix total, capacité — et la maquette n'en propose pas d'autres.
-   « Tri : distance » et « Tri : incomplètes d'abord » sont donc retirés. Ce
-   sont les seules commandes supprimées qui ne figuraient pas nommément dans la
-   liste des suppressions : à signaler si ce n'était pas voulu.
-5. **Deux bascules de qualité du relevé en moins.** Même raison : la reprise en
-   nomme cinq, la maquette en a cinq, le dépôt en avait sept. « Fiche complète »
-   et « Incomplètes » sont retirés du panneau et de ses jetons.
+4. **Logements garde cinq tris, là où la maquette en propose trois.**
+   « Tri : distance » et « Tri : incomplètes d'abord » ont d'abord été retirés,
+   la reprise nommant les trois de la maquette ; ils sont rendus le 16 septembre
+   sur décision du propriétaire. La liste des suppressions de la reprise ne les
+   nommait pas, et une commande qui marche ne se retire pas parce qu'un
+   instantané de maquette ne la montre pas.
+5. **Logements garde sept bascules de qualité du relevé, là où la maquette en a
+   cinq.** Même histoire et même décision : « Fiche complète » et
+   « Incomplètes » sont rendues au panneau, avec leurs jetons et leur
+   exclusivité — cocher l'une décoche l'autre.
 6. **La section vide de comparaison de la maquette n'est pas reproduite.** Sur
    Comparer, l'export laisse un `<section>` de hauteur nulle entre la barre et
    les deux colonnes, qui ajoute 16 px d'écart de grille et descend la carte à

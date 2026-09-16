@@ -77,7 +77,7 @@ import {
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap";
+type LodgeSort = "pp" | "total" | "cap" | "dist" | "trous";
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
  *
@@ -98,6 +98,8 @@ type LF = {
   photo: boolean;
   firm: boolean;
   pos: boolean;
+  full: boolean;
+  holes: boolean;
 };
 const LF0: LF = {
   pp: 0,
@@ -111,6 +113,8 @@ const LF0: LF = {
   photo: false,
   firm: false,
   pos: false,
+  full: false,
+  holes: false,
 };
 
 /** Le budget est à part : il est lu et écrit sur le magasin partagé. */
@@ -584,6 +588,20 @@ function LogementsStation({ s }: { s: Station }) {
   if (lf.photo) lp.push({ id: "photo", label: "Avec photo", fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
   if (lf.firm) lp.push({ id: "firm", label: "Prix relevé aux dates", fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
   if (lf.pos) lp.push({ id: "pos", label: "Position connue", fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
+  if (lf.full)
+    lp.push({
+      id: "full",
+      label: "Fiche complète",
+      fn: (l) => completudeOf(l).ok,
+      remove: () => patchLf({ full: false }),
+    });
+  if (lf.holes)
+    lp.push({
+      id: "holes",
+      label: "Incomplètes",
+      fn: (l) => !completudeOf(l).ok,
+      remove: () => patchLf({ holes: false }),
+    });
 
   const lapply = (ps: Pred[]) => raw.filter((l) => ps.every((p) => p.fn(l)));
   /** Ce que la source n'a pas publié se range **après** ce qu'elle a publié,
@@ -600,6 +618,11 @@ function LogementsStation({ s }: { s: Station }) {
     pp: (a, b) => parNombre(apres(a.total), apres(b.total)),
     total: (a, b) => parNombre(apres(a.total), apres(b.total)),
     cap: (a, b) => parNombre(a.guests ?? null, b.guests ?? null, true),
+    dist: (a, b) => parNombre(distFiltrableM(a), distFiltrableM(b)),
+    trous: (a, b) => {
+      const d = completudeOf(b).trous.length - completudeOf(a).trous.length;
+      return d !== 0 ? d : parNombre(apres(a.total), apres(b.total));
+    },
   };
   const lvis = lapply(lp).sort(tri[lsort]);
   // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
@@ -655,12 +678,16 @@ function LogementsStation({ s }: { s: Station }) {
 
   const sources = [...new Set(raw.map((l) => l.source))];
   const bySrc = (src: string) => raw.filter((l) => l.source === src).length;
-  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm"; label: string; n: number }[] = [
+  const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
+  const nIncompletes = raw.length - nCompletes;
+  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
     { k: "measured", label: "Distance mesurée", n: raw.filter((l) => distanceOf(l).kind === "measured").length },
     { k: "pos", label: "Position connue", n: raw.filter((l) => l.lat != null).length },
     { k: "link", label: "Lien de réservation", n: raw.filter((l) => l.url).length },
     { k: "photo", label: "Avec photo", n: raw.filter((l) => l.photo).length },
     { k: "firm", label: "Prix relevé aux dates", n: raw.filter((l) => firmOf(l, stay)).length },
+    { k: "full", label: "Fiche complète", n: nCompletes },
+    { k: "holes", label: "Incomplètes", n: nIncompletes },
   ];
 
   // Stables d'un rendu à l'autre : sans cela `memo` sur la carte d'annonce ne
@@ -855,7 +882,9 @@ function LogementsStation({ s }: { s: Station }) {
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>
                   <option value="total">Tri : prix total</option>
+                  <option value="dist">Tri : distance</option>
                   <option value="cap">Tri : capacité</option>
+                  <option value="trous">Tri : incomplètes d'abord</option>
                 </select>
               </div>
 
@@ -953,7 +982,11 @@ function LogementsStation({ s }: { s: Station }) {
                               <input
                               type="checkbox"
                               checked={lf[tg.k]}
-                              onChange={() => patchLf({ [tg.k]: !lf[tg.k] })}
+                              onChange={() => {
+                                if (tg.k === "full") patchLf({ full: !lf.full, holes: false });
+                                else if (tg.k === "holes") patchLf({ holes: !lf.holes, full: false });
+                                else patchLf({ [tg.k]: !lf[tg.k] });
+                              }}
                             />
                               {tg.label}
                             </span>

@@ -203,6 +203,10 @@
   --entree-retard-chapo: 2.7s;
   --entree-retard-barre: 3.2s;
   --entree-retard-jetons: 3.7s;
+  /* La période de tout ce qui boucle pendant un relevé : miroitement des
+     squelettes et balayage de la carte. Une seule valeur, pour que les deux
+     colonnes restent en phase au lieu de battre l'une contre l'autre. */
+  --recherche-periode: 2.2s;
 }
 
 /* Jetons hérités, gardés le temps que les écrans non repris les quittent.

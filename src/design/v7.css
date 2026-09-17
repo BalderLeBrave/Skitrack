@@ -279,6 +279,12 @@
   flex-wrap: wrap;
   gap: calc(var(--spacing) * 1.5);
 }
+/* Les voisines de forfait : Paradiski en compte dix-neuf, le menu ne s'étire
+   pas pour autant. */
+.v7menu__liens--stations {
+  max-height: calc(var(--spacing) * 26);
+  overflow-y: auto;
+}
 .v7menu__lien {
   display: inline-flex;
   align-items: center;
@@ -4538,6 +4544,49 @@
   color: var(--color-muted);
   word-break: break-word;
 }
+/* Les stations que le forfait ouvre : de quoi passer du domaine à la fiche.
+   La liste est bornée en hauteur — Paradiski en compte dix-neuf — et défile. */
+.forfp__stations {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1.5);
+}
+.forfp__stationsTitre {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-texte-3);
+}
+.forfp__stationsListe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1.5);
+  max-height: 96px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.forfp__station {
+  display: inline-block;
+  padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 2);
+  border: 1px solid var(--color-line-douce);
+  border-radius: var(--radius-champ);
+  background: var(--color-glacier);
+  color: var(--color-ink);
+  font-size: var(--text-detail);
+  text-decoration: none;
+  transition:
+    border-color 0.12s var(--ease-ui),
+    background 0.12s var(--ease-ui);
+}
+.forfp__station:hover,
+.forfp__station:focus-visible {
+  border-color: var(--color-marque);
+  background: var(--color-marque-tenue);
+  color: var(--color-marque-texte);
+}
+
 .forfp__assiste {
   flex: none;
   padding: calc(var(--spacing) * 3);

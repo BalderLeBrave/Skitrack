@@ -20,7 +20,7 @@
  *   compte, résultat par domaine et arrêt possible.
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
@@ -45,6 +45,7 @@ import {
 import { VOIE_LBL, type EtatSource } from "@/lib/forfaits/sources";
 import type { DomainForfait, ForfaitRow } from "@/lib/forfaits/types";
 import { foldName } from "@/lib/carte";
+import { stationsDuDomaine } from "@/lib/domaineStations";
 
 export const Route = createFileRoute("/forfaits")({ component: ForfaitsPage });
 
@@ -365,6 +366,35 @@ function ForfaitsPage() {
   );
 }
 
+/**
+ * Les stations que ce forfait ouvre.
+ *
+ * L'écran laissait choisir un domaine et n'offrait aucun moyen d'en ouvrir une
+ * station : on lisait « Les 3 Vallées, 359 € » sans pouvoir passer à
+ * Courchevel ni à Méribel. Le rattachement est celui du domaine skiable, le
+ * même que la fiche affiche.
+ */
+function StationsDuDomaine({ slug }: { slug: string }) {
+  const stations = useMemo(() => stationsDuDomaine(slug), [slug]);
+  if (!stations.length) return null;
+  return (
+    <div className="forfp__stations">
+      <span className="forfp__stationsTitre">
+        {stations.length} station{stations.length > 1 ? "s" : ""} sur ce forfait
+      </span>
+      <ul className="forfp__stationsListe">
+        {stations.map((s) => (
+          <li key={s.id}>
+            <Link to="/stations/$id" params={{ id: s.id }} className="forfp__station">
+              {s.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** La grille d'un domaine : durées en lignes, catégories en colonnes. */
 function PanneauDomaine({
   d,
@@ -438,6 +468,8 @@ function PanneauDomaine({
           </button>
         ) : null}
       </div>
+      <StationsDuDomaine slug={d.slug} />
+
       {/* La cause technique et le journal des tentatives : repliés. Ils
           n'apparaissent jamais dans le libellé principal. */}
       {e?.cause || source?.cause || source?.journal.length ? (

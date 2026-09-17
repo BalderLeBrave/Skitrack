@@ -18,7 +18,7 @@
  */
 
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AutoSync } from "./AutoSync";
 import { Icon } from "./Icon";
 import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
@@ -36,6 +36,7 @@ import {
   useParcours,
   useSejour,
 } from "@/lib/parcours";
+import { stationsVoisines } from "@/lib/domaineStations";
 import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { useTheme } from "@/lib/theme";
@@ -79,11 +80,32 @@ export function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
 }
 
+/**
+ * La station qu'on regarde : celle retenue pour le séjour, ou à défaut celle
+ * dont on lit la fiche. Même lecture que la pilule de séjour.
+ */
+function useStationCourante() {
+  const stationId = useParcours((s) => s.stationId);
+  const params = useParams({ strict: false }) as { id?: string };
+  return (
+    (stationId ? stationById(stationId) : undefined) ??
+    (params.id ? stationById(params.id) : undefined)
+  );
+}
+
 function MenuPlus() {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
   const hote = useRef<HTMLDivElement>(null);
   useFermeture(ouvert, () => setOuvert(false), hote);
+  // Les voisines de forfait : depuis Courchevel, passer à Méribel ou à Val
+  // Thorens sans repasser par Comparer. Le menu ne proposait rien de tel, et
+  // aucun autre écran ne fait ce saut.
+  const station = useStationCourante();
+  const voisines = useMemo(
+    () => (station ? stationsVoisines(station.id, station.domain) : []),
+    [station],
+  );
 
   return (
     <div className="v7nav__plus" ref={hote}>
@@ -118,6 +140,26 @@ function MenuPlus() {
               </div>
             </div>
           ))}
+          {voisines.length ? (
+            <div className="v7menu__groupe">
+              <span className="v7menu__titre">
+                {t("nav.domainStations")} · {station?.domain}
+              </span>
+              <div className="v7menu__liens v7menu__liens--stations">
+                {voisines.map((s) => (
+                  <Link
+                    key={s.id}
+                    to="/stations/$id"
+                    params={{ id: s.id }}
+                    className="v7menu__lien"
+                    onClick={() => setOuvert(false)}
+                  >
+                    {s.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="v7menu__pied">
             <AutoSync />
           </div>

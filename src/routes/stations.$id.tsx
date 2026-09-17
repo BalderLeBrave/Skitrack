@@ -335,7 +335,18 @@ function FicheBody({ s }: { s: Station }) {
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
   const [camId, setCamId] = useState<string | null>(null);
+  /* Un `iframe` d'un autre domaine ne signale pas son échec : `onerror` ne se
+     déclenche pas, et son contenu est illisible. On l'attend donc, et faute de
+     `onload` au bout de huit secondes on tient le flux pour muet. */
+  const [camEtat, setCamEtat] = useState<"attente" | "ok" | "echec">("attente");
   const cam = cams.find((c) => c.id === camId) ?? cams[0] ?? null;
+  const camUrl = cam?.url ?? null;
+  useEffect(() => {
+    if (!camUrl) return;
+    setCamEtat("attente");
+    const t = setTimeout(() => setCamEtat((e) => (e === "attente" ? "echec" : e)), 8000);
+    return () => clearTimeout(t);
+  }, [camUrl]);
 
   const retained = stationId === s.id;
   const inCmp = cmp.includes(s.id);
@@ -538,7 +549,12 @@ function FicheBody({ s }: { s: Station }) {
               {cam ? (
                 <>
                   {cams.length > 1 ? (
-                    <select className="select7 select7--champ" value={cam.id} onChange={(e) => setCamId(e.target.value)}>
+                    <select
+                      className="select7 select7--champ"
+                      value={cam.id}
+                      onChange={(e) => setCamId(e.target.value)}
+                      aria-label="Choisir une caméra"
+                    >
                       {cams.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.label}
@@ -548,6 +564,14 @@ function FicheBody({ s }: { s: Station }) {
                   ) : (
                     <span className="carte7-sect__texte carte7-sect__texte--petit">{cam.label}</span>
                   )}
+                  {/* Une caméra du domaine posée dans un autre village le dit.
+                      La fiche de Brides-les-Bains montrait celle de Val
+                      Thorens sans le préciser. */}
+                  {cam.duDomaine && cam.station ? (
+                    <span className="carte7-sect__texte carte7-sect__texte--petit">
+                      Caméra du domaine, située à {cam.station}.
+                    </span>
+                  ) : null}
                   <div className="webcam7">
                     <iframe
                       key={cam.url}
@@ -557,7 +581,21 @@ function FicheBody({ s }: { s: Station }) {
                       referrerPolicy="no-referrer"
                       sandbox="allow-scripts allow-same-origin"
                       allowFullScreen
+                      onLoad={() => setCamEtat("ok")}
                     />
+                    {/* Un flux qui ne se charge pas laissait un rectangle gris
+                        et rien d'autre. Un `iframe` d'un autre domaine ne dit
+                        pas s'il a échoué : on l'attend, et au-delà du délai on
+                        propose de l'ouvrir chez l'exploitant. */}
+                    {camEtat === "echec" ? (
+                      <div className="webcam7__echec">
+                        <span>Le flux ne s'affiche pas ici.</span>
+                        <a href={cam.url} target="_blank" rel="noopener" className="btn7 btn7--fantome">
+                          Ouvrir chez l'exploitant
+                          <Icon name="externe" taille={12} />
+                        </a>
+                      </div>
+                    ) : null}
                   </div>
                   <p className="carte7-sect__texte carte7-sect__texte--petit">
                     Flux diffusé par l'exploitant, affiché tel quel.

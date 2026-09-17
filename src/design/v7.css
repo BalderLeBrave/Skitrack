@@ -3070,11 +3070,30 @@
   font-size: var(--text-note);
   color: var(--color-texte-3);
 }
+/* `max-height` : en 16/9 sur une colonne de 780 px, le cadre montait à 440 px
+   de gris quand le flux ne se chargeait pas. Il garde son format tant qu'il
+   reste sous ce plafond. */
 .webcam7 {
+  position: relative;
   aspect-ratio: 16 / 9;
+  max-height: 280px;
   overflow: hidden;
   border-radius: var(--radius-champ);
   background: var(--color-media);
+}
+/* Ce qui se dit à la place d'un flux qui ne vient pas. */
+.webcam7__echec {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 4);
+  text-align: center;
+  background: var(--color-media);
+  font-size: var(--text-detail);
+  color: var(--color-muted);
 }
 .webcam7 iframe {
   width: 100%;

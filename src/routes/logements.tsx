@@ -77,7 +77,7 @@ import {
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
-type LodgeSort = "pp" | "total" | "cap";
+type LodgeSort = "pp" | "total" | "cap" | "dist" | "trous";
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
  *
@@ -98,6 +98,8 @@ type LF = {
   photo: boolean;
   firm: boolean;
   pos: boolean;
+  full: boolean;
+  holes: boolean;
 };
 const LF0: LF = {
   pp: 0,
@@ -111,6 +113,8 @@ const LF0: LF = {
   photo: false,
   firm: false,
   pos: false,
+  full: false,
+  holes: false,
 };
 
 /** Le budget est à part : il est lu et écrit sur le magasin partagé. */
@@ -398,6 +402,73 @@ function Logements() {
   return <LogementsStation s={s} />;
 }
 
+/**
+ * Vrai quand le relevé dure assez longtemps pour valoir un écran d'attente.
+ *
+ * En deçà de 200 ms l'état apparaît et repart aussitôt : on voit un
+ * clignotement, pas une information. Le compte à rebours repart à zéro à
+ * chaque relevé.
+ */
+function useReleveVisible(searching: boolean): boolean {
+  const [assezLong, setAssezLong] = useState(false);
+  useEffect(() => {
+    if (!searching) {
+      setAssezLong(false);
+      return;
+    }
+    const t = setTimeout(() => setAssezLong(true), 200);
+    return () => clearTimeout(t);
+  }, [searching]);
+  return searching && assezLong;
+}
+
+/** La ligne d'état du bloc collant, à la place du compteur. */
+function LigneReleve({ sources }: { sources: string[] }) {
+  return (
+    <div className="rech7" aria-busy="true">
+      <span className="rech7__points" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+      <span className="rech7__texte" role="status" aria-live="polite">
+        Recherche de logements disponibles...
+      </span>
+      {sources.length ? <span className="rech7__sources">{sources.join(" · ")}</span> : null}
+    </div>
+  );
+}
+
+/**
+ * Quatre squelettes d'annonce : ce que la grille montre sans pousser la page.
+ *
+ * Ils reprennent `.lodge7` et `.lodge7__corps` tels quels — mêmes rayon, fond,
+ * rembourrage et gouttières — pour occuper la boîte des cartes qu'ils
+ * annoncent. Une boîte plus courte ferait sauter la page à l'arrivée des
+ * résultats.
+ */
+function SquelettesLogements() {
+  return (
+    <div className="grille7-2" aria-hidden="true">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="lodge7 sk7">
+          <div className="sk7__media" />
+          <div className="lodge7__corps">
+            <span className="sk7__barre sk7__barre--titre" />
+            <span className="sk7__barre sk7__barre--sous" />
+            <span className="sk7__barre sk7__barre--meta" />
+            <span className="sk7__barre sk7__barre--dist" />
+            <div className="sk7__pied">
+              <span className="sk7__prix" />
+              <span className="sk7__bouton" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function LogementsStation({ s }: { s: Station }) {
   const go = useGo();
   const P = useParcours();
@@ -406,6 +477,7 @@ function LogementsStation({ s }: { s: Station }) {
   const liveListings = useStay((x) => x.liveListings);
   const liveSources = useStay((x) => x.liveSources);
   const searching = useStay((x) => x.searching);
+  const enReleve = useReleveVisible(searching);
   const setStay = useStay((x) => x.setStay);
   // Le relevé entier de la station : la capacité s'applique plus bas, en
   // toutes lettres, pour que l'état vide puisse dire ce qu'elle a écarté.
@@ -584,6 +656,20 @@ function LogementsStation({ s }: { s: Station }) {
   if (lf.photo) lp.push({ id: "photo", label: "Avec photo", fn: (l) => !!l.photo, remove: () => patchLf({ photo: false }) });
   if (lf.firm) lp.push({ id: "firm", label: "Prix relevé aux dates", fn: (l) => firmOf(l, stay), remove: () => patchLf({ firm: false }) });
   if (lf.pos) lp.push({ id: "pos", label: "Position connue", fn: (l) => l.lat != null, remove: () => patchLf({ pos: false }) });
+  if (lf.full)
+    lp.push({
+      id: "full",
+      label: "Fiche complète",
+      fn: (l) => completudeOf(l).ok,
+      remove: () => patchLf({ full: false }),
+    });
+  if (lf.holes)
+    lp.push({
+      id: "holes",
+      label: "Incomplètes",
+      fn: (l) => !completudeOf(l).ok,
+      remove: () => patchLf({ holes: false }),
+    });
 
   const lapply = (ps: Pred[]) => raw.filter((l) => ps.every((p) => p.fn(l)));
   /** Ce que la source n'a pas publié se range **après** ce qu'elle a publié,
@@ -600,6 +686,11 @@ function LogementsStation({ s }: { s: Station }) {
     pp: (a, b) => parNombre(apres(a.total), apres(b.total)),
     total: (a, b) => parNombre(apres(a.total), apres(b.total)),
     cap: (a, b) => parNombre(a.guests ?? null, b.guests ?? null, true),
+    dist: (a, b) => parNombre(distFiltrableM(a), distFiltrableM(b)),
+    trous: (a, b) => {
+      const d = completudeOf(b).trous.length - completudeOf(a).trous.length;
+      return d !== 0 ? d : parNombre(apres(a.total), apres(b.total));
+    },
   };
   const lvis = lapply(lp).sort(tri[lsort]);
   // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
@@ -655,12 +746,16 @@ function LogementsStation({ s }: { s: Station }) {
 
   const sources = [...new Set(raw.map((l) => l.source))];
   const bySrc = (src: string) => raw.filter((l) => l.source === src).length;
-  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm"; label: string; n: number }[] = [
+  const nCompletes = raw.filter((l) => completudeOf(l).ok).length;
+  const nIncompletes = raw.length - nCompletes;
+  const toggles: { k: "measured" | "pos" | "link" | "photo" | "firm" | "full" | "holes"; label: string; n: number }[] = [
     { k: "measured", label: "Distance mesurée", n: raw.filter((l) => distanceOf(l).kind === "measured").length },
     { k: "pos", label: "Position connue", n: raw.filter((l) => l.lat != null).length },
     { k: "link", label: "Lien de réservation", n: raw.filter((l) => l.url).length },
     { k: "photo", label: "Avec photo", n: raw.filter((l) => l.photo).length },
     { k: "firm", label: "Prix relevé aux dates", n: raw.filter((l) => firmOf(l, stay)).length },
+    { k: "full", label: "Fiche complète", n: nCompletes },
+    { k: "holes", label: "Incomplètes", n: nIncompletes },
   ];
 
   // Stables d'un rendu à l'autre : sans cela `memo` sur la carte d'annonce ne
@@ -847,15 +942,21 @@ function LogementsStation({ s }: { s: Station }) {
                   </a>
                 ) : null}
                 <span className="filtres7__espace" />
+                {enReleve ? (
+                  <LigneReleve sources={liveSources.map((x) => x.source)} />
+                ) : (
                 <span className="filtres7__compte">
                   {lvis.length === 0
                     ? "Aucun logement disponible"
                     : `${lvis.length} logement${lvis.length > 1 ? "s" : ""} disponible${lvis.length > 1 ? "s" : ""}`}
                 </span>
+                )}
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
                   <option value="pp">Tri : prix par personne</option>
                   <option value="total">Tri : prix total</option>
+                  <option value="dist">Tri : distance</option>
                   <option value="cap">Tri : capacité</option>
+                  <option value="trous">Tri : incomplètes d'abord</option>
                 </select>
               </div>
 
@@ -953,7 +1054,11 @@ function LogementsStation({ s }: { s: Station }) {
                               <input
                               type="checkbox"
                               checked={lf[tg.k]}
-                              onChange={() => patchLf({ [tg.k]: !lf[tg.k] })}
+                              onChange={() => {
+                                if (tg.k === "full") patchLf({ full: !lf.full, holes: false });
+                                else if (tg.k === "holes") patchLf({ holes: !lf.holes, full: false });
+                                else patchLf({ [tg.k]: !lf[tg.k] });
+                              }}
                             />
                               {tg.label}
                             </span>
@@ -981,13 +1086,22 @@ function LogementsStation({ s }: { s: Station }) {
                 </div>
               ) : null}
             </>
+          ) : enReleve ? (
+            /* Premier relevé : pas encore de barre de filtres, mais l'écran
+               doit dire qu'il travaille. */
+            <div className="filtres7__barre">
+              <LigneReleve sources={liveSources.map((x) => x.source)} />
+            </div>
           ) : null}
+          {enReleve ? <span className="rech7__jauge" aria-hidden="true" /> : null}
         </div>
 
-        {raw.length ? (
+        {raw.length || enReleve ? (
           <div className="v7deux">
             <div className="v7deux__liste">
-              {affichees.length ? (
+              {enReleve ? (
+                <SquelettesLogements />
+              ) : affichees.length ? (
                 <div className="grille7-2">
                   {affichees.map((l) => (
                     <CarteLogement
@@ -1037,7 +1151,9 @@ function LogementsStation({ s }: { s: Station }) {
                 </Vide>
               ) : null}
             </div>
-            <div className="v7deux__carte v7deux__carte--bas">
+            <div
+              className={`v7deux__carte v7deux__carte--bas${enReleve ? " rech7-carte" : ""}`}
+            >
               <CarteEpingles
                 marqueurs={marqueurs}
                 cadrage={cadrage}
@@ -1118,19 +1234,26 @@ function LogementsStation({ s }: { s: Station }) {
                   );
                 }}
                 legende={
-                  <>
-                    <b>
-                      {affichees.filter((l) => l.lat != null).length} pastille
-                      {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
-                    </b>
-                    {parCadre.horsCadre.length ? (
-                      <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                        Revoir les {lvis.length} annonces →
-                      </button>
-                    ) : null}
-                  </>
+                  enReleve ? (
+                    /* La légende garde sa place et dit ce qui se passe, plutôt
+                       que d'annoncer un compte encore faux. */
+                    <b>Les épingles se posent au fil du relevé.</b>
+                  ) : (
+                    <>
+                      <b>
+                        {affichees.filter((l) => l.lat != null).length} pastille
+                        {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
+                      </b>
+                      {parCadre.horsCadre.length ? (
+                        <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                          Revoir les {lvis.length} annonces →
+                        </button>
+                      ) : null}
+                    </>
+                  )
                 }
               />
+              {enReleve ? <span className="rech7__voile" aria-hidden="true" /> : null}
             </div>
           </div>
         ) : (

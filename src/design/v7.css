@@ -1239,6 +1239,331 @@
   gap: calc(var(--spacing) * 4.5);
 }
 
+/* ── Relevé en cours ────────────────────────────────────────────────────────
+   L'écran Logements pendant que les connecteurs répondent. Il ne remplace que
+   le contenu des deux colonnes : le bloc collant, la grille 58/42 et la boîte
+   des cartes restent ceux de l'écran chargé, sans quoi l'arrivée des résultats
+   ferait sauter la page.
+
+   Tout ce qui boucle lit `--recherche-periode` : les deux colonnes battent
+   ensemble. Les entrées, elles, ne jouent qu'une fois. */
+
+/* La ligne d'état, à la place du compteur dans le bloc collant. */
+.rech7 {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2.5);
+  min-width: 0;
+}
+.rech7__points {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1);
+  flex: none;
+}
+.rech7__points i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-marque);
+  animation: rech7-pulse 1.05s var(--ease-ui) infinite;
+}
+.rech7__points i:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.rech7__points i:nth-child(3) {
+  animation-delay: 0.28s;
+}
+.rech7__texte {
+  font-size: var(--text-detail);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.rech7__sources {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+/* La jauge indéterminée, posée sur le bord bas du bloc collant. `absolute` :
+   elle ne prend pas de rangée dans la grille du bloc, dont la hauteur ne
+   bouge donc pas d'un pixel pendant le relevé. */
+.rech7__jauge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  overflow: hidden;
+  border-bottom-left-radius: var(--radius-surface);
+  border-bottom-right-radius: var(--radius-surface);
+  background: var(--color-line-douce);
+}
+.rech7__jauge::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 28%;
+  background: var(--color-marque);
+  animation: rech7-jauge 1.4s var(--ease-ui) infinite;
+}
+/* Le squelette d'une annonce. Il reprend `.lodge7` — même rayon, même fond,
+   même corps — et n'ajoute que ses barres, pour occuper exactement la boîte
+   de la carte qu'il annonce. */
+.sk7 {
+  cursor: default;
+  animation: rech7-entre 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.sk7:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.sk7:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.sk7:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.sk7__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--color-media);
+}
+/* Les quatre barres tiennent les quatre lignes du corps d'une carte : le titre
+   sur deux lignes, la capacité, la distance. Leurs hauteurs et leurs marges
+   sont réglées sur les boîtes de ligne mesurées sur la carte réelle — titre
+   39 px, capacité 18, distance 18 — pour que le corps fasse les mêmes 213 px
+   et que l'arrivée des résultats ne pousse rien. */
+.sk7__barre {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-glacier);
+}
+.sk7__barre--titre {
+  height: 15px;
+  width: 78%;
+}
+.sk7__barre--sous {
+  height: 14px;
+  width: 52%;
+}
+.sk7__barre--meta {
+  height: 12px;
+  width: 64%;
+  margin: 3px 0;
+}
+.sk7__barre--dist {
+  height: 12px;
+  width: 44%;
+  margin: 3px 0;
+}
+/* `min-height` : le pied réel mesure 78 px — un prix en 20 px, la ligne des
+   nuits, la mention de fermeté, et le bouton. Le squelette n'en montre qu'une
+   barre et une pastille, mais il en réserve la hauteur. */
+.sk7__pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+  min-height: 78px;
+  padding-top: calc(var(--spacing) * 3);
+  border-top: 1px solid var(--color-line-douce);
+}
+.sk7__prix {
+  width: 38%;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-glacier);
+}
+.sk7__bouton {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-glacier);
+}
+/* Le miroitement : un éclat clair qui traverse. Il ne porte que sur le cadre
+   photo et les deux barres qui portent l'information — titre et prix. Le
+   passer sur tout donnait une carte qui grouille. */
+.sk7__media,
+.sk7__barre--titre,
+.sk7__prix {
+  background-image: linear-gradient(
+    100deg,
+    transparent 38%,
+    color-mix(in srgb, var(--color-surface) 62%, transparent) 50%,
+    transparent 62%
+  );
+  background-repeat: no-repeat;
+  background-size: 220% 100%;
+  animation: rech7-miroite var(--recherche-periode) linear infinite;
+}
+
+/* La carte reste montée — la démonter lui ferait recharger ses tuiles. On pose
+   par-dessus un balayage, et les épingles déjà relevées se posent une à une. */
+.rech7__voile {
+  position: absolute;
+  inset: 0;
+  z-index: 400;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 40%,
+    color-mix(in srgb, var(--color-surface) 22%, transparent) 50%,
+    transparent 60%
+  );
+  background-repeat: no-repeat;
+  background-size: 220% 100%;
+  animation: rech7-miroite var(--recherche-periode) linear infinite;
+}
+/* La géométrie de l'épingle est déclarée une seule fois, plus haut : on ne
+   reprend ici que son arrivée. L'épingle de prix est recentrée par
+   `translate(-50%, -50%)`, la pastille ne l'est pas — deux poses, sans quoi
+   la pastille se décalerait d'une demi-largeur en arrivant. */
+.rech7-carte .epingle-prix {
+  animation: rech7-pose-prix 0.55s cubic-bezier(0.22, 1.05, 0.36, 1) both;
+}
+.rech7-carte .epingle__pastille {
+  animation: rech7-pose 0.55s cubic-bezier(0.22, 1.05, 0.36, 1) both;
+}
+/* Les épingles se posent l'une après l'autre, par quatre : Leaflet les range
+   en frères dans son calque, l'ordre est donc celui du relevé. */
+.rech7-carte .leaflet-marker-icon:nth-child(4n + 2) .epingle-prix,
+.rech7-carte .leaflet-marker-icon:nth-child(4n + 2) .epingle__pastille {
+  animation-delay: 0.15s;
+}
+.rech7-carte .leaflet-marker-icon:nth-child(4n + 3) .epingle-prix,
+.rech7-carte .leaflet-marker-icon:nth-child(4n + 3) .epingle__pastille {
+  animation-delay: 0.3s;
+}
+.rech7-carte .leaflet-marker-icon:nth-child(4n + 4) .epingle-prix,
+.rech7-carte .leaflet-marker-icon:nth-child(4n + 4) .epingle__pastille {
+  animation-delay: 0.45s;
+}
+/* Le halo qui s'ouvre derrière l'épingle qui arrive. Posé en `::after` pour ne
+   rien changer à la boîte de l'épingle. */
+/* `position: relative` sur la pastille : elle ne l'est pas hors relevé, et le
+   halo a besoin d'un ancrage. Sans décalage, elle ne bouge pas d'un pixel. */
+.rech7-carte .epingle__pastille {
+  position: relative;
+}
+.rech7-carte .epingle-prix::after,
+.rech7-carte .epingle__pastille::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: var(--color-marque);
+  pointer-events: none;
+  animation: rech7-halo 0.55s var(--ease-ui) both;
+}
+
+/* Mouvement refusé : plus rien ne bouge. La jauge disparaît — figée, elle ne
+   dirait rien —, et c'est la phrase de la ligne d'état, « Recherche de
+   logements disponibles... », qui reste comme texte fixe : elle est déjà là,
+   elle annonce déjà le travail en cours, et elle ne coûte pas une rangée de
+   plus au bloc collant. */
+@media (prefers-reduced-motion: reduce) {
+  .rech7__points i,
+  .sk7,
+  .sk7__media,
+  .sk7__barre--titre,
+  .sk7__prix,
+  .rech7__voile,
+  .rech7-carte .epingle-prix,
+  .rech7-carte .epingle__pastille,
+  .rech7-carte .epingle-prix::after,
+  .rech7-carte .epingle__pastille::after {
+    animation: none;
+  }
+  .sk7__media,
+  .sk7__barre--titre,
+  .sk7__prix {
+    background-image: none;
+  }
+  .rech7__voile,
+  .rech7-carte .epingle-prix::after,
+  .rech7-carte .epingle__pastille::after {
+    display: none;
+  }
+  .rech7__jauge {
+    display: none;
+  }
+}
+
+@keyframes rech7-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes rech7-jauge {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(357%);
+  }
+}
+@keyframes rech7-entre {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rech7-miroite {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -140% 0;
+  }
+}
+@keyframes rech7-pose {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rech7-pose-prix {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes rech7-halo {
+  from {
+    opacity: 0.32;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
 /* ── Carte aux épingles ─────────────────────────────────────────────────── */
 .carte7 {
   position: absolute;

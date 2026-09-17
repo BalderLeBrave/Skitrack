@@ -47,10 +47,11 @@ import {
   nuitsLbl,
   stationPhoto,
   stationPhotoAbsence,
-  travLbl,
   useParcours,
   useSejour,
 } from "@/lib/parcours";
+import { coutForfaits } from "@/lib/forfaits/cout";
+import { partyLabel } from "@/lib/stay/party";
 import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS, TARIF_MS } from "@/lib/searchStay";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
@@ -472,7 +473,7 @@ function SquelettesLogements() {
 function LogementsStation({ s }: { s: Station }) {
   const go = useGo();
   const P = useParcours();
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
   const forfait = useForfait(s);
   const liveListings = useStay((x) => x.liveListings);
   const liveSources = useStay((x) => x.liveSources);
@@ -699,7 +700,10 @@ function LogementsStation({ s }: { s: Station }) {
   const affichees = parCadre.visibles;
   const lfree = lp.filter((p) => !p.fixed);
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
-  const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
+  // Même calcul qu'ailleurs : les enfants à leur tarif quand le domaine le
+  // publie, et non tout le groupe au tarif adulte.
+  const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
+  const passGroupN = pass.total ?? 0;
   const totalN = (kept?.total ?? 0) + passGroupN;
 
   /**
@@ -835,7 +839,7 @@ function LogementsStation({ s }: { s: Station }) {
               >
                 <span className="sejour7__station">{s.name}</span>
                 <span className="sejour7__dates">{datesCourtes(checkIn, checkOut)}</span>
-                <span className="sejour7__groupe">{travLbl(trav)}</span>
+                <span className="sejour7__groupe">{partyLabel(trav, enfants)}</span>
               </button>
               {/* La loupe relance le relevé pour les dates affichées. C'est la
                   seule commande de relance : « Relancer le relevé » doublait
@@ -1290,8 +1294,10 @@ function LogementsStation({ s }: { s: Station }) {
               </dd>
             </div>
             <div>
-              <dt>Forfaits {trav} × 6 j</dt>
-              <dd className={forfait?.j6 != null ? undefined : "absent"}>{forfait?.j6 != null ? eur(passGroupN) : "non relevés"}</dd>
+              <dt title={pass.detail}>Forfaits 6 j</dt>
+              <dd className={pass.total != null ? undefined : "absent"}>
+                {pass.total != null ? eur(passGroupN) : "non relevés"}
+              </dd>
             </div>
             <div>
               <dt>Trajet</dt>

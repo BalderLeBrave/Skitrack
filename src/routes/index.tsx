@@ -45,6 +45,7 @@ import {
   useSejour,
   type ChipKey,
 } from "@/lib/parcours";
+import { AGE_ENFANT } from "@/lib/stay/party";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
 
@@ -160,7 +161,7 @@ function Home() {
   const go = useGo();
   const P = useParcours();
   const F = P.filters;
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
   const plage = usePlage();
   // La station retenue, s'il y en a une : c'est elle qui décide de ce que
   // « Rechercher » va ouvrir.
@@ -509,7 +510,7 @@ function Home() {
                 <div className={`sbar7__fin ${seg(hp === "guests")}`}>
                   <button type="button" className="sbar7__seg sbar7__seg--nu" onClick={() => ouvrir("guests")}>
                     <span className="sbar7__k">Voyageurs</span>
-                    <span className="sbar7__v">{guestsLbl(trav, rooms)}</span>
+                    <span className="sbar7__v">{guestsLbl(trav, rooms, enfants)}</span>
                   </button>
                   {/* La loupe ne se désactive pas. Elle l'était dès que la
                       plage de dates était inversée, ce qui laissait l'écran
@@ -639,6 +640,9 @@ function Home() {
               {hp === "guests" ? (
                 <div className="pop7 pop7--guests">
                   <Compteur k="trav" titre="Voyageurs" regle="1 à 20 personnes" />
+                  {/* Séparés parce que le coût des forfaits comptait tout le
+                      monde au tarif adulte, tarif enfant relevé ou non. */}
+                  <Compteur k="enfants" titre="dont enfants" regle={AGE_ENFANT} />
                   <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" />
                 </div>
               ) : null}

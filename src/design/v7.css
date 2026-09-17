@@ -4212,6 +4212,12 @@
   color: var(--color-ok-texte) !important;
   font-weight: 700 !important;
 }
+/* Les enfants comptés au tarif adulte, faute de tarif enfant relevé : le
+   total reste juste au regard de ce qu'on sait, et le dit. Employé aussi par
+   la fiche station, dont la ligne « Forfaits 6 j » fait le même calcul. */
+.cout7__alerte {
+  color: var(--color-alerte-texte) !important;
+}
 .cout7 td {
   padding: 8px 0;
   text-align: right;

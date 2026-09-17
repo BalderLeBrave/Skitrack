@@ -18,7 +18,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { resolveStationPhoto } from "./stationPhoto.ts";
-import { PARTY_LIMITS } from "./stay/party.ts";
+import { adults, clampChildren, PARTY_LIMITS, partyLabel } from "./stay/party.ts";
 import { stationById, type Station } from "./stations.ts";
 import { useStay } from "./stay.ts";
 
@@ -103,6 +103,10 @@ function filtersVierges(): Filters {
  *  calendrier de la maquette (« 21 nuits au plus »). */
 export const STAY_BOUNDS = {
   trav: { min: PARTY_LIMITS.travelers.min, max: PARTY_LIMITS.travelers.max },
+  // Les enfants sont bornés par le nombre de voyageurs, pas par une constante :
+  // le maximum ici n'est que le plafond absolu, `stepStay` resserre sur le
+  // groupe réel.
+  enfants: { min: 0, max: PARTY_LIMITS.travelers.max },
   rooms: { min: PARTY_LIMITS.rooms.min, max: PARTY_LIMITS.rooms.max },
   nights: { min: 1, max: 21 },
 } as const;
@@ -386,12 +390,15 @@ export function useSejour() {
   const checkIn = useStay((s) => s.checkIn);
   const checkOut = useStay((s) => s.checkOut);
   const trav = useStay((s) => s.guests);
+  const enfants = useStay((s) => s.children);
   const rooms = useStay((s) => s.bedrooms);
   const nights = nightsBetween(checkIn, checkOut);
   return {
     checkIn,
     checkOut,
     trav,
+    enfants: clampChildren(enfants, trav),
+    adultes: adults(trav, enfants),
     rooms,
     nights: nights ?? 0,
     valid: nights != null && nights > 0,
@@ -474,21 +481,28 @@ export function departLbl(iso: string): string {
   return `${JOURS_COURTS[d.getUTCDay()]} ${dm(iso)}`;
 }
 
-/** `guestsLbl` (barre de recherche) : « 8 voyageurs · 2 ch. ». */
-export function guestsLbl(trav: number, rooms: number): string {
-  return `${travLbl(trav)}${rooms ? ` · ${rooms} ch.` : ""}`;
+/** `guestsLbl` (barre de recherche) : « 6 adultes, 2 enfants · 2 ch. ». */
+export function guestsLbl(trav: number, rooms: number, enfants = 0): string {
+  return `${partyLabel(trav, enfants)}${rooms ? ` · ${rooms} ch.` : ""}`;
 }
 
 /** `stayGroupLbl` : « 8 voyageurs · studio accepté ». */
-export function groupLbl(trav: number, rooms: number): string {
-  return `${travLbl(trav)} · ${rooms ? `${rooms} ch.` : "studio accepté"}`;
+export function groupLbl(trav: number, rooms: number, enfants = 0): string {
+  return `${partyLabel(trav, enfants)} · ${rooms ? `${rooms} ch.` : "studio accepté"}`;
 }
 
 /** Sélecteur de séjour : `S[k] = clamp(S[k] + d)`, sur l'état réel. */
-export function stepStay(k: "trav" | "rooms" | "nights", d: number) {
+export function stepStay(k: "trav" | "enfants" | "rooms" | "nights", d: number) {
   const st = useStay.getState();
   const b = STAY_BOUNDS[k];
-  if (k === "trav") return st.setStay({ guests: Math.min(b.max, Math.max(b.min, st.guests + d)) });
+  if (k === "trav") {
+    const guests = Math.min(b.max, Math.max(b.min, st.guests + d));
+    // Retirer un voyageur alors que tout le groupe est enfant ne doit pas
+    // laisser plus d'enfants que de personnes.
+    return st.setStay({ guests, children: clampChildren(st.children, guests) });
+  }
+  if (k === "enfants")
+    return st.setStay({ children: clampChildren(st.children + d, st.guests) });
   if (k === "rooms")
     return st.setStay({ bedrooms: Math.min(b.max, Math.max(b.min, st.bedrooms + d)) });
   const cur = Math.round(

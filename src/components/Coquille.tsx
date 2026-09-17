@@ -39,6 +39,7 @@ import {
 import { stationsVoisines } from "@/lib/domaineStations";
 import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
+import { AGE_ENFANT, clampChildren } from "@/lib/stay/party";
 import { useTheme } from "@/lib/theme";
 
 const PARCOURS: { go: Screen; step: number | null; label: MsgId }[] = [
@@ -258,7 +259,7 @@ function PiluleSejour() {
   const stationId = useParcours((s) => s.stationId);
   const stayOpen = useParcours((s) => s.stayOpen);
   const setStayOpen = useParcours((s) => s.setStayOpen);
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
   /* Sur une fiche de station, la pilule annonçait « Station à choisir » alors
      qu'on en regardait une. Elle nomme donc celle qu'on a sous les yeux quand
      aucune n'est encore retenue ; le panneau qu'elle ouvre, lui, ne change
@@ -278,7 +279,7 @@ function PiluleSejour() {
       >
         <span className="v7sejour__station">{station?.name ?? "Station à choisir"}</span>
         <span className="v7sejour__dates">{datesLbl(checkIn, checkOut, nights)}</span>
-        <span className="v7sejour__groupe">{groupLbl(trav, rooms)}</span>
+        <span className="v7sejour__groupe">{groupLbl(trav, rooms, enfants)}</span>
         <span className="v7sejour__loupe">
           <Icon name="loupe" taille={14} />
         </span>
@@ -311,6 +312,9 @@ function PanneauSejour() {
       <Calendrier plage={plage} hauteur={38} />
       <div className="v7panneau__compteurs">
         <Compteur k="trav" titre="Voyageurs" regle="1 à 20" encadre />
+        {/* Les enfants, parce que le coût des forfaits comptait huit adultes
+            quand le domaine publie aussi son tarif enfant. */}
+        <Compteur k="enfants" titre="dont enfants" regle={AGE_ENFANT} encadre />
         <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" encadre />
       </div>
       <span className="v7panneau__note">
@@ -354,7 +358,8 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
     });
   }, [pathname, setStayOpen, setShared]);
 
-  // Lien de partage : `#s=<station>&l=<logement>&d=<arrivée>&n=<nuits>&t=<voyageurs>&r=<chambres>`.
+  // Lien de partage :
+  // `#s=<station>&l=<logement>&d=<arrivée>&n=<nuits>&t=<voyageurs>&e=<enfants>&r=<chambres>`.
   // Station, logement, dates et voyageurs viennent du lien et remplacent le
   // séjour en cours ; le récapitulatif le dit par un bandeau.
   useEffect(() => {
@@ -368,10 +373,20 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
     p.retain(s);
     const n = +(h.get("n") ?? 0),
       t = +(h.get("t") ?? 0),
+      e = +(h.get("e") ?? 0),
       r = +(h.get("r") ?? 0);
     const d = h.get("d");
-    const patch: Partial<{ guests: number; bedrooms: number; checkIn: string; checkOut: string }> = {};
+    const patch: Partial<{
+      guests: number;
+      children: number;
+      bedrooms: number;
+      checkIn: string;
+      checkOut: string;
+    }> = {};
     if (t) patch.guests = t;
+    // Zéro enfant est une valeur, pas une absence : le lien l'écrit toujours,
+    // et un séjour partagé sans enfant doit effacer ceux du séjour en cours.
+    if (h.has("e")) patch.children = clampChildren(e, t || st.guests);
     if (r) patch.bedrooms = r;
     if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) patch.checkIn = d;
     if (n) {

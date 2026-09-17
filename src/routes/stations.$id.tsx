@@ -31,6 +31,7 @@ import {
   useParcours,
   useSejour,
 } from "@/lib/parcours";
+import { coutForfaits } from "@/lib/forfaits/cout";
 import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
@@ -329,7 +330,7 @@ function FicheBody({ s }: { s: Station }) {
   const cmp = useParcours((x) => x.cmp);
   const retain = useParcours((x) => x.retain);
   const toggleCmp = useParcours((x) => x.toggleCmp);
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
   const forfait = useForfait(s);
   const { wx, lo, hi, loMesure, hiMesure } = useForecast(s);
   const bra = useBra(s.id);
@@ -365,7 +366,8 @@ function FicheBody({ s }: { s: Station }) {
   const official = braData?.official;
   const risque = official?.ok && official.risk != null ? official.risk : null;
 
-  const passGroup = forfait?.j6 != null ? forfait.j6 * trav : null;
+  const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
+  const passGroup = pass.total;
 
   return (
     <Coquille>
@@ -717,16 +719,14 @@ function FicheBody({ s }: { s: Station }) {
               </div>
               <div>
                 <dt>Voyageurs</dt>
-                <dd>{groupLbl(trav, rooms)}</dd>
+                <dd>{groupLbl(trav, rooms, enfants)}</dd>
               </div>
               <div>
                 <dt>Forfaits 6 j</dt>
                 <dd className={passGroup == null ? "absent" : undefined}>
                   {eurN(passGroup) ?? "non relevés"}
-                  <span>
-                    {forfait?.j6 != null
-                      ? `${trav} × ${eurN(forfait.j6)}, calculé sur le prix relevé`
-                      : "aucun tarif pour ce domaine"}
+                  <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
+                    {pass.total != null ? `${pass.detail}, au tarif relevé` : "aucun tarif pour ce domaine"}
                   </span>
                 </dd>
               </div>

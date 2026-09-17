@@ -47,15 +47,30 @@ const PARCOURS: { go: Screen; step: number | null; label: MsgId }[] = [
   { go: "booking", step: 3, label: "nav.booking" },
 ];
 
-/** Écrans de contrôle, hors parcours, rangés sous « Plus ». Les chemins
- *  viennent de `AILLEURS_PATHS` (`go.ts`), seule table de ces routes. */
-const AILLEURS: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] = [
-  { to: "/carte", label: "nav.map" },
-  { to: "/altitudes", label: "nav.alt" },
-  { to: "/openskimap", label: "nav.osm" },
-  { to: "/forfaits", label: "nav.passes" },
-  { to: "/traces", label: "nav.traces" },
-  { to: "/cles", label: "nav.cles" },
+/** Écrans hors parcours, rangés sous « Plus ». Les chemins viennent de
+ *  `AILLEURS_PATHS` (`go.ts`), seule table de ces routes.
+ *
+ *  Deux groupes, parce que le menu mêlait deux choses : ce qu'on ouvre pour
+ *  préparer un séjour — la carte, les forfaits, ses traces — et ce qu'on ouvre
+ *  pour vérifier d'où viennent les données. Les seconds ne servent pas au
+ *  voyageur et brouillaient les premiers. */
+const AILLEURS: { titre: MsgId; liens: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] }[] = [
+  {
+    titre: "nav.tools",
+    liens: [
+      { to: "/carte", label: "nav.map" },
+      { to: "/forfaits", label: "nav.passes" },
+      { to: "/traces", label: "nav.traces" },
+    ],
+  },
+  {
+    titre: "nav.control",
+    liens: [
+      { to: "/altitudes", label: "nav.alt" },
+      { to: "/openskimap", label: "nav.osm" },
+      { to: "/cles", label: "nav.cles" },
+    ],
+  },
 ];
 
 /** Les routes qui ne sont pas une étape du parcours. Une seule question posée
@@ -86,13 +101,23 @@ function MenuPlus() {
       {ouvert ? (
         <div className="v7menu" role="dialog" aria-label={t("nav.more")}>
           <span className="v7menu__label">{t("nav.elsewhere")}</span>
-          <div className="v7menu__liens">
-            {AILLEURS.map((l) => (
-              <Link key={l.to} to={l.to} className="v7menu__lien" onClick={() => setOuvert(false)}>
-                {t(l.label)}
-              </Link>
-            ))}
-          </div>
+          {AILLEURS.map((groupe) => (
+            <div key={groupe.titre} className="v7menu__groupe">
+              <span className="v7menu__titre">{t(groupe.titre)}</span>
+              <div className="v7menu__liens">
+                {groupe.liens.map((l) => (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    className="v7menu__lien"
+                    onClick={() => setOuvert(false)}
+                  >
+                    {t(l.label)}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
           <div className="v7menu__pied">
             <AutoSync />
           </div>

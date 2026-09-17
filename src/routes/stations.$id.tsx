@@ -171,8 +171,15 @@ function Bande({ titre, lvl }: { titre: string; lvl: ForecastLevel }) {
             <span>{jourLbl(d.date)}</span>
             <Icon name={ICONE[d.kind]} taille={18} className={`bande7__ico bande7__ico--${d.kind}`} />
             <b>{d.tempMax == null ? "–" : `${Math.round(d.tempMax)}°`}</b>
-            <span className={`bande7__neige${d.snowCm ? " bande7__neige--oui" : ""}`}>
-              {d.snowCm == null ? "–" : d.snowCm > 0 ? `${d.snowCm} cm` : "sec"}
+            {/* Seuls les jours de précipitations portent un chiffre. « sec »
+                s'écrivait vingt-huit fois sur les deux bandes, et noyait les
+                trois jours où il neige. Un zéro mesuré n'est pas une valeur
+                absente : il reste lisible à l'icône, et en infobulle. */}
+            <span
+              className={`bande7__neige${d.snowCm ? " bande7__neige--oui" : ""}`}
+              title={d.snowCm === 0 ? "Pas de neige prévue" : undefined}
+            >
+              {d.snowCm == null ? "–" : d.snowCm > 0 ? `${d.snowCm} cm` : ""}
             </span>
           </div>
         ))}

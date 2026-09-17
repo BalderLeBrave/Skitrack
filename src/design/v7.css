@@ -261,6 +261,19 @@
   font-weight: 700;
   color: var(--color-texte-3);
 }
+/* Deux groupes dans « Plus » : les outils du voyageur, puis les écrans de
+   contrôle des données. Mêlés, les seconds brouillaient les premiers. */
+.v7menu__groupe {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+.v7menu__titre {
+  font-size: var(--text-mention);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-texte-3);
+}
 .v7menu__liens {
   display: flex;
   flex-wrap: wrap;
@@ -3013,7 +3026,10 @@
 .bande7__ico--sun {
   color: var(--color-soleil);
 }
+/* `min-height` : un jour sec n'écrit rien, mais garde sa ligne — sans quoi la
+   bande se déformerait au gré des chutes de neige. */
 .bande7__neige {
+  min-height: 1em;
   font-size: var(--text-note);
   font-weight: 500;
   color: var(--color-texte-3);

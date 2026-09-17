@@ -17,6 +17,7 @@
 import {
   CLASSEUR,
   GPS_FIXES,
+  nomAffiche,
   posRelevee,
   shareFromCounts,
   type ColorCounts,
@@ -145,8 +146,10 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
   return {
     id: entry.id,
     // Le classeur porte des coquilles (« Gourrette », « Fond d'Urle ») : le nom
-    // curé du dépôt prime partout où il existe.
-    name: depot?.name ?? fm.fmName,
+    // curé du dépôt prime partout où il existe. `nomAffiche` reprend ensuite
+    // la typographie du lieu — traits d'union et accents — quand la commune ou
+    // le classeur l'écrivent mieux.
+    name: nomAffiche(entry.id, depot?.name, fm.fmName, fm.commune),
     massif: depot?.massif ?? fm.massif,
     villageM: depot?.villageM ?? fm.village ?? 0,
     minM: depot?.minM ?? fm.min ?? 0,

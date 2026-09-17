@@ -112,6 +112,8 @@ const CRIT: Crit[] = [
 ];
 
 const LISTE_MAX = 40;
+/** Ce qu'un clic sur « Afficher … de plus » ajoute à la liste. */
+const LISTE_PAS = 30;
 
 function Comparer() {
   const go = useGo();
@@ -181,7 +183,11 @@ function Comparer() {
   const parCadre = useMemo(() => partagerParBornes(sorted, bornes), [sorted, bornes]);
   const dansCadre = parCadre.visibles;
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
-  const list = dansCadre.slice(0, LISTE_MAX);
+  /* La liste s'arrêtait à quarante et renvoyait à la carte pour les 290
+     autres : il fallait filtrer pour les voir. Elle s'allonge maintenant sur
+     demande. */
+  const [limite, setLimite] = useState(LISTE_MAX);
+  const list = dansCadre.slice(0, limite);
 
   /** Le compte des résultats, en infobulle du champ : la maquette ne le pose
    *  plus sous la barre. Il dit ce que la liste montre, ce que le cadre laisse
@@ -672,12 +678,19 @@ function Comparer() {
                     />
                   ))}
                 </div>
-                {dansCadre.length > LISTE_MAX ? (
-                  <p className="v7deux__plus">
-                    {dansCadre.length - LISTE_MAX} autres stations sont sur la carte. Pour les
-                    faire entrer dans cette liste, affinez un filtre, resserrez la carte, ou
-                    cherchez un nom.
-                  </p>
+                {dansCadre.length > limite ? (
+                  <div className="v7deux__plus">
+                    <button
+                      type="button"
+                      className="btn7 btn7--fantome"
+                      onClick={() => setLimite((n) => n + LISTE_PAS)}
+                    >
+                      Afficher {Math.min(LISTE_PAS, dansCadre.length - limite)} stations de plus
+                    </button>
+                    <span>
+                      {dansCadre.length - limite} autres stations sont dans ce cadrage.
+                    </span>
+                  </div>
                 ) : null}
               </>
             ) : visible.length ? (
@@ -800,7 +813,8 @@ function Comparer() {
                   </b>
                   {parCadre.horsCadre.length ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                      Revoir les {visible.length} résultats →
+                      Revoir les {visible.length} résultats
+                      <Icon name="fleche-droite" taille={14} />
                     </button>
                   ) : null}
                 </>

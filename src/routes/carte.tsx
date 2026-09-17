@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Icon } from "@/components/Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Carte } from "@/components/Carte";
 import { Coquille } from "@/components/Coquille";
@@ -118,7 +119,8 @@ function StationRow({
           params={{ id: station.id }}
           className="carte-row__link block px-5 pb-3"
         >
-          Fiche station →
+          Fiche station
+          <Icon name="fleche-droite" taille={14} />
         </Link>
       ) : null}
     </li>

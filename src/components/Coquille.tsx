@@ -17,7 +17,7 @@
  * même barre.
  */
 
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AutoSync } from "./AutoSync";
 import { Icon } from "./Icon";
@@ -192,7 +192,14 @@ function PiluleSejour() {
   const stayOpen = useParcours((s) => s.stayOpen);
   const setStayOpen = useParcours((s) => s.setStayOpen);
   const { checkIn, checkOut, trav, rooms, nights } = useSejour();
-  const station = stationId ? stationById(stationId) : undefined;
+  /* Sur une fiche de station, la pilule annonçait « Station à choisir » alors
+     qu'on en regardait une. Elle nomme donc celle qu'on a sous les yeux quand
+     aucune n'est encore retenue ; le panneau qu'elle ouvre, lui, ne change
+     pas : c'est toujours celui du séjour. */
+  const params = useParams({ strict: false }) as { id?: string };
+  const station =
+    (stationId ? stationById(stationId) : undefined) ??
+    (params.id ? stationById(params.id) : undefined);
   return (
     <div className="v7sejour">
       <button

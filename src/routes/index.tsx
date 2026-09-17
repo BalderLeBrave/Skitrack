@@ -674,7 +674,6 @@ function Home() {
               <path d="M12 5v13M6 13l6 6 6-6" />
             </svg>
           </button>
-          <span className="hero7__credit">Crédit photo à relever</span>
         </div>
 
         <div className="v7wrap home7">
@@ -696,7 +695,8 @@ function Home() {
                   void go("compare");
                 }}
               >
-                Toutes les stations →
+                Toutes les stations
+                <Icon name="fleche-droite" taille={14} />
               </a>
             </header>
             <div className="home7__grille3">

@@ -159,7 +159,8 @@ function Reservation() {
                 void go("home");
               }}
             >
-              Préparer un autre séjour →
+              Préparer un autre séjour
+              <Icon name="fleche-droite" taille={14} />
             </a>
           </div>
         ) : null}

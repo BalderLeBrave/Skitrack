@@ -886,7 +886,8 @@ function LogementsStation({ s }: { s: Station }) {
                 void go("fiche", { id: s.id });
               }}
             >
-              ← Fiche station
+              <Icon name="chevron-gauche" taille={14} />
+              Fiche station
             </a>
           </section>
 
@@ -1246,7 +1247,8 @@ function LogementsStation({ s }: { s: Station }) {
                       </b>
                       {parCadre.horsCadre.length ? (
                         <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                          Revoir les {lvis.length} annonces →
+                          Revoir les {lvis.length} annonces
+                          <Icon name="fleche-droite" taille={14} />
                         </button>
                       ) : null}
                     </>
@@ -1401,7 +1403,8 @@ function LogementsStation({ s }: { s: Station }) {
                 </button>
                 {sheet.url ? (
                   <a href={sheet.url} target="_blank" rel="noopener" className="btn7 btn7--fantome btn7--pleine btn7--lien">
-                    Ouvrir sur {sheet.source} ↗
+                    Ouvrir sur {sheet.source}
+                    <Icon name="externe" taille={12} />
                   </a>
                 ) : (
                   <span className="volet7__sanslien">

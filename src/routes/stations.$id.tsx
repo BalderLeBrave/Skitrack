@@ -335,10 +335,13 @@ function FicheBody({ s }: { s: Station }) {
   const photo = stationPhoto(s);
   const pret = resolveStationPhoto(s.id);
   const src = skiinfoUrl(s);
+  // L'emprunt se dit — c'est une information sur la photo affichée. Le
+  // « crédit à relever » ne disait rien au lecteur : il notait un travail qui
+  // reste à faire côté dépôt.
   const photoNote = photo
     ? pret?.fromName
-      ? `Photo Skiinfo de ${pret.fromName}, même domaine · crédit à relever`
-      : "Photo Skiinfo · crédit à relever"
+      ? `Photo Skiinfo de ${pret.fromName}, même domaine`
+      : "Photo Skiinfo"
     : stationPhotoAbsence(s);
   const braData = bra.etat.status === "pret" ? bra.etat.data : null;
   const official = braData?.official;
@@ -520,7 +523,8 @@ function FicheBody({ s }: { s: Station }) {
                 <h2>Webcams</h2>
                 {src ? (
                   <a href={src} target="_blank" rel="noopener" className="carte7-sect__lien">
-                    Fiche Skiinfo ↗
+                    Fiche Skiinfo
+                    <Icon name="externe" taille={12} />
                   </a>
                 ) : null}
               </div>
@@ -653,7 +657,8 @@ function FicheBody({ s }: { s: Station }) {
                 rel="noopener"
                 className="btn7 btn7--fantome"
               >
-                {braData?.massif ? `Bulletin ${braData.massif} ↗` : "Trouver le bulletin ↗"}
+                {braData?.massif ? `Bulletin ${braData.massif}` : "Trouver le bulletin"}
+                <Icon name="externe" taille={12} />
               </a>
             </section>
           </div>

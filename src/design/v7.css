@@ -1210,6 +1210,9 @@
   gap: calc(var(--spacing) * 4.5);
 }
 .v7deux__plus {
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--spacing) * 2);
   text-align: center;
   font-size: var(--text-detail);
   color: var(--color-muted);
@@ -2321,13 +2324,6 @@
   }
 }
 
-.hero7__credit {
-  position: absolute;
-  right: 14px;
-  bottom: 10px;
-  font-size: 11px;
-  color: color-mix(in srgb, var(--color-photo-texte) 80%, transparent);
-}
 .home7 {
   display: grid;
   gap: calc(var(--spacing) * 10);

@@ -2421,6 +2421,13 @@
   font-weight: 700;
   color: var(--color-texte-3);
 }
+/* Ce que fait le bouton rond des en-têtes de colonne, dit une fois. */
+.cmp7__critere-tete span {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
+  text-wrap: pretty;
+}
 .cmp7__col {
   padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
   text-align: left;
@@ -2474,6 +2481,16 @@
 .cmp7__cell--best {
   font-weight: 800;
 }
+/* La mention d'une cellule : « prix du forfait Les 3 Vallées » sous un tarif
+   pris au domaine qui relie la station. */
+.cmp7__sous {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-note);
+  font-weight: 500;
+  color: var(--color-texte-3);
+  text-wrap: pretty;
+}
 .cmp7__mix {
   display: grid;
   gap: 6px;
@@ -2498,6 +2515,22 @@
 .cmp7__pied > span {
   font-size: var(--text-detail);
   color: var(--color-muted);
+}
+.cmp7__bascule {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  flex: none;
+  font-size: var(--text-detail);
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.cmp7__bascule input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-marque);
 }
 /* La barre reste à portée pendant qu'on descend quarante vignettes : le
    compteur, le tri et le bouton Filtres sont ce qu'on va rechercher en cours
@@ -2782,6 +2815,15 @@
   font-size: var(--text-note) !important;
   font-weight: 700;
   color: var(--color-ok-texte) !important;
+}
+/* « prix du forfait Les 3 Vallées » : le tarif vient du domaine qui relie la
+   station, faute d'entrée à son nom. */
+.forfaits7__herite {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--text-note) !important;
+  color: var(--color-texte-3) !important;
+  text-wrap: pretty;
 }
 .wx7 {
   display: grid;

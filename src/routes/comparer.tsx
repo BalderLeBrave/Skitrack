@@ -35,6 +35,7 @@ import {
   aStation,
   CHIPS,
   forfaitOf,
+  passHeriteLbl,
   glacier,
   kmLbl,
   liftsLbl,
@@ -71,10 +72,25 @@ type Crit = {
   txt: (s: Station) => string | null;
   num: ((s: Station) => number | null) | null;
   note: string | null;
+  /** Mention propre à une cellule, sous sa valeur : « prix du forfait Les
+   *  3 Vallées » quand le tarif est pris au domaine. */
+  sous?: (s: Station) => string | null;
 };
 
 const CRIT: Crit[] = [
-  { label: "Altitude des pistes", txt: (s) => altLbl(s), num: (s) => maxM(s), note: null },
+  {
+    label: "Altitude des pistes",
+    txt: (s) => altLbl(s),
+    num: (s) => maxM(s),
+    /* L'altitude ne vient jamais de la mesure de domaine : `minM` et `maxM`
+       sont lus sur la fiche de la station — le dépôt Skiinfo d'abord, France
+       Montagnes ensuite —, là où les km et les remontées viennent d'
+       OpenSkiMap à l'échelle du domaine. C'est ce qui fait que Courchevel
+       annonce 1 100 – 2 738 m et Le Praz 1 110 – 3 223 m sur le même domaine :
+       deux fiches, deux façons de compter. Sans la mention, cela se lisait
+       comme une contradiction. */
+    note: "valeur de la fiche",
+  },
   { label: "Village", txt: (s) => villageLbl(s), num: (s) => villageM(s), note: null },
   { label: "Km de pistes", txt: (s) => kmLbl(s), num: (s) => s.pistesKm, note: "valeur du domaine" },
   { label: "Remontées", txt: (s) => liftsLbl(s), num: (s) => s.lifts, note: "valeur du domaine" },
@@ -83,6 +99,7 @@ const CRIT: Crit[] = [
     txt: (s) => eurN(forfaitOf(s)?.j6),
     num: (s) => (forfaitOf(s)?.j6 != null ? -(forfaitOf(s)!.j6 as number) : null),
     note: "relevé sur le site du domaine",
+    sous: (s) => passHeriteLbl(s),
   },
   { label: "Glacier", txt: (s) => (glacier(s) ? "Oui" : "Non"), num: null, note: null },
   { label: "Forfait relié", txt: (s) => (linked(s) ? s.domain : null), num: null, note: null },
@@ -205,6 +222,14 @@ function Comparer() {
   /* ---------- Comparaison ---------- */
   const cmp = P.cmp.map((id) => stationById(id)).filter((s): s is Station => !!s);
   const pickId = cmp.some((s) => s.id === P.pick) ? P.pick : (cmp[0]?.id ?? null);
+  /* Trois stations d'un même domaine partagent six lignes sur neuf. Les
+     masquer laisse voir ce qui les sépare vraiment ; la bascule ne s'affiche
+     que s'il y a quelque chose à masquer. */
+  const [masquerIdentiques, setMasquerIdentiques] = useState(false);
+  const nIdentiques =
+    cmp.length > 1
+      ? CRIT.filter((c) => new Set(cmp.map((s) => c.txt(s))).size === 1).length
+      : 0;
   const pickName = pickId ? stationById(pickId)?.name : "";
   const retain = (id: string) => {
     P.retain(id);
@@ -277,7 +302,13 @@ function Comparer() {
               <table className="cmp7__table">
                 <thead>
                   <tr>
-                    <th className="cmp7__critere-tete">Critère</th>
+                    <th className="cmp7__critere-tete">
+                      Critère
+                      {/* Le bouton rond en tête de colonne n'annonçait rien :
+                          on ne comprenait qu'après l'avoir essayé qu'il
+                          désigne la station qui mène aux logements. */}
+                      <span>Le rond retient la station pour les logements</span>
+                    </th>
                     {cmp.map((s) => (
                       <th
                         key={s.id}
@@ -289,6 +320,8 @@ function Comparer() {
                             name="pick"
                             checked={s.id === pickId}
                             onChange={() => P.setPick(s.id)}
+                            aria-label={`Retenir ${s.name} pour les logements`}
+                            title={`Retenir ${s.name} pour les logements`}
                           />
                           <span>{s.name}</span>
                         </label>
@@ -321,7 +354,16 @@ function Comparer() {
                   {CRIT.map((c) => {
                     const vals = cmp.map((s) => (c.num ? c.num(s) : null));
                     const known = vals.filter((v): v is number => v != null);
-                    const best = known.length > 1 ? Math.max(...known) : null;
+                    // Le gras dit « la meilleure ». Quand toutes les valeurs
+                    // sont la même — trois stations d'un même domaine
+                    // partagent km, remontées, forfait et couleurs — il n'y a
+                    // pas de meilleure, et tout mettre en gras ne désignait
+                    // plus rien.
+                    const ecart = new Set(known).size > 1;
+                    const best = known.length > 1 && ecart ? Math.max(...known) : null;
+                    const textes = cmp.map((s) => c.txt(s));
+                    const identique = textes.length > 1 && new Set(textes).size === 1;
+                    if (identique && masquerIdentiques) return null;
                     return (
                       <tr key={c.label}>
                         <th className="cmp7__critere">
@@ -329,7 +371,8 @@ function Comparer() {
                           {c.note ? <span>{c.note}</span> : null}
                         </th>
                         {cmp.map((s, i) => {
-                          const v = c.txt(s);
+                          const v = textes[i];
+                          const sous = c.sous?.(s) ?? null;
                           const gagne = best != null && vals[i] === best;
                           return (
                             <td
@@ -337,6 +380,7 @@ function Comparer() {
                               className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}${v == null ? " cmp7__cell--absent" : ""}${gagne ? " cmp7__cell--best" : ""}`}
                             >
                               {v ?? "non relevé"}
+                              {sous ? <span className="cmp7__sous">{sous}</span> : null}
                             </td>
                           );
                         })}
@@ -361,9 +405,20 @@ function Comparer() {
             </div>
             <div className="cmp7__pied">
               <span>
-                Une valeur absente est dite absente. En gras : la meilleure valeur du critère.{" "}
-                {CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations au plus.
+                Une valeur absente est dite absente. En gras : la meilleure valeur, quand les
+                stations en annoncent de différentes. {CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations
+                au plus.
               </span>
+              {nIdentiques ? (
+                <label className="cmp7__bascule">
+                  <input
+                    type="checkbox"
+                    checked={masquerIdentiques}
+                    onChange={() => setMasquerIdentiques((v) => !v)}
+                  />
+                  Masquer les critères identiques ({nIdentiques})
+                </label>
+              ) : null}
               <button
                 type="button"
                 className="btn7 btn7--grand"
@@ -692,7 +747,10 @@ function Comparer() {
                       </div>
                       <div>
                         <span>Forfait 6 j</span>
-                        <b className={eurN(forfaitOf(st)?.j6) ? undefined : "absent"}>
+                        <b
+                          className={eurN(forfaitOf(st)?.j6) ? undefined : "absent"}
+                          title={passHeriteLbl(st) ?? undefined}
+                        >
                           {eurN(forfaitOf(st)?.j6) ?? "non relevé"}
                         </b>
                       </div>

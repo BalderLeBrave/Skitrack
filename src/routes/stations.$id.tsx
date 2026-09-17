@@ -415,6 +415,12 @@ function FicheBody({ s }: { s: Station }) {
                         Prix relevé
                       </span>
                     ) : null}
+                    {/* Le tarif pris au domaine qui relie la station le dit :
+                        il est juste, mais ce n'est pas la station qui le
+                        publie. */}
+                    {forfait.heriteLbl ? (
+                      <span className="forfaits7__herite">{forfait.heriteLbl}</span>
+                    ) : null}
                   </div>
                   <div>
                     <span>6 jours enfant</span>

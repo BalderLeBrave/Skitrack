@@ -37,6 +37,101 @@ export function domainForStation(stationId: string): DomainForfait | undefined {
   return FORFAIT_CATALOG.find((d) => cam(d.slug) === key || cam(d.name) === key);
 }
 
+/** Les nombres écrits en lettres, pour rapprocher « Les Trois Vallées » du
+ *  « Les 3 Vallées » du catalogue. Dix suffisent : au-delà, aucun domaine
+ *  français ne compte ses vallées. */
+const CHIFFRES: Record<string, string> = {
+  un: "1",
+  une: "1",
+  deux: "2",
+  trois: "3",
+  quatre: "4",
+  cinq: "5",
+  six: "6",
+  sept: "7",
+  huit: "8",
+  neuf: "9",
+  dix: "10",
+};
+
+/**
+ * La clé de rapprochement d'un nom de domaine.
+ *
+ * Le référentiel de stations nomme les domaines comme OpenSkiMap — « Les Trois
+ * Vallées », « Portes du Soleil (versant français) » —, le catalogue de
+ * forfaits comme les pages officielles — « Les 3 Vallées », « Portes du Soleil
+ * (600 km) ». Les deux désignent le même forfait ; il faut les faire tomber sur
+ * la même clé.
+ *
+ * Ce qu'on retire : les parenthèses, qui portent une précision de périmètre et
+ * non une identité ; l'article de tête ; la ponctuation. Ce qu'on convertit :
+ * les nombres en lettres.
+ */
+export function cleDomaine(nom: string | null | undefined): string | null {
+  if (!nom) return null;
+  const sansParen = nom.replace(/\([^)]*\)/g, " ");
+  const mots = cam(sansParen)
+    .split("-")
+    .filter(Boolean)
+    .map((m) => CHIFFRES[m] ?? m);
+  while (mots.length > 1 && ["le", "la", "les", "l"].includes(mots[0])) mots.shift();
+  const cle = mots.join("-");
+  return cle.length ? cle : null;
+}
+
+/**
+ * Le domaine de forfait que désigne un nom de domaine skiable.
+ *
+ * L'ordre compte. Le `pass` et la `zone` nomment le forfait qui relie
+ * plusieurs stations — c'est lui qu'on cherche ; le `name` ne nomme qu'une
+ * station du domaine, et n'est consulté qu'à défaut.
+ */
+export function domainByName(nom: string | null | undefined): DomainForfait | undefined {
+  const cle = cleDomaine(nom);
+  if (!cle) return undefined;
+  return (
+    FORFAIT_CATALOG.find((d) => cleDomaine(d.pass) === cle) ??
+    FORFAIT_CATALOG.find((d) => cleDomaine(d.seed?.zone) === cle) ??
+    FORFAIT_CATALOG.find((d) => cleDomaine(d.name) === cle)
+  );
+}
+
+/** Le rattachement d'une station à un tarif de forfait. */
+export type Rattachement = {
+  domaine: DomainForfait;
+  /**
+   * Le tarif ne vient pas d'une entrée propre à la station mais du domaine qui
+   * la relie. Il est juste — c'est le même forfait — mais il se dit :
+   * « prix du forfait Les 3 Vallées ».
+   */
+  herite: boolean;
+  /** Le nom à citer dans la mention, quand le tarif est hérité. */
+  nomDomaine: string | null;
+};
+
+/**
+ * Le forfait d'une station, en passant par son domaine quand elle n'a pas
+ * d'entrée à elle.
+ *
+ * Le catalogue ne rattache que 16 stations nommément ; tout le reste tient au
+ * rapprochement des slugs. Courchevel Le Praz, Méribel Village, Reberty ou
+ * Avoriaz tombaient donc à « non relevé » alors que leur domaine, lui, publie
+ * son tarif — et que la fiche affichait déjà « Forfait relié : Les Trois
+ * Vallées » juste à côté. L'information était là ; elle ne se montrait pas.
+ */
+export function rattachementForfait(
+  stationId: string,
+  nomDomaine: string | null | undefined,
+): Rattachement | undefined {
+  const propre = domainForStation(stationId);
+  if (propre?.seed?.j6 != null) return { domaine: propre, herite: false, nomDomaine: null };
+  const relie = domainByName(nomDomaine);
+  if (relie?.seed?.j6 != null) {
+    return { domaine: relie, herite: true, nomDomaine: relie.pass ?? nomDomaine ?? relie.name };
+  }
+  return propre ? { domaine: propre, herite: false, nomDomaine: null } : undefined;
+}
+
 /** Glacier : drapeau du catalogue de domaine, jamais inventé. */
 export function stationHasGlacier(stationId: string): boolean {
   return domainForStation(stationId)?.glacier === true;

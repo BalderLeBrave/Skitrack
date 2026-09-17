@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from "react";
 import { getForfait } from "@/lib/forfaits/api";
-import { domainForStation } from "@/lib/forfaits/catalog";
+import { rattachementForfait } from "@/lib/forfaits/catalog";
 import type { ForfaitRow } from "@/lib/forfaits/types";
 import type { Station } from "@/lib/stations";
 
@@ -26,6 +26,9 @@ export type Forfait = {
   releveLbl: string | null;
   /** Le tarif vient d'une page officielle relevée, pas d'une estimation. */
   releve: boolean;
+  /** « prix du forfait Les 3 Vallées » quand le tarif est pris au domaine qui
+   *  relie la station, faute d'entrée à son nom. `null` sinon. */
+  heriteLbl: string | null;
 };
 
 function dateLbl(iso: string | null): string | null {
@@ -37,7 +40,8 @@ function dateLbl(iso: string | null): string | null {
 
 /** Ce que la graine seule permet d'écrire, avant toute réponse du serveur. */
 export function forfaitGraine(s: Station): Forfait | null {
-  const d = domainForStation(s.id);
+  const r = rattachementForfait(s.id, s.domain);
+  const d = r?.domaine;
   const seed = d?.seed ?? null;
   if (!seed || seed.j6 == null) return null;
   return {
@@ -48,13 +52,14 @@ export function forfaitGraine(s: Station): Forfait | null {
     zone: seed.zone ?? d?.name ?? s.domain ?? s.name,
     releveLbl: seed.majLabel ?? dateLbl(seed.maj),
     releve: true,
+    heriteLbl: r?.herite && r.nomDomaine ? `prix du forfait ${r.nomDomaine}` : null,
   };
 }
 
 function fusion(s: Station, row: ForfaitRow | null): Forfait | null {
   const graine = forfaitGraine(s);
   if (!row || row.status === "estimé" || row.status === "erreur" || row.j6 == null) return graine;
-  const d = domainForStation(s.id);
+  const d = rattachementForfait(s.id, s.domain)?.domaine;
   return {
     j1: row.j1 ?? graine?.j1 ?? null,
     j6: row.j6,
@@ -63,12 +68,13 @@ function fusion(s: Station, row: ForfaitRow | null): Forfait | null {
     zone: graine?.zone ?? d?.name ?? s.domain ?? s.name,
     releveLbl: dateLbl(row.fetchedAt) ?? graine?.releveLbl ?? null,
     releve: true,
+    heriteLbl: graine?.heriteLbl ?? null,
   };
 }
 
 export function useForfait(s: Station | undefined): Forfait | null {
   const [row, setRow] = useState<ForfaitRow | null>(null);
-  const slug = s ? domainForStation(s.id)?.slug : undefined;
+  const slug = s ? rattachementForfait(s.id, s.domain)?.domaine.slug : undefined;
   useEffect(() => {
     setRow(null);
     if (!slug) return;

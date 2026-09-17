@@ -25,7 +25,7 @@ import { useGo } from "@/components/v6/go";
 import { PartPistes } from "./PartPistes";
 import { stationPhoto, stationPhotoAbsence, useParcours } from "@/lib/parcours";
 import type { Station } from "@/lib/stations";
-import { altLbl, kmLbl, passLbl, sub, villageLbl } from "@/lib/v7";
+import { altLbl, kmLbl, passHeriteLbl, passLbl, sub, villageLbl } from "@/lib/v7";
 
 export function CarteStation({
   s,
@@ -120,7 +120,9 @@ export function CarteStation({
           </div>
           <div>
             <span>Forfait 6 j</span>
-            <b className={pass ? undefined : "absent"}>{pass ?? "non relevé"}</b>
+            <b className={pass ? undefined : "absent"} title={passHeriteLbl(s) ?? undefined}>
+              {pass ?? "non relevé"}
+            </b>
           </div>
         </div>
         <PartPistes share={s.colorShare} />

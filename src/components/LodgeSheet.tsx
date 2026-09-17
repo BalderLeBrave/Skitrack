@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
 import { distToGpxM, distToGpxStartM } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
 import { listingEleM, useElevations } from "@/lib/elevations";
@@ -294,7 +295,8 @@ export function LodgeSheet({
                 rel="noreferrer"
                 className="mt-6 inline-flex text-corps font-semibold text-ink underline"
               >
-                Ouvrir sur {listing.source} ↗
+                Ouvrir sur {listing.source}
+                <Icon name="externe" taille={12} />
               </a>
             )}
           </div>

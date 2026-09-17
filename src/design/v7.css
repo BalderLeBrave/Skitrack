@@ -261,10 +261,29 @@
   font-weight: 700;
   color: var(--color-texte-3);
 }
+/* Deux groupes dans « Plus » : les outils du voyageur, puis les écrans de
+   contrôle des données. Mêlés, les seconds brouillaient les premiers. */
+.v7menu__groupe {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+.v7menu__titre {
+  font-size: var(--text-mention);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-texte-3);
+}
 .v7menu__liens {
   display: flex;
   flex-wrap: wrap;
   gap: calc(var(--spacing) * 1.5);
+}
+/* Les voisines de forfait : Paradiski en compte dix-neuf, le menu ne s'étire
+   pas pour autant. */
+.v7menu__liens--stations {
+  max-height: calc(var(--spacing) * 26);
+  overflow-y: auto;
 }
 .v7menu__lien {
   display: inline-flex;
@@ -1210,6 +1229,9 @@
   gap: calc(var(--spacing) * 4.5);
 }
 .v7deux__plus {
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--spacing) * 2);
   text-align: center;
   font-size: var(--text-detail);
   color: var(--color-muted);
@@ -2321,13 +2343,6 @@
   }
 }
 
-.hero7__credit {
-  position: absolute;
-  right: 14px;
-  bottom: 10px;
-  font-size: 11px;
-  color: color-mix(in srgb, var(--color-photo-texte) 80%, transparent);
-}
 .home7 {
   display: grid;
   gap: calc(var(--spacing) * 10);
@@ -2401,6 +2416,74 @@
   background: var(--color-surface);
   overflow: hidden;
 }
+/* Le tableau posé par-dessus la liste, et non devant elle. Inséré dans le
+   flux, il la poussait de six cents pixels : au premier clic sur « Comparer »,
+   la vignette qu'on venait de cocher sortait de l'écran. */
+.cmp7--volet {
+  position: fixed;
+  z-index: 41;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1200px, calc(100vw - var(--spacing) * 10));
+  max-height: calc(100vh - var(--spacing) * 20);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-flottant);
+  box-shadow: var(--shadow-modale);
+}
+.cmp7--volet .cmp7__defil {
+  overflow: auto;
+}
+.cmp7__tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+  border-bottom: 1px solid var(--color-line-douce);
+  font-size: var(--text-intertitre);
+  font-weight: 800;
+}
+/* Le tiroir couvre le bas de l'écran : l'écran lui laisse la place, sans quoi
+   la dernière rangée de vignettes passait dessous. */
+.v7main--tiroir {
+  padding-bottom: calc(var(--spacing) * 28);
+}
+/* Le tiroir : ce qui est coché, et de quoi l'ouvrir. Il ne pousse rien. */
+.tiroir7 {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 26;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 5);
+  padding: calc(var(--spacing) * 3.5) max(calc(var(--spacing) * 10), calc((100% - 1200px) / 2));
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  backdrop-filter: var(--flou-pied);
+  border-top: 1px solid var(--color-line);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+.tiroir7__dit {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.tiroir7__dit strong {
+  font-size: var(--text-corps);
+  font-weight: 800;
+}
+.tiroir7__dit span {
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .cmp7__defil {
   overflow-x: auto;
 }
@@ -2420,6 +2503,13 @@
   font-size: var(--text-note);
   font-weight: 700;
   color: var(--color-texte-3);
+}
+/* Ce que fait le bouton rond des en-têtes de colonne, dit une fois. */
+.cmp7__critere-tete span {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
+  text-wrap: pretty;
 }
 .cmp7__col {
   padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
@@ -2474,6 +2564,16 @@
 .cmp7__cell--best {
   font-weight: 800;
 }
+/* La mention d'une cellule : « prix du forfait Les 3 Vallées » sous un tarif
+   pris au domaine qui relie la station. */
+.cmp7__sous {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-note);
+  font-weight: 500;
+  color: var(--color-texte-3);
+  text-wrap: pretty;
+}
 .cmp7__mix {
   display: grid;
   gap: 6px;
@@ -2498,6 +2598,22 @@
 .cmp7__pied > span {
   font-size: var(--text-detail);
   color: var(--color-muted);
+}
+.cmp7__bascule {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  flex: none;
+  font-size: var(--text-detail);
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.cmp7__bascule input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-marque);
 }
 /* La barre reste à portée pendant qu'on descend quarante vignettes : le
    compteur, le tri et le bouton Filtres sont ce qu'on va rechercher en cours
@@ -2783,6 +2899,15 @@
   font-weight: 700;
   color: var(--color-ok-texte) !important;
 }
+/* « prix du forfait Les 3 Vallées » : le tarif vient du domaine qui relie la
+   station, faute d'entrée à son nom. */
+.forfaits7__herite {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--text-note) !important;
+  color: var(--color-texte-3) !important;
+  text-wrap: pretty;
+}
 .wx7 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2907,7 +3032,10 @@
 .bande7__ico--sun {
   color: var(--color-soleil);
 }
+/* `min-height` : un jour sec n'écrit rien, mais garde sa ligne — sans quoi la
+   bande se déformerait au gré des chutes de neige. */
 .bande7__neige {
+  min-height: 1em;
   font-size: var(--text-note);
   font-weight: 500;
   color: var(--color-texte-3);
@@ -2948,11 +3076,30 @@
   font-size: var(--text-note);
   color: var(--color-texte-3);
 }
+/* `max-height` : en 16/9 sur une colonne de 780 px, le cadre montait à 440 px
+   de gris quand le flux ne se chargeait pas. Il garde son format tant qu'il
+   reste sous ce plafond. */
 .webcam7 {
+  position: relative;
   aspect-ratio: 16 / 9;
+  max-height: 280px;
   overflow: hidden;
   border-radius: var(--radius-champ);
   background: var(--color-media);
+}
+/* Ce qui se dit à la place d'un flux qui ne vient pas. */
+.webcam7__echec {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 4);
+  text-align: center;
+  background: var(--color-media);
+  font-size: var(--text-detail);
+  color: var(--color-muted);
 }
 .webcam7 iframe {
   width: 100%;
@@ -4065,6 +4212,12 @@
   color: var(--color-ok-texte) !important;
   font-weight: 700 !important;
 }
+/* Les enfants comptés au tarif adulte, faute de tarif enfant relevé : le
+   total reste juste au regard de ce qu'on sait, et le dit. Employé aussi par
+   la fiche station, dont la ligne « Forfaits 6 j » fait le même calcul. */
+.cout7__alerte {
+  color: var(--color-alerte-texte) !important;
+}
 .cout7 td {
   padding: 8px 0;
   text-align: right;
@@ -4397,6 +4550,49 @@
   color: var(--color-muted);
   word-break: break-word;
 }
+/* Les stations que le forfait ouvre : de quoi passer du domaine à la fiche.
+   La liste est bornée en hauteur — Paradiski en compte dix-neuf — et défile. */
+.forfp__stations {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1.5);
+}
+.forfp__stationsTitre {
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-texte-3);
+}
+.forfp__stationsListe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1.5);
+  max-height: 96px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.forfp__station {
+  display: inline-block;
+  padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 2);
+  border: 1px solid var(--color-line-douce);
+  border-radius: var(--radius-champ);
+  background: var(--color-glacier);
+  color: var(--color-ink);
+  font-size: var(--text-detail);
+  text-decoration: none;
+  transition:
+    border-color 0.12s var(--ease-ui),
+    background 0.12s var(--ease-ui);
+}
+.forfp__station:hover,
+.forfp__station:focus-visible {
+  border-color: var(--color-marque);
+  background: var(--color-marque-tenue);
+  color: var(--color-marque-texte);
+}
+
 .forfp__assiste {
   flex: none;
   padding: calc(var(--spacing) * 3);

@@ -13,6 +13,9 @@ export type Stay = {
   checkIn: string;
   checkOut: string;
   guests: number;
+  /** Combien, **parmi** les voyageurs, paient le tarif enfant. Jamais un
+   *  compte à part : un enfant occupe un lit comme les autres. */
+  children: number;
   bedrooms: number;
   shortlist: string[];
   searchNonce: number;
@@ -35,6 +38,7 @@ export const useStay = create<StayStore>()(
       checkIn: "2027-02-06",
       checkOut: "2027-02-13",
       guests: 8,
+      children: 0,
       bedrooms: 0,
       shortlist: [],
       searchNonce: 0,
@@ -71,6 +75,7 @@ export const useStay = create<StayStore>()(
         checkIn: s.checkIn,
         checkOut: s.checkOut,
         guests: s.guests,
+        children: s.children,
         bedrooms: s.bedrooms,
         shortlist: s.shortlist,
       }),

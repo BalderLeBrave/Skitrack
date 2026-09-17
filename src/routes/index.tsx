@@ -45,6 +45,7 @@ import {
   useSejour,
   type ChipKey,
 } from "@/lib/parcours";
+import { AGE_ENFANT } from "@/lib/stay/party";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import { maxM } from "@/lib/v7";
 
@@ -105,13 +106,47 @@ const SHORTCUTS: { k: ChipKey; label: string }[] = [
   { k: "family", label: "Plus de 60 % de pistes faciles" },
 ];
 
+/**
+ * La station qui représente son domaine en vitrine.
+ *
+ * Le classement se fait aux kilomètres de pistes, qui sont une **valeur de
+ * domaine** : les quatorze stations des 3 Vallées annoncent toutes 771 km. Le
+ * tri les laissait donc à égalité, et `sort` étant stable, c'est l'ordre
+ * alphabétique qui décidait — d'où Brides-les-Bains pour les 3 Vallées,
+ * Abondance pour les Portes du Soleil, Aime 2000 pour Paradiski et La Daille
+ * pour Tignes-Val d'Isère.
+ *
+ * Aucune donnée ne désigne l'emblème d'un domaine. Les km et les remontées
+ * sont à égalité ; la distance aux pistes, mesurée, met en avant les
+ * satellites qui dorment au pied d'un téléski — Reberty pour les 3 Vallées,
+ * Arc 1950 pour Paradiski. C'est un choix éditorial, et il s'écrit comme tel :
+ * une entrée par domaine, relue, qu'on change en une ligne.
+ *
+ * Un domaine absent de la table garde l'ordre d'avant.
+ */
+const VITRINE: Record<string, string> = {
+  "Les Trois Vallées": "val-thorens",
+  "Portes du Soleil (versant français)": "avoriaz",
+  "Paradiski (Les Arcs – La Plagne)": "la-plagne",
+  "Serre-Chevalier": "serre-chevalier",
+  "Le Grand Massif": "flaine",
+  "Tignes - Val d'Isère": "val-disere",
+};
+
 /** Une station par domaine relié, par km de pistes décroissants, six. */
 function popular(all: Station[]): Station[] {
-  const seen = new Set<string>();
-  return [...all]
-    .sort((a, b) => (b.pistesKm ?? 0) - (a.pistesKm ?? 0))
-    .filter((s) => s.domain && !seen.has(s.domain) && seen.add(s.domain))
-    .slice(0, 6);
+  const parDomaine = new Map<string, Station[]>();
+  for (const s of all) {
+    if (!s.domain) continue;
+    parDomaine.set(s.domain, [...(parDomaine.get(s.domain) ?? []), s]);
+  }
+  return [...parDomaine.entries()]
+    .sort((a, b) => (b[1][0].pistesKm ?? 0) - (a[1][0].pistesKm ?? 0))
+    .slice(0, 6)
+    .map(([domaine, stations]) => {
+      const choisie = VITRINE[domaine];
+      return stations.find((s) => s.id === choisie) ?? stations[0];
+    });
 }
 
 function massifCards(all: Station[]): { m: string; n: number; hi: number }[] {
@@ -126,7 +161,7 @@ function Home() {
   const go = useGo();
   const P = useParcours();
   const F = P.filters;
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
   const plage = usePlage();
   // La station retenue, s'il y en a une : c'est elle qui décide de ce que
   // « Rechercher » va ouvrir.
@@ -475,7 +510,7 @@ function Home() {
                 <div className={`sbar7__fin ${seg(hp === "guests")}`}>
                   <button type="button" className="sbar7__seg sbar7__seg--nu" onClick={() => ouvrir("guests")}>
                     <span className="sbar7__k">Voyageurs</span>
-                    <span className="sbar7__v">{guestsLbl(trav, rooms)}</span>
+                    <span className="sbar7__v">{guestsLbl(trav, rooms, enfants)}</span>
                   </button>
                   {/* La loupe ne se désactive pas. Elle l'était dès que la
                       plage de dates était inversée, ce qui laissait l'écran
@@ -605,6 +640,9 @@ function Home() {
               {hp === "guests" ? (
                 <div className="pop7 pop7--guests">
                   <Compteur k="trav" titre="Voyageurs" regle="1 à 20 personnes" />
+                  {/* Séparés parce que le coût des forfaits comptait tout le
+                      monde au tarif adulte, tarif enfant relevé ou non. */}
+                  <Compteur k="enfants" titre="dont enfants" regle={AGE_ENFANT} />
                   <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" />
                 </div>
               ) : null}
@@ -674,7 +712,6 @@ function Home() {
               <path d="M12 5v13M6 13l6 6 6-6" />
             </svg>
           </button>
-          <span className="hero7__credit">Crédit photo à relever</span>
         </div>
 
         <div className="v7wrap home7">
@@ -696,7 +733,8 @@ function Home() {
                   void go("compare");
                 }}
               >
-                Toutes les stations →
+                Toutes les stations
+                <Icon name="fleche-droite" taille={14} />
               </a>
             </header>
             <div className="home7__grille3">

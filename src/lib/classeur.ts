@@ -45,6 +45,62 @@ export const DOMAIN_FIXES: Record<string, string> = {
   Samoens: "Le Grand Massif",
 };
 
+/**
+ * Le nom affiché d'une station, quand ses deux sources ne l'écrivent pas pareil.
+ *
+ * Le dépôt Skiinfo écrit « Brides les Bains », « Chatel », « Saint Martin de
+ * Belleville » ; France Montagnes écrit « Brides Les Bains », « Châtel »,
+ * « Serre Chevalier Briancon ». Aucune des deux ne tient la typographie
+ * française des noms de lieux, et la fiche affichait l'une pendant que les
+ * listes affichaient l'autre.
+ *
+ * Deux règles, dans cet ordre, et **aucune invention** :
+ *
+ * 1. La commune du classeur vient de l'INSEE et s'écrit juste. Quand le nom de
+ *    la station est celui de sa commune à la casse, aux accents et aux traits
+ *    d'union près, c'est l'orthographe de la commune qui s'affiche. « Brides
+ *    les Bains » et « Brides-les-Bains » sont le même nom ; le second est le
+ *    bon.
+ * 2. Les stations dont le nom n'est pas celui d'une commune — Saint-Martin-de-
+ *    Belleville est sur la commune des Belleville, Serre Chevalier Briançon sur
+ *    celle de La Salle-les-Alpes — ne peuvent pas être corrigées par une règle.
+ *    Elles passent par la table ci-dessous, une entrée à la fois, relue.
+ */
+export const NOMS_FIXES: Record<string, string> = {
+  "saint-martin-de-belleville": "Saint-Martin-de-Belleville",
+  "serre-chevalier-briancon": "Serre Chevalier Briançon",
+  "serre-chevalier-chantemerle": "Serre Chevalier Chantemerle",
+  "serre-chevalier-villeneuve": "Serre Chevalier Villeneuve",
+};
+
+/** La clé de rapprochement de deux graphies d'un même nom de lieu. */
+function cleNom(nom: string): string {
+  return nom
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+export function nomAffiche(
+  id: string,
+  nomDepot: string | null | undefined,
+  nomClasseur: string,
+  commune: string | null | undefined,
+): string {
+  const corrige = NOMS_FIXES[id];
+  if (corrige) return corrige;
+  const nom = nomDepot ?? nomClasseur;
+  if (commune && cleNom(commune) === cleNom(nom)) return commune;
+  // À défaut de commune, le classeur porte parfois les accents que le dépôt a
+  // perdus : « Châtel » contre « Chatel ». Même nom, plus d'information.
+  if (nomClasseur && cleNom(nomClasseur) === cleNom(nom)) {
+    const accents = (t: string) => t.length - cleNom(t).length;
+    if (accents(nomClasseur) > accents(nom)) return nomClasseur;
+  }
+  return nom;
+}
+
 /** Positions relevées à la main sur le centre de la station, le 15 septembre
  *  2026. Le classeur France Montagnes pose le pin au centre de la **commune** :
  *  Lanslebourg tombait à 5,7 km de ses pistes, Val Joly à 3,5 km, Arc 1600 à

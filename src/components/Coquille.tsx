@@ -17,8 +17,8 @@
  * même barre.
  */
 
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useParams, useRouterState } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AutoSync } from "./AutoSync";
 import { Icon } from "./Icon";
 import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
@@ -36,8 +36,10 @@ import {
   useParcours,
   useSejour,
 } from "@/lib/parcours";
+import { stationsVoisines } from "@/lib/domaineStations";
 import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
+import { AGE_ENFANT, clampChildren } from "@/lib/stay/party";
 import { useTheme } from "@/lib/theme";
 
 const PARCOURS: { go: Screen; step: number | null; label: MsgId }[] = [
@@ -47,15 +49,30 @@ const PARCOURS: { go: Screen; step: number | null; label: MsgId }[] = [
   { go: "booking", step: 3, label: "nav.booking" },
 ];
 
-/** Écrans de contrôle, hors parcours, rangés sous « Plus ». Les chemins
- *  viennent de `AILLEURS_PATHS` (`go.ts`), seule table de ces routes. */
-const AILLEURS: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] = [
-  { to: "/carte", label: "nav.map" },
-  { to: "/altitudes", label: "nav.alt" },
-  { to: "/openskimap", label: "nav.osm" },
-  { to: "/forfaits", label: "nav.passes" },
-  { to: "/traces", label: "nav.traces" },
-  { to: "/cles", label: "nav.cles" },
+/** Écrans hors parcours, rangés sous « Plus ». Les chemins viennent de
+ *  `AILLEURS_PATHS` (`go.ts`), seule table de ces routes.
+ *
+ *  Deux groupes, parce que le menu mêlait deux choses : ce qu'on ouvre pour
+ *  préparer un séjour — la carte, les forfaits, ses traces — et ce qu'on ouvre
+ *  pour vérifier d'où viennent les données. Les seconds ne servent pas au
+ *  voyageur et brouillaient les premiers. */
+const AILLEURS: { titre: MsgId; liens: { to: (typeof AILLEURS_PATHS)[number]; label: MsgId }[] }[] = [
+  {
+    titre: "nav.tools",
+    liens: [
+      { to: "/carte", label: "nav.map" },
+      { to: "/forfaits", label: "nav.passes" },
+      { to: "/traces", label: "nav.traces" },
+    ],
+  },
+  {
+    titre: "nav.control",
+    liens: [
+      { to: "/altitudes", label: "nav.alt" },
+      { to: "/openskimap", label: "nav.osm" },
+      { to: "/cles", label: "nav.cles" },
+    ],
+  },
 ];
 
 /** Les routes qui ne sont pas une étape du parcours. Une seule question posée
@@ -64,11 +81,32 @@ export function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
 }
 
+/**
+ * La station qu'on regarde : celle retenue pour le séjour, ou à défaut celle
+ * dont on lit la fiche. Même lecture que la pilule de séjour.
+ */
+function useStationCourante() {
+  const stationId = useParcours((s) => s.stationId);
+  const params = useParams({ strict: false }) as { id?: string };
+  return (
+    (stationId ? stationById(stationId) : undefined) ??
+    (params.id ? stationById(params.id) : undefined)
+  );
+}
+
 function MenuPlus() {
   const t = useT();
   const [ouvert, setOuvert] = useState(false);
   const hote = useRef<HTMLDivElement>(null);
   useFermeture(ouvert, () => setOuvert(false), hote);
+  // Les voisines de forfait : depuis Courchevel, passer à Méribel ou à Val
+  // Thorens sans repasser par Comparer. Le menu ne proposait rien de tel, et
+  // aucun autre écran ne fait ce saut.
+  const station = useStationCourante();
+  const voisines = useMemo(
+    () => (station ? stationsVoisines(station.id, station.domain) : []),
+    [station],
+  );
 
   return (
     <div className="v7nav__plus" ref={hote}>
@@ -86,13 +124,43 @@ function MenuPlus() {
       {ouvert ? (
         <div className="v7menu" role="dialog" aria-label={t("nav.more")}>
           <span className="v7menu__label">{t("nav.elsewhere")}</span>
-          <div className="v7menu__liens">
-            {AILLEURS.map((l) => (
-              <Link key={l.to} to={l.to} className="v7menu__lien" onClick={() => setOuvert(false)}>
-                {t(l.label)}
-              </Link>
-            ))}
-          </div>
+          {AILLEURS.map((groupe) => (
+            <div key={groupe.titre} className="v7menu__groupe">
+              <span className="v7menu__titre">{t(groupe.titre)}</span>
+              <div className="v7menu__liens">
+                {groupe.liens.map((l) => (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    className="v7menu__lien"
+                    onClick={() => setOuvert(false)}
+                  >
+                    {t(l.label)}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+          {voisines.length ? (
+            <div className="v7menu__groupe">
+              <span className="v7menu__titre">
+                {t("nav.domainStations")} · {station?.domain}
+              </span>
+              <div className="v7menu__liens v7menu__liens--stations">
+                {voisines.map((s) => (
+                  <Link
+                    key={s.id}
+                    to="/stations/$id"
+                    params={{ id: s.id }}
+                    className="v7menu__lien"
+                    onClick={() => setOuvert(false)}
+                  >
+                    {s.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="v7menu__pied">
             <AutoSync />
           </div>
@@ -191,8 +259,15 @@ function PiluleSejour() {
   const stationId = useParcours((s) => s.stationId);
   const stayOpen = useParcours((s) => s.stayOpen);
   const setStayOpen = useParcours((s) => s.setStayOpen);
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
-  const station = stationId ? stationById(stationId) : undefined;
+  const { checkIn, checkOut, trav, enfants, rooms, nights } = useSejour();
+  /* Sur une fiche de station, la pilule annonçait « Station à choisir » alors
+     qu'on en regardait une. Elle nomme donc celle qu'on a sous les yeux quand
+     aucune n'est encore retenue ; le panneau qu'elle ouvre, lui, ne change
+     pas : c'est toujours celui du séjour. */
+  const params = useParams({ strict: false }) as { id?: string };
+  const station =
+    (stationId ? stationById(stationId) : undefined) ??
+    (params.id ? stationById(params.id) : undefined);
   return (
     <div className="v7sejour">
       <button
@@ -204,7 +279,7 @@ function PiluleSejour() {
       >
         <span className="v7sejour__station">{station?.name ?? "Station à choisir"}</span>
         <span className="v7sejour__dates">{datesLbl(checkIn, checkOut, nights)}</span>
-        <span className="v7sejour__groupe">{groupLbl(trav, rooms)}</span>
+        <span className="v7sejour__groupe">{groupLbl(trav, rooms, enfants)}</span>
         <span className="v7sejour__loupe">
           <Icon name="loupe" taille={14} />
         </span>
@@ -237,6 +312,9 @@ function PanneauSejour() {
       <Calendrier plage={plage} hauteur={38} />
       <div className="v7panneau__compteurs">
         <Compteur k="trav" titre="Voyageurs" regle="1 à 20" encadre />
+        {/* Les enfants, parce que le coût des forfaits comptait huit adultes
+            quand le domaine publie aussi son tarif enfant. */}
+        <Compteur k="enfants" titre="dont enfants" regle={AGE_ENFANT} encadre />
         <Compteur k="rooms" titre="Chambres" regle="0 = studio accepté" encadre />
       </div>
       <span className="v7panneau__note">
@@ -280,7 +358,8 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
     });
   }, [pathname, setStayOpen, setShared]);
 
-  // Lien de partage : `#s=<station>&l=<logement>&d=<arrivée>&n=<nuits>&t=<voyageurs>&r=<chambres>`.
+  // Lien de partage :
+  // `#s=<station>&l=<logement>&d=<arrivée>&n=<nuits>&t=<voyageurs>&e=<enfants>&r=<chambres>`.
   // Station, logement, dates et voyageurs viennent du lien et remplacent le
   // séjour en cours ; le récapitulatif le dit par un bandeau.
   useEffect(() => {
@@ -294,10 +373,20 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
     p.retain(s);
     const n = +(h.get("n") ?? 0),
       t = +(h.get("t") ?? 0),
+      e = +(h.get("e") ?? 0),
       r = +(h.get("r") ?? 0);
     const d = h.get("d");
-    const patch: Partial<{ guests: number; bedrooms: number; checkIn: string; checkOut: string }> = {};
+    const patch: Partial<{
+      guests: number;
+      children: number;
+      bedrooms: number;
+      checkIn: string;
+      checkOut: string;
+    }> = {};
     if (t) patch.guests = t;
+    // Zéro enfant est une valeur, pas une absence : le lien l'écrit toujours,
+    // et un séjour partagé sans enfant doit effacer ceux du séjour en cours.
+    if (h.has("e")) patch.children = clampChildren(e, t || st.guests);
     if (r) patch.bedrooms = r;
     if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) patch.checkIn = d;
     if (n) {

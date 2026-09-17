@@ -9,7 +9,7 @@
  *  **Rien n'est estimé.** Une altitude à zéro dans le référentiel n'est pas une
  *  mesure : elle se lit « non relevée ». */
 
-import { domainForStation, stationHasGlacier } from "./forfaits/catalog.ts";
+import { rattachementForfait, stationHasGlacier } from "./forfaits/catalog.ts";
 import type { ForfaitSeed } from "./forfaits/types.ts";
 import type { Listing } from "./listings.ts";
 import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
@@ -55,13 +55,26 @@ export function liftsLbl(s: Station): string | null {
 }
 
 /** Tarifs semés du catalogue de forfaits, pour le domaine de la station.
- *  C'est ce que la maquette lisait (`forfaits[id] = d.seed`). */
+ *  C'est ce que la maquette lisait (`forfaits[id] = d.seed`), au rattachement
+ *  par le domaine près : une station sans entrée propre prend le tarif du
+ *  forfait qui la relie. */
 export function forfaitOf(s: Station): ForfaitSeed | null {
-  return domainForStation(s.id)?.seed ?? null;
+  return rattachementForfait(s.id, s.domain)?.domaine.seed ?? null;
 }
 
 export function passLbl(s: Station): string | null {
   return eurN(forfaitOf(s)?.j6);
+}
+
+/**
+ * « prix du forfait Les 3 Vallées » — la mention qui accompagne un tarif pris
+ * au domaine plutôt qu'à la station.
+ *
+ * `null` quand la station publie le sien : il n'y a alors rien à préciser.
+ */
+export function passHeriteLbl(s: Station): string | null {
+  const r = rattachementForfait(s.id, s.domain);
+  return r?.herite && r.nomDomaine ? `prix du forfait ${r.nomDomaine}` : null;
 }
 
 export const glacier = (s: Station) => stationHasGlacier(s.id);

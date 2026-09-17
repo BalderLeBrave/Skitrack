@@ -24,6 +24,14 @@ export const PARTY_LIMITS = {
   rooms: { min: 0, max: 9 },
 } as const;
 
+/**
+ * L'âge du forfait enfant, tel que les domaines français le publient : le
+ * tarif « enfant » couvre 5 à 12 ans révolus chez la plupart d'entre eux. Ce
+ * n'est pas une borne technique mais la définition du tarif que le catalogue
+ * relve sous `enf6` : l'écrire ici évite que l'écran l'invente.
+ */
+export const AGE_ENFANT = "5 à 12 ans";
+
 function clamp(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, Math.round(value)));
@@ -35,6 +43,23 @@ export function clampTravelers(value: number): number {
 
 export function clampRooms(value: number): number {
   return clamp(value, PARTY_LIMITS.rooms.min, PARTY_LIMITS.rooms.max);
+}
+
+/**
+ * Les enfants sont un **sous-ensemble** des voyageurs, pas un compte à part.
+ *
+ * Un enfant occupe un lit et compte dans la capacité d'un logement : le
+ * séparer des voyageurs aurait faussé toute la recherche de logements. Ce
+ * qu'il change, et c'est tout ce qu'il change, c'est le tarif de son forfait.
+ * D'où la borne : jamais plus d'enfants que de voyageurs.
+ */
+export function clampChildren(value: number, travelers: number): number {
+  return clamp(value, 0, clampTravelers(travelers));
+}
+
+/** Les adultes : ce qui reste des voyageurs une fois les enfants comptés. */
+export function adults(travelers: number, children: number): number {
+  return clampTravelers(travelers) - clampChildren(children, travelers);
 }
 
 /**
@@ -53,4 +78,12 @@ export function roomsLabel(rooms: number): string {
 export function travelersLabel(travelers: number): string {
   const n = clampTravelers(travelers);
   return n === 1 ? "1 voyageur" : `${n} voyageurs`;
+}
+
+/** « 6 adultes, 2 enfants », ou les seuls voyageurs quand aucun enfant. */
+export function partyLabel(travelers: number, children: number): string {
+  const enf = clampChildren(children, travelers);
+  if (!enf) return travelersLabel(travelers);
+  const ad = adults(travelers, children);
+  return `${ad} adulte${ad > 1 ? "s" : ""}, ${enf} enfant${enf > 1 ? "s" : ""}`;
 }

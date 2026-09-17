@@ -14,12 +14,12 @@ import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { useForfait } from "@/components/v7/useForfait";
 import { resolveListing } from "@/lib/accommodation";
+import { coutForfaits } from "@/lib/forfaits/cout";
 import { dire } from "@/lib/i18n";
 import {
   datesLbl,
   eur,
   eurCents,
-  eurN,
   groupLbl,
   nuitsLbl,
   travLbl,
@@ -46,7 +46,7 @@ export const Route = createFileRoute("/reservation")({ component: Reservation })
 function Reservation() {
   const go = useGo();
   const P = useParcours();
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
   const s = P.stationId ? stationById(P.stationId) : undefined;
   const l = P.lodgeId ? resolveListing(P.lodgeId) : undefined;
   const forfait = useForfait(s);
@@ -76,16 +76,19 @@ function Reservation() {
 
   const stay = { checkIn, checkOut };
   const firm = firmOf(l, stay);
-  const passGroupN = forfait?.j6 != null ? forfait.j6 * trav : 0;
+  // Le coût des forfaits comptait huit adultes pour un groupe qui pouvait en
+  // compter six et deux enfants, alors que le tarif enfant était relevé.
+  const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
+  const passGroupN = pass.total ?? 0;
   const totalN = l.total + passGroupN;
   const d = distanceOf(l);
 
   const recap = () =>
     [
       `Skitrack – ${s.name}`,
-      `${datesLbl(checkIn, checkOut, nights)} · ${groupLbl(trav, rooms)}`,
+      `${datesLbl(checkIn, checkOut, nights)} · ${groupLbl(trav, rooms, enfants)}`,
       `Logement : ${l.title} (${l.source}) ${prixLbl(l)}`,
-      `Forfaits : ${forfait?.j6 != null ? eur(passGroupN) : "non relevés"}`,
+      `Forfaits : ${pass.total != null ? `${eur(passGroupN)} (${pass.detail})` : "non relevés"}`,
       `Total : ${l.total > 0 ? eurCents(totalN) : "logement non tarifé"}`,
     ].join("\n");
 
@@ -94,7 +97,7 @@ function Reservation() {
     P.say("Récapitulatif copié.");
   };
   const copyLink = () => {
-    const link = `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&r=${rooms}`;
+    const link = `${window.location.origin}/reservation#s=${s.id}&l=${l.id}&d=${checkIn}&n=${nights}&t=${trav}&e=${enfants}&r=${rooms}`;
     void navigator.clipboard?.writeText(link);
     P.say("Lien de partage copié.");
   };
@@ -159,7 +162,8 @@ function Reservation() {
                 void go("home");
               }}
             >
-              Préparer un autre séjour →
+              Préparer un autre séjour
+              <Icon name="fleche-droite" taille={14} />
             </a>
           </div>
         ) : null}
@@ -255,10 +259,12 @@ function Reservation() {
                   </a>
                 </div>
                 <strong className="carte7-sect__grand">{datesLbl(checkIn, checkOut, nights)}</strong>
-                <span className="carte7-sect__texte carte7-sect__texte--petit">{groupLbl(trav, rooms)}</span>
-                <span className={`carte7-sect__chiffres${forfait?.j6 != null ? "" : " absent"}`}>
-                  {forfait?.j6 != null
-                    ? `Forfaits 6 jours adulte × ${trav}, au tarif relevé${forfait.releveLbl ? ` le ${forfait.releveLbl}` : ""}`
+                <span className="carte7-sect__texte carte7-sect__texte--petit">
+                  {groupLbl(trav, rooms, enfants)}
+                </span>
+                <span className={`carte7-sect__chiffres${pass.total != null ? "" : " absent"}`}>
+                  {pass.total != null
+                    ? `Forfaits 6 jours : ${pass.detail}${forfait?.releveLbl ? `, au tarif relevé le ${forfait.releveLbl}` : ""}`
                     : "Forfaits non relevés pour ce domaine"}
                 </span>
               </section>
@@ -279,15 +285,13 @@ function Reservation() {
                 </tr>
                 <tr>
                   <th>
-                    Forfaits · {trav} × 6 j adulte
-                    <span>
-                      {forfait?.j6 != null
-                        ? `calculé sur le prix relevé, ${eurN(forfait.j6)}`
-                        : "aucun tarif relevé"}
+                    Forfaits · 6 jours
+                    <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
+                      {pass.detail}
                     </span>
                   </th>
-                  <td className={forfait?.j6 != null ? undefined : "absent"}>
-                    {forfait?.j6 != null ? eur(passGroupN) : "non relevés"}
+                  <td className={pass.total != null ? undefined : "absent"}>
+                    {pass.total != null ? eur(passGroupN) : "non relevés"}
                   </td>
                 </tr>
                 <tr className="cout7__total">

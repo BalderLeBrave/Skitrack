@@ -191,8 +191,23 @@ export function formatKm(km: number | null): string {
 }
 
 /** Recherche sans accents ni casse : « megeve » trouve « Megève ». */
+/**
+ * Le nom d'une station réduit à ce qui compte pour une recherche : sans
+ * accents, sans casse, et sans les traits d'union ni les apostrophes qui
+ * séparent ses mots.
+ *
+ * Ces séparateurs se tapent rarement. Depuis que les noms portent leur
+ * typographie — « Saint-Martin-de-Belleville », « L'Alpe d'Huez » —, les
+ * chercher avec des espaces ne rendait plus rien.
+ */
 export function foldName(s: string): string {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[-'’]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function searchStations(rows: readonly Station[], query: string): Station[] {

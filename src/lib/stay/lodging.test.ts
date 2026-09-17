@@ -444,15 +444,16 @@ describe("filtre : la zone de recherche", () => {
     assert.equal(geoReasonFor(procheMemeDomaine), null);
   });
 
-  it("le rayon vaut dix par défaut, trente au plus", () => {
+  it("le rayon vaut douze par défaut, cinquante au plus", () => {
     const a20 = zone({ id: "a20", distToSlopesM: 20_000, domainFit: "in" });
     assert.equal(geoReasonFor(a20, RAYON_DEFAUT_KM), "hors-zone");
     assert.equal(geoReasonFor(a20, 25), null);
     assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 25 }), null);
     assert.equal(dropReasonFor(a20, { ...criteres, rayonKm: 10 }), "hors-zone");
 
-    assert.equal(geoReasonFor(zone({ id: "pile", distToSlopesM: 10_000, domainFit: "in" })), null);
-    assert.equal(geoReasonFor(zone({ id: "juste", distToSlopesM: 10_001, domainFit: "in" })), "hors-zone");
+    // La borne suit le cran par défaut de la maquette, qui vaut douze.
+    assert.equal(geoReasonFor(zone({ id: "pile", distToSlopesM: 12_000, domainFit: "in" })), null);
+    assert.equal(geoReasonFor(zone({ id: "juste", distToSlopesM: 12_001, domainFit: "in" })), "hors-zone");
 
     assert.equal(clampRayonKm(0), RAYON_MIN_KM);
     assert.equal(clampRayonKm(-5), RAYON_MIN_KM);

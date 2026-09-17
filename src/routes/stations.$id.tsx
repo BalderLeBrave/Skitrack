@@ -31,6 +31,7 @@ import {
   useParcours,
   useSejour,
 } from "@/lib/parcours";
+import { coutForfaits } from "@/lib/forfaits/cout";
 import { resolveStationPhoto } from "@/lib/stationPhoto";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
@@ -171,8 +172,15 @@ function Bande({ titre, lvl }: { titre: string; lvl: ForecastLevel }) {
             <span>{jourLbl(d.date)}</span>
             <Icon name={ICONE[d.kind]} taille={18} className={`bande7__ico bande7__ico--${d.kind}`} />
             <b>{d.tempMax == null ? "–" : `${Math.round(d.tempMax)}°`}</b>
-            <span className={`bande7__neige${d.snowCm ? " bande7__neige--oui" : ""}`}>
-              {d.snowCm == null ? "–" : d.snowCm > 0 ? `${d.snowCm} cm` : "sec"}
+            {/* Seuls les jours de précipitations portent un chiffre. « sec »
+                s'écrivait vingt-huit fois sur les deux bandes, et noyait les
+                trois jours où il neige. Un zéro mesuré n'est pas une valeur
+                absente : il reste lisible à l'icône, et en infobulle. */}
+            <span
+              className={`bande7__neige${d.snowCm ? " bande7__neige--oui" : ""}`}
+              title={d.snowCm === 0 ? "Pas de neige prévue" : undefined}
+            >
+              {d.snowCm == null ? "–" : d.snowCm > 0 ? `${d.snowCm} cm` : ""}
             </span>
           </div>
         ))}
@@ -322,29 +330,44 @@ function FicheBody({ s }: { s: Station }) {
   const cmp = useParcours((x) => x.cmp);
   const retain = useParcours((x) => x.retain);
   const toggleCmp = useParcours((x) => x.toggleCmp);
-  const { checkIn, checkOut, trav, rooms, nights } = useSejour();
+  const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
   const forfait = useForfait(s);
   const { wx, lo, hi, loMesure, hiMesure } = useForecast(s);
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
   const [camId, setCamId] = useState<string | null>(null);
+  /* Un `iframe` d'un autre domaine ne signale pas son échec : `onerror` ne se
+     déclenche pas, et son contenu est illisible. On l'attend donc, et faute de
+     `onload` au bout de huit secondes on tient le flux pour muet. */
+  const [camEtat, setCamEtat] = useState<"attente" | "ok" | "echec">("attente");
   const cam = cams.find((c) => c.id === camId) ?? cams[0] ?? null;
+  const camUrl = cam?.url ?? null;
+  useEffect(() => {
+    if (!camUrl) return;
+    setCamEtat("attente");
+    const t = setTimeout(() => setCamEtat((e) => (e === "attente" ? "echec" : e)), 8000);
+    return () => clearTimeout(t);
+  }, [camUrl]);
 
   const retained = stationId === s.id;
   const inCmp = cmp.includes(s.id);
   const photo = stationPhoto(s);
   const pret = resolveStationPhoto(s.id);
   const src = skiinfoUrl(s);
+  // L'emprunt se dit — c'est une information sur la photo affichée. Le
+  // « crédit à relever » ne disait rien au lecteur : il notait un travail qui
+  // reste à faire côté dépôt.
   const photoNote = photo
     ? pret?.fromName
-      ? `Photo Skiinfo de ${pret.fromName}, même domaine · crédit à relever`
-      : "Photo Skiinfo · crédit à relever"
+      ? `Photo Skiinfo de ${pret.fromName}, même domaine`
+      : "Photo Skiinfo"
     : stationPhotoAbsence(s);
   const braData = bra.etat.status === "pret" ? bra.etat.data : null;
   const official = braData?.official;
   const risque = official?.ok && official.risk != null ? official.risk : null;
 
-  const passGroup = forfait?.j6 != null ? forfait.j6 * trav : null;
+  const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
+  const passGroup = pass.total;
 
   return (
     <Coquille>
@@ -414,6 +437,12 @@ function FicheBody({ s }: { s: Station }) {
                         <Icon name="coche" taille={12} />
                         Prix relevé
                       </span>
+                    ) : null}
+                    {/* Le tarif pris au domaine qui relie la station le dit :
+                        il est juste, mais ce n'est pas la station qui le
+                        publie. */}
+                    {forfait.heriteLbl ? (
+                      <span className="forfaits7__herite">{forfait.heriteLbl}</span>
                     ) : null}
                   </div>
                   <div>
@@ -514,14 +543,20 @@ function FicheBody({ s }: { s: Station }) {
                 <h2>Webcams</h2>
                 {src ? (
                   <a href={src} target="_blank" rel="noopener" className="carte7-sect__lien">
-                    Fiche Skiinfo ↗
+                    Fiche Skiinfo
+                    <Icon name="externe" taille={12} />
                   </a>
                 ) : null}
               </div>
               {cam ? (
                 <>
                   {cams.length > 1 ? (
-                    <select className="select7 select7--champ" value={cam.id} onChange={(e) => setCamId(e.target.value)}>
+                    <select
+                      className="select7 select7--champ"
+                      value={cam.id}
+                      onChange={(e) => setCamId(e.target.value)}
+                      aria-label="Choisir une caméra"
+                    >
                       {cams.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.label}
@@ -531,6 +566,14 @@ function FicheBody({ s }: { s: Station }) {
                   ) : (
                     <span className="carte7-sect__texte carte7-sect__texte--petit">{cam.label}</span>
                   )}
+                  {/* Une caméra du domaine posée dans un autre village le dit.
+                      La fiche de Brides-les-Bains montrait celle de Val
+                      Thorens sans le préciser. */}
+                  {cam.duDomaine && cam.station ? (
+                    <span className="carte7-sect__texte carte7-sect__texte--petit">
+                      Caméra du domaine, située à {cam.station}.
+                    </span>
+                  ) : null}
                   <div className="webcam7">
                     <iframe
                       key={cam.url}
@@ -540,7 +583,21 @@ function FicheBody({ s }: { s: Station }) {
                       referrerPolicy="no-referrer"
                       sandbox="allow-scripts allow-same-origin"
                       allowFullScreen
+                      onLoad={() => setCamEtat("ok")}
                     />
+                    {/* Un flux qui ne se charge pas laissait un rectangle gris
+                        et rien d'autre. Un `iframe` d'un autre domaine ne dit
+                        pas s'il a échoué : on l'attend, et au-delà du délai on
+                        propose de l'ouvrir chez l'exploitant. */}
+                    {camEtat === "echec" ? (
+                      <div className="webcam7__echec">
+                        <span>Le flux ne s'affiche pas ici.</span>
+                        <a href={cam.url} target="_blank" rel="noopener" className="btn7 btn7--fantome">
+                          Ouvrir chez l'exploitant
+                          <Icon name="externe" taille={12} />
+                        </a>
+                      </div>
+                    ) : null}
                   </div>
                   <p className="carte7-sect__texte carte7-sect__texte--petit">
                     Flux diffusé par l'exploitant, affiché tel quel.
@@ -647,7 +704,8 @@ function FicheBody({ s }: { s: Station }) {
                 rel="noopener"
                 className="btn7 btn7--fantome"
               >
-                {braData?.massif ? `Bulletin ${braData.massif} ↗` : "Trouver le bulletin ↗"}
+                {braData?.massif ? `Bulletin ${braData.massif}` : "Trouver le bulletin"}
+                <Icon name="externe" taille={12} />
               </a>
             </section>
           </div>
@@ -661,16 +719,14 @@ function FicheBody({ s }: { s: Station }) {
               </div>
               <div>
                 <dt>Voyageurs</dt>
-                <dd>{groupLbl(trav, rooms)}</dd>
+                <dd>{groupLbl(trav, rooms, enfants)}</dd>
               </div>
               <div>
                 <dt>Forfaits 6 j</dt>
                 <dd className={passGroup == null ? "absent" : undefined}>
                   {eurN(passGroup) ?? "non relevés"}
-                  <span>
-                    {forfait?.j6 != null
-                      ? `${trav} × ${eurN(forfait.j6)}, calculé sur le prix relevé`
-                      : "aucun tarif pour ce domaine"}
+                  <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
+                    {pass.total != null ? `${pass.detail}, au tarif relevé` : "aucun tarif pour ce domaine"}
                   </span>
                 </dd>
               </div>

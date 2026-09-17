@@ -26,6 +26,12 @@ export type Webcam = {
   id: string;
   label: string;
   url: string;
+  /** La station où la caméra est posée. Elle n'est pas toujours celle qu'on
+   *  regarde : un domaine partage ses caméras entre ses villages, et la fiche
+   *  de Brides-les-Bains montrait celle de Val Thorens sans le dire. */
+  station: string | null;
+  /** Vrai quand la caméra vient du domaine et non de la station elle-même. */
+  duDomaine: boolean;
 };
 
 /** Caméras par station, sous une clé déjà normalisée. */
@@ -186,13 +192,26 @@ export function webcamsFor(domain: WebcamSubject): Webcam[] {
         const sk = camKey(station);
         const label = NAME_INDEX.get(sk) ?? station;
         for (const [name, url] of CAM_INDEX.get(sk) ?? []) {
-          out.push({ id: url, label: `${label}, ${name}`, url });
+          out.push({
+            id: url,
+            label: `${label}, ${name}`,
+            url,
+            station: label,
+            duDomaine: camKey(label) !== camKey(domain.name),
+          });
         }
       }
       if (out.length > 0) return out;
     }
     const own = CAM_INDEX.get(key);
-    if (own) return own.map(([label, url]) => ({ id: url, label, url }));
+    if (own)
+      return own.map(([label, url]) => ({
+        id: url,
+        label,
+        url,
+        station: null,
+        duDomaine: false,
+      }));
   }
   return [];
 }

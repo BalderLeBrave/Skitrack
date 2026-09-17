@@ -13,7 +13,7 @@ import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epingleStation, ETAGE } from "@/components/v7/epingle";
-import { useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
+import { useEchap, useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
 import { CarteStation } from "@/components/v7/CarteStation";
@@ -35,6 +35,7 @@ import {
   aStation,
   CHIPS,
   forfaitOf,
+  passHeriteLbl,
   glacier,
   kmLbl,
   liftsLbl,
@@ -71,10 +72,25 @@ type Crit = {
   txt: (s: Station) => string | null;
   num: ((s: Station) => number | null) | null;
   note: string | null;
+  /** Mention propre à une cellule, sous sa valeur : « prix du forfait Les
+   *  3 Vallées » quand le tarif est pris au domaine. */
+  sous?: (s: Station) => string | null;
 };
 
 const CRIT: Crit[] = [
-  { label: "Altitude des pistes", txt: (s) => altLbl(s), num: (s) => maxM(s), note: null },
+  {
+    label: "Altitude des pistes",
+    txt: (s) => altLbl(s),
+    num: (s) => maxM(s),
+    /* L'altitude ne vient jamais de la mesure de domaine : `minM` et `maxM`
+       sont lus sur la fiche de la station — le dépôt Skiinfo d'abord, France
+       Montagnes ensuite —, là où les km et les remontées viennent d'
+       OpenSkiMap à l'échelle du domaine. C'est ce qui fait que Courchevel
+       annonce 1 100 – 2 738 m et Le Praz 1 110 – 3 223 m sur le même domaine :
+       deux fiches, deux façons de compter. Sans la mention, cela se lisait
+       comme une contradiction. */
+    note: "valeur de la fiche",
+  },
   { label: "Village", txt: (s) => villageLbl(s), num: (s) => villageM(s), note: null },
   { label: "Km de pistes", txt: (s) => kmLbl(s), num: (s) => s.pistesKm, note: "valeur du domaine" },
   { label: "Remontées", txt: (s) => liftsLbl(s), num: (s) => s.lifts, note: "valeur du domaine" },
@@ -83,6 +99,7 @@ const CRIT: Crit[] = [
     txt: (s) => eurN(forfaitOf(s)?.j6),
     num: (s) => (forfaitOf(s)?.j6 != null ? -(forfaitOf(s)!.j6 as number) : null),
     note: "relevé sur le site du domaine",
+    sous: (s) => passHeriteLbl(s),
   },
   { label: "Glacier", txt: (s) => (glacier(s) ? "Oui" : "Non"), num: null, note: null },
   { label: "Forfait relié", txt: (s) => (linked(s) ? s.domain : null), num: null, note: null },
@@ -95,6 +112,8 @@ const CRIT: Crit[] = [
 ];
 
 const LISTE_MAX = 40;
+/** Ce qu'un clic sur « Afficher … de plus » ajoute à la liste. */
+const LISTE_PAS = 30;
 
 function Comparer() {
   const go = useGo();
@@ -164,7 +183,11 @@ function Comparer() {
   const parCadre = useMemo(() => partagerParBornes(sorted, bornes), [sorted, bornes]);
   const dansCadre = parCadre.visibles;
   const sansPos = sansPositionLabel(parCadre.sansPosition.length);
-  const list = dansCadre.slice(0, LISTE_MAX);
+  /* La liste s'arrêtait à quarante et renvoyait à la carte pour les 290
+     autres : il fallait filtrer pour les voir. Elle s'allonge maintenant sur
+     demande. */
+  const [limite, setLimite] = useState(LISTE_MAX);
+  const list = dansCadre.slice(0, limite);
 
   /** Le compte des résultats, en infobulle du champ : la maquette ne le pose
    *  plus sous la barre. Il dit ce que la liste montre, ce que le cadre laisse
@@ -205,6 +228,21 @@ function Comparer() {
   /* ---------- Comparaison ---------- */
   const cmp = P.cmp.map((id) => stationById(id)).filter((s): s is Station => !!s);
   const pickId = cmp.some((s) => s.id === P.pick) ? P.pick : (cmp[0]?.id ?? null);
+  /* Trois stations d'un même domaine partagent six lignes sur neuf. Les
+     masquer laisse voir ce qui les sépare vraiment ; la bascule ne s'affiche
+     que s'il y a quelque chose à masquer. */
+  const [masquerIdentiques, setMasquerIdentiques] = useState(false);
+  /* Le tableau s'insérait au-dessus de la liste et la poussait de six cents
+     pixels : la vignette qu'on venait de cocher sortait de l'écran au premier
+     clic. Il s'ouvre maintenant par-dessus, depuis le tiroir, et la liste ne
+     bouge pas d'un pixel. */
+  const [tableauOuvert, setTableauOuvert] = useState(false);
+  const volet = useRef<HTMLElement>(null);
+  useEchap(tableauOuvert, () => setTableauOuvert(false));
+  const nIdentiques =
+    cmp.length > 1
+      ? CRIT.filter((c) => new Set(cmp.map((s) => c.txt(s))).size === 1).length
+      : 0;
   const pickName = pickId ? stationById(pickId)?.name : "";
   const retain = (id: string) => {
     P.retain(id);
@@ -265,19 +303,51 @@ function Comparer() {
 
   return (
     <Coquille>
-      <main className="v7main v7main--serre" id="s-compare" data-screen-label="1 Comparer">
+      <main
+        className={`v7main v7main--serre${cmp.length ? " v7main--tiroir" : ""}`}
+        id="s-compare"
+        data-screen-label="1 Comparer"
+      >
         <header className="v7tete v7tete--titre">
           <span className="v7surtitre">Étape 1</span>
           <h1>Stations</h1>
         </header>
 
-        {cmp.length ? (
-          <section className="cmp7">
+        {cmp.length && tableauOuvert ? (
+          <>
+            <div className="volet7__fond" onClick={() => setTableauOuvert(false)} />
+            <section
+              className="cmp7 cmp7--volet"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Comparaison des stations"
+              ref={volet}
+            >
+              <div className="cmp7__tete">
+                <strong>
+                  {cmp.length} station{cmp.length > 1 ? "s" : ""} comparée
+                  {cmp.length > 1 ? "s" : ""}
+                </strong>
+                <button
+                  type="button"
+                  className="v7fermer"
+                  aria-label="Fermer la comparaison"
+                  onClick={() => setTableauOuvert(false)}
+                >
+                  <Icon name="croix" taille={14} />
+                </button>
+              </div>
             <div className="cmp7__defil">
               <table className="cmp7__table">
                 <thead>
                   <tr>
-                    <th className="cmp7__critere-tete">Critère</th>
+                    <th className="cmp7__critere-tete">
+                      Critère
+                      {/* Le bouton rond en tête de colonne n'annonçait rien :
+                          on ne comprenait qu'après l'avoir essayé qu'il
+                          désigne la station qui mène aux logements. */}
+                      <span>Le rond retient la station pour les logements</span>
+                    </th>
                     {cmp.map((s) => (
                       <th
                         key={s.id}
@@ -289,6 +359,8 @@ function Comparer() {
                             name="pick"
                             checked={s.id === pickId}
                             onChange={() => P.setPick(s.id)}
+                            aria-label={`Retenir ${s.name} pour les logements`}
+                            title={`Retenir ${s.name} pour les logements`}
                           />
                           <span>{s.name}</span>
                         </label>
@@ -321,7 +393,16 @@ function Comparer() {
                   {CRIT.map((c) => {
                     const vals = cmp.map((s) => (c.num ? c.num(s) : null));
                     const known = vals.filter((v): v is number => v != null);
-                    const best = known.length > 1 ? Math.max(...known) : null;
+                    // Le gras dit « la meilleure ». Quand toutes les valeurs
+                    // sont la même — trois stations d'un même domaine
+                    // partagent km, remontées, forfait et couleurs — il n'y a
+                    // pas de meilleure, et tout mettre en gras ne désignait
+                    // plus rien.
+                    const ecart = new Set(known).size > 1;
+                    const best = known.length > 1 && ecart ? Math.max(...known) : null;
+                    const textes = cmp.map((s) => c.txt(s));
+                    const identique = textes.length > 1 && new Set(textes).size === 1;
+                    if (identique && masquerIdentiques) return null;
                     return (
                       <tr key={c.label}>
                         <th className="cmp7__critere">
@@ -329,7 +410,8 @@ function Comparer() {
                           {c.note ? <span>{c.note}</span> : null}
                         </th>
                         {cmp.map((s, i) => {
-                          const v = c.txt(s);
+                          const v = textes[i];
+                          const sous = c.sous?.(s) ?? null;
                           const gagne = best != null && vals[i] === best;
                           return (
                             <td
@@ -337,6 +419,7 @@ function Comparer() {
                               className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}${v == null ? " cmp7__cell--absent" : ""}${gagne ? " cmp7__cell--best" : ""}`}
                             >
                               {v ?? "non relevé"}
+                              {sous ? <span className="cmp7__sous">{sous}</span> : null}
                             </td>
                           );
                         })}
@@ -361,9 +444,20 @@ function Comparer() {
             </div>
             <div className="cmp7__pied">
               <span>
-                Une valeur absente est dite absente. En gras : la meilleure valeur du critère.{" "}
-                {CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations au plus.
+                Une valeur absente est dite absente. En gras : la meilleure valeur, quand les
+                stations en annoncent de différentes. {CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations
+                au plus.
               </span>
+              {nIdentiques ? (
+                <label className="cmp7__bascule">
+                  <input
+                    type="checkbox"
+                    checked={masquerIdentiques}
+                    onChange={() => setMasquerIdentiques((v) => !v)}
+                  />
+                  Masquer les critères identiques ({nIdentiques})
+                </label>
+              ) : null}
               <button
                 type="button"
                 className="btn7 btn7--grand"
@@ -373,7 +467,8 @@ function Comparer() {
                 <Icon name="fleche-droite" taille={16} />
               </button>
             </div>
-          </section>
+            </section>
+          </>
         ) : null}
 
         <section className="filtres7" ref={barre}>
@@ -617,12 +712,19 @@ function Comparer() {
                     />
                   ))}
                 </div>
-                {dansCadre.length > LISTE_MAX ? (
-                  <p className="v7deux__plus">
-                    {dansCadre.length - LISTE_MAX} autres stations sont sur la carte. Pour les
-                    faire entrer dans cette liste, affinez un filtre, resserrez la carte, ou
-                    cherchez un nom.
-                  </p>
+                {dansCadre.length > limite ? (
+                  <div className="v7deux__plus">
+                    <button
+                      type="button"
+                      className="btn7 btn7--fantome"
+                      onClick={() => setLimite((n) => n + LISTE_PAS)}
+                    >
+                      Afficher {Math.min(LISTE_PAS, dansCadre.length - limite)} stations de plus
+                    </button>
+                    <span>
+                      {dansCadre.length - limite} autres stations sont dans ce cadrage.
+                    </span>
+                  </div>
                 ) : null}
               </>
             ) : visible.length ? (
@@ -692,7 +794,10 @@ function Comparer() {
                       </div>
                       <div>
                         <span>Forfait 6 j</span>
-                        <b className={eurN(forfaitOf(st)?.j6) ? undefined : "absent"}>
+                        <b
+                          className={eurN(forfaitOf(st)?.j6) ? undefined : "absent"}
+                          title={passHeriteLbl(st) ?? undefined}
+                        >
                           {eurN(forfaitOf(st)?.j6) ?? "non relevé"}
                         </b>
                       </div>
@@ -742,7 +847,8 @@ function Comparer() {
                   </b>
                   {parCadre.horsCadre.length ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                      Revoir les {visible.length} résultats →
+                      Revoir les {visible.length} résultats
+                      <Icon name="fleche-droite" taille={14} />
                     </button>
                   ) : null}
                 </>
@@ -751,6 +857,25 @@ function Comparer() {
           </div>
         </div>
       </main>
+
+      {/* Le tiroir : il dit ce qui est coché et ouvre le tableau, sans rien
+          pousser. Il ne paraît que lorsqu'il y a quelque chose à comparer. */}
+      {cmp.length ? (
+        <div className="tiroir7" role="region" aria-label="Stations à comparer">
+          <div className="tiroir7__dit">
+            <strong>
+              {cmp.length} station{cmp.length > 1 ? "s" : ""} sur {CMP_MAX}
+            </strong>
+            <span>{cmp.map((s) => s.name).join(" · ")}</span>
+          </div>
+          <button type="button" className="lien-doux" onClick={() => P.clearCmp()}>
+            Tout retirer
+          </button>
+          <button type="button" className="btn7" onClick={() => setTableauOuvert(true)}>
+            Comparer
+          </button>
+        </div>
+      ) : null}
     </Coquille>
   );
 }

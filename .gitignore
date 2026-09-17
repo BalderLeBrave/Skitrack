@@ -41,3 +41,5 @@ scrape/**/.browsers/
 sidecar/
 tools/
 vendor/
+
+release/

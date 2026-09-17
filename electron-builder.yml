@@ -6,6 +6,9 @@ directories:
 files:
   - desktop/**/*
   - package.json
+extraResources:
+  - from: .output
+    to: output
 win:
   target:
     - target: nsis

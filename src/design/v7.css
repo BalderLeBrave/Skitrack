@@ -2397,6 +2397,74 @@
   background: var(--color-surface);
   overflow: hidden;
 }
+/* Le tableau posé par-dessus la liste, et non devant elle. Inséré dans le
+   flux, il la poussait de six cents pixels : au premier clic sur « Comparer »,
+   la vignette qu'on venait de cocher sortait de l'écran. */
+.cmp7--volet {
+  position: fixed;
+  z-index: 41;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1200px, calc(100vw - var(--spacing) * 10));
+  max-height: calc(100vh - var(--spacing) * 20);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-flottant);
+  box-shadow: var(--shadow-modale);
+}
+.cmp7--volet .cmp7__defil {
+  overflow: auto;
+}
+.cmp7__tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+  border-bottom: 1px solid var(--color-line-douce);
+  font-size: var(--text-intertitre);
+  font-weight: 800;
+}
+/* Le tiroir couvre le bas de l'écran : l'écran lui laisse la place, sans quoi
+   la dernière rangée de vignettes passait dessous. */
+.v7main--tiroir {
+  padding-bottom: calc(var(--spacing) * 28);
+}
+/* Le tiroir : ce qui est coché, et de quoi l'ouvrir. Il ne pousse rien. */
+.tiroir7 {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 26;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 5);
+  padding: calc(var(--spacing) * 3.5) max(calc(var(--spacing) * 10), calc((100% - 1200px) / 2));
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  backdrop-filter: var(--flou-pied);
+  border-top: 1px solid var(--color-line);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+.tiroir7__dit {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.tiroir7__dit strong {
+  font-size: var(--text-corps);
+  font-weight: 800;
+}
+.tiroir7__dit span {
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .cmp7__defil {
   overflow-x: auto;
 }

@@ -137,6 +137,8 @@ type Parcours = {
   relacher: () => void;
   chooseLodge: (id: string | null) => void;
   toggleCmp: (id: string) => void;
+  /** Vide la comparaison d'un coup, depuis le tiroir. */
+  clearCmp: () => void;
   setPick: (id: string | null) => void;
   markSeen: (id: string) => void;
   setBooked: (v: boolean) => void;
@@ -195,6 +197,7 @@ export const useParcours = create<Parcours>()(
           return get().say(`${CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations au plus dans la comparaison.`);
         set({ cmp: [...cmp, id] });
       },
+      clearCmp: () => set({ cmp: [], pick: null }),
       setPick: (pick) => set({ pick }),
       markSeen: (id) => set((s) => (s.seen[id] ? {} : { seen: { ...s.seen, [id]: true } })),
       setBooked: (booked) => set({ booked }),

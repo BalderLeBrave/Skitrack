@@ -13,7 +13,7 @@ import { Coquille } from "@/components/Coquille";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
 import { epingleStation, ETAGE } from "@/components/v7/epingle";
-import { useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
+import { useEchap, useFermeture, useHauteurCollante } from "@/components/v7/fermeture";
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
 import { CarteStation } from "@/components/v7/CarteStation";
@@ -232,6 +232,13 @@ function Comparer() {
      masquer laisse voir ce qui les sépare vraiment ; la bascule ne s'affiche
      que s'il y a quelque chose à masquer. */
   const [masquerIdentiques, setMasquerIdentiques] = useState(false);
+  /* Le tableau s'insérait au-dessus de la liste et la poussait de six cents
+     pixels : la vignette qu'on venait de cocher sortait de l'écran au premier
+     clic. Il s'ouvre maintenant par-dessus, depuis le tiroir, et la liste ne
+     bouge pas d'un pixel. */
+  const [tableauOuvert, setTableauOuvert] = useState(false);
+  const volet = useRef<HTMLElement>(null);
+  useEchap(tableauOuvert, () => setTableauOuvert(false));
   const nIdentiques =
     cmp.length > 1
       ? CRIT.filter((c) => new Set(cmp.map((s) => c.txt(s))).size === 1).length
@@ -296,14 +303,40 @@ function Comparer() {
 
   return (
     <Coquille>
-      <main className="v7main v7main--serre" id="s-compare" data-screen-label="1 Comparer">
+      <main
+        className={`v7main v7main--serre${cmp.length ? " v7main--tiroir" : ""}`}
+        id="s-compare"
+        data-screen-label="1 Comparer"
+      >
         <header className="v7tete v7tete--titre">
           <span className="v7surtitre">Étape 1</span>
           <h1>Stations</h1>
         </header>
 
-        {cmp.length ? (
-          <section className="cmp7">
+        {cmp.length && tableauOuvert ? (
+          <>
+            <div className="volet7__fond" onClick={() => setTableauOuvert(false)} />
+            <section
+              className="cmp7 cmp7--volet"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Comparaison des stations"
+              ref={volet}
+            >
+              <div className="cmp7__tete">
+                <strong>
+                  {cmp.length} station{cmp.length > 1 ? "s" : ""} comparée
+                  {cmp.length > 1 ? "s" : ""}
+                </strong>
+                <button
+                  type="button"
+                  className="v7fermer"
+                  aria-label="Fermer la comparaison"
+                  onClick={() => setTableauOuvert(false)}
+                >
+                  <Icon name="croix" taille={14} />
+                </button>
+              </div>
             <div className="cmp7__defil">
               <table className="cmp7__table">
                 <thead>
@@ -434,7 +467,8 @@ function Comparer() {
                 <Icon name="fleche-droite" taille={16} />
               </button>
             </div>
-          </section>
+            </section>
+          </>
         ) : null}
 
         <section className="filtres7" ref={barre}>
@@ -823,6 +857,25 @@ function Comparer() {
           </div>
         </div>
       </main>
+
+      {/* Le tiroir : il dit ce qui est coché et ouvre le tableau, sans rien
+          pousser. Il ne paraît que lorsqu'il y a quelque chose à comparer. */}
+      {cmp.length ? (
+        <div className="tiroir7" role="region" aria-label="Stations à comparer">
+          <div className="tiroir7__dit">
+            <strong>
+              {cmp.length} station{cmp.length > 1 ? "s" : ""} sur {CMP_MAX}
+            </strong>
+            <span>{cmp.map((s) => s.name).join(" · ")}</span>
+          </div>
+          <button type="button" className="lien-doux" onClick={() => P.clearCmp()}>
+            Tout retirer
+          </button>
+          <button type="button" className="btn7" onClick={() => setTableauOuvert(true)}>
+            Comparer
+          </button>
+        </div>
+      ) : null}
     </Coquille>
   );
 }

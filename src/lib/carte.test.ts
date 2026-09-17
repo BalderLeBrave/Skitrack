@@ -73,9 +73,14 @@ const ROWS = [
   station("alpe", "Alpe d’Huez", 1250, 3330, 250),
 ];
 
-test("foldName retire accents et casse", () => {
+test("foldName retire accents, casse, traits d'union et apostrophes", () => {
   assert.equal(foldName("  Megève "), "megeve");
-  assert.equal(foldName("ALPE D’HUEZ"), "alpe d’huez");
+  // Apostrophe et trait d'union deviennent une espace : on tape « alpe d huez »
+  // ou « alpe d'huez » droit, et on trouve la courbe ; on tape « saint martin »
+  // et on trouve « Saint-Martin-de-Belleville ».
+  assert.equal(foldName("ALPE D’HUEZ"), "alpe d huez");
+  assert.equal(foldName("Alpe d'Huez"), foldName("Alpe d’Huez"));
+  assert.equal(foldName("Saint-Martin-de-Belleville"), "saint martin de belleville");
 });
 
 test("searchStations ignore les accents et rend tout sur requête vide", () => {

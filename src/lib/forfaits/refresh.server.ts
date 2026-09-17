@@ -18,10 +18,10 @@
  * par un échec**. Il reste affiché avec sa date.
  */
 
-import { demander, verdictPoli } from "@/lib/scrape/politesse";
-import { domainBySlug, estimateForfait, FORFAIT_CATALOG } from "./catalog";
-import { extractForfaits } from "./extract";
-import { applyExtracted, DEFAULT_TTL_MS, emptyRow, isStale, markFailure, markStaleIfNeeded } from "./store";
+import { demander, verdictPoli } from "../scrape/politesse.ts";
+import { domainBySlug, estimateForfait, FORFAIT_CATALOG } from "./catalog.ts";
+import { extractForfaits } from "./extract.ts";
+import { applyExtracted, DEFAULT_TTL_MS, emptyRow, isStale, markFailure, markStaleIfNeeded } from "./store.ts";
 import {
   echec as noterEchec,
   noter,
@@ -31,8 +31,8 @@ import {
   succes as noterSucces,
   tentable,
   type EtatSource,
-} from "./sources";
-import type { ForfaitRow } from "./types";
+} from "./sources.ts";
+import type { ForfaitRow } from "./types.ts";
 
 const CANDIDATE_PATHS = [
   "",
@@ -44,6 +44,13 @@ const CANDIDATE_PATHS = [
   "/billetterie",
   "/fr/forfaits",
 ];
+
+/** Le message que `demander` pose sur un délai dépassé — le seul échec de
+ *  requête qui n'accuse pas l'hôte entier. */
+const EXPIRE = /^D\u00e9lai d\u00e9pass\u00e9/;
+
+/** Combien d'h\u00f4tes diff\u00e9rents un rel\u00e9v\u00e9 g\u00e9n\u00e9ral interroge en m\u00eame temps. */
+const FRONT = 8;
 
 const memory = new Map<string, ForfaitRow>();
 const sources = new Map<string, EtatSource>();
@@ -167,6 +174,7 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
 
   let cause = "Aucun tarif lisible.";
   let interdites = 0;
+  let expirations = 0;
   const essais = candidates(domain.website, source.url);
   for (const url of essais) {
     if (signal?.aborted) throw new DOMException("Relevé interrompu.", "AbortError");
@@ -231,6 +239,14 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
       if (err instanceof Error && err.name === "AbortError" && signal?.aborted) throw err;
       cause = err instanceof Error ? err.message : String(err);
       source = noter(source, { at: quand, url, issue: "panne", statut: null, message: cause });
+      // Un nom qui ne r\u00e9sout pas, une connexion refus\u00e9e, un certificat qui
+      // ne passe pas : c'est l'h\u00f4te qui ne r\u00e9pond pas, et il ne r\u00e9pondra pas
+      // mieux sur sept autres chemins du m\u00eame h\u00f4te. Chacun co\u00fbtait deux
+      // secondes de politesse et jusqu'\u00e0 douze de d\u00e9lai d\u00e9pass\u00e9, pour rien.
+      if (!EXPIRE.test(cause)) break;
+      // Un d\u00e9lai d\u00e9pass\u00e9, lui, peut n'\u00eatre que cette page-l\u00e0. On lui laisse
+      // une seconde chance \u2014 pas huit.
+      if ((expirations += 1) >= 2) break;
     }
   }
   // Toutes les voies interdites par robots.txt : la source est fermée, pas en
@@ -250,22 +266,77 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
   return { row: failed, source, issue: "echec" };
 }
 
+/** L'hôte d'un domaine, ou une clé à lui seul quand il n'en a pas : deux
+ *  domaines sans site ne doivent pas se mettre en file l'un derrière l'autre
+ *  pour échouer chacun de son côté. */
+function hoteDe(slug: string): string {
+  const site = domainBySlug(slug)?.website?.trim();
+  if (!site) return `sans-site:${slug}`;
+  try {
+    return new URL(site.startsWith("http") ? site : `https://${site}`).host;
+  } catch {
+    return `sans-site:${slug}`;
+  }
+}
+
+/**
+ * Un lot de domaines.
+ *
+ * Il s'exécutait domaine après domaine. C'était la lenteur : la politesse se
+ * compte **par hôte** — `politesse.ts` tient une file par hôte pour que deux
+ * sites différents avancent ensemble — et attendre l'un avant de commencer
+ * l'autre jetait cette permission. Un domaine dont la page tarifs n'est pas au
+ * premier chemin coûte huit voies, donc quatorze secondes de délai minimal :
+ * cent soixante-neuf domaines à la file, c'est quarante minutes d'attente pour
+ * quelques secondes de réseau.
+ *
+ * Ici les domaines d'hôtes différents avancent de front, `FRONT` à la fois, et
+ * deux domaines du **même** hôte restent l'un après l'autre : la garantie d'un
+ * appel à la fois par site est tenue par la file d'attente, elle l'est aussi
+ * par le regroupement, qui évite en plus deux lectures simultanées du même
+ * robots.txt.
+ *
+ * L'ordre rendu est celui demandé, pas celui des arrivées.
+ */
 export async function refreshMany(
   slugs: string[],
   force = false,
   signal?: AbortSignal,
 ): Promise<Resultat[]> {
-  const out: Resultat[] = [];
-  for (const slug of slugs) {
-    if (signal?.aborted) break;
-    try {
-      out.push(await refreshOne(slug, force, signal));
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError" && signal?.aborted) break;
-      throw err;
+  const out = new Array<Resultat | undefined>(slugs.length);
+  const parHote = new Map<string, number[]>();
+  slugs.forEach((slug, i) => {
+    const h = hoteDe(slug);
+    const file = parHote.get(h);
+    if (file) file.push(i);
+    else parHote.set(h, [i]);
+  });
+  const restantes = [...parHote.values()];
+  let interrompu = false;
+
+  async function avancer(): Promise<void> {
+    for (;;) {
+      const file = restantes.shift();
+      if (!file) return;
+      for (const i of file) {
+        if (interrompu || signal?.aborted) return;
+        try {
+          out[i] = await refreshOne(slugs[i], force, signal);
+        } catch (err) {
+          if (err instanceof Error && err.name === "AbortError" && signal?.aborted) {
+            interrompu = true;
+            return;
+          }
+          throw err;
+        }
+      }
     }
   }
-  return out;
+
+  await Promise.all(Array.from({ length: Math.min(FRONT, restantes.length) }, avancer));
+  // Une interruption laisse des trous : le lot rend ce qui a abouti, dans
+  // l'ordre, et rien à la place du reste.
+  return out.filter((r): r is Resultat => r !== undefined);
 }
 
 export function listStored(): ForfaitRow[] {

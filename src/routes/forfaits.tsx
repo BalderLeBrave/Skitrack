@@ -59,7 +59,10 @@ const ISSUE_LBL: Record<ResultatForfait["issue"], string> = {
   ignore: "source en saisie assistée",
 };
 
-const LOT = 8;
+/** Combien de domaines par aller-retour. Le serveur les mène de front, un
+ *  hôte à la fois — c'est le maximum que le validateur accepte, et il tient
+ *  en une quarantaine de secondes même quand aucun tarif n'est trouvé. */
+const LOT = 24;
 
 function ForfaitsPage() {
   const [domains, setDomains] = useState<DomainForfait[]>([]);
@@ -70,10 +73,22 @@ function ForfaitsPage() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
 
-  // Une seule actualisation à la fois, interruptible.
-  const [travail, setTravail] = useState<{ quoi: "un" | "tous"; fait: number; total: number } | null>(null);
+  // Une seule actualisation à la fois, interruptible. `encours` compte les
+  // domaines du lot qui court : sans lui, le décompte restait figé pendant
+  // toute la durée d'un aller-retour et l'écran passait pour bloqué.
+  const [travail, setTravail] = useState<{
+    quoi: "un" | "tous";
+    fait: number;
+    encours: number;
+    total: number;
+  } | null>(null);
   const [bilan, setBilan] = useState<{ slug: string; issue: ResultatForfait["issue"] }[] | null>(null);
   const arret = useRef(false);
+  // « Arrêter » ne rendait la main qu'entre deux lots. Le signal coupe
+  // l'attente ici même ; le relevé déjà lancé finit côté serveur et son
+  // résultat est gardé en mémoire pour la fois d'après — rien n'est perdu,
+  // et aucun site n'est sollicité deux fois pour rien.
+  const abandon = useRef<AbortController | null>(null);
 
   const saison = useMemo(() => saisonDe(new Date()), []);
   const grilles = useGrilles((g) => g.grilles);
@@ -144,10 +159,11 @@ function ForfaitsPage() {
   async function actualiserUn(slug: string) {
     if (travail) return;
     arret.current = false;
+    abandon.current = new AbortController();
     setBilan(null);
-    setTravail({ quoi: "un", fait: 0, total: 1 });
+    setTravail({ quoi: "un", fait: 0, encours: 1, total: 1 });
     try {
-      const r = await getForfait({ data: { slug, refresh: true } });
+      const r = await getForfait({ data: { slug, refresh: true }, signal: abandon.current.signal });
       encaisser([r]);
       // Le relevé alimente la grille sans jamais écraser une saisie manuelle.
       const conflits = appliquerReleve(slug, saison, r.row);
@@ -157,9 +173,11 @@ function ForfaitsPage() {
         );
       }
     } catch (e: unknown) {
+      if (arret.current) return;
       console.warn(`[forfaits] ${slug} : actualisation en échec`, e);
       setErreur(e instanceof Error ? e.message : String(e));
     } finally {
+      abandon.current = null;
       setTravail(null);
     }
   }
@@ -168,23 +186,31 @@ function ForfaitsPage() {
   async function actualiserTous() {
     if (travail) return;
     arret.current = false;
+    abandon.current = new AbortController();
     setBilan([]);
     setErreur(null);
     const slugs = visible.map((d) => d.slug);
-    setTravail({ quoi: "tous", fait: 0, total: slugs.length });
+    setTravail({ quoi: "tous", fait: 0, encours: 0, total: slugs.length });
     try {
       for (let i = 0; i < slugs.length; i += LOT) {
         if (arret.current) break;
         const lot = slugs.slice(i, i + LOT);
-        const res = await refreshForfaits({ data: { slugs: lot, force: true } });
+        setTravail({ quoi: "tous", fait: i, encours: lot.length, total: slugs.length });
+        const res = await refreshForfaits({
+          data: { slugs: lot, force: true },
+          signal: abandon.current.signal,
+        });
         encaisser(res);
         for (const r of res) appliquerReleve(r.row.slug, saison, r.row);
-        setTravail({ quoi: "tous", fait: Math.min(i + LOT, slugs.length), total: slugs.length });
+        setTravail({ quoi: "tous", fait: i + lot.length, encours: 0, total: slugs.length });
       }
     } catch (e: unknown) {
+      // Un arrêt demandé n'est pas une panne : il ne s'affiche pas en rouge.
+      if (arret.current) return;
       console.warn("[forfaits] actualisation générale en échec", e);
       setErreur(e instanceof Error ? e.message : String(e));
     } finally {
+      abandon.current = null;
       setTravail(null);
     }
   }
@@ -227,11 +253,18 @@ function ForfaitsPage() {
               aria-busy={travail?.quoi === "tous"}
             >
               {travail?.quoi === "tous"
-                ? `Tous les domaines… ${travail.fait}/${travail.total}`
+                ? `Tous les domaines… ${travail.fait}/${travail.total}${travail.encours ? ` · ${travail.encours} en cours` : ""}`
                 : `Mettre à jour les ${visible.length} domaines`}
             </button>
             {travail ? (
-              <button type="button" className="btn7 btn7--fantome" onClick={() => (arret.current = true)}>
+              <button
+                type="button"
+                className="btn7 btn7--fantome"
+                onClick={() => {
+                  arret.current = true;
+                  abandon.current?.abort();
+                }}
+              >
                 Arrêter
               </button>
             ) : null}

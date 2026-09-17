@@ -59,7 +59,9 @@ describe("domaine skiable ≠ rayon kilométrique", () => {
   it("attachAccess : pas 5000 m des remontées de Val d’Isère", () => {
     const row = attachAccess(pastourelle, val());
     assert.equal(row.domainFit, "other");
-    assert.equal(row.nearestDomainName, "Bonneval sur Arc");
+    // La fiche porte désormais la typographie de la commune INSEE, traits
+    // d'union compris : « Bonneval-sur-Arc », et non « Bonneval sur Arc ».
+    assert.equal(row.nearestDomainName, "Bonneval-sur-Arc");
     assert.equal(row.distToLiftM, null);
     assert.equal(formatLift(row), "Remontée non mesurée");
     assert.ok((row.searchedLiftM ?? 0) > 4000);

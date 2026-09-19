@@ -23,6 +23,7 @@ function station(id: string, name: string, minM: number, maxM: number, km: numbe
   return {
     id,
     name,
+    country: "FR",
     massif: "Alpes du Nord",
     villageM: minM,
     minM,

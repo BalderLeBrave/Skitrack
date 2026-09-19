@@ -44,6 +44,14 @@ faire, et sont traitées ici plutôt que découvertes plus tard :
 Recense, sans rien écrire : effectifs par pays pour chaque seuil envisagé,
 répartition des sources, et de quoi trancher entre « une station par domaine »
 et « une station par localité ». C'est ce que les deux validations demandent.
+
+    python3 scripts/build-monde.py --src /tmp/ski_areas.geojson --ecrire
+
+Écrit le référentiel : un fichier par pays sous `src/lib/monde/data/`, plus
+`index.json`. Les trois décisions que le recensement appelait sont prises, et
+chacune est justifiée au plus près de ce qu'elle fixe : le seuil dans
+`retenu()`, la clé dans `identifiant()`, le rattachement des domaines
+frontaliers dans `ecrire()`.
 """
 
 from __future__ import annotations
@@ -55,6 +63,7 @@ import re
 import sys
 import unicodedata
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Les quatre difficultés qu'OpenSkiMap distingue, et la couleur du dépôt.
@@ -289,6 +298,212 @@ def localites(areas: list[dict], cc: str) -> None:
     print()
 
 
+# ------------------------------------------------------------------- écriture
+
+#: Le seuil retenu : « en exploitation », puis « mesuré », cumulés.
+#:
+#: 5 723 domaines dans 74 pays, sur les 7 018 domaines de ski alpin de la
+#: source. **C'est la France qui l'a tranché.** Elle porte ici 340 domaines
+#: alpins, 280 en exploitation, 248 avec au moins une remontée et 204 à « 3
+#: remontées ou 5 km », quand le référentiel français en montre 320. Un seuil
+#: plus exigeant aurait soumis l'étranger à une sélection que la France n'a
+#: jamais subie, et effacé un tiers de ce que l'app affiche déjà.
+#:
+#: Le cran « mesuré » ne coûte rien — aucun domaine en exploitation n'est sans
+#: statistiques — et il se garde pour ce qu'il dit : un domaine non relevé
+#: n'est pas un domaine à zéro kilomètre.
+def retenu(a: dict) -> bool:
+    return a["statut"] == "operating" and a["mesure"]
+
+
+def identifiant(a: dict, occupes: set[str]) -> str:
+    """Une clé stable d'un relevé au suivant, que la source ne fournit pas.
+
+    `id` est un condensé du contenu : il change dès qu'une piste bouge. Le
+    `wikidataID` serait stable mais n'existe que pour 487 domaines sur 7 018.
+    La clé se construit donc, comme celle du référentiel français : le pays,
+    puis le nom replié.
+
+    Deux cas la complètent, tous deux par les coordonnées arrondies au
+    dix-millième de degré — environ onze mètres, assez pour séparer deux
+    domaines et trop grossier pour bouger au relevé suivant :
+
+    - un domaine sans nom, qu'OpenSkiMap accepte ;
+    - deux domaines de même nom dans le même pays, ce qui arrive.
+    """
+    cc = pays_principal(a).lower()
+    lieu = f"{a['lat']:.4f}-{a['lon']:.4f}".replace(".", "").replace("-", "m")
+    base = f"{cc}-{a['key']}" if a["key"] else f"{cc}-{lieu}"
+    cle = base
+    if cle in occupes:
+        cle = f"{base}-{lieu}"
+    n = 2
+    while cle in occupes:
+        cle = f"{base}-{lieu}-{n}"
+        n += 1
+    occupes.add(cle)
+    return cle
+
+
+def sans_vide(d: dict) -> dict:
+    """Retire les clés nulles. **Une clé absente est une valeur non relevée**,
+    jamais un zéro : c'est la règle du référentiel français, tenue ici par la
+    forme du fichier plutôt que par 5 723 `null` recopiés."""
+    return {k: v for k, v in d.items() if v is not None and v != [] and v != {}}
+
+
+def fiche(a: dict, cle: str) -> dict:
+    """Ce qu'un domaine emporte dans le référentiel.
+
+    Rien n'est calculé ni complété : chaque champ vient de la source ou
+    disparaît. Les deux échelles du référentiel français se retrouvent ici —
+    `km`, `n`, `lifts` et les couleurs sont d'échelle domaine ; `minM` et
+    `maxM` sont les altitudes du domaine, et non celles d'un village.
+    """
+    return sans_vide(
+        {
+            "id": cle,
+            "nom": a["name"],
+            # Seulement quand il y en a plusieurs : 70 domaines sur 5 723.
+            "pays": a["pays"] if len(a["pays"]) > 1 else None,
+            "region": a["region"],
+            "iso3166_2": a["iso3166_2"],
+            "localite": a["localite"],
+            "lat": a["lat"],
+            "lon": a["lon"],
+            "km": a["km"],
+            "n": a["n"],
+            # Ecrit meme a zero : tous les domaines retenus sont mesures,
+            # donc zero « autre » est un zero releve, pas une absence.
+            "nOther": a["nOther"],
+            "lifts": a["lifts"],
+            "counts": a["counts"],
+            "kms": a["kms"],
+            "minM": a["minM"],
+            "maxM": a["maxM"],
+            "sites": a["sites"],
+            "wikidata": a["wikidata"],
+            "sources": [s for s in a["sources"] if s.get("id")],
+        }
+    )
+
+
+def cadre_des_stations(areas: list[dict]) -> list[float] | None:
+    """Le cadrage d'un pays, mesuré sur ses stations et non sur ses frontières.
+
+    `geo/pays.ts` porte un cadrage calculé sur l'emprise du pays, et dit
+    lui-même ce qu'il vaut : cadrer l'Australie sur ses frontières montre Perth
+    pour atteindre trois stations de Nouvelle-Galles du Sud. Celui-ci cadre ce
+    que l'écran a à montrer.
+
+    La marge d'un dixième de degré évite qu'une station se colle au bord ; sur
+    un pays à station unique, elle donne au cadrage une taille plutôt qu'un
+    point.
+    """
+    pts = [(a["lat"], a["lon"]) for a in areas if a["lat"] is not None and a["lon"] is not None]
+    if not pts:
+        return None
+    lats = [p[0] for p in pts]
+    lons = [p[1] for p in pts]
+    m = 0.1
+    return [
+        round(min(lons) - m, 4),
+        round(min(lats) - m, 4),
+        round(max(lons) + m, 4),
+        round(max(lats) + m, 4),
+    ]
+
+
+def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
+    """Écrit un fichier par pays, plus l'index.
+
+    **Un domaine n'est écrit qu'une fois**, dans le fichier de son pays
+    principal — le premier que la source liste. Les 70 domaines à cheval sur
+    une frontière portent alors la liste entière dans `pays`, et l'index les
+    rappelle dans `partages` : c'est ce qui permet aux Portes du Soleil de
+    sortir aussi bien sous « France » que sous « Suisse » sans être copiées
+    dans les deux fichiers.
+    """
+    retenus = [a for a in areas if retenu(a)]
+
+    # Trois domaines passent le seuil sans qu'OpenSkiMap leur donne de pays.
+    # Leurs coordonnées le diraient — l'un est en Chine, l'autre aux îles Åland,
+    # le troisième au Svalbard — mais un référentiel qui range par pays ne peut
+    # pas se permettre de deviner celui-là : c'est la règle de l'audit, « le
+    # branchement se fait sur `country`, jamais sur une devinette ». Ils sont
+    # donc écartés et nommés, pour qu'on sache ce qu'on n'a pas.
+    apatrides = [a for a in retenus if not a["pays"]]
+    retenus = [a for a in retenus if a["pays"]]
+
+    par_pays: dict[str, list[dict]] = {}
+    for a in retenus:
+        par_pays.setdefault(pays_principal(a), []).append(a)
+
+    data = racine / "data"
+    data.mkdir(parents=True, exist_ok=True)
+    for ancien in data.glob("*.json"):
+        ancien.unlink()
+
+    index: list[dict] = []
+    partages: list[dict] = []
+    for cc in sorted(par_pays):
+        du_pays = sorted(par_pays[cc], key=lambda x: (x["name"], x["lat"] or 0))
+        occupes: set[str] = set()
+        fiches = []
+        for a in du_pays:
+            cle = identifiant(a, occupes)
+            fiches.append(fiche(a, cle))
+            if len(a["pays"]) > 1:
+                partages.append({"id": cle, "hote": cc, "pays": a["pays"]})
+        (data / f"{cc}.json").write_text(
+            json.dumps(fiches, ensure_ascii=False, separators=(",", ":")) + "\n",
+            encoding="utf-8",
+        )
+        index.append(
+            sans_vide(
+                {
+                    "code": cc,
+                    "domaines": len(du_pays),
+                    "cadre": cadre_des_stations(du_pays),
+                    # De quoi peupler un écran sans ouvrir le fichier du pays.
+                    "kmTotal": round(sum(a["km"] or 0 for a in du_pays), 1) or None,
+                    "maxM": max((a["maxM"] or 0 for a in du_pays), default=0) or None,
+                }
+            )
+        )
+
+    (data / "index.json").write_text(
+        json.dumps(
+            {
+                "releve": releve,
+                "formatVersion": "16.0.0",
+                "seuil": "en exploitation, et mesuré",
+                "domaines": len(retenus),
+                "sansPays": len(apatrides),
+                "pays": index,
+                "partages": sorted(partages, key=lambda x: x["id"]),
+            },
+            ensure_ascii=False,
+            indent=1,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    if apatrides:
+        print(f"{len(apatrides)} domaines ecartes, faute de pays dans la source :")
+        for a in apatrides:
+            print(f"  {a['name']:<28} {a['lat']:.4f}, {a['lon']:.4f}")
+
+    poids = sum(f.stat().st_size for f in data.glob("*.json"))
+    print(f"{len(retenus)} domaines retenus, {len(par_pays)} pays.")
+    print(f"{len(partages)} domaines a cheval sur une frontiere, rappeles dans l'index.")
+    print(f"Ecrit dans {data} : {len(par_pays) + 1} fichiers, {poids / 1024:.0f} Ko.")
+    for f in sorted(data.glob("*.json"), key=lambda f: -f.stat().st_size)[:3]:
+        print(f"  {f.name:<16}{f.stat().st_size / 1024:>8.0f} Ko")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--src", type=Path, default=Path("/tmp/ski_areas.geojson"))
@@ -297,6 +512,18 @@ def main() -> int:
         "--detail",
         default="AT,CH,US",
         help="pays à détailler pour le choix domaine ou localité",
+    )
+    ap.add_argument("--ecrire", action="store_true", help="écrire le référentiel par pays")
+    ap.add_argument(
+        "--racine",
+        type=Path,
+        default=Path("src/lib/monde"),
+        help="où écrire le référentiel",
+    )
+    ap.add_argument(
+        "--releve",
+        default="",
+        help="date du relevé, au format ISO ; par défaut, la date du fichier source",
     )
     args = ap.parse_args()
 
@@ -313,8 +540,15 @@ def main() -> int:
         recenser(areas, [c for c in args.detail.split(",") if c])
         return 0
 
-    print("Rien à écrire : les seuils et la définition d'une station ne sont pas tranchés.")
-    print("Lancez --recenser pour produire les chiffres qui les décident.")
+    if args.ecrire:
+        releve = args.releve or (
+            datetime.fromtimestamp(args.src.stat().st_mtime, tz=timezone.utc)
+            .isoformat(timespec="seconds")
+            .replace("+00:00", "Z")
+        )
+        return ecrire(areas, args.racine, releve)
+
+    print("Rien demandé. --recenser chiffre, --ecrire écrit le référentiel.")
     return 0
 
 

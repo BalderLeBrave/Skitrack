@@ -37,6 +37,21 @@ export type StationOrigin = "classeur" | "depot";
 export type Station = {
   id: string;
   name: string;
+  /**
+   * Le pays, en ISO 3166-1 alpha-2.
+   *
+   * Il vaut « FR » pour les 320 stations, et c'est tout ce qu'il peut valoir
+   * ici : ce référentiel est celui du classeur France Montagnes, et il ne
+   * s'ouvre pas. Le reste du monde vit dans `monde/monde.ts`, sous une autre
+   * forme et derrière une porte asynchrone.
+   *
+   * Le champ existe malgré cette valeur unique, parce que l'audit du 18
+   * septembre 2026 a relevé qu'aucune notion de pays n'existait nulle part, et
+   * que tout le branchement à venir — devise, fuseau, modèle météo, bulletin
+   * d'avalanche — se fait sur lui. Une station sans pays obligerait chacun de
+   * ces branchements à deviner, ce que l'audit interdit.
+   */
+  country: string;
   massif: string;
   villageM: number;
   minM: number;
@@ -150,6 +165,7 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     // la typographie du lieu — traits d'union et accents — quand la commune ou
     // le classeur l'écrivent mieux.
     name: nomAffiche(entry.id, depot?.name, fm.fmName, fm.commune),
+    country: "FR",
     massif: depot?.massif ?? fm.massif,
     villageM: depot?.villageM ?? fm.village ?? 0,
     minM: depot?.minM ?? fm.min ?? 0,
@@ -203,6 +219,7 @@ const DEPOT_ONLY: Station[] = DEPOT.filter((r) => !IN_CLASSEUR.has(r.id)).map((r
   const slopes = slopesFromSkiinfo(r.id);
   return {
     ...r,
+    country: "FR",
     lat: GPS_FIXES[r.id]?.[0] ?? r.lat,
     lon: GPS_FIXES[r.id]?.[1] ?? r.lon,
     posRelevee: posRelevee(r.id, r.pinKind),

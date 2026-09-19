@@ -58,7 +58,7 @@ export function allocateToTotal(shares: number[], total: number): number[] {
   if (weight <= 0 || units <= 0) return shares.map(() => 0);
   const raw = shares.map((s) => (s / weight) * units);
   const floors = raw.map(Math.floor);
-  let left = units - floors.reduce((n, v) => n + v, 0);
+  const left = units - floors.reduce((n, v) => n + v, 0);
   const order = raw
     .map((v, i) => ({ i, frac: v - floors[i] }))
     .sort((a, b) => b.frac - a.frac || a.i - b.i);
@@ -72,7 +72,7 @@ export function allocateInts(shares: number[], total: number): number[] {
   if (weight <= 0 || total <= 0) return shares.map(() => 0);
   const raw = shares.map((s) => (s / weight) * total);
   const floors = raw.map(Math.floor);
-  let left = total - floors.reduce((n, v) => n + v, 0);
+  const left = total - floors.reduce((n, v) => n + v, 0);
   const order = raw
     .map((v, i) => ({ i, frac: v - floors[i] }))
     .sort((a, b) => b.frac - a.frac || a.i - b.i);

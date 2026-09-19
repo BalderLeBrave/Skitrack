@@ -294,11 +294,20 @@ l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
   point relevé est `viewportHint.center` — **ni village, ni sommet**, ce que le
   fichier porte écrit.
 
-  Les 500 manquants ne sont pas des points fautifs : Open-Meteo applique un
-  quota horaire sur une fenêtre glissante, et chaque passage s'arrête dessus.
-  Le script le reconnaît désormais et s'arrête net au lieu de marteler un
-  service qui vient de dire non. Une heure plus tard, `--completer` reprend
-  sans redemander une seule altitude déjà obtenue :
+  Les 500 manquants ne sont pas des points fautifs : Open-Meteo compte trois
+  quotas — à la minute, à l'heure, au jour — et le relevé les a tous rencontrés
+  dans l'ordre. Le journalier est le dernier mot : « Please try again
+  tomorrow. » Les identifiants absents forment d'ailleurs une tranche
+  alphabétique continue, ce qui dit assez qu'il s'agit d'une fin de parcours et
+  non de coordonnées particulières.
+
+  Le script s'arrête désormais net sur n'importe quel `429`, en répétant la
+  raison du service mot pour mot, au lieu de marteler puis de rendre des `null`
+  muets — ce qu'il faisait, et qui avait fait passer cinq cents refus très
+  clairs pour des absences de mesure. Il ne réécrit pas non plus le fichier
+  quand un passage n'a rien rapporté : la date dit quand les altitudes ont été
+  prises, pas quand on a essayé. `--completer` reprend sans redemander une
+  seule altitude déjà obtenue :
 
   ```
   node --experimental-strip-types scripts/build-dem-monde.ts --completer

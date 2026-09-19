@@ -46,18 +46,33 @@ const TIMEOUT_MS = 20_000;
 const REESSAIS = 3;
 
 /**
- * Le quota horaire d'Open-Meteo, qui est une fenêtre glissante.
+ * Un quota d'Open-Meteo, quel qu'il soit.
  *
- * Un `429` qui dit « hourly » ne se réessaie pas : quinze secondes plus tard,
- * l'heure n'a pas tourné. Insister reviendrait à marteler un service qui vient
- * de dire non, ce qui est impoli et sans effet. Le relevé s'arrête donc net,
- * garde ce qu'il a, et laisse la reprise à `--completer`.
+ * Il y en a trois — à la minute, à l'heure, au jour — et aucun ne se réessaie
+ * utilement : quinze secondes plus tard, ni l'heure ni le jour n'ont tourné.
+ * Insister reviendrait à marteler un service qui vient de dire non.
+ *
+ * Le relevé s'arrête donc net, garde ce qu'il a, et laisse la reprise à
+ * `--completer`, à qui elle ne coûte rien.
+ *
+ * **Cette classe n'a d'abord attrapé que « hourly », et c'était un piège.** Un
+ * `429` journalier retombait alors dans la boucle de réessais, épuisait ses
+ * trois tours et rendait des `null` **sans un mot** : cinq cents domaines sont
+ * ressortis « interrogés sans réponse » alors que le service avait répondu, et
+ * très clairement. Un refus qui ne se voit pas est pire qu'un refus.
  */
 class QuotaAtteint extends Error {}
 
 const UA =
   "Skitrack/1.0 (relevé d'altitude des domaines skiables ; robot applicatif, " +
   "une requête par seconde, 100 points par requête)";
+
+/** Le service dit lui-même quand revenir — dans l'heure, ou demain. Le
+ *  message ne le devine donc pas à sa place. */
+function reprendre(): void {
+  console.log("Quand le service le permettra de nouveau :");
+  console.log("  node --experimental-strip-types scripts/build-dem-monde.ts --completer");
+}
 
 type Point = { id: string; lat: number; lon: number };
 
@@ -94,10 +109,7 @@ async function lot(pts: Point[]): Promise<(number | null)[]> {
       });
       if (res.status === 429) {
         const raison = await res.text();
-        if (/hour/i.test(raison)) throw new QuotaAtteint(raison.slice(0, 120));
-        // Un bridage à la minute, lui, passe en attendant un peu.
-        await dormir(5_000 * essai);
-        continue;
+        throw new QuotaAtteint(raison.replace(/\s+/g, " ").slice(0, 160));
       }
       if (res.status >= 500) {
         await dormir(5_000 * essai);
@@ -120,6 +132,7 @@ async function lot(pts: Point[]): Promise<(number | null)[]> {
       await dormir(5_000 * essai);
     }
   }
+  console.error(`  lot de ${pts.length} abandonné après ${REESSAIS} essais`);
   return pts.map(() => null);
 }
 
@@ -165,8 +178,8 @@ async function main(): Promise<number> {
       valeurs = await lot(tranche);
     } catch (err) {
       if (!(err instanceof QuotaAtteint)) throw err;
-      console.log(`
-  quota horaire atteint : ${err.message}`);
+      console.log("");
+      console.log(`  arrêté par le service : ${err.message}`);
       quota = true;
       break;
     }
@@ -181,6 +194,16 @@ async function main(): Promise<number> {
   console.log();
 
   const secondes = Math.round((Date.now() - debut) / 1000);
+  const gagnes = Object.keys(releves).length - Object.keys(acquis).length;
+  if (completer && gagnes === 0) {
+    // Réécrire le fichier daterait d'aujourd'hui un relevé qui n'a rien
+    // rapporté. La date dit quand les altitudes ont été prises, pas quand on a
+    // essayé.
+    console.log("Aucune altitude nouvelle : le fichier n'est pas réécrit.");
+    if (quota) reprendre();
+    return 0;
+  }
+
   const sortie = {
     releve: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
     source: "https://api.open-meteo.com/v1/elevation",
@@ -201,11 +224,8 @@ async function main(): Promise<number> {
   console.log(`${Object.keys(releves).length} altitudes relevées en ${secondes} s.`);
   if (quota) {
     const reste = tous.length - Object.keys(releves).length;
-    console.log(
-      `Arrêté sur le quota horaire, ${reste} domaines non relevés. Dans une heure :
-` +
-        "  node --experimental-strip-types scripts/build-dem-monde.ts --completer",
-    );
+    console.log(`${reste} domaines non relevés.`);
+    reprendre();
   }
   if (manquants) console.log(`${manquants} domaines interrogés sans réponse : absence, et non zéro.`);
   const vals = Object.values(releves);

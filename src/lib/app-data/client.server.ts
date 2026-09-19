@@ -211,7 +211,11 @@ function tokenIdentityKey(token: string): string {
             .digest("base64url");
         }
       }
-    } catch {}
+    } catch {
+      // Un jeton illisible n'est pas une panne : on retombe sur le condensé du
+      // jeton entier, juste en dessous. Remonter l'erreur ici ferait échouer
+      // une requête que ce repli sert précisément à honorer.
+    }
   }
   return createHash("sha256").update(token).digest("base64url");
 }

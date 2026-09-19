@@ -193,13 +193,19 @@ test("aucun pays décrit par geo/pays.ts n'est vide", () => {
   assert.deepEqual(vides.map((p) => p.code), []);
 });
 
-test("les pays que geo/pays.ts ignore sont comptés, et ne se multiplient pas", () => {
-  // L'autre sens ne l'est pas : 29 pays du référentiel n'ont encore ni devise,
-  // ni fuseau, ni continent. Le nombre est écrit ici pour qu'il descende, et
-  // pour qu'aucun relevé ne le fasse monter en silence.
-  const manquants = paysSansFiche();
-  assert.ok(manquants.length <= 29, `${manquants.length} pays sans fiche : ${manquants.join(" ")}`);
-  for (const cc of manquants) assert.equal(paysByCode(cc), undefined);
+test("deux pays du référentiel restent sans fiche, et on sait lesquels", () => {
+  // Ils étaient 29 ; `pays.ts` en a repris 27. Les deux qui restent ne sont pas
+  // un reste de travail, mais deux absences sourcées :
+  //
+  // - l'Antarctique, en face de qui la liste ISO 4217 écrit « No universal
+  //   currency » — il n'y a pas de devise à recopier ;
+  // - le Kosovo, absent de cette même liste comme de `zone.tab`, `XK` étant un
+  //   code d'usage et non un code ISO 3166-1.
+  //
+  // L'égalité stricte est voulue : un pays qui tomberait dans ce trou au relevé
+  // suivant doit faire échouer le test, et non s'y ranger en silence.
+  assert.deepEqual(paysSansFiche(), ["AQ", "XK"]);
+  for (const cc of paysSansFiche()) assert.equal(paysByCode(cc), undefined);
 });
 
 test("les identifiants tiennent d'un relevé au suivant", () => {

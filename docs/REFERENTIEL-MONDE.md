@@ -226,12 +226,15 @@ téléchargement et non le relevé. Passez-la explicitement, en la lisant dans
 
 ## Ce qui reste à établir
 
-- **29 pays du référentiel n'ont ni devise, ni fuseau, ni continent.** Ils ne
-  sont pas dans `geo/pays.ts`, dont la liste de 44 se disait provisoire. Dans
-  l'autre sens la liste est juste : les 44 pays décrits portent tous des
-  domaines. `paysSansFiche()` rend la liste, et son test empêche qu'elle
-  grandisse en silence. Les plus peuplés sont la Hongrie (24 domaines), les
-  Pays-Bas (19), le Kirghizistan (16) et la Lettonie (12).
+- **Deux pays sur 73 restent sans fiche**, et ce sont deux absences sourcées,
+  non un reste de travail. Ils étaient 29 ; `geo/pays.ts` en a repris 27 le 19
+  septembre 2026, devises lues dans la liste ISO 4217 publiée par SIX Group,
+  fuseaux dans la table `zone.tab` de l'IANA, cadrages dans le même fichier
+  Natural Earth que la phase 1. Restent l'**Antarctique**, en face de qui
+  l'ISO 4217 écrit « No universal currency », et le **Kosovo**, absent des
+  deux tables parce que `XK` est un code d'usage et non un code ISO 3166-1.
+  `paysSansFiche()` rend exactement ces deux-là, et son test l'exige à
+  l'égalité : un troisième pays devra faire échouer la suite, pas s'y ranger.
 - **L'Antarctique est dans le référentiel et hors de la navigation.**
   `Kiwi Ski Hill`, un téléski en exploitation près de McMurdo, passe le seuil ;
   `continents.ts` a délibérément posé six continents sans l'Antarctique. Les
@@ -242,6 +245,14 @@ téléchargement et non le relevé. Passez-la explicitement, en la lisant dans
   l'appariement classeur × OpenSkiMap ; le monde n'a qu'une source, donc rien à
   apparier. Le fichier viendra avec la deuxième source, pas avant.
 - **Les altitudes sont celles du domaine**, `minElevation` et `maxElevation`,
-  et non celles d'un village. Le point bas d'un domaine n'est pas le point de
-  départ de la station au sens du référentiel français : c'est la phase 3 qui
-  s'en occupe.
+  et non celles d'un village. `altBandsDomaine()` le dit désormais en toutes
+  lettres : `villageM` y vaut toujours `null`, et le libellé porte « pas un
+  village ». Un relevé de modèle de terrain s'y ajoute sous `pointM`, un champ
+  distinct, parce qu'un relevé ponctuel rangé dans `minM` et `maxM` afficherait
+  un dénivelé de zéro là où rien n'a été mesuré.
+
+- **Aucun relevé de terrain n'est encore stocké pour les 5 720 domaines.**
+  `fetchElevations()` les sert à la demande, par lots de 40 points et avec un
+  cache de 24 heures, ce dont un écran de fiche se contente. Un cache
+  persistant demanderait 143 appels d'un coup à un service public gratuit :
+  c'est une décision à prendre, pas à glisser dans une phase.

@@ -28,14 +28,37 @@ const EMPTY: SnowReading = {
   elevationM: null,
 };
 
-export async function fetchSnow(lat: number, lon: number, elevationM?: number): Promise<SnowReading> {
-  const key = `${lat.toFixed(3)},${lon.toFixed(3)},${elevationM ?? "dem"}`;
+/**
+ * Le fuseau dans lequel Open-Meteo horodate sa réponse.
+ *
+ * Il valait `Europe/Paris`, écrit en dur, sur un service pourtant mondial :
+ * l'heure d'un bulletin japonais serait sortie en heure de Paris, et « demain
+ * matin » n'aurait pas voulu dire demain matin.
+ *
+ * Le défaut est `auto`, qu'Open-Meteo résout **au point demandé**, et non
+ * `geo/pays.ts`. C'est plus juste que le fuseau du pays, et pour une raison
+ * que `pays.ts` écrit lui-même sous `plusieursFuseaux` : une station du
+ * Colorado et une du Vermont ne partagent pas l'heure de leur bulletin. Un
+ * appelant qui veut imposer un fuseau le passe quand même.
+ *
+ * Pour la France, `auto` rend `Europe/Paris` : le comportement ne change pas.
+ */
+export type Fuseau = string;
+
+export async function fetchSnow(
+  lat: number,
+  lon: number,
+  elevationM?: number,
+  fuseau: Fuseau = "auto",
+): Promise<SnowReading> {
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)},${elevationM ?? "dem"},${fuseau}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
   const elev = elevationM != null && Number.isFinite(elevationM) ? `&elevation=${Math.round(elevationM)}` : "";
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `${elev}&current=wind_speed_10m,snowfall,snow_depth&hourly=snowfall,snow_depth,wind_speed_10m&forecast_days=2&timezone=Europe%2FParis`;
+    `${elev}&current=wind_speed_10m,snowfall,snow_depth&hourly=snowfall,snow_depth,wind_speed_10m&forecast_days=2` +
+    `&timezone=${encodeURIComponent(fuseau)}`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return EMPTY;
@@ -67,10 +90,11 @@ export async function fetchSnowPair(
   lon: number,
   villageM: number,
   summitM: number,
+  fuseau: Fuseau = "auto",
 ): Promise<SnowPair> {
   const [village, summit] = await Promise.all([
-    fetchSnow(lat, lon, villageM),
-    fetchSnow(lat, lon, summitM),
+    fetchSnow(lat, lon, villageM, fuseau),
+    fetchSnow(lat, lon, summitM, fuseau),
   ]);
   return { village, summit, villageM, summitM };
 }

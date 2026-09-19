@@ -224,6 +224,41 @@ Sans `--releve`, la date du fichier source fait foi — ce qui date le
 téléchargement et non le relevé. Passez-la explicitement, en la lisant dans
 `metadata.json`.
 
+## Les devises
+
+L'audit appelait ce point « le plus diffus » : le référentiel n'avait qu'une
+devise, et le code ne le disait nulle part — il l'écrivait. La règle qu'il
+fixait est tenue dans `src/lib/devises.ts` : **un formateur prend la devise en
+argument, et l'euro est devenu un cas particulier.**
+
+| Où | Avant | Maintenant |
+| --- | --- | --- |
+| `parcours.ts` | `fmt(n) + " €"` | `montant(n, devise)`, dont `eur()` est un raccourci |
+| `forfaits/age.ts` | `formatEuroTarif`, dont le nom mentait | `formatTarif(n, devise)` |
+| `forfaits/cout.ts` | un total sans devise | le total **porte** sa devise, et ne s'en sépare plus |
+| `forfaits/grille.ts` | `devise: "EUR"` quatre fois | la devise du pays du domaine, par `deviseDuDomaine()` |
+| `accommodation.ts` | `currency: "EUR"` | `montant(n, devise)` |
+| `filtres.ts` | un seuil en euros s'appliquait à tout | il **écarte** les stations d'une autre devise |
+
+Les trente appels existants à `eur()` ne changent ni de forme ni de sortie :
+c'est ce que vérifie `devises.test.ts`, espace des milliers comprise. Le
+symbole vient de l'ICU et n'est écrit nulle part à la main — en français, la
+livre s'écrit « £GB » et le dollar américain « $US », ce qu'une table tenue de
+mémoire aurait manqué.
+
+Le filtre mérite un mot. Un seuil de 400 € ne dit rien d'un forfait en francs
+suisses, et aucun taux de change ne vit dans ce dépôt : la devise est
+d'affichage, elle n'est jamais convertie. Le filtre écarte donc ces stations,
+exactement comme il écarte déjà une station dont le champ n'est pas mesuré.
+Dans les deux cas la comparaison demandée n'a pas de sens, et y répondre
+« oui » serait pire que n'y pas répondre.
+
+**Ce qui n'est pas fait, et qui n'est pas une devise :** les `toLocaleString("fr-FR")`
+de `liftSpan.ts`, `gpx.ts` et `carte.ts` pour des mètres et des kilomètres, et
+les dates en `fr-FR` de `useForfait.ts`, `age.ts` et `skiinfoStore.ts`. Ceux-là
+suivent la langue de l'interface, pas le pays de la station : ils relèvent de
+l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
+
 ## Ce qui reste à établir
 
 - **Deux pays sur 73 restent sans fiche**, et ce sont deux absences sourcées,

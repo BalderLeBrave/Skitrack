@@ -16,6 +16,7 @@ import { eur, eurCents, eurN, fmt, fmtN, mLbl } from "./parcours.ts";
 import { SKIINFO } from "./skiinfo.ts";
 import type { Station } from "./stations.ts";
 import { availabilityOf, type Stay } from "./stay/availability.ts";
+import { deviseDuPays, montantN } from "./devises.ts";
 
 /* ---------- Station ---------- */
 
@@ -62,8 +63,18 @@ export function forfaitOf(s: Station): ForfaitSeed | null {
   return rattachementForfait(s.id, s.domain)?.domaine.seed ?? null;
 }
 
+/**
+ * La devise du forfait d'une station, qui est celle du domaine qui le publie.
+ *
+ * `null` quand aucun domaine ne la rattache : il n'y a alors pas de tarif, donc
+ * pas de devise à nommer.
+ */
+export function deviseForfaitOf(s: Station): string | null {
+  return deviseDuPays(rattachementForfait(s.id, s.domain)?.domaine.country);
+}
+
 export function passLbl(s: Station): string | null {
-  return eurN(forfaitOf(s)?.j6);
+  return montantN(forfaitOf(s)?.j6, deviseForfaitOf(s) ?? "EUR");
 }
 
 /**

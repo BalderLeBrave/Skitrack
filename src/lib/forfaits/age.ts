@@ -20,11 +20,23 @@
  * saisir**, il n'affiche pas un code HTTP.
  */
 
+import { montant } from "../devises.ts";
 import type { ForfaitRow } from "./types.ts";
 
+/**
+ * Un tarif de forfait, dans la devise de son domaine.
+ *
+ * Le nom `formatEuroTarif` mentait dès qu'un tarif suisse existait ; il reste
+ * comme raccourci, parce que des écrans l'emploient, mais il ne décrit plus
+ * la règle.
+ */
+export function formatTarif(n: number | null | undefined, devise = "EUR"): string {
+  return montant(n, devise);
+}
+
+/** L'euro, cas particulier de `formatTarif`. */
 export function formatEuroTarif(n: number | null | undefined): string {
-  if (n == null) return "–";
-  return `${n.toLocaleString("fr-FR")} €`;
+  return formatTarif(n, "EUR");
 }
 
 export type Fiabilite = "confirme" | "a-confirmer" | "manuel" | "estime" | "jamais";

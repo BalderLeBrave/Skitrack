@@ -2,6 +2,7 @@ import { metresBetween } from "./access";
 import { listingById, type Listing } from "./listings";
 import { useStay } from "./stay";
 import { useTrack } from "./track";
+import { montant } from "./devises.ts";
 
 /** Prix par personne pour le séjour (total / voyageurs de la recherche). */
 export function pricePerPerson(total: number, guests: number): number | null {
@@ -41,12 +42,8 @@ export function distToGpxM(listing: Listing): number | null {
   return distToTrackM(listing.lat, listing.lon, useTrack.getState().points);
 }
 
-export function formatPerPerson(total: number, guests: number): string {
+export function formatPerPerson(total: number, guests: number, devise = "EUR"): string {
   const n = pricePerPerson(total, guests);
   if (n == null) return "—";
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: n % 1 === 0 ? 0 : 0,
-  }).format(Math.round(n));
+  return montant(n, devise);
 }

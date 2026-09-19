@@ -21,6 +21,7 @@ import { resolveStationPhoto } from "./stationPhoto.ts";
 import { adults, clampChildren, PARTY_LIMITS, partyLabel } from "./stay/party.ts";
 import { stationById, type Station } from "./stations.ts";
 import { useStay } from "./stay.ts";
+import { entier, montant, montantCents, montantN } from "./devises.ts";
 
 /** Photo de la station : **la copie locale, ou rien**.
  *
@@ -307,41 +308,35 @@ export const useParcours = create<Parcours>()(
 
 /** Espaces fine (U+202F) et insécable (U+00A0) que `toLocaleString('fr-FR')`
  *  glisse entre les milliers ; la maquette les remplace. */
-const NARROW_SPACES = new RegExp(
-  `[${String.fromCharCode(0x202f)}${String.fromCharCode(0xa0)}]`,
-  "g",
-);
-
 /** `fmt` : entier arrondi, séparateur de milliers fr-FR, espace simple. Un
  *  nombre absent s'écrit « – » ; les écrans v7 préfèrent `fmtN`, qui rend
- *  `null` et laisse l'appelant écrire l'absence en toutes lettres. */
+ *  `null` et laisse l'appelant écrire l'absence en toutes lettres.
+ *
+ *  Le formatage lui-même vit dans `devises.ts`, qui en a besoin pour écrire
+ *  une somme : une seule implémentation, et non deux qui divergeraient sur
+ *  l'espace des milliers. */
 export function fmt(n: number | null | undefined): string {
-  return n == null ? "–" : Math.round(n).toLocaleString("fr-FR").replace(NARROW_SPACES, " ");
+  return n == null ? "–" : entier(n);
 }
 
 export function fmtN(n: number | null | undefined): string | null {
   return n == null ? null : fmt(n);
 }
 
+/** L'euro, cas particulier de `montant()` et non l'inverse. Trente appels
+ *  emploient ces trois fonctions, et leur sortie ne change pas ; ce qui change
+ *  est qu'une somme en francs suisses a maintenant où s'écrire. */
 export function eur(n: number | null | undefined): string {
-  return fmt(n) + " €";
+  return montant(n, "EUR");
 }
 
 export function eurN(n: number | null | undefined): string | null {
-  return n == null ? null : eur(n);
+  return montantN(n, "EUR");
 }
 
 /** `eurCents` de la maquette : les centimes seulement quand il y en a. */
 export function eurCents(n: number | null | undefined): string | null {
-  if (n == null) return null;
-  return (
-    n
-      .toLocaleString("fr-FR", {
-        minimumFractionDigits: n % 1 ? 2 : 0,
-        maximumFractionDigits: 2,
-      })
-      .replace(NARROW_SPACES, " ") + " €"
-  );
+  return montantCents(n, "EUR");
 }
 
 /** `distLbl` : mètres sous 1 km, sinon km à une décimale, virgule. */

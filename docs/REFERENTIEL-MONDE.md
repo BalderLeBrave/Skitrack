@@ -286,8 +286,20 @@ l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
   distinct, parce qu'un relevé ponctuel rangé dans `minM` et `maxM` afficherait
   un dénivelé de zéro là où rien n'a été mesuré.
 
-- **Aucun relevé de terrain n'est encore stocké pour les 5 720 domaines.**
-  `fetchElevations()` les sert à la demande, par lots de 40 points et avec un
-  cache de 24 heures, ce dont un écran de fiche se contente. Un cache
-  persistant demanderait 143 appels d'un coup à un service public gratuit :
-  c'est une décision à prendre, pas à glisser dans une phase.
+- **Le relevé de terrain est fait aux cinq sixièmes : 5 220 domaines sur
+  5 720.** Il vit dans `src/lib/monde/data/dem.json`, fichier distinct du
+  référentiel pour la raison que l'audit donne à propos d'`alt.ign.json` : une
+  altitude de modèle de terrain et les bornes d'un domaine ne mesurent pas la
+  même chose. Le modèle est Copernicus DEM GLO-90, servi par Open-Meteo, et le
+  point relevé est `viewportHint.center` — **ni village, ni sommet**, ce que le
+  fichier porte écrit.
+
+  Les 500 manquants ne sont pas des points fautifs : Open-Meteo applique un
+  quota horaire sur une fenêtre glissante, et chaque passage s'arrête dessus.
+  Le script le reconnaît désormais et s'arrête net au lieu de marteler un
+  service qui vient de dire non. Une heure plus tard, `--completer` reprend
+  sans redemander une seule altitude déjà obtenue :
+
+  ```
+  node --experimental-strip-types scripts/build-dem-monde.ts --completer
+  ```

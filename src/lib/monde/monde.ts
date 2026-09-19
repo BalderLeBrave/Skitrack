@@ -256,6 +256,63 @@ export async function domainesPays(code: string): Promise<DomaineMonde[]> {
   return [...siens, ...partages];
 }
 
+/**
+ * Le relevé d'altitude du point de référence de chaque domaine.
+ *
+ * **Fichier distinct du référentiel, et c'est voulu.** Une altitude de modèle
+ * de terrain et les `minElevation`/`maxElevation` d'OpenSkiMap ne mesurent pas
+ * la même chose ; les ranger dans le même enregistrement les ferait passer
+ * pour deux valeurs du même relevé. C'est la règle que l'audit pose pour
+ * `alt.ign.json`, tenue ici à l'identique — et c'est aussi ce qui permet de
+ * refaire l'un sans refaire l'autre.
+ *
+ * Le fichier est chargé à la demande, comme un pays : 5 220 entrées n'ont rien
+ * à faire dans le lot de départ d'un écran qui n'affiche pas d'altitude.
+ */
+export type ReleveDem = {
+  releve: string;
+  /** « Copernicus DEM GLO-90 », à citer à l'écran comme on cite « IGN au pin ». */
+  modele: string;
+  /** Ce que le point est, et ce qu'il n'est pas. */
+  point: string;
+  domaines: number;
+  manquants: number;
+  points: Record<string, number>;
+};
+
+let demEnCours: Promise<ReleveDem> | null = null;
+
+export function releveDem(): Promise<ReleveDem> {
+  demEnCours ??= import("./data/dem.json", { with: { type: "json" } }).then(
+    (m) => m.default as ReleveDem,
+  );
+  return demEnCours;
+}
+
+/**
+ * L'altitude relevée au point de référence d'un domaine, ou `null`.
+ *
+ * Le `null` couvre deux cas qui se ressemblent et ne sont pas les mêmes : un
+ * domaine qu'aucun relevé ne couvre, et un domaine dont le relevé n'a rien
+ * rendu. Ni l'un ni l'autre n'autorise à écrire un zéro, qui se lirait comme
+ * le niveau de la mer.
+ */
+export async function demDuDomaine(id: string): Promise<number | null> {
+  const r = await releveDem();
+  return r.points[id] ?? null;
+}
+
+/** Les altitudes d'un lot de domaines, le fichier n'étant ouvert qu'une fois. */
+export async function demDesDomaines(ids: readonly string[]): Promise<Map<string, number>> {
+  const r = await releveDem();
+  const out = new Map<string, number>();
+  for (const id of ids) {
+    const m = r.points[id];
+    if (m != null) out.set(id, m);
+  }
+  return out;
+}
+
 /** Les domaines de plusieurs pays, chacun ouvert une seule fois. Sert la carte,
  *  qui ne charge que les pays visibles dans le cadre. */
 export async function domainesPaysMulti(codes: readonly string[]): Promise<DomaineMonde[]> {

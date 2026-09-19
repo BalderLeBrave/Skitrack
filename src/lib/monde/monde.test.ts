@@ -22,12 +22,15 @@ import { cadreValide, CONTINENTS, type Cadre, type ContinentId } from "../geo/co
 import { PAYS, paysByCode } from "../geo/pays.ts";
 import {
   cadrePays,
+  demDesDomaines,
+  demDuDomaine,
   domainesPays,
   domainesPaysMulti,
   DOMAINES_MONDE,
   indexPays,
   PAYS_AVEC_DOMAINES,
   paysSansFiche,
+  releveDem,
   RELEVE_MONDE,
   SANS_PAYS,
   type DomaineMonde,
@@ -38,7 +41,9 @@ const DOSSIER = new URL("./data/", import.meta.url);
 
 function fichiersPays(): string[] {
   return readdirSync(DOSSIER)
-    .filter((f) => f.endsWith(".json") && f !== "index.json")
+    // `index.json` décrit les pays, `dem.json` porte les altitudes : ni l'un ni
+    // l'autre n'est un pays.
+    .filter((f) => f.endsWith(".json") && f !== "index.json" && f !== "dem.json")
     .map((f) => f.slice(0, -5))
     .sort();
 }
@@ -237,4 +242,51 @@ test("les sources de chaque domaine sont celles que le schéma admet", async () 
 test("aucun domaine n'est rangé sous un pays qu'il ne porte pas", async () => {
   const echantillon: DomaineMonde[] = await domainesPays("CH");
   for (const d of echantillon) assert.ok(d.pays.includes("CH"));
+});
+
+test("le relevé d'altitude est un fichier à part, et dit ce qu'il mesure", async () => {
+  const r = await releveDem();
+  assert.match(r.releve, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(r.modele, "Copernicus DEM GLO-90");
+  // Le point relevé n'est ni le village ni le sommet : le fichier le porte
+  // écrit, pour qu'un écran ne puisse pas le présenter comme une altitude de
+  // station sans passer devant cette phrase.
+  assert.match(r.point, /ni village, ni sommet/);
+  assert.equal(r.domaines, Object.keys(r.points).length);
+});
+
+test("chaque altitude relevée appartient à un domaine du référentiel", async () => {
+  const r = await releveDem();
+  const connus = new Set<string>();
+  for (const cc of PAYS_AVEC_DOMAINES) for (const d of await domainesPays(cc)) connus.add(d.id);
+  for (const id of Object.keys(r.points)) {
+    assert.ok(connus.has(id), `${id} n'est pas un domaine du référentiel`);
+  }
+});
+
+test("les altitudes relevées sont plausibles, et jamais un zéro de remplissage", async () => {
+  const r = await releveDem();
+  for (const [id, m] of Object.entries(r.points)) {
+    assert.ok(Number.isInteger(m), `${id} : ${m} n'est pas un entier`);
+    // La mer Morte est à -430 m, et aucune remontée ne dépasse 6 000 m.
+    assert.ok(m > -500 && m < 6000, `${id} : ${m} m`);
+  }
+});
+
+test("un domaine sans relevé rend `null`, et non zéro", async () => {
+  assert.equal(await demDuDomaine("ce-domaine-n-existe-pas"), null);
+  // Le relevé est incomplet — le quota horaire d'Open-Meteo l'a interrompu —
+  // et ce test tient la différence entre « pas relevé » et « au niveau de la
+  // mer ». Il vaudra encore quand le relevé sera complet.
+  const r = await releveDem();
+  assert.ok(r.manquants >= 0);
+  assert.equal(Object.values(r.points).includes(0), false);
+});
+
+test("un lot d'altitudes n'ouvre le fichier qu'une fois, et saute les absents", async () => {
+  const fr = (await domainesPays("FR")).map((d) => d.id);
+  const lot = await demDesDomaines([...fr, "ce-domaine-n-existe-pas"]);
+  assert.ok(lot.size > 0);
+  assert.equal(lot.has("ce-domaine-n-existe-pas"), false);
+  for (const [, m] of lot) assert.ok(m > -500 && m < 6000);
 });

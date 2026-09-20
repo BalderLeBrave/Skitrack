@@ -286,6 +286,44 @@ l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
   distinct, parce qu'un relevé ponctuel rangé dans `minM` et `maxM` afficherait
   un dénivelé de zéro là où rien n'a été mesuré.
 
+- **Le relevé de terrain est complet : 5 720 domaines sur 5 720.** Il vit dans
+  `src/lib/monde/data/dem.json`, fichier distinct du référentiel pour la raison
+  que l'audit donne à propos d'`alt.ign.json` : une altitude de modèle de
+  terrain et les bornes d'un domaine ne mesurent pas la même chose. Le modèle
+  est Copernicus DEM GLO-90, servi par Open-Meteo, et le point relevé est
+  `viewportHint.center` — **ni village, ni sommet**, ce que le fichier porte
+  écrit.
+
+  Les altitudes vont de −6 m à 3 752 m. Les deux valeurs négatives ne sont pas
+  des ratés : `nl-indoor-ski-rotterdam` est une halle couverte des Pays-Bas, où
+  le sol est sous le niveau de la mer. `dk-copenhill`, à 4 m, est la piste
+  posée sur l'usine de valorisation de Copenhague. Un contrôle naïf « une
+  altitude doit être positive » les aurait jetés, et le test dit pourquoi il ne
+  le fait pas.
+
+  Il a fallu trois passages, étalés sur deux jours. Open-Meteo compte trois
+  quotas — à la minute, à l'heure, au jour — et le relevé les a rencontrés dans
+  l'ordre. Le script s'arrête sur n'importe quel `429` en répétant la raison du
+  service mot pour mot, et ne réécrit pas le fichier quand un passage n'a rien
+  rapporté : la date dit quand les altitudes ont été prises, pas quand on a
+  essayé. Pour refaire le relevé après un nouveau millésime du référentiel :
+
+  ```
+  node --experimental-strip-types scripts/build-dem-monde.ts
+  node --experimental-strip-types scripts/build-dem-monde.ts --completer
+  ```
+
+- **Aucune exception d'appariement n'existe encore**, et `monde/corrections.ts`
+  n'est donc pas créé. Les corrections du référentiel français naissent de
+  l'appariement classeur × OpenSkiMap ; le monde n'a qu'une source, donc rien à
+  apparier. Le fichier viendra avec la deuxième source, pas avant.
+- **Les altitudes sont celles du domaine**, `minElevation` et `maxElevation`,
+  et non celles d'un village. `altBandsDomaine()` le dit désormais en toutes
+  lettres : `villageM` y vaut toujours `null`, et le libellé porte « pas un
+  village ». Un relevé de modèle de terrain s'y ajoute sous `pointM`, un champ
+  distinct, parce qu'un relevé ponctuel rangé dans `minM` et `maxM` afficherait
+  un dénivelé de zéro là où rien n'a été mesuré.
+
 - **Le relevé de terrain est fait aux cinq sixièmes : 5 220 domaines sur
   5 720.** Il vit dans `src/lib/monde/data/dem.json`, fichier distinct du
   référentiel pour la raison que l'audit donne à propos d'`alt.ign.json` : une

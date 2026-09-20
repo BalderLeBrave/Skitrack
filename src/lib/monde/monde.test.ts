@@ -273,14 +273,32 @@ test("les altitudes relevées sont plausibles, et jamais un zéro de remplissage
   }
 });
 
+test("le relevé couvre les 5 720 domaines, sans trou", async () => {
+  const r = await releveDem();
+  assert.equal(r.domaines, 5720);
+  assert.equal(r.manquants, 0);
+  assert.equal(Object.keys(r.points).length, 5720);
+});
+
 test("un domaine sans relevé rend `null`, et non zéro", async () => {
   assert.equal(await demDuDomaine("ce-domaine-n-existe-pas"), null);
-  // Le relevé est incomplet — le quota horaire d'Open-Meteo l'a interrompu —
-  // et ce test tient la différence entre « pas relevé » et « au niveau de la
-  // mer ». Il vaudra encore quand le relevé sera complet.
+  // La distinction tient même maintenant que le relevé est complet : elle
+  // protège d'un identifiant inconnu, pas seulement d'un relevé interrompu.
   const r = await releveDem();
-  assert.ok(r.manquants >= 0);
   assert.equal(Object.values(r.points).includes(0), false);
+});
+
+test("les altitudes basses sont des domaines bas, et non des relevés ratés", async () => {
+  // Deux valeurs négatives et une poignée sous dix mètres : ce ne sont pas des
+  // erreurs. `nl-indoor-ski-rotterdam` est une halle couverte des Pays-Bas, où
+  // le sol est sous le niveau de la mer, et `dk-copenhill` est la piste posée
+  // sur l'usine de valorisation de Copenhague. Un seuil naïf « une altitude
+  // doit être positive » les aurait jetés.
+  const r = await releveDem();
+  assert.equal(r.points["nl-indoor-ski-rotterdam"], -6);
+  assert.ok(r.points["dk-copenhill"] < 50);
+  const negatifs = Object.values(r.points).filter((m) => m < 0);
+  assert.ok(negatifs.length > 0 && negatifs.length < 10);
 });
 
 test("un lot d'altitudes n'ouvre le fichier qu'une fois, et saute les absents", async () => {

@@ -41,9 +41,11 @@ const DOSSIER = new URL("./data/", import.meta.url);
 
 function fichiersPays(): string[] {
   return readdirSync(DOSSIER)
-    // `index.json` décrit les pays, `dem.json` porte les altitudes : ni l'un ni
-    // l'autre n'est un pays.
-    .filter((f) => f.endsWith(".json") && f !== "index.json" && f !== "dem.json")
+    // Un fichier de pays porte un code ISO 3166-1 alpha-2, et rien d'autre.
+    // Dire ce qu'est un pays vaut mieux qu'énumérer ce qui n'en est pas :
+    // `index.json`, `dem.json` et `skiinfo.json` vivent dans le même dossier,
+    // et la liste des exceptions s'allongeait à chaque relevé.
+    .filter((f) => /^[A-Z]{2}\.json$/.test(f))
     .map((f) => f.slice(0, -5))
     .sort();
 }

@@ -23,25 +23,12 @@
  */
 
 import { paysByCode } from "./geo/pays.ts";
+import { decimal, entier, LANGUE_NOMBRES } from "./nombres.ts";
 
-/** Les espaces fines et insécables que l'ICU insère, et que le dépôt remplace
- *  par une espace simple depuis l'origine. */
-const ESPACES_ETROITES = new RegExp(
-  `[${String.fromCharCode(0x202f)}${String.fromCharCode(0xa0)}]`,
-  "g",
-);
-
-/** La langue dans laquelle les nombres sont écrits. Elle suivra l'interface ;
- *  elle est isolée ici pour qu'il y ait un seul endroit à reprendre, et non
- *  onze `toLocaleString("fr-FR")` à retrouver. */
-export const LANGUE_NOMBRES = "fr-FR";
-
-/** Entier arrondi, séparateur de milliers, espace simple. C'est ce que `fmt`
- *  de `parcours.ts` rendait, et ce qu'il rend toujours : la fonction a
- *  déménagé ici pour que la monnaie n'ait pas à la réécrire. */
-export function entier(n: number): string {
-  return Math.round(n).toLocaleString(LANGUE_NOMBRES).replace(ESPACES_ETROITES, " ");
-}
+/** Le formatage des nombres a déménagé dans `nombres.ts` : `unites.ts` en a
+ *  besoin aussi, et trois copies de la même règle auraient fini par diverger
+ *  sur l'espace des milliers. Réexporté ici, où des appelants le cherchent. */
+export { entier, LANGUE_NOMBRES } from "./nombres.ts";
 
 const SYMBOLES = new Map<string, string>();
 
@@ -82,12 +69,8 @@ export function montantN(n: number | null | undefined, devise = "EUR"): string |
 /** Les centimes seulement quand il y en a. */
 export function montantCents(n: number | null | undefined, devise = "EUR"): string | null {
   if (n == null) return null;
-  const nombre = n
-    .toLocaleString(LANGUE_NOMBRES, {
-      minimumFractionDigits: n % 1 ? 2 : 0,
-      maximumFractionDigits: 2,
-    })
-    .replace(ESPACES_ETROITES, " ");
+  // Les centimes ne s'écrivent que s'il y en a : « 12 € », mais « 12,50 € ».
+  const nombre = n % 1 ? decimal(n, 2).replace(/,(\d)$/, ",$10") : entier(n);
   return `${nombre} ${symboleDevise(devise)}`;
 }
 

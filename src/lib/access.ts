@@ -10,6 +10,7 @@ import {
 import { domainFit, inSearchedDomain, otherDomainMessage } from "./domainFit.ts";
 import type { Station } from "./stations.ts";
 import { withinLiftM as withinM } from "./skiAccess.ts";
+import { convertir, dansLeSysteme, mesure, type Systeme } from "./unites.ts";
 
 export { metresBetween };
 export { LIFT_FOOT_M, LIFT_NEAR_M, LIFT_KM_M, skiAccessLabel } from "./skiAccess.ts";
@@ -66,10 +67,26 @@ export function attachAccess(listing: Listing, station: Station): Listing {
   };
 }
 
-export function formatDistFrom(m: number | null | undefined, place: string): string {
+/**
+ * Une distance à quelque chose : mètres en deçà du kilomètre, kilomètres
+ * au-delà. Le seuil est de lisibilité, pas d'unité — « 1 240 m des remontées »
+ * se lit moins bien que « 1,2 km ».
+ */
+export function formatDistFrom(
+  m: number | null | undefined,
+  place: string,
+  systeme: Systeme = "metrique",
+): string {
   if (m == null) return `Distance ${place} non mesurée`;
-  if (m < 1000) return `${m} m ${place}`;
-  return `${(m / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km ${place}`;
+  // Sous le kilomètre on reste dans la petite unité du système — le mètre ou
+  // le pied —, au-delà on passe à la grande. Le seuil est de lisibilité :
+  // « 1 240 m des remontées » se lit moins bien que « 1,2 km ».
+  const petite = { valeur: m, unite: "m" } as const;
+  if (m < 1000) {
+    const proche = systeme === "imperial" ? convertir(petite, "ft")! : petite;
+    return `${mesure(proche)} ${place}`;
+  }
+  return `${mesure(dansLeSysteme({ valeur: m / 1000, unite: "km" }, systeme))} ${place}`;
 }
 
 export function formatDist(m: number | null | undefined): string {

@@ -28,6 +28,7 @@ import {
 import type { StationSlopes } from "./pistes.ts";
 import { SKIINFO_AT, skiinfoPhoto, slopesFromSkiinfo } from "./skiinfo.ts";
 import rows from "./stations.data.json" with { type: "json" };
+import { altitude, type Systeme } from "./unites.ts";
 
 export type PinKind = "base" | "sommet" | "autre" | "inconnu";
 
@@ -263,6 +264,9 @@ export function dropM(station: Station): number {
   return Math.max(0, station.maxM - station.minM);
 }
 
-export function formatAlt(n: number): string {
-  return `${n.toLocaleString("fr-FR")} m`;
+/** Une altitude, en mètres. Le système reste un paramètre : `unites.ts` sait
+ *  la dire en pieds, et le jour où un écran le proposera, c'est ici qu'il le
+ *  demandera plutôt que de reformater à côté. */
+export function formatAlt(n: number, systeme: Systeme = "metrique"): string {
+  return altitude(n, systeme);
 }

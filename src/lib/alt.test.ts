@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { altBands, altDeltaM } from "./alt.ts";
+import { altBands, altBandsDomaine, altDeltaM } from "./alt.ts";
+import { domainesPays } from "./monde/monde.ts";
 import { DEPOT_STATIONS, STATIONS } from "./stations.ts";
 import { SKIINFO } from "./skiinfo.ts";
 
@@ -86,5 +87,51 @@ describe("altitudes par source", () => {
     assert.notEqual(v.lon, w.lon);
     assert.equal(v.demM, 1541);
     assert.equal(v.pinKind, "base");
+  });
+});
+
+describe("altitudes d'un domaine du référentiel mondial", () => {
+  it("un domaine n'a pas de village, et la bande ne prétend pas le contraire", async () => {
+    const ch = await domainesPays("CH");
+    const zermatt = ch.find((d) => d.id.startsWith("ch-zermatt-breuil-cervinia"))!;
+    const bands = altBandsDomaine(zermatt);
+    assert.equal(bands.length, 1);
+    const osm = bands[0];
+    assert.equal(osm.source, "openskimap");
+    assert.equal(osm.minM, 1559);
+    assert.equal(osm.maxM, 3872);
+    // Le fond du sujet : aucune altitude de village n'a été mesurée, donc
+    // aucune n'est affichée. `minM` est le point bas du domaine, pas un village.
+    assert.equal(osm.villageM, null);
+    assert.equal(osm.dropM, 2313);
+    assert.ok(osm.label.includes("pas un village"));
+  });
+
+  it("le relevé du modèle de terrain est ponctuel, et n'invente ni village ni dénivelé", async () => {
+    const at = await domainesPays("AT");
+    const un = at[0];
+    const bands = altBandsDomaine(un, 1842);
+    const dem = bands.find((b) => b.source === "dem")!;
+    assert.equal(dem.pointM, 1842);
+    assert.equal(dem.villageM, null);
+    assert.equal(dem.minM, null);
+    assert.equal(dem.maxM, null);
+    // Un dénivelé de zéro se lirait comme une mesure. Il n'y en a pas.
+    assert.equal(dem.dropM, null);
+  });
+
+  it("sans relevé de terrain, aucune bande `dem` n'apparaît", async () => {
+    const fr = await domainesPays("FR");
+    const bands = altBandsDomaine(fr[0]);
+    assert.equal(bands.some((b) => b.source === "dem"), false);
+  });
+
+  it("les deux familles de sources ne se croisent jamais", async () => {
+    const station = STATIONS.find((x) => x.id === "les-2-alpes")!;
+    const mondiales = new Set(["openskimap", "dem"]);
+    assert.ok(altBands(station).every((b) => !mondiales.has(b.source)));
+    const it = await domainesPays("IT");
+    const domaine = it.find((d) => d.minM != null)!;
+    assert.ok(altBandsDomaine(domaine, 1500).every((b) => mondiales.has(b.source)));
   });
 });

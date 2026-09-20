@@ -1,0 +1,1422 @@
+{
+ "releve": "2026-09-18T23:31:32Z",
+ "formatVersion": "16.0.0",
+ "seuil": "en exploitation, et mesuré",
+ "domaines": 5720,
+ "sansPays": 3,
+ "pays": [
+  {
+   "code": "AD",
+   "domaines": 4,
+   "cadre": [
+    1.3792,
+    42.4485,
+    1.7735,
+    42.7276
+   ],
+   "kmTotal": 224.9,
+   "maxM": 2626
+  },
+  {
+   "code": "AL",
+   "domaines": 1,
+   "cadre": [
+    20.6985,
+    40.419,
+    20.8985,
+    40.619
+   ],
+   "kmTotal": 1.1,
+   "maxM": 1678
+  },
+  {
+   "code": "AM",
+   "domaines": 3,
+   "cadre": [
+    44.3794,
+    39.7317,
+    45.779,
+    40.631
+   ],
+   "kmTotal": 31.1,
+   "maxM": 2817
+  },
+  {
+   "code": "AQ",
+   "domaines": 1,
+   "cadre": [
+    166.7251,
+    -77.9206,
+    166.9251,
+    -77.7206
+   ]
+  },
+  {
+   "code": "AR",
+   "domaines": 30,
+   "cadre": [
+    -72.4568,
+    -54.896,
+    -58.8602,
+    -32.7242
+   ],
+   "kmTotal": 199.8,
+   "maxM": 3210
+  },
+  {
+   "code": "AT",
+   "domaines": 381,
+   "cadre": [
+    9.532,
+    46.3756,
+    16.3552,
+    49.002
+   ],
+   "kmTotal": 6990.0,
+   "maxM": 3424
+  },
+  {
+   "code": "AU",
+   "domaines": 14,
+   "cadre": [
+    146.1676,
+    -42.7821,
+    149.0219,
+    -35.4141
+   ],
+   "kmTotal": 281.9,
+   "maxM": 2037
+  },
+  {
+   "code": "AZ",
+   "domaines": 2,
+   "cadre": [
+    47.7787,
+    40.9268,
+    48.2472,
+    41.4037
+   ],
+   "kmTotal": 40.7,
+   "maxM": 2551
+  },
+  {
+   "code": "BA",
+   "domaines": 21,
+   "cadre": [
+    16.802,
+    43.6097,
+    19.422,
+    45.1162
+   ],
+   "kmTotal": 79.3,
+   "maxM": 2056
+  },
+  {
+   "code": "BE",
+   "domaines": 8,
+   "cadre": [
+    4.2737,
+    50.1515,
+    6.2,
+    51.2601
+   ],
+   "kmTotal": 6.7,
+   "maxM": 647
+  },
+  {
+   "code": "BG",
+   "domaines": 25,
+   "cadre": [
+    22.5191,
+    41.5439,
+    27.666,
+    43.5052
+   ],
+   "kmTotal": 142.3,
+   "maxM": 2538
+  },
+  {
+   "code": "BR",
+   "domaines": 2,
+   "cadre": [
+    -51.0205,
+    -29.494,
+    -47.0172,
+    -23.4051
+   ],
+   "kmTotal": 0.3,
+   "maxM": 1017
+  },
+  {
+   "code": "BY",
+   "domaines": 5,
+   "cadre": [
+    26.9225,
+    51.9299,
+    29.3596,
+    54.2859
+   ],
+   "kmTotal": 6.7,
+   "maxM": 338
+  },
+  {
+   "code": "CA",
+   "domaines": 285,
+   "cadre": [
+    -139.5055,
+    42.843,
+    -53.9509,
+    64.152
+   ],
+   "kmTotal": 3338.5,
+   "maxM": 2686
+  },
+  {
+   "code": "CH",
+   "domaines": 345,
+   "cadre": [
+    6.0024,
+    45.8307,
+    10.4237,
+    47.8733
+   ],
+   "kmTotal": 4177.5,
+   "maxM": 3872
+  },
+  {
+   "code": "CL",
+   "domaines": 28,
+   "cadre": [
+    -72.6234,
+    -53.2605,
+    -69.9181,
+    -32.5549
+   ],
+   "kmTotal": 320.5,
+   "maxM": 3675
+  },
+  {
+   "code": "CN",
+   "domaines": 307,
+   "cadre": [
+    81.3281,
+    22.6166,
+    132.0872,
+    50.3926
+   ],
+   "kmTotal": 655.1,
+   "maxM": 4503
+  },
+  {
+   "code": "CY",
+   "domaines": 1,
+   "cadre": [
+    32.766,
+    34.8345,
+    32.966,
+    35.0345
+   ],
+   "kmTotal": 4.2,
+   "maxM": 1936
+  },
+  {
+   "code": "CZ",
+   "domaines": 357,
+   "cadre": [
+    12.1075,
+    48.5505,
+    18.9367,
+    51.0541
+   ],
+   "kmTotal": 550.5,
+   "maxM": 1441
+  },
+  {
+   "code": "DE",
+   "domaines": 533,
+   "cadre": [
+    6.2783,
+    47.2451,
+    14.8197,
+    53.6084
+   ],
+   "kmTotal": 1016.9,
+   "maxM": 2627
+  },
+  {
+   "code": "DK",
+   "domaines": 3,
+   "cadre": [
+    12.0742,
+    55.0856,
+    15.0517,
+    55.7834
+   ],
+   "kmTotal": 1.2,
+   "maxM": 112
+  },
+  {
+   "code": "EE",
+   "domaines": 9,
+   "cadre": [
+    24.5709,
+    57.4702,
+    27.2535,
+    59.6177
+   ],
+   "kmTotal": 7.5,
+   "maxM": 217
+  },
+  {
+   "code": "EG",
+   "domaines": 1,
+   "cadre": [
+    30.9193,
+    29.8726,
+    31.1193,
+    30.0726
+   ]
+  },
+  {
+   "code": "ES",
+   "domaines": 36,
+   "cadre": [
+    -7.3976,
+    36.9755,
+    2.3553,
+    43.1596
+   ],
+   "kmTotal": 888.8,
+   "maxM": 3300
+  },
+  {
+   "code": "FI",
+   "domaines": 96,
+   "cadre": [
+    21.4771,
+    59.9985,
+    30.2333,
+    68.5278
+   ],
+   "kmTotal": 324.4,
+   "maxM": 754
+  },
+  {
+   "code": "FR",
+   "domaines": 280,
+   "cadre": [
+    -0.839,
+    41.9038,
+    9.2452,
+    50.5708
+   ],
+   "kmTotal": 8555.2,
+   "maxM": 3768
+  },
+  {
+   "code": "GB",
+   "domaines": 57,
+   "cadre": [
+    -5.0725,
+    50.2975,
+    1.4216,
+    57.3308
+   ],
+   "kmTotal": 68.7,
+   "maxM": 1190
+  },
+  {
+   "code": "GE",
+   "domaines": 10,
+   "cadre": [
+    42.4023,
+    41.5222,
+    44.5944,
+    43.1288
+   ],
+   "kmTotal": 97.5,
+   "maxM": 3246
+  },
+  {
+   "code": "GL",
+   "domaines": 4,
+   "cadre": [
+    -53.7512,
+    64.0844,
+    -51.5562,
+    67.0413
+   ],
+   "kmTotal": 5.3,
+   "maxM": 413
+  },
+  {
+   "code": "GR",
+   "domaines": 15,
+   "cadre": [
+    20.9862,
+    37.5503,
+    23.703,
+    41.361
+   ],
+   "kmTotal": 110.9,
+   "maxM": 2470
+  },
+  {
+   "code": "HR",
+   "domaines": 13,
+   "cadre": [
+    14.4725,
+    44.7227,
+    18.1358,
+    46.2942
+   ],
+   "kmTotal": 16.1,
+   "maxM": 1354
+  },
+  {
+   "code": "HU",
+   "domaines": 24,
+   "cadre": [
+    16.4125,
+    46.23,
+    21.7361,
+    48.5036
+   ],
+   "kmTotal": 20.0,
+   "maxM": 1016
+  },
+  {
+   "code": "IE",
+   "domaines": 1,
+   "cadre": [
+    -6.2836,
+    53.1195,
+    -6.0836,
+    53.3195
+   ],
+   "kmTotal": 0.4,
+   "maxM": 209
+  },
+  {
+   "code": "IL",
+   "domaines": 1,
+   "cadre": [
+    35.68,
+    33.2117,
+    35.88,
+    33.4117
+   ],
+   "kmTotal": 12.5,
+   "maxM": 2037
+  },
+  {
+   "code": "IN",
+   "domaines": 4,
+   "cadre": [
+    74.2667,
+    30.4297,
+    79.6701,
+    34.1349
+   ],
+   "kmTotal": 13.9,
+   "maxM": 3941
+  },
+  {
+   "code": "IR",
+   "domaines": 22,
+   "cadre": [
+    44.6839,
+    30.1996,
+    59.1613,
+    38.4371
+   ],
+   "kmTotal": 32.6,
+   "maxM": 3846
+  },
+  {
+   "code": "IS",
+   "domaines": 12,
+   "cadre": [
+    -23.3456,
+    63.8693,
+    -13.7867,
+    66.2241
+   ],
+   "kmTotal": 66.7,
+   "maxM": 943
+  },
+  {
+   "code": "IT",
+   "domaines": 287,
+   "cadre": [
+    6.5975,
+    37.6108,
+    16.7447,
+    47.0786
+   ],
+   "kmTotal": 4935.4,
+   "maxM": 3355
+  },
+  {
+   "code": "JP",
+   "domaines": 500,
+   "cadre": [
+    130.0443,
+    32.4832,
+    145.0253,
+    45.4877
+   ],
+   "kmTotal": 2338.7,
+   "maxM": 2638
+  },
+  {
+   "code": "KG",
+   "domaines": 16,
+   "cadre": [
+    73.7134,
+    42.2055,
+    78.5765,
+    42.983
+   ],
+   "kmTotal": 40.6,
+   "maxM": 3017
+  },
+  {
+   "code": "KP",
+   "domaines": 4,
+   "cadre": [
+    126.4978,
+    38.9525,
+    128.5461,
+    41.933
+   ],
+   "kmTotal": 13.4,
+   "maxM": 1845
+  },
+  {
+   "code": "KR",
+   "domaines": 15,
+   "cadre": [
+    127.1865,
+    35.324,
+    129.0849,
+    37.9175
+   ],
+   "kmTotal": 104.2,
+   "maxM": 1512
+  },
+  {
+   "code": "KZ",
+   "domaines": 10,
+   "cadre": [
+    69.0501,
+    42.0585,
+    83.1169,
+    53.3399
+   ],
+   "kmTotal": 39.0,
+   "maxM": 3205
+  },
+  {
+   "code": "LB",
+   "domaines": 5,
+   "cadre": [
+    35.714,
+    33.8166,
+    36.1777,
+    34.3562
+   ],
+   "kmTotal": 47.0,
+   "maxM": 2817
+  },
+  {
+   "code": "LI",
+   "domaines": 1,
+   "cadre": [
+    9.5113,
+    47.0003,
+    9.7113,
+    47.2003
+   ],
+   "kmTotal": 17.4,
+   "maxM": 1991
+  },
+  {
+   "code": "LS",
+   "domaines": 1,
+   "cadre": [
+    28.6232,
+    -28.9195,
+    28.8232,
+    -28.7195
+   ],
+   "kmTotal": 0.9,
+   "maxM": 3223
+  },
+  {
+   "code": "LT",
+   "domaines": 9,
+   "cadre": [
+    21.7161,
+    53.9275,
+    26.2831,
+    55.9725
+   ],
+   "kmTotal": 2.9,
+   "maxM": 230
+  },
+  {
+   "code": "LV",
+   "domaines": 12,
+   "cadre": [
+    21.448,
+    55.7732,
+    26.4305,
+    57.6348
+   ],
+   "kmTotal": 3.9,
+   "maxM": 308
+  },
+  {
+   "code": "MA",
+   "domaines": 3,
+   "cadre": [
+    -7.9604,
+    31.0902,
+    -4.9808,
+    33.5108
+   ],
+   "kmTotal": 11.5,
+   "maxM": 3241
+  },
+  {
+   "code": "ME",
+   "domaines": 6,
+   "cadre": [
+    18.9735,
+    42.72,
+    20.1243,
+    43.2194
+   ],
+   "kmTotal": 48.5,
+   "maxM": 2175
+  },
+  {
+   "code": "MK",
+   "domaines": 8,
+   "cadre": [
+    20.618,
+    40.8807,
+    22.4564,
+    42.1374
+   ],
+   "kmTotal": 34.2,
+   "maxM": 2376
+  },
+  {
+   "code": "MN",
+   "domaines": 1,
+   "cadre": [
+    106.944,
+    47.7726,
+    107.144,
+    47.9726
+   ],
+   "maxM": 1564
+  },
+  {
+   "code": "MX",
+   "domaines": 1,
+   "cadre": [
+    -100.5352,
+    25.1319,
+    -100.3352,
+    25.3319
+   ],
+   "maxM": 2705
+  },
+  {
+   "code": "NL",
+   "domaines": 19,
+   "cadre": [
+    3.7502,
+    50.7748,
+    6.9293,
+    52.9429
+   ],
+   "kmTotal": 2.6,
+   "maxM": 220
+  },
+  {
+   "code": "NO",
+   "domaines": 232,
+   "cadre": [
+    5.5801,
+    58.1043,
+    30.0336,
+    71.0923
+   ],
+   "kmTotal": 1044.7,
+   "maxM": 2180
+  },
+  {
+   "code": "NZ",
+   "domaines": 30,
+   "cadre": [
+    168.434,
+    -45.1553,
+    175.7047,
+    -36.5331
+   ],
+   "kmTotal": 244.2,
+   "maxM": 2316
+  },
+  {
+   "code": "PK",
+   "domaines": 2,
+   "cadre": [
+    72.4755,
+    34.6982,
+    74.2793,
+    36.2499
+   ],
+   "maxM": 3820
+  },
+  {
+   "code": "PL",
+   "domaines": 250,
+   "cadre": [
+    14.4231,
+    49.0947,
+    23.5782,
+    54.4758
+   ],
+   "kmTotal": 382.7,
+   "maxM": 1958
+  },
+  {
+   "code": "PT",
+   "domaines": 2,
+   "cadre": [
+    -7.7155,
+    40.227,
+    -7.3691,
+    40.51
+   ],
+   "kmTotal": 5.4,
+   "maxM": 1986
+  },
+  {
+   "code": "RO",
+   "domaines": 72,
+   "cadre": [
+    21.1013,
+    45.0965,
+    27.6687,
+    47.9049
+   ],
+   "kmTotal": 197.1,
+   "maxM": 2085
+  },
+  {
+   "code": "RS",
+   "domaines": 18,
+   "cadre": [
+    19.3625,
+    42.5655,
+    22.7039,
+    44.8788
+   ],
+   "kmTotal": 105.1,
+   "maxM": 1974
+  },
+  {
+   "code": "RU",
+   "domaines": 244,
+   "cadre": [
+    27.7235,
+    42.0911,
+    158.886,
+    69.5934
+   ],
+   "kmTotal": 769.6,
+   "maxM": 3841
+  },
+  {
+   "code": "SE",
+   "domaines": 162,
+   "cadre": [
+    11.5932,
+    55.6185,
+    23.8899,
+    68.4984
+   ],
+   "kmTotal": 960.1,
+   "maxM": 1277
+  },
+  {
+   "code": "SI",
+   "domaines": 32,
+   "cadre": [
+    13.3845,
+    45.4762,
+    16.1945,
+    46.6924
+   ],
+   "kmTotal": 171.6,
+   "maxM": 2137
+  },
+  {
+   "code": "SK",
+   "domaines": 146,
+   "cadre": [
+    17.099,
+    47.9275,
+    21.73,
+    49.6213
+   ],
+   "kmTotal": 399.3,
+   "maxM": 2182
+  },
+  {
+   "code": "TJ",
+   "domaines": 1,
+   "cadre": [
+    68.9109,
+    38.7502,
+    69.1109,
+    38.9502
+   ],
+   "maxM": 3016
+  },
+  {
+   "code": "TR",
+   "domaines": 27,
+   "cadre": [
+    29.0284,
+    36.7318,
+    43.7728,
+    41.1682
+   ],
+   "kmTotal": 173.4,
+   "maxM": 3339
+  },
+  {
+   "code": "TW",
+   "domaines": 1,
+   "cadre": [
+    120.8788,
+    24.7688,
+    121.0788,
+    24.9688
+   ]
+  },
+  {
+   "code": "UA",
+   "domaines": 62,
+   "cadre": [
+    22.3832,
+    47.0659,
+    36.3975,
+    50.704
+   ],
+   "kmTotal": 146.5,
+   "maxM": 1706
+  },
+  {
+   "code": "US",
+   "domaines": 594,
+   "cadre": [
+    -151.5912,
+    32.3449,
+    -67.7223,
+    65.1514
+   ],
+   "kmTotal": 9247.8,
+   "maxM": 3910
+  },
+  {
+   "code": "UZ",
+   "domaines": 4,
+   "cadre": [
+    69.85,
+    41.0456,
+    70.2231,
+    41.624
+   ],
+   "kmTotal": 16.3,
+   "maxM": 2285
+  },
+  {
+   "code": "XK",
+   "domaines": 1,
+   "cadre": [
+    20.9446,
+    42.0754,
+    21.1446,
+    42.2754
+   ],
+   "kmTotal": 7.2,
+   "maxM": 2261
+  },
+  {
+   "code": "ZA",
+   "domaines": 1,
+   "cadre": [
+    27.8264,
+    -30.7507,
+    28.0264,
+    -30.5507
+   ],
+   "kmTotal": 1.3,
+   "maxM": 2918
+  }
+ ],
+ "partages": [
+  {
+   "id": "ad-canaro",
+   "hote": "AD",
+   "pays": [
+    "AD",
+    "FR"
+   ]
+  },
+  {
+   "id": "ad-grandvalira",
+   "hote": "AD",
+   "pays": [
+    "AD",
+    "FR"
+   ]
+  },
+  {
+   "id": "ad-pal-arinsal",
+   "hote": "AD",
+   "pays": [
+    "AD",
+    "ES"
+   ]
+  },
+  {
+   "id": "at-dreilandereck-arnoldstein",
+   "hote": "AT",
+   "pays": [
+    "AT",
+    "SI"
+   ]
+  },
+  {
+   "id": "at-kleinwalsertal-oberstdorf",
+   "hote": "AT",
+   "pays": [
+    "AT",
+    "DE"
+   ]
+  },
+  {
+   "id": "at-nassfeld-mokrine",
+   "hote": "AT",
+   "pays": [
+    "AT",
+    "IT"
+   ]
+  },
+  {
+   "id": "at-nauders-bergkastel",
+   "hote": "AT",
+   "pays": [
+    "AT",
+    "IT"
+   ]
+  },
+  {
+   "id": "at-silvretta-arena-ischgl-samnaun",
+   "hote": "AT",
+   "pays": [
+    "AT",
+    "CH"
+   ]
+  },
+  {
+   "id": "at-steinplatte-waidring-tirol",
+   "hote": "AT",
+   "pays": [
+    "AT",
+    "DE"
+   ]
+  },
+  {
+   "id": "ch-avoriaz",
+   "hote": "CH",
+   "pays": [
+    "CH",
+    "FR"
+   ]
+  },
+  {
+   "id": "ch-champery-les-crosets-champoussin-morgins",
+   "hote": "CH",
+   "pays": [
+    "CH",
+    "FR"
+   ]
+  },
+  {
+   "id": "ch-le-larmont",
+   "hote": "CH",
+   "pays": [
+    "CH",
+    "FR"
+   ]
+  },
+  {
+   "id": "ch-les-cernets",
+   "hote": "CH",
+   "pays": [
+    "CH",
+    "FR"
+   ]
+  },
+  {
+   "id": "ch-les-rousses",
+   "hote": "CH",
+   "pays": [
+    "CH",
+    "FR"
+   ]
+  },
+  {
+   "id": "ch-zermatt-breuil-cervinia-breuil-cervinia-ski-paradise",
+   "hote": "CH",
+   "pays": [
+    "CH",
+    "IT"
+   ]
+  },
+  {
+   "id": "cz-504258m126874",
+   "hote": "CZ",
+   "pays": [
+    "CZ",
+    "DE"
+   ]
+  },
+  {
+   "id": "cz-destne-v-orlickych-horach",
+   "hote": "CZ",
+   "pays": [
+    "CZ",
+    "PL"
+   ]
+  },
+  {
+   "id": "cz-hochficht-bohmerwald",
+   "hote": "CZ",
+   "pays": [
+    "CZ",
+    "AT"
+   ]
+  },
+  {
+   "id": "cz-lyzarsky-vlek-kubiska",
+   "hote": "CZ",
+   "pays": [
+    "CZ",
+    "SK"
+   ]
+  },
+  {
+   "id": "cz-skiareal-spindleruv-mlyn-medvedin",
+   "hote": "CZ",
+   "pays": [
+    "CZ",
+    "PL"
+   ]
+  },
+  {
+   "id": "cz-soszow-jawornik-wis-a",
+   "hote": "CZ",
+   "pays": [
+    "CZ",
+    "PL"
+   ]
+  },
+  {
+   "id": "cz-stozek",
+   "hote": "CZ",
+   "pays": [
+    "CZ",
+    "PL"
+   ]
+  },
+  {
+   "id": "de-476635m130795",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-504180m129857",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "CZ"
+   ]
+  },
+  {
+   "id": "de-506088m134350",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "CZ"
+   ]
+  },
+  {
+   "id": "de-balderschwang-hochschelpen-riedberger-horn",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-gletscher-skigebiet-zugspitze-ski-resort-zugspitze",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-hochlitten-riefensberg",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-rossfeld",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-scheidegg",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-skigebiet-fellhorn-kanzelwand",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-skigebiet-ifen",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-skigebiet-lausche",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "CZ"
+   ]
+  },
+  {
+   "id": "de-skigebiet-sollereck",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-skigebiet-wei-er-stein",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "BE"
+   ]
+  },
+  {
+   "id": "de-tannheim-zoblen-schattwald",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "de-zadni-telnice",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "CZ"
+   ]
+  },
+  {
+   "id": "de-zinkenlifte-durrnberg-hallein",
+   "hote": "DE",
+   "pays": [
+    "DE",
+    "AT"
+   ]
+  },
+  {
+   "id": "es-candanchu",
+   "hote": "ES",
+   "pays": [
+    "ES",
+    "FR"
+   ]
+  },
+  {
+   "id": "fr-balme-vallorcine",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "CH"
+   ]
+  },
+  {
+   "id": "fr-claviere",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "IT"
+   ]
+  },
+  {
+   "id": "fr-espace-liberte",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "CH"
+   ]
+  },
+  {
+   "id": "fr-la-chapelle-d-abondance",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "CH"
+   ]
+  },
+  {
+   "id": "fr-la-rosiere",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "IT"
+   ]
+  },
+  {
+   "id": "fr-les-fourgs",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "CH"
+   ]
+  },
+  {
+   "id": "fr-les-portes-du-soleil",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "CH"
+   ]
+  },
+  {
+   "id": "fr-montgenevre",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "IT"
+   ]
+  },
+  {
+   "id": "fr-torgon",
+   "hote": "FR",
+   "pays": [
+    "FR",
+    "CH"
+   ]
+  },
+  {
+   "id": "it-drei-zinnen-tre-cime-drei-zinnen-tre-cime",
+   "hote": "IT",
+   "pays": [
+    "IT",
+    "AT"
+   ]
+  },
+  {
+   "id": "it-kaunertaler-gletscher",
+   "hote": "IT",
+   "pays": [
+    "IT",
+    "AT"
+   ]
+  },
+  {
+   "id": "it-la-thuile-ski",
+   "hote": "IT",
+   "pays": [
+    "IT",
+    "FR"
+   ]
+  },
+  {
+   "id": "it-macesnovc-ratece",
+   "hote": "IT",
+   "pays": [
+    "IT",
+    "SI"
+   ]
+  },
+  {
+   "id": "it-schnalstal",
+   "hote": "IT",
+   "pays": [
+    "IT",
+    "AT"
+   ]
+  },
+  {
+   "id": "no-riksgransen",
+   "hote": "NO",
+   "pays": [
+    "NO",
+    "SE"
+   ]
+  },
+  {
+   "id": "pl-palenica",
+   "hote": "PL",
+   "pays": [
+    "PL",
+    "SK"
+   ]
+  },
+  {
+   "id": "pl-pod-durbaszka",
+   "hote": "PL",
+   "pays": [
+    "PL",
+    "SK"
+   ]
+  },
+  {
+   "id": "pl-poniwiec",
+   "hote": "PL",
+   "pays": [
+    "PL",
+    "CZ"
+   ]
+  },
+  {
+   "id": "pl-skalanka",
+   "hote": "PL",
+   "pays": [
+    "PL",
+    "SK"
+   ]
+  },
+  {
+   "id": "pl-skiresort-cerna-hora-pec",
+   "hote": "PL",
+   "pays": [
+    "PL",
+    "CZ"
+   ]
+  },
+  {
+   "id": "pl-zieleniec",
+   "hote": "PL",
+   "pays": [
+    "PL",
+    "CZ"
+   ]
+  },
+  {
+   "id": "pl-zieleniec-503335m163895",
+   "hote": "PL",
+   "pays": [
+    "PL",
+    "CZ"
+   ]
+  },
+  {
+   "id": "se-storlien",
+   "hote": "SE",
+   "pays": [
+    "SE",
+    "NO"
+   ]
+  },
+  {
+   "id": "si-kranjska-gora",
+   "hote": "SI",
+   "pays": [
+    "SI",
+    "IT"
+   ]
+  },
+  {
+   "id": "si-sella-nevea-kanin-sella-nevea-canin-kanin-sella-nevea",
+   "hote": "SI",
+   "pays": [
+    "SI",
+    "IT"
+   ]
+  },
+  {
+   "id": "sk-kohutka",
+   "hote": "SK",
+   "pays": [
+    "SK",
+    "CZ"
+   ]
+  },
+  {
+   "id": "sk-makov-kasarne",
+   "hote": "SK",
+   "pays": [
+    "SK",
+    "CZ"
+   ]
+  },
+  {
+   "id": "sk-velka-raca",
+   "hote": "SK",
+   "pays": [
+    "SK",
+    "PL",
+    "CZ"
+   ]
+  },
+  {
+   "id": "xk-ski-center-brezovica",
+   "hote": "XK",
+   "pays": [
+    "XK",
+    "MK"
+   ]
+  }
+ ]
+}

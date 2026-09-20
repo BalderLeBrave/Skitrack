@@ -16,7 +16,7 @@
  *   vérifie ; « 8 × 6 j adulte » pour un groupe qui compte deux enfants, non.
  */
 
-import { formatEuroTarif } from "./age.ts";
+import { formatTarif } from "./age.ts";
 
 export type CoutForfaits = {
   /** Le coût du groupe, ou `null` si aucun tarif n'est relevé. */
@@ -25,36 +25,57 @@ export type CoutForfaits = {
   detail: string;
   /** Les enfants sont comptés au tarif adulte, faute de tarif enfant relevé. */
   enfantsAuTarifAdulte: boolean;
+  /**
+   * La devise du total, qui est celle du domaine.
+   *
+   * Elle voyage avec le montant plutôt que d'être supposée à l'arrivée : un
+   * écran qui reçoit `2 728` sans savoir en quoi finit par écrire « € »,
+   * lequel est faux dès la première station suisse. Le total et sa devise sont
+   * une seule valeur, et ne se séparent pas.
+   */
+  devise: string;
 };
 
+/**
+ * Le coût des forfaits d'un groupe, dans la devise du domaine.
+ *
+ * Les deux tarifs viennent toujours du même forfait, donc du même domaine :
+ * il n'y a pas d'addition d'euros et de francs à craindre ici. Ce qui était
+ * faux est ailleurs, et plus banal — le résultat s'écrivait en euros quelle
+ * que soit l'origine du tarif.
+ */
 export function coutForfaits(
   j6: number | null | undefined,
   enf6: number | null | undefined,
   adultes: number,
   enfants: number,
+  devise = "EUR",
 ): CoutForfaits {
   if (j6 == null) {
-    return { total: null, detail: "aucun tarif relevé", enfantsAuTarifAdulte: false };
+    return { total: null, detail: "aucun tarif relevé", enfantsAuTarifAdulte: false, devise };
   }
   const ad = Math.max(0, Math.round(adultes));
   const enf = Math.max(0, Math.round(enfants));
   if (!enf) {
     return {
       total: j6 * ad,
-      detail: `${ad} × ${formatEuroTarif(j6)} adulte`,
+      devise,
+      detail: `${ad} × ${formatTarif(j6, devise)} adulte`,
       enfantsAuTarifAdulte: false,
     };
   }
   if (enf6 == null) {
     return {
       total: j6 * (ad + enf),
-      detail: `${ad + enf} × ${formatEuroTarif(j6)} adulte — tarif enfant non relevé`,
+      devise,
+      detail: `${ad + enf} × ${formatTarif(j6, devise)} adulte — tarif enfant non relevé`,
       enfantsAuTarifAdulte: true,
     };
   }
-  const pieces = [`${ad} × ${formatEuroTarif(j6)} adulte`, `${enf} × ${formatEuroTarif(enf6)} enfant`];
+  const pieces = [`${ad} × ${formatTarif(j6, devise)} adulte`, `${enf} × ${formatTarif(enf6, devise)} enfant`];
   return {
     total: j6 * ad + enf6 * enf,
+    devise,
     detail: ad ? pieces.join(" + ") : pieces[1],
     enfantsAuTarifAdulte: false,
   };

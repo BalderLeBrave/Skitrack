@@ -18,6 +18,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { ForfaitRow } from "./types.ts";
+import { deviseDuDomaine } from "./catalog.ts";
 
 /** Les catégories de tarif. Une constante, partagée ; d'autres peuvent s'y
  *  ajouter sans qu'aucun écran change. */
@@ -54,6 +55,9 @@ export type Tarif = {
   statut: Statut;
 };
 
+/** Une case vide n'a pas de prix, donc pas de devise à porter. « EUR » y est
+ *  un remplissage, et non une hypothèse : rien ne le lit tant que `prix` est
+ *  nul, et toute case remplie reçoit la devise de son domaine. */
 export const TARIF_VIDE: Tarif = {
   prix: null,
   devise: "EUR",
@@ -131,7 +135,7 @@ export function fusionnerReleve(
     }
     cases[k] = {
       prix: v.prix,
-      devise: "EUR",
+      devise: deviseDuDomaine(g.slug) ?? "EUR",
       source: row.sourceUrl,
       dateReleve: quand,
       statut: row.status === "estimé" ? "estime" : "releve",
@@ -185,7 +189,7 @@ export const useGrilles = create<GrillesStore>()(
           else
             cases[k] = {
               prix,
-              devise: "EUR",
+              devise: deviseDuDomaine(slug) ?? "EUR",
               source: "saisie manuelle",
               dateReleve: new Date().toISOString(),
               statut: "manuel",
@@ -218,7 +222,7 @@ export const useGrilles = create<GrillesStore>()(
           for (const cf of conflits) {
             cases[cle(cf.duree, cf.categorie)] = {
               prix: cf.nouveau,
-              devise: "EUR",
+              devise: deviseDuDomaine(slug) ?? "EUR",
               source: row.sourceUrl,
               dateReleve: quand,
               statut: "releve",

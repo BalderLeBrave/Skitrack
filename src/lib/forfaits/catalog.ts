@@ -1,5 +1,6 @@
 import raw from "./catalog.json" with { type: "json" };
 import type { DomainForfait } from "./types";
+import { deviseDuPays } from "../devises.ts";
 
 export const FORFAIT_CATALOG: DomainForfait[] = raw as DomainForfait[];
 
@@ -26,6 +27,19 @@ function cam(s: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+/**
+ * La devise dans laquelle un domaine publie ses tarifs.
+ *
+ * Elle vient du pays du domaine, que le catalogue porte depuis l'origine sous
+ * `country` — l'audit l'avait relevé, et c'est ce qui limite la reprise à son
+ * alimentation. Un domaine dont le pays est inconnu de `geo/pays.ts` rend
+ * `null` : l'appelant décide alors s'il affiche un prix sans unité ou pas de
+ * prix du tout, ce qui vaut mieux qu'un euro supposé.
+ */
+export function deviseDuDomaine(slug: string | null | undefined): string | null {
+  return slug ? deviseDuPays(domainBySlug(slug)?.country) : null;
 }
 
 export function domainForStation(stationId: string): DomainForfait | undefined {

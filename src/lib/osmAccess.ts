@@ -81,13 +81,30 @@ function nearest(pts: OsmPt[] | undefined, lat: number, lon: number): OsmHit | n
   return asHit(bestPt, Math.round(bestM), mateOf(pts, bestPt));
 }
 
+/**
+ * La remontée la plus proche **de cette station-là**.
+ *
+ * L'index mondial ne sert que de filet : il répond pour une station dont le
+ * référentiel ne connaît pas les remontées. Tant que la station a les siennes,
+ * ce sont elles qui répondent, et aucune autre.
+ *
+ * Il en allait autrement, et c'était faux. L'index mondial l'emportait dès
+ * qu'une remontée quelconque se trouvait plus près, à quarante kilomètres à la
+ * ronde : un logement de Bonneval-sur-Arc cherché depuis Val d'Isère mesurait
+ * 372 m « des remontées de Val d'Isère », parce que le tapis « Piou-piou » de
+ * Bonneval était juste à côté. Les vraies remontées de Val d'Isère sont à
+ * 5 249 m, de l'autre côté du col de l'Iseran, fermé l'hiver.
+ *
+ * L'écart n'est pas cosmétique : c'est ce chiffre qui fait dire à la fiche
+ * « au pied des pistes », et `domainFit` avait pourtant déjà tranché que ce
+ * logement n'était pas dans le domaine cherché. Les deux se contredisaient
+ * dans la même ligne.
+ */
 export function nearestLift(stationId: string, lat: number, lon: number): OsmHit | null {
   const local = nearest(OSM_ACCESS[stationId]?.lifts, lat, lon);
+  if (local) return local;
   const world = nearest(OSM_LIFTS, lat, lon);
-  if (world && world.m <= 40_000) {
-    if (!local || world.m < local.m) return world;
-  }
-  return local;
+  return world && world.m <= 40_000 ? world : null;
 }
 
 export function nearestPlace(stationId: string, lat: number, lon: number): OsmHit | null {

@@ -29,7 +29,8 @@ import {
   type PisteColor,
 } from "./parcours.ts";
 import type { Station } from "./stations.ts";
-import { CHIPS, forfaitOf, maxM, minM, villageM } from "./v7.ts";
+import { memeDevise, montant } from "./devises.ts";
+import { CHIPS, deviseForfaitOf, forfaitOf, maxM, minM, villageM } from "./v7.ts";
 
 /** Un critère actif : son jeton, son prédicat, et la façon de le retirer. */
 export type Pred = {
@@ -57,6 +58,20 @@ export const SEUILS: {
   { k: "km", label: "Km de pistes, domaine", court: "km", max: 600, step: 10, unit: "km" },
   { k: "pass", label: "Forfait 6 j adulte, au plus", court: "forfait", max: 400, step: 10, unit: "€", auPlus: true },
 ];
+
+/**
+ * La devise dans laquelle le seuil « forfait » est exprimé.
+ *
+ * Un seuil de 400 € n'a rien à dire d'un forfait en francs suisses ou en yens,
+ * et aucun taux de change ne vit dans ce dépôt. Le filtre écarte donc les
+ * stations d'une autre devise, exactement comme il écarte déjà une station
+ * dont le champ n'est pas mesuré : dans les deux cas, la comparaison demandée
+ * n'a pas de sens, et y répondre « oui » serait pire que n'y pas répondre.
+ *
+ * Elle vaut l'euro tant que le seuil s'affiche en euros. Le jour où l'écran
+ * proposera de choisir la devise, c'est cette constante qui deviendra un état.
+ */
+export const DEVISE_SEUIL = "EUR";
 
 /** Ce que chaque seuil lit sur la station. **L'altitude minimale du village lit
  *  `villageM`** — le point de départ —, jamais le sommet du domaine. */
@@ -125,10 +140,12 @@ export function predicats(e: EtatRecherche): Pred[] {
     if (r.k === "pass") {
       out.push({
         id: r.k,
-        label: `Forfait ≤ ${fmt(v)} €`,
+        label: `Forfait ≤ ${montant(v, DEVISE_SEUIL)}`,
         fn: (s) => {
           const j6 = forfaitOf(s)?.j6;
-          return j6 != null && j6 <= v;
+          if (j6 == null) return false;
+          if (!memeDevise(deviseForfaitOf(s), DEVISE_SEUIL)) return false;
+          return j6 <= v;
         },
         retirer: () => P.setFilters({ pass: 0 }),
       });

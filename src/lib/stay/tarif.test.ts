@@ -250,7 +250,14 @@ describe("devis ITEA : total publié aux dates", () => {
   });
 });
 
+/* eslint-disable no-irregular-whitespace */
+// Le gabarit reproduit la
+// page telle qu'elle est servie, espace fine et espace insécable comprises :
+// « 3 990 € » s'y écrit avec U+202F et U+00A0. Les remplacer par des espaces
+// ordinaires ferait passer le test sans prouver ce qu'il prouve, à savoir que
+// l'extraction lit le prix tel que le site l'écrit.
 const EDELWEISS_RECAP = `<form id="frm-tarifs-G-5659687-5660360-1"><input type="hidden" name="cid" value="5" /><input type="hidden" name="prestation" value="G-5659687-5660360" /><input type="hidden" name="num_personne" value="1" /><input type="hidden" name="theme" value="HIVER" /><input type="hidden" name="new_dateDebut" value="20270206" /><input type="hidden" name="new_dateFin" value="20270213" /><input type='hidden' name='stock_lies_nb' value='0' /><tr class="ligne_tarif_formule ligne_tarif_formule_FB"><td class="libelle_formule">Location semaine</td><td class="quantite_formule"><input type="hidden" name="formules[]" id="formule-Location" value="Location" /><input type="hidden" name="nb_personnes_Location" value="1" /><input type="checkbox" id="formule-checked-Location" name="formule-checked-Location" checked="checked" disabled="disabled" /></td><td class="prix_formule">3 990 €</td></tr><tr class="ligne_tarif_formule ligne_tarif_formule_QU"><td class="libelle_formule">Taxe de séjour: Indiquez le nombre de personnes de + 18 ans</td><td class="quantite_formule"><input type="hidden" name="formules[]" id="formule-MTAXENC" value="MTAXENC" /><select name="nb_personnes_MTAXENC" id="nb_personnes_MTAXENC"><option value="1">1</option><option value="8"  selected="selected" >8</option></select></td><td class="prix_formule">5.5&nbsp; %</td></tr><tr class="ligne_total_prestation"><td class="label_total_prestation">TOTAL : </td><td class="total_prestation"><span>N/A</span></td></tr></form>`;
+/* eslint-enable no-irregular-whitespace */
 
 describe("panier Ingénie : total publié, taxe en pourcentage comprise", () => {
   it("ne prend pas 5,5 % pour une taxe en euros, et n'invente pas le total", () => {

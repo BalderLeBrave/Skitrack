@@ -1,10 +1,35 @@
-/** Altitudes par source, grain station. On n’en fusionne aucune. */
+/** Altitudes par source, grain station. On n’en fusionne aucune.
+ *
+ * ## Deux familles de sources, qui ne se mélangent jamais
+ *
+ * Les cinq premières décrivent une **station française** : elles viennent du
+ * dépôt, du classeur France Montagnes, de Skiinfo, de l'IGN ou du catalogue
+ * des domaines. Les deux dernières décrivent un **domaine du référentiel
+ * mondial**, et `altBandsDomaine()` est seule à les rendre.
+ *
+ * Aucune fonction ne rend les deux. Ce n'est pas une précaution de style : une
+ * altitude IGN au pin d'un village et l'altitude minimale d'un domaine
+ * OpenSkiMap ne mesurent pas la même chose, et les afficher dans une même
+ * colonne laisserait croire à un écart là où il y a deux définitions.
+ */
 
 import { domainForStation } from "./forfaits/catalog.ts";
+import type { DomaineMonde } from "./monde/monde.ts";
 import { SKIINFO } from "./skiinfo.ts";
 import { dropM, type Station } from "./stations.ts";
 
-export type AltSourceId = "village" | "fm" | "skiinfo" | "ign" | "catalog";
+export type AltSourceId =
+  | "village"
+  | "fm"
+  | "skiinfo"
+  | "ign"
+  | "catalog"
+  /** Le relevé d'altitude d'OpenSkiMap, à l'échelle du domaine. */
+  | "openskimap"
+  /** Modèle numérique de terrain servi par Open-Meteo, hors de France, où
+   *  l'IGN ne couvre rien. Les deux ne se mélangent pas : `ign` tient au pin
+   *  d'une station française, `dem` au point de référence d'un domaine. */
+  | "dem";
 
 export type AltBand = {
   source: AltSourceId;
@@ -13,6 +38,15 @@ export type AltBand = {
   minM: number | null;
   maxM: number | null;
   dropM: number | null;
+  /**
+   * Un relevé **ponctuel**, qui n'est ni un village, ni une borne de domaine.
+   *
+   * Aucun des trois champs ci-dessus ne le dirait sans mentir : le ranger dans
+   * `villageM` inventerait un village, et le mettre à la fois dans `minM` et
+   * `maxM` afficherait un dénivelé de zéro là où rien n'a été mesuré. Seule la
+   * bande `dem` l'emploie.
+   */
+  pointM?: number | null;
 };
 
 function band(
@@ -51,6 +85,35 @@ export function altBands(station: Station): AltBand[] {
   const cat = domainForStation(station.id);
   if (cat && (cat.villageM != null || cat.minM != null || cat.maxM != null)) {
     out.push(band("catalog", "Catalogue domaine", cat.villageM ?? null, cat.minM ?? null, cat.maxM ?? null));
+  }
+  return out;
+}
+
+/**
+ * Les altitudes d'un domaine du référentiel mondial.
+ *
+ * **`villageM` vaut toujours `null` ici, et c'est le fond du sujet.** Un
+ * domaine n'a pas de village : `minM` est son point le plus bas, qui peut être
+ * un fond de vallée sans une maison, et le point de référence que la source
+ * donne — `viewportHint.center` — n'est ni le village, ni le sommet, ni le
+ * départ des pistes. L'écran doit dire ce qu'il montre, et ne peut pas parler
+ * d'altitude de village là où personne n'en a mesuré une.
+ *
+ * `demM` est le relevé du modèle de terrain à ce point de référence, quand il
+ * a été demandé. Il ne remplace ni `minM` ni `maxM` : il dit à quelle altitude
+ * se trouve le point sur lequel la carte cadre, ce qui est une troisième
+ * chose encore.
+ */
+export function altBandsDomaine(d: DomaineMonde, demM: number | null = null): AltBand[] {
+  const out: AltBand[] = [];
+  if (d.minM != null || d.maxM != null) {
+    out.push(band("openskimap", "OpenSkiMap (domaine, pas un village)", null, d.minM, d.maxM));
+  }
+  if (demM != null) {
+    out.push({
+      ...band("dem", "Modèle de terrain au point de référence du domaine", null, null, null),
+      pointM: demM,
+    });
   }
   return out;
 }

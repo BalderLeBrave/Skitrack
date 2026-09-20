@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   cidDepuisPage,
+  estPageResultat,
   dateIngenie,
   fragmentsIngenie,
   lireIngenie,
@@ -164,5 +165,42 @@ describe("Ingénie : lire une page de résultats datés", () => {
     assert.equal(cidDepuisPage(`<input type="hidden" name="cid" value="4">`), "4");
     assert.equal(cidDepuisPage(PAGE), "4");
     assert.equal(cidDepuisPage("<html><body>pas de moteur</body></html>"), null);
+  });
+});
+
+describe("une page de résultats, ou pas une page de résultats", () => {
+  /**
+   * Le contrôle qui manquait. Treize centrales Ingénie sur vingt-huit
+   * répondent à l'URL de recherche par leur accueil de réservation, avec un
+   * `200` et sans un résultat. Zéro fiche se lisait alors « rien de disponible
+   * à ces dates », et l'écran annonçait Courchevel complet un an à l'avance.
+   */
+  it("une page de résultats vide en est une : elle porte le compteur", () => {
+    // Relevé sur `reservation.areches-beaufort.com` avec 40 personnes, le
+    // 20 septembre 2026 : 56 Ko, aucune fiche, mais `nb_result` y est
+    // quarante et une fois, comme sur la page qui en porte dix.
+    const vide = `<div id="nb_result">0</div><div class="critere_recherche"></div>`;
+    assert.equal(estPageResultat(vide), true);
+    assert.deepEqual(lireIngenie(vide), []);
+  });
+
+  it("un formulaire de recherche n'en est pas une, malgré ses paramètres", () => {
+    // Relevé sur `www.valloire.com` : 39 Ko de formulaire, avec `datedeb`
+    // puisqu'il le pose. S'être fié à ce paramètre l'aurait laissé passer, et
+    // Valloire serait restée « rien de disponible ».
+    const form = `<form action="/booking?action=result"><input name="datedeb" value="06/02/2027"></form>`;
+    assert.equal(estPageResultat(form), false);
+  });
+
+  it("un accueil de réservation n'en est pas une non plus", () => {
+    // Relevé sur `reservation.courchevel.com` le même jour : 30 Ko, et aucun
+    // des quatre marqueurs.
+    const accueil = `<h1>Réservation en ligne</h1><p>Une équipe d'experts</p><a href="/hebergements">Nos hébergements</a>`;
+    assert.equal(estPageResultat(accueil), false);
+  });
+
+  it("la page qui porte des fiches en est une, évidemment", () => {
+    assert.equal(estPageResultat(PAGE), true);
+    assert.ok(lireIngenie(PAGE).length > 0);
   });
 });

@@ -174,6 +174,41 @@ export function texteIngenie(fragment: string): string {
  * `fiche_liste_appartements_chalets_prestation_v2` aux Contamines. Seul le
  * préfixe `fiche_liste` leur est commun, et c'est donc lui qu'on suit.
  */
+/**
+ * La page rendue est-elle une page de résultats ?
+ *
+ * La question n'est pas rhétorique : treize centrales Ingénie sur vingt-huit
+ * répondent aujourd'hui à l'URL de recherche par autre chose qu'un résultat,
+ * avec un `200` et sans rien vendre. Sans ce contrôle, zéro fiche se lisait
+ * « rien de disponible à ces dates », et l'écran annonçait Courchevel complet
+ * un an à l'avance.
+ *
+ * Quatre états ont été relevés le 20 septembre 2026, et il faut les quatre
+ * pour choisir le marqueur — les deux premiers sont de vraies réponses, les
+ * deux derniers des pannes :
+ *
+ * | État | `nb_result` | `critere` | `datedeb` | fiches |
+ * | --- | ---: | ---: | ---: | ---: |
+ * | Arêches-Beaufort, 8 personnes | 41 | 180 | 38 | 10 |
+ * | Arêches-Beaufort, 40 personnes | 41 | 128 | 7 | 0 |
+ * | Valloire — formulaire de recherche | **0** | **0** | 1 | 0 |
+ * | Courchevel — accueil de réservation | **0** | **0** | 0 | 0 |
+ *
+ * `nb_result` est le compteur de résultats du gabarit : il est là que le
+ * compte vaille dix ou zéro, et **quarante et une fois dans les deux cas**.
+ * C'est ce qui en fait le marqueur, et non `datedeb` ni `action=result` :
+ * ceux-là, un formulaire de recherche les porte aussi, puisqu'il les pose.
+ * S'y fier aurait laissé passer Valloire.
+ *
+ * `fiche_liste` complète le compte pour un cas qui n'est pas une page : un
+ * extrait de fiches, comme le gabarit des tests. Une suite de fiches vient
+ * forcément d'une page de résultats, et n'a pas à être refusée parce qu'on
+ * l'a découpée.
+ */
+export function estPageResultat(page: string): boolean {
+  return /nb_result|critere|fiche_liste/.test(page);
+}
+
 export function fragmentsIngenie(page: string): string[] {
   const debuts: number[] = [];
   const re = /class="[^"]*\bfiche_liste[^"]*"/g;

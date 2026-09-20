@@ -17,7 +17,14 @@ import { occupancyFromText } from "@/lib/stay/occupancy";
 import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
-import { cidDepuisPage, lireIngenie, nuitsEntre, urlIngenie, type FicheIngenie } from "./ingenie";
+import {
+  cidDepuisPage,
+  estPageResultat,
+  lireIngenie,
+  nuitsEntre,
+  urlIngenie,
+  type FicheIngenie,
+} from "./ingenie";
 
 const UA = `${AGENT_CENTRALES}/1.0 (+https://skitrack.local/robots)`;
 const TIMEOUT_MS = 30_000;
@@ -117,7 +124,14 @@ async function html(url: string): Promise<string> {
 export async function chercherIngenie(ctx: ContexteCentrale, r: ReglageIngenie): Promise<Listing[]> {
   const base = ctx.base.replace(/\/+$/, "");
   const url = urlIngenie(base, r.cid, ctx);
-  const fiches = lireIngenie(await html(url));
+  const page = await html(url);
+  // Une centrale qui sert son accueil au lieu d'une page de résultats n'a pas
+  // dit « rien de disponible » : elle n'a rien dit. Lever plutôt que rendre
+  // zéro, pour que l'écran annonce une panne et non un complet.
+  if (!estPageResultat(page)) {
+    throw new Error("la centrale a servi son accueil de réservation au lieu d'une page de résultats");
+  }
+  const fiches = lireIngenie(page);
   console.info(`[centrale] ${r.host} : ${fiches.length} fiches, ${ctx.checkIn}→${ctx.checkOut}`);
   return fiches.map((f) => enListing(f, base, r, ctx));
 }

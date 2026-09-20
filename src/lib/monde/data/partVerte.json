@@ -1,0 +1,103 @@
+{
+ "calcule": "2026-09-20",
+ "quoi": "part du vert parmi les pistes faciles (vert + bleu), mesurée sur les domaines dont OpenSkiMap a relevé les quatre couleurs",
+ "regle": "au moins 10 domaines par pays, chacun d'au moins 5 pistes dont 3 faciles",
+ "monde": {
+  "part": 0.178,
+  "domaines": 2303
+ },
+ "pays": {
+  "AR": {
+   "part": 0.327,
+   "domaines": 10
+  },
+  "AT": {
+   "part": 0.047,
+   "domaines": 214
+  },
+  "CA": {
+   "part": 0.128,
+   "domaines": 174
+  },
+  "CH": {
+   "part": 0.064,
+   "domaines": 171
+  },
+  "CL": {
+   "part": 0.364,
+   "domaines": 13
+  },
+  "CN": {
+   "part": 0.146,
+   "domaines": 35
+  },
+  "CZ": {
+   "part": 0.099,
+   "domaines": 72
+  },
+  "DE": {
+   "part": 0.078,
+   "domaines": 120
+  },
+  "ES": {
+   "part": 0.296,
+   "domaines": 32
+  },
+  "FI": {
+   "part": 0.225,
+   "domaines": 35
+  },
+  "FR": {
+   "part": 0.332,
+   "domaines": 196
+  },
+  "GR": {
+   "part": 0.09,
+   "domaines": 10
+  },
+  "IT": {
+   "part": 0.075,
+   "domaines": 177
+  },
+  "JP": {
+   "part": 0.152,
+   "domaines": 221
+  },
+  "NO": {
+   "part": 0.573,
+   "domaines": 81
+  },
+  "NZ": {
+   "part": 0.136,
+   "domaines": 13
+  },
+  "PL": {
+   "part": 0.129,
+   "domaines": 43
+  },
+  "RO": {
+   "part": 0.094,
+   "domaines": 14
+  },
+  "RU": {
+   "part": 0.37,
+   "domaines": 64
+  },
+  "SE": {
+   "part": 0.451,
+   "domaines": 56
+  },
+  "SI": {
+   "part": 0.13,
+   "domaines": 12
+  },
+  "SK": {
+   "part": 0.069,
+   "domaines": 44
+  },
+  "US": {
+   "part": 0.07,
+   "domaines": 379
+  }
+ }
+}

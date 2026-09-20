@@ -94,16 +94,71 @@ export function dateIngenie(iso: string): string {
  * `cid` est le numéro de configuration du moteur, propre à chaque centrale ; il
  * se lit sur sa page d'accueil.
  */
-export function urlIngenie(base: string, cid: number | string, d: DemandeIngenie): string {
+/**
+ * La catégorie d'hébergement par défaut.
+ *
+ * Elle marche sur douze hôtes et pas sur treize : `www.valloire.com` ne la
+ * propose pas et son moteur répond « Une erreur s'est produite ». Voir
+ * `typesPrestataireDepuisPage`, qui lit les valeurs que l'hôte publie.
+ */
+export const TYPE_PRESTATAIRE_DEFAUT = "G";
+
+/**
+ * Le vocabulaire des catégories, pour les hôtes qui ne le publient pas.
+ *
+ * `reservation.courchevel.com` ne sert aucun formulaire — sa recherche est
+ * entièrement peinte en JavaScript —, donc rien à y lire. Mais son moteur
+ * emploie le même vocabulaire que les autres : interrogé sur `I`, il rend
+ * 115 résultats, et 5 sur `H`.
+ *
+ * L'ordre est celui de l'usage : les appartements et chalets d'abord, qui font
+ * le gros de la location de séjour, les hôtels ensuite. On s'arrête au premier
+ * qui répond — un hôte ne se sonde pas cinq fois pour le plaisir.
+ */
+export const TYPES_PRESTATAIRE_CONNUS: readonly string[] = ["I", "H", "I_RESID", "H_INSOLITE"];
+
+export function urlIngenie(
+  base: string,
+  cid: number | string,
+  d: DemandeIngenie,
+  typePrestataire: string = TYPE_PRESTATAIRE_DEFAUT,
+): string {
   const p = new URLSearchParams();
   p.set("action", "result");
   p.set("cid", String(cid));
   p.set("MOTEUR_TYPES_PRESTATAIRE", "MOTEUR_HEBERGEMENT");
-  p.set("type_prestataire", "G");
+  p.set("type_prestataire", typePrestataire);
   p.set("datedeb", dateIngenie(d.checkIn));
   p.set("duree", String(nuitsEntre(d.checkIn, d.checkOut)));
   p.set("personnes", String(Math.max(1, Math.trunc(d.guests))));
   return `${base.replace(/\/+$/, "")}/booking?${p.toString()}`;
+}
+
+/**
+ * Les catégories d'hébergement que cet hôte propose, dans son ordre.
+ *
+ * Le connecteur envoyait `type_prestataire=G` partout. Douze hôtes
+ * l'acceptent ; treize ne le connaissent pas et leur moteur rend
+ * « Une erreur s'est produite ». `www.valloire.com` publie `I`
+ * (Appartement, Chalet), `I_RESID` (Résidence de Tourisme), `H` (Hôtel,
+ * Village Club) et `H_INSOLITE` — et répond 65 résultats sur `I`.
+ *
+ * Trois choses ont été essayées le 20 septembre 2026 et écartées : omettre le
+ * paramètre rend « aucun type de prestataire défini », le passer en liste
+ * `I,H` rend une erreur, et `type_date` n'y change rien.
+ *
+ * La page qui refuse `G` est celle qui porte le formulaire, donc ces valeurs :
+ * le remède est dans le symptôme, et aucune requête n'est dépensée à le
+ * chercher ailleurs.
+ */
+export function typesPrestataireDepuisPage(page: string): string[] {
+  const bloc = /name="type_prestataire"(.{0,2000}?)<\/select>/s.exec(page);
+  if (!bloc) return [];
+  const out: string[] = [];
+  for (const m of bloc[1].matchAll(/<option[^>]*value="([^"]+)"/g)) {
+    if (m[1] && !out.includes(m[1])) out.push(m[1]);
+  }
+  return out;
 }
 
 /**

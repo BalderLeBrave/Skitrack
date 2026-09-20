@@ -21,6 +21,9 @@ import {
   cidDepuisPage,
   estPageResultat,
   lireIngenie,
+  TYPE_PRESTATAIRE_DEFAUT,
+  TYPES_PRESTATAIRE_CONNUS,
+  typesPrestataireDepuisPage,
   nuitsEntre,
   urlIngenie,
   type FicheIngenie,
@@ -124,7 +127,28 @@ async function html(url: string): Promise<string> {
 export async function chercherIngenie(ctx: ContexteCentrale, r: ReglageIngenie): Promise<Listing[]> {
   const base = ctx.base.replace(/\/+$/, "");
   const url = urlIngenie(base, r.cid, ctx);
-  const page = await html(url);
+  let page = await html(url);
+
+  // `type_prestataire=G` marche sur douze hôtes et pas sur treize : ceux-là ne
+  // connaissent pas cette catégorie et rendent leur formulaire de recherche.
+  // Ce formulaire porte justement les catégories qu'ils acceptent : on les y
+  // lit et on réessaie une fois. Aucune requête n'est dépensée pour les hôtes
+  // que le défaut satisfait.
+  if (!estPageResultat(page)) {
+    // Ceux qui servent leur formulaire disent ce qu'ils acceptent ; ceux qui
+    // peignent tout en JavaScript ne disent rien, et on essaie alors le
+    // vocabulaire commun. Deux essais au plus : le premier qui répond gagne.
+    const publies = typesPrestataireDepuisPage(page).filter((t) => t !== TYPE_PRESTATAIRE_DEFAUT);
+    const aEssayer = (publies.length > 0 ? publies : TYPES_PRESTATAIRE_CONNUS).slice(0, 2);
+    for (const type of aEssayer) {
+      const autre = await html(urlIngenie(base, r.cid, ctx, type));
+      if (!estPageResultat(autre)) continue;
+      console.info(`[centrale] ${r.host} : type_prestataire ${type} au lieu de ${TYPE_PRESTATAIRE_DEFAUT}`);
+      page = autre;
+      break;
+    }
+  }
+
   // Une centrale qui sert son accueil au lieu d'une page de résultats n'a pas
   // dit « rien de disponible » : elle n'a rien dit. Lever plutôt que rendre
   // zéro, pour que l'écran annonce une panne et non un complet.

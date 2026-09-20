@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   cidDepuisPage,
   estPageResultat,
+  TYPE_PRESTATAIRE_DEFAUT,
+  typesPrestataireDepuisPage,
   dateIngenie,
   fragmentsIngenie,
   lireIngenie,
@@ -202,5 +204,42 @@ describe("une page de résultats, ou pas une page de résultats", () => {
   it("la page qui porte des fiches en est une, évidemment", () => {
     assert.equal(estPageResultat(PAGE), true);
     assert.ok(lireIngenie(PAGE).length > 0);
+  });
+});
+
+describe("la catégorie d'hébergement n'est pas la même partout", () => {
+  /**
+   * Le connecteur envoyait `type_prestataire=G` à tous les hôtes. Douze
+   * l'acceptent, treize ne le connaissent pas : leur moteur rend « Une erreur
+   * s'est produite », et leur page de recherche à la place des résultats.
+   */
+  const FORM_VALLOIRE = `
+    <form name="form_recherche" method="GET" action="booking">
+      <select name="type_prestataire">
+        <option value="I">Appartement, Chalet</option>
+        <option value="I_RESID">Résidence de Tourisme</option>
+        <option value="H">Hôtel, Village Club</option>
+        <option value="H_INSOLITE">Hébergement insolite</option>
+      </select>
+    </form>`;
+
+  it("lit les catégories que l'hôte publie, dans son ordre", () => {
+    assert.deepEqual(typesPrestataireDepuisPage(FORM_VALLOIRE), ["I", "I_RESID", "H", "H_INSOLITE"]);
+  });
+
+  it("et constate que le défaut n'y figure pas", () => {
+    // C'est tout le défaut : `G` n'est pas une catégorie universelle.
+    assert.equal(typesPrestataireDepuisPage(FORM_VALLOIRE).includes(TYPE_PRESTATAIRE_DEFAUT), false);
+  });
+
+  it("ne trouve rien là où il n'y a pas de formulaire", () => {
+    assert.deepEqual(typesPrestataireDepuisPage("<h1>Réservation en ligne</h1>"), []);
+    assert.deepEqual(typesPrestataireDepuisPage(PAGE), []);
+  });
+
+  it("la catégorie entre dans l'URL, et le défaut ne change pas", () => {
+    const d = { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8 };
+    assert.match(urlIngenie("https://x.fr", 3, d), /type_prestataire=G/);
+    assert.match(urlIngenie("https://x.fr", 3, d, "I"), /type_prestataire=I/);
   });
 });

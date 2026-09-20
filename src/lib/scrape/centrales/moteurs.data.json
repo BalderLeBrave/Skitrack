@@ -565,12 +565,13 @@
   },
   "www.chioula.fr": {
    "nom": "Le Chioula",
-   "moteur": "Ingénie",
+   "moteur": "aucun",
    "stations": [
     "le-chioula"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Sondé le 20 septembre 2026 : le site est bâti avec le gestionnaire de contenu d'Ingénie — ses scripts y sont — mais il ne vend rien. Aucun widget de réservation configuré, aucun `cid` sous les cinq formes connues, aucun lien vers un hôte de réservation. Le classeur France Montagnes le donne « En activité (nordique) », et un domaine nordique n'a pas forcément de centrale. Ce n'est donc pas une panne : c'est une absence, et elle se note."
   },
   "lesangles.com": {
    "nom": "Les Angles",

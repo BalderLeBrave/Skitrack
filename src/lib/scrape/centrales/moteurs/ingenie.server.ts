@@ -19,6 +19,7 @@ import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   configWidgetIngenie,
+  lienReservationDepuisPage,
   estPageResultat,
   lireIngenie,
   TYPE_PRESTATAIRE_DEFAUT,
@@ -194,7 +195,26 @@ export async function chercherIngenieHote(
 ): Promise<Listing[]> {
   const base = ctx.base.replace(/\/+$/, "");
   const accueil = await html(`${base}/`);
-  const config = configWidgetIngenie(accueil);
+  let config = configWidgetIngenie(accueil);
+  let baseConfig = base;
+
+  // `www.chatel.com` ne configure aucun widget : son `cid` est enfoui dans un
+  // paquet JavaScript minifié. Mais il renvoie en clair vers
+  // `www.chatelreservation.com`, qui publie tout. Suivre ce lien coûte une
+  // requête, et seulement à ceux dont l'accueil ne dit rien.
+  if (config.cid == null) {
+    const lien = lienReservationDepuisPage(accueil, new URL(`${base}/`).host);
+    if (lien) {
+      const page = await html(`${lien}/`);
+      const autre = configWidgetIngenie(page);
+      if (autre.cid != null) {
+        console.info(`[centrale] ${host} : configuration lue sur ${lien}`);
+        config = autre;
+        baseConfig = lien;
+      }
+    }
+  }
+
   if (config.cid == null) {
     throw new Error("la page d'accueil n'a pas publié l'identifiant du moteur");
   }
@@ -202,7 +222,7 @@ export async function chercherIngenieHote(
   // Le widget dit sur quel domaine il vend. `www.lesrousses.com` rend 404 sur
   // `/booking` parce que sa centrale est sur `www.lesrousses-reservation.com`,
   // et seule sa configuration le disait.
-  const vendeur = config.urlSite?.replace(/\/+$/, "") || base;
+  const vendeur = config.urlSite?.replace(/\/+$/, "") || baseConfig;
   const ctxVendeur = vendeur === base ? ctx : { ...ctx, base: vendeur };
   if (vendeur !== base) {
     console.info(`[centrale] ${host} : la réservation est sur ${vendeur}`);

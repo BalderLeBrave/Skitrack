@@ -219,6 +219,33 @@ export type ConfigWidgetIngenie = {
   typePrestataire: string | null;
 };
 
+/**
+ * L'adresse de réservation vers laquelle un site d'office renvoie.
+ *
+ * `www.chatel.com` ne configure aucun widget sur son accueil — son `cid` vit
+ * dans un paquet JavaScript minifié — mais il porte un lien clair vers
+ * `https://www.chatelreservation.com`, qui publie tout : `cid` 5, `urlSite` et
+ * `typePrestataire` `I`.
+ *
+ * On ne retient qu'un hôte **différent** de celui d'où l'on vient : un lien
+ * vers sa propre page de réservation ne mène nulle part de nouveau, et la
+ * suivre coûterait une requête pour rien.
+ */
+export function lienReservationDepuisPage(html: string, hoteCourant: string): string | null {
+  for (const m of html.matchAll(/href="(https?:\/\/[^"]+)"/g)) {
+    let hote: string;
+    try {
+      hote = new URL(m[1]).host;
+    } catch {
+      continue;
+    }
+    if (hote === hoteCourant) continue;
+    if (!/reserv|booking|resa/i.test(hote)) continue;
+    return `https://${hote}`;
+  }
+  return null;
+}
+
 export function configWidgetIngenie(html: string): ConfigWidgetIngenie {
   const champ = (nom: string): string | null => {
     const m = new RegExp(`\\b${nom}\\s*:\\s*['"]([^'"]+)['"]`, "i").exec(html);
@@ -318,7 +345,12 @@ export function estPageResultat(page: string): boolean {
 
 export function fragmentsIngenie(page: string): string[] {
   const debuts: number[] = [];
-  const re = /class="[^"]*\bfiche_liste[^"]*"/g;
+  // Pas de frontière de mot avant `fiche_liste` : `www.chatelreservation.com`
+  // nomme ses fiches `RESA_fiche_liste_appartement_chalet_prestation`, et entre
+  // le tiret bas et le `f` il n'y a pas de frontière — les deux sont des
+  // caractères de mot. La règle rendait donc zéro fragment sur une page qui en
+  // portait vingt, et quatre-vingt-cinq logements se perdaient là.
+  const re = /class="[^"]*fiche_liste[^"]*"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(page)) !== null) debuts.push(m.index);
   return debuts.map((d, i) => page.slice(d, i + 1 < debuts.length ? debuts[i + 1] : page.length));

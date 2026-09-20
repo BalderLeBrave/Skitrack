@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   cidDepuisPage,
   configWidgetIngenie,
+  lienReservationDepuisPage,
   estPageResultat,
   TYPE_PRESTATAIRE_DEFAUT,
   typesPrestataireDepuisPage,
@@ -275,5 +276,32 @@ describe("ce que le widget de réservation déclare", () => {
   it("une page sans widget ne déclare rien, et ne ment pas", () => {
     const c = configWidgetIngenie("<h1>Office de tourisme</h1>");
     assert.deepEqual(c, { cid: null, urlSite: null, typePrestataire: null });
+  });
+});
+
+describe("le découpage des fiches, et le piège du tiret bas", () => {
+  it("reconnaît une classe préfixée, pas seulement une classe nue", () => {
+    // `www.chatelreservation.com` nomme ses fiches
+    // `RESA_fiche_liste_appartement_chalet_prestation`. La règle exigeait une
+    // frontière de mot avant `fiche_liste` ; entre `_` et `f` il n'y en a pas,
+    // les deux étant des caractères de mot. Vingt fiches et quatre-vingt-cinq
+    // logements se perdaient là, sans un message.
+    const chatel = `<div class="fiche-info RESA_fiche_liste_appartement_chalet_prestation" id="PRESTATION-I-X"></div>`;
+    assert.equal(fragmentsIngenie(chatel).length, 1);
+    const risoul = `<div class="fiche-info fiche_liste_immobilier_agen" id="PRESTATION-G-Y"></div>`;
+    assert.equal(fragmentsIngenie(risoul).length, 1);
+  });
+
+  it("suit le lien de réservation quand l'accueil ne configure rien", () => {
+    // `www.chatel.com` enfouit son `cid` dans un paquet minifié, mais renvoie
+    // en clair vers un hôte qui, lui, publie tout.
+    const accueil = `<a href="https://www.chatelreservation.com/hiver">Réserver</a>`;
+    assert.equal(lienReservationDepuisPage(accueil, "www.chatel.com"), "https://www.chatelreservation.com");
+  });
+
+  it("ne se suit pas lui-même", () => {
+    const soi = `<a href="https://reservation.x.com/booking">Réserver</a>`;
+    assert.equal(lienReservationDepuisPage(soi, "reservation.x.com"), null);
+    assert.equal(lienReservationDepuisPage(`<a href="https://facebook.com/x">f</a>`, "x.com"), null);
   });
 });

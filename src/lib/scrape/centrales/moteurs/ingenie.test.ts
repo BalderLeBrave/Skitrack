@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   cidDepuisPage,
+  configWidgetIngenie,
   estPageResultat,
   TYPE_PRESTATAIRE_DEFAUT,
   typesPrestataireDepuisPage,
@@ -241,5 +242,38 @@ describe("la catégorie d'hébergement n'est pas la même partout", () => {
     const d = { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8 };
     assert.match(urlIngenie("https://x.fr", 3, d), /type_prestataire=G/);
     assert.match(urlIngenie("https://x.fr", 3, d, "I"), /type_prestataire=I/);
+  });
+});
+
+describe("ce que le widget de réservation déclare", () => {
+  /**
+   * Relevé sur `www.lesrousses.com` le 20 septembre 2026. Trois choses y
+   * étaient, et chacune corrigeait une erreur que le connecteur faisait.
+   */
+  const ACCUEIL_LES_ROUSSES = `<script defer> (function() { var params = {
+      typePrestataire: 'S', typeWidget: 'TYPE_PRESTATAIRE',
+      moteurTypePrestataire: 'MOTEUR_HEBERGEMENT',
+      urlSite: 'https://www.lesrousses-reservation.com/',
+      idWidget: 'widget-resa', target: "_blank", cid: 2, codeSite: "RESA" }; })()</script>`;
+
+  it("lit l'hôte qui vend, le numéro du moteur et la catégorie", () => {
+    const c = configWidgetIngenie(ACCUEIL_LES_ROUSSES);
+    // Le registre visait `www.lesrousses.com`, qui rend 404 sur `/booking`.
+    assert.equal(c.urlSite, "https://www.lesrousses-reservation.com/");
+    assert.equal(c.cid, "2");
+    assert.equal(c.typePrestataire, "S");
+  });
+
+  it("le `cid` se lit désormais hors de `IngenieMenuEngine.Client`", () => {
+    // C'est ce qui manquait : Les Rousses configure son widget autrement, et
+    // le connecteur concluait « la page n'a pas publié l'identifiant ».
+    assert.equal(cidDepuisPage(ACCUEIL_LES_ROUSSES), "2");
+    assert.equal(cidDepuisPage(`<script>params.set('cid', '7');</script>`), "7");
+    assert.equal(cidDepuisPage("<h1>Réservation</h1>"), null);
+  });
+
+  it("une page sans widget ne déclare rien, et ne ment pas", () => {
+    const c = configWidgetIngenie("<h1>Office de tourisme</h1>");
+    assert.deepEqual(c, { cid: null, urlSite: null, typePrestataire: null });
   });
 });

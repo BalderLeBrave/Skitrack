@@ -175,8 +175,60 @@ export function cidDepuisPage(html: string): string | null {
     /name=["']cid["'][^>]*value=["'](\d+)["']/i.exec(html) ??
     /value=["'](\d+)["'][^>]*name=["']cid["']/i.exec(html);
   if (champ?.[1]) return champ[1];
+  // `www.lesrousses.com` configure son widget sans passer par
+  // `IngenieMenuEngine.Client` : le `cid` vit dans un objet quelconque —
+  // `{ idWidget: 'widget-resa', target: "_blank", cid: 2, codeSite: "RESA" }` —
+  // ou dans un `params.set('cid', '2')`. Les deux se lisent sans supposer le
+  // nom du constructeur, qui change d'un site à l'autre.
+  const objet = /\bcid\s*:\s*['"]?(\d+)/i.exec(html);
+  if (objet?.[1]) return objet[1];
+  const pose = /\bset\(\s*['"]cid['"]\s*,\s*['"]?(\d+)/i.exec(html);
+  if (pose?.[1]) return pose[1];
   const url = /\bcid=(\d+)/i.exec(html);
   return url?.[1] ?? null;
+}
+
+/**
+ * Ce que le widget de réservation déclare sur la page d'accueil.
+ *
+ * `www.lesrousses.com` l'a montré : la page d'accueil configure son widget en
+ * clair, et cette configuration fait autorité mieux que nos suppositions.
+ *
+ * ```
+ * var params = { typePrestataire: 'S', moteurTypePrestataire: 'MOTEUR_HEBERGEMENT',
+ *                urlSite: 'https://www.lesrousses-reservation.com/',
+ *                idWidget: 'widget-resa', cid: 2, codeSite: "RESA" }
+ * ```
+ *
+ * Trois choses en sortent, et chacune corrige une erreur que nous faisions :
+ *
+ * - **`urlSite`** est l'hôte qui vend. Le registre visait `www.lesrousses.com`,
+ *   qui rend 404 sur `/booking` — la centrale est sur un autre domaine.
+ * - **`typePrestataire`** est la catégorie que ce site emploie. Les Rousses
+ *   emploie `S`, que ni `G` ni la liste connue ne contenaient : sur le bon
+ *   hôte, `S` rend dix résultats et `G` une erreur.
+ * - **`cid`**, déjà lu par ailleurs, confirmé ici.
+ *
+ * Lire cette configuration vaut mieux qu'essayer des valeurs l'une après
+ * l'autre : c'est le site qui dit ce qu'il attend, et ça évite autant de
+ * requêtes que de suppositions.
+ */
+export type ConfigWidgetIngenie = {
+  cid: string | null;
+  urlSite: string | null;
+  typePrestataire: string | null;
+};
+
+export function configWidgetIngenie(html: string): ConfigWidgetIngenie {
+  const champ = (nom: string): string | null => {
+    const m = new RegExp(`\\b${nom}\\s*:\\s*['"]([^'"]+)['"]`, "i").exec(html);
+    return m?.[1] ?? null;
+  };
+  return {
+    cid: cidDepuisPage(html),
+    urlSite: champ("urlSite"),
+    typePrestataire: champ("typePrestataire"),
+  };
 }
 
 const ENTITES: Record<string, string> = {

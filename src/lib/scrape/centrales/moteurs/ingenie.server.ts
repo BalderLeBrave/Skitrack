@@ -18,7 +18,7 @@ import { AGENT_CENTRALES } from "../robots";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
-  cidDepuisPage,
+  configWidgetIngenie,
   estPageResultat,
   lireIngenie,
   TYPE_PRESTATAIRE_DEFAUT,
@@ -45,6 +45,9 @@ export type ReglageIngenie = {
    * revient vide.
    */
   cid: number | string;
+  /** La catégorie que le site déclare. Absente, le défaut `G` s'applique et le
+   *  repli se débrouille. */
+  typePrestataire?: string;
 };
 
 /**
@@ -126,7 +129,7 @@ async function html(url: string): Promise<string> {
  */
 export async function chercherIngenie(ctx: ContexteCentrale, r: ReglageIngenie): Promise<Listing[]> {
   const base = ctx.base.replace(/\/+$/, "");
-  const url = urlIngenie(base, r.cid, ctx);
+  const url = urlIngenie(base, r.cid, ctx, r.typePrestataire ?? TYPE_PRESTATAIRE_DEFAUT);
   let page = await html(url);
 
   // `type_prestataire=G` marche sur douze hôtes et pas sur treize : ceux-là ne
@@ -160,6 +163,20 @@ export async function chercherIngenie(ctx: ContexteCentrale, r: ReglageIngenie):
   return fiches.map((f) => enListing(f, base, r, ctx));
 }
 
+/**
+ * La catégorie déclarée, si c'en est une d'hébergement.
+ *
+ * Le moteur classe aussi des services — forfaits, matériel, boîtiers wifi —
+ * sous d'autres lettres. `MOTEUR_TYPES_PRESTATAIRE=MOTEUR_HEBERGEMENT` ne les
+ * écarte pas : c'est `type_prestataire` qui tranche, et une lettre inconnue y
+ * ramène autre chose que des logements.
+ */
+function hebergement(type: string | null | undefined): string | undefined {
+  if (!type) return undefined;
+  const connu = [TYPE_PRESTATAIRE_DEFAUT, ...TYPES_PRESTATAIRE_CONNUS];
+  return connu.includes(type) ? type : undefined;
+}
+
 function cleDepuisHote(host: string): string {
   const brut = host.replace(/^www\./, "").split(".")[0] ?? "ing";
   return brut.replace(/[^a-z0-9]/gi, "").slice(0, 8) || "ing";
@@ -177,9 +194,35 @@ export async function chercherIngenieHote(
 ): Promise<Listing[]> {
   const base = ctx.base.replace(/\/+$/, "");
   const accueil = await html(`${base}/`);
-  const cid = cidDepuisPage(accueil);
-  if (cid == null) {
+  const config = configWidgetIngenie(accueil);
+  if (config.cid == null) {
     throw new Error("la page d'accueil n'a pas publié l'identifiant du moteur");
   }
-  return chercherIngenie(ctx, { host, nom, cle: cleDepuisHote(host), cid });
+
+  // Le widget dit sur quel domaine il vend. `www.lesrousses.com` rend 404 sur
+  // `/booking` parce que sa centrale est sur `www.lesrousses-reservation.com`,
+  // et seule sa configuration le disait.
+  const vendeur = config.urlSite?.replace(/\/+$/, "") || base;
+  const ctxVendeur = vendeur === base ? ctx : { ...ctx, base: vendeur };
+  if (vendeur !== base) {
+    console.info(`[centrale] ${host} : la réservation est sur ${vendeur}`);
+  }
+
+  return chercherIngenie(ctxVendeur, {
+    host,
+    nom,
+    cle: cleDepuisHote(host),
+    cid: config.cid,
+    // La catégorie déclarée ne sert que si c'en est une d'hébergement.
+    //
+    // `www.lesrousses.com` déclare `typePrestataire: 'S'`, et ce n'est pas un
+    // oubli : le widget configuré sur son accueil est celui des **services**.
+    // Interrogée sur `S`, la centrale rend dix fiches dont
+    // `PRESTATION-S-WIFI-WIFI`, un boîtier Travel Wifi à 49 € la semaine. Les
+    // prendre pour des logements aurait été pire que de n'en trouver aucun.
+    //
+    // Hors du vocabulaire d'hébergement, on ignore donc la déclaration et on
+    // laisse le repli faire son travail.
+    typePrestataire: hebergement(config.typePrestataire),
+  });
 }

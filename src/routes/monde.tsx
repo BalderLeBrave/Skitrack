@@ -358,6 +358,20 @@ function LigneDomaine({
       >
         {ouvert ? "Masquer la météo" : "Météo, bas et haut des pistes"}
       </button>
+      {ouvert && forfait?.source === "officiel" && forfait.preuve ? (
+        <p className="monde-row__preuve">
+          {/* Un prix lu en texte libre ne se juge pas seul : la ligne du
+              tableau, telle que le site l'écrit, paraît avec lui. */}
+          Lu sur le site officiel :{" "}
+          <q>{forfait.preuve}</q>
+          {forfait.pageTarifs ? (
+            <>
+              {" "}
+              — <a href={forfait.pageTarifs} rel="noreferrer">la page</a>
+            </>
+          ) : null}
+        </p>
+      ) : null}
       {ouvert && periodes.length > 1 ? (
         <dl className="monde-periodes">
           <dt>Forfait journée, adulte, selon la date</dt>

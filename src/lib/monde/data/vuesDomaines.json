@@ -12,12 +12,13 @@
  "ordreForfait": [
   "bergfex (grille datée)",
   "skiinfo (grille)",
-  "skiresort (un seul nombre)"
+  "skiresort (un seul nombre)",
+  "site officiel (tarif journée, avec preuve)"
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
  "domaines": 2780,
  "avecPhoto": 1780,
- "avecForfait": 1807,
+ "avecForfait": 1825,
  "vues": {
   "ad-canaro": {
    "photo": {
@@ -2197,7 +2198,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.vorarlberg-alpenregion.at/brandnertal/en/our-cable-cars/bergbahnen-brandnertal/tickets-prices",
+    "nom": "Brandnertal – Brand/​Bürserberg",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       33.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Day Ticket 33,50 € 32,00 € 20,00 €",
+    "pageTarifs": "https://www.vorarlberg-alpenregion.at/brandnertal/en/our-cable-cars/bergbahnen-brandnertal/tickets-prices"
+   }
   },
   "at-brandtnerlifte": {
    "photo": null,
@@ -10384,7 +10412,34 @@
     "titre": "Vue sur la piste de ski à Leisach",
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.lienzer-bergbahnen.at/en/",
+    "nom": "Hochstein",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       48
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Tageskarte 48,00 € 31,00 € frei",
+    "pageTarifs": "https://www.lienzer-bergbahnen.at/en/"
+   }
   },
   "at-hochzeiger": {
    "photo": {
@@ -15180,7 +15235,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.lienzer-bergbahnen.at/en/",
+    "nom": "Lienz - Zettersfeld",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       48
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Tageskarte 48,00 € 31,00 € frei",
+    "pageTarifs": "https://www.lienzer-bergbahnen.at/en/"
+   }
   },
   "at-lienzer-bergbahnen": {
    "photo": {
@@ -21048,7 +21130,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.furtnerhof.at/schilifte/",
+    "nom": "Rohr im Gebirge",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       24
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Tageskarte € 24,00 € 15,00",
+    "pageTarifs": "https://www.furtnerhof.at/schilifte/"
+   }
   },
   "at-salzstiegl": {
    "photo": {
@@ -41509,7 +41618,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.jungfrau.ch/de-ch/jungfrau-ski-region/skipass-kaufen/",
+    "nom": "Grindelwald - Männlichen (Schlittelpiste)",
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       62
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "½ Tag 2 | 3 CHF 62.– CHF 65.– CHF 36.– CHF 30.–",
+    "pageTarifs": "https://www.jungfrau.ch/de-ch/jungfrau-ski-region/skipass-kaufen/"
+   }
   },
   "ch-grindelwald-wengen-kleine-scheidegg-mannlichen": {
    "photo": {
@@ -42916,7 +43052,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.davos.ch/en/information/guest-information/guest-card/premium-card",
+    "nom": "Jakobshorn",
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       20
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Day ticket: several mountains¹ CHF 20 CHF 10 free of charge",
+    "pageTarifs": "https://www.davos.ch/en/information/guest-information/guest-card/premium-card"
+   }
   },
   "ch-jaun-gastlosen-bergbahnen": {
    "photo": {
@@ -52365,7 +52528,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.heidadorf.ch/freizeit/fahrplaene-tarife",
+    "nom": "Visperterminen",
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       40
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Tageskarte Erwachsene inkl. Bike CHF 40.00",
+    "pageTarifs": "https://www.heidadorf.ch/freizeit/fahrplaene-tarife"
+   }
   },
   "ch-walterswil": {
    "photo": null,
@@ -71218,7 +71408,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://ski-sebnitz.com/",
+    "nom": "Sebnitz",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       15
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Tageskarte 15,00 EUR 25,00 EUR",
+    "pageTarifs": "https://ski-sebnitz.com/"
+   }
   },
   "de-silbersattel": {
    "photo": {
@@ -78959,7 +79176,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.valdezcaray.es/tarifas-y-calendario/",
+    "nom": "Estación de esquí de Valdezcaray",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       14.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Medio día (hasta las 13:00 h) 14.5 €",
+    "pageTarifs": "https://www.valdezcaray.es/tarifas-y-calendario/"
+   }
   },
   "es-formigal": {
    "photo": {
@@ -80156,7 +80400,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.kasurila.com/",
+    "nom": "Kasurila",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       10
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Päivämaksu 10 €",
+    "pageTarifs": "https://www.kasurila.com/"
+   }
   },
   "fi-kommatti": {
    "photo": {
@@ -81361,7 +81632,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://skisaariselka.com/lift-tickets/",
+    "nom": "Saariselka",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       54.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "1 day 54,5 € 36 €",
+    "pageTarifs": "https://skisaariselka.com/lift-tickets/"
+   }
   },
   "fi-sahis": {
    "photo": null,
@@ -81691,7 +81989,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://skisaariselka.com/lift-tickets/",
+    "nom": "Ski Saariselkä, Laskuttelukeskus Ski & Sport Resort Saariselkä",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       54.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "1 day 54,5 € 36 €",
+    "pageTarifs": "https://skisaariselka.com/lift-tickets/"
+   }
   },
   "fi-sotkanrinteet": {
    "photo": null,
@@ -101680,6 +102005,37 @@
     "periodes": null
    }
   },
+  "fr-site-nordique-des-trois-fours": {
+   "photo": null,
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://laschlucht.labellemontagne.com/fr/hiver/forfaits/",
+    "nom": "Site Nordique des Trois Fours",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       17.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "1 jour 17,50 € 19,70€",
+    "pageTarifs": "https://laschlucht.labellemontagne.com/fr/hiver/forfaits/"
+   }
+  },
   "fr-site-du-meix-musy": {
    "photo": {
     "source": "bergfex",
@@ -104194,6 +104550,37 @@
     "periodes": null
    }
   },
+  "gb-knockhatch-ski-snowboard-centre": {
+   "photo": null,
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://knockhatchskischool.com/prices-2026-27-season",
+    "nom": "Knockhatch Ski & Snowboard Centre",
+    "km": 0,
+    "devise": "GBP",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       25
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Pay on the day £25",
+    "pageTarifs": "https://knockhatchskischool.com/prices-2026-27-season"
+   }
+  },
   "gb-llandudno-ski-and-snowboard-centre": {
    "photo": {
     "source": "officiel",
@@ -104348,7 +104735,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.jnlplymouth.co.uk/opening-times",
+    "nom": "Plymouth ski and snowboard center",
+    "km": 0,
+    "devise": "GBP",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       42
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Half Day Session £42.00",
+    "pageTarifs": "https://www.jnlplymouth.co.uk/opening-times"
+   }
   },
   "gb-pontypool-ski-centre": {
    "photo": {
@@ -104510,6 +104924,37 @@
    },
    "forfait": null
   },
+  "ge-crystal": {
+   "photo": null,
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://bakuriani.ski/crystal",
+    "nom": "Crystal",
+    "km": 0,
+    "devise": "GEL",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       560
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "7-day package 10:00–22:00 560 ₾ 410 ₾",
+    "pageTarifs": "https://bakuriani.ski/crystal"
+   }
+  },
   "ge-goderdzi": {
    "photo": null,
    "forfait": {
@@ -104575,7 +105020,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://goderdzi.ski/skipass",
+    "nom": "Goderdzi Mountain Resort",
+    "km": 0,
+    "devise": "GEL",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       30
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "1 Day 30 ₾ 15 ₾",
+    "pageTarifs": "https://goderdzi.ski/skipass"
+   }
   },
   "ge-hatsvali": {
    "photo": null,
@@ -110778,7 +111250,34 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "officiel",
+    "cle": "https://www.dreizinnen.com/de/aktivitaeten/langlaufen/ticketverkauf",
+    "nom": "Drei Zinnen - Tre Cime, Drei Zinnen, Tre Cime",
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "pays",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       17.3
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "preuve": "Status Geschlossen Mittel Zu den Favoriten hinzufügen Toblach 11A Gemärk - Nordic Arena (Variante) Strecke 17,3 km",
+    "pageTarifs": "https://www.dreizinnen.com/de/aktivitaeten/langlaufen/ticketverkauf"
+   }
   },
   "it-druogno": {
    "photo": {

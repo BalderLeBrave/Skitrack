@@ -22,7 +22,7 @@
  * | | Rang 1 | Rang 2 | Rang 3 | Rang 4 |
  * | --- | --- | --- | --- | --- |
  * | Photo | Skiinfo | skiresort | bergfex | site officiel |
- * | Forfait | **bergfex à périodes** | Skiinfo | skiresort | — |
+ * | Forfait | **bergfex à périodes** | Skiinfo | skiresort | page « Tarifs » du site officiel |
  *
  * Le forfait change d'ordre avec bergfex, et pour une raison de fond : **il
  * est le seul à dater ses tarifs.** Garmisch vaut 69 € du 20 décembre au
@@ -150,6 +150,19 @@ const bergfex = lire<{
   >;
 }>("bergfex.json");
 
+/** La page « Tarifs » du site officiel : un tarif journée, avec la ligne de
+ *  tableau qui le porte pour preuve. Dernier recours, et il le dit. */
+const tarifsOfficiels = lire<{
+  fiches: Record<
+    string,
+    {
+      nom: string | null;
+      pageTarifs: string | null;
+      prix: { valeur: number; devise: string; deviseSource: "page" | "pays"; preuve: string } | null;
+    }
+  >;
+}>("tarifsOfficiels.json");
+
 const sitesOfficiels = lire<{
   fiches: Record<string, { nom: string | null; site: string; photo: string | null; servi?: boolean }>;
 }>("sitesOfficiels.json");
@@ -202,7 +215,7 @@ type Photo = {
 };
 
 type Forfait = {
-  source: "skiinfo" | "skiresort" | "bergfex";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
   cle: string;
   nom: string | null;
   km: number;
@@ -234,6 +247,10 @@ type Forfait = {
   periodes:
     | { dates: string; categories: string[]; lignes: { libelle: string; prix: (number | null)[] }[] }[]
     | null;
+  /** La ligne de tableau d'où sort un prix lu sur un site officiel. */
+  preuve?: string;
+  /** L'adresse de la page où la preuve se relit. */
+  pageTarifs?: string;
 };
 
 function hote(url: string): string {
@@ -433,6 +450,32 @@ for (const d of domaines) {
     }
   }
 
+  // ── Dernier recours : la page « Tarifs » du site officiel ──
+  //
+  // Un tarif lu en texte libre, dans une ligne de tableau qui porte un montant
+  // avec devise et un mot de durée. La ligne est conservée et affichée : c'est
+  // la preuve, et c'est elle qui permet de juger le prix sans relancer quoi
+  // que ce soit. Le site *est* celui du domaine : pas de distance.
+  const to = tarifsOfficiels?.fiches[d.id];
+  if (!forfait && to?.prix) {
+    forfait = {
+      source: "officiel",
+      cle: to.pageTarifs ?? "",
+      nom: to.nom,
+      km: 0,
+      devise: to.prix.devise,
+      deviseSource: to.prix.deviseSource,
+      deviseDuPays: null,
+      misAJour: null,
+      categories: [{ nom: "Adulte", ages: null }],
+      lignes: [{ libelle: "Forfait journée", prix: [to.prix.valeur] }],
+      saison: null,
+      periodes: null,
+      preuve: to.prix.preuve,
+      ...(to.pageTarifs ? { pageTarifs: to.pageTarifs } : {}),
+    };
+  }
+
   if (photo || forfait) vues[d.id] = { photo: photo?.servi ? photo : null, forfait };
 }
 
@@ -450,7 +493,7 @@ writeFileSync(
       regle: `la fiche la plus proche à ${RAYON_KM} km au plus, une fiche ne sert qu'un domaine ; un appariement par source, partagé par la photo et le forfait`,
       rayonKm: RAYON_KM,
       ordrePhoto: ["skiinfo", "skiresort", "bergfex", "site officiel de la station"],
-      ordreForfait: ["bergfex (grille datée)", "skiinfo (grille)", "skiresort (un seul nombre)"],
+      ordreForfait: ["bergfex (grille datée)", "skiinfo (grille)", "skiresort (un seul nombre)", "site officiel (tarif journée, avec preuve)"],
       avertissement:
         "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
       domaines: domaines.length,
@@ -475,6 +518,7 @@ console.log(`  avec un forfait       : ${avecForfait}   ${pct(avecForfait)}`);
 console.log(`      dont bergfex daté : ${parSource("forfait", "bergfex")}`);
 console.log(`      dont grille       : ${parSource("forfait", "skiinfo")}`);
 console.log(`      dont un nombre    : ${parSource("forfait", "skiresort")}`);
+console.log(`      dont site officiel: ${parSource("forfait", "officiel")}`);
 console.log(`\nAppariement Skiinfo :`);
 for (const l of resume(parSkiinfo, domaines.length)) console.log(`  ${l}`);
 console.log(`Appariement skiresort :`);

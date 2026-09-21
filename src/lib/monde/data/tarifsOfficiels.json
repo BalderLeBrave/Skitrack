@@ -1,0 +1,2947 @@
+{
+ "releve": "2026-09-21T21:48:53.975Z",
+ "quoi": "le tarif journée lu sur la page « Tarifs » du site officiel, avec la ligne de tableau qui le porte pour preuve",
+ "regle": "une ligne de tableau portant un montant avec devise ET un mot de durée ; rien n'est lu hors d'un tableau ; kr n'est jamais deviné",
+ "domaines": 356,
+ "avecPrix": 18,
+ "fiches": {
+  "am-myler-mountain-resort": {
+   "id": "am-myler-mountain-resort",
+   "nom": "Myler Mountain Resort",
+   "site": "https://myler.am/en/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-bad-kleinkirchheim-468169m137834": {
+   "id": "at-bad-kleinkirchheim-468169m137834",
+   "nom": "Bad Kleinkirchheim",
+   "site": "https://www.seeundberg.at/region/bad-kleinkirchheim/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-brenneralm": {
+   "id": "at-brenneralm",
+   "nom": "Brenneralm",
+   "site": "https://skilift-breitenfurt.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-damuls": {
+   "id": "at-damuls",
+   "nom": "Damüls",
+   "site": "https://www.damuels-mellau.at/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-feistritzsattel": {
+   "id": "at-feistritzsattel",
+   "nom": "Feistritzsattel",
+   "site": "https://feistritzsattel.at/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-forsteralm": {
+   "id": "at-forsteralm",
+   "nom": "Forsteralm",
+   "site": "https://www.forsteralm.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-galtwiesenlift": {
+   "id": "at-galtwiesenlift",
+   "nom": "Galtwiesenlift",
+   "site": "https://www.galtwiese.at/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-grollerkopf-ubersaxen": {
+   "id": "at-grollerkopf-ubersaxen",
+   "nom": "Gröllerkopf-Übersaxen",
+   "site": "https://www.uebersaxen.at/Schilift_Groellerkopf",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-kesselmannlifte": {
+   "id": "at-kesselmannlifte",
+   "nom": "Kesselmannlifte",
+   "site": "https://www.schilift-kesselmann.at/bauernhof-urlaub-mit-kindern-salzburg.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-lackenhof-otscher": {
+   "id": "at-lackenhof-otscher",
+   "nom": "Lackenhof - Ötscher",
+   "site": "https://www.ybbstaler-alpen.at/lackenhof-gaming",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-schilifte-kleinlobming": {
+   "id": "at-schilifte-kleinlobming",
+   "nom": "Schilifte Kleinlobming",
+   "site": "https://lobmingtal.at/freizeit-tourismus/schilifte-kleinlobming/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-skigebiet-damuls-mellau-faschina": {
+   "id": "at-skigebiet-damuls-mellau-faschina",
+   "nom": "Skigebiet Damüls-Mellau-Faschina",
+   "site": "https://www.damuels-mellau.at/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-skigebiet-niedere-andelsbuch-bezau": {
+   "id": "at-skigebiet-niedere-andelsbuch-bezau",
+   "nom": "Skigebiet Niedere (Andelsbuch-Bezau)",
+   "site": "https://www.bergbahnen-andelsbuch.at/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-zwolferhorn-st-gilgen": {
+   "id": "at-zwolferhorn-st-gilgen",
+   "nom": "Zwölferhorn (St Gilgen)",
+   "site": "https://www.zwoelferhorn.at/en/summer/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "be-dousberg": {
+   "id": "be-dousberg",
+   "nom": "Dousberg",
+   "site": "http://www.skibaan-dousberg.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "bg-pamporovo": {
+   "id": "bg-pamporovo",
+   "nom": "Pamporovo",
+   "site": "https://pamporovo.me/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "bg-panichishte": {
+   "id": "bg-panichishte",
+   "nom": "Panichishte",
+   "site": "https://rilskiezera.bg/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-alpe-di-neggia": {
+   "id": "ch-alpe-di-neggia",
+   "nom": "Alpe di Neggia",
+   "site": "https://alpedineggia.ch/it",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-froideville": {
+   "id": "ch-froideville",
+   "nom": "Froideville",
+   "site": "https://cn-froideville.ch/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-gahwil": {
+   "id": "ch-gahwil",
+   "nom": "Gähwil",
+   "site": "https://www.gaehwil.ch/index.php/skilift-gaehwil.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-krinau": {
+   "id": "ch-krinau",
+   "nom": "Krinau",
+   "site": "https://krinau.ch/skilift/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-kronberg": {
+   "id": "ch-kronberg",
+   "nom": "Kronberg",
+   "site": "https://kronberg.ch/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-le-larmont": {
+   "id": "ch-le-larmont",
+   "nom": "Le Larmont",
+   "site": "https://www.espacenordiquejurassien.com/annuaire/site_nordique_de_pontarlier_-_le_larmont~bb17cae35d724a7e387aa22fcfe.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-leysin-les-mosses-la-lecherette": {
+   "id": "ch-leysin-les-mosses-la-lecherette",
+   "nom": "Leysin (Les Mosses, La Lecherette)",
+   "site": "https://www.leysin.ch/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-maloja": {
+   "id": "ch-maloja",
+   "nom": "Maloja",
+   "site": "https://www.bregaglia.ch/de/alpinski",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-oberwangen": {
+   "id": "ch-oberwangen",
+   "nom": "Oberwangen",
+   "site": "https://www.skilift-oberwangen.ch/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-pontresina": {
+   "id": "ch-pontresina",
+   "nom": "Pontresina",
+   "site": "https://www.pontresina.ch/de",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-pontresina-464897m99144": {
+   "id": "ch-pontresina-464897m99144",
+   "nom": "Pontresina",
+   "site": "https://www.pontresina.ch/de",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-regensberg": {
+   "id": "ch-regensberg",
+   "nom": "Regensberg",
+   "site": "https://skilift-regensberg.ch/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-rothwald": {
+   "id": "ch-rothwald",
+   "nom": "Rothwald",
+   "site": "https://www.rothwald.ch/en/index.php",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-ruhesitz": {
+   "id": "ch-ruhesitz",
+   "nom": "Ruhesitz",
+   "site": "https://www.ruhesitz.ch/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ch-wolzenalp-krummenau": {
+   "id": "ch-wolzenalp-krummenau",
+   "nom": "Wolzenalp (Krummenau)",
+   "site": "https://wolzen.ch/fr-fr",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-biocel-zlatnik": {
+   "id": "cz-biocel-zlatnik",
+   "nom": "Biocel Zlatník",
+   "site": "http://www.skizlatnik.cz/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-dalecin": {
+   "id": "cz-dalecin",
+   "nom": "Dalečín",
+   "site": "http://www.skidalecin.cz/Dalecin/index2.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-figura-praded": {
+   "id": "cz-figura-praded",
+   "nom": "Figura Praděd",
+   "site": "https://www.figura.cz/ski-areal-praded/sjezdove-lyzovani/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-javorna": {
+   "id": "cz-javorna",
+   "nom": "Javorná",
+   "site": "https://www.rsjavorna.cz/skijavorna/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-kostelec": {
+   "id": "cz-kostelec",
+   "nom": "Kostelec",
+   "site": "https://skikostelec.cz/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-nedvedice-nutrie": {
+   "id": "cz-nedvedice-nutrie",
+   "nom": "Nedvědice - Nutrie",
+   "site": "https://www.skinutrie.cz/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-plavy": {
+   "id": "cz-plavy",
+   "nom": "Plavy",
+   "site": "https://skiplavy.cz/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-svata-anna": {
+   "id": "cz-svata-anna",
+   "nom": "Svatá Anna",
+   "site": "https://skichotebor.tode.cz/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-tj-radegast-sihly": {
+   "id": "cz-tj-radegast-sihly",
+   "nom": "TJ Radegast Sihly",
+   "site": "http://www.visalaje.cz/areal.php",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-trnava-luhy": {
+   "id": "cz-trnava-luhy",
+   "nom": "Trnava-Luhy",
+   "site": "https://www.rstrnava.cz/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "cz-cerinek": {
+   "id": "cz-cerinek",
+   "nom": "Čeřínek",
+   "site": "https://zkopcedolu.cz/cerinek",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-berghalde-penzburg": {
+   "id": "de-berghalde-penzburg",
+   "nom": "Berghalde - Penzburg",
+   "site": "https://www.penzberg.de/kultur-und-freizeit/sport-freizeit/sportanlagen-und-hallen/freizeit-und-erholungszentrum-berghalde/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-bromberg-alm": {
+   "id": "de-bromberg-alm",
+   "nom": "Bromberg Alm",
+   "site": "https://bromberg-alm.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-erbeskopf": {
+   "id": "de-erbeskopf",
+   "nom": "Erbeskopf",
+   "site": "https://www.erbeskopf.de/tourismus/wintersportzentrum-erbeskopf.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-eschenlohe-auf-der-rieder": {
+   "id": "de-eschenlohe-auf-der-rieder",
+   "nom": "Eschenlohe auf der Rieder",
+   "site": "https://www.eschenlohe.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-kirchberglift-am-frobelturm": {
+   "id": "de-kirchberglift-am-frobelturm",
+   "nom": "Kirchberglift am Fröbelturm",
+   "site": "https://www.thueringer-wald.com/en/w/opendata/poi/kirchberglift-am-froebelturm",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-ludwigsstadt": {
+   "id": "de-ludwigsstadt",
+   "nom": "Ludwigsstadt",
+   "site": "https://skizentrum-ludwigsstadt.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-monte-kubota": {
+   "id": "de-monte-kubota",
+   "nom": "Monte Kubota",
+   "site": "https://der-skiclub.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-oberer-maxlraineralm": {
+   "id": "de-oberer-maxlraineralm",
+   "nom": "Oberer Maxlraineralm",
+   "site": "https://www.obere-maxlraineralm.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-ski-elstra": {
+   "id": "de-ski-elstra",
+   "nom": "Ski Elstra",
+   "site": "https://sport-elstra.de/ski/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-skigebiet-rodelgebiet-laubendorf": {
+   "id": "de-skigebiet-rodelgebiet-laubendorf",
+   "nom": "Skigebiet / Rodelgebiet Laubendorf",
+   "site": "https://www.sf-laubendorf.de/skiabteilung/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-skigebiet-winterloch-heigenbrucken": {
+   "id": "de-skigebiet-winterloch-heigenbrucken",
+   "nom": "Skigebiet Winterloch Heigenbrücken",
+   "site": "https://skiclub-heigenbruecken.de/ski/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-skigebiet-am-englander": {
+   "id": "de-skigebiet-am-englander",
+   "nom": "Skigebiet am Engländer",
+   "site": "https://www.englaender-skilifte.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-skihang-tuppel": {
+   "id": "de-skihang-tuppel",
+   "nom": "Skihang Tüppel",
+   "site": "http://www.skiclub-warstein.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-skilift-beuerberg": {
+   "id": "de-skilift-beuerberg",
+   "nom": "Skilift Beuerberg",
+   "site": "https://nicsell.com/fr/domain/www.skilift-beuerberg.de",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-skilift-erzgebirge-skiclub-olbernhau": {
+   "id": "de-skilift-erzgebirge-skiclub-olbernhau",
+   "nom": "Skilift Erzgebirge Skiclub Olbernhau",
+   "site": "https://www.skiclub-olbernhau.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "de-skilift-waldsportpark-ebersberg": {
+   "id": "de-skilift-waldsportpark-ebersberg",
+   "nom": "Skilift Waldsportpark Ebersberg",
+   "site": "https://waldsportpark-ebersberg.de/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ee-nomme-lumepark": {
+   "id": "ee-nomme-lumepark",
+   "nom": "Nõmme Lumepark",
+   "site": "https://nommelumepark.ee/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-kallin": {
+   "id": "fi-kallin",
+   "nom": "Kallin",
+   "site": "https://kallinhiihtokeskus.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-kiririnteet-kiri-slopes": {
+   "id": "fi-kiririnteet-kiri-slopes",
+   "nom": "Kiririnteet, Kiri slopes",
+   "site": "https://www.kirikeskus.fi/kiri-rinteet/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-kommatti": {
+   "id": "fi-kommatti",
+   "nom": "Kommatti",
+   "site": "https://kommatti.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-konkaski": {
+   "id": "fi-konkaski",
+   "nom": "KonkaSki",
+   "site": "https://konkaski.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-levin-hiihtokeskus-levi-ski-resort": {
+   "id": "fi-levin-hiihtokeskus-levi-ski-resort",
+   "nom": "Levin hiihtokeskus, Levi Ski Resort",
+   "site": "https://www.levi.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-luoteis-himos": {
+   "id": "fi-luoteis-himos",
+   "nom": "Luoteis-Himos",
+   "site": "https://himos.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-ounasvaara-ski-resort": {
+   "id": "fi-ounasvaara-ski-resort",
+   "nom": "Ounasvaara Ski Resort",
+   "site": "https://ounasvaara.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-ounasvaaran-laskettelukeskus-totto-ounasvaara-ski-resort-totto": {
+   "id": "fi-ounasvaaran-laskettelukeskus-totto-ounasvaara-ski-resort-totto",
+   "nom": "Ounasvaaran laskettelukeskus (Totto), Ounasvaara Ski Resort (Totto)",
+   "site": "https://ounasvaara.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-ounasvaaran-laskettelukeskus-ounasvaara-ski-resort": {
+   "id": "fi-ounasvaaran-laskettelukeskus-ounasvaara-ski-resort",
+   "nom": "Ounasvaaran laskettelukeskus, Ounasvaara Ski Resort",
+   "site": "https://ounasvaara.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-paljakan-matkailu-ja-hiihtokeskus": {
+   "id": "fi-paljakan-matkailu-ja-hiihtokeskus",
+   "nom": "Paljakan matkailu- ja hiihtokeskus",
+   "site": "https://paljakka.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-ruunarinteet": {
+   "id": "fi-ruunarinteet",
+   "nom": "Ruunarinteet",
+   "site": "https://ruunarinteet.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-saukkovaaran-laskettelukeskus": {
+   "id": "fi-saukkovaaran-laskettelukeskus",
+   "nom": "Saukkovaaran laskettelukeskus",
+   "site": "https://www.saukkovaara.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-suomutunturi": {
+   "id": "fi-suomutunturi",
+   "nom": "Suomutunturi",
+   "site": "https://www.suomutunturi.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-varkaus": {
+   "id": "fi-varkaus",
+   "nom": "Varkaus",
+   "site": "https://www.vattuvuori.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-yllas": {
+   "id": "fi-yllas",
+   "nom": "Ylläs",
+   "site": "https://yllas.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-yllas-675693m242241": {
+   "id": "fi-yllas-675693m242241",
+   "nom": "Ylläs",
+   "site": "https://yllas.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-yllas-ski-resort-akaslompolo": {
+   "id": "fi-yllas-ski-resort-akaslompolo",
+   "nom": "Ylläs Ski Resort, Äkäslompolo",
+   "site": "https://ski.yllas.fi/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fi-ojberget": {
+   "id": "fi-ojberget",
+   "nom": "Öjberget",
+   "site": "https://www.vaasa.fi/asu-ja-ela/vapaa-aika/liikunta-ja-ulkoilu/ulkoliikuntapaikat/ojbergetin-talviurheilukeskus/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-autrans": {
+   "id": "fr-autrans",
+   "nom": "Autrans",
+   "site": "https://autrans-meaudre.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-autrans-grand-domaine-la-sure": {
+   "id": "fr-autrans-grand-domaine-la-sure",
+   "nom": "Autrans - Grand domaine la Sure",
+   "site": "https://autrans-meaudre.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-col-du-fanget": {
+   "id": "fr-col-du-fanget",
+   "nom": "Col du Fanget",
+   "site": "https://www.seynelesalpes.fr/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-janvry-janvoriaz": {
+   "id": "fr-janvry-janvoriaz",
+   "nom": "Janvry - Janvoriaz",
+   "site": "https://janvry.fr/animations/janvoriaz/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-la-cernay-blanche": {
+   "id": "fr-la-cernay-blanche",
+   "nom": "La Cernay Blanche",
+   "site": "http://www.cernay.lachaux25.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-montagne-de-lure": {
+   "id": "fr-montagne-de-lure",
+   "nom": "Montagne de Lure",
+   "site": "https://www.tourisme-alpes-haute-provence.com/montagne/stations-de-sports-hiver-ete/5942581_montagne-saint-etienne-les-orgues-sommet-de-lure/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-montagnes-de-lans": {
+   "id": "fr-montagnes-de-lans",
+   "nom": "Montagnes de Lans",
+   "site": "https://www.vercors-experience.com/lans-en-vercors.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-monts-jura": {
+   "id": "fr-monts-jura",
+   "nom": "Monts Jura",
+   "site": "https://www.paysdegex-montsjura.com/station-monts-jura/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-meaudre": {
+   "id": "fr-meaudre",
+   "nom": "Méaudre",
+   "site": "https://autrans-meaudre.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-notre-dame-du-pre": {
+   "id": "fr-notre-dame-du-pre",
+   "nom": "Notre Dame du Pré",
+   "site": "https://commune-de-notre-dame-du-pre.neopse-site.com/fr/information/79253/le-ski-piste-dame-pre",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-saint-nizier-du-moucherotte": {
+   "id": "fr-saint-nizier-du-moucherotte",
+   "nom": "Saint-Nizier-du-Moucherotte",
+   "site": "https://www.vercors-experience.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-snowkite-markstein": {
+   "id": "fr-snowkite-markstein",
+   "nom": "Snowkite Markstein",
+   "site": "http://lavl.free.fr/site-parapente-vosges/Markstein-Snow-Kite.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "fr-vergio": {
+   "id": "fr-vergio",
+   "nom": "Vergio",
+   "site": "https://stationsfantomes.wordpress.com/2016/11/12/vergio/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-allenheads": {
+   "id": "gb-allenheads",
+   "nom": "Allenheads",
+   "site": "https://ski-allenheads.co.uk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-alpine-snowsports-aldershot": {
+   "id": "gb-alpine-snowsports-aldershot",
+   "nom": "Alpine Snowsports Aldershot",
+   "site": "https://www.rushmoor.gov.uk/community-parks-and-leisure/sports-and-leisure/alpine-snowsports-centre/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-bearsden-ski-board": {
+   "id": "gb-bearsden-ski-board",
+   "nom": "Bearsden Ski & Board",
+   "site": "https://www.skibearsden.co.uk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-garthdee-ski-centre": {
+   "id": "gb-garthdee-ski-centre",
+   "nom": "Garthdee Ski Centre",
+   "site": "https://www.sportaberdeen.co.uk/venues/adventure-aberdeen-snowsports-centre",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-halifax-ski-snowboard-centre": {
+   "id": "gb-halifax-ski-snowboard-centre",
+   "nom": "Halifax Ski & Snowboard Centre",
+   "site": "https://www.ridehalifax.co.uk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-lowther-hills": {
+   "id": "gb-lowther-hills",
+   "nom": "Lowther Hills",
+   "site": "https://www.skiclub.lowtherhills.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-pembrey-ski-centre": {
+   "id": "gb-pembrey-ski-centre",
+   "nom": "Pembrey ski centre",
+   "site": "https://www.pembreycountrypark.wales/things-to-do/ski-activity-centre/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-pontypool-ski-centre": {
+   "id": "gb-pontypool-ski-centre",
+   "nom": "Pontypool Ski Centre",
+   "site": "https://kimrixphotography.co.uk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-raise": {
+   "id": "gb-raise",
+   "nom": "Raise",
+   "site": "https://www.ldscsnowski.co.uk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-stoke-ski-center": {
+   "id": "gb-stoke-ski-center",
+   "nom": "Stoke ski center",
+   "site": "http://www.stokeskicentre.co.uk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-the-snow-centre-manchester": {
+   "id": "gb-the-snow-centre-manchester",
+   "nom": "The Snow Centre Manchester",
+   "site": "https://thesnowcentre.com/manchester/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-weardale-ski-club": {
+   "id": "gb-weardale-ski-club",
+   "nom": "Weardale Ski Club",
+   "site": "https://www.skiweardale.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-xscape-castleford": {
+   "id": "gb-xscape-castleford",
+   "nom": "Xscape Castleford",
+   "site": "https://www.xscapeyorkshire.co.uk/concessions/sno-zone",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-xscape-milton-keynes": {
+   "id": "gb-xscape-milton-keynes",
+   "nom": "Xscape Milton Keynes",
+   "site": "https://www.xscapemiltonkeynes.co.uk/concessions/sno-zone",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gb-yad-moss": {
+   "id": "gb-yad-moss",
+   "nom": "Yad Moss",
+   "site": "https://yadmoss.co.uk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ge-tetnuldi": {
+   "id": "ge-tetnuldi",
+   "nom": "Tetnuldi, Тетнулди",
+   "site": "http://tetnuldi.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "gr-tottis-vigla": {
+   "id": "gr-tottis-vigla",
+   "nom": "Tottis Vigla",
+   "site": "https://vigla-ski.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "hr-platak": {
+   "id": "hr-platak",
+   "nom": "Platak",
+   "site": "https://platak.hr/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "hr-sljeme": {
+   "id": "hr-sljeme",
+   "nom": "Sljeme",
+   "site": "https://www.sljeme.hr/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "hr-skijaliste-vucici": {
+   "id": "hr-skijaliste-vucici",
+   "nom": "skijalište Vučići",
+   "site": "https://skiklubogulin.hr/skijaliste-vucici/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "hu-babos-siklub-fogarasi-nordica-siiskola": {
+   "id": "hu-babos-siklub-fogarasi-nordica-siiskola",
+   "nom": "Babos Síklub, Fogarasi Nordica Síiskola",
+   "site": "https://babos-siklub.hu/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "hu-normafa-sipalya": {
+   "id": "hu-normafa-sipalya",
+   "nom": "Normafa sípálya",
+   "site": "https://normafapark.hu/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "is-blafjoll": {
+   "id": "is-blafjoll",
+   "nom": "Bláfjöll",
+   "site": "https://skidasvaedi.is/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "is-tindastoll": {
+   "id": "is-tindastoll",
+   "nom": "Tindastóll",
+   "site": "https://skitindastoll.is/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-area-sciistica-ussita-frontignano": {
+   "id": "it-area-sciistica-ussita-frontignano",
+   "nom": "Area Sciistica Ussita Frontignano",
+   "site": "https://www.frontignano360.it/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-artesina": {
+   "id": "it-artesina",
+   "nom": "Artesina",
+   "site": "https://www.artesina.it/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-capracotta": {
+   "id": "it-capracotta",
+   "nom": "Capracotta",
+   "site": "https://capracotta.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-cortina-d-ampezzo": {
+   "id": "it-cortina-d-ampezzo",
+   "nom": "Cortina d'Ampezzo",
+   "site": "http://www.cortinadolomiti.eu/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-macesnovc-ratece": {
+   "id": "it-macesnovc-ratece",
+   "nom": "Macesnovc Rateče",
+   "site": "http://www.ratece-planica.si/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-monte-piselli": {
+   "id": "it-monte-piselli",
+   "nom": "Monte Piselli",
+   "site": "https://montigemelli.it/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-monte-prata": {
+   "id": "it-monte-prata",
+   "nom": "Monte Prata",
+   "site": "https://sibillini.palple.net/monteprata2.html",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-monte-valbella-asiago": {
+   "id": "it-monte-valbella-asiago",
+   "nom": "Monte Valbella (Asiago)",
+   "site": "https://www.valbella-sciovie.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-pradis-ci": {
+   "id": "it-pradis-ci",
+   "nom": "Pradis_ci",
+   "site": "https://www.winterparkpradis-ci.it/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "it-val-d-aveto": {
+   "id": "it-val-d-aveto",
+   "nom": "Val d'Aveto",
+   "site": "https://www.montebue.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "lt-aukstagires-slidinejimo-trasa": {
+   "id": "lt-aukstagires-slidinejimo-trasa",
+   "nom": "Aukštagirės slidinėjimo trasa",
+   "site": "https://aukstagireskalnas.lt/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "lt-jonavos-slidinejimo-centras": {
+   "id": "lt-jonavos-slidinejimo-centras",
+   "nom": "Jonavos slidinėjimo centras",
+   "site": "https://www.jsc.lt/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "lt-liepkalnis-lipowka": {
+   "id": "lt-liepkalnis-lipowka",
+   "nom": "Liepkalnis, Lipówka",
+   "site": "https://liepkalnis.lt/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "lv-eglukalns": {
+   "id": "lv-eglukalns",
+   "nom": "Egļukalns",
+   "site": "http://eglukalns.lv/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "lv-lemberga-hute": {
+   "id": "lv-lemberga-hute",
+   "nom": "Lemberga Hūte",
+   "site": "https://www.lembergahute.lv/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "lv-zagarkalns": {
+   "id": "lv-zagarkalns",
+   "nom": "Žagarkalns",
+   "site": "https://zagarkalns.lv/en/summer/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-alpine-world-oss": {
+   "id": "nl-alpine-world-oss",
+   "nom": "Alpine World (Oss)",
+   "site": "https://alpineworld.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-de-schans": {
+   "id": "nl-de-schans",
+   "nom": "De Schans",
+   "site": "https://www.deschans.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-outdoorski-bergschenhoek": {
+   "id": "nl-outdoorski-bergschenhoek",
+   "nom": "Outdoorski Bergschenhoek",
+   "site": "https://outdoorvalleywintersport.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-skicentrum-drechtsteden": {
+   "id": "nl-skicentrum-drechtsteden",
+   "nom": "Skicentrum Drechtsteden",
+   "site": "https://www.ski-baan.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-skicentrum-hoofddorp": {
+   "id": "nl-skicentrum-hoofddorp",
+   "nom": "Skicentrum Hoofddorp",
+   "site": "https://www.skicentrumhoofddorp.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-skicentrum-soesterberg-huis-ter-heide": {
+   "id": "nl-skicentrum-soesterberg-huis-ter-heide",
+   "nom": "Skicentrum Soesterberg (Huis ter Heide)",
+   "site": "https://www.skicentrumsoesterberg.nl/wordpress/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-skicentrum-de-wijchense-berg": {
+   "id": "nl-skicentrum-de-wijchense-berg",
+   "nom": "Skicentrum de Wijchense Berg",
+   "site": "https://www.dewijchenseberg.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-skiclub-il-primo": {
+   "id": "nl-skiclub-il-primo",
+   "nom": "Skiclub Il Primo",
+   "site": "https://www.ilprimo.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-skipiste-nieuwegein": {
+   "id": "nl-skipiste-nieuwegein",
+   "nom": "Skipiste Nieuwegein",
+   "site": "https://skipistenieuwegein.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-vallei-53": {
+   "id": "nl-vallei-53",
+   "nom": "Vallei 53",
+   "site": "https://vallei53.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "nl-wolfskamer-wintersport": {
+   "id": "nl-wolfskamer-wintersport",
+   "nom": "Wolfskamer Wintersport",
+   "site": "https://wolfskamer.nl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-aktiven-skiheis": {
+   "id": "no-aktiven-skiheis",
+   "nom": "Aktiven skiheis",
+   "site": "https://www.aktiven.no/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-finse-skisenter": {
+   "id": "no-finse-skisenter",
+   "nom": "Finse Skisenter",
+   "site": "http://www.finseskisenter.no/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-furutangen-skisenter": {
+   "id": "no-furutangen-skisenter",
+   "nom": "Furutangen skisenter",
+   "site": "https://furutangen.no/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-lierberget": {
+   "id": "no-lierberget",
+   "nom": "Lierberget",
+   "site": "https://vangski.no/alpint/nyhet/lierberget-skifestival/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-marikollen-skisenter": {
+   "id": "no-marikollen-skisenter",
+   "nom": "Marikollen skisenter",
+   "site": "https://marikollen.no/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-ringerudsetra-skitrekk": {
+   "id": "no-ringerudsetra-skitrekk",
+   "nom": "Ringerudsetra skitrekk",
+   "site": "https://ringerud.no/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-skeikampen-alpinsenter": {
+   "id": "no-skeikampen-alpinsenter",
+   "nom": "Skeikampen Alpinsenter",
+   "site": "https://skeikampen.no/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "no-skillevollen": {
+   "id": "no-skillevollen",
+   "nom": "Skillevollen",
+   "site": "https://www.skillevollen.no/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-family-park-dimbo": {
+   "id": "pl-family-park-dimbo",
+   "nom": "Family Park DIMBO",
+   "site": "https://www.dimbo.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-gora-czterech-wiatrow-g4w": {
+   "id": "pl-gora-czterech-wiatrow-g4w",
+   "nom": "Góra Czterech Wiatrów G4W",
+   "site": "https://g4w.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-gorka-srodulska": {
+   "id": "pl-gorka-srodulska",
+   "nom": "Górka Środulska",
+   "site": "https://stoksrodula.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-kompleks-pilsko-jontek": {
+   "id": "pl-kompleks-pilsko-jontek",
+   "nom": "Kompleks Pilsko-Jontek",
+   "site": "https://pilsko.org/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-osrodek-narciarski-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-resort": {
+   "id": "pl-osrodek-narciarski-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-resort",
+   "nom": "Ośrodek Narciarski Kotelnica Białczańska, Kotelnica Białczańska Ski Resort",
+   "site": "https://bialkatatrzanska.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-osrodek-narciarski-za-groniem": {
+   "id": "pl-osrodek-narciarski-za-groniem",
+   "nom": "Ośrodek narciarski „Za Groniem”",
+   "site": "https://zagroniem.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-smolen-ski": {
+   "id": "pl-smolen-ski",
+   "nom": "Smoleń Ski",
+   "site": "https://smolen-ski.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-sport-dolina": {
+   "id": "pl-sport-dolina",
+   "nom": "Sport Dolina",
+   "site": "https://sportdolina.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-szklarska-poreba": {
+   "id": "pl-szklarska-poreba",
+   "nom": "Szklarska Poręba",
+   "site": "https://www.szklarskaporeba.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-wyciagi-baca": {
+   "id": "pl-wyciagi-baca",
+   "nom": "Wyciągi Baca",
+   "site": "http://www.zawoja-ski.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pl-wyciagi-wojtek": {
+   "id": "pl-wyciagi-wojtek",
+   "nom": "Wyciągi Wojtek",
+   "site": "http://www.zawoja-ski.pl/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "pt-serra-da-estrela": {
+   "id": "pt-serra-da-estrela",
+   "nom": "Serra da Estrela",
+   "site": "https://www.skiserradaestrela.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-arena-platos": {
+   "id": "ro-arena-platos",
+   "nom": "Arena Platoș",
+   "site": "https://paltinisarena.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-casa-baraj": {
+   "id": "ro-casa-baraj",
+   "nom": "Casa Baraj",
+   "site": "https://casa-baraj.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-harghita-bai": {
+   "id": "ro-harghita-bai",
+   "nom": "Harghita Băi",
+   "site": "https://hargitafurdo.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-parang": {
+   "id": "ro-parang",
+   "nom": "Parâng",
+   "site": "https://www.skiparang.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-poiana-brasov": {
+   "id": "ro-poiana-brasov",
+   "nom": "Poiana Brașov",
+   "site": "https://www.schipoianabrasov.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-partia-de-schi-rarau-rarau-ski-resort": {
+   "id": "ro-partia-de-schi-rarau-rarau-ski-resort",
+   "nom": "Pârtia de schi Rarău, Rarău Ski Resort",
+   "site": "https://rarauskiresort.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-skigyimes-gyimesi-bob-es-sipalya": {
+   "id": "ro-skigyimes-gyimesi-bob-es-sipalya",
+   "nom": "SkiGyimes, Gyimesi Bob- és Sípálya",
+   "site": "https://skigyimes.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-straja": {
+   "id": "ro-straja",
+   "nom": "Straja",
+   "site": "https://skistraja.ro/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ro-suior": {
+   "id": "ro-suior",
+   "nom": "Șuior",
+   "site": "https://suior.ro/en/ski-area/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "se-nybroberget": {
+   "id": "se-nybroberget",
+   "nom": "Nybroberget",
+   "site": "https://borlangealpin.com/nybrobacken/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "se-tolvmannabacken": {
+   "id": "se-tolvmannabacken",
+   "nom": "Tolvmannabacken",
+   "site": "https://tolvmannabacken.se/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "se-tarmaby": {
+   "id": "se-tarmaby",
+   "nom": "Tärmaby",
+   "site": "https://tarnabyalpint.se/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "si-krvavec": {
+   "id": "si-krvavec",
+   "nom": "Krvavec",
+   "site": "https://www.rtc-krvavec.si/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "si-vogel": {
+   "id": "si-vogel",
+   "nom": "Vogel",
+   "site": "https://vogel.si/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "sk-bane": {
+   "id": "sk-bane",
+   "nom": "Bane",
+   "site": "https://www.jakubovany.sk/obec-2/sport/zimne-sporty/klasicke-lyzovanie/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "sk-helpa": {
+   "id": "sk-helpa",
+   "nom": "Heľpa",
+   "site": "https://www.lavex.sk/ls10helpa.htm",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "sk-lyziarsky-vlek-olesna-potocky": {
+   "id": "sk-lyziarsky-vlek-olesna-potocky",
+   "nom": "Lyžiarsky vlek Olešná - Potôčky",
+   "site": "https://www.obecolesna.sk/sk/volny-cas/129-vlek",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "sk-ski-centrum-demanova": {
+   "id": "sk-ski-centrum-demanova",
+   "nom": "SKI centrum Demänová",
+   "site": "https://skidemanova.sk/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "sk-vojsin-mala-lehota": {
+   "id": "sk-vojsin-mala-lehota",
+   "nom": "Vojšín Malá Lehota",
+   "site": "https://www.lavex.sk/ls08vojsin.htm",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "sk-cechy": {
+   "id": "sk-cechy",
+   "nom": "Čechy",
+   "site": "https://www.obeccechy.sk/obec-1/kultura-a-sport-v-obci/sportove-kluby/lyziarsky-vlek/lyziarsky-vlek-/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "tr-ergan-dag-k-s-sporlar-turizm-merkezi-ergan-mountain-winter-sports-and-eco-tourism-center": {
+   "id": "tr-ergan-dag-k-s-sporlar-turizm-merkezi-ergan-mountain-winter-sports-and-eco-tourism-center",
+   "nom": "Ergan Dağı Kış Sporları Turizm Merkezi, Ergan Mountain Winter Sports and Eco-Tourism Center",
+   "site": "https://ergankayak.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "tr-kayseri-erciyes": {
+   "id": "tr-kayseri-erciyes",
+   "nom": "Kayseri-Erciyes",
+   "site": "https://www.kayserierciyes.com.tr/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "tr-sakl-kent": {
+   "id": "tr-sakl-kent",
+   "nom": "Saklıkent",
+   "site": "https://www.saklikent.com.tr/Default.aspx",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "tr-yedikuyular": {
+   "id": "tr-yedikuyular",
+   "nom": "Yedikuyular",
+   "site": "https://yedikuyular.org/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ua-emily-resort": {
+   "id": "ua-emily-resort",
+   "nom": "Emily Resort",
+   "site": "https://www.emilyresort.com.ua/en/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ua-slavske-zahar-berkut": {
+   "id": "ua-slavske-zahar-berkut",
+   "nom": "Slavske - Zahar Berkut",
+   "site": "https://zaharberkut.ua/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ua-voievodyno": {
+   "id": "ua-voievodyno",
+   "nom": "Воєводино, Voievodyno",
+   "site": "https://voevodyno.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "ua-495653m256295": {
+   "id": "ua-495653m256295",
+   "nom": "Спортивно-розважальний комплекс \"Савич-парк\"",
+   "site": "https://savich-park.te.ua/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": false
+  },
+  "at-bergbahn-weissensee": {
+   "id": "at-bergbahn-weissensee",
+   "nom": "Bergbahn Weissensee",
+   "site": "https://www.weissensee.com/de/Winter-World/Sun-Ski-World/Skigebiet-Weissensee",
+   "pageTarifs": "https://www.weissensee.com/de/Summer-World/Hike-World/Sommerbergbahn/Tickets-Preise",
+   "prix": null,
+   "refuse": false
+  },
+  "at-brandnertal-brand-burserberg": {
+   "id": "at-brandnertal-brand-burserberg",
+   "nom": "Brandnertal – Brand/​Bürserberg",
+   "site": "https://www.vorarlberg-alpenregion.at/brandnertal/en/our-diversity/active/skiing",
+   "pageTarifs": "https://www.vorarlberg-alpenregion.at/brandnertal/en/our-cable-cars/bergbahnen-brandnertal/tickets-prices",
+   "prix": {
+    "valeur": 33.5,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "Day Ticket 33,50 € 32,00 € 20,00 €"
+   },
+   "refuse": false
+  },
+  "at-embergeralm": {
+   "id": "at-embergeralm",
+   "nom": "Embergeralm",
+   "site": "https://www.embergeralm.info/",
+   "pageTarifs": "https://www.embergeralm.info/liftpreise_D.php",
+   "prix": null,
+   "refuse": false
+  },
+  "at-gfollberglift": {
+   "id": "at-gfollberglift",
+   "nom": "Gföllberglift",
+   "site": "https://www.lechtaler-bergbahnen.at/",
+   "pageTarifs": "https://www.lechtaler-bergbahnen.at/de/lechtaler-bergbahnen-tarife.html",
+   "prix": null,
+   "refuse": false
+  },
+  "at-golm": {
+   "id": "at-golm",
+   "nom": "Golm",
+   "site": "https://www.golm.at/de",
+   "pageTarifs": "https://www.golm.at/de/preise-service/preise",
+   "prix": null,
+   "refuse": false
+  },
+  "at-hinterstoder": {
+   "id": "at-hinterstoder",
+   "nom": "Hinterstoder",
+   "site": "https://skisport.com/hiwu/de",
+   "pageTarifs": "https://skisport.com/hinterstoder/de/tickets-preise",
+   "prix": null,
+   "refuse": false
+  },
+  "at-hochstein": {
+   "id": "at-hochstein",
+   "nom": "Hochstein",
+   "site": "https://www.lienzer-bergbahnen.at/en/",
+   "pageTarifs": "https://www.lienzer-bergbahnen.at/en/",
+   "prix": {
+    "valeur": 48,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "Tageskarte 48,00 € 31,00 € frei"
+   },
+   "refuse": false
+  },
+  "at-lachtal-472636m143608": {
+   "id": "at-lachtal-472636m143608",
+   "nom": "Lachtal",
+   "site": "https://www.lachtal.at/",
+   "pageTarifs": "https://www.lachtal.at/tickets-preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "at-lienz-zettersfeld": {
+   "id": "at-lienz-zettersfeld",
+   "nom": "Lienz - Zettersfeld",
+   "site": "https://www.lienzer-bergbahnen.at/en/",
+   "pageTarifs": "https://www.lienzer-bergbahnen.at/en/",
+   "prix": {
+    "valeur": 48,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "Tageskarte 48,00 € 31,00 € frei"
+   },
+   "refuse": false
+  },
+  "at-rohr-im-gebirge": {
+   "id": "at-rohr-im-gebirge",
+   "nom": "Rohr im Gebirge",
+   "site": "https://www.furtnerhof.at/schilifte/",
+   "pageTarifs": "https://www.furtnerhof.at/schilifte/",
+   "prix": {
+    "valeur": 24,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "Tageskarte € 24,00 € 15,00"
+   },
+   "refuse": false
+  },
+  "at-semmering-hirschenkogel": {
+   "id": "at-semmering-hirschenkogel",
+   "nom": "Semmering Hirschenkogel",
+   "site": "https://www.semmering.com/winter/",
+   "pageTarifs": "https://www.semmering.com/betriebszeiten-sommer/",
+   "prix": null,
+   "refuse": false
+  },
+  "at-sibratsgfall": {
+   "id": "at-sibratsgfall",
+   "nom": "Sibratsgfäll",
+   "site": "https://www.kraehenberg.at/",
+   "pageTarifs": "https://www.kraehenberg.at/2026/01/08/283/",
+   "prix": null,
+   "refuse": false
+  },
+  "at-skilift-eberschwang": {
+   "id": "at-skilift-eberschwang",
+   "nom": "Skilift Eberschwang",
+   "site": "https://www.ski-eberschwang.at/",
+   "pageTarifs": "https://www.ski-eberschwang.at/oeffnugszeiten-preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "at-sonntag-stein": {
+   "id": "at-sonntag-stein",
+   "nom": "Sonntag Stein",
+   "site": "https://www.seilbahnen-sonntag.at/de",
+   "pageTarifs": "https://www.seilbahnen-sonntag.at/de/ticketpreise",
+   "prix": null,
+   "refuse": false
+  },
+  "at-stubai": {
+   "id": "at-stubai",
+   "nom": "Stubai",
+   "site": "https://www.stubai.at/",
+   "pageTarifs": "https://www.stubai.at/aktivitaeten/skifahren/stubai-skipass/",
+   "prix": null,
+   "refuse": false
+  },
+  "at-untersberg": {
+   "id": "at-untersberg",
+   "nom": "Untersberg",
+   "site": "https://www.untersbergbahn.at/",
+   "pageTarifs": "https://www.untersbergbahn.at/infos/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "at-viehberg": {
+   "id": "at-viehberg",
+   "nom": "Viehberg",
+   "site": "https://www.viehberg.at/",
+   "pageTarifs": "https://www.viehberg.at/deutsch/viehberg-lifte/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "at-wurzeralm": {
+   "id": "at-wurzeralm",
+   "nom": "Wurzeralm",
+   "site": "https://skisport.com/hiwu/de",
+   "pageTarifs": "https://skisport.com/hinterstoder/de/tickets-preise",
+   "prix": null,
+   "refuse": false
+  },
+  "az-sahdag-xiz-k-kompleksi-shahdag-mountain-resort": {
+   "id": "az-sahdag-xiz-k-kompleksi-shahdag-mountain-resort",
+   "nom": "Şahdağ Xizək Kompleksi, قريه شاهداغ الثلجية, Shahdag Mountain Resort, Горнолыжный курорт Шахдаг",
+   "site": "https://www.shahdag.az/az",
+   "pageTarifs": "https://www.shahdag.az/az/ski-passlar",
+   "prix": null,
+   "refuse": false
+  },
+  "ba-ski-centar-ravna-planina-pale-ski-center-ravna-planina-pale": {
+   "id": "ba-ski-centar-ravna-planina-pale-ski-center-ravna-planina-pale",
+   "nom": "Ski centar \"Ravna Planina\", Pale, Ski Center \"Ravna Planina\" Pale, Ски центар Равна Планина, Пале",
+   "site": "https://www.ski-rp.com/",
+   "pageTarifs": "https://www.ski-rp.com/ski-pass/",
+   "prix": null,
+   "refuse": false
+  },
+  "bg-vitosha": {
+   "id": "bg-vitosha",
+   "nom": "Vitosha",
+   "site": "https://www.skivitosha.com/",
+   "pageTarifs": "https://www.skivitosha.com/summer/information/prices",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-adelboden-lenk": {
+   "id": "ch-adelboden-lenk",
+   "nom": "Adelboden - Lenk",
+   "site": "https://www.adelboden-lenk.ch/de/Erlebnis/Skiregion/Adelboden-Lenk",
+   "pageTarifs": "https://www.adelboden-lenk.ch/de/Service/Tickets-Tarife",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-airolo-pescium": {
+   "id": "ch-airolo-pescium",
+   "nom": "Airolo Pesciüm",
+   "site": "https://www.airolo.ch/",
+   "pageTarifs": "https://www.airolo.ch/prezzi-orari-funivie-airolo-estate.php",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-atzmannig": {
+   "id": "ch-atzmannig",
+   "nom": "Atzmännig",
+   "site": "https://www.atzmaennig.ch/",
+   "pageTarifs": "https://www.atzmaennig.ch/de/sommer/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-brunni-haggenegg": {
+   "id": "ch-brunni-haggenegg",
+   "nom": "Brunni-Haggenegg",
+   "site": "https://www.brunnialpthal.ch/",
+   "pageTarifs": "https://www.brunnialpthal.ch/Saisonkarten.aspx",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-brunni-holzegg-rotenflue": {
+   "id": "ch-brunni-holzegg-rotenflue",
+   "nom": "Brunni-Holzegg-Rotenflue",
+   "site": "https://www.brunnialpthal.ch/",
+   "pageTarifs": "https://www.brunnialpthal.ch/Saisonkarten.aspx",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-campo-blenio": {
+   "id": "ch-campo-blenio",
+   "nom": "Campo (Blenio)",
+   "site": "https://www.campoblenio.ch/",
+   "pageTarifs": "https://www.campoblenio.ch/tariffe/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-cimetta": {
+   "id": "ch-cimetta",
+   "nom": "Cimetta",
+   "site": "https://www.cardada.ch/fr",
+   "pageTarifs": "https://www.cardada.ch/fr/horaire-et-tarifs",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-corviglia": {
+   "id": "ch-corviglia",
+   "nom": "Corviglia",
+   "site": "https://www.mountains.ch/en/",
+   "pageTarifs": "https://www.mountains.ch/en/tickets/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-eggberge-469015m86525": {
+   "id": "ch-eggberge-469015m86525",
+   "nom": "Eggberge",
+   "site": "https://www.eggberge.ch/",
+   "pageTarifs": "https://www.eggberge.ch/seilbahn/preisetickets",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-glarus": {
+   "id": "ch-glarus",
+   "nom": "Glarus",
+   "site": "https://www.glarus.ch/freizeit-wohnen/sportanlagen/skilift-dreieck.html/6235",
+   "pageTarifs": "https://www.glarus.ch/freizeit-wohnen/freizeit-tourismus/sbb-tagessparkarte-gemeinde.html/7218",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-grindelwald-mannlichen-schlittelpiste": {
+   "id": "ch-grindelwald-mannlichen-schlittelpiste",
+   "nom": "Grindelwald - Männlichen (Schlittelpiste)",
+   "site": "https://www.jungfrau.ch/de-ch/grindelwaldfirst/",
+   "pageTarifs": "https://www.jungfrau.ch/de-ch/jungfrau-ski-region/skipass-kaufen/",
+   "prix": {
+    "valeur": 62,
+    "devise": "CHF",
+    "deviseSource": "page",
+    "preuve": "½ Tag 2 | 3 CHF 62.– CHF 65.– CHF 36.– CHF 30.–"
+   },
+   "refuse": false
+  },
+  "ch-grub-kaien": {
+   "id": "ch-grub-kaien",
+   "nom": "Grub-Kaien",
+   "site": "https://skiliftgrub-kaien.ch/",
+   "pageTarifs": "https://skiliftgrub-kaien.ch/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-hohwald-beatenberg": {
+   "id": "ch-hohwald-beatenberg",
+   "nom": "Hohwald Beatenberg",
+   "site": "https://www.skilift-hohwald.ch/",
+   "pageTarifs": "https://www.skilift-hohwald.ch/preise",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-jakobshorn": {
+   "id": "ch-jakobshorn",
+   "nom": "Jakobshorn",
+   "site": "https://www.davos.ch/en",
+   "pageTarifs": "https://www.davos.ch/en/information/guest-information/guest-card/premium-card",
+   "prix": {
+    "valeur": 20,
+    "devise": "CHF",
+    "deviseSource": "page",
+    "preuve": "Day ticket: several mountains¹ CHF 20 CHF 10 free of charge"
+   },
+   "refuse": false
+  },
+  "ch-les-giettes": {
+   "id": "ch-les-giettes",
+   "nom": "Les Giettes",
+   "site": "https://telegiettes.ch/",
+   "pageTarifs": "https://telegiettes.ch/tarifs",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-mogno-464281m86623": {
+   "id": "ch-mogno-464281m86623",
+   "nom": "Mogno",
+   "site": "https://mognofreetime.ch/",
+   "pageTarifs": "https://mognofreetime.ch/tariffe/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-monte-tamaro": {
+   "id": "ch-monte-tamaro",
+   "nom": "Monte Tamaro",
+   "site": "https://www.montetamaro.ch/",
+   "pageTarifs": "https://www.montetamaro.ch/fr/horaires-et-prix",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-nods": {
+   "id": "ch-nods",
+   "nom": "Nods",
+   "site": "https://www.teleskinods.ch/",
+   "pageTarifs": "https://www.teleskinods.ch/tarif/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-pilatus": {
+   "id": "ch-pilatus",
+   "nom": "Pilatus",
+   "site": "https://pilatus.ch/",
+   "pageTarifs": "https://pilatus.ch/bahnen/tickets",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-pradaschier": {
+   "id": "ch-pradaschier",
+   "nom": "Pradaschier",
+   "site": "https://pradaschier.ch/",
+   "pageTarifs": "https://pradaschier.ch/tickets-preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-raten": {
+   "id": "ch-raten",
+   "nom": "Raten",
+   "site": "https://www.skilift-raten.ch/",
+   "pageTarifs": "https://www.skilift-raten.ch/Preise.htm",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-rossberg-oberwil": {
+   "id": "ch-rossberg-oberwil",
+   "nom": "Rossberg Oberwil",
+   "site": "https://www.rossbergoberwil.ch/",
+   "pageTarifs": "https://www.rossbergoberwil.ch/angebot/preise",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-skilift-chrachenhutten-blumenstein": {
+   "id": "ch-skilift-chrachenhutten-blumenstein",
+   "nom": "Skilift Chrachenhütten Blumenstein",
+   "site": "https://www.blumenstein.ch/dorfleben/sport",
+   "pageTarifs": "https://www.blumenstein.ch/verwaltung/tageskarten",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-urnasch": {
+   "id": "ch-urnasch",
+   "nom": "Urnäsch",
+   "site": "https://skilift-urnaesch.ch/",
+   "pageTarifs": "https://skilift-urnaesch.ch/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "ch-visperterminen": {
+   "id": "ch-visperterminen",
+   "nom": "Visperterminen",
+   "site": "https://www.heidadorf.ch/freizeit",
+   "pageTarifs": "https://www.heidadorf.ch/freizeit/fahrplaene-tarife",
+   "prix": {
+    "valeur": 40,
+    "devise": "CHF",
+    "deviseSource": "page",
+    "preuve": "Tageskarte Erwachsene inkl. Bike CHF 40.00"
+   },
+   "refuse": false
+  },
+  "cz-bozi-dar": {
+   "id": "cz-bozi-dar",
+   "nom": "Boží Dar",
+   "site": "http://skiarealbozidar.cz/en/homepage-en/",
+   "pageTarifs": "http://skiarealbozidar.cz/en/price-list/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-bystre": {
+   "id": "cz-bystre",
+   "nom": "Bystré",
+   "site": "https://www.skibystre.cz/",
+   "pageTarifs": "https://www.skibystre.cz/?page_id=16",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-debrnik": {
+   "id": "cz-debrnik",
+   "nom": "Debrník",
+   "site": "https://www.lv-debrnik.cz/",
+   "pageTarifs": "https://www.lv-debrnik.cz/cenik.php",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-destne-v-orlickych-horach": {
+   "id": "cz-destne-v-orlickych-horach",
+   "nom": "Deštné v Orlických horách",
+   "site": "https://destne.cz/",
+   "pageTarifs": "https://destne.cz/page/ceny",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-fajtuv-kopec": {
+   "id": "cz-fajtuv-kopec",
+   "nom": "Fajtův kopec",
+   "site": "https://www.skivm.cz/",
+   "pageTarifs": "https://www.skivm.cz/ski-areal/cenik-jizdneho",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-hlinsko": {
+   "id": "cz-hlinsko",
+   "nom": "Hlinsko",
+   "site": "https://www.skihlinsko.cz/en/",
+   "pageTarifs": "https://www.skihlinsko.cz/en/cenik/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-hochficht-bohmerwald": {
+   "id": "cz-hochficht-bohmerwald",
+   "nom": "Hochficht-Böhmerwald",
+   "site": "https://skisport.com/hochficht/de",
+   "pageTarifs": "https://skisport.com/hochficht/de/tickets-preise",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-horsky-resort-bukova-hora": {
+   "id": "cz-horsky-resort-bukova-hora",
+   "nom": "Horský resort Buková hora",
+   "site": "https://www.skibukovka.cz/cz/",
+   "pageTarifs": "https://www.skibukovka.cz/cz/lyzovani/cenik-zima-cervena-voda-a-cenkovice",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-janske-lazne-cerna-hora": {
+   "id": "cz-janske-lazne-cerna-hora",
+   "nom": "Janské Lázně - Černá hora",
+   "site": "https://leto.skiresort.cz/",
+   "pageTarifs": "https://leto.skiresort.cz/cenik/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-komari-vizka": {
+   "id": "cz-komari-vizka",
+   "nom": "Komáří vížka",
+   "site": "https://www.icesty.cz/",
+   "pageTarifs": "https://www.icesty.cz/termaly-polsko/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-lyzarsky-areal-nemcicky-u-breclavi": {
+   "id": "cz-lyzarsky-areal-nemcicky-u-breclavi",
+   "nom": "Lyžařský areál Němčičky u Břeclavi",
+   "site": "https://sportnemcicky.cz/",
+   "pageTarifs": "https://sportnemcicky.cz/cenik/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-lyzarsky-vlek-popelka": {
+   "id": "cz-lyzarsky-vlek-popelka",
+   "nom": "Lyžařský vlek Popelka",
+   "site": "https://www.strazne.eu/skiareal/",
+   "pageTarifs": "https://www.strazne.eu/skiareal/cenik/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-mezihori": {
+   "id": "cz-mezihori",
+   "nom": "Mezihoří",
+   "site": "https://tjmezihori.cz/",
+   "pageTarifs": "https://tjmezihori.cz/Price",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-mrakotin": {
+   "id": "cz-mrakotin",
+   "nom": "Mrákotín",
+   "site": "http://www.ski-mrakotin.cz/index.php",
+   "pageTarifs": "http://www.ski-mrakotin.cz/index.php?s=clanky&amp;clanek=3&amp;m=13&amp;jmeno=Cen%C3%ADk%20j%C3%ADzdn%C3%A9ho",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-nova-paka-machovka": {
+   "id": "cz-nova-paka-machovka",
+   "nom": "Nová Paka - Máchovka",
+   "site": "https://www.skimachovka.cz/",
+   "pageTarifs": "https://www.skimachovka.cz/cenik-skipasy/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-nove-mesto-na-morave": {
+   "id": "cz-nove-mesto-na-morave",
+   "nom": "Nové Město na Moravě",
+   "site": "https://skiharusak.cz/",
+   "pageTarifs": "https://skiharusak.cz/skipass/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-novy-hrozenkov-vranca": {
+   "id": "cz-novy-hrozenkov-vranca",
+   "nom": "Nový Hrozenkov - Vranča",
+   "site": "https://pipni.cz/403",
+   "pageTarifs": "https://pipni.cz/domeny/cenik",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-pec-pod-snezkou-506936m157333": {
+   "id": "cz-pec-pod-snezkou-506936m157333",
+   "nom": "Pec pod Sněžkou",
+   "site": "https://www.skiresort.cz/en/",
+   "pageTarifs": "https://www.skiresort.cz/en/cenik/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-ski-centrum-oaza": {
+   "id": "cz-ski-centrum-oaza",
+   "nom": "Ski Centrum Oáza",
+   "site": "https://www.penzionoaza.cz/lyzarska-sezona/",
+   "pageTarifs": "https://www.penzionoaza.cz/ski-areal-loucna-nad-desnou/cenik-skipasu/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-ski-areal-sacberk": {
+   "id": "cz-ski-areal-sacberk",
+   "nom": "Ski areál Šacberk",
+   "site": "https://www.sacberk.cz/",
+   "pageTarifs": "https://www.sacberk.cz/cz/provozni-doba-cenik",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-ski-sachty": {
+   "id": "cz-ski-sachty",
+   "nom": "Ski Šachty",
+   "site": "https://www.skisachty.cz/",
+   "pageTarifs": "https://www.skisachty.cz/cenik-sezona-2025-2026/dulezite-informace-k-ceniku-a-provozu/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-skiareal-jested-jeschken": {
+   "id": "cz-skiareal-jested-jeschken",
+   "nom": "Skiareál Ještěd, Jeschken",
+   "site": "https://www.skijested.cz/",
+   "pageTarifs": "https://www.skijested.cz/zazitky/skolni-vylety/cenik",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-skiareal-klinovec": {
+   "id": "cz-skiareal-klinovec",
+   "nom": "Skiareál Klínovec",
+   "site": "https://klinovec.cz/",
+   "pageTarifs": "https://klinovec.cz/ceniky-skipasu/",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-skiareal-spindleruv-mlyn-medvedin": {
+   "id": "cz-skiareal-spindleruv-mlyn-medvedin",
+   "nom": "Skiareál Špindlerův Mlýn - Medvědín",
+   "site": "https://www.skiareal.cz/en/",
+   "pageTarifs": "https://www.skiareal.cz/ceniky/spindl-motion-rental-shop-medvedin",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-svetla-nad-sazavou-kadlecak": {
+   "id": "cz-svetla-nad-sazavou-kadlecak",
+   "nom": "Světlá nad Sázavou - Kadlečák",
+   "site": "https://skikadlecak.cz/home",
+   "pageTarifs": "https://skikadlecak.cz/cenik-leto",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-zasada": {
+   "id": "cz-zasada",
+   "nom": "Zásada",
+   "site": "https://www.zasadaskicentrum.cz/",
+   "pageTarifs": "https://www.zasadaskicentrum.cz/ski-areal-zasada/informace-o-arealu/cenik-vleku",
+   "prix": null,
+   "refuse": false
+  },
+  "cz-cesky-jiretin": {
+   "id": "cz-cesky-jiretin",
+   "nom": "Český Jiřetín",
+   "site": "https://ski.ceskyjiretin.cz/",
+   "pageTarifs": "https://ski.ceskyjiretin.cz/cenik/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-eck": {
+   "id": "de-eck",
+   "nom": "Eck",
+   "site": "http://www.skieck.de/",
+   "pageTarifs": "http://www.skieck.de/index.php/skilift-eck/preisliste.html",
+   "prix": null,
+   "refuse": false
+  },
+  "de-gohrersberg-kreuzthal": {
+   "id": "de-gohrersberg-kreuzthal",
+   "nom": "Gohrersberg – Kreuzthal",
+   "site": "https://www.gohrersberg.de/",
+   "pageTarifs": "https://www.gohrersberg.de/skilift/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-herzogstandbahn-walchensee": {
+   "id": "de-herzogstandbahn-walchensee",
+   "nom": "Herzogstandbahn (Walchensee)",
+   "site": "https://www.herzogstandbahn.de/",
+   "pageTarifs": "https://www.herzogstandbahn.de/fahrpreise",
+   "prix": null,
+   "refuse": false
+  },
+  "de-hesselbacher-gletscher": {
+   "id": "de-hesselbacher-gletscher",
+   "nom": "Hesselbacher Gletscher",
+   "site": "https://www.hesselbachergletscher.de/",
+   "pageTarifs": "https://www.hesselbachergletscher.de/oeffnungszeitenpreise/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-kolbensattel-oberammergau": {
+   "id": "de-kolbensattel-oberammergau",
+   "nom": "Kolbensattel (Oberammergau)",
+   "site": "https://kolbensattel-im-sommer.de/",
+   "pageTarifs": "https://kolbensattel-im-sommer.de/2025/05/04/nur-kartenzahlung-am-ticketautomaten/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-sebnitz": {
+   "id": "de-sebnitz",
+   "nom": "Sebnitz",
+   "site": "https://ski-sebnitz.com/",
+   "pageTarifs": "https://ski-sebnitz.com/",
+   "prix": {
+    "valeur": 15,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "Tageskarte 15,00 EUR 25,00 EUR"
+   },
+   "refuse": false
+  },
+  "de-skigebiet-eckbauer": {
+   "id": "de-skigebiet-eckbauer",
+   "nom": "Skigebiet Eckbauer",
+   "site": "https://www.eckbauerbahn.de/",
+   "pageTarifs": "https://www.eckbauerbahn.de/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-skigebiet-lausche": {
+   "id": "de-skigebiet-lausche",
+   "nom": "Skigebiet Lausche",
+   "site": "https://asvl-waltersdorf.de/",
+   "pageTarifs": "https://asvl-waltersdorf.de/skigebiet/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-skilifte-sinswang": {
+   "id": "de-skilifte-sinswang",
+   "nom": "Skilifte Sinswang",
+   "site": "https://www.skilifte-sinswang.de/",
+   "pageTarifs": "https://www.skilifte-sinswang.de/preise/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-skipiste-am-kohlberg": {
+   "id": "de-skipiste-am-kohlberg",
+   "nom": "Skipiste \"Am Kohlberg\"",
+   "site": "https://www.tus-neuenrade-ski.de/",
+   "pageTarifs": "https://www.tus-neuenrade-ski.de/preise-und-anfahrt/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-stollenbach": {
+   "id": "de-stollenbach",
+   "nom": "Stollenbach",
+   "site": "https://www.skilifte-stollenbach.de/",
+   "pageTarifs": "https://www.skilifte-stollenbach.de/p/preise",
+   "prix": null,
+   "refuse": false
+  },
+  "de-tegelbergbahn": {
+   "id": "de-tegelbergbahn",
+   "nom": "Tegelbergbahn",
+   "site": "https://www.tegelbergbahn.de/de",
+   "pageTarifs": "https://www.tegelbergbahn.de/de/sommer/info-preise",
+   "prix": null,
+   "refuse": false
+  },
+  "de-unternberg-ruhpolding": {
+   "id": "de-unternberg-ruhpolding",
+   "nom": "Unternberg (Ruhpolding)",
+   "site": "https://meinebergwelt.de/",
+   "pageTarifs": "https://meinebergwelt.de/preise-oeffnungszeiten-fly-line/",
+   "prix": null,
+   "refuse": false
+  },
+  "de-wallbergbahn-tegernsee": {
+   "id": "de-wallbergbahn-tegernsee",
+   "nom": "Wallbergbahn (Tegernsee)",
+   "site": "https://www.wallbergbahn.de/",
+   "pageTarifs": "https://www.wallbergbahn.de/de/tickets-angebote.html",
+   "prix": null,
+   "refuse": false
+  },
+  "dk-bornholms-ski-venner": {
+   "id": "dk-bornholms-ski-venner",
+   "nom": "Bornholms Ski Venner",
+   "site": "https://bornholmsskivenner.dk/",
+   "pageTarifs": "https://bornholmsskivenner.dk/priser/",
+   "prix": null,
+   "refuse": false
+  },
+  "dk-copenhill": {
+   "id": "dk-copenhill",
+   "nom": "CopenHill",
+   "site": "https://www.copenhill.dk/",
+   "pageTarifs": "https://www.copenhill.dk/priser",
+   "prix": null,
+   "refuse": false
+  },
+  "es-estacion-de-esqui-de-valdezcaray": {
+   "id": "es-estacion-de-esqui-de-valdezcaray",
+   "nom": "Estación de esquí de Valdezcaray",
+   "site": "https://www.valdezcaray.es/",
+   "pageTarifs": "https://www.valdezcaray.es/tarifas-y-calendario/",
+   "prix": {
+    "valeur": 14.5,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "Medio día (hasta las 13:00 h) 14.5 €"
+   },
+   "refuse": false
+  },
+  "es-valdelinares-404000mm06000": {
+   "id": "es-valdelinares-404000mm06000",
+   "nom": "Valdelinares",
+   "site": "https://www.javalambre-valdelinares.com/",
+   "pageTarifs": "https://www.javalambre-valdelinares.com/tarifas-javalambre-valdelinares.html",
+   "prix": null,
+   "refuse": false
+  },
+  "fi-kasurila": {
+   "id": "fi-kasurila",
+   "nom": "Kasurila",
+   "site": "https://www.kasurila.com/",
+   "pageTarifs": "https://www.kasurila.com/",
+   "prix": {
+    "valeur": 10,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "Päivämaksu 10 €"
+   },
+   "refuse": false
+  },
+  "fi-saariselka": {
+   "id": "fi-saariselka",
+   "nom": "Saariselka",
+   "site": "https://skisaariselka.com/",
+   "pageTarifs": "https://skisaariselka.com/lift-tickets/",
+   "prix": {
+    "valeur": 54.5,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "1 day 54,5 € 36 €"
+   },
+   "refuse": false
+  },
+  "fi-ski-saariselka-laskuttelukeskus-ski-sport-resort-saariselka": {
+   "id": "fi-ski-saariselka-laskuttelukeskus-ski-sport-resort-saariselka",
+   "nom": "Ski Saariselkä, Laskuttelukeskus Ski & Sport Resort Saariselkä",
+   "site": "https://skisaariselka.com/",
+   "pageTarifs": "https://skisaariselka.com/lift-tickets/",
+   "prix": {
+    "valeur": 54.5,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "1 day 54,5 € 36 €"
+   },
+   "refuse": false
+  },
+  "fr-grand-ballon": {
+   "id": "fr-grand-ballon",
+   "nom": "Grand Ballon",
+   "site": "https://www.grand-ballon.net/de/",
+   "pageTarifs": "https://www.grand-ballon.net/fr/bouger-lhiver/station-du-markstein/luge-sur-rails",
+   "prix": null,
+   "refuse": false
+  },
+  "fr-la-grave": {
+   "id": "fr-la-grave",
+   "nom": "La Grave",
+   "site": "https://la-grave.com/",
+   "pageTarifs": "https://la-grave.com/hiver-tarifs-horaires/",
+   "prix": null,
+   "refuse": false
+  },
+  "fr-markstein-grand-ballon": {
+   "id": "fr-markstein-grand-ballon",
+   "nom": "Markstein-Grand Ballon",
+   "site": "https://www.lemarkstein.net/fr/",
+   "pageTarifs": "https://www.lemarkstein.net/fr/tarifs-ete/",
+   "prix": null,
+   "refuse": false
+  },
+  "fr-site-nordique-des-trois-fours": {
+   "id": "fr-site-nordique-des-trois-fours",
+   "nom": "Site Nordique des Trois Fours",
+   "site": "https://laschlucht.labellemontagne.com/fr/",
+   "pageTarifs": "https://laschlucht.labellemontagne.com/fr/hiver/forfaits/",
+   "prix": {
+    "valeur": 17.5,
+    "devise": "EUR",
+    "deviseSource": "page",
+    "preuve": "1 jour 17,50 € 19,70€"
+   },
+   "refuse": false
+  },
+  "fr-vormaine": {
+   "id": "fr-vormaine",
+   "nom": "Vormaine",
+   "site": "https://www.lavormaine.com/index.php/fr/",
+   "pageTarifs": "https://www.lavormaine.com/index.php/fr/hiver/tarifs-horaires",
+   "prix": null,
+   "refuse": false
+  },
+  "gb-guildford-ski-slope": {
+   "id": "gb-guildford-ski-slope",
+   "nom": "Guildford Ski Slope",
+   "site": "https://guildfordskislope.co.uk/",
+   "pageTarifs": "https://guildfordskislope.co.uk/prices/",
+   "prix": null,
+   "refuse": false
+  },
+  "gb-knockhatch-ski-snowboard-centre": {
+   "id": "gb-knockhatch-ski-snowboard-centre",
+   "nom": "Knockhatch Ski & Snowboard Centre",
+   "site": "https://knockhatchskischool.com/",
+   "pageTarifs": "https://knockhatchskischool.com/prices-2026-27-season",
+   "prix": {
+    "valeur": 25,
+    "devise": "GBP",
+    "deviseSource": "page",
+    "preuve": "Pay on the day £25"
+   },
+   "refuse": false
+  },
+  "gb-midlothian-snowsports-centre-hillend-dry-slope": {
+   "id": "gb-midlothian-snowsports-centre-hillend-dry-slope",
+   "nom": "Midlothian Snowsports Centre (Hillend Dry Slope)",
+   "site": "https://www.midlothian.gov.uk/info/200281/snowsports_centre",
+   "pageTarifs": "https://www.midlothian.gov.uk/info/200281/snowsports_centre/183/prices",
+   "prix": null,
+   "refuse": false
+  },
+  "gb-plymouth-ski-and-snowboard-center": {
+   "id": "gb-plymouth-ski-and-snowboard-center",
+   "nom": "Plymouth ski and snowboard center",
+   "site": "https://www.jnlplymouth.co.uk/",
+   "pageTarifs": "https://www.jnlplymouth.co.uk/opening-times",
+   "prix": {
+    "valeur": 42,
+    "devise": "GBP",
+    "deviseSource": "page",
+    "preuve": "Half Day Session £42.00"
+   },
+   "refuse": false
+  },
+  "gb-south-wilts-ski-club": {
+   "id": "gb-south-wilts-ski-club",
+   "nom": "South Wilts Ski Club",
+   "site": "https://southwiltsski.com/",
+   "pageTarifs": "https://southwiltsski.com/prices-and-packages/",
+   "prix": null,
+   "refuse": false
+  },
+  "gb-swadlincote-ski-snowboard": {
+   "id": "gb-swadlincote-ski-snowboard",
+   "nom": "Swadlincote Ski & Snowboard",
+   "site": "https://www.jnlswadlincote.co.uk/",
+   "pageTarifs": "https://www.jnlswadlincote.co.uk/opening-times",
+   "prix": null,
+   "refuse": false
+  },
+  "ge-crystal": {
+   "id": "ge-crystal",
+   "nom": "Crystal",
+   "site": "https://bakuriani.ski/crystal",
+   "pageTarifs": "https://bakuriani.ski/crystal",
+   "prix": {
+    "valeur": 560,
+    "devise": "GEL",
+    "deviseSource": "page",
+    "preuve": "7-day package 10:00–22:00 560 ₾ 410 ₾"
+   },
+   "refuse": false
+  },
+  "ge-goderdzi-mountain-resort": {
+   "id": "ge-goderdzi-mountain-resort",
+   "nom": "Goderdzi Mountain Resort",
+   "site": "https://goderdzi.ski/",
+   "pageTarifs": "https://goderdzi.ski/skipass",
+   "prix": {
+    "valeur": 30,
+    "devise": "GEL",
+    "deviseSource": "page",
+    "preuve": "1 Day 30 ₾ 15 ₾"
+   },
+   "refuse": false
+  },
+  "hu-zemplen-kalandpark": {
+   "id": "hu-zemplen-kalandpark",
+   "nom": "Zemplen Kalandpark",
+   "site": "https://zemplenkalandpark.hu/",
+   "pageTarifs": "https://zemplenkalandpark.hu/arak/",
+   "prix": null,
+   "refuse": false
+  },
+  "ie-ski-club-of-ireland": {
+   "id": "ie-ski-club-of-ireland",
+   "nom": "Ski Club Of Ireland",
+   "site": "https://skiclub.ie/",
+   "pageTarifs": "https://skiclub.ie/pricing-booking/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-area-sciistica-pian-del-poggio-monte-chiappo": {
+   "id": "it-area-sciistica-pian-del-poggio-monte-chiappo",
+   "nom": "Area Sciistica Pian del Poggio Monte Chiappo",
+   "site": "https://www.seggioviapiandelpoggio.it/",
+   "pageTarifs": "https://www.seggioviapiandelpoggio.it/ski-resort/tariffe/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-campocatino": {
+   "id": "it-campocatino",
+   "nom": "Campocatino",
+   "site": "https://www.campocatino.eu/",
+   "pageTarifs": "https://www.campocatino.eu/skipass-giornalieri/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-centro-fondo-arpy-morgex": {
+   "id": "it-centro-fondo-arpy-morgex",
+   "nom": "Centro Fondo Arpy - Morgex",
+   "site": "https://ostellodiarpy.com/",
+   "pageTarifs": "https://ostellodiarpy.com/tariffe/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-cortina-tofane": {
+   "id": "it-cortina-tofane",
+   "nom": "Cortina Tofane",
+   "site": "https://www.impianticortina.it/",
+   "pageTarifs": "https://www.impianticortina.it/impianti-e-prezzi-estate/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-cristallo-faloria": {
+   "id": "it-cristallo-faloria",
+   "nom": "Cristallo - Faloria",
+   "site": "https://faloriacristallo.it/",
+   "pageTarifs": "https://faloriacristallo.it/prezzi-e-orari-estate/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-drei-zinnen-tre-cime-drei-zinnen-tre-cime": {
+   "id": "it-drei-zinnen-tre-cime-drei-zinnen-tre-cime",
+   "nom": "Drei Zinnen - Tre Cime, Drei Zinnen, Tre Cime",
+   "site": "https://www.dreizinnen.com/de",
+   "pageTarifs": "https://www.dreizinnen.com/de/aktivitaeten/langlaufen/ticketverkauf",
+   "prix": {
+    "valeur": 17.3,
+    "devise": "EUR",
+    "deviseSource": "pays",
+    "preuve": "Status Geschlossen Mittel Zu den Favoriten hinzufügen Toblach 11A Gemärk - Nordic Arena (Variante) Strecke 17,3 km"
+   },
+   "refuse": false
+  },
+  "it-jochgrimm-passo-oclini": {
+   "id": "it-jochgrimm-passo-oclini",
+   "nom": "Jochgrimm, Passo Oclini",
+   "site": "https://oclini.com/",
+   "pageTarifs": "https://oclini.com/preise-skiurlaub-snowboard-schifahren/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-kaberlaba": {
+   "id": "it-kaberlaba",
+   "nom": "Kaberlaba",
+   "site": "https://www.kaberland.com/inverno/",
+   "pageTarifs": "https://www.kaberland.com/ticket-pass/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-lagazuoi-5-torri": {
+   "id": "it-lagazuoi-5-torri",
+   "nom": "Lagazuoi - 5 Torri",
+   "site": "https://cortinadelicious.it/",
+   "pageTarifs": "https://cortinadelicious.it/IT/p66-Gli-impianti-di-risalita-prezzi-e-calendario",
+   "prix": null,
+   "refuse": false
+  },
+  "it-roccaraso-rivisondoli": {
+   "id": "it-roccaraso-rivisondoli",
+   "nom": "Roccaraso - Rivisondoli",
+   "site": "https://roccaraso.net/",
+   "pageTarifs": "https://roccaraso.net/roccaraso-estate/tariffe-estive/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-san-martino-di-castrozza": {
+   "id": "it-san-martino-di-castrozza",
+   "nom": "San Martino di Castrozza",
+   "site": "https://www.sanmartino.com/it",
+   "pageTarifs": "https://www.sanmartino.com/item.url",
+   "prix": null,
+   "refuse": false
+  },
+  "it-san-martino-di-castrozza-passo-rolle": {
+   "id": "it-san-martino-di-castrozza-passo-rolle",
+   "nom": "San Martino di Castrozza - Passo Rolle",
+   "site": "https://www.sanmartino.com/it",
+   "pageTarifs": "https://www.sanmartino.com/item.url",
+   "prix": null,
+   "refuse": false
+  },
+  "it-sarnano-sassotetto": {
+   "id": "it-sarnano-sassotetto",
+   "nom": "Sarnano - Sassotetto",
+   "site": "https://www.sarnanoneve.it/",
+   "pageTarifs": "https://www.sarnanoneve.it/skipass/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-terminillo": {
+   "id": "it-terminillo",
+   "nom": "Terminillo",
+   "site": "https://www.terminillo.eu/",
+   "pageTarifs": "https://www.terminillo.eu/mappa-impianti-piste-da-sci/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-val-formica": {
+   "id": "it-val-formica",
+   "nom": "Val Formica",
+   "site": "https://www.valformica.it/",
+   "pageTarifs": "https://www.valformica.it/listino-prezzi-2026/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-verena-2000": {
+   "id": "it-verena-2000",
+   "nom": "Verena 2000",
+   "site": "https://www.skiverena.com/",
+   "pageTarifs": "https://www.skiverena.com/rifugi/rifugio-verenetta-listino-prezzi/",
+   "prix": null,
+   "refuse": false
+  },
+  "it-lemelette": {
+   "id": "it-lemelette",
+   "nom": "leMelette",
+   "site": "https://www.lemelette.it/",
+   "pageTarifs": "https://www.lemelette.it/skipass-giornalieri",
+   "prix": null,
+   "refuse": false
+  },
+  "kz-altayskiye-alpy": {
+   "id": "kz-altayskiye-alpy",
+   "nom": "Altayskiye Alpy",
+   "site": "https://alps.altay.kz/",
+   "pageTarifs": "https://alps.altay.kz/price/",
+   "prix": null,
+   "refuse": false
+  },
+  "lv-ozolkalns": {
+   "id": "lv-ozolkalns",
+   "nom": "Ozolkalns",
+   "site": "https://www.ozolkalns.lv/winter",
+   "pageTarifs": "https://www.ozolkalns.lv/winter/accommodation-prices",
+   "prix": null,
+   "refuse": false
+  },
+  "me-kolasin-1600": {
+   "id": "me-kolasin-1600",
+   "nom": "Kolašin 1600",
+   "site": "https://skijalista.me/en/ski-centers/kolasin-1600/",
+   "pageTarifs": "https://skijalista.me/en/pricelist/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-eikerapen": {
+   "id": "no-eikerapen",
+   "nom": "Eikerapen",
+   "site": "https://www.eikerapen.info/",
+   "pageTarifs": "https://www.eikerapen.info/priser/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-hurdal-skisenter-604637m110700": {
+   "id": "no-hurdal-skisenter-604637m110700",
+   "nom": "Hurdal Skisenter",
+   "site": "https://www.skihurdal.no/",
+   "pageTarifs": "https://www.skihurdal.no/linje-1/heiskort/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-knyken-skisenter": {
+   "id": "no-knyken-skisenter",
+   "nom": "Knyken Skisenter",
+   "site": "https://www.orkdal-il.no/knyken-skisenter/knyken/",
+   "pageTarifs": "https://www.orkdal-il.no/knyken-skisenter/apningstider-og-priser/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-liabakken": {
+   "id": "no-liabakken",
+   "nom": "Liabakken",
+   "site": "https://hsilalpint.wordpress.com/liabakken/",
+   "pageTarifs": "https://hsilalpint.wordpress.com/2014/12/31/heiskortpriser-og-apningstider-i-liabakken-2014-2015/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-lofoten": {
+   "id": "no-lofoten",
+   "nom": "Lofoten",
+   "site": "https://alpinlofoten.no/",
+   "pageTarifs": "https://alpinlofoten.no/priser/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-rauland-skisenter-597260m81467": {
+   "id": "no-rauland-skisenter-597260m81467",
+   "nom": "Rauland skisenter",
+   "site": "https://visitrauland.com/rauland-skisenter/",
+   "pageTarifs": "https://visitrauland.com/rauland-skisenter/aapningstider-og-priser/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-stordalen-skisenter": {
+   "id": "no-stordalen-skisenter",
+   "nom": "Stordalen skisenter",
+   "site": "http://www.stordalenskisenter.no/en/",
+   "pageTarifs": "http://www.stordalenskisenter.no/prices/",
+   "prix": null,
+   "refuse": false
+  },
+  "no-tveit-skisenter": {
+   "id": "no-tveit-skisenter",
+   "nom": "Tveit skisenter",
+   "site": "https://www.tveitskisenter.no/",
+   "pageTarifs": "https://www.tveitskisenter.no/priser.html",
+   "prix": null,
+   "refuse": false
+  },
+  "pl-cisowa-stacja-narciarska": {
+   "id": "pl-cisowa-stacja-narciarska",
+   "nom": "CISOWA - stacja narciarska",
+   "site": "http://www.cisowa.pl/",
+   "pageTarifs": "http://www.cisowa.pl/cennik",
+   "prix": null,
+   "refuse": false
+  },
+  "pl-kasprowy-wierch": {
+   "id": "pl-kasprowy-wierch",
+   "nom": "Kasprowy Wierch",
+   "site": "https://www.pkl.pl/kasprowy-wierch/kasprowy.html",
+   "pageTarifs": "https://www.pkl.pl/kasprowy-wierch/skipass-sezonowy.html",
+   "prix": null,
+   "refuse": false
+  },
+  "pl-kompleks-narciarski-bia-y-krzyz": {
+   "id": "pl-kompleks-narciarski-bia-y-krzyz",
+   "nom": "Kompleks Narciarski Biały Krzyż",
+   "site": "https://bialykrzyz.com.pl/",
+   "pageTarifs": "https://bialykrzyz.com.pl/cennik/",
+   "prix": null,
+   "refuse": false
+  },
+  "pl-kompleks-narciarski-kopa-w-karpaczu": {
+   "id": "pl-kompleks-narciarski-kopa-w-karpaczu",
+   "nom": "Kompleks Narciarski Kopa w Karpaczu",
+   "site": "https://karpaczskiarena.pl/",
+   "pageTarifs": "https://karpaczskiarena.pl/lato/cennik/",
+   "prix": null,
+   "refuse": false
+  },
+  "pl-rusin-ski": {
+   "id": "pl-rusin-ski",
+   "nom": "Rusiń-Ski",
+   "site": "https://www.rusin-ski.pl/stacja-narciarska-rusin-ski",
+   "pageTarifs": "https://www.rusin-ski.pl/cennik",
+   "prix": null,
+   "refuse": false
+  },
+  "pl-stacja-narciarska-kazimierz-dolny": {
+   "id": "pl-stacja-narciarska-kazimierz-dolny",
+   "nom": "Stacja Narciarska Kazimierz Dolny",
+   "site": "https://stacjakazimierz.pl/",
+   "pageTarifs": "https://stacjakazimierz.pl/cennik",
+   "prix": null,
+   "refuse": false
+  },
+  "pl-stok-narciarski-dolina-szczescia": {
+   "id": "pl-stok-narciarski-dolina-szczescia",
+   "nom": "Stok narciarski Dolina Szczęścia",
+   "site": "https://dolinaszczescia.pl/",
+   "pageTarifs": "https://dolinaszczescia.pl/artykul/cennik-wjazdow.htm",
+   "prix": null,
+   "refuse": false
+  },
+  "ro-bujdoso": {
+   "id": "ro-bujdoso",
+   "nom": "Bujdosó",
+   "site": "https://bucsin.ro/hu/",
+   "pageTarifs": "https://bucsin.ro/hu/arak.html",
+   "prix": null,
+   "refuse": false
+  },
+  "ro-buscat-baisoara": {
+   "id": "ro-buscat-baisoara",
+   "nom": "Buscat / Băișoara",
+   "site": "https://buscat.ro/",
+   "pageTarifs": "https://buscat.ro/skipass/",
+   "prix": null,
+   "refuse": false
+  },
+  "ro-havas-bucsin": {
+   "id": "ro-havas-bucsin",
+   "nom": "Havas Bucsin",
+   "site": "https://bucsin.ro/hu/",
+   "pageTarifs": "https://bucsin.ro/hu/arak.html",
+   "prix": null,
+   "refuse": false
+  },
+  "ro-sinaia": {
+   "id": "ro-sinaia",
+   "nom": "Sinaia",
+   "site": "https://sinaiago.ro/",
+   "pageTarifs": "https://sinaiago.ro/partiile-de-schi-tarife/",
+   "prix": null,
+   "refuse": false
+  },
+  "ro-ski-vidra": {
+   "id": "ro-ski-vidra",
+   "nom": "Ski Vidra",
+   "site": "https://www.skividra.ro/",
+   "pageTarifs": "https://www.skividra.ro/tarife",
+   "prix": null,
+   "refuse": false
+  },
+  "rs-kopaonik": {
+   "id": "rs-kopaonik",
+   "nom": "Kopaonik",
+   "site": "https://www.skijalistasrbije.rs/sr",
+   "pageTarifs": "https://www.skijalistasrbije.rs/sr/ski-pass-informacije-kopaonik-stara-planina-zlatibor-brezovica",
+   "prix": null,
+   "refuse": false
+  },
+  "rs-ski-center-stara-planina": {
+   "id": "rs-ski-center-stara-planina",
+   "nom": "Ski Center Stara planina",
+   "site": "https://www.skijalistasrbije.rs/en/lifts-and-slopes-stara-planina",
+   "pageTarifs": "https://www.skijalistasrbije.rs/en/ski-pass",
+   "prix": null,
+   "refuse": false
+  },
+  "rs-tornik": {
+   "id": "rs-tornik",
+   "nom": "Tornik, Торник",
+   "site": "https://www.skijalistasrbije.rs/en/lifts-and-slopes-tornik-zlatibor",
+   "pageTarifs": "https://www.skijalistasrbije.rs/en/ski-pass",
+   "prix": null,
+   "refuse": false
+  },
+  "se-hogfjallet": {
+   "id": "se-hogfjallet",
+   "nom": "Högfjället",
+   "site": "https://www.skistar.com/en/ski-destinations/salen/winter-in-salen/",
+   "pageTarifs": "https://www.skistar.com/en/winter/skipass/",
+   "prix": null,
+   "refuse": false
+  },
+  "se-lindvallen": {
+   "id": "se-lindvallen",
+   "nom": "Lindvallen",
+   "site": "https://www.skistar.com/en/ski-destinations/salen/winter-in-salen/",
+   "pageTarifs": "https://www.skistar.com/en/winter/skipass/",
+   "prix": null,
+   "refuse": false
+  },
+  "se-skistar-hammarbybacken": {
+   "id": "se-skistar-hammarbybacken",
+   "nom": "Skistar Hammarbybacken",
+   "site": "https://www.skistar.com/sv/hammarbybacken/vinter-i-hammarbybacken/",
+   "pageTarifs": "https://www.skistar.com/sv/hammarbybacken/planera/biljetter-och-priser/",
+   "prix": null,
+   "refuse": false
+  },
+  "se-storlien": {
+   "id": "se-storlien",
+   "nom": "Storlien",
+   "site": "https://www.storlienhogfjallshotell.se/en/activities-winter.html",
+   "pageTarifs": "https://www.storlienhogfjallshotell.se/skipass.html",
+   "prix": null,
+   "refuse": false
+  },
+  "se-tandadalen": {
+   "id": "se-tandadalen",
+   "nom": "Tandådalen",
+   "site": "https://www.skistar.com/en/ski-destinations/salen/winter-in-salen/",
+   "pageTarifs": "https://www.skistar.com/en/winter/skipass/",
+   "prix": null,
+   "refuse": false
+  },
+  "si-kranjska-gora": {
+   "id": "si-kranjska-gora",
+   "nom": "Kranjska Gora",
+   "site": "https://www.ski-kranjska-gora.com/sl/poletje",
+   "pageTarifs": "https://www.ski-kranjska-gora.com/sl/poletje/ceniki",
+   "prix": null,
+   "refuse": false
+  },
+  "si-stari-vrh": {
+   "id": "si-stari-vrh",
+   "nom": "Stari Vrh",
+   "site": "https://starivrh.si/",
+   "pageTarifs": "https://starivrh.si/cenik/",
+   "prix": null,
+   "refuse": false
+  },
+  "sk-chopok-juh": {
+   "id": "sk-chopok-juh",
+   "nom": "Chopok Juh",
+   "site": "https://www.jasna.sk/",
+   "pageTarifs": "https://www.jasna.sk/ubytovanie",
+   "prix": null,
+   "refuse": false
+  },
+  "sk-jasna-low-tatras": {
+   "id": "sk-jasna-low-tatras",
+   "nom": "Jasna Low Tatras",
+   "site": "https://www.jasna.sk/",
+   "pageTarifs": "https://www.jasna.sk/ubytovanie",
+   "prix": null,
+   "refuse": false
+  },
+  "sk-liptovska-teplicka-smreciny": {
+   "id": "sk-liptovska-teplicka-smreciny",
+   "nom": "Liptovská Teplička - Smrečiny",
+   "site": "https://skiteplicka.eu/",
+   "pageTarifs": "https://skiteplicka.eu/cennik/",
+   "prix": null,
+   "refuse": false
+  },
+  "sk-ski-bezovec-486684m179682": {
+   "id": "sk-ski-bezovec-486684m179682",
+   "nom": "Ski Bezovec",
+   "site": "https://www.skibezovec.sk/",
+   "pageTarifs": "https://www.skibezovec.sk/cennik/",
+   "prix": null,
+   "refuse": false
+  },
+  "sk-serkov": {
+   "id": "sk-serkov",
+   "nom": "Šerkov",
+   "site": "https://www.chatastart.sk/?sk_lyziarsky-vlek,4",
+   "pageTarifs": "https://www.chatastart.sk/cennik",
+   "prix": null,
+   "refuse": false
+  },
+  "tr-uludag-kayak-merkezi": {
+   "id": "tr-uludag-kayak-merkezi",
+   "nom": "Uludağ Kayak Merkezi",
+   "site": "https://www.uludaginfo.com/en",
+   "pageTarifs": "https://www.uludaginfo.com/sayfa/uludag-skipass-fiyatlari",
+   "prix": null,
+   "refuse": false
+  },
+  "ua-bukovytsia": {
+   "id": "ua-bukovytsia",
+   "nom": "Bukovytsia",
+   "site": "https://bukovytsia.com/",
+   "pageTarifs": null,
+   "prix": null,
+   "refuse": true
+  }
+ }
+}

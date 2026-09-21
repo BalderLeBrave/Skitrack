@@ -45,7 +45,7 @@ export type PhotoVue = {
 };
 
 export type ForfaitVue = {
-  source: "skiinfo" | "skiresort" | "bergfex";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
   cle: string;
   nom: string | null;
   km: number;
@@ -76,6 +76,15 @@ export type ForfaitVue = {
    * des périodes ferait croire à une variation qui n'existe pas.
    */
   periodes: PeriodeVue[] | null;
+  /**
+   * La ligne de tableau d'où sort un prix lu sur un site officiel.
+   *
+   * Un tarif en texte libre ne vaut que par ce qui l'accompagne : la ligne
+   * telle que le site l'écrit, qui permet au lecteur de juger sans relancer
+   * quoi que ce soit. Elle est affichée avec le prix, pas seulement stockée.
+   */
+  preuve?: string;
+  pageTarifs?: string;
 };
 
 export type PeriodeVue = {
@@ -266,5 +275,10 @@ export function mentionForfait(f: ForfaitVue): string {
   const ecart = f.deviseDuPays
     ? ` ; le site publie en ${f.devise} alors que le pays est en ${f.deviseDuPays}`
     : "";
+  // Un tarif lu sur le site officiel se présente avec sa preuve : la ligne du
+  // tableau, telle qu'écrite. Sans elle, « 33,50 € » ne se juge pas.
+  if (f.source === "officiel") {
+    return `Lu sur ${SITE.officiel}${f.pageTarifs ? ` (${f.pageTarifs})` : ""} — « ${f.preuve ?? ""} »${dev}`;
+  }
   return `${SITE[f.source]} — ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km, f.parLeNom)}${dev}${ecart}`;
 }

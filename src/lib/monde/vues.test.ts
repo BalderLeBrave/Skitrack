@@ -186,6 +186,35 @@ describe("les périodes datées, que seule bergfex publie", () => {
   });
 });
 
+describe("un tarif lu sur un site officiel se présente avec sa preuve", () => {
+  const LU: ForfaitVue = {
+    ...GRILLE,
+    source: "officiel",
+    cle: "https://www.brandnertal.at/tarifs",
+    pageTarifs: "https://www.brandnertal.at/tarifs",
+    km: 0,
+    devise: "EUR",
+    deviseSource: "page",
+    categories: [{ nom: "Adulte", ages: null }],
+    lignes: [{ libelle: "Forfait journée", prix: [33.5] }],
+    preuve: "Day Ticket 33,50 € 32,00 € 20,00 €",
+  };
+
+  it("la mention cite la ligne du tableau telle qu'écrite", () => {
+    // Un « 33,50 € » lu en texte libre ne se juge pas seul : la ligne qui le
+    // porte dit ce qu'il est, et elle doit paraître.
+    const m = mentionForfait(LU);
+    assert.match(m, /site officiel/);
+    assert.match(m, /Day Ticket 33,50 €/);
+    assert.match(m, /brandnertal\.at\/tarifs/);
+  });
+
+  it("la mention ne parle ni de fiche ni de distance : le site est celui du domaine", () => {
+    assert.doesNotMatch(mentionForfait(LU), /fiche «/);
+    assert.doesNotMatch(mentionForfait(LU), /km/);
+  });
+});
+
 describe("une transformation d'image ne s'invente pas", () => {
   it("l'hôte vérifié reçoit le WebP et la largeur", () => {
     const u = new URL(vignette("https://cdn.bfldr.com/W/as/abc/Aprica?auto=webp&format=png", 400));
@@ -266,6 +295,15 @@ describe("sur le relevé réel", () => {
     for (const [id, v] of Object.entries(r.vues)) {
       if (!v.photo || !v.forfait) continue;
       if (v.photo.source !== v.forfait.source) continue;
+      if (v.photo.source === "officiel") {
+        // Le site officiel n'a pas de « fiche » à apparier : la photo vient
+        // de l'accueil, le tarif de la page « Tarifs » atteinte depuis cet
+        // accueil. La cohérence est **structurelle** — les deux pages sont du
+        // même site par construction —, et la re-tester par l'hôte échoue sur
+        // une simple redirection (`kasurila.fi` → un autre hôte). On ne
+        // vérifie donc ici que ce qui vaut d'être vérifié : les fiches.
+        continue;
+      }
       assert.equal(v.photo.cle, v.forfait.cle, `${id} : photo et forfait de fiches différentes`);
       assert.equal(v.photo.km, v.forfait.km, `${id} : deux distances pour une fiche`);
       verifies++;

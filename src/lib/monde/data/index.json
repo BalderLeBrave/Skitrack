@@ -2,13 +2,70 @@
  "releve": "2026-09-18T23:31:32Z",
  "formatVersion": "16.0.0",
  "seuil": "en exploitation, et mesuré",
- "domaines": 5476,
+ "domaines": 3598,
  "sansPays": 3,
  "ecartes": {
   "RU": {
    "motif": "écartée du référentiel le 21 septembre 2026, sur décision du propriétaire",
    "domaines": 244
   }
+ },
+ "perimetre": {
+  "quoi": "liste arrêtée par le propriétaire (Europe, Caucase et Turquie)",
+  "depuis": "2026-09-21",
+  "pays": [
+   "AD",
+   "AL",
+   "AM",
+   "AT",
+   "AZ",
+   "BA",
+   "BE",
+   "BG",
+   "BY",
+   "CH",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "EE",
+   "ES",
+   "FI",
+   "FR",
+   "GB",
+   "GE",
+   "GR",
+   "HR",
+   "HU",
+   "IE",
+   "IS",
+   "IT",
+   "KZ",
+   "LI",
+   "LT",
+   "LU",
+   "LV",
+   "MC",
+   "MD",
+   "ME",
+   "MK",
+   "MT",
+   "NL",
+   "NO",
+   "PL",
+   "PT",
+   "RO",
+   "RS",
+   "SE",
+   "SI",
+   "SK",
+   "SM",
+   "TR",
+   "UA",
+   "VA",
+   "XK"
+  ],
+  "domainesHors": 1878
  },
  "pays": [
   {
@@ -48,28 +105,6 @@
    "maxM": 2817
   },
   {
-   "code": "AQ",
-   "domaines": 1,
-   "cadre": [
-    166.7251,
-    -77.9206,
-    166.9251,
-    -77.7206
-   ]
-  },
-  {
-   "code": "AR",
-   "domaines": 30,
-   "cadre": [
-    -72.4568,
-    -54.896,
-    -58.8602,
-    -32.7242
-   ],
-   "kmTotal": 199.8,
-   "maxM": 3210
-  },
-  {
    "code": "AT",
    "domaines": 381,
    "cadre": [
@@ -80,18 +115,6 @@
    ],
    "kmTotal": 6990.0,
    "maxM": 3424
-  },
-  {
-   "code": "AU",
-   "domaines": 14,
-   "cadre": [
-    146.1676,
-    -42.7821,
-    149.0219,
-    -35.4141
-   ],
-   "kmTotal": 281.9,
-   "maxM": 2037
   },
   {
    "code": "AZ",
@@ -142,18 +165,6 @@
    "maxM": 2538
   },
   {
-   "code": "BR",
-   "domaines": 2,
-   "cadre": [
-    -51.0205,
-    -29.494,
-    -47.0172,
-    -23.4051
-   ],
-   "kmTotal": 0.3,
-   "maxM": 1017
-  },
-  {
    "code": "BY",
    "domaines": 5,
    "cadre": [
@@ -166,18 +177,6 @@
    "maxM": 338
   },
   {
-   "code": "CA",
-   "domaines": 285,
-   "cadre": [
-    -139.5055,
-    42.843,
-    -53.9509,
-    64.152
-   ],
-   "kmTotal": 3338.5,
-   "maxM": 2686
-  },
-  {
    "code": "CH",
    "domaines": 345,
    "cadre": [
@@ -188,30 +187,6 @@
    ],
    "kmTotal": 4177.5,
    "maxM": 3872
-  },
-  {
-   "code": "CL",
-   "domaines": 28,
-   "cadre": [
-    -72.6234,
-    -53.2605,
-    -69.9181,
-    -32.5549
-   ],
-   "kmTotal": 320.5,
-   "maxM": 3675
-  },
-  {
-   "code": "CN",
-   "domaines": 307,
-   "cadre": [
-    81.3281,
-    22.6166,
-    132.0872,
-    50.3926
-   ],
-   "kmTotal": 655.1,
-   "maxM": 4503
   },
   {
    "code": "CY",
@@ -274,16 +249,6 @@
    "maxM": 217
   },
   {
-   "code": "EG",
-   "domaines": 1,
-   "cadre": [
-    30.9193,
-    29.8726,
-    31.1193,
-    30.0726
-   ]
-  },
-  {
    "code": "ES",
    "domaines": 36,
    "cadre": [
@@ -344,18 +309,6 @@
    "maxM": 3246
   },
   {
-   "code": "GL",
-   "domaines": 4,
-   "cadre": [
-    -53.7512,
-    64.0844,
-    -51.5562,
-    67.0413
-   ],
-   "kmTotal": 5.3,
-   "maxM": 413
-  },
-  {
    "code": "GR",
    "domaines": 15,
    "cadre": [
@@ -404,42 +357,6 @@
    "maxM": 209
   },
   {
-   "code": "IL",
-   "domaines": 1,
-   "cadre": [
-    35.68,
-    33.2117,
-    35.88,
-    33.4117
-   ],
-   "kmTotal": 12.5,
-   "maxM": 2037
-  },
-  {
-   "code": "IN",
-   "domaines": 4,
-   "cadre": [
-    74.2667,
-    30.4297,
-    79.6701,
-    34.1349
-   ],
-   "kmTotal": 13.9,
-   "maxM": 3941
-  },
-  {
-   "code": "IR",
-   "domaines": 22,
-   "cadre": [
-    44.6839,
-    30.1996,
-    59.1613,
-    38.4371
-   ],
-   "kmTotal": 32.6,
-   "maxM": 3846
-  },
-  {
    "code": "IS",
    "domaines": 12,
    "cadre": [
@@ -464,54 +381,6 @@
    "maxM": 3355
   },
   {
-   "code": "JP",
-   "domaines": 500,
-   "cadre": [
-    130.0443,
-    32.4832,
-    145.0253,
-    45.4877
-   ],
-   "kmTotal": 2338.7,
-   "maxM": 2638
-  },
-  {
-   "code": "KG",
-   "domaines": 16,
-   "cadre": [
-    73.7134,
-    42.2055,
-    78.5765,
-    42.983
-   ],
-   "kmTotal": 40.6,
-   "maxM": 3017
-  },
-  {
-   "code": "KP",
-   "domaines": 4,
-   "cadre": [
-    126.4978,
-    38.9525,
-    128.5461,
-    41.933
-   ],
-   "kmTotal": 13.4,
-   "maxM": 1845
-  },
-  {
-   "code": "KR",
-   "domaines": 15,
-   "cadre": [
-    127.1865,
-    35.324,
-    129.0849,
-    37.9175
-   ],
-   "kmTotal": 104.2,
-   "maxM": 1512
-  },
-  {
    "code": "KZ",
    "domaines": 10,
    "cadre": [
@@ -524,18 +393,6 @@
    "maxM": 3205
   },
   {
-   "code": "LB",
-   "domaines": 5,
-   "cadre": [
-    35.714,
-    33.8166,
-    36.1777,
-    34.3562
-   ],
-   "kmTotal": 47.0,
-   "maxM": 2817
-  },
-  {
    "code": "LI",
    "domaines": 1,
    "cadre": [
@@ -546,18 +403,6 @@
    ],
    "kmTotal": 17.4,
    "maxM": 1991
-  },
-  {
-   "code": "LS",
-   "domaines": 1,
-   "cadre": [
-    28.6232,
-    -28.9195,
-    28.8232,
-    -28.7195
-   ],
-   "kmTotal": 0.9,
-   "maxM": 3223
   },
   {
    "code": "LT",
@@ -584,18 +429,6 @@
    "maxM": 308
   },
   {
-   "code": "MA",
-   "domaines": 3,
-   "cadre": [
-    -7.9604,
-    31.0902,
-    -4.9808,
-    33.5108
-   ],
-   "kmTotal": 11.5,
-   "maxM": 3241
-  },
-  {
    "code": "ME",
    "domaines": 6,
    "cadre": [
@@ -620,28 +453,6 @@
    "maxM": 2376
   },
   {
-   "code": "MN",
-   "domaines": 1,
-   "cadre": [
-    106.944,
-    47.7726,
-    107.144,
-    47.9726
-   ],
-   "maxM": 1564
-  },
-  {
-   "code": "MX",
-   "domaines": 1,
-   "cadre": [
-    -100.5352,
-    25.1319,
-    -100.3352,
-    25.3319
-   ],
-   "maxM": 2705
-  },
-  {
    "code": "NL",
    "domaines": 19,
    "cadre": [
@@ -664,29 +475,6 @@
    ],
    "kmTotal": 1044.7,
    "maxM": 2180
-  },
-  {
-   "code": "NZ",
-   "domaines": 30,
-   "cadre": [
-    168.434,
-    -45.1553,
-    175.7047,
-    -36.5331
-   ],
-   "kmTotal": 244.2,
-   "maxM": 2316
-  },
-  {
-   "code": "PK",
-   "domaines": 2,
-   "cadre": [
-    72.4755,
-    34.6982,
-    74.2793,
-    36.2499
-   ],
-   "maxM": 3820
   },
   {
    "code": "PL",
@@ -773,17 +561,6 @@
    "maxM": 2182
   },
   {
-   "code": "TJ",
-   "domaines": 1,
-   "cadre": [
-    68.9109,
-    38.7502,
-    69.1109,
-    38.9502
-   ],
-   "maxM": 3016
-  },
-  {
    "code": "TR",
    "domaines": 27,
    "cadre": [
@@ -794,16 +571,6 @@
    ],
    "kmTotal": 173.4,
    "maxM": 3339
-  },
-  {
-   "code": "TW",
-   "domaines": 1,
-   "cadre": [
-    120.8788,
-    24.7688,
-    121.0788,
-    24.9688
-   ]
   },
   {
    "code": "UA",
@@ -818,30 +585,6 @@
    "maxM": 1706
   },
   {
-   "code": "US",
-   "domaines": 594,
-   "cadre": [
-    -151.5912,
-    32.3449,
-    -67.7223,
-    65.1514
-   ],
-   "kmTotal": 9247.8,
-   "maxM": 3910
-  },
-  {
-   "code": "UZ",
-   "domaines": 4,
-   "cadre": [
-    69.85,
-    41.0456,
-    70.2231,
-    41.624
-   ],
-   "kmTotal": 16.3,
-   "maxM": 2285
-  },
-  {
    "code": "XK",
    "domaines": 1,
    "cadre": [
@@ -852,18 +595,6 @@
    ],
    "kmTotal": 7.2,
    "maxM": 2261
-  },
-  {
-   "code": "ZA",
-   "domaines": 1,
-   "cadre": [
-    27.8264,
-    -30.7507,
-    28.0264,
-    -30.5507
-   ],
-   "kmTotal": 1.3,
-   "maxM": 2918
   }
  ],
  "partages": [

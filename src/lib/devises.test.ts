@@ -73,11 +73,16 @@ describe("écrire une somme", () => {
   it("la devise d'un pays vient de geo/pays.ts", () => {
     assert.equal(deviseDuPays("FR"), "EUR");
     assert.equal(deviseDuPays("CH"), "CHF");
-    assert.equal(deviseDuPays("JP"), "JPY");
+    assert.equal(deviseDuPays("NO"), "NOK");
     // La Bulgarie est passée à l'euro le 1er janvier 2026.
     assert.equal(deviseDuPays("BG"), "EUR");
-    // L'Antarctique n'a pas de fiche, faute de devise dans l'ISO 4217.
-    assert.equal(deviseDuPays("AQ"), null);
+    // Hors du périmètre européen, `pays.ts` n'a plus de fiche : la devise est
+    // donc absente, et non supposée. Le Japon était à « JPY » avant le
+    // 21 septembre 2026 ; il reviendra avec le périmètre, pas par défaut.
+    assert.equal(deviseDuPays("JP"), null);
+    // Le Kosovo est dans le périmètre et n'a pas de fiche : ni l'ISO 4217 ni
+    // `zone.tab` ne connaissent `XK`. L'absence est sourcée.
+    assert.equal(deviseDuPays("XK"), null);
     assert.equal(deviseDuPays(null), null);
   });
 

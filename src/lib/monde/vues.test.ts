@@ -1,93 +1,140 @@
 /**
  * Ce que les photos et les prix doivent tenir à l'affichage.
  *
- * Trois règles, et chacune protège contre une invention précise :
+ * Quatre règles, et chacune protège contre une invention précise :
  *
- * 1. **Un prix reste dans sa devise.** Le site publie une conversion en euros
- *    qu'il marque « env. », sans taux ni date ; la recopier comme un prix
- *    serait la valeur estimée que le dépôt s'interdit.
+ * 1. **Un prix reste dans sa devise.** skiresort publie une conversion en
+ *    euros qu'il marque « env. », sans taux ni date ; la recopier comme un
+ *    prix serait la valeur estimée que le dépôt s'interdit.
  * 2. **Une transformation d'image ne s'invente pas.** Elle n'est appliquée
  *    qu'aux hôtes dont on l'a vérifiée.
  * 3. **Une photo vers un hôte muet est une absence**, pas une image cassée.
+ * 4. **La photo et le forfait d'un domaine viennent de la même fiche.** Deux
+ *    appariements séparés laisseraient un domaine afficher la photo d'une
+ *    station et le prix d'une autre.
  */
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  colonneAdulte,
+  forfaitDuDomaine,
+  ligneJournee,
   mentionForfait,
-  prix,
-  releveForfaits,
-  type ForfaitDomaine,
-} from "./forfaits.ts";
-import {
   mentionPhoto,
   photoDuDomaine,
-  relevePhotos,
+  prix,
+  releveVues,
   vignette,
-  type PhotoDomaine,
-  type RelevePhotos,
-} from "./photos.ts";
+  type ForfaitVue,
+  type PhotoVue,
+  type ReleveVues,
+} from "./vues.ts";
+
+const GRILLE: ForfaitVue = {
+  source: "skiinfo",
+  cle: "alpes-du-nord/tignes",
+  nom: "Tignes",
+  km: 0.4,
+  devise: "EUR",
+  deviseSource: "page",
+  deviseDuPays: null,
+  misAJour: "1 mai 2026",
+  categories: [
+    { nom: "Enfant", ages: "8-18" },
+    { nom: "Adulte", ages: null },
+    { nom: "Sénior", ages: "65-74" },
+  ],
+  lignes: [
+    { libelle: "Forfait journée", prix: [48, 57, 48] },
+    { libelle: "Forfait journée (le week-end)", prix: [55, 66, 55] },
+    { libelle: "Forfait semaine", prix: [306, 366, 306] },
+  ],
+  saison: null,
+};
 
 describe("un prix reste dans sa devise", () => {
   it("le franc suisse s'écrit en francs", () => {
-    const s = prix({ brut: "SFr. 94,-", valeur: 94, devise: "CHF" });
+    const s = prix(94, "CHF");
     assert.ok(s?.includes("94"), s ?? "");
     assert.ok(/CHF|Fr/.test(s ?? ""), `la devise doit paraître : ${s}`);
     assert.ok(!s?.includes("€"), "aucun euro ne doit apparaître");
   });
 
   it("une valeur sans devise ne s'écrit pas", () => {
-    // « 300 » tout seul, le lecteur y met la sienne.
-    assert.equal(prix({ brut: "Skr 300,-", valeur: 300, devise: null }), null);
+    assert.equal(prix(300, null), null);
   });
 
   it("une devise sans valeur ne s'écrit pas non plus", () => {
-    assert.equal(prix({ brut: "SFr. —", valeur: null, devise: "CHF" }), null);
+    assert.equal(prix(null, "CHF"), null);
+    assert.equal(prix(undefined, "CHF"), null);
+  });
+});
+
+describe("la grille se lit sans se tromper de case", () => {
+  it("« journée » n'est pas « journée (le week-end) »", () => {
+    assert.equal(ligneJournee(GRILLE)?.libelle, "Forfait journée");
   });
 
-  it("l'absence de montant se dit par null, jamais par zéro", () => {
-    assert.equal(prix(null), null);
-    assert.equal(prix(undefined), null);
+  it("la colonne adulte est trouvée par son nom, pas par sa position", () => {
+    assert.equal(colonneAdulte(GRILLE), 1);
+    // Le prix adulte de la journée est 57, pas 48 : se tromper de colonne
+    // afficherait le tarif enfant sous le mot « adulte ».
+    assert.equal(ligneJournee(GRILLE)?.prix[colonneAdulte(GRILLE)], 57);
+  });
+
+  it("sans colonne « adulte », on prend la dernière plutôt que la première", () => {
+    const f: ForfaitVue = { ...GRILLE, categories: [{ nom: "Enfant", ages: null }, { nom: "Jeune", ages: null }] };
+    assert.equal(colonneAdulte(f), 1);
+  });
+
+  it("une grille vide ne rend pas de ligne", () => {
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [] }), null);
   });
 });
 
 describe("la mention dit d'où vient le prix", () => {
-  const f: ForfaitDomaine = {
-    slug: "ischgl-samnaun",
-    nom: "Ischgl/Samnaun",
-    km: 4.9,
-    libelle: "Forfait journalier Haute saison",
-    adultes: { brut: "€ 83,-", valeur: 83, devise: "EUR" },
-    jeunes: null,
-    enfants: null,
-  };
+  it("elle distingue une grille d'un tarif unique", () => {
+    assert.match(mentionForfait(GRILLE), /grille de 3 forfaits/);
+    const seul: ForfaitVue = {
+      ...GRILLE,
+      source: "skiresort",
+      lignes: [{ libelle: "Forfait journalier Haute saison", prix: [30, 40, 50] }],
+      misAJour: null,
+    };
+    assert.match(mentionForfait(seul), /un seul tarif publié/);
+  });
 
-  it("elle nomme la fiche, le libellé et la distance", () => {
-    const m = mentionForfait(f);
-    assert.ok(m.includes("Ischgl/Samnaun"));
-    assert.ok(m.includes("Haute saison"));
-    assert.ok(m.includes("4,9 km"), m);
+  it("une devise déduite du pays se dit telle quelle", () => {
+    const f: ForfaitVue = { ...GRILLE, deviseSource: "pays" };
+    assert.match(mentionForfait(f), /devise déduite du pays/);
   });
 
   it("un rattachement au même point ne s'annonce pas « à 0 km »", () => {
-    assert.ok(mentionForfait({ ...f, km: 0.03 }).includes("au même point"));
+    assert.match(mentionForfait({ ...GRILLE, km: 0.03 }), /au même point/);
+  });
+
+  it("une devise qui contredit celle du pays se dit, elle ne se corrige pas", () => {
+    // Valdesquí, en Espagne, publie des dollars néo-zélandais. On ne sait pas
+    // laquelle des deux sources a tort : on montre les deux.
+    const f: ForfaitVue = { ...GRILLE, devise: "NZD", deviseDuPays: "EUR" };
+    const m = mentionForfait(f);
+    assert.match(m, /publie en NZD/);
+    assert.match(m, /pays est en EUR/);
   });
 });
 
 describe("une transformation d'image ne s'invente pas", () => {
   it("l'hôte vérifié reçoit le WebP et la largeur", () => {
-    const u = new URL(
-      vignette("https://cdn.bfldr.com/WIENNW6Q/as/abc/Aprica?auto=webp&format=png", 400),
-    );
+    const u = new URL(vignette("https://cdn.bfldr.com/W/as/abc/Aprica?auto=webp&format=png", 400));
     assert.equal(u.searchParams.get("format"), "webp");
     assert.equal(u.searchParams.get("width"), "400");
   });
 
   it("un hôte non vérifié ressort inchangé", () => {
-    // `img*.onthesnow.com` : on ne sait pas s'il accepte des paramètres, et au
-    // contrôle du 21 septembre 2026 il ne répondait pas du tout.
-    const brut = "https://img5.onthesnow.com/image/xl/95/95394.jpg";
+    // skiresort sert déjà des images de 933 px : rien à demander.
+    const brut = "https://www.skiresort.fr/fileadmin/_processed_/c5/5c/c2/2d/6745897e9e.jpg";
     assert.equal(vignette(brut, 400), brut);
   });
 
@@ -97,81 +144,100 @@ describe("une transformation d'image ne s'invente pas", () => {
 });
 
 describe("une photo vers un hôte muet est une absence", () => {
+  const bonne: PhotoVue = {
+    source: "skiinfo",
+    cle: "valais/zermatt",
+    nom: "Zermatt",
+    km: 0.4,
+    url: "https://cdn.bfldr.com/X/as/y/Zermatt?auto=webp&format=png",
+    titre: null,
+    servi: true,
+  };
+  const muette: PhotoVue = {
+    ...bonne,
+    cle: "autre/fiche",
+    url: "https://img5.onthesnow.com/image/xl/95/95394.jpg",
+    servi: false,
+  };
   const releve = {
-    photos: {
-      "ch-bon": {
-        cle: "valais/zermatt",
-        nom: "Zermatt",
-        km: 0.4,
-        url: "https://cdn.bfldr.com/X/as/y/Zermatt?auto=webp&format=png",
-        servi: true,
-      } satisfies PhotoDomaine,
-      "ch-muet": {
-        cle: "autre/fiche",
-        nom: "Autre",
-        km: 0.4,
-        url: "https://img5.onthesnow.com/image/xl/95/95394.jpg",
-        servi: false,
-      } satisfies PhotoDomaine,
+    vues: {
+      "ch-bon": { photo: bonne, forfait: null },
+      "ch-muet": { photo: muette, forfait: null },
+      "ch-rien": { photo: null, forfait: GRILLE },
     },
-  } as unknown as RelevePhotos;
+  } as unknown as ReleveVues;
 
   it("l'hôte qui répond rend une vignette", () => {
     const v = photoDuDomaine(releve, "ch-bon", 400);
-    assert.ok(v);
-    assert.ok(v.src.includes("format=webp"));
+    assert.ok(v?.src.includes("format=webp"));
   });
 
   it("l'hôte muet rend null, et non une image cassée", () => {
     assert.equal(photoDuDomaine(releve, "ch-muet", 400), null);
   });
 
-  it("un domaine sans rattachement rend null", () => {
-    assert.equal(photoDuDomaine(releve, "ch-inconnu", 400), null);
+  it("un domaine sans photo rend null, même s'il a un forfait", () => {
+    assert.equal(photoDuDomaine(releve, "ch-rien", 400), null);
+    assert.ok(forfaitDuDomaine(releve, "ch-rien"));
   });
 
-  it("la mention dit la fiche et la distance", () => {
-    const m = mentionPhoto(releve.photos["ch-bon"]!);
-    assert.ok(m.includes("Zermatt"));
-    assert.ok(m.includes("Skiinfo"));
+  it("un domaine inconnu rend null des deux côtés", () => {
+    assert.equal(photoDuDomaine(releve, "ch-inconnu", 400), null);
+    assert.equal(forfaitDuDomaine(releve, "ch-inconnu"), null);
+  });
+
+  it("la légende de skiresort paraît dans la mention", () => {
+    const p: PhotoVue = { ...bonne, source: "skiresort", titre: "Vue sur Verbier" };
+    const m = mentionPhoto(p);
+    assert.match(m, /skiresort\.fr/);
+    assert.match(m, /Vue sur Verbier/);
   });
 });
 
-describe("sur les relevés réels", () => {
-  it("aucun prix rattaché ne porte de devise inconnue", async () => {
-    const r = await releveForfaits();
-    const sansDevise = Object.entries(r.forfaits).filter(
-      ([, f]) => f.adultes && f.adultes.valeur != null && !f.adultes.devise,
-    );
-    assert.deepEqual(sansDevise.map(([id]) => id), []);
+describe("sur le relevé réel", () => {
+  it("photo et forfait d'un même domaine viennent de la même fiche", async () => {
+    // C'est la raison d'être du fichier unique : deux appariements séparés
+    // laissaient un domaine afficher la photo d'une station et le prix d'une
+    // autre. Quand les deux viennent de la même source, la fiche doit être la
+    // même — et la distance aussi.
+    const r = await releveVues();
+    let verifies = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (!v.photo || !v.forfait) continue;
+      if (v.photo.source !== v.forfait.source) continue;
+      assert.equal(v.photo.cle, v.forfait.cle, `${id} : photo et forfait de fiches différentes`);
+      assert.equal(v.photo.km, v.forfait.km, `${id} : deux distances pour une fiche`);
+      verifies++;
+    }
+    assert.ok(verifies > 100, `trop peu de cas vérifiés : ${verifies}`);
   });
 
   it("aucun rattachement au-delà du rayon annoncé", async () => {
-    for (const [source, entrees] of [
-      ["forfaits", Object.entries((await releveForfaits()).forfaits)],
-      ["photos", Object.entries((await relevePhotos()).photos)],
-    ] as const) {
-      for (const [id, e] of entrees) {
-        assert.ok(e.km <= 5, `${source} : ${id} rattaché à ${e.km} km`);
-      }
+    const r = await releveVues();
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (v.photo) assert.ok(v.photo.km <= r.rayonKm, `${id} : photo à ${v.photo.km} km`);
+      if (v.forfait) assert.ok(v.forfait.km <= r.rayonKm, `${id} : forfait à ${v.forfait.km} km`);
     }
   });
 
-  it("une fiche ne sert qu'un domaine", async () => {
-    // L'appariement est glouton : deux domaines voisins ne se partagent pas un
-    // forfait, sans quoi on inventerait un prix pour l'un des deux.
-    const r = await releveForfaits();
-    const cles = Object.values(r.forfaits).map((f) => f.slug);
-    assert.equal(new Set(cles).size, cles.length);
-    const p = await relevePhotos();
-    const vues = Object.values(p.photos).map((x) => x.cle);
-    assert.equal(new Set(vues).size, vues.length);
+  it("aucune photo retenue ne pointe vers un hôte muet", async () => {
+    const r = await releveVues();
+    const muettes = Object.entries(r.vues).filter(([, v]) => v.photo && !v.photo.servi);
+    assert.deepEqual(muettes.map(([id]) => id), []);
   });
 
-  it("la Russie n'a laissé ni prix ni photo", async () => {
-    const r = await releveForfaits();
-    const p = await relevePhotos();
-    assert.deepEqual(Object.keys(r.forfaits).filter((id) => id.startsWith("ru-")), []);
-    assert.deepEqual(Object.keys(p.photos).filter((id) => id.startsWith("ru-")), []);
+  it("aucun forfait ne porte de prix sans devise", async () => {
+    const r = await releveVues();
+    for (const [id, v] of Object.entries(r.vues)) {
+      const f = v.forfait;
+      if (!f) continue;
+      const aUnPrix = f.lignes.some((l) => l.prix.some((p) => p != null));
+      if (aUnPrix) assert.ok(f.devise, `${id} : des prix sans devise`);
+    }
+  });
+
+  it("la Russie n'a laissé ni photo ni forfait", async () => {
+    const r = await releveVues();
+    assert.deepEqual(Object.keys(r.vues).filter((id) => id.startsWith("ru-")), []);
   });
 });

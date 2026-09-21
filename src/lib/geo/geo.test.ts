@@ -129,13 +129,25 @@ describe("pays", () => {
     }
   });
 
-  it("les six continents sont peuplés, et la somme rend la liste entière", () => {
+  it("deux continents sont peuplés, et la somme rend la liste entière", () => {
+    // `continents.ts` garde ses six onglets : ils décrivent un découpage de
+    // navigation, pas l'état du référentiel. Le périmètre arrêté le
+    // 21 septembre 2026 est une **liste de cinquante pays**, et non « l'Europe » :
+    // la Turquie, la Géorgie, l'Arménie, l'Azerbaïdjan et le Kazakhstan y
+    // figurent, et `pays.ts` les range en Asie d'après l'emplacement de leurs
+    // stations. Quatre onglets restent donc vides, et l'écran `/monde` ne
+    // montre que ceux qui portent des pays.
+    //
+    // La somme reste l'invariant qui compte : aucun pays ne doit se perdre
+    // entre les onglets, ni y figurer deux fois.
     let total = 0;
+    const peuples: string[] = [];
     for (const c of CONTINENTS) {
       const n = paysDuContinent(c.id).length;
-      assert.ok(n > 0, `${c.id} n'a aucun pays`);
+      if (n > 0) peuples.push(c.id);
       total += n;
     }
+    assert.deepEqual(peuples.sort(), ["asie", "europe"]);
     assert.equal(total, PAYS.length);
   });
 
@@ -159,12 +171,21 @@ describe("pays", () => {
   });
 
   it("les pays transcontinentaux portent le rattachement documenté", () => {
-    // La consigne tranche par l'emplacement des stations. Le résultat n'est pas
-    // celui de la convention politique pour ces trois-là, et ce test est là
-    // pour qu'un changement soit délibéré plutôt que discret.
-    assert.equal(paysByCode("TR")?.continent, "asie");
-    assert.equal(paysByCode("GE")?.continent, "asie");
-    assert.equal(paysByCode("KZ")?.continent, "asie");
+    // La consigne tranche par l'emplacement des stations, non par la
+    // convention politique : toutes les stations turques sont en Anatolie,
+    // Gudauri et Bakuriani au sud de la crête du Grand Caucase, Chymboulak à
+    // l'est de l'Oural. Ces cinq pays sont dans le périmètre **et** en Asie :
+    // le périmètre est une liste, pas un continent.
+    for (const cc of ["TR", "GE", "AM", "AZ", "KZ"]) {
+      assert.equal(paysByCode(cc)?.continent, "asie", cc);
+    }
+  });
+
+  it("la Russie reste dehors, et c'est une décision distincte", () => {
+    // Écartée le 21 septembre 2026, et absente de la liste des cinquante que
+    // le propriétaire a nommés le même jour. Deux mécanismes différents, même
+    // résultat : `PAYS_ECARTES` la nomme, `PERIMETRE` ne la contient pas.
+    assert.equal(paysByCode("RU"), undefined);
   });
 
   it("la Russie est absente, et c'est une décision, pas un oubli", () => {

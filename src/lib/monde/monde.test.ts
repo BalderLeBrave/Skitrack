@@ -18,7 +18,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { cadreValide, CONTINENTS, type Cadre, type ContinentId } from "../geo/continents.ts";
+import { cadreValide, type Cadre } from "../geo/continents.ts";
 import { PAYS, paysByCode } from "../geo/pays.ts";
 import {
   cadrePays,
@@ -66,7 +66,7 @@ test("l'index compte juste, pays par pays et au total", () => {
     total += attendu ?? 0;
   }
   assert.equal(total, DOMAINES_MONDE);
-  assert.equal(total, 5476);
+  assert.equal(total, 3598);
 });
 
 test("le relevé est daté, et le seuil écrit", () => {
@@ -152,21 +152,19 @@ test("un code inconnu rend un tableau vide, et non une erreur", async () => {
   assert.deepEqual(await domainesPays("xx"), []);
 });
 
-test("l'Antarctique est dans le référentiel, et hors du choix par continent", async () => {
-  // `Kiwi Ski Hill`, un téléski en exploitation près de McMurdo, passe le seuil
-  // comme n'importe quel domaine mesuré : le référentiel ne l'écarte pas, parce
-  // qu'il est là. Mais `continents.ts` a délibérément posé six continents sans
-  // l'Antarctique, et aucun onglet n'y mène donc.
+test("l'Antarctique a quitté le référentiel avec le périmètre", async () => {
+  // `Kiwi Ski Hill`, un téléski en exploitation près de McMurdo, passait le
+  // seuil comme n'importe quel domaine mesuré, et `continents.ts` n'avait pas
+  // d'onglet où le mettre. La contradiction se tenait à deux.
   //
-  // Les deux décisions sont justes et se contredisent. Le test les tient
-  // ensemble plutôt que d'en cacher une : le jour où un écran listera « tous
-  // les pays », il devra dire ce qu'il fait de celui-là.
-  const aq = await domainesPays("AQ");
-  assert.equal(aq.length, 1);
-  assert.equal(aq[0].id, "aq-kiwi-ski-hill");
-  assert.equal(CONTINENTS.some((c) => c.id === ("antarctique" as ContinentId)), false);
-  assert.ok(paysSansFiche().includes("AQ"));
+  // Le périmètre européen du 21 septembre 2026 l'a tranchée : l'Antarctique
+  // n'est pas en Europe, il sort — non pas parce qu'on ne savait où le ranger,
+  // mais parce que le périmètre est ailleurs. Ce n'est pas la même raison, et
+  // c'est une meilleure.
+  assert.deepEqual(await domainesPays("AQ"), []);
+  assert.equal(indexPays("AQ"), undefined);
 });
+
 
 test("le cadrage d'un pays contient ses stations", async () => {
   for (const cc of PAYS_AVEC_DOMAINES) {
@@ -185,33 +183,59 @@ test("le cadrage d'un pays contient ses stations", async () => {
 });
 
 test("le cadrage des stations l'emporte sur celui des frontières", () => {
-  // `geo/pays.ts` le dit de lui-même : cadrer l'Australie sur ses frontières
-  // montre Perth pour atteindre trois stations de Nouvelle-Galles du Sud.
-  const frontiere = paysByCode("AU")?.cadre as Cadre;
-  const stations = cadrePays("AU") as Cadre;
+  // `geo/pays.ts` le dit de lui-même : l'emprise d'un pays n'est pas celle de
+  // ses pistes. L'Espagne en est le cas net du périmètre européen — ses
+  // frontières vont jusqu'aux Canaries, ses stations non.
+  const frontiere = paysByCode("ES")?.cadre as Cadre;
+  const stations = cadrePays("ES") as Cadre;
   assert.notDeepEqual(stations, frontiere);
   assert.ok(stations[2] - stations[0] < frontiere[2] - frontiere[0]);
 });
 
-test("aucun pays décrit par geo/pays.ts n'est vide", () => {
-  // La liste de `pays.ts` se disait provisoire, à confronter au référentiel.
-  // Ce sens-là est net : les 44 pays décrits portent tous des domaines retenus.
-  const vides = PAYS.filter((p) => !indexPays(p.code));
-  assert.deepEqual(vides.map((p) => p.code), []);
+
+test("`pays.ts` décrit exactement le périmètre, hors Kosovo", () => {
+  // Le périmètre est une **liste**, arrêtée le 21 septembre 2026 : cinquante
+  // pays, « pas un seul de plus ». Il vit dans `PERIMETRE` de
+  // `scripts/build-monde.py`, que ce test recopie — le générateur est en
+  // Python et ne lit pas le TypeScript, et c'est le seul moyen de tenir deux
+  // vérités en accord.
+  //
+  // `XK` en fait partie sans avoir de fiche : ni l'ISO 4217 ni `zone.tab` ne
+  // connaissent le code du Kosovo. C'est la seule différence admise.
+  const PERIMETRE = [
+    "AD", "AL", "AM", "AT", "AZ", "BA", "BE", "BG", "BY", "CH", "CY",
+    "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GE", "GR", "HR",
+    "HU", "IE", "IS", "IT", "KZ", "LI", "LT", "LU", "LV", "MC", "MD",
+    "ME", "MK", "MT", "NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI",
+    "SK", "SM", "TR", "UA", "VA", "XK",
+  ];
+  assert.equal(PERIMETRE.length, 50);
+  assert.deepEqual(
+    PAYS.map((p) => p.code).sort(),
+    PERIMETRE.filter((c) => c !== "XK"),
+  );
 });
 
-test("deux pays du référentiel restent sans fiche, et on sait lesquels", () => {
-  // Ils étaient 29 ; `pays.ts` en a repris 27. Les deux qui restent ne sont pas
-  // un reste de travail, mais deux absences sourcées :
+test("six pays du périmètre ne portent aucun domaine, et c'est normal", () => {
+  // « Pas un seul de plus » borne la liste par le haut, pas par le bas : un
+  // pays sans station aujourd'hui reste dans le périmètre, et peut en avoir
+  // une au prochain relevé. Les nommer évite qu'on les prenne pour un oubli.
+  const vides = PAYS.filter((p) => !indexPays(p.code)).map((p) => p.code);
+  assert.deepEqual(vides.sort(), ["LU", "MC", "MD", "MT", "SM", "VA"]);
+});
+
+test("un pays du référentiel reste sans fiche, et on sait lequel", () => {
+  // Ils étaient 29, puis 2. Le périmètre européen a emporté l'Antarctique, à
+  // qui la liste ISO 4217 n'accordait de toute façon « No universal currency ».
   //
-  // - l'Antarctique, en face de qui la liste ISO 4217 écrit « No universal
-  //   currency » — il n'y a pas de devise à recopier ;
-  // - le Kosovo, absent de cette même liste comme de `zone.tab`, `XK` étant un
-  //   code d'usage et non un code ISO 3166-1.
+  // Reste le **Kosovo** : absent de cette liste comme de `zone.tab`, `XK`
+  // étant un code d'usage et non un code ISO 3166-1. Il est bien en Europe et
+  // le périmètre le porte ; ce qui lui manque est une devise et un fuseau
+  // sourçables, pas un continent. Ce n'est pas un reste de travail.
   //
   // L'égalité stricte est voulue : un pays qui tomberait dans ce trou au relevé
   // suivant doit faire échouer le test, et non s'y ranger en silence.
-  assert.deepEqual(paysSansFiche(), ["AQ", "XK"]);
+  assert.deepEqual(paysSansFiche(), ["XK"]);
   for (const cc of paysSansFiche()) assert.equal(paysByCode(cc), undefined);
 });
 
@@ -221,8 +245,8 @@ test("les identifiants tiennent d'un relevé au suivant", () => {
   // bouge. Deux domaines connus servent de témoins.
   const it = brut("IT").map((d) => d.id as string);
   assert.ok(it.includes("it-cortina-d-ampezzo"), "Cortina d'Ampezzo a changé de clé");
-  const jp = brut("JP").map((d) => d.id as string);
-  assert.ok(jp.some((id: string) => id.startsWith("jp-")));
+  const no = brut("NO").map((d) => d.id as string);
+  assert.ok(no.some((id: string) => id.startsWith("no-")));
 });
 
 test("les sources de chaque domaine sont celles que le schéma admet", async () => {
@@ -275,11 +299,11 @@ test("les altitudes relevées sont plausibles, et jamais un zéro de remplissage
   }
 });
 
-test("le relevé couvre les 5 476 domaines, sans trou", async () => {
+test("le relevé couvre les 3 598 domaines, sans trou", async () => {
   const r = await releveDem();
-  assert.equal(r.domaines, 5476);
+  assert.equal(r.domaines, 3598);
   assert.equal(r.manquants, 0);
-  assert.equal(Object.keys(r.points).length, 5476);
+  assert.equal(Object.keys(r.points).length, 3598);
 });
 
 test("un domaine sans relevé rend `null`, et non zéro", async () => {

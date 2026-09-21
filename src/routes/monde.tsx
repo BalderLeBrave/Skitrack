@@ -49,17 +49,16 @@ import {
   type Repartition,
 } from "@/lib/monde/couleurs";
 import {
+  colonneAdulte,
+  forfaitDuDomaine,
+  ligneJournee,
   mentionForfait,
-  prix,
-  releveForfaits,
-  type ReleveForfaits,
-} from "@/lib/monde/forfaits";
-import {
   mentionPhoto,
   photoDuDomaine,
-  relevePhotos,
-  type RelevePhotos,
-} from "@/lib/monde/photos";
+  prix,
+  releveVues,
+  type ReleveVues,
+} from "@/lib/monde/vues";
 import {
   AUCUN_FILTRE,
   chercher,
@@ -243,8 +242,7 @@ function LigneDomaine({
   r,
   rattachement,
   systeme,
-  photos,
-  forfaits,
+  vues,
   ouvert,
   surOuvrir,
 }: {
@@ -252,16 +250,16 @@ function LigneDomaine({
   r: Repartition | undefined;
   rattachement: Rattachement | undefined;
   systeme: Systeme;
-  photos: RelevePhotos | null;
-  forfaits: ReleveForfaits | null;
+  vues: ReleveVues | null;
   ouvert: boolean;
   surOuvrir: () => void;
 }) {
   const dn = denivele(d);
   const lieu = [d.region, d.localite].filter(Boolean).join(" · ");
-  const vue = photos ? photoDuDomaine(photos, d.id) : null;
-  const forfait = forfaits?.forfaits[d.id];
-  const adulte = prix(forfait?.adultes);
+  const vue = vues ? photoDuDomaine(vues, d.id) : null;
+  const forfait = vues ? forfaitDuDomaine(vues, d.id) : null;
+  const jour = forfait ? ligneJournee(forfait) : null;
+  const adulte = forfait && jour ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise) : null;
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");
@@ -304,7 +302,7 @@ function LigneDomaine({
         </div>
         {adulte ? (
           <div title={forfait ? mentionForfait(forfait) : undefined}>
-            <dt>Forfait jour</dt>
+            <dt>{jour?.libelle && /week/i.test(jour.libelle) ? "Forfait" : "Forfait jour"}</dt>
             {/* Dans la devise du pays, jamais convertie. Le site publie bien
                 un « env. € » ; il est dans le relevé et n'est pas un prix.
 
@@ -392,8 +390,7 @@ function PageMonde() {
   const [domaines, setDomaines] = useState<DomaineMonde[] | null>(null);
   const [repartitions, setRepartitions] = useState<ReadonlyMap<string, Repartition>>(new Map());
   const [rattachements, setRattachements] = useState<Record<string, Rattachement>>({});
-  const [photos, setPhotos] = useState<RelevePhotos | null>(null);
-  const [forfaits, setForfaits] = useState<ReleveForfaits | null>(null);
+  const [vues, setVues] = useState<ReleveVues | null>(null);
   const [chargement, setChargement] = useState(false);
   const [panne, setPanne] = useState<string | null>(null);
 
@@ -416,15 +413,14 @@ function PageMonde() {
     let vivant = true;
     setChargement(true);
     setPanne(null);
-    Promise.all([domainesPays(pays), releveRattachements(), relevePhotos(), releveForfaits()])
-      .then(async ([lot, releve, vues, tarifs]) => {
+    Promise.all([domainesPays(pays), releveRattachements(), releveVues()])
+      .then(async ([lot, releve, montrables]) => {
         const parts = await repartitionsDesDomaines(lot);
         if (!vivant) return;
         setDomaines(lot);
         setRepartitions(parts);
         setRattachements(releve.rattachements);
-        setPhotos(vues);
-        setForfaits(tarifs);
+        setVues(montrables);
       })
       .catch((e: unknown) => {
         if (!vivant) return;
@@ -702,8 +698,7 @@ function PageMonde() {
                   r={repartitions.get(d.id)}
                   rattachement={rattachements[d.id]}
                   systeme={systeme}
-                  photos={photos}
-                  forfaits={forfaits}
+                  vues={vues}
                   ouvert={domaineOuvert === d.id}
                   surOuvrir={() => setDomaineOuvert(domaineOuvert === d.id ? null : d.id)}
                 />

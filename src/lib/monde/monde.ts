@@ -1,5 +1,5 @@
 /**
- * Le référentiel mondial : 5 720 domaines de ski alpin, 73 pays.
+ * Le référentiel mondial : 5 476 domaines de ski alpin, 72 pays.
  *
  * Frère de `stations.ts`, qui décrit les 320 stations françaises et ne bouge
  * pas. Les deux ne se mélangent jamais : la France garde le classeur France
@@ -10,7 +10,7 @@
  * ## Les deux portes, et pourquoi elles diffèrent
  *
  * `STATIONS` est construit au chargement du module, et trente-six fichiers
- * l'importent. Le même geste sur 5 720 domaines ferait payer le monde entier à
+ * l'importent. Le même geste sur 5 476 domaines ferait payer le monde entier à
  * tout écran qui touche au référentiel — c'est ce que l'audit du 18 septembre
  * 2026 nomme comme le point qui décide si l'extension tient.
  *
@@ -28,7 +28,7 @@
  *
  * La règle du référentiel français, tenue à l'identique : **une valeur absente
  * n'est pas un zéro.** Les fichiers omettent les clés non relevées plutôt que
- * de recopier 5 720 `null` ; la lecture ci-dessous les rétablit en `null`, pour
+ * de recopier 5 476 `null` ; la lecture ci-dessous les rétablit en `null`, pour
  * que les écrans voient une forme unique et que `atLeast` écarte un domaine non
  * mesuré au lieu de le compter comme nul.
  *
@@ -123,6 +123,23 @@ export const DOMAINES_MONDE: number = INDEX.domaines;
  * devinette. Le compte est publié pour que l'absence se voie.
  */
 export const SANS_PAYS: number = INDEX.sansPays;
+
+/**
+ * Les pays écartés du périmètre, et pourquoi.
+ *
+ * À ne pas confondre avec `SANS_PAYS`, qui compte ce que la source ne sait pas
+ * rattacher. Ici, la source sait : c'est le référentiel qui a décidé de ne pas
+ * les porter. La Russie en est sortie le 21 septembre 2026.
+ *
+ * Le compte est publié pour la même raison que celui des apatrides : **une
+ * absence décidée doit se voir.** Sans lui, 244 domaines manqueraient au total
+ * sans que rien ne distingue la décision d'une perte de données.
+ */
+export type PaysEcarte = { code: string; motif: string; domaines: number };
+
+export const PAYS_ECARTES: readonly PaysEcarte[] = Object.entries(
+  (INDEX as { ecartes?: Record<string, { motif: string; domaines: number }> }).ecartes ?? {},
+).map(([code, e]) => ({ code, motif: e.motif, domaines: e.domaines }));
 
 /** Un cadrage lu du JSON, où il n'est qu'un tableau de nombres. Quatre bornes
  *  ou rien : un cadrage tronqué cadrerait la planète entière. */

@@ -1718,3 +1718,74 @@ main.carte {
   color: var(--color-texte-2);
   font-variant-numeric: tabular-nums;
 }
+
+/* La météo d'un domaine, sous sa ligne. */
+.monde-row__meteo-bouton {
+  justify-self: start;
+  padding: 0.125rem 0;
+  border: 0;
+  background: none;
+  color: var(--color-marque-texte);
+  font: inherit;
+  font-size: 0.78125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.monde-meteo {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-bg);
+}
+
+.monde-meteo__niveau {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.monde-meteo__titre {
+  font-size: 0.78125rem;
+  font-weight: 700;
+}
+
+.monde-meteo__creneaux,
+.monde-meteo__jour,
+.monde-meteo__iso {
+  font-size: 0.78125rem;
+  color: var(--color-texte-2);
+}
+
+.monde-meteo__iso {
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--color-bordure-douce);
+}
+
+/* La vignette d'un domaine.
+   Le CDN rend du 3:2 quand on ne lui demande qu'une largeur — 400 x 266 sur
+   l'échantillon. Le 16/9 ci-dessous est donc un **recadrage décidé ici**, pour
+   que la liste garde une hauteur de ligne régulière, et `object-fit: cover`
+   s'en charge. `aspect-ratio` réserve la place avant le chargement, ce qui
+   évite que la ligne ne saute ; aucun attribut `width`/`height` sur la balise
+   ne vient annoncer un rapport qu'on n'a pas demandé. */
+.monde-row__photo {
+  width: 100%;
+  max-width: 13rem;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  background: var(--color-bordure-douce);
+}
+
+.monde-row__prix {
+  color: var(--color-marque-texte);
+}
+
+/* Un rattachement lointain se dit dans la ligne, pas seulement au survol. */
+.monde-row__loin {
+  color: var(--color-texte-2);
+  font-weight: 400;
+  font-size: 0.71875rem;
+}

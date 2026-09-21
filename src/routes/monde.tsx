@@ -31,9 +31,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Coquille } from "@/components/Coquille";
 import { COLOR_HEX } from "@/lib/carte";
+import {
+  getForecastPair,
+  SKY_FR,
+  type ForecastLevel,
+  type ForecastPair,
+} from "@/lib/meteo/forecast";
 import { CONTINENTS, type ContinentId } from "@/lib/geo/continents";
 import { paysByCode, paysDuContinent, type Pays } from "@/lib/geo/pays";
-import { entier } from "@/lib/nombres";
+import { decimal, entier } from "@/lib/nombres";
 import {
   mentionRattachement,
   mentionSource,
@@ -42,6 +48,18 @@ import {
   type Rattachement,
   type Repartition,
 } from "@/lib/monde/couleurs";
+import {
+  mentionForfait,
+  prix,
+  releveForfaits,
+  type ReleveForfaits,
+} from "@/lib/monde/forfaits";
+import {
+  mentionPhoto,
+  photoDuDomaine,
+  relevePhotos,
+  type RelevePhotos,
+} from "@/lib/monde/photos";
 import {
   AUCUN_FILTRE,
   chercher,
@@ -59,6 +77,7 @@ import {
   domainesPays,
   indexPays,
   PAYS_AVEC_DOMAINES,
+  PAYS_ECARTES,
   RELEVE_MONDE,
   SANS_PAYS,
   SEUIL_MONDE,
@@ -114,6 +133,105 @@ function BarreCouleurs({ r }: { r: Repartition }) {
 }
 
 /**
+ * La météo du domaine, au bas et au haut des pistes.
+ *
+ * `fetchForecastPair` interroge Open-Meteo **deux fois, une par altitude** :
+ * c'est ce qui distingue « il gèle à 2 800 m » de « il pleut au village ».
+ * L'appel n'est donc pas gratuit, et cet écran peut afficher cinq cents
+ * domaines — d'où le repli : la prévision ne part que pour le domaine qu'on
+ * ouvre, un à la fois. C'est aussi ce qui tient le quota du service, dont une
+ * séance précédente a appris qu'il se défend par des 429 horaires **et**
+ * journaliers.
+ *
+ * ## Sans altitudes, pas de prévision
+ *
+ * La fiche station française se rabat sur 1 500 et 2 500 m quand la mesure
+ * manque, parce qu'elle a `villageM` comme seconde source et qu'elle affiche
+ * l'absence à côté. Un domaine du référentiel mondial n'a rien d'autre : le
+ * bas et le haut des pistes **sont** `minM` et `maxM`. Les inventer rendrait
+ * une prévision d'un endroit qui n'est pas le domaine, ce qui est pire que
+ * pas de prévision du tout.
+ */
+function NiveauMeteo({ titre, n, systeme }: { titre: string; n: ForecastLevel; systeme: Systeme }) {
+  const jour = n.days[0];
+  return (
+    <div className="monde-meteo__niveau">
+      <span className="monde-meteo__titre">
+        {titre} · {altitude(n.altitudeM, systeme)}
+      </span>
+      <span className="monde-meteo__creneaux">
+        {n.morning.temp != null ? `${n.morning.temp} °C` : "–"} le matin,{" "}
+        {SKY_FR[n.morning.sky]} · {n.afternoon.temp != null ? `${n.afternoon.temp} °C` : "–"}{" "}
+        l'après-midi, {SKY_FR[n.afternoon.sky]}
+      </span>
+      {jour ? (
+        <span className="monde-meteo__jour">
+          Aujourd'hui {jour.tempMin != null ? `${jour.tempMin}` : "–"} à{" "}
+          {jour.tempMax != null ? `${jour.tempMax} °C` : "–"}
+          {jour.snowCm != null && jour.snowCm > 0 ? ` · ${decimal(jour.snowCm, 1)} cm de neige` : null}
+          {jour.depthCm != null ? ` · ${entier(jour.depthCm)} cm au sol` : null}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function MeteoDomaine({ d, systeme }: { d: DomaineMonde; systeme: Systeme }) {
+  const [etat, setEtat] = useState<
+    { s: "charge" } | { s: "ok"; p: ForecastPair } | { s: "panne" }
+  >({ s: "charge" });
+
+  const bas = d.minM;
+  const haut = d.maxM;
+
+  useEffect(() => {
+    if (bas == null || haut == null) return;
+    let vivant = true;
+    setEtat({ s: "charge" });
+    void getForecastPair({ data: { lat: d.lat, lon: d.lon, villageM: bas, summitM: haut } })
+      .then((p) => {
+        if (!vivant) return;
+        // `at: null` veut dire que la requête n'a pas abouti. Rendre les
+        // niveaux vides comme s'ils étaient une mesure serait un mensonge
+        // silencieux — c'est le défaut qu'une séance précédente a corrigé sur
+        // ce même service.
+        setEtat(p.at ? { s: "ok", p } : { s: "panne" });
+      })
+      .catch(() => {
+        if (vivant) setEtat({ s: "panne" });
+      });
+    return () => {
+      vivant = false;
+    };
+  }, [d.lat, d.lon, bas, haut]);
+
+  if (bas == null || haut == null) {
+    return (
+      <p className="monde-row__absence">
+        Météo indisponible : le bas et le haut des pistes ne sont pas relevés pour ce domaine, et
+        ce sont eux qu'on interrogerait.
+      </p>
+    );
+  }
+  if (etat.s === "charge") return <p className="monde-row__lieu">Relevé de la météo…</p>;
+  if (etat.s === "panne")
+    return <p className="monde-row__absence">Le service de météo n'a pas répondu.</p>;
+
+  return (
+    <div className="monde-meteo">
+      <NiveauMeteo titre="Bas des pistes" n={etat.p.low} systeme={systeme} />
+      <NiveauMeteo titre="Haut des pistes" n={etat.p.high} systeme={systeme} />
+      <span className="monde-meteo__iso">
+        {etat.p.freezingLevelM != null
+          ? `Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}`
+          : "Isotherme 0 °C non rendu"}
+        {" · Open-Meteo, deux requêtes, une par altitude"}
+      </span>
+    </div>
+  );
+}
+
+/**
  * La ligne d'un domaine.
  *
  * `partage === "estime"` s'écrit à l'écran, et non seulement dans une
@@ -125,19 +243,39 @@ function LigneDomaine({
   r,
   rattachement,
   systeme,
+  photos,
+  forfaits,
+  ouvert,
+  surOuvrir,
 }: {
   d: DomaineMonde;
   r: Repartition | undefined;
   rattachement: Rattachement | undefined;
   systeme: Systeme;
+  photos: RelevePhotos | null;
+  forfaits: ReleveForfaits | null;
+  ouvert: boolean;
+  surOuvrir: () => void;
 }) {
   const dn = denivele(d);
   const lieu = [d.region, d.localite].filter(Boolean).join(" · ");
+  const vue = photos ? photoDuDomaine(photos, d.id) : null;
+  const forfait = forfaits?.forfaits[d.id];
+  const adulte = prix(forfait?.adultes);
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");
   return (
     <li className="monde-row">
+      {vue ? (
+        <img
+          className="monde-row__photo"
+          src={vue.src}
+          alt=""
+          loading="lazy"
+          title={mentionPhoto(vue.source)}
+        />
+      ) : null}
       <div className="monde-row__tete">
         <span className="monde-row__nom">{d.nom || "Domaine sans nom"}</span>
         {d.pays.length > 1 ? (
@@ -164,6 +302,27 @@ function LigneDomaine({
           <dt>Remontées</dt>
           <dd>{d.lifts != null ? entier(d.lifts) : "non relevé"}</dd>
         </div>
+        {adulte ? (
+          <div title={forfait ? mentionForfait(forfait) : undefined}>
+            <dt>Forfait jour</dt>
+            {/* Dans la devise du pays, jamais convertie. Le site publie bien
+                un « env. € » ; il est dans le relevé et n'est pas un prix.
+
+                Au-delà de deux kilomètres, la distance s'écrit **à côté du
+                prix** et non seulement dans l'infobulle. Le rattachement se
+                fait par la position, à cinq kilomètres au plus : à 4,9 km, un
+                « 83 € » peut être le forfait du domaine d'en face, et un
+                lecteur qui parcourt la liste ne survole rien. La médiane est à
+                0,41 km, donc la mention reste rare — elle signale justement
+                les cas où elle doit paraître. */}
+            <dd className="monde-row__prix">
+              {adulte}
+              {forfait && forfait.km > 2 ? (
+                <span className="monde-row__loin"> · fiche à {decimal(forfait.km, 1)} km</span>
+              ) : null}
+            </dd>
+          </div>
+        ) : null}
       </dl>
       {r ? (
         <div className="monde-row__couleurs" title={titre}>
@@ -178,6 +337,15 @@ function LigneDomaine({
       ) : (
         <p className="monde-row__absence">Répartition par couleur non relevée</p>
       )}
+      <button
+        type="button"
+        className="monde-row__meteo-bouton"
+        aria-expanded={ouvert}
+        onClick={surOuvrir}
+      >
+        {ouvert ? "Masquer la météo" : "Météo, bas et haut des pistes"}
+      </button>
+      {ouvert ? <MeteoDomaine d={d} systeme={systeme} /> : null}
     </li>
   );
 }
@@ -224,6 +392,8 @@ function PageMonde() {
   const [domaines, setDomaines] = useState<DomaineMonde[] | null>(null);
   const [repartitions, setRepartitions] = useState<ReadonlyMap<string, Repartition>>(new Map());
   const [rattachements, setRattachements] = useState<Record<string, Rattachement>>({});
+  const [photos, setPhotos] = useState<RelevePhotos | null>(null);
+  const [forfaits, setForfaits] = useState<ReleveForfaits | null>(null);
   const [chargement, setChargement] = useState(false);
   const [panne, setPanne] = useState<string | null>(null);
 
@@ -231,6 +401,9 @@ function PageMonde() {
   const [tri, setTri] = useState<TriMonde>("km");
   const [filtres, setFiltres] = useState<FiltresMonde>(AUCUN_FILTRE);
   const [ouvert, setOuvert] = useState(false);
+  // Un seul domaine ouvert à la fois : deux requêtes Open-Meteo par ouverture,
+  // et un écran qui en listerait cinq cents en ferait mille.
+  const [domaineOuvert, setDomaineOuvert] = useState<string | null>(null);
 
   // Le pays est ouvert quand on le choisit, et une seule fois : `domainesPays`
   // garde ses promesses en cache, mais l'écran ne doit pas non plus redemander
@@ -243,13 +416,15 @@ function PageMonde() {
     let vivant = true;
     setChargement(true);
     setPanne(null);
-    Promise.all([domainesPays(pays), releveRattachements()])
-      .then(async ([lot, releve]) => {
+    Promise.all([domainesPays(pays), releveRattachements(), relevePhotos(), releveForfaits()])
+      .then(async ([lot, releve, vues, tarifs]) => {
         const parts = await repartitionsDesDomaines(lot);
         if (!vivant) return;
         setDomaines(lot);
         setRepartitions(parts);
         setRattachements(releve.rattachements);
+        setPhotos(vues);
+        setForfaits(tarifs);
       })
       .catch((e: unknown) => {
         if (!vivant) return;
@@ -376,6 +551,18 @@ function PageMonde() {
                 </>
               ) : null}
             </p>
+            {PAYS_ECARTES.length ? (
+              <p className="monde__note">
+                {PAYS_ECARTES.map((p) => (
+                  <span key={p.code}>
+                    <b>{p.code}</b> : {entier(p.domaines)} domaine
+                    {p.domaines > 1 ? "s" : ""} {p.motif}.{" "}
+                  </span>
+                ))}
+                Ces domaines existent et sont mesurés ; c'est le périmètre qui ne les porte pas.
+                Le compte est écrit ici pour que la décision se distingue d'une perte de données.
+              </p>
+            ) : null}
             <p className="monde__renvoi">
               Les 320 stations françaises du classeur France Montagnes ont leurs propres écrans :{" "}
               <Link to="/carte">la carte</Link> et <Link to="/comparer">Comparer</Link>. Ce
@@ -515,6 +702,10 @@ function PageMonde() {
                   r={repartitions.get(d.id)}
                   rattachement={rattachements[d.id]}
                   systeme={systeme}
+                  photos={photos}
+                  forfaits={forfaits}
+                  ouvert={domaineOuvert === d.id}
+                  surOuvrir={() => setDomaineOuvert(domaineOuvert === d.id ? null : d.id)}
                 />
               ))}
             </ul>

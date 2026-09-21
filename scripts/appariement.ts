@@ -68,7 +68,35 @@ function grille<T extends Point>(points: readonly T[]): Map<string, T[]> {
   return g;
 }
 
-export type Apparie<T> = { fiche: T; km: number };
+export type Apparie<T> = { fiche: T; km: number; /** Le nom a-t-il corroboré ? */ parLeNom?: true };
+
+/**
+ * Les mots d'un nom qui servent à le reconnaître.
+ *
+ * Les accents tombent, la casse aussi, et les mots trop courts ou trop
+ * répandus sont écartés : « ski », « mont », « val », « resort » se retrouvent
+ * dans des centaines de noms et ne distinguent rien. Reste ce qui fait
+ * l'identité — « hochkoenig », « salzstiegl », « oberstdorf ».
+ */
+const BANALS = new Set([
+  "ski", "skigebiet", "gebiet", "mont", "monte", "berg", "alpe", "alpes", "val",
+  "valle", "vallee", "saint", "sankt", "les", "der", "die", "das", "area",
+  "resort", "station", "domaine", "skicentrum", "skiareal", "park", "snow",
+  "winter", "sport", "sports", "centre", "center", "hill", "mountain",
+]);
+
+export function jetonsDuNom(nom: string | null | undefined): Set<string> {
+  const plat = (nom ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  return new Set(plat.split(/[^a-z0-9]+/).filter((t) => t.length >= 4 && !BANALS.has(t)));
+}
+
+function memeNom(a: Set<string>, b: Set<string>): boolean {
+  for (const t of a) if (b.has(t)) return true;
+  return false;
+}
 
 /**
  * Apparie des domaines à des fiches, chacune ne servant qu'une fois.
@@ -78,20 +106,61 @@ export type Apparie<T> = { fiche: T; km: number };
  * ailleurs dans le dépôt comme une absence, et l'écran l'affiche au lieu de la
  * combler.
  */
-export function apparier<D extends Point & { id: string }, F extends Point & { cle: string }>(
+export function apparier<
+  D extends Point & { id: string; nom?: string | null },
+  F extends Point & { cle: string; nom?: string | null },
+>(
   domaines: readonly D[],
   fiches: readonly F[],
   rayonKm: number,
+  /**
+   * Jusqu'où aller quand **le nom corrobore**.
+   *
+   * La distance seule ne prouve pas grand-chose au-delà de quelques
+   * kilomètres : à dix kilomètres, dans les Alpes, on est dans une autre
+   * vallée. Mais le point d'un domaine est son barycentre, et celui d'une
+   * fiche est souvent le village : Hochkönig et `salzbourg/hochkoenig` sont
+   * séparés de sept kilomètres et sont la même station.
+   *
+   * Un jeton de nom partagé — « hochkoenig », « salzstiegl » — est un second
+   * signal, indépendant de la position. Exiger les deux au-delà du rayon de
+   * base rattache 47 forfaits et 41 photos de plus, sans relâcher ce que
+   * l'appariement affirme : il dit alors « ces deux points sont proches **et**
+   * portent le même nom », ce qui est plus fort que « ils sont proches ».
+   *
+   * `parLeNom` marque ces rattachements, pour qu'un doute se lève sur les
+   * bons.
+   */
+  rayonNomKm = rayonKm,
 ): Map<string, Apparie<F>> {
   const g = grille(fiches);
-  const couples: { id: string; cle: string; km: number }[] = [];
+  const jetons = new Map<string, Set<string>>();
+  const jetonsDe = (cle: string, nom: string | null | undefined): Set<string> => {
+    let j = jetons.get(cle);
+    if (!j) {
+      j = jetonsDuNom(nom);
+      jetons.set(cle, j);
+    }
+    return j;
+  };
+
+  const couples: { id: string; cle: string; km: number; parLeNom: boolean }[] = [];
   for (const d of domaines) {
     for (const f of g.get(`${Math.floor(d.lat)}|${Math.floor(d.lon)}`) ?? []) {
       const km = distanceKm(d, f);
-      if (km <= rayonKm) couples.push({ id: d.id, cle: f.cle, km });
+      if (km <= rayonKm) {
+        couples.push({ id: d.id, cle: f.cle, km, parLeNom: false });
+      } else if (
+        km <= rayonNomKm &&
+        memeNom(jetonsDe(`d:${d.id}`, d.nom), jetonsDe(`f:${f.cle}`, f.nom))
+      ) {
+        couples.push({ id: d.id, cle: f.cle, km, parLeNom: true });
+      }
     }
   }
-  couples.sort((a, b) => a.km - b.km);
+  // Les rattachements de proximité d'abord, quelle que soit leur distance :
+  // un voisin immédiat vaut mieux qu'un homonyme à douze kilomètres.
+  couples.sort((a, b) => Number(a.parLeNom) - Number(b.parLeNom) || a.km - b.km);
 
   const parCle = new Map(fiches.map((f) => [f.cle, f]));
   const out = new Map<string, Apparie<F>>();
@@ -100,7 +169,11 @@ export function apparier<D extends Point & { id: string }, F extends Point & { c
     if (out.has(c.id) || prises.has(c.cle)) continue;
     const f = parCle.get(c.cle);
     if (!f) continue;
-    out.set(c.id, { fiche: f, km: Math.round(c.km * 100) / 100 });
+    out.set(c.id, {
+      fiche: f,
+      km: Math.round(c.km * 100) / 100,
+      ...(c.parLeNom ? { parLeNom: true as const } : {}),
+    });
     prises.add(c.cle);
   }
   return out;

@@ -36,6 +36,8 @@ export type PhotoVue = {
   cle: string;
   nom: string | null;
   km: number;
+  /** Le rattachement a-t-il été corroboré par le nom ? */
+  parLeNom?: true;
   url: string;
   /** La légende du site, quand il en donne une : « Vue sur Verbier ». */
   titre: string | null;
@@ -47,6 +49,8 @@ export type ForfaitVue = {
   cle: string;
   nom: string | null;
   km: number;
+  /** Le rattachement a-t-il été corroboré par le nom ? */
+  parLeNom?: true;
   devise: string | null;
   deviseSource: string | null;
   /** La devise du pays, quand elle contredit celle que la page publie. */
@@ -160,8 +164,19 @@ export function colonneAdulte(f: ForfaitVue): number {
   return i >= 0 ? i : Math.max(0, f.categories.length - 1);
 }
 
-const distance = (km: number): string =>
-  km < 0.1 ? "au même point" : `à ${km.toFixed(1).replace(".", ",")} km`;
+/**
+ * Comment se dit un rattachement.
+ *
+ * Au-delà du rayon de base, il a fallu que **le nom corrobore** : Hochkönig et
+ * la fiche `hochkoenig` sont à sept kilomètres et sont la même station. Le
+ * dire change ce que le lecteur doit en penser — sept kilomètres sans le nom
+ * seraient douteux, sept kilomètres avec le nom ne le sont pas.
+ */
+const distance = (km: number, parLeNom?: true): string => {
+  if (km < 0.1) return "au même point";
+  const d = `à ${km.toFixed(1).replace(".", ",")} km`;
+  return parLeNom ? `${d}, rapprochée par le nom` : d;
+};
 
 const SITE: Record<"skiinfo" | "skiresort" | "officiel", string> = {
   skiinfo: "Skiinfo",
@@ -176,7 +191,7 @@ export function mentionPhoto(p: PhotoVue): string {
   // nommer ni de distance à donner. Écrire « à 0 km » laisserait croire à une
   // mesure là où il y a une identité.
   if (p.source === "officiel") return `Photo publiée par ${SITE.officiel} (${p.cle})${legende}`;
-  return `Photo ${SITE[p.source]}${legende}, fiche « ${p.nom ?? p.cle} », ${distance(p.km)}`;
+  return `Photo ${SITE[p.source]}${legende}, fiche « ${p.nom ?? p.cle} », ${distance(p.km, p.parLeNom)}`;
 }
 
 /** Ce qu'on écrit à côté d'un prix, pour qu'il se lise sans ouvrir le code. */
@@ -192,5 +207,5 @@ export function mentionForfait(f: ForfaitVue): string {
   const ecart = f.deviseDuPays
     ? ` ; le site publie en ${f.devise} alors que le pays est en ${f.deviseDuPays}`
     : "";
-  return `${SITE[f.source]} — ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km)}${dev}${ecart}`;
+  return `${SITE[f.source]} — ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km, f.parLeNom)}${dev}${ecart}`;
 }

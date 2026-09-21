@@ -66,12 +66,12 @@ test("l'index compte juste, pays par pays et au total", () => {
     total += attendu ?? 0;
   }
   assert.equal(total, DOMAINES_MONDE);
-  assert.equal(total, 3598);
+  assert.equal(total, 2780);
 });
 
 test("le relevé est daté, et le seuil écrit", () => {
   assert.match(RELEVE_MONDE, /^\d{4}-\d{2}-\d{2}T/);
-  assert.equal(INDEX.seuil, "en exploitation, et mesuré");
+  assert.equal(INDEX.seuil, "en exploitation, mesuré, et nommé");
   // Trois domaines qu'OpenSkiMap ne rattache à aucun pays : écartés, et comptés
   // pour que l'absence se voie plutôt qu'elle ne se devine.
   assert.equal(SANS_PAYS, 3);
@@ -126,7 +126,9 @@ test("un domaine frontalier sort des deux pays, sans être écrit deux fois", as
       assert.ok(ids.includes(p.id), `${p.id} manque à ${cc}`);
     }
   }
-  assert.equal(INDEX.partages.length, 68);
+  // Soixante-huit au relevé du 18 septembre ; soixante-quatre depuis que le
+  // seuil exige un nom, quatre domaines frontaliers n'en ayant aucun.
+  assert.equal(INDEX.partages.length, 64);
 });
 
 test("Les Portes du Soleil sortent sous France comme sous Suisse", async () => {
@@ -299,11 +301,11 @@ test("les altitudes relevées sont plausibles, et jamais un zéro de remplissage
   }
 });
 
-test("le relevé couvre les 3 598 domaines, sans trou", async () => {
+test("le relevé couvre les 2 780 domaines, sans trou", async () => {
   const r = await releveDem();
-  assert.equal(r.domaines, 3598);
+  assert.equal(r.domaines, 2780);
   assert.equal(r.manquants, 0);
-  assert.equal(Object.keys(r.points).length, 3598);
+  assert.equal(Object.keys(r.points).length, 2780);
 });
 
 test("un domaine sans relevé rend `null`, et non zéro", async () => {
@@ -347,4 +349,22 @@ test("la Russie est écartée, et l'index le dit", () => {
   // Et elle n'a plus ni fichier, ni entrée d'index, ni fiche pays.
   assert.equal(PAYS_AVEC_DOMAINES.includes("RU"), false);
   assert.equal(indexPays("RU"), undefined);
+});
+
+test("tout domaine du référentiel porte un nom", () => {
+  // Le seuil l'exige depuis le 21 septembre 2026. OpenSkiMap enregistre la
+  // remontée avant la station : 818 domaines y entraient sans appellation —
+  // fils-neige d'hôtel, téléskis de village, tapis d'école de ski. Deux
+  // d'entre eux avaient un site web, contre deux tiers des domaines nommés.
+  //
+  // Il n'y avait pour eux ni page officielle à ouvrir, ni forfait à relever,
+  // ni photo à chercher. Les garder revenait à porter une colonne d'absences
+  // irréductibles et à faire passer pour un manque de travail ce qui est une
+  // propriété de la source.
+  for (const cc of PAYS_AVEC_DOMAINES) {
+    for (const d of brut(cc)) {
+      assert.ok(String(d.nom ?? "").trim(), `${d.id} n'a pas de nom`);
+    }
+  }
+  assert.equal((INDEX as { sansNom?: number }).sansNom, 818);
 });

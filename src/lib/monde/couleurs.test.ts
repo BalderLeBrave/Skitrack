@@ -197,7 +197,10 @@ describe("le fichier de rattachement, tel qu'il est écrit", () => {
     const releve = await releveRattachements();
     const n = Object.keys(releve.rattachements).length;
     assert.equal(n, releve.rattachesSkiinfo + releve.rattachesSkiresort);
-    assert.ok(n > 500, `le recours doit servir : ${n}`);
+    // Quatre cent et quelques depuis que le référentiel s'arrête aux domaines
+    // nommés : le recours servait surtout aux téléskis sans appellation, qui
+    // n'y sont plus.
+    assert.ok(n > 300, `le recours doit servir : ${n}`);
   });
 
   it("aucun rattachement au-delà du rayon annoncé", () => {

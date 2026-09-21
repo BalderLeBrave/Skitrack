@@ -1,9 +1,10 @@
 {
  "releve": "2026-09-18T23:31:32Z",
  "formatVersion": "16.0.0",
- "seuil": "en exploitation, et mesuré",
- "domaines": 3598,
+ "seuil": "en exploitation, mesuré, et nommé",
+ "domaines": 2780,
  "sansPays": 3,
+ "sansNom": 818,
  "ecartes": {
   "RU": {
    "motif": "écartée du référentiel le 21 septembre 2026, sur décision du propriétaire",
@@ -106,7 +107,7 @@
   },
   {
    "code": "AT",
-   "domaines": 381,
+   "domaines": 317,
    "cadre": [
     9.532,
     46.3756,
@@ -130,7 +131,7 @@
   },
   {
    "code": "BA",
-   "domaines": 21,
+   "domaines": 17,
    "cadre": [
     16.802,
     43.6097,
@@ -154,7 +155,7 @@
   },
   {
    "code": "BG",
-   "domaines": 25,
+   "domaines": 13,
    "cadre": [
     22.5191,
     41.5439,
@@ -166,7 +167,7 @@
   },
   {
    "code": "BY",
-   "domaines": 5,
+   "domaines": 4,
    "cadre": [
     26.9225,
     51.9299,
@@ -178,7 +179,7 @@
   },
   {
    "code": "CH",
-   "domaines": 345,
+   "domaines": 322,
    "cadre": [
     6.0024,
     45.8307,
@@ -202,7 +203,7 @@
   },
   {
    "code": "CZ",
-   "domaines": 357,
+   "domaines": 271,
    "cadre": [
     12.1075,
     48.5505,
@@ -214,7 +215,7 @@
   },
   {
    "code": "DE",
-   "domaines": 533,
+   "domaines": 229,
    "cadre": [
     6.2783,
     47.2451,
@@ -238,7 +239,7 @@
   },
   {
    "code": "EE",
-   "domaines": 9,
+   "domaines": 7,
    "cadre": [
     24.5709,
     57.4702,
@@ -262,7 +263,7 @@
   },
   {
    "code": "FI",
-   "domaines": 96,
+   "domaines": 83,
    "cadre": [
     21.4771,
     59.9985,
@@ -274,7 +275,7 @@
   },
   {
    "code": "FR",
-   "domaines": 280,
+   "domaines": 271,
    "cadre": [
     -0.839,
     41.9038,
@@ -286,7 +287,7 @@
   },
   {
    "code": "GB",
-   "domaines": 57,
+   "domaines": 43,
    "cadre": [
     -5.0725,
     50.2975,
@@ -298,7 +299,7 @@
   },
   {
    "code": "GE",
-   "domaines": 10,
+   "domaines": 8,
    "cadre": [
     42.4023,
     41.5222,
@@ -322,7 +323,7 @@
   },
   {
    "code": "HR",
-   "domaines": 13,
+   "domaines": 4,
    "cadre": [
     14.4725,
     44.7227,
@@ -334,7 +335,7 @@
   },
   {
    "code": "HU",
-   "domaines": 24,
+   "domaines": 10,
    "cadre": [
     16.4125,
     46.23,
@@ -358,7 +359,7 @@
   },
   {
    "code": "IS",
-   "domaines": 12,
+   "domaines": 10,
    "cadre": [
     -23.3456,
     63.8693,
@@ -370,7 +371,7 @@
   },
   {
    "code": "IT",
-   "domaines": 287,
+   "domaines": 262,
    "cadre": [
     6.5975,
     37.6108,
@@ -382,7 +383,7 @@
   },
   {
    "code": "KZ",
-   "domaines": 10,
+   "domaines": 7,
    "cadre": [
     69.0501,
     42.0585,
@@ -406,7 +407,7 @@
   },
   {
    "code": "LT",
-   "domaines": 9,
+   "domaines": 6,
    "cadre": [
     21.7161,
     53.9275,
@@ -418,7 +419,7 @@
   },
   {
    "code": "LV",
-   "domaines": 12,
+   "domaines": 11,
    "cadre": [
     21.448,
     55.7732,
@@ -430,7 +431,7 @@
   },
   {
    "code": "ME",
-   "domaines": 6,
+   "domaines": 5,
    "cadre": [
     18.9735,
     42.72,
@@ -442,7 +443,7 @@
   },
   {
    "code": "MK",
-   "domaines": 8,
+   "domaines": 7,
    "cadre": [
     20.618,
     40.8807,
@@ -454,7 +455,7 @@
   },
   {
    "code": "NL",
-   "domaines": 19,
+   "domaines": 17,
    "cadre": [
     3.7502,
     50.7748,
@@ -466,7 +467,7 @@
   },
   {
    "code": "NO",
-   "domaines": 232,
+   "domaines": 182,
    "cadre": [
     5.5801,
     58.1043,
@@ -478,7 +479,7 @@
   },
   {
    "code": "PL",
-   "domaines": 250,
+   "domaines": 224,
    "cadre": [
     14.4231,
     49.0947,
@@ -502,7 +503,7 @@
   },
   {
    "code": "RO",
-   "domaines": 72,
+   "domaines": 58,
    "cadre": [
     21.1013,
     45.0965,
@@ -514,7 +515,7 @@
   },
   {
    "code": "RS",
-   "domaines": 18,
+   "domaines": 10,
    "cadre": [
     19.3625,
     42.5655,
@@ -526,7 +527,7 @@
   },
   {
    "code": "SE",
-   "domaines": 162,
+   "domaines": 101,
    "cadre": [
     11.5932,
     55.6185,
@@ -538,7 +539,7 @@
   },
   {
    "code": "SI",
-   "domaines": 32,
+   "domaines": 30,
    "cadre": [
     13.3845,
     45.4762,
@@ -550,7 +551,7 @@
   },
   {
    "code": "SK",
-   "domaines": 146,
+   "domaines": 128,
    "cadre": [
     17.099,
     47.9275,
@@ -562,7 +563,7 @@
   },
   {
    "code": "TR",
-   "domaines": 27,
+   "domaines": 24,
    "cadre": [
     29.0284,
     36.7318,
@@ -574,7 +575,7 @@
   },
   {
    "code": "UA",
-   "domaines": 62,
+   "domaines": 21,
    "cadre": [
     22.3832,
     47.0659,
@@ -719,14 +720,6 @@
    ]
   },
   {
-   "id": "cz-504258m126874",
-   "hote": "CZ",
-   "pays": [
-    "CZ",
-    "DE"
-   ]
-  },
-  {
    "id": "cz-destne-v-orlickych-horach",
    "hote": "CZ",
    "pays": [
@@ -772,30 +765,6 @@
    "pays": [
     "CZ",
     "PL"
-   ]
-  },
-  {
-   "id": "de-476635m130795",
-   "hote": "DE",
-   "pays": [
-    "DE",
-    "AT"
-   ]
-  },
-  {
-   "id": "de-504180m129857",
-   "hote": "DE",
-   "pays": [
-    "DE",
-    "CZ"
-   ]
-  },
-  {
-   "id": "de-506088m134350",
-   "hote": "DE",
-   "pays": [
-    "DE",
-    "CZ"
    ]
   },
   {

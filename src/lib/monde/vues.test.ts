@@ -115,6 +115,14 @@ describe("la mention dit d'où vient le prix", () => {
     assert.match(mentionForfait({ ...GRILLE, km: 0.03 }), /au même point/);
   });
 
+  it("un rattachement corroboré par le nom le dit", () => {
+    // Sept kilomètres sans le nom seraient douteux ; sept kilomètres avec le
+    // nom ne le sont pas. Le lecteur doit pouvoir faire la différence.
+    const f: ForfaitVue = { ...GRILLE, km: 7.0, parLeNom: true };
+    assert.match(mentionForfait(f), /rapprochée par le nom/);
+    assert.doesNotMatch(mentionForfait({ ...GRILLE, km: 7.0 }), /rapprochée par le nom/);
+  });
+
   it("une devise qui contredit celle du pays se dit, elle ne se corrige pas", () => {
     // Valdesquí, en Espagne, publie des dollars néo-zélandais. On ne sait pas
     // laquelle des deux sources a tort : on montre les deux.
@@ -212,11 +220,18 @@ describe("sur le relevé réel", () => {
     assert.ok(verifies > 100, `trop peu de cas vérifiés : ${verifies}`);
   });
 
-  it("aucun rattachement au-delà du rayon annoncé", async () => {
+  it("au-delà du rayon de base, le nom a toujours corroboré", async () => {
+    // Le rayon de base affirme une proximité. Au-delà, il faut un second
+    // signal : un rattachement lointain **sans** `parLeNom` serait une
+    // supposition muette, et c'est exactement ce qu'on s'interdit.
     const r = await releveVues();
     for (const [id, v] of Object.entries(r.vues)) {
-      if (v.photo) assert.ok(v.photo.km <= r.rayonKm, `${id} : photo à ${v.photo.km} km`);
-      if (v.forfait) assert.ok(v.forfait.km <= r.rayonKm, `${id} : forfait à ${v.forfait.km} km`);
+      for (const [quoi, e] of [["photo", v.photo], ["forfait", v.forfait]] as const) {
+        if (!e) continue;
+        if (e.km > r.rayonKm) {
+          assert.equal(e.parLeNom, true, `${id} : ${quoi} à ${e.km} km sans accord de nom`);
+        }
+      }
     }
   });
 

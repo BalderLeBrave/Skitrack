@@ -142,8 +142,18 @@ const fichesSkiresort: FicheSkiresort[] = Object.entries(skiresort?.fiches ?? {}
   .filter(([, f]) => f.lat != null && f.lon != null)
   .map(([cle, f]) => ({ cle, nom: f.nom ?? null, lat: f.lat as number, lon: f.lon as number }));
 
-const parSkiinfo = apparier(domaines, fichesSkiinfo, RAYON_KM);
-const parSkiresort = apparier(domaines, fichesSkiresort, RAYON_KM);
+/**
+ * Vingt kilomètres **quand le nom corrobore**, cinq sinon.
+ *
+ * Le point d'un domaine est son barycentre ; celui d'une fiche est souvent le
+ * village. Hochkönig et `salzbourg/hochkoenig` sont séparés de sept
+ * kilomètres et sont la même station. Un jeton de nom partagé est un second
+ * signal, indépendant de la position, et c'est lui qui autorise l'écart.
+ */
+const RAYON_NOM_KM = 20;
+
+const parSkiinfo = apparier(domaines, fichesSkiinfo, RAYON_KM, RAYON_NOM_KM);
+const parSkiresort = apparier(domaines, fichesSkiresort, RAYON_KM, RAYON_NOM_KM);
 
 // ─── Ce que chaque domaine en tire ───────────────────────────────────────────
 
@@ -154,6 +164,8 @@ type Photo = {
   km: number;
   url: string;
   titre: string | null;
+  /** Le rattachement a-t-il été corroboré par le nom ? */
+  parLeNom?: true;
   /** L'hôte a-t-il répondu au dernier contrôle ? */
   servi: boolean;
 };
@@ -163,6 +175,8 @@ type Forfait = {
   cle: string;
   nom: string | null;
   km: number;
+  /** Le rattachement a-t-il été corroboré par le nom ? */
+  parLeNom?: true;
   devise: string | null;
   /** `page` ou `pays` pour Skiinfo ; toujours `page` pour skiresort. */
   deviseSource: string | null;
@@ -209,6 +223,7 @@ for (const d of domaines) {
       cle: si!.fiche.cle,
       nom: si!.fiche.nom,
       km: si!.km,
+      ...(si!.parLeNom ? { parLeNom: true as const } : {}),
       url: urlSi,
       titre: null,
       servi: HOTES_SERVANTS.has(hote(urlSi)),
@@ -222,6 +237,7 @@ for (const d of domaines) {
         cle: sr.fiche.cle,
         nom: sr.fiche.nom,
         km: sr.km,
+        ...(sr.parLeNom ? { parLeNom: true as const } : {}),
         url: p.url,
         titre: p.titre,
         servi: HOTES_SERVANTS.has(hote(p.url)),
@@ -257,6 +273,7 @@ for (const d of domaines) {
       cle: si!.fiche.cle,
       nom: si!.fiche.nom,
       km: si!.km,
+      ...(si!.parLeNom ? { parLeNom: true as const } : {}),
       devise: g.devise,
       deviseSource: g.deviseSource,
       deviseDuPays: (() => {
@@ -280,6 +297,7 @@ for (const d of domaines) {
         cle: sr.fiche.cle,
         nom: p.nom ?? sr.fiche.nom,
         km: sr.km,
+        ...(sr.parLeNom ? { parLeNom: true as const } : {}),
         devise: p.prix.adultes?.devise ?? null,
         deviseSource: "page",
         deviseDuPays: null,

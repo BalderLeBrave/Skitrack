@@ -357,7 +357,26 @@ PAYS_ECARTES: dict[str, str] = {
 
 
 def retenu(a: dict) -> bool:
-    return a["statut"] == "operating" and a["mesure"]
+    """Le seuil : en exploitation, mesuré, **et nommé**.
+
+    Les deux premiers critères datent du recensement du 18 septembre 2026. Le
+    troisième a été ajouté le 21 septembre, et il écarte 818 domaines.
+
+    Ce ne sont pas des stations. OpenSkiMap enregistre la remontée avant la
+    station : un fil-neige d'hôtel, un téléski de village, un tapis d'école de
+    ski entrent dans la source sans qu'aucune appellation ne leur soit attachée.
+    Le relevé le montre sans ambiguïté — **deux d'entre eux sur 818 ont un site
+    web**, contre deux tiers des domaines nommés.
+
+    Il n'y a donc ni page officielle à ouvrir, ni forfait à relever, ni photo à
+    chercher : un objet sans nom et sans exploitant n'a rien de tout cela. Les
+    garder revenait à porter une colonne d'absences irréductibles et à faire
+    passer pour un manque de travail ce qui est une propriété de la source.
+
+    Le compte est publié dans l'index, comme celui des domaines sans pays et
+    celui des pays écartés : une absence décidée doit se voir.
+    """
+    return a["statut"] == "operating" and a["mesure"] and bool((a.get("name") or "").strip())
 
 
 def identifiant(a: dict, occupes: set[str]) -> str:
@@ -544,7 +563,7 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
             {
                 "releve": releve,
                 "formatVersion": "16.0.0",
-                "seuil": "en exploitation, et mesuré",
+                "seuil": "en exploitation, mesuré, et nommé",
                 "domaines": len(retenus),
                 "sansPays": len(apatrides),
                 "ecartes": {

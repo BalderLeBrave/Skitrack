@@ -51,6 +51,8 @@ import {
 import {
   colonneAdulte,
   forfaitDuDomaine,
+  fourchetteJournee,
+  journeeParPeriode,
   ligneJournee,
   mentionForfait,
   mentionPhoto,
@@ -259,7 +261,17 @@ function LigneDomaine({
   const vue = vues ? photoDuDomaine(vues, d.id) : null;
   const forfait = vues ? forfaitDuDomaine(vues, d.id) : null;
   const jour = forfait ? ligneJournee(forfait) : null;
-  const adulte = forfait && jour ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise) : null;
+  const fourchette = forfait ? fourchetteJournee(forfait) : null;
+  // Le haut de la fourchette quand elle existe : c'est le tarif de haute
+  // saison, celui qu'on paie aux dates où l'on part le plus souvent.
+  const adulte = forfait
+    ? fourchette
+      ? prix(fourchette.haut, forfait.devise)
+      : jour
+        ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise)
+        : null
+    : null;
+  const periodes = forfait ? journeeParPeriode(forfait) : [];
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");
@@ -314,7 +326,10 @@ function LigneDomaine({
                 0,41 km, donc la mention reste rare — elle signale justement
                 les cas où elle doit paraître. */}
             <dd className="monde-row__prix">
-              {adulte}
+              {/* Quand le tarif dépend de la date, on écrit la fourchette et
+                  non un montant seul : « 74 à 82 € » dit ce qu'un « 82 € »
+                  cacherait, et c'est la distinction que la source publie. */}
+              {fourchette ? `${entier(fourchette.bas)} à ${adulte}` : adulte}
               {forfait && forfait.km > 2 ? (
                 <span className="monde-row__loin"> · fiche à {decimal(forfait.km, 1)} km</span>
               ) : null}
@@ -343,6 +358,21 @@ function LigneDomaine({
       >
         {ouvert ? "Masquer la météo" : "Météo, bas et haut des pistes"}
       </button>
+      {ouvert && periodes.length > 1 ? (
+        <dl className="monde-periodes">
+          <dt>Forfait journée, adulte, selon la date</dt>
+          {periodes.map((p) => (
+            <dd key={p.dates}>
+              <span className="monde-periodes__dates">{p.dates}</span>
+              <b>{prix(p.prix, forfait!.devise) ?? "non publié"}</b>
+            </dd>
+          ))}
+          <dd className="monde-periodes__source">
+            Périodes publiées par {forfait!.source === "bergfex" ? "bergfex" : forfait!.source}, et
+            reprises telles quelles.
+          </dd>
+        </dl>
+      ) : null}
       {ouvert ? <MeteoDomaine d={d} systeme={systeme} /> : null}
     </li>
   );

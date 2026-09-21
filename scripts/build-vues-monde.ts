@@ -19,10 +19,19 @@
  *
  * ## L'ordre des sources, et pourquoi il diffère selon la chose
  *
- * | | Rang 1 | Rang 2 | Rang 3 |
- * | --- | --- | --- | --- |
- * | Photo | Skiinfo | skiresort | site officiel de la station |
- * | Forfait | Skiinfo | skiresort | — |
+ * | | Rang 1 | Rang 2 | Rang 3 | Rang 4 |
+ * | --- | --- | --- | --- | --- |
+ * | Photo | Skiinfo | skiresort | bergfex | site officiel |
+ * | Forfait | **bergfex à périodes** | Skiinfo | skiresort | — |
+ *
+ * Le forfait change d'ordre avec bergfex, et pour une raison de fond : **il
+ * est le seul à dater ses tarifs.** Garmisch vaut 69 € du 20 décembre au
+ * 6 janvier et du 14 au 22 février, 67 € entre les deux ; Skiinfo n'en publie
+ * qu'un, sans dire lequel. Une grille datée l'emporte donc sur une grille
+ * muette, qui l'emporte sur un nombre seul.
+ *
+ * Une fiche bergfex **sans** période ne passe pas devant : elle ne vaut alors
+ * pas mieux qu'une grille Skiinfo, et celle-ci porte les bornes d'âge.
  *
  * Pour la **photo**, les deux premiers rangs sont ceux demandés par le
  * propriétaire ; le troisième est le dernier recours, et il ne sert qu'aux
@@ -61,7 +70,7 @@ const DATA = resolve(import.meta.dirname, "../src/lib/monde/data");
 const RAYON_KM = 5;
 
 /** Les hôtes dont on a vérifié qu'ils servent l'image. */
-const HOTES_SERVANTS = new Set(["cdn.bfldr.com", "www.skiresort.fr"]);
+const HOTES_SERVANTS = new Set(["cdn.bfldr.com", "www.skiresort.fr", "vcdn.bergfex.at"]);
 
 function lire<T>(nom: string): T | null {
   try {
@@ -71,7 +80,7 @@ function lire<T>(nom: string): T | null {
   }
 }
 
-type Domaine = Point & { id: string; nom?: string };
+type Domaine = Point & { id: string; nom?: string; pays?: string[] };
 const domaines: Domaine[] = [];
 for (const f of readdirSync(DATA).sort()) {
   if (!/^[A-Z]{2}\.json$/.test(f)) continue;
@@ -125,6 +134,22 @@ const photosSkiresort = lire<{
 /** Le dernier recours : ce que le site officiel de la station publie, une fois
  *  son adresse contrôlée. `servi` non renseigné vaut « pas encore vérifié »,
  *  donc pas utilisable — l'absence de contrôle n'est pas un contrôle réussi. */
+/** bergfex : photo, coordonnées, et les seules grilles datées. */
+const bergfex = lire<{
+  fiches: Record<
+    string,
+    {
+      nom: string | null;
+      lat: number | null;
+      lon: number | null;
+      photo: string | null;
+      periodes:
+        | { dates: string; categories: string[]; lignes: { libelle: string; prix: (number | null)[] }[] }[]
+        | null;
+    }
+  >;
+}>("bergfex.json");
+
 const sitesOfficiels = lire<{
   fiches: Record<string, { nom: string | null; site: string; photo: string | null; servi?: boolean }>;
 }>("sitesOfficiels.json");
@@ -152,13 +177,19 @@ const fichesSkiresort: FicheSkiresort[] = Object.entries(skiresort?.fiches ?? {}
  */
 const RAYON_NOM_KM = 20;
 
+type FicheBergfex = Point & { cle: string; nom: string | null };
+const fichesBergfex: FicheBergfex[] = Object.entries(bergfex?.fiches ?? {})
+  .filter(([, f]) => f.lat != null && f.lon != null)
+  .map(([cle, f]) => ({ cle, nom: f.nom?.replace(/^BERGFEX:\s*/i, "") ?? null, lat: f.lat as number, lon: f.lon as number }));
+
+const parBergfex = apparier(domaines, fichesBergfex, RAYON_KM, RAYON_NOM_KM);
 const parSkiinfo = apparier(domaines, fichesSkiinfo, RAYON_KM, RAYON_NOM_KM);
 const parSkiresort = apparier(domaines, fichesSkiresort, RAYON_KM, RAYON_NOM_KM);
 
 // ─── Ce que chaque domaine en tire ───────────────────────────────────────────
 
 type Photo = {
-  source: "skiinfo" | "skiresort" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
   cle: string;
   nom: string | null;
   km: number;
@@ -171,7 +202,7 @@ type Photo = {
 };
 
 type Forfait = {
-  source: "skiinfo" | "skiresort";
+  source: "skiinfo" | "skiresort" | "bergfex";
   cle: string;
   nom: string | null;
   km: number;
@@ -198,6 +229,11 @@ type Forfait = {
   categories: Categorie[];
   lignes: LigneGrille[];
   saison: { libelle: string; validite: string | null; categories: Categorie[]; prix: (number | null)[] } | null;
+  /** Les grilles datées de bergfex, quand il en publie. La seule source qui
+   *  dise qu'un forfait de février ne coûte pas celui de décembre. */
+  periodes:
+    | { dates: string; categories: string[]; lignes: { libelle: string; prix: (number | null)[] }[] }[]
+    | null;
 };
 
 function hote(url: string): string {
@@ -245,6 +281,24 @@ for (const d of domaines) {
     }
   }
 
+  // ── bergfex, avant le site officiel ──
+  const bf = parBergfex.get(d.id);
+  if (!photo?.servi && bf) {
+    const b = bergfex?.fiches[bf.fiche.cle];
+    if (b?.photo) {
+      photo = {
+        source: "bergfex",
+        cle: bf.fiche.cle,
+        nom: bf.fiche.nom,
+        km: bf.km,
+        ...(bf.parLeNom ? { parLeNom: true as const } : {}),
+        url: b.photo,
+        titre: null,
+        servi: HOTES_SERVANTS.has(hote(b.photo)),
+      };
+    }
+  }
+
   // ── Dernier recours : le site officiel de la station ──
   if (!photo?.servi) {
     const o = sitesOfficiels?.fiches[d.id];
@@ -264,10 +318,65 @@ for (const d of domaines) {
     }
   }
 
-  // ── Le forfait : la grille Skiinfo d'abord, le nombre skiresort ensuite ──
+  // ── Le forfait : bergfex daté d'abord, Skiinfo ensuite, skiresort enfin ──
   let forfait: Forfait | null = null;
+
+  // Une grille **datée** l'emporte sur toutes les autres : elle seule dit
+  // qu'un forfait de février ne coûte pas celui de décembre. Une fiche bergfex
+  // sans période ne passe pas devant — elle ne vaudrait alors pas mieux qu'une
+  // grille Skiinfo, qui porte en plus les bornes d'âge.
+  const bfPrix = bf ? bergfex?.fiches[bf.fiche.cle] : undefined;
+
+  /**
+   * Une période est une **plage de dates**, pas un tableau.
+   *
+   * Ankogel publie quatre tableaux sous une seule plage — points, saison,
+   * cartes diverses. Les compter comme quatre périodes faisait croire à une
+   * variation saisonnière là où il n'y en a aucune, ce qui est précisément
+   * l'inverse de ce qu'on cherche à montrer.
+   *
+   * On regroupe donc par plage, et on garde le premier tableau de chaque
+   * groupe : c'est celui des forfaits par durée, que le site met en tête.
+   */
+  const parPlage = new Map<string, NonNullable<typeof bfPrix>["periodes"] extends (infer T)[] | null ? T : never>();
+  for (const p of bfPrix?.periodes ?? []) if (!parPlage.has(p.dates)) parPlage.set(p.dates, p);
+  const plages = [...parPlage.values()];
+
+  if (plages.length) {
+    const p0 = plages[0]!;
+    forfait = {
+      source: "bergfex",
+      cle: bf!.fiche.cle,
+      nom: bf!.fiche.nom,
+      km: bf!.km,
+      ...(bf!.parLeNom ? { parLeNom: true as const } : {}),
+      // bergfex écrit ses montants avec le symbole de la devise du pays ; on
+      // prend celle du pays, qui est sourcée, plutôt que de lire un symbole.
+      // **Le pays se lit sur l'identifiant, pas sur le champ `pays`.**
+      //
+      // Le référentiel omet `pays` quand il n'y en a qu'un — six domaines
+      // autrichiens sur 317 le portent, ceux qui touchent une frontière. Lire
+      // `d.pays[0]` rendait donc `undefined` presque partout, et la devise
+      // sortait nulle : des prix sans devise, que `vues.ts` refuse d'afficher.
+      //
+      // `identifiant()` de `build-monde.py` préfixe chaque clé du code pays —
+      // « at-11er-neustift-neder ». C'est une source sûre, et elle ne dépend
+      // pas d'un champ facultatif.
+      devise: deviseAttendue(d.pays?.[0] ?? d.id.slice(0, 2).toUpperCase()),
+      deviseSource: "pays",
+      deviseDuPays: null,
+      misAJour: null,
+      // Les colonnes de la première période font les classes d'âge : elles
+      // sont les mêmes d'une période à l'autre chez cette source.
+      categories: p0.categories.map((nom) => ({ nom, ages: null })),
+      lignes: p0.lignes,
+      saison: null,
+      periodes: plages,
+    };
+  }
+
   const g = si ? grilles?.fiches[si.fiche.cle] : undefined;
-  if (g && g.lignes.length) {
+  if (!forfait && g && g.lignes.length) {
     forfait = {
       source: "skiinfo",
       cle: si!.fiche.cle,
@@ -284,6 +393,7 @@ for (const d of domaines) {
       categories: g.categories,
       lignes: g.lignes,
       saison: g.saison,
+      periodes: null,
     };
   }
   if (!forfait && sr) {
@@ -318,6 +428,7 @@ for (const d of domaines) {
           },
         ],
         saison: null,
+        periodes: null,
       };
     }
   }
@@ -338,8 +449,8 @@ writeFileSync(
       quoi: "ce que chaque domaine sait montrer : une photo et un forfait, rattachés par la position",
       regle: `la fiche la plus proche à ${RAYON_KM} km au plus, une fiche ne sert qu'un domaine ; un appariement par source, partagé par la photo et le forfait`,
       rayonKm: RAYON_KM,
-      ordrePhoto: ["skiinfo", "skiresort", "site officiel de la station"],
-      ordreForfait: ["skiinfo (grille)", "skiresort (un seul nombre)"],
+      ordrePhoto: ["skiinfo", "skiresort", "bergfex", "site officiel de la station"],
+      ordreForfait: ["bergfex (grille datée)", "skiinfo (grille)", "skiresort (un seul nombre)"],
       avertissement:
         "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
       domaines: domaines.length,
@@ -358,8 +469,10 @@ console.log(`Domaines du référentiel : ${domaines.length}`);
 console.log(`  avec une photo        : ${avecPhoto}   ${pct(avecPhoto)}`);
 console.log(`      dont Skiinfo      : ${parSource("photo", "skiinfo")}`);
 console.log(`      dont skiresort    : ${parSource("photo", "skiresort")}`);
+console.log(`      dont bergfex      : ${parSource("photo", "bergfex")}`);
 console.log(`      dont site officiel: ${parSource("photo", "officiel")}`);
 console.log(`  avec un forfait       : ${avecForfait}   ${pct(avecForfait)}`);
+console.log(`      dont bergfex daté : ${parSource("forfait", "bergfex")}`);
 console.log(`      dont grille       : ${parSource("forfait", "skiinfo")}`);
 console.log(`      dont un nombre    : ${parSource("forfait", "skiresort")}`);
 console.log(`\nAppariement Skiinfo :`);

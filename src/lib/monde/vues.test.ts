@@ -19,6 +19,8 @@ import { describe, it } from "node:test";
 
 import {
   colonneAdulte,
+  fourchetteJournee,
+  journeeParPeriode,
   forfaitDuDomaine,
   ligneJournee,
   mentionForfait,
@@ -52,6 +54,7 @@ const GRILLE: ForfaitVue = {
     { libelle: "Forfait semaine", prix: [306, 366, 306] },
   ],
   saison: null,
+  periodes: null,
 };
 
 describe("un prix reste dans sa devise", () => {
@@ -130,6 +133,56 @@ describe("la mention dit d'où vient le prix", () => {
     const m = mentionForfait(f);
     assert.match(m, /publie en NZD/);
     assert.match(m, /pays est en EUR/);
+  });
+});
+
+describe("les périodes datées, que seule bergfex publie", () => {
+  const DATE: ForfaitVue = {
+    ...GRILLE,
+    source: "bergfex",
+    periodes: [
+      {
+        dates: "19.12.26 - 12.03.27",
+        categories: ["Adultes", "Enfants", "Jeunes"],
+        lignes: [
+          { libelle: "1 Jour", prix: [82, 41, 61.5] },
+          { libelle: "1 Jour à partir de 12:30", prix: [61, 30.5, 46] },
+        ],
+      },
+      {
+        dates: "27.11.26 - 18.12.26",
+        categories: ["Adultes", "Enfants", "Jeunes"],
+        lignes: [{ libelle: "1 Jour", prix: [74, 37, 55.5] }],
+      },
+    ],
+  };
+
+  it("chaque période rend son tarif journée adulte", () => {
+    assert.deepEqual(journeeParPeriode(DATE), [
+      { dates: "19.12.26 - 12.03.27", prix: 82 },
+      { dates: "27.11.26 - 18.12.26", prix: 74 },
+    ]);
+  });
+
+  it("« 1 Jour » n'est pas « 1 Jour à partir de 12:30 »", () => {
+    // Prendre la seconde ligne afficherait 61 € au lieu de 82 : un demi-tarif
+    // présenté comme le prix de la journée.
+    assert.equal(journeeParPeriode(DATE)[0]?.prix, 82);
+  });
+
+  it("la fourchette dit que le prix dépend de la date", () => {
+    assert.deepEqual(fourchetteJournee(DATE), { bas: 74, haut: 82 });
+  });
+
+  it("un prix unique n'a pas de fourchette", () => {
+    // « 74 à 74 € » n'apprendrait rien : le but est de signaler la variation.
+    const un: ForfaitVue = { ...DATE, periodes: [DATE.periodes![1]!] };
+    assert.equal(fourchetteJournee(un), null);
+    assert.equal(fourchetteJournee(GRILLE), null);
+  });
+
+  it("la mention compte les périodes", () => {
+    assert.match(mentionForfait(DATE), /2 périodes tarifaires datées/);
   });
 });
 

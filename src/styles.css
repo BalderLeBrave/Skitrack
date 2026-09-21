@@ -1789,3 +1789,39 @@ main.carte {
   font-weight: 400;
   font-size: 0.71875rem;
 }
+
+/* Les périodes tarifaires, sous la ligne d'un domaine ouvert. */
+.monde-periodes {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0.25rem 0 0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-bg);
+  font-size: 0.78125rem;
+}
+
+.monde-periodes dt {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.monde-periodes dd {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.monde-periodes__dates {
+  color: var(--color-texte-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.monde-periodes__source {
+  display: block;
+  margin-top: 0.375rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--color-bordure-douce);
+  color: var(--color-texte-2);
+}

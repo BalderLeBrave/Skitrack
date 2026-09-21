@@ -31,7 +31,7 @@ export type Categorie = { nom: string; ages: string | null };
 export type LigneForfait = { libelle: string; prix: (number | null)[] };
 
 export type PhotoVue = {
-  source: "skiinfo" | "skiresort" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
   /** Le slug de la fiche d'où vient l'image, pour qu'un doute se vérifie. */
   cle: string;
   nom: string | null;
@@ -45,7 +45,7 @@ export type PhotoVue = {
 };
 
 export type ForfaitVue = {
-  source: "skiinfo" | "skiresort";
+  source: "skiinfo" | "skiresort" | "bergfex";
   cle: string;
   nom: string | null;
   km: number;
@@ -64,6 +64,25 @@ export type ForfaitVue = {
     categories: Categorie[];
     prix: (number | null)[];
   } | null;
+  /**
+   * Les grilles **datées**, une par plage de dates.
+   *
+   * Seule bergfex en publie. C'est ce qui permet de dire qu'un forfait de
+   * décembre ne coûte pas celui de février — Kitzsteinhorn vaut 74 € du
+   * 27 novembre au 18 décembre et 82 € du 19 décembre au 12 mars.
+   *
+   * Une plage, pas un tableau : le site publie parfois plusieurs tableaux sous
+   * la même plage — points, saison, cartes diverses —, et les compter comme
+   * des périodes ferait croire à une variation qui n'existe pas.
+   */
+  periodes: PeriodeVue[] | null;
+};
+
+export type PeriodeVue = {
+  /** « 19.12.26 - 12.03.27 », telle que le site l'écrit. */
+  dates: string;
+  categories: string[];
+  lignes: LigneForfait[];
 };
 
 export type ReleveVues = {
@@ -178,9 +197,10 @@ const distance = (km: number, parLeNom?: true): string => {
   return parLeNom ? `${d}, rapprochée par le nom` : d;
 };
 
-const SITE: Record<"skiinfo" | "skiresort" | "officiel", string> = {
+const SITE: Record<"skiinfo" | "skiresort" | "bergfex" | "officiel", string> = {
   skiinfo: "Skiinfo",
   skiresort: "skiresort.fr",
+  bergfex: "bergfex",
   officiel: "le site officiel de la station",
 };
 
@@ -194,12 +214,51 @@ export function mentionPhoto(p: PhotoVue): string {
   return `Photo ${SITE[p.source]}${legende}, fiche « ${p.nom ?? p.cle} », ${distance(p.km, p.parLeNom)}`;
 }
 
+/**
+ * Le tarif d'une journée pour chaque période, adulte.
+ *
+ * Rend une entrée par plage de dates, dans l'ordre où le site les publie.
+ * Vide quand la source ne date pas ses tarifs — ce qui est le cas de toutes
+ * sauf bergfex.
+ */
+export function journeeParPeriode(f: ForfaitVue): { dates: string; prix: number | null }[] {
+  if (!f.periodes?.length) return [];
+  return f.periodes.map((p) => {
+    const ligne =
+      p.lignes.find((l) => /^1\s/.test(l.libelle) && !/\d{1,2}:\d{2}/.test(l.libelle)) ?? p.lignes[0];
+    const i = p.categories.findIndex((c) => /adulte|erwachsen/i.test(c));
+    return { dates: p.dates, prix: ligne?.prix[i >= 0 ? i : 0] ?? null };
+  });
+}
+
+/**
+ * La fourchette d'un forfait journée, quand elle varie selon la période.
+ *
+ * `null` quand il n'y a qu'un prix : écrire « 74 à 74 € » n'apprendrait rien.
+ * Le but est de dire d'un coup d'œil que **le prix dépend de la date**, ce
+ * qu'un montant unique cache.
+ */
+export function fourchetteJournee(f: ForfaitVue): { bas: number; haut: number } | null {
+  const prix = journeeParPeriode(f)
+    .map((p) => p.prix)
+    .filter((p): p is number => p != null);
+  if (prix.length < 2) return null;
+  const bas = Math.min(...prix);
+  const haut = Math.max(...prix);
+  return haut > bas ? { bas, haut } : null;
+}
+
 /** Ce qu'on écrit à côté d'un prix, pour qu'il se lise sans ouvrir le code. */
 export function mentionForfait(f: ForfaitVue): string {
+  const plages = f.periodes?.length ?? 0;
   const quoi =
-    f.source === "skiinfo"
-      ? `grille de ${f.lignes.length} forfait${f.lignes.length > 1 ? "s" : ""}`
-      : "un seul tarif publié";
+    plages > 1
+      ? `${plages} périodes tarifaires datées`
+      : f.source === "bergfex"
+        ? "une grille datée"
+        : f.source === "skiinfo"
+          ? `grille de ${f.lignes.length} forfait${f.lignes.length > 1 ? "s" : ""}`
+          : "un seul tarif publié";
   const maj = f.misAJour ? `, mis à jour le ${f.misAJour}` : "";
   const dev = f.deviseSource === "pays" ? " ; devise déduite du pays, le site n'écrit qu'un symbole" : "";
   // Une contradiction se dit, elle ne se corrige pas : on ne sait pas laquelle

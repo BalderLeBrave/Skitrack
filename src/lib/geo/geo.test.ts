@@ -158,13 +158,20 @@ describe("pays", () => {
     assert.equal(fr?.continent, "europe");
   });
 
-  it("les quatre pays transcontinentaux portent le rattachement documenté", () => {
+  it("les pays transcontinentaux portent le rattachement documenté", () => {
     // La consigne tranche par l'emplacement des stations. Le résultat n'est pas
-    // celui de la convention politique pour trois d'entre eux, et ce test est
-    // là pour qu'un changement soit délibéré plutôt que discret.
+    // celui de la convention politique pour ces trois-là, et ce test est là
+    // pour qu'un changement soit délibéré plutôt que discret.
     assert.equal(paysByCode("TR")?.continent, "asie");
     assert.equal(paysByCode("GE")?.continent, "asie");
     assert.equal(paysByCode("KZ")?.continent, "asie");
-    assert.equal(paysByCode("RU")?.continent, "europe");
+  });
+
+  it("la Russie est absente, et c'est une décision, pas un oubli", () => {
+    // Écartée du référentiel le 21 septembre 2026. La règle de cette liste est
+    // « les pays ayant au moins une station retenue » : sans station, pas de
+    // fiche. L'exclusion elle-même vit dans `scripts/build-monde.py`, et
+    // `monde.test.ts` vérifie que l'index en publie le compte.
+    assert.equal(paysByCode("RU"), undefined);
   });
 });

@@ -312,6 +312,21 @@ def localites(areas: list[dict], cc: str) -> None:
 #: Le cran « mesuré » ne coûte rien — aucun domaine en exploitation n'est sans
 #: statistiques — et il se garde pour ce qu'il dit : un domaine non relevé
 #: n'est pas un domaine à zéro kilomètre.
+#: Les pays écartés du référentiel, et depuis quand.
+#:
+#: Ce n'est pas un seuil : ces domaines passent « en exploitation, et mesuré »
+#: comme les autres. C'est une décision de périmètre du propriétaire, et elle
+#: est écrite ici plutôt qu'appliquée à la main sur les fichiers — sans quoi la
+#: prochaine régénération les ramènerait sans que personne ne l'ait voulu.
+#:
+#: Le nombre de domaines écartés est publié dans l'index, comme l'est celui des
+#: domaines sans pays : une absence décidée doit se voir, faute de quoi elle se
+#: confond avec une absence de données.
+PAYS_ECARTES: dict[str, str] = {
+    "RU": "écartée du référentiel le 21 septembre 2026, sur décision du propriétaire",
+}
+
+
 def retenu(a: dict) -> bool:
     return a["statut"] == "operating" and a["mesure"]
 
@@ -435,6 +450,19 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
     apatrides = [a for a in retenus if not a["pays"]]
     retenus = [a for a in retenus if a["pays"]]
 
+    # Les pays écartés, avant tout le reste : un domaine écarté ne doit ni
+    # peupler un fichier, ni compter dans l'index, ni rester accroché à un
+    # domaine frontalier par sa liste de pays.
+    ecartes = [a for a in retenus if pays_principal(a) in PAYS_ECARTES]
+    retenus = [a for a in retenus if pays_principal(a) not in PAYS_ECARTES]
+    for a in retenus:
+        # Un domaine à cheval sur une frontière dont l'un des pays est écarté
+        # reste dans le référentiel — il est hébergé ailleurs —, mais il cesse
+        # de désigner ce pays-là. Aucun cas au relevé du 18 septembre 2026 ;
+        # la règle est écrite pour que le prochain ne passe pas en silence.
+        if any(p in PAYS_ECARTES for p in a["pays"]):
+            a["pays"] = [p for p in a["pays"] if p not in PAYS_ECARTES]
+
     par_pays: dict[str, list[dict]] = {}
     for a in retenus:
         par_pays.setdefault(pays_principal(a), []).append(a)
@@ -480,6 +508,13 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
                 "seuil": "en exploitation, et mesuré",
                 "domaines": len(retenus),
                 "sansPays": len(apatrides),
+                "ecartes": {
+                    cc: {
+                        "motif": motif,
+                        "domaines": sum(1 for a in ecartes if pays_principal(a) == cc),
+                    }
+                    for cc, motif in sorted(PAYS_ECARTES.items())
+                },
                 "pays": index,
                 "partages": sorted(partages, key=lambda x: x["id"]),
             },
@@ -494,6 +529,10 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
         print(f"{len(apatrides)} domaines ecartes, faute de pays dans la source :")
         for a in apatrides:
             print(f"  {a['name']:<28} {a['lat']:.4f}, {a['lon']:.4f}")
+
+    for cc, motif in sorted(PAYS_ECARTES.items()):
+        n = sum(1 for a in ecartes if pays_principal(a) == cc)
+        print(f"{cc} : {n} domaines ecartes du perimetre — {motif}")
 
     poids = sum(f.stat().st_size for f in data.glob("*.json"))
     print(f"{len(retenus)} domaines retenus, {len(par_pays)} pays.")

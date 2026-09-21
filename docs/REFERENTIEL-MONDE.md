@@ -160,6 +160,10 @@ les placeraient en Chine, aux îles Åland et au Svalbard ; l'audit interdisant
 de deviner un pays, ils sont écartés, et l'index les compte sous `sansPays`
 pour que l'absence se voie. D'où 5 720, et non 5 723.
 
+> Ces 5 720 sont le résultat du **seuil**, au 18 septembre 2026. Le périmètre
+> a changé depuis : la Russie en est sortie le 21 septembre, et le référentiel
+> en porte 5 476. Les deux nombres sont justes, chacun à sa question.
+
 ### Une station est un domaine, jamais une localité
 
 | | Domaines | Avec localité | Localité ≠ nom |
@@ -187,13 +191,34 @@ porte la liste entière dans `pays` ; `index.json` les rappelle dans `partages`.
 français plutôt que d'en garder une copie suisse, qu'un relevé pourrait rendre
 divergente.
 
+## Le périmètre, et ce qui en est sorti
+
+**La Russie est écartée du référentiel depuis le 21 septembre 2026**, sur
+décision du propriétaire. Ses 244 domaines passaient le seuil comme les
+autres : ce n'est pas une question de données, c'est une question de périmètre.
+
+L'exclusion vit dans `scripts/build-monde.py`, sous `PAYS_ECARTES`, et non dans
+une suppression de fichiers — la prochaine régénération les ramènerait sans que
+personne ne l'ait voulu. Elle retire le pays, ses fiches, ses points
+d'altitude, et le raye de la liste des pays d'un domaine frontalier ; aucun
+domaine n'était dans ce dernier cas au relevé du 18 septembre, et la règle est
+écrite pour que le prochain ne passe pas en silence.
+
+`index.json` publie le compte sous `ecartes`, et l'écran `/monde` l'affiche :
+**une absence décidée doit se voir**, faute de quoi 244 domaines manqueraient
+au total sans que rien ne distingue la décision d'une perte de données. C'est
+la même règle que pour les trois domaines sans pays.
+
+`geo/pays.ts` a perdu sa fiche `RU` du même coup : la règle de cette liste est
+« les pays ayant au moins une station retenue ».
+
 ## Ce que le référentiel pèse
 
 | | |
 | --- | --- |
-| Domaines | 5 720 |
-| Pays | 73 |
-| Fichiers | 74, dont `index.json` |
+| Domaines | 5 476 |
+| Pays | 72 |
+| Fichiers | 73, dont `index.json` |
 | Poids total | 2,2 Mo |
 | Plus gros pays | `US.json`, 255 Ko |
 | `index.json` | 6 Ko, seul fichier importé statiquement |

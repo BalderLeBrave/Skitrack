@@ -1,10 +1,10 @@
 {
- "calcule": "2026-09-20",
+ "calcule": "2026-09-21",
  "quoi": "part du vert parmi les pistes faciles (vert + bleu), mesurée sur les domaines dont OpenSkiMap a relevé les quatre couleurs",
  "regle": "au moins 10 domaines par pays, chacun d'au moins 5 pistes dont 3 faciles",
  "monde": {
-  "part": 0.178,
-  "domaines": 2303
+  "part": 0.175,
+  "domaines": 2239
  },
  "pays": {
   "AR": {
@@ -78,10 +78,6 @@
   "RO": {
    "part": 0.094,
    "domaines": 14
-  },
-  "RU": {
-   "part": 0.37,
-   "domaines": 64
   },
   "SE": {
    "part": 0.451,

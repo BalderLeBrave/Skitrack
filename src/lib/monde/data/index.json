@@ -2,8 +2,14 @@
  "releve": "2026-09-18T23:31:32Z",
  "formatVersion": "16.0.0",
  "seuil": "en exploitation, et mesuré",
- "domaines": 5720,
+ "domaines": 5476,
  "sansPays": 3,
+ "ecartes": {
+  "RU": {
+   "motif": "écartée du référentiel le 21 septembre 2026, sur décision du propriétaire",
+   "domaines": 244
+  }
+ },
  "pays": [
   {
    "code": "AD",
@@ -729,18 +735,6 @@
    ],
    "kmTotal": 105.1,
    "maxM": 1974
-  },
-  {
-   "code": "RU",
-   "domaines": 244,
-   "cadre": [
-    27.7235,
-    42.0911,
-    158.886,
-    69.5934
-   ],
-   "kmTotal": 769.6,
-   "maxM": 3841
   },
   {
    "code": "SE",

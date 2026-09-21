@@ -113,10 +113,14 @@ export type Pays = {
  * - **Géorgie : Asie.** Gudauri et Bakuriani sont au sud de la ligne de crête
  *   du Grand Caucase, qui est la limite conventionnelle entre les deux
  *   continents.
- * - **Russie : Europe.** Le choix est le moins net des quatre. Krasnaïa
- *   Poliana est au nord de la crête du Caucase, donc en Europe, comme les
- *   stations de l'Oural et de la péninsule de Kola ; Cheregech est en Sibérie.
- *   Le nombre penche du côté européen, pas l'unanimité.
+ * - **Russie : écartée du référentiel** le 21 septembre 2026, sur décision du
+ *   propriétaire. Elle figurait ici en Europe — Krasnaïa Poliana est au nord
+ *   de la crête du Caucase, comme l'Oural et la péninsule de Kola, et seule
+ *   Cheregech est en Sibérie. Le choix de continent n'a plus d'objet : la
+ *   règle de cette liste est « les pays ayant au moins une station retenue »,
+ *   et la Russie n'en a plus aucune. `scripts/build-monde.py` porte
+ *   l'exclusion dans `PAYS_ECARTES`, et l'index en publie le compte — 244
+ *   domaines — pour qu'elle se voie au lieu de se deviner.
  * - **Kazakhstan : Asie.** Chymboulak domine Almaty, à l'est de l'Oural et de
  *   la Caspienne. Aucune ambiguïté.
  */
@@ -154,7 +158,6 @@ export const PAYS: readonly Pays[] = [
   { code: "PL", nomFr: "Pologne", nomEn: "Poland", continent: "europe", devise: "PLN", fuseau: "Europe/Warsaw", plusieursFuseaux: false, cadre: [14.13, 49.02, 24.11, 54.84], decoupageFr: "voïvodie", decoupageEn: "voivodeship" },
   { code: "RO", nomFr: "Roumanie", nomEn: "Romania", continent: "europe", devise: "RON", fuseau: "Europe/Bucharest", plusieursFuseaux: false, cadre: [20.24, 43.67, 29.71, 48.26], decoupageFr: "judeţ", decoupageEn: "county" },
   { code: "RS", nomFr: "Serbie", nomEn: "Serbia", continent: "europe", devise: "RSD", fuseau: "Europe/Belgrade", plusieursFuseaux: false, cadre: [18.84, 42.24, 22.98, 46.17], decoupageFr: "district", decoupageEn: "district" },
-  { code: "RU", nomFr: "Russie", nomEn: "Russia", continent: "europe", devise: "RUB", fuseau: "Europe/Moscow", plusieursFuseaux: true, cadre: [19.6, 41.2, 180, 81.85], decoupageFr: "sujet fédéral", decoupageEn: "federal subject" },
   { code: "SE", nomFr: "Suède", nomEn: "Sweden", continent: "europe", devise: "SEK", fuseau: "Europe/Stockholm", plusieursFuseaux: false, cadre: [11.15, 55.35, 24.16, 69.04], decoupageFr: "comté", decoupageEn: "county" },
   { code: "SI", nomFr: "Slovénie", nomEn: "Slovenia", continent: "europe", devise: "EUR", fuseau: "Europe/Ljubljana", plusieursFuseaux: false, cadre: [13.38, 45.43, 16.52, 46.86], decoupageFr: "région", decoupageEn: "region" },
   { code: "SK", nomFr: "Slovaquie", nomEn: "Slovakia", continent: "europe", devise: "EUR", fuseau: "Europe/Bratislava", plusieursFuseaux: false, cadre: [16.86, 47.76, 22.54, 49.6], decoupageFr: "région", decoupageEn: "region" },

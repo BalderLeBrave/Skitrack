@@ -66,7 +66,7 @@ test("l'index compte juste, pays par pays et au total", () => {
     total += attendu ?? 0;
   }
   assert.equal(total, DOMAINES_MONDE);
-  assert.equal(total, 5720);
+  assert.equal(total, 5476);
 });
 
 test("le relevé est daté, et le seuil écrit", () => {
@@ -275,11 +275,11 @@ test("les altitudes relevées sont plausibles, et jamais un zéro de remplissage
   }
 });
 
-test("le relevé couvre les 5 720 domaines, sans trou", async () => {
+test("le relevé couvre les 5 476 domaines, sans trou", async () => {
   const r = await releveDem();
-  assert.equal(r.domaines, 5720);
+  assert.equal(r.domaines, 5476);
   assert.equal(r.manquants, 0);
-  assert.equal(Object.keys(r.points).length, 5720);
+  assert.equal(Object.keys(r.points).length, 5476);
 });
 
 test("un domaine sans relevé rend `null`, et non zéro", async () => {
@@ -309,4 +309,18 @@ test("un lot d'altitudes n'ouvre le fichier qu'une fois, et saute les absents", 
   assert.ok(lot.size > 0);
   assert.equal(lot.has("ce-domaine-n-existe-pas"), false);
   for (const [, m] of lot) assert.ok(m > -500 && m < 6000);
+});
+
+test("la Russie est écartée, et l'index le dit", () => {
+  // Une absence décidée doit se voir. Sans ce compte publié, 244 domaines
+  // disparaîtraient du total sans que rien ne distingue la décision d'une
+  // perte de données — et c'est exactement ce que le dépôt s'interdit.
+  const ecartes = (INDEX as { ecartes?: Record<string, { motif: string; domaines: number }> })
+    .ecartes;
+  assert.ok(ecartes, "l'index doit publier les pays écartés");
+  assert.equal(ecartes.RU?.domaines, 244);
+  assert.match(ecartes.RU?.motif ?? "", /écartée du référentiel/);
+  // Et elle n'a plus ni fichier, ni entrée d'index, ni fiche pays.
+  assert.equal(PAYS_AVEC_DOMAINES.includes("RU"), false);
+  assert.equal(indexPays("RU"), undefined);
 });

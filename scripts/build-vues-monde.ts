@@ -164,7 +164,22 @@ const tarifsOfficiels = lire<{
 }>("tarifsOfficiels.json");
 
 const sitesOfficiels = lire<{
-  fiches: Record<string, { nom: string | null; site: string; photo: string | null; servi?: boolean }>;
+  fiches: Record<
+    string,
+    {
+      nom: string | null;
+      site: string;
+      photo: string | null;
+      /** `og:image`, `json-ld`, ou `img` — la plus grande image de l'accueil,
+       *  faute de mieux, contrôlée en type et en poids. */
+      photoSource?: string | null;
+      /** L'`alt` de l'image quand le site en donne un : « Wandern mit Familie
+       *  zur Speikskulptur ». C'est la seule légende qu'on ait, et elle dit
+       *  souvent que la photo est d'été — ce qui vaut d'être lu. */
+      photoLegende?: string | null;
+      servi?: boolean;
+    }
+  >;
 }>("sitesOfficiels.json");
 
 type FicheSkiinfo = Point & { cle: string; nom: string | null };
@@ -261,7 +276,37 @@ function hote(url: string): string {
   }
 }
 
-const vues: Record<string, { photo: Photo | null; forfait: Forfait | null }> = {};
+/**
+ * Les altitudes de repli pour la météo, quand le référentiel n'en a pas.
+ *
+ * Cent quarante-quatre domaines n'ont ni `minM` ni `maxM` — OpenSkiMap n'a pas
+ * mesuré leurs pistes. Sans elles, pas de météo « bas et haut des pistes ».
+ * Mais la fiche Skiinfo ou skiresort qui leur est **déjà appariée** publie
+ * souvent un bas et un sommet : c'est une mesure, faite par la source, et elle
+ * est reprise telle quelle avec son origine. Ce n'est pas une estimation.
+ */
+type Altitudes = { basM: number; sommetM: number; source: "skiinfo" | "skiresort"; cle: string };
+
+type Domaine2 = Domaine & { minM?: number | null; maxM?: number | null };
+const skiinfoAlt = lire<{ fiches: Record<string, { basM: number | null; sommetM: number | null }> }>("skiinfo.json");
+const skiresortAlt = lire<{ fiches: Record<string, { basM: number | null; sommetM: number | null }> }>("skiresort.json");
+
+function altitudesDeRepli(d: Domaine2, si: { fiche: { cle: string } } | undefined, sr: { fiche: { cle: string } } | undefined): Altitudes | null {
+  if (d.minM != null && d.maxM != null) return null;
+  for (const [source, ap, table] of [
+    ["skiinfo", si, skiinfoAlt?.fiches],
+    ["skiresort", sr, skiresortAlt?.fiches],
+  ] as const) {
+    if (!ap || !table) continue;
+    const f = table[ap.fiche.cle];
+    if (f && f.basM != null && f.sommetM != null && f.sommetM > f.basM) {
+      return { basM: f.basM, sommetM: f.sommetM, source, cle: ap.fiche.cle };
+    }
+  }
+  return null;
+}
+
+const vues: Record<string, { photo: Photo | null; forfait: Forfait | null; altitudes?: Altitudes }> = {};
 
 for (const d of domaines) {
   const si = parSkiinfo.get(d.id);
@@ -329,7 +374,7 @@ for (const d of domaines) {
         // kilomètre ».
         km: 0,
         url: o.photo,
-        titre: null,
+        titre: o.photoLegende ?? null,
         servi: true,
       };
     }
@@ -476,9 +521,13 @@ for (const d of domaines) {
     };
   }
 
-  if (photo || forfait) vues[d.id] = { photo: photo?.servi ? photo : null, forfait };
+  const altitudes = altitudesDeRepli(d as Domaine2, si, sr);
+  if (photo || forfait || altitudes) {
+    vues[d.id] = { photo: photo?.servi ? photo : null, forfait, ...(altitudes ? { altitudes } : {}) };
+  }
 }
 
+const avecAltitudes = Object.values(vues).filter((v) => v.altitudes).length;
 const avecPhoto = Object.values(vues).filter((v) => v.photo).length;
 const avecForfait = Object.values(vues).filter((v) => v.forfait).length;
 const parSource = (quoi: "photo" | "forfait", s: string) =>
@@ -519,6 +568,7 @@ console.log(`      dont bergfex daté : ${parSource("forfait", "bergfex")}`);
 console.log(`      dont grille       : ${parSource("forfait", "skiinfo")}`);
 console.log(`      dont un nombre    : ${parSource("forfait", "skiresort")}`);
 console.log(`      dont site officiel: ${parSource("forfait", "officiel")}`);
+console.log(`  altitudes de repli    : ${avecAltitudes}   (bas et sommet d'une fiche appariée, pour la météo)`);
 console.log(`\nAppariement Skiinfo :`);
 for (const l of resume(parSkiinfo, domaines.length)) console.log(`  ${l}`);
 console.log(`Appariement skiresort :`);

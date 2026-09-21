@@ -49,6 +49,7 @@ import {
   type Repartition,
 } from "@/lib/monde/couleurs";
 import {
+  altitudesDuDomaine,
   colonneAdulte,
   forfaitDuDomaine,
   fourchetteJournee,
@@ -74,6 +75,7 @@ import {
   type TriMonde,
 } from "@/lib/monde/filtres";
 import {
+  demDuDomaine,
   DOMAINES_MONDE,
   domainesPays,
   indexPays,
@@ -177,46 +179,84 @@ function NiveauMeteo({ titre, n, systeme }: { titre: string; n: ForecastLevel; s
   );
 }
 
-function MeteoDomaine({ d, systeme }: { d: DomaineMonde; systeme: Systeme }) {
+/**
+ * Les altitudes qu'on interroge, et d'où elles viennent.
+ *
+ * 1. Celles du référentiel — `minM`, `maxM` — quand OpenSkiMap les a mesurées.
+ * 2. Sinon, celles que la fiche Skiinfo ou skiresort **déjà appariée** publie :
+ *    une mesure de la source, reprise avec son origine.
+ * 3. Sinon, le point de terrain de Copernicus (`dem.json`) — **une seule
+ *    altitude**, ni bas ni haut, et l'écran le dit : la prévision vaut alors
+ *    pour le point de référence du domaine, pas pour ses pistes.
+ *
+ * Aucun des trois n'invente : la fiche française se rabat sur 1 500 / 2 500 m
+ * parce qu'elle a `villageM` en seconde source ; ici, faute de mesure, on
+ * dit ce qu'on a et on n'affiche rien de plus.
+ */
+type Niveaux =
+  | { forme: "pistes"; bas: number; haut: number; source: "référentiel" | "skiinfo" | "skiresort" }
+  | { forme: "point"; alt: number }
+  | { forme: "aucun" };
+
+function MeteoDomaine({ d, systeme, vues }: { d: DomaineMonde; systeme: Systeme; vues: ReleveVues | null }) {
   const [etat, setEtat] = useState<
-    { s: "charge" } | { s: "ok"; p: ForecastPair } | { s: "panne" }
+    { s: "charge" } | { s: "ok"; p: ForecastPair; niveaux: Niveaux } | { s: "panne" } | { s: "aucun" }
   >({ s: "charge" });
 
-  const bas = d.minM;
-  const haut = d.maxM;
+  const repli = vues ? altitudesDuDomaine(vues, d.id) : null;
 
   useEffect(() => {
-    if (bas == null || haut == null) return;
     let vivant = true;
     setEtat({ s: "charge" });
-    void getForecastPair({ data: { lat: d.lat, lon: d.lon, villageM: bas, summitM: haut } })
-      .then((p) => {
+    (async () => {
+      let niveaux: Niveaux = { forme: "aucun" };
+      if (d.minM != null && d.maxM != null) niveaux = { forme: "pistes", bas: d.minM, haut: d.maxM, source: "référentiel" };
+      else if (repli) niveaux = { forme: "pistes", bas: repli.basM, haut: repli.sommetM, source: repli.source };
+      else {
+        const pt = await demDuDomaine(d.id);
+        if (pt != null) niveaux = { forme: "point", alt: pt };
+      }
+      if (!vivant) return;
+      if (niveaux.forme === "aucun") return setEtat({ s: "aucun" });
+      const bas = niveaux.forme === "pistes" ? niveaux.bas : niveaux.alt;
+      const haut = niveaux.forme === "pistes" ? niveaux.haut : niveaux.alt;
+      try {
+        const p = await getForecastPair({ data: { lat: d.lat, lon: d.lon, villageM: bas, summitM: haut } });
         if (!vivant) return;
-        // `at: null` veut dire que la requête n'a pas abouti. Rendre les
-        // niveaux vides comme s'ils étaient une mesure serait un mensonge
-        // silencieux — c'est le défaut qu'une séance précédente a corrigé sur
-        // ce même service.
-        setEtat(p.at ? { s: "ok", p } : { s: "panne" });
-      })
-      .catch(() => {
+        setEtat(p.at ? { s: "ok", p, niveaux } : { s: "panne" });
+      } catch {
         if (vivant) setEtat({ s: "panne" });
-      });
+      }
+    })();
     return () => {
       vivant = false;
     };
-  }, [d.lat, d.lon, bas, haut]);
+  }, [d.id, d.lat, d.lon, d.minM, d.maxM, repli]);
 
-  if (bas == null || haut == null) {
+  if (etat.s === "aucun") {
     return (
       <p className="monde-row__absence">
-        Météo indisponible : le bas et le haut des pistes ne sont pas relevés pour ce domaine, et
-        ce sont eux qu'on interrogerait.
+        Météo indisponible : ni altitude de piste ni point de terrain n'est relevé pour ce domaine.
       </p>
     );
   }
   if (etat.s === "charge") return <p className="monde-row__lieu">Relevé de la météo…</p>;
   if (etat.s === "panne")
     return <p className="monde-row__absence">Le service de météo n'a pas répondu.</p>;
+
+  if (etat.niveaux.forme === "point") {
+    return (
+      <div className="monde-meteo">
+        <NiveauMeteo titre="Point de référence du domaine" n={etat.p.low} systeme={systeme} />
+        <span className="monde-meteo__iso">
+          Les altitudes des pistes ne sont pas relevées : cette prévision vaut pour le point de
+          terrain Copernicus du domaine, à {altitude(etat.niveaux.alt, systeme)}, pas pour le bas
+          ni le haut des pistes.
+          {etat.p.freezingLevelM != null ? ` Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}.` : ""}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="monde-meteo">
@@ -227,6 +267,9 @@ function MeteoDomaine({ d, systeme }: { d: DomaineMonde; systeme: Systeme }) {
           ? `Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}`
           : "Isotherme 0 °C non rendu"}
         {" · Open-Meteo, deux requêtes, une par altitude"}
+        {etat.niveaux.forme === "pistes" && etat.niveaux.source !== "référentiel"
+          ? ` · altitudes publiées par ${etat.niveaux.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"}, le référentiel ne les a pas mesurées`
+          : ""}
       </span>
     </div>
   );
@@ -387,7 +430,7 @@ function LigneDomaine({
           </dd>
         </dl>
       ) : null}
-      {ouvert ? <MeteoDomaine d={d} systeme={systeme} /> : null}
+      {ouvert ? <MeteoDomaine d={d} systeme={systeme} vues={vues} /> : null}
     </li>
   );
 }

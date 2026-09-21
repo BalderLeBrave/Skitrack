@@ -87,6 +87,16 @@ export type ForfaitVue = {
   pageTarifs?: string;
 };
 
+/**
+ * Les altitudes qu'une fiche appariée publie, quand le référentiel n'en a pas.
+ * Une mesure de la source, reprise avec son origine — pas une estimation.
+ */
+export type AltitudesVue = { basM: number; sommetM: number; source: "skiinfo" | "skiresort"; cle: string };
+
+export function altitudesDuDomaine(releve: ReleveVues, id: string): AltitudesVue | null {
+  return releve.vues[id]?.altitudes ?? null;
+}
+
 export type PeriodeVue = {
   /** « 19.12.26 - 12.03.27 », telle que le site l'écrit. */
   dates: string;
@@ -103,7 +113,7 @@ export type ReleveVues = {
   domaines: number;
   avecPhoto: number;
   avecForfait: number;
-  vues: Record<string, { photo: PhotoVue | null; forfait: ForfaitVue | null }>;
+  vues: Record<string, { photo: PhotoVue | null; forfait: ForfaitVue | null; altitudes?: AltitudesVue }>;
 };
 
 let enCours: Promise<ReleveVues> | null = null;

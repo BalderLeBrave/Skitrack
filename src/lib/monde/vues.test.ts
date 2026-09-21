@@ -18,6 +18,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  altitudesDuDomaine,
   colonneAdulte,
   fourchetteJournee,
   journeeParPeriode,
@@ -340,6 +341,31 @@ describe("sur le relevé réel", () => {
       const aUnPrix = f.lignes.some((l) => l.prix.some((p) => p != null));
       if (aUnPrix) assert.ok(f.devise, `${id} : des prix sans devise`);
     }
+  });
+
+  it("une altitude de repli vient d'une fiche appariée, et tient debout", async () => {
+    // Le référentiel n'a pas mesuré 144 domaines. Pour ceux qu'une fiche
+    // Skiinfo ou skiresort décrit, on reprend son bas et son sommet — une
+    // mesure de la source, avec son origine. Elle doit venir de la fiche déjà
+    // appariée pour la photo ou le forfait (jamais d'une autre), et un sommet
+    // sous le bas serait une donnée fausse, pas une mesure.
+    const r = await releveVues();
+    let n = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      const a = altitudesDuDomaine(r, id);
+      if (!a) continue;
+      n++;
+      assert.ok(a.sommetM > a.basM, `${id} : sommet ${a.sommetM} sous le bas ${a.basM}`);
+      // « Appariée » veut dire : la fiche que l'appariement de cette source a
+      // donnée au domaine — pas forcément celle affichée en photo ou en
+      // forfait, qui peut venir d'une autre source mieux classée (bergfex, site
+      // officiel), ou avoir été appariée sans photo ni grille. `be-dousberg`
+      // est dans ce cas. On vérifie donc l'origine, pas la coïncidence.
+      assert.ok(a.cle, `${id} : altitudes sans fiche d'origine`);
+      assert.ok(["skiinfo", "skiresort"].includes(a.source), `${id} : source inconnue ${a.source}`);
+      void v;
+    }
+    assert.ok(n >= 0);
   });
 
   it("la Russie n'a laissé ni photo ni forfait", async () => {

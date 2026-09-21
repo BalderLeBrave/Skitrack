@@ -17,7 +17,7 @@
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
  "domaines": 2780,
- "avecPhoto": 1780,
+ "avecPhoto": 1918,
  "avecForfait": 1825,
  "vues": {
   "ad-canaro": {
@@ -1766,6 +1766,18 @@
      }
     ]
    }
+  },
+  "at-bad-kleinkirchheim-468169m137834": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.badkleinkirchheim.at/",
+    "nom": "Bad Kleinkirchheim",
+    "km": 0,
+    "url": "https://www.seeundberg.at/user_upload_BKK/_processed_/a/1/csm_Wandern_barrierefreies_Bergerlebnis_Familie_Bergpromenade_Brunnach_Bad_Kleinkirchheim_Sommer__c__Michael_Stabentheiner_MBN_Tourismus__2__a9ed1c3fb2.jpg",
+    "titre": "Wandern mit Familie zur Speikskulptur © Michael Stabentheiner_MBN Tourismus",
+    "servi": true
+   },
+   "forfait": null
   },
   "at-bergbahn-weissensee": {
    "photo": {
@@ -5737,6 +5749,18 @@
     },
     "periodes": null
    }
+  },
+  "at-gfollberglift": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.lechtaler-bergbahnen.at/",
+    "nom": "Gföllberglift",
+    "km": 0,
+    "url": "https://www.lechtaler-bergbahnen.at/media/animation/js-alexkaiser-40.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "at-glungezer": {
    "photo": {
@@ -12996,6 +13020,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1275,
+    "sommetM": 1310,
+    "source": "skiresort",
+    "cle": "feichten"
    }
   },
   "at-kellerjoch": {
@@ -14669,6 +14699,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1600,
+    "sommetM": 2222,
+    "source": "skiinfo",
+    "cle": "styrie/lachtal"
    }
   },
   "at-lachtal-472636m143608": {
@@ -21204,6 +21240,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 900,
+    "sommetM": 1200,
+    "source": "skiresort",
+    "cle": "hirschegger-dorflifte"
    }
   },
   "at-salzstiegl-470620m148731": {
@@ -22637,6 +22679,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 914,
+    "sommetM": 1900,
+    "source": "skiinfo",
+    "cle": "tyrol/reutte-hahnenkamm"
    }
   },
   "at-schuttannen": {
@@ -31006,6 +31054,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1400,
+    "sommetM": 2205,
+    "source": "skiinfo",
+    "cle": "styrie/turracher-hoehe"
    }
   },
   "at-turracher-hohe-469281m138726": {
@@ -34842,6 +34896,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 920,
+    "sommetM": 1281,
+    "source": "skiresort",
+    "cle": "ravna-planina"
    }
   },
   "ba-ski-ivan": {
@@ -34889,7 +34949,25 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1235,
+    "sommetM": 1273,
+    "source": "skiresort",
+    "cle": "ski-ivan-kupres"
    }
+  },
+  "ba-ski-centar-ravna-planina-pale-ski-center-ravna-planina-pale": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.ski-rp.com/",
+    "nom": "Ski centar \"Ravna Planina\", Pale, Ski Center \"Ravna Planina\" Pale, Ски центар Равна Планина, Пале",
+    "km": 0,
+    "url": "https://www.ski-rp.com/wp-content/uploads/2019/03/ski-ravna-planina-9-of-15.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "ba-ski-centar-vlasic": {
    "photo": {
@@ -35036,6 +35114,24 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "be-dousberg": {
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.skibaan-dousberg.nl/",
+    "nom": "Dousberg",
+    "km": 0,
+    "url": "http://www.skibaan-dousberg.nl/images/Facebook%20like%20voor%20site.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null,
+   "altitudes": {
+    "basM": 62,
+    "sommetM": 97,
+    "source": "skiresort",
+    "cle": "dousberg-maastricht"
    }
   },
   "be-lierneux-le-monty": {
@@ -35613,6 +35709,18 @@
    },
    "forfait": null
   },
+  "bg-panichishte": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://rilskiezera.bg/",
+    "nom": "Panichishte",
+    "km": 0,
+    "url": "https://rilskiezera.bg/wp-content/uploads/2023/05/367607726_109614248901835_7026056661868083382_n.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "bg-semkovo": {
    "photo": null,
    "forfait": {
@@ -36024,6 +36132,18 @@
     "nom": "Aletsch Arena",
     "km": 4.51,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/scwh4kwh9qs72g5z4bb4k55p/Aletsch_Arena?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "ch-alpe-di-neggia": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://alpedineggia.ch/it",
+    "nom": "Alpe di Neggia",
+    "km": 0,
+    "url": "https://alpedineggia.ch/images/b/6/e/1/e/b6e1ee19944f46ebf4e0cbc2372761d9f0855890-img8554.jpg",
     "titre": null,
     "servi": true
    },
@@ -38066,6 +38186,18 @@
    },
    "forfait": null
   },
+  "ch-brunni-holzegg-rotenflue": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.brunnialpthal.ch/",
+    "nom": "Brunni-Holzegg-Rotenflue",
+    "km": 0,
+    "url": "https://www.brunnialpthal.ch/images/slider/sliderg5s.jpg",
+    "titre": "Sommer",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ch-brulisau": {
    "photo": {
     "source": "bergfex",
@@ -39821,7 +39953,15 @@
    }
   },
   "ch-eggberge": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.eggberge.ch/",
+    "nom": "Eggberge",
+    "km": 0,
+    "url": "https://www.eggberge.ch/fileadmin/user_upload/images/titelbilder/Fr%C3%BChling/Krokus-Hummel_cFoto_Maggie_J.Christen-Zurfluh_208A3589-sm_1.JPG",
+    "titre": "Hummel im Krokushimmel ¦ ©Foto Maggie J.Christen-Zurfluh",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "eggberge-altdorf",
@@ -40840,6 +40980,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "ch-froideville": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://cn-froideville.ch/",
+    "nom": "Froideville",
+    "km": 0,
+    "url": "https://cn-froideville.ch/wp-content/uploads/2020/06/cropped-cropped-cropped-cropped-FB_IMG_1592408930079-1.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "ch-gantrisch": {
    "photo": {
@@ -42013,7 +42165,15 @@
    }
   },
   "ch-gspon": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.staldenried.ch/",
+    "nom": "Gspon",
+    "km": 0,
+    "url": "https://staldenried.ch/wp-content/uploads/2024/04/Bild-065-scaled-1920x500.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "gspon-staldenried",
@@ -42694,6 +42854,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "ch-hohwald-beatenberg": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skilift-hohwald.ch/",
+    "nom": "Hohwald Beatenberg",
+    "km": 0,
+    "url": "https://www.skilift-hohwald.ch/dmxDaten/header/header.jpg",
+    "titre": "Skilift Hohwald",
+    "servi": true
+   },
+   "forfait": null
   },
   "ch-homberg": {
    "photo": {
@@ -43681,8 +43853,28 @@
    },
    "forfait": null
   },
+  "ch-kronberg": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.kronberg.ch/",
+    "nom": "Kronberg",
+    "km": 0,
+    "url": "https://kronberg.ch/assets/images/e/keyvisual_sommer_desktop-8nsrdbfjr6hc4ds.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "ch-l-abbaye": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.myvalleedejoux.ch",
+    "nom": "L'Abbaye",
+    "km": 0,
+    "url": "https://static.mycity.travel/manage/uploads/6/26/44869/4b1b25940fb7902d4bb3fdb35df60b0365d49b11_1080.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "labbaye",
@@ -45012,7 +45204,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "altitudes": {
+    "basM": 986,
+    "sommetM": 1200,
+    "source": "skiresort",
+    "cle": "tete-de-ran-les-hauts-geneveys-les-gollieres"
+   }
   },
   "ch-les-marecottes": {
    "photo": {
@@ -49188,6 +49386,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1150,
+    "sommetM": 1580,
+    "source": "skiinfo",
+    "cle": "jura/ste-croix-les-rasses"
    }
   },
   "ch-san-bernadino-pian-cales": {
@@ -50085,7 +50289,15 @@
    }
   },
   "ch-seewis": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.flensa.ch",
+    "nom": "Seewis",
+    "km": 0,
+    "url": "https://www.flensa.ch/logo.jpg",
+    "titre": "Aktuell - flensa.ch",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "flensa-seewis",
@@ -50352,7 +50564,15 @@
    }
   },
   "ch-skilift-mastrils": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://skiliftmastrils.ch/",
+    "nom": "Skilift Mastrils",
+    "km": 0,
+    "url": "https://skiliftmastrils.ch/wp-content/uploads/2024/12/skilift3-888x1024.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "mastrils",
@@ -50439,6 +50659,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 920,
+    "sommetM": 1250,
+    "source": "skiresort",
+    "cle": "schratten-fluehli"
    }
   },
   "ch-skilifte-ibergeregg": {
@@ -51441,7 +51667,15 @@
    "forfait": null
   },
   "ch-tenna": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://solar-skilift.ch",
+    "nom": "Tenna",
+    "km": 0,
+    "url": "https://solar-skilift.ch/wp-content/uploads/2018/09/Slider_panel_sonne_berge-960x320.jpg",
+    "titre": "Unser Angebot",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "tenna",
@@ -52410,6 +52644,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1200,
+    "sommetM": 2000,
+    "source": "skiinfo",
+    "cle": "lac-leman/les-diablerets"
    }
   },
   "ch-villars-gryon-les-diablerets": {
@@ -52558,7 +52798,15 @@
    }
   },
   "ch-walterswil": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://walterswil-be.ch/skilift/",
+    "nom": "Walterswil",
+    "km": 0,
+    "url": "https://walterswil-be.ch/wp-content/uploads/2023/12/IMG_20210126_134137-2-1024x768.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "walterswil",
@@ -53717,7 +53965,25 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 710,
+    "sommetM": 802,
+    "source": "skiinfo",
+    "cle": "jizerske-hory/bedrichov"
    }
+  },
+  "cz-biocel-zlatnik": {
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.skizlatnik.cz/",
+    "nom": "Biocel Zlatník",
+    "km": 0,
+    "url": "http://www.skizlatnik.cz/foto/IP_kamera.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "cz-bournak": {
    "photo": {
@@ -54178,6 +54444,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "cz-destne-v-orlickych-horach": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skicentrumdestne.cz/",
+    "nom": "Deštné v Orlických horách",
+    "km": 0,
+    "url": "https://destne.cz/media/img/c_397e961ffd30ec99abdacad4e2fff5b8-w648x0.jpg",
+    "titre": "Lanovka",
+    "servi": true
+   },
+   "forfait": null
   },
   "cz-dolni-lomna-armada": {
    "photo": {
@@ -55197,7 +55475,15 @@
    }
   },
   "cz-horni-kouty-radvanov": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.vlekykouty.cz/",
+    "nom": "Horní Kouty - Radvanov",
+    "km": 0,
+    "url": "https://www.vlekykouty.cz/images/mapa.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "horni-kouty",
@@ -56798,6 +57084,18 @@
     "periodes": null
    }
   },
+  "cz-lyzarsky-areal-nemcicky-u-breclavi": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.sportnemcicky.cz/",
+    "nom": "Lyžařský areál Němčičky u Břeclavi",
+    "km": 0,
+    "url": "https://sportnemcicky.cz/wp-content/uploads/2022/04/Logotyp_jihomoravsky_kraj_RGB-scaled.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "cz-lyzarsky-areal-vernirovice": {
    "photo": null,
    "forfait": {
@@ -57092,7 +57390,15 @@
    "forfait": null
   },
   "cz-mezivodi": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skimezivodi.cz/",
+    "nom": "Mezivodí",
+    "km": 0,
+    "url": "https://www.skimezivodi.cz/wp-content/uploads/2020/09/8.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "mezivodi",
@@ -58169,7 +58475,15 @@
    }
   },
   "cz-prachatice-libin": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skilibin.cz/",
+    "nom": "Prachatice - Libín",
+    "km": 0,
+    "url": "https://www.skilibin.cz/wp-content/themes/ski-libin/assets/images/o-arealu/mapa-arealu-2025.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "libin-libinske-sedlo",
@@ -58380,7 +58694,15 @@
    }
   },
   "cz-sedlonov": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skisedlonov.cz/",
+    "nom": "Sedloňov",
+    "km": 0,
+    "url": "https://www.skisedlonov.cz/files/loga/sedlonov.jpg",
+    "titre": "Logo",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "sedlonov",
@@ -58724,7 +59046,15 @@
    }
   },
   "cz-ski-kvasejovice": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skikvasejovice.cz/",
+    "nom": "Ski Kvasejovice",
+    "km": 0,
+    "url": "https://www.skikvasejovice.cz/data/multipage/editor/editor-1-99-cs_1.jpg?gcm_date=1787213389",
+    "titre": "mapa",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "kvasejovice",
@@ -60735,7 +61065,15 @@
    }
   },
   "cz-skiareal-olesnice-v-orlickych-horach": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skiolesnice.cz/",
+    "nom": "Skiareál Olešnice v Orlických horách",
+    "km": 0,
+    "url": "https://www.skiolesnice.cz/images/slider/slide01-desktop.webp",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "olesnice-v-orlickych-horach",
@@ -62711,7 +63049,15 @@
    }
   },
   "cz-trojak": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.trojak.cz/homepage",
+    "nom": "Troják",
+    "km": 0,
+    "url": "https://www.trojak.cz/f/cols/2295w.jpg",
+    "titre": "obrázek bez popisu",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "trojak",
@@ -62750,7 +63096,15 @@
    }
   },
   "cz-u-bambuchu": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.bambuchovi.cz/",
+    "nom": "U Bambuchů",
+    "km": 0,
+    "url": "https://www.bambuchovi.cz/img/cover_photo01.jpg",
+    "titre": "Úvodní fotka 01",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "u-bambuchu",
@@ -62828,7 +63182,15 @@
    }
   },
   "cz-u-pekina": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.hotylekupekina.cz/cs/lyzarsky-vlek-skiareal-jeseniky",
+    "nom": "U Pekina",
+    "km": 0,
+    "url": "https://www.hotylekupekina.cz/images/imgslide01.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "u-pekina-zlate-hory-dolni-udoli",
@@ -62930,7 +63292,15 @@
    }
   },
   "cz-vankuv-kopec": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "http://vankuvkopec.cz/",
+    "nom": "Vaňkův kopec",
+    "km": 0,
+    "url": "https://vankuvkopec.com/wp-content/uploads/2017/03/ostrava_logo.jpg",
+    "titre": "Město Ostrava",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "vankuv-kopec",
@@ -63292,6 +63662,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "cz-zasada": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.zasadaskicentrum.cz/",
+    "nom": "Zásada",
+    "km": 0,
+    "url": "https://www.zasadaskicentrum.cz/cache/mod_roksprocket/3013240d983bda86f4e71acffa89da45_400_750.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "cz-skiareal-u-capa": {
    "photo": null,
@@ -64155,6 +64537,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 860,
+    "sommetM": 1214,
+    "source": "skiresort",
+    "cle": "pancir"
    }
   },
   "de-erste-berg-masserberg": {
@@ -64261,7 +64649,15 @@
    }
   },
   "de-adelharz-und-breitensteinlifte-kranzegg-am-grunten": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.adelharzlifte.de/",
+    "nom": "Adelharz- und Breitensteinlifte (Kranzegg am Grünten)",
+    "km": 0,
+    "url": "https://www.adelharzlifte.de/2-team-1.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "allgau/adelharzlifte",
@@ -65305,6 +65701,18 @@
     "periodes": null
    }
   },
+  "de-bromberg-alm": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.bromberg-alm.de/",
+    "nom": "Bromberg Alm",
+    "km": 0,
+    "url": "https://bromberg-alm.de/wp-content/uploads/2026/07/bromberg-alm-boebing-restaurant-wirtshaus-aussenansicht-79.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "de-buchenberg": {
    "photo": {
     "source": "skiinfo",
@@ -65771,6 +66179,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 763,
+    "sommetM": 923,
+    "source": "skiresort",
+    "cle": "albstadt-ebingen"
    }
   },
   "de-eichholzkopf": {
@@ -66177,6 +66591,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 557,
+    "sommetM": 731,
+    "source": "skiresort",
+    "cle": "fort-fun-winterwelt-bestwig"
    }
   },
   "de-freizeitzentrum-althutte": {
@@ -66640,6 +67060,18 @@
     ]
    }
   },
+  "de-gohrersberg-kreuzthal": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.gohrersberg.de/",
+    "nom": "Gohrersberg – Kreuzthal",
+    "km": 0,
+    "url": "https://www.gohrersberg.de/wp-content/uploads/2019/01/2019_06.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "de-grafenherberge-rankenlift": {
    "photo": {
     "source": "skiresort",
@@ -67053,7 +67485,15 @@
    }
   },
   "de-haldenkopfle": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.hohtann-belchen.de/",
+    "nom": "Haldenköpfle",
+    "km": 0,
+    "url": "https://www.hohtann-belchen.de/webcam/webcam.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "foret-noire/breitnau",
@@ -69067,6 +69507,16 @@
     "periodes": null
    }
   },
+  "de-ludwigsstadt": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 620,
+    "sommetM": 660,
+    "source": "skiresort",
+    "cle": "lauenhain-ludwigsstadt"
+   }
+  },
   "de-matthias-schmidt-berg": {
    "photo": {
     "source": "skiinfo",
@@ -69394,6 +69844,18 @@
     },
     "periodes": null
    }
+  },
+  "de-monte-kubota": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://der-skiclub.de/",
+    "nom": "Monte Kubota",
+    "km": 0,
+    "url": "https://der-skiclub.de/wp-content/uploads/Slider6.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "de-muggenbrunn": {
    "photo": {
@@ -70020,7 +70482,15 @@
    }
   },
   "de-oberwilhams": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skilift-wilhams.de/",
+    "nom": "Oberwilhams",
+    "km": 0,
+    "url": "https://www.skilift-wilhams.de/templates/skilift_wilhams/images/header/header_12.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "sonnenlift-aigis-missen-wilhams",
@@ -72136,6 +72606,18 @@
     "periodes": null
    }
   },
+  "de-skigebiet-eckbauer": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.eckbauerbahn.de/",
+    "nom": "Skigebiet Eckbauer",
+    "km": 0,
+    "url": "https://www.eckbauerbahn.de/wp-content/uploads/2021/05/ebb-a19-053-marcgilsdorf-1024x768.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "de-skigebiet-fellhorn-kanzelwand": {
    "photo": {
     "source": "skiinfo",
@@ -73579,6 +74061,18 @@
    },
    "forfait": null
   },
+  "de-skigebiet-winterloch-heigenbrucken": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://skiclub-heigenbruecken.de/ski/",
+    "nom": "Skigebiet Winterloch Heigenbrücken",
+    "km": 0,
+    "url": "https://www.skiclub-heigenbruecken.de/ski/media/Aktuell/Generalvers_2026.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "de-skigebiet-zuckerfeld-wasserkuppe": {
    "photo": {
     "source": "skiinfo",
@@ -73635,6 +74129,18 @@
     "periodes": null
    }
   },
+  "de-skihang-tuppel": {
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.skiclub-warstein.de/",
+    "nom": "Skihang Tüppel",
+    "km": 0,
+    "url": "http://skiclub-warstein.de/data/uploads/image-skiclub.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "de-skihang-am-poppenberg-in-brilon": {
    "photo": {
     "source": "bergfex",
@@ -73683,7 +74189,15 @@
    }
   },
   "de-skilift-albstadt-tailfingen": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.wsv-tailfingen.de",
+    "nom": "Skilift Albstadt-Tailfingen",
+    "km": 0,
+    "url": "https://wsv-tailfingen.de/wp-content/uploads/2026/03/HP-mini-1-scaled.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "schlossberg-albstadt-tailfingen",
@@ -73889,6 +74403,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "de-skilift-erzgebirge-skiclub-olbernhau": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skiclub-olbernhau.de/",
+    "nom": "Skilift Erzgebirge Skiclub Olbernhau",
+    "km": 0,
+    "url": "https://www.skiclub-olbernhau.de/bilder/images/Skihuette/skihuette-olbernhau.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "de-skilift-halde-franz-bek": {
    "photo": {
@@ -74189,7 +74715,15 @@
    "forfait": null
   },
   "de-skilift-wurmstein": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skilift-wurmstein.de/",
+    "nom": "Skilift Wurmstein",
+    "km": 0,
+    "url": "https://www.skilift-wurmstein.de/assets/images/logo.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "wurmsteinlift-flossenbuerg",
@@ -74321,6 +74855,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 800,
+    "sommetM": 950,
+    "source": "skiinfo",
+    "cle": "foret-de-baviere/hauzenberg"
    }
   },
   "de-skilifte-geiersberg-486872m136631": {
@@ -74377,6 +74917,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "de-skilifte-sinswang": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skilifte-sinswang.de/",
+    "nom": "Skilifte Sinswang",
+    "km": 0,
+    "url": "https://www.skilifte-sinswang.de/wp-content/uploads/2016/10/sinswang_copyright_pio_mars-45-von-157-1024x683.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "de-skiliftkarussell-altastenberg": {
    "photo": {
@@ -74658,6 +75210,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 630,
+    "sommetM": 820,
+    "source": "skiinfo",
+    "cle": "sauerland/winterberg-skiliftkarussell"
    }
   },
   "de-skipiste-am-kohlberg": {
@@ -75870,6 +76428,18 @@
     "periodes": null
    }
   },
+  "de-tegelbergbahn": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.tegelbergbahn.de",
+    "nom": "Tegelbergbahn",
+    "km": 0,
+    "url": "https://www.tegelbergbahn.de/_files/site_page/site_page_31/startimage_1_header.jpg?c666c5c7ea78f5a8",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "de-thaler-hohe": {
    "photo": {
     "source": "skiinfo",
@@ -76075,6 +76645,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 750,
+    "sommetM": 1260,
+    "source": "skiinfo",
+    "cle": "foret-noire/todtmoos"
    }
   },
   "de-todtnauberg": {
@@ -76285,6 +76861,12 @@
       ]
      }
     ]
+   },
+   "altitudes": {
+    "basM": 600,
+    "sommetM": 1390,
+    "source": "skiinfo",
+    "cle": "foret-noire/todtnauberg"
    }
   },
   "de-todtnauberg-478572m79509": {
@@ -76815,6 +77397,16 @@
     "periodes": null
    }
   },
+  "de-willingen-512950m86081": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 540,
+    "sommetM": 600,
+    "source": "skiresort",
+    "cle": "schwalefeld"
+   }
+  },
   "de-wintersport-arena-holzelfingen": {
    "photo": {
     "source": "bergfex",
@@ -77074,7 +77666,15 @@
    }
   },
   "de-wolfsberg-siegsdorf": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skischule-inzell.de/wolfsberg-skilift-2/",
+    "nom": "Wolfsberg (Siegsdorf)",
+    "km": 0,
+    "url": "http://www.skischule-inzell.de/livecam/cam_02.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "wolfsberglift-siegsdorf",
@@ -77110,6 +77710,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 639,
+    "sommetM": 770,
+    "source": "skiresort",
+    "cle": "wolfsberglift-siegsdorf"
    }
   },
   "de-zadni-telnice": {
@@ -77526,6 +78132,18 @@
     "periodes": null
    }
   },
+  "ee-nomme-lumepark": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.nommelumepark.ee/",
+    "nom": "Nõmme Lumepark",
+    "km": 0,
+    "url": "https://nommelumepark.ee/app/themes/nommelumepark/public/images/nommelumepark.c4d779.jpg",
+    "titre": "Nommelume Park",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ee-tehvandi-snowpark": {
    "photo": {
     "source": "officiel",
@@ -77693,6 +78311,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1650,
+    "sommetM": 2125,
+    "source": "skiinfo",
+    "cle": "cordillere-cantabrique/alto-campoo"
    }
   },
   "es-aramon-cerler": {
@@ -79914,6 +80538,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 667,
+    "sommetM": 705,
+    "source": "skiresort",
+    "cle": "snozone-madrid"
    }
   },
   "es-tavascan": {
@@ -80033,6 +80663,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "es-valdelinares-404000mm06000": {
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.valdelinares.com",
+    "nom": "Valdelinares",
+    "km": 0,
+    "url": "https://d32r4yxuun6zdf.cloudfront.net/estaticos/extras/fotos/contenidos/00/00/01/16/15//abono-temporada-JV-26-27.jpg",
+    "titre": "abono-temporada-JV-26-27.jpg",
+    "servi": true
+   },
+   "forfait": null
   },
   "fi-aavasaksa": {
    "photo": null,
@@ -80254,7 +80896,15 @@
    }
   },
   "fi-hirvensalon-hiihtokeskus": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.hirvensalo.fi",
+    "nom": "Hirvensalon Hiihtokeskus",
+    "km": 0,
+    "url": "https://www.hirvensalo.fi/imgs/teksti-rinne.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "hirvensalo",
@@ -80293,7 +80943,15 @@
    }
   },
   "fi-hittenharju": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.harjavallanjymy.fi/",
+    "nom": "Hittenharju",
+    "km": 0,
+    "url": "https://www.harjavallanjymy.fi/wp-content/uploads/2024/01/cropped-410918794_979302730393190_8652938954465603397_n.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "hiittenharju",
@@ -80429,6 +81087,18 @@
     "pageTarifs": "https://www.kasurila.com/"
    }
   },
+  "fi-kiririnteet-kiri-slopes": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.kirikeskus.fi/kiri-rinteet/",
+    "nom": "Kiririnteet, Kiri slopes",
+    "km": 0,
+    "url": "https://www.kirikeskus.fi/wp-content/uploads/2020/11/kiririnteet2.jpg",
+    "titre": "Kiririnteet",
+    "servi": true
+   },
+   "forfait": null
+  },
   "fi-kommatti": {
    "photo": {
     "source": "officiel",
@@ -80437,6 +81107,18 @@
     "km": 0,
     "url": "https://kommatti.fi/wp-content/uploads/2022/05/420797_117351731722974_991948010_n.jpg",
     "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "fi-konkaski": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://konkaski.fi/",
+    "nom": "KonkaSki",
+    "km": 0,
+    "url": "https://konkaski.fi/wp-content/uploads/2017/01/konkaski_logo_uusi.jpg",
+    "titre": "KonkaSki - Tervetuloa",
     "servi": true
    },
    "forfait": null
@@ -80618,6 +81300,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 202,
+    "sommetM": 531,
+    "source": "skiinfo",
+    "cle": "nord-finlande/levi"
    }
   },
   "fi-louekeskus": {
@@ -80672,7 +81360,15 @@
    "forfait": null
   },
   "fi-messilan-lumikeskus-messila-skicenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://messila.fi/",
+    "nom": "Messilän Lumikeskus, Messilä Skicenter",
+    "km": 0,
+    "url": "https://messila.fi/wp-content/uploads/2026/06/E0543E92-95D7-43D7-B404-A61DBAD549B3-scaled.jpeg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "messilae",
@@ -80748,6 +81444,42 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "fi-ounasvaara-ski-resort": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://ounasvaara.fi",
+    "nom": "Ounasvaara Ski Resort",
+    "km": 0,
+    "url": "https://ounasvaara.fi/wp-content/uploads/2026/02/Ounasvaara-Ski-Resort-slopes-9.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "fi-ounasvaaran-laskettelukeskus-totto-ounasvaara-ski-resort-totto": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://ounasvaara.fi",
+    "nom": "Ounasvaaran laskettelukeskus (Totto), Ounasvaara Ski Resort (Totto)",
+    "km": 0,
+    "url": "https://ounasvaara.fi/wp-content/uploads/2026/02/Ounasvaara-Ski-Resort-slopes-9.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "fi-ounasvaaran-laskettelukeskus-ounasvaara-ski-resort": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://ounasvaara.fi/",
+    "nom": "Ounasvaaran laskettelukeskus, Ounasvaara Ski Resort",
+    "km": 0,
+    "url": "https://ounasvaara.fi/wp-content/uploads/2026/02/Ounasvaara-Ski-Resort-slopes-9.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "fi-paavonrinteet": {
    "photo": {
@@ -80884,6 +81616,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 95,
+    "sommetM": 140,
+    "source": "skiresort",
+    "cle": "paloisvuori-iisalmi"
    }
   },
   "fi-parra-snowpark": {
@@ -81224,7 +81962,15 @@
    }
   },
   "fi-paaskyvuori": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.paaskyvuori.fi/",
+    "nom": "Pääskyvuori",
+    "km": 0,
+    "url": "https://www.paaskyvuori.fi/wp-content/uploads/1920.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "paeaeskyvuori",
@@ -81263,7 +82009,15 @@
    }
   },
   "fi-paminne": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://paminne.com/",
+    "nom": "Påminne",
+    "km": 0,
+    "url": "https://paminne.fi/wp-content/uploads/2023/06/DSC_4190.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "paaminne",
@@ -81486,7 +82240,15 @@
    }
   },
   "fi-ruokolahden-freeski": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.freeski.fi/",
+    "nom": "Ruokolahden Freeski",
+    "km": 0,
+    "url": "https://www.freeski.fi/files/2022/20260314_064107.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "ruokolahti",
@@ -81525,7 +82287,15 @@
    }
   },
   "fi-ruskotunturi": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.ruskotunturi.fi/",
+    "nom": "Ruskotunturi",
+    "km": 0,
+    "url": "https://ruskotunturi.fi/wp-content/uploads/2025/07/aikuisten.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "ruskotunturi",
@@ -81894,7 +82664,15 @@
    }
   },
   "fi-serena-ski": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://serena.fi/",
+    "nom": "Serena Ski",
+    "km": 0,
+    "url": "https://serena.fi/wp-content/uploads/2024/12/LASTENMAET-w.webp",
+    "titre": "Lastenmäet",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "serena",
@@ -83997,6 +84775,12 @@
       ]
      }
     ]
+   },
+   "altitudes": {
+    "basM": 1600,
+    "sommetM": 2450,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/auron"
    }
   },
   "fr-aussois": {
@@ -84303,6 +85087,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1240,
+    "sommetM": 1725,
+    "source": "skiinfo",
+    "cle": "pyrenees/le-chioula"
    }
   },
   "fr-ballon-d-alsace": {
@@ -90768,6 +91558,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1400,
+    "sommetM": 1800,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/la-colmiane"
    }
   },
   "fr-la-combe-saint-pierre": {
@@ -91029,6 +91825,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1450,
+    "sommetM": 3550,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/la-grave-la-meije"
    }
   },
   "fr-la-loge-des-gardes": {
@@ -93362,7 +94164,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "altitudes": {
+    "basM": 820,
+    "sommetM": 930,
+    "source": "skiresort",
+    "cle": "le-haut-du-tot-sapois"
+   }
   },
   "fr-le-lioran": {
    "photo": {
@@ -94189,6 +94997,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 990,
+    "sommetM": 1288,
+    "source": "skiresort",
+    "cle": "le-tanet"
    }
   },
   "fr-le-tourchet-chamonix": {
@@ -94615,6 +95429,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1650,
+    "sommetM": 2400,
+    "source": "skiinfo",
+    "cle": "pyrenees/les-angles"
    }
   },
   "fr-les-arcs": {
@@ -97038,6 +97858,18 @@
     "periodes": null
    }
   },
+  "fr-markstein-grand-ballon": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.lemarkstein.net/",
+    "nom": "Markstein-Grand Ballon",
+    "km": 0,
+    "url": "https://www.lemarkstein.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "fr-massif-des-brasses": {
    "photo": {
     "source": "skiinfo",
@@ -98584,6 +99416,24 @@
     "periodes": null
    }
   },
+  "fr-notre-dame-du-pre": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.notredamedupre.fr/fr/information/79253/le-ski-piste-dame-pre",
+    "nom": "Notre Dame du Pré",
+    "km": 0,
+    "url": "https://static.neopse.com/medias/p/3724/site/cc/02/c4/cc02c484ec131fac55efce56909d5d09ef6037bd.jpg",
+    "titre": "Logo Commune de Notre-Dame-du-Pré",
+    "servi": true
+   },
+   "forfait": null,
+   "altitudes": {
+    "basM": 1255,
+    "sommetM": 1510,
+    "source": "skiresort",
+    "cle": "notre-dame-du-pre"
+   }
+  },
   "fr-orcieres": {
    "photo": {
     "source": "skiinfo",
@@ -98675,6 +99525,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1850,
+    "sommetM": 2725,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/orcieres"
    }
   },
   "fr-orelle": {
@@ -100969,6 +101825,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1100,
+    "sommetM": 1247,
+    "source": "skiresort",
+    "cle": "rouge-gazon"
    }
   },
   "fr-reallon": {
@@ -101408,6 +102270,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "fr-saint-nizier-du-moucherotte": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.lansenvercors.com/teleski-de-st-nizier-du-moucherotte.html",
+    "nom": "Saint-Nizier-du-Moucherotte",
+    "km": 0,
+    "url": "https://www.vercors-experience.com/medias/images/prestations/multitailles/800x600_1563530-sans_titre.jpg",
+    "titre": "Spectacle - LOOPS_Lans-en-Vercors",
+    "servi": true
+   },
+   "forfait": null
   },
   "fr-saint-pierre-de-chartreuse": {
    "photo": {
@@ -102006,7 +102880,15 @@
    }
   },
   "fr-site-nordique-des-trois-fours": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://laschlucht.labellemontagne.com/",
+    "nom": "Site Nordique des Trois Fours",
+    "km": 0,
+    "url": "https://files.ublo.app/production/old/lbmlaschlucht/840h/SCH%20-%202013%20-%20Zoom%20Fille%20casqu%C3%A9e%20B.Jamot%20_B__6306%20BD.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "officiel",
     "cle": "https://laschlucht.labellemontagne.com/fr/hiver/forfaits/",
@@ -102917,6 +103799,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1000,
+    "sommetM": 2000,
+    "source": "skiinfo",
+    "cle": "alpes-du-nord/thollon-les-memises"
    }
   },
   "fr-tignes-val-d-isere": {
@@ -104180,6 +105068,18 @@
     "periodes": null
    }
   },
+  "fr-vormaine": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.lavormaine.com/",
+    "nom": "Vormaine",
+    "km": 0,
+    "url": "https://www.lavormaine.com/images/bgH2019--small.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "fr-xonrupt-longemer": {
    "photo": {
     "source": "skiinfo",
@@ -104403,7 +105303,15 @@
    "forfait": null
   },
   "gb-glencoe-mountain-resort": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.glencoemountain.com/",
+    "nom": "Glencoe Mountain Resort",
+    "km": 0,
+    "url": "https://www.glencoemountain.co.uk/wp-content/themes/glencoe/preview/summer-act.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "ecosse/glencoe",
@@ -104788,6 +105696,18 @@
    },
    "forfait": null
   },
+  "gb-south-wilts-ski-club": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://southwiltsski.com/",
+    "nom": "South Wilts Ski Club",
+    "km": 0,
+    "url": "https://southwiltsski.com/wp-content/uploads/2026/03/2367F6D8-B093-4772-86D5-5925F0C12B1C-scaled-900x1049_c.jpg",
+    "titre": "DISCOVER THE ULTIMATE INDOOR SKI EXPERIENCE",
+    "servi": true
+   },
+   "forfait": null
+  },
   "gb-swadlincote-ski-snowboard": {
    "photo": {
     "source": "officiel",
@@ -104912,6 +105832,18 @@
    },
    "forfait": null
   },
+  "gb-weardale-ski-club": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skiweardale.com/",
+    "nom": "Weardale Ski Club",
+    "km": 0,
+    "url": "https://www.skiweardale.com/currentImage/f1.jpg?cacheBuster=1790028513",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "gb-xscape-milton-keynes": {
    "photo": {
     "source": "skiresort",
@@ -104920,6 +105852,18 @@
     "km": 0.09,
     "url": "https://www.skiresort.fr/fileadmin/_processed_/48/80/03/39/3950a0e728.jpg",
     "titre": "À l'intérieur du hall de ski",
+    "servi": true
+   },
+   "forfait": null
+  },
+  "gb-yad-moss": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.yadmoss.co.uk/",
+    "nom": "Yad Moss",
+    "km": 0,
+    "url": "https://yadmoss.co.uk/wp-content/uploads/2017/10/IMG_3132-1024x768.jpg?x54817",
+    "titre": null,
     "servi": true
    },
    "forfait": null
@@ -105008,6 +105952,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1700,
+    "sommetM": 2400,
+    "source": "skiinfo",
+    "cle": "mtskheta-mtianeti-region/goderdzi"
    }
   },
   "ge-goderdzi-mountain-resort": {
@@ -105346,8 +106296,28 @@
     "periodes": null
    }
   },
+  "gr-tottis-vigla": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://vigla-ski.com/",
+    "nom": "Tottis Vigla",
+    "km": 0,
+    "url": "http://vigla-ski.com/wp-content/uploads/2015/12/gallery_0001_Layer-3.jpg",
+    "titre": "gallery_0001_Layer 3",
+    "servi": true
+   },
+   "forfait": null
+  },
   "gr-400555m210862": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://vasilitsa.com/",
+    "nom": "Εθνικό χιονοδρομικό κέντρο Βασιλίτσας",
+    "km": 0,
+    "url": "https://vasilitsa.com/wp-content/uploads/2024/11/Anouncement.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "vasilitsa",
@@ -105586,7 +106556,15 @@
    "forfait": null
   },
   "hu-bankut-siklub": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.bankut.hu/",
+    "nom": "Bánkút síklub",
+    "km": 0,
+    "url": "https://www.bankut.hu/img/homeoktat.jpg",
+    "titre": "portfolio item name",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "bankut",
@@ -105757,6 +106735,18 @@
     "periodes": null
    }
   },
+  "hu-normafa-sipalya": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://normafapark.hu",
+    "nom": "Normafa sípálya",
+    "km": 0,
+    "url": "https://normafapark.hu/site/upload/2022/06/kossuth_emlekmu_normafa.jpg",
+    "titre": "Varga Tamás: Kossuth-szobor domborműve (bronz) (pótlás)",
+    "servi": true
+   },
+   "forfait": null
+  },
   "hu-siarena-vibe-park": {
    "photo": null,
    "forfait": {
@@ -105855,6 +106845,18 @@
     "km": 0,
     "url": "https://skiclub.ie/wp-content/uploads/2026/01/IMG_1708-1-1024x1017.webp",
     "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "is-blafjoll": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://skidasvaedi.is/",
+    "nom": "Bláfjöll",
+    "km": 0,
+    "url": "https://skidasvaedi.is/wp-content/uploads/2025/05/skidasvaedin.jpg",
+    "titre": "Skíðasvæðin",
     "servi": true
    },
    "forfait": null
@@ -106071,7 +107073,15 @@
    }
   },
   "is-stafdalur": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.stafdalur.is/",
+    "nom": "Stafdalur",
+    "km": 0,
+    "url": "https://www.stafdalur.is/images/yootheme/Efnismyndir/stafdalur11-431d5a17.jpeg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "stafdalur",
@@ -106108,6 +107118,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "is-tindastoll": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://skitindastoll.is/",
+    "nom": "Tindastóll",
+    "km": 0,
+    "url": "https://skitindastoll.is/wp-content/uploads/2019/12/tindastoll24.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "it-3-zinnen-dolomites-dobbiaco-san-candido-braies-sesto-alta-pusteria": {
    "photo": {
@@ -110036,6 +111058,18 @@
     ]
    }
   },
+  "it-centro-fondo-arpy-morgex": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://ostellodiarpy.com/",
+    "nom": "Centro Fondo Arpy - Morgex",
+    "km": 0,
+    "url": "http://ostellodiarpy.com/wp-content/uploads/2021/04/cropped-106477392_2348964805407302_5801405806496362742_n.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "it-chamois": {
    "photo": {
     "source": "skiinfo",
@@ -110775,6 +111809,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1224,
+    "sommetM": 2742,
+    "source": "skiinfo",
+    "cle": "venetie/cortina-dampezzo"
    }
   },
   "it-courmayeur": {
@@ -114016,6 +115056,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1650,
+    "sommetM": 1900,
+    "source": "skiinfo",
+    "cle": "vallee-daoste/la-magdeleine"
    }
   },
   "it-la-pagliara": {
@@ -116246,7 +117292,15 @@
    }
   },
   "it-monte-carpegna": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.eremomontecarpegna.it/",
+    "nom": "Monte Carpegna",
+    "km": 0,
+    "url": "https://www.eremomontecarpegna.it/public/webcam/air3.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "eremo-di-monte-carpegna",
@@ -116444,6 +117498,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1020,
+    "sommetM": 1976,
+    "source": "skiinfo",
+    "cle": "emilie-romagne/cimone"
    }
   },
   "it-monte-fumaiolo": {
@@ -116490,7 +117550,15 @@
    }
   },
   "it-monte-nerone": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.scioviemontenerone.it/",
+    "nom": "Monte Nerone",
+    "km": 0,
+    "url": "http://scioviemontenerone.it/wp-content/uploads/2017/03/monteneronemap.jpg",
+    "titre": "monteneronemap",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "piobbico",
@@ -116632,6 +117700,18 @@
     },
     "periodes": null
    }
+  },
+  "it-monte-prata": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://sibillini.palple.net/monteprata2.html",
+    "nom": "Monte Prata",
+    "km": 0,
+    "url": "https://sibillini.palple.net/immagini/pistemonteprata.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "it-montecampione": {
    "photo": {
@@ -116982,6 +118062,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1381,
+    "sommetM": 1474,
+    "source": "skiinfo",
+    "cle": "vallee-daoste/ollomont"
    }
   },
   "it-ovindoli": {
@@ -119161,6 +120247,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1245,
+    "sommetM": 1865,
+    "source": "skiinfo",
+    "cle": "frioul/piancavallo"
    }
   },
   "it-piani-di-artavaggio": {
@@ -120407,6 +121499,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1450,
+    "sommetM": 2510,
+    "source": "skiinfo",
+    "cle": "piemont/prali"
    }
   },
   "it-prali-448786m70569": {
@@ -120963,6 +122061,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1370,
+    "sommetM": 2654,
+    "source": "skiinfo",
+    "cle": "trentin/san-martino-di-castrozza-passo-rolle"
    }
   },
   "it-ratschings-jaufen": {
@@ -123448,6 +124552,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1020,
+    "sommetM": 1870,
+    "source": "skiinfo",
+    "cle": "abruzzes/scanno-monte-rotondo"
    }
   },
   "it-schilpario": {
@@ -127449,6 +128559,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1325,
+    "sommetM": 1900,
+    "source": "skiinfo",
+    "cle": "marche/ussita-frontignano"
    }
   },
   "it-val-comelico-padola": {
@@ -128638,6 +129754,28 @@
    },
    "forfait": null
   },
+  "kz-altayskiye-alpy": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://alps.altay.kz/",
+    "nom": "Altayskiye Alpy",
+    "km": 0,
+    "url": "https://alps.altay.kz/slider/gallery/m1.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "kz-tabagan": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 1480,
+    "sommetM": 1702,
+    "source": "skiresort",
+    "cle": "tabagan"
+   }
+  },
   "li-malbun": {
    "photo": {
     "source": "skiinfo",
@@ -128874,6 +130012,30 @@
     ]
    }
   },
+  "lt-aukstagires-slidinejimo-trasa": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://aukstagireskalnas.lt/",
+    "nom": "Aukštagirės slidinėjimo trasa",
+    "km": 0,
+    "url": "https://aukstagireskalnas.lt/wp-content/uploads/2025/05/auks-1024x668.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "lt-jonavos-slidinejimo-centras": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.jsc.lt/",
+    "nom": "Jonavos slidinėjimo centras",
+    "km": 0,
+    "url": "https://www.jsc.lt/img/slides/slide-home.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "lt-liepkalnis-lipowka": {
    "photo": {
     "source": "officiel",
@@ -128972,6 +130134,30 @@
     "periodes": null
    }
   },
+  "lv-eglukalns": {
+   "photo": {
+    "source": "officiel",
+    "cle": "http://eglukalns.lv/",
+    "nom": "Egļukalns",
+    "km": 0,
+    "url": "http://eglukalns.lv/block_files/fenaxytiga.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "lv-ozolkalns": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.ozolkalns.lv/winter",
+    "nom": "Ozolkalns",
+    "km": 0,
+    "url": "https://www.ozolkalns.lv/user_uploads/cachedi/20250302_115040(1)_400_300.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "lv-zagarkalns": {
    "photo": {
     "source": "officiel",
@@ -128979,6 +130165,24 @@
     "nom": "Žagarkalns",
     "km": 0,
     "url": "https://zagarkalns.lv/wp-content/uploads/2020/06/ZGK-20-2-scaled-1.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null,
+   "altitudes": {
+    "basM": 60,
+    "sommetM": 103,
+    "source": "skiresort",
+    "cle": "zagarkalns"
+   }
+  },
+  "me-kolasin-1600": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skijalista.me/ski-centri/kolasin-1600",
+    "nom": "Kolašin 1600",
+    "km": 0,
+    "url": "https://skijalista.me/wp-content/uploads/Kolasin-1600-11-scaled.jpg",
     "titre": null,
     "servi": true
    },
@@ -129129,6 +130333,28 @@
    },
    "forfait": null
   },
+  "nl-de-schans": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.deschans.nl/",
+    "nom": "De Schans",
+    "km": 0,
+    "url": "https://www.deschans.nl/wp-content/uploads/2020/12/BK3A5099.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "nl-indoor-ski-rotterdam": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 15,
+    "sommetM": 20,
+    "source": "skiresort",
+    "cle": "indoor-ski-snowboard-rotterdam"
+   }
+  },
   "nl-outdoorski-bergschenhoek": {
    "photo": {
     "source": "officiel",
@@ -129153,6 +130379,24 @@
    },
    "forfait": null
   },
+  "nl-skicentrum-hoofddorp": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skicentrumhoofddorp.nl/",
+    "nom": "Skicentrum Hoofddorp",
+    "km": 0,
+    "url": "https://www.skicentrumhoofddorp.nl/wp-content/uploads/2026/05/DSC00468-kl.jpg",
+    "titre": "DSC00468 kl",
+    "servi": true
+   },
+   "forfait": null,
+   "altitudes": {
+    "basM": -2,
+    "sommetM": 7,
+    "source": "skiresort",
+    "cle": "skicentrum-hoofddorp"
+   }
+  },
   "nl-skicentrum-soesterberg-huis-ter-heide": {
    "photo": {
     "source": "officiel",
@@ -129163,7 +130407,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "altitudes": {
+    "basM": 6,
+    "sommetM": 16,
+    "source": "skiresort",
+    "cle": "soesterberg"
+   }
   },
   "nl-skicentrum-de-wijchense-berg": {
    "photo": {
@@ -129175,7 +130425,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "altitudes": {
+    "basM": 6,
+    "sommetM": 38,
+    "source": "skiresort",
+    "cle": "de-wijchense-berg"
+   }
   },
   "nl-skiclub-il-primo": {
    "photo": {
@@ -129187,7 +130443,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "altitudes": {
+    "basM": 5,
+    "sommetM": 13,
+    "source": "skiresort",
+    "cle": "il-primo-bergen"
+   }
   },
   "nl-skipiste-nieuwegein": {
    "photo": {
@@ -129246,6 +130508,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 10,
+    "sommetM": 30,
+    "source": "skiresort",
+    "cle": "snowworld-amsterdam"
    }
   },
   "nl-snowworld-landgraaf": {
@@ -129305,6 +130573,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 30,
+    "sommetM": 52,
+    "source": "skiresort",
+    "cle": "snowworld-rucphen"
    }
   },
   "nl-snowworld-terneuzen": {
@@ -129352,6 +130626,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 5,
+    "sommetM": 25,
+    "source": "skiresort",
+    "cle": "snowworld-terneuzen"
    }
   },
   "nl-snowworld-zoetermeer": {
@@ -129681,7 +130961,15 @@
    }
   },
   "no-bj-rnestad-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.bski.no/",
+    "nom": "Bjørnestad Skisenter",
+    "km": 0,
+    "url": "https://www.bski.no/wp-content/uploads/2026/01/IMG_1778-1.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "sud-norvege/bjornestad",
@@ -130137,6 +131425,18 @@
     "periodes": null
    }
   },
+  "no-eikerapen": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.eikerapen.info/",
+    "nom": "Eikerapen",
+    "km": 0,
+    "url": "https://www.eikerapen.info/wp-content/uploads/2026/02/9a2bbef280ec1e5a5eb6dbca4449e996.jpeg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "no-fagerfjell-skisenter": {
    "photo": {
     "source": "officiel",
@@ -130222,6 +131522,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "no-finse-skisenter": {
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.finseskisenter.no/",
+    "nom": "Finse Skisenter",
+    "km": 0,
+    "url": "https://www.finseskisenter.no/wordpress/wp-content/uploads/2019/03/screenshot_20190322-164854_yr6136523853705369376.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "no-fjellhaugen-skisenter": {
    "photo": {
@@ -131152,7 +132464,15 @@
    }
   },
   "no-gullingen-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://gullingen.no/skisenter/",
+    "nom": "Gullingen skisenter",
+    "km": 0,
+    "url": "https://gullingen.no/wp-content/uploads/2016/09/1.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "gullingen",
@@ -132169,6 +133489,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 300,
+    "sommetM": 525,
+    "source": "skiinfo",
+    "cle": "est-norvege/hurdal-skisenter"
    }
   },
   "no-hurdal-skisenter-604637m110700": {
@@ -132615,7 +133941,15 @@
    }
   },
   "no-leirskallen-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.leirskallen.no/",
+    "nom": "Leirskallen skisenter",
+    "km": 0,
+    "url": "https://www.leirskallen.no/wp-content/uploads/2019/02/Preppemaskin-og-sn%C3%B8kanon-648x696.jpeg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "leirskallen-oslo",
@@ -132903,6 +134237,18 @@
     "periodes": null
    }
   },
+  "no-lofoten": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://alpinlofoten.no/",
+    "nom": "Lofoten",
+    "km": 0,
+    "url": "https://alpinlofoten.no/wp-content/uploads/2020/10/cropped-Bakken.jpg",
+    "titre": "Lofoten snowboard- og alpinsenter",
+    "servi": true
+   },
+   "forfait": null
+  },
   "no-lommedalen": {
    "photo": {
     "source": "officiel",
@@ -133163,7 +134509,15 @@
    }
   },
   "no-modum-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.modumskisenter.no",
+    "nom": "Modum skisenter",
+    "km": 0,
+    "url": "http://www.modumskisenter.no/wp-content/uploads/2026/02/FB_IMG_1771541551075-1038x576.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "modum-vikersund",
@@ -133467,6 +134821,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 120,
+    "sommetM": 1006,
+    "source": "skiinfo",
+    "cle": "nord-norvege/narvikfjellet"
    }
   },
   "no-nerskogen-skisenter": {
@@ -133857,6 +135217,18 @@
     "periodes": null
    }
   },
+  "no-rauland-skisenter-597260m81467": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://visitrauland.com/rauland-skisenter/",
+    "nom": "Rauland skisenter",
+    "km": 0,
+    "url": "https://visitrauland.com/rauland-skisenter/wp-content/uploads/sites/18/2026/01/Rauland_pistemap_4.1_web1920px_1700219330_1768395266.jpg",
+    "titre": "Kart over Rauland Skisenter med løyper og heiser for alpint og langrenn i naturskjønne omgivelser.",
+    "servi": true
+   },
+   "forfait": null
+  },
   "no-rauland-skisenter-597264m81375": {
    "photo": {
     "source": "skiinfo",
@@ -134003,7 +135375,15 @@
    }
   },
   "no-rauma-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://raumaskisenter.com",
+    "nom": "Rauma skisenter",
+    "km": 0,
+    "url": "https://usercontent.one/wp/raumaskisenter.com/wp-content/uploads/2023-04-09-Smorbotntind-vest-scaled-e1681721509155-768x432.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "rauma",
@@ -134042,7 +135422,15 @@
    }
   },
   "no-rena": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.renaalpin.no/",
+    "nom": "Rena",
+    "km": 0,
+    "url": "https://www.renaalpin.no/media/widgetkit/20140327_web-53b4d1924ce38b389beb6c53509c5416.jpg",
+    "titre": "20140327 Web",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "rena",
@@ -135244,6 +136632,18 @@
     "periodes": null
    }
   },
+  "no-skeikampen-alpinsenter": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://skeikampen.no/",
+    "nom": "Skeikampen Alpinsenter",
+    "km": 0,
+    "url": "https://skeikampen.no/globalassets/skeikampen.no/bilder/sommer/golf/1440-1080-skei-golf-skeikampen.jpg?width=550&height=367&mode=crop",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "no-skimore-oslo": {
    "photo": {
     "source": "skiinfo",
@@ -135743,6 +137143,16 @@
     "periodes": null
    }
   },
+  "no-spjelkavikheisa": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 45,
+    "sommetM": 315,
+    "source": "skiresort",
+    "cle": "spjelkavik-turheisa"
+   }
+  },
   "no-stavadalen-skisenter": {
    "photo": null,
    "forfait": {
@@ -135780,6 +137190,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "no-steilia": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 86,
+    "sommetM": 375,
+    "source": "skiresort",
+    "cle": "steilia-setermoen-bardu"
    }
   },
   "no-stordal-alpinsenter": {
@@ -136433,7 +137853,15 @@
    }
   },
   "no-surnadal-alpinsenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://surnadal-alpinsenter.no/",
+    "nom": "Surnadal alpinsenter",
+    "km": 0,
+    "url": "https://surnadal-alpinsenter.no/wp-content/uploads/2024/08/surnadal-ledig-stilling.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "surnadal",
@@ -136717,10 +138145,24 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 475,
+    "sommetM": 1100,
+    "source": "skiinfo",
+    "cle": "est-norvege/trysil"
    }
   },
   "no-turufjell-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.turufjell.no/",
+    "nom": "Turufjell Skisenter",
+    "km": 0,
+    "url": "https://www.turufjell.no/static/92a06b9b0337ed2a1fc63950b869deae/b5b7f/48bb7f6c-b6e3-4095-834e-ea2552915dd4.jpg",
+    "titre": "Kopi Av Nr 58 (1)",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "turufjell",
@@ -136759,7 +138201,15 @@
    }
   },
   "no-tusten-skiheiser": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.tusten.no/",
+    "nom": "Tusten Skiheiser",
+    "km": 0,
+    "url": "https://cdn.prod.website-files.com/61b07162bff908696a0f4c7d/61b0820b2b1a50ba8ec94ee1_Tusten01.jpg",
+    "titre": "Tusten Skiheiser i Molde",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "tusten-molde",
@@ -137290,7 +138740,15 @@
    }
   },
   "no-vegglifjell": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://vegglifjellskisenter.no/",
+    "nom": "Vegglifjell",
+    "km": 0,
+    "url": "https://www.vegglifjellskisenter.no/wp-content/uploads/2023/02/aking2-1024x683.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "vegglifjell",
@@ -137454,7 +138912,15 @@
    }
   },
   "no-volda-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.voldaskisenter.no/",
+    "nom": "Volda skisenter",
+    "km": 0,
+    "url": "https://cdn.prod.website-files.com/601979f7f1a680fdd91a4a63/652e9b9eb017f5d459fac4a5_cmyk_SB1_SMN_verti_pos.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "volda-skisenter",
@@ -137907,7 +139373,15 @@
    }
   },
   "no-anstadblaheia-skitrekk": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.sortland-alpinklubb.no/alpinbakken/",
+    "nom": "Ånstadblåheia skitrekk",
+    "km": 0,
+    "url": "http://www.sortland-alpinklubb.no/wp-content/uploads/2020/12/cropped-ski1-scaled-1.jpg",
+    "titre": "SORTLAND ALPINKLUBB",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "aanstadblaaheia",
@@ -138097,6 +139571,16 @@
    },
    "forfait": null
   },
+  "pl-ameliowka": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 290,
+    "sommetM": 360,
+    "source": "skiresort",
+    "cle": "radostowa"
+   }
+  },
   "pl-andiamo": {
    "photo": {
     "source": "bergfex",
@@ -138259,6 +139743,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "pl-bakcy-na-goruszce": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 383,
+    "sommetM": 405,
+    "source": "skiresort",
+    "cle": "bakcy-na-goruszce-jaworze"
    }
   },
   "pl-bania-ski": {
@@ -138593,6 +140087,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 600,
+    "sommetM": 840,
+    "source": "skiinfo",
+    "cle": "silesie/beskid-sport-arena"
    }
   },
   "pl-bialy-potok": {
@@ -138605,7 +140105,13 @@
     "titre": "La piste supérieure de Bialy Potok",
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "altitudes": {
+    "basM": 905,
+    "sommetM": 960,
+    "source": "skiresort",
+    "cle": "bialy-potok"
+   }
   },
   "pl-bieszczad-ski-wankowa": {
    "photo": {
@@ -138686,6 +140192,16 @@
     "periodes": null
    }
   },
+  "pl-borowice": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 623,
+    "sommetM": 645,
+    "source": "skiresort",
+    "cle": "losiowka"
+   }
+  },
   "pl-budzowski-wierch": {
    "photo": {
     "source": "skiresort",
@@ -138694,6 +140210,24 @@
     "km": 0,
     "url": "https://www.skiresort.fr/fileadmin/_processed_/20/0d/d9/95/8035ffd337.jpg",
     "titre": "Vue sur le domaine skiable Budzowski Wierch",
+    "servi": true
+   },
+   "forfait": null,
+   "altitudes": {
+    "basM": 867,
+    "sommetM": 898,
+    "source": "skiresort",
+    "cle": "budzowski-wierch-zakopane"
+   }
+  },
+  "pl-cisowa-stacja-narciarska": {
+   "photo": {
+    "source": "officiel",
+    "cle": "http://www.cisowa.pl/",
+    "nom": "CISOWA - stacja narciarska",
+    "km": 0,
+    "url": "http://www.cisowa.pl/zrzuty/006E0604AD44(Stok)_0_20180206141851_77.jpg",
+    "titre": "Kamerka Cisowa.pl",
     "servi": true
    },
    "forfait": null
@@ -138743,6 +140277,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "pl-celejow": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 160,
+    "sommetM": 184,
+    "source": "skiresort",
+    "cle": "celejow"
    }
   },
   "pl-centrum-szkolen-narciarskich-nosal": {
@@ -138826,6 +140370,16 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "pl-che-mowa-gora": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 260,
+    "sommetM": 330,
+    "source": "skiresort",
+    "cle": "chelmowa-gora-krasnobrod"
    }
   },
   "pl-chyrowa": {
@@ -139310,6 +140864,18 @@
     "periodes": null
    }
   },
+  "pl-family-park-dimbo": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.dimbo.pl/",
+    "nom": "Family Park DIMBO",
+    "km": 0,
+    "url": "https://www.dimbo.pl/wp-content/uploads/2014/07/dimbo-alpy-2-460x345.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "pl-grapa-ski-czarna-gora": {
    "photo": {
     "source": "skiinfo",
@@ -139643,7 +141209,15 @@
    }
   },
   "pl-gornik-rzeczka": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.nartyrzeczka.com/",
+    "nom": "Górnik (Rzeczka)",
+    "km": 0,
+    "url": "https://www.nartyrzeczka.com/images/design/usp.webp",
+    "titre": "Ikona narciarza",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "gornik-rzeczka-sokolec",
@@ -139679,6 +141253,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 735,
+    "sommetM": 848,
+    "source": "skiresort",
+    "cle": "gornik-rzeczka-sokolec"
    }
   },
   "pl-hajduk": {
@@ -139718,6 +141298,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 847,
+    "sommetM": 890,
+    "source": "skiresort",
+    "cle": "hajduk"
    }
   },
   "pl-harenda": {
@@ -140757,7 +142343,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "altitudes": {
+    "basM": 625,
+    "sommetM": 702,
+    "source": "skiresort",
+    "cle": "kolorowa"
+   }
   },
   "pl-kompleks-pilsko-jontek": {
    "photo": {
@@ -140848,6 +142440,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 720,
+    "sommetM": 800,
+    "source": "skiinfo",
+    "cle": "basse-silesie/karpacz-bialy-jar"
    }
   },
   "pl-kosza-kowo": {
@@ -140992,6 +142590,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 90,
+    "sommetM": 135,
+    "source": "skiresort",
+    "cle": "krzyzowa-gora-lidzbark-warminski"
    }
   },
   "pl-laworta": {
@@ -141186,6 +142790,16 @@
     "servi": true
    },
    "forfait": null
+  },
+  "pl-lubinka": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 285,
+    "sommetM": 420,
+    "source": "skiresort",
+    "cle": "lubinka"
+   }
   },
   "pl-ladek-zdroj": {
    "photo": {
@@ -142424,6 +144038,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 775,
+    "sommetM": 825,
+    "source": "skiinfo",
+    "cle": "basse-silesie/karpacz-pod-wangiem"
    }
   },
   "pl-polana-sosny": {
@@ -142903,6 +144523,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 611,
+    "sommetM": 874,
+    "source": "skiinfo",
+    "cle": "silesie/wisla-soszow"
    }
   },
   "pl-siglany": {
@@ -143119,6 +144745,28 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "pl-smolen-ski": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://smolen-ski.pl/",
+    "nom": "Smoleń Ski",
+    "km": 0,
+    "url": "https://smolen-ski.pl/wp-content/uploads/2021/12/51.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "pl-sopelek": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 270,
+    "sommetM": 287,
+    "source": "skiresort",
+    "cle": "sopelek-katowice-kostuchna-kattowitz"
    }
   },
   "pl-sport-arena-myslenice": {
@@ -143467,6 +145115,18 @@
     },
     "periodes": null
    }
+  },
+  "pl-stacja-narciarska-kazimierz-dolny": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://stacjakazimierz.pl/",
+    "nom": "Stacja Narciarska Kazimierz Dolny",
+    "km": 0,
+    "url": "https://stacjakazimierz.pl/wp-content/uploads/2025/01/00-1.jpg",
+    "titre": "00 - Stacja Narciarska Kazimierz - stok narciarski Kazimierz Dolny nad Wisłą",
+    "servi": true
+   },
+   "forfait": null
   },
   "pl-stacja-narciarska-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-station": {
    "photo": {
@@ -144097,6 +145757,16 @@
     "periodes": null
    }
   },
+  "pl-stok-karpatka": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 709,
+    "sommetM": 726,
+    "source": "skiresort",
+    "cle": "pod-sniezka"
+   }
+  },
   "pl-stok-narciarski": {
    "photo": null,
    "forfait": {
@@ -144136,8 +145806,38 @@
     "periodes": null
    }
   },
-  "pl-superstacja-czarnow-ski-pisarzowice": {
+  "pl-stok-narciarski-dolina-szczescia": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://dolinaszczescia.pl/",
+    "nom": "Stok narciarski Dolina Szczęścia",
+    "km": 0,
+    "url": "https://dolinaszczescia.pl/uploads/articles/2025/12/7/69523c0fb7a4f-vlcsnap-2018-11-16-13h22m11s112.jpg",
+    "titre": "Cennik wjazdów",
+    "servi": true
+   },
+   "forfait": null
+  },
+  "pl-struznica": {
    "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 460,
+    "sommetM": 495,
+    "source": "skiresort",
+    "cle": "struznica"
+   }
+  },
+  "pl-superstacja-czarnow-ski-pisarzowice": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://czarnow-ski.pl/",
+    "nom": "Superstacja Czarnów-Ski Pisarzowice",
+    "km": 0,
+    "url": "https://czarnow-ski.pl/Rodzinna1.opt.jpg",
+    "titre": "Narciarze na stoku Czarnow SKI",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "czarnow-kamienna-gora",
@@ -144329,7 +146029,15 @@
    }
   },
   "pl-szklana-gora-ski": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://szklanagora.pl",
+    "nom": "Szklana Góra Ski",
+    "km": 0,
+    "url": "https://szklanagora.pl/wp-content/uploads/2023/08/szklanagora-scaled.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "petite-pologne/harbutowice",
@@ -145105,6 +146813,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 540,
+    "sommetM": 910,
+    "source": "skiresort",
+    "cle": "wegierski-brenna"
    }
   },
   "pl-zadzia": {
@@ -145215,6 +146929,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 550,
+    "sommetM": 695,
+    "source": "skiinfo",
+    "cle": "silesie/istebna-zagron"
    }
   },
   "pl-zakopane": {
@@ -145298,6 +147018,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 1044,
+    "sommetM": 1116,
+    "source": "skiinfo",
+    "cle": "petite-pologne/zakopane-gubalowka"
    }
   },
   "pl-zieleniec-503353m163866": {
@@ -145369,6 +147095,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 855,
+    "sommetM": 1025,
+    "source": "skiinfo",
+    "cle": "basse-silesie/zieleniec"
    }
   },
   "pl-zloty-gron": {
@@ -145525,6 +147257,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 700,
+    "sommetM": 945,
+    "source": "skiinfo",
+    "cle": "silesie/zwardon"
    }
   },
   "pl-zwardon-ski": {
@@ -145625,6 +147363,18 @@
    },
    "forfait": null
   },
+  "ro-arena-platos": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://paltinisarena.ro/",
+    "nom": "Arena Platoș",
+    "km": 0,
+    "url": "https://paltinisarena.ro/uploads/tx_templavoila/call-to-action.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "ro-arieseni": {
    "photo": null,
    "forfait": {
@@ -145711,6 +147461,16 @@
     "periodes": null
    }
   },
+  "ro-baile-tusnad": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 700,
+    "sommetM": 800,
+    "source": "skiinfo",
+    "cle": "calimani-harghita/baile-tusnad"
+   }
+  },
   "ro-borsafured": {
    "photo": {
     "source": "officiel",
@@ -145795,6 +147555,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "ro-banffydongo-dangau-mare": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 850,
+    "sommetM": 900,
+    "source": "skiresort",
+    "cle": "dangau-mare"
    }
   },
   "ro-baile-homorod": {
@@ -145886,6 +147656,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "ro-harghita-bai": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.hargitafurdo.ro/",
+    "nom": "Harghita Băi",
+    "km": 0,
+    "url": "https://hargitafurdo.ro/wp-content/uploads/2026/07/IMG20230812184319-1024x768.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "ro-havas-bucsin-466437m252933": {
    "photo": null,
@@ -146044,7 +147826,15 @@
    }
   },
   "ro-muntele-mic": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://weski.ro/",
+    "nom": "Muntele Mic",
+    "km": 0,
+    "url": "https://weski.ro/wp-content/uploads/2022/10/Freeride_video-cover.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "muntele-mic",
@@ -146184,6 +147974,18 @@
     "periodes": null
    }
   },
+  "ro-sinaia": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://sinaiago.ro/",
+    "nom": "Sinaia",
+    "km": 0,
+    "url": "https://sinaiago.ro/wp-content/uploads/2026/09/Program_M_0926.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "ro-ski-vidra": {
    "photo": {
     "source": "officiel",
@@ -146207,6 +148009,16 @@
     "servi": true
    },
    "forfait": null
+  },
+  "ro-smart-ski-slopes": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 90,
+    "sommetM": 95,
+    "source": "skiresort",
+    "cle": "smart-ski-slopes-timisoara"
+   }
   },
   "ro-straja": {
    "photo": {
@@ -146268,7 +148080,15 @@
    }
   },
   "ro-telescaun-paltinis": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://telescaunpaltinis.ro/",
+    "nom": "Telescaun Păltiniș",
+    "km": 0,
+    "url": "https://telescaunpaltinis.ro/wp-content/uploads/2026/07/1.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "paltinis",
@@ -146431,6 +148251,18 @@
     "periodes": null
    }
   },
+  "rs-kopaonik": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skijalistasrbije.rs/",
+    "nom": "Kopaonik",
+    "km": 0,
+    "url": "https://www.skijalistasrbije.rs/sites/default/files/styles/naslovna_blog/public/clanci/kgb_panorama_sep_2026.jpg?itok=7BODnI1e",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "rs-ski-center-kopaonik": {
    "photo": {
     "source": "skiresort",
@@ -146538,7 +148370,15 @@
    }
   },
   "se-almasa": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.almasafritid.se/",
+    "nom": "Almåsa",
+    "km": 0,
+    "url": "https://www.almasafritid.se/wp-content/uploads/2022/03/Utforsakning-pa-Almasa-1060x600.jpg",
+    "titre": "Utförsåkning på Almåsa",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "almaasa",
@@ -146904,7 +148744,15 @@
    }
   },
   "se-brudarebacken": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skidklubben.se/brudarebacken/",
+    "nom": "Brudarebacken",
+    "km": 0,
+    "url": "https://www.skidklubben.se/wp-content/uploads/2022/05/brudarebacken.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "brudarebacken-goeteborg",
@@ -147247,6 +149095,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 420,
+    "sommetM": 680,
+    "source": "skiresort",
+    "cle": "gruvbacken"
    }
   },
   "se-ekebyhovsbacken": {
@@ -147297,7 +149151,15 @@
    }
   },
   "se-falkoping-alpin": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://falkopingalpin.com/",
+    "nom": "Falköping Alpin",
+    "km": 0,
+    "url": "https://falkopingalpin.com/content/uploads/2018/11/FKPG_Alpin_Hero_undersida.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "moessebergsbacken-falkoeping",
@@ -147977,7 +149839,15 @@
    }
   },
   "se-isaberg-hestra": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.isaberg.com/",
+    "nom": "Isaberg (Hestra)",
+    "km": 0,
+    "url": "https://www.isaberg.com/media/wthdpoyp/isaberg_160816-2368.jpg?width=1900&amp;height=750&amp;v=1d81e8faba16f70&format=jpg&quality=75",
+    "titre": "ISABERG 160816 2368",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "isaberg-hestra",
@@ -148055,7 +149925,15 @@
    }
   },
   "se-jarvsobacken": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.jarvsobacken.se/",
+    "nom": "Järvsöbacken",
+    "km": 0,
+    "url": "https://i0.wp.com/www.jarvsobacken.se/wp-content/uploads/2024/11/Sidfot-JB.webp?fit=2560%2C854&amp;ssl=1",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "jaervsoe",
@@ -149235,7 +151113,15 @@
    }
   },
   "se-skattmansobacken": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skattman.nu/",
+    "nom": "Skattmansöbacken",
+    "km": 0,
+    "url": "https://www.skattman.nu/wp-content/uploads/2026/06/cropped-649236724-18562381030010070-3010897514918632978-n.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "skattmansoebacken",
@@ -149471,7 +151357,15 @@
    }
   },
   "se-stenkallegarden": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.stenkallegarden.se/",
+    "nom": "Stenkällegården",
+    "km": 0,
+    "url": "https://www.stenkallegarden.se/img/gallery/aa3a199d-7ada-4206-8f52-8a75c483bcbd.jpg?width=1181&amp;height=520&amp;crop=auto&amp;scale=both",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "stenkaellegaarden",
@@ -149556,6 +151450,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "se-storlien": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.storlienhogfjallshotell.se/en/activities-winter.html",
+    "nom": "Storlien",
+    "km": 0,
+    "url": "https://www.storlienhogfjallshotell.se/images/800x550-alpint.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "se-strutsabacken": {
    "photo": null,
@@ -150052,6 +151958,18 @@
     "periodes": null
    }
   },
+  "se-tolvmannabacken": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.tolvmannabacken.se",
+    "nom": "Tolvmannabacken",
+    "km": 0,
+    "url": "https://tolvmannabacken.se/wp-content/uploads/2023/12/Ny-KISA-1.webp",
+    "titre": "Kisa MTB-park",
+    "servi": true
+   },
+   "forfait": null
+  },
   "se-trillevallen": {
    "photo": null,
    "forfait": {
@@ -150357,7 +152275,15 @@
    }
   },
   "se-vedbobacken": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://vedbobacken.se/",
+    "nom": "Vedbobacken",
+    "km": 0,
+    "url": "https://vedbobacken.se/assets/bilder/downhill/JOEL_HILLBOM_Vedbo_Lucas_02.JPG",
+    "titre": "JOEL HILLBOM Vedbo Lucas 02",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "vedbobacken-vaesteraas",
@@ -152036,6 +153962,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 740,
+    "sommetM": 822,
+    "source": "skiresort",
+    "cle": "osovje"
    }
   },
   "si-velika-planina-463013m146258": {
@@ -155773,6 +157705,12 @@
      ]
     },
     "periodes": null
+   },
+   "altitudes": {
+    "basM": 470,
+    "sommetM": 912,
+    "source": "skiinfo",
+    "cle": "spis-sud-gemer/ski-plejsy"
    }
   },
   "sk-rencisov-buce": {
@@ -156106,6 +158044,18 @@
     "periodes": null
    }
   },
+  "sk-ski-centrum-demanova": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://skidemanova.sk/",
+    "nom": "SKI centrum Demänová",
+    "km": 0,
+    "url": "https://skidemanova.sk/wp-content/uploads/2023/01/GER_2673-1-1-1024x683.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
   "sk-salamandra-resort": {
    "photo": {
     "source": "skiinfo",
@@ -156356,6 +158306,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "sk-ski-bezovec-486684m179682": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.skibezovec.sk/",
+    "nom": "Ski Bezovec",
+    "km": 0,
+    "url": "https://www.skibezovec.sk/wp-content/uploads/mapa-bezovec.webp",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
   },
   "sk-ski-blanc-ostry-grun": {
    "photo": {
@@ -160248,6 +162210,50 @@
     "periodes": null
    }
   },
+  "tr-ardahan": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 1952,
+    "sommetM": 2497,
+    "source": "skiresort",
+    "cle": "ardahan-yalnizcam"
+   }
+  },
+  "tr-ergan-dag-k-s-sporlar-turizm-merkezi-ergan-mountain-winter-sports-and-eco-tourism-center": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://ergankayak.com/",
+    "nom": "Ergan Dağı Kış Sporları Turizm Merkezi, Ergan Mountain Winter Sports and Eco-Tourism Center",
+    "km": 0,
+    "url": "https://ergankayak.com/wp-content/uploads/2022/10/ergan-wallpapers-1.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "tr-sakl-kent": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.saklikent.com.tr/Default.aspx",
+    "nom": "Saklıkent",
+    "km": 0,
+    "url": "https://www.saklikent.com.tr/mesfiles/images/pp.jpg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "tr-snowland-ski-park": {
+   "photo": null,
+   "forfait": null,
+   "altitudes": {
+    "basM": 965,
+    "sommetM": 1010,
+    "source": "skiresort",
+    "cle": "altinoran-ankara"
+   }
+  },
   "tr-uludag-kayak-merkezi": {
    "photo": {
     "source": "officiel",
@@ -160267,6 +162273,18 @@
     "nom": "Bukovytsia",
     "km": 0,
     "url": "https://bukovytsia.com/wp-content/uploads/2019/10/image-kopyia-e1572631559444.jpeg",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "ua-emily-resort": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://www.emilyresort.com.ua/en/#tabs-29",
+    "nom": "Emily Resort",
+    "km": 0,
+    "url": "https://www.emilyresort.com.ua/wp-content/uploads/2025/08/m1.jpg",
     "titre": null,
     "servi": true
    },
@@ -160402,7 +162420,15 @@
    "forfait": null
   },
   "ua-vodyaniki": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://vodyaniki.com/",
+    "nom": "Vodyaniki",
+    "km": 0,
+    "url": "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=377,fit=crop/d9539XaXg0FyDPLV/panorama_vd_20241-AwvPMDMpVLie5b2R.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "cherkassy-vodyaniki",
@@ -160492,7 +162518,15 @@
    "forfait": null
   },
   "ua-489004m232875": {
-   "photo": null,
+   "photo": {
+    "source": "officiel",
+    "cle": "https://plaj.at.ua/",
+    "nom": "Гірськолижний комплекс \"Плай\"",
+    "km": 0,
+    "url": "https://plaj.at.ua/12345655.jpg",
+    "titre": null,
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "plai",
@@ -160529,6 +162563,18 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "ua-495653m256295": {
+   "photo": {
+    "source": "officiel",
+    "cle": "https://savich-park.te.ua/",
+    "nom": "Спортивно-розважальний комплекс \"Савич-парк\"",
+    "km": 0,
+    "url": "https://savich-park.te.ua/wp-content/uploads/2020/12/02-snowtube8-0--772x666.jpg",
+    "titre": "Савич Парк Тернопіль",
+    "servi": true
+   },
+   "forfait": null
   }
  }
 }

@@ -60,10 +60,12 @@
    "site": "https://www.badkleinkirchheim.at/",
    "url": "https://www.seeundberg.at/region/bad-kleinkirchheim/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.seeundberg.at/user_upload_BKK/_processed_/a/1/csm_Wandern_barrierefreies_Bergerlebnis_Familie_Bergpromenade_Brunnach_Bad_Kleinkirchheim_Sommer__c__Michael_Stabentheiner_MBN_Tourismus__2__a9ed1c3fb2.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Wandern mit Familie zur Speikskulptur © Michael Stabentheiner_MBN Tourismus",
+   "servi": true
   },
   "at-bergbahn-weissensee": {
    "id": "at-bergbahn-weissensee",
@@ -119,10 +121,12 @@
    "site": "https://www.skilift-breitenfurt.com/",
    "url": "https://skilift-breitenfurt.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skilift-breitenfurt.com/wp-content/uploads/2025/05/IMG_5934-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-damuls": {
    "id": "at-damuls",
@@ -143,10 +147,12 @@
    "site": "https://www.embergeralm.info/",
    "url": "https://www.embergeralm.info/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.embergeralm.info/media/images/home05-large.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-familienschiberg-st-jakob-im-walde": {
    "id": "at-familienschiberg-st-jakob-im-walde",
@@ -235,10 +241,12 @@
    "site": "https://www.lechtaler-bergbahnen.at/",
    "url": "https://www.lechtaler-bergbahnen.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.lechtaler-bergbahnen.at/media/animation/js-alexkaiser-40.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-golm": {
    "id": "at-golm",
@@ -246,10 +254,12 @@
    "site": "https://www.golm.at",
    "url": "https://www.golm.at/de",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.golm.at/gsl/bilder/golm/erlebnisse/waldrutschenpark-golm/mathaeus-gartner-2024/41405/image-thumb__41405__mainNavImage/20240807_Waldrutschenpark_Golm_Mathaeus_Gartner_web_003.57c939d0.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Zwei Kinder die gerade aus zwei einzelnen Rutschen am Waldrutschenpark-Golm rutschen | © Golm Silvretta Lünersee Tourismus GmbH Bregenz, Mathäus Gartner",
+   "servi": true
   },
   "at-grollerkopf-ubersaxen": {
    "id": "at-grollerkopf-ubersaxen",
@@ -303,10 +313,12 @@
    "site": "https://www.hiwu.at/",
    "url": "https://skisport.com/hiwu/de",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skisport.com/fileadmin/_processed_/3/b/csm_SunnyCard_Platzierung_700x467px_d42728d110.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-hochbarneck": {
    "id": "at-hochbarneck",
@@ -314,10 +326,12 @@
    "site": "https://hochbaerneck.com/winter/",
    "url": "https://hochbaerneck.com/winter/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://hochbaerneck.com/wp-content/uploads/2022/07/cropped-winter5.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-hochkar": {
    "id": "at-hochkar",
@@ -399,10 +413,12 @@
    "site": "https://www.katschi.at/",
    "url": "https://www.katschi.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.katschi.at/files/content/content/almspielplatz/KREATIV-katschi-almspielplatz-08-2024-11.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-kesselmannlifte": {
    "id": "at-kesselmannlifte",
@@ -410,10 +426,12 @@
    "site": "https://www.schilift-kesselmann.at",
    "url": "https://www.schilift-kesselmann.at/bauernhof-urlaub-mit-kindern-salzburg.html",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.schilift-kesselmann.at/assets/images/2/kesselmannhof-faistenau-footer-6435c76e.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-kleinwalsertal-oberstdorf": {
    "id": "at-kleinwalsertal-oberstdorf",
@@ -508,10 +526,12 @@
    "site": "https://www.zillertal.at/en/winter/holidays/ski-areas/ski-und-gletscherwelt-3000.html",
    "url": "https://www.zillertal.at/en/winter/holidays/ski-areas/ski-und-gletscherwelt-3000.html",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.zillertal.at/fileadmin/_processed_/e/2/csm_WEB_Pistenski_Gletscher_0796____R_Zillertaltourismus_TomKlocker_RET_b2894e2b24.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-modriach-winkel-hoislifte": {
    "id": "at-modriach-winkel-hoislifte",
@@ -519,10 +539,12 @@
    "site": "https://www.hoiswirt.at/",
    "url": "https://www.hoiswirt.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.hoiswirt.at/fileadmin/userdaten/customerData/9415/slideshow/summer/001-105244580.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-muttersberg-bludenz": {
    "id": "at-muttersberg-bludenz",
@@ -666,10 +688,12 @@
    "site": "https://lobmingtal.at/freizeit-tourismus/schilifte-kleinlobming/",
    "url": "https://lobmingtal.at/freizeit-tourismus/schilifte-kleinlobming/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://lobmingtal.at/wp-content/uploads/2023/12/Titelseite_Schilifte-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-schizentrum-rettenbach": {
    "id": "at-schizentrum-rettenbach",
@@ -677,10 +701,12 @@
    "site": "https://www.sz-rettenbach.at/",
    "url": "https://www.sz-rettenbach.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.sz-rettenbach.at/wp-content/uploads/2026/08/Flyer_vorne-1140x395.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-schneeberglifte-thiersee": {
    "id": "at-schneeberglifte-thiersee",
@@ -699,10 +725,12 @@
    "site": "https://www.sv-hohenems.at/",
    "url": "https://www.sv-hohenems.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.sv-hohenems.at/images/stories/Sponsoren/kaestle_logo_schwarz.jpg#joomlaImage://local-images/stories/Sponsoren/kaestle_logo_schwarz.jpg?width=4541&height=450",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Kästle",
+   "servi": true
   },
   "at-schonfeld-thomatal": {
    "id": "at-schonfeld-thomatal",
@@ -721,10 +749,12 @@
    "site": "https://www.wsv-au.at/",
    "url": "https://www.wsv-au.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.wsv-au.at/images/2025/12/08/7a4d4961-a8f8-4822-aaf1-1322fc035690.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Image",
+   "servi": true
   },
   "at-semmering-hirschenkogel": {
    "id": "at-semmering-hirschenkogel",
@@ -732,10 +762,12 @@
    "site": "https://semmering.com/page/winter",
    "url": "https://www.semmering.com/winter/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.semmering.com/wp-content/uploads/2024/06/dji-0053.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Winter Semmering",
+   "servi": true
   },
   "at-sibratsgfall": {
    "id": "at-sibratsgfall",
@@ -743,10 +775,12 @@
    "site": "https://www.kraehenberg.at",
    "url": "https://www.kraehenberg.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.kraehenberg.at/wp-content/uploads/2026/01/pexels-brettjordan-5426401_FB-und-INSTA-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Immer aktuell Informiert",
+   "servi": true
   },
   "at-ski-arlberg-471830m101884": {
    "id": "at-ski-arlberg-471830m101884",
@@ -824,10 +858,12 @@
    "site": "https://www.ski-eberschwang.at/",
    "url": "https://www.ski-eberschwang.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.ski-eberschwang.at/wp-content/uploads/2018/09/Slider_1_1800x600.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Slider Image",
+   "servi": true
   },
   "at-skilift-floiten-ginzling": {
    "id": "at-skilift-floiten-ginzling",
@@ -872,10 +908,12 @@
    "site": "https://www.schiregion.at/strallegg/",
    "url": "https://www.schiregion.at/strallegg/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.schiregion.at/wp-content/uploads/2019/11/almblick-lifte-4.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-stubai": {
    "id": "at-stubai",
@@ -996,10 +1034,12 @@
    "site": "https://www.hiwu.at/",
    "url": "https://skisport.com/hiwu/de",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skisport.com/fileadmin/_processed_/3/b/csm_SunnyCard_Platzierung_700x467px_d42728d110.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "at-zwolferhorn-st-gilgen": {
    "id": "at-zwolferhorn-st-gilgen",
@@ -1007,10 +1047,12 @@
    "site": "https://www.zwoelferhorn.at/",
    "url": "https://www.zwoelferhorn.at/en/summer/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.zwoelferhorn.at/wp-content/uploads/8ff322b99aee8f255fd7a13528e31b098136d265-1024x683.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "az-sahdag-xiz-k-kompleksi-shahdag-mountain-resort": {
    "id": "az-sahdag-xiz-k-kompleksi-shahdag-mountain-resort",
@@ -1042,10 +1084,12 @@
    "site": "https://www.oc-jahorina.com/",
    "url": "https://www.oc-jahorina.com/en/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.oc-jahorina.com/wp-content/uploads/2025/02/DSC_8624-copy-2-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "NOTICE",
+   "servi": true
   },
   "ba-javor-ski-srebrenica": {
    "id": "ba-javor-ski-srebrenica",
@@ -1101,10 +1145,12 @@
    "site": "https://www.ski-rp.com/",
    "url": "https://www.ski-rp.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.ski-rp.com/wp-content/uploads/2019/03/ski-ravna-planina-9-of-15.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ba-skijaliste-kozara": {
    "id": "ba-skijaliste-kozara",
@@ -1134,10 +1180,12 @@
    "site": "http://www.skibaan-dousberg.nl/",
    "url": "http://www.skibaan-dousberg.nl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.skibaan-dousberg.nl/images/Facebook%20like%20voor%20site.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "be-ski-val-de-wanne": {
    "id": "be-ski-val-de-wanne",
@@ -1191,10 +1239,12 @@
    "site": "https://rilskiezera.bg/",
    "url": "https://rilskiezera.bg/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://rilskiezera.bg/wp-content/uploads/2023/05/367607726_109614248901835_7026056661868083382_n.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "bg-semkovo": {
    "id": "bg-semkovo",
@@ -1272,10 +1322,12 @@
    "site": "https://alpedineggia.ch/it",
    "url": "https://alpedineggia.ch/it",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://alpedineggia.ch/images/b/6/e/1/e/b6e1ee19944f46ebf4e0cbc2372761d9f0855890-img8554.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-amden-arvenbuel": {
    "id": "ch-amden-arvenbuel",
@@ -1316,10 +1368,12 @@
    "site": "https://www.atzmaennig.ch/",
    "url": "https://www.atzmaennig.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.atzmaennig.ch/images/max-image/atzmaennig_sommer_wetter_01.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-avers": {
    "id": "ch-avers",
@@ -1327,10 +1381,12 @@
    "site": "http://www.skilifte-avers.ch/",
    "url": "https://skiferien-graubuenden.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skiferien-graubuenden.ch/wp-content/uploads/2020/09/IMG_7168-1-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-bannalp": {
    "id": "ch-bannalp",
@@ -1421,10 +1477,12 @@
    "site": "https://www.brunnialpthal.ch/",
    "url": "https://www.brunnialpthal.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.brunnialpthal.ch/images/slider/sliderg5s.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Sommer",
+   "servi": true
   },
   "ch-brunni-holzegg-rotenflue": {
    "id": "ch-brunni-holzegg-rotenflue",
@@ -1432,10 +1490,12 @@
    "site": "https://www.brunnialpthal.ch/",
    "url": "https://www.brunnialpthal.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.brunnialpthal.ch/images/slider/sliderg5s.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Sommer",
+   "servi": true
   },
   "ch-brulisau": {
    "id": "ch-brulisau",
@@ -1467,10 +1527,12 @@
    "site": "https://www.ortsgemeinde-buchs.ch/startseite/",
    "url": "https://www.ortsgemeinde-buchs.ch/startseite/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.ortsgemeinde-buchs.ch/fileadmin/_processed_/4/5/csm_AlpMalbun_370cb52e74.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-baretswil": {
    "id": "ch-baretswil",
@@ -1489,10 +1551,12 @@
    "site": "https://campoblenio.ch/",
    "url": "https://www.campoblenio.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.campoblenio.ch/wp-content/uploads/2024/11/IMG_3068-Copia.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-chalet-a-gobet": {
    "id": "ch-chalet-a-gobet",
@@ -1572,10 +1636,12 @@
    "site": "https://www.cretdupuy.com/",
    "url": "https://www.cretdupuy.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.cretdupuy.com/images/contenu/Station-ski-Cret-du-Puy-Plan-des-Piste--1-.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-eggberge": {
    "id": "ch-eggberge",
@@ -1583,10 +1649,12 @@
    "site": "https://www.eggberge.ch/",
    "url": "https://www.eggberge.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.eggberge.ch/fileadmin/user_upload/images/titelbilder/Fr%C3%BChling/Krokus-Hummel_cFoto_Maggie_J.Christen-Zurfluh_208A3589-sm_1.JPG",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Hummel im Krokushimmel ¦ ©Foto Maggie J.Christen-Zurfluh",
+   "servi": true
   },
   "ch-eggberge-469015m86525": {
    "id": "ch-eggberge-469015m86525",
@@ -1594,10 +1662,12 @@
    "site": "https://www.eggberge.ch/",
    "url": "https://www.eggberge.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.eggberge.ch/fileadmin/user_upload/images/titelbilder/Fr%C3%BChling/Krokus-Hummel_cFoto_Maggie_J.Christen-Zurfluh_208A3589-sm_1.JPG",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Hummel im Krokushimmel ¦ ©Foto Maggie J.Christen-Zurfluh",
+   "servi": true
   },
   "ch-faltschen": {
    "id": "ch-faltschen",
@@ -1605,10 +1675,12 @@
    "site": "https://www.skilift-faltschen.ch/",
    "url": "https://www.skilift-faltschen.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilift-faltschen.ch/ws/media-library/7c355f5406be24702be1c82af720edc0/20241215_151450.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-feldis": {
    "id": "ch-feldis",
@@ -1640,10 +1712,12 @@
    "site": "https://cn-froideville.ch/",
    "url": "https://cn-froideville.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://cn-froideville.ch/wp-content/uploads/2020/06/cropped-cropped-cropped-cropped-FB_IMG_1592408930079-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-gantrisch": {
    "id": "ch-gantrisch",
@@ -1651,10 +1725,12 @@
    "site": "https://www.gantrisch.ch/",
    "url": "https://www.gantrisch.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.gantrisch.ch/wp-content/uploads/2022/11/gantrisch_A_region_v3.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-gantrisch-rueschegg": {
    "id": "ch-gantrisch-rueschegg",
@@ -1662,10 +1738,12 @@
    "site": "https://www.gantrisch.ch/",
    "url": "https://www.gantrisch.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.gantrisch.ch/wp-content/uploads/2022/11/gantrisch_A_region_v3.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-ghoch": {
    "id": "ch-ghoch",
@@ -1723,10 +1801,12 @@
    "site": "https://skiliftgrub-kaien.ch",
    "url": "https://skiliftgrub-kaien.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skiliftgrub-kaien.ch/wp-content/uploads/2017/03/IMG-20170122-WA0003-1170x475.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-gspon": {
    "id": "ch-gspon",
@@ -1734,10 +1814,12 @@
    "site": "https://www.staldenried.ch/",
    "url": "https://staldenried.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://staldenried.ch/wp-content/uploads/2024/04/Bild-065-scaled-1920x500.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-gstaad-saanen-rougemont": {
    "id": "ch-gstaad-saanen-rougemont",
@@ -1767,10 +1849,12 @@
    "site": "https://www.hohe-winde.ch/",
    "url": "https://www.hohe-winde.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.hohe-winde.ch/images/2023/04/20/wingae-beiz.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Winggä-Beiz",
+   "servi": true
   },
   "ch-hohwald-beatenberg": {
    "id": "ch-hohwald-beatenberg",
@@ -1778,10 +1862,12 @@
    "site": "https://www.skilift-hohwald.ch/",
    "url": "https://www.skilift-hohwald.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilift-hohwald.ch/dmxDaten/header/header.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Skilift Hohwald",
+   "servi": true
   },
   "ch-homberg": {
    "id": "ch-homberg",
@@ -1850,10 +1936,12 @@
    "site": "https://www.kronberg.ch/",
    "url": "https://kronberg.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://kronberg.ch/assets/images/e/keyvisual_sommer_desktop-8nsrdbfjr6hc4ds.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-l-abbaye": {
    "id": "ch-l-abbaye",
@@ -1861,10 +1949,12 @@
    "site": "https://www.myvalleedejoux.ch",
    "url": "https://www.myvalleedejoux.ch/fr/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://static.mycity.travel/manage/uploads/6/26/44869/4b1b25940fb7902d4bb3fdb35df60b0365d49b11_1080.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-la-forclaz": {
    "id": "ch-la-forclaz",
@@ -1909,10 +1999,12 @@
    "site": "https://www.espacenordiquejurassien.com/annuaire/site_nordique_de_pontarlier_-_le_larmont~bb17cae35d724a7e387aa22fcfe.html",
    "url": "https://www.espacenordiquejurassien.com/annuaire/site_nordique_de_pontarlier_-_le_larmont~bb17cae35d724a7e387aa22fcfe.html",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.espacenordiquejurassien.com/csx/scripts/resizer.php?filename=ENJ_MEDIAS%2Fmedia%2F67%2F6c%2Fd69eec292a3a73004fa7a7b5789a&amp;mime=image%252Fjpeg&amp;originalname=Gounefay-Depart-Tour-des-ecoles-Catinat.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Gounefay Départ Tour des écoles Catinat  Ⓒ  happinessproduction.fr",
+   "servi": true
   },
   "ch-les-breuleux": {
    "id": "ch-les-breuleux",
@@ -1920,10 +2012,12 @@
    "site": "https://telebreuleux.ch/?lang=de",
    "url": "https://telebreuleux.ch/?lang=de",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://telebreuleux.ch/wp-content/uploads/2018/12/nouveau-2-1-1920x500.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-les-genevez": {
    "id": "ch-les-genevez",
@@ -1931,10 +2025,12 @@
    "site": "https://www.telegenevez.ch/",
    "url": "https://www.telegenevez.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.telegenevez.ch/wp-content/uploads/2017/09/image4-1200x450.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-les-giettes": {
    "id": "ch-les-giettes",
@@ -1990,10 +2086,12 @@
    "site": "https://www.bregaglia.ch/de/alpinski",
    "url": "https://www.bregaglia.ch/de/alpinski",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.bregaglia.ch/images/bregaglia/vivere_la_bregaglia/attivita/bet_prezzi_ski_85x130_print_def.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-mayens-de-conthey": {
    "id": "ch-mayens-de-conthey",
@@ -2014,10 +2112,12 @@
    "site": "https://mognofreetime.ch/",
    "url": "https://mognofreetime.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://mognofreetime.ch/webcam/webcam/RISALITA20260921_235332.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "webcam mogno",
+   "servi": true
   },
   "ch-mogno-464281m86623": {
    "id": "ch-mogno-464281m86623",
@@ -2025,10 +2125,12 @@
    "site": "https://mognofreetime.ch/",
    "url": "https://mognofreetime.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://mognofreetime.ch/webcam/webcam/RISALITA20260921_235332.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "webcam mogno",
+   "servi": true
   },
   "ch-monte-tamaro": {
    "id": "ch-monte-tamaro",
@@ -2060,10 +2162,12 @@
    "site": "https://www.skilift-muenster-geschinen.ch/",
    "url": "https://www.skilift-muenster-geschinen.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilift-muenster-geschinen.ch/data/Cache//2/27/270/2707/_src270795c68bafafc81d9dc26dc0e3b03b_pardbebf38942cd42d7099b64827882e38d_dat1604396692.jpeg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-nara": {
    "id": "ch-nara",
@@ -2084,10 +2188,12 @@
    "site": "https://www.skilift-eggiwil.ch/",
    "url": "https://www.skilift-eggiwil.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilift-eggiwil.ch/wp-content/uploads/2019/02/19.02.05_0014.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-nods": {
    "id": "ch-nods",
@@ -2095,10 +2201,12 @@
    "site": "https://www.teleskinods.ch/",
    "url": "https://www.teleskinods.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.teleskinods.ch/wp-content/uploads/2018/02/HG1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-nollen": {
    "id": "ch-nollen",
@@ -2128,10 +2236,12 @@
    "site": "https://skilift-oberegg.ch",
    "url": "https://skilift-oberegg.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skilift-oberegg.ch/wp-content/uploads/2015/11/Home1_geschl.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-oberhelfenschwil": {
    "id": "ch-oberhelfenschwil",
@@ -2139,10 +2249,12 @@
    "site": "https://skilift-oberhelfenschwil.ch",
    "url": "https://skilift-oberhelfenschwil.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skilift-oberhelfenschwil.ch/wp-content/uploads/2018/12/Skilift-Oberhelfenschwil-29-1024x767.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-oberholz-farner": {
    "id": "ch-oberholz-farner",
@@ -2287,10 +2399,12 @@
    "site": "https://www.ratzi.ch/",
    "url": "https://ratzi.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://ratzi.ch/files/Seilbahn/SSSOMMMEr/_fullSizeAuto/Computerformat-4_3-Seilbahn-Spiringen-Ratzi.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Computerformat 4 3 Seilbahn Spiringen Ratzi",
+   "servi": true
   },
   "ch-regensberg": {
    "id": "ch-regensberg",
@@ -2309,10 +2423,12 @@
    "site": "https://www.skilift-bildhaus.ch/",
    "url": "https://www.skilift-bildhaus.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://le-de.cdn-website.com/226ea4dc87af45beac884194f0fc7728/dms3rep/multi/opt/11585501-20220112_151004-d3d94.w1024-1920w.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-rossberg-oberwil": {
    "id": "ch-rossberg-oberwil",
@@ -2447,10 +2563,12 @@
    "site": "https://www.flensa.ch",
    "url": "https://www.flensa.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.flensa.ch/logo.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Aktuell - flensa.ch",
+   "servi": true
   },
   "ch-skilift-chrachenhutten-blumenstein": {
    "id": "ch-skilift-chrachenhutten-blumenstein",
@@ -2471,10 +2589,12 @@
    "site": "https://skiliftmastrils.ch/",
    "url": "https://skiliftmastrils.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skiliftmastrils.ch/wp-content/uploads/2024/12/skilift3-888x1024.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-skilift-schratten-fluhli": {
    "id": "ch-skilift-schratten-fluhli",
@@ -2504,10 +2624,12 @@
    "site": "https://teleski-sommartel.ch/",
    "url": "https://teleski-sommartel.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://teleski-sommartel.ch/wp-content/uploads/2017/07/tele01.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-st-margrethenberg": {
    "id": "ch-st-margrethenberg",
@@ -2537,10 +2659,12 @@
    "site": "http://www.skilift-sternenberg.ch/",
    "url": "http://www.skilift-sternenberg.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.skilift-sternenberg.ch/images/parafactpanop710765a9790964208.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-tanzboden": {
    "id": "ch-tanzboden",
@@ -2561,10 +2685,12 @@
    "site": "https://solar-skilift.ch",
    "url": "https://solar-skilift.ch/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://solar-skilift.ch/wp-content/uploads/2018/09/Slider_panel_sonne_berge-960x320.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Unser Angebot",
+   "servi": true
   },
   "ch-tramelan": {
    "id": "ch-tramelan",
@@ -2607,10 +2733,12 @@
    "site": "https://walterswil-be.ch/skilift/",
    "url": "https://walterswil-be.ch/skilift/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://walterswil-be.ch/wp-content/uploads/2023/12/IMG_20210126_134137-2-1024x768.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ch-wispile-gstaad": {
    "id": "ch-wispile-gstaad",
@@ -2664,10 +2792,12 @@
    "site": "http://www.skizlatnik.cz/",
    "url": "http://www.skizlatnik.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.skizlatnik.cz/foto/IP_kamera.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-bozi-dar": {
    "id": "cz-bozi-dar",
@@ -2675,10 +2805,12 @@
    "site": "http://skiarealbozidar.cz/en/homepage-en/",
    "url": "http://skiarealbozidar.cz/en/homepage-en/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://skiarealbozidar.cz/wp-content/uploads/2019/11/ski.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-bystre": {
    "id": "cz-bystre",
@@ -2697,10 +2829,12 @@
    "site": "http://www.skidalecin.cz/Dalecin/index2.html",
    "url": "http://www.skidalecin.cz/Dalecin/index2.html",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.skidalecin.cz/Dalecin/pict/dalecin_t.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-debrnik": {
    "id": "cz-debrnik",
@@ -2708,10 +2842,12 @@
    "site": "https://www.lv-debrnik.cz",
    "url": "https://www.lv-debrnik.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.lv-debrnik.cz/images/slider/01.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-destne-v-orlickych-horach": {
    "id": "cz-destne-v-orlickych-horach",
@@ -2719,10 +2855,12 @@
    "site": "https://www.skicentrumdestne.cz/",
    "url": "https://destne.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://destne.cz/media/img/c_397e961ffd30ec99abdacad4e2fff5b8-w648x0.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Lanovka",
+   "servi": true
   },
   "cz-fela-zlatnik": {
    "id": "cz-fela-zlatnik",
@@ -2741,10 +2879,12 @@
    "site": "https://www.skivm.cz/",
    "url": "https://www.skivm.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skivm.cz/cache/xart_thumbnails/42f9e7d20eacd9abe461ec0de417495e.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-figura-praded": {
    "id": "cz-figura-praded",
@@ -2776,10 +2916,12 @@
    "site": "https://www.hochficht.at/",
    "url": "https://skisport.com/hochficht/de",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skisport.com/fileadmin/_dc_processed_folder/4/c/csm_1031-Hochficht_Winter__c__Hochficht_Bergbahnen__Stefan_Mayerhofer.jpg_67aaf1bbb6.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-hodkovice-nad-mohelkou-burin": {
    "id": "cz-hodkovice-nad-mohelkou-burin",
@@ -2798,10 +2940,12 @@
    "site": "https://www.vlekykouty.cz/",
    "url": "https://www.vlekykouty.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.vlekykouty.cz/images/mapa.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-horni-podluzi": {
    "id": "cz-horni-podluzi",
@@ -2866,10 +3010,12 @@
    "site": "https://www.skikomarivizka.cz/",
    "url": "https://www.icesty.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.icesty.cz/wp-content/uploads/2024/08/viden-945x430.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-kostelec": {
    "id": "cz-kostelec",
@@ -2923,10 +3069,12 @@
    "site": "https://www.sportnemcicky.cz/",
    "url": "https://sportnemcicky.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://sportnemcicky.cz/wp-content/uploads/2022/04/Logotyp_jihomoravsky_kraj_RGB-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-lyzarsky-vlek-kubiska": {
    "id": "cz-lyzarsky-vlek-kubiska",
@@ -2980,10 +3128,12 @@
    "site": "https://tjmezihori.cz/",
    "url": "https://tjmezihori.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.tjmezihori.cz/pict/Meziho%C5%99%C3%AD_Let%C3%A1k-m.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-mezivodi": {
    "id": "cz-mezivodi",
@@ -2991,10 +3141,12 @@
    "site": "https://www.skimezivodi.cz/",
    "url": "https://www.skimezivodi.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skimezivodi.cz/wp-content/uploads/2020/09/8.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-mikulcin-vrch-lopata": {
    "id": "cz-mikulcin-vrch-lopata",
@@ -3035,10 +3187,12 @@
    "site": "http://www.ski-mrakotin.cz/index.php",
    "url": "http://www.ski-mrakotin.cz/index.php",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.ski-mrakotin.cz/pismo/pozadi.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Background",
+   "servi": true
   },
   "cz-medenec-alsovka": {
    "id": "cz-medenec-alsovka",
@@ -3046,10 +3200,12 @@
    "site": "https://alsovka.cz/",
    "url": "https://alsovka.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://alsovka.cz/wp-content/uploads/Kotivna_20205_C.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Kotvinské pedály 2026",
+   "servi": true
   },
   "cz-nedvedice-nutrie": {
    "id": "cz-nedvedice-nutrie",
@@ -3177,10 +3333,12 @@
    "site": "https://www.skilibin.cz/",
    "url": "https://www.skilibin.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilibin.cz/wp-content/themes/ski-libin/assets/images/o-arealu/mapa-arealu-2025.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-prkenny-dul-bret": {
    "id": "cz-prkenny-dul-bret",
@@ -3210,10 +3368,12 @@
    "site": "https://www.skisedlonov.cz/",
    "url": "https://www.skisedlonov.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skisedlonov.cz/files/loga/sedlonov.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Logo",
+   "servi": true
   },
   "cz-ski-annaberg": {
    "id": "cz-ski-annaberg",
@@ -3254,10 +3414,12 @@
    "site": "https://www.skikvasejovice.cz/",
    "url": "https://www.skikvasejovice.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skikvasejovice.cz/data/multipage/editor/editor-1-99-cs_1.jpg?gcm_date=1787213389",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "mapa",
+   "servi": true
   },
   "cz-ski-malenovice": {
    "id": "cz-ski-malenovice",
@@ -3289,10 +3451,12 @@
    "site": "https://www.janova-hora.cz/lyzarsky-areal-janovahora.aspx",
    "url": "https://www.janova-hora.cz/lyzarsky-areal-janovahora",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.janova-hora.cz/files/Bottom/mb-mapa.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Mapa",
+   "servi": true
   },
   "cz-ski-areal-na-cele": {
    "id": "cz-ski-areal-na-cele",
@@ -3355,10 +3519,12 @@
    "site": "https://www.sacberk.cz/",
    "url": "https://www.sacberk.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.sacberk.cz/grafika/prezident_pavel.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-ski-sachty": {
    "id": "cz-ski-sachty",
@@ -3436,10 +3602,12 @@
    "site": "https://www.skiolesnice.cz/",
    "url": "https://www.skiolesnice.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skiolesnice.cz/images/slider/slide01-desktop.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-skiareal-parez": {
    "id": "cz-skiareal-parez",
@@ -3458,10 +3626,12 @@
    "site": "https://www.skipot.cz/cs/",
    "url": "https://www.skipot.cz/cs/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skipot.cz/images/carousel/ubytovani.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Ubytování",
+   "servi": true
   },
   "cz-skiareal-pysna": {
    "id": "cz-skiareal-pysna",
@@ -3556,10 +3726,12 @@
    "site": "https://www.soszow.pl/",
    "url": "https://wislaskiarena.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://wislaskiarena.pl/wp-content/uploads/2023/01/Projekt-bez-tytulu-2023-01-13T145245.583.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-stupava": {
    "id": "cz-stupava",
@@ -3589,10 +3761,12 @@
    "site": "https://skikadlecak.cz/home",
    "url": "https://skikadlecak.cz/home",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skikadlecak.cz/trikolky.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-tj-radegast-sihly": {
    "id": "cz-tj-radegast-sihly",
@@ -3622,10 +3796,12 @@
    "site": "https://www.trojak.cz/homepage",
    "url": "https://www.trojak.cz/homepage",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.trojak.cz/f/cols/2295w.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "obrázek bez popisu",
+   "servi": true
   },
   "cz-u-bambuchu": {
    "id": "cz-u-bambuchu",
@@ -3633,10 +3809,12 @@
    "site": "https://www.bambuchovi.cz/",
    "url": "https://www.bambuchovi.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.bambuchovi.cz/img/cover_photo01.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Úvodní fotka 01",
+   "servi": true
   },
   "cz-u-pekina": {
    "id": "cz-u-pekina",
@@ -3644,10 +3822,12 @@
    "site": "https://www.hotylekupekina.cz/cs/lyzarsky-vlek-skiareal-jeseniky",
    "url": "https://www.hotylekupekina.cz/cs/lyzarsky-vlek-skiareal-jeseniky",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.hotylekupekina.cz/images/imgslide01.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-vankuv-kopec": {
    "id": "cz-vankuv-kopec",
@@ -3655,10 +3835,12 @@
    "site": "http://vankuvkopec.cz/",
    "url": "https://vankuvkopec.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://vankuvkopec.com/wp-content/uploads/2017/03/ostrava_logo.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Město Ostrava",
+   "servi": true
   },
   "cz-velka-upa": {
    "id": "cz-velka-upa",
@@ -3690,10 +3872,12 @@
    "site": "https://www.zasadaskicentrum.cz/",
    "url": "https://www.zasadaskicentrum.cz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.zasadaskicentrum.cz/cache/mod_roksprocket/3013240d983bda86f4e71acffa89da45_400_750.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "cz-sjezdovka-severka": {
    "id": "cz-sjezdovka-severka",
@@ -3769,10 +3953,12 @@
    "site": "https://www.adelharzlifte.de/",
    "url": "https://www.adelharzlifte.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.adelharzlifte.de/2-team-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-berghalde-penzburg": {
    "id": "de-berghalde-penzburg",
@@ -3791,10 +3977,12 @@
    "site": "https://www.bromberg-alm.de/",
    "url": "https://bromberg-alm.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://bromberg-alm.de/wp-content/uploads/2026/07/bromberg-alm-boebing-restaurant-wirtshaus-aussenansicht-79.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-bottingen": {
    "id": "de-bottingen",
@@ -3892,10 +4080,12 @@
    "site": "https://www.gohrersberg.de/",
    "url": "https://www.gohrersberg.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.gohrersberg.de/wp-content/uploads/2019/01/2019_06.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-haldenkopfle": {
    "id": "de-haldenkopfle",
@@ -3903,10 +4093,12 @@
    "site": "https://www.hohtann-belchen.de/",
    "url": "https://www.hohtann-belchen.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.hohtann-belchen.de/webcam/webcam.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-herzogstandbahn-walchensee": {
    "id": "de-herzogstandbahn-walchensee",
@@ -3995,10 +4187,12 @@
    "site": "https://www.kolbensattel.de/",
    "url": "https://kolbensattel-im-sommer.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://kolbensattel-im-sommer.de/wp-content/uploads/2025/03/2013.03.12-Starosczik_1-1024x768.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-ludwigsstadt": {
    "id": "de-ludwigsstadt",
@@ -4017,10 +4211,12 @@
    "site": "https://der-skiclub.de/",
    "url": "https://der-skiclub.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://der-skiclub.de/wp-content/uploads/Slider6.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-munstertal-wieden": {
    "id": "de-munstertal-wieden",
@@ -4028,10 +4224,12 @@
    "site": "https://www.skilifte-muenstertal-wieden.de",
    "url": "https://www.skilifte-muenstertal-wieden.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilifte-muenstertal-wieden.de/assets/images/eichbuehl-490x370.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "eichbühl",
+   "servi": true
   },
   "de-oberer-maxlraineralm": {
    "id": "de-oberer-maxlraineralm",
@@ -4052,10 +4250,12 @@
    "site": "https://www.skilift-wilhams.de/",
    "url": "https://www.skilift-wilhams.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilift-wilhams.de/templates/skilift_wilhams/images/header/header_12.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-ochsenkopf": {
    "id": "de-ochsenkopf",
@@ -4063,10 +4263,12 @@
    "site": "http://www.seilbahn-ochsenkopf.de/",
    "url": "https://www.ochsenkopf.info/aktuelles-vom-ochsenkopf/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.ochsenkopf.info/site/assets/files/1533/a3_vorankuendigung.500x0.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-pfannilift-am-schliersee": {
    "id": "de-pfannilift-am-schliersee",
@@ -4131,10 +4333,12 @@
    "site": "https://sport-elstra.de/ski/",
    "url": "https://sport-elstra.de/ski/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://sport-elstra.de/wp-content/uploads/2024/08/SKI_ALPINE-Image_001-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-ski-und-snowboardzentrum-fahrenberg": {
    "id": "de-ski-und-snowboardzentrum-fahrenberg",
@@ -4166,10 +4370,12 @@
    "site": "https://www.eckbauerbahn.de/",
    "url": "https://www.eckbauerbahn.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.eckbauerbahn.de/wp-content/uploads/2021/05/ebb-a19-053-marcgilsdorf-1024x768.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-skigebiet-hofeck": {
    "id": "de-skigebiet-hofeck",
@@ -4214,10 +4420,12 @@
    "site": "https://skiclub-heigenbruecken.de/ski/",
    "url": "https://skiclub-heigenbruecken.de/ski/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skiclub-heigenbruecken.de/ski/media/Aktuell/Generalvers_2026.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-skigebiet-am-englander": {
    "id": "de-skigebiet-am-englander",
@@ -4236,10 +4444,12 @@
    "site": "http://www.skiclub-warstein.de/",
    "url": "http://www.skiclub-warstein.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://skiclub-warstein.de/data/uploads/image-skiclub.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-skihang-am-poppenberg-in-brilon": {
    "id": "de-skihang-am-poppenberg-in-brilon",
@@ -4258,10 +4468,12 @@
    "site": "https://www.wsv-tailfingen.de",
    "url": "https://wsv-tailfingen.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://wsv-tailfingen.de/wp-content/uploads/2026/03/HP-mini-1-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-skilift-au": {
    "id": "de-skilift-au",
@@ -4306,10 +4518,12 @@
    "site": "https://www.skiclub-olbernhau.de/",
    "url": "https://www.skiclub-olbernhau.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skiclub-olbernhau.de/bilder/images/Skihuette/skihuette-olbernhau.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-skilift-hermsdorf": {
    "id": "de-skilift-hermsdorf",
@@ -4350,10 +4564,12 @@
    "site": "https://www.skilift-wurmstein.de/",
    "url": "https://www.skilift-wurmstein.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilift-wurmstein.de/assets/images/logo.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-skilift-am-rotterhang": {
    "id": "de-skilift-am-rotterhang",
@@ -4372,10 +4588,12 @@
    "site": "https://www.skilifte-sinswang.de/",
    "url": "https://www.skilifte-sinswang.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilifte-sinswang.de/wp-content/uploads/2016/10/sinswang_copyright_pio_mars-45-von-157-1024x683.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-skipiste-am-kohlberg": {
    "id": "de-skipiste-am-kohlberg",
@@ -4396,10 +4614,12 @@
    "site": "https://www.sternrodt-skilift.de/",
    "url": "https://www.sternrodt-skilift.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.sternrodt-skilift.de/webcam/neu/sternrodt.jpg.jpeg?",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-stollenbach": {
    "id": "de-stollenbach",
@@ -4407,10 +4627,12 @@
    "site": "https://www.skilifte-stollenbach.de/",
    "url": "https://www.skilifte-stollenbach.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skilifte-stollenbach.de/eip/clips/skilifte-stollenbach-4-thumb3.JPG?fl=50080881",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "-",
+   "servi": true
   },
   "de-tegelbergbahn": {
    "id": "de-tegelbergbahn",
@@ -4418,10 +4640,12 @@
    "site": "https://www.tegelbergbahn.de",
    "url": "https://www.tegelbergbahn.de/de",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.tegelbergbahn.de/_files/site_page/site_page_31/startimage_1_header.jpg?c666c5c7ea78f5a8",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-unternberg-ruhpolding": {
    "id": "de-unternberg-ruhpolding",
@@ -4442,10 +4666,12 @@
    "site": "https://www.wallbergbahn.de/",
    "url": "https://www.wallbergbahn.de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.wallbergbahn.de/media/system/teaser/wallberg-fotograf-gisela-schregle-140804-32-b-4.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Wallberg_Fotograf_Gisela-Schregle_140804_32_B",
+   "servi": true
   },
   "de-wengen": {
    "id": "de-wengen",
@@ -4497,10 +4723,12 @@
    "site": "https://www.skischule-inzell.de/wolfsberg-skilift-2/",
    "url": "https://www.skischule-inzell.de/wolfsberg-skilift-2/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.skischule-inzell.de/livecam/cam_02.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-zadni-telnice": {
    "id": "de-zadni-telnice",
@@ -4521,10 +4749,12 @@
    "site": "https://www.duerrnberg.at",
    "url": "https://duerrnberg.at/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://duerrnberg.at/wp-content/uploads/2022/04/ls-project-26-slide-1-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "de-otzlifte-kochel": {
    "id": "de-otzlifte-kochel",
@@ -4606,10 +4836,12 @@
    "site": "https://www.nommelumepark.ee/",
    "url": "https://nommelumepark.ee/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://nommelumepark.ee/app/themes/nommelumepark/public/images/nommelumepark.c4d779.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Nommelume Park",
+   "servi": true
   },
   "ee-tehvandi-snowpark": {
    "id": "ee-tehvandi-snowpark",
@@ -4713,10 +4945,12 @@
    "site": "https://www.manzaneda.com/",
    "url": "https://www.manzaneda.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://cdn.prod.website-files.com/6059b1d3418651c153253559/6a40e2e2988b4ffd98d6052d_PXL_20260602_145357239%20(1)%20(1).jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "es-estacion-de-esqui-de-valdesqui": {
    "id": "es-estacion-de-esqui-de-valdesqui",
@@ -4724,10 +4958,12 @@
    "site": "https://www.valdesqui.es/",
    "url": "https://valdesqui.es/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://valdesqui.es/~cam/estadiumnew.jpg?version=5590",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Estadio",
+   "servi": true
   },
   "es-estacion-de-esqui-de-valdezcaray": {
    "id": "es-estacion-de-esqui-de-valdezcaray",
@@ -4748,10 +4984,12 @@
    "site": "http://www.javalambre.com",
    "url": "https://www.javalambre-valdelinares.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://d32r4yxuun6zdf.cloudfront.net/estaticos/extras/fotos/contenidos/00/00/01/16/15//abono-temporada-JV-26-27.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "abono-temporada-JV-26-27.jpg",
+   "servi": true
   },
   "es-la-covatilla": {
    "id": "es-la-covatilla",
@@ -4770,10 +5008,12 @@
    "site": "https://www.lapinilla.es/",
    "url": "https://lapinilla.es/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://lapinilla.es/wp-content/uploads/2023/08/2_seccion-1_interior_Lobo-1.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "es-leitariegos": {
    "id": "es-leitariegos",
@@ -4814,10 +5054,12 @@
    "site": "http://www.valdelinares.com",
    "url": "https://www.javalambre-valdelinares.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://d32r4yxuun6zdf.cloudfront.net/estaticos/extras/fotos/contenidos/00/00/01/16/15//abono-temporada-JV-26-27.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "abono-temporada-JV-26-27.jpg",
+   "servi": true
   },
   "fi-aavasaksa": {
    "id": "fi-aavasaksa",
@@ -4908,10 +5150,12 @@
    "site": "https://www.hirvensalo.fi",
    "url": "https://www.hirvensalo.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.hirvensalo.fi/imgs/teksti-rinne.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-hittenharju": {
    "id": "fi-hittenharju",
@@ -4919,10 +5163,12 @@
    "site": "https://www.harjavallanjymy.fi/",
    "url": "https://www.harjavallanjymy.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.harjavallanjymy.fi/wp-content/uploads/2024/01/cropped-410918794_979302730393190_8652938954465603397_n.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-kallin": {
    "id": "fi-kallin",
@@ -4969,10 +5215,12 @@
    "site": "https://www.kirikeskus.fi/kiri-rinteet/",
    "url": "https://www.kirikeskus.fi/kiri-rinteet/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.kirikeskus.fi/wp-content/uploads/2020/11/kiririnteet2.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Kiririnteet",
+   "servi": true
   },
   "fi-kommatti": {
    "id": "fi-kommatti",
@@ -4993,10 +5241,12 @@
    "site": "https://konkaski.fi/",
    "url": "https://konkaski.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://konkaski.fi/wp-content/uploads/2017/01/konkaski_logo_uusi.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "KonkaSki - Tervetuloa",
+   "servi": true
   },
   "fi-laskettelukeskus-mustavaara": {
    "id": "fi-laskettelukeskus-mustavaara",
@@ -5054,10 +5304,12 @@
    "site": "https://messila.fi/",
    "url": "https://messila.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://messila.fi/wp-content/uploads/2026/06/E0543E92-95D7-43D7-B404-A61DBAD549B3-scaled.jpeg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-mielakan-rinnekeskus": {
    "id": "fi-mielakan-rinnekeskus",
@@ -5087,10 +5339,12 @@
    "site": "https://ounasvaara.fi",
    "url": "https://ounasvaara.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://ounasvaara.fi/wp-content/uploads/2026/02/Ounasvaara-Ski-Resort-slopes-9.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-ounasvaaran-laskettelukeskus-totto-ounasvaara-ski-resort-totto": {
    "id": "fi-ounasvaaran-laskettelukeskus-totto-ounasvaara-ski-resort-totto",
@@ -5098,10 +5352,12 @@
    "site": "https://ounasvaara.fi",
    "url": "https://ounasvaara.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://ounasvaara.fi/wp-content/uploads/2026/02/Ounasvaara-Ski-Resort-slopes-9.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-ounasvaaran-laskettelukeskus-ounasvaara-ski-resort": {
    "id": "fi-ounasvaaran-laskettelukeskus-ounasvaara-ski-resort",
@@ -5109,10 +5365,12 @@
    "site": "https://ounasvaara.fi/",
    "url": "https://ounasvaara.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://ounasvaara.fi/wp-content/uploads/2026/02/Ounasvaara-Ski-Resort-slopes-9.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-paavonrinteet": {
    "id": "fi-paavonrinteet",
@@ -5214,10 +5472,12 @@
    "site": "https://www.paaskyvuori.fi/",
    "url": "https://www.paaskyvuori.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.paaskyvuori.fi/wp-content/uploads/1920.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-paminne": {
    "id": "fi-paminne",
@@ -5225,10 +5485,12 @@
    "site": "https://paminne.com/",
    "url": "https://paminne.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://paminne.fi/wp-content/uploads/2023/06/DSC_4190.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-riihivuori-resort": {
    "id": "fi-riihivuori-resort",
@@ -5273,10 +5535,12 @@
    "site": "https://www.freeski.fi/",
    "url": "https://www.freeski.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.freeski.fi/files/2022/20260314_064107.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-ruskotunturi": {
    "id": "fi-ruskotunturi",
@@ -5284,10 +5548,12 @@
    "site": "https://www.ruskotunturi.fi/",
    "url": "https://ruskotunturi.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://ruskotunturi.fi/wp-content/uploads/2025/07/aikuisten.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fi-ruunarinteet": {
    "id": "fi-ruunarinteet",
@@ -5369,10 +5635,12 @@
    "site": "https://serena.fi/",
    "url": "https://serena.fi/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://serena.fi/wp-content/uploads/2024/12/LASTENMAET-w.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Lastenmäet",
+   "servi": true
   },
   "fi-simpsio": {
    "id": "fi-simpsio",
@@ -5626,10 +5894,12 @@
    "site": "https://aiguilledumidi.montblancnaturalresort.com/en",
    "url": "https://aiguilledumidi.montblancnaturalresort.com/en",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.datocms-assets.com/144383/1729682434-home_aiguille-du-midi-ete.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Aiguille du Midi",
+   "servi": true
   },
   "fr-autrans": {
    "id": "fr-autrans",
@@ -5682,10 +5952,12 @@
    "site": "https://www.haute-garonne-montagne.com/stations/bourg-doueil-hiver/",
    "url": "https://www.haute-garonne-montagne.com/bourg-doueil-hiver/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.haute-garonne-montagne.com/wp-content/uploads/2025/07/bourg-d_oueil_neige_luge_-HauteGaronneMontagne-AnaisBazerque-scaled-1-730x1024.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fr-brevent-flegere-chamonix": {
    "id": "fr-brevent-flegere-chamonix",
@@ -5785,10 +6057,12 @@
    "site": "https://www.grand-ballon.net/de/",
    "url": "https://www.grand-ballon.net/de/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.grand-ballon.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fr-janvry-janvoriaz": {
    "id": "fr-janvry-janvoriaz",
@@ -5965,10 +6239,12 @@
    "site": "https://www.lemarkstein.net/",
    "url": "https://www.lemarkstein.net/fr/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.lemarkstein.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fr-montagne-de-lure": {
    "id": "fr-montagne-de-lure",
@@ -6054,10 +6330,12 @@
    "site": "https://www.notredamedupre.fr/fr/information/79253/le-ski-piste-dame-pre",
    "url": "https://commune-de-notre-dame-du-pre.neopse-site.com/fr/information/79253/le-ski-piste-dame-pre",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://static.neopse.com/medias/p/3724/site/cc/02/c4/cc02c484ec131fac55efce56909d5d09ef6037bd.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Logo Commune de Notre-Dame-du-Pré",
+   "servi": true
   },
   "fr-orcieres-merlette": {
    "id": "fr-orcieres-merlette",
@@ -6122,10 +6400,12 @@
    "site": "https://www.lansenvercors.com/teleski-de-st-nizier-du-moucherotte.html",
    "url": "https://www.vercors-experience.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.vercors-experience.com/medias/images/prestations/multitailles/800x600_1563530-sans_titre.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Spectacle - LOOPS_Lans-en-Vercors",
+   "servi": true
   },
   "fr-site-nordique-des-trois-fours": {
    "id": "fr-site-nordique-des-trois-fours",
@@ -6133,10 +6413,12 @@
    "site": "https://laschlucht.labellemontagne.com/",
    "url": "https://laschlucht.labellemontagne.com/fr/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://files.ublo.app/production/old/lbmlaschlucht/840h/SCH%20-%202013%20-%20Zoom%20Fille%20casqu%C3%A9e%20B.Jamot%20_B__6306%20BD.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "fr-site-du-meix-musy": {
    "id": "fr-site-du-meix-musy",
@@ -6256,10 +6538,12 @@
    "site": "https://www.lavormaine.com/",
    "url": "https://www.lavormaine.com/index.php/fr/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.lavormaine.com/images/bgH2019--small.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "gb-allenheads": {
    "id": "gb-allenheads",
@@ -6337,10 +6621,12 @@
    "site": "http://www.glencoemountain.com/",
    "url": "https://www.glencoemountain.co.uk/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.glencoemountain.co.uk/wp-content/themes/glencoe/preview/summer-act.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "gb-glenshee-ski-center": {
    "id": "gb-glenshee-ski-center",
@@ -6558,10 +6844,12 @@
    "site": "https://southwiltsski.com/",
    "url": "https://southwiltsski.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://southwiltsski.com/wp-content/uploads/2026/03/2367F6D8-B093-4772-86D5-5925F0C12B1C-scaled-900x1049_c.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "DISCOVER THE ULTIMATE INDOOR SKI EXPERIENCE",
+   "servi": true
   },
   "gb-stoke-ski-center": {
    "id": "gb-stoke-ski-center",
@@ -6617,10 +6905,12 @@
    "site": "https://www.skiweardale.com/",
    "url": "https://www.skiweardale.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skiweardale.com/currentImage/f1.jpg?cacheBuster=1790028513",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "gb-xscape-castleford": {
    "id": "gb-xscape-castleford",
@@ -6650,10 +6940,12 @@
    "site": "https://www.yadmoss.co.uk/",
    "url": "https://yadmoss.co.uk/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://yadmoss.co.uk/wp-content/uploads/2017/10/IMG_3132-1024x768.jpg?x54817",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ge-crystal": {
    "id": "ge-crystal",
@@ -6755,10 +7047,12 @@
    "site": "https://vigla-ski.com/",
    "url": "https://vigla-ski.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://vigla-ski.com/wp-content/uploads/2015/12/gallery_0001_Layer-3.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "gallery_0001_Layer 3",
+   "servi": true
   },
   "gr-400555m210862": {
    "id": "gr-400555m210862",
@@ -6766,10 +7060,12 @@
    "site": "https://vasilitsa.com/",
    "url": "https://vasilitsa.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://vasilitsa.com/wp-content/uploads/2024/11/Anouncement.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "gr-kalavrita-ski-resort": {
    "id": "gr-kalavrita-ski-resort",
@@ -6836,10 +7132,12 @@
    "site": "https://www.bankut.hu/",
    "url": "https://www.bankut.hu/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.bankut.hu/img/homeoktat.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "portfolio item name",
+   "servi": true
   },
   "hu-dobogoko-sipalya": {
    "id": "hu-dobogoko-sipalya",
@@ -6873,10 +7171,12 @@
    "site": "https://normafapark.hu",
    "url": "https://normafapark.hu/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://normafapark.hu/site/upload/2022/06/kossuth_emlekmu_normafa.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Varga Tamás: Kossuth-szobor domborműve (bronz) (pótlás)",
+   "servi": true
   },
   "hu-siarena-vibe-park": {
    "id": "hu-siarena-vibe-park",
@@ -6943,10 +7243,12 @@
    "site": "https://skidasvaedi.is/",
    "url": "https://skidasvaedi.is/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skidasvaedi.is/wp-content/uploads/2025/05/skidasvaedin.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Skíðasvæðin",
+   "servi": true
   },
   "is-dalirnir-tveir": {
    "id": "is-dalirnir-tveir",
@@ -7011,10 +7313,12 @@
    "site": "https://www.stafdalur.is/",
    "url": "https://www.stafdalur.is/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.stafdalur.is/images/yootheme/Efnismyndir/stafdalur11-431d5a17.jpeg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "is-tindastoll": {
    "id": "is-tindastoll",
@@ -7022,10 +7326,12 @@
    "site": "https://skitindastoll.is/",
    "url": "https://skitindastoll.is/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skitindastoll.is/wp-content/uploads/2019/12/tindastoll24.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "is-tindaoxl-olafsfjor-ur": {
    "id": "is-tindaoxl-olafsfjor-ur",
@@ -7199,10 +7505,12 @@
    "site": "https://ostellodiarpy.com/",
    "url": "https://ostellodiarpy.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://ostellodiarpy.com/wp-content/uploads/2021/04/cropped-106477392_2348964805407302_5801405806496362742_n.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-champorcher": {
    "id": "it-champorcher",
@@ -7245,10 +7553,12 @@
    "site": "https://www.impianticortina.it/",
    "url": "https://www.impianticortina.it/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://live-image.panomax.com/cams/2883/recent_reduced.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Home Page",
+   "servi": true
   },
   "it-cortina-d-ampezzo": {
    "id": "it-cortina-d-ampezzo",
@@ -7293,10 +7603,12 @@
    "site": "https://www.scifondoentracque.it/",
    "url": "https://www.scifondoentracque.it/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.scifondoentracque.it/wp-content/uploads/2021/11/HOME-Foto_3.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-forca-canapine": {
    "id": "it-forca-canapine",
@@ -7339,10 +7651,12 @@
    "site": "https://jochgrimm.com",
    "url": "https://oclini.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://oclini.com/webcam/webcam1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-kaberlaba": {
    "id": "it-kaberlaba",
@@ -7363,10 +7677,12 @@
    "site": "https://cortinadelicious.it/",
    "url": "https://cortinadelicious.it/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://cortinadelicious.it/Images/Super8/modalMobile400.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-latemar-dolomites": {
    "id": "it-latemar-dolomites",
@@ -7374,10 +7690,12 @@
    "site": "https://www.latemar.it/",
    "url": "https://www.latemar.it/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.latemar.it/wp-content/uploads/2025/05/testate-sito-latema_trek-sul-latemar.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "escursioni sul latemar",
+   "servi": true
   },
   "it-macesnovc-ratece": {
    "id": "it-macesnovc-ratece",
@@ -7385,10 +7703,12 @@
    "site": "http://www.ratece-planica.si/",
    "url": "http://www.ratece-planica.si/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.ratece-planica.si/cache/com_unitehcarousel/vas%20ratece%202_1200x500_exact_images-Slideshow.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "slide image",
+   "servi": true
   },
   "it-monte-carpegna": {
    "id": "it-monte-carpegna",
@@ -7396,10 +7716,12 @@
    "site": "https://www.eremomontecarpegna.it/",
    "url": "https://www.eremomontecarpegna.it/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.eremomontecarpegna.it/public/webcam/air3.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-monte-catria": {
    "id": "it-monte-catria",
@@ -7407,10 +7729,12 @@
    "site": "https://www.montecatria.com/",
    "url": "https://www.montecatria.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.montecatria.com/wp-content/uploads/2020/03/Altalena-Gigante.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-monte-nerone": {
    "id": "it-monte-nerone",
@@ -7418,10 +7742,12 @@
    "site": "https://www.scioviemontenerone.it/",
    "url": "https://scioviemontenerone.it/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://scioviemontenerone.it/wp-content/uploads/2017/03/monteneronemap.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "monteneronemap",
+   "servi": true
   },
   "it-monte-piselli": {
    "id": "it-monte-piselli",
@@ -7442,10 +7768,12 @@
    "site": "https://sibillini.palple.net/monteprata2.html",
    "url": "https://sibillini.palple.net/monteprata2.html",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://sibillini.palple.net/immagini/pistemonteprata.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-monte-valbella-asiago": {
    "id": "it-monte-valbella-asiago",
@@ -7597,10 +7925,12 @@
    "site": "https://www.sarnanoneve.it/",
    "url": "https://www.sarnanoneve.it/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.sarnanoneve.it/wp-content/uploads/2017/04/Porzione1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "it-scanno-419022m138791": {
    "id": "it-scanno-419022m138791",
@@ -7728,10 +8058,12 @@
    "site": "https://alps.altay.kz/",
    "url": "https://alps.altay.kz/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://alps.altay.kz/slider/gallery/m1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "kz-shymbulak": {
    "id": "kz-shymbulak",
@@ -7750,10 +8082,12 @@
    "site": "https://aukstagireskalnas.lt/",
    "url": "https://aukstagireskalnas.lt/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://aukstagireskalnas.lt/wp-content/uploads/2025/05/auks-1024x668.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "lt-jonavos-slidinejimo-centras": {
    "id": "lt-jonavos-slidinejimo-centras",
@@ -7761,10 +8095,12 @@
    "site": "https://www.jsc.lt/",
    "url": "https://www.jsc.lt/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.jsc.lt/img/slides/slide-home.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "lt-liepkalnis-lipowka": {
    "id": "lt-liepkalnis-lipowka",
@@ -7785,10 +8121,12 @@
    "site": "http://eglukalns.lv/",
    "url": "http://eglukalns.lv/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://eglukalns.lv/block_files/fenaxytiga.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "lv-lemberga-hute": {
    "id": "lv-lemberga-hute",
@@ -7818,10 +8156,12 @@
    "site": "https://www.ozolkalns.lv/winter",
    "url": "https://www.ozolkalns.lv/winter",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.ozolkalns.lv/user_uploads/cachedi/20250302_115040(1)_400_300.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "lv-zagarkalns": {
    "id": "lv-zagarkalns",
@@ -7842,10 +8182,12 @@
    "site": "https://www.skijalista.me/ski-centri/kolasin-1600",
    "url": "https://skijalista.me/en/ski-centers/kolasin-1600/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skijalista.me/wp-content/uploads/Kolasin-1600-11-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "mk-ponikva": {
    "id": "mk-ponikva",
@@ -7888,10 +8230,12 @@
    "site": "https://www.deschans.nl/",
    "url": "https://www.deschans.nl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.deschans.nl/wp-content/uploads/2020/12/BK3A5099.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "nl-indoor-ski-rotterdam": {
    "id": "nl-indoor-ski-rotterdam",
@@ -7936,10 +8280,12 @@
    "site": "https://www.skicentrumhoofddorp.nl/",
    "url": "https://www.skicentrumhoofddorp.nl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skicentrumhoofddorp.nl/wp-content/uploads/2026/05/DSC00468-kl.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "DSC00468 kl",
+   "servi": true
   },
   "nl-skicentrum-soesterberg-huis-ter-heide": {
    "id": "nl-skicentrum-soesterberg-huis-ter-heide",
@@ -8047,10 +8393,12 @@
    "site": "https://www.bski.no/",
    "url": "https://www.bski.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.bski.no/wp-content/uploads/2026/01/IMG_1778-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-bortelid-skisenter": {
    "id": "no-bortelid-skisenter",
@@ -8102,10 +8450,12 @@
    "site": "https://www.eikerapen.info/",
    "url": "https://www.eikerapen.info/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.eikerapen.info/wp-content/uploads/2026/02/9a2bbef280ec1e5a5eb6dbca4449e996.jpeg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-fagerfjell-skisenter": {
    "id": "no-fagerfjell-skisenter",
@@ -8137,10 +8487,12 @@
    "site": "http://www.finseskisenter.no/",
    "url": "http://www.finseskisenter.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.finseskisenter.no/wordpress/wp-content/uploads/2019/03/screenshot_20190322-164854_yr6136523853705369376.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-fjellhaugen-skisenter": {
    "id": "no-fjellhaugen-skisenter",
@@ -8211,10 +8563,12 @@
    "site": "https://gullingen.no/skisenter/",
    "url": "https://gullingen.no/skisenter/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://gullingen.no/wp-content/uploads/2016/09/1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-hammerfest": {
    "id": "no-hammerfest",
@@ -8270,10 +8624,12 @@
    "site": "https://hogevarde.no/",
    "url": "https://hogevarde.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://hogevarde.no/content/uploads/2026/09/Hogevarde-nr-7-2-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "img",
+   "servi": true
   },
   "no-ingierkollen": {
    "id": "no-ingierkollen",
@@ -8362,10 +8718,12 @@
    "site": "https://www.leirskallen.no/",
    "url": "https://www.leirskallen.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.leirskallen.no/wp-content/uploads/2019/02/Preppemaskin-og-sn%C3%B8kanon-648x696.jpeg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-liabakken": {
    "id": "no-liabakken",
@@ -8397,10 +8755,12 @@
    "site": "https://alpinlofoten.no/",
    "url": "https://alpinlofoten.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://alpinlofoten.no/wp-content/uploads/2020/10/cropped-Bakken.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Lofoten snowboard- og alpinsenter",
+   "servi": true
   },
   "no-lommedalen": {
    "id": "no-lommedalen",
@@ -8447,10 +8807,12 @@
    "site": "http://www.modumskisenter.no",
    "url": "http://www.modumskisenter.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.modumskisenter.no/wp-content/uploads/2026/02/FB_IMG_1771541551075-1038x576.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-nesfjellet-alpinsenter": {
    "id": "no-nesfjellet-alpinsenter",
@@ -8513,10 +8875,12 @@
    "site": "https://visitrauland.com/rauland-skisenter/",
    "url": "https://visitrauland.com/rauland-skisenter/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://visitrauland.com/rauland-skisenter/wp-content/uploads/sites/18/2026/01/Rauland_pistemap_4.1_web1920px_1700219330_1768395266.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Kart over Rauland Skisenter med løyper og heiser for alpint og langrenn i naturskjønne omgivelser.",
+   "servi": true
   },
   "no-raulandsfjell-alpinsenter": {
    "id": "no-raulandsfjell-alpinsenter",
@@ -8535,10 +8899,12 @@
    "site": "https://raumaskisenter.com",
    "url": "https://raumaskisenter.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://usercontent.one/wp/raumaskisenter.com/wp-content/uploads/2023-04-09-Smorbotntind-vest-scaled-e1681721509155-768x432.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-rena": {
    "id": "no-rena",
@@ -8546,10 +8912,12 @@
    "site": "https://www.renaalpin.no/",
    "url": "https://www.renaalpin.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.renaalpin.no/media/widgetkit/20140327_web-53b4d1924ce38b389beb6c53509c5416.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "20140327 Web",
+   "servi": true
   },
   "no-ringerudsetra-skitrekk": {
    "id": "no-ringerudsetra-skitrekk",
@@ -8594,10 +8962,12 @@
    "site": "https://skeikampen.no/",
    "url": "https://skeikampen.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skeikampen.no/globalassets/skeikampen.no/bilder/sommer/golf/1440-1080-skei-golf-skeikampen.jpg?width=550&height=367&mode=crop",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-ski-geilo": {
    "id": "no-ski-geilo",
@@ -8732,10 +9102,12 @@
    "site": "https://surnadal-alpinsenter.no/",
    "url": "https://surnadal-alpinsenter.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://surnadal-alpinsenter.no/wp-content/uploads/2024/08/surnadal-ledig-stilling.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-troms-alpinpark": {
    "id": "no-troms-alpinpark",
@@ -8765,10 +9137,12 @@
    "site": "https://www.turufjell.no/",
    "url": "https://www.turufjell.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.turufjell.no/static/92a06b9b0337ed2a1fc63950b869deae/b5b7f/48bb7f6c-b6e3-4095-834e-ea2552915dd4.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Kopi Av Nr 58 (1)",
+   "servi": true
   },
   "no-tusten-skiheiser": {
    "id": "no-tusten-skiheiser",
@@ -8776,10 +9150,12 @@
    "site": "https://www.tusten.no/",
    "url": "https://www.tusten.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://cdn.prod.website-files.com/61b07162bff908696a0f4c7d/61b0820b2b1a50ba8ec94ee1_Tusten01.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Tusten Skiheiser i Molde",
+   "servi": true
   },
   "no-tveit-skisenter": {
    "id": "no-tveit-skisenter",
@@ -8811,10 +9187,12 @@
    "site": "https://vegglifjellskisenter.no/",
    "url": "https://www.vegglifjellskisenter.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.vegglifjellskisenter.no/wp-content/uploads/2023/02/aking2-1024x683.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-vegarshei-skisenter": {
    "id": "no-vegarshei-skisenter",
@@ -8846,10 +9224,12 @@
    "site": "https://www.voldaskisenter.no/",
    "url": "https://www.voldaskisenter.no/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://cdn.prod.website-files.com/601979f7f1a680fdd91a4a63/652e9b9eb017f5d459fac4a5_cmyk_SB1_SMN_verti_pos.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "no-adneram-skitrekk": {
    "id": "no-adneram-skitrekk",
@@ -8868,10 +9248,12 @@
    "site": "http://www.sortland-alpinklubb.no/alpinbakken/",
    "url": "http://www.sortland-alpinklubb.no/alpinbakken/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.sortland-alpinklubb.no/wp-content/uploads/2020/12/cropped-ski1-scaled-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "SORTLAND ALPINKLUBB",
+   "servi": true
   },
   "no-rskogfjell-skisenter": {
    "id": "no-rskogfjell-skisenter",
@@ -8914,10 +9296,12 @@
    "site": "http://www.cisowa.pl/",
    "url": "http://www.cisowa.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "http://www.cisowa.pl/zrzuty/006E0604AD44(Stok)_0_20180206141851_77.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Kamerka Cisowa.pl",
+   "servi": true
   },
   "pl-cos-szczyrk": {
    "id": "pl-cos-szczyrk",
@@ -8938,10 +9322,12 @@
    "site": "https://www.dimbo.pl/",
    "url": "https://www.dimbo.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.dimbo.pl/wp-content/uploads/2014/07/dimbo-alpy-2-460x345.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pl-gora-czterech-wiatrow-g4w": {
    "id": "pl-gora-czterech-wiatrow-g4w",
@@ -8949,10 +9335,12 @@
    "site": "https://g4w.pl/",
    "url": "https://g4w.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://g4w.pl/wp-content/uploads/2026/01/g4w.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pl-gorka-srodulska": {
    "id": "pl-gorka-srodulska",
@@ -8971,10 +9359,12 @@
    "site": "https://www.nartyrzeczka.com/",
    "url": "https://www.nartyrzeczka.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.nartyrzeczka.com/images/design/usp.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Ikona narciarza",
+   "servi": true
   },
   "pl-henryk-ski": {
    "id": "pl-henryk-ski",
@@ -8993,10 +9383,12 @@
    "site": "https://www.pkl.pl/kasprowy-wierch/kasprowy.html",
    "url": "https://www.pkl.pl/kasprowy-wierch/kasprowy.html",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.pkl.pl/data/pages/338/kasprowy_kolej%C2%A9jan_wierzejski-64.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pl-kiczera-ski": {
    "id": "pl-kiczera-ski",
@@ -9043,10 +9435,12 @@
    "site": "https://pilsko.org/",
    "url": "https://pilsko.org/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://pilsko.org/wp-content/uploads/2026-06-22-1024x727.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pl-master-ski-493900m210237": {
    "id": "pl-master-ski-493900m210237",
@@ -9137,10 +9531,12 @@
    "site": "https://smolen-ski.pl/",
    "url": "https://smolen-ski.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://smolen-ski.pl/wp-content/uploads/2021/12/51.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pl-sport-dolina": {
    "id": "pl-sport-dolina",
@@ -9161,10 +9557,12 @@
    "site": "https://stacjakazimierz.pl/",
    "url": "https://stacjakazimierz.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://stacjakazimierz.pl/wp-content/uploads/2025/01/00-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "00 - Stacja Narciarska Kazimierz - stok narciarski Kazimierz Dolny nad Wisłą",
+   "servi": true
   },
   "pl-stacja-narciarska-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-station": {
    "id": "pl-stacja-narciarska-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-station",
@@ -9185,10 +9583,12 @@
    "site": "https://skolnity.pl/",
    "url": "https://skolnity.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skolnity.pl/wp-content/uploads/2026/04/parkirowerowe.pl_.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pl-stok-bobliwo": {
    "id": "pl-stok-bobliwo",
@@ -9207,10 +9607,12 @@
    "site": "https://dolinaszczescia.pl/",
    "url": "https://dolinaszczescia.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://dolinaszczescia.pl/uploads/articles/2025/12/7/69523c0fb7a4f-vlcsnap-2018-11-16-13h22m11s112.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Cennik wjazdów",
+   "servi": true
   },
   "pl-stok-narciarski-szopowe": {
    "id": "pl-stok-narciarski-szopowe",
@@ -9229,10 +9631,12 @@
    "site": "https://czarnow-ski.pl/",
    "url": "https://czarnow-ski.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://czarnow-ski.pl/Rodzinna1.opt.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Narciarze na stoku Czarnow SKI",
+   "servi": true
   },
   "pl-szklana-gora-ski": {
    "id": "pl-szklana-gora-ski",
@@ -9240,10 +9644,12 @@
    "site": "https://szklanagora.pl",
    "url": "https://szklanagora.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://szklanagora.pl/wp-content/uploads/2023/08/szklanagora-scaled.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pl-szklarska-poreba": {
    "id": "pl-szklarska-poreba",
@@ -9306,10 +9712,12 @@
    "site": "https://www.zwardonski.pl/",
    "url": "https://www.zwardonski.pl/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.zwardonski.pl/images/banners/slider-01.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "pt-serra-da-estrela": {
    "id": "pt-serra-da-estrela",
@@ -9341,10 +9749,12 @@
    "site": "https://paltinisarena.ro/",
    "url": "https://paltinisarena.ro/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://paltinisarena.ro/uploads/tx_templavoila/call-to-action.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ro-azuga": {
    "id": "ro-azuga",
@@ -9446,10 +9856,12 @@
    "site": "https://www.hargitafurdo.ro/",
    "url": "https://hargitafurdo.ro/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://hargitafurdo.ro/wp-content/uploads/2026/07/IMG20230812184319-1024x768.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ro-havas-bucsin": {
    "id": "ro-havas-bucsin",
@@ -9490,10 +9902,12 @@
    "site": "https://weski.ro/",
    "url": "https://weski.ro/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://weski.ro/wp-content/uploads/2022/10/Freeride_video-cover.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ro-parang": {
    "id": "ro-parang",
@@ -9549,10 +9963,12 @@
    "site": "https://sinaiago.ro/",
    "url": "https://sinaiago.ro/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://sinaiago.ro/wp-content/uploads/2026/09/Program_M_0926.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ro-ski-vidra": {
    "id": "ro-ski-vidra",
@@ -9612,10 +10028,12 @@
    "site": "https://telescaunpaltinis.ro/",
    "url": "https://telescaunpaltinis.ro/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://telescaunpaltinis.ro/wp-content/uploads/2026/07/1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ro-suior": {
    "id": "ro-suior",
@@ -9647,10 +10065,12 @@
    "site": "https://www.skijalistasrbije.rs/",
    "url": "https://www.skijalistasrbije.rs/sr",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skijalistasrbije.rs/sites/default/files/styles/naslovna_blog/public/clanci/kgb_panorama_sep_2026.jpg?itok=7BODnI1e",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "rs-ski-center-stara-planina": {
    "id": "rs-ski-center-stara-planina",
@@ -9704,10 +10124,12 @@
    "site": "https://www.almasafritid.se/",
    "url": "https://www.almasafritid.se/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.almasafritid.se/wp-content/uploads/2022/03/Utforsakning-pa-Almasa-1060x600.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Utförsåkning på Almåsa",
+   "servi": true
   },
   "se-bjastabacken": {
    "id": "se-bjastabacken",
@@ -9726,10 +10148,12 @@
    "site": "https://www.skidklubben.se/brudarebacken/",
    "url": "https://www.skidklubben.se/brudarebacken/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skidklubben.se/wp-content/uploads/2022/05/brudarebacken.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "se-bubergsgarden": {
    "id": "se-bubergsgarden",
@@ -9774,10 +10198,12 @@
    "site": "https://falkopingalpin.com/",
    "url": "https://falkopingalpin.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://falkopingalpin.com/content/uploads/2018/11/FKPG_Alpin_Hero_undersida.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "se-flottsbro": {
    "id": "se-flottsbro",
@@ -9824,10 +10250,12 @@
    "site": "https://www.isaberg.com/",
    "url": "https://www.isaberg.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.isaberg.com/media/wthdpoyp/isaberg_160816-2368.jpg?width=1900&amp;height=750&amp;v=1d81e8faba16f70&format=jpg&quality=75",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "ISABERG 160816 2368",
+   "servi": true
   },
   "se-jarvsobacken": {
    "id": "se-jarvsobacken",
@@ -9835,10 +10263,12 @@
    "site": "https://www.jarvsobacken.se/",
    "url": "https://www.jarvsobacken.se/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://i0.wp.com/www.jarvsobacken.se/wp-content/uploads/2024/11/Sidfot-JB.webp?fit=2560%2C854&amp;ssl=1",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "se-kappruet": {
    "id": "se-kappruet",
@@ -9951,10 +10381,12 @@
    "site": "https://www.skattman.nu/",
    "url": "https://www.skattman.nu/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skattman.nu/wp-content/uploads/2026/06/cropped-649236724-18562381030010070-3010897514918632978-n.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "se-skistar-hammarbybacken": {
    "id": "se-skistar-hammarbybacken",
@@ -10012,10 +10444,12 @@
    "site": "https://www.stenkallegarden.se/",
    "url": "https://www.stenkallegarden.se/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.stenkallegarden.se/img/gallery/aa3a199d-7ada-4206-8f52-8a75c483bcbd.jpg?width=1181&amp;height=520&amp;crop=auto&amp;scale=both",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "se-storklinten": {
    "id": "se-storklinten",
@@ -10036,10 +10470,12 @@
    "site": "https://www.storlienhogfjallshotell.se/en/activities-winter.html",
    "url": "https://www.storlienhogfjallshotell.se/en/activities-winter.html",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.storlienhogfjallshotell.se/images/800x550-alpint.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "se-svanstein": {
    "id": "se-svanstein",
@@ -10110,10 +10546,12 @@
    "site": "https://www.tolvmannabacken.se",
    "url": "https://tolvmannabacken.se/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://tolvmannabacken.se/wp-content/uploads/2023/12/Ny-KISA-1.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Kisa MTB-park",
+   "servi": true
   },
   "se-tarmaby": {
    "id": "se-tarmaby",
@@ -10169,10 +10607,12 @@
    "site": "https://vedbobacken.se/",
    "url": "https://vedbobacken.se/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://vedbobacken.se/assets/bilder/downhill/JOEL_HILLBOM_Vedbo_Lucas_02.JPG",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "JOEL HILLBOM Vedbo Lucas 02",
+   "servi": true
   },
   "se-vreningebacken": {
    "id": "se-vreningebacken",
@@ -10213,10 +10653,12 @@
    "site": "https://www.cerkno-resort.si/",
    "url": "https://www.hotel-cerkno.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.hotel-cerkno.com/assets/david-barajas-CMajP7KvGCA-unsplash-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "si-gace": {
    "id": "si-gace",
@@ -10331,10 +10773,12 @@
    "site": "https://www.soriska-planina.si",
    "url": "https://www.soriska-planina.si/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.soriska-planina.si/assets/img/summerinfo.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "soriška planina",
+   "servi": true
   },
   "si-stari-vrh": {
    "id": "si-stari-vrh",
@@ -10517,10 +10961,12 @@
    "site": "https://www.bikepark.sk/",
    "url": "https://skipark.sk/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skipark.sk/wp-content/uploads/2026/04/mesto-ruzomberok-logo.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "sk-regetovka": {
    "id": "sk-regetovka",
@@ -10541,10 +10987,12 @@
    "site": "https://skidemanova.sk/",
    "url": "https://skidemanova.sk/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skidemanova.sk/wp-content/uploads/2023/01/GER_2673-1-1-1024x683.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "sk-ski-bezovec-486684m179682": {
    "id": "sk-ski-bezovec-486684m179682",
@@ -10552,10 +11000,12 @@
    "site": "https://www.skibezovec.sk/",
    "url": "https://www.skibezovec.sk/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.skibezovec.sk/wp-content/uploads/mapa-bezovec.webp",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "sk-ski-tmg-remata": {
    "id": "sk-ski-tmg-remata",
@@ -10631,10 +11081,12 @@
    "site": "https://www.skisachticky.sk/",
    "url": "https://skisachticky.sk/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://skisachticky.sk/wp-content/uploads/2022/01/mapa-768x492.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Šachtičky Lyžiarske stredisko",
+   "servi": true
   },
   "sk-serkov": {
    "id": "sk-serkov",
@@ -10677,10 +11129,12 @@
    "site": "https://ergankayak.com/",
    "url": "https://ergankayak.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://ergankayak.com/wp-content/uploads/2022/10/ergan-wallpapers-1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "tr-kayseri-erciyes": {
    "id": "tr-kayseri-erciyes",
@@ -10701,10 +11155,12 @@
    "site": "https://www.saklikent.com.tr/Default.aspx",
    "url": "https://www.saklikent.com.tr/Default.aspx",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.saklikent.com.tr/mesfiles/images/pp.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "tr-uludag-kayak-merkezi": {
    "id": "tr-uludag-kayak-merkezi",
@@ -10749,10 +11205,12 @@
    "site": "https://www.emilyresort.com.ua/en/#tabs-29",
    "url": "https://www.emilyresort.com.ua/en/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://www.emilyresort.com.ua/wp-content/uploads/2025/08/m1.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ua-krasiya": {
    "id": "ua-krasiya",
@@ -10817,10 +11275,12 @@
    "site": "https://vodyaniki.com/",
    "url": "https://www.vodyaniki.com/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=377,fit=crop/d9539XaXg0FyDPLV/panorama_vd_20241-AwvPMDMpVLie5b2R.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ua-bukowina": {
    "id": "ua-bukowina",
@@ -10852,10 +11312,12 @@
    "site": "https://plaj.at.ua/",
    "url": "https://plaj.at.ua/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://plaj.at.ua/12345655.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": null,
+   "servi": true
   },
   "ua-western-rehabilitation-and-sport-center-of-the-national-sports-committee-for-the-disabled-of-ukraine": {
    "id": "ua-western-rehabilitation-and-sport-center-of-the-national-sports-committee-for-the-disabled-of-ukraine",
@@ -10874,10 +11336,12 @@
    "site": "https://savich-park.te.ua/",
    "url": "https://savich-park.te.ua/",
    "statut": 200,
-   "photo": null,
-   "photoSource": null,
+   "photo": "https://savich-park.te.ua/wp-content/uploads/2020/12/02-snowtube8-0--772x666.jpg",
+   "photoSource": "img",
    "prix": null,
-   "refuse": false
+   "refuse": false,
+   "photoLegende": "Савич Парк Тернопіль",
+   "servi": true
   },
   "xk-ski-center-brezovica": {
    "id": "xk-ski-center-brezovica",

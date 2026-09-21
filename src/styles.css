@@ -767,8 +767,17 @@ html[data-theme="dark"] .stay-glass {
 }
 
 /* Carte des stations — maquette « SKITRACK - Carte des stations ».
-   Bandeau des stations à gauche, carte réelle à droite, survol croisé. */
-.carte {
+   Bandeau des stations à gauche, carte réelle à droite, survol croisé.
+
+   `main.carte`, et non `.carte` : **deux éléments différents portent cette
+   classe sur cet écran.** La page est `<main class="carte">`, et le composant
+   `Carte` se nomme lui aussi `.carte` (`base.css`), si bien que la grille de
+   page tombait sur la carte elle-même. Elle y passait inaperçue tant que la
+   hauteur héritée valait à peu près la bonne ; sous 1024 px, la requête média
+   ci-dessous passe `height: auto`, et le composant — dont l'unique enfant est
+   en position absolue — s'effondrait à zéro. Tuiles chargées, trois cent vingt
+   épingles dans le document, et un rectangle gris à l'écran. */
+main.carte {
   /* Hauteur bornée à la fenêtre moins l'en-tête : sans cela la liste ne
      défile pas et le canvas MapLibre prend la hauteur de ses 231 lignes. */
   height: calc(100dvh - 4rem);
@@ -977,6 +986,16 @@ html[data-theme="dark"] .stay-glass {
   min-width: 0;
   min-height: 0;
   background: var(--color-bordure-douce);
+}
+
+/* La carte remplit sa case, et le dit elle-même.
+   `traces.tsx` donne une hauteur à la sienne (`.traces__carte`) ; celle-ci
+   n'avait aucune règle et vivait de la hauteur que `.carte` lui prêtait par
+   accident. Elle se pose donc dans `.carte__map`, qui est `relative`, comme
+   `.carte__toile` se pose dans elle. */
+.carte__toile-hote {
+  position: absolute;
+  inset: 0;
 }
 
 /* Barre d'outils du bandeau : filtres et tri. */
@@ -1304,7 +1323,7 @@ html[data-theme="dark"] .stay-glass {
    garde une hauteur fixe, la liste reprend sa hauteur naturelle et c'est la
    page qui défile. */
 @media (max-width: 1024px) {
-  .carte {
+  main.carte {
     height: auto;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto;

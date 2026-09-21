@@ -1359,3 +1359,343 @@ html[data-theme="dark"] .stay-glass {
     min-height: 0;
   }
 }
+
+/* ── /monde : continents, pays, domaines ──────────────────────────────────
+ *
+ * L'écran est un écran de contrôle : il défile avec le document sous la barre
+ * v7, comme `/traces`, et non dans un panneau à hauteur fixe comme `/carte`.
+ * Les trois niveaux partagent la même largeur de lecture pour que passer de
+ * l'un à l'autre ne déplace pas la page sous les yeux. */
+.monde {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.monde__tete {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.monde__surtitre {
+  margin: 0;
+  font-size: 0.71875rem;
+  font-weight: 600;
+  color: var(--color-marque-texte);
+}
+
+.monde__titre {
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.1;
+}
+
+.monde__intro,
+.monde__note,
+.monde__renvoi,
+.monde__compte,
+.monde__vide {
+  margin: 0;
+  color: var(--color-texte-2);
+  font-size: 0.84375rem;
+  line-height: 1.5;
+}
+
+.monde__systeme {
+  display: flex;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
+.monde__fil {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.84375rem;
+  color: var(--color-texte-2);
+}
+
+.monde__miette {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--color-marque-texte);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.monde__miette--ici {
+  color: var(--color-ink);
+  cursor: default;
+}
+
+/* Les continents : six cartes, deux ou trois par ligne selon la place. */
+.monde__continents,
+.monde__pays,
+.monde__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.monde__continents {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+
+.monde-carte {
+  width: 100%;
+  display: grid;
+  gap: 0.125rem;
+  padding: 1rem;
+  text-align: left;
+  border: 1px solid var(--color-bordure);
+  border-radius: var(--radius-surface);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.monde-carte:hover {
+  border-color: var(--color-marque);
+}
+
+.monde-carte__nom {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.monde-carte__chiffre {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-marque-texte);
+}
+
+.monde-carte__quoi {
+  font-size: 0.78125rem;
+  color: var(--color-texte-2);
+}
+
+/* Les pays : une ligne chacun, le compte aligné à droite du nom. */
+.monde__pays {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.monde-pays {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "nom n"
+    "detail devise";
+  gap: 0.125rem 0.75rem;
+  align-items: baseline;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border: 1px solid var(--color-bordure-douce);
+  border-radius: 0.625rem;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.monde-pays:hover {
+  border-color: var(--color-marque);
+}
+
+.monde-pays__nom {
+  grid-area: nom;
+  font-weight: 600;
+}
+
+.monde-pays__n {
+  grid-area: n;
+  font-weight: 700;
+  color: var(--color-marque-texte);
+}
+
+.monde-pays__detail {
+  grid-area: detail;
+  font-size: 0.78125rem;
+  color: var(--color-texte-2);
+}
+
+.monde-pays__devise {
+  grid-area: devise;
+  justify-self: end;
+  font-size: 0.71875rem;
+  color: var(--color-texte-2);
+}
+
+/* La barre d'outils du troisième niveau. */
+.monde__barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.monde__recherche {
+  flex: 1 1 14rem;
+}
+
+.monde__recherche input {
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-bordure);
+  border-radius: 0.625rem;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 0.84375rem;
+}
+
+.monde__tri {
+  height: 2.25rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--color-bordure);
+  border-radius: 0.625rem;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-size: 0.84375rem;
+}
+
+.monde__filtres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-bordure-douce);
+  border-radius: var(--radius-surface);
+  background: var(--color-panel);
+}
+
+.monde-curseur {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.78125rem;
+}
+
+.monde-curseur__label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--color-texte-2);
+}
+
+.monde-curseur__label b {
+  color: var(--color-ink);
+}
+
+.monde-curseur input {
+  width: 100%;
+}
+
+.monde-bascule {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78125rem;
+  color: var(--color-texte-2);
+}
+
+/* La liste des domaines. */
+.monde__liste {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.monde-row {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--color-bordure-douce);
+  border-radius: 0.625rem;
+  background: var(--color-panel);
+}
+
+.monde-row__tete {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.monde-row__nom {
+  font-weight: 600;
+}
+
+.monde-row__frontiere,
+.monde-row__estime {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 999px;
+  background: var(--color-marque-tenue);
+  color: var(--color-marque-texte);
+}
+
+.monde-row__lieu,
+.monde-row__absence {
+  margin: 0;
+  font-size: 0.78125rem;
+  color: var(--color-texte-2);
+}
+
+.monde-row__mesures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+}
+
+.monde-row__mesures div {
+  display: flex;
+  gap: 0.375rem;
+  align-items: baseline;
+}
+
+.monde-row__mesures dt {
+  font-size: 0.71875rem;
+  color: var(--color-texte-2);
+}
+
+.monde-row__mesures dd {
+  margin: 0;
+  font-size: 0.84375rem;
+  font-weight: 600;
+}
+
+.monde-row__couleurs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.monde-bar {
+  display: flex;
+  width: 9rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-bordure-douce);
+}
+
+.monde-bar i {
+  display: block;
+  height: 100%;
+}
+
+.monde-row__pct {
+  font-size: 0.71875rem;
+  color: var(--color-texte-2);
+  font-variant-numeric: tabular-nums;
+}

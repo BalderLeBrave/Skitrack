@@ -61,6 +61,7 @@ const AILLEURS: { titre: MsgId; liens: { to: (typeof AILLEURS_PATHS)[number]; la
     titre: "nav.tools",
     liens: [
       { to: "/carte", label: "nav.map" },
+      { to: "/monde", label: "nav.world" },
       { to: "/forfaits", label: "nav.passes" },
       { to: "/traces", label: "nav.traces" },
     ],

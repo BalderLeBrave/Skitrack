@@ -12,7 +12,7 @@ export type Screen = "home" | "compare" | "fiche" | "lodging" | "booking";
 /** Les écrans de contrôle, rangés sous « Plus ». Seule table de ces chemins :
  *  `screenOf` et `horsParcours` en tenaient chacun la leur, et la première les
  *  rangeait tous sous « Comparer ». */
-export const AILLEURS_PATHS = ["/carte", "/altitudes", "/openskimap", "/forfaits", "/traces", "/cles"] as const;
+export const AILLEURS_PATHS = ["/carte", "/monde", "/altitudes", "/openskimap", "/forfaits", "/traces", "/cles"] as const;
 
 /** L'écran du parcours, ou `null` hors du parcours.
  *

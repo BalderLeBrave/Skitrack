@@ -14,9 +14,12 @@ import {
   depuisOpenSkiMap,
   depuisSkiinfo,
   depuisSkiresort,
+  mentionRattachement,
   mentionSource,
   partVerteDuPays,
+  releveRattachements,
   repartition,
+  repartitionDuDomaine,
 } from "./couleurs.ts";
 import PART from "./data/partVerte.json" with { type: "json" };
 
@@ -107,5 +110,113 @@ describe("le partage des pistes faciles", () => {
     assert.match(m, /séparés à \d+ %/);
     assert.match(m, /mesurée sur \d+ domaines/);
     assert.equal(mentionSource(null), null);
+  });
+});
+
+describe("le recours par rattachement", () => {
+  it("un domaine mesuré par OpenSkiMap garde sa mesure", async () => {
+    // Le rattachement est un recours, pas un arbitre : une fiche voisine ne
+    // remplace jamais un relevé de tronçons.
+    const r = repartitionDuDomaine(
+      { id: "x", pays: ["AT"], counts: { green: 1, blue: 8, red: 8, black: 3 } },
+      {
+        s: "skiinfo",
+        ref: "ailleurs",
+        nom: "Ailleurs",
+        km: 0.4,
+        skiinfo: { vertes: 90, bleues: 5, rouges: 3, noires: 2 },
+      },
+    );
+    assert.equal(r?.source, "openskimap");
+    assert.equal(r?.partage, "mesure");
+  });
+
+  it("sans mesure, le rattachement Skiinfo sert, et se dit tel quel", () => {
+    const r = repartitionDuDomaine(
+      { id: "x", pays: ["AT"], counts: null },
+      {
+        s: "skiinfo",
+        ref: "voisin",
+        nom: "Voisin",
+        km: 0.4,
+        skiinfo: { vertes: 10, bleues: 40, rouges: 40, noires: 10 },
+      },
+    );
+    assert.equal(r?.source, "skiinfo");
+    assert.equal(r?.partage, "mesure");
+  });
+
+  it("le rattachement skiresort reste une estimation, et le dit", () => {
+    const r = repartitionDuDomaine(
+      { id: "x", pays: ["AT"], counts: null },
+      {
+        s: "skiresort",
+        ref: "voisin",
+        nom: "Voisin",
+        km: 2.1,
+        skiresort: { faciles: 10, moyennes: 20, difficiles: 5 },
+      },
+    );
+    assert.equal(r?.source, "skiresort");
+    assert.equal(r?.partage, "estime");
+    // La part employée est celle du pays du domaine, pas une moitié.
+    assert.equal(r?.partVerte, partVerteDuPays("AT").part);
+  });
+
+  it("aucune source, aucune répartition — et surtout pas un zéro", () => {
+    assert.equal(repartitionDuDomaine({ id: "x", pays: ["AT"], counts: null }, undefined), null);
+  });
+
+  it("la mention dit la fiche et la distance", () => {
+    const m = mentionRattachement({
+      s: "skiinfo",
+      ref: "zermatt",
+      nom: "Zermatt",
+      km: 2.14,
+      skiinfo: { vertes: 0, bleues: 25, rouges: 50, noires: 25 },
+    });
+    assert.ok(m?.includes("Zermatt"));
+    assert.ok(m?.includes("2,1"), `la distance doit paraître : ${m}`);
+    assert.ok(m?.includes("Skiinfo"));
+  });
+
+  it("un rattachement au même point ne s'annonce pas « à 0 km »", () => {
+    const m = mentionRattachement({
+      s: "skiresort",
+      ref: "x",
+      nom: "X",
+      km: 0.02,
+      skiresort: { faciles: 1, moyennes: 1, difficiles: 1 },
+    });
+    assert.ok(m?.includes("au même point"), m ?? "");
+  });
+});
+
+describe("le fichier de rattachement, tel qu'il est écrit", () => {
+  it("ne porte que des domaines qu'OpenSkiMap ne mesure pas", async () => {
+    const releve = await releveRattachements();
+    const n = Object.keys(releve.rattachements).length;
+    assert.equal(n, releve.rattachesSkiinfo + releve.rattachesSkiresort);
+    assert.ok(n > 500, `le recours doit servir : ${n}`);
+  });
+
+  it("aucun rattachement au-delà du rayon annoncé", () => {
+    // Le rayon est la seule chose que la jointure affirme. Un rattachement
+    // hors rayon serait une supposition muette.
+    return releveRattachements().then((releve) => {
+      for (const [id, r] of Object.entries(releve.rattachements)) {
+        assert.ok(r.km <= releve.rayonKm, `${id} rattaché à ${r.km} km`);
+      }
+    });
+  });
+
+  it("les couleurs du référentiel passent les neuf dixièmes", async () => {
+    const releve = await releveRattachements();
+    const couverts =
+      releve.mesuresOpenSkiMap + releve.rattachesSkiinfo + releve.rattachesSkiresort;
+    const part = couverts / releve.domaines;
+    assert.ok(part > 0.88, `couverture ${(part * 100).toFixed(1)} %`);
+    // Et l'absence reste une absence : elle n'est pas comblée pour faire 100 %.
+    assert.ok(couverts < releve.domaines, "il reste des domaines sans couleur, et c'est écrit");
   });
 });

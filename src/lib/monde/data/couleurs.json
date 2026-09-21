@@ -1,0 +1,9754 @@
+{
+ "calcule": "2026-09-21",
+ "quoi": "rattachement, par la position, des domaines qu'OpenSkiMap ne mesure pas aux fiches Skiinfo et skiresort qui portent une répartition",
+ "regle": "la fiche la plus proche à 5 km au plus, Skiinfo avant skiresort ; la distance retenue est écrite avec le rattachement",
+ "rayonKm": 5,
+ "releves": {
+  "skiinfo": "2026-09-20T17:50:29Z",
+  "skiresort": "2026-09-20T22:43:48Z"
+ },
+ "domaines": 5720,
+ "mesuresOpenSkiMap": 4239,
+ "rattachesSkiinfo": 234,
+ "rattachesSkiresort": 630,
+ "rattachements": {
+  "ar-c4-parque-de-nieve": {
+   "s": "skiinfo",
+   "ref": "chapelco",
+   "nom": "Chapelco",
+   "km": 1.15,
+   "skiinfo": {
+    "vertes": 31,
+    "bleues": 17,
+    "rouges": 41,
+    "noires": 10
+   }
+  },
+  "ar-caviahue": {
+   "s": "skiinfo",
+   "ref": "caviahue",
+   "nom": "Caviahue",
+   "km": 1.54,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 18,
+    "noires": 32
+   }
+  },
+  "ar-cerro-martial": {
+   "s": "skiresort",
+   "ref": "cerro-martial",
+   "nom": "Cerro Martial",
+   "km": 0.56,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 3.5,
+    "difficiles": 0
+   }
+  },
+  "ar-complejo-turistico-teleferico-cerro-otto": {
+   "s": "skiresort",
+   "ref": "winter-park-bariloche-piedras-blancas",
+   "nom": "Winter Park Bariloche – Piedras Blancas",
+   "km": 2.28,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ar-lago-hermoso-mountain-park": {
+   "s": "skiresort",
+   "ref": "lago-hermoso",
+   "nom": "Lago Hermoso",
+   "km": 0.38,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1.6,
+    "difficiles": 0
+   }
+  },
+  "ar-las-lenas": {
+   "s": "skiinfo",
+   "ref": "las-lenas",
+   "nom": "Las Lenas",
+   "km": 0.42,
+   "skiinfo": {
+    "vertes": 19,
+    "bleues": 33,
+    "rouges": 44,
+    "noires": 4
+   }
+  },
+  "ar-parque-de-nieve-laguna-seca-patagonia-point": {
+   "s": "skiinfo",
+   "ref": "chapelco",
+   "nom": "Chapelco",
+   "km": 2.19,
+   "skiinfo": {
+    "vertes": 31,
+    "bleues": 17,
+    "rouges": 41,
+    "noires": 10
+   }
+  },
+  "ar-piedras-blancas": {
+   "s": "skiresort",
+   "ref": "winter-park-bariloche-piedras-blancas",
+   "nom": "Winter Park Bariloche – Piedras Blancas",
+   "km": 0.36,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ar-primeros-pinos": {
+   "s": "skiresort",
+   "ref": "primeros-pinos",
+   "nom": "Primeros Pinos",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-470735m161914": {
+   "s": "skiresort",
+   "ref": "zellenberg-kukmirn",
+   "nom": "Zellenberg – Kukmirn",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-472752m109907": {
+   "s": "skiresort",
+   "ref": "holzeis-bichl-obermieming",
+   "nom": "Holzeis-Bichl – Obermieming",
+   "km": 3.29,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-472886m116926": {
+   "s": "skiinfo",
+   "ref": "schwaz-pill",
+   "nom": "Kellerjochbahn - Schwaz - Pill",
+   "km": 4.49,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 60,
+    "rouges": 40,
+    "noires": 0
+   }
+  },
+  "at-473435m155393": {
+   "s": "skiresort",
+   "ref": "feichtecklift-brandlucken-st-kathrein-am-offenegg",
+   "nom": "Feichtecklift Brandlucken – St. Kathrein am Offenegg",
+   "km": 4.32,
+   "skiresort": {
+    "faciles": 1.8,
+    "moyennes": 0.7,
+    "difficiles": 0.5
+   }
+  },
+  "at-473548m155177": {
+   "s": "skiinfo",
+   "ref": "teichalmlifte",
+   "nom": "Teichalmlifte",
+   "km": 4.4,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 33,
+    "noires": 17
+   }
+  },
+  "at-473682m117112": {
+   "s": "skiinfo",
+   "ref": "schwaz-pill",
+   "nom": "Kellerjochbahn - Schwaz - Pill",
+   "km": 4.52,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 60,
+    "rouges": 40,
+    "noires": 0
+   }
+  },
+  "at-474592m155957": {
+   "s": "skiresort",
+   "ref": "schanz-fischbach",
+   "nom": "Schanz – Fischbach",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-475147m143647": {
+   "s": "skiresort",
+   "ref": "stadtwaldlift-rottenmann",
+   "nom": "Stadtwaldlift – Rottenmann",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-475736m155559": {
+   "s": "skiinfo",
+   "ref": "skiarena-lammeralm",
+   "nom": "Skiarena Lammeralm",
+   "km": 3.42,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 33,
+    "rouges": 42,
+    "noires": 25
+   }
+  },
+  "at-478892m156862": {
+   "s": "skiresort",
+   "ref": "kalte-kuchl-innerhalbach",
+   "nom": "Kalte Kuchl – Innerhalbach",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "at-481794m162552": {
+   "s": "skiresort",
+   "ref": "dollwiese-vienne",
+   "nom": "Dollwiese – Vienne",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-487930m153454": {
+   "s": "skiresort",
+   "ref": "frauenstaffel-ulrichsberg-waidhofen-an-der-thaya",
+   "nom": "Frauenstaffel – Ulrichsberg (Waidhofen an der Thaya)",
+   "km": 0.31,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-bad-kleinkirchheim-468169m137834": {
+   "s": "skiinfo",
+   "ref": "bad-kleinkirchheim",
+   "nom": "Bad Kleinkirchheim",
+   "km": 1.28,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 26,
+    "rouges": 60,
+    "noires": 14
+   }
+  },
+  "at-brenneralm": {
+   "s": "skiresort",
+   "ref": "brenneralm-breitenfurt-bei-wien",
+   "nom": "Brenneralm – Breitenfurt bei Wien",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-forsteralm": {
+   "s": "skiinfo",
+   "ref": "forsteralm",
+   "nom": "Forsteralm",
+   "km": 1.03,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 60,
+    "rouges": 40,
+    "noires": 0
+   }
+  },
+  "at-furx": {
+   "s": "skiinfo",
+   "ref": "laterns",
+   "nom": "Laterns - Gapfohl",
+   "km": 3.72,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 25,
+    "rouges": 63,
+    "noires": 13
+   }
+  },
+  "at-gramais": {
+   "s": "skiresort",
+   "ref": "gramais",
+   "nom": "Gramais",
+   "km": 0.42,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-grunberglift-navis": {
+   "s": "skiresort",
+   "ref": "navis",
+   "nom": "Navis",
+   "km": 0.33,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "at-happylift-semmering": {
+   "s": "skiinfo",
+   "ref": "semmering",
+   "nom": "Zauberberg Semmering",
+   "km": 0.29,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 44,
+    "rouges": 49,
+    "noires": 7
+   }
+  },
+  "at-hochkar": {
+   "s": "skiinfo",
+   "ref": "hochkar",
+   "nom": "Hochkar",
+   "km": 1.46,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 40,
+    "rouges": 40,
+    "noires": 20
+   }
+  },
+  "at-horsefeathers-superpark-planai": {
+   "s": "skiinfo",
+   "ref": "schladming-planai-hochwurzen",
+   "nom": "Schladming - Planai - Hochwurzen",
+   "km": 3.34,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 29,
+    "rouges": 63,
+    "noires": 9
+   }
+  },
+  "at-kaunertal": {
+   "s": "skiresort",
+   "ref": "feichten",
+   "nom": "Feichten",
+   "km": 0.65,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-kesselmannlifte": {
+   "s": "skiresort",
+   "ref": "schmiedhornlift-wald-faistenau",
+   "nom": "Schmiedhornlift – Wald (Faistenau)",
+   "km": 0.55,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0.2
+   }
+  },
+  "at-lachtal": {
+   "s": "skiinfo",
+   "ref": "lachtal",
+   "nom": "Lachtal",
+   "km": 0.45,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 27,
+    "rouges": 59,
+    "noires": 14
+   }
+  },
+  "at-pfafflar": {
+   "s": "skiresort",
+   "ref": "bschlabs-pfafflar",
+   "nom": "Bschlabs (Pfafflar)",
+   "km": 3.44,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-pfander": {
+   "s": "skiresort",
+   "ref": "pfaender-bregenz",
+   "nom": "Pfänder – Bregenz",
+   "km": 0.98,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-preggrabenhohe": {
+   "s": "skiresort",
+   "ref": "spitzeralm-sankt-lorenzen-bei-knittelfeld",
+   "nom": "Spitzeralm – Sankt Lorenzen bei Knittelfeld",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.5,
+    "difficiles": 0.5
+   }
+  },
+  "at-salzstiegl": {
+   "s": "skiresort",
+   "ref": "hirschegger-dorflifte",
+   "nom": "Hirschegger Dorflifte",
+   "km": 0.24,
+   "skiresort": {
+    "faciles": 2.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "at-schilifte-molln": {
+   "s": "skiresort",
+   "ref": "raml-molln",
+   "nom": "Raml – Molln",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "at-schmiedhornlift": {
+   "s": "skiresort",
+   "ref": "schmiedhornlift-wald-faistenau",
+   "nom": "Schmiedhornlift – Wald (Faistenau)",
+   "km": 0.53,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0.2
+   }
+  },
+  "at-schmoll-lifte": {
+   "s": "skiinfo",
+   "ref": "stuhleck-semmering",
+   "nom": "Stuhleck - Semmering",
+   "km": 2.58,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 79,
+    "rouges": 21,
+    "noires": 0
+   }
+  },
+  "at-schollenwiesenlift-hofen": {
+   "s": "skiinfo",
+   "ref": "reutte-hahnenkamm",
+   "nom": "Reutte Hahnenkamm",
+   "km": 0.75,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 31,
+    "rouges": 56,
+    "noires": 13
+   }
+  },
+  "at-sonnenbergbahn-470986m112803": {
+   "s": "skiinfo",
+   "ref": "neustift",
+   "nom": "Elferlifte Neustift",
+   "km": 2.79,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 71,
+    "noires": 29
+   }
+  },
+  "at-turracher-hohe": {
+   "s": "skiinfo",
+   "ref": "turracher-hoehe",
+   "nom": "Turracher Höhe",
+   "km": 0.22,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 35,
+    "rouges": 57,
+    "noires": 8
+   }
+  },
+  "at-wintersportschule-krimml": {
+   "s": "skiinfo",
+   "ref": "hochkrimml-zillertal-arena",
+   "nom": "Hochkrimml - Zillertal Arena",
+   "km": 3.09,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 30,
+    "rouges": 62,
+    "noires": 8
+   }
+  },
+  "at-zwergberg-furx": {
+   "s": "skiinfo",
+   "ref": "laterns",
+   "nom": "Laterns - Gapfohl",
+   "km": 3.84,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 25,
+    "rouges": 63,
+    "noires": 13
+   }
+  },
+  "at-zwolferhorn-st-gilgen": {
+   "s": "skiresort",
+   "ref": "laimerlift-st-gilgen",
+   "nom": "Laimerlift – St. Gilgen",
+   "km": 1.42,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "au-ben-lomond": {
+   "s": "skiresort",
+   "ref": "ben-lomond",
+   "nom": "Ben Lomond",
+   "km": 0.46,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 3,
+    "difficiles": 1
+   }
+  },
+  "au-corin-forest": {
+   "s": "skiresort",
+   "ref": "corin-forest",
+   "nom": "Corin Forest",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "au-mt-st-bernard": {
+   "s": "skiresort",
+   "ref": "mount-saint-bernard",
+   "nom": "Mount Saint Bernard",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "ba-kupres-stozer-ski-kraljica": {
+   "s": "skiresort",
+   "ref": "ski-kraljica-kupres",
+   "nom": "Ski Kraljica – Kupres",
+   "km": 0.6,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 3,
+    "difficiles": 0
+   }
+  },
+  "ba-ravna-planina-pale": {
+   "s": "skiresort",
+   "ref": "ravna-planina",
+   "nom": "Ravna Planina",
+   "km": 0.32,
+   "skiresort": {
+    "faciles": 10.7,
+    "moyennes": 1.4,
+    "difficiles": 0.4
+   }
+  },
+  "ba-ski-ivan": {
+   "s": "skiresort",
+   "ref": "ski-ivan-kupres",
+   "nom": "Ski Ivan – Kupres",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "be-dousberg": {
+   "s": "skiresort",
+   "ref": "dousberg-maastricht",
+   "nom": "Centre de ski couvert Dousberg – Maastricht",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "bg-421960m226191": {
+   "s": "skiresort",
+   "ref": "osogovo-osogovo",
+   "nom": "Osogovo (Осогово)",
+   "km": 0.32,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 1.3,
+    "difficiles": 0.9
+   }
+  },
+  "bg-panichishte": {
+   "s": "skiresort",
+   "ref": "panichishte",
+   "nom": "Panichishte",
+   "km": 1.27,
+   "skiresort": {
+    "faciles": 5,
+    "moyennes": 3.5,
+    "difficiles": 0.5
+   }
+  },
+  "bg-ophelii": {
+   "s": "skiresort",
+   "ref": "ophelii",
+   "nom": "Ophelii",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "by-mozyr": {
+   "s": "skiresort",
+   "ref": "mozyr",
+   "nom": "Mozyr",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "by-solnechnaya-dolina": {
+   "s": "skiresort",
+   "ref": "solnechnaya-dolina-minsk",
+   "nom": "Solnechnaya Dolina – Minsk",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "ca-batawa": {
+   "s": "skiresort",
+   "ref": "batawa-ski-hill",
+   "nom": "Batawa Ski Hill",
+   "km": 1.26,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.9,
+    "difficiles": 0.4
+   }
+  },
+  "ca-belle-neige": {
+   "s": "skiresort",
+   "ref": "belle-neige",
+   "nom": "Belle Neige",
+   "km": 0.35,
+   "skiresort": {
+    "faciles": 8,
+    "moyennes": 4,
+    "difficiles": 8
+   }
+  },
+  "ca-big-ben": {
+   "s": "skiresort",
+   "ref": "big-ben-cornwall",
+   "nom": "Big Ben – Cornwall",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ca-club-de-ski-de-beauce": {
+   "s": "skiresort",
+   "ref": "beauce-vallee-jonction",
+   "nom": "Beauce – Vallée-Jonction",
+   "km": 0.34,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 1.8,
+    "difficiles": 0.8
+   }
+  },
+  "ca-hors-piste-station-de-ski-mont-edouard": {
+   "s": "skiresort",
+   "ref": "mont-edouard-lanse-saint-jean",
+   "nom": "Mont Edouard – L&#039;Anse-Saint-Jean",
+   "km": 3.01,
+   "skiresort": {
+    "faciles": 7,
+    "moyennes": 9,
+    "difficiles": 15
+   }
+  },
+  "ca-mont-alta": {
+   "s": "skiresort",
+   "ref": "vallee-bleue",
+   "nom": "Vallée Bleue",
+   "km": 2.11,
+   "skiresort": {
+    "faciles": 2.8,
+    "moyennes": 3.8,
+    "difficiles": 2.8
+   }
+  },
+  "ca-mount-martin-ski-club": {
+   "s": "skiresort",
+   "ref": "mount-martin-deep-river",
+   "nom": "Mount Martin – Deep River",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.3,
+    "difficiles": 0.3
+   }
+  },
+  "ca-mountain-view": {
+   "s": "skiresort",
+   "ref": "mountainview-ski-area",
+   "nom": "Mountainview Ski Area",
+   "km": 0.02,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "ca-optimist-hill": {
+   "s": "skiresort",
+   "ref": "optimist-hill",
+   "nom": "Optimist Hill",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ca-ski-mont-avalanche": {
+   "s": "skiresort",
+   "ref": "mont-avalanche",
+   "nom": "Mont Avalanche",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 2,
+    "difficiles": 2
+   }
+  },
+  "ca-snow-goose-mountain-park-resort": {
+   "s": "skiresort",
+   "ref": "snow-goose-mountain",
+   "nom": "Snow Goose Mountain",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ca-st-raymond": {
+   "s": "skiresort",
+   "ref": "saint-raymond",
+   "nom": "Saint-Raymond",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1,
+    "difficiles": 0.9
+   }
+  },
+  "ca-telemark-cross-country-ski-trails-recreation-site": {
+   "s": "skiresort",
+   "ref": "crystal-mountain-westbank",
+   "nom": "Crystal Mountain – Westbank",
+   "km": 2.12,
+   "skiresort": {
+    "faciles": 9,
+    "moyennes": 13,
+    "difficiles": 3
+   }
+  },
+  "ca-timber-ridge": {
+   "s": "skiresort",
+   "ref": "timber-ridge-big-river",
+   "nom": "Timber Ridge – Big River",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "ca-trestle-ridge": {
+   "s": "skiresort",
+   "ref": "trestle-ridge-terrace-bay",
+   "nom": "Trestle Ridge – Terrace Bay",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "ca-tweedsmuir-ski-club": {
+   "s": "skiresort",
+   "ref": "south-tweedsmuir-park",
+   "nom": "South Tweedsmuir Park",
+   "km": 0.12,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ca-val-mauricie": {
+   "s": "skiresort",
+   "ref": "parc-de-lile-melville-val-mauricie",
+   "nom": "Parc de l&#039;Île Melville – Val Mauricie",
+   "km": 0.36,
+   "skiresort": {
+    "faciles": 1.9,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "ch-474236m89134": {
+   "s": "skiresort",
+   "ref": "sitzberg",
+   "nom": "Sitzberg",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "ch-atzmannig": {
+   "s": "skiinfo",
+   "ref": "atzmannig-goldingen",
+   "nom": "Atzmännig Goldingen",
+   "km": 0.48,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 40,
+    "rouges": 60,
+    "noires": 0
+   }
+  },
+  "ch-bedea-novaggio": {
+   "s": "skiresort",
+   "ref": "bedea-novaggio",
+   "nom": "Bedea – Novaggio",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-cimetta": {
+   "s": "skiresort",
+   "ref": "cardada-cimetta-orselina",
+   "nom": "Cardada/Cimetta – Orselina",
+   "km": 1.15,
+   "skiresort": {
+    "faciles": 2.6,
+    "moyennes": 3,
+    "difficiles": 0
+   }
+  },
+  "ch-eggberge": {
+   "s": "skiresort",
+   "ref": "eggberge-altdorf",
+   "nom": "Eggberge – Altdorf",
+   "km": 0.63,
+   "skiresort": {
+    "faciles": 4,
+    "moyennes": 4,
+    "difficiles": 0
+   }
+  },
+  "ch-friherrenberg": {
+   "s": "skiresort",
+   "ref": "friherrenberg-einsiedeln",
+   "nom": "Friherrenberg – Einsiedeln",
+   "km": 0.41,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-kinderland": {
+   "s": "skiinfo",
+   "ref": "savognin",
+   "nom": "Savognin",
+   "km": 0.46,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 46,
+    "rouges": 46,
+    "noires": 8
+   }
+  },
+  "ch-kronberg": {
+   "s": "skiinfo",
+   "ref": "jakobsbad-kronberg",
+   "nom": "Jakobsbad - Kronberg",
+   "km": 2.23,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "ch-langis-glaubenberg-469083m81406": {
+   "s": "skiresort",
+   "ref": "langis",
+   "nom": "Langis",
+   "km": 2.12,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-le-larmont": {
+   "s": "skiresort",
+   "ref": "le-larmont",
+   "nom": "Le Larmont",
+   "km": 2,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-les-cernets": {
+   "s": "skiresort",
+   "ref": "sommartel-le-locle",
+   "nom": "Sommartel – Le Locle",
+   "km": 1.92,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0.6,
+    "difficiles": 0.8
+   }
+  },
+  "ch-les-gollieres": {
+   "s": "skiresort",
+   "ref": "tete-de-ran-les-hauts-geneveys-les-gollieres",
+   "nom": "Tête de Ran – Les Hauts-Geneveys (Les Gollières)",
+   "km": 1.22,
+   "skiresort": {
+    "faciles": 9,
+    "moyennes": 3,
+    "difficiles": 0
+   }
+  },
+  "ch-mogno": {
+   "s": "skiresort",
+   "ref": "mogno",
+   "nom": "Mogno",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "ch-monte-tamaro": {
+   "s": "skiresort",
+   "ref": "alpe-di-neggia",
+   "nom": "Alpe di Neggia",
+   "km": 4.7,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-pischa": {
+   "s": "skiresort",
+   "ref": "buendalift-davos",
+   "nom": "Bündalift – Davos",
+   "km": 4.79,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-ruhesitz": {
+   "s": "skiinfo",
+   "ref": "ebenalp",
+   "nom": "Ebenalp - Appenzellerland",
+   "km": 3.16,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 70,
+    "rouges": 10,
+    "noires": 0
+   }
+  },
+  "ch-rohrenmoos": {
+   "s": "skiresort",
+   "ref": "roehrenmoos-dietikon",
+   "nom": "Röhrenmoos – Dietikon",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-sainte-croix-les-rasses": {
+   "s": "skiresort",
+   "ref": "mauborget",
+   "nom": "Mauborget",
+   "km": 2.68,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ch-sainte-croix-les-rasses-468315m65295": {
+   "s": "skiinfo",
+   "ref": "ste-croix-les-rasses",
+   "nom": "Ste-Croix - Les Rasses",
+   "km": 0.91,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 44,
+    "rouges": 22,
+    "noires": 11
+   }
+  },
+  "ch-savognin-465833m95833": {
+   "s": "skiinfo",
+   "ref": "savognin",
+   "nom": "Savognin",
+   "km": 1.6,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 46,
+    "rouges": 46,
+    "noires": 8
+   }
+  },
+  "ch-skilift-schratten-fluhli": {
+   "s": "skiresort",
+   "ref": "schratten-fluehli",
+   "nom": "Schratten Flühli",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "ch-villars-gryon-les-diablerets-glacier-3000-bex": {
+   "s": "skiinfo",
+   "ref": "les-diablerets",
+   "nom": "Les Diablerets",
+   "km": 0.32,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 54,
+    "rouges": 36,
+    "noires": 10
+   }
+  },
+  "ch-wolzenalp-krummenau": {
+   "s": "skiinfo",
+   "ref": "wolzenalp",
+   "nom": "Krummenau - Wolzenalp/Toggenburg",
+   "km": 2.98,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 75,
+    "noires": 25
+   }
+  },
+  "cl-antuco": {
+   "s": "skiresort",
+   "ref": "antuco",
+   "nom": "Antuco",
+   "km": 0.82,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 4,
+    "difficiles": 2
+   }
+  },
+  "cl-los-arenales": {
+   "s": "skiresort",
+   "ref": "los-arenales",
+   "nom": "Los Arenales",
+   "km": 0.39,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cl-nevados-de-chillan-formerly-termas-de-chillan": {
+   "s": "skiinfo",
+   "ref": "nevados-de-chillan",
+   "nom": "Nevados de Chillan",
+   "km": 1.45,
+   "skiinfo": {
+    "vertes": 17,
+    "bleues": 43,
+    "rouges": 26,
+    "noires": 13
+   }
+  },
+  "cl-nevados-de-vilcun": {
+   "s": "skiresort",
+   "ref": "las-araucarias-llaima-vilcun",
+   "nom": "Las Araucarias/Llaima – Vilcún",
+   "km": 1.7,
+   "skiresort": {
+    "faciles": 10,
+    "moyennes": 4,
+    "difficiles": 1
+   }
+  },
+  "cl-quebrada-honda-ski-snow": {
+   "s": "skiresort",
+   "ref": "los-arenales",
+   "nom": "Los Arenales",
+   "km": 3.9,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-461368m829440": {
+   "s": "skiresort",
+   "ref": "qagantokay-yumin",
+   "nom": "Qagantokay (Yumin)",
+   "km": 0.38,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-alshan-alpine": {
+   "s": "skiresort",
+   "ref": "taiwei",
+   "nom": "Taiwei",
+   "km": 1.59,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-baiqingzhai-ski-field": {
+   "s": "skiresort",
+   "ref": "bai-qing-zhai",
+   "nom": "Bai Qing Zhai",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "cn-beijing-yuyang-resort": {
+   "s": "skiresort",
+   "ref": "yuyang",
+   "nom": "Yuyang",
+   "km": 2.32,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1,
+    "difficiles": 1
+   }
+  },
+  "cn-cai-wei-manor": {
+   "s": "skiresort",
+   "ref": "cai-wei-manor",
+   "nom": "Cai Wei Manor",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "cn-dayongshan-indoor": {
+   "s": "skiresort",
+   "ref": "dayongshan-huaxueguan",
+   "nom": "Ski-dôme Dayongshan Huaxueguan",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-dongfeng-lake": {
+   "s": "skiresort",
+   "ref": "dongfeng-lake",
+   "nom": "Dongfeng Lake",
+   "km": 0.01,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "cn-fanqi-shangjing": {
+   "s": "skiresort",
+   "ref": "yuquan",
+   "nom": "Yuquan",
+   "km": 4.64,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-jade-dragon-mountain": {
+   "s": "skiresort",
+   "ref": "jade-dragon-snow-mountain-lijiang",
+   "nom": "Jade Dragon Snow Mountain – Lijiang",
+   "km": 1.27,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "cn-jingyuetan": {
+   "s": "skiresort",
+   "ref": "jingyuetan",
+   "nom": "Jingyuetan",
+   "km": 0.64,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "cn-kunlun-ski-field": {
+   "s": "skiresort",
+   "ref": "kunlun",
+   "nom": "Kunlun",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-lianhuashan": {
+   "s": "skiresort",
+   "ref": "lianhuashan-resort",
+   "nom": "Lianhuashan Resort",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.5,
+    "difficiles": 0.1
+   }
+  },
+  "cn-longzhu-erlongshan": {
+   "s": "skiresort",
+   "ref": "erlongshan-longzhu",
+   "nom": "Erlongshan Longzhu",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 2.4,
+    "moyennes": 0.2,
+    "difficiles": 0.4
+   }
+  },
+  "cn-miaoxiang-mountain-resort": {
+   "s": "skiresort",
+   "ref": "miaoxiangshan",
+   "nom": "MiaoXiangShan",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.7,
+    "difficiles": 3.5
+   }
+  },
+  "cn-mingyuedao": {
+   "s": "skiresort",
+   "ref": "mingyuedao-qiqihar",
+   "nom": "Mingyuedao – Qiqihar",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "cn-qiaobo-ice-dome-indoor": {
+   "s": "skiresort",
+   "ref": "qiaobo-ice-and-snow-world-peking",
+   "nom": "Ski-dôme Qiaobo Ice and Snow World – Peking",
+   "km": 0.01,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "cn-rainbow-valley": {
+   "s": "skiresort",
+   "ref": "rainbow-valley-gaizhou",
+   "nom": "Rainbow Valley Gaizhou",
+   "km": 0.04,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "cn-riyuexia-ski-field": {
+   "s": "skiresort",
+   "ref": "riyue-xia",
+   "nom": "Riyue Xia",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 3.5,
+    "moyennes": 1.4,
+    "difficiles": 0
+   }
+  },
+  "cn-shennong": {
+   "s": "skiresort",
+   "ref": "shennong",
+   "nom": "Shennong",
+   "km": 0.01,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-weisite-ski-field": {
+   "s": "skiresort",
+   "ref": "weisite-happy-town",
+   "nom": "WeiSiTe Happy Town",
+   "km": 0.44,
+   "skiresort": {
+    "faciles": 1.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-xuelianshan": {
+   "s": "skiresort",
+   "ref": "weisite-happy-town",
+   "nom": "WeiSiTe Happy Town",
+   "km": 2.16,
+   "skiresort": {
+    "faciles": 1.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-xueshijie": {
+   "s": "skiresort",
+   "ref": "snow-world-ski-park-xueshijie-peking",
+   "nom": "Snow World Ski Park Xueshijie – Peking",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-yabuli": {
+   "s": "skiresort",
+   "ref": "yabuli",
+   "nom": "Yabuli",
+   "km": 0.48,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 19,
+    "difficiles": 13
+   }
+  },
+  "cn-yaoshan": {
+   "s": "skiresort",
+   "ref": "yaoshan",
+   "nom": "Yaoshan",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-yueliang-wan": {
+   "s": "skiresort",
+   "ref": "wanda-harbin-mall",
+   "nom": "Ski-dôme Wanda Harbin Mall",
+   "km": 4.46,
+   "skiresort": {
+    "faciles": 2.6,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "cn-410615m1241396": {
+   "s": "skiresort",
+   "ref": "yunshan",
+   "nom": "Yunshan",
+   "km": 0.5,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "cn-294741m1077190": {
+   "s": "skiresort",
+   "ref": "chongqing-fairy-mountain",
+   "nom": "Chongqing Fairy Mountain",
+   "km": 0.12,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-408469m1115724": {
+   "s": "skiresort",
+   "ref": "beijiguang",
+   "nom": "Beijiguang",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-410569m1231155": {
+   "s": "skiresort",
+   "ref": "qianshan",
+   "nom": "Qianshan",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-336944m1122936": {
+   "s": "skiresort",
+   "ref": "yaoshan-pearl",
+   "nom": "Yaoshan Pearl",
+   "km": 4.35,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-national-biathlon-centre": {
+   "s": "skiresort",
+   "ref": "thaiwoo",
+   "nom": "Thaiwoo",
+   "km": 3.69,
+   "skiresort": {
+    "faciles": 6,
+    "moyennes": 8,
+    "difficiles": 6
+   }
+  },
+  "cn-national-ski-jumping-centre": {
+   "s": "skiresort",
+   "ref": "thaiwoo",
+   "nom": "Thaiwoo",
+   "km": 2.6,
+   "skiresort": {
+    "faciles": 6,
+    "moyennes": 8,
+    "difficiles": 6
+   }
+  },
+  "cn-463072m1319872": {
+   "s": "skiresort",
+   "ref": "holy-and-pure-yaolanshan",
+   "nom": "Holy and Pure Yaolanshan",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-406944m1074391": {
+   "s": "skiresort",
+   "ref": "duolanhu",
+   "nom": "Duolanhu",
+   "km": 0.12,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-398111m1222786": {
+   "s": "skiresort",
+   "ref": "anbo",
+   "nom": "Anbo",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "cn-278650m1198319": {
+   "s": "skiresort",
+   "ref": "wencheng-swan-castle-wenzhou",
+   "nom": "Ski-dôme Wencheng Swan Castle – Wenzhou",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-337478m1123063": {
+   "s": "skiresort",
+   "ref": "yaoshan-pearl",
+   "nom": "Yaoshan Pearl",
+   "km": 2.13,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-304731m1195920": {
+   "s": "skiresort",
+   "ref": "jiangnan-tianchi",
+   "nom": "Jiangnan Tianchi",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-406567m1125462": {
+   "s": "skiresort",
+   "ref": "daihai",
+   "nom": "Daihai",
+   "km": 0.69,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 3,
+    "difficiles": 1
+   }
+  },
+  "cn-292623m1107068": {
+   "s": "skiresort",
+   "ref": "zhangjiajie-ice-and-snow-world",
+   "nom": "Ski-dôme Zhangjiajie Ice and Snow World",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-278849m1198418": {
+   "s": "skiresort",
+   "ref": "wencheng-swan-castle-wenzhou",
+   "nom": "Ski-dôme Wencheng Swan Castle – Wenzhou",
+   "km": 2.48,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-278500m1198628": {
+   "s": "skiresort",
+   "ref": "wencheng-swan-castle-wenzhou",
+   "nom": "Ski-dôme Wencheng Swan Castle – Wenzhou",
+   "km": 3.41,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-337741m1122399": {
+   "s": "skiresort",
+   "ref": "yaoshan",
+   "nom": "Yaoshan",
+   "km": 2.64,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-370286m1211199": {
+   "s": "skiresort",
+   "ref": "lin-shan",
+   "nom": "Lin Shan",
+   "km": 0.36,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 1
+   }
+  },
+  "cn-389444m1214256": {
+   "s": "skiresort",
+   "ref": "linhai",
+   "nom": "Linhai",
+   "km": 0.32,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.5,
+    "difficiles": 0.5
+   }
+  },
+  "cn-380699m1140127": {
+   "s": "skiresort",
+   "ref": "qingliangshan",
+   "nom": "Qingliangshan",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-391263m1152549": {
+   "s": "skiresort",
+   "ref": "mount-langya",
+   "nom": "Mount Langya",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-453075m1273602": {
+   "s": "skiresort",
+   "ref": "pingshan",
+   "nom": "Pingshan Shenlu",
+   "km": 0.5,
+   "skiresort": {
+    "faciles": 3.8,
+    "moyennes": 2.2,
+    "difficiles": 0
+   }
+  },
+  "cn-400217m1195954": {
+   "s": "skiresort",
+   "ref": "ziyunshan",
+   "nom": "Ziyunshan",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-417369m1241252": {
+   "s": "skiresort",
+   "ref": "zihualing",
+   "nom": "Zihualing",
+   "km": 0.12,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-339698m1090181": {
+   "s": "skiresort",
+   "ref": "cuihua-mountain",
+   "nom": "Cuihua Mountain",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-419552m1252018": {
+   "s": "skiresort",
+   "ref": "julong",
+   "nom": "Julong",
+   "km": 1.06,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2,
+    "difficiles": 1
+   }
+  },
+  "cn-479014m881332": {
+   "s": "skiresort",
+   "ref": "xiyu",
+   "nom": "Xiyu",
+   "km": 0.41,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.7,
+    "difficiles": 0.5
+   }
+  },
+  "cn-283988m1134219": {
+   "s": "skiresort",
+   "ref": "ruixiang-ice-snow-world",
+   "nom": "Ski-dôme Ruixiang Ice &amp; Snow World",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-394994m1217983": {
+   "s": "skiresort",
+   "ref": "minghu-lake-hotspring",
+   "nom": "Minghu Lake Hotspring",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-471662m1199275": {
+   "s": "skiresort",
+   "ref": "taiwei",
+   "nom": "Taiwei",
+   "km": 0.33,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cn-296888m1068278": {
+   "s": "skiresort",
+   "ref": "chongqing-jihua-park",
+   "nom": "Ski-dôme Jihuayuan",
+   "km": 2.08,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "cn-big-air-shougang": {
+   "s": "skiresort",
+   "ref": "wanlongbayi",
+   "nom": "Wanlongbayi",
+   "km": 4.59,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 1.5,
+    "difficiles": 1
+   }
+  },
+  "cn-502926m1273291": {
+   "s": "skiresort",
+   "ref": "heihe-longzhu-yuandong",
+   "nom": "Heihe Longzhu Yuandong",
+   "km": 0.42,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "cn-416248m1254252": {
+   "s": "skiresort",
+   "ref": "longgang",
+   "nom": "Longgang",
+   "km": 1.36,
+   "skiresort": {
+    "faciles": 4.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-490352m150857": {
+   "s": "skiresort",
+   "ref": "hradiste",
+   "nom": "Hradiště",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-491652m134308": {
+   "s": "skiresort",
+   "ref": "hartmanice",
+   "nom": "Hartmanice",
+   "km": 1.94,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "cz-492700m179019": {
+   "s": "skiresort",
+   "ref": "seninka",
+   "nom": "Seninka",
+   "km": 4.82,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-494243m159098": {
+   "s": "skiresort",
+   "ref": "dedkov",
+   "nom": "Dědkov",
+   "km": 2.64,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-501239m175438": {
+   "s": "skiresort",
+   "ref": "vraclavek",
+   "nom": "Vraclávek",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-503830m125098": {
+   "s": "skiinfo",
+   "ref": "bublava",
+   "nom": "Bublava - Stříbrná",
+   "km": 1.27,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 46,
+    "rouges": 45,
+    "noires": 9
+   }
+  },
+  "cz-506254m136780": {
+   "s": "skiresort",
+   "ref": "osek",
+   "nom": "Osek",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "cz-506272m133846": {
+   "s": "skiresort",
+   "ref": "brandov",
+   "nom": "Brandov",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-507243m157919": {
+   "s": "skiinfo",
+   "ref": "mala-upa",
+   "nom": "Malá Úpa",
+   "km": 1.81,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 39,
+    "rouges": 61,
+    "noires": 0
+   }
+  },
+  "cz-507435m153596": {
+   "s": "skiinfo",
+   "ref": "korenov-rejdice",
+   "nom": "Kořenov - Rejdice",
+   "km": 0.99,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 29,
+    "rouges": 71,
+    "noires": 0
+   }
+  },
+  "cz-507789m152447": {
+   "s": "skiinfo",
+   "ref": "tanvaldsky-spicak",
+   "nom": "Tanvaldský Špičák",
+   "km": 2.86,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 52,
+    "rouges": 30,
+    "noires": 18
+   }
+  },
+  "cz-bedrichov-507885m151448": {
+   "s": "skiinfo",
+   "ref": "bedrichov",
+   "nom": "Bedrichov",
+   "km": 0.04,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 89,
+    "rouges": 11,
+    "noires": 0
+   }
+  },
+  "cz-bozi-dar-504121m129287": {
+   "s": "skiinfo",
+   "ref": "bozi-dar-novako",
+   "nom": "Boží Dar - Novako",
+   "km": 0.34,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "cz-dalecin": {
+   "s": "skiresort",
+   "ref": "dalecin",
+   "nom": "Dalečín",
+   "km": 0.24,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "cz-horal": {
+   "s": "skiinfo",
+   "ref": "razula",
+   "nom": "Razula",
+   "km": 2.71,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 20,
+    "rouges": 80,
+    "noires": 0
+   }
+  },
+  "cz-horni-kouty-radvanov": {
+   "s": "skiresort",
+   "ref": "horni-kouty",
+   "nom": "Horní Kouty",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "cz-horni-vltavice": {
+   "s": "skiinfo",
+   "ref": "kubova-hut",
+   "nom": "Kubova Huť",
+   "km": 3.32,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 45,
+    "rouges": 55,
+    "noires": 0
+   }
+  },
+  "cz-jezerne": {
+   "s": "skiinfo",
+   "ref": "synot-kycerka",
+   "nom": "Synot Kyčerka",
+   "km": 2.6,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 54,
+    "rouges": 46,
+    "noires": 0
+   }
+  },
+  "cz-kostelec": {
+   "s": "skiinfo",
+   "ref": "zdobnice",
+   "nom": "Zdobnice",
+   "km": 1.88,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 68,
+    "rouges": 32,
+    "noires": 0
+   }
+  },
+  "cz-kouty-500954m171154": {
+   "s": "skiinfo",
+   "ref": "kouty-nad-desnou",
+   "nom": "Kouty nad Desnou",
+   "km": 0.6,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 64,
+    "rouges": 27,
+    "noires": 9
+   }
+  },
+  "cz-lyzarsky-areal-rohy": {
+   "s": "skiresort",
+   "ref": "rohy",
+   "nom": "Rohy",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-lyzarsky-areal-svetly-vrch": {
+   "s": "skiinfo",
+   "ref": "tanvaldsky-spicak",
+   "nom": "Tanvaldský Špičák",
+   "km": 1.15,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 52,
+    "rouges": 30,
+    "noires": 18
+   }
+  },
+  "cz-lyzarsky-vlek-kubiska": {
+   "s": "skiinfo",
+   "ref": "razula",
+   "nom": "Razula",
+   "km": 4.65,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 20,
+    "rouges": 80,
+    "noires": 0
+   }
+  },
+  "cz-mezihori": {
+   "s": "skiresort",
+   "ref": "mezihori",
+   "nom": "Mezihoří",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "cz-mostek": {
+   "s": "skiresort",
+   "ref": "zvicina",
+   "nom": "Zvičina",
+   "km": 4.49,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "cz-pec-pod-snezkou-506936m157333": {
+   "s": "skiinfo",
+   "ref": "pec-pod-snezkou",
+   "nom": "Pec pod Sněžkou",
+   "km": 1.32,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 43,
+    "rouges": 53,
+    "noires": 4
+   }
+  },
+  "cz-pernink-velflink": {
+   "s": "skiinfo",
+   "ref": "skiareal-plesivec",
+   "nom": "Skiareál Plešivec",
+   "km": 4.14,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 61,
+    "rouges": 23,
+    "noires": 16
+   }
+  },
+  "cz-plavy": {
+   "s": "skiresort",
+   "ref": "zlata-olesnice",
+   "nom": "Zlatá Olešnice",
+   "km": 3.22,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "cz-polevsko": {
+   "s": "skiresort",
+   "ref": "polevsko",
+   "nom": "Polevsko",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "cz-prachatice-libin": {
+   "s": "skiresort",
+   "ref": "libin-libinske-sedlo",
+   "nom": "Libín – Libínské sedlo",
+   "km": 0.12,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "cz-privrat": {
+   "s": "skiinfo",
+   "ref": "ski-areal-peklak",
+   "nom": "Ski areál Peklák",
+   "km": 3.43,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 50,
+    "noires": 0
+   }
+  },
+  "cz-ski-kamenec": {
+   "s": "skiinfo",
+   "ref": "kamenec",
+   "nom": "Kamenec",
+   "km": 0.29,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 100,
+    "noires": 0
+   }
+  },
+  "cz-ski-areal-bosino": {
+   "s": "skiinfo",
+   "ref": "rokytnice-nad-jizerou",
+   "nom": "Rokytnice nad Jizerou - Horní Domky",
+   "km": 1.67,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 54,
+    "rouges": 36,
+    "noires": 11
+   }
+  },
+  "cz-ski-areal-sedlar": {
+   "s": "skiinfo",
+   "ref": "ski-koprivna-mala-moravka",
+   "nom": "Kopřivná pod Pradědem",
+   "km": 4.77,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 59,
+    "rouges": 41,
+    "noires": 0
+   }
+  },
+  "cz-ski-areal-reka": {
+   "s": "skiresort",
+   "ref": "reka",
+   "nom": "Řeka",
+   "km": 0.76,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 1.3,
+    "difficiles": 0
+   }
+  },
+  "cz-skiareal-novako-504129m129248": {
+   "s": "skiinfo",
+   "ref": "bozi-dar-novako",
+   "nom": "Boží Dar - Novako",
+   "km": 0.15,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "cz-skipark-frymburk": {
+   "s": "skiinfo",
+   "ref": "lipno-kramolin",
+   "nom": "Lipno",
+   "km": 3.79,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 40,
+    "rouges": 52,
+    "noires": 8
+   }
+  },
+  "cz-start": {
+   "s": "skiinfo",
+   "ref": "destne-v-orlickych-horach",
+   "nom": "Deštné v Orlických horách",
+   "km": 1.33,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 63,
+    "rouges": 13,
+    "noires": 25
+   }
+  },
+  "cz-strazny": {
+   "s": "skiresort",
+   "ref": "strazny",
+   "nom": "Strážný",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "cz-sjezdovka-severka": {
+   "s": "skiresort",
+   "ref": "zvicina",
+   "nom": "Zvičina",
+   "km": 2.05,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "cz-ceske-zleby": {
+   "s": "skiinfo",
+   "ref": "haidmuehle",
+   "nom": "Haidmühle - Bischofsreut - Frauenberg",
+   "km": 3.82,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "cz-zelezna-ruda-spicak-nad-nadrazim": {
+   "s": "skiinfo",
+   "ref": "zelezna-ruda-belveder",
+   "nom": "Železná Ruda - Nad nádražím - Belveder",
+   "km": 1.25,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 46,
+    "rouges": 54,
+    "noires": 0
+   }
+  },
+  "de-476351m101281": {
+   "s": "skiresort",
+   "ref": "argental-weitnau",
+   "nom": "Argental – Weitnau",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-477942m122178": {
+   "s": "skiresort",
+   "ref": "hochries-samerberg",
+   "nom": "Hochries – Samerberg",
+   "km": 2.43,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 3
+   }
+  },
+  "de-480193m98301": {
+   "s": "skiresort",
+   "ref": "fischbach-ummendorf",
+   "nom": "Fischbach (Ummendorf)",
+   "km": 3.21,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "de-481558m111792": {
+   "s": "skiresort",
+   "ref": "landsberied",
+   "nom": "Landsberied",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-486978m99040": {
+   "s": "skiresort",
+   "ref": "treffelhausen-boehmenkirch",
+   "nom": "Treffelhausen – Böhmenkirch",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-487985m135400": {
+   "s": "skiinfo",
+   "ref": "freyung-geyersberg",
+   "nom": "Freyung - Geyersberg",
+   "km": 0.24,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-488454m133296": {
+   "s": "skiresort",
+   "ref": "kadernberg-schoenberg",
+   "nom": "Kadernberg – Schönberg",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-488477m98691": {
+   "s": "skiresort",
+   "ref": "leinzell",
+   "nom": "Leinzell",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-489266m134644": {
+   "s": "skiinfo",
+   "ref": "neuschonau",
+   "nom": "Neuschönau",
+   "km": 0.57,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-490358m131941": {
+   "s": "skiinfo",
+   "ref": "zwiesel",
+   "nom": "Zwiesel",
+   "km": 4.82,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-491994m107959": {
+   "s": "skiresort",
+   "ref": "moenchswald-mitteleschenbach",
+   "nom": "Mönchswald – Mitteleschenbach",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-496424m70203": {
+   "s": "skiresort",
+   "ref": "dollberg-zuesch-neuhuetten",
+   "nom": "Dollberg – Züsch/Neuhütten",
+   "km": 0.12,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-499389m105878": {
+   "s": "skiresort",
+   "ref": "roethenhang-neuschleichach-oberaurach",
+   "nom": "Röthenhang – Neuschleichach (Oberaurach)",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "de-500128m118387": {
+   "s": "skiinfo",
+   "ref": "oberwarmensteinach",
+   "nom": "Oberwarmensteinach",
+   "km": 2.76,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 69,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-500527m117919": {
+   "s": "skiinfo",
+   "ref": "ochsenkopf",
+   "nom": "Ochsenkopf",
+   "km": 1.41,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 71,
+    "rouges": 29,
+    "noires": 0
+   }
+  },
+  "de-503624m124468": {
+   "s": "skiinfo",
+   "ref": "klingenthal",
+   "nom": "Klingenthal",
+   "km": 0.14,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-504146m124732": {
+   "s": "skiresort",
+   "ref": "schneckenstein-tannenbergsthal",
+   "nom": "Schneckenstein – Tannenbergsthal",
+   "km": 1.35,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-504306m125867": {
+   "s": "skiinfo",
+   "ref": "carlsfeld",
+   "nom": "Carlsfeld",
+   "km": 0.12,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 100,
+    "noires": 0
+   }
+  },
+  "de-504349m128893": {
+   "s": "skiinfo",
+   "ref": "bozi-dar-novako",
+   "nom": "Boží Dar - Novako",
+   "km": 3.56,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-504426m127102": {
+   "s": "skiresort",
+   "ref": "johanngeorgenstadt-kuelliggut",
+   "nom": "Johanngeorgenstadt – Külliggut",
+   "km": 0.33,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "de-504879m125958": {
+   "s": "skiinfo",
+   "ref": "skiarena-eibenstock",
+   "nom": "SkiArena Eibenstock ",
+   "km": 0.25,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-505089m92184": {
+   "s": "skiinfo",
+   "ref": "hoherodskopf",
+   "nom": "Hoherodskopf",
+   "km": 0.62,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 52,
+    "rouges": 48,
+    "noires": 0
+   }
+  },
+  "de-505327m130493": {
+   "s": "skiresort",
+   "ref": "baerenstein",
+   "nom": "Bärenstein",
+   "km": 3.45,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "de-505756m130980": {
+   "s": "skiresort",
+   "ref": "poehlberg-annaberg-buchholz",
+   "nom": "Pöhlberg – Annaberg-Buchholz",
+   "km": 4.1,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "de-506148m107976": {
+   "s": "skiinfo",
+   "ref": "schmiedefeld-am-rennsteig",
+   "nom": "Schmiedefeld am Rennsteig",
+   "km": 0.37,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-506242m107629": {
+   "s": "skiinfo",
+   "ref": "suhl-vesser-goldlauter",
+   "nom": "Suhl - Vesser - Goldlauter",
+   "km": 0.4,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 22,
+    "rouges": 78,
+    "noires": 0
+   }
+  },
+  "de-506849m129882": {
+   "s": "skiresort",
+   "ref": "stadtpark-thum",
+   "nom": "Stadtpark – Thum",
+   "km": 2.86,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-508111m104090": {
+   "s": "skiinfo",
+   "ref": "brotterode",
+   "nom": "Brotterode",
+   "km": 2.82,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-508359m147197": {
+   "s": "skiresort",
+   "ref": "johannisstein-hain-oybin",
+   "nom": "Johannisstein – Hain (Oybin)",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-509534m76548": {
+   "s": "skiresort",
+   "ref": "reichshof-schemmerhausen",
+   "nom": "Reichshof-Schemmerhausen",
+   "km": 0.34,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-511776m75183": {
+   "s": "skiresort",
+   "ref": "collenberg-halver",
+   "nom": "Collenberg – Halver",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-512106m82688": {
+   "s": "skiinfo",
+   "ref": "wintersportzentrum-sellinghausen",
+   "nom": "Sellinghausen",
+   "km": 0.19,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 50,
+    "noires": 0
+   }
+  },
+  "de-518029m105395": {
+   "s": "skiinfo",
+   "ref": "altenau",
+   "nom": "Altenau",
+   "km": 0.15,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-518162m107877": {
+   "s": "skiresort",
+   "ref": "zwoelfmorgental-wernigerode",
+   "nom": "Zwölfmorgental – Wernigerode",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-520562m90645": {
+   "s": "skiresort",
+   "ref": "sternberg-linderhofe-extertal",
+   "nom": "Sternberg – Linderhofe (Extertal)",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-augustusburg": {
+   "s": "skiresort",
+   "ref": "rosts-wiesen-augustusburg",
+   "nom": "Rost&#039;s Wiesen – Augustusburg",
+   "km": 0.56,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "de-berghalde-penzburg": {
+   "s": "skiresort",
+   "ref": "berghalde-penzberg",
+   "nom": "Berghalde – Penzberg",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-blomberg": {
+   "s": "skiinfo",
+   "ref": "blomberg",
+   "nom": "Blomberg",
+   "km": 0.81,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 0,
+    "noires": 100
+   }
+  },
+  "de-bodenmais-silberberg": {
+   "s": "skiinfo",
+   "ref": "bodenmais-erlebnis-silberberg",
+   "nom": "Bodenmais Erlebnis Silberberg",
+   "km": 0.36,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-ebingen-481977m89957": {
+   "s": "skiresort",
+   "ref": "albstadt-ebingen",
+   "nom": "Albstadt-Ebingen",
+   "km": 1.08,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.4,
+    "difficiles": 0.1
+   }
+  },
+  "de-familienabfahrt": {
+   "s": "skiresort",
+   "ref": "ramensteinhang-nattheim",
+   "nom": "Ramensteinhang – Nattheim",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "de-fort-fun-winterwelt": {
+   "s": "skiresort",
+   "ref": "fort-fun-winterwelt-bestwig",
+   "nom": "Fort Fun Winterwelt – Bestwig",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "de-immenstadt": {
+   "s": "skiinfo",
+   "ref": "immenstadt-mittagbahn",
+   "nom": "Immenstadt - Mittagbahn",
+   "km": 0.96,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 6,
+    "rouges": 88,
+    "noires": 6
+   }
+  },
+  "de-karwendelbahn-dammkar-mittenwald": {
+   "s": "skiinfo",
+   "ref": "dammkar-karwendel",
+   "nom": "Dammkar - Karwendel",
+   "km": 1.03,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 0,
+    "noires": 100
+   }
+  },
+  "de-laberbergbahn-oberammergau": {
+   "s": "skiinfo",
+   "ref": "laber",
+   "nom": "Laber - Oberammergau",
+   "km": 0.92,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 0,
+    "noires": 100
+   }
+  },
+  "de-ludwigsstadt": {
+   "s": "skiresort",
+   "ref": "lauenhain-ludwigsstadt",
+   "nom": "Lauenhain (Ludwigsstadt)",
+   "km": 3.82,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-reiserhang": {
+   "s": "skiinfo",
+   "ref": "brauneck-wegscheid",
+   "nom": "Skiregion Brauneck - Wegscheid",
+   "km": 4.53,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 11,
+    "rouges": 67,
+    "noires": 21
+   }
+  },
+  "de-salmendingen": {
+   "s": "skiresort",
+   "ref": "salmendingen-burladingen",
+   "nom": "Salmendingen (Burladingen)",
+   "km": 1.32,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.3,
+    "difficiles": 0.2
+   }
+  },
+  "de-sandskigebiet-monte-kaolino": {
+   "s": "skiresort",
+   "ref": "monte-kaolino-hirschau",
+   "nom": "de sable Monte Kaolino – Hirschau",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0,
+    "difficiles": 0.2
+   }
+  },
+  "de-sankt-englmar-grun-proller": {
+   "s": "skiinfo",
+   "ref": "sankt-englmar",
+   "nom": "Sankt Englmar",
+   "km": 3.39,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 67,
+    "rouges": 25,
+    "noires": 8
+   }
+  },
+  "de-skigebiet-muhlwiese-ski-area-muhlwiese": {
+   "s": "skiresort",
+   "ref": "muehlwiese-lerbach-osterode",
+   "nom": "Mühlwiese – Lerbach (Osterode)",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "de-skigebiet-wei-er-stein": {
+   "s": "skiresort",
+   "ref": "weisser-stein-hellenthal",
+   "nom": "Weißer Stein – Hellenthal",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-skihang-gro-buchelberg": {
+   "s": "skiresort",
+   "ref": "grossbuechlberg-mitterteich",
+   "nom": "Großbüchlberg – Mitterteich",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-skilift-burgbernheim": {
+   "s": "skiresort",
+   "ref": "burgbernheim",
+   "nom": "Burgbernheim",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "de-skilift-halde-franz-bek": {
+   "s": "skiinfo",
+   "ref": "wiesensteig",
+   "nom": "Wiesensteig",
+   "km": 4.15,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 52,
+    "rouges": 27,
+    "noires": 21
+   }
+  },
+  "de-skilift-oberreifenberg": {
+   "s": "skiresort",
+   "ref": "grosser-feldberg-oberreifenberg-schmitten",
+   "nom": "Großer Feldberg – Oberreifenberg (Schmitten)",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-skilift-waldsportpark-ebersberg": {
+   "s": "skiresort",
+   "ref": "waldsportpark-ebersberg",
+   "nom": "Waldsportpark Ebersberg",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "de-skilifte-geiersberg": {
+   "s": "skiinfo",
+   "ref": "hauzenberg",
+   "nom": "Hauzenberg - Geiersberg",
+   "km": 0.32,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-skiliftkarussell-winterberg-512000m85167": {
+   "s": "skiinfo",
+   "ref": "winterberg-skiliftkarussell",
+   "nom": "Winterberg Skiliftkarussell",
+   "km": 0.96,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 51,
+    "rouges": 44,
+    "noires": 5
+   }
+  },
+  "de-todtmoos": {
+   "s": "skiinfo",
+   "ref": "todtmoos",
+   "nom": "Todtmoos",
+   "km": 0.14,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 50,
+    "noires": 0
+   }
+  },
+  "de-todtnauberg": {
+   "s": "skiinfo",
+   "ref": "todtnauberg",
+   "nom": "Todtnauberg",
+   "km": 0.29,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 27,
+    "rouges": 73,
+    "noires": 0
+   }
+  },
+  "de-wallbergbahn-tegernsee": {
+   "s": "skiinfo",
+   "ref": "hirschberglifte-kreuth",
+   "nom": "Hirschberglifte Kreuth",
+   "km": 3.49,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 50,
+    "noires": 0
+   }
+  },
+  "de-westernberg-ruhpolding": {
+   "s": "skiinfo",
+   "ref": "ruhpolding",
+   "nom": "Ruhpolding",
+   "km": 0.23,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "de-willingen-512950m86081": {
+   "s": "skiinfo",
+   "ref": "willingen",
+   "nom": "Willingen",
+   "km": 1.03,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 58,
+    "rouges": 37,
+    "noires": 5
+   }
+  },
+  "de-wolfsberg-siegsdorf": {
+   "s": "skiresort",
+   "ref": "wolfsberglift-siegsdorf",
+   "nom": "Wolfsberglift – Siegsdorf",
+   "km": 0.01,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ee-vimka-viimsi-maepark-skigebiet-vimka-vimka-ski-resort": {
+   "s": "skiresort",
+   "ref": "vimka-viimsi-maeepark",
+   "nom": "Vimka – Viimsi Mäepark",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "eg-ski-egypt": {
+   "s": "skiresort",
+   "ref": "ski-egypt",
+   "nom": "Ski-dôme Ski Egypt",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "es-alto-campoo": {
+   "s": "skiinfo",
+   "ref": "alto-campoo",
+   "nom": "Alto Campoo",
+   "km": 1.24,
+   "skiinfo": {
+    "vertes": 17,
+    "bleues": 43,
+    "rouges": 39,
+    "noires": 0
+   }
+  },
+  "es-snozone-madrid": {
+   "s": "skiresort",
+   "ref": "snozone-madrid",
+   "nom": "Ski-dôme Snozone Madrid",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "es-valdelinares-404000mm06000": {
+   "s": "skiinfo",
+   "ref": "valdelinares",
+   "nom": "Valdelinares",
+   "km": 2.6,
+   "skiinfo": {
+    "vertes": 42,
+    "bleues": 31,
+    "rouges": 31,
+    "noires": 0
+   }
+  },
+  "fi-649015m255610": {
+   "s": "skiresort",
+   "ref": "koeykkyri",
+   "nom": "Köykkyri",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fi-675465m242536": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 0.52,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-675556m242498": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 0.6,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-675572m242500": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 0.75,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-675578m242375": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 1.12,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-675581m242527": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 0.81,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-675796m242280": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 3.41,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-675829m242172": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 3.93,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-aavasaksa": {
+   "s": "skiresort",
+   "ref": "aavasaksa",
+   "nom": "Aavasaksa",
+   "km": 0.27,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "fi-alhovuori": {
+   "s": "skiresort",
+   "ref": "alhovuori",
+   "nom": "Alhovuori",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1.5,
+    "difficiles": 0
+   }
+  },
+  "fi-hittenharju": {
+   "s": "skiresort",
+   "ref": "hiittenharju",
+   "nom": "Hiittenharju",
+   "km": 0.04,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "fi-lakis": {
+   "s": "skiresort",
+   "ref": "lakis",
+   "nom": "Lakis",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "fi-levi": {
+   "s": "skiinfo",
+   "ref": "levi",
+   "nom": "Levi",
+   "km": 0.28,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 44,
+    "rouges": 49,
+    "noires": 7
+   }
+  },
+  "fi-maarianvaaran-hiihtokeskus": {
+   "s": "skiresort",
+   "ref": "maarianrinteet",
+   "nom": "Maarianrinteet",
+   "km": 0.4,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 4,
+    "difficiles": 1
+   }
+  },
+  "fi-paavonrinteet": {
+   "s": "skiresort",
+   "ref": "paavonrinteet-saarijaervi",
+   "nom": "Paavonrinteet – Saarijärvi",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "fi-paloisvuori": {
+   "s": "skiresort",
+   "ref": "paloisvuori-iisalmi",
+   "nom": "Paloisvuori – Iisalmi",
+   "km": 0.04,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "fi-parra-snowpark": {
+   "s": "skiresort",
+   "ref": "parra",
+   "nom": "Parra",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fi-pikku-syote": {
+   "s": "skiresort",
+   "ref": "pikku-syoete-syoetekeskus",
+   "nom": "Pikku-Syöte/Syötekeskus",
+   "km": 1.73,
+   "skiresort": {
+    "faciles": 10,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fi-puijon-hyppyrimaet": {
+   "s": "skiresort",
+   "ref": "puijon-kuopio",
+   "nom": "Puijon – Kuopio",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "fi-paminne": {
+   "s": "skiresort",
+   "ref": "paaminne",
+   "nom": "Påminne",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.6,
+    "difficiles": 0.2
+   }
+  },
+  "fi-ruokolahden-freeski": {
+   "s": "skiresort",
+   "ref": "ruokolahti",
+   "nom": "Ruokolahti",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0.9,
+    "difficiles": 0.2
+   }
+  },
+  "fi-ruosniemi": {
+   "s": "skiresort",
+   "ref": "ruosniemi",
+   "nom": "Ruosniemi",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "fi-salomonkallio": {
+   "s": "skiresort",
+   "ref": "salomonkallio",
+   "nom": "Salomonkallio",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fi-simpsio": {
+   "s": "skiresort",
+   "ref": "simpsioe",
+   "nom": "Simpsiö",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 1.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fi-sotkanrinteet": {
+   "s": "skiresort",
+   "ref": "sotkanrinteet",
+   "nom": "Sotkanrinteet",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fi-taivalvaaran-hiihtokeskus": {
+   "s": "skiresort",
+   "ref": "taivalvaara",
+   "nom": "Taivalvaara",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 2.2,
+    "moyennes": 0.5,
+    "difficiles": 0.2
+   }
+  },
+  "fi-varkaus": {
+   "s": "skiresort",
+   "ref": "varkaus",
+   "nom": "Varkaus",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "fi-yllas-675693m242241": {
+   "s": "skiinfo",
+   "ref": "yllas",
+   "nom": "Ylläs",
+   "km": 2.46,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 47,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fi-aanemaki": {
+   "s": "skiresort",
+   "ref": "aeaenemaeki-aeaenekoski",
+   "nom": "Äänemäki – Äänekoski",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "fr-480938m69961": {
+   "s": "skiinfo",
+   "ref": "le-grand-valtin",
+   "nom": "Le Grand Valtin",
+   "km": 0.72,
+   "skiinfo": {
+    "vertes": 50,
+    "bleues": 50,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "fr-aiguille-du-midi-chamonix": {
+   "s": "skiinfo",
+   "ref": "chamonix",
+   "nom": "Chamonix",
+   "km": 4.74,
+   "skiinfo": {
+    "vertes": 13,
+    "bleues": 36,
+    "rouges": 37,
+    "noires": 14
+   }
+  },
+  "fr-auron-saint-etienne-de-tinee": {
+   "s": "skiinfo",
+   "ref": "auron",
+   "nom": "Auron",
+   "km": 0.17,
+   "skiinfo": {
+    "vertes": 1,
+    "bleues": 41,
+    "rouges": 33,
+    "noires": 24
+   }
+  },
+  "fr-autrans": {
+   "s": "skiinfo",
+   "ref": "autrans",
+   "nom": "Autrans Méaudre",
+   "km": 2.78,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 25,
+    "rouges": 28,
+    "noires": 10
+   }
+  },
+  "fr-ax-3-domaines-427203m18397": {
+   "s": "skiinfo",
+   "ref": "ax-3-domaines",
+   "nom": "Ax 3 Domaines",
+   "km": 3.2,
+   "skiinfo": {
+    "vertes": 26,
+    "bleues": 34,
+    "rouges": 26,
+    "noires": 13
+   }
+  },
+  "fr-chaux-neuve": {
+   "s": "skiresort",
+   "ref": "chaux-neuve",
+   "nom": "Chaux Neuve",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fr-col-du-fanget": {
+   "s": "skiinfo",
+   "ref": "le-grand-puy",
+   "nom": "Le Grand Puy",
+   "km": 3.72,
+   "skiinfo": {
+    "vertes": 23,
+    "bleues": 15,
+    "rouges": 38,
+    "noires": 23
+   }
+  },
+  "fr-domaine-nordique-col-d-ornon": {
+   "s": "skiinfo",
+   "ref": "col-dornon",
+   "nom": "Col d'Ornon",
+   "km": 1.01,
+   "skiinfo": {
+    "vertes": 38,
+    "bleues": 13,
+    "rouges": 25,
+    "noires": 25
+   }
+  },
+  "fr-domaine-du-barioz": {
+   "s": "skiresort",
+   "ref": "le-grand-plan-col-du-barioz",
+   "nom": "Le Grand Plan – Col du Barioz",
+   "km": 1.47,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0.5
+   }
+  },
+  "fr-espace-nordique-du-val-d-azun": {
+   "s": "skiinfo",
+   "ref": "val-dazun",
+   "nom": "Val d'Azun",
+   "km": 2.34,
+   "skiinfo": {
+    "vertes": 12,
+    "bleues": 22,
+    "rouges": 31,
+    "noires": 34
+   }
+  },
+  "fr-gaschney-360": {
+   "s": "skiinfo",
+   "ref": "le-gaschney",
+   "nom": "Gaschney 360",
+   "km": 0.58,
+   "skiinfo": {
+    "vertes": 17,
+    "bleues": 17,
+    "rouges": 67,
+    "noires": 0
+   }
+  },
+  "fr-la-colmiane-440674m72235": {
+   "s": "skiinfo",
+   "ref": "la-colmiane",
+   "nom": "La Colmiane",
+   "km": 0.44,
+   "skiinfo": {
+    "vertes": 28,
+    "bleues": 28,
+    "rouges": 33,
+    "noires": 11
+   }
+  },
+  "fr-la-grave-la-meije": {
+   "s": "skiinfo",
+   "ref": "la-grave-la-meije",
+   "nom": "La Grave la Meije",
+   "km": 0.29,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "fr-la-pesse-les-bouchoux": {
+   "s": "skiresort",
+   "ref": "la-pesse",
+   "nom": "La Pesse",
+   "km": 1.02,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fr-lajoux-massacre": {
+   "s": "skiinfo",
+   "ref": "les-rousses",
+   "nom": "Station des Rousses – Jura sur Léman",
+   "km": 2.36,
+   "skiinfo": {
+    "vertes": 29,
+    "bleues": 38,
+    "rouges": 27,
+    "noires": 7
+   }
+  },
+  "fr-lans-en-vercors": {
+   "s": "skiinfo",
+   "ref": "lans-en-vercors",
+   "nom": "Lans en Vercors",
+   "km": 2.38,
+   "skiinfo": {
+    "vertes": 34,
+    "bleues": 41,
+    "rouges": 21,
+    "noires": 3
+   }
+  },
+  "fr-le-haut-du-tot": {
+   "s": "skiresort",
+   "ref": "le-haut-du-tot-sapois",
+   "nom": "Le Haut du Tôt (Sapois)",
+   "km": 0.81,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fr-le-tanet": {
+   "s": "skiinfo",
+   "ref": "la-schlucht",
+   "nom": "La Schlucht",
+   "km": 2.99,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "fr-les-angles": {
+   "s": "skiinfo",
+   "ref": "les-angles",
+   "nom": "Les Angles",
+   "km": 0.06,
+   "skiinfo": {
+    "vertes": 34,
+    "bleues": 22,
+    "rouges": 34,
+    "noires": 10
+   }
+  },
+  "fr-les-bossons": {
+   "s": "skiinfo",
+   "ref": "chamonix",
+   "nom": "Chamonix",
+   "km": 3.78,
+   "skiinfo": {
+    "vertes": 13,
+    "bleues": 36,
+    "rouges": 37,
+    "noires": 14
+   }
+  },
+  "fr-les-entremonts": {
+   "s": "skiinfo",
+   "ref": "le-granier-vallee-des-entremonts",
+   "nom": "Le Granier",
+   "km": 1.42,
+   "skiinfo": {
+    "vertes": 50,
+    "bleues": 25,
+    "rouges": 25,
+    "noires": 0
+   }
+  },
+  "fr-les-gentianes": {
+   "s": "skiinfo",
+   "ref": "espace-alpin-bellefontaine",
+   "nom": "Espace Alpin Bellefontaine",
+   "km": 2.93,
+   "skiinfo": {
+    "vertes": 20,
+    "bleues": 60,
+    "rouges": 20,
+    "noires": 0
+   }
+  },
+  "fr-les-hautes-combes": {
+   "s": "skiinfo",
+   "ref": "monts-jura",
+   "nom": "Monts Jura",
+   "km": 3.49,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 0,
+    "noires": 100
+   }
+  },
+  "fr-les-moussieres-bellecombe-molunes": {
+   "s": "skiresort",
+   "ref": "les-moussieres",
+   "nom": "Les Moussières",
+   "km": 2.24,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fr-markstein-grand-ballon": {
+   "s": "skiinfo",
+   "ref": "le-markstein",
+   "nom": "Le Markstein",
+   "km": 2.93,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 11,
+    "rouges": 4,
+    "noires": 76
+   }
+  },
+  "fr-notre-dame-du-pre": {
+   "s": "skiresort",
+   "ref": "notre-dame-du-pre",
+   "nom": "Notre Dame du Pré",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "fr-orcieres": {
+   "s": "skiinfo",
+   "ref": "orcieres",
+   "nom": "Orcières Merlette",
+   "km": 0.21,
+   "skiinfo": {
+    "vertes": 20,
+    "bleues": 31,
+    "rouges": 34,
+    "noires": 15
+   }
+  },
+  "fr-rouge-gazon": {
+   "s": "skiresort",
+   "ref": "rouge-gazon",
+   "nom": "Rouge Gazon",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 5,
+    "moyennes": 3,
+    "difficiles": 0.5
+   }
+  },
+  "fr-saint-lary-soulan": {
+   "s": "skiinfo",
+   "ref": "saint-lary-soulan",
+   "nom": "Saint Lary",
+   "km": 2.85,
+   "skiinfo": {
+    "vertes": 12,
+    "bleues": 44,
+    "rouges": 25,
+    "noires": 19
+   }
+  },
+  "fr-snowkite-markstein": {
+   "s": "skiinfo",
+   "ref": "le-markstein",
+   "nom": "Le Markstein",
+   "km": 1.84,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 11,
+    "rouges": 4,
+    "noires": 76
+   }
+  },
+  "fr-thollon-les-memises": {
+   "s": "skiinfo",
+   "ref": "thollon-les-memises",
+   "nom": "Thollon les Memises",
+   "km": 1.07,
+   "skiinfo": {
+    "vertes": 13,
+    "bleues": 19,
+    "rouges": 56,
+    "noires": 13
+   }
+  },
+  "fr-val-pelens": {
+   "s": "skiinfo",
+   "ref": "val-pelens",
+   "nom": "Val Pelens",
+   "km": 0.34,
+   "skiinfo": {
+    "vertes": 71,
+    "bleues": 29,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "gb-513561m05589": {
+   "s": "skiresort",
+   "ref": "chatham-ski-centre",
+   "nom": "Centre de ski couvert Chatham Ski Centre",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-513733mm03655": {
+   "s": "skiresort",
+   "ref": "the-oakwood",
+   "nom": "Centre de ski couvert The Oakwood",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-521670mm44509": {
+   "s": "skiresort",
+   "ref": "llangrannog-ski-centre",
+   "nom": "Centre de ski couvert Llangrannog Ski Centre",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-533253mm26800": {
+   "s": "skiresort",
+   "ref": "runcorn-ski-centre",
+   "nom": "Centre de ski couvert Runcorn Ski Centre",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-537043mm23000": {
+   "s": "skiresort",
+   "ref": "rossendale",
+   "nom": "Centre de ski couvert Rossendale",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "gb-537044mm22999": {
+   "s": "skiresort",
+   "ref": "rossendale",
+   "nom": "Centre de ski couvert Rossendale",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "gb-538468mm23481": {
+   "s": "skiresort",
+   "ref": "pendle-ski-club",
+   "nom": "Centre de ski couvert Pendle Ski Club",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-543270mm27376": {
+   "s": "skiresort",
+   "ref": "kendal-ski-centre",
+   "nom": "Centre de ski couvert Kendal Ski Centre",
+   "km": 0.04,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-548798mm14127": {
+   "s": "skiresort",
+   "ref": "silksworth-sports-complex",
+   "nom": "Centre de ski couvert Silksworth Sports Complex",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-allenheads": {
+   "s": "skiresort",
+   "ref": "allenheads",
+   "nom": "Allenheads",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-bearsden-ski-board": {
+   "s": "skiresort",
+   "ref": "bearsden",
+   "nom": "Centre de ski couvert Bearsden",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "gb-better-ski-board-centre": {
+   "s": "skiresort",
+   "ref": "gosling-sports-park",
+   "nom": "Centre de ski couvert Gosling Sports Park",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-garthdee-ski-centre": {
+   "s": "skiresort",
+   "ref": "aberdeen-snowsports-centre",
+   "nom": "Centre de ski couvert Aberdeen Snowsports Centre",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.1,
+    "difficiles": 0.1
+   }
+  },
+  "gb-gloucester-ski-snowboard-centre": {
+   "s": "skiresort",
+   "ref": "gloucester-ski-snowboard-centre",
+   "nom": "Centre de ski couvert Gloucester Ski &amp; Snowboard Centre",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-inpiste": {
+   "s": "skiresort",
+   "ref": "inpiste-luton-hoo-estate",
+   "nom": "Ski-dôme Inpiste – Luton Hoo Estate",
+   "km": 0.01,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-knockhatch-ski-snowboard-centre": {
+   "s": "skiresort",
+   "ref": "knockhatch-ski-centre",
+   "nom": "Centre de ski couvert Knockhatch Ski Centre",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-llandudno-ski-and-snowboard-centre": {
+   "s": "skiresort",
+   "ref": "llandudno-ski-and-snowboard-centre",
+   "nom": "Centre de ski couvert Llandudno Ski and Snowboard Centre",
+   "km": 0.42,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-loch-insh-watersports-skiing-centre": {
+   "s": "skiresort",
+   "ref": "loch-insh-outdoor-centre",
+   "nom": "Centre de ski couvert Loch Insh Outdoor Centre",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-north-staffs-ski-club-kidsgrove": {
+   "s": "skiresort",
+   "ref": "kidsgrove-ski-centre",
+   "nom": "Centre de ski couvert Kidsgrove Ski Centre",
+   "km": 0.04,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-plymouth-ski-and-snowboard-center": {
+   "s": "skiresort",
+   "ref": "plymouth-ski-centre",
+   "nom": "Centre de ski couvert Plymouth Ski Centre",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "gb-raise": {
+   "s": "skiresort",
+   "ref": "lake-district-ski-club-raise",
+   "nom": "Lake District Ski Club – Raise",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 2,
+    "difficiles": 0.6
+   }
+  },
+  "gb-south-wilts-ski-club": {
+   "s": "skiresort",
+   "ref": "south-wilts-ski-club",
+   "nom": "Centre de ski couvert South Wilts Ski Club",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-stoke-ski-center": {
+   "s": "skiresort",
+   "ref": "stoke-ski-centre",
+   "nom": "Centre de ski couvert Stoke Ski Centre",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "gb-swadlincote-ski-snowboard": {
+   "s": "skiresort",
+   "ref": "swadlincote-snowsports-centre",
+   "nom": "Centre de ski couvert Swadlincote Snowsports Centre",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "gb-weardale-ski-club": {
+   "s": "skiresort",
+   "ref": "weardale-ski-club",
+   "nom": "Weardale Ski Club",
+   "km": 0.78,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "gb-yad-moss": {
+   "s": "skiresort",
+   "ref": "carlisle-ski-club-yad-moss",
+   "nom": "Carlisle Ski Club – Yad Moss",
+   "km": 0.32,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 4,
+    "difficiles": 0
+   }
+  },
+  "ge-417448m435368": {
+   "s": "skiinfo",
+   "ref": "bakuriani",
+   "nom": "Bakuriani",
+   "km": 1.47,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 49,
+    "rouges": 36,
+    "noires": 14
+   }
+  },
+  "ge-goderdzi": {
+   "s": "skiinfo",
+   "ref": "goderdzi",
+   "nom": "Goderdzi",
+   "km": 1.69,
+   "skiinfo": {
+    "vertes": 18,
+    "bleues": 56,
+    "rouges": 27,
+    "noires": 0
+   }
+  },
+  "gr-karpenisi-ski-center": {
+   "s": "skiresort",
+   "ref": "tymfristos-velouchi",
+   "nom": "Tymfristos – Velouchi",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 3.7,
+    "moyennes": 2.7,
+    "difficiles": 2
+   }
+  },
+  "in-auli": {
+   "s": "skiresort",
+   "ref": "auli",
+   "nom": "Auli",
+   "km": 1,
+   "skiresort": {
+    "faciles": 2.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "in-solang-valley": {
+   "s": "skiresort",
+   "ref": "solang-nullaha-kullu-valley",
+   "nom": "Solang Nullaha (Kullu Valley)",
+   "km": 2.56,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0.9,
+    "difficiles": 0
+   }
+  },
+  "ir-abali-ski-resort": {
+   "s": "skiresort",
+   "ref": "abali",
+   "nom": "Abali",
+   "km": 2.78,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2,
+    "difficiles": 0
+   }
+  },
+  "ir-tarbiat-badani-ski-resort": {
+   "s": "skiresort",
+   "ref": "tarbiatbadani",
+   "nom": "Tarbiatbadani",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ir-khoshakoo-ski-resort": {
+   "s": "skiresort",
+   "ref": "khoshakoo",
+   "nom": "Khoshakoo",
+   "km": 0.5,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "ir-sahand-ski-resort": {
+   "s": "skiresort",
+   "ref": "sahand",
+   "nom": "Sahand",
+   "km": 0.42,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 2,
+    "difficiles": 0
+   }
+  },
+  "ir-payam-ski-resort": {
+   "s": "skiresort",
+   "ref": "payam-yam",
+   "nom": "Payam – Yam",
+   "km": 0.47,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "it-400246m92732": {
+   "s": "skiresort",
+   "ref": "separadorgiu",
+   "nom": "Separadorgiu",
+   "km": 2.91,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "it-400416m92968": {
+   "s": "skiresort",
+   "ref": "separadorgiu",
+   "nom": "Separadorgiu",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "it-419761m132772": {
+   "s": "skiinfo",
+   "ref": "cappadocia-campo-rotondo",
+   "nom": "Cappadocia - Campo Rotondo",
+   "km": 0.33,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 100,
+    "noires": 0
+   }
+  },
+  "it-420005m140890": {
+   "s": "skiinfo",
+   "ref": "campo-di-giove-maiella",
+   "nom": "Campo di Giove - Maiella",
+   "km": 1.49,
+   "skiinfo": {
+    "vertes": 10,
+    "bleues": 70,
+    "rouges": 10,
+    "noires": 10
+   }
+  },
+  "it-428712m131937": {
+   "s": "skiresort",
+   "ref": "monte-prata-castelsantangelo-sul-nera",
+   "nom": "Monte Prata – Castelsantangelo sul Nera",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 4.8,
+    "moyennes": 0.6,
+    "difficiles": 0.3
+   }
+  },
+  "it-462603m98671": {
+   "s": "skiinfo",
+   "ref": "caspoggio-valmalenco",
+   "nom": "Caspoggio - Valmalenco",
+   "km": 0.28,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 29,
+    "rouges": 42,
+    "noires": 29
+   }
+  },
+  "it-464366m135616": {
+   "s": "skiresort",
+   "ref": "encijan",
+   "nom": "Encijan",
+   "km": 4.67,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "it-cortina-d-ampezzo-faloria-cristallo-mietres-tofana": {
+   "s": "skiinfo",
+   "ref": "cortina-dampezzo",
+   "nom": "Cortina d'Ampezzo",
+   "km": 0.58,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 38,
+    "rouges": 49,
+    "noires": 13
+   }
+  },
+  "it-entracque": {
+   "s": "skiinfo",
+   "ref": "entracque",
+   "nom": "Entracque",
+   "km": 2.02,
+   "skiinfo": {
+    "vertes": 10,
+    "bleues": 40,
+    "rouges": 10,
+    "noires": 40
+   }
+  },
+  "it-fago-del-soldato": {
+   "s": "skiinfo",
+   "ref": "camigliatello-silano",
+   "nom": "Camigliatello Silano",
+   "km": 2.61,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 28,
+    "rouges": 72,
+    "noires": 0
+   }
+  },
+  "it-fantasy-snow-park": {
+   "s": "skiinfo",
+   "ref": "forni-di-sopra",
+   "nom": "Forni di Sopra",
+   "km": 0.23,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 8,
+    "rouges": 85,
+    "noires": 8
+   }
+  },
+  "it-forca-canapine": {
+   "s": "skiresort",
+   "ref": "forca-canapine",
+   "nom": "Forca Canapine",
+   "km": 0.36,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 5,
+    "difficiles": 1.5
+   }
+  },
+  "it-fun-park-dell-angelo-parco-giochi": {
+   "s": "skiinfo",
+   "ref": "tarvisio",
+   "nom": "Tarvisio",
+   "km": 2.88,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 29,
+    "rouges": 33,
+    "noires": 38
+   }
+  },
+  "it-garessio-2000": {
+   "s": "skiinfo",
+   "ref": "garessio-2000",
+   "nom": "Garéssio 2000",
+   "km": 0.84,
+   "skiinfo": {
+    "vertes": 20,
+    "bleues": 30,
+    "rouges": 40,
+    "noires": 10
+   }
+  },
+  "it-la-magdeleine": {
+   "s": "skiinfo",
+   "ref": "la-magdeleine",
+   "nom": "La Magdeleine",
+   "km": 0.07,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 67,
+    "rouges": 33,
+    "noires": 0
+   }
+  },
+  "it-laceno": {
+   "s": "skiinfo",
+   "ref": "laceno",
+   "nom": "Laceno",
+   "km": 0.73,
+   "skiinfo": {
+    "vertes": 3,
+    "bleues": 38,
+    "rouges": 10,
+    "noires": 48
+   }
+  },
+  "it-malga-san-giorgio": {
+   "s": "skiinfo",
+   "ref": "lessinia",
+   "nom": "Lessinia",
+   "km": 3.17,
+   "skiinfo": {
+    "vertes": 17,
+    "bleues": 17,
+    "rouges": 50,
+    "noires": 17
+   }
+  },
+  "it-monte-cimone": {
+   "s": "skiinfo",
+   "ref": "cimone",
+   "nom": "Cimone",
+   "km": 0.43,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 24,
+    "rouges": 48,
+    "noires": 28
+   }
+  },
+  "it-ollomont": {
+   "s": "skiinfo",
+   "ref": "ollomont",
+   "nom": "Ollomont",
+   "km": 0.63,
+   "skiinfo": {
+    "vertes": 25,
+    "bleues": 75,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "it-pian-benot": {
+   "s": "skiinfo",
+   "ref": "usseglio",
+   "nom": "Usseglio",
+   "km": 0.48,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 25,
+    "rouges": 50,
+    "noires": 25
+   }
+  },
+  "it-piancavallo-461073m125190": {
+   "s": "skiinfo",
+   "ref": "piancavallo",
+   "nom": "Piancavallo",
+   "km": 0.51,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 21,
+    "rouges": 71,
+    "noires": 7
+   }
+  },
+  "it-pista-slittini-e-bob": {
+   "s": "skiinfo",
+   "ref": "piane-di-mocogno",
+   "nom": "Piane di Mocogno",
+   "km": 1.41,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "it-prali": {
+   "s": "skiinfo",
+   "ref": "prali",
+   "nom": "Prali",
+   "km": 0.65,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 28,
+    "rouges": 40,
+    "noires": 32
+   }
+  },
+  "it-pra-delle-nasse-dx": {
+   "s": "skiinfo",
+   "ref": "san-martino-di-castrozza-passo-rolle",
+   "nom": "San Martino di Castrozza - Passo Rolle",
+   "km": 0.52,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 53,
+    "rouges": 39,
+    "noires": 8
+   }
+  },
+  "it-san-simone": {
+   "s": "skiinfo",
+   "ref": "foppolo-carona-brembo-ski",
+   "nom": "Foppolo - Carona - Brembo Ski",
+   "km": 4.05,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 31,
+    "rouges": 56,
+    "noires": 13
+   }
+  },
+  "it-scanno-419022m138791": {
+   "s": "skiinfo",
+   "ref": "scanno-passo-godi",
+   "nom": "Scanno - Passo Godi",
+   "km": 0.27,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 38,
+    "rouges": 49,
+    "noires": 13
+   }
+  },
+  "it-ussita-frontignano": {
+   "s": "skiinfo",
+   "ref": "ussita-frontignano",
+   "nom": "Ussita - Frontignano",
+   "km": 0.54,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 58,
+    "rouges": 20,
+    "noires": 22
+   }
+  },
+  "jp-393976m1407722": {
+   "s": "skiresort",
+   "ref": "nishine-choeishigarai",
+   "nom": "Nishine Choeishigarai",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "jp-ashimoi-kanko-ashimoi-kanko-takaho-ski-area": {
+   "s": "skiresort",
+   "ref": "numata-choei-takaho",
+   "nom": "Numata-choei Takaho",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.3,
+    "difficiles": 0.2
+   }
+  },
+  "jp-banshogahara": {
+   "s": "skiresort",
+   "ref": "banshogahara",
+   "nom": "Banshogahara",
+   "km": 0.49,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 1.5,
+    "difficiles": 0.7
+   }
+  },
+  "jp-hakusan-shiramine-onsen": {
+   "s": "skiresort",
+   "ref": "hakusan-shiramine-onsen",
+   "nom": "Hakusan Shiramine Onsen",
+   "km": 1.64,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2,
+    "difficiles": 0
+   }
+  },
+  "jp-hanamiyama": {
+   "s": "skiresort",
+   "ref": "ibuki-no-sato",
+   "nom": "Ibuki no Sato",
+   "km": 3.25,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.7,
+    "difficiles": 0.6
+   }
+  },
+  "jp-hiraniwa-kogen": {
+   "s": "skiresort",
+   "ref": "hiraniwa-kogen",
+   "nom": "Hiraniwa Kogen",
+   "km": 0.49,
+   "skiresort": {
+    "faciles": 5,
+    "moyennes": 3,
+    "difficiles": 2
+   }
+  },
+  "jp-iizuna-kogen": {
+   "s": "skiresort",
+   "ref": "iizuna-kogen",
+   "nom": "Iizuna Kogen",
+   "km": 1.65,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 4,
+    "difficiles": 1.5
+   }
+  },
+  "jp-ikenotaira-snow-park": {
+   "s": "skiresort",
+   "ref": "shirakabako-royal-hill",
+   "nom": "Shirakabako Royal Hill",
+   "km": 1.16,
+   "skiresort": {
+    "faciles": 2.7,
+    "moyennes": 2.6,
+    "difficiles": 1.2
+   }
+  },
+  "jp-kamafuseyama": {
+   "s": "skiresort",
+   "ref": "mutsushi-kamafuseyama",
+   "nom": "Mutsushi Kamafuseyama",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.9,
+    "difficiles": 0.6
+   }
+  },
+  "jp-kamiyubetsu-town-gokazan": {
+   "s": "skiresort",
+   "ref": "gokazan-yubetsu",
+   "nom": "Gokazan – Yūbetsu",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.1,
+    "difficiles": 0.6
+   }
+  },
+  "jp-makino-kogen": {
+   "s": "skiresort",
+   "ref": "makino-kogen",
+   "nom": "Makino Kogen",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-manza-onsen": {
+   "s": "skiresort",
+   "ref": "manza-onsen",
+   "nom": "Manza Onsen",
+   "km": 0.49,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-matsunoyama-onsen": {
+   "s": "skiresort",
+   "ref": "matsunoyama-onsen",
+   "nom": "Matsunoyama Onsen",
+   "km": 0.43,
+   "skiresort": {
+    "faciles": 2.5,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "jp-miinohara": {
+   "s": "skiresort",
+   "ref": "miinohara",
+   "nom": "Miinohara",
+   "km": 0.83,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-mineyama-kogen-resort-white-peak": {
+   "s": "skiresort",
+   "ref": "mineyama-kogen",
+   "nom": "Mineyama Kogen",
+   "km": 2.66,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.2,
+    "difficiles": 0.9
+   }
+  },
+  "jp-mominoki-forest-park": {
+   "s": "skiresort",
+   "ref": "megahira-onsen-megahira",
+   "nom": "Megahira Onsen Megahira",
+   "km": 3.88,
+   "skiresort": {
+    "faciles": 1.7,
+    "moyennes": 3.4,
+    "difficiles": 0.7
+   }
+  },
+  "jp-mt-grand-view-mt": {
+   "s": "skiresort",
+   "ref": "ishiuchi-hanaoka",
+   "nom": "Ishiuchi Hanaoka",
+   "km": 1.65,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "jp-muroran-kogen-danpara": {
+   "s": "skiresort",
+   "ref": "muroran-kogen-danpara",
+   "nom": "Muroran Kogen Danpara",
+   "km": 0.38,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "jp-naganuma": {
+   "s": "skiresort",
+   "ref": "kitanaganuma",
+   "nom": "Kitanaganuma",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "jp-nakafurano-hokusei": {
+   "s": "skiresort",
+   "ref": "nakafurano-hokusei",
+   "nom": "Nakafurano Hokusei",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "jp-nakayamatoge": {
+   "s": "skiresort",
+   "ref": "nakayamatoge-kogen",
+   "nom": "Nakayamatoge Kogen",
+   "km": 0.31,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 2.1,
+    "difficiles": 0.9
+   }
+  },
+  "jp-nanao-korosa": {
+   "s": "skiresort",
+   "ref": "nanao-korosa",
+   "nom": "Nanao Korosa",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.3,
+    "difficiles": 0.2
+   }
+  },
+  "jp-nasu-onsen": {
+   "s": "skiresort",
+   "ref": "nasu-onsen",
+   "nom": "Nasu Onsen",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "jp-ringo-kyowakoku": {
+   "s": "skiresort",
+   "ref": "ringo-kyowakoku",
+   "nom": "Ringo Kyowakoku",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.4,
+    "difficiles": 0.1
+   }
+  },
+  "jp-sayama": {
+   "s": "skiresort",
+   "ref": "sayama",
+   "nom": "Ski-dôme Sayama",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-shibetsu-choei-kanayama": {
+   "s": "skiresort",
+   "ref": "choei-kanayama",
+   "nom": "Choei Kanayama",
+   "km": 0.27,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.2,
+    "difficiles": 0.4
+   }
+  },
+  "jp-shibetsu-city-hinata": {
+   "s": "skiresort",
+   "ref": "hinata",
+   "nom": "Hinata",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.6,
+    "difficiles": 0.8
+   }
+  },
+  "jp-shichinohe-town": {
+   "s": "skiresort",
+   "ref": "shichinohechoei",
+   "nom": "Shichinohechoei",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0.3,
+    "difficiles": 0.3
+   }
+  },
+  "jp-shiga-kogen": {
+   "s": "skiresort",
+   "ref": "yakebitaiyama",
+   "nom": "Yakebitaiyama",
+   "km": 1.26,
+   "skiresort": {
+    "faciles": 2.1,
+    "moyennes": 10.5,
+    "difficiles": 1.4
+   }
+  },
+  "jp-shizuokashi-ribaweruikawa": {
+   "s": "skiresort",
+   "ref": "shizuokashi-riverwell-ikawa",
+   "nom": "Shizuokashi Riverwell Ikawa",
+   "km": 0.42,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-shokawa-kogen": {
+   "s": "skiresort",
+   "ref": "shokawa-kogen",
+   "nom": "Shokawa Kogen",
+   "km": 0.39,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 1.5,
+    "difficiles": 0.4
+   }
+  },
+  "jp-ski-jam-katsuyama": {
+   "s": "skiresort",
+   "ref": "jam-katsuyama",
+   "nom": "Jam Katsuyama",
+   "km": 1.93,
+   "skiresort": {
+    "faciles": 6,
+    "moyennes": 8,
+    "difficiles": 6
+   }
+  },
+  "jp-snova-shinyokohama": {
+   "s": "skiresort",
+   "ref": "snova-shin-yokohama-yokohama-city",
+   "nom": "Ski-dôme Snova Shin-Yokohama – Yokohama City",
+   "km": 0.02,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-snow-wave-park-shiratori-kogen": {
+   "s": "skiresort",
+   "ref": "shiratori-kogen",
+   "nom": "Shiratori Kogen",
+   "km": 0.48,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2,
+    "difficiles": 1
+   }
+  },
+  "jp-suishozan": {
+   "s": "skiresort",
+   "ref": "suishozan-kazuno",
+   "nom": "Suishozan – Kazuno",
+   "km": 0.32,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "jp-takinouecho-sakuragaoka": {
+   "s": "skiresort",
+   "ref": "takinouecho-sakuragaoka",
+   "nom": "Takinouecho Sakuragaoka",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.8,
+    "difficiles": 0.4
+   }
+  },
+  "jp-tengukogen": {
+   "s": "skiresort",
+   "ref": "tengu-kogen",
+   "nom": "Tengu Kogen",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-towadako-onsen": {
+   "s": "skiresort",
+   "ref": "oirase-keiryu-onsen",
+   "nom": "Oirase Keiryu Onsen",
+   "km": 0.66,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "jp-ushidake-onsen": {
+   "s": "skiresort",
+   "ref": "ushidake-onsen",
+   "nom": "Ushidake Onsen",
+   "km": 0.74,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "jp-wakasu-kogen-oya": {
+   "s": "skiresort",
+   "ref": "wakasugi-kogen-oya",
+   "nom": "Wakasugi Kogen Oya",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1.5,
+    "difficiles": 1.5
+   }
+  },
+  "jp-yamada-onsen-kids-snow-park": {
+   "s": "skiresort",
+   "ref": "yamaboku-yamada-bokujo",
+   "nom": "Yamaboku – Yamada Bokujo",
+   "km": 3.06,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 3,
+    "difficiles": 2
+   }
+  },
+  "jp-yunomaru": {
+   "s": "skiresort",
+   "ref": "yunomaru",
+   "nom": "Yunomaru",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 6,
+    "moyennes": 6,
+    "difficiles": 3
+   }
+  },
+  "jp-asahi-ski-area": {
+   "s": "skiresort",
+   "ref": "asahi",
+   "nom": "Asahi",
+   "km": 0.24,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "jp-awasuno-ski-area": {
+   "s": "skiresort",
+   "ref": "awasuno",
+   "nom": "Awasuno",
+   "km": 0.43,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 1.7,
+    "difficiles": 0.7
+   }
+  },
+  "jp-ibukinosato-ski-area": {
+   "s": "skiresort",
+   "ref": "ibuki-no-sato",
+   "nom": "Ibuki no Sato",
+   "km": 0.44,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.7,
+    "difficiles": 0.6
+   }
+  },
+  "jp-daisen-white-resort": {
+   "s": "skiresort",
+   "ref": "daisen-white-resort-kokusai-uenohara-nakanohara-gouenzan",
+   "nom": "Daisen White Resort – Kokusai/Uenohara/Nakanohara/Gouenzan",
+   "km": 0.72,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 4.9,
+    "difficiles": 1.6
+   }
+  },
+  "jp-chikusa-highland-ski-resort": {
+   "s": "skiresort",
+   "ref": "chikusa-kogen",
+   "nom": "Chikusa Kogen",
+   "km": 0.44,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2,
+    "difficiles": 1
+   }
+  },
+  "jp-nakasato-kiyotsu": {
+   "s": "skiresort",
+   "ref": "nakasato-kiyotsu",
+   "nom": "Nakasato Kiyotsu",
+   "km": 0.67,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2.3,
+    "difficiles": 0
+   }
+  },
+  "jp-nukabira-gensenkyo-ski-area": {
+   "s": "skiresort",
+   "ref": "nukabira-gensenkyo",
+   "nom": "Nukabira Gensenkyo",
+   "km": 0.68,
+   "skiresort": {
+    "faciles": 4,
+    "moyennes": 4.5,
+    "difficiles": 1.5
+   }
+  },
+  "jp-makado-onsen": {
+   "s": "skiresort",
+   "ref": "makado-onsen",
+   "nom": "Makado Onsen",
+   "km": 0.73,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 2.8,
+    "difficiles": 0.7
+   }
+  },
+  "jp-nipo-town": {
+   "s": "skiresort",
+   "ref": "hoshino-resorts-tomamu",
+   "nom": "Hoshino Resorts Tomamu",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 10.5,
+    "moyennes": 8.3,
+    "difficiles": 2.7
+   }
+  },
+  "jp-hunter-mountain-shiobara-ski-area": {
+   "s": "skiresort",
+   "ref": "hunter-mountain-shiobara",
+   "nom": "Hunter Mountain Shiobara",
+   "km": 1.14,
+   "skiresort": {
+    "faciles": 2.7,
+    "moyennes": 2.5,
+    "difficiles": 2.4
+   }
+  },
+  "jp-family-gelande-kirigamine-ski-area": {
+   "s": "skiresort",
+   "ref": "kirigamine",
+   "nom": "Kirigamine",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.4,
+    "difficiles": 0.1
+   }
+  },
+  "jp-ippon-sugi-ski-resort": {
+   "s": "skiresort",
+   "ref": "ipponsugi",
+   "nom": "Ipponsugi",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-hakkoda-kokusai-ski-area": {
+   "s": "skiresort",
+   "ref": "hakkoda",
+   "nom": "Hakkoda",
+   "km": 1.22,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 6,
+    "difficiles": 2
+   }
+  },
+  "jp-hokkaido-greenland-white-park": {
+   "s": "skiresort",
+   "ref": "mitsui-greenland",
+   "nom": "Mitsui Greenland",
+   "km": 0.34,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0.3,
+    "difficiles": 0.1
+   }
+  },
+  "jp-yogoshiyama-ski-area": {
+   "s": "skiresort",
+   "ref": "yogoshiyama",
+   "nom": "Yogoshiyama",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "jp-daisen-masumizu-kogen-snow-park": {
+   "s": "skiresort",
+   "ref": "daisen-masumizu-kogen",
+   "nom": "Daisen – Masumizu Kogen",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "jp-daisetsuzan-sounkyo-kurodake-ski-area": {
+   "s": "skiresort",
+   "ref": "daisetsuzan-kurodake-sounkyo",
+   "nom": "Daisetsuzan Kurodake – Sounkyo",
+   "km": 1.39,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "jp-muroran-shi-ski-area": {
+   "s": "skiresort",
+   "ref": "muroran-kogen-danpara",
+   "nom": "Muroran Kogen Danpara",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "jp-fujimi-kougen-snow-resort": {
+   "s": "skiresort",
+   "ref": "fujimi-kogen",
+   "nom": "Fujimi Kogen",
+   "km": 0.33,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-monbetsu-city-oyama-monbetsu-city-oyama": {
+   "s": "skiresort",
+   "ref": "mombetsu-ouyama",
+   "nom": "Mombetsu Ouyama",
+   "km": 0.49,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 1.5,
+    "difficiles": 0
+   }
+  },
+  "jp-gosannen-ski-area": {
+   "s": "skiresort",
+   "ref": "yokote-park",
+   "nom": "Yokote Park",
+   "km": 4.67,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "jp-asahigaoka-ski-resort": {
+   "s": "skiinfo",
+   "ref": "niseko-united",
+   "nom": "Niseko United",
+   "km": 4.8,
+   "skiinfo": {
+    "vertes": 34,
+    "bleues": 46,
+    "rouges": 20,
+    "noires": 0
+   }
+  },
+  "jp-mount-gassan-ski-resort": {
+   "s": "skiresort",
+   "ref": "gassan-nishikawa",
+   "nom": "Gassan – Nishikawa",
+   "km": 0.48,
+   "skiresort": {
+    "faciles": 5,
+    "moyennes": 5,
+    "difficiles": 0
+   }
+  },
+  "jp-mikasayama-esashi": {
+   "s": "skiresort",
+   "ref": "esashicho-mikasayama",
+   "nom": "Esashicho Mikasayama",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.9,
+    "difficiles": 0
+   }
+  },
+  "jp-motai-onsen-ski-resort": {
+   "s": "skiresort",
+   "ref": "motai",
+   "nom": "Motai",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.5,
+    "difficiles": 0.7
+   }
+  },
+  "jp-kenmin-no-mori-ski-area": {
+   "s": "skiresort",
+   "ref": "hiroshima-kenmin-no-mori",
+   "nom": "Hiroshima Kenmin no Mori",
+   "km": 0.46,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 1.1,
+    "difficiles": 1.2
+   }
+  },
+  "jp-akita-hachimantai-ski-area": {
+   "s": "skiresort",
+   "ref": "akita-hachimantai",
+   "nom": "Akita-Hachimantai",
+   "km": 0.5,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 1.3,
+    "difficiles": 0
+   }
+  },
+  "jp-bibai-kokusetsu-ski-area": {
+   "s": "skiresort",
+   "ref": "bibai-kokusetsu",
+   "nom": "Bibai Kokusetsu",
+   "km": 0.33,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.9,
+    "difficiles": 0.1
+   }
+  },
+  "jp-haginoyama-shimin-ski-area": {
+   "s": "skiresort",
+   "ref": "haginoyama-shimin",
+   "nom": "Haginoyama Shimin",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 1.3,
+    "moyennes": 0.7,
+    "difficiles": 0.5
+   }
+  },
+  "jp-fujisato-choei-ski-area": {
+   "s": "skiresort",
+   "ref": "fujisato-choei",
+   "nom": "Fujisato Choei",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "jp-akoyama-skijo-snowpal": {
+   "s": "skiresort",
+   "ref": "akoyama",
+   "nom": "Akoyama",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "jp-kanayasan-ski-area": {
+   "s": "skiresort",
+   "ref": "kanayasan",
+   "nom": "Kanayasan",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 1,
+    "difficiles": 0.3
+   }
+  },
+  "jp-kagamiganaru-ski-area": {
+   "s": "skiresort",
+   "ref": "kagamiganaru",
+   "nom": "Kagamiganaru",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "jp-akan-royal-valley": {
+   "s": "skiresort",
+   "ref": "akan-royal-valley",
+   "nom": "Akan Royal Valley",
+   "km": 1.31,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "jp-kiyosato-choei-midori-ski-area": {
+   "s": "skiresort",
+   "ref": "kiyosato-choei-midori",
+   "nom": "Kiyosato Choei Midori",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.3,
+    "difficiles": 0.1
+   }
+  },
+  "jp-furen-ski-area": {
+   "s": "skiresort",
+   "ref": "hinata",
+   "nom": "Hinata",
+   "km": 3.48,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.6,
+    "difficiles": 0.8
+   }
+  },
+  "kg-ski-tatyr": {
+   "s": "skiresort",
+   "ref": "tatyr",
+   "nom": "Tatyr",
+   "km": 0.93,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1.5,
+    "difficiles": 0.5
+   }
+  },
+  "kg-too-ashuu": {
+   "s": "skiresort",
+   "ref": "suusamir-too-ashu-pass",
+   "nom": "Suusamir (Too Ashu Pass)",
+   "km": 0.37,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 5,
+    "difficiles": 0
+   }
+  },
+  "kg-426511m745618": {
+   "s": "skiresort",
+   "ref": "kyzyl-beles",
+   "nom": "Kyzyl Beles",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "kg-aktyz-mountain-resort": {
+   "s": "skiresort",
+   "ref": "ak-tuz",
+   "nom": "Ak-Tuz",
+   "km": 0.89,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "kg-zil-ski-resort": {
+   "s": "skiresort",
+   "ref": "norus-nooruz",
+   "nom": "Norus (Nooruz)",
+   "km": 2.68,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.9,
+    "difficiles": 0.1
+   }
+  },
+  "kg-ski-base-orlovka": {
+   "s": "skiresort",
+   "ref": "orlovka",
+   "nom": "Orlovka",
+   "km": 0.4,
+   "skiresort": {
+    "faciles": 3.2,
+    "moyennes": 1,
+    "difficiles": 0.8
+   }
+  },
+  "kg-supara-snowtubing": {
+   "s": "skiresort",
+   "ref": "chunkurchak",
+   "nom": "Chunkurchak",
+   "km": 0.79,
+   "skiresort": {
+    "faciles": 2.5,
+    "moyennes": 5,
+    "difficiles": 2.5
+   }
+  },
+  "kg-toguz-bulak-ski-resort": {
+   "s": "skiresort",
+   "ref": "toguz-bulak",
+   "nom": "Toguz-Bulak",
+   "km": 0.81,
+   "skiresort": {
+    "faciles": 6,
+    "moyennes": 2,
+    "difficiles": 1
+   }
+  },
+  "kr-konjiam-resort": {
+   "s": "skiresort",
+   "ref": "konjiam-resort",
+   "nom": "Konjiam Resort",
+   "km": 0.58,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 4.6,
+    "difficiles": 0.6
+   }
+  },
+  "kr-alpensia-resort": {
+   "s": "skiresort",
+   "ref": "welli-hilli-park",
+   "nom": "Welli Hilli Park",
+   "km": 0.57,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 4.3,
+    "difficiles": 5
+   }
+  },
+  "kr-o2-resort": {
+   "s": "skiresort",
+   "ref": "o2-resort-taebaek",
+   "nom": "O2 Resort – Taebaek",
+   "km": 1.06,
+   "skiresort": {
+    "faciles": 7,
+    "moyennes": 4,
+    "difficiles": 0
+   }
+  },
+  "kz-tabagan": {
+   "s": "skiresort",
+   "ref": "tabagan",
+   "nom": "Tabagan",
+   "km": 0.48,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1.7,
+    "difficiles": 0
+   }
+  },
+  "kz-tau-samaly": {
+   "s": "skiresort",
+   "ref": "tau-samaly",
+   "nom": "Tau Samaly",
+   "km": 1.85,
+   "skiresort": {
+    "faciles": 1.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "lt-kalita-kalnas": {
+   "s": "skiresort",
+   "ref": "kalitos-kalnas-anyksciai",
+   "nom": "Kalitos Kalnas – Anykščiai",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "lt-mortos-kalns": {
+   "s": "skiresort",
+   "ref": "mortos-kalns",
+   "nom": "Mortos Kalns",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.4,
+    "difficiles": 0.2
+   }
+  },
+  "lt-ski-snow-arena-druskininkai": {
+   "s": "skiresort",
+   "ref": "snow-arena-druskininkai",
+   "nom": "Ski-dôme Snow Arena – Druskininkai",
+   "km": 0.57,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "lv-568756m259659": {
+   "s": "skiresort",
+   "ref": "gaizinkalns",
+   "nom": "Gaiziņkalns",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "lv-baili": {
+   "s": "skiresort",
+   "ref": "baili",
+   "nom": "Baiļi",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "lv-eglukalns": {
+   "s": "skiresort",
+   "ref": "eglukalns",
+   "nom": "Egļukalns",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "lv-lemberga-hute": {
+   "s": "skiresort",
+   "ref": "lemberga-hute-ventspils",
+   "nom": "Lemberga Hūte – Ventspils",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "lv-reina-trase": {
+   "s": "skiresort",
+   "ref": "siguldas-pilsetas",
+   "nom": "Siguldas Pilsētas",
+   "km": 2.61,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "lv-siguldas-trase": {
+   "s": "skiresort",
+   "ref": "siguldas-pilsetas",
+   "nom": "Siguldas Pilsētas",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "lv-zagarkalns": {
+   "s": "skiresort",
+   "ref": "zagarkalns",
+   "nom": "Žagarkalns",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "me-428261m190735": {
+   "s": "skiresort",
+   "ref": "vucje",
+   "nom": "Vučje",
+   "km": 0.41,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "me-lokve": {
+   "s": "skiresort",
+   "ref": "lokve",
+   "nom": "Lokve",
+   "km": 0.41,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0.9,
+    "difficiles": 0.1
+   }
+  },
+  "mk-nizepole": {
+   "s": "skiresort",
+   "ref": "nize-pole-baba-mountain",
+   "nom": "Nize Pole – Baba Mountain",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 1.5,
+    "difficiles": 0.5
+   }
+  },
+  "mk-pelister": {
+   "s": "skiresort",
+   "ref": "kopanki-pelister",
+   "nom": "Kopanki Pelister",
+   "km": 0.62,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "mk-ponikva": {
+   "s": "skiresort",
+   "ref": "ponikva",
+   "nom": "Ponikva",
+   "km": 0.4,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "mn-sky-resort": {
+   "s": "skiresort",
+   "ref": "sky-resort-ulaanbaatar",
+   "nom": "Sky Resort – Ulaanbaatar",
+   "km": 0.52,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 2,
+    "difficiles": 1
+   }
+  },
+  "mx-bosques-de-monterreal": {
+   "s": "skiresort",
+   "ref": "bosques-de-monterreal-san-antonio-de-las-alazanas",
+   "nom": "Centre de ski couvert Bosques de Monterreal – San Antonio de las Alazanas",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "nl-indoor-ski-rotterdam": {
+   "s": "skiresort",
+   "ref": "indoor-ski-snowboard-rotterdam",
+   "nom": "Centre de ski couvert Indoor Ski &amp; Snowboard Rotterdam",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-outdoorski-bergschenhoek": {
+   "s": "skiresort",
+   "ref": "outdoor-valley-wintersport-bergschenhoek",
+   "nom": "Centre de ski couvert Outdoor Valley Wintersport – Bergschenhoek",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-skicentrum-hoofddorp": {
+   "s": "skiresort",
+   "ref": "skicentrum-hoofddorp",
+   "nom": "Centre de ski couvert Skicentrum Hoofddorp",
+   "km": 0.02,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-skicentrum-soesterberg-huis-ter-heide": {
+   "s": "skiresort",
+   "ref": "soesterberg",
+   "nom": "Centre de ski couvert Soesterberg",
+   "km": 0.02,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-skicentrum-de-wijchense-berg": {
+   "s": "skiresort",
+   "ref": "de-wijchense-berg",
+   "nom": "Centre de ski couvert De Wijchense Berg",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-skiclub-il-primo": {
+   "s": "skiresort",
+   "ref": "il-primo-bergen",
+   "nom": "Centre de ski couvert Il Primo – Bergen",
+   "km": 0.02,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-snowworld-amsterdam": {
+   "s": "skiresort",
+   "ref": "snowworld-amsterdam",
+   "nom": "Ski-dôme SnowWorld Amsterdam",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-snowworld-rucphen-breda": {
+   "s": "skiresort",
+   "ref": "snowworld-rucphen",
+   "nom": "Ski-dôme SnowWorld Rucphen",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-snowworld-terneuzen": {
+   "s": "skiresort",
+   "ref": "snowworld-terneuzen",
+   "nom": "Ski-dôme SnowWorld Terneuzen",
+   "km": 0.05,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "nl-vallei-53": {
+   "s": "skiresort",
+   "ref": "vallei-53",
+   "nom": "Centre de ski couvert Vallei 53",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nl-wolfskamer-wintersport": {
+   "s": "skiresort",
+   "ref": "wolfskamer",
+   "nom": "Centre de ski couvert Wolfskamer",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.2,
+    "difficiles": 0.2
+   }
+  },
+  "no-598594m86710": {
+   "s": "skiinfo",
+   "ref": "gaustablikk",
+   "nom": "Gausta Skisenter",
+   "km": 4.33,
+   "skiinfo": {
+    "vertes": 48,
+    "bleues": 10,
+    "rouges": 29,
+    "noires": 14
+   }
+  },
+  "no-602208m95797": {
+   "s": "skiinfo",
+   "ref": "norefjell",
+   "nom": "Norefjell",
+   "km": 1.18,
+   "skiinfo": {
+    "vertes": 25,
+    "bleues": 33,
+    "rouges": 28,
+    "noires": 14
+   }
+  },
+  "no-603636m59913": {
+   "s": "skiinfo",
+   "ref": "kvamskogen",
+   "nom": "Kvamskogen",
+   "km": 1.19,
+   "skiinfo": {
+    "vertes": 100,
+    "bleues": 0,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "no-605149m89620": {
+   "s": "skiinfo",
+   "ref": "nesbyen",
+   "nom": "Nesbyen",
+   "km": 4.32,
+   "skiinfo": {
+    "vertes": 38,
+    "bleues": 15,
+    "rouges": 31,
+    "noires": 15
+   }
+  },
+  "no-608487m85113": {
+   "s": "skiinfo",
+   "ref": "hemsedal",
+   "nom": "Hemsedal",
+   "km": 1.31,
+   "skiinfo": {
+    "vertes": 46,
+    "bleues": 27,
+    "rouges": 19,
+    "noires": 8
+   }
+  },
+  "no-612289m60396": {
+   "s": "skiresort",
+   "ref": "siplo",
+   "nom": "Siplo",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.4,
+    "difficiles": 0.7
+   }
+  },
+  "no-617126m105696": {
+   "s": "skiresort",
+   "ref": "skjerdingen",
+   "nom": "Skjerdingen",
+   "km": 0.46,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-709923m260461": {
+   "s": "skiresort",
+   "ref": "nordvaagen",
+   "nom": "Nordvågen",
+   "km": 2.92,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 0.9,
+    "difficiles": 0
+   }
+  },
+  "no-aktiven-skiheis": {
+   "s": "skiinfo",
+   "ref": "kvamskogen",
+   "nom": "Kvamskogen",
+   "km": 1.59,
+   "skiinfo": {
+    "vertes": 100,
+    "bleues": 0,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "no-brattst-len-skisenter": {
+   "s": "skiresort",
+   "ref": "brattstoelen",
+   "nom": "Brattstølen",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-b-rgefjellsenteret": {
+   "s": "skiresort",
+   "ref": "boergefjellsenteret",
+   "nom": "Børgefjellsenteret",
+   "km": 1.85,
+   "skiresort": {
+    "faciles": 2.6,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "no-dombas-skiheiser": {
+   "s": "skiresort",
+   "ref": "dombaas",
+   "nom": "Dombås",
+   "km": 0.79,
+   "skiresort": {
+    "faciles": 4.1,
+    "moyennes": 4.4,
+    "difficiles": 0
+   }
+  },
+  "no-fagerfjell-skisenter": {
+   "s": "skiresort",
+   "ref": "fagerfjell",
+   "nom": "Fagerfjell",
+   "km": 0.35,
+   "skiresort": {
+    "faciles": 2.8,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "no-fagerfjell-skisenter-598287m93067": {
+   "s": "skiresort",
+   "ref": "fagerfjell",
+   "nom": "Fagerfjell",
+   "km": 0.37,
+   "skiresort": {
+    "faciles": 2.8,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "no-fjellsyn-skisenter": {
+   "s": "skiresort",
+   "ref": "fjellsyn",
+   "nom": "Fjellsyn",
+   "km": 1.41,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-frei-alpinsenter": {
+   "s": "skiresort",
+   "ref": "freikollen",
+   "nom": "Freikollen",
+   "km": 0.27,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "no-gamlest-len": {
+   "s": "skiresort",
+   "ref": "gamlestoelen-jomfruslettbakken",
+   "nom": "Gamlestølen – Jomfruslettbakken",
+   "km": 0.66,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-glomfjord-alpinsenter": {
+   "s": "skiresort",
+   "ref": "glomfjord",
+   "nom": "Glomfjord",
+   "km": 0.34,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.7,
+    "difficiles": 0.3
+   }
+  },
+  "no-grakallparken": {
+   "s": "skiresort",
+   "ref": "graakallen-kleiva",
+   "nom": "Gråkallen (Kleiva)",
+   "km": 0.97,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 4,
+    "difficiles": 0
+   }
+  },
+  "no-gullingen-skisenter": {
+   "s": "skiresort",
+   "ref": "gullingen",
+   "nom": "Gullingen",
+   "km": 0.27,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "no-hammerfest": {
+   "s": "skiresort",
+   "ref": "hammerfest",
+   "nom": "Hammerfest",
+   "km": 0.34,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "no-holmenkollen-nasjonalanlegg-holmenkollen-national-ski-arena": {
+   "s": "skiinfo",
+   "ref": "oslo-vinterpark-tryvann",
+   "nom": "Oslo Vinterpark - Tryvann",
+   "km": 3.52,
+   "skiinfo": {
+    "vertes": 38,
+    "bleues": 14,
+    "rouges": 38,
+    "noires": 10
+   }
+  },
+  "no-holtanlia": {
+   "s": "skiresort",
+   "ref": "holtanlia",
+   "nom": "Holtanlia",
+   "km": 0.52,
+   "skiresort": {
+    "faciles": 4.3,
+    "moyennes": 1.5,
+    "difficiles": 0
+   }
+  },
+  "no-hurdal": {
+   "s": "skiinfo",
+   "ref": "hurdal-skisenter",
+   "nom": "Hurdal Skisenter",
+   "km": 0.16,
+   "skiinfo": {
+    "vertes": 45,
+    "bleues": 9,
+    "rouges": 36,
+    "noires": 9
+   }
+  },
+  "no-ingierkollen": {
+   "s": "skiresort",
+   "ref": "ingierkollen-kolbotn",
+   "nom": "Ingierkollen – Kolbotn",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "no-kjemsasen": {
+   "s": "skiresort",
+   "ref": "kjemsaasen",
+   "nom": "Kjemsåsen",
+   "km": 0.51,
+   "skiresort": {
+    "faciles": 2.5,
+    "moyennes": 1.5,
+    "difficiles": 1
+   }
+  },
+  "no-kjerringasen": {
+   "s": "skiresort",
+   "ref": "kjerringaasen",
+   "nom": "Kjerringåsen",
+   "km": 0.35,
+   "skiresort": {
+    "faciles": 1.3,
+    "moyennes": 1.1,
+    "difficiles": 0.2
+   }
+  },
+  "no-knaben": {
+   "s": "skiresort",
+   "ref": "knaben",
+   "nom": "Knaben",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.6,
+    "difficiles": 0.2
+   }
+  },
+  "no-knyken-skisenter": {
+   "s": "skiresort",
+   "ref": "knyken",
+   "nom": "Knyken",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 2.3,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "no-liabakken": {
+   "s": "skiresort",
+   "ref": "snoe",
+   "nom": "Ski-dôme SNØ",
+   "km": 2.26,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "no-lierne-skisenter": {
+   "s": "skiresort",
+   "ref": "lierne",
+   "nom": "Lierne",
+   "km": 0.36,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "no-middagsasen": {
+   "s": "skiresort",
+   "ref": "middagsaasen",
+   "nom": "Middagsåsen",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-modum-skisenter": {
+   "s": "skiresort",
+   "ref": "modum-vikersund",
+   "nom": "Modum – Vikersund",
+   "km": 0.63,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "no-m-svatn-skisenter": {
+   "s": "skiresort",
+   "ref": "moesvatn-skipark",
+   "nom": "Møsvatn Skipark",
+   "km": 0.31,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "no-narvik": {
+   "s": "skiinfo",
+   "ref": "narvikfjellet",
+   "nom": "Narvik",
+   "km": 0.43,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 36,
+    "rouges": 36,
+    "noires": 29
+   }
+  },
+  "no-rena": {
+   "s": "skiresort",
+   "ref": "rena",
+   "nom": "Rena",
+   "km": 0.47,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 3.5,
+    "difficiles": 1.3
+   }
+  },
+  "no-renafjellet-alpinsenter": {
+   "s": "skiresort",
+   "ref": "renaafjellet",
+   "nom": "Renåfjellet",
+   "km": 0.56,
+   "skiresort": {
+    "faciles": 5,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "no-ringkollen-alpinbakke": {
+   "s": "skiresort",
+   "ref": "ringkollen",
+   "nom": "Ringkollen",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-sandnes": {
+   "s": "skiresort",
+   "ref": "sandnes",
+   "nom": "Sandnes",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-savalan-skisenter": {
+   "s": "skiresort",
+   "ref": "savalen",
+   "nom": "Savalen",
+   "km": 0.55,
+   "skiresort": {
+    "faciles": 1.9,
+    "moyennes": 2.2,
+    "difficiles": 0
+   }
+  },
+  "no-siljan-skisenter": {
+   "s": "skiresort",
+   "ref": "grenland-siljan",
+   "nom": "Grenland – Siljan",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 2.8,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "no-sjusj-en": {
+   "s": "skiinfo",
+   "ref": "sjusjoen",
+   "nom": "Sjusjøen",
+   "km": 0.24,
+   "skiinfo": {
+    "vertes": 33,
+    "bleues": 22,
+    "rouges": 22,
+    "noires": 22
+   }
+  },
+  "no-skarmoen-alpinpark-bod": {
+   "s": "skiresort",
+   "ref": "skarmoen",
+   "nom": "Skarmoen",
+   "km": 0.41,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "no-sloreasen-alpinbakke": {
+   "s": "skiresort",
+   "ref": "sloreaasen-oslo",
+   "nom": "Sloreåsen – Oslo",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-sollifjellet-alpinsenter": {
+   "s": "skiresort",
+   "ref": "sollifjellet",
+   "nom": "Sollifjellet",
+   "km": 0.61,
+   "skiresort": {
+    "faciles": 2.9,
+    "moyennes": 4.3,
+    "difficiles": 0
+   }
+  },
+  "no-spjelkavikheisa": {
+   "s": "skiresort",
+   "ref": "spjelkavik-turheisa",
+   "nom": "Spjelkavik Turheisa",
+   "km": 0.44,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 1.5,
+    "difficiles": 0
+   }
+  },
+  "no-stavadalen-skisenter": {
+   "s": "skiresort",
+   "ref": "stavadalen-skisenter",
+   "nom": "Stavadalen Skisenter",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "no-steilia": {
+   "s": "skiresort",
+   "ref": "steilia-setermoen-bardu",
+   "nom": "Steilia – Setermoen (Bardu)",
+   "km": 0.02,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "no-sulitjelma-fjellandsby": {
+   "s": "skiresort",
+   "ref": "sulitjelma-fjellandsby",
+   "nom": "Sulitjelma Fjellandsby",
+   "km": 0.35,
+   "skiresort": {
+    "faciles": 5.2,
+    "moyennes": 1.8,
+    "difficiles": 0
+   }
+  },
+  "no-sunnfjord-skisenter": {
+   "s": "skiresort",
+   "ref": "sunnfjord-blomlia",
+   "nom": "Sunnfjord – Blomlia",
+   "km": 0.42,
+   "skiresort": {
+    "faciles": 1.9,
+    "moyennes": 1.1,
+    "difficiles": 0
+   }
+  },
+  "no-surnadal-alpinsenter": {
+   "s": "skiresort",
+   "ref": "surnadal",
+   "nom": "Surnadal",
+   "km": 0.74,
+   "skiresort": {
+    "faciles": 2.8,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "no-sysendalen-skisenter": {
+   "s": "skiresort",
+   "ref": "sysendalen-eidfjord",
+   "nom": "Sysendalen – Eidfjord",
+   "km": 0.35,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "no-trysil-613100m123150": {
+   "s": "skiinfo",
+   "ref": "trysil",
+   "nom": "Trysil",
+   "km": 3.57,
+   "skiinfo": {
+    "vertes": 35,
+    "bleues": 17,
+    "rouges": 26,
+    "noires": 22
+   }
+  },
+  "no-tusten-skiheiser": {
+   "s": "skiresort",
+   "ref": "tusten-molde",
+   "nom": "Tusten – Molde",
+   "km": 1.03,
+   "skiresort": {
+    "faciles": 10,
+    "moyennes": 3,
+    "difficiles": 2
+   }
+  },
+  "no-vegglifjell": {
+   "s": "skiresort",
+   "ref": "vegglifjell",
+   "nom": "Vegglifjell",
+   "km": 0.39,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "no-vegarshei-skisenter": {
+   "s": "skiresort",
+   "ref": "vegaarshei",
+   "nom": "Vegårshei",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "no-vintervasskleiva": {
+   "s": "skiresort",
+   "ref": "graakallen-kleiva",
+   "nom": "Gråkallen (Kleiva)",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 4,
+    "difficiles": 0
+   }
+  },
+  "no-anstadblaheia-skitrekk": {
+   "s": "skiresort",
+   "ref": "aanstadblaaheia",
+   "nom": "Ånstadblåheia",
+   "km": 0.56,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 1.4,
+    "difficiles": 0
+   }
+  },
+  "nz-awakino-ski-area": {
+   "s": "skiresort",
+   "ref": "awakino",
+   "nom": "Awakino",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 1.5,
+    "difficiles": 3
+   }
+  },
+  "nz-craigieburn": {
+   "s": "skiinfo",
+   "ref": "craigieburn-valley-ski-area",
+   "nom": "Craigieburn Valley Ski Area",
+   "km": 0.07,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 56,
+    "rouges": 24,
+    "noires": 20
+   }
+  },
+  "nz-hanmer-springs-ski-area": {
+   "s": "skiinfo",
+   "ref": "hanmer-springs-ski-area",
+   "nom": "Hanmer Springs Ski Area",
+   "km": 0.4,
+   "skiinfo": {
+    "vertes": 20,
+    "bleues": 40,
+    "rouges": 20,
+    "noires": 20
+   }
+  },
+  "nz-lake-stella": {
+   "s": "skiinfo",
+   "ref": "mt-lyford-alpine-resort",
+   "nom": "Mt. Lyford Alpine Resort",
+   "km": 2.18,
+   "skiinfo": {
+    "vertes": 15,
+    "bleues": 30,
+    "rouges": 30,
+    "noires": 25
+   }
+  },
+  "nz-mt-olympus": {
+   "s": "skiinfo",
+   "ref": "mt-olympus",
+   "nom": "Mt. Olympus",
+   "km": 2.54,
+   "skiinfo": {
+    "vertes": 7,
+    "bleues": 27,
+    "rouges": 33,
+    "noires": 33
+   }
+  },
+  "nz-snow-farm": {
+   "s": "skiresort",
+   "ref": "snow-park-nz",
+   "nom": "Snow Park NZ",
+   "km": 4.22,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "nz-snow-planet": {
+   "s": "skiresort",
+   "ref": "snowplanet-silverdale",
+   "nom": "Ski-dôme Snowplanet – Silverdale",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "nz-tukino-skifield": {
+   "s": "skiinfo",
+   "ref": "tukino-mountain-clubs-association",
+   "nom": "Tukino Skifield",
+   "km": 0.83,
+   "skiinfo": {
+    "vertes": 15,
+    "bleues": 25,
+    "rouges": 30,
+    "noires": 30
+   }
+  },
+  "pk-malam-jabba": {
+   "s": "skiresort",
+   "ref": "malam-jabba",
+   "nom": "Malam Jabba",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0.5
+   }
+  },
+  "pl-493374m199528": {
+   "s": "skiinfo",
+   "ref": "wyciag-narciarski-suche",
+   "nom": "Poronin - Suche",
+   "km": 2.08,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 86,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-496175m188820": {
+   "s": "skiinfo",
+   "ref": "wisla-nowa-osada",
+   "nom": "Wisła - Nowa Osada",
+   "km": 2.24,
+   "skiinfo": {
+    "vertes": 2,
+    "bleues": 37,
+    "rouges": 27,
+    "noires": 35
+   }
+  },
+  "pl-496284m189149": {
+   "s": "skiinfo",
+   "ref": "wisla-klepki",
+   "nom": "Wisła - Klepki",
+   "km": 0.9,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-507812m157388": {
+   "s": "skiinfo",
+   "ref": "karpacz-pod-wangiem",
+   "nom": "Karpacz - Pod Wangiem",
+   "km": 0.61,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-508312m155142": {
+   "s": "skiinfo",
+   "ref": "szklarska-poreba-ski-arena-szrenica",
+   "nom": "Szklarska Poręba - Ski Arena Szrenica",
+   "km": 1.44,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 24,
+    "rouges": 57,
+    "noires": 19
+   }
+  },
+  "pl-amalka": {
+   "s": "skiresort",
+   "ref": "amalka-suleczyno",
+   "nom": "Amalka (Sulęczyno)",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-ameliowka": {
+   "s": "skiresort",
+   "ref": "radostowa",
+   "nom": "Radostowa",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-andiamo": {
+   "s": "skiinfo",
+   "ref": "korbielow-pilsko",
+   "nom": "Korbielów - Pilsko",
+   "km": 1.02,
+   "skiinfo": {
+    "vertes": 15,
+    "bleues": 18,
+    "rouges": 68,
+    "noires": 0
+   }
+  },
+  "pl-arena-narciarska-jaworki-homole": {
+   "s": "skiresort",
+   "ref": "homole-jaworki",
+   "nom": "Homole – Jaworki",
+   "km": 0.29,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0.5,
+    "difficiles": 0.9
+   }
+  },
+  "pl-baba-jaga": {
+   "s": "skiresort",
+   "ref": "baba-jaga-bodzentyn",
+   "nom": "Baba Jaga – Bodzentyn",
+   "km": 0.29,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-babica": {
+   "s": "skiresort",
+   "ref": "babica",
+   "nom": "Babica",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-bakcy-na-goruszce": {
+   "s": "skiresort",
+   "ref": "bakcy-na-goruszce-jaworze",
+   "nom": "Bakcy Na Goruszce – Jaworze",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-batorz": {
+   "s": "skiresort",
+   "ref": "batorz",
+   "nom": "Batorz",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "pl-beskid-sport-arena-497211m190034": {
+   "s": "skiinfo",
+   "ref": "beskid-sport-arena",
+   "nom": "Beskid Sport Arena",
+   "km": 0.01,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 44,
+    "rouges": 31,
+    "noires": 25
+   }
+  },
+  "pl-bialy-potok": {
+   "s": "skiresort",
+   "ref": "bialy-potok",
+   "nom": "Bialy Potok",
+   "km": 0,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-borowice": {
+   "s": "skiinfo",
+   "ref": "karpacz-pod-wangiem",
+   "nom": "Karpacz - Pod Wangiem",
+   "km": 2.4,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-budzowski-wierch": {
+   "s": "skiinfo",
+   "ref": "zakopane-polana-szymoszkowa",
+   "nom": "Zakopane - Polana Szymoszkowa",
+   "km": 1.27,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 40,
+    "rouges": 60,
+    "noires": 0
+   }
+  },
+  "pl-cos-opo-zakopane": {
+   "s": "skiinfo",
+   "ref": "zakopane-kasprowy-wierch",
+   "nom": "Zakopane - Kasprowy Wierch",
+   "km": 1.79,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 48,
+    "rouges": 0,
+    "noires": 52
+   }
+  },
+  "pl-celejow": {
+   "s": "skiresort",
+   "ref": "celejow",
+   "nom": "Celejów",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-che-mowa-gora": {
+   "s": "skiresort",
+   "ref": "chelmowa-gora-krasnobrod",
+   "nom": "Chełmowa Góra – Krasnobród",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-chyrowa": {
+   "s": "skiresort",
+   "ref": "chyrowa",
+   "nom": "Chyrowa",
+   "km": 0.4,
+   "skiresort": {
+    "faciles": 1.9,
+    "moyennes": 0.9,
+    "difficiles": 0
+   }
+  },
+  "pl-czarnorzeki": {
+   "s": "skiresort",
+   "ref": "czarnorzeki",
+   "nom": "Czarnorzeki",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-czarny-gron": {
+   "s": "skiinfo",
+   "ref": "rzyki-czarny-gron",
+   "nom": "Rzyki - Czarny Gron",
+   "km": 2.11,
+   "skiinfo": {
+    "vertes": 9,
+    "bleues": 59,
+    "rouges": 32,
+    "noires": 0
+   }
+  },
+  "pl-czerwony-szlak": {
+   "s": "skiinfo",
+   "ref": "ustrzyki-dolne-laworta",
+   "nom": "Ustrzyki Dolne - Laworta",
+   "km": 2.52,
+   "skiinfo": {
+    "vertes": 11,
+    "bleues": 0,
+    "rouges": 89,
+    "noires": 0
+   }
+  },
+  "pl-dabrowka": {
+   "s": "skiresort",
+   "ref": "dabrowka-suwalki",
+   "nom": "Dąbrówka – Suwałki",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-debowiec": {
+   "s": "skiinfo",
+   "ref": "bielsko-biala-debowiec",
+   "nom": "Bielsko-Biała - Dębowiec",
+   "km": 0.3,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-family-park-dimbo": {
+   "s": "skiinfo",
+   "ref": "krynica-jaworzyna-krynicka",
+   "nom": "Krynica - Jaworzyna Krynicka",
+   "km": 1.67,
+   "skiinfo": {
+    "vertes": 30,
+    "bleues": 40,
+    "rouges": 20,
+    "noires": 10
+   }
+  },
+  "pl-gromadzyn": {
+   "s": "skiinfo",
+   "ref": "ustrzyki-dolne-gromadzyn",
+   "nom": "Ustrzyki Dolne - Gromadzyń",
+   "km": 0.31,
+   "skiinfo": {
+    "vertes": 10,
+    "bleues": 67,
+    "rouges": 23,
+    "noires": 0
+   }
+  },
+  "pl-gora-parkowa": {
+   "s": "skiinfo",
+   "ref": "krynica-gora-parkowa",
+   "nom": "Krynica - Góra Parkowa",
+   "km": 0.41,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-gornik-rzeczka": {
+   "s": "skiresort",
+   "ref": "gornik-rzeczka-sokolec",
+   "nom": "Górnik – Rzeczka/Sokolec",
+   "km": 0.01,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 1.5,
+    "difficiles": 1.2
+   }
+  },
+  "pl-hajduk": {
+   "s": "skiinfo",
+   "ref": "male-ciche",
+   "nom": "Małe Ciche",
+   "km": 3.28,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-karlikow": {
+   "s": "skiinfo",
+   "ref": "karlikow",
+   "nom": "Karlików",
+   "km": 0.6,
+   "skiinfo": {
+    "vertes": 8,
+    "bleues": 92,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-karpatka-panorama": {
+   "s": "skiinfo",
+   "ref": "karpacz-bialy-jar",
+   "nom": "Karpacz - Biały Jar",
+   "km": 1.23,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 33,
+    "rouges": 67,
+    "noires": 0
+   }
+  },
+  "pl-kolorowa": {
+   "s": "skiinfo",
+   "ref": "karpacz-bialy-jar",
+   "nom": "Karpacz - Biały Jar",
+   "km": 0.83,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 33,
+    "rouges": 67,
+    "noires": 0
+   }
+  },
+  "pl-komancza": {
+   "s": "skiresort",
+   "ref": "komancza",
+   "nom": "Komańcza",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-kompleks-narciarski-kopa-w-karpaczu": {
+   "s": "skiinfo",
+   "ref": "karpacz-kopa",
+   "nom": "Karpacz - Kopa",
+   "km": 0.84,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 28,
+    "rouges": 46,
+    "noires": 26
+   }
+  },
+  "pl-kompleks-narciarski-winterpol-w-karpaczu": {
+   "s": "skiinfo",
+   "ref": "karpacz-bialy-jar",
+   "nom": "Karpacz - Biały Jar",
+   "km": 0.6,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 33,
+    "rouges": 67,
+    "noires": 0
+   }
+  },
+  "pl-krzyzowa-gora": {
+   "s": "skiresort",
+   "ref": "krzyzowa-gora-lidzbark-warminski",
+   "nom": "Krzyżowa Góra – Lidzbark Warmiński",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.3,
+    "difficiles": 0.6
+   }
+  },
+  "pl-laworta": {
+   "s": "skiinfo",
+   "ref": "ustrzyki-dolne-laworta",
+   "nom": "Ustrzyki Dolne - Laworta",
+   "km": 0.47,
+   "skiinfo": {
+    "vertes": 11,
+    "bleues": 0,
+    "rouges": 89,
+    "noires": 0
+   }
+  },
+  "pl-lubinka": {
+   "s": "skiresort",
+   "ref": "lubinka",
+   "nom": "Lubinka",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-ladek-zdroj": {
+   "s": "skiinfo",
+   "ref": "ladek-zdroj",
+   "nom": "Lądek Zdrój",
+   "km": 0.23,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 61,
+    "rouges": 39,
+    "noires": 0
+   }
+  },
+  "pl-mazurski": {
+   "s": "skiresort",
+   "ref": "mazurski-okragle",
+   "nom": "Mazurski – Okrągłe",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-ma-ego-krola": {
+   "s": "skiinfo",
+   "ref": "ustrzyki-dolne-laworta",
+   "nom": "Ustrzyki Dolne - Laworta",
+   "km": 2.43,
+   "skiinfo": {
+    "vertes": 11,
+    "bleues": 0,
+    "rouges": 89,
+    "noires": 0
+   }
+  },
+  "pl-ochodzitaski": {
+   "s": "skiinfo",
+   "ref": "istebna-zloty-gron",
+   "nom": "Istebna - Złoty Groń",
+   "km": 3.83,
+   "skiinfo": {
+    "vertes": 2,
+    "bleues": 61,
+    "rouges": 37,
+    "noires": 0
+   }
+  },
+  "pl-orawka": {
+   "s": "skiresort",
+   "ref": "orawka-jablonka",
+   "nom": "Orawka – Jabłonka",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-parchatka": {
+   "s": "skiresort",
+   "ref": "parchatka",
+   "nom": "Parchatka",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "pl-parda-owka-ugory": {
+   "s": "skiinfo",
+   "ref": "zakopane-harenda",
+   "nom": "Zakopane - Harenda",
+   "km": 2.01,
+   "skiinfo": {
+    "vertes": 3,
+    "bleues": 24,
+    "rouges": 48,
+    "noires": 25
+   }
+  },
+  "pl-pod-durbaszka": {
+   "s": "skiresort",
+   "ref": "pod-durbaszka",
+   "nom": "Pod Durbaszką",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-pod-honem": {
+   "s": "skiresort",
+   "ref": "pod-honem-cisna",
+   "nom": "Pod Honem – Cisna",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-pod-wangiem": {
+   "s": "skiinfo",
+   "ref": "karpacz-pod-wangiem",
+   "nom": "Karpacz - Pod Wangiem",
+   "km": 0.18,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-polanki": {
+   "s": "skiresort",
+   "ref": "polanki-szczawa",
+   "nom": "Polanki – Szczawa",
+   "km": 0.26,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "pl-ryterski-raj": {
+   "s": "skiinfo",
+   "ref": "rytro-ryterski-raj",
+   "nom": "Rytro - Ryterski Raj",
+   "km": 0.33,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 75,
+    "rouges": 25,
+    "noires": 0
+   }
+  },
+  "pl-rowienki": {
+   "s": "skiinfo",
+   "ref": "wisla-soszow",
+   "nom": "Wisła - Soszów ",
+   "km": 0.35,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 82,
+    "rouges": 15,
+    "noires": 3
+   }
+  },
+  "pl-smolen-ski": {
+   "s": "skiresort",
+   "ref": "smolen",
+   "nom": "Smoleń",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-sopelek": {
+   "s": "skiresort",
+   "ref": "sopelek-katowice-kostuchna-kattowitz",
+   "nom": "Sopelek – Katowice-Kostuchna (Kattowitz)",
+   "km": 0.04,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-sport-dolina": {
+   "s": "skiresort",
+   "ref": "dolomity-sportowa-dolina-sucha-gora-bytom",
+   "nom": "Dolomity Sportowa Dolina – Sucha Góra (Bytom)",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-stok-karpatka": {
+   "s": "skiinfo",
+   "ref": "karpacz-bialy-jar",
+   "nom": "Karpacz - Biały Jar",
+   "km": 1.16,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 33,
+    "rouges": 67,
+    "noires": 0
+   }
+  },
+  "pl-stok-relaks": {
+   "s": "skiinfo",
+   "ref": "karpacz-bialy-jar",
+   "nom": "Karpacz - Biały Jar",
+   "km": 1.85,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 33,
+    "rouges": 67,
+    "noires": 0
+   }
+  },
+  "pl-stok-narciarski": {
+   "s": "skiresort",
+   "ref": "chodziez",
+   "nom": "Chodzież",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-stok-narciarski-dolina-szczescia": {
+   "s": "skiinfo",
+   "ref": "szklarska-poreba-ski-arena-szrenica",
+   "nom": "Szklarska Poręba - Ski Arena Szrenica",
+   "km": 1.92,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 24,
+    "rouges": 57,
+    "noires": 19
+   }
+  },
+  "pl-stok-narciarski-szopowe": {
+   "s": "skiresort",
+   "ref": "szopowe",
+   "nom": "Szopowe",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-stok-narciarski-w-jacni": {
+   "s": "skiresort",
+   "ref": "jacnia",
+   "nom": "Jacnia",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-struznica": {
+   "s": "skiresort",
+   "ref": "struznica",
+   "nom": "Strużnica",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-szance": {
+   "s": "skiinfo",
+   "ref": "istebna-zloty-gron",
+   "nom": "Istebna - Złoty Groń",
+   "km": 3.05,
+   "skiinfo": {
+    "vertes": 2,
+    "bleues": 61,
+    "rouges": 37,
+    "noires": 0
+   }
+  },
+  "pl-szelment": {
+   "s": "skiresort",
+   "ref": "szelment",
+   "nom": "Szelment",
+   "km": 0.95,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0.9,
+    "difficiles": 0.4
+   }
+  },
+  "pl-szklarska-poreba": {
+   "s": "skiinfo",
+   "ref": "szklarska-poreba-ski-arena-szrenica",
+   "nom": "Szklarska Poręba - Ski Arena Szrenica",
+   "km": 2.03,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 24,
+    "rouges": 57,
+    "noires": 19
+   }
+  },
+  "pl-szus": {
+   "s": "skiinfo",
+   "ref": "istebna-zloty-gron",
+   "nom": "Istebna - Złoty Groń",
+   "km": 2.52,
+   "skiinfo": {
+    "vertes": 2,
+    "bleues": 61,
+    "rouges": 37,
+    "noires": 0
+   }
+  },
+  "pl-u-gruloka": {
+   "s": "skiinfo",
+   "ref": "wyciag-narciarski-suche",
+   "nom": "Poronin - Suche",
+   "km": 2.31,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 86,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-u-steni": {
+   "s": "skiinfo",
+   "ref": "rusin-ski",
+   "nom": "Bukowina Tatrzańska - Rusiń ski",
+   "km": 3.19,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-uboc": {
+   "s": "skiinfo",
+   "ref": "witow-ski",
+   "nom": "Witów",
+   "km": 1.31,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-unis-aw": {
+   "s": "skiresort",
+   "ref": "unislaw",
+   "nom": "Unisław",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-wielka-sowa": {
+   "s": "skiresort",
+   "ref": "wielka-sowa-potoczek-pieszyce",
+   "nom": "Wielka Sowa – Potoczek (Pieszyce)",
+   "km": 0.69,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-winiarska": {
+   "s": "skiresort",
+   "ref": "winiarska-iwonicz-zdroj",
+   "nom": "Winiarska – Iwonicz Zdrój",
+   "km": 0.12,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-wujskie": {
+   "s": "skiresort",
+   "ref": "wujskie",
+   "nom": "Wujskie",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 2.1,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "pl-wyciag-narciarski-kartasiowka": {
+   "s": "skiresort",
+   "ref": "kartasiowka-rus",
+   "nom": "Kartasiówka – Ruś",
+   "km": 0.99,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-wysoki-wierch": {
+   "s": "skiinfo",
+   "ref": "rusin-ski",
+   "nom": "Bukowina Tatrzańska - Rusiń ski",
+   "km": 3.2,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-wegierski": {
+   "s": "skiinfo",
+   "ref": "szczyrk-czyrna-solisko",
+   "nom": "Szczyrk Mountain Resort",
+   "km": 2.21,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 61,
+    "rouges": 27,
+    "noires": 12
+   }
+  },
+  "pl-zadzia": {
+   "s": "skiresort",
+   "ref": "zadzial-nowy-targ",
+   "nom": "Zadział – Nowy Targ",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-zagron": {
+   "s": "skiinfo",
+   "ref": "istebna-zagron",
+   "nom": "Istebna - Zagroń",
+   "km": 0.05,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 58,
+    "rouges": 42,
+    "noires": 0
+   }
+  },
+  "pl-zakopane": {
+   "s": "skiinfo",
+   "ref": "zakopane-gubalowka",
+   "nom": "Zakopane - Gubałówka",
+   "km": 0.69,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "pl-zieleniec-503353m163866": {
+   "s": "skiinfo",
+   "ref": "zieleniec",
+   "nom": "Zieleniec",
+   "km": 0.2,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 62,
+    "rouges": 34,
+    "noires": 3
+   }
+  },
+  "pl-zielona-brama": {
+   "s": "skiresort",
+   "ref": "zielona-brama-przywidz",
+   "nom": "Zielona Brama – Przywidz",
+   "km": 0.31,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-zwardon-centrum": {
+   "s": "skiinfo",
+   "ref": "zwardon",
+   "nom": "Zwardoń",
+   "km": 0.63,
+   "skiinfo": {
+    "vertes": 4,
+    "bleues": 54,
+    "rouges": 42,
+    "noires": 0
+   }
+  },
+  "pl-sniezynka": {
+   "s": "skiresort",
+   "ref": "sniezynka-lezyce",
+   "nom": "Śnieżynka – Łężyce",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "pl-swieta-gora": {
+   "s": "skiresort",
+   "ref": "swieta-gora-lubawka",
+   "nom": "Święta Góra – Lubawka",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 2.3,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "pt-ski-parque": {
+   "s": "skiresort",
+   "ref": "skiparque-serra-da-estrela",
+   "nom": "Centre de ski couvert Skiparque Serra da Estrela",
+   "km": 0.07,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "ro-453402m232911": {
+   "s": "skiinfo",
+   "ref": "straja",
+   "nom": "Straja",
+   "km": 4.75,
+   "skiinfo": {
+    "vertes": 33,
+    "bleues": 50,
+    "rouges": 0,
+    "noires": 17
+   }
+  },
+  "ro-baile-tusnad": {
+   "s": "skiinfo",
+   "ref": "baile-tusnad",
+   "nom": "Baile Tusnad",
+   "km": 0.36,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "ro-balea-lac": {
+   "s": "skiinfo",
+   "ref": "balea-lac",
+   "nom": "Balea Lac",
+   "km": 1.79,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 50,
+    "noires": 50
+   }
+  },
+  "ro-bogdan-parajd": {
+   "s": "skiresort",
+   "ref": "bogdan",
+   "nom": "Bogdán",
+   "km": 4.12,
+   "skiresort": {
+    "faciles": 2.6,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "ro-borsafured": {
+   "s": "skiinfo",
+   "ref": "borsa",
+   "nom": "Borsa",
+   "km": 0.87,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 100,
+    "noires": 0
+   }
+  },
+  "ro-bunloc": {
+   "s": "skiresort",
+   "ref": "bunloc-sacele",
+   "nom": "Bunloc – Săcele",
+   "km": 0.78,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 2.9,
+    "difficiles": 0
+   }
+  },
+  "ro-banffydongo-dangau-mare": {
+   "s": "skiresort",
+   "ref": "dangau-mare",
+   "nom": "Dângău Mare",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.7,
+    "difficiles": 0.4
+   }
+  },
+  "ro-havas-bucsin": {
+   "s": "skiresort",
+   "ref": "bujdoso-bucsin",
+   "nom": "Bujdosó – Bucsin",
+   "km": 1.46,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ro-nemira": {
+   "s": "skiresort",
+   "ref": "nemira-slanic-moldova",
+   "nom": "Nemira – Slănic-Moldova",
+   "km": 0.56,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ro-smart-ski-slopes": {
+   "s": "skiresort",
+   "ref": "smart-ski-slopes-timisoara",
+   "nom": "Centre de ski couvert Smart Ski Slopes – Timișoara",
+   "km": 0,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "rs-435665m207562": {
+   "s": "skiresort",
+   "ref": "goc-kraljevackoj-strani",
+   "nom": "Goč – Kraljevačkoj strani",
+   "km": 1.06,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 1.4,
+    "difficiles": 0
+   }
+  },
+  "rs-obudojevica": {
+   "s": "skiresort",
+   "ref": "obudovica-zlatibor",
+   "nom": "Obudovica – Zlatibor",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "rs-zari-ski-centre-ski-centar-zari": {
+   "s": "skiresort",
+   "ref": "zari",
+   "nom": "Žari",
+   "km": 0.3,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.9,
+    "difficiles": 0
+   }
+  },
+  "rs-iver-ski-resort-skijaliste-iver": {
+   "s": "skiresort",
+   "ref": "iver-tara",
+   "nom": "Iver – Tara",
+   "km": 0.53,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 1,
+    "difficiles": 1
+   }
+  },
+  "ru-431213m1327925": {
+   "s": "skiresort",
+   "ref": "gribanowka",
+   "nom": "Gribanowka",
+   "km": 0.27,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-431667m1327269": {
+   "s": "skiresort",
+   "ref": "s-nezhnaya-lukyanovka",
+   "nom": "S-Nezhnaya – Lukyanovka",
+   "km": 1.17,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.6,
+    "difficiles": 0
+   }
+  },
+  "ru-436391m403112": {
+   "s": "skiinfo",
+   "ref": "rosa-khutor",
+   "nom": "Rosa Khutor",
+   "km": 3.86,
+   "skiinfo": {
+    "vertes": 18,
+    "bleues": 36,
+    "rouges": 31,
+    "noires": 15
+   }
+  },
+  "ru-490051m1310377": {
+   "s": "skiresort",
+   "ref": "gora-zmeinaya-obloutchie",
+   "nom": "Gora Zmeinaya – Obloutchie",
+   "km": 1.38,
+   "skiresort": {
+    "faciles": 2.1,
+    "moyennes": 0.9,
+    "difficiles": 0
+   }
+  },
+  "ru-519425m848946": {
+   "s": "skiresort",
+   "ref": "mishina-gora-belokourikha",
+   "nom": "Mishina Gora – Belokourikha",
+   "km": 0.52,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "ru-519774m849910": {
+   "s": "skiresort",
+   "ref": "partizanskaya-belokuricha",
+   "nom": "Partizanskaya – Belokuricha",
+   "km": 1.36,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-544907m541189": {
+   "s": "skiresort",
+   "ref": "kandry-kul",
+   "nom": "Kandry-Kul",
+   "km": 2.73,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "ru-551613m1247410": {
+   "s": "skiresort",
+   "ref": "ust-koral-tynda",
+   "nom": "Ust&#039;-Koral – Tynda",
+   "km": 1.67,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "ru-568324m600444": {
+   "s": "skiresort",
+   "ref": "flus",
+   "nom": "Flus",
+   "km": 1.46,
+   "skiresort": {
+    "faciles": 2.5,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "ru-609791m690300": {
+   "s": "skiresort",
+   "ref": "khvoyny-urman-khanty-mansiisk",
+   "nom": "Khvoyny Urman – Khanty-Mansiïsk",
+   "km": 0.47,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "ru-chindirchero": {
+   "s": "skiresort",
+   "ref": "chindirchero",
+   "nom": "Chindirchero",
+   "km": 1.87,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-avalman": {
+   "s": "skiresort",
+   "ref": "avalman-barnaoul",
+   "nom": "Avalman – Barnaoul",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "ru-armkhi": {
+   "s": "skiresort",
+   "ref": "armkhi",
+   "nom": "Armkhi",
+   "km": 3.06,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "ru-biryuzovaya-katun": {
+   "s": "skiresort",
+   "ref": "biryuzovaya-katun",
+   "nom": "Biryuzovaya Katun",
+   "km": 1.99,
+   "skiresort": {
+    "faciles": 1.9,
+    "moyennes": 0.9,
+    "difficiles": 0.7
+   }
+  },
+  "ru-bolshaya-kuzminka": {
+   "s": "skiresort",
+   "ref": "hillpark",
+   "nom": "Hillpark",
+   "km": 2.82,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-volchikha": {
+   "s": "skiresort",
+   "ref": "wolf-mountain-volchikha-rewda",
+   "nom": "Wolf Mountain – Volchikha (Rewda)",
+   "km": 0.29,
+   "skiresort": {
+    "faciles": 2.9,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "ru-gorka": {
+   "s": "skiresort",
+   "ref": "gorka48-lipetsk",
+   "nom": "Gorka48 – Lipetsk",
+   "km": 4.36,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "ru-530887m360609": {
+   "s": "skiresort",
+   "ref": "gorki57",
+   "nom": "Gorki57",
+   "km": 0.6,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-577562m278235": {
+   "s": "skiresort",
+   "ref": "malskaya-dolina-rogovo",
+   "nom": "Malskaya Dolina – Rogovo",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.6,
+    "difficiles": 0.3
+   }
+  },
+  "ru-556290m373766": {
+   "s": "skiresort",
+   "ref": "novo-peredelkino-moscou",
+   "nom": "Novo-Peredelkino – Moscou",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-557104m375480": {
+   "s": "skiresort",
+   "ref": "vorobyovy-gory-moscou",
+   "nom": "Vorobyovy Gory – Moscou",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "ru-kwan": {
+   "s": "skiresort",
+   "ref": "kwan-kalouga",
+   "nom": "Kwan – Kalouga",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 2.6,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "ru-klyuchi": {
+   "s": "skiresort",
+   "ref": "klyuchi",
+   "nom": "Klyuchi",
+   "km": 0.68,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 1.4,
+    "difficiles": 0.5
+   }
+  },
+  "ru-kometa": {
+   "s": "skiresort",
+   "ref": "kometa-vladivostok",
+   "nom": "Kometa – Vladivostok",
+   "km": 0.28,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.7,
+    "difficiles": 0
+   }
+  },
+  "ru-krasnaya-gorka": {
+   "s": "skiresort",
+   "ref": "krasnaya-gorka-melekhovo",
+   "nom": "Krasnaya Gorka – Melekhovo",
+   "km": 3.94,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "ru-malinovka": {
+   "s": "skiresort",
+   "ref": "malinovka",
+   "nom": "Malinovka",
+   "km": 0.86,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-medvezhya-dolina": {
+   "s": "skiresort",
+   "ref": "medvezhya-dolina",
+   "nom": "Medvezhya Dolina",
+   "km": 1.28,
+   "skiresort": {
+    "faciles": 2.6,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "ru-mechka": {
+   "s": "skiresort",
+   "ref": "mechka",
+   "nom": "Mechka",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "ru-spin-sport": {
+   "s": "skiresort",
+   "ref": "spin-togliatti",
+   "nom": "Spin – Togliatti",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-trehgorye": {
+   "s": "skiresort",
+   "ref": "trekhgorye",
+   "nom": "Trekhgorye",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-shaksha": {
+   "s": "skiresort",
+   "ref": "shaksha",
+   "nom": "Shaksha",
+   "km": 1.51,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ru-556354m378569": {
+   "s": "skiresort",
+   "ref": "dzerjiniskiy",
+   "nom": "Dzerjiniskiy",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "ru-elbrus": {
+   "s": "skiresort",
+   "ref": "mt-elbrus",
+   "nom": "Mt. Elbrus",
+   "km": 0.31,
+   "skiresort": {
+    "faciles": 6,
+    "moyennes": 12,
+    "difficiles": 5
+   }
+  },
+  "ru-yakhroma": {
+   "s": "skiresort",
+   "ref": "parc-iakhroma",
+   "nom": "Parc Iakhroma",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "se-568526m139538": {
+   "s": "skiresort",
+   "ref": "myrebobacken-ljungby",
+   "nom": "Myrebobacken – Ljungby",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-569317m145991": {
+   "s": "skiresort",
+   "ref": "hanasloev",
+   "nom": "Hanaslöv",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "se-573980m157835": {
+   "s": "skiresort",
+   "ref": "hesjoebacken",
+   "nom": "Hesjöbacken",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-574916m132258": {
+   "s": "skiresort",
+   "ref": "vaesterlidsbacken",
+   "nom": "Västerlidsbacken",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-585979m134180": {
+   "s": "skiresort",
+   "ref": "kinnekullebacken",
+   "nom": "Kinnekullebacken",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.8,
+    "difficiles": 0.2
+   }
+  },
+  "se-587354m165432": {
+   "s": "skiresort",
+   "ref": "aalbergabacken",
+   "nom": "Ålbergabacken",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-593487m165130": {
+   "s": "skiresort",
+   "ref": "vilstabacken-eskiltuna",
+   "nom": "Vilstabacken – Eskiltuna",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "se-593885m158588": {
+   "s": "skiresort",
+   "ref": "arboga",
+   "nom": "Arboga",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "se-594326m177764": {
+   "s": "skiresort",
+   "ref": "bruket",
+   "nom": "Bruket",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-597462m187122": {
+   "s": "skiresort",
+   "ref": "kvisthamrabacken-norrtaelje",
+   "nom": "Kvisthamrabacken – Norrtälje",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "se-599171m163535": {
+   "s": "skiresort",
+   "ref": "salbohedsbacken",
+   "nom": "Salbohedsbacken",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-602870m164331": {
+   "s": "skiresort",
+   "ref": "fornby-klint",
+   "nom": "Fornby Klint",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "se-611988m130249": {
+   "s": "skiresort",
+   "ref": "tandaadalen-hundfjaellet-saelen",
+   "nom": "Tandådalen/Hundfjället (Sälen)",
+   "km": 4,
+   "skiresort": {
+    "faciles": 18,
+    "moyennes": 15,
+    "difficiles": 12
+   }
+  },
+  "se-620530m123921": {
+   "s": "skiresort",
+   "ref": "loevaasen-groevelsjoen",
+   "nom": "Lövåsen – Grövelsjön",
+   "km": 0.31,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-624711m139835": {
+   "s": "skiinfo",
+   "ref": "vemdalen",
+   "nom": "Vemdalen",
+   "km": 1.29,
+   "skiinfo": {
+    "vertes": 28,
+    "bleues": 28,
+    "rouges": 23,
+    "noires": 21
+   }
+  },
+  "se-625041m160904": {
+   "s": "skiresort",
+   "ref": "getberget",
+   "nom": "Getberget",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "se-626969m167707": {
+   "s": "skiresort",
+   "ref": "vettenbacken-liden",
+   "nom": "Vettenbacken – Liden",
+   "km": 0.15,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.4,
+    "difficiles": 0.3
+   }
+  },
+  "se-630080m166754": {
+   "s": "skiresort",
+   "ref": "forsbacken",
+   "nom": "Forsbacken",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-631743m155958": {
+   "s": "skiresort",
+   "ref": "jannebacken-stugun",
+   "nom": "Jannebacken – Stugun",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "se-634439m169226": {
+   "s": "skiresort",
+   "ref": "naesaaker",
+   "nom": "Näsåker",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-637049m168495": {
+   "s": "skiresort",
+   "ref": "junsele",
+   "nom": "Junsele",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "se-647647m209772": {
+   "s": "skiresort",
+   "ref": "vitberget-skellefteaa",
+   "nom": "Vitberget – Skellefteå",
+   "km": 0.31,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-648356m187900": {
+   "s": "skiresort",
+   "ref": "kaataberget",
+   "nom": "Kåtaberget",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-650658m186127": {
+   "s": "skiresort",
+   "ref": "viterliden",
+   "nom": "Viterliden",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "se-650833m171366": {
+   "s": "skiresort",
+   "ref": "umanbacken",
+   "nom": "Umanbacken",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-655841m191475": {
+   "s": "skiresort",
+   "ref": "vittjaakk",
+   "nom": "Vittjåkk",
+   "km": 4.53,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 3,
+    "difficiles": 0
+   }
+  },
+  "se-bjastabacken": {
+   "s": "skiresort",
+   "ref": "bjaestabacken",
+   "nom": "Bjästabacken",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 2.1,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "se-blasjons-fjallanlaggning": {
+   "s": "skiresort",
+   "ref": "blaasjoen-mesklumpen",
+   "nom": "Blåsjön – Mesklumpen",
+   "km": 1.43,
+   "skiresort": {
+    "faciles": 4.8,
+    "moyennes": 2.9,
+    "difficiles": 0
+   }
+  },
+  "se-brudarebacken": {
+   "s": "skiresort",
+   "ref": "brudarebacken-goeteborg",
+   "nom": "Brudarebacken – Göteborg",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-dackestupet": {
+   "s": "skiresort",
+   "ref": "dackestupet",
+   "nom": "Dackestupet",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "se-edhsliften": {
+   "s": "skiresort",
+   "ref": "gruvbacken",
+   "nom": "Gruvbacken",
+   "km": 3.55,
+   "skiresort": {
+    "faciles": 3.1,
+    "moyennes": 0.9,
+    "difficiles": 1.4
+   }
+  },
+  "se-ekebyhovsbacken": {
+   "s": "skiresort",
+   "ref": "ekebyhovsbacken-ekeroe",
+   "nom": "Ekebyhovsbacken – Ekerö",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "se-fregattbacken": {
+   "s": "skiresort",
+   "ref": "saltisbacken-saltsjoebaden",
+   "nom": "Saltisbacken – Saltsjöbaden",
+   "km": 3.95,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "se-fridabacken": {
+   "s": "skiresort",
+   "ref": "klackbergsbacken",
+   "nom": "Klackbergsbacken",
+   "km": 0.16,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-gopshusbacken": {
+   "s": "skiresort",
+   "ref": "gopshusbacken",
+   "nom": "Gopshusbacken",
+   "km": 0.85,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "se-jarabacken": {
+   "s": "skiresort",
+   "ref": "jaerabacken-joenkoeping",
+   "nom": "Järabacken – Jönköping",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "se-mattsundsbacken": {
+   "s": "skiresort",
+   "ref": "maattsundsbacken",
+   "nom": "Måttsundsbacken",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "se-ombergsliden": {
+   "s": "skiresort",
+   "ref": "ombergsliden-vadstena",
+   "nom": "Ombergsliden Vadstena",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "se-rodebybacken": {
+   "s": "skiresort",
+   "ref": "roedebybacken",
+   "nom": "Rödebybacken",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-skattmansobacken": {
+   "s": "skiresort",
+   "ref": "skattmansoebacken",
+   "nom": "Skattmansöbacken",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-skidbacke": {
+   "s": "skiresort",
+   "ref": "gruvberget",
+   "nom": "Gruvberget",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-solbergsbacken": {
+   "s": "skiresort",
+   "ref": "solbergsbacken",
+   "nom": "Solbergsbacken",
+   "km": 0.94,
+   "skiresort": {
+    "faciles": 2.7,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "se-storklinten": {
+   "s": "skiresort",
+   "ref": "storklinten",
+   "nom": "Storklinten",
+   "km": 0.17,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 2,
+    "difficiles": 2
+   }
+  },
+  "se-strutsabacken": {
+   "s": "skiresort",
+   "ref": "strutsabacken-huskvarna",
+   "nom": "Strutsabacken – Huskvarna",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 1.5,
+    "difficiles": 0
+   }
+  },
+  "se-sunnerstaasens-friluftsomrade": {
+   "s": "skiresort",
+   "ref": "sunnerstabacken-uppsala",
+   "nom": "Sunnerstabacken – Uppsala",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "se-svedjebacken": {
+   "s": "skiresort",
+   "ref": "svedjebacken",
+   "nom": "Svedjebacken",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.5,
+    "difficiles": 0
+   }
+  },
+  "se-tjamstanbackana": {
+   "s": "skiresort",
+   "ref": "tjamstanbackarna-malaa",
+   "nom": "Tjamstanbackarna – Malå",
+   "km": 0.52,
+   "skiresort": {
+    "faciles": 2.5,
+    "moyennes": 1.6,
+    "difficiles": 1.6
+   }
+  },
+  "se-tolvmannabacken": {
+   "s": "skiresort",
+   "ref": "tolvmannabacken",
+   "nom": "Tolvmannabacken",
+   "km": 0.33,
+   "skiresort": {
+    "faciles": 3.2,
+    "moyennes": 1.3,
+    "difficiles": 0
+   }
+  },
+  "se-trollhojden": {
+   "s": "skiresort",
+   "ref": "trollhoejden-ullared",
+   "nom": "Trollhöjden – Ullared",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "se-trosabacken": {
+   "s": "skiresort",
+   "ref": "trosabacken",
+   "nom": "Trosabacken",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-vreningebacken": {
+   "s": "skiresort",
+   "ref": "vrenningebacken-oskarstroem",
+   "nom": "Vrenningebacken – Oskarström",
+   "km": 0.11,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-valadalen": {
+   "s": "skiresort",
+   "ref": "vaalaadalens-fjaellstation",
+   "nom": "Vålådalens Fjällstation",
+   "km": 1.85,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-akersjons-skidbacke": {
+   "s": "skiresort",
+   "ref": "aakersjoen",
+   "nom": "Åkersjön",
+   "km": 0.69,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "se-alasens-skidbacke": {
+   "s": "skiresort",
+   "ref": "aalaasen",
+   "nom": "Ålåsen",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "si-459215m140512": {
+   "s": "skiresort",
+   "ref": "ski-bor-crni-vrh",
+   "nom": "Ski Bor Črni vrh",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "si-planica": {
+   "s": "skiinfo",
+   "ref": "kranjska-gora",
+   "nom": "Kranjska Gora",
+   "km": 2.76,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 72,
+    "rouges": 11,
+    "noires": 17
+   }
+  },
+  "si-trije-kralji": {
+   "s": "skiresort",
+   "ref": "trije-kralji",
+   "nom": "Trije Kralji",
+   "km": 0.5,
+   "skiresort": {
+    "faciles": 1.4,
+    "moyennes": 1.4,
+    "difficiles": 0
+   }
+  },
+  "si-velika-planina": {
+   "s": "skiresort",
+   "ref": "osovje",
+   "nom": "Osovje",
+   "km": 4.96,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "sk-485853m197570": {
+   "s": "skiinfo",
+   "ref": "skicentrum-kokava-linia",
+   "nom": "Skicentrum Kokava - Línia",
+   "km": 1.83,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "sk-485996m196735": {
+   "s": "skiinfo",
+   "ref": "latky-hotel-royal",
+   "nom": "Látky - Prašivá",
+   "km": 1,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "sk-486615m186286": {
+   "s": "skiinfo",
+   "ref": "cigel",
+   "nom": "Cigeľ",
+   "km": 4.86,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 100,
+    "noires": 0
+   }
+  },
+  "sk-488387m183402": {
+   "s": "skiinfo",
+   "ref": "zavada-pod-ciernym-vrchom",
+   "nom": "Závada pod Čiernym vrchom",
+   "km": 0.35,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "sk-488889m208932": {
+   "s": "skiinfo",
+   "ref": "ski-plejsy",
+   "nom": "Plejsy",
+   "km": 1.91,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 16,
+    "rouges": 27,
+    "noires": 57
+   }
+  },
+  "sk-490305m196671": {
+   "s": "skiinfo",
+   "ref": "opalisko-zavazna-poruba",
+   "nom": "Opalisko - Závažná Poruba",
+   "km": 2.52,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 27,
+    "rouges": 73,
+    "noires": 0
+   }
+  },
+  "sk-brezovica": {
+   "s": "skiresort",
+   "ref": "teplica-brezovica",
+   "nom": "Teplica – Brezovica",
+   "km": 0.29,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.7,
+    "difficiles": 0.7
+   }
+  },
+  "sk-frickovce": {
+   "s": "skiinfo",
+   "ref": "frickovce",
+   "nom": "Fričkovce",
+   "km": 0.2,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "sk-julius": {
+   "s": "skiinfo",
+   "ref": "vysna-slana-julius",
+   "nom": "Vysna Slana - Július",
+   "km": 0.45,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 29,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "sk-lyziarske-a-rekreacne-stredisko-velke-ostre": {
+   "s": "skiinfo",
+   "ref": "velke-ostre",
+   "nom": "Veľké Ostré",
+   "km": 0.23,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 31,
+    "rouges": 69,
+    "noires": 0
+   }
+  },
+  "sk-nalepkovo-krecno": {
+   "s": "skiinfo",
+   "ref": "ski-centrum-mraznica-hnilcik",
+   "nom": "Hnilčík - Ski centrum Mraznica",
+   "km": 4.74,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 50,
+    "noires": 0
+   }
+  },
+  "sk-polhorsky-hradok": {
+   "s": "skiinfo",
+   "ref": "polhorsky-hradok-oravska-polhora",
+   "nom": "Oravská Polhora",
+   "km": 0.4,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 11,
+    "rouges": 85,
+    "noires": 0
+   }
+  },
+  "sk-relax-center-plejsy": {
+   "s": "skiinfo",
+   "ref": "ski-plejsy",
+   "nom": "Plejsy",
+   "km": 1,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 16,
+    "rouges": 27,
+    "noires": 57
+   }
+  },
+  "sk-rencisov-buce": {
+   "s": "skiresort",
+   "ref": "buce-rencisov",
+   "nom": "Búče – Renčišov",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 2.1,
+    "difficiles": 1.2
+   }
+  },
+  "sk-resort-levocska-dolina": {
+   "s": "skiinfo",
+   "ref": "ski-centre-levoca-ld",
+   "nom": "Resort Levočská dolina",
+   "km": 0.38,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 42,
+    "rouges": 32,
+    "noires": 26
+   }
+  },
+  "sk-ski-krusetnica": {
+   "s": "skiinfo",
+   "ref": "krusetnica",
+   "nom": "Krušetnica",
+   "km": 0.38,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 0,
+    "rouges": 100,
+    "noires": 0
+   }
+  },
+  "sk-ski-blanc-ostry-grun": {
+   "s": "skiinfo",
+   "ref": "ski-blanc-ostry-grun-kollarova",
+   "nom": "Ski Blanc Ostrý Grúň - Kollárová",
+   "km": 0.22,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 55,
+    "rouges": 45,
+    "noires": 0
+   }
+  },
+  "sk-ski-centrum-mraznica": {
+   "s": "skiinfo",
+   "ref": "ski-centrum-mraznica-hnilcik",
+   "nom": "Hnilčík - Ski centrum Mraznica",
+   "km": 0.46,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 50,
+    "rouges": 50,
+    "noires": 0
+   }
+  },
+  "sk-skicentrum-ziar-dolinky": {
+   "s": "skiinfo",
+   "ref": "ski-centrum-ziar-dolinky",
+   "nom": "Ski centrum Ziar - Dolinky",
+   "km": 0.28,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "sk-skipark-erika": {
+   "s": "skiinfo",
+   "ref": "jahodna",
+   "nom": "Jahodná",
+   "km": 4.09,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 18,
+    "rouges": 82,
+    "noires": 0
+   }
+  },
+  "sk-skipark-vysne-ruzbachy": {
+   "s": "skiinfo",
+   "ref": "vysne-ruzbachy",
+   "nom": "Vysne Ruzbachy",
+   "km": 0.43,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 68,
+    "rouges": 32,
+    "noires": 0
+   }
+  },
+  "sk-snowsun-horny-vadicov": {
+   "s": "skiinfo",
+   "ref": "snow-sun-vadicov",
+   "nom": "Snow sun Vadičov",
+   "km": 0.22,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "sk-tisovec-banovo": {
+   "s": "skiinfo",
+   "ref": "ski-zbojska",
+   "nom": "Ski Zbojská",
+   "km": 4.34,
+   "skiinfo": {
+    "vertes": 0,
+    "bleues": 100,
+    "rouges": 0,
+    "noires": 0
+   }
+  },
+  "tj-safed-dara": {
+   "s": "skiresort",
+   "ref": "safed-dara",
+   "nom": "Safed Dara",
+   "km": 2.43,
+   "skiresort": {
+    "faciles": 7,
+    "moyennes": 7.2,
+    "difficiles": 0
+   }
+  },
+  "tr-375689m436728": {
+   "s": "skiresort",
+   "ref": "hakkari-mergabuetan",
+   "nom": "Hakkari Mergabütan",
+   "km": 0.51,
+   "skiresort": {
+    "faciles": 2.2,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "tr-abal-kayak-merkezi": {
+   "s": "skiresort",
+   "ref": "abali-van",
+   "nom": "Abali – Van",
+   "km": 0.98,
+   "skiresort": {
+    "faciles": 5.5,
+    "moyennes": 2,
+    "difficiles": 1.2
+   }
+  },
+  "tr-ardahan": {
+   "s": "skiresort",
+   "ref": "ardahan-yalnizcam",
+   "nom": "Ardahan – Yalnızçam",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 3.2,
+    "moyennes": 6.4,
+    "difficiles": 0
+   }
+  },
+  "tr-bingol-hasarek": {
+   "s": "skiresort",
+   "ref": "kurucadag-bingoel",
+   "nom": "Kurucadag – Bingöl",
+   "km": 0.58,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "tr-cambasi": {
+   "s": "skiresort",
+   "ref": "cambasi",
+   "nom": "Çambaşı",
+   "km": 0.62,
+   "skiresort": {
+    "faciles": 6.2,
+    "moyennes": 6.1,
+    "difficiles": 5
+   }
+  },
+  "tr-ergan-dag-k-s-sporlar-turizm-merkezi-ergan-mountain-winter-sports-and-eco-tourism-center": {
+   "s": "skiresort",
+   "ref": "ergan-dagi",
+   "nom": "Ergan Dağı",
+   "km": 1.61,
+   "skiresort": {
+    "faciles": 1.6,
+    "moyennes": 6.2,
+    "difficiles": 1.6
+   }
+  },
+  "tr-keltepe": {
+   "s": "skiresort",
+   "ref": "keltepe",
+   "nom": "Keltepe",
+   "km": 0.48,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1.5,
+    "difficiles": 0
+   }
+  },
+  "tr-snowland-ski-park": {
+   "s": "skiresort",
+   "ref": "altinoran-ankara",
+   "nom": "Centre de ski couvert Altinoran – Ankara",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "tr-yedikuyular": {
+   "s": "skiresort",
+   "ref": "yedikuyular",
+   "nom": "Yedikuyular",
+   "km": 0.35,
+   "skiresort": {
+    "faciles": 2.4,
+    "moyennes": 0.8,
+    "difficiles": 0
+   }
+  },
+  "tw-little-ding-dong-ski-resort": {
+   "s": "skiresort",
+   "ref": "little-ding-dong",
+   "nom": "Ski-dôme Little Ding-Dong",
+   "km": 1.7,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "ua-486731m233161": {
+   "s": "skiresort",
+   "ref": "zatyshok",
+   "nom": "Zatyshok",
+   "km": 0.19,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.4,
+    "difficiles": 0
+   }
+  },
+  "ua-izki": {
+   "s": "skiresort",
+   "ref": "izki-magura",
+   "nom": "Izki – Magura",
+   "km": 0.46,
+   "skiresort": {
+    "faciles": 4.8,
+    "moyennes": 1.5,
+    "difficiles": 0
+   }
+  },
+  "us-adventure-mountain": {
+   "s": "skiresort",
+   "ref": "adventure-mountain-greenland",
+   "nom": "Adventure Mountain – Greenland",
+   "km": 1.26,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "us-al-quaal": {
+   "s": "skiresort",
+   "ref": "al-quaal",
+   "nom": "Al Quaal",
+   "km": 0.44,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "us-boreal-mountain-resort": {
+   "s": "skiresort",
+   "ref": "boreal",
+   "nom": "Boreal",
+   "km": 0.46,
+   "skiresort": {
+    "faciles": 6,
+    "moyennes": 7.5,
+    "difficiles": 4.5
+   }
+  },
+  "us-bowes-ski-hill": {
+   "s": "skiresort",
+   "ref": "bowes-ski-hill-steamboat-springs",
+   "nom": "Bowe&#039;s Ski Hill – Steamboat Springs",
+   "km": 0.01,
+   "skiresort": {
+    "faciles": 0,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "us-buckhorn-ski-club": {
+   "s": "skiresort",
+   "ref": "buckhorn-ski-and-snowboard-club",
+   "nom": "Buckhorn Ski and Snowboard Club",
+   "km": 0.59,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0.6,
+    "difficiles": 0.4
+   }
+  },
+  "us-clcf-nordic": {
+   "s": "skiresort",
+   "ref": "fox-hill",
+   "nom": "Fox Hill",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.3,
+    "difficiles": 0.2
+   }
+  },
+  "us-chatham-hill": {
+   "s": "skiresort",
+   "ref": "hiawatha-rock-river-township",
+   "nom": "Hiawatha – Rock River Township",
+   "km": 0.03,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "us-cloudmont-ski-resort": {
+   "s": "skiresort",
+   "ref": "cloudmont",
+   "nom": "Cloudmont",
+   "km": 0.42,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-cochran-s-ski-area-443968mm729820": {
+   "s": "skiresort",
+   "ref": "cochran",
+   "nom": "Cochran",
+   "km": 0.86,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0.7,
+    "difficiles": 0.7
+   }
+  },
+  "us-cortina-valley": {
+   "s": "skiresort",
+   "ref": "cortina-mountain",
+   "nom": "Cortina Mountain",
+   "km": 0.48,
+   "skiresort": {
+    "faciles": 4.5,
+    "moyennes": 5,
+    "difficiles": 0.5
+   }
+  },
+  "us-donner-ski-ranch": {
+   "s": "skiresort",
+   "ref": "donner-ski-ranch",
+   "nom": "Donner Ski Ranch",
+   "km": 0.91,
+   "skiresort": {
+    "faciles": 5.8,
+    "moyennes": 8,
+    "difficiles": 5.2
+   }
+  },
+  "us-elm-creek-park-reserve": {
+   "s": "skiresort",
+   "ref": "elm-creek-maple-grove",
+   "nom": "Elm Creek – Maple Grove",
+   "km": 0.84,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-fort-kent-outdoor-center": {
+   "s": "skiresort",
+   "ref": "lonesome-pine-trails-fort-kent",
+   "nom": "Lonesome Pine Trails – Fort Kent",
+   "km": 0.9,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.6,
+    "difficiles": 2
+   }
+  },
+  "us-four-lakes-village": {
+   "s": "skiresort",
+   "ref": "four-lakes",
+   "nom": "Four Lakes",
+   "km": 0.1,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-frisco-nordic-center": {
+   "s": "skiresort",
+   "ref": "frisco-adventure-park",
+   "nom": "Frisco Adventure Park",
+   "km": 1.27,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-gateway-parks": {
+   "s": "skiresort",
+   "ref": "eagle-island-park",
+   "nom": "Eagle Island Park",
+   "km": 0.04,
+   "skiresort": {
+    "faciles": 0.1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-gladstone-ski-hill": {
+   "s": "skiresort",
+   "ref": "john-melissa-besse-sports-park-gladstone",
+   "nom": "John &amp; Melissa Besse Sports Park – Gladstone",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 0.1,
+    "difficiles": 0
+   }
+  },
+  "us-great-bear-recreation-park-435821mm966650": {
+   "s": "skiresort",
+   "ref": "great-bear-ski-valley",
+   "nom": "Great Bear Ski Valley",
+   "km": 0.48,
+   "skiresort": {
+    "faciles": 2.6,
+    "moyennes": 1.2,
+    "difficiles": 0
+   }
+  },
+  "us-hanson-hills": {
+   "s": "skiresort",
+   "ref": "hanson-hills",
+   "nom": "Hanson Hills",
+   "km": 0.02,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "us-hard-ack-ski-area": {
+   "s": "skiresort",
+   "ref": "hardack-aldis-hill-st-albans",
+   "nom": "Hard&#039;ack (Aldis Hill) – St. Albans",
+   "km": 0.13,
+   "skiresort": {
+    "faciles": 0.2,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-hoedown-hill": {
+   "s": "skiresort",
+   "ref": "hoedown-hill-windsor",
+   "nom": "Hoedown Hill – Windsor",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "us-leavenworth-ski-hill": {
+   "s": "skiresort",
+   "ref": "leavenworth-ski-hill",
+   "nom": "Leavenworth Ski Hill",
+   "km": 0.06,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-mackenzie-cross-country-trail": {
+   "s": "skiresort",
+   "ref": "caberfae-peaks",
+   "nom": "Caberfae Peaks",
+   "km": 1.44,
+   "skiresort": {
+    "faciles": 4,
+    "moyennes": 5,
+    "difficiles": 2
+   }
+  },
+  "us-missaukee-mountain": {
+   "s": "skiresort",
+   "ref": "missaukee-mountain",
+   "nom": "Missaukee Mountain",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.5,
+    "difficiles": 0.1
+   }
+  },
+  "us-mount-greylock-ski-club": {
+   "s": "skiresort",
+   "ref": "mount-greylock-south-williamstown",
+   "nom": "Mount Greylock – South Williamstown",
+   "km": 0.21,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 3,
+    "difficiles": 0.6
+   }
+  },
+  "us-mt-holiday": {
+   "s": "skiresort",
+   "ref": "mt-holiday",
+   "nom": "Mt. Holiday",
+   "km": 0.18,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 2,
+    "difficiles": 1.5
+   }
+  },
+  "us-national-winter-activity-center": {
+   "s": "skiresort",
+   "ref": "hidden-valley-nj",
+   "nom": "Hidden Valley (NJ)",
+   "km": 0.39,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 1,
+    "difficiles": 1
+   }
+  },
+  "us-northern-warfare-training-center": {
+   "s": "skiresort",
+   "ref": "black-rapid",
+   "nom": "Black Rapid",
+   "km": 0.66,
+   "skiresort": {
+    "faciles": 4.2,
+    "moyennes": 2.6,
+    "difficiles": 0
+   }
+  },
+  "us-osceola-tow": {
+   "s": "skiresort",
+   "ref": "bousquet",
+   "nom": "Bousquet",
+   "km": 2.61,
+   "skiresort": {
+    "faciles": 3,
+    "moyennes": 2,
+    "difficiles": 3
+   }
+  },
+  "us-pinehurst": {
+   "s": "skiresort",
+   "ref": "pinehurst-park-eau-claire",
+   "nom": "Pinehurst Park – Eau Claire",
+   "km": 0.09,
+   "skiresort": {
+    "faciles": 0.3,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-plumtree": {
+   "s": "skiresort",
+   "ref": "plumtree-fawnridge-lake-carroll",
+   "nom": "Plumtree (Fawnridge) – Lake Carroll",
+   "km": 1.83,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-polar-peak-ski-bowl": {
+   "s": "skiresort",
+   "ref": "polar-peak",
+   "nom": "Polar Peak",
+   "km": 0.25,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 0.5,
+    "difficiles": 0.4
+   }
+  },
+  "us-sahalie-ski-club": {
+   "s": "skiresort",
+   "ref": "sahalie-ski-club",
+   "nom": "Sahalie Ski Club",
+   "km": 0.08,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.2,
+    "difficiles": 0
+   }
+  },
+  "us-salmonberry-hill": {
+   "s": "skiresort",
+   "ref": "salmonberry-valdez",
+   "nom": "Salmonberry – Valdez",
+   "km": 0.14,
+   "skiresort": {
+    "faciles": 0.4,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-seaver-hill": {
+   "s": "skiresort",
+   "ref": "quechee-lakes-ski-area",
+   "nom": "Quechee Lakes Ski Area",
+   "km": 1.75,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2.5,
+    "difficiles": 0.5
+   }
+  },
+  "us-shanty-creek-resorts": {
+   "s": "skiresort",
+   "ref": "shanty-creek-resorts-summit-mountain",
+   "nom": "Shanty Creek Resorts – Summit Mountain",
+   "km": 0.96,
+   "skiresort": {
+    "faciles": 0.8,
+    "moyennes": 2.5,
+    "difficiles": 0.7
+   }
+  },
+  "us-ski-snowstar": {
+   "s": "skiresort",
+   "ref": "snowstar",
+   "nom": "Snowstar",
+   "km": 0.22,
+   "skiresort": {
+    "faciles": 0.5,
+    "moyennes": 1.5,
+    "difficiles": 2
+   }
+  },
+  "us-snow-snake-ski-golf": {
+   "s": "skiresort",
+   "ref": "snow-snake",
+   "nom": "Snow Snake",
+   "km": 0.91,
+   "skiresort": {
+    "faciles": 1,
+    "moyennes": 1.5,
+    "difficiles": 0.5
+   }
+  },
+  "us-snowshoe-mountain": {
+   "s": "skiresort",
+   "ref": "snowshoe-mountain",
+   "nom": "Snowshoe Mountain",
+   "km": 1.39,
+   "skiresort": {
+    "faciles": 14,
+    "moyennes": 11,
+    "difficiles": 6
+   }
+  },
+  "us-standing-rocks": {
+   "s": "skiresort",
+   "ref": "standing-rocks",
+   "nom": "Standing Rocks",
+   "km": 0.74,
+   "skiresort": {
+    "faciles": 0.9,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-storrs-hill-ski-area": {
+   "s": "skiresort",
+   "ref": "storrs-hill-lebanon",
+   "nom": "Storrs Hill – Lebanon",
+   "km": 0.2,
+   "skiresort": {
+    "faciles": 0.7,
+    "moyennes": 0.3,
+    "difficiles": 0
+   }
+  },
+  "us-tahoe-donner-downhill-ski-area-393515mm1202617": {
+   "s": "skiresort",
+   "ref": "tahoe-donner",
+   "nom": "Tahoe Donner",
+   "km": 0.33,
+   "skiresort": {
+    "faciles": 5,
+    "moyennes": 7,
+    "difficiles": 0
+   }
+  },
+  "us-terrain-park": {
+   "s": "skiresort",
+   "ref": "santa-fe",
+   "nom": "Santa Fé",
+   "km": 0.39,
+   "skiresort": {
+    "faciles": 9,
+    "moyennes": 15,
+    "difficiles": 10
+   }
+  },
+  "us-the-vermont-tech-rope-tow": {
+   "s": "skiresort",
+   "ref": "farrs-hill-randolph",
+   "nom": "Farr&#039;s Hill – Randolph",
+   "km": 4.3,
+   "skiresort": {
+    "faciles": 0.6,
+    "moyennes": 0,
+    "difficiles": 0
+   }
+  },
+  "us-tolkien-trails": {
+   "s": "skiresort",
+   "ref": "mont-ripley",
+   "nom": "Mont Ripley",
+   "km": 2.91,
+   "skiresort": {
+    "faciles": 2,
+    "moyennes": 2.2,
+    "difficiles": 2.7
+   }
+  },
+  "us-tuckerman-ravine": {
+   "s": "skiresort",
+   "ref": "wildcat-mountain",
+   "nom": "Wildcat Mountain",
+   "km": 4.77,
+   "skiresort": {
+    "faciles": 5.2,
+    "moyennes": 12.1,
+    "difficiles": 7.7
+   }
+  },
+  "us-tyrol-basin": {
+   "s": "skiresort",
+   "ref": "tyrol-basin-mt-horeb",
+   "nom": "Tyrol Basin – Mt Horeb",
+   "km": 0.51,
+   "skiresort": {
+    "faciles": 1.2,
+    "moyennes": 1.5,
+    "difficiles": 1.5
+   }
+  },
+  "us-waterville-valley-resort-nordic": {
+   "s": "skiresort",
+   "ref": "waterville-valley",
+   "nom": "Waterville Valley",
+   "km": 2.44,
+   "skiresort": {
+    "faciles": 3.5,
+    "moyennes": 16,
+    "difficiles": 5.5
+   }
+  },
+  "us-wild-chutes-snow-tubing": {
+   "s": "skiresort",
+   "ref": "wild-mountain",
+   "nom": "Wild Mountain",
+   "km": 0.7,
+   "skiresort": {
+    "faciles": 1.1,
+    "moyennes": 1.6,
+    "difficiles": 2.1
+   }
+  },
+  "us-yawgoo-valley-ski-area": {
+   "s": "skiresort",
+   "ref": "yawgoo-valley",
+   "nom": "Yawgoo Valley",
+   "km": 0.23,
+   "skiresort": {
+    "faciles": 1.5,
+    "moyennes": 1,
+    "difficiles": 0
+   }
+  },
+  "uz-beldersay": {
+   "s": "skiresort",
+   "ref": "mt-kumbel-beldersoy",
+   "nom": "Mt. Kumbel – Beldersoy",
+   "km": 1.43,
+   "skiresort": {
+    "faciles": 3.6,
+    "moyennes": 2.3,
+    "difficiles": 0.3
+   }
+  }
+ }
+}

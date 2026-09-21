@@ -29,6 +29,7 @@
  * absence : l'absence se voit.
  */
 
+import { decimal } from "../nombres.ts";
 import partVerte from "./data/partVerte.json" with { type: "json" };
 
 export type QuatreCouleurs = { vert: number; bleu: number; rouge: number; noir: number };
@@ -154,4 +155,123 @@ export function mentionSource(r: Repartition | null): string | null {
   if (r.source === "skiinfo") return "publié par la station (Skiinfo)";
   const pct = Math.round((r.partVerte ?? 0) * 100);
   return `skiresort.fr — vert et bleu séparés à ${pct} %, part mesurée sur ${r.partVerteDomaines} domaines du pays`;
+}
+
+// ─── Le recours, pour les domaines qu'OpenSkiMap ne mesure pas ───────────────
+
+/**
+ * Le rattachement d'un domaine à la fiche qui porte ses couleurs.
+ *
+ * Il est calculé une fois par `scripts/build-couleurs-monde.ts`, qui rapproche
+ * les points à moins de cinq kilomètres, et rangé dans `data/couleurs.json`.
+ * Ce qui est écrit là, ce sont les **valeurs brutes de la source** : la règle
+ * qui en tire quatre couleurs reste celle de ce fichier, et n'existe qu'ici.
+ *
+ * `km` voyage avec le rattachement parce qu'il en dit la valeur : un domaine
+ * rapproché à 200 m et un domaine rapproché à 4,8 km ne sont pas rattachés
+ * avec la même confiance, et `ref` nomme la fiche pour qu'un doute se lève à
+ * la main.
+ */
+export type Rattachement =
+  | {
+      s: "skiinfo";
+      ref: string;
+      nom: string;
+      km: number;
+      skiinfo: { vertes: number; bleues: number; rouges: number; noires: number };
+    }
+  | {
+      s: "skiresort";
+      ref: string;
+      nom: string;
+      km: number;
+      skiresort: { faciles: number | null; moyennes: number | null; difficiles: number | null };
+    };
+
+export type ReleveRattachements = {
+  calcule: string;
+  quoi: string;
+  regle: string;
+  rayonKm: number;
+  releves: { skiinfo: string; skiresort: string };
+  domaines: number;
+  mesuresOpenSkiMap: number;
+  rattachesSkiinfo: number;
+  rattachesSkiresort: number;
+  rattachements: Record<string, Rattachement>;
+};
+
+let rattachementsEnCours: Promise<ReleveRattachements> | null = null;
+
+/**
+ * Le fichier de rattachement, chargé à la demande.
+ *
+ * Cent quatre-vingts kilo-octets n'ont rien à faire dans le lot de départ d'un
+ * écran qui n'affiche aucune couleur. Même porte que `releveDem()` de
+ * `monde.ts`, et pour la même raison.
+ */
+export function releveRattachements(): Promise<ReleveRattachements> {
+  rattachementsEnCours ??= import("./data/couleurs.json", { with: { type: "json" } }).then(
+    (m) => m.default as ReleveRattachements,
+  );
+  return rattachementsEnCours;
+}
+
+/** Ce qu'il faut d'un domaine pour en tirer une répartition. */
+export type EntreeDomaine = {
+  id: string;
+  pays: readonly string[];
+  counts: { green: number; blue: number; red: number; black: number } | null;
+};
+
+/**
+ * La répartition d'un domaine, son propre relevé d'abord, le rattachement
+ * ensuite.
+ *
+ * L'ordre est celui de `repartition()`, et c'est la même fonction qui tranche :
+ * un domaine mesuré par OpenSkiMap garde sa mesure même si une fiche voisine
+ * dit autre chose. Le rattachement n'est qu'un recours.
+ */
+export function repartitionDuDomaine(
+  d: EntreeDomaine,
+  rattachement: Rattachement | undefined,
+): Repartition | null {
+  return repartition({
+    openskimap: d.counts,
+    skiinfo: rattachement?.s === "skiinfo" ? rattachement.skiinfo : null,
+    skiresort: rattachement?.s === "skiresort" ? rattachement.skiresort : null,
+    pays: d.pays[0] ?? null,
+  });
+}
+
+/**
+ * Les répartitions d'un lot de domaines, le fichier n'étant ouvert qu'une fois.
+ *
+ * Les domaines sans répartition **ne figurent pas** dans la table rendue : une
+ * clé absente s'y lit comme partout ailleurs dans le dépôt, et l'écran affiche
+ * l'absence au lieu de la combler.
+ */
+export async function repartitionsDesDomaines(
+  domaines: readonly EntreeDomaine[],
+): Promise<Map<string, Repartition>> {
+  const { rattachements } = await releveRattachements();
+  const out = new Map<string, Repartition>();
+  for (const d of domaines) {
+    const r = repartitionDuDomaine(d, rattachements[d.id]);
+    if (r) out.set(d.id, r);
+  }
+  return out;
+}
+
+/**
+ * Comment le rattachement s'annonce à l'écran.
+ *
+ * `mentionSource()` dit d'où vient la règle ; celle-ci dit d'où vient la
+ * valeur, et à quelle distance. Les deux se lisent ensemble.
+ */
+export function mentionRattachement(r: Rattachement | undefined): string | null {
+  if (!r) return null;
+  const site = r.s === "skiinfo" ? "Skiinfo" : "skiresort.fr";
+  const d = r.km < 0.1 ? "au même point" : `à ${decimal(r.km, 1)} km`;
+  return `rapproché de la fiche ${site} « ${r.nom} », ${d}`;
 }

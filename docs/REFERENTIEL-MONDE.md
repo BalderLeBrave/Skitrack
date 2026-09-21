@@ -224,6 +224,79 @@ Sans `--releve`, la date du fichier source fait foi — ce qui date le
 téléchargement et non le relevé. Passez-la explicitement, en la lisant dans
 `metadata.json`.
 
+## L'écran : `/monde`
+
+Trois niveaux — **continent → pays → domaines** — et non un filtre de plus sur
+un écran existant. Soixante-treize pays ne tiennent pas dans une rangée de
+jetons comme les dix massifs de `/carte`, et aplatir le référentiel en une
+liste unique demanderait de charger le monde entier pour en montrer vingt.
+
+La forme de l'écran suit donc celle des données : les deux premiers niveaux ne
+lisent que `index.json`, et `domainesPays()` n'ouvre que le pays regardé.
+
+| Niveau | Ce qu'il lit | Ce qu'il coûte |
+| --- | --- | --- |
+| Continents | `CONTINENTS` × `index.json` | rien de plus que le lot de départ |
+| Pays | `index.json` | rien |
+| Domaines | `<CC>.json` + `couleurs.json` | un pays, une fois |
+
+Les filtres vivent dans `monde/filtres.ts`, et ils tiennent la règle du dépôt :
+**un seuil porte sur une valeur mesurée.** Un domaine dont les kilomètres ne
+sont pas relevés est écarté par un seuil sur les kilomètres, jamais compté pour
+zéro — c'est `atLeast` de `carte.ts`, la même fonction que pour la France, pas
+une seconde écriture. Le tri suit la même règle : le non mesuré passe en
+dernier **dans les deux sens**, parce que le traiter comme un zéro le mettrait
+en tête d'un tri décroissant inversé et le ferait passer pour une mesure nulle.
+
+Le compte affiché dit « X sur Y » où Y est ce que le pays rend, et non ce que
+l'index compte : `domainesPays()` ramène les domaines hébergés **et** ceux qui
+débordent d'un pays voisin, si bien que l'Autriche en rend 396 là où l'index en
+compte 381. L'écart est écrit en toutes lettres sous le compte, avec le nombre
+de frontaliers ; les deux nombres se contredisaient à l'écran sans rien dire.
+
+## Les couleurs, et le rattachement qui les étend
+
+OpenSkiMap compte les tronçons par couleur pour 4 239 domaines sur 5 720. Pour
+les autres, il n'a relevé aucune piste — ce qui n'est pas « ce domaine n'a pas
+de pistes ». Deux relevés du dépôt en savent pourtant quelque chose, et ils
+sont rangés par fiche, pas par domaine.
+
+`scripts/build-couleurs-monde.ts` fait la jointure et écrit
+`src/lib/monde/data/couleurs.json` (181 Ko, chargé à la demande).
+
+| | Domaines | Part |
+| --- | ---: | ---: |
+| Mesurés par OpenSkiMap | 4 239 | 74,1 % |
+| Rattachés à une fiche Skiinfo | 234 | 4,1 % |
+| Rattachés à une fiche skiresort | 630 | 11,0 % |
+| **Couverts** | **5 103** | **89,2 %** |
+| Aucune couleur possible | 617 | 10,8 % |
+
+**La jointure se fait par la position, et n'affirme rien de plus.** Aucune clé
+n'est commune aux trois sources : ni identifiant, ni nom comparable. Deux
+points à moins de cinq kilomètres sont donc rapprochés, le plus proche gagne,
+et trois choses en découlent :
+
+1. **La distance est écrite à côté du rattachement**, et paraît à l'écran. La
+   médiane est de 0,38 km et 70 % des rattachements sont à moins d'un
+   kilomètre, mais un rattachement à 4,8 km existe et ne doit pas se lire comme
+   un rattachement à 200 m.
+2. **La fiche retenue est nommée**, pour qu'un doute se lève à la main.
+3. **Le fichier porte les valeurs brutes de la source**, pas une répartition
+   calculée : la règle qui en tire quatre couleurs vit dans `monde/couleurs.ts`
+   et n'est écrite qu'une fois. La recopier dans la donnée en ferait une
+   seconde, que la prochaine mesure de `partVerte.json` laisserait en arrière.
+
+Le recours par les pistes du GeoPackage — 159 domaines de plus dans l'analyse —
+n'y est pas : ce fichier de 2 Go n'est pas dans le dépôt, et un script du dépôt
+ne dépend pas d'un téléchargement local.
+
+À l'écran, une répartition dérivée de skiresort porte la mention **« vert et
+bleu estimés »** à côté de sa barre, et non seulement dans une infobulle. Une
+valeur estimée qui ne se dit pas estimée est pire qu'une absence, puisque
+l'absence, elle, se voit — et les 617 domaines sans couleur écrivent
+« Répartition par couleur non relevée » plutôt qu'une barre vide.
+
 ## Les devises
 
 L'audit appelait ce point « le plus diffus » : le référentiel n'avait qu'une
@@ -270,11 +343,14 @@ l'i18n, et les traiter ici les aurait mêlés à un sujet qui n'est pas le leur.
   deux tables parce que `XK` est un code d'usage et non un code ISO 3166-1.
   `paysSansFiche()` rend exactement ces deux-là, et son test l'exige à
   l'égalité : un troisième pays devra faire échouer la suite, pas s'y ranger.
-- **L'Antarctique est dans le référentiel et hors de la navigation.**
-  `Kiwi Ski Hill`, un téléski en exploitation près de McMurdo, passe le seuil ;
-  `continents.ts` a délibérément posé six continents sans l'Antarctique. Les
-  deux décisions sont justes et se contredisent : un écran qui listera « tous
-  les pays » devra dire ce qu'il fait de celui-là.
+- **L'Antarctique est dans le référentiel et hors de la navigation** — et
+  l'écran le dit. `Kiwi Ski Hill`, un téléski en exploitation près de McMurdo,
+  passe le seuil ; `continents.ts` a délibérément posé six continents sans
+  l'Antarctique. Les deux décisions sont justes et se contredisent : `/monde`
+  ne tranche pas la contradiction, il la **nomme**. Le pied du premier niveau
+  écrit que les six onglets portent 5 718 domaines et que deux pays — `AQ` et
+  `XK`, un domaine chacun — n'y figurent pas, avec la raison de chacun. C'est
+  la réponse que cette ligne appelait : dire, et non ranger d'office.
 - **Aucune exception d'appariement n'existe encore**, et `monde/corrections.ts`
   n'est donc pas créé. Les corrections du référentiel français naissent de
   l'appariement classeur × OpenSkiMap ; le monde n'a qu'une source, donc rien à

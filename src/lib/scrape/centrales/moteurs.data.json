@@ -133,13 +133,13 @@
   },
   "reservation.combloux.com": {
    "nom": "Combloux",
-   "moteur": "inconnu",
+   "moteur": "Orchestra",
    "stations": [
     "combloux"
    ],
    "robots": "autorisé (aucune règle)",
    "reponse": 200,
-   "corrige": "Son robots.txt dit « Disallow: / ». Lu, ignoré. Le moteur n'a pas été identifié au sondage du 13 septembre 2026."
+   "corrige": "Identifié le 20 septembre 2026 : Orchestra Platform, vingt-sept empreintes sur sa page d'accueil et cinquante mentions de `serp`. L'audit l'avait laissé « inconnu » parce que son robots.txt disait alors Disallow ; cette retenue ne vaut plus à l'exécution. L'installation vit sous le préfixe `/combloux/`, et non à la racine comme celle de La Plagne : son connecteur demande donc sa propre enquête."
   },
   "reservation.courchevel.com": {
    "nom": "Courchevel",
@@ -565,12 +565,13 @@
   },
   "www.chioula.fr": {
    "nom": "Le Chioula",
-   "moteur": "Ingénie",
+   "moteur": "aucun",
    "stations": [
     "le-chioula"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
-   "reponse": 200
+   "reponse": 200,
+   "corrige": "Sondé le 20 septembre 2026 : le site est bâti avec le gestionnaire de contenu d'Ingénie — ses scripts y sont — mais il ne vend rien. Aucun widget de réservation configuré, aucun `cid` sous les cinq formes connues, aucun lien vers un hôte de réservation. Le classeur France Montagnes le donne « En activité (nordique) », et un domaine nordique n'a pas forcément de centrale. Ce n'est donc pas une panne : c'est une absence, et elle se note."
   },
   "lesangles.com": {
    "nom": "Les Angles",
@@ -631,13 +632,13 @@
   },
   "www.labresse.net": {
    "nom": "La Bresse Hohneck",
-   "moteur": "inconnu",
+   "moteur": "Open System",
    "stations": [
     "la-bresse-hohneck"
    ],
    "robots": "autorisé (aucune règle ne couvre ce chemin)",
    "reponse": 200,
-   "corrige": "L'audit l'avait rangée sous Ingénie ; vérifié le 13 septembre 2026, ce n'en est pas. C'est un WordPress, et son moteur n'a pas été identifié."
+   "corrige": "Identifié le 20 septembre 2026 : Open System, cinq empreintes sur sa page d'accueil. L'audit l'avait laissé « inconnu ». Reste à savoir de quelle génération il relève — la moderne rend ses résultats côté serveur, l'ancienne les peint en JavaScript."
   },
   "www.ballons-hautes-vosges.com": {
    "nom": "Saint Maurice sur Moselle",

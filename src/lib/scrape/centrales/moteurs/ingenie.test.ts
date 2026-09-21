@@ -2,6 +2,11 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   cidDepuisPage,
+  configWidgetIngenie,
+  lienReservationDepuisPage,
+  estPageResultat,
+  TYPE_PRESTATAIRE_DEFAUT,
+  typesPrestataireDepuisPage,
   dateIngenie,
   fragmentsIngenie,
   lireIngenie,
@@ -164,5 +169,139 @@ describe("Ingénie : lire une page de résultats datés", () => {
     assert.equal(cidDepuisPage(`<input type="hidden" name="cid" value="4">`), "4");
     assert.equal(cidDepuisPage(PAGE), "4");
     assert.equal(cidDepuisPage("<html><body>pas de moteur</body></html>"), null);
+  });
+});
+
+describe("une page de résultats, ou pas une page de résultats", () => {
+  /**
+   * Le contrôle qui manquait. Treize centrales Ingénie sur vingt-huit
+   * répondent à l'URL de recherche par leur accueil de réservation, avec un
+   * `200` et sans un résultat. Zéro fiche se lisait alors « rien de disponible
+   * à ces dates », et l'écran annonçait Courchevel complet un an à l'avance.
+   */
+  it("une page de résultats vide en est une : elle porte le compteur", () => {
+    // Relevé sur `reservation.areches-beaufort.com` avec 40 personnes, le
+    // 20 septembre 2026 : 56 Ko, aucune fiche, mais `nb_result` y est
+    // quarante et une fois, comme sur la page qui en porte dix.
+    const vide = `<div id="nb_result">0</div><div class="critere_recherche"></div>`;
+    assert.equal(estPageResultat(vide), true);
+    assert.deepEqual(lireIngenie(vide), []);
+  });
+
+  it("un formulaire de recherche n'en est pas une, malgré ses paramètres", () => {
+    // Relevé sur `www.valloire.com` : 39 Ko de formulaire, avec `datedeb`
+    // puisqu'il le pose. S'être fié à ce paramètre l'aurait laissé passer, et
+    // Valloire serait restée « rien de disponible ».
+    const form = `<form action="/booking?action=result"><input name="datedeb" value="06/02/2027"></form>`;
+    assert.equal(estPageResultat(form), false);
+  });
+
+  it("un accueil de réservation n'en est pas une non plus", () => {
+    // Relevé sur `reservation.courchevel.com` le même jour : 30 Ko, et aucun
+    // des quatre marqueurs.
+    const accueil = `<h1>Réservation en ligne</h1><p>Une équipe d'experts</p><a href="/hebergements">Nos hébergements</a>`;
+    assert.equal(estPageResultat(accueil), false);
+  });
+
+  it("la page qui porte des fiches en est une, évidemment", () => {
+    assert.equal(estPageResultat(PAGE), true);
+    assert.ok(lireIngenie(PAGE).length > 0);
+  });
+});
+
+describe("la catégorie d'hébergement n'est pas la même partout", () => {
+  /**
+   * Le connecteur envoyait `type_prestataire=G` à tous les hôtes. Douze
+   * l'acceptent, treize ne le connaissent pas : leur moteur rend « Une erreur
+   * s'est produite », et leur page de recherche à la place des résultats.
+   */
+  const FORM_VALLOIRE = `
+    <form name="form_recherche" method="GET" action="booking">
+      <select name="type_prestataire">
+        <option value="I">Appartement, Chalet</option>
+        <option value="I_RESID">Résidence de Tourisme</option>
+        <option value="H">Hôtel, Village Club</option>
+        <option value="H_INSOLITE">Hébergement insolite</option>
+      </select>
+    </form>`;
+
+  it("lit les catégories que l'hôte publie, dans son ordre", () => {
+    assert.deepEqual(typesPrestataireDepuisPage(FORM_VALLOIRE), ["I", "I_RESID", "H", "H_INSOLITE"]);
+  });
+
+  it("et constate que le défaut n'y figure pas", () => {
+    // C'est tout le défaut : `G` n'est pas une catégorie universelle.
+    assert.equal(typesPrestataireDepuisPage(FORM_VALLOIRE).includes(TYPE_PRESTATAIRE_DEFAUT), false);
+  });
+
+  it("ne trouve rien là où il n'y a pas de formulaire", () => {
+    assert.deepEqual(typesPrestataireDepuisPage("<h1>Réservation en ligne</h1>"), []);
+    assert.deepEqual(typesPrestataireDepuisPage(PAGE), []);
+  });
+
+  it("la catégorie entre dans l'URL, et le défaut ne change pas", () => {
+    const d = { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 8 };
+    assert.match(urlIngenie("https://x.fr", 3, d), /type_prestataire=G/);
+    assert.match(urlIngenie("https://x.fr", 3, d, "I"), /type_prestataire=I/);
+  });
+});
+
+describe("ce que le widget de réservation déclare", () => {
+  /**
+   * Relevé sur `www.lesrousses.com` le 20 septembre 2026. Trois choses y
+   * étaient, et chacune corrigeait une erreur que le connecteur faisait.
+   */
+  const ACCUEIL_LES_ROUSSES = `<script defer> (function() { var params = {
+      typePrestataire: 'S', typeWidget: 'TYPE_PRESTATAIRE',
+      moteurTypePrestataire: 'MOTEUR_HEBERGEMENT',
+      urlSite: 'https://www.lesrousses-reservation.com/',
+      idWidget: 'widget-resa', target: "_blank", cid: 2, codeSite: "RESA" }; })()</script>`;
+
+  it("lit l'hôte qui vend, le numéro du moteur et la catégorie", () => {
+    const c = configWidgetIngenie(ACCUEIL_LES_ROUSSES);
+    // Le registre visait `www.lesrousses.com`, qui rend 404 sur `/booking`.
+    assert.equal(c.urlSite, "https://www.lesrousses-reservation.com/");
+    assert.equal(c.cid, "2");
+    assert.equal(c.typePrestataire, "S");
+  });
+
+  it("le `cid` se lit désormais hors de `IngenieMenuEngine.Client`", () => {
+    // C'est ce qui manquait : Les Rousses configure son widget autrement, et
+    // le connecteur concluait « la page n'a pas publié l'identifiant ».
+    assert.equal(cidDepuisPage(ACCUEIL_LES_ROUSSES), "2");
+    assert.equal(cidDepuisPage(`<script>params.set('cid', '7');</script>`), "7");
+    assert.equal(cidDepuisPage("<h1>Réservation</h1>"), null);
+  });
+
+  it("une page sans widget ne déclare rien, et ne ment pas", () => {
+    const c = configWidgetIngenie("<h1>Office de tourisme</h1>");
+    assert.deepEqual(c, { cid: null, urlSite: null, typePrestataire: null });
+  });
+});
+
+describe("le découpage des fiches, et le piège du tiret bas", () => {
+  it("reconnaît une classe préfixée, pas seulement une classe nue", () => {
+    // `www.chatelreservation.com` nomme ses fiches
+    // `RESA_fiche_liste_appartement_chalet_prestation`. La règle exigeait une
+    // frontière de mot avant `fiche_liste` ; entre `_` et `f` il n'y en a pas,
+    // les deux étant des caractères de mot. Vingt fiches et quatre-vingt-cinq
+    // logements se perdaient là, sans un message.
+    const chatel = `<div class="fiche-info RESA_fiche_liste_appartement_chalet_prestation" id="PRESTATION-I-X"></div>`;
+    assert.equal(fragmentsIngenie(chatel).length, 1);
+    const risoul = `<div class="fiche-info fiche_liste_immobilier_agen" id="PRESTATION-G-Y"></div>`;
+    assert.equal(fragmentsIngenie(risoul).length, 1);
+  });
+
+  it("suit le lien de réservation quand l'accueil ne configure rien", () => {
+    // `www.chatel.com` enfouit son `cid` dans un paquet minifié, mais renvoie
+    // en clair vers un hôte qui, lui, publie tout.
+    const accueil = `<a href="https://www.chatelreservation.com/hiver">Réserver</a>`;
+    assert.equal(lienReservationDepuisPage(accueil, "www.chatel.com"), "https://www.chatelreservation.com");
+  });
+
+  it("ne se suit pas lui-même", () => {
+    const soi = `<a href="https://reservation.x.com/booking">Réserver</a>`;
+    assert.equal(lienReservationDepuisPage(soi, "reservation.x.com"), null);
+    assert.equal(lienReservationDepuisPage(`<a href="https://facebook.com/x">f</a>`, "x.com"), null);
   });
 });

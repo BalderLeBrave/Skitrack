@@ -94,16 +94,71 @@ export function dateIngenie(iso: string): string {
  * `cid` est le numéro de configuration du moteur, propre à chaque centrale ; il
  * se lit sur sa page d'accueil.
  */
-export function urlIngenie(base: string, cid: number | string, d: DemandeIngenie): string {
+/**
+ * La catégorie d'hébergement par défaut.
+ *
+ * Elle marche sur douze hôtes et pas sur treize : `www.valloire.com` ne la
+ * propose pas et son moteur répond « Une erreur s'est produite ». Voir
+ * `typesPrestataireDepuisPage`, qui lit les valeurs que l'hôte publie.
+ */
+export const TYPE_PRESTATAIRE_DEFAUT = "G";
+
+/**
+ * Le vocabulaire des catégories, pour les hôtes qui ne le publient pas.
+ *
+ * `reservation.courchevel.com` ne sert aucun formulaire — sa recherche est
+ * entièrement peinte en JavaScript —, donc rien à y lire. Mais son moteur
+ * emploie le même vocabulaire que les autres : interrogé sur `I`, il rend
+ * 115 résultats, et 5 sur `H`.
+ *
+ * L'ordre est celui de l'usage : les appartements et chalets d'abord, qui font
+ * le gros de la location de séjour, les hôtels ensuite. On s'arrête au premier
+ * qui répond — un hôte ne se sonde pas cinq fois pour le plaisir.
+ */
+export const TYPES_PRESTATAIRE_CONNUS: readonly string[] = ["I", "H", "I_RESID", "H_INSOLITE"];
+
+export function urlIngenie(
+  base: string,
+  cid: number | string,
+  d: DemandeIngenie,
+  typePrestataire: string = TYPE_PRESTATAIRE_DEFAUT,
+): string {
   const p = new URLSearchParams();
   p.set("action", "result");
   p.set("cid", String(cid));
   p.set("MOTEUR_TYPES_PRESTATAIRE", "MOTEUR_HEBERGEMENT");
-  p.set("type_prestataire", "G");
+  p.set("type_prestataire", typePrestataire);
   p.set("datedeb", dateIngenie(d.checkIn));
   p.set("duree", String(nuitsEntre(d.checkIn, d.checkOut)));
   p.set("personnes", String(Math.max(1, Math.trunc(d.guests))));
   return `${base.replace(/\/+$/, "")}/booking?${p.toString()}`;
+}
+
+/**
+ * Les catégories d'hébergement que cet hôte propose, dans son ordre.
+ *
+ * Le connecteur envoyait `type_prestataire=G` partout. Douze hôtes
+ * l'acceptent ; treize ne le connaissent pas et leur moteur rend
+ * « Une erreur s'est produite ». `www.valloire.com` publie `I`
+ * (Appartement, Chalet), `I_RESID` (Résidence de Tourisme), `H` (Hôtel,
+ * Village Club) et `H_INSOLITE` — et répond 65 résultats sur `I`.
+ *
+ * Trois choses ont été essayées le 20 septembre 2026 et écartées : omettre le
+ * paramètre rend « aucun type de prestataire défini », le passer en liste
+ * `I,H` rend une erreur, et `type_date` n'y change rien.
+ *
+ * La page qui refuse `G` est celle qui porte le formulaire, donc ces valeurs :
+ * le remède est dans le symptôme, et aucune requête n'est dépensée à le
+ * chercher ailleurs.
+ */
+export function typesPrestataireDepuisPage(page: string): string[] {
+  const bloc = /name="type_prestataire"(.{0,2000}?)<\/select>/s.exec(page);
+  if (!bloc) return [];
+  const out: string[] = [];
+  for (const m of bloc[1].matchAll(/<option[^>]*value="([^"]+)"/g)) {
+    if (m[1] && !out.includes(m[1])) out.push(m[1]);
+  }
+  return out;
 }
 
 /**
@@ -120,8 +175,87 @@ export function cidDepuisPage(html: string): string | null {
     /name=["']cid["'][^>]*value=["'](\d+)["']/i.exec(html) ??
     /value=["'](\d+)["'][^>]*name=["']cid["']/i.exec(html);
   if (champ?.[1]) return champ[1];
+  // `www.lesrousses.com` configure son widget sans passer par
+  // `IngenieMenuEngine.Client` : le `cid` vit dans un objet quelconque —
+  // `{ idWidget: 'widget-resa', target: "_blank", cid: 2, codeSite: "RESA" }` —
+  // ou dans un `params.set('cid', '2')`. Les deux se lisent sans supposer le
+  // nom du constructeur, qui change d'un site à l'autre.
+  const objet = /\bcid\s*:\s*['"]?(\d+)/i.exec(html);
+  if (objet?.[1]) return objet[1];
+  const pose = /\bset\(\s*['"]cid['"]\s*,\s*['"]?(\d+)/i.exec(html);
+  if (pose?.[1]) return pose[1];
   const url = /\bcid=(\d+)/i.exec(html);
   return url?.[1] ?? null;
+}
+
+/**
+ * Ce que le widget de réservation déclare sur la page d'accueil.
+ *
+ * `www.lesrousses.com` l'a montré : la page d'accueil configure son widget en
+ * clair, et cette configuration fait autorité mieux que nos suppositions.
+ *
+ * ```
+ * var params = { typePrestataire: 'S', moteurTypePrestataire: 'MOTEUR_HEBERGEMENT',
+ *                urlSite: 'https://www.lesrousses-reservation.com/',
+ *                idWidget: 'widget-resa', cid: 2, codeSite: "RESA" }
+ * ```
+ *
+ * Trois choses en sortent, et chacune corrige une erreur que nous faisions :
+ *
+ * - **`urlSite`** est l'hôte qui vend. Le registre visait `www.lesrousses.com`,
+ *   qui rend 404 sur `/booking` — la centrale est sur un autre domaine.
+ * - **`typePrestataire`** est la catégorie que ce site emploie. Les Rousses
+ *   emploie `S`, que ni `G` ni la liste connue ne contenaient : sur le bon
+ *   hôte, `S` rend dix résultats et `G` une erreur.
+ * - **`cid`**, déjà lu par ailleurs, confirmé ici.
+ *
+ * Lire cette configuration vaut mieux qu'essayer des valeurs l'une après
+ * l'autre : c'est le site qui dit ce qu'il attend, et ça évite autant de
+ * requêtes que de suppositions.
+ */
+export type ConfigWidgetIngenie = {
+  cid: string | null;
+  urlSite: string | null;
+  typePrestataire: string | null;
+};
+
+/**
+ * L'adresse de réservation vers laquelle un site d'office renvoie.
+ *
+ * `www.chatel.com` ne configure aucun widget sur son accueil — son `cid` vit
+ * dans un paquet JavaScript minifié — mais il porte un lien clair vers
+ * `https://www.chatelreservation.com`, qui publie tout : `cid` 5, `urlSite` et
+ * `typePrestataire` `I`.
+ *
+ * On ne retient qu'un hôte **différent** de celui d'où l'on vient : un lien
+ * vers sa propre page de réservation ne mène nulle part de nouveau, et la
+ * suivre coûterait une requête pour rien.
+ */
+export function lienReservationDepuisPage(html: string, hoteCourant: string): string | null {
+  for (const m of html.matchAll(/href="(https?:\/\/[^"]+)"/g)) {
+    let hote: string;
+    try {
+      hote = new URL(m[1]).host;
+    } catch {
+      continue;
+    }
+    if (hote === hoteCourant) continue;
+    if (!/reserv|booking|resa/i.test(hote)) continue;
+    return `https://${hote}`;
+  }
+  return null;
+}
+
+export function configWidgetIngenie(html: string): ConfigWidgetIngenie {
+  const champ = (nom: string): string | null => {
+    const m = new RegExp(`\\b${nom}\\s*:\\s*['"]([^'"]+)['"]`, "i").exec(html);
+    return m?.[1] ?? null;
+  };
+  return {
+    cid: cidDepuisPage(html),
+    urlSite: champ("urlSite"),
+    typePrestataire: champ("typePrestataire"),
+  };
 }
 
 const ENTITES: Record<string, string> = {
@@ -174,9 +308,49 @@ export function texteIngenie(fragment: string): string {
  * `fiche_liste_appartements_chalets_prestation_v2` aux Contamines. Seul le
  * préfixe `fiche_liste` leur est commun, et c'est donc lui qu'on suit.
  */
+/**
+ * La page rendue est-elle une page de résultats ?
+ *
+ * La question n'est pas rhétorique : treize centrales Ingénie sur vingt-huit
+ * répondent aujourd'hui à l'URL de recherche par autre chose qu'un résultat,
+ * avec un `200` et sans rien vendre. Sans ce contrôle, zéro fiche se lisait
+ * « rien de disponible à ces dates », et l'écran annonçait Courchevel complet
+ * un an à l'avance.
+ *
+ * Quatre états ont été relevés le 20 septembre 2026, et il faut les quatre
+ * pour choisir le marqueur — les deux premiers sont de vraies réponses, les
+ * deux derniers des pannes :
+ *
+ * | État | `nb_result` | `critere` | `datedeb` | fiches |
+ * | --- | ---: | ---: | ---: | ---: |
+ * | Arêches-Beaufort, 8 personnes | 41 | 180 | 38 | 10 |
+ * | Arêches-Beaufort, 40 personnes | 41 | 128 | 7 | 0 |
+ * | Valloire — formulaire de recherche | **0** | **0** | 1 | 0 |
+ * | Courchevel — accueil de réservation | **0** | **0** | 0 | 0 |
+ *
+ * `nb_result` est le compteur de résultats du gabarit : il est là que le
+ * compte vaille dix ou zéro, et **quarante et une fois dans les deux cas**.
+ * C'est ce qui en fait le marqueur, et non `datedeb` ni `action=result` :
+ * ceux-là, un formulaire de recherche les porte aussi, puisqu'il les pose.
+ * S'y fier aurait laissé passer Valloire.
+ *
+ * `fiche_liste` complète le compte pour un cas qui n'est pas une page : un
+ * extrait de fiches, comme le gabarit des tests. Une suite de fiches vient
+ * forcément d'une page de résultats, et n'a pas à être refusée parce qu'on
+ * l'a découpée.
+ */
+export function estPageResultat(page: string): boolean {
+  return /nb_result|critere|fiche_liste/.test(page);
+}
+
 export function fragmentsIngenie(page: string): string[] {
   const debuts: number[] = [];
-  const re = /class="[^"]*\bfiche_liste[^"]*"/g;
+  // Pas de frontière de mot avant `fiche_liste` : `www.chatelreservation.com`
+  // nomme ses fiches `RESA_fiche_liste_appartement_chalet_prestation`, et entre
+  // le tiret bas et le `f` il n'y a pas de frontière — les deux sont des
+  // caractères de mot. La règle rendait donc zéro fragment sur une page qui en
+  // portait vingt, et quatre-vingt-cinq logements se perdaient là.
+  const re = /class="[^"]*fiche_liste[^"]*"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(page)) !== null) debuts.push(m.index);
   return debuts.map((d, i) => page.slice(d, i + 1 < debuts.length ? debuts[i + 1] : page.length));

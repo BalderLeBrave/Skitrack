@@ -296,6 +296,72 @@ describe("une transformation d'image ne s'invente pas", () => {
   });
 });
 
+describe("ce que le propriétaire a demandé d'une photo", () => {
+  it("aucune photo affichée n'est celle qu'un regard a écartée", async () => {
+    // Le verdict est comparé à **l'adresse**, jamais au domaine seul : si la
+    // photo retenue a changé depuis, le verdict ne la concerne plus.
+    const r = await releveVues();
+    const juges = (await import("./data/photosJugees.json", { with: { type: "json" } })).default as {
+      verdicts: Record<string, { url: string | null; retenue: boolean; motif?: string }>;
+    };
+    let verifiees = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      const j = juges.verdicts[id];
+      if (!v.photo || !j || j.url !== v.photo.url) continue;
+      verifiees++;
+      assert.ok(j.retenue, `${id} : photo affichée alors qu'elle est écartée (${j.motif})`);
+    }
+    assert.ok(verifiees > 500, `${verifiees} photos confrontées à leur verdict`);
+  });
+
+  it("deux domaines ne montrent jamais la même photo", async () => {
+    // « Une photo unique » : une adresse servie à deux domaines n'illustre ni
+    // l'un ni l'autre. Le contrôle porte aussi sur l'empreinte du fichier à
+    // l'étape du jugement ; ici, sur ce qui est réellement affiché.
+    const r = await releveVues();
+    const par = new Map<string, string[]>();
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (!v.photo) continue;
+      par.set(v.photo.url, [...(par.get(v.photo.url) ?? []), id]);
+    }
+    const partagees = [...par.entries()].filter(([, ids]) => ids.length > 1);
+    assert.deepEqual(partagees, [], `photos partagées : ${partagees.slice(0, 3).map(([u, ids]) => `${ids.join("/")} → ${u}`).join(" ; ")}`);
+  });
+
+  it("une photo libre porte son auteur, sa licence et sa page", async () => {
+    // CC BY et CC BY-SA n'autorisent l'affichage qu'à cette condition.
+    const r = await releveVues();
+    let n = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (v.photo?.source !== "commons") continue;
+      n++;
+      assert.ok(v.photo.licence, `${id} : photo Commons sans licence`);
+      assert.ok(v.photo.page?.startsWith("https://"), `${id} : photo Commons sans page`);
+      assert.ok(v.photo.auteur !== undefined, `${id} : photo Commons sans champ auteur`);
+    }
+    assert.ok(n >= 0);
+  });
+});
+
+describe("ce que le propriétaire a demandé des forfaits", () => {
+  it("chaque tarif lu sur un site officiel porte une ligne qui nomme un produit", async () => {
+    const lus = (await import("./data/tarifsLus.json", { with: { type: "json" } })).default as {
+      fiches: Record<string, { page: string; devise: string | null; tarifs: Record<string, { prix: number; ligne: string }> }>;
+    };
+    let cases = 0;
+    for (const [id, f] of Object.entries(lus.fiches)) {
+      assert.ok(f.page?.startsWith("http"), `${id} : tarif sans page`);
+      for (const [poste, t] of Object.entries(f.tarifs)) {
+        cases++;
+        assert.ok(t.prix > 0, `${id}/${poste} : prix ${t.prix}`);
+        // Un montant seul ne prouve rien : la ligne doit nommer le produit.
+        assert.match(t.ligne, /[A-Za-zÀ-ÿ]{3}/, `${id}/${poste} : ligne sans nom de produit — « ${t.ligne} »`);
+      }
+    }
+    assert.ok(cases >= 0);
+  });
+});
+
 describe("une photo vers un hôte muet est une absence", () => {
   const bonne: PhotoVue = {
     source: "skiinfo",

@@ -53,6 +53,7 @@
 
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { matriceDe, POSTES, vide, type Grille as GrilleTarif, type MatriceForfait } from "../src/lib/monde/matrice.ts";
 import { apparier, resume, type Point } from "./appariement.ts";
 const { paysByCode } = await import("../src/lib/geo/pays.ts");
 
@@ -217,7 +218,7 @@ const parSkiresort = apparier(domaines, fichesSkiresort, RAYON_KM, RAYON_NOM_KM)
 // ─── Ce que chaque domaine en tire ───────────────────────────────────────────
 
 type Photo = {
-  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire" | "commons";
   cle: string;
   nom: string | null;
   km: number;
@@ -229,10 +230,18 @@ type Photo = {
   corroboration?: "hote-officiel" | "nom" | "office-du-pays" | "bergfex";
   /** L'hôte a-t-il répondu au dernier contrôle ? */
   servi: boolean;
+  /** Photo libre : l'auteur, la licence et la page du fichier — obligatoires. */
+  licence?: string;
+  auteur?: string;
+  page?: string;
+  /** Ce qu'un regard a vu sur l'image. */
+  vu?: string;
 };
 
 type Forfait = {
   source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire";
+  /** Les six tarifs demandés, quand les grilles les publient. */
+  matrice?: MatriceForfait;
   cle: string;
   nom: string | null;
   km: number;
@@ -359,6 +368,53 @@ type Domaine3 = Domaine & { n?: number | null; km?: number | null };
 const skiinfoPistes = lire<{ fiches: Record<string, { km: number | null; pistes: number | null }> }>("skiinfo.json");
 const skiresortPistes = lire<{ fiches: Record<string, { kmTotal: number | null }> }>("skiresort.json");
 
+/**
+ * Les grilles bergfex **sans plage de dates**, que le relevé daté écartait.
+ *
+ * Mille deux cent quatre-vingt-cinq pages de prix avaient été visitées et
+ * jetées parce qu'aucune date ne les précédait — or elles portent « 1 Jour »,
+ * « 6 Jours » et « Passeport saisonnier » en lignes, « Adultes » et
+ * « Enfants » en colonnes : exactement les six tarifs demandés.
+ * `fetch-bergfex-grilles.ts` les relève à côté.
+ */
+/**
+ * Ce qu'un regard a vu sur chaque photo retenue, et les photos libres
+ * choisies pour les domaines qui n'en avaient pas.
+ *
+ * Le propriétaire demande une photo **unique, de la station ou des pistes,
+ * sans filigrane, avec de la neige**. Aucune de ces quatre conditions ne se
+ * vérifie sur une adresse : il a fallu ouvrir les images. `photosJugees`
+ * porte le verdict de chacune — une photo écartée est traitée comme absente,
+ * exactement comme un hôte muet —, et `photosCommons` porte celles que
+ * Wikimedia Commons a fournies à la place, avec leur auteur et leur licence.
+ */
+const photosJugees = lire<{
+  verdicts: Record<string, { url: string | null; retenue: boolean; motif?: string; sujet: string; description?: string }>;
+}>("photosJugees.json");
+const photosCommons = lire<{
+  photos: Record<string, { url: string; page: string; titre: string; licence: string; auteur: string; description?: string; sujet?: string }>;
+}>("photosCommons.json");
+
+/**
+ * Les six tarifs lus sur la page du site officiel, chacun avec la ligne qui
+ * le porte.
+ *
+ * Cent soixante-cinq pages de tarifs avaient été trouvées et dix-huit prix
+ * seulement en étaient sortis : chaque station écrit sa grille autrement, et
+ * une expression régulière qui prend « le premier montant d'une ligne qui
+ * contient un mot de durée » se trompe de colonne dès qu'il y a un tarif de
+ * groupe ou une promotion. Le texte des pages a donc été rapatrié
+ * (`fetch-pages-tarifs.py`) et **lu**, puis chaque montant vérifié : sa
+ * citation doit se retrouver dans le texte relevé, sinon il est écarté.
+ */
+const tarifsLus = lire<{
+  fiches: Record<string, { page: string; devise: string | null; tarifs: Record<string, { prix: number; ligne: string }> }>;
+}>("tarifsLus.json");
+
+const bergfexGrilles = lire<{
+  fiches: Record<string, { slug: string; nom: string; grilles: { categories: string[]; lignes: { libelle: string; prix: (number | null)[] }[] }[] }>;
+}>("bergfexGrilles.json");
+
 function pistesDeRepli(
   d: Domaine3,
   si: { fiche: { cle: string } } | undefined,
@@ -393,9 +449,21 @@ for (const d of domaines) {
   const sr = parSkiresort.get(d.id);
 
   // ── La photo : Skiinfo d'abord, skiresort ensuite ──
+  //
+  // Ce qu'un regard a écarté ne revient pas dans la chaîne : une photo jugée
+  // sans neige, filigranée ou hors sujet est sautée, et la source suivante a
+  // sa chance. C'est l'inverse d'un rejet en bout de course, qui laissait le
+  // domaine sans rien alors qu'une autre source publiait peut-être mieux.
+  //
+  // Le verdict ne vaut que pour l'image qui a été regardée : il est comparé à
+  // l'adresse, jamais au domaine seul.
+  const verdict = photosJugees?.verdicts[d.id];
+  const ecartee = (url: string | null | undefined): boolean =>
+    !!verdict && !verdict.retenue && !!url && verdict.url === url;
+
   let photo: Photo | null = null;
   const urlSi = si ? photosSkiinfo?.fiches[si.fiche.cle]?.photo ?? null : null;
-  if (urlSi) {
+  if (urlSi && !ecartee(urlSi)) {
     photo = {
       source: "skiinfo",
       cle: si!.fiche.cle,
@@ -409,7 +477,7 @@ for (const d of domaines) {
   }
   if (!photo?.servi && sr) {
     const p = photosSkiresort?.fiches[sr.fiche.cle]?.photo ?? null;
-    if (p) {
+    if (p && !ecartee(p.url)) {
       photo = {
         source: "skiresort",
         cle: sr.fiche.cle,
@@ -427,7 +495,7 @@ for (const d of domaines) {
   const bf = parBergfex.get(d.id);
   if (!photo?.servi && bf) {
     const b = bergfex?.fiches[bf.fiche.cle];
-    if (b?.photo) {
+    if (b?.photo && !ecartee(b.photo)) {
       photo = {
         source: "bergfex",
         cle: bf.fiche.cle,
@@ -444,7 +512,7 @@ for (const d of domaines) {
   // ── Dernier recours : le site officiel de la station ──
   if (!photo?.servi) {
     const o = sitesOfficiels?.fiches[d.id];
-    if (o?.photo && o.servi === true) {
+    if (o?.photo && o.servi === true && !ecartee(o.photo)) {
       photo = {
         source: "officiel",
         cle: o.site,
@@ -463,7 +531,7 @@ for (const d of domaines) {
   // ── Après tout le reste : la photo relevée à la main, corroborée ──
   if (!photo?.servi) {
     const p = proprietaire?.photos[d.id];
-    if (p?.servi) {
+    if (p?.servi && !ecartee(p.url)) {
       photo = {
         source: "proprietaire",
         cle: p.hote,
@@ -473,6 +541,26 @@ for (const d of domaines) {
         titre: p.legende,
         corroboration: p.corroboration,
         servi: true,
+      };
+    }
+  }
+
+  // ── À défaut : une photo libre de Wikimedia Commons, choisie à l'œil ──
+  if (!photo?.servi) {
+    const c = photosCommons?.photos[d.id];
+    if (c) {
+      photo = {
+        source: "commons",
+        cle: c.titre.replace(/^File:/, ""),
+        nom: null,
+        km: 0,
+        url: c.url,
+        titre: null,
+        servi: true,
+        licence: c.licence,
+        auteur: c.auteur,
+        page: c.page,
+        ...(c.description ? { vu: c.description } : {}),
       };
     }
   }
@@ -555,6 +643,32 @@ for (const d of domaines) {
       periodes: null,
     };
   }
+  // ── La grille bergfex non datée, après Skiinfo et avant skiresort ──
+  //
+  // Elle ne passe pas devant Skiinfo : la règle posée plus haut vaut toujours,
+  // une grille sans dates ne vaut pas mieux qu'une grille qui porte en plus
+  // les bornes d'âge. Mais elle vaut mieux qu'un nombre unique : elle donne la
+  // journée, la semaine et la saison, pour l'adulte et pour l'enfant.
+  const bgrilles = bf ? bergfexGrilles?.fiches[bf.fiche.cle]?.grilles ?? [] : [];
+  const bgPrincipale = bgrilles.find((x) => x.lignes.length >= 2) ?? bgrilles[0];
+  if (!forfait && bgPrincipale) {
+    forfait = {
+      source: "bergfex",
+      cle: bf!.fiche.cle,
+      nom: bf!.fiche.nom,
+      km: bf!.km,
+      ...(bf!.parLeNom ? { parLeNom: true as const } : {}),
+      devise: deviseAttendue(d.pays?.[0] ?? d.id.slice(0, 2).toUpperCase()),
+      deviseSource: "pays",
+      deviseDuPays: null,
+      misAJour: null,
+      categories: bgPrincipale.categories.map((nom) => ({ nom, ages: null })),
+      lignes: bgPrincipale.lignes,
+      saison: null,
+      periodes: null,
+    };
+  }
+
   if (!forfait && sr) {
     const p = prixSkiresort?.fiches[sr.fiche.cle];
     if (p?.prix) {
@@ -590,6 +704,37 @@ for (const d of domaines) {
         periodes: null,
       };
     }
+  }
+
+  // ── La page « Tarifs » du site officiel, lue ligne à ligne ──
+  //
+  // Elle passe devant la lecture par expression régulière de la même page :
+  // c'est la même source, mieux lue, et chaque montant porte sa ligne.
+  const tlF = tarifsLus?.fiches[d.id];
+  const tlJour = tlF?.tarifs.jourAdulte;
+  if (!forfait && tlF && tlJour && tlF.devise) {
+    forfait = {
+      source: "officiel",
+      cle: tlF.page,
+      nom: null,
+      km: 0,
+      devise: tlF.devise,
+      deviseSource: "page",
+      // La page fait foi pour sa devise — c'est elle qui vend. Quand elle
+      // contredit celle du pays, on le dit plutôt que de trancher : une
+      // station bosnienne qui affiche en euros n'a rien d'invraisemblable.
+      deviseDuPays: (() => {
+        const p = deviseAttendue(d.pays?.[0] ?? d.id.slice(0, 2).toUpperCase());
+        return p && tlF.devise && p !== tlF.devise ? p : null;
+      })(),
+      misAJour: null,
+      categories: [{ nom: "Adulte", ages: null }],
+      lignes: [{ libelle: "Forfait journée", prix: [tlJour.prix] }],
+      saison: null,
+      periodes: null,
+      preuve: tlJour.ligne,
+      pageTarifs: tlF.page,
+    };
   }
 
   // ── Dernier recours : la page « Tarifs » du site officiel ──
@@ -647,6 +792,105 @@ for (const d of domaines) {
     };
   }
 
+  // ── Les six tarifs : journée, six jours et saison, adulte et enfant ──
+  //
+  // Chaque case est prise à la **première source qui la publie**, dans
+  // l'ordre où les forfaits eux-mêmes sont choisis, et seulement parmi les
+  // grilles de la devise retenue : mettre une couronne à côté d'un euro dans
+  // un même tableau ferait lire un prix pour un autre. Une case sans source
+  // reste vide ; rien n'est déduit d'un autre montant.
+  if (forfait) {
+    const grillesTarifs: GrilleTarif[] = [];
+
+    // bergfex date ses tarifs. Pour une case unique, on prend la plage la plus
+    // chère à la journée adulte — la haute saison, ce que les autres sources
+    // publient aussi. Le tableau des périodes reste affiché en entier à côté.
+    if (plages.length) {
+      const prixJour = (p: (typeof plages)[number]): number => {
+        const i = p.categories.findIndex((c) => /^adulte/i.test(c.normalize("NFD").replace(/[̀-ͯ]/g, "")));
+        const l = p.lignes.find((x) => /^1 jours?$/i.test(x.libelle.trim()));
+        return i >= 0 && l ? (l.prix[i] ?? 0) : 0;
+      };
+      const haute = [...plages].sort((a, b) => prixJour(b) - prixJour(a))[0]!;
+      grillesTarifs.push({
+        source: "bergfex",
+        devise: forfait.source === "bergfex" ? forfait.devise : deviseAttendue(d.pays?.[0] ?? d.id.slice(0, 2).toUpperCase()),
+        categories: haute.categories,
+        lignes: haute.lignes,
+        dates: haute.dates,
+      });
+    }
+    if (g && g.lignes.length) {
+      grillesTarifs.push({
+        source: "skiinfo",
+        devise: g.devise,
+        categories: g.categories.map((c) => c.nom),
+        lignes: g.lignes,
+        saison: g.saison ? { categories: g.saison.categories.map((c) => c.nom), prix: g.saison.prix } : null,
+      });
+    }
+    for (const bg of bgrilles) {
+      grillesTarifs.push({
+        source: "bergfex",
+        devise: deviseAttendue(d.pays?.[0] ?? d.id.slice(0, 2).toUpperCase()),
+        categories: bg.categories,
+        lignes: bg.lignes,
+      });
+    }
+    const psr = sr ? prixSkiresort?.fiches[sr.fiche.cle] : undefined;
+    if (psr?.prix) {
+      grillesTarifs.push({
+        source: "skiresort",
+        devise: psr.prix.adultes?.devise ?? null,
+        categories: ["Enfant", "Jeune", "Adulte"],
+        lignes: [
+          {
+            libelle: psr.libelle ?? "Forfait journée",
+            prix: [psr.prix.enfants?.valeur ?? null, psr.prix.jeunes?.valeur ?? null, psr.prix.adultes?.valeur ?? null],
+          },
+        ],
+      });
+    }
+    const tl = tarifsLus?.fiches[d.id];
+    if (tl && Object.keys(tl.tarifs).length) {
+      grillesTarifs.push({
+        source: "officiel",
+        devise: tl.devise,
+        categories: [],
+        lignes: [],
+        nommes: Object.fromEntries(
+          Object.entries(tl.tarifs).map(([poste, t]) => [poste, { prix: t.prix, libelle: t.ligne }]),
+        ) as GrilleTarif["nommes"],
+      });
+    }
+    if (to?.prix) {
+      grillesTarifs.push({
+        source: "officiel",
+        devise: to.prix.devise,
+        categories: ["Adulte"],
+        lignes: [{ libelle: to.prix.preuve ?? "Forfait journée", prix: [to.prix.valeur] }],
+      });
+    }
+    if (pr) {
+      grillesTarifs.push({
+        source: "proprietaire",
+        devise: pr.devise,
+        categories: [],
+        lignes: [],
+        nommes: {
+          ...(pr.jourAdulte ? { jourAdulte: { prix: pr.jourAdulte, libelle: "Forfait journée" } } : {}),
+          ...(pr.jourEnfant ? { jourEnfant: { prix: pr.jourEnfant, libelle: "Forfait journée" } } : {}),
+          ...(pr.sixJoursAdulte ? { sixJoursAdulte: { prix: pr.sixJoursAdulte, libelle: "Forfait 6 jours" } } : {}),
+          ...(pr.sixJoursEnfant ? { sixJoursEnfant: { prix: pr.sixJoursEnfant, libelle: "Forfait 6 jours" } } : {}),
+          ...(pr.saisonAdulte ? { saisonAdulte: { prix: pr.saisonAdulte, libelle: "Forfait saison" } } : {}),
+          ...(pr.saisonEnfant ? { saisonEnfant: { prix: pr.saisonEnfant, libelle: "Forfait saison" } } : {}),
+        },
+      });
+    }
+    const m = matriceDe(grillesTarifs, forfait.devise);
+    if (!vide(m)) forfait.matrice = m;
+  }
+
   const altitudes = altitudesDeRepli(d as Domaine2, si, sr);
   const pistes = pistesDeRepli(d as Domaine3, si, sr);
   if (photo || forfait || altitudes || pistes) {
@@ -658,6 +902,32 @@ for (const d of domaines) {
     };
   }
 }
+
+/**
+ * « Une photo unique » : une adresse servie à deux domaines n'illustre ni l'un
+ * ni l'autre.
+ *
+ * Le jugement écarte déjà les images partagées qu'il a vues, mais un doublon
+ * peut naître **après** : quand la photo d'un domaine est écartée, la chaîne
+ * reprend à la source suivante, et celle-ci sert parfois la même image que
+ * chez le voisin. San Martino di Castrozza et son Passo Rolle en sont un cas.
+ *
+ * On retire alors les deux. Garder l'un des deux demanderait de savoir lequel
+ * la photo montre, ce que précisément rien ne dit.
+ */
+const parUrl = new Map<string, string[]>();
+for (const [id, v] of Object.entries(vues)) {
+  if (v.photo) parUrl.set(v.photo.url, [...(parUrl.get(v.photo.url) ?? []), id]);
+}
+let partagees = 0;
+for (const [, ids] of parUrl) {
+  if (ids.length < 2) continue;
+  for (const id of ids) {
+    vues[id]!.photo = null;
+    partagees++;
+  }
+}
+if (partagees) console.log(`  photos partagées      : ${partagees} retirées (aucun domaine ne garde une image servie à un autre)`);
 
 const avecAltitudes = Object.values(vues).filter((v) => v.altitudes).length;
 const avecPistes = Object.values(vues).filter((v) => v.pistes).length;
@@ -697,7 +967,20 @@ console.log(`      dont skiresort    : ${parSource("photo", "skiresort")}`);
 console.log(`      dont bergfex      : ${parSource("photo", "bergfex")}`);
 console.log(`      dont site officiel: ${parSource("photo", "officiel")}`);
 console.log(`      dont tableau des manques: ${parSource("photo", "proprietaire")}`);
+console.log(`      dont Wikimedia Commons  : ${parSource("photo", "commons")}`);
+if (photosJugees) {
+  const v = Object.values(photosJugees.verdicts);
+  console.log(`  photos regardées      : ${v.length}   dont écartées ${v.filter((x) => !x.retenue).length}`);
+}
 console.log(`  avec un forfait       : ${avecForfait}   ${pct(avecForfait)}`);
+const matrices = Object.values(vues).map((v) => v.forfait?.matrice).filter(Boolean) as MatriceForfait[];
+const parPoste = (p: keyof MatriceForfait) => matrices.filter((m) => m[p]).length;
+console.log(
+  `  avec une matrice      : ${matrices.length}   (jour A ${parPoste("jourAdulte")} / E ${parPoste("jourEnfant")}` +
+    ` · 6 j A ${parPoste("sixJoursAdulte")} / E ${parPoste("sixJoursEnfant")}` +
+    ` · saison A ${parPoste("saisonAdulte")} / E ${parPoste("saisonEnfant")})`,
+);
+console.log(`      les six tarifs    : ${matrices.filter((m) => POSTES.every((p) => m[p])).length}`);
 console.log(`      dont bergfex daté : ${parSource("forfait", "bergfex")}`);
 console.log(`      dont grille       : ${parSource("forfait", "skiinfo")}`);
 console.log(`      dont un nombre    : ${parSource("forfait", "skiresort")}`);

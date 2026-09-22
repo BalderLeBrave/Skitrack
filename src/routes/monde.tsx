@@ -53,6 +53,8 @@ import {
   colonneAdulte,
   pistesDuDomaine,
   forfaitDuDomaine,
+  LIBELLE_POSTE,
+  mentionCase,
   fourchetteJournee,
   journeeParPeriode,
   ligneJournee,
@@ -319,6 +321,9 @@ function LigneDomaine({
         : null
     : null;
   const periodes = forfait ? journeeParPeriode(forfait) : [];
+  // Les six tarifs demandés, quand les grilles les publient. Une case vide
+  // s'écrit « non relevé » comme le reste : aucune n'est déduite d'une autre.
+  const matrice = forfait?.matrice ?? null;
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");
@@ -337,6 +342,18 @@ function LigneDomaine({
           loading="lazy"
           title={mentionPhoto(vue.source)}
         />
+      ) : null}
+      {/* Une photo libre ne se montre **qu'**avec son auteur et sa licence :
+          c'est la condition de CC BY et CC BY-SA, et une infobulle n'y suffit
+          pas. Le crédit paraît donc sous l'image, lisible, avec un lien vers
+          la page du fichier. */}
+      {vue?.source.source === "commons" ? (
+        <span className="monde-row__credit">
+          <a href={vue.source.page} rel="noreferrer nofollow">
+            {vue.source.auteur || "auteur non nommé"}
+          </a>
+          {vue.source.licence ? ` · ${vue.source.licence}` : null} · Wikimedia Commons
+        </span>
       ) : null}
       <div className="monde-row__tete">
         <span className="monde-row__nom">{d.nom || "Domaine sans nom"}</span>
@@ -471,6 +488,42 @@ function LigneDomaine({
             </>
           ) : null}
         </p>
+      ) : null}
+      {ouvert && matrice && forfait ? (
+        <table className="monde-tarifs">
+          <caption>
+            Forfaits publiés, en {forfait.devise}
+            {/* Une case peut venir d'une autre source que le prix affiché en
+                tête — la première qui la publie, dans la même devise. Le
+                survol de chaque montant dit laquelle, et sous quel libellé. */}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Durée</th>
+              <th scope="col">Adulte</th>
+              <th scope="col">Enfant</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(["jour", "sixJours", "saison"] as const).map((duree) => {
+              const cases = [matrice[`${duree}Adulte`], matrice[`${duree}Enfant`]];
+              return (
+                <tr key={duree}>
+                  <th scope="row">{LIBELLE_POSTE[`${duree}Adulte`].ligne}</th>
+                  {cases.map((c, i) => (
+                    <td
+                      key={i}
+                      className={c ? "monde-tarifs__prix" : "monde-tarifs__vide"}
+                      title={c ? mentionCase(c) : undefined}
+                    >
+                      {(c && prix(c.prix, forfait.devise)) || "non relevé"}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       ) : null}
       {ouvert && periodes.length > 1 ? (
         <dl className="monde-periodes">

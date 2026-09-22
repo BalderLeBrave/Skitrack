@@ -1791,6 +1791,53 @@ main.carte {
 }
 
 /* Les périodes tarifaires, sous la ligne d'un domaine ouvert. */
+/* Le tableau des six tarifs : trois durées, deux âges. Les montants sont
+   alignés à droite en chiffres tabulaires — deux prix se comparent alors
+   colonne par colonne, sans que le regard ait à les relire. */
+.monde-tarifs {
+  margin: 0.25rem 0 0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-bg);
+  font-size: 0.78125rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.monde-tarifs caption {
+  text-align: left;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.monde-tarifs th,
+.monde-tarifs td {
+  padding: 0.125rem 0;
+  text-align: right;
+  font-weight: 400;
+}
+
+/* Un en-tête de colonne se range sur ses montants, à droite : à gauche,
+   « Adulte » se lisait au-dessus de la colonne voisine. Seuls la première
+   colonne et les en-têtes de ligne restent à gauche, avec les durées. */
+.monde-tarifs thead th {
+  color: var(--color-texte-2);
+}
+
+.monde-tarifs thead th:first-child,
+.monde-tarifs tbody th {
+  text-align: left;
+  color: var(--color-texte-2);
+}
+
+.monde-tarifs__prix {
+  font-variant-numeric: tabular-nums;
+}
+
+.monde-tarifs__vide {
+  color: var(--color-texte-2);
+}
+
 .monde-periodes {
   display: grid;
   gap: 0.125rem;
@@ -1837,6 +1884,23 @@ main.carte {
 }
 
 /* L'absence de photo se dit, elle ne se tait pas : même cadre, même place. */
+/* Le crédit d'une photo libre, sous l'image : petit, mais lisible et
+   cliquable — une licence CC BY ne se satisfait pas d'une infobulle. */
+.monde-row__credit {
+  max-width: 13rem;
+  margin-top: -0.25rem;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--color-texte-2);
+  margin-top: 0.125rem;
+  overflow-wrap: anywhere;
+}
+
+.monde-row__credit a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .monde-row__photo--absente {
   display: grid;
   place-items: center;

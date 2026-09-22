@@ -340,20 +340,125 @@ nommés, et afficher l'absence** plutôt que resserrer le périmètre à ce qui 
 complet. Un forfait ou une photo qu'aucune source ne publie s'écrit « non
 relevé », à la place même où il paraîtrait.
 
-| | Domaines | Photo | Forfait | Météo |
-| --- | ---: | ---: | ---: | ---: |
-| Tous, nommés | 2 781 | 73,4 % | 67,6 % | 100 % |
-| 3 remontées et plus | 1 554 | 86,0 % | 79,8 % | 100 % |
-| 10 km et plus | 682 | 91,2 % | 84,9 % | 100 % |
+| | Domaines | Photo | Forfait | Les six tarifs | Météo |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Tous, nommés | 2 781 | 58,8 % | 69,3 % | 20,0 % | 100 % |
+| 3 remontées et plus | 1 554 | 71,4 % | 81,4 % | 31,4 % | 100 % |
+| 10 km et plus | 682 | 81,2 % | 86,4 % | 48,5 % | 100 % |
+
+La part de photos **baisse** par rapport au relevé précédent (73,4 %), et
+c'est voulu : les 2 023 images retenues ont été regardées, et 576 ne
+répondaient pas à ce qui est demandé — 257 sans neige, 186 hors sujet (plans
+de pistes dessinés, logos, intérieurs), 54 filigranées, 43 simples paysages
+de montagne, 36 partagées entre plusieurs domaines. Une absence vraie vaut
+mieux qu'une photo qui ne montre pas la station.
 
 Les sources, dans l'ordre où elles servent — `scripts/build-vues-monde.ts`,
 qui écrit `vuesDomaines.json` :
 
-| | 1 | 2 | 3 | 4 | 5 |
-| --- | --- | --- | --- | --- | --- |
-| Photo | Skiinfo | skiresort | bergfex | site officiel (`og:image`, puis la plus grande image de l'accueil, contrôlée en type et en poids) | tableau des manques, **corroboré** |
-| Forfait | bergfex, **par période datée** | Skiinfo, grille | skiresort, un nombre | page « Tarifs » du site officiel, avec la ligne pour preuve | tableau des manques, **avec source** |
-| Météo | altitudes du référentiel | bas et sommet de la fiche appariée | point de terrain Copernicus, une seule altitude, dite comme telle | — | — |
+| | 1 | 2 | 3 | 4 | 5 | 6 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Photo | Skiinfo | skiresort | bergfex | site officiel (`og:image`, puis la plus grande image de l'accueil) | tableau des manques, **corroboré** | Wikimedia Commons, **choisi à l'œil** |
+| Forfait | bergfex, **par période datée** | Skiinfo, grille | bergfex, grille simple | skiresort, un nombre | page « Tarifs » **lue ligne à ligne** | tableau des manques, **avec source** |
+| Météo | altitudes du référentiel | bas et sommet de la fiche appariée | point de terrain Copernicus, une seule altitude, dite comme telle | — | — | — |
+
+Une source écartée par le regard ne fait pas perdre la place : la chaîne
+reprend à la suivante. Cent quatre-vingt-treize domaines ont ainsi retrouvé
+une photo ailleurs après le rejet de la leur.
+
+### La photo : unique, de la station ou des pistes, sans filigrane, avec de la neige
+
+Ces quatre conditions ne se vérifient pas sur une adresse. Les 2 023 photos
+retenues ont donc été **rapatriées et regardées**, une par une
+(`telecharger-photos-pour-audit.py`, puis un agent par lot de douze images) :
+
+- **avec de la neige** : la part de pixels clairs mesurée au téléchargement
+  ne suffit pas — un ciel couvert ou un mur blanc la font monter. C'est le
+  regard qui tranche ; la mesure est gardée à côté pour comparaison.
+- **de la station ou des pistes** : chaque image est rangée en `station`,
+  `pistes`, `montagne`, `autre` ou `illisible`. Les deux premières passent.
+  `montagne` ne passe pas : un sommet sans remontée ni village n'est pas la
+  station, et c'est la station qui a été demandée.
+- **sans filigrane** : une trame de banque d'images, un bandeau, un logo
+  d'agence en travers. Un petit logo de station dans un coin n'en est pas un.
+- **unique** : le contrôle porte sur l'**empreinte du fichier**, pas sur
+  l'adresse — deux adresses servent parfois le même cliché. Quand plusieurs
+  domaines se partagent une image, aucun ne la garde : rien ne dit lequel
+  elle montre.
+
+Ce que le regard a trouvé et qu'aucune mesure n'aurait vu : des plans de
+pistes dessinés, des logos vectoriels, des paysages d'été verts, des
+intérieurs de restaurant. Une photo écartée **ne laisse pas le domaine sans
+rien** : la chaîne des sources reprend à la suivante, et à défaut Wikimedia
+Commons est interrogé.
+
+`photosJugees.json` porte un verdict par domaine, avec la description de ce
+qui a été vu. Le verdict est comparé à **l'adresse** de la photo, jamais au
+domaine seul : si la photo retenue change, le verdict ne la concerne plus.
+
+### Wikimedia Commons, pour les domaines sans photo
+
+`fetch-photos-commons.py` demande à Commons les fichiers **géolocalisés**
+dans un rayon de dix kilomètres autour du domaine — pas ce qu'un moteur
+associe à son nom. Les candidates sont triées (nom du domaine dans le titre,
+mot de neige ou de ski, taille), les hors-sujet écartées avant tout
+téléchargement, et un regard choisit. Commons interdit les filigranes, ce
+qui règle l'une des quatre conditions à la source.
+
+Une photo libre ne se montre **qu'avec son auteur et sa licence** : le
+crédit paraît sous l'image, lisible et cliquable vers la page du fichier.
+Une infobulle n'y suffirait pas.
+
+### Les six tarifs : journée, six jours, saison × adulte, enfant
+
+L'écran n'affichait qu'un prix — la journée adulte — alors que les grilles
+moissonnées en portaient bien davantage. `src/lib/monde/matrice.ts` en tire
+les six demandés, sans jamais en calculer un : une case vide reste vide.
+
+Chaque case porte **le libellé de la ligne et le nom de la colonne tels que
+la source les écrit**, plus sa provenance. C'est ce qui permet de voir qu'un
+« 6 jours » vient d'une ligne « 6 Jours » chez bergfex et d'un « Forfait
+semaine » chez Skiinfo — deux produits voisins, pas identiques. Le survol du
+montant le dit.
+
+Deux règles évitent de mentir :
+
+- **Zéro n'est pas un prix.** Skiinfo remplit de `0` les cases qu'il ne
+  publie pas ; 938 grilles ont une ligne « Forfait semaine » entièrement
+  nulle. Tout montant nul est lu comme une absence.
+- **Enfant n'est pas junior.** Les grilles distinguent Enfant, Junior,
+  Sénior ; seule la colonne enfant est lue. Un junior de 14 ans n'est pas
+  l'enfant de 6 ans, et les confondre ferait varier le prix au gré de la
+  source.
+
+Les cases sont prises à la première source qui les publie, dans le même
+ordre que le forfait lui-même, et **seulement parmi les grilles de la devise
+retenue** : une couronne à côté d'un euro dans un même tableau ferait lire un
+prix pour un autre.
+
+#### Ce que les sites officiels ne publient plus
+
+Cent cinquante-cinq pages de tarifs ont été rapatriées et lues ligne à ligne
+(`fetch-pages-tarifs.py`, puis un agent par lot de cinq pages). Vingt-quatre
+seulement ont rendu un montant. La raison est écrite dans `tarifsLus.json`,
+constat par constat : **la plupart de ces pages ne publient plus de prix**.
+Elles annoncent des tarifs « dynamiques » et renvoient à leur boutique en
+ligne, ou bien la page trouvée en septembre est la version **été** du
+tarifaire. Ce n'est pas un échec de lecture, c'est l'état des sites — et
+c'est pourquoi la case reste vide plutôt que d'être remplie d'un prix voisin.
+
+Un montant n'est gardé qu'avec **la ligne de la page d'où il sort**, ligne
+entière, retrouvée dans le texte relevé. Une citation réduite au seul
+montant — « € 24,00 » — ne dit ni la durée ni la classe d'âge : elle est
+écartée, et le compte en est tenu.
+
+`fetch-bergfex-grilles.ts` a rouvert un gisement que le premier relevé
+jetait : `fetch-bergfex.ts --prix` ne gardait qu'un tableau **précédé d'une
+plage de dates**, et écartait ainsi 1 285 pages qui publient pourtant « 1
+Jour », « 6 Jours » et « Passeport saisonnier » pour adultes et enfants —
+exactement ce qu'on cherche. Une grille sans dates ne passe toujours pas
+devant Skiinfo (elle n'a pas les bornes d'âge), mais elle passe devant un
+nombre unique.
 
 ### Le tableau des manques, et ce qu'on en a gardé
 

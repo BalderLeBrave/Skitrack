@@ -51,6 +51,7 @@ import {
 import {
   altitudesDuDomaine,
   colonneAdulte,
+  pistesDuDomaine,
   forfaitDuDomaine,
   fourchetteJournee,
   journeeParPeriode,
@@ -302,6 +303,9 @@ function LigneDomaine({
   const dn = denivele(d);
   const lieu = [d.region, d.localite].filter(Boolean).join(" · ");
   const vue = vues ? photoDuDomaine(vues, d.id) : null;
+  // Zéro piste cartographiée n'est pas zéro piste : quand la fiche appariée
+  // publie des kilomètres, on les montre avec leur origine.
+  const pistesRepli = vues && (d.km ?? 0) <= 0 ? pistesDuDomaine(vues, d.id) : null;
   const forfait = vues ? forfaitDuDomaine(vues, d.id) : null;
   const jour = forfait ? ligneJournee(forfait) : null;
   const fourchette = forfait ? fourchetteJournee(forfait) : null;
@@ -344,9 +348,27 @@ function LigneDomaine({
       </div>
       {lieu ? <p className="monde-row__lieu">{lieu}</p> : null}
       <dl className="monde-row__mesures">
-        <div>
+        <div
+          title={
+            pistesRepli?.km != null
+              ? `Kilomètres publiés par ${pistesRepli.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"} (fiche « ${pistesRepli.cle} ») : OpenSkiMap n'a cartographié aucune piste de ce domaine.`
+              : undefined
+          }
+        >
           <dt>Pistes</dt>
-          <dd>{d.km != null ? mesureDans({ valeur: d.km, unite: "km" }, systeme) : "non relevé"}</dd>
+          <dd>
+            {pistesRepli?.km != null
+              ? mesureDans({ valeur: pistesRepli.km, unite: "km" }, systeme)
+              : d.km != null && d.km > 0
+                ? mesureDans({ valeur: d.km, unite: "km" }, systeme)
+                : "non cartographié"}
+            {pistesRepli?.km != null ? (
+              <span className="monde-row__loin">
+                {" "}
+                · {pistesRepli.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"}
+              </span>
+            ) : null}
+          </dd>
         </div>
         <div>
           <dt>Sommet</dt>

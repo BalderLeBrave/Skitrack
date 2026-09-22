@@ -93,6 +93,17 @@ export type ForfaitVue = {
  */
 export type AltitudesVue = { basM: number; sommetM: number; source: "skiinfo" | "skiresort"; cle: string };
 
+/**
+ * Les kilomètres et le nombre de pistes que publie une fiche appariée, quand
+ * OpenSkiMap n'a rien cartographié — un zéro mesuré qui ne dit rien de la
+ * station. Une mesure de la source, avec son origine ; jamais un remplissage.
+ */
+export type PistesVue = { km: number | null; n: number | null; source: "skiinfo" | "skiresort"; cle: string };
+
+export function pistesDuDomaine(releve: ReleveVues, id: string): PistesVue | null {
+  return releve.vues[id]?.pistes ?? null;
+}
+
 export function altitudesDuDomaine(releve: ReleveVues, id: string): AltitudesVue | null {
   return releve.vues[id]?.altitudes ?? null;
 }
@@ -113,7 +124,10 @@ export type ReleveVues = {
   domaines: number;
   avecPhoto: number;
   avecForfait: number;
-  vues: Record<string, { photo: PhotoVue | null; forfait: ForfaitVue | null; altitudes?: AltitudesVue }>;
+  vues: Record<
+    string,
+    { photo: PhotoVue | null; forfait: ForfaitVue | null; altitudes?: AltitudesVue; pistes?: PistesVue }
+  >;
 };
 
 let enCours: Promise<ReleveVues> | null = null;

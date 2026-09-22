@@ -55,6 +55,7 @@ import {
   forfaitDuDomaine,
   LIBELLE_POSTE,
   mentionCase,
+  POSTES,
   fourchetteJournee,
   journeeParPeriode,
   ligneJournee,
@@ -92,6 +93,15 @@ import {
 import { altitude, mesureDans, type Systeme } from "@/lib/unites";
 
 export const Route = createFileRoute("/monde")({ component: PageMonde });
+
+/** Le nom court d'une source de tarif, pour la légende du tableau. */
+const NOM_SOURCE: Record<string, string> = {
+  skiinfo: "Skiinfo",
+  skiresort: "skiresort.fr",
+  bergfex: "bergfex",
+  officiel: "site officiel",
+  proprietaire: "tableau des manques",
+};
 
 /** Les pays du référentiel qu'aucun continent n'accueille, avec leurs domaines.
  *  Calculé une fois : ni `PAYS` ni l'index ne bougent au cours d'une session. */
@@ -324,6 +334,10 @@ function LigneDomaine({
   // Les six tarifs demandés, quand les grilles les publient. Une case vide
   // s'écrit « non relevé » comme le reste : aucune n'est déduite d'une autre.
   const matrice = forfait?.matrice ?? null;
+  // Les sources réellement employées par la matrice, dans l'ordre d'apparition.
+  const sourcesTarifs = matrice
+    ? [...new Set(POSTES.map((p) => matrice[p]?.source).filter(Boolean))].map((x) => NOM_SOURCE[x!])
+    : [];
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");
@@ -494,8 +508,19 @@ function LigneDomaine({
           <caption>
             Forfaits publiés, en {forfait.devise}
             {/* Une case peut venir d'une autre source que le prix affiché en
-                tête — la première qui la publie, dans la même devise. Le
-                survol de chaque montant dit laquelle, et sous quel libellé. */}
+                tête — la première qui la publie, dans la même devise. Deux
+                cases d'une même ligne peuvent donc venir de deux sources, et
+                d'alors deux saisons : « 28,60 adulte » chez Skiinfo à côté de
+                « 22,10 enfant » chez skiresort se lit comme un seul tarif
+                alors que c'en sont deux. Cent quatre-vingt-sept domaines sont
+                dans ce cas ; il faut donc le dire ici, et pas seulement dans
+                l'infobulle de chaque montant. */}
+            {sourcesTarifs.length > 1 ? (
+              <span className="monde-tarifs__melange">
+                {" "}
+                — montants de sources différentes ({sourcesTarifs.join(", ")}) ; le survol dit laquelle
+              </span>
+            ) : null}
           </caption>
           <thead>
             <tr>

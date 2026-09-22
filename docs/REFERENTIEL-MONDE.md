@@ -454,11 +454,12 @@ montant — « € 24,00 » — ne dit ni la durée ni la classe d'âge : elle e
 
 `fetch-bergfex-grilles.ts` a rouvert un gisement que le premier relevé
 jetait : `fetch-bergfex.ts --prix` ne gardait qu'un tableau **précédé d'une
-plage de dates**, et écartait ainsi 1 285 pages qui publient pourtant « 1
-Jour », « 6 Jours » et « Passeport saisonnier » pour adultes et enfants —
-exactement ce qu'on cherche. Une grille sans dates ne passe toujours pas
-devant Skiinfo (elle n'a pas les bornes d'âge), mais elle passe devant un
-nombre unique.
+plage de dates**, et écartait tout le reste. Mille soixante-sept pages ont
+été relues, **212 portaient une grille** — « 1 Jour » (219 fois), « 6 Jours »
+(98), « Passeport saisonnier » (117), en colonnes « Adultes » et
+« Enfants » : exactement ce qu'on cherche. Une grille sans dates ne passe
+toujours pas devant Skiinfo (elle n'a pas les bornes d'âge), mais elle passe
+devant un nombre unique.
 
 ### Le tableau des manques, et ce qu'on en a gardé
 

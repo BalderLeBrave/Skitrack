@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from datetime import date
 from pathlib import Path
 
@@ -67,6 +68,59 @@ def lots(dossier: Path, par: int) -> None:
     print(f"  (sur {len(veut)} domaines sans photo et {len(commons)} cherchés sur Commons)")
 
 
+API = "https://commons.wikimedia.org/w/api.php"
+UA = ("Skitrack/1.0 (https://github.com/BalderLeBrave/Skitrack ; "
+      "adrien.raffray196@gmail.com) vignettes de photos de stations")
+LARGEUR = 640
+
+
+def vignettes(photos: dict[str, dict]) -> None:
+    """Demande une vignette de 640 px pour chaque photo adoptée.
+
+    La recherche rend des adresses en 1 280 px — trois cent mille octets par
+    image, pour une vignette affichée à deux cents pixels de large. Et l'on
+    **ne peut pas** réécrire la largeur dans l'adresse : Wikimedia ne sert
+    que les tailles qu'on lui a demandées, et répond 400 aux autres (vérifié
+    le 22 septembre 2026, sur `upload.` comme sur `thumb.`). Il faut donc
+    redemander, ce qui se fait par lots de cinquante titres — une requête
+    ordinaire, sans passer par la recherche, donc sans son « too busy ».
+
+    Une réponse manquante laisse l'adresse d'origine : plus lourde, mais
+    juste.
+    """
+    import requests
+
+    titres = sorted({v["titre"] for v in photos.values() if v.get("titre")})
+    par_titre: dict[str, str] = {}
+    session = requests.Session()
+    for i in range(0, len(titres), 50):
+        lot = titres[i : i + 50]
+        try:
+            r = session.get(
+                API,
+                params={"action": "query", "format": "json", "formatversion": "2",
+                        "titles": "|".join(lot), "prop": "imageinfo",
+                        "iiprop": "url", "iiurlwidth": str(LARGEUR)},
+                headers={"User-Agent": UA},
+                timeout=30,
+            )
+            for p in (r.json().get("query") or {}).get("pages") or []:
+                u = ((p.get("imageinfo") or [{}])[0] or {}).get("thumburl")
+                if p.get("title") and u:
+                    par_titre[p["title"]] = u
+        except (requests.RequestException, ValueError):
+            continue
+        time.sleep(0.5)
+    n = 0
+    for v in photos.values():
+        u = par_titre.get(v.get("titre") or "")
+        if u and u != v["url"]:
+            v["url"] = u
+            v["largeurVignette"] = LARGEUR
+            n += 1
+    print(f"  vignettes à {LARGEUR} px : {n} sur {len(photos)}")
+
+
 def appliquer(dossier: Path) -> None:
     commons = json.loads((dossier / "commons.json").read_text(encoding="utf-8"))
     photos: dict[str, dict] = {}
@@ -99,6 +153,7 @@ def appliquer(dossier: Path) -> None:
                 **({"description": str(x["description"])[:160]} if x.get("description") else {}),
                 **({"sujet": x["sujet"]} if x.get("sujet") else {}),
             }
+    vignettes(photos)
     (DATA / "photosCommons.json").write_text(
         json.dumps(
             {

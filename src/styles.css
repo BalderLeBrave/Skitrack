@@ -1830,6 +1830,11 @@ main.carte {
   color: var(--color-texte-2);
 }
 
+.monde-tarifs__melange {
+  font-weight: 400;
+  color: var(--color-texte-2);
+}
+
 .monde-tarifs__prix {
   font-variant-numeric: tabular-nums;
 }

@@ -34,6 +34,14 @@ les titres qui portent le nom du domaine ou de sa localité, puis ceux qui
 disent la neige ou le ski — en français, allemand, anglais, italien,
 espagnol, et les langues du périmètre.
 
+## Deux largeurs, et pourquoi
+
+Les candidates sont demandées en 1 024 px : c'est ce qu'on donne à regarder,
+et un filigrane ou un pylône de remontée ne se voient pas sur une vignette.
+La photo **retenue**, elle, est redemandée en 640 px par `lots-commons.py` —
+l'adresse d'une vignette ne se réécrit pas, Wikimedia ne sert que les
+tailles qu'on lui a demandées.
+
 ## Politesse
 
 Un agent nommé avec un contact, comme la politique de Wikimedia le demande,

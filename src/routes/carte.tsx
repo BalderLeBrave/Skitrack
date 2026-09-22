@@ -501,7 +501,7 @@ function PageCarte() {
               <>
                 <b>Épingles</b>
                 <span>Une épingle par station de la liste. L’anneau suit le survol.</span>
-                <span>Fonds IGN et OpenTopoMap ; pistes et remontées OpenSnowMap.</span>
+                <span>Fonds IGN et OpenSkiMap ; pistes et remontées OpenSkiMap.</span>
               </>
             }
           />

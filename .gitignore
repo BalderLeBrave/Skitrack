@@ -43,3 +43,7 @@ tools/
 vendor/
 
 release/
+
+# Tuiles OpenSkiMap : 135 Mo, bâties par scripts/build-tuiles-openskimap.ts,
+# hébergées hors du dépôt (voir docs/TUILES-OPENSKIMAP.md).
+public/carte/*.pmtiles

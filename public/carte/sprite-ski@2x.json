@@ -1,0 +1,86 @@
+{
+ "halfpipe": {
+  "x": 4,
+  "y": 4,
+  "width": 34,
+  "height": 28,
+  "pixelRatio": 2
+ },
+ "lift-station": {
+  "x": 42,
+  "y": 4,
+  "width": 28,
+  "height": 28,
+  "pixelRatio": 2
+ },
+ "crossing": {
+  "x": 74,
+  "y": 4,
+  "width": 30,
+  "height": 26,
+  "pixelRatio": 2
+ },
+ "crossing-maybe": {
+  "x": 108,
+  "y": 4,
+  "width": 30,
+  "height": 26,
+  "pixelRatio": 2
+ },
+ "avalanche-training-check": {
+  "x": 142,
+  "y": 4,
+  "width": 26,
+  "height": 32,
+  "pixelRatio": 2
+ },
+ "oneway-green": {
+  "x": 172,
+  "y": 4,
+  "width": 16,
+  "height": 22,
+  "pixelRatio": 2
+ },
+ "oneway-blue": {
+  "x": 192,
+  "y": 4,
+  "width": 16,
+  "height": 22,
+  "pixelRatio": 2
+ },
+ "oneway-red": {
+  "x": 212,
+  "y": 4,
+  "width": 16,
+  "height": 22,
+  "pixelRatio": 2
+ },
+ "oneway-black": {
+  "x": 232,
+  "y": 4,
+  "width": 16,
+  "height": 22,
+  "pixelRatio": 2
+ },
+ "oneway-orange": {
+  "x": 252,
+  "y": 4,
+  "width": 16,
+  "height": 22,
+  "pixelRatio": 2
+ },
+ "oneway-grey": {
+  "x": 272,
+  "y": 4,
+  "width": 16,
+  "height": 22,
+  "pixelRatio": 2
+ },
+ "oneway-purple": {
+  "x": 292,
+  "y": 4,
+  "width": 16,
+  "height": 22,
+  "pixelRatio": 2
+ }
+}

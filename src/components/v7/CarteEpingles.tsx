@@ -1,12 +1,10 @@
 /**
- * La carte des écrans Comparer et Logements : Leaflet, la carte d'OpenSkiMap
- * en fond, des marqueurs dessinés en HTML par `epingle.ts` — la seule fabrique.
+ * La carte des écrans Comparer et Logements : Leaflet, tuiles OpenStreetMap,
+ * des marqueurs dessinés en HTML par `epingle.ts` — la seule fabrique.
  *
  * `Carte.tsx` reste la carte des écrans de contrôle, avec ses fonds IGN et sa
- * surcouche de pistes. Celle-ci suit la maquette pour le reste : zoom en bas à
- * droite. Le fond n'est plus les tuiles OpenStreetMap mais la carte
- * d'OpenSkiMap — même donnée, avec les pistes et les remontées dessinées —,
- * peinte par MapLibre dans une couche que Leaflet tient (`carteOpenSkiMap.ts`).
+ * surcouche de pistes. Celle-ci suit la maquette : fond OpenStreetMap, zoom en
+ * bas à droite.
  *
  * Elle se manipule : molette, glisser, double-clic. Au doigt, en revanche, la
  * carte attend un premier appui avant de prendre le geste : sinon elle avale le
@@ -24,7 +22,6 @@
 import "leaflet/dist/leaflet.css";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
-import { poserOpenSkiMap } from "@/lib/carteOpenSkiMap";
 import type { Bornes } from "@/lib/carte";
 import { echappe, EPINGLE, ETAGE, type Epingle } from "./epingle";
 
@@ -186,9 +183,10 @@ export function CarteEpingles({
           touchZoom: !doigt,
           doubleClickZoom: true,
         });
-        // Le fond arrive quand MapLibre et le style sont lus ; d'ici là, la
-        // carte se manipule déjà, épingles comprises.
-        void poserOpenSkiMap(m, { fond: true, pistes: true }, () => !annule);
+        Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap",
+          maxZoom: 18,
+        }).addTo(m);
         Lf.control.zoom({ position: "bottomright" }).addTo(m);
         couche.current = Lf.layerGroup().addTo(m);
         // Les bornes ne sortent qu'à la fin du geste. Pendant, elles changeraient

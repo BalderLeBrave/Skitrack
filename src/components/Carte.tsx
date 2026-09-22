@@ -8,22 +8,19 @@
  *
  * Ce que la carte sait montrer :
  *   — des épingles, station, logement ou remontée, avec un survol qui remonte ;
- *   — les pistes et les remontées mécaniques d'OpenSkiMap, en surcouche ;
+ *   — les pistes et les remontées mécaniques, en surcouche OpenSnowMap ;
  *   — une trace GPX et les segments de remontées ;
- *   — trois fonds, plan IGN, relief (la carte d'OpenSkiMap) et photo
- *     aérienne, sans clé.
+ *   — trois fonds, plan IGN, relief et photo aérienne, sans clé.
  *
- * Les pistes et le fond « Relief » viennent d'OpenSkiMap, qui ne sert que du
- * vecteur : MapLibre est revenu pour les peindre, à la demande, dans une
- * couche que Leaflet tient (`carteOpenSkiMap.ts`). Il reste en plan : pas de
- * vue 3D, c'était le coût annoncé du passage à une bibliothèque unique.
+ * Ce qu'elle ne sait plus faire : la vue 3D en relief de MapLibre. Leaflet ne
+ * dessine que du plan. C'était le coût annoncé du passage à une bibliothèque
+ * unique.
  */
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { chargerLeaflet, pointeurGrossier, type Leaflet } from "@/lib/leaflet";
-import { poserOpenSkiMap, retirerOpenSkiMap } from "@/lib/carteOpenSkiMap";
-import { BASEMAPS, resolvedBasemap } from "@/lib/mapStyle";
+import { BASEMAPS, PISTE_OVERLAY, resolvedBasemap } from "@/lib/mapStyle";
 import { useMapPrefs } from "@/lib/mapPrefs";
 
 export type SorteEpingle = "station" | "station-haute" | "logement" | "remontee" | "depart";
@@ -83,8 +80,8 @@ export function Carte({
   const hote = useRef<HTMLDivElement>(null);
   const lib = useRef<typeof Leaflet | null>(null);
   const carte = useRef<Leaflet.Map | null>(null);
-  const fond = useRef<Leaflet.Layer | null>(null);
-  const surcouche = useRef<Leaflet.Layer | null>(null);
+  const fond = useRef<Leaflet.TileLayer | null>(null);
+  const surcouche = useRef<Leaflet.TileLayer | null>(null);
   const marques = useRef(new Map<string, Leaflet.Marker>());
   const traits = useRef<Leaflet.LayerGroup | null>(null);
   const ligne = useRef<Leaflet.Polyline | null>(null);
@@ -147,41 +144,33 @@ export function Carte({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statique]);
 
-  // ── Fond de carte et pistes ───────────────────────────────────────────
-  // Un seul effet pour les deux : le fond OpenSkiMap porte ses pistes
-  // lui-même, et une carte ne tient qu'une couche MapLibre à la fois. Sur un
-  // fond IGN, les pistes et les remontées viennent en surcouche, au-dessus
-  // des tuiles.
+  // ── Fond de carte et surcouche des pistes ─────────────────────────────
   useEffect(() => {
     const Lf = lib.current,
       m = carte.current;
     if (!prete || !Lf || !m) return;
-    let vivant = true;
-    if (fond.current) retirerOpenSkiMap(m, fond.current);
-    fond.current = null;
-    if (surcouche.current) retirerOpenSkiMap(m, surcouche.current);
+    fond.current?.remove();
+    fond.current = Lf.tileLayer([...fondActif.tiles][0], {
+      attribution: fondActif.attribution,
+      maxZoom: fondActif.maxzoom,
+    }).addTo(m);
+    fond.current.bringToBack();
+  }, [prete, fondActif]);
+
+  useEffect(() => {
+    const Lf = lib.current,
+      m = carte.current;
+    if (!prete || !Lf || !m) return;
+    surcouche.current?.remove();
     surcouche.current = null;
-    if (fondActif.moteur === "openskimap") {
-      void poserOpenSkiMap(m, { fond: true, pistes }, () => vivant).then((c) => {
-        if (c) fond.current = c;
-      });
-    } else {
-      const tuiles = Lf.tileLayer([...fondActif.tiles][0], {
-        attribution: fondActif.attribution,
-        maxZoom: fondActif.maxzoom,
-      }).addTo(m);
-      tuiles.bringToBack();
-      fond.current = tuiles;
-      if (pistes) {
-        void poserOpenSkiMap(m, { fond: false, pistes: true }, () => vivant).then((c) => {
-          if (c) surcouche.current = c;
-        });
-      }
-    }
-    return () => {
-      vivant = false;
-    };
-  }, [prete, fondActif, pistes]);
+    if (!pistes) return;
+    // Cette couche porte les pistes ET les remontées mécaniques.
+    surcouche.current = Lf.tileLayer([...PISTE_OVERLAY.tiles][0], {
+      attribution: PISTE_OVERLAY.attribution,
+      maxZoom: PISTE_OVERLAY.maxzoom,
+      opacity: 0.9,
+    }).addTo(m);
+  }, [prete, pistes]);
 
   // ── Épingles ──────────────────────────────────────────────────────────
   useEffect(() => {

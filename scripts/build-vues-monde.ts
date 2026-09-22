@@ -389,6 +389,8 @@ const skiresortPistes = lire<{ fiches: Record<string, { kmTotal: number | null }
  * Wikimedia Commons a fournies à la place, avec leur auteur et leur licence.
  */
 const photosJugees = lire<{
+  /** Les adresses qu'un regard a écartées, et pourquoi. */
+  ecartees: Record<string, string>;
   verdicts: Record<string, { url: string | null; retenue: boolean; motif?: string; sujet: string; description?: string }>;
 }>("photosJugees.json");
 const photosCommons = lire<{
@@ -455,11 +457,12 @@ for (const d of domaines) {
   // sa chance. C'est l'inverse d'un rejet en bout de course, qui laissait le
   // domaine sans rien alors qu'une autre source publiait peut-être mieux.
   //
-  // Le verdict ne vaut que pour l'image qui a été regardée : il est comparé à
-  // l'adresse, jamais au domaine seul.
-  const verdict = photosJugees?.verdicts[d.id];
+  // Le verdict porte sur **l'image**, désignée par son adresse — pas sur le
+  // domaine. « Pas de neige » ou « plan des pistes dessiné » restent vrais
+  // quel que soit le domaine qui l'affiche, et un rejet prononcé lors d'un
+  // tour précédent doit tenir au suivant.
   const ecartee = (url: string | null | undefined): boolean =>
-    !!verdict && !verdict.retenue && !!url && verdict.url === url;
+    !!url && photosJugees?.ecartees[url] !== undefined;
 
   let photo: Photo | null = null;
   const urlSi = si ? photosSkiinfo?.fiches[si.fiche.cle]?.photo ?? null : null;

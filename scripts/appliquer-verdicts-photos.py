@@ -1,6 +1,6 @@
 """Transforme les verdicts rendus sur les images en décision, domaine par domaine.
 
-    python scripts/appliquer-verdicts-photos.py <dossier des photos>
+    python scripts/appliquer-verdicts-photos.py <dossier> [<dossier>…]
 
 Écrit `src/lib/monde/data/photosJugees.json`, que `build-vues-monde.ts` lit
 pour **écarter** une photo qui ne répond pas à ce qui est demandé.
@@ -43,9 +43,18 @@ SUJETS_OK = {"station", "pistes"}
 
 
 def main() -> None:
-    dossier = Path(sys.argv[1])
-    verdicts = json.loads((dossier / "verdicts.json").read_text(encoding="utf-8"))
-    index = {x["id"]: x for x in json.loads((dossier / "index.json").read_text(encoding="utf-8")) if x.get("fichier")}
+    # Plusieurs dossiers : le premier tour a regardé les photos retenues, le
+    # second celles qu'un rejet a promues à leur place. Une photo ne peut
+    # figurer que dans un seul — c'est l'adresse qui la désigne — et le dernier
+    # dossier l'emporte, puisqu'il est le plus récent.
+    dossiers = [Path(a) for a in sys.argv[1:] if not a.startswith("--")]
+    verdicts: dict[str, dict] = {}
+    index: dict[str, dict] = {}
+    for d in dossiers:
+        verdicts.update(json.loads((d / "verdicts.json").read_text(encoding="utf-8")))
+        for x in json.loads((d / "index.json").read_text(encoding="utf-8")):
+            if x.get("fichier"):
+                index[x["id"]] = x
     vues = json.loads((DATA / "vuesDomaines.json").read_text(encoding="utf-8"))["vues"]
 
     # Les empreintes partagées par plusieurs domaines : aucun ne garde l'image.
@@ -55,13 +64,28 @@ def main() -> None:
     partagees = {e for e, ids in par_empreinte.items() if len(ids) > 1}
 
     sortie: dict[str, dict] = {}
+    # **Les adresses écartées, gardées à part et pour toujours.**
+    #
+    # Un verdict par domaine ne suffit pas : au second tour, le domaine dont la
+    # photo a été rejetée en présente une autre, et ranger le nouveau verdict
+    # sous le même identifiant effacerait le rejet du premier — la photo
+    # écartée reviendrait au prochain calcul, et l'on tournerait en rond.
+    #
+    # Une adresse rejetée l'est d'ailleurs partout : « pas de neige » ou
+    # « plan des pistes dessiné » sont des propriétés de l'image, pas du
+    # domaine qui l'affiche.
+    ecartees: dict[str, str] = {}
     motifs: Counter = Counter()
     for fichier, v in verdicts.items():
         id_ = v.get("id") or fichier.rsplit(".", 1)[0]
         ix = index.get(id_)
         if not ix:
             continue
+        # L'adresse jugée est celle que le tour a **téléchargée**, pas celle
+        # que le domaine affiche aujourd'hui : entre les deux, une reprise a
+        # pu changer de source, et le verdict ne vaudrait plus pour elle.
         photo = (vues.get(id_) or {}).get("photo") or {}
+        url_jugee = ix.get("url") or photo.get("url")
         neige = bool(v.get("neige"))
         filigrane = bool(v.get("filigrane"))
         sujet = str(v.get("sujet") or "")
@@ -75,8 +99,10 @@ def main() -> None:
         elif sujet not in SUJETS_OK:
             motif = f"sujet : {sujet or 'inconnu'}"
         motifs[motif or "retenue"] += 1
+        if motif and url_jugee:
+            ecartees[url_jugee] = motif
         sortie[id_] = {
-            "url": photo.get("url"),
+            "url": url_jugee,
             "source": photo.get("source"),
             "neige": neige,
             "filigrane": filigrane,
@@ -95,6 +121,7 @@ def main() -> None:
                 "regle": "retenue si neige, sans filigrane, sujet station ou pistes, et image non partagée",
                 "juges": len(sortie),
                 "retenues": sum(1 for v in sortie.values() if v["retenue"]),
+                "ecartees": dict(sorted(ecartees.items())),
                 "verdicts": dict(sorted(sortie.items())),
             },
             ensure_ascii=False,
@@ -103,7 +130,7 @@ def main() -> None:
         + "\n",
         encoding="utf-8",
     )
-    print(f"{len(sortie)} domaines jugés")
+    print(f"{len(sortie)} domaines jugés, {len(ecartees)} adresses écartées")
     for m, n in motifs.most_common():
         print(f"  {m:42s} {n}")
 

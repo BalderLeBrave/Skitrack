@@ -19,7 +19,7 @@
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
  "domaines": 2781,
- "avecPhoto": 1659,
+ "avecPhoto": 1655,
  "avecForfait": 1930,
  "vues": {
   "ad-grandvalira": {
@@ -50545,12 +50545,13 @@
   },
   "ch-brunni-haggenegg": {
    "photo": {
-    "source": "officiel",
-    "cle": "https://www.brunnialpthal.ch/",
-    "nom": "Brunni-Haggenegg",
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
     "km": 0,
-    "url": "https://www.brunnialpthal.ch/images/slider/sliderg5s.jpg",
-    "titre": "Sommer",
+    "url": "https://vcdn.bergfex.at/images/resized/57/e8a6eaca775a2157_cd25cc7dd8e1b64f@2x.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
     "servi": true
    },
    "forfait": {
@@ -65176,18 +65177,6 @@
     }
    }
   },
-  "ch-pontresina": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.pontresina.ch/",
-    "nom": "Pontresina",
-    "km": 0,
-    "url": "https://api.pontresina.ch/fileadmin/_processed_/5/4/csm_Web_Low-2023_Dorf_Pontresina_He__10__876de051f4.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
   "ch-pradaschier": {
    "photo": {
     "source": "proprietaire",
@@ -76286,15 +76275,7 @@
    }
   },
   "cz-janske-lazne-cerna-hora": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://skiresort.cz/",
-    "nom": "Janské Lázně - Černá hora",
-    "km": 0,
-    "url": "https://leto.skiresort.cz/media/uploads/pages/17-skiresort-lanovka-clouds.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "proprietaire",
     "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
@@ -109607,15 +109588,7 @@
    }
   },
   "es-javalambre": {
-   "photo": {
-    "source": "officiel",
-    "cle": "http://www.javalambre.com",
-    "nom": "Javalambre",
-    "km": 0,
-    "url": "https://d32r4yxuun6zdf.cloudfront.net/estaticos/extras/fotos/contenidos/00/00/01/16/15//abono-temporada-JV-26-27.jpg",
-    "titre": "abono-temporada-JV-26-27.jpg",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "aragon/javalambre",
@@ -209403,15 +209376,7 @@
    }
   },
   "sk-jasna-low-tatras": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.jasna.sk/",
-    "nom": "Jasna Low Tatras",
-    "km": 0,
-    "url": "https://www.jasna.sk/fileadmin/resort_upload/jasna/jesen_v_jasnej.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "proprietaire",
     "cle": "https://www.skiinfo.fr/slovaquie/forfaits-de-ski",

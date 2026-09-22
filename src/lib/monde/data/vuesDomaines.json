@@ -16,9 +16,9 @@
   "site officiel (tarif journée, avec preuve)"
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
- "domaines": 2780,
+ "domaines": 2781,
  "avecPhoto": 1918,
- "avecForfait": 1825,
+ "avecForfait": 1826,
  "vues": {
   "ad-canaro": {
    "photo": {
@@ -62742,7 +62742,7 @@
     "periodes": null
    }
   },
-  "cz-soszow-jawornik-wis-a": {
+  "cz-soszow": {
    "photo": {
     "source": "bergfex",
     "cle": "soszow",
@@ -97430,7 +97430,7 @@
     "source": "skiinfo",
     "cle": "alpes-du-nord/saint-gervais-mont-blanc",
     "nom": "Saint Gervais Mont-Blanc",
-    "km": 4.06,
+    "km": 3.37,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/jqk7rbkxjfj4mnrz7bnfgw/Saint-Gervais_Mont-Blanc_Hero_2024-25?auto=webp&format=png",
     "titre": null,
     "servi": true
@@ -97439,7 +97439,7 @@
     "source": "skiinfo",
     "cle": "alpes-du-nord/saint-gervais-mont-blanc",
     "nom": "Saint Gervais Mont-Blanc",
-    "km": 4.06,
+    "km": 3.37,
     "devise": "EUR",
     "deviseSource": "page",
     "deviseDuPays": null,
@@ -141618,78 +141618,9 @@
   "pl-beskid-sport-arena": {
    "photo": {
     "source": "skiinfo",
-    "cle": "silesie/szczyrk-skrzyczne-cos",
-    "nom": "Szczyrk - Skrzyczne / COS",
-    "km": 1.58,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/hv6w8qtqng7v4w6mk74r7sfm/Szczyrk__Skrzyczne_COS?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/szczyrk-skrzyczne-cos",
-    "nom": "Szczyrk - Skrzyczne / COS",
-    "km": 1.58,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "26 nov. 2024",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "6-11"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "18-59"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "60+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       64,
-       90,
-       72
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2022-2023 Tarif valable jusqu'au 30 sept. 2022",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Enfant",
-       "ages": null
-      },
-      {
-       "nom": "Junior",
-       "ages": null
-      },
-      {
-       "nom": "Adulte",
-       "ages": null
-      }
-     ],
-     "prix": [
-      369,
-      419,
-      419
-     ]
-    },
-    "periodes": null
-   }
-  },
-  "pl-beskid-sport-arena-497211m190034": {
-   "photo": {
-    "source": "skiinfo",
     "cle": "silesie/beskid-sport-arena",
     "nom": "Beskid Sport Arena",
-    "km": 0.01,
+    "km": 0.37,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/msxz2b7xswxxwh99nsw6w7/Beskid_Sport_Arena?auto=webp&format=png",
     "titre": null,
     "servi": true
@@ -141698,7 +141629,7 @@
     "source": "skiinfo",
     "cle": "silesie/beskid-sport-arena",
     "nom": "Beskid Sport Arena",
-    "km": 0.01,
+    "km": 0.37,
     "devise": "EUR",
     "deviseSource": "page",
     "deviseDuPays": "PLN",
@@ -141783,18 +141714,81 @@
      ]
     },
     "periodes": null
-   },
-   "altitudes": {
-    "basM": 600,
-    "sommetM": 840,
+   }
+  },
+  "pl-beskidek": {
+   "photo": {
     "source": "skiinfo",
-    "cle": "silesie/beskid-sport-arena"
+    "cle": "silesie/szczyrk-skrzyczne-cos",
+    "nom": "Szczyrk - Skrzyczne / COS",
+    "km": 1.06,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/hv6w8qtqng7v4w6mk74r7sfm/Szczyrk__Skrzyczne_COS?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/szczyrk-skrzyczne-cos",
+    "nom": "Szczyrk - Skrzyczne / COS",
+    "km": 1.06,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "26 nov. 2024",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "6-11"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "18-59"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "60+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       64,
+       90,
+       72
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2022-2023 Tarif valable jusqu'au 30 sept. 2022",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Enfant",
+       "ages": null
+      },
+      {
+       "nom": "Junior",
+       "ages": null
+      },
+      {
+       "nom": "Adulte",
+       "ages": null
+      }
+     ],
+     "prix": [
+      369,
+      419,
+      419
+     ]
+    },
+    "periodes": null
    },
    "pistes": {
-    "km": 3.2,
-    "n": 4,
+    "km": 10.8,
+    "n": 6,
     "source": "skiinfo",
-    "cle": "silesie/beskid-sport-arena"
+    "cle": "silesie/szczyrk-skrzyczne-cos"
    }
   },
   "pl-bialy-potok": {
@@ -142181,6 +142175,91 @@
     "periodes": null
    }
   },
+  "pl-cienkow": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-cienkow",
+    "nom": "Wisła - Cieńków",
+    "km": 0.37,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/6mc89bh58fk8jmm9psj6cmr/Wisa__Ciekw?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-cienkow",
+    "nom": "Wisła - Cieńków",
+    "km": 0.37,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-12"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "12-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Junior",
+       "ages": "0-12"
+      },
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      },
+      {
+       "nom": "Sénior",
+       "ages": "65+"
+      }
+     ],
+     "prix": [
+      2400,
+      2400,
+      2400
+     ]
+    },
+    "periodes": null
+   }
+  },
   "pl-cypisek": {
    "photo": {
     "source": "skiinfo",
@@ -142245,6 +142324,85 @@
        630,
        650,
        630
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null
+   }
+  },
+  "pl-czantoria": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/ustron-czantoria",
+    "nom": "Ustroń - Czantoria",
+    "km": 0.8,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/cm95wg78nkwqjp7bphq4c/Ustro__Czantoria?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/ustron-czantoria",
+    "nom": "Ustroń - Czantoria",
+    "km": 0.8,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-4"
+     },
+     {
+      "nom": "Junior",
+      "ages": "4-16"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "16-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       0,
+       140,
+       150,
+       140
+      ]
+     },
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       0,
+       120,
+       130,
+       120
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       0,
+       null,
+       null,
+       null
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       0,
+       null,
+       null,
+       null
       ]
      }
     ],
@@ -143990,6 +144148,89 @@
     "periodes": null
    }
   },
+  "pl-klepki": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-klepki",
+    "nom": "Wisła - Klepki",
+    "km": 0.19,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/fpbv9vqjvksttbsms5wk5/Wisa_-_Klepki?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-klepki",
+    "nom": "Wisła - Klepki",
+    "km": 0.19,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Junior",
+      "ages": "12-"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "15-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       95,
+       105,
+       95
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      }
+     ],
+     "prix": [
+      2400
+     ]
+    },
+    "periodes": null
+   }
+  },
   "pl-kocierz": {
    "photo": null,
    "forfait": {
@@ -144061,85 +144302,6 @@
        90,
        null,
        95
-      ]
-     }
-    ],
-    "saison": null,
-    "periodes": null
-   }
-  },
-  "pl-kolej-linowa-czantoria": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/ustron-czantoria",
-    "nom": "Ustroń - Czantoria",
-    "km": 0.8,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/cm95wg78nkwqjp7bphq4c/Ustro__Czantoria?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/ustron-czantoria",
-    "nom": "Ustroń - Czantoria",
-    "km": 0.8,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-4"
-     },
-     {
-      "nom": "Junior",
-      "ages": "4-16"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "16-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       0,
-       140,
-       150,
-       140
-      ]
-     },
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       0,
-       120,
-       130,
-       120
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       0,
-       null,
-       null,
-       null
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       0,
-       null,
-       null,
-       null
       ]
      }
     ],
@@ -145199,6 +145361,99 @@
     "periodes": null
    }
   },
+  "pl-nowa-osada": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-nowa-osada",
+    "nom": "Wisła - Nowa Osada",
+    "km": 0.37,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/tbhj59nnsbhcg4cpqwh7tbh9/Wisa__Nowa_Osada?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-nowa-osada",
+    "nom": "Wisła - Nowa Osada",
+    "km": 0.37,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-12"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "13-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       105,
+       125,
+       105
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 29 mars 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Junior",
+       "ages": "0-12"
+      },
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      },
+      {
+       "nom": "Sénior",
+       "ages": "65+"
+      }
+     ],
+     "prix": [
+      2350,
+      2350,
+      2350
+     ]
+    },
+    "periodes": null
+   }
+  },
   "pl-ochodzitaski": {
    "photo": null,
    "forfait": null,
@@ -145294,89 +145549,6 @@
      }
     ],
     "saison": null,
-    "periodes": null
-   }
-  },
-  "pl-osrodek-narciarski-klepki-wis-a-malinka": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-klepki",
-    "nom": "Wisła - Klepki",
-    "km": 0.19,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/fpbv9vqjvksttbsms5wk5/Wisa_-_Klepki?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-klepki",
-    "nom": "Wisła - Klepki",
-    "km": 0.19,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Junior",
-      "ages": "12-"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "15-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       95,
-       105,
-       95
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      }
-     ],
-     "prix": [
-      2400
-     ]
-    },
     "periodes": null
    }
   },
@@ -145488,99 +145660,6 @@
      }
     ],
     "saison": null,
-    "periodes": null
-   }
-  },
-  "pl-osrodek-narciarski-nowa-osada": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-nowa-osada",
-    "nom": "Wisła - Nowa Osada",
-    "km": 0.37,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/tbhj59nnsbhcg4cpqwh7tbh9/Wisa__Nowa_Osada?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-nowa-osada",
-    "nom": "Wisła - Nowa Osada",
-    "km": 0.37,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-12"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "13-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       105,
-       125,
-       105
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 29 mars 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Junior",
-       "ages": "0-12"
-      },
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      },
-      {
-       "nom": "Sénior",
-       "ages": "65+"
-      }
-     ],
-     "prix": [
-      2350,
-      2350,
-      2350
-     ]
-    },
     "periodes": null
    }
   },
@@ -145741,6 +145820,45 @@
        null,
        null,
        90
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null
+   }
+  },
+  "pl-pasieki": {
+   "photo": null,
+   "forfait": {
+    "source": "skiresort",
+    "cle": "pasieki-wisla",
+    "nom": "Pasieki – Wisła",
+    "km": 0.25,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": null
+     },
+     {
+      "nom": "Jeune",
+      "ages": null
+     },
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journalier Haute saison",
+      "prix": [
+       135,
+       null,
+       170
       ]
      }
     ],
@@ -146815,91 +146933,6 @@
     "n": null,
     "source": "skiresort",
     "cle": "dolomity-sportowa-dolina-sucha-gora-bytom"
-   }
-  },
-  "pl-stacja-narciarska-cienkow": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-cienkow",
-    "nom": "Wisła - Cieńków",
-    "km": 0.37,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/6mc89bh58fk8jmm9psj6cmr/Wisa__Ciekw?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-cienkow",
-    "nom": "Wisła - Cieńków",
-    "km": 0.37,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-12"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "12-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Junior",
-       "ages": "0-12"
-      },
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      },
-      {
-       "nom": "Sénior",
-       "ages": "65+"
-      }
-     ],
-     "prix": [
-      2400,
-      2400,
-      2400
-     ]
-    },
-    "periodes": null
    }
   },
   "pl-stacja-narciarska-czarny-gron": {
@@ -149013,7 +149046,7 @@
     "source": "skiinfo",
     "cle": "silesie/istebna-zagron",
     "nom": "Istebna - Zagroń",
-    "km": 0.05,
+    "km": 0.76,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/qtjxgcpzc76b6xrgnqk4vj6/Istebna_-_Zagro?auto=webp&format=png",
     "titre": null,
     "servi": true
@@ -149022,7 +149055,7 @@
     "source": "skiinfo",
     "cle": "silesie/istebna-zagron",
     "nom": "Istebna - Zagroń",
-    "km": 0.05,
+    "km": 0.76,
     "devise": "PLN",
     "deviseSource": "page",
     "deviseDuPays": null,
@@ -149077,18 +149110,6 @@
     ],
     "saison": null,
     "periodes": null
-   },
-   "altitudes": {
-    "basM": 550,
-    "sommetM": 695,
-    "source": "skiinfo",
-    "cle": "silesie/istebna-zagron"
-   },
-   "pistes": {
-    "km": 1.7,
-    "n": 3,
-    "source": "skiinfo",
-    "cle": "silesie/istebna-zagron"
    }
   },
   "pl-zakopane": {
@@ -149279,91 +149300,6 @@
     "cle": "zielona-brama-przywidz"
    }
   },
-  "pl-zloty-gron": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/istebna-zloty-gron",
-    "nom": "Istebna - Złoty Groń",
-    "km": 0.5,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/7c5nbxrz57mn474qqkxq3cvz/Istebna_-_Zoty_Gro?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/istebna-zloty-gron",
-    "nom": "Istebna - Złoty Groń",
-    "km": 0.5,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "27 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-12"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "13-64"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Junior",
-       "ages": "0-12"
-      },
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      },
-      {
-       "nom": "Sénior",
-       "ages": "65+"
-      }
-     ],
-     "prix": [
-      2400,
-      2400,
-      2400
-     ]
-    },
-    "periodes": null
-   }
-  },
   "pl-zwardon-centrum": {
    "photo": {
     "source": "skiinfo",
@@ -149492,6 +149428,97 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "pl-z-oty-gron": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/istebna-zloty-gron",
+    "nom": "Istebna - Złoty Groń",
+    "km": 0.41,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/7c5nbxrz57mn474qqkxq3cvz/Istebna_-_Zoty_Gro?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/istebna-zloty-gron",
+    "nom": "Istebna - Złoty Groń",
+    "km": 0.41,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "27 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-12"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "13-64"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Junior",
+       "ages": "0-12"
+      },
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      },
+      {
+       "nom": "Sénior",
+       "ages": "65+"
+      }
+     ],
+     "prix": [
+      2400,
+      2400,
+      2400
+     ]
+    },
+    "periodes": null
+   },
+   "pistes": {
+    "km": 3.2,
+    "n": 6,
+    "source": "skiinfo",
+    "cle": "silesie/istebna-zloty-gron"
    }
   },
   "pl-sniezynka": {

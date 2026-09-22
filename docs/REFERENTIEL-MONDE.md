@@ -322,6 +322,39 @@ valeur estimée qui ne se dit pas estimée est pire qu'une absence, puisque
 l'absence, elle, se voit — et les 617 domaines sans couleur écrivent
 « Répartition par couleur non relevée » plutôt qu'une barre vide.
 
+## Photo, forfait, météo : ce que chaque domaine montre
+
+Décision du propriétaire, 22 septembre 2026 : **garder les 2 780 domaines
+nommés, et afficher l'absence** plutôt que resserrer le périmètre à ce qui est
+complet. Un forfait ou une photo qu'aucune source ne publie s'écrit « non
+relevé », à la place même où il paraîtrait.
+
+| | Domaines | Photo | Forfait | Météo |
+| --- | ---: | ---: | ---: | ---: |
+| Tous, nommés | 2 780 | 69,0 % | 65,6 % | 100 % |
+| 3 remontées et plus | 1 553 | 82,9 % | 77,3 % | 100 % |
+| 10 km et plus | 682 | 89,9 % | 81,2 % | 100 % |
+
+Les sources, dans l'ordre où elles servent — `scripts/build-vues-monde.ts`,
+qui écrit `vuesDomaines.json` :
+
+| | 1 | 2 | 3 | 4 |
+| --- | --- | --- | --- | --- |
+| Photo | Skiinfo | skiresort | bergfex | site officiel (`og:image`, puis la plus grande image de l'accueil, contrôlée en type et en poids) |
+| Forfait | bergfex, **par période datée** | Skiinfo, grille | skiresort, un nombre | page « Tarifs » du site officiel, avec la ligne pour preuve |
+| Météo | altitudes du référentiel | bas et sommet de la fiche appariée | point de terrain Copernicus, une seule altitude, dite comme telle | — |
+
+Chaque appariement est fait **par la position** (`scripts/appariement.ts`) :
+la fiche la plus proche à 5 km, jusqu'à 20 km quand **le nom corrobore**, une
+fiche ne servant qu'un domaine. La distance et la fiche voyagent avec la donnée
+jusqu'à l'écran.
+
+Il manque une photo ou un forfait à 1 234 domaines, et la raison est connue
+pour chacun : 632 n'ont aucun site web connu, 389 en ont un qui ne publie rien
+d'exploitable, 125 refusent par `robots.txt` ou 429, 86 ne répondent pas.
+L'assouplissement de l'appariement par le nom a été mesuré et ne rend rien.
+Il n'y a plus de source publiée à ouvrir pour ceux-là.
+
 ## Les devises
 
 L'audit appelait ce point « le plus diffus » : le référentiel n'avait qu'une

@@ -320,6 +320,11 @@ function LigneDomaine({
     .join(" — ");
   return (
     <li className="monde-row">
+      {!vue ? (
+        <span className="monde-row__photo monde-row__photo--absente" aria-hidden>
+          photo non relevée
+        </span>
+      ) : null}
       {vue ? (
         <img
           className="monde-row__photo"
@@ -355,6 +360,17 @@ function LigneDomaine({
           <dt>Remontées</dt>
           <dd>{d.lifts != null ? entier(d.lifts) : "non relevé"}</dd>
         </div>
+        {/* Décision du propriétaire, 22 septembre 2026 : garder les 2 780
+            domaines et **afficher l'absence**. Un forfait manquant s'écrit
+            donc, comme une altitude manquante — omettre la ligne laisserait
+            croire à un oubli d'affichage plutôt qu'à une donnée qu'aucune
+            source ne publie. */}
+        {!adulte ? (
+          <div>
+            <dt>Forfait jour</dt>
+            <dd>non relevé</dd>
+          </div>
+        ) : null}
         {adulte ? (
           <div title={forfait ? mentionForfait(forfait) : undefined}>
             <dt>{jour?.libelle && /week/i.test(jour.libelle) ? "Forfait" : "Forfait jour"}</dt>

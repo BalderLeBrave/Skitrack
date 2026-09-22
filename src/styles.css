@@ -1835,3 +1835,11 @@ main.carte {
 .monde-row__preuve q {
   font-style: italic;
 }
+
+/* L'absence de photo se dit, elle ne se tait pas : même cadre, même place. */
+.monde-row__photo--absente {
+  display: grid;
+  place-items: center;
+  font-size: 0.71875rem;
+  color: var(--color-texte-2);
+}

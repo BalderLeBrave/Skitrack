@@ -217,7 +217,7 @@ const parSkiresort = apparier(domaines, fichesSkiresort, RAYON_KM, RAYON_NOM_KM)
 // ─── Ce que chaque domaine en tire ───────────────────────────────────────────
 
 type Photo = {
-  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire";
   cle: string;
   nom: string | null;
   km: number;
@@ -225,12 +225,14 @@ type Photo = {
   titre: string | null;
   /** Le rattachement a-t-il été corroboré par le nom ? */
   parLeNom?: true;
+  /** Pour une photo relevée à la main : ce qui a permis de la croire. */
+  corroboration?: "hote-officiel" | "nom" | "office-du-pays" | "bergfex";
   /** L'hôte a-t-il répondu au dernier contrôle ? */
   servi: boolean;
 };
 
 type Forfait = {
-  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire";
   cle: string;
   nom: string | null;
   km: number;
@@ -266,7 +268,44 @@ type Forfait = {
   preuve?: string;
   /** L'adresse de la page où la preuve se relit. */
   pageTarifs?: string;
+  /** Pour un tarif relevé à la main : la période telle qu'écrite, et les
+   *  autres prix du tableau, quand ils y sont. */
+  releve?: {
+    periode: string | null;
+    note: string | null;
+    jourEnfant: number | null;
+    sixJoursAdulte: number | null;
+    sixJoursEnfant: number | null;
+    saisonAdulte: number | null;
+    saisonEnfant: number | null;
+  };
 };
+
+/**
+ * Le tableau des manques, relu : ce que le propriétaire a rendu, passé au
+ * crible d'`importer-manques.py` (photo corroborée et servie, forfait avec
+ * prix, devise et source). Dernier recours après toutes les sources
+ * moissonnées : une valeur relevée à la main ne prime jamais une valeur lue
+ * chez une source qui la publie pour cela.
+ */
+const proprietaire = lire<{
+  photos: Record<string, { url: string; hote: string; corroboration: Photo["corroboration"]; legende: string | null; servi: boolean }>;
+  forfaits: Record<
+    string,
+    {
+      jourAdulte: number;
+      devise: string;
+      periode: string | null;
+      source: string;
+      note: string | null;
+      jourEnfant: number | null;
+      sixJoursAdulte: number | null;
+      sixJoursEnfant: number | null;
+      saisonAdulte: number | null;
+      saisonEnfant: number | null;
+    }
+  >;
+}>("proprietaire.json");
 
 function hote(url: string): string {
   try {
@@ -421,6 +460,23 @@ for (const d of domaines) {
     }
   }
 
+  // ── Après tout le reste : la photo relevée à la main, corroborée ──
+  if (!photo?.servi) {
+    const p = proprietaire?.photos[d.id];
+    if (p?.servi) {
+      photo = {
+        source: "proprietaire",
+        cle: p.hote,
+        nom: null,
+        km: 0,
+        url: p.url,
+        titre: p.legende,
+        corroboration: p.corroboration,
+        servi: true,
+      };
+    }
+  }
+
   // ── Le forfait : bergfex daté d'abord, Skiinfo ensuite, skiresort enfin ──
   let forfait: Forfait | null = null;
 
@@ -562,6 +618,35 @@ for (const d of domaines) {
     };
   }
 
+  // ── Après tout le reste : le tarif relevé à la main, avec sa source ──
+  const pr = proprietaire?.forfaits[d.id];
+  if (!forfait && pr) {
+    forfait = {
+      source: "proprietaire",
+      cle: pr.source,
+      nom: null,
+      km: 0,
+      devise: pr.devise,
+      deviseSource: "tableau",
+      deviseDuPays: null,
+      misAJour: null,
+      categories: [{ nom: "Adulte", ages: null }],
+      lignes: [{ libelle: "Forfait journée", prix: [pr.jourAdulte] }],
+      saison: null,
+      periodes: null,
+      pageTarifs: pr.source,
+      releve: {
+        periode: pr.periode,
+        note: pr.note,
+        jourEnfant: pr.jourEnfant,
+        sixJoursAdulte: pr.sixJoursAdulte,
+        sixJoursEnfant: pr.sixJoursEnfant,
+        saisonAdulte: pr.saisonAdulte,
+        saisonEnfant: pr.saisonEnfant,
+      },
+    };
+  }
+
   const altitudes = altitudesDeRepli(d as Domaine2, si, sr);
   const pistes = pistesDeRepli(d as Domaine3, si, sr);
   if (photo || forfait || altitudes || pistes) {
@@ -589,8 +674,8 @@ writeFileSync(
       quoi: "ce que chaque domaine sait montrer : une photo et un forfait, rattachés par la position",
       regle: `la fiche la plus proche à ${RAYON_KM} km au plus, une fiche ne sert qu'un domaine ; un appariement par source, partagé par la photo et le forfait`,
       rayonKm: RAYON_KM,
-      ordrePhoto: ["skiinfo", "skiresort", "bergfex", "site officiel de la station"],
-      ordreForfait: ["bergfex (grille datée)", "skiinfo (grille)", "skiresort (un seul nombre)", "site officiel (tarif journée, avec preuve)"],
+      ordrePhoto: ["skiinfo", "skiresort", "bergfex", "site officiel de la station", "tableau des manques (corroboré)"],
+      ordreForfait: ["bergfex (grille datée)", "skiinfo (grille)", "skiresort (un seul nombre)", "site officiel (tarif journée, avec preuve)", "tableau des manques (avec source)"],
       avertissement:
         "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
       domaines: domaines.length,
@@ -611,6 +696,7 @@ console.log(`      dont Skiinfo      : ${parSource("photo", "skiinfo")}`);
 console.log(`      dont skiresort    : ${parSource("photo", "skiresort")}`);
 console.log(`      dont bergfex      : ${parSource("photo", "bergfex")}`);
 console.log(`      dont site officiel: ${parSource("photo", "officiel")}`);
+console.log(`      dont tableau des manques: ${parSource("photo", "proprietaire")}`);
 console.log(`  avec un forfait       : ${avecForfait}   ${pct(avecForfait)}`);
 console.log(`      dont bergfex daté : ${parSource("forfait", "bergfex")}`);
 console.log(`      dont grille       : ${parSource("forfait", "skiinfo")}`);

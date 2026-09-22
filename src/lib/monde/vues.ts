@@ -31,13 +31,15 @@ export type Categorie = { nom: string; ages: string | null };
 export type LigneForfait = { libelle: string; prix: (number | null)[] };
 
 export type PhotoVue = {
-  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire";
   /** Le slug de la fiche d'où vient l'image, pour qu'un doute se vérifie. */
   cle: string;
   nom: string | null;
   km: number;
   /** Le rattachement a-t-il été corroboré par le nom ? */
   parLeNom?: true;
+  /** Photo relevée à la main : ce qui a permis de la croire. */
+  corroboration?: "hote-officiel" | "nom" | "office-du-pays" | "bergfex";
   url: string;
   /** La légende du site, quand il en donne une : « Vue sur Verbier ». */
   titre: string | null;
@@ -45,7 +47,7 @@ export type PhotoVue = {
 };
 
 export type ForfaitVue = {
-  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire";
   cle: string;
   nom: string | null;
   km: number;
@@ -85,6 +87,17 @@ export type ForfaitVue = {
    */
   preuve?: string;
   pageTarifs?: string;
+  /** Tarif relevé à la main : la période telle qu'écrite, la note, et les
+   *  autres prix du tableau quand ils y sont. */
+  releve?: {
+    periode: string | null;
+    note: string | null;
+    jourEnfant: number | null;
+    sixJoursAdulte: number | null;
+    sixJoursEnfant: number | null;
+    saisonAdulte: number | null;
+    saisonEnfant: number | null;
+  };
 };
 
 /**
@@ -230,11 +243,20 @@ const distance = (km: number, parLeNom?: true): string => {
   return parLeNom ? `${d}, rapprochée par le nom` : d;
 };
 
-const SITE: Record<"skiinfo" | "skiresort" | "bergfex" | "officiel", string> = {
+const SITE: Record<"skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire", string> = {
   skiinfo: "Skiinfo",
   skiresort: "skiresort.fr",
   bergfex: "bergfex",
   officiel: "le site officiel de la station",
+  proprietaire: "le tableau des manques",
+};
+
+/** Pourquoi une photo relevée à la main a été crue, en clair. */
+const CORROBORATION: Record<NonNullable<PhotoVue["corroboration"]>, string> = {
+  "hote-officiel": "servie par le site officiel de la station",
+  nom: "le nom de la station est dans son adresse",
+  "office-du-pays": "servie par un office de tourisme du pays",
+  bergfex: "servie par bergfex",
 };
 
 /** Ce qu'on écrit sous une photo : d'où elle vient, et à quelle distance. */
@@ -244,6 +266,12 @@ export function mentionPhoto(p: PhotoVue): string {
   // nommer ni de distance à donner. Écrire « à 0 km » laisserait croire à une
   // mesure là où il y a une identité.
   if (p.source === "officiel") return `Photo publiée par ${SITE.officiel} (${p.cle})${legende}`;
+  // Relevée à la main, d'une recherche large : on dit qui la sert et pourquoi
+  // on l'a crue. Elle n'a pas été vue ; c'est écrit.
+  if (p.source === "proprietaire") {
+    const pourquoi = p.corroboration ? CORROBORATION[p.corroboration] : "sans corroboration";
+    return `Photo relevée à la main (${p.cle}) — ${pourquoi} ; non vérifiée à l'œil${legende}`;
+  }
   return `Photo ${SITE[p.source]}${legende}, fiche « ${p.nom ?? p.cle} », ${distance(p.km, p.parLeNom)}`;
 }
 
@@ -303,6 +331,11 @@ export function mentionForfait(f: ForfaitVue): string {
   // tableau, telle qu'écrite. Sans elle, « 33,50 € » ne se juge pas.
   if (f.source === "officiel") {
     return `Lu sur ${SITE.officiel}${f.pageTarifs ? ` (${f.pageTarifs})` : ""} — « ${f.preuve ?? ""} »${dev}`;
+  }
+  // Relevé à la main : la source est nommée, la période telle qu'écrite.
+  if (f.source === "proprietaire") {
+    const periode = f.releve?.periode ? `, période « ${f.releve.periode} »` : "";
+    return `Relevé à la main depuis ${f.pageTarifs ?? f.cle}${periode}${f.releve?.note ? ` — ${f.releve.note}` : ""}`;
   }
   return `${SITE[f.source]} — ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km, f.parLeNom)}${dev}${ecart}`;
 }

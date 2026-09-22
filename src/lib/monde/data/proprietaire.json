@@ -1,0 +1,3057 @@
+{
+ "at": "2026-09-22",
+ "source": "tableau des manques rempli par recherche large (manques-photo-forfait-recherche-large-2026-09-22.xlsx), relu par scripts/importer-manques.py",
+ "regle": "photo gardée si corroborée (hôte officiel, nom dans l'adresse, office du pays, bergfex) et servie ; forfait gardé si prix, devise et source lisible",
+ "ecartes": {
+  "photos": {
+   "repetee": 244,
+   "banque-ou-social": 102,
+   "sans-corroboration": 457,
+   "non-servie": 55
+  },
+  "forfaits": {
+   "sans-source": 5,
+   "sans-devise": 0
+  }
+ },
+ "photos": {
+  "am-myler-mountain-resort": {
+   "url": "https://myler-web-cdn.ams3.cdn.digitaloceanspaces.com/myler-web/seo/og_lg.png",
+   "hote": "myler-web-cdn.ams3.cdn.digitaloceanspaces.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/png",
+   "taille": 71345,
+   "servi": true
+  },
+  "at-bergbahn-weissensee": {
+   "url": "https://www.weissensee.com/media-archive-manuell/WS/Winter/Weissensee%20Tourismus%20Winter%202018-02-15_1710.jpg",
+   "hote": "www.weissensee.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 15418228,
+   "servi": true
+  },
+  "at-embach": {
+   "url": "https://embach-at.b-cdn.net/wp-content/uploads/2023/08/2023-02-08_TVB-Embach-Wintershooting-©sobietzki-high-res-12-scaled.jpg",
+   "hote": "embach-at.b-cdn.net",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 372034,
+   "servi": true
+  },
+  "at-embergeralm": {
+   "url": "https://www.tirol.at/images/47Xv7cTcgkw/cb:/g:ce/aHR0cHM6Ly91cGxvYWRzLm1hcHNlcnZpY2VzLmV1L25lZm9zX3Rpcm9sL3NpdGUtZmlsZXMvMTAxNi91cGxvYWRzL2dyYW1haS1rYXJ3ZW5kZWwtcGVydGlzYXUuanBn",
+   "hote": "www.tirol.at",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 602475,
+   "servi": true
+  },
+  "at-furx": {
+   "url": "https://vcdn.bergfex.at/images/resized/fd/5f654117f1b37ffd_04dc435870edb517@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 69238,
+   "servi": true
+  },
+  "at-gargellen": {
+   "url": "https://www.montafon.at/gargellen/bilder/aktiv/wandern/familie/64319/image-thumb__64319__ogImage/gargellen_so_24_danielzangerl%20_171.e2c9ac81.jpg",
+   "hote": "www.montafon.at",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 136944,
+   "servi": true
+  },
+  "at-golm": {
+   "url": "https://presse.tirol.at/app/uploads/2024/02/sonnenskilauf_8678©zillertaltourismus_MaxDraeger_klein.jpg",
+   "hote": "presse.tirol.at",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 4970375,
+   "servi": true
+  },
+  "at-gramais": {
+   "url": "https://gramais-lechtal.at/wp-content/uploads/2021/02/winter_gramais-2-scaled.jpg",
+   "hote": "gramais-lechtal.at",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1022853,
+   "servi": true
+  },
+  "at-gries-in-sellraintal": {
+   "url": "https://cdn.indebergen.nl/media/0onji33y/attiro113-gries-im-sellrain.jpg?anchor=center&mode=crop&width=1080&height=608&format=webp&quality=80",
+   "hote": "cdn.indebergen.nl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 121206,
+   "servi": true
+  },
+  "at-grunberglift-navis": {
+   "url": "https://presse.tirol.at/app/uploads/2025/10/Gruenberglift-Navis-cTirol-Werbung-Bert-Heinzlmeier-1-scaled.jpg",
+   "hote": "presse.tirol.at",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 947847,
+   "servi": true
+  },
+  "at-lachtal-472636m143608": {
+   "url": "https://www.lachtal.at/wp-content/uploads/2023/10/Lachtal-Ski-11-Lachtal-Ikarus-1200x630.jpg",
+   "hote": "www.lachtal.at",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 164124,
+   "servi": true
+  },
+  "at-lackenhof-otscher": {
+   "url": "https://presse.tirol.at/app/uploads/2024/02/OF24_alpbach_miamariaknoll_-1C4A2093.jpg",
+   "hote": "presse.tirol.at",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1437627,
+   "servi": true
+  },
+  "at-muttersberg-bludenz": {
+   "url": "https://vcdn.bergfex.at/images/resized/2a/47b5280cacf6b12a_b5e1e99e371209f0@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 546220,
+   "servi": true
+  },
+  "at-niederau-wildschonau": {
+   "url": "https://www.wildschoenau.com/Wildschoenau/D%C3%B6rfer/niederau/46071/image-thumb__46071__og-image/Niederau_Panorama_05_2021_Dabernig%20%28Andere%29.jpg",
+   "hote": "www.wildschoenau.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 229351,
+   "servi": true
+  },
+  "at-niederthai": {
+   "url": "https://presse.tirol.at/app/uploads/2025/11/nied_Langlauf-Opening-Niederthai-2023-Christian-Schneider-2123-1024x683.jpg",
+   "hote": "presse.tirol.at",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 121464,
+   "servi": true
+  },
+  "at-schneeberglifte-thiersee": {
+   "url": "https://www.tirol.at/images/Q69cyBpxW3E/cb:/g:ce/aHR0cHM6Ly9pbXhwbGF0Zm9ybS1jdXN0LXR3LmZzbjEueW91ci1vYmplY3RzdG9yYWdlLmNvbS9tZWRpYS9za2lnZWJpZXQtdGlyb2xpbmEtMTI4MHg3MjBweGNnbWVkaWEuanBn",
+   "hote": "www.tirol.at",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 171587,
+   "servi": true
+  },
+  "at-semmering-hirschenkogel": {
+   "url": "https://presse.tirol.at/app/uploads/2024/10/soel_skiweltcup_digital_24_16zu9_sponsorenleiste.jpg",
+   "hote": "presse.tirol.at",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 508952,
+   "servi": true
+  },
+  "at-sibratsgfall": {
+   "url": "https://vcdn.bergfex.at/images/resized/b3/be6aff0528506ab3_7783b8e650256b20@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 84593,
+   "servi": true
+  },
+  "at-ski-arlberg": {
+   "url": "https://www.arlberghaus.com/fileadmin/_processed_/0/3/csm_arlberg-zuers-lech-c-alex-kaiser-lech-zuers-tourismus_741a01b927.jpg",
+   "hote": "www.arlberghaus.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 449158,
+   "servi": true
+  },
+  "at-ski-juwel-oberau-wildschonau": {
+   "url": "https://familyskitrips.com/wp-content/uploads/2024/02/ski-juwel-austria-68.jpg",
+   "hote": "familyskitrips.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 299780,
+   "servi": true
+  },
+  "at-skilift-eberschwang": {
+   "url": "https://panoramakarte.com/images/sampledata/bilder/skilift-eberschwang-oesterreich.jpg",
+   "hote": "panoramakarte.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 363766,
+   "servi": true
+  },
+  "at-sonntag-stein": {
+   "url": "https://seilbahnen-sonntag.at/og-image.jpg",
+   "hote": "seilbahnen-sonntag.at",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1717635,
+   "servi": true
+  },
+  "at-st-martin-im-tennengebirge": {
+   "url": "https://cdn.indebergen.nl/media/mxdmfo2w/atsalz046-st-martin.jpg?anchor=center&mode=crop&width=1160&height=870&format=webp&quality=80",
+   "hote": "cdn.indebergen.nl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 234028,
+   "servi": true
+  },
+  "at-sulzberg": {
+   "url": "https://www.sulzberg-bregenzerwald.com/wp-content/uploads/2022/12/Sulzberg-von-Oben-mit-Blick-auf-NSP-c-Janik-Vith-3-1920x1080.jpg",
+   "hote": "www.sulzberg-bregenzerwald.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 522947,
+   "servi": true
+  },
+  "at-turnau": {
+   "url": "https://vcdn.bergfex.at/images/resized/b6/5fd298fa752b94b6_8f5da5702b5856cd.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 87701,
+   "servi": true
+  },
+  "at-vogelsberg-wattens": {
+   "url": "https://presse.tirol.at/app/uploads/2025/10/Glungezer-cTVB-Hall-Wattens-2-1024x681.jpg",
+   "hote": "presse.tirol.at",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 115718,
+   "servi": true
+  },
+  "at-waldrastlift-ehenbichl-reutte": {
+   "url": "https://vcdn.bergfex.at/images/resized/36/fa2883e5b012d036_6266e275b7002f28@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 2128402,
+   "servi": true
+  },
+  "at-zwolferhorn-st-gilgen": {
+   "url": "https://www.zwoelferhorn.at/wp-content/uploads/Mit-Sonnenstrom-aufs-Zwoelferhorn-1.jpg",
+   "hote": "www.zwoelferhorn.at",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 550921,
+   "servi": true
+  },
+  "ba-ski-centar-ravna-planina-pale-ski-center-ravna-planina-pale": {
+   "url": "https://vcdn.bergfex.at/images/resized/8d/c794fe63803d518d_9c7100d00c0db49e.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 367738,
+   "servi": true
+  },
+  "ch-adelboden-lenk": {
+   "url": "https://www.adelboden-lenk.ch/images/21/image-thumb__21__hero/45725_lenk--17-01-2019--funslope-action--michael-donadel--qparks-020_web.54062617.jpg",
+   "hote": "www.adelboden-lenk.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 220543,
+   "servi": true
+  },
+  "ch-airolo-pescium": {
+   "url": "https://www.airolo.ch/images/testata-home-inverno.jpg",
+   "hote": "www.airolo.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 80056,
+   "servi": true
+  },
+  "ch-aletsch-arena": {
+   "url": "https://www.aletscharena.ch/fileadmin/_processed_/d/7/csm_platta-grosser-aletschgletscher-maerjela-fiescheralp-aletsch-arena-jeanette-huber-01.jpg-2793308_89536a0a35.jpg",
+   "hote": "www.aletscharena.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 501386,
+   "servi": true
+  },
+  "ch-alpe-di-neggia": {
+   "url": "https://www.myswitzerland.com/-/media/st/gadmin/images/village/winter/dorf_zermatt_winter_28413.jpg",
+   "hote": "www.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 497696,
+   "servi": true
+  },
+  "ch-baulmes": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/b/c9/ec/bc9ec2593d76b24a5503d38a65189fabd592cbb0_797214099.jpeg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 999496,
+   "servi": true
+  },
+  "ch-bellwald": {
+   "url": "https://cdn.bfldr.com/WIENNW6Q/as/j4t57q2wst3xp6cgv7czxt/Bellwald?auto=webp&width=1024",
+   "hote": "cdn.bfldr.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 108139,
+   "servi": true
+  },
+  "ch-bennau-einsiedeln": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/a/b7/90/ab790ffc753ff08acdf00d84e0c8e70bbf3b8aa8_838865252.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 135981,
+   "servi": true
+  },
+  "ch-brot-dessus": {
+   "url": "https://static.wixstatic.com/media/8464a8_411bbc0555c743dabf02747cf5e64fa8~mv2.jpg/v1/fill/w_2000,h_1493,al_c,q_90/19_Piste+de+ski+de+piste+de+Brot-Dessus.jpg",
+   "hote": "static.wixstatic.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 697185,
+   "servi": true
+  },
+  "ch-brunni-haggenegg": {
+   "url": "https://vcdn.bergfex.at/images/resized/57/e8a6eaca775a2157_cd25cc7dd8e1b64f@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 115341,
+   "servi": true
+  },
+  "ch-brunni-holzegg-rotenflue": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://contentapi-swissactivities.imgix.net/contentapi.staging.swissactivities/c3ecf3492032aa403a868a224ab36920.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 629562,
+   "servi": true
+  },
+  "ch-chalet-a-gobet": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/e/41/98/e41986a9e12d390703ac49d1feaf1adbbdb6e111_850226567.JPG",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 241053,
+   "servi": true
+  },
+  "ch-chuderhusi": {
+   "url": "https://vcdn.bergfex.at/images/resized/d7/87ed27a5ef78b5d7_2198b212c6452a18.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 277647,
+   "servi": true
+  },
+  "ch-corviglia": {
+   "url": "https://mountains.ch/fileadmin/_processed_/f/d/csm_2024-engadin-stmoritz-mountains-piz-nair-sunrise-keyvisuals-9224_3847348f73.jpg",
+   "hote": "mountains.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 285483,
+   "servi": true
+  },
+  "ch-dent-de-vaulion-le-morez": {
+   "url": "http://www.dentistes-flach.fr/images/contenu/h800/20190304_192238.jpg",
+   "hote": "www.dentistes-flach.fr",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 979556,
+   "servi": true
+  },
+  "ch-eigenthal": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://www.myswitzerland.com/-/media/st/gadmin/images/sport/winter/various/ll_318_dsc03728_m_248573.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 763695,
+   "servi": true
+  },
+  "ch-gfellen-finsterwald": {
+   "url": "https://vcdn.bergfex.at/images/resized/81/ac2a054244ad7281_a7d3fc01f6348991@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 65220,
+   "servi": true
+  },
+  "ch-glarus": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://www.myswitzerland.com/-/media/st/gadmin/images/cities/winter/cities/kantongl_glarus_morgenrot_20121231-17_28429.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 296249,
+   "servi": true
+  },
+  "ch-heiligkreuz-first": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d10rdyp01sn3kp.cloudfront.net/files/pics/2016618167556050.3123376400262894.JPG",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 141630,
+   "servi": true
+  },
+  "ch-hohwald-beatenberg": {
+   "url": "https://img.destination.one/remote/.webp?url=https://dam.destination.one/194907/1db44eb495b4409ad06f912067c0e54d18b6f2b62194beafa5711f7bf43faac9/beatenberg-hohwald-winter-panorama.jpg&scale=both&mode=crop&quality=90&width=2560&height=1920",
+   "hote": "img.destination.one",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 370342,
+   "servi": true
+  },
+  "ch-horben": {
+   "url": "https://vcdn.bergfex.at/images/resized/a5/71dfa0c9c5f2a9a5_9974b40a1d8c6a52.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 255747,
+   "servi": true
+  },
+  "ch-kinderland": {
+   "url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/19/70/b5/2e/spass-in-bertas-kinderland.jpg?w=1200&h=-1&s=1",
+   "hote": "dynamic-media-cdn.tripadvisor.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 248219,
+   "servi": true
+  },
+  "ch-krinau": {
+   "url": "https://krinau.ch/wp-content/uploads/2024/04/himmel-e1713963053467-1024x694.png",
+   "hote": "krinau.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 911890,
+   "servi": true
+  },
+  "ch-lantsch-lenz": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://images.schweizmobil.ch/image-master/WW_206_DSC06072_F_M.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 929677,
+   "servi": true
+  },
+  "ch-les-rousses": {
+   "url": "https://www.lesrousses.com/content/uploads/2024/05/home-scaled.jpg",
+   "hote": "www.lesrousses.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 360038,
+   "servi": true
+  },
+  "ch-leysin-les-mosses-la-lecherette": {
+   "url": "https://leysin.ch/wp-content/uploads/2026/08/QR_Leysin365-1.png",
+   "hote": "leysin.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 53325,
+   "servi": true
+  },
+  "ch-maloja": {
+   "url": "https://www.myswitzerland.com/-/media/st/gadmin/images/cities/winter/cities/maloja_wi_34414.jpg",
+   "hote": "www.myswitzerland.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 240808,
+   "servi": true
+  },
+  "ch-mogno-464281m86623": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://www.myswitzerland.com/-/media/st/gadmin/images/attractions/architecture/sts0273_36259.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 829523,
+   "servi": true
+  },
+  "ch-mosnang": {
+   "url": "https://www.skiliftmosnang.ch/wp-content/uploads/2021/01/a5934e81-c9c1-4705-ba8e-8ddda2bfe1ca.jpeg",
+   "hote": "www.skiliftmosnang.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 303175,
+   "servi": true
+  },
+  "ch-oberholz-farner": {
+   "url": "https://vcdn.bergfex.at/images/resized/d3/1f1842ca927ecbd3_f4d3c0d08f984e75@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 236018,
+   "servi": true
+  },
+  "ch-oberwangen": {
+   "url": "https://www.skilift-oberwangen.ch/opengraph.jpg",
+   "hote": "www.skilift-oberwangen.ch",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 473255,
+   "servi": true
+  },
+  "ch-parsenn": {
+   "url": "https://www.davosklostersmountains.ch/archiv/dkm/bilder/berge/parsenn/winter/764/image-thumb__764__media-text-img/totalp_sesselbahn_blick_richtung_joch@2x.jpg",
+   "hote": "www.davosklostersmountains.ch",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 342319,
+   "servi": true
+  },
+  "ch-pradaschier": {
+   "url": "https://vcdn.bergfex.at/images/resized/5c/ad6856c49370425c_76959536cb9bd92e.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 368400,
+   "servi": true
+  },
+  "ch-rigi-scheidegg": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://contentapi-swissactivities.imgix.net/contentapi.staging.swissactivities/306e0071f64c035f91c59e7153a4b1ee.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 355565,
+   "servi": true
+  },
+  "ch-rossberg-oberwil": {
+   "url": "https://vcdn.bergfex.at/images/resized/0c/60d9cc565a01480c_7ecbb3c1d415eb6f.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 408728,
+   "servi": true
+  },
+  "ch-rothwald": {
+   "url": "https://images.ctfassets.net/ukaa6ik2569a/6MKkwV6vKM3WHjxlxw54mm/9b5f91e6f0eeee2f6f16e150ae9ecdfa/activity-skisnowboard_rothwald_1.jpg?f=center&w=2560&h=1706&fm=jpg&q=80&fit=fill",
+   "hote": "images.ctfassets.net",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 320499,
+   "servi": true
+  },
+  "ch-ruhesitz": {
+   "url": "https://wegwandern.ch/wp-content/uploads/2023/06/appenzell_bruelisau_waldschaft_ruhesitz_schneeschuhwandern.jpg",
+   "hote": "wegwandern.ch",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 159731,
+   "servi": true
+  },
+  "ch-runal-pera-trun": {
+   "url": "https://runalpera.ch/wordpress/wp-content/gallery/2020_cuorsa_da_skis/DSF5155.JPG",
+   "hote": "runalpera.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 3647273,
+   "servi": true
+  },
+  "ch-sainte-croix-les-rasses": {
+   "url": "https://img.myswitzerland.com/ext/https://static.stnet.ch/wispo/images/146/picture-3427/3427-o.jpg?q=80&c=fill&g=center",
+   "hote": "img.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 531446,
+   "servi": true
+  },
+  "ch-schupfheim": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/3/a2/0c/3a20c436ee452cf1efa883c3a9a85112c8c9d5c9_880156371.png",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/png",
+   "taille": 2116597,
+   "servi": true
+  },
+  "ch-st-margrethenberg": {
+   "url": "https://skilift-tristeli.ch/.cm4all/uproc.php/0/4.jpeg",
+   "hote": "skilift-tristeli.ch",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1396998,
+   "servi": true
+  },
+  "ch-urnasch": {
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://images.schweizmobil.ch/image-master/WW_136_048_F_M.jpg",
+   "hote": "media.myswitzerland.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1003339,
+   "servi": true
+  },
+  "cz-biocel-zlatnik": {
+   "url": "https://www.ceskehory.cz/objekty/data/ski/biocelzlatnik/imagew.jpg",
+   "hote": "www.ceskehory.cz",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 99593,
+   "servi": true
+  },
+  "cz-bozi-dar": {
+   "url": "https://www.bozidar.cz/images/phocagallery/aktivity/sjezdovka_za_prahou/IMG_7279.jpg",
+   "hote": "www.bozidar.cz",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 544626,
+   "servi": true
+  },
+  "cz-cerinek": {
+   "url": "https://zkopcedolu.cz/images/1580164045.jpg",
+   "hote": "zkopcedolu.cz",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 189949,
+   "servi": true
+  },
+  "cz-dalecin": {
+   "url": "https://vcdn.bergfex.at/images/resized/ef/bafc5a3f7f2c59ef_3c5551a7bad4821e.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 251539,
+   "servi": true
+  },
+  "cz-debrnik": {
+   "url": "http://www.tisicovky.cz/exp/sumava/debrnik-hlv40/CF0882D8-498C-4C42-80EB-AC1793915FCAbig.jpg",
+   "hote": "www.tisicovky.cz",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 210209,
+   "servi": true
+  },
+  "cz-fajtuv-kopec": {
+   "url": "https://cdn.kudyznudy.cz/files/f4/f4bc1e37-14c7-479b-ad16-c4992b273976.jpg?v=20250603044600",
+   "hote": "cdn.kudyznudy.cz",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 176705,
+   "servi": true
+  },
+  "cz-hochficht-bohmerwald": {
+   "url": "https://cdn.bfldr.com/WIENNW6Q/as/4kc8rskwpxpxqspkkm8nhjbx/Hochficht_Bhmerwald?auto=webp&format=png",
+   "hote": "cdn.bfldr.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/png",
+   "taille": 2051956,
+   "servi": true
+  },
+  "cz-horal": {
+   "url": "https://www.reischeck.nl/wp-content/uploads/2023/10/orea-resort-horal-spindleruv-mlyn-tsjechie-kindvriendelijk.jpg",
+   "hote": "www.reischeck.nl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 81423,
+   "servi": true
+  },
+  "cz-horsky-resort-bukova-hora": {
+   "url": "https://www.skibukovka.cz/wp-content/uploads/2020/05/DSC_0723_1024.jpg",
+   "hote": "www.skibukovka.cz",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 335535,
+   "servi": true
+  },
+  "cz-janske-lazne-cerna-hora": {
+   "url": "https://leto.skiresort.cz/media/uploads/pages/17-skiresort-lanovka-clouds.jpg",
+   "hote": "leto.skiresort.cz",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 312749,
+   "servi": true
+  },
+  "cz-javorna": {
+   "url": "https://www.tschechische-gebirge.de/objekty/data/ski/skijavorna/imagew.jpg",
+   "hote": "www.tschechische-gebirge.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 114873,
+   "servi": true
+  },
+  "cz-lyzarsky-vlek-popelka": {
+   "url": "https://www.strazne.eu/wp-content/uploads/2025/05/skiing.jpg",
+   "hote": "www.strazne.eu",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 158978,
+   "servi": true
+  },
+  "cz-nova-paka-machovka": {
+   "url": "https://www.skimachovka.cz/wp-content/uploads/2025/10/ilustrace-svarak.jpg",
+   "hote": "www.skimachovka.cz",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 71080,
+   "servi": true
+  },
+  "cz-nove-hamry-u-reky": {
+   "url": "https://nove-hamry.cz/wp-content/gallery/galerie/50C45606-8887-41EC-84F3-A5724BED1869-1.jpeg",
+   "hote": "nove-hamry.cz",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 123002,
+   "servi": true
+  },
+  "cz-nove-mesto-na-morave": {
+   "url": "https://www.czech-mountains.eu/objekty/data/ski/skinovemesto/imagew.jpg",
+   "hote": "www.czech-mountains.eu",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 80611,
+   "servi": true
+  },
+  "cz-pec-pod-snezkou-506936m157333": {
+   "url": "https://www.skiresort.cz/media/uploads/pages/billboardovka_small_tkjua0p.jpg",
+   "hote": "www.skiresort.cz",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 309944,
+   "servi": true
+  },
+  "cz-radvanice": {
+   "url": "https://www.tschechische-gebirge.de/objekty/data/ski/ski-radvanice/imagew.jpg",
+   "hote": "www.tschechische-gebirge.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 62292,
+   "servi": true
+  },
+  "cz-sibenicni-vrch": {
+   "url": "https://sibenicnivrch.cz/admin-assets/news/articles/75/images/191_sobotni-vecerni-2025.jpg",
+   "hote": "sibenicnivrch.cz",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 647054,
+   "servi": true
+  },
+  "cz-ski-areal-sachrovka": {
+   "url": "https://www.skisachovka.cz/sachovka/galerie-skiareal/17.jpg",
+   "hote": "www.skisachovka.cz",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 411364,
+   "servi": true
+  },
+  "cz-skiareal-klinovec": {
+   "url": "https://klinovec.cz/wp-content/uploads/2022/01/klinovec-nahled.jpg",
+   "hote": "klinovec.cz",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 215373,
+   "servi": true
+  },
+  "cz-skiareal-spindleruv-mlyn-medvedin": {
+   "url": "https://www.skiareal.cz/fileadmin/_processed_/9/f/csm_SKIAREAL_winter_foto_Traga__65__f939ab97a6.jpg",
+   "hote": "www.skiareal.cz",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 530882,
+   "servi": true
+  },
+  "cz-skipark-frymburk": {
+   "url": "https://www.czech-mountains.eu/objekty/data/ski/park-frymburk/imagew.jpg",
+   "hote": "www.czech-mountains.eu",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 109103,
+   "servi": true
+  },
+  "cz-zlata-olesnice": {
+   "url": "https://www.czech-mountains.eu/objekty/data/ski/zlataolesnice/imagew.jpg",
+   "hote": "www.czech-mountains.eu",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 60241,
+   "servi": true
+  },
+  "cz-zvicina": {
+   "url": "https://cdn.megau.eu/imageresizer/width=1200,height=800,quality=75,fit=crop,format=auto/https://cdn.megau.eu/attractions/1085/images/a1085-ski-areal-zvicina-20231213-012731-2513.jpg",
+   "hote": "cdn.megau.eu",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 58234,
+   "servi": true
+  },
+  "de-beiningen": {
+   "url": "https://media.snow-online.de/images/ecu/entity/e_skiresort/skigebiet_skilift-beiningen-blaubeuren_n72917-158474-1_raw.jpg",
+   "hote": "media.snow-online.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1464152,
+   "servi": true
+  },
+  "de-berghalde-penzburg": {
+   "url": "https://www.merkur.de/assets/images/41/300/41300111-der-skilift-auf-der-berghalde-in-penzberg-laeuft-2015-3XMH.jpg",
+   "hote": "www.merkur.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 159056,
+   "servi": true
+  },
+  "de-bromberg-alm": {
+   "url": "https://vcdn.bergfex.at/images/resized/b6/f675227f26e25cb6_029c11cb12059b3a.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 148853,
+   "servi": true
+  },
+  "de-deilingen": {
+   "url": "https://www.sv-deilingen.de/wp-content/uploads/2023/04/CIMG0520-1024x660.jpg",
+   "hote": "www.sv-deilingen.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 123090,
+   "servi": true
+  },
+  "de-ebingen": {
+   "url": "https://media.snow-online.de/images/ecu/entity/e_skiresort/ski-resort_albstadt-ebingen_n3695-13476-0_raw.jpg",
+   "hote": "media.snow-online.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 95021,
+   "servi": true
+  },
+  "de-fridingen-antoni": {
+   "url": "https://vcdn.bergfex.at/images/resized/18/e223bf33cb64a518_70a34a9e87f77a92.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 610287,
+   "servi": true
+  },
+  "de-gohrersberg-kreuzthal": {
+   "url": "https://vcdn.bergfex.at/images/resized/82/127af7897c822682_d01c1c3ed2b76610.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 405968,
+   "servi": true
+  },
+  "de-hartenrod": {
+   "url": "http://skiclub-hartenrod.de/wp-content/uploads/2018/06/20170128_174212.jpeg.jpg",
+   "hote": "skiclub-hartenrod.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 457896,
+   "servi": true
+  },
+  "de-kaiserblick-sachrang-aschau": {
+   "url": "https://vcdn.bergfex.at/images/resized/17/50bc63d865c8b217_f66be9e09ea816e1.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 580147,
+   "servi": true
+  },
+  "de-kirchberglift-am-frobelturm": {
+   "url": "https://www.thueringer-wald.com/documents/231668/3650093/210111kvDROHNE0033.jpg/bbef1f8c-f7cc-ac36-f0dc-2aba4543aa89?version=1.0&t=1638880920174&imagePreview=1",
+   "hote": "www.thueringer-wald.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 244048,
+   "servi": true
+  },
+  "de-oberer-maxlraineralm": {
+   "url": "https://www.obere-maxlraineralm.com/img/opengraph.jpg",
+   "hote": "www.obere-maxlraineralm.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 49022,
+   "servi": true
+  },
+  "de-pfannilift-am-schliersee": {
+   "url": "https://magazin.schliersee.de/wp-content/uploads/2022/01/DSC05180-824x1030.jpg",
+   "hote": "magazin.schliersee.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 132880,
+   "servi": true
+  },
+  "de-skigebiet-eckbauer": {
+   "url": "https://cdn.indebergen.nl/media/p3odk5aq/debaye06b-eckbauer.jpg?anchor=center&mode=crop&width=1160&height=1160&format=webp&quality=80",
+   "hote": "cdn.indebergen.nl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 364850,
+   "servi": true
+  },
+  "de-skigebiet-ifen": {
+   "url": "https://www.preiswert-uebernachten.de/reiseblog/wp-content/uploads/Skigebiet-am-hohen-Ifen-Kleinwalsertal_692476529.jpg",
+   "hote": "www.preiswert-uebernachten.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 2087401,
+   "servi": true
+  },
+  "de-skihang-tuppel": {
+   "url": "https://www.ski-club-wissen.de/wordpress/wp-content/uploads/2016/12/Skihang-IMG_1773-1.jpg",
+   "hote": "www.ski-club-wissen.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1467996,
+   "servi": true
+  },
+  "de-skilift-waldsportpark-ebersberg": {
+   "url": "https://www.ebersberg.de/fileadmin/_processed_/4/3/csm_schmitten-106849_1280_34758b3513.jpg",
+   "hote": "www.ebersberg.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 119336,
+   "servi": true
+  },
+  "de-sulzberg": {
+   "url": "https://vcdn.bergfex.at/images/resized/05/36c7e3769262ad05_c6b6874a4c22a62b.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 349775,
+   "servi": true
+  },
+  "de-tegelbergbahn": {
+   "url": "https://vcdn.bergfex.at/images/resized/c7/ccaabf144350c8c7_0aac8a9d72e927a6.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 371911,
+   "servi": true
+  },
+  "de-unternberg-ruhpolding": {
+   "url": "https://meinebergwelt.de/wp-content/uploads/2026/08/Website_mobile_Version_Startseite_Hintergrund_1000x1500-px.jpg",
+   "hote": "meinebergwelt.de",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 168198,
+   "servi": true
+  },
+  "fi-ellivuori": {
+   "url": "https://ellivuori.fi/wp-content/uploads/2019/02/ellivuori_banneri.jpg",
+   "hote": "ellivuori.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 450852,
+   "servi": true
+  },
+  "fi-hiihtokeskus-luosto-ski": {
+   "url": "https://www.luosto.fi/sites/luosto/files/styles/large/public/media/image/2025-09/Luosto+Ski+Resort+slopes+evening.jpg?itok=aJ8wjnzB",
+   "hote": "www.luosto.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 48420,
+   "servi": true
+  },
+  "fi-kallin": {
+   "url": "https://kallinhiihtokeskus.fi/wp-content/uploads/2020/12/kallin-hiihtokeskus-tapahtuma-scaled.jpg",
+   "hote": "kallinhiihtokeskus.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 465057,
+   "servi": true
+  },
+  "fi-kommatti": {
+   "url": "https://kommatti.fi/wp-content/uploads/2022/05/420797_117351731722974_991948010_n.jpg",
+   "hote": "kommatti.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 144541,
+   "servi": true
+  },
+  "fi-konkaski": {
+   "url": "https://konkaski.fi/wp-content/uploads/2023/02/rinnekartta2023_5-scaled.jpg",
+   "hote": "konkaski.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 783687,
+   "servi": true
+  },
+  "fi-luoteis-himos": {
+   "url": "https://himos.fi/wp-content/uploads/2024/11/10-scaled.jpg",
+   "hote": "himos.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 231021,
+   "servi": true
+  },
+  "fi-ojberget": {
+   "url": "https://www.vaasa.fi/app/uploads/2023/11/53a319da-0s4a3988-valokuva_christoffer_bjorklund-1-2048x1365.jpg",
+   "hote": "www.vaasa.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 270223,
+   "servi": true
+  },
+  "fi-olos-ski-resort": {
+   "url": "https://a.storyblok.com/f/279002/3504x2336/85782846db/ski-resort-olos-in-muonio.jpg",
+   "hote": "a.storyblok.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 5846487,
+   "servi": true
+  },
+  "fi-paljakan-matkailu-ja-hiihtokeskus": {
+   "url": "https://paljakka.fi/wp-content/uploads/2020/04/paljakka-share-page.jpg",
+   "hote": "paljakka.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 221982,
+   "servi": true
+  },
+  "fi-paloisvuori": {
+   "url": "https://iisalmi.fi/wp-content/uploads/2024/02/DG6A5111.jpg",
+   "hote": "iisalmi.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 713024,
+   "servi": true
+  },
+  "fi-pukkivuori": {
+   "url": "https://ski.fi/media/pukkivuori-maalis2022-1792-1280x500-1-1024x400.jpg",
+   "hote": "ski.fi",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 119954,
+   "servi": true
+  },
+  "fi-purnu": {
+   "url": "https://www.purnu.com/wp-content/uploads/2024/02/IMG_5737_edited.jpeg",
+   "hote": "www.purnu.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 136219,
+   "servi": true
+  },
+  "fi-ruunarinteet": {
+   "url": "https://ruunarinteet.fi/wp-content/uploads/2022/10/20181010_123601-scaled.jpg",
+   "hote": "ruunarinteet.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 751581,
+   "servi": true
+  },
+  "fi-salla-ski-resort": {
+   "url": "https://ski.salla.fi/wp-content/uploads/2017/11/tarjoukset_nosto-1.jpg",
+   "hote": "ski.salla.fi",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 151400,
+   "servi": true
+  },
+  "fi-solvalla-swinghill": {
+   "url": "https://www.lumipallo.fi/wp-content/uploads/2013/04/swinghill_rinteet.jpg",
+   "hote": "www.lumipallo.fi",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 456214,
+   "servi": true
+  },
+  "fi-suomutunturi": {
+   "url": "https://www.suomutunturi.fi/wp-content/uploads/2025/07/kanoe_kemijarvi.jpg",
+   "hote": "www.suomutunturi.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1999286,
+   "servi": true
+  },
+  "fi-tahko": {
+   "url": "https://www.tahko.com/app/uploads/2026/04/Tahko.jpg",
+   "hote": "www.tahko.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 105409,
+   "servi": true
+  },
+  "fi-yllas-ski-resort-akaslompolo": {
+   "url": "https://ski.yllas.fi/wp-content/uploads/2021/10/cropped-gondoli.jpeg",
+   "hote": "ski.yllas.fi",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 325166,
+   "servi": true
+  },
+  "gb-garthdee-ski-centre": {
+   "url": "https://www.sportaberdeen.co.uk/wp-content/uploads/2020/05/IMG_9331-2-scaled.jpg",
+   "hote": "www.sportaberdeen.co.uk",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 259186,
+   "servi": true
+  },
+  "gb-midland-ski-club-ackers-adventure": {
+   "url": "https://ski.mountainviewmidland.com/wp-content/uploads/2016/03/cropped-course.jpg",
+   "hote": "ski.mountainviewmidland.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 165092,
+   "servi": true
+  },
+  "gb-midlothian-snowsports-centre-hillend-dry-slope": {
+   "url": "https://l450v.alamy.com/450v/bx8j6j/midlothian-snowsports-centre-snow-scene-at-hillend-edinburgh-scotland-bx8j6j.jpg",
+   "hote": "l450v.alamy.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 42431,
+   "servi": true
+  },
+  "gb-newmilns-snow-sports-complex": {
+   "url": "https://www.visitscotland.com/wsimgs/20141004_Newmilns_0338_37358127.jpg?size=lg",
+   "hote": "www.visitscotland.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 153706,
+   "servi": true
+  },
+  "gb-raise": {
+   "url": "https://www.ldscsnowski.co.uk/scott%20rose%20by%20ben%20barden.png",
+   "hote": "www.ldscsnowski.co.uk",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 736099,
+   "servi": true
+  },
+  "gb-south-wilts-ski-club": {
+   "url": "https://i2-prod.bristolpost.co.uk/incoming/article9635529.ece/ALTERNATES/s1200/2_BRIHB_171024-south-wilts-ski-club.jpg",
+   "hote": "i2-prod.bristolpost.co.uk",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 99323,
+   "servi": true
+  },
+  "gb-the-snow-centre-hemel-hempstead": {
+   "url": "https://ukfamilytravel.com/wp-content/uploads/2020/05/Main-ski-slope-at-the-Snow-Centre-in-Hemel-1.jpg",
+   "hote": "ukfamilytravel.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 276020,
+   "servi": true
+  },
+  "gb-yad-moss": {
+   "url": "https://yadmoss.co.uk/wp-content/uploads/2022/04/5A91A2B6-F039-4AE3-9F34-4F7C267527E6-2000x1500.jpeg",
+   "hote": "yadmoss.co.uk",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 366086,
+   "servi": true
+  },
+  "ge-goderdzi": {
+   "url": "https://tourguide.ge/wp-content/uploads/2019/11/goderdzi-ski-resort-7-1.jpeg",
+   "hote": "tourguide.ge",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 218196,
+   "servi": true
+  },
+  "ge-kokhta-mitarbi": {
+   "url": "https://tourguide.ge/wp-content/uploads/2019/12/mitarbi-ski-resort-georgia.jpeg",
+   "hote": "tourguide.ge",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 256014,
+   "servi": true
+  },
+  "gr-3-5-3-5-pigadia": {
+   "url": "https://xionodromika.gr/wp-content/uploads/2015/12/3-5pigadia_xionodromiko_kentro.jpg",
+   "hote": "xionodromika.gr",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 581254,
+   "servi": true
+  },
+  "gr-kaimaktsalan": {
+   "url": "https://hellothessaloniki.gr/wp-content/uploads/2021/12/Voras-Kaimaktsalan-Ski-Center-03_1920x1080-1536x864.jpg",
+   "hote": "hellothessaloniki.gr",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 238773,
+   "servi": true
+  },
+  "gr-mainalo": {
+   "url": "https://mainaloski.gr/wp-content/uploads/2024/01/1v.jpg",
+   "hote": "mainaloski.gr",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 396677,
+   "servi": true
+  },
+  "hr-sljeme": {
+   "url": "http://www.sljeme.hr/UserDocsImages//slider/sljeme_slider.jpg",
+   "hote": "www.sljeme.hr",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 787202,
+   "servi": true
+  },
+  "hu-zemplen-kalandpark": {
+   "url": "https://zemplenkalandpark.hu/wp-content/uploads/2025/03/Seo.jpg",
+   "hote": "zemplenkalandpark.hu",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 101357,
+   "servi": true
+  },
+  "ie-ski-club-of-ireland": {
+   "url": "https://skiclub.ie/wp-content/uploads/2026/01/IMG_1708-1-1024x1017.webp",
+   "hote": "skiclub.ie",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 194686,
+   "servi": true
+  },
+  "is-dalvik": {
+   "url": "https://www.skidalvik.is/static/themes/2017/images/og.png?v=1790081118",
+   "hote": "www.skidalvik.is",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 38362,
+   "servi": true
+  },
+  "is-hli-arfjall": {
+   "url": "https://www.hlidarfjall.is/static/themes/2016/images/og.png?v=1790079698",
+   "hote": "www.hlidarfjall.is",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 33881,
+   "servi": true
+  },
+  "is-siglufjordur": {
+   "url": "https://www.skardsdalur.is/static/themes/2018/images/og.png?v=1790086467",
+   "hote": "www.skardsdalur.is",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 32074,
+   "servi": true
+  },
+  "it-area-sciistica-pian-del-falco": {
+   "url": "https://www.falcadedolomiti.it/wp-content/uploads/2020/12/FALCADE-Dolomiti-2-scaled.jpg",
+   "hote": "www.falcadedolomiti.it",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 439718,
+   "servi": true
+  },
+  "it-area-sciistica-pian-del-poggio-monte-chiappo": {
+   "url": "https://www.seggioviapiandelpoggio.it/wp-content/uploads/2025/09/seggiovia_neve.jpg",
+   "hote": "www.seggioviapiandelpoggio.it",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 221021,
+   "servi": true
+  },
+  "it-area-sciistica-ussita-frontignano": {
+   "url": "https://www.frontignano360.it/wp-content/uploads/2021/12/opengraphImage.jpg",
+   "hote": "www.frontignano360.it",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 53121,
+   "servi": true
+  },
+  "it-capracotta": {
+   "url": "https://capracotta.com/wp-content/uploads/2022/07/fb-card-capracotta.jpg",
+   "hote": "capracotta.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 218363,
+   "servi": true
+  },
+  "it-cortina-tofane": {
+   "url": "https://www.impianticortina.it/wp-content/uploads/2025/01/pista-tofanina-cortina.jpg",
+   "hote": "www.impianticortina.it",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 196007,
+   "servi": true
+  },
+  "it-crissolo-monviso-ski": {
+   "url": "https://cdn.bfldr.com/WIENNW6Q/as/7ffhhbbpt59rwxfzhs3tfzsr/Crissolo_-_Monviso_Ski?auto=webp&width=1024",
+   "hote": "cdn.bfldr.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 63953,
+   "servi": true
+  },
+  "it-forca-canapine": {
+   "url": "https://www.scimarche.it/wp-content/uploads/2025/01/webcam-forca-canapine-1068x712.jpg",
+   "hote": "www.scimarche.it",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 146878,
+   "servi": true
+  },
+  "it-forni-di-sopra": {
+   "url": "https://www.turismofvg.it/proxyvfs.axd/image_hd/r59216/file-jpg?v=218290&ext=.jpg",
+   "hote": "www.turismofvg.it",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 285125,
+   "servi": true
+  },
+  "it-kaberlaba": {
+   "url": "https://www.kaberland.com/wp-content/uploads/2024/12/slider-sci-4.webp",
+   "hote": "www.kaberland.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 314370,
+   "servi": true
+  },
+  "it-nevelandia": {
+   "url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0a/41/66/1e/nevelandia.jpg?w=1200&h=1200&s=1",
+   "hote": "dynamic-media-cdn.tripadvisor.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 154761,
+   "servi": true
+  },
+  "it-passo-san-leonardo": {
+   "url": "http://www.skiforum.it/skiforum/upload/resort/71023-passo-san-leonardo.jpg",
+   "hote": "www.skiforum.it",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 154939,
+   "servi": true
+  },
+  "it-prali-448786m70569": {
+   "url": "https://www.praliskiarea.com/wp-content/uploads/2025/11/DSC08785.jpg",
+   "hote": "www.praliskiarea.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 103397,
+   "servi": true
+  },
+  "it-ramudla": {
+   "url": "https://thaneihof.com/thnhf109/wp-content/uploads/2018/06/ski_ramudla_3-768x576.jpg",
+   "hote": "thaneihof.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 84766,
+   "servi": true
+  },
+  "it-roccaraso-rivisondoli": {
+   "url": "https://bestdayeveryday.com/wp-content/uploads/2025/06/roccaraso-abruzzo-italy-ski-resort.jpeg",
+   "hote": "bestdayeveryday.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 656757,
+   "servi": true
+  },
+  "it-tarvisio-tarvis": {
+   "url": "https://www.italia.it/content/dam/tdh/it/interests/friuli-venezia-giulia/in-friuli-venezia-giulia-sugli-sci/media/20211104160253-tarvisio-monte-lussari-sci-neve-friuli-venezia-giulia-shutterstock-362198174.jpg",
+   "hote": "www.italia.it",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 465468,
+   "servi": true
+  },
+  "it-terminillo": {
+   "url": "https://www.terminillo.eu/wp-content/uploads/2019/01/terminillo-emozioni-min.jpg",
+   "hote": "www.terminillo.eu",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 82613,
+   "servi": true
+  },
+  "it-val-d-aveto": {
+   "url": "https://images2-trekking.gazzettaobjects.it/wp-content/uploads/2019/05/23/13/00/Piste_Sci_Aveto-900x611.jpg?v=160264",
+   "hote": "images2-trekking.gazzettaobjects.it",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 109924,
+   "servi": true
+  },
+  "it-val-formica": {
+   "url": "https://www.valformica.it/wp-content/uploads/2023/01/VAL-FORMICA_home.jpg",
+   "hote": "www.valformica.it",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 167934,
+   "servi": true
+  },
+  "it-verena-2000": {
+   "url": "https://www.skiverena.com/images/web/estate/ski_verena_estate_vista_panoramica_w_fb.jpg",
+   "hote": "www.skiverena.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 2546249,
+   "servi": true
+  },
+  "lt-aukstagires-slidinejimo-trasa": {
+   "url": "https://kelionesakimirka.lt/wp-content/uploads/2024/12/Slidinejimo-kalnai-Lietuvoje.jpg",
+   "hote": "kelionesakimirka.lt",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 208697,
+   "servi": true
+  },
+  "lt-liepkalnis-lipowka": {
+   "url": "https://liepkalnis.lt/assets/images/og_image6.png",
+   "hote": "liepkalnis.lt",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 117711,
+   "servi": true
+  },
+  "lv-riekstukalns": {
+   "url": "https://www.riekstukalns.lv/uploads/pages/services-1.jpg",
+   "hote": "www.riekstukalns.lv",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 291587,
+   "servi": true
+  },
+  "lv-zagarkalns": {
+   "url": "https://zagarkalns.lv/wp-content/uploads/2020/06/ZGK-20-2-scaled-1.jpg",
+   "hote": "zagarkalns.lv",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 499195,
+   "servi": true
+  },
+  "me-kolasin-1450-ski-resort-1450": {
+   "url": "http://www.kolasin1450.com/img/home/skijaliste1.jpg",
+   "hote": "www.kolasin1450.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 183527,
+   "servi": true
+  },
+  "me-kolasin-1600": {
+   "url": "https://skijalista.me/wp-content/uploads/DJI_0765-1536x1023.jpg",
+   "hote": "skijalista.me",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 372060,
+   "servi": true
+  },
+  "me-ski-centar-savin-kuk": {
+   "url": "https://montenegro.org/wp-content/uploads/2023/03/z25777348IHSavin-Kuk.jpg",
+   "hote": "montenegro.org",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 113555,
+   "servi": true
+  },
+  "mk-ponikva": {
+   "url": "https://macedoniafromabove.mk/ponikva/socialThumbnail.jpg",
+   "hote": "macedoniafromabove.mk",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1344191,
+   "servi": true
+  },
+  "mk-ski-center-mihajlovo": {
+   "url": "https://www.skijanje.rs/assets/ski-centri/makedonija/mihajlovo/_resampled/SetWidth1200-3-Mihajlovo-18.01.2025-8.jpg",
+   "hote": "www.skijanje.rs",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 813635,
+   "servi": true
+  },
+  "nl-alpine-world-oss": {
+   "url": "https://alpineworld.nl/wp-content/uploads/2018/09/facebok-website.jpg",
+   "hote": "alpineworld.nl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 124075,
+   "servi": true
+  },
+  "nl-outdoorski-bergschenhoek": {
+   "url": "https://outdoorvalleywintersport.nl/wp-content/uploads/2022/11/OVW-13-november-2022-13-1024x683.jpg",
+   "hote": "outdoorvalleywintersport.nl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 163555,
+   "servi": true
+  },
+  "nl-skicentrum-de-wijchense-berg": {
+   "url": "https://www.dewijchenseberg.nl/wp-content/uploads/2025/12/gouden-slinger.png",
+   "hote": "www.dewijchenseberg.nl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 431607,
+   "servi": true
+  },
+  "nl-skicentrum-soesterberg-huis-ter-heide": {
+   "url": "https://www.skicentrumsoesterberg.nl/wordpress/wp-content/uploads/elementor/thumbs/Ski_snowboard_les-nr6102x1mti2zu9w85hfdm73kl5rkzcimjlm5avcu0.jpg",
+   "hote": "www.skicentrumsoesterberg.nl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 43764,
+   "servi": true
+  },
+  "nl-skiclub-il-primo": {
+   "url": "https://www.ilprimo.nl/images/proeflessen-september.jpg",
+   "hote": "www.ilprimo.nl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 367840,
+   "servi": true
+  },
+  "nl-vallei-53": {
+   "url": "https://vallei53.nl/wp-content/uploads/2024/01/Terrein_HelseHeuvel_DJI_0006-edited.jpg",
+   "hote": "vallei53.nl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 363118,
+   "servi": true
+  },
+  "nl-wolfskamer-wintersport": {
+   "url": "https://wolfskamer.nl/images/opleiding-skileraar-banner-2000-x-600-full.jpg",
+   "hote": "wolfskamer.nl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 111671,
+   "servi": true
+  },
+  "no-fagerfjell-skisenter-598287m93067": {
+   "url": "http://www.fagerfjell.no/files/theme/images/kveldsutsikt.jpg",
+   "hote": "www.fagerfjell.no",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 43142,
+   "servi": true
+  },
+  "no-hammerfest": {
+   "url": "https://image.geo.de/33263620/t/ZX/v2/w1440/r1.5/-/hammerfest--a230597279.jpg",
+   "hote": "image.geo.de",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 224904,
+   "servi": true
+  },
+  "no-knyken-skisenter": {
+   "url": "http://www.orkdal-il.no/assets/Bannere/Bakkerekord-Knyken-13042013-banner.jpg",
+   "hote": "www.orkdal-il.no",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 151416,
+   "servi": true
+  },
+  "no-lofoten": {
+   "url": "https://www.norwegianadventurecompany.com/assets/main/img/bris/topptur-ski-touring-lofoten-henningsvaer-bris-bedriftsarrangement-guppetur-norway-accomodation-norwegian-adventure-company-01.jpg",
+   "hote": "www.norwegianadventurecompany.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 188174,
+   "servi": true
+  },
+  "no-marikollen-skisenter": {
+   "url": "https://marikollen.no/wp-content/uploads/2023/02/marikollen_skisenter_20230219.jpg",
+   "hote": "marikollen.no",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 193159,
+   "servi": true
+  },
+  "no-rauland-skisenter-597260m81467": {
+   "url": "https://visitrauland.com/rauland-skisenter/wp-content/uploads/sites/18/2019/11/Holtardalen-Drone-1920-4.jpg",
+   "hote": "visitrauland.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 561219,
+   "servi": true
+  },
+  "no-ringerudsetra-skitrekk": {
+   "url": "https://ringerud.no/wp-content/uploads/2019/06/ringerudgard-familie.jpg",
+   "hote": "ringerud.no",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 546744,
+   "servi": true
+  },
+  "no-sarves-alta": {
+   "url": "https://sarvesalta.no/wp-content/uploads/2023/04/6EE07FC7-4558-4C0B-807C-F4CC1055F35E-1030x773.jpg",
+   "hote": "sarvesalta.no",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1010025,
+   "servi": true
+  },
+  "no-siljan-skisenter": {
+   "url": "https://admin.siljannews.se/wp-content/uploads/2025/11/SkiStars-backar-o¦eppnar-fo¦er-skida¦ekning-2024-Foto-SkiStar-1-scaled.jpg",
+   "hote": "admin.siljannews.se",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 504617,
+   "servi": true
+  },
+  "no-skillevollen": {
+   "url": "https://visithelgeland.com/app/uploads/2023/01/skillevollen-alpin-langrenn_02_190124_foto-kristoffermollevik-visithelgeland-scaled.jpg",
+   "hote": "visithelgeland.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 920419,
+   "servi": true
+  },
+  "no-sogn-skisenter": {
+   "url": "http://static1.squarespace.com/static/5a172d9b0100270ad3cf32ef/t/5a4b97ba41920273abbe5fba/1514903485258/Sogn+Skisenter_Frikj%C3%B8yring_Foto+Vegard+Aase_648x480.jpg?format=1500w",
+   "hote": "static1.squarespace.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 181914,
+   "servi": true
+  },
+  "no-sunnfjord-skisenter": {
+   "url": "https://sunnfjordu40.no/wp-content/uploads/2022/11/Afterski-nettside.png",
+   "hote": "sunnfjordu40.no",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/png",
+   "taille": 1798117,
+   "servi": true
+  },
+  "no-troms-alpinpark": {
+   "url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/22/33/fe/f8/tromso-alpinpark.jpg?w=1200&h=1200&s=1",
+   "hote": "dynamic-media-cdn.tripadvisor.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 212201,
+   "servi": true
+  },
+  "pl-amalka": {
+   "url": "https://www.skiareal-amalka.cz/images/amalka/amalka-13.jpg",
+   "hote": "www.skiareal-amalka.cz",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 492567,
+   "servi": true
+  },
+  "pl-arena-narciarska-jaworki-homole": {
+   "url": "https://www.skionline.pl/galerie/stacje-narciarskie-polska/jaworki-2015-01-28/jaworki_p1284537.jpg",
+   "hote": "www.skionline.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 228612,
+   "servi": true
+  },
+  "pl-celejow": {
+   "url": "http://www.celejow.skigo.pl/gfx/ski/_thumbs/pl/skiosrodki/98/zdjecia/l6eV7J1nYlXr0YqZqA,98_celejow_2036172236.jpg",
+   "hote": "www.celejow.skigo.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 115852,
+   "servi": true
+  },
+  "pl-che-mowa-gora": {
+   "url": "https://mynaszlaku.pl/wp-content/uploads/2020/11/gora-chelm-myslenice-wyciag-narciarski.jpg",
+   "hote": "mynaszlaku.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 206381,
+   "servi": true
+  },
+  "pl-d-uga-polana": {
+   "url": "https://tatrysuperski.pl/assets/components/phpthumbof/cache/Dluga_Polana_1.f12b1e06097056147d9e7112e90dc4a7222.jpg",
+   "hote": "tatrysuperski.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 59460,
+   "servi": true
+  },
+  "pl-gorka-srodulska": {
+   "url": "https://bi.im-g.pl/im/5e/9d/12/z19518046IHG,Gorka-Srodulska-w-Sosnowcu.jpg",
+   "hote": "bi.im-g.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 154190,
+   "servi": true
+  },
+  "pl-karpatka-panorama": {
+   "url": "https://www.karpacz.pl/img/wyciagi/TG_130302_Winterpol_Karpacz_0590.jpg",
+   "hote": "www.karpacz.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 232042,
+   "servi": true
+  },
+  "pl-komancza": {
+   "url": "https://www.twojebieszczady.net/zima-pliki/komancza350.jpg",
+   "hote": "www.twojebieszczady.net",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 21662,
+   "servi": true
+  },
+  "pl-krzyzowa-gora": {
+   "url": "https://vcdn.bergfex.at/images/resized/dd/45c401127df6ffdd_a9a6e53b80c72386.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 138180,
+   "servi": true
+  },
+  "pl-ma-ego-krola": {
+   "url": "https://www.visitustrzyki.pl/upload/offer/wyciag-narciarski/variants/full/IMG_9251.jpg",
+   "hote": "www.visitustrzyki.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 159833,
+   "servi": true
+  },
+  "pl-osrodek-bystre": {
+   "url": "https://www.owbystre.pl/wp-content/uploads/2022/12/BYSTRE-DOMKI15.webp",
+   "hote": "www.owbystre.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 802288,
+   "servi": true
+  },
+  "pl-osrodek-narciarski-kotelnica-bia-czanska-kotelnica-bia-czanska-ski-resort": {
+   "url": "https://bialkatatrzanska.pl/og-image.jpg",
+   "hote": "bialkatatrzanska.pl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 299594,
+   "servi": true
+  },
+  "pl-osrodek-narciarski-za-groniem": {
+   "url": "https://zagroniem.pl/wp-content/uploads/2022/01/3.jpg",
+   "hote": "zagroniem.pl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 400432,
+   "servi": true
+  },
+  "pl-park-szczesliwice": {
+   "url": "https://warsawcity.info/wp-content/uploads/2025/01/Gorka-Szczesliwicka-narty-Warszawa.jpeg",
+   "hote": "warsawcity.info",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 117113,
+   "servi": true
+  },
+  "pl-piekna-gora": {
+   "url": "https://vcdn.bergfex.at/images/resized/76/20e621a852674976_73b6227b2021476f@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 102280,
+   "servi": true
+  },
+  "pl-pierscienica-kielce": {
+   "url": "https://stadion.kielce.pl/wp-content/uploads/2019/11/stok-narciarski-stadion-kielce-zdj1-1024x683.jpg",
+   "hote": "stadion.kielce.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 187653,
+   "servi": true
+  },
+  "pl-pod-wangiem": {
+   "url": "https://krainakarkonoszy.pl/wp-content/uploads/2020/01/Pod-Wangiem.jpg",
+   "hote": "krainakarkonoszy.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 505534,
+   "servi": true
+  },
+  "pl-rusin-ski": {
+   "url": "https://static.webcamera.pl/camsbig/rusinski-panorama.jpg?nc=1767625877",
+   "hote": "static.webcamera.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 396718,
+   "servi": true
+  },
+  "pl-siepraw": {
+   "url": "https://static.webcamera.pl/camsbig/siepraw-ski.jpg?nc=1737114552",
+   "hote": "static.webcamera.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 136037,
+   "servi": true
+  },
+  "pl-smolen-ski": {
+   "url": "https://codziennyekspert.pl/wp-content/uploads/2023/12/Wyciag-narciarski-Smolen-Ski.jpg",
+   "hote": "codziennyekspert.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 142446,
+   "servi": true
+  },
+  "pl-sport-dolina": {
+   "url": "https://sportdolina.pl/wp-content/uploads/2024/01/wyciag-narciarski-Bytom.jpg",
+   "hote": "sportdolina.pl",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1059770,
+   "servi": true
+  },
+  "pl-stok-bobliwo": {
+   "url": "https://www.camerainfo.pl/pub/thumbs/img-pub-uploads-stokbobliwo-izbica-stokbobliwo-1jpg-1920-1200-1565108383-71851.jpg",
+   "hote": "www.camerainfo.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 266073,
+   "servi": true
+  },
+  "pl-szyndzielnia": {
+   "url": "https://kolej-szyndzielnia.pl/wp-content/uploads/2022/11/01-miejsce-Dominik-Mielcarek-2.jpg",
+   "hote": "kolej-szyndzielnia.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1679364,
+   "servi": true
+  },
+  "pl-tumlin-sport-ski": {
+   "url": "https://tumlinsportski.pl/wp-content/uploads/2025/12/DJI_0004-1-scaled.jpg",
+   "hote": "tumlinsportski.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 329004,
+   "servi": true
+  },
+  "pl-wyciag-narciarski-kartasiowka": {
+   "url": "https://wiadomosci.olsztyn.pl/wp-content/uploads/2016/01/kartasiowka.jpg",
+   "hote": "wiadomosci.olsztyn.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 43106,
+   "servi": true
+  },
+  "pl-zo-wik": {
+   "url": "https://www.karpacz.pl/photo/lift34/zolwik-pl_89_min.jpg",
+   "hote": "www.karpacz.pl",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 46699,
+   "servi": true
+  },
+  "ro-baile-homorod": {
+   "url": "https://img0.oastatic.com/img2/44319286/max/ski-slope-baile-homorod.jpg",
+   "hote": "img0.oastatic.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 354169,
+   "servi": true
+  },
+  "ro-banffydongo-dangau-mare": {
+   "url": "https://ski-si-snowboard.ro/wp-content/uploads/2014/02/dangau-mare-capusu-mare-partia-gemenii-partia-neagra-cluj-romania-ski-si-snowboard-3.jpg",
+   "hote": "ski-si-snowboard.ro",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 597945,
+   "servi": true
+  },
+  "ro-bogdan": {
+   "url": "https://schi-bogdan.ro/wp-content/uploads/seo-image-schi-bogdan.jpg",
+   "hote": "schi-bogdan.ro",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 137570,
+   "servi": true
+  },
+  "ro-casa-baraj": {
+   "url": "https://casa-baraj.ro/images/pcb/4-2.jpg",
+   "hote": "casa-baraj.ro",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 286435,
+   "servi": true
+  },
+  "ro-clabucet": {
+   "url": "https://complexclabucet.ro/wp-content/uploads/2023/10/cbt-cazare-clabucet-sosire-predeal.webp",
+   "hote": "complexclabucet.ro",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/webp",
+   "taille": 94278,
+   "servi": true
+  },
+  "ro-partia-de-schi-rarau-rarau-ski-resort": {
+   "url": "https://rarauskiresort.ro/wp-content/uploads/2020/02/RarauSkiResort-1024x591.png",
+   "hote": "rarauskiresort.ro",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 1397416,
+   "servi": true
+  },
+  "ro-piatra-neamt-karacsonyko-dealu-cozla": {
+   "url": "https://media.dcnews.ro/image/201901/full/partia_cozla_piatr_neamt_52213600.jpg",
+   "hote": "media.dcnews.ro",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 129273,
+   "servi": true
+  },
+  "ro-poiana-brasov": {
+   "url": "https://www.schipoianabrasov.ro/images/schi-poiana-brasov.jpg",
+   "hote": "www.schipoianabrasov.ro",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 448060,
+   "servi": true
+  },
+  "ro-skigyimes-gyimesi-bob-es-sipalya": {
+   "url": "https://skigyimes.ro/uploads/stock/1754764359_alap-4.jpg",
+   "hote": "skigyimes.ro",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 3381467,
+   "servi": true
+  },
+  "ro-suior": {
+   "url": "https://traveleurope.ro/wp-content/uploads/2015/12/Partie-de-ski-Suior-09.jpg",
+   "hote": "traveleurope.ro",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 245135,
+   "servi": true
+  },
+  "se-mullsjo-alpin": {
+   "url": "https://visitsweden.com/_next/image/?url=https://s3-eu-north-1.amazonaws.com:443/py3.visitsweden.com/original_images/mullsjC3B6202-CMSTemplate.jpg&w=1280&q=40",
+   "hote": "visitsweden.com",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 61470,
+   "servi": true
+  },
+  "se-ryssbergsbacken": {
+   "url": "https://friluft.nu/wp-content/uploads/2025/01/friluftnu-upptack-aventyret-i-ryssbergsbacken-image.jpg",
+   "hote": "friluft.nu",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 128984,
+   "servi": true
+  },
+  "se-skistar-hammarbybacken": {
+   "url": "https://www.skistar.com/globalassets/bilder-nya-skistar.com/skidorter_profilbilder/hammarbybacken/20202021/hammarbybacken-2021_07.jpg",
+   "hote": "www.skistar.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1035733,
+   "servi": true
+  },
+  "se-tolvmannabacken": {
+   "url": "https://www.slalombackar.se/photos/tolvmannabacken_af618.jpg",
+   "hote": "www.slalombackar.se",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 69872,
+   "servi": true
+  },
+  "se-trillevallen": {
+   "url": "https://trillevallen.com/wp-content/uploads/2024/05/MatsLind_Trille-SkiDad175-1920x1280.jpg",
+   "hote": "trillevallen.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1539025,
+   "servi": true
+  },
+  "se-trosabacken": {
+   "url": "https://www.freeride.se/files/2023/01/trosabacken.jpeg",
+   "hote": "www.freeride.se",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 227907,
+   "servi": true
+  },
+  "se-vasjobacken": {
+   "url": "https://visitsweden.nl/_next/image/?url=https://s3-eu-north-1.amazonaws.com:443/py3.visitsweden.com/original_images/Jrvs_FF46188_CMSTemplate.jpg&w=1440&q=40",
+   "hote": "visitsweden.nl",
+   "corroboration": "office-du-pays",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 71971,
+   "servi": true
+  },
+  "si-celjska-koca": {
+   "url": "https://celjska-koca.si/wp-content/uploads/2025/05/IMG_6837-1024x683.jpg",
+   "hote": "celjska-koca.si",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 149481,
+   "servi": true
+  },
+  "si-globoki-klanec": {
+   "url": "https://siol.net/media/img/3d/5f/d0965d67702f8f49ba55-smucisce-globoki-klanec.jpeg",
+   "hote": "siol.net",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 153838,
+   "servi": true
+  },
+  "si-kranjska-gora": {
+   "url": "https://ski-kranjska-gora.com/storage/image/202211/skikgbgliftsslopes.jpeg",
+   "hote": "ski-kranjska-gora.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 864600,
+   "servi": true
+  },
+  "si-krvavec": {
+   "url": "https://travelslovenia.org/wp-content/uploads/2019/04/krvavec-ski-resort-chairlifts-04.jpg",
+   "hote": "travelslovenia.org",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 823257,
+   "servi": true
+  },
+  "si-sella-nevea-kanin-sella-nevea-canin-kanin-sella-nevea": {
+   "url": "https://slovenia-outdoor.com/wp-content/uploads/2019/11/KANIN-SELLA-NEVEA.jpg",
+   "hote": "slovenia-outdoor.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 288473,
+   "servi": true
+  },
+  "si-stari-vrh": {
+   "url": "https://starivrh.si/wp-content/uploads/2026/07/743519267_1596949935774172_1383516357581038652_n.jpg",
+   "hote": "starivrh.si",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 65655,
+   "servi": true
+  },
+  "si-velika-planina": {
+   "url": "https://vcdn.bergfex.at/images/resized/65/4ba2f2135ef5ff65_e05edf52912389f5@2x.jpg",
+   "hote": "vcdn.bergfex.at",
+   "corroboration": "bergfex",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 113630,
+   "servi": true
+  },
+  "si-vogel": {
+   "url": "https://vogel.si/wp-content/uploads/2024/04/Vogel-poletje-1024x560.jpg",
+   "hote": "vogel.si",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 136489,
+   "servi": true
+  },
+  "sk-serkov": {
+   "url": "https://www.chatastart.sk/og.png",
+   "hote": "www.chatastart.sk",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 622456,
+   "servi": true
+  },
+  "tr-denizli-kayak-merkezi": {
+   "url": "https://www.snow-forecast.com/system/images/36265/large/Denizli-Kayak-Merkezi.jpg?1619614126",
+   "hote": "www.snow-forecast.com",
+   "corroboration": "nom",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 123009,
+   "servi": true
+  },
+  "tr-uludag-kayak-merkezi": {
+   "url": "https://www.uludaginfo.com/assets/img/og/uludaginfo-og-v1.jpg",
+   "hote": "www.uludaginfo.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 249721,
+   "servi": true
+  },
+  "ua-bukovytsia": {
+   "url": "https://bukovytsia.com/wp-content/uploads/2019/10/image-kopyia-e1572631559444.jpeg",
+   "hote": "bukovytsia.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 161347,
+   "servi": true
+  },
+  "ua-krasiya": {
+   "url": "https://krasiya.com.ua/wp-content/uploads/2024/01/frame-960.png",
+   "hote": "krasiya.com.ua",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 1203308,
+   "servi": true
+  },
+  "ua-slavske-zahar-berkut": {
+   "url": "https://zaharberkut.ua/wp-content/uploads/2022/07/001.png",
+   "hote": "zaharberkut.ua",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/png",
+   "taille": 782672,
+   "servi": true
+  },
+  "ua-voievodyno": {
+   "url": "https://voevodyno.com/wp-content/uploads/2024/02/vasya.shtefaniak-182-scaled-optimized.jpg",
+   "hote": "voevodyno.com",
+   "corroboration": "hote-officiel",
+   "legende": null,
+   "type": "image/jpeg",
+   "taille": 1476394,
+   "servi": true
+  }
+ },
+ "forfaits": {
+  "at-bad-kleinkirchheim-468169m137834": {
+   "jourAdulte": 69.5,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "at-damuls": {
+   "jourAdulte": 72.5,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.damuels-mellau.at/",
+   "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo | Tarifs complets jour/6j/saison adulte+enfant",
+   "jourEnfant": 41.0,
+   "sixJoursAdulte": 339.0,
+   "sixJoursEnfant": 171.0,
+   "saisonAdulte": 576.0,
+   "saisonEnfant": 315.0
+  },
+  "at-embergeralm": {
+   "jourAdulte": 43.0,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.embergeralm.info/",
+   "note": "Forfait extrait site officiel | Tarifs complets jour/6j/saison adulte+enfant",
+   "jourEnfant": 22.0,
+   "sixJoursAdulte": 200.0,
+   "sixJoursEnfant": 100.0,
+   "saisonAdulte": 360.0,
+   "saisonEnfant": 180.0
+  },
+  "at-familienschiberg-st-jakob-im-walde": {
+   "jourAdulte": 33.0,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.familienschiberg.at",
+   "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets jour/6j/saison adulte+enfant",
+   "jourEnfant": 20.0,
+   "sixJoursAdulte": 164.8,
+   "sixJoursEnfant": 104.5,
+   "saisonAdulte": 268.0,
+   "saisonEnfant": 159.0
+  },
+  "at-forsteralm": {
+   "jourAdulte": 28.0,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr | Tarifs complets jour + saison adulte/enfant",
+   "jourEnfant": 18.0,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": 260.0,
+   "saisonEnfant": 170.0
+  },
+  "at-gargellen": {
+   "jourAdulte": 63.1,
+   "devise": "EUR",
+   "periode": "2026/27 group 21-40 pers (dynamic individual higher)",
+   "source": "https://www.montafon.at/bergbahnen-gargellen",
+   "note": "Forfait extrait site officiel (robots.txt OK, prix groupe)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "at-hochkar": {
+   "jourAdulte": 40.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "at-hochoetz-kuhtai": {
+   "jourAdulte": 62.0,
+   "devise": "EUR",
+   "periode": "2025/26 TOP-Saison",
+   "source": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr | Tarifs complets jour/6j/saison adulte+enfant",
+   "jourEnfant": 34.0,
+   "sixJoursAdulte": 330.0,
+   "sixJoursEnfant": 182.0,
+   "saisonAdulte": 690.0,
+   "saisonEnfant": 379.0
+  },
+  "at-knittellifte": {
+   "jourAdulte": 28.0,
+   "devise": "EUR",
+   "periode": "2026/27",
+   "source": "https://knitteltirol.com/",
+   "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+   "jourEnfant": 23.0,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "at-monichkirchen-mariensee": {
+   "jourAdulte": 40.0,
+   "devise": "EUR",
+   "periode": "2025/26 approx (flexible + Seniorentag 35.90)",
+   "source": "https://www.erlebnisalm.com",
+   "note": "Forfait approx site officiel (robots.txt OK, prix flexible)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "at-niederau-wildschonau": {
+   "jourAdulte": 68.5,
+   "devise": "EUR",
+   "periode": "2025/26 Hauptsaison",
+   "source": "https://www.wildschoenau.com/en/villages/niederau",
+   "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets jour/6j/saison adulte+enfant (Ski Juwel)",
+   "jourEnfant": 34.5,
+   "sixJoursAdulte": 349.5,
+   "sixJoursEnfant": 175.0,
+   "saisonAdulte": 703.0,
+   "saisonEnfant": 299.0
+  },
+  "at-rieseralm": {
+   "jourAdulte": 40.0,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr | Forfait extrait Bergfex / skiresort (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+   "jourEnfant": 24.0,
+   "sixJoursAdulte": 215.0,
+   "sixJoursEnfant": 126.0,
+   "saisonAdulte": 400.0,
+   "saisonEnfant": 250.0
+  },
+  "at-schilift-obdach": {
+   "jourAdulte": 32.0,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.schilift-obdach.at/",
+   "note": "Forfait extrait site officiel / Bergfex (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+   "jourEnfant": 22.0,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": 300.0,
+   "saisonEnfant": 200.0
+  },
+  "at-schneeberglifte-thiersee": {
+   "jourAdulte": 27.0,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.schneeberglifte.at/",
+   "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets jour/6j/saison adulte+enfant",
+   "jourEnfant": 20.0,
+   "sixJoursAdulte": 115.0,
+   "sixJoursEnfant": 88.0,
+   "saisonAdulte": 160.0,
+   "saisonEnfant": 129.0
+  },
+  "at-sibratsgfall": {
+   "jourAdulte": 27.0,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.kraehenberg.at",
+   "note": "Forfait extrait site officiel | Tarifs complets jour + saison adulte/enfant",
+   "jourEnfant": 20.0,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": 135.0,
+   "saisonEnfant": 90.0
+  },
+  "at-ski-juwel-oberau-wildschonau": {
+   "jourAdulte": 68.5,
+   "devise": "EUR",
+   "periode": "2025/26 Hauptsaison",
+   "source": "https://www.skijuwel.com/",
+   "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets jour/6j/saison adulte+enfant (Ski Juwel)",
+   "jourEnfant": 34.5,
+   "sixJoursAdulte": 349.5,
+   "sixJoursEnfant": 175.0,
+   "saisonAdulte": 703.0,
+   "saisonEnfant": 299.0
+  },
+  "at-skigebiet-damuls-mellau-faschina": {
+   "jourAdulte": 72.5,
+   "devise": "EUR",
+   "periode": "2025/26",
+   "source": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr | Tarifs complets jour/6j/saison adulte+enfant",
+   "jourEnfant": 41.0,
+   "sixJoursAdulte": 339.0,
+   "sixJoursEnfant": 171.0,
+   "saisonAdulte": 576.0,
+   "saisonEnfant": 315.0
+  },
+  "at-stubai": {
+   "jourAdulte": 72.5,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-aletsch-arena": {
+   "jourAdulte": 68.5,
+   "devise": "CHF",
+   "periode": "2026/27 (milieu de fourchette dynamique 53-84)",
+   "source": "https://www.aletscharena.ch/",
+   "note": "Forfait extrait site officiel (robots.txt OK)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-amden-arvenbuel": {
+   "jourAdulte": 35.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-atzmannig": {
+   "jourAdulte": 35.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-bellwald": {
+   "jourAdulte": 51.0,
+   "devise": "CHF",
+   "periode": "current",
+   "source": "https://www.bellwald.ch/",
+   "note": "Forfait extrait site officiel (robots.txt OK)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-brigels-waltensburg-andiast-brigels-waltenburg-andiast-breil-vuorz-andiast": {
+   "jourAdulte": 69.0,
+   "devise": "CHF",
+   "periode": "current",
+   "source": "https://www.brigels-bergbahnen.ch",
+   "note": "Forfait extrait site officiel (robots.txt OK)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-brunni-haggenegg": {
+   "jourAdulte": 41.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-brunni-holzegg-rotenflue": {
+   "jourAdulte": 41.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-brusti-attinghausen": {
+   "jourAdulte": 32.0,
+   "devise": "CHF",
+   "periode": "current",
+   "source": "https://www.xn--brsti-surenenpass-32b.ch/",
+   "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+   "jourEnfant": 24.0,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-campo-blenio": {
+   "jourAdulte": 32.0,
+   "devise": "CHF",
+   "periode": "2024/25 or current",
+   "source": "https://campoblenio.ch/",
+   "note": "Forfait extrait site officiel",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-confin-san-bernardino": {
+   "jourAdulte": 49.0,
+   "devise": "CHF",
+   "periode": "current",
+   "source": "https://sanbernardino-swissalps.com/sportarena",
+   "note": "Forfait extrait site officiel / Bergfex (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+   "jourEnfant": 29.0,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-gstaad-saanen-rougemont": {
+   "jourAdulte": 80.0,
+   "devise": "CHF",
+   "periode": "approx (2-day ticket valued 160 CHF)",
+   "source": "https://www.gstaad.ch/bergbahnen/",
+   "note": "Forfait approx site officiel (robots.txt OK)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-les-pleiades": {
+   "jourAdulte": 35.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Site trouvé via OpenSkiData matching (sim=1.00, OSM name: Les Pléiades) | Forfait extrait de Skiinfo.fr | Photo page Skiinfo",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-leukerbad-gemmipass": {
+   "jourAdulte": 62.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-leysin-les-mosses-la-lecherette": {
+   "jourAdulte": 68.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-nollen": {
+   "jourAdulte": 25.0,
+   "devise": "CHF",
+   "periode": "current",
+   "source": "https://www.nollenaegeri.ch/",
+   "note": "Forfait extrait site officiel (robots.txt OK)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-schonried-saanenmoser-zweisimmen-st-stephan": {
+   "jourAdulte": 80.0,
+   "devise": "CHF",
+   "periode": "approx same region",
+   "source": "https://www.gstaad.ch/",
+   "note": "Forfait approx site officiel (robots.txt OK)",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "ch-wolzenalp-krummenau": {
+   "jourAdulte": 36.0,
+   "devise": "CHF",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-bedrichov": {
+   "jourAdulte": 580.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/republique-tcheque/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-bedrichov-klindera": {
+   "jourAdulte": 580.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-benecko-na-sychrove": {
+   "jourAdulte": 790.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/republique-tcheque/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-churanov-zadov": {
+   "jourAdulte": 990.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-harrachov": {
+   "jourAdulte": 1100.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-janske-lazne-cerna-hora": {
+   "jourAdulte": 1490.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-pec-pod-snezkou-506936m157333": {
+   "jourAdulte": 1490.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-skiareal-benecko": {
+   "jourAdulte": 790.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-skiareal-klinovec": {
+   "jourAdulte": 1190.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-skiareal-spindleruv-mlyn-medvedin": {
+   "jourAdulte": 1310.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "cz-spindleruv-mlyn-labska": {
+   "jourAdulte": 1310.0,
+   "devise": "CZK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "de-todtnauberg-478572m79509": {
+   "jourAdulte": 38.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/allemagne/forfaits-de-ski",
+   "note": "Site trouvé via OpenSkiData matching (sim=1.00, OSM name: Todtnauberg) | Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "de-willingen-512950m86081": {
+   "jourAdulte": 43.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/allemagne/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "it-cortina-d-ampezzo": {
+   "jourAdulte": 86.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "it-cortina-tofane": {
+   "jourAdulte": 86.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "it-macugnaga-belvedere": {
+   "jourAdulte": 22.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "it-piancavallo": {
+   "jourAdulte": 44.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+   "note": "Site trouvé via OpenSkiData matching (sim=1.00, OSM name: Piancavallo) | Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "no-kvitfjell": {
+   "jourAdulte": 569.0,
+   "devise": "NOK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "no-narvikfjellet-ski-resort": {
+   "jourAdulte": 490.0,
+   "devise": "NOK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "no-skeikampen-alpinsenter": {
+   "jourAdulte": 490.0,
+   "devise": "NOK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "no-ski-geilo": {
+   "jourAdulte": 693.0,
+   "devise": "NOK",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "pl-cos-opo-zakopane": {
+   "jourAdulte": 170.0,
+   "devise": "PLN",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "pl-kasprowy-wierch": {
+   "jourAdulte": 139.0,
+   "devise": "PLN",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "pl-szklarska-poreba": {
+   "jourAdulte": 170.0,
+   "devise": "PLN",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "sk-jasna-low-tatras": {
+   "jourAdulte": 71.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/slovaquie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  },
+  "sk-martinske-hole-490942m188287": {
+   "jourAdulte": 44.0,
+   "devise": "EUR",
+   "periode": "2025/26 or 2026/27 (Skiinfo)",
+   "source": "https://www.skiinfo.fr/slovaquie/forfaits-de-ski",
+   "note": "Forfait extrait de Skiinfo.fr",
+   "jourEnfant": null,
+   "sixJoursAdulte": null,
+   "sixJoursEnfant": null,
+   "saisonAdulte": null,
+   "saisonEnfant": null
+  }
+ }
+}

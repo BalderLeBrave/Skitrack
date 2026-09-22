@@ -439,6 +439,25 @@ function LigneDomaine({
       >
         {ouvert ? "Masquer la météo" : "Météo, bas et haut des pistes"}
       </button>
+      {ouvert && forfait?.source === "proprietaire" ? (
+        <p className="monde-row__preuve">
+          {/* Un tarif relevé à la main : sa période telle qu'écrite, sa note,
+              et la page d'où il sort — sans quoi il ne se juge pas. */}
+          Relevé à la main
+          {forfait.releve?.periode ? (
+            <>
+              , période <q>{forfait.releve.periode}</q>
+            </>
+          ) : null}
+          {forfait.releve?.note ? ` — ${forfait.releve.note}` : null}
+          {forfait.pageTarifs ? (
+            <>
+              {" "}
+              — <a href={forfait.pageTarifs} rel="noreferrer">la source</a>
+            </>
+          ) : null}
+        </p>
+      ) : null}
       {ouvert && forfait?.source === "officiel" && forfait.preuve ? (
         <p className="monde-row__preuve">
           {/* Un prix lu en texte libre ne se juge pas seul : la ligne du

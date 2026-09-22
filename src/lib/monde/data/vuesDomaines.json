@@ -7,18 +7,20 @@
   "skiinfo",
   "skiresort",
   "bergfex",
-  "site officiel de la station"
+  "site officiel de la station",
+  "tableau des manques (corroboré)"
  ],
  "ordreForfait": [
   "bergfex (grille datée)",
   "skiinfo (grille)",
   "skiresort (un seul nombre)",
-  "site officiel (tarif journée, avec preuve)"
+  "site officiel (tarif journée, avec preuve)",
+  "tableau des manques (avec source)"
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
  "domaines": 2781,
- "avecPhoto": 1918,
- "avecForfait": 1826,
+ "avecPhoto": 2042,
+ "avecForfait": 1879,
  "vues": {
   "ad-canaro": {
    "photo": {
@@ -1777,7 +1779,42 @@
     "titre": "Wandern mit Familie zur Speikskulptur © Michael Stabentheiner_MBN Tourismus",
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       69.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "at-bergbahn-weissensee": {
    "photo": {
@@ -2999,6 +3036,45 @@
    },
    "forfait": null
   },
+  "at-damuls": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.damuels-mellau.at/",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       72.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.damuels-mellau.at/",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo | Tarifs complets jour/6j/saison adulte+enfant",
+     "jourEnfant": 41,
+     "sixJoursAdulte": 339,
+     "sixJoursEnfant": 171,
+     "saisonAdulte": 576,
+     "saisonEnfant": 315
+    }
+   }
+  },
   "at-dreilandereck-arnoldstein": {
    "photo": {
     "source": "skiinfo",
@@ -3215,6 +3291,19 @@
     "periodes": null
    }
   },
+  "at-embach": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "embach-at.b-cdn.net",
+    "nom": null,
+    "km": 0,
+    "url": "https://embach-at.b-cdn.net/wp-content/uploads/2023/08/2023-02-08_TVB-Embach-Wintershooting-©sobietzki-high-res-12-scaled.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "at-embergeralm": {
    "photo": {
     "source": "bergfex",
@@ -3225,7 +3314,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.embergeralm.info/",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       43
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.embergeralm.info/",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait site officiel | Tarifs complets jour/6j/saison adulte+enfant",
+     "jourEnfant": 22,
+     "sixJoursAdulte": 200,
+     "sixJoursEnfant": 100,
+     "saisonAdulte": 360,
+     "saisonEnfant": 180
+    }
+   }
   },
   "at-fageralm": {
    "photo": {
@@ -3326,6 +3450,45 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "at-familienschiberg-st-jakob-im-walde": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.familienschiberg.at",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       33
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.familienschiberg.at",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets jour/6j/saison adulte+enfant",
+     "jourEnfant": 20,
+     "sixJoursAdulte": 164.8,
+     "sixJoursEnfant": 104.5,
+     "saisonAdulte": 268,
+     "saisonEnfant": 159
+    }
    }
   },
   "at-fanningberg": {
@@ -4258,7 +4421,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       28
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait de Skiinfo.fr | Tarifs complets jour + saison adulte/enfant",
+     "jourEnfant": 18,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": 260,
+     "saisonEnfant": 170
+    }
+   }
   },
   "at-forsteralm-478960m147536": {
    "photo": {
@@ -5321,7 +5519,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.montafon.at/bergbahnen-gargellen",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       63.1
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.montafon.at/bergbahnen-gargellen",
+    "releve": {
+     "periode": "2026/27 group 21-40 pers (dynamic individual higher)",
+     "note": "Forfait extrait site officiel (robots.txt OK, prix groupe)",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "at-gemeindealpe-mitterbach": {
    "photo": {
@@ -6729,7 +6962,16 @@
    }
   },
   "at-gramais": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "gramais-lechtal.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://gramais-lechtal.at/wp-content/uploads/2021/02/winter_gramais-2-scaled.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "gramais",
@@ -7170,6 +7412,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "at-gries-in-sellraintal": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "cdn.indebergen.nl",
+    "nom": null,
+    "km": 0,
+    "url": "https://cdn.indebergen.nl/media/0onji33y/attiro113-gries-im-sellrain.jpg?anchor=center&mode=crop&width=1080&height=608&format=webp&quality=80",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "at-gro-arltal-dorfgastein": {
    "photo": {
@@ -8092,7 +8347,16 @@
    "forfait": null
   },
   "at-grunberglift-navis": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "presse.tirol.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://presse.tirol.at/app/uploads/2025/10/Gruenberglift-Navis-cTirol-Werbung-Bert-Heinzlmeier-1-scaled.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "navis",
@@ -9650,6 +9914,45 @@
     "periodes": null
    }
   },
+  "at-hochkar": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       40
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "at-hochkar-477171m149185": {
    "photo": {
     "source": "skiinfo",
@@ -10333,6 +10636,45 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "at-hochoetz-kuhtai": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       62
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 TOP-Saison",
+     "note": "Forfait extrait de Skiinfo.fr | Tarifs complets jour/6j/saison adulte+enfant",
+     "jourEnfant": 34,
+     "sixJoursAdulte": 330,
+     "sixJoursEnfant": 182,
+     "saisonAdulte": 690,
+     "saisonEnfant": 379
+    }
    }
   },
   "at-hochrindl": {
@@ -13775,6 +14117,45 @@
     "periodes": null
    }
   },
+  "at-knittellifte": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://knitteltirol.com/",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       28
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://knitteltirol.com/",
+    "releve": {
+     "periode": "2026/27",
+     "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+     "jourEnfant": 23,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "at-koralpe": {
    "photo": {
     "source": "skiinfo",
@@ -16424,6 +16805,19 @@
     ]
    }
   },
+  "at-muttersberg-bludenz": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/2a/47b5280cacf6b12a_b5e1e99e371209f0@2x.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
+   "forfait": null
+  },
   "at-molltaler-gletscher": {
    "photo": {
     "source": "skiinfo",
@@ -16799,7 +17193,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.erlebnisalm.com",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       40
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.erlebnisalm.com",
+    "releve": {
+     "periode": "2025/26 approx (flexible + Seniorentag 35.90)",
+     "note": "Forfait approx site officiel (robots.txt OK, prix flexible)",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "at-nassfeld-mokrine": {
    "photo": {
@@ -17762,7 +18191,16 @@
    }
   },
   "at-niederau-wildschonau": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.wildschoenau.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.wildschoenau.com/Wildschoenau/D%C3%B6rfer/niederau/46071/image-thumb__46071__og-image/Niederau_Panorama_05_2021_Dabernig%20%28Andere%29.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "tyrol/niederau",
@@ -17858,6 +18296,19 @@
     },
     "periodes": null
    }
+  },
+  "at-niederthai": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "presse.tirol.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://presse.tirol.at/app/uploads/2025/11/nied_Langlauf-Opening-Niederthai-2023-Christian-Schneider-2123-1024x683.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "at-nordkette": {
    "photo": {
@@ -20817,7 +21268,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       40
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait de Skiinfo.fr | Forfait extrait Bergfex / skiresort (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+     "jourEnfant": 24,
+     "sixJoursAdulte": 215,
+     "sixJoursEnfant": 126,
+     "saisonAdulte": 400,
+     "saisonEnfant": 250
+    }
+   }
   },
   "at-riesneralm-donnersbachwald": {
    "photo": {
@@ -22694,6 +23180,54 @@
     "cle": "styrie/stuhleck-semmering"
    }
   },
+  "at-schneeberglifte-thiersee": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.tirol.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.tirol.at/images/Q69cyBpxW3E/cb:/g:ce/aHR0cHM6Ly9pbXhwbGF0Zm9ybS1jdXN0LXR3LmZzbjEueW91ci1vYmplY3RzdG9yYWdlLmNvbS9tZWRpYS9za2lnZWJpZXQtdGlyb2xpbmEtMTI4MHg3MjBweGNnbWVkaWEuanBn",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.schneeberglifte.at/",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       27
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.schneeberglifte.at/",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait site officiel (robots.txt OK) | Tarifs complets jour/6j/saison adulte+enfant",
+     "jourEnfant": 20,
+     "sixJoursAdulte": 115,
+     "sixJoursEnfant": 88,
+     "saisonAdulte": 160,
+     "saisonEnfant": 129
+    }
+   }
+  },
   "at-schollenwiesenlift-hofen": {
    "photo": {
     "source": "skiinfo",
@@ -24165,7 +24699,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.kraehenberg.at",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       27
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.kraehenberg.at",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait site officiel | Tarifs complets jour + saison adulte/enfant",
+     "jourEnfant": 20,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": 135,
+     "saisonEnfant": 90
+    }
+   }
   },
   "at-sillian-hochpustertal": {
    "photo": {
@@ -24566,7 +25135,16 @@
    }
   },
   "at-ski-arlberg": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.arlberghaus.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.arlberghaus.com/fileadmin/_processed_/0/3/csm_arlberg-zuers-lech-c-alex-kaiser-lech-zuers-tourismus_741a01b927.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "lavenar-pettneu-am-arlberg",
@@ -24815,7 +25393,16 @@
    }
   },
   "at-ski-juwel-oberau-wildschonau": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "familyskitrips.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://familyskitrips.com/wp-content/uploads/2024/02/ski-juwel-austria-68.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "tyrol/auffach-ski-juwel",
@@ -26052,6 +26639,45 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "at-skigebiet-damuls-mellau-faschina": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       72.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26",
+     "note": "Forfait extrait de Skiinfo.fr | Tarifs complets jour/6j/saison adulte+enfant",
+     "jourEnfant": 41,
+     "sixJoursAdulte": 339,
+     "sixJoursEnfant": 171,
+     "saisonAdulte": 576,
+     "saisonEnfant": 315
+    }
    }
   },
   "at-skigebiet-diedamskopf": {
@@ -28590,7 +29216,16 @@
    }
   },
   "at-st-martin-im-tennengebirge": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "cdn.indebergen.nl",
+    "nom": null,
+    "km": 0,
+    "url": "https://cdn.indebergen.nl/media/mxdmfo2w/atsalz046-st-martin.jpg?anchor=center&mode=crop&width=1160&height=870&format=webp&quality=80",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "st-martin-im-tennengebirge",
@@ -29136,7 +29771,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       72.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "at-stubaier-gletscher": {
    "photo": {
@@ -32398,7 +33068,16 @@
    }
   },
   "at-vogelsberg-wattens": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "presse.tirol.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://presse.tirol.at/app/uploads/2025/10/Glungezer-cTVB-Hall-Wattens-2-1024x681.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "voegelsberg-wattens",
@@ -32645,6 +33324,19 @@
      }
     ]
    }
+  },
+  "at-waldrastlift-ehenbichl-reutte": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/36/fa2883e5b012d036_6266e275b7002f28@2x.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
+   "forfait": null
   },
   "at-warth-schrocken": {
    "photo": {
@@ -36313,7 +37005,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.aletscharena.ch/",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       68.5
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.aletscharena.ch/",
+    "releve": {
+     "periode": "2026/27 (milieu de fourchette dynamique 53-84)",
+     "note": "Forfait extrait site officiel (robots.txt OK)",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "ch-alpe-di-neggia": {
    "photo": {
@@ -36364,6 +37091,45 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "ch-amden-arvenbuel": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       35
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
    }
   },
   "ch-amden-mattstock": {
@@ -36826,7 +37592,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       35
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "ch-atzmannig-472825m90010": {
    "photo": {
@@ -37482,7 +38283,16 @@
    }
   },
   "ch-baulmes": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/b/c9/ec/bc9ec2593d76b24a5503d38a65189fabd592cbb0_797214099.jpeg",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "la-combette-baulmes",
@@ -37673,6 +38483,54 @@
     "km": 1.52,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/j4t57q2wst3xp6cgv7czxt/Bellwald?auto=webp&format=png",
     "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.bellwald.ch/",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       51
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.bellwald.ch/",
+    "releve": {
+     "periode": "current",
+     "note": "Forfait extrait site officiel (robots.txt OK)",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "ch-bennau-einsiedeln": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/a/b7/90/ab790ffc753ff08acdf00d84e0c8e70bbf3b8aa8_838865252.jpg",
+    "titre": null,
+    "corroboration": "office-du-pays",
     "servi": true
    },
    "forfait": null
@@ -38360,6 +39218,54 @@
     "titre": null,
     "servi": true
    },
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.brigels-bergbahnen.ch",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       69
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.brigels-bergbahnen.ch",
+    "releve": {
+     "periode": "current",
+     "note": "Forfait extrait site officiel (robots.txt OK)",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "ch-brot-dessus": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "static.wixstatic.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://static.wixstatic.com/media/8464a8_411bbc0555c743dabf02747cf5e64fa8~mv2.jpg/v1/fill/w_2000,h_1493,al_c,q_90/19_Piste+de+ski+de+piste+de+Brot-Dessus.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null
   },
   "ch-brunni-haggenegg": {
@@ -38372,7 +39278,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       41
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "ch-brunni-holzegg-rotenflue": {
    "photo": {
@@ -38384,7 +39325,42 @@
     "titre": "Sommer",
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       41
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "ch-brulisau": {
    "photo": {
@@ -38948,7 +39924,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://campoblenio.ch/",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       32
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://campoblenio.ch/",
+    "releve": {
+     "periode": "2024/25 or current",
+     "note": "Forfait extrait site officiel",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "ch-cari": {
    "photo": {
@@ -39098,6 +40109,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "ch-chalet-a-gobet": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/e/41/98/e41986a9e12d390703ac49d1feaf1adbbdb6e111_850226567.JPG",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
+   "forfait": null
   },
   "ch-champex-lac": {
    "photo": {
@@ -39543,6 +40567,45 @@
     "periodes": null
    }
   },
+  "ch-confin-san-bernardino": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://sanbernardino-swissalps.com/sportarena",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       49
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://sanbernardino-swissalps.com/sportarena",
+    "releve": {
+     "periode": "current",
+     "note": "Forfait extrait site officiel / Bergfex (robots.txt OK) | Tarifs complets (jour/6j/saison adulte+enfant)",
+     "jourEnfant": 29,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "ch-corvatsch-furtschellas": {
    "photo": {
     "source": "skiinfo",
@@ -39861,6 +40924,19 @@
     },
     "periodes": null
    }
+  },
+  "ch-dent-de-vaulion-le-morez": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.dentistes-flach.fr",
+    "nom": null,
+    "km": 0,
+    "url": "http://www.dentistes-flach.fr/images/contenu/h800/20190304_192238.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "ch-diavolezza-lagalb": {
    "photo": {
@@ -40207,6 +41283,19 @@
     "km": 0.16,
     "url": "https://vcdn.bergfex.at/images/resized/4d/8a9490f7993b3d4d_cd4355bd39ce566f.jpg",
     "titre": null,
+    "servi": true
+   },
+   "forfait": null
+  },
+  "ch-eigenthal": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://www.myswitzerland.com/-/media/st/gadmin/images/sport/winter/various/ll_318_dsc03728_m_248573.jpg",
+    "titre": null,
+    "corroboration": "office-du-pays",
     "servi": true
    },
    "forfait": null
@@ -41691,6 +42780,19 @@
     "periodes": null
    }
   },
+  "ch-glarus": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://www.myswitzerland.com/-/media/st/gadmin/images/cities/winter/cities/kantongl_glarus_morgenrot_20121231-17_28429.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ch-gluringen": {
    "photo": {
     "source": "skiresort",
@@ -42427,7 +43529,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.gstaad.ch/bergbahnen/",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       80
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.gstaad.ch/bergbahnen/",
+    "releve": {
+     "periode": "approx (2-day ticket valued 160 CHF)",
+     "note": "Forfait approx site officiel (robots.txt OK)",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "ch-gstaad-wasserngrat": {
    "photo": {
@@ -42692,6 +43829,19 @@
     },
     "periodes": null
    }
+  },
+  "ch-heiligkreuz-first": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d10rdyp01sn3kp.cloudfront.net/files/pics/2016618167556050.3123376400262894.JPG",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
+   "forfait": null
   },
   "ch-heimenschwand": {
    "photo": null,
@@ -45065,6 +46215,19 @@
     "periodes": null
    }
   },
+  "ch-lantsch-lenz": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://images.schweizmobil.ch/image-master/WW_206_DSC06072_F_M.jpg",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ch-lauchernalp": {
    "photo": {
     "source": "skiinfo",
@@ -45901,6 +47064,19 @@
     "periodes": null
    }
   },
+  "ch-les-rousses": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.lesrousses.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.lesrousses.com/content/uploads/2024/05/home-scaled.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ch-leukerbad-torrent": {
    "photo": {
     "source": "skiinfo",
@@ -45972,6 +47148,45 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "ch-leukerbad-gemmipass": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       62
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr | Photo page Skiinfo",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
    }
   },
   "ch-leysin": {
@@ -46090,7 +47305,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       68
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "ch-madrisa": {
    "photo": {
@@ -46870,7 +48120,16 @@
    }
   },
   "ch-mosnang": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skiliftmosnang.ch",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.skiliftmosnang.ch/wp-content/uploads/2021/01/a5934e81-c9c1-4705-ba8e-8ddda2bfe1ca.jpeg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "hochwacht-mosnang",
@@ -48697,6 +49956,19 @@
    },
    "forfait": null
   },
+  "ch-rigi-scheidegg": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://contentapi-swissactivities.imgix.net/contentapi.staging.swissactivities/306e0071f64c035f91c59e7153a4b1ee.jpg",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ch-rinerhorn": {
    "photo": {
     "source": "bergfex",
@@ -48767,6 +50039,19 @@
     },
     "periodes": null
    }
+  },
+  "ch-rossberg-oberwil": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/0c/60d9cc565a01480c_7ecbb3c1d415eb6f.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
+   "forfait": null
   },
   "ch-rosswald": {
    "photo": {
@@ -48874,6 +50159,19 @@
     "periodes": null
    }
   },
+  "ch-rothwald": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "images.ctfassets.net",
+    "nom": null,
+    "km": 0,
+    "url": "https://images.ctfassets.net/ukaa6ik2569a/6MKkwV6vKM3WHjxlxw54mm/9b5f91e6f0eeee2f6f16e150ae9ecdfa/activity-skisnowboard_rothwald_1.jpg?f=center&w=2560&h=1706&fm=jpg&q=80&fit=fill",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ch-ruhesitz": {
    "photo": {
     "source": "officiel",
@@ -48887,7 +50185,16 @@
    "forfait": null
   },
   "ch-runal-pera-trun": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "runalpera.ch",
+    "nom": null,
+    "km": 0,
+    "url": "https://runalpera.ch/wordpress/wp-content/gallery/2020_cuorsa_da_skis/DSF5155.JPG",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "pera-trun",
@@ -49538,6 +50845,19 @@
     },
     "periodes": null
    }
+  },
+  "ch-sainte-croix-les-rasses": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "img.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://img.myswitzerland.com/ext/https://static.stnet.ch/wispo/images/146/picture-3427/3427-o.jpg?q=80&c=fill&g=center",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
+   "forfait": null
   },
   "ch-sainte-croix-les-rasses-468365m65307": {
    "photo": {
@@ -50423,6 +51743,54 @@
     "km": 4.81,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/nn6g7btnt99pnzw52sms2vr5/Gstaad_-_Saanenmser_-_Schnried_-_Zweisimmen?auto=webp&format=png",
     "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.gstaad.ch/",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       80
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.gstaad.ch/",
+    "releve": {
+     "periode": "approx same region",
+     "note": "Forfait approx site officiel (robots.txt OK)",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "ch-schupfheim": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.myswitzerland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/3/a2/0c/3a20c436ee452cf1efa883c3a9a85112c8c9d5c9_880156371.png",
+    "titre": null,
+    "corroboration": "office-du-pays",
     "servi": true
    },
    "forfait": null
@@ -51428,7 +52796,16 @@
    }
   },
   "ch-st-margrethenberg": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "skilift-tristeli.ch",
+    "nom": null,
+    "km": 0,
+    "url": "https://skilift-tristeli.ch/.cm4all/uproc.php/0/4.jpeg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "tristeli-st-margrethenberg",
@@ -53584,6 +54961,45 @@
     "periodes": null
    }
   },
+  "ch-wolzenalp-krummenau": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CHF",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       36
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "ch-wagital": {
    "photo": {
     "source": "bergfex",
@@ -54121,6 +55537,45 @@
     "periodes": null
    }
   },
+  "cz-bedrichov": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/republique-tcheque/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       580
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/republique-tcheque/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "cz-bedrichov-507885m151448": {
    "photo": {
     "source": "skiinfo",
@@ -54237,6 +55692,84 @@
     "n": 10,
     "source": "skiinfo",
     "cle": "jizerske-hory/bedrichov"
+   }
+  },
+  "cz-bedrichov-klindera": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       580
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "cz-benecko-na-sychrove": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/republique-tcheque/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       790
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/republique-tcheque/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
    }
   },
   "cz-biocel-zlatnik": {
@@ -55097,6 +56630,45 @@
     "periodes": null
    }
   },
+  "cz-harrachov": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       1100
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "cz-hei-park-tosovice": {
    "photo": {
     "source": "skiinfo",
@@ -55714,7 +57286,16 @@
    }
   },
   "cz-horal": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.reischeck.nl",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.reischeck.nl/wp-content/uploads/2023/10/orea-resort-horal-spindleruv-mlyn-tsjechie-kindvriendelijk.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "celnica-trestik",
@@ -55903,6 +57484,19 @@
     "cle": "horni-vltavice"
    }
   },
+  "cz-horsky-resort-bukova-hora": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skibukovka.cz",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.skibukovka.cz/wp-content/uploads/2020/05/DSC_0723_1024.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
+   "forfait": null
+  },
   "cz-jonas-park-ostruzna": {
    "photo": {
     "source": "skiinfo",
@@ -55982,6 +57576,54 @@
     "km": 0.69,
     "url": "https://vcdn.bergfex.at/images/resized/0a/13b1c16ae09fb00a_613482129605a402.jpg",
     "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       1490
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "cz-javorna": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.tschechische-gebirge.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.tschechische-gebirge.de/objekty/data/ski/skijavorna/imagew.jpg",
+    "titre": null,
+    "corroboration": "nom",
     "servi": true
    },
    "forfait": null
@@ -58295,6 +59937,19 @@
    },
    "forfait": null
   },
+  "cz-nove-hamry-u-reky": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "nove-hamry.cz",
+    "nom": null,
+    "km": 0,
+    "url": "https://nove-hamry.cz/wp-content/gallery/galerie/50C45606-8887-41EC-84F3-A5724BED1869-1.jpeg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "cz-nove-hute": {
    "photo": {
     "source": "bergfex",
@@ -58630,7 +60285,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       1490
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "cz-pernink-pod-nadrazim": {
    "photo": {
@@ -58919,7 +60609,16 @@
    }
   },
   "cz-radvanice": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.tschechische-gebirge.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.tschechische-gebirge.de/objekty/data/ski/ski-radvanice/imagew.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "radvanice",
@@ -60547,7 +62246,16 @@
    }
   },
   "cz-ski-areal-sachrovka": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skisachovka.cz",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.skisachovka.cz/sachovka/galerie-skiareal/17.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "karbo-rokytnice-nad-jizerou",
@@ -61182,7 +62890,42 @@
     "titre": "Vlek U Lišáka - Téléski",
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       1190
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "cz-skiareal-kuncice": {
    "photo": {
@@ -62342,7 +64085,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       1310
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "cz-skiarena-r3": {
    "photo": {
@@ -62604,7 +64382,16 @@
    }
   },
   "cz-skipark-frymburk": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.czech-mountains.eu",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.czech-mountains.eu/objekty/data/ski/park-frymburk/imagew.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "frymburk-svata-marta",
@@ -63990,7 +65777,16 @@
    }
   },
   "cz-zlata-olesnice": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.czech-mountains.eu",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.czech-mountains.eu/objekty/data/ski/zlataolesnice/imagew.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "zlata-olesnice",
@@ -64029,7 +65825,16 @@
    }
   },
   "cz-zvicina": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "cdn.megau.eu",
+    "nom": null,
+    "km": 0,
+    "url": "https://cdn.megau.eu/imageresizer/width=1200,height=800,quality=75,fit=crop,format=auto/https://cdn.megau.eu/attractions/1085/images/a1085-ski-areal-zvicina-20231213-012731-2513.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "zvicina",
@@ -64723,7 +66528,16 @@
    }
   },
   "cz-sibenicni-vrch": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "sibenicnivrch.cz",
+    "nom": null,
+    "km": 0,
+    "url": "https://sibenicnivrch.cz/admin-assets/news/articles/75/images/191_sobotni-vecerni-2025.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "sibenicni-vrch-mnichovice",
@@ -64759,6 +66573,45 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "cz-spindleruv-mlyn-labska": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "CZK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       1310
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/tchequie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
    }
   },
   "cz-svycarna": {
@@ -65633,6 +67486,19 @@
     ]
    }
   },
+  "de-beiningen": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.snow-online.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.snow-online.de/images/ecu/entity/e_skiresort/skigebiet_skilift-beiningen-blaubeuren_n72917-158474-1_raw.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "de-beiwald": {
    "photo": null,
    "forfait": {
@@ -65788,7 +67654,16 @@
    }
   },
   "de-berghalde-penzburg": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.merkur.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.merkur.de/assets/images/41/300/41300111-der-skilift-auf-der-berghalde-in-penzberg-laeuft-2015-3XMH.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "pistes": {
     "km": 0.3,
@@ -66493,7 +68368,16 @@
    }
   },
   "de-deilingen": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.sv-deilingen.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.sv-deilingen.de/wp-content/uploads/2023/04/CIMG0520-1024x660.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "deilingen",
@@ -66577,6 +68461,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "de-ebingen": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.snow-online.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.snow-online.de/images/ecu/entity/e_skiresort/ski-resort_albstadt-ebingen_n3695-13476-0_raw.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "de-ebingen-481977m89957": {
    "photo": {
@@ -67122,7 +69019,16 @@
    }
   },
   "de-fridingen-antoni": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/18/e223bf33cb64a518_70a34a9e87f77a92.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "baden-wuerttemberg/muehlheim-an-der-donau",
@@ -69394,7 +71300,16 @@
    }
   },
   "de-kaiserblick-sachrang-aschau": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/17/50bc63d865c8b217_f66be9e09ea816e1.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "sachrang",
@@ -71458,6 +73373,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "de-pfannilift-am-schliersee": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "magazin.schliersee.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://magazin.schliersee.de/wp-content/uploads/2022/01/DSC05180-824x1030.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "de-pfeffingen": {
    "photo": {
@@ -76867,7 +78795,16 @@
    }
   },
   "de-sulzberg": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/05/36c7e3769262ad05_c6b6874a4c22a62b.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "petersthal-oy-mittelberg",
@@ -77461,7 +79398,42 @@
     "titre": "Hasenhornbahn - 2 places | Télésiège à pinces fixes",
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/allemagne/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       38
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/allemagne/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Site trouvé via OpenSkiData matching (sim=1.00, OSM name: Todtnauberg) | Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "de-truchtelfingen": {
    "photo": null,
@@ -77993,7 +79965,42 @@
   },
   "de-willingen-512950m86081": {
    "photo": null,
-   "forfait": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/allemagne/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       43
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/allemagne/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   },
    "altitudes": {
     "basM": 540,
     "sommetM": 600,
@@ -81360,7 +83367,16 @@
    }
   },
   "fi-ellivuori": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "ellivuori.fi",
+    "nom": null,
+    "km": 0,
+    "url": "https://ellivuori.fi/wp-content/uploads/2019/02/ellivuori_banneri.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "ellivuori",
@@ -81491,6 +83507,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "fi-hiihtokeskus-luosto-ski": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.luosto.fi",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.luosto.fi/sites/luosto/files/styles/large/public/media/image/2025-09/Luosto+Ski+Resort+slopes+evening.jpg?itok=aJ8wjnzB",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
+   "forfait": null
   },
   "fi-hiihtokeskus-ukkohalla": {
    "photo": {
@@ -82079,7 +84108,16 @@
    }
   },
   "fi-olos-ski-resort": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "a.storyblok.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://a.storyblok.com/f/279002/3504x2336/85782846db/ski-resort-olos-in-muonio.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "olos",
@@ -82258,7 +84296,16 @@
    }
   },
   "fi-paloisvuori": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "iisalmi.fi",
+    "nom": null,
+    "km": 0,
+    "url": "https://iisalmi.fi/wp-content/uploads/2024/02/DG6A5111.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "paloisvuori-iisalmi",
@@ -82522,8 +84569,30 @@
     "cle": "puijon-kuopio"
    }
   },
+  "fi-pukkivuori": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "ski.fi",
+    "nom": null,
+    "km": 0,
+    "url": "https://ski.fi/media/pukkivuori-maalis2022-1792-1280x500-1-1024x400.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "fi-purnu": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.purnu.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.purnu.com/wp-content/uploads/2024/02/IMG_5737_edited.jpeg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "purnuvuori",
@@ -83199,7 +85268,16 @@
    }
   },
   "fi-salla-ski-resort": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "ski.salla.fi",
+    "nom": null,
+    "km": 0,
+    "url": "https://ski.salla.fi/wp-content/uploads/2017/11/tarjoukset_nosto-1.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "finlande/salla",
@@ -83536,6 +85614,19 @@
     "pageTarifs": "https://skisaariselka.com/lift-tickets/"
    }
   },
+  "fi-solvalla-swinghill": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.lumipallo.fi",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.lumipallo.fi/wp-content/uploads/2013/04/swinghill_rinteet.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "fi-sotkanrinteet": {
    "photo": null,
    "forfait": {
@@ -83641,7 +85732,16 @@
    }
   },
   "fi-tahko": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.tahko.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.tahko.com/app/uploads/2026/04/Tahko.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "tahko",
@@ -106500,6 +108600,32 @@
    "photo": null,
    "forfait": null
   },
+  "gb-midland-ski-club-ackers-adventure": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "ski.mountainviewmidland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://ski.mountainviewmidland.com/wp-content/uploads/2016/03/cropped-course.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
+  "gb-midlothian-snowsports-centre-hillend-dry-slope": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "l450v.alamy.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://l450v.alamy.com/450v/bx8j6j/midlothian-snowsports-centre-snow-scene-at-hillend-edinburgh-scotland-bx8j6j.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "gb-nevis-range": {
    "photo": {
     "source": "officiel",
@@ -106592,6 +108718,19 @@
     },
     "periodes": null
    }
+  },
+  "gb-newmilns-snow-sports-complex": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.visitscotland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.visitscotland.com/wsimgs/20141004_Newmilns_0338_37358127.jpg?size=lg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "gb-north-staffs-ski-club-kidsgrove": {
    "photo": null,
@@ -106916,7 +109055,16 @@
    }
   },
   "ge-goderdzi": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "tourguide.ge",
+    "nom": null,
+    "km": 0,
+    "url": "https://tourguide.ge/wp-content/uploads/2019/11/goderdzi-ski-resort-7-1.jpeg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "mtskheta-mtianeti-region/goderdzi",
@@ -107026,7 +109174,16 @@
    "forfait": null
   },
   "ge-kokhta-mitarbi": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "tourguide.ge",
+    "nom": null,
+    "km": 0,
+    "url": "https://tourguide.ge/wp-content/uploads/2019/12/mitarbi-ski-resort-georgia.jpeg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "mtskheta-mtianeti-region/bakuriani",
@@ -107194,7 +109351,16 @@
    }
   },
   "gr-kaimaktsalan": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "hellothessaloniki.gr",
+    "nom": null,
+    "km": 0,
+    "url": "https://hellothessaloniki.gr/wp-content/uploads/2021/12/Voras-Kaimaktsalan-Ski-Center-03_1920x1080-1536x864.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "voras-kaimaktsalan",
@@ -107233,7 +109399,16 @@
    }
   },
   "gr-mainalo": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "mainaloski.gr",
+    "nom": null,
+    "km": 0,
+    "url": "https://mainaloski.gr/wp-content/uploads/2024/01/1v.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "ostrakina-mainalon",
@@ -107378,7 +109553,16 @@
    }
   },
   "gr-3-5-3-5-pigadia": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "xionodromika.gr",
+    "nom": null,
+    "km": 0,
+    "url": "https://xionodromika.gr/wp-content/uploads/2015/12/3-5pigadia_xionodromiko_kentro.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "3-5-pigadia-naoussa",
@@ -107929,7 +110113,16 @@
    }
   },
   "is-dalvik": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skidalvik.is",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.skidalvik.is/static/themes/2017/images/og.png?v=1790081118",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "dalvik",
@@ -107966,6 +110159,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "is-hli-arfjall": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.hlidarfjall.is",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.hlidarfjall.is/static/themes/2016/images/og.png?v=1790079698",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
+   "forfait": null
   },
   "is-oddsskar": {
    "photo": {
@@ -108015,7 +110221,16 @@
    }
   },
   "is-siglufjordur": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skardsdalur.is",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.skardsdalur.is/static/themes/2018/images/og.png?v=1790086467",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "skardsdalur-siglufjoerdur",
@@ -109975,6 +112190,19 @@
     },
     "periodes": null
    }
+  },
+  "it-area-sciistica-pian-del-falco": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.falcadedolomiti.it",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.falcadedolomiti.it/wp-content/uploads/2020/12/FALCADE-Dolomiti-2-scaled.jpg",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
+   "forfait": null
   },
   "it-argentera": {
    "photo": {
@@ -112740,7 +114968,81 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       86
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "it-cortina-d-ampezzo": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       86
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "it-cortina-d-ampezzo-faloria-cristallo-mietres-tofana": {
    "photo": {
@@ -114196,7 +116498,16 @@
    }
   },
   "it-forca-canapine": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.scimarche.it",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.scimarche.it/wp-content/uploads/2025/01/webcam-forca-canapine-1068x712.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "forca-canapine",
@@ -117582,6 +119893,45 @@
    },
    "forfait": null
   },
+  "it-macugnaga-belvedere": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       22
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "it-macugnaga-moro": {
    "photo": {
     "source": "skiinfo",
@@ -118980,6 +121330,19 @@
     "periodes": null
    }
   },
+  "it-nevelandia": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "dynamic-media-cdn.tripadvisor.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0a/41/66/1e/nevelandia.jpg?w=1200&h=1200&s=1",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "it-nuova-lizzola": {
    "photo": {
     "source": "skiinfo",
@@ -119781,6 +122144,19 @@
     },
     "periodes": null
    }
+  },
+  "it-passo-san-leonardo": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skiforum.it",
+    "nom": null,
+    "km": 0,
+    "url": "http://www.skiforum.it/skiforum/upload/resort/71023-passo-san-leonardo.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "it-passo-stelvio-stilfserjoch": {
    "photo": {
@@ -121247,7 +123623,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       44
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/italie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Site trouvé via OpenSkiData matching (sim=1.00, OSM name: Piancavallo) | Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "it-piancavallo-461073m125190": {
    "photo": {
@@ -123192,6 +125603,19 @@
     "source": "skiinfo",
     "cle": "trentin/san-martino-di-castrozza-passo-rolle"
    }
+  },
+  "it-ramudla": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "thaneihof.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://thaneihof.com/thnhf109/wp-content/uploads/2018/06/ski_ramudla_3-768x576.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "it-ratschings-jaufen": {
    "photo": {
@@ -129048,6 +131472,19 @@
     ]
    }
   },
+  "it-tarvisio-tarvis": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.italia.it",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.italia.it/content/dam/tdh/it/interests/friuli-venezia-giulia/in-friuli-venezia-giulia-sugli-sci/media/20211104160253-tarvisio-monte-lussari-sci-neve-friuli-venezia-giulia-shutterstock-362198174.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "it-terenten-terento-terenten-terento": {
    "photo": {
     "source": "skiresort",
@@ -131368,6 +133805,19 @@
     "cle": "kordes"
    }
   },
+  "lv-riekstukalns": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.riekstukalns.lv",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.riekstukalns.lv/uploads/pages/services-1.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "lv-siguldas-trase": {
    "photo": null,
    "forfait": null,
@@ -131401,6 +133851,19 @@
     "source": "skiresort",
     "cle": "zagarkalns"
    }
+  },
+  "me-kolasin-1450-ski-resort-1450": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.kolasin1450.com",
+    "nom": null,
+    "km": 0,
+    "url": "http://www.kolasin1450.com/img/home/skijaliste1.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "me-kolasin-1600": {
    "photo": {
@@ -131514,6 +133977,19 @@
     "cle": "lokve"
    }
   },
+  "me-ski-centar-savin-kuk": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "montenegro.org",
+    "nom": null,
+    "km": 0,
+    "url": "https://montenegro.org/wp-content/uploads/2023/03/z25777348IHSavin-Kuk.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "mk-nizepole": {
    "photo": null,
    "forfait": null,
@@ -131535,7 +134011,16 @@
    }
   },
   "mk-ponikva": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "macedoniafromabove.mk",
+    "nom": null,
+    "km": 0,
+    "url": "https://macedoniafromabove.mk/ponikva/socialThumbnail.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "pistes": {
     "km": 1.3,
@@ -131543,6 +134028,19 @@
     "source": "skiresort",
     "cle": "ponikva"
    }
+  },
+  "mk-ski-center-mihajlovo": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skijanje.rs",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.skijanje.rs/assets/ski-centri/makedonija/mihajlovo/_resampled/SetWidth1200-3-Mihajlovo-18.01.2025-8.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "mk-420122m208697": {
    "photo": null,
@@ -132849,6 +135347,19 @@
     "source": "skiresort",
     "cle": "fagerfjell"
    }
+  },
+  "no-fagerfjell-skisenter-598287m93067": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.fagerfjell.no",
+    "nom": null,
+    "km": 0,
+    "url": "http://www.fagerfjell.no/files/theme/images/kveldsutsikt.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
+   "forfait": null
   },
   "no-fidjeland-skitrekk": {
    "photo": null,
@@ -134347,7 +136858,16 @@
    }
   },
   "no-hammerfest": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "image.geo.de",
+    "nom": null,
+    "km": 0,
+    "url": "https://image.geo.de/33263620/t/ZX/v2/w1440/r1.5/-/hammerfest--a230597279.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "pistes": {
     "km": 0.8,
@@ -135400,6 +137920,45 @@
     "periodes": null
    }
   },
+  "no-kvitfjell": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "NOK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       569
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "no-leirskallen-skisenter": {
    "photo": {
     "source": "officiel",
@@ -136321,6 +138880,45 @@
     "n": 14,
     "source": "skiinfo",
     "cle": "nord-norvege/narvikfjellet"
+   }
+  },
+  "no-narvikfjellet-ski-resort": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "NOK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       490
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
    }
   },
   "no-nerskogen-skisenter": {
@@ -137442,7 +140040,16 @@
    }
   },
   "no-sarves-alta": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "sarvesalta.no",
+    "nom": null,
+    "km": 0,
+    "url": "https://sarvesalta.no/wp-content/uploads/2023/04/6EE07FC7-4558-4C0B-807C-F4CC1055F35E-1030x773.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "sarvesalta",
@@ -137611,7 +140218,16 @@
    }
   },
   "no-siljan-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "admin.siljannews.se",
+    "nom": null,
+    "km": 0,
+    "url": "https://admin.siljannews.se/wp-content/uploads/2025/11/SkiStars-backar-o¦eppnar-fo¦er-skida¦ekning-2024-Foto-SkiStar-1-scaled.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "pistes": {
     "km": 3.3,
@@ -138188,6 +140804,93 @@
     "titre": null,
     "servi": true
    },
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "NOK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       490
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "no-ski-geilo": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "NOK",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       693
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
+  "no-skillevollen": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "visithelgeland.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://visithelgeland.com/app/uploads/2023/01/skillevollen-alpin-langrenn_02_190124_foto-kristoffermollevik-visithelgeland-scaled.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null
   },
   "no-skimore-oslo": {
@@ -138292,7 +140995,16 @@
    }
   },
   "no-sogn-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "static1.squarespace.com",
+    "nom": null,
+    "km": 0,
+    "url": "http://static1.squarespace.com/static/5a172d9b0100270ad3cf32ef/t/5a4b97ba41920273abbe5fba/1514903485258/Sogn+Skisenter_Frikj%C3%B8yring_Foto+Vegard+Aase_648x480.jpg?format=1500w",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "ouest-norvege/sogn-skisenter",
@@ -139290,7 +142002,16 @@
    }
   },
   "no-sunnfjord-skisenter": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "sunnfjordu40.no",
+    "nom": null,
+    "km": 0,
+    "url": "https://sunnfjordu40.no/wp-content/uploads/2022/11/Afterski-nettside.png",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "sunnfjord-blomlia",
@@ -139584,6 +142305,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "no-troms-alpinpark": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "dynamic-media-cdn.tripadvisor.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/22/33/fe/f8/tromso-alpinpark.jpg?w=1200&h=1200&s=1",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "no-trysil": {
    "photo": {
@@ -141283,7 +144017,16 @@
    }
   },
   "pl-arena-narciarska-jaworki-homole": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.skionline.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.skionline.pl/galerie/stacje-narciarskie-polska/jaworki-2015-01-28/jaworki_p1284537.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "homole-jaworki",
@@ -141948,7 +144691,42 @@
   },
   "pl-cos-opo-zakopane": {
    "photo": null,
-   "forfait": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "PLN",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       170
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   },
    "pistes": {
     "km": 0.2,
     "n": null,
@@ -142004,7 +144782,16 @@
    }
   },
   "pl-celejow": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.celejow.skigo.pl",
+    "nom": null,
+    "km": 0,
+    "url": "http://www.celejow.skigo.pl/gfx/ski/_thumbs/pl/skiosrodki/98/zdjecia/l6eV7J1nYlXr0YqZqA,98_celejow_2036172236.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "altitudes": {
     "basM": 160,
@@ -142103,7 +144890,16 @@
    }
   },
   "pl-che-mowa-gora": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "mynaszlaku.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://mynaszlaku.pl/wp-content/uploads/2020/11/gora-chelm-myslenice-wyciag-narciarski.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "altitudes": {
     "basM": 260,
@@ -142806,6 +145602,19 @@
     "cle": "silesie/bielsko-biala-debowiec"
    }
   },
+  "pl-d-uga-polana": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "tatrysuperski.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://tatrysuperski.pl/assets/components/phpthumbof/cache/Dluga_Polana_1.f12b1e06097056147d9e7112e90dc4a7222.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "pl-family-park-dimbo": {
    "photo": {
     "source": "officiel",
@@ -143167,6 +145976,19 @@
     },
     "periodes": null
    }
+  },
+  "pl-gorka-srodulska": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "bi.im-g.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://bi.im-g.pl/im/5e/9d/12/z19518046IHG,Gorka-Srodulska-w-Sosnowcu.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "pl-gornik-rzeczka": {
    "photo": {
@@ -143939,7 +146761,16 @@
    }
   },
   "pl-karpatka-panorama": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.karpacz.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.karpacz.pl/img/wyciagi/TG_130302_Winterpol_Karpacz_0590.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "karpatka-panorama",
@@ -144099,7 +146930,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "PLN",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       139
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "pl-kiczera-ski": {
    "photo": {
@@ -144320,7 +147186,16 @@
    }
   },
   "pl-komancza": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.twojebieszczady.net",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.twojebieszczady.net/zima-pliki/komancza350.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "pistes": {
     "km": 0.5,
@@ -144574,7 +147449,16 @@
    }
   },
   "pl-krzyzowa-gora": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/dd/45c401127df6ffdd_a9a6e53b80c72386.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "krzyzowa-gora-lidzbark-warminski",
@@ -145132,6 +148016,19 @@
     "cle": "mazurski-okragle"
    }
   },
+  "pl-ma-ego-krola": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.visitustrzyki.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.visitustrzyki.pl/upload/offer/wyciag-narciarski/variants/full/IMG_9251.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "pl-mosorny-gron": {
    "photo": {
     "source": "skiinfo",
@@ -145514,7 +148411,16 @@
    }
   },
   "pl-osrodek-bystre": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.owbystre.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.owbystre.pl/wp-content/uploads/2022/12/BYSTRE-DOMKI15.webp",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "bystre-baligrod",
@@ -145788,6 +148694,19 @@
     "cle": "pardalowka-ugory-zakopane"
    }
   },
+  "pl-park-szczesliwice": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "warsawcity.info",
+    "nom": null,
+    "km": 0,
+    "url": "https://warsawcity.info/wp-content/uploads/2025/01/Gorka-Szczesliwicka-narty-Warszawa.jpeg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "pl-partecznik": {
    "photo": null,
    "forfait": {
@@ -145906,7 +148825,16 @@
    }
   },
   "pl-pierscienica-kielce": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "stadion.kielce.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://stadion.kielce.pl/wp-content/uploads/2019/11/stok-narciarski-stadion-kielce-zdj1-1024x683.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "pierscienica-kielce",
@@ -146045,6 +148973,19 @@
     "periodes": null
    }
   },
+  "pl-piekna-gora": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/76/20e621a852674976_73b6227b2021476f@2x.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
+   "forfait": null
+  },
   "pl-pod-durbaszka": {
    "photo": null,
    "forfait": null,
@@ -146066,7 +149007,16 @@
    }
   },
   "pl-pod-wangiem": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "krainakarkonoszy.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://krainakarkonoszy.pl/wp-content/uploads/2020/01/Pod-Wangiem.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "basse-silesie/karpacz-pod-wangiem",
@@ -146451,6 +149401,19 @@
     "periodes": null
    }
   },
+  "pl-rusin-ski": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "static.webcamera.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://static.webcamera.pl/camsbig/rusinski-panorama.jpg?nc=1767625877",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "pl-ryterski-raj": {
    "photo": {
     "source": "skiinfo",
@@ -146624,6 +149587,19 @@
     "source": "skiinfo",
     "cle": "silesie/wisla-soszow"
    }
+  },
+  "pl-siepraw": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "static.webcamera.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://static.webcamera.pl/camsbig/siepraw-ski.jpg?nc=1737114552",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "pl-siglany": {
    "photo": null,
@@ -147784,6 +150760,19 @@
     "periodes": null
    }
   },
+  "pl-stok-bobliwo": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.camerainfo.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.camerainfo.pl/pub/thumbs/img-pub-uploads-stokbobliwo-izbica-stokbobliwo-1jpg-1920-1200-1565108383-71851.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "pl-stok-karpatka": {
    "photo": null,
    "forfait": null,
@@ -148171,6 +151160,45 @@
     "periodes": null
    }
   },
+  "pl-szklarska-poreba": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "PLN",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       170
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
+  },
   "pl-szrenica-ski-arena": {
    "photo": {
     "source": "bergfex",
@@ -148298,6 +151326,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "pl-szyndzielnia": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "kolej-szyndzielnia.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://kolej-szyndzielnia.pl/wp-content/uploads/2022/11/01-miejsce-Dominik-Mielcarek-2.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "pl-s-otwiny-arena": {
    "photo": {
@@ -148583,6 +151624,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "pl-tumlin-sport-ski": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "tumlinsportski.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://tumlinsportski.pl/wp-content/uploads/2025/12/DJI_0004-1-scaled.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "pl-tylicz-ski": {
    "photo": {
@@ -148891,7 +151945,16 @@
    }
   },
   "pl-wyciag-narciarski-kartasiowka": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "wiadomosci.olsztyn.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://wiadomosci.olsztyn.pl/wp-content/uploads/2016/01/kartasiowka.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "pistes": {
     "km": 0.8,
@@ -149576,6 +152639,19 @@
     "cle": "swieta-gora-lubawka"
    }
   },
+  "pl-zo-wik": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.karpacz.pl",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.karpacz.pl/photo/lift34/zolwik-pl_89_min.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "pt-serra-da-estrela": {
    "photo": {
     "source": "officiel",
@@ -149722,6 +152798,19 @@
     "cle": "vallee-de-prahova/balea-lac"
    }
   },
+  "ro-bogdan": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "schi-bogdan.ro",
+    "nom": null,
+    "km": 0,
+    "url": "https://schi-bogdan.ro/wp-content/uploads/seo-image-schi-bogdan.jpg",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ro-borsafured": {
    "photo": {
     "source": "officiel",
@@ -149825,7 +152914,16 @@
    }
   },
   "ro-banffydongo-dangau-mare": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "ski-si-snowboard.ro",
+    "nom": null,
+    "km": 0,
+    "url": "https://ski-si-snowboard.ro/wp-content/uploads/2014/02/dangau-mare-capusu-mare-partia-gemenii-partia-neagra-cluj-romania-ski-si-snowboard-3.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": null,
    "altitudes": {
     "basM": 850,
@@ -149841,7 +152939,16 @@
    }
   },
   "ro-baile-homorod": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "img0.oastatic.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://img0.oastatic.com/img2/44319286/max/ski-slope-baile-homorod.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "lobogo-baile-homorod",
@@ -149892,7 +152999,16 @@
    "forfait": null
   },
   "ro-clabucet": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "complexclabucet.ro",
+    "nom": null,
+    "km": 0,
+    "url": "https://complexclabucet.ro/wp-content/uploads/2023/10/cbt-cazare-clabucet-sosire-predeal.webp",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "predeal",
@@ -150190,6 +153306,19 @@
     "cle": "nemira-slanic-moldova"
    }
   },
+  "ro-piatra-neamt-karacsonyko-dealu-cozla": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "media.dcnews.ro",
+    "nom": null,
+    "km": 0,
+    "url": "https://media.dcnews.ro/image/201901/full/partia_cozla_piatr_neamt_52213600.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "ro-poiana-brasov": {
    "photo": {
     "source": "officiel",
@@ -150449,6 +153578,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "ro-suior": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "traveleurope.ro",
+    "nom": null,
+    "km": 0,
+    "url": "https://traveleurope.ro/wp-content/uploads/2015/12/Partie-de-ski-Suior-09.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "ro-sureanu": {
    "photo": {
@@ -152942,7 +156084,16 @@
    }
   },
   "se-mullsjo-alpin": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "visitsweden.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://visitsweden.com/_next/image/?url=https://s3-eu-north-1.amazonaws.com:443/py3.visitsweden.com/original_images/mullsjC3B6202-CMSTemplate.jpg&w=1280&q=40",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "mullsjoe-alpin",
@@ -153465,7 +156616,16 @@
    }
   },
   "se-ryssbergsbacken": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "friluft.nu",
+    "nom": null,
+    "km": 0,
+    "url": "https://friluft.nu/wp-content/uploads/2025/01/friluftnu-upptack-aventyret-i-ryssbergsbacken-image.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "ryssbergsbacken",
@@ -154430,7 +157590,16 @@
    }
   },
   "se-trillevallen": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "trillevallen.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://trillevallen.com/wp-content/uploads/2024/05/MatsLind_Trille-SkiDad175-1920x1280.jpg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "trillevallen",
@@ -154479,7 +157648,16 @@
    }
   },
   "se-trosabacken": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.freeride.se",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.freeride.se/files/2023/01/trosabacken.jpeg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "trosabacken",
@@ -154927,7 +158105,16 @@
    }
   },
   "se-vasjobacken": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "visitsweden.nl",
+    "nom": null,
+    "km": 0,
+    "url": "https://visitsweden.nl/_next/image/?url=https://s3-eu-north-1.amazonaws.com:443/py3.visitsweden.com/original_images/Jrvs_FF46188_CMSTemplate.jpg&w=1440&q=40",
+    "titre": null,
+    "corroboration": "office-du-pays",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "vaesjoebacken-sollentuna",
@@ -155391,6 +158578,19 @@
     "saison": null,
     "periodes": null
    }
+  },
+  "si-globoki-klanec": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "siol.net",
+    "nom": null,
+    "km": 0,
+    "url": "https://siol.net/media/img/3d/5f/d0965d67702f8f49ba55-smucisce-globoki-klanec.jpeg",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
   },
   "si-golte": {
    "photo": {
@@ -156437,7 +159637,16 @@
    }
   },
   "si-velika-planina": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "vcdn.bergfex.at",
+    "nom": null,
+    "km": 0,
+    "url": "https://vcdn.bergfex.at/images/resized/65/4ba2f2135ef5ff65_e05edf52912389f5@2x.jpg",
+    "titre": null,
+    "corroboration": "bergfex",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "osovje",
@@ -157554,7 +160763,42 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/slovaquie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       71
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/slovaquie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
+   }
   },
   "sk-julius": {
    "photo": {
@@ -159191,6 +162435,45 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "sk-martinske-hole-490942m188287": {
+   "photo": null,
+   "forfait": {
+    "source": "proprietaire",
+    "cle": "https://www.skiinfo.fr/slovaquie/forfaits-de-ski",
+    "nom": null,
+    "km": 0,
+    "devise": "EUR",
+    "deviseSource": "tableau",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       44
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null,
+    "pageTarifs": "https://www.skiinfo.fr/slovaquie/forfaits-de-ski",
+    "releve": {
+     "periode": "2025/26 or 2026/27 (Skiinfo)",
+     "note": "Forfait extrait de Skiinfo.fr",
+     "jourEnfant": null,
+     "sixJoursAdulte": null,
+     "sixJoursEnfant": null,
+     "saisonAdulte": null,
+     "saisonEnfant": null
+    }
    }
   },
   "sk-myto-ski-bike": {
@@ -164867,6 +168150,19 @@
     "cle": "cambasi"
    }
   },
+  "tr-denizli-kayak-merkezi": {
+   "photo": {
+    "source": "proprietaire",
+    "cle": "www.snow-forecast.com",
+    "nom": null,
+    "km": 0,
+    "url": "https://www.snow-forecast.com/system/images/36265/large/Denizli-Kayak-Merkezi.jpg?1619614126",
+    "titre": null,
+    "corroboration": "nom",
+    "servi": true
+   },
+   "forfait": null
+  },
   "tr-ergan-dag-k-s-sporlar-turizm-merkezi-ergan-mountain-winter-sports-and-eco-tourism-center": {
    "photo": {
     "source": "officiel",
@@ -165035,7 +168331,16 @@
    }
   },
   "ua-krasiya": {
-   "photo": null,
+   "photo": {
+    "source": "proprietaire",
+    "cle": "krasiya.com.ua",
+    "nom": null,
+    "km": 0,
+    "url": "https://krasiya.com.ua/wp-content/uploads/2024/01/frame-960.png",
+    "titre": null,
+    "corroboration": "hote-officiel",
+    "servi": true
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "krasiya",

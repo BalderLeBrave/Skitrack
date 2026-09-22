@@ -188,6 +188,67 @@ describe("les périodes datées, que seule bergfex publie", () => {
   });
 });
 
+describe("une valeur relevée à la main dit d'où elle vient et pourquoi on l'a crue", () => {
+  it("la photo nomme son hôte et sa corroboration, et avoue qu'elle n'a pas été vue", () => {
+    const m = mentionPhoto({
+      source: "proprietaire",
+      cle: "www.weissensee.com",
+      nom: null,
+      km: 0,
+      url: "https://www.weissensee.com/x.jpg",
+      titre: null,
+      corroboration: "hote-officiel",
+      servi: true,
+    });
+    assert.match(m, /relevée à la main/);
+    assert.match(m, /www\.weissensee\.com/);
+    assert.match(m, /site officiel/);
+    assert.match(m, /non vérifiée/);
+  });
+
+  it("le tarif nomme sa source et sa période telle qu'écrite", () => {
+    const m = mentionForfait({
+      source: "proprietaire",
+      cle: "https://www.damuels-mellau.at/",
+      nom: null,
+      km: 0,
+      devise: "EUR",
+      deviseSource: "tableau",
+      deviseDuPays: null,
+      misAJour: null,
+      categories: [{ nom: "Adulte", ages: null }],
+      lignes: [{ libelle: "Forfait journée", prix: [72.5] }],
+      saison: null,
+      periodes: null,
+      pageTarifs: "https://www.damuels-mellau.at/",
+      releve: { periode: "2025/26", note: null, jourEnfant: 41, sixJoursAdulte: 339, sixJoursEnfant: null, saisonAdulte: 576, saisonEnfant: null },
+    });
+    assert.match(m, /Relevé à la main depuis https:\/\/www\.damuels-mellau\.at\//);
+    assert.match(m, /période « 2025\/26 »/);
+  });
+
+  it("dans le relevé réel, chaque photo relevée à la main est corroborée et chaque tarif a une source", async () => {
+    // Une recherche large ramène ce qu'elle trouve ; ce qui entre ici a
+    // passé un crible, et le crible doit se voir dans les données.
+    const r = await releveVues();
+    let photos = 0;
+    let forfaits = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (v.photo?.source === "proprietaire") {
+        photos++;
+        assert.ok(v.photo.corroboration, `${id} : photo relevée sans corroboration`);
+        assert.ok(v.photo.servi, `${id} : photo relevée non servie`);
+      }
+      if (v.forfait?.source === "proprietaire") {
+        forfaits++;
+        assert.match(v.forfait.pageTarifs ?? "", /^https?:/, `${id} : tarif relevé sans source`);
+        assert.ok(v.forfait.devise && /^[A-Z]{3}$/.test(v.forfait.devise), `${id} : devise ${v.forfait.devise}`);
+      }
+    }
+    assert.ok(photos >= 0 && forfaits >= 0);
+  });
+});
+
 describe("un tarif lu sur un site officiel se présente avec sa preuve", () => {
   const LU: ForfaitVue = {
     ...GRILLE,
@@ -297,7 +358,9 @@ describe("sur le relevé réel", () => {
     for (const [id, v] of Object.entries(r.vues)) {
       if (!v.photo || !v.forfait) continue;
       if (v.photo.source !== v.forfait.source) continue;
-      if (v.photo.source === "officiel") {
+      if (v.photo.source === "officiel" || v.photo.source === "proprietaire") {
+        // Le relevé à la main n'a pas de fiche non plus : une adresse d'image
+        // et une page de tarifs, chacune avec sa source.
         // Le site officiel n'a pas de « fiche » à apparier : la photo vient
         // de l'accueil, le tarif de la page « Tarifs » atteinte depuis cet
         // accueil. La cohérence est **structurelle** — les deux pages sont du

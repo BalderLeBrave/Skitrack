@@ -342,29 +342,52 @@ relevé », à la place même où il paraîtrait.
 
 | | Domaines | Photo | Forfait | Météo |
 | --- | ---: | ---: | ---: | ---: |
-| Tous, nommés | 2 781 | 69,0 % | 65,7 % | 100 % |
-| 3 remontées et plus | 1 553 | 82,9 % | 77,3 % | 100 % |
-| 10 km et plus | 682 | 89,9 % | 81,2 % | 100 % |
+| Tous, nommés | 2 781 | 73,4 % | 67,6 % | 100 % |
+| 3 remontées et plus | 1 554 | 86,0 % | 79,8 % | 100 % |
+| 10 km et plus | 682 | 91,2 % | 84,9 % | 100 % |
 
 Les sources, dans l'ordre où elles servent — `scripts/build-vues-monde.ts`,
 qui écrit `vuesDomaines.json` :
 
-| | 1 | 2 | 3 | 4 |
-| --- | --- | --- | --- | --- |
-| Photo | Skiinfo | skiresort | bergfex | site officiel (`og:image`, puis la plus grande image de l'accueil, contrôlée en type et en poids) |
-| Forfait | bergfex, **par période datée** | Skiinfo, grille | skiresort, un nombre | page « Tarifs » du site officiel, avec la ligne pour preuve |
-| Météo | altitudes du référentiel | bas et sommet de la fiche appariée | point de terrain Copernicus, une seule altitude, dite comme telle | — |
+| | 1 | 2 | 3 | 4 | 5 |
+| --- | --- | --- | --- | --- | --- |
+| Photo | Skiinfo | skiresort | bergfex | site officiel (`og:image`, puis la plus grande image de l'accueil, contrôlée en type et en poids) | tableau des manques, **corroboré** |
+| Forfait | bergfex, **par période datée** | Skiinfo, grille | skiresort, un nombre | page « Tarifs » du site officiel, avec la ligne pour preuve | tableau des manques, **avec source** |
+| Météo | altitudes du référentiel | bas et sommet de la fiche appariée | point de terrain Copernicus, une seule altitude, dite comme telle | — | — |
+
+### Le tableau des manques, et ce qu'on en a gardé
+
+`export-manques.ts` écrit `docs/manques-photo-forfait.csv` ; rempli, il se
+relit par `scripts/importer-manques.py`, qui écrit `proprietaire.json`. Le
+tableau rendu le 22 septembre 2026 (`docs/sources/manques-photo-forfait-recherche-large-2026-09-22.xlsx`)
+l'a été par une **recherche large**, automatique : 1 187 adresses d'images,
+dont la même photo d'un festival tyrolien pour 146 domaines, une plage
+albanaise pour 14, et un quart de banques d'images ; la colonne `source`
+porte un libellé, pas une page.
+
+Le crible, hors France : une photo n'entre que **corroborée** — servie par le
+site officiel connu du domaine (94), le nom du domaine dans son adresse
+(117), un office de tourisme du pays (22), bergfex (23) — puis **contrôlée**
+(un octet : type image, 20 ko au moins). Écartées : 244 adresses répétées
+entre domaines, 102 de banques ou réseaux sociaux, 457 sans corroboration,
+55 non servies. Un forfait n'entre qu'avec prix, devise et source lisible
+(page, Skiinfo ou site officiel connu) : 61 sur 66. Les valeurs entrées
+servent **après** toutes les sources moissonnées : 124 photos et 53 forfaits
+de plus à l'écran, chacun dit « relevé à la main », avec sa corroboration ou
+sa source, et « non vérifié à l'œil » pour la photo.
 
 Chaque appariement est fait **par la position** (`scripts/appariement.ts`) :
 la fiche la plus proche à 5 km, jusqu'à 20 km quand **le nom corrobore**, une
 fiche ne servant qu'un domaine. La distance et la fiche voyagent avec la donnée
 jusqu'à l'écran.
 
-Il manque une photo ou un forfait à 1 234 domaines, et la raison est connue
-pour chacun : 632 n'ont aucun site web connu, 389 en ont un qui ne publie rien
-d'exploitable, 125 refusent par `robots.txt` ou 429, 86 ne répondent pas.
+Il manque une photo ou un forfait à 1 152 domaines, et la raison est connue
+pour chacun : 603 n'ont aucun site web connu, 365 en ont un qui ne publie rien
+d'exploitable, 101 refusent par `robots.txt` ou 429, 81 ne répondent pas.
 L'assouplissement de l'appariement par le nom a été mesuré et ne rend rien.
-Il n'y a plus de source publiée à ouvrir pour ceux-là.
+Il n'y a plus de source publiée à ouvrir pour ceux-là ; le tableau des
+manques, régénéré, est ce qui reste à remplir à la main — avec l'adresse
+d'une page en `source`, sans quoi la relecture l'ignore.
 
 ## Les devises
 

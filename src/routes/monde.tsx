@@ -49,17 +49,19 @@ import {
   type Repartition,
 } from "@/lib/monde/couleurs";
 import {
+  altitudesDuDomaine,
+  colonneAdulte,
+  forfaitDuDomaine,
+  fourchetteJournee,
+  journeeParPeriode,
+  ligneJournee,
   mentionForfait,
-  prix,
-  releveForfaits,
-  type ReleveForfaits,
-} from "@/lib/monde/forfaits";
-import {
   mentionPhoto,
   photoDuDomaine,
-  relevePhotos,
-  type RelevePhotos,
-} from "@/lib/monde/photos";
+  prix,
+  releveVues,
+  type ReleveVues,
+} from "@/lib/monde/vues";
 import {
   AUCUN_FILTRE,
   chercher,
@@ -73,6 +75,7 @@ import {
   type TriMonde,
 } from "@/lib/monde/filtres";
 import {
+  demDuDomaine,
   DOMAINES_MONDE,
   domainesPays,
   indexPays,
@@ -176,46 +179,84 @@ function NiveauMeteo({ titre, n, systeme }: { titre: string; n: ForecastLevel; s
   );
 }
 
-function MeteoDomaine({ d, systeme }: { d: DomaineMonde; systeme: Systeme }) {
+/**
+ * Les altitudes qu'on interroge, et d'où elles viennent.
+ *
+ * 1. Celles du référentiel — `minM`, `maxM` — quand OpenSkiMap les a mesurées.
+ * 2. Sinon, celles que la fiche Skiinfo ou skiresort **déjà appariée** publie :
+ *    une mesure de la source, reprise avec son origine.
+ * 3. Sinon, le point de terrain de Copernicus (`dem.json`) — **une seule
+ *    altitude**, ni bas ni haut, et l'écran le dit : la prévision vaut alors
+ *    pour le point de référence du domaine, pas pour ses pistes.
+ *
+ * Aucun des trois n'invente : la fiche française se rabat sur 1 500 / 2 500 m
+ * parce qu'elle a `villageM` en seconde source ; ici, faute de mesure, on
+ * dit ce qu'on a et on n'affiche rien de plus.
+ */
+type Niveaux =
+  | { forme: "pistes"; bas: number; haut: number; source: "référentiel" | "skiinfo" | "skiresort" }
+  | { forme: "point"; alt: number }
+  | { forme: "aucun" };
+
+function MeteoDomaine({ d, systeme, vues }: { d: DomaineMonde; systeme: Systeme; vues: ReleveVues | null }) {
   const [etat, setEtat] = useState<
-    { s: "charge" } | { s: "ok"; p: ForecastPair } | { s: "panne" }
+    { s: "charge" } | { s: "ok"; p: ForecastPair; niveaux: Niveaux } | { s: "panne" } | { s: "aucun" }
   >({ s: "charge" });
 
-  const bas = d.minM;
-  const haut = d.maxM;
+  const repli = vues ? altitudesDuDomaine(vues, d.id) : null;
 
   useEffect(() => {
-    if (bas == null || haut == null) return;
     let vivant = true;
     setEtat({ s: "charge" });
-    void getForecastPair({ data: { lat: d.lat, lon: d.lon, villageM: bas, summitM: haut } })
-      .then((p) => {
+    (async () => {
+      let niveaux: Niveaux = { forme: "aucun" };
+      if (d.minM != null && d.maxM != null) niveaux = { forme: "pistes", bas: d.minM, haut: d.maxM, source: "référentiel" };
+      else if (repli) niveaux = { forme: "pistes", bas: repli.basM, haut: repli.sommetM, source: repli.source };
+      else {
+        const pt = await demDuDomaine(d.id);
+        if (pt != null) niveaux = { forme: "point", alt: pt };
+      }
+      if (!vivant) return;
+      if (niveaux.forme === "aucun") return setEtat({ s: "aucun" });
+      const bas = niveaux.forme === "pistes" ? niveaux.bas : niveaux.alt;
+      const haut = niveaux.forme === "pistes" ? niveaux.haut : niveaux.alt;
+      try {
+        const p = await getForecastPair({ data: { lat: d.lat, lon: d.lon, villageM: bas, summitM: haut } });
         if (!vivant) return;
-        // `at: null` veut dire que la requête n'a pas abouti. Rendre les
-        // niveaux vides comme s'ils étaient une mesure serait un mensonge
-        // silencieux — c'est le défaut qu'une séance précédente a corrigé sur
-        // ce même service.
-        setEtat(p.at ? { s: "ok", p } : { s: "panne" });
-      })
-      .catch(() => {
+        setEtat(p.at ? { s: "ok", p, niveaux } : { s: "panne" });
+      } catch {
         if (vivant) setEtat({ s: "panne" });
-      });
+      }
+    })();
     return () => {
       vivant = false;
     };
-  }, [d.lat, d.lon, bas, haut]);
+  }, [d.id, d.lat, d.lon, d.minM, d.maxM, repli]);
 
-  if (bas == null || haut == null) {
+  if (etat.s === "aucun") {
     return (
       <p className="monde-row__absence">
-        Météo indisponible : le bas et le haut des pistes ne sont pas relevés pour ce domaine, et
-        ce sont eux qu'on interrogerait.
+        Météo indisponible : ni altitude de piste ni point de terrain n'est relevé pour ce domaine.
       </p>
     );
   }
   if (etat.s === "charge") return <p className="monde-row__lieu">Relevé de la météo…</p>;
   if (etat.s === "panne")
     return <p className="monde-row__absence">Le service de météo n'a pas répondu.</p>;
+
+  if (etat.niveaux.forme === "point") {
+    return (
+      <div className="monde-meteo">
+        <NiveauMeteo titre="Point de référence du domaine" n={etat.p.low} systeme={systeme} />
+        <span className="monde-meteo__iso">
+          Les altitudes des pistes ne sont pas relevées : cette prévision vaut pour le point de
+          terrain Copernicus du domaine, à {altitude(etat.niveaux.alt, systeme)}, pas pour le bas
+          ni le haut des pistes.
+          {etat.p.freezingLevelM != null ? ` Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}.` : ""}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="monde-meteo">
@@ -226,6 +267,9 @@ function MeteoDomaine({ d, systeme }: { d: DomaineMonde; systeme: Systeme }) {
           ? `Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}`
           : "Isotherme 0 °C non rendu"}
         {" · Open-Meteo, deux requêtes, une par altitude"}
+        {etat.niveaux.forme === "pistes" && etat.niveaux.source !== "référentiel"
+          ? ` · altitudes publiées par ${etat.niveaux.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"}, le référentiel ne les a pas mesurées`
+          : ""}
       </span>
     </div>
   );
@@ -243,8 +287,7 @@ function LigneDomaine({
   r,
   rattachement,
   systeme,
-  photos,
-  forfaits,
+  vues,
   ouvert,
   surOuvrir,
 }: {
@@ -252,21 +295,36 @@ function LigneDomaine({
   r: Repartition | undefined;
   rattachement: Rattachement | undefined;
   systeme: Systeme;
-  photos: RelevePhotos | null;
-  forfaits: ReleveForfaits | null;
+  vues: ReleveVues | null;
   ouvert: boolean;
   surOuvrir: () => void;
 }) {
   const dn = denivele(d);
   const lieu = [d.region, d.localite].filter(Boolean).join(" · ");
-  const vue = photos ? photoDuDomaine(photos, d.id) : null;
-  const forfait = forfaits?.forfaits[d.id];
-  const adulte = prix(forfait?.adultes);
+  const vue = vues ? photoDuDomaine(vues, d.id) : null;
+  const forfait = vues ? forfaitDuDomaine(vues, d.id) : null;
+  const jour = forfait ? ligneJournee(forfait) : null;
+  const fourchette = forfait ? fourchetteJournee(forfait) : null;
+  // Le haut de la fourchette quand elle existe : c'est le tarif de haute
+  // saison, celui qu'on paie aux dates où l'on part le plus souvent.
+  const adulte = forfait
+    ? fourchette
+      ? prix(fourchette.haut, forfait.devise)
+      : jour
+        ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise)
+        : null
+    : null;
+  const periodes = forfait ? journeeParPeriode(forfait) : [];
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");
   return (
     <li className="monde-row">
+      {!vue ? (
+        <span className="monde-row__photo monde-row__photo--absente" aria-hidden>
+          photo non relevée
+        </span>
+      ) : null}
       {vue ? (
         <img
           className="monde-row__photo"
@@ -302,9 +360,20 @@ function LigneDomaine({
           <dt>Remontées</dt>
           <dd>{d.lifts != null ? entier(d.lifts) : "non relevé"}</dd>
         </div>
+        {/* Décision du propriétaire, 22 septembre 2026 : garder les 2 780
+            domaines et **afficher l'absence**. Un forfait manquant s'écrit
+            donc, comme une altitude manquante — omettre la ligne laisserait
+            croire à un oubli d'affichage plutôt qu'à une donnée qu'aucune
+            source ne publie. */}
+        {!adulte ? (
+          <div>
+            <dt>Forfait jour</dt>
+            <dd>non relevé</dd>
+          </div>
+        ) : null}
         {adulte ? (
           <div title={forfait ? mentionForfait(forfait) : undefined}>
-            <dt>Forfait jour</dt>
+            <dt>{jour?.libelle && /week/i.test(jour.libelle) ? "Forfait" : "Forfait jour"}</dt>
             {/* Dans la devise du pays, jamais convertie. Le site publie bien
                 un « env. € » ; il est dans le relevé et n'est pas un prix.
 
@@ -316,7 +385,10 @@ function LigneDomaine({
                 0,41 km, donc la mention reste rare — elle signale justement
                 les cas où elle doit paraître. */}
             <dd className="monde-row__prix">
-              {adulte}
+              {/* Quand le tarif dépend de la date, on écrit la fourchette et
+                  non un montant seul : « 74 à 82 € » dit ce qu'un « 82 € »
+                  cacherait, et c'est la distinction que la source publie. */}
+              {fourchette ? `${entier(fourchette.bas)} à ${adulte}` : adulte}
               {forfait && forfait.km > 2 ? (
                 <span className="monde-row__loin"> · fiche à {decimal(forfait.km, 1)} km</span>
               ) : null}
@@ -345,7 +417,36 @@ function LigneDomaine({
       >
         {ouvert ? "Masquer la météo" : "Météo, bas et haut des pistes"}
       </button>
-      {ouvert ? <MeteoDomaine d={d} systeme={systeme} /> : null}
+      {ouvert && forfait?.source === "officiel" && forfait.preuve ? (
+        <p className="monde-row__preuve">
+          {/* Un prix lu en texte libre ne se juge pas seul : la ligne du
+              tableau, telle que le site l'écrit, paraît avec lui. */}
+          Lu sur le site officiel :{" "}
+          <q>{forfait.preuve}</q>
+          {forfait.pageTarifs ? (
+            <>
+              {" "}
+              — <a href={forfait.pageTarifs} rel="noreferrer">la page</a>
+            </>
+          ) : null}
+        </p>
+      ) : null}
+      {ouvert && periodes.length > 1 ? (
+        <dl className="monde-periodes">
+          <dt>Forfait journée, adulte, selon la date</dt>
+          {periodes.map((p) => (
+            <dd key={p.dates}>
+              <span className="monde-periodes__dates">{p.dates}</span>
+              <b>{prix(p.prix, forfait!.devise) ?? "non publié"}</b>
+            </dd>
+          ))}
+          <dd className="monde-periodes__source">
+            Périodes publiées par {forfait!.source === "bergfex" ? "bergfex" : forfait!.source}, et
+            reprises telles quelles.
+          </dd>
+        </dl>
+      ) : null}
+      {ouvert ? <MeteoDomaine d={d} systeme={systeme} vues={vues} /> : null}
     </li>
   );
 }
@@ -392,8 +493,7 @@ function PageMonde() {
   const [domaines, setDomaines] = useState<DomaineMonde[] | null>(null);
   const [repartitions, setRepartitions] = useState<ReadonlyMap<string, Repartition>>(new Map());
   const [rattachements, setRattachements] = useState<Record<string, Rattachement>>({});
-  const [photos, setPhotos] = useState<RelevePhotos | null>(null);
-  const [forfaits, setForfaits] = useState<ReleveForfaits | null>(null);
+  const [vues, setVues] = useState<ReleveVues | null>(null);
   const [chargement, setChargement] = useState(false);
   const [panne, setPanne] = useState<string | null>(null);
 
@@ -416,15 +516,14 @@ function PageMonde() {
     let vivant = true;
     setChargement(true);
     setPanne(null);
-    Promise.all([domainesPays(pays), releveRattachements(), relevePhotos(), releveForfaits()])
-      .then(async ([lot, releve, vues, tarifs]) => {
+    Promise.all([domainesPays(pays), releveRattachements(), releveVues()])
+      .then(async ([lot, releve, montrables]) => {
         const parts = await repartitionsDesDomaines(lot);
         if (!vivant) return;
         setDomaines(lot);
         setRepartitions(parts);
         setRattachements(releve.rattachements);
-        setPhotos(vues);
-        setForfaits(tarifs);
+        setVues(montrables);
       })
       .catch((e: unknown) => {
         if (!vivant) return;
@@ -702,8 +801,7 @@ function PageMonde() {
                   r={repartitions.get(d.id)}
                   rattachement={rattachements[d.id]}
                   systeme={systeme}
-                  photos={photos}
-                  forfaits={forfaits}
+                  vues={vues}
                   ouvert={domaineOuvert === d.id}
                   surOuvrir={() => setDomaineOuvert(domaineOuvert === d.id ? null : d.id)}
                 />

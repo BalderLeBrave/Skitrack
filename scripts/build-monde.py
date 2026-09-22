@@ -312,6 +312,35 @@ def localites(areas: list[dict], cc: str) -> None:
 #: Le cran « mesuré » ne coûte rien — aucun domaine en exploitation n'est sans
 #: statistiques — et il se garde pour ce qu'il dit : un domaine non relevé
 #: n'est pas un domaine à zéro kilomètre.
+#: Le périmètre du référentiel : une liste, arrêtée par le propriétaire.
+#:
+#: Cinquante pays, nommés un par un le 21 septembre 2026, « pas un seul de
+#: plus ». Ce n'est **pas** « l'Europe » : cinq d'entre eux — Turquie, Géorgie,
+#: Arménie, Azerbaïdjan, Kazakhstan — sont rangés en Asie par `geo/pays.ts`,
+#: qui tranche d'après l'emplacement des stations et non d'après la convention
+#: politique. Nommer ce périmètre « Europe » serait plus court et faux.
+#:
+#: La **Russie** n'y est pas, et c'est une décision distincte : elle figure
+#: dans `PAYS_ECARTES`, écartée pour elle-même. Un pays absent d'ici l'est
+#: parce que la liste s'arrête ; un pays nommé là-bas l'est pour lui-même.
+#:
+#: Six pays de la liste ne portent aucun domaine — Luxembourg, Malte, Monaco,
+#: Saint-Marin, Vatican, Moldavie. Ils restent dans le périmètre : « pas un
+#: seul de plus » borne la liste par le haut, pas par le bas, et un pays qui
+#: n'a pas de station aujourd'hui peut en avoir une au prochain relevé.
+#:
+#: **Cette liste double celle de `geo/pays.ts`.** Le générateur est en Python
+#: et ne lit pas le TypeScript ; `monde.test.ts` vérifie que les deux ne
+#: divergent pas. `XK` y figure sans fiche là-bas : le Kosovo est dans le
+#: périmètre, mais ni l'ISO 4217 ni `zone.tab` ne connaissent son code.
+PERIMETRE: set[str] = {
+    "AD", "AL", "AM", "AT", "AZ", "BA", "BE", "BG", "BY", "CH", "CY",
+    "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GE", "GR", "HR",
+    "HU", "IE", "IS", "IT", "KZ", "LI", "LT", "LU", "LV", "MC", "MD",
+    "ME", "MK", "MT", "NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI",
+    "SK", "SM", "TR", "UA", "VA", "XK",
+}
+
 #: Les pays écartés du référentiel, et depuis quand.
 #:
 #: Ce n'est pas un seuil : ces domaines passent « en exploitation, et mesuré »
@@ -328,7 +357,26 @@ PAYS_ECARTES: dict[str, str] = {
 
 
 def retenu(a: dict) -> bool:
-    return a["statut"] == "operating" and a["mesure"]
+    """Le seuil : en exploitation, mesuré, **et nommé**.
+
+    Les deux premiers critères datent du recensement du 18 septembre 2026. Le
+    troisième a été ajouté le 21 septembre, et il écarte 818 domaines.
+
+    Ce ne sont pas des stations. OpenSkiMap enregistre la remontée avant la
+    station : un fil-neige d'hôtel, un téléski de village, un tapis d'école de
+    ski entrent dans la source sans qu'aucune appellation ne leur soit attachée.
+    Le relevé le montre sans ambiguïté — **deux d'entre eux sur 818 ont un site
+    web**, contre deux tiers des domaines nommés.
+
+    Il n'y a donc ni page officielle à ouvrir, ni forfait à relever, ni photo à
+    chercher : un objet sans nom et sans exploitant n'a rien de tout cela. Les
+    garder revenait à porter une colonne d'absences irréductibles et à faire
+    passer pour un manque de travail ce qui est une propriété de la source.
+
+    Le compte est publié dans l'index, comme celui des domaines sans pays et
+    celui des pays écartés : une absence décidée doit se voir.
+    """
+    return a["statut"] == "operating" and a["mesure"] and bool((a.get("name") or "").strip())
 
 
 def identifiant(a: dict, occupes: set[str]) -> str:
@@ -455,6 +503,16 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
     # domaine frontalier par sa liste de pays.
     ecartes = [a for a in retenus if pays_principal(a) in PAYS_ECARTES]
     retenus = [a for a in retenus if pays_principal(a) not in PAYS_ECARTES]
+
+    # Puis le périmètre. Les deux filtres sont distincts à dessein : un pays
+    # nommé dans PAYS_ECARTES l'est pour lui-même, un pays hors PERIMETRE l'est
+    # parce que le périmètre est ailleurs. Le second peut bouger sans que le
+    # premier ne change d'avis.
+    hors_perimetre = [a for a in retenus if pays_principal(a) not in PERIMETRE]
+    retenus = [a for a in retenus if pays_principal(a) in PERIMETRE]
+    for a in retenus:
+        if any(p not in PERIMETRE for p in a["pays"]):
+            a["pays"] = [p for p in a["pays"] if p in PERIMETRE]
     for a in retenus:
         # Un domaine à cheval sur une frontière dont l'un des pays est écarté
         # reste dans le référentiel — il est hébergé ailleurs —, mais il cesse
@@ -505,7 +563,7 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
             {
                 "releve": releve,
                 "formatVersion": "16.0.0",
-                "seuil": "en exploitation, et mesuré",
+                "seuil": "en exploitation, mesuré, et nommé",
                 "domaines": len(retenus),
                 "sansPays": len(apatrides),
                 "ecartes": {
@@ -514,6 +572,12 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
                         "domaines": sum(1 for a in ecartes if pays_principal(a) == cc),
                     }
                     for cc, motif in sorted(PAYS_ECARTES.items())
+                },
+                "perimetre": {
+                    "quoi": "liste arrêtée par le propriétaire (Europe, Caucase et Turquie)",
+                    "depuis": "2026-09-21",
+                    "pays": sorted(PERIMETRE),
+                    "domainesHors": len(hors_perimetre),
                 },
                 "pays": index,
                 "partages": sorted(partages, key=lambda x: x["id"]),
@@ -530,6 +594,7 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
         for a in apatrides:
             print(f"  {a['name']:<28} {a['lat']:.4f}, {a['lon']:.4f}")
 
+    print(f"{len(hors_perimetre)} domaines hors du perimetre, ecartes.")
     for cc, motif in sorted(PAYS_ECARTES.items()):
         n = sum(1 for a in ecartes if pays_principal(a) == cc)
         print(f"{cc} : {n} domaines ecartes du perimetre — {motif}")

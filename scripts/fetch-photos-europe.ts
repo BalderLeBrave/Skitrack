@@ -198,14 +198,26 @@ const amont = JSON.parse(readFileSync(SOURCE, "utf8")) as {
   fiches: Record<string, { nom?: string | null; pays?: string | null }>;
 };
 
-function estEuropeenne(brut: string | null | undefined): boolean {
+/**
+ * La fiche est-elle dans le périmètre ?
+ *
+ * **Par la liste, pas par le continent.** Le périmètre arrêté le 21 septembre
+ * 2026 compte cinq pays que `geo/pays.ts` range en Asie — Turquie, Géorgie,
+ * Arménie, Azerbaïdjan, Kazakhstan. Le premier filtre, écrit sur
+ * `continent === "europe"`, les a laissés dehors : cinquante-trois domaines
+ * sans photo ni forfait, sans que rien ne le signale.
+ *
+ * `pays.ts` décrit exactement le périmètre, Kosovo excepté : y avoir une fiche
+ * suffit donc, et `XK` est ajouté à la main.
+ */
+function dansLePerimetre(brut: string | null | undefined): boolean {
   const s = (brut ?? "").toUpperCase();
   if (!s) return false;
   const cc = ALIAS[s] ?? s.slice(0, 2);
-  return paysByCode(cc)?.continent === "europe";
+  return cc === "XK" || paysByCode(cc) !== undefined;
 }
 
-const europeennes = Object.entries(amont.fiches).filter(([, f]) => estEuropeenne(f.pays));
+const europeennes = Object.entries(amont.fiches).filter(([, f]) => dansLePerimetre(f.pays));
 
 let fiches: Record<string, Fiche> = {};
 if (args.includes("--completer")) {

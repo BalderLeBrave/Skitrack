@@ -1,11 +1,11 @@
 {
- "releve": "2026-09-21T12:34:29.345Z",
+ "releve": "2026-09-21T15:57:41.992Z",
  "source": "https://www.skiinfo.fr",
  "robots": "Allow: /, aucun Crawl-delay ; une page par station, 2 s entre deux",
  "quoi": "l'adresse de la photo publiée dans le JSON-LD SkiResort de la page station-de-ski",
  "decision": "adresses seulement, aucun fichier rapatrié : ces photos appartiennent à Skiinfo et à ses contributeurs, l'affichage pointe vers la source",
- "stations": 1462,
- "avecPhoto": 1367,
+ "stations": 1467,
+ "avecPhoto": 1372,
  "fiches": {
   "abruzzes/campo-di-giove-maiella": {
    "cle": "abruzzes/campo-di-giove-maiella",
@@ -8778,6 +8778,36 @@
    "nom": "Xonrupt - Le Poli",
    "pays": "FR-FR",
    "photo": "https://cdn.bfldr.com/WIENNW6Q/as/kz8b5t573255w2bbtp53jp/Xonrupt_-_Le_Poli?auto=webp&format=png"
+  },
+  "mtskheta-mtianeti-region/bakuriani": {
+   "cle": "mtskheta-mtianeti-region/bakuriani",
+   "nom": "Bakuriani",
+   "pays": "GE",
+   "photo": "https://img2.onthesnow.com/image/xl/55/bakuriani_2024_hero_new_crop_compressed_556931.jpg"
+  },
+  "mtskheta-mtianeti-region/goderdzi": {
+   "cle": "mtskheta-mtianeti-region/goderdzi",
+   "nom": "Goderdzi",
+   "pays": "GE",
+   "photo": "https://img1.onthesnow.com/image/xl/55/goderdzi_hero_2024_resized_compressed_556925.jpg"
+  },
+  "mtskheta-mtianeti-region/gudauri": {
+   "cle": "mtskheta-mtianeti-region/gudauri",
+   "nom": "Gudauri",
+   "pays": "GE",
+   "photo": "https://img2.onthesnow.com/image/xl/55/gudauri_hero_2024_resized_compressed_556926.jpg"
+  },
+  "svaneti/mestia-hatsvali": {
+   "cle": "svaneti/mestia-hatsvali",
+   "nom": "Mestia - Hatsvali",
+   "pays": "GE",
+   "photo": "https://img4.onthesnow.com/image/xl/55/hatsvali_hero_2024_resized_compressed_556928.jpg"
+  },
+  "svaneti/mestia-tetnuldi": {
+   "cle": "svaneti/mestia-tetnuldi",
+   "nom": "Mestia - Tetnuldi",
+   "pays": "GE",
+   "photo": "https://img5.onthesnow.com/image/xl/55/tetnuldi_hero_2024_resized_compressed_556929.jpg"
   }
  }
 }

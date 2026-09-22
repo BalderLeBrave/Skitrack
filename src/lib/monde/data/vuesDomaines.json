@@ -1,5 +1,5 @@
 {
- "calcule": "2026-09-21",
+ "calcule": "2026-09-22",
  "quoi": "ce que chaque domaine sait montrer : une photo et un forfait, rattachés par la position",
  "regle": "la fiche la plus proche à 5 km au plus, une fiche ne sert qu'un domaine ; un appariement par source, partagé par la photo et le forfait",
  "rayonKm": 5,
@@ -16,9 +16,9 @@
   "site officiel (tarif journée, avec preuve)"
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
- "domaines": 2780,
+ "domaines": 2781,
  "avecPhoto": 1918,
- "avecForfait": 1825,
+ "avecForfait": 1826,
  "vues": {
   "ad-canaro": {
    "photo": {
@@ -2288,7 +2288,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 1.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "brenneralm-breitenfurt-bei-wien"
+   }
   },
   "at-brunnalm-hohe-veitsch": {
    "photo": {
@@ -6759,6 +6765,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gramais"
    }
   },
   "at-graukogel": {
@@ -8116,6 +8128,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "navis"
    }
   },
   "at-gurtis": {
@@ -8490,6 +8508,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 14,
+    "n": 6,
+    "source": "skiinfo",
+    "cle": "basse-autriche/semmering"
    }
   },
   "at-hauereck-st-kathrein-am-hauenstein": {
@@ -13026,6 +13050,12 @@
     "sommetM": 1310,
     "source": "skiresort",
     "cle": "feichten"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "feichten"
    }
   },
   "at-kellerjoch": {
@@ -13153,7 +13183,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "nussbaumerlifte-hof-bei-salzburg"
+   }
   },
   "at-kirchschlag": {
    "photo": {
@@ -14703,6 +14739,12 @@
    "altitudes": {
     "basM": 1600,
     "sommetM": 2222,
+    "source": "skiinfo",
+    "cle": "styrie/lachtal"
+   },
+   "pistes": {
+    "km": 25,
+    "n": 23,
     "source": "skiinfo",
     "cle": "styrie/lachtal"
    }
@@ -18585,6 +18627,16 @@
     "periodes": null
    }
   },
+  "at-pfafflar": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "bschlabs-pfafflar"
+   }
+  },
   "at-pfander": {
    "photo": {
     "source": "skiresort",
@@ -18630,6 +18682,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "pfaender-bregenz"
    }
   },
   "at-piesendorf-nagelkopfl": {
@@ -19311,6 +19369,16 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "at-preggrabenhohe": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "spitzeralm-sankt-lorenzen-bei-knittelfeld"
    }
   },
   "at-prabichl": {
@@ -21246,6 +21314,12 @@
     "sommetM": 1200,
     "source": "skiresort",
     "cle": "hirschegger-dorflifte"
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "hirschegger-dorflifte"
    }
   },
   "at-salzstiegl-470620m148731": {
@@ -21553,6 +21627,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "raml-molln"
    }
   },
   "at-schizentrum-rettenbach": {
@@ -22214,7 +22294,13 @@
     "titre": "Bienvenue dans le monde hivernal du Waldhof",
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "waldhof-winterwelt-fuschl-am-see"
+   }
   },
   "at-schmittenhohe-zell-am-see": {
    "photo": {
@@ -22600,6 +22686,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 26,
+    "n": 19,
+    "source": "skiinfo",
+    "cle": "styrie/stuhleck-semmering"
    }
   },
   "at-schollenwiesenlift-hofen": {
@@ -22683,6 +22775,12 @@
    "altitudes": {
     "basM": 914,
     "sommetM": 1900,
+    "source": "skiinfo",
+    "cle": "tyrol/reutte-hahnenkamm"
+   },
+   "pistes": {
+    "km": 16,
+    "n": 9,
     "source": "skiinfo",
     "cle": "tyrol/reutte-hahnenkamm"
    }
@@ -31060,6 +31158,12 @@
     "sommetM": 2205,
     "source": "skiinfo",
     "cle": "styrie/turracher-hoehe"
+   },
+   "pistes": {
+    "km": 42,
+    "n": 32,
+    "source": "skiinfo",
+    "cle": "styrie/turracher-hoehe"
    }
   },
   "at-turracher-hohe-469281m138726": {
@@ -33977,6 +34081,12 @@
       ]
      }
     ]
+   },
+   "pistes": {
+    "km": 143,
+    "n": 84,
+    "source": "skiinfo",
+    "cle": "tyrol/hochkrimml-zillertal-arena"
    }
   },
   "at-wurzeralm": {
@@ -34462,6 +34572,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "alpe-furx-furx-zwischenwasser"
    }
   },
   "at-zwolferhorn-st-gilgen": {
@@ -34474,7 +34590,13 @@
     "titre": "Laimerlift - Téléski",
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "laimerlift-st-gilgen"
+   }
   },
   "ba-igrista-olimpijski-centar": {
    "photo": {
@@ -34661,6 +34783,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 4.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ski-kraljica-kupres"
    }
   },
   "ba-kupres-cajusa-adriaski": {
@@ -34902,6 +35030,12 @@
     "sommetM": 1281,
     "source": "skiresort",
     "cle": "ravna-planina"
+   },
+   "pistes": {
+    "km": 12.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ravna-planina"
    }
   },
   "ba-ski-ivan": {
@@ -34953,6 +35087,12 @@
    "altitudes": {
     "basM": 1235,
     "sommetM": 1273,
+    "source": "skiresort",
+    "cle": "ski-ivan-kupres"
+   },
+   "pistes": {
+    "km": 0.9,
+    "n": null,
     "source": "skiresort",
     "cle": "ski-ivan-kupres"
    }
@@ -35130,6 +35270,12 @@
    "altitudes": {
     "basM": 62,
     "sommetM": 97,
+    "source": "skiresort",
+    "cle": "dousberg-maastricht"
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
     "source": "skiresort",
     "cle": "dousberg-maastricht"
    }
@@ -35719,7 +35865,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "panichishte"
+   }
   },
   "bg-semkovo": {
    "photo": null,
@@ -35797,6 +35949,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ophelii"
    }
   },
   "bg-tschepelare-chepelare-tchepelare-cepelare-cepelare": {
@@ -35844,6 +36002,26 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "by-mozyr": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "mozyr"
+   }
+  },
+  "by-solnechnaya-dolina": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "solnechnaya-dolina-minsk"
    }
   },
   "ch-4-vallees-verbier-la-tzoumaz-nendaz-veysonnaz-thyon": {
@@ -37387,6 +37565,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "ch-bedea-novaggio": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "bedea-novaggio"
    }
   },
   "ch-belalp": {
@@ -39300,7 +39488,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 5.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "cardada-cimetta-orselina"
+   }
   },
   "ch-cioss-prato": {
    "photo": {
@@ -39997,6 +40191,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "eggberge-altdorf"
    }
   },
   "ch-eggberge-469015m86525": {
@@ -40979,6 +41179,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "friherrenberg-einsiedeln"
    }
   },
   "ch-froideville": {
@@ -43672,7 +43878,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 80,
+    "n": 24,
+    "source": "skiinfo",
+    "cle": "les-grisons/savognin"
+   }
   },
   "ch-kinderskiparadies-la-nars": {
    "photo": {
@@ -44976,7 +45188,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "le-larmont"
+   }
   },
   "ch-lenk-wallegg": {
    "photo": {
@@ -45133,7 +45351,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "le-chauffaud-val-de-morteau"
+   }
   },
   "ch-les-genevez": {
    "photo": {
@@ -45208,6 +45432,12 @@
    "altitudes": {
     "basM": 986,
     "sommetM": 1200,
+    "source": "skiresort",
+    "cle": "tete-de-ran-les-hauts-geneveys-les-gollieres"
+   },
+   "pistes": {
+    "km": 12,
+    "n": null,
     "source": "skiresort",
     "cle": "tete-de-ran-les-hauts-geneveys-les-gollieres"
    }
@@ -46475,6 +46705,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "mogno"
    }
   },
   "ch-mogno-464281m86623": {
@@ -48726,6 +48962,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "roehrenmoos-dietikon"
    }
   },
   "ch-saas-fee": {
@@ -49390,6 +49632,12 @@
    "altitudes": {
     "basM": 1150,
     "sommetM": 1580,
+    "source": "skiinfo",
+    "cle": "jura/ste-croix-les-rasses"
+   },
+   "pistes": {
+    "km": 20,
+    "n": 9,
     "source": "skiinfo",
     "cle": "jura/ste-croix-les-rasses"
    }
@@ -50663,6 +50911,12 @@
    "altitudes": {
     "basM": 920,
     "sommetM": 1250,
+    "source": "skiresort",
+    "cle": "schratten-fluehli"
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
     "source": "skiresort",
     "cle": "schratten-fluehli"
    }
@@ -52650,6 +52904,12 @@
     "sommetM": 2000,
     "source": "skiinfo",
     "cle": "lac-leman/les-diablerets"
+   },
+   "pistes": {
+    "km": 104.7,
+    "n": 50,
+    "source": "skiinfo",
+    "cle": "lac-leman/les-diablerets"
    }
   },
   "ch-villars-gryon-les-diablerets": {
@@ -53971,6 +54231,12 @@
     "sommetM": 802,
     "source": "skiinfo",
     "cle": "jizerske-hory/bedrichov"
+   },
+   "pistes": {
+    "km": 4.5,
+    "n": 10,
+    "source": "skiinfo",
+    "cle": "jizerske-hory/bedrichov"
    }
   },
   "cz-biocel-zlatnik": {
@@ -54116,6 +54382,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "hranice-bozi-dar"
    }
   },
   "cz-bublava": {
@@ -54392,7 +54664,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 2.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "dalecin"
+   }
   },
   "cz-debrnik": {
    "photo": {
@@ -55472,6 +55750,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "celnica-trestik"
    }
   },
   "cz-horni-kouty-radvanov": {
@@ -55519,6 +55803,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "horni-kouty"
    }
   },
   "cz-horni-podluzi": {
@@ -55605,6 +55895,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "horni-vltavice"
    }
   },
   "cz-jonas-park-ostruzna": {
@@ -55805,6 +56101,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "jezerne-tabacka"
    }
   },
   "cz-jizni-svahy": {
@@ -56330,6 +56632,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 11.5,
+    "n": 11,
+    "source": "skiinfo",
+    "cle": "jeseniky/kouty-nad-desnou"
    }
   },
   "cz-kozakov": {
@@ -57096,6 +57404,16 @@
    },
    "forfait": null
   },
+  "cz-lyzarsky-areal-rohy": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "rohy"
+   }
+  },
   "cz-lyzarsky-areal-vernirovice": {
    "photo": null,
    "forfait": {
@@ -57145,7 +57463,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "klema"
+   }
   },
   "cz-lyzarsky-vlek-maly-sisak": {
    "photo": {
@@ -57387,7 +57711,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "mezihori"
+   }
   },
   "cz-mezivodi": {
    "photo": {
@@ -58386,6 +58716,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "velflink-pernink"
    }
   },
   "cz-petrikov-relax": {
@@ -58472,6 +58808,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "polevsko"
    }
   },
   "cz-prachatice-libin": {
@@ -58519,6 +58861,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "libin-libinske-sedlo"
    }
   },
   "cz-prkenny-dul-bret": {
@@ -58558,6 +58906,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "cz-privrat": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "privrat"
    }
   },
   "cz-radvanice": {
@@ -58938,6 +59296,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "krkonose/kamenec"
    }
   },
   "cz-ski-kralicak": {
@@ -60221,6 +60585,16 @@
     "periodes": null
    }
   },
+  "cz-ski-areal-sedlar": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ludvikov"
+   }
+  },
   "cz-ski-areal-reka": {
    "photo": {
     "source": "bergfex",
@@ -60266,6 +60640,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "reka"
    }
   },
   "cz-ski-areal-sacberk": {
@@ -61062,6 +61442,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "krusne-hory/bozi-dar-novako"
    }
   },
   "cz-skiareal-olesnice-v-orlickych-horach": {
@@ -62254,6 +62640,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "frymburk-svata-marta"
    }
   },
   "cz-slavoj": {
@@ -62350,7 +62742,7 @@
     "periodes": null
    }
   },
-  "cz-soszow-jawornik-wis-a": {
+  "cz-soszow": {
    "photo": {
     "source": "bergfex",
     "cle": "soszow",
@@ -62501,6 +62893,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 5,
+    "n": 8,
+    "source": "skiinfo",
+    "cle": "orlicke-hory/destne-v-orlickych-horach"
    }
   },
   "cz-stozek": {
@@ -62587,6 +62985,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "strazny"
    }
   },
   "cz-stupava": {
@@ -64146,6 +64550,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": 1,
+    "source": "skiinfo",
+    "cle": "foret-de-baviere/haidmuehle"
    }
   },
   "cz-cesky-jiretin": {
@@ -64541,6 +64951,12 @@
    "altitudes": {
     "basM": 860,
     "sommetM": 1214,
+    "source": "skiresort",
+    "cle": "pancir"
+   },
+   "pistes": {
+    "km": 2.4,
+    "n": null,
     "source": "skiresort",
     "cle": "pancir"
    }
@@ -64956,6 +65372,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "rosts-wiesen-augustusburg"
    }
   },
   "de-balderschwang-hochschelpen-riedberger-horn": {
@@ -65365,6 +65787,16 @@
     "periodes": null
    }
   },
+  "de-berghalde-penzburg": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "berghalde-penzberg"
+   }
+  },
   "de-blomberg": {
    "photo": {
     "source": "skiinfo",
@@ -65412,6 +65844,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 4,
+    "n": 1,
+    "source": "skiinfo",
+    "cle": "oberbayern/blomberg"
    }
   },
   "de-blasiberg-wiesensteig": {
@@ -65584,6 +66022,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 4,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "foret-de-baviere/bodenmais-erlebnis-silberberg"
    }
   },
   "de-brauneck": {
@@ -66185,6 +66629,12 @@
     "sommetM": 923,
     "source": "skiresort",
     "cle": "albstadt-ebingen"
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "albstadt-ebingen"
    }
   },
   "de-eichholzkopf": {
@@ -66595,6 +67045,12 @@
    "altitudes": {
     "basM": 557,
     "sommetM": 731,
+    "source": "skiresort",
+    "cle": "fort-fun-winterwelt-bestwig"
+   },
+   "pistes": {
+    "km": 2.2,
+    "n": null,
     "source": "skiresort",
     "cle": "fort-fun-winterwelt-bestwig"
    }
@@ -68824,6 +69280,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 16,
+    "n": 10,
+    "source": "skiinfo",
+    "cle": "allgau/immenstadt-mittagbahn"
    }
   },
   "de-isny-felderhalde": {
@@ -69272,6 +69734,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 7.4,
+    "n": 1,
+    "source": "skiinfo",
+    "cle": "oberbayern/dammkar-karwendel"
    }
   },
   "de-kessellifte-inzell": {
@@ -69505,6 +69973,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.5,
+    "n": 1,
+    "source": "skiinfo",
+    "cle": "oberbayern/laber"
    }
   },
   "de-ludwigsstadt": {
@@ -69513,6 +69987,12 @@
    "altitudes": {
     "basM": 620,
     "sommetM": 660,
+    "source": "skiresort",
+    "cle": "lauenhain-ludwigsstadt"
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
     "source": "skiresort",
     "cle": "lauenhain-ludwigsstadt"
    }
@@ -71136,6 +71616,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "reiserhang-gaissach"
    }
   },
   "de-rossfeld": {
@@ -71305,6 +71791,16 @@
     "periodes": null
    }
   },
+  "de-salmendingen": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "salmendingen-burladingen"
+   }
+  },
   "de-sandskigebiet-monte-kaolino": {
    "photo": {
     "source": "skiresort",
@@ -71315,7 +71811,13 @@
     "titre": "Vue sur la piste du Monte Kaolino",
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "monte-kaolino-hirschau"
+   }
   },
   "de-sankt-englmar-grun-proller": {
    "photo": {
@@ -71408,6 +71910,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 6,
+    "n": 5,
+    "source": "skiinfo",
+    "cle": "foret-de-baviere/proeller"
    }
   },
   "de-schauinsland-hofsgrund": {
@@ -73226,6 +73734,16 @@
     "periodes": null
    }
   },
+  "de-skigebiet-muhlwiese-ski-area-muhlwiese": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "muehlwiese-lerbach-osterode"
+   }
+  },
   "de-skigebiet-nebelhorn": {
    "photo": {
     "source": "skiinfo",
@@ -74059,7 +74577,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "weisser-stein-hellenthal"
+   }
   },
   "de-skigebiet-winterloch-heigenbrucken": {
    "photo": {
@@ -74127,6 +74651,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "de-skihang-gro-buchelberg": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "grossbuechlberg-mitterteich"
    }
   },
   "de-skihang-tuppel": {
@@ -74355,6 +74889,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "burgbernheim"
    }
   },
   "de-skilift-deesbach": {
@@ -74461,6 +75001,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "halde-westerheim"
    }
   },
   "de-skilift-hermsdorf": {
@@ -74625,6 +75171,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.5,
+    "n": 1,
+    "source": "skiinfo",
+    "cle": "hesse/großer-feldberg"
    }
   },
   "de-skilift-riedlberg": {
@@ -74712,7 +75264,13 @@
     "titre": "Vue sur la piste de ski au parc sportif forestier Ebersberg",
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "waldsportpark-ebersberg"
+   }
   },
   "de-skilift-wurmstein": {
    "photo": {
@@ -74859,6 +75417,12 @@
    "altitudes": {
     "basM": 800,
     "sommetM": 950,
+    "source": "skiinfo",
+    "cle": "foret-de-baviere/hauzenberg"
+   },
+   "pistes": {
+    "km": 1,
+    "n": 2,
     "source": "skiinfo",
     "cle": "foret-de-baviere/hauzenberg"
    }
@@ -75214,6 +75778,12 @@
    "altitudes": {
     "basM": 630,
     "sommetM": 820,
+    "source": "skiinfo",
+    "cle": "sauerland/winterberg-skiliftkarussell"
+   },
+   "pistes": {
+    "km": 27.5,
+    "n": 27,
     "source": "skiinfo",
     "cle": "sauerland/winterberg-skiliftkarussell"
    }
@@ -76651,6 +77221,12 @@
     "sommetM": 1260,
     "source": "skiinfo",
     "cle": "foret-noire/todtmoos"
+   },
+   "pistes": {
+    "km": 6.8,
+    "n": 8,
+    "source": "skiinfo",
+    "cle": "foret-noire/todtmoos"
    }
   },
   "de-todtnauberg": {
@@ -76867,6 +77443,12 @@
     "sommetM": 1390,
     "source": "skiinfo",
     "cle": "foret-noire/todtnauberg"
+   },
+   "pistes": {
+    "km": 19.5,
+    "n": 12,
+    "source": "skiinfo",
+    "cle": "foret-noire/todtnauberg"
    }
   },
   "de-todtnauberg-478572m79509": {
@@ -77049,7 +77631,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sonnenmoos-rottach-egern"
+   }
   },
   "de-wendelstein": {
    "photo": {
@@ -77252,6 +77840,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 6,
+    "n": 5,
+    "source": "skiinfo",
+    "cle": "oberbayern/ruhpolding"
    }
   },
   "de-wildewiese": {
@@ -77403,6 +77997,12 @@
    "altitudes": {
     "basM": 540,
     "sommetM": 600,
+    "source": "skiresort",
+    "cle": "schwalefeld"
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
     "source": "skiresort",
     "cle": "schwalefeld"
    }
@@ -77714,6 +78314,12 @@
    "altitudes": {
     "basM": 639,
     "sommetM": 770,
+    "source": "skiresort",
+    "cle": "wolfsberglift-siegsdorf"
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
     "source": "skiresort",
     "cle": "wolfsberglift-siegsdorf"
    }
@@ -78239,6 +78845,16 @@
     "periodes": null
    }
   },
+  "ee-vimka-viimsi-maepark-skigebiet-vimka-vimka-ski-resort": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "vimka-viimsi-maeepark"
+   }
+  },
   "es-alto-campoo": {
    "photo": {
     "source": "skiinfo",
@@ -78315,6 +78931,12 @@
    "altitudes": {
     "basM": 1650,
     "sommetM": 2125,
+    "source": "skiinfo",
+    "cle": "cordillere-cantabrique/alto-campoo"
+   },
+   "pistes": {
+    "km": 23.7,
+    "n": 23,
     "source": "skiinfo",
     "cle": "cordillere-cantabrique/alto-campoo"
    }
@@ -80544,6 +81166,12 @@
     "sommetM": 705,
     "source": "skiresort",
     "cle": "snozone-madrid"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "snozone-madrid"
    }
   },
   "es-tavascan": {
@@ -80713,6 +81341,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "aavasaksa"
+   }
+  },
+  "fi-alhovuori": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 3.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "alhovuori"
    }
   },
   "fi-ellivuori": {
@@ -80987,6 +81631,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "hiittenharju"
    }
   },
   "fi-kallin": {
@@ -81160,6 +81810,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "lakis"
    }
   },
   "fi-laskettelukeskus-mustavaara": {
@@ -81306,6 +81962,12 @@
     "sommetM": 531,
     "source": "skiinfo",
     "cle": "nord-finlande/levi"
+   },
+   "pistes": {
+    "km": 45,
+    "n": 43,
+    "source": "skiinfo",
+    "cle": "nord-finlande/levi"
    }
   },
   "fi-louekeskus": {
@@ -81358,6 +82020,16 @@
     "servi": true
    },
    "forfait": null
+  },
+  "fi-maarianvaaran-hiihtokeskus": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "maarianrinteet"
+   }
   },
   "fi-messilan-lumikeskus-messila-skicenter": {
    "photo": {
@@ -81526,6 +82198,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "paavonrinteet-saarijaervi"
    }
   },
   "fi-paljakan-matkailu-ja-hiihtokeskus": {
@@ -81622,6 +82300,12 @@
     "sommetM": 140,
     "source": "skiresort",
     "cle": "paloisvuori-iisalmi"
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "paloisvuori-iisalmi"
    }
   },
   "fi-parra-snowpark": {
@@ -81669,6 +82353,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "parra"
    }
   },
   "fi-peuramaa": {
@@ -81814,6 +82504,22 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 11,
+    "n": 15,
+    "source": "skiinfo",
+    "cle": "finlande/iso-syoete"
+   }
+  },
+  "fi-puijon-hyppyrimaet": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "puijon-kuopio"
    }
   },
   "fi-purnu": {
@@ -82053,6 +82759,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "paaminne"
    }
   },
   "fi-riihivuori-resort": {
@@ -82284,6 +82996,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ruokolahti"
+   }
+  },
+  "fi-ruosniemi": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ruosniemi"
    }
   },
   "fi-ruskotunturi": {
@@ -82614,6 +83342,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "salomonkallio"
    }
   },
   "fi-sappee": {
@@ -82755,6 +83489,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "simpsioe"
    }
   },
   "fi-ski-saariselka-laskuttelukeskus-ski-sport-resort-saariselka": {
@@ -82833,6 +83573,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sotkanrinteet"
    }
   },
   "fi-suomutunturi": {
@@ -82970,6 +83716,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "taivalvaara"
    }
   },
   "fi-tornimaen-laskettelukeskus": {
@@ -83048,6 +83800,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "fi-varkaus": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "varkaus"
    }
   },
   "fi-vihti-ski-center": {
@@ -83318,6 +84080,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "aeaenemaeki-aeaenekoski"
    }
   },
   "fi-ojberget": {
@@ -84781,6 +85549,12 @@
     "sommetM": 2450,
     "source": "skiinfo",
     "cle": "alpes-du-sud/auron"
+   },
+   "pistes": {
+    "km": 135.5,
+    "n": 44,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/auron"
    }
   },
   "fr-aussois": {
@@ -85091,6 +85865,12 @@
    "altitudes": {
     "basM": 1240,
     "sommetM": 1725,
+    "source": "skiinfo",
+    "cle": "pyrenees/le-chioula"
+   },
+   "pistes": {
+    "km": 51,
+    "n": 13,
     "source": "skiinfo",
     "cle": "pyrenees/le-chioula"
    }
@@ -86544,6 +87324,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "chaux-neuve"
    }
   },
   "fr-claviere": {
@@ -88514,6 +89300,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 90,
+    "n": 9,
+    "source": "skiinfo",
+    "cle": "pyrenees/val-dazun"
    }
   },
   "fr-evasion-mont-blanc": {
@@ -89467,6 +90259,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 7,
+    "n": 7,
+    "source": "skiinfo",
+    "cle": "vosges/le-gaschney"
    }
   },
   "fr-gavarnie-gedre": {
@@ -91564,6 +92362,12 @@
     "sommetM": 1800,
     "source": "skiinfo",
     "cle": "alpes-du-sud/la-colmiane"
+   },
+   "pistes": {
+    "km": 30,
+    "n": 18,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/la-colmiane"
    }
   },
   "fr-la-combe-saint-pierre": {
@@ -91831,6 +92635,12 @@
     "sommetM": 3550,
     "source": "skiinfo",
     "cle": "alpes-du-sud/la-grave-la-meije"
+   },
+   "pistes": {
+    "km": 2,
+    "n": 1,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/la-grave-la-meije"
    }
   },
   "fr-la-loge-des-gardes": {
@@ -92014,7 +92824,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "la-pesse"
+   }
   },
   "fr-la-pierre-saint-martin-san-martingo-harria": {
    "photo": {
@@ -93197,6 +94013,12 @@
       ]
      }
     ]
+   },
+   "pistes": {
+    "km": 34.4,
+    "n": 35,
+    "source": "skiinfo",
+    "cle": "jura/les-rousses"
    }
   },
   "fr-lans-en-vercors": {
@@ -93307,6 +94129,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 25,
+    "n": 29,
+    "source": "skiinfo",
+    "cle": "alpes-du-nord/lans-en-vercors"
    }
   },
   "fr-larche": {
@@ -94170,6 +94998,12 @@
     "sommetM": 930,
     "source": "skiresort",
     "cle": "le-haut-du-tot-sapois"
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "le-haut-du-tot-sapois"
    }
   },
   "fr-le-lioran": {
@@ -95003,6 +95837,12 @@
     "sommetM": 1288,
     "source": "skiresort",
     "cle": "le-tanet"
+   },
+   "pistes": {
+    "km": 5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "le-tanet"
    }
   },
   "fr-le-tourchet-chamonix": {
@@ -95433,6 +96273,12 @@
    "altitudes": {
     "basM": 1650,
     "sommetM": 2400,
+    "source": "skiinfo",
+    "cle": "pyrenees/les-angles"
+   },
+   "pistes": {
+    "km": 55,
+    "n": 41,
     "source": "skiinfo",
     "cle": "pyrenees/les-angles"
    }
@@ -96303,6 +97149,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "les-gentianes-morbier"
    }
   },
   "fr-les-gets-morzine": {
@@ -96578,7 +97430,7 @@
     "source": "skiinfo",
     "cle": "alpes-du-nord/saint-gervais-mont-blanc",
     "nom": "Saint Gervais Mont-Blanc",
-    "km": 4.06,
+    "km": 3.37,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/jqk7rbkxjfj4mnrz7bnfgw/Saint-Gervais_Mont-Blanc_Hero_2024-25?auto=webp&format=png",
     "titre": null,
     "servi": true
@@ -96587,7 +97439,7 @@
     "source": "skiinfo",
     "cle": "alpes-du-nord/saint-gervais-mont-blanc",
     "nom": "Saint Gervais Mont-Blanc",
-    "km": 4.06,
+    "km": 3.37,
     "devise": "EUR",
     "deviseSource": "page",
     "deviseDuPays": null,
@@ -99432,6 +100284,12 @@
     "sommetM": 1510,
     "source": "skiresort",
     "cle": "notre-dame-du-pre"
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "notre-dame-du-pre"
    }
   },
   "fr-orcieres": {
@@ -99529,6 +100387,12 @@
    "altitudes": {
     "basM": 1850,
     "sommetM": 2725,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/orcieres"
+   },
+   "pistes": {
+    "km": 100,
+    "n": 61,
     "source": "skiinfo",
     "cle": "alpes-du-sud/orcieres"
    }
@@ -101831,6 +102695,12 @@
     "sommetM": 1247,
     "source": "skiresort",
     "cle": "rouge-gazon"
+   },
+   "pistes": {
+    "km": 8.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "rouge-gazon"
    }
   },
   "fr-reallon": {
@@ -103805,6 +104675,12 @@
     "sommetM": 2000,
     "source": "skiinfo",
     "cle": "alpes-du-nord/thollon-les-memises"
+   },
+   "pistes": {
+    "km": 50,
+    "n": 16,
+    "source": "skiinfo",
+    "cle": "alpes-du-nord/thollon-les-memises"
    }
   },
   "fr-tignes-val-d-isere": {
@@ -104289,6 +105165,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": 7,
+    "source": "skiinfo",
+    "cle": "alpes-du-sud/val-pelens"
    }
   },
   "fr-val-thorens": {
@@ -105143,6 +106025,16 @@
     "periodes": null
    }
   },
+  "gb-allenheads": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "allenheads"
+   }
+  },
   "gb-alpine-snowsports-aldershot": {
    "photo": {
     "source": "skiresort",
@@ -105154,6 +106046,26 @@
     "servi": true
    },
    "forfait": null
+  },
+  "gb-bearsden-ski-board": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "bearsden"
+   }
+  },
+  "gb-better-ski-board-centre": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gosling-sports-park"
+   }
   },
   "gb-cairngorm-mountain": {
    "photo": {
@@ -105300,7 +106212,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "aberdeen-snowsports-centre"
+   }
   },
   "gb-glencoe-mountain-resort": {
    "photo": {
@@ -105458,6 +106376,26 @@
     "periodes": null
    }
   },
+  "gb-gloucester-ski-snowboard-centre": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gloucester-ski-snowboard-centre"
+   }
+  },
+  "gb-inpiste": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "inpiste-luton-hoo-estate"
+   }
+  },
   "gb-knockhatch-ski-snowboard-centre": {
    "photo": null,
    "forfait": {
@@ -105487,6 +106425,12 @@
     "periodes": null,
     "preuve": "Pay on the day £25",
     "pageTarifs": "https://knockhatchskischool.com/prices-2026-27-season"
+   },
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "knockhatch-ski-centre"
    }
   },
   "gb-llandudno-ski-and-snowboard-centre": {
@@ -105534,6 +106478,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "llandudno-ski-and-snowboard-centre"
+   }
+  },
+  "gb-loch-insh-watersports-skiing-centre": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "loch-insh-outdoor-centre"
    }
   },
   "gb-lowther-hills": {
@@ -105633,6 +106593,16 @@
     "periodes": null
    }
   },
+  "gb-north-staffs-ski-club-kidsgrove": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kidsgrove-ski-centre"
+   }
+  },
   "gb-plymouth-ski-and-snowboard-center": {
    "photo": {
     "source": "officiel",
@@ -105670,6 +106640,12 @@
     "periodes": null,
     "preuve": "Half Day Session £42.00",
     "pageTarifs": "https://www.jnlplymouth.co.uk/opening-times"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "plymouth-ski-centre"
    }
   },
   "gb-pontypool-ski-centre": {
@@ -105694,7 +106670,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 3.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "lake-district-ski-club-raise"
+   }
   },
   "gb-south-wilts-ski-club": {
    "photo": {
@@ -105706,7 +106688,23 @@
     "titre": "DISCOVER THE ULTIMATE INDOOR SKI EXPERIENCE",
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "south-wilts-ski-club"
+   }
+  },
+  "gb-stoke-ski-center": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "stoke-ski-centre"
+   }
   },
   "gb-swadlincote-ski-snowboard": {
    "photo": {
@@ -105718,7 +106716,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "swadlincote-snowsports-centre"
+   }
   },
   "gb-the-lecht": {
    "photo": {
@@ -105842,7 +106846,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 1.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "weardale-ski-club"
+   }
   },
   "gb-xscape-milton-keynes": {
    "photo": {
@@ -105866,7 +106876,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "carlisle-ski-club-yad-moss"
+   }
   },
   "ge-crystal": {
    "photo": null,
@@ -105956,6 +106972,12 @@
    "altitudes": {
     "basM": 1700,
     "sommetM": 2400,
+    "source": "skiinfo",
+    "cle": "mtskheta-mtianeti-region/goderdzi"
+   },
+   "pistes": {
+    "km": 8.5,
+    "n": 4,
     "source": "skiinfo",
     "cle": "mtskheta-mtianeti-region/goderdzi"
    }
@@ -106431,6 +107453,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 8.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "tymfristos-velouchi"
    }
   },
   "gr-parnassos-ski-centre": {
@@ -111815,6 +112843,12 @@
     "sommetM": 2742,
     "source": "skiinfo",
     "cle": "venetie/cortina-dampezzo"
+   },
+   "pistes": {
+    "km": 120,
+    "n": 73,
+    "source": "skiinfo",
+    "cle": "venetie/cortina-dampezzo"
    }
   },
   "it-courmayeur": {
@@ -112442,6 +113476,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 5,
+    "n": 6,
+    "source": "skiinfo",
+    "cle": "piemont/entracque"
    }
   },
   "it-etna-nord": {
@@ -112715,6 +113755,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 13,
+    "n": 14,
+    "source": "skiinfo",
+    "cle": "frioul/forni-di-sopra"
    }
   },
   "it-folgaria-area-sciistica-folgaria": {
@@ -113186,6 +114232,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 8.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "forca-canapine"
    }
   },
   "it-forcora-ski": {
@@ -113556,6 +114608,12 @@
       ]
      }
     ]
+   },
+   "pistes": {
+    "km": 24,
+    "n": 25,
+    "source": "skiinfo",
+    "cle": "frioul/tarvisio"
    }
   },
   "it-gambarie": {
@@ -113700,6 +114758,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 30,
+    "n": 11,
+    "source": "skiinfo",
+    "cle": "piemont/garessio-2000"
    }
   },
   "it-gaver": {
@@ -115062,6 +116126,12 @@
     "sommetM": 1900,
     "source": "skiinfo",
     "cle": "vallee-daoste/la-magdeleine"
+   },
+   "pistes": {
+    "km": 1,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "vallee-daoste/la-magdeleine"
    }
   },
   "it-la-pagliara": {
@@ -115132,6 +116202,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": 3,
+    "source": "skiinfo",
+    "cle": "calabria/lorica-ski-area"
    }
   },
   "it-la-thuile-ski": {
@@ -115284,6 +116360,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 15.5,
+    "n": 11,
+    "source": "skiinfo",
+    "cle": "campanie/laceno"
    }
   },
   "it-ladurns": {
@@ -116669,6 +117751,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 9,
+    "n": 6,
+    "source": "skiinfo",
+    "cle": "venetie/lessinia"
    }
   },
   "it-maniva": {
@@ -117504,6 +118592,12 @@
     "sommetM": 1976,
     "source": "skiinfo",
     "cle": "emilie-romagne/cimone"
+   },
+   "pistes": {
+    "km": 50,
+    "n": 25,
+    "source": "skiinfo",
+    "cle": "emilie-romagne/cimone"
    }
   },
   "it-monte-fumaiolo": {
@@ -118066,6 +119160,12 @@
    "altitudes": {
     "basM": 1381,
     "sommetM": 1474,
+    "source": "skiinfo",
+    "cle": "vallee-daoste/ollomont"
+   },
+   "pistes": {
+    "km": 1.1,
+    "n": 4,
     "source": "skiinfo",
     "cle": "vallee-daoste/ollomont"
    }
@@ -119789,6 +120889,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 12,
+    "n": 8,
+    "source": "skiinfo",
+    "cle": "piemont/usseglio"
    }
   },
   "it-pian-mune": {
@@ -120251,6 +121357,12 @@
    "altitudes": {
     "basM": 1245,
     "sommetM": 1865,
+    "source": "skiinfo",
+    "cle": "frioul/piancavallo"
+   },
+   "pistes": {
+    "km": 14,
+    "n": 22,
     "source": "skiinfo",
     "cle": "frioul/piancavallo"
    }
@@ -121505,6 +122617,12 @@
     "sommetM": 2510,
     "source": "skiinfo",
     "cle": "piemont/prali"
+   },
+   "pistes": {
+    "km": 25,
+    "n": 11,
+    "source": "skiinfo",
+    "cle": "piemont/prali"
    }
   },
   "it-prali-448786m70569": {
@@ -122065,6 +123183,12 @@
    "altitudes": {
     "basM": 1370,
     "sommetM": 2654,
+    "source": "skiinfo",
+    "cle": "trentin/san-martino-di-castrozza-passo-rolle"
+   },
+   "pistes": {
+    "km": 60,
+    "n": 37,
     "source": "skiinfo",
     "cle": "trentin/san-martino-di-castrozza-passo-rolle"
    }
@@ -124556,6 +125680,12 @@
    "altitudes": {
     "basM": 1020,
     "sommetM": 1870,
+    "source": "skiinfo",
+    "cle": "abruzzes/scanno-monte-rotondo"
+   },
+   "pistes": {
+    "km": 15.6,
+    "n": 6,
     "source": "skiinfo",
     "cle": "abruzzes/scanno-monte-rotondo"
    }
@@ -128565,6 +129695,12 @@
     "sommetM": 1900,
     "source": "skiinfo",
     "cle": "marche/ussita-frontignano"
+   },
+   "pistes": {
+    "km": 14,
+    "n": 15,
+    "source": "skiinfo",
+    "cle": "marche/ussita-frontignano"
    }
   },
   "it-val-comelico-padola": {
@@ -129774,6 +130910,22 @@
     "sommetM": 1702,
     "source": "skiresort",
     "cle": "tabagan"
+   },
+   "pistes": {
+    "km": 3.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "tabagan"
+   }
+  },
+  "kz-tau-samaly": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "tau-samaly"
    }
   },
   "li-malbun": {
@@ -130036,6 +131188,16 @@
    },
    "forfait": null
   },
+  "lt-kalita-kalnas": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kalitos-kalnas-anyksciai"
+   }
+  },
   "lt-liepkalnis-lipowka": {
    "photo": {
     "source": "officiel",
@@ -130047,6 +131209,16 @@
     "servi": true
    },
    "forfait": null
+  },
+  "lt-mortos-kalns": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "mortos-kalns"
+   }
   },
   "lt-ski-snow-arena-druskininkai": {
    "photo": {
@@ -130093,6 +131265,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "snow-arena-druskininkai"
    }
   },
   "lv-baili": {
@@ -130132,6 +131310,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "baili"
    }
   },
   "lv-eglukalns": {
@@ -130144,7 +131328,23 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "eglukalns"
+   }
+  },
+  "lv-lemberga-hute": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "lemberga-hute-ventspils"
+   }
   },
   "lv-ozolkalns": {
    "photo": {
@@ -130157,6 +131357,26 @@
     "servi": true
    },
    "forfait": null
+  },
+  "lv-reina-trase": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kordes"
+   }
+  },
+  "lv-siguldas-trase": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "siguldas-pilsetas"
+   }
   },
   "lv-zagarkalns": {
    "photo": {
@@ -130172,6 +131392,12 @@
    "altitudes": {
     "basM": 60,
     "sommetM": 103,
+    "source": "skiresort",
+    "cle": "zagarkalns"
+   },
+   "pistes": {
+    "km": 2.5,
+    "n": null,
     "source": "skiresort",
     "cle": "zagarkalns"
    }
@@ -130280,6 +131506,42 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "lokve"
+   }
+  },
+  "mk-nizepole": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "nize-pole-baba-mountain"
+   }
+  },
+  "mk-pelister": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kopanki-pelister"
+   }
+  },
+  "mk-ponikva": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ponikva"
    }
   },
   "mk-420122m208697": {
@@ -130353,6 +131615,12 @@
     "sommetM": 20,
     "source": "skiresort",
     "cle": "indoor-ski-snowboard-rotterdam"
+   },
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "indoor-ski-snowboard-rotterdam"
    }
   },
   "nl-outdoorski-bergschenhoek": {
@@ -130365,7 +131633,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "outdoor-valley-wintersport-bergschenhoek"
+   }
   },
   "nl-skicentrum-drechtsteden": {
    "photo": {
@@ -130395,6 +131669,12 @@
     "sommetM": 7,
     "source": "skiresort",
     "cle": "skicentrum-hoofddorp"
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "skicentrum-hoofddorp"
    }
   },
   "nl-skicentrum-soesterberg-huis-ter-heide": {
@@ -130411,6 +131691,12 @@
    "altitudes": {
     "basM": 6,
     "sommetM": 16,
+    "source": "skiresort",
+    "cle": "soesterberg"
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
     "source": "skiresort",
     "cle": "soesterberg"
    }
@@ -130431,6 +131717,12 @@
     "sommetM": 38,
     "source": "skiresort",
     "cle": "de-wijchense-berg"
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "de-wijchense-berg"
    }
   },
   "nl-skiclub-il-primo": {
@@ -130447,6 +131739,12 @@
    "altitudes": {
     "basM": 5,
     "sommetM": 13,
+    "source": "skiresort",
+    "cle": "il-primo-bergen"
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
     "source": "skiresort",
     "cle": "il-primo-bergen"
    }
@@ -130514,6 +131812,12 @@
     "sommetM": 30,
     "source": "skiresort",
     "cle": "snowworld-amsterdam"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "snowworld-amsterdam"
    }
   },
   "nl-snowworld-landgraaf": {
@@ -130579,6 +131883,12 @@
     "sommetM": 52,
     "source": "skiresort",
     "cle": "snowworld-rucphen"
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "snowworld-rucphen"
    }
   },
   "nl-snowworld-terneuzen": {
@@ -130630,6 +131940,12 @@
    "altitudes": {
     "basM": 5,
     "sommetM": 25,
+    "source": "skiresort",
+    "cle": "snowworld-terneuzen"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
     "source": "skiresort",
     "cle": "snowworld-terneuzen"
    }
@@ -130691,7 +132007,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "vallei-53"
+   }
   },
   "nl-wolfskamer-wintersport": {
    "photo": {
@@ -130703,7 +132025,23 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "wolfskamer"
+   }
+  },
+  "no-aktiven-skiheis": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "aktiven-skiheis"
+   }
   },
   "no-alpinsenteret-i-raudalen": {
    "photo": {
@@ -131100,6 +132438,16 @@
     "periodes": null
    }
   },
+  "no-brattst-len-skisenter": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "brattstoelen"
+   }
+  },
   "no-breimsbygda-skisenter": {
    "photo": null,
    "forfait": {
@@ -131269,6 +132617,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "boergefjellsenteret"
    }
   },
   "no-dombas-skiheiser": {
@@ -131308,6 +132662,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 8.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "dombaas"
    }
   },
   "no-eikedalen-skisenter": {
@@ -131482,6 +132842,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "fagerfjell"
    }
   },
   "no-fidjeland-skitrekk": {
@@ -131619,6 +132985,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "fjellsyn"
+   }
+  },
+  "no-frei-alpinsenter": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "freikollen"
    }
   },
   "no-fulufjellet-alpinsenter": {
@@ -131888,6 +133270,16 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "no-gamlest-len": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gamlestoelen-jomfruslettbakken"
    }
   },
   "no-gausta-skisenter": {
@@ -132351,6 +133743,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "glomfjord"
    }
   },
   "no-grong-skisenter": {
@@ -132508,6 +133906,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gullingen"
    }
   },
   "no-gala-alpinsenter": {
@@ -132942,6 +134346,16 @@
     "periodes": null
    }
   },
+  "no-hammerfest": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "hammerfest"
+   }
+  },
   "no-harpefossen-skisenter": {
    "photo": {
     "source": "skiinfo",
@@ -133301,6 +134715,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 5.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "holtanlia"
    }
   },
   "no-hornindal-skisenter": {
@@ -133495,6 +134915,12 @@
     "sommetM": 525,
     "source": "skiinfo",
     "cle": "est-norvege/hurdal-skisenter"
+   },
+   "pistes": {
+    "km": null,
+    "n": 11,
+    "source": "skiinfo",
+    "cle": "est-norvege/hurdal-skisenter"
    }
   },
   "no-hurdal-skisenter-604637m110700": {
@@ -133633,6 +135059,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ingierkollen-kolbotn"
    }
   },
   "no-jerikobakken": {
@@ -133759,6 +135191,16 @@
     "periodes": null
    }
   },
+  "no-kjemsasen": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kjemsaasen"
+   }
+  },
   "no-kjerringasen": {
    "photo": null,
    "forfait": {
@@ -133796,6 +135238,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kjerringaasen"
    }
   },
   "no-knaben": {
@@ -133843,6 +135291,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "knaben"
    }
   },
   "no-knyken-skisenter": {
@@ -133855,7 +135309,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "knyken"
+   }
   },
   "no-kongsberg": {
    "photo": {
@@ -134024,6 +135484,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "lierne"
    }
   },
   "no-lifjell-skisenter": {
@@ -134506,6 +135972,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "middagsaasen"
    }
   },
   "no-modum-skisenter": {
@@ -134553,6 +136025,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "modum-vikersund"
    }
   },
   "no-myrkdalen": {
@@ -134659,6 +136137,16 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "no-m-svatn-skisenter": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "moesvatn-skipark"
    }
   },
   "no-nannestad-skisenter": {
@@ -134825,6 +136313,12 @@
    "altitudes": {
     "basM": 120,
     "sommetM": 1006,
+    "source": "skiinfo",
+    "cle": "nord-norvege/narvikfjellet"
+   },
+   "pistes": {
+    "km": 20,
+    "n": 14,
     "source": "skiinfo",
     "cle": "nord-norvege/narvikfjellet"
    }
@@ -135466,6 +136960,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 5.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "rena"
    }
   },
   "no-renafjellet-alpinsenter": {
@@ -135505,6 +137005,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "renaafjellet"
    }
   },
   "no-riksgransen": {
@@ -135641,6 +137147,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ringkollen"
    }
   },
   "no-r-ldal-skisenter": {
@@ -135921,6 +137433,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sandnes"
    }
   },
   "no-sarves-alta": {
@@ -136084,6 +137602,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 4.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "savalen"
+   }
+  },
+  "no-siljan-skisenter": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 3.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "grenland-siljan"
    }
   },
   "no-sirdal-skisenter": {
@@ -136295,6 +137829,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 7.3,
+    "n": 8,
+    "source": "skiinfo",
+    "cle": "est-norvege/sjusjoen"
    }
   },
   "no-skagah-gdi-skisenter": {
@@ -136449,6 +137989,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "skarmoen"
    }
   },
   "no-skarslia-ski-og-akesenter": {
@@ -136737,6 +138283,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sloreaasen-oslo"
    }
   },
   "no-sogn-skisenter": {
@@ -137068,6 +138620,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 7.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sollifjellet"
    }
   },
   "no-spatind": {
@@ -137151,6 +138709,12 @@
     "sommetM": 315,
     "source": "skiresort",
     "cle": "spjelkavik-turheisa"
+   },
+   "pistes": {
+    "km": 1.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "spjelkavik-turheisa"
    }
   },
   "no-stavadalen-skisenter": {
@@ -137190,6 +138754,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "stavadalen-skisenter"
    }
   },
   "no-steilia": {
@@ -137198,6 +138768,12 @@
    "altitudes": {
     "basM": 86,
     "sommetM": 375,
+    "source": "skiresort",
+    "cle": "steilia-setermoen-bardu"
+   },
+   "pistes": {
+    "km": 2.7,
+    "n": null,
     "source": "skiresort",
     "cle": "steilia-setermoen-bardu"
    }
@@ -137705,6 +139281,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sulitjelma-fjellandsby"
    }
   },
   "no-sunnfjord-skisenter": {
@@ -137744,6 +139326,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sunnfjord-blomlia"
    }
   },
   "no-sunnm-rsalpane-skiarena-fjellseter": {
@@ -137897,6 +139485,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "surnadal"
    }
   },
   "no-sysendalen-skisenter": {
@@ -137944,6 +139538,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sysendalen-eidfjord"
    }
   },
   "no-torsbustaden-alpinsenter": {
@@ -138151,6 +139751,12 @@
     "sommetM": 1100,
     "source": "skiinfo",
     "cle": "est-norvege/trysil"
+   },
+   "pistes": {
+    "km": 71,
+    "n": 67,
+    "source": "skiinfo",
+    "cle": "est-norvege/trysil"
    }
   },
   "no-turufjell-skisenter": {
@@ -138245,6 +139851,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 15,
+    "n": null,
+    "source": "skiresort",
+    "cle": "tusten-molde"
    }
   },
   "no-tveit-skisenter": {
@@ -138784,6 +140396,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "vegglifjell"
    }
   },
   "no-vegarshei-skisenter": {
@@ -138831,6 +140449,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "vegaarshei"
    }
   },
   "no-vestvatnlia-alpinanlegg": {
@@ -138909,6 +140533,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "graakallen-kleiva"
    }
   },
   "no-volda-skisenter": {
@@ -139417,6 +141047,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "aanstadblaaheia"
    }
   },
   "no-rskogfjell-skisenter": {
@@ -139569,7 +141205,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "amalka-suleczyno"
+   }
   },
   "pl-ameliowka": {
    "photo": null,
@@ -139577,6 +141219,12 @@
    "altitudes": {
     "basM": 290,
     "sommetM": 360,
+    "source": "skiresort",
+    "cle": "radostowa"
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
     "source": "skiresort",
     "cle": "radostowa"
    }
@@ -139626,6 +141274,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "andiamo-cypisek-korbielow"
    }
   },
   "pl-arena-narciarska-jaworki-homole": {
@@ -139665,6 +141319,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "homole-jaworki"
    }
   },
   "pl-art-ski": {
@@ -139745,12 +141405,38 @@
     "periodes": null
    }
   },
+  "pl-baba-jaga": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "baba-jaga-bodzentyn"
+   }
+  },
+  "pl-babica": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "babica"
+   }
+  },
   "pl-bakcy-na-goruszce": {
    "photo": null,
    "forfait": null,
    "altitudes": {
     "basM": 383,
     "sommetM": 405,
+    "source": "skiresort",
+    "cle": "bakcy-na-goruszce-jaworze"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
     "source": "skiresort",
     "cle": "bakcy-na-goruszce-jaworze"
    }
@@ -139856,6 +141542,16 @@
     "periodes": null
    }
   },
+  "pl-batorz": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "batorz"
+   }
+  },
   "pl-beskid": {
    "photo": {
     "source": "skiinfo",
@@ -139922,78 +141618,9 @@
   "pl-beskid-sport-arena": {
    "photo": {
     "source": "skiinfo",
-    "cle": "silesie/szczyrk-skrzyczne-cos",
-    "nom": "Szczyrk - Skrzyczne / COS",
-    "km": 1.58,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/hv6w8qtqng7v4w6mk74r7sfm/Szczyrk__Skrzyczne_COS?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/szczyrk-skrzyczne-cos",
-    "nom": "Szczyrk - Skrzyczne / COS",
-    "km": 1.58,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "26 nov. 2024",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "6-11"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "18-59"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "60+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       64,
-       90,
-       72
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2022-2023 Tarif valable jusqu'au 30 sept. 2022",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Enfant",
-       "ages": null
-      },
-      {
-       "nom": "Junior",
-       "ages": null
-      },
-      {
-       "nom": "Adulte",
-       "ages": null
-      }
-     ],
-     "prix": [
-      369,
-      419,
-      419
-     ]
-    },
-    "periodes": null
-   }
-  },
-  "pl-beskid-sport-arena-497211m190034": {
-   "photo": {
-    "source": "skiinfo",
     "cle": "silesie/beskid-sport-arena",
     "nom": "Beskid Sport Arena",
-    "km": 0.01,
+    "km": 0.37,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/msxz2b7xswxxwh99nsw6w7/Beskid_Sport_Arena?auto=webp&format=png",
     "titre": null,
     "servi": true
@@ -140002,7 +141629,7 @@
     "source": "skiinfo",
     "cle": "silesie/beskid-sport-arena",
     "nom": "Beskid Sport Arena",
-    "km": 0.01,
+    "km": 0.37,
     "devise": "EUR",
     "deviseSource": "page",
     "deviseDuPays": "PLN",
@@ -140087,12 +141714,81 @@
      ]
     },
     "periodes": null
-   },
-   "altitudes": {
-    "basM": 600,
-    "sommetM": 840,
+   }
+  },
+  "pl-beskidek": {
+   "photo": {
     "source": "skiinfo",
-    "cle": "silesie/beskid-sport-arena"
+    "cle": "silesie/szczyrk-skrzyczne-cos",
+    "nom": "Szczyrk - Skrzyczne / COS",
+    "km": 1.06,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/hv6w8qtqng7v4w6mk74r7sfm/Szczyrk__Skrzyczne_COS?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/szczyrk-skrzyczne-cos",
+    "nom": "Szczyrk - Skrzyczne / COS",
+    "km": 1.06,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "26 nov. 2024",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "6-11"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "18-59"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "60+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       64,
+       90,
+       72
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2022-2023 Tarif valable jusqu'au 30 sept. 2022",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Enfant",
+       "ages": null
+      },
+      {
+       "nom": "Junior",
+       "ages": null
+      },
+      {
+       "nom": "Adulte",
+       "ages": null
+      }
+     ],
+     "prix": [
+      369,
+      419,
+      419
+     ]
+    },
+    "periodes": null
+   },
+   "pistes": {
+    "km": 10.8,
+    "n": 6,
+    "source": "skiinfo",
+    "cle": "silesie/szczyrk-skrzyczne-cos"
    }
   },
   "pl-bialy-potok": {
@@ -140109,6 +141805,12 @@
    "altitudes": {
     "basM": 905,
     "sommetM": 960,
+    "source": "skiresort",
+    "cle": "bialy-potok"
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
     "source": "skiresort",
     "cle": "bialy-potok"
    }
@@ -140200,6 +141902,12 @@
     "sommetM": 645,
     "source": "skiresort",
     "cle": "losiowka"
+   },
+   "pistes": {
+    "km": 0.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "losiowka"
    }
   },
   "pl-budzowski-wierch": {
@@ -140218,6 +141926,12 @@
     "sommetM": 898,
     "source": "skiresort",
     "cle": "budzowski-wierch-zakopane"
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "budzowski-wierch-zakopane"
    }
   },
   "pl-cisowa-stacja-narciarska": {
@@ -140231,6 +141945,16 @@
     "servi": true
    },
    "forfait": null
+  },
+  "pl-cos-opo-zakopane": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "pod-krokwia-zakopane"
+   }
   },
   "pl-cos-szczyrk": {
    "photo": {
@@ -140285,6 +142009,12 @@
    "altitudes": {
     "basM": 160,
     "sommetM": 184,
+    "source": "skiresort",
+    "cle": "celejow"
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
     "source": "skiresort",
     "cle": "celejow"
    }
@@ -140380,6 +142110,12 @@
     "sommetM": 330,
     "source": "skiresort",
     "cle": "chelmowa-gora-krasnobrod"
+   },
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "chelmowa-gora-krasnobrod"
    }
   },
   "pl-chyrowa": {
@@ -140392,7 +142128,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 2.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "chyrowa"
+   }
   },
   "pl-cieniawa": {
    "photo": null,
@@ -140430,6 +142172,91 @@
      }
     ],
     "saison": null,
+    "periodes": null
+   }
+  },
+  "pl-cienkow": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-cienkow",
+    "nom": "Wisła - Cieńków",
+    "km": 0.37,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/6mc89bh58fk8jmm9psj6cmr/Wisa__Ciekw?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-cienkow",
+    "nom": "Wisła - Cieńków",
+    "km": 0.37,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-12"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "12-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Junior",
+       "ages": "0-12"
+      },
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      },
+      {
+       "nom": "Sénior",
+       "ages": "65+"
+      }
+     ],
+     "prix": [
+      2400,
+      2400,
+      2400
+     ]
+    },
     "periodes": null
    }
   },
@@ -140497,6 +142324,85 @@
        630,
        650,
        630
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null
+   }
+  },
+  "pl-czantoria": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/ustron-czantoria",
+    "nom": "Ustroń - Czantoria",
+    "km": 0.8,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/cm95wg78nkwqjp7bphq4c/Ustro__Czantoria?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/ustron-czantoria",
+    "nom": "Ustroń - Czantoria",
+    "km": 0.8,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-4"
+     },
+     {
+      "nom": "Junior",
+      "ages": "4-16"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "16-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       0,
+       140,
+       150,
+       140
+      ]
+     },
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       0,
+       120,
+       130,
+       120
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       0,
+       null,
+       null,
+       null
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       0,
+       null,
+       null,
+       null
       ]
      }
     ],
@@ -140590,6 +142496,26 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "pl-czarnorzeki": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "czarnorzeki"
+   }
+  },
+  "pl-czerwony-szlak": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "czerwony-szlak"
    }
   },
   "pl-czorsztyn-ski-kluszkowce": {
@@ -140803,6 +142729,16 @@
     "periodes": null
    }
   },
+  "pl-dabrowka": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "dabrowka-suwalki"
+   }
+  },
   "pl-debowiec": {
    "photo": {
     "source": "skiinfo",
@@ -140862,6 +142798,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.7,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "silesie/bielsko-biala-debowiec"
    }
   },
   "pl-family-park-dimbo": {
@@ -140874,7 +142816,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "powroznik"
+   }
   },
   "pl-grapa-ski-czarna-gora": {
    "photo": {
@@ -141038,6 +142986,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3.5,
+    "n": 6,
+    "source": "skiinfo",
+    "cle": "basses-carpates/ustrzyki-dolne-gromadzyn"
    }
   },
   "pl-gora-czterech-wiatrow-g4w": {
@@ -141123,7 +143077,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.2,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "petite-pologne/krynica-gora-parkowa"
+   }
   },
   "pl-gora-zar": {
    "photo": {
@@ -141259,6 +143219,12 @@
     "sommetM": 848,
     "source": "skiresort",
     "cle": "gornik-rzeczka-sokolec"
+   },
+   "pistes": {
+    "km": 5.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gornik-rzeczka-sokolec"
    }
   },
   "pl-hajduk": {
@@ -141302,6 +143268,12 @@
    "altitudes": {
     "basM": 847,
     "sommetM": 890,
+    "source": "skiresort",
+    "cle": "hajduk"
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
     "source": "skiresort",
     "cle": "hajduk"
    }
@@ -141887,6 +143859,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.6,
+    "n": 3,
+    "source": "skiinfo",
+    "cle": "basses-carpates/karlikow"
    }
   },
   "pl-karpacz-sniezka": {
@@ -141997,6 +143975,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "karpatka-panorama"
    }
   },
   "pl-kasina-ski": {
@@ -142164,6 +144148,89 @@
     "periodes": null
    }
   },
+  "pl-klepki": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-klepki",
+    "nom": "Wisła - Klepki",
+    "km": 0.19,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/fpbv9vqjvksttbsms5wk5/Wisa_-_Klepki?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-klepki",
+    "nom": "Wisła - Klepki",
+    "km": 0.19,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Junior",
+      "ages": "12-"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "15-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       95,
+       105,
+       95
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      }
+     ],
+     "prix": [
+      2400
+     ]
+    },
+    "periodes": null
+   }
+  },
   "pl-kocierz": {
    "photo": null,
    "forfait": {
@@ -142242,83 +144309,24 @@
     "periodes": null
    }
   },
-  "pl-kolej-linowa-czantoria": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/ustron-czantoria",
-    "nom": "Ustroń - Czantoria",
-    "km": 0.8,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/cm95wg78nkwqjp7bphq4c/Ustro__Czantoria?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/ustron-czantoria",
-    "nom": "Ustroń - Czantoria",
-    "km": 0.8,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-4"
-     },
-     {
-      "nom": "Junior",
-      "ages": "4-16"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "16-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       0,
-       140,
-       150,
-       140
-      ]
-     },
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       0,
-       120,
-       130,
-       120
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       0,
-       null,
-       null,
-       null
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       0,
-       null,
-       null,
-       null
-      ]
-     }
-    ],
-    "saison": null,
-    "periodes": null
+  "pl-kolorowa": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "lodowiec"
+   }
+  },
+  "pl-komancza": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "komancza"
    }
   },
   "pl-kompleks-narciarski-bia-y-krzyz": {
@@ -142347,6 +144355,12 @@
    "altitudes": {
     "basM": 625,
     "sommetM": 702,
+    "source": "skiresort",
+    "cle": "kolorowa"
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
     "source": "skiresort",
     "cle": "kolorowa"
    }
@@ -142444,6 +144458,12 @@
    "altitudes": {
     "basM": 720,
     "sommetM": 800,
+    "source": "skiinfo",
+    "cle": "basse-silesie/karpacz-bialy-jar"
+   },
+   "pistes": {
+    "km": 2.5,
+    "n": 3,
     "source": "skiinfo",
     "cle": "basse-silesie/karpacz-bialy-jar"
    }
@@ -142596,6 +144616,12 @@
     "sommetM": 135,
     "source": "skiresort",
     "cle": "krzyzowa-gora-lidzbark-warminski"
+   },
+   "pistes": {
+    "km": 1.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "krzyzowa-gora-lidzbark-warminski"
    }
   },
   "pl-laworta": {
@@ -142659,6 +144685,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.8,
+    "n": 3,
+    "source": "skiinfo",
+    "cle": "basses-carpates/ustrzyki-dolne-laworta"
    }
   },
   "pl-lesko-ski": {
@@ -142799,6 +144831,12 @@
     "sommetM": 420,
     "source": "skiresort",
     "cle": "lubinka"
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "lubinka"
    }
   },
   "pl-ladek-zdroj": {
@@ -142862,6 +144900,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.6,
+    "n": 5,
+    "source": "skiinfo",
+    "cle": "basse-silesie/ladek-zdroj"
    }
   },
   "pl-magura-skipark": {
@@ -143080,6 +145124,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "mazurski-okragle"
    }
   },
   "pl-mosorny-gron": {
@@ -143311,6 +145361,119 @@
     "periodes": null
    }
   },
+  "pl-nowa-osada": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-nowa-osada",
+    "nom": "Wisła - Nowa Osada",
+    "km": 0.37,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/tbhj59nnsbhcg4cpqwh7tbh9/Wisa__Nowa_Osada?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/wisla-nowa-osada",
+    "nom": "Wisła - Nowa Osada",
+    "km": 0.37,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "28 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-12"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "13-65"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 1/2j (ou 4h si proposé)",
+      "prix": [
+       105,
+       125,
+       105
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 29 mars 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Junior",
+       "ages": "0-12"
+      },
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      },
+      {
+       "nom": "Sénior",
+       "ages": "65+"
+      }
+     ],
+     "prix": [
+      2350,
+      2350,
+      2350
+     ]
+    },
+    "periodes": null
+   }
+  },
+  "pl-ochodzitaski": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 4.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ochodzita-koniakow"
+   }
+  },
+  "pl-orawka": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "orawka-jablonka"
+   }
+  },
   "pl-osmelakowa-dolina": {
    "photo": null,
    "forfait": {
@@ -143386,89 +145549,6 @@
      }
     ],
     "saison": null,
-    "periodes": null
-   }
-  },
-  "pl-osrodek-narciarski-klepki-wis-a-malinka": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-klepki",
-    "nom": "Wisła - Klepki",
-    "km": 0.19,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/fpbv9vqjvksttbsms5wk5/Wisa_-_Klepki?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-klepki",
-    "nom": "Wisła - Klepki",
-    "km": 0.19,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Junior",
-      "ages": "12-"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "15-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       95,
-       105,
-       95
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      }
-     ],
-     "prix": [
-      2400
-     ]
-    },
     "periodes": null
    }
   },
@@ -143583,99 +145663,6 @@
     "periodes": null
    }
   },
-  "pl-osrodek-narciarski-nowa-osada": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-nowa-osada",
-    "nom": "Wisła - Nowa Osada",
-    "km": 0.37,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/tbhj59nnsbhcg4cpqwh7tbh9/Wisa__Nowa_Osada?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-nowa-osada",
-    "nom": "Wisła - Nowa Osada",
-    "km": 0.37,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-12"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "13-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 1/2j (ou 4h si proposé)",
-      "prix": [
-       105,
-       125,
-       105
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 29 mars 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Junior",
-       "ages": "0-12"
-      },
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      },
-      {
-       "nom": "Sénior",
-       "ages": "65+"
-      }
-     ],
-     "prix": [
-      2350,
-      2350,
-      2350
-     ]
-    },
-    "periodes": null
-   }
-  },
   "pl-osrodek-narciarski-za-groniem": {
    "photo": {
     "source": "officiel",
@@ -143781,6 +145768,26 @@
     "periodes": null
    }
   },
+  "pl-parchatka": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "parchatka"
+   }
+  },
+  "pl-parda-owka-ugory": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "pardalowka-ugory-zakopane"
+   }
+  },
   "pl-partecznik": {
    "photo": null,
    "forfait": {
@@ -143813,6 +145820,45 @@
        null,
        null,
        90
+      ]
+     }
+    ],
+    "saison": null,
+    "periodes": null
+   }
+  },
+  "pl-pasieki": {
+   "photo": null,
+   "forfait": {
+    "source": "skiresort",
+    "cle": "pasieki-wisla",
+    "nom": "Pasieki – Wisła",
+    "km": 0.25,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": null,
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": null
+     },
+     {
+      "nom": "Jeune",
+      "ages": null
+     },
+     {
+      "nom": "Adulte",
+      "ages": null
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journalier Haute saison",
+      "prix": [
+       135,
+       null,
+       170
       ]
      }
     ],
@@ -143999,6 +146045,26 @@
     "periodes": null
    }
   },
+  "pl-pod-durbaszka": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "pod-durbaszka"
+   }
+  },
+  "pl-pod-honem": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "pod-honem-cisna"
+   }
+  },
   "pl-pod-wangiem": {
    "photo": null,
    "forfait": {
@@ -144042,6 +146108,12 @@
    "altitudes": {
     "basM": 775,
     "sommetM": 825,
+    "source": "skiinfo",
+    "cle": "basse-silesie/karpacz-pod-wangiem"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": 1,
     "source": "skiinfo",
     "cle": "basse-silesie/karpacz-pod-wangiem"
    }
@@ -144176,6 +146248,16 @@
      ]
     },
     "periodes": null
+   }
+  },
+  "pl-polanki": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "polanki-szczawa"
    }
   },
   "pl-poniwiec": {
@@ -144438,6 +146520,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.2,
+    "n": 4,
+    "source": "skiinfo",
+    "cle": "petite-pologne/rytro-ryterski-raj"
    }
   },
   "pl-rowienki": {
@@ -144527,6 +146615,12 @@
    "altitudes": {
     "basM": 611,
     "sommetM": 874,
+    "source": "skiinfo",
+    "cle": "silesie/wisla-soszow"
+   },
+   "pistes": {
+    "km": 6.2,
+    "n": 6,
     "source": "skiinfo",
     "cle": "silesie/wisla-soszow"
    }
@@ -144757,7 +146851,13 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "smolen"
+   }
   },
   "pl-sopelek": {
    "photo": null,
@@ -144765,6 +146865,12 @@
    "altitudes": {
     "basM": 270,
     "sommetM": 287,
+    "source": "skiresort",
+    "cle": "sopelek-katowice-kostuchna-kattowitz"
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
     "source": "skiresort",
     "cle": "sopelek-katowice-kostuchna-kattowitz"
    }
@@ -144821,91 +146927,12 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
-  },
-  "pl-stacja-narciarska-cienkow": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-cienkow",
-    "nom": "Wisła - Cieńków",
-    "km": 0.37,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/6mc89bh58fk8jmm9psj6cmr/Wisa__Ciekw?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/wisla-cienkow",
-    "nom": "Wisła - Cieńków",
-    "km": 0.37,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "28 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-12"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "12-65"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Junior",
-       "ages": "0-12"
-      },
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      },
-      {
-       "nom": "Sénior",
-       "ages": "65+"
-      }
-     ],
-     "prix": [
-      2400,
-      2400,
-      2400
-     ]
-    },
-    "periodes": null
+   "forfait": null,
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "dolomity-sportowa-dolina-sucha-gora-bytom"
    }
   },
   "pl-stacja-narciarska-czarny-gron": {
@@ -145765,6 +147792,22 @@
     "sommetM": 726,
     "source": "skiresort",
     "cle": "pod-sniezka"
+   },
+   "pistes": {
+    "km": 0.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "pod-sniezka"
+   }
+  },
+  "pl-stok-relaks": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "stok-relaks"
    }
   },
   "pl-stok-narciarski": {
@@ -145804,6 +147847,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "chodziez"
    }
   },
   "pl-stok-narciarski-dolina-szczescia": {
@@ -145818,12 +147867,38 @@
    },
    "forfait": null
   },
+  "pl-stok-narciarski-szopowe": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "szopowe"
+   }
+  },
+  "pl-stok-narciarski-w-jacni": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "jacnia"
+   }
+  },
   "pl-struznica": {
    "photo": null,
    "forfait": null,
    "altitudes": {
     "basM": 460,
     "sommetM": 495,
+    "source": "skiresort",
+    "cle": "struznica"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
     "source": "skiresort",
     "cle": "struznica"
    }
@@ -145873,6 +147948,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "pl-szance": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "szance-koniakow"
    }
   },
   "pl-szczyrk-mountain-resort": {
@@ -146026,6 +148111,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "szelment"
    }
   },
   "pl-szklana-gora-ski": {
@@ -146129,6 +148220,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "szus-koniakow"
    }
   },
   "pl-szwajcaria-ba-towska": {
@@ -146595,6 +148692,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "u-pyrnicki-poronin"
+   }
+  },
+  "pl-u-steni": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "wysoki-wierch-bukowina-tatrzanska"
    }
   },
   "pl-u-zura": {
@@ -146634,6 +148747,36 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "pl-unis-aw": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "unislaw"
+   }
+  },
+  "pl-wielka-sowa": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "wielka-sowa-potoczek-pieszyce"
+   }
+  },
+  "pl-winiarska": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "winiarska-iwonicz-zdroj"
    }
   },
   "pl-witow": {
@@ -146737,6 +148880,26 @@
     "periodes": null
    }
   },
+  "pl-wujskie": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "wujskie"
+   }
+  },
+  "pl-wyciag-narciarski-kartasiowka": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kartasiowka-rus"
+   }
+  },
   "pl-wysoki-wierch": {
    "photo": null,
    "forfait": {
@@ -146774,6 +148937,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "olczan-ski"
    }
   },
   "pl-wegierski": {
@@ -146819,6 +148988,12 @@
     "sommetM": 910,
     "source": "skiresort",
     "cle": "wegierski-brenna"
+   },
+   "pistes": {
+    "km": 6.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "wegierski-brenna"
    }
   },
   "pl-zadzia": {
@@ -146858,6 +149033,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "zadzial-nowy-targ"
    }
   },
   "pl-zagron": {
@@ -146865,7 +149046,7 @@
     "source": "skiinfo",
     "cle": "silesie/istebna-zagron",
     "nom": "Istebna - Zagroń",
-    "km": 0.05,
+    "km": 0.76,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/qtjxgcpzc76b6xrgnqk4vj6/Istebna_-_Zagro?auto=webp&format=png",
     "titre": null,
     "servi": true
@@ -146874,7 +149055,7 @@
     "source": "skiinfo",
     "cle": "silesie/istebna-zagron",
     "nom": "Istebna - Zagroń",
-    "km": 0.05,
+    "km": 0.76,
     "devise": "PLN",
     "deviseSource": "page",
     "deviseDuPays": null,
@@ -146929,12 +149110,6 @@
     ],
     "saison": null,
     "periodes": null
-   },
-   "altitudes": {
-    "basM": 550,
-    "sommetM": 695,
-    "source": "skiinfo",
-    "cle": "silesie/istebna-zagron"
    }
   },
   "pl-zakopane": {
@@ -147024,6 +149199,12 @@
     "sommetM": 1116,
     "source": "skiinfo",
     "cle": "petite-pologne/zakopane-gubalowka"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": 1,
+    "source": "skiinfo",
+    "cle": "petite-pologne/zakopane-gubalowka"
    }
   },
   "pl-zieleniec-503353m163866": {
@@ -147101,91 +149282,22 @@
     "sommetM": 1025,
     "source": "skiinfo",
     "cle": "basse-silesie/zieleniec"
+   },
+   "pistes": {
+    "km": 26.1,
+    "n": 47,
+    "source": "skiinfo",
+    "cle": "basse-silesie/zieleniec"
    }
   },
-  "pl-zloty-gron": {
-   "photo": {
-    "source": "skiinfo",
-    "cle": "silesie/istebna-zloty-gron",
-    "nom": "Istebna - Złoty Groń",
-    "km": 0.5,
-    "url": "https://cdn.bfldr.com/WIENNW6Q/as/7c5nbxrz57mn474qqkxq3cvz/Istebna_-_Zoty_Gro?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": {
-    "source": "skiinfo",
-    "cle": "silesie/istebna-zloty-gron",
-    "nom": "Istebna - Złoty Groń",
-    "km": 0.5,
-    "devise": "PLN",
-    "deviseSource": "page",
-    "deviseDuPays": null,
-    "misAJour": "27 nov. 2025",
-    "categories": [
-     {
-      "nom": "Enfant",
-      "ages": "0-12"
-     },
-     {
-      "nom": "Adulte",
-      "ages": "13-64"
-     },
-     {
-      "nom": "Sénior",
-      "ages": "65+"
-     }
-    ],
-    "lignes": [
-     {
-      "libelle": "Forfait journée",
-      "prix": [
-       145,
-       170,
-       145
-      ]
-     },
-     {
-      "libelle": "Forfait 2 jour",
-      "prix": [
-       265,
-       310,
-       265
-      ]
-     },
-     {
-      "libelle": "Forfait semaine",
-      "prix": [
-       630,
-       755,
-       630
-      ]
-     }
-    ],
-    "saison": {
-     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
-     "validite": null,
-     "categories": [
-      {
-       "nom": "Junior",
-       "ages": "0-12"
-      },
-      {
-       "nom": "Adulte",
-       "ages": "13-65"
-      },
-      {
-       "nom": "Sénior",
-       "ages": "65+"
-      }
-     ],
-     "prix": [
-      2400,
-      2400,
-      2400
-     ]
-    },
-    "periodes": null
+  "pl-zielona-brama": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "zielona-brama-przywidz"
    }
   },
   "pl-zwardon-centrum": {
@@ -147263,6 +149375,12 @@
     "sommetM": 945,
     "source": "skiinfo",
     "cle": "silesie/zwardon"
+   },
+   "pistes": {
+    "km": 5,
+    "n": 7,
+    "source": "skiinfo",
+    "cle": "silesie/zwardon"
    }
   },
   "pl-zwardon-ski": {
@@ -147312,6 +149430,107 @@
     "periodes": null
    }
   },
+  "pl-z-oty-gron": {
+   "photo": {
+    "source": "skiinfo",
+    "cle": "silesie/istebna-zloty-gron",
+    "nom": "Istebna - Złoty Groń",
+    "km": 0.41,
+    "url": "https://cdn.bfldr.com/WIENNW6Q/as/7c5nbxrz57mn474qqkxq3cvz/Istebna_-_Zoty_Gro?auto=webp&format=png",
+    "titre": null,
+    "servi": true
+   },
+   "forfait": {
+    "source": "skiinfo",
+    "cle": "silesie/istebna-zloty-gron",
+    "nom": "Istebna - Złoty Groń",
+    "km": 0.41,
+    "devise": "PLN",
+    "deviseSource": "page",
+    "deviseDuPays": null,
+    "misAJour": "27 nov. 2025",
+    "categories": [
+     {
+      "nom": "Enfant",
+      "ages": "0-12"
+     },
+     {
+      "nom": "Adulte",
+      "ages": "13-64"
+     },
+     {
+      "nom": "Sénior",
+      "ages": "65+"
+     }
+    ],
+    "lignes": [
+     {
+      "libelle": "Forfait journée",
+      "prix": [
+       145,
+       170,
+       145
+      ]
+     },
+     {
+      "libelle": "Forfait 2 jour",
+      "prix": [
+       265,
+       310,
+       265
+      ]
+     },
+     {
+      "libelle": "Forfait semaine",
+      "prix": [
+       630,
+       755,
+       630
+      ]
+     }
+    ],
+    "saison": {
+     "libelle": "2025-2026 Tarif valable jusqu'au 26 avr. 2026",
+     "validite": null,
+     "categories": [
+      {
+       "nom": "Junior",
+       "ages": "0-12"
+      },
+      {
+       "nom": "Adulte",
+       "ages": "13-65"
+      },
+      {
+       "nom": "Sénior",
+       "ages": "65+"
+      }
+     ],
+     "prix": [
+      2400,
+      2400,
+      2400
+     ]
+    },
+    "periodes": null
+   },
+   "pistes": {
+    "km": 3.2,
+    "n": 6,
+    "source": "skiinfo",
+    "cle": "silesie/istebna-zloty-gron"
+   }
+  },
+  "pl-sniezynka": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sniezynka-lezyce"
+   }
+  },
   "pl-swieta-gora": {
    "photo": null,
    "forfait": {
@@ -147349,6 +149568,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "swieta-gora-lubawka"
    }
   },
   "pt-serra-da-estrela": {
@@ -147362,6 +149587,16 @@
     "servi": true
    },
    "forfait": null
+  },
+  "pt-ski-parque": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "skiparque-serra-da-estrela"
+   }
   },
   "ro-arena-platos": {
    "photo": {
@@ -147469,6 +149704,22 @@
     "sommetM": 800,
     "source": "skiinfo",
     "cle": "calimani-harghita/baile-tusnad"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiinfo",
+    "cle": "calimani-harghita/baile-tusnad"
+   }
+  },
+  "ro-balea-lac": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 14,
+    "n": null,
+    "source": "skiinfo",
+    "cle": "vallee-de-prahova/balea-lac"
    }
   },
   "ro-borsafured": {
@@ -147516,6 +149767,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 5.3,
+    "n": null,
+    "source": "skiinfo",
+    "cle": "maramures/borsa"
+   }
+  },
+  "ro-bunloc": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "bunloc-sacele"
    }
   },
   "ro-buscat": {
@@ -147563,6 +149830,12 @@
    "altitudes": {
     "basM": 850,
     "sommetM": 900,
+    "source": "skiresort",
+    "cle": "dangau-mare"
+   },
+   "pistes": {
+    "km": 1.1,
+    "n": null,
     "source": "skiresort",
     "cle": "dangau-mare"
    }
@@ -147909,6 +150182,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "nemira-slanic-moldova"
    }
   },
   "ro-poiana-brasov": {
@@ -148016,6 +150295,12 @@
    "altitudes": {
     "basM": 90,
     "sommetM": 95,
+    "source": "skiresort",
+    "cle": "smart-ski-slopes-timisoara"
+   },
+   "pistes": {
+    "km": 0.1,
+    "n": null,
     "source": "skiresort",
     "cle": "smart-ski-slopes-timisoara"
    }
@@ -148263,6 +150548,26 @@
    },
    "forfait": null
   },
+  "rs-obudojevica": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "obudovica-zlatibor"
+   }
+  },
+  "rs-zari-ski-centre-ski-centar-zari": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "zari"
+   }
+  },
   "rs-ski-center-kopaonik": {
    "photo": {
     "source": "skiresort",
@@ -148308,6 +150613,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "rs-iver-ski-resort-skijaliste-iver": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "iver-tara"
    }
   },
   "se-abisko": {
@@ -148493,6 +150808,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "bjaestabacken"
    }
   },
   "se-bjorkliden": {
@@ -148617,6 +150938,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 7.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "blaasjoen-mesklumpen"
    }
   },
   "se-brantberget": {
@@ -148788,6 +151115,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "brudarebacken-goeteborg"
    }
   },
   "se-bubergsgarden": {
@@ -148971,6 +151304,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "dackestupet"
    }
   },
   "se-dundret-gallivare": {
@@ -149101,6 +151440,12 @@
     "sommetM": 680,
     "source": "skiresort",
     "cle": "gruvbacken"
+   },
+   "pistes": {
+    "km": 5.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gruvbacken"
    }
   },
   "se-ekebyhovsbacken": {
@@ -149148,6 +151493,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ekebyhovsbacken-ekeroe"
    }
   },
   "se-falkoping-alpin": {
@@ -149289,6 +151640,22 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "saltisbacken-saltsjoebaden"
+   }
+  },
+  "se-fridabacken": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "klackbergsbacken"
    }
   },
   "se-funasdalen": {
@@ -149425,6 +151792,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gopshusbacken"
    }
   },
   "se-graftavallen": {
@@ -149922,6 +152295,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "jaerabacken-joenkoeping"
    }
   },
   "se-jarvsobacken": {
@@ -150638,6 +153017,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "maattsundsbacken"
    }
   },
   "se-nalovardo": {
@@ -150763,6 +153148,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ombergsliden-vadstena"
    }
   },
   "se-ormbergsbacken": {
@@ -151112,6 +153503,16 @@
     "periodes": null
    }
   },
+  "se-rodebybacken": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "roedebybacken"
+   }
+  },
   "se-skattmansobacken": {
    "photo": {
     "source": "officiel",
@@ -151157,6 +153558,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "skattmansoebacken"
    }
   },
   "se-ski-sunne": {
@@ -151209,6 +153616,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "se-skidbacke": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "gruvberget"
    }
   },
   "se-skistar-hammarbybacken": {
@@ -151315,6 +153732,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3.9,
+    "n": null,
+    "source": "skiresort",
+    "cle": "solbergsbacken"
    }
   },
   "se-spokbacken": {
@@ -151449,6 +153872,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "storklinten"
    }
   },
   "se-storlien": {
@@ -151500,6 +153929,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "strutsabacken-huskvarna"
    }
   },
   "se-stoten-i-salen": {
@@ -151619,6 +154054,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "sunnerstabacken-uppsala"
    }
   },
   "se-svanstein": {
@@ -151744,6 +154185,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "svedjebacken"
    }
   },
   "se-safsen": {
@@ -151956,6 +154403,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 5.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "tjamstanbackarna-malaa"
    }
   },
   "se-tolvmannabacken": {
@@ -151968,7 +154421,13 @@
     "titre": "Kisa MTB-park",
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 4.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "tolvmannabacken"
+   }
   },
   "se-trillevallen": {
    "photo": null,
@@ -152009,6 +154468,16 @@
     "periodes": null
    }
   },
+  "se-trollhojden": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 1.1,
+    "n": null,
+    "source": "skiresort",
+    "cle": "trollhoejden-ullared"
+   }
+  },
   "se-trosabacken": {
    "photo": null,
    "forfait": {
@@ -152046,6 +154515,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "trosabacken"
    }
   },
   "se-tanndalen": {
@@ -152443,6 +154918,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "vrenningebacken-oskarstroem"
    }
   },
   "se-vasjobacken": {
@@ -152521,6 +155002,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "vaalaadalens-fjaellstation"
    }
   },
   "se-yxbacken": {
@@ -152599,6 +155086,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "aakersjoen"
    }
   },
   "se-alasens-skidbacke": {
@@ -152638,6 +155131,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "aalaasen"
    }
   },
   "se-are": {
@@ -153390,6 +155889,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 20,
+    "n": 21,
+    "source": "skiinfo",
+    "cle": "slovenie/kranjska-gora"
    }
   },
   "si-pokljuka": {
@@ -153923,6 +156428,12 @@
       ]
      }
     ]
+   },
+   "pistes": {
+    "km": 2.8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "trije-kralji"
    }
   },
   "si-velika-planina": {
@@ -153966,6 +156477,12 @@
    "altitudes": {
     "basM": 740,
     "sommetM": 822,
+    "source": "skiresort",
+    "cle": "osovje"
+   },
+   "pistes": {
+    "km": 1,
+    "n": null,
     "source": "skiresort",
     "cle": "osovje"
    }
@@ -154431,6 +156948,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "teplica-brezovica"
    }
   },
   "sk-chopok-jasna": {
@@ -154703,6 +157226,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1,
+    "n": 3,
+    "source": "skiinfo",
+    "cle": "slovaquie-orientale/frickovce"
    }
   },
   "sk-greguska-ski-pod-lesom": {
@@ -155081,6 +157610,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.4,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "spis-sud-gemer/vysna-slana-julius"
    }
   },
   "sk-kohutka": {
@@ -156166,6 +158701,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.7,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "kysuce/velke-ostre"
    }
   },
   "sk-lyziarsky-vlek-olesna-potocky": {
@@ -157264,6 +159805,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.7,
+    "n": 5,
+    "source": "skiinfo",
+    "cle": "orava/polhorsky-hradok-oravska-polhora"
    }
   },
   "sk-polomka-bucnik": {
@@ -157711,6 +160258,12 @@
     "sommetM": 912,
     "source": "skiinfo",
     "cle": "spis-sud-gemer/ski-plejsy"
+   },
+   "pistes": {
+    "km": 4.4,
+    "n": 7,
+    "source": "skiinfo",
+    "cle": "spis-sud-gemer/ski-plejsy"
    }
   },
   "sk-rencisov-buce": {
@@ -157758,6 +160311,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 4.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "buce-rencisov"
    }
   },
   "sk-resort-levocska-dolina": {
@@ -157864,6 +160423,12 @@
      ]
     },
     "periodes": null
+   },
+   "pistes": {
+    "km": 3.3,
+    "n": 4,
+    "source": "skiinfo",
+    "cle": "slovaquie-orientale/ski-centre-levoca-ld"
    }
   },
   "sk-rohace-spalena": {
@@ -158042,6 +160607,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.6,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "orava/krusetnica"
    }
   },
   "sk-ski-centrum-demanova": {
@@ -158380,6 +160951,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.7,
+    "n": 3,
+    "source": "skiinfo",
+    "cle": "slovaquie-centrale-sud/ski-blanc-ostry-grun-kollarova"
    }
   },
   "sk-ski-cigel": {
@@ -159798,6 +162375,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 1.8,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "spis-sud-gemer/ski-centrum-mraznica-hnilcik"
    }
   },
   "sk-ski-centrum-strachan": {
@@ -160271,6 +162854,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "liptov/ski-centrum-ziar-dolinky"
    }
   },
   "sk-skiland-stara-myjava": {
@@ -160334,6 +162923,16 @@
     ],
     "saison": null,
     "periodes": null
+   }
+  },
+  "sk-skipark-erika": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "skipark-erika-kojsovska-hola"
    }
   },
   "sk-skipark-meander-oravice": {
@@ -160474,6 +163073,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 2.4,
+    "n": 4,
+    "source": "skiinfo",
+    "cle": "slovaquie-orientale/vysne-ruzbachy"
    }
   },
   "sk-skitatry-zadna-lopusna-dolina": {
@@ -160600,6 +163205,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 0.8,
+    "n": 2,
+    "source": "skiinfo",
+    "cle": "kysuce/snow-sun-vadicov"
    }
   },
   "sk-stary-smokovec": {
@@ -162210,6 +164821,16 @@
     "periodes": null
    }
   },
+  "tr-abal-kayak-merkezi": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 8.7,
+    "n": null,
+    "source": "skiresort",
+    "cle": "abali-van"
+   }
+  },
   "tr-ardahan": {
    "photo": null,
    "forfait": null,
@@ -162218,6 +164839,32 @@
     "sommetM": 2497,
     "source": "skiresort",
     "cle": "ardahan-yalnizcam"
+   },
+   "pistes": {
+    "km": 9.6,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ardahan-yalnizcam"
+   }
+  },
+  "tr-bingol-hasarek": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "kurucadag-bingoel"
+   }
+  },
+  "tr-cambasi": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 17.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "cambasi"
    }
   },
   "tr-ergan-dag-k-s-sporlar-turizm-merkezi-ergan-mountain-winter-sports-and-eco-tourism-center": {
@@ -162230,7 +164877,33 @@
     "titre": null,
     "servi": true
    },
-   "forfait": null
+   "forfait": null,
+   "pistes": {
+    "km": 9.4,
+    "n": null,
+    "source": "skiresort",
+    "cle": "ergan-dagi"
+   }
+  },
+  "tr-keltepe": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 3.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "keltepe"
+   }
+  },
+  "tr-nemrut-kayak-merkezi": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 8.5,
+    "n": null,
+    "source": "skiresort",
+    "cle": "nemrut"
+   }
   },
   "tr-sakl-kent": {
    "photo": {
@@ -162252,6 +164925,12 @@
     "sommetM": 1010,
     "source": "skiresort",
     "cle": "altinoran-ankara"
+   },
+   "pistes": {
+    "km": 0.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "altinoran-ankara"
    }
   },
   "tr-uludag-kayak-merkezi": {
@@ -162265,6 +164944,26 @@
     "servi": true
    },
    "forfait": null
+  },
+  "tr-yedikuyular": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 3.2,
+    "n": null,
+    "source": "skiresort",
+    "cle": "yedikuyular"
+   }
+  },
+  "tr-yildiz-dagi": {
+   "photo": null,
+   "forfait": null,
+   "pistes": {
+    "km": 8,
+    "n": null,
+    "source": "skiresort",
+    "cle": "yildiz-dagi-sivas"
+   }
   },
   "ua-bukovytsia": {
    "photo": {
@@ -162327,6 +165026,12 @@
     ],
     "saison": null,
     "periodes": null
+   },
+   "pistes": {
+    "km": 6.3,
+    "n": null,
+    "source": "skiresort",
+    "cle": "izki-magura"
    }
   },
   "ua-krasiya": {

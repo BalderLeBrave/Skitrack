@@ -20,6 +20,7 @@ import { describe, it } from "node:test";
 import {
   altitudesDuDomaine,
   colonneAdulte,
+  pistesDuDomaine,
   fourchetteJournee,
   journeeParPeriode,
   forfaitDuDomaine,
@@ -364,6 +365,22 @@ describe("sur le relevé réel", () => {
       assert.ok(a.cle, `${id} : altitudes sans fiche d'origine`);
       assert.ok(["skiinfo", "skiresort"].includes(a.source), `${id} : source inconnue ${a.source}`);
       void v;
+    }
+    assert.ok(n >= 0);
+  });
+
+  it("des pistes de repli portent une valeur positive et leur origine", async () => {
+    // Un zéro cartographié n'est pas zéro piste. La fiche appariée qui publie
+    // des kilomètres les donne avec sa source ; un repli à zéro ou sans
+    // origine serait pire que le zéro d'OpenSkiMap, qui au moins est mesuré.
+    const r = await releveVues();
+    let n = 0;
+    for (const id of Object.keys(r.vues)) {
+      const p = pistesDuDomaine(r, id);
+      if (!p) continue;
+      n++;
+      assert.ok((p.km ?? 0) > 0 || (p.n ?? 0) > 0, `${id} : repli sans valeur`);
+      assert.ok(p.cle && ["skiinfo", "skiresort"].includes(p.source), `${id} : repli sans origine`);
     }
     assert.ok(n >= 0);
   });

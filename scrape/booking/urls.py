@@ -2,6 +2,10 @@
 
 sb_price_type=total (BookingScraper) : total de séjour, pas la nuit.
 offset (booking_scraper, 25/page). ht_id appartements/villas (actor).
+
+BookingScraper et booking_scraper sont les deux projets publics où ces
+paramètres ont été lus. Ils ne sont pas embarqués : le worker n'en importe
+rien, seuls les noms de paramètres ci-dessus en sont tirés.
 """
 
 from __future__ import annotations

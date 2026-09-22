@@ -489,6 +489,16 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
     """
     retenus = [a for a in areas if retenu(a)]
 
+    # Le compte de ce que le seuil du nom écarte, publié dans l'index. Il se
+    # calcule ici, sur les domaines en exploitation et mesurés, **avant** les
+    # exclusions par pays : un domaine russe sans nom compte ici, pas dans
+    # `ecartes`, et c'est pourquoi la Russie y passe de 244 à 134 — les 110
+    # autres n'ont pas de nom. Les deux comptes se lisent ensemble.
+    sans_nom = [
+        a for a in areas
+        if a["statut"] == "operating" and a["mesure"] and not (a.get("name") or "").strip()
+    ]
+
     # Trois domaines passent le seuil sans qu'OpenSkiMap leur donne de pays.
     # Leurs coordonnées le diraient — l'un est en Chine, l'autre aux îles Åland,
     # le troisième au Svalbard — mais un référentiel qui range par pays ne peut
@@ -527,8 +537,16 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
 
     data = racine / "data"
     data.mkdir(parents=True, exist_ok=True)
+    # **Ne vider que ce qu'on va récrire** : les fichiers de pays et l'index.
+    #
+    # Le dossier porte aussi les relevés — `skiinfo.json`, `skiresort.json`,
+    # `bergfex.json`, `sitesOfficiels.json`… — des heures de requêtes polies
+    # qu'une régénération du référentiel n'a aucune raison de toucher. Un
+    # `glob("*.json")` les a tous supprimés le 22 septembre 2026 ; ils étaient
+    # dans git, et c'est la seule raison pour laquelle ils existent encore.
     for ancien in data.glob("*.json"):
-        ancien.unlink()
+        if re.fullmatch(r"[A-Z]{2}", ancien.stem) or ancien.name == "index.json":
+            ancien.unlink()
 
     index: list[dict] = []
     partages: list[dict] = []
@@ -566,6 +584,7 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
                 "seuil": "en exploitation, mesuré, et nommé",
                 "domaines": len(retenus),
                 "sansPays": len(apatrides),
+                "sansNom": len(sans_nom),
                 "ecartes": {
                     cc: {
                         "motif": motif,
@@ -595,9 +614,10 @@ def ecrire(areas: list[dict], racine: Path, releve: str) -> int:
             print(f"  {a['name']:<28} {a['lat']:.4f}, {a['lon']:.4f}")
 
     print(f"{len(hors_perimetre)} domaines hors du perimetre, ecartes.")
+    print(f"{len(sans_nom)} domaines sans nom, ecartes par le seuil.")
     for cc, motif in sorted(PAYS_ECARTES.items()):
         n = sum(1 for a in ecartes if pays_principal(a) == cc)
-        print(f"{cc} : {n} domaines ecartes du perimetre — {motif}")
+        print(f"{cc} : {n} domaines nommes ecartes — {motif}")
 
     poids = sum(f.stat().st_size for f in data.glob("*.json"))
     print(f"{len(retenus)} domaines retenus, {len(par_pays)} pays.")

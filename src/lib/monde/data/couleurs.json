@@ -1,5 +1,5 @@
 {
- "calcule": "2026-09-21",
+ "calcule": "2026-09-22",
  "quoi": "rattachement, par la position, des domaines qu'OpenSkiMap ne mesure pas aux fiches Skiinfo et skiresort qui portent une répartition",
  "regle": "la fiche la plus proche à 5 km au plus, Skiinfo avant skiresort ; la distance retenue est écrite avec le rattachement",
  "rayonKm": 5,
@@ -7,8 +7,8 @@
   "skiinfo": "2026-09-20T17:50:29Z",
   "skiresort": "2026-09-20T22:43:48Z"
  },
- "domaines": 2780,
- "mesuresOpenSkiMap": 2221,
+ "domaines": 2781,
+ "mesuresOpenSkiMap": 2222,
  "rattachesSkiinfo": 169,
  "rattachesSkiresort": 268,
  "rattachements": {
@@ -3368,16 +3368,16 @@
     "difficiles": 0
    }
   },
-  "pl-beskid-sport-arena-497211m190034": {
+  "pl-beskidek": {
    "s": "skiinfo",
-   "ref": "beskid-sport-arena",
-   "nom": "Beskid Sport Arena",
-   "km": 0.01,
+   "ref": "szczyrk-skrzyczne-cos",
+   "nom": "Szczyrk - Skrzyczne / COS",
+   "km": 1.06,
    "skiinfo": {
     "vertes": 0,
     "bleues": 44,
-    "rouges": 31,
-    "noires": 25
+    "rouges": 30,
+    "noires": 26
    }
   },
   "pl-bialy-potok": {
@@ -4118,18 +4118,6 @@
     "difficiles": 0
    }
   },
-  "pl-zagron": {
-   "s": "skiinfo",
-   "ref": "istebna-zagron",
-   "nom": "Istebna - Zagroń",
-   "km": 0.05,
-   "skiinfo": {
-    "vertes": 0,
-    "bleues": 58,
-    "rouges": 42,
-    "noires": 0
-   }
-  },
   "pl-zakopane": {
    "s": "skiinfo",
    "ref": "zakopane-gubalowka",
@@ -4174,6 +4162,18 @@
     "vertes": 4,
     "bleues": 54,
     "rouges": 42,
+    "noires": 0
+   }
+  },
+  "pl-z-oty-gron": {
+   "s": "skiinfo",
+   "ref": "istebna-zloty-gron",
+   "nom": "Istebna - Złoty Groń",
+   "km": 0.41,
+   "skiinfo": {
+    "vertes": 2,
+    "bleues": 61,
+    "rouges": 37,
     "noires": 0
    }
   },

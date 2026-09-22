@@ -306,7 +306,48 @@ function altitudesDeRepli(d: Domaine2, si: { fiche: { cle: string } } | undefine
   return null;
 }
 
-const vues: Record<string, { photo: Photo | null; forfait: Forfait | null; altitudes?: Altitudes }> = {};
+/**
+ * Les pistes de repli : km et nombre, quand OpenSkiMap n'a rien cartographié.
+ *
+ * Cinq cent cinquante-neuf domaines portent des remontées et **zéro piste** :
+ * un zéro mesuré — aucun tronçon n'est dessiné dans OpenStreetMap —, qui ne
+ * dit rien de la station. La fiche Skiinfo ou skiresort déjà appariée publie
+ * souvent ses kilomètres, et Skiinfo son nombre de pistes ; c'est une mesure
+ * de la source, reprise avec son origine. Même règle que pour les altitudes.
+ */
+type Pistes = { km: number | null; n: number | null; source: "skiinfo" | "skiresort"; cle: string };
+type Domaine3 = Domaine & { n?: number | null; km?: number | null };
+const skiinfoPistes = lire<{ fiches: Record<string, { km: number | null; pistes: number | null }> }>("skiinfo.json");
+const skiresortPistes = lire<{ fiches: Record<string, { kmTotal: number | null }> }>("skiresort.json");
+
+function pistesDeRepli(
+  d: Domaine3,
+  si: { fiche: { cle: string } } | undefined,
+  sr: { fiche: { cle: string } } | undefined,
+): Pistes | null {
+  if ((d.n ?? 0) > 0 || (d.km ?? 0) > 0) return null;
+  if (si && skiinfoPistes?.fiches[si.fiche.cle]) {
+    const f = skiinfoPistes.fiches[si.fiche.cle]!;
+    if ((f.km ?? 0) > 0 || (f.pistes ?? 0) > 0) {
+      return {
+        km: (f.km ?? 0) > 0 ? f.km : null,
+        n: (f.pistes ?? 0) > 0 ? f.pistes : null,
+        source: "skiinfo",
+        cle: si.fiche.cle,
+      };
+    }
+  }
+  if (sr && skiresortPistes?.fiches[sr.fiche.cle]) {
+    const f = skiresortPistes.fiches[sr.fiche.cle]!;
+    if ((f.kmTotal ?? 0) > 0) return { km: f.kmTotal, n: null, source: "skiresort", cle: sr.fiche.cle };
+  }
+  return null;
+}
+
+const vues: Record<
+  string,
+  { photo: Photo | null; forfait: Forfait | null; altitudes?: Altitudes; pistes?: Pistes }
+> = {};
 
 for (const d of domaines) {
   const si = parSkiinfo.get(d.id);
@@ -522,12 +563,19 @@ for (const d of domaines) {
   }
 
   const altitudes = altitudesDeRepli(d as Domaine2, si, sr);
-  if (photo || forfait || altitudes) {
-    vues[d.id] = { photo: photo?.servi ? photo : null, forfait, ...(altitudes ? { altitudes } : {}) };
+  const pistes = pistesDeRepli(d as Domaine3, si, sr);
+  if (photo || forfait || altitudes || pistes) {
+    vues[d.id] = {
+      photo: photo?.servi ? photo : null,
+      forfait,
+      ...(altitudes ? { altitudes } : {}),
+      ...(pistes ? { pistes } : {}),
+    };
   }
 }
 
 const avecAltitudes = Object.values(vues).filter((v) => v.altitudes).length;
+const avecPistes = Object.values(vues).filter((v) => v.pistes).length;
 const avecPhoto = Object.values(vues).filter((v) => v.photo).length;
 const avecForfait = Object.values(vues).filter((v) => v.forfait).length;
 const parSource = (quoi: "photo" | "forfait", s: string) =>
@@ -569,6 +617,7 @@ console.log(`      dont grille       : ${parSource("forfait", "skiinfo")}`);
 console.log(`      dont un nombre    : ${parSource("forfait", "skiresort")}`);
 console.log(`      dont site officiel: ${parSource("forfait", "officiel")}`);
 console.log(`  altitudes de repli    : ${avecAltitudes}   (bas et sommet d'une fiche appariée, pour la météo)`);
+console.log(`  pistes de repli       : ${avecPistes}   (km ou nombre d'une fiche appariée, faute de cartographie)`);
 console.log(`\nAppariement Skiinfo :`);
 for (const l of resume(parSkiinfo, domaines.length)) console.log(`  ${l}`);
 console.log(`Appariement skiresort :`);

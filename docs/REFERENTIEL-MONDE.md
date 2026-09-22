@@ -236,6 +236,17 @@ retombe sur celui des frontières pour un pays sans domaine.
 
 ## Régénérer
 
+Le relevé courant est celui du **21 septembre 2026** (`dataTimestamp`
+2026-09-21T22:05:36Z, `formatVersion` 16.0.0), téléchargé sur
+openskidata.org le 22. Par rapport au 18 : 2 781 domaines au lieu de 2 780,
+huit renommages OSM dans le secteur de Wisła qui changent l'identifiant
+construit, dix kilométrages et douze comptes de tronçons corrigés.
+
+**`--ecrire` ne vide que les fichiers de pays et l'index.** Il vidait tout le
+dossier, relevés compris — `skiinfo.json`, `bergfex.json`,
+`sitesOfficiels.json`… — et l'a fait le 22 septembre ; git les portait, c'est
+la seule raison pour laquelle ils existent encore.
+
 ```
 python3 scripts/build-monde.py --src /tmp/ski_areas.geojson --recenser
 python3 scripts/build-monde.py --src /tmp/ski_areas.geojson --ecrire --releve 2026-09-18T23:31:32Z
@@ -331,7 +342,7 @@ relevé », à la place même où il paraîtrait.
 
 | | Domaines | Photo | Forfait | Météo |
 | --- | ---: | ---: | ---: | ---: |
-| Tous, nommés | 2 780 | 69,0 % | 65,6 % | 100 % |
+| Tous, nommés | 2 781 | 69,0 % | 65,7 % | 100 % |
 | 3 remontées et plus | 1 553 | 82,9 % | 77,3 % | 100 % |
 | 10 km et plus | 682 | 89,9 % | 81,2 % | 100 % |
 

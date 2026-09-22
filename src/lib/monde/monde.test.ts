@@ -66,7 +66,7 @@ test("l'index compte juste, pays par pays et au total", () => {
     total += attendu ?? 0;
   }
   assert.equal(total, DOMAINES_MONDE);
-  assert.equal(total, 2780);
+  assert.equal(total, 2781);
 });
 
 test("le relevé est daté, et le seuil écrit", () => {
@@ -301,11 +301,11 @@ test("les altitudes relevées sont plausibles, et jamais un zéro de remplissage
   }
 });
 
-test("le relevé couvre les 2 780 domaines, sans trou", async () => {
+test("le relevé couvre les 2 781 domaines, sans trou", async () => {
   const r = await releveDem();
-  assert.equal(r.domaines, 2780);
+  assert.equal(r.domaines, 2781);
   assert.equal(r.manquants, 0);
-  assert.equal(Object.keys(r.points).length, 2780);
+  assert.equal(Object.keys(r.points).length, 2781);
 });
 
 test("un domaine sans relevé rend `null`, et non zéro", async () => {
@@ -344,7 +344,9 @@ test("la Russie est écartée, et l'index le dit", () => {
   const ecartes = (INDEX as { ecartes?: Record<string, { motif: string; domaines: number }> })
     .ecartes;
   assert.ok(ecartes, "l'index doit publier les pays écartés");
-  assert.equal(ecartes.RU?.domaines, 244);
+  // 134 domaines **nommés** : le seuil du nom passe avant l'exclusion, et les
+  // 110 autres sont comptés dans `sansNom`. Les deux comptes se lisent ensemble.
+  assert.equal(ecartes.RU?.domaines, 134);
   assert.match(ecartes.RU?.motif ?? "", /écartée du référentiel/);
   // Et elle n'a plus ni fichier, ni entrée d'index, ni fiche pays.
   assert.equal(PAYS_AVEC_DOMAINES.includes("RU"), false);
@@ -366,5 +368,9 @@ test("tout domaine du référentiel porte un nom", () => {
       assert.ok(String(d.nom ?? "").trim(), `${d.id} n'a pas de nom`);
     }
   }
-  assert.equal((INDEX as { sansNom?: number }).sansNom, 818);
+  // 958, et non 818 : le compte est désormais celui du générateur, pris sur
+  // tous les domaines en exploitation et mesurés — Russie et hors-périmètre
+  // compris — avant les exclusions par pays. 818 ne comptait que ceux du
+  // périmètre, à la main.
+  assert.equal((INDEX as { sansNom?: number }).sansNom, 958);
 });

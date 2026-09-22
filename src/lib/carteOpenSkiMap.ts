@@ -1,43 +1,42 @@
 /**
- * OpenSkiMap dans les cartes de SKITRACK, à la place des tuiles OpenStreetMap.
+ * La carte des pistes dans SKITRACK : le style d'OpenSkiMap, sur nos tuiles.
  *
- * OpenSkiMap ne publie **aucune tuile raster** : ses pistes, ses remontées et
- * ses domaines n'existent qu'en tuiles vectorielles, dessinées par le style
- * MapLibre de son site (`terrain_v2.json`). Leaflet ne sait pas les lire.
- * Le rendu passe donc par MapLibre GL, posé **dans** Leaflet par le pont
- * `@maplibre/maplibre-gl-leaflet` : Leaflet garde la main — épingles, fiches,
- * gestes, fonds IGN —, MapLibre ne fait que peindre une couche.
+ * OpenSkiMap interdit l'usage direct de ses tuiles (« Direct use of tiles
+ * hosted at tiles.openskimap.org is not permitted. Please prepare and host
+ * your own tiles using the data from openskidata.org instead. »). C'est donc
+ * ce qui est fait : les pistes, remontées, domaines et points d'Europe sont
+ * tuilés par `scripts/build-tuiles-openskimap.ts` dans un fichier PMTiles
+ * que nous servons nous-mêmes, et dessinés avec les couches de leur style,
+ * adaptées par `scripts/adapter-style-openskimap.ts` (`carte/openskimap.style.json`).
+ * Le fond vient d'OpenFreeMap, l'ombrage de Mapterhorn, les glyphes et le
+ * sprite de ski de `public/` — chaque source à un usage permis, créditée.
  *
- * MapLibre avait quitté le dépôt pour son poids. Il revient à la demande,
- * dans son propre morceau de bundle, chargé au premier affichage d'une carte
- * qui en a besoin — jamais au démarrage, jamais côté serveur.
+ * Leaflet garde la main — épingles, fiches, gestes, fonds IGN — ; MapLibre
+ * GL, posé dans Leaflet par `@maplibre/maplibre-gl-leaflet`, ne fait que
+ * peindre une couche. Il se charge à la demande, dans son propre morceau,
+ * au premier affichage d'une carte qui en a besoin — jamais au démarrage,
+ * jamais côté serveur.
  *
- * ## Le style est celui d'OpenSkiMap, lu chez lui
+ * ## Deux modes
  *
- * Il n'est pas recopié dans le dépôt : c'est l'œuvre d'OpenSkiMap, non publiée
- * sous licence, et la lire à l'adresse où le site la sert est ce que fait le
- * site lui-même. On l'adapte en mémoire, sans rien inventer :
+ * - **fond** : la carte entière (OpenFreeMap + ombrage + pistes), comme le
+ *   fond « Relief » de l'écran Carte et le fond des écrans Comparer et
+ *   Logements ;
+ * - **surcouche** : seules les couches de la source `openskimap` — pistes,
+ *   remontées, domaines, points —, sans fond ni ombrage, par-dessus un plan
+ *   IGN.
  *
- * - le `terrain` est retiré : la 3D déplacerait le dessin sous les épingles
- *   de Leaflet, qui ne connaît que le plan ;
- * - en **surcouche** (sur un fond IGN), seules restent les couches de la
- *   source `openskimap` — pistes, remontées, domaines, points — sans fond ni
- *   ombrage, pour laisser voir le plan IGN dessous ;
- * - les mentions de source sont posées là où le style n'en porte pas, pour
- *   que le crédit s'affiche : OpenSkiMap et OpenStreetMap pour les pistes,
- *   OpenFreeMap et OpenMapTiles pour le fond, Mapterhorn pour le relief.
+ * ## Où sont les tuiles
+ *
+ * Par défaut à `/carte/openskimap-europe.pmtiles`, à côté de l'application.
+ * `VITE_TUILES_OPENSKIMAP` peut nommer une autre adresse (un stockage qui
+ * sert les requêtes `Range` avec CORS) : le fichier pèse plus de cent mégas,
+ * et tous les hébergeurs ne le prennent pas dans le dépôt.
  */
 
 import type * as Leaflet from "leaflet";
 import type { LayerSpecification, StyleSpecification } from "maplibre-gl";
-
-export const STYLE_OPENSKIMAP = "https://tiles.openskimap.org/styles/terrain_v2.json";
-
-export const ATTRIBUTION_PISTES =
-  '© <a href="https://openskimap.org">OpenSkiMap.org</a> · © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
-export const ATTRIBUTION_FOND =
-  '<a href="https://openfreemap.org">OpenFreeMap</a> · © <a href="https://www.openmaptiles.org/">OpenMapTiles</a>';
-export const ATTRIBUTION_RELIEF = '© <a href="https://mapterhorn.com">Mapterhorn</a>';
+import STYLE from "./carte/openskimap.style.json" with { type: "json" };
 
 /** Ce que la couche doit peindre. */
 export type ModeOpenSkiMap = {
@@ -48,29 +47,43 @@ export type ModeOpenSkiMap = {
 };
 
 const SOURCE_PISTES = "openskimap";
-const SOURCES_RELIEF = new Set(["hillshade", "terrain"]);
+const CHEMIN_TUILES = "/carte/openskimap-europe.pmtiles";
 
 /**
- * Le style d'OpenSkiMap, adapté au mode demandé. Pure : ne touche pas à
- * l'objet reçu.
+ * Le style d'OpenSkiMap adapté au mode demandé. Pure : ne touche pas à
+ * l'objet reçu. En surcouche, seules restent les couches et la source
+ * `openskimap` ; le `terrain` (3D) est toujours retiré, Leaflet ne
+ * connaissant que le plan.
  */
 export function adapterStyle(style: StyleSpecification, mode: ModeOpenSkiMap): StyleSpecification {
   const sourceDe = (l: LayerSpecification): string | null => ("source" in l ? (l.source ?? null) : null);
-  const layers = style.layers.filter((l) =>
-    sourceDe(l) === SOURCE_PISTES ? mode.pistes : mode.fond,
-  );
+  const layers = style.layers.filter((l) => (sourceDe(l) === SOURCE_PISTES ? mode.pistes : mode.fond));
   const sourcesUtiles = new Set(layers.map(sourceDe));
   const sources: StyleSpecification["sources"] = {};
-  for (const [id, src] of Object.entries(style.sources)) {
-    if (!sourcesUtiles.has(id)) continue;
-    const attribution =
-      id === SOURCE_PISTES ? ATTRIBUTION_PISTES : SOURCES_RELIEF.has(id) ? ATTRIBUTION_RELIEF : null;
-    const tuilee = src.type === "vector" || src.type === "raster" || src.type === "raster-dem";
-    sources[id] = attribution && tuilee && !src.attribution ? { ...src, attribution } : src;
-  }
+  for (const [id, src] of Object.entries(style.sources)) if (sourcesUtiles.has(id)) sources[id] = src;
   const { terrain: _terrain, ...reste } = style;
   void _terrain;
   return { ...reste, sources, layers };
+}
+
+/**
+ * Le style versionné, ses adresses résolues : `{{ORIGINE}}` devient l'origine
+ * du site, et la source des tuiles suit `VITE_TUILES_OPENSKIMAP` si elle est
+ * donnée. Pure sur son entrée ; lit `location` et l'environnement.
+ */
+export function styleResolu(origine: string, tuiles?: string | null): StyleSpecification {
+  const texte = JSON.stringify(STYLE).replaceAll("{{ORIGINE}}", origine);
+  const style = JSON.parse(texte) as StyleSpecification;
+  const source = style.sources[SOURCE_PISTES];
+  if (source && "url" in source) {
+    source.url = `pmtiles://${tuiles?.trim() || origine + CHEMIN_TUILES}`;
+  }
+  return style;
+}
+
+export function styleOpenSkiMap(mode: ModeOpenSkiMap): StyleSpecification {
+  const tuiles = (import.meta.env?.VITE_TUILES_OPENSKIMAP as string | undefined) ?? null;
+  return adapterStyle(styleResolu(window.location.origin, tuiles), mode);
 }
 
 // ── Chargement, une fois, à la demande ─────────────────────────────────
@@ -78,11 +91,10 @@ export function adapterStyle(style: StyleSpecification, mode: ModeOpenSkiMap): S
 type Pont = typeof import("@maplibre/maplibre-gl-leaflet");
 
 let pont: Promise<Pont["maplibreGL"]> | null = null;
-let styleBrut: Promise<StyleSpecification> | null = null;
 
 /**
- * MapLibre, sa feuille de style, son worker et le pont vers Leaflet, dans un
- * morceau à part.
+ * MapLibre, sa feuille de style, son worker, le protocole PMTiles et le pont
+ * vers Leaflet, dans un morceau à part.
  *
  * Le worker est nommé exprès. MapLibre 6 le cherche à côté de son propre
  * module, par `new URL("./maplibre-gl-worker.mjs", import.meta.url)` ; une
@@ -97,30 +109,15 @@ export function chargerOpenSkiMap(): Promise<Pont["maplibreGL"]> {
     import("maplibre-gl/dist/maplibre-gl.css"),
     import("maplibre-gl"),
     import("maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url"),
+    import("pmtiles"),
     import("@maplibre/maplibre-gl-leaflet"),
-  ]).then(([, maplibre, worker, m]) => {
+  ]).then(([, maplibre, worker, pmtiles, m]) => {
     maplibre.setWorkerUrl(worker.default);
+    // Le protocole `pmtiles://` : des requêtes Range dans un seul fichier.
+    maplibre.addProtocol("pmtiles", new pmtiles.Protocol().tile);
     return m.maplibreGL ?? (m.default as Pont["maplibreGL"]);
   });
   return pont;
-}
-
-/** Le style d'OpenSkiMap, lu une fois par page, puis adapté à chaque mode. */
-export function styleOpenSkiMap(mode: ModeOpenSkiMap): Promise<StyleSpecification> {
-  if (!styleBrut) {
-    const lecture = fetch(STYLE_OPENSKIMAP, { headers: { accept: "application/json" } }).then(
-      async (res) => {
-        if (!res.ok) throw new Error(`style OpenSkiMap : HTTP ${res.status}`);
-        return (await res.json()) as StyleSpecification;
-      },
-    );
-    // Une lecture ratée ne condamne pas la page : la prochaine carte réessaie.
-    lecture.catch(() => {
-      if (styleBrut === lecture) styleBrut = null;
-    });
-    styleBrut = lecture;
-  }
-  return styleBrut.then((s) => adapterStyle(s, mode));
 }
 
 /**
@@ -128,8 +125,8 @@ export function styleOpenSkiMap(mode: ModeOpenSkiMap): Promise<StyleSpecificatio
  * celui des tuiles quand elle est le fond, au-dessus quand elle n'est qu'une
  * surcouche — un fond de tuiles porte un `z-index` qui passerait sinon devant.
  *
- * Rend la couche, ou `null` si le style ou MapLibre n'ont pas pu être chargés ;
- * la carte reste alors telle qu'elle est, et la console dit pourquoi.
+ * Rend la couche, ou `null` si MapLibre n'a pas pu être chargé ; la carte
+ * reste alors telle qu'elle est, et la console dit pourquoi.
  */
 export async function poserOpenSkiMap(
   carte: Leaflet.Map,
@@ -138,11 +135,19 @@ export async function poserOpenSkiMap(
   encore: () => boolean = () => true,
 ): Promise<Leaflet.MaplibreGL | null> {
   try {
-    const [maplibreGL, style] = await Promise.all([chargerOpenSkiMap(), styleOpenSkiMap(mode)]);
+    const maplibreGL = await chargerOpenSkiMap();
     if (!encore()) return null;
-    const options = { style, pane: mode.fond ? "tilePane" : "overlayPane" };
+    const options = { style: styleOpenSkiMap(mode), pane: mode.fond ? "tilePane" : "overlayPane" };
     const couche = maplibreGL(options as Parameters<typeof maplibreGL>[0]);
     couche.addTo(carte);
+    // Une expression d'icône du fond peut rendre le nom vide (« ofm: ») :
+    // une image transparente, plutôt qu'un avertissement par tuile.
+    const gl = couche.getMaplibreMap();
+    gl.on("styleimagemissing", (e: { id: string }) => {
+      if (/^(ofm|ski):$/.test(e.id) && !gl.hasImage(e.id)) {
+        gl.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
+      }
+    });
     return couche;
   } catch (err) {
     console.warn("OpenSkiMap indisponible :", err);

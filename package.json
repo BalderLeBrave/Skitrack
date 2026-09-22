@@ -19,6 +19,10 @@
     "dist:win": "electron-builder --win",
     "db:migrate": "node scripts/migrate.mjs",
     "catalogue:import": "node scripts/import-france-montagnes.mjs",
+    "tuiles:filtrer": "python scripts/filtrer-openskidata-europe.py",
+    "tuiles:batir": "node --experimental-strip-types --max-old-space-size=12000 scripts/build-tuiles-openskimap.ts",
+    "tuiles:style": "node --experimental-strip-types scripts/adapter-style-openskimap.ts",
+    "tuiles:sprite": "python scripts/dessiner-sprite-ski.py",
     "build:dev": "node scripts/with-app-env.mjs vite build --mode development",
     "preview": "node scripts/with-app-env.mjs vite preview",
     "preview:restart": "node scripts/preview.mjs restart",
@@ -87,6 +91,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
+    "@turf/boolean-point-in-polygon": "^7.4.0",
+    "@turf/centroid": "^7.4.0",
+    "@turf/helpers": "^7.4.0",
+    "@turf/nearest-point-on-line": "^7.4.0",
     "@types/node": "^22.16.5",
     "@types/pg": "^8.11.10",
     "@types/react": "^19.2.0",
@@ -99,13 +107,17 @@
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "geojson-vt": "^5.0.2",
     "globals": "^15.15.0",
     "lightningcss": "^1.28.0",
     "nitro": "3.0.260610-beta",
+    "openskidata-format": "^16.0.0",
     "playwright": "^1.62.0",
+    "pmtiles": "^4.5.0",
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.2.0"
+    "vite": "^8.2.0",
+    "vt-pbf": "^3.1.3"
   }
 }

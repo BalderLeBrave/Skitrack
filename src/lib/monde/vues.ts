@@ -258,13 +258,24 @@ export function mentionCase(c: CaseTarif): string {
 /**
  * La ligne « journée » de la grille, celle qu'on montre en premier.
  *
- * Skiinfo nomme la sienne « Forfait journée » ; skiresort, « Forfait
- * journalier Haute saison ». On cherche donc le mot, pas l'égalité — et on se
- * rabat sur la première ligne, qui est la plus courte durée partout.
+ * Skiinfo nomme la sienne « Forfait journée », skiresort « Forfait journalier
+ * Haute saison », bergfex « 1 Jour », les pages allemandes « Tageskarte ».
+ * On cherche donc plusieurs formes, et **on ne se rabat plus sur la première
+ * ligne** : Pfänder affichait ainsi 259 € en « Forfait jour », qui était le
+ * premier prix de sa grille bergfex — un abonnement. Une grille dont aucune
+ * ligne ne dit la journée n'a pas de prix de journée, et l'écran l'écrit.
  */
 export function ligneJournee(f: ForfaitVue): LigneForfait | null {
-  const jour = f.lignes.find((l) => /journ[ée]/i.test(l.libelle) && !/week-end/i.test(l.libelle));
-  return jour ?? f.lignes[0] ?? null;
+  const exclus = /week-?end|1\/2|demi|\d{1,2}[:h]\d{2}/i;
+  return (
+    f.lignes.find(
+      (l) =>
+        (/journ[ée]/i.test(l.libelle) ||
+          /^\s*1\s+jours?\s*$/i.test(l.libelle) ||
+          /^\s*(tageskarte|day (ticket|pass))\s*$/i.test(l.libelle)) &&
+        !exclus.test(l.libelle),
+    ) ?? null
+  );
 }
 
 /** L'indice de la colonne « adulte », ou le dernier à défaut : les grilles

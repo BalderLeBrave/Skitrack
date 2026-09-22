@@ -32,6 +32,7 @@ import {
   releveVues,
   vignette,
   type ForfaitVue,
+  type LigneForfait,
   type PhotoVue,
   type ReleveVues,
 } from "./vues.ts";
@@ -96,6 +97,19 @@ describe("la grille se lit sans se tromper de case", () => {
 
   it("une grille vide ne rend pas de ligne", () => {
     assert.equal(ligneJournee({ ...GRILLE, lignes: [] }), null);
+  });
+
+  it("ne prend pas la première ligne venue pour un prix de journée", () => {
+    // Pfänder affichait « Forfait jour 259 € » : c'était la première ligne de
+    // sa grille bergfex, un abonnement. Une grille qui ne dit pas la journée
+    // n'a pas de prix de journée.
+    const saison: LigneForfait = { libelle: "Passeport saisonnier", prix: [259, 130] };
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [saison] }), null);
+    // « 1 Jour » de bergfex et « Tageskarte » des pages allemandes comptent.
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [{ libelle: "1 Jour", prix: [66, 55] }] })?.prix[0], 66);
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [{ libelle: "Tageskarte", prix: [48, 31] }] })?.prix[0], 48);
+    // Une demi-journée ou un tarif horaire n'en est pas une.
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [{ libelle: "1 Jour à partir de 12:30", prix: [57] }] }), null);
   });
 });
 

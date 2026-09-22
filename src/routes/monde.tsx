@@ -320,24 +320,30 @@ function LigneDomaine({
   const pistesRepli = vues && (d.km ?? 0) <= 0 ? pistesDuDomaine(vues, d.id) : null;
   const forfait = vues ? forfaitDuDomaine(vues, d.id) : null;
   const jour = forfait ? ligneJournee(forfait) : null;
-  const fourchette = forfait ? fourchetteJournee(forfait) : null;
-  // Le haut de la fourchette quand elle existe : c'est le tarif de haute
-  // saison, celui qu'on paie aux dates où l'on part le plus souvent.
-  const adulte = forfait
-    ? fourchette
-      ? prix(fourchette.haut, forfait.devise)
-      : jour
-        ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise)
-        : null
-    : null;
-  const periodes = forfait ? journeeParPeriode(forfait) : [];
-  // Les six tarifs demandés, quand les grilles les publient. Une case vide
-  // s'écrit « non relevé » comme le reste : aucune n'est déduite d'une autre.
   const matrice = forfait?.matrice ?? null;
   // Les sources réellement employées par la matrice, dans l'ordre d'apparition.
   const sourcesTarifs = matrice
     ? [...new Set(POSTES.map((p) => matrice[p]?.source).filter(Boolean))].map((x) => NOM_SOURCE[x!])
     : [];
+
+  const fourchette = forfait ? fourchetteJournee(forfait) : null;
+  // Le haut de la fourchette quand elle existe : c'est le tarif de haute
+  // saison, celui qu'on paie aux dates où l'on part le plus souvent.
+  // La matrice fait foi pour la journée adulte : elle sait lire « 1 Jour »
+  // comme « Forfait journée », elle écarte les demi-journées, et elle dit sa
+  // source. La grille n'est relue que si la matrice n'a pas cette case.
+  const adulte = forfait
+    ? fourchette
+      ? prix(fourchette.haut, forfait.devise)
+      : matrice?.jourAdulte
+        ? prix(matrice.jourAdulte.prix, forfait.devise)
+        : jour
+          ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise)
+          : null
+    : null;
+  const periodes = forfait ? journeeParPeriode(forfait) : [];
+  // Les six tarifs demandés, quand les grilles les publient. Une case vide
+  // s'écrit « non relevé » comme le reste : aucune n'est déduite d'une autre.
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");

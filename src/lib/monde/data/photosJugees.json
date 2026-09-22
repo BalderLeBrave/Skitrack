@@ -2,8 +2,8 @@
  "at": "2026-09-22",
  "quoi": "ce qu'un regard a vu sur chaque photo de domaine retenue",
  "regle": "retenue si neige, sans filigrane, sujet station ou pistes, et image non partagée",
- "juges": 2023,
- "retenues": 1447,
+ "juges": 2026,
+ "retenues": 1506,
  "ecartees": {
   "http://gpss.no/img/asset/_facebook/Galdhopiggen-sommerskisenter-jotunheimen-logo.png": "pas de neige",
   "http://kaimowka.pl/wp-content/uploads/2015/04/header-image.jpg": "sujet : autre",
@@ -14,17 +14,24 @@
   "http://skiclub-warstein.de/data/uploads/image-skiclub.jpg": "sujet : autre",
   "http://www.dentistes-flach.fr/images/contenu/h800/20190304_192238.jpg": "pas de neige",
   "http://www.fagerfjell.no/files/theme/images/kveldsutsikt.jpg": "image partagée par plusieurs domaines",
+  "http://www.pratoselva.it/loghi/logo_Prato_Selva_seggiovia.png": "pas de neige",
   "http://www.skiarealvetrnyvrch.cz/wp-content/uploads/2017/12/logonotextmedium.png": "pas de neige",
   "http://www.skibaan-dousberg.nl/images/Facebook%20like%20voor%20site.jpg": "pas de neige",
+  "http://www.skidalecin.cz/Dalecin/pict/dalecin_t.jpg": "sujet : autre",
   "http://www.skilift-burgbernheim.de/s/misc/logo.png?t=1787134734": "pas de neige",
+  "http://www.skilift-sternenberg.ch/images/parafactpanop710765a9790964208.jpg": "pas de neige",
   "http://www.skischule-inzell.de/livecam/cam_02.jpg": "sujet : autre",
   "http://www.skizlatnik.cz/foto/IP_kamera.jpg": "pas de neige",
   "https://11aae0a28c.cbaul-cdnwnd.com/e3c40217769c81a552ef90ae64b7de57/200000036-b67a9b772f/700/fb_icon_325x325.png?ph=11aae0a28c": "pas de neige",
   "https://75a6327bd7.clvaw-cdnwnd.com/5f8f1320cb669bc9e1d382f5b0b1574b/200000000-90cb490cb6/700/slitta.png?ph=75a6327bd7": "pas de neige",
+  "https://8734fb5f06.clvaw-cdnwnd.com/b5a7d92d6a02a89af7d7e3f77b92a5e5/200000069-372da38284/700/logo%20lk%20prostor%20kolem.jpg?ph=8734fb5f06": "pas de neige",
+  "https://a.storyblok.com/f/286149173760273/0x0/dc35508c03/dji_0010.jpg": "pas de neige",
   "https://alpineworld.nl/wp-content/uploads/2018/09/facebok-website.jpg": "filigrane",
   "https://alpinlofoten.no/wp-content/uploads/2020/10/cropped-Bakken.jpg": "filigrane",
   "https://alps.altay.kz/slider/gallery/m1.jpg": "sujet : autre",
-  "https://api.pontresina.ch/fileadmin/_processed_/5/4/csm_Web_Low-2023_Dorf_Pontresina_He__10__876de051f4.jpg": "pas de neige",
+  "https://alsovka.cz/wp-content/uploads/Kotivna_20205_C.jpg": "pas de neige",
+  "https://api.pontresina.ch/fileadmin/_processed_/5/4/csm_Web_Low-2023_Dorf_Pontresina_He__10__876de051f4.jpg": "image partagée par plusieurs domaines",
+  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=377,fit=crop/d9539XaXg0FyDPLV/panorama_vd_20241-AwvPMDMpVLie5b2R.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
   "https://aukstagireskalnas.lt/wp-content/uploads/2025/05/auks-1024x668.jpg": "pas de neige",
   "https://autrans-meaudre.com/img/bnr.webp?sw=800&amp;sh=800": "image partagée par plusieurs domaines",
   "https://azugaresort.ro/assets/images/og/azuga-ski-bike-resort-og.jpg": "pas de neige",
@@ -102,22 +109,41 @@
   "https://cdn.bfldr.com/WIENNW6Q/as/wmfcq8h72t6sg9km7vgxwp/Superdvoluy__La_Joue_du_Loup_HERO_2025?auto=webp&format=png": "sujet : autre",
   "https://cdn.bfldr.com/WIENNW6Q/as/x4cv648qfv47xszk9xxw98p/Nesselwngle?auto=webp&format=png": "sujet : montagne",
   "https://cdn.goderdzi.ski/goderdzi-ski-resort-DW4a51pjdOk.jpg": "sujet : autre",
+  "https://cdn.indebergen.nl/media/p3odk5aq/debaye06b-eckbauer.jpg?anchor=center&mode=crop&width=1160&height=1160&format=webp&quality=80": "sujet : autre",
   "https://cdn.pilatus.ch/content-media/uploads/_1200x630_crop_center-center_82_none_ns/PIL_Logo_RGB_Rot.jpg?mtime=1765385050": "pas de neige",
   "https://cdn.prod.website-files.com/601979f7f1a680fdd91a4a63/652e9b9eb017f5d459fac4a5_cmyk_SB1_SMN_verti_pos.jpg": "pas de neige",
+  "https://cdn.prod.website-files.com/6059b1d3418651c153253559/6a40e2e2988b4ffd98d6052d_PXL_20260602_145357239%20(1)%20(1).jpg": "pas de neige",
   "https://cdn.prod.website-files.com/65c33085185964d6967527c7/6724d6458272466c5cf82f35_statiunea-montana-sureanu-min.PNG": "filigrane",
+  "https://celjska-koca.si/wp-content/uploads/2025/05/IMG_6837-1024x683.jpg": "pas de neige",
+  "https://cms.unitur.eu/media/fhoahyeb/logotiprogla.png?width=1200": "pas de neige",
   "https://cn-froideville.ch/wp-content/uploads/2020/06/cropped-cropped-cropped-cropped-FB_IMG_1592408930079-1.jpg": "pas de neige",
-  "https://d32r4yxuun6zdf.cloudfront.net/estaticos/extras/fotos/contenidos/00/00/01/16/15//abono-temporada-JV-26-27.jpg": "filigrane",
+  "https://cortinadelicious.it/Images/Super8/modalMobile400.jpg": "filigrane",
+  "https://d32r4yxuun6zdf.cloudfront.net/estaticos/extras/fotos/contenidos/00/00/01/16/15//abono-temporada-JV-26-27.jpg": "image partagée par plusieurs domaines",
   "https://dam.media.jungfrau.ch/image/upload/t_Web/ar_1200:630,c_fill,f_auto,fl_lossy,q_auto,w_1200/Grindelwald-First-Cliff-Walk-First-View-Key-Visual.tiff?_a=BAAAV6GY": "pas de neige",
+  "https://deinkick.ch/wp-content/uploads/DeinKick_Bild_Solarbob_02.jpg": "pas de neige",
   "https://der-skiclub.de/wp-content/uploads/Slider6.jpg": "sujet : autre",
   "https://destne.cz/media/img/c_397e961ffd30ec99abdacad4e2fff5b8-w648x0.jpg": "pas de neige",
   "https://dobogoko.org/wp-content/uploads/2024/08/rendezveny-helyisznek-2.jpg": "pas de neige",
+  "https://dqq9mwzzr5k9i.cloudfront.net/Planai/Logo/8450/image-thumb__8450__open-graph/PLAN_Logo_Planai_grau_gruen.e591dfe3.png": "pas de neige",
+  "https://duerrnberg.at/wp-content/uploads/2022/04/ls-project-26-slide-1-1.jpg": "filigrane",
   "https://ergankayak.com/wp-content/uploads/2022/10/ergan-wallpapers-1.jpg": "sujet : montagne",
   "https://f780221812.clvaw-cdnwnd.com/c8471b8e4bb0a13c1035b0a2128443ce/200000014-5d5cb5d5cd/700/IMG_20171219_172408.jpg?ph=f780221812": "pas de neige",
   "https://files.ublo.app/production/old/lbmlaschlucht/840h/SCH%20-%202013%20-%20Zoom%20Fille%20casqu%C3%A9e%20B.Jamot%20_B__6306%20BD.jpg": "sujet : autre",
+  "https://g4w.pl/wp-content/uploads/2026/01/g4w.jpg": "filigrane",
+  "https://golte.si/wp-content/uploads/2023/10/Zipline_dozivite.png": "pas de neige",
   "https://hargitafurdo.ro/wp-content/uploads/2026/07/IMG20230812184319-1024x768.jpg": "pas de neige",
   "https://himos.fi/wp-content/uploads/2024/11/10-scaled.jpg": "image partagée par plusieurs domaines",
   "https://i0.wp.com/www.jarvsobacken.se/wp-content/uploads/2024/11/Sidfot-JB.webp?fit=2560%2C854&amp;ssl=1": "pas de neige",
+  "https://i2-prod.bristolpost.co.uk/incoming/article9635529.ece/ALTERNATES/s1200/2_BRIHB_171024-south-wilts-ski-club.jpg": "pas de neige",
+  "https://image.jimcdn.com/app/cms/image/transf/dimension=1920x10000:format=jpg/path/s5f71ecdf41707b4f/image/i5aeaa13fc96a7fe8/version/1464636865/image.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://image.jimcdn.com/app/cms/image/transf/dimension=1920x10000:format=jpg/path/se72bf71858d26b28/image/i05b600db700f9e3f/version/1789571493/image.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://image.jimcdn.com/app/cms/image/transf/dimension=1920x1024:format=jpg/path/s0842d8909666309f/image/iad8c252c4e7d2ef3/version/1543508479/image.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://image.jimcdn.com/app/cms/image/transf/dimension=4096x4096:format=jpg/path/s11087696424f3b69/image/ic184a64964d35526/version/1743500000/image.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://image.jimcdn.com/app/cms/image/transf/none/path/sc56eb23b01581d20/backgroundarea/i1645bae78a79c910/version/1611743967/image.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://image.jimcdn.com/app/cms/image/transf/none/path/sc8caa11a5bf55f79/backgroundarea/i5aa7dea962c81a7d/version/1669905450/image.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://image.jimcdn.com/app/cms/image/transf/none/path/sdfbe1c0f7d03c7b4/backgroundarea/i737911996f29c370/version/1550743919/image.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
   "https://impro.usercontent.one/appid/oneComWsb/domain/furedalen.no/media/furedalen.no/onewebmedia/furedalen.png?etag=%223a5e-5be1db72%22&amp;sourceContentType=image%2Fpng&amp;quality=85": "pas de neige",
+  "https://janvry.fr/wp-content/uploads/2018/04/Janvoriaz.jpg": "hôte muet au contrôle (ConnectionError: ('Connection aborted.', ConnectionResetError(10054, 'Une connexion existante a dû être fermée par l’hôt)",
   "https://kalpalinna.fi/wp-content/uploads/2019/10/kl_logo-4.jpg": "pas de neige",
   "https://karpaczskiarena.pl/wp-content/uploads/2018/12/clock.png": "pas de neige",
   "https://kartala.bg/wp-content/uploads/2023/09/Kartala_Winter_Map_2023-1024x576.jpg": "sujet : autre",
@@ -125,37 +151,47 @@
   "https://kimrixphotography.co.uk/dist/pics/uk-casino-sites-not-on-gamstop-logo-3w5bx.png": "pas de neige",
   "https://knaben.no/wp-content/uploads/2018/11/knaben_sommer_hero.jpg": "pas de neige",
   "https://konkaski.fi/wp-content/uploads/2017/01/konkaski_logo_uusi.jpg": "pas de neige",
+  "https://konkaski.fi/wp-content/uploads/2023/02/rinnekartta2023_5-scaled.jpg": "sujet : autre",
   "https://krainakarkonoszy.pl/wp-content/uploads/2020/01/Pod-Wangiem.jpg": "filigrane",
   "https://krasiya.com.ua/wp-content/uploads/2024/01/frame-960.png": "filigrane",
   "https://krinau.ch/wp-content/uploads/2024/05/Gemeinde_Krinau_Skilift_Logo.png": "pas de neige",
   "https://kronberg.ch/assets/images/e/keyvisual_sommer_desktop-8nsrdbfjr6hc4ds.jpg": "pas de neige",
   "https://kutiorg.ee/kutiorg/storage/app/media/logo.png": "pas de neige",
+  "https://kuutsekas.ee/ui/images/logo/logo.svg": "hôte muet au contrôle (UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x000002002DF4AB60>)",
   "https://l450v.alamy.com/450v/bx8j6j/midlothian-snowsports-centre-snow-scene-at-hillend-edinburgh-scotland-bx8j6j.jpg": "filigrane",
-  "https://leto.skiresort.cz/media/uploads/pages/17-skiresort-lanovka-clouds.jpg": "pas de neige",
+  "https://leto.skiresort.cz/media/uploads/pages/17-skiresort-lanovka-clouds.jpg": "image partagée par plusieurs domaines",
   "https://leysin.ch/wp-content/uploads/2026/08/QR_Leysin365-1.png": "pas de neige",
   "https://liepkalnis.lt/assets/images/og_image6.png": "pas de neige",
   "https://lirp.cdn-website.com/c9132f22/dms3rep/multi/opt/Logo+1200-9479af8d-1920w.png": "pas de neige",
   "https://macedoniafromabove.mk/ponikva/socialThumbnail.jpg": "filigrane",
   "https://master-ski.pl/wp-content/uploads/2026/09/ChatGPT-Image-15-wrz-2026-12_31_29_Easy-Resize.com_-1-1024x393.jpg": "filigrane",
+  "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://contentapi-swissactivities.imgix.net/contentapi.staging.swissactivities/c3ecf3492032aa403a868a224ab36920.jpg": "pas de neige",
   "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d10rdyp01sn3kp.cloudfront.net/files/pics/2016618167556050.3123376400262894.JPG": "pas de neige",
   "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/3/a2/0c/3a20c436ee452cf1efa883c3a9a85112c8c9d5c9_880156371.png": "pas de neige",
   "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/b/c9/ec/bc9ec2593d76b24a5503d38a65189fabd592cbb0_797214099.jpeg": "pas de neige",
   "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://d37dhr5745n0y2.cloudfront.net/e/41/98/e41986a9e12d390703ac49d1feaf1adbbdb6e111_850226567.JPG": "pas de neige",
   "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://images.schweizmobil.ch/image-master/WW_206_DSC06072_F_M.jpg": "sujet : montagne",
+  "https://meinebergwelt.de/wp-content/uploads/2026/08/Website_mobile_Version_Startseite_Hintergrund_1000x1500-px.jpg": "pas de neige",
   "https://messila.fi/wp-content/uploads/2026/06/E0543E92-95D7-43D7-B404-A61DBAD549B3-scaled.jpeg": "pas de neige",
+  "https://mognofreetime.ch/webcam/webcam/RISALITA20260921_235332.jpg": "hôte muet au contrôle (HTTP 404 text/html; charset=UTF-8)",
   "https://montigemelli.it/wp-content/uploads/2021/06/Share-Social-1200x630-1.jpg": "pas de neige",
   "https://myler-web-cdn.ams3.cdn.digitaloceanspaces.com/myler-web/seo/og_lg.png": "pas de neige",
   "https://mynaszlaku.pl/wp-content/uploads/2020/11/gora-chelm-myslenice-wyciag-narciarski.jpg": "pas de neige",
   "https://nalovardo.se/wp-content/uploads/2022/01/191_1.jpg": "filigrane",
+  "https://nara.ch/wp-content/uploads/2025/06/immagine-condivisione-sito-social-1024x538.jpg": "sujet : autre",
   "https://nommelumepark.ee/app/themes/nommelumepark/public/images/nommelumepark.c4d779.jpg": "pas de neige",
   "https://normafapark.hu/site/upload/2022/06/kossuth_emlekmu_normafa.jpg": "pas de neige",
+  "https://oclini.com/webcam/webcam1.jpg": "pas de neige",
   "https://ounasvaara.fi/wp-content/uploads/2026/02/Ounasvaara-Ski-Resort-slopes-9.jpg": "image partagée par plusieurs domaines",
   "https://outdoorvalleywintersport.nl/wp-content/uploads/2022/11/OVW-13-november-2022-13-1024x683.jpg": "pas de neige",
   "https://paljakka.fi/wp-content/uploads/2020/04/paljakka-share-page.jpg": "pas de neige",
   "https://paminne.fi/wp-content/uploads/2023/06/DSC_4190.jpg": "pas de neige",
+  "https://pilsko.org/wp-content/uploads/2026-06-22-1024x727.jpg": "pas de neige",
   "https://plaj.at.ua/12345655.jpg": "filigrane",
+  "https://platak.hr/wp-content/uploads/elementor/thumbs/ico-01-px0mluz3swpxq3vuhigkrt52d1e3d4ytbs74vdxrjk.png": "pas de neige",
   "https://pradaschier.ch/wp-content/uploads/sites/5/2025/07/sommer-rodelbahn-erlebnisberg-pradaschier-16.jpg": "pas de neige",
   "https://rarauskiresort.ro/wp-content/uploads/2020/02/RarauSkiResort-1024x591.png": "filigrane",
+  "https://ratzi.ch/files/Seilbahn/SSSOMMMEr/_fullSizeAuto/Computerformat-4_3-Seilbahn-Spiringen-Ratzi.jpg": "pas de neige",
   "https://rilskiezera.bg/wp-content/uploads/2023/05/367607726_109614248901835_7026056661868083382_n.jpg": "pas de neige",
   "https://ringerud.no/wp-content/uploads/2019/06/ringerudgard-familie.jpg": "pas de neige",
   "https://ruunarinteet.fi/wp-content/uploads/2022/10/20181010_123601-scaled.jpg": "image partagée par plusieurs domaines",
@@ -163,6 +199,8 @@
   "https://saarijarvi.fi/wp-content/uploads/2021/10/K14A7551.jpg": "pas de neige",
   "https://safsen.se/wp-content/uploads/2026/09/Stugmys_Web-scaled.jpg": "pas de neige",
   "https://savich-park.te.ua/wp-content/uploads/2020/12/02-snowtube8-0--772x666.jpg": "sujet : autre",
+  "https://schi-bogdan.ro/wp-content/uploads/seo-image-schi-bogdan.jpg": "hôte muet au contrôle (HTTP 403 text/html)",
+  "https://seilbahnen-sonntag.at/og-image.jpg": "filigrane",
   "https://seli-ski.gr/wp-content/uploads/2018/11/stathmos.png": "pas de neige",
   "https://serena.fi/wp-content/uploads/2024/12/LASTENMAET-w.webp": "pas de neige",
   "https://sibenicnivrch.cz/admin-assets/news/articles/75/images/191_sobotni-vecerni-2025.jpg": "filigrane",
@@ -177,10 +215,15 @@
   "https://skidasvaedi.is/wp-content/uploads/2025/05/skidasvaedin.jpg": "pas de neige",
   "https://skidemanova.sk/wp-content/uploads/2023/01/GER_2673-1-1-1024x683.jpg": "sujet : autre",
   "https://skigyimes.ro/uploads/stock/1754764359_alap-4.jpg": "pas de neige",
+  "https://skiharusak.cz/wp-content/uploads/2014/12/logoh.png": "pas de neige",
+  "https://skilift-oberegg.ch/wp-content/uploads/2015/11/Home1_geschl.jpg": "filigrane",
+  "https://skipark.sk/wp-content/uploads/2026/04/mesto-ruzomberok-logo.webp": "pas de neige",
   "https://skisaariselka.com/wp-content/uploads/2025/12/cropped-saariselka-ski-sport-resort-some.png": "image partagée par plusieurs domaines",
   "https://skistraja.ro/wp-content/uploads/2024/01/cropped-Logo-Ski-Straja.jpg": "pas de neige",
   "https://skitindastoll.is/wp-content/uploads/2019/12/tindastoll24.jpg": "pas de neige",
   "https://skivallasen.se/wp-content/uploads/2024/10/vallasen-pistkarta.jpg": "sujet : autre",
+  "https://skolnity.pl/wp-content/uploads/2026/04/parkirowerowe.pl_.jpg": "pas de neige",
+  "https://slovenia-outdoor.com/wp-content/uploads/2019/11/KANIN-SELLA-NEVEA.jpg": "sujet : autre",
   "https://smolen-ski.pl/wp-content/uploads/2021/12/51.jpg": "pas de neige",
   "https://solbergsbacken.se/wp-content/uploads/2020/09/150px.png": "pas de neige",
   "https://sollifjellet.no/wp-content/uploads/2017/10/TOPPBILDER_Sollia_HEISKORT_LOGO.jpg": "pas de neige",
@@ -189,6 +232,7 @@
   "https://sportnemcicky.cz/wp-content/uploads/2022/04/Logotyp_jihomoravsky_kraj_RGB-scaled.jpg": "pas de neige",
   "https://staldenried.ch/wp-content/uploads/2024/04/Bild-065-scaled-1920x500.jpg": "pas de neige",
   "https://static.apidae-tourisme.com/filestore/objets-touristiques/images/141/148/11179149.png": "pas de neige",
+  "https://static.mycity.travel/manage/uploads/6/26/44869/4b1b25940fb7902d4bb3fdb35df60b0365d49b11_1080.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
   "https://static.neopse.com/medias/p/3724/site/cc/02/c4/cc02c484ec131fac55efce56909d5d09ef6037bd.jpg": "pas de neige",
   "https://static.webcamera.pl/camsbig/rusinski-panorama.jpg?nc=1767625877": "pas de neige",
   "https://static.webcamera.pl/camsbig/siepraw-ski.jpg?nc=1737114552": "pas de neige",
@@ -201,7 +245,8 @@
   "https://vallei53.nl/wp-content/uploads/2024/01/Terrein_HelseHeuvel_DJI_0006-edited.jpg": "pas de neige",
   "https://vankuvkopec.com/wp-content/uploads/2017/03/ostrava_logo.jpg": "pas de neige",
   "https://vasilitsa.com/wp-content/uploads/2024/11/Anouncement.jpg": "pas de neige",
-  "https://vcdn.bergfex.at/images/resized/00/12d44906fc2a9c00_24576494776411be.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/00/12d44906fc2a9c00_24576494776411be.jpg": "image partagée par plusieurs domaines",
+  "https://vcdn.bergfex.at/images/resized/01/033a8f1a2a85ea01_a25f1589e79c90ce.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/01/724a9e00f1394101_32fd76035789bb4a.jpg": "image partagée par plusieurs domaines",
   "https://vcdn.bergfex.at/images/resized/02/71cfb9c25a8f2c02_2c34c56e067c7468.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/02/dae549c12cab2702_15fb4d8cef6485ac.jpg": "sujet : autre",
@@ -221,6 +266,7 @@
   "https://vcdn.bergfex.at/images/resized/11/1d6bd59c2623dd11_550bf2f4b4f5ca90.jpg": "image partagée par plusieurs domaines",
   "https://vcdn.bergfex.at/images/resized/13/38ee56c2355b9913_d1a6cf4df4e83402.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/15/80010a99cadafa15_880944f286e4b5b4.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/16/3e40ba56f5122d16_d4aa9a85b49d3154.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/16/48b0ea16517ca816_a8e3429f3ba58646.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/16/9ea5cc3b4b06bb16_b94941f0db874646.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/16/ce3fe5c5f0e37916_771681f36da73ea5.jpg": "sujet : autre",
@@ -228,6 +274,7 @@
   "https://vcdn.bergfex.at/images/resized/18/dd2abae0eab58a18_1a02f5e08ab7907e.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/19/514cef4f77dde319_60814805820d7541.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/1a/ce960c60b3c1d61a_f225d1e0ed76a09d.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/1b/6f4c7046d713d81b_429a88effeb8a642.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/1b/7b4c0f9773bc351b_cc31c712bfb3c0bf.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/1b/ae432e629942331b_fa5b82361dc5c063.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/1c/03a0af938c24ab1c_2272121b623892f8.jpg": "sujet : autre",
@@ -236,6 +283,7 @@
   "https://vcdn.bergfex.at/images/resized/20/03e6903f0bba9920_917778c210ce3185.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/21/edb579d06ec00421_9e154daf5cba565d.jpg": "filigrane",
   "https://vcdn.bergfex.at/images/resized/22/426ffc0c8db8e822_6f7367061e6b68b4.jpg": "filigrane",
+  "https://vcdn.bergfex.at/images/resized/24/fcc9c7082eb6bd24_0d59e9afa18e7c60.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/25/7488cc74b32d3825_db70725ce0bc0238.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/25/a831a1f6306cd925_2a25f27ce9b7d633.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/26/8db04aecf0ff2126_0a826f24ee9dcc11.jpg": "sujet : autre",
@@ -247,6 +295,8 @@
   "https://vcdn.bergfex.at/images/resized/2a/47b5280cacf6b12a_b5e1e99e371209f0@2x.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/2b/a2d75fbf62e8b72b_6677f1889a2602b2.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/2b/ae1cda384a37e42b_9940484560606321.jpg": "image partagée par plusieurs domaines",
+  "https://vcdn.bergfex.at/images/resized/2b/d93fd3367928ef2b_47808607b38c2253.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/2c/8d57951790dd202c_aa44bab4c9fd9b00.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/2d/3f142fd9decbc32d_baed2a057f41585d.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/2d/a17019888ebbc32d_0b93756c8c857128.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/2e/05b7835ee5511f2e_8960e91f64709311.jpg": "sujet : autre",
@@ -266,22 +316,28 @@
   "https://vcdn.bergfex.at/images/resized/3c/548afbf492bcb83c_1c870386f19f6d61.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/3c/7c6dc0b971e2b53c_7c798d4dc1ad0f25.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/3d/8d6c901c06cf893d_a383bfff13a6330a.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/3e/38e901c7ce2f173e_eec9ef5dd0337ece.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/40/7f6e2be0ec8a6040_5b8063172e630125.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/41/15c08936db8d5341_1e4154f07eafa816.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/41/77bf9ad870288741_2bac76656193a62c.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/41/8bfd9cd33e9bf741_26b2ff4a5af50303.jpg": "image partagée par plusieurs domaines",
   "https://vcdn.bergfex.at/images/resized/43/08c90f113f1b5243_8a8f2fa3142ff818.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/43/4ff80b11171b5e43_07c2225c5781d1b5.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/43/dbbb3cef4821b743_0ef8e7f12d02cd40.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/44/5c38b579d02e5e44_fcff97c212226200.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/45/b891ffa449e6a445_3c5f88a03047e38c.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/46/1dedf9e13de29046_a2721411c13d4f4d.jpg": "filigrane",
   "https://vcdn.bergfex.at/images/resized/46/32f68fba48446b46_60c9a6a7f873699a.jpg": "filigrane",
   "https://vcdn.bergfex.at/images/resized/46/761484d48061cc46_d40f1e107a20df27.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/47/3991d2fece04bc47_65c215f2c439d668.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/47/553fde8d43a3fc47_8f6f153ff6be1bd9.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/49/5d753b409665e149_0d2fc23baf9f5300.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/4b/e984fb9864b5a94b_051b9a61739d3f75.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/4c/531b0f84cb92b94c_9a8e1b2e80233f30.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/4e/fad657e11f44ce4e_0fcea3d070bd3474.jpg": "filigrane",
   "https://vcdn.bergfex.at/images/resized/4f/adeab35e24c7cb4f_0149a35f091c8469.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/50/ce682119cc8fc050_28b879e6b9686daa.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/51/035b216ea0e04e51_075b8b6551a5ef06.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/51/0e6ca9f57c558951_97393fefe2adaecc.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/51/e7b2115927525f51_e1289269c7112d77.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/52/020fd7e128e90c52_03db783aa2d3ecb5.jpg": "pas de neige",
@@ -289,13 +345,17 @@
   "https://vcdn.bergfex.at/images/resized/53/426a521dfce70653_996135fe5bbd81ae.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/53/7fd561327567f653_f09b813b5b6efb18.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/54/1da2562c126cd654_4b211b5ddc41e329.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/55/1595917ac56d7455_9594f7526d9b9090.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/57/a0e1373d4c1ee357_9386403596ebbc4c.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/58/319b88b24b8cb858_a55c658204e8108d.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/58/4c63f5fcf9105558_57f542280f1099cb.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/58/ebfff4611cbca458_50c7afefd8263e72.jpg": "image partagée par plusieurs domaines",
   "https://vcdn.bergfex.at/images/resized/59/33277a07ec27d159_01acfc5ae79db704.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/5a/119c6e2478748c5a_776059cddf44dcd8.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/5a/4fd1011f6dc82e5a_79534e86367d6c6e.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/5a/a8b35b0cb275715a_f1b1dde62b254994.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/5b/95be556384ab8a5b_5b104142b772a389.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/5c/ad6856c49370425c_76959536cb9bd92e.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/5d/11079398a0de005d_a1bcfa86ed99c7ff.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/5e/b127b710f7bd225e_0bba53a99e619ebb.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/5f/b66b2c0f20ebed5f_2ccf12c6991c8eec.jpg": "sujet : autre",
@@ -304,25 +364,33 @@
   "https://vcdn.bergfex.at/images/resized/61/a79bc6aa35c95e61_32e070acee2229fb.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/63/bf4503c117ee3263_6e384dd7a2e43134.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/65/1a32d2a4112cb165_d895c07f32f57009.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/66/03c0ebf73563d966_70f4f855ab61a8a6.jpg": "filigrane",
   "https://vcdn.bergfex.at/images/resized/66/e699f2af9d3e3266_2030a3f99b5a7216.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/66/f7d54781db47f366_0f1a9a4d0b8d40b7.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/68/8d8e67d060b48e68_caf31dde409257e2.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/69/2f69bb7d5843c869_d027d601ae18f338.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/6a/05a6a1da3856426a_fbdee6e85565e5e2.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/6b/ca25783bbebc4c6b_b351e5d43a7548c0.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/6b/fb8364930d11fa6b_21defca1dca192bd.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/6c/9a61ed3c21fa316c_a40c5be09abaf720.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/6d/1a3278510059b66d_661df94e810dfedb.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/6f/2f7d5e44b2a1cf6f_60f9bebfbfa5a4d1.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/70/244f70f20e5f2370_78b44a7e1ce86c7f.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/70/5479564962f48270_951603c415ae277e.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/74/a7c1b14436283174_301b30551c852978.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/75/7803e422ecc18375_165dff7493336da4.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/76/a3085e13b0630476_ada607a3e1d1d98d.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/76/e9e4551ad1fd8a76_ac358d220566073a.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/77/35d4269226066e77_3f683c21f25af5b5.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/79/34dd6e91a80cfe79_38d9efc25e04020b.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/79/781ad9b0d45e1c79_037cbccb11f7e64c.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/79/c0ead0d5fce90b79_3b413beb8fda88e0.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/7b/8bd7c965533fe87b_7a3ee1bdbb2e8509.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/7b/b3d51b9df849937b_8f523a2096a64142.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/7c/3c3673267eea037c_88957a4d54b461fe.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/7d/10d570c115716b7d_bb8e0af63c9d28b7.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/7d/2aa8df3b901f497d_763f4eeca6b76bba.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/81/43cd32d08f96c681_e11e774da78f1ba2.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/81/e77aa9f70e1a3181_dc79ef014c462995.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/84/3c005c6ad294a884_7fccd2649c9bb149.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/86/f38e79ee322d3486_e3529e4dacb09e24.jpg": "sujet : autre",
@@ -335,10 +403,13 @@
   "https://vcdn.bergfex.at/images/resized/8c/4e2f7d84b484a48c_fdc64b69e1058aa7.jpg": "filigrane",
   "https://vcdn.bergfex.at/images/resized/8e/5cb28dedb84dd48e_9a1768f1affcc77c.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/8e/dfb44b8f3afe008e_8621d024de01f117.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/8f/2f25e4c3254bb58f_bd83e9f627f3424f.jpg": "sujet : montagne",
   "https://vcdn.bergfex.at/images/resized/90/1aee8ef5e0de0b90_1aedf106c53dc1af.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/90/3227f13a37487f90_96cb2e7e7159f2be.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/90/5ac9b339d1819f90_8db12be3819b79e6.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/91/a6bf14de36619f91_1546e7ea4ad45c8b.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/92/ca329abad1ea9a92_f2f9cb593547e84d.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/93/65ba1910b5ffb593_536b71fa48e8e8cf.jpg": "image partagée par plusieurs domaines",
   "https://vcdn.bergfex.at/images/resized/96/6b069a9c3d0ee696_d9765626be9b92ce.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/96/eae051d8a598a496_824a5d2b786038b4.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/97/f6c0b00861cca097_c24c82765cce78d5.jpg": "sujet : autre",
@@ -347,6 +418,7 @@
   "https://vcdn.bergfex.at/images/resized/9f/1ceb32d111ccc99f_1425bfbfe425b4f3.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/9f/f74c8928b7896e9f_f1c03395ea4f23bf.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/a0/851dac63e4f283a0_db08cab60c213b1b.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/a1/53fd06c046f07da1_3fbb0ff85a7f98f8.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/a1/6a5e7003a23080a1_74ffb9cc675f28ee.jpg": "image partagée par plusieurs domaines",
   "https://vcdn.bergfex.at/images/resized/a1/dd4a06e84a9f68a1_e2e96f85d939f6f5.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/a2/0472df68b371bda2_20d1f26b4b5e2da9.jpg": "pas de neige",
@@ -356,21 +428,28 @@
   "https://vcdn.bergfex.at/images/resized/a3/5fbf843791da07a3_b20f40fd924cf181.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/a8/78d245eabfa52ba8_b41bebbe2b2b9d98.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/a8/da636bad90e076a8_2a47cd5ce58851ce.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/aa/0231aacc933841aa_8a1f85931af615d0.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/aa/4f06884b7ef0c4aa_365af73f09415468.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/ab/a147c403950c05ab_97280384a9ee3806.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/ab/e276c789ccd8acab_18785005b1b0b47c.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/ac/f0807e89cb9399ac_65565de65d6e1aa4.jpg": "filigrane",
+  "https://vcdn.bergfex.at/images/resized/ad/4630d17ead6280ad_a84de836bbca393e.jpg": "image partagée par plusieurs domaines",
   "https://vcdn.bergfex.at/images/resized/ae/1fe023cbb187a9ae_59ed1135b131fdd8.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/ae/a88732097d453eae_2022dd0bc33e5c57.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/af/5d67aa3866714aaf_d55a8a098ac2ce61.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/b0/0147d956d9ec01b0_fa154c313c0df2f4.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/b2/10360071d0b7eab2_db189bccbd5cfa02.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/b2/d9bb9defadae31b2_6208a6bcb48442b4.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/b4/857e23e892c10fb4_2b41df7eed0c3ceb.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/b5/374c74bc51d732b5_e69fc519b28a4723.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/b5/623b611f14cd23b5_64b02c61f9f83dcf.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/b5/e840e411183e5ab5_67402363115b1fe3.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/b6/479fa332115cafb6_35a73678af108590.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/b7/9eeb1918934560b7_3474b37a5a36b4c2.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/b7/cbfc599e2ad487b7_9dd7d0fd23b942a5.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/b8/733a8a76b51ea6b8_fc3123c5d156a3c5.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/b8/8c93d475f30389b8_b90ea8c2192282e3.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/ba/7c9c5bad0966a6ba_92886fdd2f9e22a0.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/ba/b4d5bb5d201980ba_6c9f97eb892d7dc2.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/ba/eeedf7cf61b3baba_be4d42741e928174.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/bb/a56fcae647c4bebb_868cd7d55c9f8a50.jpg": "image partagée par plusieurs domaines",
@@ -384,12 +463,18 @@
   "https://vcdn.bergfex.at/images/resized/bf/3fea50ec64cb89bf_63d340334ac8086a.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/c0/f93d16a47a5098c0_d236a289e15c11e5.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/c2/3a9b7583dc46a6c2_d90c468c3395adca.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/c2/bca67f1c50f236c2_2aebbcb8b128cadd.jpg": "sujet : montagne",
   "https://vcdn.bergfex.at/images/resized/c4/d7cc042a1d93e7c4_6a7a0699f40ba685.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/c6/8dfb4101287c3cc6_8bd5aab02287f17e.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/c6/a8b29d7edec88dc6_fecef8bd506e3052.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/c7/322a6e202b7bfbc7_a325a179c1bdb4d2.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/c7/740a1436f24f09c7_d7d037056fa951fb.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/c7/ccaabf144350c8c7_0aac8a9d72e927a6.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/c8/6721f8872cfc1ac8_167cc1362fd8ae5d.jpg": "image partagée par plusieurs domaines",
+  "https://vcdn.bergfex.at/images/resized/ca/05ab90fb29e462ca_177850068399f495.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/ca/c01de521f98889ca_633581fc9cc76a83.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/cb/2f89a9c16ce121cb_7295715d9f19a638.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/cb/8b3f6b5108e2b9cb_69ecb763450fac49.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/cb/8c67a6c7899cabcb_e12a77b8f4d0ad24.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/cb/c0416a49e4f636cb_792616f3c4367547.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/cc/3e8cc92e2cda7ccc_2f379531c5445de7.jpg": "sujet : autre",
@@ -398,6 +483,7 @@
   "https://vcdn.bergfex.at/images/resized/cd/083e3abeb7265dcd_27d670cc276359af.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/ce/48db9e4a8a6e15ce_ba8275f394cf3d1f.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/ce/4dce52ed693997ce_a64590bd3f5b3908.jpg": "sujet : montagne",
+  "https://vcdn.bergfex.at/images/resized/d0/afbc1909bd524fd0_74de8516411175ab.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/d2/471dd790607376d2_f60d6a528317a999.jpg": "sujet : montagne",
   "https://vcdn.bergfex.at/images/resized/d3/3ed0e176f454c8d3_ec02e51addd52edd.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/d4/76094208a43d45d4_7adc6707cfd18b6c.jpg": "pas de neige",
@@ -413,8 +499,10 @@
   "https://vcdn.bergfex.at/images/resized/de/2c754a706113fede_e9192c305972e406.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/df/b156173b6e863fdf_d88dd436e485cc89.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/df/d427a0b4e70c6fdf_26e5031c2fcfcca2.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/df/ee0e529257e763df_8246a8f040fda24c.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/df/fc54f115dfc224df_57b8554d3830d931.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/e1/dfc6c18e246d16e1_2636380e811eaadb.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/e2/249aa15427232fe2_ef02233b9b8e12e6.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/e3/078152e24c5a7ae3_f1080a2c365db6c2.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/e3/f39fdd35deb97fe3_dac577b916c9a3fc.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/e4/0e010c845f9f1ee4_0c2b062f12b64746.jpg": "sujet : autre",
@@ -426,7 +514,9 @@
   "https://vcdn.bergfex.at/images/resized/e9/39b86c6f61c632e9_2e08d0609343273a.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/ea/33fed5708b59b1ea_c80fcbefcb07566f.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/ea/3c610aa90a1be2ea_ffc4cba64b30d5f9.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/ea/cfd6b9da03bed1ea_bd28df8e213cae17.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/eb/0edcdb539275bfeb_6e66626120f76bf2.jpg": "sujet : autre",
+  "https://vcdn.bergfex.at/images/resized/eb/c8aed29dfee7edeb_3925b6eae5b04aa0.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/ef/acaa294acabca4ef_0af20a000345a3a8.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/ef/bafc5a3f7f2c59ef_3c5551a7bad4821e.jpg": "filigrane",
   "https://vcdn.bergfex.at/images/resized/ef/ccf16a5e585993ef_bde56a3ce2b03447.jpg": "pas de neige",
@@ -434,11 +524,13 @@
   "https://vcdn.bergfex.at/images/resized/f0/8e3341a418b977f0_7c19845b0d47015a.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/f1/23b196207b8213f1_761d4dac4945df0b.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/f3/cb48c425b5a1ccf3_8d680af6f22a1a66.jpg": "filigrane",
+  "https://vcdn.bergfex.at/images/resized/f4/02cf27a5c93bfaf4_b582adeb3db15652.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/f4/6118ab86400bb6f4_11dbb61d0ae7116c.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/f4/7c6ab0c8bc6733f4_23e15d54ca4742b9.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/f4/ceb44bf916b554f4_09aecf9a148a3b59.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/f7/b7fe7ab09d96daf7_4ebea45a7a39a709.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/f8/ac7605570d2bf8f8_36550a34146673ee.jpg": "pas de neige",
+  "https://vcdn.bergfex.at/images/resized/f8/b923ab1cca4ac7f8_abc161aba245ae0d.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/f9/0bd20e03b0ffc3f9_51b4cbf1bdc570bd.jpg": "pas de neige",
   "https://vcdn.bergfex.at/images/resized/f9/0d52336f3e891df9_cdef9dc90548161b.jpg": "sujet : autre",
   "https://vcdn.bergfex.at/images/resized/fb/99cf098bef2132fb_fbae454e849cdf3a.jpg": "sujet : autre",
@@ -449,21 +541,30 @@
   "https://vedbobacken.se/assets/bilder/downhill/JOEL_HILLBOM_Vedbo_Lucas_02.JPG": "pas de neige",
   "https://viamala.ch/assets/images/s/luftseilbahn-rhaezuens-feldis-lrf-sommer-demateo-741ttbsh35nmc0d-j405e7y7tkt77xx.jpg": "pas de neige",
   "https://visitrauland.com/rauland-skisenter/wp-content/uploads/sites/18/2026/01/Rauland_pistemap_4.1_web1920px_1700219330_1768395266.jpg": "sujet : autre",
+  "https://voevodyno.com/wp-content/uploads/2024/02/vasya.shtefaniak-182-scaled-optimized.jpg": "pas de neige",
   "https://voevodyno.com/wp-content/uploads/2025/02/vasya.shtefaniak-71-scaled-optimized.jpg": "pas de neige",
+  "https://vogel.si/wp-content/uploads/2024/04/Vogel-poletje-1024x560.jpg": "pas de neige",
   "https://vsa.no/wp-content/uploads/2023/09/a68a1f_a466d691d8f343f4ba21e572c7010863mv2.jpg": "pas de neige",
   "https://wiadomosci.olsztyn.pl/wp-content/uploads/2016/01/kartasiowka.jpg": "filigrane",
   "https://wolfskamer.nl/images/opleiding-skileraar-banner-2000-x-600-full.jpg": "pas de neige",
   "https://wsv-tailfingen.de/wp-content/uploads/2026/03/HP-mini-1-scaled.jpg": "pas de neige",
   "https://www.adelharzlifte.de/2-team-1.jpg": "sujet : autre",
+  "https://www.atzmaennig.ch/images/max-image/atzmaennig_sommer_wetter_01.jpg": "pas de neige",
   "https://www.bankut.hu/img/homeoktat.jpg": "pas de neige",
   "https://www.bannalp.ch/_static/images/opengraph.jpg?dt=202609211452": "pas de neige",
+  "https://www.biel-kinzigag.ch/wp-content/uploads/2025/12/Winterawards_Banner_V2.png": "filigrane",
   "https://www.blumenstein.ch/images/content/headerbilder/sommer/home.jpg": "pas de neige",
-  "https://www.brunnialpthal.ch/images/slider/sliderg5s.jpg": "pas de neige",
+  "https://www.bregaglia.ch/images/bregaglia/vivere_la_bregaglia/attivita/bet_prezzi_ski_85x130_print_def.jpg": "pas de neige",
+  "https://www.brunnialpthal.ch/images/slider/sliderg5s.jpg": "image partagée par plusieurs domaines",
   "https://www.cairngormmountain.co.uk/wp-content/uploads/2021/12/DSC05034-1-scaled.jpg": "sujet : montagne",
+  "https://www.ceskehory.cz/objekty/data/ski/biocelzlatnik/imagew.jpg": "filigrane",
   "https://www.chatastart.sk/og.png": "pas de neige",
   "https://www.coldeporte.fr/upload/tinymce/image/logo-reseaux-sociaux.jpg": "filigrane",
+  "https://www.cretdupuy.com/images/contenu/Station-ski-Cret-du-Puy-Plan-des-Piste--1-.jpg": "sujet : autre",
   "https://www.czech-mountains.eu/objekty/data/ski/park-frymburk/imagew.jpg": "filigrane",
+  "https://www.czech-mountains.eu/objekty/data/ski/skinovemesto/imagew.jpg": "filigrane",
   "https://www.czech-mountains.eu/objekty/data/ski/zlataolesnice/imagew.jpg": "filigrane",
+  "https://www.datocms-assets.com/144383/1729682434-home_aiguille-du-midi-ete.webp": "sujet : montagne",
   "https://www.deschans.nl/wp-content/uploads/2020/12/BK3A5099.jpg": "pas de neige",
   "https://www.dewijchenseberg.nl/wp-content/uploads/2025/12/gouden-slinger.png": "pas de neige",
   "https://www.dreizinnen.com/images/region/highlights/3-zinnen/sommer/186/image-thumb__186___auto_f657f4fe3ac4cb23752ac85adf066242/Drei%20Zinnen%20Wandern.230908d8.jpg": "pas de neige",
@@ -471,38 +572,55 @@
   "https://www.eggberge.ch/fileadmin/user_upload/images/titelbilder/Fr%C3%BChling/Krokus-Hummel_cFoto_Maggie_J.Christen-Zurfluh_208A3589-sm_1.JPG": "pas de neige",
   "https://www.emilyresort.com.ua/wp-content/uploads/2025/08/m1.jpg": "pas de neige",
   "https://www.eremomontecarpegna.it/public/webcam/air3.jpg": "pas de neige",
+  "https://www.filzmoos.at/media/metaimage/filzmoos-grosse-momente.-cgoproductions-gerald-oberreiter-www.filzmoos.at.jpg": "pas de neige",
   "https://www.finseskisenter.no/wordpress/wp-content/uploads/2019/03/screenshot_20190322-164854_yr6136523853705369376.jpg": "pas de neige",
   "https://www.flensa.ch/logo.jpg": "filigrane",
   "https://www.flottsbro.se/wp-content/uploads/2025/03/Stugor_Camping_webbsida_0239.jpg": "pas de neige",
   "https://www.forcoraski.it/wp-content/uploads/2019/01/icona-forocora-1.png": "pas de neige",
+  "https://www.friluftsframjandet.se/globalassets/2.-verksamhet/fjallvandring/29712842675_dfb2c95a0c_o.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
   "https://www.frontignano360.it/wp-content/uploads/2021/12/opengraphImage.jpg": "pas de neige",
+  "https://www.gantrisch.ch/wp-content/uploads/2022/11/gantrisch_A_region_v3.jpg": "pas de neige",
   "https://www.glencoemountain.co.uk/wp-content/themes/glencoe/preview/summer-act.jpg": "pas de neige",
+  "https://www.grand-ballon.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg": "image partagée par plusieurs domaines",
   "https://www.harjavallanjymy.fi/wp-content/uploads/2024/01/cropped-410918794_979302730393190_8652938954465603397_n.jpg": "sujet : autre",
   "https://www.hlidarfjall.is/static/themes/2016/images/og.png?v=1790079698": "pas de neige",
+  "https://www.hohe-winde.ch/images/2023/04/20/wingae-beiz.jpg": "pas de neige",
   "https://www.hohtann-belchen.de/webcam/webcam.jpg": "pas de neige",
+  "https://www.hotel-cerkno.com/assets/david-barajas-CMajP7KvGCA-unsplash-1.jpg": "pas de neige",
   "https://www.hotelsolan.cz/images/logo-socialni-site.png": "pas de neige",
   "https://www.hotylekupekina.cz/images/imgslide01.jpg": "pas de neige",
+  "https://www.icesty.cz/wp-content/uploads/2024/08/viden-945x430.jpg": "pas de neige",
   "https://www.ilprimo.nl/images/proeflessen-september.jpg": "pas de neige",
   "https://www.isaberg.com/media/wthdpoyp/isaberg_160816-2368.jpg?width=1900&amp;height=750&amp;v=1d81e8faba16f70&format=jpg&quality=75": "pas de neige",
-  "https://www.jasna.sk/fileadmin/resort_upload/jasna/jesen_v_jasnej.jpg": "pas de neige",
+  "https://www.janova-hora.cz/files/Bottom/mb-mapa.jpg": "sujet : autre",
+  "https://www.jasna.sk/fileadmin/resort_upload/jasna/jesen_v_jasnej.jpg": "image partagée par plusieurs domaines",
   "https://www.jnlllandudno.co.uk/wp-content/uploads/2022/04/cropped-icon-3.png": "image partagée par plusieurs domaines",
   "https://www.jnlplymouth.co.uk/wp-content/uploads/2022/04/cropped-icon-3.png": "image partagée par plusieurs domaines",
   "https://www.jnlswadlincote.co.uk/wp-content/uploads/2022/04/cropped-icon-3.png": "image partagée par plusieurs domaines",
   "https://www.jsc.lt/img/slides/slide-home.jpg": "pas de neige",
+  "https://www.karpacz.pl/img/wyciagi/TG_130302_Winterpol_Karpacz_0590.jpg": "hôte muet au contrôle (ReadTimeout: HTTPSConnectionPool(host='www.karpacz.pl', port=443): Read timed out. (read timeout=25))",
+  "https://www.karpacz.pl/photo/lift34/zolwik-pl_89_min.jpg": "hôte muet au contrôle (ReadTimeout: HTTPSConnectionPool(host='www.karpacz.pl', port=443): Read timed out. (read timeout=25))",
   "https://www.kasurila.com/app/uploads/2025/05/DSC09583_rajattu-scaled.png": "pas de neige",
+  "https://www.katschi.at/files/content/content/almspielplatz/KREATIV-katschi-almspielplatz-08-2024-11.jpg": "pas de neige",
   "https://www.kiczeraski.pl/wp-content/uploads/2023/09/BM8A7709-scaled.jpg": "pas de neige",
   "https://www.lechtaler-bergbahnen.at/media/animation/js-alexkaiser-40.jpg": "pas de neige",
-  "https://www.lemarkstein.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg": "pas de neige",
+  "https://www.lemarkstein.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg": "image partagée par plusieurs domaines",
   "https://www.lienzer-bergbahnen.at/wp-content/uploads/DC184971-6BDF-48C0-ABB9-A9A709594748.jpg": "pas de neige",
+  "https://www.montecatria.com/wp-content/uploads/2020/03/Altalena-Gigante.webp": "pas de neige",
+  "https://www.munakas.ee/ui/images/logo/munakas_1.svg": "hôte muet au contrôle (UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x000002002DF2D760>)",
   "https://www.nartyrzeczka.com/images/design/usp.webp": "pas de neige",
   "https://www.nevasport.com/imagenes/logo-social.jpg": "pas de neige",
   "https://www.nevisrange.co.uk/wp-content/uploads/2026/05/IMG_3625.jpg": "pas de neige",
   "https://www.obere-maxlraineralm.com/img/opengraph.jpg": "filigrane",
+  "https://www.ochsenkopf.info/site/assets/files/1533/a3_vorankuendigung.500x0.jpg": "pas de neige",
   "https://www.owbystre.pl/wp-content/uploads/2022/12/BYSTRE-DOMKI15.webp": "pas de neige",
   "https://www.paaskyvuori.fi/wp-content/uploads/1920.jpg": "pas de neige",
   "https://www.paysdegex-montsjura.com/app/uploads/2026/07/activite-ete-et-hiver-station-monts-jura.webp": "sujet : autre",
+  "https://www.pkl.pl/data/pages/338/kasprowy_kolej%C2%A9jan_wierzejski-64.jpg": "pas de neige",
   "https://www.polevsko.ski/og-image.png": "sujet : autre",
   "https://www.saklikent.com.tr/mesfiles/images/pp.jpg": "pas de neige",
+  "https://www.san-isidro.net/images/ogimage_rrss.jpg": "filigrane",
+  "https://www.sanmartino.com/sanmartino/varie/7/image-thumb__7__thumb800/default-header-image-src.0ee71f09.jpg": "hôte muet au contrôle (UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x00000257CF066340>)",
   "https://www.sappee.fi/wp-content/uploads/2023/06/sappee_og-image.jpg": "pas de neige",
   "https://www.schipoianabrasov.ro/images/schi-poiana-brasov.jpg": "filigrane",
   "https://www.seeundberg.at/user_upload_BKK/_processed_/a/1/csm_Wandern_barrierefreies_Bergerlebnis_Familie_Bergpromenade_Brunnach_Bad_Kleinkirchheim_Sommer__c__Michael_Stabentheiner_MBN_Tourismus__2__a9ed1c3fb2.jpg": "pas de neige",
@@ -536,26 +654,43 @@
   "https://www.skiresort.fr/fileadmin/_processed_/ad/dd/dd/de/0c5f9cf41c.jpg": "pas de neige",
   "https://www.skiresort.fr/fileadmin/_processed_/bc/c3/37/7f/c9917ca244.jpg": "sujet : autre",
   "https://www.skiresort.fr/fileadmin/_processed_/ea/a7/74/4b/e0c188a10d.jpg": "pas de neige",
+  "https://www.skiresort.fr/fileadmin/_processed_/ec/cc/c8/80/b7616bf0b1.jpg": "sujet : autre",
   "https://www.skiresort.fr/fileadmin/_processed_/ed/dd/dd/d6/95695f24fe.jpg": "pas de neige",
   "https://www.skiresort.fr/fileadmin/_processed_/fc/c9/97/7d/a460e39d7d.jpg": "pas de neige",
   "https://www.skisedlonov.cz/files/loga/sedlonov.jpg": "pas de neige",
   "https://www.skistar.com/contentassets/b879fdf6692a49d089e2da50f6f634ec/toppbild_salen.jpg": "image partagée par plusieurs domaines",
+  "https://www.skiverena.com/images/web/estate/ski_verena_estate_vista_panoramica_w_fb.jpg": "pas de neige",
+  "https://www.skividra.ro/images/placeholders/og-default.svg": "hôte muet au contrôle (UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x000002002DF2D300>)",
   "https://www.skiweardale.com/currentImage/f1.jpg?cacheBuster=1790028513": "pas de neige",
+  "https://www.slalombackar.se/photos/tolvmannabacken_af618.jpg": "hôte muet au contrôle (ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))",
+  "https://www.snow-space.com/_default_upload_bucket/5581/image-thumb__5581__og-image/26_Header_Startseite_Fr%C3%BChbucher_1920x886px_DE.ce15490f.jpg": "filigrane",
+  "https://www.soriska-planina.si/assets/img/summerinfo.jpg": "pas de neige",
   "https://www.sportaberdeen.co.uk/wp-content/uploads/2020/05/IMG_9331-2-scaled.jpg": "pas de neige",
   "https://www.stafdalur.is/images/yootheme/Efnismyndir/stafdalur11-431d5a17.jpeg": "sujet : autre",
   "https://www.stenkallegarden.se/img/gallery/aa3a199d-7ada-4206-8f52-8a75c483bcbd.jpg?width=1181&amp;height=520&amp;crop=auto&amp;scale=both": "pas de neige",
+  "https://www.sternrodt-skilift.de/webcam/neu/sternrodt.jpg.jpeg?": "pas de neige",
+  "https://www.stgeorge.ch/upload/facebook-image.gif": "pas de neige",
   "https://www.storklinten.se/wp-content/themes/storklinten/assets/dist/og-image.jpg": "filigrane",
   "https://www.strazne.eu/wp-content/uploads/2025/05/skiing.jpg": "image partagée par plusieurs domaines",
+  "https://www.stubai.at/fileadmin/userdaten/allgemein/logos/logo-elferbahnen.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://www.stubai.at/fileadmin/userdaten/allgemein/logos/stubai-logo.jpg": "hôte muet au contrôle (HTTP 403 text/html; charset=UTF-8)",
+  "https://www.stuhleck.at/og.jpg": "pas de neige",
   "https://www.suomutunturi.fi/wp-content/uploads/2025/07/kanoe_kemijarvi.jpg": "pas de neige",
   "https://www.superskicavnic.ro/assets/images/summer-action-1440.webp": "pas de neige",
+  "https://www.sz-rettenbach.at/wp-content/uploads/2026/08/Flyer_vorne-1140x395.jpg": "pas de neige",
   "https://www.tahko.com/app/uploads/2026/04/Tahko.jpg": "pas de neige",
   "https://www.tegelbergbahn.de/_files/site_page/site_page_31/startimage_1_header.jpg?c666c5c7ea78f5a8": "pas de neige",
+  "https://www.teleconthey.ch/custom-storage/logo.svg": "hôte muet au contrôle (UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x000002002DF4ABB0>)",
   "https://www.trojak.cz/f/cols/2295w.jpg": "filigrane",
   "https://www.tschechische-gebirge.de/objekty/data/ski/ski-radvanice/imagew.jpg": "filigrane",
   "https://www.tschechische-gebirge.de/objekty/data/ski/skijavorna/imagew.jpg": "filigrane",
+  "https://www.turismofvg.it/proxyvfs.axd/image_hd/r59216/file-jpg?v=218290&ext=.jpg": "pas de neige",
+  "https://www.turracherhoehe.at/uploads/media/600x400/04/1534-TH%20Almbutler_%20%28c%29%20Peter%20Maier_3.jpg?v=1-0": "pas de neige",
   "https://www.turufjell.no/static/92a06b9b0337ed2a1fc63950b869deae/b5b7f/48bb7f6c-b6e3-4095-834e-ea2552915dd4.jpg": "pas de neige",
+  "https://www.tveitskisenter.no/img/og-bilde.svg": "hôte muet au contrôle (UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x000002002DF4AFC0>)",
   "https://www.untersbergbahn.at/wp-content/uploads/2026/07/untersbergbahn-logo.png": "pas de neige",
   "https://www.valfjallet.se/file/vinter-1/skidakning/tack-for-denna-sasong.png": "filigrane",
+  "https://www.valformica.it/wp-content/uploads/2023/01/VAL-FORMICA_home.jpg": "pas de neige",
   "https://www.vercors-experience.com/medias/images/info_menu/dsc-1929-2919.jpg": "pas de neige",
   "https://www.vercors-experience.com/medias/images/prestations/multitailles/800x600_1563530-sans_titre.jpg": "pas de neige",
   "https://www.visitscotland.com/wsimgs/20141004_Newmilns_0338_37358127.jpg?size=lg": "pas de neige",
@@ -733,15 +868,14 @@
    "motif": "pas de neige"
   },
   "at-bergbahn-weissensee": {
-   "url": "https://vcdn.bergfex.at/images/resized/44/5c38b579d02e5e44_fcff97c212226200.jpg",
+   "url": "https://www.weissensee.com/media-archive-manuell/WS/Winter/Weissensee%20Tourismus%20Winter%202018-02-15_1710.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, relief blanc, légende Weissensee",
-   "partNeigeMesuree": 0.35,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Deux skieurs allongés sur la piste, vallée enneigée en contrebas",
+   "partNeigeMesuree": 0.462,
+   "retenue": true
   },
   "at-bergbahnen-werfenweng": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/87nr8sv3s9sqgk56brrtx/Werfenweng?auto=webp&format=png",
@@ -824,13 +958,13 @@
    "retenue": true
   },
   "at-brunnalm-hohe-veitsch": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/8z279gjqsn37hp56s58hph/Veitsch_-_Brunnalm?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/66/03c0ebf73563d966_70f4f855ab61a8a6.jpg",
+   "source": null,
    "neige": true,
    "filigrane": true,
-   "sujet": "pistes",
-   "description": "skieuse en rouge sur piste enneigée, gros logo plaqué au centre",
-   "partNeigeMesuree": 0.188,
+   "sujet": "autre",
+   "description": "Plan des pistes sur photo, colonne de logos de sponsors",
+   "partNeigeMesuree": 0.434,
    "retenue": false,
    "motif": "filigrane"
   },
@@ -906,15 +1040,14 @@
    "retenue": true
   },
   "at-embergeralm": {
-   "url": "https://vcdn.bergfex.at/images/resized/c7/740a1436f24f09c7_d7d037056fa951fb.jpg",
+   "url": "https://www.embergeralm.info/media/images/home05-large.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte des pistes tracée en couleurs sur photo aérienne enneigée",
-   "partNeigeMesuree": 0.601,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "station",
+   "description": "Hameau de chalets croulant sous la neige, sapins et sommets",
+   "partNeigeMesuree": 0.414,
+   "retenue": true
   },
   "at-fageralm": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/4wbk5mp97g55nx8tk78hgzkc/Fageralm_-_Forstau?auto=webp&format=png",
@@ -967,15 +1100,15 @@
    "retenue": true
   },
   "at-filzmoos-neuberg": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/6gwtz33346wnnxfx3f89s5/Filzmoos?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
+   "url": "https://www.filzmoos.at/media/metaimage/filzmoos-grosse-momente.-cgoproductions-gerald-oberreiter-www.filzmoos.at.jpg",
+   "source": "officiel",
+   "neige": false,
    "filigrane": false,
    "sujet": "montagne",
-   "description": "massif calcaire enneigé, sapins givrés, ciel bleu, aucune remontée visible",
-   "partNeigeMesuree": 0.142,
+   "description": "deux randonneurs en été devant un massif rocheux, prairies vertes",
+   "partNeigeMesuree": 0.644,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "pas de neige"
   },
   "at-flachau": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/f7nvknbp35q4754fcqhpt9t/Flachau?auto=webp&format=png",
@@ -988,15 +1121,15 @@
    "retenue": true
   },
   "at-flattnitz": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/bbmw3j3qcj8g3x5fwz9pqxtg/Flattnitz?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/f8/b923ab1cca4ac7f8_abc161aba245ae0d.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "crête arrondie enneigée derrière de vieux piquets de clôture",
-   "partNeigeMesuree": 0.011,
+   "sujet": "autre",
+   "description": "Panorama dessiné des pistes, sommets nommés et tracés verts",
+   "partNeigeMesuree": 0.152,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "at-forsteralm": {
    "url": "https://vcdn.bergfex.at/images/resized/ee/e35e8285587d0cee_09004979ada2fd8d.jpg",
@@ -1029,15 +1162,14 @@
    "retenue": true
   },
   "at-furx": {
-   "url": "https://vcdn.bergfex.at/images/resized/3c/7c6dc0b971e2b53c_7c798d4dc1ad0f25.jpg",
+   "url": "https://vcdn.bergfex.at/images/resized/fd/5f654117f1b37ffd_04dc435870edb517@2x.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "prairie verte fleurie de pissenlits en été, sommets lointains",
-   "partNeigeMesuree": 0.051,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "Gare de télécabine au sommet, skieurs sur la neige, soleil",
+   "partNeigeMesuree": 0.059,
+   "retenue": true
   },
   "at-fussener-jochle-gran": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/fkb823f32wk7s9zjcg4gw33/Fssener_Jchle_-_Grn?auto=webp&format=png",
@@ -1262,13 +1394,13 @@
    "retenue": true
   },
   "at-gro-glockner-heiligenblut": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/sh6xw76bcqn4bgtsktjvvpck/Heiligenblut_-_Grossglockner?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/55/1595917ac56d7455_9594f7526d9b9090.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "installation circulaire en bois sur crête enneigée, sommets au coucher",
-   "partNeigeMesuree": 0.792,
+   "description": "Carte panoramique des pistes avec altitudes et noms de sommets",
+   "partNeigeMesuree": 0.466,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -1364,13 +1496,13 @@
    "retenue": true
   },
   "at-heidialm": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/2t7v76984jtnhzj32zcqqktx/Falkert?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/69/2f69bb7d5843c869_d027d601ae18f338.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "portrait d'une mère et deux enfants devant un chalet, skis posés",
-   "partNeigeMesuree": 0.181,
+   "description": "Plan schématique du domaine, légende et encart jardin d'enfants",
+   "partNeigeMesuree": 0.831,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -1445,15 +1577,14 @@
    "retenue": true
   },
   "at-hochbarneck": {
-   "url": "https://vcdn.bergfex.at/images/resized/0c/3c6896322b00840c_d444d124a1a2b512.jpg",
+   "url": "https://hochbaerneck.com/wp-content/uploads/2022/07/cropped-winter5.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, titre Familien-Schigebiet, légende des pistes",
-   "partNeigeMesuree": 0.646,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Piste fraîchement damée, téléski et cabane sous un ciel bleu",
+   "partNeigeMesuree": 0.016,
+   "retenue": true
   },
   "at-hochfeld-schwoich": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/0f/f2/2d/d1/d05bddcf6f.jpg",
@@ -1607,15 +1738,15 @@
    "retenue": true
   },
   "at-kaiserau": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/76xqr3cjzkhq97j3f2b3zw5/Kaiserau?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/b2/10360071d0b7eab2_db189bccbd5cfa02.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "panorama hivernal, vallée boisée enneigée, aucune remontée ni bâtiment visible",
-   "partNeigeMesuree": 0.452,
+   "sujet": "autre",
+   "description": "Panneau d'accueil orange avec panorama hivernal et textes",
+   "partNeigeMesuree": 0.441,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "at-kals-matrei": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/qfgv7663j4kqkg3p68kgmv/Kals_-_Groglockner_Resorts_KalsMatrei?auto=webp&format=png",
@@ -1678,24 +1809,24 @@
    "retenue": true
   },
   "at-kasberg-grunau-almtal": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/kt8gf7ghjr8k9fzqvh3gb3g/Kasberg_-_Grnau?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/66/f7d54781db47f366_0f1a9a4d0b8d40b7.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": true,
-   "sujet": "pistes",
-   "description": "snowboardeur en saut au-dessus d'un grand panneau publicitaire Kasberg",
-   "partNeigeMesuree": 0.139,
+   "filigrane": false,
+   "sujet": "autre",
+   "description": "Plan des pistes dessiné, tracés rouges et bleus, village en bas",
+   "partNeigeMesuree": 0.36,
    "retenue": false,
-   "motif": "filigrane"
+   "motif": "sujet : autre"
   },
   "at-katschberg-aineck": {
-   "url": "https://vcdn.bergfex.at/images/resized/a8/da636bad90e076a8_2a47cd5ce58851ce.jpg",
-   "source": "officiel",
+   "url": "https://www.katschi.at/files/content/content/almspielplatz/KREATIV-katschi-almspielplatz-08-2024-11.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan panoramique dessiné du domaine, versants verts d'été",
-   "partNeigeMesuree": 0.042,
+   "description": "Deux fillettes jouant sur une aire de jeux en herbe, été",
+   "partNeigeMesuree": 0.118,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -1841,15 +1972,14 @@
    "motif": "sujet : autre"
   },
   "at-lachtal-472636m143608": {
-   "url": "https://vcdn.bergfex.at/images/resized/5e/b127b710f7bd225e_0bba53a99e619ebb.jpg",
+   "url": "https://www.lachtal.at/wp-content/uploads/2023/10/Lachtal-Ski-11-Lachtal-Ikarus-1200x630.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, remontées numérotées et légende latérale",
-   "partNeigeMesuree": 0.468,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Quatre skieurs posent sur une piste damée ensoleillée",
+   "partNeigeMesuree": 0.773,
+   "retenue": true
   },
   "at-lackenhof-otscher": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/c96g28gshpvrj64t5qr8xppm/Lackenhof_-_tscher?auto=webp&format=png",
@@ -2157,15 +2287,14 @@
    "retenue": true
   },
   "at-pfander": {
-   "url": "https://www.skiresort.fr/fileadmin/_processed_/ed/dd/dd/d6/95695f24fe.jpg",
+   "url": "https://vcdn.bergfex.at/images/resized/4b/f44a3e1f079d384b_0e6cb2bfac267835.jpg",
    "source": "bergfex",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
    "sujet": "station",
-   "description": "cabine de téléphérique au-dessus d'une ville et d'un lac, sans neige",
-   "partNeigeMesuree": 0.0,
-   "retenue": false,
-   "motif": "pas de neige"
+   "description": "Téléphérique au-dessus de Bregenz enneigée et du lac",
+   "partNeigeMesuree": 0.263,
+   "retenue": true
   },
   "at-piesendorf-nagelkopfl": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/8b/bf/f8/8e/fecffc19f8.jpg",
@@ -2188,15 +2317,15 @@
    "retenue": true
   },
   "at-planai-hochwurzen": {
-   "url": "https://vcdn.bergfex.at/images/resized/11/1d6bd59c2623dd11_550bf2f4b4f5ca90.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://dqq9mwzzr5k9i.cloudfront.net/Planai/Logo/8450/image-thumb__8450__open-graph/PLAN_Logo_Planai_grau_gruen.e591dfe3.png",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, 4 Berge Ski Schladming-Dachstein",
-   "partNeigeMesuree": 0.208,
+   "description": "Logo vert Planai Schladming sur fond blanc",
+   "partNeigeMesuree": 0.0,
    "retenue": false,
-   "motif": "image partagée par plusieurs domaines"
+   "motif": "pas de neige"
   },
   "at-planneralm": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/vjntp78t55snvktpnfpxq7x/Planneralm_-_Donnersbach?auto=webp&format=png",
@@ -2372,15 +2501,15 @@
    "retenue": true
   },
   "at-salzstiegl-470620m148731": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/64kp285vkg97m3smfpmw737m/Salzstiegl?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
+   "url": "https://vcdn.bergfex.at/images/resized/e2/249aa15427232fe2_ef02233b9b8e12e6.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "portrait posé d'une famille assise sur des luges",
-   "partNeigeMesuree": 0.153,
+   "description": "Plan des pistes dessiné du domaine Salzstiegl",
+   "partNeigeMesuree": 0.334,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "at-schilifte-kleinlobming": {
    "url": "https://vcdn.bergfex.at/images/resized/4f/1a9d401907b37d4f_433dfb180cd3cbab.jpg",
@@ -2393,13 +2522,13 @@
    "retenue": true
   },
   "at-schizentrum-rettenbach": {
-   "url": "https://vcdn.bergfex.at/images/resized/c7/322a6e202b7bfbc7_a325a179c1bdb4d2.jpg",
-   "source": "officiel",
+   "url": "https://www.sz-rettenbach.at/wp-content/uploads/2026/08/Flyer_vorne-1140x395.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "skieur sur herbe verte en été franchissant une porte bleue",
-   "partNeigeMesuree": 0.022,
+   "description": "Logo Weltcup 2026 avec skis et bâtons",
+   "partNeigeMesuree": 0.662,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -2545,15 +2674,14 @@
    "retenue": true
   },
   "at-semmering-hirschenkogel": {
-   "url": "https://vcdn.bergfex.at/images/resized/3c/548afbf492bcb83c_1c870386f19f6d61.jpg",
+   "url": "https://www.semmering.com/wp-content/uploads/2024/06/dji-0053.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan dessiné estival des sentiers, bike park et restaurants",
-   "partNeigeMesuree": 0.33,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "Vue aérienne du village enneigé au pied des montagnes",
+   "partNeigeMesuree": 0.471,
+   "retenue": true
   },
   "at-serfaus-fiss-ladis": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/bxvfxbmfbn2mrf7cgnhf2n9k/Serfaus_-_Fiss_-_Ladis?auto=webp&format=png",
@@ -2716,13 +2844,13 @@
    "retenue": true
   },
   "at-skicircus-saalbach-hinterglemm-leogang-fieberbrunn": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/g623nstkfn8j9c425rnw9qf/Saalbach_Hinterglemm_Leogang_Fieberbrunn?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/1b/6f4c7046d713d81b_429a88effeb8a642.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
-   "sujet": "station",
-   "description": "trois skieurs skis à l'épaule sur le quai d'une télécabine",
-   "partNeigeMesuree": 0.134,
+   "sujet": "autre",
+   "description": "Plan des pistes dessiné du Skicircus Saalbach",
+   "partNeigeMesuree": 0.903,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -2827,15 +2955,14 @@
    "retenue": true
   },
   "at-skilift-eberschwang": {
-   "url": "https://vcdn.bergfex.at/images/resized/98/4ff777699992f398_ea53b5ed6dbc66c9.jpg",
+   "url": "https://www.ski-eberschwang.at/wp-content/uploads/2018/09/Slider_1_1800x600.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, légende des parkings et caisse",
-   "partNeigeMesuree": 0.323,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Large piste enneigée bordée de sapins, pylônes de téléski",
+   "partNeigeMesuree": 0.339,
+   "retenue": true
   },
   "at-skilift-floiten-ginzling": {
    "url": "https://vcdn.bergfex.at/images/resized/8c/4e2f7d84b484a48c_fdc64b69e1058aa7.jpg",
@@ -2949,15 +3076,15 @@
    "retenue": true
   },
   "at-sonntag-stein": {
-   "url": "https://vcdn.bergfex.at/images/resized/7b/b3d51b9df849937b_8f523a2096a64142.jpg",
-   "source": "officiel",
+   "url": "https://seilbahnen-sonntag.at/og-image.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés roses et bleus numérotés sur versant boisé",
-   "partNeigeMesuree": 0.255,
+   "filigrane": true,
+   "sujet": "montagne",
+   "description": "Massif enneigé masqué par un grand logo noir",
+   "partNeigeMesuree": 0.559,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "filigrane"
   },
   "at-spieljoch-fugen": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/j7fvv457gz69rgrbqr2wpjg3/Fgen_-_Spieljoch?auto=webp&format=png",
@@ -3060,15 +3187,15 @@
    "retenue": true
   },
   "at-stuhleck-semmering": {
-   "url": "https://vcdn.bergfex.at/images/resized/26/8db04aecf0ff2126_0a826f24ee9dcc11.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.stuhleck.at/og.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés colorés et logo Hochsteiermark",
-   "partNeigeMesuree": 0.336,
+   "description": "Flocon de neige bleu stylisé sur fond blanc",
+   "partNeigeMesuree": 0.886,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "at-sulzberg": {
    "url": "https://vcdn.bergfex.at/images/resized/05/36c7e3769262ad05_e8e94d16e911b622.jpg",
@@ -3132,15 +3259,14 @@
    "retenue": true
   },
   "at-turnau": {
-   "url": "https://vcdn.bergfex.at/images/resized/6c/9a61ed3c21fa316c_a40c5be09abaf720.jpg",
+   "url": "https://vcdn.bergfex.at/images/resized/b6/5fd298fa752b94b6_8f5da5702b5856cd.jpg",
    "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "vue aérienne enneigée surchargée d'un plan des pistes",
-   "partNeigeMesuree": 0.125,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Piste damée enneigée, canon à neige et chalet",
+   "partNeigeMesuree": 0.285,
+   "retenue": true
   },
   "at-turracher-hohe": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/jws49gfwkmhxqkmz4qmcfp/Turracher_Hhe?auto=webp&format=png",
@@ -3153,15 +3279,15 @@
    "retenue": true
   },
   "at-turracher-hohe-469281m138726": {
-   "url": "https://vcdn.bergfex.at/images/resized/5f/b66b2c0f20ebed5f_2ccf12c6991c8eec.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.turracherhoehe.at/uploads/media/600x400/04/1534-TH%20Almbutler_%20%28c%29%20Peter%20Maier_3.jpg?v=1-0",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés colorés et remontées nommées",
-   "partNeigeMesuree": 0.713,
+   "description": "Randonneurs d'été dans les fleurs roses, aucune neige",
+   "partNeigeMesuree": 0.155,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "at-unterberg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/vg8xf8gvfzrzjr5c8g4wftj8/Unterberg_-_Pernitz?auto=webp&format=png",
@@ -3245,13 +3371,13 @@
    "retenue": true
   },
   "at-wagrain": {
-   "url": "https://vcdn.bergfex.at/images/resized/ac/f0807e89cb9399ac_65565de65d6e1aa4.jpg",
-   "source": "officiel",
+   "url": "https://www.snow-space.com/_default_upload_bucket/5581/image-thumb__5581__og-image/26_Header_Startseite_Fr%C3%BChbucher_1920x886px_DE.ce15490f.jpg",
+   "source": null,
    "neige": true,
    "filigrane": true,
    "sujet": "autre",
-   "description": "plan panoramique dessiné du domaine avec slogan publicitaire plaqué",
-   "partNeigeMesuree": 0.472,
+   "description": "bannière publicitaire allemande, homme en pull, piste enneigée derrière",
+   "partNeigeMesuree": 0.513,
    "retenue": false,
    "motif": "filigrane"
   },
@@ -3318,13 +3444,13 @@
    "motif": "pas de neige"
   },
   "at-wexl-arena": {
-   "url": "https://vcdn.bergfex.at/images/resized/ab/a147c403950c05ab_97280384a9ee3806.jpg",
-   "source": "officiel",
+   "url": "https://a.storyblok.com/f/286149173760273/0x0/dc35508c03/dji_0010.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "affiche illustrée Wexl Arena, plan numéroté et horaires d'ouverture",
-   "partNeigeMesuree": 0.604,
+   "description": "vue aérienne estivale, piste de luge sur prairie verte",
+   "partNeigeMesuree": 0.028,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -3410,15 +3536,14 @@
    "motif": "filigrane"
   },
   "ba-jahorina-olimpijski-centar-olympic-center-jahorina": {
-   "url": "https://vcdn.bergfex.at/images/resized/21/edb579d06ec00421_9e154daf5cba565d.jpg",
+   "url": "https://www.oc-jahorina.com/wp-content/uploads/2025/02/DSC_8624-copy-2-scaled.jpg",
    "source": "officiel",
    "neige": true,
-   "filigrane": true,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, bandeau publicitaire et logo Jahorina",
-   "partNeigeMesuree": 0.428,
-   "retenue": false,
-   "motif": "filigrane"
+   "filigrane": false,
+   "sujet": "pistes",
+   "description": "skieur en virage sur piste damée, ciel bleu",
+   "partNeigeMesuree": 0.441,
+   "retenue": true
   },
   "ba-kupres-cajusa-adriaski": {
    "url": "https://vcdn.bergfex.at/images/resized/01/1ebb4f6ded613501_6cf20a20bc510ec3.jpg",
@@ -3431,15 +3556,14 @@
    "retenue": true
   },
   "ba-kupres-stozer-ski-kraljica": {
-   "url": "https://vcdn.bergfex.at/images/resized/46/32f68fba48446b46_60c9a6a7f873699a.jpg",
+   "url": "https://www.skikraljica.ba/wp-content/uploads/2021/11/bg-1.png",
    "source": "officiel",
    "neige": true,
-   "filigrane": true,
+   "filigrane": false,
    "sujet": "pistes",
-   "description": "croupe enneigée annotée de gros libellés rouges et noirs",
-   "partNeigeMesuree": 0.245,
-   "retenue": false,
-   "motif": "filigrane"
+   "description": "skieuse arrêtée sur crête enneigée, montagnes noyées de nuages",
+   "partNeigeMesuree": 0.65,
+   "retenue": true
   },
   "ba-malo-polje-igman-zoi-84": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/25/5c/c4/42/14fe64ef0c.jpg",
@@ -3584,13 +3708,13 @@
    "retenue": true
   },
   "be-snow-valley-peer-ski-snowboardcentre": {
-   "url": "https://www.skiresort.fr/fileadmin/_processed_/24/41/12/20/c55995b869.jpg",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/ea/cfd6b9da03bed1ea_bd28df8e213cae17.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "halle de ski couverte vue d'une prairie verte, ciel de coucher",
-   "partNeigeMesuree": 0.28,
+   "description": "image de synthèse 3D d'un hall de ski couvert",
+   "partNeigeMesuree": 0.757,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -3707,15 +3831,14 @@
    "retenue": true
   },
   "ch-airolo-pescium": {
-   "url": "https://vcdn.bergfex.at/images/resized/f4/ceb44bf916b554f4_09aecf9a148a3b59.jpg",
+   "url": "https://www.airolo.ch/images/testata-home-inverno.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés colorés et noms de sommets avec altitudes",
-   "partNeigeMesuree": 0.54,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "domaine enneigé, pylône de remontée, chalet, ligne jaune incrustée",
+   "partNeigeMesuree": 0.354,
+   "retenue": true
   },
   "ch-aletsch-arena": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/scwh4kwh9qs72g5z4bb4k55p/Aletsch_Arena?auto=webp&format=png",
@@ -3768,15 +3891,15 @@
    "retenue": true
   },
   "ch-arolla": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/8k6tszkppngwwh3rnn3t9fjr/Arolla?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/a1/53fd06c046f07da1_3fbb0ff85a7f98f8.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "sommet neigeux, parapente orange, cabane croulant sous la neige",
-   "partNeigeMesuree": 0.21,
+   "sujet": "autre",
+   "description": "plan des pistes dessiné du Val d'Hérens, légende",
+   "partNeigeMesuree": 0.63,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "ch-arosa-lenzerheide": {
    "url": "https://vcdn.bergfex.at/images/resized/da/f0235d5f6afededa_8b710813ee37eb72.jpg",
@@ -3790,15 +3913,15 @@
    "motif": "sujet : autre"
   },
   "ch-atzmannig": {
-   "url": "https://vcdn.bergfex.at/images/resized/a8/78d245eabfa52ba8_b41bebbe2b2b9d98.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.atzmaennig.ch/images/max-image/atzmaennig_sommer_wetter_01.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan de pistes dessiné, parking et télésiège annotés",
-   "partNeigeMesuree": 0.43,
+   "description": "portrait d'un enfant souriant en casquette, forêt estivale",
+   "partNeigeMesuree": 0.283,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "ch-atzmannig-472825m90010": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/j7jk6t7fgw3km3gp86bn9h/Atzmnnig_-_Goldingen?auto=webp&format=png",
@@ -3811,15 +3934,14 @@
    "retenue": true
   },
   "ch-avers": {
-   "url": "https://vcdn.bergfex.at/images/resized/4e/fad657e11f44ce4e_0fcea3d070bd3474.jpg",
+   "url": "https://skiferien-graubuenden.ch/wp-content/uploads/2020/09/IMG_7168-1-scaled.jpg",
    "source": "officiel",
    "neige": true,
-   "filigrane": true,
-   "sujet": "autre",
-   "description": "carte satellite annotée, encarts publicitaires rouges plaqués",
-   "partNeigeMesuree": 0.647,
-   "retenue": false,
-   "motif": "filigrane"
+   "filigrane": false,
+   "sujet": "station",
+   "description": "restaurant d'altitude, téléski et skieurs sur large champ neigeux",
+   "partNeigeMesuree": 0.23,
+   "retenue": true
   },
   "ch-avoriaz": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/7vwch38sf9tn3qxphv7bn/Avoriaz?auto=webp&format=png",
@@ -3926,15 +4048,15 @@
    "retenue": true
   },
   "ch-biel-kinzig": {
-   "url": "https://vcdn.bergfex.at/images/resized/02/71cfb9c25a8f2c02_2c34c56e067c7468.jpg",
-   "source": "officiel",
+   "url": "https://www.biel-kinzigag.ch/wp-content/uploads/2025/12/Winterawards_Banner_V2.png",
+   "source": null,
    "neige": true,
-   "filigrane": false,
+   "filigrane": true,
    "sujet": "autre",
-   "description": "panorama dessiné des pistes, sommets et remontées numérotées",
-   "partNeigeMesuree": 0.52,
+   "description": "affiche Blick Winter Awards, skieur dans la poudreuse",
+   "partNeigeMesuree": 0.433,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "filigrane"
   },
   "ch-bivio": {
    "url": "https://vcdn.bergfex.at/images/resized/25/7488cc74b32d3825_db70725ce0bc0238.jpg",
@@ -4019,24 +4141,23 @@
    "retenue": true
   },
   "ch-brunni-haggenegg": {
-   "url": "https://vcdn.bergfex.at/images/resized/8b/a3f39062fd75078b_85f5147976427e37.jpg",
-   "source": "officiel",
+   "url": "https://vcdn.bergfex.at/images/resized/57/e8a6eaca775a2157_cd25cc7dd8e1b64f@2x.jpg",
+   "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan panoramique dessiné des pistes, étiquettes Brunni et Haggenegg",
-   "partNeigeMesuree": 0.192,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "piste damée enneigée, télésiège et skieurs, panorama de sommets",
+   "partNeigeMesuree": 0.104,
+   "retenue": true
   },
   "ch-brunni-holzegg-rotenflue": {
-   "url": "https://www.brunnialpthal.ch/images/slider/sliderg5s.jpg",
-   "source": "proprietaire",
+   "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://contentapi-swissactivities.imgix.net/contentapi.staging.swissactivities/c3ecf3492032aa403a868a224ab36920.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "chalet-restaurant en été sur crête herbeuse, vallée verte",
-   "partNeigeMesuree": 0.042,
+   "sujet": "station",
+   "description": "télécabine et pylône au-dessus d'une mer de nuages",
+   "partNeigeMesuree": 0.249,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -4071,15 +4192,14 @@
    "retenue": true
   },
   "ch-bundalift-davos": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/t8cxjrjcwfr2xs8srb79x8/Davos?auto=webp&format=png",
+   "url": "https://www.skiresort.fr/fileadmin/_processed_/ed/d5/5d/d3/b723be9730.jpg",
    "source": "skiresort",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "grandes lettres en bois DAVOS plantées dans la neige",
-   "partNeigeMesuree": 0.511,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Piste damée au crépuscule, téléski, filets orange, sapins enneigés",
+   "partNeigeMesuree": 0.293,
+   "retenue": true
   },
   "ch-burchen-torbel": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/xt248swxjbntsfxvrkf68p3/Brchen?auto=webp&format=png",
@@ -4224,15 +4344,15 @@
    "retenue": true
   },
   "ch-cret-du-puy": {
-   "url": "https://vcdn.bergfex.at/images/resized/09/30599e2616293109_128026aee6b733fc.jpg",
-   "source": "officiel",
-   "neige": false,
+   "url": "https://www.cretdupuy.com/images/contenu/Station-ski-Cret-du-Puy-Plan-des-Piste--1-.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés colorés, Le Pâquier et Clémesin",
-   "partNeigeMesuree": 0.793,
+   "description": "Plan des pistes dessiné, tracés bleu rouge noir, Le Pâquier",
+   "partNeigeMesuree": 0.546,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "ch-degersheim": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/73wjrc3tm4nkk7fztk7h453s/Degersheim?auto=webp&format=png",
@@ -4460,15 +4580,15 @@
    "retenue": true
   },
   "ch-gantrisch-gurnigel": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/5sst4xs99qfrt5phr4xc9/Gurnigelbad_-_Gantrisch_-_Wasserscheide?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/ba/7c9c5bad0966a6ba_92886fdd2f9e22a0.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "sommets enneigés et sapins chargés de neige, ciel bleu",
-   "partNeigeMesuree": 0.051,
+   "sujet": "autre",
+   "description": "Carte des pistes dessinée, légende allemande, montagnes enneigées",
+   "partNeigeMesuree": 0.62,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "ch-gantrisch-ottenleue": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/2b8jpbwjnhmwcxxtmc4jkbwg/Ottenleue?auto=webp&format=png",
@@ -4481,15 +4601,15 @@
    "retenue": true
   },
   "ch-gantrisch-rueschegg": {
-   "url": "https://vcdn.bergfex.at/images/resized/79/781ad9b0d45e1c79_037cbccb11f7e64c.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.gantrisch.ch/wp-content/uploads/2022/11/gantrisch_A_region_v3.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "tracés de pistes et téléskis dessinés sur une vue aérienne hivernale",
-   "partNeigeMesuree": 0.372,
+   "description": "Illustration collage estivale, prairies vertes, train, tracteur, chalet",
+   "partNeigeMesuree": 0.016,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "ch-gatrisch-selital": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/6zgrm3sgv6vgxpwmf7ntnqcf/Schwarzenbhl_-_Selital?auto=webp&format=png",
@@ -4633,15 +4753,14 @@
    "retenue": true
   },
   "ch-grub-kaien": {
-   "url": "https://vcdn.bergfex.at/images/resized/a1/6a5e7003a23080a1_74ffb9cc675f28ee.jpg",
+   "url": "https://skiliftgrub-kaien.ch/wp-content/uploads/2017/03/IMG-20170122-WA0003-1170x475.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte dessinée, téléskis Grub-Kaien et Heiden annotés",
-   "partNeigeMesuree": 0.886,
-   "retenue": false,
-   "motif": "image partagée par plusieurs domaines"
+   "sujet": "pistes",
+   "description": "Pente enneigée ensoleillée, skieurs et lugeurs, arbres nus",
+   "partNeigeMesuree": 0.173,
+   "retenue": true
   },
   "ch-grusch-danusa": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/4qjnqvh5sfx4crcstpvgpf/Grsch?auto=webp&format=png",
@@ -4685,15 +4804,15 @@
    "retenue": true
   },
   "ch-habkern": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/msvwgv72f2xfwfvs3rgfhcq/Habkern_bei_Interlaken?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/43/dbbb3cef4821b743_0ef8e7f12d02cd40.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "sapins enneigés et pente vierge au-dessus d'un lac",
-   "partNeigeMesuree": 0.127,
+   "sujet": "autre",
+   "description": "Photo aérienne enneigée surchargée de tracés de pistes colorés",
+   "partNeigeMesuree": 0.401,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "ch-haldi": {
    "url": "https://vcdn.bergfex.at/images/resized/f7/7fbb2960a2053bf7_aef11db4adf723f2.jpg",
@@ -4767,26 +4886,25 @@
    "retenue": true
   },
   "ch-hohe-winde": {
-   "url": "https://vcdn.bergfex.at/images/resized/e6/c4ee227a1c2c21e6_2a0542cad7cf26a8.jpg",
-   "source": "officiel",
+   "url": "https://www.hohe-winde.ch/images/2023/04/20/wingae-beiz.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan dessiné des pistes, téléski et restaurants indiqués",
-   "partNeigeMesuree": 0.416,
+   "description": "Fête d'été sous barnums blancs, prairie verte, chalet",
+   "partNeigeMesuree": 0.058,
    "retenue": false,
    "motif": "pas de neige"
   },
   "ch-hohwald-beatenberg": {
-   "url": "https://www.skilift-hohwald.ch/dmxDaten/header/header.jpg",
+   "url": "https://img.destination.one/remote/.webp?url=https://dam.destination.one/194907/1db44eb495b4409ad06f912067c0e54d18b6f2b62194beafa5711f7bf43faac9/beatenberg-hohwald-winter-panorama.jpg&scale=both&mode=crop&quality=90&width=2560&height=1920",
    "source": "proprietaire",
    "neige": true,
-   "filigrane": true,
-   "sujet": "autre",
-   "description": "bandeau de site web, titre SKILIFT HOHWALD plaqué en travers",
-   "partNeigeMesuree": 0.132,
-   "retenue": false,
-   "motif": "filigrane"
+   "filigrane": false,
+   "sujet": "pistes",
+   "description": "Piste enneigée, téléski à perches, panorama de sommets blancs",
+   "partNeigeMesuree": 0.035,
+   "retenue": true
   },
   "ch-homberg": {
    "url": "https://vcdn.bergfex.at/images/resized/55/80f07398e9a94155_4590c17687805330.jpg",
@@ -4839,15 +4957,14 @@
    "retenue": true
   },
   "ch-jakobshorn": {
-   "url": "https://vcdn.bergfex.at/images/resized/41/8bfd9cd33e9bf741_26b2ff4a5af50303.jpg",
+   "url": "https://api.davos.ch/fileadmin/_processed_/8/3/csm_KV_W2024-25_G%C3%A4steprogramm_Ski-Alpin-Parsenn-2021_C_MatthiasPaintner__24__d7a00af84a.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "panorama dessiné des pistes de Davos, Jakobshorn et Rinerhorn",
-   "partNeigeMesuree": 0.43,
-   "retenue": false,
-   "motif": "image partagée par plusieurs domaines"
+   "sujet": "pistes",
+   "description": "Skieur en virage sur piste fraîchement damée, soleil rasant",
+   "partNeigeMesuree": 0.49,
+   "retenue": true
   },
   "ch-jaun-gastlosen-bergbahnen": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/ms5vptjbcr6qsjts7zrfnq6g/Jaun?auto=webp&format=png",
@@ -4932,15 +5049,14 @@
    "retenue": true
   },
   "ch-krinau": {
-   "url": "https://krinau.ch/wp-content/uploads/2024/05/Gemeinde_Krinau_Skilift_Logo.png",
+   "url": "https://krinau.ch/wp-content/uploads/2024/04/himmel-e1713963053467-1024x694.png",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "logo Skiclub Krinau, skieur noir sur fond blanc",
-   "partNeigeMesuree": 0.801,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "Village enneigé au soleil, clocher, toits blancs, forêt givrée",
+   "partNeigeMesuree": 0.172,
+   "retenue": true
   },
   "ch-kronberg": {
    "url": "https://kronberg.ch/assets/images/e/keyvisual_sommer_desktop-8nsrdbfjr6hc4ds.jpg",
@@ -4975,13 +5091,13 @@
    "retenue": true
   },
   "ch-la-chia": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/3xj4vcr4987x5p7fnpqmrzw7/Bulle?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/8f/2f25e4c3254bb58f_bd83e9f627f3424f.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "montagne",
-   "description": "champ de neige, vallee et montagnes au loin",
-   "partNeigeMesuree": 0.547,
+   "description": "Pré enneigé, arbre givré, grange en bois, sommets lointains",
+   "partNeigeMesuree": 0.059,
    "retenue": false,
    "motif": "sujet : montagne"
   },
@@ -5019,15 +5135,14 @@
    "motif": "sujet : autre"
   },
   "ch-la-fouly": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/n3n5gcj89xcbmb35psvgmwhs/La_Fouly?auto=webp&format=png",
+   "url": "https://vcdn.bergfex.at/images/resized/f3/064dfa2f11c6cdf3_6035c8547baeb067.jpg",
    "source": "bergfex",
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "flanc de montagne enneigé, mélèzes épars, sommets rocheux",
-   "partNeigeMesuree": 0.123,
-   "retenue": false,
-   "motif": "sujet : montagne"
+   "sujet": "station",
+   "description": "Vallée enneigée, téléski au premier plan, hameau, hautes parois",
+   "partNeigeMesuree": 0.142,
+   "retenue": true
   },
   "ch-la-robella": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/jbghh7jrmbw4t6gp4f95fprc/La_Robella?auto=webp&format=png",
@@ -5060,15 +5175,15 @@
    "retenue": true
   },
   "ch-langenbruck": {
-   "url": "https://vcdn.bergfex.at/images/resized/fb/99cf098bef2132fb_fbae454e849cdf3a.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://deinkick.ch/wp-content/uploads/DeinKick_Bild_Solarbob_02.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "vue aérienne enneigée surchargée de tracés et pictogrammes",
-   "partNeigeMesuree": 0.313,
+   "description": "Femme et enfant sur une luge d'été, herbe verte",
+   "partNeigeMesuree": 0.123,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "ch-langis-glaubenberg": {
    "url": "https://vcdn.bergfex.at/images/resized/02/360f4266c3b18802_de9527e84e13c166.jpg",
@@ -5112,15 +5227,14 @@
    "retenue": true
   },
   "ch-le-larmont": {
-   "url": "https://vcdn.bergfex.at/images/resized/68/8d8e67d060b48e68_caf31dde409257e2.jpg",
+   "url": "https://www.espacenordiquejurassien.com/csx/scripts/resizer.php?filename=ENJ_MEDIAS%2Fmedia%2F67%2F6c%2Fd69eec292a3a73004fa7a7b5789a&amp;mime=image%252Fjpeg&amp;originalname=Gounefay-Depart-Tour-des-ecoles-Catinat.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, forêt enneigée, Les Verrières",
-   "partNeigeMesuree": 0.848,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Deux skieurs de fond sur piste damée ensoleillée",
+   "partNeigeMesuree": 0.279,
+   "retenue": true
   },
   "ch-lenk-wallegg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/6wsvpbrb4q7v8kfxtthmbzqh/Lenk?auto=webp&format=png",
@@ -5133,15 +5247,14 @@
    "retenue": true
   },
   "ch-les-breuleux": {
-   "url": "https://vcdn.bergfex.at/images/resized/96/6b069a9c3d0ee696_d9765626be9b92ce.jpg",
+   "url": "https://telebreuleux.ch/wp-content/uploads/2018/12/nouveau-2-1-1920x500.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte panoramique peinte des pistes de fond, Chasseral",
-   "partNeigeMesuree": 0.61,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "station",
+   "description": "Chalet et dameuse au bord d'une piste en forêt enneigée",
+   "partNeigeMesuree": 0.051,
+   "retenue": true
   },
   "ch-les-cernets": {
    "url": "https://vcdn.bergfex.at/images/resized/23/2f38bd63c1394223_04b42fe8d7638b6a.jpg",
@@ -5154,15 +5267,14 @@
    "retenue": true
   },
   "ch-les-genevez": {
-   "url": "https://vcdn.bergfex.at/images/resized/7b/8bd7c965533fe87b_7a3ee1bdbb2e8509.jpg",
+   "url": "https://www.telegenevez.ch/wp-content/uploads/2017/09/image4-1200x450.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte imprimée des itinéraires avec légende et numéros de téléphone",
-   "partNeigeMesuree": 0.761,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "Village enneigé avec église, champs blancs et forêts",
+   "partNeigeMesuree": 0.326,
+   "retenue": true
   },
   "ch-les-giettes": {
    "url": "https://img1.wsimg.com/isteam/ip/0e719e67-6351-4250-b37f-7d90b23e068b/DSC02524.jpg",
@@ -5299,15 +5411,14 @@
    "motif": "sujet : montagne"
   },
   "ch-maloja": {
-   "url": "https://vcdn.bergfex.at/images/resized/bf/3fea50ec64cb89bf_63d340334ac8086a.jpg",
-   "source": "officiel",
+   "url": "https://www.myswitzerland.com/-/media/st/gadmin/images/cities/winter/cities/maloja_wi_34414.jpg",
+   "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, skilift Aela et skieurs stylisés",
-   "partNeigeMesuree": 0.521,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "station",
+   "description": "village enneigé, clocher et chalets sous la neige, sommets blancs",
+   "partNeigeMesuree": 0.182,
+   "retenue": true
   },
   "ch-marbachegg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/33mwj4pxb8q474pkbpnktftw/Marbach?auto=webp&format=png",
@@ -5442,13 +5553,13 @@
    "retenue": true
   },
   "ch-nara": {
-   "url": "https://vcdn.bergfex.at/images/resized/05/3131fbd322907405_01273a62393fc895.jpg",
-   "source": "officiel",
+   "url": "https://nara.ch/wp-content/uploads/2025/06/immagine-condivisione-sito-social-1024x538.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes illustré, tracés colorés et noms de sommets",
-   "partNeigeMesuree": 0.508,
+   "description": "Bandeau logo Nara, vignettes skieur et vététiste estival",
+   "partNeigeMesuree": 0.712,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -5483,15 +5594,14 @@
    "retenue": true
   },
   "ch-nods": {
-   "url": "https://vcdn.bergfex.at/images/resized/9f/f74c8928b7896e9f_f1c03395ea4f23bf.jpg",
+   "url": "https://www.teleskinods.ch/wp-content/uploads/2018/02/HG1.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "photo aérienne annotée de tracés rouges et bleus, plan des pistes",
-   "partNeigeMesuree": 0.381,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Piste avec téléski, skieurs, village et Alpes au loin",
+   "partNeigeMesuree": 0.224,
+   "retenue": true
   },
   "ch-oberbalmberg": {
    "url": "https://vcdn.bergfex.at/images/resized/53/7fd561327567f653_f09b813b5b6efb18.jpg",
@@ -5505,15 +5615,15 @@
    "motif": "sujet : autre"
   },
   "ch-oberegg": {
-   "url": "https://vcdn.bergfex.at/images/resized/a2/bacb82753cea66a2_506a7d44ec7ffc0e.jpg",
-   "source": "officiel",
-   "neige": false,
-   "filigrane": false,
-   "sujet": "autre",
-   "description": "carte routière dessinée, villages Heiden et Grub, téléskis",
-   "partNeigeMesuree": 0.886,
+   "url": "https://skilift-oberegg.ch/wp-content/uploads/2015/11/Home1_geschl.jpg",
+   "source": null,
+   "neige": true,
+   "filigrane": true,
+   "sujet": "pistes",
+   "description": "Mot geschlossen en travers d'une pente avec pylône",
+   "partNeigeMesuree": 0.142,
    "retenue": false,
-   "motif": "image partagée par plusieurs domaines"
+   "motif": "filigrane"
   },
   "ch-oberhelfenschwil": {
    "url": "https://vcdn.bergfex.at/images/resized/80/cfa49e701f090c80_52ca4d719f54a1d5.jpg",
@@ -5536,15 +5646,14 @@
    "retenue": true
   },
   "ch-obermutten": {
-   "url": "https://vcdn.bergfex.at/images/resized/52/020fd7e128e90c52_03db783aa2d3ecb5.jpg",
+   "url": "https://thusis.ch/wp-content/uploads/2018/04/thusis_sommer.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte topographique avec boucles de ski de fond, hameaux Obermutten et Stafel",
-   "partNeigeMesuree": 0.531,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "Bourg de vallée verdoyant, sommet enneigé au fond",
+   "partNeigeMesuree": 0.119,
+   "retenue": true
   },
   "ch-obersaxen": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/xztqw8hr8ms4sps5m7x8zcf/Obersaxen_Mundaun?auto=webp&format=png",
@@ -5587,15 +5696,14 @@
    "retenue": true
   },
   "ch-parsenn": {
-   "url": "https://vcdn.bergfex.at/images/resized/eb/0edcdb539275bfeb_6e66626120f76bf2.jpg",
+   "url": "https://www.davosklostersmountains.ch/archiv/dkm/bilder/berge/parsenn/winter/764/image-thumb__764__media-text-img/totalp_sesselbahn_blick_richtung_joch@2x.jpg",
    "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "panorama dessiné des pistes Parsenn, Davos et Klosters, remontées numérotées",
-   "partNeigeMesuree": 0.471,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Télésiège jaune au-dessus d'un large domaine enneigé",
+   "partNeigeMesuree": 0.221,
+   "retenue": true
   },
   "ch-pilatus": {
    "url": "https://cdn.pilatus.ch/content-media/uploads/_1200x630_crop_center-center_82_none_ns/PIL_Logo_RGB_Rot.jpg?mtime=1765385050",
@@ -5630,15 +5738,15 @@
    "retenue": true
   },
   "ch-pontresina": {
-   "url": "https://vcdn.bergfex.at/images/resized/57/a0e1373d4c1ee357_9386403596ebbc4c.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://api.pontresina.ch/fileadmin/_processed_/5/4/csm_Web_Low-2023_Dorf_Pontresina_He__10__876de051f4.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte panoramique dessinee des pistes de Muottas Muragl",
-   "partNeigeMesuree": 0.414,
+   "sujet": "station",
+   "description": "Village de montagne en automne, mélèzes dorés, hôtels",
+   "partNeigeMesuree": 0.008,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "image partagée par plusieurs domaines"
   },
   "ch-pontresina-464897m99144": {
    "url": "https://api.pontresina.ch/fileadmin/_processed_/5/4/csm_Web_Low-2023_Dorf_Pontresina_He__10__876de051f4.jpg",
@@ -5649,16 +5757,16 @@
    "description": "village de Pontresina entoure de melezes dores, aucune neige",
    "partNeigeMesuree": 0.008,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "image partagée par plusieurs domaines"
   },
   "ch-pradaschier": {
-   "url": "https://pradaschier.ch/wp-content/uploads/sites/5/2025/07/sommer-rodelbahn-erlebnisberg-pradaschier-16.jpg",
-   "source": "proprietaire",
+   "url": "https://vcdn.bergfex.at/images/resized/5c/ad6856c49370425c_76959536cb9bd92e.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "vue aerienne d'une piste de luge d'ete sur prairie verte",
-   "partNeigeMesuree": 0.023,
+   "description": "Plan des pistes dessiné d'Arosa Lenzerheide avec légende",
+   "partNeigeMesuree": 0.615,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -5696,15 +5804,15 @@
    "motif": "sujet : autre"
   },
   "ch-ratzi": {
-   "url": "https://vcdn.bergfex.at/images/resized/20/03e6903f0bba9920_917778c210ce3185.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://ratzi.ch/files/Seilbahn/SSSOMMMEr/_fullSizeAuto/Computerformat-4_3-Seilbahn-Spiringen-Ratzi.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte panoramique du domaine au-dessus de Burglen, sommets nommes",
-   "partNeigeMesuree": 0.575,
+   "sujet": "station",
+   "description": "cabine rouge de téléphérique au-dessus de prairies vertes, été",
+   "partNeigeMesuree": 0.044,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "ch-realp": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/6d/d8/80/03/100230cd43.jpg",
@@ -5810,15 +5918,14 @@
    "retenue": true
   },
   "ch-ruhesitz": {
-   "url": "https://lirp.cdn-website.com/c9132f22/dms3rep/multi/opt/Logo+1200-9479af8d-1920w.png",
+   "url": "https://wegwandern.ch/wp-content/uploads/2023/06/appenzell_bruelisau_waldschaft_ruhesitz_schneeschuhwandern.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "logo rouge et noir tres flou sur fond noir, illisible",
-   "partNeigeMesuree": 0.0,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "auberge de montagne enneigée, promeneurs, sapins chargés de neige",
+   "partNeigeMesuree": 0.751,
+   "retenue": true
   },
   "ch-runal-pera-trun": {
    "url": "https://runalpera.ch/wordpress/wp-content/gallery/2020_cuorsa_da_skis/DSF5155.JPG",
@@ -5883,13 +5990,13 @@
    "motif": "pas de neige"
   },
   "ch-saint-george": {
-   "url": "https://vcdn.bergfex.at/images/resized/c6/a8b29d7edec88dc6_fecef8bd506e3052.jpg",
-   "source": "officiel",
+   "url": "https://www.stgeorge.ch/upload/facebook-image.gif",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "carte dessinée des pistes avec téléskis et QR code",
-   "partNeigeMesuree": 0.789,
+   "description": "minuscule blason communal, cavalier rouge terrassant un dragon",
+   "partNeigeMesuree": 0.052,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -5935,15 +6042,14 @@
    "motif": "pas de neige"
   },
   "ch-san-bernadino-pian-cales": {
-   "url": "https://vcdn.bergfex.at/images/resized/a3/5fbf843791da07a3_b20f40fd924cf181.jpg",
+   "url": "https://www.visit-moesano.ch/sites/moesano/files/styles/hero_large/public/2023-12/sanbe-inverno-3.12.23-128.jpg?h=8c1344d8&amp;itok=0uwgw6xz",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan panoramique dessiné des pistes avec légende des remontées",
-   "partNeigeMesuree": 0.427,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "cabine de télécabine devant des sommets enneigés, ciel bleu",
+   "partNeigeMesuree": 0.018,
+   "retenue": true
   },
   "ch-sarn-heinzenberg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/pkq4snjz9cgs94v9nvxzjgfz/Sarn__Heinzenberg?auto=webp&format=png",
@@ -6154,15 +6260,14 @@
    "motif": "sujet : autre"
   },
   "ch-sommartel-le-locle": {
-   "url": "https://vcdn.bergfex.at/images/resized/8b/79763cd0de0ff28b_7699953b653fdcd6.jpg",
+   "url": "https://teleski-sommartel.ch/wp-content/uploads/2017/07/tele01.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "vue aérienne enneigée avec tracés de pistes colorés et titre plaqué",
-   "partNeigeMesuree": 0.317,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "station",
+   "description": "deux chalets, parking et skieurs sur neige devant la forêt",
+   "partNeigeMesuree": 0.305,
+   "retenue": true
   },
   "ch-sorenberg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/hxff3p5gxr6nmsw54x6x3r3z/Srenberg?auto=webp&format=png",
@@ -6235,15 +6340,15 @@
    "retenue": true
   },
   "ch-sternenberg": {
-   "url": "https://vcdn.bergfex.at/images/resized/97/f6c0b00861cca097_c24c82765cce78d5.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "http://www.skilift-sternenberg.ch/images/parafactpanop710765a9790964208.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "carte panoramique dessinée, lac de Zurich, pistes schématisées",
-   "partNeigeMesuree": 0.74,
+   "description": "logo du téléski, skieur bleu sur étoile jaune",
+   "partNeigeMesuree": 0.634,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "ch-stoos": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/nt3fx9ms6k8fpzmwfgsmr52h/Stoos?auto=webp&format=png",
@@ -6297,15 +6402,14 @@
    "retenue": true
   },
   "ch-tramelan": {
-   "url": "https://vcdn.bergfex.at/images/resized/b7/cbfc599e2ad487b7_9dd7d0fd23b942a5.jpg",
+   "url": "https://www.teleski-tramelan.ch/images/saison21-22-6.png",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "panorama peint du domaine, pistes numérotées, plan dessiné",
-   "partNeigeMesuree": 0.261,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "piste enneigée, pylônes de téléski et perches, ciel bleu",
+   "partNeigeMesuree": 0.076,
+   "retenue": true
   },
   "ch-tschappina-heinzenberg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/23g92c3f2vhtstp86krnttc4/Tschappina_Heinzenberg?auto=webp&format=png",
@@ -6348,15 +6452,15 @@
    "retenue": true
   },
   "ch-vals": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/2thkcc5wjn75qgfpcn5j2k/Vals__Valsertal?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/51/035b216ea0e04e51_075b8b6551a5ef06.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "randonneur seul sur une crête enneigée, cairn et panorama de sommets",
-   "partNeigeMesuree": 0.143,
+   "sujet": "autre",
+   "description": "plan des pistes dessiné de Vals 3000, légende et sommets blancs",
+   "partNeigeMesuree": 0.299,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "ch-vercorin": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/9x27hh76rst3s3p4p9wn3scq/Vercorin?auto=webp&format=png",
@@ -6571,15 +6675,15 @@
    "retenue": true
   },
   "cz-biocel-zlatnik": {
-   "url": "http://www.skizlatnik.cz/foto/IP_kamera.jpg",
-   "source": "proprietaire",
-   "neige": false,
-   "filigrane": false,
-   "sujet": "autre",
-   "description": "webcam estivale, prairie verte, pylônes, horodatage incrusté",
-   "partNeigeMesuree": 0.064,
+   "url": "https://www.ceskehory.cz/objekty/data/ski/biocelzlatnik/imagew.jpg",
+   "source": null,
+   "neige": true,
+   "filigrane": true,
+   "sujet": "pistes",
+   "description": "piste damée et téléski, large filigrane ceskehory.cz en travers",
+   "partNeigeMesuree": 0.146,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "filigrane"
   },
   "cz-bournak": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/tp4t8sp96qh56k3mhm6ck5j3/Bouk?auto=webp&format=png",
@@ -6592,15 +6696,14 @@
    "retenue": true
   },
   "cz-bozi-dar": {
-   "url": "https://vcdn.bergfex.at/images/resized/15/80010a99cadafa15_880944f286e4b5b4.jpg",
+   "url": "http://skiarealbozidar.cz/wp-content/uploads/2019/11/ski.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte panoramique dessinée des pistes Fichtelberg-Klínovec",
-   "partNeigeMesuree": 0.046,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "piste damée au crépuscule rose, téléski et canons à neige",
+   "partNeigeMesuree": 0.18,
+   "retenue": true
   },
   "cz-bozi-dar-504121m129287": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/c3/38/8b/be/59d838fb8b.jpg",
@@ -6685,15 +6788,15 @@
    "motif": "pas de neige"
   },
   "cz-dalecin": {
-   "url": "https://vcdn.bergfex.at/images/resized/ef/bafc5a3f7f2c59ef_3c5551a7bad4821e.jpg",
-   "source": "officiel",
+   "url": "http://www.skidalecin.cz/Dalecin/pict/dalecin_t.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": true,
+   "filigrane": false,
    "sujet": "autre",
-   "description": "affiche : photo hivernale, tracés colorés, gros titre DALECIN",
-   "partNeigeMesuree": 0.278,
+   "description": "affiche du domaine, tracés colorés dessinés sur photo enneigée",
+   "partNeigeMesuree": 0.206,
    "retenue": false,
-   "motif": "filigrane"
+   "motif": "sujet : autre"
   },
   "cz-debrnik": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/4f/fc/c1/10/20824a786f.jpg",
@@ -6870,15 +6973,15 @@
    "retenue": true
   },
   "cz-janske-lazne-cerna-hora": {
-   "url": "https://vcdn.bergfex.at/images/resized/0a/13b1c16ae09fb00a_613482129605a402.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://leto.skiresort.cz/media/uploads/pages/17-skiresort-lanovka-clouds.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, massif enneigé, logo SkiResort",
-   "partNeigeMesuree": 0.231,
+   "sujet": "station",
+   "description": "télécabines au-dessus d'une mer de nuages, prairie verte estivale",
+   "partNeigeMesuree": 0.377,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "image partagée par plusieurs domaines"
   },
   "cz-javorna": {
    "url": "https://www.tschechische-gebirge.de/objekty/data/ski/skijavorna/imagew.jpg",
@@ -6954,15 +7057,15 @@
    "retenue": true
   },
   "cz-komari-vizka": {
-   "url": "https://vcdn.bergfex.at/images/resized/e4/0e010c845f9f1ee4_0c2b062f12b64746.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.icesty.cz/wp-content/uploads/2024/08/viden-945x430.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "photo nocturne surchargée de tracés, plan du domaine légendé",
-   "partNeigeMesuree": 0.121,
+   "description": "statue équestre devant un hôtel de ville gothique, été",
+   "partNeigeMesuree": 0.334,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "cz-koprivna": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/v97mtmfkqfxmpqqswb5fx84v/Kopivn_pod_Praddem?auto=webp&format=png",
@@ -7142,13 +7245,13 @@
    "retenue": true
   },
   "cz-medenec-alsovka": {
-   "url": "https://vcdn.bergfex.at/images/resized/ba/b4d5bb5d201980ba_6c9f97eb892d7dc2.jpg",
-   "source": "officiel",
+   "url": "https://alsovka.cz/wp-content/uploads/Kotivna_20205_C.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "carte topographique avec pistes bleue et rouges numérotées",
-   "partNeigeMesuree": 0.712,
+   "description": "départ de course VTT sur pelouse, arche gonflable rouge",
+   "partNeigeMesuree": 0.129,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -7276,15 +7379,15 @@
    "motif": "pas de neige"
   },
   "cz-nove-mesto-na-morave": {
-   "url": "https://vcdn.bergfex.at/images/resized/e8/630d9d3488449ce8_7c10d8137168b94a.jpg",
-   "source": "officiel",
-   "neige": false,
-   "filigrane": false,
-   "sujet": "autre",
-   "description": "plan dessiné des pistes de fond, Harusův kopec, vallée bleutée",
-   "partNeigeMesuree": 0.263,
+   "url": "https://www.czech-mountains.eu/objekty/data/ski/skinovemesto/imagew.jpg",
+   "source": "proprietaire",
+   "neige": true,
+   "filigrane": true,
+   "sujet": "pistes",
+   "description": "piste et télésiège enneigés barrés du filigrane www.ceskehory.cz",
+   "partNeigeMesuree": 0.298,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "filigrane"
   },
   "cz-orlicke-zahori": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/9c/c4/40/09/3a597176a3.jpg",
@@ -7467,13 +7570,13 @@
    "motif": "sujet : autre"
   },
   "cz-ski-areal-janova-hora": {
-   "url": "https://vcdn.bergfex.at/images/resized/86/f38e79ee322d3486_e3529e4dacb09e24.jpg",
-   "source": "officiel",
+   "url": "https://www.janova-hora.cz/files/Bottom/mb-mapa.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "affiche : plan des pistes dessiné et tableau des tarifs 2019/2020",
-   "partNeigeMesuree": 0.572,
+   "description": "plan dessiné avec sapins, chalets rouges et bouton Mapa",
+   "partNeigeMesuree": 0.881,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -7854,13 +7957,13 @@
    "retenue": true
   },
   "cz-skiareal-pysna": {
-   "url": "https://vcdn.bergfex.at/images/resized/b4/857e23e892c10fb4_2b41df7eed0c3ceb.jpg",
-   "source": "officiel",
+   "url": "https://8734fb5f06.clvaw-cdnwnd.com/b5a7d92d6a02a89af7d7e3f77b92a5e5/200000069-372da38284/700/logo%20lk%20prostor%20kolem.jpg?ph=8734fb5f06",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan de pistes dessiné, téléskis et buffet légendés en tchèque",
-   "partNeigeMesuree": 0.367,
+   "description": "écusson bleu et jaune du club de ski Jirkov",
+   "partNeigeMesuree": 0.688,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -8195,7 +8298,7 @@
    "description": "télécabines en été au-dessus d'une prairie verte, mer de nuages",
    "partNeigeMesuree": 0.377,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "image partagée par plusieurs domaines"
   },
   "cz-vlek-pod-masarykovou-chatou": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/cc/c7/70/09/a0af3c2ff2.jpg",
@@ -8422,15 +8525,14 @@
    "retenue": true
   },
   "de-bromberg-alm": {
-   "url": "https://bromberg-alm.de/wp-content/uploads/2026/07/bromberg-alm-boebing-restaurant-wirtshaus-aussenansicht-79.jpg",
+   "url": "https://vcdn.bergfex.at/images/resized/b6/f675227f26e25cb6_029c11cb12059b3a.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "entrée d'auberge en été, parasols bleus, enseigne Bromberg Alm 1970",
-   "partNeigeMesuree": 0.132,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "chalet enneigé, terrasse pleine de skieurs, skis plantés",
+   "partNeigeMesuree": 0.171,
+   "retenue": true
   },
   "de-buchenberg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/54rg87s83xtmqw7v695px5t9/Buchenberg_-_Buching?auto=webp&format=png",
@@ -8708,15 +8810,14 @@
    "motif": "pas de neige"
   },
   "de-hartenrod": {
-   "url": "https://vcdn.bergfex.at/images/resized/70/244f70f20e5f2370_78b44a7e1ce86c7f.jpg",
+   "url": "http://skiclub-hartenrod.de/wp-content/uploads/2018/06/20170128_174212.jpeg.jpg",
    "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, sommet Schönscheid 498 m, Skihütte",
-   "partNeigeMesuree": 0.474,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "piste éclairée le soir au-dessus d'un village illuminé",
+   "partNeigeMesuree": 0.074,
+   "retenue": true
   },
   "de-hesselbacher-gletscher": {
    "url": "https://vcdn.bergfex.at/images/resized/bb/b8c712f2ebc772bb_494c96e6651c1380.jpg",
@@ -9023,15 +9124,14 @@
    "retenue": true
   },
   "de-munstertal-wieden": {
-   "url": "https://vcdn.bergfex.at/images/resized/dd/d7d73976f4da40dd_9485a68a70d8ecfe.jpg",
+   "url": "https://www.skilifte-muenstertal-wieden.de/assets/images/eichbuehl-490x370.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes annoté, noms de téléskis, longueurs et GPS",
-   "partNeigeMesuree": 0.204,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "pentes enneigées tracées, sapins givrés, soleil rasant",
+   "partNeigeMesuree": 0.163,
+   "retenue": true
   },
   "de-nachwuchsforderzentrum-reithlift": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/cbksvh77mwxvq5cqkgppp8j/Schwangau_-_Tegelberg?auto=webp&format=png",
@@ -9054,15 +9154,15 @@
    "retenue": true
   },
   "de-neuastenberg-postwiese": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/fxfsc5mv5n36254gcbhv6pg7/Postwiesen_Skigebiet_Neuastenberg?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/7c/3c3673267eea037c_88957a4d54b461fe.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": true,
-   "sujet": "station",
-   "description": "village enneigé vu d'en haut, gros bandeau publicitaire rouge plaqué",
-   "partNeigeMesuree": 0.094,
+   "filigrane": false,
+   "sujet": "autre",
+   "description": "plan des pistes dessiné de Postwiese avec légende détaillée",
+   "partNeigeMesuree": 0.465,
    "retenue": false,
-   "motif": "filigrane"
+   "motif": "sujet : autre"
   },
   "de-oberau": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/35/55/51/1e/2b5eceabdd.jpg",
@@ -9116,15 +9216,15 @@
    "retenue": true
   },
   "de-ochsenkopf": {
-   "url": "https://vcdn.bergfex.at/images/resized/19/514cef4f77dde319_60814805820d7541.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.ochsenkopf.info/site/assets/files/1533/a3_vorankuendigung.500x0.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "panneau plan des pistes du Fichtelgebirge avec liste des remontées",
-   "partNeigeMesuree": 0.161,
+   "description": "affiche de bikepark, carte des flowtrails et photos VTT",
+   "partNeigeMesuree": 0.164,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "de-oedberg": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/j9c82pt4gs8bqh3hr4q2wp5/Oedberglifte_-_Gmund_am_Tegernsee?auto=webp&format=png",
@@ -9348,15 +9448,14 @@
    "retenue": true
   },
   "de-ski-elstra": {
-   "url": "https://vcdn.bergfex.at/images/resized/cd/083e3abeb7265dcd_27d670cc276359af.jpg",
+   "url": "https://sport-elstra.de/wp-content/uploads/2024/08/SKI_ALPINE-Image_001-scaled.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte topographique à courbes de niveau, tracé surligné en vert",
-   "partNeigeMesuree": 0.884,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "skieur de slalom géant en virage près d'un piquet",
+   "partNeigeMesuree": 0.731,
+   "retenue": true
   },
   "de-ski-und-rodelarena-wasserkuppe": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/q9h7s5h96q3v9h47b3f89r4t/Wasserkuppe_-_Poppenhausen?auto=webp&format=png",
@@ -9410,15 +9509,15 @@
    "retenue": true
   },
   "de-skigebiet-eckbauer": {
-   "url": "https://www.eckbauerbahn.de/wp-content/uploads/2021/05/ebb-a19-053-marcgilsdorf-1024x768.jpg",
-   "source": "proprietaire",
-   "neige": false,
+   "url": "https://cdn.indebergen.nl/media/p3odk5aq/debaye06b-eckbauer.jpg?anchor=center&mode=crop&width=1160&height=1160&format=webp&quality=80",
+   "source": null,
+   "neige": true,
    "filigrane": false,
-   "sujet": "station",
-   "description": "gare de télécabine en été, herbe verte, sommets rocheux au fond",
-   "partNeigeMesuree": 0.006,
+   "sujet": "autre",
+   "description": "plan des pistes dessiné de Garmisch, Zugspitze et Kreuzeck",
+   "partNeigeMesuree": 0.225,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "de-skigebiet-fellhorn-kanzelwand": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/2rxv3tjwt7r667cmxcqfj/Fellhorn_-_Kanzelwand_-_Oberstdorf?auto=webp&format=png",
@@ -9451,15 +9550,14 @@
    "retenue": true
   },
   "de-skigebiet-ifen": {
-   "url": "https://vcdn.bergfex.at/images/resized/2b/ae1cda384a37e42b_9940484560606321.jpg",
+   "url": "https://www.preiswert-uebernachten.de/reiseblog/wp-content/uploads/Skigebiet-am-hohen-Ifen-Kleinwalsertal_692476529.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte panoramique dessinee des domaines de randonnee, etiquettes vertes",
-   "partNeigeMesuree": 0.027,
-   "retenue": false,
-   "motif": "image partagée par plusieurs domaines"
+   "sujet": "station",
+   "description": "Vue aérienne du front de neige, bâtiments, parking, remontées",
+   "partNeigeMesuree": 0.096,
+   "retenue": true
   },
   "de-skigebiet-lausche": {
    "url": "https://vcdn.bergfex.at/images/resized/ee/3fe16f08c2616eee_b04886e8a7907995.jpg",
@@ -9482,15 +9580,15 @@
    "retenue": true
   },
   "de-skigebiet-nebelhorn": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/wm9bq7r6bwrkr4hgxskvgwf/Nebelhorn_-_Oberstdorf?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
+   "url": "https://vcdn.bergfex.at/images/resized/93/65ba1910b5ffb593_536b71fa48e8e8cf.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "pente enneigee deserte face a des sommets blancs",
-   "partNeigeMesuree": 0.037,
+   "sujet": "autre",
+   "description": "Carte panoramique dessinée des domaines de randonnée, sans neige",
+   "partNeigeMesuree": 0.027,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "image partagée par plusieurs domaines"
   },
   "de-skigebiet-oberwiesenthal": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/x5h9mph4fvcbhc27rkqzqtx4/Oberwiesenthal_-_Fichtelberg?auto=webp&format=png",
@@ -9523,15 +9621,15 @@
    "retenue": true
   },
   "de-skigebiet-spitzenberg-und-kopfle": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/pv96h6qh4s4xqfg4kjwx6jf4/Bernau?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/24/fcc9c7082eb6bd24_0d59e9afa18e7c60.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "clairieres enneigees, sapins givres, ferme isolee, Alpes lointaines",
-   "partNeigeMesuree": 0.076,
+   "sujet": "autre",
+   "description": "Plan des pistes dessiné sur panorama hivernal, avec légende",
+   "partNeigeMesuree": 0.431,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "de-skigebiet-spitzingsee-tegernsee": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/33q9fxp5vk8qqfszvzb7xg/Spitzingsee-Tegernsee?auto=webp&format=png",
@@ -9586,15 +9684,14 @@
    "retenue": true
   },
   "de-skihang-tuppel": {
-   "url": "http://skiclub-warstein.de/data/uploads/image-skiclub.jpg",
+   "url": "https://www.ski-club-wissen.de/wordpress/wp-content/uploads/2016/12/Skihang-IMG_1773-1.jpg",
    "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "bandeau de site web, collage de photos et logo du club",
-   "partNeigeMesuree": 0.179,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Pente enneigée avec skieurs, téléski, village au loin",
+   "partNeigeMesuree": 0.118,
+   "retenue": true
   },
   "de-skilift-albstadt-tailfingen": {
    "url": "https://wsv-tailfingen.de/wp-content/uploads/2026/03/HP-mini-1-scaled.jpg",
@@ -9925,15 +10022,15 @@
    "retenue": true
   },
   "de-sternrodt": {
-   "url": "https://vcdn.bergfex.at/images/resized/cc/5ec0a642d8318dcc_6df5af7ff7ad1bcf.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.sternrodt-skilift.de/webcam/neu/sternrodt.jpg.jpeg?",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné sur photo aérienne hivernale",
-   "partNeigeMesuree": 0.595,
+   "description": "Capture webcam sombre, pente herbeuse d'été, pylône de remontée",
+   "partNeigeMesuree": 0.66,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "de-stinesser": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/m59v7q347g45g53b9h5mvr8k/Fischen_im_Allgu?auto=webp&format=png",
@@ -9986,15 +10083,15 @@
    "retenue": true
   },
   "de-tegelbergbahn": {
-   "url": "https://www.tegelbergbahn.de/_files/site_page/site_page_31/startimage_1_header.jpg?c666c5c7ea78f5a8",
-   "source": "proprietaire",
-   "neige": false,
+   "url": "https://vcdn.bergfex.at/images/resized/c7/ccaabf144350c8c7_0aac8a9d72e927a6.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "paysage d'été vert, cabine de téléphérique, château, sommets rocheux",
-   "partNeigeMesuree": 0.427,
+   "description": "Plan des pistes dessiné, montagnes enneigées, parkings et remontées",
+   "partNeigeMesuree": 0.227,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "de-thaler-hohe": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/nxxtt53xfx79czbr2wmj5p38/Missen_-_Thalerhhe?auto=webp&format=png",
@@ -10037,15 +10134,15 @@
    "retenue": true
   },
   "de-unternberg-ruhpolding": {
-   "url": "https://vcdn.bergfex.at/images/resized/f4/6118ab86400bb6f4_11dbb61d0ae7116c.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://meinebergwelt.de/wp-content/uploads/2026/08/Website_mobile_Version_Startseite_Hintergrund_1000x1500-px.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes d'Unternberg avec légende des remontées",
-   "partNeigeMesuree": 0.066,
+   "description": "Deux randonneurs en été sur un chemin, prairie fleurie",
+   "partNeigeMesuree": 0.483,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "de-unterstmatt": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/4sjg4hhkw228qmf5q78hq/Unterstmatt?auto=webp&format=png",
@@ -10181,15 +10278,15 @@
    "retenue": true
   },
   "de-zinkenlifte-durrnberg-hallein": {
-   "url": "https://vcdn.bergfex.at/images/resized/df/b156173b6e863fdf_d88dd436e485cc89.jpg",
-   "source": "officiel",
+   "url": "https://duerrnberg.at/wp-content/uploads/2022/04/ls-project-26-slide-1-1.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": false,
+   "filigrane": true,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, sommet Zinkenstüberl et légende des remontées",
-   "partNeigeMesuree": 0.397,
+   "description": "Affiche estivale de site web, luge d'été, sommet enneigé",
+   "partNeigeMesuree": 0.048,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "filigrane"
   },
   "dk-hedeland-skicenter": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/4c/c2/20/01/26d2300b2d.jpg",
@@ -10368,15 +10465,15 @@
    "motif": "sujet : autre"
   },
   "es-estacion-de-esqui-de-manzaneda": {
-   "url": "https://vcdn.bergfex.at/images/resized/8e/dfb44b8f3afe008e_8621d024de01f117.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://cdn.prod.website-files.com/6059b1d3418651c153253559/6a40e2e2988b4ffd98d6052d_PXL_20260602_145357239%20(1)%20(1).jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan dessiné, forêt verte, pistes bleutées, listes d'installations",
-   "partNeigeMesuree": 0.298,
+   "description": "Mur d'escalade intérieur, grimpeurs casqués sur prises colorées",
+   "partNeigeMesuree": 0.041,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "es-estacion-de-esqui-de-valdesqui": {
    "url": "https://vcdn.bergfex.at/images/resized/6f/4e907012d87e3a6f_3a2206a80f74eafa.jpg",
@@ -10431,15 +10528,15 @@
    "motif": "sujet : autre"
   },
   "es-estacion-invernal-y-de-montana-san-isidro-sector-cebolledo-y-requejines": {
-   "url": "https://vcdn.bergfex.at/images/resized/c4/d7cc042a1d93e7c4_6a7a0699f40ba685.jpg",
-   "source": "officiel",
+   "url": "https://www.san-isidro.net/images/ogimage_rrss.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes tracé sur photo aérienne enneigée, logo san-isidro.net",
-   "partNeigeMesuree": 0.703,
+   "filigrane": true,
+   "sujet": "pistes",
+   "description": "Domaine enneigé vu d'en haut, large bandeau noir du nom",
+   "partNeigeMesuree": 0.376,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "filigrane"
   },
   "es-estacion-invernal-y-de-montana-san-isidro-sector-saliencias": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/5x5xmkpvk3cm3jc9872wp6k7/San_Isidro?auto=webp&format=png",
@@ -10473,15 +10570,15 @@
    "retenue": true
   },
   "es-javalambre": {
-   "url": "https://vcdn.bergfex.at/images/resized/bd/4e79e33f40b25cbd_64372410611336e3.jpg",
-   "source": "officiel",
+   "url": "https://d32r4yxuun6zdf.cloudfront.net/estaticos/extras/fotos/contenidos/00/00/01/16/15//abono-temporada-JV-26-27.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": false,
+   "filigrane": true,
    "sujet": "autre",
-   "description": "plan dessiné des secteurs Sabina et Lapiaz, pentes blanches",
-   "partNeigeMesuree": 0.76,
+   "description": "Deux skieurs skis à l'épaule, sapins enneigés, texte publicitaire",
+   "partNeigeMesuree": 0.091,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "image partagée par plusieurs domaines"
   },
   "es-la-covatilla": {
    "url": "https://vcdn.bergfex.at/images/resized/38/9f25324cd70b1c38_8882dcba41eb537d.jpg",
@@ -10558,15 +10655,14 @@
    "motif": "sujet : autre"
   },
   "es-snozone-madrid": {
-   "url": "https://www.skiresort.fr/fileadmin/_processed_/4a/af/f1/1f/02f0aef980.jpg",
+   "url": "https://vcdn.bergfex.at/images/resized/b8/758d982da61808b8_6314c72507c26d89.jpg",
    "source": "bergfex",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "station",
-   "description": "halle de ski couverte, toit métallique nervuré, ciel bleu",
-   "partNeigeMesuree": 0.007,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Piste de neige couverte, nombreux skieurs sous une halle",
+   "partNeigeMesuree": 0.587,
+   "retenue": true
   },
   "es-tavascan": {
    "url": "https://vcdn.bergfex.at/images/resized/ae/1fe023cbb187a9ae_59ed1135b131fdd8.jpg",
@@ -10598,7 +10694,7 @@
    "description": "affiche d'abonnement, texte plaqué, deux skieurs portant leurs skis",
    "partNeigeMesuree": 0.091,
    "retenue": false,
-   "motif": "filigrane"
+   "motif": "image partagée par plusieurs domaines"
   },
   "fi-aanemaki": {
    "url": "https://bin.yhdistysavain.fi/1581223/jnBYSgBv5Tg175KPy2FZ0_rUj7/1%20(1).jpg",
@@ -10737,15 +10833,15 @@
    "retenue": true
   },
   "fi-konkaski": {
-   "url": "https://konkaski.fi/wp-content/uploads/2017/01/konkaski_logo_uusi.jpg",
-   "source": "proprietaire",
-   "neige": false,
+   "url": "https://konkaski.fi/wp-content/uploads/2023/02/rinnekartta2023_5-scaled.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "logo bleu et noir KonkaSki sur fond blanc",
-   "partNeigeMesuree": 0.561,
+   "description": "Photo aérienne enneigée surchargée de tracés de pistes numérotés",
+   "partNeigeMesuree": 0.181,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "fi-laskettelukeskus-mustavaara": {
    "url": "https://mustavaara.fi/dataflow/mustavaara/files/media/tervetuloamustavaaralle_130.jpg",
@@ -11182,15 +11278,15 @@
    "retenue": true
   },
   "fr-aiguille-du-midi-chamonix": {
-   "url": "https://vcdn.bergfex.at/images/resized/bd/58ed693a273b10bd_7828a222d2746b2d.jpg",
-   "source": "officiel",
-   "neige": false,
+   "url": "https://www.datocms-assets.com/144383/1729682434-home_aiguille-du-midi-ete.webp",
+   "source": null,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan dessiné des pistes de la vallée de Chamonix",
-   "partNeigeMesuree": 0.3,
+   "sujet": "montagne",
+   "description": "Sommets glaciaires enneigés au-dessus d'une mer de nuages",
+   "partNeigeMesuree": 0.132,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : montagne"
   },
   "fr-aillon-le-jeune": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/frr3cgcfs7hchmh7gzkzjf/Aillons-Margeriaz?auto=webp&format=png",
@@ -11387,15 +11483,14 @@
    "retenue": true
   },
   "fr-bourg-d-oueil": {
-   "url": "https://vcdn.bergfex.at/images/resized/ea/3c610aa90a1be2ea_ffc4cba64b30d5f9.jpg",
+   "url": "https://www.haute-garonne-montagne.com/wp-content/uploads/2025/07/bourg-d_oueil_neige_luge_-HauteGaronneMontagne-AnaisBazerque-scaled-1-730x1024.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné avec téléskis et noms de pistes",
-   "partNeigeMesuree": 0.382,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Enfants tirant des luges sur une piste enneigée ensoleillée",
+   "partNeigeMesuree": 0.266,
+   "retenue": true
   },
   "fr-brevent-flegere-chamonix": {
    "url": "https://vcdn.bergfex.at/images/resized/8c/452be050d806028c_ab444637829c3f2c.jpg",
@@ -11490,13 +11585,13 @@
    "retenue": true
   },
   "fr-claviere": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/gjvx5rt7279436vsfbhwgh3w/Claviere_-_Vialattea?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/50/ce682119cc8fc050_28b879e6b9686daa.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "groupe de jeunes skieurs posant en rang, mer de nuages",
-   "partNeigeMesuree": 0.036,
+   "description": "Plan des pistes dessiné de la Voie Lactée",
+   "partNeigeMesuree": 0.369,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -11583,13 +11678,13 @@
    "retenue": true
   },
   "fr-devoluy": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/wmfcq8h72t6sg9km7vgxwp/Superdvoluy__La_Joue_du_Loup_HERO_2025?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/b2/d9bb9defadae31b2_6208a6bcb48442b4.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "quatre skieurs bras levés derrière les grandes lettres #DEVOLUY sur la neige",
-   "partNeigeMesuree": 0.177,
+   "description": "Plan des pistes illustré du Dévoluy avec encarts photo",
+   "partNeigeMesuree": 0.649,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -11634,15 +11729,15 @@
    "retenue": true
   },
   "fr-domaine-skiable-valberg": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/bjmk2fqjgcx8gfw2pfphr/Beuil_les_Launes?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/2b/d93fd3367928ef2b_47808607b38c2253.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": true,
-   "sujet": "pistes",
-   "description": "piste 11 Les Alouettes entre mélèzes, marque plaquée en coin",
-   "partNeigeMesuree": 0.21,
+   "filigrane": false,
+   "sujet": "autre",
+   "description": "Plan des pistes dessiné de Valberg et Beuil",
+   "partNeigeMesuree": 0.499,
    "retenue": false,
-   "motif": "filigrane"
+   "motif": "sujet : autre"
   },
   "fr-espace-cambre-d-aze": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/cg839r5jvm77mwhk9gmtv3/Espace_Cambre_DAze_-_Eyne?auto=webp&format=png",
@@ -11826,15 +11921,15 @@
    "retenue": true
   },
   "fr-grand-ballon": {
-   "url": "https://vcdn.bergfex.at/images/resized/59/33277a07ec27d159_01acfc5ae79db704.jpg",
-   "source": "officiel",
+   "url": "https://www.grand-ballon.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg",
+   "source": null,
    "neige": false,
-   "filigrane": false,
+   "filigrane": true,
    "sujet": "autre",
-   "description": "plan des pistes dessiné avec légende et numéros",
-   "partNeigeMesuree": 0.701,
+   "description": "Bandeau estival, vaches paissant dans une prairie fleurie",
+   "partNeigeMesuree": 0.018,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "image partagée par plusieurs domaines"
   },
   "fr-grand-tourmalet": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/vjmc7n7znhvhgfxghmjp9/Barges?auto=webp&format=png",
@@ -11847,15 +11942,15 @@
    "retenue": true
   },
   "fr-greolieres-les-neiges": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/vh6875bx3669g5qcsq2jqq6s/Grolires_les_Neiges?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/6f/2f7d5e44b2a1cf6f_60f9bebfbfa5a4d1.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "sapins chargés de neige, chaîne blanche à l'horizon",
-   "partNeigeMesuree": 0.21,
+   "sujet": "autre",
+   "description": "Plan des pistes dessiné, forêt enneigée, encart espace débutant",
+   "partNeigeMesuree": 0.585,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "fr-gresse-en-vercors": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/89j3872vvsn58qn8qmzcrnh/Gresse_en_Vercors?auto=webp&format=png",
@@ -11905,6 +12000,16 @@
    "sujet": "pistes",
    "description": "skieur en virage sur piste damée, panorama de sommets",
    "partNeigeMesuree": 0.582,
+   "retenue": true
+  },
+  "fr-janvry-janvoriaz": {
+   "url": "https://janvry.fr/wp-content/uploads/2018/04/Janvoriaz.jpg",
+   "source": "officiel",
+   "neige": true,
+   "filigrane": false,
+   "sujet": "station",
+   "description": "Petite pente de neige, enfants à skis, terrasse en bois",
+   "partNeigeMesuree": 0.164,
    "retenue": true
   },
   "fr-l-alpe-du-grand-serre": {
@@ -12668,7 +12773,7 @@
    "description": "vaches au pâturage en été, slogan Respirez plaqué",
    "partNeigeMesuree": 0.018,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "image partagée par plusieurs domaines"
   },
   "fr-massif-des-brasses": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/q86z2qk5smrsf6jm6tvzj4mr/Les_Brasses?auto=webp&format=png",
@@ -13648,13 +13753,13 @@
    "retenue": true
   },
   "gb-south-wilts-ski-club": {
-   "url": "https://southwiltsski.com/wp-content/uploads/2026/03/2367F6D8-B093-4772-86D5-5925F0C12B1C-scaled-900x1049_c.jpg",
-   "source": "proprietaire",
+   "url": "https://i2-prod.bristolpost.co.uk/incoming/article9635529.ece/ALTERNATES/s1200/2_BRIHB_171024-south-wilts-ski-club.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "skieur sur tapis roulant gris dans une salle couverte",
-   "partNeigeMesuree": 0.007,
+   "description": "Deux skieurs casqués sur une pente artificielle intérieure",
+   "partNeigeMesuree": 0.663,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -13836,13 +13941,13 @@
    "retenue": true
   },
   "hr-platak": {
-   "url": "https://vcdn.bergfex.at/images/resized/cb/2f89a9c16ce121cb_7295715d9f19a638.jpg",
-   "source": "officiel",
+   "url": "https://platak.hr/wp-content/uploads/elementor/thumbs/ico-01-px0mluz3swpxq3vuhigkrt52d1e3d4ytbs74vdxrjk.png",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, noms Radeševo et Zavoj, numéros",
-   "partNeigeMesuree": 0.679,
+   "description": "Petit logo circulaire dessiné, soleil, lune, sapins",
+   "partNeigeMesuree": 0.0,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -14049,26 +14154,26 @@
    "retenue": true
   },
   "it-alpe-del-nevegal": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/3zbk5bgw6mrqrrm7qnw65z6z/Nevegal?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/b8/733a8a76b51ea6b8_fc3123c5d156a3c5.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "snowboard Burton planté dans la neige près d'horodateurs et arrêt de bus",
-   "partNeigeMesuree": 0.359,
+   "description": "Plan des pistes dessiné du Nevegal avec légende",
+   "partNeigeMesuree": 0.499,
    "retenue": false,
    "motif": "sujet : autre"
   },
   "it-alpe-devero": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/qq6rr3v77jnhqshgm749xx6/Alpe_Devero?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/01/033a8f1a2a85ea01_a25f1589e79c90ce.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "crête rocheuse enneigée sous ciel bleu, plateau de neige vierge devant",
-   "partNeigeMesuree": 0.237,
+   "sujet": "autre",
+   "description": "Plan des pistes dessiné, Monte Cazzola, légende des remontées",
+   "partNeigeMesuree": 0.558,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "it-alpe-teglio": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/5m7mr76qtgcxx8f4qtrq7q6r/Teglio?auto=webp&format=png",
@@ -14242,15 +14347,15 @@
    "motif": "pas de neige"
   },
   "it-area-sciistica-ventasso-laghi": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/rwc6b3pbpfxshbb5nsc858cp/Ventasso_Laghi?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
+   "url": "https://vcdn.bergfex.at/images/resized/47/553fde8d43a3fc47_8f6f153ff6be1bd9.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "crête blanche au-dessus d'une forêt, chemin enneigé, sans remontée",
-   "partNeigeMesuree": 0.121,
+   "sujet": "autre",
+   "description": "Carte schématique des pistes de Ventasso Laghi avec légende",
+   "partNeigeMesuree": 0.801,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "pas de neige"
   },
   "it-area-scistica-zum-zeri": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/nsc896qqhpxsb46jfmf9xq5/Zum_Zeri_Passo_Due_Santi?auto=webp&format=png",
@@ -14273,15 +14378,15 @@
    "retenue": true
   },
   "it-artesina": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/mb45gn8nqs5g5pfjhwrgfffs/Artesina_-_Mondol_ski?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/ad/4630d17ead6280ad_a84de836bbca393e.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "personne en veste rose projetant de la neige, contre-jour",
-   "partNeigeMesuree": 0.084,
+   "description": "Plan panoramique peint du domaine Mondolé Ski enneigé",
+   "partNeigeMesuree": 0.698,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "image partagée par plusieurs domaines"
   },
   "it-auronzo": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/8qhghjx4pz4rbk7xp92j2cb/Auronzo_di_Cadore?auto=webp&format=png",
@@ -14465,15 +14570,14 @@
    "retenue": true
   },
   "it-campo-staffi": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/hwt7xhs85pskh6jxbr3gb4k6/Campo_Staffi?auto=webp&format=png",
+   "url": "https://vcdn.bergfex.at/images/resized/1c/7938bd72e9e8f21c_5666ffff27747722.jpg",
    "source": "bergfex",
    "neige": true,
-   "filigrane": true,
+   "filigrane": false,
    "sujet": "pistes",
-   "description": "webcam horodatée, piste enneigée, ligne de télésiège, hêtres nus",
-   "partNeigeMesuree": 0.407,
-   "retenue": false,
-   "motif": "filigrane"
+   "description": "Foule de skieurs sur un large champ de neige",
+   "partNeigeMesuree": 0.49,
+   "retenue": true
   },
   "it-campo-stella": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/7fr8pnw58kkg9t6s4k5rp4kc/Campo_Stella_-_Leonessa?auto=webp&format=png",
@@ -14668,15 +14772,14 @@
    "retenue": true
   },
   "it-cristallo-faloria": {
-   "url": "https://vcdn.bergfex.at/images/resized/81/e77aa9f70e1a3181_dc79ef014c462995.jpg",
+   "url": "https://faloriacristallo.it/wp-content/uploads/2026/03/Faloria_copertina_seo.jpg",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, numéros de remontées et légendes",
-   "partNeigeMesuree": 0.292,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Skieur virant sur une piste damée, sommets rocheux derrière",
+   "partNeigeMesuree": 0.27,
+   "retenue": true
   },
   "it-deutschnofen-nova-ponente-deutschnofen-nova-ponente": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/60/09/9d/d2/f8e77355bb.jpg",
@@ -14751,15 +14854,15 @@
    "retenue": true
   },
   "it-etna-nord": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/f8j7pp2pr745nttj2nn63ppr/Etna_Nord_-_Linguaglossa?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
+   "url": "https://vcdn.bergfex.at/images/resized/c6/8dfb4101287c3cc6_8bd5aab02287f17e.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "cône volcanique enneigé et panache de fumée, sans aménagement",
-   "partNeigeMesuree": 0.239,
+   "sujet": "autre",
+   "description": "Carte topographique avec courbes de niveau et tracés colorés",
+   "partNeigeMesuree": 0.895,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "pas de neige"
   },
   "it-etna-sud-nicolosi": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/jh8h889r39kg8x75vvbb76/Etna_Sud_-_Nicolosi?auto=webp&format=png",
@@ -14833,26 +14936,26 @@
    "motif": "pas de neige"
   },
   "it-forni-di-sopra": {
-   "url": "https://vcdn.bergfex.at/images/resized/a1/dd4a06e84a9f68a1_e2e96f85d939f6f5.jpg",
-   "source": "proprietaire",
+   "url": "https://www.turismofvg.it/proxyvfs.axd/image_hd/r59216/file-jpg?v=218290&ext=.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné avec légende des remontées et services",
-   "partNeigeMesuree": 0.417,
+   "description": "Collage touristique estival, escalade, ville portuaire, aucune neige",
+   "partNeigeMesuree": 0.189,
    "retenue": false,
    "motif": "pas de neige"
   },
   "it-frabosa-soprana": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/jhgbgp6fm7fx3phgp3584344/Frabosa_Soprana_-_Mondol_Ski?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/58/ebfff4611cbca458_50c7afefd8263e72.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "panorama de sommets enneigés vu sous un auvent couvert de givre",
-   "partNeigeMesuree": 0.132,
+   "sujet": "autre",
+   "description": "Même plan panoramique peint du domaine Mondolé Ski",
+   "partNeigeMesuree": 0.698,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "image partagée par plusieurs domaines"
   },
   "it-fun-park-dell-angelo-parco-giochi": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/69q9c8vctsfkx58pbnfpn3/Tarvisio?auto=webp&format=png",
@@ -14875,15 +14978,15 @@
    "retenue": true
   },
   "it-garessio-2000": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/qrs5fgjwp7mb98386gn448r7/Garssio_2000?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/76/a3085e13b0630476_ada607a3e1d1d98d.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "crête de neige ventée au soleil couchant, sans aménagement visible",
-   "partNeigeMesuree": 0.159,
+   "sujet": "autre",
+   "description": "Plan des pistes tracé sur fond de montagne enneigée",
+   "partNeigeMesuree": 0.519,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "it-gaver": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/pbqrvjbgmhqrfjzp5bsvb/Bagolino_-_Gaver?auto=webp&format=png",
@@ -14926,15 +15029,15 @@
    "retenue": true
   },
   "it-jochgrimm-passo-oclini": {
-   "url": "https://vcdn.bergfex.at/images/resized/51/0e6ca9f57c558951_97393fefe2adaecc.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://oclini.com/webcam/webcam1.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessine Oclini Dolomites, elephant en snowboard",
-   "partNeigeMesuree": 0.721,
+   "description": "Capture webcam nocturne, télésiège, vallée éclairée, pentes sans neige",
+   "partNeigeMesuree": 0.006,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "it-kaberlaba": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/hpjkx3qpnq2j6bg3z4knff5/Asiago?auto=webp&format=png",
@@ -15039,15 +15142,15 @@
    "retenue": true
   },
   "it-lagazuoi-5-torri": {
-   "url": "https://vcdn.bergfex.at/images/resized/58/319b88b24b8cb858_a55c658204e8108d.jpg",
-   "source": "officiel",
+   "url": "https://cortinadelicious.it/Images/Super8/modalMobile400.jpg",
+   "source": null,
    "neige": true,
-   "filigrane": false,
+   "filigrane": true,
    "sujet": "autre",
-   "description": "photo aérienne enneigée annotée, tracés rouges et noms de secteurs",
-   "partNeigeMesuree": 0.266,
+   "description": "Affiche publicitaire Cortina Delicious, gros texte sur skieurs",
+   "partNeigeMesuree": 0.244,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "filigrane"
   },
   "it-lagorai": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/4q8z2ntxf7fkhrm89k7q8gk/Passo_Brocon-Marande_Funivie_Lagorai?auto=webp&format=png",
@@ -15070,15 +15173,14 @@
    "retenue": true
   },
   "it-lemelette": {
-   "url": "https://vcdn.bergfex.at/images/resized/3a/688d4a8e1db72f3a_6037435d080b72d8.jpg",
+   "url": "https://www.lemelette.it/wp-content/uploads/2026/08/lemelette_2026_banner-piste_home.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, légende des remontées et difficultés",
-   "partNeigeMesuree": 0.568,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Snowboardeur à contre-jour sur neige damée, ciel bleu",
+   "partNeigeMesuree": 0.106,
+   "retenue": true
   },
   "it-livata": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/m9qrq9ghf84hcq2pkx35ckrq/Monte_Livata?auto=webp&format=png",
@@ -15121,15 +15223,15 @@
    "retenue": true
   },
   "it-macugnaga-moro": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/2mg32sgt46wj5x8g3cxtmgn/Macugnaga?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/81/43cd32d08f96c681_e11e774da78f1ba2.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "sommets enneigés au-dessus d'une mer de nuages, skieur minuscule",
-   "partNeigeMesuree": 0.177,
+   "sujet": "autre",
+   "description": "Plan des pistes peint, vallee enneigee et sommets blancs",
+   "partNeigeMesuree": 0.646,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "it-malga-san-giorgio": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/j4nmpgpk34ws32m6hrcp66h/Lessinia_-_Malga_San_Giorgio?auto=webp&format=png",
@@ -15182,13 +15284,13 @@
    "retenue": true
   },
   "it-misurina": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/6wb5mpgc4ptt9wkxcrmg4gv/Misurina?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/c2/bca67f1c50f236c2_2aebbcb8b128cadd.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "montagne",
-   "description": "parois rocheuses enneigées au-dessus d'une forêt, crédit photo discret",
-   "partNeigeMesuree": 0.025,
+   "description": "Foret enneigee, vallee blanche et Dolomites au fond",
+   "partNeigeMesuree": 0.043,
    "retenue": false,
    "motif": "sujet : montagne"
   },
@@ -15235,15 +15337,15 @@
    "motif": "pas de neige"
   },
   "it-monte-catria": {
-   "url": "https://vcdn.bergfex.at/images/resized/ae/a88732097d453eae_2022dd0bc33e5c57.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.montecatria.com/wp-content/uploads/2020/03/Altalena-Gigante.webp",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné avec légende et sapins stylisés",
-   "partNeigeMesuree": 0.72,
+   "description": "Affiche rose estivale, trois jeunes sur balancoire geante",
+   "partNeigeMesuree": 0.014,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "it-monte-cimone": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/6rwzmz6vwr7hr36kcj4n8t4w/Cimone_-_Montecreto?auto=webp&format=png",
@@ -15469,15 +15571,14 @@
    "retenue": true
   },
   "it-pescegallo": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/qxg8bmbbnv6nsjpn5wczckjw/Pescegallo_-_Valgerola?auto=webp&format=png",
+   "url": "https://vcdn.bergfex.at/images/resized/d5/ca0efae69384f2d5_da506279b24f9cba.jpg",
    "source": "bergfex",
    "neige": true,
-   "filigrane": true,
-   "sujet": "pistes",
-   "description": "webcam surimprimée d'une adresse et d'une date, piste et télésiège",
-   "partNeigeMesuree": 0.16,
-   "retenue": false,
-   "motif": "filigrane"
+   "filigrane": false,
+   "sujet": "station",
+   "description": "Vue aerienne, gare de telesiege et skieurs sur neige",
+   "partNeigeMesuree": 0.715,
+   "retenue": true
   },
   "it-petersberg-monte-san-pietro-petersberg-monte-san-pietro": {
    "url": "https://www.skiresort.fr/fileadmin/_processed_/65/53/34/49/dce656c5f5.jpg",
@@ -15490,15 +15591,15 @@
    "retenue": true
   },
   "it-pfelders": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/qf3tbc3zq5g48m5jpchms/Plan_Val_Passiria__Pfelders?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
+   "url": "https://vcdn.bergfex.at/images/resized/df/ee0e529257e763df_8246a8f040fda24c.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "deux luges en bois rouges posées dans la neige, sommet derrière",
-   "partNeigeMesuree": 0.031,
+   "sujet": "station",
+   "description": "Cabine de telecabine en ete, montagnes vertes sans neige",
+   "partNeigeMesuree": 0.475,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "it-pian-benot": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/jj2w3vk3frtzr7w44mxpn696/Usseglio?auto=webp&format=png",
@@ -15603,15 +15704,14 @@
    "retenue": true
   },
   "it-piazzatorre-ski-area": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/5s2vgt5vfx3g3hbcwncvs663/Piazzatorre?auto=webp&format=png",
+   "url": "https://vcdn.bergfex.at/images/resized/41/a722345ab4164341_fa6537e186608feb.jpg",
    "source": "bergfex",
    "neige": true,
-   "filigrane": true,
-   "sujet": "montagne",
-   "description": "crête neigeuse et baita isolée, bandeau noir avec adresse web",
-   "partNeigeMesuree": 0.254,
-   "retenue": false,
-   "motif": "filigrane"
+   "filigrane": false,
+   "sujet": "pistes",
+   "description": "Piste damee bordee de sapins enneiges, un skieur",
+   "partNeigeMesuree": 0.235,
+   "retenue": true
   },
   "it-pila-ski": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/w3vwmc4q9vpc288gmmf7wktn/Pila?auto=webp&format=png",
@@ -15705,15 +15805,14 @@
    "retenue": true
   },
   "it-prali-448786m70569": {
-   "url": "https://vcdn.bergfex.at/images/resized/16/9ea5cc3b4b06bb16_b94941f0db874646.jpg",
+   "url": "https://www.praliskiarea.com/wp-content/uploads/2025/11/DSC08785.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan de pistes dessiné, numéros colorés, mention Pian dell'Alpet 2230 m",
-   "partNeigeMesuree": 0.686,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Skieurs sur piste enneigee sous piton rocheux, telesiege",
+   "partNeigeMesuree": 0.5,
+   "retenue": true
   },
   "it-prati-di-tivo": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/4474nj88ghhfgqpkx97zgghv/Prati_di_Tivo?auto=webp&format=png",
@@ -15727,26 +15826,26 @@
    "motif": "sujet : montagne"
   },
   "it-prato-nevoso": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/g9rq68866nzhh7c6fnqfrjm/Prato_Nevoso_-_Mondol_Ski?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
-   "filigrane": true,
-   "sujet": "pistes",
-   "description": "snowboardeur en virage, gros logo Prato Nevoso plaqué en bas",
-   "partNeigeMesuree": 0.269,
-   "retenue": false,
-   "motif": "filigrane"
-  },
-  "it-prato-selva": {
-   "url": "https://vcdn.bergfex.at/images/resized/b5/623b611f14cd23b5_64b02c61f9f83dcf.jpg",
-   "source": "officiel",
+   "url": "https://vcdn.bergfex.at/images/resized/79/c0ead0d5fce90b79_3b413beb8fda88e0.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "vue aérienne avec tracés de pistes dessinés et logo PratoSelva.it",
-   "partNeigeMesuree": 0.103,
+   "description": "Plan des pistes Mondole Ski, legende et massif enneige",
+   "partNeigeMesuree": 0.717,
    "retenue": false,
    "motif": "sujet : autre"
+  },
+  "it-prato-selva": {
+   "url": "http://www.pratoselva.it/loghi/logo_Prato_Selva_seggiovia.png",
+   "source": null,
+   "neige": false,
+   "filigrane": false,
+   "sujet": "autre",
+   "description": "Pictogramme noir d'un siege de telesiege avec skieur",
+   "partNeigeMesuree": 0.713,
+   "retenue": false,
+   "motif": "pas de neige"
   },
   "it-predaia": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/fr3c67jrvrp7bznf5ctsmb3c/Predaia?auto=webp&format=png",
@@ -15831,15 +15930,15 @@
    "retenue": true
   },
   "it-rittner-horn-corno-del-renon": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/t6jg4s5b995xhtn79zfmrg/Corno_del_Renon__Rittner_Horn?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/b5/374c74bc51d732b5_e69fc519b28a4723.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "plateau neigeux et chaîne des Dolomites, aucune remontée",
-   "partNeigeMesuree": 0.183,
+   "sujet": "autre",
+   "description": "Carte illustree des pistes avec photos et mascotte dessinee",
+   "partNeigeMesuree": 0.361,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "it-roccaraso-rivisondoli": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/5fsx9s7rp45zc9cprw4s9z/Roccaraso_-_Rivisondoli?auto=webp&format=png",
@@ -15942,15 +16041,15 @@
    "retenue": true
   },
   "it-sappada": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/4vr54fwg4s43n34c4hhhrcbr/Sappada?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/aa/0231aacc933841aa_8a1f85931af615d0.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "grange en bois sous la neige, sapins et sommets dolomitiques, aucune remontée",
-   "partNeigeMesuree": 0.375,
+   "sujet": "autre",
+   "description": "Plan des pistes de Sappada avec legende des remontees",
+   "partNeigeMesuree": 0.606,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "sujet : autre"
   },
   "it-sarnano-sassotetto": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/p74bpt9ghgkwmggtz7gb75v/Sarnano?auto=webp&format=png",
@@ -16134,13 +16233,13 @@
    "retenue": true
   },
   "it-ski-civetta": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/th2gs5g9vpjmjwxftp9qgjs/Comprensorio_Ski_Civetta?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/ca/05ab90fb29e462ca_177850068399f495.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "karts pilotés sur piste de neige damée entre murs de neige",
-   "partNeigeMesuree": 0.412,
+   "description": "Panorama dessine des pistes du Civetta, listes de remontees",
+   "partNeigeMesuree": 0.508,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -16297,13 +16396,13 @@
    "motif": "sujet : autre"
   },
   "it-val-formica": {
-   "url": "https://vcdn.bergfex.at/images/resized/e3/f39fdd35deb97fe3_dac577b916c9a3fc.jpg",
-   "source": "officiel",
+   "url": "https://www.valformica.it/wp-content/uploads/2023/01/VAL-FORMICA_home.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "Carte illustrée du domaine Val Formica, fond blanc, pictogrammes",
-   "partNeigeMesuree": 0.719,
+   "sujet": "station",
+   "description": "Grand chalet-refuge en bois éclairé, terrasse, ciel de nuit",
+   "partNeigeMesuree": 0.007,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -16318,15 +16417,15 @@
    "retenue": true
   },
   "it-valgrisenche-ski": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/8g34563c9zh4gx5g8mkzfmhp/Valgrisenche?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": false,
+   "url": "https://vcdn.bergfex.at/images/resized/3e/38e901c7ce2f173e_eec9ef5dd0337ece.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "Village et clocher en été, pré de pissenlits en fleur",
-   "partNeigeMesuree": 0.132,
+   "description": "Plan des pistes dessiné sur photo aérienne, légende et tracés",
+   "partNeigeMesuree": 0.27,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "it-valle-fura": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/shcr4t3nkk6nknx6ggsgrp5/Pescocostanzo?auto=webp&format=png",
@@ -16349,26 +16448,26 @@
    "retenue": true
   },
   "it-valtournenche": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/ks8n7g8pr66ggbfpxvmjpwgv/Valtournenche?auto=webp&format=png",
-   "source": "bergfex",
-   "neige": true,
-   "filigrane": true,
-   "sujet": "pistes",
-   "description": "Webcam : plateau enneigé, pylônes, logo Vallée d'Aoste plaqué",
-   "partNeigeMesuree": 0.077,
-   "retenue": false,
-   "motif": "filigrane"
-  },
-  "it-verena-2000": {
-   "url": "https://vcdn.bergfex.at/images/resized/02/dae549c12cab2702_15fb4d8cef6485ac.jpg",
-   "source": "officiel",
+   "url": "https://vcdn.bergfex.at/images/resized/16/3e40ba56f5122d16_d4aa9a85b49d3154.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné sur une photo aérienne enneigée",
-   "partNeigeMesuree": 0.232,
+   "description": "Panorama dessiné des pistes Cervino avec légende multilingue",
+   "partNeigeMesuree": 0.629,
    "retenue": false,
    "motif": "sujet : autre"
+  },
+  "it-verena-2000": {
+   "url": "https://www.skiverena.com/images/web/estate/ski_verena_estate_vista_panoramica_w_fb.jpg",
+   "source": null,
+   "neige": false,
+   "filigrane": false,
+   "sujet": "autre",
+   "description": "Paysage d'été, falaise rocheuse et vallée boisée verte",
+   "partNeigeMesuree": 0.378,
+   "retenue": false,
+   "motif": "pas de neige"
   },
   "it-viggiano": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/t674rmn7bpffk4m7bjnwgf3f/Montagna_Grande_di_Viggiano?auto=webp&format=png",
@@ -16453,15 +16552,14 @@
    "retenue": true
   },
   "lt-aukstagires-slidinejimo-trasa": {
-   "url": "https://aukstagireskalnas.lt/wp-content/uploads/2025/05/auks-1024x668.jpg",
+   "url": "https://kelionesakimirka.lt/wp-content/uploads/2024/12/Slidinejimo-kalnai-Lietuvoje.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "document de financement européen, logos LEADER et drapeau bleu",
-   "partNeigeMesuree": 0.924,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Piste enneigée avec skieurs, télésiège et sapins blancs",
+   "partNeigeMesuree": 0.192,
+   "retenue": true
   },
   "lt-jonavos-slidinejimo-centras": {
    "url": "https://www.jsc.lt/img/slides/slide-home.jpg",
@@ -16708,15 +16806,15 @@
    "motif": "pas de neige"
   },
   "nl-snowworld-amsterdam": {
-   "url": "https://www.skiresort.fr/fileadmin/_processed_/fc/c9/97/7d/a460e39d7d.jpg",
-   "source": "bergfex",
-   "neige": false,
+   "url": "https://vcdn.bergfex.at/images/resized/f4/02cf27a5c93bfaf4_b582adeb3db15652.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
-   "sujet": "station",
-   "description": "batiment du centre avec drapeaux et parking mouille, ete",
-   "partNeigeMesuree": 0.475,
+   "sujet": "autre",
+   "description": "Plan illustré du complexe, légende néerlandaise, piste blanche dessinée",
+   "partNeigeMesuree": 0.74,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "nl-snowworld-landgraaf": {
    "url": "https://vcdn.bergfex.at/images/resized/2e/1905b8bb2cea912e_328e848efd656278.jpg",
@@ -16740,26 +16838,26 @@
    "retenue": true
   },
   "nl-snowworld-terneuzen": {
-   "url": "https://www.skiresort.fr/fileadmin/_processed_/5a/ac/cf/f1/51f1bfe12b.jpg",
-   "source": "bergfex",
-   "neige": false,
+   "url": "https://vcdn.bergfex.at/images/resized/d0/afbc1909bd524fd0_74de8516411175ab.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
-   "sujet": "station",
-   "description": "halle de ski en été, herbe haute, éoliennes derrière",
-   "partNeigeMesuree": 0.33,
+   "sujet": "autre",
+   "description": "Plan illustré en coupe d'une halle de ski couverte",
+   "partNeigeMesuree": 0.963,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "nl-snowworld-zoetermeer": {
-   "url": "https://www.skiresort.fr/fileadmin/_processed_/2d/d3/3e/e6/70bea35496.jpg",
-   "source": "bergfex",
-   "neige": false,
+   "url": "https://vcdn.bergfex.at/images/resized/eb/c8aed29dfee7edeb_3925b6eae5b04aa0.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
-   "sujet": "station",
-   "description": "entrée et parking du complexe, arbres verts, panneau flocon",
-   "partNeigeMesuree": 0.489,
+   "sujet": "autre",
+   "description": "Plan illustré Adventure Valley Zoetermeer, légendes et bâtiments",
+   "partNeigeMesuree": 0.812,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "nl-vallei-53": {
    "url": "https://vallei53.nl/wp-content/uploads/2024/01/Terrein_HelseHeuvel_DJI_0006-edited.jpg",
@@ -17203,15 +17301,14 @@
    "retenue": true
   },
   "no-lofoten": {
-   "url": "https://alpinlofoten.no/wp-content/uploads/2020/10/cropped-Bakken.jpg",
+   "url": "https://www.norwegianadventurecompany.com/assets/main/img/bris/topptur-ski-touring-lofoten-henningsvaer-bris-bedriftsarrangement-guppetur-norway-accomodation-norwegian-adventure-company-01.jpg",
    "source": "proprietaire",
    "neige": true,
-   "filigrane": true,
+   "filigrane": false,
    "sujet": "pistes",
-   "description": "piste enneigée et canons à neige, gros logo Lofoten plaqué à gauche",
-   "partNeigeMesuree": 0.01,
-   "retenue": false,
-   "motif": "filigrane"
+   "description": "Skieur en action sur pente neigeuse dominant un fjord",
+   "partNeigeMesuree": 0.339,
+   "retenue": true
   },
   "no-lommedalen": {
    "url": "https://cloud.skiperformance.com/media/merchants/lommedalen.skiperformance.com/img/custom/default/bg-main.jpg",
@@ -17355,15 +17452,14 @@
    "retenue": true
   },
   "no-rauland-skisenter-597260m81467": {
-   "url": "https://visitrauland.com/rauland-skisenter/wp-content/uploads/sites/18/2026/01/Rauland_pistemap_4.1_web1920px_1700219330_1768395266.jpg",
+   "url": "https://visitrauland.com/rauland-skisenter/wp-content/uploads/sites/18/2019/11/Holtardalen-Drone-1920-4.jpg",
    "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, légende et noms des remontées",
-   "partNeigeMesuree": 0.408,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "station",
+   "description": "Vue aérienne d'un village de chalets enneigés, parking, remontées",
+   "partNeigeMesuree": 0.215,
+   "retenue": true
   },
   "no-rauland-skisenter-597264m81375": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/hn7rtsb999q4vmvkg85w5ssg/Rauland_AlpinsenterSkisenter?auto=webp&format=png",
@@ -17824,15 +17920,14 @@
    "retenue": true
   },
   "pl-amalka": {
-   "url": "https://vcdn.bergfex.at/images/resized/af/5d67aa3866714aaf_d55a8a098ac2ce61.jpg",
+   "url": "https://www.skiareal-amalka.cz/images/amalka/amalka-13.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessine de Harrachov, secteur Amalka entoure",
-   "partNeigeMesuree": 0.118,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Vue aérienne d'une piste enneigée en forêt, hôtel en contrebas",
+   "partNeigeMesuree": 0.2,
+   "retenue": true
   },
   "pl-andiamo": {
    "url": "https://vcdn.bergfex.at/images/resized/7d/2aa8df3b901f497d_763f4eeca6b76bba.jpg",
@@ -18080,15 +18175,15 @@
    "retenue": true
   },
   "pl-gora-czterech-wiatrow-g4w": {
-   "url": "https://vcdn.bergfex.at/images/resized/17/38529dd18e858a17_e3909329198d9ee0.jpg",
-   "source": "officiel",
-   "neige": false,
-   "filigrane": false,
+   "url": "https://g4w.pl/wp-content/uploads/2026/01/g4w.jpg",
+   "source": null,
+   "neige": true,
+   "filigrane": true,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, téléskis numérotés et pictogrammes",
-   "partNeigeMesuree": 0.706,
+   "description": "Affiche promotionnelle polonaise, gros texte sur pente enneigée",
+   "partNeigeMesuree": 0.438,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "filigrane"
   },
   "pl-gora-kamiensk": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/bpqrwh95bg2wqpm6j483twnb/Gra_Kamiesk?auto=webp&format=png",
@@ -18233,6 +18328,16 @@
    "retenue": false,
    "motif": "sujet : montagne"
   },
+  "pl-karpatka-panorama": {
+   "url": "https://www.karpacz.pl/img/wyciagi/TG_130302_Winterpol_Karpacz_0590.jpg",
+   "source": "proprietaire",
+   "neige": true,
+   "filigrane": false,
+   "sujet": "pistes",
+   "description": "Piste large enneigée, télésiège orange, dizaines de skieurs",
+   "partNeigeMesuree": 0.229,
+   "retenue": true
+  },
   "pl-kasina-ski": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/8qsrwvtm7mktt2fgxw58vfp/Kasina_Ski?auto=webp&format=png",
    "source": "skiinfo",
@@ -18244,15 +18349,15 @@
    "retenue": true
   },
   "pl-kasprowy-wierch": {
-   "url": "https://vcdn.bergfex.at/images/resized/41/15c08936db8d5341_1e4154f07eafa816.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.pkl.pl/data/pages/338/kasprowy_kolej%C2%A9jan_wierzejski-64.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan dessiné des pistes, logo PKL, vignettes de téléphérique",
-   "partNeigeMesuree": 0.185,
+   "sujet": "station",
+   "description": "Gare de téléphérique sur une crête herbeuse, été",
+   "partNeigeMesuree": 0.227,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "pl-kiczera-ski": {
    "url": "https://www.kiczeraski.pl/wp-content/uploads/2023/09/BM8A7709-scaled.jpg",
@@ -18317,15 +18422,15 @@
    "retenue": true
   },
   "pl-kompleks-pilsko-jontek": {
-   "url": "https://vcdn.bergfex.at/images/resized/60/10f33d5b01fe7f60_20166b7b0496a954.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://pilsko.org/wp-content/uploads/2026-06-22-1024x727.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan dessiné de Korbielów, pistes numérotées, parkings",
-   "partNeigeMesuree": 0.104,
+   "description": "Affiche polonaise annonçant le télésiège d'été Jontek-Buczynka",
+   "partNeigeMesuree": 0.868,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "pl-kosza-kowo": {
    "url": "https://vcdn.bergfex.at/images/resized/25/a831a1f6306cd925_2a25f27ce9b7d633.jpg",
@@ -18585,15 +18690,15 @@
    "retenue": true
   },
   "pl-pietkiewiczowka": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/spg7fvvx43t7cb6rjx65wg/Szklarska_Porba__Ski_Arena_Szrenica?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/c8/6721f8872cfc1ac8_167cc1362fd8ae5d.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
-   "sujet": "montagne",
-   "description": "crête enneigée et forêt de sapins, aucun aménagement visible",
-   "partNeigeMesuree": 0.405,
+   "sujet": "autre",
+   "description": "Plan des pistes dessiné sur photo aérienne hivernale",
+   "partNeigeMesuree": 0.237,
    "retenue": false,
-   "motif": "sujet : montagne"
+   "motif": "image partagée par plusieurs domaines"
   },
   "pl-pod-wangiem": {
    "url": "https://krainakarkonoszy.pl/wp-content/uploads/2020/01/Pod-Wangiem.jpg",
@@ -18719,15 +18824,14 @@
    "retenue": true
   },
   "pl-smolen-ski": {
-   "url": "https://smolen-ski.pl/wp-content/uploads/2021/12/51.jpg",
+   "url": "https://codziennyekspert.pl/wp-content/uploads/2023/12/Wyciag-narciarski-Smolen-Ski.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "station",
-   "description": "batiment neuf creme et cour pavee, aucune neige",
-   "partNeigeMesuree": 0.155,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Skieur en virage sur piste enneigée bordée de sapins",
+   "partNeigeMesuree": 0.079,
+   "retenue": true
   },
   "pl-sport-arena-myslenice": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/kpm464kb5q9tt9vj4cs5r39/Mylenice?auto=webp&format=png",
@@ -18740,15 +18844,14 @@
    "retenue": true
   },
   "pl-sport-dolina": {
-   "url": "https://sportdolina.pl/wp-content/uploads/2024/01/logo_no_bg.png",
+   "url": "https://sportdolina.pl/wp-content/uploads/2024/01/wyciag-narciarski-Bytom.jpg",
    "source": "proprietaire",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "logo rond vert et bleu Sport Dolina sur fond transparent",
-   "partNeigeMesuree": 0.0,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "station",
+   "description": "Vue aérienne au crépuscule, chalet éclairé, pistes enneigées",
+   "partNeigeMesuree": 0.09,
+   "retenue": true
   },
   "pl-stacja-narciarska-czarny-gron": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/gtxtbsmkmcbcwxsrr3rx7h/Rzyki_-_Czarny_Gro?auto=webp&format=png",
@@ -18833,15 +18936,15 @@
    "motif": "sujet : autre"
   },
   "pl-stacja-narciarska-skolnity": {
-   "url": "https://vcdn.bergfex.at/images/resized/54/1da2562c126cd654_4b211b5ddc41e329.jpg",
-   "source": "officiel",
-   "neige": true,
-   "filigrane": false,
+   "url": "https://skolnity.pl/wp-content/uploads/2026/04/parkirowerowe.pl_.jpg",
+   "source": null,
+   "neige": false,
+   "filigrane": true,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés rouge et bleu numérotés",
-   "partNeigeMesuree": 0.315,
+   "description": "Bandeau publicitaire de course VTT avec logo Pingwin",
+   "partNeigeMesuree": 0.005,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "pl-stacja-narciarska-suche": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/2phqjf8q9tks85h29bpxw8/Poronin__Suche?auto=webp&format=png",
@@ -18943,7 +19046,7 @@
    "description": "plan des pistes dessiné, légende des remontées à droite",
    "partNeigeMesuree": 0.237,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "image partagée par plusieurs domaines"
   },
   "pl-szwajcaria-ba-towska": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/fnb6t5t8nn6rqnbrc8stjkf/Batw_-_Szwajcaria_Batowska?auto=webp&format=png",
@@ -19066,6 +19169,16 @@
    "partNeigeMesuree": 0.473,
    "retenue": true
   },
+  "pl-zo-wik": {
+   "url": "https://www.karpacz.pl/photo/lift34/zolwik-pl_89_min.jpg",
+   "source": "proprietaire",
+   "neige": true,
+   "filigrane": false,
+   "sujet": "station",
+   "description": "Vue aérienne d'un village, grand hôtel, neige clairsemée",
+   "partNeigeMesuree": 0.051,
+   "retenue": true
+  },
   "pl-zwardon-centrum": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/t4kpj4g9jmr4kpz6f2bkn6c/Zwardo?auto=webp&format=png",
    "source": "skiinfo",
@@ -19077,15 +19190,14 @@
    "retenue": true
   },
   "pl-zwardon-ski": {
-   "url": "https://vcdn.bergfex.at/images/resized/2d/a17019888ebbc32d_0b93756c8c857128.jpg",
+   "url": "https://www.zwardonski.pl/images/banners/slider-01.jpg",
    "source": "officiel",
-   "neige": false,
+   "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, tableau des remontées et horaires",
-   "partNeigeMesuree": 0.572,
-   "retenue": false,
-   "motif": "pas de neige"
+   "sujet": "pistes",
+   "description": "Panorama de piste enneigée, télésiège orange, arbres givrés",
+   "partNeigeMesuree": 0.009,
+   "retenue": true
   },
   "pt-serra-da-estrela": {
    "url": "https://cdn.assec.app/repo/turistrela/estanciaski/upload/content//ws-1657902551565-275853400_2028167857388722_7164302785299747607_n.webp",
@@ -19927,37 +20039,36 @@
    "retenue": true
   },
   "si-celjska-koca": {
-   "url": "https://vcdn.bergfex.at/images/resized/03/9fd166c97c9efc03_770865abf2600d2a.jpg",
-   "source": "proprietaire",
-   "neige": true,
+   "url": "https://celjska-koca.si/wp-content/uploads/2025/05/IMG_6837-1024x683.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné en 3D, légende des téléskis",
-   "partNeigeMesuree": 0.31,
+   "description": "Chambre d'hôtel avec deux lits, parquet, plante verte",
+   "partNeigeMesuree": 0.408,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "si-cerkno": {
-   "url": "https://vcdn.bergfex.at/images/resized/22/426ffc0c8db8e822_6f7367061e6b68b4.jpg",
-   "source": "officiel",
-   "neige": true,
-   "filigrane": true,
+   "url": "https://www.hotel-cerkno.com/assets/david-barajas-CMajP7KvGCA-unsplash-1.jpg",
+   "source": null,
+   "neige": false,
+   "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, titre HOTEL CERKNO plaqué dessus",
-   "partNeigeMesuree": 0.205,
+   "description": "Collines boisées vertes en été, chapelle blanche isolée",
+   "partNeigeMesuree": 0.024,
    "retenue": false,
-   "motif": "filigrane"
+   "motif": "pas de neige"
   },
   "si-gace": {
-   "url": "https://vcdn.bergfex.at/images/resized/bc/74048818fb1be4bc_ed772197d386d7a0.jpg",
+   "url": "https://scgace.si/storage/images/contentEditor/world-snow-day-21jan2024-dron-bornamp-11.webp",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés colorés et pictogrammes de remontées",
-   "partNeigeMesuree": 0.188,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Vue aérienne de pistes enneigées taillées dans la forêt",
+   "partNeigeMesuree": 0.084,
+   "retenue": true
   },
   "si-globoki-klanec": {
    "url": "https://siol.net/media/img/3d/5f/d0965d67702f8f49ba55-smucisce-globoki-klanec.jpeg",
@@ -19971,15 +20082,15 @@
    "motif": "sujet : autre"
   },
   "si-golte": {
-   "url": "https://vcdn.bergfex.at/images/resized/27/8f885de012960527_196ef736a235c69d.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://golte.si/wp-content/uploads/2023/10/Zipline_dozivite.png",
+   "source": null,
+   "neige": false,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "carte panoramique des pistes de Golte, légende et logo en bas",
-   "partNeigeMesuree": 0.258,
+   "sujet": "station",
+   "description": "Tyrolienne au-dessus de l'hôtel du plateau, forêts vertes d'été",
+   "partNeigeMesuree": 0.026,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "si-izver": {
    "url": "https://vcdn.bergfex.at/images/resized/74/a7c1b14436283174_301b30551c852978.jpg",
@@ -20035,15 +20146,14 @@
    "retenue": true
   },
   "si-krvavec": {
-   "url": "https://vcdn.bergfex.at/images/resized/df/d427a0b4e70c6fdf_26e5031c2fcfcca2.jpg",
+   "url": "https://travelslovenia.org/wp-content/uploads/2019/04/krvavec-ski-resort-chairlifts-04.jpg",
    "source": "proprietaire",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes Krvavec sur photo, numéros, logo et liste des remontées",
-   "partNeigeMesuree": 0.404,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "station",
+   "description": "Télésiège chargé de skieurs au-dessus du front de neige animé",
+   "partNeigeMesuree": 0.227,
+   "retenue": true
   },
   "si-mojstrana": {
    "url": "https://vcdn.bergfex.at/images/resized/39/dbe42d2b30c6d739_9c6e324768cba603.jpg",
@@ -20077,15 +20187,15 @@
    "retenue": true
   },
   "si-rogla": {
-   "url": "https://vcdn.bergfex.at/images/resized/ea/33fed5708b59b1ea_c80fcbefcb07566f.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://cms.unitur.eu/media/fhoahyeb/logotiprogla.png?width=1200",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes tracé sur une photo aérienne enneigée",
-   "partNeigeMesuree": 0.221,
+   "description": "Logo rouge et gris Rogla sur fond blanc",
+   "partNeigeMesuree": 0.948,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "si-rudno": {
    "url": "https://vcdn.bergfex.at/images/resized/35/c6b7d986c88c5c35_b44ce7531e3fc95c.jpg",
@@ -20099,15 +20209,15 @@
    "motif": "pas de neige"
   },
   "si-sella-nevea-kanin-sella-nevea-canin-kanin-sella-nevea": {
-   "url": "https://vcdn.bergfex.at/images/resized/f0/8e3341a418b977f0_7c19845b0d47015a.jpg",
-   "source": "proprietaire",
-   "neige": false,
+   "url": "https://slovenia-outdoor.com/wp-content/uploads/2019/11/KANIN-SELLA-NEVEA.jpg",
+   "source": null,
+   "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "carte panoramique dessinée Kanin-Bovec et Sella Nevea, remontées numérotées",
-   "partNeigeMesuree": 0.056,
+   "description": "Plan dessiné des pistes, Sella Nevea et Bovec annotés",
+   "partNeigeMesuree": 0.229,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "sujet : autre"
   },
   "si-smucisca-mariborsko-pohorje": {
    "url": "https://vcdn.bergfex.at/images/resized/3b/a4e4c5d90471073b_1fbec1b8fcf5f4c8.jpg",
@@ -20121,13 +20231,13 @@
    "motif": "pas de neige"
   },
   "si-soriska-planina": {
-   "url": "https://vcdn.bergfex.at/images/resized/ef/ccf16a5e585993ef_bde56a3ce2b03447.jpg",
-   "source": "officiel",
+   "url": "https://www.soriska-planina.si/assets/img/summerinfo.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "carte dessinée des pistes avec liste des remontées ouvertes",
-   "partNeigeMesuree": 0.45,
+   "description": "Vététiste en maillot jaune sur sentier herbeux, plein été",
+   "partNeigeMesuree": 0.398,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -20184,13 +20294,13 @@
    "motif": "pas de neige"
   },
   "si-vogel": {
-   "url": "https://vcdn.bergfex.at/images/resized/96/eae051d8a598a496_824a5d2b786038b4.jpg",
-   "source": "officiel",
+   "url": "https://vogel.si/wp-content/uploads/2024/04/Vogel-poletje-1024x560.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes avec panneaux d'information et liste des restaurants",
-   "partNeigeMesuree": 0.342,
+   "description": "Lac de Bohinj vu d'en haut, versants verts",
+   "partNeigeMesuree": 0.071,
    "retenue": false,
    "motif": "pas de neige"
   },
@@ -20263,7 +20373,7 @@
    "description": "famille en randonnée estivale sur sentier rocheux, aucune neige",
    "partNeigeMesuree": 0.116,
    "retenue": false,
-   "motif": "pas de neige"
+   "motif": "image partagée par plusieurs domaines"
   },
   "sk-cicmany": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/9pvwvnf9c3jjm94mgnj2vb8/imany?auto=webp&format=png",
@@ -20326,15 +20436,15 @@
    "retenue": true
   },
   "sk-jasna-low-tatras": {
-   "url": "https://vcdn.bergfex.at/images/resized/27/3fafbe5dbfcea527_0fcae9c52769c78c.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://www.jasna.sk/fileadmin/resort_upload/jasna/jesen_v_jasnej.jpg",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, massif blanc, logo Jasna",
-   "partNeigeMesuree": 0.487,
+   "description": "Famille en randonnée estivale sur une crête rocheuse ensoleillée",
+   "partNeigeMesuree": 0.116,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "image partagée par plusieurs domaines"
   },
   "sk-julius": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/jnj69hjb9qkrspq7s4m3pq4g/Vyn_Slan__Jlius?auto=webp&format=png",
@@ -20427,13 +20537,13 @@
    "retenue": true
   },
   "sk-kubinska-hola": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/n43jhc59ht9q38nr775x8z/SKI_PARK_Kubnska?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/cb/8b3f6b5108e2b9cb_69ecb763450fac49.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "verres de vin chaud sur barrière enneigée, télésiège derrière",
-   "partNeigeMesuree": 0.34,
+   "description": "Plan des pistes Kubínska hoľa avec légende des remontées",
+   "partNeigeMesuree": 0.363,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -20518,15 +20628,15 @@
    "retenue": true
   },
   "sk-malino-brdo": {
-   "url": "https://vcdn.bergfex.at/images/resized/6d/1a3278510059b66d_661df94e810dfedb.jpg",
-   "source": "officiel",
-   "neige": true,
+   "url": "https://skipark.sk/wp-content/uploads/2026/04/mesto-ruzomberok-logo.webp",
+   "source": null,
+   "neige": false,
    "filigrane": false,
    "sujet": "autre",
-   "description": "plan des pistes dessiné, tracés colorés et encart du secteur débutants",
-   "partNeigeMesuree": 0.322,
+   "description": "Blason de Ružomberok tracé en noir sur fond noir",
+   "partNeigeMesuree": 0.0,
    "retenue": false,
-   "motif": "sujet : autre"
+   "motif": "pas de neige"
   },
   "sk-martinske-hole": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/vgb6s9f5jnc73mg5fvvbwb8/Martinsk_Hole?auto=webp&format=png",
@@ -20599,13 +20709,13 @@
    "retenue": true
   },
   "sk-polomka-bucnik": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/h7wnbckkmkx88v4t773x9g6n/Polomka?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/90/3227f13a37487f90_96cb2e7e7159f2be.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "grandes luges en bois au premier plan, dameuse rouge derrière",
-   "partNeigeMesuree": 0.234,
+   "description": "Plan dessiné des pistes avec tableau des longueurs",
+   "partNeigeMesuree": 0.241,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -20640,15 +20750,14 @@
    "retenue": true
   },
   "sk-regetovka": {
-   "url": "https://vcdn.bergfex.at/images/resized/cc/3e8cc92e2cda7ccc_2f379531c5445de7.jpg",
+   "url": "https://regetovka.sk/wp-content/uploads/2022/12/skiing-g63940bbcd_1920-1.webp",
    "source": "officiel",
    "neige": true,
    "filigrane": false,
-   "sujet": "autre",
-   "description": "plan des pistes dessiné, remontées numérotées, Dolný et Horný svah",
-   "partNeigeMesuree": 0.13,
-   "retenue": false,
-   "motif": "sujet : autre"
+   "sujet": "pistes",
+   "description": "Jeune enfant en combinaison rose skiant sur piste damée",
+   "partNeigeMesuree": 0.343,
+   "retenue": true
   },
   "sk-relax-center-plejsy": {
    "url": "https://cdn.bfldr.com/WIENNW6Q/as/wbh4qrsknx7jw7gn9fw9rv/Plejsy?auto=webp&format=png",
@@ -21026,13 +21135,13 @@
    "retenue": true
   },
   "sk-ski-zabava-hrustin": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/h7928s5w8g8p3qbmnkcbmnq/Ski_Zbava__Hrutn?auto=webp&format=png",
-   "source": "bergfex",
+   "url": "https://vcdn.bergfex.at/images/resized/5a/4fd1011f6dc82e5a_79534e86367d6c6e.jpg",
+   "source": null,
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "deux personnes posant assises sur des skis plantés",
-   "partNeigeMesuree": 0.194,
+   "description": "Plan des pistes Hruštín, snowpark et zone freeride indiqués",
+   "partNeigeMesuree": 0.134,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -21137,13 +21246,13 @@
    "retenue": true
   },
   "sk-stary-smokovec": {
-   "url": "https://cdn.bfldr.com/WIENNW6Q/as/q5w4ffw75wh6xwmczqb2qqk/Star_Smokovec?auto=webp&format=png",
-   "source": "skiresort",
+   "url": "https://vcdn.bergfex.at/images/resized/47/3991d2fece04bc47_65c215f2c439d668.jpg",
+   "source": "bergfex",
    "neige": true,
    "filigrane": false,
    "sujet": "autre",
-   "description": "portrait posé de quatre jeunes en luge, bras levés, ciel bleu",
-   "partNeigeMesuree": 0.118,
+   "description": "plan des pistes dessiné des Hautes Tatras, légende et pictogrammes",
+   "partNeigeMesuree": 0.437,
    "retenue": false,
    "motif": "sujet : autre"
   },
@@ -21365,13 +21474,13 @@
    "motif": "pas de neige"
   },
   "ua-voievodyno": {
-   "url": "https://voevodyno.com/wp-content/uploads/2025/02/vasya.shtefaniak-71-scaled-optimized.jpg",
-   "source": "proprietaire",
+   "url": "https://voevodyno.com/wp-content/uploads/2024/02/vasya.shtefaniak-182-scaled-optimized.jpg",
+   "source": null,
    "neige": false,
    "filigrane": false,
    "sujet": "station",
-   "description": "portail blanc à toit de bois, arbre fleuri, pelouse",
-   "partNeigeMesuree": 0.076,
+   "description": "Chalets en bois, famille sur allée, feuillage d'automne",
+   "partNeigeMesuree": 0.002,
    "retenue": false,
    "motif": "pas de neige"
   }

@@ -19,7 +19,7 @@
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
  "domaines": 2781,
- "avecPhoto": 1655,
+ "avecPhoto": 1525,
  "avecForfait": 1930,
  "vues": {
   "ad-grandvalira": {
@@ -3264,15 +3264,7 @@
    }
   },
   "at-brunnalm-hohe-veitsch": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "veitsch-brunnalm",
-    "nom": "Station de ski Brunnalm / Hohe Veitsch",
-    "km": 0.26,
-    "url": "https://vcdn.bergfex.at/images/resized/66/03c0ebf73563d966_70f4f855ab61a8a6.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "styrie/veitsch-brunnalm",
@@ -5338,15 +5330,7 @@
    }
   },
   "at-filzmoos-neuberg": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "filzmoos",
-    "nom": "Station de ski Filzmoos / Ski amade",
-    "km": 1.24,
-    "url": "https://vcdn.bergfex.at/images/resized/2c/8d57951790dd202c_aa44bab4c9fd9b00.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "filzmoos",
@@ -5908,15 +5892,7 @@
    }
   },
   "at-flattnitz": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "flattnitz",
-    "nom": "Station de ski Flattnitz",
-    "km": 0.48,
-    "url": "https://vcdn.bergfex.at/images/resized/f8/b923ab1cca4ac7f8_abc161aba245ae0d.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "carinthie/flattnitz",
@@ -10693,15 +10669,7 @@
    }
   },
   "at-gro-glockner-heiligenblut": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "skiheiligenblut",
-    "nom": "Station de ski Heiligenblut / Grossglockner",
-    "km": 1.25,
-    "url": "https://vcdn.bergfex.at/images/resized/55/1595917ac56d7455_9594f7526d9b9090.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "carinthie/heiligenblut",
@@ -12005,15 +11973,7 @@
    }
   },
   "at-heidialm": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "falkert",
-    "nom": "Station de ski Falkert HEIDI ALM BergResort",
-    "km": 0.11,
-    "url": "https://vcdn.bergfex.at/images/resized/69/2f69bb7d5843c869_d027d601ae18f338.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "carinthie/falkert",
@@ -15159,15 +15119,7 @@
    }
   },
   "at-kaiserau": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "kaiserau",
-    "nom": "Station de ski Kaiserau / Admont / Schneebären",
-    "km": 0.21,
-    "url": "https://vcdn.bergfex.at/images/resized/b2/10360071d0b7eab2_db189bccbd5cfa02.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "styrie/kaiserau",
@@ -16639,15 +16591,7 @@
    }
   },
   "at-kasberg-grunau-almtal": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "gruenau-kasberg",
-    "nom": "Station de ski Kasberg / Grünau im Almtal",
-    "km": 0.89,
-    "url": "https://vcdn.bergfex.at/images/resized/66/f7d54781db47f366_0f1a9a4d0b8d40b7.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "haute-autriche/kasberg-gruenau",
@@ -16787,15 +16731,7 @@
    }
   },
   "at-katschberg-aineck": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.katschi.at/",
-    "nom": "Katschberg-Aineck",
-    "km": 0,
-    "url": "https://www.katschi.at/files/content/content/almspielplatz/KREATIV-katschi-almspielplatz-08-2024-11.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "katschberg",
@@ -19008,15 +18944,7 @@
    }
   },
   "at-kro-bach": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.stubai.at/skigebiete/elferbahnen/winter/skifahren/uebungsland-kroessbach/",
-    "nom": "Krößbach",
-    "km": 0,
-    "url": "https://www.stubai.at/fileadmin/userdaten/allgemein/logos/logo-elferbahnen.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "kroessbach",
@@ -24839,15 +24767,7 @@
    }
   },
   "at-planai-hochwurzen": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.planai.at",
-    "nom": "Planai & Hochwurzen",
-    "km": 0,
-    "url": "https://dqq9mwzzr5k9i.cloudfront.net/Planai/Logo/8450/image-thumb__8450__open-graph/PLAN_Logo_Planai_grau_gruen.e591dfe3.png",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "hochwurzen",
@@ -27907,15 +27827,7 @@
    }
   },
   "at-salzstiegl-470620m148731": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "salzstiegl",
-    "nom": "Station de ski Salzstiegl / Hirschegg",
-    "km": 0.36,
-    "url": "https://vcdn.bergfex.at/images/resized/e2/249aa15427232fe2_ef02233b9b8e12e6.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "salzstiegl",
@@ -28414,15 +28326,7 @@
    }
   },
   "at-schizentrum-rettenbach": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.sz-rettenbach.at/",
-    "nom": "Schizentrum Rettenbach",
-    "km": 0,
-    "url": "https://www.sz-rettenbach.at/wp-content/uploads/2026/08/Flyer_vorne-1140x395.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "rettenbach-bernstein",
@@ -33560,15 +33464,7 @@
    }
   },
   "at-skicircus-saalbach-hinterglemm-leogang-fieberbrunn": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "leogang",
-    "nom": "Station de ski Leogang / Saalbach Hinterglemm Fieberbrunn",
-    "km": 0.5,
-    "url": "https://vcdn.bergfex.at/images/resized/1b/6f4c7046d713d81b_429a88effeb8a642.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "leogang",
@@ -35411,15 +35307,7 @@
    "forfait": null
   },
   "at-skilift-floiten-ginzling": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.ginzling.net/fraktion/einrichtungen/floitenlift",
-    "nom": "Skilift Floiten Ginzling",
-    "km": 0,
-    "url": "https://image.jimcdn.com/app/cms/image/transf/dimension=1920x1024:format=jpg/path/s0842d8909666309f/image/iad8c252c4e7d2ef3/version/1543508479/image.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "floitenlift-ginzling",
@@ -36690,15 +36578,7 @@
    "forfait": null
   },
   "at-sonntag-stein": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.seilbahnen-sonntag.at/",
-    "nom": "Sonntag Stein",
-    "km": 0,
-    "url": "https://seilbahnen-sonntag.at/og-image.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "sonntag",
@@ -38327,15 +38207,7 @@
    }
   },
   "at-stubai": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.stubai.at/",
-    "nom": "Stubai",
-    "km": 0,
-    "url": "https://www.stubai.at/fileadmin/userdaten/allgemein/logos/stubai-logo.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "proprietaire",
     "cle": "https://www.skiinfo.fr/autriche/forfaits-de-ski",
@@ -38866,15 +38738,7 @@
    }
   },
   "at-stuhleck-semmering": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.stuhleck.at/",
-    "nom": "Stuhleck - Semmering",
-    "km": 0,
-    "url": "https://www.stuhleck.at/og.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "semmering-stuhleck",
@@ -40961,15 +40825,7 @@
    }
   },
   "at-turracher-hohe-469281m138726": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.turracherhoehe.at/",
-    "nom": "Turracher Höhe",
-    "km": 0,
-    "url": "https://www.turracherhoehe.at/uploads/media/600x400/04/1534-TH%20Almbutler_%20%28c%29%20Peter%20Maier_3.jpg?v=1-0",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "turracherhoehe",
@@ -42509,15 +42365,7 @@
    }
   },
   "at-wagrain": {
-   "photo": {
-    "source": "officiel",
-    "cle": "http://www.bergbahnen-wagrain.at/",
-    "nom": "Wagrain",
-    "km": 0,
-    "url": "https://www.snow-space.com/_default_upload_bucket/5581/image-thumb__5581__og-image/26_Header_Startseite_Fr%C3%BChbucher_1920x886px_DE.ce15490f.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "sankt-johann-alpendorf",
@@ -43954,15 +43802,7 @@
    }
   },
   "at-wexl-arena": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.wexlarena.at/",
-    "nom": "Wexl Arena",
-    "km": 0,
-    "url": "https://a.storyblok.com/f/286149173760273/0x0/dc35508c03/dji_0010.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "stcorona",
@@ -46318,15 +46158,7 @@
    }
   },
   "be-snow-valley-peer-ski-snowboardcentre": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "snow-valley",
-    "nom": "Station de ski Snow Valley",
-    "km": 0.16,
-    "url": "https://vcdn.bergfex.at/images/resized/ea/cfd6b9da03bed1ea_bd28df8e213cae17.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "snow-valley-peer",
@@ -47993,15 +47825,7 @@
    }
   },
   "ch-arolla": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "arolla",
-    "nom": "Station de ski Arolla",
-    "km": 0.66,
-    "url": "https://vcdn.bergfex.at/images/resized/a1/53fd06c046f07da1_3fbb0ff85a7f98f8.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "arolla",
@@ -48329,15 +48153,7 @@
    }
   },
   "ch-atzmannig": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.atzmaennig.ch/",
-    "nom": "Atzmännig",
-    "km": 0,
-    "url": "https://www.atzmaennig.ch/images/max-image/atzmaennig_sommer_wetter_01.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "atzmaennig",
@@ -49248,15 +49064,7 @@
    }
   },
   "ch-beckenhalde": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.feldsg.ch/",
-    "nom": "Beckenhalde",
-    "km": 0,
-    "url": "https://image.jimcdn.com/app/cms/image/transf/dimension=1920x10000:format=jpg/path/s5f71ecdf41707b4f/image/i5aeaa13fc96a7fe8/version/1464636865/image.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "beckenhalde-st-gallen",
@@ -49761,15 +49569,7 @@
    }
   },
   "ch-biel-kinzig": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.biel-kinzigag.ch/",
-    "nom": "Biel - Kinzig",
-    "km": 0,
-    "url": "https://www.biel-kinzigag.ch/wp-content/uploads/2025/12/Winterawards_Banner_V2.png",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "biel-kinzig-buerglen",
@@ -50628,16 +50428,7 @@
    }
   },
   "ch-brunni-holzegg-rotenflue": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "media.myswitzerland.com",
-    "nom": null,
-    "km": 0,
-    "url": "https://media.myswitzerland.com/image/fetch/c_lfill,g_auto,w_3200,h_1800/f_auto,q_80,fl_keep_iptc/https://contentapi-swissactivities.imgix.net/contentapi.staging.swissactivities/c3ecf3492032aa403a868a224ab36920.jpg",
-    "titre": null,
-    "corroboration": "office-du-pays",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "proprietaire",
     "cle": "https://www.skiinfo.fr/suisse/forfaits-de-ski",
@@ -52255,15 +52046,7 @@
    }
   },
   "ch-cioss-prato": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://ciossprato.jimdofree.com/",
-    "nom": "Cioss Prato",
-    "km": 0,
-    "url": "https://image.jimcdn.com/app/cms/image/transf/dimension=4096x4096:format=jpg/path/s11087696424f3b69/image/ic184a64964d35526/version/1743500000/image.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "cioss-prato-bedretto",
@@ -52657,15 +52440,7 @@
    }
   },
   "ch-cret-du-puy": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.cretdupuy.com/",
-    "nom": "Crêt-du-Puy",
-    "km": 0,
-    "url": "https://www.cretdupuy.com/images/contenu/Station-ski-Cret-du-Puy-Plan-des-Piste--1-.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "le-paquier-cret-du-puy",
@@ -54681,15 +54456,7 @@
    }
   },
   "ch-gantrisch-gurnigel": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "gantrisch-gurnigel",
-    "nom": "Station de ski Gantrisch",
-    "km": 0.07,
-    "url": "https://vcdn.bergfex.at/images/resized/ba/7c9c5bad0966a6ba_92886fdd2f9e22a0.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "region-de-bern/gurnigelbad-gantrisch",
@@ -54869,15 +54636,7 @@
    }
   },
   "ch-gantrisch-rueschegg": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.gantrisch.ch/",
-    "nom": "Gantrisch - Rueschegg",
-    "km": 0,
-    "url": "https://www.gantrisch.ch/wp-content/uploads/2022/11/gantrisch_A_region_v3.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "region-de-bern/rueschegg-eywald",
@@ -56458,15 +56217,7 @@
    "forfait": null
   },
   "ch-habkern": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "habkern",
-    "nom": "Station de ski Habkern",
-    "km": 0.97,
-    "url": "https://vcdn.bergfex.at/images/resized/43/dbbb3cef4821b743_0ef8e7f12d02cd40.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "oberland-bernois/habkern",
@@ -57202,15 +56953,7 @@
    }
   },
   "ch-hohe-winde": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.hohe-winde.ch/",
-    "nom": "Hohe Winde",
-    "km": 0,
-    "url": "https://www.hohe-winde.ch/images/2023/04/20/wingae-beiz.jpg",
-    "titre": "Winggä-Beiz",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "hohe-winde-beinwil",
@@ -58824,15 +58567,7 @@
    "forfait": null
   },
   "ch-l-abbaye": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.myvalleedejoux.ch",
-    "nom": "L'Abbaye",
-    "km": 0,
-    "url": "https://static.mycity.travel/manage/uploads/6/26/44869/4b1b25940fb7902d4bb3fdb35df60b0365d49b11_1080.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "labbaye",
@@ -59052,15 +58787,7 @@
    }
   },
   "ch-la-chia": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "bulle-lachia",
-    "nom": "Station de ski Bulle",
-    "km": 3.74,
-    "url": "https://vcdn.bergfex.at/images/resized/8f/2f25e4c3254bb58f_bd83e9f627f3424f.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "fribourg/bulle-la-chia",
@@ -59390,15 +59117,7 @@
    }
   },
   "ch-la-forclaz-vd": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.teleskislaforclaz.ch/",
-    "nom": "La Forclaz VD",
-    "km": 0,
-    "url": "https://image.jimcdn.com/app/cms/image/transf/none/path/sc8caa11a5bf55f79/backgroundarea/i5aa7dea962c81a7d/version/1669905450/image.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "villars",
@@ -60068,15 +59787,7 @@
    }
   },
   "ch-langenbruck": {
-   "photo": {
-    "source": "officiel",
-    "cle": "http://deinkick.ch/",
-    "nom": "Langenbruck",
-    "km": 0,
-    "url": "https://deinkick.ch/wp-content/uploads/DeinKick_Bild_Solarbob_02.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "langenbruck",
@@ -62001,12 +61712,13 @@
   },
   "ch-maloja": {
    "photo": {
-    "source": "officiel",
-    "cle": "https://www.bregaglia.ch/de/alpinski",
-    "nom": "Maloja",
+    "source": "proprietaire",
+    "cle": "www.myswitzerland.com",
+    "nom": null,
     "km": 0,
-    "url": "https://www.bregaglia.ch/images/bregaglia/vivere_la_bregaglia/attivita/bet_prezzi_ski_85x130_print_def.jpg",
+    "url": "https://www.myswitzerland.com/-/media/st/gadmin/images/cities/winter/cities/maloja_wi_34414.jpg",
     "titre": null,
+    "corroboration": "nom",
     "servi": true
    },
    "forfait": null
@@ -62222,15 +61934,7 @@
    }
   },
   "ch-mayens-de-conthey": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.teleconthey.ch/",
-    "nom": "Mayens de Conthey",
-    "km": 0,
-    "url": "https://www.teleconthey.ch/custom-storage/logo.svg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "teleconthey-mayens-de-conthey",
@@ -62699,15 +62403,7 @@
    }
   },
   "ch-mogno": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://mognofreetime.ch/",
-    "nom": "Mogno",
-    "km": 0,
-    "url": "https://mognofreetime.ch/webcam/webcam/RISALITA20260921_235332.jpg",
-    "titre": "webcam mogno",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "mogno",
@@ -63537,15 +63233,7 @@
    }
   },
   "ch-nara": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.nara.ch/",
-    "nom": "Nara",
-    "km": 0,
-    "url": "https://nara.ch/wp-content/uploads/2025/06/immagine-condivisione-sito-social-1024x538.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "tessin/nara",
@@ -64099,15 +63787,7 @@
    }
   },
   "ch-oberegg": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://skilift-oberegg.ch",
-    "nom": "Oberegg",
-    "km": 0,
-    "url": "https://skilift-oberegg.ch/wp-content/uploads/2015/11/Home1_geschl.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "oberegg-sankt-anton",
@@ -64769,15 +64449,7 @@
    }
   },
   "ch-pany": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.skiliftpany.ch/",
-    "nom": "Pany",
-    "km": 0,
-    "url": "https://image.jimcdn.com/app/cms/image/transf/none/path/sc56eb23b01581d20/backgroundarea/i1645bae78a79c910/version/1611743967/image.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "pany-luzein",
@@ -65177,29 +64849,8 @@
     }
    }
   },
-  "ch-pradaschier": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "vcdn.bergfex.at",
-    "nom": null,
-    "km": 0,
-    "url": "https://vcdn.bergfex.at/images/resized/5c/ad6856c49370425c_76959536cb9bd92e.jpg",
-    "titre": null,
-    "corroboration": "bergfex",
-    "servi": true
-   },
-   "forfait": null
-  },
   "ch-prato-leventina": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.sciliftprato.ch/",
-    "nom": "Prato Leventina",
-    "km": 0,
-    "url": "https://image.jimcdn.com/app/cms/image/transf/dimension=1920x10000:format=jpg/path/se72bf71858d26b28/image/i05b600db700f9e3f/version/1789571493/image.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "prato-leventina",
@@ -65367,15 +65018,7 @@
    }
   },
   "ch-ratzi": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.ratzi.ch/",
-    "nom": "Ratzi",
-    "km": 0,
-    "url": "https://ratzi.ch/files/Seilbahn/SSSOMMMEr/_fullSizeAuto/Computerformat-4_3-Seilbahn-Spiringen-Ratzi.jpg",
-    "titre": "Computerformat 4 3 Seilbahn Spiringen Ratzi",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "ratzi-spiringen",
@@ -66817,15 +66460,7 @@
    }
   },
   "ch-saint-george": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.stgeorge.ch/",
-    "nom": "Saint George",
-    "km": 0,
-    "url": "https://www.stgeorge.ch/upload/facebook-image.gif",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "saint-george",
@@ -69949,15 +69584,7 @@
    }
   },
   "ch-sternenberg": {
-   "photo": {
-    "source": "officiel",
-    "cle": "http://www.skilift-sternenberg.ch/",
-    "nom": "Sternenberg",
-    "km": 0,
-    "url": "http://www.skilift-sternenberg.ch/images/parafactpanop710765a9790964208.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "sitzberg",
@@ -71125,15 +70752,7 @@
    }
   },
   "ch-vals": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "vals",
-    "nom": "Station de ski Vals",
-    "km": 0.78,
-    "url": "https://vcdn.bergfex.at/images/resized/51/035b216ea0e04e51_075b8b6551a5ef06.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "les-grisons/vals",
@@ -73930,19 +73549,6 @@
     }
    }
   },
-  "cz-biocel-zlatnik": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "www.ceskehory.cz",
-    "nom": null,
-    "km": 0,
-    "url": "https://www.ceskehory.cz/objekty/data/ski/biocelzlatnik/imagew.jpg",
-    "titre": null,
-    "corroboration": "nom",
-    "servi": true
-   },
-   "forfait": null
-  },
   "cz-bournak": {
    "photo": {
     "source": "skiinfo",
@@ -74500,15 +74106,7 @@
    }
   },
   "cz-dalecin": {
-   "photo": {
-    "source": "officiel",
-    "cle": "http://www.skidalecin.cz/Dalecin/index2.html",
-    "nom": "Dalečín",
-    "km": 0,
-    "url": "http://www.skidalecin.cz/Dalecin/pict/dalecin_t.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": null,
    "pistes": {
     "km": 2.5,
@@ -76950,18 +76548,6 @@
     }
    }
   },
-  "cz-komari-vizka": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.skikomarivizka.cz/",
-    "nom": "Komáří vížka",
-    "km": 0,
-    "url": "https://www.icesty.cz/wp-content/uploads/2024/08/viden-945x430.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
   "cz-koprivna": {
    "photo": {
     "source": "skiinfo",
@@ -79207,15 +78793,7 @@
    "forfait": null
   },
   "cz-medenec-alsovka": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://alsovka.cz/",
-    "nom": "Měděnec - Alšovka",
-    "km": 0,
-    "url": "https://alsovka.cz/wp-content/uploads/Kotivna_20205_C.jpg",
-    "titre": "Kotvinské pedály 2026",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "alsovka-medenec",
@@ -79471,18 +79049,6 @@
      "saisonEnfant": null
     }
    }
-  },
-  "cz-nove-mesto-na-morave": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.skiharusak.cz/",
-    "nom": "Nové Město na Moravě",
-    "km": 0,
-    "url": "https://skiharusak.cz/wp-content/uploads/2014/12/logoh.png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
   },
   "cz-orlicke-zahori": {
    "photo": {
@@ -81490,15 +81056,7 @@
    }
   },
   "cz-ski-areal-janova-hora": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.janova-hora.cz/lyzarsky-areal-janovahora.aspx",
-    "nom": "Ski areál Janova hora",
-    "km": 0,
-    "url": "https://www.janova-hora.cz/files/Bottom/mb-mapa.jpg",
-    "titre": "Mapa",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "janova-hora",
@@ -84168,15 +83726,7 @@
    }
   },
   "cz-skiareal-pysna": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.skipysna.cz/",
-    "nom": "Skiareál Pyšná",
-    "km": 0,
-    "url": "https://8734fb5f06.clvaw-cdnwnd.com/b5a7d92d6a02a89af7d7e3f77b92a5e5/200000069-372da38284/700/logo%20lk%20prostor%20kolem.jpg?ph=8734fb5f06",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "pysna",
@@ -96221,15 +95771,7 @@
    }
   },
   "de-neuastenberg-postwiese": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "postwiese-neuastenberg",
-    "nom": "Station de ski Postwiese",
-    "km": 0.12,
-    "url": "https://vcdn.bergfex.at/images/resized/7c/3c3673267eea037c_88957a4d54b461fe.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "sauerland/postwiesen-skigebiet-neuastenberg",
@@ -96715,15 +96257,7 @@
    }
   },
   "de-ochsenkopf": {
-   "photo": {
-    "source": "officiel",
-    "cle": "http://www.seilbahn-ochsenkopf.de/",
-    "nom": "Ochsenkopf",
-    "km": 0,
-    "url": "https://www.ochsenkopf.info/site/assets/files/1533/a3_vorankuendigung.500x0.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "fichtelgebirge/oberwarmensteinach",
@@ -99536,19 +99070,6 @@
     }
    }
   },
-  "de-skigebiet-eckbauer": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "cdn.indebergen.nl",
-    "nom": null,
-    "km": 0,
-    "url": "https://cdn.indebergen.nl/media/p3odk5aq/debaye06b-eckbauer.jpg?anchor=center&mode=crop&width=1160&height=1160&format=webp&quality=80",
-    "titre": null,
-    "corroboration": "nom",
-    "servi": true
-   },
-   "forfait": null
-  },
   "de-skigebiet-fellhorn-kanzelwand": {
    "photo": {
     "source": "skiinfo",
@@ -100364,15 +99885,7 @@
    }
   },
   "de-skigebiet-nebelhorn": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "nebelhorn-oberstdorf",
-    "nom": "Station de ski Nebelhorn / Oberstdorf",
-    "km": 2.14,
-    "url": "https://vcdn.bergfex.at/images/resized/93/65ba1910b5ffb593_536b71fa48e8e8cf.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "nebelhorn-oberstdorf",
@@ -101023,15 +100536,7 @@
    }
   },
   "de-skigebiet-spitzenberg-und-kopfle": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "st-blasien-menzenschwand",
-    "nom": "Station de ski Menzenschwand / St. Blasien",
-    "km": 3.47,
-    "url": "https://vcdn.bergfex.at/images/resized/24/fcc9c7082eb6bd24_0d59e9afa18e7c60.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "foret-noire/bernau-im-schwarzwald",
@@ -103047,18 +102552,6 @@
     "cle": "sauerland/winterberg-skiliftkarussell"
    }
   },
-  "de-skipiste-am-kohlberg": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.tus-neuenrade-ski.de/",
-    "nom": "Skipiste \"Am Kohlberg\"",
-    "km": 0,
-    "url": "https://image.jimcdn.com/app/cms/image/transf/none/path/sdfbe1c0f7d03c7b4/backgroundarea/i737911996f29c370/version/1550743919/image.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
   "de-skiverein-sehmatal-e-v-skilift-neudorf": {
    "photo": {
     "source": "bergfex",
@@ -103892,15 +103385,7 @@
    }
   },
   "de-sternrodt": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.sternrodt-skilift.de/",
-    "nom": "Sternrodt",
-    "km": 0,
-    "url": "https://www.sternrodt-skilift.de/webcam/neu/sternrodt.jpg.jpeg?",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "bruchhausen-steinen-sternrodt",
@@ -104677,19 +104162,6 @@
     }
    }
   },
-  "de-tegelbergbahn": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "vcdn.bergfex.at",
-    "nom": null,
-    "km": 0,
-    "url": "https://vcdn.bergfex.at/images/resized/c7/ccaabf144350c8c7_0aac8a9d72e927a6.jpg",
-    "titre": null,
-    "corroboration": "bergfex",
-    "servi": true
-   },
-   "forfait": null
-  },
   "de-thaler-hohe": {
    "photo": {
     "source": "skiinfo",
@@ -105407,15 +104879,7 @@
    }
   },
   "de-unternberg-ruhpolding": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://meinebergwelt.de/",
-    "nom": "Unternberg (Ruhpolding)",
-    "km": 0,
-    "url": "https://meinebergwelt.de/wp-content/uploads/2026/08/Website_mobile_Version_Startseite_Hintergrund_1000x1500-px.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "ruhpolding-unternberg",
@@ -106769,15 +106233,7 @@
    }
   },
   "de-zinkenlifte-durrnberg-hallein": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.duerrnberg.at",
-    "nom": "Zinkenlifte – Dürrnberg (Hallein)",
-    "km": 0,
-    "url": "https://duerrnberg.at/wp-content/uploads/2022/04/ls-project-26-slide-1-1.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "salzbourg/hallein-bad-durrnberg",
@@ -107091,15 +106547,7 @@
    }
   },
   "ee-kuutsemae": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://kuutsemae.ee/en/",
-    "nom": "Kuutsemae",
-    "km": 0,
-    "url": "https://kuutsekas.ee/ui/images/logo/logo.svg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "kuutsemaee",
@@ -107213,15 +106661,7 @@
    }
   },
   "ee-tehvandi-snowpark": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.munakas.ee/en/",
-    "nom": "Tehvandi Snowpark",
-    "km": 0,
-    "url": "https://www.munakas.ee/ui/images/logo/munakas_1.svg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "munakas-nuepli-otepaeae",
@@ -108899,15 +108339,7 @@
    }
   },
   "es-estacion-invernal-y-de-montana-san-isidro-sector-cebolledo-y-requejines": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.san-isidro.net/",
-    "nom": "Estación Invernal y de Montaña San Isidro (Sector Cebolledo y Requejines)",
-    "km": 0,
-    "url": "https://www.san-isidro.net/images/ogimage_rrss.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "san-isidro-zona-cebolledo",
@@ -109100,15 +108532,7 @@
    }
   },
   "es-estacion-de-esqui-de-manzaneda": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.manzaneda.com/",
-    "nom": "Estación de Esquí de Manzaneda",
-    "km": 0,
-    "url": "https://cdn.prod.website-files.com/6059b1d3418651c153253559/6a40e2e2988b4ffd98d6052d_PXL_20260602_145357239%20(1)%20(1).jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "manzaneda",
@@ -111082,19 +110506,6 @@
     "km": 0,
     "url": "https://kommatti.fi/wp-content/uploads/2022/05/420797_117351731722974_991948010_n.jpg",
     "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
-  "fi-konkaski": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "konkaski.fi",
-    "nom": null,
-    "km": 0,
-    "url": "https://konkaski.fi/wp-content/uploads/2023/02/rinnekartta2023_5-scaled.jpg",
-    "titre": null,
-    "corroboration": "hote-officiel",
     "servi": true
    },
    "forfait": null
@@ -114255,15 +113666,7 @@
    }
   },
   "fr-aiguille-du-midi-chamonix": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://aiguilledumidi.montblancnaturalresort.com/en",
-    "nom": "Aiguille du Midi (Chamonix)",
-    "km": 0,
-    "url": "https://www.datocms-assets.com/144383/1729682434-home_aiguille-du-midi-ete.webp",
-    "titre": "Aiguille du Midi",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "chamonix-mont-blanc",
@@ -118469,15 +117872,7 @@
    }
   },
   "fr-claviere": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "claviere",
-    "nom": "Station de ski Claviere",
-    "km": 0.52,
-    "url": "https://vcdn.bergfex.at/images/resized/50/ce682119cc8fc050_28b879e6b9686daa.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "piemont/claviere",
@@ -120135,15 +119530,7 @@
    }
   },
   "fr-domaine-skiable-valberg": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "valberg",
-    "nom": "Station de ski Valberg",
-    "km": 2.42,
-    "url": "https://vcdn.bergfex.at/images/resized/2b/d93fd3367928ef2b_47808607b38c2253.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "alpes-du-sud/beuil-les-launes",
@@ -120283,15 +119670,7 @@
    }
   },
   "fr-devoluy": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "ledevoluy",
-    "nom": "Station de ski Le Dévoluy",
-    "km": 1.01,
-    "url": "https://vcdn.bergfex.at/images/resized/b2/d9bb9defadae31b2_6208a6bcb48442b4.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "alpes-du-sud/superdevoluy-la-joue-du-loup",
@@ -122799,15 +122178,7 @@
    }
   },
   "fr-grand-ballon": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.grand-ballon.net/de/",
-    "nom": "Grand Ballon",
-    "km": 0,
-    "url": "https://www.grand-ballon.net/files/2514/3101/1942/Banniere_Ete_3-1.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "grand-ballon",
@@ -123137,15 +122508,7 @@
    }
   },
   "fr-greolieres-les-neiges": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "greolieres-les-neiges",
-    "nom": "Station de ski Gréolières",
-    "km": 1.03,
-    "url": "https://vcdn.bergfex.at/images/resized/6f/2f7d5e44b2a1cf6f_60f9bebfbfa5a4d1.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "alpes-du-sud/greolieres-audibergue",
@@ -123973,18 +123336,6 @@
      }
     }
    }
-  },
-  "fr-janvry-janvoriaz": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://janvry.fr/animations/janvoriaz/",
-    "nom": "Janvry - Janvoriaz",
-    "km": 0,
-    "url": "https://janvry.fr/wp-content/uploads/2018/04/Janvoriaz.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
   },
   "fr-l-alpe-du-grand-serre": {
    "photo": {
@@ -144324,16 +143675,7 @@
    }
   },
   "gb-south-wilts-ski-club": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "i2-prod.bristolpost.co.uk",
-    "nom": null,
-    "km": 0,
-    "url": "https://i2-prod.bristolpost.co.uk/incoming/article9635529.ece/ALTERNATES/s1200/2_BRIHB_171024-south-wilts-ski-club.jpg",
-    "titre": null,
-    "corroboration": "nom",
-    "servi": true
-   },
+   "photo": null,
    "forfait": null,
    "pistes": {
     "km": 0.1,
@@ -145461,18 +144803,6 @@
      "saisonEnfant": null
     }
    }
-  },
-  "hr-platak": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.platak.hr/",
-    "nom": "Platak",
-    "km": 0,
-    "url": "https://platak.hr/wp-content/uploads/elementor/thumbs/ico-01-px0mluz3swpxq3vuhigkrt52d1e3d4ytbs74vdxrjk.png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
   },
   "hr-rudnik-trsce": {
    "photo": {
@@ -146713,15 +146043,7 @@
    }
   },
   "it-alpe-devero": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "alpe-devero",
-    "nom": "Station de ski Alpe Devero",
-    "km": 0.46,
-    "url": "https://vcdn.bergfex.at/images/resized/01/033a8f1a2a85ea01_a25f1589e79c90ce.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "piemont/alpe-devero",
@@ -146907,15 +146229,7 @@
    }
   },
   "it-alpe-del-nevegal": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "alpe-nevegal-col-visentin",
-    "nom": "Station de ski Alpe del Nevegal",
-    "km": 0.16,
-    "url": "https://vcdn.bergfex.at/images/resized/b8/733a8a76b51ea6b8_fc3123c5d156a3c5.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "venetie/nevegal",
@@ -148303,15 +147617,7 @@
    }
   },
   "it-area-sciistica-ventasso-laghi": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "ventasso-laghi",
-    "nom": "Station de ski Ventasso Laghi",
-    "km": 0.26,
-    "url": "https://vcdn.bergfex.at/images/resized/47/553fde8d43a3fc47_8f6f153ff6be1bd9.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "emilie-romagne/ventasso-laghi",
@@ -148529,18 +147835,6 @@
     "nom": "Argentera",
     "km": 1.38,
     "url": "https://cdn.bfldr.com/WIENNW6Q/as/xtt7qvrxj7x2b8qq8g878kn/Argentera?auto=webp&format=png",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
-  "it-artesina": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "artesina",
-    "nom": "Station de ski Artesina / Mondolè Ski",
-    "km": 1.22,
-    "url": "https://vcdn.bergfex.at/images/resized/ad/4630d17ead6280ad_a84de836bbca393e.jpg",
     "titre": null,
     "servi": true
    },
@@ -153049,15 +152343,7 @@
    }
   },
   "it-etna-nord": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "aetna-nord-piano-provenzana",
-    "nom": "Station de ski Ätna Nord",
-    "km": 1.38,
-    "url": "https://vcdn.bergfex.at/images/resized/c6/8dfb4101287c3cc6_8bd5aab02287f17e.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "sicile/etna-nord",
@@ -154033,16 +153319,7 @@
    }
   },
   "it-forni-di-sopra": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "www.turismofvg.it",
-    "nom": null,
-    "km": 0,
-    "url": "https://www.turismofvg.it/proxyvfs.axd/image_hd/r59216/file-jpg?v=218290&ext=.jpg",
-    "titre": null,
-    "corroboration": "hote-officiel",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "forni-di-sopra",
@@ -154186,15 +153463,7 @@
    }
   },
   "it-frabosa-soprana": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "frabosa-soprana",
-    "nom": "Station de ski Frabosa Soprana / Mondolé Ski",
-    "km": 0.53,
-    "url": "https://vcdn.bergfex.at/images/resized/58/ebfff4611cbca458_50c7afefd8263e72.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "piemont/frabosa-soprana-mondole-ski",
@@ -154618,15 +153887,7 @@
    }
   },
   "it-garessio-2000": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "garessio-2000",
-    "nom": "Station de ski Garessio 2000",
-    "km": 0.42,
-    "url": "https://vcdn.bergfex.at/images/resized/76/a3085e13b0630476_ada607a3e1d1d98d.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "piemont/garessio-2000",
@@ -155278,15 +154539,7 @@
    }
   },
   "it-jochgrimm-passo-oclini": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://jochgrimm.com",
-    "nom": "Jochgrimm, Passo Oclini",
-    "km": 0,
-    "url": "https://oclini.com/webcam/webcam1.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "oclini",
@@ -157244,18 +156497,6 @@
     }
    }
   },
-  "it-lagazuoi-5-torri": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://cortinadelicious.it/",
-    "nom": "Lagazuoi - 5 Torri",
-    "km": 0,
-    "url": "https://cortinadelicious.it/Images/Super8/modalMobile400.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
   "it-lagorai": {
    "photo": {
     "source": "skiinfo",
@@ -158147,15 +157388,7 @@
    }
   },
   "it-macugnaga-moro": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "macugnaga",
-    "nom": "Station de ski Macugnaga",
-    "km": 1.35,
-    "url": "https://vcdn.bergfex.at/images/resized/81/43cd32d08f96c681_e11e774da78f1ba2.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "piemont/macugnaga",
@@ -158810,15 +158043,7 @@
    }
   },
   "it-misurina": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "misurina",
-    "nom": "Station de ski Misurina",
-    "km": 0.87,
-    "url": "https://vcdn.bergfex.at/images/resized/c2/bca67f1c50f236c2_2aebbcb8b128cadd.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "venetie/misurina",
@@ -159232,15 +158457,7 @@
    }
   },
   "it-monte-catria": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.montecatria.com/",
-    "nom": "Monte Catria",
-    "km": 0,
-    "url": "https://www.montecatria.com/wp-content/uploads/2020/03/Altalena-Gigante.webp",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "monte-catria",
@@ -161466,15 +160683,7 @@
    "forfait": null
   },
   "it-pfelders": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "pfelders-passeiertal",
-    "nom": "Station de ski Pfelders im Passeiertal",
-    "km": 0.74,
-    "url": "https://vcdn.bergfex.at/images/resized/df/ee0e529257e763df_8246a8f040fda24c.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "pfelders-passeiertal",
@@ -164550,15 +163759,7 @@
    }
   },
   "it-prato-nevoso": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "prato-nevoso-artesina",
-    "nom": "Station de ski Prato Nevoso / Mondolé Ski",
-    "km": 2.19,
-    "url": "https://vcdn.bergfex.at/images/resized/79/c0ead0d5fce90b79_3b413beb8fda88e0.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "piemont/prato-nevoso",
@@ -164685,15 +163886,7 @@
    }
   },
   "it-prato-selva": {
-   "photo": {
-    "source": "officiel",
-    "cle": "http://www.pratoselva.it/inverno/index.html",
-    "nom": "Prato Selva",
-    "km": 0,
-    "url": "http://www.pratoselva.it/loghi/logo_Prato_Selva_seggiovia.png",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "prato-selva",
@@ -166216,15 +165409,7 @@
    }
   },
   "it-rittner-horn-corno-del-renon": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "rittner-horn",
-    "nom": "Station de ski Rittner Horn",
-    "km": 2.35,
-    "url": "https://vcdn.bergfex.at/images/resized/b5/374c74bc51d732b5_e69fc519b28a4723.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "rittner-horn",
@@ -167212,14 +166397,6 @@
     }
    }
   },
-  "it-san-martino-di-castrozza": {
-   "photo": null,
-   "forfait": null
-  },
-  "it-san-martino-di-castrozza-passo-rolle": {
-   "photo": null,
-   "forfait": null
-  },
   "it-san-vigilio": {
    "photo": {
     "source": "skiresort",
@@ -167782,15 +166959,7 @@
    }
   },
   "it-sappada": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "sappada",
-    "nom": "Station de ski Sappada",
-    "km": 0.98,
-    "url": "https://vcdn.bergfex.at/images/resized/aa/0231aacc933841aa_8a1f85931af615d0.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "frioul/sappada",
@@ -170909,15 +170078,7 @@
    }
   },
   "it-ski-civetta": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "civetta",
-    "nom": "Station de ski Civetta",
-    "km": 1.21,
-    "url": "https://vcdn.bergfex.at/images/resized/ca/05ab90fb29e462ca_177850068399f495.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "venetie/comprensorio-ski-civetta",
@@ -173236,18 +172397,6 @@
     }
    }
   },
-  "it-val-formica": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.valformica.it/",
-    "nom": "Val Formica",
-    "km": 0,
-    "url": "https://www.valformica.it/wp-content/uploads/2023/01/VAL-FORMICA_home.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
   "it-val-palot": {
    "photo": {
     "source": "bergfex",
@@ -173461,15 +172610,7 @@
    }
   },
   "it-valgrisenche-ski": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "valgrisenche",
-    "nom": "Station de ski Valgrisenche",
-    "km": 0.29,
-    "url": "https://vcdn.bergfex.at/images/resized/3e/38e901c7ce2f173e_eec9ef5dd0337ece.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "vallee-daoste/valgrisenche",
@@ -173803,15 +172944,7 @@
    }
   },
   "it-valtournenche": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "valtournenche",
-    "nom": "Station de ski Valtournenche",
-    "km": 1.27,
-    "url": "https://vcdn.bergfex.at/images/resized/16/3e40ba56f5122d16_d4aa9a85b49d3154.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "vallee-daoste/valtournenche",
@@ -173954,18 +173087,6 @@
      }
     }
    }
-  },
-  "it-verena-2000": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.skiverena.com/",
-    "nom": "Verena 2000",
-    "km": 0,
-    "url": "https://www.skiverena.com/images/web/estate/ski_verena_estate_vista_panoramica_w_fb.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
   },
   "it-viggiano": {
    "photo": null,
@@ -175506,15 +174627,7 @@
    }
   },
   "nl-snowworld-amsterdam": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "snowworld-amsterdam",
-    "nom": "Station de ski SnowWorld Amsterdam",
-    "km": 0.14,
-    "url": "https://vcdn.bergfex.at/images/resized/f4/02cf27a5c93bfaf4_b582adeb3db15652.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "snowworld-amsterdam",
@@ -175660,15 +174773,7 @@
    }
   },
   "nl-snowworld-terneuzen": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "terneuzen",
-    "nom": "Station de ski SnowWorld Terneuzen",
-    "km": 0.03,
-    "url": "https://vcdn.bergfex.at/images/resized/d0/afbc1909bd524fd0_74de8516411175ab.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "snowworld-terneuzen",
@@ -175737,15 +174842,7 @@
    }
   },
   "nl-snowworld-zoetermeer": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "zoetermeer",
-    "nom": "Station de ski SnowWorld Zoetermeer",
-    "km": 0.12,
-    "url": "https://vcdn.bergfex.at/images/resized/eb/c8aed29dfee7edeb_3925b6eae5b04aa0.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "snowworld-zoetermeer",
@@ -185979,15 +185076,7 @@
    }
   },
   "no-tveit-skisenter": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.tveitskisenter.no/",
-    "nom": "Tveit skisenter",
-    "km": 0,
-    "url": "https://www.tveitskisenter.no/img/og-bilde.svg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "officiel",
     "cle": "https://www.tveitskisenter.no/priser.html",
@@ -190044,18 +189133,6 @@
     "cle": "basses-carpates/ustrzyki-dolne-gromadzyn"
    }
   },
-  "pl-gora-czterech-wiatrow-g4w": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://g4w.pl/",
-    "nom": "Góra Czterech Wiatrów G4W",
-    "km": 0,
-    "url": "https://g4w.pl/wp-content/uploads/2026/01/g4w.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
-  },
   "pl-gora-kamiensk": {
    "photo": {
     "source": "skiinfo",
@@ -191252,16 +190329,7 @@
    }
   },
   "pl-karpatka-panorama": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "www.karpacz.pl",
-    "nom": null,
-    "km": 0,
-    "url": "https://www.karpacz.pl/img/wyciagi/TG_130302_Winterpol_Karpacz_0590.jpg",
-    "titre": null,
-    "corroboration": "nom",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "karpatka-panorama",
@@ -191463,15 +190531,7 @@
    }
   },
   "pl-kasprowy-wierch": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.pkl.pl/kasprowy-wierch/kasprowy.html",
-    "nom": "Kasprowy Wierch",
-    "km": 0,
-    "url": "https://www.pkl.pl/data/pages/338/kasprowy_kolej%C2%A9jan_wierzejski-64.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "proprietaire",
     "cle": "https://www.skiinfo.fr/pologne/forfaits-de-ski",
@@ -191850,18 +190910,6 @@
     "source": "skiresort",
     "cle": "kolorowa"
    }
-  },
-  "pl-kompleks-pilsko-jontek": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://pilsko.org/",
-    "nom": "Kompleks Pilsko-Jontek",
-    "km": 0,
-    "url": "https://pilsko.org/wp-content/uploads/2026-06-22-1024x727.jpg",
-    "titre": null,
-    "servi": true
-   },
-   "forfait": null
   },
   "pl-kompleks-narciarski-winterpol-w-karpaczu": {
    "photo": {
@@ -193909,15 +192957,7 @@
    }
   },
   "pl-pietkiewiczowka": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "hala-szrenicka",
-    "nom": "Station de ski Ski Arena Szrenica / Sudety Lift",
-    "km": 2.61,
-    "url": "https://vcdn.bergfex.at/images/resized/c8/6721f8872cfc1ac8_167cc1362fd8ae5d.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "basse-silesie/szklarska-poreba-ski-arena-szrenica",
@@ -195710,15 +194750,7 @@
    }
   },
   "pl-stacja-narciarska-skolnity": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://skolnity.pl/",
-    "nom": "Stacja Narciarska Skolnity",
-    "km": 0,
-    "url": "https://skolnity.pl/wp-content/uploads/2026/04/parkirowerowe.pl_.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "skolnity-wisla",
@@ -198716,19 +197748,6 @@
     "cle": "swieta-gora-lubawka"
    }
   },
-  "pl-zo-wik": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "www.karpacz.pl",
-    "nom": null,
-    "km": 0,
-    "url": "https://www.karpacz.pl/photo/lift34/zolwik-pl_89_min.jpg",
-    "titre": null,
-    "corroboration": "nom",
-    "servi": true
-   },
-   "forfait": null
-  },
   "pt-serra-da-estrela": {
    "photo": {
     "source": "officiel",
@@ -198897,19 +197916,6 @@
     "source": "skiinfo",
     "cle": "vallee-de-prahova/balea-lac"
    }
-  },
-  "ro-bogdan": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "schi-bogdan.ro",
-    "nom": null,
-    "km": 0,
-    "url": "https://schi-bogdan.ro/wp-content/uploads/seo-image-schi-bogdan.jpg",
-    "titre": null,
-    "corroboration": "hote-officiel",
-    "servi": true
-   },
-   "forfait": null
   },
   "ro-borsafured": {
    "photo": null,
@@ -199678,15 +198684,7 @@
    }
   },
   "ro-ski-vidra": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.skividra.ro/",
-    "nom": "Ski Vidra",
-    "km": 0,
-    "url": "https://www.skividra.ro/images/placeholders/og-default.svg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "officiel",
     "cle": "https://www.skividra.ro/tarife",
@@ -201432,15 +200430,7 @@
    }
   },
   "se-fregattbacken": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.friluftsframjandet.se/regioner/malardalen/lokalavdelningar/boo/",
-    "nom": "Fregattbacken",
-    "km": 0,
-    "url": "https://www.friluftsframjandet.se/globalassets/2.-verksamhet/fjallvandring/29712842675_dfb2c95a0c_o.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "saltisbacken-saltsjoebaden",
@@ -205030,16 +204020,7 @@
    }
   },
   "se-tolvmannabacken": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "www.slalombackar.se",
-    "nom": null,
-    "km": 0,
-    "url": "https://www.slalombackar.se/photos/tolvmannabacken_af618.jpg",
-    "titre": null,
-    "corroboration": "nom",
-    "servi": true
-   },
+   "photo": null,
    "forfait": null,
    "pistes": {
     "km": 4.5,
@@ -206121,29 +205102,8 @@
     }
    }
   },
-  "si-celjska-koca": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "celjska-koca.si",
-    "nom": null,
-    "km": 0,
-    "url": "https://celjska-koca.si/wp-content/uploads/2025/05/IMG_6837-1024x683.jpg",
-    "titre": null,
-    "corroboration": "hote-officiel",
-    "servi": true
-   },
-   "forfait": null
-  },
   "si-cerkno": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.cerkno-resort.si/",
-    "nom": "Cerkno",
-    "km": 0,
-    "url": "https://www.hotel-cerkno.com/assets/david-barajas-CMajP7KvGCA-unsplash-1.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "cerkno",
@@ -206349,15 +205309,7 @@
    }
   },
   "si-golte": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.golte.si/",
-    "nom": "Golte",
-    "km": 0,
-    "url": "https://golte.si/wp-content/uploads/2023/10/Zipline_dozivite.png",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "slovenie/golte-mozirje",
@@ -207130,15 +206082,7 @@
    "forfait": null
   },
   "si-rogla": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.rogla.eu/",
-    "nom": "Rogla",
-    "km": 0,
-    "url": "https://cms.unitur.eu/media/fhoahyeb/logotiprogla.png?width=1200",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "slovenie/rogla",
@@ -207353,19 +206297,6 @@
     }
    }
   },
-  "si-sella-nevea-kanin-sella-nevea-canin-kanin-sella-nevea": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "slovenia-outdoor.com",
-    "nom": null,
-    "km": 0,
-    "url": "https://slovenia-outdoor.com/wp-content/uploads/2019/11/KANIN-SELLA-NEVEA.jpg",
-    "titre": null,
-    "corroboration": "nom",
-    "servi": true
-   },
-   "forfait": null
-  },
   "si-smucisca-mariborsko-pohorje": {
    "photo": null,
    "forfait": {
@@ -207495,15 +206426,7 @@
    }
   },
   "si-soriska-planina": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.soriska-planina.si",
-    "nom": "Soriška planina",
-    "km": 0,
-    "url": "https://www.soriska-planina.si/assets/img/summerinfo.jpg",
-    "titre": "soriška planina",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "soriska-planina",
@@ -207887,15 +206810,7 @@
    }
   },
   "si-vogel": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://vogel.si/",
-    "nom": "Vogel",
-    "km": 0,
-    "url": "https://vogel.si/wp-content/uploads/2024/04/Vogel-poletje-1024x560.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "bergfex",
     "cle": "vogel",
@@ -210308,15 +209223,7 @@
    }
   },
   "sk-kubinska-hola": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "ski-park-kubinska-hola",
-    "nom": "Station de ski SKI PARK Kubínska hoľa",
-    "km": 0.18,
-    "url": "https://vcdn.bergfex.at/images/resized/cb/8b3f6b5108e2b9cb_69ecb763450fac49.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "orava/ski-park-kubinska-hola",
@@ -211273,15 +210180,7 @@
    }
   },
   "sk-malino-brdo": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://www.bikepark.sk/",
-    "nom": "Malinô Brdo",
-    "km": 0,
-    "url": "https://skipark.sk/wp-content/uploads/2026/04/mesto-ruzomberok-logo.webp",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "liptov/ruzomberok-skipark",
@@ -212394,15 +211293,7 @@
    }
   },
   "sk-polomka-bucnik": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "polomka-bucnik",
-    "nom": "Station de ski Polomka Bučník",
-    "km": 0.05,
-    "url": "https://vcdn.bergfex.at/images/resized/90/3227f13a37487f90_96cb2e7e7159f2be.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "horehronie/polomka-bucnik",
@@ -215279,15 +214170,7 @@
    }
   },
   "sk-ski-zabava-hrustin": {
-   "photo": {
-    "source": "bergfex",
-    "cle": "ski-zabava-hrustin",
-    "nom": "Station de ski Ski Zábava Hruštín",
-    "km": 0.04,
-    "url": "https://vcdn.bergfex.at/images/resized/5a/4fd1011f6dc82e5a_79534e86367d6c6e.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "orava/ski-zabava-hrustin",
@@ -216816,15 +215699,7 @@
    }
   },
   "sk-stary-smokovec": {
-   "photo": {
-    "source": "skiresort",
-    "cle": "stary-smokovec-hrebienok",
-    "nom": "Starý Smokovec – Hrebienok",
-    "km": 0.74,
-    "url": "https://www.skiresort.fr/fileadmin/_processed_/ec/cc/c8/80/b7616bf0b1.jpg",
-    "titre": "Tatry Ice Master",
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiinfo",
     "cle": "hautes-tatras/stary-smokovec",
@@ -219279,15 +218154,7 @@
    }
   },
   "ua-vodyaniki": {
-   "photo": {
-    "source": "officiel",
-    "cle": "https://vodyaniki.com/",
-    "nom": "Vodyaniki",
-    "km": 0,
-    "url": "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=377,fit=crop/d9539XaXg0FyDPLV/panorama_vd_20241-AwvPMDMpVLie5b2R.jpg",
-    "titre": null,
-    "servi": true
-   },
+   "photo": null,
    "forfait": {
     "source": "skiresort",
     "cle": "cherkassy-vodyaniki",
@@ -219394,19 +218261,6 @@
      "saisonEnfant": null
     }
    }
-  },
-  "ua-voievodyno": {
-   "photo": {
-    "source": "proprietaire",
-    "cle": "voevodyno.com",
-    "nom": null,
-    "km": 0,
-    "url": "https://voevodyno.com/wp-content/uploads/2024/02/vasya.shtefaniak-182-scaled-optimized.jpg",
-    "titre": null,
-    "corroboration": "hote-officiel",
-    "servi": true
-   },
-   "forfait": null
   },
   "ua-489004m232875": {
    "photo": null,

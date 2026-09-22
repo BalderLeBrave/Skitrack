@@ -48,20 +48,40 @@ def main() -> None:
     # figurer que dans un seul — c'est l'adresse qui la désigne — et le dernier
     # dossier l'emporte, puisqu'il est le plus récent.
     dossiers = [Path(a) for a in sys.argv[1:] if not a.startswith("--")]
-    verdicts: dict[str, dict] = {}
-    index: dict[str, dict] = {}
-    for d in dossiers:
-        verdicts.update(json.loads((d / "verdicts.json").read_text(encoding="utf-8")))
-        for x in json.loads((d / "index.json").read_text(encoding="utf-8")):
-            if x.get("fichier"):
-                index[x["id"]] = x
+    # **Chaque tour est lu séparément.**
+    #
+    # Les deux tours nomment leurs fichiers d'après le domaine : les fusionner
+    # en un seul dictionnaire ferait disparaître le verdict du premier dès
+    # qu'un domaine a été rejugé — et avec lui le rejet qu'il faut retenir.
+    tours = [
+        (
+            json.loads((d / "verdicts.json").read_text(encoding="utf-8")),
+            {x["id"]: x for x in json.loads((d / "index.json").read_text(encoding="utf-8")) if x.get("fichier")},
+        )
+        for d in dossiers
+    ]
     vues = json.loads((DATA / "vuesDomaines.json").read_text(encoding="utf-8"))["vues"]
 
     # Les empreintes partagées par plusieurs domaines : aucun ne garde l'image.
-    par_empreinte: dict[str, list[str]] = {}
-    for x in index.values():
-        par_empreinte.setdefault(x["empreinte"], []).append(x["id"])
+    # Le partage se juge sur **tous** les tours réunis, une image pouvant être
+    # servie à un domaine au premier tour et à un autre au second.
+    par_empreinte: dict[str, set[str]] = {}
+    for _, index in tours:
+        for x in index.values():
+            par_empreinte.setdefault(x["empreinte"], set()).add(x["id"])
     partagees = {e for e, ids in par_empreinte.items() if len(ids) > 1}
+
+    # **Une photo qu'on n'a pas pu rapatrier est une absence.**
+    #
+    # C'est la règle que `vues.ts` tient déjà pour les hôtes muets, appliquée
+    # ici au contrôle : vingt adresses sur vingt-cinq du dernier tour ne
+    # répondaient plus. Les afficher reviendrait à montrer un cadre vide, et
+    # les juger est impossible — on ne les a pas vues.
+    muettes: dict[str, str] = {}
+    for d in dossiers:
+        for x in json.loads((d / "index.json").read_text(encoding="utf-8")):
+            if not x.get("fichier") and x.get("url"):
+                muettes[x["url"]] = f"hôte muet au contrôle ({x.get('erreur', 'sans réponse')})"
 
     sortie: dict[str, dict] = {}
     # **Les adresses écartées, gardées à part et pour toujours.**
@@ -76,42 +96,43 @@ def main() -> None:
     # domaine qui l'affiche.
     ecartees: dict[str, str] = {}
     motifs: Counter = Counter()
-    for fichier, v in verdicts.items():
-        id_ = v.get("id") or fichier.rsplit(".", 1)[0]
-        ix = index.get(id_)
-        if not ix:
-            continue
-        # L'adresse jugée est celle que le tour a **téléchargée**, pas celle
-        # que le domaine affiche aujourd'hui : entre les deux, une reprise a
-        # pu changer de source, et le verdict ne vaudrait plus pour elle.
-        photo = (vues.get(id_) or {}).get("photo") or {}
-        url_jugee = ix.get("url") or photo.get("url")
-        neige = bool(v.get("neige"))
-        filigrane = bool(v.get("filigrane"))
-        sujet = str(v.get("sujet") or "")
-        motif = None
-        if ix["empreinte"] in partagees:
-            motif = "image partagée par plusieurs domaines"
-        elif not neige:
-            motif = "pas de neige"
-        elif filigrane:
-            motif = "filigrane"
-        elif sujet not in SUJETS_OK:
-            motif = f"sujet : {sujet or 'inconnu'}"
-        motifs[motif or "retenue"] += 1
-        if motif and url_jugee:
-            ecartees[url_jugee] = motif
-        sortie[id_] = {
-            "url": url_jugee,
-            "source": photo.get("source"),
-            "neige": neige,
-            "filigrane": filigrane,
-            "sujet": sujet,
-            "description": v.get("description"),
-            "partNeigeMesuree": ix.get("neige"),
-            "retenue": motif is None,
-            **({"motif": motif} if motif else {}),
-        }
+    for verdicts, index in tours:
+      for fichier, v in verdicts.items():
+          id_ = v.get("id") or fichier.rsplit(".", 1)[0]
+          ix = index.get(id_)
+          if not ix:
+              continue
+          # L'adresse jugée est celle que le tour a **téléchargée**, pas celle
+          # que le domaine affiche aujourd'hui : entre les deux, une reprise a
+          # pu changer de source, et le verdict ne vaudrait plus pour elle.
+          photo = (vues.get(id_) or {}).get("photo") or {}
+          url_jugee = ix.get("url") or photo.get("url")
+          neige = bool(v.get("neige"))
+          filigrane = bool(v.get("filigrane"))
+          sujet = str(v.get("sujet") or "")
+          motif = None
+          if ix["empreinte"] in partagees:
+              motif = "image partagée par plusieurs domaines"
+          elif not neige:
+              motif = "pas de neige"
+          elif filigrane:
+              motif = "filigrane"
+          elif sujet not in SUJETS_OK:
+              motif = f"sujet : {sujet or 'inconnu'}"
+          motifs[motif or "retenue"] += 1
+          if motif and url_jugee:
+              ecartees[url_jugee] = motif
+          sortie[id_] = {
+              "url": url_jugee,
+              "source": photo.get("source"),
+              "neige": neige,
+              "filigrane": filigrane,
+              "sujet": sujet,
+              "description": v.get("description"),
+              "partNeigeMesuree": ix.get("neige"),
+              "retenue": motif is None,
+              **({"motif": motif} if motif else {}),
+          }
 
     (DATA / "photosJugees.json").write_text(
         json.dumps(
@@ -121,7 +142,7 @@ def main() -> None:
                 "regle": "retenue si neige, sans filigrane, sujet station ou pistes, et image non partagée",
                 "juges": len(sortie),
                 "retenues": sum(1 for v in sortie.values() if v["retenue"]),
-                "ecartees": dict(sorted(ecartees.items())),
+                "ecartees": dict(sorted({**muettes, **ecartees}.items())),
                 "verdicts": dict(sorted(sortie.items())),
             },
             ensure_ascii=False,
@@ -130,7 +151,8 @@ def main() -> None:
         + "\n",
         encoding="utf-8",
     )
-    print(f"{len(sortie)} domaines jugés, {len(ecartees)} adresses écartées")
+    print(f"{len(sortie)} domaines jugés, {len(ecartees)} adresses écartées, "
+          f"{len({k: v for k, v in muettes.items() if k not in ecartees})} adresses muettes au contrôle")
     for m, n in motifs.most_common():
         print(f"  {m:42s} {n}")
 

@@ -169,9 +169,11 @@ export type WebcamSubject = {
  * Webcams d'un domaine, groupe de forfait compris.
  *
  * Les correspondances sont essayées de la plus spécifique à la plus large :
- * nom exact, segments du nom, puis clés reconnues dans le texte concaténé. Un
- * groupe l'emporte sur une station isolée : un domaine « Les 3 Vallées » doit
- * montrer les quatre caméras, pas seulement celle de Val Thorens.
+ * nom exact, segments du nom, puis clés reconnues dans le texte concaténé.
+ * Les caméras propres à la station passent en tête, suivies de celles du
+ * groupe de forfait : Val Thorens montre d'abord la sienne, puis celles de
+ * Courchevel, Méribel et des Menuires, au choix dans le menu de la fiche. Un
+ * domaine « Les 3 Vallées » sans caméra propre montre les quatre.
  */
 export function webcamsFor(domain: WebcamSubject): Webcam[] {
   const tries: string[] = [];
@@ -184,36 +186,35 @@ export function webcamsFor(domain: WebcamSubject): Webcam[] {
   for (const key of GROUP_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
   for (const key of CAM_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
 
-  for (const key of tries) {
-    const group = GROUP_INDEX.get(key);
-    if (group) {
-      const out: Webcam[] = [];
-      for (const station of group) {
-        const sk = camKey(station);
-        const label = NAME_INDEX.get(sk) ?? station;
-        for (const [name, url] of CAM_INDEX.get(sk) ?? []) {
-          out.push({
-            id: url,
-            label: `${label}, ${name}`,
-            url,
-            station: label,
-            duDomaine: camKey(label) !== camKey(domain.name),
-          });
-        }
-      }
-      if (out.length > 0) return out;
-    }
-    const own = CAM_INDEX.get(key);
-    if (own)
-      return own.map(([label, url]) => ({
-        id: url,
-        label,
-        url,
-        station: null,
-        duDomaine: false,
-      }));
+  const ownKey = tries.find((key) => CAM_INDEX.has(key)) ?? null;
+  const group = tries.map((key) => GROUP_INDEX.get(key)).find((g) => g !== undefined) ?? [];
+
+  const out: Webcam[] = [];
+  const seen = new Set<string>();
+  const push = (cam: Webcam) => {
+    if (seen.has(cam.url)) return;
+    seen.add(cam.url);
+    out.push(cam);
+  };
+
+  for (const [label, url] of ownKey ? (CAM_INDEX.get(ownKey) ?? []) : []) {
+    push({ id: url, label, url, station: null, duDomaine: false });
   }
-  return [];
+  for (const station of group) {
+    const sk = camKey(station);
+    if (sk === ownKey) continue;
+    const label = NAME_INDEX.get(sk) ?? station;
+    for (const [name, url] of CAM_INDEX.get(sk) ?? []) {
+      push({
+        id: url,
+        label: `${label}, ${name}`,
+        url,
+        station: label,
+        duDomaine: camKey(label) !== camKey(domain.name),
+      });
+    }
+  }
+  return out;
 }
 
 /**

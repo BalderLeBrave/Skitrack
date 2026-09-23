@@ -58,6 +58,7 @@ import { useStay } from "@/lib/stay";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
+import { ecartAvecPrincipale, regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import {
   altLbl,
@@ -79,6 +80,12 @@ import {
 export const Route = createFileRoute("/logements")({ component: Logements });
 
 type LodgeSort = "pp" | "total" | "cap" | "dist" | "trous";
+
+/**
+ * Logements par page, comme sur Airbnb. La carte ne porte que ceux de la page
+ * en cours : trois mille pastilles d'un coup la rendaient illisible.
+ */
+const PAGE_LOGEMENTS = 18;
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
  *
@@ -291,9 +298,19 @@ const CarteLogement = memo(function CarteLogement({
   ouvrir,
   retenir,
   designer,
+  sources,
+  autres,
+  retenuSource,
 }: {
   l: Listing;
-  retenu: boolean;
+  /** « Abritel », ou « Airbnb + 2 » quand le logement est aussi ailleurs. */
+  sources: string;
+  /** Les autres plateformes et leurs prix, pour l'infobulle de l'étiquette. */
+  autres: string | null;
+  /** L'offre retenue parmi celles du logement, ou `null`. */
+  retenu: string | null;
+  /** Sa plateforme, quand ce n'est pas celle de la carte. */
+  retenuSource: string | null;
   vue: boolean;
   vif: boolean;
   stay: { checkIn: string; checkOut: string };
@@ -303,7 +320,7 @@ const CarteLogement = memo(function CarteLogement({
   retenir: (id: string) => void;
   designer: (id: string | null) => void;
 }) {
-  const isKept = retenu;
+  const isKept = retenu != null;
   const seen = vue && !isKept;
   const d = distanceOf(l);
   const firm = firmOf(l, stay);
@@ -323,7 +340,10 @@ const CarteLogement = memo(function CarteLogement({
         ) : (
           <span className="lodge7__sansphoto">Pas de photo dans l'annonce {l.source}</span>
         )}
-        <span className="lodge7__source">{l.source}</span>
+        <span className="lodge7__source" title={autres ?? undefined}>
+          {sources}
+          {autres ? <span className="lecteur7">. {autres}</span> : null}
+        </span>
         {l.priceIndicative ? <span className="lodge7__indic">à partir de</span> : null}
         {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
         {seen ? <span className="lodge7__vue">déjà vue</span> : null}
@@ -358,16 +378,118 @@ const CarteLogement = memo(function CarteLogement({
             className={`lodge7__retenir${isKept ? " lodge7__retenir--on" : ""}`}
             onClick={(e) => {
               e.stopPropagation();
-              retenir(l.id);
+              retenir(retenu ?? l.id);
             }}
           >
-            {isKept ? "Retenu" : "Retenir"}
+            {isKept ? (retenuSource ? `Retenu · ${retenuSource}` : "Retenu") : "Retenir"}
           </button>
         </div>
       </div>
     </article>
   );
 });
+
+/**
+ * La pagination de la liste, comme sur Airbnb : la première page, la dernière,
+ * et deux voisines de la page en cours ; des points de suspension entre.
+ */
+function Pages({ page, n, aller }: { page: number; n: number; aller: (p: number) => void }) {
+  const vues = [...new Set([0, page - 1, page, page + 1, n - 1])].filter((p) => p >= 0 && p < n).sort((a, b) => a - b);
+  const rendus: (number | "…")[] = [];
+  vues.forEach((p, i) => {
+    if (i > 0 && p - vues[i - 1] > 1) rendus.push("…");
+    rendus.push(p);
+  });
+  return (
+    <nav className="pages7" aria-label="Pages de logements">
+      <button type="button" className="pages7__fleche" disabled={page === 0} onClick={() => aller(page - 1)} aria-label="Page précédente">
+        <Icon name="chevron-gauche" taille={18} />
+      </button>
+      {rendus.map((p, i) =>
+        p === "…" ? (
+          <span key={`s${i}`} className="pages7__ellipse" aria-hidden="true">
+            …
+          </span>
+        ) : (
+          <button
+            key={p}
+            type="button"
+            className={`pages7__num${p === page ? " pages7__num--on" : ""}`}
+            aria-current={p === page ? "page" : undefined}
+            onClick={() => aller(p)}
+          >
+            {p + 1}
+          </button>
+        ),
+      )}
+      <button type="button" className="pages7__fleche" disabled={page >= n - 1} onClick={() => aller(page + 1)} aria-label="Page suivante">
+        <Icon name="chevron-droite" taille={18} />
+      </button>
+    </nav>
+  );
+}
+
+/**
+ * Les offres d'un même logement, de la moins chère à la plus chère, avec
+ * l'écart de chacune à la moins chère. Un écart ne se calcule qu'entre deux
+ * prix publiés dans la même devise : sinon on le tait.
+ */
+function OffresLogement({ g, ici, voir }: { g: Logement; ici: string; voir: (id: string) => void }) {
+  const base = g.principale;
+  return (
+    <div className="offres7">
+      <span className="offres7__titre">Ce logement sur {g.offres.length} plateformes</span>
+      <ul>
+        {g.offres.map((o) => {
+          const e = ecartAvecPrincipale(o, base);
+          const pct = e != null && base.total > 0 ? (e / base.total) * 100 : null;
+          const ecart =
+            o.id === base.id
+              ? base.total > 0
+                ? "la moins chère"
+                : ""
+              : e == null
+                ? ""
+                : e === 0
+                  ? "même prix"
+                  : `+${eurCents(e) ?? e} (${pct != null && pct < 1 ? "moins de 1 %" : `+${Math.round(pct ?? 0)} %`})`;
+          const courante = o.id === ici;
+          return (
+            <li key={o.id} className={courante ? "offres7__ici" : undefined}>
+              <button
+                type="button"
+                className="offres7__source"
+                aria-current={courante ? "true" : undefined}
+                aria-label={courante ? `${o.source}, offre affichée` : `Voir l'offre ${o.source}`}
+                onClick={() => {
+                  if (!courante) voir(o.id);
+                }}
+              >
+                {o.source}
+              </button>
+              <b className={o.total > 0 ? undefined : "absent"}>{prixLbl(o)}</b>
+              <span className={`offres7__ecart${o.id === base.id ? " offres7__ecart--base" : ""}`}>{ecart}</span>
+              {o.url ? (
+                <a
+                  href={o.url}
+                  target="_blank"
+                  rel="noopener"
+                  className="offres7__lien"
+                  aria-label={`Ouvrir l'offre ${o.source} dans un nouvel onglet`}
+                >
+                  Ouvrir
+                  <Icon name="externe" taille={12} />
+                </a>
+              ) : (
+                <span className="offres7__lien absent">sans lien</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 /**
  * La garde, et elle seule.
@@ -517,6 +639,10 @@ function LogementsStation({ s }: { s: Station }) {
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
   // disent la même chose. Même correction que sur Comparer.
   const [bornes, setBornes] = useState<Bornes | null>(null);
+  const [pageL, setPageL] = useState(0);
+  const listeRef = useRef<HTMLDivElement>(null);
+  /** La fiche épinglée sur la carte, remontée par elle. */
+  const [epinglee, setEpinglee] = useState<string | null>(null);
   // Rendre les annonces que le cadre a laissées dehors. Relâcher les bornes ne
   // suffit pas : la carte ne recadre que si la clé `cadrage` change, et cette
   // clé suit le résultat des filtres, qui n'a pas bougé. Même compteur que sur
@@ -694,10 +820,65 @@ function LogementsStation({ s }: { s: Station }) {
     },
   };
   const lvis = lapply(lp).sort(tri[lsort]);
-  // Ce que la carte montre. Les annonces sans coordonnées restent : elles n'ont
-  // pas de cadre, la carte ne peut ni les montrer ni les cacher.
-  const parCadre = partagerParBornes(lvis, bornes);
+  // Un logement par bien : ses offres des autres plateformes se rangent
+  // derrière la moins chère (voir `regroupement.ts`). L'identité se calcule
+  // une fois, sur tout le relevé : calculée après les filtres, elle changeait
+  // avec eux — un filtre qui écartait l'une des deux annonces d'un titre
+  // ambigu faisait réunir les autres. Les filtres ne font ensuite que retirer
+  // des offres à l'intérieur de chaque logement, et la moins chère de celles
+  // qui restent se montre. Le tri porte sur elle, puisque c'est elle qu'on voit.
+  const groupesBruts = useMemo(() => regrouper(raw), [raw]);
+  const lvisCle = lvis.map((l) => l.id).join(",");
+  const logements = useMemo(() => {
+    const passe = new Set(lvisCle.split(","));
+    const out: Logement[] = [];
+    for (const g of groupesBruts) {
+      const offres = g.offres.filter((o) => passe.has(o.id));
+      if (offres.length) out.push({ principale: offres[0], offres });
+    }
+    return out.sort((a, b) => tri[lsort](a.principale, b.principale));
+    // `tri` est reconstruit à chaque rendu ; son contenu ne dépend que de `lsort`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupesBruts, lvisCle, lsort]);
+  const logementDe = useMemo(() => {
+    const m = new Map<string, Logement>();
+    for (const g of logements) for (const o of g.offres) m.set(o.id, g);
+    return m;
+  }, [logements]);
+  const principales = useMemo(() => logements.map((g) => g.principale), [logements]);
+  // Ce que le cadre de la carte retient. Les logements sans coordonnées
+  // restent : ils n'ont pas de cadre, la carte ne peut ni les montrer ni les
+  // cacher.
+  const parCadre = partagerParBornes(principales, bornes);
   const affichees = parCadre.visibles;
+  // La page en cours. On revient à la première quand le cadre, les filtres ou
+  // le tri changent : la page 7 d'une autre liste ne désigne rien.
+  const nPages = Math.max(1, Math.ceil(affichees.length / PAGE_LOGEMENTS));
+  const page = Math.min(pageL, nPages - 1);
+  const pageItems = affichees.slice(page * PAGE_LOGEMENTS, (page + 1) * PAGE_LOGEMENTS);
+  const sigListe = `${affichees.length}|${affichees[0]?.id ?? ""}|${affichees[affichees.length - 1]?.id ?? ""}|${lsort}`;
+  useEffect(() => setPageL(0), [sigListe]);
+  // Au changement de page, le focus passe à la liste — la flèche qu'on vient
+  // d'utiliser peut se désactiver sous le doigt — et la liste remonte sous le
+  // bloc collant, sans animation quand le mouvement est réduit.
+  const versListe = useRef(false);
+  const allerPage = useCallback((p: number) => {
+    versListe.current = true;
+    setPageL(p);
+  }, []);
+  useEffect(() => {
+    if (!versListe.current) return;
+    versListe.current = false;
+    const el = listeRef.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    const bloc = document.querySelector(".bloc7")?.getBoundingClientRect().bottom ?? 0;
+    const haut = el.getBoundingClientRect().top;
+    if (haut < bloc) {
+      const reduit = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: window.scrollY + haut - bloc - 12, behavior: reduit ? "auto" : "smooth" });
+    }
+  }, [page]);
   const lfree = lp.filter((p) => !p.fixed);
   const kept = raw.find((l) => l.id === P.lodgeId) ?? null;
   // Même calcul qu'ailleurs : les enfants à leur tarif quand le domaine le
@@ -774,14 +955,55 @@ function LogementsStation({ s }: { s: Station }) {
     p.chooseLodge(p.lodgeId === id ? null : id);
   }, []);
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
+  const sheetGroupe = sheet ? (logementDe.get(sheet.id) ?? null) : null;
+  /** L'étiquette de sources d'un logement désigné par son offre principale. */
+  const groupeLbl = (l: Listing) => {
+    const g = logementDe.get(l.id);
+    return g ? sourcesLbl(g) : l.source;
+  };
+  /** Les autres plateformes du logement et leurs prix, pour l'infobulle. */
+  const autresLbl = (l: Listing) => {
+    const g = logementDe.get(l.id);
+    if (!g || g.offres.length < 2) return null;
+    return `Aussi sur ${g.offres
+      .filter((o) => o.id !== l.id)
+      .map((o) => `${o.source} (${prixLbl(o)})`)
+      .join(", ")}`;
+  };
 
-  // Les épingles portent tout le résultat des filtres, comme sur Comparer ; la
-  // liste, elle, suit le cadre. Tirées du cadre, elles ne recadraient que sur
-  // ce qu'il montrait déjà : le premier cadrage (le repère de la station,
-  // avant l'arrivée du relevé) se reconduisait sans fin, et les annonces
-  // arrivées ensuite hors de lui ne s'affichaient jamais — 515 sur 3 268 à
-  // Avoriaz, relevé du 23 septembre 2026.
-  const situees = lvis.filter((l) => l.lat != null && l.lon != null);
+  // Sur la carte, comme sur Airbnb : les logements de la page en cours, et eux
+  // seuls. Le cadrage, lui, couvre tout le résultat des filtres : recadrer sur
+  // les seules épingles posées reconduisait sans fin le premier cadre (le
+  // repère de la station, avant l'arrivée du relevé), et les logements arrivés
+  // ensuite hors de lui ne s'affichaient jamais — 515 sur 3 268 à Avoriaz,
+  // relevé du 23 septembre 2026.
+  // La fiche épinglée sur la carte, la fiche ouverte et le logement retenu
+  // gardent leur épingle hors de leur page : sans quoi déplacer la carte (qui
+  // ramène en page 1) refermait la fiche épinglée, et le logement retenu
+  // disparaissait de la carte dès qu'on changeait de page.
+  const designes = [epinglee, sheetId, P.lodgeId]
+    .map((id) => (id ? logementDe.get(id)?.principale : undefined))
+    .filter((l): l is Listing => !!l && !pageItems.includes(l));
+  const situees = [...pageItems, ...new Set(designes)].filter((l) => l.lat != null && l.lon != null);
+  const pointsResultat = useMemo(
+    () => [
+      [s.lat, s.lon] as [number, number],
+      ...principales
+        .filter((l) => l.lat != null && l.lon != null)
+        .map((l) => [l.lat as number, l.lon as number] as [number, number]),
+    ],
+    [principales, s.lat, s.lon],
+  );
+  /**
+   * L'offre du logement que désigne cet identifiant, ou `null`. Le logement se
+   * dit « retenu » quand l'une de ses offres l'est, et l'action porte sur cette
+   * offre-là : comparer à la seule principale faisait passer le choix, en
+   * silence, d'une plateforme à l'autre au lieu de le retirer.
+   */
+  const offreDe = (l: Listing, id: string | null | undefined): Listing | null => {
+    if (!id) return null;
+    return logementDe.get(l.id)?.offres.find((o) => o.id === id) ?? (l.id === id ? l : null);
+  };
   const marqueurs = useMemo(
     () => [
       {
@@ -794,8 +1016,9 @@ function LogementsStation({ s }: { s: Station }) {
         inerte: true,
       },
       ...situees.map((l) => {
-        const sel = sheetId === l.id || P.lodgeId === l.id;
-        const etat = sel ? "retenue" : P.seen[l.id] ? "vue" : "normale";
+        const sel = offreDe(l, sheetId) != null || offreDe(l, P.lodgeId) != null;
+        const vue = logementDe.get(l.id)?.offres.some((o) => P.seen[o.id]) ?? !!P.seen[l.id];
+        const etat = sel ? "retenue" : vue ? "vue" : "normale";
         return {
           id: l.id,
           lat: l.lat as number,
@@ -806,9 +1029,11 @@ function LogementsStation({ s }: { s: Station }) {
         };
       }),
     ],
-    // Le contenu change avec les annonces situées, la sélection et les vues.
+    // Le contenu change avec les annonces situées, leurs offres, la sélection
+    // et les vues. `logements` suit le relevé : un prix qui change sans changer
+    // d'identifiant se redessine.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [s.id, s.lat, s.lon, s.name, situees.map((l) => l.id).join(","), sheetId, P.lodgeId, P.seen],
+    [s.id, s.lat, s.lon, s.name, situees.map((l) => l.id).join(","), logements, sheetId, P.lodgeId, P.seen],
   );
   /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
    *  cadre : calculée sur le cadre, recadrer changerait la liste, qui changerait
@@ -957,9 +1182,11 @@ function LogementsStation({ s }: { s: Station }) {
                   <LigneReleve sources={liveSources.map((x) => x.source)} />
                 ) : (
                 <span className="filtres7__compte">
-                  {lvis.length === 0
+                  {logements.length === 0
                     ? "Aucun logement disponible"
-                    : `${lvis.length} logement${lvis.length > 1 ? "s" : ""} disponible${lvis.length > 1 ? "s" : ""}`}
+                    : `${logements.length} logement${logements.length > 1 ? "s" : ""} disponible${logements.length > 1 ? "s" : ""}${
+                        lvis.length > logements.length ? ` · ${lvis.length} offres` : ""
+                      }`}
                 </span>
                 )}
                 <select className="select7" value={lsort} onChange={(e) => setLsort(e.target.value as LodgeSort)}>
@@ -1109,17 +1336,24 @@ function LogementsStation({ s }: { s: Station }) {
 
         {raw.length || enReleve ? (
           <div className="v7deux">
-            <div className="v7deux__liste">
+            <div className="v7deux__liste" ref={listeRef} tabIndex={-1} aria-label="Logements de la page">
               {enReleve ? (
                 <SquelettesLogements />
               ) : affichees.length ? (
+                <>
                 <div className="grille7-2">
-                  {affichees.map((l) => (
+                  {pageItems.map((l) => (
                     <CarteLogement
                       key={l.id}
                       l={l}
-                      retenu={P.lodgeId === l.id}
-                      vue={!!P.seen[l.id]}
+                      sources={groupeLbl(l)}
+                      autres={autresLbl(l)}
+                      retenu={offreDe(l, P.lodgeId)?.id ?? null}
+                      retenuSource={(() => {
+                        const r = offreDe(l, P.lodgeId);
+                        return r && r.id !== l.id ? r.source : null;
+                      })()}
+                      vue={logementDe.get(l.id)?.offres.some((o) => P.seen[o.id]) ?? !!P.seen[l.id]}
                       vif={actifCarte === l.id}
                       stay={stay}
                       trav={trav}
@@ -1130,6 +1364,8 @@ function LogementsStation({ s }: { s: Station }) {
                     />
                   ))}
                 </div>
+                {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
+                </>
               ) : lvis.length ? (
                 <Vide
                   titre="Aucune annonce dans ce cadrage"
@@ -1168,6 +1404,8 @@ function LogementsStation({ s }: { s: Station }) {
               <CarteEpingles
                 marqueurs={marqueurs}
                 cadrage={cadrage}
+                cadrerSur={pointsResultat}
+                surFixe={setEpinglee}
                 maxZoom={14}
                 surBornes={setBornes}
                 actif={actifCarte}
@@ -1189,13 +1427,13 @@ function LogementsStation({ s }: { s: Station }) {
                             className="fc__slot"
                             src={l.photo}
                           />
-                          <span className="fc__source">{l.source}</span>
+                          <span className="fc__source">{groupeLbl(l)}</span>
                           {l.priceIndicative ? <span className="lodge7__indic">à partir de</span> : null}
                         </div>
                       ) : null}
                       <div className="fc__texte">
                         {!l.photo ? (
-                          <span className="toujours7__regle">{l.source}</span>
+                          <span className="toujours7__regle">{groupeLbl(l)}</span>
                         ) : null}
                         <strong className="fc__titre">{l.title}</strong>
                         <span className="fc__ligne">
@@ -1227,7 +1465,7 @@ function LogementsStation({ s }: { s: Station }) {
                 actionsDe={(id) => {
                   const l = lvis.find((x) => x.id === id);
                   if (!l) return null;
-                  const retenu = P.lodgeId === l.id;
+                  const r = offreDe(l, P.lodgeId);
                   return (
                     <>
                       <button type="button" className="btn7" onClick={() => openSheet(id)}>
@@ -1236,10 +1474,10 @@ function LogementsStation({ s }: { s: Station }) {
                       <button
                         type="button"
                         className="btn7 btn7--fantome"
-                        aria-pressed={retenu}
-                        onClick={() => keep(l.id)}
+                        aria-pressed={r != null}
+                        onClick={() => keep(r?.id ?? l.id)}
                       >
-                        {retenu ? "Retenu" : "Retenir"}
+                        {r ? "Retenu" : "Retenir"}
                       </button>
                     </>
                   );
@@ -1252,12 +1490,12 @@ function LogementsStation({ s }: { s: Station }) {
                   ) : (
                     <>
                       <b>
-                        {affichees.filter((l) => l.lat != null).length} pastille
-                        {affichees.filter((l) => l.lat != null).length > 1 ? "s" : ""} dans le cadre
+                        {nPages > 1 ? `Page ${page + 1} sur ${nPages} · ` : ""}
+                        {affichees.length} logement{affichees.length > 1 ? "s" : ""} dans le cadre
                       </b>
                       {parCadre.horsCadre.length ? (
                         <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                          Revoir les {lvis.length} annonces
+                          Revoir les {logements.length} logements
                           <Icon name="fleche-droite" taille={14} />
                         </button>
                       ) : null}
@@ -1401,6 +1639,16 @@ function LogementsStation({ s }: { s: Station }) {
                   </div>
                 )}
               </div>
+              {sheetGroupe && sheetGroupe.offres.length > 1 ? (
+                <OffresLogement
+                  g={sheetGroupe}
+                  ici={sheet.id}
+                  voir={(id) => {
+                    setPhotoI(0);
+                    openSheet(id);
+                  }}
+                />
+              ) : null}
               <div className="volet7__prov">
                 <span>Provenance</span>
                 <p>{sheet.proven}</p>

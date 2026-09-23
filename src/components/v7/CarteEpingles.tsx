@@ -75,6 +75,7 @@ export type Marqueur = {
 export function CarteEpingles({
   marqueurs,
   cadrage,
+  cadrerSur,
   maxZoom = 11,
   vueVide = VUE_VIDE,
   surClic,
@@ -85,10 +86,17 @@ export function CarteEpingles({
   actionsDe,
   actif = null,
   surActif,
+  surFixe,
 }: {
   marqueurs: readonly Marqueur[];
   /** Change quand il faut recadrer : la liste des identifiants, en pratique. */
   cadrage: string;
+  /**
+   * Les points sur lesquels recadrer, quand ce ne sont pas les marqueurs : la
+   * carte des logements ne pose que les épingles de la page en cours, mais
+   * son cadrage doit couvrir tout le résultat. Lu au moment du recadrage.
+   */
+  cadrerSur?: readonly [number, number][];
   maxZoom?: number;
   vueVide?: { centre: [number, number]; zoom: number };
   /** Clic sur un marqueur, **quand aucune fiche n'est fournie**. Avec `ficheDe`,
@@ -108,6 +116,8 @@ export function CarteEpingles({
   actif?: string | null;
   /** Remonte l'épingle vive, pour que la liste éclaire la même. */
   surActif?: (id: string | null) => void;
+  /** Remonte l'épingle dont la fiche est épinglée : l'écran la garde posée. */
+  surFixe?: (id: string | null) => void;
 }) {
   const hote = useRef<HTMLDivElement>(null);
   const lib = useRef<typeof Leaflet | null>(null);
@@ -117,6 +127,10 @@ export function CarteEpingles({
   rappel.current = surClic;
   const rappelBornes = useRef(surBornes);
   rappelBornes.current = surBornes;
+  // Par une référence : un tableau neuf à chaque rendu ne doit pas reconstruire
+  // les marqueurs ; il ne sert qu'au recadrage, qui suit la clé `cadrage`.
+  const cadrerSurRef = useRef(cadrerSur);
+  cadrerSurRef.current = cadrerSur;
   const cadre = useRef("");
   const [prete, setPrete] = useState(false);
   // Une seule lecture du dispositif de pointage : elle était refaite pour
@@ -131,10 +145,14 @@ export function CarteEpingles({
   const marques = useRef(new Map<string, Leaflet.Marker>());
   /** Le désencombrement, joignable depuis les écouteurs posés au montage. */
   const desencombrerRef = useRef<(() => void) | null>(null);
+  /** L'ordre de priorité des pastilles au prix : celui de la liste. */
+  const ordrePrix = useRef<string[]>([]);
   /** Les étiquettes de nom, avec leur priorité d'arbitrage. */
   const etiquettes = useRef(new Map<string, { marque: Leaflet.Marker; priorite: number }>());
   const rappelActif = useRef(surActif);
   rappelActif.current = surActif;
+  const rappelFixe = useRef(surFixe);
+  rappelFixe.current = surFixe;
   // `ficheDe` est une fonction écrite en ligne par l'écran : elle change à
   // chaque rendu. Lue par une référence, elle ne fait plus reconstruire les
   // marqueurs à chaque frappe, ce qui effaçait leur éclairage.
@@ -214,6 +232,8 @@ export function CarteEpingles({
         // rectangles, et attendre ferait clignoter les noms.
         m.on("moveend", () => desencombrerRef.current?.());
         m.on("zoomend", () => desencombrerRef.current?.());
+        m.on("moveend", () => compacterRef.current?.());
+        m.on("zoomend", () => compacterRef.current?.());
         m.setView(vueVide.centre, vueVide.zoom);
         // Le redimensionnement du panneau latéral change le cadre visible : la
         // liste et le compteur doivent le savoir, pas seulement la carte.
@@ -254,6 +274,11 @@ export function CarteEpingles({
     c.clearLayers();
     marques.current.clear();
     etiquettes.current.clear();
+    // L'épingle retenue passe devant, puis l'ordre de la liste.
+    ordrePrix.current = marqueurs
+      .map((mk, i) => ({ id: mk.id, rang: -(mk.zIndex ?? 0) * 1e6 + i }))
+      .sort((a, b) => a.rang - b.rang)
+      .map((x) => x.id);
     const pts: [number, number][] = [];
     for (const mk of marqueurs) {
       if (!Number.isFinite(mk.lat) || !Number.isFinite(mk.lon)) continue;
@@ -316,15 +341,54 @@ export function CarteEpingles({
       if (mk.cadre !== false) pts.push([mk.lat, mk.lon]);
     }
     desencombrer();
+    compacter();
     // Le recadrage suit la clé `cadrage`, que l'écran calcule sur le **résultat
     // des filtres** et non sur ce qui tombe dans le cadre : sans quoi recadrer
     // changerait la liste, qui changerait la clé, qui recadrerait à nouveau.
     if (cadre.current !== cadrage) {
       cadre.current = cadrage;
-      if (pts.length) m.fitBounds(Lf.latLngBounds(pts), { padding: [48, 48], maxZoom });
+      const cible = cadrerSurRef.current?.length ? cadrerSurRef.current : pts;
+      if (cible.length) m.fitBounds(Lf.latLngBounds(cible as [number, number][]), { padding: [48, 48], maxZoom });
       else m.setView(vueVide.centre, vueVide.zoom);
     }
+    // `compacter` est stable ; il n'entre pas dans les dépendances.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prete, marqueurs, cadrage, maxZoom, vueVide, avecFiche, survoler]);
+
+  /**
+   * Les pastilles au prix qui se chevauchent se réduisent à un point.
+   *
+   * Comme sur Airbnb : une pastille pleine par logement quand la place le
+   * permet, un point sinon, et le prix revient au survol — sur le point ou sur
+   * la ligne de la liste. On parcourt les pastilles dans l'ordre de la liste,
+   * la retenue d'abord ; une pastille qui heurte une pastille déjà posée
+   * devient un point. Rejoué à chaque fin de zoom et de déplacement.
+   */
+  const compacter = useCallback(() => {
+    const m = carte.current;
+    if (!m) return;
+    type Rect = { x1: number; y1: number; x2: number; y2: number };
+    const pris: Rect[] = [];
+    const heurte = (r: Rect) => pris.some((q) => r.x1 < q.x2 && r.x2 > q.x1 && r.y1 < q.y2 && r.y2 > q.y1);
+    for (const id of ordrePrix.current) {
+      const marque = marques.current.get(id);
+      const el = marque?.getElement()?.querySelector<HTMLElement>(".epingle-prix");
+      if (!marque || !el) continue;
+      el.classList.remove("epingle-prix--compacte");
+      // La taille de mise en page, et non `getBoundingClientRect` : celui-ci
+      // compte les transformations — l'animation d'arrivée (× 0,6), le survol
+      // (× 1,14) — et laissait se chevaucher des pastilles qui se touchent.
+      const l = el.offsetWidth;
+      const h = el.offsetHeight;
+      if (l === 0) continue;
+      const p = m.latLngToContainerPoint(marque.getLatLng());
+      const r = { x1: p.x - l / 2, y1: p.y - h / 2, x2: p.x + l / 2, y2: p.y + h / 2 };
+      if (heurte(r)) el.classList.add("epingle-prix--compacte");
+      else pris.push(r);
+    }
+  }, []);
+  const compacterRef = useRef<(() => void) | null>(null);
+  compacterRef.current = compacter;
 
   /**
    * Qui a le droit d'afficher son nom.
@@ -374,15 +438,24 @@ export function CarteEpingles({
 
   desencombrerRef.current = desencombrer;
 
-  // Éclairage des épingles : une classe posée sur l'élément du marqueur.
+  // Éclairage des épingles : une classe posée sur l'élément du marqueur, et
+  // l'épingle vive remontée côté Leaflet — un `z-index` CSS resterait enfermé
+  // dans le contexte d'empilement que Leaflet écrit en ligne sur le marqueur,
+  // et la pastille dépliée d'un point passait sous sa voisine.
   useEffect(() => {
+    const base = new Map(marqueurs.map((mk) => [mk.id, mk.zIndex ?? ETAGE.normale]));
     for (const [id, mk] of marques.current) {
       const el = mk.getElement();
       if (!el) continue;
       el.classList.toggle("epingle-hote--vive", id === vif);
       el.classList.toggle("epingle-hote--fixee", id === fixe);
+      mk.setZIndexOffset(id === vif || id === fixe ? ETAGE.vive : (base.get(id) ?? ETAGE.normale));
     }
   }, [vif, fixe, marqueurs, prete]);
+
+  useEffect(() => {
+    rappelFixe.current?.(fixe);
+  }, [fixe]);
 
   // Échap ferme la fiche épinglée. C'est, avec sa croix, la seule sortie : ni
   // le clic sur le fond de carte, ni le déplacement, ni le survol d'une autre

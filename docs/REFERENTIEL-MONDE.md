@@ -342,16 +342,27 @@ relevé », à la place même où il paraîtrait.
 
 | | Domaines | Photo | Forfait | Les six tarifs | Météo |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Tous, nommés | 2 781 | 58,8 % | 69,3 % | 20,0 % | 100 % |
-| 3 remontées et plus | 1 554 | 71,4 % | 81,4 % | 31,4 % | 100 % |
-| 10 km et plus | 682 | 81,2 % | 86,4 % | 48,5 % | 100 % |
+| Tous, nommés | 2 781 | 60,1 % | 69,4 % | 20,0 % | 100 % |
+| 3 remontées et plus | 1 554 | 73,4 % | 81,5 % | 31,5 % | 100 % |
+| 10 km et plus | 682 | 83,7 % | 86,4 % | 48,7 % | 100 % |
 
-La part de photos **baisse** par rapport au relevé précédent (73,4 %), et
-c'est voulu : les 2 023 images retenues ont été regardées, et 576 ne
-répondaient pas à ce qui est demandé — 257 sans neige, 186 hors sujet (plans
-de pistes dessinés, logos, intérieurs), 54 filigranées, 43 simples paysages
-de montagne, 36 partagées entre plusieurs domaines. Une absence vraie vaut
-mieux qu'une photo qui ne montre pas la station.
+La part de photos **baisse** par rapport au relevé précédent (73,4 % au
+22 septembre), et c'est voulu : 2 026 images ont été regardées une à une, et
+697 adresses écartées — 250 sans neige, 153 hors sujet (plans de pistes
+dessinés, logos, intérieurs), 47 filigranées, 46 partagées entre plusieurs
+domaines, 24 simples paysages de montagne, le reste inatteignable au
+contrôle. Une absence vraie vaut mieux qu'une photo qui ne montre pas la
+station.
+
+**Aucune photo affichée n'est restée sans être vue.** Écarter une photo
+laisse la place à la source suivante, qui n'avait pas été regardée non plus :
+il a fallu trois tours pour que le compte tombe à zéro. Le second tour, sur
+les photos ainsi promues, n'en a gardé que 59 sur 170 — les images d'une
+source de second rang sont bien plus rarement la station.
+
+Les 1 671 photos affichées se répartissent ainsi : Skiinfo 1 068, Wikimedia
+Commons 169, bergfex 125, site officiel 120, tableau des manques 106,
+skiresort 83.
 
 Les sources, dans l'ordre où elles servent — `scripts/build-vues-monde.ts`,
 qui écrit `vuesDomaines.json` :
@@ -404,6 +415,13 @@ associe à son nom. Les candidates sont triées (nom du domaine dans le titre,
 mot de neige ou de ski, taille), les hors-sujet écartées avant tout
 téléchargement, et un regard choisit. Commons interdit les filigranes, ce
 qui règle l'une des quatre conditions à la source.
+
+Mille cent quarante-cinq domaines ont été cherchés, 929 avaient au moins une
+candidate, 906 ont été regardés — **202 photos retenues, une sur cinq**.
+Le reste est honnêtement vide : autour d'un petit domaine autrichien,
+Commons a surtout des églises, des monuments aux morts et des prairies
+d'été. Trente-trois des 202 sont ensuite retirées, deux domaines voisins
+ayant choisi le même fichier.
 
 Une photo libre ne se montre **qu'avec son auteur et sa licence** : le
 crédit paraît sous l'image, lisible et cliquable vers la page du fichier.
@@ -487,13 +505,18 @@ la fiche la plus proche à 5 km, jusqu'à 20 km quand **le nom corrobore**, une
 fiche ne servant qu'un domaine. La distance et la fiche voyagent avec la donnée
 jusqu'à l'écran.
 
-Il manque une photo ou un forfait à 1 152 domaines, et la raison est connue
-pour chacun : 603 n'ont aucun site web connu, 365 en ont un qui ne publie rien
-d'exploitable, 101 refusent par `robots.txt` ou 429, 81 ne répondent pas.
-L'assouplissement de l'appariement par le nom a été mesuré et ne rend rien.
-Il n'y a plus de source publiée à ouvrir pour ceux-là ; le tableau des
-manques, régénéré, est ce qui reste à remplir à la main — avec l'adresse
-d'une page en `source`, sans quoi la relecture l'ignore.
+`docs/manques-photo-forfait.csv` porte les 2 277 domaines auxquels il manque
+une photo, un forfait **ou l'un des six tarifs** : 894 n'attendent que des
+tarifs, 578 une photo et un forfait, 480 une photo et des tarifs, 273 un
+forfait, 52 une photo. La colonne `tarifs_manquants` nomme les cases vides et
+les colonnes `releve_*` disent ce qu'une source publie déjà, pour qu'on ne
+cherche pas deux fois la même chose.
+
+La raison de chaque absence est connue : la plupart de ces domaines n'ont
+aucun site web publié par OpenSkiMap, et ceux qui en ont un ne publient
+souvent plus de prix. Toutes les sources moissonnables l'ont été ; ce qui
+reste se remplit à la main, **avec l'adresse d'une page en `source`**, sans
+quoi la relecture l'ignore.
 
 ## Les devises
 

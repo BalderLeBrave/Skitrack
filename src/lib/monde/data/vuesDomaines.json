@@ -19,7 +19,7 @@
  ],
  "avertissement": "les montants sont dans la devise du pays et ne doivent pas être convertis ; aucune source ne publie de prix par période dans la saison, seule la distinction semaine / week-end est relevée",
  "domaines": 2781,
- "avecPhoto": 1627,
+ "avecPhoto": 1671,
  "avecForfait": 1930,
  "vues": {
   "ad-canaro": {
@@ -181726,7 +181726,19 @@
    }
   },
   "no-narvikfjellet-ski-resort": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Narvik panorama.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Narvik_panorama.jpg/960px-Narvik_panorama.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "Peterkz",
+    "page": "https://commons.wikimedia.org/wiki/File:Narvik_panorama.jpg",
+    "vu": "panorama hivernal depuis la montagne enneigée, Narvik et le fjord en contrebas"
+   },
    "forfait": {
     "source": "proprietaire",
     "cle": "https://www.skiinfo.fr/norvege/forfaits-de-ski",
@@ -183746,7 +183758,7 @@
     "licence": "CC BY 2.0",
     "auteur": "Bjørn Heidenstrøm from Sætre, Norway",
     "page": "https://commons.wikimedia.org/wiki/File:Sunset_on_Sjus%C3%B8en_-crosscountry_-ski_-norway_(8221061907).jpg",
-    "vu": "trois skieurs de fond en silhouette sur l'étendue enneigée au couchant"
+    "vu": "trois skieurs de fond sur la neige au coucher du soleil"
    },
    "forfait": null
   },
@@ -184195,7 +184207,7 @@
     "licence": "CC BY-SA 4.0",
     "auteur": "Bjoertvedt",
     "page": "https://commons.wikimedia.org/wiki/File:Skeistua_IMG_7916.JPG",
-    "vu": "chalet enneigé, piste et pylônes de remontée sur la colline"
+    "vu": "chalet enneigé, skieur, piste et pylônes de télésiège derrière"
    },
    "forfait": {
     "source": "proprietaire",
@@ -187293,7 +187305,7 @@
     "licence": "CC BY 2.0",
     "auteur": "Municipal Archives of Trondheim from Trondheim, Norway",
     "page": "https://commons.wikimedia.org/wiki/File:P%C3%A5_ski_utenfor_Fjellseter_Turisthotell_-_Skiing_at_Fjellseter_Tourist_Resort_(3986020761).jpg",
-    "vu": "skieur et skis plantés devant l'hôtel enneigé de Fjellseter"
+    "vu": "skieur devant l'hôtel enneigé, skis dressés contre la barrière"
    },
    "forfait": {
     "source": "skiresort",
@@ -188216,7 +188228,7 @@
     "licence": "CC BY-SA 4.0",
     "auteur": "Pudelek",
     "page": "https://commons.wikimedia.org/wiki/File:Koribel%C3%B3w-Ski_lift.jpg",
-    "vu": "télésiège et cabane de sommet sous le givre, pente enneigée"
+    "vu": "téléski à perches au-dessus d'une crête enneigée, sapins givrés"
    },
    "forfait": {
     "source": "skiresort",
@@ -188349,7 +188361,7 @@
     "licence": "CC BY-SA 4.0",
     "auteur": "Jacek Halicki",
     "page": "https://commons.wikimedia.org/wiki/File:2018_Snowboardzistka.jpg",
-    "vu": "snowboardeuse sur piste enneigée, pylônes de remontée et skieurs derrière"
+    "vu": "snowboardeuse sur une piste damée, skieurs et pylônes de remontée derrière"
    },
    "forfait": {
     "source": "skiresort",
@@ -189204,7 +189216,7 @@
     "licence": "CC BY-SA 3.0",
     "auteur": "Krystyna W.",
     "page": "https://commons.wikimedia.org/wiki/File:Szczyrk.Wyci%C4%85g_krzese%C5%82kowy_na_Skrzyczne._-_panoramio.jpg",
-    "vu": "skieurs en télésiège au-dessus de pentes enneigées boisées"
+    "vu": "télésiège au-dessus de sapins enneigés, skieur assis, vallée blanche"
    },
    "forfait": {
     "source": "skiresort",
@@ -190145,7 +190157,7 @@
     "licence": "CC BY-SA 4.0",
     "auteur": "Matix849 (Mateusz Małkowski)",
     "page": "https://commons.wikimedia.org/wiki/File:O%C5%9Brodek_Sportowo-Rekreacyjny_G%C3%B3ra_Dzikowiec_w_Boguszowie-Gorcach_2.jpg",
-    "vu": "piste enneigée descendant vers l'hôtel de la station, au crépuscule"
+    "vu": "vue aérienne au crépuscule : piste avec névé, hôtel de station éclairé"
    },
    "forfait": {
     "source": "skiresort",
@@ -190561,7 +190573,7 @@
     "licence": "CC BY-SA 3.0",
     "auteur": "Mateusz Kudła",
     "page": "https://commons.wikimedia.org/wiki/File:TatryzGubalowki.jpg",
-    "vu": "canon à neige sur une piste enneigée face aux Tatras"
+    "vu": "canon à neige sur une piste enneigée, Tatras blanches au fond"
    },
    "forfait": null
   },
@@ -191057,7 +191069,7 @@
     "licence": "CC BY-SA 4.0",
     "auteur": "Wlodek k1",
     "page": "https://commons.wikimedia.org/wiki/File:Krynica-Zdr%C3%B3j,_2025.01.28_01.jpg",
-    "vu": "télésiège et skieurs au-dessus d'une piste enneigée, enneigeur"
+    "vu": "télésiège et canon à neige au-dessus d'une piste enneigée"
    },
    "forfait": {
     "source": "skiinfo",
@@ -192475,7 +192487,19 @@
    }
   },
   "pl-kosza-kowo": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Wyciąg narciarski w Szymbarku-Kotlince - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Wyci%C4%85g_narciarski_w_Szymbarku-Kotlince_-_panoramio.jpg/960px-Wyci%C4%85g_narciarski_w_Szymbarku-Kotlince_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "geo573",
+    "page": "https://commons.wikimedia.org/wiki/File:Wyci%C4%85g_narciarski_w_Szymbarku-Kotlince_-_panoramio.jpg",
+    "vu": "piste enneigée avec skieurs et téléski en haut de la butte"
+   },
    "forfait": null
   },
   "pl-koziniec-ski": {
@@ -192942,7 +192966,19 @@
    "forfait": null
   },
   "pl-lubinka": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Lubinka, Janowice.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Lubinka%2C_Janowice.jpg/960px-Lubinka%2C_Janowice.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Mateusz Giełczyński",
+    "page": "https://commons.wikimedia.org/wiki/File:Lubinka,_Janowice.jpg",
+    "vu": "skieurs sur une piste enneigée éclairée au crépuscule"
+   },
    "forfait": null,
    "altitudes": {
     "basM": 285,
@@ -193122,6 +193158,22 @@
      "saisonEnfant": null
     }
    }
+  },
+  "pl-malta-ski": {
+   "photo": {
+    "source": "commons",
+    "cle": "Malta Ski Poznań in winter.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/93/Malta_Ski_Pozna%C5%84_in_winter.jpg/960px-Malta_Ski_Pozna%C5%84_in_winter.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Bolando",
+    "page": "https://commons.wikimedia.org/wiki/File:Malta_Ski_Pozna%C5%84_in_winter.jpg",
+    "vu": "skieurs sur la piste enneigée, câble de remontée au-dessus"
+   },
+   "forfait": null
   },
   "pl-master-ski": {
    "photo": {
@@ -193464,6 +193516,38 @@
      "saisonEnfant": null
     }
    }
+  },
+  "pl-murzasichle": {
+   "photo": {
+    "source": "commons",
+    "cle": "Dom w Murzasichle - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Dom_w_Murzasichle_-_panoramio.jpg/960px-Dom_w_Murzasichle_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "R.Mendakiewicz",
+    "page": "https://commons.wikimedia.org/wiki/File:Dom_w_Murzasichle_-_panoramio.jpg",
+    "vu": "chalet d'hôtes du village sous la neige, pente enneigée derrière"
+   },
+   "forfait": null
+  },
+  "pl-myslecinek": {
+   "photo": {
+    "source": "commons",
+    "cle": "Bdg Myslecinek-ski4 01-2015.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Bdg_Myslecinek-ski4_01-2015.jpg/960px-Bdg_Myslecinek-ski4_01-2015.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC0",
+    "auteur": "Pit1233",
+    "page": "https://commons.wikimedia.org/wiki/File:Bdg_Myslecinek-ski4_01-2015.jpg",
+    "vu": "piste enneigée au crépuscule, skieurs, téléski et enneigeurs en marche"
+   },
+   "forfait": null
   },
   "pl-na-stoku": {
    "photo": null,
@@ -194012,6 +194096,10 @@
     }
    }
   },
+  "pl-osrodek-narciarski-trzepowo": {
+   "photo": null,
+   "forfait": null
+  },
   "pl-osrodek-narciarski-za-groniem": {
    "photo": {
     "source": "officiel",
@@ -194283,7 +194371,19 @@
    }
   },
   "pl-piast": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Stok narciarski - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0b/Stok_narciarski_-_panoramio.jpg/960px-Stok_narciarski_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "astuadam",
+    "page": "https://commons.wikimedia.org/wiki/File:Stok_narciarski_-_panoramio.jpg",
+    "vu": "piste enneigée au-dessus de la station, canon à neige, village en contrebas"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "jastrzebica-przylekow",
@@ -195078,6 +195178,10 @@
     }
    }
   },
+  "pl-rusin-ski": {
+   "photo": null,
+   "forfait": null
+  },
   "pl-ryterski-raj": {
    "photo": {
     "source": "skiinfo",
@@ -195374,6 +195478,22 @@
      "saisonEnfant": null
     }
    }
+  },
+  "pl-skalanka": {
+   "photo": {
+    "source": "commons",
+    "cle": "Skalanka zima 2026.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Skalanka_zima_2026.jpg/960px-Skalanka_zima_2026.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Adrian Tync",
+    "page": "https://commons.wikimedia.org/wiki/File:Skalanka_zima_2026.jpg",
+    "vu": "piste enneigée montant entre les sapins jusqu'au sommet"
+   },
+   "forfait": null
   },
   "pl-ski-sun": {
    "photo": {
@@ -196821,7 +196941,19 @@
    "forfait": null
   },
   "pl-stok-karpatka": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Karpacz Winter.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/09/Karpacz_Winter.jpg/960px-Karpacz_Winter.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Britta Beck",
+    "page": "https://commons.wikimedia.org/wiki/File:Karpacz_Winter.jpg",
+    "vu": "village de station enneigé, pensions et sapins sous la neige"
+   },
    "forfait": null,
    "altitudes": {
     "basM": 709,
@@ -196932,7 +197064,19 @@
    }
   },
   "pl-stok-narciarski-w-jacni": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Zima w Jacni.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Zima_w_Jacni.jpg/960px-Zima_w_Jacni.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC0",
+    "auteur": "Tomasz Zugaj",
+    "page": "https://commons.wikimedia.org/wiki/File:Zima_w_Jacni.jpg",
+    "vu": "piste enneigée avec téléski, skieurs et enfant en bouée"
+   },
    "forfait": null,
    "pistes": {
     "km": 0.7,
@@ -197337,6 +197481,22 @@
      "saisonEnfant": null
     }
    }
+  },
+  "pl-szrenica-ski-arena": {
+   "photo": {
+    "source": "commons",
+    "cle": "Szklarska Poręba, stok - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Szklarska_Por%C4%99ba%2C_stok_-_panoramio.jpg/960px-Szklarska_Por%C4%99ba%2C_stok_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "Tomasz Sudoł",
+    "page": "https://commons.wikimedia.org/wiki/File:Szklarska_Por%C4%99ba,_stok_-_panoramio.jpg",
+    "vu": "large piste damée montant vers la remontée, enneigeur en bord de piste"
+   },
+   "forfait": null
   },
   "pl-szus": {
    "photo": null,
@@ -198385,7 +198545,19 @@
    }
   },
   "pl-wegierski": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Szczyrk Mountain Resort - upper station of gondola lift A1.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/Szczyrk_Mountain_Resort_-_upper_station_of_gondola_lift_A1.jpg/960px-Szczyrk_Mountain_Resort_-_upper_station_of_gondola_lift_A1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "Happa",
+    "page": "https://commons.wikimedia.org/wiki/File:Szczyrk_Mountain_Resort_-_upper_station_of_gondola_lift_A1.jpg",
+    "vu": "gare haute de télécabine et cabines au-dessus d'une piste enneigée"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "wegierski-brenna",
@@ -199119,6 +199291,22 @@
     "cle": "silesie/istebna-zloty-gron"
    }
   },
+  "pl-ysa-gora": {
+   "photo": {
+    "source": "commons",
+    "cle": "Ski Arena Łysa Góra 2017.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2f/Ski_Arena_%C5%81ysa_G%C3%B3ra_2017.jpg/960px-Ski_Arena_%C5%81ysa_G%C3%B3ra_2017.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Bolando",
+    "page": "https://commons.wikimedia.org/wiki/File:Ski_Arena_%C5%81ysa_G%C3%B3ra_2017.jpg",
+    "vu": "skieurs sur la piste enneigée sous le câble du téléski"
+   },
+   "forfait": null
+  },
   "pl-sniezynka": {
    "photo": null,
    "forfait": null,
@@ -199648,6 +199836,42 @@
     }
    }
   },
+  "ro-feleacu-cluj-napoca": {
+   "photo": {
+    "source": "commons",
+    "cle": "Feleacu Teleski pension - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Feleacu_Teleski_pension_-_panoramio.jpg/960px-Feleacu_Teleski_pension_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "tonimese",
+    "page": "https://commons.wikimedia.org/wiki/File:Feleacu_Teleski_pension_-_panoramio.jpg",
+    "vu": "chalet de la station au sommet d'une pente enneigée, promeneurs"
+   },
+   "forfait": null
+  },
+  "ro-gura-humorului": {
+   "photo": {
+    "source": "commons",
+    "cle": "Partia Şoimul - ORAS GURA HUMORULUI I - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Partia_%C5%9Eoimul_-_ORAS_GURA_HUMORULUI_I_-_panoramio.jpg/960px-Partia_%C5%9Eoimul_-_ORAS_GURA_HUMORULUI_I_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "Codrean Andrei",
+    "page": "https://commons.wikimedia.org/wiki/File:Partia_%C5%9Eoimul_-_ORAS_GURA_HUMORULUI_I_-_panoramio.jpg",
+    "vu": "télésiège avec skieurs au-dessus d'une piste enneigée bordée de filets"
+   },
+   "forfait": null
+  },
+  "ro-harghita-bai": {
+   "photo": null,
+   "forfait": null
+  },
   "ro-havas-bucsin-466437m252933": {
    "photo": null,
    "forfait": {
@@ -200004,6 +200228,22 @@
     "cle": "nemira-slanic-moldova"
    }
   },
+  "ro-parang": {
+   "photo": {
+    "source": "commons",
+    "cle": "Parang - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Parang_-_panoramio.jpg/960px-Parang_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "povidiu",
+    "page": "https://commons.wikimedia.org/wiki/File:Parang_-_panoramio.jpg",
+    "vu": "chalets de station enneigés devant un large champ de neige tracé"
+   },
+   "forfait": null
+  },
   "ro-piatra-neamt-karacsonyko-dealu-cozla": {
    "photo": {
     "source": "proprietaire",
@@ -200019,6 +200259,22 @@
   },
   "ro-poiana-brasov": {
    "photo": null,
+   "forfait": null
+  },
+  "ro-partia-de-schi-veresvirag-veresvirag-sipalya": {
+   "photo": {
+    "source": "commons",
+    "cle": "Csákányos (első) vége - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Cs%C3%A1k%C3%A1nyos_%28els%C5%91%29_v%C3%A9ge_-_panoramio.jpg/960px-Cs%C3%A1k%C3%A1nyos_%28els%C5%91%29_v%C3%A9ge_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "egatesy@freemail.hu",
+    "page": "https://commons.wikimedia.org/wiki/File:Cs%C3%A1k%C3%A1nyos_(els%C5%91)_v%C3%A9ge_-_panoramio.jpg",
+    "vu": "motoneige sur piste enneigée sous le pylône de la remontée"
+   },
    "forfait": null
   },
   "ro-partiile-marisel": {
@@ -200079,7 +200335,19 @@
    }
   },
   "ro-sinaia": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Hotel Cota 140, Sinaia, in the 70th - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Hotel_Cota_140%2C_Sinaia%2C_in_the_70th_-_panoramio.jpg/960px-Hotel_Cota_140%2C_Sinaia%2C_in_the_70th_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "qwesy qwesy",
+    "page": "https://commons.wikimedia.org/wiki/File:Hotel_Cota_140,_Sinaia,_in_the_70th_-_panoramio.jpg",
+    "vu": "hôtel de station enneigé, sapins blancs et crêtes enneigées derrière"
+   },
    "forfait": {
     "source": "officiel",
     "cle": "https://sinaiago.ro/partiile-de-schi-tarife/",
@@ -200202,6 +200470,38 @@
     "cle": "smart-ski-slopes-timisoara"
    }
   },
+  "ro-sovata-alunis": {
+   "photo": {
+    "source": "commons",
+    "cle": "Cabana REPAS Sovata Ski - iarna 2012 - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/Cabana_REPAS_Sovata_Ski_-_iarna_2012_-_panoramio.jpg/960px-Cabana_REPAS_Sovata_Ski_-_iarna_2012_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "marcelmagda2003@yaho…",
+    "page": "https://commons.wikimedia.org/wiki/File:Cabana_REPAS_Sovata_Ski_-_iarna_2012_-_panoramio.jpg",
+    "vu": "chalet du domaine et piste enneigée avec rail de snowpark"
+   },
+   "forfait": null
+  },
+  "ro-straja": {
+   "photo": {
+    "source": "commons",
+    "cle": "Streaja, Romania, top of the slope - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Streaja%2C_Romania%2C_top_of_the_slope_-_panoramio.jpg/960px-Streaja%2C_Romania%2C_top_of_the_slope_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "alpenzoo",
+    "page": "https://commons.wikimedia.org/wiki/File:Streaja,_Romania,_top_of_the_slope_-_panoramio.jpg",
+    "vu": "skieur sur une piste damée, pylône et gare sommitale"
+   },
+   "forfait": null
+  },
   "ro-superski-cavnic": {
    "photo": null,
    "forfait": {
@@ -200260,7 +200560,19 @@
    }
   },
   "ro-telescaun-paltinis": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Telescaun Paltinis - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/24/Telescaun_Paltinis_-_panoramio.jpg/960px-Telescaun_Paltinis_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "kossxtreeme",
+    "page": "https://commons.wikimedia.org/wiki/File:Telescaun_Paltinis_-_panoramio.jpg",
+    "vu": "gare de départ du télésiège et location de skis, neige au sol"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "paltinis",
@@ -200495,8 +200807,36 @@
     }
    }
   },
+  "rs-kopaonik": {
+   "photo": {
+    "source": "commons",
+    "cle": "Duboka 1,crvena - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Duboka_1%2Ccrvena_-_panoramio.jpg/960px-Duboka_1%2Ccrvena_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "Гојко031",
+    "page": "https://commons.wikimedia.org/wiki/File:Duboka_1,crvena_-_panoramio.jpg",
+    "vu": "large piste damée enneigée, sapins blancs, bâtiments de station en crête"
+   },
+   "forfait": null
+  },
   "rs-obudojevica": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Sneg na Zlatiboru - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Sneg_na_Zlatiboru_-_panoramio.jpg/960px-Sneg_na_Zlatiboru_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "Fortunato32",
+    "page": "https://commons.wikimedia.org/wiki/File:Sneg_na_Zlatiboru_-_panoramio.jpg",
+    "vu": "immeuble de station éclairé sous une épaisse neige, sapins enneigés"
+   },
    "forfait": null,
    "pistes": {
     "km": 1.5,
@@ -200504,6 +200844,22 @@
     "source": "skiresort",
     "cle": "obudovica-zlatibor"
    }
+  },
+  "rs-ski-center-stara-planina": {
+   "photo": {
+    "source": "commons",
+    "cle": "NP06 - Nacionalni park Stara planina, skijanje u suton.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/NP06_-_Nacionalni_park_Stara_planina%2C_skijanje_u_suton.jpg/960px-NP06_-_Nacionalni_park_Stara_planina%2C_skijanje_u_suton.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Rile968",
+    "page": "https://commons.wikimedia.org/wiki/File:NP06_-_Nacionalni_park_Stara_planina,_skijanje_u_suton.jpg",
+    "vu": "skieurs sur piste enneigée sous un télésiège, soleil bas"
+   },
+   "forfait": null
   },
   "rs-zari-ski-centre-ski-centar-zari": {
    "photo": null,
@@ -200960,6 +201316,22 @@
      "saisonEnfant": null
     }
    }
+  },
+  "se-bjornrike": {
+   "photo": {
+    "source": "commons",
+    "cle": "Björnrike center.JPG",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Bj%C3%B6rnrike_center.JPG/960px-Bj%C3%B6rnrike_center.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "Ainali",
+    "page": "https://commons.wikimedia.org/wiki/File:Bj%C3%B6rnrike_center.JPG",
+    "vu": "centre de station enneigé, piste et remontée derrière"
+   },
+   "forfait": null
   },
   "se-blasjons-fjallanlaggning": {
    "photo": null,
@@ -201679,6 +202051,22 @@
     "source": "skiresort",
     "cle": "gruvbacken"
    }
+  },
+  "se-edsasdalen": {
+   "photo": {
+    "source": "commons",
+    "cle": "Tegeliften panorama.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/Tegeliften_panorama.jpg/960px-Tegeliften_panorama.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC0",
+    "auteur": "Fredrikb SWE",
+    "page": "https://commons.wikimedia.org/wiki/File:Tegeliften_panorama.jpg",
+    "vu": "gare de départ d'un télésiège au pied d'une piste enneigée"
+   },
+   "forfait": null
   },
   "se-ekebyhovsbacken": {
    "photo": {
@@ -202481,6 +202869,26 @@
     }
    }
   },
+  "se-husa": {
+   "photo": null,
+   "forfait": null
+  },
+  "se-hogfjallet": {
+   "photo": {
+    "source": "commons",
+    "cle": "E8-an.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/E8-an.jpg/960px-E8-an.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC0",
+    "auteur": "This image was produced by me, David Castor (user:dcastor). The pictures I submit to the Wikipedia Project are released ",
+    "page": "https://commons.wikimedia.org/wiki/File:E8-an.jpg",
+    "vu": "gare d'arrivée d'un télésiège, skieurs sur la neige damée"
+   },
+   "forfait": null
+  },
   "se-idre-fjall": {
    "photo": {
     "source": "skiinfo",
@@ -202670,7 +203078,19 @@
    }
   },
   "se-isaberg-hestra": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Six seat lift isaberg sweden.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e6/Six_seat_lift_isaberg_sweden.jpg/960px-Six_seat_lift_isaberg_sweden.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "Public domain",
+    "auteur": "Csuppslagsbok",
+    "page": "https://commons.wikimedia.org/wiki/File:Six_seat_lift_isaberg_sweden.jpg",
+    "vu": "gare de départ, file de skieurs, télésiège montant la piste"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "isaberg-hestra",
@@ -203390,6 +203810,22 @@
      "saisonEnfant": null
     }
    }
+  },
+  "se-lindvallen": {
+   "photo": {
+    "source": "commons",
+    "cle": "Lindvallenslope.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Lindvallenslope.jpg/960px-Lindvallenslope.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 2.0",
+    "auteur": "Guillaume Baviere from Helsingborg, Sweden",
+    "page": "https://commons.wikimedia.org/wiki/File:Lindvallenslope.jpg",
+    "vu": "large piste damée éclairée au crépuscule, pylônes et filets rouges"
+   },
+   "forfait": null
   },
   "se-lofsdalen": {
    "photo": {
@@ -204332,7 +204768,19 @@
    }
   },
   "se-rodebybacken": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Rödebybacken.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/R%C3%B6debybacken.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Adam av Blekinge",
+    "page": "https://commons.wikimedia.org/wiki/File:R%C3%B6debybacken.jpg",
+    "vu": "piste enneigée animée de skieurs et lugeurs, pylônes du téléski"
+   },
    "forfait": null,
    "pistes": {
     "km": 0.3,
@@ -205397,6 +205845,22 @@
     }
    }
   },
+  "se-tandadalen": {
+   "photo": {
+    "source": "commons",
+    "cle": "Skidskola, Tandådalen 02.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/58/Skidskola%2C_Tand%C3%A5dalen_02.jpg/960px-Skidskola%2C_Tand%C3%A5dalen_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "I99pema",
+    "page": "https://commons.wikimedia.org/wiki/File:Skidskola,_Tand%C3%A5dalen_02.jpg",
+    "vu": "front de neige enneigé, skieurs et hôtel de la station"
+   },
+   "forfait": null
+  },
   "se-tjamstanbackana": {
    "photo": {
     "source": "officiel",
@@ -205909,7 +206373,19 @@
    }
   },
   "se-vedbobacken": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Skidåkning i Vedbobacken Västerås.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Skid%C3%A5kning_i_Vedbobacken_V%C3%A4ster%C3%A5s.jpg/960px-Skid%C3%A5kning_i_Vedbobacken_V%C3%A4ster%C3%A5s.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Dependability",
+    "page": "https://commons.wikimedia.org/wiki/File:Skid%C3%A5kning_i_Vedbobacken_V%C3%A4ster%C3%A5s.jpg",
+    "vu": "piste enneigée avec skieurs, canon à neige et dameuse au crépuscule"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "vedbobacken-vaesteraas",
@@ -206203,7 +206679,19 @@
    }
   },
   "se-valadalen": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Kyrkstenen in Vålådalen.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Kyrkstenen_in_V%C3%A5l%C3%A5dalen.jpg/960px-Kyrkstenen_in_V%C3%A5l%C3%A5dalen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Mikael Mårtensson",
+    "page": "https://commons.wikimedia.org/wiki/File:Kyrkstenen_in_V%C3%A5l%C3%A5dalen.jpg",
+    "vu": "versant enneigé du fjäll, itinéraire de ski balisé par des croix"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "vaalaadalens-fjaellstation",
@@ -206998,7 +207486,19 @@
    }
   },
   "si-kope": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Kope Ski Resort.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Kope_Ski_Resort.jpg/960px-Kope_Ski_Resort.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 2.0",
+    "auteur": "Jernej Furman",
+    "page": "https://commons.wikimedia.org/wiki/File:Kope_Ski_Resort.jpg",
+    "vu": "piste damée avec skieurs et gare d'arrivée du télésiège"
+   },
    "forfait": {
     "source": "skiinfo",
     "cle": "slovenie/kope-ribnisko-pohorje",
@@ -209093,6 +209593,22 @@
      }
     }
    }
+  },
+  "sk-chopok-juh": {
+   "photo": {
+    "source": "commons",
+    "cle": "Ski lift on Chopok (white-black).JPG",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Ski_lift_on_Chopok_%28white-black%29.JPG/960px-Ski_lift_on_Chopok_%28white-black%29.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Pudelek (Marcin Szala)",
+    "page": "https://commons.wikimedia.org/wiki/File:Ski_lift_on_Chopok_(white-black).JPG",
+    "vu": "pylône de remontée givré au-dessus d'une croupe enneigée"
+   },
+   "forfait": null
   },
   "sk-donovaly": {
    "photo": {
@@ -219298,7 +219814,19 @@
    }
   },
   "tr-bingol-hasarek": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Yolçatı kayak merkezi - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Yol%C3%A7at%C4%B1_kayak_merkezi_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "ilhami.bayram",
+    "page": "https://commons.wikimedia.org/wiki/File:Yol%C3%A7at%C4%B1_kayak_merkezi_-_panoramio.jpg",
+    "vu": "skieur de course franchissant une porte sur piste enneigée"
+   },
    "forfait": null,
    "pistes": {
     "km": 2,
@@ -219340,6 +219868,30 @@
     "cle": "ergan-dagi"
    }
   },
+  "tr-ilgaz-kayak-merkezi-ilgaz-ski-resort": {
+   "photo": null,
+   "forfait": null
+  },
+  "tr-ilgaz-2-yurduntepe-kayak-merkezi": {
+   "photo": null,
+   "forfait": null
+  },
+  "tr-kartepe": {
+   "photo": {
+    "source": "commons",
+    "cle": "Green Park hotel Kartepe ©Abdullah Kiyga - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Green_Park_hotel_Kartepe_%C2%A9Abdullah_Kiyga_-_panoramio.jpg/960px-Green_Park_hotel_Kartepe_%C2%A9Abdullah_Kiyga_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "Abdullah kıyga",
+    "page": "https://commons.wikimedia.org/wiki/File:Green_Park_hotel_Kartepe_%C2%A9Abdullah_Kiyga_-_panoramio.jpg",
+    "vu": "grand hôtel et chalets sous la neige, village de station"
+   },
+   "forfait": null
+  },
   "tr-keltepe": {
    "photo": null,
    "forfait": null,
@@ -219349,6 +219901,22 @@
     "source": "skiresort",
     "cle": "keltepe"
    }
+  },
+  "tr-konakl-kayak-merkezi": {
+   "photo": {
+    "source": "commons",
+    "cle": "PALANDÖKEN KAYAK MERKEZİ - panoramio (1).jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/PALAND%C3%96KEN_KAYAK_MERKEZ%C4%B0_-_panoramio_%281%29.jpg/960px-PALAND%C3%96KEN_KAYAK_MERKEZ%C4%B0_-_panoramio_%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "hüseyin yeşil",
+    "page": "https://commons.wikimedia.org/wiki/File:PALAND%C3%96KEN_KAYAK_MERKEZ%C4%B0_-_panoramio_(1).jpg",
+    "vu": "large piste enneigée, skieurs nombreux et télésiège en contrebas"
+   },
+   "forfait": null
   },
   "tr-nemrut-kayak-merkezi": {
    "photo": null,
@@ -219389,7 +219957,19 @@
    "forfait": null
   },
   "tr-yedikuyular": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Kahramanmaras Dulkadiroglu Yedikuyular Kayak Merkezi 2023 3.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Kahramanmaras_Dulkadiroglu_Yedikuyular_Kayak_Merkezi_2023_3.jpg/960px-Kahramanmaras_Dulkadiroglu_Yedikuyular_Kayak_Merkezi_2023_3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Zkarapatlak",
+    "page": "https://commons.wikimedia.org/wiki/File:Kahramanmaras_Dulkadiroglu_Yedikuyular_Kayak_Merkezi_2023_3.jpg",
+    "vu": "télésiège et pistes enneigées au-dessus des bâtiments de la station"
+   },
    "forfait": null,
    "pistes": {
     "km": 3.2,
@@ -219421,7 +220001,19 @@
    "forfait": null
   },
   "ua-izki": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Skiing - panoramio (1).jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Skiing_-_panoramio_%281%29.jpg/960px-Skiing_-_panoramio_%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY 3.0",
+    "auteur": "Oliana Fedosenko",
+    "page": "https://commons.wikimedia.org/wiki/File:Skiing_-_panoramio_(1).jpg",
+    "vu": "skieurs descendant une piste enneigée, télécorde à droite"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "izki-magura",
@@ -219541,7 +220133,19 @@
    }
   },
   "ua-migovo": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "002 Migove Ski Slope.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/002_Migove_Ski_Slope.jpg/960px-002_Migove_Ski_Slope.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 4.0",
+    "auteur": "Kolyan ilia",
+    "page": "https://commons.wikimedia.org/wiki/File:002_Migove_Ski_Slope.jpg",
+    "vu": "skieurs sur une piste damée, remontée et pylônes à gauche"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "mygovo",
@@ -219650,7 +220254,19 @@
    }
   },
   "ua-bukowina": {
-   "photo": null,
+   "photo": {
+    "source": "commons",
+    "cle": "Winter Landscape (36734960).jpeg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Winter_Landscape_%2836734960%29.jpeg/960px-Winter_Landscape_%2836734960%29.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "Nick Savchenko",
+    "page": "https://commons.wikimedia.org/wiki/File:Winter_Landscape_(36734960).jpeg",
+    "vu": "skieur casqué assis sur une pente enneigée tout traçée"
+   },
    "forfait": {
     "source": "skiresort",
     "cle": "bukovel",
@@ -219757,6 +220373,38 @@
      "saisonEnfant": null
     }
    }
+  },
+  "ua-495653m256295": {
+   "photo": {
+    "source": "commons",
+    "cle": "Тернопіль, вул. Тарнавського. Вигляд з \"стрільбища\" - panoramio.jpg",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/%D0%A2%D0%B5%D1%80%D0%BD%D0%BE%D0%BF%D1%96%D0%BB%D1%8C%2C_%D0%B2%D1%83%D0%BB._%D0%A2%D0%B0%D1%80%D0%BD%D0%B0%D0%B2%D1%81%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE._%D0%92%D0%B8%D0%B3%D0%BB%D1%8F%D0%B4_%D0%B7_%22%D1%81%D1%82%D1%80%D1%96%D0%BB%D1%8C%D0%B1%D0%B8%D1%89%D0%B0%22_-_panoramio.jpg/960px-%D0%A2%D0%B5%D1%80%D0%BD%D0%BE%D0%BF%D1%96%D0%BB%D1%8C%2C_%D0%B2%D1%83%D0%BB._%D0%A2%D0%B0%D1%80%D0%BD%D0%B0%D0%B2%D1%81%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE._%D0%92%D0%B8%D0%B3%D0%BB%D1%8F%D0%B4_%D0%B7_%22%D1%81%D1%82%D1%80%D1%96%D0%BB%D1%8C%D0%B1%D0%B8%D1%89%D0%B0%22_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "Viktor Ugrin",
+    "page": "https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B5%D1%80%D0%BD%D0%BE%D0%BF%D1%96%D0%BB%D1%8C,_%D0%B2%D1%83%D0%BB._%D0%A2%D0%B0%D1%80%D0%BD%D0%B0%D0%B2%D1%81%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE._%D0%92%D0%B8%D0%B3%D0%BB%D1%8F%D0%B4_%D0%B7_%22%D1%81%D1%82%D1%80%D1%96%D0%BB%D1%8C%D0%B1%D0%B8%D1%89%D0%B0%22_-_panoramio.jpg",
+    "vu": "pente enneigée avec câble de téléski et lugeurs remontant"
+   },
+   "forfait": null
+  },
+  "xk-ski-center-brezovica": {
+   "photo": {
+    "source": "commons",
+    "cle": "Brezovica2.JPG",
+    "nom": null,
+    "km": 0,
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Brezovica2.JPG/960px-Brezovica2.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "titre": null,
+    "servi": true,
+    "licence": "CC BY-SA 3.0",
+    "auteur": "Albana Rexha",
+    "page": "https://commons.wikimedia.org/wiki/File:Brezovica2.JPG",
+    "vu": "télésiège et skieurs sur la piste devant l'hôtel de la station"
+   },
+   "forfait": null
   }
  }
 }

@@ -32,6 +32,7 @@ import {
   releveVues,
   vignette,
   type ForfaitVue,
+  type LigneForfait,
   type PhotoVue,
   type ReleveVues,
 } from "./vues.ts";
@@ -96,6 +97,19 @@ describe("la grille se lit sans se tromper de case", () => {
 
   it("une grille vide ne rend pas de ligne", () => {
     assert.equal(ligneJournee({ ...GRILLE, lignes: [] }), null);
+  });
+
+  it("ne prend pas la première ligne venue pour un prix de journée", () => {
+    // Pfänder affichait « Forfait jour 259 € » : c'était la première ligne de
+    // sa grille bergfex, un abonnement. Une grille qui ne dit pas la journée
+    // n'a pas de prix de journée.
+    const saison: LigneForfait = { libelle: "Passeport saisonnier", prix: [259, 130] };
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [saison] }), null);
+    // « 1 Jour » de bergfex et « Tageskarte » des pages allemandes comptent.
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [{ libelle: "1 Jour", prix: [66, 55] }] })?.prix[0], 66);
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [{ libelle: "Tageskarte", prix: [48, 31] }] })?.prix[0], 48);
+    // Une demi-journée ou un tarif horaire n'en est pas une.
+    assert.equal(ligneJournee({ ...GRILLE, lignes: [{ libelle: "1 Jour à partir de 12:30", prix: [57] }] }), null);
   });
 });
 
@@ -188,6 +202,67 @@ describe("les périodes datées, que seule bergfex publie", () => {
   });
 });
 
+describe("une valeur relevée à la main dit d'où elle vient et pourquoi on l'a crue", () => {
+  it("la photo nomme son hôte et sa corroboration, et avoue qu'elle n'a pas été vue", () => {
+    const m = mentionPhoto({
+      source: "proprietaire",
+      cle: "www.weissensee.com",
+      nom: null,
+      km: 0,
+      url: "https://www.weissensee.com/x.jpg",
+      titre: null,
+      corroboration: "hote-officiel",
+      servi: true,
+    });
+    assert.match(m, /relevée à la main/);
+    assert.match(m, /www\.weissensee\.com/);
+    assert.match(m, /site officiel/);
+    assert.match(m, /non vérifiée/);
+  });
+
+  it("le tarif nomme sa source et sa période telle qu'écrite", () => {
+    const m = mentionForfait({
+      source: "proprietaire",
+      cle: "https://www.damuels-mellau.at/",
+      nom: null,
+      km: 0,
+      devise: "EUR",
+      deviseSource: "tableau",
+      deviseDuPays: null,
+      misAJour: null,
+      categories: [{ nom: "Adulte", ages: null }],
+      lignes: [{ libelle: "Forfait journée", prix: [72.5] }],
+      saison: null,
+      periodes: null,
+      pageTarifs: "https://www.damuels-mellau.at/",
+      releve: { periode: "2025/26", note: null, jourEnfant: 41, sixJoursAdulte: 339, sixJoursEnfant: null, saisonAdulte: 576, saisonEnfant: null },
+    });
+    assert.match(m, /Relevé à la main depuis https:\/\/www\.damuels-mellau\.at\//);
+    assert.match(m, /période « 2025\/26 »/);
+  });
+
+  it("dans le relevé réel, chaque photo relevée à la main est corroborée et chaque tarif a une source", async () => {
+    // Une recherche large ramène ce qu'elle trouve ; ce qui entre ici a
+    // passé un crible, et le crible doit se voir dans les données.
+    const r = await releveVues();
+    let photos = 0;
+    let forfaits = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (v.photo?.source === "proprietaire") {
+        photos++;
+        assert.ok(v.photo.corroboration, `${id} : photo relevée sans corroboration`);
+        assert.ok(v.photo.servi, `${id} : photo relevée non servie`);
+      }
+      if (v.forfait?.source === "proprietaire") {
+        forfaits++;
+        assert.match(v.forfait.pageTarifs ?? "", /^https?:/, `${id} : tarif relevé sans source`);
+        assert.ok(v.forfait.devise && /^[A-Z]{3}$/.test(v.forfait.devise), `${id} : devise ${v.forfait.devise}`);
+      }
+    }
+    assert.ok(photos >= 0 && forfaits >= 0);
+  });
+});
+
 describe("un tarif lu sur un site officiel se présente avec sa preuve", () => {
   const LU: ForfaitVue = {
     ...GRILLE,
@@ -232,6 +307,72 @@ describe("une transformation d'image ne s'invente pas", () => {
 
   it("une adresse illisible ressort telle quelle plutôt que de lever", () => {
     assert.equal(vignette("pas une adresse", 400), "pas une adresse");
+  });
+});
+
+describe("ce que le propriétaire a demandé d'une photo", () => {
+  it("aucune photo affichée n'est celle qu'un regard a écartée", async () => {
+    // Le verdict est comparé à **l'adresse**, jamais au domaine seul : si la
+    // photo retenue a changé depuis, le verdict ne la concerne plus.
+    const r = await releveVues();
+    const juges = (await import("./data/photosJugees.json", { with: { type: "json" } })).default as {
+      verdicts: Record<string, { url: string | null; retenue: boolean; motif?: string }>;
+    };
+    let verifiees = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      const j = juges.verdicts[id];
+      if (!v.photo || !j || j.url !== v.photo.url) continue;
+      verifiees++;
+      assert.ok(j.retenue, `${id} : photo affichée alors qu'elle est écartée (${j.motif})`);
+    }
+    assert.ok(verifiees > 500, `${verifiees} photos confrontées à leur verdict`);
+  });
+
+  it("deux domaines ne montrent jamais la même photo", async () => {
+    // « Une photo unique » : une adresse servie à deux domaines n'illustre ni
+    // l'un ni l'autre. Le contrôle porte aussi sur l'empreinte du fichier à
+    // l'étape du jugement ; ici, sur ce qui est réellement affiché.
+    const r = await releveVues();
+    const par = new Map<string, string[]>();
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (!v.photo) continue;
+      par.set(v.photo.url, [...(par.get(v.photo.url) ?? []), id]);
+    }
+    const partagees = [...par.entries()].filter(([, ids]) => ids.length > 1);
+    assert.deepEqual(partagees, [], `photos partagées : ${partagees.slice(0, 3).map(([u, ids]) => `${ids.join("/")} → ${u}`).join(" ; ")}`);
+  });
+
+  it("une photo libre porte son auteur, sa licence et sa page", async () => {
+    // CC BY et CC BY-SA n'autorisent l'affichage qu'à cette condition.
+    const r = await releveVues();
+    let n = 0;
+    for (const [id, v] of Object.entries(r.vues)) {
+      if (v.photo?.source !== "commons") continue;
+      n++;
+      assert.ok(v.photo.licence, `${id} : photo Commons sans licence`);
+      assert.ok(v.photo.page?.startsWith("https://"), `${id} : photo Commons sans page`);
+      assert.ok(v.photo.auteur !== undefined, `${id} : photo Commons sans champ auteur`);
+    }
+    assert.ok(n >= 0);
+  });
+});
+
+describe("ce que le propriétaire a demandé des forfaits", () => {
+  it("chaque tarif lu sur un site officiel porte une ligne qui nomme un produit", async () => {
+    const lus = (await import("./data/tarifsLus.json", { with: { type: "json" } })).default as {
+      fiches: Record<string, { page: string; devise: string | null; tarifs: Record<string, { prix: number; ligne: string }> }>;
+    };
+    let cases = 0;
+    for (const [id, f] of Object.entries(lus.fiches)) {
+      assert.ok(f.page?.startsWith("http"), `${id} : tarif sans page`);
+      for (const [poste, t] of Object.entries(f.tarifs)) {
+        cases++;
+        assert.ok(t.prix > 0, `${id}/${poste} : prix ${t.prix}`);
+        // Un montant seul ne prouve rien : la ligne doit nommer le produit.
+        assert.match(t.ligne, /[A-Za-zÀ-ÿ]{3}/, `${id}/${poste} : ligne sans nom de produit — « ${t.ligne} »`);
+      }
+    }
+    assert.ok(cases >= 0);
   });
 });
 
@@ -297,7 +438,9 @@ describe("sur le relevé réel", () => {
     for (const [id, v] of Object.entries(r.vues)) {
       if (!v.photo || !v.forfait) continue;
       if (v.photo.source !== v.forfait.source) continue;
-      if (v.photo.source === "officiel") {
+      if (v.photo.source === "officiel" || v.photo.source === "proprietaire") {
+        // Le relevé à la main n'a pas de fiche non plus : une adresse d'image
+        // et une page de tarifs, chacune avec sa source.
         // Le site officiel n'a pas de « fiche » à apparier : la photo vient
         // de l'accueil, le tarif de la page « Tarifs » atteinte depuis cet
         // accueil. La cohérence est **structurelle** — les deux pages sont du

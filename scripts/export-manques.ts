@@ -10,8 +10,8 @@
  *
  * ## Ce que le tableau porte
  *
- * Une ligne par domaine nommé sans photo **ou** sans forfait — 1 234 au
- * 22 septembre 2026. Les colonnes de gauche disent ce qu'on sait : nom, pays,
+ * Une ligne par domaine nommé auquel il manque une photo, un forfait, **ou
+ * l'un des six tarifs** — journée, six jours et saison, adulte et enfant. Les colonnes de gauche disent ce qu'on sait : nom, pays,
  * région, taille, site officiel connu, ce qui manque, et **pourquoi** aucune
  * source ne l'a rendu. Les colonnes de droite sont vides : c'est là qu'on
  * écrit ce qu'on trouve, avec sa source — parce qu'une valeur sans origine ne
@@ -20,7 +20,10 @@
  * ## Ce que la saisie devra respecter, pour être relue par un script
  *
  * - `photo_url` : l'adresse de l'image, telle quelle.
- * - `forfait_jour_adulte` : un nombre, virgule ou point pour les décimales.
+ * - `forfait_jour_adulte` et les cinq autres montants : un nombre, virgule ou
+ *   point pour les décimales. Les colonnes `releve_*` disent ce qu'une source
+ *   publie déjà : une case vide en face d'un `tarifs_manquants` qui la nomme
+ *   est ce qu'il reste à trouver.
  * - `devise` : le code ISO 4217 — EUR, CHF, CZK… —, jamais un symbole.
  * - `periode` : « 20.12.26 - 06.01.27 » si le tarif dépend de la date, vide
  *   sinon.
@@ -57,8 +60,25 @@ for (const f of readdirSync(DATA).sort()) {
   if (!/^[A-Z]{2}\.json$/.test(f)) continue;
   domaines.push(...(JSON.parse(readFileSync(resolve(DATA, f), "utf8")) as Domaine[]));
 }
+const POSTES = ["jourAdulte", "jourEnfant", "sixJoursAdulte", "sixJoursEnfant", "saisonAdulte", "saisonEnfant"] as const;
+type Poste = (typeof POSTES)[number];
+const LIBELLE: Record<Poste, string> = {
+  jourAdulte: "jour adulte",
+  jourEnfant: "jour enfant",
+  sixJoursAdulte: "6 jours adulte",
+  sixJoursEnfant: "6 jours enfant",
+  saisonAdulte: "saison adulte",
+  saisonEnfant: "saison enfant",
+};
+
 const vues = JSON.parse(readFileSync(resolve(DATA, "vuesDomaines.json"), "utf8")) as {
-  vues: Record<string, { photo: unknown; forfait: unknown }>;
+  vues: Record<
+    string,
+    {
+      photo: unknown;
+      forfait: { devise: string | null; matrice?: Partial<Record<Poste, { prix: number } | null>> } | null;
+    }
+  >;
 };
 const sites = JSON.parse(readFileSync(resolve(DATA, "sitesOfficiels.json"), "utf8")) as {
   fiches: Record<string, { statut: number | null; refuse: boolean; url: string | null; pageTarifs?: string | null }>;
@@ -98,10 +118,18 @@ const entetes = [
   "page_tarifs_trouvee",
   "manque",
   "raison",
+  "devise_relevee",
+  ...POSTES.map((p) => `releve_${p}`),
+  "tarifs_manquants",
   // ── à remplir ──
   "photo_url",
   "photo_legende",
   "forfait_jour_adulte",
+  "forfait_jour_enfant",
+  "forfait_6j_adulte",
+  "forfait_6j_enfant",
+  "forfait_saison_adulte",
+  "forfait_saison_enfant",
   "devise",
   "periode",
   "source",
@@ -114,7 +142,11 @@ for (const d of domaines.sort((a, b) => a.id.localeCompare(b.id))) {
   const v = vues.vues[d.id];
   const sansPhoto = !v?.photo;
   const sansForfait = !v?.forfait;
-  if (!sansPhoto && !sansForfait) continue;
+  const m = v?.forfait?.matrice;
+  // Les six tarifs demandés : ceux qu'aucune source ne publie sont nommés,
+  // pour que la case à remplir se sache sans avoir à comparer deux fichiers.
+  const manquants = POSTES.filter((p) => !m?.[p]);
+  if (!sansPhoto && !sansForfait && manquants.length === 0) continue;
   n++;
   const cc = d.pays?.[0] ?? d.id.slice(0, 2).toUpperCase();
   lignes.push(
@@ -132,8 +164,20 @@ for (const d of domaines.sort((a, b) => a.id.localeCompare(b.id))) {
       d.lon.toFixed(5),
       d.sites?.[0] ?? "",
       tarifs.fiches[d.id]?.pageTarifs ?? sites.fiches[d.id]?.pageTarifs ?? "",
-      sansPhoto && sansForfait ? "photo et forfait" : sansPhoto ? "photo" : "forfait",
+      [sansPhoto ? "photo" : null, sansForfait ? "forfait" : manquants.length ? "tarifs" : null]
+        .filter(Boolean)
+        .join(" et "),
       raison(d),
+      v?.forfait?.devise ?? "",
+      ...POSTES.map((p) => m?.[p]?.prix ?? ""),
+      manquants.map((p) => LIBELLE[p]).join(", "),
+      // ── à remplir, une colonne par tarif demandé ──
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
       "",
       "",
       "",

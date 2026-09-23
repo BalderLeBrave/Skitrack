@@ -53,6 +53,9 @@ import {
   colonneAdulte,
   pistesDuDomaine,
   forfaitDuDomaine,
+  LIBELLE_POSTE,
+  mentionCase,
+  POSTES,
   fourchetteJournee,
   journeeParPeriode,
   ligneJournee,
@@ -90,6 +93,15 @@ import {
 import { altitude, mesureDans, type Systeme } from "@/lib/unites";
 
 export const Route = createFileRoute("/monde")({ component: PageMonde });
+
+/** Le nom court d'une source de tarif, pour la légende du tableau. */
+const NOM_SOURCE: Record<string, string> = {
+  skiinfo: "Skiinfo",
+  skiresort: "skiresort.fr",
+  bergfex: "bergfex",
+  officiel: "site officiel",
+  proprietaire: "tableau des manques",
+};
 
 /** Les pays du référentiel qu'aucun continent n'accueille, avec leurs domaines.
  *  Calculé une fois : ni `PAYS` ni l'index ne bougent au cours d'une session. */
@@ -308,17 +320,30 @@ function LigneDomaine({
   const pistesRepli = vues && (d.km ?? 0) <= 0 ? pistesDuDomaine(vues, d.id) : null;
   const forfait = vues ? forfaitDuDomaine(vues, d.id) : null;
   const jour = forfait ? ligneJournee(forfait) : null;
+  const matrice = forfait?.matrice ?? null;
+  // Les sources réellement employées par la matrice, dans l'ordre d'apparition.
+  const sourcesTarifs = matrice
+    ? [...new Set(POSTES.map((p) => matrice[p]?.source).filter(Boolean))].map((x) => NOM_SOURCE[x!])
+    : [];
+
   const fourchette = forfait ? fourchetteJournee(forfait) : null;
   // Le haut de la fourchette quand elle existe : c'est le tarif de haute
   // saison, celui qu'on paie aux dates où l'on part le plus souvent.
+  // La matrice fait foi pour la journée adulte : elle sait lire « 1 Jour »
+  // comme « Forfait journée », elle écarte les demi-journées, et elle dit sa
+  // source. La grille n'est relue que si la matrice n'a pas cette case.
   const adulte = forfait
     ? fourchette
       ? prix(fourchette.haut, forfait.devise)
-      : jour
-        ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise)
-        : null
+      : matrice?.jourAdulte
+        ? prix(matrice.jourAdulte.prix, forfait.devise)
+        : jour
+          ? prix(jour.prix[colonneAdulte(forfait)], forfait.devise)
+          : null
     : null;
   const periodes = forfait ? journeeParPeriode(forfait) : [];
+  // Les six tarifs demandés, quand les grilles les publient. Une case vide
+  // s'écrit « non relevé » comme le reste : aucune n'est déduite d'une autre.
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
     .join(" — ");
@@ -337,6 +362,18 @@ function LigneDomaine({
           loading="lazy"
           title={mentionPhoto(vue.source)}
         />
+      ) : null}
+      {/* Une photo libre ne se montre **qu'**avec son auteur et sa licence :
+          c'est la condition de CC BY et CC BY-SA, et une infobulle n'y suffit
+          pas. Le crédit paraît donc sous l'image, lisible, avec un lien vers
+          la page du fichier. */}
+      {vue?.source.source === "commons" ? (
+        <span className="monde-row__credit">
+          <a href={vue.source.page} rel="noreferrer nofollow">
+            {vue.source.auteur || "auteur non nommé"}
+          </a>
+          {vue.source.licence ? ` · ${vue.source.licence}` : null} · Wikimedia Commons
+        </span>
       ) : null}
       <div className="monde-row__tete">
         <span className="monde-row__nom">{d.nom || "Domaine sans nom"}</span>
@@ -439,6 +476,25 @@ function LigneDomaine({
       >
         {ouvert ? "Masquer la météo" : "Météo, bas et haut des pistes"}
       </button>
+      {ouvert && forfait?.source === "proprietaire" ? (
+        <p className="monde-row__preuve">
+          {/* Un tarif relevé à la main : sa période telle qu'écrite, sa note,
+              et la page d'où il sort — sans quoi il ne se juge pas. */}
+          Relevé à la main
+          {forfait.releve?.periode ? (
+            <>
+              , période <q>{forfait.releve.periode}</q>
+            </>
+          ) : null}
+          {forfait.releve?.note ? ` — ${forfait.releve.note}` : null}
+          {forfait.pageTarifs ? (
+            <>
+              {" "}
+              — <a href={forfait.pageTarifs} rel="noreferrer">la source</a>
+            </>
+          ) : null}
+        </p>
+      ) : null}
       {ouvert && forfait?.source === "officiel" && forfait.preuve ? (
         <p className="monde-row__preuve">
           {/* Un prix lu en texte libre ne se juge pas seul : la ligne du
@@ -452,6 +508,53 @@ function LigneDomaine({
             </>
           ) : null}
         </p>
+      ) : null}
+      {ouvert && matrice && forfait ? (
+        <table className="monde-tarifs">
+          <caption>
+            Forfaits publiés, en {forfait.devise}
+            {/* Une case peut venir d'une autre source que le prix affiché en
+                tête — la première qui la publie, dans la même devise. Deux
+                cases d'une même ligne peuvent donc venir de deux sources, et
+                d'alors deux saisons : « 28,60 adulte » chez Skiinfo à côté de
+                « 22,10 enfant » chez skiresort se lit comme un seul tarif
+                alors que c'en sont deux. Cent quatre-vingt-sept domaines sont
+                dans ce cas ; il faut donc le dire ici, et pas seulement dans
+                l'infobulle de chaque montant. */}
+            {sourcesTarifs.length > 1 ? (
+              <span className="monde-tarifs__melange">
+                {" "}
+                — montants de sources différentes ({sourcesTarifs.join(", ")}) ; le survol dit laquelle
+              </span>
+            ) : null}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Durée</th>
+              <th scope="col">Adulte</th>
+              <th scope="col">Enfant</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(["jour", "sixJours", "saison"] as const).map((duree) => {
+              const cases = [matrice[`${duree}Adulte`], matrice[`${duree}Enfant`]];
+              return (
+                <tr key={duree}>
+                  <th scope="row">{LIBELLE_POSTE[`${duree}Adulte`].ligne}</th>
+                  {cases.map((c, i) => (
+                    <td
+                      key={i}
+                      className={c ? "monde-tarifs__prix" : "monde-tarifs__vide"}
+                      title={c ? mentionCase(c) : undefined}
+                    >
+                      {(c && prix(c.prix, forfait.devise)) || "non relevé"}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       ) : null}
       {ouvert && periodes.length > 1 ? (
         <dl className="monde-periodes">

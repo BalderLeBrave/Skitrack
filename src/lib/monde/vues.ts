@@ -26,26 +26,43 @@
  */
 
 import { montant } from "../devises.ts";
+import { POSTES, type CaseTarif, type MatriceForfait, type Poste } from "./matrice.ts";
+
+export type { CaseTarif, MatriceForfait, Poste };
+export { POSTES };
 
 export type Categorie = { nom: string; ages: string | null };
 export type LigneForfait = { libelle: string; prix: (number | null)[] };
 
 export type PhotoVue = {
-  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire" | "commons";
   /** Le slug de la fiche d'où vient l'image, pour qu'un doute se vérifie. */
   cle: string;
   nom: string | null;
   km: number;
   /** Le rattachement a-t-il été corroboré par le nom ? */
   parLeNom?: true;
+  /** Photo relevée à la main : ce qui a permis de la croire. */
+  corroboration?: "hote-officiel" | "nom" | "office-du-pays" | "bergfex";
   url: string;
   /** La légende du site, quand il en donne une : « Vue sur Verbier ». */
   titre: string | null;
   servi: boolean;
+  /**
+   * Le crédit d'une photo libre : l'auteur et la licence, plus la page du
+   * fichier. Ce n'est pas décoratif — une image sous CC BY ou CC BY-SA ne
+   * peut être montrée **qu'** avec eux, et l'écran les affiche à côté de la
+   * photo, pas seulement dans une infobulle.
+   */
+  licence?: string;
+  auteur?: string;
+  page?: string;
+  /** Ce qu'un regard a vu sur l'image, en quelques mots. */
+  vu?: string;
 };
 
 export type ForfaitVue = {
-  source: "skiinfo" | "skiresort" | "bergfex" | "officiel";
+  source: "skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire";
   cle: string;
   nom: string | null;
   km: number;
@@ -85,6 +102,24 @@ export type ForfaitVue = {
    */
   preuve?: string;
   pageTarifs?: string;
+  /**
+   * Les six tarifs demandés — journée, six jours, saison × adulte, enfant —
+   * pris case par case dans les grilles que les sources publient. Voir
+   * `matrice.ts` : rien n'y est calculé, et chaque case dit son libellé, sa
+   * colonne et sa provenance.
+   */
+  matrice?: MatriceForfait;
+  /** Tarif relevé à la main : la période telle qu'écrite, la note, et les
+   *  autres prix du tableau quand ils y sont. */
+  releve?: {
+    periode: string | null;
+    note: string | null;
+    jourEnfant: number | null;
+    sixJoursAdulte: number | null;
+    sixJoursEnfant: number | null;
+    saisonAdulte: number | null;
+    saisonEnfant: number | null;
+  };
 };
 
 /**
@@ -196,16 +231,51 @@ export function prix(valeur: number | null | undefined, devise: string | null): 
   return montant(valeur, devise);
 }
 
+/** L'intitulé d'un poste de la matrice, pour l'en-tête du tableau. */
+export const LIBELLE_POSTE: Record<Poste, { ligne: string; colonne: string }> = {
+  jourAdulte: { ligne: "Journée", colonne: "Adulte" },
+  jourEnfant: { ligne: "Journée", colonne: "Enfant" },
+  sixJoursAdulte: { ligne: "6 jours", colonne: "Adulte" },
+  sixJoursEnfant: { ligne: "6 jours", colonne: "Enfant" },
+  saisonAdulte: { ligne: "Saison", colonne: "Adulte" },
+  saisonEnfant: { ligne: "Saison", colonne: "Enfant" },
+};
+
+/**
+ * Ce qu'on écrit sous une case de la matrice : le produit exact, et d'où il
+ * vient.
+ *
+ * Une case « 6 jours » peut venir d'une ligne « 6 Jours » chez bergfex ou
+ * « Forfait semaine » chez Skiinfo. Ce ne sont pas tout à fait le même
+ * produit, et le lecteur doit pouvoir le voir sans quitter la page — d'où le
+ * libellé et la colonne, tels que la source les écrit.
+ */
+export function mentionCase(c: CaseTarif): string {
+  const dates = c.dates ? `, ${c.dates}` : "";
+  return `« ${c.libelle} », colonne « ${c.categorie} » — ${SITE[c.source]}${dates}`;
+}
+
 /**
  * La ligne « journée » de la grille, celle qu'on montre en premier.
  *
- * Skiinfo nomme la sienne « Forfait journée » ; skiresort, « Forfait
- * journalier Haute saison ». On cherche donc le mot, pas l'égalité — et on se
- * rabat sur la première ligne, qui est la plus courte durée partout.
+ * Skiinfo nomme la sienne « Forfait journée », skiresort « Forfait journalier
+ * Haute saison », bergfex « 1 Jour », les pages allemandes « Tageskarte ».
+ * On cherche donc plusieurs formes, et **on ne se rabat plus sur la première
+ * ligne** : Pfänder affichait ainsi 259 € en « Forfait jour », qui était le
+ * premier prix de sa grille bergfex — un abonnement. Une grille dont aucune
+ * ligne ne dit la journée n'a pas de prix de journée, et l'écran l'écrit.
  */
 export function ligneJournee(f: ForfaitVue): LigneForfait | null {
-  const jour = f.lignes.find((l) => /journ[ée]/i.test(l.libelle) && !/week-end/i.test(l.libelle));
-  return jour ?? f.lignes[0] ?? null;
+  const exclus = /week-?end|1\/2|demi|\d{1,2}[:h]\d{2}/i;
+  return (
+    f.lignes.find(
+      (l) =>
+        (/journ[ée]/i.test(l.libelle) ||
+          /^\s*1\s+jours?\s*$/i.test(l.libelle) ||
+          /^\s*(tageskarte|day (ticket|pass))\s*$/i.test(l.libelle)) &&
+        !exclus.test(l.libelle),
+    ) ?? null
+  );
 }
 
 /** L'indice de la colonne « adulte », ou le dernier à défaut : les grilles
@@ -230,11 +300,21 @@ const distance = (km: number, parLeNom?: true): string => {
   return parLeNom ? `${d}, rapprochée par le nom` : d;
 };
 
-const SITE: Record<"skiinfo" | "skiresort" | "bergfex" | "officiel", string> = {
+const SITE: Record<"skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprietaire" | "commons", string> = {
   skiinfo: "Skiinfo",
   skiresort: "skiresort.fr",
   bergfex: "bergfex",
   officiel: "le site officiel de la station",
+  proprietaire: "le tableau des manques",
+  commons: "Wikimedia Commons",
+};
+
+/** Pourquoi une photo relevée à la main a été crue, en clair. */
+const CORROBORATION: Record<NonNullable<PhotoVue["corroboration"]>, string> = {
+  "hote-officiel": "servie par le site officiel de la station",
+  nom: "le nom de la station est dans son adresse",
+  "office-du-pays": "servie par un office de tourisme du pays",
+  bergfex: "servie par bergfex",
 };
 
 /** Ce qu'on écrit sous une photo : d'où elle vient, et à quelle distance. */
@@ -244,6 +324,20 @@ export function mentionPhoto(p: PhotoVue): string {
   // nommer ni de distance à donner. Écrire « à 0 km » laisserait croire à une
   // mesure là où il y a une identité.
   if (p.source === "officiel") return `Photo publiée par ${SITE.officiel} (${p.cle})${legende}`;
+  // Une photo libre se présente par son auteur et sa licence : c'est la
+  // condition à laquelle elle peut être montrée, et ce qui permet de la
+  // retrouver. S'y ajoute ce qu'un regard y a vu, puisqu'on l'a choisie à l'œil.
+  if (p.source === "commons") {
+    const qui = p.auteur ? ` — ${p.auteur}` : "";
+    const lic = p.licence ? `, ${p.licence}` : "";
+    return `Photo ${SITE.commons}${qui}${lic}${p.vu ? ` ; ${p.vu}` : ""}`;
+  }
+  // Relevée à la main, d'une recherche large : on dit qui la sert et pourquoi
+  // on l'a crue. Elle n'a pas été vue ; c'est écrit.
+  if (p.source === "proprietaire") {
+    const pourquoi = p.corroboration ? CORROBORATION[p.corroboration] : "sans corroboration";
+    return `Photo relevée à la main (${p.cle}) — ${pourquoi} ; non vérifiée à l'œil${legende}`;
+  }
   return `Photo ${SITE[p.source]}${legende}, fiche « ${p.nom ?? p.cle} », ${distance(p.km, p.parLeNom)}`;
 }
 
@@ -288,7 +382,12 @@ export function mentionForfait(f: ForfaitVue): string {
     plages > 1
       ? `${plages} périodes tarifaires datées`
       : f.source === "bergfex"
-        ? "une grille datée"
+        ? // bergfex publie deux sortes de pages : des grilles datées, et une
+          // grille unique sans dates. Écrire « datée » pour la seconde
+          // annoncerait une variation saisonnière qu'elle ne porte pas.
+          plages === 1
+          ? "une grille datée"
+          : `grille de ${f.lignes.length} forfait${f.lignes.length > 1 ? "s" : ""}`
         : f.source === "skiinfo"
           ? `grille de ${f.lignes.length} forfait${f.lignes.length > 1 ? "s" : ""}`
           : "un seul tarif publié";
@@ -303,6 +402,11 @@ export function mentionForfait(f: ForfaitVue): string {
   // tableau, telle qu'écrite. Sans elle, « 33,50 € » ne se juge pas.
   if (f.source === "officiel") {
     return `Lu sur ${SITE.officiel}${f.pageTarifs ? ` (${f.pageTarifs})` : ""} — « ${f.preuve ?? ""} »${dev}`;
+  }
+  // Relevé à la main : la source est nommée, la période telle qu'écrite.
+  if (f.source === "proprietaire") {
+    const periode = f.releve?.periode ? `, période « ${f.releve.periode} »` : "";
+    return `Relevé à la main depuis ${f.pageTarifs ?? f.cle}${periode}${f.releve?.note ? ` — ${f.releve.note}` : ""}`;
   }
   return `${SITE[f.source]} — ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km, f.parLeNom)}${dev}${ecart}`;
 }

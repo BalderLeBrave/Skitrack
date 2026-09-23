@@ -1,0 +1,634 @@
+{
+ "at": "2026-09-22",
+ "quoi": "les six tarifs lus sur la page du site officiel, chacun avec la ligne qui le porte",
+ "regle": "un montant n'est gardé qu'avec sa ligne, et la ligne doit se retrouver dans le texte relevé",
+ "ecartes": {
+  "sans ligne": 0,
+  "citation réduite au montant, sans nom de produit": 41,
+  "citation introuvable dans la page": 0
+ },
+ "sansPrix": {
+  "at-brandnertal-brand-burserberg": "La page ne publie que le tableau « Ticket Prices for Summer 2026 » (ete). Pour l'hiver elle annonce des prix dynamiques pour les journees et multi-journees et renvoie a la boutique : aucun montant de forfait de ski n'est affiche.",
+  "at-gfollberglift": "Page « Tarife Sommer 2026 » de la Jochelspitzbahn : pietons, chiens, parapentistes. Aucun tarif de forfait de ski hiver (ni pour le Gfollberglift) n'y figure.",
+  "at-golm": "Section « Winterpreise 2026/27 » : les journees et multi-journees sont a prix dynamiques, aucun montant n'est imprime ; les cartes de saison renvoient a des pages « Details ». Les seuls chiffres d'hiver sont une carte de points, un telesiege isole, la luge, les tarifs pietons et les tarifs de groupe",
+  "at-hinterstoder": "La page recuperee ne contient aucun montant : seulement des intitules de rubriques (« Tages- und Mehrtagestickets », « Saisonkarten ») et la mention de prix dynamiques.",
+  "at-hochstein": "Version ete du site des Lienzer Bergbahnen : tableau « Preise 2026 » avec sections, Osttirodler, VTT, parc famille, et la « Sommersaison Card » — tous des tarifs d'ete, exclus. Le « Sportpass Lienz » est un abonnement annuel multi-activites (bains, patinoire, chateau), pas un forfait de saison de sk",
+  "at-lienz-zettersfeld": "Version ete du site des Lienzer Bergbahnen (page « Summer ») : le tableau « Preise 2026 » ne donne que des tarifs d'ete (sections, Osttirodler, VTT/Bikepark, Familienpark) et la « Sommersaison Card Lienz » — tous exclus. Le « Sportpass Lienz » est un abonnement annuel multi-activites (bains municipa",
+  "at-rohr-im-gebirge": "Tableau « Preise » des Furtnerlifte, colonnes Erw. puis Kind ; chaque montant est sur sa propre ligne, l'intitule (« Tageskarte », « Saisonkarte ») etant sur la ligne precedente. Tageskarte : 24,00 adulte / 15,00 enfant ; Saisonkarte : 220,00 adulte / 190,00 enfant. Une seule saison affichee, sans m",
+  "at-semmering-hirschenkogel": "Page « Betriebszeiten und Preise Sommer » : la « Preisubersicht Sommer 2026 » ne contient que des tarifs d'ete (Bikepark, Mountaincart, Waldseilgarten, Millennium Jump), plus des prix de groupe — tous exclus. Aucun tarif d'hiver, et donc aucun forfait 6 jours, n'est publie sur cette page.",
+  "at-skilift-eberschwang": "Page « Offnungszeiten / Preise » saison 2025/26 : le tarif annonce (« Liftkarten (Punktekarten) ») est un systeme de cartes a points, dont aucun montant n'est imprime. Les seuls chiffres presents sont une caution de keycard (2,00), des tarifs d'heure scolaire et des forfaits de course, tous exclus. ",
+  "at-sonntag-stein": "la page rapatriée ne contient que la navigation et le pied de page, aucun tarif",
+  "at-untersberg": "téléphérique panoramique : seulement des billets montée/descente (piéton), une Jahreskarte annuelle et une Saisonkarte été — aucun forfait de ski remonte-pente",
+  "at-viehberg": "tarifs 25/26, colonne « normal » (hors tarifs réduits et hors tarifs membres du club) ; enfant 6-14,9 ans ; pas de forfait 6 jours publié",
+  "at-wurzeralm": "la page rapatriée ne montre que les intitulés de rubriques (Tages- und Mehrtagestickets, Saisonkarten…) sans aucun montant",
+  "az-sahdag-xiz-k-kompleksi-shahdag-mountain-resort": "table « ski-pass pour skieurs » (1 gün / 6 gün) et table saison (MÖVSÜM), enfant 5-11 ans ; montants en manats (₼ = AZN) ; billets piétons écartés",
+  "ba-ski-centar-ravna-planina-pale-ski-center-ravna-planina-pale": "Tarif unique \"Cjenovnik ski karata za sezonu 2026/2027\", pas de haute/basse saison. Tableau a trois colonnes (Vrsta karte | Djeca | Odrasli) : la premiere valeur est l'enfant (6-13 ans), la seconde l'adulte (14 ans et plus). Jour = \"Dnevna karta\" 35/40 ; six jours = \"6 dnevna\" 145/165 (cartes de 2 a",
+  "bg-vitosha": "Page d'ete uniquement (\"Витоша летен сезон 2026\") : passages simples a quadruples du telesiege Vitoshko Lale, forfaits VTT et parapente, pack famille. Aucun forfait de ski d'hiver publie ici. La page precise que les prix sont en euros.",
+  "ch-adelboden-lenk": "Page de sommaire des billetteries : elle renvoie vers la boutique en ligne sans afficher de prix journalier, 6 jours ou saison adulte/enfant. Les seuls montants cites sont l'AlpsPass 2026/27 a 949 CHF (abonnement multi-domaines Adelboden-Lenk + Aletsch Arena + Engelberg-Titlis + Jungfrau, donc pas l",
+  "ch-airolo-pescium": "Page des tarifs d'ete (saison 20.06-13.09.2026) : allers-retours, courses simples, journaliere et saisonniere VTT. Aucun forfait de ski. La page indique en outre qu'en hiver les journalieres sont a prix dynamique, sans prix fixe.",
+  "ch-atzmannig": "Page \"Preisliste Sommer\" : telesiege a l'unite, luge d'ete, parc accrobranche, parc de loisirs. Aucun tarif de forfait de ski (un lien \"Preise im Winter\" renvoie vers une autre page, non rapatriee).",
+  "ch-campo-blenio": "Tableau principal des remontees a deux colonnes \"Bambini | Adulti\" : le premier montant sous chaque libelle est l'enfant, le second l'adulte. \"Giornaliera\" 24.- / 32.- ; \"Settimanale\" (hebdomadaire, note 2) 120.- / 145.- pris comme six jours. Tarif unique, la page n'affiche ni haute ni basse saison ",
+  "ch-cimetta": "La page rapatriee est celle des horaires (\"Horaire\" de Cardada-Cimetta) : elle ne contient que des periodes et des heures de passage du telepherique et du telesiege, aucun montant. Les tarifs sont sur une autre page du site (onglet \"Tarifs\").",
+  "ch-corviglia": "Page sommaire \"Tickets | Engadin St. Moritz Mountains\" : liste des types de billets (Ski tickets, Hiking pass, Pedestrian tickets, Family ticket, PIZcard 365...) avec un lien \"Details\" pour chacun, et l'affichage est en mode ete (\"CORVIGLIA REGION 2026 ... Summer\"). Aucun montant n'y figure, ni jour",
+  "ch-eggberge-469015m86525": "page de la Luftseilbahn : seulement des billets de telepherique (aller-retour/simple), aucun forfait de ski ; les tarifs du skilift sont sur une autre page (PDF)",
+  "ch-glarus": "page communale sur la carte journaliere CFF (train), aucun tarif de forfait de ski",
+  "ch-grub-kaien": "la page ne publie que le prix a la montee (1 Fahrt Fr. 2.50 / 1.50), ni journee, ni semaine, ni saison",
+  "ch-hohwald-beatenberg": "texte rapatrie reduit au menu du site, aucun tarif dans la page",
+  "ch-jakobshorn": "La page est celle de la Premium Card (carte d'hôte de Davos Klosters) : elle ne donne que des billets de remontées d'été réduits (basse saison 1.5.26-17.7.26 et haute saison 18.7.26-23.8.26), aucun forfait de ski d'hiver, ni jour, ni 6 jours, ni saison.",
+  "ch-les-giettes": "La page « Tarifs » de Télégiettes ne publie que la location exclusive des remontées (journée CHF 1'000.-, soirée CHF 600.-), le trajet en Ratrak et les prix d'hébergement/restauration. Aucun forfait individuel adulte ou enfant n'y figure.",
+  "ch-monte-tamaro": "Le texte rapatrié de la page « Horaires et prix » ne contient aucun montant : seuls les onglets (Télécabine, Parc Aventure, Luge d'été, Tyrolienne…) et l'état d'ouverture des installations ont été capturés, en version été. Rien à lire.",
+  "ch-nods": "La page rapatriée affiche « Rien de trouvé » : le contenu de l'onglet Tarifs n'a pas été servi, il ne reste que le menu du site. Aucun montant.",
+  "ch-pilatus": "Page de billetterie touristique (Goldene/Silberne Rundfahrt, ab CHF 59.90 / 47.10) : aucun forfait de ski remonte-pente publie. Pilatus n'exploite pas de domaine skiable, les seuls prix visibles sont des allers-retours train/telepherique d'ete.",
+  "ch-pradaschier": "La page ne contient aucun montant : les tarifs hiver et ete ne sont diffuses que par des PDF (\"Skipass & Winter - Preisliste (PDF)\"), non rapatries dans le texte.",
+  "ch-skilift-chrachenhutten-blumenstein": "La page \"Tageskarten\" de la commune de Blumenstein porte sur la Spartageskarte Gemeinde (carte journaliere de transports publics CFF), pas sur le telesski : aucun tarif de forfait de ski, et aucun montant hors franchise de CHF 10.-- sur les remboursements.",
+  "ch-urnasch": "La page rapatriée ne contient que le menu et le pied de page : aucun montant n'y figure (le tableau des prix n'a pas été capté).",
+  "ch-visperterminen": "La page ne publie que les tarifs d'été (Sommertarife, Sommertarife Biken) : aucun forfait de ski d'hiver, donc rien de retenu.",
+  "cz-bozi-dar": "Le contenu du tarif (Price list – Skiareal Boží Dar / Inter Skiregion) n'a pas été rapatrié en texte : aucun montant lisible sur la page.",
+  "cz-bystre": "Saison 2025/2026. La page ne vend que des permanentes de 4 h et 2 h (donc pas de journée entière) et des cartes de points : aucun forfait jour, 6 jours ou saison.",
+  "cz-cesky-jiretin": "Tarif unique de journée « Celodenní 9:00 – 16:00 = 490 Kč » (lignes 42 à 45 du fichier : « Celodenní », « 9:00 – 16:00 », « 490 », « Kč ») ; la page n'affiche qu'un seul prix, sans distinction adulte/enfant — seuls les moins de 6 ans accompagnés sont gratuits, donc aucun tarif enfant chiffré. Les 39",
+  "cz-debrnik": "La page ne publie que des cartes de points (1, 10 et 20 remontees) : aucun forfait jour, semaine ou saison.",
+  "cz-destne-v-orlickych-horach": "Le texte rapatrie est la grille d'ete (Letni provoz 2026 : telesiege d'ete, trottinettes, velos, disc golf). Aucun tarif de forfait de ski d'hiver.",
+  "cz-fajtuv-kopec": "La page annonce la fin de la saison d'hiver 2025/2026 et n'affiche plus aucun montant.",
+  "cz-hlinsko": "Grille sans distinction adulte/enfant : le prix hebdomadaire (« weekly ») de 3600 CZK vaut donc pour l'adulte. Pas de tarif journee : la grille horaire s'arrete a 4 heures (440 CZK). Cartes de points et tarifs de groupes scolaires ecartes, de meme que la caution de carte de 100 CZK.",
+  "cz-hochficht-bohmerwald": "Le texte rapatrie ne contient aucune grille de prix (tableaux charges dynamiquement). Seule mention chiffree : « Tagesticket fuer Erwachsene bereits ab EUR 44,50 », prix d'achat anticipe (Frueh buchen & sparen), donc ecarte.",
+  "cz-horsky-resort-bukova-hora": "La page annonce « Ceník na zimní sezónu 2026/27 připravujeme... » : le tarif d'hiver n'est pas encore publié, aucun montant sur la page.",
+  "cz-janske-lazne-cerna-hora": "Page d'été (leto.skiresort.cz) : uniquement remontées estivales, trottinettes, VTT électriques, piste de bob et parcs à thème. Aucun forfait de ski d'hiver.",
+  "cz-komari-vizka": "La page rapatriée est un article sans rapport (thermes en Pologne, prix en PLN). Aucun tarif de forfait de ski.",
+  "cz-lyzarsky-areal-nemcicky-u-breclavi": "Page de ceník dont les onglets tarifaires sont vides dans le texte rapatrié (gabarit avec « Lorem ipsum ») : aucun montant lisible.",
+  "cz-mezihori": "Ceník saison 2025/2026 : uniquement du jízdné horaire (3 h en semaine, 300 Kč adulte / 250 Kč enfant) et des cartes de points (6 à 52 bodů). Aucun forfait journée, 6 jours ni saison publié.",
+  "cz-nova-paka-machovka": "Ceník skipasů : uniquement du časové jízdné (2 h et 4 h, jours scolaires et vacances) et du bodové jízdné (20/30/50 jízd). Aucun forfait journée, 6 jours ni saison publié.",
+  "cz-nove-mesto-na-morave": "Ski Harusák : uniquement du časové jízdné (1 à 4 heures) et du bodové jízdné (1 à 40 jízd). Aucun forfait journée, 6 jours ni saison publié.",
+  "cz-pec-pod-snezkou-506936m157333": "La page rapatriée ne contient que la navigation du site (cookies, menus, rubriques « Price list » et « Season ski passes ») ; aucun tableau de prix, aucun montant n'y figure. Rien à lire.",
+  "cz-ski-areal-sacberk": "Ceník 2024/2025 : uniquement du bodové jízdné (1 à 50 jízd) et du časové jízdné (1 à 4 heures). Aucun forfait journée, 6 jours ni saison publié.",
+  "cz-skiareal-jested-jeschken": "Page « Školní výlety / Ceník » : le texte rapatrié ne contient que la navigation du site et le titre CENÍK, aucun montant. Aucun tarif de forfait lisible.",
+  "cz-skiareal-klinovec": "Page d'index des ceníky (jízdenky denní, vícedenní, školní skupiny, skupina 15) renvoyant vers des « Kompletní ceník » externes : aucun montant dans le texte de la page.",
+  "cz-skiareal-spindleruv-mlyn-medvedin": "Page « Spindl Motion rental & shop Medvědín » : tarif de location d'été (vélos électriques, trottinettes, trampoline park), aucun montant dans le texte et aucun forfait de remontées.",
+  "cz-svetla-nad-sazavou-kadlecak": "Page « Ceník leto » : seul montant publié = « 1 jízda : 50 Kč,- », une montée unique du téléski d'été (saison d'été 2026), donc écarté.",
+  "cz-zasada": "Page « Ceník vleků » : le tableau des prix n'apparaît pas dans le texte rapatrié ; seul montant présent = la caution de 100 Kč de la carte HandsFree, écartée.",
+  "de-kolbensattel-oberammergau": "La page rapatriee est un article d actualite sur le paiement par carte au distributeur : aucune grille de tarifs.",
+  "de-skigebiet-eckbauer": "La page Fahrpreise ne contient, dans le texte rapatrie, que les conditions generales (chiens, groupes, reductions) : aucun montant de forfait.",
+  "de-skigebiet-lausche": "La page ne vend que des cartes de points (Punktekarte, 2,00 € l'unité, 12/30/120 points) valables toute la saison, plus une caution de carte de 2,00 €. Aucun forfait jour, six jours ou saison publié : rien de retenu.",
+  "de-skilifte-sinswang": "La page tarifs ne contient aucun montant : elle renvoie seulement au PDF « Preisliste 2026/2026.pdf ». Rien à lire.",
+  "de-tegelbergbahn": "La page rapatriée est la page d'été (/de/sommer/info-preise) : elle ne donne que des aller-retour en télécabine, la Saisonkarte Sommer, la Jahreskarte, des cartes de points, la luge d'été et les redevances de parapente. Aucun forfait de ski d'hiver : rien de retenu.",
+  "de-unternberg-ruhpolding": "La page rapatriée est celle de la Fly-Line (tyrolienne d'été), pas celle du ski. Aucun forfait six jours adulte ou enfant n'y figure.",
+  "de-wallbergbahn-tegernsee": "la page rapatriée ne contient que le bandeau cookies et la navigation (« Berg- & Talfahrten », « Mehrfahrtentickets »…) : aucun montant n'y figure.",
+  "es-valdelinares-404000mm06000": "page d'accueil Javalambre-Valdelinares : elle renvoie vers « Tarifas » et « Abono de Temporada » mais n'affiche aucun montant dans le texte rapatrié.",
+  "fi-kasurila": "le texte rapatrié est la page Bike Park d'été (saison close fin septembre, plan de pistes VTT, Zone-maksu) ; le « Hinnasto » qui s'y trouve (15/20 € le jour, 100/175 € la saison) est celui du bike park, pas du forfait de ski. Écarté faute de certitude.",
+  "fr-grand-ballon": "La page rapatriée est celle de la luge sur rail du Markstein (tarifs au circuit, privatisation, photo) : aucun tarif de forfait de remontées mécaniques n'y figure.",
+  "fr-la-grave": "Hiver 2025/2026 (ouverture 20/12/2025 au 03/05/2026, maj tarif 01/05/2026), tarif unique sans haute/basse saison. Le texte met l'intitulé et le prix sur deux lignes : 66 € = « [#] Téléphériques + Téléski* » (journée adulte plein tarif), 330 € = « [#] 6 Jours » (jours consécutifs ou non), 1138 € = « ",
+  "fr-markstein-grand-ballon": "La page rapatriée est « Tarifs été » : luge sur rail et mini-golf uniquement, aucun forfait de remontées mécaniques.",
+  "fr-vormaine": "La page annonce « PRIX DES FORFAITS - en € TTC » (hiver 2025/26, ouverture 20 déc. 2025) mais le tableau des prix n'est pas présent dans le texte rapatrié : aucune ligne ne porte de montant de forfait. Seul montant visible : le badge mains libres à 3 € (caution/support, écarté).",
+  "gb-midlothian-snowsports-centre-hillend-dry-slope": "Piste sèche : la page ne vend que des sessions horaires (« Main slope, first hour », « additional hour »), des cours et du tubing. Aucun forfait jour, 6 jours ni saison. La colonne enfant est une colonne « Junior », exclue.",
+  "gb-plymouth-ski-and-snowboard-center": "Piste sèche : seulement des cours et de l'open practice à l'heure (« 1x 60 minutes ») ou en demi-journée (« Half Day Session »), tous deux exclus. Aucun forfait jour, 6 jours ni saison.",
+  "gb-south-wilts-ski-club": "Tapis roulant Maxxtracks et simulateur SkyTech : la page ne vend que des séances d'une demi-heure ou d'une heure avec moniteur, et des forfaits de 3 à 8 séances valables douze mois. Aucun forfait de remonte-pente jour, 6 jours ni saison ; pas de distinction adulte/enfant (prix par séance, non par pe",
+  "gb-swadlincote-ski-snowboard": "Piste sèche : open practice à l'heure (« 1x 60 minutes ») et carnet « 5 Visit Pass » de 5 heures, plus des cours (« Day Course » = stage, pas un forfait). Aucun forfait jour, 6 jours ni saison ; la ligne enfant est une tranche « (8-15) » / « Juniors », exclue.",
+  "ge-crystal": "Saison 2025/26. Le forfait 1 jour retenu est le « 1-day package » 10:00–22:00 (90 ₾ adulte / 70 ₾ enfant 3–12 ans), le produit journée complète ; le ski de jour seul 10:00–17:00 coûte 55 ₾ / 30 ₾. ATTENTION : il n'existe pas de forfait 6 jours — les montants 560/410 sont le « 7-day package » (forfai",
+  "hu-zemplen-kalandpark": "Aucun forfait de ski remonte-pente sur la page : le parc ne vend que des billets de bob, de télésiège piéton (libegő), de tyrolienne, de mur d'escalade, de snowtubing (hófánk) et des forfaits d'activités. Rien à retenir.",
+  "ie-ski-club-of-ireland": "Tarifs 2025/2026 d'un club de piste sèche. Seuls les « Season Ticket » sont des abonnements de saison : 450 € adulte, 195 € rubrique « Children » (7–18 ans). Pas de forfait à la journée ni à la semaine : le reste de la page est constitué de cours, de stages et de séances « Practice ». Étudiant, seni",
+  "it-area-sciistica-pian-del-poggio-monte-chiappo": "Tarifs invernali. « Giornaliero » 28 € adulte et « Giornaliero ridotto » 20 € (fino a 8 anni) pour l'enfant ; le prix est sur une ligne seule, sous le symbole euro codé &#128;. Demi-journées (mattiniero, pomeridiano), forfaits à la course et tapis écartés. Ni forfait 6 jours ni abonnement de saison ",
+  "it-campocatino": "page vide : le texte rapatrie ne contient que le titre \"Giornalieri - Campocatino\", aucun tarif",
+  "it-centro-fondo-arpy-morgex": "page d'auberge : seuls des prix de demi-pension par personne et par nuit (hiver 2027), aucun forfait de remontee mecanique",
+  "it-cortina-tofane": "page \"Tariffe estate 2026\" : uniquement des billets d'ete a la course sur chaque telesiege (aller simple / aller-retour), aucun forfait de ski d'hiver",
+  "it-cristallo-faloria": "page \"Prezzi e orari estate\" : horaires d'ete et mentions \"IMPIANTI CHIUSI\", aucun montant publie",
+  "it-drei-zinnen-tre-cime-drei-zinnen-tre-cime": "page de vente de billets de ski de fond (Ticketverkauf Langlauf) : renvoie vers des pages de prix par localite, aucun montant sur la page, et le ski de fond est hors perimetre",
+  "it-kaberlaba": "La page « Ticket e Pass » ne publie aucun montant : elle ne propose que des liens de téléchargement des listes de prix (« Listino Inverno 2025/26 », PDF).",
+  "it-lagazuoi-5-torri": "La page ne donne que les dates d'ouverture et horaires des remontées, avec renvoi à un PDF « Scarica prezzi e orari ». Aucun montant de forfait n'y figure.",
+  "it-lemelette": "Haute saison (« Alta stagione ») de l'hiver 2026/2027. Enfant = tarif « Bambino » (nés après le 30/11/2018), et non « Junior » ni « Senior ». Pas de forfait 6 jours ; le tarif de saison n'est pas chiffré sur cette page (simple renvoi vers le skipass saisonnier).",
+  "it-roccaraso-rivisondoli": "La page rapatriée est celle des « Tariffe estive » (saison estivale 2026 : piétons, bikers, mountaincart). Aucun tarif de forfait de ski d'hiver n'y figure ; les montants d'été ont été écartés.",
+  "it-terminillo": "La page ne publie aucun tarif de skipass : elle liste les remontees, les pistes et l'exploitant (ASM Rieti) et renvoie au site officiel.",
+  "it-val-formica": "Le listino prezzi de la page est celui des chambres du resort (suites, par periode 2026-2027), pas des forfaits de remontees mecaniques.",
+  "it-verena-2000": "Page de listino du Rifugio Verenetta : elle renvoie a un contact telephonique pour les prix, aucun montant affiche.",
+  "kz-altayskiye-alpy": "Page de prix reduite a un menu de rubriques (podiemniki, prokat, projivanie...) : aucun montant n'apparait dans le texte rapatrie.",
+  "lv-ozolkalns": "La page rapatriée est celle des prix d'hébergement (chalets, maison forestière, sauna, bain nordique) : aucun tarif de forfait de remontées mécaniques n'y figure.",
+  "me-kolasin-1600": "Le texte rapatrié ne contient que la navigation, les horaires et les contacts ; la grille tarifaire du ski pass n'a pas été rendue dans le texte (aucun montant sur la page).",
+  "no-hurdal-skisenter-604637m110700": "Le texte rapatrié de la page « PRISER 2025-2026 » ne contient que le menu : le tableau des tarifs n'a pas été rendu, aucun montant n'est lisible.",
+  "no-knyken-skisenter": "La page annonce la rubrique « Priser » et ses notes de bas de tableau (rabais membres, garderobeavgift) mais le tableau des montants lui-même est absent du texte rapatrié.",
+  "no-rauland-skisenter-597260m81467": "Page d'horaires et d'infos : aucun tarif de forfait n'y figure, la vente renvoie vers la reservation en ligne.",
+  "pl-cisowa-stacja-narciarska": "Cennik hiver 2025/2026 : uniquement des cartes a points et des forfaits horaires (1h a 5h). Aucun forfait journee, 6 jours ou saison. Le tarif ulgowy melange enfants -12 ans et seniors +60, et reste horaire.",
+  "pl-kasprowy-wierch": "Skipass de saison 2026/2027. Prix regulier retenu (a partir du 01.12.2026), les 2099/1699 et 2499/1999 sont des promotions d'achat anticipe. Colonne NORMALNY 16-64 = adulte ; colonne ULGOWY 5-15, 65+ = tarif enfant 5-15 ans (partage avec les 65+). Page dediee a la saison : ni journee, ni 6 jours.",
+  "pl-kompleks-narciarski-bia-y-krzyz": "La page ne vend que des forfaits horaires (1 h 40 PLN, 2 h 55 PLN, 3 h 65 PLN, 4 h 70 PLN), des passages a l'unite (5 PLN / 4 PLN) et des cartes matin/soir. Aucun forfait journee, 6 jours ou saison, et aucun tarif enfant chiffre (seulement la gratuite moins de 4 ans).",
+  "pl-kompleks-narciarski-kopa-w-karpaczu": "Page /lato/ (ete) : uniquement des billets de telecabine a l'unite (Wjazd, Wjazd i zjazd, Zjazd), c'est-a-dire du transport pieton, avec une haute saison qui couvre juin-septembre. Aucun forfait de ski journee, 6 jours ou saison.",
+  "pl-rusin-ski": "Le texte rapatrie ne contient aucun montant : la grille (cennik lokalny et Tatry Super Ski) est chargee dynamiquement et n'apparait pas dans la page.",
+  "pl-stacja-narciarska-kazimierz-dolny": "Uniquement des forfaits horaires (2 h 80 PLN, 3 h 90 PLN) et une carte a points (1 point = 1 PLN, 7 points par montee au teleski). Aucun forfait journee, 6 jours ou saison, aucun tarif enfant.",
+  "pl-stok-narciarski-dolina-szczescia": "Uniquement des cartes de montees (1 montee 8 PLN, 10 montees 45 PLN, 20 montees 80 PLN) plus une caution de carte. Aucun forfait journee, 6 jours ou saison, aucun tarif enfant.",
+  "rs-kopaonik": "La page ne publie aucun montant : elle renvoie le tarif de la saison 2025/26 vers des PDF a telecharger (« Preuzmite cenovnik u PDF formatu ») et ne parle chiffres que pour les remises webshop et le paiement en plusieurs fois.",
+  "se-hogfjallet": "Page de presentation SkiPass SkiStar : aucun tarif de forfait n'y figure, les prix se decouvrent dans le tunnel de reservation apres choix de la station et des dates. Le seul montant de la page est des frais d'annulation de 95 SEK. Le texte est par ailleurs identique a celui de se-lindvallen (meme U",
+  "se-lindvallen": "Page de presentation SkiPass SkiStar : aucun tarif de forfait n'y figure, les prix se decouvrent dans le tunnel de reservation apres choix de la station et des dates. Le seul montant de la page est des frais d'annulation de 95 SEK. Le texte est par ailleurs identique a celui de se-hogfjallet (meme U",
+  "se-skistar-hammarbybacken": "page d'été (« Planera din sommardag ») : seuls des tarifs d'activités estivales (Klätterpark, Mountain Coaster, Mountain Tube, SummerSki) figurent, aucun forfait de remontées mécaniques d'hiver",
+  "se-storlien": "aucun montant publié : la page annonce seulement « Skidanläggningen öppnar igen i mitten av december 2026. Snart börjar försäljningen av säsongskort! »",
+  "se-tandadalen": "page de présentation du SkiPass SkiStar : aucun montant de forfait, les prix passent par le moteur de réservation (seul chiffre présent : 95 SEK de frais d'annulation)",
+  "si-kranjska-gora": "page « Ceniki » de la section Poletje (été) : ne renvoie que vers des PDF (Bikepark, EasyLOOP, Poletje 2026), aucun montant en clair ni tarif d'hiver",
+  "si-stari-vrh": "seul le « Cenik za poletno sezono 2026 » est publié (télésiège l'été, aller simple / aller-retour, validité 1.7.2026–31.8.2026) : aucun forfait de ski d'hiver",
+  "sk-chopok-juh": "La page rapatriée est /ubytovanie (hébergement TMR Hotels) : aucun tarif de forfait n'y figure, le cennik des remontées est sur une autre page.",
+  "sk-jasna-low-tatras": "Même texte que sk-chopok-juh (page hébergement de jasna.sk) : aucun montant de forfait publié.",
+  "sk-serkov": "Page de tarifs de la Chata Štart : uniquement hébergement, pension et location du chalet (19 €/pers/nuit, 400 €/nuit...). Aucun tarif de remontée.",
+  "sk-ski-bezovec-486684m179682": "Page cennik : seules les explications (skipas, familial, enfant, junior, senior) sont en texte, la grille de prix n'apparaît pas. Le seul montant lisible est la caution de carte de 2 €, écartée.",
+  "tr-uludag-kayak-merkezi": "Page billets 2026-2027 : chaque catégorie (ardışık, esnek, puanlı, saatlik, sezonluk) affiche « Bu kategorinin fiyatları güncelleniyor », les prix ne sont pas encore publiés. Le seul montant est le droit d'entrée du parc national (225 ₺), écarté."
+ },
+ "fiches": {
+  "at-sibratsgfall": {
+   "page": "https://www.kraehenberg.at/2026/01/08/283/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 27.0,
+     "ligne": "Tageskarte € 27,00"
+    },
+    "jourEnfant": {
+     "prix": 20.0,
+     "ligne": "Tageskarte € 20,00"
+    },
+    "saisonAdulte": {
+     "prix": 135.0,
+     "ligne": "Erwachsene € 135,00"
+    }
+   },
+   "note": "« Liftkartenpreise 2025/26 » des Skilifte Krahenberg, hiver 2025/26, tarif unique sans haute/basse saison. Pas de forfait 6 jours ni semaine sur la page. Saison enfant laissee vide : le seul prix enfa"
+  },
+  "ch-brunni-haggenegg": {
+   "page": "https://www.brunnialpthal.ch/Saisonkarten.aspx",
+   "devise": "CHF",
+   "tarifs": {
+    "saisonAdulte": {
+     "prix": 350.0,
+     "ligne": "(statt 350.-, bis 30.11.)"
+    },
+    "saisonEnfant": {
+     "prix": 240.0,
+     "ligne": "(statt 240.-, bis 30.11.)"
+    }
+   },
+   "note": "Page \"Saisonkarten 2025/2026\" du domaine Brunni-Alpthal : elle ne publie que des abonnements de saison, aucun forfait jour ni 6 jours. Section retenue : \"Brunni-Haggenegg (3 Anlagen)\", le sous-domaine"
+  },
+  "ch-brunni-holzegg-rotenflue": {
+   "page": "https://www.brunnialpthal.ch/Saisonkarten.aspx",
+   "devise": "CHF",
+   "tarifs": {
+    "saisonAdulte": {
+     "prix": 400.0,
+     "ligne": "(bis 30.11., statt 400.-)"
+    },
+    "saisonEnfant": {
+     "prix": 270.0,
+     "ligne": "(bis 30.11., statt 270.-)"
+    }
+   },
+   "note": "Meme page \"Saisonkarten 2025/2026\" (fichier identique a celui de Brunni-Haggenegg), sans aucun forfait jour ni 6 jours. Section retenue : \"Brunni-Alpthal (8 Anlagen)\", le forfait du domaine entier, se"
+  },
+  "ch-grindelwald-mannlichen-schlittelpiste": {
+   "page": "https://www.jungfrau.ch/de-ch/jungfrau-ski-region/skipass-kaufen/",
+   "devise": "CHF",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 83.0,
+     "ligne": "1 Tag 2 | 3 | CHF 79.– | CHF 83.– | CHF 45.– | CHF 38.–"
+    },
+    "jourEnfant": {
+     "prix": 38.0,
+     "ligne": "1 Tag 2 | 3 | CHF 79.– | CHF 83.– | CHF 45.– | CHF 38.–"
+    },
+    "sixJoursAdulte": {
+     "prix": 424.0,
+     "ligne": "6 Tage | CHF 404.– | CHF 424.– | CHF 247.– | CHF 183.–"
+    },
+    "sixJoursEnfant": {
+     "prix": 183.0,
+     "ligne": "6 Tage | CHF 404.– | CHF 424.– | CHF 247.– | CHF 183.–"
+    }
+   },
+   "note": "Jungfrau Ski Region, hiver 2026/27, haute saison : colonne « Erwachsene 1 » (19.12.2026-03.01.2027 / 30.01.-28.02.2027) ; les enfants (6-15 ans) n'ont qu'une colonne. Pas d'abonnement de saison publie"
+  },
+  "ch-mogno-464281m86623": {
+   "page": "https://mognofreetime.ch/tariffe/",
+   "devise": "CHF",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 18.0,
+     "ligne": "CHF 18.-"
+    },
+    "jourEnfant": {
+     "prix": 14.0,
+     "ligne": "CHF 14.-"
+    }
+   },
+   "note": "Saison 2025-2026, tarif unique (pas de haute/basse saison). Journalière du téléski principal (« Giornaliera piattello ») : colonne Adulto dai 16 anni = CHF 18.-, colonne Ragazzo 6-15 anni = CHF 14.-, "
+  },
+  "ch-raten": {
+   "page": "https://www.skilift-raten.ch/Preise.htm",
+   "devise": "CHF",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 15.0,
+     "ligne": "Erwachsenenkarte Fr. 15.&ndash;"
+    },
+    "jourEnfant": {
+     "prix": 9.0,
+     "ligne": "Kinderkarte bis 16 Jahre Fr. 9.&ndash;"
+    },
+    "saisonEnfant": {
+     "prix": 95.0,
+     "ligne": "Saisonkarte Kinder Fr. 95.&ndash;"
+    }
+   },
+   "note": "Tarifs \"Preise 2026 / 2027\", saison unique (petit telesski, pas de haute/basse saison). Erwachsenenkarte / Kinderkarte sont les cartes a la journee, listees face aux Saisonkarten. Pas de carte de sais"
+  },
+  "ch-rossberg-oberwil": {
+   "page": "https://www.rossbergoberwil.ch/angebot/preise",
+   "devise": "CHF",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 39.0,
+     "ligne": "Erwachsene (Gäste): CHF 39.00"
+    },
+    "jourEnfant": {
+     "prix": 26.0,
+     "ligne": "Kinder (Gäste): CHF 26.00"
+    }
+   },
+   "note": "Saison 2026/2027, tarif plein \"Gäste\" de la Tageskarte (les lignes \"Einheimische\" sont des tarifs locaux, ecartees, de meme que les Tageskarte ab 11.30/13.00 Uhr, les cartes horaires et les cartes de "
+  },
+  "cz-lyzarsky-vlek-popelka": {
+   "page": "https://www.strazne.eu/skiareal/cenik/",
+   "devise": "CZK",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 550.0,
+     "ligne": "Celodenní permanentka | 550,- | 450,-"
+    },
+    "jourEnfant": {
+     "prix": 450.0,
+     "ligne": "Celodenní permanentka | 550,- | 450,-"
+    },
+    "sixJoursAdulte": {
+     "prix": 2600.0,
+     "ligne": "6 denní (6 ze 6) | 2600,- | 2000,-"
+    },
+    "sixJoursEnfant": {
+     "prix": 2000.0,
+     "ligne": "6 denní (6 ze 6) | 2600,- | 2000,-"
+    }
+   },
+   "note": "Ceník hiver 25/26 (valable depuis le 01/12/2025), colonnes DOSPĚLÍ / DĚTI DO 140 CM. Pas d'abonnement de saison publié ; la demi-journée, les cartes de points et le ski de soirée sont écartés."
+  },
+  "de-gohrersberg-kreuzthal": {
+   "page": "https://www.gohrersberg.de/skilift/preise/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 22.0,
+     "ligne": "Tageskarte: 22,– € / Stundenkarte*: 18,– €"
+    },
+    "jourEnfant": {
+     "prix": 18.0,
+     "ligne": "Tageskarte: 18,– € / Stundenkarte*: 14,– €"
+    },
+    "saisonAdulte": {
+     "prix": 250.0,
+     "ligne": "Erwachsene: 250,– €"
+    },
+    "saisonEnfant": {
+     "prix": 200.0,
+     "ligne": "Kinder (5–13): 200,– €"
+    }
+   },
+   "note": "Saison 2025/26, tarif unique. Saisonkarte inkl. Flutlicht : Erwachsene / Kinder (5-13). Aucun forfait 6 jours ou semaine publie ; tarifs famille, groupe, Stundenkarte et Einzelfahrt ecartes."
+  },
+  "de-hesselbacher-gletscher": {
+   "page": "https://www.hesselbachergletscher.de/oeffnungszeitenpreise/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 20.0,
+     "ligne": "Jugendl. und Erwachsene ab 17 J.                        20,00 €"
+    },
+    "jourEnfant": {
+     "prix": 17.0,
+     "ligne": "Kinder bis einschl. 16 Jahre                                  17,00 €"
+    }
+   },
+   "note": "Tageskarte du dimanche, la periode la plus chere de la grille (Mo.-Sa. : 15,00 EUR adulte / 12,00 EUR enfant ; enfant = jusqu au 16e anniversaire inclus). Abendkarte ecartee (tarif de soiree reduit). "
+  },
+  "de-sebnitz": {
+   "page": "https://ski-sebnitz.com/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 25.0,
+     "ligne": "25,00 EUR"
+    },
+    "jourEnfant": {
+     "prix": 15.0,
+     "ligne": "15,00 EUR"
+    }
+   },
+   "note": "Tableau Liftpreise a deux colonnes (Kinder bis 16, puis Erwachsene), ligne Tageskarte : 15,00 EUR enfant puis 25,00 EUR adulte. Saison 04.01.2026-15.03.2026. Cartes 2 h / 4 h et Einzelfahrt ecartees. "
+  },
+  "de-stollenbach": {
+   "page": "https://www.skilifte-stollenbach.de/p/preise",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 35.0,
+     "ligne": "Tageskarte | Kinder* 22,00  | Erwachsene 35,00 "
+    },
+    "jourEnfant": {
+     "prix": 22.0,
+     "ligne": "Tageskarte | Kinder* 22,00  | Erwachsene 35,00 "
+    }
+   },
+   "note": "Tarifs saison 2025/2026, tarif unique (pas de haute/basse saison). Le seul tarif réduit est « Kinder / Jugendliche bis einschl. 17 Jahre » : c'est le tarif enfant de la station, il n'en existe pas d'a"
+  },
+  "es-estacion-de-esqui-de-valdezcaray": {
+   "page": "https://www.valdezcaray.es/tarifas-y-calendario/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 29.0,
+     "ligne": "Adulto | 29 €"
+    },
+    "jourEnfant": {
+     "prix": 20.0,
+     "ligne": "Infantil (10 años incl.) | 20 €"
+    },
+    "saisonAdulte": {
+     "prix": 410.0,
+     "ligne": "Adulto | 410 €"
+    },
+    "saisonEnfant": {
+     "prix": 290.0,
+     "ligne": "Infantil (10 años incl.) | 290 €"
+    }
+   },
+   "note": "haute saison 2025-2026 (« Abono de día – Temporada alta ») ; la basse saison (22,5 € / 19,5 €) est écartée. Pas de forfait 6 jours publié. Carnet joven, clubs, handicap, seniors et demi-journées écart"
+  },
+  "fi-saariselka": {
+   "page": "https://skisaariselka.com/lift-tickets/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 55.0,
+     "ligne": "1 day | 55 € | 38 €"
+    },
+    "jourEnfant": {
+     "prix": 38.0,
+     "ligne": "1 day | 55 € | 38 €"
+    },
+    "sixJoursAdulte": {
+     "prix": 259.0,
+     "ligne": "6 days during 8 days | 259 € | 149 €"
+    },
+    "sixJoursEnfant": {
+     "prix": 149.0,
+     "ligne": "6 days during 8 days | 259 € | 149 €"
+    },
+    "saisonAdulte": {
+     "prix": 440.0,
+     "ligne": "Season pass (*presale price valid until 30.11.2026) | 380 €* / 440 € | 250 €* / 290 €"
+    },
+    "saisonEnfant": {
+     "prix": 290.0,
+     "ligne": "Season pass (*presale price valid until 30.11.2026) | 380 €* / 440 € | 250 €* / 290 €"
+    }
+   },
+   "note": "haute saison hiver 2026-2027, « Normal rates 21.11.2026 - 3.4.2027 » (les « Off season rates » d'avril-mai sont écartées). Enfant = colonne « Child 6-17 y & 64 y+ ». Saison : prix plein 440 € / 290 €,"
+  },
+  "fi-ski-saariselka-laskuttelukeskus-ski-sport-resort-saariselka": {
+   "page": "https://skisaariselka.com/lift-tickets/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 55.0,
+     "ligne": "1 day | 55 € | 38 €"
+    },
+    "jourEnfant": {
+     "prix": 38.0,
+     "ligne": "1 day | 55 € | 38 €"
+    },
+    "sixJoursAdulte": {
+     "prix": 259.0,
+     "ligne": "6 days during 8 days | 259 € | 149 €"
+    },
+    "sixJoursEnfant": {
+     "prix": 149.0,
+     "ligne": "6 days during 8 days | 259 € | 149 €"
+    },
+    "saisonAdulte": {
+     "prix": 440.0,
+     "ligne": "Season pass (*presale price valid until 30.11.2026) | 380 €* / 440 € | 250 €* / 290 €"
+    },
+    "saisonEnfant": {
+     "prix": 290.0,
+     "ligne": "Season pass (*presale price valid until 30.11.2026) | 380 €* / 440 € | 250 €* / 290 €"
+    }
+   },
+   "note": "Haute saison : « Normal rates 21.11.2026 - 3.4.2027 » (et non le barème « Off season » d'avril-mai). Colonne enfant = « Child 6-17 y & 64 y+ ». Six jours = le produit « 6 days during 8 days ». Saison "
+  },
+  "fr-site-nordique-des-trois-fours": {
+   "page": "https://laschlucht.labellemontagne.com/fr/hiver/forfaits/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 19.7,
+     "ligne": "1 jour | 17,50 € | 19,70€"
+    },
+    "jourEnfant": {
+     "prix": 17.5,
+     "ligne": "1 jour | 17,50 € | 19,70€"
+    },
+    "saisonAdulte": {
+     "prix": 190.0,
+     "ligne": "Forfait saison | 170 € | 190 €"
+    },
+    "saisonEnfant": {
+     "prix": 170.0,
+     "ligne": "Forfait saison | 170 € | 190 €"
+    }
+   },
+   "note": "Forfaits La Schlucht 2025/2026, tarif unique. Le tableau met l'enfant (6 à 12 ans) en première colonne et l'adulte (à partir de 13 ans) en seconde. Pas de forfait 6 jours ni semaine : la grille s'arrê"
+  },
+  "ge-goderdzi-mountain-resort": {
+   "page": "https://goderdzi.ski/skipass",
+   "devise": "GEL",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 30.0,
+     "ligne": "1 Day | 30 ₾ | 15 ₾"
+    },
+    "jourEnfant": {
+     "prix": 15.0,
+     "ligne": "1 Day | 30 ₾ | 15 ₾"
+    },
+    "sixJoursAdulte": {
+     "prix": 138.0,
+     "ligne": "6 Days | 138 ₾ | 70 ₾"
+    },
+    "sixJoursEnfant": {
+     "prix": 70.0,
+     "ligne": "6 Days | 138 ₾ | 70 ₾"
+    },
+    "saisonAdulte": {
+     "prix": 210.0,
+     "ligne": "Seasonal (Goderdzi only) | 210 ₾ | 105 ₾"
+    },
+    "saisonEnfant": {
+     "prix": 105.0,
+     "ligne": "Seasonal (Goderdzi only) | 210 ₾ | 105 ₾"
+    }
+   },
+   "note": "Saison 2025/26, tarifs enfant = colonne « Child (6–12) ». Saison prise pour Goderdzi seul, pas le Multiski 4 stations (650 ₾). Junior 13–18 et étudiant écartés. Multicard rechargeable 5 GEL non compté"
+  },
+  "it-jochgrimm-passo-oclini": {
+   "page": "https://oclini.com/preise-skiurlaub-snowboard-schifahren/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 35.0,
+     "ligne": "Tageskarte 35€"
+    },
+    "jourEnfant": {
+     "prix": 15.0,
+     "ligne": "Tageskarte: 15€"
+    },
+    "sixJoursAdulte": {
+     "prix": 175.0,
+     "ligne": "Wochenkarte (6 Tage): 175€"
+    },
+    "sixJoursEnfant": {
+     "prix": 75.0,
+     "ligne": "Wochenkarte (6 Tage): 75€"
+    }
+   },
+   "note": "Tarifs uniques sur la page (pas de haute/basse saison). Adulte sous « Erwachsene », enfant sous « Kinder (bis 13,99 Jahre) ». La Wochenkarte est explicitement de 6 jours. Aucun abonnement de saison pu"
+  },
+  "it-sarnano-sassotetto": {
+   "page": "https://www.sarnanoneve.it/skipass/",
+   "devise": "EUR",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 28.0,
+     "ligne": "adulti € 28"
+    },
+    "jourEnfant": {
+     "prix": 22.0,
+     "ligne": "bambini sotto i 14 anni e convenzionati* € 22"
+    },
+    "saisonAdulte": {
+     "prix": 300.0,
+     "ligne": "adulti € 300"
+    },
+    "saisonEnfant": {
+     "prix": 180.0,
+     "ligne": "bambini sotto i 14 anni  € 180"
+    }
+   },
+   "note": "Tarifs skipass saison 2025 (site officiel). Le jour est pris en periode haute FESTIVO (dimanches et jours feries) : adulte 28 EUR, enfant de moins de 14 ans 22 EUR ; le FERIALE vaut 24 / 19. Le tarif "
+  },
+  "no-eikerapen": {
+   "page": "https://www.eikerapen.info/priser/",
+   "devise": "NOK",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 470.0,
+     "ligne": "Dagskort | 470,- | 380,-"
+    },
+    "jourEnfant": {
+     "prix": 380.0,
+     "ligne": "Dagskort | 470,- | 380,-"
+    },
+    "saisonAdulte": {
+     "prix": 5000.0,
+     "ligne": "Sesongkort | 5000,- | 3900,-"
+    },
+    "saisonEnfant": {
+     "prix": 3900.0,
+     "ligne": "Sesongkort | 5000,- | 3900,-"
+    }
+   },
+   "note": "Saison 2025/2026, remontée principale (Hovedtrekk) ; colonne « Ungdom / barn » (dès 7 ans) retenue comme tarif enfant, la page n'en distingue pas d'autre. Pas de forfait 6 jours : les lots vont de 2 à"
+  },
+  "no-lofoten": {
+   "page": "https://alpinlofoten.no/priser/",
+   "devise": "NOK",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 400.0,
+     "ligne": "Dagskort | 1100-1600 | 400/300"
+    },
+    "jourEnfant": {
+     "prix": 300.0,
+     "ligne": "Dagskort | 1100-1600 | 400/300"
+    },
+    "saisonAdulte": {
+     "prix": 4000.0,
+     "ligne": "Sesongkort | | 4000/3750/3500"
+    },
+    "saisonEnfant": {
+     "prix": 3500.0,
+     "ligne": "Sesongkort | | 4000/3750/3500"
+    }
+   },
+   "note": "Tarif unique publie (pas de haute/basse saison). En-tete : voksen +16 ans / ungdom / barn jusqu'a 15 ans. Le sesongkort donne trois prix (4000/3750/3500) : adulte 4000, enfant 3500. Le dagskort n'en d"
+  },
+  "no-tveit-skisenter": {
+   "page": "https://www.tveitskisenter.no/priser.html",
+   "devise": "NOK",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 200.0,
+     "ligne": "Dagskort voksen | Fra 16 Ã¥r | 200 kr"
+    },
+    "jourEnfant": {
+     "prix": 150.0,
+     "ligne": "Dagskort barn | 4â15 Ã¥r | 150 kr"
+    },
+    "saisonAdulte": {
+     "prix": 1500.0,
+     "ligne": "Sesongkort voksen | Hele sesongen | 1 500 kr"
+    },
+    "saisonEnfant": {
+     "prix": 1000.0,
+     "ligne": "Sesongkort barn | Hele sesongen | 1 000 kr"
+    }
+   },
+   "note": "Tarif unique publie pour la saison (dec.-Paques), pas de haute/basse saison. Pas de forfait 6 jours. Familiekort et kveldskort ecartes."
+  },
+  "ro-sinaia": {
+   "page": "https://sinaiago.ro/partiile-de-schi-tarife/",
+   "devise": "RON",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 230.0,
+     "ligne": "1 zi | 210/230 lei | 170/190 lei | 135/150 lei"
+    },
+    "jourEnfant": {
+     "prix": 150.0,
+     "ligne": "1 zi | 210/230 lei | 170/190 lei | 135/150 lei"
+    }
+   },
+   "note": "Saison 2025-2026. La colonne « Adulti L-V/S-D » donne semaine/week-end : j'ai pris le tarif week-end (haute saison), que la page applique aussi aux jours feries et aux vacances scolaires ; en semaine "
+  },
+  "ro-ski-vidra": {
+   "page": "https://www.skividra.ro/tarife",
+   "devise": "RON",
+   "tarifs": {
+    "jourAdulte": {
+     "prix": 190.0,
+     "ligne": "1 zi | 190 LEI | 170 LEI | 125 LEI"
+    },
+    "jourEnfant": {
+     "prix": 125.0,
+     "ligne": "1 zi | 190 LEI | 170 LEI | 125 LEI"
+    },
+    "sixJoursAdulte": {
+     "prix": 980.0,
+     "ligne": "7 zile (consecutive/neconsecutive) | 980 LEI | &mdash; | 665 LEI"
+    },
+    "sixJoursEnfant": {
+     "prix": 665.0,
+     "ligne": "7 zile (consecutive/neconsecutive) | 980 LEI | &mdash; | 665 LEI"
+    }
+   },
+   "note": "Saison 2025-2026, tarif unique (pas de haute/basse saison affichee). Enfant = colonne « Copil/Elev 3-12 ani » ; la colonne du milieu est « Student/Elev peste 12 ani » (jeune/etudiant), ecartee. ATTENT"
+  }
+ }
+}

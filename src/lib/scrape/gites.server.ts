@@ -5,6 +5,7 @@ import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer, type Occupancy } from "../stay/occupancy.ts";
 import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } from "./gitesGps.server.ts";
+import { communeGites } from "./gitesCommunes.ts";
 
 /**
  * Bornes du relevé, toutes explicites.
@@ -22,42 +23,111 @@ import { gitesWidgetUrl, lieuFromGitesHtml, retenirLieuGites, type LieuGites } f
  */
 const MAX_PAGES = 6;
 const BUDGET_PAGES_MS = 20_000;
-/** Même intervalle que `politesse.ts` entre deux appels à un même hôte. */
-const PAUSE_PAGE_MS = 2_000;
+/**
+ * Entre deux pages de recherche : le `Crawl-delay` que publie le robots.txt du
+ * site (5 s). C'était 2 s ; la page 2 étant le plus souvent refusée de toute
+ * façon (voir `blocage`), l'attendre davantage ne coûte rien.
+ */
+const PAUSE_PAGE_MS = 5_000;
 const MAX_FICHES = 24;
 const WORKERS = 4;
 const PAUSE_FICHE_MS = 250;
+/**
+ * Le temps des fiches ITEA. Cette phase n'avait aucune borne : quand ITEA ne
+ * répondait pas, elle prenait jusqu'à 70 s et faisait dépasser les 52 s de la
+ * recherche entière. Elle dispose d'au moins `RESERVE_FICHES_MS` après la
+ * pagination — de quoi lire les 24 fiches à quatre ouvriers —, sans jamais
+ * finir après `PLAFOND_GITES_MS` depuis le début du relevé.
+ */
+const RESERVE_FICHES_MS = 14_000;
+const PLAFOND_GITES_MS = 38_000;
+/** Délai d'un appel ITEA : une fiche qui ne répond pas ne retient pas les autres. */
+const DELAI_FICHE_MS = 8_000;
+/** Après tant d'échecs d'affilée, ITEA est tenu pour injoignable. */
+const ECHECS_DISJONCTEUR = 3;
+/**
+ * Au-delà, le moteur a cherché dans toute la France : un code `towns` manquant
+ * ou périmé. `drupalSettings.searchResults` plafonne d'ailleurs à 5 000.
+ */
+const SEUIL_NATIONAL = 5_000;
 
-function townsId(name: string): string | null {
-  const n = name
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase();
-  if (n.includes("deux alpes") || /(?:^|[^a-z0-9])2[\s-]?alpes(?:$|[^a-z0-9])/.test(n)) {
-    return "50301";
-  }
-  if (n.includes("karellis") || n.includes("montricher")) return "64400";
-  if (/angles-sur-correze/.test(n)) return null;
-  if (/\bles angles\b/.test(n) || n.includes("les-angles")) return "61540";
-  if (/vars-sur-roseix/.test(n)) return null;
-  if (/\bvars\b/.test(n) || n.includes("foret blanche")) return "38123";
-  return null;
-}
-
-function searchUrl(input: LiveSearchInput): string {
+export function searchUrl(input: LiveSearchInput, towns: string): string {
   const u = new URL("https://www.gites-de-france.com/fr/search");
-  const towns = townsId(input.stationName);
-  if (towns) {
-    u.searchParams.set("towns", towns);
-    u.searchParams.set("travelers", String(input.guests));
-  } else {
-    u.searchParams.set("destination", input.stationName);
-    u.searchParams.set("adults", String(input.guests));
-  }
+  // Toujours par code de commune : le texte `destination=` est ignoré par le
+  // moteur, qui rendait alors toute la France (voir gitesCommunes.ts).
+  u.searchParams.set("towns", towns);
+  u.searchParams.set("travelers", String(input.guests));
   u.searchParams.set("date-start", input.checkIn);
   u.searchParams.set("date-end", input.checkOut);
   u.searchParams.set("f[0]", "type:36172");
   return u.toString();
+}
+
+/**
+ * Une page refusée par le pare-feu du site, et comment on le sait.
+ *
+ * Cloudflare répond 403, avec le titre « Attention Required! » dans Chromium
+ * ou « Just a moment... » et l'en-tête `cf-mitigated` en HTTP simple. On
+ * attendait jusqu'ici 10 s des tuiles qui ne venaient pas, pour conclure à une
+ * « page sans tuile nouvelle ». On s'arrête désormais tout de suite, sans
+ * réessayer : un refus se respecte, il ne se contourne pas.
+ */
+export function blocage(r: { status: number | null; cfMitigated: string | null; titre: string | null }): string | null {
+  if (r.cfMitigated) return `bloqué (défi ${r.cfMitigated})`;
+  if (r.status === 403 || r.status === 429) return `bloqué (${r.status})`;
+  if (r.titre && /attention required|just a moment/i.test(r.titre)) return "bloqué (page de défi)";
+  // Une panne ou une page absente n'est pas un refus : on l'appelle par son nom.
+  if (r.status != null && r.status >= 400) return `HTTP ${r.status}`;
+  return null;
+}
+
+/**
+ * Le total publié par le moteur, du porteur le plus sûr au moins sûr : le
+ * titre de tri (« 94 Résultats »), puis le compte de la facette cochée, puis
+ * la liste `drupalSettings.searchResults` quand elle n'est pas plafonnée.
+ */
+export function totalPublie(c: {
+  titreTri: string | null;
+  facette: string | null;
+  resultats: number | null;
+}): number | null {
+  const titre = c.titreTri?.replace(/\s+/g, " ").match(/(\d[\d\s.]{0,8})\s*r[ée]sultats?\b/i);
+  if (titre) {
+    const n = Number(titre[1].replace(/[\s.]/g, ""));
+    if (Number.isFinite(n)) return n;
+  }
+  if (c.facette && /^\d{1,7}$/.test(c.facette.trim())) return Number(c.facette.trim());
+  if (c.resultats != null && c.resultats < SEUIL_NATIONAL) return c.resultats;
+  return null;
+}
+
+function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const r = Math.PI / 180;
+  const x = (b.lon - a.lon) * r * Math.cos(((a.lat + b.lat) / 2) * r);
+  const y = (b.lat - a.lat) * r;
+  return Math.hypot(x, y) * 6371;
+}
+
+/**
+ * Les tuiles de la plus proche à la plus éloignée de la station, celles dont
+ * la position n'est pas publiée à la fin, dans l'ordre du site.
+ *
+ * Le budget de fiches coupait dans l'ordre de la page ; quand il joue, c'est
+ * désormais ce qui est loin de la station qui reste sans fiche.
+ */
+export function trierParDistance<T extends { lat: number | null; lon: number | null }>(
+  tiles: readonly T[],
+  pin: { lat: number; lon: number },
+): T[] {
+  return tiles
+    .map((t, i) => ({ t, i, d: t.lat != null && t.lon != null ? distanceKm(pin, { lat: t.lat, lon: t.lon }) : null }))
+    .sort((a, b) => {
+      if (a.d == null && b.d == null) return a.i - b.i;
+      if (a.d == null) return 1;
+      if (b.d == null) return -1;
+      return a.d - b.d || a.i - b.i;
+    })
+    .map((x) => x.t);
 }
 
 function codeFromUrl(url: string): string | null {
@@ -90,12 +160,27 @@ export type Tile = {
    */
   capacite: string;
   photo: string | null;
+  /**
+   * La position publiée pour la tuile par `drupalSettings.searchResults`
+   * (appariée par `data-marker-id`), sans aucune requête de plus ; `null` si
+   * elle ne l'est pas.
+   */
+  lat: number | null;
+  lon: number | null;
 };
 
 type Moisson = {
   tiles: Tile[];
   /** Textes courts susceptibles de porter le compteur de résultats. */
   compteurs: string[];
+  /** Le titre de tri (« 94 Résultats »), le porteur le plus sûr du total. */
+  titreTri: string | null;
+  /** Le compte publié par la facette cochée. */
+  facette: string | null;
+  /** La longueur de `drupalSettings.searchResults`, plafonnée par le site à 5 000. */
+  resultats: number | null;
+  /** Si le moteur a localisé la recherche (`drupalSettings.searchPoint`). */
+  localisee: boolean | null;
   /** Lien « page suivante » publié par le moteur, s'il y en a un. */
   suivant: string | null;
 };
@@ -104,6 +189,28 @@ async function lirePage(page: Page): Promise<Moisson> {
   return page.evaluate(() => {
     const out: Tile[] = [];
     const seen = new Set<string>();
+    // `drupalSettings` porte la liste des résultats avec leur position, et le
+    // point autour duquel le moteur a cherché. Absent ou illisible : rien.
+    type Reglages = { searchResults?: unknown; searchPoint?: unknown };
+    const settings = ((): Reglages | null => {
+      try {
+        const raw = document.querySelector("script[data-drupal-selector='drupal-settings-json']")?.textContent;
+        return raw ? (JSON.parse(raw) as Reglages) : null;
+      } catch {
+        return null;
+      }
+    })();
+    const positions = new Map<string, { lat: number; lon: number }>();
+    const liste = Array.isArray(settings?.searchResults) ? (settings.searchResults as unknown[]) : null;
+    for (const r of liste ?? []) {
+      if (!r || typeof r !== "object") continue;
+      const { id, lat, lng } = r as { id?: unknown; lat?: unknown; lng?: unknown };
+      const la = Number(lat);
+      const lo = Number(lng);
+      if (id != null && Number.isFinite(la) && Number.isFinite(lo) && la !== 0 && lo !== 0) {
+        positions.set(String(id), { lat: la, lon: lo });
+      }
+    }
     const tiles = document.querySelectorAll(".js-search-tile");
     const nodes = tiles.length > 0 ? tiles : document.querySelectorAll(".g2f-accommodationTile");
     nodes.forEach((node) => {
@@ -149,22 +256,27 @@ async function lirePage(page: Page): Promise<Moisson> {
       else if (rawPhoto.startsWith("/") && !/placeholder|pictos|sprite|1x1/i.test(rawPhoto)) {
         photo = `https://www.gites-de-france.com${rawPhoto}`;
       }
+      const pos = positions.get(node.getAttribute("data-marker-id") ?? "");
       out.push({
         title,
         url: href.split("?")[0],
         typeLabel,
         capacite,
         photo: photo && /^https?:/.test(photo) ? photo : null,
+        lat: pos?.lat ?? null,
+        lon: pos?.lon ?? null,
       });
     });
 
     // Le compteur de résultats : on ramasse ici les textes courts des endroits
     // où un moteur Drupal l'écrit d'ordinaire, et c'est `nombreDeResultats`
-    // qui tranche, hors du navigateur, donc sous test.
+    // qui tranche, hors du navigateur, donc sous test. Plus de `h1, h2` : le
+    // titre d'une tuile y portait un nombre nu (« 177113 »), pris pour le total
+    // alors que la recherche en annonçait 94.
     const compteurs: string[] = [];
     document
       .querySelectorAll(
-        "[data-results-count], [data-total-results], [data-count], .js-search-count, [class*='esultsCount'], [class*='esults-count'], [class*='esultCount'], [class*='ountResult'], h1, h2",
+        "[data-results-count], [data-total-results], [data-count], .js-search-count, [class*='esultsCount'], [class*='esults-count'], [class*='esultCount'], [class*='ountResult']",
       )
       .forEach((n) => {
         for (const attr of ["data-results-count", "data-total-results", "data-count"]) {
@@ -186,7 +298,22 @@ async function lirePage(page: Page): Promise<Moisson> {
       )?.href ||
       null;
 
-    return { tiles: out, compteurs: compteurs.slice(0, 60), suivant };
+    const titreTri =
+      document.querySelector(".g2f-searchResult-sorting-title")?.textContent?.replace(/\s+/g, " ").trim() || null;
+    const facette =
+      document
+        .querySelector("a.is-active[data-drupal-facet-item-count], .is-active [data-drupal-facet-item-count]")
+        ?.getAttribute("data-drupal-facet-item-count") ?? null;
+
+    return {
+      tiles: out,
+      compteurs: compteurs.slice(0, 60),
+      titreTri,
+      facette,
+      resultats: liste ? liste.length : null,
+      localisee: settings ? Boolean(settings.searchPoint) : null,
+      suivant,
+    };
   });
 }
 
@@ -363,9 +490,16 @@ async function relever(
   checkIn: string,
   checkOut: string,
   guests: number,
+  fin: number = Date.now() + 3 * DELAI_FICHE_MS,
 ): Promise<Fiche | null> {
+  // Chaque appel a son délai, tiré du temps qui reste à la fiche : un fetch
+  // sans délai pouvait attendre ITEA indéfiniment, et tenir toute la
+  // recherche avec lui ; un délai par appel laissait trois appels lents
+  // déborder ensemble.
+  const signal = () => AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_FICHE_MS, fin - Date.now())));
   const html = await fetch(gitesWidgetUrl(code), {
     headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
+    signal: signal(),
   }).then((r) => r.text());
   const occupancy = occupancyFromGitesHtml(html);
   const lieu = lieuFromGitesHtml(html);
@@ -403,6 +537,7 @@ async function relever(
         Referer: gitesWidgetUrl(code),
       },
       body,
+      signal: signal(),
     });
     return res.text();
   };
@@ -477,12 +612,23 @@ export function listingDeFiche(
   };
 }
 
-export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<Listing[]> {
+export type OptionsGites = {
+  /** Instant absolu (`Date.now()`) après lequel aucune fiche ITEA n'est plus lancée. */
+  finFiches?: number;
+};
+
+export async function scrapeGites(page: Page, input: LiveSearchInput, opts: OptionsGites = {}): Promise<Listing[]> {
+  const commune = communeGites(input.stationId);
+  if (!commune) {
+    // Sans code de commune, le moteur cherche dans toute la France : on ne
+    // lance rien, et le rapport de source le dit.
+    throw new Error(`pas d'identifiant de commune Gîtes de France pour ${input.stationName}`);
+  }
   await allowsPath("https://www.gites-de-france.com", "/");
   const debut = Date.now();
   const vues = new Map<string, Tile>();
   let compteur: number | null = null;
-  let url = searchUrl(input);
+  let url = searchUrl(input, commune.towns);
   let pages = 0;
   let arret = "fin des pages";
   // Le moteur publie un nombre de résultats : on pagine jusqu'à lui. Une seule
@@ -495,21 +641,39 @@ export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<L
   // la boucle, en le disant.
   for (;;) {
     let lot: Moisson;
+    let refus: string | null = null;
     try {
       // La première page, c'est la source elle-même : si elle ne répond pas,
       // l'échec remonte et se journalise comme tel. Les suivantes ne valent
       // pas qu'on perde le relevé déjà fait : on s'arrête avec ce qu'on a.
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: pages === 0 ? 22_000 : 12_000 });
+      const rep = await page.goto(url, { waitUntil: "domcontentloaded", timeout: pages === 0 ? 22_000 : 12_000 });
+      refus = blocage({
+        status: rep?.status() ?? null,
+        cfMitigated: rep?.headers()["cf-mitigated"] ?? null,
+        titre: await page.title().catch(() => null),
+      });
+      if (refus) throw new Error(`Gîtes de France ${refus}`);
       await page
         .waitForSelector(".js-search-tile, .g2f-accommodationTile", { timeout: 10_000 })
         .catch(() => null);
       lot = await lirePage(page);
     } catch (err) {
       if (pages === 0) throw err;
-      arret = `page ${pages + 1} non chargée (${err instanceof Error ? err.message : String(err)})`;
+      arret = refus ?? `page ${pages + 1} non chargée (${err instanceof Error ? err.message : String(err)})`;
       break;
     }
     pages += 1;
+    if (pages === 1) {
+      compteur = totalPublie(lot);
+      // Un total national, c'est un code de commune faux ou périmé : les gîtes
+      // de la page seraient n'importe où en France. On le dit, sans fiche ITEA.
+      if (compteur != null && compteur >= SEUIL_NATIONAL) {
+        throw new Error(
+          `recherche Gîtes de France non localisée (towns=${commune.towns}, ${compteur} résultats) — code de commune à revérifier`,
+        );
+      }
+      if (lot.localisee === false) console.warn(`[gites] point de recherche absent (towns=${commune.towns})`);
+    }
     compteur ??= nombreDeResultats(lot.compteurs);
     let neuves = 0;
     for (const t of lot.tiles) {
@@ -545,33 +709,53 @@ export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<L
     `[gites] ${vues.size} tuile(s) en ${pages} page(s) · compteur publié : ${compteur ?? "aucun"} · arrêt : ${arret}`,
   );
 
-  const candidats = [...vues.values()].filter((t) => codeFromUrl(t.url));
+  // Le temps des fiches se compte depuis la fin de la pagination : compté
+  // depuis le début, il était déjà mangé par elle quand elle passait.
+  const finFiches =
+    opts.finFiches ?? Math.min(debut + PLAFOND_GITES_MS, Date.now() + RESERVE_FICHES_MS);
+  const candidats = trierParDistance(
+    [...vues.values()].filter((t) => codeFromUrl(t.url)),
+    { lat: input.lat, lon: input.lon },
+  );
   const need = candidats.slice(0, MAX_FICHES);
   if (candidats.length > need.length) {
     console.info(
-      `[gites] ${candidats.length - need.length} tuile(s) non interrogées : budget ITEA de ${MAX_FICHES} fiches`,
+      `[gites] ${candidats.length - need.length} tuile(s) non interrogées : budget ITEA de ${MAX_FICHES} fiches (les plus éloignées)`,
     );
   }
   const out: Listing[] = [];
   let horsPerimetre = 0;
   let manquees = 0;
+  let echecsDeSuite = 0;
+  let nonInterrogees = 0;
+  let coupure: string | null = null;
   let cursor = 0;
   await Promise.all(
     Array.from({ length: Math.min(WORKERS, need.length) }, async () => {
       for (;;) {
+        if (coupure) return;
+        if (Date.now() >= finFiches) {
+          coupure = "échéance";
+          return;
+        }
         const i = cursor++;
         if (i >= need.length) return;
         const tile = need[i];
         const code = codeFromUrl(tile.url);
         if (!code) continue;
         try {
-          const fiche = await relever(code, input.checkIn, input.checkOut, input.guests);
+          const fiche = await relever(code, input.checkIn, input.checkOut, input.guests, finFiches);
+          echecsDeSuite = 0;
           if (fiche == null) horsPerimetre += 1;
           else out.push(listingDeFiche(tile, fiche, code, input));
         } catch {
           // Une fiche rate : on ne sait rien de son prix, donc on ne rend pas
           // d'annonce — mais on la compte, pour que le silence se voie.
           manquees += 1;
+          echecsDeSuite += 1;
+          // Plusieurs échecs d'affilée : ITEA ne répond plus. Inutile de lui
+          // envoyer le reste de la file, ni de retenir la recherche.
+          if (echecsDeSuite >= ECHECS_DISJONCTEUR) coupure ??= "ITEA injoignable";
         }
         // Un souffle entre deux fiches du même ouvrier : le widget ITEA est un
         // hôte tiers, et rien n'oblige à l'appeler aussi vite qu'on le peut.
@@ -579,8 +763,10 @@ export async function scrapeGites(page: Page, input: LiveSearchInput): Promise<L
       }
     }),
   );
-  if (horsPerimetre || manquees) {
-    console.info(`[gites] ${horsPerimetre} hors périmètre · ${manquees} fiche(s) illisibles`);
+  if (coupure) nonInterrogees = Math.max(0, need.length - cursor);
+  if (horsPerimetre || manquees || nonInterrogees) {
+    const coupe = coupure ? ` · ${nonInterrogees} non interrogée(s) : ${coupure}` : "";
+    console.info(`[gites] ${horsPerimetre} hors périmètre · ${manquees} fiche(s) illisibles${coupe}`);
   }
   // `total: 0` veut dire « prix non publié », pas « gratuit » : ces annonces
   // passent après celles qui portent un prix, jamais devant.

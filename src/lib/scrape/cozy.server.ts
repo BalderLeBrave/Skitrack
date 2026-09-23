@@ -257,16 +257,30 @@ type CozyFilters = {
 
 const PROVIDERS = ["airbnb", "abritel", "booking"] as const;
 export type CozyProvider = (typeof PROVIDERS)[number];
-const PAGE_SIZE = 40;
 /**
- * Deux bornes de sécurité, explicites, et ni l'une ni l'autre n'est une lecture
- * de la source : c'est `processedResultCount` qui commande l'arrêt normal.
- * Dix pages de quarante fiches par fournisseur couvrent largement une station.
+ * Deux cents fiches par requête : le serveur les accepte (mesuré le
+ * 23 septembre 2026, 100 à 200 ms par page). Avec des pages de quarante et un
+ * plafond de dix pages, on s'arrêtait à 400 fiches par fournisseur, publicités
+ * comprises : à Avoriaz, 322 annonces Abritel sur 1 504, et le studio que le
+ * propriétaire cherchait était 461e.
  */
-const MAX_PAGES = 10;
-const BUDGET_MS = 12_000;
+const PAGE_SIZE = 200;
+/**
+ * Garde-fou, pas une lecture de la source : 3 000 fiches par fournisseur. Le
+ * cas le plus lourd mesuré (Abritel à Avoriaz, 0 chambre) en demande 1 692,
+ * soit neuf pages. L'arrêt normal est le compteur `filteredCount`.
+ */
+const MAX_PAGES = 15;
 /** Une requête à la fois par domaine, et cette pause entre deux. */
-const PAUSE_MS = 280;
+const PAUSE_MS = 300;
+/** La recherche Cozy se remplit en arrière-plan : on l'attend au plus ce temps. */
+const ATTENTE_COMPLETE_MS = 10_000;
+/** Taille de la petite page qui sert à sonder l'avancement de la recherche. */
+const SONDE = 10;
+/** Échéance par défaut d'un aller, quand l'appelant n'en donne pas. */
+const ECHEANCE_DEFAUT_MS = 40_000;
+/** Le plus long qu'une seule requête peut durer, même loin de l'échéance. */
+const DELAI_REQUETE_MS = 15_000;
 
 async function pullPage(
   page: Page,
@@ -274,12 +288,19 @@ async function pullPage(
   filters: Omit<CozyFilters, "providerCodes">,
   codes: string[],
   offset: number,
+  count: number,
+  delaiMs: number,
 ): Promise<unknown> {
+  // Le délai s'applique dans la page, à la requête elle-même : une course
+  // côté Node la laisserait courir chez Cozy, et la suivante partirait avant
+  // la fin de la précédente. Sans délai, une requête qui pendait retenait tout
+  // l'aller, et avec lui le relevé Airbnb direct qui l'attend.
   return page.evaluate(
-    async ({ sid, base, providerCodes, from, count }) =>
+    async ({ sid, base, providerCodes, from, count, delai }) =>
       fetch("/api/getResultList", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        signal: AbortSignal.timeout(delai),
         body: JSON.stringify({
           searchId: sid,
           sorting: "ranking",
@@ -293,33 +314,217 @@ async function pullPage(
           prefixAccommodationIds: [],
         }),
       }).then((r) => r.json()),
-    { sid: searchId, base: filters, providerCodes: codes, from: offset, count: PAGE_SIZE },
+    { sid: searchId, base: filters, providerCodes: codes, from: offset, count, delai: delaiMs },
   );
 }
 
 /**
- * Le compteur de résultats publié par la charge, ou `null` s'il ne l'est pas.
+ * Le nombre de fiches que la source dit avoir pour **ce** filtre, ou `null`.
  *
- * Il n'est remplacé par aucune valeur inventée : sans lui, la pagination
- * s'arrête sur la première page incomplète, ce qui est observable.
+ * On lisait `processedResultCount`, que le commentaire donnait pour l'arrêt
+ * normal. C'est en réalité le total des offres brutes traitées, tous
+ * fournisseurs confondus (4 360 à Avoriaz pour 1 504 Abritel), et il grimpe
+ * pendant que la recherche se remplit : il n'arrêtait jamais rien. Le compteur
+ * du filtre demandé est `filteredCount`.
  */
-function processedCount(payload: unknown): number | null {
+function filteredCountOf(payload: unknown): number | null {
   if (!payload || typeof payload !== "object") return null;
-  const n = (payload as { processedResultCount?: unknown }).processedResultCount;
+  const n = (payload as { filteredCount?: unknown }).filteredCount;
   return typeof n === "number" && Number.isFinite(n) && n >= 0 ? Math.trunc(n) : null;
 }
 
+function allProcessedOf(payload: unknown): boolean {
+  return Boolean(payload && typeof payload === "object" && (payload as { allProcessed?: unknown }).allProcessed === true);
+}
+
 /**
- * Un aller CozyCozy. Abritel et Booking sont demandés à l’API, sans défiler, et
- * page après page jusqu’au compteur qu’elle publie — une requête à la fois.
+ * Le compteur du filtre, seulement quand la recherche est complète : avant,
+ * il ment (0 puis 33 pour Airbnb dans les quatre premières secondes). Un
+ * compteur relevé trop tôt passerait, dans le rapport, pour ce que la source
+ * annonce.
+ */
+function compteurFiable(payload: unknown): number | null {
+  return allProcessedOf(payload) ? filteredCountOf(payload) : null;
+}
+
+/**
+ * Les identifiants de fiches d'une page, tels que la source les compte.
+ *
+ * Une page mêle trois sortes d'entrées : des fiches (`result`), des publicités
+ * (`sponsoredResult`, sans `accommodationId`) et des bandeaux (`resultStrip`)
+ * dont les `groups` portent des fiches — parfois absentes du premier niveau et
+ * pourtant comptées dans `filteredCount`. L'union des fiches et des groupes
+ * égale exactement le compteur, sur les seize paginations complètes relevées.
+ */
+export function idsFiches(entries: readonly unknown[]): string[] {
+  const out: string[] = [];
+  const push = (v: unknown) => {
+    if (v && typeof v === "object") {
+      const id = idText((v as { accommodationId?: unknown }).accommodationId);
+      if (id) out.push(id);
+    }
+  };
+  for (const e of entries) {
+    push(e);
+    const groups = e && typeof e === "object" ? (e as { groups?: unknown }).groups : null;
+    if (Array.isArray(groups)) for (const g of groups) push(g);
+  }
+  return out;
+}
+
+export type Horloge = { maintenant: () => number; attendre: (ms: number) => Promise<void> };
+const HORLOGE: Horloge = { maintenant: () => Date.now(), attendre: sleep };
+
+/** Une page demandée à la source, à partir d'un rang et pour un nombre de fiches. */
+export type Tirage = (offset: number, count: number) => Promise<unknown>;
+
+/**
+ * Attend que la recherche Cozy ait fini de se remplir (`allProcessed`), en
+ * relisant une petite page au rythme de la politesse.
+ *
+ * Avant cela, les compteurs mentent par défaut : celui d'Airbnb vaut 0 jusqu'à
+ * environ 4 s, puis 33. `allProcessed` passe à vrai entre 5 et 9 s après le
+ * lancement, et il est commun à toute la recherche : une seule attente suffit
+ * pour tous les fournisseurs. Rend vrai si la recherche est complète, faux si
+ * l'attente s'est épuisée — la pagination s'arrêtera alors sur la page
+ * incomplète, comme avant.
+ */
+export async function attendreRecherche(
+  tirer: Tirage,
+  echeance: number,
+  horloge: Horloge = HORLOGE,
+): Promise<boolean> {
+  const fin = Math.min(horloge.maintenant() + ATTENTE_COMPLETE_MS, echeance);
+  for (;;) {
+    await horloge.attendre(PAUSE_MS);
+    if (allProcessedOf(await tirer(0, SONDE))) return true;
+    if (horloge.maintenant() >= fin) return false;
+  }
+}
+
+export type Pagination = {
+  pages: unknown[];
+  /** Fiches distinctes relevées. */
+  releves: number;
+  /**
+   * Le `filteredCount` de la dernière page lue sur une recherche complète, ou
+   * `null` s'il n'est pas publié ou pas encore fiable.
+   */
+  annonces: number | null;
+  /** Pourquoi la pagination s'est arrêtée : écrit dans le journal. */
+  arret: string;
+};
+
+/**
+ * Toutes les pages d'un filtre, une requête à la fois, jusqu'au compteur que
+ * la source publie.
+ *
+ * Le rang de la page suivante avance du nombre d'entrées reçues, publicités
+ * comprises : c'est ainsi que la source numérote. Le compteur est relu à chaque
+ * page et ne sert d'arrêt qu'une fois la recherche complète ; avant, seule une
+ * page vide ou incomplète arrête. L'échéance rend ce qui est lu, sans erreur.
+ */
+export async function paginerFournisseur(
+  tirer: Tirage,
+  echeance: number,
+  horloge: Horloge = HORLOGE,
+): Promise<Pagination> {
+  const pages: unknown[] = [];
+  const ids = new Set<string>();
+  let offset = 0;
+  let annonces: number | null = null;
+  let arret = `garde-fou ${MAX_PAGES} pages`;
+  for (let n = 0; n < MAX_PAGES; n += 1) {
+    if (horloge.maintenant() >= echeance) {
+      arret = "échéance";
+      break;
+    }
+    await horloge.attendre(PAUSE_MS);
+    const page = await tirer(offset, PAGE_SIZE);
+    const entries = entriesOf(page);
+    // Relu à chaque page, même vide : une recherche complète sans rien pour ce
+    // fournisseur publie 0, et c'est ce 0-là qu'on rapporte, pas « inconnu ».
+    annonces = compteurFiable(page) ?? annonces;
+    if (entries.length === 0) {
+      arret = "page vide";
+      break;
+    }
+    pages.push(page);
+    offset += entries.length;
+    const avant = ids.size;
+    for (const id of idsFiches(entries)) ids.add(id);
+    if (annonces != null && ids.size >= annonces) {
+      arret = "compteur atteint";
+      break;
+    }
+    if (entries.length < PAGE_SIZE) {
+      arret = "page incomplète";
+      break;
+    }
+    if (ids.size === avant) {
+      arret = "page sans fiche nouvelle";
+      break;
+    }
+  }
+  return { pages, releves: ids.size, annonces, arret };
+}
+
+/**
+ * Le nombre d'annonces que Cozy dit avoir pour ce fournisseur, relu sur la
+ * dernière page qu'on lui a demandée ; `null` s'il n'est pas publié — jamais un
+ * zéro de remplacement.
+ */
+export function cozyAnnonces(payloads: readonly unknown[], provider: CozyProvider): number | null {
+  for (let i = payloads.length - 1; i >= 0; i -= 1) {
+    const p = payloads[i];
+    if (p && typeof p === "object" && (p as { fournisseur?: unknown }).fournisseur === provider) {
+      return compteurFiable(p);
+    }
+  }
+  return null;
+}
+
+/** Un aller Cozy, avec, par fournisseur, ce qu'il annonce et pourquoi on s'est arrêté. */
+export type CollecteCozy = {
+  payloads: unknown[];
+  /** `filteredCount` d'une recherche complète, `0` compris ; `null` si inconnu. */
+  annonces: Partial<Record<CozyProvider, number | null>>;
+  /**
+   * Le motif d'arrêt de chaque fournisseur demandé (« compteur atteint »,
+   * « page vide », « échéance »…). Absent : le fournisseur n'a pas été
+   * interrogé du tout — l'échéance est tombée avant son tour.
+   */
+  arrets: Partial<Record<CozyProvider, string>>;
+};
+
+/**
+ * Un aller CozyCozy : une recherche, puis, fournisseur par fournisseur, toutes
+ * ses pages jusqu'au compteur publié — une requête à la fois.
+ *
+ * Chaque page rendue porte `fournisseur`, le filtre qu'on a demandé (ajouté
+ * ici, ce n'est pas une donnée de la source) : `cozyAnnonces` s'en sert.
+ * `echeance` est un instant absolu (`Date.now()`) ; à l'échéance, l'aller
+ * rend ce qu'il a déjà lu.
  */
 export async function collectCozyPayloads(
   page: Page,
   input: LiveSearchInput,
   only?: readonly CozyProvider[],
+  echeance: number = Date.now() + ECHEANCE_DEFAUT_MS,
 ): Promise<unknown[]> {
+  return (await collecterCozy(page, input, only, echeance)).payloads;
+}
+
+export async function collecterCozy(
+  page: Page,
+  input: LiveSearchInput,
+  only?: readonly CozyProvider[],
+  echeance: number = Date.now() + ECHEANCE_DEFAUT_MS,
+): Promise<CollecteCozy> {
   await allowsPath("https://www.cozycozy.com", "/");
   const payloads: unknown[] = [];
+  const annonces: CollecteCozy["annonces"] = {};
+  const arrets: CollecteCozy["arrets"] = {};
   let searchId: string | null = null;
   const onReq = (req: { url: () => string; postData: () => string | null }) => {
     if (!/\/api\/launch/.test(req.url())) return;
@@ -332,13 +537,15 @@ export async function collectCozyPayloads(
   };
   page.on("request", onReq);
   try {
-    await page.goto(cozySearchUrl(input), { waitUntil: "domcontentloaded", timeout: 20_000 });
-    const untilId = Date.now() + 10_000;
+    const reste = Math.max(1_000, echeance - Date.now());
+    await page.goto(cozySearchUrl(input), { waitUntil: "domcontentloaded", timeout: Math.min(20_000, reste) });
+    const untilId = Math.min(Date.now() + 10_000, echeance);
     while (!searchId && Date.now() < untilId) await sleep(40);
     if (!searchId) {
       console.warn("[cozy] pas de searchId");
-      return payloads;
+      return { payloads, annonces, arrets };
     }
+    const sid: string = searchId;
     const base: Omit<CozyFilters, "providerCodes"> = {
       noBounds: true,
       price: [-0.5, 9007199254740991],
@@ -357,51 +564,32 @@ export async function collectCozyPayloads(
       breakfast: false,
       minCancellationCategory: 0,
     };
-    const readyUntil = Date.now() + 10_000;
     const codes = only && only.length > 0 ? only : PROVIDERS;
+    const tirage =
+      (code: CozyProvider): Tirage =>
+      (offset, count) =>
+        pullPage(page, sid, base, [code], offset, count, Math.max(1_000, Math.min(DELAI_REQUETE_MS, echeance - Date.now())));
+    // Une seule attente pour toute la recherche : `allProcessed` est commun
+    // aux fournisseurs. Sans elle, le premier fournisseur lisait des
+    // compteurs encore vides.
+    const complete = await attendreRecherche(tirage(codes[0]), echeance);
+    if (!complete) console.warn("[cozy] recherche encore incomplète — arrêt sur la page incomplète");
     for (const code of codes) {
-      // La recherche Cozy se remplit en arrière-plan : la première page peut
-      // revenir vide. On la redemande jusqu'à l'échéance — une requête à la
-      // fois, là où les deux fournisseurs partaient ensemble sur le même
-      // domaine.
-      let first: unknown = null;
-      for (;;) {
-        await sleep(PAUSE_MS);
-        first = await pullPage(page, searchId, base, [code], 0);
-        if (entriesOf(first).length > 0) break;
-        if (Date.now() >= readyUntil) break;
+      if (Date.now() >= echeance) break;
+      const res = await paginerFournisseur(tirage(code), echeance);
+      for (const p of res.pages) {
+        payloads.push(p && typeof p === "object" ? { ...(p as object), fournisseur: code } : p);
       }
-      let got = entriesOf(first).length;
-      if (got === 0) {
-        console.warn(`[cozy] ${code} : aucune fiche`);
-        continue;
-      }
-      payloads.push(first);
-      // On demandait une page de quarante fiches, une seule fois, et on
-      // laissait le reste à la source. Elle publie pourtant ce qu'elle a
-      // traité : on va jusqu'à ce compteur, et à défaut jusqu'à la première
-      // page incomplète, en tenant le même rythme entre deux appels.
-      const announced = processedCount(first);
-      const until = Date.now() + BUDGET_MS;
-      for (let n = 1; n < MAX_PAGES && got >= PAGE_SIZE; n += 1) {
-        if (announced != null && got >= announced) break;
-        if (Date.now() >= until) break;
-        await sleep(PAUSE_MS);
-        const next = await pullPage(page, searchId, base, [code], got);
-        const fresh = entriesOf(next).length;
-        if (fresh === 0) break;
-        payloads.push(next);
-        got += fresh;
-        if (fresh < PAGE_SIZE) break;
-      }
-      const cible = announced != null ? ` sur ${announced} annoncées` : " (compteur non publié)";
-      console.info(`[cozy] ${code} ${got} fiches${cible}`);
+      annonces[code] = res.annonces;
+      arrets[code] = res.arret;
+      const cible = res.annonces != null ? ` sur ${res.annonces} annoncées` : " (compteur non publié)";
+      console.info(`[cozy] ${code} ${res.releves} fiches${cible} — ${res.arret}`);
     }
     console.info(`[cozy] ${payloads.length} paquets · ${entryCount(payloads)} fiches`);
   } finally {
     page.off("request", onReq);
   }
-  return payloads;
+  return { payloads, annonces, arrets };
 }
 
 /** Un décompte publié, ou `null`. Jamais un zéro de remplacement. */

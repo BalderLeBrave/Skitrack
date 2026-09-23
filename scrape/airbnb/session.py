@@ -15,6 +15,11 @@ from typing import Any, Callable
 
 TTL_S = 180.0
 DISK_TTL_S = 30 * 60.0
+# Le hash de l'opération StaysSearch change au déploiement d'Airbnb, pas
+# toutes les demi-heures. Le relire coûtait deux pages d'accueil et un paquet
+# JavaScript à chaque relevé ; un hash périmé fait échouer la recherche, et
+# `invalidate()` (appelé sur exception) le jette alors.
+HASH_DISK_TTL_S = 12 * 60 * 60.0
 COOKIE_TTL_S = 12 * 60 * 60.0
 SESSION_PATH = Path(os.environ.get("SKITRACK_AIRBNB_SESSION") or "/tmp/skitrack-airbnb-session.json")
 
@@ -24,6 +29,9 @@ _hash = ""
 _hash_at = 0.0
 _http: Any = None
 _installed = False
+# L'échéance du relevé en cours (`time.time()`), posée par `stays.run_search` :
+# le limiteur n'attend jamais au-delà.
+echeance: float | None = None
 
 
 def _read_disk() -> dict:
@@ -68,7 +76,7 @@ def cached(slot: str, fetch: Callable[[], str]) -> str:
     disk = _read_disk()
     stored = disk.get("hash")
     stored_at = disk.get("hash_at")
-    if isinstance(stored, str) and stored and isinstance(stored_at, (int, float)) and wall - stored_at < DISK_TTL_S:
+    if isinstance(stored, str) and stored and isinstance(stored_at, (int, float)) and wall - stored_at < HASH_DISK_TTL_S:
         _hash, _hash_at = stored, now
         return _hash
     _hash = fetch()
@@ -185,14 +193,31 @@ def _sans_connection(headers: Any) -> Any:
     return {k: v for k, v in headers.items() if str(k).lower() != "connection"}
 
 
+def rythme_de(url: Any) -> str:
+    """Le compteur de taux d'une requête : Airbnb lui-même, ou son CDN statique.
+
+    Toutes les requêtes comptaient pour Airbnb, y compris les paquets
+    JavaScript de muscache.com lus pour trouver le hash : 16 s de démarrage à
+    froid au pas de 2 s, et le plafond de 18 appels par minute atteint avant la
+    dixième page de résultats.
+    """
+    from urllib.parse import urlparse
+
+    host = (urlparse(str(url)).hostname or "").lower()
+    return "airbnb" if host == "airbnb.com" or ".airbnb." in f".{host}" else "airbnb-cdn"
+
+
 def _wrap(method: str):
     def fn(*args: Any, **kwargs: Any) -> Any:
-        from taux import pace
-        from throttle import RateLimited
+        from taux import SLEEP_CAP_S, pace
+        from throttle import MARGE_REQUETE_S, RythmeLocal
 
-        wait = pace("airbnb")
+        cap = SLEEP_CAP_S
+        if echeance is not None:
+            cap = max(0.0, min(SLEEP_CAP_S, echeance - time.time() - MARGE_REQUETE_S))
+        wait = pace(rythme_de(args[0] if args else kwargs.get("url")), cap)
         if wait > 0:
-            raise RateLimited(429, wait)
+            raise RythmeLocal(429, wait)
         proxies = kwargs.get("proxies") if isinstance(kwargs.get("proxies"), dict) else {}
         proxy = ""
         if isinstance(proxies, dict):

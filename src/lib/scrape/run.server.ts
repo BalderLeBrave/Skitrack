@@ -1,4 +1,3 @@
-import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
 import { RELEVE_2A } from "@/lib/listings";
 import { attachAccess } from "@/lib/access";
@@ -8,10 +7,11 @@ import { enrichirListing } from "@/lib/stay/enrichir";
 import { withBrowser } from "./browser.server";
 import { scrapeGites } from "./gites.server";
 import { scrapeAirbnbDetailed } from "./airbnb.server";
-import { scrapeBookingPlaywright, scrapeBookingPython } from "./booking.server";
+import { scrapeBookingPlaywright, scrapeBookingPythonDetaille } from "./booking.server";
 import { fillBookingGps } from "./bookingGps.server";
 import { fillGitesGps } from "./gitesGps.server";
-import { collectCozyPayloads, cozyListings } from "./cozy.server";
+import { collecterCozy, cozyListings, type CollecteCozy } from "./cozy.server";
+import { fusionner } from "./fusion";
 import { allowsPath } from "./robots";
 import { chercherCentrale } from "./centrales/chercher.server";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
@@ -35,9 +35,21 @@ function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
 
 const AIRBNB_SOURCES = ["Airbnb"] as const;
 const GITES_SOURCES = ["Gîtes de France"] as const;
-const COZY_SOURCES = ["Airbnb", "Abritel", "Booking"] as const;
+/**
+ * La part « cozy » rapporte Abritel et Booking, et elle seule. Elle rapportait
+ * aussi Airbnb, comme la part « airbnb » que l'écran lance en même temps : la
+ * dernière arrivée remplaçait l'autre dans `mergeLive`, même vide.
+ */
+const COZY_SOURCES = ["Abritel", "Booking"] as const;
 const BROWSER_SOURCES = ["Airbnb", "Gîtes de France", "Abritel", "Booking"] as const;
 const CENTRALE_SOURCES = ["Centrale"] as const;
+
+/**
+ * Le temps qu'une part se donne pour relever, sous les 52 s de `SEARCH_PART_MS`
+ * (src/lib/searchStay.ts) : le reste sert à dater, compléter et rendre. Une
+ * part coupée par ce délai-là perdait tout, y compris ce qui était déjà lu.
+ */
+const ECHEANCE_PART_MS = 40_000;
 
 function locate(input: LiveSearchInput, listings: Listing[]): Listing[] {
   const withOcc = listings.map((l) => {
@@ -68,10 +80,13 @@ function pushReport(
   source: SourceReport["source"],
   rows: Listing[],
   ms: number,
+  extra: Pick<SourceReport, "annoncees" | "note"> = {},
 ) {
-  reports.push({ source, ok: true, count: rows.length, ms });
+  reports.push({ source, ok: true, count: rows.length, ms, ...extra });
   listings.push(...rows);
-  console.info(`[scrape] ${source} ${rows.length} en ${ms}ms`);
+  const sur = extra.annoncees != null ? ` (la source en annonce ${extra.annoncees})` : "";
+  const note = extra.note ? ` — ${extra.note}` : "";
+  console.info(`[scrape] ${source} ${rows.length} en ${ms}ms${sur}${note}`);
 }
 
 async function recordInto(
@@ -88,6 +103,16 @@ async function recordInto(
     const error = err instanceof Error ? err.message : String(err);
     reports.push({ source, ok: false, count: 0, ms: Date.now() - t0, error });
     console.warn(`[scrape] ${source} échec: ${error}`);
+  }
+}
+
+function failAll(reports: SourceReport[], sources: readonly SourceReport["source"][], err: unknown) {
+  const error = err instanceof Error ? err.message : String(err);
+  for (const source of sources) {
+    if (!reports.some((r) => r.source === source)) {
+      reports.push({ source, ok: false, count: 0, ms: 0, error });
+      console.warn(`[scrape] ${source} échec: ${error}`);
+    }
   }
 }
 
@@ -112,52 +137,162 @@ async function fillGitesIfNeeded(listings: Listing[]) {
   }
 }
 
-async function fillCozy(page: Page, input: LiveSearchInput, reports: SourceReport[], listings: Listing[]) {
+/**
+ * Une recherche CozyCozy par demande, partagée entre les parts.
+ *
+ * L'écran lance ses parts en même temps, et « airbnb » comme « cozy » ouvraient
+ * chacune leur propre recherche Cozy — deux recherches simultanées vers une
+ * API que son robots.txt réserve, pour les mêmes résultats. Elles attendent
+ * désormais le même aller, qui relève les trois fournisseurs.
+ */
+const COZY_PARTAGE_MS = 90_000;
+const cozyPartage = new Map<string, { at: number; collecte: Promise<CollecteCozy> }>();
+
+function collecteCozy(input: LiveSearchInput, echeance: number): Promise<CollecteCozy> {
+  const key = [input.stationId, input.checkIn, input.checkOut, input.guests, input.bedrooms].join("|");
+  const hit = cozyPartage.get(key);
+  if (hit && Date.now() - hit.at < COZY_PARTAGE_MS) return hit.collecte;
+  const collecte = withBrowser(async (open) => collecterCozy(await open(), input, undefined, echeance));
+  cozyPartage.set(key, { at: Date.now(), collecte });
+  collecte.catch(() => {
+    if (cozyPartage.get(key)?.collecte === collecte) cozyPartage.delete(key);
+  });
+  for (const [k, v] of cozyPartage) if (Date.now() - v.at >= COZY_PARTAGE_MS) cozyPartage.delete(k);
+  return collecte;
+}
+
+/**
+ * Une promesse bornée par un instant : au-delà, elle échoue avec `quoi`.
+ *
+ * L'aller Cozy partagé borne déjà chacune de ses requêtes ; cette borne-ci
+ * protège l'appelant d'un aller lancé par une autre part, avec une autre
+ * échéance, ou d'un navigateur qui ne répond plus. Le relevé direct d'Airbnb,
+ * lu en même temps, ne doit jamais attendre Cozy au-delà de sa propre part.
+ */
+function avant<T>(p: Promise<T>, instant: number, quoi: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const delai = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${quoi} : délai dépassé`)), Math.max(0, instant - Date.now()));
+  });
+  return Promise.race([p, delai]).finally(() => clearTimeout(timer));
+}
+
+/** Ce qu'une part attend de Cozy au plus : sa propre échéance, et un souffle. */
+const MARGE_COZY_MS = 3_000;
+
+function raisonDe(r: PromiseSettledResult<unknown>): string | null {
+  if (r.status === "fulfilled") return null;
+  return r.reason instanceof Error ? r.reason.message : String(r.reason);
+}
+
+function notes(...parts: (string | null | undefined)[]): string | undefined {
+  const out = parts.filter((p): p is string => Boolean(p));
+  return out.length ? out.join(" · ") : undefined;
+}
+
+/**
+ * Airbnb : CozyCozy et le relevé direct, en même temps, puis fusionnés.
+ *
+ * Le direct ne partait que si Cozy ne rendait rien, et Cozy ne connaît qu'une
+ * trentaine d'Airbnb par station quand Airbnb en publie plusieurs centaines :
+ * l'essentiel n'était jamais demandé. Les deux relevés touchent deux domaines
+ * différents, la politesse de chacun est tenue par son collecteur.
+ */
+async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], listings: Listing[]) {
   const t0 = Date.now();
-  const payloads = await collectCozyPayloads(page, input);
-  const collectMs = Date.now() - t0;
-  const fromCozyAirbnb = cozyListings(payloads, input, "Airbnb");
-  const abritel = cozyListings(payloads, input, "Abritel");
-  const fromCozy = cozyListings(payloads, input, "Booking");
-  let airbnb = fromCozyAirbnb;
-  if (airbnb.length === 0) {
-    const via = await scrapeAirbnbDetailed(input);
-    airbnb = via.listings;
+  const echeance = t0 + ECHEANCE_PART_MS;
+  const [cozy, direct] = await Promise.allSettled([
+    avant(collecteCozy(input, echeance), echeance + MARGE_COZY_MS, "CozyCozy"),
+    scrapeAirbnbDetailed(input, { echeance }),
+  ]);
+  const viaCozy = cozy.status === "fulfilled" ? cozyListings(cozy.value.payloads, input, "Airbnb") : [];
+  const viaDirect = direct.status === "fulfilled" ? direct.value.listings : [];
+  const raisonDirect = direct.status === "fulfilled" ? direct.value.raison : raisonDe(direct);
+  // Aucun des deux n'a rien rendu, et au moins un a échoué : c'est un échec,
+  // pas un relevé vide.
+  if (viaCozy.length === 0 && viaDirect.length === 0 && (cozy.status === "rejected" || raisonDirect)) {
+    failAll(
+      reports,
+      AIRBNB_SOURCES,
+      notes(raisonDe(cozy) && `Cozy : ${raisonDe(cozy)}`, raisonDirect && `direct : ${raisonDirect}`),
+    );
+    return;
   }
-  pushReport(reports, listings, "Airbnb", airbnb, airbnb === fromCozyAirbnb ? collectMs : Date.now() - t0);
-  pushReport(reports, listings, "Abritel", abritel, collectMs);
-  let booking = fromCozy;
-  if (booking.length === 0) booking = await scrapeBookingPython(input);
-  if (booking.length === 0) booking = await scrapeBookingPlaywright(page, input);
-  if (booking.some((l) => l.lat == null || l.lon == null)) {
-    await fillBookingGps(page, booking);
-  }
-  pushReport(reports, listings, "Booking", booking, booking === fromCozy ? collectMs : Date.now() - t0);
-  const gpsAb = airbnb.filter((l) => l.lat != null && l.lon != null).length;
-  const gpsA = abritel.filter((l) => l.lat != null && l.lon != null).length;
-  const gpsB = booking.filter((l) => l.lat != null && l.lon != null).length;
-  console.info(`[cozy] GPS Airbnb ${gpsAb}/${airbnb.length} · Abritel ${gpsA}/${abritel.length} · Booking ${gpsB}/${booking.length}`);
+  const f = fusionner(viaCozy, viaDirect);
+  const publieDirect = direct.status === "fulfilled" ? direct.value.annoncees : null;
+  pushReport(reports, listings, "Airbnb", f.listings, Date.now() - t0, {
+    // Un compteur ne se rapporte que s'il couvre ce qu'on a compté : celui de
+    // Cozy quand Cozy est seul. Celui d'Airbnb ne vaut que pour l'emprise
+    // proche, alors que le relevé la déborde : il va dans la note.
+    annoncees: viaDirect.length === 0 && cozy.status === "fulfilled" ? (cozy.value.annonces.airbnb ?? null) : null,
+    note: notes(
+      `Cozy ${viaCozy.length}, direct ${viaDirect.length}, communes ${f.communes}`,
+      publieDirect != null ? `Airbnb en publie ${publieDirect} à 6 km de la station` : null,
+      raisonDe(cozy) && `Cozy : ${raisonDe(cozy)}`,
+      raisonDirect && `direct : ${raisonDirect}`,
+    ),
+  });
+}
+
+/**
+ * Abritel et Booking, tels que CozyCozy les rend.
+ *
+ * Booking reste servi par Cozy, désormais paginé jusqu'à son compteur ; le
+ * relevé direct ne part que si Cozy n'en rend aucun, comme avant. Le relever
+ * à chaque recherche apporterait des biens que Cozy n'a pas (148 aux 2 Alpes,
+ * mesuré le 23 septembre 2026), mais chaque page Booking commence par un défi
+ * anti-robot : en faire un passage systématique est une décision du
+ * propriétaire, pas une correction.
+ */
+async function releverCozy(input: LiveSearchInput, reports: SourceReport[], listings: Listing[]) {
+  const t0 = Date.now();
+  const echeance = t0 + ECHEANCE_PART_MS;
+  const { payloads, annonces, arrets } = await avant(
+    collecteCozy(input, echeance),
+    echeance + MARGE_COZY_MS,
+    "CozyCozy",
+  );
+  const coupe = (p: "abritel" | "booking") =>
+    arrets[p] == null ? "Cozy coupé par l'échéance avant ce fournisseur" : arrets[p] === "échéance" ? "Cozy coupé par l'échéance" : undefined;
+  pushReport(reports, listings, "Abritel", cozyListings(payloads, input, "Abritel"), Date.now() - t0, {
+    annoncees: annonces.abritel ?? null,
+    note: coupe("abritel"),
+  });
+  const viaCozy = cozyListings(payloads, input, "Booking");
+  await withBrowser(async (open) => {
+    let booking = viaCozy;
+    let note = coupe("booking");
+    const reste = () => ECHEANCE_PART_MS + t0 - Date.now();
+    // Le relevé direct ne remplace Cozy que sur un vrai zéro — Cozy interrogé
+    // jusqu'au bout — et s'il reste le temps de le faire : un zéro dû à
+    // l'échéance lançait un repli de 12 s après les 40 s de la part.
+    if (booking.length === 0 && !note && reste() > 15_000) {
+      const py = await scrapeBookingPythonDetaille(input, Math.min(12_000, reste() - 3_000));
+      booking = py.listings;
+      note = py.raison ? `repli direct : ${py.raison}` : "repli sur le relevé direct (Cozy vide)";
+      if (booking.length === 0 && reste() > 30_000) {
+        booking = await scrapeBookingPlaywright(await open(), input);
+      }
+    }
+    if (booking.some((l) => l.lat == null || l.lon == null) && Date.now() < echeance) {
+      await fillBookingGps(await open(), booking).catch((err: unknown) => {
+        console.warn("[booking-gps]", err instanceof Error ? err.message : err);
+      });
+    }
+    pushReport(reports, listings, "Booking", booking, Date.now() - t0, {
+      annoncees: booking === viaCozy ? (annonces.booking ?? null) : null,
+      note,
+    });
+  });
 }
 
 async function runAirbnb(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
-  const t0 = Date.now();
   try {
-    await withBrowser(async (open) => {
-      const page = await open();
-      const payloads = await collectCozyPayloads(page, input, ["airbnb"]);
-      let rows = cozyListings(payloads, input, "Airbnb");
-      if (rows.length === 0) {
-        const via = await scrapeAirbnbDetailed(input);
-        rows = via.listings;
-      }
-      pushReport(reports, listings, "Airbnb", rows, Date.now() - t0);
-    });
+    await releverAirbnb(input, reports, listings);
   } catch (err) {
-    const error = err instanceof Error ? err.message : String(err);
-    reports.push({ source: "Airbnb", ok: false, count: 0, ms: Date.now() - t0, error });
-    console.warn(`[scrape] Airbnb échec: ${error}`);
+    failAll(reports, AIRBNB_SOURCES, err);
   }
   applyDump(input, reports, listings, new Set(AIRBNB_SOURCES));
   return { listings: locate(input, listings), sources: reports };
@@ -171,10 +306,7 @@ async function runGites(input: LiveSearchInput): Promise<LiveSearchResult> {
       await recordInto(reports, listings, "Gîtes de France", async () => scrapeGites(await open(), input));
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (!reports.some((r) => r.source === "Gîtes de France")) {
-      reports.push({ source: "Gîtes de France", ok: false, count: 0, ms: 0, error: msg });
-    }
+    failAll(reports, GITES_SOURCES, err);
   }
   applyDump(input, reports, listings, new Set(GITES_SOURCES));
   await fillGitesIfNeeded(listings);
@@ -185,16 +317,9 @@ async function runCozy(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
   try {
-    await withBrowser(async (open) => {
-      await fillCozy(await open(), input, reports, listings);
-    });
+    await releverCozy(input, reports, listings);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    for (const source of COZY_SOURCES) {
-      if (!reports.some((r) => r.source === source)) {
-        reports.push({ source, ok: false, count: 0, ms: 0, error: msg });
-      }
-    }
+    failAll(reports, COZY_SOURCES, err);
   }
   applyDump(input, reports, listings, new Set(COZY_SOURCES));
   return { listings: locate(input, listings), sources: reports };
@@ -245,20 +370,34 @@ async function runBrowser(input: LiveSearchInput): Promise<LiveSearchResult> {
     await withBrowser(async (open) => {
       await Promise.all([
         recordInto(reports, listings, "Gîtes de France", async () => scrapeGites(await open(), input)),
-        fillCozy(await open(), input, reports, listings),
+        releverAirbnb(input, reports, listings),
+        releverCozy(input, reports, listings),
       ]);
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    for (const source of BROWSER_SOURCES) {
-      if (!reports.some((r) => r.source === source)) {
-        reports.push({ source, ok: false, count: 0, ms: 0, error: msg });
-      }
-    }
+    failAll(reports, BROWSER_SOURCES, err);
   }
   applyDump(input, reports, listings, new Set(BROWSER_SOURCES));
   await fillGitesIfNeeded(listings);
   return { listings: locate(input, listings), sources: reports };
+}
+
+/**
+ * Une part de « all » qui dépasse son temps rend son rapport d'échec au lieu
+ * d'emporter les autres : un seul délai de 52 s couvrait les quatre, et des
+ * Gîtes lents (83 s mesurés aux 2 Alpes) jetaient les annonces Cozy valables.
+ */
+const PART_ALL_MS = 48_000;
+
+function borne(run: Promise<LiveSearchResult>, sources: readonly SourceReport["source"][]): Promise<LiveSearchResult> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const delai = new Promise<LiveSearchResult>((resolve) => {
+    timer = setTimeout(() => {
+      const error = "Délai dépassé — part abandonnée";
+      resolve({ listings: [], sources: sources.map((source) => ({ source, ok: false, count: 0, ms: PART_ALL_MS, error })) });
+    }, PART_ALL_MS);
+  });
+  return Promise.race([run, delai]).finally(() => clearTimeout(timer));
 }
 
 async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<LiveSearchResult> {
@@ -267,20 +406,20 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
   if (part === "cozy") return runCozy(input);
   if (part === "centrales") return runCentrales(input);
   if (part === "browser") return runBrowser(input);
-  const [gites, cozy, centrales] = await Promise.all([
-    runGites(input),
-    runCozy(input),
-    runCentrales(input),
+  const parts = await Promise.all([
+    borne(runAirbnb(input), AIRBNB_SOURCES),
+    borne(runGites(input), GITES_SOURCES),
+    borne(runCozy(input), COZY_SOURCES),
+    borne(runCentrales(input), CENTRALE_SOURCES),
   ]);
-  const listings = locate(input, [...gites.listings, ...cozy.listings, ...centrales.listings]);
   return {
-    listings,
-    sources: [...cozy.sources, ...gites.sources, ...centrales.sources],
+    listings: locate(input, parts.flatMap((p) => p.listings)),
+    sources: parts.flatMap((p) => p.sources),
   };
 }
 
 const CACHE_MS = 90_000;
-const CACHE_GEN = "c9";
+const CACHE_GEN = "c10";
 const cache = new Map<string, { at: number; result: LiveSearchResult }>();
 const inflight = new Map<string, Promise<LiveSearchResult>>();
 

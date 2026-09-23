@@ -1,15 +1,21 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  blocage,
   deviseFromGitesHtml,
   listingDeFiche,
   nombreDeResultats,
   occupancyFromGitesHtml,
   pageSuivante,
   prixDuTableau,
+  scrapeGites,
+  searchUrl,
+  totalPublie,
+  trierParDistance,
   type Fiche,
   type Tile,
 } from "./gites.server.ts";
+import { COMMUNES_GITES, communeGites } from "./gitesCommunes.ts";
 import { lieuFromGitesHtml, lieuGitesEnCache, retenirLieuGites, viderCacheGitesGps } from "./gitesGps.server.ts";
 import type { LiveSearchInput } from "./types.ts";
 
@@ -48,6 +54,8 @@ function tuile(extra: Partial<Tile> = {}): Tile {
     typeLabel: "Gîte",
     capacite: "",
     photo: null,
+    lat: null,
+    lon: null,
     ...extra,
   };
 }
@@ -267,5 +275,77 @@ describe("annonce Gîtes de France", () => {
     );
     assert.equal(l.rooms, 3);
     assert.equal(l.bedrooms, null);
+  });
+});
+
+describe("recherche localisée", () => {
+  it("cherche par code de commune, jamais par un texte que le moteur ignore", () => {
+    const url = searchUrl(INPUT, "50301");
+    assert.match(url, /towns=50301/);
+    assert.doesNotMatch(url, /destination=/);
+  });
+
+  it("sans code de commune, refuse avant toute requête", async () => {
+    const page = new Proxy({}, { get: () => () => assert.fail("aucune requête ne doit partir") });
+    await assert.rejects(
+      scrapeGites(page as never, { ...INPUT, stationId: "tignes", stationName: "Tignes" }),
+      /pas d'identifiant de commune Gîtes de France pour Tignes/,
+    );
+  });
+
+  it("Val Thorens et les Menuires partagent la commune des Belleville", () => {
+    assert.equal(communeGites("val-thorens")?.towns, "64611");
+    assert.equal(communeGites("les-menuires")?.towns, "64611");
+    assert.equal(communeGites("les-2-alpes")?.towns, "50301");
+    assert.equal(communeGites("tignes"), null);
+    for (const [id, c] of Object.entries(COMMUNES_GITES)) {
+      assert.match(c.towns, /^\d+$/, id);
+      assert.ok(c.preuve.length > 10, `${id} : un code sans preuve n'entre pas dans la table`);
+    }
+  });
+});
+
+describe("blocage du site", () => {
+  it("reconnaît un refus Cloudflare, par statut, en-tête ou titre", () => {
+    assert.equal(blocage({ status: 403, cfMitigated: null, titre: "Attention Required! | Cloudflare" }), "bloqué (403)");
+    assert.equal(blocage({ status: 403, cfMitigated: "challenge", titre: "Just a moment..." }), "bloqué (défi challenge)");
+    assert.equal(blocage({ status: 200, cfMitigated: null, titre: "Just a moment..." }), "bloqué (page de défi)");
+  });
+
+  it("appelle une panne serveur par son nom, pas « bloqué »", () => {
+    assert.equal(blocage({ status: 503, cfMitigated: null, titre: "Service Unavailable" }), "HTTP 503");
+  });
+
+  it("laisse passer une page ordinaire", () => {
+    assert.equal(blocage({ status: 200, cfMitigated: null, titre: "Location gîtes Les Deux Alpes" }), null);
+    assert.equal(blocage({ status: null, cfMitigated: null, titre: null }), null);
+  });
+});
+
+describe("total publié", () => {
+  it("préfère le titre de tri, puis la facette", () => {
+    assert.equal(totalPublie({ titreTri: "94 Résultats", facette: "93", resultats: 90 }), 94);
+    assert.equal(totalPublie({ titreTri: null, facette: "94", resultats: 90 }), 94);
+    assert.equal(totalPublie({ titreTri: "43 786 Résultats", facette: null, resultats: 5000 }), 43786);
+  });
+
+  it("ne prend pas la liste plafonnée à 5 000 pour un total", () => {
+    assert.equal(totalPublie({ titreTri: null, facette: null, resultats: 5000 }), null);
+    assert.equal(totalPublie({ titreTri: null, facette: null, resultats: 94 }), 94);
+    assert.equal(totalPublie({ titreTri: "Trier par", facette: null, resultats: null }), null);
+  });
+});
+
+describe("budget de fiches", () => {
+  it("interroge d'abord les gîtes les plus proches de la station, les inconnus à la fin", () => {
+    const pin = { lat: 45.0134, lon: 6.1252 };
+    const loin = tuile({ title: "Auris", lat: 45.05, lon: 6.08 });
+    const pres = tuile({ title: "Mont-de-Lans", lat: 45.018, lon: 6.127 });
+    const inconnu1 = tuile({ title: "Inconnu 1" });
+    const inconnu2 = tuile({ title: "Inconnu 2" });
+    assert.deepEqual(
+      trierParDistance([inconnu1, loin, inconnu2, pres], pin).map((t) => t.title),
+      ["Mont-de-Lans", "Auris", "Inconnu 1", "Inconnu 2"],
+    );
   });
 });

@@ -42,6 +42,24 @@ class RateLimited(Exception):
         self.retry_after_s = float(retry_after_s)
 
 
+class RythmeLocal(RateLimited):
+    """Notre propre limiteur (`taux.py`) a dit « trop tôt » : Airbnb n'a rien refusé.
+
+    Il se traite comme une attente, jamais comme un refus : il ne compte pas
+    pour le coupe-circuit partagé, que deux relevés simultanés ouvraient sinon
+    sans qu'Airbnb ait répondu 429 une seule fois.
+    """
+
+
+# La marge d'une requête : une attente qui ne laisse pas au moins ce temps
+# avant l'échéance ne sert plus à rien, personne ne lira la réponse.
+MARGE_REQUETE_S = 3.0
+
+
+def _trop_tard(fin: float | None, attente: float) -> bool:
+    return fin is not None and time.time() + attente + MARGE_REQUETE_S >= fin
+
+
 def retry_after_s(
     headers: Any,
     attempt: int = 0,
@@ -172,8 +190,20 @@ class Circuit:
 airbnb_circuit = Circuit()
 
 
-def call_with_retry(fn: Callable[[], T], *, tries: int = MAX_TRIES, circuit: Circuit | None = None) -> T:
-    """Appelle `fn`. 429/503 : attend, réessaie. Le coupe-circuit arrête net."""
+def call_with_retry(
+    fn: Callable[[], T],
+    *,
+    tries: int = MAX_TRIES,
+    circuit: Circuit | None = None,
+    fin: float | None = None,
+) -> T:
+    """Appelle `fn`. 429/503 : attend, réessaie. Le coupe-circuit arrête net.
+
+    `fin` (instant absolu, `time.time()`) borne les attentes : une reprise qui
+    finirait après l'échéance n'est pas tentée, le refus remonte tout de suite
+    et l'appelant garde ce qu'il a déjà lu. Sans cette borne, le worker dormait
+    au-delà de l'échéance et Node le tuait avant qu'il écrive quoi que ce soit.
+    """
     gate = circuit if circuit is not None else airbnb_circuit
     last: BaseException | None = None
     for attempt in range(max(1, tries)):
@@ -185,17 +215,19 @@ def call_with_retry(fn: Callable[[], T], *, tries: int = MAX_TRIES, circuit: Cir
             return out
         except RateLimited as err:
             last = err
-            gate.hit_limited(err.retry_after_s)
-            if attempt + 1 >= tries:
+            if not isinstance(err, RythmeLocal):
+                gate.hit_limited(err.retry_after_s)
+            wait = min(err.retry_after_s, MAX_WAIT_S)
+            if attempt + 1 >= tries or _trop_tard(fin, wait):
                 raise
-            time.sleep(min(err.retry_after_s, MAX_WAIT_S))
+            time.sleep(wait)
         except Exception as err:
             if not is_rate_limited(err):
                 raise
             wait = retry_after_from_exc(err, attempt)
             last = RateLimited(http_status_of(err) or 429, wait)
             gate.hit_limited(wait)
-            if attempt + 1 >= tries:
+            if attempt + 1 >= tries or _trop_tard(fin, min(wait, MAX_WAIT_S)):
                 raise last
             time.sleep(min(wait, MAX_WAIT_S))
     raise last or RateLimited()

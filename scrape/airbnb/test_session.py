@@ -108,6 +108,17 @@ def test_cookies_perimes_sont_ignores():
         session_mod.SESSION_PATH = old
 
 
+def test_seul_airbnb_compte_pour_le_taux_d_airbnb():
+    from session import rythme_de
+
+    assert rythme_de("https://www.airbnb.com/api/v3/StaysSearch/abc") == "airbnb"
+    assert rythme_de("https://www.airbnb.fr/s/Val-Thorens/homes") == "airbnb"
+    assert rythme_de("https://airbnb.com/") == "airbnb"
+    # Le CDN statique ne doit plus consommer les 18 appels par minute d'Airbnb.
+    assert rythme_de("https://a0.muscache.com/airbnb/static/packages/web/common.js") == "airbnb-cdn"
+    assert rythme_de("https://notairbnb.example/") == "airbnb-cdn"
+
+
 if __name__ == "__main__":
     failed = 0
     for name, fn in list(globals().items()):

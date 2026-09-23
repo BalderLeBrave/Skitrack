@@ -107,8 +107,6 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1440,
     height: 940,
-    minWidth: 1100,
-    minHeight: 700,
     show: false,
     backgroundColor: "#0f1620",
     title: "SKITRACK",
@@ -120,6 +118,14 @@ function createWindow() {
       sandbox: true,
     },
   });
+
+  // `minWidth` borne la fenêtre, cadre compris, alors que `.v7.app` et `.v6`
+  // exigent 1100 px de contenu (min-width), barre de défilement verticale en
+  // sus : à la taille minimale, une barre horizontale apparaissait toujours.
+  // On borne donc le contenu, plus le cadre et la barre (15 px sous Windows).
+  const [largeur, hauteur] = win.getSize();
+  const [largeurContenu, hauteurContenu] = win.getContentSize();
+  win.setMinimumSize(1100 + 15 + (largeur - largeurContenu), 700 + (hauteur - hauteurContenu));
 
   win.once("ready-to-show", () => win.show());
 

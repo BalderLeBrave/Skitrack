@@ -1,6 +1,15 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { cozyListings, rangPrix } from "./cozy.server.ts";
+import {
+  attendreRecherche,
+  cozyAnnonces,
+  cozyListings,
+  idsFiches,
+  paginerFournisseur,
+  rangPrix,
+  type Horloge,
+  type Tirage,
+} from "./cozy.server.ts";
 import type { LiveSearchInput } from "./types.ts";
 
 /**
@@ -297,5 +306,155 @@ describe("relevé CozyCozy", () => {
     assert.equal(row.photo, "https://a0.muscache.com/im/pictures/a.jpg?im_w=720");
     assert.equal(row.platformId, "22782241");
     assert.match(row.url ?? "", /airbnb\.fr\/rooms\/22782241/);
+  });
+});
+
+/**
+ * La pagination, sans réseau ni vraies pauses.
+ *
+ * Les entrées reprennent la forme des charges relevées le 23 septembre 2026
+ * (1 504 `result`, 187 `sponsoredResult` sans `accommodationId`, un
+ * `resultStrip` à `groups`) ; les nombres sont réduits pour le test.
+ */
+function horlogeFactice(): Horloge & { t: number } {
+  const h = {
+    t: 0,
+    maintenant: () => h.t,
+    attendre: async (ms: number) => {
+      h.t += ms;
+    },
+  };
+  return h;
+}
+
+/**
+ * Une source Cozy simulée : `n` fiches, une publicité toutes les `pub`
+ * entrées, un bandeau en tête dont un groupe n'existe pas au premier niveau.
+ * La recherche n'est complète qu'à partir de `completeA` ms ; avant, le
+ * compteur publié est `avant`.
+ */
+function sourceFactice(opts: { n: number; pub?: number; completeA?: number; avant?: number; horloge: { t: number } }) {
+  const entries: unknown[] = [
+    { type: "resultStrip", code: "HOSTELROOM", groups: [{ accommodationId: "strip-1" }] },
+  ];
+  for (let i = 0; i < opts.n; i += 1) {
+    if (opts.pub && i > 0 && i % opts.pub === 0) entries.push({ type: "sponsoredResult" });
+    entries.push({ type: "result", accommodationId: `f${i}` });
+  }
+  const demandes: [number, number][] = [];
+  const tirer: Tirage = async (offset, count) => {
+    demandes.push([offset, count]);
+    const complete = opts.horloge.t >= (opts.completeA ?? 0);
+    return {
+      entries: entries.slice(offset, offset + count),
+      allProcessed: complete,
+      filteredCount: complete ? opts.n + 1 : (opts.avant ?? 0),
+    };
+  };
+  return { tirer, demandes };
+}
+
+describe("pagination CozyCozy", () => {
+  it("compte les fiches et les groupes des bandeaux, jamais les publicités", () => {
+    assert.deepEqual(
+      idsFiches([
+        { type: "result", accommodationId: 12 },
+        { type: "sponsoredResult" },
+        { type: "resultStrip", groups: [{ accommodationId: "g1" }, { accommodationId: "g2" }] },
+      ]),
+      ["12", "g1", "g2"],
+    );
+  });
+
+  it("va au-delà de 400 fiches, jusqu'au compteur publié", async () => {
+    const h = horlogeFactice();
+    const src = sourceFactice({ n: 1504, pub: 8, horloge: h });
+    const res = await paginerFournisseur(src.tirer, Number.MAX_SAFE_INTEGER, h);
+    assert.equal(res.releves, 1505, "1 504 fiches et le groupe exclusif du bandeau");
+    assert.equal(res.annonces, 1505);
+    assert.equal(res.arret, "compteur atteint");
+    assert.ok(src.demandes.every(([, c]) => c === 200), "des pages de 200");
+    // Le rang suivant avance des entrées reçues, publicités comprises.
+    assert.deepEqual(
+      src.demandes.slice(0, 3).map(([o]) => o),
+      [0, 200, 400],
+    );
+  });
+
+  it("n'arrête pas sur un compteur tant que la recherche n'est pas complète", async () => {
+    const h = horlogeFactice();
+    // Compteur à 0 (comme Airbnb avant 4 s) : s'y fier couperait après une page.
+    const src = sourceFactice({ n: 450, completeA: 10_000, avant: 0, horloge: h });
+    const res = await paginerFournisseur(src.tirer, Number.MAX_SAFE_INTEGER, h);
+    assert.equal(res.releves, 451);
+    assert.equal(res.arret, "page incomplète");
+  });
+
+  it("attend la fin de la recherche, puis la reconnaît", async () => {
+    const h = horlogeFactice();
+    const src = sourceFactice({ n: 40, completeA: 5_000, horloge: h });
+    assert.equal(await attendreRecherche(src.tirer, Number.MAX_SAFE_INTEGER, h), true);
+    assert.ok(h.t >= 5_000 && h.t < 5_700, "au rythme de la politesse, sans attendre plus");
+    assert.ok(src.demandes.every(([o, c]) => o === 0 && c <= 10), "par une petite page");
+  });
+
+  it("n'attend pas au-delà de dix secondes une recherche qui ne finit pas", async () => {
+    const h = horlogeFactice();
+    const src = sourceFactice({ n: 40, completeA: Number.MAX_SAFE_INTEGER, horloge: h });
+    assert.equal(await attendreRecherche(src.tirer, Number.MAX_SAFE_INTEGER, h), false);
+    assert.ok(h.t <= 10_300);
+  });
+
+  it("compte une fiche vue sur deux pages une seule fois, et s'arrête si une page n'apporte rien", async () => {
+    const h = horlogeFactice();
+    const page = { entries: Array.from({ length: 200 }, (_, i) => ({ accommodationId: `x${i}` })), allProcessed: true, filteredCount: 900 };
+    const tirer: Tirage = async () => page;
+    const res = await paginerFournisseur(tirer, Number.MAX_SAFE_INTEGER, h);
+    assert.equal(res.releves, 200);
+    assert.equal(res.pages.length, 2);
+    assert.equal(res.arret, "page sans fiche nouvelle");
+  });
+
+  it("s'arrête sur une page vide", async () => {
+    const h = horlogeFactice();
+    const res = await paginerFournisseur(async () => ({ entries: [], allProcessed: true, filteredCount: 0 }), Number.MAX_SAFE_INTEGER, h);
+    assert.equal(res.pages.length, 0);
+    assert.equal(res.arret, "page vide");
+  });
+
+  it("rend ce qui est lu quand l'échéance tombe", async () => {
+    const h = horlogeFactice();
+    const src = sourceFactice({ n: 1504, horloge: h });
+    const res = await paginerFournisseur(src.tirer, 700, h);
+    assert.equal(res.arret, "échéance");
+    assert.ok(res.pages.length >= 1 && res.pages.length < 8);
+  });
+
+  it("rapporte le compteur du fournisseur demandé, jamais un zéro inventé", () => {
+    const payloads = [
+      { fournisseur: "abritel", filteredCount: 1200, allProcessed: true },
+      { fournisseur: "abritel", filteredCount: 1504, allProcessed: true },
+      { fournisseur: "booking", filteredCount: 423, allProcessed: true },
+      { fournisseur: "airbnb", allProcessed: true },
+    ];
+    assert.equal(cozyAnnonces(payloads, "abritel"), 1504);
+    assert.equal(cozyAnnonces(payloads, "booking"), 423);
+    assert.equal(cozyAnnonces(payloads, "airbnb"), null);
+    assert.equal(cozyAnnonces([], "airbnb"), null);
+  });
+
+  it("ne rapporte pas un compteur lu avant la fin de la recherche", () => {
+    assert.equal(cozyAnnonces([{ fournisseur: "airbnb", filteredCount: 0, allProcessed: false }], "airbnb"), null);
+  });
+
+  it("rapporte le zéro que publie une recherche complète sans rien pour ce fournisseur", async () => {
+    const h = horlogeFactice();
+    const res = await paginerFournisseur(
+      async () => ({ entries: [], allProcessed: true, filteredCount: 0 }),
+      Number.MAX_SAFE_INTEGER,
+      h,
+    );
+    assert.equal(res.annonces, 0);
+    assert.equal(res.arret, "page vide");
   });
 });

@@ -10,6 +10,7 @@ import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 import { annoncer, occupancyFromRecord, type Occupancy } from "@/lib/stay/occupancy";
 import { assurerCles } from "../cles/store.server";
+import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -411,7 +412,12 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
   return out.sort(parPrix);
 }
 
-async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<{ listings: Listing[]; rateLimited: boolean }> {
+/** Échéance par défaut d'un relevé direct, quand l'appelant n'en donne pas. */
+const ECHEANCE_DEFAUT_MS = 40_000;
+/** Ce que Node laisse à Python, après l'échéance, pour écrire ce qu'il a lu. */
+const MARGE_SORTIE_MS = 4_000;
+
+async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): Promise<AirbnbScrape> {
   if (airbnbCircuitOpen()) {
     console.warn("[airbnb] coupe-circuit ouvert — pas d'appel");
     return { listings: [], rateLimited: true };
@@ -419,13 +425,20 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<{ listings:
   const cli = cliPath();
   if (!cli) {
     console.warn("[airbnb] cli.py introuvable");
-    return { listings: [], rateLimited: false };
+    return { listings: [], rateLimited: false, raison: "worker Airbnb introuvable (scrape/airbnb/cli.py)" };
   }
   // Les clés saisies dans Plus › Clés sont versées dans l'environnement avant
   // cette lecture : sans cet appel, le chemin renseigné n'existait que pour
   // l'écran qui l'avait reçu.
   assurerCles();
-  const python = process.env.SKITRACK_PYAIRBNB_PYTHON?.trim() || "python3";
+  // « python3 » en dur ne lançait, sous Windows, que le raccourci du Microsoft
+  // Store : zéro annonce et aucune explication. Voir python.server.ts.
+  const python = await trouverPython(dossierScrape(cli), MODULES_PY, "SKITRACK_PYAIRBNB_PYTHON");
+  const raison = raisonPython(python);
+  if (!python || raison) {
+    console.warn(`[airbnb] ${raison}`);
+    return { listings: [], rateLimited: false, raison: raison ?? undefined };
+  }
   const body = JSON.stringify({
     city: input.stationName,
     checkIn: input.checkIn,
@@ -434,70 +447,83 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput): Promise<{ listings:
     bedrooms: input.bedrooms,
     lat: input.lat,
     lon: input.lon,
-    // Airbnb ne publie aucun nombre de résultats : `paginationInfo` ne porte
-    // que des curseurs (voir `_search_pages` dans scrape/airbnb/stays.py).
-    // Trois pages n'étaient donc pas un total atteint, seulement une coupe, et
-    // une station bien pourvue perdait tout ce qui venait après. Le sidecar
-    // s'arrête de lui-même quand une page n'apporte plus rien de neuf ou qu'il
-    // n'y a plus de curseur : cette borne n'est qu'un garde-fou assumé.
+    // Garde-fou par emprise. L'arrêt normal est la fin des curseurs, et le
+    // worker lit aussi le nombre qu'Airbnb publie (`resultCount`) pour
+    // découper une emprise qu'Airbnb ne laisse pas paginer en entier.
     maxPages: 24,
+    // Tout le relevé, préalables compris, doit tenir avant cet instant.
+    deadlineMs: echeance,
     skipEnrich: true,
     maxEnrich: 0,
   });
-  const raw = await new Promise<{ out: string; err: string }>((resolve, reject) => {
-    const child = spawn(python, [cli], {
-      env: { ...process.env, PYTHONPATH: dirname(cli), PYTHONUNBUFFERED: "1" },
-      cwd: dirname(cli),
-    });
+  const raw = await new Promise<{ out: string; err: string; tue: boolean }>((resolve) => {
+    let fini = false;
     const chunks: Buffer[] = [];
     const errChunks: Buffer[] = [];
-    // Le sidecar borne lui-même sa pagination à `PAGE_BUDGET_S` puis enrichit
-    // les fiches incomplètes (PDP). Un 429 interrompt sans tuer ce qui est lu.
-    // Ce couperet reste au-dessus du budget interne.
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error("pyairbnb timeout"));
-    }, 95_000);
-    child.stdout.on("data", (c: Buffer) => chunks.push(c));
-    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
-    child.on("error", (err) => {
-      clearTimeout(timer);
-      reject(err);
-    });
-    child.on("close", () => {
+    const rendre = (tue: boolean, extra = "") => {
+      if (fini) return;
+      fini = true;
       clearTimeout(timer);
       resolve({
         out: Buffer.concat(chunks).toString("utf8").trim(),
-        err: Buffer.concat(errChunks).toString("utf8").trim(),
+        err: `${Buffer.concat(errChunks).toString("utf8").trim()}${extra}`,
+        tue,
       });
+    };
+    const child = spawn(python.cmd, [...python.args, cli], {
+      env: envWorker({ PYTHONPATH: dirname(cli) }),
+      cwd: dirname(cli),
+      windowsHide: true,
     });
-    child.stdin.write(body);
-    child.stdin.end();
-  }).catch((err: unknown) => {
-    console.warn("[airbnb] spawn", err instanceof Error ? err.message : err);
-    return { out: "", err: err instanceof Error ? err.message : String(err) };
+    // Python s'arrête de lui-même à l'échéance et écrit ce qu'il a lu ; ce
+    // couperet ne sert que s'il ne le fait pas, et ce qui est déjà reçu est
+    // quand même lu.
+    const timer = setTimeout(
+      () => {
+        child.kill("SIGKILL");
+        rendre(true, "\npyairbnb : échéance dépassée");
+      },
+      Math.max(5_000, echeance - Date.now() + MARGE_SORTIE_MS),
+    );
+    child.stdout.on("data", (c: Buffer) => chunks.push(c));
+    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
+    child.on("error", (err) => rendre(false, `\n${err.message}`));
+    child.on("close", () => rendre(false));
+    // Un Python qui sort sans lire son entrée faisait lever EPIPE sur stdin,
+    // sans écouteur : l'exception tombait hors de toute promesse.
+    child.stdin.on("error", () => undefined);
+    child.stdin.end(body);
   });
+  for (const ligne of raw.err.split(/\r?\n/)) {
+    if (/^\[airbnb\]/.test(ligne)) console.info(ligne);
+  }
   if (!raw.out) {
     if (raw.err) console.warn("[airbnb] stderr", raw.err.slice(0, 500));
-    return { listings: [], rateLimited: /429/.test(raw.err) };
+    return {
+      listings: [],
+      rateLimited: /429/.test(raw.err),
+      raison: raw.tue ? "relevé direct coupé à l'échéance" : undefined,
+    };
   }
   const parsed = lastJsonObject(raw.out) as {
     ok?: boolean;
     payload?: unknown;
     error?: string;
     rateLimited?: boolean;
+    advertised?: unknown;
   } | null;
   if (!parsed) {
     console.warn("[airbnb] py: json illisible");
-    return { listings: [], rateLimited: false };
+    return { listings: [], rateLimited: false, raison: "sortie du worker illisible" };
   }
   const rateLimited = Boolean(parsed.rateLimited) || /429|503/.test(String(parsed.error ?? ""));
   const listings = fromPyairbnbPayload(parsed.payload, input);
+  const annoncees = typeof parsed.advertised === "number" && parsed.advertised >= 0 ? parsed.advertised : null;
   if (parsed.ok === false && listings.length === 0) {
     console.warn("[airbnb] py:", parsed.error ?? "json illisible", rateLimited ? "· 429" : "");
-    return { listings: [], rateLimited };
+    return { listings: [], rateLimited, raison: parsed.error ?? undefined };
   }
-  return { listings, rateLimited };
+  return { listings, rateLimited, annoncees };
 }
 
 async function scrapeAirbnbFetch(input: LiveSearchInput): Promise<Listing[]> {
@@ -525,46 +551,67 @@ export async function scrapeAirbnbPlaywright(page: Page, input: LiveSearchInput)
   return scrapeAirbnbFetch(input);
 }
 
-export type AirbnbScrape = { listings: Listing[]; rateLimited: boolean };
+export type AirbnbScrape = {
+  listings: Listing[];
+  rateLimited: boolean;
+  /** Pourquoi le relevé principal n'a pas pu partir ou n'a rien rendu, quand on le sait. */
+  raison?: string;
+  /** Le nombre qu'Airbnb publie pour l'emprise proche de la station, ou `null`. */
+  annoncees?: number | null;
+};
+
+export type AirbnbOptions = {
+  /** Page ou ouvreur de page pour le repli Playwright. */
+  page?: Page | (() => Promise<Page>);
+  /** Instant absolu (`Date.now()`) avant lequel le relevé doit avoir rendu. */
+  echeance?: number;
+};
+
+// Ce que les workers importent vraiment : `requests` figure dans requirements.txt,
+// mais tout passe par `curl_cffi.requests`.
+const MODULES_PY = ["curl_cffi", "bs4"] as const;
 
 /**
  * Chemin principal : pyairbnb isolé. Fetch HTML puis Playwright en repli,
- * sauf après un 429 — le même refus se reproduirait.
+ * sauf après un 429 — le même refus se reproduirait. Le repli garde la raison
+ * de l'échec du chemin principal : une page HTML de dix annonces ne doit pas
+ * passer pour un relevé complet.
  */
-export async function scrapeAirbnbDetailed(
-  input: LiveSearchInput,
-  pageOrOpen?: Page | (() => Promise<Page>),
-): Promise<AirbnbScrape> {
+export async function scrapeAirbnbDetailed(input: LiveSearchInput, opts: AirbnbOptions = {}): Promise<AirbnbScrape> {
   await allowsPath("https://www.airbnb.fr", "/");
-  const viaPy = await scrapeAirbnbPyairbnb(input);
+  const echeance = opts.echeance ?? Date.now() + ECHEANCE_DEFAUT_MS;
+  const viaPy = await scrapeAirbnbPyairbnb(input, echeance);
   if (viaPy.listings.length > 0) {
-    console.info(`[airbnb] pyairbnb ${viaPy.listings.length}${viaPy.rateLimited ? " · 429 partiel" : ""}`);
+    const sur = viaPy.annoncees != null ? ` (Airbnb en publie ${viaPy.annoncees} autour de la station)` : "";
+    console.info(`[airbnb] pyairbnb ${viaPy.listings.length}${sur}${viaPy.rateLimited ? " · 429 partiel" : ""}`);
     return viaPy;
   }
   if (viaPy.rateLimited) {
     console.warn("[airbnb] 429 — pas de repli HTML");
-    return { listings: [], rateLimited: true };
+    return { listings: [], rateLimited: true, raison: viaPy.raison ?? "HTTP 429" };
   }
+  if (Date.now() >= echeance) return viaPy;
+  const raison = viaPy.raison ? `${viaPy.raison} — repli sur une page HTML` : undefined;
   const viaFetch = await scrapeAirbnbFetch(input);
   if (viaFetch.length > 0) {
     console.info(`[airbnb] fetch ${viaFetch.length}`);
-    return { listings: viaFetch, rateLimited: false };
+    return { listings: viaFetch, rateLimited: false, raison };
   }
   let page: Page | undefined;
-  if (typeof pageOrOpen === "function") page = await pageOrOpen();
-  else page = pageOrOpen;
-  if (page) {
+  if (typeof opts.page === "function") page = await opts.page();
+  else page = opts.page;
+  if (page && Date.now() < echeance) {
     const viaPw = await scrapeAirbnbPlaywright(page, input);
     console.info(`[airbnb] playwright ${viaPw.length}`);
-    return { listings: viaPw, rateLimited: false };
+    return { listings: viaPw, rateLimited: false, raison };
   }
   console.warn("[airbnb] 0 logement (py, fetch, pas de navigateur)");
-  return { listings: [], rateLimited: false };
+  return { listings: [], rateLimited: false, raison: viaPy.raison };
 }
 
 export async function scrapeAirbnb(
   input: LiveSearchInput,
   pageOrOpen?: Page | (() => Promise<Page>),
 ): Promise<Listing[]> {
-  return (await scrapeAirbnbDetailed(input, pageOrOpen)).listings;
+  return (await scrapeAirbnbDetailed(input, { page: pageOrOpen })).listings;
 }

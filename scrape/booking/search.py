@@ -8,12 +8,16 @@ Accepte aussi un HTML déjà chargé (Playwright) pour extraire cartes + GPS.
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 from map import listings_from_html
 from urls import PAGE_SIZE, search_url
 
 MAX_PAGES = 15
+# Une requête à la fois vers Booking, et cette pause entre deux pages : les
+# pages s'enchaînaient sans aucun délai.
+PAGE_PAUSE_S = 0.5
 DEFAULT_TIMEOUT = 25
 
 
@@ -106,6 +110,8 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     last_status = 0
     try:
         for index in range(max_pages):
+            if index:
+                time.sleep(PAGE_PAUSE_S)
             page_url = search_url(params, index * PAGE_SIZE)
             status, page_html = fetch_page(page_url, proxy_url)
             last_status = status

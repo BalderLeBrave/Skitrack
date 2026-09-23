@@ -9,6 +9,8 @@ import { cozyListings, cozySearchUrl, rangPrix } from "./cozy.server.ts";
 import { allowsPath } from "./robots.ts";
 import type { LiveSearchInput } from "./types";
 import { annoncer } from "../stay/occupancy.ts";
+import { assurerCles } from "../cles/store.server.ts";
+import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -139,52 +141,69 @@ function fromPython(payload: unknown, input: LiveSearchInput): Listing[] {
   return out.sort((a, b) => rangPrix(a) - rangPrix(b));
 }
 
-async function spawnBooking(body: unknown, timeoutMs: number, input: LiveSearchInput): Promise<Listing[]> {
+/** Ce que rend le worker Booking, et pourquoi il n'a rien rendu quand on le sait. */
+export type BookingPython = { listings: Listing[]; raison?: string };
+
+async function spawnBooking(body: unknown, timeoutMs: number, input: LiveSearchInput): Promise<BookingPython> {
   const cli = cliPath();
   if (!cli) {
     console.warn("[booking] cli.py introuvable");
-    return [];
+    return { listings: [], raison: "worker Booking introuvable (scrape/booking/cli.py)" };
   }
-  const raw = await new Promise<{ out: string; err: string }>((resolve, reject) => {
-    const child = spawn("python3", [cli], {
-      env: { ...process.env, PYTHONPATH: dirname(cli), PYTHONUNBUFFERED: "1" },
-      cwd: dirname(cli),
-    });
+  // « python3 » en dur ne lançait, sous Windows, que le raccourci du Microsoft
+  // Store : il sortait sans lire son entrée, et l'écriture du HTML (plus de
+  // 64 Ko) sur un tube fermé faisait tomber le processus Node (« write EOF »).
+  // Le chemin saisi dans Plus › Clés est versé dans l'environnement ici aussi.
+  assurerCles();
+  const python = await trouverPython(dossierScrape(cli), ["curl_cffi", "bs4"], "SKITRACK_PYAIRBNB_PYTHON");
+  const raison = raisonPython(python);
+  if (!python || raison) {
+    console.warn(`[booking] ${raison}`);
+    return { listings: [], raison: raison ?? undefined };
+  }
+  const raw = await new Promise<{ out: string; err: string; code: number | null }>((resolve) => {
+    let fini = false;
     const chunks: Buffer[] = [];
     const errChunks: Buffer[] = [];
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error("booking timeout"));
-    }, timeoutMs);
-    child.stdout.on("data", (c: Buffer) => chunks.push(c));
-    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
-    child.on("error", (err) => {
-      clearTimeout(timer);
-      reject(err);
-    });
-    child.on("close", () => {
+    const rendre = (code: number | null, extra = "") => {
+      if (fini) return;
+      fini = true;
       clearTimeout(timer);
       resolve({
         out: Buffer.concat(chunks).toString("utf8").trim(),
-        err: Buffer.concat(errChunks).toString("utf8").trim(),
+        err: `${Buffer.concat(errChunks).toString("utf8").trim()}${extra}`,
+        code,
       });
+    };
+    const child = spawn(python.cmd, [...python.args, cli], {
+      env: envWorker({ PYTHONPATH: dirname(cli) }),
+      cwd: dirname(cli),
+      windowsHide: true,
     });
-    child.stdin.write(JSON.stringify(body));
-    child.stdin.end();
-  }).catch((err: unknown) => ({
-    out: "",
-    err: err instanceof Error ? err.message : String(err),
-  }));
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      rendre(null, "\nbooking timeout");
+    }, timeoutMs);
+    child.stdout.on("data", (c: Buffer) => chunks.push(c));
+    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
+    child.on("error", (err) => rendre(null, `\n${err.message}`));
+    child.on("close", (code) => rendre(code));
+    // Un écouteur, pour qu'un tube fermé reste l'échec de cet appel seul.
+    child.stdin.on("error", () => undefined);
+    child.stdin.end(JSON.stringify(body));
+  });
   if (!raw.out) {
-    if (raw.err) console.warn("[booking] stderr", raw.err.slice(0, 400));
-    return [];
+    if (raw.err || raw.code) console.warn(`[booking] sortie ${raw.code ?? "?"}`, raw.err.slice(0, 400));
+    const fin = raw.err.trim().split(/\r?\n/).pop();
+    return { listings: [], raison: fin ? `worker Booking : ${fin.slice(0, 160)}` : `worker Booking sorti (${raw.code ?? "?"})` };
   }
   const parsed = lastJsonObject(raw.out) as { ok?: boolean; error?: string } | null;
   if (!parsed || parsed.ok === false) {
-    console.warn("[booking]", parsed && "error" in parsed ? parsed.error : "json illisible");
-    return [];
+    const erreur = parsed && "error" in parsed ? String(parsed.error) : "sortie du worker illisible";
+    console.warn("[booking]", erreur);
+    return { listings: [], raison: erreur };
   }
-  return fromPython(parsed, input);
+  return { listings: fromPython(parsed, input) };
 }
 
 function pythonBody(input: LiveSearchInput, extra: Record<string, unknown> = {}) {
@@ -202,9 +221,20 @@ function pythonBody(input: LiveSearchInput, extra: Record<string, unknown> = {})
   };
 }
 
-export async function scrapeBookingPython(input: LiveSearchInput): Promise<Listing[]> {
+/**
+ * Le relevé Booking par le worker Python, avec la raison de son échec.
+ * `timeoutMs` borne le worker : l'appelant le tire du temps qui lui reste.
+ */
+export async function scrapeBookingPythonDetaille(
+  input: LiveSearchInput,
+  timeoutMs = 12_000,
+): Promise<BookingPython> {
   await allowsPath("https://www.booking.com", "/");
-  return spawnBooking(pythonBody(input), 12_000, input);
+  return spawnBooking(pythonBody(input), Math.max(1_000, timeoutMs), input);
+}
+
+export async function scrapeBookingPython(input: LiveSearchInput): Promise<Listing[]> {
+  return (await scrapeBookingPythonDetaille(input)).listings;
 }
 
 function harvestCoordsFromHtml(html: string): Map<string, { lat: number; lon: number }> {
@@ -333,7 +363,7 @@ export async function scrapeBookingPlaywright(page: Page, input: LiveSearchInput
     await page.waitForSelector('[data-testid="property-card"], .sr_property_block', { timeout: 15_000 }).catch(() => null);
     const html = await page.content();
     for (const [k, v] of harvestCoordsFromHtml(html)) bag.set(k, v);
-    let listings = await spawnBooking(pythonBody(input, { html }), 45_000, input);
+    let listings = (await spawnBooking(pythonBody(input, { html }), 45_000, input)).listings;
     if (listings.length === 0) {
       listings = await cardsFromDom(page, input);
     }

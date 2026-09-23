@@ -32,8 +32,10 @@ export const EPINGLE = {
 
 /** Étages d'empilement. Leaflet ajoute ces décalages à la latitude projetée du
  *  marqueur ; en deçà de la hauteur de la carte, deux marqueurs proches se
- *  départageaient par leur position et non par leur état. */
-export const ETAGE = { repere: -4000, normale: 0, comparee: 2000, designee: 6000 } as const;
+ *  départageaient par leur position et non par leur état. `vive` : l'épingle
+ *  désignée (survol, ligne de la liste, fiche épinglée), dont la pastille se
+ *  déplie et doit passer devant ses voisines. */
+export const ETAGE = { repere: -4000, normale: 0, comparee: 2000, designee: 6000, vive: 12000 } as const;
 
 export type EtatEpingle = "normale" | "comparee" | "repere" | "vue" | "retenue";
 

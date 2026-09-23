@@ -1261,6 +1261,68 @@
   gap: calc(var(--spacing) * 4.5);
 }
 
+/* Un texte pour les lecteurs d'écran seulement : l'étiquette « Airbnb + 2 »
+   y dit quelles sont les autres plateformes, que l'infobulle ne donne qu'à la
+   souris. */
+.lecteur7 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.v7deux__liste:focus {
+  outline: none;
+}
+
+/* La pagination de la liste des logements, sous la grille. */
+.pages7 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: calc(var(--spacing) * 6);
+}
+.pages7__num,
+.pages7__fleche {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.pages7__num:hover,
+.pages7__fleche:not(:disabled):hover {
+  background: var(--color-glacier);
+}
+.pages7__num--on {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.pages7__num--on:hover {
+  background: var(--color-ink);
+}
+.pages7__fleche {
+  font-size: var(--text-section);
+}
+.pages7__fleche:disabled {
+  color: var(--color-line);
+  cursor: default;
+}
+.pages7__ellipse {
+  color: var(--color-muted);
+}
+
 /* ── Relevé en cours ────────────────────────────────────────────────────────
    L'écran Logements pendant que les connecteurs répondent. Il ne remplace que
    le contenu des deux colonnes : le bloc collant, la grille 58/42 et la boîte
@@ -1796,6 +1858,35 @@
   color: var(--color-muted);
   border-style: dashed;
   border-color: var(--color-line);
+}
+/* La pastille qui heurterait sa voisine se réduit à un point, comme sur
+   Airbnb : le prix revient au survol, ou quand sa ligne est désignée dans la
+   liste. Voir `compacter` (CarteEpingles.tsx). */
+.epingle-prix--compacte {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  font-size: 0;
+  border-width: 3px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  border-color: var(--color-surface);
+}
+.epingle-prix--compacte.epingle-prix--vue {
+  background: var(--color-muted);
+  border-style: solid;
+  border-color: var(--color-surface);
+}
+.epingle-prix--compacte:hover,
+.epingle-hote--vive .epingle-prix--compacte {
+  width: auto;
+  height: 29px;
+  padding: 0 10px;
+  font-size: var(--text-liste);
+  border-width: var(--epingle-bord, 2px);
+  border-radius: 999px;
+  background: var(--color-surface);
+  z-index: 1;
 }
 @media (prefers-reduced-motion: reduce) {
   .epingle-prix {
@@ -3794,6 +3885,73 @@
 .bk7__ok {
   color: var(--color-ok-texte);
 }
+/* Les offres d'un même logement sur plusieurs plateformes : une ligne par
+   offre, de la moins chère à la plus chère, l'écart à droite du prix. */
+.offres7 {
+  display: grid;
+  gap: 8px;
+}
+.offres7__titre {
+  font-size: var(--text-note);
+  font-weight: 700;
+  color: var(--color-texte-3);
+}
+.offres7 ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-ruban);
+  overflow: hidden;
+}
+.offres7 li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: var(--text-detail);
+}
+.offres7 li + li {
+  border-top: 1px solid var(--color-line);
+}
+.offres7__ici {
+  background: var(--color-bg);
+}
+.offres7__source {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-marque);
+  cursor: pointer;
+}
+.offres7__source:disabled {
+  color: var(--color-ink);
+  cursor: default;
+}
+.offres7__source:not(:disabled):hover {
+  text-decoration: underline;
+}
+.offres7__ecart {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.offres7__ecart--base {
+  color: var(--color-marque-texte);
+  font-weight: 700;
+}
+.offres7__lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .volet7__prov {
   display: grid;
   gap: 8px;

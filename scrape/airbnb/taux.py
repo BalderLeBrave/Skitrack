@@ -16,6 +16,8 @@ TAUX_PATH = Path(os.environ.get("SKITRACK_TAUX") or "/tmp/skitrack-taux.json")
 # Airbnb : 18 appels / 60 s, 2 s entre deux. Au-delà on s'arrête, on garde le relevé.
 HOSTS: dict[str, tuple[float, int]] = {
     "airbnb": (2.0, 18),
+    # Le CDN statique d'Airbnb (muscache.com) : des fichiers, pas l'API.
+    "airbnb-cdn": (0.3, 60),
     "gites": (2.0, 24),
     "booking": (1.2, 24),
 }

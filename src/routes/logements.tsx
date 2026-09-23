@@ -775,7 +775,13 @@ function LogementsStation({ s }: { s: Station }) {
   }, []);
   const sheet = sheetId ? (raw.find((l) => l.id === sheetId) ?? null) : null;
 
-  const situees = affichees.filter((l) => l.lat != null && l.lon != null);
+  // Les épingles portent tout le résultat des filtres, comme sur Comparer ; la
+  // liste, elle, suit le cadre. Tirées du cadre, elles ne recadraient que sur
+  // ce qu'il montrait déjà : le premier cadrage (le repère de la station,
+  // avant l'arrivée du relevé) se reconduisait sans fin, et les annonces
+  // arrivées ensuite hors de lui ne s'affichaient jamais — 515 sur 3 268 à
+  // Avoriaz, relevé du 23 septembre 2026.
+  const situees = lvis.filter((l) => l.lat != null && l.lon != null);
   const marqueurs = useMemo(
     () => [
       {

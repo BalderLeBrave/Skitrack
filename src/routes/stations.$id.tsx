@@ -42,7 +42,6 @@ import {
   liftsLbl,
   maxM,
   minM,
-  skiinfoUrl,
   villageLbl,
   villageM,
 } from "@/lib/v7";
@@ -353,7 +352,6 @@ function FicheBody({ s }: { s: Station }) {
   const inCmp = cmp.includes(s.id);
   const photo = stationPhoto(s);
   const pret = resolveStationPhoto(s.id);
-  const src = skiinfoUrl(s);
   // L'emprunt se dit — c'est une information sur la photo affichée. Le
   // « crédit à relever » ne disait rien au lecteur : il notait un travail qui
   // reste à faire côté dépôt.
@@ -541,31 +539,30 @@ function FicheBody({ s }: { s: Station }) {
             <section className="carte7-sect carte7-sect--serre">
               <div className="carte7-sect__tete">
                 <h2>Webcams</h2>
-                {src ? (
-                  <a href={src} target="_blank" rel="noopener" className="carte7-sect__lien">
-                    Fiche Skiinfo
-                    <Icon name="externe" taille={12} />
-                  </a>
+                {cams.length > 1 ? (
+                  <span className="carte7-sect__texte carte7-sect__texte--petit">
+                    {cams.length} caméras
+                  </span>
                 ) : null}
               </div>
               {cam ? (
                 <>
-                  {cams.length > 1 ? (
-                    <select
-                      className="select7 select7--champ"
-                      value={cam.id}
-                      onChange={(e) => setCamId(e.target.value)}
-                      aria-label="Choisir une caméra"
-                    >
-                      {cams.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className="carte7-sect__texte carte7-sect__texte--petit">{cam.label}</span>
-                  )}
+                  {/* Le menu reste affiché même pour une seule caméra : il dit
+                      laquelle on regarde, au même endroit sur toutes les
+                      fiches. */}
+                  <select
+                    className="select7 select7--champ"
+                    value={cam.id}
+                    onChange={(e) => setCamId(e.target.value)}
+                    disabled={cams.length < 2}
+                    aria-label="Choisir une webcam"
+                  >
+                    {cams.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
                   {/* Une caméra du domaine posée dans un autre village le dit.
                       La fiche de Brides-les-Bains montrait celle de Val
                       Thorens sans le préciser. */}

@@ -12,7 +12,11 @@
  * - booking.com répond 202, un défi AWS WAF : la « lecture » n'en tirait que
  *   le titre « JavaScript is disabled » ;
  * - la fiche Airbnb `rooms/` rend tout, mais ne s'ouvre que pour un GPS vide :
- *   c'est ce fetch qui ouvre le 429. Règle inchangée.
+ *   c'est ce fetch qui ouvre le 429. Règle inchangée ;
+ * - la page hôte GreenGo (www.greengo.voyage/hote/…, environ 1 Mo) ne donne
+ *   rien de sûr : sa lecture a rendu « 2 personnes », tiré d'une activité. La
+ *   capacité, les chambres et le total viennent du détail de l'API, que le
+ *   relevé lit lui-même, à son rythme. Relu le 24 septembre 2026.
  *
  * Un hôte absent de la table est tenté ; le disjoncteur l'arrête s'il ne
  * comble rien.
@@ -52,6 +56,7 @@ export function hoteDe(url: string): string | null {
 const PRISES: ReadonlyArray<{ nom: string; hote: RegExp; prise: ReadonlySet<Trou> }> = [
   { nom: "booking.com", hote: /(^|\.)booking\.com$/i, prise: new Set() },
   { nom: "abritel.fr", hote: /(^|\.)abritel\.fr$/i, prise: new Set(["gps", "titre"]) },
+  { nom: "greengo.voyage", hote: /(^|\.)greengo\.voyage$/i, prise: new Set() },
 ];
 
 /**

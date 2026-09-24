@@ -33,7 +33,8 @@ elle n'est la photo d'aucun d'eux. Les banques d'images et les réseaux
 sociaux aussi. Tout ce qui reste sans corroboration est écarté, et compté.
 Chaque retenue est ensuite **contrôlée** : un octet demandé, le type et le
 poids lus ; moins de 20 ko ou pas une image, elle sort. Le contrôle est poli
-— un agent nommé, une requête par hôte toutes les 1,2 s.
+— un en-tête de navigateur (agent nommé chez Wikimedia), une requête par hôte
+toutes les 1,2 s.
 
 Un forfait est retenu s'il a un prix, une devise et une **source lisible** :
 l'adresse d'une page, ou « Skiinfo » (la page du pays est alors nommée), ou
@@ -63,6 +64,11 @@ import requests
 SORTIE = Path("src/lib/monde/data/proprietaire.json")
 # Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+# Sauf chez Wikimedia : sa politique d'usage exige un agent nommé avec un
+# contact, et bloque les navigateurs imités. Le tableau rempli à la main peut
+# en contenir.
+UA_WIKIMEDIA = ("Skitrack/1.0 (contrôle d'images relevées à la main ; un octet demandé par image ; "
+                "contact adrien.raffray196@gmail.com)")
 INTERVALLE = 1.2
 POIDS_MIN = 20_000
 
@@ -166,9 +172,11 @@ class Politesse:
 
 def sonder(url: str, politesse: Politesse) -> dict:
     """Un octet : le type, le poids, et si c'est bien une image servie."""
-    politesse.attendre(hote(url))
+    h = hote(url)
+    politesse.attendre(h)
+    ua = UA_WIKIMEDIA if h == "wikimedia.org" or h.endswith(".wikimedia.org") else UA
     try:
-        res = requests.get(url, headers={"User-Agent": UA, "Range": "bytes=0-0", "Accept": "image/*"}, timeout=20, stream=True)
+        res = requests.get(url, headers={"User-Agent": ua, "Range": "bytes=0-0", "Accept": "image/*"}, timeout=20, stream=True)
         typ = res.headers.get("content-type", "")
         cr = res.headers.get("content-range", "")
         m = re.search(r"/(\d+)$", cr)

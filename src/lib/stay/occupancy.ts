@@ -247,8 +247,15 @@ export function annoncer(
   );
 }
 
-/** Relit titre, URL, type, libellé et photo d'une fiche déjà construite. */
+/**
+ * Relit titre, URL, type, libellé et photo d'une fiche déjà construite.
+ *
+ * Sauf les photos GreenGo : leurs noms sont des libellés numérotés
+ * (« 12-chambre_rdc_cote_jardin-web.jpg », 12e photo) qui se lisaient
+ * « 12 chambres ». GreenGo publie capacité et chambres dans son détail.
+ */
 export function occupancyOfListing(l: {
+  source?: string | null;
   guests: number | null;
   bedrooms: number | null;
   rooms?: number | null;
@@ -265,7 +272,6 @@ export function occupancyOfListing(l: {
     l.url,
     l.propertyType,
     l.priceLabel,
-    l.photo,
-    ...(l.photos ?? []),
+    ...(l.source === "GreenGo" ? [] : [l.photo, ...(l.photos ?? [])]),
   );
 }

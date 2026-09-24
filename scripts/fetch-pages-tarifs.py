@@ -24,7 +24,8 @@ d'où il vient. Une valeur sans sa ligne ne sera pas retenue.
 
 `robots.txt` est lu avant chaque hôte et respecté : une page interdite
 n'est pas demandée, et c'est écrit dans le relevé. Une requête par hôte
-toutes les deux secondes, un agent nommé avec un contact, et un 429 ou un
+toutes les deux secondes, un en-tête de navigateur (robots.txt lu sous le nom
+« Skitrack »), et un 429 ou un
 503 met l'hôte de côté pour le reste du tour.
 """
 

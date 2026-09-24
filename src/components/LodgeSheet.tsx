@@ -4,6 +4,7 @@ import { distToGpxM, distToGpxStartM } from "@/lib/accommodation";
 import { formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorOf, skiAccessLabel } from "@/lib/access";
 import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
+import { provenancePhrase, sourcePhrase } from "@/lib/provenance";
 import { nuitsLbl } from "@/lib/parcours";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
@@ -184,11 +185,7 @@ export function LodgeSheet({
                   <strong>Libellé de la source</strong> : « {listing.priceLabel} »
                 </li>
               ) : null}
-              <li>
-                <strong>Source</strong> : {listing.source}
-                {listing.propertyType ? ` · ${listing.propertyType}` : ""}
-                {listing.platformId ? ` · réf. ${listing.platformId}` : ""}
-              </li>
+              <li>{sourcePhrase(listing)}</li>
               {listing.rating != null ? (
                 <li>
                   <strong>Note publiée</strong> : {listing.rating}
@@ -287,7 +284,13 @@ export function LodgeSheet({
                       : `${formatAlt(altitude)} (modèle Open-Meteo / Copernicus)`}
               </li>
             </ul>
-            <p className="mt-6 text-corps text-muted">{listing.proven}</p>
+            <p className="mt-6 text-corps text-muted">{provenancePhrase(listing)}</p>
+            {listing.proven ? (
+              <details className="mt-2 text-note text-muted">
+                <summary className="cursor-pointer">Détail technique</summary>
+                <p className="mt-1 font-mono">{listing.proven}</p>
+              </details>
+            ) : null}
             {listing.url && (
               <a
                 href={listing.url}

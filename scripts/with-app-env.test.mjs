@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -16,6 +16,12 @@ import {
 
 const execFileAsync = promisify(execFile);
 const WRAPPER = join(projectRoot(), "scripts/with-app-env.mjs");
+
+/** `.grok/` is gitignored: the app-env file exists in the generation sandbox,
+ *  never in a clone, where these checks have nothing to read. */
+const NO_APP_ENV = existsSync(join(projectRoot(), APP_ENV_REL_PATH))
+  ? ""
+  : `${APP_ENV_REL_PATH} absent (gitignored, sandbox only)`;
 const PRINT_FLAG = "process.stdout.write(String(process.env.VITE_AUTH_ENABLED));";
 
 function makeWorkspace(appEnvJson) {
@@ -60,7 +66,8 @@ test("an explicit process-env override wins over the file", () => {
   assert.equal(merged.PATH, "/usr/bin");
 });
 
-test("the template ships auth off", () => {
+test("the template ships auth off", (t) => {
+  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
   assert.deepEqual(readAppEnv(projectRoot()), { VITE_AUTH_ENABLED: "false" });
 });
 
@@ -87,7 +94,8 @@ test("an absolute command is left untouched", () => {
   assert.deepEqual(args, ["-e", "0"]);
 });
 
-test("the wrapped command runs with the app env applied", async () => {
+test("the wrapped command runs with the app env applied", async (t) => {
+  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
   const { stdout } = await execFileAsync(process.execPath, [
     WRAPPER,
     process.execPath,
@@ -127,7 +135,8 @@ test("a signal-killed command is never reported as success", async () => {
   );
 });
 
-test("the CLI still runs when invoked through a symlinked path", async () => {
+test("the CLI still runs when invoked through a symlinked path", async (t) => {
+  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
   // node realpaths import.meta.url but not process.argv[1], so a raw comparison
   // turns the wrapper into a no-op that exits 0 without starting anything.
   const link = join(mkdtempSync(join(tmpdir(), "app-env-link-")), "scripts");

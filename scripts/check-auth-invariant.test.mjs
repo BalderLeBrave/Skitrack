@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtempSync, symlinkSync } from "node:fs";
+import { existsSync, mkdtempSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -12,7 +12,13 @@ import {
   compareAuthInvariant,
   probeDevAuthEnabled,
 } from "./check-auth-invariant.mjs";
-import { projectRoot } from "./with-app-env.mjs";
+import { APP_ENV_REL_PATH, projectRoot } from "./with-app-env.mjs";
+
+/** `.grok/` is gitignored: the app-env file exists in the generation sandbox,
+ *  never in a clone, where these checks have nothing to read. */
+const NO_APP_ENV = existsSync(join(projectRoot(), APP_ENV_REL_PATH))
+  ? ""
+  : `${APP_ENV_REL_PATH} absent (gitignored, sandbox only)`;
 
 /**
  * The JSON body `/__app-env` would serve. Do not start a real Vite server —
@@ -90,7 +96,8 @@ test("only a divergence warns the smoke verdict", () => {
   }
 });
 
-test("the build side resolves the template's shipped app-env", () => {
+test("the build side resolves the template's shipped app-env", (t) => {
+  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
   assert.equal(buildAuthEnabled(projectRoot(), {}), false);
   assert.equal(buildAuthEnabled(projectRoot(), { VITE_AUTH_ENABLED: "true" }), true);
 });

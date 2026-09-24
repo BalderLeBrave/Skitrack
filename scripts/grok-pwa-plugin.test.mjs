@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,6 +18,16 @@ import {
   stripInstallParams,
 } from "./grok-pwa-shared.mjs";
 import { renderInstallPage } from "./grok-pwa-plugin.mjs";
+
+/**
+ * A workspace with neither `src/lib/og/site.json` nor `public/og.jpg`. The head
+ * context falls back to `process.cwd()`, which is this repo — and the repo
+ * ships both (title "Skitrack", custom card), so tests of the defaults must
+ * not read it.
+ */
+function bareWorkspace() {
+  return mkdtempSync(join(tmpdir(), "grok-og-bare-"));
+}
 
 const TEMPLATE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -105,7 +115,7 @@ test("does not duplicate x:creator tags", () => {
 test("platform chrome overwrites share-card metas and always sets og:title", () => {
   const html =
     '<html><head><title>Hello World</title><meta property="og:title" content="Old"><meta name="twitter:card" content="summary"></head></html>';
-  const out = injectGrokPwaHead(html, { appName: "Wild Race" });
+  const out = injectGrokPwaHead(html, { appName: "Wild Race", cwd: bareWorkspace() });
   assert.match(out, /name="twitter:card" content="summary_large_image"/);
   assert.match(out, /property="og:title" content="Hello World"/);
   assert.doesNotMatch(out, /content="Old"/);
@@ -246,6 +256,7 @@ test("site title Grok App is a real name, not a sentinel", () => {
 test("published grok.me slug is still a title fallback", () => {
   const out = injectGrokPwaHead("<html><head></head></html>", {
     host: "wild-race.grok.me",
+    cwd: bareWorkspace(),
   });
   assert.match(out, /property="og:title" content="Wild Race"/);
 });
@@ -307,6 +318,7 @@ test("emits og:image for a public host and prefers a custom card", () => {
     appName: "Wild Race",
     host: "wild-race.grok.me",
     site: { title: "Wild Race" },
+    cwd: bareWorkspace(),
   });
   assert.match(
     placeholder,
@@ -327,6 +339,7 @@ test("placeholder og:image appends site.color when it is 6-digit hex", () => {
   const themed = injectGrokPwaHead("<html><head></head></html>", {
     host: "wild-race.grok.me",
     site: { title: "Wild Race", color: "#FF4D2E" },
+    cwd: bareWorkspace(),
   });
   assert.match(
     themed,
@@ -336,6 +349,7 @@ test("placeholder og:image appends site.color when it is 6-digit hex", () => {
   const invalid = injectGrokPwaHead("<html><head></head></html>", {
     host: "wild-race.grok.me",
     site: { title: "Wild Race", color: "red" },
+    cwd: bareWorkspace(),
   });
   assert.doesNotMatch(invalid, /color=/);
 
@@ -349,6 +363,7 @@ test("placeholder og:image appends site.color when it is 6-digit hex", () => {
 test("document title entities are not double-escaped on og:title", () => {
   const out = injectGrokPwaHead(
     "<html><head><title>Cats &amp; Dogs</title></head></html>",
+    { cwd: bareWorkspace() },
   );
   assert.match(out, /property="og:title" content="Cats &amp; Dogs"/);
   assert.doesNotMatch(out, /Cats &amp;amp; Dogs/);
@@ -363,14 +378,17 @@ test("site.json title wins over the host slug", () => {
 });
 
 test("injects into documents with no head element", () => {
-  const out = injectGrokPwaHead("<html><body>hi</body></html>", { appName: "Solo" });
+  const out = injectGrokPwaHead("<html><body>hi</body></html>", {
+    appName: "Solo",
+    cwd: bareWorkspace(),
+  });
   assert.match(out, /<head>/);
   assert.match(out, /property="og:title" content="Solo"/);
   assert.match(out, /<\/head>/);
 });
 
 test("streaming injector matches </HEAD> case-insensitively", () => {
-  const injector = createHeadInjector({ appName: "Wild Race" });
+  const injector = createHeadInjector({ appName: "Wild Race", cwd: bareWorkspace() });
   const chunks = [
     ...injector.push("<html><HEAD><title>x</title></HE"),
     ...injector.push("AD><body>hello</body></html>"),
@@ -395,7 +413,10 @@ test("is idempotent", () => {
 });
 
 test("uses the app name in the injected title tag", () => {
-  const out = injectGrokPwaHead("<html><head></head></html>", { appName: "Wild Race" });
+  const out = injectGrokPwaHead("<html><head></head></html>", {
+    appName: "Wild Race",
+    cwd: bareWorkspace(),
+  });
   assert.match(out, /apple-mobile-web-app-title" content="Wild Race"/);
 });
 
@@ -494,6 +515,15 @@ test("nitro middleware and its bundled assets exist", () => {
   assert.match(middleware, /install-page\.html\?raw/);
   assert.match(middleware, /virtual:grok-og-identity/);
   readFileSync(join(TEMPLATE_ROOT, "scripts/install-page.html"));
+});
+
+// `public/__grok/` is gitignored: the preview sandbox writes it, a clone has none.
+const NO_GROK_PUBLIC = existsSync(join(TEMPLATE_ROOT, "public/__grok"))
+  ? ""
+  : "public/__grok absent (gitignored, sandbox only)";
+
+test("the preview sandbox ships the PWA icon and install styles", (t) => {
+  if (NO_GROK_PUBLIC) return t.skip(NO_GROK_PUBLIC);
   readFileSync(join(TEMPLATE_ROOT, "public/__grok/icon-180.png"));
   readFileSync(join(TEMPLATE_ROOT, "public/__grok/install/styles.css"));
 });

@@ -164,7 +164,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   useEffect(() => {
     if (!station) return;
     let cancelled = false;
-    let pending = 4;
+    let pending = 5;
     setSearching(true);
     setLive(null, [], true);
     const payload = {
@@ -191,7 +191,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       pending -= 1;
       if (!cancelled && pending <= 0) setSearching(false);
     };
-    const run = (part: "airbnb" | "gites" | "cozy" | "centrales") => {
+    const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo") => {
       const wait =
         part === "gites"
           ? SEARCH_PART_MS + DEVIS_MS + 6_000
@@ -213,7 +213,9 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
                 ? dump.filter((l) => l.source === "Gîtes de France")
                 : part === "centrales"
                   ? dump.filter((l) => l.source === "Centrale")
-                  : dump.filter((l) => l.source === "Abritel" || l.source === "Booking");
+                  : part === "greengo"
+                    ? dump.filter((l) => l.source === "GreenGo")
+                    : dump.filter((l) => l.source === "Abritel" || l.source === "Booking");
           if (fallback.length) mergeLive(fallback, res.sources);
         })
         .catch((err: unknown) => {
@@ -235,6 +237,11 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
               frozenRef.current.filter((l) => l.source === "Centrale"),
               [{ source: "Centrale", ok: false, count: 0, ms: 0, error }],
             );
+          } else if (part === "greengo") {
+            mergeLive(
+              frozenRef.current.filter((l) => l.source === "GreenGo"),
+              [{ source: "GreenGo", ok: false, count: 0, ms: 0, error }],
+            );
           } else {
             mergeLive(
               frozenRef.current.filter((l) => l.source === "Abritel" || l.source === "Booking"),
@@ -255,6 +262,9 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       // plateformes et n'attend rien d'elles : une centrale lente ne doit pas
       // retarder la liste, et une centrale muette ne doit pas la vider.
       run("centrales");
+      // GreenGo : ses propres hébergements écoresponsables, qu'aucune autre
+      // source ne rapporte.
+      run("greengo");
     };
     // Trois clics sur « Voyageurs » lançaient trois relevés Airbnb complets,
     // qui partaient tous jusqu'au bout côté serveur : jusqu'à 36 requêtes à

@@ -14,9 +14,10 @@ import { collecterCozy, cozyListings, type CollecteCozy } from "./cozy.server";
 import { fusionner } from "./fusion";
 import { allowsPath } from "./robots";
 import { chercherCentrale } from "./centrales/chercher.server";
+import { releverGreenGo } from "./greengo.server";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
 
-export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "browser" | "all";
+export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "browser" | "all";
 
 function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   if (
@@ -43,6 +44,7 @@ const GITES_SOURCES = ["Gîtes de France"] as const;
 const COZY_SOURCES = ["Abritel", "Booking"] as const;
 const BROWSER_SOURCES = ["Airbnb", "Gîtes de France", "Abritel", "Booking"] as const;
 const CENTRALE_SOURCES = ["Centrale"] as const;
+const GREENGO_SOURCES = ["GreenGo"] as const;
 
 /**
  * Le temps qu'une part se donne pour relever, sous les 52 s de `SEARCH_PART_MS`
@@ -375,6 +377,30 @@ async function runCentrales(input: LiveSearchInput): Promise<LiveSearchResult> {
   return { listings: locate(input, listings), sources: reports };
 }
 
+/**
+ * GreenGo : ses propres hébergements, écoresponsables, publiés sur
+ * greengo.voyage (voir `greengo.ts`). Une part à elle : aucune autre source ne
+ * les rapporte, et `mergeLive` remplace les annonces d'une source par celles
+ * de la part qui la rapporte.
+ */
+async function runGreenGo(input: LiveSearchInput): Promise<LiveSearchResult> {
+  const reports: SourceReport[] = [];
+  const listings: Listing[] = [];
+  const t0 = Date.now();
+  try {
+    const r = await releverGreenGo(input, { echeance: t0 + ECHEANCE_PART_MS });
+    pushReport(reports, listings, "GreenGo", r.listings, Date.now() - t0, {
+      note: notes(
+        r.hotes != null ? `${r.hotes} hôtes réservables à 6 km, ${r.detailles} lus en détail` : null,
+        r.raison && `arrêté en route — ${r.raison}`,
+      ),
+    });
+  } catch (err) {
+    failAll(reports, GREENGO_SOURCES, err);
+  }
+  return { listings: locate(input, listings), sources: reports };
+}
+
 async function runBrowser(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
@@ -417,12 +443,14 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
   if (part === "gites") return runGites(input);
   if (part === "cozy") return runCozy(input);
   if (part === "centrales") return runCentrales(input);
+  if (part === "greengo") return runGreenGo(input);
   if (part === "browser") return runBrowser(input);
   const parts = await Promise.all([
     borne(runAirbnb(input), AIRBNB_SOURCES),
     borne(runGites(input), GITES_SOURCES),
     borne(runCozy(input), COZY_SOURCES),
     borne(runCentrales(input), CENTRALE_SOURCES),
+    borne(runGreenGo(input), GREENGO_SOURCES),
   ]);
   return {
     listings: locate(input, parts.flatMap((p) => p.listings)),

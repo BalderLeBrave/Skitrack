@@ -9,8 +9,13 @@
 export const RETRY_STATUSES = new Set([429, 503]);
 export const DEFAULT_WAIT_MS = 2_000;
 export const MAX_WAIT_MS = 12_000;
-/** Après deux 429, on ne rappelle plus Airbnb pendant ce délai. */
+/** Après un 429, on ne rappelle plus Airbnb pendant ce délai au moins. */
 export const CIRCUIT_COOLDOWN_MS = 45_000;
+/**
+ * Plafond d'une pause demandée par Retry-After : on la tient en entier. Le
+ * plafond `MAX_WAIT_MS` ne vaut que pour une attente sur place.
+ */
+export const PAUSE_MAX_MS = 3_600_000;
 
 export function estStatutRalenti(status: number): boolean {
   return RETRY_STATUSES.has(status);

@@ -1,10 +1,9 @@
 /**
  * Connecteur forfaits. **Seule voie de récupération des tarifs.**
  *
- * Ce qu'il ne fait plus :
+ * Son en-tête est celui d'un navigateur, comme tout le relevé (consigne du
+ * propriétaire du 24 septembre 2026, `politesse.ts`). Ce qu'il ne fait plus :
  *
- * - il ne se fait plus passer pour Chrome 131 sous Windows. L'en-tête
- *   d'identification est honnête (`politesse.ts`) ;
  * - il ne lit plus robots.txt pour l'ignorer : un `Disallow` ferme la voie
  *   automatique et bascule le domaine en saisie assistée ;
  * - il n'enchaîne plus huit chemins candidats après un 403. Un refus est un

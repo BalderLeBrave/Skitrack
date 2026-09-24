@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { UA_NAVIGATEUR } from "../navigateur.ts";
 import { centraleAutorise, oublierRobots } from "./robots.server.ts";
 
 /**
@@ -48,12 +49,13 @@ describe("robots.txt des centrales, en réseau", () => {
     assert.equal(ouvert.autorise, true);
   });
 
-  it("demande bien /robots.txt à l'origine, sous notre nom", async () => {
+  it("demande bien /robots.txt à l'origine, avec l'en-tête d'un navigateur", async () => {
     repondre(() => new Response("", { status: 200 }));
     await centraleAutorise("https://exemple.test/un/chemin/profond.htm?a=1");
     assert.equal(appels.length, 1);
     assert.equal(appels[0]?.url, "https://exemple.test/robots.txt");
-    assert.match(appels[0]?.agent ?? "", /SkitrackCentrales/);
+    assert.equal(appels[0]?.agent, UA_NAVIGATEUR);
+    assert.doesNotMatch(appels[0]?.agent ?? "", /Skitrack/);
   });
 
   it("un 404 autorise, parce que c'est une réponse et non un silence", async () => {

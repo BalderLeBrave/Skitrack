@@ -102,6 +102,75 @@ def test_le_limiteur_local_n_ouvre_pas_le_coupe_circuit():
     assert gate.consecutive == 0
 
 
+def test_un_refus_dit_son_code_et_un_403_est_un_refus():
+    import tempfile
+    from pathlib import Path
+
+    import taux
+    import throttle
+    from stays import classer_echec, erreur_arret
+
+    assert erreur_arret("refus", 503) == "HTTP 503"
+    assert erreur_arret("rythme").startswith("limiteur local")
+    taux.TAUX_PATH = Path(tempfile.mkdtemp()) / "taux.json"
+    throttle.airbnb_circuit.path = Path(tempfile.mkdtemp()) / "c"
+    assert classer_echec(Exception("Not corret status code: ", 403, " response body: ", "{}"), "StaysSearch") == (
+        "refus",
+        403,
+    )
+    assert throttle.airbnb_circuit.open(), "un 403 ouvre la pause partagée"
+    assert classer_echec(Exception("json illisible"), "StaysSearch") is None
+
+
+def test_un_403_sur_la_premiere_emprise_jette_cle_et_hash_mais_garde_les_cookies():
+    import json
+    import tempfile
+    import time
+    from pathlib import Path
+
+    import session
+    import stays
+    import taux
+    import throttle
+
+    taux.TAUX_PATH = Path(tempfile.mkdtemp()) / "taux.json"
+    throttle.airbnb_circuit.path = Path(tempfile.mkdtemp()) / "c"
+    ancien = session.SESSION_PATH
+    session.SESSION_PATH = Path(tempfile.mkdtemp()) / "session.json"
+    maintenant = time.time()
+    session.SESSION_PATH.write_text(
+        json.dumps(
+            {
+                "key": "cle",
+                "key_at": maintenant,
+                "hash": "hash",
+                "hash_at": maintenant,
+                "cookies": [{"name": "bev", "value": "1", "domain": ".airbnb.com", "path": "/"}],
+                "cookies_at": maintenant,
+            }
+        ),
+        encoding="utf-8",
+    )
+    session._key = session._hash = ""
+    anciens = stays.airbnb_search.get, stays.airbnb_search.url_to_raw_params
+
+    def refuse(**kw):
+        raise Exception("Not corret status code: ", 403, " response body: ", "{}")
+
+    stays.airbnb_search.get = refuse
+    stays.airbnb_search.url_to_raw_params = lambda url: []
+    try:
+        out = stays.run_search({"city": "Avoriaz", "lat": 46.19, "lon": 6.77, "skipEnrich": True})
+    finally:
+        stays.airbnb_search.get, stays.airbnb_search.url_to_raw_params = anciens
+        disque = json.loads(session.SESSION_PATH.read_text(encoding="utf-8"))
+        session.SESSION_PATH = ancien
+        session._key = session._hash = ""
+    assert out["error"] == "HTTP 403" and out["arret"] == "refus"
+    assert "key" not in disque and "hash" not in disque, "clé et hash périmés jetés"
+    assert disque.get("cookies"), "les cookies restent"
+
+
 if __name__ == "__main__":
     failed = 0
     for name, fn in list(globals().items()):

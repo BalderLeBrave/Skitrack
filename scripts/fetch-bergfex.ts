@@ -44,7 +44,7 @@
  * `robots.txt`, lu le 21 septembre 2026 : la recherche (`/suchen/`), les
  * espaces membres, les exports et les redirections sont interdits ; les fiches
  * de station et leurs pages de prix ne le sont pas. Cadence de `politesse.ts`
- * : deux secondes, une requête à la fois, en-tête honnête.
+ * : deux secondes, une requête à la fois, en-tête de navigateur.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -58,9 +58,8 @@ const INTERVALLE_MS = 2_000;
 const TIMEOUT_MS = 25_000;
 const SAUVE_TOUS = 50;
 
-const UA =
-  "Skitrack/1.0 (relevé de tarifs et de photos de stations ; robot applicatif, " +
-  "une requête à la fois, 2 s entre deux ; lit les fiches publiées, pas la recherche)";
+// Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 /**
  * Les pays de départ, et les slugs qui ne sont pas des stations.

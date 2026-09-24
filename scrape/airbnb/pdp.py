@@ -4,7 +4,9 @@ ExploreSearch de STL est mort (400). La fiche PDP sert encore : capacité,
 chambres, GPS. On l'appelle pour les annonces auxquelles la tuile n'a rien dit.
 
 Les appels partent l'un après l'autre. Un 429 ouvre le coupe-circuit partagé
-(`throttle.airbnb_circuit`) : on arrête le lot, on ne vide pas ce qui est lu.
+(`throttle.refus`) : on arrête le lot, sans reprise, et on ne vide pas ce qui
+est lu. Une attente de notre propre limiteur arrête aussi le lot, sans rien
+ouvrir : Airbnb n'a rien refusé.
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ from typing import Any
 from urllib.parse import urlencode
 
 from occupancy import merge_occupancy, occupancy_from_pdp
-from throttle import MAX_WAIT_S, RateLimited, airbnb_circuit, retry_after_s
+from throttle import PAUSE_MAX_S, CoupeCircuit, RateLimited, RythmeLocal, airbnb_circuit, refus, retry_after_s
 
 # Hash relevé dans stl-scraper (stl/endpoint/pdp.py). Toujours valide le 2026-09-06.
 PDP_HASH = "625a4ba56ba72f8e8585d60078eb95ea0030428cac8772fde09de073da1bcdd0"
@@ -29,7 +31,7 @@ def _api_key(proxy_url: str = "") -> str:
     from session import cached
     from throttle import call_with_retry
 
-    return cached("key", lambda: call_with_retry(lambda: airbnb_api.get(proxy_url, timeout=20)))
+    return cached("key", lambda: call_with_retry(lambda: airbnb_api.get(proxy_url, timeout=20), etape="clé"))
 
 
 def _incomplete(row: dict[str, Any]) -> bool:
@@ -94,7 +96,7 @@ def fetch_pdp(
     except Exception:
         return None
     if res.status_code in (429, 503):
-        raise RateLimited(res.status_code, retry_after_s(res.headers))
+        raise RateLimited(res.status_code, retry_after_s(res.headers, cap=PAUSE_MAX_S))
     if res.status_code != 200:
         return None
     try:
@@ -116,32 +118,30 @@ def _fetch_pdp_polite(
     proxy_url: str,
     deadline: float,
 ) -> dict[str, Any] | None:
-    """Une fiche, une reprise sur 429, puis on s'arrête si ça continue."""
-    kwargs = dict(
-        check_in=check_in,
-        check_out=check_out,
-        adults=adults,
-        api_key=api_key,
-        proxy_url=proxy_url,
-    )
+    """Une fiche. Un refus ouvre le coupe-circuit et n'est pas repris.
+
+    `RythmeLocal` (notre file d'attente) et `CoupeCircuit` (pause d'un refus
+    antérieur) remontent tels quels : rien n'est parti, l'appelant arrête le
+    lot sans rien ouvrir de plus. `RythmeLocal` ouvrait le coupe-circuit, et le
+    relevé suivant rendait « HTTP 429 » sans qu'Airbnb ait rien refusé.
+    """
+    del deadline  # Plus de reprise : l'échéance ne borne plus d'attente ici.
     try:
-        occ = fetch_pdp(listing_id, **kwargs)
+        occ = fetch_pdp(
+            listing_id,
+            check_in=check_in,
+            check_out=check_out,
+            adults=adults,
+            api_key=api_key,
+            proxy_url=proxy_url,
+        )
         airbnb_circuit.hit_ok()
         return occ
+    except (RythmeLocal, CoupeCircuit):
+        raise
     except RateLimited as err:
-        airbnb_circuit.hit_limited(err.retry_after_s)
-        wait = min(err.retry_after_s, MAX_WAIT_S)
-        if time.perf_counter() + wait >= deadline:
-            airbnb_circuit.trip(wait)
-            return None
-        time.sleep(wait)
-        try:
-            occ = fetch_pdp(listing_id, **kwargs)
-            airbnb_circuit.hit_ok()
-            return occ
-        except RateLimited as err2:
-            airbnb_circuit.trip(err2.retry_after_s)
-            return None
+        refus(err.status, min(PAUSE_MAX_S, max(0.2, err.retry_after_s)), "PDP")
+        return None
 
 
 def enrich_listings(
@@ -180,15 +180,18 @@ def enrich_listings(
             if rest <= pause_s:
                 break
             time.sleep(pause_s)
-        occ = _fetch_pdp_polite(
-            row["id"],
-            check_in=check_in,
-            check_out=check_out,
-            adults=adults,
-            api_key=key,
-            proxy_url=proxy_url,
-            deadline=deadline,
-        )
+        try:
+            occ = _fetch_pdp_polite(
+                row["id"],
+                check_in=check_in,
+                check_out=check_out,
+                adults=adults,
+                api_key=key,
+                proxy_url=proxy_url,
+                deadline=deadline,
+            )
+        except (RythmeLocal, CoupeCircuit):
+            break
         if occ:
             occ_by_id[row["id"]] = occ
 

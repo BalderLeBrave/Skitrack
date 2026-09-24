@@ -1,21 +1,23 @@
 /**
  * La politesse réseau du relevé de tarifs : un appel à la fois par domaine,
- * un intervalle minimal entre deux requêtes, et une identification honnête.
+ * et un intervalle minimal entre deux requêtes.
  *
- * Le relevé des forfaits se présentait en Chrome 131 sous Windows. C'est un
- * déguisement : il sert à passer pour quelqu'un d'autre, exactement ce que la
- * consigne interdit. L'en-tête dit désormais ce que le programme est ; face à
- * un refus, on ne se cache pas, on bascule sur une voie autorisée.
+ * L'en-tête est celui d'un navigateur, comme tout le relevé : consigne du
+ * propriétaire du 24 septembre 2026 (`navigateur.ts`). Il s'annonçait avant
+ * en robot applicatif « Skitrack ». Face à un refus, on ne force pas : on
+ * bascule sur une voie autorisée.
  *
  * Aucune reprise en boucle : un appel refusé est un appel refusé, et c'est le
  * registre des sources (`sources.server.ts`) qui décide de la suite.
  */
 
 import { robotsAutorise, type VerdictRobots } from "./centrales/robots.ts";
+import { UA_NAVIGATEUR } from "./navigateur.ts";
 
-/** Identification honnête. Ni navigateur, ni robot d'indexation. */
+/** Le nom sous lequel on lit les règles de `robots.txt` (groupes, Crawl-delay). Il ne part pas dans les requêtes. */
 export const UA_AGENT = "Skitrack";
-export const UA_SKITRACK = `${UA_AGENT}/1.0 (relevé de tarifs de forfaits ; robot applicatif, une requête à la fois par domaine, 2 s au moins entre deux)`;
+/** L'en-tête des requêtes : celui d'un navigateur. */
+export const UA_RELEVE = UA_NAVIGATEUR;
 
 /** Intervalle minimal entre deux requêtes vers le même domaine. */
 export const INTERVALLE_MS = 2_000;
@@ -85,7 +87,7 @@ export function demander(url: string, signal?: AbortSignal, delaiMs?: number): P
     signal?.addEventListener("abort", relais, { once: true });
     try {
       const res = await fetch(url, {
-        headers: { "user-agent": UA_SKITRACK, accept: "text/html,application/xhtml+xml" },
+        headers: { "user-agent": UA_RELEVE, accept: "text/html,application/xhtml+xml" },
         redirect: "follow",
         signal: ctrl.signal,
       });
@@ -159,7 +161,7 @@ async function lireRobots(origine: string): Promise<string | null> {
   const t = setTimeout(() => ctrl.abort(), 5_000);
   try {
     const r = await fetch(`${origine.replace(/\/$/, "")}/robots.txt`, {
-      headers: { "user-agent": UA_SKITRACK, accept: "text/plain,*/*" },
+      headers: { "user-agent": UA_RELEVE, accept: "text/plain,*/*" },
       redirect: "follow",
       signal: ctrl.signal,
     });

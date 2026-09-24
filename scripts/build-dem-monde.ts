@@ -21,13 +21,10 @@
  * ## La politesse, et pourquoi elle n'est pas celle du dépôt
  *
  * `src/lib/scrape/politesse.ts` existe et sait faire la queue par hôte. Il
- * n'est pas réutilisé ici, et c'est délibéré : son en-tête annonce « relevé de
- * tarifs de forfaits » et demande du `text/html`. Emprunter cette
- * identification pour interroger une API d'altitudes reviendrait à dire au
- * service autre chose que ce que le programme fait — exactement ce que ce
- * module a été écrit pour empêcher. Le fichier étant par ailleurs verrouillé,
- * il n'était pas question de l'élargir. L'identification ci-dessous dit donc
- * ce que ce relevé-ci est.
+ * n'est pas réutilisé ici : il demande du `text/html` à des pages, et ce
+ * relevé interroge une API d'altitudes ; le fichier est par ailleurs
+ * verrouillé. L'en-tête ci-dessous est celui d'un navigateur, comme tout le
+ * relevé (consigne du propriétaire, 24 septembre 2026).
  *
  * La cadence — une requête par seconde, cent points par requête — tient les
  * 5 720 domaines en moins d'une minute et reste très en deçà des limites
@@ -63,9 +60,8 @@ const REESSAIS = 3;
  */
 class QuotaAtteint extends Error {}
 
-const UA =
-  "Skitrack/1.0 (relevé d'altitude des domaines skiables ; robot applicatif, " +
-  "une requête par seconde, 100 points par requête)";
+// Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 /** Le service dit lui-même quand revenir — dans l'heure, ou demain. Le
  *  message ne le devine donc pas à sa place. */

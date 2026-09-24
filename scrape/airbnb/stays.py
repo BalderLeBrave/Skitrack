@@ -19,12 +19,16 @@ import session
 from session import cached, install_shared_http, invalidate, next_search_cursor
 from throttle import (
     MARGE_REQUETE_S,
+    PAUSE_MAX_S,
+    CoupeCircuit,
     RateLimited,
     RythmeLocal,
     airbnb_circuit,
     call_with_retry,
     http_status_of,
     is_rate_limited,
+    refus,
+    retry_after_from_exc,
 )
 
 # Paquet vendu à côté de ce fichier.
@@ -149,6 +153,7 @@ def _hash(proxy_url: str, fin: float) -> str:
         return call_with_retry(
             lambda: airbnb_search.fetch_stays_search_hash(proxy_url, timeout=_timeout(fin)),
             fin=fin,
+            etape="hash",
         )
 
     return cached("hash", fetch)
@@ -157,8 +162,44 @@ def _hash(proxy_url: str, fin: float) -> str:
 def _api_key(proxy_url: str, fin: float) -> str:
     return cached(
         "key",
-        lambda: call_with_retry(lambda: airbnb_api.get(proxy_url, timeout=_timeout(fin)), fin=fin),
+        lambda: call_with_retry(lambda: airbnb_api.get(proxy_url, timeout=_timeout(fin)), fin=fin, etape="clé"),
     )
+
+
+def motif_arret(err: RateLimited) -> str:
+    """« refus » (Airbnb a répondu 429/503), « coupe-circuit » (pause d'un refus
+    antérieur, rien n'est parti) ou « rythme » (notre limiteur, rien n'est parti)."""
+    if isinstance(err, RythmeLocal):
+        return "rythme"
+    if isinstance(err, CoupeCircuit):
+        return "coupe-circuit"
+    return "refus"
+
+
+def erreur_arret(motif: str, statut: int = 429) -> str:
+    """Le texte que Node rapporte. Seul un vrai refus dit « HTTP … », avec son code."""
+    if motif == "rythme":
+        return "limiteur local : trop d'appels Airbnb récents"
+    if motif == "coupe-circuit":
+        reste = airbnb_circuit.remaining_s()
+        return f"coupe-circuit Airbnb : pause après un refus (encore {reste:.0f} s)"
+    return f"HTTP {statut}"
+
+
+def classer_echec(err: BaseException, etape: str) -> tuple[str, int] | None:
+    """(motif, code) d'une exception qui arrête le relevé, ou None si ce n'est ni un refus ni une pause.
+
+    Un 429/503 ou un 403 arrivé hors de `call_with_retry` passe par
+    `throttle.refus` ici : pause partagée et ligne au journal, comme les autres.
+    """
+    if isinstance(err, RateLimited):
+        return motif_arret(err), err.status
+    status = http_status_of(err)
+    if is_rate_limited(err) or status == 403:
+        code = status or 429
+        refus(code, retry_after_from_exc(err, cap=PAUSE_MAX_S), etape)
+        return "refus", code
+    return None
 
 
 def result_count(raw: Any) -> int | None:
@@ -186,14 +227,16 @@ def _search_pages(
     fin: float,
     seen: set[str],
     budget: list[int],
-) -> tuple[list[Any], int, bool, int | None, bool]:
+) -> dict[str, Any]:
     """Les pages d'une emprise, jusqu'à la fin des curseurs, l'échéance ou le budget.
 
     `seen` est partagé entre les emprises : une annonce déjà lue ailleurs ne
     compte pas comme neuve. `budget` est le nombre de StaysSearch qu'il reste
-    au relevé entier (liste mutable). Rend les charges, le nombre de pages, le
-    drapeau 429, le nombre publié pour l'emprise, et si l'emprise a été lue
-    jusqu'au bout de ce qu'Airbnb laisse paginer.
+    au relevé entier (liste mutable). Rend les charges (`raws`), le nombre de
+    pages, le motif d'arrêt (`arret` : refus, coupe-circuit, rythme — ou None)
+    et son code (`statut`), le nombre publié pour l'emprise (`publie`), si
+    l'emprise a été lue jusqu'au bout de ce qu'Airbnb laisse paginer
+    (`epuisee`), et si l'échéance l'a coupée (`echeance`).
     """
     raw_params = airbnb_search.url_to_raw_params(url)
     api_key = _api_key(proxy_url, fin)
@@ -201,7 +244,9 @@ def _search_pages(
     pages = 0
     raws: list[Any] = []
     cursor = ""
-    rate_limited = False
+    arret: str | None = None
+    statut = 429
+    echeance = False
     advertised: int | None = None
     epuisee = False
     call = {
@@ -238,17 +283,22 @@ def _search_pages(
         # Une requête qui ne peut pas finir avant l'échéance ne part pas.
         if _reste(fin) < MARGE_REQUETE_S:
             print(f"[airbnb] échéance après {pages} page(s) — on garde ce qui est lu", file=sys.stderr)
+            echeance = True
             break
         try:
             budget[0] -= 1
             raw = call_with_retry(
                 lambda: airbnb_search.get(api_key=api_key, cursor=cursor, timeout=_timeout(fin), **call),
                 fin=fin,
+                etape="StaysSearch",
             )
-        except RateLimited:
-            rate_limited = True
-            if raws:
-                print(f"[airbnb] 429 après {pages} page(s) — on garde ce qui est lu", file=sys.stderr)
+        except RateLimited as err:
+            # Un vrai refus n'est pas repris (throttle.call_with_retry) : on
+            # garde ce qui est lu. Notre limiteur non plus n'est pas un 429.
+            arret = motif_arret(err)
+            statut = err.status
+            quoi = {"refus": f"HTTP {statut}", "coupe-circuit": "coupe-circuit", "rythme": "limiteur local"}[arret]
+            print(f"[airbnb] {quoi} après {pages} page(s) — on garde ce qui est lu", file=sys.stderr)
             break
         raws.append(raw)
         pages += 1
@@ -271,7 +321,15 @@ def _search_pages(
             break
         time.sleep(pause)
         cursor = nxt
-    return raws, pages, rate_limited, advertised, epuisee
+    return {
+        "raws": raws,
+        "pages": pages,
+        "arret": arret,
+        "statut": statut,
+        "publie": advertised,
+        "epuisee": epuisee,
+        "echeance": echeance,
+    }
 
 
 def quadrants(b: dict[str, float]) -> list[dict[str, float]]:
@@ -323,17 +381,23 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     zones = emprises(params)
     url = build_search_url(zones[0][1])
     if airbnb_circuit.open():
+        print(f"[airbnb] coupe-circuit ouvert (encore {airbnb_circuit.remaining_s():.0f} s) — pas d'appel", file=sys.stderr)
         return {
             "ok": False,
-            "error": "HTTP 429",
+            "error": erreur_arret("coupe-circuit"),
             "rateLimited": True,
+            "arret": "coupe-circuit",
             "url": url,
             "attempts": 0,
         }
     proxy_url = str(params.get("proxy_url") or _proxy())
     sink = io.StringIO()
     started = time.perf_counter()
-    rate_limited = False
+    arret: str | None = None
+    statut = 429
+    # Un relevé tronqué sans refus (emprise suivante en échec, échéance) :
+    # Node le dit, et ne le garde pas 15 min comme s'il était complet.
+    partiel: str | None = None
     raws: list[Any] = []
     pages = 0
     advertised: int | None = None
@@ -343,20 +407,29 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     try:
         with contextlib.redirect_stdout(sink):
             file = list(zones)
-            while file and not rate_limited and budget[0] > 0 and _reste(fin) >= MARGE_REQUETE_S:
+            while file and not arret and budget[0] > 0 and _reste(fin) >= MARGE_REQUETE_S:
                 nom, zone = file.pop(0)
                 avant = len(seen)
                 try:
-                    r, p, rate_limited, publie, epuisee = _search_pages(
-                        build_search_url(zone), proxy_url, max_pages, fin, seen, budget
-                    )
+                    lu = _search_pages(build_search_url(zone), proxy_url, max_pages, fin, seen, budget)
                 except Exception as err:
                     # Une emprise suivante qui échoue ne jette pas ce que les
                     # précédentes ont lu ; la première, elle, remonte comme avant.
                     if not raws:
                         raise
+                    # Un refus (403, 429, 503) y est un refus comme ailleurs ;
+                    # autre chose laisse un relevé tronqué, dit comme tel.
+                    classe = classer_echec(err, "StaysSearch")
+                    if classe:
+                        arret, statut = classe
+                    else:
+                        partiel = f"emprise {nom} non lue ({err})"
                     print(f"[airbnb] emprise {nom} : {err} — on garde ce qui est lu", file=sys.stderr)
                     break
+                r, p, publie, epuisee = lu["raws"], lu["pages"], lu["publie"], lu["epuisee"]
+                arret, statut = lu["arret"], lu["statut"]
+                if lu["echeance"]:
+                    partiel = partiel or "échéance atteinte en cours d'emprise"
                 raws.extend(r)
                 pages += p
                 lues.append(f"{nom}:{p}p/{len(seen) - avant}+" + (f"/{publie}" if publie is not None else ""))
@@ -369,25 +442,31 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
                     file[0:0] = [
                         (f"quart{i + 1}", {**zone, "bounds": q}) for i, q in enumerate(quadrants(zone["bounds"]))
                     ]
+            if not arret and file and budget[0] > 0 and _reste(fin) < MARGE_REQUETE_S:
+                partiel = partiel or f"échéance atteinte, {len(file)} emprise(s) non lue(s)"
             print(f"[airbnb] emprises {' '.join(lues)} — {len(seen)} annonces", file=sys.stderr)
-    except RateLimited as err:
-        local = isinstance(err, RythmeLocal)
-        quoi = "limiteur local" if local else f"HTTP {err.status}"
-        print(f"[airbnb] {quoi} — pause {err.retry_after_s:.0f}s", file=sys.stderr)
-        return {
-            "ok": False,
-            "error": "limiteur local : trop d'appels Airbnb récents" if local else "HTTP 429",
-            "rateLimited": True,
-            "url": url,
-            "attempts": 1,
-        }
     except Exception as err:
-        if is_rate_limited(err):
-            print(f"[airbnb] HTTP {http_status_of(err) or 429}", file=sys.stderr)
+        classe = classer_echec(err, "relevé")
+        if classe:
+            # Un refus, un 403, ou une pause : la clé et le hash restent — les
+            # jeter faisait relire page d'accueil et paquets JS au relevé
+            # suivant, juste après un refus.
+            motif, code = classe
+            if motif == "refus" and code == 403:
+                # Un 403 peut aussi venir d'une clé ou d'un hash périmés, gardés
+                # 12 h : on les jette, cookies gardés. Le coupe-circuit est
+                # ouvert, la page d'accueil ne sera relue qu'après la pause.
+                invalidate()
+            if motif != "refus":
+                # Un vrai refus a déjà sa ligne (throttle.refus).
+                quoi = "limiteur local" if motif == "rythme" else "coupe-circuit"
+                attente = err.retry_after_s if isinstance(err, RateLimited) else 0.0
+                print(f"[airbnb] {quoi} — pause {attente:.0f}s", file=sys.stderr)
             return {
                 "ok": False,
-                "error": f"HTTP {http_status_of(err) or 429}",
+                "error": erreur_arret(motif, code),
                 "rateLimited": True,
+                "arret": motif,
                 "url": url,
                 "attempts": 1,
             }
@@ -414,17 +493,20 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
     if not listings:
         return {
             "ok": False,
-            "error": "HTTP 429" if rate_limited else "pyairbnb: aucune annonce",
-            "rateLimited": rate_limited,
+            "error": erreur_arret(arret, statut) if arret else "pyairbnb: aucune annonce",
+            "rateLimited": arret is not None,
+            **({"arret": arret} if arret else {}),
             "url": url,
             "attempts": 1,
         }
     enriched = 0
     ms_enrich = 0
     # Un 429 en pagination ouvre le coupe-circuit : on n'enchaîne pas 40
-    # fiches PDP sur le même refus. skipEnrich reste honoré.
-    max_enrich = int(params.get("maxEnrich") or 0) or 40
-    if not params.get("skipEnrich") and not rate_limited and not airbnb_circuit.open():
+    # fiches PDP sur le même refus. skipEnrich reste honoré, et `maxEnrich: 0`
+    # veut dire aucune fiche (il en demandait 40).
+    brut_enrich = params.get("maxEnrich")
+    max_enrich = int(brut_enrich) if isinstance(brut_enrich, (int, float)) else 40
+    if not params.get("skipEnrich") and max_enrich > 0 and not arret and not airbnb_circuit.open():
         try:
             enrich_started = time.perf_counter()
             listings, enriched = enrich_listings(
@@ -439,8 +521,8 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
             )
             ms_enrich = int((time.perf_counter() - enrich_started) * 1000)
             listings.sort(key=par_prix)
-        except RateLimited:
-            rate_limited = True
+        except RateLimited as err:
+            arret, statut = motif_arret(err), err.status
             enriched = 0
         except Exception:
             enriched = 0
@@ -448,7 +530,7 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         return {
             "ok": False,
             "error": "pyairbnb: aucune annonce",
-            "rateLimited": rate_limited,
+            "rateLimited": arret is not None,
             "url": url,
             "attempts": 1,
         }
@@ -472,7 +554,9 @@ def run_search(params: dict[str, Any]) -> dict[str, Any]:
         "stlEnriched": enriched,
         "msSearch": ms_search,
         "msQuote": ms_enrich,
-        "rateLimited": rate_limited,
+        "rateLimited": arret is not None,
+        **({"arret": arret, "erreurArret": erreur_arret(arret, statut)} if arret else {}),
+        **({"partiel": partiel} if partiel else {}),
     }
 
 

@@ -58,10 +58,11 @@ function demarrerServeur() {
       NODE_ENV: "production",
       HOST,
       PORT: String(PORT),
-      // Ces trois chemins visent /tmp par défaut, absent sous Windows.
-      SKITRACK_TAUX: join(donnees, "taux.json"),
-      SKITRACK_AIRBNB_CIRCUIT: join(donnees, "airbnb-429"),
-      SKITRACK_AIRBNB_SESSION: join(donnees, "airbnb-session.json"),
+      // Journal de taux, coupe-circuit et session Airbnb : pas de chemin propre
+      // à l'app. Les défauts sont dans le dossier temporaire de l'utilisateur,
+      // communs au serveur de développement et aux scripts : un seul limiteur
+      // pour une seule adresse IP. L'app en avait un à elle (userData), qui
+      // s'ajoutait à celui du serveur de développement.
     },
   });
 

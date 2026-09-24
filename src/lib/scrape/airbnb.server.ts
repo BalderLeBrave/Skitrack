@@ -4,7 +4,15 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Page } from "playwright";
 import type { Listing } from "@/lib/listings";
-import { airbnbCircuitOpen } from "@/lib/stay/airbnbCircuit.server";
+import {
+  AIRBNB_CIRCUIT_PATH,
+  airbnbCircuitOpen,
+  airbnbCircuitRestantMs,
+  tripAirbnbCircuit,
+} from "@/lib/stay/airbnbCircuit.server";
+import { airbnbSessionPath } from "@/lib/stay/airbnbSession.server";
+import { PAUSE_MAX_MS, retryAfterMs } from "@/lib/stay/http429";
+import { TAUX_PATH, noterBlocage, paceTaux } from "@/lib/stay/taux.server";
 import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
@@ -427,10 +435,43 @@ const ECHEANCE_DEFAUT_MS = 40_000;
 /** Ce que Node laisse à Python, après l'échéance, pour écrire ce qu'il a lu. */
 const MARGE_SORTIE_MS = 4_000;
 
+/** Les arrêts que le worker distingue (`stays.motif_arret`). Seul le premier est un refus d'Airbnb. */
+const LIBELLE_ARRET: Record<string, string> = {
+  refus: "Airbnb a répondu 429",
+  "coupe-circuit": "coupe-circuit Airbnb, pause après un refus",
+  rythme: "limiteur local, trop d'appels Airbnb récents",
+};
+
+/** Le coupe-circuit ouvert, dit comme tel : ce n'est pas un 429 de plus. */
+function raisonCoupeCircuit(): string {
+  return `coupe-circuit Airbnb : pause après un refus (encore ${Math.round(airbnbCircuitRestantMs() / 1000)} s)`;
+}
+
+/**
+ * Le seul appel à Airbnb hors du worker Python (repli HTML ou navigateur) :
+ * il passe par le même coupe-circuit et le même limiteur, et son refus ouvre
+ * la même pause. Rend `null` s'il peut partir, sinon la raison de ne pas.
+ */
+async function avantAppelDirect(quoi: string): Promise<string | null> {
+  if (airbnbCircuitOpen()) return raisonCoupeCircuit();
+  const attente = await paceTaux("airbnb");
+  // Relu après l'attente du créneau : un refus a pu arriver entre-temps.
+  if (airbnbCircuitOpen()) return raisonCoupeCircuit();
+  if (attente > 0) return `limiteur local : ${quoi} remis (${Math.round(attente / 1000)} s à attendre)`;
+  return null;
+}
+
+function refusDirect(quoi: string, status: number, headers: Headers): void {
+  const holdMs = tripAirbnbCircuit(retryAfterMs(headers, 0, PAUSE_MAX_MS));
+  noterBlocage("airbnb", holdMs);
+  console.warn(`[airbnb] ${quoi} HTTP ${status} — pause partagée ${Math.round(holdMs / 1000)} s`);
+}
+
 async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): Promise<AirbnbScrape> {
   if (airbnbCircuitOpen()) {
-    console.warn("[airbnb] coupe-circuit ouvert — pas d'appel");
-    return { listings: [], rateLimited: true };
+    const raison = raisonCoupeCircuit();
+    console.warn(`[airbnb] ${raison} — pas d'appel`);
+    return { listings: [], rateLimited: true, raison };
   }
   const cli = cliPath();
   if (!cli) {
@@ -481,7 +522,15 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
       });
     };
     const child = spawn(python.cmd, [...python.args, cli], {
-      env: envWorker({ PYTHONPATH: dirname(cli) }),
+      // Les chemins du journal de taux, du coupe-circuit et de la session sont
+      // ceux de Node, résolus ici : un seul limiteur, quel que soit le lecteur
+      // du répertoire courant de chacun.
+      env: envWorker({
+        PYTHONPATH: dirname(cli),
+        SKITRACK_TAUX: TAUX_PATH(),
+        SKITRACK_AIRBNB_CIRCUIT: AIRBNB_CIRCUIT_PATH,
+        SKITRACK_AIRBNB_SESSION: airbnbSessionPath(),
+      }),
       cwd: dirname(cli),
       windowsHide: true,
     });
@@ -511,8 +560,10 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
     if (raw.err) console.warn("[airbnb] stderr", raw.err.slice(0, 500));
     return {
       listings: [],
-      rateLimited: /429/.test(raw.err),
-      raison: raw.tue ? "relevé direct coupé à l'échéance" : undefined,
+      rateLimited: /HTTP (?:429|503)|coupe-circuit|limiteur local/.test(raw.err),
+      // Une raison toujours : sans elle, un relevé Cozy seul passait pour
+      // complet et restait 15 min en cache (run.server.ts, dureeCache).
+      raison: raw.tue ? "relevé direct coupé à l'échéance" : "le worker Airbnb n'a rien rendu",
     };
   }
   const parsed = lastJsonObject(raw.out) as {
@@ -520,30 +571,53 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
     payload?: unknown;
     error?: string;
     rateLimited?: boolean;
+    /** « refus » (Airbnb a refusé), « coupe-circuit » ou « rythme » (notre limiteur). */
+    arret?: unknown;
+    /** Le texte de l'arrêt, avec le code d'un refus (« HTTP 503 »). */
+    erreurArret?: unknown;
+    /** Un relevé tronqué sans refus : emprise suivante en échec, échéance. */
+    partiel?: unknown;
     advertised?: unknown;
   } | null;
   if (!parsed) {
     console.warn("[airbnb] py: json illisible");
     return { listings: [], rateLimited: false, raison: "sortie du worker illisible" };
   }
-  const rateLimited = Boolean(parsed.rateLimited) || /429|503/.test(String(parsed.error ?? ""));
+  // Vrai pour les trois arrêts : aucun ne doit lancer le repli HTML.
+  // « 503 » nu ne suffit pas : « timed out after 503 ms » n'est pas un refus.
+  const rateLimited = Boolean(parsed.rateLimited) || /HTTP (?:429|503)\b/.test(String(parsed.error ?? ""));
+  const arret = typeof parsed.arret === "string" ? parsed.arret : null;
   const listings = fromPyairbnbPayload(parsed.payload, input);
   const annoncees = typeof parsed.advertised === "number" && parsed.advertised >= 0 ? parsed.advertised : null;
   if (parsed.ok === false && listings.length === 0) {
-    console.warn("[airbnb] py:", parsed.error ?? "json illisible", rateLimited ? "· 429" : "");
+    console.warn("[airbnb] py:", parsed.error ?? "json illisible");
     return { listings: [], rateLimited, raison: parsed.error ?? undefined };
   }
-  return { listings, rateLimited, annoncees };
+  // Un relevé arrêté en route garde ce qu'il a lu, et dit pourquoi il s'est
+  // arrêté : la raison va dans la note de la source.
+  const texteArret = typeof parsed.erreurArret === "string" ? parsed.erreurArret : parsed.error;
+  const partiel = typeof parsed.partiel === "string" ? parsed.partiel : null;
+  const raisonArret = arret
+    ? `arrêté en route — ${texteArret ?? LIBELLE_ARRET[arret] ?? arret}`
+    : partiel
+      ? `arrêté en route — ${partiel}`
+      : undefined;
+  return { listings, rateLimited, annoncees, ...(raisonArret ? { raison: raisonArret } : {}) };
 }
 
 async function scrapeAirbnbFetch(input: LiveSearchInput): Promise<Listing[]> {
+  const pas = await avantAppelDirect("repli HTML");
+  if (pas) {
+    console.info(`[airbnb] ${pas}`);
+    return [];
+  }
   const url = searchUrl(input);
   const res = await fetch(url, {
     headers: { "Accept-Language": "fr-FR", "User-Agent": SCRAPE_UA },
   }).catch(() => null);
   if (!res) return [];
   if (res.status === 429 || res.status === 503) {
-    console.warn(`[airbnb] fetch HTTP ${res.status}`);
+    refusDirect("repli HTML", res.status, res.headers);
     return [];
   }
   const html = await res.text().catch(() => "");
@@ -552,8 +626,18 @@ async function scrapeAirbnbFetch(input: LiveSearchInput): Promise<Listing[]> {
 }
 
 export async function scrapeAirbnbPlaywright(page: Page, input: LiveSearchInput): Promise<Listing[]> {
+  const pas = await avantAppelDirect("repli navigateur");
+  if (pas) {
+    console.info(`[airbnb] ${pas}`);
+    return [];
+  }
   const url = searchUrl(input);
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 40_000 });
+  const res = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 40_000 });
+  const status = res?.status() ?? 0;
+  if (status === 429 || status === 503) {
+    refusDirect("repli navigateur", status, new Headers(res?.headers() ?? {}));
+    return [];
+  }
   await page.waitForSelector("#data-deferred-state-0", { timeout: 12_000 }).catch(() => null);
   const text = await page.locator("#data-deferred-state-0").textContent().catch(() => null);
   const listings = parseDeferred(text, input);
@@ -593,11 +677,11 @@ export async function scrapeAirbnbDetailed(input: LiveSearchInput, opts: AirbnbO
   const viaPy = await scrapeAirbnbPyairbnb(input, echeance);
   if (viaPy.listings.length > 0) {
     const sur = viaPy.annoncees != null ? ` (Airbnb en publie ${viaPy.annoncees} autour de la station)` : "";
-    console.info(`[airbnb] pyairbnb ${viaPy.listings.length}${sur}${viaPy.rateLimited ? " · 429 partiel" : ""}`);
+    console.info(`[airbnb] pyairbnb ${viaPy.listings.length}${sur}${viaPy.raison ? ` · ${viaPy.raison}` : ""}`);
     return viaPy;
   }
   if (viaPy.rateLimited) {
-    console.warn("[airbnb] 429 — pas de repli HTML");
+    console.warn(`[airbnb] ${viaPy.raison ?? "HTTP 429"} — pas de repli HTML`);
     return { listings: [], rateLimited: true, raison: viaPy.raison ?? "HTTP 429" };
   }
   if (Date.now() >= echeance) return viaPy;

@@ -19,7 +19,7 @@
 
 import type { Listing } from "@/lib/listings";
 import { annoncer } from "@/lib/stay/occupancy";
-import { AGENT_CENTRALES } from "../robots";
+import { UA_NAVIGATEUR } from "../../navigateur";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
@@ -32,7 +32,9 @@ import {
   type OffresMsem,
 } from "./msem";
 
-const UA = `${AGENT_CENTRALES}/1.0 (+https://skitrack.local/robots)`;
+// L'en-tête d'un navigateur, comme tout le relevé (`navigateur.ts`). Les règles
+// de robots.txt se lisent toujours sous `AGENT_CENTRALES` (`../robots.server`).
+const UA = UA_NAVIGATEUR;
 const TIMEOUT_MS = 30_000;
 /** Le catalogue vieillit en heures, pas en minutes. */
 const CATALOGUE_TTL_MS = 6 * 60 * 60 * 1000;

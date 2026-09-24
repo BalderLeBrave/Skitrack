@@ -47,9 +47,8 @@ const INTERVALLE_MS = 1_200;
 const TIMEOUT_MS = 20_000;
 const POIDS_MIN = 40_000;
 const CANDIDATS_MAX = 4;
-const UA =
-  "Skitrack/1.0 (relevé d'images de stations sur leur site officiel ; robot " +
-  "applicatif, une requête à la fois ; un octet demandé par image)";
+// Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 type Trouve = {
   id: string;

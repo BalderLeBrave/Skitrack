@@ -15,7 +15,7 @@ export type Listing = {
   id: string;
   stationId: string;
   title: string;
-  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale";
+  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale" | "GreenGo";
   /**
    * Total du séjour tel que la source l'a publié, aux dates demandées.
    *

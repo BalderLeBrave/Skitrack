@@ -2,14 +2,27 @@
  * Cookies Airbnb posés par le sidecar Python, relus ici pour les fiches
  * `rooms/`. Sans ça, Node arrive anonyme alors que Python a déjà une session.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const COOKIE_TTL_MS = 12 * 60 * 60 * 1000;
+/** L'emplacement d'avant (« /tmp », racine du lecteur sous Windows), relu tant que le nouveau manque. */
+const ANCIEN_SESSION_PATH = "/tmp/skitrack-airbnb-session.json";
 
 type CookieRow = { name: string; value: string };
 
+/** Le dossier temporaire de l'utilisateur : le même que Python (`session.SESSION_PATH`). */
+export function airbnbSessionPath(): string {
+  return process.env.SKITRACK_AIRBNB_SESSION?.trim() || join(tmpdir(), "skitrack-airbnb-session.json");
+}
+
 function sessionPath(): string {
-  return process.env.SKITRACK_AIRBNB_SESSION?.trim() || "/tmp/skitrack-airbnb-session.json";
+  const p = airbnbSessionPath();
+  if (!process.env.SKITRACK_AIRBNB_SESSION?.trim() && !existsSync(p) && existsSync(ANCIEN_SESSION_PATH)) {
+    return ANCIEN_SESSION_PATH;
+  }
+  return p;
 }
 
 export function airbnbCookieHeader(): string {

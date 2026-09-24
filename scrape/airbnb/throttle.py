@@ -1,9 +1,14 @@
-"""429 / 503 Airbnb : Retry-After, reprise courte, coupe-circuit.
+"""429 / 503 Airbnb : Retry-After, coupe-circuit, et aucune reprise.
 
-Un 429 n'est pas un refus définitif : Airbnb demande d'attendre. On lit
-l'en-tête, on attend au plus `MAX_WAIT_S`, on réessaie un nombre borné de
-fois. Si ça continue, on s'arrête et on rend ce qui est déjà lu — on ne
-vide pas le relevé, on ne martèle pas.
+Un 429 n'est pas un refus définitif : Airbnb demande d'attendre. On
+l'écoute jusqu'au bout. Au premier refus, on écrit la ligne dans le journal
+serveur, on ouvre le coupe-circuit pour toute la pause demandée (45 s au
+moins), et on s'arrête en rendant ce qui est déjà lu. Réessayer 2 s plus
+tard, c'était envoyer la requête la plus susceptible de prendre le second
+429, sans une ligne dans le journal.
+
+Seule notre propre file d'attente (`RythmeLocal`) se reprend : rien n'est
+parti, Airbnb n'a rien refusé.
 
 Le coupe-circuit est un fichier : le process Python du sidecar et le
 complément de fiches Node le partagent. Relancer pendant la pause ne
@@ -14,6 +19,8 @@ from __future__ import annotations
 
 import os
 import re
+import sys
+import tempfile
 import time
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -21,13 +28,20 @@ from typing import Any, Callable, TypeVar
 
 RETRY_STATUSES = {429, 503}
 DEFAULT_WAIT_S = 2.0
+# Plafond d'un sommeil sur place (reprise du limiteur local), pas d'une pause.
 MAX_WAIT_S = 12.0
 MAX_TRIES = 3
 COOLDOWN_S = 45.0
 TRIP_AFTER = 2
+# Plafond d'une pause demandée par Airbnb (Retry-After) : le coupe-circuit et
+# le journal la tiennent en entier. Elle était coupée à 12 s dans le journal.
+PAUSE_MAX_S = 3600.0
 
+# Le dossier temporaire de l'utilisateur, le même pour Python et Node
+# (`os.tmpdir()`). « /tmp » visait la racine du lecteur courant sous Windows :
+# deux processus lancés depuis deux lecteurs n'avaient pas le même.
 CIRCUIT_PATH = Path(
-    os.environ.get("SKITRACK_AIRBNB_CIRCUIT") or "/tmp/skitrack-airbnb-429"
+    os.environ.get("SKITRACK_AIRBNB_CIRCUIT") or Path(tempfile.gettempdir()) / "skitrack-airbnb-429"
 )
 
 T = TypeVar("T")
@@ -48,6 +62,14 @@ class RythmeLocal(RateLimited):
     Il se traite comme une attente, jamais comme un refus : il ne compte pas
     pour le coupe-circuit partagé, que deux relevés simultanés ouvraient sinon
     sans qu'Airbnb ait répondu 429 une seule fois.
+    """
+
+
+class CoupeCircuit(RateLimited):
+    """Le coupe-circuit partagé est ouvert : rien n'est parti.
+
+    C'est la suite d'un refus antérieur, pas un refus nouveau : on le dit
+    ainsi, au lieu d'un « HTTP 429 » qu'Airbnb n'a pas envoyé cette fois.
     """
 
 
@@ -100,8 +122,18 @@ def http_status_of(err: BaseException) -> int | None:
     )
     if m:
         return int(m.group(1))
-    m = re.search(r"\b(429|503)\b", str(err))
-    return int(m.group(1)) if m else None
+    # Un 429 ou un 503 nu ne suffit pas : « timed out after 503 ms » n'est pas
+    # un refus d'Airbnb, et ouvrait le coupe-circuit. Il faut un mot de statut
+    # à côté, ou le libellé du statut.
+    texte = str(err)
+    m = re.search(r"\b(?:status(?:\s+code)?|code|error|erreur)\s*[:=]?\s*(429|503)\b", texte, re.I)
+    if m:
+        return int(m.group(1))
+    if re.search(r"too many requests", texte, re.I):
+        return 429
+    if re.search(r"service unavailable", texte, re.I):
+        return 503
+    return None
 
 
 def is_rate_limited(err: BaseException) -> bool:
@@ -111,20 +143,20 @@ def is_rate_limited(err: BaseException) -> bool:
     return status in RETRY_STATUSES
 
 
-def retry_after_from_exc(err: BaseException, attempt: int = 0) -> float:
+def retry_after_from_exc(err: BaseException, attempt: int = 0, cap: float = MAX_WAIT_S) -> float:
     if isinstance(err, RateLimited):
-        return min(MAX_WAIT_S, max(0.2, err.retry_after_s))
+        return min(cap, max(0.2, err.retry_after_s))
     headers = getattr(getattr(err, "response", None), "headers", None)
     if headers:
-        return retry_after_s(headers, attempt)
+        return retry_after_s(headers, attempt, cap=cap)
     m = re.search(r"retry-after:\s*([0-9]+(?:\.[0-9]+)?)", str(err), re.I)
     if m:
-        return retry_after_s({"retry-after": m.group(1)}, attempt)
+        return retry_after_s({"retry-after": m.group(1)}, attempt, cap=cap)
     args = getattr(err, "args", ())
     for i, arg in enumerate(args):
         if str(arg).strip().lower().rstrip(":") == "retry-after" and i + 1 < len(args):
-            return retry_after_s({"retry-after": str(args[i + 1])}, attempt)
-    return retry_after_s(None, attempt)
+            return retry_after_s({"retry-after": str(args[i + 1])}, attempt, cap=cap)
+    return retry_after_s(None, attempt, cap=cap)
 
 
 class Circuit:
@@ -162,9 +194,18 @@ class Circuit:
         if self.consecutive >= self.limit:
             self.trip(wait_s)
 
-    def trip(self, wait_s: float | None = None) -> None:
+    def trip(self, wait_s: float | None = None) -> float:
+        """Ouvre pour `max(cooldown, wait_s)` ; une pause plus longue déjà posée reste. Rend la pause.
+
+        Lecture et écriture sous le même verrou que Node : deux refus
+        simultanés ne peuvent plus raccourcir la pause l'un de l'autre.
+        """
+        from taux import verrou
+
         hold = max(self.cooldown_s, float(wait_s or 0.0))
-        self._write_until(time.time() + hold)
+        with verrou(self.path.with_name(f"{self.path.name}.lock")):
+            self._write_until(max(self._read_until(), time.time() + hold))
+        return hold
 
     def reset(self) -> None:
         self.consecutive = 0
@@ -174,20 +215,64 @@ class Circuit:
             pass
 
     def _read_until(self) -> float:
+        from taux import lire_texte
+
+        texte = lire_texte(self.path)
         try:
-            return float(self.path.read_text(encoding="utf-8").strip())
-        except (OSError, ValueError):
+            return float(texte.strip()) if texte else 0.0
+        except ValueError:
             return 0.0
 
     def _write_until(self, until: float) -> None:
+        # Fichier temporaire propre au processus, puis remplacement : un
+        # lecteur ne voit jamais un fichier à moitié écrit, lu comme « fermé ».
+        tmp = self.path.with_name(f"{self.path.name}.{os.getpid()}.tmp")
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
+            tmp.write_text(str(until), encoding="utf-8")
+            for essai in range(5):
+                try:
+                    tmp.replace(self.path)
+                    return
+                except PermissionError:
+                    # Windows : un autre processus lit le fichier à cet instant.
+                    # Court : c'est sous le verrou, que Node n'attend que 500 ms.
+                    time.sleep(0.01 * (essai + 1))
             self.path.write_text(str(until), encoding="utf-8")
         except OSError:
             pass
+        finally:
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
 
 
 airbnb_circuit = Circuit()
+
+
+def refus(status: int, attente_s: float, etape: str, circuit: Circuit | None = None) -> float:
+    """Un vrai refus d'Airbnb : la ligne au journal, puis la pause, partagée.
+
+    Le coupe-circuit s'ouvre dès ce refus-là, pour la pause demandée entière
+    (45 s au moins), et le journal de taux la reçoit aussi : Node et les autres
+    relevés ne repartent qu'après. La ligne commence par « [airbnb] » : c'est
+    ce préfixe que Node relaie au journal serveur.
+    """
+    gate = circuit if circuit is not None else airbnb_circuit
+    gate.consecutive += 1
+    hold = gate.trip(attente_s)
+    try:
+        from taux import noter_blocage
+
+        noter_blocage("airbnb", hold)
+    except Exception:
+        pass
+    print(
+        f"[airbnb] HTTP {status} ({etape}) — Airbnb demande {attente_s:.0f} s, pause partagée {hold:.0f} s",
+        file=sys.stderr,
+    )
+    return hold
 
 
 def call_with_retry(
@@ -196,8 +281,13 @@ def call_with_retry(
     tries: int = MAX_TRIES,
     circuit: Circuit | None = None,
     fin: float | None = None,
+    etape: str = "appel",
 ) -> T:
-    """Appelle `fn`. 429/503 : attend, réessaie. Le coupe-circuit arrête net.
+    """Appelle `fn`. Un vrai 429/503 arrête net : pas de reprise.
+
+    Le coupe-circuit est relu avant chaque essai : un autre relevé, ou Node,
+    peut l'avoir ouvert entre deux. Seul `RythmeLocal` — notre file d'attente,
+    rien n'est parti — se reprend, `tries` fois au plus.
 
     `fin` (instant absolu, `time.time()`) borne les attentes : une reprise qui
     finirait après l'échéance n'est pas tentée, le refus remonte tout de suite
@@ -207,29 +297,30 @@ def call_with_retry(
     gate = circuit if circuit is not None else airbnb_circuit
     last: BaseException | None = None
     for attempt in range(max(1, tries)):
-        if gate.open() and attempt == 0:
-            raise RateLimited(429, gate.remaining_s() or DEFAULT_WAIT_S)
+        if gate.open():
+            raise CoupeCircuit(429, gate.remaining_s() or DEFAULT_WAIT_S)
         try:
             out = fn()
             gate.hit_ok()
             return out
-        except RateLimited as err:
+        except RythmeLocal as err:
             last = err
-            if not isinstance(err, RythmeLocal):
-                gate.hit_limited(err.retry_after_s)
             wait = min(err.retry_after_s, MAX_WAIT_S)
             if attempt + 1 >= tries or _trop_tard(fin, wait):
                 raise
             time.sleep(wait)
+        except CoupeCircuit:
+            raise
+        except RateLimited as err:
+            refus(err.status, min(PAUSE_MAX_S, max(0.2, err.retry_after_s)), etape, gate)
+            raise
         except Exception as err:
             if not is_rate_limited(err):
                 raise
-            wait = retry_after_from_exc(err, attempt)
-            last = RateLimited(http_status_of(err) or 429, wait)
-            gate.hit_limited(wait)
-            if attempt + 1 >= tries or _trop_tard(fin, min(wait, MAX_WAIT_S)):
-                raise last
-            time.sleep(min(wait, MAX_WAIT_S))
+            attente = retry_after_from_exc(err, attempt, cap=PAUSE_MAX_S)
+            status = http_status_of(err) or 429
+            refus(status, attente, etape, gate)
+            raise RateLimited(status, attente) from err
     raise last or RateLimited()
 
 

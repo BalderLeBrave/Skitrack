@@ -24,6 +24,13 @@ import type { LiveSearchInput } from "./types";
 
 export const GREENGO_SITE = "https://www.greengo.voyage";
 export const GREENGO_API = "https://operations.greengo.voyage/graphql";
+/**
+ * Les noms d'opération que le site envoie lui-même. Le nom part dans chaque
+ * requête (corps et texte) : « SkitrackRecherche » nommait l'application
+ * alors que l'en-tête est celui d'un navigateur.
+ */
+export const OPERATION_RECHERCHE = "ClassicHostingSearchHostingAdverts";
+export const OPERATION_DETAIL = "DynamicHABF";
 const IMAGES = "https://images.greengo.voyage/canonical/";
 
 /** Un point de la recherche : l'emprise carrée de `rayonKm` autour de la station. */
@@ -53,7 +60,7 @@ function nombre(n: number): string {
 export function requeteRecherche(input: LiveSearchInput, rayonKm: number, offset: number): string {
   const b = emprise(input.lat, input.lon, rayonKm);
   const s = sejour(input);
-  return `query SkitrackRecherche { publicAdverts { classicSearch(mapBounds:{sw:{lat:${nombre(b.sw.lat)},lng:${nombre(b.sw.lng)}},ne:{lat:${nombre(b.ne.lat)},lng:${nombre(b.ne.lng)}}}, baseBookingConfigWithOptionalCheckInOutDateRange:${s}, filters:{}, includeMultiAccommodationBookableHostingAdverts:true) { bookableHostingAdverts(first:42, offset:${Math.max(0, Math.trunc(offset))}) { totalCount edges { node { __typename ... on HostingAdvertPublicSliceInterface { id name currentProductSlug formattedLocation postalCode addressFromGmaps { city } coordinates { lat lng } orderedImageNormalizedPaths coarseBookingInformation(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { minPricePerNightInformation { minPricePerNightRoundedToInt isTheOnlyPriceRounded } } } } } } } } }`;
+  return `query ${OPERATION_RECHERCHE} { publicAdverts { classicSearch(mapBounds:{sw:{lat:${nombre(b.sw.lat)},lng:${nombre(b.sw.lng)}},ne:{lat:${nombre(b.ne.lat)},lng:${nombre(b.ne.lng)}}}, baseBookingConfigWithOptionalCheckInOutDateRange:${s}, filters:{}, includeMultiAccommodationBookableHostingAdverts:true) { bookableHostingAdverts(first:42, offset:${Math.max(0, Math.trunc(offset))}) { totalCount edges { node { __typename ... on HostingAdvertPublicSliceInterface { id name currentProductSlug formattedLocation postalCode addressFromGmaps { city } coordinates { lat lng } orderedImageNormalizedPaths coarseBookingInformation(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { minPricePerNightInformation { minPricePerNightRoundedToInt isTheOnlyPriceRounded } } } } } } } } }`;
 }
 
 /** Le détail d'un hôte : ses logements, leur total exact aux dates, et ce qui les rend non réservables. */
@@ -61,11 +68,13 @@ export function requeteDetail(input: LiveSearchInput, slug: string): string {
   const s = sejour(input);
   const adultes = Math.max(1, Math.trunc(input.guests));
   const dates = `{start:"${input.checkIn}",end:"${input.checkOut}"}`;
-  return `query SkitrackDetail { publicAdverts { hostingAdvert(productSlug:${JSON.stringify(slug)}) { __typename ... on HostingAdvertPublicSliceInterface { id currentProductSlug } ... on HostingAdvertFromSingleAccommodationPublicSlice { singleAccommodation { ...Logement } } ... on HostingAdvertFromEstablishmentPublicSlice { accommodationsInEstablishment(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { ...Logement } } } } } fragment Logement on AccommodationPublicSlice { id currentProductSlug name maxNumberOfTravellers numberOfBedrooms totalNumberOfBeds numberOfBathrooms orderedImageNormalizedPaths bookingPricing(checkInOutDateRange:${dates}, accommodationServicesSelected:[], numberOfChildren:0, numberOfAdults:${adultes}, promotionalVoucherIds:[], useGreengoCreditsIfPossible:false) { __typename ... on BookingPricing { totalPrice { forStayRounded forStayUnrounded } } } nonbookableReasons(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { __typename } }`;
+  return `query ${OPERATION_DETAIL} { publicAdverts { hostingAdvert(productSlug:${JSON.stringify(slug)}) { __typename ... on HostingAdvertPublicSliceInterface { id currentProductSlug } ... on HostingAdvertFromSingleAccommodationPublicSlice { singleAccommodation { ...Logement } } ... on HostingAdvertFromEstablishmentPublicSlice { accommodationsInEstablishment(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { ...Logement } } } } } fragment Logement on AccommodationPublicSlice { id currentProductSlug name maxNumberOfTravellers numberOfBedrooms totalNumberOfBeds numberOfBathrooms orderedImageNormalizedPaths bookingPricing(checkInOutDateRange:${dates}, accommodationServicesSelected:[], numberOfChildren:0, numberOfAdults:${adultes}, promotionalVoucherIds:[], useGreengoCreditsIfPossible:false) { __typename ... on BookingPricing { totalPrice { forStayRounded forStayUnrounded } } } nonbookableReasons(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { __typename } }`;
 }
 
 export type HoteGreenGo = {
   id: string;
+  /** Un seul logement (et non un établissement) : l'hôte et son logement ne font qu'un. */
+  unique: boolean;
   nom: string;
   slug: string;
   lieu: string | null;
@@ -131,6 +140,7 @@ export function lireRecherche(json: unknown): { hotes: HoteGreenGo[]; total: num
     const min = obj(obj(n.coarseBookingInformation)?.minPricePerNightInformation)?.minPricePerNightRoundedToInt;
     hotes.push({
       id,
+      unique: n.__typename === "HostingAdvertFromSingleAccommodationPublicSlice",
       nom,
       slug,
       lieu: texte(obj(n.addressFromGmaps)?.city) ?? texte(n.formattedLocation),
@@ -230,7 +240,10 @@ export function greengoListings(
       const titre = plusieurs && u.nom && u.nom !== hote.nom ? `${hote.nom} — ${u.nom}` : hote.nom;
       return {
         ...commun,
-        id: `gg-${u.id}`,
+        // Même identifiant que l'annonce sans détail pour un hôte à logement
+        // unique : sinon un logement retenu pour la réservation disparaissait
+        // au relevé suivant, selon que le détail avait été lu ou non.
+        id: hote.unique ? `gg-${hote.id}` : `gg-${u.id}`,
         title: titre,
         total: u.total ?? 0,
         guests: u.capacite,

@@ -1,6 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  OPERATION_DETAIL,
+  OPERATION_RECHERCHE,
   emprise,
   greengoListings,
   lienHote,
@@ -93,6 +95,14 @@ describe("GreenGo : requêtes", () => {
     assert.throws(() => requeteRecherche({ ...AVORIAZ, checkIn: '2027-02-06"){x}' }, 6, 0));
   });
 
+  it("les requêtes portent les noms d'opération du site, jamais « Skitrack »", () => {
+    const r = requeteRecherche(AVORIAZ, 6, 0);
+    const d = requeteDetail(AVORIAZ, "neva");
+    assert.ok(r.startsWith(`query ${OPERATION_RECHERCHE} {`), "le nom envoyé doit exister dans la requête");
+    assert.ok(d.startsWith(`query ${OPERATION_DETAIL} {`));
+    assert.doesNotMatch(r + d, /skitrack/i);
+  });
+
   it("le slug d'un hôte est échappé", () => {
     const q = requeteDetail(AVORIAZ, 'chalet"cannelle');
     assert.ok(q.includes('productSlug:"chalet\\"cannelle"'));
@@ -107,6 +117,7 @@ describe("GreenGo : lecture", () => {
     assert.equal(hotes.length, 1);
     assert.deepEqual(hotes[0], {
       id: "e86b77f8-bb8c-4af0-826a-8150eb501d50",
+      unique: true,
       nom: "Néva",
       slug: "neva",
       lieu: "Morzine",
@@ -151,7 +162,8 @@ describe("GreenGo : annonces", () => {
   it("un logement réservable devient une annonce datée, avec son lien", () => {
     const [l] = greengoListings(hote, lireDetail(NEVA), AVORIAZ);
     assert.equal(l.source, "GreenGo");
-    assert.equal(l.id, "gg-1bcc24b4-b278-4bf7-a77c-e3246c9ec4d2");
+    assert.equal(l.id, "gg-e86b77f8-bb8c-4af0-826a-8150eb501d50");
+    assert.equal(l.platformId, "1bcc24b4-b278-4bf7-a77c-e3246c9ec4d2");
     assert.equal(l.title, "Néva");
     assert.equal(l.total, 2649);
     assert.equal(l.guests, 4);
@@ -160,9 +172,15 @@ describe("GreenGo : annonces", () => {
     assert.equal(l.photo, "https://images.greengo.voyage/canonical/accommmodation/ordered_images/img_3651.jpeg");
   });
 
+  it("un hôte à logement unique garde le même identifiant, détail lu ou non", () => {
+    const [avec] = greengoListings(hote, lireDetail(NEVA), AVORIAZ);
+    const [sans] = greengoListings(hote, null, AVORIAZ);
+    assert.equal(avec.id, sans.id);
+  });
+
   it("un logement non réservable aux dates n'est pas une offre", () => {
     const listings = greengoListings(
-      { ...hote, nom: "Chalet Cannelle" },
+      { ...hote, unique: false, nom: "Chalet Cannelle" },
       [
         { id: "a", nom: "Studio", capacite: 2, chambres: 0, lits: 1, sdb: 1, photos: [], total: 928, reservable: true },
         { id: "b", nom: "Chalet", capacite: 8, chambres: 4, lits: 8, sdb: 2, photos: [], total: null, reservable: false },

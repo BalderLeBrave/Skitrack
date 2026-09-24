@@ -171,7 +171,7 @@ export function renderWebManifest(hostHeader) {
       theme_color: "#000000",
       icons: [
         {
-          src: "/__grok/icon-180.png",
+          src: GROK_ICON_PATH,
           sizes: "180x180",
           type: "image/png",
         },
@@ -182,12 +182,35 @@ export function renderWebManifest(hostHeader) {
   );
 }
 
-export function grokPwaHeadTags(appName = DEFAULT_APP_NAME) {
+export const GROK_ICON_PATH = "/__grok/icon-180.png";
+export const GROK_INSTALL_STYLES_PATH = "/__grok/install/styles.css";
+
+/**
+ * Which of the sandbox's PWA assets the workspace serves. public/__grok/ is
+ * the Grok sandbox's and ignored by git: a checkout outside the sandbox has
+ * none, and the chrome must not link what would 404 there. Nitro gets this
+ * baked (`virtual:grok-og-identity`) because a deployed function cannot stat
+ * public/.
+ */
+export function snapshotPwaAssets(cwd = process.cwd()) {
+  return {
+    icon: existsSync(join(cwd, "public", GROK_ICON_PATH)),
+    installPage: existsSync(join(cwd, "public", GROK_INSTALL_STYLES_PATH)),
+  };
+}
+
+export function grokPwaHeadTags(appName = DEFAULT_APP_NAME, { icon = true } = {}) {
+  // The manifest's only icon is that same file, so both go when it is missing.
+  const install = icon
+    ? [
+        // Standalone display comes from the manifest ("display": "standalone");
+        // the legacy *-web-app-capable metas it replaces are deliberately absent.
+        ["manifest", '<link rel="manifest" href="/__grok/manifest.webmanifest">'],
+        ["apple-touch-icon", `<link rel="apple-touch-icon" href="${GROK_ICON_PATH}">`],
+      ]
+    : [];
   return [
-    // Standalone display comes from the manifest ("display": "standalone");
-    // the legacy *-web-app-capable metas it replaces are deliberately absent.
-    ["manifest", '<link rel="manifest" href="/__grok/manifest.webmanifest">'],
-    ["apple-touch-icon", '<link rel="apple-touch-icon" href="/__grok/icon-180.png">'],
+    ...install,
     [
       "apple-mobile-web-app-title",
       `<meta name="apple-mobile-web-app-title" content="${escapeHtml(appName)}">`,
@@ -419,12 +442,14 @@ export function normalizeHeadContext(ctx = {}) {
     host: ctx.host ?? "",
     cwd,
     site,
+    // Middleware passes the bake; dev and preview read the workspace.
+    pwaAssets: ctx.pwaAssets ?? snapshotPwaAssets(cwd),
   };
 }
 
 export function injectGrokPwaHead(html, ctx = {}) {
   if (typeof html !== "string") return html;
-  const { site, projectId, creator, creatorId, host, cwd } = normalizeHeadContext(ctx);
+  const { site, projectId, creator, creatorId, host, cwd, pwaAssets } = normalizeHeadContext(ctx);
   const documentTitle = titleFromDocument(html);
   const appName = resolveOgTitle(
     site,
@@ -434,10 +459,10 @@ export function injectGrokPwaHead(html, ctx = {}) {
   );
   let next = stripShareMetaTags(html);
 
-  const missing = grokPwaHeadTags(appName)
+  const missing = grokPwaHeadTags(appName, { icon: pwaAssets.icon })
     .filter(([key]) => {
       if (key === "manifest") return !next.includes('href="/__grok/manifest.webmanifest"');
-      if (key === "apple-touch-icon") return !next.includes('href="/__grok/icon-180.png"');
+      if (key === "apple-touch-icon") return !next.includes(`href="${GROK_ICON_PATH}"`);
       return !next.includes(`name="${key}"`);
     })
     .map(([, tag]) => tag);
@@ -498,6 +523,7 @@ export function createHeadInjector(ctx = {}) {
       host: normalized.host,
       cwd: normalized.cwd,
       site: normalized.site,
+      pwaAssets: normalized.pwaAssets,
     });
 
   return {

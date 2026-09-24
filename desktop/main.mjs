@@ -58,6 +58,11 @@ function demarrerServeur() {
       NODE_ENV: "production",
       HOST,
       PORT: String(PORT),
+      // Le client a été bâti sans authentification (`LOCAL_APP_ENV` de
+      // scripts/with-app-env.mjs, l'app installée n'étant jamais dans le bac à
+      // sable Grok). Le serveur relit la clé à l'exécution : sans elle, il la
+      // croirait active et contredirait le client.
+      VITE_AUTH_ENABLED: process.env.VITE_AUTH_ENABLED ?? "false",
       // Ces trois chemins visent /tmp par défaut, absent sous Windows.
       SKITRACK_TAUX: join(donnees, "taux.json"),
       SKITRACK_AIRBNB_CIRCUIT: join(donnees, "airbnb-429"),

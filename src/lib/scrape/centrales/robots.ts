@@ -28,7 +28,11 @@ export type VerdictRobots = {
   regle: string;
 };
 
-/** L'agent que SKITRACK déclare aux centrales. */
+/**
+ * Le nom sous lequel on lit les règles de `robots.txt` des centrales. Il ne
+ * part pas dans les requêtes, qui se présentent en navigateur
+ * (`../navigateur.ts`).
+ */
 export const AGENT_CENTRALES = "SkitrackCentrales";
 
 export function parserRobots(texte: string): GroupeRobots[] {

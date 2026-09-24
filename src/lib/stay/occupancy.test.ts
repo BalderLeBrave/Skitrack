@@ -201,6 +201,13 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
     assert.equal(occupancyFromText("cape of 8 mountains").guests, null);
   });
 
+  it("ne lit pas les noms de photos GreenGo, numérotés : « 12-chambre… » n'est pas 12 chambres", () => {
+    const photo = "https://images.greengo.voyage/canonical/accommmodation/ordered_images/12-chambre_rdc_cote_jardin-web.jpg";
+    const occ = occupancyOfListing({ source: "GreenGo", guests: null, bedrooms: null, title: "Chalet Paradis Blanc Morzine 5*", url: null, photo, photos: [photo] });
+    assert.equal(occ.bedrooms, null);
+    assert.equal(occ.rooms, null);
+  });
+
   it("lit un slug de photo comme un titre", () => {
     assert.equal(
       occupancyOfListing({

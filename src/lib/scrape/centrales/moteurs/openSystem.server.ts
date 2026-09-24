@@ -8,11 +8,13 @@
  * hôte et retenu une heure (`robots.server.ts`). Un Disallow est journalisé,
  * l'appel part quand même. Un fichier illisible n'arrête pas non plus.
  *
- * **On se nomme.** L'agent envoyé est le même que celui déclaré à `robots.txt`,
- * pour que le journal et la requête portent le même nom. Ce n'est pas une
- * permission : un Disallow est lu, l'appel part. La centrale de Haute
- * Maurienne Vanoise répond à ce nom exactement comme à celui d'un navigateur :
- * relevé du 13 septembre 2026, 200 et cinquante prix dans les deux cas.
+ * **Un en-tête de navigateur.** La requête part sous `UA_NAVIGATEUR`
+ * (`navigateur.ts`), comme tout le relevé. Les règles de `robots.txt` se
+ * lisent toujours sous `AGENT_CENTRALES`, un nom qui ne part pas dans la
+ * requête. Un Disallow est lu et journalisé, l'appel part quand même. La
+ * centrale de Haute Maurienne Vanoise répondait au nom de l'agent exactement
+ * comme à celui d'un navigateur : relevé du 13 septembre 2026, 200 et
+ * cinquante prix dans les deux cas.
  *
  * **Plusieurs rubriques, parce qu'une seule ne suffit pas.** Le moteur plafonne
  * à cinquante fiches par page et sa pagination ne répond pas. Interroger les

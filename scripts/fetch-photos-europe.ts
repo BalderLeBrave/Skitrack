@@ -56,7 +56,7 @@
  * `https://www.skiinfo.fr/robots.txt`, lu le 20 septembre 2026 : `Allow: /`,
  * sans `Crawl-delay`. Rien n'est interdit, aucune cadence n'est imposée ; on
  * s'en impose une — deux secondes, une requête à la fois — qui est celle de
- * `src/lib/scrape/politesse.ts`. L'en-tête dit ce que le programme est.
+ * `src/lib/scrape/politesse.ts`. L'en-tête est celui d'un navigateur.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";

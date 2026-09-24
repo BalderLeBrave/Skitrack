@@ -17,7 +17,7 @@
  * le sitemap publié qui donne l'inventaire, ce pour quoi il existe.
  *
  * La cadence est celle de `politesse.ts`, deux secondes, une requête à la
- * fois, et l'en-tête dit ce que le programme est.
+ * fois, et l'en-tête est celui d'un navigateur.
  *
  * ## Trois niveaux, et pas quatre couleurs
  *

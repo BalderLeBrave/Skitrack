@@ -21,8 +21,9 @@ tiers supérieur et au centre. C'est un indice, pas un verdict : un ciel
 couvert, un mur blanc ou une page blanche la font monter. Elle sert à
 classer ce qu'un regard doit trancher, jamais à décider seule.
 
-Politesse : un agent nommé, une requête par hôte toutes les 1,2 s, reprise
-sur un dossier déjà rempli.
+Politesse : un en-tête de navigateur, sauf chez Wikimedia (agent nommé, selon
+sa politique d'usage), une requête par hôte toutes les 1,2 s, reprise sur un
+dossier déjà rempli.
 """
 
 from __future__ import annotations
@@ -42,6 +43,10 @@ from PIL import Image
 
 # Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+# Sauf chez Wikimedia (la plupart des photos) : sa politique d'usage exige un
+# agent nommé avec un contact, et bloque les navigateurs imités.
+UA_WIKIMEDIA = ("Skitrack/1.0 (contrôle des photos de stations ; robot applicatif, "
+                "une requête par hôte toutes les 1,2 s ; contact adrien.raffray196@gmail.com)")
 INTERVALLE = 1.2
 LARGEUR = 640
 
@@ -80,9 +85,11 @@ def une(id_: str, url: str, sortie: Path, politesse: Politesse) -> dict:
             return {"id": id_, "url": url, "fichier": dest.name, "neige": part_de_neige(im),
                     "octets": dest.stat().st_size, "empreinte": hashlib.md5(dest.read_bytes()).hexdigest(),
                     "largeur": im.width, "hauteur": im.height, "repris": True}
-    politesse.attendre(urlsplit(url).netloc)
+    hote = urlsplit(url).netloc
+    politesse.attendre(hote)
+    ua = UA_WIKIMEDIA if hote == "wikimedia.org" or hote.endswith(".wikimedia.org") else UA
     try:
-        res = requests.get(url, headers={"User-Agent": UA, "Accept": "image/*"}, timeout=25)
+        res = requests.get(url, headers={"User-Agent": ua, "Accept": "image/*"}, timeout=25)
         if res.status_code != 200 or not res.headers.get("content-type", "").startswith("image/"):
             return {"id": id_, "url": url, "erreur": f"HTTP {res.status_code} {res.headers.get('content-type')}"}
         brut = res.content

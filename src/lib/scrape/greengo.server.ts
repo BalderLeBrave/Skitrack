@@ -16,6 +16,8 @@ import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 import {
   GREENGO_API,
+  OPERATION_DETAIL,
+  OPERATION_RECHERCHE,
   greengoListings,
   lireDetail,
   lireRecherche,
@@ -94,7 +96,7 @@ export async function releverGreenGo(input: LiveSearchInput, opts: { echeance: n
   let raison: string | undefined;
   try {
     for (let offset = 0; ; offset += 42) {
-      const page = lireRecherche(await graphql("SkitrackRecherche", requeteRecherche(input, RAYON_KM, offset), echeance));
+      const page = lireRecherche(await graphql(OPERATION_RECHERCHE, requeteRecherche(input, RAYON_KM, offset), echeance));
       publie = page.total ?? publie;
       hotes.push(...page.hotes);
       if (page.noeuds < 42 || (publie != null && offset + page.noeuds >= publie)) break;
@@ -111,7 +113,7 @@ export async function releverGreenGo(input: LiveSearchInput, opts: { echeance: n
   for (const h of hotes.slice(0, MAX_DETAILS)) {
     if (raison) break;
     try {
-      details.set(h.id, lireDetail(await graphql("SkitrackDetail", requeteDetail(input, h.slug), echeance)));
+      details.set(h.id, lireDetail(await graphql(OPERATION_DETAIL, requeteDetail(input, h.slug), echeance)));
     } catch (err) {
       raison = err instanceof Error ? err.message : String(err);
     }

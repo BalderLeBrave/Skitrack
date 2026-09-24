@@ -16,8 +16,8 @@
  * deux secondes entre deux requêtes, une seule à la fois —, qui est celle que
  * `src/lib/scrape/politesse.ts` tient pour le relevé de tarifs.
  *
- * L'en-tête dit ce que le programme est. Il ne se déguise pas en navigateur :
- * c'est la règle que `politesse.ts` énonce, et elle vaut ici comme là.
+ * L'en-tête est celui d'un navigateur, comme tout le relevé (consigne du
+ * propriétaire, 24 septembre 2026 ; voir `politesse.ts`).
  *
  * ## Deux pages par station, et pourquoi pas une
  *

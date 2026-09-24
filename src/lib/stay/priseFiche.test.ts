@@ -62,6 +62,11 @@ describe("ouvrir une fiche seulement si elle peut combler", () => {
     assert.equal(raisonDeLaisser({ ...sansCap, lat: null, lon: null }, AIRBNB), null);
   });
 
+  it("une page hôte GreenGo n'est jamais ouverte : seule l'API de détail est sûre", () => {
+    const hote = "https://www.greengo.voyage/hote/chalet-paradis-blanc?checkIn=2027-02-06&checkOut=2027-02-13&numberOfAdults=2";
+    assert.equal(raisonDeLaisser(annonce({ source: "GreenGo", guests: null, bedrooms: null }), hote), "greengo.voyage");
+  });
+
   it("Gîtes et hôte inconnu restent ouverts", () => {
     assert.equal(raisonDeLaisser(annonce({ source: "Gîtes de France" }), GITES), null);
     assert.equal(

@@ -30,7 +30,7 @@
  * ## Politesse
  *
  * Mêmes règles que le relevé d'origine : une requête à la fois, deux
- * secondes entre deux, agent nommé, et un 429 arrête le tour. Reprise :
+ * secondes entre deux, en-tête de navigateur, et un 429 arrête le tour. Reprise :
  * relancer le script repart des fiches non encore visitées.
  */
 

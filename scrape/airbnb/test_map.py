@@ -260,3 +260,27 @@ if __name__ == "__main__":
             failed += 1
             print("FAIL", fn.__name__, err)
     raise SystemExit(failed)
+
+
+def test_total_pour_autres_dates_ecarte():
+    """Airbnb complète une recherche datée avec des biens libres à d'autres dates."""
+    # Autre nombre de nuits que le séjour demandé (7).
+    autre = _stay(structuredDisplayPrice={"primaryLine": {"accessibilityLabel": "1 850 € pour 5 nuits"}})
+    row = stay_to_listing(autre, check_in="2026-12-19", check_out="2026-12-26", adults=2)
+    assert row is not None and row["total"] == 0
+    assert row["priceLabel"] == "1 850 € pour 5 nuits"
+    # Dates surchargées par la tuile.
+    sur = _stay(listingParamOverrides=[{"key": "checkin", "value": "2027-01-09"}])
+    assert stay_to_listing(sur, check_in="2026-12-19", check_out="2026-12-26", adults=2)["total"] == 0
+    # Plage écrite sur la tuile.
+    ecrite = _stay(structuredContent={"primaryLine": [{"body": "20–27 déc."}]})
+    assert stay_to_listing(ecrite, check_in="2026-12-19", check_out="2026-12-26", adults=2)["total"] == 0
+
+
+def test_total_aux_bonnes_dates_garde():
+    bon = _stay(
+        structuredDisplayPrice={"primaryLine": {"accessibilityLabel": "1 850 € pour 7 nuits"}},
+        structuredContent={"primaryLine": [{"body": "19–26 déc."}]},
+        listingParamOverrides={"checkin": "2026-12-19", "checkout": "2026-12-26"},
+    )
+    assert stay_to_listing(bon, check_in="2026-12-19", check_out="2026-12-26", adults=2)["total"] == 1850

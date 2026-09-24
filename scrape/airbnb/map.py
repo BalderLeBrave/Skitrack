@@ -115,6 +115,117 @@ def stay_total_from_label(label: str | None) -> float | None:
     return parse_amount(stay.group(1))
 
 
+_MOIS = {
+    "janv": 1, "jan": 1, "janvier": 1, "fevr": 2, "fev": 2, "fevrier": 2, "mars": 3,
+    "avr": 4, "avril": 4, "mai": 5, "juin": 6, "juil": 7, "juillet": 7, "aout": 8,
+    "sept": 9, "sep": 9, "septembre": 9, "oct": 10, "octobre": 10, "nov": 11,
+    "novembre": 11, "dec": 12, "decembre": 12,
+}
+_PLAGE_RE = re.compile(r"(\d{1,2})(?:\s+([a-z]+)\.?)?\s*[–—-]\s*(\d{1,2})\s+([a-z]+)\.?")
+_NUITS_RE = re.compile(r"pour\s+(\d+)\s+nuits?", re.I)
+_ISO_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})")
+
+
+def _sans_accents(s: str) -> str:
+    import unicodedata
+
+    return "".join(c for c in unicodedata.normalize("NFD", s) if not unicodedata.combining(c)).lower()
+
+
+def nuits_entre(check_in: str | None, check_out: str | None) -> int | None:
+    from datetime import date
+
+    try:
+        a = date.fromisoformat(str(check_in)[:10])
+        b = date.fromisoformat(str(check_out)[:10])
+    except (TypeError, ValueError):
+        return None
+    n = (b - a).days
+    return n if n > 0 else None
+
+
+def dates_surchargees(record: Any) -> dict[str, str]:
+    """Dates de `listingParamOverrides`, en objet ou en liste `{key, value}`."""
+    out: dict[str, str] = {}
+
+    def poser(k: str, v: Any) -> None:
+        if not isinstance(v, str):
+            return
+        cle = k.lower().replace("_", "")
+        if cle == "checkin":
+            out["check_in"] = v
+        elif cle == "checkout":
+            out["check_out"] = v
+
+    def walk(value: Any, depth: int, dans: bool) -> None:
+        if depth > 8 or value is None or not isinstance(value, (dict, list)):
+            return
+        if isinstance(value, list):
+            for item in value:
+                walk(item, depth + 1, dans)
+            return
+        if dans:
+            if isinstance(value.get("key"), str):
+                poser(value["key"], value.get("value"))
+            for k, v in value.items():
+                poser(k, v)
+        for k, v in value.items():
+            walk(v, depth + 1, dans or bool(re.search(r"paramoverrides", k, re.I)))
+
+    walk(record, 0, False)
+    return out
+
+
+def plages_ecrites(lines: list[str]) -> list[tuple[tuple[int, int], tuple[int, int]]]:
+    """Plages écrites sur la tuile (« 20–27 déc. ») : (jour, mois) de début et de fin."""
+    out: list[tuple[tuple[int, int], tuple[int, int]]] = []
+    for line in lines:
+        for m in _PLAGE_RE.finditer(_sans_accents(line)):
+            fin = _MOIS.get(m.group(4))
+            if not fin:
+                continue
+            debut = _MOIS.get(m.group(2)) if m.group(2) else fin
+            if not debut:
+                continue
+            out.append(((int(m.group(1)), debut), (int(m.group(3)), fin)))
+    return out
+
+
+def prix_hors_sejour(
+    record: Any,
+    label: str | None,
+    lines: list[str],
+    check_in: str | None,
+    check_out: str | None,
+) -> bool:
+    """La tuile dit-elle que son prix porte sur d'autres dates que le séjour ?
+
+    Airbnb complète une recherche datée avec des biens libres à d'autres dates,
+    et leur tuile affiche le total de ces autres dates. Lu comme un total du
+    séjour demandé, il faisait passer pour disponible un logement qui ne l'est
+    pas. Sans indice lisible, le total est gardé.
+    """
+    if not check_in or not check_out:
+        return False
+    nuits = nuits_entre(check_in, check_out)
+    m = _NUITS_RE.search(label or "")
+    if nuits is not None and m and int(m.group(1)) != nuits:
+        return True
+    sur = dates_surchargees(record)
+    if sur.get("check_in") and sur["check_in"][:10] != check_in[:10]:
+        return True
+    if sur.get("check_out") and sur["check_out"][:10] != check_out[:10]:
+        return True
+    a = _ISO_RE.match(check_in)
+    b = _ISO_RE.match(check_out)
+    if a and b:
+        voulu = ((int(a.group(3)), int(a.group(2))), (int(b.group(3)), int(b.group(2))))
+        for plage in plages_ecrites(lines):
+            if plage != voulu:
+                return True
+    return False
+
+
 def _walk_labels(node: Any, out: list[str]) -> None:
     if node is None or not isinstance(node, (dict, list)):
         return
@@ -431,9 +542,11 @@ def stay_to_listing(
     if is_dropped_listing(name) or is_dropped_listing(title) or is_dropped_listing(subtitle):
         return None
     label = published_price_label(record.get("structuredDisplayPrice"))
-    total = stay_total_from_label(label)
-    guests, bedrooms, rooms = occupancy_from_stay(record)
     lines = structured_lines(record)
+    # Un total pour d'autres dates n'est pas un prix pour ce séjour.
+    hors_sejour = prix_hors_sejour(record, label, lines, check_in, check_out)
+    total = None if hors_sejour else stay_total_from_label(label)
+    guests, bedrooms, rooms = occupancy_from_stay(record)
     extra_g, extra_b, extra_r = occupancy_from_text(name, *lines)
     if guests is None:
         guests = extra_g

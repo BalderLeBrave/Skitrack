@@ -8,6 +8,7 @@ import { airbnbCircuitOpen } from "@/lib/stay/airbnbCircuit.server";
 import { SCRAPE_UA } from "./browser.server";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
+import { prixHorsSejour } from "./airbnbDates";
 import { annoncer, occupancyFromRecord, type Occupancy } from "@/lib/stay/occupancy";
 import { assurerCles } from "../cles/store.server";
 import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server";
@@ -257,7 +258,10 @@ function extract(root: unknown, input: LiveSearchInput): Listing[] {
         // Airbnb liste sans total ce qu'il ne peut pas vendre à ces dates : on
         // supprimait ces annonces, ce qui effaçait l'information au lieu de la
         // dire. `0` est la convention « prix non publié » de `Listing.total`.
-        const total = stayTotal(label) ?? 0;
+        // Un total pour d'autres dates n'est pas un prix pour ce séjour : Airbnb
+        // remplit sa grille avec des biens libres ailleurs dans le calendrier.
+        const horsSejour = prixHorsSejour(record, label, structuredLines(record), input.checkIn, input.checkOut);
+        const total = horsSejour ? 0 : (stayTotal(label) ?? 0);
         const occ = occupancy(record);
         const tropPetit = occ.guests != null && occ.guests < input.guests;
         const tropPeuDeChambres =
@@ -363,8 +367,14 @@ function fromPyairbnbPayload(payload: unknown, input: LiveSearchInput): Listing[
     const label = typeof row.priceLabel === "string" ? row.priceLabel : "";
     // Le sidecar rend désormais les annonces qu'Airbnb liste sans prix, avec
     // `total: 0` ; les rejeter ici les aurait fait disparaître quand même.
-    const total =
-      typeof row.total === "number" && row.total > 0 ? Math.round(row.total) : (stayTotal(label) ?? 0);
+    // Filet : le sidecar vérifie déjà les dates de la tuile ; le libellé,
+    // seul arrivé jusqu'ici, dit encore le nombre de nuits.
+    const horsSejour = prixHorsSejour(null, label, [], input.checkIn, input.checkOut);
+    const total = horsSejour
+      ? 0
+      : typeof row.total === "number" && row.total > 0
+        ? Math.round(row.total)
+        : (stayTotal(label) ?? 0);
     if (!id || !name || seen.has(id)) continue;
     if (isDropped(name) || isDropped(sub)) continue;
     const guests = typeof row.guests === "number" && row.guests > 0 ? row.guests : null;

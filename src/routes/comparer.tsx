@@ -17,7 +17,8 @@ import { useEchap, useFermeture, useHauteurCollante } from "@/components/v7/ferm
 import { partagerParBornes, sansPositionLabel, type Bornes } from "@/lib/carte";
 import { appliquer, critereBloquant, SEUILS, UNITES, usePredicats } from "@/lib/filtres";
 import { CarteStation } from "@/components/v7/CarteStation";
-import { mixLbl, PartPistes } from "@/components/v7/PartPistes";
+import { mixLbl } from "@/components/v7/mixLbl";
+import { PartPistes } from "@/components/v7/PartPistes";
 import { Vide } from "@/components/v7/Vide";
 import {
   CMP_MAX,

@@ -16,6 +16,7 @@ import {
   renderInstallPageHtml,
   renderWebManifest,
   snapshotOgIdentity,
+  snapshotPwaAssets,
 } from "./grok-pwa-shared.mjs";
 
 export const GROK_OG_IDENTITY_ID = "virtual:grok-og-identity";
@@ -42,7 +43,7 @@ function sendHtml(res, html) {
   res.end(body);
 }
 
-function serveGrokPwa(middlewares) {
+function serveGrokPwa(middlewares, cwd) {
   middlewares.use((req, res, next) => {
     const rawUrl = req.url ?? "";
     const pathOnly = rawUrl.split("?", 1)[0] ?? "";
@@ -62,7 +63,14 @@ function serveGrokPwa(middlewares) {
       return;
     }
 
-    if (isInstallQuery(rawUrl) && isDocumentPath(pathOnly) && acceptsHtml(req.headers.accept)) {
+    if (
+      isInstallQuery(rawUrl) &&
+      isDocumentPath(pathOnly) &&
+      acceptsHtml(req.headers.accept) &&
+      // Outside the sandbox the tutorial's stylesheet and images are absent:
+      // the URL then just opens the app.
+      snapshotPwaAssets(cwd).installPage
+    ) {
       try {
         sendHtml(res, renderInstallPage(requestHost(req), rawUrl));
       } catch (err) {
@@ -92,7 +100,7 @@ function wrapHtmlResponses(middlewares, cwd) {
     const looksLikeDocument =
       method === "GET" &&
       String(req.headers.accept ?? "").includes("text/html") &&
-      !isInstallQuery(rawUrl) &&
+      !(isInstallQuery(rawUrl) && snapshotPwaAssets(cwd).installPage) &&
       isDocumentPath(pathOnly);
     if (!looksLikeDocument) {
       next();
@@ -163,7 +171,10 @@ export function grokPwaPlugin() {
     },
     load(id) {
       if (id !== `\0${GROK_OG_IDENTITY_ID}`) return;
-      return `export const grokOgIdentity = ${JSON.stringify(snapshotOgIdentity(root))};`;
+      return (
+        `export const grokOgIdentity = ${JSON.stringify(snapshotOgIdentity(root))};\n` +
+        `export const grokPwaAssets = ${JSON.stringify(snapshotPwaAssets(root))};`
+      );
     },
     transformIndexHtml(html) {
       return injectGrokPwaHead(html, {
@@ -174,11 +185,11 @@ export function grokPwaPlugin() {
     configureServer(server) {
       // Registered directly (not in a returned post-hook) so both run BEFORE
       // TanStack Start's SSR middleware, like the auth-popup plugin.
-      serveGrokPwa(server.middlewares);
+      serveGrokPwa(server.middlewares, root);
       wrapHtmlResponses(server.middlewares, root);
     },
     configurePreviewServer(server) {
-      serveGrokPwa(server.middlewares);
+      serveGrokPwa(server.middlewares, root);
       // Post-hook: preview registers compression between the direct hooks and
       // the post-hooks, and the injector must wrap AFTER compression so it
       // sees plaintext HTML (compression then compresses the injected output).

@@ -42,7 +42,7 @@ function Traces() {
   );
   const raw = live ?? frozen;
   const rows = useMemo(() => {
-    const scored = raw.map((l) => ({ listing: l, gpxM: distToGpxM(l) }));
+    const scored = raw.map((l) => ({ listing: l, gpxM: distToGpxM(l, points) }));
     scored.sort((a, b) => {
       if (sort === "total") return a.listing.total - b.listing.total;
       if (sort === "pp") {
@@ -63,7 +63,7 @@ function Traces() {
       return am - bm;
     });
     return scored;
-  }, [raw, sort, guests, points, stats]);
+  }, [raw, sort, guests, points]);
 
   const fiche = ficheId ? raw.find((l) => l.id === ficheId) : undefined;
   const mapCenter = stats?.start ?? (station ? { lat: station.lat, lon: station.lon } : null);

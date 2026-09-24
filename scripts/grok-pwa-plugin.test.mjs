@@ -1,25 +1,72 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
+  GROK_ICON_PATH,
+  GROK_INSTALL_STYLES_PATH,
   appNameFromHost,
-  createHeadInjector,
+  createHeadInjector as createInjectorInWorkspace,
   grokXCreatorHeadTags,
-  injectGrokPwaHead,
+  injectGrokPwaHead as injectInWorkspace,
   isDocumentPath,
   isInstallQuery,
   publicAppHost,
   renderWebManifest,
   resolveOgCardAsset,
   snapshotOgIdentity,
+  snapshotPwaAssets,
   stripInstallParams,
 } from "./grok-pwa-shared.mjs";
-import { renderInstallPage } from "./grok-pwa-plugin.mjs";
+import { GROK_OG_IDENTITY_ID, grokPwaPlugin, renderInstallPage } from "./grok-pwa-plugin.mjs";
 
 const TEMPLATE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+/** A workspace with the sandbox's PWA assets (public/__grok/), and nothing else. */
+function makeSandboxWorkspace() {
+  const root = mkdtempSync(join(tmpdir(), "grok-pwa-sandbox-"));
+  mkdirSync(join(root, "public/__grok/install"), { recursive: true });
+  writeFileSync(join(root, "public", GROK_ICON_PATH), "png");
+  writeFileSync(join(root, "public", GROK_INSTALL_STYLES_PATH), "css");
+  return root;
+}
+
+// Without a `cwd` the injector reads src/lib/og/site.json, public/og.jpg and
+// public/__grok/ from the current directory: this checkout's own identity (its
+// title, its custom card) and, outside the sandbox, no PWA assets. These tests
+// describe a sandbox workspace with no identity of its own unless they pass
+// their own `cwd`, so the app's branding cannot leak into them.
+const SANDBOX_WORKSPACE = makeSandboxWorkspace();
+const injectGrokPwaHead = (html, ctx = {}) =>
+  injectInWorkspace(html, { cwd: SANDBOX_WORKSPACE, ...ctx });
+const createHeadInjector = (ctx = {}) =>
+  createInjectorInWorkspace({ cwd: SANDBOX_WORKSPACE, ...ctx });
+
+/** The Vite plugin's dev middlewares for `root`, in registration order. */
+function pluginMiddlewares(root) {
+  const handlers = [];
+  const plugin = grokPwaPlugin();
+  plugin.configResolved({ root });
+  plugin.configureServer({ middlewares: { use: (handler) => handlers.push(handler) } });
+  return handlers;
+}
+
+/** Run one GET through the plugin's first middleware: "next" or the status it sent. */
+function servePwaRequest(root, url) {
+  const [serve] = pluginMiddlewares(root);
+  const res = {
+    statusCode: 0,
+    setHeader() {},
+    end() {},
+  };
+  let passedOn = false;
+  serve({ url, method: "GET", headers: { accept: "text/html", host: "localhost" } }, res, () => {
+    passedOn = true;
+  });
+  return passedOn ? "next" : res.statusCode;
+}
 
 test("injects before </head>", () => {
   const out = injectGrokPwaHead("<html><head><title>x</title></head><body></body></html>");
@@ -399,6 +446,58 @@ test("uses the app name in the injected title tag", () => {
   assert.match(out, /apple-mobile-web-app-title" content="Wild Race"/);
 });
 
+test("snapshotPwaAssets sees the sandbox's icon and install stylesheet", () => {
+  assert.deepEqual(snapshotPwaAssets(SANDBOX_WORKSPACE), { icon: true, installPage: true });
+  const empty = mkdtempSync(join(tmpdir(), "grok-pwa-none-"));
+  assert.deepEqual(snapshotPwaAssets(empty), { icon: false, installPage: false });
+});
+
+test("outside the sandbox the chrome links neither manifest nor icon", () => {
+  // public/__grok/ is ignored by git: both links would 404 on a plain checkout.
+  const out = injectGrokPwaHead("<html><head><title>x</title></head></html>", {
+    cwd: mkdtempSync(join(tmpdir(), "grok-pwa-none-")),
+  });
+  assert.doesNotMatch(out, /rel="manifest"/);
+  assert.doesNotMatch(out, /apple-touch-icon/);
+  assert.match(out, /property="og:title" content="x"/);
+  assert.match(out, /apple-mobile-web-app-title/);
+});
+
+test("the middleware's bake decides, not what the function can stat", () => {
+  // Nitro passes the build's snapshot; a deployed function has no public/.
+  const baked = (ctx) =>
+    Buffer.concat(
+      createHeadInjector({ site: {}, ...ctx }).push("<html><head></head></html>"),
+    ).toString("utf8");
+  const absent = { icon: false, installPage: false };
+  const present = { icon: true, installPage: true };
+  assert.doesNotMatch(baked({ pwaAssets: absent }), /rel="manifest"/);
+  const empty = mkdtempSync(join(tmpdir(), "grok-pwa-none-"));
+  assert.match(baked({ cwd: empty, pwaAssets: present }), /apple-touch-icon" href="\/__grok\//);
+});
+
+test("the install tutorial is served only where its stylesheet is", () => {
+  const url = "/?install=1&platform=ios";
+  assert.equal(servePwaRequest(SANDBOX_WORKSPACE, url), 200);
+  assert.equal(servePwaRequest(mkdtempSync(join(tmpdir(), "grok-pwa-none-")), url), "next");
+});
+
+test("the plugin bakes which PWA assets the build saw", () => {
+  const load = (root) => {
+    const plugin = grokPwaPlugin();
+    plugin.configResolved({ root });
+    return plugin.load(`\0${GROK_OG_IDENTITY_ID}`);
+  };
+  assert.match(
+    load(SANDBOX_WORKSPACE),
+    /export const grokPwaAssets = \{"icon":true,"installPage":true\};/,
+  );
+  assert.match(
+    load(mkdtempSync(join(tmpdir(), "grok-pwa-none-"))),
+    /export const grokPwaAssets = \{"icon":false,"installPage":false\};/,
+  );
+});
+
 test("streaming injector handles </head> split across chunks", () => {
   const injector = createHeadInjector({ appName: "Wild Race" });
   const chunks = [
@@ -489,13 +588,30 @@ test("vite config keeps the nitro serverDir wiring", () => {
   assert.match(viteConfig, /grokPwaPlugin\(\)/);
 });
 
-test("nitro middleware and its bundled assets exist", () => {
+test("nitro middleware and its bundled install page exist", () => {
   const middleware = readFileSync(join(TEMPLATE_ROOT, "server/middleware/grok-pwa.ts"), "utf8");
   assert.match(middleware, /install-page\.html\?raw/);
   assert.match(middleware, /virtual:grok-og-identity/);
   readFileSync(join(TEMPLATE_ROOT, "scripts/install-page.html"));
-  readFileSync(join(TEMPLATE_ROOT, "public/__grok/icon-180.png"));
-  readFileSync(join(TEMPLATE_ROOT, "public/__grok/install/styles.css"));
+});
+
+// public/__grok/ is the Grok sandbox's, ignored by git: outside it the icon
+// and the install stylesheet the head chrome links to are not there.
+const GROK_ASSETS = join(TEMPLATE_ROOT, "public/__grok");
+const NO_GROK_ASSETS =
+  !existsSync(GROK_ASSETS) &&
+  "no public/__grok here: ignored by git, only the Grok sandbox ships it";
+
+test("the chrome's icon and install stylesheet exist", { skip: NO_GROK_ASSETS }, () => {
+  readFileSync(join(GROK_ASSETS, "icon-180.png"));
+  readFileSync(join(GROK_ASSETS, "install/styles.css"));
+});
+
+test("the app root leaves the PWA links to the injector", () => {
+  // A link declared in __root.tsx is never removed, so it would 404 outside
+  // the sandbox whatever the injector decides.
+  const root = readFileSync(join(TEMPLATE_ROOT, "src/routes/__root.tsx"), "utf8");
+  assert.doesNotMatch(root, /href:\s*["']\/__grok\//);
 });
 
 test("vite plugin bakes og identity as a virtual module", () => {

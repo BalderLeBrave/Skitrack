@@ -16,6 +16,10 @@
  * `VITE_AUTH_ENABLED` itself (today unconditionally `"true"`), so the deployed
  * flag is the platform's, not this file's.
  *
+ * `.grok/` is the Grok sandbox's and ignored by git, so a checkout outside the
+ * sandbox has no file at all. It gets `LOCAL_APP_ENV` instead: auth off, which
+ * is what the sandbox file ships too.
+ *
  * Vite picks the values up because `loadEnv` prefix-matches entries already in
  * `process.env`, which is why the merge has to happen before Vite starts.
  */
@@ -32,8 +36,7 @@ const VITE_PREFIX = "VITE_";
 
 /**
  * Parse an app-env document, keeping only `VITE_`-prefixed string entries.
- * Anything unparseable is an empty environment — a workspace without the file
- * must behave exactly like today (auth on, no overrides).
+ * Anything unparseable is an empty environment: auth on, no overrides.
  */
 export function parseAppEnv(text) {
   let parsed;
@@ -59,6 +62,23 @@ export function readAppEnv(root) {
   } catch {
     return {};
   }
+}
+
+/**
+ * The app env of a checkout outside the Grok sandbox. Skitrack then runs on
+ * one person's machine, where no sign-in can complete (the broker's preview
+ * client only takes `*.grok-sandbox.com` callbacks): auth is off and the dev
+ * user owns the data, as `src/lib/auth` describes for the shipped default.
+ */
+export const LOCAL_APP_ENV = Object.freeze({ VITE_AUTH_ENABLED: "false" });
+
+/**
+ * The app env `root` runs with: its `.grok/app-env.json` when there is one —
+ * even one without the key, which is how the sandbox turns real sign-in on —
+ * else `LOCAL_APP_ENV`.
+ */
+export function workspaceAppEnv(root) {
+  return existsSync(join(root, APP_ENV_REL_PATH)) ? readAppEnv(root) : { ...LOCAL_APP_ENV };
 }
 
 /** File values under the process environment: an explicit override wins. */
@@ -128,19 +148,31 @@ export function resolveLocalCommand(command, args, root = projectRoot()) {
   return { command, args };
 }
 
+/**
+ * Whether Windows needs cmd.exe to start `command`. Only batch shims do, and a
+ * bare name (`npm`) may resolve to one through PATHEXT. An explicit path to an
+ * executable must not go through the shell: cmd.exe splits an unquoted
+ * `C:\Program Files\nodejs\node.exe` at the space.
+ */
+export function needsWindowsShell(command, platform = process.platform) {
+  if (platform !== "win32") return false;
+  if (/\.(?:bat|cmd)$/i.test(command)) return true;
+  return !(command.includes("/") || command.includes("\\") || isAbsolute(command));
+}
+
 function main(argv) {
   const [command, ...args] = argv;
   if (!command) {
     console.error("usage: node scripts/with-app-env.mjs <command> [args…]");
     process.exit(2);
   }
-  const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
+  const env = mergeAppEnv(workspaceAppEnv(projectRoot()), process.env);
   const resolved = resolveLocalCommand(command, args);
   const child = spawn(resolved.command, resolved.args, {
     stdio: "inherit",
     env,
     cwd: projectRoot(),
-    shell: process.platform === "win32" && resolved.command === command,
+    shell: needsWindowsShell(resolved.command),
   });
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {

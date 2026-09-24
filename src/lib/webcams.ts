@@ -18,6 +18,7 @@
  * remplace l'objet `Domain` de l'ancienne arborescence.
  */
 
+import { stationsVoisines } from "./domaineStations.ts";
 import { domainForStation } from "./forfaits/catalog.ts";
 import { stationById } from "./stations.ts";
 
@@ -165,6 +166,25 @@ export type WebcamSubject = {
   pass: string | null;
 };
 
+/** Clés de la table à essayer pour un nom et un forfait, du plus précis au plus large. */
+function candidateKeys(subject: WebcamSubject): string[] {
+  const tries: string[] = [];
+  for (const source of [subject.name, subject.pass].filter((v): v is string => Boolean(v))) {
+    tries.push(camKey(source));
+    tries.push(...segments(source));
+  }
+
+  const haystack = tries.join(" ");
+  for (const key of GROUP_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
+  for (const key of CAM_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
+  return tries;
+}
+
+/** Clé de la table qui porte les caméras propres d'une station, s'il y en a. */
+function ownCamKey(name: string, tries = candidateKeys({ name, pass: null })): string | null {
+  return tries.find((key) => CAM_INDEX.has(key)) ?? null;
+}
+
 /**
  * Webcams d'un domaine, groupe de forfait compris.
  *
@@ -176,17 +196,9 @@ export type WebcamSubject = {
  * domaine « Les 3 Vallées » sans caméra propre montre les quatre.
  */
 export function webcamsFor(domain: WebcamSubject): Webcam[] {
-  const tries: string[] = [];
-  for (const source of [domain.name, domain.pass].filter((v): v is string => Boolean(v))) {
-    tries.push(camKey(source));
-    tries.push(...segments(source));
-  }
+  const tries = candidateKeys(domain);
 
-  const haystack = tries.join(" ");
-  for (const key of GROUP_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
-  for (const key of CAM_KEYS) if (key.length > 3 && haystack.includes(key)) tries.push(key);
-
-  const ownKey = tries.find((key) => CAM_INDEX.has(key)) ?? null;
+  const ownKey = ownCamKey(domain.name, tries);
   const group = tries.map((key) => GROUP_INDEX.get(key)).find((g) => g !== undefined) ?? [];
 
   const out: Webcam[] = [];
@@ -223,12 +235,49 @@ export function webcamsFor(domain: WebcamSubject): Webcam[] {
  * Le forfait est cherché d'abord dans le nom de passe du catalogue, puis dans
  * la zone du relevé d'origine : les deux portent le nom du groupe, et l'un des
  * deux manque souvent.
+ *
+ * S'y ajoutent les caméras de toutes les stations du même domaine skiable
+ * (`Station.domain`) : La Tania montre celles de Courchevel, Méribel, Val
+ * Thorens et des Menuires, Arc 1600 celles des Arcs et de La Plagne. Les
+ * caméras propres restent en tête ; celles du domaine suivent, par ordre
+ * alphabétique, sans doublon d'URL.
  */
 export function webcamsForStation(stationId: string): Webcam[] {
   const station = stationById(stationId);
   if (!station) return [];
   const domain = domainForStation(stationId);
-  return webcamsFor({ name: station.name, pass: domain?.pass ?? domain?.seed?.zone ?? null });
+  const base = webcamsFor({
+    name: station.name,
+    pass: domain?.pass ?? domain?.seed?.zone ?? null,
+  });
+
+  const own = base.filter((c) => !c.duDomaine);
+  const seen = new Set(own.map((c) => c.url));
+  const shared: Webcam[] = [];
+  const add = (cam: Webcam) => {
+    if (seen.has(cam.url)) return;
+    seen.add(cam.url);
+    shared.push(cam);
+  };
+
+  for (const cam of base) if (cam.duDomaine) add(cam);
+  for (const voisine of stationsVoisines(stationId, station.domain)) {
+    const key = ownCamKey(voisine.name);
+    if (!key) continue;
+    const label = NAME_INDEX.get(key) ?? voisine.name;
+    for (const [name, url] of CAM_INDEX.get(key) ?? []) {
+      add({
+        id: url,
+        label: `${label}, ${name}`,
+        url,
+        station: label,
+        duDomaine: camKey(label) !== camKey(station.name),
+      });
+    }
+  }
+
+  shared.sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  return [...own, ...shared];
 }
 
 /** Couverture de la table, pour l'audit : qui a une caméra, qui n'en a pas. */

@@ -14,9 +14,10 @@ import { collecterCozy, cozyListings, type CollecteCozy } from "./cozy.server";
 import { fusionner } from "./fusion";
 import { allowsPath } from "./robots";
 import { chercherCentrale } from "./centrales/chercher.server";
+import { releverGreenGo } from "./greengo.server";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
 
-export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "browser" | "all";
+export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "browser" | "all";
 
 function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   if (
@@ -43,6 +44,7 @@ const GITES_SOURCES = ["Gîtes de France"] as const;
 const COZY_SOURCES = ["Abritel", "Booking"] as const;
 const BROWSER_SOURCES = ["Airbnb", "Gîtes de France", "Abritel", "Booking"] as const;
 const CENTRALE_SOURCES = ["Centrale"] as const;
+const GREENGO_SOURCES = ["GreenGo"] as const;
 
 /**
  * Le temps qu'une part se donne pour relever, sous les 52 s de `SEARCH_PART_MS`
@@ -220,6 +222,17 @@ async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], li
   }
   const f = fusionner(viaCozy, viaDirect);
   const publieDirect = direct.status === "fulfilled" ? direct.value.annoncees : null;
+  // Cozy tronqué ou muet pour Airbnb (échéance, recherche sans identifiant) :
+  // on le dit, et le relevé n'est pas gardé 15 min comme complet (dureeCache).
+  const arretCozy = cozy.status === "fulfilled" ? cozy.value.arrets.airbnb : undefined;
+  const cozyIncomplet =
+    cozy.status !== "fulfilled"
+      ? null
+      : arretCozy == null
+        ? "Airbnb non relevé (échéance ou recherche sans identifiant)"
+        : arretCozy === "échéance"
+          ? "coupé par l'échéance"
+          : null;
   pushReport(reports, listings, "Airbnb", f.listings, Date.now() - t0, {
     // Un compteur ne se rapporte que s'il couvre ce qu'on a compté : celui de
     // Cozy quand Cozy est seul. Celui d'Airbnb ne vaut que pour l'emprise
@@ -229,6 +242,7 @@ async function releverAirbnb(input: LiveSearchInput, reports: SourceReport[], li
       `Cozy ${viaCozy.length}, direct ${viaDirect.length}, communes ${f.communes}`,
       publieDirect != null ? `Airbnb en publie ${publieDirect} à 6 km de la station` : null,
       raisonDe(cozy) && `Cozy : ${raisonDe(cozy)}`,
+      cozyIncomplet && `Cozy : ${cozyIncomplet}`,
       raisonDirect && `direct : ${raisonDirect}`,
     ),
   });
@@ -363,6 +377,30 @@ async function runCentrales(input: LiveSearchInput): Promise<LiveSearchResult> {
   return { listings: locate(input, listings), sources: reports };
 }
 
+/**
+ * GreenGo : ses propres hébergements, écoresponsables, publiés sur
+ * greengo.voyage (voir `greengo.ts`). Une part à elle : aucune autre source ne
+ * les rapporte, et `mergeLive` remplace les annonces d'une source par celles
+ * de la part qui la rapporte.
+ */
+async function runGreenGo(input: LiveSearchInput): Promise<LiveSearchResult> {
+  const reports: SourceReport[] = [];
+  const listings: Listing[] = [];
+  const t0 = Date.now();
+  try {
+    const r = await releverGreenGo(input, { echeance: t0 + ECHEANCE_PART_MS });
+    pushReport(reports, listings, "GreenGo", r.listings, Date.now() - t0, {
+      note: notes(
+        r.hotes != null ? `${r.hotes} hôtes réservables à 6 km, ${r.detailles} lus en détail` : null,
+        r.raison && `arrêté en route — ${r.raison}`,
+      ),
+    });
+  } catch (err) {
+    failAll(reports, GREENGO_SOURCES, err);
+  }
+  return { listings: locate(input, listings), sources: reports };
+}
+
 async function runBrowser(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
@@ -405,12 +443,14 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
   if (part === "gites") return runGites(input);
   if (part === "cozy") return runCozy(input);
   if (part === "centrales") return runCentrales(input);
+  if (part === "greengo") return runGreenGo(input);
   if (part === "browser") return runBrowser(input);
   const parts = await Promise.all([
     borne(runAirbnb(input), AIRBNB_SOURCES),
     borne(runGites(input), GITES_SOURCES),
     borne(runCozy(input), COZY_SOURCES),
     borne(runCentrales(input), CENTRALE_SOURCES),
+    borne(runGreenGo(input), GREENGO_SOURCES),
   ]);
   return {
     listings: locate(input, parts.flatMap((p) => p.listings)),
@@ -419,24 +459,84 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
 }
 
 const CACHE_MS = 90_000;
+/**
+ * Un relevé Airbnb complet se garde 15 min. À 90 s, chaque retour sur une
+ * station, chaque nouvelle recherche aux mêmes dates renvoyait jusqu'à 12
+ * requêtes à Airbnb, la cause la plus directe des 429. Les prix restent datés
+ * (`scannedAt`). Un relevé arrêté en route (refus, coupe-circuit, limiteur
+ * local) ou vide garde les 90 s : on le refera, pas pendant la pause.
+ */
+const CACHE_AIRBNB_MS = 15 * 60_000;
 const CACHE_GEN = "c10";
-const cache = new Map<string, { at: number; result: LiveSearchResult }>();
+const cache = new Map<string, { at: number; ttl: number; result: LiveSearchResult }>();
+
+/**
+ * La durée de conservation d'un résultat de part. Seule la part « airbnb »
+ * — celle que l'écran lance — se garde longtemps : « all » et « browser »
+ * portent aussi Gîtes, Cozy et la centrale, dont un échec ne doit pas rester
+ * 15 min.
+ */
+export function dureeCache(part: SearchPart, result: LiveSearchResult): number {
+  if (part !== "airbnb") return CACHE_MS;
+  const r = result.sources.find((s) => s.source === "Airbnb");
+  if (!r?.ok || r.count <= 0) return CACHE_MS;
+  const dit = `${r.error ?? ""} ${r.note ?? ""}`;
+  // « Cozy : … » et « direct : … » ne figurent dans la note que sur un échec
+  // ou un arrêt (releverAirbnb) ; un simple compte (« en publie 429 ») ne compte pas.
+  return /HTTP \d{3}|coupe-circuit|limiteur|arrêté en route|Cozy :|direct :/i.test(dit) ? CACHE_MS : CACHE_AIRBNB_MS;
+}
 const inflight = new Map<string, Promise<LiveSearchResult>>();
 
 function cacheKey(input: LiveSearchInput, part: SearchPart): string {
   return [CACHE_GEN, part, input.stationId, input.checkIn, input.checkOut, input.guests, input.bedrooms].join("|");
 }
 
-export async function runLiveSearch(input: LiveSearchInput, part: SearchPart = "all"): Promise<LiveSearchResult> {
+/**
+ * Date les prix au moment du relevé, pas de la réponse : `dater`
+ * (searchStay.ts) tamponnait `scannedAt` à chaque service, et un relevé servi
+ * du cache 14 min plus tard passait pour frais. Un prix de repli (relevé figé)
+ * n'est pas daté ici, comme dans `dater`.
+ */
+function daterReleve(result: LiveSearchResult, at: number): LiveSearchResult {
+  return {
+    ...result,
+    listings: result.listings.map((l) =>
+      l.total > 0 && l.scannedAt == null && !/repli/i.test(l.proven) ? { ...l, scannedAt: at } : l,
+    ),
+  };
+}
+
+export type RunOptions = {
+  /**
+   * Une relance demandée à l'écran (« Relancer le relevé ») : le cache long
+   * d'Airbnb n'y répond que pendant les 90 s d'avant, pas 15 min.
+   */
+  relance?: boolean;
+};
+
+export async function runLiveSearch(
+  input: LiveSearchInput,
+  part: SearchPart = "all",
+  opts: RunOptions = {},
+): Promise<LiveSearchResult> {
   await allowsPath("https://skitrack.local", "/");
   const key = cacheKey(input, part);
   const hit = cache.get(key);
-  if (hit && Date.now() - hit.at < CACHE_MS) return hit.result;
+  const ttl = hit ? (opts.relance ? Math.min(hit.ttl, CACHE_MS) : hit.ttl) : 0;
+  if (hit && Date.now() - hit.at < ttl) return hit.result;
   const pending = inflight.get(key);
   if (pending) return pending;
   const promise = actuallyRun(input, part)
-    .then((result) => {
-      cache.set(key, { at: Date.now(), result });
+    .then((brut) => {
+      const at = Date.now();
+      const result = daterReleve(brut, at);
+      const ttl = dureeCache(part, result);
+      // Une relance tombée pendant une pause (coupe-circuit, limiteur) rend un
+      // relevé dégradé : il ne remplace pas un relevé complet encore valable.
+      const avant = cache.get(key);
+      if (avant && avant.ttl > CACHE_MS && at - avant.at < avant.ttl && ttl <= CACHE_MS) return avant.result;
+      cache.set(key, { at, ttl, result });
+      for (const [k, v] of cache) if (Date.now() - v.at >= v.ttl) cache.delete(k);
       return result;
     })
     .finally(() => {

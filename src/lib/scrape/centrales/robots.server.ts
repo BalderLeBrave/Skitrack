@@ -12,6 +12,7 @@
  * Gîtes et Abritel.
  */
 
+import { UA_NAVIGATEUR } from "../navigateur.ts";
 import { AGENT_CENTRALES, robotsAutorise, type VerdictRobots } from "./robots.ts";
 
 const TTL_MS = 60 * 60 * 1000;
@@ -36,7 +37,9 @@ async function lireRobots(origine: string, entetes?: Record<string, string>): Pr
     const r = await fetch(`${origine}/robots.txt`, {
       signal: ctrl.signal,
       redirect: "follow",
-      headers: { "user-agent": AGENT_CENTRALES, accept: "text/plain,*/*", ...entetes },
+      // L'en-tête d'un navigateur, comme tout le relevé (`navigateur.ts`) ; les
+      // règles se lisent toujours sous `AGENT_CENTRALES`.
+      headers: { "user-agent": UA_NAVIGATEUR, accept: "text/plain,*/*", ...entetes },
     });
     // Un 404 est une réponse claire : il n'y a pas de règles. Un 500 ou un
     // refus : on n'a pas lu, et on extrait quand même.

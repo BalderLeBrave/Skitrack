@@ -66,7 +66,7 @@ type Style = {
 
 async function lireStyle(): Promise<Style> {
   if (process.argv[2]) return JSON.parse(readFileSync(resolve(process.argv[2]), "utf8")) as Style;
-  const res = await fetch(SOURCE, { headers: { "user-agent": "Skitrack/1.0 (lecture du style, une fois)" } });
+  const res = await fetch(SOURCE, { headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" } });
   if (!res.ok) throw new Error(`style : HTTP ${res.status}`);
   return (await res.json()) as Style;
 }

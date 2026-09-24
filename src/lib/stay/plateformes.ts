@@ -1,7 +1,7 @@
 /**
  * Comparer les plateformes de réservation, pour le séjour en cours.
  *
- * Airbnb, Booking, Gîtes de France, la centrale, Abritel : ce que chacune
+ * Airbnb, Booking, Gîtes de France, la centrale, Abritel, GreenGo : ce que chacune
  * a publié, ce qu'elle a tarifé, ce qu'elle a confirmé. Rien n'est inventé.
  * Un loyer de centrale sans taxe relevée n'est pas le total payé ; un
  * montant Gîtes figé n'est pas un devis.
@@ -18,6 +18,7 @@ export const ORDRE_PLATEFORMES = [
   "Gîtes de France",
   "Booking",
   "Abritel",
+  "GreenGo",
 ] as const;
 
 export type SujetPlateforme = {

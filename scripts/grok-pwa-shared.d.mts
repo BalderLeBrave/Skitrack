@@ -14,7 +14,17 @@ export declare function renderInstallPageHtml(
   context?: { host?: string | null; url?: string | null },
 ): string;
 export declare function renderWebManifest(hostHeader: string | null | undefined): string;
-export declare function grokPwaHeadTags(appName?: string): Array<[string, string]>;
+export declare const GROK_ICON_PATH: string;
+export declare const GROK_INSTALL_STYLES_PATH: string;
+
+/** Which public/__grok/ assets a workspace serves (the Grok sandbox's; absent elsewhere). */
+export type PwaAssets = { icon: boolean; installPage: boolean };
+
+export declare function snapshotPwaAssets(cwd?: string): PwaAssets;
+export declare function grokPwaHeadTags(
+  appName?: string,
+  options?: { icon?: boolean },
+): Array<[string, string]>;
 export declare const GROK_EXTENSIONS_SCRIPT_SRC: string;
 export declare function readGrokProjectId(): string;
 export declare function readXCreator(): string;
@@ -40,6 +50,7 @@ export type GrokHeadContext = {
   host?: string | null;
   cwd?: string;
   site?: OgSite;
+  pwaAssets?: PwaAssets;
 };
 
 export declare function readOgSite(cwd?: string): OgSite;
@@ -72,6 +83,7 @@ export declare function normalizeHeadContext(ctx?: GrokHeadContext): {
   host: string;
   cwd: string;
   site: OgSite;
+  pwaAssets: PwaAssets;
 };
 export declare function injectGrokPwaHead(html: string, ctx?: GrokHeadContext): string;
 export declare function createHeadInjector(ctx?: GrokHeadContext): {

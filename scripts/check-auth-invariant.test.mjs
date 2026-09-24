@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { existsSync, mkdtempSync, symlinkSync } from "node:fs";
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -13,12 +13,6 @@ import {
   probeDevAuthEnabled,
 } from "./check-auth-invariant.mjs";
 import { APP_ENV_REL_PATH, projectRoot } from "./with-app-env.mjs";
-
-/** `.grok/` is gitignored: the app-env file exists in the generation sandbox,
- *  never in a clone, where these checks have nothing to read. */
-const NO_APP_ENV = existsSync(join(projectRoot(), APP_ENV_REL_PATH))
-  ? ""
-  : `${APP_ENV_REL_PATH} absent (gitignored, sandbox only)`;
 
 /**
  * The JSON body `/__app-env` would serve. Do not start a real Vite server —
@@ -96,8 +90,21 @@ test("only a divergence warns the smoke verdict", () => {
   }
 });
 
-test("the build side resolves the template's shipped app-env", (t) => {
-  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
+test("the build side resolves a workspace's app-env", () => {
+  const root = mkdtempSync(join(tmpdir(), "auth-invariant-env-"));
+  mkdirSync(join(root, ".grok"));
+  writeFileSync(join(root, APP_ENV_REL_PATH), '{"VITE_AUTH_ENABLED":"false"}');
+  assert.equal(buildAuthEnabled(root, {}), false);
+  assert.equal(buildAuthEnabled(root, { VITE_AUTH_ENABLED: "true" }), true);
+});
+
+test("the build side resolves auth off outside the sandbox", () => {
+  // Same default the wrapper hands the dev server, so the two still agree.
+  assert.equal(buildAuthEnabled(mkdtempSync(join(tmpdir(), "auth-invariant-local-")), {}), false);
+});
+
+test("the build side resolves the template's shipped app-env", () => {
+  // The sandbox's file, or the local default where git leaves no `.grok/`.
   assert.equal(buildAuthEnabled(projectRoot(), {}), false);
   assert.equal(buildAuthEnabled(projectRoot(), { VITE_AUTH_ENABLED: "true" }), true);
 });
@@ -106,7 +113,9 @@ test("the CLI reports rather than silently passing when run via a symlink", asyn
   // A check whose exit code is the whole signal must never no-op to 0 because
   // process.argv[1] came in through a symlinked path.
   const link = join(mkdtempSync(join(tmpdir(), "auth-invariant-link-")), "scripts");
-  symlinkSync(join(projectRoot(), "scripts"), link);
+  // A junction: a directory symlink needs admin rights or Developer Mode on
+  // Windows (EPERM). Node resolves both alike; elsewhere the type is ignored.
+  symlinkSync(join(projectRoot(), "scripts"), link, "junction");
   const error = await promisify(execFile)(process.execPath, [
     join(link, "check-auth-invariant.mjs"),
     "--dev-url",

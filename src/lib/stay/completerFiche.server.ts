@@ -2,21 +2,24 @@
  * Seconde passe hors collecteur : télécharge la fiche déjà liée et y lit
  * capacité, chambres, GPS. Les collecteurs restent inchangés.
  *
- * Airbnb 429 : les fiches `rooms/` partent une à une. Un 429 ouvre le
- * coupe-circuit partagé avec le sidecar Python (`/tmp/skitrack-airbnb-429`)
- * — Relancer pendant la pause ne martèle pas.
+ * Airbnb 429 : les fiches `rooms/` partent une à une. Un 429 d'Airbnb ouvre
+ * le coupe-circuit partagé avec le sidecar Python (`skitrack-airbnb-429`, dans
+ * le dossier temporaire)
+ * — Relancer pendant la pause ne martèle pas. Une attente de notre propre
+ * limiteur ne l'ouvre pas.
  */
 
 import type { Listing } from "../listings.ts";
 import { RELEVE_2A } from "../listings.ts";
 import { gitesCodeOf, gitesWidgetUrl } from "../scrape/gitesGps.server.ts";
-import { airbnbCircuitOpen, tripAirbnbCircuit } from "./airbnbCircuit.server.ts";
+import { airbnbCircuitOpen, airbnbCircuitRestantMs, tripAirbnbCircuit } from "./airbnbCircuit.server.ts";
 import { airbnbCookieHeader } from "./airbnbSession.server.ts";
 import { noterBlocage, paceTaux } from "./taux.server.ts";
 import { airbnbIdOf } from "./enrichir.ts";
-import { estHoteAirbnb, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
+import { PAUSE_MAX_MS, estHoteAirbnb, estStatutRalenti, htmlEstBloque, retryAfterMs } from "./http429.ts";
 import { lectureFiche, type LectureFiche } from "./lectureFiche.ts";
 import { poserReleve } from "./poserReleve.ts";
+import { choisirFiches, disjoncteur, ecrireLaissees, hoteDe, plausible } from "./priseFiche.ts";
 import { titreEstFichier, titreDepuisUrl } from "./titre.ts";
 import {
   estPageGitesIntrouvable,
@@ -28,6 +31,8 @@ import {
 
 const MAX_FICHES = 160;
 const WORKERS = 10;
+/** Fiches de suite sans rien combler, après quoi l'hôte est laissé pour la passe. */
+const SANS_PRISE_MAX = 5;
 const BUDGET_MS = 36_000;
 const HIT_MS = 24 * 60 * 60 * 1000;
 const MISS_MS = 30 * 60 * 1000;
@@ -38,13 +43,6 @@ const UA =
 
 type CacheEntry = { at: number; lect: LectureFiche; hit: boolean; blocked?: boolean };
 const cache = new Map<string, CacheEntry>();
-
-function plausible(lat: number | null | undefined, lon: number | null | undefined): boolean {
-  if (lat == null || lon == null) return false;
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
-  if (lat === 0 && lon === 0) return false;
-  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
-}
 
 function trouee(l: Listing): boolean {
   if (l.guests == null) return true;
@@ -270,13 +268,29 @@ function circuitOpen(): boolean {
   return airbnbCircuitOpen();
 }
 
-function tripCircuit(waitMs: number): void {
-  tripAirbnbCircuit(waitMs);
+/** Le coupe-circuit ouvert, dit comme tel : aucune requête n'est partie, ce n'est pas un 429 de plus. */
+function enPause(): string {
+  return `Airbnb en pause après un refus (coupe-circuit, encore ${Math.round(airbnbCircuitRestantMs() / 1000)} s)`;
 }
 
+/** Ouvre le coupe-circuit et pose la même pause au journal de taux, comme `throttle.refus` en Python. */
+function tripCircuit(waitMs: number): number {
+  const holdMs = tripAirbnbCircuit(waitMs);
+  noterBlocage("airbnb", holdMs);
+  return holdMs;
+}
+
+/**
+ * `limited` : l'hôte a refusé (429, 503, page de blocage). `rythme` : notre
+ * limiteur (`taux`) a dit « trop tôt », et rien n'est parti — l'hôte n'a rien
+ * refusé. `pause` : le coupe-circuit Airbnb s'est ouvert pendant l'attente du
+ * créneau, et rien n'est parti.
+ */
 type FetchOutcome =
   | { kind: "html"; html: string }
   | { kind: "limited"; status: number; retryAfterMs: number }
+  | { kind: "rythme"; waitMs: number }
+  | { kind: "pause"; restantMs: number }
   | { kind: "empty" };
 
 function hoteTaux(url: string): "airbnb" | "gites" | null {
@@ -289,17 +303,24 @@ function hoteTaux(url: string): "airbnb" | "gites" | null {
   return null;
 }
 
-async function fetchHtml(url: string, until: number): Promise<FetchOutcome> {
+/** Les fiches réellement demandées au réseau pendant une passe. */
+type Compte = { lues: number };
+
+async function fetchHtml(url: string, until: number, compte: Compte): Promise<FetchOutcome> {
   if (Date.now() >= until) return { kind: "empty" };
   const host = hoteTaux(url);
   if (host) {
     const pause = await paceTaux(host, Math.min(5_000, Math.max(0, until - Date.now())));
-    if (pause > 0) return { kind: "limited", status: 429, retryAfterMs: pause };
+    // Un refus arrivé pendant l'attente du créneau (Python, un autre relevé) :
+    // la fiche ne part pas pendant la pause qu'il a ouverte.
+    if (host === "airbnb" && airbnbCircuitOpen()) return { kind: "pause", restantMs: airbnbCircuitRestantMs() };
+    if (pause > 0) return { kind: "rythme", waitMs: pause };
   }
   const ctrl = new AbortController();
   const wait = setTimeout(() => ctrl.abort(), Math.max(1_000, until - Date.now()));
   try {
     const cookie = host === "airbnb" ? airbnbCookieHeader() : "";
+    compte.lues += 1;
     const res = await fetch(url, {
       headers: {
         "Accept-Language": "fr-FR,fr;q=0.9",
@@ -311,14 +332,18 @@ async function fetchHtml(url: string, until: number): Promise<FetchOutcome> {
       signal: ctrl.signal,
     });
     if (estStatutRalenti(res.status)) {
-      if (host) noterBlocage(host, retryAfterMs(res.headers));
-      return { kind: "limited", status: res.status, retryAfterMs: retryAfterMs(res.headers) };
+      // La pause demandée entière : le plafond de 12 s ne vaut que sur place.
+      const pause = retryAfterMs(res.headers, 0, PAUSE_MAX_MS);
+      if (host) noterBlocage(host, pause);
+      return { kind: "limited", status: res.status, retryAfterMs: pause };
     }
-    if (!res.ok) return { kind: "empty" };
+    // 202 : un défi anti-robot (AWS WAF chez Booking), pas la fiche. Lu comme
+    // une fiche, il rendait le titre « JavaScript is disabled », gardé 24 h.
+    if (!res.ok || res.status === 202) return { kind: "empty" };
     const html = await res.text();
     if (html.length < 400) return { kind: "empty" };
     if (htmlEstBloque(html)) {
-      const waitMs = retryAfterMs(res.headers);
+      const waitMs = retryAfterMs(res.headers, 0, PAUSE_MAX_MS);
       if (host) noterBlocage(host, waitMs);
       return { kind: "limited", status: 429, retryAfterMs: waitMs };
     }
@@ -342,11 +367,19 @@ const VIDE: LectureFiche = {
   taxeSejour: null,
 };
 
-async function fillPool(targets: Listing[], until: number, workers: number): Promise<number> {
+/**
+ * Un hôte dont `SANS_PRISE_MAX` fiches trouées de suite ne comblent rien est
+ * laissé pour la passe : sans cela, une page que le lecteur ne sait pas lire
+ * coûtait jusqu'à `MAX_FICHES` requêtes à chaque recherche. Un ralentissement
+ * (429, pause de `taux`) n'est pas compté : ce n'est pas le lecteur.
+ */
+async function fillPool(targets: Listing[], until: number, workers: number, compte: Compte): Promise<number> {
   let filled = 0;
   let cursor = 0;
   const n = Math.min(workers, targets.length);
   if (n <= 0) return 0;
+  const disj = disjoncteur(SANS_PRISE_MAX);
+  const laisses = new Map<string, number>();
   await Promise.all(
     Array.from({ length: n }, async () => {
       for (;;) {
@@ -356,52 +389,77 @@ async function fillPool(targets: Listing[], until: number, workers: number): Pro
         const row = targets[i];
         const url = ficheUrlOf(row);
         if (!url) continue;
+        const hote = hoteDe(url) ?? url;
+        // Une fiche Gîtes sans trou s'ouvre pour aligner le nom : elle ne
+        // juge pas le lecteur, et le disjoncteur ne la coupe pas.
+        const vise = trouee(row);
+        if (vise && disj.coupe(hote)) {
+          laisses.set(hote, (laisses.get(hote) ?? 0) + 1);
+          continue;
+        }
+        let comble = false;
         try {
-          const got = await fetchHtml(url, until);
-          if (got.kind !== "html") continue;
-          const lect = lectureFiche(got.html);
-          cache.set(cacheKey(url), { at: Date.now(), lect, hit: utile(lect) });
-          if (poserLecture(row, lect)) filled += 1;
+          const got = await fetchHtml(url, until, compte);
+          if (got.kind === "limited" || got.kind === "rythme" || got.kind === "pause") continue;
+          if (got.kind === "html") {
+            const lect = lectureFiche(got.html);
+            cache.set(cacheKey(url), { at: Date.now(), lect, hit: utile(lect) });
+            comble = poserLecture(row, lect);
+            if (comble) filled += 1;
+          }
         } catch {
           /* fiche bloquée : les trous restent nommés */
+        }
+        if (vise && disj.noter(hote, comble)) {
+          console.warn(`[fiche] ${hote} : ${SANS_PRISE_MAX} fiches de suite sans rien combler — hôte laissé`);
         }
       }
     }),
   );
+  for (const [hote, k] of laisses) console.info(`[fiche] ${hote} : ${k} fiches non ouvertes`);
   return filled;
 }
 
-async function fillAirbnbSeq(targets: Listing[], until: number): Promise<number> {
+/**
+ * Les fiches `rooms/`, une à une.
+ *
+ * Notre limiteur qui dit « trop tôt » arrête le lot sans toucher au
+ * coupe-circuit partagé : celui-ci, le relevé Airbnb suivant le rapporte
+ * « HTTP 429 » pendant 45 s, alors qu'Airbnb n'aurait rien refusé (même règle
+ * que `RythmeLocal` côté Python). Un vrai refus ouvre le coupe-circuit et
+ * arrête le lot, sans reprise : une seconde requête pendant la pause
+ * qu'Airbnb vient de demander est le second 429 le plus probable.
+ */
+async function fillAirbnbSeq(targets: Listing[], until: number, compte: Compte): Promise<number> {
   let filled = 0;
-  let consecutive = 0;
   for (let i = 0; i < targets.length; i++) {
     if (Date.now() >= until) break;
     if (circuitOpen()) {
-      console.warn(`[fiche] Airbnb 429 — pause, ${targets.length - i} fiches non lues`);
+      console.warn(`[fiche] ${enPause()} — ${targets.length - i} fiches non lues`);
       break;
     }
     const row = targets[i];
     const url = ficheUrlOf(row);
     if (!url) continue;
-    let got = await fetchHtml(url, until);
-    if (got.kind === "limited") {
-      const waitMs = got.retryAfterMs;
-      const status = got.status;
-      tripCircuit(waitMs);
-      const rest = until - Date.now();
-      if (rest > 800 && waitMs < rest && consecutive < 1) {
-        await new Promise((r) => setTimeout(r, waitMs));
-        got = await fetchHtml(url, until);
-      }
-      if (got.kind === "limited") {
-        consecutive += 1;
-        cache.set(cacheKey(url), { at: Date.now(), lect: VIDE, hit: false, blocked: true });
-        tripCircuit(got.retryAfterMs);
-        console.warn(`[fiche] Airbnb HTTP ${status} — coupe-circuit ${Math.round(waitMs / 1000)}s`);
-        break;
-      }
+    const got = await fetchHtml(url, until, compte);
+    if (got.kind === "pause") {
+      console.warn(`[fiche] ${enPause()} — ${targets.length - i} fiches non lues`);
+      break;
     }
-    consecutive = 0;
+    if (got.kind === "rythme") {
+      console.info(
+        `[fiche] Airbnb : limiteur local, ${Math.round(got.waitMs / 1000)} s à attendre — ${targets.length - i} fiches remises`,
+      );
+      break;
+    }
+    if (got.kind === "limited") {
+      cache.set(cacheKey(url), { at: Date.now(), lect: VIDE, hit: false, blocked: true });
+      const holdMs = tripCircuit(got.retryAfterMs);
+      console.warn(
+        `[fiche] Airbnb HTTP ${got.status} — pause partagée ${Math.round(holdMs / 1000)} s, ${targets.length - i - 1} fiches non lues`,
+      );
+      break;
+    }
     if (got.kind !== "html") continue;
     const lect = lectureFiche(got.html);
     cache.set(cacheKey(url), { at: Date.now(), lect, hit: utile(lect) });
@@ -446,24 +504,26 @@ export async function fillFiches(listings: Listing[], budgetMs = BUDGET_MS): Pro
     }
     todo.push(row);
   }
-  if (todo.length > 0 && Date.now() < until) {
-    const targets = todo.slice(0, MAX_FICHES);
-    const airbnb = targets.filter((l) => {
-      if (!(l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? ""))) return false;
-      // GPS déjà là : pas de rooms/. C'est ce fetch qui ouvre le 429.
-      return !plausible(l.lat, l.lon);
-    });
+  // Ce que la fiche ne peut pas combler n'est pas ouvert (voir priseFiche.ts),
+  // et le tri précède la borne : un Airbnb à GPS, qu'on n'ouvre jamais, ne
+  // prend plus la place d'une fiche qu'on ouvrirait.
+  const { aLire, laissees } = choisirFiches(todo, ficheUrlOf);
+  const compte: Compte = { lues: 0 };
+  if (aLire.length > 0 && Date.now() < until) {
+    const targets = aLire.slice(0, MAX_FICHES);
+    // GPS déjà là : pas de rooms/, c'est ce fetch qui ouvre le 429. `choisirFiches` les a laissés.
+    const airbnb = targets.filter((l) => l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? ""));
     const autres = targets.filter((l) => !(l.source === "Airbnb" || estHoteAirbnb(ficheUrlOf(l) ?? "")));
-    filled += await fillPool(autres, until, WORKERS);
+    filled += await fillPool(autres, until, WORKERS, compte);
     if (airbnb.length && !circuitOpen()) {
-      filled += await fillAirbnbSeq(airbnb, until);
+      filled += await fillAirbnbSeq(airbnb, until, compte);
     } else if (airbnb.length && circuitOpen()) {
-      console.warn(`[fiche] Airbnb 429 — ${airbnb.length} fiches reportées`);
+      console.warn(`[fiche] ${enPause()} — ${airbnb.length} fiches reportées`);
     }
-    console.info(`[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${targets.length} lues`);
-  } else {
-    console.info(`[fiche] ${filled}/${need.length} · ${cached} cache`);
   }
+  console.info(
+    `[fiche] ${filled}/${need.length} fiches · ${cached} cache · ${compte.lues} lues${ecrireLaissees(laissees)}`,
+  );
   filled += await fillAdresses(listings, until);
   await verifierFichesGites(listings, until);
   return filled;

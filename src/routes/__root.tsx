@@ -28,8 +28,10 @@ export const Route = createRootRoute({
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: appCss },
       { rel: "stylesheet", href: v6Css },
-      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+      // Le manifeste et l'icône d'écran d'accueil ne sont pas déclarés ici :
+      // `scripts/grok-pwa-shared.mjs` les pose quand `public/__grok/` existe,
+      // c'est-à-dire dans le bac à sable Grok. Ailleurs, git ignore ce dossier
+      // et les deux liens renverraient une 404.
       // Manrope est embarquée (`src/design/manrope.css`, `public/fonts/`) :
       // l'application tourne hors ligne, et la mesure au pixel ne dépend plus
       // d'un aller-retour réseau. Les deux preconnect vers Google et les deux

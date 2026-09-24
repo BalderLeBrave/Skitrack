@@ -37,7 +37,7 @@
  *
  * `robots.txt` de skiresort.fr : `Allow: /`, la recherche seule interdite. Les
  * fiches et leurs pages d'images sont ouvertes. Cadence de `politesse.ts` :
- * deux secondes, une requête à la fois, en-tête honnête.
+ * deux secondes, une requête à la fois, en-tête de navigateur.
  *
  * ## Aucun fichier n'est téléchargé
  *
@@ -59,9 +59,8 @@ const TIMEOUT_MS = 25_000;
 const REESSAIS = 2;
 const SAUVE_TOUS = 50;
 
-const UA =
-  "Skitrack/1.0 (relevé d'adresses de photos de station ; robot applicatif, " +
-  "une requête à la fois, 2 s entre deux ; lit les galeries publiées)";
+// Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 class Refus extends Error {}
 

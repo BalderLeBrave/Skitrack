@@ -46,9 +46,8 @@ const TIMEOUT_MS = 25_000;
 const SAUVE_TOUS = 25;
 const RAYON_KM = 5;
 
-const UA =
-  "Skitrack/1.0 (relevé des grilles de tarifs ; robot applicatif, " +
-  "une requête à la fois, 2 s entre deux ; lit les pages de prix publiées)";
+// Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

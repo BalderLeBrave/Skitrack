@@ -1,27 +1,24 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { promisify } from "node:util";
 import {
   APP_ENV_REL_PATH,
+  LOCAL_APP_ENV,
   mergeAppEnv,
+  needsWindowsShell,
   parseAppEnv,
   projectRoot,
   readAppEnv,
   resolveLocalCommand,
+  workspaceAppEnv,
 } from "./with-app-env.mjs";
 
 const execFileAsync = promisify(execFile);
 const WRAPPER = join(projectRoot(), "scripts/with-app-env.mjs");
-
-/** `.grok/` is gitignored: the app-env file exists in the generation sandbox,
- *  never in a clone, where these checks have nothing to read. */
-const NO_APP_ENV = existsSync(join(projectRoot(), APP_ENV_REL_PATH))
-  ? ""
-  : `${APP_ENV_REL_PATH} absent (gitignored, sandbox only)`;
 const PRINT_FLAG = "process.stdout.write(String(process.env.VITE_AUTH_ENABLED));";
 
 function makeWorkspace(appEnvJson) {
@@ -30,6 +27,18 @@ function makeWorkspace(appEnvJson) {
     mkdirSync(join(root, ".grok"), { recursive: true });
     writeFileSync(join(root, APP_ENV_REL_PATH), appEnvJson);
   }
+  return root;
+}
+
+/**
+ * A workspace with its own copy of the wrapper, which reads the app env of the
+ * root it lives under: the CLI tests then pin the file they wrote, not the
+ * checkout's `.grok/`, which git ignores and only the Grok sandbox provides.
+ */
+function makeWrapperWorkspace(appEnvJson) {
+  const root = makeWorkspace(appEnvJson);
+  mkdirSync(join(root, "scripts"));
+  copyFileSync(WRAPPER, join(root, "scripts/with-app-env.mjs"));
   return root;
 }
 
@@ -66,9 +75,20 @@ test("an explicit process-env override wins over the file", () => {
   assert.equal(merged.PATH, "/usr/bin");
 });
 
-test("the template ships auth off", (t) => {
-  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
-  assert.deepEqual(readAppEnv(projectRoot()), { VITE_AUTH_ENABLED: "false" });
+test("the template ships auth off", () => {
+  // The sandbox's file, or the local default where git leaves no `.grok/`.
+  assert.deepEqual(workspaceAppEnv(projectRoot()), { VITE_AUTH_ENABLED: "false" });
+});
+
+test("a checkout outside the sandbox runs with auth off", () => {
+  assert.deepEqual(workspaceAppEnv(makeWorkspace()), LOCAL_APP_ENV);
+  assert.deepEqual(LOCAL_APP_ENV, { VITE_AUTH_ENABLED: "false" });
+});
+
+test("a sandbox file without the key keeps sign-in on", () => {
+  // Removing the key is how the sandbox turns real sign-in on: the local
+  // default must not fill it back in.
+  assert.deepEqual(workspaceAppEnv(makeWorkspace("{}")), {});
 });
 
 test("vite loadEnv resolves the wrapped value", () => {
@@ -88,16 +108,23 @@ test("vite is launched via node, not a Windows .cmd shim", () => {
   assert.deepEqual(args.slice(1), ["dev"]);
 });
 
+test("only a batch shim or a bare name goes through cmd.exe", () => {
+  assert.equal(needsWindowsShell("npm", "win32"), true);
+  assert.equal(needsWindowsShell("C:\\tools\\build.cmd", "win32"), true);
+  assert.equal(needsWindowsShell("C:\\Program Files\\nodejs\\node.exe", "win32"), false);
+  assert.equal(needsWindowsShell("npm", "linux"), false);
+});
+
 test("an absolute command is left untouched", () => {
   const { command, args } = resolveLocalCommand(process.execPath, ["-e", "0"]);
   assert.equal(command, process.execPath);
   assert.deepEqual(args, ["-e", "0"]);
 });
 
-test("the wrapped command runs with the app env applied", async (t) => {
-  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
+test("the wrapped command runs with the app env applied", async () => {
+  const root = makeWrapperWorkspace('{"VITE_AUTH_ENABLED":"false"}');
   const { stdout } = await execFileAsync(process.execPath, [
-    WRAPPER,
+    join(root, "scripts/with-app-env.mjs"),
     process.execPath,
     "-e",
     PRINT_FLAG,
@@ -105,10 +132,23 @@ test("the wrapped command runs with the app env applied", async (t) => {
   assert.equal(stdout, "false");
 });
 
-test("the wrapped command sees an explicit override, not the file value", async () => {
+test("the wrapped command runs with auth off outside the sandbox", async () => {
+  const root = makeWrapperWorkspace();
+  const env = { ...process.env };
+  delete env.VITE_AUTH_ENABLED;
   const { stdout } = await execFileAsync(
     process.execPath,
-    [WRAPPER, process.execPath, "-e", PRINT_FLAG],
+    [join(root, "scripts/with-app-env.mjs"), process.execPath, "-e", PRINT_FLAG],
+    { env },
+  );
+  assert.equal(stdout, "false");
+});
+
+test("the wrapped command sees an explicit override, not the file value", async () => {
+  const root = makeWrapperWorkspace('{"VITE_AUTH_ENABLED":"false"}');
+  const { stdout } = await execFileAsync(
+    process.execPath,
+    [join(root, "scripts/with-app-env.mjs"), process.execPath, "-e", PRINT_FLAG],
     { env: { ...process.env, VITE_AUTH_ENABLED: "true" } },
   );
   assert.equal(stdout, "true");
@@ -135,12 +175,15 @@ test("a signal-killed command is never reported as success", async () => {
   );
 });
 
-test("the CLI still runs when invoked through a symlinked path", async (t) => {
-  if (NO_APP_ENV) return t.skip(NO_APP_ENV);
+test("the CLI still runs when invoked through a symlinked path", async () => {
   // node realpaths import.meta.url but not process.argv[1], so a raw comparison
   // turns the wrapper into a no-op that exits 0 without starting anything.
+  const root = makeWrapperWorkspace('{"VITE_AUTH_ENABLED":"false"}');
   const link = join(mkdtempSync(join(tmpdir(), "app-env-link-")), "scripts");
-  symlinkSync(join(projectRoot(), "scripts"), link);
+  // A directory symlink needs admin rights or Developer Mode on Windows (EPERM);
+  // a junction does not, and node resolves it the same way. Elsewhere the type
+  // argument is ignored.
+  symlinkSync(join(root, "scripts"), link, "junction");
   const { stdout } = await execFileAsync(process.execPath, [
     join(link, "with-app-env.mjs"),
     process.execPath,

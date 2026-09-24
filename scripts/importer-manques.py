@@ -61,7 +61,8 @@ from urllib.parse import unquote, urlsplit
 import requests
 
 SORTIE = Path("src/lib/monde/data/proprietaire.json")
-UA = "Skitrack/1.0 (contrôle d'images relevées à la main ; un octet demandé par image ; une requête par hôte toutes les 1,2 s)"
+# Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 INTERVALLE = 1.2
 POIDS_MIN = 20_000
 

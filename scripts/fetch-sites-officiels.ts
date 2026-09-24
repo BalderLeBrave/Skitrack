@@ -62,9 +62,8 @@ const INTERVALLE_MS = 1_500;
 const TIMEOUT_MS = 20_000;
 const SAUVE_TOUS = 50;
 
-const UA =
-  "Skitrack/1.0 (relevé de métadonnées de stations de ski ; robot applicatif, " +
-  "une requête à la fois, 1,5 s entre deux ; lit robots.txt et le respecte)";
+// Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 /** Le jeton sous lequel on se cherche dans `robots.txt`. */
 const AGENT = "skitrack";
 

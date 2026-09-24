@@ -39,9 +39,8 @@ const FICHIER = resolve(DATA, "sitesOfficiels.json");
 const INTERVALLE_MS = 800;
 const TIMEOUT_MS = 15_000;
 
-const UA =
-  "Skitrack/1.0 (contrôle d'adresses d'images ; une requête à la fois, " +
-  "un octet demandé par image)";
+// Se présenter comme un navigateur, comme le relevé de l'app (consigne du propriétaire, 24 sept. 2026).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 type Trouve = {
   id: string;

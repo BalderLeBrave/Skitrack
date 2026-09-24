@@ -4,12 +4,14 @@
  * Une recherche par emprise autour de la station, puis le détail des hôtes
  * les plus proches, un par un, au rythme du journal de taux partagé (2 s
  * entre deux, 20 par minute). Un refus (429, 503) arrête le relevé et pose la
- * pause demandée ; ce qui est lu reste. L'en-tête dit ce que le programme est.
+ * pause demandée ; ce qui est lu reste. L'en-tête est celui d'un navigateur,
+ * comme tout le relevé (`navigateur.ts`).
  */
 
 import type { Listing } from "@/lib/listings";
 import { PAUSE_MAX_MS, estStatutRalenti, retryAfterMs } from "@/lib/stay/http429";
 import { noterBlocage, paceTaux } from "@/lib/stay/taux.server";
+import { UA_NAVIGATEUR } from "./navigateur";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 import {
@@ -23,8 +25,6 @@ import {
   type LogementGreenGo,
 } from "./greengo";
 
-/** Identification honnête : ni navigateur, ni robot d'indexation. */
-const UA = "Skitrack/1.0 (relevé de logements ; robot applicatif, une requête à la fois, 2 s au moins entre deux)";
 const HOTE_TAUX = "greengo";
 /** L'emprise de la recherche : celle du relevé Airbnb proche (6 km). */
 const RAYON_KM = 6;
@@ -47,7 +47,7 @@ async function graphql(operation: string, query: string, echeance: number): Prom
       "content-type": "application/json",
       accept: "application/json",
       "accept-language": "fr-FR,fr;q=0.9",
-      "user-agent": UA,
+      "user-agent": UA_NAVIGATEUR,
     },
     body: JSON.stringify({ operationName: operation, variables: {}, query }),
     signal: AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_REQUETE_MS, echeance - Date.now()))),

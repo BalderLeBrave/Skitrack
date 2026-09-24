@@ -1,13 +1,13 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { crawlDelayMs, demander, INTERVALLE_MS, oublierFiles, UA_AGENT, UA_SKITRACK } from "./politesse.ts";
+import { crawlDelayMs, demander, INTERVALLE_MS, oublierFiles, UA_AGENT, UA_RELEVE } from "./politesse.ts";
+import { UA_NAVIGATEUR } from "./navigateur.ts";
 
 describe("politesse du relevé tarifaire", () => {
-  it("l'identification est honnête : ni navigateur, ni système d'exploitation", () => {
-    assert.ok(UA_SKITRACK.startsWith(`${UA_AGENT}/`));
-    for (const mot of ["Mozilla", "Chrome", "Safari", "Windows", "AppleWebKit", "Gecko"]) {
-      assert.ok(!UA_SKITRACK.includes(mot), `l'en-tête ne doit pas contenir « ${mot} »`);
-    }
+  it("l'en-tête est celui d'un navigateur, et le nom d'agent n'y figure pas", () => {
+    assert.equal(UA_RELEVE, UA_NAVIGATEUR);
+    assert.match(UA_RELEVE, /^Mozilla\/5\.0 .*Chrome\/\d+/);
+    assert.ok(!UA_RELEVE.includes(UA_AGENT), "« Skitrack » ne part pas dans les requêtes");
   });
 
   it("lit le Crawl-delay du groupe applicable", () => {

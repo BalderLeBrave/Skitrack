@@ -4,6 +4,8 @@
  * puis on extrait quand même. Rien n’arrête un relevé.
  */
 
+import { UA_NAVIGATEUR } from "./navigateur.ts";
+
 export interface RobotsRule {
   allow: boolean;
   path: string;
@@ -14,6 +16,11 @@ export interface RobotsVerdict {
   rule: string | null;
 }
 
+/**
+ * Le nom sous lequel on choisit le groupe de règles. Il ne part pas dans la
+ * requête : `robots.txt` se demande avec l'en-tête d'un navigateur, comme
+ * tout le relevé (`navigateur.ts`, consigne du propriétaire du 24 sept. 2026).
+ */
 export const ROBOTS_AGENT = "SkitrackRecon";
 
 const CACHE_MS = 60 * 60 * 1000;
@@ -103,7 +110,7 @@ const defaultFetcher: Fetcher = async (url) => {
   const timer = setTimeout(() => ctrl.abort(), FETCH_MS);
   try {
     const res = await fetch(url, {
-      headers: { "user-agent": ROBOTS_AGENT, accept: "text/plain,*/*" },
+      headers: { "user-agent": UA_NAVIGATEUR, accept: "text/plain,*/*" },
       redirect: "follow",
       signal: ctrl.signal,
     });

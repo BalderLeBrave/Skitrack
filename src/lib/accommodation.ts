@@ -37,9 +37,12 @@ export function distToTrackM(
   return Number.isFinite(best) ? Math.round(best) : null;
 }
 
-export function distToGpxM(listing: Listing): number | null {
+export function distToGpxM(
+  listing: Listing,
+  points: readonly { lat: number; lon: number }[] = useTrack.getState().points,
+): number | null {
   if (listing.lat == null || listing.lon == null) return null;
-  return distToTrackM(listing.lat, listing.lon, useTrack.getState().points);
+  return distToTrackM(listing.lat, listing.lon, points);
 }
 
 export function formatPerPerson(total: number, guests: number, devise = "EUR"): string {

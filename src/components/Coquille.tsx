@@ -23,7 +23,8 @@ import { AutoSync } from "./AutoSync";
 import { Icon } from "./Icon";
 import { AILLEURS_PATHS, useGo, screenOf, type Screen } from "./v6/go";
 import { Toast } from "./v6/Toast";
-import { Calendrier, usePlage } from "./v7/Calendrier";
+import { Calendrier } from "./v7/Calendrier";
+import { usePlage } from "./v7/plage";
 import { Compteur } from "./v7/Compteur";
 import { useFermeture } from "./v7/fermeture";
 import { useCriteresUrl } from "@/lib/criteres";
@@ -78,7 +79,7 @@ const AILLEURS: { titre: MsgId; liens: { to: (typeof AILLEURS_PATHS)[number]; la
 
 /** Les routes qui ne sont pas une étape du parcours. Une seule question posée
  *  à une seule table : `screenOf` répond `null` hors du parcours. */
-export function horsParcours(pathname: string): boolean {
+function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
 }
 

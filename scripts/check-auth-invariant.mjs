@@ -23,7 +23,7 @@
  * `compareAuthInvariant()` rather than re-deriving it.
  */
 import { APP_ENV_ROUTE } from "./app-env-plugin.mjs";
-import { isMainModule, mergeAppEnv, projectRoot, readAppEnv } from "./with-app-env.mjs";
+import { isMainModule, mergeAppEnv, projectRoot, workspaceAppEnv } from "./with-app-env.mjs";
 
 const DEFAULT_DEV_URL = "http://127.0.0.1:8080";
 
@@ -56,7 +56,8 @@ export function compareAuthInvariant({ devAuthEnabled, buildAuthEnabled }) {
       `[auth-invariant] dev server has sign-in ${label(devAuthEnabled)} but the next ` +
       `build has it ${label(buildAuthEnabled)}. Start the app with \`npm run dev\` — ` +
       "invoking vite directly skips scripts/with-app-env.mjs, so the dev server and " +
-      "the built output resolve .grok/app-env.json differently.",
+      "the built output resolve the app env (.grok/app-env.json, or the local default " +
+      "outside the sandbox) differently.",
   };
 }
 
@@ -85,7 +86,7 @@ export function authInvariantWarnings(result) {
 
 /** What `vite build` / `vite preview` will resolve, via the same wrapper. */
 export function buildAuthEnabled(root = projectRoot(), processEnv = process.env) {
-  const env = mergeAppEnv(readAppEnv(root), processEnv);
+  const env = mergeAppEnv(workspaceAppEnv(root), processEnv);
   return authEnabledFromEnvValue(env.VITE_AUTH_ENABLED);
 }
 

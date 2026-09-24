@@ -10,12 +10,14 @@
  *   public/ so this dynamic response is the only one).
  * - Other HTML documents → stream-inject PWA + OG head tags at `</head>`.
  *   OG identity is baked via `virtual:grok-og-identity` at `vite build`
- *   (this function cannot read `src/lib/og/site.json` or `public/og.jpg`).
+ *   (this function cannot read `src/lib/og/site.json` or `public/og.jpg`),
+ *   with which public/__grok/ assets exist, so the icon and the tutorial are
+ *   only offered where the build had them.
  *   This must be a middleware transforming `next()`: h3 discards the `response`
  *   runtime hook's return value, and `render:html` does not exist in Nitro v3.
  */
 import installPageTemplate from "../../scripts/install-page.html?raw";
-import { grokOgIdentity } from "virtual:grok-og-identity";
+import { grokOgIdentity, grokPwaAssets } from "virtual:grok-og-identity";
 import {
   acceptsHtml,
   createHeadInjector,
@@ -40,6 +42,7 @@ function injectHeadStreaming(response: Response, host: string): Response {
   const injector = createHeadInjector({
     host,
     site: grokOgIdentity.site,
+    pwaAssets: grokPwaAssets,
   });
   const transformed = response.body!.pipeThrough(
     new TransformStream<Uint8Array, Uint8Array>({
@@ -82,7 +85,9 @@ export default async function grokPwaMiddleware(
   if (
     isInstallQuery(urlWithQuery) &&
     isDocumentPath(path) &&
-    acceptsHtml(event.req.headers.get("accept"))
+    acceptsHtml(event.req.headers.get("accept")) &&
+    // Built outside the sandbox, the tutorial has no stylesheet or images.
+    grokPwaAssets.installPage
   ) {
     const html = renderInstallPageHtml(installPageTemplate, {
       host: requestHost(event),

@@ -141,6 +141,9 @@ function palierDistLbl(m: number): string {
   return `≤ ${m} m`;
 }
 
+/** Le temps qu'on laisse aux critères pour se poser avant de relancer la recherche. */
+const RELANCE_MS = 800;
+
 /** Recherche en direct, telle que la route précédente la lançait. */
 function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   const frozenRef = useRef(frozen);
@@ -153,6 +156,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   const mergeLive = useStay((s) => s.mergeLive);
   const setSearching = useStay((s) => s.setSearching);
   const setLive = useStay((s) => s.setLive);
+  // La première recherche part tout de suite ; les suivantes attendent que les
+  // critères se posent (voir plus bas).
+  const premiere = useRef(true);
+  const dernierNonce = useRef(searchNonce);
 
   useEffect(() => {
     if (!station) return;
@@ -175,7 +182,11 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       checkOut,
       guests,
       bedrooms,
+      // « Relancer le relevé » : le serveur ne ressert pas un relevé Airbnb
+      // de plus de 90 s, alors qu'une recherche ordinaire le garde 15 min.
+      relance: searchNonce !== dernierNonce.current,
     };
+    dernierNonce.current = searchNonce;
     const finish = () => {
       pending -= 1;
       if (!cancelled && pending <= 0) setSearching(false);
@@ -236,15 +247,25 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
         })
         .finally(finish);
     };
-    run("airbnb");
-    run("gites");
-    run("cozy");
-    // La centrale officielle de la station. Elle part en même temps que les
-    // plateformes et n'attend rien d'elles : une centrale lente ne doit pas
-    // retarder la liste, et une centrale muette ne doit pas la vider.
-    run("centrales");
+    const lancer = () => {
+      run("airbnb");
+      run("gites");
+      run("cozy");
+      // La centrale officielle de la station. Elle part en même temps que les
+      // plateformes et n'attend rien d'elles : une centrale lente ne doit pas
+      // retarder la liste, et une centrale muette ne doit pas la vider.
+      run("centrales");
+    };
+    // Trois clics sur « Voyageurs » lançaient trois relevés Airbnb complets,
+    // qui partaient tous jusqu'au bout côté serveur : jusqu'à 36 requêtes à
+    // Airbnb pour une seule recherche voulue. On attend que les critères se
+    // posent ; un changement dans l'intervalle annule le départ.
+    const delai = premiere.current ? 0 : RELANCE_MS;
+    premiere.current = false;
+    const depart = setTimeout(lancer, delai);
     return () => {
       cancelled = true;
+      clearTimeout(depart);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station?.id, checkIn, checkOut, guests, bedrooms, searchNonce]);

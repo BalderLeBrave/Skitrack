@@ -9,19 +9,31 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 import time
 from pathlib import Path
 from typing import Any, Callable
 
 TTL_S = 180.0
-DISK_TTL_S = 30 * 60.0
+# La clé API est celle du site public, pas une clé de session : elle ne change
+# qu'au déploiement d'Airbnb, comme le hash. La relire toutes les 30 min
+# coûtait une page d'accueil — le premier déclencheur des 429 connu. Une clé
+# périmée fait échouer un relevé (erreur, ou 403), et `invalidate()` la jette
+# alors (stays.run_search).
+DISK_TTL_S = 12 * 60 * 60.0
 # Le hash de l'opération StaysSearch change au déploiement d'Airbnb, pas
 # toutes les demi-heures. Le relire coûtait deux pages d'accueil et un paquet
 # JavaScript à chaque relevé ; un hash périmé fait échouer la recherche, et
 # `invalidate()` (appelé sur exception) le jette alors.
 HASH_DISK_TTL_S = 12 * 60 * 60.0
 COOKIE_TTL_S = 12 * 60 * 60.0
-SESSION_PATH = Path(os.environ.get("SKITRACK_AIRBNB_SESSION") or "/tmp/skitrack-airbnb-session.json")
+# Le dossier temporaire de l'utilisateur, le même que Node (`os.tmpdir()`).
+_SESSION_DEFAUT = Path(tempfile.gettempdir()) / "skitrack-airbnb-session.json"
+SESSION_PATH = Path(os.environ.get("SKITRACK_AIRBNB_SESSION") or _SESSION_DEFAUT)
+# L'emplacement d'avant (« /tmp », racine du lecteur sous Windows) : relu tant
+# que le nouveau n'existe pas, pour ne pas repartir à froid — pages d'accueil
+# et paquets JS relus. Seulement pour l'emplacement par défaut.
+ANCIEN_SESSION_PATH = Path("/tmp/skitrack-airbnb-session.json")
 
 _key = ""
 _key_at = 0.0
@@ -35,19 +47,36 @@ echeance: float | None = None
 
 
 def _read_disk() -> dict:
+    chemin = SESSION_PATH
+    if chemin == _SESSION_DEFAUT and chemin != ANCIEN_SESSION_PATH and not chemin.exists():
+        chemin = ANCIEN_SESSION_PATH
     try:
-        raw = json.loads(SESSION_PATH.read_text(encoding="utf-8"))
+        raw = json.loads(chemin.read_text(encoding="utf-8"))
         return raw if isinstance(raw, dict) else {}
     except (OSError, ValueError, TypeError):
         return {}
 
 
 def _write_disk(data: dict) -> None:
+    # Remplacement atomique : un relevé qui démarre pendant qu'un autre écrit
+    # lisait un fichier vide, et repartait à froid, sans cookies.
+    tmp = SESSION_PATH.with_name(f"{SESSION_PATH.name}.{os.getpid()}.tmp")
     try:
         SESSION_PATH.parent.mkdir(parents=True, exist_ok=True)
-        SESSION_PATH.write_text(json.dumps(data), encoding="utf-8")
+        tmp.write_text(json.dumps(data), encoding="utf-8")
+        for essai in range(5):
+            try:
+                tmp.replace(SESSION_PATH)
+                return
+            except PermissionError:
+                time.sleep(0.01 * (essai + 1))
     except OSError:
         pass
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
 
 
 def cached(slot: str, fetch: Callable[[], str]) -> str:
@@ -215,9 +244,22 @@ def _wrap(method: str):
         cap = SLEEP_CAP_S
         if echeance is not None:
             cap = max(0.0, min(SLEEP_CAP_S, echeance - time.time() - MARGE_REQUETE_S))
-        wait = pace(rythme_de(args[0] if args else kwargs.get("url")), cap)
+        hote = rythme_de(args[0] if args else kwargs.get("url"))
+        wait = pace(hote, cap)
+        if hote == "airbnb":
+            # Un refus arrivé pendant l'attente du créneau (autre relevé, ou
+            # Node) : la requête ne part pas pendant la pause qu'il a ouverte,
+            # et l'arrêt se dit « coupe-circuit », pas « limiteur local ».
+            from throttle import CoupeCircuit, airbnb_circuit
+
+            if airbnb_circuit.open():
+                raise CoupeCircuit(429, airbnb_circuit.remaining_s())
         if wait > 0:
             raise RythmeLocal(429, wait)
+        if echeance is not None and kwargs.get("timeout") is not None:
+            # Le délai était calculé avant l'attente du créneau : on le
+            # recale, pour que la requête finisse avant l'échéance du relevé.
+            kwargs["timeout"] = max(1.0, min(float(kwargs["timeout"]), echeance - time.time() - 0.5))
         proxies = kwargs.get("proxies") if isinstance(kwargs.get("proxies"), dict) else {}
         proxy = ""
         if isinstance(proxies, dict):

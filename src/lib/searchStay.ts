@@ -19,6 +19,8 @@ const Input = z.object({
   guests: z.number().int().min(1).max(30),
   bedrooms: z.number().int().min(0).max(20),
   part: z.enum(["airbnb", "gites", "cozy", "centrales", "browser", "all"]).optional(),
+  /** « Relancer le relevé » à l'écran : le cache long d'Airbnb ne sert que 90 s. */
+  relance: z.boolean().optional(),
 });
 
 /** Une part (Airbnb, Gîtes…) ne doit pas retenir l'écran. Le repli s'affiche. */
@@ -59,7 +61,11 @@ export const searchStay = createServerFn({ method: "POST" })
     const { runLiveSearch } = await import("./scrape/run.server");
     let res: LiveSearchResult;
     try {
-      res = await withDeadline(runLiveSearch(data, part), SEARCH_PART_MS, `search ${part}`);
+      res = await withDeadline(
+        runLiveSearch(data, part, { relance: data.relance === true }),
+        SEARCH_PART_MS,
+        `search ${part}`,
+      );
     } catch (err) {
       if (!estTimeout(err)) throw err;
       console.warn(`[searchStay] ${part} délai dépassé`);

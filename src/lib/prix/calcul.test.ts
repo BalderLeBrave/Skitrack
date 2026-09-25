@@ -14,13 +14,10 @@ import {
   countBudget,
   countFl,
   countLbl,
-  couverture,
   decaler,
   dejaPrevu,
   departIso,
   departLbl,
-  dispo,
-  dispoLbl,
   dureeLbl,
   ecartLbl,
   effacerBudget,
@@ -42,7 +39,6 @@ import {
   medHead,
   mediane,
   memePeriode,
-  metaAnnonce,
   MIN_ANNONCES,
   moreLbl,
   nomListe,
@@ -50,8 +46,8 @@ import {
   NUITS_MIN,
   ordreMassifs,
   PAGE,
-  PAGE_CARTES,
   PARTS,
+  PHOTOS_RETENUES,
   partielLbl,
   passe,
   passeBudget,
@@ -66,7 +62,6 @@ import {
   plur,
   poigneeProche,
   poserBorne,
-  ppLbl,
   relLbl,
   releveLbl,
   resultatDuReleve,
@@ -77,6 +72,7 @@ import {
   sourcesEnDefaut,
   sousTitre,
   sousTitreBudget,
+  stationDeCle,
   TRI0,
   TRIB0,
   TRIS,
@@ -84,8 +80,8 @@ import {
   triLbl,
   triVal,
   valeurStation,
+  versListing,
   videBudget,
-  type AnnonceRetenue,
   type Bornes,
   type CarteAnnonce,
   type Filtres,
@@ -101,9 +97,13 @@ import {
 import { STAY_BOUNDS } from "../parcours.ts";
 import { STATIONS, stationById, type Station } from "../stations.ts";
 import type { Listing } from "../listings.ts";
+import { provenancePhrase } from "../provenance.ts";
 import type { SourceReport } from "../scrape/types.ts";
-import type { AvailabilitySubject } from "../stay/availability.ts";
-import { bedLbl, capLbl } from "../v7.ts";
+import { availabilityOf, type AvailabilitySubject } from "../stay/availability.ts";
+import { completudeOf, galerieOf } from "../stay/completude.ts";
+import { enrichirListing } from "../stay/enrichir.ts";
+import { estOffreGitesVerifiee } from "../stay/tarif.ts";
+import { bedLbl, capLbl, distanceOf, mediaTon, prixLbl, prixPersLbl } from "../v7.ts";
 
 function stationReelle(id: string): Station {
   const s = stationById(id);
@@ -1468,67 +1468,185 @@ describe("retenir — les annonces que la médiane compte", () => {
   });
 });
 
+/** `n` photos de galerie, dans l'ordre publié. */
+function galerie(n: number): string[] {
+  return Array.from({ length: n }, (_, i) => `https://a0.muscache.com/im/pictures/p${i + 1}.jpg`);
+}
+
+/** Une annonce telle que Logements la reçoit du serveur : accès, domaine, galerie. */
+function situee(over: Partial<Listing> = {}): Listing {
+  return annonce({
+    rooms: 4,
+    beds: 6,
+    baths: 2,
+    propertyType: "Appartement",
+    photos: galerie(9),
+    priceLabel: "2 000 € au total",
+    rating: 4.8,
+    reviewCount: 31,
+    platformId: "12345678",
+    domainFit: "in",
+    distToLiftM: 180,
+    liftName: "Télésiège du Diable",
+    ...over,
+  });
+}
+
+/** Une annonce telle que l'ancien `compacter` l'écrivait dans IndexedDB. */
+function ancienne(l: Listing): Record<string, unknown> {
+  return {
+    id: l.id,
+    title: l.title,
+    source: l.source,
+    total: l.total,
+    currency: l.currency,
+    guests: l.guests,
+    bedrooms: l.bedrooms,
+    rooms: l.rooms ?? null,
+    url: l.url,
+    photo: l.photo,
+    pricedCheckIn: l.pricedCheckIn ?? null,
+    pricedCheckOut: l.pricedCheckOut ?? null,
+    scannedAt: l.scannedAt ?? null,
+    distToSlopesM: l.distToSlopesM ?? null,
+  };
+}
+
+const SEJOUR = { checkIn: IN, checkOut: OUT };
+
 describe("compacter", () => {
-  const CHAMPS = [
-    "bedrooms",
-    "currency",
-    "distToSlopesM",
-    "guests",
-    "id",
-    "photo",
-    "pricedCheckIn",
-    "pricedCheckOut",
-    "rooms",
-    "scannedAt",
-    "source",
-    "title",
-    "total",
-    "url",
-  ];
-
-  it("ne garde que les champs du contrat, rien de la géographie ni de la preuve", () => {
-    const riche = annonce({
-      rooms: 4,
-      beds: 6,
-      photos: ["https://a0.muscache.com/im/pictures/x.jpg"],
-      priceLabel: "2 000 € au total",
-      rating: 4.8,
-    });
-    assert.deepEqual(Object.keys(compacter(riche)).sort(), CHAMPS);
+  it("garde toute l'annonce enrichie, et ne borne que les photos", () => {
+    const riche = situee();
+    const c = compacter(riche);
+    assert.equal(PHOTOS_RETENUES, 6);
+    assert.deepEqual(c, { ...riche, photos: galerie(6) });
+    assert.notEqual(c, riche);
+    assert.equal(riche.photos?.length, 9, "l'annonce reçue n'est pas modifiée");
   });
 
-  it("recopie les valeurs, et écrit null pour un champ absent", () => {
-    assert.deepEqual(compacter(annonce()), {
-      id: "airbnb-1",
-      title: "Appartement plein sud",
-      source: "Airbnb",
-      total: 2000,
-      currency: "EUR",
-      guests: 8,
-      bedrooms: 3,
-      rooms: null,
-      url: "https://www.airbnb.fr/rooms/12345678",
-      photo: null,
-      pricedCheckIn: IN,
-      pricedCheckOut: OUT,
-      scannedAt: NOW - 60_000,
-      distToSlopesM: 800,
-    });
-    const nue = annonce();
-    delete nue.pricedCheckIn;
-    delete nue.pricedCheckOut;
-    delete nue.scannedAt;
-    delete nue.distToSlopesM;
-    const c = compacter(nue);
-    assert.equal(c.pricedCheckIn, null);
-    assert.equal(c.pricedCheckOut, null);
-    assert.equal(c.scannedAt, null);
-    assert.equal(c.distToSlopesM, null);
+  it("six photos ou moins, ou aucune : l'annonce ressort identique", () => {
+    const variantes: Partial<Listing>[] = [
+      {},
+      { photos: null },
+      { photos: [] },
+      { photos: galerie(6) },
+    ];
+    for (const over of variantes) {
+      const l = annonce(over);
+      assert.deepEqual(compacter(l), l);
+    }
   });
 
-  it("une annonce compacte se juge encore sur sa disponibilité", () => {
+  it("la carte, la pastille et le volet de Logements y lisent ce qu'ils lisent sur l'annonce", () => {
+    const l = situee();
+    const c = compacter(l);
+    assert.deepEqual(distanceOf(c), { kind: "measured", text: distanceOf(l).text });
+    assert.deepEqual(completudeOf(c), completudeOf(l));
+    assert.deepEqual(galerieOf(c), galerie(6));
+    for (const lbl of [capLbl, bedLbl, prixLbl, mediaTon]) assert.equal(lbl(c), lbl(l));
+    assert.equal(prixPersLbl(c, 8), prixPersLbl(l, 8));
+    assert.equal(provenancePhrase(c), provenancePhrase(l));
+    assert.deepEqual(availabilityOf(c, SEJOUR, NOW), availabilityOf(l, SEJOUR, NOW));
+    assert.deepEqual([c.stationId, c.lat, c.lon], [l.stationId, l.lat, l.lon]);
+  });
+
+  it("une annonce retenue se juge encore sur sa disponibilité", () => {
     const sujet: AvailabilitySubject = compacter(annonce());
     assert.equal(sujet.pricedCheckIn, IN);
+  });
+});
+
+describe("versListing : relire les annonces enregistrées", () => {
+  it("la station se lit au bout de la clé de résultat", () => {
+    for (const s of STATIONS) assert.equal(stationDeCle(cleResultat(PER, GRP, s.id)), s.id);
+    assert.equal(stationDeCle(cleResultat(PER, { trav: 10, rooms: 3 }, S2A.id)), S2A.id);
+  });
+
+  it("une annonce au format actuel ressort telle quelle, sa station comprise", () => {
+    const l = compacter(situee());
+    assert.deepEqual(versListing(l, "tignes"), l);
+    // Sans galerie, la galerie est dite absente : rien d'autre ne change.
+    const nue = compacter(annonce());
+    assert.deepEqual(versListing(nue, "tignes"), { ...nue, photos: null });
+  });
+
+  it("l'ancien format devient une annonce entière : station de la clé, rien d'inventé", () => {
+    const a = ancienne(situee());
+    assert.deepEqual(versListing(a, "les-2-alpes"), {
+      ...a,
+      stationId: "les-2-alpes",
+      available: true,
+      lat: null,
+      lon: null,
+      proven: "",
+      photos: null,
+    });
+  });
+
+  it("relue, une ancienne annonce se lit comme dans Logements, ses trous nommés", () => {
+    const brute = annonce();
+    const l = versListing(ancienne(brute), "les-2-alpes");
+    assert.ok(l);
+    assert.deepEqual(distanceOf(l), { kind: "no_coords", text: "Distance non communiquée" });
+    assert.deepEqual(completudeOf(l).trous, ["gps", "photo"]);
+    for (const lbl of [capLbl, bedLbl, prixLbl, mediaTon]) assert.equal(lbl(l), lbl(brute));
+    assert.equal(availabilityOf(l, SEJOUR, NOW).status, "confirmed");
+    assert.equal(
+      provenancePhrase(l),
+      "Prix relevé sur Airbnb le 10 janvier 2027 à 12 h 59, du 6 au 13 février 2027.",
+    );
+    const centrale = versListing(ancienne(annonce({ source: "Centrale" })), "les-2-alpes");
+    assert.ok(centrale);
+    assert.equal(
+      provenancePhrase(centrale),
+      "Prix relevé auprès de la centrale de réservation de la station le 10 janvier 2027 " +
+        "à 12 h 59, du 6 au 13 février 2027.",
+    );
+  });
+
+  it("un gîte relu garde son devis : sa retenue le prouvait", () => {
+    const [retenu] = retenir([gite()], CTX);
+    assert.ok(retenu);
+    const l = versListing(ancienne(retenu), "les-2-alpes");
+    assert.ok(l);
+    assert.equal(l.proven, "Devis ITEA live");
+    // Sans cette trace, `purgerTarifFigé` effaçait son prix à la relecture.
+    const relu = enrichirListing(l);
+    assert.equal(relu.total, retenu.total);
+    assert.equal(relu.scannedAt, retenu.scannedAt);
+    assert.equal(estOffreGitesVerifiee(relu), true);
+    assert.equal(
+      provenancePhrase(l),
+      "Prix relevé sur Gîtes de France le 10 janvier 2027 à 12 h 59, du 6 au 13 février 2027.",
+    );
+    // Un gîte sans prix n'a rien prouvé.
+    assert.equal(versListing(ancienne(gite({ total: 0 })), "les-2-alpes")?.proven, "");
+  });
+
+  it("illisible : rien plutôt qu'une annonce devinée", () => {
+    const a = ancienne(annonce());
+    for (const v of [null, undefined, 42, "airbnb-1", [], [a]]) {
+      assert.equal(versListing(v, "les-2-alpes"), null);
+    }
+    for (const k of ["id", "title", "source", "total", "currency"]) {
+      const sans = { ...a };
+      delete sans[k];
+      assert.equal(versListing(sans, "les-2-alpes"), null, k);
+    }
+    for (const over of [{ total: "2000" }, { total: Number.NaN }, { source: "Expedia" }]) {
+      assert.equal(versListing({ ...a, ...over }, "les-2-alpes"), null);
+    }
+  });
+
+  it("un champ requis mal écrit est dit absent, jamais recopié", () => {
+    const l = versListing(
+      { ...ancienne(annonce()), guests: "8", bedrooms: Infinity, photo: 42, url: undefined },
+      "les-2-alpes",
+    );
+    assert.deepEqual([l?.guests, l?.bedrooms, l?.photo, l?.url], [null, null, null, null]);
+    const [p1] = galerie(1);
+    const g = versListing({ ...compacter(annonce()), photos: [p1, 3, null] }, "les-2-alpes");
+    assert.deepEqual(g?.photos, [p1]);
   });
 });
 
@@ -1544,7 +1662,7 @@ describe("annonces d'un relevé", () => {
     now: NOW,
   };
 
-  it("un relevé fait donne ses annonces retenues, compactes", () => {
+  it("un relevé fait donne ses annonces retenues, entières", () => {
     const input = {
       ...base,
       listings: [...totaux([1000, 2000]), annonce({ id: "petit", guests: 4 })],
@@ -1554,9 +1672,26 @@ describe("annonces d'un relevé", () => {
       a.map((x) => x.id),
       ["airbnb-1", "airbnb-2"],
     );
-    for (const x of a) assert.equal(Object.keys(x).length, 14);
+    assert.deepEqual(a, retenir(input.listings, CTX).map(compacter));
+    // Station, GPS et provenance y sont : Logements les lit.
+    assert.deepEqual(
+      [a[0].stationId, a[0].lat, a[0].lon, a[0].proven],
+      ["les-2-alpes", S2A.lat + 0.002, S2A.lon + 0.002, "Airbnb direct"],
+    );
+    // Relue d'IndexedDB, chacune ressort la même.
+    for (const x of a) {
+      assert.deepEqual(versListing(x, "tignes"), { ...x, photos: x.photos ?? null });
+    }
     const r = resultatDuReleve(input);
     assert.equal(r.etat === "fait" ? r.n : -1, a.length);
+  });
+
+  it("une grande galerie arrive bornée, le reste de l'annonce intact", () => {
+    const [x] = annoncesDuReleve({ ...base, listings: [situee()] });
+    assert.ok(x);
+    assert.deepEqual(x.photos, galerie(PHOTOS_RETENUES));
+    assert.equal(x.distToLiftM, 180);
+    assert.equal(x.liftName, "Télésiège du Diable");
   });
 
   it("un relevé en échec n'en donne aucune", () => {
@@ -1748,34 +1883,11 @@ describe("filtres de l'onglet budget", () => {
 });
 
 describe("libellés de l'onglet budget", () => {
-  const retenue = (over: Partial<Listing> = {}): AnnonceRetenue => compacter(annonce(over));
-
   it("le compte s'accorde, et tait les stations quand il n'y en a pas", () => {
     assert.equal(countBudget(12, 3), "12 logements dans 3 stations");
     assert.equal(countBudget(1, 1), "1 logement dans 1 station");
     assert.equal(countBudget(2, 1), "2 logements dans 1 station");
     assert.equal(countBudget(0, 0), "0 logement");
-  });
-
-  it("couverture : aucune station relevée", () => {
-    assert.equal(
-      couverture(PER, [], 320, 8),
-      "Aucune station n’a d’annonces relevées du 6 févr. au 13 févr., 7 nuits.",
-    );
-  });
-
-  it("couverture : les stations relevées, nommées", () => {
-    assert.equal(
-      couverture(PER, ["Les 2 Alpes", "Chamrousse"], 320, 8),
-      "Annonces relevées du 6 févr. au 13 févr. dans 2 stations sur 320 : Les 2 Alpes, " +
-        "Chamrousse. Seuls les logements qui accueillent 8 voyageurs et publient leur " +
-        "capacité sont proposés.",
-    );
-    assert.equal(
-      couverture({ from: IN, nights: 1 }, ["Les 2 Alpes"], 320, 1),
-      "Annonces relevées du 6 févr. au 7 févr. dans 1 station sur 320 : Les 2 Alpes. " +
-        "Seuls les logements qui accueillent 1 voyageur et publient leur capacité sont proposés.",
-    );
   });
 
   it("videBudget : pas de relevé, puis le budget, puis les critères de station", () => {
@@ -1804,7 +1916,7 @@ describe("libellés de l'onglet budget", () => {
     assert.equal(videBudget(true, 5).versStation, true);
   });
 
-  it("sous-titre et prix par personne", () => {
+  it("sous-titre", () => {
     assert.equal(
       sousTitreBudget(7, 8),
       "Logements qui accueillent 8 voyageurs pour 7 nuits, dans votre budget.",
@@ -1813,67 +1925,6 @@ describe("libellés de l'onglet budget", () => {
       sousTitreBudget(1, 1),
       "Logements qui accueillent 1 voyageur pour 1 nuit, dans votre budget.",
     );
-    assert.equal(ppLbl(2382, 8), "soit 298 € par personne");
-    assert.equal(ppLbl(2400, 8), "soit 300 € par personne");
-  });
-
-  it("metaAnnonce : source, capacité, chambres", () => {
-    assert.equal(metaAnnonce(retenue()), "Airbnb · 8 pers. · 3 ch.");
-    assert.equal(metaAnnonce(retenue({ bedrooms: 0 })), "Airbnb · 8 pers. · studio");
-    assert.equal(
-      metaAnnonce(retenue({ source: "Centrale", bedrooms: null, rooms: 3 })),
-      "Centrale · 8 pers. · 3 pièces",
-    );
-  });
-
-  it("metaAnnonce écrit capacité et chambres comme capLbl et bedLbl", () => {
-    const variantes: Partial<Listing>[] = [
-      {},
-      { guests: null, bedrooms: null, rooms: null },
-      { bedrooms: 0 },
-      { bedrooms: null, rooms: 1 },
-      { bedrooms: null, rooms: 4 },
-      { bedrooms: null, rooms: 0 },
-      { source: "Gîtes de France", guests: 12, bedrooms: 5 },
-    ];
-    for (const v of variantes) {
-      const l = annonce(v);
-      assert.equal(metaAnnonce(compacter(l)), [l.source, capLbl(l), bedLbl(l)].join(" · "));
-    }
-  });
-
-  it("dispo : seul un prix frais, pour ces dates exactes, est confirmé", () => {
-    const a = retenue();
-    assert.deepEqual(dispo(a, PER, NOW), { confirme: true, lbl: "Prix relevé pour ces dates" });
-    assert.deepEqual(dispo(a, PER, NOW + 7 * HEURE), {
-      confirme: false,
-      lbl: "Prix relevé il y a plus de six heures",
-    });
-    assert.equal(dispo(a, decaler(PER, 1), NOW).confirme, false);
-    assert.equal(dispo(retenue({ scannedAt: null }), PER, NOW).confirme, false);
-    for (const [per, now] of [
-      [PER, NOW],
-      [PER, NOW + 7 * HEURE],
-      [avecNuits(PER, 6), NOW],
-    ] as const) {
-      assert.equal(dispoLbl(a, per, now), dispo(a, per, now).lbl);
-    }
-  });
-
-  it("dispoLbl relit la disponibilité à l'affichage", () => {
-    const a = retenue();
-    assert.equal(dispoLbl(a, PER, NOW), "Prix relevé pour ces dates");
-    assert.equal(dispoLbl(a, PER, NOW + 7 * HEURE), "Prix relevé il y a plus de six heures");
-    assert.equal(dispoLbl(a, decaler(PER, 1), NOW), "Prix relevé pour d’autres dates");
-    assert.equal(dispoLbl(a, avecNuits(PER, 6), NOW), "Prix relevé pour d’autres dates");
-    assert.equal(
-      dispoLbl(retenue({ scannedAt: null }), PER, NOW),
-      "Prix pour ces dates, relevé non daté",
-    );
-  });
-
-  it("les cartes se paginent par 60", () => {
-    assert.equal(PAGE_CARTES, 60);
   });
 
   it("aucun libellé neuf n'écrit d'apostrophe droite, de tiret cadratin ni d'exclamation", () => {
@@ -1882,12 +1933,8 @@ describe("libellés de l'onglet budget", () => {
       ...TRIS_B.map((t) => t.label),
       PLAGE_BUDGET.lbl,
       countBudget(12, 3),
-      couverture(PER, [], 320, 8),
-      couverture(PER, ["Les 2 Alpes"], 320, 8),
       ...vides.flatMap((v) => [v.titre, v.hint]),
       sousTitreBudget(7, 8),
-      ppLbl(2400, 8),
-      metaAnnonce(retenue()),
       ...jetonsBudget({ ...FL0, budget: [0, 3000] }, bornesPlages(STATIONS)).map((j) => j.lbl),
     ];
     for (const t of textes) {

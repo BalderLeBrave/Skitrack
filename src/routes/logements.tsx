@@ -11,16 +11,18 @@
  *  recherche. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
-import { GalerieAnnonce } from "@/components/LodgeSheet";
-import { provenancePhrase } from "@/lib/provenance";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { CarteEpingles } from "@/components/v7/CarteEpingles";
+import { CarteLogement, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
 import { epinglePrix, epingleRepere, ETAGE } from "@/components/v7/epingle";
-import { useEchap, useFermeture } from "@/components/v7/fermeture";
+import { useFermeture } from "@/components/v7/fermeture";
+import { FicheEpingle } from "@/components/v7/FicheEpingle";
+import { Pages } from "@/components/v7/Pages";
+import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
 import { partagerParBornes, type Bornes } from "@/lib/carte";
 import { dire } from "@/lib/i18n";
 import { OngletsStation } from "@/components/v7/OngletsStation";
@@ -29,7 +31,7 @@ import { useForfait } from "@/components/v7/useForfait";
 import { listingsForStay, type Listing } from "@/lib/listings";
 import { eleKey, listingEleM, useElevations } from "@/lib/elevations";
 import { getListingElevations } from "@/lib/snow/api";
-import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
+import { completudeOf } from "@/lib/stay/completude";
 import { enrichirListing } from "@/lib/stay/enrichir";
 import {
   distFiltrableM,
@@ -45,7 +47,6 @@ import {
   eur,
   eurCents,
   fmt,
-  nuitsLbl,
   stationPhoto,
   stationPhotoAbsence,
   useParcours,
@@ -56,37 +57,26 @@ import { partyLabel } from "@/lib/stay/party";
 import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS, TARIF_MS } from "@/lib/searchStay";
 import { stationById, type Station } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
-import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { estPauseApi, estTimeout, withDeadline } from "@/lib/stay/deadline";
 import { conserverDevisGites, estOffreGitesVerifiee } from "@/lib/stay/tarif";
-import { ecartAvecPrincipale, regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
+import { regrouper, sourcesLbl, type Logement } from "@/lib/stay/regroupement";
 import { estFicheGitesIntrouvable } from "@/lib/stay/ficheGites";
 import {
   altLbl,
   aStation,
-  bedLbl,
-  capLbl,
   crumbDomaine,
   distanceOf,
   firmOf,
   kmLbl,
   liftsLbl,
-  mediaTon,
   passLbl,
   prixLbl,
-  prixPersLbl,
   prixPin,
 } from "@/lib/v7";
 
 export const Route = createFileRoute("/logements")({ component: Logements });
 
 type LodgeSort = "pp" | "total" | "cap" | "dist" | "trous";
-
-/**
- * Logements par page, comme sur Airbnb. La carte ne porte que ceux de la page
- * en cours : trois mille pastilles d'un coup la rendaient illisible.
- */
-const PAGE_LOGEMENTS = 18;
 
 /** `lf` de la maquette : les filtres facultatifs de **cet écran**.
  *
@@ -311,219 +301,6 @@ function useDumpComplet(
 type Pred = { id: string; label: string; fn: (l: Listing) => boolean; fixed?: boolean; remove?: () => void };
 
 /**
- * Une annonce dans la liste.
- *
- * Défini dans le corps du rendu, il changeait d'identité à chaque rendu : React
- * démontait puis remontait toute la liste, les photos repartaient au
- * chargement et le focus tombait. Ce qu'il lisait par fermeture arrive
- * désormais en propriétés, et `memo` lui évite de se redessiner quand rien de
- * ce qui le concerne n'a bougé.
- */
-const CarteLogement = memo(function CarteLogement({
-  l,
-  retenu,
-  vue,
-  vif,
-  stay,
-  trav,
-  nights,
-  ouvrir,
-  retenir,
-  designer,
-  sources,
-  autres,
-  retenuSource,
-}: {
-  l: Listing;
-  /** « Abritel », ou « Airbnb + 2 » quand le logement est aussi ailleurs. */
-  sources: string;
-  /** Les autres plateformes et leurs prix, pour l'infobulle de l'étiquette. */
-  autres: string | null;
-  /** L'offre retenue parmi celles du logement, ou `null`. */
-  retenu: string | null;
-  /** Sa plateforme, quand ce n'est pas celle de la carte. */
-  retenuSource: string | null;
-  vue: boolean;
-  vif: boolean;
-  stay: { checkIn: string; checkOut: string };
-  trav: number;
-  nights: number;
-  ouvrir: (id: string) => void;
-  retenir: (id: string) => void;
-  designer: (id: string | null) => void;
-}) {
-  const isKept = retenu != null;
-  const seen = vue && !isKept;
-  const d = distanceOf(l);
-  const firm = firmOf(l, stay);
-  const complet = completudeOf(l);
-  const pers = prixPersLbl(l, trav);
-  return (
-    <article
-      className={`lodge7${isKept ? " lodge7--kept" : ""}${vif ? " lodge7--vif" : ""}`}
-      onClick={() => ouvrir(l.id)}
-      onMouseEnter={() => designer(l.id)}
-      onMouseLeave={() => designer(null)}
-      data-l={l.id}
-    >
-      <div className={`lodge7__media lodge7__media--${mediaTon(l)}`}>
-        {l.photo ? (
-          <ImageSlot shape="rect" id={`v7app-l-${l.id}`} placeholder="Photo de l’annonce" className="lodge7__slot" src={l.photo} />
-        ) : (
-          <span className="lodge7__sansphoto">Pas de photo dans l’annonce {l.source}</span>
-        )}
-        <span className="lodge7__source" title={autres ?? undefined}>
-          {sources}
-          {autres ? <span className="lecteur7">. {autres}</span> : null}
-        </span>
-        {l.priceIndicative ? <span className="lodge7__indic">Prix « à partir de »</span> : null}
-        {isKept ? <span className="lodge7__retenu">Retenu</span> : null}
-        {seen ? <span className="lodge7__vue">déjà vue</span> : null}
-      </div>
-      <div className="lodge7__corps">
-        <strong className="lodge7__titre">{l.title}</strong>
-        <div className="lodge7__meta">
-          <span className={l.guests == null ? "absent" : undefined}>{capLbl(l)}</span>
-          <span>{bedLbl(l)}</span>
-        </div>
-        {complet.trous.length ? (
-          <span className="lodge7__trous">{complet.trous.map(trouLbl).join(" · ")}</span>
-        ) : null}
-        <span className={`lodge7__dist${d.kind === "measured" ? "" : " absent"}`}>
-          <Icon name="epingle" taille={13} />
-          {d.text}
-        </span>
-        <div className="lodge7__pied">
-          <div className={`lodge7__prix${l.total > 0 ? "" : " lodge7__prix--muet"}`}>
-            <b>{prixLbl(l)}</b>
-            <span>
-              {nuitsLbl(nights)}
-              {pers ? ` · ${pers} / pers.` : ""}
-            </span>
-            <span className={`lodge7__ferme${firm ? " lodge7__ferme--oui" : ""}`}>
-              <i />
-              {firm ? "Prix relevé pour ces dates" : "Disponibilité non confirmée"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={`lodge7__retenir${isKept ? " lodge7__retenir--on" : ""}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              retenir(retenu ?? l.id);
-            }}
-          >
-            {isKept ? (retenuSource ? `Retenu · ${retenuSource}` : "Retenu") : "Retenir"}
-          </button>
-        </div>
-      </div>
-    </article>
-  );
-});
-
-/**
- * La pagination de la liste, comme sur Airbnb : la première page, la dernière,
- * et deux voisines de la page en cours ; des points de suspension entre.
- */
-function Pages({ page, n, aller }: { page: number; n: number; aller: (p: number) => void }) {
-  const vues = [...new Set([0, page - 1, page, page + 1, n - 1])].filter((p) => p >= 0 && p < n).sort((a, b) => a - b);
-  const rendus: (number | "…")[] = [];
-  vues.forEach((p, i) => {
-    if (i > 0 && p - vues[i - 1] > 1) rendus.push("…");
-    rendus.push(p);
-  });
-  return (
-    <nav className="pages7" aria-label="Pages de logements">
-      <button type="button" className="pages7__fleche" disabled={page === 0} onClick={() => aller(page - 1)} aria-label="Page précédente">
-        <Icon name="chevron-gauche" taille={18} />
-      </button>
-      {rendus.map((p, i) =>
-        p === "…" ? (
-          <span key={`s${i}`} className="pages7__ellipse" aria-hidden="true">
-            …
-          </span>
-        ) : (
-          <button
-            key={p}
-            type="button"
-            className={`pages7__num${p === page ? " pages7__num--on" : ""}`}
-            aria-current={p === page ? "page" : undefined}
-            onClick={() => aller(p)}
-          >
-            {p + 1}
-          </button>
-        ),
-      )}
-      <button type="button" className="pages7__fleche" disabled={page >= n - 1} onClick={() => aller(page + 1)} aria-label="Page suivante">
-        <Icon name="chevron-droite" taille={18} />
-      </button>
-    </nav>
-  );
-}
-
-/**
- * Les offres d'un même logement, de la moins chère à la plus chère, avec
- * l'écart de chacune à la moins chère. Un écart ne se calcule qu'entre deux
- * prix publiés dans la même devise : sinon on le tait.
- */
-function OffresLogement({ g, ici, voir }: { g: Logement; ici: string; voir: (id: string) => void }) {
-  const base = g.principale;
-  return (
-    <div className="offres7">
-      <span className="offres7__titre">Ce logement sur {g.offres.length} plateformes</span>
-      <ul>
-        {g.offres.map((o) => {
-          const e = ecartAvecPrincipale(o, base);
-          const pct = e != null && base.total > 0 ? (e / base.total) * 100 : null;
-          const ecart =
-            o.id === base.id
-              ? base.total > 0
-                ? "la moins chère"
-                : ""
-              : e == null
-                ? ""
-                : e === 0
-                  ? "même prix"
-                  : `+${eurCents(e) ?? e} (${pct != null && pct < 1 ? "moins de 1 %" : `+${Math.round(pct ?? 0)} %`})`;
-          const courante = o.id === ici;
-          return (
-            <li key={o.id} className={courante ? "offres7__ici" : undefined}>
-              <button
-                type="button"
-                className="offres7__source"
-                aria-current={courante ? "true" : undefined}
-                aria-label={courante ? `${o.source}, offre affichée` : `Voir l’offre ${o.source}`}
-                onClick={() => {
-                  if (!courante) voir(o.id);
-                }}
-              >
-                {o.source}
-              </button>
-              <b className={o.total > 0 ? undefined : "absent"}>{prixLbl(o)}</b>
-              <span className={`offres7__ecart${o.id === base.id ? " offres7__ecart--base" : ""}`}>{ecart}</span>
-              {o.url ? (
-                <a
-                  href={o.url}
-                  target="_blank"
-                  rel="noopener"
-                  className="offres7__lien"
-                  aria-label={`Ouvrir l’offre ${o.source} dans un nouvel onglet`}
-                >
-                  Ouvrir
-                  <Icon name="externe" taille={12} />
-                </a>
-              ) : (
-                <span className="offres7__lien absent">sans lien</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-/**
  * La garde, et elle seule.
  *
  * L'écran vivait dans un composant unique dont la sortie anticipée « pas de
@@ -657,15 +434,12 @@ function LogementsStation({ s }: { s: Station }) {
   const [lsort, setLsort] = useState<LodgeSort>("pp");
   const [lfOpen, setLfOpen] = useState(false);
   const [sheetId, setSheetId] = useState<string | null>(null);
-  const [photoI, setPhotoI] = useState(0);
-  // Le panneau de filtres et le volet d'annonce se ferment à Échap. Le volet
-  // est déclaré `aria-modal` : sans sortie clavier, la croix et le fond en
-  // étaient les seules issues.
+  // Le panneau de filtres se ferme au clic dehors et à Échap ; le volet
+  // d'annonce tient lui-même sa sortie par Échap (`VoletAnnonce`).
   const fermerFiltres = useCallback(() => setLfOpen(false), []);
   const fermerVolet = useCallback(() => setSheetId(null), []);
   const panneauFiltres = useRef<HTMLDivElement>(null);
   useFermeture(lfOpen, fermerFiltres, panneauFiltres, '[data-panel-btn="filtres"]');
-  useEchap(sheetId != null, fermerVolet);
   // Le cadre de la carte, et s'il compte. Décoché par défaut : sinon un simple
   // coup d'œil ailleurs efface la liste qu'on venait de constituer.
   // Le cadre visible compte toujours : liste, compteur et pastilles rendues
@@ -697,9 +471,6 @@ function LogementsStation({ s }: { s: Station }) {
   };
 
   const stay = useMemo(() => ({ checkIn, checkOut }), [checkIn, checkOut]);
-  useEffect(() => {
-    setPhotoI(0);
-  }, [sheetId]);
 
   useEffect(() => {
     const byKey = useElevations.getState().byKey;
@@ -1460,53 +1231,14 @@ function LogementsStation({ s }: { s: Station }) {
                 ficheDe={(id) => {
                   const l = raw.find((x) => x.id === id);
                   if (!l) return null;
-                  const d = distanceOf(l);
-                  const ferme = firmOf(l, stay);
-                  const pers = prixPersLbl(l, trav);
                   return (
-                    <>
-                      {l.photo ? (
-                        <div className="fc__media">
-                          <ImageSlot
-                            shape="rect"
-                            id={`v7app-fc-${l.id}`}
-                            placeholder="Photo de l’annonce"
-                            className="fc__slot"
-                            src={l.photo}
-                          />
-                          <span className="fc__source">{groupeLbl(l)}</span>
-                          {l.priceIndicative ? <span className="lodge7__indic">Prix « à partir de »</span> : null}
-                        </div>
-                      ) : null}
-                      <div className="fc__texte">
-                        {!l.photo ? (
-                          <span className="toujours7__regle">{groupeLbl(l)}</span>
-                        ) : null}
-                        <strong className="fc__titre">{l.title}</strong>
-                        <span className="fc__ligne">
-                          <span className={l.guests == null ? "absent" : undefined}>
-                            {capLbl(l)}
-                          </span>
-                          <span>{bedLbl(l)}</span>
-                        </span>
-                        <span className={`fc__ligne${d.kind === "measured" ? "" : " absent"}`}>
-                          {d.text}
-                        </span>
-                        <span className="fc__prix">
-                          <b>{prixLbl(l)}</b>
-                          <span>
-                            {nuitsLbl(nights)}
-                            {pers ? ` · ${pers} / pers.` : ""}
-                          </span>
-                        </span>
-                        <span className={`fc__verdict${ferme ? " fc__verdict--ok" : ""}`}>
-                          <i />
-                          {ferme
-                            ? "Prix relevé pour ces dates"
-                            : availabilityLabel(availabilityOf(l, stay))}
-                        </span>
-                      </div>
-                    </>
+                    <FicheEpingle
+                      l={l}
+                      sources={groupeLbl(l)}
+                      stay={stay}
+                      trav={trav}
+                      nights={nights}
+                    />
                   );
                 }}
                 actionsDe={(id) => {
@@ -1613,118 +1345,17 @@ function LogementsStation({ s }: { s: Station }) {
       ) : null}
 
       {sheet ? (
-        <>
-          <div className="volet7__fond" onClick={() => setSheetId(null)} />
-          <aside className="volet7" role="dialog" aria-modal="true" aria-label={sheet.title}>
-            <div className={`volet7__media lodge7__media--${mediaTon(sheet)}`}>
-              {galerieOf(sheet)[photoI] ?? sheet.photo ? (
-                <ImageSlot
-                  shape="rect"
-                  id={`v7app-sheet-${sheet.id}`}
-                  placeholder="Photo de l’annonce"
-                  className="lodge7__slot"
-                  src={galerieOf(sheet)[photoI] ?? sheet.photo}
-                />
-              ) : (
-                <span>Pas de photo dans l’annonce {sheet.source}</span>
-              )}
-              <button type="button" className="volet7__fermer" aria-label="Fermer" onClick={() => setSheetId(null)}>
-                <Icon name="croix" taille={14} />
-              </button>
-            </div>
-            <div className="volet7__corps">
-              <div>
-                <span className="volet7__ref">
-                  {sheet.source} · réf. {sheet.id}
-                  {sheet.priceIndicative ? " · prix « à partir de »" : ""}
-                </span>
-                <h2>{sheet.title}</h2>
-              </div>
-              <GalerieAnnonce urls={galerieOf(sheet)} index={photoI} onIndex={setPhotoI} />
-              <div className="volet7__faits">
-                <div>
-                  <span>Capacité</span>
-                  <b>{capLbl(sheet)}</b>
-                </div>
-                <div>
-                  <span>Chambres</span>
-                  <b>{bedLbl(sheet)}</b>
-                </div>
-                <div className="volet7__large">
-                  <span>Distance aux remontées</span>
-                  <b className="volet7__doux">{distanceOf(sheet).text}</b>
-                </div>
-              </div>
-              {completudeOf(sheet).trous.length ? (
-                <p className="lodge7__trous">{completudeOf(sheet).trous.map(trouLbl).join(" · ")}</p>
-              ) : null}
-              <div className="volet7__prix">
-                <div>
-                  <span>
-                    Total du séjour · {nuitsLbl(nights)} · {trav} pers.
-                  </span>
-                  <b>{prixLbl(sheet)}</b>
-                </div>
-                <div>
-                  <span>Par personne</span>
-                  <b className="volet7__pp">{prixPersLbl(sheet, trav) ?? "–"}</b>
-                </div>
-                {firmOf(sheet, stay) ? (
-                  <div className="volet7__ok">
-                    <Icon name="coche" taille={16} />
-                    <span>
-                      <b>Prix relevé pour ces dates.</b> La source a tarifé cette annonce pour ce séjour ;
-                      le prix sera revérifié à la réservation.
-                    </span>
-                  </div>
-                ) : (
-                  <div className="volet7__alerte">
-                    <Icon name="alerte" taille={16} />
-                    <span>
-                      <b>Disponibilité non confirmée.</b> {availabilityLabel(availabilityOf(sheet, stay))}.
-                      La disponibilité sera vérifiée à la réservation.
-                    </span>
-                  </div>
-                )}
-              </div>
-              {sheetGroupe && sheetGroupe.offres.length > 1 ? (
-                <OffresLogement
-                  g={sheetGroupe}
-                  ici={sheet.id}
-                  voir={(id) => {
-                    setPhotoI(0);
-                    openSheet(id);
-                  }}
-                />
-              ) : null}
-              <div className="volet7__prov">
-                <span>Provenance</span>
-                {/* La phrase, pas la trace du collecteur : celle-ci mêle anglais,
-                    jargon et dates ISO (« StaySearchResult live 2027-02-06… »). */}
-                <p>{provenancePhrase(sheet)}</p>
-              </div>
-              <div className="volet7__actions">
-                <button
-                  type="button"
-                  className={`btn7 btn7--grand btn7--pleine${P.lodgeId === sheet.id ? " btn7--tenu" : " btn7--encre"}`}
-                  onClick={() => keep(sheet.id)}
-                >
-                  {P.lodgeId === sheet.id ? "Retenu" : "Retenir"}
-                </button>
-                {sheet.url ? (
-                  <a href={sheet.url} target="_blank" rel="noopener" className="btn7 btn7--fantome btn7--pleine btn7--lien">
-                    Ouvrir sur {sheet.source}
-                    <Icon name="externe" taille={12} />
-                  </a>
-                ) : (
-                  <span className="volet7__sanslien">
-                    L’annonce n’a pas de lien dans le relevé : la réservation se fera à la main.
-                  </span>
-                )}
-              </div>
-            </div>
-          </aside>
-        </>
+        <VoletAnnonce
+          l={sheet}
+          stay={stay}
+          trav={trav}
+          nights={nights}
+          groupe={sheetGroupe}
+          retenu={P.lodgeId === sheet.id}
+          onRetenir={() => keep(sheet.id)}
+          onFermer={fermerVolet}
+          onVoirOffre={openSheet}
+        />
       ) : null}
     </Coquille>
   );

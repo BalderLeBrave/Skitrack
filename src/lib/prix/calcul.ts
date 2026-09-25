@@ -13,7 +13,7 @@ import type { Listing } from "../listings.ts";
 import type { SourceReport } from "../scrape/types.ts";
 import type { Station } from "../stations.ts";
 import { dm, eur, fmt, nuitsLbl, travLbl } from "../parcours.ts";
-import { availabilityLabel, availabilityOf } from "../stay/availability.ts";
+import { availabilityOf } from "../stay/availability.ts";
 import { addDaysIso, formatDayIso } from "../stay/calendar.ts";
 import { enrichirListing } from "../stay/enrichir.ts";
 import { estFicheGitesIntrouvable } from "../stay/ficheGites.ts";
@@ -56,6 +56,11 @@ export function grpKey(g: Groupe): string {
  *  rien pour dix, et la maquette l'oubliait. */
 export function cleResultat(p: Periode, g: Groupe, stationId: string): string {
   return `${perKey(p)}|${grpKey(g)}|${stationId}`;
+}
+
+/** La station d'une clé de résultat : ce qui suit le quatrième « | ». */
+export function stationDeCle(cle: string): string {
+  return cle.split("|").slice(4).join("|");
 }
 
 export function bornerNuits(n: number): number {
@@ -190,41 +195,76 @@ export function agreger(listings: readonly Listing[], ctx: ContexteReleve): Agre
   return { n: retenues.length, muettes, petits, med: mediane(retenues.map((l) => l.total)) };
 }
 
-/** Une annonce retenue, réduite à ce que l'onglet budget affiche et à ce que
- *  `availabilityOf` relit : une grande station en retient des centaines. */
-export type AnnonceRetenue = {
-  id: string;
-  title: string;
-  source: Listing["source"];
-  total: number;
-  currency: string;
-  guests: number | null;
-  bedrooms: number | null;
-  rooms: number | null;
-  url: string | null;
-  photo: string | null;
-  pricedCheckIn: string | null;
-  pricedCheckOut: string | null;
-  scannedAt: number | null;
-  distToSlopesM: number | null;
-};
+/** Une annonce retenue : l'annonce entière, telle que `retenir` la rend.
+ *  L'onglet budget montre la carte, la pastille et le volet de Logements, qui
+ *  lisent la distance, le GPS, la galerie, la provenance et la disponibilité :
+ *  réduite, l'annonce y aurait des trous que la source n'a pas. */
+export type AnnonceRetenue = Listing;
 
+/** Six photos suffisent à la galerie du volet. Au-delà, c'est du poids : une
+ *  grande station retient des centaines d'annonces, et IndexedDB en garde
+ *  pour 320 stations. */
+export const PHOTOS_RETENUES = 6;
+
+/** Une copie de l'annonce, dont seules les photos sont bornées. */
 export function compacter(l: Listing): AnnonceRetenue {
+  const copie = { ...l };
+  if (Array.isArray(l.photos)) copie.photos = l.photos.slice(0, PHOTOS_RETENUES);
+  return copie;
+}
+
+function nombreOuNull(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function texteOuNull(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
+
+/** Ce que prouve la retenue d'un gîte : `cribler` n'en garde aucun sans devis
+ *  ITEA live. Sans cette trace, un gîte relu perdrait son prix au premier
+ *  `enrichirListing` (`purgerTarifFigé`), et `estOffreGitesVerifiee` l'écarterait. */
+const DEVIS_GITES_RETENU = "Devis ITEA live";
+
+/**
+ * Une annonce relue d'IndexedDB, rendue en `Listing`, ou `null` si elle est
+ * illisible. Les relevés enregistrés avant ce format n'en gardaient que
+ * quatorze champs, sans station, GPS, galerie ni provenance : ce qui manque
+ * est dit absent, jamais deviné. La station vient de la clé, le GPS et la
+ * galerie restent nuls, la provenance vide, sauf pour un gîte, dont la retenue
+ * même prouve le devis. Une annonce au format actuel ressort telle quelle.
+ */
+export function versListing(a: unknown, stationId: string): Listing | null {
+  if (!a || typeof a !== "object" || Array.isArray(a)) return null;
+  const o = a as Record<string, unknown>;
+  const source = ORDRE_SOURCES.find((s) => s === o.source);
+  const { id, title, total, currency } = o;
+  if (typeof id !== "string" || typeof title !== "string" || !source) return null;
+  if (typeof total !== "number" || !Number.isFinite(total) || typeof currency !== "string") {
+    return null;
+  }
+  let proven = "";
+  if (typeof o.proven === "string") proven = o.proven;
+  else if (source === "Gîtes de France" && total > 0) proven = DEVIS_GITES_RETENU;
   return {
-    id: l.id,
-    title: l.title,
-    source: l.source,
-    total: l.total,
-    currency: l.currency,
-    guests: l.guests,
-    bedrooms: l.bedrooms,
-    rooms: l.rooms ?? null,
-    url: l.url,
-    photo: l.photo,
-    pricedCheckIn: l.pricedCheckIn ?? null,
-    pricedCheckOut: l.pricedCheckOut ?? null,
-    scannedAt: l.scannedAt ?? null,
-    distToSlopesM: l.distToSlopesM ?? null,
+    ...(o as Partial<Listing>),
+    id,
+    stationId: typeof o.stationId === "string" ? o.stationId : stationId,
+    title,
+    source,
+    total,
+    currency,
+    guests: nombreOuNull(o.guests),
+    bedrooms: nombreOuNull(o.bedrooms),
+    available: true,
+    photo: texteOuNull(o.photo),
+    url: texteOuNull(o.url),
+    lat: nombreOuNull(o.lat),
+    lon: nombreOuNull(o.lon),
+    proven,
+    photos: Array.isArray(o.photos)
+      ? o.photos.filter((u): u is string => typeof u === "string")
+      : null,
   };
 }
 
@@ -316,7 +356,7 @@ export function resultatDuReleve(input: EntreeReleve): Resultat {
   return { etat: "fait", ...agreger(input.listings, contexte(input)), ts: input.now, partiel };
 }
 
-/** Les annonces que ce relevé retient, compactes ; aucune s'il a échoué. */
+/** Les annonces que ce relevé retient, photos bornées ; aucune s'il a échoué. */
 export function annoncesDuReleve(input: EntreeReleve): AnnonceRetenue[] {
   if (echoue(input, sourcesEnDefaut(input.sources, input.partsEchouees))) return [];
   return retenir(input.listings, contexte(input)).map(compacter);
@@ -767,9 +807,6 @@ export function dureeLbl(ms: number): string {
 
 /* ---------- Onglet « Par budget » ---------- */
 
-/** La maquette coupait à 60 cartes sans le dire : on pagine par 60. */
-export const PAGE_CARTES = 60;
-
 export type TriB = "prix:1" | "prix:-1" | "cap:-1";
 export const TRIB0: TriB = "prix:1";
 export const TRIS_B: readonly { v: TriB; label: string }[] = [
@@ -782,6 +819,7 @@ export function lireTriB(v: string): TriB {
   return TRIS_B.find((t) => t.v === v)?.v ?? TRIB0;
 }
 
+/** Une annonce de l'onglet budget, avec la station dont le relevé l'a retenue. */
 export type CarteAnnonce = { a: AnnonceRetenue; stationId: string; stationNom: string };
 
 function ordreTexte(a: string, b: string): number {
@@ -808,23 +846,6 @@ export function comparateurBudget(t: TriB): (p: CarteAnnonce, q: CarteAnnonce) =
 export function countBudget(nAnnonces: number, nStations: number): string {
   const n = plur(nAnnonces, "logement", "logements");
   return nStations > 0 ? `${n} dans ${plur(nStations, "station", "stations")}` : n;
-}
-
-/** D'où viennent les logements proposés : les stations relevées pour ces dates. */
-export function couverture(
-  per: Periode,
-  nomsAvec: readonly string[],
-  total: number,
-  trav: number,
-): string {
-  if (nomsAvec.length === 0) {
-    return `Aucune station n’a d’annonces relevées ${perLbl(per)}, ${nuitsLbl(per.nights)}.`;
-  }
-  return (
-    `Annonces relevées ${perLbl(per)} dans ${plur(nomsAvec.length, "station", "stations")} ` +
-    `sur ${total} : ${nomsAvec.join(", ")}. Seuls les logements qui accueillent ` +
-    `${travLbl(trav)} et publient leur capacité sont proposés.`
-  );
 }
 
 /** Pourquoi la liste est vide : pas de relevé, le budget, ou les critères de station. */
@@ -855,47 +876,6 @@ export function videBudget(
 
 export function sousTitreBudget(nights: number, trav: number): string {
   return `Logements qui accueillent ${travLbl(trav)} pour ${nuitsLbl(nights)}, dans votre budget.`;
-}
-
-/** « soit 298 € par personne » */
-export function ppLbl(total: number, trav: number): string {
-  return `soit ${eur(total / trav)} par personne`;
-}
-
-/* `capLbl` et `bedLbl` de `v7.ts` lisent un `Listing` entier, qu'une annonce
-   compacte n'est pas : mêmes règles, recopiées, et un test les garde alignées. */
-function capaciteLbl(a: AnnonceRetenue): string {
-  return a.guests != null ? `${a.guests} pers.` : "capacité non annoncée";
-}
-
-function chambresLbl(a: AnnonceRetenue): string {
-  if (a.bedrooms == null) {
-    if (a.rooms != null && a.rooms > 0) return a.rooms === 1 ? "1 pièce" : `${a.rooms} pièces`;
-    return "chambres non annoncées";
-  }
-  if (a.bedrooms === 0) return "studio";
-  return `${a.bedrooms} ch.`;
-}
-
-/** « Airbnb · 8 pers. · 3 ch. » */
-export function metaAnnonce(a: AnnonceRetenue): string {
-  return [a.source, capaciteLbl(a), chambresLbl(a)].filter(Boolean).join(" · ");
-}
-
-/** Le verdict de disponibilité à l'affichage : un relevé retenu hier a
- *  vieilli depuis, et le dit. `confirme` sépare le prix frais, pour ces dates,
- *  de tous les autres cas : l'écran ne colore que lui comme un succès. */
-export function dispo(
-  a: AnnonceRetenue,
-  per: Periode,
-  now: number,
-): { confirme: boolean; lbl: string } {
-  const v = availabilityOf(a, { checkIn: per.from, checkOut: departIso(per) }, now);
-  return { confirme: v.status === "confirmed", lbl: availabilityLabel(v) };
-}
-
-export function dispoLbl(a: AnnonceRetenue, per: Periode, now: number): string {
-  return dispo(a, per, now).lbl;
 }
 
 /* ---------- File des relevés ---------- */

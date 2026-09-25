@@ -5862,111 +5862,22 @@
 .prix7__choix--budget {
   padding-bottom: 2px;
 }
-/* (Prix par station.dc.html:166) */
-.prix7__couverture {
-  font-size: var(--text-detail);
-  line-height: 1.5;
-  color: var(--color-muted);
-  text-wrap: pretty;
+/* Sous les critères, la liste des logements, la carte aux pastilles de prix
+   et le volet de Logements (`.v7deux`, `.grille7-2`, `.lodge7`, `.pages7`,
+   `.volet7`), demandés par le propriétaire le 25 sept. 2026 à la place des
+   cartes de la maquette (Prix par station.dc.html:166-182). Aucun bloc ne
+   colle ici sous la barre du haut : la carte colle à ses 60 px, plus les 18
+   d'écart de l'écran, et finit à 24 px du bas comme dans Logements. */
+.prix7 .v7deux__carte {
+  top: calc(var(--spacing) * 19.5);
+  height: calc(100vh - var(--spacing) * 25.5);
 }
-
-/* Les annonces, trois par rang (Prix par station.dc.html:169-182) : station,
-   titre et fiche en haut, disponibilité calée en bas de la case extensible,
-   total et lien au pied. */
-.prix7__logements {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: calc(var(--spacing) * 4);
+/* L'étiquette d'une annonce nomme aussi sa station (« Airbnb · La Clusaz ») :
+   un nom long passe à la ligne au lieu de sortir de la photo, ou de glisser
+   sous la pastille « Retenu ». */
+.prix7 .lodge7__source {
+  max-width: calc(100% - var(--spacing) * 5);
 }
-.prix7__logement {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: calc(var(--spacing) * 3);
-  padding: calc(var(--spacing) * 4.5);
-}
-.prix7__logement-tete {
-  display: grid;
-  gap: calc(var(--spacing) * 1);
-  min-width: 0;
-}
-/* (Prix par station.dc.html:173) */
-.prix7__logement-station {
-  font-size: var(--text-note);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-marque-texte);
-}
-/* (Prix par station.dc.html:174) ; un titre relevé peut porter un mot sans
-   fin, il ne doit pas élargir la colonne. */
-.prix7__logement-titre {
-  font-size: var(--text-corps);
-  font-weight: 700;
-  line-height: 1.3;
-  text-wrap: pretty;
-  overflow-wrap: anywhere;
-}
-/* (Prix par station.dc.html:175) */
-.prix7__logement-meta {
-  font-size: var(--text-sous);
-  color: var(--color-muted);
-}
-/* (Prix par station.dc.html:177) */
-.prix7__logement-dispo {
-  align-self: end;
-  font-size: var(--text-fil);
-  color: var(--color-alerte-texte);
-}
-/* Un prix relevé pour ces dates : le vert de `.fc__verdict--ok` dans
-   Logements. La maquette n'avait que de l'ambre, faute de relevé daté. */
-.prix7__logement-dispo--ok {
-  color: var(--color-ok-texte);
-}
-/* (Prix par station.dc.html:178-179) */
-.prix7__logement-pied {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: calc(var(--spacing) * 3);
-  padding-top: calc(var(--spacing) * 3);
-  border-top: 1px solid var(--color-line-douce);
-}
-.prix7__logement-total {
-  display: grid;
-  gap: 1px;
-}
-.prix7__logement-total b {
-  font-size: var(--text-section);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-.prix7__logement-total span {
-  font-size: var(--text-fil);
-  color: var(--color-muted);
-  font-variant-numeric: tabular-nums;
-}
-/* Lien à l'encre de 36 (Prix par station.dc.html:180) ; le survol reprend
-   `.btn7--encre` au lieu du soulignement de `:where(.v7) a:hover`. */
-.prix7__voir {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  height: 36px;
-  padding: 0 calc(var(--spacing) * 4);
-  border-radius: 999px;
-  background: var(--color-ink);
-  color: var(--color-cta-ink);
-  font-size: var(--text-detail);
-  font-weight: 700;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.prix7__voir:hover {
-  text-decoration: none;
-  filter: brightness(1.2);
-}
-/* Pagination des annonces par 60 : la maquette coupait sans le dire. */
-.prix7__encore {
-  justify-self: center;
+.prix7 .lodge7--kept .lodge7__source {
+  max-width: calc(100% - var(--spacing) * 24);
 }

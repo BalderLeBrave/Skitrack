@@ -5,16 +5,17 @@
  *  médiane du total publié, station par station ; les relevés sont réels, une
  *  station à la fois, et continuent quand on quitte l'écran
  *  (`@/lib/prix/releve`). « Par budget » : les annonces que ces mêmes relevés
- *  ont retenues (`@/lib/prix/annonces`), filtrées par le total du séjour.
+ *  ont retenues (`@/lib/prix/annonces`), filtrées par le total du séjour, et
+ *  montrées comme dans Logements (liste, carte aux pastilles de prix, volet).
  *
  *  La période suit le séjour tant qu'on ne la change pas ici ; le groupe est
- *  celui du séjour. Vue, critères, tris et pagination vivent dans le magasin :
- *  un aller-retour par « Voir le logement » ne doit rien perdre. */
+ *  celui du séjour. Vue, critères, tris et pages vivent dans le magasin :
+ *  changer d'onglet, ou passer par Réservation et revenir, ne perd rien. */
 
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  useCallback,
   useEffect,
-  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -24,7 +25,16 @@ import {
 import { Coquille } from "@/components/Coquille";
 import { Icon } from "@/components/Icon";
 import { useGo } from "@/components/v6/go";
+import { CarteEpingles } from "@/components/v7/CarteEpingles";
+import { CarteLogement, PAGE_LOGEMENTS } from "@/components/v7/CarteLogement";
+import { epinglePrix, ETAGE } from "@/components/v7/epingle";
+import { FicheEpingle } from "@/components/v7/FicheEpingle";
 import { Fourchette } from "@/components/v7/Fourchette";
+import { Pages } from "@/components/v7/Pages";
+import { Vide } from "@/components/v7/Vide";
+import { VoletAnnonce } from "@/components/v7/VoletAnnonce";
+import { dansLesBornes, type Bornes as Cadre } from "@/lib/carte";
+import type { Listing } from "@/lib/listings";
 import { eur, groupLbl, useParcours, useSejour } from "@/lib/parcours";
 import { useAnnonces } from "@/lib/prix/annonces";
 import {
@@ -37,11 +47,9 @@ import {
   countBudget,
   countFl,
   countLbl,
-  couverture,
   decaler,
   departIso,
   departLbl,
-  dispo,
   dureeLbl,
   ecartLbl,
   effacerBudget,
@@ -58,7 +66,6 @@ import {
   lireTriB,
   medHead,
   memePeriode,
-  metaAnnonce,
   MIN_ANNONCES,
   moreLbl,
   nomListe,
@@ -66,11 +73,11 @@ import {
   NUITS_MIN,
   ordreMassifs,
   PAGE,
-  PAGE_CARTES,
   partielLbl,
   passe,
   passeBudget,
   passeStationSeule,
+  perKey,
   perLbl,
   periodeDuSejour,
   PLAGE_BUDGET,
@@ -79,7 +86,6 @@ import {
   plageLbl,
   plur,
   poserBorne,
-  ppLbl,
   relLbl,
   releveLbl,
   retirerJeton,
@@ -103,6 +109,7 @@ import { useStay } from "@/lib/stay";
 import { todayIso } from "@/lib/stay/calendar";
 import { clampRooms, clampTravelers } from "@/lib/stay/party";
 import { STATIONS } from "@/lib/stations";
+import { prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/prix")({ component: Prix });
 
@@ -728,9 +735,30 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
   );
 }
 
+/** L'étiquette d'une carte d'annonce et de sa fiche : la plateforme, puis la
+ *  station du relevé. La liste mêle plusieurs stations, et la carte de
+ *  Logements n'a pas d'autre place pour la nommer. */
+function sourceDe(c: CarteAnnonce): string {
+  return `${c.a.source} · ${c.stationNom}`;
+}
+
+function situee(l: Listing): boolean {
+  return l.lat != null && l.lon != null;
+}
+
+/** Ce que le cadre laisse voir d'une liste, en bref : le nombre, la première
+ *  et la dernière annonce. */
+function signatureCadre(cartes: readonly CarteAnnonce[], b: Cadre | null): string {
+  const v = b ? cartes.filter((c) => dansLesBornes(c.a, b)) : cartes;
+  return `${v.length}|${v[0]?.a.id ?? ""}|${v[v.length - 1]?.a.id ?? ""}`;
+}
+
 /** « Par budget » : les annonces retenues par les relevés de ces dates et de
  *  ce groupe, filtrées par station puis par total (Prix par station.dc.html:
- *  126-197, 545-578). */
+ *  126-164, 545-578). Sous les critères, la liste, la carte aux pastilles de
+ *  prix et le volet de Logements, demandés par le propriétaire le 25 sept.
+ *  2026 à la place des cartes de la maquette : une annonce s'ouvre ici, sans
+ *  passer par Logements. */
 function VueBudget({
   per,
   groupe,
@@ -740,32 +768,51 @@ function VueBudget({
   groupe: Groupe;
   ouvrir: (o: Onglet) => void;
 }) {
+  const res = usePrix((s) => s.res);
   const fl = usePrix((s) => s.fl);
   const triB = usePrix((s) => s.triB);
+  const pageB = usePrix((s) => s.pageB);
   const majFl = usePrix((s) => s.majFl);
   const resetFl = usePrix((s) => s.resetFl);
   const setTriB = usePrix((s) => s.setTriB);
-  const limitB = usePrix((s) => s.limitB);
-  const setLimitB = usePrix((s) => s.setLimitB);
+  const setPageB = usePrix((s) => s.setPageB);
+  const lodgeId = useParcours((s) => s.lodgeId);
+  const seen = useParcours((s) => s.seen);
   const go = useGo();
   const refCompte = useRef<HTMLSpanElement>(null);
   const surCompte = () => refCompte.current?.focus();
-  // La fraîcheur d'un prix se juge à l'ouverture de la vue : une horloge qui
-  // tourne redessinerait toutes les cartes pour rien.
-  const [now] = useState(() => Date.now());
+  const listeRef = useRef<HTMLDivElement>(null);
+  const trav = groupe.trav;
+  const nights = per.nights;
+  const stay = useMemo(() => ({ checkIn: per.from, checkOut: departIso(per) }), [per]);
 
-  const cles = useMemo(() => STATIONS.map((s) => cleResultat(per, groupe, s.id)), [per, groupe]);
-  const { parCle, pret } = useAnnonces(cles);
-
-  // Les stations relevées pour ces dates et ce groupe, dans l'ordre du
-  // référentiel ; une station relevée sans annonce retenue en fait partie.
-  const nomsReleves = useMemo(
-    () => STATIONS.filter((_, i) => parCle.has(cles[i] ?? "")).map((s) => s.name),
-    [parCle, cles],
+  // Les stations relevées pour ces dates et ce groupe : le magasin le sait sans
+  // IndexedDB, et seules celles-là y sont lues, pas les 320 d'office. Les
+  // critères de station s'appliquent après la lecture : lus seulement pour les
+  // stations retenues, élargir un critère faisait lire une clé neuve, et la
+  // liste comme la carte disparaissaient le temps de la lecture.
+  const relevees = useMemo(
+    () => STATIONS.filter((s) => res[cleResultat(per, groupe, s.id)]?.etat === "fait"),
+    [res, per, groupe],
   );
+  const cles = useMemo(
+    () => relevees.map((s) => cleResultat(per, groupe, s.id)),
+    [relevees, per, groupe],
+  );
+  const { parCle, pret, anciennes } = useAnnonces(cles);
+  // Une fois la première lecture faite pour ces dates et ce groupe, l'écran ne
+  // se vide plus : une station ajoutée par un autre onglet se lit sans retirer
+  // la liste et la carte le temps de la lecture.
+  const vueLue = `${perKey(per)}|${grpKey(groupe)}`;
+  const [luePour, setLuePour] = useState<string | null>(null);
+  useEffect(() => {
+    if (pret) setLuePour(vueLue);
+  }, [pret, vueLue]);
+  const affichable = pret || luePour === vueLue;
+
   const avant = useMemo<CarteAnnonce[]>(
     () =>
-      STATIONS.flatMap((s, i) =>
+      relevees.flatMap((s, i) =>
         passeStationSeule(s, fl, BORNES)
           ? (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
               a,
@@ -774,33 +821,196 @@ function VueBudget({
             }))
           : [],
       ),
-    [parCle, cles, fl],
+    [relevees, cles, parCle, fl],
   );
-  const cartes = useMemo(
-    () =>
-      avant
-        .filter((c) => passeBudget(c.a.total, fl.budget, BORNES.budget))
-        .sort(comparateurBudget(triB)),
-    [avant, fl.budget, triB],
-  );
-  const nStations = useMemo(() => new Set(cartes.map((c) => c.stationId)).size, [cartes]);
+  // Dans l'ordre du référentiel : la carte se cadre sur elles, et un autre tri
+  // ne la recadre pas. Une annonce sortie des relevés de deux stations voisines
+  // (même rayon de 12 km) n'y figure qu'une fois, sous la première de ses
+  // stations : deux cartes d'un même logement ouvraient et retenaient la même
+  // copie, et le compte le prenait deux fois.
+  const filtrees = useMemo(() => {
+    const vues = new Set<string>();
+    return avant.filter((c) => {
+      if (vues.has(c.a.id) || !passeBudget(c.a.total, fl.budget, BORNES.budget)) return false;
+      vues.add(c.a.id);
+      return true;
+    });
+  }, [avant, fl.budget]);
+  const cartes = useMemo(() => [...filtrees].sort(comparateurBudget(triB)), [filtrees, triB]);
+  const nStations = useMemo(() => new Set(filtrees.map((c) => c.stationId)).size, [filtrees]);
+  const parId = useMemo(() => new Map(filtrees.map((c) => [c.a.id, c] as const)), [filtrees]);
 
-  // Le lien de la maquette ouvrait Logements sur la station, les dates et le
-  // logement de la carte (App.dc.html:503). Le groupe est déjà celui du séjour.
-  const voir = (c: CarteAnnonce) => {
+  // Annonce ouverte, cadre de la carte, fiche épinglée et annonce désignée
+  // restent à l'écran : ils ne valent que tant qu'on le regarde.
+  const [ouverte, setOuverte] = useState<string | null>(null);
+  const [cadre, setCadre] = useState<Cadre | null>(null);
+  const [recadrages, setRecadrages] = useState(0);
+  const [epinglee, setEpinglee] = useState<string | null>(null);
+  const [actifCarte, setActifCarte] = useState<string | null>(null);
+
+  // Le cadre visible compte toujours, comme dans Logements : liste, légende et
+  // pastilles disent la même chose.
+  const affichees = useMemo(
+    () => (cadre ? cartes.filter((c) => dansLesBornes(c.a, cadre)) : cartes),
+    [cartes, cadre],
+  );
+  const horsCadre = cartes.length - affichees.length;
+  const nPages = Math.max(1, Math.ceil(affichees.length / PAGE_LOGEMENTS));
+  const page = Math.min(pageB, nPages - 1);
+  const pageItems = useMemo(
+    () => affichees.slice(page * PAGE_LOGEMENTS, (page + 1) * PAGE_LOGEMENTS),
+    [affichees, page],
+  );
+
+  // Le recadrage suit le résultat des filtres, pas le contenu du cadre : sinon
+  // recadrer changerait la liste, qui recadrerait encore (voir Logements).
+  const cadrageCalcule = useMemo(
+    () =>
+      `${recadrages}|${filtrees
+        .filter((c) => situee(c.a))
+        .map((c) => c.a.id)
+        .join(",")}`,
+    [filtrees, recadrages],
+  );
+  // Après un geste sur la carte, le cadre choisi tient jusqu’au prochain
+  // changement de critère, de dates ou de groupe : pendant un relevé, chaque
+  // station terminée changeait le résultat et recadrait la carte sur la France.
+  // Les annonces arrivées hors du cadre se comptent dans la légende.
+  const criteres = `${recadrages}|${perKey(per)}|${grpKey(groupe)}|${JSON.stringify(fl)}`;
+  const [fige, setFige] = useState<{ criteres: string; cle: string } | null>(null);
+  const cadrage = fige?.criteres === criteres ? fige.cle : cadrageCalcule;
+  const pointsResultat = useMemo(
+    () =>
+      filtrees
+        .filter((c) => situee(c.a))
+        .map((c) => [c.a.lat as number, c.a.lon as number] as [number, number]),
+    [filtrees],
+  );
+
+  // Lus par référence : les rappels restent les mêmes d'un rendu à l'autre, et
+  // `memo` épargne les cartes d'annonce (même raison que dans Logements).
+  const lecture = useRef({ parId, per, cadrage, cartes, criteres });
+  lecture.current = { parId, per, cadrage, cartes, criteres };
+
+  // Déplacer la carte ramène à la première page quand la liste change, comme
+  // dans Logements. Mais pas quand la carte se recadre d'elle-même, au montage
+  // ou sur une liste neuve : la page vient du magasin, et un retour sur
+  // l'onglet doit la retrouver.
+  const cadrageVu = useRef<string | null>(null);
+  const cadreVu = useRef<Cadre | null>(null);
+  const surCadre = useCallback((b: Cadre) => {
+    const { cadrage: c, cartes: liste, criteres: crit } = lecture.current;
+    const geste = cadrageVu.current === c;
+    const precedent = cadreVu.current;
+    cadrageVu.current = c;
+    cadreVu.current = b;
+    setCadre(b);
+    if (geste) setFige({ criteres: crit, cle: c });
+    if (geste && signatureCadre(liste, precedent) !== signatureCadre(liste, b)) {
+      usePrix.getState().setPageB(0);
+    }
+  }, []);
+  // Rendre les annonces que le cadre a laissées dehors : la carte ne recadre
+  // que si la clé `cadrage` change, d'où le compteur.
+  const revoirTout = useCallback(() => {
+    cadreVu.current = null;
+    setCadre(null);
+    setRecadrages((n) => n + 1);
+    usePrix.getState().setPageB(0);
+  }, []);
+
+  // Au changement de page, le focus passe à la liste, et la liste remonte sous
+  // la barre du haut, sans animation quand le mouvement est réduit.
+  const versListe = useRef(false);
+  const allerPage = useCallback(
+    (p: number) => {
+      versListe.current = true;
+      setPageB(p);
+    },
+    [setPageB],
+  );
+  useEffect(() => {
+    if (!versListe.current) return;
+    versListe.current = false;
+    const el = listeRef.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    const barre = document.querySelector(".v7haut")?.getBoundingClientRect().bottom ?? 0;
+    const haut = el.getBoundingClientRect().top;
+    if (haut < barre) {
+      const reduit = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({
+        top: window.scrollY + haut - barre - 12,
+        behavior: reduit ? "auto" : "smooth",
+      });
+    }
+  }, [page]);
+
+  const ouvrirAnnonce = useCallback((id: string) => {
+    useParcours.getState().markSeen(id);
+    setOuverte(id);
+  }, []);
+  const fermerVolet = useCallback(() => setOuverte(null), []);
+  // Retenir fait ce que faisait « Voir le logement » (App.dc.html:503) : la
+  // station du relevé est retenue et le séjour prend les dates de la liste ;
+  // on reste ici. Retenir à nouveau relâche le logement, comme dans Logements.
+  const retenir = useCallback((id: string) => {
     const p = useParcours.getState();
+    if (p.lodgeId === id) {
+      p.chooseLodge(null);
+      return;
+    }
+    const { parId: annonces, per: dates } = lecture.current;
+    const c = annonces.get(id);
+    if (!c) return;
     p.retain(c.stationId);
-    useStay.getState().setStay({ checkIn: per.from, checkOut: departIso(per) });
-    p.chooseLodge(c.a.id);
+    useStay.getState().setStay({ checkIn: dates.from, checkOut: departIso(dates) });
+    p.chooseLodge(id);
     // Le séjour porte désormais ces dates : la période le suit de nouveau.
-    // Sans `setPer`, qui ramènerait aux premières pages : le retour doit
-    // retrouver les mêmes cartes.
+    // Sans `setPer`, qui ramènerait la liste à sa première page.
     if (usePrix.getState().per) usePrix.setState({ per: null });
-    void go("lodging");
-  };
+  }, []);
+
+  // Sur la carte, comme dans Logements : les annonces de la page en cours, plus
+  // la fiche épinglée, l'annonce ouverte et le logement retenu, pour qu'ils ne
+  // disparaissent pas au changement de page. Pas de repère de station : la
+  // liste en mêle plusieurs.
+  const situees = useMemo(() => {
+    const vues = new Set<string>();
+    const out: Listing[] = [];
+    const designees = [epinglee, ouverte, lodgeId].map((id) => (id ? parId.get(id)?.a : undefined));
+    for (const l of [...pageItems.map((c) => c.a), ...designees]) {
+      if (!l || vues.has(l.id) || !situee(l)) continue;
+      vues.add(l.id);
+      out.push(l);
+    }
+    return out;
+  }, [pageItems, parId, epinglee, ouverte, lodgeId]);
+  const marqueurs = useMemo(
+    () =>
+      situees.map((l) => {
+        const sel = l.id === ouverte || l.id === lodgeId;
+        const etat = sel ? "retenue" : seen[l.id] ? "vue" : "normale";
+        return {
+          id: l.id,
+          lat: l.lat as number,
+          lon: l.lon as number,
+          nom: l.title,
+          epingle: epinglePrix(prixPin(l), l.title, etat),
+          zIndex: sel ? ETAGE.designee : ETAGE.normale,
+        };
+      }),
+    [situees, ouverte, lodgeId, seen],
+  );
 
   const js = jetonsBudget(fl, BORNES);
-  const vide = videBudget(nomsReleves.length === 0, avant.length);
+  // Une station relevée dont IndexedDB a perdu les annonces (base effacée,
+  // navigation privée) ne compte pas : tout lu et rien trouvé, il n'y a pas de
+  // relevé à montrer.
+  const aucunReleve = relevees.length === 0 || (pret && parCle.size === 0);
+  const vide = videBudget(aucunReleve, avant.length);
+  const annonceOuverte = ouverte ? (parId.get(ouverte) ?? null) : null;
+  const ouverteRetenue = annonceOuverte != null && lodgeId === annonceOuverte.a.id;
 
   return (
     <>
@@ -833,7 +1043,7 @@ function VueBudget({
         <div className="prix7__jetons">
           {/* Rien tant que les annonces se lisent : « 0 logement » serait faux. */}
           <span className="prix7__compte" ref={refCompte} tabIndex={-1}>
-            {pret ? countBudget(cartes.length, nStations) : ""}
+            {affichable ? countBudget(cartes.length, nStations) : ""}
           </span>
           {js.map((j) => (
             <button
@@ -865,112 +1075,168 @@ function VueBudget({
         </div>
       </section>
 
-      {pret ? (
-        <>
-          <p className="prix7__couverture">
-            {couverture(per, nomsReleves, STATIONS.length, groupe.trav)}
-          </p>
-          {cartes.length > 0 ? (
-            <>
-              <div className="prix7__logements">
-                {cartes.slice(0, limitB).map((c) => (
-                  <CarteLogement
-                    key={`${c.stationId}|${c.a.id}`}
-                    c={c}
-                    per={per}
-                    trav={groupe.trav}
-                    now={now}
-                    onVoir={voir}
+      {/* Les relevés d'avant le 25 septembre 2026 ne gardaient pas la position
+          des logements : sans le dire, la carte vide et « GPS manquant » sur
+          chaque carte laisseraient croire à une panne. */}
+      {affichable && anciennes > 0 ? (
+        <p className="prix7__note">
+          {anciennes > 1
+            ? `${anciennes} stations ont été relevées avant le 25 septembre : leurs logements n’ont pas de position enregistrée, donc pas de pastille sur la carte. Relevez-les à nouveau dans l’onglet Par station pour les y voir.`
+            : "Une station a été relevée avant le 25 septembre : ses logements n’ont pas de position enregistrée, donc pas de pastille sur la carte. Relevez-la à nouveau dans l’onglet Par station pour les y voir."}
+        </p>
+      ) : null}
+
+      {!affichable ? null : cartes.length > 0 ? (
+        <div className="v7deux">
+          <div
+            className="v7deux__liste"
+            ref={listeRef}
+            tabIndex={-1}
+            aria-label="Logements de la page"
+          >
+            {affichees.length > 0 ? (
+              <>
+                <div className="grille7-2">
+                  {pageItems.map((c) => (
+                    <CarteLogement
+                      key={`${c.stationId}|${c.a.id}`}
+                      l={c.a}
+                      sources={sourceDe(c)}
+                      autres={null}
+                      retenu={lodgeId === c.a.id ? c.a.id : null}
+                      retenuSource={null}
+                      vue={!!seen[c.a.id]}
+                      vif={actifCarte === c.a.id}
+                      stay={stay}
+                      trav={trav}
+                      nights={nights}
+                      ouvrir={ouvrirAnnonce}
+                      retenir={retenir}
+                      designer={setActifCarte}
+                    />
+                  ))}
+                </div>
+                {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
+              </>
+            ) : (
+              <Vide
+                titre="Aucune annonce dans ce cadrage"
+                actions={
+                  <button type="button" className="btn7" onClick={revoirTout}>
+                    Revoir toutes les annonces
+                  </button>
+                }
+              >
+                La liste suit la carte. Déplacez-la, dézoomez ou revenez au cadrage des résultats.
+              </Vide>
+            )}
+          </div>
+          <div className="v7deux__carte">
+            <CarteEpingles
+              marqueurs={marqueurs}
+              cadrage={cadrage}
+              cadrerSur={pointsResultat}
+              surFixe={setEpinglee}
+              maxZoom={14}
+              surBornes={surCadre}
+              actif={actifCarte}
+              surActif={setActifCarte}
+              ficheDe={(id) => {
+                const c = parId.get(id);
+                if (!c) return null;
+                return (
+                  <FicheEpingle
+                    l={c.a}
+                    sources={sourceDe(c)}
+                    stay={stay}
+                    trav={trav}
+                    nights={nights}
                   />
-                ))}
-              </div>
-              {/* Par 60 : la maquette coupait à 60 sans le dire. */}
-              {cartes.length > limitB ? (
-                <button
-                  type="button"
-                  className="prix7__pilule prix7__pilule--grande prix7__encore"
-                  onClick={() => setLimitB(limitB + PAGE_CARTES)}
-                >
-                  Afficher {Math.min(PAGE_CARTES, cartes.length - limitB)} de plus
-                </button>
-              ) : null}
-            </>
-          ) : (
-            <div className="prix7__carte prix7__vide prix7__vide--budget">
-              <strong>{vide.titre}</strong>
-              <span>{vide.hint}</span>
-              {vide.versStation ? (
-                <button
-                  type="button"
-                  className="prix7__pilule prix7__pilule--grande"
-                  onClick={() => ouvrir("station")}
-                >
-                  Ouvrir l’onglet Par station
-                </button>
-              ) : null}
-            </div>
-          )}
-        </>
+                );
+              }}
+              actionsDe={(id) => {
+                if (!parId.has(id)) return null;
+                const r = lodgeId === id;
+                return (
+                  <>
+                    <button type="button" className="btn7" onClick={() => ouvrirAnnonce(id)}>
+                      Voir l’annonce
+                    </button>
+                    <button
+                      type="button"
+                      className="btn7 btn7--fantome"
+                      aria-pressed={r}
+                      onClick={() => retenir(id)}
+                    >
+                      {r ? "Retenu" : "Retenir"}
+                    </button>
+                  </>
+                );
+              }}
+              legende={
+                <>
+                  <b>
+                    {nPages > 1 ? `Page ${page + 1} sur ${nPages} · ` : ""}
+                    {plur(affichees.length, "logement", "logements")} dans le cadre
+                  </b>
+                  {horsCadre > 0 ? (
+                    <button type="button" className="carte7__revoir" onClick={revoirTout}>
+                      {cartes.length > 1
+                        ? `Revoir les ${cartes.length} logements`
+                        : "Revoir le logement"}
+                      <Icon name="fleche-droite" taille={14} />
+                    </button>
+                  ) : null}
+                </>
+              }
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="prix7__carte prix7__vide prix7__vide--budget">
+          <strong>{vide.titre}</strong>
+          <span>{vide.hint}</span>
+          {vide.versStation ? (
+            <button
+              type="button"
+              className="prix7__pilule prix7__pilule--grande"
+              onClick={() => ouvrir("station")}
+            >
+              Ouvrir l’onglet Par station
+            </button>
+          ) : null}
+        </div>
+      )}
+
+      {annonceOuverte ? (
+        <VoletAnnonce
+          l={annonceOuverte.a}
+          stay={stay}
+          trav={trav}
+          nights={nights}
+          groupe={null}
+          retenu={ouverteRetenue}
+          onRetenir={() => retenir(annonceOuverte.a.id)}
+          onFermer={fermerVolet}
+          onVoirOffre={ouvrirAnnonce}
+          suite={
+            // Réservation retrouve ce logement par `resolveListing`, qui fait
+            // passer devant la copie tarifée pour les dates du séjour : celle
+            // relevée ici, que Retenir vient de poser.
+            ouverteRetenue ? (
+              <button
+                type="button"
+                className="btn7 btn7--grand btn7--pleine"
+                onClick={() => void go("booking")}
+              >
+                Passer à la réservation
+                <Icon name="fleche-droite" taille={16} />
+              </button>
+            ) : null
+          }
+        />
       ) : null}
     </>
-  );
-}
-
-/** Une annonce retenue (Prix par station.dc.html:171-182). Le lien porte le
- *  titre en description : « Voir le logement » se répète sur chaque carte. */
-function CarteLogement({
-  c,
-  per,
-  trav,
-  now,
-  onVoir,
-}: {
-  c: CarteAnnonce;
-  per: Periode;
-  trav: number;
-  now: number;
-  onVoir: (c: CarteAnnonce) => void;
-}) {
-  const id = useId();
-  // Un prix relevé pour ces dates se dit comme dans Logements, en vert ; un
-  // relevé vieilli ou non daté garde l'ambre de la maquette.
-  const d = dispo(c.a, per, now);
-  // Ouvert dans un autre onglet, le lien porte ce que Logements lit dans son
-  // adresse : la station et les dates.
-  const href = `/logements?station=${encodeURIComponent(c.stationId)}&du=${per.from}&au=${departIso(per)}`;
-  return (
-    <article className="prix7__carte prix7__logement" aria-labelledby={id}>
-      <div className="prix7__logement-tete">
-        <span className="prix7__logement-station">{c.stationNom}</span>
-        <strong className="prix7__logement-titre" id={id}>
-          {c.a.title}
-        </strong>
-        <span className="prix7__logement-meta">{metaAnnonce(c.a)}</span>
-      </div>
-      <span className={`prix7__logement-dispo${d.confirme ? " prix7__logement-dispo--ok" : ""}`}>
-        {d.lbl}
-      </span>
-      <div className="prix7__logement-pied">
-        <div className="prix7__logement-total">
-          <b>{eur(c.a.total)}</b>
-          <span>{ppLbl(c.a.total, trav)}</span>
-        </div>
-        <a
-          href={href}
-          className="prix7__voir"
-          aria-describedby={id}
-          onClick={(e) => {
-            // Un clic modifié garde le comportement du navigateur (nouvel
-            // onglet, nouvelle fenêtre).
-            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-            e.preventDefault();
-            onVoir(c);
-          }}
-        >
-          Voir le logement
-        </a>
-      </div>
-    </article>
   );
 }
 

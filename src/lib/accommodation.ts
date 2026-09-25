@@ -1,5 +1,6 @@
 import { metresBetween } from "./access";
 import { listingById, type Listing } from "./listings";
+import { annonceEnMemoire } from "./prix/annonces";
 import { useStay } from "./stay";
 import { useTrack } from "./track";
 import { montant } from "./devises.ts";
@@ -10,9 +11,22 @@ export function pricePerPerson(total: number, guests: number): number | null {
   return total / guests;
 }
 
+/** Les annonces en direct, le relevé figé, puis celles que les relevés de
+ *  l'écran « Prix » ont retenues : un logement choisi dans l'onglet budget
+ *  n'est que là, et Réservation doit le retrouver.
+ *
+ *  La copie tarifée pour les dates du séjour passe devant toutes les autres.
+ *  Retenir dans Prix change les dates du séjour sans toucher aux annonces en
+ *  direct de Logements, et un gîte du relevé figé porte le même code que son
+ *  relevé en direct : lus d'abord, ils rendaient le prix et le lien d'autres
+ *  dates. */
 export function resolveListing(id: string): Listing | undefined {
-  const live = useStay.getState().liveListings;
-  return live?.find((l) => l.id === id) ?? listingById(id);
+  const { liveListings, checkIn, checkOut } = useStay.getState();
+  const direct = liveListings?.find((l) => l.id === id);
+  const prix = annonceEnMemoire(id, { checkIn, checkOut });
+  const pourCeSejour = (l: Listing | undefined) =>
+    l && l.pricedCheckIn === checkIn && l.pricedCheckOut === checkOut ? l : undefined;
+  return pourCeSejour(direct) ?? pourCeSejour(prix) ?? direct ?? listingById(id) ?? prix;
 }
 
 export function distToGpxStartM(listing: Listing): number | null {

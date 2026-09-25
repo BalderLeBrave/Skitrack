@@ -73,7 +73,7 @@ export function trouCourt(t: Trou): string {
     case "capacite":
       return "sans capacité";
     case "chambres":
-      return "sans chambres";
+      return "sans nombre de chambres";
     case "gps":
       return "sans GPS";
     case "photo":

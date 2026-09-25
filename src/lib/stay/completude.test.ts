@@ -65,5 +65,10 @@ describe("completude : ce qui manque se nomme, un zéro n'est pas un prix", () =
       sujet({ guests: null, total: 0 }),
     ]);
     assert.equal(phrase, "1 sans prix, 1 sans capacité, 1 sans GPS, 1 sans lien");
+    // Un studio (0 chambre) n'est pas un trou ; un nombre de chambres absent l'est.
+    assert.equal(
+      trousPhrase([sujet({ bedrooms: 0 }), sujet({ bedrooms: null }), sujet({ bedrooms: null })]),
+      "2 sans nombre de chambres",
+    );
   });
 });

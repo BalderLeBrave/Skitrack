@@ -128,11 +128,11 @@ function completionHtml(message: PopupMessage): string {
   // script only reads it. Avoids escaping pitfalls of embedding in JS source.
   const payload = JSON.stringify(message).replace(/</g, "\\u003c");
   return `<!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Signing in…</title>
+<title>Connexion…</title>
 <style>
   html,body{margin:0;min-height:100%;background:#0b0b0c;color:#a1a1aa;
     font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -140,7 +140,7 @@ function completionHtml(message: PopupMessage): string {
 </style>
 </head>
 <body>
-<main><p>Signing you in…</p></main>
+<main><p>Connexion en cours…</p></main>
 <script type="application/json" id="grok-auth-popup-msg">${payload}</script>
 <script>
 (function () {

@@ -37,7 +37,7 @@ export const SKY_FR: Record<SkyLabel, string> = {
   snow: "neige",
   storm: "orage",
   variable: "variable",
-  unknown: "non rendu",
+  unknown: "ciel non précisé",
 };
 
 export type ForecastDay = {

@@ -105,7 +105,7 @@ function Reservation() {
     if (l.url) {
       window.open(l.url, "_blank", "noopener");
       P.setBooked(true);
-      P.say(`Ouverture de l’annonce sur ${l.source} · le récapitulatif est marqué « réservé ».`);
+      P.say(`Ouverture de l’annonce sur ${l.source}. Le récapitulatif est marqué « réservé ».`);
     } else {
       P.say("Annonce sans lien : la réservation se fait à la main, puis se marque ici.");
     }
@@ -173,9 +173,9 @@ function Reservation() {
             <section className="bk7">
               <div className={`bk7__media lodge7__media--${mediaTon(l)}`}>
                 {l.photo ? (
-                  <ImageSlot shape="rect" id={`v7app-bk-${l.id}`} placeholder="Photo de l'annonce" className="lodge7__slot" src={l.photo} />
+                  <ImageSlot shape="rect" id={`v7app-bk-${l.id}`} placeholder="Photo de l’annonce" className="lodge7__slot" src={l.photo} />
                 ) : (
-                  <span>Pas de photo dans l'annonce</span>
+                  <span>Pas de photo dans l’annonce</span>
                 )}
               </div>
               <div className="bk7__corps">
@@ -205,7 +205,7 @@ function Reservation() {
                   <div className="bk7__ok">
                     <Icon name="coche" taille={16} />
                     <span>
-                      <b>Prix relevé aux dates.</b> La source a tarifé cette annonce pour ce séjour. La
+                      <b>Prix relevé pour vos dates.</b> La source a tarifé cette annonce pour ce séjour. La
                       source fera foi.
                     </span>
                   </div>
@@ -240,8 +240,14 @@ function Reservation() {
                   {crumbDomaine(s)}
                 </span>
                 <span className="carte7-sect__chiffres">
-                  {altLbl(s) ?? "altitudes non relevées"} · {kmLbl(s) ?? "km non publié"}{" "}
-                  <small>de pistes, domaine</small>
+                  {altLbl(s) ?? "altitudes non relevées"} ·{" "}
+                  {kmLbl(s) ? (
+                    <>
+                      {kmLbl(s)} <small>de pistes, domaine</small>
+                    </>
+                  ) : (
+                    "kilomètres de pistes non publiés"
+                  )}
                 </span>
               </section>
               <section className="carte7-sect carte7-sect--serre">
@@ -305,7 +311,7 @@ function Reservation() {
                 <tr className="cout7__pp">
                   <th>Par personne, sur {travLbl(trav)}</th>
                   <td className={l.total > 0 ? undefined : "absent"}>
-                    {l.total > 0 ? eurCents(Math.round((totalN / trav) * 100) / 100) : "—"}
+                    {l.total > 0 ? eurCents(Math.round((totalN / trav) * 100) / 100) : "–"}
                   </td>
                 </tr>
               </tbody>
@@ -326,7 +332,7 @@ function Reservation() {
                 Copier le récapitulatif
               </button>
               <button type="button" className="btn7 btn7--fantome" onClick={copyLink}>
-                Lien de partage
+                Copier le lien
               </button>
             </div>
             <p className="aside7__note">

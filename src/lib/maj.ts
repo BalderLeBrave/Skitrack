@@ -28,7 +28,8 @@ type MajStore = {
   etat: EtatMaj;
   /** Relevés effectués pendant la vérification en cours. */
   faits: number;
-  /** Le dernier élément relevé, pour que la progression dise quelque chose. */
+  /** Le nom du dernier domaine ou de la dernière station relevés, pour que la
+   *  progression dise quelque chose. */
   dernier: string | null;
   /** Reste-t-il des relevés périmés en file ? */
   reste: boolean;
@@ -61,11 +62,11 @@ export const useMaj = create<MajStore>()(
           for (let tour = 0; tour < TOURS_MAX; tour += 1) {
             if (stop) break;
             const tick = await tickAutoSync({ data: {} });
-            const releves = [...tick.forfaits, ...tick.skiinfo];
-            if (releves.length) {
+            const releves = tick.forfaits.length + tick.skiinfo.length;
+            if (releves) {
               set((s) => ({
-                faits: s.faits + releves.length,
-                dernier: releves[releves.length - 1] ?? s.dernier,
+                faits: s.faits + releves,
+                dernier: tick.noms[tick.noms.length - 1] ?? s.dernier,
               }));
             }
             set({ reste: tick.remaining });

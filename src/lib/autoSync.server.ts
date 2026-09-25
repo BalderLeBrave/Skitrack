@@ -1,17 +1,21 @@
 /** Tick silencieux : forfaits FR + fiches Skiinfo (mix / photo). */
 
-import { FORFAIT_CATALOG } from "@/lib/forfaits/catalog";
+import { domainBySlug, FORFAIT_CATALOG } from "@/lib/forfaits/catalog";
 import { getSource, getStored, refreshOne, forfaitTtlMs } from "@/lib/forfaits/refresh.server";
 import { isStale as forfaitStale } from "@/lib/forfaits/store";
 import { SKIINFO } from "@/lib/skiinfo";
 import { getStoredSkiinfo, refreshSkiinfo } from "@/lib/skiinfoRefresh.server";
 import { isStale as skiinfoStale } from "@/lib/skiinfoStore";
+import { stationById } from "@/lib/stations";
 import { pickRoundRobin } from "./autoSync";
 
 export type SyncTick = {
   idle: boolean;
   forfaits: string[];
   skiinfo: string[];
+  /** Les mêmes, domaines puis stations, par leur nom : la progression de la
+   *  vérification les affiche, et un identifiant ne dit rien au lecteur. */
+  noms: string[];
   remaining: boolean;
 };
 
@@ -83,6 +87,10 @@ export async function tickAutoSync(): Promise<SyncTick> {
     idle: forfaits.length === 0 && skiinfo.length === 0,
     forfaits,
     skiinfo,
+    noms: [
+      ...forfaits.map((slug) => domainBySlug(slug)?.name ?? slug),
+      ...skiinfo.map((id) => stationById(id)?.name ?? id),
+    ],
     remaining: stillPass || stillSki,
   };
 }

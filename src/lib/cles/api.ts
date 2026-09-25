@@ -52,9 +52,9 @@ export type Essai = { ok: boolean; message: string };
 export const essayerCle = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().min(1) }))
   .handler(async ({ data }): Promise<Essai> => {
-    if (data.id !== "meteofrance") return { ok: false, message: "Cette clé ne s'essaie pas." };
+    if (data.id !== "meteofrance") return { ok: false, message: "Cette clé ne peut pas être essayée." };
     const { valeurCle } = await import("./store.server");
-    if (!valeurCle("meteofrance")) return { ok: false, message: "Aucune clé posée." };
+    if (!valeurCle("meteofrance")) return { ok: false, message: "Aucune clé enregistrée." };
     const { fetchBra } = await import("../bra/fetch.server");
     // Massif 10 (Vanoise), sans le cache : c'est la clé qu'on teste.
     const bra = await fetchBra(10, true);
@@ -63,8 +63,8 @@ export const essayerCle = createServerFn({ method: "POST" })
         ok: true,
         message: bra.risk != null
           ? `Météo-France répond : risque ${bra.risk} en Vanoise.`
-          : "Météo-France répond. Aucun risque publié aujourd'hui sur ce massif.",
+          : "Météo-France répond. Aucun risque publié aujourd’hui sur ce massif.",
       };
     }
-    return { ok: false, message: bra.error ?? "Météo-France n'a pas répondu." };
+    return { ok: false, message: bra.error ?? "Météo-France n’a pas répondu." };
   });

@@ -92,7 +92,7 @@ function seedRow(slug: string): ForfaitRow {
     ...est,
     status: "estimé",
     kind: "6 jours",
-    lastError: "Aucun relevé — estimation km + altitude, hors coût officiel.",
+    lastError: "Aucun relevé. Estimation d’après les km de pistes et l’altitude, hors coût officiel.",
   });
 }
 
@@ -223,7 +223,7 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
         url,
         issue: "ok",
         statut: page.status,
-        message: `tarif lu (${extracted.kind})`,
+        message: `tarif lu (${extracted.kind === "jsonld" ? "données structurées" : "texte de la page"})`,
       });
       sources.set(slug, source);
       return {
@@ -251,7 +251,7 @@ export async function refreshOne(slug: string, force = false, signal?: AbortSign
   // Toutes les voies interdites par robots.txt : la source est fermée, pas en
   // panne. Elle bascule en saisie assistée et cesse d'être réessayée.
   if (interdites === essais.length && essais.length) {
-    source = noterRefus(source, domain.website, "robots.txt interdit toutes les pages tarifs", quand);
+    source = noterRefus(source, domain.website, "robots.txt interdit toutes les pages de tarifs", quand);
     sources.set(slug, source);
     console.warn(`[forfaits] ${slug} : robots.txt interdit le relevé automatique`);
     return { row, source, issue: "refus" };

@@ -100,7 +100,7 @@ export function libelleCouverture(rows: SujetPlateforme[]): string {
   if (priced.length === 0) return "prix non publié";
   const hors = priced.filter((l) => horsFraisSejour(l));
   if (hors.length === priced.length) return "loyer, hors frais de séjour";
-  if (hors.length > 0) return "loyer ; taxe quand le panier la publie";
+  if (hors.length > 0) return "loyer ; taxe de séjour quand la centrale la publie";
   const avecTaxe = priced.every(
     (l) =>
       (l.proven && /taxe de s[ée]jour/i.test(l.proven)) ||
@@ -112,7 +112,7 @@ export function libelleCouverture(rows: SujetPlateforme[]): string {
 
 export function libelleReleve(report: RapportSource | undefined): string {
   if (!report) return "relevé figé";
-  if (estPauseApi(report.error)) return "pause — relevé précédent conservé";
+  if (estPauseApi(report.error)) return "pause : relevé précédent conservé";
   if (!report.ok) return report.error?.trim() || "relevé en échec";
   return "relevé en direct";
 }
@@ -137,7 +137,7 @@ export const CRITERES_PLATEFORME: CriterePlateforme[] = [
   {
     id: "nConfirmes",
     label: "Disponibilité confirmée",
-    note: "prix relevé aux dates, depuis moins de 6 h",
+    note: "prix relevé pour ces dates il y a moins de 6 h",
     num: (c) => (c.nConfirmes > 0 ? c.nConfirmes : null),
     txt: (c) => (c.nConfirmes > 0 ? String(c.nConfirmes) : "non confirmée"),
     max: true,
@@ -261,8 +261,13 @@ export function valeurGagne(
   return v === best;
 }
 
+/** « de Booking », mais « d’Airbnb » : élision devant une voyelle. */
+function deSource(source: string): string {
+  return /^[aeiouàâäéèêëîïôöùûü]/i.test(source) ? `d’${source}` : `de ${source}`;
+}
+
 export function voirAnnoncesLbl(n: number, source: string): string {
-  if (n <= 0) return `Aucune annonce de ${source}`;
-  if (n === 1) return `Voir l’annonce de ${source}`;
-  return `Voir les ${n} annonces de ${source}`;
+  if (n <= 0) return `Aucune annonce ${deSource(source)}`;
+  if (n === 1) return `Voir l’annonce ${deSource(source)}`;
+  return `Voir les ${n} annonces ${deSource(source)}`;
 }

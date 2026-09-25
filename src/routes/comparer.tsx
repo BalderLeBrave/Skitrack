@@ -54,7 +54,7 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "km", label: "Tri : km de pistes" },
   { key: "hi", label: "Tri : sommet" },
   { key: "lo", label: "Tri : bas des pistes" },
-  { key: "v", label: "Tri : altitude village" },
+  { key: "v", label: "Tri : altitude du village" },
   { key: "pass", label: "Tri : forfait 6 j" },
   { key: "n", label: "Tri : nom" },
 ];
@@ -90,10 +90,10 @@ const CRIT: Crit[] = [
        annonce 1 100 – 2 738 m et Le Praz 1 110 – 3 223 m sur le même domaine :
        deux fiches, deux façons de compter. Sans la mention, cela se lisait
        comme une contradiction. */
-    note: "valeur de la fiche",
+    note: "valeur de la station",
   },
   { label: "Village", txt: (s) => villageLbl(s), num: (s) => villageM(s), note: null },
-  { label: "Km de pistes", txt: (s) => kmLbl(s), num: (s) => s.pistesKm, note: "valeur du domaine" },
+  { label: "Kilomètres de pistes", txt: (s) => kmLbl(s), num: (s) => s.pistesKm, note: "valeur du domaine" },
   { label: "Remontées", txt: (s) => liftsLbl(s), num: (s) => s.lifts, note: "valeur du domaine" },
   {
     label: "Forfait 6 j adulte",
@@ -103,7 +103,14 @@ const CRIT: Crit[] = [
     sous: (s) => passHeriteLbl(s),
   },
   { label: "Glacier", txt: (s) => (glacier(s) ? "Oui" : "Non"), num: null, note: null },
-  { label: "Forfait relié", txt: (s) => (linked(s) ? s.domain : null), num: null, note: null },
+  {
+    label: "Domaine relié",
+    // Une station dont le domaine porte son nom n'est reliée à aucune autre :
+    // « non relevé » disait faux, la donnée est connue.
+    txt: (s) => (!s.domain ? null : linked(s) ? s.domain : "Non"),
+    num: null,
+    note: null,
+  },
   {
     label: "Massif · département",
     txt: (s) => [s.massif, s.dept].filter(Boolean).join(" · "),
@@ -189,6 +196,8 @@ function Comparer() {
      demande. */
   const [limite, setLimite] = useState(LISTE_MAX);
   const list = dansCadre.slice(0, limite);
+  const reste = dansCadre.length - limite;
+  const pasSuivant = Math.min(LISTE_PAS, reste);
 
   /** Le compte des résultats, en infobulle du champ : la maquette ne le pose
    *  plus sous la barre. Il dit ce que la liste montre, ce que le cadre laisse
@@ -221,7 +230,7 @@ function Comparer() {
           }
         : {
             title: "Aucune station ne remplit ces critères",
-            hint: `Le référentiel couvre ${all.length} stations françaises. Retirer un seul filtre ne suffit pas : réinitialisez.`,
+            hint: `La liste complète compte ${all.length} stations françaises. Retirer un seul filtre ne suffit pas : réinitialisez tout.`,
             fix: null,
           }
       : null;
@@ -257,7 +266,7 @@ function Comparer() {
   }));
   const seeLbl = visible.length
     ? `Voir ${visible.length} station${visible.length > 1 ? "s" : ""}`
-    : "Aucune station : assouplir";
+    : "Aucune station : assouplir les filtres";
 
   /**
    * **La carte porte toutes les stations du cadre, la liste en montre quarante.**
@@ -429,7 +438,7 @@ function Comparer() {
                   })}
                   <tr>
                     <th className="cmp7__critere">
-                      Pistes par couleur<span>OpenSkiMap, échelle domaine</span>
+                      Pistes par couleur<span>OpenSkiMap, à l’échelle du domaine</span>
                     </th>
                     {cmp.map((s) => (
                       <td key={s.id} className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}`}>
@@ -445,7 +454,7 @@ function Comparer() {
             </div>
             <div className="cmp7__pied">
               <span>
-                Une valeur absente est dite absente. En gras : la meilleure valeur, quand les
+                Une valeur manquante est marquée « non relevé ». En gras : la meilleure valeur, quand les
                 stations en annoncent de différentes. {CMP_MAX === 4 ? "Quatre" : CMP_MAX} stations
                 au plus.
               </span>
@@ -720,10 +729,12 @@ function Comparer() {
                       className="btn7 btn7--fantome"
                       onClick={() => setLimite((n) => n + LISTE_PAS)}
                     >
-                      Afficher {Math.min(LISTE_PAS, dansCadre.length - limite)} stations de plus
+                      Afficher {pasSuivant} station{pasSuivant > 1 ? "s" : ""} de plus
                     </button>
                     <span>
-                      {dansCadre.length - limite} autres stations sont dans ce cadrage.
+                      {reste > 1
+                        ? `${reste} autres stations sont dans ce cadrage.`
+                        : "1 autre station est dans ce cadrage."}
                     </span>
                   </div>
                 ) : null}
@@ -848,7 +859,7 @@ function Comparer() {
                   </b>
                   {parCadre.horsCadre.length ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
-                      Revoir les {visible.length} résultats
+                      {visible.length > 1 ? `Revoir les ${visible.length} résultats` : "Revoir le résultat"}
                       <Icon name="fleche-droite" taille={14} />
                     </button>
                   ) : null}

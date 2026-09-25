@@ -163,7 +163,7 @@ test("stationTags : type, domaine, statut, hors classeur : rien d’inventé", (
   assert.match(tags("val-thorens"), /Les Trois Vallées/);
   // Station du dépôt que le classeur ne décrit pas : l’absence est dite.
   assert.match(tags("le-granier-vallee-des-entremonts"), /Domaine non renseigné/);
-  assert.match(tags("le-granier-vallee-des-entremonts"), /hors classeur/);
+  assert.match(tags("le-granier-vallee-des-entremonts"), /absente de France Montagnes/);
 });
 
 test("formatKm : un tiret quand le domaine ne publie pas de kilométrage", () => {

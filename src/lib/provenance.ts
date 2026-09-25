@@ -82,7 +82,7 @@ const CENTRALE = /^(.+?) \((?:Arkiane|Deskline|Ingénie|MSEM|Open System|Orchest
 function aupresDe(l: SujetProvenance): string {
   if (l.source !== "Centrale") return `sur ${l.source}`;
   const nom = CENTRALE.exec(l.proven)?.[1]?.trim();
-  return nom ? `auprès de ${nom}` : "auprès de la centrale de réservation de la station";
+  return nom ? `auprès de la centrale ${nom}` : "auprès de la centrale de réservation de la station";
 }
 
 /** Date du relevé écrite dans la trace : une date ISO qui n'est pas une date de séjour (pas collée à « → »). */
@@ -126,7 +126,7 @@ export function provenancePhrase(l: SujetProvenance): string {
   const phrases: string[] = [];
   if (repli) {
     const repris = l.total > 0 ? "ce prix est repris" : "cette annonce est reprise";
-    const deQuoi = releve ? `de notre relevé du ${releve}` : "d’un relevé antérieur";
+    const deQuoi = releve ? `du relevé du ${releve}` : "d’un relevé antérieur";
     phrases.push(`Pas de résultat en direct ${aupresDe(l)} : ${repris} ${deQuoi}${cadre ? `, ${cadre}` : ""}.`);
   } else {
     phrases.push(`${quoi} ${aupresDe(l)}${via}${quand}${cadre ? `, ${cadre}` : ""}.`);
@@ -155,7 +155,7 @@ export function sourcePhrase(l: SujetProvenance): string {
   const ref = l.platformId ? ` (réf. ${l.platformId})` : "";
   if (l.source === "Centrale") {
     const nom = CENTRALE.exec(l.proven ?? "")?.[1]?.trim();
-    return `${sujet} proposé par ${nom ?? "la centrale de réservation de la station"}${ref}.`;
+    return `${sujet} proposé par ${nom ? `la centrale ${nom}` : "la centrale de réservation de la station"}${ref}.`;
   }
   return `${sujet} proposé sur ${l.source}${ref}.`;
 }

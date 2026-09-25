@@ -90,7 +90,7 @@ export function passHeriteLbl(s: Station): string | null {
 
 export const glacier = (s: Station) => stationHasGlacier(s.id);
 
-/** « Forfait relié » : le domaine porte un autre nom que la station. */
+/** « Domaine relié » : le domaine porte un autre nom que la station. */
 export const linked = (s: Station) => !!s.domain && s.domain !== s.name;
 
 /** Lien vers la fiche Skiinfo, quand la station en a une. */
@@ -132,8 +132,8 @@ export function aStation(nom: string | null | undefined): string {
   if (!n) return "";
   if (/^les /i.test(n)) return `aux ${n.slice(4)}`;
   if (/^le /i.test(n)) return `au ${n.slice(3)}`;
-  if (/^l'/i.test(n)) return `à l'${n.slice(2)}`;
-  if (/^alpes? /i.test(n)) return `à l'${n}`;
+  if (/^l['’]/i.test(n)) return `à l’${n.slice(2)}`;
+  if (/^alpes? /i.test(n)) return `à l’${n}`;
   return `à ${n}`;
 }
 
@@ -144,13 +144,13 @@ export const CHIPS = {
   big: { label: "Grands domaines · 300 km", fn: (s: Station) => (s.pistesKm ?? 0) >= 300 },
   high: { label: "Sommet 3 000 m", fn: (s: Station) => (maxM(s) ?? 0) >= 3000 },
   glacier: { label: "Glacier", fn: (s: Station) => glacier(s) },
-  linked: { label: "Forfait relié", fn: (s: Station) => linked(s) },
+  linked: { label: "Domaine relié", fn: (s: Station) => linked(s) },
   family: {
     label: "Famille · 60 % faciles",
     fn: (s: Station) => !!s.colorShare && s.colorShare.green + s.colorShare.blue >= 60,
   },
   steep: {
-    label: "Engagé · 40 % rouges-noires",
+    label: "Engagé · 40 % rouges ou noires",
     fn: (s: Station) => !!s.colorShare && s.colorShare.red + s.colorShare.black >= 40,
   },
 } as const;
@@ -209,7 +209,7 @@ export function prixPersLbl(l: Listing, trav: number): string | null {
 
 /** Texte de pastille : jamais « 0 € ». */
 export function prixPin(l: Listing): string {
-  return l.total > 0 ? eur(l.total) : "n. p.";
+  return l.total > 0 ? eur(l.total) : "sans prix";
 }
 
 /** Fond du cadre photo vide, par source : la maquette teinte à peine. */

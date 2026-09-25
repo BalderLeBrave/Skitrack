@@ -55,7 +55,7 @@ export const SEUILS: {
   { k: "v", label: "Altitude du village", court: "village", max: 2400, step: 100, unit: "m" },
   { k: "lo", label: "Bas des pistes", court: "bas", max: 2200, step: 100, unit: "m" },
   { k: "hi", label: "Sommet", court: "sommet", max: 3500, step: 100, unit: "m" },
-  { k: "km", label: "Km de pistes, domaine", court: "km", max: 600, step: 10, unit: "km" },
+  { k: "km", label: "Kilomètres de pistes du domaine", court: "km", max: 600, step: 10, unit: "km" },
   { k: "pass", label: "Forfait 6 j adulte, au plus", court: "forfait", max: 400, step: 10, unit: "€", auPlus: true },
 ];
 

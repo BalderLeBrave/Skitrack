@@ -22,7 +22,8 @@
  * pour l'onglet « Par budget ». Un échec ne remplace jamais une médiane.
  *
  * Le magasin tient aussi l'état de vue (onglet, filtres, tris, pages), non
- * persisté : un aller-retour par « Voir le logement » ne perd rien.
+ * persisté : changer d'onglet, ou passer par Réservation et revenir, ne perd
+ * rien.
  */
 import { create } from "zustand";
 import { createJSONStorage, persist, type PersistStorage } from "zustand/middleware";
@@ -43,7 +44,6 @@ import {
   elaguer,
   FL0,
   PAGE,
-  PAGE_CARTES,
   PARTS,
   resultatDuReleve,
   TRI0,
@@ -84,18 +84,20 @@ export type PrixStore = {
   fl: Filtres;
   /** Tri du tableau (onglet station). */
   tri: Tri;
-  /** Tri des cartes (onglet budget). */
+  /** Tri des logements (onglet budget). */
   triB: TriB;
   /** Lignes affichées du tableau. */
   limit: number;
-  /** Cartes affichées de l'onglet budget. */
-  limitB: number;
+  /** Page de la liste des logements (onglet budget), à partir de 0. */
+  pageB: number;
   /** Une autre période repart de la première page. */
   setPer(p: Periode | null): void;
   lancer(job: Job): void;
   arreter(): void;
   setOnglet(o: Onglet): void;
-  /** Un autre critère repart de la première page ; `setTri` et `setTriB`, non. */
+  /** Un autre critère repart de la première page. Un autre tri du tableau
+   *  garde ses lignes ; un autre tri des logements ramène leur liste à sa
+   *  première page, comme dans Logements. */
   setFl(patch: Partial<Filtres>): void;
   /** Calculé sur l'état courant du magasin : deux appels dans le même
    *  événement (un brouillon validé au blur, puis la poignée) s'enchaînent. */
@@ -104,7 +106,7 @@ export type PrixStore = {
   setTri(t: Tri): void;
   setTriB(t: TriB): void;
   setLimit(n: number): void;
-  setLimitB(n: number): void;
+  setPageB(n: number): void;
 };
 
 type Rendu = Awaited<ReturnType<typeof searchStay>>;
@@ -517,7 +519,7 @@ function stockage(): PersistStorage<Persiste> | undefined {
 }
 
 /** Les premières pages : une autre période ou un autre critère y ramène. */
-const PAGES0 = { limit: PAGE, limitB: PAGE_CARTES };
+const PAGES0 = { limit: PAGE, pageB: 0 };
 
 export const usePrix = create<PrixStore>()(
   persist(
@@ -549,9 +551,9 @@ export const usePrix = create<PrixStore>()(
       majFl: (f) => set((s) => ({ fl: f(s.fl), ...PAGES0 })),
       resetFl: (fl) => set({ fl, ...PAGES0 }),
       setTri: (t) => set({ tri: t }),
-      setTriB: (t) => set({ triB: t }),
+      setTriB: (t) => set({ triB: t, pageB: 0 }),
       setLimit: (n) => set({ limit: n }),
-      setLimitB: (n) => set({ limitB: n }),
+      setPageB: (n) => set({ pageB: n }),
     }),
     {
       name: CLE_STOCKAGE,
@@ -599,5 +601,11 @@ if (typeof window !== "undefined") {
       (s.liveSources !== avant.liveSources && s.liveSources.length === 0)
     )
       chercheDepuis = Date.now();
+    // Un autre groupe, ou d'autres dates quand la période suit le séjour : les
+    // listes de l'écran changent, elles repartent de la première page comme à
+    // tout changement de période ou de critère.
+    const groupe = s.guests !== avant.guests || s.bedrooms !== avant.bedrooms;
+    const dates = s.checkIn !== avant.checkIn || s.checkOut !== avant.checkOut;
+    if (groupe || (dates && usePrix.getState().per === null)) usePrix.setState(PAGES0);
   });
 }

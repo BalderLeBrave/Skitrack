@@ -154,7 +154,7 @@ export function mentionSource(r: Repartition | null): string | null {
   if (r.source === "openskimap") return "relevé OpenSkiMap";
   if (r.source === "skiinfo") return "publié par la station (Skiinfo)";
   const pct = Math.round((r.partVerte ?? 0) * 100);
-  return `skiresort.fr — vert et bleu séparés à ${pct} %, part mesurée sur ${r.partVerteDomaines} domaines du pays`;
+  return `skiresort.fr : vert et bleu séparés à ${pct} %, part mesurée sur ${r.partVerteDomaines} domaines du pays`;
 }
 
 // ─── Le recours, pour les domaines qu'OpenSkiMap ne mesure pas ───────────────

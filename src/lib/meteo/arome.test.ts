@@ -30,8 +30,9 @@ describe("AROME Météo-France", () => {
   it("isotherme : décrit village/sommet, n’invente pas une altitude", () => {
     const v = { tempC: 6 } as AromeReading;
     const s = { tempC: -7 } as AromeReading;
-    assert.equal(freezeSplit(v, s), "positif au village, gel au sommet");
-    assert.equal(freezeSplit({ tempC: -2 } as AromeReading, { tempC: -8 } as AromeReading), "gel village et sommet");
+    assert.equal(freezeSplit(v, s), "au-dessus de 0 °C au village, gel au sommet");
+    assert.equal(freezeSplit({ tempC: -2 } as AromeReading, { tempC: -8 } as AromeReading), "gel au village et au sommet");
+    assert.equal(freezeSplit({ tempC: 4 } as AromeReading, { tempC: 1 } as AromeReading), "au-dessus de 0 °C au village et au sommet");
     assert.equal(freezeSplit({ tempC: null } as AromeReading, s), null);
   });
 

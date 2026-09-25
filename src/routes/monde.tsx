@@ -100,7 +100,7 @@ const NOM_SOURCE: Record<string, string> = {
   skiresort: "skiresort.fr",
   bergfex: "bergfex",
   officiel: "site officiel",
-  proprietaire: "tableau des manques",
+  proprietaire: "relevé à la main",
 };
 
 /** Les pays du référentiel qu'aucun continent n'accueille, avec leurs domaines.
@@ -131,6 +131,14 @@ const RESUMES: ResumeContinent[] = CONTINENTS.map((c) => {
 /** Les domaines rangés sous un continent, tous pays confondus. Sert le total
  *  affiché en tête, qui doit se retrouver en additionnant les onglets. */
 const TOTAL_ONGLETS = RESUMES.reduce((n, r) => n + r.domaines, 0);
+
+/** La date du relevé, écrite en français. Midi, pour qu'un relevé fait tard le
+ *  soir en temps universel ne bascule pas au lendemain. */
+const DATE_RELEVE = new Date(`${RELEVE_MONDE.slice(0, 10)}T12:00:00`).toLocaleDateString("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
 function BarreCouleurs({ r }: { r: Repartition }) {
   const parts: [string, number][] = [
@@ -178,11 +186,11 @@ function NiveauMeteo({ titre, n, systeme }: { titre: string; n: ForecastLevel; s
       <span className="monde-meteo__creneaux">
         {n.morning.temp != null ? `${n.morning.temp} °C` : "–"} le matin,{" "}
         {SKY_FR[n.morning.sky]} · {n.afternoon.temp != null ? `${n.afternoon.temp} °C` : "–"}{" "}
-        l'après-midi, {SKY_FR[n.afternoon.sky]}
+        l’après-midi, {SKY_FR[n.afternoon.sky]}
       </span>
       {jour ? (
         <span className="monde-meteo__jour">
-          Aujourd'hui {jour.tempMin != null ? `${jour.tempMin}` : "–"} à{" "}
+          Aujourd’hui {jour.tempMin != null ? `${jour.tempMin}` : "–"} à{" "}
           {jour.tempMax != null ? `${jour.tempMax} °C` : "–"}
           {jour.snowCm != null && jour.snowCm > 0 ? ` · ${decimal(jour.snowCm, 1)} cm de neige` : null}
           {jour.depthCm != null ? ` · ${entier(jour.depthCm)} cm au sol` : null}
@@ -249,13 +257,13 @@ function MeteoDomaine({ d, systeme, vues }: { d: DomaineMonde; systeme: Systeme;
   if (etat.s === "aucun") {
     return (
       <p className="monde-row__absence">
-        Météo indisponible : ni altitude de piste ni point de terrain n'est relevé pour ce domaine.
+        Météo indisponible : ni altitude de piste ni point de terrain n’est relevé pour ce domaine.
       </p>
     );
   }
   if (etat.s === "charge") return <p className="monde-row__lieu">Relevé de la météo…</p>;
   if (etat.s === "panne")
-    return <p className="monde-row__absence">Le service de météo n'a pas répondu.</p>;
+    return <p className="monde-row__absence">Le service de météo n’a pas répondu.</p>;
 
   if (etat.niveaux.forme === "point") {
     return (
@@ -278,8 +286,8 @@ function MeteoDomaine({ d, systeme, vues }: { d: DomaineMonde; systeme: Systeme;
       <span className="monde-meteo__iso">
         {etat.p.freezingLevelM != null
           ? `Isotherme 0 °C à ${altitude(etat.p.freezingLevelM, systeme)}`
-          : "Isotherme 0 °C non rendu"}
-        {" · Open-Meteo, deux requêtes, une par altitude"}
+          : "Isotherme 0 °C non disponible"}
+        {" · Open-Meteo"}
         {etat.niveaux.forme === "pistes" && etat.niveaux.source !== "référentiel"
           ? ` · altitudes publiées par ${etat.niveaux.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"}, le référentiel ne les a pas mesurées`
           : ""}
@@ -346,7 +354,7 @@ function LigneDomaine({
   // s'écrit « non relevé » comme le reste : aucune n'est déduite d'une autre.
   const titre = [mentionSource(r ?? null), mentionRattachement(rattachement)]
     .filter(Boolean)
-    .join(" — ");
+    .join(" ; ");
   return (
     <li className="monde-row">
       {!vue ? (
@@ -388,7 +396,7 @@ function LigneDomaine({
         <div
           title={
             pistesRepli?.km != null
-              ? `Kilomètres publiés par ${pistesRepli.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"} (fiche « ${pistesRepli.cle} ») : OpenSkiMap n'a cartographié aucune piste de ce domaine.`
+              ? `Kilomètres publiés par ${pistesRepli.source === "skiinfo" ? "Skiinfo" : "skiresort.fr"} (fiche « ${pistesRepli.cle} ») : OpenSkiMap n’a cartographié aucune piste de ce domaine.`
               : undefined
           }
         >
@@ -398,7 +406,7 @@ function LigneDomaine({
               ? mesureDans({ valeur: pistesRepli.km, unite: "km" }, systeme)
               : d.km != null && d.km > 0
                 ? mesureDans({ valeur: d.km, unite: "km" }, systeme)
-                : "non cartographié"}
+                : "non cartographiées"}
             {pistesRepli?.km != null ? (
               <span className="monde-row__loin">
                 {" "}
@@ -417,7 +425,7 @@ function LigneDomaine({
         </div>
         <div>
           <dt>Remontées</dt>
-          <dd>{d.lifts != null ? entier(d.lifts) : "non relevé"}</dd>
+          <dd>{d.lifts != null ? entier(d.lifts) : "non relevées"}</dd>
         </div>
         {/* Décision du propriétaire, 22 septembre 2026 : garder les 2 780
             domaines et **afficher l'absence**. Un forfait manquant s'écrit
@@ -474,7 +482,7 @@ function LigneDomaine({
         aria-expanded={ouvert}
         onClick={surOuvrir}
       >
-        {ouvert ? "Masquer la météo" : "Météo, bas et haut des pistes"}
+        {ouvert ? "Masquer le détail" : "Afficher le détail"}
       </button>
       {ouvert && forfait?.source === "proprietaire" ? (
         <p className="monde-row__preuve">
@@ -486,11 +494,11 @@ function LigneDomaine({
               , période <q>{forfait.releve.periode}</q>
             </>
           ) : null}
-          {forfait.releve?.note ? ` — ${forfait.releve.note}` : null}
+          {forfait.releve?.note ? ` ; ${forfait.releve.note}` : null}
           {forfait.pageTarifs ? (
             <>
               {" "}
-              — <a href={forfait.pageTarifs} rel="noreferrer">la source</a>
+              (<a href={forfait.pageTarifs} rel="noreferrer">source</a>)
             </>
           ) : null}
         </p>
@@ -504,7 +512,7 @@ function LigneDomaine({
           {forfait.pageTarifs ? (
             <>
               {" "}
-              — <a href={forfait.pageTarifs} rel="noreferrer">la page</a>
+              (<a href={forfait.pageTarifs} rel="noreferrer">page des tarifs</a>)
             </>
           ) : null}
         </p>
@@ -524,7 +532,8 @@ function LigneDomaine({
             {sourcesTarifs.length > 1 ? (
               <span className="monde-tarifs__melange">
                 {" "}
-                — montants de sources différentes ({sourcesTarifs.join(", ")}) ; le survol dit laquelle
+                : montants de sources différentes ({sourcesTarifs.join(", ")}). Survolez un montant
+                pour voir sa source.
               </span>
             ) : null}
           </caption>
@@ -692,7 +701,7 @@ function PageMonde() {
           <h1 className="monde__titre">Le monde</h1>
           <p className="monde__intro">
             {entier(DOMAINES_MONDE)} domaines de ski alpin, {PAYS_AVEC_DOMAINES.length} pays. Seuil
-            retenu : {SEUIL_MONDE}. Relevé du {RELEVE_MONDE.slice(0, 10)}.
+            retenu : {SEUIL_MONDE}. Relevé du {DATE_RELEVE}.
           </p>
           <div className="monde__systeme" role="group" aria-label="Unités">
             {(
@@ -758,19 +767,19 @@ function PageMonde() {
               ))}
             </ul>
             <p className="monde__note">
-              {entier(TOTAL_ONGLETS)} domaines sont rangés sous ces six onglets.{" "}
+              {entier(TOTAL_ONGLETS)} domaines sont rangés sous ces {RESUMES.length} continents.{" "}
               {HORS_ONGLETS.length ? (
                 <>
-                  {HORS_ONGLETS.length === 1 ? "Un pays du référentiel n'y figure" : "Deux pays du référentiel n'y figurent"}{" "}
-                  pas —{" "}
+                  {HORS_ONGLETS.length === 1 ? "Un pays du référentiel n’y figure" : "Deux pays du référentiel n’y figurent"}{" "}
+                  pas :{" "}
                   {HORS_ONGLETS.map((p, i) => (
                     <span key={p.code}>
                       {i > 0 ? ", " : ""}
                       <b>{p.code}</b> ({entier(p.domaines)} domaine{p.domaines > 1 ? "s" : ""})
                     </span>
-                  ))}{" "}
-                  : l'Antarctique n'a pas d'onglet où aller, et le Kosovo n'a ni devise ni fuseau
-                  qui se sourcent. {entier(SANS_PAYS)} domaines de plus ne sont rattachés à aucun
+                  ))}
+                  . Le Kosovo n’a pas de fiche pays, faute de source pour sa devise et son fuseau
+                  horaire. {entier(SANS_PAYS)} domaines de plus ne sont rattachés à aucun
                   pays par la source, et restent donc hors du référentiel.
                 </>
               ) : null}
@@ -779,19 +788,18 @@ function PageMonde() {
               <p className="monde__note">
                 {PAYS_ECARTES.map((p) => (
                   <span key={p.code}>
-                    <b>{p.code}</b> : {entier(p.domaines)} domaine
-                    {p.domaines > 1 ? "s" : ""} {p.motif}.{" "}
+                    <b>{p.code}</b> ({entier(p.domaines)} domaine{p.domaines > 1 ? "s" : ""}) :{" "}
+                    {p.motif}.{" "}
                   </span>
                 ))}
-                Ces domaines existent et sont mesurés ; c'est le périmètre qui ne les porte pas.
-                Le compte est écrit ici pour que la décision se distingue d'une perte de données.
+                Ces domaines existent et sont mesurés, mais ils sont volontairement exclus du
+                référentiel.
               </p>
             ) : null}
             <p className="monde__renvoi">
-              Les 320 stations françaises du classeur France Montagnes ont leurs propres écrans :{" "}
-              <Link to="/carte">la carte</Link> et <Link to="/comparer">Comparer</Link>. Ce
-              référentiel-ci décrit la France par sa seule entrée OpenSkiMap, ce qui n'est pas la
-              même chose.
+              Les 320 stations françaises ont leurs propres écrans :{" "}
+              <Link to="/carte">la carte</Link> et <Link to="/comparer">Comparer</Link>. Ici, la
+              France n’est décrite que par les données OpenSkiMap.
             </p>
           </>
         ) : null}
@@ -813,7 +821,7 @@ function PageMonde() {
                         {i?.kmTotal != null
                           ? mesureDans({ valeur: i.kmTotal, unite: "km" }, systeme)
                           : "km non relevés"}
-                        {i?.maxM != null ? ` · jusqu'à ${altitude(i.maxM, systeme)}` : null}
+                        {i?.maxM != null ? ` · jusqu’à ${altitude(i.maxM, systeme)}` : null}
                       </span>
                       <span className="monde-pays__devise">{p.devise}</span>
                     </button>
@@ -881,7 +889,7 @@ function PageMonde() {
                     checked={filtres.avecCouleurs}
                     onChange={(e) => setFiltres({ ...filtres, avecCouleurs: e.target.checked })}
                   />
-                  Seulement les domaines dont la répartition est connue
+                  Seulement les domaines dont la répartition par couleur est connue
                 </label>
                 <button
                   type="button"
@@ -895,9 +903,9 @@ function PageMonde() {
 
             <p className="monde__compte">
               {chargement
-                ? "Ouverture du pays…"
+                ? "Chargement des domaines…"
                 : panne
-                  ? `Le pays n'a pas pu être ouvert : ${panne}`
+                  ? `Les domaines de ce pays n’ont pas pu être chargés : ${panne}`
                   : `${entier(retenus.length)} domaine${retenus.length > 1 ? "s" : ""} sur ${entier(
                       domaines?.length ?? 0,
                     )}`}
@@ -905,16 +913,17 @@ function PageMonde() {
 
             {!chargement && !panne && frontaliers > 0 ? (
               <p className="monde__compte">
-                Dont {entier(frontaliers)} à cheval sur une frontière : le référentiel les range
-                sous {fiche?.nomFr ?? pays} comme sous leur autre pays, sans les copier. L'index en
-                compte {entier(idx?.domaines ?? 0)} pour ce pays, qui sont ceux qu'il héberge.
+                Dont {entier(frontaliers)} à cheval sur une frontière,{" "}
+                {frontaliers > 1 ? "qui figurent aussi sous leur" : "qui figure aussi sous son"} autre
+                pays. Dans la liste des pays, ce pays en compte {entier(idx?.domaines ?? 0)} :
+                seulement ceux qu’il héberge.
               </p>
             ) : null}
 
             {!chargement && !panne && retenus.length === 0 ? (
               <p className="monde__vide">
-                Aucun domaine ne remplit tous les critères. Un seuil actif écarte les domaines dont
-                la valeur n'est pas relevée : c'est voulu, mais c'est souvent lui qui vide la liste.
+                Aucun domaine ne remplit tous les critères. Un seuil actif écarte aussi les domaines
+                dont la valeur n’est pas relevée : baissez un seuil ou modifiez la recherche.
               </p>
             ) : null}
 

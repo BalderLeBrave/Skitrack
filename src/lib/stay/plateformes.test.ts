@@ -149,7 +149,7 @@ describe("plateformes : comparer ce que chaque source a publié", () => {
     );
   });
 
-  it("mélange : loyer ; taxe quand le panier la publie", () => {
+  it("mélange : loyer ; taxe de séjour quand la centrale la publie", () => {
     assert.equal(
       libelleCouverture([
         L({ source: "Centrale", total: 3900, proven: "Ingénie" }),
@@ -160,7 +160,7 @@ describe("plateformes : comparer ce que chaque source a publié", () => {
           priceLabel: "loyer et taxe de séjour",
         }),
       ]),
-      "loyer ; taxe quand le panier la publie",
+      "loyer ; taxe de séjour quand la centrale la publie",
     );
   });
 
@@ -179,13 +179,13 @@ describe("plateformes : comparer ce que chaque source a publié", () => {
         source: "Airbnb",
         ok: false,
         count: 0,
-        error: "Délai dépassé — relevé précédent conservé.",
+        error: "Délai dépassé : relevé précédent conservé.",
       }),
-      "pause — relevé précédent conservé",
+      "pause : relevé précédent conservé",
     );
     assert.equal(
       libelleReleve({ source: "Airbnb", ok: false, count: 0, error: "429 Too Many Requests" }),
-      "pause — relevé précédent conservé",
+      "pause : relevé précédent conservé",
     );
     assert.equal(
       libelleReleve({ source: "Booking", ok: false, count: 0, error: "page anti-bot" }),
@@ -264,6 +264,7 @@ describe("plateformes : comparer ce que chaque source a publié", () => {
   it("le bouton nomme la plateforme et le nombre, sans inventer", () => {
     assert.equal(voirAnnoncesLbl(0, "Booking"), "Aucune annonce de Booking");
     assert.equal(voirAnnoncesLbl(1, "Centrale"), "Voir l’annonce de Centrale");
-    assert.equal(voirAnnoncesLbl(12, "Airbnb"), "Voir les 12 annonces de Airbnb");
+    assert.equal(voirAnnoncesLbl(12, "Airbnb"), "Voir les 12 annonces d’Airbnb");
+    assert.equal(voirAnnoncesLbl(1, "Abritel"), "Voir l’annonce d’Abritel");
   });
 });

@@ -78,19 +78,19 @@ export const BASEMAPS: readonly BasemapDef[] = [
   {
     key: "ign",
     label: "Plan IGN",
-    sub: "topographie française — sans clé",
+    sub: "topographie française",
     ...IGN_PLAN,
   },
   {
     key: "pistes",
     label: "Relief",
-    sub: "OpenSkiMap — pistes, remontées, ombrage — sans clé",
+    sub: "OpenSkiMap : pistes, remontées, ombrage",
     ...OPENSKIMAP,
   },
   {
     key: "ortho",
     label: "Photo aérienne",
-    sub: "orthophoto IGN — sans clé",
+    sub: "orthophoto IGN",
     ...IGN_ORTHO,
   },
 ];

@@ -117,7 +117,7 @@ function MenuPlus() {
       <button
         type="button"
         className={`v7nav__util${ouvert ? " v7nav__util--on" : ""}`}
-        title="Plus : favoris, suivi, réglages"
+        title="Outils, contrôle des données et mises à jour"
         aria-expanded={ouvert}
         aria-haspopup="dialog"
         onClick={() => setOuvert((v) => !v)}
@@ -256,7 +256,7 @@ function Barre() {
         <button
           type="button"
           className="v7nav__util v7nav__util--rond"
-          title={theme === "dark" ? "Thème sombre — passer au clair" : "Thème clair — passer au sombre"}
+          title={theme === "dark" ? "Thème sombre : passer au clair" : "Thème clair : passer au sombre"}
           role="switch"
           aria-checked={theme === "dark"}
           aria-label="Thème"

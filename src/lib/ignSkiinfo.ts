@@ -53,7 +53,7 @@ export const VERDICT_FR: Record<IgnSkiVerdict, string> = {
   village: "IGN ≈ village Skiinfo",
   sommet: "IGN ≈ sommet Skiinfo",
   domaine: "IGN dans le domaine, pas au village publié",
-  sous_base: "IGN sous la base Skiinfo (pin en vallée)",
+  sous_base: "IGN sous la base Skiinfo (repère en vallée)",
   sur_sommet: "IGN au-dessus du sommet Skiinfo",
   manque: "donnée manquante",
 };

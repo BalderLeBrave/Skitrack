@@ -3,6 +3,7 @@
 import { metresBetween } from "./osmAccess.ts";
 import { domainForStation, FORFAIT_CATALOG } from "./forfaits/catalog.ts";
 import { STATIONS, stationById, type Station } from "./stations.ts";
+import { aStation } from "./v7.ts";
 
 export type GeoHint = {
   lat?: number | null;
@@ -26,12 +27,12 @@ export type DomainFit = {
 
 /** Cols fermés l’hiver : proches à vol d’oiseau, pas le même domaine skiable. */
 const WINTER_BARRIERS: { a: string; b: string; col: string }[] = [
-  { a: "val-disere", b: "bonneval-sur-arc", col: "Col de l'Iseran" },
-  { a: "val-disere", b: "bessans", col: "Col de l'Iseran" },
-  { a: "val-disere", b: "val-cenis", col: "Col de l'Iseran" },
-  { a: "tignes", b: "bonneval-sur-arc", col: "Col de l'Iseran" },
-  { a: "tignes", b: "bessans", col: "Col de l'Iseran" },
-  { a: "tignes", b: "val-cenis", col: "Col de l'Iseran" },
+  { a: "val-disere", b: "bonneval-sur-arc", col: "col de l’Iseran" },
+  { a: "val-disere", b: "bessans", col: "col de l’Iseran" },
+  { a: "val-disere", b: "val-cenis", col: "col de l’Iseran" },
+  { a: "tignes", b: "bonneval-sur-arc", col: "col de l’Iseran" },
+  { a: "tignes", b: "bessans", col: "col de l’Iseran" },
+  { a: "tignes", b: "val-cenis", col: "col de l’Iseran" },
 ];
 
 /** Hameaux / toponymes → station, jamais un autre versant. */
@@ -212,7 +213,7 @@ export function inSearchedDomain(fit: DomainFit): boolean {
 export function otherDomainMessage(fit: DomainFit, searchedName: string): string | null {
   if (fit.verdict !== "other" || !fit.nearestStationName) return null;
   if (fit.winterBarrier) {
-    return `Autre domaine : ${fit.nearestStationName}. Pas ${searchedName} : ${fit.winterBarrier} fermé l’hiver, le vol d’oiseau n’est ni un accès ski ni une route directe.`;
+    return `Autre domaine : ${fit.nearestStationName}. Ce logement n’est pas ${aStation(searchedName)} : le ${fit.winterBarrier} est fermé l’hiver, et il n’y a ni liaison à ski ni route directe.`;
   }
-  return `Autre domaine : ${fit.nearestStationName}. Ce logement n’est pas sur ${searchedName} ni sur un domaine relié en saison.`;
+  return `Autre domaine : ${fit.nearestStationName}. Ce logement n’est ni ${aStation(searchedName)} ni sur un domaine relié en saison.`;
 }

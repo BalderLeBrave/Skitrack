@@ -41,7 +41,7 @@ export function GpxDrop() {
       <Icon name="televerser" className="size-5" />
       <span>
         <strong>Déposez un GPX</strong>
-        <span className="block text-corps text-muted">ou cliquez pour choisir un fichier. Lat / lon / altitude lus dans le fichier, rien n’est inventé.</span>
+        <span className="block text-corps text-muted">ou cliquez pour choisir un fichier.</span>
       </span>
       <input
         type="file"

@@ -52,11 +52,11 @@ function Altitudes() {
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
         <h1 className="font-display text-affiche tracking-tight">IGN × Skiinfo</h1>
         <p className="mt-2 max-w-2xl text-corps text-muted">
-          L’IGN donne l’altitude du pin GPS (RGE ALTI). Skiinfo publie une bande base–sommet.
-          Médiane |IGN − base Skiinfo| :{" "}
-          {sum.medianAbsBase != null ? `${sum.medianAbsBase} m` : "–"}. Deux pins restent en
-          commune, pas au front de neige : Lans-en-Vercors et Goulier. Pas de mix ni de km côté IGN,
-          hors comparaison.
+          L’IGN donne l’altitude du repère GPS de la station (RGE ALTI). Skiinfo publie une plage
+          d’altitudes, de la base au sommet. Écart médian entre l’IGN et la base Skiinfo :{" "}
+          {sum.medianAbsBase != null ? `${sum.medianAbsBase} m` : "–"}. Deux repères restent au
+          centre de la commune, pas au front de neige : Lans-en-Vercors et Goulier. L’IGN ne donne
+          ni répartition des pistes ni kilomètres : ils ne sont pas comparés.
         </p>
         <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
           <table className="w-full min-w-[40rem] text-left text-corps">

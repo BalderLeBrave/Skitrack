@@ -65,7 +65,7 @@ const JOUR_MS = 86_400_000;
 /** L'ancienneté, en clair, sans précision trompeuse. */
 export function anciennete(atMs: number, now = Date.now()): string {
   const d = Math.max(0, now - atMs);
-  if (d < 3_600_000) return "il y a moins d'une heure";
+  if (d < 3_600_000) return "il y a moins d’une heure";
   if (d < JOUR_MS) return `il y a ${Math.max(1, Math.round(d / 3_600_000))} h`;
   const jours = Math.round(d / JOUR_MS);
   if (jours === 1) return "hier";

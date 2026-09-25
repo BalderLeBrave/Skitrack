@@ -68,7 +68,7 @@ export function coutForfaits(
     return {
       total: j6 * (ad + enf),
       devise,
-      detail: `${ad + enf} × ${formatTarif(j6, devise)} adulte — tarif enfant non relevé`,
+      detail: `${ad + enf} × ${formatTarif(j6, devise)} adulte, tarif enfant non relevé`,
       enfantsAuTarifAdulte: true,
     };
   }

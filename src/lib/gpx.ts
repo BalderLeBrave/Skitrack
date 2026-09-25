@@ -146,7 +146,7 @@ export function formatKm(km: number): string {
 }
 
 export function formatEle(m: number | null | undefined): string {
-  if (m == null) return "non mesurée";
+  if (m == null) return "non mesuré";
   return `${m.toLocaleString("fr-FR")} m`;
 }
 

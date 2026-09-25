@@ -81,7 +81,7 @@ function lire(): Fichier {
   } catch (e: unknown) {
     if ((e as NodeJS.ErrnoException)?.code === "ENOENT") return { version: 1, cles: {} };
     throw new Error(
-      `Le fichier de clés est illisible (${(e as NodeJS.ErrnoException)?.code ?? "erreur"}). Rien n'a été écrit.`,
+      `Le fichier de clés est illisible (${(e as NodeJS.ErrnoException)?.code ?? "erreur"}). Rien n’a été écrit.`,
     );
   }
   try {
@@ -91,9 +91,9 @@ function lire(): Fichier {
       if (cles && typeof cles === "object") return { version: 1, cles: cles as Record<string, Enregistre> };
     }
   } catch {
-    throw new Error("Le fichier de clés n'est pas du JSON lisible. Rien n'a été écrit.");
+    throw new Error("Le fichier de clés n’est pas du JSON lisible. Rien n’a été écrit.");
   }
-  throw new Error("Le fichier de clés n'a pas la forme attendue. Rien n'a été écrit.");
+  throw new Error("Le fichier de clés n’a pas la forme attendue. Rien n’a été écrit.");
 }
 
 /** Écriture atomique, et lisible du seul propriétaire. */

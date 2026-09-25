@@ -113,7 +113,7 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
         <p className="wx7__msg">Prévision en cours de chargement (Open-Meteo)…</p>
       ) : wx.status === "err" || !lvl || !j ? (
         <p className="wx7__msg">
-          Prévision indisponible : Open-Meteo n'a pas répondu à {heure(wx.at)}.
+          Prévision indisponible : Open-Meteo n’a pas répondu à {heure(wx.at)}.
         </p>
       ) : (
         <>
@@ -143,7 +143,7 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
             <div>
               <dt>Neige 24 h</dt>
               <dd className={j.snowCm ? "wx7__neige" : undefined}>
-                {j.snowCm == null ? "non relevé" : j.snowCm > 0 ? `${j.snowCm} cm` : "sec"}
+                {j.snowCm == null ? "non relevé" : j.snowCm > 0 ? `${j.snowCm} cm` : "0 cm"}
               </dd>
             </div>
             <div>
@@ -276,7 +276,7 @@ function useBra(stationId: string): { etat: EtatBraUI; reessayer: () => void } {
 /** « rattaché par proximité » se dit : une déduction n'est pas un relevé. */
 const VOIE_LBL: Record<string, string> = {
   nom: "",
-  domaine: " (par le domaine)",
+  domaine: " (rattachement par le domaine)",
   proximite: " (rattachement par proximité)",
 };
 
@@ -308,8 +308,7 @@ function FicheInconnue({ id }: { id: string }) {
             </button>
           }
         >
-          « {id} » n'est pas dans le référentiel, qui compte {STATIONS.length} stations. Rien n'est
-          affiché à sa place.
+          « {id} » ne correspond à aucune des {STATIONS.length} stations de la liste.
         </Vide>
       </main>
     </Coquille>
@@ -357,7 +356,7 @@ function FicheBody({ s }: { s: Station }) {
   // reste à faire côté dépôt.
   const photoNote = photo
     ? pret?.fromName
-      ? `Photo Skiinfo de ${pret.fromName}, même domaine`
+      ? `Photo Skiinfo de la station ${pret.fromName}, même domaine`
       : "Photo Skiinfo"
     : stationPhotoAbsence(s);
   const braData = bra.etat.status === "pret" ? bra.etat.data : null;
@@ -397,14 +396,28 @@ function FicheBody({ s }: { s: Station }) {
             <div className="fhero7__faits">
               <span>{altLbl(s) ?? "altitudes non relevées"}</span>
               <i>·</i>
+              {/* Sans valeur, le complément ne suit pas : « km non publié de
+                  pistes, domaine » ne voulait rien dire. */}
               <span>
-                {kmLbl(s) ?? "km non publié"}
-                <small> de pistes, domaine</small>
+                {kmLbl(s) ? (
+                  <>
+                    {kmLbl(s)}
+                    <small> de pistes, domaine</small>
+                  </>
+                ) : (
+                  "kilomètres de pistes non publiés"
+                )}
               </span>
               <i>·</i>
               <span>
-                {liftsLbl(s) ?? "nombre non relevé"}
-                <small> remontées, domaine</small>
+                {liftsLbl(s) ? (
+                  <>
+                    {liftsLbl(s)}
+                    <small> remontée{(s.lifts ?? 0) > 1 ? "s" : ""}, domaine</small>
+                  </>
+                ) : (
+                  "remontées non relevées"
+                )}
               </span>
               <i>·</i>
               <span>Village {villageLbl(s) ?? "non relevé"}</span>
@@ -454,8 +467,8 @@ function FicheBody({ s }: { s: Station }) {
                 </div>
               ) : (
                 <p className="carte7-sect__texte">
-                  Aucun tarif relevé pour ce domaine. Le coût du séjour n'inclura pas de forfait tant
-                  qu'un prix n'a pas été relevé ou saisi.
+                  Aucun tarif relevé pour ce domaine. Le coût du séjour n’inclura pas de forfait tant
+                  qu’un prix n’a pas été relevé ou saisi.
                 </p>
               )}
             </section>
@@ -463,10 +476,10 @@ function FicheBody({ s }: { s: Station }) {
             {/* ── Aujourd'hui ──────────────────────────────────────── */}
             <section className="sect7">
               <div className="carte7-sect__tete">
-                <h2>Aujourd'hui, aux deux altitudes</h2>
+                <h2>Aujourd’hui, aux deux altitudes</h2>
                 <span>
                   {wx.status === "ok"
-                    ? `Open-Meteo, modélisé à ${fmt(lo)} et ${fmt(hi)} m, relevé à ${heure(wx.at)}`
+                    ? `Open-Meteo, modélisé à ${fmt(lo)} et ${fmt(hi)} m, consulté à ${heure(wx.at)}`
                     : "Open-Meteo · modélisé, pas relevé au sol"}
                 </span>
               </div>
@@ -506,7 +519,7 @@ function FicheBody({ s }: { s: Station }) {
             <section className="carte7-sect">
               <div className="carte7-sect__tete">
                 <h2>Pistes par couleur</h2>
-                <span>OpenSkiMap · à l'échelle du domaine</span>
+                <span>OpenSkiMap · à l’échelle du domaine</span>
               </div>
               {s.colorShare ? (
                 <>
@@ -520,7 +533,9 @@ function FicheBody({ s }: { s: Station }) {
                         </span>
                         <b>{s.colorShare![c.key]} %</b>
                         <span className="mix7__sub">
-                          {s.colorCounts ? `${s.colorCounts[c.key]} tronçons` : ""}
+                          {s.colorCounts
+                            ? `${s.colorCounts[c.key]} tronçon${s.colorCounts[c.key] > 1 ? "s" : ""}`
+                            : ""}
                           {s.colorCounts && s.skiinfoPct ? ` · Skiinfo ${s.skiinfoPct[c.key]} %` : ""}
                         </span>
                       </div>
@@ -529,8 +544,8 @@ function FicheBody({ s }: { s: Station }) {
                 </>
               ) : (
                 <p className="carte7-sect__texte carte7-sect__texte--petit">
-                  Aucun tracé OpenSkiMap pour cette station : la répartition n'est pas calculée, elle
-                  n'est pas estimée non plus.
+                  Aucun tracé OpenSkiMap pour cette station : la répartition n’est pas calculée, elle
+                  n’est pas estimée non plus.
                 </p>
               )}
             </section>
@@ -568,7 +583,7 @@ function FicheBody({ s }: { s: Station }) {
                       Thorens sans le préciser. */}
                   {cam.duDomaine && cam.station ? (
                     <span className="carte7-sect__texte carte7-sect__texte--petit">
-                      Caméra du domaine, située à {cam.station}.
+                      Caméra du domaine, située {aStation(cam.station)}.
                     </span>
                   ) : null}
                   <div className="webcam7">
@@ -588,21 +603,21 @@ function FicheBody({ s }: { s: Station }) {
                         propose de l'ouvrir chez l'exploitant. */}
                     {camEtat === "echec" ? (
                       <div className="webcam7__echec">
-                        <span>Le flux ne s'affiche pas ici.</span>
+                        <span>Le flux ne s’affiche pas ici.</span>
                         <a href={cam.url} target="_blank" rel="noopener" className="btn7 btn7--fantome">
-                          Ouvrir chez l'exploitant
+                          Ouvrir chez l’exploitant
                           <Icon name="externe" taille={12} />
                         </a>
                       </div>
                     ) : null}
                   </div>
                   <p className="carte7-sect__texte carte7-sect__texte--petit">
-                    Flux diffusé par l'exploitant, affiché tel quel.
+                    Flux diffusé par l’exploitant, affiché tel quel.
                   </p>
                 </>
               ) : (
                 <p className="carte7-sect__texte carte7-sect__texte--petit">
-                  Aucune webcam référencée pour cette station dans le référentiel.
+                  Aucune webcam connue pour cette station.
                 </p>
               )}
             </section>
@@ -631,7 +646,7 @@ function FicheBody({ s }: { s: Station }) {
                       Bulletin officiel Météo-France
                       {heureLisible(official?.issuedAt) ? (
                         <>
-                          , relevé le <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
+                          , publié le <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
                         </>
                       ) : null}
                       {braData?.voie ? VOIE_LBL[braData.voie] : ""}.
@@ -646,7 +661,7 @@ function FicheBody({ s }: { s: Station }) {
                   </>
                 ) : braData?.etat === "ok" && official?.message ? (
                   <>
-                    <strong>Pas de risque publié aujourd'hui</strong>
+                    <strong>Pas de risque publié aujourd’hui</strong>
                     <span>
                       {official.message} Massif Météo-France : {braData.massif}
                       {braData.voie ? VOIE_LBL[braData.voie] : ""}.
@@ -655,7 +670,7 @@ function FicheBody({ s }: { s: Station }) {
                 ) : braData?.etat === "hors-zone" ? (
                   <>
                     <strong>Pas de bulletin pour ce massif</strong>
-                    <span>{braData.cause} Rien n'est déduit à sa place.</span>
+                    <span>{braData.cause} Aucun niveau de risque n’est estimé à sa place.</span>
                   </>
                 ) : braData?.etat === "non-rattache" ? (
                   <>
@@ -670,8 +685,8 @@ function FicheBody({ s }: { s: Station }) {
                     <strong>Bulletin non obtenu</strong>
                     <span>
                       Massif Météo-France : {braData?.massif ?? "non rattaché"}
-                      {braData?.voie ? VOIE_LBL[braData.voie] : ""}. Tentative{" "}
-                      {heureLisible(braData?.releveA) ?? "à l'instant"}.{" "}
+                      {braData?.voie ? VOIE_LBL[braData.voie] : ""}. Dernière tentative :{" "}
+                      {heureLisible(braData?.releveA) ?? "à l’instant"}.{" "}
                       <button type="button" className="lien-doux" onClick={bra.reessayer}>
                         Réessayer
                       </button>
@@ -750,7 +765,7 @@ function FicheBody({ s }: { s: Station }) {
               </button>
             </div>
             <p className="aside7__note">
-              Dates et voyageurs se changent dans la barre du haut et suivent jusqu'à la réservation.
+              Dates et voyageurs se changent dans la barre du haut et suivent jusqu’à la réservation.
             </p>
           </aside>
         </div>

@@ -12,9 +12,9 @@ export function AppErrorComponent({ error }: ErrorComponentProps) {
       <span className="text-piste-rouge" aria-hidden="true">
         <Icon name="alerte" className="size-10" />
       </span>
-      <h1 className="text-lg font-semibold">Something went wrong</h1>
+      <h1 className="text-lg font-semibold">Cette page n’a pas pu s’afficher</h1>
       <p className="max-w-md text-sm break-words text-muted">
-        {error.message || "An unexpected error occurred. Try reloading the page."}
+        {error.message || "Erreur inattendue. Rechargez la page."}
       </p>
     </main>
   );

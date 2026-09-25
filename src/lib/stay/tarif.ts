@@ -12,6 +12,7 @@
  * publié. Un « à partir de » par semaine n'est pas ce total.
  */
 
+import { montantCents } from "../devises.ts";
 import type { Listing } from "../listings.ts";
 
 export function estDevisGitesLive(proven: string): boolean {
@@ -198,7 +199,7 @@ export function poserRecap<
   if (!(recap.loyer > 0) || !(recap.taxeSejour > 0)) return l;
   const proven = /taxe de s[ée]jour/i.test(l.proven)
     ? l.proven
-    : `${l.proven} · taxe de séjour ${recap.taxeSejour} €`;
+    : `${l.proven} · taxe de séjour ${montantCents(recap.taxeSejour)}`;
   return {
     ...l,
     total: recap.total,
@@ -375,7 +376,7 @@ export function poserDevis<
   const dates = `${stay.checkIn}→${stay.checkOut}`;
   let proven = `Devis ITEA live ${dates}, ${stay.guests} pers.`;
   if (devis.taxeSejour != null && devis.taxeSejour > 0) {
-    proven = `${proven} · taxe de séjour ${devis.taxeSejour} €`;
+    proven = `${proven} · taxe de séjour ${montantCents(devis.taxeSejour)}`;
   }
   return {
     ...l,

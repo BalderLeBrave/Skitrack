@@ -94,14 +94,14 @@ function ClesPage() {
         <header className="cles__tete">
           <h1 className="font-display text-affiche tracking-tight">Clés</h1>
           <p className="cles__lead">
-            Ce que l'application a besoin qu'on lui donne pour fonctionner entièrement. Chaque clé
-            est gardée sur cette machine, en clair, dans votre dossier de configuration — jamais
-            dans le dépôt, jamais envoyée ailleurs.
+            Les clés dont l’application a besoin pour fonctionner entièrement. Chaque clé est
+            gardée sur cette machine, en clair, dans votre dossier de configuration. Elle n’est
+            envoyée nulle part ailleurs.
           </p>
           {etats ? (
             <p className="cles__compte" aria-live="polite">
               {manquantes === 0
-                ? `Les ${CLES.length} clés sont posées.`
+                ? `Les ${CLES.length} clés sont renseignées.`
                 : `${manquantes} clé${manquantes > 1 ? "s" : ""} sur ${CLES.length} reste${manquantes > 1 ? "nt" : ""} à renseigner.`}
             </p>
           ) : null}
@@ -132,8 +132,8 @@ function ClesPage() {
                       ? "…"
                       : e?.posee
                         ? e.origine === "environnement"
-                          ? "posée par l'environnement"
-                          : "posée sur cette machine"
+                          ? "définie par une variable d’environnement"
+                          : "enregistrée sur cette machine"
                         : "absente"}
                   </span>
                 </div>
@@ -145,8 +145,8 @@ function ClesPage() {
 
                 {e?.origine === "environnement" ? (
                   <p className="cle__note">
-                    Elle vient de la variable <code>{c.env[0]}</code>, posée au lancement. C'est
-                    elle qui fait foi ; ce qui serait saisi ici ne la remplacerait pas.
+                    Elle vient de la variable <code>{c.env[0]}</code>, définie au lancement. C’est
+                    elle qui fait foi ; une clé saisie ici ne la remplacerait pas.
                   </p>
                 ) : (
                   <div className="cle__saisie">
@@ -221,8 +221,8 @@ function ClesPage() {
         </ul>
 
         <p className="cles__note">
-          Une clé posée dans l'environnement au lancement l'emporte toujours sur une saisie faite
-          ici : c'est la configuration du déploiement, et cet écran ne la contredit pas.
+          Une clé définie par une variable d’environnement au lancement l’emporte toujours sur une
+          clé saisie ici.
         </p>
       </div>
     </Coquille>

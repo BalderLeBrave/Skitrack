@@ -1,6 +1,15 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { corpsIresa, dateIresa, jetonIresa, lireIresa, nuitsIresa, prestationsIresa } from "./iresa.ts";
+import {
+  corpsIresa,
+  dateIresa,
+  horsRegleIresa,
+  jetonIresa,
+  lireIresa,
+  nuitsIresa,
+  prestationsIresa,
+  produitsIresa,
+} from "./iresa.ts";
 
 /**
  * Relevé du 13 septembre 2026 sur `lesarcs-reservation.com`, sept nuits à huit
@@ -163,5 +172,101 @@ describe("iResa : ne garder que ce qui répond à la question posée", () => {
   it("une page sans bloc de données ne fait rien exploser", () => {
     assert.deepEqual(prestationsIresa("<html></html>"), []);
     assert.deepEqual(lireIresa("<html></html>", DEMANDE), []);
+  });
+});
+
+/**
+ * Relevé du 25 septembre 2026 sur `lesarcs-reservation.com`, sept nuits à
+ * quatre personnes du 6 au 13 février 2027 : deux prestations, réduites aux
+ * clés que l'analyseur lit (la description, les équipements, les photos brutes
+ * et le détail des lits sont ôtés), et le gabarit réduit à l'en-tête, la
+ * vignette et le lien. Puis leurs deux entrées de `__productsData`, dans le
+ * même ordre, réduites au nom et à la catégorie.
+ */
+const PAGE_CATEGORIES = `
+<script type="application/json" id="__datasPrestations">[
+ {
+  "template": "<div class=\\"ListItem-header\\" data-prestation-iresa-id=\\"3605\\" data-prestation-hebergement-iresa-id=\\"2387\\"> <img class=\\"swiper-lazy\\" src=\\"/sites/default/files/styles/thumbnail_list/public/externals/db1eb8d6bd09c7729ceb232cdb08beab.jpg?itok=DVyVZix2\\" alt=\\"\\"/> <a class=\\"__js-linkTitle\\" href=\\"/residence-le-rochefort-appartement-2-pieces-cabine-4-personnes-ndeg309?package=3605\\" title=\\"Résidence Le Rochefort - appartement 2 pièces cabine 4 personnes n°309\\" target=\\"_blank\\">",
+  "datas": {
+   "id": "1061",
+   "id_prestation_hebergement": 2387,
+   "name": "Résidence Le Rochefort - appartement 2 pièces cabine 4 personnes n°309",
+   "prix_total": 701,
+   "prix_brut": 701,
+   "cap_max": "4",
+   "duree": 7,
+   "date_debut": "2027-02-06",
+   "lieu": "Bourg-Saint-Maurice"
+  }
+ },
+ {
+  "template": "<div class=\\"ListItem-header\\" data-prestation-iresa-id=\\"263\\" data-prestation-hebergement-iresa-id=\\"3389\\"> <img class=\\"swiper-lazy\\" src=\\"/sites/default/files/styles/thumbnail_list/public/externals/db8a7c8883bcc552fdf301d150b20860.jpg?itok=rlfmtpGt\\" alt=\\"\\"/> <a class=\\"__js-linkTitle\\" href=\\"/residence-pierra-menta-studio-4-5-personnes-ndeg-737?package=263\\" title=\\"Résidence Pierra Menta - Studio 4/5 personnes n° 737\\" target=\\"_blank\\">",
+  "datas": {
+   "id": "1018",
+   "id_prestation_hebergement": 3389,
+   "name": "Résidence Pierra Menta - Studio 4/5 personnes n° 737",
+   "prix_total": 950,
+   "prix_brut": 950,
+   "cap_max": "5",
+   "duree": 7,
+   "date_debut": "2027-02-06",
+   "lieu": "le Charvet"
+  }
+ }
+]</script>
+<script id="__productsData" type="application/json">[
+ {
+  "item_name": "Résidence Le Rochefort - appartement 2 pièces cabine 4 personnes n°309",
+  "item_category": "Appartments, studios"
+ },
+ {
+  "item_name": "Résidence Pierra Menta - Studio 4/5 personnes n° 737",
+  "item_category": "Appartments, studios"
+ }
+]</script>`;
+
+const DEMANDE_4 = { checkIn: "2027-02-06", checkOut: "2027-02-13", guests: 4 };
+
+describe("iResa : la catégorie publiée, et la règle du propriétaire", () => {
+  it("lit la catégorie de l'entrée de même rang et de même nom", () => {
+    assert.deepEqual(produitsIresa(PAGE_CATEGORIES), [
+      {
+        nom: "Résidence Le Rochefort - appartement 2 pièces cabine 4 personnes n°309",
+        categorie: "Appartments, studios",
+      },
+      {
+        nom: "Résidence Pierra Menta - Studio 4/5 personnes n° 737",
+        categorie: "Appartments, studios",
+      },
+    ]);
+    const fiches = lireIresa(PAGE_CATEGORIES, DEMANDE_4);
+    assert.equal(fiches.length, 2);
+    for (const f of fiches) assert.equal(f.categorie, "Appartments, studios");
+    assert.equal(fiches.find((f) => f.id === "2387")?.capacite, 4);
+  });
+
+  it("une entrée d'un autre nom ne prête pas sa catégorie", () => {
+    // Si les deux listes se décalaient, la catégorie serait celle d'un voisin.
+    const decale = PAGE_CATEGORIES.replace(
+      '"item_name": "Résidence Pierra Menta - Studio 4/5 personnes n° 737"',
+      '"item_name": "Autre chose"',
+    );
+    const f = lireIresa(decale, DEMANDE_4).find((x) => x.id === "3389");
+    assert.equal(f?.categorie, null);
+  });
+
+  it("sans __productsData, aucune catégorie, et l'ancien gabarit se lit comme avant", () => {
+    for (const f of lireIresa(PAGE, DEMANDE)) assert.equal(f.categorie, null);
+    assert.deepEqual(produitsIresa("<html></html>"), []);
+  });
+
+  it("garde « Appartments, studios » ; une fiche sans catégorie n'est pas jugée", () => {
+    for (const f of lireIresa(PAGE_CATEGORIES, DEMANDE_4)) assert.equal(horsRegleIresa(f), null);
+    assert.equal(horsRegleIresa({ categorie: null }), null);
+    // Construit : aucune autre catégorie n'a été relevée, la règle est celle de
+    // `regleTypes.ts`.
+    assert.equal(horsRegleIresa({ categorie: "Hôtels" }), "hôtel");
+    // Une catégorie inconnue est gardée ; le connecteur la nomme au journal.
+    assert.equal(horsRegleIresa({ categorie: "Lofts" }), null);
   });
 });

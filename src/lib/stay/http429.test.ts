@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   estHoteAirbnb,
+  estRefus,
   estStatutRalenti,
   htmlEstBloque,
   retryAfterMs,
@@ -33,6 +34,15 @@ describe("429 Airbnb", () => {
     assert.equal(estStatutRalenti(429), true);
     assert.equal(estStatutRalenti(503), true);
     assert.equal(estStatutRalenti(404), false);
+  });
+
+  it("compte le 403 comme un refus, pas le 404 ni le 202", () => {
+    assert.equal(estRefus(403), true);
+    assert.equal(estRefus(429), true);
+    assert.equal(estRefus(503), true);
+    assert.equal(estRefus(404), false);
+    assert.equal(estRefus(202), false);
+    assert.equal(estStatutRalenti(403), false);
   });
 
   it("voit une page titre 429", () => {

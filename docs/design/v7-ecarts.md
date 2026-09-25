@@ -268,6 +268,7 @@ par station ; c'est le second qui fait foi.
 | Logements de station, critères de l'onglet budget (`dansLaStation`, `passeAnnonce`, `optionsDomaine`, `optionsStation`, `choisirMassif`…) | `src/lib/prix/calcul.ts` ; distance lue par `distFiltrableM` (`src/lib/stay/lodgingFilter.ts`), gare la plus proche par `nearestAnyLift` (`src/lib/remontees.ts`) |
 | `lancer`, `demarrer`, `tick`, `suivant` : la course et sa file | `src/lib/prix/releve.ts` |
 | Créneau Airbnb avant chaque station | `src/lib/prix/attente.ts`, `attentePlacesMs` dans `src/lib/stay/taux.server.ts` |
+| Complétion des relevés (décision 14) | `src/lib/prix/tranches.ts` (boucle d'une station), `completion.ts` et `completion.server.ts` (`completerProfond`), `aCompleter` et les correctifs dans `calcul.ts` ; `src/lib/stay/memoireFiches.server.ts`, `recopie.ts`, `limiteHotes.ts` ; garde-fous dans `completerFiche.server.ts`, `priseFiche.ts`, `lectureFiche.ts`, `http429.ts` |
 | Annonces de l'onglet budget | `src/lib/prix/annonces.ts` (IndexedDB) ; Réservation les relit par `annonceEnMemoire` (`src/lib/accommodation.ts`) |
 | Curseurs à deux poignées | `src/components/v7/Fourchette.tsx` |
 | Lien « Prix » et son filet | `Coquille.tsx`, `v6/go.ts`, `Icon.tsx` (`barres`), `i18n/catalog.ts` (`nav.prices`) |
@@ -341,6 +342,18 @@ par station ; c'est le second qui fait foi.
    retient. Après un geste sur la carte, le cadre choisi tient pendant un
    relevé en cours ; il ne se recadre qu'à un changement de critère, de dates
    ou de groupe.
+   Un logement vendu sur plusieurs plateformes fait une seule carte, comme dans
+   Logements : l'étiquette dit « Booking + 1 · Albiez-Montrond », son infobulle
+   « Aussi sur Airbnb (3 084 €) », et le volet « Ce logement sur 2
+   plateformes », d'où l'on passe à l'autre offre et la retient. Le relevé
+   garde pour cela toutes les offres retenues (`retenirOffres`), la médiane
+   n'en comptant toujours qu'une par logement ; l'onglet les regroupe
+   (`logementsReleves`, `logementsBudget`). Avant ce changement (soir du
+   25 septembre 2026), seule la moins chère était gardée : à Albiez-Montrond,
+   le seul appartement Airbnb de la station, vendu moins cher sur Booking,
+   n'apparaissait nulle part sous le nom d'Airbnb. Les relevés plus anciens
+   montrent une carte par offre gardée, sans les autres plateformes, jusqu'à
+   un nouveau relevé.
 10. **« Voir le logement » est remplacé par le volet de l'annonce.** Il menait
     à la page Logements et non au logement. Un clic sur une carte ou sur « Voir
     l’annonce » d'une pastille ouvre désormais le volet de Logements dans
@@ -460,6 +473,89 @@ par station ; c'est le second qui fait foi.
       « Kilomètres de pistes » et « 100 km à 600 km » demandent 236 px pour
       211, le libellé passait à la ligne dans une colonne et pas dans sa
       voisine, et les rails ne s'alignaient plus.
+14. **Les relevés complètent leurs annonces** (demande du propriétaire, 25
+    septembre 2026 : une position, une capacité et un nombre de chambres pour
+    chaque logement de chaque source). Entre les cinq parts et la médiane,
+    sous le verrou de la station, `completerStation` (`tranches.ts`) cherche ce
+    qui manque aux annonces que la médiane pourrait compter. Ce sont celles de
+    `aCompleter` (`calcul.ts`) : les critères de `cribler` jusqu'au prix
+    confirmé, sans exiger ni position ni capacité, moins les annonces déjà
+    trop petites pour le groupe et celles dont la position connue est à plus
+    de 2 km d'une remontée, que rien ne ferait compter. Du moins cher au plus
+    cher :
+    - **Mémoire des fiches** (`memoireFiches.server.ts`, aucune requête) :
+      capacité, chambres, pièces et position par annonce (`cleListing`),
+      trente jours, dans `fiches.json` du dossier de configuration, à côté de
+      `cles.json`, écrite d'un bloc (fichier temporaire, puis `rename`). Elle
+      reçoit toute annonce complète d'un relevé Prix, toutes sources, avant
+      toute recopie, et toute fiche lue. Elle ne comble que les trous. Chaque
+      valeur a sa date : celle que personne n'a republiée depuis trente jours
+      s'efface, même si l'annonce a été revue pour une autre. Une fiche Airbnb
+      lue, pleine ou vide, est notée comme lue et ne se redemande plus avant
+      trente jours, ni à la station voisine, ni à la course suivante (sauf
+      d'un lot que le worker juge illisible).
+    - **Recopie entre offres d'un même logement** (`recopie.ts`, aucune
+      requête) : dans un groupe de `regrouper`, même titre à 150 m au plus,
+      ou même identifiant CozyCozy et même titre, capacités compatibles.
+      Jamais entre deux logements distincts : un groupe que `regrouper` a
+      formé de proche en proche et qui réunit deux capacités contradictoires
+      (4 et 6 personnes) ne recopie rien. Jamais une valeur publiée
+      remplacée ; la provenance le dit (« même logement »).
+    - **Tranches de 45 s** (`completerProfond`, `completion.ts`) : les pages
+      de fiche hors Airbnb (centrales, Gîtes, Abritel pour la seule position ;
+      Booking reste laissé à cause de son défi anti-robot, et la page d'hôte
+      GreenGo ne publie rien de sûr) et, en même temps, les fiches Airbnb du
+      worker Python (`lireFichesAirbnb`, 60 au plus par tranche, les moins
+      chères d'abord). Une fiche Airbnb d'hôtel, de chambre ou d'hébergement
+      insolite retire l'annonce du relevé. Si Airbnb ne connaît plus la
+      requête de fiche (`hash`), les pages `rooms/` prennent le relais, une à
+      une, 6 s au moins entre deux, arrêt au premier refus.
+    - **Entre deux tranches**, la recherche de Logements passe d'abord,
+      l'attente demandée par le limiteur Airbnb est tenue (une minute au
+      plus), et le créneau Airbnb est relu. « Arrêter » coupe entre deux
+      tranches ; celle qui est partie va au bout côté serveur, et la station
+      suivante l'attend. Ses cinq parts déjà rendues, la station arrêtée
+      pendant sa complétion écrit quand même sa médiane et ses annonces, avec
+      ce que les tranches ont posé ; arrêtée pendant ses parts, elle n'écrit
+      rien (`ecritureDuReleve`). Pas de plafond de nombre par station ; quatre
+      tranches de suite qui n'avancent en rien arrêtent la station (quinze
+      quand le limiteur Airbnb fait attendre). Avancer, c'est changer
+      quelque chose : une fiche essayée ou laissée, une annonce retirée, une
+      valeur posée. Une requête partie sans rien de cela (une page coupée à
+      l'échéance) n'en est pas un.
+    - **Refus.** Un refus d'Airbnb (429, 503, 403, page de blocage, ou le
+      coupe-circuit qu'il a ouvert, lu dans une tranche ou au créneau) : plus
+      aucune fiche Airbnb jusqu'à la fin de la course, sans reprise. Une panne
+      (clé, worker, format illisible) les arrête aussi, raison au journal. Un
+      hôte qui refuse une page (429, 403, 503), ou qui la laisse sans réponse
+      15 s ou plus, n'est plus sollicité de la course.
+    - **Garde-fous communs aux deux écrans.** Un 403 d'Airbnb est un refus :
+      il passait pour une page vide, et la fiche suivante partait. Deux
+      lectures au plus en même temps par hôte, une seconde entre deux
+      départs, tenue d'une passe à l'autre et comptée une fois la place de
+      lecture prise, l'hôte laissé au premier 429, 403 ou 503
+      (`limiteHotes.ts`) : dix lectures partaient ensemble vers une même
+      centrale. Une URL que portent deux annonces du relevé, l'accueil ou la
+      page de recherche du site n'est jamais ouverte comme une fiche : le
+      point et la taxe de séjour de l'office se posaient sur toutes les
+      annonces. Le point, la rue et la commune du loueur ne sont jamais ceux
+      du logement (Ingénie : seul `location.geo` compte, jamais le
+      `LocalBusiness` de l'agence), même repris ailleurs dans la page. La
+      taxe de séjour d'une fiche ne s'ajoute plus à un total de panier, qui
+      la contient déjà.
+    - **Bandeau** : « La Clusaz : fiches 12 sur 57 » pendant la complétion
+      (fiches essayées, sur celles qui en attendaient une après la mémoire) ;
+      après un refus, « Airbnb a refusé des requêtes : fiches Airbnb
+      suspendues pour cette course. »
+    - **Rien n'est inventé.** Une valeur absente reste absente, et `cribler`
+      exige toujours position et capacité. La complétion ne change aucun
+      prix : la taxe de séjour qu'une page de centrale publie ne s'ajoute pas
+      au total dans Prix, pour que la médiane ne mêle pas des totaux avec et
+      sans taxe. Les correctifs se posent avant la médiane et avant les
+      annonces de l'onglet budget ; une position trouvée se mesure aussitôt
+      (`attachAccess`), pour la règle des 2 km. L'écran Logements ne change
+      pas de rythme : il ne lit ni n'écrit la mémoire des fiches, et seuls les
+      garde-fous communs le touchent.
 
 ### Écarts assumés
 
@@ -482,6 +578,7 @@ par station ; c'est le second qui fait foi.
 | Apostrophes | droites et courbes mêlées | courbes partout | règle de la maison |
 | Libellés reformulés | « Km de pistes », « Ouvrir Par station », « partiel, sans Airbnb, Booking », « Relevé Alpes du Nord, … » | « Kilomètres de pistes », « Ouvrir l’onglet Par station », « partiel, sans Airbnb ni Booking », « Relevé : Alpes du Nord, … » | français correct |
 | Barre étroite des écrans de contrôle | rien | sous 1 100 px, le parcours se resserre | le lien « Prix » poussait « Plus » hors de l'écran |
+| Bandeau du relevé | « N sur M · station en cours » | plus « fiches N sur M » pendant la complétion, et la ligne du refus d'Airbnb | décision 14 |
 
 ### Vérification
 
@@ -526,3 +623,19 @@ par station ; c'est le second qui fait foi.
   avec « 1 200 m à 1 800 m » ; à 1 100 px, 175 px, et « 2000 » tient encore.
   L'onglet station n'affiche aucun des nouveaux critères. Données effacées
   ensuite.
+- Complétion des relevés (25 sept. 2026) : `npm test` 1 238 tests TS et 205
+  sur 210 côté scripts ; `tsc --noEmit` et `eslint src` verts. La boucle d'une
+  station est éprouvée hors ligne sur le vrai `trancheProfonde`, worker Airbnb
+  et pages simulés, mémoire dans un dossier temporaire (`tranches.test.ts`,
+  `completion.test.ts`) : tranches jusqu'au bout, refus, attente du limiteur,
+  arrêt, tranches sans progrès, course suivante servie par la mémoire sans
+  requête. `vite build` vert ; ni la mémoire des fiches, ni le worker, ni
+  `trancheProfonde` dans le paquet client. Aucun relevé réel : le coût sur
+  Airbnb (18 fiches par minute au plus) reste à mesurer. Après relecture, le
+  même jour : `npm test` 1 266 tests TS, 205 sur 210 côté scripts, `npm run
+  verify` 1 182 ; le chemin serveur est éprouvé à son tour
+  (`completerFiche.test.ts`, `fetch` et horloge simulés, états partagés avec
+  Python dans un dossier temporaire) : page coupée à l'échéance, hôte muet,
+  403, erreur réseau, URL commune, une seconde par hôte d'une tranche à
+  l'autre et quand les places manquent, 6 s entre deux pages `rooms/`, taxe
+  de séjour.

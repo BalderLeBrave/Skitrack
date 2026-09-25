@@ -4,6 +4,7 @@ import {
   agreger,
   annoncesDuReleve,
   annSub,
+  autresBudget,
   avecNuits,
   bornerNuits,
   bornesPlages,
@@ -28,6 +29,7 @@ import {
   distMaxLue,
   dureeLbl,
   ecartLbl,
+  ecritureDuReleve,
   effacerBudget,
   elaguer,
   estPassee,
@@ -45,6 +47,8 @@ import {
   lireTri,
   lireTriB,
   ligne,
+  logementsBudget,
+  logementsReleves,
   MAX_RESULTATS,
   medHead,
   mediane,
@@ -86,6 +90,7 @@ import {
   retirerJeton,
   signature,
   SOURCES_DE_PART,
+  sourcesBudget,
   sourcesEnDefaut,
   sousTitre,
   sousTitreBudget,
@@ -98,6 +103,7 @@ import {
   triVal,
   valeurStation,
   versListing,
+  versLogement,
   videBudget,
   type Bornes,
   type CarteAnnonce,
@@ -105,11 +111,21 @@ import {
   type Groupe,
   type Job,
   type Ligne,
+  type LogementBudget,
   type Part,
   type Periode,
   type Resultat,
   type Tri,
   type TriB,
+} from "./calcul.ts";
+import {
+  aCompleter,
+  appliquerCorrectifs,
+  connuesDuReleve,
+  manqueFiche,
+  recopieDuReleve,
+  urlsCommunesDuReleve,
+  versCandidate,
 } from "./calcul.ts";
 import { STAY_BOUNDS } from "../parcours.ts";
 import { STATIONS, stationById, type Station } from "../stations.ts";
@@ -1324,6 +1340,38 @@ describe("file des relevés", () => {
     assert.equal(dejaPrevu(job(), job({ ids: ["chamrousse", "les-2-alpes"] }), []), false);
   });
 
+  it("ce qu'une station écrit : sa médiane, ou son échec quand aucune médiane ne la précède", () => {
+    const lu = (resultat: Resultat, over: { injoignable?: boolean; partsRendues?: boolean } = {}) => ({
+      resultat,
+      injoignable: false,
+      partsRendues: true,
+      ...over,
+    });
+    assert.equal(ecritureDuReleve(lu(fait()), undefined, true), "fait");
+    assert.equal(ecritureDuReleve(lu(fait()), ECHEC, true), "fait");
+    assert.equal(ecritureDuReleve(lu(ECHEC), undefined, true), "echec");
+    assert.equal(ecritureDuReleve(lu(ECHEC), ECHEC, true), "echec");
+    // Un échec ne remplace jamais une médiane.
+    assert.equal(ecritureDuReleve(lu(ECHEC), fait(), true), null);
+    // L'application ne répond plus : la course s'abandonne, rien ne s'écrit.
+    assert.equal(ecritureDuReleve(lu(ECHEC, { injoignable: true }), undefined, true), null);
+  });
+
+  it("« Arrêter » pendant la complétion écrit la médiane de la station ; pendant les parts, rien", () => {
+    const lu = (resultat: Resultat, partsRendues: boolean) => ({ resultat, injoignable: false, partsRendues });
+    // Les cinq parts rendues avant l'arrêt : la médiane, même sur une plus ancienne.
+    assert.equal(ecritureDuReleve(lu(fait(), true), undefined, false), "fait");
+    assert.equal(ecritureDuReleve(lu(fait({ n: 3 }), true), fait(), false), "fait");
+    // Arrêtée pendant ses parts : rien, pas même une médiane.
+    assert.equal(ecritureDuReleve(lu(fait(), false), undefined, false), null);
+    // Une course arrêtée n'écrit jamais d'échec.
+    assert.equal(ecritureDuReleve(lu(ECHEC, true), undefined, false), null);
+    assert.equal(
+      ecritureDuReleve({ resultat: ECHEC, injoignable: true, partsRendues: true }, undefined, false),
+      null,
+    );
+  });
+
   it("elaguer garde les plus récents", () => {
     const res: Record<string, Resultat> = {
       a: fait({ ts: 1 }),
@@ -1817,15 +1865,24 @@ describe("annonces d'un relevé", () => {
     assert.deepEqual(annoncesDuReleve(muettes), []);
   });
 
-  it("un logement vendu sur trois plateformes donne une seule carte, la moins chère", () => {
+  it("un logement vendu sur trois plateformes garde ses trois offres, la médiane une seule", () => {
     const input = { ...base, listings: [...unBien, annonce()] };
     const a = annoncesDuReleve(input);
+    // L'onglet budget les regroupe (`logementsBudget`) et nomme les autres
+    // plateformes : sans elles, l'offre Airbnb d'un bien moins cher sur
+    // Booking n'apparaissait nulle part.
     assert.deepEqual(
       a.map((x) => [x.id, x.total]),
       [
+        ["abr-777", 2300],
         ["bk-777", 2050],
+        ["abnb-777", 2100],
         ["airbnb-1", 2000],
       ],
+    );
+    assert.deepEqual(
+      retenir(input.listings, CTX).map((x) => x.id),
+      ["bk-777", "airbnb-1"],
     );
     const r = resultatDuReleve(input);
     assert.equal(r.etat === "fait" ? r.n : -1, 2);
@@ -1841,6 +1898,61 @@ describe("annonces d'un relevé", () => {
       annoncesDuReleve(input).map((x) => x.id),
       ["airbnb-1"],
     );
+  });
+});
+
+describe("un logement par carte dans l'onglet budget", () => {
+  const carte = (l: Listing, stationId = "les-2-alpes"): CarteAnnonce => ({
+    a: compacter(l),
+    stationId,
+    stationNom: stationId === "les-2-alpes" ? "Les 2 Alpes" : stationId,
+  });
+  const offres = (g: LogementBudget) => g.offres.map((o) => o.a.id);
+  const BORNES = bornesPlages(STATIONS);
+
+  it("les offres d'un même bien se rangent derrière la moins chère", () => {
+    const avant = [...unBien, annonce()].map((l) => carte(l));
+    const groupes = logementsReleves(avant);
+    const ls = logementsBudget(groupes, filtrerCartes(avant, FL0, BORNES));
+    assert.deepEqual(ls.map(offres), [["bk-777", "abnb-777", "abr-777"], ["airbnb-1"]]);
+    const [bien, seul] = ls;
+    assert.equal(sourcesBudget(bien), "Booking + 2 · Les 2 Alpes");
+    assert.equal(sourcesBudget(seul), "Airbnb · Les 2 Alpes");
+    assert.equal(autresBudget(seul), null);
+    const autres = autresBudget(bien) ?? "";
+    assert.match(autres, /^Aussi sur Airbnb \(.*2.?100.*\), Abritel \(.*2.?300.*\)$/);
+    // Le volet de Logements lit le même logement.
+    assert.deepEqual(versLogement(bien), {
+      principale: bien.principale.a,
+      offres: bien.offres.map((o) => o.a),
+    });
+  });
+
+  it("un critère retire une offre, la moins chère de celles qui restent se montre", () => {
+    const avant = unBien.map((l) => carte(l));
+    const groupes = logementsReleves(avant);
+    // Un budget à 2 080 € ne garde que l'offre Booking.
+    const serre = filtrerCartes(avant, { ...FL0, budget: [0, 2080] }, BORNES);
+    assert.deepEqual(logementsBudget(groupes, serre).map(offres), [["bk-777"]]);
+    // Sans l'offre Booking, l'Airbnb passe devant.
+    const sansBooking = filtrerCartes(avant, FL0, BORNES).filter((c) => c.a.id !== "bk-777");
+    assert.deepEqual(logementsBudget(groupes, sansBooking).map(offres), [["abnb-777", "abr-777"]]);
+    // Rien ne passe : aucun logement.
+    assert.deepEqual(logementsBudget(groupes, []), []);
+  });
+
+  it("une annonce relevée pour deux stations n'y entre qu'une fois", () => {
+    const avant = [carte(unBien[1]), carte(unBien[2]), carte(unBien[1], "alpe-d-huez")];
+    const ls = logementsBudget(logementsReleves(avant), filtrerCartes(avant, FL0, BORNES));
+    assert.deepEqual(ls.map(offres), [["bk-777", "abnb-777"]]);
+  });
+
+  it("un relevé qui n'a gardé qu'une offre par logement donne une carte par offre", () => {
+    const avant = [annonce({ id: "a", total: 1000 }), annonce({ id: "b", total: 1200 })].map((l) =>
+      carte(l),
+    );
+    const ls = logementsBudget(logementsReleves(avant), filtrerCartes(avant, FL0, BORNES));
+    assert.deepEqual(ls.map(offres), [["a"], ["b"]]);
   });
 });
 
@@ -2679,5 +2791,166 @@ describe("tri des cartes : plus près des remontées", () => {
       [...xs].sort(comparateurBudget("dist:1")).map((c) => c.a.id),
       ["b", "a", "e", "c", "f", "d"],
     );
+  });
+});
+
+describe("complétion : les annonces à compléter", () => {
+  const sansRien = (over: Partial<Listing> = {}) =>
+    annonce({ guests: null, bedrooms: null, lat: null, lon: null, distToSlopesM: null, ...over });
+
+  it("une annonce sans position, capacité ni chambres, qui passe le reste, est à compléter", () => {
+    const xs = aCompleter([sansRien()], CTX);
+    assert.deepEqual(
+      xs.map((l) => l.id),
+      ["airbnb-1"],
+    );
+    assert.equal(manqueFiche(xs[0]), true);
+  });
+
+  it("une annonce complète ne l'est pas ; des pièces tiennent lieu de chambres", () => {
+    assert.equal(aCompleter([annonce()], CTX).length, 0);
+    assert.equal(aCompleter([annonce({ bedrooms: null, rooms: 3 })], CTX).length, 0);
+    assert.equal(aCompleter([annonce({ bedrooms: null, rooms: null })], CTX).length, 1);
+    assert.equal(aCompleter([annonce({ guests: null })], CTX).length, 1);
+    assert.equal(aCompleter([annonce({ lat: 0, lon: 0 })], CTX).length, 1);
+  });
+
+  const horsCrible: [string, Listing][] = [
+    ["un repli sur le relevé figé", sansRien({ proven: "Relevé Airbnb, repli relevé 3 sept." })],
+    ["une devise autre que l’euro", sansRien({ currency: "CHF" })],
+    ["un « à partir de »", sansRien({ priceIndicative: true })],
+    ["un total à zéro", sansRien({ total: 0 })],
+    ["un prix d’autres dates", sansRien({ pricedCheckIn: "2027-02-13", pricedCheckOut: "2027-02-20" })],
+    ["un logement d’un autre domaine", sansRien({ domainFit: "other" })],
+    ["un logement à plus de 12 km", sansRien({ lat: 45.3, lon: 6.5, distToSlopesM: 20_000 })],
+    ["un gîte sans devis ITEA live", gite({ guests: null, proven: "ITEA gites-web 2026-09-03" })],
+  ];
+  for (const [cas, l] of horsCrible) {
+    it(`ne complète pas ${cas} : la médiane ne le compterait jamais`, () => {
+      assert.equal(aCompleter([l], CTX).length, 0);
+    });
+  }
+
+  it("une annonce déjà trop petite pour le groupe ne se complète pas", () => {
+    assert.equal(aCompleter([sansRien({ guests: 4 })], CTX).length, 0);
+    const ctx = { ...CTX, groupe: { trav: 8, rooms: 3 } };
+    assert.equal(aCompleter([sansRien({ bedrooms: 2 })], ctx).length, 0);
+    assert.equal(aCompleter([sansRien({ bedrooms: 3 })], ctx).length, 1);
+  });
+
+  it("une position connue se juge : à 3 km d'une remontée, rien à compléter", () => {
+    assert.equal(aCompleter([annonce({ guests: null, distToLiftM: 3000 })], CTX).length, 0);
+    assert.equal(aCompleter([annonce({ guests: null, distToLiftM: 900 })], CTX).length, 1);
+  });
+
+  it("les moins chères d'abord, et une annonce rendue deux fois ne compte qu'une fois", () => {
+    const xs = aCompleter(
+      [
+        sansRien({ id: "c", total: 3000 }),
+        sansRien({ id: "a", total: 1200 }),
+        sansRien({ id: "b", total: 2000 }),
+        sansRien({ id: "a", total: 1200 }),
+      ],
+      CTX,
+    );
+    assert.deepEqual(
+      xs.map((l) => l.id),
+      ["a", "b", "c"],
+    );
+  });
+
+  it("la candidate envoyée garde de quoi trouver sa fiche et sa clé de mémoire", () => {
+    const c = versCandidate(aCompleter([sansRien()], CTX)[0]);
+    assert.equal(c.cle, "Airbnb:12345678");
+    assert.equal(c.url, "https://www.airbnb.fr/rooms/12345678");
+    assert.equal(c.guests, null);
+    assert.equal("photos" in c, false);
+  });
+});
+
+describe("complétion : mémoire, URL communes, correctifs", () => {
+  it("les annonces complètes vont à la mémoire, une par clé, jamais un repli", () => {
+    const xs = connuesDuReleve([
+      annonce(),
+      annonce({ id: "airbnb-2" }),
+      annonce({ id: "x", url: "https://www.airbnb.fr/rooms/999999", guests: null }),
+      annonce({ id: "y", url: "https://www.airbnb.fr/rooms/888888", proven: "repli relevé" }),
+    ]);
+    assert.deepEqual(xs, [
+      {
+        cle: "Airbnb:12345678",
+        guests: 8,
+        bedrooms: 3,
+        rooms: null,
+        lat: S2A.lat + 0.002,
+        lon: S2A.lon + 0.002,
+      },
+    ]);
+  });
+
+  it("une URL que deux annonces portent est commune, sur tout le relevé", () => {
+    const accueil = "https://www.centrale.fr/";
+    const fiche = "https://www.centrale.fr/logement/12";
+    const xs = urlsCommunesDuReleve([
+      annonce({ id: "c1", source: "Centrale", url: fiche }),
+      annonce({ id: "c2", source: "Centrale", url: fiche }),
+      annonce({ id: "c3", source: "Centrale", url: accueil }),
+    ]);
+    assert.deepEqual(xs, ["www.centrale.fr/logement/12"]);
+  });
+
+  it("un correctif comble, une annonce retirée sort, rien d'autre ne change", () => {
+    const xs = appliquerCorrectifs(
+      [annonce({ id: "a", guests: null }), annonce({ id: "b" }), annonce({ id: "h" })],
+      {
+        correctifs: { a: { guests: 6, proven: "Airbnb direct · fiche Airbnb", source: "Booking" } },
+        retires: ["h"],
+      },
+      S2A,
+    );
+    assert.deepEqual(
+      xs.map((l) => [l.id, l.guests, l.source, l.proven]),
+      [
+        ["a", 6, "Airbnb", "Airbnb direct · fiche Airbnb"],
+        ["b", 8, "Airbnb", "Airbnb direct"],
+      ],
+    );
+  });
+
+  it("un correctif ne change jamais le prix publié", () => {
+    const [l] = appliquerCorrectifs(
+      [annonce({ id: "c", source: "Centrale", total: 1000, guests: null })],
+      { correctifs: { c: { guests: 6, total: 1045 } }, retires: [] },
+      S2A,
+    );
+    assert.equal(l.guests, 6);
+    assert.equal(l.total, 1000);
+  });
+
+  it("une position trouvée se mesure aussitôt, et la médiane compte l'annonce", () => {
+    const sans = annonce({ lat: null, lon: null, distToSlopesM: null, distToLiftM: null });
+    assert.equal(agreger([sans], CTX).n, 0);
+    const [l] = appliquerCorrectifs(
+      [sans],
+      { correctifs: { "airbnb-1": { lat: S2A.lat + 0.002, lon: S2A.lon + 0.002 } }, retires: [] },
+      S2A,
+    );
+    assert.ok(l.distToLiftM != null || l.distToSlopesM != null);
+    assert.equal(dansLaStation(l), true);
+    assert.equal(agreger([l], CTX).n, 1);
+  });
+
+  it("la recopie entre offres d'un même logement fait compter l'Airbnb muet", () => {
+    const muet = annonce({ id: "airbnb-9", title: "Chalet des Cimes, vue glacier", guests: null, bedrooms: null });
+    const soeur = offreCozy("abr-9", "Abritel", {
+      title: "Chalet des Cimes, vue glacier",
+      total: 2600,
+      url: "https://www.abritel.fr/location-vacances/p9",
+    });
+    assert.deepEqual(agreger([muet], CTX), { n: 0, muettes: 1, petits: 0, med: null });
+    const xs = appliquerCorrectifs([muet, soeur], recopieDuReleve([muet, soeur]), S2A);
+    assert.equal(xs[0].guests, 8);
+    assert.match(xs[0].proven, /même logement/);
+    assert.equal(agreger([xs[0]], CTX).n, 1);
   });
 });

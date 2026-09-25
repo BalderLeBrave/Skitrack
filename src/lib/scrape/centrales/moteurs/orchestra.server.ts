@@ -20,20 +20,43 @@
  * Champagny-en-Vanoise coûte huit appels, Montchavin-les-Coches huit, et seule
  * « La Plagne », qui désigne le domaine entier, en coûte cent six la première
  * fois.
+ *
+ * **La capacité et le point se lisent sur la fiche, une fois par mois et par
+ * logement.** Ni le catalogue ni le calendrier ne les publient ; la fiche
+ * `/location/…` les écrit dans ses blocs « Information » et « Localisation »
+ * (relevé du 25 septembre 2026). Ils ne dépendent pas des dates : ils sont
+ * retenus trente jours. Seuls les logements qui ont une offre aux dates
+ * demandées sont lus, un à la fois, chacun une seconde au moins après la
+ * requête précédente vers la centrale, calendriers compris (`cadence.ts`),
+ * huit secondes au plus par fiche, dans un budget de quinze secondes, et jamais
+ * passé trente secondes de recherche : la part des centrales est coupée à
+ * quarante-huit (`run.server.ts`), et une fiche ne doit pas emporter les
+ * offres déjà lues. Ce qui n'a pas été lu le sera à la recherche suivante, et
+ * reste en attendant « non annoncé ». Après un 403, un 429 ou un 503 sur une
+ * fiche, plus aucune fiche n'est demandée à cette centrale pendant une heure.
+ *
+ * **Les logements hors de la règle du propriétaire sont écartés sur le type de
+ * leur carte**, avant tout appel de calendrier (`regleTypes.ts`). Un type
+ * qu'elle ne connaît pas est gardé, et nommé au journal.
  */
 
 import type { Listing } from "@/lib/listings";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { aTourDeRole, ECART_HOTE_MS, noterFin } from "../cadence";
+import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   cartesOrchestra,
+  ficheOrchestra,
+  horsRegleOrchestra,
   nuitsOrchestra,
   prixOrchestra,
   urlCalendrierOrchestra,
   urlCatalogueOrchestra,
   type CarteOrchestra,
+  type FicheOrchestra,
   type OffreOrchestra,
 } from "./orchestra";
 
@@ -47,6 +70,16 @@ const FRONT = 4;
 const CATALOGUE_TTL_MS = 6 * 60 * 60 * 1000;
 /** Une disponibilité bouge en heures. */
 const CALENDRIER_TTL_MS = 3 * 60 * 60 * 1000;
+/** La capacité d'un logement ne bouge pas d'une saison à l'autre. */
+const FICHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+/** Les fiches se lisent une à une, et pas plus longtemps que cela par recherche. */
+const FICHE_BUDGET_MS = 15_000;
+/** Une fiche qui ne répond pas dans ce délai est abandonnée. */
+const FICHE_TIMEOUT_MS = 8_000;
+/** Passé ce temps depuis le début de la recherche, aucune fiche n'est ouverte. */
+const FICHES_AVANT_MS = 30_000;
+/** Après un refus (403, 429, 503), les fiches de la centrale attendent. */
+const FICHE_PAUSE_MS = 60 * 60 * 1000;
 
 export type ReglageOrchestra = {
   host: string;
@@ -67,10 +100,13 @@ export type ReglageOrchestra = {
 
 const catalogues = new Map<string, { at: number; valeur: CarteOrchestra[] }>();
 const calendriers = new Map<string, { at: number; valeur: unknown }>();
-async function json(url: string, texte = false): Promise<unknown> {
+const fiches = new Map<string, { at: number; valeur: FicheOrchestra }>();
+/** L'heure du dernier refus d'une fiche, par centrale. */
+const refusFiches = new Map<string, number>();
+async function json(url: string, texte = false, delai = TIMEOUT_MS): Promise<unknown> {
   await centraleAutorise(url);
   const ctrl = new AbortController();
-  const minuteur = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const minuteur = setTimeout(() => ctrl.abort(), delai);
   try {
     const r = await fetch(url, {
       signal: ctrl.signal,
@@ -88,6 +124,8 @@ async function json(url: string, texte = false): Promise<unknown> {
     return texte ? await r.text() : await r.json();
   } finally {
     clearTimeout(minuteur);
+    // La fiche qui suit attend une seconde après cette fin (`cadence.ts`).
+    noterFin(url);
   }
 }
 
@@ -129,6 +167,78 @@ async function calendrier(base: string, id: string, ctx: ContexteCentrale): Prom
   return valeur;
 }
 
+/**
+ * Les fiches des logements retenus : en cache d'abord, puis une à une, dans le
+ * budget de la recherche et avant `echeance`, heure absolue passé laquelle
+ * aucune fiche n'est plus ouverte.
+ *
+ * Chaque fiche part à son tour (`aTourDeRole`) : une seconde au moins après
+ * la requête précédente vers la centrale, y compris le dernier calendrier. Une
+ * fiche dont le chemin mène hors de la centrale n'est pas demandée.
+ *
+ * Un appel qui échoue arrête la lecture pour cette recherche : les fiches
+ * suivantes attendront la prochaine, plutôt que d'insister auprès d'un serveur
+ * qui vient de refuser. Un 403, un 429 ou un 503 la suspend une heure pour
+ * toute la centrale. Les fiches déjà en cache servent quand même.
+ */
+async function lireFiches(
+  base: string,
+  cartes: readonly CarteOrchestra[],
+  echeance: number,
+): Promise<Map<string, FicheOrchestra>> {
+  const out = new Map<string, FicheOrchestra>();
+  const fin = Math.min(Date.now() + FICHE_BUDGET_MS, echeance);
+  const refus = refusFiches.get(base);
+  let arret: string | null =
+    refus != null && Date.now() - refus < FICHE_PAUSE_MS
+      ? "pause d'une heure après un refus"
+      : null;
+  const origine = new URL(`${base}/`).origin;
+  for (const c of cartes) {
+    const cle = `${base}|${c.id}`;
+    const hit = fiches.get(cle);
+    if (hit && Date.now() - hit.at < FICHE_TTL_MS) {
+      out.set(c.id, hit.valeur);
+      continue;
+    }
+    if (!c.chemin || arret) continue;
+    const url = new URL(c.chemin, `${base}/`);
+    if (url.origin !== origine) continue;
+    // L'écart d'une seconde se compte dans le budget.
+    if (fin - Date.now() < 1_000 + ECART_HOTE_MS) {
+      arret = "budget de la recherche épuisé";
+      continue;
+    }
+    try {
+      const page = await aTourDeRole(url.toString(), async () => {
+        const reste = fin - Date.now();
+        return reste < 1_000
+          ? null
+          : ((await json(url.toString(), true, Math.min(FICHE_TIMEOUT_MS, reste))) as string);
+      });
+      if (page == null) {
+        arret = "budget de la recherche épuisé";
+        continue;
+      }
+      const valeur = ficheOrchestra(page);
+      fiches.set(cle, { at: Date.now(), valeur });
+      out.set(c.id, valeur);
+    } catch (err) {
+      const quoi = err instanceof Error ? err.message : String(err);
+      if (/répondu (?:403|429|503)\b/.test(quoi)) refusFiches.set(base, Date.now());
+      arret = `fiche ${c.id} : ${quoi}`;
+    }
+  }
+  const restent = cartes.filter((c) => !out.has(c.id)).length;
+  if (arret || restent > 0) {
+    console.info(
+      `[centrale] ${base} : ${out.size} fiche(s) lue(s) ou en cache, ${restent} à lire à la prochaine recherche` +
+        (arret ? ` — arrêt : ${arret}` : ""),
+    );
+  }
+  return out;
+}
+
 /** « N personnes », avec le pluriel qu'il faut. */
 function personnes(n: number): string {
   return `${n} personne${n > 1 ? "s" : ""}`;
@@ -156,6 +266,7 @@ function libellePrix(o: OffreOrchestra): string | null {
 function enListing(
   c: CarteOrchestra,
   o: OffreOrchestra,
+  fiche: FicheOrchestra | null,
   base: string,
   r: ReglageOrchestra,
   ctx: ContexteCentrale,
@@ -165,9 +276,14 @@ function enListing(
   // tarifaire : jusqu'à combien de personnes ce tarif se vend, et non combien
   // le logement en couche. Le libellé de catégorie dit la même bande en toutes
   // lettres — « Logement 1 à 6 personnes » — et le passer au lecteur de texte
-  // ferait rentrer le même nombre par la fenêtre. Ne restent donc que le nom du
-  // logement et son chemin, qui parlent bien du bien.
-  const occ = annoncer({ guests: null, bedrooms: null }, c.titre, c.chemin);
+  // ferait rentrer le même nombre par la fenêtre. La capacité vient donc de la
+  // fiche, qui l'écrit sous le mot « Capacité », et à défaut du nom du logement
+  // et de son chemin, qui parlent bien du bien.
+  const occ = annoncer(
+    { guests: fiche?.capacite ?? null, bedrooms: null, rooms: fiche?.pieces ?? null },
+    c.titre,
+    c.chemin,
+  );
   const bande =
     o.bandeMin != null && o.bandeMax != null
       ? ` — bande tarifaire ${o.bandeMin} à ${personnes(o.bandeMax)}, qui n'est pas la capacité du bien`
@@ -182,12 +298,17 @@ function enListing(
     guests: occ.guests,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    propertyType: c.type,
     available: true,
     photo: c.photo,
     url: c.chemin ? new URL(c.chemin, `${base}/`).toString() : base,
-    // Les pages de destination ne portent pas de coordonnées.
-    lat: null,
-    lon: null,
+    // Le point et l'adresse du logement viennent du bloc « Localisation » de
+    // la fiche ; tant qu'elle n'est pas lue, ils restent vides. L'adresse de
+    // l'agence, sur la même fiche, n'est pas lue.
+    lat: fiche?.lat ?? null,
+    lon: fiche?.lon ?? null,
+    locality: fiche?.village ?? null,
+    placeName: fiche?.adresse ?? null,
     priceLabel: libellePrix(o),
     // Un prix par personne n'est pas un total de séjour, et ne se compare pas à
     // un total. Le drapeau le dit à l'écran plutôt que de le laisser croire.
@@ -206,6 +327,7 @@ function enListing(
  * journal et la recherche continue. Elle ne lève que si toutes échouent.
  */
 export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchestra): Promise<Listing[]> {
+  const t0 = Date.now();
   const base = ctx.base.replace(/\/+$/, "");
   const destinations = r.destinations[ctx.stationId] ?? r.parDefaut;
   const refus: string[] = [];
@@ -223,8 +345,28 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
   }
 
   const par = new Map<string, CarteOrchestra>();
-  for (const l of listes) for (const c of l) if (!par.has(c.id)) par.set(c.id, c);
+  const vus = new Set<string>();
+  const ecartes = new Map<string, number>();
+  const inconnus = new Map<string, number>();
+  for (const l of listes) {
+    for (const c of l) {
+      if (vus.has(c.id)) continue;
+      vus.add(c.id);
+      // La règle du propriétaire, avant le calendrier : un logement refusé ne
+      // coûte pas d'appel.
+      const motif = horsRegleOrchestra(c);
+      if (motif) {
+        compter(ecartes, motif);
+        continue;
+      }
+      if (c.type && typeInconnu(c.type)) compter(inconnus, c.type.trim());
+      par.set(c.id, c);
+    }
+  }
   const cartes = [...par.values()];
+  for (const phrase of phrasesRegle(ecartes, inconnus)) {
+    console.info(`[centrale] ${r.host} : ${phrase}`);
+  }
 
   const offres = await parGroupes(cartes, async (c) => {
     try {
@@ -234,10 +376,17 @@ export async function chercherOrchestra(ctx: ContexteCentrale, r: ReglageOrchest
     }
   });
 
+  // Seuls les logements qui ont une offre à ces dates ouvrent leur fiche.
+  const fichesLues = await lireFiches(
+    base,
+    cartes.filter((_, i) => offres[i]),
+    t0 + FICHES_AVANT_MS,
+  );
+
   const listings: Listing[] = [];
   for (const [i, c] of cartes.entries()) {
     const o = offres[i];
-    if (o) listings.push(enListing(c, o, base, r, ctx));
+    if (o) listings.push(enListing(c, o, fichesLues.get(c.id) ?? null, base, r, ctx));
   }
   console.info(
     `[centrale] ${r.host} : ${listings.length} offres sur ${cartes.length} au catalogue` +

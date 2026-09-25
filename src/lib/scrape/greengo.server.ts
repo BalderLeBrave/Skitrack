@@ -1,24 +1,32 @@
 /**
  * Relevé GreenGo, en HTTP simple sur son API GraphQL (voir `greengo.ts`).
  *
- * Une recherche par emprise autour de la station, puis le détail des hôtes
- * les plus proches, un par un, au rythme du journal de taux partagé (2 s
- * entre deux, 20 par minute). Un refus (429, 503) arrête le relevé et pose la
- * pause demandée ; ce qui est lu reste. L'en-tête est celui d'un navigateur,
- * comme tout le relevé (`navigateur.ts`).
+ * Une recherche par emprise autour de la station. Campings, hôtels, chambres
+ * d'hôtes et « chez l'habitant » seuls sont écartés sans détail (étiquettes de
+ * l'hôte) ; les autres sont tous détaillés, et le type de chaque logement
+ * décide (`greengo.ts`). Un par un, au rythme du journal de taux partagé (2 s
+ * entre deux, 20 par minute) : on attend son créneau tant que l'échéance de
+ * la part le permet. Un refus (429, 503, 403) arrête le
+ * relevé et pose une pause de 45 s au moins ; ce qui est lu reste, et rien
+ * n'est repris. Un détail lu sert 15 min aux stations voisines (mêmes hôtes,
+ * mêmes dates, même groupe). L'en-tête est celui d'un navigateur, comme tout
+ * le relevé (`navigateur.ts`).
  */
 
 import type { Listing } from "@/lib/listings";
-import { PAUSE_MAX_MS, estStatutRalenti, retryAfterMs } from "@/lib/stay/http429";
-import { noterBlocage, paceTaux } from "@/lib/stay/taux.server";
+import { CIRCUIT_COOLDOWN_MS, PAUSE_MAX_MS, estStatutRalenti, retryAfterMs } from "@/lib/stay/http429";
+import { noterBlocage, paceTaux, pauseTauxMs } from "@/lib/stay/taux.server";
 import { UA_NAVIGATEUR } from "./navigateur";
 import { allowsPath } from "./robots";
 import type { LiveSearchInput } from "./types";
 import {
+  ArretGreenGo,
   GREENGO_API,
   OPERATION_DETAIL,
   OPERATION_RECHERCHE,
+  detailler,
   greengoListings,
+  hoteGarde,
   lireDetail,
   lireRecherche,
   requeteDetail,
@@ -30,19 +38,29 @@ import {
 const HOTE_TAUX = "greengo";
 /** L'emprise de la recherche : celle du relevé Airbnb proche (6 km). */
 const RAYON_KM = 6;
-/** Au plus tant de détails par relevé : une requête chacun. */
-const MAX_DETAILS = 12;
+/**
+ * Une borne de sûreté, pas un plafond de travail : c'est l'échéance qui
+ * arrête (19 requêtes au plus en 40 s, à 2 s d'écart). Le plafond de 12
+ * laissait sans capacité ni chambres les hôtes les plus lointains.
+ */
+const MAX_DETAILS = 60;
 const DELAI_REQUETE_MS = 12_000;
 /** Une requête qui ne peut pas finir avant l'échéance ne part pas. */
 const MARGE_MS = 2_500;
-
-class ArretGreenGo extends Error {}
+/** Un détail lu reste bon pour les stations voisines qui partagent l'hôte. */
+const CACHE_DETAIL_MS = 15 * 60_000;
+const cacheDetails = new Map<string, { at: number; logements: LogementGreenGo[] }>();
 
 async function graphql(operation: string, query: string, echeance: number): Promise<unknown> {
   const reste = echeance - Date.now();
   if (reste < MARGE_MS) throw new ArretGreenGo("échéance");
-  const pause = await paceTaux(HOTE_TAUX, Math.min(5_000, reste - MARGE_MS));
-  if (pause > 0) throw new ArretGreenGo(`limiteur local (${Math.round(pause / 1000)} s à attendre)`);
+  // On attend son créneau tant que l'échéance le permet : abandonner au-delà
+  // de 5 s laissait les hôtes suivants sans détail dès que la fenêtre était pleine.
+  const attente = await paceTaux(HOTE_TAUX, reste - MARGE_MS);
+  if (attente > 0) {
+    const pourquoi = pauseTauxMs(HOTE_TAUX) > 0 ? "pause après un refus" : "limiteur local";
+    throw new ArretGreenGo(`${pourquoi} (${Math.round(attente / 1000)} s à attendre)`);
+  }
   const res = await fetch(GREENGO_API, {
     method: "POST",
     headers: {
@@ -54,10 +72,12 @@ async function graphql(operation: string, query: string, echeance: number): Prom
     body: JSON.stringify({ operationName: operation, variables: {}, query }),
     signal: AbortSignal.timeout(Math.max(1_000, Math.min(DELAI_REQUETE_MS, echeance - Date.now()))),
   });
-  if (estStatutRalenti(res.status)) {
-    const attente = retryAfterMs(res.headers, 0, PAUSE_MAX_MS);
-    noterBlocage(HOTE_TAUX, attente);
-    throw new ArretGreenGo(`HTTP ${res.status} — pause ${Math.round(attente / 1000)} s`);
+  // Un 403 est un refus, comme un 429 ou un 503 : pause partagée, jamais de
+  // reprise. Sans Retry-After, la pause était de 2 s.
+  if (estStatutRalenti(res.status) || res.status === 403) {
+    const pause = Math.max(CIRCUIT_COOLDOWN_MS, retryAfterMs(res.headers, 0, PAUSE_MAX_MS));
+    noterBlocage(HOTE_TAUX, pause);
+    throw new ArretGreenGo(`HTTP ${res.status} — pause ${Math.round(pause / 1000)} s`);
   }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = (await res.json()) as { errors?: Array<{ message?: string }> };
@@ -82,6 +102,8 @@ export type ReleveGreenGo = {
   listings: Listing[];
   /** Hôtes réservables aux dates que GreenGo publie dans l'emprise. */
   hotes: number | null;
+  /** Hôtes écartés sans détail : camping, hôtel, chambres d'hôtes ou « chez l'habitant » seuls. */
+  ecartes: number;
   /** Hôtes dont le détail (total exact par logement) a été lu. */
   detailles: number;
   /** Pourquoi le relevé s'est arrêté avant la fin, s'il l'a fait. */
@@ -105,23 +127,41 @@ export async function releverGreenGo(input: LiveSearchInput, opts: { echeance: n
     if (hotes.length === 0) throw err;
     raison = err instanceof Error ? err.message : String(err);
   }
-  // Les plus proches d'abord : au-delà de MAX_DETAILS ou de l'échéance, un
-  // hôte reste une annonce « prix non publié », jamais une annonce perdue.
+  const gardes = hotes.filter(hoteGarde);
+  const ecartes = hotes.length - gardes.length;
+  // Les plus proches d'abord : arrêté en route, un hôte reste une annonce
+  // « prix non publié » s'il est pur, jamais une annonce perdue sans le dire.
   const centre = { lat: input.lat, lon: input.lon };
-  hotes.sort((a, b) => km(centre, a.lat, a.lon) - km(centre, b.lat, b.lon));
-  const details = new Map<string, LogementGreenGo[]>();
-  for (const h of hotes.slice(0, MAX_DETAILS)) {
-    if (raison) break;
-    try {
-      details.set(h.id, lireDetail(await graphql(OPERATION_DETAIL, requeteDetail(input, h.slug), echeance)));
-    } catch (err) {
-      raison = err instanceof Error ? err.message : String(err);
+  gardes.sort((a, b) => km(centre, a.lat, a.lon) - km(centre, b.lat, b.lon));
+  const adultes = Math.max(1, Math.trunc(input.guests));
+  /** L'heure de lecture du détail de chaque hôte : un détail du cache a jusqu'à 15 min. */
+  const lus = new Map<string, number>();
+  const suite = await detailler(raison ? [] : gardes.slice(0, MAX_DETAILS), async (h) => {
+    const cle = [h.slug, input.checkIn, input.checkOut, adultes].join("|");
+    const deja = cacheDetails.get(cle);
+    if (deja && Date.now() - deja.at < CACHE_DETAIL_MS) {
+      lus.set(h.id, deja.at);
+      return deja.logements;
     }
-  }
-  if (!raison && hotes.length > MAX_DETAILS) raison = `${hotes.length - MAX_DETAILS} hôtes au-delà des ${MAX_DETAILS} lus en détail`;
-  const listings = hotes.flatMap((h) => greengoListings(h, details.get(h.id) ?? null, input));
+    const logements = lireDetail(await graphql(OPERATION_DETAIL, requeteDetail(input, h.slug), echeance));
+    const at = Date.now();
+    for (const [k, v] of cacheDetails) if (at - v.at >= CACHE_DETAIL_MS) cacheDetails.delete(k);
+    cacheDetails.set(cle, { at, logements });
+    lus.set(h.id, at);
+    return logements;
+  });
+  raison ??= suite.raison;
+  if (!raison && gardes.length > MAX_DETAILS) raison = `${gardes.length - MAX_DETAILS} hôtes au-delà des ${MAX_DETAILS} lus en détail`;
+  if (!raison && suite.echecs > 0) raison = `${suite.echecs} détail${suite.echecs > 1 ? "s" : ""} illisible${suite.echecs > 1 ? "s" : ""}`;
+  const listings = gardes.flatMap((h) => {
+    const annonces = greengoListings(h, suite.details.get(h.id) ?? null, input);
+    const lu = lus.get(h.id);
+    // Daté de la lecture du détail : `daterReleve` (run.server.ts) ne
+    // retamponne pas une annonce qui porte déjà son heure.
+    return lu == null ? annonces : annonces.map((l) => (l.total > 0 ? { ...l, scannedAt: lu } : l));
+  });
   console.info(
-    `[greengo] ${hotes.length} hôtes${publie != null ? ` sur ${publie} publiés` : ""}, ${details.size} lus en détail, ${listings.length} annonces${raison ? ` — ${raison}` : ""}`,
+    `[greengo] ${hotes.length} hôtes${publie != null ? ` sur ${publie} publiés` : ""}, ${ecartes} écartés (type), ${suite.details.size} lus en détail, ${listings.length} annonces${raison ? ` — ${raison}` : ""}`,
   );
-  return { listings, hotes: publie, detailles: details.size, ...(raison ? { raison } : {}) };
+  return { listings, hotes: publie, ecartes, detailles: suite.details.size, ...(raison ? { raison } : {}) };
 }

@@ -171,6 +171,26 @@ describe("journal de taux : place pour un relevé entier", () => {
   });
 });
 
+describe("journal de taux : GreenGo", () => {
+  it("deux requêtes GreenGo partent à 2 s d'écart", () => {
+    journalNeuf();
+    const a = taux.reserverTaux("greengo", 10_000);
+    const b = taux.reserverTaux("greengo", 10_000);
+    assert.ok(a.waitMs < 100);
+    assert.ok(b.waitMs > 1_900 && b.waitMs <= 2_100, `second créneau à ${b.waitMs} ms`);
+  });
+
+  it("une station GreenGo entière (19 requêtes) attend que la fenêtre de 20 se vide", () => {
+    const chemin = journalNeuf();
+    const now = Math.floor(Date.now() / 1000) * 1000;
+    // Une station précédente : 19 requêtes, de -38 s à -2 s.
+    const hits = Array.from({ length: 19 }, (_, i) => now - 38_000 + i * 2_000);
+    writeFileSync(chemin, JSON.stringify({ greengo: { hits: hits.map((t) => t / 1000), until: 0 } }));
+    assert.equal(taux.attentePlacesMs("greengo", 19, now), hits[17] + 60_000 - now);
+    assert.equal(taux.attentePlacesMs("greengo", 1, now), 0, "une place reste libre");
+  });
+});
+
 describe("coupe-circuit Airbnb côté Node", () => {
   it("s'ouvre 45 s au moins et garde une pause plus longue déjà posée", () => {
     journalNeuf();

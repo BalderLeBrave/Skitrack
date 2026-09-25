@@ -31,6 +31,13 @@ def test_hotel_et_chambre_ecartes():
     assert is_dropped_listing("Chalet entier · 8 voyageurs") is False
 
 
+def test_chambre_d_hotes_ecartee_avec_l_apostrophe_typographique():
+    assert is_dropped_listing("Chambre dans maison d’hôtes") is True
+    assert is_dropped_listing("Chambre d’hôtel") is True
+    assert is_dropped_listing("Hotel room") is True
+    assert is_dropped_listing("Entire home/apt") is False
+
+
 def _stay(**over):
     rec = {
         "__typename": "StaySearchResult",

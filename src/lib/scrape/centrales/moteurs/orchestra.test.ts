@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   cartesOrchestra,
   dateOrchestra,
+  ficheOrchestra,
+  horsRegleOrchestra,
   nuitsOrchestra,
   prixOrchestra,
   urlCalendrierOrchestra,
@@ -259,5 +261,159 @@ describe("Orchestra : lire le catalogue et le calendrier", () => {
     assert.equal(prixOrchestra({}, DEMANDE), null);
     assert.equal(prixOrchestra({ availabilities: {} }, DEMANDE), null);
     assert.deepEqual(cartesOrchestra("<html></html>"), []);
+  });
+});
+
+/**
+ * Relevé du 25 septembre 2026 sur `www.laplagneresort.com`, Champagny-en-Vanoise.
+ *
+ * Deux cartes du catalogue, réduites aux morceaux que l'analyseur lit — lien,
+ * identifiant, première photo, pastille de type —, chacun recopié tel quel à
+ * l'espacement près ; l'image de remplacement en base64 est abrégée.
+ *
+ * Puis, pour chacune, les blocs « Information » et « Localisation » de sa
+ * fiche `/location/…`, recopiés tels quels à trois retouches près : les lignes
+ * ont perdu leur retrait, l'espace insécable est écrit par son échappement,
+ * et le bouton « VOIR SUR LA CARTE » est ôté. Sur la vraie page, le bloc de
+ * l'agence et celui des équipements les séparent.
+ */
+const CATALOGUE_TYPE = `
+<div class="cpt-product-item is-clickable col-lg-4 col-md-6" data-link="/location/2-pieces-residence-le-chardonnet-ref-ccdt052-86645#ref_dd=03&ref_dmy=10/2026&ref_aj=0&ref_minMan=7,7&ref_mmd=8,8&ref_dpci=XXX">
+<div class="cpt-favorite-button un-clickable " data-product-id="86645" >
+<figure class="elem-image " > <img class="b-lazy" src="data:…" data-src="https://agence-rocblanc.locvacances.com/lv/images/lot/0000000030_01.jpg" alt="2 pièces - Résidence LE CHARDONNET - ref CCDT052 - 1"> </figure>
+<div class="elem-product-tag "> <span class="tag">Appartement</span> </div>
+</div>
+<div class="cpt-product-item is-clickable col-lg-4 col-md-6" data-link="/location/6-pieces-residence-le-grand-bouquetin-ref-gb14-85914#ref_dd=03&ref_dmy=10/2026&ref_aj=0&ref_minMan=7,7&ref_mmd=8,8&ref_dpci=XXX">
+<div class="cpt-favorite-button un-clickable " data-product-id="85914" >
+<figure class="elem-image " > <img class="b-lazy" src="data:…" data-src="https://agence-rocblanc.locvacances.com/lv/images/lot/0000000409_01.jpg" alt="6 pièces - Résidence LE GRAND BOUQUETIN - ref GB14 - 1"> </figure>
+<div class="elem-product-tag "> <span class="tag">Appartement</span> </div>
+</div>`;
+
+const FICHE_86645 = `<h3 class="title-content secondary">Information</h3>
+<div class="txt-content">- <strong>Station :</strong>\u00a0Champagny en Vanoise<br>- <strong>Village :</strong>\u00a0CHAMPAGNY<br>- <strong>Référence du bien :</strong>\u00a0CCDT052<br>- <strong>Type de bien :</strong>\u00a02 pièces<br>- <strong>Capacité :</strong>\u00a06\u00a0Personnes<br>- <strong>Confort :</strong>\u00a0Premium</div>
+<div id="desc-localisation" class="tab-content desc-bloc orx-accordion-item orx-accordion-container">
+<div class="orx-accordion-title d-block d-md-none product-localization-trigger">
+<div class="label">Localisation</div>
+<span class="elem-orx-arrow">
+</span>
+</div>
+<div class="orx-accordion-mask">
+<div class="orx-accordion-content">
+<div class="title-content text-uppercase d-none d-md-block">Localisation</div>
+<h3 class="title-content secondary">Adresse</h3>
+<div class="txt-content">160 Rue des Hauts du Crey<br>CHAMPAGNY<br>73350</div>
+<h3 class="title-content secondary">Coordonnées</h3>
+<div class="txt-content">45.45672911614459, 6.694965362548828</div>
+<h3 class="title-content secondary">Quartier</h3>
+<div class="txt-content">Champagny - Les Hauts du Crey</div>
+<div class="cpt-product-localization " >
+<div id="map_wrap" class="map-wrap" data-map-latlng='[45.456729,6.694965]' data-map-zoom="17"></div>`;
+
+const FICHE_85914 = `<h3 class="title-content secondary">Information</h3>
+<div class="txt-content">- <strong>Station :</strong>\u00a0Champagny en Vanoise<br>- <strong>Village :</strong>\u00a0CHAMPAGNY EN VANOISE<br>- <strong>Référence du bien :</strong>\u00a0GB14<br>- <strong>Type de bien :</strong>\u00a06 pièces<br>- <strong>Capacité :</strong>\u00a012\u00a0Personnes<br>- <strong>Confort :</strong>\u00a0Premium Grand Bouquetin</div>
+<div id="desc-localisation" class="tab-content desc-bloc orx-accordion-item orx-accordion-container">
+<div class="orx-accordion-title d-block d-md-none product-localization-trigger">
+<div class="label">Localisation</div>
+<span class="elem-orx-arrow">
+</span>
+</div>
+<div class="orx-accordion-mask">
+<div class="orx-accordion-content">
+<div class="title-content text-uppercase d-none d-md-block">Localisation</div>
+<h3 class="title-content secondary">Adresse</h3>
+<div class="txt-content">1103 Rue de la Vanoise<br>CHAMPAGNY EN VANOISE<br>73350</div>
+<h3 class="title-content secondary">Coordonnées</h3>
+<div class="txt-content">45.456729, 6.699438</div>
+<h3 class="title-content secondary">Quartier</h3>
+<div class="txt-content">Champagny - Le Planay</div>
+<div class="cpt-product-localization " >
+<div id="map_wrap" class="map-wrap" data-map-latlng='[45.456729,6.699438]' data-map-zoom="17"></div>`;
+
+/** Construit : le bloc de l'agence, sans son téléphone, seul. */
+const AGENCE = `<h3 class="title-content secondary">Agence Immobilière</h3>
+<div class="txt-content">CHAMPAGNY Agence by Roc Blanc<br>Le Reclaz<br>598 Rue de la Vanoise<br>73350 CHAMPAGNY EN VANOISE</div>`;
+
+const RIEN = {
+  capacite: null,
+  typeDeBien: null,
+  pieces: null,
+  village: null,
+  adresse: null,
+  lat: null,
+  lon: null,
+};
+
+describe("Orchestra : le type de la carte, la capacité et le lieu de la fiche", () => {
+  it("lit la pastille de type de chaque carte", () => {
+    const c = cartesOrchestra(CATALOGUE_TYPE);
+    assert.equal(c.length, 2);
+    for (const x of c) assert.equal(x.type, "Appartement");
+    // L'ancien gabarit de test ne porte pas la pastille : rien n'est inventé.
+    for (const x of cartesOrchestra(CATALOGUE)) assert.equal(x.type, null);
+  });
+
+  it("lit la capacité, le type de bien, le village, l'adresse et le point de la fiche", () => {
+    assert.deepEqual(ficheOrchestra(FICHE_86645), {
+      capacite: 6,
+      typeDeBien: "2 pièces",
+      pieces: 2,
+      village: "CHAMPAGNY",
+      adresse: "160 Rue des Hauts du Crey, CHAMPAGNY, 73350",
+      lat: 45.45672911614459,
+      lon: 6.694965362548828,
+    });
+    assert.deepEqual(ficheOrchestra(FICHE_85914), {
+      capacite: 12,
+      typeDeBien: "6 pièces",
+      pieces: 6,
+      village: "CHAMPAGNY EN VANOISE",
+      adresse: "1103 Rue de la Vanoise, CHAMPAGNY EN VANOISE, 73350",
+      lat: 45.456729,
+      lon: 6.699438,
+    });
+  });
+
+  it("le point en clair d'abord, celui de la carte ensuite ; hors de France, aucun", () => {
+    const sansTexte = FICHE_86645.replace(
+      /<h3[^>]*>Coordonnées<\/h3>\s*<div[^>]*>[^<]*<\/div>/,
+      "",
+    );
+    const f = ficheOrchestra(sansTexte);
+    assert.equal(f.lat, 45.456729);
+    assert.equal(f.lon, 6.694965);
+    const zero = FICHE_86645.replace("45.45672911614459, 6.694965362548828", "0, 0").replace(
+      "[45.456729,6.694965]",
+      "[0,0]",
+    );
+    assert.equal(ficheOrchestra(zero).lat, null);
+    assert.equal(ficheOrchestra(zero).lon, null);
+  });
+
+  it("ne lit rien hors des deux blocs, ni l'adresse de l'agence", () => {
+    // Le moteur de réservation de la fiche répète les bandes de capacité
+    // (« {minPax}-{maxPax} personnes ») : sans le bloc, la capacité reste vide.
+    const sansBlocs = FICHE_86645.replace(">Information<", ">Autre chose<").replace(
+      'id="desc-localisation"',
+      'id="desc-autre"',
+    );
+    assert.deepEqual(ficheOrchestra(sansBlocs), RIEN);
+    assert.deepEqual(ficheOrchestra(AGENCE), RIEN);
+    assert.deepEqual(ficheOrchestra(""), RIEN);
+  });
+
+  it("garde un appartement ; une carte sans type n'est pas jugée", () => {
+    for (const c of cartesOrchestra(CATALOGUE_TYPE)) assert.equal(horsRegleOrchestra(c), null);
+    assert.equal(horsRegleOrchestra({ type: null }), null);
+    // Construit : aucune carte d'hôtel n'a été relevée, la règle est celle de
+    // `regleTypes.ts`.
+    assert.equal(horsRegleOrchestra({ type: "Hôtel" }), "hôtel");
+  });
+
+  it("un type inconnu est gardé ; le nom ne juge que le camping", () => {
+    // Construits : la règle commune (`regleTypes.ts`) sur une carte.
+    assert.equal(horsRegleOrchestra({ type: "Loft" }), null);
+    const carte = { type: "Appartement", titre: "Chalet Les Bulles", chemin: "/location/x-1" };
+    assert.equal(horsRegleOrchestra(carte), null);
+    assert.equal(horsRegleOrchestra({ ...carte, titre: "Camping Le Bettex" }), "camping");
   });
 });

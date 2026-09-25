@@ -41,7 +41,20 @@
  * constante : 900 € le 19 septembre, 1 500 € le 5 décembre, 3 300 € le
  * 6 février. Un tarif qui double avec la durée et triple avec la saison n'est
  * pas une grille.
+ *
+ * **Où se lisent le type, la capacité et le lieu.** Relevé du 25 septembre
+ * 2026 à Champagny-en-Vanoise. La carte du catalogue porte le type sur ses
+ * sept logements : « Appartement ». Le calendrier n'en dit rien : son
+ * objet `product` ne porte qu'un code, l'agence, une photo et un prix d'appel,
+ * sans point, sans capacité, sans chambres. La fiche `/location/…` porte le
+ * reste, en deux blocs : « Information » (village, référence, type de bien
+ * « 2 pièces », capacité « 6 Personnes », confort) et « Localisation »
+ * (adresse du logement, coordonnées, quartier). Aucune des trois pages ne
+ * publie de nombre de chambres. Le bloc « Agence Immobilière » de la fiche
+ * donne l'adresse de l'agence : il n'est pas lu.
  */
+
+import { jugerLogement, plierType } from "../regleTypes.ts";
 
 /** Un logement du catalogue, avant d'avoir son prix. */
 export type CarteOrchestra = {
@@ -51,6 +64,25 @@ export type CarteOrchestra = {
   /** Chemin de la fiche, relatif à la centrale. */
   chemin: string | null;
   photo: string | null;
+  /** Le type que la carte affiche, `<span class="tag">Appartement</span>`. */
+  type: string | null;
+};
+
+/** Ce que les blocs « Information » et « Localisation » d'une fiche publient. */
+export type FicheOrchestra = {
+  /** « Capacité : 6 Personnes ». */
+  capacite: number | null;
+  /** « Type de bien : 2 pièces », tel quel. */
+  typeDeBien: string | null;
+  /** Les pièces que le type de bien écrit. */
+  pieces: number | null;
+  /** « Village : CHAMPAGNY », tel quel. */
+  village: string | null;
+  /** « Adresse », ses lignes jointes : « 160 Rue des Hauts du Crey, CHAMPAGNY, 73350 ». */
+  adresse: string | null;
+  /** « Coordonnées », bornées à la France métropolitaine. */
+  lat: number | null;
+  lon: number | null;
 };
 
 export type DemandeOrchestra = {
@@ -163,9 +195,151 @@ export function cartesOrchestra(page: string): CarteOrchestra[] {
     if (!titre) continue;
     const lien = /data-link="(\/[^"#]+)/.exec(f)?.[1] ?? null;
     const photo = /<img[^>]+(?:data-src|src)="(https?:\/\/[^"]+)"/.exec(f)?.[1] ?? null;
-    out.push({ id, titre, chemin: lien ? desechapper(lien) : null, photo });
+    const tag =
+      /class="elem-product-tag\b[^"]*"[^>]*>\s*<span class="tag">([^<]{1,60})<\/span>/.exec(f)?.[1];
+    const type = tag ? desechapper(tag).trim() || null : null;
+    out.push({ id, titre, chemin: lien ? desechapper(lien) : null, photo, type });
   }
   return out;
+}
+
+/**
+ * La règle du propriétaire (`regleTypes.ts`), sur le type de la carte et, pour
+ * le seul camping, sur son titre et son chemin. Rend le motif d'écart, ou
+ * `null` quand le logement est gardé, type inconnu compris.
+ *
+ * Une carte sans type n'est pas écartée : les sept cartes relevées en portent
+ * un, et rien ne dit ce que vaudrait son absence. Écarter avant le calendrier
+ * épargne un appel par logement refusé.
+ */
+export function horsRegleOrchestra(c: {
+  type: string | null;
+  titre?: string;
+  chemin?: string | null;
+}): string | null {
+  return jugerLogement(c).motif;
+}
+
+/** Le bloc « Information » d'une fiche : son titre, puis son texte. */
+const BLOC_INFORMATION =
+  /<h3[^>]*>\s*Information\s*<\/h3>\s*<div class="txt-content">([\s\S]*?)<\/div>/;
+
+/** Un entier publié, de 1 à 50. */
+function entierPublie(s: string | undefined): number | null {
+  const n = Number(s);
+  return Number.isInteger(n) && n >= 1 && n <= 50 ? n : null;
+}
+
+/** « Coordonnées » en clair, dans le bloc « Localisation ». */
+const COORDONNEES =
+  /<h3[^>]*>\s*Coordonn(?:é|&eacute;|e)es\s*<\/h3>\s*<div class="txt-content">\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*<\/div>/;
+
+/** Le point de la carte du même bloc, arrondi au millionième. */
+const POINT_CARTE = /data-map-latlng='\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\]'/;
+
+/** Un point publié, s'il tombe en France métropolitaine ; sinon rien. */
+function pointEnFrance(
+  lat: string | undefined,
+  lon: string | undefined,
+): { lat: number; lon: number } | null {
+  const la = Number(lat);
+  const lo = Number(lon);
+  if (!Number.isFinite(la) || !Number.isFinite(lo)) return null;
+  return la >= 41 && la <= 52 && lo >= -6 && lo <= 10 ? { lat: la, lon: lo } : null;
+}
+
+/**
+ * Le bloc « Localisation » d'une fiche : de son ancre à l'onglet suivant.
+ *
+ * Relevé du 25 septembre 2026, logement 86645 :
+ *
+ *     <div id="desc-localisation" class="tab-content …">
+ *       …
+ *       <h3 class="title-content secondary">Adresse</h3>
+ *       <div class="txt-content">160 Rue des Hauts du Crey<br>CHAMPAGNY<br>73350</div>
+ *       <h3 class="title-content secondary">Coordonnées</h3>
+ *       <div class="txt-content">45.45672911614459, 6.694965362548828</div>
+ *       <h3 class="title-content secondary">Quartier</h3>
+ *       <div class="txt-content">Champagny - Les Hauts du Crey</div>
+ *       …
+ *       <div id="map_wrap" class="map-wrap" data-map-latlng='[45.456729,6.694965]' …></div>
+ *     …
+ *     <div id="desc-includes" …>
+ *
+ * L'adresse est celle du logement : 160 rue des Hauts du Crey pour le 86645,
+ * 1103 rue de la Vanoise pour le 85914, quand l'agence des deux est au 598 rue
+ * de la Vanoise.
+ */
+function lieuOrchestra(page: string): Pick<FicheOrchestra, "adresse" | "lat" | "lon"> {
+  const debut = page.indexOf('id="desc-localisation"');
+  if (debut < 0) return { adresse: null, lat: null, lon: null };
+  const suite = page.indexOf('id="desc-', debut + 1);
+  const bloc = page.slice(debut, suite < 0 ? undefined : suite);
+  const ad = /<h3[^>]*>\s*Adresse\s*<\/h3>\s*<div class="txt-content">([\s\S]*?)<\/div>/.exec(bloc);
+  const lignes = (ad?.[1] ?? "")
+    .split(/<br\s*\/?>/i)
+    .map((l) =>
+      desechapper(l.replace(/<[^>]+>/g, " "))
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter(Boolean);
+  // Les coordonnées en clair d'abord, les plus précises ; la carte ensuite.
+  const texte = COORDONNEES.exec(bloc);
+  const carte = POINT_CARTE.exec(bloc);
+  const point = pointEnFrance(texte?.[1], texte?.[2]) ?? pointEnFrance(carte?.[1], carte?.[2]);
+  return {
+    adresse: lignes.length > 0 ? lignes.join(", ") : null,
+    lat: point?.lat ?? null,
+    lon: point?.lon ?? null,
+  };
+}
+
+/**
+ * Lit les blocs « Information » et « Localisation » d'une fiche `/location/…`.
+ *
+ * Relevé du 25 septembre 2026, logement 86645 :
+ *
+ *     <h3 class="title-content secondary">Information</h3>
+ *     <div class="txt-content">- <strong>Station :</strong> Champagny en Vanoise<br>
+ *       - <strong>Village :</strong> CHAMPAGNY<br>- <strong>Référence du bien :</strong> CCDT052<br>
+ *       - <strong>Type de bien :</strong> 2 pièces<br>- <strong>Capacité :</strong> 6 Personnes<br>
+ *       - <strong>Confort :</strong> Premium</div>
+ *
+ * Seuls ces deux blocs sont lus (`lieuOrchestra` pour le second). La
+ * description (« 2 pièces cabine 6 personnes »), le bloc de l'agence — son
+ * adresse et son téléphone — et le moteur de réservation, qui répète les
+ * bandes de capacité, ne le sont pas.
+ *
+ * **La capacité de la fiche égale le haut de la bande tarifaire** sur les deux
+ * logements relevés : 6 pour la bande « 1-6 » du 86645, 12 pour la bande
+ * « 1-12 » du 85914, dont la description dit « 10/12 personnes ». Elle est lue
+ * parce que la centrale l'écrit sous le mot « Capacité », pas parce qu'elle
+ * égale la bande.
+ */
+export function ficheOrchestra(page: string): FicheOrchestra {
+  const lieu = lieuOrchestra(page);
+  const bloc = BLOC_INFORMATION.exec(page);
+  if (!bloc) return { capacite: null, typeDeBien: null, pieces: null, village: null, ...lieu };
+  const champs = new Map<string, string>();
+  for (const m of (bloc[1] ?? "").matchAll(/<strong>\s*([^<]+?)\s*:\s*<\/strong>\s*([^<]*)/g)) {
+    // La clé est pliée : « Capacité » et « Capacit&eacute; » se valent.
+    const cle = plierType(desechapper(m[1] ?? "").replace(/&([a-zA-Z])[a-z]+;/g, "$1"));
+    const valeur = desechapper(m[2] ?? "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (valeur && !champs.has(cle)) champs.set(cle, valeur);
+  }
+  const cap = /^(\d{1,2})\s*personnes?$/i.exec(champs.get("capacite") ?? "");
+  const typeDeBien = champs.get("type de bien") ?? null;
+  const pi = typeDeBien ? /\b(\d{1,2})\s*pi(?:è|e|&egrave;)ces?\b/i.exec(typeDeBien) : null;
+  return {
+    capacite: cap ? entierPublie(cap[1]) : null,
+    typeDeBien,
+    pieces: pi ? entierPublie(pi[1]) : null,
+    village: champs.get("village") ?? null,
+    ...lieu,
+  };
 }
 
 type Categorie = {

@@ -17,6 +17,20 @@
  *   (`DynamicHABF` côté site), une requête par hôte ;
  * - aucune offre Airbnb, Booking, Abritel ou Gîtes de France n'y est
  *   revendue : GreenGo n'a que son propre inventaire.
+ *
+ * Types (25 septembre 2026). Dans la recherche, l'hôte ne publie que ses
+ * étiquettes (`allHostingAdvertTypeTags` : RENTAL « Location », GITE_FR
+ * « Gîte », GUESTROOMS « Chambre d'hôtes », HOMESTAY, UNUSUAL « Logement
+ * insolite », CAMPING, HOTEL…) : le type de ses logements y est refusé par le
+ * serveur (`summary.accommodationUnitsByType` : « 'HostingAdvert' object has
+ * no attribute… » ; `nonRedundantAccommodationTypes` : « refetch mode »), et
+ * l'erreur ferait tomber toute la recherche. Chaque logement du détail porte
+ * son type (`accommodationType` : FULL_FLAT « Appartement entier », CHALET,
+ * GITE_FR, GUESTROOM, TENT, YURT…). Skitrack ne garde que maisons,
+ * appartements, chalets, villas et gîtes : ni camping, ni hôtel, ni chambre
+ * d'hôtes, ni chambre chez l'habitant, ni hébergement insolite qui ne serait
+ * pas l'un d'eux. Le Chalet de Mapellet, étiqueté « insolite », est un chalet
+ * de 9 personnes (type CHALET) : pour l'insolite, le détail tranche.
  */
 
 import type { Listing } from "@/lib/listings";
@@ -55,20 +69,23 @@ function nombre(n: number): string {
 
 /**
  * La recherche : hôtes réservables aux dates dans l'emprise, 42 par page.
- * Les champs passent par un fragment : le nœud est une union.
+ * Les champs passent par un fragment : le nœud est une union. Les étiquettes
+ * viennent avec : un camping, un hôtel ou des chambres d'hôtes seules sont
+ * écartés sans que leur détail soit demandé.
  */
 export function requeteRecherche(input: LiveSearchInput, rayonKm: number, offset: number): string {
   const b = emprise(input.lat, input.lon, rayonKm);
   const s = sejour(input);
-  return `query ${OPERATION_RECHERCHE} { publicAdverts { classicSearch(mapBounds:{sw:{lat:${nombre(b.sw.lat)},lng:${nombre(b.sw.lng)}},ne:{lat:${nombre(b.ne.lat)},lng:${nombre(b.ne.lng)}}}, baseBookingConfigWithOptionalCheckInOutDateRange:${s}, filters:{}, includeMultiAccommodationBookableHostingAdverts:true) { bookableHostingAdverts(first:42, offset:${Math.max(0, Math.trunc(offset))}) { totalCount edges { node { __typename ... on HostingAdvertPublicSliceInterface { id name currentProductSlug formattedLocation postalCode addressFromGmaps { city } coordinates { lat lng } orderedImageNormalizedPaths coarseBookingInformation(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { minPricePerNightInformation { minPricePerNightRoundedToInt isTheOnlyPriceRounded } } } } } } } } }`;
+  const dates = `{start:"${input.checkIn}",end:"${input.checkOut}"}`;
+  return `query ${OPERATION_RECHERCHE} { publicAdverts { classicSearch(mapBounds:{sw:{lat:${nombre(b.sw.lat)},lng:${nombre(b.sw.lng)}},ne:{lat:${nombre(b.ne.lat)},lng:${nombre(b.ne.lng)}}}, baseBookingConfigWithOptionalCheckInOutDateRange:${s}, filters:{}, includeMultiAccommodationBookableHostingAdverts:true) { bookableHostingAdverts(first:42, offset:${Math.max(0, Math.trunc(offset))}) { totalCount edges { node { __typename ... on HostingAdvertPublicSliceInterface { id name currentProductSlug formattedLocation postalCode addressFromGmaps { city } coordinates { lat lng } orderedImageNormalizedPaths allHostingAdvertTypeTags { id } summary(optionalDateRange:${dates}) { numberOfAccommodationUnits minMaxNumberOfTravellersAllowed { min max } } coarseBookingInformation(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { minPricePerNightInformation { minPricePerNightRoundedToInt isTheOnlyPriceRounded } } } } } } } } }`;
 }
 
-/** Le détail d'un hôte : ses logements, leur total exact aux dates, et ce qui les rend non réservables. */
+/** Le détail d'un hôte : ses logements, leur type, leur total exact aux dates, et ce qui les rend non réservables. */
 export function requeteDetail(input: LiveSearchInput, slug: string): string {
   const s = sejour(input);
   const adultes = Math.max(1, Math.trunc(input.guests));
   const dates = `{start:"${input.checkIn}",end:"${input.checkOut}"}`;
-  return `query ${OPERATION_DETAIL} { publicAdverts { hostingAdvert(productSlug:${JSON.stringify(slug)}) { __typename ... on HostingAdvertPublicSliceInterface { id currentProductSlug } ... on HostingAdvertFromSingleAccommodationPublicSlice { singleAccommodation { ...Logement } } ... on HostingAdvertFromEstablishmentPublicSlice { accommodationsInEstablishment(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { ...Logement } } } } } fragment Logement on AccommodationPublicSlice { id currentProductSlug name maxNumberOfTravellers numberOfBedrooms totalNumberOfBeds numberOfBathrooms orderedImageNormalizedPaths bookingPricing(checkInOutDateRange:${dates}, accommodationServicesSelected:[], numberOfChildren:0, numberOfAdults:${adultes}, promotionalVoucherIds:[], useGreengoCreditsIfPossible:false) { __typename ... on BookingPricing { totalPrice { forStayRounded forStayUnrounded } } } nonbookableReasons(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { __typename } }`;
+  return `query ${OPERATION_DETAIL} { publicAdverts { hostingAdvert(productSlug:${JSON.stringify(slug)}) { __typename ... on HostingAdvertPublicSliceInterface { id currentProductSlug } ... on HostingAdvertFromSingleAccommodationPublicSlice { singleAccommodation { ...Logement } } ... on HostingAdvertFromEstablishmentPublicSlice { accommodationsInEstablishment(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { ...Logement } } } } } fragment Logement on AccommodationPublicSlice { id currentProductSlug name accommodationType maxNumberOfTravellers numberOfBedrooms totalNumberOfBeds numberOfBathrooms orderedImageNormalizedPaths bookingPricing(checkInOutDateRange:${dates}, accommodationServicesSelected:[], numberOfChildren:0, numberOfAdults:${adultes}, promotionalVoucherIds:[], useGreengoCreditsIfPossible:false) { __typename ... on BookingPricing { totalPrice { forStayRounded forStayUnrounded } } } nonbookableReasons(baseBookingConfigWithOptionalCheckInOutDateRange:${s}) { __typename } }`;
 }
 
 export type HoteGreenGo = {
@@ -83,11 +100,17 @@ export type HoteGreenGo = {
   photos: string[];
   /** Le prix « à partir de » par nuit, minimum des logements de l'hôte. */
   minParNuit: number | null;
+  /** Ses étiquettes publiées (`allHostingAdvertTypeTags`) : RENTAL, GITE_FR, GUESTROOMS… */
+  tags: string[];
+  /** Sa capacité, pour un logement unique : `minMaxNumberOfTravellersAllowed` a alors min = max. */
+  capacite: number | null;
 };
 
 export type LogementGreenGo = {
   id: string;
   nom: string;
+  /** Son type publié (`accommodationType`) : FULL_FLAT, CHALET, GUESTROOM… ; `null` s'il manque. */
+  type: string | null;
   capacite: number | null;
   chambres: number | null;
   lits: number | null;
@@ -120,6 +143,72 @@ function obj(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 }
 
+/** Les codes d'une liste d'objets (`[{ id: "RENTAL" }]`), en majuscules, sans doublon. */
+function codes(v: unknown, champ: string): string[] {
+  if (!Array.isArray(v)) return [];
+  const out = new Set<string>();
+  for (const x of v) {
+    const c = texte(obj(x)?.[champ]);
+    if (c) out.add(c.toUpperCase());
+  }
+  return [...out];
+}
+
+/** Types de logement gardés : appartement ou maison entiers, chalet, villa, gîte. */
+export const TYPES_GARDES: ReadonlySet<string> = new Set(["FULL_FLAT", "FULL_HOUSE", "CHALET", "VILLA", "GITE_FR"]);
+/** Étiquettes d'hôte qui disent « logement entier ». */
+const TAGS_GARDES: ReadonlySet<string> = new Set(["RENTAL", "GITE_FR", "CHALET", "FULL_HOUSE", "FULL_FLAT"]);
+/** L'insolite : une tente, une cabane… ou un chalet d'alpage. Le type de chaque logement, au détail, tranche. */
+const TAGS_A_VOIR: ReadonlySet<string> = new Set(["UNUSUAL"]);
+/** Étiquettes qui écartent l'hôte entier, quels que soient ses logements. */
+const TAGS_ECARTES: ReadonlySet<string> = new Set(["CAMPING", "HOTEL"]);
+
+/**
+ * L'hôte peut-il avoir un logement que Skitrack garde ? Un camping ou un
+ * hôtel, jamais. Une location ou un gîte, oui ; de l'insolite, peut-être (le
+ * détail le dira) ; des chambres d'hôtes ou du « chez l'habitant » seuls,
+ * non. Sans étiquette, non : on ne garde que ce qui est publié.
+ */
+export function hoteGarde(h: Pick<HoteGreenGo, "tags">): boolean {
+  if (h.tags.some((t) => TAGS_ECARTES.has(t))) return false;
+  return h.tags.some((t) => TAGS_GARDES.has(t) || TAGS_A_VOIR.has(t));
+}
+
+/**
+ * Toutes les étiquettes de l'hôte disent « logement entier » : une annonce
+ * pour l'hôte entier (détail non lu) ne peut pas être une chambre d'hôtes ou
+ * une tente.
+ */
+export function hotePur(h: Pick<HoteGreenGo, "tags">): boolean {
+  return h.tags.length > 0 && h.tags.every((t) => TAGS_GARDES.has(t));
+}
+
+/**
+ * Un logement du détail. Son type publié décide, en liste blanche : un type
+ * insolite, nouveau ou inconnu est écarté. Sans type, l'hôte décide, s'il
+ * est pur.
+ */
+export function logementGarde(type: string | null, h: Pick<HoteGreenGo, "tags">): boolean {
+  return type != null ? TYPES_GARDES.has(type) : hotePur(h);
+}
+
+/**
+ * Les libellés du site, écrits sur ses pastilles (relevés le 24 septembre
+ * 2026 : « Appartement entier », « Chalet », « Gîte ») ; « Maison entière »
+ * et « Villa » n'y figuraient pas.
+ */
+const LIBELLES: Readonly<Record<string, string>> = {
+  FULL_FLAT: "Appartement entier",
+  FULL_HOUSE: "Maison entière",
+  CHALET: "Chalet",
+  VILLA: "Villa",
+  GITE_FR: "Gîte",
+};
+
+export function libelleType(type: string | null | undefined): string | null {
+  return type ? (LIBELLES[type] ?? null) : null;
+}
+
 /**
  * Les hôtes d'une page de recherche, le compteur qu'elle publie, et le nombre
  * de nœuds reçus — c'est lui qui dit si la page était pleine, pas le nombre
@@ -138,9 +227,14 @@ export function lireRecherche(json: unknown): { hotes: HoteGreenGo[]; total: num
     if (!n || !id || !slug || !nom) continue;
     const c = obj(n.coordinates);
     const min = obj(obj(n.coarseBookingInformation)?.minPricePerNightInformation)?.minPricePerNightRoundedToInt;
+    const resume = obj(n.summary);
+    const bornes = obj(resume?.minMaxNumberOfTravellersAllowed);
+    const cMin = entier(bornes?.min);
+    const cMax = entier(bornes?.max);
+    const unique = n.__typename === "HostingAdvertFromSingleAccommodationPublicSlice";
     hotes.push({
       id,
-      unique: n.__typename === "HostingAdvertFromSingleAccommodationPublicSlice",
+      unique,
       nom,
       slug,
       lieu: texte(obj(n.addressFromGmaps)?.city) ?? texte(n.formattedLocation),
@@ -148,6 +242,11 @@ export function lireRecherche(json: unknown): { hotes: HoteGreenGo[]; total: num
       lon: coord(c?.lng),
       photos: images(n.orderedImageNormalizedPaths),
       minParNuit: typeof min === "number" && min > 0 ? min : null,
+      tags: codes(n.allHostingAdvertTypeTags, "id"),
+      capacite:
+        unique && entier(resume?.numberOfAccommodationUnits, 1000) === 1 && cMax != null && cMax > 0 && cMin === cMax
+          ? cMax
+          : null,
     });
   }
   return { hotes, total, noeuds: edges.length };
@@ -169,6 +268,7 @@ export function lireDetail(json: unknown): LogementGreenGo[] {
     out.push({
       id,
       nom: texte(u.name) ?? "",
+      type: texte(u.accommodationType)?.toUpperCase() ?? null,
       capacite: entier(u.maxNumberOfTravellers),
       chambres: entier(u.numberOfBedrooms),
       lits: entier(u.totalNumberOfBeds),
@@ -182,6 +282,41 @@ export function lireDetail(json: unknown): LogementGreenGo[] {
   return out;
 }
 
+/** Un arrêt du relevé entier : refus du site, échéance, limiteur. Jamais repris. */
+export class ArretGreenGo extends Error {}
+
+/** Des échecs d'hôtes à la suite : c'est le site qui a changé, pas l'hôte. */
+const ECHECS_DE_SUITE = 2;
+
+/**
+ * Lit le détail des hôtes un par un, dans l'ordre donné. Un arrêt
+ * (`ArretGreenGo`) coupe tout ; l'échec d'un seul hôte (erreur HTTP, réponse
+ * illisible) passe au suivant, et l'hôte reste sans détail. Deux échecs de
+ * suite arrêtent : le premier incident arrêtait tout, et un 500 sur un hôte
+ * laissait les suivants sans capacité ni chambres.
+ */
+export async function detailler(
+  hotes: readonly HoteGreenGo[],
+  lire: (h: HoteGreenGo) => Promise<LogementGreenGo[]>,
+): Promise<{ details: Map<string, LogementGreenGo[]>; echecs: number; raison?: string }> {
+  const details = new Map<string, LogementGreenGo[]>();
+  let echecs = 0;
+  let suite = 0;
+  for (const h of hotes) {
+    try {
+      details.set(h.id, await lire(h));
+      suite = 0;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (err instanceof ArretGreenGo) return { details, echecs, raison: message };
+      echecs++;
+      suite++;
+      if (suite >= ECHECS_DE_SUITE) return { details, echecs, raison: `${message} (${suite} hôtes de suite)` };
+    }
+  }
+  return { details, echecs };
+}
+
 export function lienHote(slug: string, input: LiveSearchInput): string {
   const q = new URLSearchParams({
     checkIn: input.checkIn,
@@ -192,10 +327,12 @@ export function lienHote(slug: string, input: LiveSearchInput): string {
 }
 
 /**
- * Les annonces d'un hôte. Détail lu : un logement réservable, une annonce,
- * avec son total exact. Détail non lu (échéance) : une annonce pour l'hôte,
- * prix non publié (`total: 0`) — le filtre de l'écran la compte comme telle.
- * Un logement non réservable aux dates n'est pas une offre : il est écarté.
+ * Les annonces d'un hôte. Détail lu : un logement réservable et gardé (maison,
+ * appartement, chalet, villa, gîte), une annonce, avec son total exact. Détail
+ * non lu (échéance, refus) : une annonce pour l'hôte, prix non publié
+ * (`total: 0`), seulement si tous ses logements sont gardés — sinon elle
+ * pourrait être une chambre d'hôtes. Un logement non réservable aux dates
+ * n'est pas une offre : il est écarté.
  */
 export function greengoListings(
   hote: HoteGreenGo,
@@ -216,6 +353,7 @@ export function greengoListings(
     proven: `GreenGo live ${input.checkIn}→${input.checkOut}`,
   };
   if (logements == null) {
+    if (!hotePur(hote)) return [];
     return [
       {
         ...commun,
@@ -224,7 +362,7 @@ export function greengoListings(
         total: 0,
         priceIndicative: hote.minParNuit != null ? true : null,
         priceLabel: hote.minParNuit != null ? `dès ${hote.minParNuit} € la nuit` : null,
-        guests: null,
+        guests: hote.capacite,
         bedrooms: null,
         photo: hote.photos[0] ?? null,
         photos: hote.photos.length ? hote.photos : null,
@@ -234,7 +372,7 @@ export function greengoListings(
   }
   const plusieurs = logements.length > 1;
   return logements
-    .filter((u) => u.reservable)
+    .filter((u) => u.reservable && logementGarde(u.type, hote))
     .map((u) => {
       const photos = u.photos.length ? u.photos : hote.photos;
       const titre = plusieurs && u.nom && u.nom !== hote.nom ? `${hote.nom} — ${u.nom}` : hote.nom;
@@ -250,6 +388,7 @@ export function greengoListings(
         bedrooms: u.chambres,
         beds: u.lits,
         baths: u.sdb,
+        propertyType: libelleType(u.type),
         photo: photos[0] ?? null,
         photos: photos.length ? photos : null,
         platformId: u.id,

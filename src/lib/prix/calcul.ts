@@ -9,8 +9,10 @@
  *  Chargé tel quel par `node --experimental-strip-types` : imports relatifs
  *  avec leur extension, types en `import type`, aucun alias `@/`. */
 
+import { attachAccess } from "../access.ts";
 import { UNNAMED_DOMAIN } from "../classeur.ts";
 import type { Listing } from "../listings.ts";
+import type { ArretFiches } from "../scrape/airbnbFiches.ts";
 import type { SourceReport } from "../scrape/types.ts";
 import type { Station } from "../stations.ts";
 import { dm, eur, fmt, nuitsLbl, travLbl } from "../parcours.ts";
@@ -29,9 +31,12 @@ import {
 } from "../stay/lodgingFilter.ts";
 import { nearestStationLift } from "../remontees.ts";
 import { stationById } from "../stations.ts";
-import { regrouper } from "../stay/regroupement.ts";
+import { cleListing } from "../stay/poserReleve.ts";
+import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
+import { recopierSoeurs } from "../stay/recopie.ts";
+import { regrouper, type Logement } from "../stay/regroupement.ts";
 import { estOffreGitesVerifiee } from "../stay/tarif.ts";
-import { maxM, villageM } from "../v7.ts";
+import { maxM, prixLbl, villageM } from "../v7.ts";
 
 export const MIN_ANNONCES = 5;
 /** `STAY_BOUNDS.nights` de `parcours.ts`, recopié pour garder le module pur. */
@@ -167,7 +172,32 @@ export function dansLaStation(
   return m != null && m <= maxM;
 }
 
-type Crible = { retenues: Listing[]; muettes: number; petits: number };
+type Crible = {
+  /** Un logement, une offre : la moins chère de chacun. */
+  retenues: Listing[];
+  /** Toutes les offres retenues, avant le regroupement par logement. */
+  offres: Listing[];
+  muettes: number;
+  petits: number;
+};
+
+/**
+ * Ce que `cribler` exige d'une annonce avant sa position et sa capacité :
+ * offre réelle (offre Gîtes vérifiée, fiche trouvée), pas un repli sur le
+ * relevé figé, en euros, pas un « à partir de », dans la zone de la station
+ * (domaine, territoire, 12 km), et tarifée récemment pour exactement ce
+ * séjour. La complétion (`aCompleter`) part du même prédicat : une annonce
+ * qu'elle complète est une annonce que la médiane pourra compter.
+ */
+function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
+  if (estFicheGitesIntrouvable(l) || !estOffreGitesVerifiee(l)) return false;
+  if (REPLI.test(l.proven ?? "")) return false;
+  if (l.currency !== "EUR") return false;
+  if (l.priceIndicative) return false;
+  if (geoReasonFor(l, RAYON_DEFAUT_KM, ctx.dept) != null) return false;
+  const stay = { checkIn: ctx.checkIn, checkOut: ctx.checkOut };
+  return availabilityOf(l, stay, ctx.now).status === "confirmed";
+}
 
 /**
  * Une annonce ne compte que si tout le reste est prouvé : offre réelle, pas
@@ -184,7 +214,6 @@ type Crible = { retenues: Listing[]; muettes: number; petits: number };
  * Muettes et petites restent des offres : elles ne sont pas proposées.
  */
 function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
-  const stay = { checkIn: ctx.checkIn, checkOut: ctx.checkOut };
   const criteres = { travelers: ctx.groupe.trav, rooms: ctx.groupe.rooms };
   const vus = new Set<string>();
   const retenues: Listing[] = [];
@@ -193,16 +222,11 @@ function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
 
   for (const brute of listings) {
     const l = enrichirListing(brute);
-    if (estFicheGitesIntrouvable(l) || !estOffreGitesVerifiee(l)) continue;
-    if (REPLI.test(l.proven ?? "")) continue;
-    if (l.currency !== "EUR") continue;
-    if (l.priceIndicative) continue;
-    if (geoReasonFor(l, RAYON_DEFAUT_KM, ctx.dept) != null) continue;
+    if (!offreRecevable(l, ctx)) continue;
     if (!gpsPrecis(l)) continue;
     // Le rayon de 12 km garde la vallée entière : un logement de station est
     // bien plus près d'une remontée. Écarté ici, il n'entre dans aucun compte.
     if (!dansLaStation(l)) continue;
-    if (availabilityOf(l, stay, ctx.now).status !== "confirmed") continue;
     // Une même annonce rendue deux fois ne compte qu'une fois.
     if (vus.has(l.id)) continue;
     vus.add(l.id);
@@ -213,13 +237,31 @@ function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
     else petits += 1;
   }
 
-  return { retenues: regrouper(retenues).map((g) => g.principale), muettes, petits };
+  return {
+    retenues: regrouper(retenues).map((g) => g.principale),
+    offres: retenues,
+    muettes,
+    petits,
+  };
 }
 
 /** Les annonces que la médiane compte, enrichies : l'onglet « Par budget » ne
  *  propose que celles-là, pour qu'un logement affiché soit un logement mesuré. */
 export function retenir(listings: readonly Listing[], ctx: ContexteReleve): Listing[] {
   return cribler(listings, ctx).retenues;
+}
+
+/**
+ * Toutes les offres retenues, un logement vendu sur trois plateformes donnant
+ * ses trois offres. La médiane n'en compte que la moins chère (`retenir`) ;
+ * l'onglet budget les garde toutes pour dire, comme Logements, où d'autre le
+ * même logement se loue et à quel prix (`logementsBudget`). Sans elles, un
+ * appartement vendu moins cher sur Booking ne montrait jamais son offre
+ * Airbnb : à Albiez-Montrond, le 25 septembre 2026, la seule Airbnb de la
+ * station n'apparaissait nulle part.
+ */
+export function retenirOffres(listings: readonly Listing[], ctx: ContexteReleve): Listing[] {
+  return cribler(listings, ctx).offres;
 }
 
 /** Ce qu'un relevé donne pour une station : la médiane des totaux publiés pour
@@ -421,10 +463,202 @@ export function resultatDuReleve(input: EntreeReleve): Resultat {
   return { etat: "fait", ...agreger(input.listings, contexte(input)), ts: input.now, partiel };
 }
 
-/** Les annonces que ce relevé retient, photos bornées ; aucune s'il a échoué. */
+/** Les offres que ce relevé retient, toutes plateformes, photos bornées ;
+ *  aucune s'il a échoué. L'onglet budget les regroupe par logement. */
 export function annoncesDuReleve(input: EntreeReleve): AnnonceRetenue[] {
   if (echoue(input, sourcesEnDefaut(input.sources, input.partsEchouees))) return [];
-  return retenir(input.listings, contexte(input)).map(compacter);
+  return retenirOffres(input.listings, contexte(input)).map(compacter);
+}
+
+/* ---------- Complétion des relevés ---------- */
+
+/** Ce qui manque encore à une annonce pour être jugée : sa position, sa
+ *  capacité, ou ses chambres (à défaut ses pièces, `normalizedBedrooms`). */
+export function manqueFiche(l: Listing): boolean {
+  return !gpsPrecis(l) || l.guests == null || normalizedBedrooms(l) == null;
+}
+
+/**
+ * Les annonces d'un relevé que la complétion cherche à compléter : celles
+ * que `cribler` garderait jusqu'au prix confirmé (`offreRecevable`), sans
+ * exiger ni position ni capacité, et auxquelles il manque la position, la
+ * capacité ou les chambres. Une annonce déjà trop petite pour le groupe ne se
+ * complète pas : rien ne la ferait compter. Une position connue se juge : à
+ * plus de 2 km d'une remontée, compléter le reste ne la ferait pas compter
+ * non plus. Les moins chères d'abord : ce sont elles que l'onglet budget
+ * propose en premier.
+ */
+export function aCompleter(listings: readonly Listing[], ctx: ContexteReleve): Listing[] {
+  const criteres = { travelers: ctx.groupe.trav, rooms: ctx.groupe.rooms };
+  const vus = new Set<string>();
+  const out: Listing[] = [];
+  for (const brute of listings) {
+    const l = enrichirListing(brute);
+    if (!offreRecevable(l, ctx)) continue;
+    if (gpsPrecis(l) && !dansLaStation(l)) continue;
+    if (vus.has(l.id)) continue;
+    vus.add(l.id);
+    if (!manqueFiche(l)) continue;
+    if (partyVerdict(l, criteres) === "trop-petit") continue;
+    out.push(l);
+  }
+  return out.sort((a, b) => a.total - b.total);
+}
+
+/** Une annonce à compléter, telle que la complétion l'envoie au serveur : de
+ *  quoi trouver sa fiche et dire ce qui lui manque, rien de plus. */
+export type CandidateFiche = Pick<
+  Listing,
+  "id" | "source" | "title" | "url" | "lat" | "lon" | "guests" | "bedrooms" | "total" | "currency" | "proven"
+> & {
+  /** `cleListing` : la clé de la mémoire des fiches. */
+  cle: string | null;
+  platformId: string | null;
+  rooms: number | null;
+  beds: number | null;
+  locality: string | null;
+};
+
+export function versCandidate(l: Listing): CandidateFiche {
+  return {
+    id: l.id,
+    cle: cleListing(l),
+    source: l.source,
+    title: l.title,
+    url: l.url,
+    platformId: l.platformId ?? null,
+    lat: l.lat,
+    lon: l.lon,
+    guests: l.guests,
+    bedrooms: l.bedrooms,
+    rooms: l.rooms ?? null,
+    beds: l.beds ?? null,
+    total: l.total,
+    currency: l.currency,
+    proven: l.proven,
+    locality: l.locality ?? null,
+  };
+}
+
+/** Une annonce complète du relevé, pour la mémoire des fiches. */
+export type FicheConnue = {
+  cle: string;
+  guests: number;
+  bedrooms: number | null;
+  rooms: number | null;
+  lat: number;
+  lon: number;
+};
+
+/** Les annonces complètes (position, capacité, chambres ou pièces) d'un
+ *  relevé, toutes sources, une par clé : ce que la source publie ici comble
+ *  demain la même annonce ailleurs. Un repli sur le relevé figé n'en est pas. */
+export function connuesDuReleve(listings: readonly Listing[]): FicheConnue[] {
+  const vues = new Set<string>();
+  const out: FicheConnue[] = [];
+  for (const brute of listings) {
+    if (REPLI.test(brute.proven ?? "")) continue;
+    const l = enrichirListing(brute);
+    if (manqueFiche(l) || l.guests == null || l.lat == null || l.lon == null) continue;
+    const cle = cleListing(l);
+    if (!cle || vues.has(cle)) continue;
+    vues.add(cle);
+    out.push({
+      cle,
+      guests: l.guests,
+      bedrooms: l.bedrooms,
+      rooms: l.rooms ?? null,
+      lat: l.lat,
+      lon: l.lon,
+    });
+  }
+  return out;
+}
+
+/** Les URL de fiche que plusieurs annonces du relevé portent : jamais
+ *  ouvertes comme la fiche de l'une d'elles (`urlsPartagees`). Sur le relevé
+ *  entier, pas sur les seules candidates. */
+export function urlsCommunesDuReleve(listings: readonly Listing[]): string[] {
+  return [...urlsPartagees(listings, urlPropre)];
+}
+
+/** Ce qu'une tranche de complétion rend, à poser sur les annonces du relevé. */
+export type Correctifs = {
+  correctifs: Readonly<Record<string, Partial<Listing>>>;
+  retires: readonly string[];
+};
+
+/** Ce qu'un correctif peut changer : les trous comblés, et la trace de la
+ *  fiche. Jamais le prix publié : la médiane ne mêlerait plus des totaux
+ *  avec et sans taxe de séjour. Rien d'autre ne passe. */
+const CHAMPS_CORRIGES = [
+  "guests",
+  "bedrooms",
+  "rooms",
+  "lat",
+  "lon",
+  "locality",
+  "title",
+  "proven",
+] as const satisfies readonly (keyof Listing)[];
+
+/**
+ * Les annonces du relevé, correctifs posés. Une annonce retirée (Airbnb :
+ * hôtel, chambre, insolite) sort. Une position nouvelle se mesure aussitôt
+ * (`attachAccess`) : sans sa remontée, la règle des 2 km l'écarterait.
+ */
+export function appliquerCorrectifs(
+  listings: readonly Listing[],
+  c: Correctifs,
+  station: Station | undefined,
+): Listing[] {
+  const retires = new Set(c.retires);
+  const out: Listing[] = [];
+  for (const l of listings) {
+    if (retires.has(l.id)) continue;
+    const corr = c.correctifs[l.id];
+    if (!corr) {
+      out.push(l);
+      continue;
+    }
+    const next: Listing = { ...l };
+    for (const k of CHAMPS_CORRIGES) {
+      if (k in corr) (next as Record<string, unknown>)[k] = corr[k];
+    }
+    const deplace = next.lat !== l.lat || next.lon !== l.lon;
+    out.push(deplace && station ? attachAccess(next, station) : next);
+  }
+  return out;
+}
+
+/**
+ * Les arrêts d'une tranche de fiches Airbnb après lesquels plus aucune fiche
+ * Airbnb ne part de la course : un refus d'Airbnb, ou le coupe-circuit qu'un
+ * refus a ouvert (protocole 429 : jamais de reprise), et les pannes qui ne
+ * se répareront pas d'ici la fin (clé, worker, format illisible). `rythme` et
+ * `echeance` se reprennent à la tranche suivante ; `hash` passe par les pages
+ * `rooms/`.
+ */
+export function airbnbSuspendu(arret: ArretFiches | null | undefined): boolean {
+  return (
+    arret === "refus" ||
+    arret === "coupe-circuit" ||
+    arret === "illisible" ||
+    arret === "cle" ||
+    arret === "worker"
+  );
+}
+
+/** Un refus d'Airbnb, lu ou déjà en cours : ce que le bandeau doit dire. */
+export function airbnbARefuse(arret: ArretFiches | null | undefined): boolean {
+  return arret === "refus" || arret === "coupe-circuit";
+}
+
+/** Ce que les offres d'un même logement se recopient (`recopierSoeurs`),
+ *  sur les annonces réelles du relevé. */
+export function recopieDuReleve(listings: readonly Listing[]): Correctifs {
+  const reelles = listings.filter((l) => !REPLI.test(l.proven ?? "")).map(enrichirListing);
+  return { correctifs: Object.fromEntries(recopierSoeurs(reelles)), retires: [] };
 }
 
 /* ---------- Filtres ---------- */
@@ -1154,6 +1388,69 @@ export function filtrerCartes(
   return [...gardees.values()].filter((c): c is CarteAnnonce => c != null);
 }
 
+/**
+ * Les logements de toutes les annonces relevées, comme dans Logements : un
+ * logement vendu sur plusieurs plateformes réunit ses offres
+ * (`regroupement.ts`). L'identité se calcule ici, avant les critères : calculée
+ * après eux, elle changeait avec eux, un critère qui écartait l'une des deux
+ * annonces d'un titre ambigu faisant réunir les autres. Une annonce sortie des
+ * relevés de deux stations n'y entre qu'une fois.
+ */
+export function logementsReleves(avant: readonly CarteAnnonce[]): Logement[] {
+  const uniques = new Map<string, Listing>();
+  for (const c of avant) if (!uniques.has(c.a.id)) uniques.set(c.a.id, c.a);
+  return regrouper([...uniques.values()]);
+}
+
+/** Un logement de l'onglet budget : ses offres qui passent les critères, la
+ *  moins chère en tête, chacune avec la station dont le relevé la montre. */
+export type LogementBudget = { principale: CarteAnnonce; offres: CarteAnnonce[] };
+
+/**
+ * Une carte par logement. Les critères retirent des offres à l'intérieur de
+ * chaque logement (`filtrees`, rendu par `filtrerCartes`), et la moins chère
+ * de celles qui restent se montre ; chaque offre garde la carte que
+ * `filtrerCartes` a choisie pour elle. Les relevés faits avant le 25 septembre
+ * 2026 au soir n'ont gardé qu'une offre par logement : chacune y reste seule.
+ */
+export function logementsBudget(
+  groupes: readonly Logement[],
+  filtrees: readonly CarteAnnonce[],
+): LogementBudget[] {
+  const passe = new Map(filtrees.map((c) => [c.a.id, c] as const));
+  const out: LogementBudget[] = [];
+  for (const g of groupes) {
+    const offres = g.offres
+      .map((o) => passe.get(o.id))
+      .filter((c): c is CarteAnnonce => c != null);
+    const [principale] = offres;
+    if (principale) out.push({ principale, offres });
+  }
+  return out;
+}
+
+/** Le logement tel que le volet de Logements le lit. */
+export function versLogement(g: LogementBudget): Logement {
+  return { principale: g.principale.a, offres: g.offres.map((o) => o.a) };
+}
+
+/** L'étiquette de la carte : « Booking + 1 · Albiez-Montrond ». La liste mêle
+ *  plusieurs stations, et la carte de Logements n'a pas d'autre place pour
+ *  nommer celle du relevé. */
+export function sourcesBudget(g: LogementBudget): string {
+  const autres = g.offres.length - 1;
+  const src = autres > 0 ? `${g.principale.a.source} + ${autres}` : g.principale.a.source;
+  return `${src} · ${g.principale.stationNom}`;
+}
+
+/** « Aussi sur Airbnb (3 061,00 €) », pour l'infobulle de l'étiquette, comme
+ *  dans Logements ; rien pour un logement vendu sur une seule plateforme. */
+export function autresBudget(g: LogementBudget): string | null {
+  const autres = g.offres.slice(1);
+  if (autres.length === 0) return null;
+  return `Aussi sur ${autres.map((o) => `${o.a.source} (${prixLbl(o.a)})`).join(", ")}`;
+}
+
 /** « 12 logements dans 3 stations », « 0 logement ». */
 export function countBudget(nAnnonces: number, nStations: number): string {
   const n = plur(nAnnonces, "logement", "logements");
@@ -1261,6 +1558,41 @@ export function idsALancer(
   if (course && meme(course)) for (const id of course.ids) prevus.add(id);
   for (const j of file) if (meme(j)) for (const id of j.ids) prevus.add(id);
   return ids.filter((id) => !prevus.has(id));
+}
+
+/** Ce que le relevé d'une station rend à la boucle (`releve.ts`). */
+export type ReleveRendu = {
+  resultat: Resultat;
+  /** L'application ne répondait plus : la course s'abandonne, rien ne s'écrit. */
+  injoignable: boolean;
+  /**
+   * Les cinq parts se sont rendues avant tout arrêt de la course : un
+   * « Arrêter » venu ensuite est tombé pendant la complétion, ou après.
+   */
+  partsRendues: boolean;
+};
+
+/**
+ * Ce que la boucle écrit du relevé d'une station : `fait`, la médiane et les
+ * annonces retenues ; `echec`, l'échec, qui retire les annonces d'un relevé
+ * plus ancien de la même clé ; `null`, rien.
+ *
+ * `enCours` : la course qui l'a lancé est toujours celle en vol. Arrêtée
+ * pendant ses parts, la station n'écrit rien. Arrêtée pendant la complétion,
+ * ses cinq parts rendues, elle écrit sa médiane, avec ce que les tranches ont
+ * posé : sa clé (période, groupe, station) est la sienne, pas celle de la
+ * course suivante. Une course arrêtée n'écrit jamais d'échec, et un échec ne
+ * remplace jamais une médiane.
+ */
+export function ecritureDuReleve(
+  lu: ReleveRendu,
+  ancien: Resultat | undefined,
+  enCours: boolean,
+): "fait" | "echec" | null {
+  if (lu.injoignable) return null;
+  if (!enCours) return lu.partsRendues && lu.resultat.etat === "fait" ? "fait" : null;
+  if (lu.resultat.etat === "fait") return "fait";
+  return ancien?.etat === "fait" ? null : "echec";
 }
 
 /** Garde les `max` résultats les plus récents. Rend l'objet d'origine quand

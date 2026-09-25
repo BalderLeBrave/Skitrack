@@ -14,10 +14,12 @@ from typing import Any
 NIGHTLY = re.compile(r"/\s*nuit|par\s+nuit|nightly|per\s+night", re.I)
 FROM_PRICE = re.compile(r"(?:à|a)\s+partir\s+de", re.I)
 STAY_MARK = re.compile(r"au\s+total|pour\s+\d+\s+nuits?|total\s+(?:price|stay)", re.I)
+# L'apostrophe typographique (’) compte : Airbnb l'écrit dans ses libellés, et
+# « Chambre dans maison d’hôtes » passait.
 PRIVATE = re.compile(
-    r"chambre d[' ]?hotes|maison d[' ]?hotes|private[ _-]?room|chambre privee|"
-    r"shared[ _-]?room|chambre partage|bed[- ]and[- ]breakfast|hotel_room|"
-    r"chambre d[' ]?hotel",
+    r"chambre d['’ ]?hotes|maison d['’ ]?hotes|private[ _-]?room|chambre privee|"
+    r"shared[ _-]?room|chambre partage|bed[- ]and[- ]breakfast|hotel[ _]room|"
+    r"chambre d['’ ]?hotel",
     re.I,
 )
 HOTEL_TILE = re.compile(r"^h[oô]tels?\b", re.I)

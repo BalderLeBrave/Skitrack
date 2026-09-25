@@ -35,6 +35,24 @@
  * 2,06, l'Alpe d'Huez de 2,00 à 2,41. Et sur trois nuits à Sainte-Foy,
  * l'appartement Soldanelle tombe de 2 259,58 € à 865,82 €. Un « à partir de »
  * ne ferait rien de tout cela.
+ *
+ * **Ce que le catalogue dit du logement, et ce qu'il ne dit pas.** Relevé du
+ * 25 septembre 2026 sur les dix catalogues du registre, 2 376 hébergements :
+ *
+ * - le point est en haut (`lat`, `lng`) et répété à l'identique dans
+ *   `location` — aucun hébergement n'a de point valide dans `location` seul ;
+ *   quatre n'en ont aucun, deux vides et deux écrits `0, 0` aux deux niveaux ;
+ * - la capacité est `maxCapacity`. Elle vaut zéro pour 305 hébergements,
+ *   dont 152 sur 955 à l'Alpe d'Huez, 84 sur 121 à Vars et 62 sur 369 à
+ *   Flaine ; le titre la porte alors le plus souvent (« 2 pièces - 6 pers. »,
+ *   « 4 couchages »), et `annoncer` l'y lit ;
+ * - le nombre de pièces est `nbRooms`, à zéro pour 398 hébergements, dont des
+ *   deux- et cinq-pièces : zéro y veut dire « vide » ;
+ * - **aucune clé ne compte les chambres.** Ni en haut, ni dans
+ *   `accommodation`, ni dans `location`. Elles ne sont écrites que dans le
+ *   titre ou la description libre ;
+ * - `kind` classe l'hébergement : `MEUBLE`, `RESIDENCE`, `HOUSE`, `HOTEL`,
+ *   `CAMPING`, `CHAMBRE_HOTE` (voir `KINDS_LOCATION_MSEM`).
  */
 
 /** Un hébergement du catalogue, réduit à ce dont on se sert. */
@@ -42,6 +60,12 @@ export type HebergementMsem = {
   id: number | string;
   name?: string;
   slug?: string | null;
+  /**
+   * La nature de l'hébergement selon la centrale. Valeurs relevées le
+   * 25 septembre 2026 sur les dix catalogues : `MEUBLE` (2 241), `RESIDENCE`
+   * (71), `HOTEL` (52), `CAMPING` (9), `CHAMBRE_HOTE` (2) et `HOUSE` (1).
+   */
+  kind?: string | null;
   maxCapacity?: number | null;
   /**
    * Nombre de **pièces**, pas de chambres.
@@ -166,6 +190,84 @@ function positifOuRien(v: unknown): number | null {
   return n != null && n > 0 ? n : null;
 }
 
+/**
+ * Les natures d'hébergement retenues : la location, et rien d'autre.
+ *
+ * Consigne du propriétaire : maisons, appartements, chalets, gîtes meublés,
+ * résidences de location ; ni hôtel, ni chambre d'hôtes, ni camping, ni
+ * refuge, ni hébergement insolite. Relevé du 25 septembre 2026 sur les dix
+ * catalogues :
+ *
+ * - `HOTEL` range des hôtels (« Le Castillan », capacité 73, celle de tout
+ *   l'établissement), des appart'hôtels (« Appart'Hôtel Prestige Odalys
+ *   L'Eclose ») et des villages clubs en pension complète (« Village Club
+ *   MMV Le Flaine **** - Pension complète - Chambre 3 Personnes ») ;
+ * - `CAMPING` range, au Pays des Écrins, les emplacements, les mobil-homes,
+ *   les « Refuge - Esprit cabane » et le kota du camping-caravaneige de
+ *   l'Iscle de Prelles ;
+ * - `CHAMBRE_HOTE` range « Chalet Hysope » et « Le Clot Saint Joseph
+ *   Chambres d'hôtes ».
+ *
+ * Ces trois natures sont écartées. Restent `MEUBLE`, `RESIDENCE` (« Pierre &
+ * Vacances L'Ours Blanc - 2 pièces - 4 personnes ») et `HOUSE`, vue une fois
+ * à Isola 2000, sur un studio loué meublé.
+ *
+ * Une nature inconnue est écartée : la liste est celle de ce qu'on garde, et
+ * le journal nomme ce qui est écarté. Une nature absente ne l'est pas — aucun
+ * hébergement relevé n'en manque, et l'absence ne dit pas que c'est un hôtel.
+ */
+export const KINDS_LOCATION_MSEM: readonly string[] = ["MEUBLE", "RESIDENCE", "HOUSE"];
+
+/**
+ * Un nom de camping, sous une nature de location.
+ *
+ * Le camping de l'Iscle de Prelles range ses emplacements et ses mobil-homes
+ * sous `CAMPING`, mais ses chalets sous `MEUBLE` / `CHALET` : « Camping-
+ * Caravaneige l'Iscle de Prelles *** - Chalet Grand Confort Type Modulo 28 ».
+ * Seul le nom le dit, et c'est le seul cas relevé sur les dix catalogues.
+ * Seul le mot « camping » est lu : « refuge » nomme aussi des appartements
+ * (« LE REFUGE DU BALCON - LES AROLLES-3 pièces », à Villard-de-Lans).
+ */
+const NOM_CAMPING_MSEM = /\bcamping\b/i;
+
+/**
+ * Pourquoi un hébergement n'est pas de la location, ou `null` s'il en est :
+ * sa nature quand elle n'est pas dans `KINDS_LOCATION_MSEM`, sinon un nom de
+ * camping. C'est ce motif que le journal compte.
+ */
+export function motifHorsLocationMsem(h: Pick<HebergementMsem, "kind" | "name">): string | null {
+  if (h.kind != null && h.kind !== "" && !KINDS_LOCATION_MSEM.includes(h.kind)) return h.kind;
+  if (typeof h.name === "string" && NOM_CAMPING_MSEM.test(h.name)) return "nom de camping";
+  return null;
+}
+
+/** L'hébergement est-il de la location, selon sa nature déclarée et son nom ? */
+export function estLocationMsem(h: Pick<HebergementMsem, "kind" | "name">): boolean {
+  return motifHorsLocationMsem(h) == null;
+}
+
+/**
+ * Les offres écartées parce que l'hébergement n'est pas de la location,
+ * comptées par motif : c'est ce que le journal dit de la consigne.
+ */
+export function horsLocationMsem(
+  catalogue: CatalogueMsem | null,
+  offres: OffresMsem | null,
+): Record<string, number> {
+  const par = new Map<string, HebergementMsem>();
+  for (const h of catalogue?.accomodations ?? []) {
+    if (h?.id != null) par.set(String(h.id), h);
+  }
+  const out: Record<string, number> = {};
+  for (const id of Object.keys(offres ?? {})) {
+    const h = par.get(id);
+    const motif = h ? motifHorsLocationMsem(h) : null;
+    if (motif == null) continue;
+    out[motif] = (out[motif] ?? 0) + 1;
+  }
+  return out;
+}
+
 /** Arrondi au centime : la centrale rend des flottants, et 3651,2 en vaut 3651,2000000000003. */
 function euros(v: unknown): number | null {
   const n = nombre(v);
@@ -226,6 +328,9 @@ function photos(h: HebergementMsem): string[] {
  * a répondu pour ces dates ; que son montant manque ou vaille zéro est un
  * renseignement, pas une raison de supprimer l'annonce. Le total vaut alors
  * zéro, ce qui se lit « listée sans prix » partout ailleurs dans le dépôt.
+ *
+ * **Un hôtel, un camping ou une chambre d'hôtes n'est pas rendu**, prix ou
+ * pas (`estLocationMsem`) : la centrale les vend, ce n'est pas de la location.
  */
 export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem | null): FicheMsem[] {
   const par = new Map<string, HebergementMsem>();
@@ -236,6 +341,7 @@ export function joindreMsem(catalogue: CatalogueMsem | null, offres: OffresMsem 
   for (const [id, offre] of Object.entries(offres ?? {})) {
     const h = par.get(id);
     if (!h) continue;
+    if (!estLocationMsem(h)) continue;
     const titre = typeof h.name === "string" ? h.name.trim() : "";
     if (!titre) continue;
     const total = euros(offre?.price);

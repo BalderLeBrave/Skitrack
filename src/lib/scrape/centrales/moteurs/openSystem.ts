@@ -28,9 +28,27 @@
  * **Deux limites, qui ne se cachent pas.** La centrale rend cinquante fiches au
  * plus par page, et sa pagination ne répond pas en requête simple : les quatre
  * premiers index rendent tous la même page. Le relevé est donc un plancher, pas
- * un inventaire. La capacité n'est lue que si le titre ou l'adresse la portent
- * en clair ; sinon `guests` et `bedrooms` restent vides, ce que l'écran sait dire.
+ * un inventaire.
+ *
+ * **Ce que la liste publie déjà sur le logement.** Relevé du 25 septembre 2026
+ * à Haute Maurienne Vanoise, du 6 au 13 février 2027 : chaque meublé porte,
+ * au-dessus de son prix, un bloc `InfoProduit` avec son type (« Appartement 4
+ * pièces », « Studio », « Gîte 2 pièces », « Maison individuelle », « Chalet »)
+ * et sa capacité (« Capacité : 4 pers. »). Cent fiches sur cent dans les
+ * appartements de particuliers, à quatre et à six personnes ; quarante-six sur
+ * cinquante dans ceux de professionnels, à quatre. Les hôtels, quatre
+ * résidences et les cabanes et yourtes n'ont pas ce bloc.
+ *
+ * La capacité n'est pas l'écho du nombre demandé. À quatre personnes, les
+ * cinquante fiches valent 4 ; à six, cinquante autres valent 6, et aucune n'est
+ * dans les deux listes : le moteur ne rend que des lots de cette capacité, ou
+ * les trie par capacité croissante sous son plafond de cinquante. La fiche du
+ * « Bois Joli », ouverte sans nombre de personnes, dit aussi « Capacité 4
+ * pers. ». Les chambres, elles, ne sont publiées nulle part en champ propre,
+ * ni dans la liste ni dans la fiche d'un meublé.
  */
+
+import { jugerLogement, typeInconnu } from "../regleTypes.ts";
 
 /** Une fiche telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheOpenSystem = {
@@ -83,6 +101,16 @@ export type FicheOpenSystem = {
    * centrale et jeté par le connecteur.
    */
   classement: string | null;
+  /**
+   * Le type publié dans le bloc `InfoProduit`, tel quel : « Appartement 4
+   * pièces », « Studio », « Maison individuelle ». `null` sans ce bloc, ce qui
+   * est le cas des hôtels, des résidences de tourisme et de l'insolite.
+   */
+  type: string | null;
+  /** « Capacité : 4 pers. », du même bloc. Jamais lue dans le titre ni la description. */
+  capacite: number | null;
+  /** Les pièces que le type écrit : « Appartement 4 pièces » → 4. Un studio n'en écrit pas. */
+  pieces: number | null;
 };
 
 export type DemandeOpenSystem = {
@@ -255,6 +283,130 @@ function photo(fragment: string): string | null {
   return src.startsWith("//") ? `https:${src}` : src;
 }
 
+/** Un entier publié, de 1 à 50 ; au-delà, ce n'est plus un logement. */
+function entierPublie(s: string | undefined): number | null {
+  const n = Number(s);
+  return Number.isInteger(n) && n >= 1 && n <= 50 ? n : null;
+}
+
+/**
+ * Le bloc `InfoProduit` d'une fiche : type, capacité, pièces.
+ *
+ * Relevé du 25 septembre 2026 :
+ *
+ *     <div class="InfoProduit col-12 px-0 pb-1 mb-auto">
+ *       <ul class="li-inline">
+ *         <li>Appartement 4 pièces </li>
+ *         <li><strong>Capacité : </strong>4 pers.</li>
+ *       </ul>
+ *     </div>
+ *
+ * Le type est l'élément sans libellé en gras ; la capacité, celui dont le
+ * libellé dit « Capacité ». Les commentaires sont ôtés d'abord : le gabarit en
+ * garde des morceaux entiers en commentaire. Ni le titre, ni la description,
+ * ni le texte d'une photo ne sont lus ici.
+ */
+export function infoProduitOpenSystem(fragment: string): {
+  type: string | null;
+  capacite: number | null;
+  pieces: number | null;
+} {
+  const propre = fragment.replace(/<!--[\s\S]*?-->/g, " ");
+  const bloc = /class="InfoProduit\b[^"]*"[^>]*>([\s\S]*?)<\/ul>/.exec(propre);
+  if (!bloc) return { type: null, capacite: null, pieces: null };
+  let type: string | null = null;
+  let capacite: number | null = null;
+  for (const li of (bloc[1] ?? "").matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/g)) {
+    const brut = li[1] ?? "";
+    const texte = texteOpenSystem(brut);
+    const cap = /^Capacit[ée]\s*:\s*(\d{1,2})\s*pers\b/i.exec(texte);
+    if (cap) {
+      capacite ??= entierPublie(cap[1]);
+      continue;
+    }
+    if (!/<strong\b/i.test(brut) && texte) type ??= texte;
+  }
+  const pi = type ? /\b(\d{1,2})\s*pi[eè]ces?\b/i.exec(type) : null;
+  return { type, capacite, pieces: pi ? entierPublie(pi[1]) : null };
+}
+
+/**
+ * La règle du propriétaire (`regleTypes.ts`), sur ce que la liste publie. Rend
+ * le motif d'écart, ou `null` quand la fiche est gardée.
+ *
+ * - **Un type publié est jugé par la règle commune** ; un type qu'elle ne
+ *   connaît pas est gardé (`appliquerRegleOpenSystem` le nomme au journal).
+ * - **Sans type publié, la rubrique décide.** Au relevé du 25 septembre 2026,
+ *   les seules fiches sans bloc `InfoProduit` sont deux hôtels (« La cle des
+ *   champs », dont la fiche compte « Nombre de chambres 9 », et l'« Hôtel
+ *   Valfréjus Vacances »), les « Cabanes & Yourtes de Montagne » et quatre
+ *   résidences (« Les Valmonts de Val Cenis », trois « Balcons »). Rien dans
+ *   leur fiche de liste ne les distingue. La centrale, elle, les range : les
+ *   quatre résidences paraissent sous « appartements de professionnels », les
+ *   hôtels et les cabanes jamais. Une fiche sans type est donc gardée quand
+ *   elle paraît sous une rubrique que la centrale déclare n'être faite que de
+ *   logements gardés (`rangeeEnLocation`), et écartée sinon.
+ * - **« Camping » dans le titre ou le chemin écarte**, même sous un type
+ *   gardé : « CAMPING LA BUIDONNIERE*** » est publié « Chalet ». L'adresse
+ *   n'est jamais lue : le « Chalet Arolle », « Gîte 3 pièces » au « Camping la
+ *   Buidonnière - n°72 », est gardé, comme le serait un appartement de la rue
+ *   du Camping. Aucun autre mot n'est cherché dans les noms : « Le Refuge », à
+ *   Bessans, est un appartement de deux pièces.
+ */
+export function horsRegleOpenSystem(
+  f: Pick<FicheOpenSystem, "type" | "titre" | "chemin">,
+  rangeeEnLocation = false,
+): string | null {
+  if (!f.type && !rangeeEnLocation) return "type non publié";
+  return jugerLogement({ type: f.type, titre: f.titre, chemin: f.chemin }).motif;
+}
+
+/**
+ * La règle appliquée à tout un relevé : les pages de chaque rubrique, et les
+ * rubriques que la centrale déclare n'être faites que de logements gardés.
+ *
+ * Rend les fiches gardées, dans l'ordre des pages ; les identités écartées par
+ * motif, chacune comptée une fois (le même hôtel paraît sous « tous » et sous
+ * sa rubrique) ; et, de même, les fiches gardées sous un type publié que la
+ * règle ne connaît pas, par type. Le dédoublonnage des fiches gardées reste à
+ * l'appelant, qui garde le moins cher.
+ */
+export function appliquerRegleOpenSystem(
+  pages: ReadonlyArray<{ chemin: string; fiches: readonly FicheOpenSystem[] }>,
+  rubriquesDeLocation: readonly string[] = [],
+): {
+  gardees: FicheOpenSystem[];
+  ecartees: Map<string, Set<string>>;
+  inconnus: Map<string, Set<string>>;
+} {
+  const sures = new Set(rubriquesDeLocation);
+  const enLocation = new Set<string>();
+  for (const p of pages) {
+    if (!sures.has(p.chemin)) continue;
+    for (const f of p.fiches) enLocation.add(f.identite);
+  }
+  const gardees: FicheOpenSystem[] = [];
+  const ecartees = new Map<string, Set<string>>();
+  const inconnus = new Map<string, Set<string>>();
+  const noter = (m: Map<string, Set<string>>, cle: string, identite: string) => {
+    const s = m.get(cle) ?? new Set<string>();
+    s.add(identite);
+    m.set(cle, s);
+  };
+  for (const p of pages) {
+    for (const f of p.fiches) {
+      const motif = horsRegleOpenSystem(f, enLocation.has(f.identite));
+      if (motif) {
+        noter(ecartees, motif, f.identite);
+        continue;
+      }
+      gardees.push(f);
+      if (f.type && typeInconnu(f.type)) noter(inconnus, f.type.trim(), f.identite);
+    }
+  }
+  return { gardees, ecartees, inconnus };
+}
+
 /**
  * L'identité d'un logement, la rubrique ôtée.
  *
@@ -307,6 +459,7 @@ export function lireOpenSystem(page: string): FicheOpenSystem[] {
       adresse,
       commune,
       classement: classementDe(fragment),
+      ...infoProduitOpenSystem(fragment),
     });
   }
   return [...par.values()];

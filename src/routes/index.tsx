@@ -104,7 +104,7 @@ const SHORTCUTS: { k: ChipKey; label: string }[] = [
   { k: "big", label: "Grands domaines · 300 km et plus" },
   { k: "high", label: "Haute altitude · sommet 3 000 m" },
   { k: "glacier", label: "Glacier" },
-  { k: "family", label: "Plus de 60 % de pistes faciles" },
+  { k: "family", label: "Au moins 60 % de pistes faciles" },
 ];
 
 /**
@@ -346,12 +346,12 @@ function Home() {
   const nuitsLues = nightsBetween(checkIn, checkOut);
   const datesInversees = nuitsLues == null || nuitsLues <= 0;
   const dira = retenue
-    ? `Rechercher ouvrira la fiche de ${retenue.name}.`
+    ? `Rechercher ouvrira la fiche de la station ${retenue.name}.`
     : preds.length
-      ? `Rechercher ouvrira ${retenues} station${retenues > 1 ? "s" : ""} sur ${all.length}, selon vos critères.`
-      : `Rechercher ouvrira les ${all.length} stations, tri par défaut.`;
+      ? `Rechercher affichera ${retenues} station${retenues > 1 ? "s" : ""} sur ${all.length}, selon vos critères.`
+      : `Rechercher affichera les ${all.length} stations, classées par kilomètres de pistes.`;
   const avertissement = datesInversees
-    ? "Le départ précède l'arrivée : la recherche posera une nuit à partir de l'arrivée."
+    ? "Le départ précède l’arrivée : la recherche portera sur une nuit, à partir de l’arrivée."
     : null;
 
   const search = () => {
@@ -462,7 +462,7 @@ function Home() {
             </h1>
             <p className="hero7__lead">
               Altitude des pistes, forfait 6 jours et total du séjour, station par station. Ce qui
-              n'est pas relevé est dit absent.
+              n’est pas relevé est signalé comme tel.
             </p>
             {hp ? <div className="hero7__fond" onClick={fermer} /> : null}
             <div className="sbar7__hote hero7__barre">
@@ -553,8 +553,8 @@ function Home() {
                        « pas de station », et l'écran le dit plutôt que de
                        laisser un panneau vide. */
                     <span className="pop7__vide">
-                      Aucune station ni massif ne porte «&nbsp;{q.trim()}&nbsp;». Le référentiel
-                      couvre {all.length} stations françaises ; la loupe ouvrira la liste filtrée sur
+                      Aucun nom de station ni de massif ne contient «&nbsp;{q.trim()}&nbsp;». La liste
+                      complète compte {all.length} stations françaises ; la loupe l’ouvrira filtrée sur
                       ce texte.
                     </span>
                   )}
@@ -629,7 +629,7 @@ function Home() {
                         P.setFilters({ v: 0, lo: 0, hi: 0 });
                       }}
                     >
-                      Indifférent
+                      Réinitialiser
                     </a>
                     <button type="button" className="btn7 btn7--encre" onClick={() => ouvrir("dates")}>
                       Choisir les dates
@@ -721,8 +721,8 @@ function Home() {
               <div>
                 <h2>Plus grands domaines</h2>
                 <p>
-                  Une station par forfait relié, classées par kilomètres de pistes. Km et remontées
-                  sont des valeurs de domaine.
+                  Une station par domaine relié, classement par kilomètres de pistes. Kilomètres et
+                  remontées sont ceux de tout le domaine.
                 </p>
               </div>
               {/* Un lien de vue, pas une remise à zéro : il emmenait les
@@ -748,7 +748,7 @@ function Home() {
             <header className="home7__tete">
               <div>
                 <h2>Par massif</h2>
-                <p>Pose le massif comme critère. La loupe ouvre la liste.</p>
+                <p>Choisissez un massif, puis cliquez sur la loupe pour voir la liste.</p>
               </div>
             </header>
             <div className="home7__massifs">
@@ -762,7 +762,7 @@ function Home() {
                 >
                   <strong>{x.m}</strong>
                   <span>
-                    {x.n} station{x.n > 1 ? "s" : ""} · sommet jusqu'à {fmt(x.hi)} m
+                    {x.n} station{x.n > 1 ? "s" : ""} · sommet jusqu’à {fmt(x.hi)} m
                   </span>
                 </button>
               ))}

@@ -47,6 +47,6 @@ export function distToGpxM(
 
 export function formatPerPerson(total: number, guests: number, devise = "EUR"): string {
   const n = pricePerPerson(total, guests);
-  if (n == null) return "—";
+  if (n == null) return "–";
   return montant(n, devise);
 }

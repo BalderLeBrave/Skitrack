@@ -82,7 +82,7 @@ describe("disponibilité : un prix daté est la seule preuve", () => {
     assert.ok(!isBookable(sansHeure, STAY, NOW));
     assert.equal(
       availabilityLabel(availabilityOf(sansHeure, STAY, NOW)),
-      "Prix de relevé, date de mesure inconnue",
+      "Prix pour ces dates, relevé non daté",
     );
   });
 
@@ -366,7 +366,7 @@ describe("filtre : ce qui sort, et pourquoi", () => {
     });
     assert.equal(
       droppedLabel(out.dropped),
-      "6 biens masqués : 1 gîte de groupe, 2 trop petits, 2 hors budget, 1 source décochée",
+      "6 biens masqués : 1 gîte de groupe, 2 trop petits, 2 hors budget, 1 issu d’une source décochée",
     );
     // Un motif unique ne répète pas son nombre.
     const unSeul = applyFilter([bien({ id: "c", total: 9000, guests: 8, bedrooms: 4 })], {
@@ -379,7 +379,7 @@ describe("filtre : ce qui sort, et pourquoi", () => {
     // Un motif venu d'ailleurs que du filtre s'additionne au total.
     assert.equal(
       droppedLabel(out.dropped, [{ singulier: "hors des 500 m", pluriel: "hors des 500 m", n: 2 }]),
-      "8 biens masqués : 1 gîte de groupe, 2 trop petits, 2 hors budget, 1 source décochée, 2 hors des 500 m",
+      "8 biens masqués : 1 gîte de groupe, 2 trop petits, 2 hors budget, 1 issu d’une source décochée, 2 hors des 500 m",
     );
   });
 

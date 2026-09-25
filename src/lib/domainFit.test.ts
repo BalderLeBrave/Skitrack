@@ -48,12 +48,32 @@ describe("domaine skiable ≠ rayon kilométrique", () => {
     const fit = domainFit(pastourelle, val());
     assert.equal(fit.nearestStationId, "bonneval-sur-arc");
     assert.equal(fit.verdict, "other");
-    assert.equal(fit.winterBarrier, "Col de l'Iseran");
+    assert.equal(fit.winterBarrier, "col de l’Iseran");
     assert.ok((fit.distToSearchedPinM ?? 0) > 4000);
     const msg = otherDomainMessage(fit, "Val d'Isère")!;
     assert.ok(msg.includes("Bonneval"));
     assert.ok(msg.includes("Iseran"));
     assert.ok(!msg.toLowerCase().includes("fornet") || msg.includes("Pas"));
+    assert.equal(
+      msg,
+      "Autre domaine : Bonneval-sur-Arc. Ce logement n’est pas à Val d'Isère : le col de l’Iseran est fermé l’hiver, et il n’y a ni liaison à ski ni route directe.",
+    );
+  });
+
+  it("le message d'autre domaine accorde la préposition au nom de la station", () => {
+    const msg = otherDomainMessage(
+      {
+        searchedId: "les-arcs",
+        nearestStationId: "valmorel",
+        nearestStationName: "Valmorel",
+        distToSearchedPinM: null,
+        distToNearestPinM: null,
+        verdict: "other",
+        winterBarrier: null,
+      },
+      "Les Arcs",
+    );
+    assert.equal(msg, "Autre domaine : Valmorel. Ce logement n’est ni aux Arcs ni sur un domaine relié en saison.");
   });
 
   it("attachAccess : pas 5000 m des remontées de Val d’Isère", () => {

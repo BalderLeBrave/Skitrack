@@ -12,7 +12,7 @@ export type CarteOrder = "km" | "v" | "lo" | "hi" | "np" | "lifts" | "n";
 
 export const CARTE_ORDERS: readonly [CarteOrder, string][] = [
   ["km", "km de pistes"],
-  ["v", "altitude village"],
+  ["v", "altitude du village"],
   ["lo", "bas des pistes"],
   ["hi", "sommet"],
   ["np", "tronçons de pistes"],
@@ -137,7 +137,7 @@ export function stationTags(station: Station): string {
   if (station.status && station.status !== "En activité") {
     bits.push(station.status.replace(/^En activité[,( ]*/, "").replace(/\)$/, ""));
   }
-  if (!station.inClasseur) bits.push("fiche Skiinfo, hors classeur");
+  if (!station.inClasseur) bits.push("fiche Skiinfo, absente de France Montagnes");
   // Le forfait n'apparaît que s'il nomme autre chose que le domaine : le
   // classeur dit « Les Trois Vallées », le catalogue « Les 3 Vallées ».
   const pass = domainForStation(station.id)?.pass;

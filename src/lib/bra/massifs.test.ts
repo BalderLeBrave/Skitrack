@@ -58,7 +58,7 @@ describe("bra massifs FR", () => {
   });
 
   it("tout code de la table est atteignable par un mot-clé", () => {
-    // `Thabor` (13) et `Orlu-Saint_Barthelemy` (72) avaient été ajoutés à
+    // `Thabor` (13) et `Orlu-Saint-Barthélemy` (72) avaient été ajoutés à
     // `MF_CODES` sans ligne de mots-clés : aucun nom ne pouvait les produire,
     // et l'ajout ne changeait rien.
     const avecCles = new Set(BRA_KEYWORDS.map(([m]) => m));

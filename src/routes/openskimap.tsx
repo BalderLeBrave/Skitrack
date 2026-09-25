@@ -28,13 +28,13 @@ function OpenSkiMapPage() {
 
   const chips: [Filter, string][] = [
     ["all", `France · ${sum.n}`],
-    ["segments", `segments · ${sum.segments}`],
-    ["km_court", `km OSM court · ${sum.km_court}`],
+    ["segments", `tronçons · ${sum.segments}`],
+    ["km_court", `km OSM inférieurs · ${sum.km_court}`],
     ["ok", `≈ Skiinfo · ${sum.ok}`],
-    ["ecart_n", `écart n · ${sum.ecart_n}`],
+    ["ecart_n", `nombre de pistes différent · ${sum.ecart_n}`],
     ["grain_domaine", `domaine OSM · ${sum.grain_domaine}`],
     ["osm_vide", `OSM sans piste · ${sum.osm_vide}`],
-    ["osm_absent", `absent · ${sum.osm_absent}`],
+    ["osm_absent", `sans domaine OSM · ${sum.osm_absent}`],
   ];
 
   return (
@@ -57,16 +57,17 @@ function OpenSkiMapPage() {
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
         <h1 className="font-display text-affiche tracking-tight">OpenSkiMap × Skiinfo</h1>
         <p className="mt-2 max-w-2xl text-corps text-muted">
-          OpenSkiMap = pistes OSM (même fond qu’OpenSnowMap). Ce n’est pas OpenSnow.com (prévisions
-          US, API partenaire). Les comptes OSM sont des tracés ; Skiinfo publie des pistes brochure.
-          On n’écrase pas le mix avec OSM.
+          OpenSkiMap reprend les pistes d’OpenStreetMap (OSM), comme OpenSnowMap. À ne pas confondre
+          avec OpenSnow.com, un service américain de prévisions. OSM compte des tracés ; Skiinfo
+          publie les pistes annoncées par la station. La répartition par couleur de Skiinfo n’est
+          jamais remplacée par celle d’OSM.
         </p>
         <div className="mt-4 overflow-x-auto rounded-surface border border-line bg-panel">
           <table className="w-full min-w-[44rem] text-left text-corps">
             <thead>
               <tr className="border-b border-line text-note text-muted">
                 <th className="px-3 py-2 font-medium">Station</th>
-                <th className="px-3 py-2 font-medium">n Skiinfo / OSM</th>
+                <th className="px-3 py-2 font-medium">Pistes Skiinfo / OSM</th>
                 <th className="px-3 py-2 font-medium">km Skiinfo / OSM</th>
                 <th className="px-3 py-2 font-medium">Alt. OSM</th>
                 <th className="px-3 py-2 font-medium">Verdict</th>

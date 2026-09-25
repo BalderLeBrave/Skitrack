@@ -29,7 +29,7 @@ export const SEARCH_PART_MS = 52_000;
 export const DEVIS_MS = 18_000;
 /** Budget réservé au total du panier Ingénie (loyer + taxe), même si le relevé a tout pris. */
 export const TARIF_MS = 18_000;
-export const PAUSE_DELAI = "Délai dépassé — relevé précédent conservé.";
+export const PAUSE_DELAI = "Délai dépassé : relevé précédent conservé.";
 
 function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>): SourceName[] {
   if (part === "airbnb") return ["Airbnb"];
@@ -114,7 +114,7 @@ export const completerReleve = createServerFn({ method: "POST" })
  * collecteurs, qu'on ne touche pas.
  *
  * Une annonce sans prix n'est pas datée : il n'y a rien à dater. Elle reste
- * « listée sans prix à ces dates », ce qui est exact — c'est ainsi qu'Airbnb
+ * « en ligne, sans prix à ces dates », ce qui est exact — c'est ainsi qu'Airbnb
  * signale qu'il ne peut pas vendre.
  */
 function dater(l: Listing, checkIn: string, checkOut: string): Listing {

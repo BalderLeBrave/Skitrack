@@ -36,13 +36,13 @@ export function formatLiftSpan(
   if (listing.liftLat == null || listing.liftLon == null) return null;
   const a = eleOf(listing.liftLat, listing.liftLon);
   if (listing.liftOtherLat == null || listing.liftOtherLon == null) {
-    return a != null ? `gare OSM ${alt(a)}` : null;
+    return a != null ? `gare à ${alt(a)}` : null;
   }
   const b = eleOf(listing.liftOtherLat, listing.liftOtherLon);
   if (a == null || b == null) return null;
   const top = Math.max(a, b);
   const bot = Math.min(a, b);
   const drop = top - bot;
-  if (drop < 40) return `gares OSM à ${alt(top)}`;
+  if (drop < 40) return `gares à ${alt(top)}`;
   return `arrivée ${alt(top)} · +${drop.toLocaleString("fr-FR")} m`;
 }

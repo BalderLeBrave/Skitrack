@@ -41,7 +41,7 @@ export const STRINGS = {
     "pass.child6": "6 jours enfant",
     "bra.official": "BRA officiel",
     "bra.internal": "indice interne",
-    "bra.risk": "Risque d'avalanche",
+    "bra.risk": "Risque d’avalanche",
     "bra.loading": "chargement du bulletin",
     "bra.unavailable": "indice indisponible",
     "bra.unreachable": "BRA officiel injoignable pour le moment.",

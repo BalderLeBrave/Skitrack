@@ -52,6 +52,7 @@ import {
   PAGE,
   PAGE_CARTES,
   PARTS,
+  partielLbl,
   passe,
   passeBudget,
   passeStationSeule,
@@ -456,7 +457,7 @@ describe("sources en défaut", () => {
   it("un refus, une pause ou un délai mettent toute source en défaut", () => {
     const motifs = [
       rapport({ source: "Airbnb", error: "HTTP 429" }),
-      rapport({ source: "Gîtes de France", error: "Délai dépassé — relevé précédent conservé." }),
+      rapport({ source: "Gîtes de France", error: "Délai dépassé : relevé précédent conservé." }),
       rapport({ source: "Abritel", note: "Cozy : timeout" }),
       rapport({ source: "Booking", error: "fetch failed" }),
       rapport({ source: "Centrale", note: "coupe-circuit ouvert" }),
@@ -1144,17 +1145,17 @@ describe("libellés", () => {
     assert.equal(relLbl(1, true), "Relever à nouveau la station");
     assert.equal(relLbl(12, true), "Relever à nouveau les 12 stations");
     assert.equal(relLbl(1, false), "Relever la station affichée");
-    assert.equal(relLbl(12, false), "Relever les 12 stations affichées");
+    assert.equal(relLbl(12, false), "Relever les 12 stations de la liste");
   });
 
   it("le nom d'une liste tient au massif et au département", () => {
-    assert.equal(nomListe(FL0), "stations affichées");
+    assert.equal(nomListe(FL0), "stations de la liste");
     assert.equal(nomListe({ ...FL0, massif: "Alpes du Nord" }), "Alpes du Nord");
     assert.equal(
       nomListe({ ...FL0, massif: "Alpes du Nord", dept: "Isère" }),
       "Alpes du Nord, Isère",
     );
-    assert.equal(nomListe({ ...FL0, km: [100, 780], avecPrix: true }), "stations affichées");
+    assert.equal(nomListe({ ...FL0, km: [100, 780], avecPrix: true }), "stations de la liste");
   });
 
   const B: Bornes = bornesPlages(STATIONS);
@@ -1175,7 +1176,7 @@ describe("libellés", () => {
       { k: "dept", lbl: "Isère" },
       { k: "avecPrix", lbl: "Avec un prix" },
       { k: "prix", lbl: "Médiane : jusqu’à 2 000 €" },
-      { k: "km", lbl: "Km de pistes : 100 km et plus" },
+      { k: "km", lbl: "Kilomètres de pistes : 100 km et plus" },
       { k: "sommet", lbl: "Sommet : 1 000 m à 2 000 m" },
       { k: "village", lbl: "Altitude du village : 1 200 m à 1 800 m" },
     ]);
@@ -1191,12 +1192,25 @@ describe("libellés", () => {
   });
 
   it("annSub nomme ce que le relevé a écarté", () => {
-    assert.equal(annSub(fait({ muettes: 5, petits: 2 })), "5 sans capacité, 2 trop petites");
+    assert.equal(
+      annSub(fait({ muettes: 5, petits: 2 })),
+      "5 sans capacité annoncée, 2 trop petites",
+    );
     assert.equal(annSub(fait({ muettes: 0, petits: 1 })), "1 trop petite");
-    assert.equal(annSub(fait({ muettes: 3, petits: 0 })), "3 sans capacité");
+    assert.equal(annSub(fait({ muettes: 3, petits: 0 })), "3 sans capacité annoncée");
     assert.equal(annSub(fait()), "");
     assert.equal(annSub(ECHEC), "");
     assert.equal(annSub(null), "");
+  });
+
+  it("partielLbl relie la dernière source par « ni »", () => {
+    assert.equal(partielLbl([]), "");
+    assert.equal(partielLbl(["Airbnb"]), "partiel, sans Airbnb");
+    assert.equal(partielLbl(["Airbnb", "Booking"]), "partiel, sans Airbnb ni Booking");
+    assert.equal(
+      partielLbl(["Airbnb", "Abritel", "Booking"]),
+      "partiel, sans Airbnb, Abritel ni Booking",
+    );
   });
 
   it("releveLbl date le relevé au jour de l'utilisateur, pas au jour UTC", () => {
@@ -1218,11 +1232,11 @@ describe("libellés", () => {
   it("sous-titre, écart au séjour et en-tête s'accordent au nombre", () => {
     assert.equal(
       sousTitre(7, 8),
-      "Médiane du total pour 7 nuits, logements qui accueillent 8 voyageurs.",
+      "Médiane du total pour 7 nuits, parmi les logements qui accueillent 8 voyageurs.",
     );
     assert.equal(
       sousTitre(1, 1),
-      "Médiane du total pour 1 nuit, logements qui accueillent 1 voyageur.",
+      "Médiane du total pour 1 nuit, parmi les logements qui accueillent 1 voyageur.",
     );
     assert.equal(ecartLbl(PER), "Votre séjour : du 6 févr. au 13 févr., 7 nuits.");
     assert.equal(medHead(7), "Médiane, 7 nuits");
@@ -1246,6 +1260,9 @@ describe("libellés", () => {
       triLbl({ k: "n", dir: 1 }),
       plageLbl("prix", [0, 2000], [0, 6000]),
       relLbl(3, true),
+      relLbl(3, false),
+      annSub(fait({ muettes: 5, petits: 2 })),
+      partielLbl(["Airbnb", "Abritel", "Booking"]),
       sousTitre(7, 8),
       ecartLbl(PER),
     ];
@@ -1275,7 +1292,7 @@ describe("file des relevés", () => {
     assert.equal(dejaPrevu(job(), null, [job({ ids: ["x"] }), job()]), true);
     assert.equal(dejaPrevu(job(), null, []), false);
     // Le nom seul ne suffit pas : une autre liste du même massif est un autre relevé.
-    assert.equal(dejaPrevu(job({ nom: "stations affichées" }), job(), []), true);
+    assert.equal(dejaPrevu(job({ nom: "stations de la liste" }), job(), []), true);
     assert.equal(dejaPrevu(job(), job({ groupe: { trav: 10, rooms: 0 } }), []), false);
     assert.equal(dejaPrevu(job(), job({ per: { from: IN, nights: 6 } }), []), false);
     assert.equal(dejaPrevu(job(), job({ ids: ["chamrousse", "les-2-alpes"] }), []), false);
@@ -1715,7 +1732,7 @@ describe("filtres de l'onglet budget", () => {
       { k: "budget", lbl: "Budget : 1 500 € à 3 000 €" },
       { k: "massif", lbl: "Alpes du Nord" },
       { k: "dept", lbl: "Isère" },
-      { k: "km", lbl: "Km de pistes : 100 km et plus" },
+      { k: "km", lbl: "Kilomètres de pistes : 100 km et plus" },
       { k: "sommet", lbl: "Sommet : 1 000 m à 2 000 m" },
       { k: "village", lbl: "Altitude du village : 1 200 m à 1 800 m" },
     ]);
@@ -1776,7 +1793,7 @@ describe("libellés de l'onglet budget", () => {
     });
     assert.equal(
       videBudget(false, 1).hint,
-      "1 logement correspond aux autres critères. Élargissez le budget pour les voir.",
+      "1 logement correspond aux autres critères. Élargissez le budget pour le voir.",
     );
     assert.deepEqual(videBudget(false, 0), {
       titre: "Aucun logement ne correspond à ces critères",
@@ -1790,11 +1807,11 @@ describe("libellés de l'onglet budget", () => {
   it("sous-titre et prix par personne", () => {
     assert.equal(
       sousTitreBudget(7, 8),
-      "Logements pour 7 nuits qui accueillent 8 voyageurs, dans votre budget.",
+      "Logements qui accueillent 8 voyageurs pour 7 nuits, dans votre budget.",
     );
     assert.equal(
       sousTitreBudget(1, 1),
-      "Logements pour 1 nuit qui accueillent 1 voyageur, dans votre budget.",
+      "Logements qui accueillent 1 voyageur pour 1 nuit, dans votre budget.",
     );
     assert.equal(ppLbl(2382, 8), "soit 298 € par personne");
     assert.equal(ppLbl(2400, 8), "soit 300 € par personne");
@@ -1851,7 +1868,7 @@ describe("libellés de l'onglet budget", () => {
     assert.equal(dispoLbl(a, avecNuits(PER, 6), NOW), "Prix relevé pour d’autres dates");
     assert.equal(
       dispoLbl(retenue({ scannedAt: null }), PER, NOW),
-      "Prix de relevé, date de mesure inconnue",
+      "Prix pour ces dates, relevé non daté",
     );
   });
 
@@ -1883,7 +1900,7 @@ describe("libellés de l'onglet budget", () => {
 
 describe("relevés à lancer", () => {
   const job = (over: Partial<Job> = {}): Job => ({
-    nom: "stations affichées",
+    nom: "stations de la liste",
     ids: ["a", "b", "c"],
     per: PER,
     groupe: GRP,

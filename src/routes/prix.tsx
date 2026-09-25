@@ -67,6 +67,7 @@ import {
   ordreMassifs,
   PAGE,
   PAGE_CARTES,
+  partielLbl,
   passe,
   passeBudget,
   passeStationSeule,
@@ -700,7 +701,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
         </div>
         {triees.length === 0 ? (
           <div className="prix7__vide">
-            <strong>Aucune station ne passe ces filtres</strong>
+            <strong>Aucune station ne correspond à ces critères</strong>
             <span>Retirez un critère, ou effacez-les tous.</span>
           </div>
         ) : null}
@@ -904,7 +905,7 @@ function VueBudget({
                   className="prix7__pilule prix7__pilule--grande"
                   onClick={() => ouvrir("station")}
                 >
-                  Ouvrir Par station
+                  Ouvrir l’onglet Par station
                 </button>
               ) : null}
             </div>
@@ -1017,7 +1018,7 @@ function LignePrix({ l, relever }: { l: Ligne; relever: (() => void) | null }) {
         <span>{releve}</span>
         {partiel.length > 0 ? (
           <span className="prix7__partiel" title={`Sans réponse : ${partiel.join(", ")}.`}>
-            partiel, sans {partiel.join(", ")}
+            {partielLbl(partiel)}
           </span>
         ) : null}
       </div>
@@ -1059,9 +1060,9 @@ function suiteAttente(a: NonNullable<Course["attente"]>, nom: string | null, now
         ? ` · Airbnb demande une pause, reprise dans ${reste}`
         : " · Airbnb demande une pause";
     case "arret":
-      return nom ? ` · ${nom} après la fin de la station arrêtée` : "";
+      return nom ? ` · ${nom} après la fin du relevé arrêté` : "";
     case "logements":
-      return nom ? ` · ${nom} après la recherche de Logements` : "";
+      return nom ? ` · ${nom} après la recherche en cours dans Logements` : "";
     case "rythme":
       return nom ? (reste ? ` · ${nom} dans ${reste}` : ` · ${nom} en attente`) : "";
   }
@@ -1103,7 +1104,7 @@ function BandeauCourse({
       <div className="prix7__course-corps">
         <div className="prix7__course-tete">
           <strong className="prix7__course-titre">
-            Relevé {course.nom}, {perLbl(course.per)}
+            Relevé : {course.nom}, {perLbl(course.per)}
           </strong>
           <span className="prix7__course-sous">
             {course.i} sur {total}

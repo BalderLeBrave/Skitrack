@@ -15,7 +15,7 @@
  * Tout contrôle posé sur la vignette arrête la propagation du clic, faute de
  * quoi cocher « Comparer » ouvrirait aussi la fiche derrière.
  *
- * Toute valeur absente est écrite : « non relevée », « km non publié »,
+ * Toute valeur absente est écrite : « altitudes non relevées », « km non publié »,
  * « non relevé ». La barre reste vide quand la répartition n'est pas relevée.
  */
 
@@ -112,7 +112,7 @@ export function CarteStation({
         <div className="stc7__faits">
           <div>
             <span>Pistes</span>
-            <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? "non relevée"}</b>
+            <b className={altLbl(s) ? undefined : "absent"}>{altLbl(s) ?? "altitudes non relevées"}</b>
           </div>
           <div>
             <span>Village</span>

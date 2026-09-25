@@ -9,6 +9,7 @@
  * limiteur ne l'ouvre pas.
  */
 
+import { montantCents } from "../devises.ts";
 import type { Listing } from "../listings.ts";
 import { RELEVE_2A } from "../listings.ts";
 import { gitesCodeOf, gitesWidgetUrl } from "../scrape/gitesGps.server.ts";
@@ -160,7 +161,7 @@ export function poserLecture(row: Listing, lect: LectureFiche, tag = "fiche"): b
     !/taxe de s[ée]jour/i.test(row.proven)
   ) {
     row.total = Math.round((row.total + lect.taxeSejour) * 100) / 100;
-    row.proven = `${row.proven} · taxe de séjour ${lect.taxeSejour} €`;
+    row.proven = `${row.proven} · taxe de séjour ${montantCents(lect.taxeSejour)}`;
     changed = true;
   }
   if (changed && tag && !new RegExp(tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(row.proven)) {

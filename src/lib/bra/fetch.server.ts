@@ -75,7 +75,7 @@ async function fetchBraDirect(massifCode: number): Promise<BraBulletin> {
     // Non mis en cache : ce n'est pas une panne réseau mais un état de
     // configuration, qui change dès que la clé est saisie dans Plus › Clés.
     return emptyBulletin(massifCode, {
-      error: "Aucune clé Météo-France : renseignez-la dans Plus › Clés, ou posez METEOFRANCE_API_KEY.",
+      error: "Aucune clé Météo-France : renseignez-la dans Plus › Clés, ou définissez la variable d’environnement METEOFRANCE_API_KEY.",
     });
   }
 
@@ -93,10 +93,10 @@ async function fetchBraDirect(massifCode: number): Promise<BraBulletin> {
       // de les distinguer : l'un met en cause la clé, l'autre ses droits.
       const msg =
         res.status === 401
-          ? "Clé refusée par Météo-France (401) : vérifiez la clé posée."
+          ? "Clé refusée par Météo-France (401) : vérifiez la clé enregistrée."
           : res.status === 403
-            ? "Accès refusé par Météo-France (403) : l'abonnement « Données Publiques BRA » manque à cette clé, ou le service est fermé hors saison."
-            : `Météo-France a répondu ${res.status}.`;
+            ? "Accès refusé par Météo-France (403) : l’abonnement « Données Publiques BRA » manque à cette clé, ou le service est fermé hors saison."
+            : `Météo-France a renvoyé l’erreur ${res.status}.`;
       // Chaque échec est journalisé, massif par massif : les trous étaient
       // invisibles en exploitation.
       console.warn(`[bra] massif ${massifCode} : HTTP ${res.status}`);
@@ -111,7 +111,7 @@ async function fetchBraDirect(massifCode: number): Promise<BraBulletin> {
   } catch (err) {
     const reason = err instanceof Error && err.name === "AbortError" ? "délai dépassé" : String(err);
     console.warn(`[bra] massif ${massifCode} : ${reason}`);
-    const vide = emptyBulletin(massifCode, { error: `Bulletin injoignable — ${reason}.` });
+    const vide = emptyBulletin(massifCode, { error: `Météo-France injoignable : ${reason}.` });
     cache.set(massifCode, { at: Date.now(), value: vide });
     return vide;
   } finally {

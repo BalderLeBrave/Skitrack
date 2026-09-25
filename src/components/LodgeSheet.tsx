@@ -5,7 +5,7 @@ import { formatDistFrom, formatLift, formatLiftSpan, otherDomainMessage, sectorO
 import { listingEleM, useElevations } from "@/lib/elevations";
 import { formatEuro, type Listing } from "@/lib/listings";
 import { provenancePhrase, sourcePhrase } from "@/lib/provenance";
-import { nuitsLbl } from "@/lib/parcours";
+import { datesCourtes, nuitsLbl } from "@/lib/parcours";
 import { completudeOf, galerieOf, trouLbl } from "@/lib/stay/completude";
 import { availabilityLabel, availabilityOf } from "@/lib/stay/availability";
 import { bedLbl, capLbl, prixLbl } from "@/lib/v7";
@@ -13,6 +13,21 @@ import { getListingElevation } from "@/lib/snow/api";
 import { formatAlt, stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { useTrack } from "@/lib/track";
+
+/**
+ * « de Tignes », « d’Avoriaz », « des Gets », « du Corbier », « de l’Alpe
+ * d’Huez ». Un « de » collé devant le nom écrivait « de Les Gets » et « de
+ * Avoriaz ». Mêmes règles d’article que `aStation`.
+ */
+function deStation(nom: string): string {
+  const n = nom.trim();
+  if (/^les /i.test(n)) return `des ${n.slice(4)}`;
+  if (/^le /i.test(n)) return `du ${n.slice(3)}`;
+  if (/^l['’]/i.test(n)) return `de l’${n.slice(2)}`;
+  if (/^alpes? /i.test(n)) return `de l’${n}`;
+  if (/^[aeiouàâéèêîïôû]/i.test(n)) return `d’${n}`;
+  return `de ${n}`;
+}
 
 export function GalerieAnnonce({
   urls,
@@ -25,7 +40,7 @@ export function GalerieAnnonce({
 }) {
   if (urls.length < 2) return null;
   return (
-    <div className="galerie7" role="tablist" aria-label="Photos de l'annonce">
+    <div className="galerie7" role="tablist" aria-label="Photos de l’annonce">
       {urls.map((u, i) => (
         <button
           type="button"
@@ -134,7 +149,7 @@ export function LodgeSheet({
             {listing.title}
           </h2>
           <p className="mt-1 text-corps text-muted">
-            {station?.name ?? listing.stationId} · {stay.checkIn} → {stay.checkOut} · {stay.guests} pers.
+            {station?.name ?? listing.stationId} · {datesCourtes(stay.checkIn, stay.checkOut)} · {stay.guests} pers.
           </p>
           <button
             type="button"
@@ -151,27 +166,27 @@ export function LodgeSheet({
             {shown ? (
               <img src={shown} alt="" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex items-end p-6 text-muted">photo manquante — {listing.source}</div>
+              <div className="flex items-end p-6 text-muted">Pas de photo dans l’annonce {listing.source}</div>
             )}
             <div className="grid gap-2 border-t border-line bg-panel p-5">
               <GalerieAnnonce urls={galerie} index={photoI} onIndex={setPhotoI} />
               <p className="font-display text-titre">{prixLbl(listing)}</p>
               <p className="text-corps text-muted">
                 {nuitsLbl(nights)} · {stay.guests} pers.
-                {ppNuit != null ? ` · ${formatEuro(ppNuit)} /pers/nuit` : " · prix non publié"}
+                {ppNuit != null ? ` · ${formatEuro(ppNuit)} par personne et par nuit` : " · prix non publié"}
               </p>
               {listing.priceIndicative ? (
-                <p className="text-note text-muted">Annoncé « à partir de » — ce n’est pas un total de séjour.</p>
+                <p className="text-note text-muted">Annoncé « à partir de » : ce n’est pas un total de séjour.</p>
               ) : null}
               <p className="text-note font-medium text-ink">{availabilityLabel(dispo)}</p>
             </div>
           </div>
           <div className="overflow-auto p-6">
-            <p className="text-note text-muted">Ce que Skitrack a vérifié</p>
+            <p className="text-note text-muted">Vérifications</p>
             <ul className="mt-3 grid gap-2 text-corps">
               <li>
-                <strong>Dates du relevé</strong> : {stay.checkIn} → {stay.checkOut}
-                <span> — alignées sur votre séjour</span>
+                <strong>Dates du relevé</strong> : {datesCourtes(stay.checkIn, stay.checkOut)}
+                <span>, alignées sur votre séjour</span>
               </li>
               <li>
                 <strong>Prix</strong> :{" "}
@@ -188,9 +203,9 @@ export function LodgeSheet({
               <li>{sourcePhrase(listing)}</li>
               {listing.rating != null ? (
                 <li>
-                  <strong>Note publiée</strong> : {listing.rating}
-                  {listing.reviewCount != null ? ` sur ${listing.reviewCount} avis` : ""}
-                  {" — telle que la source l’affiche, jamais recalculée."}
+                  <strong>Note publiée</strong> : {listing.rating.toLocaleString("fr-FR")}
+                  {listing.reviewCount != null ? ` (${listing.reviewCount} avis)` : ""}
+                  {", telle que la source l’affiche, jamais recalculée."}
                 </li>
               ) : null}
               <li>
@@ -202,16 +217,16 @@ export function LodgeSheet({
               </li>
               {!complet.ok ? (
                 <li>
-                  <strong>Manque</strong> : {complet.trous.map(trouLbl).join(" · ")}
+                  <strong>Fiche incomplète</strong> : {complet.trous.map(trouLbl).join(" · ")}
                 </li>
               ) : null}
               <li>
                 <strong>Lieu</strong> : {sectorOf(listing) ?? "non publié"}
                 {listing.locality
-                  ? " — commune de l’annonce."
+                  ? " (commune de l’annonce)."
                   : listing.placeName
-                    ? " — lieu OSM le plus proche du GPS."
-                    : " — pas de GPS publié."}
+                    ? " (lieu le plus proche de la position GPS, d’après OpenStreetMap)."
+                    : " (pas de position GPS publiée)."}
               </li>
               {other ? (
                 <li data-testid="other-domain">
@@ -221,66 +236,72 @@ export function LodgeSheet({
               {other && listing.distToNearestDomainM != null ? (
                 <li>
                   <strong>Station la plus proche</strong> :{" "}
-                  {formatDistFrom(listing.distToNearestDomainM, `de ${listing.nearestDomainName}`)}
-                  {" — pin de la fiche, pas une piste."}
+                  {formatDistFrom(
+                    listing.distToNearestDomainM,
+                    listing.nearestDomainName ? deStation(listing.nearestDomainName) : "de la station",
+                  )}
+                  {" (repère de la station, pas une piste)."}
                 </li>
               ) : null}
               {other && listing.searchedLiftM != null ? (
                 <li>
-                  <strong>Vol d’oiseau vers {station?.name}</strong> :{" "}
+                  <strong>À vol d’oiseau vers {station?.name}</strong> :{" "}
                   {formatDistFrom(listing.searchedLiftM, listing.searchedLiftName ? `de ${listing.searchedLiftName}` : "des remontées du domaine recherché")}
-                  {" — hors domaine, ne compte pas comme accès ski."}
+                  {" (hors domaine, ne compte pas comme accès ski)."}
                 </li>
               ) : null}
               {!other ? (
                 <li>
                   <strong>Accès ski</strong> : {ski ?? "non classé"}
                   {listing.distToLiftM != null
-                    ? " — selon la distance OSM mesurée, pas des minutes."
-                    : " — pas de GPS, ou pas de remontée OSM autour de la station."}
+                    ? " (d’après la distance mesurée sur OpenStreetMap, pas un temps de trajet)."
+                    : " (pas de position GPS, ou aucune remontée OpenStreetMap autour de la station)."}
                 </li>
               ) : null}
               {!other ? (
                 <li>
                   <strong>Distance aux remontées mécaniques</strong> : {formatLift(listing)}
                   {listing.distToLiftM != null
-                    ? " — gare OSM la plus proche du GPS, domaine recherché."
-                    : " — pas de GPS, ou pas de remontée OSM autour de la station."}
+                    ? " (gare OpenStreetMap la plus proche de la position GPS, dans le domaine recherché)."
+                    : " (pas de position GPS, ou aucune remontée OpenStreetMap autour de la station)."}
                 </li>
               ) : null}
               <li>
                 <strong>Arrivée de la remontée</strong> : {span ?? "non mesurée"}
                 {span
-                  ? " — altitudes des deux gares OSM (modèle), la plus haute est l’arrivée."
-                  : " — les deux gares OSM n’ont pas encore d’altitude modèle."}
+                  ? " (altitudes calculées des deux gares OpenStreetMap ; la plus haute est l’arrivée)."
+                  : " (les deux gares n’ont pas encore d’altitude calculée)."}
               </li>
               <li>
-                <strong>Repère station recherchée</strong> :{" "}
-                {formatDistFrom(listing.distToSlopesM, `du pin ${station?.name ?? "station"}`)}
+                <strong>Station recherchée</strong> :{" "}
+                {formatDistFrom(
+                  listing.distToSlopesM,
+                  station ? `du repère ${deStation(station.name)}` : "du repère de la station",
+                )}
                 {listing.lat == null || listing.lon == null
-                  ? " — pas de GPS publié."
-                  : " — GPS de l’annonce vers le pin de la fiche (pas une piste, pas un domaine)."}
+                  ? " (pas de position GPS publiée)."
+                  : " (de la position GPS de l’annonce au repère, qui n’est ni une piste ni un domaine)."}
               </li>
               <li>
                 <strong>Trace GPX</strong> :{" "}
                 {hasTrack
-                  ? formatDistFrom(gpxM, "du plus proche point")
-                  : "aucune trace chargée — non mesurée"}
+                  ? formatDistFrom(gpxM, "du point le plus proche")
+                  : "distance non mesurée, aucune trace chargée"}
               </li>
               <li>
                 <strong>Départ GPX</strong> :{" "}
                 {start
                   ? formatDistFrom(gpxStartM, "du départ")
-                  : "aucune trace chargée — non mesurée"}
+                  : "distance non mesurée, aucune trace chargée"}
               </li>
               <li>
                 <strong>Altitude du logement</strong> :{" "}
                 {altitude === "no-gps"
-                  ? "non mesurée — pas de GPS publié"
+                  ? "non mesurée, pas de position GPS publiée"
                   : altitude === undefined
-                    ? "modèle en cours…"
+                    ? "calcul en cours…"
                     : altitude == null
-                      ? "non mesurée — modèle injoignable"
+                      ? "non mesurée, service d’altitude injoignable"
                       : `${formatAlt(altitude)} (modèle Open-Meteo / Copernicus)`}
               </li>
             </ul>

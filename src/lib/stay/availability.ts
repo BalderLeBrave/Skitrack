@@ -170,14 +170,14 @@ export function availabilityLabel(verdict: AvailabilityVerdict): string {
     case "gone":
       return "Absente du dernier relevé à ces dates";
     case "unpriced":
-      return "Listée sans prix à ces dates";
+      return "En ligne, sans prix à ces dates";
     case "other_dates":
       return "Prix relevé pour d’autres dates";
     case "stale":
       return "Prix relevé il y a plus de six heures";
     case "undated":
-      return "Prix de relevé, date de mesure inconnue";
+      return "Prix pour ces dates, relevé non daté";
     default:
-      return verdict.status === "confirmed" ? "Prix relevé pour ces dates" : "Non jugée";
+      return verdict.status === "confirmed" ? "Prix relevé pour ces dates" : "Non vérifiable";
   }
 }

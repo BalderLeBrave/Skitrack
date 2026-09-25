@@ -109,8 +109,8 @@ export function parseArome(raw: unknown, elevationM?: number): AromeReading {
 /** Gel au sommet et positif au village — pas d’altitude d’isotherme inventée. */
 export function freezeSplit(village: AromeReading, summit: AromeReading): string | null {
   if (village.tempC == null || summit.tempC == null) return null;
-  if (village.tempC > 0 && summit.tempC < 0) return "positif au village, gel au sommet";
-  if (village.tempC < 0 && summit.tempC < 0) return "gel village et sommet";
-  if (village.tempC > 0 && summit.tempC > 0) return "positif village et sommet";
+  if (village.tempC > 0 && summit.tempC < 0) return "au-dessus de 0 °C au village, gel au sommet";
+  if (village.tempC < 0 && summit.tempC < 0) return "gel au village et au sommet";
+  if (village.tempC > 0 && summit.tempC > 0) return "au-dessus de 0 °C au village et au sommet";
   return null;
 }

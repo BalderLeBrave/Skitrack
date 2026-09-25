@@ -47,12 +47,12 @@ export function osmFor(id: string): OsmHit | null {
 
 export const OSM_VERDICT_FR: Record<OsmVerdict, string> = {
   ok: "OSM ≈ Skiinfo",
-  segments: "OSM compte des segments, pas des pistes brochure",
-  km_court: "km OSM < km Skiinfo (mesuré vs annoncé)",
-  grain_domaine: "OSM = domaine lié, pas la station seule",
-  ecart_n: "écart de comptes > 25 %",
+  segments: "OSM compte des tronçons, pas les pistes annoncées",
+  km_court: "OSM mesure moins de km que Skiinfo n’en annonce",
+  grain_domaine: "OSM compte le domaine relié, pas la station seule",
+  ecart_n: "écart de plus de 25 % sur le nombre de pistes",
   osm_vide: "domaine OSM trouvé, aucune piste de descente comptée",
-  osm_absent: "pas de domaine downhill OpenSkiMap",
+  osm_absent: "aucun domaine de ski alpin dans OpenSkiMap",
 };
 
 export type OsmSkiRow = {

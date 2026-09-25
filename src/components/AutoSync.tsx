@@ -23,6 +23,7 @@ export function AutoSync() {
 
   const encours = etat === "encours";
   const quand = derniereA ? Date.parse(derniereA) : NaN;
+  const releves = `${faits} relevé${faits > 1 ? "s" : ""}`;
 
   return (
     <div className="maj" data-testid="auto-sync" data-running={encours}>
@@ -44,9 +45,11 @@ export function AutoSync() {
       </div>
       <span className="maj__etat" aria-live="polite">
         {encours
-          ? `${faits} relevé${faits > 1 ? "s" : ""}${dernier ? ` · ${dernier}` : ""}`
+          ? `${releves}${dernier ? ` · ${dernier}` : ""}`
           : etat === "fait"
-            ? `${faits} relevé${faits > 1 ? "s" : ""}${reste ? " · il en reste en file" : " · rien d'autre à jour"}`
+            ? faits === 0 && !reste
+              ? "Tout est à jour"
+              : `${releves}${reste ? " · il en reste à mettre à jour" : " · rien d’autre à mettre à jour"}`
             : etat === "echec"
               ? "Vérification interrompue par une erreur"
               : Number.isFinite(quand)

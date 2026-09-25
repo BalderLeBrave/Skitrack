@@ -362,7 +362,7 @@ describe("classifyCallToolError", () => {
       errorMessage: "scope_denied: tool notion-list-recent-pages not in grant scopes",
     });
     assert.equal(state?.kind, "scope_denied");
-    assert.match(state?.message ?? "", /tool outside its grant/);
+    assert.match(state?.message ?? "", /outil hors de ses autorisations/);
     assert.match(state?.detail ?? "", /notion-list-recent-pages/);
   });
 
@@ -387,7 +387,7 @@ describe("classifyCallToolError", () => {
     assert.equal(state?.message, "boom");
     const empty = classifyCallToolError({ ok: false, data: null });
     assert.equal(empty?.kind, "error");
-    assert.equal(empty?.message, "Something went wrong. Try again.");
+    assert.equal(empty?.message, "La requête a échoué. Réessayez.");
     assert.equal(empty?.detail, undefined);
   });
 });

@@ -7,7 +7,7 @@
  * ni réencodage, ce qui est ce que leurs conditions autorisent.
  *
  * Le rapprochement domaine vers webcam se fait sur le nom, puis sur le nom du
- * forfait relié : « Val Thorens » a sa propre caméra, mais un domaine dont le
+ * domaine relié : « Val Thorens » a sa propre caméra, mais un domaine dont le
  * forfait est « Les 3 Vallées » hérite de celles des quatre stations du
  * groupe. Le rapprochement est textuel et tolérant aux accents, aux tirets et
  * aux parenthèses, parce que les noms du référentiel OpenSkiMap ne suivent
@@ -37,7 +37,7 @@ export type Webcam = {
 
 /** Caméras par station, sous une clé déjà normalisée. */
 const WEBCAMS: Record<string, [string, string][]> = {
-  "les 2 alpes": [["Sommet 3400 m", "https://www.skaping.com/les2alpes/3400m"]],
+  "les 2 alpes": [["Sommet 3 400 m", "https://www.skaping.com/les2alpes/3400m"]],
   "alpe d'huez": [["Pic Blanc", "https://www.skaping.com/alpedhuez/pic-blanc"]],
   chamonix: [["Aiguille du Midi", "https://www.skaping.com/chamonix/aiguille-du-midi"]],
   "val thorens": [["Panorama 3 Vallées", "https://www.skaping.com/valthorens/3vallees"]],
@@ -61,7 +61,7 @@ const WEBCAMS: Record<string, [string, string][]> = {
   ],
   valloire: [["Col du Galibier", "https://www.skaping.com/valloire/galibier"]],
   "les karellis": [
-    ["TSD des Chaudannes", "https://app.webcam-hd.com/les-karellis/tsd-des-chaudannes"],
+    ["Télésiège des Chaudannes", "https://app.webcam-hd.com/les-karellis/tsd-des-chaudannes"],
   ],
   vars: [["Chabrières", "https://www.skaping.com/vars/chabrieres"]],
   risoul: [["Chabrières (Vars)", "https://www.skaping.com/vars/chabrieres"]],
@@ -71,7 +71,7 @@ const WEBCAMS: Record<string, [string, string][]> = {
   "orcieres-merlette": [
     ["Plateau de Rocherousse", "https://www.skaping.com/orcieres/plateau-de-rocherousse"],
   ],
-  "isola 2000": [["Vue station", "https://www.stationsnicecotedazur.com/fr/webcam/isola-2000/"]],
+  "isola 2000": [["Vue de la station", "https://www.stationsnicecotedazur.com/fr/webcam/isola-2000/"]],
   "la rosiere": [
     ["Mont Valaisan", "https://app.webcam-hd.com/la-rosiere/mont-valaisan"],
     ["Maison du ski", "https://app.webcam-hd.com/la-rosiere/maison-du-ski"],
@@ -80,11 +80,11 @@ const WEBCAMS: Record<string, [string, string][]> = {
   meribel: [["Roc de Fer", "https://www.skaping.com/meribel/roc-de-fer"]],
   "les menuires": [["Le Plan", "https://www.skaping.com/menuires/plan"]],
   valfrejus: [["Punta Bagna", "https://www.skaping.com/valfrejus/puntabagna"]],
-  "la clusaz": [["Espace Nordique", "https://www.skaping.com/la-clusaz/espace-nordique"]],
+  "la clusaz": [["Espace nordique", "https://www.skaping.com/la-clusaz/espace-nordique"]],
   "la giettaz": [["Sommet", "https://www.skaping.com/la-giettaz/sommet"]],
 };
 
-/** Forfaits reliés : le domaine hérite des caméras de ses stations membres. */
+/** Domaines reliés : le domaine hérite des caméras de ses stations membres. */
 const WEBCAM_GROUPS: Record<string, string[]> = {
   "les 3 vallees": ["val thorens", "courchevel", "meribel", "les menuires"],
   "3 vallees": ["val thorens", "courchevel", "meribel", "les menuires"],

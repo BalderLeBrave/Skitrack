@@ -65,7 +65,7 @@ async function payloadStation(id: string, force: boolean): Promise<BraPayload> {
       etat: r.horsZone ? "hors-zone" : "non-rattache",
       official: null,
       cause: r.horsZone
-        ? `Météo-France ne publie pas de bulletin d'avalanche pour le massif « ${s.massif} ».`
+        ? `Météo-France ne publie pas de bulletin d’avalanche pour le massif « ${s.massif} ».`
         : "Aucun massif Météo-France ne couvre cette station.",
       releveA,
     };

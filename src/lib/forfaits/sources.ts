@@ -90,6 +90,16 @@ export function tentable(e: EtatSource): boolean {
   return !e.desactivee && e.voie === "auto";
 }
 
+/** L'issue d'une tentative, en toutes lettres : le journal affichait les
+ *  valeurs internes (« panne », « illisible »). */
+export const TENTATIVE_LBL: Record<Tentative["issue"], string> = {
+  ok: "tarif lu",
+  refus: "accès refusé par le site",
+  robots: "page interdite par le site (robots.txt)",
+  panne: "page injoignable",
+  illisible: "tarif introuvable dans la page",
+};
+
 /** Ce que l'écran écrit pour la voie retenue. */
 export const VOIE_LBL: Record<Voie, string> = {
   auto: "relevé automatique",

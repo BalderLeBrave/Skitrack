@@ -88,6 +88,7 @@ describe("tarif : loyer, frais, devis live", () => {
       recap!,
     );
     assert.equal(pose.total, 3660.16);
+    assert.equal(pose.proven, "Ingénie · taxe de séjour 160,16 €");
     assert.equal(horsFraisSejour(pose), false);
     assert.equal(pose.priceLabel, "loyer et taxe de séjour");
   });
@@ -193,7 +194,7 @@ describe("devis ITEA : total publié aux dates", () => {
     assert.equal(pose.pricedCheckOut, "2027-02-13");
     assert.equal(pose.scannedAt, 1_700_000_000_000);
     assert.match(pose.proven, /Devis ITEA live/);
-    assert.match(pose.proven, /taxe de séjour 55\.44 €/);
+    assert.match(pose.proven, /taxe de séjour 55,44 €/);
     assert.equal(purgerTarifFigé(pose).total, 727.44);
     assert.equal(estDevisGitesLive(pose.proven), true);
   });

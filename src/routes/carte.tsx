@@ -44,7 +44,9 @@ function PisteBar({ station }: { station: Station }) {
   const counts = station.colorCounts;
   const title = [
     counts
-      ? COLOR_KEYS.map((c) => `${COLOR_LABELS[c]} ${counts[c]} tronçons`).join(" · ")
+      ? COLOR_KEYS.map(
+          (c) => `${COLOR_LABELS[c]} ${counts[c]} tronçon${counts[c] > 1 ? "s" : ""}`,
+        ).join(" · ")
       : "Répartition du domaine",
     station.skiinfoPct
       ? `Fiche Skiinfo : ${COLOR_KEYS.map((c) => `${COLOR_LABELS[c]} ${station.skiinfoPct![c]} %`).join(", ")}`
@@ -99,14 +101,17 @@ function StationRow({
           </span>
           {station.lifts != null ? (
             <span className="text-texte-2">
-              <span className="num text-ink">{station.lifts}</span> remontées
+              <span className="num text-ink">{station.lifts}</span> remontée
+              {station.lifts > 1 ? "s" : ""}
             </span>
           ) : null}
           {dist != null ? (
             <span className="text-texte-2">
               piste à{" "}
               <span className="num text-ink">
-                {dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`}
+                {dist < 1
+                  ? `${Math.round(dist * 1000)} m`
+                  : `${dist.toFixed(1).replace(".", ",")} km`}
               </span>
             </span>
           ) : null}
@@ -219,8 +224,8 @@ function PageCarte() {
             <span className="carte__eyebrow">Étape 1 · Station</span>
             <h1 className="carte__title">Toutes les stations</h1>
             <p className="carte__lead">
-              Cliquez une station pour la centrer ; survolez la carte pour la retrouver dans la
-              liste.
+              Cliquez sur une station pour la centrer ; survolez une épingle pour retrouver la
+              station dans la liste.
             </p>
             <label className="carte__search">
               <span className="sr-only">Rechercher une station ou un domaine</span>
@@ -317,7 +322,7 @@ function PageCarte() {
                       onChange={(v) => patch({ hiM: v })}
                     />
                     <RangeFilter
-                      label="Km de pistes, au minimum"
+                      label="Kilomètres de pistes, au minimum"
                       value={filters.km}
                       max={300}
                       step={10}
@@ -408,8 +413,8 @@ function PageCarte() {
                       ))}
                     </div>
                     <p className="carte__note">
-                      Tronçons par couleur : OpenSkiMap, à l'échelle du domaine skiable. Les km par
-                      couleur sont une part des km du domaine, notés ≈.
+                      Tronçons par couleur : OpenSkiMap, à l’échelle du domaine skiable. Les km par
+                      couleur sont estimés à partir du total du domaine.
                     </p>
                   </div>
 
@@ -433,8 +438,8 @@ function PageCarte() {
 
                   <p className="carte__note">
                     Sources : France Montagnes (référentiel), OpenSkiMap (pistes, remontées). Une
-                    station hors classeur n'affiche ni domaine, ni remontées, ni répartition : la
-                    donnée n'est pas estimée.
+                    station absente de France Montagnes n’affiche ni domaine, ni remontées, ni
+                    répartition : ces données ne sont pas estimées.
                   </p>
                 </div>
                 <div className="filters__foot">
@@ -449,7 +454,7 @@ function PageCarte() {
                   >
                     {rows.length
                       ? `Voir ${rows.length} station${rows.length > 1 ? "s" : ""}`
-                      : "Aucune station : assouplir"}
+                      : "Aucune station"}
                   </button>
                 </div>
               </div>

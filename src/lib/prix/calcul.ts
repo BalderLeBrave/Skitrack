@@ -365,7 +365,7 @@ export type DefPlageStation = DefPlage & { k: PlageStationK };
 
 /** Les plages de station, communes aux deux onglets. */
 export const PLAGES_STATION: readonly DefPlageStation[] = [
-  { k: "km", lbl: "Km de pistes", pas: 10, unite: "km" },
+  { k: "km", lbl: "Kilomètres de pistes", pas: 10, unite: "km" },
   { k: "sommet", lbl: "Sommet", pas: 100, unite: "m" },
   { k: "village", lbl: "Altitude du village", pas: 100, unite: "m" },
 ];
@@ -660,12 +660,12 @@ export function moreLbl(restant: number): string {
 export function relLbl(n: number, listeFaite: boolean): string {
   if (listeFaite)
     return n === 1 ? "Relever à nouveau la station" : `Relever à nouveau les ${n} stations`;
-  return n === 1 ? "Relever la station affichée" : `Relever les ${n} stations affichées`;
+  return n === 1 ? "Relever la station affichée" : `Relever les ${n} stations de la liste`;
 }
 
 /** Le nom d'une liste lancée : massif et département, les plages n'y entrent pas. */
 export function nomListe(fl: Filtres): string {
-  return [fl.massif, fl.dept].filter(Boolean).join(", ") || "stations affichées";
+  return [fl.massif, fl.dept].filter(Boolean).join(", ") || "stations de la liste";
 }
 
 export type Jeton = { k: keyof Filtres; lbl: string };
@@ -709,13 +709,22 @@ export function retirerJeton(fl: Filtres, k: keyof Filtres): Filtres {
   return next;
 }
 
-/** « 5 sans capacité, 2 trop petites » : ce que le relevé a écarté du compte. */
+/** « 5 sans capacité annoncée, 2 trop petites » : ce que le relevé a écarté du compte. */
 export function annSub(r: Resultat | null): string {
   if (r?.etat !== "fait") return "";
   const parts: string[] = [];
-  if (r.muettes > 0) parts.push(`${r.muettes} sans capacité`);
+  if (r.muettes > 0) parts.push(`${r.muettes} sans capacité annoncée`);
   if (r.petits > 0) parts.push(plur(r.petits, "trop petite", "trop petites"));
   return parts.join(", ");
+}
+
+/** « partiel, sans Airbnb ni Booking » : après « sans », le dernier nom se
+ *  relie par « ni », pas par une virgule. */
+export function partielLbl(sources: readonly string[]): string {
+  if (sources.length === 0) return "";
+  const tete = sources.slice(0, -1);
+  const dernier = sources[sources.length - 1];
+  return `partiel, sans ${tete.length > 0 ? `${tete.join(", ")} ni ${dernier}` : dernier}`;
 }
 
 function deux(n: number): string {
@@ -735,7 +744,7 @@ export function releveLbl(r: Resultat | null): string {
 }
 
 export function sousTitre(nights: number, trav: number): string {
-  return `Médiane du total pour ${nuitsLbl(nights)}, logements qui accueillent ${travLbl(trav)}.`;
+  return `Médiane du total pour ${nuitsLbl(nights)}, parmi les logements qui accueillent ${travLbl(trav)}.`;
 }
 
 export function ecartLbl(sejour: Periode): string {
@@ -833,7 +842,7 @@ export function videBudget(
   if (avantBudget > 0) {
     return {
       titre: "Aucun logement dans ce budget",
-      hint: `${plur(avantBudget, "logement correspond", "logements correspondent")} aux autres critères. Élargissez le budget pour les voir.`,
+      hint: `${plur(avantBudget, "logement correspond", "logements correspondent")} aux autres critères. Élargissez le budget pour ${avantBudget > 1 ? "les" : "le"} voir.`,
       versStation: false,
     };
   }
@@ -845,7 +854,7 @@ export function videBudget(
 }
 
 export function sousTitreBudget(nights: number, trav: number): string {
-  return `Logements pour ${nuitsLbl(nights)} qui accueillent ${travLbl(trav)}, dans votre budget.`;
+  return `Logements qui accueillent ${travLbl(trav)} pour ${nuitsLbl(nights)}, dans votre budget.`;
 }
 
 /** « soit 298 € par personne » */

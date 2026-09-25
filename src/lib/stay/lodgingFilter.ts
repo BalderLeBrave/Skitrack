@@ -443,7 +443,7 @@ const REASON_LABEL: Record<DropReason, [string, string]> = {
   // Ni « trop petit » ni « convient » : la source s'est tue, et on le dit.
   "capacite-muette": ["sans capacité annoncée", "sans capacité annoncée"],
   prix: ["hors budget", "hors budget"],
-  source: ["source décochée", "sources décochées"],
+  source: ["issu d’une source décochée", "issus de sources décochées"],
   disponibilite: ["sans prix à ces dates", "sans prix à ces dates"],
 };
 

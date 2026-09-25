@@ -24,7 +24,7 @@ describe("délai d'API", () => {
 
   it("reconnaît 429 et timeout comme une pause", () => {
     assert.equal(estPauseApi("Airbnb a demandé une pause (HTTP 429) : le relevé est partiel."), true);
-    assert.equal(estPauseApi("Délai dépassé — relevé précédent conservé."), true);
+    assert.equal(estPauseApi("Délai dépassé : relevé précédent conservé."), true);
     assert.equal(estPauseApi("pyairbnb timeout"), true);
     assert.equal(estPauseApi("centrale muette"), false);
     assert.equal(estPauseApi(undefined), false);

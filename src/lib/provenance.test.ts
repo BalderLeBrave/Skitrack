@@ -60,7 +60,7 @@ describe("provenancePhrase", () => {
     );
     assert.equal(
       p,
-      "Pas de résultat en direct sur Gîtes de France : ce prix est repris de notre relevé du 3 septembre 2026, pour 8 personnes.",
+      "Pas de résultat en direct sur Gîtes de France : ce prix est repris du relevé du 3 septembre 2026, pour 8 personnes.",
     );
   });
 
@@ -68,7 +68,7 @@ describe("provenancePhrase", () => {
     const p = provenancePhrase(
       sujet({ source: "Centrale", proven: "Tignes Réservation (Ingénie, tignes.example) 2027-02-06→2027-02-13, 8 pers." }),
     );
-    assert.equal(p, "Prix relevé auprès de Tignes Réservation, pour 8 personnes, du 6 au 13 février 2027.");
+    assert.equal(p, "Prix relevé auprès de la centrale Tignes Réservation, pour 8 personnes, du 6 au 13 février 2027.");
   });
 
   it("comparateur et prix absent", () => {
@@ -84,6 +84,12 @@ describe("sourcePhrase", () => {
       "Logement de type « Appartement » proposé sur Airbnb (réf. 12345).",
     );
     assert.equal(sourcePhrase(sujet({ source: "Abritel" })), "Logement proposé sur Abritel.");
+  });
+  it("centrale nommée par la trace", () => {
+    assert.equal(
+      sourcePhrase(sujet({ source: "Centrale", proven: "Les Arcs (Arkiane, lesarcs.example) 2027-02-06→2027-02-13, 8 pers." })),
+      "Logement proposé par la centrale Les Arcs.",
+    );
   });
   it("centrale sans nom lisible", () => {
     assert.equal(

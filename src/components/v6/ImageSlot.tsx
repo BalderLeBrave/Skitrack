@@ -173,9 +173,9 @@ export function ImageSlot({
         {showCredit
           ? unsplashForm
             ? [
-                "Photo by ",
+                "Photo de ",
                 href ? link(unsplashForm[1], href) : unsplashForm[1],
-                " on ",
+                " sur ",
                 link("Unsplash", UNSPLASH_HOMEPAGE_HREF),
               ]
             : href

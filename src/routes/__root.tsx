@@ -20,7 +20,7 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       {
         name: "description",
-        content: "Logements ski : dates, personnes, chambres. Prix ferme du séjour.",
+        content: "Logements au ski : dates, personnes, chambres. Prix ferme du séjour.",
       },
       { name: "theme-color", content: "#16191e" },
     ],

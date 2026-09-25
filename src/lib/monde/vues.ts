@@ -252,7 +252,7 @@ export const LIBELLE_POSTE: Record<Poste, { ligne: string; colonne: string }> = 
  */
 export function mentionCase(c: CaseTarif): string {
   const dates = c.dates ? `, ${c.dates}` : "";
-  return `« ${c.libelle} », colonne « ${c.categorie} » — ${SITE[c.source]}${dates}`;
+  return `« ${c.libelle} », colonne « ${c.categorie} » (${SITE[c.source]}${dates})`;
 }
 
 /**
@@ -305,7 +305,7 @@ const SITE: Record<"skiinfo" | "skiresort" | "bergfex" | "officiel" | "proprieta
   skiresort: "skiresort.fr",
   bergfex: "bergfex",
   officiel: "le site officiel de la station",
-  proprietaire: "le tableau des manques",
+  proprietaire: "relevé à la main",
   commons: "Wikimedia Commons",
 };
 
@@ -319,7 +319,7 @@ const CORROBORATION: Record<NonNullable<PhotoVue["corroboration"]>, string> = {
 
 /** Ce qu'on écrit sous une photo : d'où elle vient, et à quelle distance. */
 export function mentionPhoto(p: PhotoVue): string {
-  const legende = p.titre ? ` — « ${p.titre} »` : "";
+  const legende = p.titre ? `, « ${p.titre} »` : "";
   // Le site officiel *est* celui du domaine : il n'y a pas de fiche voisine à
   // nommer ni de distance à donner. Écrire « à 0 km » laisserait croire à une
   // mesure là où il y a une identité.
@@ -328,7 +328,7 @@ export function mentionPhoto(p: PhotoVue): string {
   // condition à laquelle elle peut être montrée, et ce qui permet de la
   // retrouver. S'y ajoute ce qu'un regard y a vu, puisqu'on l'a choisie à l'œil.
   if (p.source === "commons") {
-    const qui = p.auteur ? ` — ${p.auteur}` : "";
+    const qui = p.auteur ? ` par ${p.auteur}` : "";
     const lic = p.licence ? `, ${p.licence}` : "";
     return `Photo ${SITE.commons}${qui}${lic}${p.vu ? ` ; ${p.vu}` : ""}`;
   }
@@ -336,7 +336,7 @@ export function mentionPhoto(p: PhotoVue): string {
   // on l'a crue. Elle n'a pas été vue ; c'est écrit.
   if (p.source === "proprietaire") {
     const pourquoi = p.corroboration ? CORROBORATION[p.corroboration] : "sans corroboration";
-    return `Photo relevée à la main (${p.cle}) — ${pourquoi} ; non vérifiée à l'œil${legende}`;
+    return `Photo relevée à la main (${p.cle}) : ${pourquoi} ; non vérifiée à l’œil${legende}`;
   }
   return `Photo ${SITE[p.source]}${legende}, fiche « ${p.nom ?? p.cle} », ${distance(p.km, p.parLeNom)}`;
 }
@@ -392,7 +392,7 @@ export function mentionForfait(f: ForfaitVue): string {
           ? `grille de ${f.lignes.length} forfait${f.lignes.length > 1 ? "s" : ""}`
           : "un seul tarif publié";
   const maj = f.misAJour ? `, mis à jour le ${f.misAJour}` : "";
-  const dev = f.deviseSource === "pays" ? " ; devise déduite du pays, le site n'écrit qu'un symbole" : "";
+  const dev = f.deviseSource === "pays" ? " ; devise déduite du pays, le site n’écrit qu’un symbole" : "";
   // Une contradiction se dit, elle ne se corrige pas : on ne sait pas laquelle
   // des deux sources a tort, et trancher reviendrait à réécrire l'une d'elles.
   const ecart = f.deviseDuPays
@@ -401,12 +401,12 @@ export function mentionForfait(f: ForfaitVue): string {
   // Un tarif lu sur le site officiel se présente avec sa preuve : la ligne du
   // tableau, telle qu'écrite. Sans elle, « 33,50 € » ne se juge pas.
   if (f.source === "officiel") {
-    return `Lu sur ${SITE.officiel}${f.pageTarifs ? ` (${f.pageTarifs})` : ""} — « ${f.preuve ?? ""} »${dev}`;
+    return `Lu sur ${SITE.officiel}${f.pageTarifs ? ` (${f.pageTarifs})` : ""} : « ${f.preuve ?? ""} »${dev}`;
   }
   // Relevé à la main : la source est nommée, la période telle qu'écrite.
   if (f.source === "proprietaire") {
     const periode = f.releve?.periode ? `, période « ${f.releve.periode} »` : "";
-    return `Relevé à la main depuis ${f.pageTarifs ?? f.cle}${periode}${f.releve?.note ? ` — ${f.releve.note}` : ""}`;
+    return `Relevé à la main depuis ${f.pageTarifs ?? f.cle}${periode}${f.releve?.note ? ` ; ${f.releve.note}` : ""}`;
   }
-  return `${SITE[f.source]} — ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km, f.parLeNom)}${dev}${ecart}`;
+  return `${SITE[f.source]} : ${quoi}${maj}, fiche « ${f.nom ?? f.cle} », ${distance(f.km, f.parLeNom)}${dev}${ecart}`;
 }

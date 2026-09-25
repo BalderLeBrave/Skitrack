@@ -55,11 +55,11 @@ export const SEUILS_MONDE: {
   step: number;
   unite: string;
 }[] = [
-  { k: "km", label: "Km de pistes", court: "km", max: 300, step: 10, unite: "km" },
+  { k: "km", label: "Kilomètres de pistes", court: "km", max: 300, step: 10, unite: "km" },
   { k: "sommetM", label: "Sommet", court: "sommet", max: 4000, step: 100, unite: "m" },
   { k: "denivM", label: "Dénivelé", court: "dénivelé", max: 2000, step: 100, unite: "m" },
   { k: "remontees", label: "Remontées", court: "remontées", max: 60, step: 5, unite: "" },
-  { k: "noirPct", label: "Part du noir", court: "noir", max: 50, step: 5, unite: "%" },
+  { k: "noirPct", label: "Part de pistes noires", court: "noir", max: 50, step: 5, unite: "%" },
 ];
 
 /**

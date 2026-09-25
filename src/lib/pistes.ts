@@ -42,7 +42,7 @@ export const PISTE_PRESETS = {
   haut: { minMaxM: 3000 },
   /** Glacier déclaré dans le catalogue de domaine. */
   glacier: { needGlacier: true },
-  /** Forfait lié publié (3 Vallées, Espace Killy, MBU…). */
+  /** Domaine relié publié (3 Vallées, Espace Killy, MBU…). */
   lie: { needLinked: true },
   /** Tracés OSM hors vert/bleu/rouge/noir (itinéraires, snowpark…). */
   itineraires: { minOther: 4 },

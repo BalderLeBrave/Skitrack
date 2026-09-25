@@ -22,7 +22,7 @@ describe("coût des forfaits d'un groupe", () => {
     const c = coutForfaits(359, null, 6, 2);
     assert.equal(c.total, 8 * 359);
     assert.equal(c.enfantsAuTarifAdulte, true);
-    assert.match(c.detail, /tarif enfant non relevé/);
+    assert.match(c.detail, /adulte, tarif enfant non relevé$/);
   });
 
   it("aucun tarif relevé : pas de total, pas de chiffre inventé", () => {

@@ -180,8 +180,8 @@ function Traces() {
               </dl>
             ) : (
               <p className="mt-4 text-corps text-muted">
-                Aucune trace. Les logements ci-dessous viennent du relevé de séjour, pas d’un jeu
-                inventé.
+                Aucune trace chargée. Déposez un fichier GPX pour classer les logements par distance
+                à la trace.
               </p>
             )}
             {points.length > 0 ? (
@@ -198,7 +198,9 @@ function Traces() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-section">Logements et départ</h2>
               <p className="text-corps text-muted">
-                {raw.length === 0 ? "Aucun logement dans ce relevé." : `${raw.length} fiches`}
+                {raw.length === 0
+                  ? "Aucun logement dans ce relevé."
+                  : `${raw.length} logement${raw.length > 1 ? "s" : ""}`}
               </p>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -206,8 +208,8 @@ function Traces() {
                 [
                   ["gpx", "Trace GPX"],
                   ["lift", "Remontée"],
-                  ["pistes", "Remontées mécaniques"],
-                  ["total", "Prix séjour"],
+                  ["pistes", "Pistes"],
+                  ["total", "Prix du séjour"],
                   ["pp", "Prix / pers."],
                 ] as const
               ).map(([id, label]) => (
@@ -223,7 +225,7 @@ function Traces() {
             </div>
             {rows.length === 0 ? (
               <p className="mt-4 text-corps text-muted">
-                Pas de relevé pour ces dates. Lancez une recherche logements, ou{" "}
+                Pas de relevé pour ces dates. Lancez une recherche de logements ou{" "}
                 <Link to="/logements" className="underline">
                   ouvrez la liste
                 </Link>
@@ -273,7 +275,7 @@ function Traces() {
                         <td>
                           {stats
                             ? gpxM == null
-                              ? "GPS logement manquant"
+                              ? "Position du logement inconnue"
                               : formatDistFrom(gpxM, "de la trace")
                             : "–"}
                         </td>

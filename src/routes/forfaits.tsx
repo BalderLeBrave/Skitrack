@@ -42,22 +42,22 @@ import {
   useGrilles,
   type Categorie,
 } from "@/lib/forfaits/grille";
-import { VOIE_LBL, type EtatSource } from "@/lib/forfaits/sources";
+import { TENTATIVE_LBL, VOIE_LBL, type EtatSource } from "@/lib/forfaits/sources";
 import type { DomainForfait, ForfaitRow } from "@/lib/forfaits/types";
 import { foldName } from "@/lib/carte";
 import { stationsDuDomaine } from "@/lib/domaineStations";
 
 export const Route = createFileRoute("/forfaits")({ component: ForfaitsPage });
 
-/** Ce qu'une actualisation a produit, domaine par domaine. */
-const ISSUE_LBL: Record<ResultatForfait["issue"], string> = {
-  maj: "mis à jour",
-  inchange: "inchangé",
-  manuel: "saisie manuelle conservée",
-  refus: "source non accessible automatiquement",
-  echec: "échec",
-  desactivee: "source désactivée",
-  ignore: "source en saisie assistée",
+/** Ce qu'une actualisation a produit, domaine par domaine : singulier, pluriel. */
+const ISSUE_LBL: Record<ResultatForfait["issue"], [string, string]> = {
+  maj: ["mis à jour", "mis à jour"],
+  inchange: ["inchangé", "inchangés"],
+  manuel: ["saisie manuelle conservée", "saisies manuelles conservées"],
+  refus: ["source non accessible automatiquement", "sources non accessibles automatiquement"],
+  echec: ["échec", "échecs"],
+  desactivee: ["source désactivée", "sources désactivées"],
+  ignore: ["source en saisie assistée", "sources en saisie assistée"],
 };
 
 /** Combien de domaines par aller-retour. Le serveur les mène de front, un
@@ -170,7 +170,7 @@ function ForfaitsPage() {
       const conflits = appliquerReleve(slug, saison, r.row);
       if (conflits) {
         setErreur(
-          `${conflits} valeur${conflits > 1 ? "s" : ""} saisie${conflits > 1 ? "s" : ""} à la main diffère${conflits > 1 ? "nt" : ""} du relevé. Elles sont conservées ; utilisez « Reprendre le relevé » pour les remplacer.`,
+          `${conflits} valeur${conflits > 1 ? "s" : ""} saisie${conflits > 1 ? "s" : ""} à la main diffère${conflits > 1 ? "nt" : ""} du relevé. ${conflits > 1 ? "Elles sont conservées" : "Elle est conservée"} ; utilisez « Reprendre le relevé » pour ${conflits > 1 ? "les" : "la"} remplacer.`,
         );
       }
     } catch (e: unknown) {
@@ -230,7 +230,7 @@ function ForfaitsPage() {
     const parIssue = new Map<string, number>();
     for (const b of bilan) parIssue.set(b.issue, (parIssue.get(b.issue) ?? 0) + 1);
     return [...parIssue.entries()]
-      .map(([k, n]) => `${n} ${ISSUE_LBL[k as ResultatForfait["issue"]]}`)
+      .map(([k, n]) => `${n} ${ISSUE_LBL[k as ResultatForfait["issue"]][n > 1 ? 1 : 0]}`)
       .join(" · ");
   }, [bilan]);
 
@@ -242,7 +242,7 @@ function ForfaitsPage() {
             <h1 className="font-display text-affiche tracking-tight">Forfaits</h1>
             <p className="forf__lead">
               Tarifs des domaines français. Un tarif relevé porte sa date ; un tarif jamais obtenu
-              se saisit à la main. Rien n'est inventé.
+              se saisit à la main.
             </p>
           </div>
           <div className="forf__actions">
@@ -255,7 +255,9 @@ function ForfaitsPage() {
             >
               {travail?.quoi === "tous"
                 ? `Tous les domaines… ${travail.fait}/${travail.total}${travail.encours ? ` · ${travail.encours} en cours` : ""}`
-                : `Mettre à jour les ${visible.length} domaines`}
+                : visible.length > 1
+                  ? `Mettre à jour les ${visible.length} domaines`
+                  : `Mettre à jour ${visible.length} domaine`}
             </button>
             {travail ? (
               <button
@@ -301,7 +303,13 @@ function ForfaitsPage() {
               {chargement ? (
                 <li className="forf__vide">Chargement du catalogue…</li>
               ) : !visible.length ? (
-                <li className="forf__vide">Aucun domaine ne porte «&nbsp;{q.trim()}&nbsp;».</li>
+                <li className="forf__vide">
+                  {q.trim() ? (
+                    <>Aucun domaine ne correspond à «&nbsp;{q.trim()}&nbsp;».</>
+                  ) : (
+                    "Aucun domaine dans le catalogue."
+                  )}
+                </li>
               ) : (
                 visible.map((d) => {
                   const row = rows[d.slug];
@@ -380,7 +388,7 @@ function StationsDuDomaine({ slug }: { slug: string }) {
   return (
     <div className="forfp__stations">
       <span className="forfp__stationsTitre">
-        {stations.length} station{stations.length > 1 ? "s" : ""} sur ce forfait
+        {stations.length} station{stations.length > 1 ? "s" : ""} dans ce domaine
       </span>
       <ul className="forfp__stationsListe">
         {stations.map((s) => (
@@ -484,7 +492,7 @@ function PanneauDomaine({
               {source.journal.map((t, i) => (
                 <li key={`${t.at}-${i}`}>
                   <span>{new Date(t.at).toLocaleString("fr-FR")}</span>
-                  <span>{t.issue}</span>
+                  <span>{TENTATIVE_LBL[t.issue]}</span>
                   <span>{t.message}</span>
                   <span className="forfp__journal-url">{t.url}</span>
                 </li>
@@ -495,13 +503,13 @@ function PanneauDomaine({
       ) : null}
       {source?.voie === "manuelle" ? (
         <p className="forfp__assiste">
-          Cette source n'est pas accessible automatiquement. Ouvrez la page officielle et reportez
+          Cette source n’est pas accessible automatiquement. Ouvrez la page officielle et reportez
           les tarifs dans la grille : ils seront marqués comme saisis à la main.
           {d.website ? (
             <>
               {" "}
               <a href={d.website} target="_blank" rel="noopener">
-                Ouvrir la page tarifs <Icon name="externe" taille={12} />
+                Ouvrir le site officiel <Icon name="externe" taille={12} />
               </a>
             </>
           ) : null}
@@ -537,7 +545,7 @@ function PanneauDomaine({
                         step={0.5}
                         inputMode="decimal"
                         value={t.prix ?? ""}
-                        aria-label={`${d.name}, ${j === 0.5 ? "demi-journée" : `${j} jours`}, ${c.label}, prix en euros`}
+                        aria-label={`${d.name}, ${j === 0.5 ? "demi-journée" : `${j} jour${j > 1 ? "s" : ""}`}, ${c.label}, prix en euros`}
                         onChange={(ev) => {
                           const v = ev.target.value.trim();
                           onPoser(j, c.cle, v === "" ? null : Number(v));
@@ -557,7 +565,7 @@ function PanneauDomaine({
 
       <div className="forfp__pied">
         <label className="forfp__etendre">
-          Durées jusqu'à
+          Durées jusqu’à
           <input
             type="number"
             min={7}
@@ -576,7 +584,7 @@ function PanneauDomaine({
       </div>
       <p className="forfp__note">
         Chaque valeur est enregistrée dès la frappe, sur cet appareil. Une valeur saisie à la main
-        est marquée comme telle et n'est jamais remplacée par un relevé automatique sans passer par
+        est marquée comme telle et n’est jamais remplacée par un relevé automatique sans passer par
         « Reprendre le relevé ».
       </p>
     </section>

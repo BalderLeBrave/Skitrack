@@ -130,7 +130,7 @@ export type Rattachement = {
  * Le catalogue ne rattache que 16 stations nommément ; tout le reste tient au
  * rapprochement des slugs. Courchevel Le Praz, Méribel Village, Reberty ou
  * Avoriaz tombaient donc à « non relevé » alors que leur domaine, lui, publie
- * son tarif — et que la fiche affichait déjà « Forfait relié : Les Trois
+ * son tarif — et que la fiche affichait déjà « Domaine relié : Les Trois
  * Vallées » juste à côté. L'information était là ; elle ne se montrait pas.
  */
 export function rattachementForfait(

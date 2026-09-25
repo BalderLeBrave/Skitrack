@@ -252,7 +252,7 @@ repassent en `content-box`, avec la valeur déclarée de la maquette :
 
 ## Prix (maquette du 24 septembre 2026)
 
-Source : le handoff `Skitrack-handoff.zip` réexporté le 24 septembre 2026 à
+Source : l'archive `Skitrack-handoff.zip` réexportée le 24 septembre 2026 à
 23 h 25, fichier `SKITRACK v7 - Prix par station.dc.html` (titre « Prix »,
 onglets « Par station » et « Par budget »), et `V7Coquille.dc.html` pour le
 lien « Prix » de la barre. Un premier export du même soir n'avait que la vue
@@ -282,9 +282,9 @@ par station ; c'est le second qui fait foi.
    attend que le journal de taux Airbnb puisse prendre douze requêtes d'affilée
    (`attentePlacesMs`), que le coupe-circuit soit fermé, et que Logements ait
    fini sa propre recherche (76 s au plus). Un verrou `navigator.locks` la
-   sérialise entre onglets. « Arrêter » ne coupe plus la station en vol : le
+   sérialise entre onglets. « Arrêter » ne coupe plus la station en cours : le
    serveur la finirait quand même, et la suivante l'attend. Trois parts au plus
-   en même temps : l'app de bureau parle HTTP/1.1, six connexions par origine,
+   en même temps : l'application de bureau parle HTTP/1.1, six connexions par origine,
    et une longue course doit en laisser au reste de l'écran. Jamais de reprise
    automatique après un refus d'Airbnb.
 3. **La médiane porte sur des logements.** Mêmes critères que Logements (zone,
@@ -294,20 +294,21 @@ par station ; c'est le second qui fait foi.
    sur deux ou trois plateformes compte une fois, à sa meilleure offre
    (`regrouper`) : sans cela, deux vrais logements suffisaient à atteindre les
    cinq annonces d'une médiane. D'où « Logements » en tête de colonne.
-4. **Les résultats sont clés par période et par groupe**
+4. **Les résultats ont pour clé la période et le groupe**
    (`du|nuits|voyageurs|chambres|station`). La maquette oubliait le groupe : une
    médiane pour huit voyageurs se serait affichée pour quatre.
 5. **Stockage.** Période et résultats dans `localStorage`, clé `skitrack-prix`
    (4 000 résultats au plus, les plus anciens partent). Les annonces retenues,
    trop lourdes pour lui, dans IndexedDB (`skitrack-prix`, une entrée par
    résultat). Onglet, critères, tris et pages vivent dans le magasin sans être
-   persistés : un aller-retour par « Voir le logement » ne perd rien.
+   enregistrés : un aller-retour par « Voir le logement » ne perd rien.
 6. **La période suit le séjour** tant qu'on ne la change pas ici ; revenir sur
    ses dates la lui rend. Pas d'arrivée dans le passé : un relevé pour des dates
    écoulées dépenserait le quota Airbnb pour rien.
 7. **Un échec ne remplace jamais une médiane.** Si le serveur de l'application
    ne répond plus (toutes les parts rejetées, aucune par délai), la course
-   s'arrête et le dit ; elle ne brûle pas la liste en quelques millisecondes.
+   s'arrête et le dit ; elle ne passe pas toute la liste en échec en quelques
+   millisecondes.
    Une source muette marque la station « partiel, sans … ».
 8. **La course continue quand on quitte l'écran** (boucle au niveau du module,
    comme `maj.ts`), pas après un rechargement. Un point sur le lien « Prix »
@@ -323,7 +324,7 @@ par station ; c'est le second qui fait foi.
 | --- | --- | --- | --- |
 | Colonne et tri du nombre | « Annonces », « Nombre d’annonces » | « Logements », « Nombre de logements » | décision 3 |
 | Relevé simulé | pastille « Maquette : aucun prix simulé » | absente | décision 1 |
-| Bornes des nuits | couleur grisée, bouton actif | bouton désactivé, opacité .4 | règle de `.compteur__pas` |
+| Bornes des nuits | couleur grisée, bouton actif | bouton désactivé, opacité 0,4 | règle de `.compteur__pas` |
 | Disponibilité sur les cartes | toujours ambre | vert quand le prix est confirmé | la maquette n'avait jamais de prix confirmé ; Logements met ce vert |
 | Cartes du budget | 60, sans le dire | 60, puis « Afficher 60 de plus » | le compte annonçait plus que l'écran |
 | Libellés au singulier | « 1 affichées sur 1 », « les 1 stations » | « 1 affichée sur 1 », « Relever à nouveau la station » | accord |
@@ -331,6 +332,7 @@ par station ; c'est le second qui fait foi.
 | Bouton de relevé | caché si la liste du même nom tourne | ne relance que les stations non prévues | une liste filtrée grandit pendant une course |
 | Infobulle du lien | « Prix médian d'une semaine… » | « Médiane d’un séjour par station, et logements dans votre budget » | l'écran compte de 1 à 21 nuits, et deux vues |
 | Apostrophes | droites et courbes mêlées | courbes partout | règle de la maison |
+| Libellés reformulés | « Km de pistes », « Ouvrir Par station », « partiel, sans Airbnb, Booking », « Relevé Alpes du Nord, … » | « Kilomètres de pistes », « Ouvrir l’onglet Par station », « partiel, sans Airbnb ni Booking », « Relevé : Alpes du Nord, … » | français correct |
 | Barre étroite des écrans de contrôle | rien | sous 1 100 px, le parcours se resserre | le lien « Prix » poussait « Plus » hors de l'écran |
 
 ### Vérification

@@ -108,7 +108,7 @@ function memeBien(a: Listing, b: Listing): boolean {
 }
 
 /** Rang de prix : ce qui n'est pas publié passe après, jamais en tête. */
-function parPrix(a: Listing, b: Listing): number {
+export function parPrix(a: Listing, b: Listing): number {
   const pa = a.total > 0 ? a.total : null;
   const pb = b.total > 0 ? b.total : null;
   if (pa == null && pb == null) return 0;

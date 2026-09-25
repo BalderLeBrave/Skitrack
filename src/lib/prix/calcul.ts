@@ -34,7 +34,7 @@ import { stationById } from "../stations.ts";
 import { cleListing } from "../stay/poserReleve.ts";
 import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
 import { recopierSoeurs } from "../stay/recopie.ts";
-import { regrouper, type Logement } from "../stay/regroupement.ts";
+import { parPrix as parPrixOffre, regrouper, type Logement } from "../stay/regroupement.ts";
 import { estOffreGitesVerifiee } from "../stay/tarif.ts";
 import { maxM, prixLbl, villageM } from "../v7.ts";
 
@@ -175,8 +175,9 @@ export function dansLaStation(
 type Crible = {
   /** Un logement, une offre : la moins chère de chacun. */
   retenues: Listing[];
-  /** Toutes les offres retenues, avant le regroupement par logement. */
-  offres: Listing[];
+  /** Toutes les offres retenues, logement par logement, chacune marquée du
+   *  logement que la médiane lui donne (`logement`). */
+  offres: AnnonceRetenue[];
   muettes: number;
   petits: number;
 };
@@ -237,9 +238,10 @@ function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
     else petits += 1;
   }
 
+  const logements = regrouper(retenues);
   return {
-    retenues: regrouper(retenues).map((g) => g.principale),
-    offres: retenues,
+    retenues: logements.map((g) => g.principale),
+    offres: logements.flatMap((g) => g.offres.map((o) => ({ ...o, logement: g.principale.id }))),
     muettes,
     petits,
   };
@@ -258,9 +260,15 @@ export function retenir(listings: readonly Listing[], ctx: ContexteReleve): List
  * même logement se loue et à quel prix (`logementsBudget`). Sans elles, un
  * appartement vendu moins cher sur Booking ne montrait jamais son offre
  * Airbnb : à Albiez-Montrond, le 25 septembre 2026, la seule Airbnb de la
- * station n'apparaissait nulle part.
+ * station n'apparaissait nulle part. Chaque offre porte le logement que la
+ * médiane lui donne (`logement`) : l'onglet reprend ce regroupement au lieu de
+ * le refaire sur toutes les stations réunies, où un titre repris ailleurs le
+ * défaisait.
  */
-export function retenirOffres(listings: readonly Listing[], ctx: ContexteReleve): Listing[] {
+export function retenirOffres(
+  listings: readonly Listing[],
+  ctx: ContexteReleve,
+): AnnonceRetenue[] {
   return cribler(listings, ctx).offres;
 }
 
@@ -276,7 +284,16 @@ export function agreger(listings: readonly Listing[], ctx: ContexteReleve): Agre
  *  L'onglet budget montre la carte, la pastille et le volet de Logements, qui
  *  lisent la distance, le GPS, la galerie, la provenance et la disponibilité :
  *  réduite, l'annonce y aurait des trous que la source n'a pas. */
-export type AnnonceRetenue = Listing;
+export type AnnonceRetenue = Listing & {
+  /**
+   * Le logement que le relevé a donné à l'offre : l'id de l'offre la moins
+   * chère de son groupe (`regrouper`, station par station, comme la médiane).
+   * Les offres d'un même relevé qui le partagent sont un seul logement. Absent
+   * des relevés antérieurs au soir du 25 septembre 2026, qui ne gardaient
+   * qu'une offre par logement : l'offre y reste seule.
+   */
+  logement?: string;
+};
 
 /** Six photos suffisent à la galerie du volet. Au-delà, c'est du poids : une
  *  grande station retient des centaines d'annonces, et IndexedDB en garde
@@ -1389,17 +1406,77 @@ export function filtrerCartes(
 }
 
 /**
- * Les logements de toutes les annonces relevées, comme dans Logements : un
- * logement vendu sur plusieurs plateformes réunit ses offres
- * (`regroupement.ts`). L'identité se calcule ici, avant les critères : calculée
- * après eux, elle changeait avec eux, un critère qui écartait l'une des deux
- * annonces d'un titre ambigu faisant réunir les autres. Une annonce sortie des
- * relevés de deux stations n'y entre qu'une fois.
+ * Les logements de toutes les annonces relevées. L'identité est celle de chaque
+ * relevé : les offres qu'il a marquées du même `logement` sont un logement,
+ * exactement celui que sa médiane compte une fois. Elle n'est pas refaite ici
+ * sur toutes les stations réunies : un titre générique repris par la même
+ * plateforme dans une autre station y rendait le titre « ambigu » et défaisait
+ * la paire (deux cartes pour un bien), et une clé Cozy s'y ancrait sur l'offre
+ * d'une autre station.
+ *
+ * D'une station à l'autre, deux logements se réunissent quand ils partagent
+ * une offre (même id), jamais au point de mettre deux offres d'une même
+ * plateforme dans un logement, comme `regrouper`. Une offre sans marque vient
+ * d'un relevé antérieur au soir du 25 septembre 2026, qui ne gardait qu'une
+ * offre par logement : elle reste seule, faute de savoir ce que le relevé
+ * avait séparé.
+ *
+ * À appeler sur toutes les annonces relevées, avant les critères : les
+ * critères choisissent les cartes montrées, ils ne changent pas qui va avec qui.
  */
-export function logementsReleves(avant: readonly CarteAnnonce[]): Logement[] {
-  const uniques = new Map<string, Listing>();
-  for (const c of avant) if (!uniques.has(c.a.id)) uniques.set(c.a.id, c.a);
-  return regrouper([...uniques.values()]);
+export function logementsReleves(cartes: readonly CarteAnnonce[]): Logement[] {
+  const parent = new Map<string, string>();
+  const premiere = new Map<string, AnnonceRetenue>();
+  /** Les plateformes de chaque logement, tenues à sa racine. */
+  const sources = new Map<string, Set<string>>();
+  const racine = (id: string): string => {
+    let r = id;
+    while (parent.get(r) !== r) r = parent.get(r) as string;
+    let x = id;
+    while (x !== r) {
+      const suivant = parent.get(x) as string;
+      parent.set(x, r);
+      x = suivant;
+    }
+    return r;
+  };
+  const unir = (a: string, b: string) => {
+    const ra = racine(a);
+    const rb = racine(b);
+    if (ra === rb) return;
+    const sa = sources.get(ra) as Set<string>;
+    const sb = sources.get(rb) as Set<string>;
+    for (const s of sb) if (sa.has(s)) return;
+    parent.set(rb, ra);
+    for (const s of sb) sa.add(s);
+    sources.delete(rb);
+  };
+  /** La première offre vue de chaque logement de relevé (station et marque). */
+  const tete = new Map<string, string>();
+  for (const c of cartes) {
+    const { id, source, logement } = c.a;
+    if (!parent.has(id)) {
+      parent.set(id, id);
+      premiere.set(id, c.a);
+      sources.set(id, new Set([source]));
+    }
+    if (!logement) continue;
+    const cle = `${c.stationId}\n${logement}`;
+    const t = tete.get(cle);
+    if (t == null) tete.set(cle, id);
+    else unir(t, id);
+  }
+  const groupes = new Map<string, Listing[]>();
+  for (const [id, a] of premiere) {
+    const r = racine(id);
+    const g = groupes.get(r);
+    if (g) g.push(a);
+    else groupes.set(r, [a]);
+  }
+  return [...groupes.values()].map((os) => {
+    const offres = [...os].sort(parPrixOffre);
+    return { principale: offres[0] as Listing, offres };
+  });
 }
 
 /** Un logement de l'onglet budget : ses offres qui passent les critères, la
@@ -1409,9 +1486,10 @@ export type LogementBudget = { principale: CarteAnnonce; offres: CarteAnnonce[] 
 /**
  * Une carte par logement. Les critères retirent des offres à l'intérieur de
  * chaque logement (`filtrees`, rendu par `filtrerCartes`), et la moins chère
- * de celles qui restent se montre ; chaque offre garde la carte que
- * `filtrerCartes` a choisie pour elle. Les relevés faits avant le 25 septembre
- * 2026 au soir n'ont gardé qu'une offre par logement : chacune y reste seule.
+ * de celles qui restent se montre. Chaque offre garde la carte que
+ * `filtrerCartes` a choisie pour elle, et c'est sur ces cartes que le prix se
+ * compare : une annonce relevée pour deux stations à deux prix montre la
+ * copie la plus proche des remontées, qui n'est pas forcément la première.
  */
 export function logementsBudget(
   groupes: readonly Logement[],
@@ -1422,7 +1500,8 @@ export function logementsBudget(
   for (const g of groupes) {
     const offres = g.offres
       .map((o) => passe.get(o.id))
-      .filter((c): c is CarteAnnonce => c != null);
+      .filter((c): c is CarteAnnonce => c != null)
+      .sort((p, q) => parPrixOffre(p.a, q.a));
     const [principale] = offres;
     if (principale) out.push({ principale, offres });
   }

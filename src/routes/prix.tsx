@@ -911,19 +911,26 @@ function VueBudget({
   }, [pret, vueLue]);
   const affichable = pret || luePour === vueLue;
 
-  const avant = useMemo<CarteAnnonce[]>(
+  // Toutes les annonces relevées, avant tout critère : c'est sur elles que se
+  // fait l'identité des logements, qui ne tourne ainsi qu'à l'arrivée d'une
+  // station, et non à chaque cran d'un curseur.
+  const tout = useMemo<CarteAnnonce[]>(
     () =>
       relevees.flatMap((s, i) =>
-        passeStationSeule(s, fl, BORNES)
-          ? (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
-              a,
-              stationId: s.id,
-              stationNom: s.name,
-            }))
-          : [],
+        (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
+          a,
+          stationId: s.id,
+          stationNom: s.name,
+        })),
       ),
-    [relevees, cles, parCle, fl],
+    [relevees, cles, parCle],
   );
+  const avant = useMemo<CarteAnnonce[]>(() => {
+    const passent = new Set(
+      relevees.filter((s) => passeStationSeule(s, fl, BORNES)).map((s) => s.id),
+    );
+    return tout.filter((c) => passent.has(c.stationId));
+  }, [tout, relevees, fl]);
   // Dans l'ordre du référentiel : la carte se cadre sur elles, et un autre tri
   // ne la recadre pas. Une annonce sortie des relevés de deux stations voisines
   // n'y figure qu'une fois, sous celle qui la mesure le plus près des remontées
@@ -931,8 +938,9 @@ function VueBudget({
   const filtrees = useMemo(() => filtrerCartes(avant, fl, BORNES), [avant, fl]);
   // Un logement par carte, comme dans Logements : ses offres des autres
   // plateformes se rangent derrière la moins chère de celles qui passent, et
-  // l'étiquette les nomme. L'identité se calcule sur tout ce qui est relevé.
-  const groupes = useMemo(() => logementsReleves(avant), [avant]);
+  // l'étiquette les nomme. L'identité est celle des relevés, sur tout ce qui
+  // est relevé : les critères choisissent les cartes, pas qui va avec qui.
+  const groupes = useMemo(() => logementsReleves(tout), [tout]);
   const logements = useMemo(() => logementsBudget(groupes, filtrees), [groupes, filtrees]);
   const logementDe = useMemo(() => {
     const m = new Map<string, LogementBudget>();

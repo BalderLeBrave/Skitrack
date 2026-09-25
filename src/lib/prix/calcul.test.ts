@@ -105,6 +105,7 @@ import {
   versListing,
   versLogement,
   videBudget,
+  type AnnonceRetenue,
   type Bornes,
   type CarteAnnonce,
   type Filtres,
@@ -1826,7 +1827,11 @@ describe("annonces d'un relevé", () => {
       a.map((x) => x.id),
       ["airbnb-1", "airbnb-2"],
     );
-    assert.deepEqual(a, retenir(input.listings, CTX).map(compacter));
+    // Chacune seule dans son logement : sa marque est son propre id.
+    assert.deepEqual(
+      a,
+      retenir(input.listings, CTX).map((l) => ({ ...compacter(l), logement: l.id })),
+    );
     // Station, GPS et provenance y sont : Logements les lit.
     assert.deepEqual(
       [a[0].stationId, a[0].lat, a[0].lon, a[0].proven],
@@ -1872,12 +1877,12 @@ describe("annonces d'un relevé", () => {
     // plateformes : sans elles, l'offre Airbnb d'un bien moins cher sur
     // Booking n'apparaissait nulle part.
     assert.deepEqual(
-      a.map((x) => [x.id, x.total]),
+      a.map((x) => [x.id, x.total, x.logement]),
       [
-        ["abr-777", 2300],
-        ["bk-777", 2050],
-        ["abnb-777", 2100],
-        ["airbnb-1", 2000],
+        ["bk-777", 2050, "bk-777"],
+        ["abnb-777", 2100, "bk-777"],
+        ["abr-777", 2300, "bk-777"],
+        ["airbnb-1", 2000, "airbnb-1"],
       ],
     );
     assert.deepEqual(
@@ -1902,25 +1907,51 @@ describe("annonces d'un relevé", () => {
 });
 
 describe("un logement par carte dans l'onglet budget", () => {
-  const carte = (l: Listing, stationId = "les-2-alpes"): CarteAnnonce => ({
-    a: compacter(l),
-    stationId,
-    stationNom: stationId === "les-2-alpes" ? "Les 2 Alpes" : stationId,
-  });
-  const offres = (g: LogementBudget) => g.offres.map((o) => o.a.id);
   const BORNES = bornesPlages(STATIONS);
+  const NOMS: Record<string, string> = {
+    "les-2-alpes": "Les 2 Alpes",
+    "alpe-d-huez": "Alpe d'Huez",
+  };
+  /** Ce qu'un relevé de la station enregistre, en cartes de l'onglet. */
+  const releve = (listings: Listing[], stationId = "les-2-alpes"): CarteAnnonce[] =>
+    annoncesDuReleve({
+      listings,
+      sources: [] as SourceReport[],
+      partsEchouees: [] as Part[],
+      ...CTX,
+    }).map((a) => ({ a, stationId, stationNom: NOMS[stationId] ?? stationId }));
+  /** Comme l'onglet : l'identité sur tout ce qui est relevé, les critères ensuite. */
+  const logements = (tout: CarteAnnonce[], fl: Filtres = FL0) =>
+    logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, BORNES));
+  const offres = (g: LogementBudget) => g.offres.map((o) => o.a.id);
+
+  it("le relevé marque chaque offre du logement que sa médiane compte", () => {
+    const [bk, abnb, abr, seule] = releve([...unBien, annonce()]).map((c) => c.a);
+    assert.deepEqual(
+      [bk, abnb, abr, seule].map((x) => [x.id, x.logement]),
+      [
+        ["bk-777", "bk-777"],
+        ["abnb-777", "bk-777"],
+        ["abr-777", "bk-777"],
+        ["airbnb-1", "airbnb-1"],
+      ],
+    );
+    // Relue d'IndexedDB, la marque reste.
+    const relue = versListing(abnb, "les-2-alpes") as AnnonceRetenue | null;
+    assert.equal(relue?.logement, "bk-777");
+  });
 
   it("les offres d'un même bien se rangent derrière la moins chère", () => {
-    const avant = [...unBien, annonce()].map((l) => carte(l));
-    const groupes = logementsReleves(avant);
-    const ls = logementsBudget(groupes, filtrerCartes(avant, FL0, BORNES));
+    const ls = logements(releve([...unBien, annonce()]));
     assert.deepEqual(ls.map(offres), [["bk-777", "abnb-777", "abr-777"], ["airbnb-1"]]);
     const [bien, seul] = ls;
     assert.equal(sourcesBudget(bien), "Booking + 2 · Les 2 Alpes");
     assert.equal(sourcesBudget(seul), "Airbnb · Les 2 Alpes");
     assert.equal(autresBudget(seul), null);
-    const autres = autresBudget(bien) ?? "";
-    assert.match(autres, /^Aussi sur Airbnb \(.*2.?100.*\), Abritel \(.*2.?300.*\)$/);
+    assert.match(
+      autresBudget(bien) ?? "",
+      /^Aussi sur Airbnb \(.*2.?100.*\), Abritel \(.*2.?300.*\)$/,
+    );
     // Le volet de Logements lit le même logement.
     assert.deepEqual(versLogement(bien), {
       principale: bien.principale.a,
@@ -1929,30 +1960,99 @@ describe("un logement par carte dans l'onglet budget", () => {
   });
 
   it("un critère retire une offre, la moins chère de celles qui restent se montre", () => {
-    const avant = unBien.map((l) => carte(l));
-    const groupes = logementsReleves(avant);
+    const tout = releve(unBien);
     // Un budget à 2 080 € ne garde que l'offre Booking.
-    const serre = filtrerCartes(avant, { ...FL0, budget: [0, 2080] }, BORNES);
-    assert.deepEqual(logementsBudget(groupes, serre).map(offres), [["bk-777"]]);
+    assert.deepEqual(logements(tout, { ...FL0, budget: [0, 2080] }).map(offres), [["bk-777"]]);
     // Sans l'offre Booking, l'Airbnb passe devant.
-    const sansBooking = filtrerCartes(avant, FL0, BORNES).filter((c) => c.a.id !== "bk-777");
-    assert.deepEqual(logementsBudget(groupes, sansBooking).map(offres), [["abnb-777", "abr-777"]]);
-    // Rien ne passe : aucun logement.
+    const groupes = logementsReleves(tout);
+    const sansBooking = filtrerCartes(tout, FL0, BORNES).filter((c) => c.a.id !== "bk-777");
+    assert.deepEqual(logementsBudget(groupes, sansBooking).map(offres), [
+      ["abnb-777", "abr-777"],
+    ]);
     assert.deepEqual(logementsBudget(groupes, []), []);
   });
 
-  it("une annonce relevée pour deux stations n'y entre qu'une fois", () => {
-    const avant = [carte(unBien[1]), carte(unBien[2]), carte(unBien[1], "alpe-d-huez")];
-    const ls = logementsBudget(logementsReleves(avant), filtrerCartes(avant, FL0, BORNES));
-    assert.deepEqual(ls.map(offres), [["bk-777", "abnb-777"]]);
+  it("un titre repris par la même plateforme dans une autre station ne défait pas la paire", () => {
+    // Regroupées à plat, les stations réunies, Booking portait ce titre deux
+    // fois : `regrouper` le jugeait ambigu, et le même bien faisait deux cartes.
+    const titre = "Appartement 6 personnes vue pistes";
+    const ailleurs = releve(
+      [annonce({ id: "bk-2", source: "Booking", title: titre, total: 1900 })],
+      "alpe-d-huez",
+    );
+    const ici = releve([
+      annonce({ id: "bk-1", source: "Booking", title: titre, total: 1800 }),
+      annonce({ id: "abnb-9", source: "Airbnb", title: titre, total: 2100 }),
+    ]);
+    const ls = logements([...ailleurs, ...ici]);
+    assert.deepEqual(ls.map(offres), [["bk-2"], ["bk-1", "abnb-9"]]);
+    assert.equal(sourcesBudget(ls[1]), "Booking + 1 · Les 2 Alpes");
+    // Choisir la station ne change pas qui va avec qui.
+    const seule = logementsBudget(
+      logementsReleves([...ailleurs, ...ici]),
+      filtrerCartes(ici, FL0, BORNES),
+    );
+    assert.deepEqual(seule.map(offres), [["bk-1", "abnb-9"]]);
+  });
+
+  it("une annonce relevée pour deux stations réunit leurs logements en une carte", () => {
+    const ailleurs = releve([unBien[1]], "alpe-d-huez");
+    const ici = releve([unBien[1], unBien[2]]);
+    assert.deepEqual(logements([...ailleurs, ...ici]).map(offres), [["bk-777", "abnb-777"]]);
+  });
+
+  it("jamais deux offres d'une même plateforme dans un logement, d'une station à l'autre", () => {
+    // abnb-1 va avec bk-1 aux 2 Alpes (clé Cozy), et avec bk-3 à l'Alpe d'Huez
+    // (même titre, même point) : réunir les deux logements y mettrait deux
+    // offres Booking.
+    const titre = "Studio cosy au pied des pistes";
+    const ailleurs = releve(
+      [
+        offreCozy("abnb-1", "Airbnb", { title: titre, total: 1500 }),
+        annonce({ id: "bk-3", source: "Booking", title: titre, total: 1600 }),
+      ],
+      "alpe-d-huez",
+    );
+    const ici = releve([
+      offreCozy("bk-1", "Booking", { title: "Les Mélèzes", total: 1400 }),
+      offreCozy("abnb-1", "Airbnb", { title: titre, total: 1500 }),
+    ]);
+    const ls = logements([...ailleurs, ...ici]);
+    assert.deepEqual(ls.flatMap(offres).sort(), ["abnb-1", "bk-1", "bk-3"]);
+    for (const g of ls) {
+      const src = g.offres.map((o) => o.a.source);
+      assert.equal(new Set(src).size, src.length, `deux offres d'une plateforme : ${offres(g)}`);
+    }
+  });
+
+  it("la principale se juge sur la copie montrée, pas sur la première relevée", () => {
+    // bk-777 relevée à 1 800 € loin des remontées pour l'Alpe d'Huez, et à
+    // 2 300 € tout près pour Les 2 Alpes : la carte montre la copie proche.
+    const [bkIci, abnbIci] = releve([
+      offreCozy("bk-777", "Booking", { total: 2300, distToSlopesM: 300 }),
+      offreCozy("abnb-777", "Airbnb", { total: 2100, distToSlopesM: 300 }),
+    ]);
+    const bkAilleurs: CarteAnnonce = {
+      a: { ...bkIci.a, total: 1800, distToSlopesM: 1500 },
+      stationId: "alpe-d-huez",
+      stationNom: "Alpe d'Huez",
+    };
+    const [g] = logements([bkAilleurs, bkIci, abnbIci]);
+    assert.deepEqual(offres(g), ["abnb-777", "bk-777"]);
+    assert.equal(g.principale.a.total, 2100);
+    assert.equal(sourcesBudget(g), "Airbnb + 1 · Les 2 Alpes");
+    assert.match(autresBudget(g) ?? "", /^Aussi sur Booking \(.*2.?300.*\)$/);
   });
 
   it("un relevé qui n'a gardé qu'une offre par logement donne une carte par offre", () => {
-    const avant = [annonce({ id: "a", total: 1000 }), annonce({ id: "b", total: 1200 })].map((l) =>
-      carte(l),
-    );
-    const ls = logementsBudget(logementsReleves(avant), filtrerCartes(avant, FL0, BORNES));
-    assert.deepEqual(ls.map(offres), [["a"], ["b"]]);
+    // Avant le soir du 25 septembre 2026, rien n'était marqué : ce que le
+    // relevé avait séparé ne se réunit pas à la relecture.
+    const tout = unBien.map((l) => ({
+      a: compacter(l),
+      stationId: "les-2-alpes",
+      stationNom: "Les 2 Alpes",
+    }));
+    assert.deepEqual(logements(tout).map(offres), [["abr-777"], ["bk-777"], ["abnb-777"]]);
   });
 });
 

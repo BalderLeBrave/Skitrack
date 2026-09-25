@@ -9,6 +9,7 @@
  *  Chargé tel quel par `node --experimental-strip-types` : imports relatifs
  *  avec leur extension, types en `import type`, aucun alias `@/`. */
 
+import { UNNAMED_DOMAIN } from "../classeur.ts";
 import type { Listing } from "../listings.ts";
 import type { SourceReport } from "../scrape/types.ts";
 import type { Station } from "../stations.ts";
@@ -17,7 +18,17 @@ import { availabilityOf } from "../stay/availability.ts";
 import { addDaysIso, formatDayIso } from "../stay/calendar.ts";
 import { enrichirListing } from "../stay/enrichir.ts";
 import { estFicheGitesIntrouvable } from "../stay/ficheGites.ts";
-import { geoReasonFor, gpsPrecis, partyVerdict, RAYON_DEFAUT_KM } from "../stay/lodgingFilter.ts";
+import {
+  DIST_PALIERS_M,
+  distFiltrableM,
+  geoReasonFor,
+  gpsPrecis,
+  normalizedBedrooms,
+  partyVerdict,
+  RAYON_DEFAUT_KM,
+} from "../stay/lodgingFilter.ts";
+import { nearestStationLift } from "../remontees.ts";
+import { stationById } from "../stations.ts";
 import { regrouper } from "../stay/regroupement.ts";
 import { estOffreGitesVerifiee } from "../stay/tarif.ts";
 import { maxM, villageM } from "../v7.ts";
@@ -136,15 +147,36 @@ export type ContexteReleve = {
 
 const REPLI = /repli/i;
 
+/** « Dans la station » : à 2 km au plus d'une remontée (décision du 25 sept.
+ *  2026). Au-delà, c'est une vallée, une ville ou une autre montagne. */
+export const DISTANCE_STATION_M = 2000;
+
+/**
+ * Le logement est-il un logement de station ? La distance est celle de
+ * Logements (`distFiltrableM`) : la remontée OpenStreetMap la plus proche du
+ * domaine cherché (liste de la station, ou index national pour une gare à 3 km
+ * au plus d'un repère de station), à défaut le repère de la station. Une distance inconnue
+ * écarte : rien ne prouve alors que le logement soit en station, et le
+ * propriétaire ne veut voir que ceux qui le sont.
+ */
+export function dansLaStation(
+  l: Pick<Listing, "distToSlopesM" | "distToLiftM">,
+  maxM: number = DISTANCE_STATION_M,
+): boolean {
+  const m = distFiltrableM(l);
+  return m != null && m <= maxM;
+}
+
 type Crible = { retenues: Listing[]; muettes: number; petits: number };
 
 /**
  * Une annonce ne compte que si tout le reste est prouvé : offre réelle, pas
- * un repli sur le relevé figé, en euros, à la station, géolocalisée, et
- * tarifée récemment pour exactement ce séjour. Un « à partir de » n'est pas un
- * total de séjour, même non nul. Parmi celles-là seulement, le verdict de
- * groupe tranche : une capacité tue est comptée à part (`muettes`), jamais
- * supposée suffisante, et une trop petite aussi (`petits`).
+ * un repli sur le relevé figé, en euros, à la station, géolocalisée, à 2 km au
+ * plus d'une remontée, et tarifée récemment pour exactement ce séjour. Un « à
+ * partir de » n'est pas un total de séjour, même non nul. Parmi celles-là
+ * seulement, le verdict de groupe tranche : une capacité tue est comptée à
+ * part (`muettes`), jamais supposée suffisante, et une trop petite aussi
+ * (`petits`).
  *
  * Un logement vendu sur trois plateformes n'est qu'un logement : les retenues
  * se regroupent comme dans Logements, et seule l'offre la moins chère de
@@ -167,6 +199,9 @@ function cribler(listings: readonly Listing[], ctx: ContexteReleve): Crible {
     if (l.priceIndicative) continue;
     if (geoReasonFor(l, RAYON_DEFAUT_KM, ctx.dept) != null) continue;
     if (!gpsPrecis(l)) continue;
+    // Le rayon de 12 km garde la vallée entière : un logement de station est
+    // bien plus près d'une remontée. Écarté ici, il n'entre dans aucun compte.
+    if (!dansLaStation(l)) continue;
     if (availabilityOf(l, stay, ctx.now).status !== "confirmed") continue;
     // Une même annonce rendue deux fois ne compte qu'une fois.
     if (vus.has(l.id)) continue;
@@ -265,6 +300,36 @@ export function versListing(a: unknown, stationId: string): Listing | null {
     photos: Array.isArray(o.photos)
       ? o.photos.filter((u): u is string => typeof u === "string")
       : null,
+  };
+}
+
+/**
+ * La remontée d'une annonce enregistrée, remesurée à sa relecture. Jusqu'au
+ * correctif du 25 septembre 2026, `attachAccess` ne mesurait que la liste de
+ * gares de la station, incomplète pour plusieurs d'entre elles : une annonce
+ * du village de Saint-Martin-de-Belleville gardait 2 839 m quand la gare
+ * « Village » est à 27 m, et la règle des 2 km l'écartait. La gare la plus proche de toutes
+ * (`nearestAnyLift`) la remplace quand elle est plus près. Seulement dans le
+ * domaine cherché, comme `attachAccess` : hors du domaine, la remontée n'est
+ * pas celle du logement ; sans position, rien ne se mesure.
+ */
+export function remesurerRemontee(l: Listing): Listing {
+  if (l.lat == null || l.lon == null) return l;
+  if (l.domainFit !== "in" && l.domainFit !== "linked") return l;
+  const proche = l.nearestDomainId ? stationById(l.nearestDomainId) : undefined;
+  const gare = nearestStationLift(l.lat, l.lon, [stationById(l.stationId), proche]);
+  if (!gare) return l;
+  const avant = l.distToLiftM;
+  if (avant != null && Number.isFinite(avant) && avant >= 0 && avant <= gare.m) return l;
+  return {
+    ...l,
+    distToLiftM: gare.m,
+    liftName: gare.name,
+    liftKind: gare.kind,
+    liftLat: gare.lat,
+    liftLon: gare.lon,
+    liftOtherLat: gare.otherLat,
+    liftOtherLon: gare.otherLon,
   };
 }
 
@@ -368,10 +433,13 @@ export function annoncesDuReleve(input: EntreeReleve): AnnonceRetenue[] {
 export type Plage = readonly [number, number] | null;
 /** Ce qui se lit sur la station elle-même. */
 export type PlageStationK = "km" | "sommet" | "village";
-export type PlageK = "prix" | PlageStationK | "budget";
+/** Ce qui se lit sur l'annonce, hors prix. */
+export type PlageLogementK = "capacite" | "chambres";
+export type PlageK = "prix" | PlageStationK | "budget" | PlageLogementK;
 /** Les deux onglets partagent massif, département et plages de station ;
- *  `prix` et `avecPrix` ne servent qu'à « Par station », `budget` qu'à
- *  « Par budget ». */
+ *  `prix` et `avecPrix` ne servent qu'à « Par station ». `budget`, `domaine`,
+ *  `station`, `capacite`, `chambres` et `distMax` ne servent qu'à « Par
+ *  budget » : le tableau des médianes ne les lit pas. */
 export type Filtres = {
   massif: string;
   dept: string;
@@ -381,6 +449,16 @@ export type Filtres = {
   sommet: Plage;
   village: Plage;
   budget: Plage;
+  /** Valeur de `Station.domain`, ou "" : tous les domaines. */
+  domaine: string;
+  /** Identifiant de station, ou "" : toutes les stations. */
+  station: string;
+  /** Couchages annoncés. */
+  capacite: Plage;
+  /** Chambres, ou pièces moins une (`normalizedBedrooms`). */
+  chambres: Plage;
+  /** Distance aux remontées, en mètres : un palier de `DIST_PALIERS_M`. */
+  distMax: number;
 };
 
 export const FL0: Filtres = {
@@ -392,13 +470,18 @@ export const FL0: Filtres = {
   sommet: null,
   village: null,
   budget: null,
+  domaine: "",
+  station: "",
+  capacite: null,
+  chambres: null,
+  distMax: DISTANCE_STATION_M,
 };
 
 export type DefPlage = {
   k: PlageK;
   lbl: string;
   pas: number;
-  unite: "€" | "km" | "m";
+  unite: "€" | "km" | "m" | "pers." | "ch.";
   fixe?: readonly [number, number];
 };
 export type DefPlageStation = DefPlage & { k: PlageStationK };
@@ -424,6 +507,14 @@ export const PLAGE_BUDGET: DefPlage = {
   unite: "€",
   fixe: [0, 10000],
 };
+
+/** Les plages de l'annonce, onglet « Par budget » seulement. Échelles fixes :
+ *  le haut dit « et plus » (20 personnes, 8 chambres) ; zéro chambre, c'est
+ *  un studio. */
+export const PLAGES_LOGEMENT: readonly DefPlage[] = [
+  { k: "capacite", lbl: "Personnes", pas: 1, unite: "pers.", fixe: [1, 20] },
+  { k: "chambres", lbl: "Chambres", pas: 1, unite: "ch.", fixe: [0, 8] },
+];
 
 /** Une altitude à zéro n'est pas mesurée : `maxM` et `villageM` la rendent nulle. */
 export function valeurStation(k: PlageStationK, s: Station): number | null {
@@ -451,7 +542,9 @@ function bornesDe(def: DefPlage, stations: readonly Station[]): readonly [number
 /** L'échelle de chaque curseur, arrondie au pas, sur les valeurs mesurées. */
 export function bornesPlages(stations: readonly Station[]): Bornes {
   const b = {} as Record<PlageK, readonly [number, number]>;
-  for (const def of [...PLAGES, PLAGE_BUDGET]) b[def.k] = bornesDe(def, stations);
+  for (const def of [...PLAGES, PLAGE_BUDGET, ...PLAGES_LOGEMENT]) {
+    b[def.k] = bornesDe(def, stations);
+  }
   return b;
 }
 
@@ -491,36 +584,171 @@ export function lireSaisie(texte: string): number | null {
 export function fmtPlage(k: PlageK, v: number): string {
   if (k === "prix" || k === "budget") return eur(v);
   if (k === "km") return `${fmt(v)} km`;
+  if (k === "capacite") return `${fmt(v)} pers.`;
+  if (k === "chambres") return `${fmt(v)} ch.`;
   return `${fmt(v)} m`;
 }
 
-/** La borne haute au maximum de l'échelle ne plafonne pas : « et plus ». */
+/** La borne haute au maximum de l'échelle ne plafonne pas : « et plus ».
+ *  Personnes et chambres se comptent à l'unité : deux poignées confondues
+ *  disent un nombre, « 2 ch. », et non « 2 ch. à 2 ch. ». */
 export function plageLbl(k: PlageK, pl: Plage, b: readonly [number, number]): string {
   if (pl == null) return "Indifférent";
   const [lo, hi] = pl;
   if (hi >= b[1]) return `${fmtPlage(k, lo)} et plus`;
+  if (lo === hi && (k === "capacite" || k === "chambres")) return fmtPlage(k, lo);
   if (lo <= b[0]) return `jusqu’à ${fmtPlage(k, hi)}`;
   return `${fmtPlage(k, lo)} à ${fmtPlage(k, hi)}`;
 }
 
-/** Les filtres de l'onglet « Par station » : le budget n'y compte pas. */
+/* ---------- Distance aux remontées ---------- */
+
+/** Les paliers du filtre, ceux de Logements, jusqu'à la limite de la station. */
+export const PALIERS_DIST_M: readonly number[] = DIST_PALIERS_M.filter(
+  (m) => m <= DISTANCE_STATION_M,
+);
+
+/** Un palier inconnu (état abîmé, ancien réglage) revient aux 2 km de la
+ *  station : le filtre ne s'élargit jamais au-delà. */
+export function distMaxLue(m: number): number {
+  return PALIERS_DIST_M.includes(m) ? m : DISTANCE_STATION_M;
+}
+
+/** « Au pied des pistes », « 500 m au plus », « 1 km au plus ». */
+export function distLbl(m: number): string {
+  if (m <= DIST_PALIERS_M[0]) return "Au pied des pistes";
+  if (m >= 1000 && m % 1000 === 0) return `${fmt(m / 1000)} km au plus`;
+  return `${fmt(m)} m au plus`;
+}
+
+/* ---------- Critères actifs ---------- */
+
+/** Les filtres de l'onglet « Par station » : ceux de « Par budget » n'y comptent pas. */
 export function filtresActifs(fl: Filtres): boolean {
   return fl.massif !== "" || fl.dept !== "" || fl.avecPrix || PLAGES.some((p) => fl[p.k] != null);
 }
 
-/** Les filtres de l'onglet « Par budget » : ni la médiane ni « avec un prix ». */
+/** Les filtres de l'onglet « Par budget » : ni la médiane ni « avec un prix ».
+ *  La distance ne compte qu'écartée de ses 2 km, qui sont le repos. */
 export function filtresActifsBudget(fl: Filtres): boolean {
   return (
     fl.budget != null ||
     fl.massif !== "" ||
     fl.dept !== "" ||
+    fl.domaine !== "" ||
+    fl.station !== "" ||
+    distMaxLue(fl.distMax) !== DISTANCE_STATION_M ||
+    PLAGES_LOGEMENT.some((p) => fl[p.k] != null) ||
     PLAGES_STATION.some((p) => fl[p.k] != null)
   );
 }
 
 /** « Tout effacer » de l'onglet budget laisse les filtres de l'autre onglet. */
 export function effacerBudget(fl: Filtres): Filtres {
-  return { ...fl, budget: null, massif: "", dept: "", km: null, sommet: null, village: null };
+  return {
+    ...fl,
+    budget: null,
+    massif: "",
+    dept: "",
+    domaine: "",
+    station: "",
+    capacite: null,
+    chambres: null,
+    distMax: DISTANCE_STATION_M,
+    km: null,
+    sommet: null,
+    village: null,
+  };
+}
+
+/* ---------- Lieu : massif, département, domaine, station ---------- */
+
+/** Chaque choix de lieu vide ceux qui en dépendaient : un autre massif rend
+ *  caducs département, domaine et station ; un autre département, domaine et
+ *  station ; un autre domaine, la station. */
+export function choisirMassif(fl: Filtres, massif: string): Filtres {
+  return { ...fl, massif, dept: "", domaine: "", station: "" };
+}
+
+export function choisirDept(fl: Filtres, dept: string): Filtres {
+  return { ...fl, dept, domaine: "", station: "" };
+}
+
+export function choisirDomaine(fl: Filtres, domaine: string): Filtres {
+  return { ...fl, domaine, station: "" };
+}
+
+export function choisirStation(fl: Filtres, station: string): Filtres {
+  return { ...fl, station };
+}
+
+export type Option = { v: string; label: string };
+
+/** Le libellé que le classeur donne à trois domaines sans nom, sans rapport
+ *  entre eux : il ne désigne pas un domaine, il n'est pas proposé. */
+function domaineNomme(d: string | null): d is string {
+  return d != null && d !== "" && d !== UNNAMED_DOMAIN;
+}
+
+/** Les domaines skiables des stations du massif et du département choisis,
+ *  chacun avec son nombre de stations. « Tous » n'a pas de compte, comme le
+ *  département. */
+export function optionsDomaine(
+  stations: readonly Station[],
+  massif: string,
+  dept: string,
+): Option[] {
+  const compte = new Map<string, number>();
+  for (const s of stations) {
+    if (massif && s.massif !== massif) continue;
+    if (dept && s.dept !== dept) continue;
+    if (domaineNomme(s.domain)) compte.set(s.domain, (compte.get(s.domain) ?? 0) + 1);
+  }
+  return [
+    { v: "", label: "Tous" },
+    ...[...compte.keys()]
+      .sort((a, b) => a.localeCompare(b, "fr"))
+      .map((d) => ({ v: d, label: `${d} · ${compte.get(d)}` })),
+  ];
+}
+
+/** Le nom de chaque station, précisé par son domaine (à défaut son
+ *  département, puis son massif) quand deux stations le portent : deux
+ *  « Praloup » dans un même choix ne se distinguaient pas. */
+export function nomsDistincts(stations: readonly Station[]): Map<string, string> {
+  const parNom = new Map<string, number>();
+  for (const s of stations) parNom.set(s.name, (parNom.get(s.name) ?? 0) + 1);
+  return new Map(
+    stations.map((s) => {
+      if ((parNom.get(s.name) ?? 0) < 2) return [s.id, s.name];
+      const precision = domaineNomme(s.domain) ? s.domain : (s.dept ?? s.massif);
+      return [s.id, `${s.name} · ${precision}`];
+    }),
+  );
+}
+
+/** Les stations relevées qui passent massif, département et domaine, par nom.
+ *  La station choisie reste proposée même quand elle n'y est plus (autres
+ *  dates, autre groupe) : le choix affiché dit toujours le filtre réel. */
+export function optionsStation(
+  relevees: readonly Station[],
+  fl: Pick<Filtres, "massif" | "dept" | "domaine" | "station">,
+  noms: ReadonlyMap<string, string>,
+): Option[] {
+  const nom = (id: string) => noms.get(id) ?? id;
+  const ids = relevees
+    .filter(
+      (s) =>
+        (!fl.massif || s.massif === fl.massif) &&
+        (!fl.dept || s.dept === fl.dept) &&
+        (!fl.domaine || s.domain === fl.domaine),
+    )
+    .map((s) => s.id);
+  if (fl.station && !ids.includes(fl.station)) ids.push(fl.station);
+  const opts = ids
+    .map((id) => ({ v: id, label: nom(id) }))
+    .sort((a, b) => a.label.localeCompare(b.label, "fr") || ordreTexte(a.v, b.v));
+  return [{ v: "", label: "Toutes" }, ...opts];
 }
 
 /* ---------- Lignes, tri ---------- */
@@ -580,20 +808,42 @@ function dansPlage(v: number | null, pl: Plage, b: readonly [number, number]): b
 
 /** Massif, département et plages de station : ce que les deux onglets
  *  partagent. */
-export function passeStationSeule(s: Station, fl: Filtres, b: Bornes): boolean {
+function passeLieuCommun(s: Station, fl: Filtres, b: Bornes): boolean {
   if (fl.massif && s.massif !== fl.massif) return false;
   if (fl.dept && s.dept !== fl.dept) return false;
   return PLAGES_STATION.every((def) => dansPlage(valeurStation(def.k, s), fl[def.k], b[def.k]));
 }
 
-/** La plage de prix lit la médiane de la ligne ; le budget n'y entre pas. */
+/** La station, vue de l'onglet budget : ce que les deux onglets partagent,
+ *  plus le domaine et la station choisis. */
+export function passeStationSeule(s: Station, fl: Filtres, b: Bornes): boolean {
+  if (fl.domaine && s.domain !== fl.domaine) return false;
+  if (fl.station && s.id !== fl.station) return false;
+  return passeLieuCommun(s, fl, b);
+}
+
+/** La plage de prix lit la médiane de la ligne ; les critères de l'onglet
+ *  budget (budget, domaine, station, logement) n'y entrent pas. */
 export function passe(l: Ligne, s: Station, fl: Filtres, b: Bornes): boolean {
   if (fl.avecPrix && l.etat !== "prix") return false;
-  return dansPlage(l.med, fl.prix, b.prix) && passeStationSeule(s, fl, b);
+  return dansPlage(l.med, fl.prix, b.prix) && passeLieuCommun(s, fl, b);
 }
 
 export function passeBudget(total: number, pl: Plage, b: readonly [number, number]): boolean {
   return dansPlage(total, pl, b);
+}
+
+/**
+ * Une annonce de l'onglet budget : son total, sa distance aux remontées, ses
+ * personnes et ses chambres. Les annonces enregistrées avant la règle des
+ * 2 km y passent aussi : leur relevé ne l'appliquait pas. Une capacité ou des
+ * chambres absentes écartent quand leur plage est active, comme partout.
+ */
+export function passeAnnonce(a: AnnonceRetenue, fl: Filtres, b: Bornes): boolean {
+  if (!passeBudget(a.total, fl.budget, b.budget)) return false;
+  if (!dansLaStation(a, distMaxLue(fl.distMax))) return false;
+  if (!dansPlage(a.guests ?? null, fl.capacite, b.capacite)) return false;
+  return dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres);
 }
 
 export type Tri = { k: "med" | "nom" | "massif" | "n"; dir: 1 | -1 };
@@ -728,22 +978,43 @@ export function jetons(fl: Filtres, b: Bornes): Jeton[] {
   return [...out, ...jetonsPlages(PLAGES, fl, b)];
 }
 
-/** Les jetons de l'onglet « Par budget » : le budget d'abord, puis la station. */
-export function jetonsBudget(fl: Filtres, b: Bornes): Jeton[] {
+/** Les jetons de l'onglet « Par budget », dans l'ordre des critères à
+ *  l'écran : budget, massif, département, domaine, station, distance, puis
+ *  les plages de logement et de station. `noms` nomme la station choisie. */
+export function jetonsBudget(
+  fl: Filtres,
+  b: Bornes,
+  noms: ReadonlyMap<string, string> = new Map(),
+): Jeton[] {
   const out: Jeton[] = [];
   if (fl.budget != null) {
     out.push({ k: "budget", lbl: `Budget : ${plageLbl("budget", fl.budget, b.budget)}` });
   }
   if (fl.massif) out.push({ k: "massif", lbl: fl.massif });
   if (fl.dept) out.push({ k: "dept", lbl: fl.dept });
-  return [...out, ...jetonsPlages(PLAGES_STATION, fl, b)];
+  if (fl.domaine) out.push({ k: "domaine", lbl: `Domaine : ${fl.domaine}` });
+  if (fl.station) out.push({ k: "station", lbl: noms.get(fl.station) ?? fl.station });
+  const dist = distMaxLue(fl.distMax);
+  if (dist !== DISTANCE_STATION_M) {
+    // « Au pied des pistes » se suffit : « Remontées : au pied des pistes »
+    // dirait que les remontées sont au pied des pistes.
+    const d = distLbl(dist);
+    const lbl =
+      dist <= DIST_PALIERS_M[0] ? d : `Remontées : ${d.charAt(0).toLowerCase()}${d.slice(1)}`;
+    out.push({ k: "distMax", lbl });
+  }
+  return [...out, ...jetonsPlages(PLAGES_LOGEMENT, fl, b), ...jetonsPlages(PLAGES_STATION, fl, b)];
 }
 
-/** Retirer le massif retire aussi le département : il en dépendait. */
+/** Retirer un lieu retire ceux qui en dépendaient (voir `choisirMassif`) ; la
+ *  distance revient à ses 2 km. */
 export function retirerJeton(fl: Filtres, k: keyof Filtres): Filtres {
-  if (k === "massif") return { ...fl, massif: "", dept: "" };
-  if (k === "dept") return { ...fl, dept: "" };
+  if (k === "massif") return choisirMassif(fl, "");
+  if (k === "dept") return choisirDept(fl, "");
+  if (k === "domaine") return choisirDomaine(fl, "");
+  if (k === "station") return choisirStation(fl, "");
   if (k === "avecPrix") return { ...fl, avecPrix: false };
+  if (k === "distMax") return { ...fl, distMax: DISTANCE_STATION_M };
   const next = { ...fl };
   next[k] = null;
   return next;
@@ -807,12 +1078,13 @@ export function dureeLbl(ms: number): string {
 
 /* ---------- Onglet « Par budget » ---------- */
 
-export type TriB = "prix:1" | "prix:-1" | "cap:-1";
+export type TriB = "prix:1" | "prix:-1" | "cap:-1" | "dist:1";
 export const TRIB0: TriB = "prix:1";
 export const TRIS_B: readonly { v: TriB; label: string }[] = [
   { v: "prix:1", label: "Prix croissant" },
   { v: "prix:-1", label: "Prix décroissant" },
   { v: "cap:-1", label: "Capacité" },
+  { v: "dist:1", label: "Plus près des remontées" },
 ];
 
 export function lireTriB(v: string): TriB {
@@ -832,14 +1104,54 @@ function parCarte(p: CarteAnnonce, q: CarteAnnonce): number {
   return ordreTexte(p.a.id, q.a.id) || ordreTexte(p.stationId, q.stationId);
 }
 
-/** Capacité : la plus grande d'abord, puis la moins chère. */
+/** Une distance inconnue passe après toutes les autres. */
+function parDistance(p: CarteAnnonce, q: CarteAnnonce): number {
+  const dp = distFiltrableM(p.a);
+  const dq = distFiltrableM(q.a);
+  if (dp == null || dq == null) return dp == null ? (dq == null ? 0 : 1) : -1;
+  return dp - dq;
+}
+
+/** Capacité : la plus grande d'abord, puis la moins chère. Remontées : la
+ *  plus proche d'abord, puis la moins chère. */
 export function comparateurBudget(t: TriB): (p: CarteAnnonce, q: CarteAnnonce) => number {
   if (t === "cap:-1") {
     return (p, q) =>
       (q.a.guests ?? 0) - (p.a.guests ?? 0) || p.a.total - q.a.total || parCarte(p, q);
   }
+  if (t === "dist:1") return (p, q) => parDistance(p, q) || p.a.total - q.a.total || parCarte(p, q);
   const dir = t === "prix:-1" ? -1 : 1;
   return (p, q) => dir * (p.a.total - q.a.total) || parCarte(p, q);
+}
+
+/** Les cartes qui passent les critères d'annonce, une par logement : deux
+ *  cartes d'un même logement ouvraient et retenaient la même copie, et le
+ *  compte le prenait deux fois. Une annonce sortie des relevés de deux
+ *  stations voisines garde, parmi ses cartes qui passent, celle qui la mesure
+ *  le plus près des remontées (la première du référentiel à égalité), à la
+ *  place de la première qui passe : celle-là changeait avec le palier de
+ *  distance, et avec elle la distance affichée, le tri et la station nommée.
+ *  La plus proche passe dès qu'une copie passe. Chaque logement garde la
+ *  place de sa première carte, qu'elle passe ou non. */
+export function filtrerCartes(
+  cartes: readonly CarteAnnonce[],
+  fl: Filtres,
+  b: Bornes,
+): CarteAnnonce[] {
+  // Une Map garde l'ordre de sa première clé, même quand la valeur change.
+  const gardees = new Map<string, CarteAnnonce | null>();
+  for (const c of cartes) {
+    const deja = gardees.get(c.a.id) ?? null;
+    if (!passeAnnonce(c.a, fl, b)) {
+      if (!gardees.has(c.a.id)) gardees.set(c.a.id, null);
+      continue;
+    }
+    // Une carte qui passe a une distance : `dansLaStation` l'exige.
+    if (!deja || (distFiltrableM(c.a) ?? 0) < (distFiltrableM(deja.a) ?? 0)) {
+      gardees.set(c.a.id, c);
+    }
+  }
+  return [...gardees.values()].filter((c): c is CarteAnnonce => c != null);
 }
 
 /** « 12 logements dans 3 stations », « 0 logement ». */
@@ -848,15 +1160,43 @@ export function countBudget(nAnnonces: number, nStations: number): string {
   return nStations > 0 ? `${n} dans ${plur(nStations, "station", "stations")}` : n;
 }
 
-/** Pourquoi la liste est vide : pas de relevé, le budget, ou les critères de station. */
+/** Le domaine ou la station choisis n'ont aucune station relevée pour la
+ *  période et le groupe affichés (`relevees`) : la liste est vide faute de
+ *  relevé, pas à cause des autres critères. La station choisie reste dans
+ *  son menu même sans relevé (`optionsStation`), un domaine aussi. */
+export function lieuSansReleve(fl: Filtres, relevees: readonly Station[]): boolean {
+  if (fl.station) return !relevees.some((s) => s.id === fl.station);
+  if (fl.domaine) {
+    return !relevees.some(
+      (s) =>
+        s.domain === fl.domaine &&
+        (!fl.massif || s.massif === fl.massif) &&
+        (!fl.dept || s.dept === fl.dept),
+    );
+  }
+  return false;
+}
+
+/** Pourquoi la liste est vide : pas de relevé du tout, pas de relevé du lieu
+ *  choisi, le budget, les autres critères, ou, sans aucun critère, la règle
+ *  des 2 km elle-même. */
 export function videBudget(
   aucunReleve: boolean,
   avantBudget: number,
+  criteres = true,
+  sansReleve = false,
 ): { titre: string; hint: string; versStation: boolean } {
   if (aucunReleve) {
     return {
       titre: "Aucune annonce relevée pour ces dates",
       hint: "Les logements proposés viennent des relevés. Lancez un relevé dans l’onglet Par station, ou revenez à des dates déjà relevées.",
+      versStation: true,
+    };
+  }
+  if (sansReleve) {
+    return {
+      titre: "Ce lieu n’a pas été relevé pour ces dates",
+      hint: "Lancez un relevé dans l’onglet Par station, ou choisissez d’autres dates.",
       versStation: true,
     };
   }
@@ -867,9 +1207,16 @@ export function videBudget(
       versStation: false,
     };
   }
+  if (!criteres) {
+    return {
+      titre: "Aucun logement de station pour ces dates",
+      hint: "Les relevés de ces dates n’ont retenu aucun logement à 2 km au plus d’une remontée.",
+      versStation: false,
+    };
+  }
   return {
     titre: "Aucun logement ne correspond à ces critères",
-    hint: "Retirez un critère de station, ou effacez-les tous.",
+    hint: "Retirez un critère, ou effacez-les tous.",
     versStation: false,
   };
 }

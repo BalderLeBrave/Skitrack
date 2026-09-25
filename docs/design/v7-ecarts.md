@@ -265,6 +265,7 @@ par station ; c'est le second qui fait foi.
 | Écran, onglets, tableau, onglet budget | `src/routes/prix.tsx` |
 | Liste, carte aux pastilles et volet de l'onglet budget (ceux de Logements) | `src/components/v7/CarteLogement.tsx`, `Pages.tsx`, `CarteEpingles.tsx`, `FicheEpingle.tsx`, `VoletAnnonce.tsx`, `OffresLogement.tsx` |
 | Calculs, filtres, tris, libellés (`ligne`, `passe`, `PLAGES`, `TRIS`…) | `src/lib/prix/calcul.ts` (+ `calcul.test.ts`) |
+| Logements de station, critères de l'onglet budget (`dansLaStation`, `passeAnnonce`, `optionsDomaine`, `optionsStation`, `choisirMassif`…) | `src/lib/prix/calcul.ts` ; distance lue par `distFiltrableM` (`src/lib/stay/lodgingFilter.ts`), gare la plus proche par `nearestAnyLift` (`src/lib/remontees.ts`) |
 | `lancer`, `demarrer`, `tick`, `suivant` : la course et sa file | `src/lib/prix/releve.ts` |
 | Créneau Airbnb avant chaque station | `src/lib/prix/attente.ts`, `attentePlacesMs` dans `src/lib/stay/taux.server.ts` |
 | Annonces de l'onglet budget | `src/lib/prix/annonces.ts` (IndexedDB) ; Réservation les relit par `annonceEnMemoire` (`src/lib/accommodation.ts`) |
@@ -357,6 +358,108 @@ par station ; c'est le second qui fait foi.
     septembre 2026). « Annonces relevées du … dans N stations sur 320 : … »
     listait toutes les stations relevées ; le compte « N logements dans M
     stations » et les états vides suffisent.
+12. **Des logements de station seulement** (demande du propriétaire, 25
+    septembre 2026 : ne plus voir de logements « qui n'ont absolument rien à
+    voir avec les stations de ski »). « Dans la station » veut dire à 2 km au
+    plus d'une remontée mécanique (`DISTANCE_STATION_M`, `dansLaStation`). La
+    distance est celle du filtre de Logements, `distFiltrableM` : la gare de
+    remontée la plus proche (`distToLiftM`), à défaut le repère de la station.
+    Une distance inconnue écarte. Le rayon de 12 km reste la première
+    barrière, mais il laissait passer la vallée.
+    - **La gare la plus proche.** Pour un logement du domaine cherché ou d'un
+      domaine relié (`domainFit` « in » ou « linked »), `attachAccess` garde
+      la plus proche de deux gares OpenStreetMap : celle de la liste propre à
+      la station (`nearestLift`, `osmAccess.snapshot.json`) et celle des
+      7 030 gares de `osmLifts.json` (`nearestAnyLift`, `remontees.ts`, index
+      en grille, le même résultat qu'un parcours complet). La liste de la
+      station seule en oubliait : au repère, Saint-Martin-de-Belleville
+      mesurait 2 839 m (« Olympic ») au lieu de 27 m (« Village »), et
+      Saint-François-Longchamp, Les Carroz, Monts Jura, Le Grand Valtin,
+      Villard-de-Lans et Le Mont-Dore perdaient de même leur village. Une
+      gare de l'index national ne compte que si elle est à 3 km au plus du
+      repère de la station cherchée ou de la station la plus proche
+      (`nearestStationLift`) : sans cela, le téléphérique de la Bastille à
+      Grenoble, le funiculaire d'Évian ou un téléski de Moûtiers faisaient
+      passer des appartements de ville pour des logements au pied des pistes.
+      Les remontées en projet (« (Project) », « (Proposed) ») sont écartées.
+      Hors du
+      domaine, aucune remontée n'est gardée, et la remontée « cherchée »
+      (`searchedLiftM`) reste celle de la liste de la station : un logement de
+      Bonneval-sur-Arc cherché depuis Val d'Isère n'est pas « au pied des
+      pistes » parce que le tapis de Bonneval est à côté.
+    - **Relevés.** `cribler` applique la règle avant tout compte : la médiane,
+      le nombre de logements, les annonces sans capacité et les trop petites
+      des prochains relevés ne portent que sur des logements de station. **Les
+      résultats déjà enregistrés ne changent pas** : leur médiane et leur
+      compte gardent l'ancienne règle (12 km) jusqu'au prochain relevé de la
+      station pour les mêmes dates et le même groupe. La note sous le tableau
+      le dit : « Depuis le 25 septembre 2026, un relevé ne compte que les
+      logements à 2 km au plus d’une remontée ; relevez à nouveau une station
+      pour l’appliquer à ses résultats plus anciens. »
+    - **Onglet budget.** Les annonces déjà enregistrées passent aussi par la
+      règle, à l'affichage, avec le filtre « Distance aux remontées » aux
+      paliers de Logements : « Au pied des pistes » (200 m), « 500 m au
+      plus », « 1 km au plus », « 2 km au plus », 2 km par défaut et jamais
+      plus (un palier inconnu se relit 2 km, `distMaxLue`). Les annonces de
+      l'ancien format (#47) n'ont que la distance au repère : elles restent
+      filtrables par elle. Celles du format actuel (#48) gardaient la distance
+      de la seule liste de la station : elles se remesurent à la lecture
+      (`remesurerRemontee`, `annonces.ts`), la gare la plus proche de toutes
+      remplaçant la leur quand elle est plus près, dans le domaine seulement ;
+      une annonce sans position ne change pas. Une annonce sortie des relevés
+      de deux stations garde la copie la plus proche des remontées (la
+      première du référentiel à égalité, `filtrerCartes`) : la copie retenue,
+      sa distance et la station nommée ne changent plus avec le palier. Une
+      liste que la seule règle vide le dit : « Aucun logement de station pour
+      ces dates ».
+13. **Nouveaux critères de l'onglet budget** (même demande : filtrer par
+    domaine skiable, station, prix, chambres, personnes). Ils vivent dans les
+    `Filtres` du magasin (`domaine`, `station`, `capacite`, `chambres`,
+    `distMax`) mais ne valent que pour cet onglet : `passe`, `jetons` et
+    `filtresActifs` de l'onglet station les ignorent.
+    - **Domaine skiable** : les valeurs de `Station.domain` des stations du
+      massif et du département choisis, triées, avec leur nombre de stations.
+      « domaine non nommé (OpenStreetMap) » n'est pas proposé : trois domaines
+      distincts et sans rapport le portent (`UNNAMED_DOMAIN`, `classeur.ts`).
+    - **Station** : les stations relevées pour la période et le groupe
+      affichés qui passent massif, département et domaine, triées ; « Toutes »
+      d'abord. Deux homonymes (« Praloup », « Le Granier ») se distinguent par
+      leur domaine, à défaut leur département ou leur massif
+      (`nomsDistincts`). La station choisie reste dans la liste quand elle n'a
+      pas de relevé pour d'autres dates : le choix affiché dit le filtre réel.
+      La liste vide le dit alors, comme pour un domaine dont aucune station
+      n'est relevée dans le massif et le département choisis
+      (`lieuSansReleve`) : « Ce lieu n’a pas été relevé pour ces dates »,
+      « Lancez un relevé dans l’onglet Par station, ou choisissez d’autres
+      dates. », avec le bouton vers l'onglet station.
+    - **Cascade** : un autre massif vide département, domaine et station ; un
+      autre département, domaine et station ; un autre domaine, la station.
+      Retirer le jeton fait de même. `passeStationSeule` lit domaine et
+      station.
+    - **Personnes** (1 à 20, « 20 pers. et plus ») et **Chambres** (0 à 8,
+      « 8 ch. et plus »), au pas de un. Les chambres sont celles annoncées, ou
+      les pièces moins une (`normalizedBedrooms`, un studio a zéro chambre).
+      Une valeur absente écarte l'annonce quand la plage est active, comme les
+      autres critères. Le prix est la fourchette « Budget, total du séjour »,
+      inchangée.
+    - **Jetons** : « Domaine : Les Trois Vallées », le nom de la station,
+      « Remontées : 500 m au plus » (la distance ne compte comme critère
+      qu'écartée de ses 2 km), « Au pied des pistes » pour 200 m (sans
+      « Remontées : », qui dirait les remontées au pied des pistes),
+      « Personnes : 4 pers. et plus », « Chambres : 2 ch. à 3 ch. ». « Tout
+      effacer » les remet tous au repos.
+    - **Tri** : « Plus près des remontées » s'ajoute (distance croissante,
+      puis prix, distance inconnue en dernier).
+    - **Mise en page** : la ligne du budget, du tri, du massif et du
+      département ; une ligne Domaine skiable, Station, Distance aux
+      remontées (le choix du domaine va jusqu'à 340 px, que demande le plus
+      long, « Domaine Skiable Saint-Léger-Les-Mélèzes · 1 » ; les autres
+      restent à 288 px) ; cinq fourchettes (Personnes, Chambres,
+      Kilomètres de pistes, Sommet, Altitude du village) ; les jetons. Dans
+      ces cinq colonnes, le résumé passe sous le libellé : sur une ligne,
+      « Kilomètres de pistes » et « 100 km à 600 km » demandent 236 px pour
+      211, le libellé passait à la ligne dans une colonne et pas dans sa
+      voisine, et les rails ne s'alignaient plus.
 
 ### Écarts assumés
 
@@ -369,6 +472,9 @@ par station ; c'est le second qui fait foi.
 | Cartes du budget | trois par rang, 60 sans le dire, station, titre, fiche, total et « Voir le logement » | cartes d'annonce de Logements, 18 par page, carte aux pastilles de prix à droite | décision 9 |
 | « Voir le logement » | ouvre Logements | ouvre le volet de l'annonce dans Prix | décision 10 |
 | Couverture sous les critères | « Annonces relevées du … dans N stations sur 320 : … » | absente | décision 11 |
+| Logements retenus | non précisé (l'application gardait 12 km autour de la station) | à 2 km au plus d'une remontée | décision 12 |
+| Critères du budget | budget, tri, massif, département, trois plages de station | plus domaine skiable, station, distance aux remontées, personnes, chambres, et le tri « Plus près des remontées » | décision 13 |
+| Fourchettes du budget | trois, libellé et résumé sur une ligne | cinq, résumé sous le libellé | décision 13 |
 | Libellés au singulier | « 1 affichées sur 1 », « les 1 stations » | « 1 affichée sur 1 », « Relever à nouveau la station » | accord |
 | Tri choisi par un en-tête | le choix affiché pouvait mentir | l'option manquante s'ajoute (« Nom, de Z à A ») | le choix affiché dit le tri réel |
 | Bouton de relevé | caché si la liste du même nom tourne | ne relance que les stations non prévues | une liste filtrée grandit pendant une course |
@@ -407,3 +513,16 @@ par station ; c'est le second qui fait foi.
   pose les dates et affiche « Passer à la réservation », et Réservation montre
   le logement ; au retour, onglet budget et page 2 retrouvés ; un autre tri,
   ou un zoom qui change la liste, ramène en page 1. Données effacées ensuite.
+- Logements de station et critères du budget (25 sept. 2026) :
+  `calcul.test.ts` 218 sur 218, `npm test` 1 092 tests TS et 205 sur 210 côté
+  scripts ; `tsc --noEmit` et `eslint` verts. Aperçu bâti sur 127.0.0.1:8098,
+  64 annonces factices dans huit stations, dont 22 à plus de 2 km d'une
+  remontée ou à distance inconnue : « 42 logements dans 8 stations ». Alpes du
+  Nord, Savoie, Les Trois Vallées : 19 domaines proposés, trois stations
+  relevées (Courchevel, Les Menuires, Val Thorens) ; Val Thorens et « 1 km au
+  plus » : un logement, à 839 m ; un autre massif vide département, domaine et
+  station. Les deux Praloup se distinguent dans le choix. À 1 440 × 900, les
+  cinq fourchettes font 211 px, rails alignés, et aucun champ ne déborde, même
+  avec « 1 200 m à 1 800 m » ; à 1 100 px, 175 px, et « 2000 » tient encore.
+  L'onglet station n'affiche aucun des nouveaux critères. Données effacées
+  ensuite.

@@ -7,6 +7,10 @@ import {
   avecNuits,
   bornerNuits,
   bornesPlages,
+  choisirDept,
+  choisirDomaine,
+  choisirMassif,
+  choisirStation,
   cleResultat,
   compacter,
   comparateur,
@@ -14,10 +18,14 @@ import {
   countBudget,
   countFl,
   countLbl,
+  dansLaStation,
   decaler,
   dejaPrevu,
   departIso,
   departLbl,
+  DISTANCE_STATION_M,
+  distLbl,
+  distMaxLue,
   dureeLbl,
   ecartLbl,
   effacerBudget,
@@ -25,12 +33,14 @@ import {
   estPassee,
   filtresActifs,
   filtresActifsBudget,
+  filtrerCartes,
   FL0,
   fmtPlage,
   grpKey,
   idsALancer,
   jetons,
   jetonsBudget,
+  lieuSansReleve,
   lireSaisie,
   lireTri,
   lireTriB,
@@ -42,14 +52,19 @@ import {
   MIN_ANNONCES,
   moreLbl,
   nomListe,
+  nomsDistincts,
   NUITS_MAX,
   NUITS_MIN,
+  optionsDomaine,
+  optionsStation,
   ordreMassifs,
   PAGE,
+  PALIERS_DIST_M,
   PARTS,
   PHOTOS_RETENUES,
   partielLbl,
   passe,
+  passeAnnonce,
   passeBudget,
   passeStationSeule,
   perKey,
@@ -57,6 +72,7 @@ import {
   periodeDuSejour,
   PLAGE_BUDGET,
   PLAGES,
+  PLAGES_LOGEMENT,
   PLAGES_STATION,
   plageLbl,
   plur,
@@ -64,6 +80,7 @@ import {
   poserBorne,
   relLbl,
   releveLbl,
+  remesurerRemontee,
   resultatDuReleve,
   retenir,
   retirerJeton,
@@ -98,6 +115,7 @@ import { STAY_BOUNDS } from "../parcours.ts";
 import { STATIONS, stationById, type Station } from "../stations.ts";
 import type { Listing } from "../listings.ts";
 import { provenancePhrase } from "../provenance.ts";
+import { nearestAnyLift } from "../remontees.ts";
 import type { SourceReport } from "../scrape/types.ts";
 import { availabilityOf, type AvailabilitySubject } from "../stay/availability.ts";
 import { completudeOf, galerieOf } from "../stay/completude.ts";
@@ -336,6 +354,9 @@ describe("agreger — ce qui entre dans la médiane", () => {
         url: "https://www.gites-de-france.com/fr/normandie/manche/la-mer-50g123456",
       }),
     ],
+    ["un logement à 3 km d’une remontée", annonce({ distToLiftM: 3000 })],
+    ["un logement sans remontée mesurée, à 3 km du repère", annonce({ distToSlopesM: 3000 })],
+    ["un logement à distance inconnue", annonce({ distToSlopesM: null, distToLiftM: null })],
     ["une annonce sans GPS", annonce({ lat: null, lon: null })],
     ["un GPS à (0, 0)", annonce({ lat: 0, lon: 0 })],
     [
@@ -811,6 +832,8 @@ describe("plages — échelle et poignées", () => {
       sommet: [900, 3600],
       village: [300, 2400],
       budget: [0, 10000],
+      capacite: [1, 20],
+      chambres: [0, 8],
     });
   });
 
@@ -829,6 +852,8 @@ describe("plages — échelle et poignées", () => {
       sommet: [0, 100],
       village: [0, 100],
       budget: [0, 10000],
+      capacite: [1, 20],
+      chambres: [0, 8],
     });
     const muette = { ...S2A, pistesKm: null, maxM: 0, villageM: 0 };
     assert.deepEqual(bornesPlages([muette]).km, [0, 10]);
@@ -1160,6 +1185,7 @@ describe("libellés", () => {
 
   const B: Bornes = bornesPlages(STATIONS);
   const tout: Filtres = {
+    ...FL0,
     massif: "Alpes du Nord",
     dept: "Isère",
     avecPrix: true,
@@ -1395,6 +1421,7 @@ describe("plage de budget", () => {
 
   it("effacerBudget remet les six critères de l'onglet, garde prix et avecPrix", () => {
     const tout: Filtres = {
+      ...FL0,
       massif: "Alpes du Nord",
       dept: "Isère",
       avecPrix: true,
@@ -1650,6 +1677,85 @@ describe("versListing : relire les annonces enregistrées", () => {
   });
 });
 
+describe("remesurerRemontee : une annonce enregistrée retrouve sa remontée", () => {
+  const sm = stationReelle("saint-martin-de-belleville");
+  /** Relevée avec la seule liste de gares de Saint-Martin, qui oubliait celle
+   *  du village : 2 839 m, la gare « Olympic ». */
+  const enregistree = (over: Partial<Listing> = {}): Listing =>
+    compacter(
+      annonce({
+        stationId: sm.id,
+        lat: sm.lat,
+        lon: sm.lon,
+        domainFit: "in",
+        distToLiftM: 2839,
+        liftName: "Olympic",
+        liftKind: "chair_lift",
+        liftLat: 45.3,
+        liftLon: 6.5,
+        liftOtherLat: null,
+        liftOtherLon: null,
+        searchedLiftM: 2839,
+        searchedLiftName: "Olympic",
+        ...over,
+      }),
+    );
+
+  it("la gare la plus proche remplace une remontée plus lointaine, et elle seule", () => {
+    const avant = enregistree();
+    const relue = versListing(avant, sm.id);
+    assert.ok(relue);
+    const l = remesurerRemontee(relue);
+    const g = nearestAnyLift(sm.lat, sm.lon);
+    assert.ok(g);
+    assert.equal(g.m, 27);
+    assert.deepEqual(l, {
+      ...relue,
+      distToLiftM: 27,
+      liftName: g.name,
+      liftKind: g.kind,
+      liftLat: g.lat,
+      liftLon: g.lon,
+      liftOtherLat: g.otherLat,
+      liftOtherLon: g.otherLon,
+    });
+    assert.equal(l.liftName, "Village");
+    // La remontée « cherchée » reste celle de la station.
+    assert.deepEqual([l.searchedLiftM, l.searchedLiftName], [2839, "Olympic"]);
+    assert.equal(dansLaStation(avant), false);
+    assert.equal(dansLaStation(l), true);
+  });
+
+  it("un domaine relié aussi, et une remontée absente se mesure", () => {
+    const l = remesurerRemontee(enregistree({ domainFit: "linked", distToLiftM: null }));
+    assert.equal(l.distToLiftM, 27);
+  });
+
+  it("déjà plus près, l'annonce ne change pas", () => {
+    for (const m of [27, 10, 0]) {
+      const a = enregistree({ distToLiftM: m, liftName: "Tapis" });
+      assert.equal(remesurerRemontee(a), a);
+    }
+  });
+
+  it("sans position, hors du domaine ou à l'ancien format : rien ne se mesure", () => {
+    for (const over of [
+      { lat: null },
+      { lon: null },
+      { domainFit: "other" as const },
+      { domainFit: "unknown" as const },
+      { domainFit: undefined },
+    ]) {
+      const a = enregistree(over);
+      assert.equal(remesurerRemontee(a), a);
+    }
+    const vieille = versListing(ancienne(enregistree()), sm.id);
+    assert.ok(vieille);
+    assert.equal(remesurerRemontee(vieille), vieille);
+    assert.equal(vieille.distToLiftM, undefined);
+  });
+});
+
 describe("annonces d'un relevé", () => {
   const base = {
     listings: [] as Listing[],
@@ -1761,8 +1867,10 @@ describe("tri des cartes", () => {
       { v: "prix:1", label: "Prix croissant" },
       { v: "prix:-1", label: "Prix décroissant" },
       { v: "cap:-1", label: "Capacité" },
+      { v: "dist:1", label: "Plus près des remontées" },
     ]);
     for (const t of TRIS_B) assert.equal(lireTriB(t.v), t.v);
+    assert.equal(lireTriB("dist:-1"), TRIB0);
     assert.equal(lireTriB("cap:1"), TRIB0);
     assert.equal(lireTriB("med:1"), TRIB0);
     assert.equal(lireTriB(""), TRIB0);
@@ -1854,6 +1962,7 @@ describe("filtres de l'onglet budget", () => {
 
   it("les jetons de budget : le budget, massif, département, puis les plages de station", () => {
     const tout: Filtres = {
+      ...FL0,
       massif: "Alpes du Nord",
       dept: "Isère",
       avecPrix: true,
@@ -1890,7 +1999,7 @@ describe("libellés de l'onglet budget", () => {
     assert.equal(countBudget(0, 0), "0 logement");
   });
 
-  it("videBudget : pas de relevé, puis le budget, puis les critères de station", () => {
+  it("videBudget : pas de relevé, puis le budget, puis les autres critères", () => {
     assert.deepEqual(videBudget(true, 0), {
       titre: "Aucune annonce relevée pour ces dates",
       hint:
@@ -1909,11 +2018,66 @@ describe("libellés de l'onglet budget", () => {
     );
     assert.deepEqual(videBudget(false, 0), {
       titre: "Aucun logement ne correspond à ces critères",
-      hint: "Retirez un critère de station, ou effacez-les tous.",
+      hint: "Retirez un critère, ou effacez-les tous.",
       versStation: false,
     });
     // Sans relevé, le budget n'y est pour rien.
     assert.equal(videBudget(true, 5).versStation, true);
+  });
+
+  it("videBudget : un lieu choisi sans relevé pour ces dates renvoie vers Par station", () => {
+    assert.deepEqual(videBudget(false, 0, true, true), {
+      titre: "Ce lieu n’a pas été relevé pour ces dates",
+      hint: "Lancez un relevé dans l’onglet Par station, ou choisissez d’autres dates.",
+      versStation: true,
+    });
+    // Aucun relevé du tout passe avant ; un lieu relevé laisse la suite.
+    assert.equal(videBudget(true, 0, true, true).titre, "Aucune annonce relevée pour ces dates");
+    assert.equal(
+      videBudget(false, 0, true, false).titre,
+      "Aucun logement ne correspond à ces critères",
+    );
+  });
+
+  it("lieuSansReleve : la station choisie, ou le domaine dans le massif et le département", () => {
+    const vt = stationReelle("val-thorens");
+    const lm = stationReelle("les-menuires");
+    const f = (over: Partial<Filtres>): Filtres => ({ ...FL0, ...over });
+    // Ni domaine ni station : ce n'est pas le lieu qui manque.
+    assert.equal(lieuSansReleve(FL0, []), false);
+    assert.equal(lieuSansReleve(f({ massif: "Alpes du Sud" }), [vt]), false);
+    // La station choisie.
+    assert.equal(lieuSansReleve(f({ station: "val-thorens" }), [lm, S2A]), true);
+    assert.equal(lieuSansReleve(f({ station: "val-thorens" }), [lm, vt]), false);
+    // Elle l'emporte sur son domaine, relevé ailleurs.
+    assert.equal(
+      lieuSansReleve(f({ domaine: "Les Trois Vallées", station: "val-thorens" }), [lm]),
+      true,
+    );
+    // Le domaine : une seule de ses stations relevée suffit.
+    assert.equal(lieuSansReleve(f({ domaine: "Les Trois Vallées" }), [S2A]), true);
+    assert.equal(lieuSansReleve(f({ domaine: "Les Trois Vallées" }), [S2A, lm]), false);
+    // Relevée, mais hors du département ou du massif choisis.
+    const ailleurs: Station = { ...lm, dept: "Isère" };
+    assert.equal(
+      lieuSansReleve(f({ domaine: "Les Trois Vallées", dept: "Savoie" }), [ailleurs]),
+      true,
+    );
+    assert.equal(
+      lieuSansReleve(f({ domaine: "Les Trois Vallées", massif: "Alpes du Sud" }), [lm]),
+      true,
+    );
+  });
+
+  it("videBudget : sans aucun critère, c'est la règle des 2 km qui a tout écarté", () => {
+    assert.deepEqual(videBudget(false, 0, false), {
+      titre: "Aucun logement de station pour ces dates",
+      hint: "Les relevés de ces dates n’ont retenu aucun logement à 2 km au plus d’une remontée.",
+      versStation: false,
+    });
+    // Le budget et l'absence de relevé passent avant.
+    assert.equal(videBudget(true, 0, false).versStation, true);
+    assert.equal(videBudget(false, 2, false).titre, "Aucun logement dans ce budget");
   });
 
   it("sous-titre", () => {
@@ -1928,14 +2092,31 @@ describe("libellés de l'onglet budget", () => {
   });
 
   it("aucun libellé neuf n'écrit d'apostrophe droite, de tiret cadratin ni d'exclamation", () => {
-    const vides = [videBudget(true, 0), videBudget(false, 2), videBudget(false, 0)];
+    const vides = [
+      videBudget(true, 0),
+      videBudget(false, 2),
+      videBudget(false, 0),
+      videBudget(false, 0, false),
+      videBudget(false, 0, true, true),
+    ];
+    const tous: Filtres = {
+      ...FL0,
+      budget: [0, 3000],
+      domaine: "Les Trois Vallées",
+      station: "val-thorens",
+      distMax: 1000,
+      capacite: [4, 20],
+      chambres: [0, 2],
+    };
     const textes = [
       ...TRIS_B.map((t) => t.label),
       PLAGE_BUDGET.lbl,
+      ...PLAGES_LOGEMENT.map((p) => p.lbl),
+      ...PALIERS_DIST_M.map(distLbl),
       countBudget(12, 3),
       ...vides.flatMap((v) => [v.titre, v.hint]),
       sousTitreBudget(7, 8),
-      ...jetonsBudget({ ...FL0, budget: [0, 3000] }, bornesPlages(STATIONS)).map((j) => j.lbl),
+      ...jetonsBudget(tous, bornesPlages(STATIONS)).map((j) => j.lbl),
     ];
     for (const t of textes) {
       assert.ok(!t.includes("'"), t);
@@ -1997,5 +2178,506 @@ describe("relevés à lancer", () => {
     const file = [job({ ids: ["e"] })];
     const liste = ["a", "b", "x", "c", "d", "e", "y"];
     assert.deepEqual(idsALancer(liste, PER, GRP, course, file), ["x", "y"]);
+  });
+});
+
+/* ---------- Logements de station (25 sept. 2026) ---------- */
+
+describe("dansLaStation : à 2 km au plus d'une remontée", () => {
+  it("le seuil est de 2 km, borne comprise", () => {
+    assert.equal(DISTANCE_STATION_M, 2000);
+    assert.equal(dansLaStation({ distToLiftM: 2000 }), true);
+    assert.equal(dansLaStation({ distToLiftM: 2001 }), false);
+  });
+
+  it("une remontée à 1 900 m est retenue, à 2 100 m écartée, quel que soit le repère", () => {
+    assert.equal(dansLaStation({ distToLiftM: 1900, distToSlopesM: 5000 }), true);
+    assert.equal(dansLaStation({ distToLiftM: 2100, distToSlopesM: 800 }), false);
+  });
+
+  it("sans remontée mesurée, le repère de la station départage", () => {
+    assert.equal(dansLaStation({ distToLiftM: null, distToSlopesM: 1500 }), true);
+    assert.equal(dansLaStation({ distToSlopesM: 1500 }), true);
+    assert.equal(dansLaStation({ distToLiftM: null, distToSlopesM: 2500 }), false);
+  });
+
+  it("une distance inconnue écarte : rien ne prouve que le logement soit en station", () => {
+    assert.equal(dansLaStation({}), false);
+    assert.equal(dansLaStation({ distToLiftM: null, distToSlopesM: null }), false);
+    assert.equal(dansLaStation({ distToLiftM: Number.NaN, distToSlopesM: Number.NaN }), false);
+    assert.equal(dansLaStation({ distToLiftM: -5, distToSlopesM: null }), false);
+  });
+
+  it("un autre seuil se passe en second argument", () => {
+    assert.equal(dansLaStation({ distToLiftM: 450 }, 500), true);
+    assert.equal(dansLaStation({ distToLiftM: 600 }, 500), false);
+  });
+});
+
+describe("relevé : seuls les logements de station comptent", () => {
+  const loin = annonce({ id: "loin", distToLiftM: 3000, total: 900 });
+  const pres = (id: string, total: number) => annonce({ id, distToLiftM: 300, total });
+
+  it("agreger écarte un logement à 3 km d'une remontée, sans le compter nulle part", () => {
+    assert.deepEqual(agreger([loin], CTX), { n: 0, muettes: 0, petits: 0, med: null });
+    const muetteLoin = annonce({ id: "muette-loin", distToLiftM: 3000, guests: null });
+    const petiteLoin = annonce({ id: "petite-loin", distToLiftM: 3000, guests: 2 });
+    assert.deepEqual(agreger([muetteLoin, petiteLoin], CTX), {
+      n: 0,
+      muettes: 0,
+      petits: 0,
+      med: null,
+    });
+  });
+
+  it("la médiane ne porte que sur les logements de station", () => {
+    assert.deepEqual(agreger([loin, pres("a", 2000), pres("b", 3000)], CTX), {
+      n: 2,
+      muettes: 0,
+      petits: 0,
+      med: 2500,
+    });
+  });
+
+  it("retenir et le relevé écartent le même logement", () => {
+    const lot = [loin, pres("a", 2000), pres("b", 3000)];
+    assert.deepEqual(
+      retenir(lot, CTX).map((l) => l.id),
+      ["a", "b"],
+    );
+    const input = {
+      listings: lot,
+      sources: [] as SourceReport[],
+      partsEchouees: [] as Part[],
+      ...CTX,
+    };
+    assert.deepEqual(
+      annoncesDuReleve(input).map((l) => l.id),
+      ["a", "b"],
+    );
+    const r = resultatDuReleve(input);
+    assert.equal(r.etat === "fait" ? r.n : -1, 2);
+  });
+});
+
+describe("passeAnnonce : les critères de l'annonce, onglet budget", () => {
+  const B = bornesPlages(STATIONS);
+  const f = (over: Partial<Filtres>): Filtres => ({ ...FL0, ...over });
+  const a = (over: Partial<Listing> = {}) => compacter(annonce(over));
+
+  it("les plages de logement : personnes de 1 à 20, chambres de 0 à 8, au pas de un", () => {
+    assert.deepEqual(PLAGES_LOGEMENT, [
+      { k: "capacite", lbl: "Personnes", pas: 1, unite: "pers.", fixe: [1, 20] },
+      { k: "chambres", lbl: "Chambres", pas: 1, unite: "ch.", fixe: [0, 8] },
+    ]);
+    assert.deepEqual(
+      [B.capacite, B.chambres],
+      [
+        [1, 20],
+        [0, 8],
+      ],
+    );
+    assert.equal(fmtPlage("capacite", 4), "4 pers.");
+    assert.equal(fmtPlage("chambres", 8), "8 ch.");
+    assert.equal(plageLbl("chambres", [8, 8], B.chambres), "8 ch. et plus");
+    assert.equal(plageLbl("chambres", [2, 2], B.chambres), "2 ch.");
+    assert.equal(plageLbl("chambres", [0, 0], B.chambres), "0 ch.");
+    assert.equal(plageLbl("capacite", [1, 6], B.capacite), "jusqu’à 6 pers.");
+    assert.equal(plageLbl("capacite", [4, 8], B.capacite), "4 pers. à 8 pers.");
+  });
+
+  it("au repos, seule la règle des 2 km écarte", () => {
+    assert.deepEqual(
+      [FL0.domaine, FL0.station, FL0.capacite, FL0.chambres, FL0.distMax],
+      ["", "", null, null, 2000],
+    );
+    assert.equal(passeAnnonce(a(), FL0, B), true);
+    assert.equal(passeAnnonce(a({ total: 50_000, guests: null, bedrooms: null }), FL0, B), true);
+    assert.equal(passeAnnonce(a({ distToLiftM: 2100 }), FL0, B), false);
+  });
+
+  it("budget : le total du séjour, bornes comprises", () => {
+    assert.equal(passeAnnonce(a({ total: 2000 }), f({ budget: [0, 1500] }), B), false);
+    assert.equal(passeAnnonce(a({ total: 2000 }), f({ budget: [0, 2000] }), B), true);
+    assert.equal(passeAnnonce(a({ total: 25_000 }), f({ budget: [2000, 10000] }), B), true);
+  });
+
+  it("personnes : la capacité annoncée, la borne haute au maximum veut dire « et plus »", () => {
+    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [8, 20] }), B), true);
+    assert.equal(passeAnnonce(a({ guests: 24 }), f({ capacite: [8, 20] }), B), true);
+    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [10, 20] }), B), false);
+    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [1, 6] }), B), false);
+    assert.equal(passeAnnonce(a({ guests: 8 }), f({ capacite: [1, 8] }), B), true);
+  });
+
+  it("chambres : annoncées, ou pièces moins une, studio compris", () => {
+    assert.equal(passeAnnonce(a({ bedrooms: 3 }), f({ chambres: [3, 8] }), B), true);
+    assert.equal(passeAnnonce(a({ bedrooms: 3 }), f({ chambres: [4, 8] }), B), false);
+    // Un 4 pièces : trois chambres.
+    const quatrePieces = a({ bedrooms: null, rooms: 4 });
+    assert.equal(passeAnnonce(quatrePieces, f({ chambres: [3, 3] }), B), true);
+    assert.equal(passeAnnonce(quatrePieces, f({ chambres: [4, 8] }), B), false);
+    // Un studio, 1 pièce : aucune chambre.
+    const studio = a({ bedrooms: null, rooms: 1 });
+    assert.equal(passeAnnonce(studio, f({ chambres: [0, 0] }), B), true);
+    assert.equal(passeAnnonce(studio, f({ chambres: [1, 8] }), B), false);
+    // Huit chambres et plus.
+    assert.equal(passeAnnonce(a({ bedrooms: 11 }), f({ chambres: [8, 8] }), B), true);
+  });
+
+  it("une valeur absente écarte quand sa plage est active, et seulement alors", () => {
+    const muette = a({ guests: null, bedrooms: null, rooms: null });
+    assert.equal(passeAnnonce(muette, f({ capacite: [1, 20] }), B), false);
+    assert.equal(passeAnnonce(muette, f({ capacite: [4, 20] }), B), false);
+    assert.equal(passeAnnonce(muette, f({ chambres: [0, 8] }), B), false);
+    assert.equal(passeAnnonce(muette, f({ chambres: [2, 8] }), B), false);
+    assert.equal(passeAnnonce(muette, FL0, B), true);
+  });
+
+  it("distance aux remontées : les paliers de Logements, jusqu'à 2 km", () => {
+    assert.deepEqual(PALIERS_DIST_M, [200, 500, 1000, 2000]);
+    assert.equal(passeAnnonce(a({ distToLiftM: 150 }), f({ distMax: 200 }), B), true);
+    assert.equal(passeAnnonce(a({ distToLiftM: 250 }), f({ distMax: 200 }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 400 }), f({ distMax: 500 }), B), true);
+    assert.equal(passeAnnonce(a({ distToLiftM: 600 }), f({ distMax: 500 }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 1900 }), f({ distMax: 1000 }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 1900 }), FL0, B), true);
+    // Distance inconnue : écartée à tout palier.
+    const inconnue = a({ distToSlopesM: null, distToLiftM: null });
+    for (const m of PALIERS_DIST_M) {
+      assert.equal(passeAnnonce(inconnue, f({ distMax: m }), B), false);
+    }
+  });
+
+  it("un palier inconnu revient aux 2 km : le filtre ne s'élargit jamais au-delà", () => {
+    assert.equal(distMaxLue(500), 500);
+    assert.equal(distMaxLue(5000), 2000);
+    assert.equal(distMaxLue(750), 2000);
+    assert.equal(distMaxLue(Number.NaN), 2000);
+    assert.equal(passeAnnonce(a({ distToLiftM: 2500 }), f({ distMax: 5000 }), B), false);
+    assert.equal(passeAnnonce(a({ distToLiftM: 1500 }), f({ distMax: 5000 }), B), true);
+  });
+
+  it("une annonce enregistrée à l'ancien format se filtre par son repère", () => {
+    const vieille = (m: number) => {
+      const l = versListing(ancienne(annonce({ distToSlopesM: m })), "les-2-alpes");
+      assert.ok(l);
+      return l;
+    };
+    assert.equal(passeAnnonce(vieille(800), FL0, B), true);
+    assert.equal(passeAnnonce(vieille(2500), FL0, B), false);
+    assert.equal(passeAnnonce(vieille(800), f({ distMax: 500 }), B), false);
+  });
+
+  it("distLbl nomme les paliers comme le choix de l'écran", () => {
+    assert.deepEqual(PALIERS_DIST_M.map(distLbl), [
+      "Au pied des pistes",
+      "500 m au plus",
+      "1 km au plus",
+      "2 km au plus",
+    ]);
+  });
+
+  it("filtrerCartes garde les cartes qui passent, une par logement, la première à égalité", () => {
+    const carte = (id: string, stationId: string, over: Partial<Listing> = {}): CarteAnnonce => ({
+      a: a({ id, ...over }),
+      stationId,
+      stationNom: stationId,
+    });
+    const cartes = [
+      carte("a", "la-clusaz"),
+      carte("b", "la-clusaz", { distToLiftM: 3000 }),
+      carte("a", "le-grand-bornand"),
+      carte("c", "le-grand-bornand", { total: 9000 }),
+    ];
+    assert.deepEqual(
+      filtrerCartes(cartes, FL0, B).map((c) => `${c.a.id}@${c.stationId}`),
+      ["a@la-clusaz", "c@le-grand-bornand"],
+    );
+    assert.deepEqual(
+      filtrerCartes(cartes, f({ budget: [0, 3000] }), B).map((c) => c.a.id),
+      ["a"],
+    );
+  });
+
+  it("filtrerCartes garde la copie la plus proche des remontées, quel que soit le palier", () => {
+    const carte = (id: string, stationId: string, over: Partial<Listing> = {}): CarteAnnonce => ({
+      a: a({ id, ...over }),
+      stationId,
+      stationNom: stationId,
+    });
+    // Le même logement du village de Saint-Martin, relevé depuis Méribel
+    // (333 m) puis depuis Méribel Village (27 m).
+    const cartes = [
+      carte("sm", "meribel", { distToLiftM: 333 }),
+      carte("x", "meribel", { distToLiftM: 150 }),
+      carte("sm", "meribel-village", { distToLiftM: 27 }),
+      carte("sm", "courchevel", { distToLiftM: 5, total: 9000 }),
+    ];
+    const vues = (fl: Filtres) =>
+      filtrerCartes(cartes, fl, B).map((c) => `${c.a.id}@${c.stationId}:${c.a.distToLiftM}`);
+    // Chaque logement garde la place de sa première carte, même écartée au
+    // palier de 200 m.
+    const attendu = ["sm@meribel-village:27", "x@meribel:150"];
+    assert.deepEqual(vues(f({ budget: [0, 3000] })), attendu);
+    assert.deepEqual(vues(f({ budget: [0, 3000], distMax: 200 })), attendu);
+    // Une copie qui ne passe pas n'est pas retenue, fût-elle la plus proche.
+    assert.deepEqual(vues(FL0), ["sm@courchevel:5", "x@meribel:150"]);
+  });
+});
+
+describe("domaine et station, onglet budget", () => {
+  const B = bornesPlages(STATIONS);
+  const f = (over: Partial<Filtres>): Filtres => ({ ...FL0, ...over });
+  const vt = stationReelle("val-thorens");
+  const noms = nomsDistincts(STATIONS);
+  const PARADISKI = "Paradiski (Les Arcs – La Plagne)";
+
+  it("passeStationSeule tient compte du domaine et de la station", () => {
+    assert.equal(vt.domain, "Les Trois Vallées");
+    assert.equal(passeStationSeule(vt, f({ domaine: "Les Trois Vallées" }), B), true);
+    assert.equal(passeStationSeule(vt, f({ domaine: PARADISKI }), B), false);
+    const sansDomaine = { ...vt, domain: null };
+    assert.equal(passeStationSeule(sansDomaine, f({ domaine: "Les Trois Vallées" }), B), false);
+    assert.equal(passeStationSeule(vt, f({ station: "val-thorens" }), B), true);
+    assert.equal(passeStationSeule(vt, f({ station: "courchevel" }), B), false);
+    // Massif, département et plages valent toujours.
+    assert.equal(passeStationSeule(vt, f({ station: "val-thorens", massif: "Jura" }), B), false);
+  });
+
+  it("optionsDomaine : les domaines du massif et du département, comptés, triés", () => {
+    const opts = optionsDomaine(STATIONS, "Alpes du Nord", "Savoie");
+    assert.deepEqual(opts[0], { v: "", label: "Tous" });
+    assert.ok(opts.some((o) => o.label === "Les Trois Vallées · 14"));
+    const valeurs = opts.slice(1).map((o) => o.v);
+    assert.deepEqual(
+      valeurs,
+      [...valeurs].sort((x, y) => x.localeCompare(y, "fr")),
+    );
+    for (const o of opts.slice(1)) {
+      const n = STATIONS.filter(
+        (s) => s.massif === "Alpes du Nord" && s.dept === "Savoie" && s.domain === o.v,
+      ).length;
+      assert.equal(o.label, `${o.v} · ${n}`);
+    }
+    // Aucun domaine d'un autre département.
+    assert.ok(!valeurs.includes("Le Grand Massif"));
+    assert.ok(optionsDomaine(STATIONS, "", "").some((o) => o.v === "Le Grand Massif"));
+  });
+
+  it("optionsDomaine ne propose pas le libellé des domaines sans nom", () => {
+    // Trois domaines distincts le portent, dont Saint-Colomban-des-Villards en Savoie.
+    const choix: [string, string][] = [
+      ["", ""],
+      ["Alpes du Nord", "Savoie"],
+    ];
+    for (const [m, d] of choix) {
+      assert.ok(!optionsDomaine(STATIONS, m, d).some((o) => o.v.includes("non nommé")));
+    }
+  });
+
+  it("nomsDistincts précise les homonymes, et eux seuls", () => {
+    assert.equal(noms.get("praloup"), "Praloup · Espace Lumière");
+    assert.equal(noms.get("praloup-04226"), "Praloup · Le Sauze 1400 / Le Super-Sauze 1700");
+    assert.equal(noms.get("le-granier"), "Le Granier · Saint-Pierre-de-Chartreuse");
+    assert.equal(noms.get("le-granier-vallee-des-entremonts"), "Le Granier · Alpes du Nord");
+    assert.equal(noms.get("val-thorens"), "Val Thorens");
+    assert.equal(new Set(noms.values()).size, STATIONS.length);
+  });
+
+  it("optionsStation : les relevées qui passent massif, département et domaine, par nom", () => {
+    const ids = ["val-thorens", "tignes", "courchevel", "praloup-04226", "praloup"];
+    const relevees = ids.map(stationReelle);
+    assert.deepEqual(optionsStation(relevees, f({ domaine: "Les Trois Vallées" }), noms), [
+      { v: "", label: "Toutes" },
+      { v: "courchevel", label: "Courchevel" },
+      { v: "val-thorens", label: "Val Thorens" },
+    ]);
+    assert.deepEqual(
+      optionsStation(relevees, f({ massif: "Alpes du Sud" }), noms).map((o) => o.label),
+      ["Toutes", "Praloup · Espace Lumière", "Praloup · Le Sauze 1400 / Le Super-Sauze 1700"],
+    );
+    // Les plages de station n'y entrent pas.
+    assert.equal(optionsStation(relevees, f({ km: [0, 10] }), noms).length, 6);
+  });
+
+  it("optionsStation garde la station choisie, même sans relevé pour ces dates", () => {
+    const relevees = [stationReelle("val-thorens")];
+    assert.deepEqual(optionsStation(relevees, f({ station: "chamrousse" }), noms), [
+      { v: "", label: "Toutes" },
+      { v: "chamrousse", label: "Chamrousse" },
+      { v: "val-thorens", label: "Val Thorens" },
+    ]);
+  });
+});
+
+/** Tous les critères posés, ceux des deux onglets. */
+const TOUT_BUDGET: Filtres = {
+  ...FL0,
+  massif: "Alpes du Nord",
+  dept: "Savoie",
+  domaine: "Les Trois Vallées",
+  station: "val-thorens",
+  budget: [1500, 3000],
+  capacite: [4, 20],
+  chambres: [2, 3],
+  distMax: 500,
+  km: [100, 780],
+  avecPrix: true,
+  prix: [0, 2000],
+};
+
+describe("cascade des choix de lieu", () => {
+  const tout = TOUT_BUDGET;
+
+  it("un autre massif vide département, domaine et station", () => {
+    assert.deepEqual(choisirMassif(tout, "Pyrénées"), {
+      ...tout,
+      massif: "Pyrénées",
+      dept: "",
+      domaine: "",
+      station: "",
+    });
+  });
+
+  it("un autre département vide domaine et station", () => {
+    assert.deepEqual(choisirDept(tout, "Haute-Savoie"), {
+      ...tout,
+      dept: "Haute-Savoie",
+      domaine: "",
+      station: "",
+    });
+  });
+
+  it("un autre domaine vide la station", () => {
+    assert.deepEqual(choisirDomaine(tout, "Paradiski (Les Arcs – La Plagne)"), {
+      ...tout,
+      domaine: "Paradiski (Les Arcs – La Plagne)",
+      station: "",
+    });
+  });
+
+  it("une autre station ne change qu'elle", () => {
+    assert.deepEqual(choisirStation(tout, "courchevel"), { ...tout, station: "courchevel" });
+  });
+
+  it("retirer un jeton de lieu retire ce qui en dépendait", () => {
+    assert.deepEqual(retirerJeton(tout, "massif"), {
+      ...tout,
+      massif: "",
+      dept: "",
+      domaine: "",
+      station: "",
+    });
+    assert.deepEqual(retirerJeton(tout, "dept"), { ...tout, dept: "", domaine: "", station: "" });
+    assert.deepEqual(retirerJeton(tout, "domaine"), { ...tout, domaine: "", station: "" });
+    assert.deepEqual(retirerJeton(tout, "station"), { ...tout, station: "" });
+  });
+
+  it("retirer la distance la ramène à 2 km, une plage de logement à rien", () => {
+    assert.deepEqual(retirerJeton(tout, "distMax"), { ...tout, distMax: 2000 });
+    assert.deepEqual(retirerJeton(tout, "capacite"), { ...tout, capacite: null });
+    assert.deepEqual(retirerJeton(tout, "chambres"), { ...tout, chambres: null });
+    assert.equal(tout.station, "val-thorens", "le filtre reçu n'est pas modifié");
+  });
+});
+
+describe("jetons et « Tout effacer » des nouveaux critères", () => {
+  const B = bornesPlages(STATIONS);
+  const noms = nomsDistincts(STATIONS);
+  const f = (over: Partial<Filtres>): Filtres => ({ ...FL0, ...over });
+
+  it("jetonsBudget : libellés exacts, dans l'ordre des critères à l'écran", () => {
+    assert.deepEqual(jetonsBudget(TOUT_BUDGET, B, noms), [
+      { k: "budget", lbl: "Budget : 1 500 € à 3 000 €" },
+      { k: "massif", lbl: "Alpes du Nord" },
+      { k: "dept", lbl: "Savoie" },
+      { k: "domaine", lbl: "Domaine : Les Trois Vallées" },
+      { k: "station", lbl: "Val Thorens" },
+      { k: "distMax", lbl: "Remontées : 500 m au plus" },
+      { k: "capacite", lbl: "Personnes : 4 pers. et plus" },
+      { k: "chambres", lbl: "Chambres : 2 ch. à 3 ch." },
+      { k: "km", lbl: "Kilomètres de pistes : 100 km et plus" },
+    ]);
+  });
+
+  it("jetonsBudget : chaque palier de distance, et aucun jeton à 2 km", () => {
+    const dist = (m: number) => jetonsBudget(f({ distMax: m }), B).map((j) => j.lbl);
+    assert.deepEqual(dist(200), ["Au pied des pistes"]);
+    assert.deepEqual(dist(500), ["Remontées : 500 m au plus"]);
+    assert.deepEqual(dist(1000), ["Remontées : 1 km au plus"]);
+    assert.deepEqual(dist(2000), []);
+    assert.deepEqual(dist(5000), []);
+  });
+
+  it("jetonsBudget : plages de logement, et le nom de la station choisie", () => {
+    const lbls = (over: Partial<Filtres>) => jetonsBudget(f(over), B, noms).map((j) => j.lbl);
+    assert.deepEqual(lbls({ chambres: [0, 1] }), ["Chambres : jusqu’à 1 ch."]);
+    assert.deepEqual(lbls({ chambres: [8, 8] }), ["Chambres : 8 ch. et plus"]);
+    assert.deepEqual(lbls({ capacite: [1, 6] }), ["Personnes : jusqu’à 6 pers."]);
+    assert.deepEqual(lbls({ station: "praloup" }), ["Praloup · Espace Lumière"]);
+    // Sans table des noms, l'identifiant plutôt qu'un jeton vide.
+    const brut = jetonsBudget(f({ station: "praloup" }), B).map((j) => j.lbl);
+    assert.deepEqual(brut, ["praloup"]);
+  });
+
+  it("filtresActifsBudget compte chaque nouveau critère, la distance hors de ses 2 km", () => {
+    assert.equal(filtresActifsBudget(f({ domaine: "Les Trois Vallées" })), true);
+    assert.equal(filtresActifsBudget(f({ station: "val-thorens" })), true);
+    assert.equal(filtresActifsBudget(f({ capacite: [4, 20] })), true);
+    assert.equal(filtresActifsBudget(f({ chambres: [0, 1] })), true);
+    assert.equal(filtresActifsBudget(f({ distMax: 1000 })), true);
+    assert.equal(filtresActifsBudget(f({ distMax: 2000 })), false);
+    assert.equal(filtresActifsBudget(f({ distMax: 5000 })), false);
+  });
+
+  it("effacerBudget remet tous les critères de l'onglet, garde prix et avecPrix", () => {
+    assert.deepEqual(effacerBudget(TOUT_BUDGET), { ...FL0, prix: [0, 2000], avecPrix: true });
+    assert.equal(filtresActifsBudget(effacerBudget(TOUT_BUDGET)), false);
+    assert.equal(TOUT_BUDGET.distMax, 500, "le filtre reçu n'est pas modifié");
+  });
+
+  it("l'onglet station ignore les nouveaux critères : passe, jetons, filtresActifs", () => {
+    const s = { ...S2A, massif: "Alpes du Nord", dept: "Isère", pistesKm: 200 };
+    const l = ligne(s, fait({ med: 2400 }), REPOS);
+    const budget = f({
+      domaine: "Les Trois Vallées",
+      station: "val-thorens",
+      capacite: [10, 20],
+      chambres: [5, 8],
+      distMax: 200,
+    });
+    assert.equal(passe(l, s, budget, B), true);
+    assert.deepEqual(jetons(budget, B), []);
+    assert.equal(filtresActifs(budget), false);
+    assert.equal(nomListe(budget), "stations de la liste");
+  });
+});
+
+describe("tri des cartes : plus près des remontées", () => {
+  const carte = (
+    id: string,
+    total: number,
+    distToLiftM: number | null,
+    distToSlopesM: number | null = null,
+  ): CarteAnnonce => ({
+    a: compacter(annonce({ id, total, distToLiftM, distToSlopesM })),
+    stationId: "les-2-alpes",
+    stationNom: "Les 2 Alpes",
+  });
+
+  it("la plus proche d'abord, puis la moins chère, une distance inconnue en dernier", () => {
+    const xs = [
+      carte("c", 1500, 900),
+      carte("d", 900, null),
+      carte("a", 2000, 200),
+      carte("e", 1200, null, 300),
+      carte("b", 1000, 200),
+      carte("f", 800, null),
+    ];
+    assert.deepEqual(
+      [...xs].sort(comparateurBudget("dist:1")).map((c) => c.a.id),
+      ["b", "a", "e", "c", "f", "d"],
+    );
   });
 });

@@ -41,6 +41,10 @@ import {
   annSub,
   avecNuits,
   bornesPlages,
+  choisirDept,
+  choisirDomaine,
+  choisirMassif,
+  choisirStation,
   cleResultat,
   comparateur,
   comparateurBudget,
@@ -50,6 +54,8 @@ import {
   decaler,
   departIso,
   departLbl,
+  distLbl,
+  distMaxLue,
   dureeLbl,
   ecartLbl,
   effacerBudget,
@@ -57,10 +63,12 @@ import {
   FL0,
   filtresActifs,
   filtresActifsBudget,
+  filtrerCartes,
   grpKey,
   idsALancer,
   jetons,
   jetonsBudget,
+  lieuSansReleve,
   ligne,
   lireTri,
   lireTriB,
@@ -69,19 +77,23 @@ import {
   MIN_ANNONCES,
   moreLbl,
   nomListe,
+  nomsDistincts,
   NUITS_MAX,
   NUITS_MIN,
+  optionsDomaine,
+  optionsStation,
   ordreMassifs,
   PAGE,
+  PALIERS_DIST_M,
   partielLbl,
   passe,
-  passeBudget,
   passeStationSeule,
   perKey,
   perLbl,
   periodeDuSejour,
   PLAGE_BUDGET,
   PLAGES,
+  PLAGES_LOGEMENT,
   PLAGES_STATION,
   plageLbl,
   plur,
@@ -108,7 +120,7 @@ import { usePrix, type Course, type Onglet } from "@/lib/prix/releve";
 import { useStay } from "@/lib/stay";
 import { todayIso } from "@/lib/stay/calendar";
 import { clampRooms, clampTravelers } from "@/lib/stay/party";
-import { STATIONS } from "@/lib/stations";
+import { STATIONS, type Station } from "@/lib/stations";
 import { prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/prix")({ component: Prix });
@@ -119,6 +131,8 @@ const BORNES = bornesPlages(STATIONS);
 const MASSIFS = ordreMassifs(STATIONS);
 const RANG_MASSIF: ReadonlyMap<string, number> = new Map(MASSIFS.map((m, i) => [m, i]));
 const NOMS: ReadonlyMap<string, string> = new Map(STATIONS.map((s) => [s.id, s.name]));
+/** Pour le choix de station et son jeton : deux « Praloup » s'y distinguent. */
+const NOMS_DISTINCTS: ReadonlyMap<string, string> = nomsDistincts(STATIONS);
 const OPTIONS_MASSIF = [
   { v: "", label: `Tous · ${STATIONS.length}` },
   ...MASSIFS.map((m) => ({
@@ -409,7 +423,7 @@ function EcranPrix() {
 function ChoixLieu() {
   const massif = usePrix((s) => s.fl.massif);
   const dept = usePrix((s) => s.fl.dept);
-  const setFl = usePrix((s) => s.setFl);
+  const majFl = usePrix((s) => s.majFl);
   const deptOpts = useMemo(() => optionsDept(massif), [massif]);
   return (
     <>
@@ -418,8 +432,11 @@ function ChoixLieu() {
         <select
           className="prix7__select"
           value={massif}
-          // Un autre massif rend le département caduc.
-          onChange={(e) => setFl({ massif: e.target.value, dept: "" })}
+          // Un autre massif rend caducs département, domaine et station.
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirMassif(f, v));
+          }}
         >
           {OPTIONS_MASSIF.map((o) => (
             <option key={o.v} value={o.v}>
@@ -433,11 +450,88 @@ function ChoixLieu() {
         <select
           className="prix7__select"
           value={dept}
-          onChange={(e) => setFl({ dept: e.target.value })}
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirDept(f, v));
+          }}
         >
           {deptOpts.map((o) => (
             <option key={o.v} value={o.v}>
               {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </>
+  );
+}
+
+/** Domaine skiable, station et distance aux remontées : les choix de lieu
+ *  propres à l'onglet budget (demande du propriétaire, 25 sept. 2026). Les
+ *  domaines sont ceux du référentiel dans le massif et le département choisis ;
+ *  les stations, celles relevées pour ces dates et ce groupe. */
+function ChoixStation({ relevees }: { relevees: readonly Station[] }) {
+  const massif = usePrix((s) => s.fl.massif);
+  const dept = usePrix((s) => s.fl.dept);
+  const domaine = usePrix((s) => s.fl.domaine);
+  const station = usePrix((s) => s.fl.station);
+  const distMax = usePrix((s) => s.fl.distMax);
+  const majFl = usePrix((s) => s.majFl);
+  const domaines = useMemo(() => optionsDomaine(STATIONS, massif, dept), [massif, dept]);
+  const stations = useMemo(
+    () => optionsStation(relevees, { massif, dept, domaine, station }, NOMS_DISTINCTS),
+    [relevees, massif, dept, domaine, station],
+  );
+  return (
+    <>
+      <label className="prix7__champ">
+        <span>Domaine skiable</span>
+        <select
+          className="prix7__select"
+          value={domaine}
+          // Un autre domaine rend la station caduque.
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirDomaine(f, v));
+          }}
+        >
+          {domaines.map((o) => (
+            <option key={o.v} value={o.v}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="prix7__champ">
+        <span>Station</span>
+        <select
+          className="prix7__select"
+          value={station}
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirStation(f, v));
+          }}
+        >
+          {stations.map((o) => (
+            <option key={o.v} value={o.v}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="prix7__champ">
+        <span>Distance aux remontées</span>
+        <select
+          className="prix7__select"
+          value={String(distMaxLue(distMax))}
+          onChange={(e) => {
+            const v = distMaxLue(Number(e.target.value));
+            majFl((f) => ({ ...f, distMax: v }));
+          }}
+        >
+          {PALIERS_DIST_M.map((m) => (
+            <option key={m} value={String(m)}>
+              {distLbl(m)}
             </option>
           ))}
         </select>
@@ -727,9 +821,11 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
       </section>
 
       <p className="prix7__note">
-        Le total est celui que l’annonce publie pour ces dates exactes. Une annonce sans capacité
-        annoncée est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe
-        en fin de liste, dans les deux sens du tri.
+        Le total est celui que l’annonce publie pour ces dates exactes. Depuis le 25 septembre 2026,
+        un relevé ne compte que les logements à 2 km au plus d’une remontée ; relevez à nouveau une
+        station pour l’appliquer à ses résultats plus anciens. Une annonce sans capacité annoncée
+        est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe en fin
+        de liste, dans les deux sens du tri.
       </p>
     </>
   );
@@ -754,11 +850,13 @@ function signatureCadre(cartes: readonly CarteAnnonce[], b: Cadre | null): strin
 }
 
 /** « Par budget » : les annonces retenues par les relevés de ces dates et de
- *  ce groupe, filtrées par station puis par total (Prix par station.dc.html:
- *  126-164, 545-578). Sous les critères, la liste, la carte aux pastilles de
- *  prix et le volet de Logements, demandés par le propriétaire le 25 sept.
- *  2026 à la place des cartes de la maquette : une annonce s'ouvre ici, sans
- *  passer par Logements. */
+ *  ce groupe, filtrées par station, puis par total, distance aux remontées,
+ *  personnes et chambres (Prix par station.dc.html:126-164, 545-578). Sous
+ *  les critères, la liste, la carte aux pastilles de prix et le volet de
+ *  Logements, demandés par le propriétaire le 25 sept. 2026 à la place des
+ *  cartes de la maquette : une annonce s'ouvre ici, sans passer par
+ *  Logements. Seuls des logements de station y paraissent, à 2 km au plus
+ *  d'une remontée, ceux des relevés antérieurs à cette règle compris. */
 function VueBudget({
   per,
   groupe,
@@ -829,17 +927,17 @@ function VueBudget({
   );
   // Dans l'ordre du référentiel : la carte se cadre sur elles, et un autre tri
   // ne la recadre pas. Une annonce sortie des relevés de deux stations voisines
-  // (même rayon de 12 km) n'y figure qu'une fois, sous la première de ses
-  // stations : deux cartes d'un même logement ouvraient et retenaient la même
-  // copie, et le compte le prenait deux fois.
-  const filtrees = useMemo(() => {
-    const vues = new Set<string>();
-    return avant.filter((c) => {
-      if (vues.has(c.a.id) || !passeBudget(c.a.total, fl.budget, BORNES.budget)) return false;
-      vues.add(c.a.id);
-      return true;
-    });
-  }, [avant, fl.budget]);
+  // n'y figure qu'une fois, sous celle qui la mesure le plus près des remontées
+  // (`filtrerCartes`).
+  const filtrees = useMemo(() => filtrerCartes(avant, fl, BORNES), [avant, fl]);
+  // Ce qu'un budget trop serré cache : la liste vide le dit, et combien.
+  const avantBudget = useMemo(
+    () =>
+      filtrees.length === 0 && fl.budget != null
+        ? filtrerCartes(avant, { ...fl, budget: null }, BORNES).length
+        : 0,
+    [filtrees, avant, fl],
+  );
   const cartes = useMemo(() => [...filtrees].sort(comparateurBudget(triB)), [filtrees, triB]);
   const nStations = useMemo(() => new Set(filtrees.map((c) => c.stationId)).size, [filtrees]);
   const parId = useMemo(() => new Map(filtrees.map((c) => [c.a.id, c] as const)), [filtrees]);
@@ -1031,12 +1129,17 @@ function VueBudget({
     [situees, ouverte, lodgeId, seen],
   );
 
-  const js = jetonsBudget(fl, BORNES);
+  const js = jetonsBudget(fl, BORNES, NOMS_DISTINCTS);
   // Une station relevée dont IndexedDB a perdu les annonces (base effacée,
   // navigation privée) ne compte pas : tout lu et rien trouvé, il n'y a pas de
   // relevé à montrer.
   const aucunReleve = relevees.length === 0 || (pret && parCle.size === 0);
-  const vide = videBudget(aucunReleve, avant.length);
+  const vide = videBudget(
+    aucunReleve,
+    avantBudget,
+    filtresActifsBudget(fl),
+    lieuSansReleve(fl, relevees),
+  );
   const annonceOuverte = ouverte ? (parId.get(ouverte) ?? null) : null;
   const ouverteRetenue = annonceOuverte != null && lodgeId === annonceOuverte.a.id;
 
@@ -1063,7 +1166,13 @@ function VueBudget({
             <ChoixLieu />
           </div>
         </div>
-        <div className="prix7__plages prix7__plages--trois">
+        <div className="prix7__choix prix7__choix--station">
+          <ChoixStation relevees={relevees} />
+        </div>
+        <div className="prix7__plages prix7__plages--cinq">
+          {PLAGES_LOGEMENT.map((p) => (
+            <PlageFiltre key={p.k} p={p} />
+          ))}
           {PLAGES_STATION.map((p) => (
             <PlageFiltre key={p.k} p={p} />
           ))}

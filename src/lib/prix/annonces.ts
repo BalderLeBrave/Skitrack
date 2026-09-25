@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import type { Listing } from "../listings";
-import { stationDeCle, versListing, type AnnonceRetenue } from "./calcul";
+import { remesurerRemontee, stationDeCle, versListing, type AnnonceRetenue } from "./calcul";
 
 const BASE = "skitrack-prix";
 const MAGASIN = "annonces";
@@ -135,13 +135,16 @@ async function transaction(
 
 /** Ce que la base rend pour une clé, en annonces entières, ou rien. Un relevé
  *  enregistré à l'ancien format, réduit à quatorze champs, se relit aussi :
- *  `versListing` le complète, la station tirée de la clé. */
+ *  `versListing` le complète, la station tirée de la clé. Une annonce située
+ *  retrouve la remontée la plus proche (`remesurerRemontee`) : celles
+ *  enregistrées jusqu'au correctif du 25 septembre 2026 ne lisaient que la
+ *  liste de gares de leur station, incomplète pour plusieurs d'entre elles. */
 function annoncesLues(v: unknown, cle: string): AnnonceRetenue[] | null {
   if (!Array.isArray(v)) return null;
   const stationId = stationDeCle(cle);
   return v.flatMap((a) => {
     const l = versListing(a, stationId);
-    return l ? [l] : [];
+    return l ? [remesurerRemontee(l)] : [];
   });
 }
 

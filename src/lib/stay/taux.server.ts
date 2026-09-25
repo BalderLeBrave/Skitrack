@@ -221,6 +221,30 @@ export function attenteTauxMs(host: string, now = Date.now()): number {
   return Math.max(0, depart - now);
 }
 
+/**
+ * Le temps jusqu'à ce que `places` requêtes puissent partir d'affilée sans que
+ * le limiteur local en arrête une : la pause passée, et la fenêtre glissante
+ * redescendue à `maxHits - places` appels au plus (créneaux réservés compris).
+ *
+ * L'écran « Prix par station » relève les stations l'une après l'autre, et un
+ * relevé Airbnb envoie jusqu'à 12 requêtes StaysSearch (`MAX_REQUETES` de
+ * `scrape/airbnb/stays.py`). Lancer une station quand la fenêtre ne peut plus
+ * les tenir, c'est la voir arrêtée à mi-chemin par le limiteur : un relevé
+ * partiel. Lecture seule : rien n'est réservé.
+ */
+export function attentePlacesMs(host: string, places: number, now = Date.now()): number {
+  const row = load()[host];
+  let depart = Math.max(now, typeof row?.until === "number" ? row.until * 1000 : 0);
+  const cfg = HOSTS[host] ?? { gapMs: 2_000, maxHits: 20 };
+  const hits = hitsOf(row, now)
+    .map((t) => t * 1000)
+    .sort((a, b) => a - b);
+  const garder = cfg.maxHits - Math.min(places, cfg.maxHits);
+  // Les plus anciens doivent sortir de la fenêtre ; le dernier d'entre eux fixe le départ.
+  if (hits.length > garder) depart = Math.max(depart, hits[hits.length - garder - 1] + WINDOW_MS);
+  return Math.max(0, depart - now);
+}
+
 /** Ce qu'il reste d'une pause posée par un refus (`until`), 0 sinon. */
 export function pauseTauxMs(host: string, now = Date.now()): number {
   const until = load()[host]?.until;

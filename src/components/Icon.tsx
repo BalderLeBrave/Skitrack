@@ -34,6 +34,7 @@ export type IconName =
   | "montagne"
   | "carte"
   | "tableau"
+  | "barres"
   | "corbeille"
   | "alerte"
   | "cadenas"
@@ -84,6 +85,8 @@ const TRACES: Record<IconName, ReactNode> = {
   montagne: <path d="M3 19l6.5-11 4 6.5 2.5-4L21 19z" />,
   carte: <path d="M9 4.5L3 7v12.5l6-2.5 6 2.5 6-2.5V4.5L15 7z M9 4.5V17 M15 7v12.5" />,
   tableau: <path d="M4 5h16v14H4z M4 10h16 M10 10v9" />,
+  // Le lien « Prix » de la barre (V7Coquille.dc.html:96).
+  barres: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
   corbeille: <path d="M4 7h16 M9 7V5h6v2 M6.5 7l1 12h9l1-12 M10 11v5M14 11v5" />,
   alerte: <path d="M12 4l9 16H3z M12 10v4M12 17h.01" />,
   cadenas: <path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" />,

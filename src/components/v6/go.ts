@@ -7,23 +7,28 @@ import { useCallback } from "react";
 import { dire } from "@/lib/i18n";
 import { useParcours } from "@/lib/parcours";
 
-export type Screen = "home" | "compare" | "fiche" | "lodging" | "booking";
+/** Les écrans v7 : les quatre étapes du parcours, la fiche station, et « Prix »,
+ *  hors des étapes (ni numéro, ni verrou). */
+export type Screen = "home" | "compare" | "fiche" | "lodging" | "booking" | "prix";
 
 /** Les écrans de contrôle, rangés sous « Plus ». Seule table de ces chemins :
  *  `screenOf` et `horsParcours` en tenaient chacun la leur, et la première les
  *  rangeait tous sous « Comparer ». */
 export const AILLEURS_PATHS = ["/carte", "/monde", "/altitudes", "/openskimap", "/forfaits", "/traces", "/cles"] as const;
 
-/** L'écran du parcours, ou `null` hors du parcours.
+/** L'écran v7 du chemin, ou `null` sur un écran de contrôle.
  *
  *  Elle rendait `"compare"` pour tout chemin inconnu : sur /carte, /forfaits ou
- *  /traces, l'étape « 1 Comparer » s'allumait et s'annonçait page courante. */
+ *  /traces, l'étape « 1 Comparer » s'allumait et s'annonçait page courante.
+ *  « Prix » est connu ici pour recevoir la coquille v7 ; aucune étape ne
+ *  s'allume sur lui. */
 export function screenOf(pathname: string): Screen | null {
   if (pathname === "/") return "home";
   if (pathname.startsWith("/logements")) return "lodging";
   if (pathname.startsWith("/reservation")) return "booking";
   if (pathname.startsWith("/stations/")) return "fiche";
   if (pathname.startsWith("/comparer")) return "compare";
+  if (pathname.startsWith("/prix")) return "prix";
   return null;
 }
 
@@ -53,6 +58,8 @@ export function useGo() {
           : say("Station inconnue.");
       if (screen === "lodging") return navigate({ to: "/logements" });
       if (screen === "booking") return navigate({ to: "/reservation" });
+      // Hors des étapes, donc sans verrou (App.dc.html:526-528).
+      if (screen === "prix") return navigate({ to: "/prix" });
     },
     [navigate, pathname],
   );

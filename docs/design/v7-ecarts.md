@@ -249,3 +249,107 @@ repassent en `content-box`, avec la valeur déclarée de la maquette :
   sans photo, logements des 2 Alpes (94 annonces, relevé en direct), volet,
   pied, réservation, bandeau « réservé », panneau de séjour, menu « Plus »,
   écran de contrôle `/carte` sous la nouvelle barre.
+
+## Prix (maquette du 24 septembre 2026)
+
+Source : le handoff `Skitrack-handoff.zip` réexporté le 24 septembre 2026 à
+23 h 25, fichier `SKITRACK v7 - Prix par station.dc.html` (titre « Prix »,
+onglets « Par station » et « Par budget »), et `V7Coquille.dc.html` pour le
+lien « Prix » de la barre. Un premier export du même soir n'avait que la vue
+par station ; c'est le second qui fait foi.
+
+### Où c'est porté
+
+| Maquette | Dépôt |
+| --- | --- |
+| Écran, onglets, tableau, cartes | `src/routes/prix.tsx` |
+| Calculs, filtres, tris, libellés (`ligne`, `passe`, `PLAGES`, `TRIS`…) | `src/lib/prix/calcul.ts` (+ `calcul.test.ts`) |
+| `lancer`, `demarrer`, `tick`, `suivant` : la course et sa file | `src/lib/prix/releve.ts` |
+| Créneau Airbnb avant chaque station | `src/lib/prix/attente.ts`, `attentePlacesMs` dans `src/lib/stay/taux.server.ts` |
+| Annonces de l'onglet budget | `src/lib/prix/annonces.ts` (IndexedDB) |
+| Curseurs à deux poignées | `src/components/v7/Fourchette.tsx` |
+| Lien « Prix » et son filet | `Coquille.tsx`, `v6/go.ts`, `Icon.tsx` (`barres`), `i18n/catalog.ts` (`nav.prices`) |
+| Styles | `src/design/v7.css`, sections « Fourchette » et « Prix par station » |
+
+### Décisions (24-25 septembre 2026)
+
+1. **Les relevés sont réels.** La maquette simulait tout sauf un relevé figé
+   des 2 Alpes. Ici, « Relever » lance les cinq parts de la recherche de
+   Logements (`searchStay` : airbnb, cozy, greengo, centrales, gîtes), sans
+   `relance` (le relevé Airbnb de quinze minutes sert aux deux écrans), sans
+   repli sur le relevé figé, et sans rien écrire dans `useStay`.
+2. **Une station à la fois, serveur compris.** Avant chaque station, la course
+   attend que le journal de taux Airbnb puisse prendre douze requêtes d'affilée
+   (`attentePlacesMs`), que le coupe-circuit soit fermé, et que Logements ait
+   fini sa propre recherche (76 s au plus). Un verrou `navigator.locks` la
+   sérialise entre onglets. « Arrêter » ne coupe plus la station en vol : le
+   serveur la finirait quand même, et la suivante l'attend. Trois parts au plus
+   en même temps : l'app de bureau parle HTTP/1.1, six connexions par origine,
+   et une longue course doit en laisser au reste de l'écran. Jamais de reprise
+   automatique après un refus d'Airbnb.
+3. **La médiane porte sur des logements.** Mêmes critères que Logements (zone,
+   GPS précis, prix relevé pour ces dates exactes et récent, offre Gîtes
+   vérifiée, euros), plus la règle de la maquette : une annonce sans capacité
+   est écartée et comptée, jamais supposée assez grande. Un même logement vendu
+   sur deux ou trois plateformes compte une fois, à sa meilleure offre
+   (`regrouper`) : sans cela, deux vrais logements suffisaient à atteindre les
+   cinq annonces d'une médiane. D'où « Logements » en tête de colonne.
+4. **Les résultats sont clés par période et par groupe**
+   (`du|nuits|voyageurs|chambres|station`). La maquette oubliait le groupe : une
+   médiane pour huit voyageurs se serait affichée pour quatre.
+5. **Stockage.** Période et résultats dans `localStorage`, clé `skitrack-prix`
+   (4 000 résultats au plus, les plus anciens partent). Les annonces retenues,
+   trop lourdes pour lui, dans IndexedDB (`skitrack-prix`, une entrée par
+   résultat). Onglet, critères, tris et pages vivent dans le magasin sans être
+   persistés : un aller-retour par « Voir le logement » ne perd rien.
+6. **La période suit le séjour** tant qu'on ne la change pas ici ; revenir sur
+   ses dates la lui rend. Pas d'arrivée dans le passé : un relevé pour des dates
+   écoulées dépenserait le quota Airbnb pour rien.
+7. **Un échec ne remplace jamais une médiane.** Si le serveur de l'application
+   ne répond plus (toutes les parts rejetées, aucune par délai), la course
+   s'arrête et le dit ; elle ne brûle pas la liste en quelques millisecondes.
+   Une source muette marque la station « partiel, sans … ».
+8. **La course continue quand on quitte l'écran** (boucle au niveau du module,
+   comme `maj.ts`), pas après un rechargement. Un point sur le lien « Prix »
+   signale qu'elle tourne.
+9. **« Voir le logement »** fait ce que faisait le lien de la maquette
+   (App.dc.html:503) : la station est retenue, le séjour prend les dates de la
+   carte, le logement est retenu, puis Logements s'ouvre. Un clic modifié ouvre
+   `/logements?station=…&du=…&au=…` dans un autre onglet.
+
+### Écarts assumés
+
+| Sujet | Maquette | Application | Pourquoi |
+| --- | --- | --- | --- |
+| Colonne et tri du nombre | « Annonces », « Nombre d’annonces » | « Logements », « Nombre de logements » | décision 3 |
+| Relevé simulé | pastille « Maquette : aucun prix simulé » | absente | décision 1 |
+| Bornes des nuits | couleur grisée, bouton actif | bouton désactivé, opacité .4 | règle de `.compteur__pas` |
+| Disponibilité sur les cartes | toujours ambre | vert quand le prix est confirmé | la maquette n'avait jamais de prix confirmé ; Logements met ce vert |
+| Cartes du budget | 60, sans le dire | 60, puis « Afficher 60 de plus » | le compte annonçait plus que l'écran |
+| Libellés au singulier | « 1 affichées sur 1 », « les 1 stations » | « 1 affichée sur 1 », « Relever à nouveau la station » | accord |
+| Tri choisi par un en-tête | le choix affiché pouvait mentir | l'option manquante s'ajoute (« Nom, de Z à A ») | le choix affiché dit le tri réel |
+| Bouton de relevé | caché si la liste du même nom tourne | ne relance que les stations non prévues | une liste filtrée grandit pendant une course |
+| Infobulle du lien | « Prix médian d'une semaine… » | « Médiane d’un séjour par station, et logements dans votre budget » | l'écran compte de 1 à 21 nuits, et deux vues |
+| Apostrophes | droites et courbes mêlées | courbes partout | règle de la maison |
+| Barre étroite des écrans de contrôle | rien | sous 1 100 px, le parcours se resserre | le lien « Prix » poussait « Plus » hors de l'écran |
+
+### Vérification
+
+- `npm run typecheck` : vert. `npx eslint src` : aucun problème.
+- `npm test` : 1 045 tests TS verts (173 dans `calcul.test.ts`, 7 nouveaux dans
+  `taux.test.ts`) ; scripts 205 sur 210, les 5 sautés habituels.
+- `vite build` : vert ; rien du journal de taux ni du coupe-circuit dans le
+  paquet client.
+- Aperçu bâti sur 127.0.0.1:8099, mesuré à 1440 × 900 : écran de 1 280 px,
+  marges 32 / 40 / 64 et 18 px entre blocs ; titre 30 px / 800 ; onglets 36 px ;
+  cartes à 14 px de rayon, filet `--color-line-douce` ; colonnes
+  1fr / 180 / 150 / 240 ; filet d'en-tête de 2 px ; lignes de 72 px avec leur
+  bouton. Thème sombre : toutes les couleurs suivent les jetons.
+- Un relevé réel, La Clusaz, 6 → 13 févr. 2027, 8 voyageurs : Airbnb direct
+  327 annonces en douze requêtes, Abritel 260 et Booking 453 par Cozy, GreenGo
+  6, centrale 45, Gîtes sans commune ; médiane 5 733 € sur 293 logements, 127
+  annonces sans capacité écartées, aucune source en défaut. L'onglet budget
+  montre les 293 logements, le budget « jusqu’à 2 500 € » en garde 20 ; « Voir
+  le logement » ouvre Logements avec la carte « Retenu » à 903 €.
+- Vu une fois, pas reproduit en quatre essais : une navigation vers Logements
+  restée en suspens (adresse changée, écran non rendu, aucun morceau chargé).

@@ -654,7 +654,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
           file={file}
           onArreter={() => {
             // Sans relevé en file, le bandeau et son bouton disparaissent.
-            if (file.length === 0) refActions.current?.focus();
+            if (file.every((j) => estPassee(j.per, todayIso()))) refActions.current?.focus();
             arreter();
           }}
         />
@@ -776,6 +776,10 @@ function VueBudget({
   const resetFl = usePrix((s) => s.resetFl);
   const setTriB = usePrix((s) => s.setTriB);
   const setPageB = usePrix((s) => s.setPageB);
+  const course = usePrix((s) => s.course);
+  const file = usePrix((s) => s.file);
+  const lancer = usePrix((s) => s.lancer);
+  const arreter = usePrix((s) => s.arreter);
   const lodgeId = useParcours((s) => s.lodgeId);
   const seen = useParcours((s) => s.seen);
   const go = useGo();
@@ -840,6 +844,28 @@ function VueBudget({
   const nStations = useMemo(() => new Set(filtrees.map((c) => c.stationId)).size, [filtrees]);
   const parId = useMemo(() => new Map(filtrees.map((c) => [c.a.id, c] as const)), [filtrees]);
 
+  // Les stations de la liste relevées avec la version du 25 septembre 2026 au
+  // matin (PR #47) : leurs annonces n'ont pas de position, et seul un nouveau
+  // relevé la leur donne. On les relève d'ici, et seulement celles qui ont un
+  // logement à l'écran : relever les autres coûterait du temps et du quota
+  // Airbnb pour rien.
+  const sansPosition = useMemo(() => {
+    const vieilles = new Set(anciennes);
+    const montrees = new Set(filtrees.map((c) => c.stationId));
+    return relevees.filter((s, i) => vieilles.has(cles[i] ?? "") && montrees.has(s.id));
+  }, [anciennes, relevees, cles, filtrees]);
+  const aRepositionner = useMemo(
+    () => idsALancer(sansPosition.map((s) => s.id), per, groupe, course, file),
+    [sansPosition, per, groupe, course, file],
+  );
+  // Un relevé des mêmes dates et du même groupe porte déjà l'une d'elles.
+  const repositionEnCours =
+    course != null &&
+    memePeriode(course.per, per) &&
+    grpKey(course.groupe) === grpKey(groupe) &&
+    sansPosition.some((s) => course.ids.slice(course.i).includes(s.id));
+  const passee = estPassee(per, todayIso());
+
   // Annonce ouverte, cadre de la carte, fiche épinglée et annonce désignée
   // restent à l'écran : ils ne valent que tant qu'on le regarde.
   const [ouverte, setOuverte] = useState<string | null>(null);
@@ -861,6 +887,8 @@ function VueBudget({
     () => affichees.slice(page * PAGE_LOGEMENTS, (page + 1) * PAGE_LOGEMENTS),
     [affichees, page],
   );
+  // La légende dit pourquoi une page a moins de pastilles que de cartes.
+  const pageSansPosition = pageItems.filter((c) => !situee(c.a)).length;
 
   // Le recadrage suit le résultat des filtres, pas le contenu du cadre : sinon
   // recadrer changerait la liste, qui recadrerait encore (voir Logements).
@@ -1075,15 +1103,55 @@ function VueBudget({
         </div>
       </section>
 
-      {/* Les relevés d'avant le 25 septembre 2026 ne gardaient pas la position
-          des logements : sans le dire, la carte vide et « GPS manquant » sur
-          chaque carte laisseraient croire à une panne. */}
-      {affichable && anciennes > 0 ? (
-        <p className="prix7__note">
-          {anciennes > 1
-            ? `${anciennes} stations ont été relevées avant le 25 septembre : leurs logements n’ont pas de position enregistrée, donc pas de pastille sur la carte. Relevez-les à nouveau dans l’onglet Par station pour les y voir.`
-            : "Une station a été relevée avant le 25 septembre : ses logements n’ont pas de position enregistrée, donc pas de pastille sur la carte. Relevez-la à nouveau dans l’onglet Par station pour les y voir."}
-        </p>
+      {/* Le relevé en cours se suit aussi d'ici : relever les stations sans
+          position se lance depuis cet onglet, et leurs pastilles arrivent au
+          fil des stations terminées. */}
+      {course ? (
+        <BandeauCourse
+          course={course}
+          file={file}
+          onArreter={() => {
+            // Sans relevé à venir (la file écarte ceux dont les dates sont
+            // passées), le bandeau et son bouton disparaissent.
+            if (file.every((j) => estPassee(j.per, todayIso()))) refCompte.current?.focus();
+            arreter();
+          }}
+        />
+      ) : null}
+
+      {/* Les relevés faits avec la version du 25 septembre 2026 au matin ne
+          gardaient pas la position des logements : sans le dire, la carte vide
+          et « GPS manquant » sur chaque carte laisseraient croire à une panne. */}
+      {affichable && sansPosition.length > 0 ? (
+        <div className="prix7__avis">
+          <p className="prix7__note">
+            {sansPosition.length > 1
+              ? `${sansPosition.length} stations ont été relevées sans la position de leurs logements : ceux-ci n’ont pas de pastille sur la carte.`
+              : `${NOMS.get(sansPosition[0]?.id ?? "") ?? "Une station"} a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.`}
+            {passee ? "" : " Un nouveau relevé les y place."}
+          </p>
+          {passee ? null : aRepositionner.length > 0 ? (
+            <button
+              type="button"
+              className="prix7__pilule"
+              title="Une station prend environ une minute."
+              onClick={() => {
+                lancer({ nom: "logements sans position", ids: aRepositionner, per, groupe });
+                refCompte.current?.focus();
+              }}
+            >
+              {aRepositionner.length === 1
+                ? `Relever ${NOMS.get(aRepositionner[0] ?? "") ?? "cette station"}`
+                : aRepositionner.length < sansPosition.length
+                  ? `Relever les ${aRepositionner.length} stations restantes`
+                  : `Relever ces ${aRepositionner.length} stations`}
+            </button>
+          ) : (
+            <span className="prix7__indice" role="status">
+              {`Relevé de ${sansPosition.length > 1 ? "ces stations" : "cette station"} ${repositionEnCours ? "en cours" : "en attente"}.`}
+            </span>
+          )}
+        </div>
       ) : null}
 
       {!affichable ? null : cartes.length > 0 ? (
@@ -1178,6 +1246,7 @@ function VueBudget({
                   <b>
                     {nPages > 1 ? `Page ${page + 1} sur ${nPages} · ` : ""}
                     {plur(affichees.length, "logement", "logements")} dans le cadre
+                    {pageSansPosition > 0 ? ` · ${pageSansPosition} sans position sur cette page` : ""}
                   </b>
                   {horsCadre > 0 ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>

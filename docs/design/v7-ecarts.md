@@ -307,8 +307,13 @@ par station ; c'est le second qui fait foi.
    à l'écran. L'onglet budget ne lit dans IndexedDB que les stations relevées
    (résultat « fait » pour la période et le groupe) ; les critères de station
    s'appliquent après la lecture, pour qu'en élargir un ne vide pas l'écran.
-   Les relevés d'avant le 25 septembre 2026 n'enregistraient pas la position
-   des logements : l'écran le dit, et invite à relever à nouveau ces stations.
+   Les relevés faits avec la version du 25 septembre 2026 au matin (#47)
+   n'enregistraient pas la position des logements, qui n'ont donc pas de
+   pastille : l'onglet budget le dit, et propose de relever d'un clic celles
+   de ces stations qui ont un logement dans la liste. Un autre onglet ouvert
+   sur l'écran relit les annonces à mesure qu'elles sont relevées. Le relevé en cours s'y suit aussi, et les pastilles arrivent au
+   fil des stations terminées ; la légende de la carte compte les logements
+   de la page sans position.
 6. **La période suit le séjour** tant qu'on ne la change pas ici ; revenir sur
    ses dates la lui rend. Pas d'arrivée dans le passé : un relevé pour des dates
    écoulées dépenserait le quota Airbnb pour rien.

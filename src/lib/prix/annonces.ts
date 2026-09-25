@@ -23,9 +23,24 @@ const enLecture = new Map<string, Promise<void>>();
 /** Rang de la dernière écriture de chaque clé : un élagage parti avant elle ne l'efface pas. */
 const ecrites = new Map<string, number>();
 let rang = 0;
-/** Clés relues à l'ancien format (relevés d'avant le 25 septembre 2026) : leurs
- *  annonces n'ont pas de position, donc pas de pastille, et l'écran le dit. */
+/** Clés relues à l'ancien format (relevés faits avec la version du 25 septembre
+ *  2026 au matin, PR #47) : leurs annonces n'ont pas de position, donc pas de
+ *  pastille, et l'écran le dit. */
 const anciennes = new Set<string>();
+
+/** Les autres onglets de l'application : une clé écrite ou oubliée ici y est
+ *  relue. Sans cela, un onglet ouvert sur « Par budget » gardait les annonces
+ *  de l'ancien format pendant qu'un autre les relevait à nouveau, et proposait
+ *  de relancer ce qui venait d'être fait. */
+const CANAL = "skitrack-prix-annonces";
+const canal: BroadcastChannel | null =
+  typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel(CANAL);
+canal?.addEventListener("message", (e: MessageEvent) => {
+  const k = e.data;
+  if (typeof k !== "string") return;
+  connues.delete(k);
+  void charger([k]);
+});
 
 /** Chaque changement d'une clé lui donne un cran neuf ; une vue ne se redessine
  *  que si l'une de ses clés a changé de cran. */
@@ -152,11 +167,15 @@ async function lireLot(cles: readonly string[]): Promise<void> {
   });
   // Écrite ou oubliée pendant la lecture : la mémoire a le dernier mot.
   const neuves = cles.filter((k) => !connues.has(k));
+  // La base fait foi : une clé relue à la demande d'un autre onglet remplace
+  // ce que la mémoire en gardait, ou l'efface.
   for (const k of neuves) {
     connues.add(k);
     const a = lues.get(k);
     if (a) cache.set(k, a);
+    else cache.delete(k);
     if (a && vieilles.has(k)) anciennes.add(k);
+    else anciennes.delete(k);
   }
   signaler(neuves);
 }
@@ -190,9 +209,10 @@ export async function ecrireAnnonces(cle: string, a: readonly AnnonceRetenue[]):
   connues.add(cle);
   ecrites.set(cle, ++rang);
   signaler([cle]);
-  await transaction("readwrite", (m) => {
+  const ok = await transaction("readwrite", (m) => {
     m.put(copie, cle);
   });
+  if (ok) canal?.postMessage(cle);
 }
 
 /** Retire les annonces d'une clé : un relevé en échec n'en a aucune, et celles
@@ -203,9 +223,10 @@ export async function oublierAnnonces(cle: string): Promise<void> {
   anciennes.delete(cle);
   connues.add(cle);
   signaler([cle]);
-  await transaction("readwrite", (m) => {
+  const ok = await transaction("readwrite", (m) => {
     m.delete(cle);
   });
+  if (ok) canal?.postMessage(cle);
 }
 
 /** `null` : rien d'écrit pour cette clé. */
@@ -276,7 +297,7 @@ export type VueAnnonces = {
   /** Toutes les clés demandées ont été lues. */
   pret: boolean;
   /** Clés demandées relues à l'ancien format : leurs annonces n'ont pas de position. */
-  anciennes: number;
+  anciennes: readonly string[];
 };
 
 /** Séparateur des clés : une clé de résultat n'a jamais de saut de ligne. */
@@ -293,11 +314,11 @@ function signature(cles: readonly string[]): string {
 function construire(cles: readonly string[]): VueAnnonces {
   const parCle = new Map<string, readonly AnnonceRetenue[]>();
   let pret = true;
-  let vieilles = 0;
+  const vieilles: string[] = [];
   for (const k of cles) {
     const a = cache.get(k);
     if (a) parCle.set(k, a);
-    if (a && anciennes.has(k)) vieilles += 1;
+    if (a && anciennes.has(k)) vieilles.push(k);
     if (!connues.has(k)) pret = false;
   }
   return { parCle, pret, anciennes: vieilles };

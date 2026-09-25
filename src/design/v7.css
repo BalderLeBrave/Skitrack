@@ -5850,6 +5850,17 @@
   color: var(--color-muted);
   text-wrap: pretty;
 }
+/* L'avis des relevés sans position, et son bouton pour les refaire d'ici. */
+.prix7__avis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+}
+.prix7__avis .prix7__note {
+  flex: 1 1 36rem;
+  max-width: 80ch;
+}
 
 /* « Par budget » : la fourchette du budget à gauche, tri et lieu à droite,
    calés sur le bas (Prix par station.dc.html:128-143). */

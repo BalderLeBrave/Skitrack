@@ -7,12 +7,15 @@
  *
  * Une station à la fois, jamais deux, serveur compris : un relevé Airbnb
  * envoie jusqu'à douze requêtes, et deux stations ensemble se feraient couper
- * par le limiteur local. « Arrêter » n'écrit plus rien de la station en vol,
- * mais le serveur, qui ne sait rien de l'arrêt, la relève jusqu'au bout : la
- * station suivante l'attend. Entre onglets, un verrou (Web Locks) tient le
- * même rôle. Avant chaque station, on laisse finir la recherche de Logements,
- * puis on attend que le créneau Airbnb le permette (`etatAirbnb`). Une station
- * coupée par un refus n'est jamais relancée d'elle-même.
+ * par le limiteur local. « Arrêter » pendant les cinq parts n'écrit rien de la
+ * station en vol ; pendant sa complétion, ses parts rendues, elle s'écrit
+ * quand même, avec ce que les tranches ont posé, et la course s'arrête là
+ * (`ecritureDuReleve`). Le serveur, qui ne sait rien de l'arrêt, finit ce qui
+ * est parti : la station suivante l'attend. Entre onglets, un verrou (Web
+ * Locks) tient le même rôle. Avant chaque station, on laisse finir la
+ * recherche de Logements, puis on attend que le créneau Airbnb le permette
+ * (`etatAirbnb`). Une station coupée par un refus n'est jamais relancée
+ * d'elle-même.
  *
  * Les cinq parts de la recherche de Logements, trois en vol au plus, sans
  * `relance` : le relevé Airbnb que le serveur garde quinze minutes sert aux
@@ -21,12 +24,22 @@
  * dates. Les annonces qu'elle a retenues vont dans IndexedDB (`annonces.ts`),
  * pour l'onglet « Par budget ». Un échec ne remplace jamais une médiane.
  *
+ * Entre les parts et la médiane, la complétion (`tranches.ts`) cherche la
+ * position, la capacité et les chambres qui manquent aux annonces que la
+ * médiane pourrait compter : mémoire des fiches, recopie entre offres d'un
+ * même logement, puis des tranches de 45 s (`completerProfond`), toujours
+ * sous le verrou de la station. Entre deux tranches, Logements passe
+ * d'abord, et « Arrêter » coupe : ce que les tranches finies ont posé compte
+ * dans la médiane écrite. Après un refus d'Airbnb, plus aucune fiche Airbnb
+ * jusqu'à la fin de la course.
+ *
  * Le magasin tient aussi l'état de vue (onglet, filtres, tris, pages), non
  * persisté : changer d'onglet, ou passer par Réservation et revenir, ne perd
  * rien.
  */
 import { create } from "zustand";
 import { createJSONStorage, persist, type PersistStorage } from "zustand/middleware";
+import type { Listing } from "../listings";
 import { useParcours } from "../parcours";
 import { DEVIS_MS, SEARCH_PART_MS, TARIF_MS, searchStay } from "../searchStay";
 import { stationById, type Station } from "../stations";
@@ -35,12 +48,15 @@ import { todayIso } from "../stay/calendar";
 import { estTimeout, withDeadline } from "../stay/deadline";
 import { ecrireAnnonces, oublierAnnonces, oublierAnnoncesSauf } from "./annonces";
 import { etatAirbnb, type EtatCreneau } from "./attente";
+import { completerProfond } from "./completion";
+import { completerStation, type FichesAirbnb, type Pilote } from "./tranches";
 import {
   annoncesDuReleve,
   bornerNuits,
   cleResultat,
   dejaPrevu,
   departIso,
+  ecritureDuReleve,
   elaguer,
   FL0,
   PAGE,
@@ -54,6 +70,7 @@ import {
   type Job,
   type Part,
   type Periode,
+  type ReleveRendu,
   type Resultat,
   type Tri,
   type TriB,
@@ -69,6 +86,13 @@ export type Course = Job & {
    * de Logements (`logements`). `jusqua` vaut `null` quand on ne sait pas.
    */
   attente: { jusqua: number | null; motif: "refus" | "rythme" | "arret" | "logements" } | null;
+  /**
+   * La complétion de la station `i` : fiches essayées, sur celles qui en
+   * attendaient une après la mémoire. `null` hors complétion.
+   */
+  fiches: { faites: number; total: number } | null;
+  /** Airbnb a refusé des requêtes pendant la course : plus de fiches Airbnb jusqu'à sa fin. */
+  airbnbRefus: boolean;
 };
 
 export type Onglet = "station" | "budget";
@@ -111,9 +135,10 @@ export type PrixStore = {
 
 type Rendu = Awaited<ReturnType<typeof searchStay>>;
 
-/** Le relevé d'une station : sa médiane, les annonces qu'elle a comptées, et
- *  si l'application elle-même a cessé de répondre. */
-type Releve = { resultat: Resultat; annonces: AnnonceRetenue[]; injoignable: boolean };
+/** Le relevé d'une station : sa médiane, les annonces qu'elle a comptées, si
+ *  l'application elle-même a cessé de répondre, et si ses cinq parts se sont
+ *  rendues avant tout arrêt (`ecritureDuReleve`). */
+type Releve = ReleveRendu & { annonces: AnnonceRetenue[] };
 
 /** Pendant une attente, l'état du créneau est relu à ce rythme : un refus levé
  *  plus tôt que prévu, ou une fenêtre qui se vide, relance aussitôt. */
@@ -127,6 +152,11 @@ const VERROU = "skitrack-prix-releve";
 
 const CLE_STOCKAGE = "skitrack-prix";
 
+/** Une tranche de fiches prend 45 s au plus côté serveur : passé ce délai, il ne répond plus. */
+const TRANCHE_CLIENT_MS = 75_000;
+/** L'attente que le limiteur Airbnb demande entre deux tranches, au plus. */
+const ATTENTE_FICHES_MAX_MS = 60_000;
+
 /** Parts en vol à la fois. L'application de bureau parle HTTP/1.1, six
  *  connexions par origine : un long relevé en laisse au reste de l'écran. */
 const CONNEXIONS = 3;
@@ -136,18 +166,26 @@ const CONNEXIONS = 3;
 const RANG: Record<Part, number> = { airbnb: 0, cozy: 1, greengo: 2, centrales: 3, gites: 4 };
 const ORDRE_PARTS: readonly Part[] = [...PARTS].sort((a, b) => RANG[a] - RANG[b]);
 
-/** La génération de la course en vol : une course arrêtée n'écrit plus rien. */
+/**
+ * La génération de la course en vol : une course arrêtée n'écrit plus rien,
+ * sauf la station dont les cinq parts étaient rendues (`ecritureDuReleve`).
+ */
 let generation = 0;
 /** Coupe les attentes de la course courante (pas sa station : voir `stationEnVol`). */
 let arret: AbortController | null = null;
 /**
  * La station en vol, attentes comprises, de quelque course qu'elle soit :
- * réglée quand ses parts le sont toutes. Une course arrêtée n'en écrit rien,
- * mais son serveur continue : la station suivante l'attend.
+ * réglée quand ses parts et sa complétion le sont. Arrêtée pendant ses parts,
+ * elle n'écrit rien ; pendant sa complétion, elle s'écrit en sortant, avant
+ * que la station suivante, qui l'attend, ne parte.
  */
 let stationEnVol: Promise<void> | null = null;
 /** Depuis quand Logements cherche (voir `attendreLogements`). */
 let chercheDepuis: number | null = null;
+/** Les fiches Airbnb de la course en vol : un refus ou une panne valent jusqu'à sa fin. */
+let fichesAirbnb: FichesAirbnb = "actives";
+/** Les hôtes qui ont refusé une page de fiche pendant la course en vol (429, 403, 503), ou n'ont pas répondu. */
+let hotesExclus = new Set<string>();
 
 /** Les bornes de Logements : le devis ITEA et le panier Ingénie s'ajoutent au relevé. */
 function delaiPart(part: Part): number {
@@ -197,6 +235,22 @@ function poserAttente(gen: number, attente: Course["attente"]): void {
   usePrix.setState({ course: { ...course, attente } });
 }
 
+/** La progression des fiches, ou le refus d'Airbnb : pour la course courante seulement. */
+function poserCourse(gen: number, patch: Partial<Pick<Course, "fiches" | "airbnbRefus">>): void {
+  if (gen !== generation) return;
+  const { course } = usePrix.getState();
+  if (!course) return;
+  usePrix.setState({ course: { ...course, ...patch } });
+}
+
+/** Plus de fiches Airbnb jusqu'à la fin de la course : jamais de reprise après un refus. */
+function suspendreAirbnb(gen: number, etat: FichesAirbnb, raison: string): void {
+  if (gen !== generation || etat === "actives" || fichesAirbnb !== "actives") return;
+  fichesAirbnb = etat;
+  console.warn(`[prix] fiches Airbnb suspendues pour la course : ${raison}`);
+  if (etat === "refus") poserCourse(gen, { airbnbRefus: true });
+}
+
 /**
  * Logements d'abord : sa recherche, l'utilisateur l'attend ; le relevé, non.
  * Bornée : quitter Logements en pleine recherche laisse `searching` levé, et
@@ -244,8 +298,59 @@ function borne(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Math.round(v) || min));
 }
 
-/** Les cinq parts d'une station, trois à la fois, et ce qu'on en garde. */
-async function relever(s: Station, job: Job): Promise<Releve> {
+/**
+ * Ce que la complétion d'une station (`completerStation`) demande à la course :
+ * le serveur, les attentes entre deux tranches, et le bandeau. Une course
+ * arrêtée ne pose plus rien sur la course (bandeau, hôtes exclus, fiches
+ * Airbnb), et n'envoie plus de tranche ; ce que la tranche en vol rend se pose
+ * encore sur le relevé de la station.
+ */
+function pilote(
+  gen: number,
+  signal: AbortSignal,
+  base: { stationId: string; checkIn: string; checkOut: string; voyageurs: number },
+): Pilote {
+  return {
+    // Sans le signal de la course : une tranche partie va au bout côté
+    // serveur, et la station suivante l'attend (`stationEnVol`).
+    tranche: (e) => withDeadline(completerProfond({ data: { ...base, ...e } }), TRANCHE_CLIENT_MS, "fiches"),
+    async entreDeux({ attenteMs, airbnb, faites, total }) {
+      if (gen !== generation) return false;
+      poserCourse(gen, { fiches: { faites, total } });
+      if (!(await attendreLogements(gen, signal))) return false;
+      if (attenteMs > 0) {
+        // Le limiteur Airbnb a demandé d'attendre : rien n'a été refusé.
+        const ms = Math.min(attenteMs, ATTENTE_FICHES_MAX_MS);
+        poserAttente(gen, { jusqua: Date.now() + ms, motif: "rythme" });
+        await dormir(ms, signal);
+        if (gen !== generation) return false;
+        poserAttente(gen, null);
+      }
+      if (airbnb && fichesAirbnb === "actives") {
+        // Un refus lu au créneau (relevé, Logements, worker) : aucune fiche
+        // Airbnb pendant sa pause, ni après.
+        try {
+          const etat = await etatAirbnb({ signal });
+          if (etat.motif === "refus") suspendreAirbnb(gen, "refus", "créneau Airbnb en pause après un refus");
+        } catch (err) {
+          if (!signal.aborted) console.warn("[prix] créneau Airbnb illisible", err);
+        }
+      }
+      return gen === generation;
+    },
+    airbnb: () => fichesAirbnb,
+    hotesExclus: () => [...hotesExclus],
+    noter({ rendu, airbnb, faites, total }) {
+      if (gen !== generation) return;
+      for (const h of rendu.hotesRefus) hotesExclus.add(h);
+      if (airbnb !== fichesAirbnb) suspendreAirbnb(gen, airbnb, rendu.raison ?? rendu.arretAirbnb ?? airbnb);
+      poserCourse(gen, { fiches: { faites, total } });
+    },
+  };
+}
+
+/** Les cinq parts d'une station, trois à la fois, leur complétion, et ce qu'on en garde. */
+async function relever(s: Station, job: Job, gen: number, signal: AbortSignal): Promise<Releve> {
   const checkIn = job.per.from;
   const checkOut = departIso(job.per);
   const payload = {
@@ -287,27 +392,42 @@ async function relever(s: Station, job: Job): Promise<Releve> {
   await Promise.all(Array.from({ length: CONNEXIONS }, tour));
   // Tout refusé, et pas sur un délai : c'est l'application qui ne répond plus.
   const injoignable = lus.every((lu) => lu.status === "rejected" && !estTimeout(lu.reason));
+  // Rendues avant tout arrêt : un « Arrêter » venu après tombe pendant la
+  // complétion, et la station s'écrira quand même (`ecritureDuReleve`).
+  const partsRendues = gen === generation;
   try {
     const rendus = lus.flatMap((lu) => (lu.status === "fulfilled" ? [lu.value] : []));
+    const ctx = { dept: s.dept, checkIn, checkOut, groupe: job.groupe, now: Date.now() };
+    let listings: Listing[] = rendus.flatMap((r) => r.listings);
+    if (!injoignable && partsRendues) {
+      try {
+        listings = await completerStation(
+          listings,
+          ctx,
+          s,
+          pilote(gen, signal, { stationId: s.id, checkIn, checkOut, voyageurs: payload.guests }),
+        );
+      } catch (err) {
+        // La complétion ne coûte jamais le relevé : il se compte tel quel.
+        console.warn("[prix] complétion en échec", s.id, err);
+      }
+    }
     const entree: EntreeReleve = {
-      listings: rendus.flatMap((r) => r.listings),
+      ...ctx,
+      listings,
       sources: rendus.flatMap((r) => r.sources),
       partsEchouees: PARTS.filter((_, k) => lus[k].status === "rejected"),
-      dept: s.dept,
-      checkIn,
-      checkOut,
-      groupe: job.groupe,
-      now: Date.now(),
     };
     const resultat = resultatDuReleve(entree);
     const annonces = resultat.etat === "fait" ? annoncesDuReleve(entree) : [];
-    return { resultat, annonces, injoignable };
+    return { resultat, annonces, injoignable, partsRendues };
   } catch (err) {
     console.warn("[prix] relevé en échec", s.id, err);
     return {
       resultat: { etat: "echec", ts: Date.now(), raison: "Le relevé n’a pas abouti." },
       annonces: [],
       injoignable,
+      partsRendues,
     };
   }
 }
@@ -327,7 +447,7 @@ async function passerStation(
   const section = async (): Promise<Releve | null> => {
     if (!(await attendreLogements(gen, signal))) return null;
     if (!(await attendreCreneau(gen, signal))) return null;
-    return relever(s, job);
+    return relever(s, job, gen, signal);
   };
   const verrous = typeof navigator === "undefined" ? undefined : navigator.locks;
   if (!verrous) return section();
@@ -375,21 +495,25 @@ async function derouler(gen: number, signal: AbortSignal): Promise<void> {
       } finally {
         if (stationEnVol === fin) stationEnVol = null;
       }
-      if (gen !== generation || !lu) return;
-      if (lu.injoignable) {
+      // Arrêtée pendant l'attente de Logements, du créneau ou du verrou.
+      if (!lu) return;
+      const enCours = gen === generation;
+      if (enCours && lu.injoignable) {
         abandonner();
         return;
       }
+      // La clé de cette course-ci, même arrêtée : pas celle de la suivante.
       const cle = cleResultat(course.per, course.groupe, station.id);
-      const ancien = usePrix.getState().res[cle];
+      // Arrêtée pendant ses parts : rien. Pendant sa complétion : sa médiane.
       // Un échec ne remplace jamais une médiane : le relevé précédent reste,
       // ses annonces aussi (la règle de `deadline.ts`).
-      if (!(lu.resultat.etat === "echec" && ancien?.etat === "fait")) {
+      const ecrit = ecritureDuReleve(lu, usePrix.getState().res[cle], enCours);
+      if (ecrit !== null) {
         // Les annonces avant le résultat : l'onglet budget les trouve en mémoire
         // dès que la station paraît. Un échec retire celles d'un relevé plus
         // ancien de la même clé, sans écrire de liste vide : l'onglet budget
         // compterait la station parmi les relevées.
-        if (lu.resultat.etat === "fait") void ecrireAnnonces(cle, lu.annonces);
+        if (ecrit === "fait") void ecrireAnnonces(cle, lu.annonces);
         else void oublierAnnonces(cle);
         const avec = { ...usePrix.getState().res, [cle]: lu.resultat };
         const res = elaguer(avec);
@@ -397,15 +521,19 @@ async function derouler(gen: number, signal: AbortSignal): Promise<void> {
         // Des résultats sont partis : leurs annonces aussi.
         if (res !== avec) void oublierAnnoncesSauf(new Set(Object.keys(res)));
       }
+      // Arrêtée : la course s'arrête là (« Arrêter » a déjà passé la main à la
+      // suivante de la file, qui attendait cette station).
+      if (!enCours) return;
     }
     usePrix.setState((s) =>
-      s.course ? { course: { ...s.course, i: s.course.i + 1, attente: null } } : {},
+      s.course ? { course: { ...s.course, i: s.course.i + 1, attente: null, fiches: null } } : {},
     );
   }
   suivante();
 }
 
-/** La course en vol n'écrira plus rien, et ses attentes s'arrêtent. */
+/** La course en vol n'écrira plus rien, sauf la station dont les cinq parts
+ *  sont rendues (`ecritureDuReleve`), et ses attentes s'arrêtent. */
 function couperCourse(): void {
   generation += 1;
   arret?.abort();
@@ -427,7 +555,11 @@ function demarrer(job: Job): void {
   const gen = generation;
   const ctrl = new AbortController();
   arret = ctrl;
-  usePrix.setState({ course: { ...job, ids: [...job.ids], i: 0, attente: null } });
+  fichesAirbnb = "actives";
+  hotesExclus = new Set();
+  usePrix.setState({
+    course: { ...job, ids: [...job.ids], i: 0, attente: null, fiches: null, airbnbRefus: false },
+  });
   void derouler(gen, ctrl.signal).catch((err: unknown) => {
     console.warn("[prix] course interrompue", err);
     if (gen === generation) suivante();

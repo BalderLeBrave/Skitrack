@@ -8,7 +8,8 @@ import {
   nearestPlace,
 } from "./osmAccess.ts";
 import { domainFit, inSearchedDomain, otherDomainMessage } from "./domainFit.ts";
-import type { Station } from "./stations.ts";
+import { nearestStationLift } from "./remontees.ts";
+import { stationById, type Station } from "./stations.ts";
 import { withinLiftM as withinM } from "./skiAccess.ts";
 import { convertir, dansLeSysteme, mesure, type Systeme } from "./unites.ts";
 
@@ -45,16 +46,25 @@ export function attachAccess(listing: Listing, station: Station): Listing {
   }
   const lift = nearestLift(station.id, listing.lat, listing.lon);
   const place = nearestPlace(station.id, listing.lat, listing.lon);
+  // Dans le domaine cherché, la remontée du logement est la plus proche de
+  // toutes : la liste de la station en oublie (27 m de la gare « Village » au
+  // repère de Saint-Martin-de-Belleville, 2 839 m selon sa liste). Hors du
+  // domaine, rien n'est gardé, et la remontée « cherchée » reste celle de la
+  // station : la fiche dit à quelle distance sont ses remontées à elle.
+  let near = keepLift ? lift : null;
+  const proche = fit.nearestStationId ? stationById(fit.nearestStationId) : undefined;
+  const world = keepLift ? nearestStationLift(listing.lat, listing.lon, [station, proche]) : null;
+  if (world && (!near || world.m < near.m)) near = world;
   return {
     ...listing,
     distToSlopesM: fit.distToSearchedPinM,
-    distToLiftM: keepLift ? (lift?.m ?? null) : null,
-    liftName: keepLift ? (lift?.name ?? null) : null,
-    liftKind: keepLift ? (lift?.kind ?? null) : null,
-    liftLat: keepLift ? (lift?.lat ?? null) : null,
-    liftLon: keepLift ? (lift?.lon ?? null) : null,
-    liftOtherLat: keepLift ? (lift?.otherLat ?? null) : null,
-    liftOtherLon: keepLift ? (lift?.otherLon ?? null) : null,
+    distToLiftM: near?.m ?? null,
+    liftName: near?.name ?? null,
+    liftKind: near?.kind ?? null,
+    liftLat: near?.lat ?? null,
+    liftLon: near?.lon ?? null,
+    liftOtherLat: near?.otherLat ?? null,
+    liftOtherLon: near?.otherLon ?? null,
     placeName: place?.name ?? listing.placeName ?? null,
     distToPlaceM: place?.m ?? null,
     domainFit: fit.verdict,

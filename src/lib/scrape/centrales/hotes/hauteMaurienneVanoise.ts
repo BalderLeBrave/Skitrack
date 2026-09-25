@@ -3,19 +3,33 @@
  *
  * La première centrale branchée, et celle sur laquelle le moteur Open System a
  * été établi. Relevé du 13 septembre 2026 : `robots.txt` dit « User-Agent: * /
- * Allow: / ». On le lit, on extrait. Les huit rubriques répondent 200, et le
- * relevé daté du 6 au 13 février 2027 pour huit personnes rend cent sept
- * logements distincts avec un total de séjour.
+ * Allow: / ». On le lit, on extrait. Les huit rubriques d'alors répondaient
+ * 200, et le relevé daté du 6 au 13 février 2027 pour huit personnes rendait
+ * cent sept logements distincts avec un total de séjour.
  *
- * **Pourquoi les huit rubriques et pas la seule page « tous ».** Le moteur
+ * **Pourquoi plusieurs rubriques et pas la seule page « tous ».** Le moteur
  * plafonne à cinquante fiches par page et sa pagination ne répond pas en
  * requête simple. « Tous nos hébergements » en donne donc cinquante, les
  * appartements de particuliers en ajoutent trente-trois que la première n'avait
- * pas, ceux de professionnels vingt-quatre de plus. Les quatre dernières
- * rubriques n'apportent rien de neuf, et les campings comme le refuge ne
- * rendent rien du tout en février : c'est la bonne réponse, pas une panne. On
- * les garde parce qu'une rubrique muette ne coûte qu'une requête, et qu'elle
- * parlera à d'autres dates.
+ * pas, ceux de professionnels vingt-quatre de plus. Les autres rubriques
+ * n'apportaient rien de neuf, et les campings comme le refuge ne rendaient rien
+ * du tout en février : c'était la bonne réponse, pas une panne.
+ *
+ * **Cinq rubriques ne sont plus interrogées**, par la règle du propriétaire :
+ * ni camping, ni insolite, ni refuge, ni chambre d'hôtes, ni gîte d'étape, ni
+ * hôtel. Relevé du 25 septembre 2026, du 6 au 13 février 2027 à quatre
+ * personnes : « chambres d'hôtes et gîtes d'étape » et « hébergements
+ * insolites » rendent la même fiche, les « Cabanes & Yourtes de Montagne » ;
+ * « hôtels et résidences de tourisme » rend deux hôtels et quatre résidences,
+ * toutes sans type publié et toutes déjà dans « tous nos hébergements ». Les
+ * campings et le refuge n'ont pas été interrogés à ce relevé.
+ *
+ * **Ce qui reste de ces types dans « tous » est écarté fiche à fiche**
+ * (`appliquerRegleOpenSystem`). Une fiche sans type publié n'est gardée que si
+ * elle paraît aussi sous l'une des deux rubriques d'appartements : c'est le cas
+ * des quatre résidences (« Les Valmonts de Val Cenis », trois « Balcons »),
+ * rangées par la centrale sous « appartements de professionnels », et jamais
+ * des deux hôtels ni des cabanes.
  *
  * **Les pages par station ne servent pas.** `/ac57-val-cenis.htm` et ses
  * voisines ont l'air de viser une station, mais ce sont des pages éditoriales :
@@ -39,11 +53,10 @@ export const hauteMaurienneVanoise: Connecteur = {
         "/pr7-tous-nos-hebergements.htm",
         "/pr75-appartements-de-particuliers.htm",
         "/pr93-appartements-de-professionnels.htm",
-        "/pr8-hotels-et-residences-de-tourisme.htm",
-        "/pr27-chambres-d-hotes-gites-d-etape.htm",
-        "/pr77-hebergements-insolites.htm",
-        "/pr28-campings.htm",
-        "/pr29-refuge.htm",
+      ],
+      rubriquesDeLocation: [
+        "/pr75-appartements-de-particuliers.htm",
+        "/pr93-appartements-de-professionnels.htm",
       ],
     }),
 };

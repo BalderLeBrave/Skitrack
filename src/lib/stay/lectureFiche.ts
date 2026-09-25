@@ -101,6 +101,11 @@ function fromOccupancyNode(o: Record<string, unknown>): Occupancy {
   };
 }
 
+/** Une entreprise, pas un logement : chez les centrales, le loueur ou l'agence. */
+const ENTREPRISE =
+  /LocalBusiness|Organi[sz]ation|Corporation|RealEstateAgent|TravelAgency|Store|ProfessionalService/i;
+const LOGEMENT = /VacationRental|LodgingBusiness|Accommodation|Hotel|Apartment|House|Residence/i;
+
 function fromRecord(o: Record<string, unknown>): LectureFiche {
   let out: LectureFiche = { ...VIDE };
   const guests =
@@ -149,7 +154,7 @@ function fromRecord(o: Record<string, unknown>): LectureFiche {
   if (streetRaw) out = { ...out, street: streetRaw.replace(/,\s*$/, "").trim() };
   const name = typeof o.name === "string" ? o.name : null;
   const kind = String(o["@type"] ?? "");
-  const lodging = /VacationRental|LodgingBusiness|Accommodation|Hotel|Apartment|House|Residence/i.test(kind);
+  const lodging = LOGEMENT.test(kind);
   if (name) {
     if (lodging) {
       const titre = titrePublie(name);
@@ -160,21 +165,55 @@ function fromRecord(o: Record<string, unknown>): LectureFiche {
   return out;
 }
 
-function walk(node: unknown, acc: LectureFiche, depth: number): LectureFiche {
+function estEntreprise(o: Record<string, unknown>): boolean {
+  const kind = String(o["@type"] ?? "");
+  return ENTREPRISE.test(kind) && !LOGEMENT.test(kind);
+}
+
+/** Les points qu'une entreprise de la page publie pour elle-même. */
+type PointsLoueur = Array<{ lat: number; lon: number }>;
+
+/**
+ * Parcourt un bloc JSON-LD. Le point, la rue et la commune d'une entreprise
+ * ne sont jamais ceux du logement : chez Ingénie, le bloc `LocalBusiness` est
+ * le loueur (nom, téléphone, courriel), et c'est son `location` qui porte le
+ * point du logement. Pris pour le logement, le point de l'agence se posait sur
+ * chacun de ses logements sans point propre. Il est gardé à part (`loueur`),
+ * pour qu'aucun recours ne le reprenne ailleurs dans la page.
+ */
+function walk(node: unknown, acc: LectureFiche, depth: number, loueur: PointsLoueur): LectureFiche {
   if (depth > 12 || node == null) return acc;
   if (Array.isArray(node)) {
-    for (const x of node) acc = walk(x, acc, depth + 1);
+    for (const x of node) acc = walk(x, acc, depth + 1, loueur);
     return acc;
   }
   if (typeof node !== "object") return acc;
   const o = node as Record<string, unknown>;
-  acc = mergeLecture(acc, fromRecord(o));
-  if (Array.isArray(o["@graph"])) acc = walk(o["@graph"], acc, depth + 1);
-  if (o.containsPlace) acc = walk(o.containsPlace, acc, depth + 1);
-  if (o.location) acc = walk(o.location, acc, depth + 1);
-  if (o.address && typeof o.address === "object") acc = walk(o.address, acc, depth + 1);
-  if (o.itemListElement) acc = walk(o.itemListElement, acc, depth + 1);
+  const propre = fromRecord(o);
+  const entreprise = estEntreprise(o);
+  if (entreprise) {
+    if (plausible(propre.lat, propre.lon)) loueur.push({ lat: propre.lat as number, lon: propre.lon as number });
+    acc = mergeLecture(acc, { ...propre, lat: null, lon: null, street: null, locality: null });
+  } else {
+    acc = mergeLecture(acc, propre);
+  }
+  if (Array.isArray(o["@graph"])) acc = walk(o["@graph"], acc, depth + 1, loueur);
+  if (o.containsPlace) acc = walk(o.containsPlace, acc, depth + 1, loueur);
+  if (o.location) acc = walk(o.location, acc, depth + 1, loueur);
+  // L'adresse d'une entreprise est la sienne, pas celle du logement.
+  if (!entreprise && o.address && typeof o.address === "object") {
+    acc = walk(o.address, acc, depth + 1, loueur);
+  }
+  if (o.itemListElement) acc = walk(o.itemListElement, acc, depth + 1, loueur);
   return acc;
+}
+
+/** La lecture sans un point qui est celui d'une entreprise de la page. */
+function sansPointLoueur(l: LectureFiche, loueur: PointsLoueur): LectureFiche {
+  if (l.lat == null || l.lon == null) return l;
+  const { lat, lon } = l;
+  const pareil = loueur.some((p) => Math.abs(p.lat - lat) < 1e-6 && Math.abs(p.lon - lon) < 1e-6);
+  return pareil ? { ...l, lat: null, lon: null } : l;
 }
 
 function fromRegex(html: string): LectureFiche {
@@ -278,7 +317,8 @@ function fromIngenie(html: string): LectureFiche {
   return out;
 }
 
-function fromGpsHtml(html: string): LectureFiche {
+/** Le point d'une carte de la page : `data-atlas-latlng` (Booking), `data-lat`. */
+function fromGpsAttributs(html: string): LectureFiche {
   let out: LectureFiche = { ...VIDE };
   const atlas = html.match(/data-atlas-latlng="\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*"/i);
   if (atlas) {
@@ -293,40 +333,50 @@ function fromGpsHtml(html: string): LectureFiche {
       asCoord(html.match(/\bdata-lon=["']([^"']+)["']/i)?.[1] ?? null);
     if (plausible(lat, lon)) out = { ...out, lat, lon };
   }
-  if (!plausible(out.lat, out.lon)) {
-    const geo = html.match(
-      /"geo"\s*:\s*\{[^}]{0,280}"latitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?[^}]{0,120}"longitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?/i,
-    );
-    if (geo) {
-      const lat = Number(geo[1]);
-      const lon = Number(geo[2]);
-      if (plausible(lat, lon)) out = { ...out, lat, lon };
-    }
-  }
-  if (!plausible(out.lat, out.lon)) {
-    const pair = html.match(
-      /"latitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?\s*,\s*"longitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?/i,
-    );
-    if (pair) {
-      const lat = Number(pair[1]);
-      const lon = Number(pair[2]);
-      if (plausible(lat, lon)) out = { ...out, lat, lon };
-    }
-  }
   return out;
 }
 
-/** Lit capacité, chambres et GPS dans le HTML d'une fiche déjà chargée. */
+/**
+ * Un `"geo"` ou un couple `"latitude"`/`"longitude"` écrit n'importe où dans
+ * la page : le premier qui n'est pas le point d'une entreprise de la page
+ * (le texte du bloc JSON-LD du loueur porte aussi un `"geo"`).
+ */
+function fromGpsTexte(html: string, loueur: PointsLoueur): LectureFiche {
+  const motifs = [
+    /"geo"\s*:\s*\{[^}]{0,280}"latitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?[^}]{0,120}"longitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?/gi,
+    /"latitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?\s*,\s*"longitude"\s*:\s*"?(-?\d+(?:\.\d+)?)"?/gi,
+  ];
+  for (const re of motifs) {
+    for (const m of html.matchAll(re)) {
+      const lu = sansPointLoueur({ ...VIDE, lat: Number(m[1]), lon: Number(m[2]) }, loueur);
+      if (plausible(lu.lat, lu.lon)) return lu;
+    }
+  }
+  return { ...VIDE };
+}
+
+/**
+ * Lit capacité, chambres et GPS dans le HTML d'une fiche déjà chargée.
+ *
+ * Le point est celui du logement ou rien : JSON-LD du logement (ou
+ * `location` d'une entreprise), `listingLat`, critères Ingénie, carte de la
+ * page, enfin un `"geo"` écrit n'importe où. Chaque étape ne comble que ce
+ * qui manque. Le point, la rue et la commune d'une entreprise (le loueur,
+ * l'agence) ne se lisent jamais comme ceux du logement, et un recours qui
+ * retombe sur le point de l'entreprise est écarté.
+ */
 export function lectureFiche(html: string): LectureFiche {
   if (!html || html.length < 40) return { ...VIDE };
   let out: LectureFiche = { ...VIDE };
-  for (const block of jsonLdBlocks(html)) out = walk(block, out, 0);
-  out = mergeLecture(out, fromRegex(html));
+  const loueur: PointsLoueur = [];
+  for (const block of jsonLdBlocks(html)) out = walk(block, out, 0, loueur);
+  out = mergeLecture(out, sansPointLoueur(fromRegex(html), loueur));
   out = mergeLecture(out, fromMeta(html));
-  const ingenie = fromIngenie(html);
+  const ingenie = sansPointLoueur(fromIngenie(html), loueur);
   out = mergeLecture(out, ingenie);
   if (ingenie.title) out = { ...out, title: ingenie.title };
-  if (!plausible(out.lat, out.lon)) out = mergeLecture(out, fromGpsHtml(html));
+  if (!plausible(out.lat, out.lon)) out = mergeLecture(out, sansPointLoueur(fromGpsAttributs(html), loueur));
+  if (!plausible(out.lat, out.lon)) out = mergeLecture(out, fromGpsTexte(html, loueur));
   const taxe = taxeSejourSomme(html);
   if (taxe != null) out = { ...out, taxeSejour: out.taxeSejour ?? taxe };
   return out;

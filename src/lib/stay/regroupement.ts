@@ -32,7 +32,7 @@ import type { Listing } from "@/lib/listings";
 /** Distance au-delà de laquelle deux titres identiques ne sont pas le même bien. */
 export const RAYON_M = 150;
 /** Un titre plus court est trop commun pour prouver quoi que ce soit. */
-const TITRE_MIN = 12;
+export const TITRE_MIN = 12;
 
 export type Logement = {
   /** L'offre montrée par défaut : la moins chère des offres tarifées. */
@@ -71,7 +71,7 @@ export function clesTitre(t: string): string[] {
   return [...new Set([plein, plein.replace(/ fr 1 \d+ \d+$/, "")])];
 }
 
-function distanceM(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+export function distanceM(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
   const r = Math.PI / 180;
   const x = (b.lon - a.lon) * r * Math.cos(((a.lat + b.lat) / 2) * r);
   const y = (b.lat - a.lat) * r;
@@ -88,7 +88,10 @@ function distanceM(a: { lat: number; lon: number }, b: { lat: number; lon: numbe
  * résidence, 6 personnes et 3 chambres, à 76 336 € (Avoriaz, 23 septembre
  * 2026).
  */
-function capaciteCompatible(a: Listing, b: Listing): boolean {
+export function capaciteCompatible(
+  a: Pick<Listing, "guests" | "bedrooms">,
+  b: Pick<Listing, "guests" | "bedrooms">,
+): boolean {
   if (a.guests != null && b.guests != null && a.guests !== b.guests) return false;
   if (a.bedrooms != null && b.bedrooms != null && Math.abs(a.bedrooms - b.bedrooms) > 1) return false;
   return true;
@@ -105,7 +108,7 @@ function memeBien(a: Listing, b: Listing): boolean {
 }
 
 /** Rang de prix : ce qui n'est pas publié passe après, jamais en tête. */
-function parPrix(a: Listing, b: Listing): number {
+export function parPrix(a: Listing, b: Listing): number {
   const pa = a.total > 0 ? a.total : null;
   const pb = b.total > 0 ? b.total : null;
   if (pa == null && pb == null) return 0;

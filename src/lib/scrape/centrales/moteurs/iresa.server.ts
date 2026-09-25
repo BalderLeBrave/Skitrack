@@ -17,9 +17,17 @@
 import type { Listing } from "@/lib/listings";
 import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { compter, phrasesRegle, typeInconnu } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
-import { corpsIresa, jetonIresa, lireIresa, nuitsIresa, type FicheIresa } from "./iresa";
+import {
+  corpsIresa,
+  horsRegleIresa,
+  jetonIresa,
+  lireIresa,
+  nuitsIresa,
+  type FicheIresa,
+} from "./iresa";
 
 // L'en-tête d'un navigateur, comme tout le relevé (`navigateur.ts`). Les règles
 // de robots.txt se lisent toujours sous `AGENT_CENTRALES` (`../robots.server`).
@@ -116,11 +124,14 @@ function enListing(f: FicheIresa, r: ReglageIresa, ctx: ContexteCentrale): Listi
     guests: occ.guests,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    propertyType: f.categorie,
     available: true,
     photo: f.photo ? new URL(f.photo, `${base}/`).toString() : null,
     // Le gabarit porte l'adresse de la fiche ; à défaut, la page de recherche.
     url: f.chemin ? new URL(f.chemin, `${base}/`).toString() : `${base}${r.chemin}`,
-    // Aucune coordonnée dans le flux de résultats.
+    // Aucune coordonnée dans le flux de résultats, ni sur la fiche : son
+    // « Emplacement » est un pictogramme en pixels sur le plan de la station
+    // (relevé du 25 septembre 2026).
     lat: null,
     lon: null,
     locality: f.lieu,
@@ -142,10 +153,24 @@ export async function chercherIresa(ctx: ContexteCentrale, r: ReglageIresa): Pro
   const url = `${r.reservation.replace(/\/+$/, "")}${r.chemin}`;
   const { jeton, cookies } = await formulaire(url);
   const page = await soumettre(url, cookies, corpsIresa(ctx, jeton));
-  const fiches = lireIresa(page, ctx);
+  const lues = lireIresa(page, ctx);
   const nuits = nuitsIresa(ctx.checkIn, ctx.checkOut);
+  // La règle du propriétaire, sur la catégorie publiée : une catégorie qu'elle
+  // écarte n'entre pas dans le relevé. Une catégorie qu'elle ne connaît pas, ou
+  // une fiche sans catégorie, si ; la première est nommée au journal.
+  const ecartes = new Map<string, number>();
+  const inconnus = new Map<string, number>();
+  const fiches = lues.filter((f) => {
+    const motif = horsRegleIresa(f);
+    if (motif) compter(ecartes, motif);
+    else if (f.categorie && typeInconnu(f.categorie)) compter(inconnus, f.categorie);
+    return !motif;
+  });
   console.info(
     `[centrale] ${r.host} : ${fiches.length} hébergements à ${nuits} nuits, ${ctx.checkIn}→${ctx.checkOut}`,
   );
+  for (const phrase of phrasesRegle(ecartes, inconnus)) {
+    console.info(`[centrale] ${r.host} : ${phrase}`);
+  }
   return fiches.map((f) => enListing(f, r, ctx));
 }

@@ -1,4 +1,7 @@
 import { OSM_ACCESS, OSM_LIFTS, type OsmPt } from "./osmAccess.data.ts";
+import { asHit, mateOf, metresBetween } from "./remontees.ts";
+
+export { metresBetween };
 
 export type OsmHit = {
   name: string | null;
@@ -27,44 +30,6 @@ const KIND_PLURAL: Record<string, string> = {
   chair_lift: "télésièges",
   funicular: "funiculaires",
 };
-
-export function metresBetween(aLat: number, aLon: number, bLat: number, bLon: number): number {
-  const R = 6371000;
-  const toR = (d: number) => (d * Math.PI) / 180;
-  const dLat = toR(bLat - aLat);
-  const dLon = toR(bLon - aLon);
-  const s =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toR(aLat)) * Math.cos(toR(bLat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
-}
-
-function asHit(p: OsmPt, m: number, other: OsmPt | null): OsmHit {
-  return {
-    name: p.n,
-    kind: p.k,
-    m,
-    lat: p.lat,
-    lon: p.lon,
-    otherLat: other?.lat ?? null,
-    otherLon: other?.lon ?? null,
-  };
-}
-
-function mateOf(lifts: OsmPt[], p: OsmPt): OsmPt | null {
-  let best: OsmPt | null = null;
-  let bestM = 0;
-  for (const q of lifts) {
-    if (q.n !== p.n || q.k !== p.k) continue;
-    const m = metresBetween(p.lat, p.lon, q.lat, q.lon);
-    if (m < 8 || m > 12_000) continue;
-    if (m > bestM) {
-      bestM = m;
-      best = q;
-    }
-  }
-  return best;
-}
 
 function nearest(pts: OsmPt[] | undefined, lat: number, lon: number): OsmHit | null {
   if (!pts || pts.length === 0) return null;
@@ -99,6 +64,10 @@ function nearest(pts: OsmPt[] | undefined, lat: number, lon: number): OsmHit | n
  * « au pied des pistes », et `domainFit` avait pourtant déjà tranché que ce
  * logement n'était pas dans le domaine cherché. Les deux se contredisaient
  * dans la même ligne.
+ *
+ * Une fois `domainFit` d'accord, `attachAccess` prend la plus proche de cette
+ * gare et de `nearestAnyLift` : la liste de la station est incomplète pour
+ * plusieurs d'entre elles (voir `remontees.ts`).
  */
 export function nearestLift(stationId: string, lat: number, lon: number): OsmHit | null {
   const local = nearest(OSM_ACCESS[stationId]?.lifts, lat, lon);

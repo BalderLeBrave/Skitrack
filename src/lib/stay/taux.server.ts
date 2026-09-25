@@ -31,6 +31,13 @@ const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
   airbnb: { gapMs: 2_000, maxHits: 18 },
   gites: { gapMs: 2_000, maxHits: 24 },
   booking: { gapMs: 1_200, maxHits: 24 },
+  /**
+   * L'API GraphQL de GreenGo : une recherche, puis un détail par hôte gardé.
+   * Le défaut, écrit ici pour que l'écran Prix le lise (`attente.ts`) et que
+   * personne ne le relève sans le voir : aucun 429 observé, mais une
+   * vingtaine de requêtes seulement en tout.
+   */
+  greengo: { gapMs: 2_000, maxHits: 20 },
 };
 
 type Row = { hits?: unknown; until?: unknown };

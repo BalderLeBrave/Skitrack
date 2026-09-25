@@ -30,7 +30,26 @@
  *
  * **Ce qu'il donne.** Le nom, le prix total, la durée, la capacité maximale, la
  * surface, les étoiles, le lieu et des photos. Pas de coordonnées.
+ *
+ * **Ni point ni chambres, même sur la fiche.** Relevé du 25 septembre 2026, à
+ * quatre personnes : les clés de `datas` sont `id`, `name`, `description`,
+ * `exposition`, `cap_max`, `surface`, `stars`, `photos`, `date_debut`,
+ * `duree`, `montant_taux_promo`, `montant_valeur_promo`, `prix_brut`,
+ * `prix_total`, `lieu`, `id_prestation`, `id_prestation_hebergement`,
+ * `prestationTrail`, `filters` (des équipements), `detailLits`, `display` et
+ * `inComparator`. Aucune n'est une coordonnée ni un nombre de chambres ;
+ * `detailLits` décrit des couchages en phrases (« Chambre : 2 lits
+ * superposés »), qu'on ne compte pas. La fiche `?package=` n'en dit pas plus :
+ * son « Emplacement » est un pictogramme posé en pixels sur l'image du plan de
+ * la station, pas un point.
+ *
+ * **Le type se lit à côté.** La page porte aussi `script#__productsData`, les
+ * données de mesure d'audience, une entrée par prestation dans le même ordre,
+ * avec le même nom : son `item_category` vaut « Appartments, studios » sur les
+ * vingt-quatre fiches du relevé.
  */
+
+import { jugerLogement } from "../regleTypes.ts";
 
 /** Une fiche telle que le moteur l'écrit, avant traduction en `Listing`. */
 export type FicheIresa = {
@@ -50,6 +69,11 @@ export type FicheIresa = {
   chemin: string | null;
   /** Nombre de nuits de cette offre. Sert de garde-fou, pas d'affichage. */
   nuits: number;
+  /**
+   * La catégorie que `__productsData` donne à cette prestation, telle quelle :
+   * « Appartments, studios ». `null` quand l'entrée manque ou porte un autre nom.
+   */
+  categorie: string | null;
 };
 
 export type DemandeIresa = {
@@ -156,6 +180,46 @@ export function prestationsIresa(page: string): { datas: Datas; template: string
   }
 }
 
+/**
+ * Les données de mesure d'audience, sous `script#__productsData` : une entrée
+ * par prestation, dans l'ordre de `__datasPrestations`. Seuls le nom et la
+ * catégorie en sont gardés.
+ */
+export function produitsIresa(page: string): { nom: string | null; categorie: string | null }[] {
+  const m = /<script[^>]+id="__productsData"[^>]*>([\s\S]*?)<\/script>/.exec(page);
+  if (!m) return [];
+  try {
+    const brut: unknown = JSON.parse(m[1] ?? "[]");
+    if (!Array.isArray(brut)) return [];
+    return brut.map((x) => {
+      const o = (x ?? {}) as { item_name?: unknown; item_category?: unknown };
+      const categorie = typeof o.item_category === "string" ? o.item_category.trim() : "";
+      return {
+        nom: typeof o.item_name === "string" ? o.item_name : null,
+        categorie: categorie || null,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * La règle du propriétaire (`regleTypes.ts`), sur la catégorie publiée et,
+ * pour le seul camping, sur le titre et le chemin. Rend le motif d'écart, ou
+ * `null` quand la fiche est gardée, catégorie inconnue comprise.
+ *
+ * Une fiche sans catégorie n'est pas écartée : les vingt-quatre fiches du
+ * relevé en portent une, et rien ne dit ce que vaudrait son absence.
+ */
+export function horsRegleIresa(f: {
+  categorie: string | null;
+  titre?: string;
+  chemin?: string | null;
+}): string | null {
+  return jugerLogement({ type: f.categorie, titre: f.titre, chemin: f.chemin }).motif;
+}
+
 function nombre(v: unknown): number | null {
   const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
   return Number.isFinite(n) ? n : null;
@@ -201,7 +265,8 @@ function cheminDe(template: string): string | null {
 export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
   const nuits = nuitsIresa(d.checkIn, d.checkOut);
   const par = new Map<string, FicheIresa>();
-  for (const { datas: x, template } of prestationsIresa(page)) {
+  const produits = produitsIresa(page);
+  for (const [i, { datas: x, template }] of prestationsIresa(page).entries()) {
     if (nombre(x.duree) !== nuits) continue;
     if (typeof x.date_debut === "string" && x.date_debut !== d.checkIn) continue;
     const id = String(x.id_prestation_hebergement ?? x.id ?? "");
@@ -214,6 +279,10 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
     // un montant publié l'emporte donc toujours sur une fiche muette.
     const deja = par.get(id);
     if (deja && !(total > 0 && (deja.total <= 0 || total < deja.total))) continue;
+    // L'entrée de même rang, à condition qu'elle porte le même nom : un
+    // décalage entre les deux listes donnerait la catégorie d'un voisin.
+    const produit = produits[i];
+    const categorie = produit && produit.nom?.trim() === titre ? produit.categorie : null;
     par.set(id, {
       id,
       titre,
@@ -223,6 +292,7 @@ export function lireIresa(page: string, d: DemandeIresa): FicheIresa[] {
       photo: vignette(template),
       chemin: cheminDe(template),
       nuits,
+      categorie,
     });
   }
   return [...par.values()];

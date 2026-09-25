@@ -25,11 +25,35 @@
  * trois nuits, la centrale répond en cent onze octets : « nous n'avons plus de
  * disponibilité sur cette période ».
  *
- * **Ce qu'elle donne et ce qu'elle ne donne pas.** La capacité est un champ
- * structuré, `lot_pax`, et la station aussi, `lib_imme_station`. Il n'y a en
- * revanche aucune coordonnée, et aucune adresse de fiche atteignable en `GET` :
- * le détail d'un lot est lui aussi un `POST`. Le lien mène donc à la centrale.
+ * **Ce qu'elle donne et ce qu'elle ne donne pas.** La carte porte trois champs
+ * structurés : la capacité, `lot_pax`, la station, `lib_imme_station`, et le
+ * type commercial, `lib_lot_type_cial` (« 3 pièces », « Studio », « Chalet »).
+ * Ni coordonnée ni chambres. Il n'y a pas non plus d'adresse de fiche
+ * atteignable en `GET` : le détail d'un lot est un `POST`, et le lien mène donc
+ * à la centrale.
+ *
+ * **Le détail d'un lot, lui, porte la position et les chambres.** Relevé du
+ * 25 septembre 2026, trois lots de Pralognan : quatre pavés « pièces,
+ * personnes, surface, chambres » repérés par leur icône (`fa-home`,
+ * `fa-users`, `fa-ruler-triangle`, `fa-bed`), le quartier sous le titre, et
+ * un lien « Localiser ce bien » vers Google Maps qui porte le point
+ * (`query=45.383434,6.716356`). Un lot sur trois n'a pas de point, et la page
+ * le dit : « Pas de localisation disponible pour cette offre ».
+ *
+ * **`lot_pax` est la capacité du lot, et le critère `lot_pax|N` la veut
+ * égale à N.** Relevé du 25 septembre 2026, mêmes dates : sans critère, la
+ * première page porte cinquante lots de 4 à 11 personnes ; avec `lot_pax|4`,
+ * vingt-cinq lots, tous de 4. La valeur n'est donc pas l'écho de la demande.
+ * Le lot 184, « 2 pièces mezz 6 personnes » au libellé, vaut 4 dans sa carte
+ * comme dans son détail.
+ *
+ * **Seule la rubrique des locations est interrogée.** Le critère
+ * `lot_type_to` sépare « Locations saisonnières » (801) et « Hôtels » (802) ;
+ * la centrale vend aussi des chambres d'hôtel et liste des refuges parmi ses
+ * immeubles. Le type commercial « Chambre » (95) est écarté à la lecture.
  */
+
+import { jugerLogement, motifTypeHorsRegle } from "../regleTypes.ts";
 
 /** Une carte telle que la centrale l'écrit, avant traduction en `Listing`. */
 export type FicheArkiane = {
@@ -59,6 +83,31 @@ export type FicheArkiane = {
   capacite: number | null;
   commune: string | null;
   photo: string | null;
+  /**
+   * Type commercial publié, `lib_lot_type_cial` : « 3 pièces », « Studio »,
+   * « Chalet ».
+   */
+  typeCommercial: string | null;
+  /** Pièces, quand le type commercial les compte (« 3 pièces »). */
+  pieces: number | null;
+  /**
+   * Le formulaire de détail de la carte, tel qu'elle l'écrit : son adresse
+   * (`/fr-FR/Lot/Detail`) et ses champs cachés (`lot_no`, `comm_no`,
+   * `comm_type`, `startDate`, `endDate`). C'est ce qu'il faut renvoyer pour
+   * lire la position et les chambres du lot.
+   */
+  detail: { action: string; champs: [string, string][] } | null;
+};
+
+/** Ce que le détail d'un lot publie, et que la carte ne porte pas. */
+export type DetailArkiane = {
+  lat: number | null;
+  lon: number | null;
+  chambres: number | null;
+  pieces: number | null;
+  capacite: number | null;
+  /** Le quartier sous le titre : « Le Plan », « Centre - Pralognan La Vanoise ». */
+  quartier: string | null;
 };
 
 /**
@@ -68,6 +117,12 @@ export type FicheArkiane = {
  * en demander une suivante.
  */
 export const ARKIANE_PAR_PAGE = 50;
+
+/**
+ * La rubrique « Locations saisonnières » du critère `lot_type_to`. L'autre
+ * rubrique publiée est « Hôtels » (802), jamais demandée.
+ */
+export const ARKIANE_LOCATIONS = "801";
 
 export type DemandeArkiane = {
   checkIn: string;
@@ -84,31 +139,62 @@ export function dateArkiane(iso: string): string {
 /**
  * Le corps du `POST` de recherche.
  *
- * `selectedCriteria` porte les filtres sous la forme `nom|valeur` ; `lot_pax`
- * est la capacité. `take` et `skip` sont la pagination, et cinquante est ce que
- * la centrale demande elle-même.
+ * `selectedCriteria` porte les filtres sous la forme `nom|valeur`, **un champ
+ * par critère** : c'est ainsi que la page les envoie
+ * (`$("#criteriaList input[name='selectedCriteria']").serialize()`), et la
+ * centrale a accepté `lot_pax|4` avec `lot_type_to|801` le 25 septembre 2026.
+ * `lot_pax` est la capacité ; `lot_type_to|801`, la rubrique « Locations
+ * saisonnières », qui laisse les hôtels (802) hors de la demande. `take` et
+ * `skip` sont la pagination, et cinquante est ce que la centrale demande
+ * elle-même.
  *
  * **`skip` était figé à un, et rien ne le justifiait.** La centrale ne publie
- * aucun compteur de résultats dans son fragment, et l'unité de `skip` — un
- * numéro de page ou un nombre de cartes à sauter — n'a pas été observée. Le
+ * aucun compteur de résultats dans son fragment. Le script de la page y met le
+ * numéro de la page (`data-page`), mais aucune page 2 n'a encore été lue. Le
  * paramètre est donc incrémenté d'un en un, et le connecteur s'arrête dès
- * qu'une page n'apporte plus de lot inconnu : cette règle-là est juste dans les
- * deux cas, puisque les lots sont dédoublonnés par leur numéro.
+ * qu'une page n'apporte plus de lot inconnu : cette règle-là est juste quelle
+ * que soit l'unité, puisque les lots sont dédoublonnés par leur numéro.
  */
-export function corpsArkiane(d: DemandeArkiane, skip = 1): Record<string, string> {
-  return {
-    selectedCriteria: `lot_pax|${Math.max(1, Math.trunc(d.guests))}`,
-    startDate: dateArkiane(d.checkIn),
-    endDate: dateArkiane(d.checkOut),
-    take: String(ARKIANE_PAR_PAGE),
-    skip: String(Math.max(1, Math.trunc(skip))),
-    orderBy: "",
-    comm_no: "0",
-    comm_type: "DEFAUT",
-    filtre: "",
-    budget: "",
-    package_qte: "",
-  };
+export function corpsArkiane(d: DemandeArkiane, skip = 1): URLSearchParams {
+  const p = new URLSearchParams();
+  p.append("selectedCriteria", `lot_pax|${Math.max(1, Math.trunc(d.guests))}`);
+  p.append("selectedCriteria", `lot_type_to|${ARKIANE_LOCATIONS}`);
+  p.append("startDate", dateArkiane(d.checkIn));
+  p.append("endDate", dateArkiane(d.checkOut));
+  p.append("take", String(ARKIANE_PAR_PAGE));
+  p.append("skip", String(Math.max(1, Math.trunc(skip))));
+  p.append("orderBy", "");
+  p.append("comm_no", "0");
+  p.append("comm_type", "DEFAUT");
+  p.append("filtre", "");
+  p.append("budget", "");
+  p.append("package_qte", "");
+  return p;
+}
+
+/**
+ * Le motif qui écarte une carte par son type commercial, ou `null` : la règle
+ * du propriétaire (`regleTypes.ts`). « Chambre » est un type commercial de la
+ * centrale (`lot_type_cial|95`) : une chambre, pas un logement entier.
+ *
+ * Seul `lib_lot_type_cial` est jugé comme type, jamais le libellé : « Studio »,
+ * « N pièces », « Chalet » et « Maison » passent. Relevé du 25 septembre 2026 :
+ * les soixante-deux lots vus (accueil, recherche à quatre personnes, recherche
+ * sans critère) n'ont que Studio, 2 à 6 pièces et Chalet ; « Chambre » n'est
+ * vu que dans la liste des critères.
+ */
+export function typeEcarteArkiane(typeCommercial: string | null): string | null {
+  return motifTypeHorsRegle(typeCommercial);
+}
+
+/**
+ * La règle entière pour une carte : son type commercial, puis le camping dans
+ * son libellé (`motifNomHorsRegle`), seul mot qu'on y cherche.
+ */
+export function horsRegleArkiane(
+  f: Pick<FicheArkiane, "typeCommercial" | "libelle">,
+): string | null {
+  return jugerLogement({ type: f.typeCommercial, titre: f.libelle }).motif;
 }
 
 const ENTITES: Record<string, string> = {
@@ -174,6 +260,41 @@ function critere(fragment: string, nom: string): string | null {
 }
 
 /**
+ * Le formulaire de détail de la carte : son adresse et ses champs cachés.
+ *
+ * Les valeurs sont renvoyées telles quelles, espace finale comprise : la carte
+ * écrit `value="06/02/2027 "`, et c'est ainsi que la centrale les a reçues au
+ * relevé du 25 septembre 2026.
+ */
+function formulaireDetail(fragment: string): { action: string; champs: [string, string][] } | null {
+  const m = /<form[^>]+action="([^"]*\/Lot\/Detail)"[^>]*>([\s\S]*?)<\/form>/.exec(fragment);
+  if (!m) return null;
+  const champs: [string, string][] = [];
+  for (const i of (m[2] ?? "").matchAll(/<input\b[^>]*>/g)) {
+    const nom = /\bname="([^"]+)"/.exec(i[0])?.[1];
+    if (!nom) continue;
+    champs.push([nom, desechapper(/\bvalue="([^"]*)"/.exec(i[0])?.[1] ?? "")]);
+  }
+  return champs.length ? { action: m[1] ?? "", champs } : null;
+}
+
+/**
+ * L'adresse où renvoyer le formulaire de détail, ou `null` quand son action
+ * mène hors de l'origine du marchand : le formulaire et les cookies de la
+ * session ne partent que vers l'hôte qui les a donnés, et par le même
+ * protocole.
+ */
+export function adresseDetailArkiane(marchand: string, action: string): string | null {
+  try {
+    const origine = new URL(`${marchand.replace(/\/+$/, "")}/`);
+    const u = new URL(desechapper(action), origine);
+    return u.origin === origine.origin ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Le titre, débarrassé de ce qui n'en fait pas partie.
  *
  * Le bloc porte parfois une légende d'image, « Photos non contractuelles »,
@@ -221,6 +342,8 @@ export function lireArkiane(page: string): FicheArkiane[] {
     // La photo est prise sur le lien pleine taille, pas sur les pictogrammes
     // d'équipement, qui vivent sous `/Images/` (Disallow dans le robots.txt).
     const photo = /<a[^>]+href="(https?:\/\/[^"]*\/lv\/images\/lot\/[^"]+)"/.exec(f)?.[1] ?? null;
+    const typeCommercial = critere(f, "lib_lot_type_cial");
+    const p = /^(\d{1,2})\s+pi[eè]ces?$/i.exec(typeCommercial ?? "");
     out.push({
       lot,
       reference: /name="compare"[^>]+value="([^"]+)"/.exec(f)?.[1] ?? null,
@@ -231,7 +354,67 @@ export function lireArkiane(page: string): FicheArkiane[] {
       capacite: Number.isFinite(n) && n > 0 ? n : null,
       commune: critere(f, "lib_imme_station"),
       photo,
+      typeCommercial,
+      pieces: p && Number(p[1]) > 0 ? Number(p[1]) : null,
+      detail: formulaireDetail(f),
     });
   }
   return out;
+}
+
+/** Le lien « Localiser ce bien » du détail, qui porte le point. */
+const LIEN_CARTE =
+  /google\.com\/maps\/search\/\?api=1&(?:amp;)?query=(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)/;
+/** Sous le titre du détail : « Pralognan La Vanoise / Le Plan ». */
+const STATION_QUARTIER =
+  /<h3[^>]*>\s*<em[^>]*>([^<]*)<\/em>\s*\/\s*<em[^>]*>([^<]*)<\/em>\s*<\/h3>/;
+
+/** Une page de détail se reconnaît à son en-tête de résultat. */
+export function estDetailArkiane(page: string): boolean {
+  return page.includes('class="result-header-container"');
+}
+
+/**
+ * Lit le détail d'un lot : la réponse du `POST /fr-FR/Lot/Detail`.
+ *
+ * Les pavés sont reconnus à leur icône, jamais à leur rang : `fa-home` porte
+ * les pièces, `fa-users` les personnes, `fa-bed` les chambres. « 0 chambre »
+ * est une valeur, celle d'un studio (lot 179, « 1 pièce »). Le point est celui
+ * du lien « Localiser ce bien », et seulement lui ; hors de France il ne vaut
+ * rien. La description libre n'est pas lue : elle peut contredire le libellé
+ * (« 6 personnes » au titre, « Capacité 4 personnes » dans le texte).
+ */
+export function lireDetailArkiane(page: string): DetailArkiane {
+  const paves = new Map<string, string>();
+  for (const m of page.matchAll(
+    /<div class="details[^"]*">\s*<div class="fal fa-([a-z-]+)[^"]*"[^>]*><\/div>[\s\S]{0,300}?<div class="font-weight-bold text-center mt-2">([^<]{1,40})<\/div>/g,
+  )) {
+    const icone = m[1] ?? "";
+    if (!paves.has(icone)) paves.set(icone, texteArkiane(m[2] ?? ""));
+  }
+  const nombre = (icone: string, unite: RegExp): number | null => {
+    const m = new RegExp(`^(\\d{1,2})\\s+${unite.source}$`, "i").exec(paves.get(icone) ?? "");
+    return m ? Number(m[1]) : null;
+  };
+  const pieces = nombre("home", /pi[eè]ces?/);
+  const capacite = nombre("users", /personnes?/);
+
+  const lieu = /id="location"[^>]*>([\s\S]{0,800}?)<\/div>/.exec(page)?.[1] ?? "";
+  const q = LIEN_CARTE.exec(lieu);
+  let lat = q ? Number(q[1]) : null;
+  let lon = q ? Number(q[2]) : null;
+  if (lat == null || lon == null || lat < 41 || lat > 52 || lon < -6 || lon > 10) {
+    lat = null;
+    lon = null;
+  }
+
+  const ems = STATION_QUARTIER.exec(page);
+  return {
+    lat,
+    lon,
+    chambres: nombre("bed", /chambres?/),
+    pieces: pieces != null && pieces > 0 ? pieces : null,
+    capacite: capacite != null && capacite > 0 ? capacite : null,
+    quartier: ems ? texteArkiane(ems[2] ?? "") || null : null,
+  };
 }

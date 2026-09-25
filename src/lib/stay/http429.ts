@@ -21,6 +21,15 @@ export function estStatutRalenti(status: number): boolean {
   return RETRY_STATUSES.has(status);
 }
 
+/**
+ * Un refus de l'hôte : 429, 503, et aussi 403. Le protocole du 23 septembre
+ * 2026 compte le 403 d'Airbnb comme un refus (pause partagée) ; côté Node,
+ * la fiche en 403 passait pour une page vide, et la suivante partait.
+ */
+export function estRefus(status: number): boolean {
+  return RETRY_STATUSES.has(status) || status === 403;
+}
+
 export function estHoteAirbnb(url: string): boolean {
   try {
     return /(^|\.)airbnb\.(fr|com)$/i.test(new URL(url).hostname);

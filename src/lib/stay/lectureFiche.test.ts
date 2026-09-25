@@ -105,6 +105,77 @@ describe("lectureFiche : capacité, chambres et GPS lus sur la fiche", () => {
     assert.equal(tarif.taxeSejour, null);
   });
 
+  it("le point du logement (`location.geo`) passe avant celui du loueur", () => {
+    const html = `<script type="application/ld+json">${JSON.stringify({
+      "@type": "LocalBusiness",
+      name: "Agence des Cimes",
+      telephone: "04 76 00 00 00",
+      geo: { latitude: "45.01000", longitude: "6.12000" },
+      address: { addressLocality: "Grenoble", streetAddress: "3 place Victor Hugo" },
+      location: {
+        "@type": "Place",
+        address: { addressLocality: "Les Deux Alpes", streetAddress: "17 route de Champamé" },
+        geo: { latitude: "45.01672", longitude: "6.12515" },
+      },
+    })}</script>`;
+    const l = lectureFiche(html);
+    assert.equal(l.lat, 45.01672);
+    assert.equal(l.lon, 6.12515);
+    assert.equal(l.locality, "Les Deux Alpes");
+    assert.equal(l.street, "17 route de Champamé");
+  });
+
+  it("le point Ingénie écrit en clair passe avant le bloc du loueur", () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({
+      "@type": "LocalBusiness",
+      name: "Location Dupont",
+      geo: { latitude: "45.30000", longitude: "6.50000" },
+    })}</script>
+      <div class="latitude"><em>Latitude : 45.00498</em></div>
+      <div class="longitude"><em>Longitude : 6.11673</em></div></html>`;
+    const l = lectureFiche(html);
+    assert.equal(l.lat, 45.00498);
+    assert.equal(l.lon, 6.11673);
+  });
+
+  it("le point, la rue et la commune du loueur ne sont jamais ceux du logement", () => {
+    // Une fiche sans `location.geo` : le seul point de la page est celui de
+    // l'agence, écrit dans son bloc et relu par la recherche d'un `"geo"`.
+    const html = `<script type="application/ld+json">${JSON.stringify({
+      "@type": "LocalBusiness",
+      name: "Location Dupont",
+      geo: { latitude: "45.01230", longitude: "6.12340" },
+      address: { addressLocality: "Vaujany", streetAddress: "1 place de l'Office" },
+    })}</script>`;
+    const l = lectureFiche(html);
+    assert.equal(l.lat, null);
+    assert.equal(l.lon, null);
+    assert.equal(l.street, null);
+    assert.equal(l.locality, null);
+  });
+
+  it("le point de l'agence repris ailleurs dans la page n'est pas celui du logement", () => {
+    const html = `<script type="application/ld+json">${JSON.stringify({
+      "@type": "RealEstateAgent",
+      name: "Agence des Cimes",
+      geo: { latitude: "45.01230", longitude: "6.12340" },
+    })}</script><div class="carte" data-lat="45.0123" data-lng="6.1234"></div>`;
+    const l = lectureFiche(html);
+    assert.equal(l.lat, null);
+    assert.equal(l.lon, null);
+  });
+
+  it("un logement vendu par une entreprise hôtelière garde son propre point", () => {
+    const html = `<script type="application/ld+json">${JSON.stringify({
+      "@type": ["LocalBusiness", "LodgingBusiness"],
+      name: "Résidence Les Mélèzes",
+      geo: { latitude: "45.20000", longitude: "6.60000" },
+    })}</script><div data-lat="45.9" data-lng="6.9"></div>`;
+    const l = lectureFiche(html);
+    assert.equal(l.lat, 45.2);
+    assert.equal(l.lon, 6.6);
+  });
+
   it("un geo Ingénie vide n'est pas un GPS", () => {
     const html = `<script type="application/ld+json">${JSON.stringify({
       "@type": "LocalBusiness",

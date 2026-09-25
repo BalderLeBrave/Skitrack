@@ -17,21 +17,28 @@
  * cinquante prix dans les deux cas.
  *
  * **Plusieurs rubriques, parce qu'une seule ne suffit pas.** Le moteur plafonne
- * à cinquante fiches par page et sa pagination ne répond pas. Interroger les
- * huit rubriques d'une centrale plutôt que sa seule page « tous nos
+ * à cinquante fiches par page et sa pagination ne répond pas. Interroger
+ * plusieurs rubriques d'une centrale plutôt que sa seule page « tous nos
  * hébergements » fait passer le relevé de cinquante à cent sept logements
- * distincts — relevé du 13 septembre 2026 sur Haute Maurienne Vanoise. Les
+ * distincts — relevé du 13 septembre 2026 sur Haute Maurienne Vanoise, où trois
+ * des huit rubriques d'alors donnaient à elles seules ce compte. Les
  * rubriques se recouvrent largement, et c'est sans importance : ce qui compte
  * est que chacune apporte ses cinquante premières, et qu'elles ne soient pas
  * les mêmes. Chaque centrale déclare ses rubriques dans son propre fichier.
  */
 
 import type { Listing } from "@/lib/listings";
-import { occupancyFromText } from "@/lib/stay/occupancy";
+import { annoncer } from "@/lib/stay/occupancy";
 import { UA_NAVIGATEUR } from "../../navigateur";
+import { phrasesRegle } from "../regleTypes";
 import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
-import { lireOpenSystem, urlOpenSystem, type FicheOpenSystem } from "./openSystem";
+import {
+  appliquerRegleOpenSystem,
+  lireOpenSystem,
+  urlOpenSystem,
+  type FicheOpenSystem,
+} from "./openSystem";
 
 // L'en-tête d'un navigateur, comme tout le relevé (`navigateur.ts`). Les règles
 // de robots.txt se lisent toujours sous `AGENT_CENTRALES` (`../robots.server`).
@@ -49,10 +56,17 @@ export type ReglageOpenSystem = {
   cle: string;
   /** Les rubriques à interroger, chemins absolus commençant par `/`. */
   rubriques: readonly string[];
+  /**
+   * Parmi elles, celles dont l'intitulé ne désigne que des logements que la
+   * règle du propriétaire garde (« appartements de particuliers »). Une fiche
+   * sans type publié qui y paraît est gardée ; ailleurs, elle est écartée
+   * (`horsRegleOpenSystem`).
+   */
+  rubriquesDeLocation?: readonly string[];
 };
 
 /** Ce qu'une page a donné, ou pourquoi elle n'a rien donné. */
-type Page = { fiches: FicheOpenSystem[]; refus: string | null };
+type Page = { chemin: string; fiches: FicheOpenSystem[]; refus: string | null };
 
 async function unePage(base: string, chemin: string, ctx: ContexteCentrale): Promise<Page> {
   const url = urlOpenSystem(base, chemin, ctx);
@@ -67,12 +81,12 @@ async function unePage(base: string, chemin: string, ctx: ContexteCentrale): Pro
     });
     if (!r.ok) {
       await r.body?.cancel();
-      return { fiches: [], refus: `${chemin} : la centrale a répondu ${r.status}` };
+      return { chemin, fiches: [], refus: `${chemin} : la centrale a répondu ${r.status}` };
     }
-    return { fiches: lireOpenSystem(await r.text()), refus: null };
+    return { chemin, fiches: lireOpenSystem(await r.text()), refus: null };
   } catch (err) {
     const quoi = err instanceof Error ? err.message : String(err);
-    return { fiches: [], refus: `${chemin} : ${quoi}` };
+    return { chemin, fiches: [], refus: `${chemin} : ${quoi}` };
   } finally {
     clearTimeout(minuteur);
   }
@@ -96,10 +110,18 @@ async function toutesLesPages(base: string, ctx: ContexteCentrale, rubriques: re
 }
 
 function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: ContexteCentrale): Listing {
-  // Le titre et le chemin disent parfois « 3 pièces » : ce sont des pièces, et
-  // elles se posent dans `rooms`. `occupancyFromText` les lisait déjà, et le
-  // connecteur jetait la seule des trois valeurs qu'il ne savait pas où mettre.
-  const occ = occupancyFromText(f.titre, f.adresse, f.chemin);
+  // Le bloc `InfoProduit` d'abord : capacité et pièces publiées en champ
+  // propre. Le type passe ensuite au lecteur de texte avec le titre, l'adresse
+  // et le chemin : « Studio » y dit une pièce et aucune chambre, et un titre
+  // « 3 pièces » comble ce que le bloc tait. Les chambres ne sont publiées
+  // nulle part en champ propre (relevé du 25 septembre 2026).
+  const occ = annoncer(
+    { guests: f.capacite, bedrooms: null, rooms: f.pieces },
+    f.type,
+    f.titre,
+    f.adresse,
+    f.chemin,
+  );
   return {
     // L'identifiant porte l'identité sans rubrique, pas le chemin : le même
     // logement trouvé sous « tous nos hébergements » et sous « hôtels » doit
@@ -113,6 +135,7 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
     guests: occ.guests,
     bedrooms: occ.bedrooms,
     rooms: occ.rooms,
+    propertyType: f.type,
     available: true,
     photo: f.photo,
     url: `${base.replace(/\/+$/, "")}${f.chemin}?DateRecherche=${encodeURIComponent(`${ctx.checkIn}|${ctx.checkOut}`)}`,
@@ -136,6 +159,11 @@ function enListing(f: FicheOpenSystem, base: string, r: ReglageOpenSystem, ctx: 
  * `run.server.ts` en fait un rapport de source en échec, et l'écran dit
  * pourquoi. Un relevé partiel, lui, ne lève pas : quelques rubriques muettes
  * n'annulent pas celles qui ont répondu.
+ *
+ * Les fiches hors de la règle du propriétaire (`appliquerRegleOpenSystem` :
+ * camping, hôtel, insolite, ou sans type publié hors des rubriques de location)
+ * ne deviennent pas des annonces ; leur nombre, par motif, est écrit au journal,
+ * comme celui des fiches gardées sous un type publié que la règle ne connaît pas.
  */
 export async function chercherOpenSystem(ctx: ContexteCentrale, r: ReglageOpenSystem): Promise<Listing[]> {
   const base = ctx.base.replace(/\/+$/, "");
@@ -144,19 +172,22 @@ export async function chercherOpenSystem(ctx: ContexteCentrale, r: ReglageOpenSy
   if (refus.length === pages.length) {
     throw new Error(refus[0] ?? "aucune rubrique déclarée");
   }
+  const { gardees, ecartees, inconnus } = appliquerRegleOpenSystem(pages, r.rubriquesDeLocation);
   const par = new Map<string, Listing>();
-  for (const p of pages) {
-    for (const f of p.fiches) {
-      const l = enListing(f, base, r, ctx);
-      const deja = par.get(l.id);
-      // Le même logement paraît sous plusieurs rubriques : le moins cher
-      // l'emporte. Zéro n'est pas moins cher, c'est l'absence de prix, et une
-      // rubrique qui en publie un remplace toujours celle qui se tait.
-      if (!deja || (l.total > 0 && (deja.total <= 0 || l.total < deja.total))) par.set(l.id, l);
-    }
+  for (const f of gardees) {
+    const l = enListing(f, base, r, ctx);
+    const deja = par.get(l.id);
+    // Le même logement paraît sous plusieurs rubriques : le moins cher
+    // l'emporte. Zéro n'est pas moins cher, c'est l'absence de prix, et une
+    // rubrique qui en publie un remplace toujours celle qui se tait.
+    if (!deja || (l.total > 0 && (deja.total <= 0 || l.total < deja.total))) par.set(l.id, l);
   }
   if (refus.length > 0) {
     console.warn(`[centrale] ${r.host} : ${refus.length} rubrique(s) muette(s) — ${refus.join(" ; ")}`);
+  }
+  const compte = (m: Map<string, Set<string>>) => new Map([...m].map(([k, s]) => [k, s.size]));
+  for (const phrase of phrasesRegle(compte(ecartees), compte(inconnus))) {
+    console.info(`[centrale] ${r.host} : ${phrase}`);
   }
   return [...par.values()];
 }

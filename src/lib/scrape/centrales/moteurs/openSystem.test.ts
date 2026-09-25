@@ -1,11 +1,15 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  appliquerRegleOpenSystem,
   fragmentsOpenSystem,
+  horsRegleOpenSystem,
   identiteOpenSystem,
+  infoProduitOpenSystem,
   lireOpenSystem,
   texteOpenSystem,
   urlOpenSystem,
+  type FicheOpenSystem,
 } from "./openSystem.ts";
 
 /**
@@ -307,5 +311,477 @@ describe("Open System : lire une page de résultats datés", () => {
 
   it("le texte visible perd les balises et les commentaires", () => {
     assert.equal(texteOpenSystem("<b>a</b> <!-- b --> &amp; <i>c</i>"), "a & c");
+  });
+});
+
+/**
+ * Relevé du 25 septembre 2026 sur `reservation.haute-maurienne-vanoise.com`,
+ * du 6 au 13 février 2027 à quatre personnes : trois fiches de
+ * `/pr75-appartements-de-particuliers.htm` (« Le Bois Joli », « Résidence Le
+ * Thabor D - apt 132 », « Chalet Arolle ») et une de
+ * `/pr7-tous-nos-hebergements.htm` (« CAMPING LA BUIDONNIERE*** »).
+ *
+ * Le balisage est celui du site, à trois retraits près : la description (qui
+ * nomme les loueurs), la liste des services et les commentaires du gabarit ont
+ * été ôtés, et les lignes ont perdu leur retrait. Le bloc `InfoProduit`, lui,
+ * est intact.
+ */
+const MEUBLES = `
+<div
+class="flex-wrap flex-md-nowrap col-sm-8 col-md-12 mx-auto item-produit">
+<div class="vignette  col-12 col-md-4 col-lg-3  ">
+<a href="/dp75-le-bois-joli-4-personnes-bonneval-sur-arc/OSMB-69279-3?DateRecherche=2027-02-06|2027-02-13" title="Réserver Le Bois Joli 4 personnes">
+<img src="https://img.for-system.com/grandes/push/OP/69279/Hebergement/3/OP_FCE227600DB7451E4DF80DEE16AEE56D.jpg" title="Le Bois Joli 4 personnes à BONNEVAL SUR ARC" alt="Le Bois Joli 4 personnes BONNEVAL SUR ARC">
+</a>
+</div>
+<div class="contenu   col-12 col-md-8 col-lg-9">
+<div class="texte col-md-8 col-lg-9 col-12">
+<h3>Le Bois Joli 4 personnes
+<div class="ClassementHebe IcoClassement classement-etoile3">
+</div>
+<div class="ClassementHebe IcoClassement label-cime 4cimes "><img src="/images/label-cime/4-cimes.png" alt="4 Cimes" title="4 Cimes" height="20px" align="absmiddle"></div>
+<a href="javascript:void(0);" id="item4512" class="js-toggle-carte-localisation" rel="mapid"><span class="NomCommune">BONNEVAL SUR ARC</span> </a></h3>
+<div id="bloc4512" style="display:none;">
+<div class="ItemCarto">
+<div class="ItemCartoContenu">
+<a href="/dp75-le-bois-joli-4-personnes-bonneval-sur-arc/OSMB-69279-3?DateRecherche=2027-02-06|2027-02-13">
+<div class="ItemCartoDescr">
+<div class="colvignette">
+<div class="vignette">
+<img src="https://img.for-system.com/grandes/push/OP/69279/Hebergement/3/OP_FCE227600DB7451E4DF80DEE16AEE56D.jpg" title="Le Bois Joli 4 personnes à BONNEVAL SUR ARC" alt="Le Bois Joli 4 personnes BONNEVAL SUR ARC">
+</div>
+</div>
+<div class="coldonnees">
+<div class="ItemCartoDescrLibelle">Le Bois Joli 4 personnes</div>
+<div class="ItemCartoDescrAdresse">		rue du lavoir<br>
+73480 BONNEVAL SUR ARC</div>
+<div class="ItemCartoLien"><div class="btn btn-primary text-center">Réserver</div></div>
+</div>
+</div>
+</a>
+</div>
+</div>
+</div>
+<script type="text/javascript" xml:space="preserve">
+tabPointCarto.push({
+cle:"item4512",
+latitude:"4.537285437823390e+001",
+longitude:"7.048107539641400e+000",
+idHtml : "#bloc4512",
+titre : "Le Bois Joli 4 personnes"
+});
+</script>
+<div class="osw-badge__stroke">Annonce d'un particulier</div>
+</div>
+<div class="colprix col-md-4 col-lg-3 col-12">
+<div class="InfoProduit col-12 px-0 pb-1 mb-auto">
+<ul class="li-inline">
+<li>Appartement 4 pièces </li>
+<li><strong>Capacité : </strong>4 pers.</li>
+</ul>
+</div>
+<div class="block-prix col-12 px-0">
+<div class="prefix">Prix indicatif</div>
+<div class="prix"><span class="partie-entiere">1690</span><span class="partie-decimale"></span> €</div>
+</div>
+<a href="/dp75-le-bois-joli-4-personnes-bonneval-sur-arc/OSMB-69279-3?DateRecherche=2027-02-06|2027-02-13" title="Réserver Le Bois Joli 4 personnes" target="" class="btn btn-primary"><span>Réserver</span> </a>
+</div>
+</div>
+</div>
+<div
+class="flex-wrap flex-md-nowrap col-sm-8 col-md-12 mx-auto item-produit">
+<div class="vignette  col-12 col-md-4 col-lg-3  ">
+<a href="/dp75-residence-le-thabor-d-apt-132-valfrejus/OSMB-132368-1?DateRecherche=2027-02-06|2027-02-13" title="Réserver Résidence Le Thabor D - apt 132">
+<img src="https://img.for-system.com/grandes/push/OP/132368/Hebergement/1/OP_F0919FF0CB6AF2880E37E6765982D82A.jpg" title="Résidence Le Thabor D - apt 132 à VALFREJUS" alt="Résidence Le Thabor D - apt 132 VALFREJUS">
+</a>
+</div>
+<div class="contenu   col-12 col-md-8 col-lg-9">
+<div class="texte col-md-8 col-lg-9 col-12">
+<h3>Résidence Le Thabor D - apt 132
+<a href="javascript:void(0);" id="item5736" class="js-toggle-carte-localisation" rel="mapid"><span class="NomCommune">VALFREJUS</span> </a></h3>
+<div id="bloc5736" style="display:none;">
+<div class="ItemCarto">
+<div class="ItemCartoContenu">
+<a href="/dp75-residence-le-thabor-d-apt-132-valfrejus/OSMB-132368-1?DateRecherche=2027-02-06|2027-02-13">
+<div class="ItemCartoDescr">
+<div class="colvignette">
+<div class="vignette">
+<img src="https://img.for-system.com/grandes/push/OP/132368/Hebergement/1/OP_F0919FF0CB6AF2880E37E6765982D82A.jpg" title="Résidence Le Thabor D - apt 132 à VALFREJUS" alt="Résidence Le Thabor D - apt 132 VALFREJUS">
+</div>
+</div>
+<div class="coldonnees">
+<div class="ItemCartoDescrLibelle">Résidence Le Thabor D - apt 132</div>
+<div class="ItemCartoDescrAdresse">		Résidence Le Thabor D - Rue des Bettets<br>
+73500 VALFREJUS</div>
+<div class="ItemCartoLien"><div class="btn btn-primary text-center">Réserver</div></div>
+</div>
+</div>
+</a>
+</div>
+</div>
+</div>
+<script type="text/javascript" xml:space="preserve">
+tabPointCarto.push({
+cle:"item5736",
+latitude:"4.517298933283200e+001",
+longitude:"6.651891659585210e+000",
+idHtml : "#bloc5736",
+titre : "Résidence Le Thabor D - apt 132"
+});
+</script>
+<div class="osw-badge__stroke">Annonce d'un particulier</div>
+</div>
+<div class="colprix col-md-4 col-lg-3 col-12">
+<div class="InfoProduit col-12 px-0 pb-1 mb-auto">
+<ul class="li-inline">
+<li>Studio </li>
+<li><strong>Capacité : </strong>4 pers.</li>
+</ul>
+</div>
+<div class="block-prix col-12 px-0">
+<div class="prefix">Prix indicatif</div>
+<div class="prix"><span class="partie-entiere">800</span><span class="partie-decimale"></span> €</div>
+</div>
+<a href="/dp75-residence-le-thabor-d-apt-132-valfrejus/OSMB-132368-1?DateRecherche=2027-02-06|2027-02-13" title="Réserver Résidence Le Thabor D - apt 132" target="" class="btn btn-primary"><span>Réserver</span> </a>
+</div>
+</div>
+</div>
+<div
+class="flex-wrap flex-md-nowrap col-sm-8 col-md-12 mx-auto item-produit">
+<div class="vignette  col-12 col-md-4 col-lg-3  ">
+<a href="/dp75-chalet-arolle-aussois/OSMB-123681-1?DateRecherche=2027-02-06|2027-02-13" title="Réserver Chalet Arolle">
+<img src="https://img.for-system.com/grandes/push/OP/123681/Hebergement/1/OP_72C19FF0C5946ACF27D2EB5DE0318B2F.jpg" title="Chalet Arolle à AUSSOIS" alt="Chalet Arolle AUSSOIS">
+</a>
+</div>
+<div class="contenu   col-12 col-md-8 col-lg-9">
+<div class="texte col-md-8 col-lg-9 col-12">
+<h3>Chalet Arolle
+<a href="javascript:void(0);" id="item4896" class="js-toggle-carte-localisation" rel="mapid"><span class="NomCommune">AUSSOIS</span> </a></h3>
+<div id="bloc4896" style="display:none;">
+<div class="ItemCarto">
+<div class="ItemCartoContenu">
+<a href="/dp75-chalet-arolle-aussois/OSMB-123681-1?DateRecherche=2027-02-06|2027-02-13">
+<div class="ItemCartoDescr">
+<div class="colvignette">
+<div class="vignette">
+<img src="https://img.for-system.com/grandes/push/OP/123681/Hebergement/1/OP_72C19FF0C5946ACF27D2EB5DE0318B2F.jpg" title="Chalet Arolle à AUSSOIS" alt="Chalet Arolle AUSSOIS">
+</div>
+</div>
+<div class="coldonnees">
+<div class="ItemCartoDescrLibelle">Chalet Arolle</div>
+<div class="ItemCartoDescrAdresse">		Camping la Buidonnière - n°72<br>
+73500 AUSSOIS</div>
+<div class="ItemCartoLien"><div class="btn btn-primary text-center">Réserver</div></div>
+</div>
+</div>
+</a>
+</div>
+</div>
+</div>
+<script type="text/javascript" xml:space="preserve">
+tabPointCarto.push({
+cle:"item4896",
+latitude:"4.522413788504990e+001",
+longitude:"6.744562377007540e+000",
+idHtml : "#bloc4896",
+titre : "Chalet Arolle"
+});
+</script>
+<div class="osw-badge__stroke">Annonce d'un particulier</div>
+</div>
+<div class="colprix col-md-4 col-lg-3 col-12">
+<div class="InfoProduit col-12 px-0 pb-1 mb-auto">
+<ul class="li-inline">
+<li>Gîte 3 pièces </li>
+<li><strong>Capacité : </strong>4 pers.</li>
+</ul>
+</div>
+<div class="block-prix col-12 px-0">
+<div class="prefix">Prix indicatif</div>
+<div class="prix"><span class="partie-entiere">850</span><span class="partie-decimale"></span> €</div>
+</div>
+<a href="/dp75-chalet-arolle-aussois/OSMB-123681-1?DateRecherche=2027-02-06|2027-02-13" title="Réserver Chalet Arolle" target="" class="btn btn-primary"><span>Réserver</span> </a>
+</div>
+</div>
+</div>
+<div
+class="flex-wrap flex-md-nowrap col-sm-8 col-md-12 mx-auto item-produit">
+<div class="vignette  col-12 col-md-4 col-lg-3  ">
+<a href="/dp7-camping-la-buidonniere-aussois/MARK-133812-HLL100*133812?DateRecherche=2027-02-06|2027-02-13" title="Réserver CAMPING LA BUIDONNIERE***">
+<img src="https://img.for-system.com/grandes/push/MARK/133812/Hebergement/HLL100_133812/MARK_14BC98DC84FB4EC2B5DE366E5A1ECE69.jpg" title="CAMPING LA BUIDONNIERE*** à AUSSOIS" alt="CAMPING LA BUIDONNIERE*** AUSSOIS">
+</a>
+</div>
+<div class="contenu   col-12 col-md-8 col-lg-9">
+<div class="texte col-md-8 col-lg-9 col-12">
+<h3>CAMPING LA BUIDONNIERE***
+<div class="ClassementHebe IcoClassement classement-etoile3">
+</div>
+<div class="ClassementHebe IcoClassement label-cime 4cimes "><img src="/images/label-cime/4-cimes.png" alt="4 Cimes" title="4 Cimes" height="20px" align="absmiddle"></div>
+<a href="javascript:void(0);" id="item7236" class="js-toggle-carte-localisation" rel="mapid"><span class="NomCommune">AUSSOIS</span> </a></h3>
+<div id="bloc7236" style="display:none;">
+<div class="ItemCarto">
+<div class="ItemCartoContenu">
+<a href="/dp7-camping-la-buidonniere-aussois/MARK-133812-HLL100*133812?DateRecherche=2027-02-06|2027-02-13">
+<div class="ItemCartoDescr">
+<div class="colvignette">
+<div class="vignette">
+<img src="https://img.for-system.com/grandes/push/MARK/133812/Hebergement/HLL100_133812/MARK_14BC98DC84FB4EC2B5DE366E5A1ECE69.jpg" title="CAMPING LA BUIDONNIERE*** à AUSSOIS" alt="CAMPING LA BUIDONNIERE*** AUSSOIS">
+</div>
+</div>
+<div class="coldonnees">
+<div class="ItemCartoDescrLibelle">CAMPING LA BUIDONNIERE***</div>
+<div class="ItemCartoDescrAdresse">		Route de Cottériat<br>
+73500 AUSSOIS</div>
+<div class="ItemCartoLien"><div class="btn btn-primary text-center">Réserver</div></div>
+</div>
+</div>
+</a>
+</div>
+</div>
+</div>
+<script type="text/javascript" xml:space="preserve">
+tabPointCarto.push({
+cle:"item7236",
+latitude:"4.522446931669963e+001",
+longitude:"6.745685746963437e+000",
+idHtml : "#bloc7236",
+titre : "CAMPING LA BUIDONNIERE***"
+});
+</script>
+<div class="osw-badge__stroke">Annonce professionnelle</div>
+</div>
+<div class="colprix col-md-4 col-lg-3 col-12">
+<div class="InfoProduit col-12 px-0 pb-1 mb-auto">
+<ul class="li-inline">
+<li>Chalet </li>
+<li><strong>Capacité : </strong>4 pers.</li>
+</ul>
+</div>
+<div class="block-prix col-12 px-0">
+<div class="prefix">Prix indicatif</div>
+<div class="prix"><span class="partie-entiere">1060</span><span class="partie-decimale"></span> €</div>
+</div>
+<a href="/dp7-camping-la-buidonniere-aussois/MARK-133812-HLL100*133812?DateRecherche=2027-02-06|2027-02-13" title="Réserver CAMPING LA BUIDONNIERE***" target="" class="btn btn-primary"><span>Réserver</span> </a>
+</div>
+</div>
+</div>
+<div
+`;
+
+/**
+ * Même relevé, rubrique `/pr93-appartements-de-professionnels.htm` : « Les
+ * Balcons de Val Cenis le Haut », une résidence sans bloc `InfoProduit`, réduite
+ * de la même façon.
+ */
+const RESIDENCE_PR93 = `
+<div
+class="flex-wrap flex-md-nowrap col-sm-8 col-md-12 mx-auto item-produit">
+<div class="vignette  col-12 col-md-4 col-lg-3  ">
+<a href="/dp93-les-balcons-de-val-cenis-le-haut-val-cenis-lanslevillard/RESAX-132362?DateRecherche=2027-02-06|2027-02-13" title="Réserver Les Balcons de Val Cenis le Haut">
+<img src="https://img.for-system.com/grandes/push/RESAX/LESBALCONS/5/Pro/RESAX_7B17687B2A6A6E201D446B71EF0F0D00.jpg" title="Les Balcons de Val Cenis le Haut à VAL CENIS LANSLEVILLARD" alt="Les Balcons de Val Cenis le Haut VAL CENIS LANSLEVILLARD">
+</a>
+</div>
+<div class="contenu   col-12 col-md-8 col-lg-9">
+<div class="texte col-md-8 col-lg-9 col-12">
+<h3>Les Balcons de Val Cenis le Haut
+<a href="javascript:void(0);" id="item6273" class="js-toggle-carte-localisation" rel="mapid"><span class="NomCommune">VAL CENIS LANSLEVILLARD</span> </a></h3>
+<div id="bloc6273" style="display:none;">
+<div class="ItemCarto">
+<div class="ItemCartoContenu">
+<a href="/dp93-les-balcons-de-val-cenis-le-haut-val-cenis-lanslevillard/RESAX-132362?DateRecherche=2027-02-06|2027-02-13">
+<div class="ItemCartoDescr">
+<div class="colvignette">
+<div class="vignette">
+<img src="https://img.for-system.com/grandes/push/RESAX/LESBALCONS/5/Pro/RESAX_7B17687B2A6A6E201D446B71EF0F0D00.jpg" title="Les Balcons de Val Cenis le Haut à VAL CENIS LANSLEVILLARD" alt="Les Balcons de Val Cenis le Haut VAL CENIS LANSLEVILLARD">
+</div>
+</div>
+<div class="coldonnees">
+<div class="ItemCartoDescrLibelle">Les Balcons de Val Cenis le Haut</div>
+<div class="ItemCartoDescrAdresse">		188, Rue sur Léva LANSLEVILLARD<br>
+73480 VAL CENIS LANSLEVILLARD</div>
+<div class="ItemCartoLien"><div class="btn btn-primary text-center">Réserver</div></div>
+</div>
+</div>
+</a>
+</div>
+</div>
+</div>
+<script type="text/javascript" xml:space="preserve">
+tabPointCarto.push({
+cle:"item6273",
+latitude:"4.529058684120138e+001",
+longitude:"6.922736883626600e+000",
+idHtml : "#bloc6273",
+titre : "Les Balcons de Val Cenis le Haut"
+});
+</script>
+</div>
+<div class="colprix col-md-4 col-lg-3 col-12">
+<div class="block-prix col-12 px-0">
+<div class="prefix">Prix indicatif</div>
+<div class="prix"><span class="partie-entiere">1624</span><span class="partie-decimale"></span> €</div>
+</div>
+<a href="/dp93-les-balcons-de-val-cenis-le-haut-val-cenis-lanslevillard/RESAX-132362?DateRecherche=2027-02-06|2027-02-13" title="Réserver Les Balcons de Val Cenis le Haut" target="" class="btn btn-primary"><span>Réserver</span> </a>
+</div>
+</div>
+</div>
+<div
+`;
+
+describe("Open System : le type et la capacité que la liste publie déjà", () => {
+  it("lit le type, la capacité et les pièces du bloc InfoProduit", () => {
+    const fiches = lireOpenSystem(MEUBLES);
+    assert.equal(fiches.length, 4);
+    const bois = fiches.find((f) => f.chemin.includes("bois-joli"));
+    assert.equal(bois?.type, "Appartement 4 pièces");
+    assert.equal(bois?.capacite, 4);
+    assert.equal(bois?.pieces, 4);
+    const arolle = fiches.find((f) => f.chemin.includes("chalet-arolle"));
+    assert.equal(arolle?.type, "Gîte 3 pièces");
+    assert.equal(arolle?.pieces, 3);
+  });
+
+  it("un studio est un type publié, sans nombre de pièces écrit", () => {
+    // « Studio » ne porte pas de chiffre : `pieces` reste vide ici, et c'est le
+    // lecteur de texte du dépôt (`annoncer`) qui en fait une pièce et aucune
+    // chambre, comme il le fait pour tout « studio » publié.
+    const f = lireOpenSystem(MEUBLES).find((x) => x.chemin.includes("thabor-d"));
+    assert.equal(f?.type, "Studio");
+    assert.equal(f?.capacite, 4);
+    assert.equal(f?.pieces, null);
+  });
+
+  it("les hôtels et l'insolite n'ont ni type ni capacité publiés", () => {
+    // La page du premier gabarit : « Cabanes & Yourtes de Montagne » et
+    // « Hôtel Valfréjus Vacances ». Pas de bloc InfoProduit, donc rien.
+    for (const f of lireOpenSystem(PAGE)) {
+      assert.equal(f.type, null);
+      assert.equal(f.capacite, null);
+      assert.equal(f.pieces, null);
+    }
+  });
+
+  it("la capacité ne se lit ni dans le titre ni dans un commentaire", () => {
+    // « Le Bois Joli 4 personnes » dit 4 dans son titre : le bloc ôté, la
+    // capacité reste vide. Un bloc resté en commentaire ne compte pas non plus.
+    const sansBloc = MEUBLES.replace(/<div class="InfoProduit[\s\S]*?<\/ul>/g, "");
+    const bois = lireOpenSystem(sansBloc).find((f) => f.chemin.includes("bois-joli"));
+    assert.equal(bois?.capacite, null);
+    assert.equal(bois?.type, null);
+    const commente = MEUBLES.replace(/(<div class="InfoProduit[\s\S]*?<\/ul>)/g, "<!--$1-->");
+    assert.equal(
+      lireOpenSystem(commente).find((f) => f.chemin.includes("bois-joli"))?.capacite,
+      null,
+    );
+    assert.deepEqual(infoProduitOpenSystem("<div>rien</div>"), {
+      type: null,
+      capacite: null,
+      pieces: null,
+    });
+  });
+
+  it("garde un meublé, écarte le camping publié « Chalet » ; l'adresse n'est pas lue", () => {
+    const fiches = lireOpenSystem(MEUBLES);
+    const motif = (morceau: string) => {
+      const f = fiches.find((x) => x.chemin.includes(morceau));
+      assert.ok(f, morceau);
+      return horsRegleOpenSystem(f);
+    };
+    assert.equal(motif("bois-joli"), null);
+    assert.equal(motif("thabor-d"), null);
+    // Publié « Chalet », mais c'est un chalet de camping (titre et chemin).
+    assert.equal(motif("camping-la-buidonniere"), "camping");
+    // Publié « Gîte 3 pièces » ; seule son adresse, « Camping la Buidonnière -
+    // n°72 », parle de camping, et l'adresse n'est jamais lue.
+    assert.equal(motif("chalet-arolle"), null);
+  });
+
+  it("un appartement de la rue du Camping est gardé", () => {
+    const [thabor] = lireOpenSystem(MEUBLES).filter((x) => x.chemin.includes("thabor-d"));
+    assert.ok(thabor);
+    const rue: FicheOpenSystem = { ...thabor, adresse: "12 rue du Camping, 73500 VALFREJUS" };
+    assert.equal(horsRegleOpenSystem(rue), null);
+    // Dans le titre non plus, une rue du Camping n'est pas un camping.
+    assert.equal(horsRegleOpenSystem({ ...rue, titre: "Studio 12 rue du Camping" }), null);
+  });
+
+  it("un type publié inconnu est gardé, et nommé", () => {
+    const [thabor] = lireOpenSystem(MEUBLES).filter((x) => x.chemin.includes("thabor-d"));
+    assert.ok(thabor);
+    const mazot: FicheOpenSystem = { ...thabor, type: "Mazot" };
+    assert.equal(horsRegleOpenSystem(mazot), null);
+    const { gardees, ecartees, inconnus } = appliquerRegleOpenSystem([
+      { chemin: "/pr7-tous-nos-hebergements.htm", fiches: [mazot] },
+    ]);
+    assert.equal(gardees.length, 1);
+    assert.equal(ecartees.size, 0);
+    assert.deepEqual([...(inconnus.get("Mazot") ?? [])], [mazot.identite]);
+  });
+
+  it("écarte une fiche sans type publié hors des rubriques de location : hôtel, insolite", () => {
+    for (const f of lireOpenSystem(PAGE)) assert.equal(horsRegleOpenSystem(f), "type non publié");
+  });
+
+  it("garde une fiche sans type que la centrale range sous une rubrique de location", () => {
+    // « Les Balcons de Val Cenis le Haut », sans bloc InfoProduit, paraît sous
+    // « appartements de professionnels » : la rubrique dit le type.
+    const [balcons] = lireOpenSystem(RESIDENCE_PR93);
+    assert.ok(balcons);
+    assert.equal(balcons.type, null);
+    assert.equal(balcons.capacite, null);
+    assert.equal(horsRegleOpenSystem(balcons), "type non publié");
+    assert.equal(horsRegleOpenSystem(balcons, true), null);
+    // Le camping, lui, reste écarté même rangé en location : la Buidonnière
+    // paraît aussi sous « appartements de professionnels ».
+    assert.equal(
+      horsRegleOpenSystem({ ...balcons, titre: "CAMPING LA BUIDONNIERE***" }, true),
+      "camping",
+    );
+    // Un type publié hors de la liste n'est pas repêché par la rubrique.
+    assert.equal(horsRegleOpenSystem({ ...balcons, type: "Hôtel" }, true), "hôtel");
+  });
+
+  it("applique la règle à un relevé : la rubrique de location vaut pour toutes les pages", () => {
+    const pages = [
+      { chemin: "/pr7-tous-nos-hebergements.htm", fiches: lireOpenSystem(PAGE + MEUBLES) },
+      {
+        chemin: "/pr93-appartements-de-professionnels.htm",
+        fiches: lireOpenSystem(RESIDENCE_PR93),
+      },
+    ];
+    const location = [
+      "/pr75-appartements-de-particuliers.htm",
+      "/pr93-appartements-de-professionnels.htm",
+    ];
+    const { gardees, ecartees, inconnus } = appliquerRegleOpenSystem(pages, location);
+    assert.deepEqual(gardees.map((f) => f.identite).sort(), [
+      "chalet-arolle-aussois/OSMB-123681-1",
+      "le-bois-joli-4-personnes-bonneval-sur-arc/OSMB-69279-3",
+      "les-balcons-de-val-cenis-le-haut-val-cenis-lanslevillard/RESAX-132362",
+      "residence-le-thabor-d-apt-132-valfrejus/OSMB-132368-1",
+    ]);
+    assert.deepEqual([...ecartees.keys()].sort(), ["camping", "type non publié"]);
+    // Les cabanes et l'hôtel du premier gabarit, comptés une fois chacun.
+    assert.equal(ecartees.get("type non publié")?.size, 2);
+    // La Buidonnière seule : le Chalet Arolle n'a que son adresse au camping.
+    assert.equal(ecartees.get("camping")?.size, 1);
+    // Tous les types publiés du gabarit sont connus de la règle.
+    assert.equal(inconnus.size, 0);
+    // Sans rubrique de location déclarée, la résidence est écartée comme l'hôtel.
+    const sans = appliquerRegleOpenSystem(pages);
+    assert.equal(sans.ecartees.get("type non publié")?.size, 3);
+  });
+
+  it("ne cherche pas « refuge » dans le nom d'un appartement", () => {
+    // « Le Refuge », à Bessans, est publié « Appartement 2 pièces » : ses
+    // champs tels que `lireOpenSystem` les rend, relevé du 25 septembre 2026.
+    assert.equal(
+      horsRegleOpenSystem({
+        type: "Appartement 2 pièces",
+        titre: "Le Refuge",
+        chemin: "/dp75-le-refuge-bessans/OSMB-401-5",
+      }),
+      null,
+    );
   });
 });

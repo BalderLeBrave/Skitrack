@@ -391,7 +391,9 @@ async function runGreenGo(input: LiveSearchInput): Promise<LiveSearchResult> {
     const r = await releverGreenGo(input, { echeance: t0 + ECHEANCE_PART_MS });
     pushReport(reports, listings, "GreenGo", r.listings, Date.now() - t0, {
       note: notes(
-        r.hotes != null ? `${r.hotes} hôtes réservables à 6 km, ${r.detailles} lus en détail` : null,
+        r.hotes != null
+          ? `${r.hotes} hôtes réservables à 6 km, ${r.ecartes} écartés (camping, hôtel, chambres d'hôtes), ${r.detailles} lus en détail`
+          : null,
         r.raison && `arrêté en route — ${r.raison}`,
       ),
     });

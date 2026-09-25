@@ -14,6 +14,7 @@
  */
 
 import type { Listing } from "@/lib/listings";
+import { couverture, phraseCouverture } from "./couverture";
 import { connecteurPour } from "./hotes";
 import { etatDuMoteur } from "./moteurs/etat";
 import { chercherIngenieHote } from "./moteurs/ingenie.server";
@@ -58,6 +59,16 @@ function phrase(nom: string, suite: string): string {
   return `Centrale ${nom} : ${suite}`;
 }
 
+/**
+ * Une ligne de journal par recherche : combien de logements ont leur point,
+ * leur capacité, leurs chambres. Aucune requête de plus ; c'est la mesure qui
+ * dit, moteur par moteur, ce qui manque encore.
+ */
+function noterCouverture(host: string, moteur: MoteurCentrale, listings: readonly Listing[]): void {
+  if (listings.length === 0) return;
+  console.info(`[centrale] ${host} (${moteur}) : ${phraseCouverture(couverture(listings))}`);
+}
+
 export async function chercherCentrale(input: LiveSearchInput): Promise<ResultatCentrale> {
   const fiche = ficheCentrale(input.stationId);
   if (!fiche) {
@@ -77,6 +88,7 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
 
   if (!connecteur?.chercher && fiche.moteur === "Ingénie") {
     const listings: Listing[] = await chercherIngenieHote(ctx, fiche.nom, fiche.host);
+    noterCouverture(fiche.host, fiche.moteur, listings);
     return {
       ...commun,
       listings,
@@ -103,6 +115,7 @@ export async function chercherCentrale(input: LiveSearchInput): Promise<Resultat
   }
 
   const listings: Listing[] = await connecteur.chercher(ctx);
+  noterCouverture(fiche.host, fiche.moteur, listings);
   return {
     ...commun,
     listings,

@@ -5518,17 +5518,14 @@
   margin: 0;
   accent-color: var(--color-ink);
 }
-/* Les quatre fourchettes de « Par station », les trois de station de « Par
-   budget » (Prix par station.dc.html:62, 145). */
+/* Les quatre fourchettes de « Par station », les cinq de « Par budget »
+   (`.prix7__plages--cinq`, plus bas ; Prix par station.dc.html:62, 145). */
 .prix7__plages {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: calc(var(--spacing) * 3) calc(var(--spacing) * 7);
   padding-top: calc(var(--spacing) * 3);
   border-top: 1px solid var(--color-line-douce);
-}
-.prix7__plages--trois {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 /* Compte et jetons (Prix par station.dc.html:76-79, 159-162). */
 .prix7__jetons {
@@ -5850,6 +5847,17 @@
   color: var(--color-muted);
   text-wrap: pretty;
 }
+/* L'avis des relevés sans position, et son bouton pour les refaire d'ici. */
+.prix7__avis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+}
+.prix7__avis .prix7__note {
+  flex: 1 1 36rem;
+  max-width: 80ch;
+}
 
 /* « Par budget » : la fourchette du budget à gauche, tri et lieu à droite,
    calés sur le bas (Prix par station.dc.html:128-143). */
@@ -5861,6 +5869,37 @@
 }
 .prix7__choix--budget {
   padding-bottom: 2px;
+}
+/* Deuxième rangée, propre à l'onglet : domaine skiable, station et distance
+   aux remontées (demande du propriétaire, 25 sept. 2026), sous un filet comme
+   les rangées suivantes. Le choix du domaine va jusqu'à 340 px : le plus long,
+   « Domaine Skiable Saint-Léger-Les-Mélèzes · 1 », en demande 338 (Manrope
+   grasse, 13,5 px), et 288 px en coupaient cinq avec leur nombre de stations.
+   Les autres choix restent à 288 px : à 1 440 px, la rangée tient encore sur
+   une ligne (1 131 px pour 1 166). */
+.prix7__choix--station {
+  padding-top: calc(var(--spacing) * 3);
+  border-top: 1px solid var(--color-line-douce);
+}
+.prix7__choix--station .prix7__select {
+  max-width: calc(var(--spacing) * 72);
+}
+.prix7__choix--station .prix7__champ:first-child .prix7__select {
+  max-width: calc(var(--spacing) * 85);
+}
+/* Personnes et chambres, puis les trois plages de station. Cinq colonnes
+   tiennent : 211 px à 1 440, 175 px à 1 100 (la largeur minimale de
+   l'application), et « 2000 » tient encore dans son champ. Le résumé passe
+   sous le libellé : sur une ligne, « Kilomètres de pistes » et « 100 km à
+   600 km » demandent 236 px, le libellé passait à la ligne dans une colonne
+   et pas dans sa voisine, et les rails ne s'alignaient plus. */
+.prix7__plages--cinq {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.prix7__plages--cinq .fourchette7__tete {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
 }
 /* Sous les critères, la liste des logements, la carte aux pastilles de prix
    et le volet de Logements (`.v7deux`, `.grille7-2`, `.lodge7`, `.pages7`,

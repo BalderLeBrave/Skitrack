@@ -39,8 +39,13 @@ import { eur, groupLbl, useParcours, useSejour } from "@/lib/parcours";
 import { useAnnonces } from "@/lib/prix/annonces";
 import {
   annSub,
+  autresBudget,
   avecNuits,
   bornesPlages,
+  choisirDept,
+  choisirDomaine,
+  choisirMassif,
+  choisirStation,
   cleResultat,
   comparateur,
   comparateurBudget,
@@ -50,6 +55,8 @@ import {
   decaler,
   departIso,
   departLbl,
+  distLbl,
+  distMaxLue,
   dureeLbl,
   ecartLbl,
   effacerBudget,
@@ -57,10 +64,12 @@ import {
   FL0,
   filtresActifs,
   filtresActifsBudget,
+  filtrerCartes,
   grpKey,
   idsALancer,
   jetons,
   jetonsBudget,
+  lieuSansReleve,
   ligne,
   lireTri,
   lireTriB,
@@ -69,19 +78,25 @@ import {
   MIN_ANNONCES,
   moreLbl,
   nomListe,
+  nomsDistincts,
   NUITS_MAX,
   NUITS_MIN,
+  logementsBudget,
+  logementsReleves,
+  optionsDomaine,
+  optionsStation,
   ordreMassifs,
   PAGE,
+  PALIERS_DIST_M,
   partielLbl,
   passe,
-  passeBudget,
   passeStationSeule,
   perKey,
   perLbl,
   periodeDuSejour,
   PLAGE_BUDGET,
   PLAGES,
+  PLAGES_LOGEMENT,
   PLAGES_STATION,
   plageLbl,
   plur,
@@ -89,18 +104,21 @@ import {
   relLbl,
   releveLbl,
   retirerJeton,
+  sourcesBudget,
   sousTitre,
   sousTitreBudget,
   triLbl,
   TRIS,
   TRIS_B,
   triVal,
+  versLogement,
   videBudget,
   type CarteAnnonce,
   type DefPlage,
   type Groupe,
   type Job,
   type Ligne,
+  type LogementBudget,
   type Periode,
   type Tri,
 } from "@/lib/prix/calcul";
@@ -108,7 +126,7 @@ import { usePrix, type Course, type Onglet } from "@/lib/prix/releve";
 import { useStay } from "@/lib/stay";
 import { todayIso } from "@/lib/stay/calendar";
 import { clampRooms, clampTravelers } from "@/lib/stay/party";
-import { STATIONS } from "@/lib/stations";
+import { STATIONS, type Station } from "@/lib/stations";
 import { prixPin } from "@/lib/v7";
 
 export const Route = createFileRoute("/prix")({ component: Prix });
@@ -119,6 +137,8 @@ const BORNES = bornesPlages(STATIONS);
 const MASSIFS = ordreMassifs(STATIONS);
 const RANG_MASSIF: ReadonlyMap<string, number> = new Map(MASSIFS.map((m, i) => [m, i]));
 const NOMS: ReadonlyMap<string, string> = new Map(STATIONS.map((s) => [s.id, s.name]));
+/** Pour le choix de station et son jeton : deux « Praloup » s'y distinguent. */
+const NOMS_DISTINCTS: ReadonlyMap<string, string> = nomsDistincts(STATIONS);
 const OPTIONS_MASSIF = [
   { v: "", label: `Tous · ${STATIONS.length}` },
   ...MASSIFS.map((m) => ({
@@ -409,7 +429,7 @@ function EcranPrix() {
 function ChoixLieu() {
   const massif = usePrix((s) => s.fl.massif);
   const dept = usePrix((s) => s.fl.dept);
-  const setFl = usePrix((s) => s.setFl);
+  const majFl = usePrix((s) => s.majFl);
   const deptOpts = useMemo(() => optionsDept(massif), [massif]);
   return (
     <>
@@ -418,8 +438,11 @@ function ChoixLieu() {
         <select
           className="prix7__select"
           value={massif}
-          // Un autre massif rend le département caduc.
-          onChange={(e) => setFl({ massif: e.target.value, dept: "" })}
+          // Un autre massif rend caducs département, domaine et station.
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirMassif(f, v));
+          }}
         >
           {OPTIONS_MASSIF.map((o) => (
             <option key={o.v} value={o.v}>
@@ -433,11 +456,88 @@ function ChoixLieu() {
         <select
           className="prix7__select"
           value={dept}
-          onChange={(e) => setFl({ dept: e.target.value })}
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirDept(f, v));
+          }}
         >
           {deptOpts.map((o) => (
             <option key={o.v} value={o.v}>
               {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </>
+  );
+}
+
+/** Domaine skiable, station et distance aux remontées : les choix de lieu
+ *  propres à l'onglet budget (demande du propriétaire, 25 sept. 2026). Les
+ *  domaines sont ceux du référentiel dans le massif et le département choisis ;
+ *  les stations, celles relevées pour ces dates et ce groupe. */
+function ChoixStation({ relevees }: { relevees: readonly Station[] }) {
+  const massif = usePrix((s) => s.fl.massif);
+  const dept = usePrix((s) => s.fl.dept);
+  const domaine = usePrix((s) => s.fl.domaine);
+  const station = usePrix((s) => s.fl.station);
+  const distMax = usePrix((s) => s.fl.distMax);
+  const majFl = usePrix((s) => s.majFl);
+  const domaines = useMemo(() => optionsDomaine(STATIONS, massif, dept), [massif, dept]);
+  const stations = useMemo(
+    () => optionsStation(relevees, { massif, dept, domaine, station }, NOMS_DISTINCTS),
+    [relevees, massif, dept, domaine, station],
+  );
+  return (
+    <>
+      <label className="prix7__champ">
+        <span>Domaine skiable</span>
+        <select
+          className="prix7__select"
+          value={domaine}
+          // Un autre domaine rend la station caduque.
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirDomaine(f, v));
+          }}
+        >
+          {domaines.map((o) => (
+            <option key={o.v} value={o.v}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="prix7__champ">
+        <span>Station</span>
+        <select
+          className="prix7__select"
+          value={station}
+          onChange={(e) => {
+            const v = e.target.value;
+            majFl((f) => choisirStation(f, v));
+          }}
+        >
+          {stations.map((o) => (
+            <option key={o.v} value={o.v}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="prix7__champ">
+        <span>Distance aux remontées</span>
+        <select
+          className="prix7__select"
+          value={String(distMaxLue(distMax))}
+          onChange={(e) => {
+            const v = distMaxLue(Number(e.target.value));
+            majFl((f) => ({ ...f, distMax: v }));
+          }}
+        >
+          {PALIERS_DIST_M.map((m) => (
+            <option key={m} value={String(m)}>
+              {distLbl(m)}
             </option>
           ))}
         </select>
@@ -654,7 +754,7 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
           file={file}
           onArreter={() => {
             // Sans relevé en file, le bandeau et son bouton disparaissent.
-            if (file.length === 0) refActions.current?.focus();
+            if (file.every((j) => estPassee(j.per, todayIso()))) refActions.current?.focus();
             arreter();
           }}
         />
@@ -727,19 +827,14 @@ function VueStation({ per, groupe }: { per: Periode; groupe: Groupe }) {
       </section>
 
       <p className="prix7__note">
-        Le total est celui que l’annonce publie pour ces dates exactes. Une annonce sans capacité
-        annoncée est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe
-        en fin de liste, dans les deux sens du tri.
+        Le total est celui que l’annonce publie pour ces dates exactes. Depuis le 25 septembre 2026,
+        un relevé ne compte que les logements à 2 km au plus d’une remontée ; relevez à nouveau une
+        station pour l’appliquer à ses résultats plus anciens. Une annonce sans capacité annoncée
+        est écartée et comptée, jamais supposée assez grande. Une station sans relevé passe en fin
+        de liste, dans les deux sens du tri.
       </p>
     </>
   );
-}
-
-/** L'étiquette d'une carte d'annonce et de sa fiche : la plateforme, puis la
- *  station du relevé. La liste mêle plusieurs stations, et la carte de
- *  Logements n'a pas d'autre place pour la nommer. */
-function sourceDe(c: CarteAnnonce): string {
-  return `${c.a.source} · ${c.stationNom}`;
 }
 
 function situee(l: Listing): boolean {
@@ -754,11 +849,13 @@ function signatureCadre(cartes: readonly CarteAnnonce[], b: Cadre | null): strin
 }
 
 /** « Par budget » : les annonces retenues par les relevés de ces dates et de
- *  ce groupe, filtrées par station puis par total (Prix par station.dc.html:
- *  126-164, 545-578). Sous les critères, la liste, la carte aux pastilles de
- *  prix et le volet de Logements, demandés par le propriétaire le 25 sept.
- *  2026 à la place des cartes de la maquette : une annonce s'ouvre ici, sans
- *  passer par Logements. */
+ *  ce groupe, filtrées par station, puis par total, distance aux remontées,
+ *  personnes et chambres (Prix par station.dc.html:126-164, 545-578). Sous
+ *  les critères, la liste, la carte aux pastilles de prix et le volet de
+ *  Logements, demandés par le propriétaire le 25 sept. 2026 à la place des
+ *  cartes de la maquette : une annonce s'ouvre ici, sans passer par
+ *  Logements. Seuls des logements de station y paraissent, à 2 km au plus
+ *  d'une remontée, ceux des relevés antérieurs à cette règle compris. */
 function VueBudget({
   per,
   groupe,
@@ -776,6 +873,10 @@ function VueBudget({
   const resetFl = usePrix((s) => s.resetFl);
   const setTriB = usePrix((s) => s.setTriB);
   const setPageB = usePrix((s) => s.setPageB);
+  const course = usePrix((s) => s.course);
+  const file = usePrix((s) => s.file);
+  const lancer = usePrix((s) => s.lancer);
+  const arreter = usePrix((s) => s.arreter);
   const lodgeId = useParcours((s) => s.lodgeId);
   const seen = useParcours((s) => s.seen);
   const go = useGo();
@@ -810,35 +911,84 @@ function VueBudget({
   }, [pret, vueLue]);
   const affichable = pret || luePour === vueLue;
 
-  const avant = useMemo<CarteAnnonce[]>(
+  // Toutes les annonces relevées, avant tout critère : c'est sur elles que se
+  // fait l'identité des logements, qui ne tourne ainsi qu'à l'arrivée d'une
+  // station, et non à chaque cran d'un curseur.
+  const tout = useMemo<CarteAnnonce[]>(
     () =>
       relevees.flatMap((s, i) =>
-        passeStationSeule(s, fl, BORNES)
-          ? (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
-              a,
-              stationId: s.id,
-              stationNom: s.name,
-            }))
-          : [],
+        (parCle.get(cles[i] ?? "") ?? []).map((a) => ({
+          a,
+          stationId: s.id,
+          stationNom: s.name,
+        })),
       ),
-    [relevees, cles, parCle, fl],
+    [relevees, cles, parCle],
   );
+  const avant = useMemo<CarteAnnonce[]>(() => {
+    const passent = new Set(
+      relevees.filter((s) => passeStationSeule(s, fl, BORNES)).map((s) => s.id),
+    );
+    return tout.filter((c) => passent.has(c.stationId));
+  }, [tout, relevees, fl]);
   // Dans l'ordre du référentiel : la carte se cadre sur elles, et un autre tri
   // ne la recadre pas. Une annonce sortie des relevés de deux stations voisines
-  // (même rayon de 12 km) n'y figure qu'une fois, sous la première de ses
-  // stations : deux cartes d'un même logement ouvraient et retenaient la même
-  // copie, et le compte le prenait deux fois.
-  const filtrees = useMemo(() => {
-    const vues = new Set<string>();
-    return avant.filter((c) => {
-      if (vues.has(c.a.id) || !passeBudget(c.a.total, fl.budget, BORNES.budget)) return false;
-      vues.add(c.a.id);
-      return true;
-    });
-  }, [avant, fl.budget]);
-  const cartes = useMemo(() => [...filtrees].sort(comparateurBudget(triB)), [filtrees, triB]);
-  const nStations = useMemo(() => new Set(filtrees.map((c) => c.stationId)).size, [filtrees]);
+  // n'y figure qu'une fois, sous celle qui la mesure le plus près des remontées
+  // (`filtrerCartes`).
+  const filtrees = useMemo(() => filtrerCartes(avant, fl, BORNES), [avant, fl]);
+  // Un logement par carte, comme dans Logements : ses offres des autres
+  // plateformes se rangent derrière la moins chère de celles qui passent, et
+  // l'étiquette les nomme. L'identité est celle des relevés, sur tout ce qui
+  // est relevé : les critères choisissent les cartes, pas qui va avec qui.
+  const groupes = useMemo(() => logementsReleves(tout), [tout]);
+  const logements = useMemo(() => logementsBudget(groupes, filtrees), [groupes, filtrees]);
+  const logementDe = useMemo(() => {
+    const m = new Map<string, LogementBudget>();
+    for (const g of logements) for (const o of g.offres) m.set(o.a.id, g);
+    return m;
+  }, [logements]);
+  const principales = useMemo(() => logements.map((g) => g.principale), [logements]);
+  // Ce qu'un budget trop serré cache : la liste vide le dit, et combien.
+  const avantBudget = useMemo(
+    () =>
+      logements.length === 0 && fl.budget != null
+        ? logementsBudget(groupes, filtrerCartes(avant, { ...fl, budget: null }, BORNES)).length
+        : 0,
+    [logements, groupes, avant, fl],
+  );
+  const cartes = useMemo(
+    () => [...principales].sort(comparateurBudget(triB)),
+    [principales, triB],
+  );
+  const nStations = useMemo(
+    () => new Set(principales.map((c) => c.stationId)).size,
+    [principales],
+  );
+  // Toutes les offres, pas seulement les principales : le volet passe de l'une
+  // à l'autre, et Retenir porte sur celle qu'on a choisie.
   const parId = useMemo(() => new Map(filtrees.map((c) => [c.a.id, c] as const)), [filtrees]);
+
+  // Les stations de la liste relevées avec la version du 25 septembre 2026 au
+  // matin (PR #47) : leurs annonces n'ont pas de position, et seul un nouveau
+  // relevé la leur donne. On les relève d'ici, et seulement celles qui ont un
+  // logement à l'écran : relever les autres coûterait du temps et du quota
+  // Airbnb pour rien.
+  const sansPosition = useMemo(() => {
+    const vieilles = new Set(anciennes);
+    const montrees = new Set(filtrees.map((c) => c.stationId));
+    return relevees.filter((s, i) => vieilles.has(cles[i] ?? "") && montrees.has(s.id));
+  }, [anciennes, relevees, cles, filtrees]);
+  const aRepositionner = useMemo(
+    () => idsALancer(sansPosition.map((s) => s.id), per, groupe, course, file),
+    [sansPosition, per, groupe, course, file],
+  );
+  // Un relevé des mêmes dates et du même groupe porte déjà l'une d'elles.
+  const repositionEnCours =
+    course != null &&
+    memePeriode(course.per, per) &&
+    grpKey(course.groupe) === grpKey(groupe) &&
+    sansPosition.some((s) => course.ids.slice(course.i).includes(s.id));
+  const passee = estPassee(per, todayIso());
 
   // Annonce ouverte, cadre de la carte, fiche épinglée et annonce désignée
   // restent à l'écran : ils ne valent que tant qu'on le regarde.
@@ -861,16 +1011,18 @@ function VueBudget({
     () => affichees.slice(page * PAGE_LOGEMENTS, (page + 1) * PAGE_LOGEMENTS),
     [affichees, page],
   );
+  // La légende dit pourquoi une page a moins de pastilles que de cartes.
+  const pageSansPosition = pageItems.filter((c) => !situee(c.a)).length;
 
   // Le recadrage suit le résultat des filtres, pas le contenu du cadre : sinon
   // recadrer changerait la liste, qui recadrerait encore (voir Logements).
   const cadrageCalcule = useMemo(
     () =>
-      `${recadrages}|${filtrees
+      `${recadrages}|${principales
         .filter((c) => situee(c.a))
         .map((c) => c.a.id)
         .join(",")}`,
-    [filtrees, recadrages],
+    [principales, recadrages],
   );
   // Après un geste sur la carte, le cadre choisi tient jusqu’au prochain
   // changement de critère, de dates ou de groupe : pendant un relevé, chaque
@@ -881,10 +1033,10 @@ function VueBudget({
   const cadrage = fige?.criteres === criteres ? fige.cle : cadrageCalcule;
   const pointsResultat = useMemo(
     () =>
-      filtrees
+      principales
         .filter((c) => situee(c.a))
         .map((c) => [c.a.lat as number, c.a.lon as number] as [number, number]),
-    [filtrees],
+    [principales],
   );
 
   // Lus par référence : les rappels restent les mêmes d'un rendu à l'autre, et
@@ -974,23 +1126,29 @@ function VueBudget({
   // Sur la carte, comme dans Logements : les annonces de la page en cours, plus
   // la fiche épinglée, l'annonce ouverte et le logement retenu, pour qu'ils ne
   // disparaissent pas au changement de page. Pas de repère de station : la
-  // liste en mêle plusieurs.
+  // liste en mêle plusieurs. Une offre désignée se montre par l'épingle de son
+  // logement : l'offre Airbnb ouverte d'un logement montré sous Booking ne
+  // pose pas une seconde épingle au même endroit.
   const situees = useMemo(() => {
     const vues = new Set<string>();
     const out: Listing[] = [];
-    const designees = [epinglee, ouverte, lodgeId].map((id) => (id ? parId.get(id)?.a : undefined));
+    const designees = [epinglee, ouverte, lodgeId].map((id) =>
+      id ? (logementDe.get(id)?.principale.a ?? parId.get(id)?.a) : undefined,
+    );
     for (const l of [...pageItems.map((c) => c.a), ...designees]) {
       if (!l || vues.has(l.id) || !situee(l)) continue;
       vues.add(l.id);
       out.push(l);
     }
     return out;
-  }, [pageItems, parId, epinglee, ouverte, lodgeId]);
+  }, [pageItems, logementDe, parId, epinglee, ouverte, lodgeId]);
   const marqueurs = useMemo(
     () =>
       situees.map((l) => {
-        const sel = l.id === ouverte || l.id === lodgeId;
-        const etat = sel ? "retenue" : seen[l.id] ? "vue" : "normale";
+        // Le logement est désigné, ou vu, quand l'une de ses offres l'est.
+        const offres = logementDe.get(l.id)?.offres.map((o) => o.a.id) ?? [l.id];
+        const sel = offres.some((id) => id === ouverte || id === lodgeId);
+        const etat = sel ? "retenue" : offres.some((id) => seen[id]) ? "vue" : "normale";
         return {
           id: l.id,
           lat: l.lat as number,
@@ -1000,17 +1158,32 @@ function VueBudget({
           zIndex: sel ? ETAGE.designee : ETAGE.normale,
         };
       }),
-    [situees, ouverte, lodgeId, seen],
+    [situees, logementDe, ouverte, lodgeId, seen],
   );
+  /** L'offre de ce logement que le séjour retient, ou `null`. Retenir à
+   *  nouveau la relâche : l'action porte sur elle, pas sur la principale. */
+  const offreRetenue = (g: LogementBudget | undefined): CarteAnnonce | null =>
+    (lodgeId && g?.offres.find((o) => o.a.id === lodgeId)) || null;
 
-  const js = jetonsBudget(fl, BORNES);
+  const js = jetonsBudget(fl, BORNES, NOMS_DISTINCTS);
   // Une station relevée dont IndexedDB a perdu les annonces (base effacée,
   // navigation privée) ne compte pas : tout lu et rien trouvé, il n'y a pas de
   // relevé à montrer.
   const aucunReleve = relevees.length === 0 || (pret && parCle.size === 0);
-  const vide = videBudget(aucunReleve, avant.length);
+  const vide = videBudget(
+    aucunReleve,
+    avantBudget,
+    filtresActifsBudget(fl),
+    lieuSansReleve(fl, relevees),
+  );
   const annonceOuverte = ouverte ? (parId.get(ouverte) ?? null) : null;
   const ouverteRetenue = annonceOuverte != null && lodgeId === annonceOuverte.a.id;
+  // Le logement de l'offre ouverte : le volet dit « Ce logement sur N
+  // plateformes » et passe de l'une à l'autre, comme dans Logements.
+  const groupeOuvert = useMemo(() => {
+    const g = ouverte ? logementDe.get(ouverte) : undefined;
+    return g && g.offres.length > 1 ? versLogement(g) : null;
+  }, [ouverte, logementDe]);
 
   return (
     <>
@@ -1035,7 +1208,13 @@ function VueBudget({
             <ChoixLieu />
           </div>
         </div>
-        <div className="prix7__plages prix7__plages--trois">
+        <div className="prix7__choix prix7__choix--station">
+          <ChoixStation relevees={relevees} />
+        </div>
+        <div className="prix7__plages prix7__plages--cinq">
+          {PLAGES_LOGEMENT.map((p) => (
+            <PlageFiltre key={p.k} p={p} />
+          ))}
           {PLAGES_STATION.map((p) => (
             <PlageFiltre key={p.k} p={p} />
           ))}
@@ -1075,15 +1254,55 @@ function VueBudget({
         </div>
       </section>
 
-      {/* Les relevés d'avant le 25 septembre 2026 ne gardaient pas la position
-          des logements : sans le dire, la carte vide et « GPS manquant » sur
-          chaque carte laisseraient croire à une panne. */}
-      {affichable && anciennes > 0 ? (
-        <p className="prix7__note">
-          {anciennes > 1
-            ? `${anciennes} stations ont été relevées avant le 25 septembre : leurs logements n’ont pas de position enregistrée, donc pas de pastille sur la carte. Relevez-les à nouveau dans l’onglet Par station pour les y voir.`
-            : "Une station a été relevée avant le 25 septembre : ses logements n’ont pas de position enregistrée, donc pas de pastille sur la carte. Relevez-la à nouveau dans l’onglet Par station pour les y voir."}
-        </p>
+      {/* Le relevé en cours se suit aussi d'ici : relever les stations sans
+          position se lance depuis cet onglet, et leurs pastilles arrivent au
+          fil des stations terminées. */}
+      {course ? (
+        <BandeauCourse
+          course={course}
+          file={file}
+          onArreter={() => {
+            // Sans relevé à venir (la file écarte ceux dont les dates sont
+            // passées), le bandeau et son bouton disparaissent.
+            if (file.every((j) => estPassee(j.per, todayIso()))) refCompte.current?.focus();
+            arreter();
+          }}
+        />
+      ) : null}
+
+      {/* Les relevés faits avec la version du 25 septembre 2026 au matin ne
+          gardaient pas la position des logements : sans le dire, la carte vide
+          et « GPS manquant » sur chaque carte laisseraient croire à une panne. */}
+      {affichable && sansPosition.length > 0 ? (
+        <div className="prix7__avis">
+          <p className="prix7__note">
+            {sansPosition.length > 1
+              ? `${sansPosition.length} stations ont été relevées sans la position de leurs logements : ceux-ci n’ont pas de pastille sur la carte.`
+              : `${NOMS.get(sansPosition[0]?.id ?? "") ?? "Une station"} a été relevée sans la position de ses logements : ils n’ont pas de pastille sur la carte.`}
+            {passee ? "" : " Un nouveau relevé les y place."}
+          </p>
+          {passee ? null : aRepositionner.length > 0 ? (
+            <button
+              type="button"
+              className="prix7__pilule"
+              title="Une station prend environ une minute."
+              onClick={() => {
+                lancer({ nom: "logements sans position", ids: aRepositionner, per, groupe });
+                refCompte.current?.focus();
+              }}
+            >
+              {aRepositionner.length === 1
+                ? `Relever ${NOMS.get(aRepositionner[0] ?? "") ?? "cette station"}`
+                : aRepositionner.length < sansPosition.length
+                  ? `Relever les ${aRepositionner.length} stations restantes`
+                  : `Relever ces ${aRepositionner.length} stations`}
+            </button>
+          ) : (
+            <span className="prix7__indice" role="status">
+              {`Relevé de ${sansPosition.length > 1 ? "ces stations" : "cette station"} ${repositionEnCours ? "en cours" : "en attente"}.`}
+            </span>
+          )}
+        </div>
       ) : null}
 
       {!affichable ? null : cartes.length > 0 ? (
@@ -1097,24 +1316,28 @@ function VueBudget({
             {affichees.length > 0 ? (
               <>
                 <div className="grille7-2">
-                  {pageItems.map((c) => (
-                    <CarteLogement
-                      key={`${c.stationId}|${c.a.id}`}
-                      l={c.a}
-                      sources={sourceDe(c)}
-                      autres={null}
-                      retenu={lodgeId === c.a.id ? c.a.id : null}
-                      retenuSource={null}
-                      vue={!!seen[c.a.id]}
-                      vif={actifCarte === c.a.id}
-                      stay={stay}
-                      trav={trav}
-                      nights={nights}
-                      ouvrir={ouvrirAnnonce}
-                      retenir={retenir}
-                      designer={setActifCarte}
-                    />
-                  ))}
+                  {pageItems.map((c) => {
+                    const g = logementDe.get(c.a.id);
+                    const r = offreRetenue(g);
+                    return (
+                      <CarteLogement
+                        key={`${c.stationId}|${c.a.id}`}
+                        l={c.a}
+                        sources={g ? sourcesBudget(g) : `${c.a.source} · ${c.stationNom}`}
+                        autres={g ? autresBudget(g) : null}
+                        retenu={r?.a.id ?? null}
+                        retenuSource={r && r.a.id !== c.a.id ? r.a.source : null}
+                        vue={g ? g.offres.some((o) => seen[o.a.id]) : !!seen[c.a.id]}
+                        vif={actifCarte === c.a.id}
+                        stay={stay}
+                        trav={trav}
+                        nights={nights}
+                        ouvrir={ouvrirAnnonce}
+                        retenir={retenir}
+                        designer={setActifCarte}
+                      />
+                    );
+                  })}
                 </div>
                 {nPages > 1 ? <Pages page={page} n={nPages} aller={allerPage} /> : null}
               </>
@@ -1144,10 +1367,11 @@ function VueBudget({
               ficheDe={(id) => {
                 const c = parId.get(id);
                 if (!c) return null;
+                const g = logementDe.get(id);
                 return (
                   <FicheEpingle
                     l={c.a}
-                    sources={sourceDe(c)}
+                    sources={g ? sourcesBudget(g) : `${c.a.source} · ${c.stationNom}`}
                     stay={stay}
                     trav={trav}
                     nights={nights}
@@ -1156,7 +1380,7 @@ function VueBudget({
               }}
               actionsDe={(id) => {
                 if (!parId.has(id)) return null;
-                const r = lodgeId === id;
+                const r = offreRetenue(logementDe.get(id));
                 return (
                   <>
                     <button type="button" className="btn7" onClick={() => ouvrirAnnonce(id)}>
@@ -1165,8 +1389,8 @@ function VueBudget({
                     <button
                       type="button"
                       className="btn7 btn7--fantome"
-                      aria-pressed={r}
-                      onClick={() => retenir(id)}
+                      aria-pressed={r != null}
+                      onClick={() => retenir(r?.a.id ?? id)}
                     >
                       {r ? "Retenu" : "Retenir"}
                     </button>
@@ -1178,6 +1402,7 @@ function VueBudget({
                   <b>
                     {nPages > 1 ? `Page ${page + 1} sur ${nPages} · ` : ""}
                     {plur(affichees.length, "logement", "logements")} dans le cadre
+                    {pageSansPosition > 0 ? ` · ${pageSansPosition} sans position sur cette page` : ""}
                   </b>
                   {horsCadre > 0 ? (
                     <button type="button" className="carte7__revoir" onClick={revoirTout}>
@@ -1214,7 +1439,7 @@ function VueBudget({
           stay={stay}
           trav={trav}
           nights={nights}
-          groupe={null}
+          groupe={groupeOuvert}
           retenu={ouverteRetenue}
           onRetenir={() => retenir(annonceOuverte.a.id)}
           onFermer={fermerVolet}
@@ -1334,6 +1559,24 @@ function suiteAttente(a: NonNullable<Course["attente"]>, nom: string | null, now
   }
 }
 
+/**
+ * La complétion de la station en cours : « La Clusaz : fiches 12 sur 57 »,
+ * et ce qu'elle attend entre deux tranches.
+ */
+function suiteFiches(
+  f: NonNullable<Course["fiches"]>,
+  a: Course["attente"],
+  nom: string,
+  now: number,
+): string {
+  const base = ` · ${nom} : fiches ${f.faites} sur ${f.total}`;
+  if (a?.motif === "logements") return `${base}, reprise après la recherche en cours dans Logements`;
+  if (a?.motif === "rythme" && a.jusqua != null) {
+    return `${base}, suite dans ${dureeLbl(Math.max(0, a.jusqua - now))}`;
+  }
+  return base;
+}
+
 /** Le relevé en cours, quelle que soit la période affichée. Pendant une
  *  attente du créneau Airbnb, le reste se décompte à la seconde : le composant
  *  porte sa propre horloge, pour ne pas redessiner le tableau chaque seconde. */
@@ -1359,11 +1602,15 @@ function BandeauCourse({
 
   const total = course.ids.length;
   const nom = NOMS.get(course.ids[course.i] ?? "") ?? null;
-  const suite = course.attente
-    ? suiteAttente(course.attente, nom, now)
-    : nom
-      ? ` · ${nom} en cours`
-      : "";
+  const fiches = course.fiches && course.fiches.total > 0 ? course.fiches : null;
+  const suite =
+    fiches && nom
+      ? suiteFiches(fiches, course.attente, nom, now)
+      : course.attente
+        ? suiteAttente(course.attente, nom, now)
+        : nom
+          ? ` · ${nom} en cours`
+          : "";
 
   return (
     <div className="prix7__course">
@@ -1387,6 +1634,11 @@ function BandeauCourse({
         >
           <i style={{ width: `${total ? (course.i / total) * 100 : 0}%` }} />
         </div>
+        {course.airbnbRefus ? (
+          <span className="prix7__course-file">
+            Airbnb a refusé des requêtes : fiches Airbnb suspendues pour cette course.
+          </span>
+        ) : null}
         {file.length > 0 ? (
           <span className="prix7__course-file">
             Ensuite : {file.map((j) => `${j.nom} (${perLbl(j.per)})`).join(", ")}.

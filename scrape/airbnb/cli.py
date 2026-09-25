@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Entrée stdin JSON → stdout JSON. Un process, une source : Airbnb."""
+"""Entrée stdin JSON → stdout JSON. Un process, une source : Airbnb.
+
+Deux modes. Par défaut, un relevé (`stays.run_search`). Avec
+`"mode": "fiches"`, la lecture des fiches PDP d'une liste d'identifiants
+(`pdp.run_fiches`), que la complétion de l'écran Prix demande par tranches.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from stays import run_search  # noqa: E402
+from pdp import run_fiches  # noqa: E402
 
 
 def emit(out: dict, stream=None) -> None:
@@ -36,7 +42,7 @@ def main() -> int:
     if not isinstance(params, dict):
         emit({"ok": False, "error": "corps objet attendu"})
         return 2
-    out = run_search(params)
+    out = run_fiches(params) if params.get("mode") == "fiches" else run_search(params)
     emit(out)
     return 0 if out.get("ok") else 1
 

@@ -16,7 +16,9 @@
  * paramètre : `type_date` est inert — samedi, dimanche, dates libres ou vide
  * rendent la même page —, `redirectionUrl`, `target` et `reload` ne changent
  * rien, et aucune session n'est nécessaire. `type_prestataire=G`, en revanche,
- * est indispensable : sans lui la page revient vide.
+ * est indispensable : sans lui la page revient vide. Cela vaut pour la
+ * première page ; la suite de la liste, elle, vit dans la session
+ * (`pageSuivanteIngenie`).
  *
  * **Ce que le prix vaut.** L'étiquette de la centrale dit « à partir de », et
  * elle est reprise telle quelle : une fiche couvre parfois plusieurs lots, et
@@ -27,12 +29,48 @@
  * doublent aussi. Sans dates, la page ne porte aucune fiche. Ce n'est donc pas
  * un tarif d'affichage, c'est le total d'un séjour réservable à ces dates-là.
  *
- * **Aucune coordonnée.** La page de résultats ne porte ni `data-lat`, ni
- * `latitude`, ni bloc de géolocalisation : ces annonces ne paraissent donc pas
- * sur la carte, et l'écran les compte comme « sans localisation ». C'est exact,
- * et mieux qu'un point posé au hasard.
+ * **Les coordonnées sont dans la page sur une partie des gabarits.** Ce
+ * fichier disait « aucune coordonnée » pour tous ; c'est faux au moins pour
+ * trois. Chaque fiche de leur liste ouvre sur un bloc JSON-LD
+ * `LocalBusiness` : son `name`, son téléphone et son courriel sont ceux du
+ * loueur, mais `location.address` est l'adresse du
+ * logement et `location.geo` son point. Relevé du 20 septembre 2026 sur trois
+ * gabarits (Arêches-Beaufort, Châtel, Valloire, 8 personnes du 6 au 13 février
+ * 2027) : 39 fiches sur 40 portent un point, et les points sont distincts d'une
+ * fiche à l'autre même quand le loueur est le même — sept fiches d'une même
+ * agence à Châtel, sept points. C'est donc le logement, pas l'agence. Un `geo`
+ * vide (`"latitude":""`) reste vide. Risoul, Les Contamines et Valmeinier
+ * n'en montraient pas au relevé du 13 septembre, et Risoul et les
+ * Contamines n'en montrent toujours pas au relevé du 25 : ni bloc par fiche,
+ * ni capacité ni chambres affichées — Risoul publie seulement ses pièces en
+ * critère (`GTYPAP-G3PIEC-G`, « 3 pièces »). Pour eux, le point reste à lire
+ * sur la fiche, et la ligne de couverture du journal
+ * (`centrales/couverture.ts`) dit, gabarit par gabarit, ce qu'il en est.
  *
- * **La capacité, quand le titre la dit clairement.** « Demi chalet de gauche
+ * **La capacité et les chambres aussi.** Sous le titre, la fiche affiche
+ * « 55 m² · 10 personnes · 3 chambres » (Arêches), « 8 personnes · 96 m² »
+ * (Valloire) ; Châtel range ses chambres dans ses critères, « 4 chambre(s) ».
+ * Les noms de classe changent d'une centrale à l'autre (`NBPERS-10PERS-G`,
+ * `GCAPACITE-8PERS-I`, `INBCHAMBRE-ICHAMBRES-I`) ; ce qui ne change pas, c'est
+ * un élément dont tout le texte est « N personnes » ou « N chambres ». C'est
+ * lui qu'on lit, et rien d'autre : ni la description libre, où « 1 lit
+ * 2 personnes » n'est pas une capacité, ni le texte des photos.
+ *
+ * À Valloire, ce nombre suit la demande : 8 sur la fiche du 20 septembre que
+ * les tests figent, pour huit personnes ; 4 sur les dix fiches de la page du
+ * 25, pour quatre. Ce n'est pas un écho. Les dix fiches du 25 sont des
+ * studios cabine et des deux-pièces, la description de chacune détaille des
+ * couchages qui font quatre places (« 1 lit double » et « 2 lits
+ * superposés », par exemple), et le filtre « Capacité » de la même page
+ * compte, sur les 359 annoncés, 159 logements à 4 personnes et 200 plus
+ * grands : la première page n'en montre que dix, tous à quatre.
+ *
+ * **Le titre, quand le gabarit n'en marque pas.** Ces trois gabarits n'ont ni
+ * `itemprop="name"` ni lien `ga4-fiche-link` : le titre retombait sur le texte
+ * de la première photo, « _clients_227327001_photos_59a_6393990 ». Le nom est
+ * dans le `<h2>` du bloc `nom`, et c'est là qu'on le prend avant la photo.
+ *
+ * **La capacité du titre reste un recours.** « Demi chalet de gauche
  * 8 personnes » est une annonce. « 2 appartements de 6 personnes face à face »
  * n'en est pas une : six ou douze, choisir c'est inventer, et le filtre
  * écarterait un logement que la centrale vient de proposer. Dans ce cas
@@ -66,6 +104,19 @@ export type FicheIngenie = {
   photo: string | null;
   /** Chemin de la fiche, relatif à la centrale. */
   chemin: string | null;
+  /** Point du logement, `location.geo` du JSON-LD de la fiche. */
+  lat: number | null;
+  lon: number | null;
+  /** Rue du logement, même bloc. Recours d'un géocodage quand le point manque. */
+  adresse: string | null;
+  /** Commune du logement, `addressLocality`. */
+  commune: string | null;
+  /** « 10 personnes » affiché comme tel. */
+  capacite: number | null;
+  /** « 3 chambres », « 4 chambre(s) » affiché comme tel. */
+  chambres: number | null;
+  /** « 4 pièces » affiché comme critère. Le titre en porte souvent aussi. */
+  pieces: number | null;
 };
 
 export type DemandeIngenie = {
@@ -104,18 +155,47 @@ export function dateIngenie(iso: string): string {
 export const TYPE_PRESTATAIRE_DEFAUT = "G";
 
 /**
- * Le vocabulaire des catégories, pour les hôtes qui ne le publient pas.
+ * Le vocabulaire des catégories de location, pour les hôtes qui ne le
+ * publient pas.
  *
  * `reservation.courchevel.com` ne sert aucun formulaire — sa recherche est
  * entièrement peinte en JavaScript —, donc rien à y lire. Mais son moteur
  * emploie le même vocabulaire que les autres : interrogé sur `I`, il rend
  * 115 résultats, et 5 sur `H`.
  *
- * L'ordre est celui de l'usage : les appartements et chalets d'abord, qui font
- * le gros de la location de séjour, les hôtels ensuite. On s'arrête au premier
- * qui répond — un hôte ne se sonde pas cinq fois pour le plaisir.
+ * **Seulement la location.** Consigne du propriétaire : maisons,
+ * appartements, chalets, gîtes meublés, résidences de location ; ni hôtel,
+ * ni hébergement insolite, ni camping, ni refuge, ni chambre d'hôtes, ni gîte
+ * d'étape. Le formulaire de `www.valloire.com` nomme les quatre catégories du
+ * moteur (relevé du 25 septembre 2026) : `I` « Appartement, Chalet »,
+ * `I_RESID` « Résidence de Tourisme », `H` « Hôtel, Village Club »,
+ * `H_INSOLITE` « Hébergement insolite ». Les deux premières restent ; les
+ * deux autres ne sont plus jamais demandées (`TYPES_PRESTATAIRE_ECARTES`).
+ *
+ * À l'intérieur des catégories retenues, rien à écarter au même relevé : les
+ * filtres « Type de logement » de la liste ne comptent que des appartements,
+ * des chalets et des résidences — Arêches-Beaufort (`G`) 18 chalets et
+ * 18 appartements, Risoul (`G`) 8 appartements en résidence, 2 en chalet et
+ * 1 chalet, Valloire (`I`) 267 appartements en résidence, 48 en chalet ou
+ * maison, 23 chalets individuels et 16 en résidence de tourisme.
+ *
+ * L'ordre est celui de l'usage : les appartements et chalets d'abord, qui
+ * font le gros de la location de séjour, les résidences ensuite. On s'arrête
+ * au premier qui répond — un hôte ne se sonde pas cinq fois pour le plaisir.
  */
-export const TYPES_PRESTATAIRE_CONNUS: readonly string[] = ["I", "H", "I_RESID", "H_INSOLITE"];
+export const TYPES_PRESTATAIRE_CONNUS: readonly string[] = ["I", "I_RESID"];
+
+/** Hôtels et villages clubs, hébergements insolites : jamais demandés. */
+export const TYPES_PRESTATAIRE_ECARTES: readonly string[] = ["H", "H_INSOLITE"];
+
+/**
+ * Ce qu'un libellé de catégorie nomme quand ce n'est pas de la location.
+ *
+ * Pour un hôte qui emploierait une autre lettre que `H` : le libellé est ce
+ * que le visiteur lit, et c'est lui qui dit « Hôtel, Village Club ».
+ */
+const LIBELLE_HORS_LOCATION =
+  /h[oô]tel|village club|insolite|camping|refuge|chambres? d['’]h[oô]tes?|g[iî]tes? d['’][ée]tape/i;
 
 export function urlIngenie(
   base: string,
@@ -152,13 +232,53 @@ export function urlIngenie(
  * chercher ailleurs.
  */
 export function typesPrestataireDepuisPage(page: string): string[] {
+  return categoriesDepuisPage(page).map((c) => c.code);
+}
+
+/** Les options du sélecteur `type_prestataire` : code et libellé, sans doublon. */
+function categoriesDepuisPage(page: string): { code: string; libelle: string }[] {
   const bloc = /name="type_prestataire"(.{0,2000}?)<\/select>/s.exec(page);
   if (!bloc) return [];
-  const out: string[] = [];
-  for (const m of bloc[1].matchAll(/<option[^>]*value="([^"]+)"/g)) {
-    if (m[1] && !out.includes(m[1])) out.push(m[1]);
+  const out: { code: string; libelle: string }[] = [];
+  for (const m of bloc[1].matchAll(/<option[^>]*value="([^"]+)"[^>]*>([^<]*)/g)) {
+    const code = m[1] ?? "";
+    if (!code || out.some((c) => c.code === code)) continue;
+    out.push({ code, libelle: desechapper(m[2] ?? "") });
   }
   return out;
+}
+
+/**
+ * Les catégories **de location** que cet hôte publie, dans son ordre.
+ *
+ * Celles de `typesPrestataireDepuisPage`, moins les catégories écartées : par
+ * leur code (`H`, `H_INSOLITE`), ou par leur libellé quand l'hôte emploie une
+ * autre lettre. Une lettre inconnue au libellé neutre reste, comme avant :
+ * c'est peut-être la location de cet hôte-là.
+ */
+export function typesLocationDepuisPage(page: string): string[] {
+  return categoriesDepuisPage(page)
+    .filter(
+      (c) => !TYPES_PRESTATAIRE_ECARTES.includes(c.code) && !LIBELLE_HORS_LOCATION.test(c.libelle),
+    )
+    .map((c) => c.code);
+}
+
+/**
+ * Les catégories à essayer quand `G` n'a pas rendu de résultats : deux au
+ * plus, dans l'ordre de l'hôte.
+ *
+ * Un hôte qui publie ses catégories est pris au mot : on n'essaie que celles
+ * de location, et aucune s'il n'en publie pas — il n'est pas sondé au hasard.
+ * Un hôte qui ne publie rien, ou seulement `G`, reçoit le vocabulaire commun
+ * (`TYPES_PRESTATAIRE_CONNUS`), comme avant.
+ */
+export function categoriesDeRepli(page: string): string[] {
+  const publiees = typesPrestataireDepuisPage(page).filter((t) => t !== TYPE_PRESTATAIRE_DEFAUT);
+  if (publiees.length === 0) return TYPES_PRESTATAIRE_CONNUS.slice(0, 2);
+  return typesLocationDepuisPage(page)
+    .filter((t) => t !== TYPE_PRESTATAIRE_DEFAUT)
+    .slice(0, 2);
 }
 
 /**
@@ -343,6 +463,64 @@ export function estPageResultat(page: string): boolean {
   return /nb_result|critere|fiche_liste/.test(page);
 }
 
+/**
+ * Le nombre de résultats que la centrale annonce, `nb-resultats`.
+ *
+ * La première page n'en montre qu'une partie, et le reste arrive par
+ * défilement. Relevé du 25 septembre 2026, pour la semaine du 6 au
+ * 13 février 2027 : Arêches-Beaufort en annonce 37 et en montre 10 à huit
+ * personnes, Risoul 11 pour 10, Valloire 359 pour 10 à quatre personnes ; les
+ * Contamines, 9 pour 9, ne portent pas de suite.
+ */
+export function resultatsAnnonces(page: string): number | null {
+  const m = /class="nb-resultats"[^>]*>\s*<span>(\d+)<\/span>/.exec(page);
+  const n = m ? Number(m[1]) : NaN;
+  return Number.isInteger(n) && n >= 0 ? n : null;
+}
+
+/**
+ * Le lien « Plus de résultats » que le défilement infini suit, `#lasuite a`.
+ *
+ * C'est la page elle-même qui le désigne à son script (`nextSelector :
+ * '#lasuite a'`). Il ne porte ni les dates ni le groupe : la centrale les
+ * retient dans la session ouverte par la première page.
+ *
+ * **La session n'est pas un détail.** Relevé du 25 septembre 2026 à
+ * Arêches-Beaufort, huit personnes : la page 2 demandée avec le cookie de la
+ * page 1 rend dix fiches neuves, et la page 2 demandée sans cookie, sur
+ * l'URL complète suivie de `&page=2`, en rend dix aussi — mais pas les
+ * mêmes : trois en commun seulement, aux mêmes prix. Sans la session, la
+ * page 2 est celle d'un autre classement que la page 1, et suivre la liste
+ * ainsi donnerait des doublons et des trous.
+ */
+export function pageSuivanteIngenie(page: string): string | null {
+  const m = /id="lasuite"[^>]*>\s*<a[^>]+href="([^"]+)"/.exec(page);
+  return m ? desechapper(m[1] ?? "") : null;
+}
+
+/**
+ * Les cookies d'une session, mis à jour par ceux qu'une réponse vient de poser.
+ *
+ * Chaque page de la suite repose des cookies (relevé du 25 septembre 2026 :
+ * la page 2 d'Arêches en pose, comme la page 1). Remplacer toute la chaîne
+ * par la dernière réponse perdrait un cookie qu'elle n'a pas reposé — celui
+ * de la session, par exemple —, et la page d'après viendrait d'un autre
+ * classement. On fusionne donc par nom : le plus récent l'emporte, les
+ * autres restent.
+ */
+export function fusionnerCookies(avant: string, apres: string): string {
+  const par = new Map<string, string>();
+  for (const chaine of [avant, apres]) {
+    for (const morceau of chaine.split(";")) {
+      const paire = morceau.trim();
+      const egal = paire.indexOf("=");
+      if (egal <= 0) continue;
+      par.set(paire.slice(0, egal), paire);
+    }
+  }
+  return [...par.values()].join("; ");
+}
+
 export function fragmentsIngenie(page: string): string[] {
   const debuts: number[] = [];
   // Pas de frontière de mot avant `fiche_liste` : `www.chatelreservation.com`
@@ -353,7 +531,23 @@ export function fragmentsIngenie(page: string): string[] {
   const re = /class="[^"]*fiche_liste[^"]*"/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(page)) !== null) debuts.push(m.index);
-  return debuts.map((d, i) => page.slice(d, i + 1 < debuts.length ? debuts[i + 1] : page.length));
+  return debuts.map((d, i) => page.slice(d, i + 1 < debuts.length ? debuts[i + 1] : finDeListe(page, d)));
+}
+
+/**
+ * Où s'arrête la dernière fiche : à la pagination, sinon au bout de la page.
+ *
+ * Elle courait jusqu'au pied de page. Rien n'y trompait le prix, mais la
+ * capacité se lit maintenant sur « N personnes » affiché, et un formulaire de
+ * recherche en pied de page en affiche une liste entière. Le bloc
+ * `pagination` et le lien `#lasuite` du défilement suivent la dernière fiche
+ * sur les trois gabarits relevés le 20 septembre 2026.
+ */
+function finDeListe(page: string, depuis: number): number {
+  const bornes = ['class="pagination"', 'id="lasuite"']
+    .map((marque) => page.indexOf(marque, depuis))
+    .filter((i) => i > depuis);
+  return bornes.length > 0 ? Math.min(...bornes) : page.length;
 }
 
 function titreDe(fragment: string): string {
@@ -364,8 +558,101 @@ function titreDe(fragment: string): string {
   const lien = /class="[^"]*ga4-fiche-link[^"]*"[^>]*>([\s\S]{0,220}?)<\/a>/.exec(fragment);
   const t2 = lien ? texteIngenie(lien[1] ?? "") : "";
   if (t2) return t2;
+  // Arêches, Châtel, Valloire : le nom vit dans `div.nom > h2`, derrière un
+  // lien commenté. Sans cette lecture, le titre était le texte d'une photo.
+  const h2 = /class="nom"[^>]*>\s*<h2[^>]*>([\s\S]{0,600}?)<\/h2>/.exec(fragment);
+  const t3 = h2 ? texteIngenie(h2[1] ?? "") : "";
+  if (t3) return t3;
   const alt = /<img[^>]+alt="([^"]{2,120})"/.exec(fragment);
   return alt ? desechapper(alt[1] ?? "").trim() : "";
+}
+
+/** Un point en France métropolitaine et ses marges, comme pour les autres moteurs. */
+function pointFrance(lat: number, lon: number): { lat: number | null; lon: number | null } {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return { lat: null, lon: null };
+  if (lat < 41 || lat > 52 || lon < -6 || lon > 10) return { lat: null, lon: null };
+  return { lat, lon };
+}
+
+/** Une coordonnée écrite en chaîne ou en nombre. La chaîne vide n'en est pas une. */
+function coordonnee(v: unknown): number {
+  if (typeof v === "number") return v;
+  if (typeof v === "string" && v.trim()) return Number(v.trim().replace(",", "."));
+  return NaN;
+}
+
+type LieuIngenie = { lat: number | null; lon: number | null; adresse: string | null; commune: string | null };
+
+/** Ce qu'on lit du bloc JSON-LD d'une fiche : `location`, et rien du loueur. */
+type BlocLd = {
+  location?: {
+    geo?: { latitude?: unknown; longitude?: unknown } | null;
+    address?: Record<string, unknown> | null;
+  } | null;
+};
+
+/**
+ * Le lieu du logement, lu dans le JSON-LD que la fiche porte.
+ *
+ * `location` est le logement ; `name`, `telephone` et `email` sont le loueur.
+ * On ne prend donc que `location`. Si le bloc ne se lit pas en JSON — un
+ * retour chariot brut dans une description suffit —, le point se lit encore
+ * par motif, dans ce bloc-là et nulle part ailleurs.
+ */
+export function lieuIngenie(fragment: string): LieuIngenie {
+  const vide: LieuIngenie = { lat: null, lon: null, adresse: null, commune: null };
+  for (const m of fragment.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
+    const brut = m[1] ?? "";
+    let bloc: BlocLd | null;
+    try {
+      bloc = JSON.parse(brut) as BlocLd | null;
+    } catch {
+      const g = /"geo"\s*:\s*\{\s*"latitude"\s*:\s*"(-?\d+(?:\.\d+)?)"\s*,\s*"longitude"\s*:\s*"(-?\d+(?:\.\d+)?)"/.exec(brut);
+      if (g) return { ...vide, ...pointFrance(Number(g[1]), Number(g[2])) };
+      continue;
+    }
+    const lieu = bloc?.location ?? null;
+    if (!lieu) continue;
+    const point = pointFrance(coordonnee(lieu.geo?.latitude), coordonnee(lieu.geo?.longitude));
+    const a = lieu.address ?? {};
+    const rue = typeof a.streetAddress === "string" ? a.streetAddress.replace(/[\s,]+$/, "").trim() : "";
+    const ville = typeof a.addressLocality === "string" ? a.addressLocality.trim() : "";
+    return { ...point, adresse: rue || null, commune: ville || null };
+  }
+  return vide;
+}
+
+/**
+ * « N personnes », « N chambres », « N pièces » : un élément dont c'est tout le
+ * texte, ou le couple `quantite` / `libelle` que certains gabarits emploient.
+ *
+ * Un titre qui contient « 8 personnes » ne passe pas ici — il a son propre
+ * recours —, ni une description, ni le texte d'une photo : le chevron
+ * ouvrant doit précéder le nombre. Les scripts sont ôtés d'abord : le widget
+ * de disponibilité y répète le nombre de voyageurs **demandé**.
+ */
+const AFFICHE_PERSONNES = />\s*(\d{1,2})\s*(?:<\/span>\s*<span[^>]*>\s*)?personnes?\s*</i;
+const AFFICHE_CHAMBRES = />\s*(\d{1,2})\s*(?:<\/span>\s*<span[^>]*>\s*)?chambres?(?:\(s\))?\s*</i;
+const AFFICHE_PIECES = />\s*(\d{1,2})\s*(?:<\/span>\s*<span[^>]*>\s*)?pi(?:è|&egrave;|&#232;)ces?(?:\(s\))?\s*</i;
+
+function affiche(sansScript: string, motif: RegExp, min: number): number | null {
+  const m = motif.exec(sansScript);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isInteger(n) && n >= min && n <= 50 ? n : null;
+}
+
+export function occupationAfficheeIngenie(fragment: string): {
+  capacite: number | null;
+  chambres: number | null;
+  pieces: number | null;
+} {
+  const sans = fragment.replace(/<script\b[\s\S]*?<\/script>/gi, " ");
+  return {
+    capacite: affiche(sans, AFFICHE_PERSONNES, 1),
+    chambres: affiche(sans, AFFICHE_CHAMBRES, 0),
+    pieces: affiche(sans, AFFICHE_PIECES, 1),
+  };
 }
 
 function photoDe(fragment: string): string | null {
@@ -446,7 +733,109 @@ export function lireIngenie(page: string): FicheIngenie[] {
       libelle: [etiquette, tarif.montant, nature].filter(Boolean).join(" ") || null,
       photo: photoDe(fragment),
       chemin: lien ? desechapper(lien[1] ?? "") : null,
+      ...lieuIngenie(fragment),
+      ...occupationAfficheeIngenie(fragment),
     });
   }
   return [...par.values()];
+}
+
+/** Pages lues au plus, première comprise : cent fiches, à dix par page. */
+export const PAGES_MAX_INGENIE = 10;
+
+/**
+ * Au moins une seconde entre deux pages d'un même hôte, comptée depuis la fin
+ * de la précédente. La centrale n'en fixe aucune : c'est notre politesse.
+ */
+export const PAUSE_PAGE_INGENIE_MS = 1_000;
+
+/**
+ * En deçà de ce qui reste avant l'échéance, aucun appel ne part : sa réponse
+ * n'aurait pas le temps d'arriver.
+ */
+export const APPEL_MIN_INGENIE_MS = 3_000;
+
+/** Une page lue, l'adresse qui l'a rendue, et les cookies qu'elle a posés. */
+export type PageIngenie = { url: string; texte: string; cookies: string };
+
+/**
+ * Ce que la suite demande au dehors : `lire` est l'appel réseau, qui lève sur
+ * un refus, une panne ou un délai ; `maintenant` et `attendre` sont
+ * l'horloge. Les tests les remplacent, et la boucle se mène sans réseau.
+ */
+export type OutilsSuiteIngenie = {
+  lire: (url: string, cookies: string, referer: string) => Promise<PageIngenie>;
+  maintenant: () => number;
+  attendre: (ms: number) => Promise<void>;
+};
+
+export type SuiteIngenie = {
+  /** Les fiches neuves des pages suivantes, dans l'ordre de la centrale. */
+  fiches: FicheIngenie[];
+  /** Pourquoi la suite s'est arrêtée. */
+  arret: "fin de liste" | "compte atteint" | "rien de neuf" | "pages max" | "échéance" | "échec";
+  /** La page où elle s'est arrêtée : non demandée, en échec, ou sans rien de neuf. */
+  page: number;
+  /** Le message de l'échec, quand c'en est un. */
+  erreur: string | null;
+};
+
+/**
+ * Les pages suivantes, comme le défilement de la centrale les demande.
+ *
+ * On suit `#lasuite a` depuis la première page, une page à la fois, une
+ * seconde au moins entre deux. Les cookies de la session sont fusionnés page
+ * après page ; la première page reste le `Referer`, et c'est contre elle que
+ * le lien se lit : le défilement ne la quitte pas.
+ *
+ * On s'arrête dès que le compte annoncé est atteint, que la centrale ne
+ * propose plus de suite, qu'une page n'apporte aucune fiche neuve, que
+ * `PAGES_MAX_INGENIE` pages sont lues, ou que l'échéance approche.
+ * L'échéance est celle de toute la recherche, comptée dès son entrée : la
+ * première page et ce qui l'a précédée ont déjà pris leur part.
+ *
+ * **Ce qui a été lu est gardé.** Une page en échec — un refus (429, 403…),
+ * une panne, un délai — arrête la suite sans reprise, et les fiches des pages
+ * précédentes restent. Cette fonction ne lève donc pas.
+ */
+export async function pagesSuivantesIngenie(
+  premiere: PageIngenie,
+  deja: Iterable<string>,
+  echeance: number,
+  o: OutilsSuiteIngenie,
+): Promise<SuiteIngenie> {
+  const annonce = resultatsAnnonces(premiere.texte);
+  const vues = new Set(deja);
+  const fiches: FicheIngenie[] = [];
+  const arret = (
+    motif: SuiteIngenie["arret"],
+    page: number,
+    erreur: string | null = null,
+  ): SuiteIngenie => ({ fiches, arret: motif, page, erreur });
+  let courante = premiere;
+  let cookies = premiere.cookies;
+  for (let n = 2; ; n += 1) {
+    if (annonce != null && vues.size >= annonce) return arret("compte atteint", n);
+    const lien = pageSuivanteIngenie(courante.texte);
+    if (!lien) return arret("fin de liste", n);
+    if (n > PAGES_MAX_INGENIE) return arret("pages max", n);
+    // La pause compte : la page doit encore avoir son temps une fois attendue.
+    const reste = echeance - o.maintenant();
+    if (reste < PAUSE_PAGE_INGENIE_MS + APPEL_MIN_INGENIE_MS) return arret("échéance", n);
+    await o.attendre(PAUSE_PAGE_INGENIE_MS);
+    let suivante: PageIngenie;
+    try {
+      suivante = await o.lire(new URL(lien, premiere.url).toString(), cookies, premiere.url);
+    } catch (err) {
+      return arret("échec", n, err instanceof Error ? err.message : String(err));
+    }
+    const neuves = lireIngenie(suivante.texte).filter((f) => !vues.has(f.id));
+    if (neuves.length === 0) return arret("rien de neuf", n);
+    for (const f of neuves) vues.add(f.id);
+    fiches.push(...neuves);
+    // Fusionnés par nom : une page qui ne repose qu'une partie des cookies ne
+    // doit pas faire perdre la session.
+    cookies = fusionnerCookies(cookies, suivante.cookies);
+    courante = suivante;
+  }
 }

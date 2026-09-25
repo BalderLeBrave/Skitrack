@@ -24,6 +24,7 @@ import { centraleAutorise } from "../robots.server";
 import type { ContexteCentrale } from "../types";
 import {
   corpsOffresMsem,
+  horsLocationMsem,
   joindreMsem,
   urlCatalogueMsem,
   urlOffresMsem,
@@ -38,6 +39,12 @@ const UA = UA_NAVIGATEUR;
 const TIMEOUT_MS = 30_000;
 /** Le catalogue vieillit en heures, pas en minutes. */
 const CATALOGUE_TTL_MS = 6 * 60 * 60 * 1000;
+/** Au moins une seconde entre deux requêtes vers `services.msem.tech`. */
+const ECART_MS = 1_000;
+
+function pause(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 const MSEM_BASE = "https://services.msem.tech";
 
@@ -100,13 +107,14 @@ async function json(url: string, corps?: Record<string, unknown>): Promise<unkno
   }
 }
 
-async function catalogue(r: ReglageMsem): Promise<CatalogueMsem> {
+/** Le catalogue, et s'il vient d'être demandé à la centrale (et non du cache). */
+async function catalogue(r: ReglageMsem): Promise<{ valeur: CatalogueMsem; reseau: boolean }> {
   const cle = `${r.resort}|${r.canal}`;
   const hit = catalogues.get(cle);
-  if (hit && Date.now() - hit.at < CATALOGUE_TTL_MS) return hit.valeur;
+  if (hit && Date.now() - hit.at < CATALOGUE_TTL_MS) return { valeur: hit.valeur, reseau: false };
   const valeur = (await json(urlCatalogueMsem(MSEM_BASE, r.resort, r.canal))) as CatalogueMsem;
   catalogues.set(cle, { at: Date.now(), valeur });
-  return valeur;
+  return { valeur, reseau: true };
 }
 
 function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing {
@@ -119,6 +127,9 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
   // relevé (`bedroomsFromRooms`), si bien qu'un trois-pièces s'affichait
   // « 2 ch. » sans que la centrale l'ait jamais écrit. Elles se posent
   // désormais dans `rooms` ; la conversion appartient au filtre, qui compare.
+  // Les chambres restent vides : aucune clé du catalogue ne les compte (les
+  // dix catalogues, relevé du 25 septembre 2026). Le titre peut encore les
+  // dire, et `annoncer` le lit.
   const occ = annoncer({ guests: f.capacite, bedrooms: null, rooms: f.pieces }, f.titre);
   return {
     id: `msem-${r.cle}-${f.id}`,
@@ -156,17 +167,28 @@ function enListing(f: FicheMsem, r: ReglageMsem, ctx: ContexteCentrale): Listing
  * source en échec, et l'écran dit pourquoi. Une réponse d'offres vide ne lève
  * pas — c'est un renseignement, pas une panne : la centrale existe, elle n'a
  * rien à vendre à ces dates-là pour ce groupe.
+ *
+ * Le catalogue d'abord, les offres ensuite : les deux vont au même hôte, et
+ * partaient de front. Quand le catalogue vient d'être demandé à la centrale,
+ * les offres attendent une seconde ; servi par le cache, il ne fait rien
+ * attendre.
  */
 export async function chercherMsem(ctx: ContexteCentrale, r: ReglageMsem): Promise<Listing[]> {
-  const [cat, offres] = await Promise.all([
-    catalogue(r),
-    json(urlOffresMsem(MSEM_BASE, r.resort), corpsOffresMsem(r.canal, ctx)) as Promise<OffresMsem>,
-  ]);
+  const { valeur: cat, reseau } = await catalogue(r);
+  if (reseau) await pause(ECART_MS);
+  const offres = (await json(
+    urlOffresMsem(MSEM_BASE, r.resort),
+    corpsOffresMsem(r.canal, ctx),
+  )) as OffresMsem;
   const fiches = joindreMsem(cat, offres);
   const auCatalogue = cat.accomodations?.length ?? 0;
+  const ecartees = Object.entries(horsLocationMsem(cat, offres));
   console.info(
     `[centrale] ${r.host} : ${fiches.length} offres sur ${auCatalogue} au catalogue` +
-      ` (dont ${fiches.filter((f) => f.total <= 0).length} sans prix publié), ${ctx.checkIn}→${ctx.checkOut}`,
+      ` (dont ${fiches.filter((f) => f.total <= 0).length} sans prix publié), ${ctx.checkIn}→${ctx.checkOut}` +
+      (ecartees.length
+        ? ` ; hors location, écartées : ${ecartees.map(([k, n]) => `${k} ${n}`).join(", ")}`
+        : ""),
   );
   return fiches.map((f) => enListing(f, r, ctx));
 }

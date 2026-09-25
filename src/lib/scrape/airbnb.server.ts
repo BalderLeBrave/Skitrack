@@ -19,16 +19,37 @@ import type { LiveSearchInput } from "./types";
 import { prixHorsSejour } from "./airbnbDates";
 import { annoncer, occupancyFromRecord, type Occupancy } from "@/lib/stay/occupancy";
 import { assurerCles } from "../cles/store.server";
-import { dossierScrape, envWorker, raisonPython, trouverPython } from "./python.server";
+import {
+  dossierScrape,
+  envWorker,
+  raisonPython,
+  trouverPython,
+  type Interpreteur,
+} from "./python.server";
+import {
+  ECHEANCE_FICHES_MS,
+  corpsFiches,
+  idsFiches,
+  lireSortieFiches,
+  type ArretFiches,
+  type DemandeFichesAirbnb,
+  type LectureFichesAirbnb,
+} from "./airbnbFiches";
+
+export type { ArretFiches, DemandeFichesAirbnb, FicheAirbnb, LectureFichesAirbnb } from "./airbnbFiches";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+
+/** Mêmes mots que `PRIVATE` de scrape/airbnb/map.py, apostrophe typographique comprise. */
+const CHAMBRE_OU_HOTEL =
+  /chambre d['’ ]?hotes|maison d['’ ]?hotes|private[ _-]?room|chambre privee|shared[ _-]?room|chambre partage|bed[- ]and[- ]breakfast|hotel[ _]room|chambre d['’ ]?hotel/;
 
 function isDropped(text: string): boolean {
   const t = text
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{M}/gu, "");
-  if (/chambre d[' ]?hotes|maison d[' ]?hotes|private[ _-]?room|chambre privee/.test(t)) return true;
+  if (CHAMBRE_OU_HOTEL.test(t)) return true;
   if (/^h[oô]tel\b|\bh[oô]tel\s*·/.test(t)) return true;
   return false;
 }
@@ -467,6 +488,114 @@ function refusDirect(quoi: string, status: number, headers: Headers): void {
   console.warn(`[airbnb] ${quoi} HTTP ${status} — pause partagée ${Math.round(holdMs / 1000)} s`);
 }
 
+type SortieWorker = { out: string; err: string; tue: boolean };
+
+/**
+ * Lance `cli.py` avec `body` sur son entrée, et rend ce qu'il a écrit.
+ *
+ * Python s'arrête de lui-même à l'échéance et écrit ce qu'il a lu ; le
+ * couperet ne sert que s'il ne le fait pas, et ce qui est déjà reçu est quand
+ * même lu. Les chemins du journal de taux, du coupe-circuit et de la session
+ * sont ceux de Node, résolus ici : un seul limiteur, quel que soit le lecteur
+ * du répertoire courant de chacun.
+ */
+function lancerWorker(python: Interpreteur, cli: string, body: string, echeance: number): Promise<SortieWorker> {
+  return new Promise<SortieWorker>((resolve) => {
+    let fini = false;
+    const chunks: Buffer[] = [];
+    const errChunks: Buffer[] = [];
+    const rendre = (tue: boolean, extra = "") => {
+      if (fini) return;
+      fini = true;
+      clearTimeout(timer);
+      resolve({
+        out: Buffer.concat(chunks).toString("utf8").trim(),
+        err: `${Buffer.concat(errChunks).toString("utf8").trim()}${extra}`,
+        tue,
+      });
+    };
+    const child = spawn(python.cmd, [...python.args, cli], {
+      env: envWorker({
+        PYTHONPATH: dirname(cli),
+        SKITRACK_TAUX: TAUX_PATH(),
+        SKITRACK_AIRBNB_CIRCUIT: AIRBNB_CIRCUIT_PATH,
+        SKITRACK_AIRBNB_SESSION: airbnbSessionPath(),
+      }),
+      cwd: dirname(cli),
+      windowsHide: true,
+    });
+    const timer = setTimeout(
+      () => {
+        child.kill("SIGKILL");
+        rendre(true, "\npyairbnb : échéance dépassée");
+      },
+      Math.max(5_000, echeance - Date.now() + MARGE_SORTIE_MS),
+    );
+    child.stdout.on("data", (c: Buffer) => chunks.push(c));
+    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
+    child.on("error", (err) => rendre(false, `\n${err.message}`));
+    child.on("close", () => rendre(false));
+    // Un Python qui sort sans lire son entrée faisait lever EPIPE sur stdin,
+    // sans écouteur : l'exception tombait hors de toute promesse.
+    child.stdin.on("error", () => undefined);
+    child.stdin.end(body);
+  });
+}
+
+/**
+ * Un hash PDP que Airbnb ne connaît plus, vu à cet instant : les tranches
+ * suivantes ne relancent pas le worker pour la même réponse (une requête
+ * perdue par tranche). Mémoire du processus : un redémarrage réessaie.
+ */
+let hashPdpPerimeJusqua = 0;
+const HASH_PERIME_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * Capacité, chambres, GPS et type de chambre d'annonces Airbnb déjà relevées,
+ * lus sur leur fiche PDP (`scrape/airbnb/pdp.py`, mode « fiches »).
+ *
+ * Pour la complétion en arrière-plan de l'écran Prix, par tranches : la part
+ * Airbnb n'a que 40 s, et il n'y resterait de place que pour six fiches
+ * environ. Une fiche après l'autre, par le limiteur partagé (18 appels par
+ * minute, 2 s d'écart) et 4 s de pause en plus. Au premier refus d'Airbnb
+ * (429, 503, 403, page de blocage), la tranche s'arrête et le worker ouvre le
+ * coupe-circuit partagé : l'appelant ne demande plus rien à Airbnb de la
+ * course. `rythme` et `echeance` se reprennent à la tranche suivante, avec
+ * `restants` ; `hash` demande un autre chemin (page `rooms/`).
+ */
+export async function lireFichesAirbnb(demande: DemandeFichesAirbnb): Promise<LectureFichesAirbnb> {
+  const ids = idsFiches(demande.ids);
+  const sans = (arret: ArretFiches, raison: string): LectureFichesAirbnb => ({
+    fiches: {},
+    vides: [],
+    restants: ids,
+    lues: 0,
+    arret,
+    raison,
+  });
+  if (ids.length === 0) return { fiches: {}, vides: [], restants: [], lues: 0, arret: null };
+  if (airbnbCircuitOpen()) return sans("coupe-circuit", raisonCoupeCircuit());
+  if (Date.now() < hashPdpPerimeJusqua) {
+    return sans("hash", "requête PdpPlatformSections inconnue d'Airbnb (hash périmé)");
+  }
+  const cli = cliPath();
+  if (!cli) return sans("worker", "worker Airbnb introuvable (scrape/airbnb/cli.py)");
+  assurerCles();
+  const python = await trouverPython(dossierScrape(cli), MODULES_PY, "SKITRACK_PYAIRBNB_PYTHON");
+  const pasPython = raisonPython(python);
+  if (!python || pasPython) return sans("worker", pasPython ?? "aucun Python 3 trouvé (npm run scrape:python)");
+  await allowsPath("https://www.airbnb.fr", "/api/v3/PdpPlatformSections");
+  const echeance = demande.echeance ?? Date.now() + ECHEANCE_FICHES_MS;
+  const raw = await lancerWorker(python, cli, corpsFiches(demande, ids, echeance), echeance);
+  for (const ligne of raw.err.split(/\r?\n/)) {
+    if (/^\[airbnb\]/.test(ligne)) console.info(ligne);
+  }
+  const lu = lireSortieFiches(raw.out ? lastJsonObject(raw.out) : null, ids, raw.tue);
+  if (lu.arret === "worker" && raw.err) console.warn("[airbnb] fiches : stderr", raw.err.slice(0, 500));
+  if (lu.arret === "hash") hashPdpPerimeJusqua = Date.now() + HASH_PERIME_MS;
+  return lu;
+}
+
 async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): Promise<AirbnbScrape> {
   if (airbnbCircuitOpen()) {
     const raison = raisonCoupeCircuit();
@@ -504,55 +633,13 @@ async function scrapeAirbnbPyairbnb(input: LiveSearchInput, echeance: number): P
     maxPages: 24,
     // Tout le relevé, préalables compris, doit tenir avant cet instant.
     deadlineMs: echeance,
+    // Pas de fiche PDP dans la part : elle n'a que 40 s, et il n'y resterait
+    // de place que pour six fiches environ. Les fiches se lisent à part, par
+    // tranches (`lireFichesAirbnb`, appelée par la complétion de l'écran Prix).
     skipEnrich: true,
     maxEnrich: 0,
   });
-  const raw = await new Promise<{ out: string; err: string; tue: boolean }>((resolve) => {
-    let fini = false;
-    const chunks: Buffer[] = [];
-    const errChunks: Buffer[] = [];
-    const rendre = (tue: boolean, extra = "") => {
-      if (fini) return;
-      fini = true;
-      clearTimeout(timer);
-      resolve({
-        out: Buffer.concat(chunks).toString("utf8").trim(),
-        err: `${Buffer.concat(errChunks).toString("utf8").trim()}${extra}`,
-        tue,
-      });
-    };
-    const child = spawn(python.cmd, [...python.args, cli], {
-      // Les chemins du journal de taux, du coupe-circuit et de la session sont
-      // ceux de Node, résolus ici : un seul limiteur, quel que soit le lecteur
-      // du répertoire courant de chacun.
-      env: envWorker({
-        PYTHONPATH: dirname(cli),
-        SKITRACK_TAUX: TAUX_PATH(),
-        SKITRACK_AIRBNB_CIRCUIT: AIRBNB_CIRCUIT_PATH,
-        SKITRACK_AIRBNB_SESSION: airbnbSessionPath(),
-      }),
-      cwd: dirname(cli),
-      windowsHide: true,
-    });
-    // Python s'arrête de lui-même à l'échéance et écrit ce qu'il a lu ; ce
-    // couperet ne sert que s'il ne le fait pas, et ce qui est déjà reçu est
-    // quand même lu.
-    const timer = setTimeout(
-      () => {
-        child.kill("SIGKILL");
-        rendre(true, "\npyairbnb : échéance dépassée");
-      },
-      Math.max(5_000, echeance - Date.now() + MARGE_SORTIE_MS),
-    );
-    child.stdout.on("data", (c: Buffer) => chunks.push(c));
-    child.stderr.on("data", (c: Buffer) => errChunks.push(c));
-    child.on("error", (err) => rendre(false, `\n${err.message}`));
-    child.on("close", () => rendre(false));
-    // Un Python qui sort sans lire son entrée faisait lever EPIPE sur stdin,
-    // sans écouteur : l'exception tombait hors de toute promesse.
-    child.stdin.on("error", () => undefined);
-    child.stdin.end(body);
-  });
+  const raw = await lancerWorker(python, cli, body, echeance);
   for (const ligne of raw.err.split(/\r?\n/)) {
     if (/^\[airbnb\]/.test(ligne)) console.info(ligne);
   }

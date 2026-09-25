@@ -520,3 +520,69 @@ rendrait ces signatures innommables du dehors.
 **Hors des centrales, l'inventaire a trouvé de quoi alléger, et ce n'est pas de
 ce chantier.** Le détail est remonté à part : il touche du code antérieur, et le
 modifier sortirait du périmètre de ces phases.
+
+## 13. Point, capacité, chambres : ce que chaque moteur donne (25 septembre 2026)
+
+Le propriétaire demande un point, une capacité et des chambres pour chaque
+logement de chaque source. Ce tableau dit, moteur par moteur, où chaque champ
+est lu depuis ce jour.
+
+| Moteur | Point | Capacité | Chambres |
+| --- | --- | --- | --- |
+| Ingénie | JSON-LD de chaque fiche de la liste, `location.geo` | « N personnes » sous le titre, sinon le titre | « N chambres » sous le titre, sinon les pièces du titre |
+| MSEM | catalogue, `lat`/`lng` ; `0, 0` compte pour vide | catalogue, `maxCapacity` ; zéro compte pour vide | aucun champ : les pièces (`nbRooms`), et le titre quand il les dit |
+| Open System | `tabPointCarto` | bloc `InfoProduit` de la fiche | pièces du bloc `InfoProduit` |
+| Deskline / Feratel | `location.coordinate` | détail des services, `maxAdults`, gardé 30 jours | chambres et pièces du service retenu |
+| Arkiane | détail du lot (`POST Lot/Detail`), gardé 30 jours | `lot_pax`, sinon le détail | détail du lot |
+| iResa | **aucun**, ni en liste ni en fiche | `cap_max` | pièces du titre |
+| Orchestra | fiche `/location/…`, bloc « Coordonnées », gardée 30 jours | même fiche, « Capacité » | pièces du « Type de bien » |
+
+Ce qu'un moteur ne donne pas, la complétion de l'écran Prix va le chercher sur
+la page du logement (`src/lib/stay/completerFiche.server.ts`, décision 14 de
+`docs/design/v7-ecarts.md`).
+
+**Ingénie donnait les trois, et on n'en lisait qu'un bout.** Ce rapport disait
+(§ 9) que la page de résultats ne porte « aucune coordonnée ». Pourtant, chaque
+fiche de la liste ouvre sur un bloc JSON-LD dont `location.geo` est le point du
+logement, et affiche « 10 personnes · 3 chambres » sous son titre. Sur trois
+gabarits relevés le 20 septembre (Arêches-Beaufort, Châtel, Valloire), ces blocs
+font passer 40 fiches de 0 à 39 points, sans une requête de plus. Risoul et les
+Contamines n'en portent pas : la ligne de couverture le dit gabarit par gabarit.
+
+**La liste Ingénie est paginée, et la suite est maintenant lue.** La page 1
+montre 10 fiches à Arêches-Beaufort pour 37 annoncées (relevé du 25 septembre).
+Le reste arrive par le lien `#lasuite`, dans la session ouverte par la page 1 :
+les cookies sont repris, la page 1 sert de `Referer`, une seconde sépare deux
+pages. La suite s'arrête au compte annoncé, à 10 pages, à la première page en
+échec (sans reprise), ou quand il reste moins de 4 s avant l'échéance. Toute la
+recherche Ingénie tient en 38 s, comptées dès l'accueil.
+
+**Feratel : 60 fiches devenaient 183.** La page de résultats passe à 200. À la
+Clusaz, le compte annoncé était de 183 et seules 60 arrivaient.
+
+**Ce qui est écarté, et par quelle règle.** Une seule règle
+(`centrales/regleTypes.ts`) juge le type publié pour Open System, Orchestra,
+iResa, Feratel et Arkiane : camping, hébergement insolite, chambre d'hôtes, gîte
+d'étape ou de groupe, auberge de jeunesse, appart'hôtel, résidence hôtelière,
+village club, hôtel, refuge, chambre seule. Le camping se cherche aussi dans le
+titre et le chemin, jamais dans l'adresse. Un type inconnu est gardé et nommé
+au journal. Ingénie garde ses codes de catégorie (`I`, `I_RESID`). MSEM garde
+ses natures `MEUBLE`, `RESIDENCE` et `HOUSE`, et écarte `HOTEL`, `CAMPING`,
+`CHAMBRE_HOTE`, toute nature inconnue, et les noms de camping.
+
+**Politesse.** Une seconde au moins entre la fin d'une requête vers un hôte et
+le départ d'un détail vers le même hôte (`centrales/cadence.ts`), dernière page
+de résultats comprise. Les détails partent un à un, par hôte, pour tout le
+serveur. Un refus (403, 429, 503) arrête les détails de la recherche.
+
+**Ce qui reste sans réponse.**
+
+- iResa ne publie de point nulle part. Ses logements restent sans position
+  tant que la complétion ne trouve rien sur la fiche.
+- MSEM n'a aucun champ de chambres dans ses dix catalogues : seulement des
+  pièces, et le titre quand il en parle.
+- Ingénie à Risoul et aux Contamines : pas de point dans la liste.
+
+**La mesure, à chaque recherche.** `centrales/couverture.ts` écrit une ligne
+par centrale interrogée : « GPS a/n · capacité b/n · chambres c/n, pièces
+seules d ». C'est elle qui dit si un correctif a porté, sans sonde.

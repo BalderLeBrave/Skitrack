@@ -101,6 +101,76 @@ describe("journal de taux : créneaux réservés", () => {
   });
 });
 
+describe("journal de taux : place pour un relevé entier", () => {
+  // Des secondes rondes : `hits` est en secondes, l'attente tombe juste.
+  const maintenant = () => Math.floor(Date.now() / 1000) * 1000;
+  function poserHits(chemin: string, hitsMs: number[], untilMs = 0): void {
+    writeFileSync(
+      chemin,
+      JSON.stringify({ airbnb: { hits: hitsMs.map((t) => t / 1000), until: untilMs / 1000 } }),
+    );
+  }
+
+  it("journal vide : aucune attente, et rien n'est écrit", () => {
+    const chemin = journalNeuf();
+    assert.equal(taux.attentePlacesMs("airbnb", 12), 0);
+    assert.equal(existsSync(chemin), false);
+  });
+
+  it("une pause en cours : au moins la pause", () => {
+    journalNeuf();
+    taux.noterBlocage("airbnb", 30_000);
+    const now = Date.now();
+    const attente = taux.attentePlacesMs("airbnb", 12, now);
+    assert.ok(attente > 29_000, `parti pendant la pause (${attente} ms)`);
+    assert.ok(attente >= taux.pauseTauxMs("airbnb", now));
+  });
+
+  it("une fenêtre qui a la place : aucune attente", () => {
+    const chemin = journalNeuf();
+    const now = maintenant();
+    const hits = Array.from({ length: 6 }, (_, i) => now - 30_000 + i * 2_000);
+    poserHits(chemin, hits);
+    assert.equal(taux.attentePlacesMs("airbnb", 12, now), 0);
+  });
+
+  it("une fenêtre pleine : on attend que les plus anciens en sortent", () => {
+    const chemin = journalNeuf();
+    const now = maintenant();
+    // 18 appels, de -55 s à -21 s : pour 12 places, il n'en faut plus que 6.
+    const hits = Array.from({ length: 18 }, (_, i) => now - 55_000 + i * 2_000);
+    poserHits(chemin, [...hits].reverse());
+    assert.equal(taux.attentePlacesMs("airbnb", 12, now), hits[11] + 60_000 - now);
+    assert.equal(taux.attentePlacesMs("airbnb", 6, now), hits[5] + 60_000 - now);
+  });
+
+  it("les créneaux réservés dans le futur comptent", () => {
+    const chemin = journalNeuf();
+    const now = maintenant();
+    const hits = Array.from({ length: 18 }, (_, i) => now - 24_000 + i * 2_000);
+    poserHits(chemin, hits);
+    assert.equal(taux.attentePlacesMs("airbnb", 12, now), hits[11] + 60_000 - now);
+  });
+
+  it("une pause plus longue que la fenêtre l'emporte", () => {
+    const chemin = journalNeuf();
+    const now = maintenant();
+    const hits = Array.from({ length: 18 }, (_, i) => now - 55_000 + i * 2_000);
+    poserHits(chemin, hits, now + 45_000);
+    assert.equal(taux.attentePlacesMs("airbnb", 12, now), 45_000);
+  });
+
+  it("plus de places que le plafond : la fenêtre doit se vider", () => {
+    const chemin = journalNeuf();
+    const now = maintenant();
+    const hits = Array.from({ length: 18 }, (_, i) => now - 55_000 + i * 2_000);
+    poserHits(chemin, hits);
+    const vide = hits[17] + 60_000 - now;
+    assert.equal(taux.attentePlacesMs("airbnb", 50, now), vide);
+    assert.equal(taux.attentePlacesMs("airbnb", 18, now), vide);
+  });
+});
+
 describe("coupe-circuit Airbnb côté Node", () => {
   it("s'ouvre 45 s au moins et garde une pause plus longue déjà posée", () => {
     journalNeuf();

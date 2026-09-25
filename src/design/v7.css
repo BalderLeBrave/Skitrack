@@ -132,6 +132,11 @@
   color: var(--color-ink);
   text-decoration: none;
 }
+/* `:where(.v7) a:hover` souligne tout lien et pèse (0,1,1), plus que la seule
+   classe ; la maquette pose `text-decoration:none` en ligne (V7Coquille.dc.html:21). */
+.v7nav__marque:hover {
+  text-decoration: none;
+}
 /* La marque (V7Coquille.dc.html:21-23) : « ski » en 400, « track » en 800, et
    un point bleu de 6 px calé sur le haut du mot. Les trois enfants sont
    alignés sur la ligne de base, avec une gouttière d'un pixel ; le point s'en
@@ -240,8 +245,64 @@
   justify-content: center;
   border-radius: 50%;
 }
+/* Le lien « Prix », premier du groupe de droite (V7Coquille.dc.html:96-97) :
+   36 px de haut comme ses voisins, mais 14 px de marge et 7 px entre l'icône
+   et le mot. Allumé, il passe à l'encre sur fond glacier ; `.v7nav__util--on`
+   ne pose que le fond. */
+.v7nav__prix {
+  padding: 0 calc(var(--spacing) * 3.5);
+  gap: calc(var(--spacing) * 1.75);
+}
+/* `:where(.v7) a:hover` souligne tout lien et pèse (0,1,1) : plus que la
+   seule classe. */
+.v7nav__prix:hover {
+  text-decoration: none;
+}
+.v7nav__prix--on {
+  color: var(--color-ink);
+  background: var(--color-glacier);
+}
+/* Un relevé des prix tourne, même hors de l'écran : un point bleu après le
+   mot, pour qu'on le retrouve et qu'on puisse l'arrêter. */
+.v7nav__prix--course::after {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-marque);
+}
+/* Le filet entre « Prix » et le thème : 1 × 20 px, 4 px de chaque côté en plus
+   de l'espacement du groupe. */
+.v7nav__sep {
+  display: block;
+  flex: none;
+  width: 1px;
+  height: calc(var(--spacing) * 5);
+  margin: 0 var(--spacing);
+  background: var(--color-line);
+}
 .v7nav__plus {
   position: relative;
+}
+/* Écrans de contrôle sous 1100 px : leur coquille ne défile pas de côté, et
+   le lien « Prix » poussait « Plus » hors de l'écran. Les colonnes latérales
+   prennent leur largeur, la pastille du parcours rétrécit et défile. */
+@media (max-width: 1100px) {
+  .v6 .v7nav {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: calc(var(--spacing) * 2);
+  }
+  .v6 .v7nav__parcours {
+    min-width: 0;
+    max-width: 100%;
+    justify-self: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .v6 .v7nav__etape {
+    flex: none;
+  }
 }
 .v7menu {
   position: absolute;
@@ -5074,4 +5135,838 @@
 .cles__note {
   font-size: var(--text-note);
   color: var(--color-texte-3);
+}
+
+/* ── Fourchette : curseur à deux poignées ── */
+/* `Fourchette.tsx`. Le rail passe à l'encre quand la fourchette filtre, et
+   reste gris quand elle couvre toute l'échelle. */
+.fourchette7 {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  min-width: 0;
+}
+.fourchette7__tete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: calc(var(--spacing) * 2);
+}
+.fourchette7__lbl {
+  font-size: var(--text-sous);
+  font-weight: 700;
+}
+.fourchette7__resume {
+  font-size: var(--text-fil);
+  font-weight: 700;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fourchette7--actif .fourchette7__resume {
+  color: var(--color-ink);
+}
+.fourchette7__piste {
+  position: relative;
+  height: 26px;
+  cursor: pointer;
+  touch-action: none;
+}
+.fourchette7__rail,
+.fourchette7__plage {
+  position: absolute;
+  top: 11px;
+  height: 4px;
+  border-radius: 999px;
+}
+.fourchette7__rail {
+  left: 0;
+  right: 0;
+  background: var(--color-line);
+}
+.fourchette7__plage {
+  background: var(--color-etape-verrou);
+}
+.fourchette7--actif .fourchette7__plage {
+  background: var(--color-ink);
+}
+/* Centrée sur sa valeur, quitte à déborder du rail d'une demi-poignée aux
+   extrémités, comme dans la maquette. */
+.fourchette7__poignee {
+  position: absolute;
+  top: 4px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-ombre) 20%, transparent);
+  outline-offset: 2px;
+}
+.fourchette7__champs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+}
+/* `content-box` : la maquette pose `height:30px` sur un `label` bordé, qui
+   mesure donc 32 px. */
+.fourchette7__champ {
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 30px;
+  padding: 0 calc(var(--spacing) * 2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-vignette);
+  background: var(--color-surface);
+  cursor: text;
+}
+.fourchette7__champ:hover,
+.fourchette7__champ:focus-within {
+  border-color: var(--color-ink);
+}
+.fourchette7__champ input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-sous);
+  font-weight: 700;
+  color: var(--color-ink);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.fourchette7__unite,
+.fourchette7__a {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+.fourchette7__unite {
+  margin-left: calc(var(--spacing) * 1);
+}
+
+/* ── Prix par station ───────────────────────────────────────────────────── */
+/* Écran hors parcours, maquette réexportée le 24 sept. 2026
+   (`SKITRACK v7 - Prix par station.dc.html`, « Prix par station.dc.html »
+   ci-dessous) : deux onglets, « Par station » et « Par budget ». La maquette
+   écrivait tout en ligne ; chaque valeur est reprise avec sa ligne, et chaque
+   couleur passe par un jeton. Les boutons à la borne se désactivent
+   (`opacity: .4`, comme `.compteur__pas`) au lieu de griser leur trait, un
+   gris sans jeton (Prix par station.dc.html:44, 46). */
+
+/* Le cadre de l'écran est plus haut et plus serré que `.v7main` : 32/40/64 et
+   18 entre les blocs (Prix par station.dc.html:24). Deux classes, pour
+   l'emporter sur `.v7main` où que ce bloc se trouve dans la feuille. */
+.v7main.prix7 {
+  gap: calc(var(--spacing) * 4.5);
+  padding: calc(var(--spacing) * 8) calc(var(--spacing) * 10) calc(var(--spacing) * 16);
+}
+
+/* Titre et groupe (Prix par station.dc.html:25-31). */
+.prix7__tete {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: calc(var(--spacing) * 4);
+}
+.prix7__titre {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+.prix7__titre h1 {
+  font-size: var(--text-titre);
+  line-height: var(--text-titre--line-height);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.prix7__titre p {
+  font-size: var(--text-corps);
+  color: var(--color-muted);
+}
+.prix7__groupe {
+  display: grid;
+  gap: 1px;
+  justify-items: end;
+}
+.prix7__groupe-lbl {
+  font-size: var(--text-note);
+  font-weight: 700;
+}
+.prix7__groupe-val {
+  font-size: var(--text-liste);
+  font-weight: 600;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Onglets (Prix par station.dc.html:32-34, 544) : le rail glacier des étapes
+   de la barre, et l'onglet ouvert en surface avec l'ombre d'une étape
+   active, qui est la même. */
+.prix7__onglets {
+  display: flex;
+  justify-self: start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--color-glacier);
+}
+.prix7__onglet {
+  height: 36px;
+  padding: 0 calc(var(--spacing) * 4);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: var(--text-detail);
+  font-weight: 700;
+}
+.prix7__onglet--on {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-etape);
+  color: var(--color-ink);
+}
+/* Le panneau ouvert reprend l'écart de 18 entre ses blocs : il est un seul
+   enfant de la grille de l'écran. */
+.prix7__vue {
+  display: grid;
+  gap: calc(var(--spacing) * 4.5);
+  min-width: 0;
+}
+
+/* Les cartes (période, critères, tableau, annonces) : surface, trait doux et
+   rayon de surface (Prix par station.dc.html:35, 55, 98, 127, 171). */
+.prix7__carte {
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-douce);
+}
+
+/* Période (Prix par station.dc.html:35-49). */
+.prix7__periode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4.5);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+}
+.prix7__arrivee {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+}
+.prix7__nuits {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}
+.prix7__lbl {
+  font-size: var(--text-note);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+/* (Prix par station.dc.html:37) */
+.prix7__arrivee .prix7__lbl {
+  margin-right: calc(var(--spacing) * 1);
+}
+/* Bouton rond de 36 (Prix par station.dc.html:38, 44). */
+.prix7__rond {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.prix7__rond:hover:not(:disabled) {
+  border-color: var(--color-ink);
+}
+.prix7__rond:disabled {
+  opacity: 0.4;
+}
+.prix7__rond svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
+}
+/* (Prix par station.dc.html:39) */
+.prix7__date {
+  height: 36px;
+  padding: 0 calc(var(--spacing) * 3.5);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-liste);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* (Prix par station.dc.html:45) */
+.prix7__nombre {
+  min-width: 24px;
+  text-align: center;
+  font-size: var(--text-corps);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+/* (Prix par station.dc.html:47) */
+.prix7__depart {
+  font-size: var(--text-sous);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Écart avec le séjour (Prix par station.dc.html:51). */
+.prix7__ecart {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2.5);
+}
+.prix7__ecart > span {
+  font-size: var(--text-sous);
+  color: var(--color-muted);
+}
+
+/* Pilule à trait : « Revenir à votre séjour » (Prix par station.dc.html:51),
+   « Relever » d'une ligne (:112) ; la grande, « Afficher N de plus » (:121)
+   et « Ouvrir Par station » (:190). */
+.prix7__pilule {
+  height: 30px;
+  padding: 0 calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-fil);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.prix7__pilule--ligne {
+  height: 28px;
+  margin-top: calc(var(--spacing) * 1);
+}
+.prix7__pilule--grande {
+  height: 34px;
+  padding: 0 calc(var(--spacing) * 4);
+  font-size: var(--text-detail);
+}
+.prix7__pilule--ligne:hover,
+.prix7__pilule--grande:hover {
+  border-color: var(--color-ink);
+}
+
+/* Critères, dans les deux onglets (Prix par station.dc.html:55-81, 127-164). */
+.prix7__filtres {
+  display: grid;
+  gap: calc(var(--spacing) * 3.5);
+  padding: calc(var(--spacing) * 3.5) calc(var(--spacing) * 4);
+}
+.prix7__choix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4.5);
+}
+/* (Prix par station.dc.html:57) */
+.prix7__champ {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}
+.prix7__champ > span {
+  font-size: var(--text-note);
+  font-weight: 700;
+}
+/* `.select7` fait 40 et ne pose pas de graisse ; la maquette veut 36 et 700
+   (Prix par station.dc.html:57). */
+.prix7__select {
+  height: 36px;
+  max-width: 100%;
+  padding: 0 calc(var(--spacing) * 3);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-detail);
+  font-weight: 700;
+  cursor: pointer;
+}
+/* Case à l'encre, pas au bleu de la racine (Prix par station.dc.html:60). */
+.prix7__case {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  font-size: var(--text-detail);
+  font-weight: 600;
+  cursor: pointer;
+}
+.prix7__case input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-ink);
+}
+/* Les quatre fourchettes de « Par station », les trois de station de « Par
+   budget » (Prix par station.dc.html:62, 145). */
+.prix7__plages {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 7);
+  padding-top: calc(var(--spacing) * 3);
+  border-top: 1px solid var(--color-line-douce);
+}
+.prix7__plages--trois {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* Compte et jetons (Prix par station.dc.html:76-79, 159-162). */
+.prix7__jetons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  padding-top: calc(var(--spacing) * 3);
+  border-top: 1px solid var(--color-line-douce);
+}
+.prix7__compte {
+  margin-right: calc(var(--spacing) * 1.5);
+  font-size: var(--text-sous);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* Le jeton est lui-même le bouton, à l'encre ; `.jeton` est un fond bleu tenu
+   avec une croix à part (Prix par station.dc.html:78). */
+.prix7__jeton {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  height: 30px;
+  padding: 0 calc(var(--spacing) * 2.5) 0 calc(var(--spacing) * 3);
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-cta-ink);
+  font: inherit;
+  font-size: var(--text-fil);
+  font-weight: 700;
+}
+.prix7__jeton svg {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.6;
+}
+/* (Prix par station.dc.html:79) */
+.prix7__effacer {
+  height: 30px;
+  padding: 0 calc(var(--spacing) * 2.5);
+  border: 0;
+  background: none;
+  color: var(--color-marque-texte);
+  font: inherit;
+  font-size: var(--text-sous);
+  font-weight: 700;
+}
+
+/* Action sur la liste (Prix par station.dc.html:82-85). */
+.prix7__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4);
+}
+/* Bouton encre de 36 ; le survol reprend `.btn7--encre` (Prix par
+   station.dc.html:83). */
+.prix7__relever {
+  height: 36px;
+  padding: 0 calc(var(--spacing) * 4);
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-cta-ink);
+  font: inherit;
+  font-size: var(--text-detail);
+  font-weight: 700;
+}
+.prix7__relever:hover {
+  filter: brightness(1.2);
+}
+.prix7__indice {
+  font-size: var(--text-sous);
+  color: var(--color-muted);
+}
+
+/* Relevé en cours (Prix par station.dc.html:88-95). */
+.prix7__course {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  border-radius: var(--radius-surface);
+  background: var(--color-marque-tenue);
+}
+.prix7__course-corps {
+  display: grid;
+  gap: calc(var(--spacing) * 1.75);
+  min-width: 0;
+}
+.prix7__course-tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+}
+.prix7__course-titre {
+  font-size: var(--text-liste);
+  font-weight: 800;
+  color: var(--color-marque-texte);
+}
+.prix7__course-sous {
+  font-size: var(--text-sous);
+  color: var(--color-marque-texte);
+  font-variant-numeric: tabular-nums;
+}
+/* Jauge déterminée : piste à 18 % du bleu, remplissage plein (Prix par
+   station.dc.html:91). */
+.prix7__jauge {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-marque) 18%, transparent);
+  overflow: hidden;
+}
+.prix7__jauge i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-marque);
+}
+.prix7__course-file {
+  font-size: var(--text-fil);
+  color: var(--color-marque-texte);
+}
+/* (Prix par station.dc.html:94) */
+.prix7__arreter {
+  height: 36px;
+  padding: 0 calc(var(--spacing) * 4);
+  border: 1px solid var(--color-marque);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-marque-texte);
+  font: inherit;
+  font-size: var(--text-detail);
+  font-weight: 700;
+}
+
+/* Tableau (Prix par station.dc.html:98-123). */
+.prix7__table {
+  display: grid;
+  overflow: hidden;
+}
+.prix7__rang {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 150px 240px;
+  gap: calc(var(--spacing) * 4);
+}
+/* Filet d'encre de 2 sous l'en-tête (Prix par station.dc.html:99). */
+.prix7__entete {
+  padding: 0 calc(var(--spacing) * 4.5);
+  border-bottom: 2px solid var(--color-ink);
+}
+/* 11,5 px n'a pas de jeton (Prix par station.dc.html:100). */
+.prix7__tri {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  width: 100%;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.prix7__tri--on {
+  color: var(--color-ink);
+}
+.prix7__tri--droite {
+  justify-content: flex-end;
+}
+.prix7__tri--fixe {
+  cursor: default;
+}
+.prix7__fleche {
+  font-size: var(--text-mention);
+}
+/* (Prix par station.dc.html:103) */
+.prix7__ligne {
+  align-items: center;
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4.5);
+  border-bottom: 1px solid var(--color-line-douce);
+}
+/* 14,5 px n'a pas de jeton (Prix par station.dc.html:104). */
+.prix7__station {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.prix7__nom {
+  font-size: 14.5px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prix7__massif {
+  font-size: var(--text-fil);
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* (Prix par station.dc.html:105) */
+.prix7__annonces {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.prix7__n {
+  font-size: var(--text-detail);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.prix7__n--absent {
+  color: var(--color-muted);
+}
+.prix7__ecartes {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* (Prix par station.dc.html:106) */
+.prix7__releve {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  font-size: var(--text-fil);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Les sources muettes en toutes lettres ; coupées par la colonne, le survol
+   en redonne la liste. */
+.prix7__partiel {
+  font-size: var(--text-note);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+}
+/* (Prix par station.dc.html:107-112) */
+.prix7__valeur {
+  display: grid;
+  gap: 1px;
+  justify-items: end;
+  text-align: right;
+}
+.prix7__prix {
+  font-size: var(--text-intertitre);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.prix7__etat {
+  font-size: var(--text-detail);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.prix7__etat--encours {
+  color: var(--color-marque-texte);
+}
+.prix7__sous {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+}
+/* Liste vide : dans le tableau (Prix par station.dc.html:117), ou carte à part
+   sous « Par budget », 8 entre les lignes et le conseil à 70 signes (:187-190). */
+.prix7__vide {
+  display: grid;
+  justify-items: start;
+  gap: calc(var(--spacing) * 1.5);
+  padding: calc(var(--spacing) * 7) calc(var(--spacing) * 4.5);
+  max-width: 60ch;
+}
+.prix7__vide strong {
+  font-size: var(--text-corps);
+}
+.prix7__vide span {
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+}
+.prix7__vide--budget {
+  gap: calc(var(--spacing) * 2);
+  max-width: 100%;
+}
+.prix7__vide--budget span {
+  max-width: 70ch;
+  text-wrap: pretty;
+}
+/* (Prix par station.dc.html:119-121) */
+.prix7__pied {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4.5);
+}
+.prix7__pied > span {
+  font-size: var(--text-sous);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* (Prix par station.dc.html:124) */
+.prix7__note {
+  font-size: var(--text-fil);
+  line-height: 1.5;
+  color: var(--color-muted);
+  text-wrap: pretty;
+}
+
+/* « Par budget » : la fourchette du budget à gauche, tri et lieu à droite,
+   calés sur le bas (Prix par station.dc.html:128-143). */
+.prix7__budget {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr);
+  gap: calc(var(--spacing) * 3.5) calc(var(--spacing) * 7);
+  align-items: end;
+}
+.prix7__choix--budget {
+  padding-bottom: 2px;
+}
+/* (Prix par station.dc.html:166) */
+.prix7__couverture {
+  font-size: var(--text-detail);
+  line-height: 1.5;
+  color: var(--color-muted);
+  text-wrap: pretty;
+}
+
+/* Les annonces, trois par rang (Prix par station.dc.html:169-182) : station,
+   titre et fiche en haut, disponibilité calée en bas de la case extensible,
+   total et lien au pied. */
+.prix7__logements {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 4);
+}
+.prix7__logement {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 4.5);
+}
+.prix7__logement-tete {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  min-width: 0;
+}
+/* (Prix par station.dc.html:173) */
+.prix7__logement-station {
+  font-size: var(--text-note);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-marque-texte);
+}
+/* (Prix par station.dc.html:174) ; un titre relevé peut porter un mot sans
+   fin, il ne doit pas élargir la colonne. */
+.prix7__logement-titre {
+  font-size: var(--text-corps);
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+/* (Prix par station.dc.html:175) */
+.prix7__logement-meta {
+  font-size: var(--text-sous);
+  color: var(--color-muted);
+}
+/* (Prix par station.dc.html:177) */
+.prix7__logement-dispo {
+  align-self: end;
+  font-size: var(--text-fil);
+  color: var(--color-alerte-texte);
+}
+/* Un prix relevé pour ces dates : le vert de `.fc__verdict--ok` dans
+   Logements. La maquette n'avait que de l'ambre, faute de relevé daté. */
+.prix7__logement-dispo--ok {
+  color: var(--color-ok-texte);
+}
+/* (Prix par station.dc.html:178-179) */
+.prix7__logement-pied {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: calc(var(--spacing) * 3);
+  padding-top: calc(var(--spacing) * 3);
+  border-top: 1px solid var(--color-line-douce);
+}
+.prix7__logement-total {
+  display: grid;
+  gap: 1px;
+}
+.prix7__logement-total b {
+  font-size: var(--text-section);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.prix7__logement-total span {
+  font-size: var(--text-fil);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Lien à l'encre de 36 (Prix par station.dc.html:180) ; le survol reprend
+   `.btn7--encre` au lieu du soulignement de `:where(.v7) a:hover`. */
+.prix7__voir {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 36px;
+  padding: 0 calc(var(--spacing) * 4);
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-cta-ink);
+  font-size: var(--text-detail);
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.prix7__voir:hover {
+  text-decoration: none;
+  filter: brightness(1.2);
+}
+/* Pagination des annonces par 60 : la maquette coupait sans le dire. */
+.prix7__encore {
+  justify-self: center;
 }

@@ -1,20 +1,20 @@
 /**
- * La coquille de page de SKITRACK : une seule, pour les dix écrans.
+ * La coquille de page de SKITRACK : une seule, pour tous les écrans.
  *
  * Elle porte la barre de la maquette v7 (`V7Coquille.dc.html`) : la marque,
  * le parcours en pastille (Accueil, 1 Comparer, 2 Logements, 3 Réservation)
- * avec ses verrous, et à droite le thème, la langue et « Plus ». Hors de
- * l'accueil, un bouton de séjour résume station, dates et groupe, et ouvre le
- * panneau « Votre séjour » : deux mois de calendrier et les deux compteurs.
+ * avec ses verrous, et à droite le lien « Prix », le thème, la langue et
+ * « Plus ». Sur la fiche station et la réservation, un bouton de séjour résume
+ * station, dates et groupe, et ouvre le panneau « Votre séjour » : deux mois
+ * de calendrier et les compteurs.
  *
  * La navigation retenue est `go()` : elle porte les verrous du parcours et
  * l'explication quand une étape n'est pas encore franchissable.
  *
- * Les cinq écrans du parcours défilent avec le document, la barre reste
- * collée en haut : c'est la mise en page de la maquette. Les écrans de
- * contrôle (`/carte`, `/altitudes`, `/openskimap`, `/forfaits`, `/traces`)
- * gardent leur coquille à hauteur fixe et leurs propres feuilles, sous la
- * même barre.
+ * Les écrans v7 (les cinq du parcours et « Prix ») défilent avec le document,
+ * la barre reste collée en haut : c'est la mise en page de la maquette. Les
+ * écrans de contrôle (ceux de « Plus », `AILLEURS_PATHS`) gardent leur
+ * coquille à hauteur fixe et leurs propres feuilles, sous la même barre.
  */
 
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
@@ -38,6 +38,7 @@ import {
   useSejour,
 } from "@/lib/parcours";
 import { stationsVoisines } from "@/lib/domaineStations";
+import { usePrix } from "@/lib/prix/releve";
 import { stationById } from "@/lib/stations";
 import { useStay } from "@/lib/stay";
 import { AGE_ENFANT, clampChildren } from "@/lib/stay/party";
@@ -77,8 +78,9 @@ const AILLEURS: { titre: MsgId; liens: { to: (typeof AILLEURS_PATHS)[number]; la
   },
 ];
 
-/** Les routes qui ne sont pas une étape du parcours. Une seule question posée
- *  à une seule table : `screenOf` répond `null` hors du parcours. */
+/** Les écrans de contrôle, rangés sous « Plus ». Une seule question posée à
+ *  une seule table : `screenOf` répond `null` hors des écrans v7. « Prix »
+ *  n'est pas une étape du parcours, mais c'est un écran v7 : faux pour lui. */
 function horsParcours(pathname: string): boolean {
   return screenOf(pathname) === null;
 }
@@ -182,6 +184,9 @@ function Barre() {
   const bascule = useTheme((s) => s.toggle);
   const locale = useLocale((s) => s.locale);
   const setLocale = useLocale((s) => s.setLocale);
+  // Le relevé des prix continue quand on quitte l'écran ; ailleurs, rien ne
+  // disait qu'il tournait ni où l'arrêter. Nul au rendu serveur.
+  const enCourse = usePrix((s) => s.course != null);
 
   return (
     <header className="v7nav">
@@ -227,6 +232,25 @@ function Barre() {
         })}
       </nav>
       <div className="v7nav__utils">
+        {/* « Prix » ouvre le groupe de droite, hors des étapes : ni numéro ni
+            verrou (V7Coquille.dc.html:96-97). La maquette annonçait « d'une
+            semaine » ; l'écran compte de 1 à 21 nuits. */}
+        <Link
+          to="/prix"
+          className={`v7nav__util v7nav__prix${ecran === "prix" ? " v7nav__prix--on" : ""}${
+            enCourse ? " v7nav__prix--course" : ""
+          }`}
+          aria-current={ecran === "prix" ? "page" : undefined}
+          title={
+            enCourse
+              ? "Relevé des prix en cours"
+              : "Médiane d’un séjour par station, et logements dans votre budget"
+          }
+        >
+          <Icon name="barres" taille={15} />
+          {t("nav.prices")}
+        </Link>
+        <i className="v7nav__sep" aria-hidden />
         {/* L'icône dit le thème en cours ; elle montrait un soleil dans les
             deux états, donc rien. */}
         <button
@@ -340,7 +364,9 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
   // Les critères de recherche s'écrivent dans l'adresse sur les écrans du
   // parcours : un lien se partage, un signet se repose, et le bouton Précédent
   // rend la recherche qu'il vient de quitter.
-  useCriteresUrl(!controle, pathname);
+  // Pas sur « Prix » : il tient sa propre période, et les critères de Comparer
+  // encombreraient son adresse sans rien y régler.
+  useCriteresUrl(!controle && ecran !== "prix", pathname);
 
   // Changer d'écran ferme le panneau de séjour et remonte en haut de page,
   // comme `fromHash` dans la maquette.
@@ -413,10 +439,16 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
           {/* `showStay` de la maquette : `part === 'top' && screen !== 'home'
               && showStayBar`, et l'App passe
               `showStayBar: screen !== 'compare' && screen !== 'lodgings'`
-              (V7Coquille.dc.html:92, App.dc.html:918). La pilule ne paraît
-              donc que sur la fiche station et sur la réservation : Comparer
-              porte sa barre collante, Logements son résumé de séjour. */}
-          {!controle && ecran !== "home" && ecran !== "compare" && ecran !== "lodging" ? (
+              (V7Coquille.dc.html:92, App.dc.html:918), et la page Prix passe
+              `show-stay={{ false }}` (Prix par station.dc.html:22). La pilule
+              ne paraît donc que sur la fiche station et sur la réservation :
+              Comparer porte sa barre collante, Logements son résumé de séjour,
+              Prix sa propre période. */}
+          {!controle &&
+          ecran !== "home" &&
+          ecran !== "compare" &&
+          ecran !== "lodging" &&
+          ecran !== "prix" ? (
             <PiluleSejour />
           ) : null}
           {!controle && stayOpen ? <PanneauSejour /> : null}

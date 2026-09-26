@@ -56,6 +56,14 @@ describe("critères dans l'adresse", () => {
     assert.equal(decoderCriteres("?station=les-2-alpes").station, "les-2-alpes");
   });
 
+  it("un identifiant retiré se lit sous celui qu'on garde", () => {
+    // « espace-aubrac » doublait Laguiole, écarté le 26 septembre 2026 : un
+    // ancien favori ouvre Laguiole, pas une station fantôme.
+    const lu = decoderCriteres("?station=espace-aubrac");
+    assert.equal(lu.station, "laguiole");
+    assert.equal(lu.q, "Laguiole");
+  });
+
   it("le nom de la station retenue n'est pas écrit deux fois", () => {
     const qs = encoderCriteres({ station: "les-2-alpes", q: "Les 2 Alpes" });
     assert.ok(qs.includes("station=les-2-alpes"));

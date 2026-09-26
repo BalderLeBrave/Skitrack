@@ -337,9 +337,14 @@ par station ; c'est le second qui fait foi.
    station : la liste en mêle plusieurs. L'étiquette de source nomme aussi la
    station (« Airbnb · La Clusaz »), la carte d'annonce n'ayant pas d'autre
    place pour elle. Une annonce sortie des relevés de deux stations voisines
-   n'y figure qu'une fois, sous la première de ses stations dans l'ordre du
-   référentiel : c'est cette copie que le volet montre et que « Retenir »
-   retient. Après un geste sur la carte, le cadre choisi tient pendant un
+   n'y figure qu'une fois, sous la station de la copie mesurée au plus près
+   des remontées ; à égalité, celle dont le repère est le plus proche de la
+   remontée du logement, puis la première du référentiel (26 septembre 2026 :
+   « La Cascade - La Giettaz », sortie à égale distance des relevés de Cordon,
+   de Crest-Voland et de La Giettaz, s'étiquetait « Cordon »). Pas le repère le
+   plus proche du logement lui-même : une maison d'Ax-les-Thermes, plus près du
+   repère nordique du Chioula, skie à Ax. C'est cette copie que le volet montre
+   et que « Retenir » retient. Après un geste sur la carte, le cadre choisi tient pendant un
    relevé en cours ; il ne se recadre qu'à un changement de critère, de dates
    ou de groupe.
    Un logement vendu sur plusieurs plateformes fait une seule carte, comme dans
@@ -383,7 +388,7 @@ par station ; c'est le second qui fait foi.
       domaine relié (`domainFit` « in » ou « linked »), `attachAccess` garde
       la plus proche de deux gares OpenStreetMap : celle de la liste propre à
       la station (`nearestLift`, `osmAccess.snapshot.json`) et celle des
-      7 030 gares de `osmLifts.json` (`nearestAnyLift`, `remontees.ts`, index
+      6 313 gares de `osmLifts.json` (`nearestAnyLift`, `remontees.ts`, index
       en grille, le même résultat qu'un parcours complet). La liste de la
       station seule en oubliait : au repère, Saint-Martin-de-Belleville
       mesurait 2 839 m (« Olympic ») au lieu de 27 m (« Village »), et
@@ -394,7 +399,25 @@ par station ; c'est le second qui fait foi.
       (`nearestStationLift`) : sans cela, le téléphérique de la Bastille à
       Grenoble, le funiculaire d'Évian ou un téléski de Moûtiers faisaient
       passer des appartements de ville pour des logements au pied des pistes.
-      Les remontées en projet (« (Project) », « (Proposed) ») sont écartées.
+      Les remontées en projet, désaffectées ou abandonnées ne comptent pas
+      (26 septembre 2026) : l'ancienne télécabine de Charlannes mettait le
+      bourg de La Bourboule à 307 m des pistes, quand la première remontée de
+      ski en service est à 6,2 km. Le script
+      `scripts/retirer-remontees-hors-service.mjs` retire des deux fichiers ce
+      qu'openskidata.org dit désaffecté, abandonné ou en projet, et ce qui
+      n'est rattaché à aucun domaine skiable : appareils privés, funiculaires
+      et téléphériques urbains ou de service, câbles plats (téléskis
+      nautiques), plus le télésiège du Glacier des Bossons et la corde du
+      tremplin de Ventron, désignés. Le funiculaire du Capucin, au Mont-Dore,
+      est retiré par décision du propriétaire ; l'Aiguille du Midi et la Mer
+      de Glace sont gardées. 716 gares retirées au total, listées dans
+      `remonteesRetirees.json` ; un filtre sur le nom
+      (`remonteeEnService.ts`) écarte en plus les projets, les appareils
+      « anciens », démontés ou démolis, les téléphériques EDF ou de service et
+      les téléskis nautiques (« Téléphérique EDF » mettait le bourg d'Ugine à
+      745 m des pistes de Bisanne 1500). Une annonce déjà enregistrée, mesurée
+      à l'une de ces gares, se remesure à sa relecture (`remesurerRemontee`),
+      même plus loin.
       Hors du
       domaine, aucune remontée n'est gardée, et la remontée « cherchée »
       (`searchedLiftM`) reste celle de la liste de la station : un logement de

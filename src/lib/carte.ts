@@ -4,7 +4,7 @@
  *  filtré n'est pas mesuré ne « passe » pas un seuil actif : elle en sort, elle
  *  n'est pas comptée comme zéro. */
 
-import type { ColorShare } from "./classeur.ts";
+import { domaineNomme, sansDomaineAlpin, type ColorShare } from "./classeur.ts";
 import { domainForStation } from "./forfaits/catalog.ts";
 import type { Station } from "./stations.ts";
 
@@ -118,10 +118,12 @@ export function stationMassifs(rows: readonly Station[]): string[] {
   return [...new Set(rows.map((s) => s.massif))].sort((a, b) => a.localeCompare(b, "fr"));
 }
 
-/** Domaines skiables rattachés, pour le sélecteur du panneau de filtres. */
+/** Domaines skiables rattachés, pour le sélecteur du panneau de filtres. Le
+ *  libellé « domaine non nommé (OpenStreetMap) » n'en est pas un : il réunirait
+ *  Beille, Névache et Saint-Colomban, sans rapport entre elles. */
 export function stationDomains(rows: readonly Station[]): string[] {
-  return [...new Set(rows.map((s) => s.domain).filter((d): d is string => d != null))].sort(
-    (a, b) => a.localeCompare(b, "fr"),
+  return [...new Set(rows.map((s) => s.domain).filter(domaineNomme))].sort((a, b) =>
+    a.localeCompare(b, "fr"),
   );
 }
 
@@ -133,7 +135,12 @@ export function filterMassif(rows: readonly Station[], massif: string | null): S
 export function stationTags(station: Station): string {
   const bits: string[] = [];
   if (station.kind === "village-station") bits.push("Village-station");
-  bits.push(station.domain ?? "Domaine non renseigné");
+  // Sans domaine alpin, c'est une donnée : La Bourboule n'a plus de ski alpin.
+  // « non renseigné » la confondait avec un relevé manquant.
+  bits.push(
+    station.domain ??
+      (sansDomaineAlpin(station.id) ? "Sans domaine alpin" : "Domaine non renseigné"),
+  );
   if (station.status && station.status !== "En activité") {
     bits.push(station.status.replace(/^En activité[,( ]*/, "").replace(/\)$/, ""));
   }

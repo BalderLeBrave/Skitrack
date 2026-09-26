@@ -1,7 +1,18 @@
 import { describe, it } from "node:test";
 import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
-import { cle, durees, DUREES_BASE, fusionnerReleve, grilleVide, lire, saisonDe, useGrilles, CATEGORIES } from "./grille.ts";
+import {
+  cle,
+  durees,
+  DUREES_BASE,
+  fusionnerReleve,
+  grilleVide,
+  lire,
+  saisonDe,
+  SOURCE_ESTIMATION,
+  useGrilles,
+  CATEGORIES,
+} from "./grille.ts";
 import { emptyRow } from "./store.ts";
 
 const REL = emptyRow("tignes", {
@@ -79,6 +90,67 @@ describe("grille tarifaire", () => {
     const est = emptyRow("x", { j6: 300, status: "estimé", fetchedAt: null });
     const { grille } = fusionnerReleve(grilleVide("x", "2026-27"), est);
     assert.equal(lire(grille, 6, "adulte").statut, "estime");
+  });
+
+  // La graine des Portes du Soleil telle que le serveur la rend : 292 €
+  // relevés, journée et enfant nuls depuis le 26 septembre 2026.
+  const PDS = emptyRow("avoriaz-1800", {
+    j6: 292,
+    sourceUrl: "https://www.avoriaz.com/",
+    fetchedAt: "2026-08-11T12:00:00.000Z",
+    status: "ok",
+    parseKind: "referentiel",
+  });
+
+  it("journée et enfant calculés du 6 jours s'écrivent « estimé », jamais « relevé »", () => {
+    const { grille } = fusionnerReleve(grilleVide("avoriaz-1800", "2026-27"), PDS);
+    assert.deepEqual([lire(grille, 6, "adulte").prix, lire(grille, 6, "adulte").statut], [292, "releve"]);
+    assert.deepEqual([lire(grille, 1, "adulte").prix, lire(grille, 1, "adulte").statut], [55, "estime"]);
+    assert.deepEqual([lire(grille, 6, "enfant").prix, lire(grille, 6, "enfant").statut], [234, "estime"]);
+    assert.equal(lire(grille, 1, "adulte").source, SOURCE_ESTIMATION);
+    assert.equal(lire(grille, 1, "adulte").dateReleve, null, "une estimation n'a pas de date de relevé");
+  });
+
+  it("une grille déjà enregistrée perd ses « relevé » calculés, pas ses vrais relevés ni ses saisies", () => {
+    // Ce que l'appareil garde d'avant : 55 € et 234 € écrits « relevé ».
+    const avant = fusionnerReleve(grilleVide("avoriaz-1800", "2026-27"), {
+      ...PDS,
+      j1: 55,
+      enf6: 234,
+      parseKind: "referentiel",
+    }).grille;
+    assert.equal(lire(avant, 6, "enfant").statut, "releve");
+    const apres = fusionnerReleve(avant, PDS).grille;
+    assert.equal(lire(apres, 1, "adulte").statut, "estime");
+    assert.equal(lire(apres, 6, "enfant").statut, "estime");
+
+    const g = grilleVide("avoriaz-1800", "2026-27");
+    const le1er = "2026-09-01T00:00:00.000Z";
+    g.cases[cle(6, "enfant")] = {
+      prix: 240,
+      devise: "EUR",
+      source: "https://www.avoriaz.com/tarifs",
+      dateReleve: le1er,
+      statut: "releve",
+    };
+    g.cases[cle(1, "adulte")] = {
+      prix: 57,
+      devise: "EUR",
+      source: "saisie manuelle",
+      dateReleve: le1er,
+      statut: "manuel",
+    };
+    const garde = fusionnerReleve(g, PDS).grille;
+    assert.deepEqual([lire(garde, 6, "enfant").prix, lire(garde, 6, "enfant").statut], [240, "releve"]);
+    assert.deepEqual([lire(garde, 1, "adulte").prix, lire(garde, 1, "adulte").statut], [57, "manuel"]);
+  });
+
+  it("un 6 jours relevé depuis sur la page n'emporte pas l'estimation de l'ancien", () => {
+    const lu = { ...PDS, j6: 300, parseKind: "table", sourceUrl: "https://www.avoriaz.com/tarifs" };
+    const { grille } = fusionnerReleve(grilleVide("avoriaz-1800", "2026-27"), lu);
+    assert.equal(lire(grille, 6, "adulte").prix, 300);
+    assert.equal(lire(grille, 1, "adulte").prix, null);
+    assert.equal(lire(grille, 6, "enfant").prix, null);
   });
 
   it("l'annulation défait une saisie, pas une frappe", () => {

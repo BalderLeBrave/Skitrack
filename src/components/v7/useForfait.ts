@@ -7,11 +7,18 @@
  * il répond avec un montant, ce montant prime et sa date s'écrit ; un tarif
  * « estimé » n'entre jamais ici, la règle du dépôt étant qu'il reste hors du
  * coût officiel. La saison et la zone n'existent que dans la graine.
+ *
+ * Depuis le 26 septembre 2026, la graine de 142 domaines ne porte plus que le
+ * 6 jours adulte : leur journée et leur 6 jours enfant étaient calculés à
+ * partir de lui, et la fiche les montrait sous « Relevé le 11 août 2026 ». Ils
+ * voyagent à part, dans `estime`, pour être écrits « estimé » ; `j1` et `enf6`
+ * restent nuls, si bien que le coût du séjour, qui ne lit qu'eux, n'en compte
+ * aucun.
  */
 
 import { useEffect, useState } from "react";
 import { getForfait } from "@/lib/forfaits/api";
-import { rattachementForfait } from "@/lib/forfaits/catalog";
+import { estimationDuDomaine, rattachementForfait, type EstimationForfait } from "@/lib/forfaits/catalog";
 import type { ForfaitRow } from "@/lib/forfaits/types";
 import type { Station } from "@/lib/stations";
 
@@ -29,6 +36,10 @@ export type Forfait = {
   /** « prix du forfait Les 3 Vallées » quand le tarif est pris au domaine qui
    *  relie la station, faute d'entrée à son nom. `null` sinon. */
   heriteLbl: string | null;
+  /** La journée et le 6 jours enfant que le catalogue estime d'après le
+   *  6 jours adulte, quand ils ne sont pas relevés. À écrire « estimé » ; ils
+   *  n'entrent dans aucun coût. `null` sans estimation. */
+  estime: EstimationForfait | null;
 };
 
 function dateLbl(iso: string | null): string | null {
@@ -53,6 +64,7 @@ export function forfaitGraine(s: Station): Forfait | null {
     releveLbl: seed.majLabel ?? dateLbl(seed.maj),
     releve: true,
     heriteLbl: r?.herite && r.nomDomaine ? `prix du forfait ${r.nomDomaine}` : null,
+    estime: estimationDuDomaine(d),
   };
 }
 
@@ -69,6 +81,9 @@ function fusion(s: Station, row: ForfaitRow | null): Forfait | null {
     releveLbl: dateLbl(row.fetchedAt) ?? graine?.releveLbl ?? null,
     releve: true,
     heriteLbl: graine?.heriteLbl ?? null,
+    // L'estimation part du 6 jours du catalogue : un autre 6 jours, relevé
+    // depuis sur la page officielle, la rendrait sans objet.
+    estime: row.j6 === graine?.j6 ? (graine?.estime ?? null) : null,
   };
 }
 

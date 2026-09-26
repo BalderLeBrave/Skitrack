@@ -1,7 +1,8 @@
 /** Appariement du classeur France Montagnes avec le référentiel du dépôt.
  *
  *  Le classeur (`franceMontagnes.data.ts`, généré par `npm run catalogue:import`
- *  depuis `docs/sources/stations-ski-france-montagnes.xlsx`) décrit 284 lignes.
+ *  depuis `docs/sources/stations-ski-france-montagnes.xlsx`) décrit 284 lignes,
+ *  dont 4 en double d'une autre station (`LIGNES_EN_DOUBLE`) : 280 entrent.
  *  Le dépôt en décrit 231, avec des noms curés, des altitudes vérifiées, l'IGN
  *  RGE ALTI au pin, la photo et le mix Skiinfo.
  *
@@ -43,6 +44,150 @@ export const DOMAIN_FIXES: Record<string, string> = {
   "Auris en Oisans": "Alpe d'Huez Grand Domaine",
   Orelle: "Les Trois Vallées",
   Samoens: "Le Grand Massif",
+};
+
+/** Chiffres d'un domaine tels qu'OpenSkiMap les publie : km, tronçons,
+ *  remontées, tronçons par couleur, bas et haut des pistes. */
+export type ChiffresDomaine = {
+  km: number;
+  slopes: number;
+  lifts: number;
+  counts: ColorCounts;
+  bas: number;
+  haut: number;
+};
+
+/** Un rattachement corrigé, libellé et chiffres ensemble. `domain` à `null` :
+ *  la station n'est rattachée à aucun domaine alpin, et n'a donc aucun chiffre
+ *  de domaine. */
+export type DomaineCorrige = {
+  domain: string | null;
+  chiffres: ChiffresDomaine | null;
+};
+
+/**
+ * Rattachements corrigés **avec leurs chiffres**, par identifiant de station.
+ *
+ * `DOMAIN_FIXES` ne sait que changer de libellé, en prenant les chiffres d'une
+ * ligne non corrigée du domaine d'arrivée. Il ne sait ni retirer un domaine, ni
+ * donner des chiffres qu'aucune ligne du classeur ne porte. Les trois cas
+ * ci-dessous demandent l'un ou l'autre ; trouvés par l'audit du 26 septembre
+ * 2026 dans les relevés du propriétaire, et vérifiés sur openskidata.org
+ * (export du 22 septembre 2026).
+ *
+ * - **La Bourboule** n'a plus de ski alpin : la télécabine de Charlannes est
+ *   désaffectée, et la première remontée de ski est à 5,8 km, au Mont-Dore. Le
+ *   classeur la range dans « Super Besse » (64,1 km, 37 remontées) par le vote
+ *   de proximité. Chercher à La Bourboule rendait donc 37 annonces du
+ *   Mont-Dore, jugées « dans le domaine » : « Appartement Mont-Dore, 4 pièces,
+ *   6 pers. » à 749 m du Capucin, 5 km du bourg. Elle garde son identifiant, sa
+ *   commune et son repère : elle a une vraie zone nordique, et ses relevés
+ *   doivent se relire. Pas de règle de distance : elle prendrait dix-huit
+ *   stations, dont de vraies stations alpines.
+ * - **La Bresse-Lispach** et **Xonrupt** : le classeur décale les libellés.
+ *   Lispach porte « Gérardmer » et ses 22,8 km, Xonrupt porte « La Bresse -
+ *   Lispach » et ses 3,3 km. Le repère de Lispach est à 86 m du téléski de
+ *   Saichy, zone OpenSkiMap « La Bresse - Lispach » ; les remontées de
+ *   Gérardmer sont à 2 km, dans une autre zone. Effet sur le relevé de
+ *   Lispach : 31 annonces sur 33 étaient en ville de Gérardmer (« Au cœur de
+ *   Gérardmer, bel appartement rénové », 5,7 km du Saichy), jugées « dans le
+ *   domaine ». Les chiffres de Lispach sont ceux que le classeur publie sur la
+ *   ligne de Xonrupt (11 tronçons, dont 1 non classé) ; ceux de Xonrupt, ceux
+ *   qu'OpenSkiMap mesure sur sa zone « Xonrupt-Longemer »
+ *   (`openskimap.snapshot.json`, 3 tronçons), qu'aucune ligne du classeur ne
+ *   porte. Corriger le classeur xlsx aurait le même effet au prochain
+ *   `npm run catalogue:import` ; la correction vit ici, comme `DOMAIN_FIXES`,
+ *   et `stationMigration.test.ts` dit quand elle devient inutile.
+ */
+export const DOMAINES_CORRIGES: Record<string, DomaineCorrige> = {
+  "la-bourboule": { domain: null, chiffres: null },
+  "la-bresse-lispach": {
+    domain: "La Bresse - Lispach",
+    chiffres: {
+      km: 3.3,
+      slopes: 11,
+      lifts: 5,
+      counts: { green: 4, blue: 4, red: 1, black: 1, other: 1 },
+      bas: 909,
+      haut: 1116,
+    },
+  },
+  "xonrupt-le-poli": {
+    domain: "Xonrupt-Longemer",
+    chiffres: {
+      km: 1.5,
+      slopes: 3,
+      lifts: 2,
+      counts: { green: 1, blue: 2, red: 0, black: 0, other: 0 },
+      bas: 807,
+      haut: 972,
+    },
+  },
+};
+
+/**
+ * La station n'a pas de domaine alpin, et on le sait : `DOMAINES_CORRIGES` lui
+ * retire son rattachement (La Bourboule).
+ *
+ * Distinct d'un domaine absent : là où le domaine n'est pas relevé, l'écran
+ * écrit « non renseigné » ; ici la réponse est connue, et elle est « non ».
+ * Ses altitudes de pistes valent 0 au référentiel : ce n'est pas une mesure.
+ */
+export function sansDomaineAlpin(id: string): boolean {
+  const corrige = DOMAINES_CORRIGES[id] as DomaineCorrige | undefined;
+  return corrige !== undefined && corrige.domain === null;
+}
+
+/**
+ * Lignes du classeur qui décrivent une station déjà présente sous un autre
+ * identifiant : même lieu, même domaine, mêmes logements. Relevées par l'audit
+ * du 26 septembre 2026. Elles sont écartées à l'entrée, comme
+ * `CLASSEUR_DUPLICATES`, et leur identifiant renvoie à la station gardée
+ * (`IDS_RETIRES`) : un séjour, une comparaison ou un relevé enregistrés sous
+ * l'ancien identifiant retrouvent la station.
+ *
+ * - « Sainte-Foy Station » : à 117 m de Sainte-Foy-Tarentaise, mêmes
+ *   remontées (Grand Plan à 8 m, Marmottes à 58 m), une seule zone OpenSkiMap.
+ * - « Saint-Pancrace les Bottières » : à 138 m des Bottières, mêmes téléskis
+ *   (Marmottes, Cabri).
+ * - « Praloup » (`praloup-04226`) : même nom et même commune (Uvernet-Fours)
+ *   que Praloup, repère à 2,8 km de toute remontée ; le vote de proximité le
+ *   rangeait au Sauze (51,7 km, 21 remontées) et lui prêtait sa photo.
+ * - « Espace Aubrac » : ligne identique à celle de Laguiole (même point à 1 m,
+ *   même domaine, mêmes mesures) ; son repère tombait dans le bourg, à 4,4 km
+ *   de toute remontée.
+ *
+ * Ce qui n'y est pas, exprès : Chamrousse 1750 (Roche Béranger, un autre
+ * village, avec ses remontées et son forfait), les paires station et village
+ * (Tignes et Tignes-le-Lac, Chamrousse et 1650, Les 7 Laux et Prapoutel), et
+ * « Le Granier », dont l'identité avec la station du dépôt n'est pas prouvée
+ * (voir `NAME_MATCH_EXCEPTIONS`).
+ */
+const LIGNES_EN_DOUBLE: { ligne: string; retire: string; garde: string }[] = [
+  { ligne: "Sainte-Foy Station", retire: "sainte-foy-station", garde: "sainte-foy-tarentaise" },
+  {
+    ligne: "Saint-Pancrace les Bottières",
+    retire: "saint-pancrace-les-bottieres",
+    garde: "les-bottieres",
+  },
+  { ligne: "Praloup", retire: "praloup-04226", garde: "praloup" },
+  { ligne: "Espace Aubrac", retire: "espace-aubrac", garde: "laguiole" },
+];
+
+/**
+ * Identifiants retirés du référentiel, vers la station qui les remplace.
+ *
+ * Les quatre lignes en double, plus Lus-la-Croix-Haute : sa ligne du classeur
+ * est appariée depuis le 26 septembre 2026 à la station du dépôt
+ * `lus-la-jarjatte` (voir `MANUAL_PAIRS`) et en prend l'identifiant. Une seule
+ * zone OpenSkiMap, « Lus la Jarjatte » ; la première remontée est à 120 m du
+ * repère du dépôt et à 3,1 km de celui du classeur, au centre du village.
+ *
+ * `stationById` les résout : rien de ce qui a été enregistré ne se perd.
+ */
+export const IDS_RETIRES: Readonly<Record<string, string>> = {
+  ...Object.fromEntries(LIGNES_EN_DOUBLE.map((d) => [d.retire, d.garde])),
+  "lus-la-croix-haute": "lus-la-jarjatte",
 };
 
 /**
@@ -148,8 +293,23 @@ export function posRelevee(id: string, pinKind: string): boolean {
  *  domaine. **Ce n'est pas une identité partagée** : trois domaines distincts
  *  et sans nom le portent, chacun avec ses mesures propres (1,4 / 0,4 / 0,2 km).
  *  C'est donc le seul libellé exempté de la règle « un domaine, un jeu de
- *  chiffres », et l'exemption est vérifiée par `classeur.test.ts`. */
+ *  chiffres », et l'exemption est vérifiée par `fiche.test.ts`. */
 export const UNNAMED_DOMAIN = "domaine non nommé (OpenStreetMap)";
+
+/**
+ * Le libellé désigne-t-il un domaine skiable ? Ni vide, ni `UNNAMED_DOMAIN`.
+ *
+ * Beille (Ariège), Névache (Hautes-Alpes) et Saint-Colomban-des-Villards
+ * (Savoie) portent ce libellé sans rien partager : trois zones OpenSkiMap
+ * distinctes, de 44 à 471 km l'une de l'autre. Le traiter en domaine les
+ * faisait voisines dans le menu « Plus », prêtait à Névache la photo de
+ * Saint-Colomban « même domaine », et les comptait « Domaine relié » (audit
+ * du 26 septembre 2026). Tout ce qui réunit des stations par leur domaine
+ * passe par ce prédicat.
+ */
+export function domaineNomme(d: string | null | undefined): d is string {
+  return d != null && d !== "" && d !== UNNAMED_DOMAIN;
+}
 
 /** Les chiffres d'échelle domaine, pris ensemble.
  *
@@ -162,10 +322,15 @@ export type DomainMeasure = {
   slopes: number | null;
   lifts: number | null;
   counts: ColorCounts | null;
+  /** Bas et haut des pistes du domaine. La fiche Skiinfo du dépôt prime quand
+   *  la station en a une. */
+  bas: number | null;
+  haut: number | null;
   /** Domaine sur lequel OpenSkiMap a mesuré ces chiffres. */
   measuredOn: string | null;
-  /** Vrai quand `DOMAIN_FIXES` a corrigé le rattachement et que les chiffres
-   *  ont suivi, au lieu de rester ceux du domaine que le classeur avait retenu. */
+  /** Vrai quand `DOMAIN_FIXES` ou `DOMAINES_CORRIGES` ont corrigé le
+   *  rattachement et que les chiffres ont suivi, au lieu de rester ceux du
+   *  domaine que le classeur avait retenu. */
   realigned: boolean;
 };
 
@@ -236,6 +401,10 @@ const MANUAL_PAIRS: [depotId: string, fmName: string][] = [
   ["praboure", "Saint-Anthème - Praboure"], // 4 226 m
   ["les-plans-dhotonnes-plateau-de-retord", "Plateau de Retord"], // 5 387 m
   ["mont-aigoual", "Prat Peyrot / Mont Aigoual"], // 8 206 m
+  // Le classeur pose Lus au centre du village, à 3,1 km de la première
+  // remontée ; le dépôt la pose à 120 m. Une seule zone OpenSkiMap, « Lus la
+  // Jarjatte » : c'est la même station (audit du 26 septembre 2026).
+  ["lus-la-jarjatte", "Lus la Croix Haute"], // 2 964 m
   // Le dépôt décrit la station, le classeur ses deux fronts de neige.
   ["praloup", "Pra Loup 1600"], // 329 m
 ];
@@ -265,6 +434,7 @@ export type ClasseurEntry = {
 function buildEntries(): {
   entries: ClasseurEntry[];
   duplicates: string[];
+  enDouble: string[];
   collisions: string[];
   realigned: string[];
 } {
@@ -275,13 +445,21 @@ function buildEntries(): {
     if (!byDepotName.has(k)) byDepotName.set(k, d);
   }
   const manual = new Map(MANUAL_PAIRS.map(([depotId, fmName]) => [fmName, depotId]));
+  const enDoubleNoms = new Set(LIGNES_EN_DOUBLE.map((d) => d.ligne));
 
   // 1. Deux lignes du classeur qui se réduisent au même identifiant décrivent
   //    la même station : « Chamonix Mont-Blanc » et « Chamonix-Mont-Blanc ».
+  //    Les lignes en double sous un autre nom (`LIGNES_EN_DOUBLE`) sortent
+  //    ici aussi : aucune règle ne les trouve, la table les nomme.
   const duplicates: string[] = [];
+  const enDouble: string[] = [];
   const unique: FmStation[] = [];
   const seenSlug = new Set<string>();
   for (const fm of FM_STATIONS) {
+    if (enDoubleNoms.has(fm.fmName)) {
+      enDouble.push(fm.fmName);
+      continue;
+    }
     const key = slugify(fm.fmName);
     if (seenSlug.has(key)) duplicates.push(fm.fmName);
     else {
@@ -317,11 +495,13 @@ function buildEntries(): {
   }
 
   // 4. Identifiants. Les stations appariées prennent celui du dépôt ; les
-  //    autres le tirent de leur nom. Le classeur nomme « Praloup » une ligne
-  //    distincte de « Pra Loup 1600 », déjà appariée à la station `praloup` du
-  //    dépôt : la ligne n'est pas supprimée, elle reçoit le code INSEE de sa
-  //    commune en suffixe. Le numéro de ligne du classeur ferait un suffixe
-  //    instable — il glisse dès qu'on ajoute ou retire une ligne.
+  //    autres le tirent de leur nom. Deux lignes distinctes dont les noms se
+  //    réduisent au même identifiant gardent chacune la leur : la seconde
+  //    reçoit le code INSEE de sa commune en suffixe. Le numéro de ligne du
+  //    classeur ferait un suffixe instable — il glisse dès qu'on ajoute ou
+  //    retire une ligne. « Praloup » l'avait reçu (`praloup-04226`) jusqu'à
+  //    ce que l'audit du 26 septembre 2026 la reconnaisse en double de
+  //    Praloup : le garde-fou reste pour la prochaine.
   const collisions: string[] = [];
   const assigned = new Set<string>();
   const ordered = [...unique].sort(
@@ -348,44 +528,66 @@ function buildEntries(): {
   //    les chiffres se contredisaient alors sur le même écran. On prend donc les
   //    mesures du domaine d'arrivée, telles qu'une ligne non corrigée de ce
   //    domaine les publie. Rien n'est recalculé ni moyenné : les chiffres
-  //    existent déjà, ils changent seulement de porteur.
+  //    existent déjà, ils changent seulement de porteur. Une station de
+  //    `DOMAINES_CORRIGES` reçoit, elle, les chiffres que la table lui donne,
+  //    ou aucun quand elle n'a plus de domaine.
   const measureOf = (fm: FmStation): DomainMeasure => ({
     km: fm.km,
     slopes: fm.slopes,
     lifts: fm.lifts,
     counts: countsOf(fm),
+    bas: fm.min,
+    haut: fm.max,
     measuredOn: fm.domain,
     realigned: false,
   });
 
   const nativeByDomain = new Map<string, DomainMeasure>();
   for (const fm of unique) {
-    if (!fm.domain || fm.domain === UNNAMED_DOMAIN) continue;
-    // Une ligne corrigée ne fait pas autorité sur le domaine qu'elle rejoint.
-    if (DOMAIN_FIXES[fm.fmName]) continue;
+    if (!domaineNomme(fm.domain)) continue;
+    // Une ligne corrigée ne fait pas autorité sur le domaine qu'elle rejoint,
+    // ni sur celui qu'elle quitte.
+    if (DOMAIN_FIXES[fm.fmName] || DOMAINES_CORRIGES[idOf.get(fm)!]) continue;
     if (!nativeByDomain.has(fm.domain)) nativeByDomain.set(fm.domain, measureOf(fm));
   }
 
   const realigned: string[] = [];
   const entries = unique.map((fm) => {
     const depot = pairedDepot.get(fm);
+    const id = idOf.get(fm)!;
+    const corrige = DOMAINES_CORRIGES[id];
     const fixedTo = DOMAIN_FIXES[fm.fmName];
     const target = fixedTo ? nativeByDomain.get(fixedTo) : undefined;
     let measure = measureOf(fm);
-    if (fixedTo && target) {
+    let domain: string | null = fixedTo ?? fm.domain;
+    if (corrige) {
+      const c = corrige.chiffres;
+      domain = corrige.domain;
+      measure = {
+        km: c?.km ?? null,
+        slopes: c?.slopes ?? null,
+        lifts: c?.lifts ?? null,
+        counts: c ? { ...c.counts } : null,
+        bas: c?.bas ?? null,
+        haut: c?.haut ?? null,
+        measuredOn: c ? corrige.domain : null,
+        realigned: true,
+      };
+      realigned.push(`${fm.fmName} : ${fm.domain ?? "sans domaine"} → ${domain ?? "sans domaine"}`);
+    } else if (fixedTo && target) {
       measure = { ...target, realigned: true };
       realigned.push(`${fm.fmName} : ${fm.domain ?? "sans domaine"} → ${fixedTo}`);
     }
     return {
       fm,
-      id: idOf.get(fm)!,
+      id,
       depotId: depot?.id ?? null,
       kind: fm.kind === "village" ? ("village-station" as const) : ("station" as const),
-      domain: fixedTo ?? fm.domain,
+      domain,
       measure,
     };
   });
-  return { entries, duplicates, collisions, realigned };
+  return { entries, duplicates, enDouble, collisions, realigned };
 }
 
 const built = buildEntries();
@@ -395,13 +597,18 @@ export const CLASSEUR: ClasseurEntry[] = built.entries;
 /** Lignes du classeur écartées parce qu'une autre porte déjà leur identifiant. */
 export const CLASSEUR_DUPLICATES: string[] = built.duplicates;
 
+/** Lignes du classeur écartées parce qu'elles doublent une station présente
+ *  sous un autre nom (`LIGNES_EN_DOUBLE`). */
+export const CLASSEUR_EN_DOUBLE: string[] = built.enDouble;
+
 /** Lignes distinctes dont le nom se réduisait à un identifiant déjà pris, et
  *  qui ont reçu leur numéro de classeur en suffixe. */
 export const CLASSEUR_ID_COLLISIONS: string[] = built.collisions;
 
 /** Stations dont les chiffres de domaine ont suivi la correction de
- *  rattachement. Exporté pour que la correction se lise, plutôt que d'agir en
- *  silence sur trois lignes perdues dans 284. */
+ *  rattachement (`DOMAIN_FIXES` et `DOMAINES_CORRIGES`). Exporté pour que la
+ *  correction se lise, plutôt que d'agir en silence sur six lignes perdues
+ *  dans le classeur. */
 export const CLASSEUR_REALIGNED: string[] = built.realigned;
 
 /** Répartition par couleur en %, dérivée des tronçons du domaine. `null` quand

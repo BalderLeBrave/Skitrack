@@ -14,6 +14,15 @@
  *   laisser croire à une remise ;
  * - **le détail est lisible**. « 6 × 359 € adulte + 2 × 287 € enfant » se
  *   vérifie ; « 8 × 6 j adulte » pour un groupe qui compte deux enfants, non.
+ *
+ * Le 26 septembre 2026, le 6 jours enfant de 142 domaines a quitté les prix
+ * relevés : le catalogue le calculait (0,8 × le 6 jours adulte), et la famille
+ * le payait comme un relevé. Ces domaines comptent désormais l'enfant au tarif
+ * adulte — 58 € de plus par enfant aux Portes du Soleil (292 € au lieu de
+ * 234 €). C'est un plafond, pas une remise supposée : l'estimation reste
+ * affichée comme telle sur la fiche, elle n'entre pas dans le total. Le détail
+ * dit donc les enfants à part, « 4 × 292 € adulte + 2 × 292 € enfant au tarif
+ * adulte », plutôt que « 6 × 292 € adulte » pour un groupe qui en compte deux.
  */
 
 import { formatTarif } from "./age.ts";
@@ -65,10 +74,11 @@ export function coutForfaits(
     };
   }
   if (enf6 == null) {
+    const enfants = `${enf} × ${formatTarif(j6, devise)} enfant au tarif adulte, tarif enfant non relevé`;
     return {
       total: j6 * (ad + enf),
       devise,
-      detail: `${ad + enf} × ${formatTarif(j6, devise)} adulte, tarif enfant non relevé`,
+      detail: ad ? `${ad} × ${formatTarif(j6, devise)} adulte + ${enfants}` : enfants,
       enfantsAuTarifAdulte: true,
     };
   }

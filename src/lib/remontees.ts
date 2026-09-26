@@ -5,7 +5,7 @@
  * est incomplète pour plusieurs stations : au repère de Saint-Martin-de-
  * Belleville, elle mesurait 2 839 m (gare « Olympic ») quand la gare
  * « Village » est à 27 m. La règle des 2 km (`dansLaStation`) écartait ainsi
- * des villages entiers. Les 7 030 gares de `osmLifts.json` donnent la vraie
+ * des villages entiers. Les 6 313 gares de `osmLifts.json` donnent la vraie
  * distance.
  *
  * Module léger : il ne charge que `osmLifts.json`, jamais l'index par station
@@ -16,12 +16,13 @@
 import lifts from "./osmLifts.json" with { type: "json" };
 import type { OsmPt } from "./osmAccess.data.ts";
 import type { OsmHit } from "./osmAccess.ts";
+import { remonteeHorsService } from "./remonteeEnService.ts";
 
-/** Les remontées en projet (« (Project) Télécabine Bozel… », « (Proposed) … »)
- *  n'existent pas : au repère de Courchevel, l'une passait devant la vraie. */
-const PROJET = /^((project|proposed))/i;
-
-const GARES: readonly OsmPt[] = (lifts as OsmPt[]).filter((p) => !PROJET.test(p.n ?? ""));
+/** Les remontées en projet, désaffectées ou de luge d'été ne font pas un
+ *  logement au pied des pistes (`remonteeEnService.ts`) : au repère de
+ *  Courchevel, un projet passait devant la vraie gare ; à La Bourboule,
+ *  l'ancienne télécabine de Charlannes mettait le bourg à 307 m des pistes. */
+const GARES: readonly OsmPt[] = (lifts as OsmPt[]).filter((p) => !remonteeHorsService(p.n));
 
 /** Une gare de l'index national ne fait un logement de station que si elle est
  *  à 3 km au plus du repère d'une station : le téléphérique de la Bastille à
@@ -81,7 +82,7 @@ export function mateOf(lifts: readonly OsmPt[], p: OsmPt): OsmPt | null {
  *  deux ou trois couronnes de cases. */
 const PAS = 0.02;
 /** Au-delà de huit couronnes (plus de 11 km), les cases sont presque toutes
- *  vides : parcourir les 7 030 gares coûte moins. */
+ *  vides : parcourir les 6 309 gares de `GARES` coûte moins. */
 const COURONNES_MAX = 8;
 
 type Index = {

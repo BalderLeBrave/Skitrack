@@ -25,6 +25,16 @@ describe("coût des forfaits d'un groupe", () => {
     assert.match(c.detail, /adulte, tarif enfant non relevé$/);
   });
 
+  it("Portes du Soleil sans tarif enfant relevé : les enfants à part, au tarif adulte", () => {
+    // Jusqu'au 26 septembre 2026, 234 € « relevés » — calculés à 0,8 × 292 €.
+    // L'enfant coûte désormais 58 € de plus, et le détail le montre.
+    const c = coutForfaits(292, null, 4, 2);
+    assert.equal(c.total, 6 * 292);
+    assert.equal((c.total ?? 0) - (4 * 292 + 2 * 234), 2 * 58);
+    assert.equal(c.detail, "4 × 292 € adulte + 2 × 292 € enfant au tarif adulte, tarif enfant non relevé");
+    assert.equal(coutForfaits(292, null, 0, 1).detail, "1 × 292 € enfant au tarif adulte, tarif enfant non relevé");
+  });
+
   it("aucun tarif relevé : pas de total, pas de chiffre inventé", () => {
     const c = coutForfaits(null, 287, 6, 2);
     assert.equal(c.total, null);

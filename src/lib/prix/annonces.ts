@@ -9,7 +9,9 @@
  * survivent pas au rechargement.
  */
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { rejugerDomaine } from "../domainFit";
 import type { Listing } from "../listings";
+import { stationById } from "../stations";
 import { remesurerRemontee, stationDeCle, versListing, type AnnonceRetenue } from "./calcul";
 
 const BASE = "skitrack-prix";
@@ -138,13 +140,21 @@ async function transaction(
  *  `versListing` le complète, la station tirée de la clé. Une annonce située
  *  retrouve la remontée la plus proche (`remesurerRemontee`) : celles
  *  enregistrées jusqu'au correctif du 25 septembre 2026 ne lisaient que la
- *  liste de gares de leur station, incomplète pour plusieurs d'entre elles. */
+ *  liste de gares de leur station, incomplète pour plusieurs d'entre elles.
+ *
+ *  Avant la remesure, son verdict de domaine est rejugé sur le référentiel
+ *  d'aujourd'hui (`rejugerDomaine`), avec la station du relevé : le verdict
+ *  enregistré est celui du jour du relevé. Sans cela, les corrections du
+ *  26 septembre 2026 (La Bourboule sans domaine, Lispach rendue à son domaine,
+ *  Abondance séparée de Morzine) attendaient un nouveau relevé, et les
+ *  37 annonces du Mont-Dore restaient « à La Bourboule ». */
 function annoncesLues(v: unknown, cle: string): AnnonceRetenue[] | null {
   if (!Array.isArray(v)) return null;
   const stationId = stationDeCle(cle);
+  const station = stationById(stationId);
   return v.flatMap((a) => {
     const l = versListing(a, stationId);
-    return l ? [remesurerRemontee(l)] : [];
+    return l ? [remesurerRemontee(rejugerDomaine(l, station))] : [];
   });
 }
 

@@ -49,6 +49,31 @@ import { webcamsForStation } from "@/lib/webcams";
 
 export const Route = createFileRoute("/stations/$id")({ component: Fiche });
 
+/**
+ * La mention sous des tarifs estimés.
+ *
+ * Jusqu'au 26 septembre 2026, la journée et le 6 jours enfant de 142 domaines
+ * s'affichaient sous « Relevé le 11 août 2026 » alors que le catalogue les
+ * calculait à partir du 6 jours adulte — aux Portes du Soleil, 55 € et 234 €
+ * pour 292 € relevés. Ils restent affichés, pour l'ordre de grandeur, mais
+ * disent ce qu'ils sont, et que le coût du séjour ne les compte pas.
+ *
+ * La phrase sur le coût ne vaut que pour un groupe qui compte des enfants
+ * (`enfantsAuTarifAdulte`, de `coutForfaits`) : à deux adultes, elle parlait
+ * d'un enfant que personne n'emmène.
+ */
+function noteEstimation(journee: boolean, enfant: boolean, enfantsAuTarifAdulte: boolean): string | null {
+  if (!journee && !enfant) return null;
+  const quoi =
+    journee && enfant
+      ? "Journée et 6 jours enfant estimés"
+      : journee
+        ? "Journée estimée"
+        : "6 jours enfant estimé";
+  const cout = enfant && enfantsAuTarifAdulte ? " Le coût du séjour compte donc les enfants au tarif adulte." : "";
+  return `${quoi} d’après le 6 jours adulte, faute de relevé.${cout}`;
+}
+
 /* ---------- Prévision ---------- */
 
 type Wx = { status: "loading" } | { status: "ok"; data: ForecastPair; at: Date } | { status: "err"; at: Date };
@@ -365,6 +390,11 @@ function FicheBody({ s }: { s: Station }) {
 
   const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
   const passGroup = pass.total;
+  // Ce que le catalogue estime sans l'avoir relevé : affiché « estimé », hors
+  // du coût, qui ne lit que `j1` et `enf6`.
+  const estimeJ1 = forfait && forfait.j1 == null ? (forfait.estime?.j1 ?? null) : null;
+  const estimeEnf6 = forfait && forfait.enf6 == null ? (forfait.estime?.enf6 ?? null) : null;
+  const note = forfait ? noteEstimation(estimeJ1 != null, estimeEnf6 != null, pass.enfantsAuTarifAdulte) : null;
 
   return (
     <Coquille>
@@ -432,13 +462,20 @@ function FicheBody({ s }: { s: Station }) {
             <section className="carte7-sect">
               <div className="carte7-sect__tete">
                 <h2>Forfaits{forfait ? ` · ${forfait.zone}` : ""}</h2>
-                <span>{forfait?.releveLbl ? `Relevé le ${forfait.releveLbl}` : "Aucun relevé"}</span>
+                {/* La date ne couvre que ce qui est relevé : quand la journée
+                    ou l'enfant sont estimés, elle dit de quel prix elle parle. */}
+                <span>
+                  {forfait?.releveLbl
+                    ? `${estimeJ1 != null || estimeEnf6 != null ? "6 jours adulte relevé" : "Relevé"} le ${forfait.releveLbl}`
+                    : "Aucun relevé"}
+                </span>
               </div>
               {forfait ? (
                 <div className="forfaits7">
                   <div>
                     <span>Journée adulte</span>
-                    <b>{eurN(forfait.j1) ?? "non relevé"}</b>
+                    <b>{eurN(forfait.j1) ?? (estimeJ1 != null ? `≈ ${eurN(estimeJ1)}` : "non relevé")}</b>
+                    {estimeJ1 != null ? <span>estimé</span> : null}
                   </div>
                   <div>
                     <span>6 jours adulte</span>
@@ -458,14 +495,17 @@ function FicheBody({ s }: { s: Station }) {
                   </div>
                   <div>
                     <span>6 jours enfant</span>
-                    <b>{eurN(forfait.enf6) ?? "non relevé"}</b>
+                    <b>{eurN(forfait.enf6) ?? (estimeEnf6 != null ? `≈ ${eurN(estimeEnf6)}` : "non relevé")}</b>
+                    {estimeEnf6 != null ? <span>estimé</span> : null}
                   </div>
                   <div>
                     <span>Saison adulte</span>
                     <b>{eurN(forfait.saison) ?? "non relevé"}</b>
                   </div>
                 </div>
-              ) : (
+              ) : null}
+              {note ? <p className="carte7-sect__texte">{note}</p> : null}
+              {forfait ? null : (
                 <p className="carte7-sect__texte">
                   Aucun tarif relevé pour ce domaine. Le coût du séjour n’inclura pas de forfait tant
                   qu’un prix n’a pas été relevé ou saisi.
@@ -737,8 +777,15 @@ function FicheBody({ s }: { s: Station }) {
                 <dt>Forfaits 6 j</dt>
                 <dd className={passGroup == null ? "absent" : undefined}>
                   {eurN(passGroup) ?? "non relevés"}
+                  {/* « au tarif relevé » ne se dit que si tout l'est : un
+                      enfant compté au tarif adulte, faute de tarif enfant
+                      relevé, porte déjà sa mention dans le détail. */}
                   <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
-                    {pass.total != null ? `${pass.detail}, au tarif relevé` : "aucun tarif pour ce domaine"}
+                    {pass.total == null
+                      ? "aucun tarif pour ce domaine"
+                      : pass.enfantsAuTarifAdulte
+                        ? pass.detail
+                        : `${pass.detail}, au tarif relevé`}
                   </span>
                 </dd>
               </div>

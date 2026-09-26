@@ -22,13 +22,17 @@
  * au `Listing` actuel : l'ancien `Lodging` disait « non annoncé » avec un zéro,
  * `Listing` le dit avec `null`, ce qui supprime toute ambiguïté avec « zéro
  * chambre », c'est-à-dire un studio. Les parties hôtel combinable, type coché
- * et distance ne sont pas reprises : le relevé actuel ne porte ni type ni
- * mesure de distance au moment du filtre.
+ * et distance ne sont pas reprises : le relevé ne portait alors ni type ni
+ * mesure de distance au moment du filtre. Il porte aujourd'hui le type publié
+ * (`propertyType`) : hôtels, chambres d'hôtes, mobil-homes et logements hors
+ * de France sortent de l'écran « Prix » par `prix/horsSujet.ts` (26 septembre
+ * 2026), pas par ce filtre.
  */
 
 import { isBookable, type Stay } from "./availability.ts";
 import { inRange, rangeOpen } from "./range.ts";
 import type { DomainVerdict } from "../domainFit.ts";
+import { ficheDementieParLeTitre } from "./occupancy.ts";
 import { LIMITE_TERRITOIRE_M, territoireReasonFor } from "./territoire.ts";
 
 
@@ -264,6 +268,13 @@ export type PartyCriteria = {
  * L'ordre compte : **un refus l'emporte sur une absence**. Une annonce qui
  * publie « 1 chambre » quand on en demande quatre est démontrablement trop
  * petite, que sa capacité soit publiée ou non.
+ *
+ * Une fiche que son titre dément ne se juge pas non plus
+ * (`ficheDementieParLeTitre`) : « Résidence Cheval Blanc - 2 Pièces Pour 4
+ * Personnes », publiée 8 personnes et 3 chambres, entrait dans un groupe de
+ * six avec trois chambres (relevés du 25 septembre 2026). Elle ne devient pas
+ * « trop petite » pour autant, puisqu'on ne sait pas qui a raison : elle est
+ * « non annoncée ». Un refus de la fiche l'emporte toujours.
  */
 export type PartyVerdict = "convient" | "trop-petit" | "non-annonce";
 
@@ -288,7 +299,10 @@ export function partyVerdict(listing: FilterSubject, criteria: PartyCriteria): P
     }
   }
 
-  return ignore ? "non-annonce" : "convient";
+  if (ignore) return "non-annonce";
+  // La fiche n'a servi qu'à un groupe à juger ; sans critère, rien ne la lit.
+  const lue = criteria.travelers > 0 || criteria.rooms > 0;
+  return lue && ficheDementieParLeTitre(listing) ? "non-annonce" : "convient";
 }
 
 /**

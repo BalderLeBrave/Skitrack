@@ -3767,8 +3767,12 @@
   gap: calc(var(--spacing) * 6);
   font-size: var(--text-detail);
 }
+/* `align-content: start` : quand un poste porte une ligne de plus
+   (`.pied7__alerte`), les autres, étirés à sa hauteur, gardent leur montant
+   sous leur libellé au lieu de le descendre au milieu. */
 .pied7__postes > div {
   display: grid;
+  align-content: start;
   gap: 1px;
 }
 .pied7__postes dt {
@@ -3779,6 +3783,27 @@
   margin: 0;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+/* Sous le montant des forfaits : les enfants comptés au tarif adulte, faute
+   de tarif enfant relevé. Une ligne par moitié de phrase : le poste s'élargit
+   de la plus longue, pas de la phrase entière, et le logement retenu garde sa
+   place. Même couleur que `.cout7__alerte`, sur la fiche et la réservation. */
+/* Entre 770 et 900 px environ, la mention élargissait le poste de 68 px : le
+   nom du logement retenu disparaissait et le bas de la liste passait sous le
+   pied. Des écarts resserrés lui rendent sa place (mesuré à 820 et 880 px). */
+@media (max-width: 900px) {
+  .pied7 {
+    gap: calc(var(--spacing) * 4);
+  }
+  .pied7__postes {
+    gap: calc(var(--spacing) * 4);
+  }
+}
+.pied7__alerte {
+  display: grid;
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-alerte-texte);
 }
 .pied7__total {
   display: grid;

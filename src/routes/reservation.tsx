@@ -269,8 +269,15 @@ function Reservation() {
                   {groupLbl(trav, rooms, enfants)}
                 </span>
                 <span className={`carte7-sect__chiffres${pass.total != null ? "" : " absent"}`}>
+                  {/* Sans tarif enfant relevé, seul le tarif adulte a une date :
+                      « au tarif relevé » aurait couvert l'enfant compté au
+                      tarif adulte. */}
                   {pass.total != null
-                    ? `Forfaits 6 jours : ${pass.detail}${forfait?.releveLbl ? `, au tarif relevé le ${forfait.releveLbl}` : ""}`
+                    ? `Forfaits 6 jours : ${pass.detail}${
+                        forfait?.releveLbl
+                          ? `${pass.enfantsAuTarifAdulte ? " ; tarif adulte relevé" : ", au tarif relevé"} le ${forfait.releveLbl}`
+                          : ""
+                      }`
                     : "Forfaits non relevés pour ce domaine"}
                 </span>
               </section>

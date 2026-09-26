@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { useParcours } from "./parcours.ts";
+import { migrerParcours, PARCOURS_VERSION, useParcours } from "./parcours.ts";
+import { stationById } from "./stations.ts";
 
 describe("magasin de parcours", () => {
   it("« Tout retirer » ne touche pas au budget", () => {
@@ -44,5 +45,73 @@ describe("magasin de parcours", () => {
     assert.equal(apres.lodgeId, null);
     assert.equal(apres.booked, false);
     useParcours.getState().setDestination(null);
+  });
+});
+
+describe("état persisté : migration", () => {
+  it("version 2 → 3 : station, comparaison et colonne cochée passent par les identifiants retirés", () => {
+    // Sous Node, sans `localStorage`, zustand n'attache pas l'API `persist` :
+    // on éprouve la fonction que le magasin lui passe.
+    assert.equal(PARCOURS_VERSION, 3);
+    // Une comparaison enregistrée avant le 26 septembre 2026. Sans migration,
+    // « praloup-04226 » montrait une colonne Praloup que la liste ne cochait
+    // pas, et la cocher en ajoutait une seconde.
+    const v2 = {
+      stationId: "espace-aubrac",
+      q: "Espace Aubrac",
+      lodgeId: "airbnb:123",
+      cmp: ["praloup-04226", "tignes", "praloup", "lus-la-croix-haute"],
+      pick: "praloup-04226",
+      seen: { "airbnb:123": true, "booking:9": true },
+      booked: true,
+      sortKey: "hi",
+    };
+    const v3 = migrerParcours(v2, 2);
+    assert.equal(v3.stationId, "laguiole");
+    // Le champ nomme la station que la loupe ouvrira.
+    assert.equal(v3.q, stationById("laguiole")!.name);
+    // Doublons retirés, ordre gardé.
+    assert.deepEqual(v3.cmp, ["praloup", "tignes", "lus-la-jarjatte"]);
+    assert.equal(v3.pick, "praloup");
+    // Annonce retenue et annonces vues portent des identifiants d'annonce :
+    // rien à réécrire. Le reste passe tel quel.
+    assert.equal(v3.lodgeId, "airbnb:123");
+    assert.deepEqual(v3.seen, v2.seen);
+    assert.equal(v3.booked, true);
+    assert.equal(v3.sortKey, "hi");
+    // L'entrée d'origine n'est pas modifiée en place.
+    assert.equal(v2.stationId, "espace-aubrac");
+  });
+
+  it("version 2 → 3 : un état sans identifiant retiré ne change pas", () => {
+    const v2 = {
+      stationId: "tignes",
+      q: "Tignes",
+      cmp: ["tignes", "val-disere"],
+      pick: "val-disere",
+      seen: {},
+    };
+    assert.deepEqual(migrerParcours(v2, 2), v2);
+    // Un identifiant inconnu reste tel quel : `stationById` dira qu'il n'existe
+    // pas, la migration n'en invente pas.
+    assert.deepEqual(migrerParcours({ cmp: ["station-inventee"] }, 2).cmp, ["station-inventee"]);
+    // Un état vide ou absent reste lisible.
+    assert.deepEqual(migrerParcours(undefined, 2), {});
+  });
+
+  it("version 1 → 3 : la station retenue est relâchée, la comparaison est réécrite", () => {
+    const v3 = migrerParcours(
+      {
+        stationId: "praloup-04226",
+        lodgeId: "x",
+        booked: true,
+        cmp: ["espace-aubrac", "laguiole"],
+      },
+      1,
+    );
+    assert.equal(v3.stationId, null);
+    assert.equal(v3.lodgeId, null);
+    assert.equal(v3.booked, false);
+    assert.deepEqual(v3.cmp, ["laguiole"]);
   });
 });

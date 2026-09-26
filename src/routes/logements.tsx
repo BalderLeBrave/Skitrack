@@ -1321,6 +1321,16 @@ function LogementsStation({ s }: { s: Station }) {
               <dt title={pass.detail}>Forfaits 6 j</dt>
               <dd className={pass.total != null ? undefined : "absent"}>
                 {pass.total != null ? eur(passGroupN) : "non relevés"}
+                {/* Le total monte quand les enfants sont comptés au tarif
+                    adulte, faute de tarif enfant relevé : la fiche et la
+                    réservation le disent, le pied aussi, et pas seulement dans
+                    l'infobulle du libellé. Deux lignes courtes, pour ne pas
+                    élargir le pied au détriment du logement retenu. */}
+                {pass.enfantsAuTarifAdulte ? (
+                  <span className="pied7__alerte">
+                    <span>enfants au tarif adulte,</span> <span>tarif enfant non relevé</span>
+                  </span>
+                ) : null}
               </dd>
             </div>
             <div>

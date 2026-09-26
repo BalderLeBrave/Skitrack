@@ -9,6 +9,7 @@
  *  **Rien n'est estimé.** Une altitude à zéro dans le référentiel n'est pas une
  *  mesure : elle se lit « non relevée ». */
 
+import { domaineNomme, sansDomaineAlpin } from "./classeur.ts";
 import { rattachementForfait, stationHasGlacier } from "./forfaits/catalog.ts";
 import type { ForfaitSeed } from "./forfaits/types.ts";
 import type { Listing } from "./listings.ts";
@@ -90,8 +91,11 @@ export function passHeriteLbl(s: Station): string | null {
 
 export const glacier = (s: Station) => stationHasGlacier(s.id);
 
-/** « Domaine relié » : le domaine porte un autre nom que la station. */
-export const linked = (s: Station) => !!s.domain && s.domain !== s.name;
+/** « Domaine relié » : le domaine porte un autre nom que la station. Le
+ *  libellé « domaine non nommé (OpenStreetMap) » n'en est pas un : Névache et
+ *  ses 0,4 km passaient la puce, et Comparer écrivait ce libellé au lieu de
+ *  « Non ». */
+export const linked = (s: Station) => domaineNomme(s.domain) && s.domain !== s.name;
 
 /** Lien vers la fiche Skiinfo, quand la station en a une. */
 export function skiinfoUrl(s: Station): string | null {
@@ -112,9 +116,19 @@ export function crumbDomaine(s: Station): string {
   return [s.massif, s.dept, s.domain].filter(Boolean).join(" · ");
 }
 
+/**
+ * « sans domaine alpin » quand l'absence de domaine est connue (La Bourboule,
+ * `sansDomaineAlpin`), `null` sinon. Ses km, remontées et altitudes de pistes
+ * ne sont pas « non relevés » : il n'y en a pas. Ses 0 m au référentiel ne sont
+ * pas une mesure non plus.
+ */
+export function sansDomaineLbl(s: Station): string | null {
+  return sansDomaineAlpin(s.id) ? "sans domaine alpin" : null;
+}
+
 /** Sous-titre d'une carte : massif et domaine. */
 export function sub(s: Station): string {
-  return `${s.massif} · ${s.domain ?? "domaine non renseigné"}`;
+  return `${s.massif} · ${s.domain ?? sansDomaineLbl(s) ?? "domaine non renseigné"}`;
 }
 
 /** « aux 2 Alpes », « au Corbier », « à l'Alpe d'Huez », « à Tignes ».

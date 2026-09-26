@@ -4,13 +4,14 @@ import { attachAccess } from "./access.ts";
 import type { Listing } from "./listings.ts";
 import { OSM_LIFTS } from "./osmAccess.data.ts";
 import { nearestLift, type OsmHit } from "./osmAccess.ts";
-import { dansLaStation, DISTANCE_STATION_M } from "./prix/calcul.ts";
+import { dansLaStation, DISTANCE_STATION_M, remesurerRemontee } from "./prix/calcul.ts";
 import { asHit, mateOf, metresBetween, nearestAnyLift } from "./remontees.ts";
+import { remonteeHorsService } from "./remonteeEnService.ts";
 import { STATIONS, stationById, type Station } from "./stations.ts";
 
 /** Le parcours complet que la grille doit égaler : la plus proche, la
  *  première du fichier à égalité, avec l'autre gare de son appareil. */
-const GARES_REELLES = OSM_LIFTS.filter((p) => !/^((project|proposed))/i.test(p.n ?? ""));
+const GARES_REELLES = OSM_LIFTS.filter((p) => !remonteeHorsService(p.n));
 
 function exhaustive(lat: number, lon: number): OsmHit {
   let k = -1;
@@ -106,7 +107,9 @@ describe("nearestAnyLift : la gare la plus proche, toutes stations confondues", 
 
 describe("attachAccess : la remontée d'un logement du domaine", () => {
   // Leur liste de gares oubliait celles du village : au repère, 2 191 à
-  // 7 813 m, et la règle des 2 km écartait le village entier.
+  // 7 813 m, et la règle des 2 km écartait le village entier. Le Mont-Dore
+  // n'y est plus : sa gare du village était le funiculaire du Capucin, retiré
+  // le 26 septembre 2026 (voir « le Capucin retiré », plus bas).
   const sept: [string, number][] = [
     ["saint-martin-de-belleville", 27],
     ["saint-francois-longchamp", 23],
@@ -114,7 +117,6 @@ describe("attachAccess : la remontée d'un logement du domaine", () => {
     ["monts-jura", 154],
     ["le-grand-valtin", 665],
     ["villard-de-lans", 126],
-    ["le-mont-dore", 242],
   ];
 
   for (const [id, m] of sept) {
@@ -129,8 +131,8 @@ describe("attachAccess : la remontée d'un logement du domaine", () => {
     });
   }
 
-  it("garde sur les 320 stations : une gare à 2 km du repère le fait retenir", () => {
-    assert.equal(STATIONS.length, 320);
+  it("garde sur les 315 stations : une gare à 2 km du repère le fait retenir", () => {
+    assert.equal(STATIONS.length, 315);
     const ecartees: string[] = [];
     for (const s of STATIONS) {
       const l = auRepere(s);
@@ -203,6 +205,149 @@ describe("les gares de ville et les remontées en projet ne font pas un logement
   }
   it("au repère de Courchevel, aucune remontée « (Project) » n'est retenue", () => {
     const l = auRepere(station("courchevel"));
-    assert.ok(!/^((project|proposed))/i.test(l.liftName ?? ""), String(l.liftName));
+    assert.equal(remonteeHorsService(l.liftName), false, String(l.liftName));
+    assert.ok(!/project/i.test(l.liftName ?? ""), String(l.liftName));
+  });
+
+  it("La Bourboule : l'ancienne télécabine de Charlannes ne met pas le bourg au pied des pistes", () => {
+    // « Charmante Maison Familiale à La Bourboule », relevée pour Besse le
+    // 25 septembre 2026 : 307 m de l'ancienne télécabine, 11,8 km des pistes.
+    for (const id of ["besse-super-besse", "la-bourboule", "le-mont-dore"]) {
+      const l = en(45.5852, 2.7439, station(id));
+      assert.notEqual(l.liftName, "Ancien télécabine de Charlannes", id);
+      assert.equal(dansLaStation(l), false, `${id} : ${l.distToLiftM} m de ${l.liftName}`);
+    }
+    const g = nearestAnyLift(45.5852, 2.7439);
+    assert.ok(g && g.m > 2000, `${g?.m} m de ${g?.name}`);
+  });
+});
+
+describe("les appareils sans ski retirés le 26 septembre 2026 ne font plus entrer de logement", () => {
+  /** Une annonce relevée le 25 septembre 2026 : sa position, et la remontée
+   *  enregistrée alors, que `remesurerRemontee` doit refaire à la relecture. */
+  type Releve = {
+    titre: string;
+    station: string;
+    lat: number;
+    lon: number;
+    m: number;
+    lift: string | null;
+    gare: [number, number];
+  };
+  function enregistree(r: Releve): Listing {
+    return {
+      ...auRepere(station(r.station)),
+      id: `releve-${r.titre}`,
+      title: r.titre,
+      lat: r.lat,
+      lon: r.lon,
+      domainFit: "in",
+      nearestDomainId: r.station,
+      distToLiftM: r.m,
+      liftName: r.lift,
+      liftLat: r.gare[0],
+      liftLon: r.gare[1],
+    };
+  }
+  const releves: Releve[] = [
+    // Télésiège du Glacier des Bossons, désigné : affiché « Au pied des pistes ».
+    {
+      titre: "Papillon Chamonix Chalet",
+      station: "chamonix",
+      lat: 45.90195083618164,
+      lon: 6.8394598960876465,
+      m: 171,
+      lift: "Glacier des Bossons",
+      gare: [45.900448, 6.839925],
+    },
+    // Téléphérique privé de l'observatoire de Bure.
+    {
+      titre: "Chalet 8 Personnes - Dévoluy",
+      station: "la-joue-du-loup",
+      lat: 44.67155075073242,
+      lon: 5.955239772796631,
+      m: 1756,
+      lift: "Téléphérique de Bure",
+      gare: [44.661186, 5.938481],
+    },
+    // Plaouquès (privé, sans domaine, vallée d'Aure).
+    {
+      titre: "Grange En Vallée D'aure",
+      station: "espiaube",
+      lat: 42.788421630859375,
+      lon: 0.23151999711990356,
+      m: 1722,
+      lift: "Plaouquès",
+      gare: [42.794628, 0.250854],
+    },
+    // Applevage, téléphérique sans domaine, au-dessus de Gabas.
+    {
+      titre: "Gd Appart 5-8 Pers Ski En Hiver Rando En éTé Gr10",
+      station: "artouste",
+      lat: 42.889060974121094,
+      lon: -0.4270099997520447,
+      m: 1311,
+      lift: "Applevage",
+      gare: [42.885799, -0.411551],
+    },
+    // Le téléski nautique sans nom du plan d'eau de Chaillol.
+    {
+      titre: "Le Moulin Des Ecrins",
+      station: "chaillol",
+      lat: 44.64540100097656,
+      lon: 6.111199855804443,
+      m: 1246,
+      lift: null,
+      gare: [44.655728, 6.105089],
+    },
+    // « Liaison Blanc-Blanc », funiculaire privé de Grenoble : un T4 de
+    // Seyssinet-Pariset relevé pour Lans-en-Vercors.
+    {
+      titre: "Spacieux T4 Vue Sur Les Alpes",
+      station: "lans-en-vercors",
+      lat: 45.18149948120117,
+      lon: 5.6972198486328125,
+      m: 1578,
+      lift: "Liaison Blanc-Blanc",
+      gare: [45.194345, 5.70578],
+    },
+  ];
+  for (const r of releves) {
+    const de = r.lift ?? "la gare sans nom";
+    it(`${r.titre} (${r.station}), à ${r.m} m de ${de} : hors de la station`, () => {
+      const s = station(r.station);
+      const relu = remesurerRemontee(enregistree(r));
+      assert.notDeepEqual([relu.liftLat, relu.liftLon], r.gare, r.titre);
+      assert.equal(dansLaStation(relu), false, `${relu.distToLiftM} m de ${relu.liftName}`);
+      const neuf = attachAccess(
+        { ...auRepere(s), id: `neuf-${r.titre}`, title: r.titre, lat: r.lat, lon: r.lon },
+        s,
+      );
+      assert.equal(dansLaStation(neuf), false, `${neuf.distToLiftM} m de ${neuf.liftName}`);
+    });
+  }
+
+  it("un logement de Thonon, relevé pour Lullin, n'est plus « à 21 m » du funiculaire", () => {
+    const s = station("lullin");
+    const l = attachAccess({ ...auRepere(s), id: "thonon", lat: 46.37425, lon: 6.47935 }, s);
+    assert.notEqual(l.liftKind, "funicular");
+    assert.equal(dansLaStation(l), false, `${l.distToLiftM} m de ${l.liftName}`);
+  });
+
+  it("Ventron : le village n'est plus au pied de la corde du tremplin", () => {
+    const s = station("ventron");
+    const l = attachAccess({ ...auRepere(s), id: "village", lat: 47.9397, lon: 6.8712 }, s);
+    assert.notEqual(l.liftName, "Teleski à cable bas Tremplin du Saut");
+    assert.equal(dansLaStation(l), false, `${l.distToLiftM} m de ${l.liftName}`);
+  });
+
+  it("le Capucin retiré : le repère du Mont-Dore se mesure à la première remontée de ski", () => {
+    // Décision du propriétaire, 26 septembre 2026 : le funiculaire du Capucin
+    // ne dessert aucune piste. Le bourg est à 2,2 km des Longes.
+    const l = auRepere(station("le-mont-dore"));
+    assert.notEqual(l.liftName, "Capucin");
+    assert.equal(l.liftName, "Longes");
+    assert.equal(l.distToLiftM, 2199);
+    assert.equal(dansLaStation(l), false);
   });
 });

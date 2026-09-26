@@ -14,9 +14,11 @@ import {
   orderStations,
   passesFilters,
   searchStations,
+  stationDomains,
   stationMassifs,
   stationTags,
 } from "./carte.ts";
+import { UNNAMED_DOMAIN } from "./classeur.ts";
 import { STATIONS, type Station } from "./stations.ts";
 
 function station(id: string, name: string, minM: number, maxM: number, km: number): Station {
@@ -164,6 +166,10 @@ test("stationTags : type, domaine, statut, hors classeur : rien d’inventé", (
   // Station du dépôt que le classeur ne décrit pas : l’absence est dite.
   assert.match(tags("le-granier-vallee-des-entremonts"), /Domaine non renseigné/);
   assert.match(tags("le-granier-vallee-des-entremonts"), /absente de France Montagnes/);
+  // Une absence connue n'est pas un relevé manquant : La Bourboule n'a plus
+  // de ski alpin.
+  assert.match(tags("la-bourboule"), /Sans domaine alpin/);
+  assert.doesNotMatch(tags("la-bourboule"), /non renseigné/);
 });
 
 test("formatKm : un tiret quand le domaine ne publie pas de kilométrage", () => {
@@ -225,4 +231,13 @@ test("le compte des sans-position s'écrit, ou ne s'écrit pas", () => {
   assert.equal(sansPositionLabel(0), "");
   assert.equal(sansPositionLabel(3), "3 sans localisation");
   assert.equal(sansPositionLabel(1), "1 sans localisation");
+});
+
+test("le sélecteur de domaines ne propose pas le libellé sans nom", () => {
+  // Beille, Névache et Saint-Colomban le portent sans rien partager : le
+  // choisir les montrait ensemble, de l'Ariège à la Savoie.
+  const doms = stationDomains(STATIONS);
+  assert.ok(!doms.includes(UNNAMED_DOMAIN));
+  assert.ok(doms.includes("Les Trois Vallées"));
+  assert.equal(STATIONS.filter((s) => s.domain === UNNAMED_DOMAIN).length, 3);
 });

@@ -10,7 +10,7 @@
  *  avec leur extension, types en `import type`, aucun alias `@/`. */
 
 import { attachAccess } from "../access.ts";
-import { UNNAMED_DOMAIN } from "../classeur.ts";
+import { domaineNomme } from "../classeur.ts";
 import type { Listing } from "../listings.ts";
 import type { ArretFiches } from "../scrape/airbnbFiches.ts";
 import type { SourceReport } from "../scrape/types.ts";
@@ -20,6 +20,8 @@ import { availabilityOf } from "../stay/availability.ts";
 import { addDaysIso, formatDayIso } from "../stay/calendar.ts";
 import { enrichirListing } from "../stay/enrichir.ts";
 import { estFicheGitesIntrouvable } from "../stay/ficheGites.ts";
+import { ficheDementieParLeTitre } from "../stay/occupancy.ts";
+import { motifHorsSujet } from "./horsSujet.ts";
 import {
   DIST_PALIERS_M,
   distFiltrableM,
@@ -29,7 +31,11 @@ import {
   partyVerdict,
   RAYON_DEFAUT_KM,
 } from "../stay/lodgingFilter.ts";
-import { nearestStationLift } from "../remontees.ts";
+import { metresBetween, nearestAnyLift, nearestStationLift } from "../remontees.ts";
+import { gareRetiree, remonteeHorsService } from "../remonteeEnService.ts";
+
+/** Au-delà, une gare n'est plus la remontée d'un logement (`nearestLift`). */
+const GARE_LOINTAINE_M = 40_000;
 import { stationById } from "../stations.ts";
 import { cleListing } from "../stay/poserReleve.ts";
 import { urlPropre, urlsPartagees } from "../stay/priseFiche.ts";
@@ -189,8 +195,16 @@ type Crible = {
  * (domaine, territoire, 12 km), et tarifée récemment pour exactement ce
  * séjour. La complétion (`aCompleter`) part du même prédicat : une annonce
  * qu'elle complète est une annonce que la médiane pourra compter.
+ *
+ * Et d'abord un logement de location : ni hôtel, ni forfait compris, ni
+ * mobil-home, ni chambre d'hôtes ou dortoir, ni logement hors de France
+ * (`motifHorsSujet`). Sur les relevés du 25 septembre 2026, les hôtels
+ * faisaient bouger la médiane de 46 stations : La Clusaz passait de 5 688 à
+ * 4 884 € sans eux. Les médianes déjà enregistrées ne changent qu'au relevé
+ * suivant ; « Par budget » les écarte dès la relecture (`passeAnnonce`).
  */
 function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
+  if (motifHorsSujet(l) != null) return false;
   if (estFicheGitesIntrouvable(l) || !estOffreGitesVerifiee(l)) return false;
   if (REPLI.test(l.proven ?? "")) return false;
   if (l.currency !== "EUR") return false;
@@ -207,7 +221,9 @@ function offreRecevable(l: Listing, ctx: ContexteReleve): boolean {
  * partir de » n'est pas un total de séjour, même non nul. Parmi celles-là
  * seulement, le verdict de groupe tranche : une capacité tue est comptée à
  * part (`muettes`), jamais supposée suffisante, et une trop petite aussi
- * (`petits`).
+ * (`petits`). Une fiche que son titre dément (« 2 Pièces Pour 4 Personnes »
+ * publié 8 personnes et 3 chambres, `ficheDementieParLeTitre`) est muette :
+ * on ne sait pas qui, du titre ou de la fiche, a raison.
  *
  * Un logement vendu sur trois plateformes n'est qu'un logement : les retenues
  * se regroupent comme dans Logements, et seule l'offre la moins chère de
@@ -371,15 +387,32 @@ export function versListing(a: unknown, stationId: string): Listing | null {
  * (`nearestAnyLift`) la remplace quand elle est plus près. Seulement dans le
  * domaine cherché, comme `attachAccess` : hors du domaine, la remontée n'est
  * pas celle du logement ; sans position, rien ne se mesure.
+ *
+ * Une gare enregistrée qui n'est plus en service (son nom le dit,
+ * `remonteeHorsService`, ou elle a été retirée des données, `gareRetiree` :
+ * l'ancienne télécabine de Charlannes, le TKF1 Portatif de La Giettaz) ne vaut
+ * plus rien : la mesure est refaite, même plus loin. Faute de gare en service
+ * près d'un repère, c'est la plus proche de toutes, à 40 km au plus, comme
+ * dans `nearestLift` : le repère de La Bourboule est dans le bourg, et s'y
+ * rabattre remettait le bourg au pied des pistes quand la première remontée
+ * de ski en service, l'Écureuil, est à 6,2 km. Plus loin encore, la remontée
+ * s'efface.
  */
 export function remesurerRemontee(l: Listing): Listing {
-  if (l.lat == null || l.lon == null) return l;
-  if (l.domainFit !== "in" && l.domainFit !== "linked") return l;
+  const perimee = remonteeHorsService(l.liftName) || gareRetiree(l.liftLat, l.liftLon, l.liftName);
+  if (l.lat == null || l.lon == null) return perimee ? sansRemontee(l) : l;
+  if (l.domainFit !== "in" && l.domainFit !== "linked") return perimee ? sansRemontee(l) : l;
   const proche = l.nearestDomainId ? stationById(l.nearestDomainId) : undefined;
-  const gare = nearestStationLift(l.lat, l.lon, [stationById(l.stationId), proche]);
-  if (!gare) return l;
+  let gare = nearestStationLift(l.lat, l.lon, [stationById(l.stationId), proche]);
+  if (!gare && perimee) {
+    const loin = nearestAnyLift(l.lat, l.lon);
+    gare = loin && loin.m <= GARE_LOINTAINE_M ? loin : null;
+  }
+  if (!gare) return perimee ? sansRemontee(l) : l;
   const avant = l.distToLiftM;
-  if (avant != null && Number.isFinite(avant) && avant >= 0 && avant <= gare.m) return l;
+  if (!perimee && avant != null && Number.isFinite(avant) && avant >= 0 && avant <= gare.m) {
+    return l;
+  }
   return {
     ...l,
     distToLiftM: gare.m,
@@ -389,6 +422,20 @@ export function remesurerRemontee(l: Listing): Listing {
     liftLon: gare.lon,
     liftOtherLat: gare.otherLat,
     liftOtherLon: gare.otherLon,
+  };
+}
+
+/** L'annonce sans sa remontée : `distFiltrableM` se rabat sur le repère. */
+function sansRemontee(l: Listing): Listing {
+  return {
+    ...l,
+    distToLiftM: null,
+    liftName: null,
+    liftKind: null,
+    liftLat: null,
+    liftLon: null,
+    liftOtherLat: null,
+    liftOtherLon: null,
   };
 }
 
@@ -935,15 +982,10 @@ export function choisirStation(fl: Filtres, station: string): Filtres {
 
 export type Option = { v: string; label: string };
 
-/** Le libellé que le classeur donne à trois domaines sans nom, sans rapport
- *  entre eux : il ne désigne pas un domaine, il n'est pas proposé. */
-function domaineNomme(d: string | null): d is string {
-  return d != null && d !== "" && d !== UNNAMED_DOMAIN;
-}
-
 /** Les domaines skiables des stations du massif et du département choisis,
  *  chacun avec son nombre de stations. « Tous » n'a pas de compte, comme le
- *  département. */
+ *  département. Le libellé que le classeur donne à trois domaines sans nom,
+ *  sans rapport entre eux, n'est pas proposé (`domaineNomme`). */
 export function optionsDomaine(
   stations: readonly Station[],
   massif: string,
@@ -965,7 +1007,7 @@ export function optionsDomaine(
 
 /** Le nom de chaque station, précisé par son domaine (à défaut son
  *  département, puis son massif) quand deux stations le portent : deux
- *  « Praloup » dans un même choix ne se distinguaient pas. */
+ *  « Le Granier » dans un même choix ne se distinguaient pas. */
 export function nomsDistincts(stations: readonly Station[]): Map<string, string> {
   const parNom = new Map<string, number>();
   for (const s of stations) parNom.set(s.name, (parNom.get(s.name) ?? 0) + 1);
@@ -1089,12 +1131,33 @@ export function passeBudget(total: number, pl: Plage, b: readonly [number, numbe
  * personnes et ses chambres. Les annonces enregistrées avant la règle des
  * 2 km y passent aussi : leur relevé ne l'appliquait pas. Une capacité ou des
  * chambres absentes écartent quand leur plage est active, comme partout.
+ *
+ * Les relevés enregistrés avant le 26 septembre 2026 gardent aussi ce que
+ * `cribler` écarte désormais : hôtels, forfaits compris, mobil-homes,
+ * chambres d'hôtes et dortoirs, logements hors de France, fiches que leur
+ * titre dément. Ils sortent ici, à la relecture, sans nouveau relevé : sur les
+ * relevés d'Adrien, 119 cartes de « Par budget » sur 1 618, dont la carte
+ * n° 1, l'Airbnb « Mobile-home » d'Aragnouet à 628 €, et 88 hôtels.
  */
 export function passeAnnonce(a: AnnonceRetenue, fl: Filtres, b: Bornes): boolean {
   if (!passeBudget(a.total, fl.budget, b.budget)) return false;
   if (!dansLaStation(a, distMaxLue(fl.distMax))) return false;
   if (!dansPlage(a.guests ?? null, fl.capacite, b.capacite)) return false;
-  return dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres);
+  if (!dansPlage(normalizedBedrooms(a), fl.chambres, b.chambres)) return false;
+  return !horsSujetRelu(a);
+}
+
+/** Le verdict de chaque annonce relue, calculé une fois : `filtrerCartes`
+ *  repasse toutes les cartes à chaque cran d'un curseur, et l'annonce ne
+ *  change pas entre deux. */
+const horsSujetMemo = new WeakMap<object, boolean>();
+
+function horsSujetRelu(a: AnnonceRetenue): boolean {
+  const connu = horsSujetMemo.get(a);
+  if (connu !== undefined) return connu;
+  const v = motifHorsSujet(a) != null || ficheDementieParLeTitre(a);
+  horsSujetMemo.set(a, v);
+  return v;
 }
 
 export type Tri = { k: "med" | "nom" | "massif" | "n"; dir: 1 | -1 };
@@ -1143,8 +1206,8 @@ function parId(a: Ligne, b: Ligne): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 }
 
-/** Deux stations portent le même nom (« Praloup », « Le Granier ») : l'id
- *  départage, pour un ordre stable. */
+/** Deux stations portent le même nom (« Le Granier ») : l'id départage, pour
+ *  un ordre stable. */
 function parNom(a: Ligne, b: Ligne): number {
   return a.nom.localeCompare(b.nom, "fr") || parId(a, b);
 }
@@ -1379,11 +1442,15 @@ export function comparateurBudget(t: TriB): (p: CarteAnnonce, q: CarteAnnonce) =
  *  cartes d'un même logement ouvraient et retenaient la même copie, et le
  *  compte le prenait deux fois. Une annonce sortie des relevés de deux
  *  stations voisines garde, parmi ses cartes qui passent, celle qui la mesure
- *  le plus près des remontées (la première du référentiel à égalité), à la
- *  place de la première qui passe : celle-là changeait avec le palier de
- *  distance, et avec elle la distance affichée, le tri et la station nommée.
- *  La plus proche passe dès qu'une copie passe. Chaque logement garde la
- *  place de sa première carte, qu'elle passe ou non. */
+ *  le plus près des remontées, à la place de la première qui passe :
+ *  celle-là changeait avec le palier de distance, et avec elle la distance
+ *  affichée, le tri et la station nommée. La plus proche passe dès qu'une
+ *  copie passe. À égalité, la station nommée est celle dont le repère est le
+ *  plus près de la remontée du logement (`ecartAuReleve`), plus la première du
+ *  référentiel : « La Cascade - La Giettaz », sortie à 293 m des relevés de
+ *  Cordon, de Crest-Voland et de La Giettaz, s'étiquetait « Cordon »
+ *  (25 septembre 2026). Chaque logement garde la place de sa première carte,
+ *  qu'elle passe ou non. */
 export function filtrerCartes(
   cartes: readonly CarteAnnonce[],
   fl: Filtres,
@@ -1397,12 +1464,33 @@ export function filtrerCartes(
       if (!gardees.has(c.a.id)) gardees.set(c.a.id, null);
       continue;
     }
-    // Une carte qui passe a une distance : `dansLaStation` l'exige.
-    if (!deja || (distFiltrableM(c.a) ?? 0) < (distFiltrableM(deja.a) ?? 0)) {
-      gardees.set(c.a.id, c);
-    }
+    if (!deja || copiePreferee(c, deja)) gardees.set(c.a.id, c);
   }
   return [...gardees.values()].filter((c): c is CarteAnnonce => c != null);
+}
+
+/** `c` passe devant `deja`, deux copies d'une même annonce qui passent. */
+function copiePreferee(c: CarteAnnonce, deja: CarteAnnonce): boolean {
+  // Une carte qui passe a une distance : `dansLaStation` l'exige.
+  const dc = distFiltrableM(c.a) ?? 0;
+  const dd = distFiltrableM(deja.a) ?? 0;
+  if (dc !== dd) return dc < dd;
+  return ecartAuReleve(c) < ecartAuReleve(deja);
+}
+
+/**
+ * Du repère de la station du relevé à la remontée du logement (à défaut, au
+ * logement) : c'est de ses remontées qu'on part skier. Pas le repère le plus
+ * proche du logement lui-même : une maison d'Ax-les-Thermes, à 3,4 km du
+ * repère nordique du Chioula et 3,6 km de celui d'Ax 3 Domaines, skie au Baou,
+ * une remontée d'Ax.
+ */
+function ecartAuReleve(c: CarteAnnonce): number {
+  const s = stationById(c.stationId);
+  const lat = c.a.liftLat ?? c.a.lat;
+  const lon = c.a.liftLon ?? c.a.lon;
+  if (!s || lat == null || lon == null) return Number.POSITIVE_INFINITY;
+  return metresBetween(lat, lon, s.lat, s.lon);
 }
 
 /**
@@ -1474,8 +1562,37 @@ export function logementsReleves(cartes: readonly CarteAnnonce[]): Logement[] {
     else groupes.set(r, [a]);
   }
   return [...groupes.values()].map((os) => {
-    const offres = [...os].sort(parPrixOffre);
+    const offres = sansPrixAberrant(os).sort(parPrixOffre);
     return { principale: offres[0] as Listing, offres };
+  });
+}
+
+/** Au-delà de trois fois la médiane des autres offres du logement, un prix
+ *  n'est pas celui du logement. */
+export const ECART_PRIX_ABERRANT = 3;
+
+/**
+ * Les offres d'un logement, moins celles dont le total dépasse trois fois la
+ * médiane des autres. « Résidence Joséphine », à Châtel, se vendait 2 779 €
+ * chez Booking et 73 566 € chez Abritel, 26,5 fois plus, sans doute la
+ * résidence entière (relevés du 25 septembre 2026) : avec un budget minimum
+ * au-dessus de 2 779 €, la carte montrait 73 566 €. L'offre est retirée du
+ * logement, pas montrée à part : ce n'est pas un autre bien. Sur ces relevés,
+ * le seuil ne touche que Joséphine ; l'hôtel Sowell qu'il retirait aussi sort
+ * désormais comme hôtel, sans compter dans la médiane. À une fois et demie, il
+ * retirait deux vraies locations. Une offre seule reste.
+ *
+ * La médiane des autres ne compte que les offres que la relecture montre
+ * (`horsSujetRelu`) : une chambre d'hôtel à 2 000 € dans le même logement
+ * retirait la vraie location à 7 000 €, puis sortait elle-même comme hôtel.
+ * Le logement n'avait plus d'offre.
+ */
+function sansPrixAberrant(offres: readonly AnnonceRetenue[]): AnnonceRetenue[] {
+  if (offres.length < 2) return [...offres];
+  const montrees = offres.filter((o) => !horsSujetRelu(o));
+  return offres.filter((o) => {
+    const autres = mediane(montrees.filter((x) => x !== o).map((x) => x.total));
+    return autres == null || !(o.total > ECART_PRIX_ABERRANT * autres);
   });
 }
 

@@ -58,4 +58,36 @@ describe("ce qu'un écran écrit d'un tarif", () => {
     const row = emptyRow("x", { j6: 330, status: "ok", fetchedAt: RELEVE });
     assert.equal(forfaitConfirmLabel(row, MAINTENANT), null);
   });
+
+  // Ce que `refresh.server.ts` fait d'une graine du catalogue : la ligne porte
+  // ses prix, « ok », `parseKind` « referentiel ».
+  const graine = (slug: string, j1: number | null, j6: number, enf6: number | null) =>
+    emptyRow(slug, { j1, j6, enf6, fetchedAt: RELEVE, status: "ok", parseKind: "referentiel" });
+
+  it("un 6 jours seul relevé, journée et enfant estimés, ne se dit pas « tarif confirmé »", () => {
+    // Portes du Soleil : 292 € relevés ; 55 € et 234 € étaient calculés.
+    const e = etatTarif(graine("avoriaz-1800", null, 292, null), MAINTENANT);
+    assert.equal(e.fiabilite, "partiel");
+    assert.notEqual(e.fiabiliteLbl, "tarif confirmé");
+    assert.match(e.fiabiliteLbl, /estimés/);
+    assert.match(e.fraicheur ?? "", /relevé le 11\/08\/2026/, "le 6 jours garde sa date");
+    assert.equal(forfaitConfirmLabel(graine("avoriaz-1800", null, 292, null), MAINTENANT), e.fiabiliteLbl);
+  });
+
+  it("une graine dont tous les prix sont relevés reste confirmée", () => {
+    // Espace Killy : ses prix ne suivent pas les rapports du calcul.
+    assert.equal(etatTarif(graine("tignes-val-d-isere", 65, 335, 268), MAINTENANT).fiabilite, "confirme");
+  });
+
+  it("un relevé de la page officielle est confirmé, même pour un domaine estimé", () => {
+    const lu = emptyRow("avoriaz-1800", {
+      j1: 58,
+      j6: 300,
+      enf6: 240,
+      fetchedAt: RELEVE,
+      status: "ok",
+      parseKind: "table",
+    });
+    assert.equal(etatTarif(lu, MAINTENANT).fiabilite, "confirme");
+  });
 });

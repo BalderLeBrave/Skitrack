@@ -398,7 +398,10 @@ export function Coquille({ children, chips }: { children: ReactNode; chips?: Rea
     if (!s || !stationById(s)) return;
     const p = useParcours.getState();
     const st = useStay.getState();
-    p.retain(s);
+    // Un lien écrit avant le 26 septembre 2026 peut porter un identifiant
+    // retiré (`#s=espace-aubrac`) : on retient la station qu'il ouvre, sous son
+    // propre identifiant, pour que la sélection se retrouve partout.
+    p.retain(stationById(s)?.id ?? s);
     const n = +(h.get("n") ?? 0),
       t = +(h.get("t") ?? 0),
       e = +(h.get("e") ?? 0),

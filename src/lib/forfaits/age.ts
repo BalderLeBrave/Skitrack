@@ -9,8 +9,8 @@
  *
  * - **fraîcheur** — la date du dernier relevé réussi, et son ancienneté dite
  *   simplement. C'est ce qui se lit en premier ;
- * - **fiabilité** — tarif confirmé, à confirmer, saisi à la main, estimé, ou
- *   jamais obtenu ;
+ * - **fiabilité** — tarif confirmé, 6 jours seul relevé, à confirmer, saisi à
+ *   la main, estimé, ou jamais obtenu ;
  * - **cause technique** — le code, le message d'erreur. Elle ne paraît que
  *   dans un détail repliable ou dans le journal, jamais dans le libellé
  *   principal.
@@ -21,6 +21,7 @@
  */
 
 import { montant } from "../devises.ts";
+import { domainBySlug, estimationDuDomaine } from "./catalog.ts";
 import type { ForfaitRow } from "./types.ts";
 
 /**
@@ -39,10 +40,11 @@ export function formatEuroTarif(n: number | null | undefined): string {
   return formatTarif(n, "EUR");
 }
 
-export type Fiabilite = "confirme" | "a-confirmer" | "manuel" | "estime" | "jamais";
+export type Fiabilite = "confirme" | "partiel" | "a-confirmer" | "manuel" | "estime" | "jamais";
 
 export const FIABILITE_LBL: Record<Fiabilite, string> = {
   confirme: "tarif confirmé",
+  partiel: "6 jours relevé, journée et enfant estimés",
   "a-confirmer": "tarif à confirmer",
   manuel: "tarif saisi manuellement",
   estime: "estimation, hors coût officiel",
@@ -80,6 +82,22 @@ function dateFr(atMs: number): string {
   return new Date(atMs).toLocaleDateString("fr-FR");
 }
 
+/**
+ * La ligne vient du catalogue, dont seul le 6 jours adulte est relevé.
+ *
+ * Pour 142 domaines, la journée et le 6 jours enfant du catalogue étaient
+ * calculés à partir du 6 jours (`RAPPORTS_DEDUITS`), et la liste disait
+ * pourtant « tarif confirmé » — aux Portes du Soleil comme à l'Espace Diamant.
+ * Ils sont retirés des prix relevés depuis le 26 septembre 2026 ; la ligne qui
+ * n'en porte plus que le 6 jours ne se dit plus confirmée. Un relevé de la
+ * page officielle (`parseKind` autre que « referentiel ») l'est, lui.
+ */
+function partiel(row: ForfaitRow): boolean {
+  if (row.parseKind !== "referentiel") return false;
+  if (row.j1 != null && row.enf6 != null) return false;
+  return estimationDuDomaine(domainBySlug(row.slug)) != null;
+}
+
 export function etatTarif(row: ForfaitRow, now = Date.now()): EtatTarif {
   const chiffre = row.j1 != null || row.j6 != null;
   const at = row.fetchedAt ? Date.parse(row.fetchedAt) : NaN;
@@ -97,6 +115,9 @@ export function etatTarif(row: ForfaitRow, now = Date.now()): EtatTarif {
   if (!chiffre) {
     // Jamais obtenu : on invite à saisir. Le code HTTP part au détail.
     return { fraicheur: null, fiabilite: "jamais", fiabiliteLbl: FIABILITE_LBL.jamais, cause, chiffre };
+  }
+  if (row.status === "ok" && partiel(row)) {
+    return { fraicheur, fiabilite: "partiel", fiabiliteLbl: FIABILITE_LBL.partiel, cause: null, chiffre };
   }
   if (row.status === "ok") {
     return { fraicheur, fiabilite: "confirme", fiabiliteLbl: FIABILITE_LBL.confirme, cause: null, chiffre };

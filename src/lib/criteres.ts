@@ -86,8 +86,11 @@ export function encoderCriteres(c: Criteres): string {
 export function decoderCriteres(search: string): Criteres {
   const p = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   const out: Criteres = {};
+  // Un identifiant retiré (doublon, `IDS_RETIRES`) se lit sous celui qu'on
+  // garde : un ancien favori « ?station=espace-aubrac » ouvre Laguiole.
   const station = p.get("station");
-  if (station && stationById(station)) out.station = station;
+  const st = station ? stationById(station) : undefined;
+  if (st) out.station = st.id;
   const q = p.get("q");
   if (q) out.q = q;
   else if (out.station) out.q = stationById(out.station)?.name;

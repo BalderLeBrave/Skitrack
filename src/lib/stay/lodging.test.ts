@@ -621,3 +621,47 @@ describe("filtre : la zone de recherche", () => {
   });
 });
 
+
+describe("filtre : une fiche que son titre dément n'est pas annoncée", () => {
+  // Relevé de La Norma, 25 septembre 2026 : CozyCozy publiait 8 personnes et
+  // 3 chambres pour un deux-pièces de quatre.
+  const chevalBlanc = bien({
+    source: "Abritel",
+    title: "Résidence Cheval Blanc - 2 Pièces Pour 4 Personnes Mae-8564",
+    guests: 8,
+    bedrooms: 3,
+  });
+
+  it("« convient » sur la fiche devient « non annoncé »", () => {
+    assert.equal(partyVerdict(chevalBlanc, { travelers: 6, rooms: 3 }), "non-annonce");
+    assert.ok(!fitsParty(chevalBlanc, { travelers: 6, rooms: 3 }));
+    // Réaffichée avec les muettes, comme elles.
+    assert.ok(fitsParty(chevalBlanc, { travelers: 6, rooms: 3 }, true));
+    assert.equal(
+      dropReasonFor(chevalBlanc, { travelers: 6, rooms: 3, stay: STAY, now: NOW }),
+      "capacite-muette",
+    );
+  });
+
+  it("un refus de la fiche l'emporte, et sans critère rien ne se juge", () => {
+    assert.equal(partyVerdict(chevalBlanc, { travelers: 10, rooms: 3 }), "trop-petit");
+    assert.equal(partyVerdict(chevalBlanc, { travelers: 0, rooms: 0 }), "convient");
+  });
+
+  it("une fiche que rien ne dément reste jugée sur ce qu'elle publie", () => {
+    const tourDuMerle = bien({
+      source: "Booking",
+      title: "Résidence La Tour Du Merle - 4 Pièces Pour 7 Personnes Mae-3298",
+      guests: 8,
+      bedrooms: 3,
+    });
+    assert.equal(partyVerdict(tourDuMerle, { travelers: 6, rooms: 3 }), "convient");
+    const narcisse = bien({
+      source: "GreenGo",
+      title: "Gîte Narcisse — Grand gite Narcisse (gite et studio)",
+      guests: 12,
+      bedrooms: 5,
+    });
+    assert.equal(partyVerdict(narcisse, { travelers: 6, rooms: 3 }), "convient");
+  });
+});

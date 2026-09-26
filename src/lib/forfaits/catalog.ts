@@ -1,8 +1,67 @@
 import raw from "./catalog.json" with { type: "json" };
-import type { DomainForfait } from "./types";
+import type { DomainForfait, ForfaitSeed } from "./types";
 import { deviseDuPays } from "../devises.ts";
 
 export const FORFAIT_CATALOG: DomainForfait[] = raw as DomainForfait[];
+
+/**
+ * Les rapports par lesquels le catalogue d'août déduisait trois prix du seul
+ * 6 jours adulte, à l'euro près : la journée valait 6 jours ÷ 5,3, le 6 jours
+ * enfant 0,8 × 6 jours, la saison 3,05 × 6 jours. Aux Portes du Soleil :
+ * 292 € relevés, et 55, 234 et 891 € calculés — affichés sous « Relevé le
+ * 11 août 2026 », coche « Prix relevé », et le 6 jours enfant entrait dans le
+ * coût du séjour des familles.
+ *
+ * Ce qui en fait une signature, mesuré le 26 septembre 2026 sur les grilles
+ * Skiinfo françaises (`monde/data/forfaitsSkiinfo.json`) : aucune des 184
+ * grilles à forfait saison n'a une saison à 3,05 × 6 jours, et aucune des 195
+ * grilles à journée et semaine n'a à la fois la journée à 6 jours ÷ 5,3 et
+ * l'enfant à 0,8 × 6 jours. Chacun de ces deux derniers rapports, seul, se
+ * rencontre (9 grilles chacun) : un enfant à 80 % de l'adulte est une vraie
+ * politique tarifaire, et ne prouve rien à lui seul.
+ */
+export const RAPPORTS_DEDUITS = { journee: 5.3, enfant: 0.8, saison: 3.05 } as const;
+
+/** Les trois prix que ces rapports tirent d'un 6 jours adulte. */
+export function prixDeduits(j6: number): { j1: number; enf6: number; saison: number } {
+  return {
+    j1: Math.round(j6 / RAPPORTS_DEDUITS.journee),
+    enf6: Math.round(j6 * RAPPORTS_DEDUITS.enfant),
+    saison: Math.round(j6 * RAPPORTS_DEDUITS.saison),
+  };
+}
+
+/**
+ * Ce que le catalogue estime, faute de l'avoir relevé : la journée et le
+ * 6 jours enfant d'une entrée dont seul le 6 jours adulte est relevé.
+ *
+ * Retirés des prix relevés le 26 septembre 2026 pour 142 entrées, choisies par
+ * les rapports ci-dessus et non à la main. Le 6 jours adulte reste, lui, un
+ * prix relevé. Les valeurs restent lisibles ici parce qu'elles disent un ordre
+ * de grandeur honnête — écart médian de 6 % pour la journée et de 5 % pour
+ * l'enfant sur les grilles Skiinfo françaises —, mais elles s'affichent
+ * « estimé » et n'entrent jamais dans un coût : sans tarif enfant relevé, les
+ * enfants sont comptés au tarif adulte, et l'écran le dit (`cout.ts`).
+ *
+ * La saison n'a pas d'estimation : 3,05 × 6 jours manque la vraie saison de
+ * 26 % en médiane (Courchevel : 1 095 € calculés, 1 580 € chez Skiinfo). Elle
+ * est simplement non relevée. Celle des 3 Vallées aussi, pour ses dix
+ * entrées : le catalogue en donnait deux pour une même zone, 1 090 € à Val
+ * Thorens et Orelle, 1 095 € à Courchevel et Méribel, et rien ne dit laquelle
+ * est juste. Aligner l'une sur l'autre aurait inventé un relevé.
+ *
+ * Val Thorens, Orelle et l'entrée « Val Thorens » ne suivaient pas le rapport
+ * de saison mais suivaient les deux autres : leur journée et leur 6 jours
+ * enfant sont estimés comme les 139 autres.
+ */
+export type EstimationForfait = { j1: number | null; enf6: number | null };
+
+/** La graine telle que le JSON la porte, estimation comprise. */
+type GraineCatalogue = ForfaitSeed & { estime?: EstimationForfait | null };
+
+export function estimationDuDomaine(d: DomainForfait | null | undefined): EstimationForfait | null {
+  return (d?.seed as GraineCatalogue | null | undefined)?.estime ?? null;
+}
 
 /** Domaine principal d’une station mise en avant. */
 export const STATION_FORFAIT_SLUG: Record<string, string> = {
@@ -132,6 +191,18 @@ export type Rattachement = {
  * Avoriaz tombaient donc à « non relevé » alors que leur domaine, lui, publie
  * son tarif — et que la fiche affichait déjà « Domaine relié : Les Trois
  * Vallées » juste à côté. L'information était là ; elle ne se montrait pas.
+ *
+ * La Giettaz a une entrée sans aucun prix depuis le 26 septembre 2026. Elle
+ * portait le pass, les chiffres et le tarif de l'Espace Diamant — « Forfaits ·
+ * Espace Diamant (192 km) », 249 € —, alors que ses remontées (Torraz, Grande
+ * Rare) sont celles des Portes du Mont-Blanc. Le pass relie aussi les stations
+ * entre elles (`domainFit.ts`) : son relevé gardait 53 logements de
+ * Praz-sur-Arly, Notre-Dame-de-Bellecombe et Crest-Voland. Ils en sortent sans
+ * attendre un nouveau relevé : `prix/annonces.ts` rejuge le verdict de chaque
+ * annonce enregistrée à la relecture (`rejugerDomaine`). Tant que le forfait
+ * des Portes du Mont-Blanc n'est pas relevé, elle n'en affiche aucun — et
+ * surtout pas celui d'Evasion Mont-Blanc (312 € à Combloux), qui la relierait
+ * aux Contamines.
  */
 export function rattachementForfait(
   stationId: string,

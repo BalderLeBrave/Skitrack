@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   annoncer,
   bedroomsFromRooms,
+  ficheDementieParLeTitre,
   occupancyFromRecord,
   occupancyFromText,
   occupancyOfListing,
@@ -220,5 +221,140 @@ describe("occupancy : ce que la source a écrit, rien de plus", () => {
       }).guests,
       8,
     );
+  });
+});
+
+describe("ficheDementieParLeTitre : le titre annonce plus petit que la fiche", () => {
+  /** Une offre CozyCozy telle que les relevés du 25 septembre 2026 la portent. */
+  const offre = (title: string, guests: number | null, bedrooms: number | null, source = "Abritel") => ({
+    source,
+    title,
+    guests,
+    bedrooms,
+  });
+
+  it("un studio, un F1 ou un 2 pièces publiés à 3 chambres", () => {
+    for (const [titre, g] of [
+      ["Appartement 2 Pièces 5/6 Pers. Proche Linga. Balcon Sud.meublé Classé 2 éToiles.", 6],
+      ["Résidence Le Chardonnet - 2 Pièces Pour 6 Personnes Mae-3321", 6],
+      ["Résidence Cheval Blanc - 2 Pièces Pour 4 Personnes Mae-8564", 8],
+      ["Confortable 2 Pièces + Cabine, Proche Pistes Valfréjus - Fr-1-561-29", 8],
+      ["Homency - Résidence De L'oisans F1", 6],
+      ["Studio Rénové Avec Balcon Et Parking à Flaine - Fr-1-425-121", 8],
+      ["Studio Confortable Au Centre Station Avec Terrasse, Animaux Admis - Fr-1-425-181", 6],
+      [
+        "Studio Cabine Au Calme Avec Terrasse à Praz-sur-arly - 4 Personnes, Parking Et Casier à Ski - Fr-1-603-14",
+        6,
+      ],
+      // Douteux : peut-être le chalet entier. Justement, on ne sait pas.
+      ["Studio Apartment In Chalet Sunshine", 6],
+    ] as const) {
+      assert.ok(ficheDementieParLeTitre(offre(titre, g, 3)), titre);
+    }
+  });
+
+  it("« pour N personnes » avec au moins deux personnes de plus sur la fiche", () => {
+    assert.ok(ficheDementieParLeTitre(offre("Appartement De Ski Alpin à Tignes Pour 4 Personnes", 6, 3)));
+    assert.ok(
+      ficheDementieParLeTitre(offre("Résidence Le Grand Bouquetin - 3 Pièces Pour 6 Personnes Mae-0034", 8, 3)),
+    );
+    assert.ok(ficheDementieParLeTitre(offre("Chalet for 4 people", 8, 3)));
+    // Une personne d'écart : un lit d'appoint, un bébé. L'annonce reste.
+    assert.ok(
+      !ficheDementieParLeTitre(offre("Résidence La Tour Du Merle - 4 Pièces Pour 7 Personnes Mae-3298", 8, 3)),
+    );
+    // Une fourchette se lit à sa borne haute.
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 6 à 8 personnes", 8, 4)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 6/8 pers.", 9, 4)));
+  });
+
+  it("épargne les titres de lot et GreenGo", () => {
+    assert.ok(
+      !ficheDementieParLeTitre(
+        offre("Arc 2000 -2 Appartements Et De 1 Studio Avec Balcon, Vue, Ski In Off, Wi-fi", 8, 3, "Booking"),
+      ),
+    );
+    assert.ok(!ficheDementieParLeTitre(offre("Appartements T4 Et Studio - 10 Pers - Avec Parking", 10, 4, "Airbnb")));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet + studio indépendant", 10, 4)));
+    assert.ok(
+      !ficheDementieParLeTitre(offre("Gîte Narcisse — Grand gite Narcisse (gite et studio)", 12, 5, "GreenGo")),
+    );
+    // GreenGo publie son détail : même un studio seul n'y est pas jugé.
+    assert.ok(!ficheDementieParLeTitre(offre("Studio des Bergers", 6, 3, "GreenGo")));
+  });
+
+  it("ne lit que ce qui contredit vraiment", () => {
+    // Un studio cabine publié 1 chambre, un 2 pièces + cabine publié 2 : ordinaire.
+    assert.ok(!ficheDementieParLeTitre(offre("Studio Cabine 4 personnes", 4, 1)));
+    assert.ok(!ficheDementieParLeTitre(offre("2 Pièces + Cabine au pied des pistes", 6, 2)));
+    // Un 3 pièces n'est pas dans la règle, un 4 pièces non plus.
+    assert.ok(!ficheDementieParLeTitre(offre("Appartement Confortable 3 Pièces à Flaine - 6 Pers", 8, 3)));
+    // « 4p », « 5p8 » ou « 6+2 Pers » ne disent pas une capacité opposable.
+    assert.ok(!ficheDementieParLeTitre(offre("Beau 4p Sur Valfrejus - Réductions Spéciales Mars 2026", 8, 3)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet Les Marmottes - 5p8", 8, 4, "Booking")));
+    assert.ok(!ficheDementieParLeTitre(offre("Appartement 6+2 Pers Avec 4 Ch.", 8, 4, "Airbnb")));
+    // Des pièces d'eau sont des salles de bain.
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet 3 chambres et 2 pièces d'eau", 8, 3)));
+    // Une fiche muette ne se contredit pas ; un titre sans taille non plus.
+    assert.ok(!ficheDementieParLeTitre(offre("Studio Rénové à Flaine", null, null)));
+    assert.ok(!ficheDementieParLeTitre(offre("Grand Appartement Familial", 10, 3)));
+    assert.ok(!ficheDementieParLeTitre({ title: "", guests: 8, bedrooms: 3 }));
+  });
+
+  it("un titre qui compte ses chambres ne se mesure pas à ses pièces", () => {
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet 5 chambres avec studio indépendant", 12, 5)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet 6 chambres, 2 pièces à vivre", 14, 6)));
+    assert.ok(!ficheDementieParLeTitre(offre("Maison 4 chambres, 2 Pièces De Vie", 10, 4)));
+    // Ni lot ni pièces de vie : seules les chambres du titre l'épargnent.
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet Le Studio - 5 Chambres", 12, 5)));
+    // Une chambre dans un 2 pièces : le titre dit bien un 2 pièces, la fiche
+    // à 3 chambres le dément toujours.
+    assert.ok(ficheDementieParLeTitre(offre("Appartement 2 Pièces 1 Chambre", 8, 3)));
+    // Des chambres au titre, mais moins que sur la fiche : toujours démentis.
+    assert.ok(ficheDementieParLeTitre(offre("Studio 1 chambre", 6, 3)));
+    assert.ok(ficheDementieParLeTitre(offre("T2 2 chambres", 6, 3)));
+  });
+
+  it("un studio annexe n'est pas le logement", () => {
+    for (const [titre, g, ch] of [
+      ["Grand chalet 12 pers. dont un studio", 12, 5],
+      ["Chalet avec studio attenant", 10, 4],
+      ["Chalet Avec Un Studio, Vue Mont-Blanc", 10, 4],
+      ["Chalet plus un studio, 14 personnes", 14, 6],
+      ["Grande maison familiale, studio attenant", 10, 4],
+      ["Chalet 5 chambres avec studio indépendant", 12, 5],
+    ] as const) {
+      assert.ok(!ficheDementieParLeTitre(offre(titre, g, ch)), titre);
+    }
+    // En tête du titre, « studio indépendant » est le logement loué.
+    assert.ok(ficheDementieParLeTitre(offre("Studio indépendant au calme", 6, 3)));
+    // Derrière un tiret, le lieu puis le logement loué : un studio, jugé.
+    for (const titre of [
+      "Chalet Les Sapins - Studio indépendant 2 pers",
+      "Résidence Les Chalets du Galibier - Studio indépendant",
+      "Ferme rénovée - Studio Indépendant",
+    ]) {
+      assert.ok(ficheDementieParLeTitre(offre(titre, 8, 3)), titre);
+    }
+  });
+
+  it("des pièces à vivre ou de vie ne mesurent pas le logement", () => {
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet avec 2 pièces à vivre et sauna", 12, 5)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet 2 Pièces À Vivre, Jacuzzi", 12, 5)));
+    assert.ok(!ficheDementieParLeTitre(offre("Grand chalet, 2 pièces de vie", 12, 5)));
+  });
+
+  it("« pour N personnes + M enfants » annonce N + M", () => {
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 12 personnes + 2 enfants", 14, 5)));
+    assert.ok(!ficheDementieParLeTitre(offre("Appartement pour 4 pers. + 2 bébés", 6, 2)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 6 personnes + 2", 8, 3)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 12 personnes (+ 2 enfants)", 14, 5)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 6 personnes (+2)", 8, 3)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 6 personnes + 2 couchages", 8, 3)));
+    assert.ok(!ficheDementieParLeTitre(offre("Chalet pour 6 personnes + 2 bb", 8, 3)));
+    // Deux personnes de plus que N + M : toujours démenti.
+    assert.ok(ficheDementieParLeTitre(offre("Chalet pour 12 personnes + 2 enfants", 16, 5)));
+    // « + 2 chambres » ne compte pas des personnes.
+    assert.ok(ficheDementieParLeTitre(offre("Appartement pour 4 personnes + 2 chambres", 6, 2)));
   });
 });

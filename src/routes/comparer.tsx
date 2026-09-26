@@ -30,6 +30,7 @@ import {
   type ColorUnit,
   type SortKey,
 } from "@/lib/parcours";
+import { domaineNomme } from "@/lib/classeur";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
   altLbl,
@@ -43,6 +44,7 @@ import {
   linked,
   maxM,
   minM,
+  sansDomaineLbl,
   sub,
   villageLbl,
   villageM,
@@ -76,6 +78,9 @@ type Crit = {
   /** Mention propre à une cellule, sous sa valeur : « prix du forfait Les
    *  3 Vallées » quand le tarif est pris au domaine. */
   sous?: (s: Station) => string | null;
+  /** Ce que la cellule écrit quand la valeur manque et que l'absence est
+   *  connue ; « non relevé » sinon. */
+  absent?: (s: Station) => string | null;
 };
 
 const CRIT: Crit[] = [
@@ -83,6 +88,10 @@ const CRIT: Crit[] = [
     label: "Altitude des pistes",
     txt: (s) => altLbl(s),
     num: (s) => maxM(s),
+    // La Bourboule, détachée de Super Besse, porte 0 m en bas et en haut des
+    // pistes : `altLbl` ne les lit pas comme une mesure, et il n'y a pas de
+    // pistes alpines à relever.
+    absent: sansDomaineLbl,
     /* L'altitude ne vient jamais de la mesure de domaine : `minM` et `maxM`
        sont lus sur la fiche de la station — le dépôt Skiinfo d'abord, France
        Montagnes ensuite —, là où les km et les remontées viennent d'
@@ -93,8 +102,20 @@ const CRIT: Crit[] = [
     note: "valeur de la station",
   },
   { label: "Village", txt: (s) => villageLbl(s), num: (s) => villageM(s), note: null },
-  { label: "Kilomètres de pistes", txt: (s) => kmLbl(s), num: (s) => s.pistesKm, note: "valeur du domaine" },
-  { label: "Remontées", txt: (s) => liftsLbl(s), num: (s) => s.lifts, note: "valeur du domaine" },
+  {
+    label: "Kilomètres de pistes",
+    txt: (s) => kmLbl(s),
+    num: (s) => s.pistesKm,
+    note: "valeur du domaine",
+    absent: sansDomaineLbl,
+  },
+  {
+    label: "Remontées",
+    txt: (s) => liftsLbl(s),
+    num: (s) => s.lifts,
+    note: "valeur du domaine",
+    absent: sansDomaineLbl,
+  },
   {
     label: "Forfait 6 j adulte",
     txt: (s) => eurN(forfaitOf(s)?.j6),
@@ -106,8 +127,11 @@ const CRIT: Crit[] = [
   {
     label: "Domaine relié",
     // Une station dont le domaine porte son nom n'est reliée à aucune autre :
-    // « non relevé » disait faux, la donnée est connue.
-    txt: (s) => (!s.domain ? null : linked(s) ? s.domain : "Non"),
+    // « non relevé » disait faux, la donnée est connue. Le libellé sans nom
+    // d'OpenStreetMap non plus (`linked`) : Névache, 0,4 km, dit « Non ».
+    // Une station sans domaine alpin (La Bourboule) n'est reliée à rien, et on
+    // le sait : « Non » aussi, pas « non relevé ».
+    txt: (s) => (!s.domain ? (sansDomaineLbl(s) ? "Non" : null) : linked(s) ? s.domain : "Non"),
     num: null,
     note: null,
   },
@@ -159,7 +183,10 @@ function Comparer() {
   const domPool = P.massif ? all.filter((s) => s.massif === P.massif) : all;
   const doms = useMemo(
     () =>
-      [...new Set(domPool.map((s) => s.domain).filter((d): d is string => !!d))].sort((a, b) =>
+      // « domaine non nommé (OpenStreetMap) » ne désigne pas un domaine : il
+      // réunissait Beille, Névache et Saint-Colomban, de 44 à 471 km l'une
+      // de l'autre.
+      [...new Set(domPool.map((s) => s.domain).filter(domaineNomme))].sort((a, b) =>
         a.localeCompare(b, "fr"),
       ),
     [domPool],
@@ -236,8 +263,21 @@ function Comparer() {
       : null;
 
   /* ---------- Comparaison ---------- */
-  const cmp = P.cmp.map((id) => stationById(id)).filter((s): s is Station => !!s);
-  const pickId = cmp.some((s) => s.id === P.pick) ? P.pick : (cmp[0]?.id ?? null);
+  // Par identifiant **résolu** : « praloup-04226 », retiré le 26 septembre
+  // 2026, ouvre Praloup. Une comparaison qui portait les deux montrait deux
+  // colonnes Praloup sous la même clé ; la liste, elle, ne cochait pas la
+  // station affichée. Tout ce qui suit lit `cmp` et `cmpIds`, jamais `P.cmp`.
+  const cmp = [
+    ...new Map(
+      P.cmp
+        .map((id) => stationById(id))
+        .filter((s): s is Station => !!s)
+        .map((s) => [s.id, s] as const),
+    ).values(),
+  ];
+  const cmpIds = new Set(cmp.map((s) => s.id));
+  const pickResolu = P.pick ? (stationById(P.pick)?.id ?? null) : null;
+  const pickId = pickResolu && cmpIds.has(pickResolu) ? pickResolu : (cmp[0]?.id ?? null);
   /* Trois stations d'un même domaine partagent six lignes sur neuf. Les
      masquer laisse voir ce qui les sépare vraiment ; la bascule ne s'affiche
      que s'il y a quelque chose à masquer. */
@@ -249,9 +289,12 @@ function Comparer() {
   const [tableauOuvert, setTableauOuvert] = useState(false);
   const volet = useRef<HTMLElement>(null);
   useEchap(tableauOuvert, () => setTableauOuvert(false));
+  // Identiques au texte affiché : « sans domaine alpin » et « non relevé »
+  // valent tous deux null, mais ne disent pas la même chose.
+  const affiche = (c: Crit, s: Station) => c.txt(s) ?? c.absent?.(s) ?? null;
   const nIdentiques =
     cmp.length > 1
-      ? CRIT.filter((c) => new Set(cmp.map((s) => c.txt(s))).size === 1).length
+      ? CRIT.filter((c) => new Set(cmp.map((s) => affiche(c, s))).size === 1).length
       : 0;
   const pickName = pickId ? stationById(pickId)?.name : "";
   const retain = (id: string) => {
@@ -283,7 +326,7 @@ function Comparer() {
   const marqueurs = useMemo(
     () =>
       sorted.map((s) => {
-        const comparee = P.cmp.includes(s.id);
+        const comparee = cmpIds.has(s.id);
         return {
           id: s.id,
           lat: s.lat,
@@ -300,7 +343,7 @@ function Comparer() {
       }),
     // Le contenu change quand les identifiants ou la comparaison changent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sorted.map((s) => s.id).join(","), P.cmp.join(",")],
+    [sorted.map((s) => s.id).join(","), [...cmpIds].join(",")],
   );
 
   /** La clé de recadrage suit le **résultat des filtres**, pas le contenu du
@@ -411,7 +454,8 @@ function Comparer() {
                     const ecart = new Set(known).size > 1;
                     const best = known.length > 1 && ecart ? Math.max(...known) : null;
                     const textes = cmp.map((s) => c.txt(s));
-                    const identique = textes.length > 1 && new Set(textes).size === 1;
+                    const identique =
+                      textes.length > 1 && new Set(cmp.map((s) => affiche(c, s))).size === 1;
                     if (identique && masquerIdentiques) return null;
                     return (
                       <tr key={c.label}>
@@ -428,7 +472,7 @@ function Comparer() {
                               key={s.id}
                               className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}${v == null ? " cmp7__cell--absent" : ""}${gagne ? " cmp7__cell--best" : ""}`}
                             >
-                              {v ?? "non relevé"}
+                              {v ?? c.absent?.(s) ?? "non relevé"}
                               {sous ? <span className="cmp7__sous">{sous}</span> : null}
                             </td>
                           );
@@ -444,7 +488,11 @@ function Comparer() {
                       <td key={s.id} className={`cmp7__cell${s.id === pickId ? " cmp7__col--pick" : ""}`}>
                         <div className="cmp7__mix">
                           <PartPistes share={s.colorShare} hauteur={8} />
-                          <span>{mixLbl(s.colorShare)}</span>
+                          <span>
+                            {s.colorShare
+                              ? mixLbl(s.colorShare)
+                              : (sansDomaineLbl(s) ?? mixLbl(null))}
+                          </span>
                         </div>
                       </td>
                     ))}
@@ -795,13 +843,15 @@ function Comparer() {
                       <div>
                         <span>Sommet</span>
                         <b className={maxM(st) != null ? undefined : "absent"}>
-                          {maxM(st) != null ? `${fmt(maxM(st))} m` : "non relevé"}
+                          {maxM(st) != null
+                            ? `${fmt(maxM(st))} m`
+                            : (sansDomaineLbl(st) ?? "non relevé")}
                         </b>
                       </div>
                       <div>
                         <span>Pistes, domaine</span>
                         <b className={kmLbl(st) ? undefined : "absent"}>
-                          {kmLbl(st) ?? "km non publié"}
+                          {kmLbl(st) ?? sansDomaineLbl(st) ?? "km non publié"}
                         </b>
                       </div>
                       <div>
@@ -831,7 +881,7 @@ function Comparer() {
               actionsDe={(id) => {
                 const st = stationById(id);
                 if (!st) return null;
-                const dedans = P.cmp.includes(st.id);
+                const dedans = cmpIds.has(st.id);
                 return (
                   <>
                     <button

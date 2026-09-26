@@ -4,7 +4,7 @@
  * ## Le problème
  *
  * Le dépôt porte 229 photos locales, une par station ayant une fiche Skiinfo.
- * Le référentiel en compte 320 : **91 stations n'ont donc pas de photo
+ * Le référentiel en compte 315 : **86 stations n'ont donc pas de photo
  * propre**, et la plupart sont des fronts de neige d'un domaine dont une autre
  * station, elle, en a une. Aime 2000 n'a pas de photo ; La Plagne, même
  * domaine, en a une, et c'est bien celle que Skiinfo publie pour ce front de
@@ -22,7 +22,12 @@
  * Aucun hotlink. Les URL distantes de `skiinfo.photos.json` ne sont jamais
  * posées dans un `src` : deux d'entre elles ne répondent plus, et
  * `skiinfo.photos.test.ts` interdit la pratique. Une station sans domaine
- * donneur reste sans photo, et l'écran le dit — elles sont 19.
+ * donneur reste sans photo, et l'écran le dit — elles sont 20.
+ *
+ * Le libellé « domaine non nommé (OpenStreetMap) » n'est pas un domaine
+ * (`domaineNomme`) : il prêtait à Névache la photo de Saint-Colomban-des-
+ * Villards, « même domaine », à 44 km (audit du 26 septembre 2026). Névache
+ * reste sans photo.
  *
  * ## Le choix du donneur
  *
@@ -37,6 +42,7 @@
  *    pas de l'ordre de chargement.
  */
 
+import { domaineNomme } from "./classeur.ts";
 import { STATIONS, stationById, type Station } from "./stations.ts";
 
 export type ResolvedPhoto = {
@@ -60,7 +66,7 @@ function fold(value: string): string {
 
 const BY_DOMAIN = new Map<string, Station[]>();
 for (const s of STATIONS) {
-  if (!s.domain) continue;
+  if (!domaineNomme(s.domain)) continue;
   const rows = BY_DOMAIN.get(s.domain) ?? [];
   rows.push(s);
   BY_DOMAIN.set(s.domain, rows);
@@ -85,7 +91,7 @@ export function resolveStationPhoto(id: string): ResolvedPhoto | null {
   const s = stationById(id);
   if (!s) return null;
   if (s.photo) return { src: s.photo, fromId: null, fromName: null, domain: null };
-  if (!s.domain) return null;
+  if (!domaineNomme(s.domain)) return null;
   const donor = photoDonorOf(s.domain);
   if (!donor || !donor.photo || donor.id === s.id) return null;
   return { src: donor.photo, fromId: donor.id, fromName: donor.name, domain: s.domain };

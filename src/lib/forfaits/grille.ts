@@ -18,7 +18,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { ForfaitRow } from "./types.ts";
-import { deviseDuDomaine } from "./catalog.ts";
+import { deviseDuDomaine, domainBySlug, estimationDuDomaine } from "./catalog.ts";
 
 /** Les catégories de tarif. Une constante, partagée ; d'autres peuvent s'y
  *  ajouter sans qu'aucun écran change. */
@@ -102,14 +102,48 @@ export function saisonDe(d: Date): string {
   return `${debut}-${String((debut + 1) % 100).padStart(2, "0")}`;
 }
 
+/** La source écrite dans une case estimée, en infobulle : ce n'est pas une
+ *  page relevée. */
+export const SOURCE_ESTIMATION = "Estimé d’après le 6 jours adulte, faute de relevé.";
+
+/**
+ * Les cases que le catalogue estime pour ce domaine, faute de les relever.
+ *
+ * La journée et le 6 jours enfant de 142 domaines étaient calculés à partir du
+ * 6 jours adulte, et la grille les écrivait « relevé » — 55 € et 234 € aux
+ * Portes du Soleil. Ils n'arrivent plus par la ligne (`j1` et `enf6` y sont
+ * nuls depuis le 26 septembre 2026) ; ils sont posés ici, « estimé ».
+ *
+ * La même règle nettoie les grilles déjà enregistrées sur l'appareil : une case
+ * « relevé » qui porte exactement la valeur estimée, et que la ligne ne fournit
+ * pas, est cette ancienne valeur calculée. Elle redevient « estimé ». Une case
+ * vide, elle, n'est remplie que si le 6 jours de la ligne est celui du
+ * catalogue : une estimation tirée d'un autre 6 jours ne dirait plus rien.
+ */
+function estimations(
+  slug: string,
+  row: ForfaitRow,
+): { duree: number; categorie: Categorie; prix: number; remplir: boolean }[] {
+  const d = domainBySlug(slug);
+  const est = estimationDuDomaine(d);
+  if (!est) return [];
+  const remplir = row.j6 != null && row.j6 === d?.seed?.j6;
+  const out: { duree: number; categorie: Categorie; prix: number; remplir: boolean }[] = [];
+  if (row.j1 == null && est.j1 != null) out.push({ duree: 1, categorie: "adulte", prix: est.j1, remplir });
+  if (row.enf6 == null && est.enf6 != null) out.push({ duree: 6, categorie: "enfant", prix: est.enf6, remplir });
+  return out;
+}
+
 /**
  * Ce qu'un relevé automatique dépose dans la grille.
  *
  * `ForfaitRow` ne connaît que le 1 jour adulte, le 6 jours adulte et le 6 jours
  * enfant : c'est tout ce que l'extraction sait lire aujourd'hui, et la grille ne
- * prétend pas en savoir plus. Les cases saisies à la main sont laissées
- * intactes ; celles que le relevé contredirait sont rendues à part, pour que
- * l'écran demande confirmation au lieu de les écraser.
+ * prétend pas en savoir plus. S'y ajoutent, marquées « estimé », les deux cases
+ * que le catalogue estime quand la ligne ne les porte pas (`estimations`). Les
+ * cases saisies à la main sont laissées intactes ; celles que le relevé
+ * contredirait sont rendues à part, pour que l'écran demande confirmation au
+ * lieu de les écraser.
  */
 export function fusionnerReleve(
   g: Grille,
@@ -123,6 +157,25 @@ export function fusionnerReleve(
   const cases = { ...g.cases };
   const conflits: { duree: number; categorie: Categorie; ancien: number; nouveau: number }[] = [];
   const quand = row.fetchedAt ?? row.lastAttemptAt;
+  for (const e of estimations(g.slug, row)) {
+    const k = cle(e.duree, e.categorie);
+    const actuel = cases[k];
+    // Jamais sur une saisie ; jamais sur un vrai relevé d'une autre valeur,
+    // gardé d'une lecture précédente de la page officielle.
+    if (actuel?.statut === "manuel") continue;
+    const ancienCalcul = actuel?.statut === "releve" && actuel.prix === e.prix;
+    if (actuel?.statut === "releve" && !ancienCalcul) continue;
+    // Ailleurs, l'estimation ne se pose que si elle part du 6 jours affiché.
+    if (!ancienCalcul && !e.remplir) continue;
+    if (actuel?.statut === "estime" && actuel.prix === e.prix && actuel.source === SOURCE_ESTIMATION) continue;
+    cases[k] = {
+      prix: e.prix,
+      devise: deviseDuDomaine(g.slug) ?? "EUR",
+      source: SOURCE_ESTIMATION,
+      dateReleve: null,
+      statut: "estime",
+    };
+  }
   for (const v of venants) {
     const k = cle(v.duree, v.categorie);
     const actuel = cases[k];

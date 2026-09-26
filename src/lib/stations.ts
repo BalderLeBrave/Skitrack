@@ -1,10 +1,13 @@
-/** Référentiel des stations FR : classeur France Montagnes × OpenSkiMap (284),
- *  plus les stations du dépôt absentes du classeur (36) — 320 entrées.
+/** Référentiel des stations FR : classeur France Montagnes × OpenSkiMap (280
+ *  lignes, 4 doublons écartés), plus les stations du dépôt absentes du
+ *  classeur (35) — 315 entrées.
  *
  *  Clé primaire : l'identifiant du dépôt partout où la station y existe. Les
  *  231 identifiants du dépôt survivent donc tous, inchangés — voir
- *  `stationMigration.ts` et son test. Les 89 stations que seul le classeur
- *  décrit portent un identifiant dérivé de leur nom.
+ *  `stationMigration.ts` et son test. Les 84 stations que seul le classeur
+ *  décrit portent un identifiant dérivé de leur nom. Les cinq identifiants
+ *  retirés le 26 septembre 2026 (`IDS_RETIRES`) se résolvent encore, vers la
+ *  station qui les remplace.
  *
  *  Ce que le dépôt garde la main sur : nom curé, altitudes vérifiées, IGN RGE
  *  ALTI au pin, photo, mix Skiinfo. Ce que le classeur apporte : type, statut,
@@ -17,6 +20,7 @@
 import {
   CLASSEUR,
   GPS_FIXES,
+  IDS_RETIRES,
   nomAffiche,
   posRelevee,
   shareFromCounts,
@@ -41,7 +45,7 @@ export type Station = {
   /**
    * Le pays, en ISO 3166-1 alpha-2.
    *
-   * Il vaut « FR » pour les 320 stations, et c'est tout ce qu'il peut valoir
+   * Il vaut « FR » pour les 315 stations, et c'est tout ce qu'il peut valoir
    * ici : ce référentiel est celui du classeur France Montagnes, et il ne
    * s'ouvre pas. Le reste du monde vit dans `monde/monde.ts`, sous une autre
    * forme et derrière une porte asynchrone.
@@ -73,7 +77,7 @@ export type Station = {
   /** Mix de pistes à l'échelle de la fiche Skiinfo. */
   slopes: StationSlopes;
   origin: StationOrigin;
-  /** Présente au classeur France Montagnes. Faux pour les 36 reprises de la
+  /** Présente au classeur France Montagnes. Faux pour les 35 reprises de la
    *  seule fiche Skiinfo — axe distinct d'`origin`, qui dit l'inverse : avoir
    *  une fiche au dépôt. */
   inClasseur: boolean;
@@ -90,7 +94,9 @@ export type Station = {
   segments: number | null;
   lifts: number | null;
   liftsScale: MeasureScale | null;
-  /** Distance village → première piste, en km. */
+  /** Distance village → première piste, en km, mesurée par le classeur depuis
+   *  son repère. `null` quand la station en garde un autre, à plus de
+   *  `ECART_REPERE_MAX_M` : la mesure décrirait un autre point. */
   distToPisteKm: number | null;
   colorShare: ColorShare | null;
   colorScale: MeasureScale | null;
@@ -135,6 +141,32 @@ function pctOf(slopes: StationSlopes): ColorShare | null {
 const DEPOT: DepotRow[] = rows as DepotRow[];
 const DEPOT_BY_ID = new Map(DEPOT.map((r) => [r.id, r]));
 
+/**
+ * Écart au-delà duquel la distance à la piste du classeur n'est plus celle de
+ * la station affichée, en mètres.
+ *
+ * Le classeur mesure cette distance depuis son propre repère, souvent le
+ * centre de la commune. La station garde le sien quand elle en a un meilleur
+ * (`GPS_FIXES`, pin du dépôt), et c'est lui que la Carte montre. Loin de
+ * celui du classeur, la mesure décrit un autre point : Lus-la-Jarjatte
+ * affichait « piste à 3,1 km » depuis le centre du village, alors que son
+ * repère est à 120 m des remontées ; Laguiole, 4,4 km depuis le bourg. La
+ * distance vraie depuis le repère gardé est inconnue : elle vaut `null`, elle
+ * ne s'estime pas.
+ */
+export const ECART_REPERE_MAX_M = 500;
+
+/** Distance entre deux points, en mètres (haversine). */
+function metresEntre(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLon = (b.lon - a.lon) * rad;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6_371_000 * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
 /** Mix pour une station que seul le classeur décrit : les tronçons du domaine,
  *  marqués `source: "osm"`. La colonne « non classées » reste dehors —
  *  `slopes` porte la sémantique Skiinfo, qui n'a pas cette colonne, et les
@@ -159,6 +191,13 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
   // mesures de l'ancien domaine. Voir `classeur.ts`, étape 5.
   const cnt = entry.measure.counts;
   const slopes = depot ? slopesFromSkiinfo(entry.id) : slopesFromClasseur(entry.measure.km, cnt);
+  // Une correction relevée à la main prime le pin du dépôt comme le centre
+  // de commune du classeur : c'est la position de la station, pas celle
+  // d'un point d'intérêt voisin.
+  const repere = {
+    lat: GPS_FIXES[entry.id]?.[0] ?? depot?.lat ?? fm.lat,
+    lon: GPS_FIXES[entry.id]?.[1] ?? depot?.lon ?? fm.lon,
+  };
   return {
     id: entry.id,
     // Le classeur porte des coquilles (« Gourrette », « Fond d'Urle ») : le nom
@@ -169,8 +208,11 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     country: "FR",
     massif: depot?.massif ?? fm.massif,
     villageM: depot?.villageM ?? fm.village ?? 0,
-    minM: depot?.minM ?? fm.min ?? 0,
-    maxM: depot?.maxM ?? fm.max ?? 0,
+    // Bas et haut des pistes : ceux de la fiche Skiinfo, à défaut ceux du
+    // domaine. Une station détachée de son domaine n'en a plus : La Bourboule
+    // affichait les 1 223 – 1 834 m de Super Besse.
+    minM: depot?.minM ?? entry.measure.bas ?? 0,
+    maxM: depot?.maxM ?? entry.measure.haut ?? 0,
     photo: skiinfoPhoto(entry.id),
     fmId: depot?.fmId ?? null,
     fmVillageM: depot?.fmVillageM ?? null,
@@ -179,11 +221,8 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     demM: depot?.demM ?? null,
     pinKind: depot?.pinKind ?? "inconnu",
     gpsDup: depot?.gpsDup ?? false,
-    // Une correction relevée à la main prime le pin du dépôt comme le centre
-    // de commune du classeur : c'est la position de la station, pas celle
-    // d'un point d'intérêt voisin.
-    lat: GPS_FIXES[entry.id]?.[0] ?? depot?.lat ?? fm.lat,
-    lon: GPS_FIXES[entry.id]?.[1] ?? depot?.lon ?? fm.lon,
+    lat: repere.lat,
+    lon: repere.lon,
     posRelevee: posRelevee(entry.id, depot?.pinKind ?? "inconnu"),
     slopes,
     origin: depot ? "depot" : "classeur",
@@ -199,8 +238,9 @@ const FROM_CLASSEUR: Station[] = CLASSEUR.map((entry) => {
     segments: entry.measure.slopes,
     lifts: entry.measure.lifts,
     liftsScale: entry.measure.lifts != null ? ("domaine" as MeasureScale) : null,
-    // Échelle station : mesurée ou nulle.
-    distToPisteKm: fm.slopeDistance,
+    // Échelle station : mesurée ou nulle. Mesurée depuis un repère à plus de
+    // 500 m du nôtre, elle n'est pas celle de la station (`ECART_REPERE_MAX_M`).
+    distToPisteKm: metresEntre(repere, fm) > ECART_REPERE_MAX_M ? null : fm.slopeDistance,
     colorShare: shareFromCounts(cnt),
     colorScale: cnt ? ("domaine" as MeasureScale) : null,
     colorCounts: cnt,
@@ -256,8 +296,15 @@ export const DEPOT_STATIONS: Station[] = STATIONS.filter((s) => s.origin === "de
 
 const BY_ID = new Map(STATIONS.map((s) => [s.id, s]));
 
+/**
+ * La station de cet identifiant. Un identifiant retiré du référentiel
+ * (`IDS_RETIRES` : une ligne du classeur en double, écartée le 26 septembre
+ * 2026) rend la station qui le remplace : un séjour, une comparaison, un lien
+ * ou un relevé enregistrés sous « espace-aubrac » ouvrent Laguiole, au lieu de
+ * ne plus rien ouvrir. La station rendue porte son propre identifiant.
+ */
 export function stationById(id: string): Station | undefined {
-  return BY_ID.get(id);
+  return BY_ID.get(id) ?? BY_ID.get(IDS_RETIRES[id] ?? "");
 }
 
 export function dropM(station: Station): number {

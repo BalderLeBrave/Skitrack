@@ -241,8 +241,8 @@ function ForfaitsPage() {
           <div>
             <h1 className="font-display text-affiche tracking-tight">Forfaits</h1>
             <p className="forf__lead">
-              Tarifs des domaines français. Un tarif relevé porte sa date ; un tarif jamais obtenu
-              se saisit à la main.
+              Tarifs des domaines français. Un tarif relevé porte sa date, un tarif estimé le dit ;
+              un tarif jamais obtenu se saisit à la main.
             </p>
           </div>
           <div className="forf__actions">

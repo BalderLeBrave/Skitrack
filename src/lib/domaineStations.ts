@@ -14,8 +14,13 @@
  * « Les Trois Vallées ». `cleDomaine` fait tomber les deux écritures sur la
  * même clé, comme pour l'héritage du tarif : les deux sens ne peuvent donc pas
  * se contredire.
+ *
+ * Le libellé « domaine non nommé (OpenStreetMap) » ne réunit personne
+ * (`domaineNomme`) : il faisait de Beille, dans l'Ariège, la voisine de
+ * Névache et de Saint-Colomban-des-Villards, à 471 et 462 km.
  */
 
+import { domaineNomme } from "./classeur.ts";
 import { cleDomaine, domainBySlug } from "./forfaits/catalog.ts";
 import { STATIONS, type Station } from "./stations.ts";
 
@@ -25,6 +30,7 @@ function parDomaine(): Map<string, Station[]> {
   if (index) return index;
   index = new Map();
   for (const s of STATIONS) {
+    if (!domaineNomme(s.domain)) continue;
     const cle = cleDomaine(s.domain);
     if (!cle) continue;
     const f = index.get(cle);
@@ -60,6 +66,7 @@ export function stationsDuDomaine(slug: string): Station[] {
 
 /** Les autres stations du domaine skiable d'une station — ses voisines. */
 export function stationsVoisines(stationId: string, nomDomaine: string | null | undefined): Station[] {
+  if (!domaineNomme(nomDomaine)) return [];
   const cle = cleDomaine(nomDomaine);
   if (!cle) return [];
   return (parDomaine().get(cle) ?? []).filter((s) => s.id !== stationId);

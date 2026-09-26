@@ -18,13 +18,17 @@
 "website": "https://www.valthorens.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1090,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": [
 "val-thorens"
@@ -201,13 +205,17 @@
 "website": "https://www.avoriaz.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 55,
+"j1": null,
 "j6": 292,
-"enf6": 234,
-"saison": 891,
+"enf6": null,
+"saison": null,
 "zone": "Portes du Soleil (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 55,
+"enf6": 234
+}
 },
 "stationIds": []
 },
@@ -230,13 +238,17 @@
 "website": "https://www.flaine.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 54,
+"j1": null,
 "j6": 288,
-"enf6": 230,
-"saison": 878,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand Massif (265 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 54,
+"enf6": 230
+}
 },
 "stationIds": []
 },
@@ -379,13 +391,17 @@
 "website": "https://lesmenuires.com/fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1095,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": []
 },
@@ -408,13 +424,17 @@
 "website": "https://courchevel.com/fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1095,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": []
 },
@@ -437,13 +457,17 @@
 "website": "https://www.meribel.net/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1095,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": [
 "meribel"
@@ -468,13 +492,17 @@
 "website": "https://www.lesgets.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 55,
+"j1": null,
 "j6": 292,
-"enf6": 234,
-"saison": 891,
+"enf6": null,
+"saison": null,
 "zone": "Portes du Soleil (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 55,
+"enf6": 234
+}
 },
 "stationIds": []
 },
@@ -497,13 +525,17 @@
 "website": "https://www.samoens.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 54,
+"j1": null,
 "j6": 288,
-"enf6": 230,
-"saison": 878,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand Massif (265 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 54,
+"enf6": 230
+}
 },
 "stationIds": []
 },
@@ -526,13 +558,17 @@
 "website": "https://www.larosiere.net/",
 "websiteVerified": true,
 "seed": {
-"j1": 53,
+"j1": null,
 "j6": 283,
-"enf6": 226,
-"saison": 863,
+"enf6": null,
+"saison": null,
 "zone": "Espace San Bernardo (160 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 53,
+"enf6": 226
+}
 },
 "stationIds": []
 },
@@ -555,13 +591,17 @@
 "website": "https://www.saintefoy-tarentaise.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 41,
+"j1": null,
 "j6": 218,
-"enf6": 174,
-"saison": 665,
+"enf6": null,
+"saison": null,
 "zone": "Sainte-Foy (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 41,
+"enf6": 174
+}
 },
 "stationIds": []
 },
@@ -584,13 +624,17 @@
 "website": "https://www.valmorel.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 49,
+"j1": null,
 "j6": 260,
-"enf6": 208,
-"saison": 793,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand Domaine (165 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 49,
+"enf6": 208
+}
 },
 "stationIds": []
 },
@@ -613,13 +657,17 @@
 "website": "https://www.lessaisies.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 249,
-"enf6": 199,
-"saison": 759,
+"enf6": null,
+"saison": null,
 "zone": "Espace Diamant (192 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 199
+}
 },
 "stationIds": []
 },
@@ -642,13 +690,17 @@
 "website": "https://www.megeve-tourisme.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 59,
+"j1": null,
 "j6": 312,
-"enf6": 250,
-"saison": 952,
+"enf6": null,
+"saison": null,
 "zone": "Evasion Mont-Blanc (400 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 59,
+"enf6": 250
+}
 },
 "stationIds": []
 },
@@ -671,13 +723,17 @@
 "website": "https://www.legrandbornand.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 44,
+"j1": null,
 "j6": 232,
-"enf6": 186,
-"saison": 708,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand-Bornand (84 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 44,
+"enf6": 186
+}
 },
 "stationIds": []
 },
@@ -700,13 +756,17 @@
 "website": "https://www.haute-maurienne-vanoise.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 255,
-"enf6": 204,
-"saison": 778,
+"enf6": null,
+"saison": null,
 "zone": "Val Cenis (125 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 204
+}
 },
 "stationIds": []
 },
@@ -729,13 +789,17 @@
 "website": "https://www.chamrousse.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 38,
+"j1": null,
 "j6": 203,
-"enf6": 162,
-"saison": 619,
+"enf6": null,
+"saison": null,
 "zone": "Chamrousse (90 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 38,
+"enf6": 162
+}
 },
 "stationIds": []
 },
@@ -758,13 +822,17 @@
 "website": "https://www.villarddelans-correnconenvercors.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 37,
+"j1": null,
 "j6": 196,
-"enf6": 157,
-"saison": 598,
+"enf6": null,
+"saison": null,
 "zone": "Villard – Corrençon (125 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 37,
+"enf6": 157
+}
 },
 "stationIds": []
 },
@@ -787,13 +855,17 @@
 "website": "https://www.les7laux.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 39,
+"j1": null,
 "j6": 207,
-"enf6": 166,
-"saison": 631,
+"enf6": null,
+"saison": null,
 "zone": "Les 7 Laux (120 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 39,
+"enf6": 166
+}
 },
 "stationIds": []
 },
@@ -816,13 +888,17 @@
 "website": "https://www.serre-chevalier.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 58,
+"j1": null,
 "j6": 307,
-"enf6": 246,
-"saison": 936,
+"enf6": null,
+"saison": null,
 "zone": "Serre Chevalier (250 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 58,
+"enf6": 246
+}
 },
 "stationIds": []
 },
@@ -845,13 +921,17 @@
 "website": "https://montgenevre.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 49,
+"j1": null,
 "j6": 258,
-"enf6": 206,
-"saison": 787,
+"enf6": null,
+"saison": null,
 "zone": "Voie Lactée (400 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 49,
+"enf6": 206
+}
 },
 "stationIds": []
 },
@@ -874,13 +954,17 @@
 "website": "https://www.vars.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 50,
+"j1": null,
 "j6": 264,
-"enf6": 211,
-"saison": 805,
+"enf6": null,
+"saison": null,
 "zone": "La Forêt Blanche (185 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 50,
+"enf6": 211
+}
 },
 "stationIds": []
 },
@@ -903,13 +987,17 @@
 "website": "https://www.lesorres.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 45,
+"j1": null,
 "j6": 237,
-"enf6": 190,
-"saison": 723,
+"enf6": null,
+"saison": null,
 "zone": "Les Orres (100 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 45,
+"enf6": 190
+}
 },
 "stationIds": []
 },
@@ -932,13 +1020,17 @@
 "website": "https://www.ledevoluy.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 43,
+"j1": null,
 "j6": 229,
-"enf6": 183,
-"saison": 698,
+"enf6": null,
+"saison": null,
 "zone": "Le Dévoluy (100 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 43,
+"enf6": 183
+}
 },
 "stationIds": []
 },
@@ -961,13 +1053,17 @@
 "website": "https://www.orcieres.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 46,
+"j1": null,
 "j6": 242,
-"enf6": 194,
-"saison": 738,
+"enf6": null,
+"saison": null,
 "zone": "Orcières (100 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 46,
+"enf6": 194
+}
 },
 "stationIds": []
 },
@@ -990,13 +1086,17 @@
 "website": "https://www.paysdesecrins.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 40,
+"j1": null,
 "j6": 214,
-"enf6": 171,
-"saison": 653,
+"enf6": null,
+"saison": null,
 "zone": "Puy-Saint-Vincent (75 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 40,
+"enf6": 171
+}
 },
 "stationIds": []
 },
@@ -1019,13 +1119,17 @@
 "website": "https://www.praloup.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 252,
-"enf6": 202,
-"saison": 769,
+"enf6": null,
+"saison": null,
 "zone": "Espace Lumière (180 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 202
+}
 },
 "stationIds": []
 },
@@ -1048,13 +1152,17 @@
 "website": "https://isola2000.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 256,
-"enf6": 205,
-"saison": 781,
+"enf6": null,
+"saison": null,
 "zone": "Isola 2000 (120 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 205
+}
 },
 "stationIds": []
 },
@@ -1077,13 +1185,17 @@
 "website": "https://www.stationsnicecotedazur.com/fr/auron",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 248,
-"enf6": 198,
-"saison": 756,
+"enf6": null,
+"saison": null,
 "zone": "Auron (135 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 198
+}
 },
 "stationIds": []
 },
@@ -1106,13 +1218,17 @@
 "website": "https://peyragudes.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 42,
+"j1": null,
 "j6": 222,
-"enf6": 178,
-"saison": 677,
+"enf6": null,
+"saison": null,
 "zone": "Peyragudes (60 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 42,
+"enf6": 178
+}
 },
 "stationIds": []
 },
@@ -1135,13 +1251,17 @@
 "website": "https://piau-engaly.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 41,
+"j1": null,
 "j6": 215,
-"enf6": 172,
-"saison": 656,
+"enf6": null,
+"saison": null,
 "zone": "Piau-Engaly (65 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 41,
+"enf6": 172
+}
 },
 "stationIds": []
 },
@@ -1164,13 +1284,17 @@
 "website": "https://www.ax-ski.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 40,
+"j1": null,
 "j6": 214,
-"enf6": 171,
-"saison": 653,
+"enf6": null,
+"saison": null,
 "zone": "Ax 3 Domaines (80 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 40,
+"enf6": 171
+}
 },
 "stationIds": []
 },
@@ -1193,13 +1317,17 @@
 "website": "https://font-romeu.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 38,
+"j1": null,
 "j6": 202,
-"enf6": 162,
-"saison": 616,
+"enf6": null,
+"saison": null,
 "zone": "Font-Romeu (43 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 38,
+"enf6": 162
+}
 },
 "stationIds": []
 },
@@ -1222,13 +1350,17 @@
 "website": "https://lesangles.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 39,
+"j1": null,
 "j6": 205,
-"enf6": 164,
-"saison": 625,
+"enf6": null,
+"saison": null,
 "zone": "Les Angles (55 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 39,
+"enf6": 164
+}
 },
 "stationIds": []
 },
@@ -1251,13 +1383,17 @@
 "website": "https://metabief.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 148,
-"enf6": 118,
-"saison": 451,
+"enf6": null,
+"saison": null,
 "zone": "Métabief (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 118
+}
 },
 "stationIds": []
 },
@@ -1280,13 +1416,17 @@
 "website": "https://www.lesrousses.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 152,
-"enf6": 122,
-"saison": 464,
+"enf6": null,
+"saison": null,
 "zone": "Les Rousses (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 122
+}
 },
 "stationIds": []
 },
@@ -1309,13 +1449,17 @@
 "website": "https://www.paysdegex-montsjura.com/station-monts-jura/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 155,
-"enf6": 124,
-"saison": 473,
+"enf6": null,
+"saison": null,
 "zone": "Monts Jura (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 124
+}
 },
 "stationIds": []
 },
@@ -1338,13 +1482,17 @@
 "website": "https://superbesse.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 30,
+"j1": null,
 "j6": 158,
-"enf6": 126,
-"saison": 482,
+"enf6": null,
+"saison": null,
 "zone": "Le Sancy (85 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 30,
+"enf6": 126
+}
 },
 "stationIds": []
 },
@@ -1367,13 +1515,17 @@
 "website": "https://www.sancy.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 30,
+"j1": null,
 "j6": 158,
-"enf6": 126,
-"saison": 482,
+"enf6": null,
+"saison": null,
 "zone": "Le Sancy (85 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 30,
+"enf6": 126
+}
 },
 "stationIds": []
 },
@@ -1396,13 +1548,17 @@
 "website": "https://www.lelioran.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 151,
-"enf6": 121,
-"saison": 461,
+"enf6": null,
+"saison": null,
 "zone": "Le Lioran (60 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 121
+}
 },
 "stationIds": []
 },
@@ -1425,13 +1581,17 @@
 "website": "https://courchevel.com/fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1095,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": []
 },
@@ -1454,13 +1614,17 @@
 "website": "https://www.brides-les-bains.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1095,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": []
 },
@@ -1483,13 +1647,17 @@
 "website": "https://www.orelle.net/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1090,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": []
 },
@@ -1630,13 +1798,17 @@
 "website": "https://www.lescontamines.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 50,
+"j1": null,
 "j6": 266,
-"enf6": 213,
-"saison": 811,
+"enf6": null,
+"saison": null,
 "zone": "Contamines (120 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 50,
+"enf6": 213
+}
 },
 "stationIds": []
 },
@@ -1659,13 +1831,17 @@
 "website": "https://www.saintgervais.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 59,
+"j1": null,
 "j6": 312,
-"enf6": 250,
-"saison": 952,
+"enf6": null,
+"saison": null,
 "zone": "Evasion Mont-Blanc (400 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 59,
+"enf6": 250
+}
 },
 "stationIds": []
 },
@@ -1688,13 +1864,17 @@
 "website": "https://www.combloux.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 59,
+"j1": null,
 "j6": 312,
-"enf6": 250,
-"saison": 952,
+"enf6": null,
+"saison": null,
 "zone": "Evasion Mont-Blanc (400 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 59,
+"enf6": 250
+}
 },
 "stationIds": []
 },
@@ -1717,13 +1897,17 @@
 "website": "https://www.prazsurarly.com/fr",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 249,
-"enf6": 199,
-"saison": 759,
+"enf6": null,
+"saison": null,
 "zone": "Espace Diamant (192 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 199
+}
 },
 "stationIds": []
 },
@@ -1746,13 +1930,17 @@
 "website": "https://www.valdarly-montblanc.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 249,
-"enf6": 199,
-"saison": 759,
+"enf6": null,
+"saison": null,
 "zone": "Espace Diamant (192 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 199
+}
 },
 "stationIds": []
 },
@@ -1775,13 +1963,17 @@
 "website": "https://www.valdarly-montblanc.com/villages-stations/crest-voland-cohennoz/",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 249,
-"enf6": 199,
-"saison": 759,
+"enf6": null,
+"saison": null,
 "zone": "Espace Diamant (192 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 199
+}
 },
 "stationIds": []
 },
@@ -1804,13 +1996,17 @@
 "website": "https://www.areches-beaufort.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 38,
+"j1": null,
 "j6": 203,
-"enf6": 162,
-"saison": 619,
+"enf6": null,
+"saison": null,
 "zone": "Arêches-Beaufort (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 38,
+"enf6": 162
+}
 },
 "stationIds": []
 },
@@ -1833,13 +2029,17 @@
 "website": "https://www.saintfrancoislongchamp.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 49,
+"j1": null,
 "j6": 260,
-"enf6": 208,
-"saison": 793,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand Domaine (165 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 49,
+"enf6": 208
+}
 },
 "stationIds": []
 },
@@ -1862,13 +2062,17 @@
 "website": "https://www.la-toussuire.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 51,
+"j1": null,
 "j6": 269,
-"enf6": 215,
-"saison": 820,
+"enf6": null,
+"saison": null,
 "zone": "Les Sybelles (310 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 51,
+"enf6": 215
+}
 },
 "stationIds": []
 },
@@ -1891,13 +2095,17 @@
 "website": "https://www.le-corbier.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 51,
+"j1": null,
 "j6": 269,
-"enf6": 215,
-"saison": 820,
+"enf6": null,
+"saison": null,
 "zone": "Les Sybelles (310 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 51,
+"enf6": 215
+}
 },
 "stationIds": []
 },
@@ -1920,13 +2128,17 @@
 "website": "https://www.saintsorlindarves.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 51,
+"j1": null,
 "j6": 269,
-"enf6": 215,
-"saison": 820,
+"enf6": null,
+"saison": null,
 "zone": "Les Sybelles (310 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 51,
+"enf6": 215
+}
 },
 "stationIds": []
 },
@@ -1949,13 +2161,17 @@
 "website": "https://www.saintjeandarves.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 51,
+"j1": null,
 "j6": 269,
-"enf6": 215,
-"saison": 820,
+"enf6": null,
+"saison": null,
 "zone": "Les Sybelles (310 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 51,
+"enf6": 215
+}
 },
 "stationIds": []
 },
@@ -1978,13 +2194,17 @@
 "website": "https://www.valloire.net/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 252,
-"enf6": 202,
-"saison": 769,
+"enf6": null,
+"saison": null,
 "zone": "Galibier Thabor (150 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 202
+}
 },
 "stationIds": []
 },
@@ -2007,13 +2227,17 @@
 "website": "https://www.valmeinier.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 252,
-"enf6": 202,
-"saison": 769,
+"enf6": null,
+"saison": null,
 "zone": "Galibier Thabor (150 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 202
+}
 },
 "stationIds": []
 },
@@ -2036,13 +2260,17 @@
 "website": "https://www.aussois.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 255,
-"enf6": 204,
-"saison": 778,
+"enf6": null,
+"saison": null,
 "zone": "Val Cenis (125 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 204
+}
 },
 "stationIds": []
 },
@@ -2065,13 +2293,17 @@
 "website": "https://www.bonneval-sur-arc.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 255,
-"enf6": 204,
-"saison": 778,
+"enf6": null,
+"saison": null,
 "zone": "Val Cenis (125 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 204
+}
 },
 "stationIds": []
 },
@@ -2094,13 +2326,17 @@
 "website": "https://www.bessans.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 27,
+"j1": null,
 "j6": 142,
-"enf6": 114,
-"saison": 433,
+"enf6": null,
+"saison": null,
 "zone": "Bessans (10 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 27,
+"enf6": 114
+}
 },
 "stationIds": []
 },
@@ -2123,13 +2359,17 @@
 "website": "https://www.la-norma.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 38,
+"j1": null,
 "j6": 203,
-"enf6": 162,
-"saison": 619,
+"enf6": null,
+"saison": null,
 "zone": "La Norma (65 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 38,
+"enf6": 162
+}
 },
 "stationIds": []
 },
@@ -2152,13 +2392,17 @@
 "website": "https://www.valfrejus.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 39,
+"j1": null,
 "j6": 207,
-"enf6": 166,
-"saison": 631,
+"enf6": null,
+"saison": null,
 "zone": "Valfréjus (65 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 39,
+"enf6": 166
+}
 },
 "stationIds": []
 },
@@ -2181,13 +2425,17 @@
 "website": "https://www.karellis.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 37,
+"j1": null,
 "j6": 196,
-"enf6": 157,
-"saison": 598,
+"enf6": null,
+"saison": null,
 "zone": "Les Karellis (60 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 37,
+"enf6": 157
+}
 },
 "stationIds": []
 },
@@ -2210,13 +2458,17 @@
 "website": "https://www.matheysine-tourisme.com/fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 34,
+"j1": null,
 "j6": 180,
-"enf6": 144,
-"saison": 549,
+"enf6": null,
+"saison": null,
 "zone": "Alpe du Grand Serre (55 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 34,
+"enf6": 144
+}
 },
 "stationIds": []
 },
@@ -2355,13 +2607,17 @@
 "website": "https://www.vercors-experience.com/lans-en-vercors.html",
 "websiteVerified": true,
 "seed": {
-"j1": 32,
+"j1": null,
 "j6": 172,
-"enf6": 138,
-"saison": 525,
+"enf6": null,
+"saison": null,
 "zone": "Lans-en-Vercors (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 32,
+"enf6": 138
+}
 },
 "stationIds": []
 },
@@ -2384,13 +2640,17 @@
 "website": "https://www.morzine-avoriaz.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 55,
+"j1": null,
 "j6": 292,
-"enf6": 234,
-"saison": 891,
+"enf6": null,
+"saison": null,
 "zone": "Portes du Soleil (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 55,
+"enf6": 234
+}
 },
 "stationIds": []
 },
@@ -2413,13 +2673,17 @@
 "website": "https://www.chatel.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 55,
+"j1": null,
 "j6": 292,
-"enf6": 234,
-"saison": 891,
+"enf6": null,
+"saison": null,
 "zone": "Portes du Soleil (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 55,
+"enf6": 234
+}
 },
 "stationIds": []
 },
@@ -2442,13 +2706,17 @@
 "website": "https://sites.valdabondance.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 55,
+"j1": null,
 "j6": 292,
-"enf6": 234,
-"saison": 891,
+"enf6": null,
+"saison": null,
 "zone": "Portes du Soleil (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 55,
+"enf6": 234
+}
 },
 "stationIds": []
 },
@@ -2471,13 +2739,17 @@
 "website": "https://www.saintjeandaulps.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 34,
+"j1": null,
 "j6": 180,
-"enf6": 144,
-"saison": 549,
+"enf6": null,
+"saison": null,
 "zone": "Roc d’Enfer (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 34,
+"enf6": 144
+}
 },
 "stationIds": []
 },
@@ -2500,13 +2772,17 @@
 "website": "https://www.lescarroz.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 54,
+"j1": null,
 "j6": 288,
-"enf6": 230,
-"saison": 878,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand Massif (265 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 54,
+"enf6": 230
+}
 },
 "stationIds": []
 },
@@ -2529,13 +2805,17 @@
 "website": "https://www.grand-massif.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 54,
+"j1": null,
 "j6": 288,
-"enf6": 230,
-"saison": 878,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand Massif (265 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 54,
+"enf6": 230
+}
 },
 "stationIds": []
 },
@@ -2558,13 +2838,17 @@
 "website": "https://www.haut-giffre.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 54,
+"j1": null,
 "j6": 288,
-"enf6": 230,
-"saison": 878,
+"enf6": null,
+"saison": null,
 "zone": "Le Grand Massif (265 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 54,
+"enf6": 230
+}
 },
 "stationIds": []
 },
@@ -2587,13 +2871,17 @@
 "website": "https://www.prazdelys-sommand.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 34,
+"j1": null,
 "j6": 180,
-"enf6": 144,
-"saison": 549,
+"enf6": null,
+"saison": null,
 "zone": "Praz de Lys (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 34,
+"enf6": 144
+}
 },
 "stationIds": []
 },
@@ -2707,13 +2995,17 @@
 "website": "https://www.chamonix.com/la-vallee/les-stations-villages/les-houches",
 "websiteVerified": true,
 "seed": {
-"j1": 55,
+"j1": null,
 "j6": 290,
-"enf6": 232,
-"saison": 885,
+"enf6": null,
+"saison": null,
 "zone": "Les Houches (55 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 55,
+"enf6": 232
+}
 },
 "stationIds": []
 },
@@ -2765,13 +3057,17 @@
 "website": "https://www.ledevoluy.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 43,
+"j1": null,
 "j6": 229,
-"enf6": 183,
-"saison": 698,
+"enf6": null,
+"saison": null,
 "zone": "Le Dévoluy (100 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 43,
+"enf6": 183
+}
 },
 "stationIds": []
 },
@@ -2794,13 +3090,17 @@
 "website": "https://www.sauze.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 38,
+"j1": null,
 "j6": 203,
-"enf6": 162,
-"saison": 619,
+"enf6": null,
+"saison": null,
 "zone": "Le Sauze (65 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 38,
+"enf6": 162
+}
 },
 "stationIds": []
 },
@@ -2823,13 +3123,17 @@
 "website": "https://www.valdallos.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 252,
-"enf6": 202,
-"saison": 769,
+"enf6": null,
+"saison": null,
 "zone": "Espace Lumière (180 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 202
+}
 },
 "stationIds": []
 },
@@ -2852,13 +3156,17 @@
 "website": "https://www.montclar.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 34,
+"j1": null,
 "j6": 180,
-"enf6": 144,
-"saison": 549,
+"enf6": null,
+"saison": null,
 "zone": "Montclar (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 34,
+"enf6": 144
+}
 },
 "stationIds": []
 },
@@ -2881,13 +3189,17 @@
 "website": "https://www.valberg.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 41,
+"j1": null,
 "j6": 216,
-"enf6": 173,
-"saison": 659,
+"enf6": null,
+"saison": null,
 "zone": "Valberg (90 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 41,
+"enf6": 173
+}
 },
 "stationIds": []
 },
@@ -2910,13 +3222,17 @@
 "website": "https://www.chamrousse.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 38,
+"j1": null,
 "j6": 203,
-"enf6": 162,
-"saison": 619,
+"enf6": null,
+"saison": null,
 "zone": "Chamrousse (90 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 38,
+"enf6": 162
+}
 },
 "stationIds": []
 },
@@ -2939,13 +3255,17 @@
 "website": "https://www.gourette.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 40,
+"j1": null,
 "j6": 210,
-"enf6": 168,
-"saison": 641,
+"enf6": null,
+"saison": null,
 "zone": "Gourette (42 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 40,
+"enf6": 168
+}
 },
 "stationIds": []
 },
@@ -2968,13 +3288,17 @@
 "website": "https://luz-ardiden.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 37,
+"j1": null,
 "j6": 196,
-"enf6": 157,
-"saison": 598,
+"enf6": null,
+"saison": null,
 "zone": "Luz-Ardiden (60 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 37,
+"enf6": 157
+}
 },
 "stationIds": []
 },
@@ -2997,13 +3321,17 @@
 "website": null,
 "websiteVerified": false,
 "seed": {
-"j1": 33,
+"j1": null,
 "j6": 176,
-"enf6": 141,
-"saison": 537,
+"enf6": null,
+"saison": null,
 "zone": "Guzet (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 33,
+"enf6": 141
+}
 },
 "stationIds": []
 },
@@ -3026,13 +3354,17 @@
 "website": "https://www.porte-puymorens.net/",
 "websiteVerified": true,
 "seed": {
-"j1": 35,
+"j1": null,
 "j6": 186,
-"enf6": 149,
-"saison": 567,
+"enf6": null,
+"saison": null,
 "zone": "Porté-Puymorens (45 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 35,
+"enf6": 149
+}
 },
 "stationIds": []
 },
@@ -3055,13 +3387,17 @@
 "website": "https://www.capcir-nordique.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 21,
+"j1": null,
 "j6": 110,
-"enf6": 88,
-"saison": 336,
+"enf6": null,
+"saison": null,
 "zone": "Capcir (nordique)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 21,
+"enf6": 88
+}
 },
 "stationIds": []
 },
@@ -3084,13 +3420,17 @@
 "website": "https://www.haute-garonne-montagne.com/luchon-superbagneres/",
 "websiteVerified": true,
 "seed": {
-"j1": 37,
+"j1": null,
 "j6": 196,
-"enf6": 157,
-"saison": 598,
+"enf6": null,
+"saison": null,
 "zone": "Superbagnères (35 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 37,
+"enf6": 157
+}
 },
 "stationIds": []
 },
@@ -3113,13 +3453,17 @@
 "website": "https://www.sancy.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 30,
+"j1": null,
 "j6": 158,
-"enf6": 126,
-"saison": 482,
+"enf6": null,
+"saison": null,
 "zone": "Le Sancy (85 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 30,
+"enf6": 126
+}
 },
 "stationIds": []
 },
@@ -3142,13 +3486,17 @@
 "website": "https://www.lac-blanc.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 21,
+"j1": null,
 "j6": 112,
-"enf6": 90,
-"saison": 342,
+"enf6": null,
+"saison": null,
 "zone": "Lac Blanc (14 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 21,
+"enf6": 90
+}
 },
 "stationIds": []
 },
@@ -3171,13 +3519,17 @@
 "website": "https://www.lesrousses.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 152,
-"enf6": 122,
-"saison": 464,
+"enf6": null,
+"saison": null,
 "zone": "Les Rousses (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 122
+}
 },
 "stationIds": []
 },
@@ -3200,13 +3552,17 @@
 "website": "https://www.paysdegex-montsjura.com/station-monts-jura/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 155,
-"enf6": 124,
-"saison": 473,
+"enf6": null,
+"saison": null,
 "zone": "Monts Jura (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 124
+}
 },
 "stationIds": []
 },
@@ -3258,13 +3614,17 @@
 "website": "https://www.lapierrestmartin.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 34,
+"j1": null,
 "j6": 180,
-"enf6": 144,
-"saison": 549,
+"enf6": null,
+"saison": null,
 "zone": "La Pierre Saint-Martin (25 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 34,
+"enf6": 144
+}
 },
 "stationIds": []
 },
@@ -3287,13 +3647,17 @@
 "website": "https://chalets-iraty.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 25,
+"j1": null,
 "j6": 130,
-"enf6": 104,
-"saison": 397,
+"enf6": null,
+"saison": null,
 "zone": "Iraty (42 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 25,
+"enf6": 104
+}
 },
 "stationIds": []
 },
@@ -3316,13 +3680,17 @@
 "website": "https://www.valdazun.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 26,
+"j1": null,
 "j6": 137,
-"enf6": 110,
-"saison": 418,
+"enf6": null,
+"saison": null,
 "zone": "Val d’Azun (60 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 26,
+"enf6": 110
+}
 },
 "stationIds": []
 },
@@ -3345,13 +3713,17 @@
 "website": "https://www.valleesdegavarnie.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 156,
-"enf6": 125,
-"saison": 476,
+"enf6": null,
+"saison": null,
 "zone": "Gavarnie-Gèdre (45 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 125
+}
 },
 "stationIds": []
 },
@@ -3374,13 +3746,17 @@
 "website": "https://www.chioula.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 148,
-"enf6": 118,
-"saison": 451,
+"enf6": null,
+"saison": null,
 "zone": "Le Chioula (65 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 118
+}
 },
 "stationIds": []
 },
@@ -3403,13 +3779,17 @@
 "website": null,
 "websiteVerified": false,
 "seed": {
-"j1": 31,
+"j1": null,
 "j6": 166,
-"enf6": 133,
-"saison": 506,
+"enf6": null,
+"saison": null,
 "zone": "Cambre d’Aze (32 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 31,
+"enf6": 133
+}
 },
 "stationIds": []
 },
@@ -3432,13 +3812,17 @@
 "website": "https://www.lemourtis.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 27,
+"j1": null,
 "j6": 142,
-"enf6": 114,
-"saison": 433,
+"enf6": null,
+"saison": null,
 "zone": "Le Mourtis (25 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 27,
+"enf6": 114
+}
 },
 "stationIds": []
 },
@@ -3606,13 +3990,17 @@
 "website": "https://www.meribel.net/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1095,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": [
 "meribel"
@@ -3637,13 +4025,17 @@
 "website": "https://st-martin-belleville.com/fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1095,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": []
 },
@@ -3666,13 +4058,17 @@
 "website": "https://www.valthorens.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 68,
+"j1": null,
 "j6": 359,
-"enf6": 287,
-"saison": 1090,
+"enf6": null,
+"saison": null,
 "zone": "Les 3 Vallées (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 68,
+"enf6": 287
+}
 },
 "stationIds": [
 "val-thorens"
@@ -3759,13 +4155,17 @@
 "website": "https://www.haute-maurienne-vanoise.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 255,
-"enf6": 204,
-"saison": 778,
+"enf6": null,
+"saison": null,
 "zone": "Val Cenis (125 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 204
+}
 },
 "stationIds": []
 },
@@ -3788,13 +4188,17 @@
 "website": "https://www.chamberymontagnes.com/savoiegrandrevard/",
 "websiteVerified": true,
 "seed": {
-"j1": 25,
+"j1": null,
 "j6": 131,
-"enf6": 105,
-"saison": 400,
+"enf6": null,
+"saison": null,
 "zone": "La Féclaz (50 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 25,
+"enf6": 105
+}
 },
 "stationIds": []
 },
@@ -3817,13 +4221,17 @@
 "website": "https://www.chamberymontagnes.com/savoiegrandrevard/",
 "websiteVerified": true,
 "seed": {
-"j1": 36,
+"j1": null,
 "j6": 189,
-"enf6": 151,
-"saison": 576,
+"enf6": null,
+"saison": null,
 "zone": "Savoie Grand Revard (150 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 36,
+"enf6": 151
+}
 },
 "stationIds": []
 },
@@ -3846,13 +4254,17 @@
 "website": null,
 "websiteVerified": false,
 "seed": {
-"j1": 33,
+"j1": null,
 "j6": 173,
-"enf6": 138,
-"saison": 528,
+"enf6": null,
+"saison": null,
 "zone": "Thollon-les-Mémises (50 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 33,
+"enf6": 138
+}
 },
 "stationIds": []
 },
@@ -3875,13 +4287,17 @@
 "website": "https://sites.valdabondance.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 55,
+"j1": null,
 "j6": 292,
-"enf6": 234,
-"saison": 891,
+"enf6": null,
+"saison": null,
 "zone": "Portes du Soleil (600 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 55,
+"enf6": 234
+}
 },
 "stationIds": []
 },
@@ -3904,13 +4320,17 @@
 "website": "https://www.hirmentaz.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 151,
-"enf6": 121,
-"saison": 461,
+"enf6": null,
+"saison": null,
 "zone": "Hirmentaz – Bellevaux (50 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 121
+}
 },
 "stationIds": []
 },
@@ -3933,13 +4353,17 @@
 "website": "https://www.plateaudesglieres.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 23,
+"j1": null,
 "j6": 123,
-"enf6": 98,
-"saison": 375,
+"enf6": null,
+"saison": null,
 "zone": "Plateau des Glières (50 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 23,
+"enf6": 98
+}
 },
 "stationIds": []
 },
@@ -3962,13 +4386,17 @@
 "website": "https://lesbrasses.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 156,
-"enf6": 125,
-"saison": 476,
+"enf6": null,
+"saison": null,
 "zone": "Les Brasses (50 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 125
+}
 },
 "stationIds": []
 },
@@ -3991,13 +4419,17 @@
 "website": "https://www.megeve-tourisme.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 59,
+"j1": null,
 "j6": 312,
-"enf6": 250,
-"saison": 952,
+"enf6": null,
+"saison": null,
 "zone": "Evasion Mont-Blanc (400 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 59,
+"enf6": 250
+}
 },
 "stationIds": []
 },
@@ -4020,13 +4452,17 @@
 "website": "https://www.saintgervais.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 59,
+"j1": null,
 "j6": 312,
-"enf6": 250,
-"saison": 952,
+"enf6": null,
+"saison": null,
 "zone": "Evasion Mont-Blanc (400 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 59,
+"enf6": 250
+}
 },
 "stationIds": []
 },
@@ -4049,13 +4485,17 @@
 "website": "https://www.combloux.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 59,
+"j1": null,
 "j6": 312,
-"enf6": 250,
-"saison": 952,
+"enf6": null,
+"saison": null,
 "zone": "Evasion Mont-Blanc (400 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 59,
+"enf6": 250
+}
 },
 "stationIds": []
 },
@@ -4078,13 +4518,17 @@
 "website": "https://www.valdarly-montblanc.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 249,
-"enf6": 199,
-"saison": 759,
+"enf6": null,
+"saison": null,
 "zone": "Espace Diamant (192 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 199
+}
 },
 "stationIds": []
 },
@@ -4094,26 +4538,26 @@
 "name": "La Giettaz",
 "massif": "Alpes du Nord",
 "region": "Savoie",
-"minM": 1150,
-"maxM": 2069,
-"villageM": 1150,
-"km": 192,
-"lifts": 74,
+"minM": 1200,
+"maxM": 1930,
+"villageM": 1100,
+"km": 89.5,
+"lifts": 30,
 "glacier": false,
-"pass": "Espace Diamant",
+"pass": "Portes du Mont-Blanc",
 "lat": null,
 "lon": null,
 "country": "FR",
-"website": "https://www.valdarly-montblanc.com/",
-"websiteVerified": true,
+"website": null,
+"websiteVerified": false,
 "seed": {
-"j1": 47,
-"j6": 249,
-"enf6": 199,
-"saison": 759,
-"zone": "Espace Diamant (192 km)",
-"maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"j1": null,
+"j6": null,
+"enf6": null,
+"saison": null,
+"zone": "Portes du Mont-Blanc",
+"maj": null,
+"majLabel": null
 },
 "stationIds": []
 },
@@ -4136,13 +4580,17 @@
 "website": "https://www.lessaisies.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 249,
-"enf6": 199,
-"saison": 759,
+"enf6": null,
+"saison": null,
 "zone": "Espace Diamant (192 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 199
+}
 },
 "stationIds": []
 },
@@ -4165,13 +4613,17 @@
 "website": "https://www.lessaisies.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 47,
+"j1": null,
 "j6": 249,
-"enf6": 199,
-"saison": 759,
+"enf6": null,
+"saison": null,
 "zone": "Espace Diamant (192 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 47,
+"enf6": 199
+}
 },
 "stationIds": []
 },
@@ -4194,13 +4646,17 @@
 "website": "https://www.larosiere.net/",
 "websiteVerified": true,
 "seed": {
-"j1": 53,
+"j1": null,
 "j6": 283,
-"enf6": 226,
-"saison": 863,
+"enf6": null,
+"saison": null,
 "zone": "Espace San Bernardo (160 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 53,
+"enf6": 226
+}
 },
 "stationIds": []
 },
@@ -4223,13 +4679,17 @@
 "website": null,
 "websiteVerified": false,
 "seed": {
-"j1": 53,
+"j1": null,
 "j6": 283,
-"enf6": 226,
-"saison": 863,
+"enf6": null,
+"saison": null,
 "zone": "Espace San Bernardo (160 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 53,
+"enf6": 226
+}
 },
 "stationIds": []
 },
@@ -4283,13 +4743,17 @@
 "website": "https://www.les7laux.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 39,
+"j1": null,
 "j6": 207,
-"enf6": 166,
-"saison": 631,
+"enf6": null,
+"saison": null,
 "zone": "Les 7 Laux (120 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 39,
+"enf6": 166
+}
 },
 "stationIds": []
 },
@@ -4312,13 +4776,17 @@
 "website": "https://www.les7laux.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 39,
+"j1": null,
 "j6": 207,
-"enf6": 166,
-"saison": 631,
+"enf6": null,
+"saison": null,
 "zone": "Les 7 Laux (120 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 39,
+"enf6": 166
+}
 },
 "stationIds": []
 },
@@ -4341,13 +4809,17 @@
 "website": "https://www.autrans-meaudre.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 154,
-"enf6": 123,
-"saison": 470,
+"enf6": null,
+"saison": null,
 "zone": "Autrans-Méaudre (26 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 123
+}
 },
 "stationIds": []
 },
@@ -4370,13 +4842,17 @@
 "website": "https://www.villarddelans-correnconenvercors.com/la-destination/decouvrez-deux-villages-stations-villard-et-correncon/correncon-en-vercors/",
 "websiteVerified": true,
 "seed": {
-"j1": 37,
+"j1": null,
 "j6": 196,
-"enf6": 157,
-"saison": 598,
+"enf6": null,
+"saison": null,
 "zone": "Villard – Corrençon (125 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 37,
+"enf6": 157
+}
 },
 "stationIds": []
 },
@@ -4399,13 +4875,17 @@
 "website": "https://www.villarddelans-correnconenvercors.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 37,
+"j1": null,
 "j6": 196,
-"enf6": 157,
-"saison": 598,
+"enf6": null,
+"saison": null,
 "zone": "Villard – Corrençon (125 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 37,
+"enf6": 157
+}
 },
 "stationIds": []
 },
@@ -4428,13 +4908,17 @@
 "website": "https://www.serre-chevalier.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 58,
+"j1": null,
 "j6": 307,
-"enf6": 246,
-"saison": 936,
+"enf6": null,
+"saison": null,
 "zone": "Serre Chevalier (250 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 58,
+"enf6": 246
+}
 },
 "stationIds": []
 },
@@ -4457,13 +4941,17 @@
 "website": "https://www.serre-chevalier.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 58,
+"j1": null,
 "j6": 307,
-"enf6": 246,
-"saison": 936,
+"enf6": null,
+"saison": null,
 "zone": "Serre Chevalier (250 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 58,
+"enf6": 246
+}
 },
 "stationIds": []
 },
@@ -4486,13 +4974,17 @@
 "website": "https://www.serre-chevalier.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 58,
+"j1": null,
 "j6": 307,
-"enf6": 246,
-"saison": 936,
+"enf6": null,
+"saison": null,
 "zone": "Serre Chevalier (250 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 58,
+"enf6": 246
+}
 },
 "stationIds": []
 },
@@ -4515,13 +5007,17 @@
 "website": "https://www.serre-chevalier.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 58,
+"j1": null,
 "j6": 307,
-"enf6": 246,
-"saison": 936,
+"enf6": null,
+"saison": null,
 "zone": "Serre Chevalier (250 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 58,
+"enf6": 246
+}
 },
 "stationIds": []
 },
@@ -4544,13 +5040,17 @@
 "website": "https://www.risoul.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 50,
+"j1": null,
 "j6": 264,
-"enf6": 211,
-"saison": 805,
+"enf6": null,
+"saison": null,
 "zone": "La Forêt Blanche (185 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 50,
+"enf6": 211
+}
 },
 "stationIds": []
 },
@@ -4573,13 +5073,17 @@
 "website": "https://www.vars.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 50,
+"j1": null,
 "j6": 264,
-"enf6": 211,
-"saison": 805,
+"enf6": null,
+"saison": null,
 "zone": "La Forêt Blanche (185 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 50,
+"enf6": 211
+}
 },
 "stationIds": []
 },
@@ -4602,13 +5106,17 @@
 "website": "https://www.ledevoluy.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 43,
+"j1": null,
 "j6": 229,
-"enf6": 183,
-"saison": 698,
+"enf6": null,
+"saison": null,
 "zone": "Le Dévoluy (100 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 43,
+"enf6": 183
+}
 },
 "stationIds": []
 },
@@ -4631,13 +5139,17 @@
 "website": "https://www.gap-bayard.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 24,
+"j1": null,
 "j6": 126,
-"enf6": 101,
-"saison": 384,
+"enf6": null,
+"saison": null,
 "zone": "Gap – Bayard (45 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 24,
+"enf6": 101
+}
 },
 "stationIds": []
 },
@@ -4660,13 +5172,17 @@
 "website": "https://www.valdallos.com/",
 "websiteVerified": false,
 "seed": {
-"j1": 48,
+"j1": null,
 "j6": 252,
-"enf6": 202,
-"saison": 769,
+"enf6": null,
+"saison": null,
 "zone": "Espace Lumière (180 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 48,
+"enf6": 202
+}
 },
 "stationIds": []
 },
@@ -4689,13 +5205,17 @@
 "website": "https://www.sauze.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 38,
+"j1": null,
 "j6": 203,
-"enf6": 162,
-"saison": 619,
+"enf6": null,
+"saison": null,
 "zone": "Le Sauze (65 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 38,
+"enf6": 162
+}
 },
 "stationIds": []
 },
@@ -4718,13 +5238,17 @@
 "website": "https://beuil.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 41,
+"j1": null,
 "j6": 216,
-"enf6": 173,
-"saison": 659,
+"enf6": null,
+"saison": null,
 "zone": "Valberg (90 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 41,
+"enf6": 173
+}
 },
 "stationIds": []
 },
@@ -4747,13 +5271,17 @@
 "website": "https://www.lelioran.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 151,
-"enf6": 121,
-"saison": 461,
+"enf6": null,
+"saison": null,
 "zone": "Le Lioran (60 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 121
+}
 },
 "stationIds": []
 },
@@ -4776,13 +5304,17 @@
 "website": "https://superbesse.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 30,
+"j1": null,
 "j6": 158,
-"enf6": 126,
-"saison": 482,
+"enf6": null,
+"saison": null,
 "zone": "Le Sancy (85 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 30,
+"enf6": 126
+}
 },
 "stationIds": []
 },
@@ -4805,13 +5337,17 @@
 "website": "https://www.pilat-tourisme.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 151,
-"enf6": 121,
-"saison": 461,
+"enf6": null,
+"saison": null,
 "zone": "Le Haut Pilat (80 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 121
+}
 },
 "stationIds": []
 },
@@ -4834,13 +5370,17 @@
 "website": "https://www.lac-blanc.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 21,
+"j1": null,
 "j6": 112,
-"enf6": 90,
-"saison": 342,
+"enf6": null,
+"saison": null,
 "zone": "Lac Blanc (14 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 21,
+"enf6": 90
+}
 },
 "stationIds": []
 },
@@ -4863,13 +5403,17 @@
 "website": "https://metabief.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 148,
-"enf6": 118,
-"saison": 451,
+"enf6": null,
+"saison": null,
 "zone": "Métabief (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 118
+}
 },
 "stationIds": []
 },
@@ -4892,13 +5436,17 @@
 "website": "https://metabief.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 28,
+"j1": null,
 "j6": 148,
-"enf6": 118,
-"saison": 451,
+"enf6": null,
+"saison": null,
 "zone": "Métabief (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 28,
+"enf6": 118
+}
 },
 "stationIds": []
 },
@@ -4921,13 +5469,17 @@
 "website": "https://www.lesrousses.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 152,
-"enf6": 122,
-"saison": 464,
+"enf6": null,
+"saison": null,
 "zone": "Les Rousses (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 122
+}
 },
 "stationIds": []
 },
@@ -4950,13 +5502,17 @@
 "website": "https://www.lesrousses.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 152,
-"enf6": 122,
-"saison": 464,
+"enf6": null,
+"saison": null,
 "zone": "Les Rousses (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 122
+}
 },
 "stationIds": []
 },
@@ -4979,13 +5535,17 @@
 "website": "https://www.paysdegex-montsjura.com/station-monts-jura/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 155,
-"enf6": 124,
-"saison": 473,
+"enf6": null,
+"saison": null,
 "zone": "Monts Jura (50 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 124
+}
 },
 "stationIds": []
 },
@@ -5008,13 +5568,17 @@
 "website": "https://www.plateauderetord.fr/",
 "websiteVerified": true,
 "seed": {
-"j1": 25,
+"j1": null,
 "j6": 131,
-"enf6": 105,
-"saison": 400,
+"enf6": null,
+"saison": null,
 "zone": "Les Plans d’Hotonnes (60 km)",
 "maj": "2026-08-13",
-"majLabel": "13 août 2026"
+"majLabel": "13 août 2026",
+"estime": {
+"j1": 25,
+"enf6": 105
+}
 },
 "stationIds": []
 },
@@ -5037,13 +5601,17 @@
 "website": "https://www.lesrousses.com/",
 "websiteVerified": true,
 "seed": {
-"j1": 29,
+"j1": null,
 "j6": 152,
-"enf6": 122,
-"saison": 464,
+"enf6": null,
+"saison": null,
 "zone": "Les Rousses (40 km)",
 "maj": "2026-08-11",
-"majLabel": "11 août 2026"
+"majLabel": "11 août 2026",
+"estime": {
+"j1": 29,
+"enf6": 122
+}
 },
 "stationIds": []
 }

@@ -25,6 +25,7 @@ import {
   type ColorUnit,
 } from "@/lib/carte";
 import { formatAlt, STATIONS, type Station } from "@/lib/stations";
+import { maxM, minM, sansDomaineLbl } from "@/lib/v7";
 
 export const Route = createFileRoute("/carte")({ component: PageCarte });
 
@@ -78,6 +79,11 @@ function StationRow({
   onSelect: (id: string) => void;
 }) {
   const dist = station.distToPisteKm;
+  // Une altitude à zéro n'est pas une mesure (`minM`/`maxM` de v7) : La
+  // Bourboule, détachée de Super Besse, et Les Monts du Pilat imprimaient
+  // « 0–0 m ».
+  const bas = minM(station),
+    haut = maxM(station);
   return (
     <li>
       <button
@@ -93,9 +99,15 @@ function StationRow({
         <span className="carte-row__km num">{formatKm(station.pistesKm)}</span>
         <span className="carte-row__sub">{stationTags(station)}</span>
         <span className="carte-row__facts">
-          <span className="num">
-            {station.minM.toLocaleString("fr-FR")}–{formatAlt(station.maxM)}
-          </span>
+          {bas != null && haut != null ? (
+            <span className="num">
+              {bas.toLocaleString("fr-FR")}–{formatAlt(haut)}
+            </span>
+          ) : (
+            <span className="text-texte-2">
+              {sansDomaineLbl(station) ?? "altitude des pistes non relevée"}
+            </span>
+          )}
           <span className="text-texte-2">
             village <span className="num text-ink">{formatAlt(station.villageM)}</span>
           </span>

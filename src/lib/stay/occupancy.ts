@@ -197,6 +197,111 @@ export function occupancyFromText(...parts: Array<string | null | undefined>): O
   return { guests, bedrooms, rooms };
 }
 
+/* ---------- Fiche démentie par le titre ---------- */
+
+function plier(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+/**
+ * Titres de lot : plusieurs logements vendus ensemble, dont un studio. « 2
+ * appartements et 1 studio » à 8 personnes n'est pas un studio gonflé.
+ * Relevés du 25 septembre 2026 : « Arc 2000 -2 Appartements Et De 1 Studio… »,
+ * « Appartements T4 Et Studio - 10 Pers », « Grand gite Narcisse (gite et
+ * studio) ».
+ *
+ * Un studio annexe aussi : « chalet avec studio », « dont un studio », « plus
+ * un studio », ou un « studio indépendant » ou « attenant » nommé après le
+ * chalet ou la maison, dans le même membre du titre. Seul en tête, « Studio
+ * indépendant au calme » est un studio, et il reste jugé ; derrière un tiret,
+ * « Chalet Les Sapins - Studio indépendant » ou « Ferme rénovée - Studio
+ * Indépendant » nomment le lieu puis le logement loué : un studio, jugé aussi.
+ */
+const LOTS: readonly RegExp[] = [
+  /(?<!\d)(?:[2-9]|1[0-2])\s+(?:appartements|apparts|studios|chalets|logements|maisons|gites)\b/,
+  /(?:\bet|\bavec|\bdont|\bplus|\+|&)\s*(?:de\s+)?(?:(?:un|une|1)\s+)?studios?\b/,
+  /\bstudios?\s*(?:et|\+|&)\s*(?:(?:un|une|\d+)\s+)?(?:appartements?|apparts?|chalets?|gites?|maisons?|[tf]\d\b|\d\s*pieces?)/,
+  /\b(?:chalets?|maisons?|villas?|fermes?|appartements?|apparts?|gites?)\b(?:(?!\s[-–—|:]\s).)*\bstudios?\s+(?:independant|attenant)e?s?\b/,
+];
+
+/** « pour 4 personnes », « pour 5/6 pers. », « for 4 people » : la plus
+ *  grande des deux valeurs d'une fourchette. Seulement après « pour » ou
+ *  « for » : « Beau 4p », « Chalet Les Marmottes - 5p8 » ou « 6+2 Pers »
+ *  ne disent pas une capacité qu'on puisse opposer à la fiche.
+ *
+ *  « Pour 12 personnes + 2 enfants » en annonce 14 : le « + N », entre
+ *  parenthèses ou non, s'ajoute quand il compte des personnes (enfants,
+ *  bébés, couchages…), ou quand rien ne le suit. « + 2 chambres » ne
+ *  s'ajoute pas. */
+const POUR_N =
+  /\b(?:pour|for)\s+(\d{1,2})(?:\s*(?:a|-|\/|–|ou)\s*(\d{1,2}))?\s*(?:personnes?|pers\b\.?|voyageurs?|people|persons|guests)(?:\s*\(?\s*\+\s*(\d{1,2})(?:\s*(?:enfants?|bebes?|bb|adultes?|personnes?|pers\b\.?|couchages?|children|kids?|babies|baby)\b|(?!\d|\s*[a-z])))?/;
+
+/** Une personne d'écart est ordinaire : un lit d'appoint, un bébé. « 4 Pièces
+ *  Pour 7 Personnes », publié 8 personnes, reste une annonce. */
+const ECART_PERSONNES = 2;
+
+/**
+ * Le titre annonce plus petit que la fiche : l'annonce ne dit pas ce qu'elle
+ * loue, et sa fiche ne se croit pas.
+ *
+ * Relevés du 25 septembre 2026 : CozyCozy publiait « 3 chambres, 8 personnes »
+ * pour « Résidence Cheval Blanc - 2 Pièces Pour 4 Personnes » (La Norma), 3
+ * chambres pour « Homency - Résidence De L'oisans F1 » (Auris) ou « Studio
+ * Rénové Avec Balcon Et Parking à Flaine ». C'est la fiche Cozy elle-même qui
+ * le dit, pas un reflet de la recherche. Ces offres passaient premières de
+ * leur station dans « Par budget » : « Appartement 2 Pièces 5/6 Pers. » à
+ * 1 032 €, première à Abondance, Châtel et La Chapelle-d'Abondance.
+ *
+ * Deux contradictions, et seulement celles-là :
+ * - un studio, un F1 ou T1, un 1 ou 2 pièces (lus par `occupancyFromText`)
+ *   avec plus de chambres publiées que de pièces : un « 2 pièces + cabine »
+ *   publié 2 chambres passe, publié 3 non ;
+ * - « pour N personnes » avec au moins deux personnes de plus sur la fiche.
+ *
+ * Épargnés : les titres de lot (`LOTS`), et GreenGo, qui publie capacité et
+ * chambres dans son détail. Une fiche muette ne se contredit pas.
+ *
+ * Un titre qui compte lui-même autant de chambres que la fiche (« Chalet Le
+ * Studio - 5 Chambres », publié 5 chambres) ne mesure pas le logement par ses
+ * pièces : la règle des pièces ne le juge pas. « 2 Pièces 1 Chambre »,
+ * « Studio 1 chambre » ou « T2 2 chambres » publiés 3 chambres restent
+ * démentis.
+ */
+export function ficheDementieParLeTitre(l: {
+  source?: string | null;
+  title?: string | null;
+  guests?: number | null;
+  bedrooms?: number | null;
+}): boolean {
+  if (l.source === "GreenGo" || !l.title) return false;
+  // « 2 pièces d'eau » compte des salles de bain, « 2 pièces à vivre » ou
+  // « de vie » des séjours : ni l'un ni l'autre ne mesure le logement.
+  const titre = l.title.replace(
+    /\d+\s*-?\s*pi[eè]ces?\s+(?:d\W*\s*eau|[aà]\s+vivre|de\s+vie)\b/gi,
+    " ",
+  );
+  const t = plier(titre);
+  if (LOTS.some((re) => re.test(t))) return false;
+  const lu = occupancyFromText(titre);
+  const pieces = lu.rooms;
+  if (
+    pieces != null &&
+    pieces >= 1 &&
+    pieces <= 2 &&
+    !(lu.bedrooms != null && l.bedrooms != null && lu.bedrooms >= l.bedrooms) &&
+    l.bedrooms != null &&
+    l.bedrooms > pieces
+  ) {
+    return true;
+  }
+  const pour = POUR_N.exec(t);
+  if (pour && l.guests != null) {
+    const n = Math.max(Number(pour[1]), Number(pour[2] ?? 0)) + Number(pour[3] ?? 0);
+    if (n > 0 && l.guests >= n + ECART_PERSONNES) return true;
+  }
+  return false;
+}
+
 function fromObj(o: Record<string, unknown>): Occupancy {
   let guests: number | null = null;
   let bedrooms: number | null = null;

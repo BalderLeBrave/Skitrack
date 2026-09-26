@@ -122,6 +122,7 @@ import {
 import {
   aCompleter,
   appliquerCorrectifs,
+  ECART_PRIX_ABERRANT,
   connuesDuReleve,
   manqueFiche,
   recopieDuReleve,
@@ -1130,17 +1131,16 @@ describe("tri", () => {
   });
 
   it("nom : les homonymes du référentiel restent départagés par l'id", () => {
-    const ids = ["praloup-04226", "le-granier-vallee-des-entremonts", "praloup", "le-granier"];
+    // `praloup-04226`, doublon de `praloup`, n'est plus au référentiel.
+    const ids = ["le-granier-vallee-des-entremonts", "praloup", "le-granier"];
     const xs = ids.map((id) => ligne(stationReelle(id), null, REPOS));
     assert.deepEqual(trier({ k: "nom", dir: 1 }, xs), [
       "le-granier",
       "le-granier-vallee-des-entremonts",
       "praloup",
-      "praloup-04226",
     ]);
     assert.deepEqual(trier({ k: "nom", dir: -1 }, xs), [
       "praloup",
-      "praloup-04226",
       "le-granier",
       "le-granier-vallee-des-entremonts",
     ]);
@@ -1780,6 +1780,78 @@ describe("remesurerRemontee : une annonce enregistrée retrouve sa remontée", (
     assert.equal(l.distToLiftM, 27);
   });
 
+  it("une gare hors service enregistrée se remesure, même plus loin, ou s'efface", () => {
+    // Relevée avant le 26 septembre 2026 : 307 m de l'ancienne télécabine de
+    // Charlannes, au bourg de La Bourboule, pour Besse.
+    const bourboule = compacter(
+      annonce({
+        stationId: "besse-super-besse",
+        lat: 45.5852,
+        lon: 2.7439,
+        domainFit: "in",
+        nearestDomainId: "la-bourboule",
+        distToSlopesM: 11776,
+        distToLiftM: 307,
+        liftName: "Ancien télécabine de Charlannes",
+        liftKind: "gondola",
+      }),
+    );
+    assert.equal(dansLaStation(bourboule), true);
+    const l = remesurerRemontee(bourboule);
+    assert.notEqual(l.liftName, "Ancien télécabine de Charlannes");
+    assert.equal(dansLaStation(l), false, `${l.distToLiftM} m de ${l.liftName}`);
+    // Relevée pour La Bourboule, dont le repère est dans le bourg : la remontée
+    // en service la plus proche mesure, pas le repère à 400 m.
+    const auBourg = remesurerRemontee({ ...bourboule, stationId: "la-bourboule", distToSlopesM: 400 });
+    assert.ok((auBourg.distToLiftM ?? 0) > 2000, `${auBourg.distToLiftM} m de ${auBourg.liftName}`);
+    assert.equal(dansLaStation(auBourg), false);
+    // Une gare EDF n'est pas une remontée de ski : le bourg d'Ugine, relevé
+    // pour Bisanne 1500, se disait à 745 m des pistes.
+    const ugine = remesurerRemontee(
+      compacter(
+        annonce({
+          stationId: "bisanne-1500",
+          lat: 45.7532,
+          lon: 6.4261,
+          domainFit: "in",
+          distToSlopesM: 7619,
+          distToLiftM: 745,
+          liftName: "Téléphérique EDF",
+          liftKind: "cable_car",
+        }),
+      ),
+    );
+    assert.notEqual(ugine.liftName, "Téléphérique EDF");
+    assert.equal(dansLaStation(ugine), false, `${ugine.distToLiftM} m de ${ugine.liftName}`);
+    // Une gare retirée des données, que son nom ne trahit pas : « La
+    // Cascade - La Giettaz », au village, à 293 m du TKF1 Portatif désaffecté,
+    // est à 2,5 km des remontées en service du Torraz.
+    const cascade = remesurerRemontee(
+      compacter(
+        annonce({
+          stationId: "la-giettaz",
+          lat: 45.8617,
+          lon: 6.4952,
+          domainFit: "in",
+          nearestDomainId: "la-giettaz",
+          distToSlopesM: 100,
+          distToLiftM: 293,
+          liftName: "TKF1 Portatif",
+          liftKind: "drag_lift",
+          liftLat: 45.86415,
+          liftLon: 6.496452,
+        }),
+      ),
+    );
+    assert.notEqual(cascade.liftName, "TKF1 Portatif");
+    assert.equal(dansLaStation(cascade), false, `${cascade.distToLiftM} m de ${cascade.liftName}`);
+    // Sans position, ou hors du domaine, la gare périmée s'efface aussi.
+    for (const over of [{ lat: null }, { domainFit: "other" as const }]) {
+      const x = remesurerRemontee({ ...bourboule, ...over });
+      assert.deepEqual([x.distToLiftM, x.liftName], [null, null]);
+    }
+  });
+
   it("déjà plus près, l'annonce ne change pas", () => {
     for (const m of [27, 10, 0]) {
       const a = enregistree({ distToLiftM: m, liftName: "Tapis" });
@@ -2005,7 +2077,9 @@ describe("un logement par carte dans l'onglet budget", () => {
     // abnb-1 va avec bk-1 aux 2 Alpes (clé Cozy), et avec bk-3 à l'Alpe d'Huez
     // (même titre, même point) : réunir les deux logements y mettrait deux
     // offres Booking.
-    const titre = "Studio cosy au pied des pistes";
+    // Pas un « studio » : publié à 3 chambres, son titre démentirait la fiche
+    // (`ficheDementieParLeTitre`), et le relevé ne le retiendrait pas.
+    const titre = "Appartement cosy au pied des pistes";
     const ailleurs = releve(
       [
         offreCozy("abnb-1", "Airbnb", { title: titre, total: 1500 }),
@@ -2042,6 +2116,32 @@ describe("un logement par carte dans l'onglet budget", () => {
     assert.equal(g.principale.a.total, 2100);
     assert.equal(sourcesBudget(g), "Airbnb + 1 · Les 2 Alpes");
     assert.match(autresBudget(g) ?? "", /^Aussi sur Booking \(.*2.?300.*\)$/);
+  });
+
+  it("à égalité, la carte nomme la station dont le repère est le plus près de sa remontée", () => {
+    // « La Cascade - La Giettaz » sort à 293 m des relevés de Cordon, de
+    // Crest-Voland et de La Giettaz : l'étiquette disait « Abritel · Cordon ».
+    const cascade = annonce({
+      id: "abr-82914581",
+      source: "Abritel",
+      distToLiftM: 293,
+      liftLat: 45.8617,
+      liftLon: 6.4952,
+    });
+    const tout = ["cordon", "crest-voland-cohennoz", "la-giettaz"].flatMap((id) => releve([cascade], id));
+    const [g] = logements(tout);
+    assert.equal(sourcesBudget(g), "Abritel · la-giettaz");
+    // Le repère le plus proche du logement ne compte pas : une maison
+    // d'Ax-les-Thermes, plus près du repère nordique du Chioula que de celui
+    // d'Ax 3 Domaines, skie à une remontée d'Ax.
+    const ax = annonce({ id: "abnb-21737839", distToLiftM: 808, liftLat: 42.7, liftLon: 1.81 });
+    const axTout = ["ax-3-domaines", "le-chioula"].flatMap((id) => releve([ax], id));
+    assert.equal(sourcesBudget(logements(axTout)[0]), "Airbnb · ax-3-domaines");
+    // Plus près des remontées d'abord, comme avant : la station ne départage
+    // que des copies à la même distance.
+    const loin = releve([{ ...cascade, distToLiftM: 900 }], "la-giettaz");
+    const pres = releve([cascade], "cordon");
+    assert.equal(sourcesBudget(logements([...loin, ...pres])[0]), "Abritel · cordon");
   });
 
   it("un relevé qui n'a gardé qu'une offre par logement donne une carte par offre", () => {
@@ -2689,8 +2789,8 @@ describe("domaine et station, onglet budget", () => {
   });
 
   it("nomsDistincts précise les homonymes, et eux seuls", () => {
-    assert.equal(noms.get("praloup"), "Praloup · Espace Lumière");
-    assert.equal(noms.get("praloup-04226"), "Praloup · Le Sauze 1400 / Le Super-Sauze 1700");
+    // Seule depuis le retrait de son doublon `praloup-04226` : rien à préciser.
+    assert.equal(noms.get("praloup"), "Praloup");
     assert.equal(noms.get("le-granier"), "Le Granier · Saint-Pierre-de-Chartreuse");
     assert.equal(noms.get("le-granier-vallee-des-entremonts"), "Le Granier · Alpes du Nord");
     assert.equal(noms.get("val-thorens"), "Val Thorens");
@@ -2698,7 +2798,7 @@ describe("domaine et station, onglet budget", () => {
   });
 
   it("optionsStation : les relevées qui passent massif, département et domaine, par nom", () => {
-    const ids = ["val-thorens", "tignes", "courchevel", "praloup-04226", "praloup"];
+    const ids = ["val-thorens", "tignes", "courchevel", "praloup"];
     const relevees = ids.map(stationReelle);
     assert.deepEqual(optionsStation(relevees, f({ domaine: "Les Trois Vallées" }), noms), [
       { v: "", label: "Toutes" },
@@ -2707,10 +2807,10 @@ describe("domaine et station, onglet budget", () => {
     ]);
     assert.deepEqual(
       optionsStation(relevees, f({ massif: "Alpes du Sud" }), noms).map((o) => o.label),
-      ["Toutes", "Praloup · Espace Lumière", "Praloup · Le Sauze 1400 / Le Super-Sauze 1700"],
+      ["Toutes", "Praloup"],
     );
     // Les plages de station n'y entrent pas.
-    assert.equal(optionsStation(relevees, f({ km: [0, 10] }), noms).length, 6);
+    assert.equal(optionsStation(relevees, f({ km: [0, 10] }), noms).length, 5);
   });
 
   it("optionsStation garde la station choisie, même sans relevé pour ces dates", () => {
@@ -2827,7 +2927,7 @@ describe("jetons et « Tout effacer » des nouveaux critères", () => {
     assert.deepEqual(lbls({ chambres: [0, 1] }), ["Chambres : jusqu’à 1 ch."]);
     assert.deepEqual(lbls({ chambres: [8, 8] }), ["Chambres : 8 ch. et plus"]);
     assert.deepEqual(lbls({ capacite: [1, 6] }), ["Personnes : jusqu’à 6 pers."]);
-    assert.deepEqual(lbls({ station: "praloup" }), ["Praloup · Espace Lumière"]);
+    assert.deepEqual(lbls({ station: "praloup" }), ["Praloup"]);
     // Sans table des noms, l'identifiant plutôt qu'un jeton vide.
     const brut = jetonsBudget(f({ station: "praloup" }), B).map((j) => j.lbl);
     assert.deepEqual(brut, ["praloup"]);
@@ -3052,5 +3152,220 @@ describe("complétion : mémoire, URL communes, correctifs", () => {
     assert.equal(xs[0].guests, 8);
     assert.match(xs[0].proven, /même logement/);
     assert.equal(agreger([xs[0]], CTX).n, 1);
+  });
+});
+
+describe("hors sujet : ce qui n'est pas une location de station", () => {
+  const B = bornesPlages(STATIONS);
+  /** Des offres des relevés du 25 septembre 2026, posées aux 2 Alpes : ici,
+   *  seuls leur type publié, leur titre et leur position comptent. */
+  const cozy = (id: string, source: Listing["source"], over: Partial<Listing>) =>
+    offreCozy(id, source, { url: `https://example.org/${id}`, ...over });
+  const hotel = cozy("bk-13432651", "Booking", {
+    title: "Armancette - The Leading Hotels Of The World",
+    propertyType: "hôtel 5*",
+    total: 33_352,
+  });
+  const forfait = cozy("bk-1563764", "Booking", {
+    title: "Belambra Clubs Arc 2000 - L'aiguille Rouge - Ski Pass Included",
+    propertyType: "hôtel 2*",
+    total: 9715,
+  });
+  const mobilHome = cozy("abnb-99586026", "Airbnb", {
+    title: "Mobile-home",
+    propertyType: "cabane",
+    total: 628,
+  });
+  const hotes = cozy("bk-116163603", "Booking", {
+    title: "Chambres D'hôtes 05 Crévoux",
+    propertyType: "Chambre d’hôtes / B&B",
+    total: 2062,
+  });
+  const habitant = cozy("abnb-6383524", "Airbnb", {
+    title: "Chalet Vercors Aiguillette Lodge Chez Franck",
+    propertyType: "Ch. chez l’habitant",
+    total: 4003,
+  });
+  const auberge = cozy("bk-95069351", "Booking", {
+    title: "Auberge De Jeunesse Hi Valdeblore - Le Chalet",
+    propertyType: "auberge de jeunesse",
+    total: 3149,
+  });
+  const morgins = cozy("abnb-64780247", "Airbnb", {
+    title: "Charmant Logement à Morgins",
+    propertyType: "appartement",
+    total: 5758,
+    lat: 46.24179077148437,
+    lon: 6.851019859313965,
+  });
+  const horsSujet = [hotel, forfait, mobilHome, hotes, habitant, auberge, morgins];
+
+  const giteDeCharme = cozy("abnb-44220967", "Airbnb", {
+    title: "Gîte De Charme à Font Romeu Odeillo",
+    propertyType: "hôtel",
+    total: 3543,
+  });
+  const odalys = cozy("bk-1291482", "Booking", {
+    title: "Résidence Odalys Les Fermes De Châtel",
+    propertyType: "appart’hôtel 4*",
+    total: 7220,
+  });
+  const vvf = cozy("bk-13149017", "Booking", {
+    title: "Vvf Queyras",
+    propertyType: "village vacances",
+    total: 2599,
+  });
+  const buidonniere = annonce({
+    id: "os-hmv-chalet-la-buidonniere-aussois_OSMB-102558-1",
+    source: "Centrale",
+    title: "Chalet la Buidonnière",
+    propertyType: "Chalet",
+    url: "https://reservation.haute-maurienne-vanoise.com/dp75-chalet-la-buidonniere-aussois/OSMB-102558-1",
+    total: 4000,
+    guests: 18,
+    bedrooms: 7,
+  });
+  const gardes = [giteDeCharme, odalys, vvf, buidonniere];
+  const ids = (xs: readonly { id: string }[]) => xs.map((x) => x.id).sort();
+
+  it("la médiane ne compte ni hôtels, ni forfaits compris, ni mobil-homes, ni chambres, ni la Suisse", () => {
+    const listings = [...horsSujet, ...gardes];
+    assert.deepEqual(ids(retenir(listings, CTX)), ids(gardes));
+    // Ni muettes ni trop petites : ce ne sont pas des logements de location.
+    const r = agreger(listings, CTX);
+    assert.deepEqual([r.n, r.muettes, r.petits], [gardes.length, 0, 0]);
+    assert.equal(r.med, mediane(gardes.map((l) => l.total)));
+  });
+
+  it("une fiche que son titre dément compte parmi les muettes", () => {
+    const chevalBlanc = cozy("abr-11886124", "Abritel", {
+      title: "Résidence Cheval Blanc - 2 Pièces Pour 4 Personnes Mae-8564",
+      guests: 8,
+      bedrooms: 3,
+      total: 2241,
+    });
+    const r = agreger([chevalBlanc, annonce()], CTX);
+    assert.deepEqual([r.n, r.muettes, r.petits], [1, 1, 0]);
+    assert.deepEqual(ids(retenir([chevalBlanc, annonce()], CTX)), ["airbnb-1"]);
+  });
+
+  it("la complétion ne cherche pas la fiche d'un hôtel", () => {
+    const sansFiche = { guests: null, bedrooms: null } as const;
+    assert.equal(aCompleter([{ ...hotel, ...sansFiche }], CTX).length, 0);
+    assert.equal(aCompleter([{ ...mobilHome, ...sansFiche }], CTX).length, 0);
+    assert.equal(aCompleter([{ ...giteDeCharme, ...sansFiche }], CTX).length, 1);
+  });
+
+  it("à la relecture, un relevé enregistré avant la règle ne les montre plus", () => {
+    // Enregistrées telles quelles le 25 septembre 2026 : `cribler` ne les
+    // écartait pas encore.
+    for (const l of horsSujet) assert.equal(passeAnnonce(compacter(l), FL0, B), false, l.title);
+    for (const l of gardes) assert.equal(passeAnnonce(compacter(l), FL0, B), true, l.title);
+    const studio = compacter(
+      cozy("abr-10213054", "Abritel", {
+        title: "Studio Rénové Avec Balcon Et Parking à Flaine - Fr-1-425-121",
+        guests: 8,
+        bedrooms: 3,
+        total: 3325,
+      }),
+    );
+    assert.equal(passeAnnonce(studio, FL0, B), false);
+    // Le verdict est gardé : la même annonce relue rend la même réponse.
+    assert.equal(passeAnnonce(studio, FL0, B), false);
+    const cartes: CarteAnnonce[] = [...horsSujet, ...gardes].map((l) => ({
+      a: compacter(l),
+      stationId: "les-2-alpes",
+      stationNom: "Les 2 Alpes",
+    }));
+    const ls = logementsBudget(logementsReleves(cartes), filtrerCartes(cartes, FL0, B));
+    assert.deepEqual(ids(ls.map((g) => g.principale.a)), ids(gardes));
+  });
+
+  describe("un prix aberrant dans un logement regroupé", () => {
+    const releve = (listings: Listing[]): CarteAnnonce[] =>
+      annoncesDuReleve({ listings, sources: [], partsEchouees: [], ...CTX }).map((a) => ({
+        a,
+        stationId: "chatel",
+        stationNom: "Châtel",
+      }));
+    const logements = (tout: CarteAnnonce[], fl: Filtres = FL0) =>
+      logementsBudget(logementsReleves(tout), filtrerCartes(tout, fl, B)).map((g) =>
+        g.offres.map((o) => `${o.a.id}:${o.a.total}`),
+      );
+    const josephine = (id: string, source: Listing["source"], total: number) =>
+      cozy(id, source, { title: "Résidence Joséphine", propertyType: "appart’hôtel", total });
+
+    it("Résidence Joséphine à 73 566 € chez Abritel ne se montre pas", () => {
+      const tout = releve([
+        josephine("bk-1156975", "Booking", 2779),
+        josephine("abr-1156975", "Abritel", 73_566),
+      ]);
+      // Le relevé les donne au même logement : la clé Cozy est commune.
+      assert.deepEqual(
+        tout.map((c) => c.a.logement),
+        ["bk-1156975", "bk-1156975"],
+      );
+      assert.deepEqual(logements(tout), [["bk-1156975:2779"]]);
+      // Avec un budget minimum au-dessus de 2 779 €, la carte montrait 73 566 €.
+      assert.deepEqual(logements(tout, { ...FL0, budget: [3000, 10000] }), []);
+    });
+
+    it("sous trois fois la médiane des autres, l'offre reste ; une offre seule aussi", () => {
+      const paire = releve([
+        josephine("bk-1156975", "Booking", 2779),
+        josephine("abr-1156975", "Abritel", 3 * 2779),
+      ]);
+      assert.deepEqual(logements(paire), [["bk-1156975:2779", "abr-1156975:8337"]]);
+      const trois = (cher: number) =>
+        logements(
+          releve([
+            josephine("bk-5", "Booking", 2000),
+            josephine("abnb-5", "Airbnb", 2100),
+            josephine("abr-5", "Abritel", cher),
+          ]),
+        );
+      assert.deepEqual(trois(6000), [["bk-5:2000", "abnb-5:2100", "abr-5:6000"]]);
+      assert.deepEqual(trois(7000), [["bk-5:2000", "abnb-5:2100"]]);
+      assert.deepEqual(logements(releve([josephine("abr-9", "Abritel", 73_566)])), [
+        ["abr-9:73566"],
+      ]);
+      assert.equal(ECART_PRIX_ABERRANT, 3);
+    });
+
+    it("une offre hors sujet n'entre pas dans la médiane des autres", () => {
+      // Relevé enregistré avant la règle : `cribler` y gardait l'hôtel, que
+      // la relecture retire ensuite. Toutes les offres sont d'un logement.
+      const carte = (
+        id: string,
+        source: Listing["source"],
+        propertyType: string,
+        total: number,
+      ) => ({
+        a: {
+          ...compacter(cozy(id, source, { title: "Chalet Des Neiges", propertyType, total })),
+          logement: "bk-8",
+        },
+        stationId: "chatel",
+        stationNom: "Châtel",
+      });
+      // Une chambre d'hôtel à 2 000 € retirait la location à 7 000 €, puis
+      // sortait elle-même : le logement n'avait plus d'offre.
+      assert.deepEqual(
+        logements([
+          carte("bk-8", "Booking", "hôtel 3*", 2000),
+          carte("abr-8", "Abritel", "appartement", 7000),
+        ]),
+        [["abr-8:7000"]],
+      );
+      // Avec une autre location, la médiane des autres est la sienne seule.
+      assert.deepEqual(
+        logements([
+          carte("bk-8", "Booking", "hôtel 3*", 1000),
+          carte("abnb-8", "Airbnb", "appartement", 2500),
+          carte("abr-8", "Abritel", "appartement", 7000),
+        ]),
+        [["abnb-8:2500", "abr-8:7000"]],
+      );
+    });
   });
 });

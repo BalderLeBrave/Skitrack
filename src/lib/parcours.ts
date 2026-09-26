@@ -17,6 +17,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { IDS_RETIRES, sansDomaineAlpin } from "./classeur.ts";
 import { resolveStationPhoto } from "./stationPhoto.ts";
 import { adults, clampChildren, PARTY_LIMITS, partyLabel } from "./stay/party.ts";
 import { stationById, type Station } from "./stations.ts";
@@ -171,6 +172,55 @@ type Parcours = {
   say: (text: string) => void;
 };
 
+/** Version de l'état persisté. Voir `migrerParcours`. */
+export const PARCOURS_VERSION = 3;
+
+/** L'identifiant courant d'une station : un identifiant retiré du référentiel
+ *  (`IDS_RETIRES`) rend celui de la station qui le remplace ; tout autre reste
+ *  tel quel. */
+function idCourant(id: string): string {
+  return IDS_RETIRES[id] ?? id;
+}
+
+/**
+ * Remet un état persisté à la forme de `PARCOURS_VERSION`.
+ *
+ * **Version 2** : les critères de recherche entrent dans ce qui est persisté.
+ * Une entrée écrite par la version 1 porte une station retenue mais aucun
+ * texte de destination — la fusion de zustand est superficielle, et `q`
+ * reprendrait sa valeur initiale. L'écran afficherait alors un champ vide et
+ * une loupe qui ouvre les logements d'une station que rien ne nomme, ce qui
+ * est précisément l'état qu'on voulait supprimer. On relâche donc la station,
+ * et la visite recommence proprement.
+ *
+ * **Version 3** : cinq identifiants de station sont retirés du référentiel le
+ * 26 septembre 2026 (`IDS_RETIRES`). `stationById` les résout encore, mais un
+ * identifiant brut resté dans l'état faisait un doublon fantôme : une
+ * comparaison enregistrée sous « praloup-04226 » montrait une colonne Praloup
+ * que la liste ne cochait pas, et la cocher en ajoutait une seconde. La
+ * station retenue, la comparaison et la colonne cochée passent donc par la
+ * table ; la comparaison perd ses doublons, dans son ordre. Le champ
+ * destination prend le nom de la station qui remplace, pour dire encore ce que
+ * la loupe ouvrira. `seen` et `lodgeId` ne bougent pas : ils portent des
+ * identifiants d'annonce, pas de station.
+ */
+export function migrerParcours(persisted: unknown, version: number): Record<string, unknown> {
+  let p = { ...((persisted ?? {}) as Record<string, unknown>) };
+  if (version < 2) p = { ...p, stationId: null, lodgeId: null, booked: false };
+  if (version < 3) {
+    if (typeof p.stationId === "string") {
+      const id = idCourant(p.stationId);
+      if (id !== p.stationId) p = { ...p, stationId: id, q: stationById(id)?.name ?? p.q };
+    }
+    if (Array.isArray(p.cmp)) {
+      const ids = p.cmp.filter((x): x is string => typeof x === "string").map(idCourant);
+      p = { ...p, cmp: [...new Set(ids)] };
+    }
+    if (typeof p.pick === "string") p = { ...p, pick: idCourant(p.pick) };
+  }
+  return p;
+}
+
 export const useParcours = create<Parcours>()(
   persist(
     (set, get) => ({
@@ -264,22 +314,10 @@ export const useParcours = create<Parcours>()(
     }),
     {
       name: "skitrack-parcours",
-      /**
-       * Version 2 : les critères de recherche entrent dans ce qui est persisté.
-       *
-       * Une entrée écrite par la version 1 porte une station retenue mais aucun
-       * texte de destination — la fusion de zustand est superficielle, et `q`
-       * reprendrait sa valeur initiale. L'écran afficherait alors un champ vide
-       * et une loupe qui ouvre les logements d'une station que rien ne nomme,
-       * ce qui est précisément l'état qu'on voulait supprimer. On relâche donc
-       * la station, et la visite recommence proprement.
-       */
-      version: 2,
-      migrate: (persisted, version) => {
-        const p = (persisted ?? {}) as Record<string, unknown>;
-        if (version >= 2) return p;
-        return { ...p, stationId: null, lodgeId: null, booked: false };
-      },
+      /** Voir `migrerParcours` : version 2, les critères de recherche ;
+       *  version 3, les identifiants de station retirés. */
+      version: PARCOURS_VERSION,
+      migrate: migrerParcours,
       /** Ce qui survit à un rechargement.
        *
        *  Les critères de recherche y entrent : ils n'y étaient pas, et une
@@ -357,7 +395,7 @@ export function mLbl(m: number | null | undefined): string | null {
 /** `subLbl` : type, domaine, statut hors « En activité ». */
 export function subLbl(s: Station): string {
   const kind = s.kind === "village-station" ? "Village-station · " : "";
-  const dom = s.domain ?? "Domaine non renseigné";
+  const dom = s.domain ?? (sansDomaineAlpin(s.id) ? "Sans domaine alpin" : "Domaine non renseigné");
   const st =
     s.status && s.status !== "En activité"
       ? " · " + s.status.replace("En activité", "").replace(/^[,( ]+|\)$/g, "")

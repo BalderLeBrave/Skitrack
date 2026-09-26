@@ -7,9 +7,9 @@ import { SKIINFO } from "./skiinfo.ts";
 
 describe("altitudes par source", () => {
   it("chaque station du dépôt : IGN au pin, min/max = fiche Skiinfo, pas le domaine lié", () => {
-    assert.equal(STATIONS.length, 320);
+    assert.equal(STATIONS.length, 315);
     assert.equal(DEPOT_STATIONS.length, 231);
-    // Les 88 du classeur n’ont ni relevé IGN au pin ni fiche Skiinfo.
+    // Les 84 du classeur n’ont ni relevé IGN au pin ni fiche Skiinfo.
     assert.ok(
       STATIONS.filter((s) => s.origin === "classeur").every(
         (s) => s.demM == null && SKIINFO[s.id] == null,

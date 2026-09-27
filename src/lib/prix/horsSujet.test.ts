@@ -10,6 +10,7 @@ import {
   motifHorsSujet,
   type MotifHorsSujet,
 } from "./horsSujet.ts";
+import { forfaitInclus } from "../stay/forfaitInclus.ts";
 import { metresBetween } from "../remontees.ts";
 import { STATIONS, stationById } from "../stations.ts";
 
@@ -65,7 +66,7 @@ describe("hôtels : le type publié commence par « hôtel »", () => {
     }
   });
 
-  it("écarte les séjours forfait compris, et eux seuls", () => {
+  it("reconnaît les séjours forfait compris, et les garde (consigne du 26 septembre 2026)", () => {
     assert.ok(forfaitCompris("Belambra Clubs Arc 2000 - L'aiguille Rouge - Ski Pass Included"));
     assert.ok(forfaitCompris("Belambra Clubs Les Saisies - Les Embrunes - Ski Pass Included"));
     assert.ok(forfaitCompris("Chalet 8 personnes, forfaits de ski inclus"));
@@ -77,8 +78,13 @@ describe("hôtels : le type publié commence par « hôtel »", () => {
     assert.ok(!forfaitCompris("Appartement à 50 m du point de vente des forfaits"));
     assert.equal(
       motifHorsSujet({ title: "Chalet 10 pers - Ski Pass Included", propertyType: "châlet" }),
-      "forfait compris",
+      null,
     );
+    assert.ok(forfaitInclus({ title: "Chalet 10 pers - Ski Pass Included" }));
+    // Ce que la source a dit l'emporte sur le titre, dans les deux sens.
+    assert.ok(!forfaitInclus({ title: "Chalet 10 pers - Ski Pass Included", skiPassIncluded: false }));
+    assert.ok(forfaitInclus({ title: "Appartement 6 personnes", skiPassIncluded: true }));
+    assert.ok(!forfaitInclus({ title: "Appartement 6 personnes", skiPassIncluded: null }));
   });
 });
 

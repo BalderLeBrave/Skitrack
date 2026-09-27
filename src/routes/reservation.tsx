@@ -15,6 +15,7 @@ import { useGo } from "@/components/v6/go";
 import { useForfait } from "@/components/v7/useForfait";
 import { resolveListing } from "@/lib/accommodation";
 import { coutForfaits } from "@/lib/forfaits/cout";
+import { forfaitInclus } from "@/lib/stay/forfaitInclus";
 import { dire } from "@/lib/i18n";
 import {
   datesLbl,
@@ -79,7 +80,10 @@ function Reservation() {
   // Le coût des forfaits comptait huit adultes pour un groupe qui pouvait en
   // compter six et deux enfants, alors que le tarif enfant était relevé.
   const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
-  const passGroupN = pass.total ?? 0;
+  // Un séjour vendu forfaits compris les porte déjà dans son prix : les
+  // ajouter les ferait compter deux fois.
+  const forfaitsCompris = forfaitInclus(l);
+  const passGroupN = forfaitsCompris ? 0 : (pass.total ?? 0);
   const totalN = l.total + passGroupN;
   const d = distanceOf(l);
 
@@ -88,7 +92,13 @@ function Reservation() {
       `Skitrack – ${s.name}`,
       `${datesLbl(checkIn, checkOut, nights)} · ${groupLbl(trav, rooms, enfants)}`,
       `Logement : ${l.title} (${l.source}) ${prixLbl(l)}`,
-      `Forfaits : ${pass.total != null ? `${eur(passGroupN)} (${pass.detail})` : "non relevés"}`,
+      `Forfaits : ${
+        forfaitsCompris
+          ? "compris dans le prix du logement"
+          : pass.total != null
+            ? `${eur(passGroupN)} (${pass.detail})`
+            : "non relevés"
+      }`,
       `Total : ${l.total > 0 ? eurCents(totalN) : "logement non tarifé"}`,
     ].join("\n");
 
@@ -268,11 +278,13 @@ function Reservation() {
                 <span className="carte7-sect__texte carte7-sect__texte--petit">
                   {groupLbl(trav, rooms, enfants)}
                 </span>
-                <span className={`carte7-sect__chiffres${pass.total != null ? "" : " absent"}`}>
+                <span className={`carte7-sect__chiffres${forfaitsCompris || pass.total != null ? "" : " absent"}`}>
                   {/* Sans tarif enfant relevé, seul le tarif adulte a une date :
                       « au tarif relevé » aurait couvert l'enfant compté au
                       tarif adulte. */}
-                  {pass.total != null
+                  {forfaitsCompris
+                    ? "Forfaits compris dans le prix du logement"
+                    : pass.total != null
                     ? `Forfaits 6 jours : ${pass.detail}${
                         forfait?.releveLbl
                           ? `${pass.enfantsAuTarifAdulte ? " ; tarif adulte relevé" : ", au tarif relevé"} le ${forfait.releveLbl}`
@@ -297,15 +309,27 @@ function Reservation() {
                   <td className={l.total > 0 ? undefined : "absent"}>{prixLbl(l)}</td>
                 </tr>
                 <tr>
-                  <th>
-                    Forfaits · 6 jours
-                    <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
-                      {pass.detail}
-                    </span>
-                  </th>
-                  <td className={pass.total != null ? undefined : "absent"}>
-                    {pass.total != null ? eur(passGroupN) : "non relevés"}
-                  </td>
+                  {forfaitsCompris ? (
+                    <>
+                      <th>
+                        Forfaits
+                        <span>compris dans le prix du logement</span>
+                      </th>
+                      <td>compris</td>
+                    </>
+                  ) : (
+                    <>
+                      <th>
+                        Forfaits · 6 jours
+                        <span className={pass.enfantsAuTarifAdulte ? "cout7__alerte" : undefined}>
+                          {pass.detail}
+                        </span>
+                      </th>
+                      <td className={pass.total != null ? undefined : "absent"}>
+                        {pass.total != null ? eur(passGroupN) : "non relevés"}
+                      </td>
+                    </>
+                  )}
                 </tr>
                 <tr className="cout7__total">
                   <th>Total</th>

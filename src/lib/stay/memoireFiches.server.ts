@@ -52,11 +52,21 @@ export type ValeursFiche = {
   lue?: boolean;
 };
 
+/**
+ * La dernière publication de chaque valeur rendue par `lire`, en ms. Le point
+ * (lat, lon) n'en a qu'une, sous `point`. Une valeur absente n'a pas de date.
+ */
+export type DatesFiche = Partial<Record<"guests" | "bedrooms" | "rooms" | "point", number>>;
+/** Ce que `lire` rend : les valeurs, et la date de chacune. */
+export type ValeursLues = ValeursFiche & { dates: DatesFiche };
+
 /** Ce qui se date une à une : chaque valeur, et la lecture de la fiche. */
 type Datee = "guests" | "bedrooms" | "rooms" | "point" | "ecartee" | "lue";
 type Dates = Partial<Record<Datee, number>>;
 const DATEES: readonly Datee[] = ["guests", "bedrooms", "rooms", "point", "ecartee", "lue"];
 const NOMBRES = ["guests", "bedrooms", "rooms"] as const;
+/** Les dates qu'on montre : celles des valeurs, pas celles de l'écart ni de la lecture. */
+const MONTREES = [...NOMBRES, "point"] as const;
 
 type Entree = Omit<ValeursFiche, "lue"> & {
   /** La plus récente des dates, en ms. */
@@ -243,13 +253,23 @@ export class MemoireFiches {
     this.lueA = this.dateFichier();
   }
 
-  /** Ce que la mémoire sait de l'annonce, chaque valeur de moins de trente jours, ou `null`. */
-  lire(cle: string | null | undefined, now: number = Date.now()): ValeursFiche | null {
+  /**
+   * Ce que la mémoire sait de l'annonce, chaque valeur de moins de trente
+   * jours, ou `null`. `dates` : quand chaque valeur rendue a été publiée pour
+   * la dernière fois ; d'un fichier plus ancien, c'est `vu`.
+   */
+  lire(cle: string | null | undefined, now: number = Date.now()): ValeursLues | null {
     if (!cle) return null;
     this.charger(now);
     const e = this.fiches.get(cle);
     const f = e ? fraiche(e, now, this.dureeMs) : null;
     if (!f) return null;
+    // `fraiche` ne date que ce qu'elle garde : une date ici, c'est une valeur rendue.
+    const dates: DatesFiche = {};
+    for (const k of MONTREES) {
+      const t = f.dates[k];
+      if (t != null) dates[k] = t;
+    }
     return {
       guests: f.guests,
       bedrooms: f.bedrooms,
@@ -258,6 +278,7 @@ export class MemoireFiches {
       lon: f.lon,
       ...(typeof f.ecartee === "boolean" ? { ecartee: f.ecartee } : {}),
       ...(f.dates.lue != null ? { lue: true } : {}),
+      dates,
     };
   }
 

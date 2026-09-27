@@ -40,6 +40,7 @@ describe("mémoire des fiches : ce qui se garde", () => {
       rooms: null,
       lat: 45.02298,
       lon: 6.12571,
+      dates: { guests: T0, bedrooms: T0, point: T0 },
     });
     assert.equal(autre.lire("Airbnb:1", T0), null);
     assert.equal(autre.lire(null, T0), null);
@@ -55,6 +56,7 @@ describe("mémoire des fiches : ce qui se garde", () => {
       rooms: 3,
       lat: 45.1,
       lon: 6.1,
+      dates: { guests: T0, bedrooms: T0 + 1, rooms: T0, point: T0 + 1 },
     });
     m.noter([{ cle: "Centrale:ing-1", guests: 8 }], T0 + 3);
     assert.equal(m.lire("Centrale:ing-1", T0 + 4)?.guests, 8);
@@ -96,7 +98,15 @@ describe("mémoire des fiches : ce qui se garde", () => {
     // Jour 25 : l'annonce publie ses pièces, plus ses chambres.
     m.noter([{ cle: "Airbnb:123456", guests: 6, bedrooms: null, rooms: 3, lat: 45.1, lon: 6.1 }], T0 + 25 * JOUR);
     const jour50 = T0 + 50 * JOUR;
-    assert.deepEqual(m.lire("Airbnb:123456", jour50), { guests: 6, bedrooms: null, rooms: 3, lat: 45.1, lon: 6.1 });
+    const jour25 = T0 + 25 * JOUR;
+    assert.deepEqual(m.lire("Airbnb:123456", jour50), {
+      guests: 6,
+      bedrooms: null,
+      rooms: 3,
+      lat: 45.1,
+      lon: 6.1,
+      dates: { guests: jour25, rooms: jour25, point: jour25 },
+    });
     // Relu d'un autre processus, pareil.
     assert.equal(new MemoireFiches(m.chemin).lire("Airbnb:123456", jour50)?.bedrooms, null);
     assert.equal(m.lire("Airbnb:123456", T0 + 56 * JOUR), null);
@@ -112,6 +122,7 @@ describe("mémoire des fiches : ce qui se garde", () => {
       lat: null,
       lon: null,
       lue: true,
+      dates: {},
     });
     assert.equal(m.lire("Airbnb:20000", T0 + DUREE_MEMOIRE_MS + 1), null);
     // Une valeur vue dans un relevé ne dit pas que la fiche a été lue.
@@ -167,6 +178,85 @@ describe("mémoire des fiches : ce qui se garde", () => {
       lon: null,
     });
     assert.equal(valeursLues({ bedrooms: 0 }).bedrooms, 0);
+  });
+});
+
+describe("mémoire des fiches : la date de chaque valeur lue", () => {
+  it("chaque valeur rendue porte l'instant où elle a été notée ; le point n'en a qu'un", () => {
+    const m = neuve("l");
+    m.noter([{ cle: "Airbnb:500", guests: 4, bedrooms: 2, lat: 45.3, lon: 6.3 }], T0);
+    const lu = m.lire("Airbnb:500", T0 + JOUR);
+    assert.deepEqual(lu?.dates, { guests: T0, bedrooms: T0, point: T0 });
+    // Les pièces ne sont pas publiées : pas de valeur, pas de date.
+    assert.equal(lu?.rooms, null);
+    assert.equal("rooms" in (lu?.dates ?? {}), false);
+    // L'écart et la lecture de la fiche ne sont pas des valeurs : ils ne s'y montrent pas.
+    m.noter([{ cle: "Airbnb:501", rooms: 3, ecartee: true, lue: true }], T0);
+    assert.deepEqual(m.lire("Airbnb:501", T0)?.dates, { rooms: T0 });
+  });
+
+  it("une entrée à l'ancien format, sans dates, date chaque valeur de `vu`", () => {
+    const m = neuve("m");
+    m.noter([{ cle: "Airbnb:1", guests: 1 }], T0);
+    const vu = T0 - 3 * JOUR;
+    writeFileSync(
+      m.chemin,
+      JSON.stringify({
+        version: 1,
+        fiches: { "Airbnb:502": { guests: 5, bedrooms: 2, rooms: 3, lat: 45.4, lon: 6.4, vu } },
+      }),
+      "utf8",
+    );
+    const relue = new MemoireFiches(m.chemin);
+    assert.deepEqual(relue.lire("Airbnb:502", T0), {
+      guests: 5,
+      bedrooms: 2,
+      rooms: 3,
+      lat: 45.4,
+      lon: 6.4,
+      dates: { guests: vu, bedrooms: vu, rooms: vu, point: vu },
+    });
+  });
+
+  it("une valeur périmée n'apparaît ni dans les valeurs ni dans les dates", () => {
+    const m = neuve("n");
+    m.noter([{ cle: "Airbnb:503", guests: 6, bedrooms: 2, lat: 45.5, lon: 6.5 }], T0);
+    // Jour 20 : la capacité seule est republiée ; chambres et point vieillissent.
+    const jour20 = T0 + 20 * JOUR;
+    m.noter([{ cle: "Airbnb:503", guests: 6 }], jour20);
+    const lu = m.lire("Airbnb:503", T0 + DUREE_MEMOIRE_MS + 1);
+    assert.deepEqual(lu, {
+      guests: 6,
+      bedrooms: null,
+      rooms: null,
+      lat: null,
+      lon: null,
+      dates: { guests: jour20 },
+    });
+    // Relu d'un autre processus, pareil.
+    assert.deepEqual(new MemoireFiches(m.chemin).lire("Airbnb:503", T0 + DUREE_MEMOIRE_MS + 1)?.dates, {
+      guests: jour20,
+    });
+  });
+
+  it("deux publications à des instants différents gardent la date de chaque valeur", () => {
+    const m = neuve("o");
+    m.noter([{ cle: "Airbnb:504", guests: 4, lat: 45.6, lon: 6.6 }], T0);
+    const plusTard = T0 + 5 * JOUR;
+    m.noter([{ cle: "Airbnb:504", bedrooms: 2, rooms: 3 }], plusTard);
+    assert.deepEqual(m.lire("Airbnb:504", plusTard)?.dates, {
+      guests: T0,
+      bedrooms: plusTard,
+      rooms: plusTard,
+      point: T0,
+    });
+    // Une valeur republiée telle quelle, un jour plus tard, prend la date de sa republication.
+    const encore = plusTard + 2 * JOUR;
+    m.noter([{ cle: "Airbnb:504", guests: 4 }], encore);
+    const dates = m.lire("Airbnb:504", encore)?.dates;
+    assert.equal(dates?.guests, encore);
+    assert.equal(dates?.bedrooms, plusTard);
+    assert.equal(dates?.point, T0);
   });
 });
 

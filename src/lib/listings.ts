@@ -8,6 +8,7 @@
 
 import { attachAccess } from "./access";
 import type { DomainVerdict } from "./domainFit";
+import type { SourceAgence } from "./scrape/agences/couverture";
 import { stationById } from "./stations";
 import { enrichirListing } from "./stay/enrichir";
 
@@ -15,7 +16,8 @@ export type Listing = {
   id: string;
   stationId: string;
   title: string;
-  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale" | "GreenGo";
+  /** Les plateformes, la centrale, GreenGo, puis les agences de montagne (`scrape/agences/couverture.ts`). */
+  source: "Airbnb" | "Gîtes de France" | "Booking" | "Abritel" | "Centrale" | "GreenGo" | SourceAgence;
   /**
    * Total du séjour tel que la source l'a publié, aux dates demandées.
    *
@@ -90,6 +92,13 @@ export type Listing = {
    * restent, avec leur drapeau, et l'écran peut le dire.
    */
   priceIndicative?: boolean | null;
+  /**
+   * Le total comprend les forfaits de ski : `true` si la source vend ce séjour
+   * forfaits compris, `false` si elle publie l'hébergement seul, `null` si
+   * elle ne le dit pas. Le récapitulatif n'ajoute alors pas les forfaits du
+   * groupe (`stay/forfaitInclus.ts`).
+   */
+  skiPassIncluded?: boolean | null;
   /** L'identifiant du bien **sur sa plateforme**, quand il diffère de `id`,
    *  qui porte souvent celui d'un intermédiaire. */
   platformId?: string | null;

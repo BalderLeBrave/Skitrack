@@ -40,7 +40,6 @@ function plier(s: string | null | undefined): string {
 
 export type MotifHorsSujet =
   | "hôtel"
-  | "forfait compris"
   | "mobil-home"
   | "chambre d'hôtes"
   | "chambre chez l'habitant"
@@ -80,18 +79,12 @@ export function estHotel(
 }
 
 /**
- * Un séjour vendu forfait de ski compris : son total ne se compare pas à une
- * location. « Belambra Clubs Arc 2000 - L'aiguille Rouge - Ski Pass Included »
- * (9 715 €), « Belambra Clubs Les Saisies - Les Embrunes - Ski Pass
- * Included » (8 750 €). « Reduced Prices On Ski Passes » (Ikaria, Châtel)
- * n'est pas un forfait compris.
+ * Les séjours vendus forfait de ski compris ne sont plus hors sujet : consigne
+ * du propriétaire du 26 septembre 2026. Ils comptent comme toute location, et
+ * le récapitulatif n'y ajoute pas les forfaits (`stay/forfaitInclus.ts`, où
+ * vit désormais la règle du titre).
  */
-const FORFAIT_COMPRIS =
-  /\bski[\s-]?pass(?:es)?\s+(?:included|inclus)\b|\bforfaits?\s+(?:de\s+ski\s+)?(?:inclus|compris)\b/;
-
-export function forfaitCompris(titre: string | null | undefined): boolean {
-  return FORFAIT_COMPRIS.test(plier(titre));
-}
+export { forfaitCompris } from "../stay/forfaitInclus.ts";
 
 /* ---------- Mobil-homes ---------- */
 
@@ -261,7 +254,6 @@ export type SujetLogement = Pick<Listing, "title"> &
  */
 export function motifHorsSujet(l: SujetLogement): MotifHorsSujet | null {
   if (estHotel(l.propertyType, l.title)) return "hôtel";
-  if (forfaitCompris(l.title)) return "forfait compris";
   if (estMobilHome(l.title)) return "mobil-home";
   const chambre = motifChambre(l.propertyType, l.title);
   if (chambre) return chambre;

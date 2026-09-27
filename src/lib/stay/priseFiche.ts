@@ -18,6 +18,19 @@
  *   capacité, les chambres et le total viennent du détail de l'API, que le
  *   relevé lit lui-même, à son rythme. Relu le 24 septembre 2026.
  *
+ * Mesuré le 26 septembre 2026, sur les agences de montagne :
+ * - la fiche alpissime.com publie capacité, pièces et chambres, que la
+ *   recherche du site n'a pas ; sa position n'est pas sûre (sur une fiche, la
+ *   lecture a pris celle d'une annonce « similaire »), et la carte de
+ *   recherche donne déjà celle de l'immeuble ;
+ * - la fiche cimalpes.com publie la position (« Latitude : … ») et le titre,
+ *   que la recherche n'a pas ; capacité et chambres viennent déjà de la carte ;
+ * - la fiche travelski.com (400 Ko) ne se lit qu'avec son propre lecteur : le
+ *   relevé Travelski l'ouvre lui-même, et en garde ce qu'elle publie ;
+ * - les pages de ski-planet.com sont derrière un défi anti-robot : elles ne
+ *   s'ouvrent jamais. La position et la photo des résidences viennent de
+ *   leurs fiches archivées (`scrape/ski-planet/tables.mts`).
+ *
  * Un hôte absent de la table est tenté ; le disjoncteur l'arrête s'il ne
  * comble rien.
  */
@@ -57,6 +70,10 @@ const PRISES: ReadonlyArray<{ nom: string; hote: RegExp; prise: ReadonlySet<Trou
   { nom: "booking.com", hote: /(^|\.)booking\.com$/i, prise: new Set() },
   { nom: "abritel.fr", hote: /(^|\.)abritel\.fr$/i, prise: new Set(["gps", "titre"]) },
   { nom: "greengo.voyage", hote: /(^|\.)greengo\.voyage$/i, prise: new Set() },
+  { nom: "alpissime.com", hote: /(^|\.)alpissime\.com$/i, prise: new Set(["capacite", "chambres", "titre"]) },
+  { nom: "cimalpes.com", hote: /(^|\.)cimalpes\.com$/i, prise: new Set(["gps", "titre"]) },
+  { nom: "travelski.com", hote: /(^|\.)travelski\.com$/i, prise: new Set() },
+  { nom: "ski-planet.com", hote: /(^|\.)ski-planet\.com$/i, prise: new Set() },
 ];
 
 /**
@@ -77,7 +94,8 @@ export function cleUrl(url: string): string {
 /**
  * Les paramètres de dates que les collecteurs ajoutent à l'URL d'une fiche :
  * Airbnb `check_in`, Abritel `chkin` et `startDate`, Booking `checkin`, Gîtes
- * `date-start`, Open System `DateRecherche`. Casse ignorée.
+ * `date-start`, Open System `DateRecherche`, Cimalpes `date_debut`, Mountain
+ * Collection `date_in`. Casse ignorée.
  */
 const PARAMS_DATES: ReadonlySet<string> = new Set([
   "check_in",
@@ -91,6 +109,10 @@ const PARAMS_DATES: ReadonlySet<string> = new Set([
   "date-start",
   "date-end",
   "daterecherche",
+  "date_debut",
+  "date_fin",
+  "date_in",
+  "date_out",
 ]);
 
 /**

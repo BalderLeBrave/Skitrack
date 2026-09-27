@@ -15,9 +15,10 @@ import { fusionner } from "./fusion";
 import { allowsPath } from "./robots";
 import { chercherCentrale } from "./centrales/chercher.server";
 import { releverGreenGo } from "./greengo.server";
+import { agencesDe, collecteurDe } from "./agences/index.server";
 import type { LiveSearchInput, LiveSearchResult, SourceReport } from "./types";
 
-export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "browser" | "all";
+export type SearchPart = "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences" | "browser" | "all";
 
 function dumpFallback(input: LiveSearchInput, allow: Set<string>): Listing[] {
   if (
@@ -403,6 +404,35 @@ async function runGreenGo(input: LiveSearchInput): Promise<LiveSearchResult> {
   return { listings: locate(input, listings), sources: reports };
 }
 
+/**
+ * Les agences, loueurs et voyagistes de montagne (`agences/couverture.ts`) :
+ * Alpissime, Cimalpes, Madame Vacances, Maeva, Mountain Collection, Ovo
+ * Network, Ski-Planet et Travelski. Ils partent ensemble, chacun pour les
+ * seules stations qu'il couvre et à son rythme sur son propre site, dans le
+ * temps de la part. Une station qu'aucun ne couvre rend une part vide, sans
+ * rapport : la source n'existe pas là.
+ */
+async function runAgences(input: LiveSearchInput): Promise<LiveSearchResult> {
+  const reports: SourceReport[] = [];
+  const listings: Listing[] = [];
+  const echeance = Date.now() + ECHEANCE_PART_MS;
+  await Promise.all(
+    agencesDe(input.stationId).map(async (source) => {
+      const t0 = Date.now();
+      try {
+        const r = await collecteurDe(source)(input, { echeance });
+        pushReport(reports, listings, source, r.listings, Date.now() - t0, {
+          annoncees: r.annoncees ?? null,
+          note: notes(r.note, r.raison && `arrêté en route — ${r.raison}`),
+        });
+      } catch (err) {
+        failAll(reports, [source], err);
+      }
+    }),
+  );
+  return { listings: locate(input, listings), sources: reports };
+}
+
 async function runBrowser(input: LiveSearchInput): Promise<LiveSearchResult> {
   const reports: SourceReport[] = [];
   const listings: Listing[] = [];
@@ -446,6 +476,7 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
   if (part === "cozy") return runCozy(input);
   if (part === "centrales") return runCentrales(input);
   if (part === "greengo") return runGreenGo(input);
+  if (part === "agences") return runAgences(input);
   if (part === "browser") return runBrowser(input);
   const parts = await Promise.all([
     borne(runAirbnb(input), AIRBNB_SOURCES),
@@ -453,6 +484,7 @@ async function actuallyRun(input: LiveSearchInput, part: SearchPart): Promise<Li
     borne(runCozy(input), COZY_SOURCES),
     borne(runCentrales(input), CENTRALE_SOURCES),
     borne(runGreenGo(input), GREENGO_SOURCES),
+    borne(runAgences(input), agencesDe(input.stationId)),
   ]);
   return {
     listings: locate(input, parts.flatMap((p) => p.listings)),

@@ -10,9 +10,11 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { SOURCES_AGENCES } from "../scrape/agences/couverture";
 import type { RenduTranche } from "./completion.server";
 
-const SOURCES = ["Airbnb", "Gîtes de France", "Booking", "Abritel", "Centrale", "GreenGo"] as const;
+/** Toutes les sources d'une annonce : une source absente d'ici ferait refuser la tranche entière. */
+const SOURCES = ["Airbnb", "Gîtes de France", "Booking", "Abritel", "Centrale", "GreenGo", ...SOURCES_AGENCES] as const;
 
 const nombre = z.number().finite().nullable();
 

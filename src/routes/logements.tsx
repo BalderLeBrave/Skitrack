@@ -53,6 +53,8 @@ import {
   useSejour,
 } from "@/lib/parcours";
 import { coutForfaits } from "@/lib/forfaits/cout";
+import { forfaitInclus } from "@/lib/stay/forfaitInclus";
+import { agencesDe } from "@/lib/scrape/agences/couverture";
 import { partyLabel } from "@/lib/stay/party";
 import { searchStay, completerReleve, PAUSE_DELAI, SEARCH_PART_MS, DEVIS_MS, TARIF_MS } from "@/lib/searchStay";
 import { stationById, type Station } from "@/lib/stations";
@@ -155,7 +157,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
   useEffect(() => {
     if (!station) return;
     let cancelled = false;
-    let pending = 5;
+    let pending = 6;
     setSearching(true);
     setLive(null, [], true);
     const payload = {
@@ -182,7 +184,7 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       pending -= 1;
       if (!cancelled && pending <= 0) setSearching(false);
     };
-    const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo") => {
+    const run = (part: "airbnb" | "gites" | "cozy" | "centrales" | "greengo" | "agences") => {
       const wait =
         part === "gites"
           ? SEARCH_PART_MS + DEVIS_MS + 6_000
@@ -194,6 +196,12 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
           if (cancelled) return;
           if (res.listings.length > 0) {
             mergeLive(res.listings, res.sources);
+            return;
+          }
+          // Les agences n'ont pas de relevé figé : leurs rapports disent ce
+          // qui a été interrogé, même sans annonce.
+          if (part === "agences") {
+            if (res.sources.length) mergeLive([], res.sources);
             return;
           }
           const dump = frozenRef.current;
@@ -233,6 +241,11 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
               frozenRef.current.filter((l) => l.source === "GreenGo"),
               [{ source: "GreenGo", ok: false, count: 0, ms: 0, error }],
             );
+          } else if (part === "agences") {
+            mergeLive(
+              [],
+              agencesDe(station.id).map((source) => ({ source, ok: false, count: 0, ms: 0, error })),
+            );
           } else {
             mergeLive(
               frozenRef.current.filter((l) => l.source === "Abritel" || l.source === "Booking"),
@@ -256,6 +269,10 @@ function useLiveSearch(station: Station | undefined, frozen: Listing[]) {
       // GreenGo : ses propres hébergements écoresponsables, qu'aucune autre
       // source ne rapporte.
       run("greengo");
+      // Les agences et loueurs de montagne qui couvrent la station (Ovo
+      // Network, Travelski…). Pour une station qu'aucun ne couvre, le serveur
+      // répond tout de suite, sans rien demander à personne.
+      run("agences");
     };
     // Trois clics sur « Voyageurs » lançaient trois relevés Airbnb complets,
     // qui partaient tous jusqu'au bout côté serveur : jusqu'à 36 requêtes à
@@ -687,7 +704,9 @@ function LogementsStation({ s }: { s: Station }) {
   // Même calcul qu'ailleurs : les enfants à leur tarif quand le domaine le
   // publie, et non tout le groupe au tarif adulte.
   const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
-  const passGroupN = pass.total ?? 0;
+  // Un séjour vendu forfaits compris les porte déjà dans son prix.
+  const forfaitsCompris = kept ? forfaitInclus(kept) : false;
+  const passGroupN = forfaitsCompris ? 0 : (pass.total ?? 0);
   const totalN = (kept?.total ?? 0) + passGroupN;
 
   /**
@@ -1318,15 +1337,17 @@ function LogementsStation({ s }: { s: Station }) {
               </dd>
             </div>
             <div>
-              <dt title={pass.detail}>Forfaits 6 j</dt>
-              <dd className={pass.total != null ? undefined : "absent"}>
-                {pass.total != null ? eur(passGroupN) : "non relevés"}
+              <dt title={forfaitsCompris ? "compris dans le prix du logement" : pass.detail}>
+                {forfaitsCompris ? "Forfaits" : "Forfaits 6 j"}
+              </dt>
+              <dd className={forfaitsCompris || pass.total != null ? undefined : "absent"}>
+                {forfaitsCompris ? "compris" : pass.total != null ? eur(passGroupN) : "non relevés"}
                 {/* Le total monte quand les enfants sont comptés au tarif
                     adulte, faute de tarif enfant relevé : la fiche et la
                     réservation le disent, le pied aussi, et pas seulement dans
                     l'infobulle du libellé. Deux lignes courtes, pour ne pas
                     élargir le pied au détriment du logement retenu. */}
-                {pass.enfantsAuTarifAdulte ? (
+                {!forfaitsCompris && pass.enfantsAuTarifAdulte ? (
                   <span className="pied7__alerte">
                     <span>enfants au tarif adulte,</span> <span>tarif enfant non relevé</span>
                   </span>

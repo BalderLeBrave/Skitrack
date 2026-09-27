@@ -11,6 +11,12 @@ import { domainFit, inSearchedDomain, otherDomainMessage } from "./domainFit.ts"
 import { nearestStationLift } from "./remontees.ts";
 import { stationById, type Station } from "./stations.ts";
 import { withinLiftM as withinM } from "./skiAccess.ts";
+import {
+  remonteeInconnue,
+  type AvecCompletude,
+  type NearestLift,
+  type PositionSource,
+} from "./stay/statut.ts";
 import { convertir, dansLeSysteme, mesure, type Systeme } from "./unites.ts";
 
 export { metresBetween };
@@ -19,9 +25,50 @@ export { isCabinLift };
 export { formatLiftSpan, liftArrivalM } from "./liftSpan.ts";
 export { otherDomainMessage, inSearchedDomain };
 
-export function attachAccess(listing: Listing, station: Station): Listing {
+/**
+ * La remontée la plus proche, avec son statut (`stay/statut.ts`).
+ *
+ * C'est celle de la station cherchée, quel que soit le verdict de domaine :
+ * `distToLiftM` s'efface hors du domaine, la fiche structurée dit quand même
+ * à quelle distance sont les remontées de la station. Le jeu embarqué n'a ni
+ * identifiant OSM ni version avant la phase 3 : `liftId` et
+ * `liftsDatasetVersion` restent nuls.
+ */
+export function nearestLiftDe(listing: Listing, station: Station): NearestLift {
+  const { lat, lon } = listing;
+  // Un (0, 0) est un trou, pas un point dans le golfe de Guinée.
+  if (lat == null || lon == null || (lat === 0 && lon === 0)) {
+    return remonteeInconnue("position inconnue");
+  }
+  const lift = nearestLift(station.id, lat, lon);
+  if (!lift) return remonteeInconnue("aucune remontée connue pour cette station");
+  // La marque « · adresse » est posée par le géocodage d'adresse
+  // (`stay/completerFiche.server.ts`) : la position n'est pas celle de
+  // l'annonce, et la distance en hérite.
+  const positionSource: PositionSource = /·\s*adresse/.test(listing.proven ?? "")
+    ? "geocoded_address"
+    : "listing";
+  return {
+    distanceM: Math.round(lift.m / 10) * 10,
+    liftId: null,
+    liftName: lift.name,
+    liftType: lift.kind,
+    status: positionSource === "listing" ? "extracted" : "derived",
+    positionSource,
+    liftsDatasetVersion: null,
+    computedAt: new Date().toISOString(),
+  };
+}
+
+export function attachAccess(
+  listing: Listing & AvecCompletude,
+  station: Station,
+): Listing & AvecCompletude {
   const fit = domainFit(listing, station);
   const keepLift = inSearchedDomain(fit);
+  // La remontée structurée se pose dans les deux branches : sans position,
+  // elle dit pourquoi elle manque, et le reste de la completude est gardé.
+  const completude = { ...listing.completude, nearestLift: nearestLiftDe(listing, station) };
   if (listing.lat == null || listing.lon == null) {
     return {
       ...listing,
@@ -42,6 +89,7 @@ export function attachAccess(listing: Listing, station: Station): Listing {
       winterBarrier: fit.winterBarrier,
       searchedLiftM: null,
       searchedLiftName: null,
+      completude,
     };
   }
   const lift = nearestLift(station.id, listing.lat, listing.lon);
@@ -74,6 +122,7 @@ export function attachAccess(listing: Listing, station: Station): Listing {
     winterBarrier: fit.winterBarrier,
     searchedLiftM: lift?.m ?? null,
     searchedLiftName: lift?.name ?? null,
+    completude,
   };
 }
 

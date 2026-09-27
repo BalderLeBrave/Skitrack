@@ -135,6 +135,7 @@ import type { Listing } from "../listings.ts";
 import { provenancePhrase } from "../provenance.ts";
 import { nearestAnyLift } from "../remontees.ts";
 import type { SourceReport } from "../scrape/types.ts";
+import { SOURCES_AGENCES } from "../scrape/agences/couverture.ts";
 import { availabilityOf, type AvailabilitySubject } from "../stay/availability.ts";
 import { completudeOf, galerieOf } from "../stay/completude.ts";
 import { enrichirListing } from "../stay/enrichir.ts";
@@ -480,8 +481,8 @@ describe("agreger — ce qui entre dans la médiane", () => {
 });
 
 describe("sources en défaut", () => {
-  it("les parts couvrent les six sources, sans doublon", () => {
-    assert.deepEqual([...PARTS], ["airbnb", "gites", "cozy", "centrales", "greengo"]);
+  it("les parts couvrent toutes les sources, agences comprises, sans doublon", () => {
+    assert.deepEqual([...PARTS], ["airbnb", "gites", "cozy", "centrales", "greengo", "agences"]);
     const toutes = PARTS.flatMap((p) => SOURCES_DE_PART[p]);
     assert.deepEqual(toutes, [
       "Airbnb",
@@ -490,7 +491,16 @@ describe("sources en défaut", () => {
       "Booking",
       "Centrale",
       "GreenGo",
+      ...SOURCES_AGENCES,
     ]);
+    assert.equal(new Set(toutes).size, toutes.length);
+  });
+
+  it("la part des agences rejetée ne met en défaut que les agences qui couvrent la station", () => {
+    assert.deepEqual(sourcesEnDefaut([], ["agences"], { agences: ["Ovo Network"] }), ["Ovo Network"]);
+    assert.deepEqual(sourcesEnDefaut([], ["agences"], { agences: [] }), []);
+    // Sans le savoir, toutes : c'est le défaut d'avant.
+    assert.deepEqual(sourcesEnDefaut([], ["agences"]), [...SOURCES_AGENCES]);
   });
 
   it("un refus, une pause ou un délai mettent toute source en défaut", () => {

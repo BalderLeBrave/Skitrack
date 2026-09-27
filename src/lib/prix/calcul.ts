@@ -13,6 +13,7 @@ import { attachAccess } from "../access.ts";
 import { domaineNomme } from "../classeur.ts";
 import type { Listing } from "../listings.ts";
 import type { ArretFiches } from "../scrape/airbnbFiches.ts";
+import { SOURCES_AGENCES } from "../scrape/agences/couverture.ts";
 import type { SourceReport } from "../scrape/types.ts";
 import type { Station } from "../stations.ts";
 import { dm, eur, fmt, nuitsLbl, travLbl } from "../parcours.ts";
@@ -196,9 +197,10 @@ type Crible = {
  * séjour. La complétion (`aCompleter`) part du même prédicat : une annonce
  * qu'elle complète est une annonce que la médiane pourra compter.
  *
- * Et d'abord un logement de location : ni hôtel, ni forfait compris, ni
- * mobil-home, ni chambre d'hôtes ou dortoir, ni logement hors de France
- * (`motifHorsSujet`). Sur les relevés du 25 septembre 2026, les hôtels
+ * Et d'abord un logement de location : ni hôtel, ni mobil-home, ni chambre
+ * d'hôtes ou dortoir, ni logement hors de France (`motifHorsSujet`). Un séjour
+ * vendu forfaits compris compte, depuis le 26 septembre 2026 : consigne du
+ * propriétaire (`stay/forfaitInclus.ts`). Sur les relevés du 25 septembre 2026, les hôtels
  * faisaient bouger la médiane de 46 stations : La Clusaz passait de 5 688 à
  * 4 884 € sans eux. Les médianes déjà enregistrées ne changent qu'au relevé
  * suivant ; « Par budget » les écarte dès la relecture (`passeAnnonce`).
@@ -439,15 +441,18 @@ function sansRemontee(l: Listing): Listing {
   };
 }
 
-export const PARTS = ["airbnb", "gites", "cozy", "centrales", "greengo"] as const;
+export const PARTS = ["airbnb", "gites", "cozy", "centrales", "greengo", "agences"] as const;
 export type Part = (typeof PARTS)[number];
 
+/** Toutes les sources que chaque part peut rapporter. Les agences n'en
+ *  rapportent, pour une station, que celles qui la couvrent (`attendues`). */
 export const SOURCES_DE_PART: Record<Part, readonly Listing["source"][]> = {
   airbnb: ["Airbnb"],
   gites: ["Gîtes de France"],
   cozy: ["Abritel", "Booking"],
   centrales: ["Centrale"],
   greengo: ["GreenGo"],
+  agences: SOURCES_AGENCES,
 };
 
 /** Les plateformes existent pour toute station : leur silence est un défaut.
@@ -471,7 +476,9 @@ const PASSAGER =
 const ORDRE_SOURCES: readonly Listing["source"][] = PARTS.flatMap((p) => SOURCES_DE_PART[p]);
 
 /** Sources en défaut pour ce relevé : noms uniques, dans l'ordre de PARTS.
- *  - toute source d'une part rejetée côté client (partsEchouees) ;
+ *  - toute source d'une part rejetée côté client (partsEchouees), parmi
+ *    celles que la part rapporte pour cette station quand on les sait
+ *    (`attendues`) : une agence qui ne couvre pas la station n'y manque pas ;
  *  - une source des plateformes (Airbnb, Abritel, Booking, GreenGo) avec ok: false ;
  *  - toute source dont error ou note matche un motif passager.
  *  Une centrale non branchée ou un Gîtes sans commune (ok: false sans motif
@@ -479,9 +486,10 @@ const ORDRE_SOURCES: readonly Listing["source"][] = PARTS.flatMap((p) => SOURCES
 export function sourcesEnDefaut(
   sources: readonly SourceReport[],
   partsEchouees: readonly Part[],
+  attendues: Partial<Record<Part, readonly Listing["source"][]>> = {},
 ): string[] {
   const enDefaut = new Set<string>();
-  for (const p of partsEchouees) for (const s of SOURCES_DE_PART[p]) enDefaut.add(s);
+  for (const p of partsEchouees) for (const s of attendues[p] ?? SOURCES_DE_PART[p]) enDefaut.add(s);
   for (const r of sources) {
     if (!r.ok && PLATEFORMES.includes(r.source)) enDefaut.add(r.source);
     else if (PASSAGER.test(`${r.error ?? ""} ${r.note ?? ""}`)) enDefaut.add(r.source);
@@ -496,6 +504,9 @@ export type EntreeReleve = ContexteReleve & {
   listings: readonly Listing[];
   sources: readonly SourceReport[];
   partsEchouees: readonly Part[];
+  /** Les sources qu'une part rapporte pour cette station, quand elles
+   *  diffèrent de `SOURCES_DE_PART` : les agences qui la couvrent. */
+  attendues?: Partial<Record<Part, readonly Listing["source"][]>>;
 };
 
 /** Toutes les parts ont échoué côté client, ou aucune annonce réelle n'est
@@ -522,7 +533,7 @@ function contexte(input: EntreeReleve): ContexteReleve {
 /** Le résultat d'un relevé : `echec` s'il n'a rien mesuré, sinon `fait`, avec
  *  les sources en défaut dans `partiel`. */
 export function resultatDuReleve(input: EntreeReleve): Resultat {
-  const partiel = sourcesEnDefaut(input.sources, input.partsEchouees);
+  const partiel = sourcesEnDefaut(input.sources, input.partsEchouees, input.attendues);
   if (echoue(input, partiel)) return { etat: "echec", ts: input.now, raison: AUCUNE_SOURCE };
   return { etat: "fait", ...agreger(input.listings, contexte(input)), ts: input.now, partiel };
 }
@@ -530,7 +541,7 @@ export function resultatDuReleve(input: EntreeReleve): Resultat {
 /** Les offres que ce relevé retient, toutes plateformes, photos bornées ;
  *  aucune s'il a échoué. L'onglet budget les regroupe par logement. */
 export function annoncesDuReleve(input: EntreeReleve): AnnonceRetenue[] {
-  if (echoue(input, sourcesEnDefaut(input.sources, input.partsEchouees))) return [];
+  if (echoue(input, sourcesEnDefaut(input.sources, input.partsEchouees, input.attendues))) return [];
   return retenirOffres(input.listings, contexte(input)).map(compacter);
 }
 
@@ -1133,8 +1144,8 @@ export function passeBudget(total: number, pl: Plage, b: readonly [number, numbe
  * chambres absentes écartent quand leur plage est active, comme partout.
  *
  * Les relevés enregistrés avant le 26 septembre 2026 gardent aussi ce que
- * `cribler` écarte désormais : hôtels, forfaits compris, mobil-homes,
- * chambres d'hôtes et dortoirs, logements hors de France, fiches que leur
+ * `cribler` écarte désormais : hôtels, mobil-homes, chambres d'hôtes et
+ * dortoirs, logements hors de France, fiches que leur
  * titre dément. Ils sortent ici, à la relecture, sans nouveau relevé : sur les
  * relevés d'Adrien, 119 cartes de « Par budget » sur 1 618, dont la carte
  * n° 1, l'Airbnb « Mobile-home » d'Aragnouet à 628 €, et 88 hôtels.
@@ -1762,7 +1773,7 @@ export type ReleveRendu = {
   /** L'application ne répondait plus : la course s'abandonne, rien ne s'écrit. */
   injoignable: boolean;
   /**
-   * Les cinq parts se sont rendues avant tout arrêt de la course : un
+   * Les six parts se sont rendues avant tout arrêt de la course : un
    * « Arrêter » venu ensuite est tombé pendant la complétion, ou après.
    */
   partsRendues: boolean;
@@ -1775,7 +1786,7 @@ export type ReleveRendu = {
  *
  * `enCours` : la course qui l'a lancé est toujours celle en vol. Arrêtée
  * pendant ses parts, la station n'écrit rien. Arrêtée pendant la complétion,
- * ses cinq parts rendues, elle écrit sa médiane, avec ce que les tranches ont
+ * ses six parts rendues, elle écrit sa médiane, avec ce que les tranches ont
  * posé : sa clé (période, groupe, station) est la sienne, pas celle de la
  * course suivante. Une course arrêtée n'écrit jamais d'échec, et un échec ne
  * remplace jamais une médiane.

@@ -1,0 +1,58 @@
+{
+  "totalProducts": 102,
+  "pageCount": 2,
+  "products": [
+    {
+      "liheId": "8493",
+      "name": "Pierre & Vacances Résidence Atria-Crozats",
+      "stationName": "Avoriaz",
+      "image": "https://d1wek41qnoimq7.cloudfront.net/product/8493/W/O/pierre-vacances-residence-atria-crozats-0b91ead5.jpg",
+      "reviewNumber": 3,
+      "averageRating": 4.6,
+      "productPageUrl": "/residence/location/residence-pierre-vacances-atria-crozats-4-8493",
+      "prestations": [
+        {"pricePerLogement":4144,"pricePerPerson":1036,"duration":7,"id":"80136","name":"Appartement 4 personnes - 1 chambre - Balcon ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":4,"surface":34,"lodgingType":"19","packageId":"83307","codePackage":"PF"},
+        {"pricePerLogement":6282,"pricePerPerson":1047,"duration":7,"id":"80143","name":"Appartement 6 personnes - 2 chambres - Balcon ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":6,"surface":52,"lodgingType":"19","packageId":"83307","codePackage":"PF"},
+        {"pricePerLogement":6318,"pricePerPerson":1053,"duration":7,"id":"229983","name":"Appartement 6 personnes - 2 chambres - Balcon - Vue montagne ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":6,"surface":52,"lodgingType":"19","packageId":"83307","codePackage":"PF"},
+        {"pricePerLogement":4684,"pricePerPerson":1171,"duration":7,"id":"80136","name":"Appartement 4 personnes - 1 chambre - Balcon ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":4,"surface":34,"lodgingType":"19","packageId":"83306","codePackage":"PFP"},
+        {"pricePerLogement":4696,"pricePerPerson":1174,"duration":7,"id":"229982","name":"Appartement 4 personnes - 1 chambre - Balcon - Vue montagne ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":4,"lodgingType":"19","packageId":"83307","codePackage":"PF"},
+        {"pricePerLogement":7092,"pricePerPerson":1182,"duration":7,"id":"80143","name":"Appartement 6 personnes - 2 chambres - Balcon ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":6,"surface":52,"lodgingType":"19","packageId":"83306","codePackage":"PFP"},
+        {"pricePerLogement":7122,"pricePerPerson":1187,"duration":7,"id":"229983","name":"Appartement 6 personnes - 2 chambres - Balcon - Vue montagne ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":6,"surface":52,"lodgingType":"19","packageId":"83306","codePackage":"PFP"},
+        {"pricePerLogement":5236,"pricePerPerson":1309,"duration":7,"id":"229982","name":"Appartement 4 personnes - 1 chambre - Balcon - Vue montagne ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":4,"lodgingType":"19","packageId":"83306","codePackage":"PFP"},
+        {"pricePerLogement":3087,"pricePerPerson":772,"duration":7,"id":"80136","name":"Appartement 4 personnes - 1 chambre - Balcon ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":0,"capacity":4,"surface":34,"lodgingType":"19","codePackage":"HS"},
+        {"pricePerLogement":3640,"pricePerPerson":910,"duration":7,"id":"229982","name":"Appartement 4 personnes - 1 chambre - Balcon - Vue montagne ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":0,"capacity":4,"lodgingType":"19","codePackage":"HS"},
+        {"pricePerLogement":4697,"pricePerPerson":783,"duration":7,"id":"80143","name":"Appartement 6 personnes - 2 chambres - Balcon ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":0,"capacity":6,"surface":52,"lodgingType":"19","codePackage":"HS"},
+        {"pricePerLogement":4732,"pricePerPerson":789,"duration":7,"id":"229983","name":"Appartement 6 personnes - 2 chambres - Balcon - Vue montagne ","startDate":"2027-02-06","endDate":"2027-02-13","skipass":0,"capacity":6,"surface":52,"lodgingType":"19","codePackage":"HS"}
+      ],
+      "lodgingType": "19"
+    },
+    {
+      "liheId": "136708",
+      "name": "Appartements TILIA",
+      "stationName": "Avoriaz",
+      "image": "https://d1wek41qnoimq7.cloudfront.net/product/136708/W/O/appartements-tilia-51e34210.jpg",
+      "reviewNumber": 2,
+      "averageRating": 2.6,
+      "productPageUrl": "/appartement/location/appartements-tilia-136708",
+      "prestations": [
+        {"pricePerLogement":2106,"pricePerPerson":527,"duration":7,"id":"922064","name":"2 pièces 4 personnes","startDate":"2027-02-06","endDate":"2027-02-13","skipass":0,"capacity":4,"surface":28,"lodgingType":"40","codePackage":"HS"}
+      ],
+      "lodgingType": "40"
+    },
+    {
+      "liheId": "738",
+      "name": "Hôtel des Dromonts 4*",
+      "stationName": "Avoriaz",
+      "image": "https://d1wek41qnoimq7.cloudfront.net/product/738/W/O/hotel-des-dromonts-4-66a19434.jpg",
+      "reviewNumber": 0,
+      "averageRating": 0,
+      "productPageUrl": "/hotel/location/hotel-des-dromonts-738",
+      "prestations": [
+        {"pricePerLogement":7532,"pricePerPerson":3766,"duration":7,"id":"655773","name":"Chambre Club 2 Personnes - Demi-pension","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":2,"lodgingType":"22","packageId":"85470","codePackage":"PF"},
+        {"pricePerLogement":7802,"pricePerPerson":3901,"duration":7,"id":"655773","name":"Chambre Club 2 Personnes - Demi-pension","startDate":"2027-02-06","endDate":"2027-02-13","skipass":6,"capacity":2,"lodgingType":"22","packageId":"85469","codePackage":"PFP"},
+        {"pricePerLogement":7004,"pricePerPerson":3502,"duration":7,"id":"655773","name":"Chambre Club 2 Personnes - Demi-pension","startDate":"2027-02-06","endDate":"2027-02-13","skipass":0,"capacity":2,"lodgingType":"22","codePackage":"HS"}
+      ],
+      "lodgingType": "22"
+    }
+  ]
+}

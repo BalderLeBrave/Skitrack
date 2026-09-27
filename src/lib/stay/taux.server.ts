@@ -38,6 +38,14 @@ const HOSTS: Record<string, { gapMs: number; maxHits: number }> = {
    * vingtaine de requêtes seulement en tout.
    */
   greengo: { gapMs: 2_000, maxHits: 20 },
+  /**
+   * Les appels internes de Ski-Planet (`calendrier-residence.php`), un par
+   * résidence : une page de résultats du site en lance dix d'un coup. Une
+   * requête par seconde, quarante par minute, reste en deçà de ce qu'un
+   * visiteur qui feuillette lui fait envoyer. Aucun refus observé sur plus
+   * de 300 appels à 2 s d'écart le 26 septembre 2026.
+   */
+  skiplanet: { gapMs: 1_000, maxHits: 40 },
 };
 
 type Row = { hits?: unknown; until?: unknown };

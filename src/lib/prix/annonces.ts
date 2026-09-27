@@ -9,13 +9,19 @@
  * survivent pas au rechargement.
  */
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { nearestLiftDe } from "../access";
 import { rejugerDomaine } from "../domainFit";
 import type { Listing } from "../listings";
 import { stationById } from "../stations";
+import { passerLaPorte } from "../stay/porte";
+import type { AvecCompletude } from "../stay/statut";
 import { remesurerRemontee, stationDeCle, versListing, type AnnonceRetenue } from "./calcul";
+import { migrerAnnonces } from "./migrationAnnonces";
 
 const BASE = "skitrack-prix";
 const MAGASIN = "annonces";
+/** 2 depuis la phase 1 : chaque annonce porte sa `completude` (`migrerAnnonces`). */
+const VERSION = 2;
 
 const cache = new Map<string, AnnonceRetenue[]>();
 /** Clés dont la mémoire sait tout (lues, écrites ou oubliées) : jamais relues. */
@@ -85,14 +91,31 @@ function ouvrir(): Promise<IDBDatabase | null> {
     };
     let req: IDBOpenDBRequest;
     try {
-      req = indexedDB.open(BASE, 1);
+      req = indexedDB.open(BASE, VERSION);
     } catch {
       rendre(null);
       return;
     }
-    req.onupgradeneeded = () => {
+    req.onupgradeneeded = (event) => {
       const db = req.result;
       if (!db.objectStoreNames.contains(MAGASIN)) db.createObjectStore(MAGASIN);
+      // Les annonces enregistrées avant la phase 1 (base en version 1) n'ont
+      // pas de statut de completude : chacune en reçoit un, aux trois champs
+      // inconnus, et le garde jusqu'au relevé qui la remplace. Rien n'est
+      // deviné à partir des nombres qu'elle porte. Dans la transaction de
+      // mise à niveau même : une autre, ouverte après, verrait une base déjà
+      // en version 2, que d'autres onglets liraient à moitié migrée.
+      const tx = req.transaction;
+      if (event.oldVersion < 2 && tx && db.objectStoreNames.contains(MAGASIN)) {
+        const curseur = tx.objectStore(MAGASIN).openCursor();
+        curseur.onsuccess = () => {
+          const c = curseur.result;
+          if (!c) return;
+          const { valeur, changee } = migrerAnnonces(c.value);
+          if (changee) c.update(valeur);
+          c.continue();
+        };
+      }
     };
     req.onsuccess = () => {
       const db = req.result;
@@ -147,14 +170,25 @@ async function transaction(
  *  enregistré est celui du jour du relevé. Sans cela, les corrections du
  *  26 septembre 2026 (La Bourboule sans domaine, Lispach rendue à son domaine,
  *  Abondance séparée de Morzine) attendaient un nouveau relevé, et les
- *  37 annonces du Mont-Dore restaient « à La Bourboule ». */
+ *  37 annonces du Mont-Dore restaient « à La Bourboule ».
+ *
+ *  Enfin l'annonce passe la porte (`passerLaPorte`, origine « memoire ») :
+ *  ce qui sort porte une `completude` entière. Ses chambres et sa capacité
+ *  restent celles que la base garde, inconnues pour une annonce d'avant la
+ *  phase 1 ; sa remontée structurée, elle, se recalcule sur le référentiel
+ *  d'aujourd'hui (`nearestLiftDe`), comme la remontée à plat vient d'être
+ *  remesurée, dès que la station de la clé est connue. */
 function annoncesLues(v: unknown, cle: string): AnnonceRetenue[] | null {
   if (!Array.isArray(v)) return null;
   const stationId = stationDeCle(cle);
   const station = stationById(stationId);
   return v.flatMap((a) => {
     const l = versListing(a, stationId);
-    return l ? [remesurerRemontee(rejugerDomaine(l, station))] : [];
+    if (!l) return [];
+    const r: Listing & AvecCompletude = remesurerRemontee(rejugerDomaine(l, station));
+    if (!station) return [passerLaPorte(r, "memoire")];
+    const x = { ...r, completude: { ...r.completude, nearestLift: nearestLiftDe(r, station) } };
+    return [passerLaPorte(x, "memoire")];
   });
 }
 

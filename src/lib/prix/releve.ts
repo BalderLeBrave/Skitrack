@@ -7,7 +7,7 @@
  *
  * Une station à la fois, jamais deux, serveur compris : un relevé Airbnb
  * envoie jusqu'à douze requêtes, et deux stations ensemble se feraient couper
- * par le limiteur local. « Arrêter » pendant les cinq parts n'écrit rien de la
+ * par le limiteur local. « Arrêter » pendant les six parts n'écrit rien de la
  * station en vol ; pendant sa complétion, ses parts rendues, elle s'écrit
  * quand même, avec ce que les tranches ont posé, et la course s'arrête là
  * (`ecritureDuReleve`). Le serveur, qui ne sait rien de l'arrêt, finit ce qui
@@ -17,7 +17,7 @@
  * (`etatAirbnb`). Une station coupée par un refus n'est jamais relancée
  * d'elle-même.
  *
- * Les cinq parts de la recherche de Logements, trois en vol au plus, sans
+ * Les six parts de la recherche de Logements, trois en vol au plus, sans
  * `relance` : le relevé Airbnb que le serveur garde quinze minutes sert aux
  * deux écrans. Mais rien n'est écrit dans `useStay`, et pas de repli sur le
  * relevé figé : la médiane ne porte que sur ce qui a été relevé pour ces
@@ -41,6 +41,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist, type PersistStorage } from "zustand/middleware";
 import type { Listing } from "../listings";
 import { useParcours } from "../parcours";
+import { agencesDe } from "../scrape/agences/couverture";
 import { DEVIS_MS, SEARCH_PART_MS, TARIF_MS, searchStay } from "../searchStay";
 import { stationById, type Station } from "../stations";
 import { useStay } from "../stay";
@@ -136,7 +137,7 @@ export type PrixStore = {
 type Rendu = Awaited<ReturnType<typeof searchStay>>;
 
 /** Le relevé d'une station : sa médiane, les annonces qu'elle a comptées, si
- *  l'application elle-même a cessé de répondre, et si ses cinq parts se sont
+ *  l'application elle-même a cessé de répondre, et si ses six parts se sont
  *  rendues avant tout arrêt (`ecritureDuReleve`). */
 type Releve = ReleveRendu & { annonces: AnnonceRetenue[] };
 
@@ -162,13 +163,14 @@ const ATTENTE_FICHES_MAX_MS = 60_000;
 const CONNEXIONS = 3;
 
 /** Les longues d'abord. Gîtes et la plupart des centrales répondent tout de
- *  suite (pas de commune, centrale non branchée). */
-const RANG: Record<Part, number> = { airbnb: 0, cozy: 1, greengo: 2, centrales: 3, gites: 4 };
+ *  suite (pas de commune, centrale non branchée) ; les agences aussi, pour
+ *  une station qu'aucune ne couvre. */
+const RANG: Record<Part, number> = { airbnb: 0, cozy: 1, greengo: 2, agences: 3, centrales: 4, gites: 5 };
 const ORDRE_PARTS: readonly Part[] = [...PARTS].sort((a, b) => RANG[a] - RANG[b]);
 
 /**
  * La génération de la course en vol : une course arrêtée n'écrit plus rien,
- * sauf la station dont les cinq parts étaient rendues (`ecritureDuReleve`).
+ * sauf la station dont les six parts étaient rendues (`ecritureDuReleve`).
  */
 let generation = 0;
 /** Coupe les attentes de la course courante (pas sa station : voir `stationEnVol`). */
@@ -293,7 +295,7 @@ async function attendreCreneau(gen: number, signal: AbortSignal): Promise<boolea
 }
 
 /** Les bornes du validateur de `searchStay` : un groupe venu d'une adresse
- *  (`?pers=35`, `t=2.5`) ferait refuser les cinq parts. */
+ *  (`?pers=35`, `t=2.5`) ferait refuser les six parts. */
 function borne(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Math.round(v) || min));
 }
@@ -349,7 +351,7 @@ function pilote(
   };
 }
 
-/** Les cinq parts d'une station, trois à la fois, leur complétion, et ce qu'on en garde. */
+/** Les six parts d'une station, trois à la fois, leur complétion, et ce qu'on en garde. */
 async function relever(s: Station, job: Job, gen: number, signal: AbortSignal): Promise<Releve> {
   const checkIn = job.per.from;
   const checkOut = departIso(job.per);
@@ -417,6 +419,7 @@ async function relever(s: Station, job: Job, gen: number, signal: AbortSignal): 
       listings,
       sources: rendus.flatMap((r) => r.sources),
       partsEchouees: PARTS.filter((_, k) => lus[k].status === "rejected"),
+      attendues: { agences: agencesDe(s.id) },
     };
     const resultat = resultatDuReleve(entree);
     const annonces = resultat.etat === "fait" ? annoncesDuReleve(entree) : [];
@@ -532,7 +535,7 @@ async function derouler(gen: number, signal: AbortSignal): Promise<void> {
   suivante();
 }
 
-/** La course en vol n'écrira plus rien, sauf la station dont les cinq parts
+/** La course en vol n'écrira plus rien, sauf la station dont les six parts
  *  sont rendues (`ecritureDuReleve`), et ses attentes s'arrêtent. */
 function couperCourse(): void {
   generation += 1;

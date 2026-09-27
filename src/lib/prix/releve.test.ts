@@ -227,7 +227,7 @@ describe("relevé de l'écran Prix : « Arrêter »", () => {
     assert.deepEqual(vu.annonces, [{ op: "ecrire", cle: CLE, n: 2 }]);
   });
 
-  it("pendant la complétion : les cinq parts rendues, la station s'écrit quand même, puis la course s'arrête", async () => {
+  it("pendant la complétion : les six parts rendues, la station s'écrit quand même, puis la course s'arrête", async () => {
     await silence(async () => {
       doublures({
         async completerProfond({ data }) {
@@ -239,7 +239,7 @@ describe("relevé de l'écran Prix : « Arrêter »", () => {
       usePrix.getState().lancer(JOB);
       await auRepos();
     });
-    assert.equal(vu.parts.length, 5);
+    assert.equal(vu.parts.length, 6);
     assert.deepEqual(
       vu.tranches.map((t) => t.mode),
       ["memoire"],
@@ -294,13 +294,13 @@ describe("relevé de l'écran Prix : « Arrêter »", () => {
       await attendreQue(() => enVol.length === 3, "trois parts en vol");
       usePrix.getState().arreter();
       // Le serveur finit les parts parties : elles se rendent toutes.
-      for (let k = 0; k < 5; k += 1) {
+      for (let k = 0; k < 6; k += 1) {
         await attendreQue(() => enVol.length > k, `part ${k + 1} partie`);
         enVol[k]();
       }
       await auRepos();
     });
-    assert.equal(vu.parts.length, 5);
+    assert.equal(vu.parts.length, 6);
     assert.equal(vu.tranches.length, 0);
     assert.equal(usePrix.getState().res[CLE], undefined);
     assert.deepEqual(vu.annonces, []);

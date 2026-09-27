@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { attachAccess } from "./access";
 import { listingsForStay, type Listing } from "./listings";
+import { agencesDe } from "./scrape/agences/couverture";
 import type { LiveSearchResult, SourceName } from "./scrape/types";
 import { stationById } from "./stations";
 import { estTimeout, withDeadline } from "./stay/deadline";
@@ -18,7 +19,7 @@ const Input = z.object({
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guests: z.number().int().min(1).max(30),
   bedrooms: z.number().int().min(0).max(20),
-  part: z.enum(["airbnb", "gites", "cozy", "centrales", "greengo", "browser", "all"]).optional(),
+  part: z.enum(["airbnb", "gites", "cozy", "centrales", "greengo", "agences", "browser", "all"]).optional(),
   /** « Relancer le relevé » à l'écran : le cache long d'Airbnb ne sert que 90 s. */
   relance: z.boolean().optional(),
 });
@@ -31,20 +32,22 @@ export const DEVIS_MS = 18_000;
 export const TARIF_MS = 18_000;
 export const PAUSE_DELAI = "Délai dépassé : relevé précédent conservé.";
 
-function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>): SourceName[] {
+/** Les sources d'une part. Les agences, seulement celles qui couvrent la station : les autres n'existent pas là. */
+function sourcesOf(part: NonNullable<z.infer<typeof Input>["part"]>, stationId: string): SourceName[] {
   if (part === "airbnb") return ["Airbnb"];
   if (part === "gites") return ["Gîtes de France"];
   if (part === "centrales") return ["Centrale"];
   if (part === "greengo") return ["GreenGo"];
+  if (part === "agences") return agencesDe(stationId);
   if (part === "cozy") return ["Abritel", "Booking"];
   if (part === "browser") return ["Airbnb", "Gîtes de France", "Abritel", "Booking"];
-  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo"];
+  return ["Airbnb", "Gîtes de France", "Abritel", "Booking", "Centrale", "GreenGo", ...agencesDe(stationId)];
 }
 
-function timedOutResult(part: NonNullable<z.infer<typeof Input>["part"]>, ms: number): LiveSearchResult {
+function timedOutResult(part: NonNullable<z.infer<typeof Input>["part"]>, stationId: string, ms: number): LiveSearchResult {
   return {
     listings: [],
-    sources: sourcesOf(part).map((source) => ({
+    sources: sourcesOf(part, stationId).map((source) => ({
       source,
       ok: false,
       count: 0,
@@ -70,7 +73,7 @@ export const searchStay = createServerFn({ method: "POST" })
     } catch (err) {
       if (!estTimeout(err)) throw err;
       console.warn(`[searchStay] ${part} délai dépassé`);
-      res = timedOutResult(part, Date.now() - t0);
+      res = timedOutResult(part, data.stationId, Date.now() - t0);
     }
     const remain = Math.max(0, SEARCH_PART_MS - (Date.now() - t0));
     return {

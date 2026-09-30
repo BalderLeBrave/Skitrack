@@ -72,6 +72,12 @@ export async function releverMaeva(input: LiveSearchInput, opts: OptionsReleve):
       else raison = raisonDe(ski.arret);
     }
   }
+  // Le catalogue SKI ne publie pas de lien pour les appartements de
+  // particuliers ; la page du même logement, lue au catalogue FRANCE, propose
+  // la formule. Une formule sans lien restait invisible (disponibilité non
+  // vérifiable) : 27 sur 30 aux 2 Alpes le 30 septembre 2026.
+  const lienDe = new Map([...parId.values()].filter((l) => !l.skiPassIncluded && l.url).map((l) => [l.platformId, l.url]));
+  for (const l of parId.values()) if (l.skiPassIncluded && !l.url) l.url = lienDe.get(l.platformId) ?? null;
   return {
     listings: [...parId.values()],
     note: notes.join(", "),

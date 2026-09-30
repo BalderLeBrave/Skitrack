@@ -697,18 +697,25 @@ function tarifDe(fragment: string): TarifIngenie | null {
  * Une fiche **sans bloc de tarif** n'est pas rendue : la centrale la connaît,
  * mais elle ne la vend pas à ces dates-là. Sans dates, la page n'en porte
  * aucun, et c'est ainsi qu'on sait que ces prix sont datés. Une fiche dont le
- * bloc est là mais dit « à partir de 0 € » sort, elle, avec un total de zéro :
- * la centrale la liste sans en publier le tarif, et c'est un renseignement.
+ * bloc dit « à partir de 0 € » n'est pas rendue non plus : le planning de la
+ * centrale n'a alors aucun tarif pour la semaine, la location se traite par
+ * courriel avec le propriétaire (Val d'Allos, 30 septembre 2026 : 11 fiches
+ * sur 11, `data-semaine-tarif` vide). Consigne du propriétaire : un logement
+ * sans prix n'est pas gardé.
  */
 export function lireIngenie(page: string): FicheIngenie[] {
   const par = new Map<string, FicheIngenie>();
   for (const fragment of fragmentsIngenie(page)) {
     const tarif = tarifDe(fragment);
-    if (tarif == null) continue;
+    if (tarif == null || !(tarif.total > 0)) continue;
+    // Le Grand-Bornand écrit l'identifiant sans préfixe (`id="G-7934842-7934844"`)
+    // et sans `data-ga-item-id` : ses 181 fiches étaient toutes sautées. Il est
+    // ramené à la forme des autres hôtes.
+    const nu = /^[^>]*\bid="([A-Z]-[^"\s]+)"/.exec(fragment)?.[1];
     const ident =
       /id="(PRESTATION-[^"]+)"/.exec(fragment)?.[1] ??
       /data-ga-item-id="([^"]+)"/.exec(fragment)?.[1] ??
-      null;
+      (nu ? `PRESTATION-${nu}` : null);
     if (!ident) continue;
     const titre = titreDe(fragment);
     if (!titre) continue;
@@ -720,7 +727,11 @@ export function lireIngenie(page: string): FicheIngenie[] {
     // Ce que le prix couvre, écrit à sa droite : « pour la location ». Publié
     // par les deux gabarits connus, et lu par aucun des deux jusqu'ici.
     const nat = /class="nature_prix_en_cours"[^>]*>([\s\S]{0,80}?)<\/div>/.exec(fragment);
-    const lien = /class="lien_plus_info_resa[^"]*"\s*>\s*<a[^>]+href="([^"]+)"/.exec(fragment);
+    // Sans bloc « plus d'infos » (Le Grand-Bornand), le lien de la fiche est
+    // celui de la galerie : la page `.html` avec le contexte de la recherche.
+    const lien =
+      /class="lien_plus_info_resa[^"]*"\s*>\s*<a[^>]+href="([^"]+)"/.exec(fragment) ??
+      /href="([^"#]+\.html\?[^"#]*action=result[^"#]*)(?:#[^"]*)?"/.exec(fragment);
     const etiquette = etiq ? texteIngenie(etiq[1] ?? "") || null : null;
     const nature = nat ? texteIngenie(nat[1] ?? "") || null : null;
     par.set(ident, {
@@ -740,8 +751,14 @@ export function lireIngenie(page: string): FicheIngenie[] {
   return [...par.values()];
 }
 
-/** Pages lues au plus, première comprise : cent fiches, à dix par page. */
-export const PAGES_MAX_INGENIE = 10;
+/**
+ * Garde-fou contre une boucle, pas un plafond de couverture : la plus longue
+ * liste relevée compte 39 pages (Valloire, 383 fiches à dix par page). Le
+ * plafond de 10 pages laissait 1 466 annonces sur onze hôtes le 27 septembre
+ * 2026 ; au-delà de l'échéance de la part, la suite continue en tâche de fond
+ * (`ingenie.server.ts`).
+ */
+export const PAGES_MAX_INGENIE = 200;
 
 /**
  * Au moins une seconde entre deux pages d'un même hôte, comptée depuis la fin
@@ -778,6 +795,8 @@ export type SuiteIngenie = {
   page: number;
   /** Le message de l'échec, quand c'en est un. */
   erreur: string | null;
+  /** La dernière page lue, avec les cookies de la session : la suite reprend de là. */
+  derniere: PageIngenie;
 };
 
 /**
@@ -807,13 +826,13 @@ export async function pagesSuivantesIngenie(
   const annonce = resultatsAnnonces(premiere.texte);
   const vues = new Set(deja);
   const fiches: FicheIngenie[] = [];
+  let courante = premiere;
+  let cookies = premiere.cookies;
   const arret = (
     motif: SuiteIngenie["arret"],
     page: number,
     erreur: string | null = null,
-  ): SuiteIngenie => ({ fiches, arret: motif, page, erreur });
-  let courante = premiere;
-  let cookies = premiere.cookies;
+  ): SuiteIngenie => ({ fiches, arret: motif, page, erreur, derniere: { url: premiere.url, texte: courante.texte, cookies } });
   for (let n = 2; ; n += 1) {
     if (annonce != null && vues.size >= annonce) return arret("compte atteint", n);
     const lien = pageSuivanteIngenie(courante.texte);

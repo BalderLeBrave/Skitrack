@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   APPEL_MIN_INGENIE_MS,
   cidDepuisPage,
@@ -165,14 +166,11 @@ describe("Ingénie : lire une page de résultats datés", () => {
       `<div class="prix_en_cours">${prix}</div></div></div>`;
     const page = carte("A", "700 &euro;") + carte("B", "0 &euro;") + carte("C", "2&#160;778,65 &euro;");
     const f = lireIngenie(page);
-    assert.deepEqual(f.map((x) => x.total).sort((a, b) => a - b), [0, 700, 2778.65]);
-    // Le zéro n'est pas pris pour un prix — il ne devient pas un logement
-    // gratuit en tête de liste — mais l'annonce n'est pas supprimée pour
-    // autant : « à partir de 0 € » veut dire « pas de tarif à ces dates », et
-    // c'est ce que dit un total de zéro dans tout le dépôt.
-    const zero = f.find((x) => x.id.endsWith("-B"));
-    assert.equal(zero?.total, 0);
-    assert.equal(zero?.libelle, "à partir de 0 €");
+    // « à partir de 0 € » veut dire « pas de tarif à ces dates » : le logement
+    // n'est pas rendu (consigne du propriétaire du 30 septembre 2026, un
+    // logement sans prix n'est pas gardé).
+    assert.deepEqual(f.map((x) => x.total).sort((a, b) => a - b), [700, 2778.65]);
+    assert.equal(f.find((x) => x.id.endsWith("-B")), undefined);
   });
 
   it("le texte visible perd les balises et rend les entités", () => {
@@ -645,13 +643,23 @@ describe("Ingénie : suivre la liste, sans réseau", () => {
     assert.deepEqual([s.arret, c.appels.length], ["fin de liste", 0]);
   });
 
-  it(`au plus ${PAGES_MAX_INGENIE} pages, première comprise`, async () => {
+  it(`plus de dix pages : la liste entière, ${PAGES_MAX_INGENIE} pages au plus comme garde-fou`, async () => {
+    // Le plafond de 10 pages est levé : une liste de 39 pages se lit jusqu'au bout.
     const pages: Record<number, string> = {};
-    for (let n = 2; n <= 12; n += 1) pages[n] = page(n, ids(`P${n}-`, 10), { annonce: 500 });
+    for (let n = 2; n <= 39; n += 1) pages[n] = page(n, ids(`P${n}-`, 10), { annonce: 390, suite: n < 39 });
     const c = centrale(pages);
+    const s = await suivre(premiere(page(1, ids("A", 10), { annonce: 390 })), LOIN, c);
+    assert.equal(c.appels.length, 38);
+    assert.deepEqual([s.fiches.length, s.arret], [380, "compte atteint"]);
+    assert.ok(PAGES_MAX_INGENIE >= 100);
+  });
+
+  it("rend la dernière page lue et les cookies de la session, pour reprendre la suite", async () => {
+    const pages: Record<number, string> = { 2: page(2, ids("B", 10)), 3: page(3, ids("C", 10)) };
+    const c = centrale(pages, { cookies: { 3: "PHPSESSID=s1; panier=3" } });
     const s = await suivre(premiere(page(1, ids("A", 10), { annonce: 500 })), LOIN, c);
-    assert.equal(c.appels.length, PAGES_MAX_INGENIE - 1);
-    assert.deepEqual([s.fiches.length, s.arret, s.page], [90, "pages max", 11]);
+    assert.equal(s.derniere.url, P1_URL);
+    assert.ok(s.derniere.texte.includes("PRESTATION-G-C1"));
   });
 
   it("le temps se compte depuis l'entrée de la recherche : la page 1 a pris sa part", async () => {
@@ -808,5 +816,22 @@ describe("Ingénie : deux gabarits relevés le 25 septembre 2026", () => {
     for (const page of [RISOUL, VALLOIRE]) {
       assert.ok(!(fragmentsIngenie(page).at(-1) ?? "").includes("lasuite"));
     }
+  });
+});
+
+describe("Ingénie, fiches sans préfixe PRESTATION- (Le Grand-Bornand)", () => {
+  // Capture réelle du 27 septembre 2026, réduite à deux fiches et anonymisée.
+  const page = readFileSync(new URL("./fixtures/ingenie-grandbornand-2fiches.html", import.meta.url), "utf8");
+
+  it("lit les fiches dont l'identifiant est `G-…`, ramené à la forme des autres hôtes", () => {
+    const fiches = lireIngenie(page);
+    assert.deepEqual(fiches.map((f) => f.id), ["PRESTATION-G-7934842-7934844", "PRESTATION-G-M00281-258"]);
+    assert.ok(fiches.every((f) => f.total > 0), "prix");
+    assert.ok(fiches.every((f) => f.lat != null && f.lon != null), "position du JSON-LD de liste");
+  });
+
+  it("prend le lien de la galerie quand le bloc « plus d'infos » manque", () => {
+    const [f] = lireIngenie(page);
+    assert.match(f!.chemin ?? "", /^chalet-la-favellaz-[^#]*\.html\?&cid=7&action=result/);
   });
 });

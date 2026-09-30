@@ -199,6 +199,68 @@ function pause(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/* ---------- Suite de liste en tâche de fond ---------- */
+
+/** Une suite de liste ne dure pas plus. */
+const SUITE_MAX_MS = 10 * 60 * 1000;
+/** Les fiches d'une suite valent une heure : les disponibilités bougent. */
+const DUREE_SUITE_MS = 60 * 60 * 1000;
+
+type SuiteLue = { a: number; fiches: FicheIngenie[]; finie: boolean; enCours: boolean };
+const g = globalThis as typeof globalThis & { __skitrackSuitesIngenie__?: Map<string, SuiteLue> };
+
+function suites(): Map<string, SuiteLue> {
+  return (g.__skitrackSuitesIngenie__ ??= new Map());
+}
+
+function cleSuite(r: ReglageIngenie, ctx: ContexteCentrale): string {
+  return `${r.host}|${r.cid}|${ctx.checkIn}|${ctx.checkOut}|${ctx.guests}`;
+}
+
+function relireSuite(k: string): SuiteLue | null {
+  const s = suites().get(k);
+  if (!s) return null;
+  if (!s.enCours && Date.now() - s.a > DUREE_SUITE_MS) {
+    suites().delete(k);
+    return null;
+  }
+  return s;
+}
+
+function garderSuite(k: string, fiches: FicheIngenie[], finie: boolean): void {
+  const avant = suites().get(k);
+  suites().set(k, { a: Date.now(), fiches, finie, enCours: avant?.enCours ?? false });
+}
+
+/**
+ * Continue la liste après l'échéance de la part : même session, même pas
+ * d'une seconde entre deux pages, arrêt sur un refus. Une seule suite à la
+ * fois par hôte, dates et groupe.
+ */
+function lancerSuite(k: string, premiere: PageIngenie, derniere: PageIngenie, dejaLues: FicheIngenie[]): void {
+  if (relireSuite(k)?.enCours) return;
+  const lues = [...dejaLues];
+  suites().set(k, { a: Date.now(), fiches: lues, finie: false, enCours: true });
+  const echeance = Date.now() + SUITE_MAX_MS;
+  // La suite repart de la dernière page lue, sous l'adresse de la première
+  // (le `Referer` du défilement), avec les cookies de la session.
+  const depart: PageIngenie = { url: premiere.url, texte: derniere.texte, cookies: derniere.cookies };
+  void pagesSuivantesIngenie(depart, lues.map((f) => f.id), echeance, {
+    lire: (lien, cookies, referer) => pageIngenie(lien, echeance, cookies, referer),
+    maintenant: () => Date.now(),
+    attendre: pause,
+  })
+    .then((s) => {
+      lues.push(...s.fiches);
+      suites().set(k, { a: Date.now(), fiches: lues, finie: s.arret !== "échéance" && s.arret !== "échec", enCours: false });
+      console.info(`[centrale] suite ${k} : ${s.fiches.length} fiches de plus, arrêt « ${s.arret} »${s.erreur ? ` (${s.erreur})` : ""}`);
+    })
+    .catch(() => {
+      const s = suites().get(k);
+      if (s) s.enCours = false;
+    });
+}
+
 /**
  * Interroge une centrale Ingénie.
  *
@@ -259,25 +321,39 @@ export async function chercherIngenie(
     throw new Error("la centrale a servi son accueil de réservation au lieu d'une page de résultats");
   }
   const fiches = lireIngenie(page);
+  // Ce qu'une recherche précédente, aux mêmes dates pour le même groupe, a lu
+  // en tâche de fond : les fiches des pages que la part n'avait pas eu le
+  // temps de demander.
+  const k = cleSuite(r, ctx);
+  const deja = relireSuite(k);
+  const vues = new Set(fiches.map((f) => f.id));
+  for (const f of deja?.fiches ?? []) {
+    if (vues.has(f.id)) continue;
+    vues.add(f.id);
+    fiches.push(f);
+  }
   // La suite de la liste, sous la même échéance. Une page suivante en échec
   // n'emporte ni la première ni celles déjà lues (`pagesSuivantesIngenie`).
-  const suite = await pagesSuivantesIngenie(
-    premiere,
-    fiches.map((f) => f.id),
-    echeance,
-    {
-      lire: (lien, cookies, referer) => pageIngenie(lien, echeance, cookies, referer),
-      maintenant: () => Date.now(),
-      attendre: pause,
-    },
-  );
-  fiches.push(...suite.fiches);
-  if (suite.arret === "échec") {
+  const suite = deja?.finie
+    ? null
+    : await pagesSuivantesIngenie(premiere, vues, echeance, {
+        lire: (lien, cookies, referer) => pageIngenie(lien, echeance, cookies, referer),
+        maintenant: () => Date.now(),
+        attendre: pause,
+      });
+  if (suite) fiches.push(...suite.fiches);
+  if (suite?.arret === "échec") {
     console.warn(
       `[centrale] ${r.host} : page ${suite.page} en échec, suite arrêtée sans reprise — ${suite.erreur}`,
     );
-  } else if (suite.arret === "échéance") {
-    console.warn(`[centrale] ${r.host} : page ${suite.page} non demandée faute de temps`);
+  } else if (suite?.arret === "échéance") {
+    // Le reste de la liste se lit après la part, au même pas ; la recherche
+    // suivante le reprend. Le plafond de 10 pages et l'échéance de 40 s
+    // laissaient 1 466 annonces sur onze hôtes le 27 septembre 2026.
+    console.warn(`[centrale] ${r.host} : page ${suite.page} et suivantes lues en tâche de fond`);
+    lancerSuite(k, premiere, suite.derniere, fiches);
+  } else if (suite) {
+    garderSuite(k, fiches, true);
   }
   const annonce = resultatsAnnonces(page);
   console.info(

@@ -274,10 +274,17 @@ describe("Ski-Planet : annonces", () => {
     });
   });
 
-  it("forfaits compris : pas de total pour un groupe qui ne remplit pas le logement", () => {
+  it("forfaits compris, sans le logement seul : pas de total pour un groupe qui ne remplit pas le logement", () => {
     const [f] = skiPlanetListings(SNOW, FORFAIT, AVORIAZ);
     assert.deepEqual([f.id, f.total, f.priceIndicative, f.skiPassIncluded], ["sp-69622-forfait", 0, null, true]);
-    assert.equal(f.priceLabel, "sam 06/02/27 - 7 nuits -2.7% - 919.8€ /pers., sur la base de 5 adultes — Hébergement + Forfait de ski");
+    assert.equal(f.priceLabel, "sam 06/02/27 - 7 nuits -2.7% - 919.8€ /pers., sur la base de 5 adultes, Hébergement + Forfait de ski");
+  });
+
+  it("forfaits compris, avec le logement seul : logement plus un forfait par voyageur, calcul annoncé", () => {
+    // 919,80 × 5 = 4 599 € avec forfaits, 3 429 € le logement seul : 234 € par forfait.
+    const [f] = skiPlanetListings(SNOW, FORFAIT, AVORIAZ, SEUL);
+    assert.deepEqual([f.total, f.priceIndicative, f.skiPassIncluded], [3897, false, true]);
+    assert.match(f.priceLabel ?? "", /^3 897 € calculé pour 2 adultes : logement 3 429 € et 2 forfaits à 234 €/);
   });
 
   it("forfaits compris, groupe qui remplit le logement : prix par personne × 5", () => {

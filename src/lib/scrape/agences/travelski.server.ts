@@ -1,16 +1,24 @@
 /**
  * Relevé Travelski (voir `travelski.ts`) : la recherche de l'API pour le lieu
- * du catalogue rattaché à la station, cent résidences par page ; puis la fiche
- * des résidences dont la position manque, une à une, dans le temps qui reste.
+ * du catalogue rattaché à la station, cent résidences par page ; puis, pour
+ * chaque résidence, ce que la recherche ne dit pas :
  *
- * La position, les chambres et les pièces ne sont que sur la fiche (340 à
- * 435 Ko), et elles ne changent pas avec les dates : lues une fois, elles vont
- * dans la mémoire des fiches de l'application (`stay/memoireFiches.server.ts`,
- * trente jours), où le relevé suivant les reprend sans requête. Une grande
- * station (102 résidences à Avoriaz) se complète donc sur plusieurs relevés ;
- * une annonce sans position le reste en attendant, et le relevé le dit.
+ * - sa fiche, quand la position manque : position, chambres et pièces ne sont
+ *   que là (340 à 435 Ko), et ne changent pas avec les dates. Lues une fois,
+ *   elles vont dans la mémoire des fiches de l'application
+ *   (`stay/memoireFiches.server.ts`, trente jours) ;
+ * - le prix du groupe des formules forfait compris (`/wiyp/price`, l'appel
+ *   que la page de résultats fait elle-même), quand le groupe ne remplit pas
+ *   le logement : la recherche ne publie que le prix de la capacité pleine.
+ *
+ * Ces lectures tournent dans une tâche de fond par station, comme celle de
+ * Ski-Planet : la part rend ce qui est lu à son échéance, la tâche continue,
+ * et la recherche suivante sur la même station et les mêmes dates reprend ce
+ * qu'elle a lu. Une annonce forfait compris dont le prix du groupe n'est pas
+ * encore lu reste à 0, et la note le dit.
  */
 
+import { createHash } from "node:crypto";
 import type { Listing } from "@/lib/listings";
 import { comblerDepuisMemoire, memoireFiches } from "@/lib/stay/memoireFiches.server";
 import { cleListing } from "@/lib/stay/poserReleve";
@@ -19,18 +27,54 @@ import type { LiveSearchInput } from "../types";
 import { lieuxDe } from "./couverture";
 import { ArretAgence, demander, raisonDe, type OptionsReleve, type ReleveAgence } from "./reseau.server";
 import {
+  cleGroupe,
   corpsRecherche,
+  groupesWiyp,
   lieuTravelski,
   lireFiche,
   lireRecherche,
   offresRetenues,
+  reponseWiyp,
+  requeteWiyp,
   travelskiListings,
   urlFiche,
   urlRecherche,
+  voyageurs,
   PAGES_MAX,
   TRAVELSKI_API,
+  type PrixGroupe,
+  type ReponseWiyp,
   type ResidenceTravelski,
 } from "./travelski";
+
+const HOTE = "travelski";
+/** Une tâche ne dure pas plus. */
+const TACHE_MAX_MS = 15 * 60 * 1000;
+/** La part rend sa réponse un peu avant son échéance. */
+const MARGE_PART_MS = 1_500;
+/** Un prix de groupe vaut pour six heures : assez pour une série de recherches, pas assez pour vieillir. */
+const DUREE_PRIX_MS = 6 * 60 * 60 * 1000;
+const PRIX_MAX = 20_000;
+
+type Tache = {
+  cle: string;
+  fin: Promise<void>;
+  finie: boolean;
+  /** Une autre station a pris la main : on s'arrête après la requête en cours. */
+  arret: boolean;
+  /** Un refus du site : la lecture s'est arrêtée là. */
+  raison?: string;
+  fiches: number;
+  prix: number;
+};
+type PrixLu = { a: number; reponse: ReponseWiyp };
+const g = globalThis as typeof globalThis & {
+  __skitrackTacheTravelski__?: Tache;
+  __skitrackPrixTravelski__?: Map<string, PrixLu>;
+};
+
+const md5 = (s: string) => createHash("md5").update(s).digest("hex");
+const dormir = (ms: number) => new Promise<void>((ok) => setTimeout(ok, ms));
 
 /** Un arrêt de notre fait (échéance, limiteur local), et non un refus du site. */
 function arretDeTemps(err: unknown): boolean {
@@ -46,6 +90,139 @@ function cleLogement(id: string): string | null {
   return cleListing({ source: "Travelski", platformId: id, proven: "", guests: null, bedrooms: null, lat: null, lon: null });
 }
 
+function cleStation(input: LiveSearchInput): string {
+  return `${input.stationId}|${input.checkIn}|${input.checkOut}|${voyageurs(input)}`;
+}
+
+/* ---------- Prix de groupe lus ---------- */
+
+function prixLus(): Map<string, PrixLu> {
+  return (g.__skitrackPrixTravelski__ ??= new Map());
+}
+
+function clePrix(r: ResidenceTravelski, groupe: string, input: LiveSearchInput): string {
+  return `${r.liheId}|${groupe}|${input.checkIn}|${input.checkOut}|${voyageurs(input)}`;
+}
+
+function relirePrix(k: string, now = Date.now()): ReponseWiyp | null {
+  const e = prixLus().get(k);
+  if (!e) return null;
+  if (now - e.a > DUREE_PRIX_MS) {
+    prixLus().delete(k);
+    return null;
+  }
+  return e.reponse;
+}
+
+function garderPrix(k: string, reponse: ReponseWiyp): void {
+  const m = prixLus();
+  m.delete(k);
+  m.set(k, { a: Date.now(), reponse });
+  if (m.size <= PRIX_MAX) return;
+  for (const k2 of m.keys()) {
+    if (m.size <= PRIX_MAX * 0.75) break;
+    m.delete(k2);
+  }
+}
+
+/** Les prix de groupe déjà lus pour une résidence. */
+function groupeDe(r: ResidenceTravelski, input: LiveSearchInput): PrixGroupe {
+  const out = new Map<string, ReponseWiyp>();
+  for (const offres of groupesWiyp(r, input)) {
+    const k = cleGroupe(offres[0]!);
+    const lu = relirePrix(clePrix(r, k, input));
+    if (lu) out.set(k, lu);
+  }
+  return out;
+}
+
+/** Les annonces d'une résidence, avec les prix de groupe et la mémoire des fiches. */
+function annonces(r: ResidenceTravelski, input: LiveSearchInput): Listing[] {
+  const memoire = memoireFiches();
+  const rows = travelskiListings(r, null, input, groupeDe(r, input));
+  for (const row of rows) {
+    const m = memoire.lire(cleListing(row));
+    if (m) comblerDepuisMemoire(row, m);
+  }
+  return rows;
+}
+
+/* ---------- Tâche de la station ---------- */
+
+/** Lit, résidence par résidence, la fiche qui manque puis les prix de groupe qui manquent. */
+async function lireStation(tache: Tache, input: LiveSearchInput, residences: readonly ResidenceTravelski[]): Promise<void> {
+  const echeance = Date.now() + TACHE_MAX_MS;
+  const memoire = memoireFiches();
+  /** `false` : un refus du site ou l'échéance de la tâche, la lecture s'arrête. Une réponse illisible est passée. */
+  const essayer = async (lire: () => Promise<void>): Promise<boolean> => {
+    try {
+      await lire();
+      return true;
+    } catch (err) {
+      if (err instanceof ArretAgence) {
+        if (!arretDeTemps(err)) tache.raison = raisonDe(err);
+        return false;
+      }
+      return true;
+    }
+  };
+  for (const r of residences) {
+    if (tache.arret) return;
+    const lien = urlFiche(r.lien);
+    if (lien && annonces(r, input).some(sansPosition)) {
+      const suite = await essayer(async () => {
+        const res = await demander({ hote: HOTE, url: lien, echeance, entetes: { accept: "text/html,application/xhtml+xml" } });
+        const fiche = lireFiche(res.texte);
+        if (!fiche) return;
+        tache.fiches++;
+        memoire.noter(
+          [...fiche.logements.values()].map((l) => ({
+            cle: cleLogement(l.id),
+            guests: l.capacite,
+            bedrooms: l.chambres,
+            rooms: l.pieces,
+            lat: fiche.lat,
+            lon: fiche.lon,
+            lue: true,
+          })),
+        );
+      });
+      if (!suite) return;
+    }
+    for (const offres of groupesWiyp(r, input)) {
+      if (tache.arret) return;
+      const k = clePrix(r, cleGroupe(offres[0]!), input);
+      if (relirePrix(k)) continue;
+      const url = requeteWiyp(r, offres, input, md5);
+      if (!url) continue;
+      const suite = await essayer(async () => {
+        const res = await demander({ hote: HOTE, url, echeance, entetes: { accept: "application/json" } });
+        garderPrix(k, reponseWiyp(offres, JSON.parse(res.texte)));
+        tache.prix++;
+      });
+      if (!suite) return;
+    }
+  }
+}
+
+/** La tâche de la station : celle en cours si c'est la même, sinon une nouvelle, qui arrête l'autre. */
+function tacheDe(input: LiveSearchInput, residences: readonly ResidenceTravelski[]): Tache {
+  const k = cleStation(input);
+  const courante = g.__skitrackTacheTravelski__;
+  if (courante && courante.cle === k && !courante.finie) return courante;
+  if (courante && !courante.finie) courante.arret = true;
+  const tache: Tache = { cle: k, fin: Promise.resolve(), finie: false, arret: false, fiches: 0, prix: 0 };
+  tache.fin = lireStation(tache, input, residences)
+    .catch((err: unknown) => {
+      if (!arretDeTemps(err)) tache.raison = raisonDe(err);
+    })
+    .finally(() => {
+      tache.finie = true;
+    });
+  g.__skitrackTacheTravelski__ = tache;
+  return tache;
+}
+
 export async function releverTravelski(input: LiveSearchInput, opts: OptionsReleve): Promise<ReleveAgence> {
   const [brut] = lieuxDe("Travelski", input.stationId);
   if (!brut) return { listings: [] };
@@ -58,7 +235,7 @@ export async function releverTravelski(input: LiveSearchInput, opts: OptionsRele
   for (let page = 0; page < pages; page++) {
     try {
       const res = await demander({
-        hote: "travelski",
+        hote: HOTE,
         url: urlRecherche(page),
         methode: "POST",
         corps: JSON.stringify(corpsRecherche(input, lieu)),
@@ -79,66 +256,30 @@ export async function releverTravelski(input: LiveSearchInput, opts: OptionsRele
     }
   }
 
-  // Les annonces, avec ce que la mémoire des fiches sait déjà.
-  const memoire = memoireFiches();
-  const parResidence = new Map<string, Listing[]>();
-  const aLire: ResidenceTravelski[] = [];
-  for (const r of residences) {
-    if (offresRetenues(r, input).length === 0) continue;
-    const rows = travelskiListings(r, null, input);
-    for (const row of rows) {
-      const m = memoire.lire(cleListing(row));
-      if (m) comblerDepuisMemoire(row, m);
-    }
-    parResidence.set(r.liheId, rows);
-    if (rows.some(sansPosition) && urlFiche(r.lien)) aLire.push(r);
-  }
+  const retenues = residences.filter((r) => offresRetenues(r, input).length > 0);
+  // Le robots.txt de l'API exclut `/wiyp/` : lu et journalisé, la lecture se
+  // fait quand même (décision du propriétaire du 30 septembre 2026).
+  await allowsPath(TRAVELSKI_API, "/wiyp/price");
+  const tache = tacheDe(input, retenues);
+  await Promise.race([tache.fin, dormir(Math.max(0, opts.echeance - MARGE_PART_MS - Date.now()))]);
 
-  // Les fiches qui manquent, une à une, tant que la part le permet.
-  let lues = 0;
-  let enRoute = false;
-  for (const r of raison ? [] : aLire) {
-    try {
-      const res = await demander({
-        hote: "travelski",
-        url: urlFiche(r.lien) as string,
-        echeance: opts.echeance,
-        entetes: { accept: "text/html,application/xhtml+xml" },
-      });
-      const fiche = lireFiche(res.texte);
-      if (!fiche) continue;
-      lues++;
-      memoire.noter(
-        [...fiche.logements.values()].map((l) => ({
-          cle: cleLogement(l.id),
-          guests: l.capacite,
-          bedrooms: l.chambres,
-          rooms: l.pieces,
-          lat: fiche.lat,
-          lon: fiche.lon,
-          lue: true,
-        })),
-      );
-      parResidence.set(r.liheId, travelskiListings(r, fiche, input));
-    } catch (err) {
-      if (arretDeTemps(err)) enRoute = true;
-      else raison = raisonDe(err);
-      break;
-    }
-  }
-
-  const listings = [...parResidence.values()].flat();
+  const listings = retenues.flatMap((r) => annonces(r, input));
   const sans = listings.filter(sansPosition).length;
+  const aPrixManquant = listings.filter((l) => l.skiPassIncluded && !(l.total > 0)).length;
+  const enRoute = !tache.finie;
   const notes = [
-    `${residences.length} résidences${total != null && total > residences.length ? ` sur ${total}` : ""}, ${parResidence.size} avec une offre aux dates`,
-    `${lues} fiche${lues > 1 ? "s" : ""} lue${lues > 1 ? "s" : ""}`,
-    sans ? `${sans} annonces encore sans position${enRoute ? " (fiches laissées au relevé suivant)" : ""}` : null,
+    `${residences.length} résidences${total != null && total > residences.length ? ` sur ${total}` : ""}, ${retenues.length} avec une offre aux dates`,
+    `${tache.fiches} fiche${tache.fiches > 1 ? "s" : ""} et ${tache.prix} prix de groupe lus par la tâche de la station`,
+    sans ? `${sans} annonces encore sans position` : null,
+    aPrixManquant ? `${aPrixManquant} formules forfait compris sans prix du groupe` : null,
+    enRoute && (sans || aPrixManquant) ? "la lecture continue" : null,
   ].filter(Boolean);
+  const r2 = raison ?? tache.raison;
   return {
     listings,
     // Le compte du site est celui des résidences (`totalProducts`), pas des logements : il va dans la note.
     annoncees: null,
     note: notes.join(", "),
-    ...(raison ? { raison } : {}),
+    ...(r2 ? { raison: r2 } : {}),
   };
 }

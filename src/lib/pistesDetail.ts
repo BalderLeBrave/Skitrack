@@ -39,6 +39,16 @@ export type TronconDetail = {
   bas: [number, number] | null;
   /** Rangs, dans `DetailDomaine.aires`, des domaines qui portent ce tronçon. */
   a: number[];
+  /** Liaison sans nom : le nom de la piste qu'elle rejoint (ou d'où elle part). */
+  nomDeduit?: string;
+  /** Surface sans nom qui contient le tracé d'une piste nommée : son contour dessiné. */
+  recouvre?: boolean;
+  /** Liaison vers ou depuis une remontée, sans piste nommée : « Accès au télésiège X ». */
+  acces?: string;
+  /** Ni piste ni accès : zone dessinée sans piste nommée, bout de moins de 100 m relié à rien. */
+  ecarte?: "surface" | "fragment";
+  /** Piste restée sans nom : la remontée la plus proche de son départ, « près du téléski X ». */
+  pres?: string;
 };
 
 /** Un domaine d'openskidata, et son nombre de tronçons de descente en Europe. */
@@ -81,6 +91,8 @@ export type PisteDetail = {
   /** Le plus petit domaine publié qui porte la piste, sous celui du tableau. */
   secteur: string | null;
   troncons: number;
+  /** Liaisons sans nom rendues à la piste qu'elles rejoignent. */
+  rattaches: number;
 };
 
 /** Les libellés des couleurs, écrits en toutes lettres à côté de la pastille. */
@@ -156,35 +168,70 @@ function enPiste(
     eclairee: union(ts.map((t) => t.eclairee)),
     secteur,
     troncons: ts.length,
+    rattaches: ts.filter((t) => !t.nom?.trim() && t.nomDeduit).length,
   };
 }
 
+export type Regroupement = {
+  /** Les pistes nommées. */
+  pistes: PisteDetail[];
+  /** Les liaisons vers ou depuis une remontée, réunies par remontée. */
+  acces: PisteDetail[];
+  /** Les pistes qu'OpenStreetMap ne nomme pas, reliées à aucune piste nommée ni remontée. */
+  sansNom: PisteDetail[];
+  /** Surfaces qui dessinent une piste nommée : pas une piste de plus. */
+  surfaces: number;
+  /** Zones sans piste nommée et bouts de moins de 100 m reliés à rien. */
+  ecartes: number;
+};
+
 /**
- * Les pistes nommées (tronçons d'un même nom, d'une même couleur et d'un même
- * secteur réunis), et les tronçons sans nom. Une « Verte » de Méribel et une
- * « Verte » de Courchevel restent deux pistes dès que le secteur est connu.
+ * Les pistes d'un tableau, tronçons d'un même nom, d'une même couleur et d'un
+ * même secteur réunis. Une « Verte » de Méribel et une « Verte » de Courchevel
+ * restent deux pistes dès que le secteur est connu.
+ *
+ * Un tronçon sans nom n'est pas une piste à part (`scripts/build-pistes-detail.py`,
+ * `rattacher`) : une liaison rendue à sa piste (`nomDeduit`) la rejoint ; un
+ * accès à une remontée (`acces`) va avec les accès ; une surface qui dessine
+ * une piste (`recouvre`) et ce qui n'est ni piste ni accès (`ecarte`) ne sont
+ * que comptés. Ne reste sans nom que ce qu'OpenStreetMap laisse sans nom et
+ * que rien ne relie.
  */
 export function regrouper(
   troncons: readonly TronconDetail[],
   secteur: (t: TronconDetail) => string | null = () => null,
-): { pistes: PisteDetail[]; sansNom: PisteDetail[] } {
-  const groupes = new Map<string, { nom: string; couleur: PisteColor; secteur: string | null; ts: TronconDetail[] }>();
+): Regroupement {
+  type Groupe = { nom: string; couleur: PisteColor; secteur: string | null; ts: TronconDetail[] };
+  const groupes = new Map<string, Groupe>();
+  const accesG = new Map<string, Groupe>();
   const sansNom: PisteDetail[] = [];
+  let surfaces = 0;
+  let ecartes = 0;
+  const ajouter = (m: Map<string, Groupe>, nom: string, couleur: PisteColor, sect: string | null, t: TronconDetail) => {
+    const cle = `${plierNom(nom)}|${couleur}|${sect ?? ""}`;
+    const g = m.get(cle) ?? { nom, couleur, secteur: sect, ts: [] };
+    g.ts.push(t);
+    m.set(cle, g);
+  };
   troncons.forEach((t, i) => {
     const couleur = difficultyToColor(t.difficulte ?? undefined);
-    const nom = t.nom?.trim() || null;
+    const nom = t.nom?.trim() || t.nomDeduit?.trim() || null;
     const sect = secteur(t);
-    if (!nom) {
-      sansNom.push(enPiste(`sans-nom-${i}`, null, couleur, sect, [t]));
-      return;
-    }
-    const cle = `${plierNom(nom)}|${couleur}|${sect ?? ""}`;
-    const g = groupes.get(cle) ?? { nom, couleur, secteur: sect, ts: [] };
-    g.ts.push(t);
-    groupes.set(cle, g);
+    if (nom) ajouter(groupes, nom, couleur, sect, t);
+    else if (t.recouvre) surfaces += 1;
+    else if (t.ecarte) ecartes += 1;
+    else if (t.acces) ajouter(accesG, t.acces, couleur, sect, t);
+    else sansNom.push(enPiste(`sans-nom-${i}`, t.pres ? `Sans nom, ${t.pres}` : null, couleur, sect, [t]));
   });
-  const pistes = [...groupes.entries()].map(([cle, g]) => enPiste(cle, g.nom, g.couleur, g.secteur, g.ts));
-  return { pistes: trier(pistes, "nom", "asc"), sansNom: trier(sansNom, "longueur", "desc") };
+  const liste = (m: Map<string, Groupe>, prefixe: string) =>
+    [...m.entries()].map(([cle, g]) => enPiste(prefixe + cle, g.nom, g.couleur, g.secteur, g.ts));
+  return {
+    pistes: trier(liste(groupes, ""), "nom", "asc"),
+    acces: trier(liste(accesG, "acces|"), "nom", "asc"),
+    sansNom: trier(sansNom, "longueur", "desc"),
+    surfaces,
+    ecartes,
+  };
 }
 
 export type CleTri = "nom" | "couleur" | "longueur" | "denivelle";

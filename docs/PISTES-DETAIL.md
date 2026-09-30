@@ -60,6 +60,56 @@ d'openskidata (Brévent/Flégère, Les Grands Montets, La Poya…) qu'aucun
 domaine plus grand ne réunit. Seul celui du témoin est lu, et le bandeau
 d'échelle le dit.
 
+## Tronçons sans nom
+
+OpenStreetMap ne nomme qu'une partie des tronçons : sur l'export du 22
+septembre 2026, 4 458 des tronçons retenus n'ont ni nom ni numéro (`ref`).
+Aucun nom ne se cache ailleurs : l'API d'OpenStreetMap ne les range dans
+aucune relation de piste nommée, seulement dans celles des domaines, et
+openskimap.org les affiche sans nom (« Easy downhill ski run »).
+
+Ils ne sont pas pour autant autonomes. OpenStreetMap relie chacun au réseau
+par un nœud partagé : une liaison part d'une piste, d'une remontée ou d'une
+route, et arrive dans une piste. Vérifié sur dix liaisons de Val Thorens,
+nœud par nœud, et sur openskimap.org (la verte de 920 m part d'« Asters » et
+rejoint « Chocard »). Le script (`rattacher`) décide pour chacun, sans
+inventer de nom :
+
+- **3 048 liaisons rejoignent leur piste.** La seule piste nommée qui passe,
+  à moins de 10 m, par leur bout le plus bas, n'importe où le long de la
+  piste. Plusieurs pistes au raccord : celle de même couleur ; plusieurs
+  encore, celle que la liaison prolonge le plus droit, dont la direction de
+  descente au raccord est la plus proche de la sienne (la liaison du
+  télésiège Lac Blanc, entre « Vires » et « Croissant », rejoint « Vires »).
+  Aucune piste nommée en aval (remontée, route) : celle d'où elles partent.
+  De proche en proche, une chaîne de liaisons suit le même chemin. La piste
+  peut être rangée par openskidata dans un domaine voisin, à moins d'un
+  kilomètre (la boucle noire de 384 m de l'Alpe d'Huez rejoint « Tunnel »).
+  Elles prennent le nom de la piste (`nomDeduit`) et la fiche le dit sous son nom
+  (« 4 tronçons, dont 3 liaisons sans nom »).
+- **1 012 surfaces dessinent une piste nommée** (`recouvre`) : son contour,
+  pas une piste de plus. Comptées, pas listées.
+- **310 accès aux remontées** (`acces`) : une liaison qui mène à une gare de
+  remontée, à moins de 30 m, ou en part, sans toucher de piste nommée. Ce
+  n'est pas une piste : la fiche les liste à part, sous le nom de la remontée
+  tiré d'`eu-lifts.geojson` (« Accès au téléphérique Thorens », « Départ du
+  télésiège Boismint »).
+- **60 écartés** (`ecarte`) : zones dessinées sans piste nommée dedans, et
+  bouts de moins de 100 m reliés à aucune piste ni remontée (chemins, restes
+  de dessin). Comptés, pas listés.
+- **28 pistes sans nom** : des tracés de plus de 100 m qu'OpenStreetMap ne
+  nomme pas et que rien de nommé ne relie. Vérifiées une à une dans
+  OpenStreetMap : variantes qui bouclent sur une piste elle-même sans nom,
+  secteurs entiers cartographiés sans aucun nom (Romme, Les Entremonts,
+  Lus-la-Jarjatte, Laye, Les Fourgs, le Tourmalet), pistes tracées sur une
+  route ou un sentier (Grande Rue à Val Thorens, route du col d'Escots à
+  Guzet), une relation de piste sans nom au Grand-Bornand. À Montgenèvre, la
+  voie d'OpenStreetMap part de « Le Lac », mais openskidata en retire les
+  180 premiers mètres, dans la zone débutants : dans nos données, elle ne la
+  touche plus. Ce sont de vraies pistes, listées sous « Pistes sans nom » et
+  situées par la remontée la plus proche de leur départ, à moins de 500 m
+  (`pres` : « Sans nom, près du téléski Lauzon »).
+
 ## Sortie
 
 | Fichier | Contenu |
@@ -68,8 +118,8 @@ d'échelle le dit.
 | `src/lib/pistesDetail.index.json` | pour chaque domaine de tête, son nom, le nombre de tronçons et le cumul des longueurs ; pour chaque station, son fichier, son domaine et les stations qui le partagent |
 
 Un tronçon OSM n'est pas une piste : les tronçons d'un même nom, d'une même
-couleur et d'un même secteur sont regroupés à l'affichage, les tronçons sans
-nom listés à part.
+couleur et d'un même secteur sont regroupés à l'affichage, les tronçons restés
+sans nom listés à part.
 
 Poids au relevé du 22 septembre 2026 : 157 fichiers, 2,7 Mo en tout, 280 Ko
 pour le plus gros (Les Trois Vallées).

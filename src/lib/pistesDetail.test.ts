@@ -54,6 +54,29 @@ describe("détail des pistes : regroupement des tronçons", () => {
     assert.deepEqual(sansNom.map((p) => p.longueurM), [80, 50]);
   });
 
+  it("une liaison rejoint sa piste, un accès va aux accès, le reste n'est que compté", () => {
+    const r = regrouper([
+      t({ nom: "Cascades", difficulte: "advanced", longueurM: 800 }),
+      t({ nomDeduit: "Cascades", difficulte: "advanced", longueurM: 120 }),
+      t({ surface: true, recouvre: true, difficulte: "advanced" }),
+      t({ acces: "Accès au télésiège Moutière", difficulte: "easy", longueurM: 40 }),
+      t({ acces: "Accès au télésiège Moutière", difficulte: "easy", longueurM: 30 }),
+      t({ ecarte: "fragment", difficulte: "easy", longueurM: 20 }),
+      t({ ecarte: "surface", surface: true }),
+      t({ difficulte: "easy", longueurM: 600, pres: "près du téléski Lauzon" }),
+    ]);
+    assert.deepEqual(
+      [r.pistes.length, r.pistes[0]!.longueurM, r.pistes[0]!.troncons, r.pistes[0]!.rattaches],
+      [1, 920, 2, 1],
+    );
+    assert.deepEqual([r.acces.map((a) => [a.nom, a.longueurM]), r.sansNom.map((x) => x.nom), r.surfaces, r.ecartes], [
+      [["Accès au télésiège Moutière", 70]],
+      ["Sans nom, près du téléski Lauzon"],
+      1,
+      2,
+    ]);
+  });
+
   it("une surface n'a pas de longueur, et ne compte pas zéro", () => {
     const { pistes } = regrouper([t({ nom: "Snowpark", surface: true, hautM: 2100, basM: 2050 })]);
     assert.equal(pistes[0]!.longueurM, null);

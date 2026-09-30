@@ -8,13 +8,19 @@
  * cas. Mais `dev` sert également de serveur sans écran — `startup.sh` le lance
  * dans le bac à sable, `check-auth-invariant` et le smoke test l'interrogent :
  * `SKITRACK_NO_WINDOW=1`, ou l'absence de DISPLAY sous Linux, garde alors Vite
- * seul. */
+ * seul.
+ *
+ * Au passage, le Python des relevés Airbnb et Booking (`npm run scrape:python`)
+ * s'installe de lui-même, en arrière-plan, quand son venv manque ou que ses
+ * dépendances ont changé : l'application s'ouvre sans l'attendre, et les
+ * relevés le trouvent dès qu'il est prêt. `SKITRACK_SANS_PYTHON=1` s'en passe. */
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { projectRoot } from "./with-app-env.mjs";
+import { pythonScrapeAJour } from "./python-scrape.mjs";
 
 /** `--port 8080` ou `--port=8080`. */
 function flag(name, fallback) {
@@ -94,6 +100,40 @@ async function waitFor(url, tries = 120) {
   }
   throw new Error(`Vite n’écoute pas sur ${url}`);
 }
+
+/**
+ * Installe le Python des relevés en arrière-plan quand il n'est pas à jour.
+ * Sa sortie est préfixée « [python] » ; un échec se dit en une ligne et
+ * n'empêche rien : les relevés se replient comme avant.
+ */
+function preparerPython() {
+  if (process.env.SKITRACK_SANS_PYTHON === "1") return;
+  if (pythonScrapeAJour(root)) return;
+  console.log("[python] Installation du Python des relevés en arrière-plan (npm run scrape:python)…");
+  const inst = spawn(process.execPath, [join(here, "installer-python-scrape.mjs")], {
+    cwd: root,
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+  });
+  const relayer = (flux, sortie) => {
+    let reste = "";
+    flux.setEncoding("utf8");
+    flux.on("data", (bloc) => {
+      const lignes = (reste + bloc).split(/\r?\n/);
+      reste = lignes.pop() ?? "";
+      for (const l of lignes) if (l.trim()) sortie.write(`[python] ${l}\n`);
+    });
+  };
+  relayer(inst.stdout, process.stdout);
+  relayer(inst.stderr, process.stderr);
+  inst.on("error", (e) => console.warn(`[python] Installation impossible : ${e.message}`));
+  inst.on("exit", (code) => {
+    if (code === 0) console.log("[python] Prêt : les relevés Airbnb et Booking l’utiliseront.");
+    else console.warn(`[python] Installation en échec (code ${code}). À relancer : npm run scrape:python`);
+  });
+}
+
+preparerPython();
 
 const vite = spawn(
   process.execPath,

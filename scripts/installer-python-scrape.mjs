@@ -4,16 +4,21 @@
 // plus besoin de renseigner SKITRACK_PYAIRBNB_PYTHON. Sans ce venv, ils
 // essaient les Python de la machine, qui n'ont en général ni curl_cffi ni bs4.
 //
+// Le lancement de l'application (electron-dev.mjs) l'exécute de lui-même, en
+// arrière-plan, quand le venv manque ou que ses dépendances ont changé
+// (python-scrape.mjs). À la main :
+//
 //   npm run scrape:python
 
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { marquerPythonScrape, pythonVenv, REQUIREMENTS } from "./python-scrape.mjs";
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
 const venv = join(racine, "scrape", ".venv");
-const py = process.platform === "win32" ? join(venv, "Scripts", "python.exe") : join(venv, "bin", "python");
+const py = pythonVenv(racine);
 
 function run(cmd, args) {
   console.log(`> ${[cmd, ...args].join(" ")}`);
@@ -37,8 +42,8 @@ if (!complet) {
   }
 }
 
-const reqs = ["airbnb", "booking"].map((w) => join("scrape", w, "requirements.txt"));
-if (!run(py, ["-m", "pip", "install", "--disable-pip-version-check", ...reqs.flatMap((r) => ["-r", r])])) {
+if (!run(py, ["-m", "pip", "install", "--disable-pip-version-check", ...REQUIREMENTS.flatMap((r) => ["-r", r])])) {
   process.exit(1);
 }
+marquerPythonScrape(racine);
 console.log(`\nVenv prêt : ${py}`);

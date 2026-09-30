@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ThemeSync } from "@/lib/theme";
+import { AppNotFoundComponent } from "@/lib/error-component";
 import appCss from "../styles.css?url";
 import v6Css from "../design/v6.css?url";
 
@@ -13,6 +14,8 @@ const APP_NAME = "Skitrack";
 const THEME_AVANT_PEINTURE = `try{var t=JSON.parse(localStorage.getItem("skitrack-theme")||"{}");t=t&&t.state&&t.state.theme;if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);document.documentElement.style.colorScheme=t;}else{document.documentElement.setAttribute("data-theme","light");}}catch(e){document.documentElement.setAttribute("data-theme","light");}`;
 
 export const Route = createRootRoute({
+  // Une adresse inconnue : une page en français plutôt que « Not Found ».
+  notFoundComponent: AppNotFoundComponent,
   head: () => ({
     meta: [
       { charSet: "utf-8" },

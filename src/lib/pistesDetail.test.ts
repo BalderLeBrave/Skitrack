@@ -63,15 +63,15 @@ describe("détail des pistes : regroupement des tronçons", () => {
       t({ acces: "Accès au télésiège Moutière", difficulte: "easy", longueurM: 30 }),
       t({ ecarte: "fragment", difficulte: "easy", longueurM: 20 }),
       t({ ecarte: "surface", surface: true }),
-      t({ difficulte: "easy", longueurM: 600 }),
+      t({ difficulte: "easy", longueurM: 600, pres: "près du téléski Lauzon" }),
     ]);
     assert.deepEqual(
       [r.pistes.length, r.pistes[0]!.longueurM, r.pistes[0]!.troncons, r.pistes[0]!.rattaches],
       [1, 920, 2, 1],
     );
-    assert.deepEqual([r.acces.map((a) => [a.nom, a.longueurM]), r.sansNom.length, r.surfaces, r.ecartes], [
+    assert.deepEqual([r.acces.map((a) => [a.nom, a.longueurM]), r.sansNom.map((x) => x.nom), r.surfaces, r.ecartes], [
       [["Accès au télésiège Moutière", 70]],
-      1,
+      ["Sans nom, près du téléski Lauzon"],
       1,
       2,
     ]);

@@ -421,7 +421,8 @@ function TablePistes({ r }: { r: Regroupement }) {
         <>
           <h4 className="pistes7__h4">Pistes sans nom ({fmt(sansNomVisibles.length)})</h4>
           <p className="pistes7__compte">
-            OpenStreetMap ne leur donne aucun nom, et aucune piste nommée ni remontée ne les relie.
+            OpenStreetMap ne leur donne aucun nom, et aucune piste nommée ni remontée ne les relie :
+            elles sont situées par la remontée la plus proche de leur départ.
           </p>
           <Tableau lignes={sansNomVisibles} tri={tri} trierPar={trierPar} legende="Pistes sans nom" />
         </>

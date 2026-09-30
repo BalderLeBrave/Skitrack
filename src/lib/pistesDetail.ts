@@ -47,6 +47,8 @@ export type TronconDetail = {
   acces?: string;
   /** Ni piste ni accès : zone dessinée sans piste nommée, bout de moins de 100 m relié à rien. */
   ecarte?: "surface" | "fragment";
+  /** Piste restée sans nom : la remontée la plus proche de son départ, « près du téléski X ». */
+  pres?: string;
 };
 
 /** Un domaine d'openskidata, et son nombre de tronçons de descente en Europe. */
@@ -219,7 +221,7 @@ export function regrouper(
     else if (t.recouvre) surfaces += 1;
     else if (t.ecarte) ecartes += 1;
     else if (t.acces) ajouter(accesG, t.acces, couleur, sect, t);
-    else sansNom.push(enPiste(`sans-nom-${i}`, null, couleur, sect, [t]));
+    else sansNom.push(enPiste(`sans-nom-${i}`, t.pres ? `Sans nom, ${t.pres}` : null, couleur, sect, [t]));
   });
   const liste = (m: Map<string, Groupe>, prefixe: string) =>
     [...m.entries()].map(([cle, g]) => enPiste(prefixe + cle, g.nom, g.couleur, g.secteur, g.ts));

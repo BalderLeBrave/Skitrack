@@ -133,6 +133,8 @@ def troncon(p: dict, geometrie: dict) -> dict:
 
 RACCORD_M = 10
 REMONTEE_M = 30
+PRES_M = 500
+MARGE_DEG = 0.01  # ≈ 1 km autour d'un domaine, pour ses voisines nommées
 FRAGMENT_M = 100
 TYPE_REMONTEE = {
     "chair_lift": "télésiège",
@@ -208,6 +210,20 @@ class Remontees:
             for q, bas in ((co[0], True), (co[-1], False)):
                 self.index.setdefault((int(q[0] / 0.0005), int(q[1] / 0.0005)), []).append((libelle, q, bas))
 
+    def plus_proche(self, pt: list[float], m: float) -> str | None:
+        """La remontée dont une gare est la plus proche, à moins de `m` mètres."""
+        cx, cy, r = int(pt[0] / 0.0005), int(pt[1] / 0.0005), int(m / 40) + 1
+        meilleur: tuple[float, str] | None = None
+        for i in range(-r, r + 1):
+            for j in range(-r, r + 1):
+                for libelle, q, _ in self.index.get((cx + i, cy + j), ()):
+                    dy = (pt[1] - q[1]) * 111_320
+                    dx = (pt[0] - q[0]) * 111_320 * math.cos(math.radians(pt[1]))
+                    d2 = dx * dx + dy * dy
+                    if d2 < m * m and (meilleur is None or d2 < meilleur[0]):
+                        meilleur = (d2, libelle)
+        return meilleur[1] if meilleur else None
+
     def gare(self, pt: list[float]) -> tuple[str, bool] | None:
         """La remontée dont une gare est à moins de 30 m, et si c'est son départ (en bas)."""
         cx, cy = int(pt[0] / 0.0005), int(pt[1] / 0.0005)
@@ -228,7 +244,7 @@ def de_article(libelle: str) -> str:
     return f"de la {libelle}" if libelle.startswith(("télécabine", "remontée")) else f"du {libelle}"
 
 
-def rattacher(ts: list[dict], remontees: Remontees | None = None) -> dict[str, int]:
+def rattacher(ts: list[dict], remontees: Remontees | None = None, voisines: list[dict] | None = None) -> dict[str, int]:
     """Les tronçons sans nom d'un fichier qu'on sait rendre à une piste nommée.
 
     - Une liaison sans nom relie deux pistes : OSM partage le nœud de raccord,
@@ -241,7 +257,10 @@ def rattacher(ts: list[dict], remontees: Remontees | None = None) -> dict[str, i
     - Une surface sans nom qui contient le tracé d'une piste nommée en est le
       contour dessiné, pas une piste de plus (`recouvre`).
 
-    Rend le nombre de tronçons rattachés et de surfaces recouvrantes.
+    `voisines` : les pistes nommées d'autres domaines, à moins d'un kilomètre.
+    openskidata range parfois une piste dans un domaine voisin (« Tunnel »
+    hors de l'Alpe d'Huez Grand Domaine, « Le Lac » à Montgenèvre) : une
+    liaison qui y mène la rejoint aussi.
     """
     nom = lambda t: t["nom"] or t.get("nomDeduit")
     index: dict[tuple[int, int], list[tuple[str, str | None, list[float], tuple[float, float]]]] = {}
@@ -276,7 +295,7 @@ def rattacher(ts: list[dict], remontees: Remontees | None = None) -> dict[str, i
             return memes[0][0]
         return min(memes, key=lambda x: (ecart_angle(sens, x[2]), x[0]))[0]
 
-    for u in ts:
+    for u in ts + (voisines or []):
         if nom(u) and not u["surface"]:
             indexer(u)
     rattaches = 0
@@ -342,6 +361,12 @@ def rattacher(ts: list[dict], remontees: Remontees | None = None) -> dict[str, i
             # Un bout de moins de 100 m relié à rien : chemin, reste de dessin.
             t["ecarte"] = "fragment"
             ecartes += 1
+        elif remontees and t["_bouts"]:
+            # Une vraie piste sans nom : on la situe par la remontée la plus
+            # proche de son départ, sans lui prêter de nom.
+            g = remontees.plus_proche(t["_bouts"][0], PRES_M)
+            if g:
+                t["pres"] = f"près {de_article(g)}"
     for t in ts:
         for k in ("_bouts", "_points", "_anneaux"):
             t.pop(k, None)
@@ -455,6 +480,25 @@ def main() -> None:
         for d in dans:
             par[d].append({**t, "aires": sorted(a for a in ids if membre.get(a) == d)})
 
+    # Troisième lecture : les pistes nommées d'autres domaines, autour de chaque fichier.
+    cadres: dict[str, tuple[float, float, float, float]] = {}
+    for d, ts in par.items():
+        pts = [q for t in ts for q in t["_points"] + [q for a in t["_anneaux"] for q in a]]
+        if pts:
+            xs, ys = [q[0] for q in pts], [q[1] for q in pts]
+            cadres[d] = (min(xs) - MARGE_DEG, max(xs) + MARGE_DEG, min(ys) - MARGE_DEG, max(ys) + MARGE_DEG)
+    voisines: dict[str, list[dict]] = {d: [] for d in par}
+    for objet, p, ids in descentes(fichier):
+        nom_v = (p.get("name") or "").strip()
+        g = objet.get("geometry") or {}
+        if not nom_v or g.get("type") != "LineString" or not g.get("coordinates"):
+            continue
+        dans = {membre[a] for a in ids if a in membre}
+        q0 = g["coordinates"][0]
+        for d, (x0, x1, y0, y1) in cadres.items():
+            if d not in dans and x0 <= q0[0] <= x1 and y0 <= q0[1] <= y1:
+                voisines[d].append({"nom": nom_v, "difficulte": p.get("difficulty"), "surface": False, "_points": g["coordinates"]})
+
     SORTIE.mkdir(parents=True, exist_ok=True)
     # Un domaine qui n'a plus de piste ne doit pas garder son ancien fichier.
     for ancien in SORTIE.glob("*.json"):
@@ -465,7 +509,7 @@ def main() -> None:
     total_sans_nom = 0
     for d, ts in sorted(par.items()):
         total_sans_nom += sum(1 for t in ts if not t["nom"])
-        totaux.update(rattacher(ts, remontees))
+        totaux.update(rattacher(ts, remontees, voisines[d]))
         ts.sort(key=lambda t: ((t["nom"] or "~").lower(), t["difficulte"] or "", -(t["longueurM"] or 0)))
         aires = sorted({a for t in ts for a in t["aires"]}, key=lambda a: (-n[a], a))
         rang = rangs[d] = {a: i for i, a in enumerate(aires)}

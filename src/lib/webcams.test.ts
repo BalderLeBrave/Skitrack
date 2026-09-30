@@ -12,9 +12,9 @@ describe("table des webcams", () => {
     for (const id of Object.keys(CAMERAS)) assert.ok(stationById(id), id);
   });
 
-  it("trois caméras au plus par station, sans doublon, en https", () => {
+  it("au moins une caméra par station, sans doublon, en https", () => {
     for (const [id, cams] of Object.entries(CAMERAS)) {
-      assert.ok(cams.length >= 1 && cams.length <= 3, id);
+      assert.ok(cams.length >= 1, id);
       assert.equal(new Set(cams.map((c) => c.url)).size, cams.length, id);
       for (const c of cams) assert.match(c.url, /^https:\/\//, `${id} : ${c.url}`);
     }

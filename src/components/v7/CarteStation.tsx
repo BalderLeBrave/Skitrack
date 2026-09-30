@@ -23,6 +23,8 @@ import type { MouseEvent } from "react";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
 import { PartPistes } from "./PartPistes";
+import { lignePistes } from "@/lib/pistesDetail";
+import { SKIINFO } from "@/lib/skiinfo";
 import { stationPhoto, stationPhotoAbsence, useParcours } from "@/lib/parcours";
 import type { Station } from "@/lib/stations";
 import { altLbl, kmLbl, passHeriteLbl, passLbl, sub, villageLbl } from "@/lib/v7";
@@ -125,7 +127,18 @@ export function CarteStation({
             </b>
           </div>
         </div>
-        <PartPistes share={s.colorShare} />
+        {variante === "liste" ? (
+          // Au comparateur, les totaux de la fiche Skiinfo sous la barre du
+          // domaine : l'échelle est dite, le badge de km reste celui du domaine.
+          <div className="stc7__parts">
+            <PartPistes share={s.colorShare} />
+            <span className={lignePistes(SKIINFO[s.id]) ? undefined : "absent"}>
+              {lignePistes(SKIINFO[s.id]) ?? "nombre de pistes non publié"}
+            </span>
+          </div>
+        ) : (
+          <PartPistes share={s.colorShare} />
+        )}
         <div className="stc7__pied">
           <button
             type="button"

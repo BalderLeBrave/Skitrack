@@ -1,0 +1,2334 @@
+{
+ "le": "2026-09-22",
+ "source": "openskidata.org runs.geojson, filtré au périmètre européen (scripts/filtrer-openskidata-europe.py)",
+ "domaines": {
+  "00081077f70487a0c4cea4fcb68a53d4f5f9a7b7": {
+   "nom": "La Loge des Gardes",
+   "troncons": 10,
+   "m": 2419
+  },
+  "054e6b22382573cced920d35e9cc4d6a993ab52c": {
+   "nom": "Bussang Larcenaire",
+   "troncons": 13,
+   "m": 3247
+  },
+  "078f95792d4f0e779a69b9e66aa811ab8c6df3f7": {
+   "nom": "Les Estables",
+   "troncons": 17,
+   "m": 5913
+  },
+  "0c11c517e3dc3e03fe02501168ef2929680da24b": {
+   "nom": "Le Champ du Feu",
+   "troncons": 16,
+   "m": 6835
+  },
+  "0c1ee22aff92dce160be7b206226d0e3b73328b2": {
+   "nom": "Galibier-Thabor",
+   "troncons": 254,
+   "m": 129774
+  },
+  "0e32d9bd72195acaa33ba6c2d18ba4ad1562a055": {
+   "nom": "Le Sauze 1400 / Le Super-Sauze 1700",
+   "troncons": 120,
+   "m": 51608
+  },
+  "0e55d2b69d63decf2eb4c82a579c7663cf63e78f": {
+   "nom": "Les Deux Alpes",
+   "troncons": 250,
+   "m": 104754
+  },
+  "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e": {
+   "nom": "Alpe d'Huez Grand Domaine",
+   "troncons": 350,
+   "m": 160176
+  },
+  "11ea7f43856f871bab7850bdb4e337d8eebca8cc": {
+   "nom": "Prabouré",
+   "troncons": 17,
+   "m": 4596
+  },
+  "1215669125c5549bd831eb34bca2741e86721ba1": {
+   "nom": "Monts Jura",
+   "troncons": 45,
+   "m": 20877
+  },
+  "1222c2d14f689a8cae08abf41beb88b0a6402b44": {
+   "nom": "Mouthe",
+   "troncons": 7,
+   "m": 5472
+  },
+  "122d85b6950a30529dda2e0a212bbce999e91df6": {
+   "nom": "Mont Saxonnex",
+   "troncons": 12,
+   "m": 6575
+  },
+  "13e89a4b35899c5870e686d3481b0c3f25892320": {
+   "nom": "Chamrousse",
+   "troncons": 117,
+   "m": 49292
+  },
+  "15e9705d5eb24444f170c8d1d9c9073b5f04afb1": {
+   "nom": "Le Collet d'Allevard",
+   "troncons": 51,
+   "m": 24224
+  },
+  "16e0d7a5d5ee1d5431ecb6604417fec0fd7affb6": {
+   "nom": "L'Audibergue",
+   "troncons": 26,
+   "m": 17300
+  },
+  "16e97c560e05b0379860572fa6d6ca330978ec9a": {
+   "nom": "Chastreix-Sancy",
+   "troncons": 28,
+   "m": 13017
+  },
+  "1790793f96495e1e26aec63418d518690762bcf8": {
+   "nom": "Les Entremonts",
+   "troncons": 10,
+   "m": 4318
+  },
+  "17a2aed27cfa6b593c5df9770900555623db6adf": {
+   "nom": "Praz de Lys Sommand",
+   "troncons": 95,
+   "m": 47465
+  },
+  "1947f55a238d3287908e5ab1a64dcb883e250432": {
+   "nom": "Bellefontaine",
+   "troncons": 7,
+   "m": 3328
+  },
+  "19b6e308caa6766b21cb00e4fb40a82c4ee1f95b": {
+   "nom": "Bernex",
+   "troncons": 45,
+   "m": 15315
+  },
+  "1a132aee8f40c3ea1e676d4c270d212e1f991dc4": {
+   "nom": "Saint-Lary",
+   "troncons": 122,
+   "m": 70857
+  },
+  "1d32483b96030504eb0bf4c6b538fbb2c907685a": {
+   "nom": "Gavarnie-Gèdre",
+   "troncons": 31,
+   "m": 20848
+  },
+  "1d75a36228060981017dbeb2fb1c283d2653390d": {
+   "nom": "Queyras - Aiguilles",
+   "troncons": 6,
+   "m": 3903
+  },
+  "1dc437d1f6bfeafc3a8ef625bdd022111b3c5a19": {
+   "nom": "Serre Eyraud",
+   "troncons": 12,
+   "m": 6772
+  },
+  "22c54e1e92de27ad2b47090f9b33564d0cbe8edc": {
+   "nom": "Chabanon",
+   "troncons": 43,
+   "m": 26226
+  },
+  "273cc6615acb22a53a27e8ca642f5cf488388b97": {
+   "nom": "Larche",
+   "troncons": 3,
+   "m": 1440
+  },
+  "28bc6b32b26b2c57edacb1c31e4ebdc1ec6e518f": {
+   "nom": "Hirmentaz - Les Habères",
+   "troncons": 58,
+   "m": 24384
+  },
+  "2a415457dd464c4f5dc0f814608fb9ed9667a313": {
+   "nom": "Menthières",
+   "troncons": 7,
+   "m": 1716
+  },
+  "2b9aee56a8afa944ff7f834ed515a1c2769ea733": {
+   "nom": "Gréolières-Les-Neiges",
+   "troncons": 39,
+   "m": 23011
+  },
+  "2fd1af5cddba9738be6c1995e7e04ee7e632c289": {
+   "nom": "La Sambuy Seythenex",
+   "troncons": 1,
+   "m": 180
+  },
+  "2ffef07b31c2da268f4cedbbac676de9fc5e6f8d": {
+   "nom": "Col de Marcieu",
+   "troncons": 9,
+   "m": 2974
+  },
+  "32fd5d38648afcf99a4093883384a03fa2d2f4b8": {
+   "nom": "La Bresse - Lispach",
+   "troncons": 11,
+   "m": 3323
+  },
+  "38b6ee8843fc22a5b81e90354754e0a7f8312db9": {
+   "nom": "Le Lioran",
+   "troncons": 84,
+   "m": 45028
+  },
+  "390e31b747f8f0d546ef55f644c153cd7295c978": {
+   "nom": "Col de Porte",
+   "troncons": 3,
+   "m": 942
+  },
+  "3939037c0a139e51388b6e7c1c3e8e986ced4829": {
+   "nom": "Montclar",
+   "troncons": 42,
+   "m": 23824
+  },
+  "4243519f890596507243ce624d660bfddd378b16": {
+   "nom": "Queyras - Molines/Saint-Véran",
+   "troncons": 44,
+   "m": 29738
+  },
+  "43f7d8df941a946e395669e6f8873afa581c9851": {
+   "nom": "L'Alpe du Grand Serre",
+   "troncons": 52,
+   "m": 36644
+  },
+  "45a940355cca76e598e2a54c273e06cd0916e04f": {
+   "nom": "Massif des Brasses",
+   "troncons": 34,
+   "m": 16185
+  },
+  "46a17eb2aca4ba2b0885121fac43e02959cc9bcc": {
+   "nom": "Ghisoni",
+   "troncons": 7,
+   "m": 3098
+  },
+  "46ce96df6419c575243c5c4d09e359b295178963": {
+   "nom": "Xonrupt-Longemer",
+   "troncons": 3,
+   "m": 1464
+  },
+  "46e449b1b9a7bcdaf078066b4aee6b3fabd1fb32": {
+   "nom": "Auron",
+   "troncons": 64,
+   "m": 61560
+  },
+  "494122163c8aa3f93f43ccee9fd0ee83a3a03d62": {
+   "nom": "Crévoux",
+   "troncons": 29,
+   "m": 20137
+  },
+  "4a30e21219abb7c297eea39860578ad22572d0eb": {
+   "nom": "Font-Romeu Pyrénées 2000, Font-Romeu",
+   "troncons": 98,
+   "m": 35922
+  },
+  "4bdf7ecb1d31b6554368ec7cf97e62a072fbf4bd": {
+   "nom": "Pralognan-la-Vanoise",
+   "troncons": 41,
+   "m": 25317
+  },
+  "4d68ac9b9ced24222df548795fc5e9c4cbe17fef": {
+   "nom": "Prat-Peyrot",
+   "troncons": 33,
+   "m": 9044
+  },
+  "4d81480cbbccb41b552f19f6fd0156ba0985d7e8": {
+   "nom": "Formiguères",
+   "troncons": 33,
+   "m": 17484
+  },
+  "4d9c0191491227da58bc418ee8633c62485f29c8": {
+   "nom": "Grand Tourmalet",
+   "troncons": 81,
+   "m": 54110
+  },
+  "4ded708b04a73a5a58c60da497616699c6687477": {
+   "nom": "Le Granier",
+   "troncons": 8,
+   "m": 2350
+  },
+  "504eff3fdb5510cb38a4f75324fa846fba9728f3": {
+   "nom": "Gourette",
+   "troncons": 65,
+   "m": 29546
+  },
+  "52afce3ac6eec3a28587bbea9ef4713dddd72d7b": {
+   "nom": "Sappey-en-Chartreuse",
+   "troncons": 3,
+   "m": 1016
+  },
+  "52e563421f54b965503d116d18f4e6afac62c930": {
+   "nom": "Station de Ski de Brameloup",
+   "troncons": 17,
+   "m": 5438
+  },
+  "534530805814dea3640ab85f879f4d122fec8aac": {
+   "nom": "Queyras - Haut-Guil (Abriès)",
+   "troncons": 37,
+   "m": 25967
+  },
+  "535d5286b8d9d759e97c4727467dd9ad3f1ec13b": {
+   "nom": "Goulier-Neige",
+   "troncons": 15,
+   "m": 4833
+  },
+  "587083ed85af457ce2b42663b8e33233681ccabc": {
+   "nom": "Autrans",
+   "troncons": 1,
+   "m": 1407
+  },
+  "59daf3cc15cc3c231203bce41e59f1258093568a": {
+   "nom": "Superbagnères",
+   "troncons": 74,
+   "m": 30039
+  },
+  "5d982c5ba126dcd1a357cb1ab735ebcca8f708ee": {
+   "nom": "Ancelle",
+   "troncons": 61,
+   "m": 22867
+  },
+  "5f08563dbb26f11661870936a69b82df669b2e57": {
+   "nom": "Plateau de Retord",
+   "troncons": 22,
+   "m": 7267
+  },
+  "600f6e0f4583cb32dcc2934439cd65ff38f3a570": {
+   "nom": "Les Fourgs",
+   "troncons": 14,
+   "m": 5580
+  },
+  "613eb2a4ee7272c0bbbb5ed7c2fba25316ef9bdb": {
+   "nom": "Romme",
+   "troncons": 8,
+   "m": 3458
+  },
+  "63e66bf524950d5f4cfa76d22d15b209004520bb": {
+   "nom": "Chaillol, Chalhòl",
+   "troncons": 23,
+   "m": 11036
+  },
+  "6698c89c2806a980983573e5c336bb90c49143a2": {
+   "nom": "Domaine Skiable Saint-Léger-Les-Mélèzes",
+   "troncons": 20,
+   "m": 14510
+  },
+  "68b126bc3175516c9263aed7635d14e37ff360dc": {
+   "nom": "Les Trois Vallées",
+   "troncons": 1399,
+   "m": 538690
+  },
+  "698235de3f3ccef651f8bd22e09d50fdadd21922": {
+   "nom": "La Pierre Saint-Martin, San Martingo Harria",
+   "troncons": 59,
+   "m": 25431
+  },
+  "6a9f3afdd5d590a14770fdb7a8e90c6285b18035": {
+   "nom": "Isola 2000",
+   "troncons": 61,
+   "m": 52774
+  },
+  "6bc661c68f351340fad911f747596b1d8dcc4f3c": {
+   "nom": "Espace Haute Maurienne Vanoise",
+   "troncons": 418,
+   "m": 211315
+  },
+  "6d73101c0c82f1695199dfb0d9f3a2aa16b8b133": {
+   "nom": "Arêches Beaufort",
+   "troncons": 63,
+   "m": 36068
+  },
+  "6d9ba323497049568dd1a62d9243f29a3ae5e29a": {
+   "nom": "Sainte-Foy Tarentaise",
+   "troncons": 54,
+   "m": 26743
+  },
+  "70254f2abbb3633291ca35f6c39432ea0e419031": {
+   "nom": "Station de ski Bleymard Mont Lozère",
+   "troncons": 17,
+   "m": 8394
+  },
+  "70b5c16a6a584808d97c9084dd340e4c8605acdb": {
+   "nom": "Les Portes du Soleil",
+   "troncons": 977,
+   "m": 408439
+  },
+  "70b70c0b911476229ec0f48383724a0f7b24a246": {
+   "nom": "Les Coulmes",
+   "troncons": 5,
+   "m": 2495
+  },
+  "715cbf095f34c993796845811d2d0195fa8a6756": {
+   "nom": "La Bresse - Hohneck",
+   "troncons": 66,
+   "m": 23943
+  },
+  "71bab82afb4cf0e187fc18fe9286260882ee8994": {
+   "nom": "La Giettaz - Village",
+   "troncons": 16,
+   "m": 4793
+  },
+  "73278e0d711effeb45409da2202be6389040f9c6": {
+   "nom": "Luz-Ardiden",
+   "troncons": 38,
+   "m": 23644
+  },
+  "775634f8f5f5b0724ecd27d82909b2008d58f7d5": {
+   "nom": "Les Sybelles",
+   "troncons": 232,
+   "m": 136312
+  },
+  "77c586f2f94b9428e4f35c9357e43173612b043f": {
+   "nom": "Le Mourtis",
+   "troncons": 37,
+   "m": 13159
+  },
+  "78779b860e6b70a1d8e64ddb7cb458cedd26d005": {
+   "nom": "Albiez-Montrond",
+   "troncons": 27,
+   "m": 20273
+  },
+  "7c9b92923d15730930f62c097152088ae43aae3f": {
+   "nom": "Mont Serein",
+   "troncons": 31,
+   "m": 11404
+  },
+  "7de1bcf43b60126cd7ec928effe87c5257cfca30": {
+   "nom": "Espace Cambre d'Aze",
+   "troncons": 55,
+   "m": 25436
+  },
+  "80242516bc3deb8d5ba853079eed7f3d3f418f00": {
+   "nom": "Colline des Bains",
+   "troncons": 2,
+   "m": 3391
+  },
+  "80d2fcf669a623c95125a81ccaa82ebe067846a5": {
+   "nom": "Mijanès-Donezan",
+   "troncons": 18,
+   "m": 9973
+  },
+  "82115168a1f3e2e458c9b6d977a077cc91fe868d": {
+   "nom": "Val-Louron",
+   "troncons": 34,
+   "m": 15864
+  },
+  "851128bb56a54648e73d41ecdaca409350648f33": {
+   "nom": "Peyragudes",
+   "troncons": 83,
+   "m": 42776
+  },
+  "86ff67339944ad9153febfb414f0360258e61e62": {
+   "nom": "La Bresse Brabant",
+   "troncons": 11,
+   "m": 2696
+  },
+  "870daba91bf45e41f76102b45565876b61861a50": {
+   "nom": "Super Besse",
+   "troncons": 125,
+   "m": 58080
+  },
+  "8a9e6fcb235049131ba0691e922882db19db12c0": {
+   "nom": "Cauterets Cirque du Lys",
+   "troncons": 71,
+   "m": 23959
+  },
+  "8af93a64c41b59fca4705d30c106ef29fb24e042": {
+   "nom": "Le Grand-Bornand",
+   "troncons": 121,
+   "m": 57445
+  },
+  "8c539daa0a83c5ef53217c99a3754c6a951ee7cc": {
+   "nom": "Gérardmer",
+   "troncons": 61,
+   "m": 22746
+  },
+  "8d9f2f55c1ab3db1075c42f8b643f6c386850c75": {
+   "nom": "Ventron",
+   "troncons": 1,
+   "m": 73
+  },
+  "8e5dbdde0808be45e5e47253e905635c9f867c3b": {
+   "nom": "Dévoluy",
+   "troncons": 110,
+   "m": 70179
+  },
+  "8ed780a048377fa824a6473c49bb2552a9472e12": {
+   "nom": "Font d'Urle Chaud Clapier",
+   "troncons": 49,
+   "m": 16092
+  },
+  "90b1df4a3b468cc6c646570ec3bc49b64425349e": {
+   "nom": "Le Reposoir",
+   "troncons": 8,
+   "m": 934
+  },
+  "91c44085267ba327e1007afebcef144f436d686d": {
+   "nom": "Paradiski",
+   "troncons": 1032,
+   "m": 399901
+  },
+  "92676053fdc889afa65b91206f5158532b3fafcc": {
+   "nom": "Villard de Lans - Corrençon",
+   "troncons": 87,
+   "m": 55930
+  },
+  "94cb050e1e20e04e822c14216840885aea2eafcc": {
+   "nom": "Serre-Chevalier",
+   "troncons": 428,
+   "m": 152688
+  },
+  "94e7e317e942365dac346268049b5313b49b9e61": {
+   "nom": "Les Egaux - St Hugues",
+   "troncons": 4,
+   "m": 1509
+  },
+  "99713653576c6e645d010ccfb24c164d181019fa": {
+   "nom": "Queyras - Arvieux",
+   "troncons": 29,
+   "m": 14321
+  },
+  "9cb83fdd2a49011eec76e3d1bbc2af8f582888a9": {
+   "nom": "La Clusaz",
+   "troncons": 148,
+   "m": 95557
+  },
+  "9d0b2c5e0fcac9deba9c727a834cac4b43a5d2c9": {
+   "nom": "Forêt Blanche : Vars/Risoul",
+   "troncons": 193,
+   "m": 131040
+  },
+  "a3da8ace6e5e1667e218e35dbae76955b27c34cb": {
+   "nom": "Lus la Jarjatte",
+   "troncons": 13,
+   "m": 6362
+  },
+  "a3f181286a5893208aa7d7b7d1704bb923673003": {
+   "nom": "Les Karellis",
+   "troncons": 55,
+   "m": 45142
+  },
+  "a61939dffc59f43583d40ef883df7b537f16f0f5": {
+   "nom": "Saint-Hilaire-du-Touvet",
+   "troncons": 13,
+   "m": 5031
+  },
+  "a6e33a705cdc20bfc2dfa1e690f066bd8e1caa5b": {
+   "nom": "Tignes - Val d'Isère",
+   "troncons": 415,
+   "m": 204118
+  },
+  "a9a0fbc41578496010d1edbdb75ec0170af202c8": {
+   "nom": "Laye",
+   "troncons": 15,
+   "m": 8564
+  },
+  "ab1f9a29185ea464553449ca060e40589115b16c": {
+   "nom": "Val d'Allos - Le Seignus",
+   "troncons": 34,
+   "m": 25940
+  },
+  "ab64447adfc4646992e5e055f531038d949a74b2": {
+   "nom": "Evasion Mont Blanc",
+   "troncons": 510,
+   "m": 316388
+  },
+  "abd8fc58a269e575731226a78d77a13b2e38a673": {
+   "nom": "Puy-Saint-Vincent",
+   "troncons": 74,
+   "m": 40819
+  },
+  "afae22214cb276b801450bd677be5e8acde5a0a9": {
+   "nom": "Saint-Pierre-de-Chartreuse",
+   "troncons": 15,
+   "m": 7153
+  },
+  "b1a655113e872a26a397061747cc833b8a6932b2": {
+   "nom": "Montgenèvre",
+   "troncons": 270,
+   "m": 59705
+  },
+  "b2b17f3b9d21a8d5f61a25fbd662766b17b4d8ad": {
+   "nom": "Gresse en Vercors",
+   "troncons": 19,
+   "m": 13022
+  },
+  "b3e6cffb7141aca7afe44bab3d242d7c89e2688a": {
+   "nom": "Le Markstein",
+   "troncons": 33,
+   "m": 8831
+  },
+  "b43d707a61700ab70e2622eb56e23767d9d81d72": {
+   "nom": "Passy - Plaine Joux",
+   "troncons": 16,
+   "m": 7548
+  },
+  "b7833ccfbf2f1d33ea1771f80296d89830bc2d6d": {
+   "nom": "Queyras - Ceillac",
+   "troncons": 33,
+   "m": 17871
+  },
+  "b98413c4450972fccf2e1ca6642e02b6cdaed316": {
+   "nom": "Saint-Maurice-sur-Moselle",
+   "troncons": 1,
+   "m": 288
+  },
+  "bb3a3cf3968039140e4dbd99221030c44f9dc840": {
+   "nom": "La Croix de Bauzon",
+   "troncons": 13,
+   "m": 2255
+  },
+  "bbb94d010880a6a6a19be5ed362d50aa55b98e91": {
+   "nom": "Montmin - Col de la Forclaz",
+   "troncons": 6,
+   "m": 1540
+  },
+  "bd7f1ebab45b10ba500d95d32aa8f7772c853e68": {
+   "nom": "Chalmazel",
+   "troncons": 22,
+   "m": 9157
+  },
+  "c2d3d65ebe065fbf5a84ab6887168c8403d2fc28": {
+   "nom": "Réallon",
+   "troncons": 16,
+   "m": 12345
+  },
+  "c2fba992cc1711880d5f8d8ffa661f71eab950cf": {
+   "nom": "Brévent/Flégère (Chamonix)",
+   "troncons": 73,
+   "m": 39417
+  },
+  "c349bb235a74def4c527ddf3fdb200ce99c18fe2": {
+   "nom": "Les 7 Laux",
+   "troncons": 104,
+   "m": 54488
+  },
+  "c4b221a54713b4e084b5bae02668c68dfaf6c1e3": {
+   "nom": "Les Rousses",
+   "troncons": 99,
+   "m": 31749
+  },
+  "c8f66e784133d6becb1aba654e27b446daa7af7b": {
+   "nom": "Guzet-Neige",
+   "troncons": 39,
+   "m": 27675
+  },
+  "c9da52741ee82e32df69ef7edf2a8d0e0c58f89f": {
+   "nom": "Laguiole",
+   "troncons": 23,
+   "m": 8480
+  },
+  "cb17ba3f010488194237ab23a00c94f211bf46da": {
+   "nom": "Ax 3 Domaines",
+   "troncons": 88,
+   "m": 50801
+  },
+  "cb8c6de1ef0955c0dc5db93eeea711855c0a2ac0": {
+   "nom": "Lac Blanc",
+   "troncons": 31,
+   "m": 11682
+  },
+  "ce536a2445bc0a699f4c339cd58acd9d0162e03a": {
+   "nom": "Puigmal 2900",
+   "troncons": 11,
+   "m": 2484
+  },
+  "cede63bd5d98d56e4c424bf3d57e851e57caf33d": {
+   "nom": "Porté-Puymorens",
+   "troncons": 31,
+   "m": 26411
+  },
+  "cf6423ae2c9659dd332399a2ca796cff5ede5146": {
+   "nom": "Col de Turini/​Camp d'Argent",
+   "troncons": 5,
+   "m": 1550
+  },
+  "cfbdf0c0870e8baf8c048438de3175df84e88082": {
+   "nom": "Domaine Alpin du Col d'Ornon",
+   "troncons": 20,
+   "m": 6138
+  },
+  "d39336da0c51e94780c04757b4430dda81cd4e79": {
+   "nom": "Ballon d'Alsace",
+   "troncons": 27,
+   "m": 8032
+  },
+  "d42aa81cb4e1cba7f24c0f4f19a158df01fe6086": {
+   "nom": "Les Orres",
+   "troncons": 78,
+   "m": 50161
+  },
+  "d439a81c89522f99d9f58daedda995c9b189d301": {
+   "nom": "Les Monts d'Olmes",
+   "troncons": 30,
+   "m": 15906
+  },
+  "d586a3a5c1452154378cb9835175fa3f35ce4727": {
+   "nom": "Le Chazelet",
+   "troncons": 27,
+   "m": 9415
+  },
+  "d7a1340b104edf73827525c56925c83e4a7d0733": {
+   "nom": "Le Semnoz",
+   "troncons": 25,
+   "m": 15153
+  },
+  "dc8e2187c1e7377900c01a0d66634f8d8226477f": {
+   "nom": "Camurac",
+   "troncons": 13,
+   "m": 6349
+  },
+  "deedc021e3c6f4862d261652d36b41e693d11561": {
+   "nom": "Ascou",
+   "troncons": 19,
+   "m": 12065
+  },
+  "df9a26b589d512af30d78fa6ad55e745a3a677e3": {
+   "nom": "Aillon-Margériaz",
+   "troncons": 43,
+   "m": 21715
+  },
+  "e48d0bf9934f4b3e12474a2a7c69596f315d196b": {
+   "nom": "La Planche-des-Belles-Filles",
+   "troncons": 7,
+   "m": 2776
+  },
+  "e6785badc6edee0517405a996973fe5020974cda": {
+   "nom": "Pelvoux-Vallouise",
+   "troncons": 35,
+   "m": 15339
+  },
+  "e6a74235073fc0517ccdd08109a1f10e6ccc60d5": {
+   "nom": "Station du Col de Rousset",
+   "troncons": 32,
+   "m": 17997
+  },
+  "e6ac8d5864a0c200e5cd378d76b66c6c50a65720": {
+   "nom": "Le Revard",
+   "troncons": 17,
+   "m": 8866
+  },
+  "e734b108335866c1952453769e2d4e13f0f757ae": {
+   "nom": "Artouste",
+   "troncons": 23,
+   "m": 7920
+  },
+  "e7ac24ed84c16667056f0671a15327c99b55372a": {
+   "nom": "Puyvalador Rieutort",
+   "troncons": 8,
+   "m": 1240
+  },
+  "e7c4c03bd7f9a3d907ff566775cfba1823bcf2ae": {
+   "nom": "Espace Lumière",
+   "troncons": 514,
+   "m": 179026
+  },
+  "e803e6b7f511dd24e94cbe8882324020e9cc013f": {
+   "nom": "Piau-Engaly",
+   "troncons": 65,
+   "m": 32142
+  },
+  "e9e23b65c64995b3de6d30b9937d9991d0521c65": {
+   "nom": "La Schlucht",
+   "troncons": 4,
+   "m": 943
+  },
+  "ea9dfe26da36c33e8cf007b22b628c153ac69ab4": {
+   "nom": "Les Houches - Saint-Gervais",
+   "troncons": 69,
+   "m": 35960
+  },
+  "eca9675beb234d219763dd324641fda72768f5db": {
+   "nom": "Sainte-Anne la Condamine",
+   "troncons": 21,
+   "m": 16751
+  },
+  "efaa82d7ae8e42868f19ed2abb8001f518a404d0": {
+   "nom": "Le Grand Massif",
+   "troncons": 443,
+   "m": 169690
+  },
+  "eff3c7c671d2a85838ae69b9e282f04bdf663d44": {
+   "nom": "Hautacam",
+   "troncons": 29,
+   "m": 9608
+  },
+  "f0007f1cc496b6a648911d0ba6427b8927e4a9e2": {
+   "nom": "Le Grand Puy",
+   "troncons": 2,
+   "m": 217
+  },
+  "f5012c2e28919e74195713107bb17f13079554ae": {
+   "nom": "Roubion-Les-Buisses",
+   "troncons": 22,
+   "m": 15493
+  },
+  "f5fcc0e543cfb0e4d50280c286081c27d975697f": {
+   "nom": "Le Grand Domaine",
+   "troncons": 320,
+   "m": 129645
+  },
+  "f8176e48416adcfc9118014d5c390cd2099a6a18": {
+   "nom": "La Rosière",
+   "troncons": 221,
+   "m": 63513
+  },
+  "f8a135103929215d692c27c3b10670b5b8ff1e7b": {
+   "nom": "Metabief - Mont d'or",
+   "troncons": 50,
+   "m": 26115
+  },
+  "fb7f2ad1bf647d1b7df505c09b5a6c27cd5f968f": {
+   "nom": "La Combe Saint-Pierre",
+   "troncons": 5,
+   "m": 3507
+  },
+  "fc29dc943652ee283066ab19aa9eb0a74e5ef8e9": {
+   "nom": "Domaine skiable Valberg",
+   "troncons": 111,
+   "m": 53911
+  },
+  "fc363709ccca284e902786dd507a3ff1d40417fe": {
+   "nom": "Station de ski du Schnepfenried",
+   "troncons": 26,
+   "m": 7960
+  }
+ },
+ "stations": {
+  "abondance": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "d3d69f021189f84fe11396cd2078f905ebd0beb9",
+   "voisines": [
+    "abondance"
+   ]
+  },
+  "abries": {
+   "fichier": "534530805814dea3640ab85f879f4d122fec8aac",
+   "aire": "534530805814dea3640ab85f879f4d122fec8aac",
+   "voisines": [
+    "abries",
+    "ristolas"
+   ]
+  },
+  "aiguilles": {
+   "fichier": "1d75a36228060981017dbeb2fb1c283d2653390d",
+   "aire": "1d75a36228060981017dbeb2fb1c283d2653390d",
+   "voisines": [
+    "aiguilles"
+   ]
+  },
+  "albiez-montrond": {
+   "fichier": "78779b860e6b70a1d8e64ddb7cb458cedd26d005",
+   "aire": "78779b860e6b70a1d8e64ddb7cb458cedd26d005",
+   "voisines": [
+    "albiez-montrond"
+   ]
+  },
+  "alpe-d-huez": {
+   "fichier": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "aire": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "voisines": [
+    "alpe-d-huez",
+    "auris-en-oisans",
+    "oz-en-oisans",
+    "vaujany",
+    "villard-reculas"
+   ]
+  },
+  "alpe-du-grand-serre": {
+   "fichier": "43f7d8df941a946e395669e6f8873afa581c9851",
+   "aire": "43f7d8df941a946e395669e6f8873afa581c9851",
+   "voisines": [
+    "alpe-du-grand-serre"
+   ]
+  },
+  "ancelle": {
+   "fichier": "5d982c5ba126dcd1a357cb1ab735ebcca8f708ee",
+   "aire": "5d982c5ba126dcd1a357cb1ab735ebcca8f708ee",
+   "voisines": [
+    "ancelle"
+   ]
+  },
+  "areches-beaufort": {
+   "fichier": "6d73101c0c82f1695199dfb0d9f3a2aa16b8b133",
+   "aire": "6d73101c0c82f1695199dfb0d9f3a2aa16b8b133",
+   "voisines": [
+    "areches-beaufort"
+   ]
+  },
+  "artouste": {
+   "fichier": "e734b108335866c1952453769e2d4e13f0f757ae",
+   "aire": "e734b108335866c1952453769e2d4e13f0f757ae",
+   "voisines": [
+    "artouste"
+   ]
+  },
+  "arvieux": {
+   "fichier": "99713653576c6e645d010ccfb24c164d181019fa",
+   "aire": "99713653576c6e645d010ccfb24c164d181019fa",
+   "voisines": [
+    "arvieux"
+   ]
+  },
+  "ascou-pailheres": {
+   "fichier": "deedc021e3c6f4862d261652d36b41e693d11561",
+   "aire": "deedc021e3c6f4862d261652d36b41e693d11561",
+   "voisines": [
+    "ascou-pailheres"
+   ]
+  },
+  "auris-en-oisans": {
+   "fichier": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "aire": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "voisines": [
+    "alpe-d-huez",
+    "auris-en-oisans",
+    "oz-en-oisans",
+    "vaujany",
+    "villard-reculas"
+   ]
+  },
+  "auron": {
+   "fichier": "46e449b1b9a7bcdaf078066b4aee6b3fabd1fb32",
+   "aire": "46e449b1b9a7bcdaf078066b4aee6b3fabd1fb32",
+   "voisines": [
+    "auron"
+   ]
+  },
+  "aussois": {
+   "fichier": "6bc661c68f351340fad911f747596b1d8dcc4f3c",
+   "aire": "756e0502aecee6a9d48efb3419be7efaac92341d",
+   "voisines": [
+    "aussois",
+    "bramans"
+   ]
+  },
+  "autrans": {
+   "fichier": "587083ed85af457ce2b42663b8e33233681ccabc",
+   "aire": "587083ed85af457ce2b42663b8e33233681ccabc",
+   "voisines": [
+    "autrans"
+   ]
+  },
+  "avoriaz": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "1771e68c0cb96ffc4c834d53f8e60f77fe5ed05e",
+   "voisines": [
+    "avoriaz"
+   ]
+  },
+  "ax-3-domaines": {
+   "fichier": "cb17ba3f010488194237ab23a00c94f211bf46da",
+   "aire": "cb17ba3f010488194237ab23a00c94f211bf46da",
+   "voisines": [
+    "ax-3-domaines"
+   ]
+  },
+  "bellevaux-hirmentaz": {
+   "fichier": "28bc6b32b26b2c57edacb1c31e4ebdc1ec6e518f",
+   "aire": "28bc6b32b26b2c57edacb1c31e4ebdc1ec6e518f",
+   "voisines": [
+    "bellevaux-hirmentaz",
+    "les-haberes"
+   ]
+  },
+  "bernex": {
+   "fichier": "19b6e308caa6766b21cb00e4fb40a82c4ee1f95b",
+   "aire": "19b6e308caa6766b21cb00e4fb40a82c4ee1f95b",
+   "voisines": [
+    "bernex"
+   ]
+  },
+  "bessans": {
+   "fichier": "6bc661c68f351340fad911f747596b1d8dcc4f3c",
+   "aire": "c7cc7aab86a01a89ab0cca3e123c85bbe366f2bf",
+   "voisines": [
+    "bessans"
+   ]
+  },
+  "besse-super-besse": {
+   "fichier": "870daba91bf45e41f76102b45565876b61861a50",
+   "aire": "870daba91bf45e41f76102b45565876b61861a50",
+   "voisines": [
+    "besse-super-besse"
+   ]
+  },
+  "beuil-les-launes": {
+   "fichier": "fc29dc943652ee283066ab19aa9eb0a74e5ef8e9",
+   "aire": "fc29dc943652ee283066ab19aa9eb0a74e5ef8e9",
+   "voisines": [
+    "beuil-les-launes",
+    "valberg"
+   ]
+  },
+  "bolquere-pyrenees-2000": {
+   "fichier": "4a30e21219abb7c297eea39860578ad22572d0eb",
+   "aire": "4a30e21219abb7c297eea39860578ad22572d0eb",
+   "voisines": [
+    "bolquere-pyrenees-2000",
+    "font-romeu-pyrenees-2000"
+   ]
+  },
+  "bonneval-sur-arc": {
+   "fichier": "6bc661c68f351340fad911f747596b1d8dcc4f3c",
+   "aire": "76d441ab94356152a7e13a3a67001259a0d3d3c5",
+   "voisines": [
+    "bonneval-sur-arc"
+   ]
+  },
+  "bramans": {
+   "fichier": "6bc661c68f351340fad911f747596b1d8dcc4f3c",
+   "aire": "756e0502aecee6a9d48efb3419be7efaac92341d",
+   "voisines": [
+    "aussois",
+    "bramans"
+   ]
+  },
+  "brameloup": {
+   "fichier": "52e563421f54b965503d116d18f4e6afac62c930",
+   "aire": "52e563421f54b965503d116d18f4e6afac62c930",
+   "voisines": [
+    "brameloup"
+   ]
+  },
+  "bussang-larcenaire": {
+   "fichier": "054e6b22382573cced920d35e9cc4d6a993ab52c",
+   "aire": "054e6b22382573cced920d35e9cc4d6a993ab52c",
+   "voisines": [
+    "bussang-larcenaire"
+   ]
+  },
+  "camurac": {
+   "fichier": "dc8e2187c1e7377900c01a0d66634f8d8226477f",
+   "aire": "dc8e2187c1e7377900c01a0d66634f8d8226477f",
+   "voisines": [
+    "camurac"
+   ]
+  },
+  "cauterets": {
+   "fichier": "8a9e6fcb235049131ba0691e922882db19db12c0",
+   "aire": "8a9e6fcb235049131ba0691e922882db19db12c0",
+   "voisines": [
+    "cauterets"
+   ]
+  },
+  "ceillac": {
+   "fichier": "b7833ccfbf2f1d33ea1771f80296d89830bc2d6d",
+   "aire": "b7833ccfbf2f1d33ea1771f80296d89830bc2d6d",
+   "voisines": [
+    "ceillac"
+   ]
+  },
+  "chabanon": {
+   "fichier": "22c54e1e92de27ad2b47090f9b33564d0cbe8edc",
+   "aire": "22c54e1e92de27ad2b47090f9b33564d0cbe8edc",
+   "voisines": [
+    "chabanon"
+   ]
+  },
+  "chaillol": {
+   "fichier": "63e66bf524950d5f4cfa76d22d15b209004520bb",
+   "aire": "63e66bf524950d5f4cfa76d22d15b209004520bb",
+   "voisines": [
+    "chaillol"
+   ]
+  },
+  "chalmazel": {
+   "fichier": "bd7f1ebab45b10ba500d95d32aa8f7772c853e68",
+   "aire": "bd7f1ebab45b10ba500d95d32aa8f7772c853e68",
+   "voisines": [
+    "chalmazel"
+   ]
+  },
+  "chamonix": {
+   "fichier": "c2fba992cc1711880d5f8d8ffa661f71eab950cf",
+   "aire": "c2fba992cc1711880d5f8d8ffa661f71eab950cf",
+   "voisines": [
+    "chamonix"
+   ]
+  },
+  "champagny-en-vanoise": {
+   "fichier": "91c44085267ba327e1007afebcef144f436d686d",
+   "aire": "f47f7e05cc676b25b6a00f77f0b86a897f03018c",
+   "voisines": [
+    "champagny-en-vanoise",
+    "la-plagne"
+   ]
+  },
+  "chamrousse": {
+   "fichier": "13e89a4b35899c5870e686d3481b0c3f25892320",
+   "aire": "13e89a4b35899c5870e686d3481b0c3f25892320",
+   "voisines": [
+    "chamrousse"
+   ]
+  },
+  "chastreix-sancy": {
+   "fichier": "16e97c560e05b0379860572fa6d6ca330978ec9a",
+   "aire": "16e97c560e05b0379860572fa6d6ca330978ec9a",
+   "voisines": [
+    "chastreix-sancy",
+    "le-mont-dore"
+   ]
+  },
+  "chatel": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "45c1ed53a5c947daeb9df201306473ac8b059788",
+   "voisines": [
+    "chatel",
+    "la-chapelle-dabondance"
+   ]
+  },
+  "col-de-marcieu": {
+   "fichier": "2ffef07b31c2da268f4cedbbac676de9fc5e6f8d",
+   "aire": "2ffef07b31c2da268f4cedbbac676de9fc5e6f8d",
+   "voisines": [
+    "col-de-marcieu"
+   ]
+  },
+  "col-de-porte": {
+   "fichier": "390e31b747f8f0d546ef55f644c153cd7295c978",
+   "aire": "390e31b747f8f0d546ef55f644c153cd7295c978",
+   "voisines": [
+    "col-de-porte"
+   ]
+  },
+  "col-de-rousset": {
+   "fichier": "e6a74235073fc0517ccdd08109a1f10e6ccc60d5",
+   "aire": "e6a74235073fc0517ccdd08109a1f10e6ccc60d5",
+   "voisines": [
+    "col-de-rousset"
+   ]
+  },
+  "col-dornon": {
+   "fichier": "cfbdf0c0870e8baf8c048438de3175df84e88082",
+   "aire": "cfbdf0c0870e8baf8c048438de3175df84e88082",
+   "voisines": [
+    "col-dornon"
+   ]
+  },
+  "combloux": {
+   "fichier": "ab64447adfc4646992e5e055f531038d949a74b2",
+   "aire": "aa87548d9445d366123e7ef7aee40af9d4a78dff",
+   "voisines": [
+    "combloux",
+    "cordon"
+   ]
+  },
+  "cordon": {
+   "fichier": "ab64447adfc4646992e5e055f531038d949a74b2",
+   "aire": "aa87548d9445d366123e7ef7aee40af9d4a78dff",
+   "voisines": [
+    "combloux",
+    "cordon"
+   ]
+  },
+  "correncon-en-vercors": {
+   "fichier": "92676053fdc889afa65b91206f5158532b3fafcc",
+   "aire": "92676053fdc889afa65b91206f5158532b3fafcc",
+   "voisines": [
+    "correncon-en-vercors"
+   ]
+  },
+  "courchevel": {
+   "fichier": "68b126bc3175516c9263aed7635d14e37ff360dc",
+   "aire": "23365b5cea5dad5b58d9ffc5506ff573f96cb70b",
+   "voisines": [
+    "courchevel",
+    "la-tania"
+   ]
+  },
+  "crevoux": {
+   "fichier": "494122163c8aa3f93f43ccee9fd0ee83a3a03d62",
+   "aire": "494122163c8aa3f93f43ccee9fd0ee83a3a03d62",
+   "voisines": [
+    "crevoux"
+   ]
+  },
+  "doucy": {
+   "fichier": "f5fcc0e543cfb0e4d50280c286081c27d975697f",
+   "aire": "c321766df512ba35d713dac3f9517527c067bb4a",
+   "voisines": [
+    "doucy",
+    "valmorel"
+   ]
+  },
+  "espace-alpin-bellefontaine": {
+   "fichier": "1947f55a238d3287908e5ab1a64dcb883e250432",
+   "aire": "1947f55a238d3287908e5ab1a64dcb883e250432",
+   "voisines": [
+    "espace-alpin-bellefontaine"
+   ]
+  },
+  "etang-de-lers": {
+   "fichier": "c8f66e784133d6becb1aba654e27b446daa7af7b",
+   "aire": "c8f66e784133d6becb1aba654e27b446daa7af7b",
+   "voisines": [
+    "etang-de-lers",
+    "guzet"
+   ]
+  },
+  "eyne-cambre-daze": {
+   "fichier": "7de1bcf43b60126cd7ec928effe87c5257cfca30",
+   "aire": "7de1bcf43b60126cd7ec928effe87c5257cfca30",
+   "voisines": [
+    "eyne-cambre-daze"
+   ]
+  },
+  "flaine": {
+   "fichier": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "aire": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "voisines": [
+    "flaine",
+    "morillon",
+    "samoens",
+    "sixt-fer-a-cheval"
+   ]
+  },
+  "font-durle": {
+   "fichier": "8ed780a048377fa824a6473c49bb2552a9472e12",
+   "aire": "8ed780a048377fa824a6473c49bb2552a9472e12",
+   "voisines": [
+    "font-durle"
+   ]
+  },
+  "font-romeu-pyrenees-2000": {
+   "fichier": "4a30e21219abb7c297eea39860578ad22572d0eb",
+   "aire": "4a30e21219abb7c297eea39860578ad22572d0eb",
+   "voisines": [
+    "bolquere-pyrenees-2000",
+    "font-romeu-pyrenees-2000"
+   ]
+  },
+  "formigueres": {
+   "fichier": "4d81480cbbccb41b552f19f6fd0156ba0985d7e8",
+   "aire": "4d81480cbbccb41b552f19f6fd0156ba0985d7e8",
+   "voisines": [
+    "formigueres"
+   ]
+  },
+  "gavarnie-gedre": {
+   "fichier": "1d32483b96030504eb0bf4c6b538fbb2c907685a",
+   "aire": "1d32483b96030504eb0bf4c6b538fbb2c907685a",
+   "voisines": [
+    "gavarnie-gedre"
+   ]
+  },
+  "gerardmer": {
+   "fichier": "8c539daa0a83c5ef53217c99a3754c6a951ee7cc",
+   "aire": "8c539daa0a83c5ef53217c99a3754c6a951ee7cc",
+   "voisines": [
+    "gerardmer"
+   ]
+  },
+  "ghisoni": {
+   "fichier": "46a17eb2aca4ba2b0885121fac43e02959cc9bcc",
+   "aire": "46a17eb2aca4ba2b0885121fac43e02959cc9bcc",
+   "voisines": [
+    "ghisoni"
+   ]
+  },
+  "goulier": {
+   "fichier": "535d5286b8d9d759e97c4727467dd9ad3f1ec13b",
+   "aire": "535d5286b8d9d759e97c4727467dd9ad3f1ec13b",
+   "voisines": [
+    "goulier"
+   ]
+  },
+  "gourette": {
+   "fichier": "504eff3fdb5510cb38a4f75324fa846fba9728f3",
+   "aire": "504eff3fdb5510cb38a4f75324fa846fba9728f3",
+   "voisines": [
+    "gourette"
+   ]
+  },
+  "greolieres-audibergue": {
+   "fichier": "2b9aee56a8afa944ff7f834ed515a1c2769ea733",
+   "aire": "2b9aee56a8afa944ff7f834ed515a1c2769ea733",
+   "voisines": [
+    "greolieres-audibergue"
+   ]
+  },
+  "gresse-en-vercors": {
+   "fichier": "b2b17f3b9d21a8d5f61a25fbd662766b17b4d8ad",
+   "aire": "b2b17f3b9d21a8d5f61a25fbd662766b17b4d8ad",
+   "voisines": [
+    "gresse-en-vercors"
+   ]
+  },
+  "guzet": {
+   "fichier": "c8f66e784133d6becb1aba654e27b446daa7af7b",
+   "aire": "c8f66e784133d6becb1aba654e27b446daa7af7b",
+   "voisines": [
+    "etang-de-lers",
+    "guzet"
+   ]
+  },
+  "hautacam": {
+   "fichier": "eff3c7c671d2a85838ae69b9e282f04bdf663d44",
+   "aire": "eff3c7c671d2a85838ae69b9e282f04bdf663d44",
+   "voisines": [
+    "hautacam"
+   ]
+  },
+  "isola-2000": {
+   "fichier": "6a9f3afdd5d590a14770fdb7a8e90c6285b18035",
+   "aire": "6a9f3afdd5d590a14770fdb7a8e90c6285b18035",
+   "voisines": [
+    "isola-2000"
+   ]
+  },
+  "la-bresse-brabant": {
+   "fichier": "86ff67339944ad9153febfb414f0360258e61e62",
+   "aire": "86ff67339944ad9153febfb414f0360258e61e62",
+   "voisines": [
+    "la-bresse-brabant"
+   ]
+  },
+  "la-bresse-hohneck": {
+   "fichier": "715cbf095f34c993796845811d2d0195fa8a6756",
+   "aire": "715cbf095f34c993796845811d2d0195fa8a6756",
+   "voisines": [
+    "la-bresse-hohneck"
+   ]
+  },
+  "la-bresse-lispach": {
+   "fichier": "32fd5d38648afcf99a4093883384a03fa2d2f4b8",
+   "aire": "32fd5d38648afcf99a4093883384a03fa2d2f4b8",
+   "voisines": [
+    "la-bresse-lispach"
+   ]
+  },
+  "la-chapelle-dabondance": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "8ab6f8a4372774042033a0721b21c2fbb8df2c9c",
+   "voisines": [
+    "la-chapelle-dabondance"
+   ]
+  },
+  "la-clusaz": {
+   "fichier": "9cb83fdd2a49011eec76e3d1bbc2af8f582888a9",
+   "aire": "9cb83fdd2a49011eec76e3d1bbc2af8f582888a9",
+   "voisines": [
+    "la-clusaz",
+    "manigod"
+   ]
+  },
+  "la-combe-saint-pierre": {
+   "fichier": "fb7f2ad1bf647d1b7df505c09b5a6c27cd5f968f",
+   "aire": "fb7f2ad1bf647d1b7df505c09b5a6c27cd5f968f",
+   "voisines": [
+    "la-combe-saint-pierre"
+   ]
+  },
+  "la-croix-de-bauzon": {
+   "fichier": "bb3a3cf3968039140e4dbd99221030c44f9dc840",
+   "aire": "bb3a3cf3968039140e4dbd99221030c44f9dc840",
+   "voisines": [
+    "la-croix-de-bauzon"
+   ]
+  },
+  "la-giettaz": {
+   "fichier": "71bab82afb4cf0e187fc18fe9286260882ee8994",
+   "aire": "71bab82afb4cf0e187fc18fe9286260882ee8994",
+   "voisines": [
+    "la-giettaz"
+   ]
+  },
+  "la-loge-des-gardes": {
+   "fichier": "00081077f70487a0c4cea4fcb68a53d4f5f9a7b7",
+   "aire": "00081077f70487a0c4cea4fcb68a53d4f5f9a7b7",
+   "voisines": [
+    "la-loge-des-gardes"
+   ]
+  },
+  "la-mongie-bareges": {
+   "fichier": "4d9c0191491227da58bc418ee8633c62485f29c8",
+   "aire": "4d9c0191491227da58bc418ee8633c62485f29c8",
+   "voisines": [
+    "la-mongie-bareges"
+   ]
+  },
+  "la-norma": {
+   "fichier": "6bc661c68f351340fad911f747596b1d8dcc4f3c",
+   "aire": "1a0088907c983cf22ebde01fbc7d28fed495f34d",
+   "voisines": [
+    "la-norma"
+   ]
+  },
+  "la-pierre-st-martin": {
+   "fichier": "698235de3f3ccef651f8bd22e09d50fdadd21922",
+   "aire": "698235de3f3ccef651f8bd22e09d50fdadd21922",
+   "voisines": [
+    "la-pierre-st-martin"
+   ]
+  },
+  "la-plagne": {
+   "fichier": "91c44085267ba327e1007afebcef144f436d686d",
+   "aire": "f47f7e05cc676b25b6a00f77f0b86a897f03018c",
+   "voisines": [
+    "champagny-en-vanoise",
+    "la-plagne"
+   ]
+  },
+  "la-rosiere-1850": {
+   "fichier": "f8176e48416adcfc9118014d5c390cd2099a6a18",
+   "aire": "f8176e48416adcfc9118014d5c390cd2099a6a18",
+   "voisines": [
+    "la-rosiere-1850"
+   ]
+  },
+  "la-sambuy": {
+   "fichier": "2fd1af5cddba9738be6c1995e7e04ee7e632c289",
+   "aire": "2fd1af5cddba9738be6c1995e7e04ee7e632c289",
+   "voisines": [
+    "la-sambuy"
+   ]
+  },
+  "la-schlucht": {
+   "fichier": "e9e23b65c64995b3de6d30b9937d9991d0521c65",
+   "aire": "e9e23b65c64995b3de6d30b9937d9991d0521c65",
+   "voisines": [
+    "la-schlucht",
+    "le-grand-valtin"
+   ]
+  },
+  "la-tania": {
+   "fichier": "68b126bc3175516c9263aed7635d14e37ff360dc",
+   "aire": "23365b5cea5dad5b58d9ffc5506ff573f96cb70b",
+   "voisines": [
+    "courchevel",
+    "la-tania"
+   ]
+  },
+  "la-toussuire": {
+   "fichier": "775634f8f5f5b0724ecd27d82909b2008d58f7d5",
+   "aire": "775634f8f5f5b0724ecd27d82909b2008d58f7d5",
+   "voisines": [
+    "la-toussuire",
+    "saint-sorlin-darves"
+   ]
+  },
+  "laguiole": {
+   "fichier": "c9da52741ee82e32df69ef7edf2a8d0e0c58f89f",
+   "aire": "c9da52741ee82e32df69ef7edf2a8d0e0c58f89f",
+   "voisines": [
+    "laguiole"
+   ]
+  },
+  "larche": {
+   "fichier": "273cc6615acb22a53a27e8ca642f5cf488388b97",
+   "aire": "273cc6615acb22a53a27e8ca642f5cf488388b97",
+   "voisines": [
+    "larche"
+   ]
+  },
+  "laudibergue-la-mouliere": {
+   "fichier": "16e0d7a5d5ee1d5431ecb6604417fec0fd7affb6",
+   "aire": "16e0d7a5d5ee1d5431ecb6604417fec0fd7affb6",
+   "voisines": [
+    "laudibergue-la-mouliere"
+   ]
+  },
+  "laye-en-champsaur": {
+   "fichier": "a9a0fbc41578496010d1edbdb75ec0170af202c8",
+   "aire": "a9a0fbc41578496010d1edbdb75ec0170af202c8",
+   "voisines": [
+    "laye-en-champsaur"
+   ]
+  },
+  "le-ballon-dalsace": {
+   "fichier": "d39336da0c51e94780c04757b4430dda81cd4e79",
+   "aire": "d39336da0c51e94780c04757b4430dda81cd4e79",
+   "voisines": [
+    "le-ballon-dalsace"
+   ]
+  },
+  "le-bleymard": {
+   "fichier": "70254f2abbb3633291ca35f6c39432ea0e419031",
+   "aire": "70254f2abbb3633291ca35f6c39432ea0e419031",
+   "voisines": [
+    "le-bleymard"
+   ]
+  },
+  "le-champ-du-feu": {
+   "fichier": "0c11c517e3dc3e03fe02501168ef2929680da24b",
+   "aire": "0c11c517e3dc3e03fe02501168ef2929680da24b",
+   "voisines": [
+    "le-champ-du-feu"
+   ]
+  },
+  "le-chazelet": {
+   "fichier": "d586a3a5c1452154378cb9835175fa3f35ce4727",
+   "aire": "d586a3a5c1452154378cb9835175fa3f35ce4727",
+   "voisines": [
+    "le-chazelet"
+   ]
+  },
+  "le-collet-dallevard": {
+   "fichier": "15e9705d5eb24444f170c8d1d9c9073b5f04afb1",
+   "aire": "15e9705d5eb24444f170c8d1d9c9073b5f04afb1",
+   "voisines": [
+    "le-collet-dallevard"
+   ]
+  },
+  "le-desert-dentremonts": {
+   "fichier": "1790793f96495e1e26aec63418d518690762bcf8",
+   "aire": "1790793f96495e1e26aec63418d518690762bcf8",
+   "voisines": [
+    "le-desert-dentremonts"
+   ]
+  },
+  "le-grand-bornand": {
+   "fichier": "8af93a64c41b59fca4705d30c106ef29fb24e042",
+   "aire": "8af93a64c41b59fca4705d30c106ef29fb24e042",
+   "voisines": [
+    "le-grand-bornand"
+   ]
+  },
+  "le-grand-puy": {
+   "fichier": "f0007f1cc496b6a648911d0ba6427b8927e4a9e2",
+   "aire": "f0007f1cc496b6a648911d0ba6427b8927e4a9e2",
+   "voisines": [
+    "le-grand-puy"
+   ]
+  },
+  "le-grand-valtin": {
+   "fichier": "e9e23b65c64995b3de6d30b9937d9991d0521c65",
+   "aire": "e9e23b65c64995b3de6d30b9937d9991d0521c65",
+   "voisines": [
+    "la-schlucht",
+    "le-grand-valtin"
+   ]
+  },
+  "le-granier-vallee-des-entremonts": {
+   "fichier": "4ded708b04a73a5a58c60da497616699c6687477",
+   "aire": "4ded708b04a73a5a58c60da497616699c6687477",
+   "voisines": [
+    "le-granier-vallee-des-entremonts"
+   ]
+  },
+  "le-lac-blanc": {
+   "fichier": "cb8c6de1ef0955c0dc5db93eeea711855c0a2ac0",
+   "aire": "cb8c6de1ef0955c0dc5db93eeea711855c0a2ac0",
+   "voisines": [
+    "le-lac-blanc"
+   ]
+  },
+  "le-lioran": {
+   "fichier": "38b6ee8843fc22a5b81e90354754e0a7f8312db9",
+   "aire": "38b6ee8843fc22a5b81e90354754e0a7f8312db9",
+   "voisines": [
+    "le-lioran"
+   ]
+  },
+  "le-markstein": {
+   "fichier": "b3e6cffb7141aca7afe44bab3d242d7c89e2688a",
+   "aire": "b3e6cffb7141aca7afe44bab3d242d7c89e2688a",
+   "voisines": [
+    "le-markstein"
+   ]
+  },
+  "le-mont-dore": {
+   "fichier": "16e97c560e05b0379860572fa6d6ca330978ec9a",
+   "aire": "16e97c560e05b0379860572fa6d6ca330978ec9a",
+   "voisines": [
+    "chastreix-sancy",
+    "le-mont-dore"
+   ]
+  },
+  "le-mourtis": {
+   "fichier": "77c586f2f94b9428e4f35c9357e43173612b043f",
+   "aire": "77c586f2f94b9428e4f35c9357e43173612b043f",
+   "voisines": [
+    "le-mourtis"
+   ]
+  },
+  "le-reposoir": {
+   "fichier": "90b1df4a3b468cc6c646570ec3bc49b64425349e",
+   "aire": "90b1df4a3b468cc6c646570ec3bc49b64425349e",
+   "voisines": [
+    "le-reposoir"
+   ]
+  },
+  "le-sappey-en-chartreuse": {
+   "fichier": "52afce3ac6eec3a28587bbea9ef4713dddd72d7b",
+   "aire": "52afce3ac6eec3a28587bbea9ef4713dddd72d7b",
+   "voisines": [
+    "le-sappey-en-chartreuse"
+   ]
+  },
+  "le-schnepfenried": {
+   "fichier": "fc363709ccca284e902786dd507a3ff1d40417fe",
+   "aire": "fc363709ccca284e902786dd507a3ff1d40417fe",
+   "voisines": [
+    "le-schnepfenried"
+   ]
+  },
+  "le-semnoz": {
+   "fichier": "d7a1340b104edf73827525c56925c83e4a7d0733",
+   "aire": "d7a1340b104edf73827525c56925c83e4a7d0733",
+   "voisines": [
+    "le-semnoz"
+   ]
+  },
+  "les-2-alpes": {
+   "fichier": "0e55d2b69d63decf2eb4c82a579c7663cf63e78f",
+   "aire": "0e55d2b69d63decf2eb4c82a579c7663cf63e78f",
+   "voisines": [
+    "les-2-alpes"
+   ]
+  },
+  "les-7-laux": {
+   "fichier": "c349bb235a74def4c527ddf3fdb200ce99c18fe2",
+   "aire": "c349bb235a74def4c527ddf3fdb200ce99c18fe2",
+   "voisines": [
+    "les-7-laux"
+   ]
+  },
+  "les-aillons-margeriaz": {
+   "fichier": "df9a26b589d512af30d78fa6ad55e745a3a677e3",
+   "aire": "df9a26b589d512af30d78fa6ad55e745a3a677e3",
+   "voisines": [
+    "les-aillons-margeriaz"
+   ]
+  },
+  "les-arcs-bourg-st-maurice": {
+   "fichier": "91c44085267ba327e1007afebcef144f436d686d",
+   "aire": "dec537b602584db89d89ab114a619f1ae356398e",
+   "voisines": [
+    "les-arcs-bourg-st-maurice"
+   ]
+  },
+  "les-brasses": {
+   "fichier": "45a940355cca76e598e2a54c273e06cd0916e04f",
+   "aire": "45a940355cca76e598e2a54c273e06cd0916e04f",
+   "voisines": [
+    "les-brasses"
+   ]
+  },
+  "les-carroz": {
+   "fichier": "613eb2a4ee7272c0bbbb5ed7c2fba25316ef9bdb",
+   "aire": "613eb2a4ee7272c0bbbb5ed7c2fba25316ef9bdb",
+   "voisines": [
+    "les-carroz",
+    "romme"
+   ]
+  },
+  "les-contamines-montjoie": {
+   "fichier": "ab64447adfc4646992e5e055f531038d949a74b2",
+   "aire": "10f2ef5a778b65fdea26f0662b08e83c8b979356",
+   "voisines": [
+    "les-contamines-montjoie"
+   ]
+  },
+  "les-coulmes": {
+   "fichier": "70b70c0b911476229ec0f48383724a0f7b24a246",
+   "aire": "70b70c0b911476229ec0f48383724a0f7b24a246",
+   "voisines": [
+    "les-coulmes"
+   ]
+  },
+  "les-egaux": {
+   "fichier": "94e7e317e942365dac346268049b5313b49b9e61",
+   "aire": "94e7e317e942365dac346268049b5313b49b9e61",
+   "voisines": [
+    "les-egaux"
+   ]
+  },
+  "les-estables": {
+   "fichier": "078f95792d4f0e779a69b9e66aa811ab8c6df3f7",
+   "aire": "078f95792d4f0e779a69b9e66aa811ab8c6df3f7",
+   "voisines": [
+    "les-estables"
+   ]
+  },
+  "les-fourgs": {
+   "fichier": "600f6e0f4583cb32dcc2934439cd65ff38f3a570",
+   "aire": "600f6e0f4583cb32dcc2934439cd65ff38f3a570",
+   "voisines": [
+    "les-fourgs"
+   ]
+  },
+  "les-gets": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "b2d026c49e73f7b49e043de835baa5622adc2e47",
+   "voisines": [
+    "les-gets",
+    "morzine"
+   ]
+  },
+  "les-haberes": {
+   "fichier": "28bc6b32b26b2c57edacb1c31e4ebdc1ec6e518f",
+   "aire": "28bc6b32b26b2c57edacb1c31e4ebdc1ec6e518f",
+   "voisines": [
+    "bellevaux-hirmentaz",
+    "les-haberes"
+   ]
+  },
+  "les-houches": {
+   "fichier": "ea9dfe26da36c33e8cf007b22b628c153ac69ab4",
+   "aire": "ea9dfe26da36c33e8cf007b22b628c153ac69ab4",
+   "voisines": [
+    "les-houches",
+    "saint-gervais-mont-blanc"
+   ]
+  },
+  "les-karellis": {
+   "fichier": "a3f181286a5893208aa7d7b7d1704bb923673003",
+   "aire": "a3f181286a5893208aa7d7b7d1704bb923673003",
+   "voisines": [
+    "les-karellis"
+   ]
+  },
+  "les-menuires": {
+   "fichier": "68b126bc3175516c9263aed7635d14e37ff360dc",
+   "aire": "075db540453d13b0e660135085f40523940b95ba",
+   "voisines": [
+    "les-menuires"
+   ]
+  },
+  "les-monts-dolmes": {
+   "fichier": "d439a81c89522f99d9f58daedda995c9b189d301",
+   "aire": "d439a81c89522f99d9f58daedda995c9b189d301",
+   "voisines": [
+    "les-monts-dolmes"
+   ]
+  },
+  "les-orres": {
+   "fichier": "d42aa81cb4e1cba7f24c0f4f19a158df01fe6086",
+   "aire": "d42aa81cb4e1cba7f24c0f4f19a158df01fe6086",
+   "voisines": [
+    "les-orres"
+   ]
+  },
+  "les-plans-dhotonnes-plateau-de-retord": {
+   "fichier": "5f08563dbb26f11661870936a69b82df669b2e57",
+   "aire": "5f08563dbb26f11661870936a69b82df669b2e57",
+   "voisines": [
+    "les-plans-dhotonnes-plateau-de-retord"
+   ]
+  },
+  "les-rousses": {
+   "fichier": "c4b221a54713b4e084b5bae02668c68dfaf6c1e3",
+   "aire": "c4b221a54713b4e084b5bae02668c68dfaf6c1e3",
+   "voisines": [
+    "les-rousses"
+   ]
+  },
+  "luchon-superbagneres": {
+   "fichier": "59daf3cc15cc3c231203bce41e59f1258093568a",
+   "aire": "59daf3cc15cc3c231203bce41e59f1258093568a",
+   "voisines": [
+    "luchon-superbagneres"
+   ]
+  },
+  "lus-la-jarjatte": {
+   "fichier": "a3da8ace6e5e1667e218e35dbae76955b27c34cb",
+   "aire": "a3da8ace6e5e1667e218e35dbae76955b27c34cb",
+   "voisines": [
+    "lus-la-jarjatte"
+   ]
+  },
+  "luz-ardiden": {
+   "fichier": "73278e0d711effeb45409da2202be6389040f9c6",
+   "aire": "73278e0d711effeb45409da2202be6389040f9c6",
+   "voisines": [
+    "luz-ardiden"
+   ]
+  },
+  "manigod": {
+   "fichier": "9cb83fdd2a49011eec76e3d1bbc2af8f582888a9",
+   "aire": "9cb83fdd2a49011eec76e3d1bbc2af8f582888a9",
+   "voisines": [
+    "la-clusaz",
+    "manigod"
+   ]
+  },
+  "megeve": {
+   "fichier": "ab64447adfc4646992e5e055f531038d949a74b2",
+   "aire": "97a14cedc5b0e781e9bd9857df1426b9376c7462",
+   "voisines": [
+    "megeve"
+   ]
+  },
+  "menthieres": {
+   "fichier": "2a415457dd464c4f5dc0f814608fb9ed9667a313",
+   "aire": "2a415457dd464c4f5dc0f814608fb9ed9667a313",
+   "voisines": [
+    "menthieres"
+   ]
+  },
+  "meribel": {
+   "fichier": "68b126bc3175516c9263aed7635d14e37ff360dc",
+   "aire": "e13d9d82f727b3101571e54b9aeeb900a8286337",
+   "voisines": [
+    "meribel",
+    "saint-martin-de-belleville"
+   ]
+  },
+  "metabief-mont-dor": {
+   "fichier": "f8a135103929215d692c27c3b10670b5b8ff1e7b",
+   "aire": "f8a135103929215d692c27c3b10670b5b8ff1e7b",
+   "voisines": [
+    "metabief-mont-dor"
+   ]
+  },
+  "mijanes-donezan": {
+   "fichier": "80d2fcf669a623c95125a81ccaa82ebe067846a5",
+   "aire": "80d2fcf669a623c95125a81ccaa82ebe067846a5",
+   "voisines": [
+    "mijanes-donezan"
+   ]
+  },
+  "molines-en-queyras": {
+   "fichier": "4243519f890596507243ce624d660bfddd378b16",
+   "aire": "4243519f890596507243ce624d660bfddd378b16",
+   "voisines": [
+    "molines-en-queyras",
+    "saint-veran"
+   ]
+  },
+  "mont-aigoual": {
+   "fichier": "4d68ac9b9ced24222df548795fc5e9c4cbe17fef",
+   "aire": "4d68ac9b9ced24222df548795fc5e9c4cbe17fef",
+   "voisines": [
+    "mont-aigoual"
+   ]
+  },
+  "mont-saxonnex": {
+   "fichier": "122d85b6950a30529dda2e0a212bbce999e91df6",
+   "aire": "122d85b6950a30529dda2e0a212bbce999e91df6",
+   "voisines": [
+    "mont-saxonnex"
+   ]
+  },
+  "montchavin-les-coches": {
+   "fichier": "91c44085267ba327e1007afebcef144f436d686d",
+   "aire": "91c44085267ba327e1007afebcef144f436d686d",
+   "voisines": [
+    "champagny-en-vanoise",
+    "la-plagne",
+    "les-arcs-bourg-st-maurice",
+    "montchavin-les-coches",
+    "peisey-vallandry"
+   ]
+  },
+  "montgenevre": {
+   "fichier": "b1a655113e872a26a397061747cc833b8a6932b2",
+   "aire": "b1a655113e872a26a397061747cc833b8a6932b2",
+   "voisines": [
+    "montgenevre"
+   ]
+  },
+  "montmin-col-de-la-forclaz": {
+   "fichier": "bbb94d010880a6a6a19be5ed362d50aa55b98e91",
+   "aire": "bbb94d010880a6a6a19be5ed362d50aa55b98e91",
+   "voisines": [
+    "montmin-col-de-la-forclaz"
+   ]
+  },
+  "montriond": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "voisines": [
+    "abondance",
+    "avoriaz",
+    "chatel",
+    "la-chapelle-dabondance",
+    "les-gets",
+    "montriond",
+    "morzine",
+    "saint-jean-daulps"
+   ]
+  },
+  "monts-jura": {
+   "fichier": "1215669125c5549bd831eb34bca2741e86721ba1",
+   "aire": "1215669125c5549bd831eb34bca2741e86721ba1",
+   "voisines": [
+    "monts-jura"
+   ]
+  },
+  "morillon": {
+   "fichier": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "aire": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "voisines": [
+    "flaine",
+    "morillon",
+    "samoens",
+    "sixt-fer-a-cheval"
+   ]
+  },
+  "morzine": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "b2d026c49e73f7b49e043de835baa5622adc2e47",
+   "voisines": [
+    "les-gets",
+    "morzine"
+   ]
+  },
+  "orelle": {
+   "fichier": "68b126bc3175516c9263aed7635d14e37ff360dc",
+   "aire": "13ba869607d22e177654c6366ae9dc746b8db0f2",
+   "voisines": [
+    "orelle"
+   ]
+  },
+  "oz-en-oisans": {
+   "fichier": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "aire": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "voisines": [
+    "alpe-d-huez",
+    "auris-en-oisans",
+    "oz-en-oisans",
+    "vaujany",
+    "villard-reculas"
+   ]
+  },
+  "passy": {
+   "fichier": "b43d707a61700ab70e2622eb56e23767d9d81d72",
+   "aire": "b43d707a61700ab70e2622eb56e23767d9d81d72",
+   "voisines": [
+    "passy"
+   ]
+  },
+  "peisey-vallandry": {
+   "fichier": "91c44085267ba327e1007afebcef144f436d686d",
+   "aire": "91c44085267ba327e1007afebcef144f436d686d",
+   "voisines": [
+    "champagny-en-vanoise",
+    "la-plagne",
+    "les-arcs-bourg-st-maurice",
+    "montchavin-les-coches",
+    "peisey-vallandry"
+   ]
+  },
+  "pelvoux-vallouise": {
+   "fichier": "e6785badc6edee0517405a996973fe5020974cda",
+   "aire": "e6785badc6edee0517405a996973fe5020974cda",
+   "voisines": [
+    "pelvoux-vallouise"
+   ]
+  },
+  "peyragudes": {
+   "fichier": "851128bb56a54648e73d41ecdaca409350648f33",
+   "aire": "851128bb56a54648e73d41ecdaca409350648f33",
+   "voisines": [
+    "peyragudes"
+   ]
+  },
+  "piau-engaly": {
+   "fichier": "e803e6b7f511dd24e94cbe8882324020e9cc013f",
+   "aire": "e803e6b7f511dd24e94cbe8882324020e9cc013f",
+   "voisines": [
+    "piau-engaly"
+   ]
+  },
+  "porte-puymorens": {
+   "fichier": "cede63bd5d98d56e4c424bf3d57e851e57caf33d",
+   "aire": "cede63bd5d98d56e4c424bf3d57e851e57caf33d",
+   "voisines": [
+    "porte-puymorens"
+   ]
+  },
+  "praboure": {
+   "fichier": "11ea7f43856f871bab7850bdb4e337d8eebca8cc",
+   "aire": "11ea7f43856f871bab7850bdb4e337d8eebca8cc",
+   "voisines": [
+    "praboure"
+   ]
+  },
+  "pralognan-la-vanoise": {
+   "fichier": "4bdf7ecb1d31b6554368ec7cf97e62a072fbf4bd",
+   "aire": "4bdf7ecb1d31b6554368ec7cf97e62a072fbf4bd",
+   "voisines": [
+    "pralognan-la-vanoise"
+   ]
+  },
+  "praloup": {
+   "fichier": "e7c4c03bd7f9a3d907ff566775cfba1823bcf2ae",
+   "aire": "4236aff4e09a8a34af56ec12b7c0085e579204db",
+   "voisines": [
+    "praloup"
+   ]
+  },
+  "praz-de-lys-sommand": {
+   "fichier": "17a2aed27cfa6b593c5df9770900555623db6adf",
+   "aire": "17a2aed27cfa6b593c5df9770900555623db6adf",
+   "voisines": [
+    "praz-de-lys-sommand"
+   ]
+  },
+  "puigmal": {
+   "fichier": "ce536a2445bc0a699f4c339cd58acd9d0162e03a",
+   "aire": "ce536a2445bc0a699f4c339cd58acd9d0162e03a",
+   "voisines": [
+    "puigmal"
+   ]
+  },
+  "puy-saint-vincent": {
+   "fichier": "abd8fc58a269e575731226a78d77a13b2e38a673",
+   "aire": "abd8fc58a269e575731226a78d77a13b2e38a673",
+   "voisines": [
+    "puy-saint-vincent"
+   ]
+  },
+  "puyvalador": {
+   "fichier": "e7ac24ed84c16667056f0671a15327c99b55372a",
+   "aire": "e7ac24ed84c16667056f0671a15327c99b55372a",
+   "voisines": [
+    "puyvalador"
+   ]
+  },
+  "reallon": {
+   "fichier": "c2d3d65ebe065fbf5a84ab6887168c8403d2fc28",
+   "aire": "c2d3d65ebe065fbf5a84ab6887168c8403d2fc28",
+   "voisines": [
+    "reallon"
+   ]
+  },
+  "risoul": {
+   "fichier": "9d0b2c5e0fcac9deba9c727a834cac4b43a5d2c9",
+   "aire": "9d0b2c5e0fcac9deba9c727a834cac4b43a5d2c9",
+   "voisines": [
+    "risoul",
+    "vars"
+   ]
+  },
+  "ristolas": {
+   "fichier": "534530805814dea3640ab85f879f4d122fec8aac",
+   "aire": "534530805814dea3640ab85f879f4d122fec8aac",
+   "voisines": [
+    "abries",
+    "ristolas"
+   ]
+  },
+  "romme": {
+   "fichier": "613eb2a4ee7272c0bbbb5ed7c2fba25316ef9bdb",
+   "aire": "613eb2a4ee7272c0bbbb5ed7c2fba25316ef9bdb",
+   "voisines": [
+    "les-carroz",
+    "romme"
+   ]
+  },
+  "roubion-les-buisses": {
+   "fichier": "f5012c2e28919e74195713107bb17f13079554ae",
+   "aire": "f5012c2e28919e74195713107bb17f13079554ae",
+   "voisines": [
+    "roubion-les-buisses"
+   ]
+  },
+  "rouge-gazon": {
+   "fichier": "e48d0bf9934f4b3e12474a2a7c69596f315d196b",
+   "aire": "e48d0bf9934f4b3e12474a2a7c69596f315d196b",
+   "voisines": [
+    "rouge-gazon"
+   ]
+  },
+  "saint-francois-longchamp": {
+   "fichier": "f5fcc0e543cfb0e4d50280c286081c27d975697f",
+   "aire": "52277e01edf68d8aacf785f76f486b8ebd4aa56d",
+   "voisines": [
+    "saint-francois-longchamp"
+   ]
+  },
+  "saint-gervais-mont-blanc": {
+   "fichier": "ea9dfe26da36c33e8cf007b22b628c153ac69ab4",
+   "aire": "ea9dfe26da36c33e8cf007b22b628c153ac69ab4",
+   "voisines": [
+    "les-houches",
+    "saint-gervais-mont-blanc"
+   ]
+  },
+  "saint-hilaire-du-touvet": {
+   "fichier": "a61939dffc59f43583d40ef883df7b537f16f0f5",
+   "aire": "a61939dffc59f43583d40ef883df7b537f16f0f5",
+   "voisines": [
+    "saint-hilaire-du-touvet"
+   ]
+  },
+  "saint-jean-daulps": {
+   "fichier": "70b5c16a6a584808d97c9084dd340e4c8605acdb",
+   "aire": "8f52a4cffc57a788e69b889d7b5c12197a606047",
+   "voisines": [
+    "saint-jean-daulps"
+   ]
+  },
+  "saint-jean-montclar": {
+   "fichier": "3939037c0a139e51388b6e7c1c3e8e986ced4829",
+   "aire": "3939037c0a139e51388b6e7c1c3e8e986ced4829",
+   "voisines": [
+    "saint-jean-montclar"
+   ]
+  },
+  "saint-lary-soulan": {
+   "fichier": "1a132aee8f40c3ea1e676d4c270d212e1f991dc4",
+   "aire": "1a132aee8f40c3ea1e676d4c270d212e1f991dc4",
+   "voisines": [
+    "saint-lary-soulan"
+   ]
+  },
+  "saint-leger-les-melezes": {
+   "fichier": "6698c89c2806a980983573e5c336bb90c49143a2",
+   "aire": "6698c89c2806a980983573e5c336bb90c49143a2",
+   "voisines": [
+    "saint-leger-les-melezes"
+   ]
+  },
+  "saint-martin-de-belleville": {
+   "fichier": "68b126bc3175516c9263aed7635d14e37ff360dc",
+   "aire": "e13d9d82f727b3101571e54b9aeeb900a8286337",
+   "voisines": [
+    "meribel",
+    "saint-martin-de-belleville"
+   ]
+  },
+  "saint-maurice-sur-moselle": {
+   "fichier": "b98413c4450972fccf2e1ca6642e02b6cdaed316",
+   "aire": "b98413c4450972fccf2e1ca6642e02b6cdaed316",
+   "voisines": [
+    "saint-maurice-sur-moselle"
+   ]
+  },
+  "saint-pierre-de-chartreuse": {
+   "fichier": "afae22214cb276b801450bd677be5e8acde5a0a9",
+   "aire": "afae22214cb276b801450bd677be5e8acde5a0a9",
+   "voisines": [
+    "saint-pierre-de-chartreuse"
+   ]
+  },
+  "saint-sorlin-darves": {
+   "fichier": "775634f8f5f5b0724ecd27d82909b2008d58f7d5",
+   "aire": "775634f8f5f5b0724ecd27d82909b2008d58f7d5",
+   "voisines": [
+    "la-toussuire",
+    "saint-sorlin-darves"
+   ]
+  },
+  "saint-veran": {
+   "fichier": "4243519f890596507243ce624d660bfddd378b16",
+   "aire": "4243519f890596507243ce624d660bfddd378b16",
+   "voisines": [
+    "molines-en-queyras",
+    "saint-veran"
+   ]
+  },
+  "sainte-anne-la-condamine": {
+   "fichier": "eca9675beb234d219763dd324641fda72768f5db",
+   "aire": "eca9675beb234d219763dd324641fda72768f5db",
+   "voisines": [
+    "sainte-anne-la-condamine"
+   ]
+  },
+  "sainte-foy-tarentaise": {
+   "fichier": "6d9ba323497049568dd1a62d9243f29a3ae5e29a",
+   "aire": "6d9ba323497049568dd1a62d9243f29a3ae5e29a",
+   "voisines": [
+    "sainte-foy-tarentaise"
+   ]
+  },
+  "samoens": {
+   "fichier": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "aire": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "voisines": [
+    "flaine",
+    "morillon",
+    "samoens",
+    "sixt-fer-a-cheval"
+   ]
+  },
+  "sauze-supersauze": {
+   "fichier": "0e32d9bd72195acaa33ba6c2d18ba4ad1562a055",
+   "aire": "0e32d9bd72195acaa33ba6c2d18ba4ad1562a055",
+   "voisines": [
+    "sauze-supersauze"
+   ]
+  },
+  "savoie-grand-revard": {
+   "fichier": "e6ac8d5864a0c200e5cd378d76b66c6c50a65720",
+   "aire": "e6ac8d5864a0c200e5cd378d76b66c6c50a65720",
+   "voisines": [
+    "savoie-grand-revard"
+   ]
+  },
+  "serre-chevalier": {
+   "fichier": "94cb050e1e20e04e822c14216840885aea2eafcc",
+   "aire": "94cb050e1e20e04e822c14216840885aea2eafcc",
+   "voisines": [
+    "serre-chevalier"
+   ]
+  },
+  "serre-eyraud": {
+   "fichier": "1dc437d1f6bfeafc3a8ef625bdd022111b3c5a19",
+   "aire": "1dc437d1f6bfeafc3a8ef625bdd022111b3c5a19",
+   "voisines": [
+    "serre-eyraud"
+   ]
+  },
+  "sixt-fer-a-cheval": {
+   "fichier": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "aire": "efaa82d7ae8e42868f19ed2abb8001f518a404d0",
+   "voisines": [
+    "flaine",
+    "morillon",
+    "samoens",
+    "sixt-fer-a-cheval"
+   ]
+  },
+  "source-du-doubs-mouthe": {
+   "fichier": "1222c2d14f689a8cae08abf41beb88b0a6402b44",
+   "aire": "1222c2d14f689a8cae08abf41beb88b0a6402b44",
+   "voisines": [
+    "source-du-doubs-mouthe"
+   ]
+  },
+  "superdevoluy-la-joue-du-loup": {
+   "fichier": "8e5dbdde0808be45e5e47253e905635c9f867c3b",
+   "aire": "8e5dbdde0808be45e5e47253e905635c9f867c3b",
+   "voisines": [
+    "superdevoluy-la-joue-du-loup"
+   ]
+  },
+  "tignes": {
+   "fichier": "a6e33a705cdc20bfc2dfa1e690f066bd8e1caa5b",
+   "aire": "a6e33a705cdc20bfc2dfa1e690f066bd8e1caa5b",
+   "voisines": [
+    "tignes",
+    "val-disere"
+   ]
+  },
+  "turini-camp-dargent": {
+   "fichier": "cf6423ae2c9659dd332399a2ca796cff5ede5146",
+   "aire": "cf6423ae2c9659dd332399a2ca796cff5ede5146",
+   "voisines": [
+    "turini-camp-dargent"
+   ]
+  },
+  "val-cenis": {
+   "fichier": "6bc661c68f351340fad911f747596b1d8dcc4f3c",
+   "aire": "cbadd26e8f2d5f692fa56504a06c23f6aa92b160",
+   "voisines": [
+    "val-cenis"
+   ]
+  },
+  "val-dallos-la-foux-le-seignus": {
+   "fichier": "ab1f9a29185ea464553449ca060e40589115b16c",
+   "aire": "ab1f9a29185ea464553449ca060e40589115b16c",
+   "voisines": [
+    "val-dallos-la-foux-le-seignus"
+   ]
+  },
+  "val-disere": {
+   "fichier": "a6e33a705cdc20bfc2dfa1e690f066bd8e1caa5b",
+   "aire": "a6e33a705cdc20bfc2dfa1e690f066bd8e1caa5b",
+   "voisines": [
+    "tignes",
+    "val-disere"
+   ]
+  },
+  "val-louron": {
+   "fichier": "82115168a1f3e2e458c9b6d977a077cc91fe868d",
+   "aire": "82115168a1f3e2e458c9b6d977a077cc91fe868d",
+   "voisines": [
+    "val-louron"
+   ]
+  },
+  "val-thorens": {
+   "fichier": "68b126bc3175516c9263aed7635d14e37ff360dc",
+   "aire": "b66cd0bd82cf0860c0b65dbe7ba26066f8463554",
+   "voisines": [
+    "val-thorens"
+   ]
+  },
+  "valberg": {
+   "fichier": "fc29dc943652ee283066ab19aa9eb0a74e5ef8e9",
+   "aire": "fc29dc943652ee283066ab19aa9eb0a74e5ef8e9",
+   "voisines": [
+    "beuil-les-launes",
+    "valberg"
+   ]
+  },
+  "valfrejus": {
+   "fichier": "6bc661c68f351340fad911f747596b1d8dcc4f3c",
+   "aire": "3150d08706183824af7f70226eaa2222400b8a64",
+   "voisines": [
+    "valfrejus"
+   ]
+  },
+  "valloire": {
+   "fichier": "0c1ee22aff92dce160be7b206226d0e3b73328b2",
+   "aire": "0c1ee22aff92dce160be7b206226d0e3b73328b2",
+   "voisines": [
+    "valloire",
+    "valmeinier"
+   ]
+  },
+  "valmeinier": {
+   "fichier": "0c1ee22aff92dce160be7b206226d0e3b73328b2",
+   "aire": "0c1ee22aff92dce160be7b206226d0e3b73328b2",
+   "voisines": [
+    "valloire",
+    "valmeinier"
+   ]
+  },
+  "valmorel": {
+   "fichier": "f5fcc0e543cfb0e4d50280c286081c27d975697f",
+   "aire": "c321766df512ba35d713dac3f9517527c067bb4a",
+   "voisines": [
+    "doucy",
+    "valmorel"
+   ]
+  },
+  "vars": {
+   "fichier": "9d0b2c5e0fcac9deba9c727a834cac4b43a5d2c9",
+   "aire": "9d0b2c5e0fcac9deba9c727a834cac4b43a5d2c9",
+   "voisines": [
+    "risoul",
+    "vars"
+   ]
+  },
+  "vaujany": {
+   "fichier": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "aire": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "voisines": [
+    "alpe-d-huez",
+    "auris-en-oisans",
+    "oz-en-oisans",
+    "vaujany",
+    "villard-reculas"
+   ]
+  },
+  "ventoux-mont-serein": {
+   "fichier": "7c9b92923d15730930f62c097152088ae43aae3f",
+   "aire": "7c9b92923d15730930f62c097152088ae43aae3f",
+   "voisines": [
+    "ventoux-mont-serein"
+   ]
+  },
+  "ventron": {
+   "fichier": "8d9f2f55c1ab3db1075c42f8b643f6c386850c75",
+   "aire": "8d9f2f55c1ab3db1075c42f8b643f6c386850c75",
+   "voisines": [
+    "ventron"
+   ]
+  },
+  "villard-de-lans": {
+   "fichier": "80242516bc3deb8d5ba853079eed7f3d3f418f00",
+   "aire": "80242516bc3deb8d5ba853079eed7f3d3f418f00",
+   "voisines": [
+    "villard-de-lans"
+   ]
+  },
+  "villard-reculas": {
+   "fichier": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "aire": "1164f5d49e7b6c2d5f7ae7db3943116e7e15438e",
+   "voisines": [
+    "alpe-d-huez",
+    "auris-en-oisans",
+    "oz-en-oisans",
+    "vaujany",
+    "villard-reculas"
+   ]
+  },
+  "xonrupt-le-poli": {
+   "fichier": "46ce96df6419c575243c5c4d09e359b295178963",
+   "aire": "46ce96df6419c575243c5c4d09e359b295178963",
+   "voisines": [
+    "xonrupt-le-poli"
+   ]
+  }
+ }
+}

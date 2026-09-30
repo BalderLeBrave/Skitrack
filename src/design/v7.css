@@ -2043,6 +2043,15 @@
 .stc7--liste .stc7__sub {
   font-size: 13px;
 }
+.stc7__parts {
+  display: grid;
+  gap: 6px;
+}
+.stc7__parts > span {
+  font-size: var(--text-note);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
 .stc7__faits {
   display: grid;
   grid-template-columns: auto auto auto;
@@ -3227,6 +3236,282 @@
 .mix7__sub {
   font-size: var(--text-note);
   color: var(--color-texte-3);
+}
+/* ── Pistes de la fiche : résumé, puis détail qu'on déplie ─────────────────
+   Le résumé tient en une ligne de chiffres, chacun avec sa source. Le détail
+   s'ouvre sous un vrai bouton (`aria-expanded`), en tableau quand la carte a
+   la place, en liste empilée sinon : pas de défilement horizontal. La bascule
+   suit la largeur de la carte, pas celle de l'écran : la coquille v7 garde
+   1 100 px de largeur plancher (`.v7.app`), et la carte n'en a que 600 à
+   cette largeur, sur un téléphone comme dans une fenêtre étroite. */
+/* En ligne, chaque chiffre à sa largeur : une plage d'altitudes ne se coupe
+   pas en deux lignes. */
+.pistes7__resume {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 8);
+  margin: 0;
+}
+.pistes7__resume > div {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+.pistes7__resume dt {
+  font-size: var(--text-note);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.pistes7__resume dd {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+.pistes7__resume b {
+  font-size: var(--text-section);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pistes7__resume small {
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+.pistes7__plus {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  height: calc(var(--spacing) * 10);
+  padding: 0 calc(var(--spacing) * 4);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-detail);
+  font-weight: 700;
+  cursor: pointer;
+}
+.pistes7__plus:hover {
+  border-color: var(--color-ink);
+}
+.pistes7__plus svg {
+  transition: transform 0.2s var(--ease-ui);
+}
+.pistes7__plus[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.pistes7__detail:not([hidden]) {
+  animation: pistes7-ouvre 0.18s var(--ease-ui);
+}
+@keyframes pistes7-ouvre {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.pistes7__parties {
+  display: grid;
+  gap: calc(var(--spacing) * 6);
+}
+.pistes7__partie {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  min-width: 0;
+}
+.pistes7__partie--domaine {
+  padding-top: calc(var(--spacing) * 5);
+  border-top: 1px solid var(--color-line);
+}
+.pistes7__partie .carte7-sect__ligne {
+  gap: calc(var(--spacing) * 3);
+  flex-wrap: wrap;
+}
+.pistes7__partie .carte7-sect__ligne > span {
+  font-weight: 400;
+  color: var(--color-texte-3);
+}
+.pistes7__bandeau {
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3.5);
+  border-radius: 10px;
+  background: var(--color-glacier);
+  font-size: var(--text-detail);
+  color: var(--color-muted);
+  text-wrap: pretty;
+}
+.pistes7__table-bloc {
+  container-type: inline-size;
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  min-width: 0;
+}
+.pistes7__filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
+.pistes7__compte,
+.pistes7__h4 {
+  font-size: var(--text-note);
+  color: var(--color-texte-3);
+}
+.pistes7__h4 {
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.pistes7__table {
+  overflow-x: auto;
+  border: 1px solid var(--color-line-douce);
+  border-radius: 10px;
+}
+/* Au-delà d'une vingtaine de lignes, le tableau défile en lui-même, sous son
+   en-tête collé. */
+.pistes7__table--long {
+  max-height: 46rem;
+  overflow-y: auto;
+}
+.pistes7__table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+}
+.pistes7__table th,
+.pistes7__table td {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2);
+  border-bottom: 1px solid var(--color-line-douce);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.pistes7__table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.pistes7__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-surface);
+  border-bottom-color: var(--color-line);
+  font-size: var(--text-note);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.pistes7__table thead button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.pistes7__table thead [aria-sort="ascending"] button,
+.pistes7__table thead [aria-sort="descending"] button {
+  color: var(--color-ink);
+}
+.pistes7__sens--asc {
+  transform: rotate(180deg);
+}
+.pistes7__table tbody th {
+  font-weight: 600;
+  white-space: normal;
+  min-width: 7rem;
+}
+.pistes7__table tbody th small {
+  display: block;
+  font-size: var(--text-note);
+  font-weight: 400;
+  color: var(--color-texte-3);
+}
+.pistes7__couleur {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pistes7__couleur i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+/* L'anneau garde la pastille noire visible sur le fond sombre. */
+.pistes7__couleur i[data-couleur="black"] {
+  box-shadow: 0 0 0 1px var(--color-texte-3);
+}
+@container (max-width: 700px) {
+  .pistes7__table {
+    overflow-x: hidden;
+    border: 0;
+    border-radius: 0;
+  }
+  .pistes7__table--long {
+    max-height: 70vh;
+  }
+  .pistes7__table table,
+  .pistes7__table tbody {
+    display: block;
+  }
+  /* L'en-tête devient une rangée de tris ; les colonnes qu'on ne trie pas
+     se lisent dans chaque fiche. */
+  .pistes7__table thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 1.5);
+    padding-bottom: calc(var(--spacing) * 2);
+    background: var(--color-surface);
+  }
+  .pistes7__table thead th {
+    padding: 0;
+    border: 0;
+  }
+  .pistes7__table thead th:not([aria-sort]) {
+    display: none;
+  }
+  .pistes7__table thead button {
+    height: calc(var(--spacing) * 8);
+    padding: 0 calc(var(--spacing) * 3);
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+  }
+  .pistes7__table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 3) 0;
+    border-bottom: 1px solid var(--color-line-douce);
+  }
+  .pistes7__table tbody th,
+  .pistes7__table tbody td {
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  .pistes7__table tbody th {
+    grid-column: 1 / -1;
+  }
+  .pistes7__table tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 2);
+    white-space: normal;
+  }
+  .pistes7__table tbody td::before {
+    content: attr(data-label);
+    font-size: var(--text-note);
+    color: var(--color-texte-3);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pistes7__plus svg {
+    transition: none;
+  }
+  .pistes7__detail:not([hidden]) {
+    animation: none;
+  }
 }
 /* Toute la largeur de la carte, en 16/9. Le plafond de 280 px de hauteur
    rétrécissait aussi la largeur : un élément de grille à `aspect-ratio` ne

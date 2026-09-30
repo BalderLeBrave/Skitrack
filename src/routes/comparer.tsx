@@ -31,6 +31,8 @@ import {
   type SortKey,
 } from "@/lib/parcours";
 import { domaineNomme } from "@/lib/classeur";
+import { lignePistes } from "@/lib/pistesDetail";
+import { SKIINFO } from "@/lib/skiinfo";
 import { STATIONS, stationById, type Station } from "@/lib/stations";
 import {
   altLbl,
@@ -493,6 +495,9 @@ function Comparer() {
                               ? mixLbl(s.colorShare)
                               : (sansDomaineLbl(s) ?? mixLbl(null))}
                           </span>
+                          {/* Les totaux de la fiche Skiinfo, sous la barre du
+                              domaine : une autre échelle, qu'elle dit. */}
+                          {lignePistes(SKIINFO[s.id]) ? <span>{lignePistes(SKIINFO[s.id])}</span> : null}
                         </div>
                       </td>
                     ))}
@@ -865,6 +870,9 @@ function Comparer() {
                       </div>
                     </div>
                     <PartPistes share={st.colorShare} />
+                    {lignePistes(SKIINFO[st.id]) ? (
+                      <span className="fc__ligne">{lignePistes(SKIINFO[st.id])}</span>
+                    ) : null}
                     {/* Une position posée au centre de la commune le dit : le
                         lecteur saurait sinon qu'un pin est faux sans savoir
                         lequel. */}

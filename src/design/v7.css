@@ -3568,6 +3568,41 @@
   height: 100%;
   border: 0;
 }
+/* L'aperçu : le panorama à toute la hauteur du cadre, qu'on fait défiler. */
+.webcam7__pano {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.webcam7__pano img {
+  width: auto;
+  max-width: none;
+  height: 100%;
+  object-fit: initial;
+}
+.webcam7__apercu {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  background: color-mix(in srgb, var(--color-photo-voile) 72%, transparent);
+  color: var(--color-photo-texte);
+  font-size: var(--text-detail);
+}
+.webcam7__apercu .btn7 {
+  flex: none;
+}
+.webcam7__attente {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  font-size: var(--text-detail);
+  color: var(--color-texte-3);
+}
 
 /* La webcam en grand, par-dessus la page. Le cadre garde le 16/9 et prend
    la plus grande taille que la fenêtre permet, bandeau compris. */

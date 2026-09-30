@@ -50,3 +50,6 @@ public/carte/*.pmtiles
 
 # Venv des workers Python de relevé (npm run scrape:python).
 scrape/.venv/
+
+# Journal local, écrit à la main dans le dossier du dépôt.
+app.log

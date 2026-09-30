@@ -3,11 +3,15 @@
  * le détail piste par piste qu'on déplie.
  *
  * Le résumé dit les chiffres de Skiinfo (fiche de la station ou de la vallée)
- * et les remontées d'OpenSkiMap (domaine) ; chaque chiffre dit sa source et
- * son échelle. Le détail vient d'openskidata (`docs/PISTES-DETAIL.md`) : les
- * pistes de la station d'abord, puis, quand un domaine en relie plusieurs,
- * celles du domaine entier, dans une seconde partie qu'on ouvre à part. Le
- * fichier du domaine n'est chargé qu'à la première ouverture.
+ * et les remontées d'OpenSkiMap (domaine). Le détail vient d'openskidata
+ * (`docs/PISTES-DETAIL.md`) : les pistes de la station d'abord, puis, quand un
+ * domaine en relie plusieurs, celles du domaine entier, dans une seconde
+ * partie qu'on ouvre à part. Le fichier du domaine n'est chargé qu'à la
+ * première ouverture.
+ *
+ * La section n'écrit ni source ni commentaire : des chiffres, leur étiquette,
+ * et le tableau. Les tracés qui ne sont pas des pistes sont écartés dès la
+ * construction de la liste (`regrouper`), et les compteurs en tiennent compte.
  */
 
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
@@ -19,13 +23,12 @@ import { PISTE_HEX, type PisteColor } from "@/lib/pistes";
 import {
   COULEUR_LIBELLE,
   ORDRE_COULEUR,
-  cumulM,
-  ecartKm,
-  echelle,
+  detailDisponible,
   parts,
   portionStation,
   regrouper,
   secteurDe,
+  totauxPistes,
   trier,
   type CleTri,
   type DetailDomaine,
@@ -57,12 +60,6 @@ const m = (v: number | null | undefined) => (v != null ? `${fmt(v)}${INSEC}m` : 
 const km = (v: number) => `${v.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}${INSEC}km`;
 const longueur = (v: number | null) => (v == null ? null : v >= 1000 ? km(v / 1000) : m(v));
 const pluriel = (n: number, mot: string) => `${fmt(n)} ${mot}${n > 1 ? "s" : ""}`;
-
-const RELEVE_LE = new Date(`${INDEX.le}T12:00:00`).toLocaleDateString("fr-FR", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
 
 const TOKEN: Record<PisteColor, string> = {
   green: "var(--color-piste-verte)",
@@ -121,8 +118,6 @@ function useDetail(fichier: string | null, actif: boolean): Etat {
 
 export function PistesStation({ s }: { s: Station }) {
   const si = SKIINFO[s.id];
-  const grain = si?.grain === "valley" ? "vallée" : "station";
-  const srcSi = `Skiinfo, ${grain}`;
   const counts = si?.n && s.skiinfoPct ? countsFromSkiinfo(si.n, si.pct) : null;
   const share = s.skiinfoPct ?? s.colorShare;
   const shareSkiinfo = s.skiinfoPct != null;
@@ -130,30 +125,27 @@ export function PistesStation({ s }: { s: Station }) {
   const entree = INDEX.stations[s.id] ?? null;
   const osm = osmFor(s.id);
   const verdict = osm?.verdict ?? (OPENSKIMAP[s.id] ? "osm_absent" : null);
-  const ech = echelle(verdict, osm?.name, s.name);
-  const dispo = entree != null && ech.detail;
+  const dispo = entree != null && detailDisponible(verdict);
 
   const [ouvert, setOuvert] = useState(false);
   const idDetail = useId();
   const etat = useDetail(entree?.fichier ?? null, ouvert);
 
-  const chiffres: { t: string; v: string | null; src: string }[] = [
-    { t: "Pistes", v: si?.n != null ? fmt(si.n) : null, src: srcSi },
-    { t: "Kilomètres", v: si?.km != null ? km(si.km) : null, src: srcSi },
+  const chiffres: { t: string; v: string | null }[] = [
+    { t: "Pistes", v: si?.n != null ? fmt(si.n) : null },
+    { t: "Kilomètres", v: si?.km != null ? km(si.km) : null },
     {
       t: "Altitudes",
       v: si?.minM != null && si.maxM != null ? `${fmt(si.minM)}${FINE}${TIRET}${FINE}${fmt(si.maxM)}${INSEC}m` : null,
-      src: srcSi,
     },
-    { t: "Remontées", v: s.lifts != null ? fmt(s.lifts) : null, src: "OpenSkiMap, domaine" },
-    { t: "Piste la plus longue", v: si?.longestKm != null ? km(si.longestKm) : null, src: srcSi },
+    { t: "Remontées", v: s.lifts != null ? fmt(s.lifts) : null },
+    { t: "Piste la plus longue", v: si?.longestKm != null ? km(si.longestKm) : null },
   ];
 
   return (
     <section className="carte7-sect pistes7">
       <div className="carte7-sect__tete">
         <h2>Pistes</h2>
-        <span>{si ? `Skiinfo, fiche de la ${grain}` : "OpenSkiMap, domaine"}</span>
       </div>
 
       <dl className="pistes7__resume">
@@ -162,7 +154,6 @@ export function PistesStation({ s }: { s: Station }) {
             <dt>{c.t}</dt>
             <dd>
               <b>{c.v ?? "non publié"}</b>
-              <small>{c.src}</small>
             </dd>
           </div>
         ))}
@@ -172,12 +163,12 @@ export function PistesStation({ s }: { s: Station }) {
         <>
           <div className="carte7-sect__ligne">
             <span>Par couleur</span>
-            <span>{shareSkiinfo ? srcSi : "OpenSkiMap, domaine"}</span>
           </div>
           <PartPistes share={share} hauteur={12} />
           <div className="mix7">
             {COLS.map((c) => {
-              const n = shareSkiinfo ? counts?.[c.key] : s.colorCounts?.[c.key];
+              // Le nombre de pistes de chaque couleur, quand Skiinfo le publie.
+              const n = shareSkiinfo ? counts?.[c.key] : null;
               return (
                 <div key={c.key}>
                   <span className="mix7__t">
@@ -185,18 +176,14 @@ export function PistesStation({ s }: { s: Station }) {
                     {c.label}
                   </span>
                   <b>{share[c.key]} %</b>
-                  <span className="mix7__sub">
-                    {n != null ? pluriel(n, shareSkiinfo ? "piste" : "tronçon") : ""}
-                  </span>
+                  <span className="mix7__sub">{n != null ? pluriel(n, "piste") : ""}</span>
                 </div>
               );
             })}
           </div>
         </>
       ) : (
-        <p className="carte7-sect__texte carte7-sect__texte--petit">
-          Répartition par couleur non publiée : elle n’est pas estimée non plus.
-        </p>
+        <p className="carte7-sect__texte carte7-sect__texte--petit">Répartition par couleur non publiée.</p>
       )}
 
       {dispo ? (
@@ -213,7 +200,7 @@ export function PistesStation({ s }: { s: Station }) {
           </button>
           <div id={idDetail} className="pistes7__detail" hidden={!ouvert}>
             {etat.status === "pret" ? (
-              <Detail s={s} entree={entree} data={etat.data} verdict={verdict} bandeauEchelle={ech.bandeau} />
+              <Detail s={s} entree={entree} data={etat.data} />
             ) : etat.status === "erreur" ? (
               <p className="carte7-sect__texte carte7-sect__texte--petit">
                 Le détail des pistes n’a pas pu être chargé ({etat.cause}). Il le sera à la prochaine
@@ -225,30 +212,30 @@ export function PistesStation({ s }: { s: Station }) {
           </div>
         </>
       ) : (
-        <p className="carte7-sect__texte carte7-sect__texte--petit">
-          Détail piste par piste non relevé :{" "}
-          {verdict === "osm_absent" || verdict == null
-            ? "OpenSkiMap ne connaît pas de domaine de ski alpin pour cette station."
-            : "le domaine OpenSkiMap de la station n’y compte aucune piste de descente."}
-        </p>
+        <p className="carte7-sect__texte carte7-sect__texte--petit">Détail piste par piste non disponible.</p>
       )}
     </section>
   );
 }
 
-function Detail({
-  s,
-  entree,
-  data,
-  verdict,
-  bandeauEchelle,
-}: {
-  s: Station;
-  entree: IndexStation;
-  data: DetailDomaine;
-  verdict: string | null;
-  bandeauEchelle: string | null;
-}) {
+/** Le nombre de pistes et leurs kilomètres, en chiffres, sur la liste construite. */
+function Compteurs({ r }: { r: Regroupement }) {
+  const t = totauxPistes(r);
+  return (
+    <dl className="pistes7__chiffres">
+      <div>
+        <dt>Pistes</dt>
+        <dd>{fmt(t.pistes)}</dd>
+      </div>
+      <div>
+        <dt>Km</dt>
+        <dd>{t.km.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}</dd>
+      </div>
+    </dl>
+  );
+}
+
+function Detail({ s, entree, data }: { s: Station; entree: IndexStation; data: DetailDomaine }) {
   const [domaineOuvert, setDomaineOuvert] = useState(false);
   const idDomaine = useId();
 
@@ -268,43 +255,16 @@ function Detail({
     [data],
   );
 
-  const nomAire = data.aires.find((a) => a.id === entree.aire)?.nom ?? data.nom;
   const partage = entree.voisines.length > 1;
   const avecDomaine = partage || entree.fichier !== entree.aire;
-  const noms = (ids: string[]) => ids.map((id) => stationById(id)?.name ?? id).join(", ");
-  const memeAire = entree.voisines.filter((v) => v !== s.id && AIRE_DE[v] === entree.aire);
-  const autres = memeAire.length ? memeAire : entree.voisines.filter((v) => v !== s.id);
-
-  const bandeaux: string[] = [];
-  // Le domaine trop large ne l'est plus une fois partagé entre ses stations.
-  if (bandeauEchelle && !(verdict === "grain_domaine" && partage)) bandeaux.push(bandeauEchelle);
-  if (portion.proximite > 0)
-    bandeaux.push(
-      `OpenSkiMap ne sépare pas ${s.name} de ${noms(autres)} : ${pluriel(portion.proximite, "tronçon")} ${
-        portion.proximite > 1 ? "sont rattachés" : "est rattaché"
-      } à ${s.name} parce que leur point bas en est le plus proche.`,
-    );
-  if (portion.nonRattaches > 0)
-    bandeaux.push(`${pluriel(portion.nonRattaches, "tronçon")} sans position, rattaché${portion.nonRattaches > 1 ? "s" : ""} à aucune station.`);
-  const ecart = ecartKm(cumulM(portion.troncons), SKIINFO[s.id]?.km);
-  if (ecart) bandeaux.push(ecart.texte);
-
-  const kmDomaine = cumulM(data.troncons) / 1000;
 
   return (
     <div className="pistes7__parties">
       <div className="pistes7__partie">
         <div className="carte7-sect__ligne">
           <h3 className="carte7-sect__h3">Pistes de {s.name}</h3>
-          <span>
-            OpenSkiMap, domaine « {nomAire} », relevé du {RELEVE_LE}
-          </span>
         </div>
-        {bandeaux.map((b) => (
-          <p key={b} className="pistes7__bandeau">
-            {b}
-          </p>
-        ))}
+        <Compteurs r={station} />
         <TablePistes r={station} />
       </div>
 
@@ -312,12 +272,8 @@ function Detail({
         <div className="pistes7__partie pistes7__partie--domaine">
           <div className="carte7-sect__ligne">
             <h3 className="carte7-sect__h3">Domaine {data.nom}</h3>
-            <span>OpenSkiMap, domaine</span>
           </div>
-          <p className="carte7-sect__texte carte7-sect__texte--petit">
-            {pluriel(domaine.pistes.length, "piste")} nommée{domaine.pistes.length > 1 ? "s" : ""} et{" "}
-            {km(kmDomaine)} de tracés, toutes stations du domaine comprises.
-          </p>
+          <Compteurs r={domaine} />
           <button
             type="button"
             className="pistes7__plus"
@@ -345,31 +301,24 @@ const COLONNES_TRI: { cle: CleTri; t: string }[] = [
 ];
 
 function TablePistes({ r }: { r: Regroupement }) {
-  const { pistes, acces, sansNom, surfaces, ecartes } = r;
+  const { pistes, sansNom } = r;
   const [tri, setTri] = useState<{ cle: CleTri; sens: "asc" | "desc" }>({ cle: "nom", sens: "asc" });
   const [filtre, setFiltre] = useState<PisteColor[]>([]);
   const p = useMemo(() => parts(pistes), [pistes]);
   const garder = useCallback((x: PisteDetail) => filtre.length === 0 || filtre.includes(x.couleur), [filtre]);
   const visibles = useMemo(() => trier(pistes.filter(garder), tri.cle, tri.sens), [pistes, garder, tri]);
-  const accesVisibles = useMemo(() => trier(acces.filter(garder), tri.cle, tri.sens), [acces, garder, tri]);
   // Sans nom, le tri par nom n'a pas de sens : ils vont du plus long au plus court.
   const sansNomVisibles = useMemo(
     () =>
       trier(sansNom.filter(garder), tri.cle === "nom" ? "longueur" : tri.cle, tri.cle === "nom" ? "desc" : tri.sens),
     [sansNom, garder, tri],
   );
-  const nonRepris = [
-    surfaces ? `${pluriel(surfaces, "surface")} qui dessine${surfaces > 1 ? "nt" : ""} une piste listée` : null,
-    ecartes
-      ? `${pluriel(ecartes, "zone")} ou bout${ecartes > 1 ? "s" : ""} de moins de 100 m relié${ecartes > 1 ? "s" : ""} à aucune piste ni remontée`
-      : null,
-  ].filter(Boolean);
 
   const trierPar = (cle: CleTri) =>
     setTri((t) => (t.cle === cle ? { cle, sens: t.sens === "asc" ? "desc" : "asc" } : { cle, sens: cle === "nom" || cle === "couleur" ? "asc" : "desc" }));
   const basculer = (c: PisteColor) => setFiltre((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]));
 
-  if (pistes.length === 0 && acces.length === 0 && sansNom.length === 0)
+  if (pistes.length === 0 && sansNom.length === 0)
     return <p className="carte7-sect__texte carte7-sect__texte--petit">Aucune piste de descente relevée ici.</p>;
 
   return (
@@ -402,32 +351,13 @@ function TablePistes({ r }: { r: Regroupement }) {
           </button>
         ))}
       </div>
-      <p className="pistes7__compte">
-        {visibles.length === pistes.length
-          ? `${pluriel(pistes.length, "piste")} nommée${pistes.length > 1 ? "s" : ""}, tronçons de même nom réunis`
-          : `${fmt(visibles.length)} sur ${pluriel(pistes.length, "piste")} nommée${pistes.length > 1 ? "s" : ""}`}
-      </p>
       <Tableau lignes={visibles} tri={tri} trierPar={trierPar} legende="Pistes nommées" />
-      {accesVisibles.length ? (
-        <>
-          <h4 className="pistes7__h4">Accès aux remontées ({fmt(accesVisibles.length)})</h4>
-          <p className="pistes7__compte">
-            Liaisons sans nom qui mènent à une remontée ou en partent, sans rejoindre de piste nommée.
-          </p>
-          <Tableau lignes={accesVisibles} tri={tri} trierPar={trierPar} legende="Accès aux remontées" />
-        </>
-      ) : null}
       {sansNomVisibles.length ? (
         <>
           <h4 className="pistes7__h4">Pistes sans nom ({fmt(sansNomVisibles.length)})</h4>
-          <p className="pistes7__compte">
-            OpenStreetMap ne leur donne aucun nom, et aucune piste nommée ni remontée ne les relie :
-            elles sont situées par la remontée la plus proche de leur départ.
-          </p>
           <Tableau lignes={sansNomVisibles} tri={tri} trierPar={trierPar} legende="Pistes sans nom" />
         </>
       ) : null}
-      {nonRepris.length ? <p className="pistes7__compte">Non repris : {nonRepris.join(" ; ")}.</p> : null}
     </div>
   );
 }
@@ -483,14 +413,6 @@ function Tableau({
             <tr key={x.cle}>
               <th scope="row" data-label="Nom">
                 {x.nom ?? "Sans nom"}
-                {x.troncons > 1 ? (
-                  <small>
-                    {x.troncons} tronçons
-                    {x.rattaches
-                      ? `, dont ${x.rattaches} liaison${x.rattaches > 1 ? "s" : ""} sans nom`
-                      : ""}
-                  </small>
-                ) : null}
               </th>
               <td data-label="Couleur">
                 <span className="pistes7__couleur">

@@ -6,18 +6,18 @@
  * image fixe que l'exploitant rafraîchit dans un `img` : ni copie ni
  * réencodage.
  *
- * Le lecteur d'un fournisseur pèse plusieurs mégaoctets et met plusieurs
- * secondes à s'afficher. Chez Skaping et Webcam-HD, la fiche montre d'abord la
- * dernière image publiée (`webcamApercu.ts`), quelques centaines de kilo-octets,
- * qu'on fait défiler ; le lecteur ne se charge qu'à la demande. Passer d'une
- * caméra à l'autre ne charge plus qu'une image.
+ * Le lecteur se lance seul à l'ouverture de la fiche : il est chargé tout de
+ * suite (`loading="eager"`) et autorisé à démarrer sans clic
+ * (`allow="autoplay"`). Un navigateur qui n'accepte le démarrage automatique
+ * que sans le son l'applique de lui-même au lecteur ; l'application de bureau
+ * l'autorise (`autoplayPolicy`, `desktop/main.mjs`).
  *
  * Un `iframe` d'un autre domaine ne signale pas son échec : `onerror` ne se
  * déclenche pas et son contenu est illisible. On l'attend donc, et faute de
  * `onload` dans le délai on propose de l'ouvrir chez l'exploitant. Le délai ne
- * court qu'une fois le cadre à l'écran : le lecteur se charge à la demande
- * (`loading="lazy"`), et un délai parti au montage de la fiche déclarait muette
- * une caméra que personne n'avait encore fait défiler jusqu'à elle.
+ * court qu'une fois le cadre à l'écran : un délai parti au montage de la fiche
+ * déclarait muette une caméra que personne n'avait encore fait défiler jusqu'à
+ * elle.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -26,8 +26,6 @@ import { Icon } from "@/components/Icon";
 import { useEchap } from "@/components/v7/fermeture";
 import { aStation } from "@/lib/v7";
 import type { Webcam } from "@/lib/webcams";
-import { fournisseurApercu, type Apercu } from "@/lib/webcamApercu";
-import { getApercuWebcam } from "@/lib/webcamApercu.api";
 
 const DELAI_MS = 10_000;
 
@@ -56,36 +54,11 @@ function useParu(ref: React.RefObject<HTMLElement | null>, cle: string): boolean
   return paru;
 }
 
-/** Les aperçus déjà lus, pour revenir à une caméra sans redemander. */
-const APERCUS = new Map<string, { fin: number; valeur: Promise<Apercu> }>();
-function lireApercu(url: string): Promise<Apercu> {
-  const deja = APERCUS.get(url);
-  if (deja && deja.fin > Date.now()) return deja.valeur;
-  const valeur = getApercuWebcam({ data: { url } }).catch((): Apercu => ({ image: null, prise: null }));
-  APERCUS.set(url, { fin: Date.now() + 5 * 60_000, valeur });
-  return valeur;
-}
-
-/** « aujourd'hui à 14 h 50 », « le 29 sept. à 8 h 10 ». */
-function datePrise(p: NonNullable<Apercu["prise"]>): string {
-  const [h, m] = p.heure.split(":");
-  const heure = `${Number(h)}\u00a0h\u00a0${m}`;
-  const aujourdhui = new Date().toLocaleDateString("sv-SE");
-  if (p.jour === aujourdhui) return `aujourd’hui à ${heure}`;
-  const jour = new Date(`${p.jour}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-  return `le ${jour} à ${heure}`;
-}
-
 /** Le flux d'une caméra et ce qu'on sait de son chargement. */
 function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
   const cadre = useRef<HTMLDivElement>(null);
   const [etat, setEtat] = useState<Etat>("attente");
   const paru = useParu(cadre, cam.url);
-  // L'aperçu d'abord, le lecteur à la demande (voir l'en-tête du fichier).
-  const avecApercu = cam.kind !== "image" && fournisseurApercu(cam.url) != null;
-  const [lecteur, setLecteur] = useState<string | null>(null);
-  const [apercu, setApercu] = useState<{ url: string; a: Apercu } | null>(null);
-  const [imageKo, setImageKo] = useState<string | null>(null);
   // Le lecteur n'est monté qu'une fois la page hydratée. Rendu par le serveur,
   // il pouvait se charger avant que React n'écoute `onLoad` : l'événement
   // était perdu, et au bout du délai l'avis d'échec recouvrait une caméra qui
@@ -96,68 +69,23 @@ function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
   useEffect(() => {
     setEtat("attente");
   }, [cam.url]);
-  useEffect(() => {
-    if (!avecApercu || !monte) return;
-    let vivant = true;
-    void lireApercu(cam.url).then((a) => vivant && setApercu({ url: cam.url, a }));
-    return () => {
-      vivant = false;
-    };
-  }, [cam.url, avecApercu, monte]);
-  const a = apercu?.url === cam.url ? apercu.a : null;
-  // Sans image lisible, ou si elle ne se charge pas, le lecteur comme avant.
-  const enApercu = avecApercu && lecteur !== cam.url && !(a && !a.image) && imageKo !== cam.url;
 
   useEffect(() => {
     // Une image dit elle-même si elle a échoué ; seul le lecteur s'attend.
-    if (cam.kind === "image" || enApercu || !paru || !monte) return;
+    if (cam.kind === "image" || !paru || !monte) return;
     const t = setTimeout(() => setEtat((e) => (e === "attente" ? "echec" : e)), DELAI_MS);
     return () => clearTimeout(t);
-  }, [cam.url, cam.kind, enApercu, paru, monte]);
+  }, [cam.url, cam.kind, paru, monte]);
 
   return (
     <div ref={cadre} className={grand ? "webcam7 webcam7--grand" : "webcam7"}>
-      {!monte ? null : enApercu ? (
-        a?.image ? (
-          <>
-            <div
-              className="webcam7__pano"
-              tabIndex={0}
-              role="region"
-              aria-label={`Dernière image : ${cam.label}, panorama à faire défiler`}
-            >
-              <img
-                key={a.image}
-                src={a.image}
-                alt={`Webcam : ${cam.label}, dernière image`}
-                referrerPolicy="no-referrer"
-                decoding="async"
-                onLoad={(e) => {
-                  // Le panorama s'ouvre au milieu, comme le lecteur.
-                  const pano = e.currentTarget.parentElement!;
-                  pano.scrollLeft = (pano.scrollWidth - pano.clientWidth) / 2;
-                }}
-                onError={() => setImageKo(cam.url)}
-              />
-            </div>
-            <div className="webcam7__apercu">
-              <span>{a.prise ? `Image prise ${datePrise(a.prise)}` : "Dernière image publiée"}</span>
-              <button type="button" className="btn7 btn7--fantome" onClick={() => setLecteur(cam.url)}>
-                <Icon name="lecture" taille={14} />
-                Lancer le lecteur
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="webcam7__attente">Chargement de la dernière image…</div>
-        )
-      ) : cam.kind === "image" ? (
+      {!monte ? null : cam.kind === "image" ? (
         <img
           key={cam.url}
           src={cam.url}
           alt={`Webcam : ${cam.label}`}
           referrerPolicy="no-referrer"
-          loading={grand ? "eager" : "lazy"}
+          loading="eager"
           onLoad={() => setEtat("ok")}
           onError={() => setEtat("echec")}
         />
@@ -166,9 +94,10 @@ function Flux({ cam, grand = false }: { cam: Webcam; grand?: boolean }) {
           key={cam.url}
           src={cam.url}
           title={`Webcam : ${cam.label}`}
-          loading={grand ? "eager" : "lazy"}
+          loading="eager"
           referrerPolicy="no-referrer"
           sandbox="allow-scripts allow-same-origin"
+          allow="autoplay; fullscreen"
           allowFullScreen
           onLoad={() => setEtat("ok")}
         />

@@ -15,9 +15,12 @@
  * passent par `difficultyToColor`, comme partout dans l'application ; ce qui
  * n'est ni vert, ni bleu, ni rouge, ni noir va dans « autres ».
  *
+ * Un tracé qui part d'une remontée ou y mène sans rejoindre de piste nommée
+ * n'est pas une piste : il sort de la liste dès sa construction (`regrouper`),
+ * et les totaux du tableau (`totauxPistes`) ne le comptent pas.
+ *
  * Les totaux et les parts de couleur affichés au-dessus du tableau restent
- * ceux de Skiinfo (`docs/PISTES.md`) : ce module ne les remplace pas, il dit
- * seulement l'échelle du tableau et son écart aux kilomètres Skiinfo.
+ * ceux de Skiinfo (`docs/PISTES.md`) : ce module ne les remplace pas.
  */
 
 import { difficultyToColor, type PisteColor } from "./pistes.ts";
@@ -175,14 +178,8 @@ function enPiste(
 export type Regroupement = {
   /** Les pistes nommées. */
   pistes: PisteDetail[];
-  /** Les liaisons vers ou depuis une remontée, réunies par remontée. */
-  acces: PisteDetail[];
   /** Les pistes qu'OpenStreetMap ne nomme pas, reliées à aucune piste nommée ni remontée. */
   sansNom: PisteDetail[];
-  /** Surfaces qui dessinent une piste nommée : pas une piste de plus. */
-  surfaces: number;
-  /** Zones sans piste nommée et bouts de moins de 100 m reliés à rien. */
-  ecartes: number;
 };
 
 /**
@@ -191,11 +188,12 @@ export type Regroupement = {
  * restent deux pistes dès que le secteur est connu.
  *
  * Un tronçon sans nom n'est pas une piste à part (`scripts/build-pistes-detail.py`,
- * `rattacher`) : une liaison rendue à sa piste (`nomDeduit`) la rejoint ; un
- * accès à une remontée (`acces`) va avec les accès ; une surface qui dessine
- * une piste (`recouvre`) et ce qui n'est ni piste ni accès (`ecarte`) ne sont
- * que comptés. Ne reste sans nom que ce qu'OpenStreetMap laisse sans nom et
- * que rien ne relie.
+ * `rattacher`) : une liaison rendue à sa piste (`nomDeduit`) la rejoint. Ne
+ * sont pas des pistes, et sortent de la liste : un tracé qui part d'une
+ * remontée ou y mène sans rejoindre de piste nommée (`acces`), une surface qui
+ * dessine une piste déjà listée (`recouvre`), et ce qui n'est ni piste ni accès
+ * (`ecarte`). Ne reste sans nom que ce qu'OpenStreetMap laisse sans nom et que
+ * rien ne relie.
  */
 export function regrouper(
   troncons: readonly TronconDetail[],
@@ -203,35 +201,35 @@ export function regrouper(
 ): Regroupement {
   type Groupe = { nom: string; couleur: PisteColor; secteur: string | null; ts: TronconDetail[] };
   const groupes = new Map<string, Groupe>();
-  const accesG = new Map<string, Groupe>();
   const sansNom: PisteDetail[] = [];
-  let surfaces = 0;
-  let ecartes = 0;
-  const ajouter = (m: Map<string, Groupe>, nom: string, couleur: PisteColor, sect: string | null, t: TronconDetail) => {
-    const cle = `${plierNom(nom)}|${couleur}|${sect ?? ""}`;
-    const g = m.get(cle) ?? { nom, couleur, secteur: sect, ts: [] };
-    g.ts.push(t);
-    m.set(cle, g);
-  };
   troncons.forEach((t, i) => {
     const couleur = difficultyToColor(t.difficulte ?? undefined);
     const nom = t.nom?.trim() || t.nomDeduit?.trim() || null;
     const sect = secteur(t);
-    if (nom) ajouter(groupes, nom, couleur, sect, t);
-    else if (t.recouvre) surfaces += 1;
-    else if (t.ecarte) ecartes += 1;
-    else if (t.acces) ajouter(accesG, t.acces, couleur, sect, t);
-    else sansNom.push(enPiste(`sans-nom-${i}`, t.pres ? `Sans nom, ${t.pres}` : null, couleur, sect, [t]));
+    if (nom) {
+      const cle = `${plierNom(nom)}|${couleur}|${sect ?? ""}`;
+      const g = groupes.get(cle) ?? { nom, couleur, secteur: sect, ts: [] };
+      g.ts.push(t);
+      groupes.set(cle, g);
+      return;
+    }
+    // Pas une piste : ni affiché, ni compté.
+    if (t.recouvre || t.ecarte || t.acces) return;
+    sansNom.push(enPiste(`sans-nom-${i}`, t.pres ? `Sans nom, ${t.pres}` : null, couleur, sect, [t]));
   });
-  const liste = (m: Map<string, Groupe>, prefixe: string) =>
-    [...m.entries()].map(([cle, g]) => enPiste(prefixe + cle, g.nom, g.couleur, g.secteur, g.ts));
+  const pistes = [...groupes.entries()].map(([cle, g]) => enPiste(cle, g.nom, g.couleur, g.secteur, g.ts));
   return {
-    pistes: trier(liste(groupes, ""), "nom", "asc"),
-    acces: trier(liste(accesG, "acces|"), "nom", "asc"),
+    pistes: trier(pistes, "nom", "asc"),
     sansNom: trier(sansNom, "longueur", "desc"),
-    surfaces,
-    ecartes,
   };
+}
+
+/** Le nombre de pistes et leurs kilomètres, sur la liste construite : les
+ *  tracés qui ne sont pas des pistes en sont déjà sortis. */
+export function totauxPistes(r: Regroupement): { pistes: number; km: number } {
+  const toutes = [...r.pistes, ...r.sansNom];
+  const m = toutes.reduce((s, p) => s + (p.longueurM ?? 0), 0);
+  return { pistes: toutes.length, km: m / 1000 };
 }
 
 export type CleTri = "nom" | "couleur" | "longueur" | "denivelle";
@@ -285,41 +283,13 @@ export function parts(pistes: readonly PisteDetail[]): Record<PisteColor, { n: n
   >;
 }
 
-/** Longueur cumulée des tronçons, en mètres. */
-export function cumulM(troncons: readonly TronconDetail[]): number {
-  return troncons.reduce((s, t) => s + (t.longueurM ?? 0), 0);
-}
-
-/** L'écart du cumul des tracés aux kilomètres Skiinfo, quand il dépasse 10 %. Affiché, jamais corrigé. */
-export function ecartKm(cumul: number, kmSkiinfo: number | null | undefined): { ecart: number; texte: string } | null {
-  if (!kmSkiinfo || kmSkiinfo <= 0) return null;
-  const km = cumul / 1000;
-  const ecart = (km - kmSkiinfo) / kmSkiinfo;
-  if (Math.abs(ecart) <= 0.1) return null;
-  const f = (x: number) => x.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
-  return {
-    ecart,
-    texte: `Les tracés cumulent ${f(km)} km, Skiinfo en annonce ${f(kmSkiinfo)} (${ecart > 0 ? "+" : "−"}${Math.round(Math.abs(ecart) * 100)} %).`,
-  };
-}
-
 /**
- * Ce que le tableau peut montrer pour un verdict du témoin OpenSkiMap :
- * `detail` faux pour `osm_absent` et `osm_vide` (pas de flèche, une phrase),
- * et un bandeau d'échelle quand les tracés ne couvrent pas la station seule.
+ * Le détail piste par piste existe-t-il pour ce verdict du témoin
+ * OpenSkiMap ? Non pour `osm_absent` et `osm_vide` : le domaine n'est pas
+ * connu, ou n'y compte aucune piste de descente.
  */
-export function echelle(
-  verdict: OsmVerdict | "osm_absent" | null | undefined,
-  domaine: string | null | undefined,
-  station: string,
-): { detail: boolean; bandeau: string | null } {
-  if (!verdict || verdict === "osm_absent" || verdict === "osm_vide") return { detail: false, bandeau: null };
-  const du = domaine ? `du domaine ${domaine}` : "du domaine OpenSkiMap";
-  if (verdict === "grain_domaine") return { detail: true, bandeau: `Tracés ${du}, qui déborde ${station}.` };
-  if (verdict === "km_court") return { detail: true, bandeau: `Tracés ${du}, pas de ${station} entière.` };
-  if (verdict === "segments")
-    return { detail: true, bandeau: `Tracés ${du}, où une piste est souvent coupée en plusieurs tronçons.` };
-  return { detail: true, bandeau: null };
+export function detailDisponible(verdict: OsmVerdict | "osm_absent" | null | undefined): boolean {
+  return !!verdict && verdict !== "osm_absent" && verdict !== "osm_vide";
 }
 
 /**
@@ -360,7 +330,7 @@ function metres(bas: [number, number], r: Repere): number {
  *    d'Isère. Un tronçon sans position ne se rattache pas.
  *
  * `proximite` compte les tronçons gardés par la règle 3, `nonRattaches` ceux
- * qu'elle n'a pas pu placer ; la fiche dit les deux.
+ * qu'elle n'a pas pu placer.
  */
 export function portionStation(
   detail: DetailDomaine,

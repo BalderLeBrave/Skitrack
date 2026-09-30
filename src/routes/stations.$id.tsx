@@ -13,7 +13,7 @@ import { Icon, type IconName } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
-import { PartPistes } from "@/components/v7/PartPistes";
+import { PistesStation } from "@/components/v7/PistesStation";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
 import { useForfait } from "@/components/v7/useForfait";
@@ -21,7 +21,6 @@ import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
 import { BRA_LABELS, lieuLisible } from "@/lib/bra/parse";
 import { getForecastPair, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
 import {
-  COLS,
   datesLbl,
   eurN,
   fmt,
@@ -553,39 +552,7 @@ function FicheBody({ s }: { s: Station }) {
             ) : null}
 
             {/* ── Pistes ───────────────────────────────────────────── */}
-            <section className="carte7-sect">
-              <div className="carte7-sect__tete">
-                <h2>Pistes par couleur</h2>
-                <span>OpenSkiMap · à l’échelle du domaine</span>
-              </div>
-              {s.colorShare ? (
-                <>
-                  <PartPistes share={s.colorShare} hauteur={12} />
-                  <div className="mix7">
-                    {COLS.map((c) => (
-                      <div key={c.key}>
-                        <span className="mix7__t">
-                          <i style={{ background: c.token }} />
-                          {c.label}
-                        </span>
-                        <b>{s.colorShare![c.key]} %</b>
-                        <span className="mix7__sub">
-                          {s.colorCounts
-                            ? `${s.colorCounts[c.key]} tronçon${s.colorCounts[c.key] > 1 ? "s" : ""}`
-                            : ""}
-                          {s.colorCounts && s.skiinfoPct ? ` · Skiinfo ${s.skiinfoPct[c.key]} %` : ""}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <p className="carte7-sect__texte carte7-sect__texte--petit">
-                  Aucun tracé OpenSkiMap pour cette station : la répartition n’est pas calculée, elle
-                  n’est pas estimée non plus.
-                </p>
-              )}
-            </section>
+            <PistesStation key={`pistes-${s.id}`} s={s} />
 
             {/* ── Webcams ──────────────────────────────────────────── */}
             <Webcams key={s.id} cams={cams} />

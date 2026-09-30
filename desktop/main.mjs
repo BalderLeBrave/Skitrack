@@ -122,6 +122,8 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // Le lecteur de webcam de la fiche station se lance seul, sans clic.
+      autoplayPolicy: "no-user-gesture-required",
     },
   });
 

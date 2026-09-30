@@ -3238,7 +3238,7 @@
   color: var(--color-texte-3);
 }
 /* ── Pistes de la fiche : résumé, puis détail qu'on déplie ─────────────────
-   Le résumé tient en une ligne de chiffres, chacun avec sa source. Le détail
+   Le résumé tient en une ligne de chiffres, chacun sous son étiquette. Le détail
    s'ouvre sous un vrai bouton (`aria-expanded`), en tableau quand la carte a
    la place, en liste empilée sinon : pas de défilement horizontal. La bascule
    suit la largeur de la carte, pas celle de l'écran : la coquille v7 garde
@@ -3272,10 +3272,6 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-.pistes7__resume small {
-  font-size: var(--text-note);
-  color: var(--color-texte-3);
 }
 .pistes7__plus {
   justify-self: start;
@@ -3328,17 +3324,26 @@
   gap: calc(var(--spacing) * 3);
   flex-wrap: wrap;
 }
-.pistes7__partie .carte7-sect__ligne > span {
-  font-weight: 400;
-  color: var(--color-texte-3);
+/* Le nombre de pistes et leurs kilomètres : un chiffre, une étiquette. */
+.pistes7__chiffres {
+  display: flex;
+  gap: calc(var(--spacing) * 6);
+  margin: 0;
 }
-.pistes7__bandeau {
-  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3.5);
-  border-radius: 10px;
-  background: var(--color-glacier);
-  font-size: var(--text-detail);
+.pistes7__chiffres > div {
+  display: grid;
+  gap: 2px;
+}
+.pistes7__chiffres dt {
+  font-size: var(--text-note);
+  font-weight: 700;
   color: var(--color-muted);
-  text-wrap: pretty;
+}
+.pistes7__chiffres dd {
+  margin: 0;
+  font-size: var(--text-intertitre);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 .pistes7__table-bloc {
   container-type: inline-size;
@@ -3351,12 +3356,8 @@
   flex-wrap: wrap;
   gap: calc(var(--spacing) * 2);
 }
-.pistes7__compte,
 .pistes7__h4 {
   font-size: var(--text-note);
-  color: var(--color-texte-3);
-}
-.pistes7__h4 {
   font-weight: 700;
   color: var(--color-muted);
 }
@@ -3421,12 +3422,6 @@
   font-weight: 600;
   white-space: normal;
   min-width: 7rem;
-}
-.pistes7__table tbody th small {
-  display: block;
-  font-size: var(--text-note);
-  font-weight: 400;
-  color: var(--color-texte-3);
 }
 .pistes7__couleur {
   display: inline-flex;
@@ -3568,42 +3563,6 @@
   height: 100%;
   border: 0;
 }
-/* L'aperçu : le panorama à toute la hauteur du cadre, qu'on fait défiler. */
-.webcam7__pano {
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-}
-.webcam7__pano img {
-  width: auto;
-  max-width: none;
-  height: 100%;
-  object-fit: initial;
-}
-.webcam7__apercu {
-  position: absolute;
-  inset: auto 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: calc(var(--spacing) * 3);
-  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
-  background: color-mix(in srgb, var(--color-photo-voile) 72%, transparent);
-  color: var(--color-photo-texte);
-  font-size: var(--text-detail);
-}
-.webcam7__apercu .btn7 {
-  flex: none;
-}
-.webcam7__attente {
-  display: grid;
-  height: 100%;
-  place-content: center;
-  font-size: var(--text-detail);
-  color: var(--color-texte-3);
-}
-
 /* La webcam en grand, par-dessus la page. Le cadre garde le 16/9 et prend
    la plus grande taille que la fenêtre permet, bandeau compris. */
 .webcam7-grand {
@@ -3699,33 +3658,15 @@
   border-radius: var(--radius-surface);
   background: var(--color-surface);
 }
-.bra7__badge {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-surface);
-  background: var(--color-glacier);
-  color: var(--color-texte-3);
-  font-size: 13px;
-  font-weight: 800;
+/* Le pictogramme du niveau (`PictoBra.tsx`) : ses couleurs sont celles de
+   l'échelle européenne, en jetons `--color-bra-*`. */
+.bra7__picto {
+  display: block;
+  flex: none;
 }
-.bra7__badge--1,
-.bra7__badge--2 {
-  background: var(--color-ok);
-  color: var(--color-ok-texte);
-  font-size: var(--text-section);
-}
-.bra7__badge--3 {
-  background: var(--color-alerte);
-  color: var(--color-alerte-texte);
-  font-size: var(--text-section);
-}
-.bra7__badge--4,
-.bra7__badge--5 {
-  background: var(--color-piste-rouge);
-  color: var(--color-surface);
-  font-size: var(--text-section);
+.bra7__picto text {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 .bra7__texte {
   display: grid;
@@ -3735,8 +3676,31 @@
   font-size: var(--text-corps);
   font-weight: 700;
 }
-.bra7__texte span {
-  font-size: var(--text-detail);
+.bra7__titre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 2.5);
+}
+/* « + » déplie le texte du bulletin, « − » le replie. */
+.bra7__plus {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.bra7__plus:hover {
+  border-color: var(--color-ink);
+}
+.bra7__bulletin {
+  margin-top: calc(var(--spacing) * 1);
+  font-size: var(--text-note);
   color: var(--color-muted);
   text-wrap: pretty;
 }

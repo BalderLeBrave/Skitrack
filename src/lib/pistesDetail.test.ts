@@ -1,15 +1,14 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
-  cumulM,
-  ecartKm,
-  echelle,
+  detailDisponible,
   estDamee,
   lignePistes,
   parts,
   portionStation,
   regrouper,
   secteurDe,
+  totauxPistes,
   trier,
   type AireDetail,
   type DetailDomaine,
@@ -54,7 +53,7 @@ describe("détail des pistes : regroupement des tronçons", () => {
     assert.deepEqual(sansNom.map((p) => p.longueurM), [80, 50]);
   });
 
-  it("une liaison rejoint sa piste, un accès va aux accès, le reste n'est que compté", () => {
+  it("une liaison rejoint sa piste ; accès aux remontées, surfaces et bouts isolés ne sont pas des pistes", () => {
     const r = regrouper([
       t({ nom: "Cascades", difficulte: "advanced", longueurM: 800 }),
       t({ nomDeduit: "Cascades", difficulte: "advanced", longueurM: 120 }),
@@ -69,12 +68,14 @@ describe("détail des pistes : regroupement des tronçons", () => {
       [r.pistes.length, r.pistes[0]!.longueurM, r.pistes[0]!.troncons, r.pistes[0]!.rattaches],
       [1, 920, 2, 1],
     );
-    assert.deepEqual([r.acces.map((a) => [a.nom, a.longueurM]), r.sansNom.map((x) => x.nom), r.surfaces, r.ecartes], [
-      [["Accès au télésiège Moutière", 70]],
-      ["Sans nom, près du téléski Lauzon"],
-      1,
-      2,
-    ]);
+    // Le tracé qui part d'une remontée ou y mène sans rejoindre de piste
+    // nommée n'est ni listé ni compté : il n'est pas une piste.
+    assert.deepEqual(r.sansNom.map((x) => x.nom), ["Sans nom, près du téléski Lauzon"]);
+    assert.deepEqual(Object.keys(r).sort(), ["pistes", "sansNom"]);
+    assert.ok(![...r.pistes, ...r.sansNom].some((p) => p.nom?.startsWith("Accès")));
+    // Les totaux se font sur la liste construite : 920 m de piste nommée et
+    // 600 m sans nom, rien des 70 m d'accès ni des 20 m isolés.
+    assert.deepEqual(totauxPistes(r), { pistes: 2, km: 1.52 });
   });
 
   it("une surface n'a pas de longueur, et ne compte pas zéro", () => {
@@ -118,22 +119,18 @@ describe("détail des pistes : parts et tri", () => {
   });
 });
 
-describe("détail des pistes : échelle et écart", () => {
-  it("osm_absent et osm_vide : pas de détail ; grain_domaine, km_court, segments : un bandeau", () => {
-    assert.deepEqual(echelle("osm_absent", null, "Nistos"), { detail: false, bandeau: null });
-    assert.deepEqual(echelle("osm_vide", "X", "Y"), { detail: false, bandeau: null });
-    assert.equal(echelle("km_court", "Brévent/Flégère (Chamonix)", "Chamonix").bandeau, "Tracés du domaine Brévent/Flégère (Chamonix), pas de Chamonix entière.");
-    assert.match(echelle("grain_domaine", "Espace Killy", "Tignes").bandeau ?? "", /déborde Tignes/);
-    assert.deepEqual(echelle("ok", "Gresse en Vercors", "Gresse-en-Vercors"), { detail: true, bandeau: null });
+describe("détail des pistes : disponibilité et totaux", () => {
+  it("osm_absent et osm_vide : pas de détail ; tout autre verdict : le détail", () => {
+    assert.equal(detailDisponible("osm_absent"), false);
+    assert.equal(detailDisponible("osm_vide"), false);
+    assert.equal(detailDisponible(null), false);
+    for (const v of ["km_court", "grain_domaine", "segments", "ok"] as const) assert.equal(detailDisponible(v), true, v);
   });
 
-  it("l'écart de km se dit au-delà de 10 %, sans rien corriger", () => {
-    assert.equal(ecartKm(105_000, 100), null);
-    const e = ecartKm(115_400, 150)!;
-    assert.equal(Math.round(e.ecart * 100), -23);
-    assert.equal(e.texte, "Les tracés cumulent 115,4 km, Skiinfo en annonce 150 (−23 %).");
-    assert.equal(ecartKm(1000, null), null);
-    assert.equal(cumulM([t({ longueurM: 400 }), t({ surface: true }), t({ longueurM: 600 })]), 1000);
+  it("les totaux comptent les pistes nommées et sans nom, une surface sans longueur pour zéro mètre", () => {
+    const r = regrouper([t({ nom: "A", longueurM: 400 }), t({ nom: "B", surface: true }), t({ longueurM: 600 })]);
+    assert.deepEqual(totauxPistes(r), { pistes: 3, km: 1 });
+    assert.deepEqual(totauxPistes(regrouper([])), { pistes: 0, km: 0 });
   });
 });
 

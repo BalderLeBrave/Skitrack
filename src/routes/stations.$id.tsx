@@ -2,17 +2,17 @@
  *
  *  Un bandeau photo qui dit l'essentiel, puis à gauche : forfaits, aujourd'hui
  *  aux deux altitudes, quatorze jours, pistes par couleur, webcams, bulletin
- *  d'avalanche ; à droite, le séjour et l'action. Chaque chiffre porte son
- *  échelle et son origine ; un champ absent le dit.
+ *  d'avalanche ; à droite, le séjour et l'action. Un champ absent le dit.
  *  Données : `STATIONS`, catalogue et magasin de forfaits, Open-Meteo par le
  *  serveur du dépôt, webcams et bulletin du dépôt. */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/Icon";
 import { Coquille } from "@/components/Coquille";
 import { ImageSlot } from "@/components/v6/ImageSlot";
 import { useGo } from "@/components/v6/go";
+import { PictoBra } from "@/components/v7/PictoBra";
 import { PistesStation } from "@/components/v7/PistesStation";
 import { OngletsStation } from "@/components/v7/OngletsStation";
 import { Vide } from "@/components/v7/Vide";
@@ -20,6 +20,7 @@ import { useForfait } from "@/components/v7/useForfait";
 import { getStationBra, getStationsBra, type BraPayload } from "@/lib/bra/api";
 import { BRA_LABELS, lieuLisible } from "@/lib/bra/parse";
 import { getForecastPair, type ForecastLevel, type ForecastPair, type SkyKind } from "@/lib/meteo/forecast";
+import { fuseauStation, meteoEnDateDu } from "@/lib/meteo/enDateDu";
 import {
   datesLbl,
   eurN,
@@ -109,8 +110,6 @@ function useForecast(s: Station) {
   return { wx, lo, hi, loMesure, hiMesure };
 }
 
-const heure = (d: Date) => d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-
 const ICONE: Record<SkyKind, IconName> = { sun: "soleil", cloud: "nuage", snow: "neige", rain: "pluie" };
 
 const JOURS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
@@ -135,11 +134,9 @@ function Niveau({ titre, alt, wx, lvl, haut }: { titre: string; alt: string; wx:
         <span>{alt}</span>
       </div>
       {wx.status === "loading" ? (
-        <p className="wx7__msg">Prévision en cours de chargement (Open-Meteo)…</p>
+        <p className="wx7__msg">Prévision en cours de chargement…</p>
       ) : wx.status === "err" || !lvl || !j ? (
-        <p className="wx7__msg">
-          Prévision indisponible : Open-Meteo n’a pas répondu à {heure(wx.at)}.
-        </p>
+        <p className="wx7__msg">Prévision indisponible.</p>
       ) : (
         <>
           <div className="wx7__deux">
@@ -327,6 +324,141 @@ function echu(validUntil: string | null | undefined): boolean {
   return !Number.isNaN(t) && t < Date.now();
 }
 
+/**
+ * Le bulletin d'avalanche : le pictogramme du niveau, une ligne courte, et le
+ * texte du bulletin replié derrière « + ».
+ *
+ * Quatre états, chacun avec son titre : un niveau publié (« Risque marqué ·
+ * Vanoise »), hors saison, pas de bulletin pour le massif ou la station, et le
+ * bulletin non obtenu, qu'on peut redemander. Sans niveau publié, le
+ * pictogramme reste gris et sans chiffre.
+ */
+function BulletinAvalanche({ bra }: { bra: ReturnType<typeof useBra> }) {
+  const [ouvert, setOuvert] = useState(false);
+  const idTexte = useId();
+  const braData = bra.etat.status === "pret" ? bra.etat.data : null;
+  const official = braData?.official;
+  const risque = official?.ok && official.risk != null ? official.risk : null;
+  const voie = braData?.voie ? VOIE_LBL[braData.voie] : "";
+
+  let titre: string;
+  let texte: ReactNode = null;
+  let action: ReactNode = null;
+  if (bra.etat.status === "chargement") {
+    titre = "Bulletin en cours de chargement…";
+  } else if (risque != null) {
+    titre = `Risque ${BRA_LABELS[risque]?.fr ?? risque}${braData?.massif ? ` · ${braData.massif}` : ""}`;
+    texte = (
+      <>
+        Bulletin officiel Météo-France
+        {official?.acces === "donnees-ouvertes" ? " (archive publique, data.gouv.fr)" : ""}
+        {heureLisible(official?.issuedAt) ? (
+          <>
+            , publié le <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
+          </>
+        ) : null}
+        {voie}.
+        {/* Un bulletin échu reste lisible, mais il le dit : l'archive publique
+            peut ne rien avoir de plus récent. */}
+        {echu(official?.validUntil) ? (
+          <>
+            {" "}
+            Échu depuis le{" "}
+            <time dateTime={official?.validUntil ?? undefined}>{heureLisible(official?.validUntil)}</time>, aucun
+            bulletin plus récent n’est disponible.
+          </>
+        ) : null}
+        {official?.loc1 && official.risk1 != null
+          ? ` ${BRA_LABELS[official.risk1]?.fr ?? official.risk1} ${lieuLisible(official.loc1)}`
+          : ""}
+        {official?.loc2 && official.risk2 != null
+          ? ` · ${BRA_LABELS[official.risk2]?.fr ?? official.risk2} ${lieuLisible(official.loc2)}`
+          : ""}
+        {official?.altitude != null ? ` · bascule à ${fmt(official.altitude)} m` : ""}
+      </>
+    );
+  } else if (braData?.etat === "ok" && official?.message) {
+    titre = "Hors saison";
+    texte = (
+      <>
+        {official.message} Massif Météo-France : {braData.massif}
+        {voie}.
+      </>
+    );
+  } else if (braData?.etat === "hors-zone") {
+    titre = "Pas de bulletin pour ce massif";
+    texte = braData.cause;
+  } else if (braData?.etat === "non-rattache") {
+    titre = "Station non rattachée à un massif Météo-France";
+    texte = <>{braData.cause} Consultez le bulletin du secteur sur le site de Météo-France.</>;
+  } else {
+    titre = "Bulletin non obtenu";
+    action = (
+      <button type="button" className="lien-doux" onClick={bra.reessayer}>
+        Réessayer
+      </button>
+    );
+    texte = (
+      <>
+        Massif Météo-France : {braData?.massif ?? "non rattaché"}
+        {voie}. Dernière tentative : {heureLisible(braData?.releveA) ?? "à l’instant"}.
+        {/* La cause technique vit dans un détail repliable, jamais dans le
+            libellé principal. */}
+        {braData?.cause || bra.etat.status === "echec" ? (
+          <details className="bra7__detail">
+            <summary>Détail technique</summary>
+            <code>{bra.etat.status === "echec" ? bra.etat.cause : braData?.cause}</code>
+          </details>
+        ) : null}
+      </>
+    );
+  }
+
+  return (
+    <section className="bra7">
+      <PictoBra niveau={risque} />
+      <div className="bra7__texte">
+        <div className="bra7__titre">
+          <strong>{titre}</strong>
+          {texte ? (
+            <button
+              type="button"
+              className="bra7__plus"
+              aria-expanded={ouvert}
+              aria-controls={idTexte}
+              aria-label={ouvert ? "Masquer le texte du bulletin" : "Afficher le texte du bulletin"}
+              onClick={() => setOuvert((o) => !o)}
+            >
+              <Icon name={ouvert ? "moins" : "plus"} taille={14} />
+            </button>
+          ) : null}
+          {action}
+        </div>
+        {texte ? (
+          <div id={idTexte} className="bra7__bulletin" hidden={!ouvert}>
+            {texte}
+          </div>
+        ) : null}
+      </div>
+      <a
+        href={
+          braData?.massif
+            ? `https://meteofrance.com/meteo-montagne/${encodeURIComponent(
+                braData.massif.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[_\s]+/g, "-"),
+              )}/bulletin-avalanches`
+            : "https://meteofrance.com/meteo-montagne"
+        }
+        target="_blank"
+        rel="noopener"
+        className="btn7 btn7--fantome"
+      >
+        {braData?.massif ? `Bulletin ${braData.massif}` : "Trouver le bulletin"}
+        <Icon name="externe" taille={12} />
+      </a>
+    </section>
+  );
+}
+
 /* ---------- Écran ---------- */
 
 function FicheInconnue({ id }: { id: string }) {
@@ -364,7 +496,7 @@ function FicheBody({ s }: { s: Station }) {
   const toggleCmp = useParcours((x) => x.toggleCmp);
   const { checkIn, checkOut, trav, adultes, enfants, rooms, nights } = useSejour();
   const forfait = useForfait(s);
-  const { wx, lo, hi, loMesure, hiMesure } = useForecast(s);
+  const { wx, loMesure, hiMesure } = useForecast(s);
   const bra = useBra(s.id);
   const cams = useMemo(() => webcamsForStation(s.id), [s.id]);
 
@@ -380,10 +512,6 @@ function FicheBody({ s }: { s: Station }) {
       ? `Photo Skiinfo de la station ${pret.fromName}, même domaine`
       : "Photo Skiinfo"
     : stationPhotoAbsence(s);
-  const braData = bra.etat.status === "pret" ? bra.etat.data : null;
-  const official = braData?.official;
-  const risque = official?.ok && official.risk != null ? official.risk : null;
-
   const pass = coutForfaits(forfait?.j6, forfait?.enf6, adultes, enfants);
   const passGroup = pass.total;
   // Ce que le catalogue estime sans l'avoir relevé : affiché « estimé », hors
@@ -513,11 +641,7 @@ function FicheBody({ s }: { s: Station }) {
             <section className="sect7">
               <div className="carte7-sect__tete">
                 <h2>Aujourd’hui, aux deux altitudes</h2>
-                <span>
-                  {wx.status === "ok"
-                    ? `Open-Meteo, modélisé à ${fmt(lo)} et ${fmt(hi)} m, consulté à ${heure(wx.at)}`
-                    : "Open-Meteo · modélisé, pas relevé au sol"}
-                </span>
+                {wx.status === "ok" ? <span>{meteoEnDateDu(wx.at, fuseauStation(s.country))}</span> : null}
               </div>
               <div className="wx7">
                 <Niveau
@@ -557,116 +681,8 @@ function FicheBody({ s }: { s: Station }) {
             {/* ── Webcams ──────────────────────────────────────────── */}
             <Webcams key={s.id} cams={cams} />
 
-            {/* ── Bulletin d'avalanche ───────────────────────────────
-                Trois états distincts : chargement, données avec heure de
-                relevé, échec avec sa cause. Aucune station ne reste sur une
-                zone vide sans explication. */}
-            <section className="bra7">
-              <span className={`bra7__badge${risque != null ? ` bra7__badge--${risque}` : ""}`}>
-                {risque != null ? risque : "BRA"}
-              </span>
-              <div className="bra7__texte">
-                {bra.etat.status === "chargement" ? (
-                  <>
-                    <strong>Bulletin en cours de chargement…</strong>
-                    <span>Source : Météo-France, données publiques BRA.</span>
-                  </>
-                ) : risque != null ? (
-                  <>
-                    <strong>
-                      Risque {risque} · {BRA_LABELS[risque]?.fr ?? risque}
-                      {braData?.massif ? ` · ${braData.massif}` : ""}
-                    </strong>
-                    <span>
-                      Bulletin officiel Météo-France
-                      {official?.acces === "donnees-ouvertes" ? " (archive publique, data.gouv.fr)" : ""}
-                      {heureLisible(official?.issuedAt) ? (
-                        <>
-                          , publié le <time dateTime={official?.issuedAt ?? undefined}>{heureLisible(official?.issuedAt)}</time>
-                        </>
-                      ) : null}
-                      {braData?.voie ? VOIE_LBL[braData.voie] : ""}.
-                      {/* Un bulletin échu reste lisible, mais il le dit :
-                          l'archive publique peut ne rien avoir de plus
-                          récent. */}
-                      {echu(official?.validUntil) ? (
-                        <>
-                          {" "}
-                          Échu depuis le{" "}
-                          <time dateTime={official?.validUntil ?? undefined}>{heureLisible(official?.validUntil)}</time>,
-                          aucun bulletin plus récent n’est disponible.
-                        </>
-                      ) : null}
-                      {official?.loc1 && official.risk1 != null
-                        ? ` ${BRA_LABELS[official.risk1]?.fr ?? official.risk1} ${lieuLisible(official.loc1)}`
-                        : ""}
-                      {official?.loc2 && official.risk2 != null
-                        ? ` · ${BRA_LABELS[official.risk2]?.fr ?? official.risk2} ${lieuLisible(official.loc2)}`
-                        : ""}
-                      {official?.altitude != null ? ` · bascule à ${fmt(official.altitude)} m` : ""}
-                    </span>
-                  </>
-                ) : braData?.etat === "ok" && official?.message ? (
-                  <>
-                    <strong>Pas de risque publié aujourd’hui</strong>
-                    <span>
-                      {official.message} Massif Météo-France : {braData.massif}
-                      {braData.voie ? VOIE_LBL[braData.voie] : ""}.
-                    </span>
-                  </>
-                ) : braData?.etat === "hors-zone" ? (
-                  <>
-                    <strong>Pas de bulletin pour ce massif</strong>
-                    <span>{braData.cause} Aucun niveau de risque n’est estimé à sa place.</span>
-                  </>
-                ) : braData?.etat === "non-rattache" ? (
-                  <>
-                    <strong>Station non rattachée à un massif Météo-France</strong>
-                    <span>
-                      {braData.cause} Consultez le bulletin du secteur sur le site de
-                      Météo-France.
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <strong>Bulletin non obtenu</strong>
-                    <span>
-                      Massif Météo-France : {braData?.massif ?? "non rattaché"}
-                      {braData?.voie ? VOIE_LBL[braData.voie] : ""}. Dernière tentative :{" "}
-                      {heureLisible(braData?.releveA) ?? "à l’instant"}.{" "}
-                      <button type="button" className="lien-doux" onClick={bra.reessayer}>
-                        Réessayer
-                      </button>
-                    </span>
-                    {/* La cause technique vit dans un détail repliable, jamais
-                        dans le libellé principal. */}
-                    {braData?.cause || bra.etat.status === "echec" ? (
-                      <details className="bra7__detail">
-                        <summary>Détail technique</summary>
-                        <code>
-                          {bra.etat.status === "echec" ? bra.etat.cause : braData?.cause}
-                        </code>
-                      </details>
-                    ) : null}
-                  </>
-                )}
-              </div>
-              <a
-                href={
-                  braData?.massif
-                    ? `https://meteofrance.com/meteo-montagne/${encodeURIComponent(
-                        braData.massif.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[_\s]+/g, "-"),
-                      )}/bulletin-avalanches`
-                    : "https://meteofrance.com/meteo-montagne"
-                }
-                target="_blank"
-                rel="noopener"
-                className="btn7 btn7--fantome"
-              >
-                {braData?.massif ? `Bulletin ${braData.massif}` : "Trouver le bulletin"}
-                <Icon name="externe" taille={12} />
-              </a>
-            </section>
+            {/* ── Bulletin d'avalanche ─────────────────────────────── */}
+            <BulletinAvalanche key={s.id} bra={bra} />
           </div>
 
           <aside className="aside7">
